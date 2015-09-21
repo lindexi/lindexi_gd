@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace 汉字转拼音
 {
-    public class pinyin
+    public class pinyin  
     {  
         string url = "http://apis.baidu.com/xiaogg/changetopinyin/topinyin";
         string param = "str=%E7%99%BE%E5%BA%A6&type=json&traditional=0&accent=0&letter=0&only_chinese=0";
