@@ -120,6 +120,19 @@ namespace 人
             }
         }
 
+        public double ml_魅力_attractive
+        {
+            set
+            {
+                _魅力 = value;
+            }
+
+            get
+            {
+                return _魅力;
+            }            
+        }
+
         public override string ToString()
         {
             return d_等级_level + "级 " + name_名字 + " " + s_生命_lift.ToString();
