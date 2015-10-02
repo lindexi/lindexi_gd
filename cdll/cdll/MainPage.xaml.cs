@@ -24,15 +24,11 @@ namespace cdll
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        viewModel view;
         public MainPage()
         {
-            this.InitializeComponent();
-        }
-        public void ce()
-        {
-            c_人 r = new c_人(new Random());
-            FileStream fs = new FileStream(@"Y:\1.txt" , FileMode.Create);
-            byte[] buff;
-        }
+            view = new viewModel();
+            this.InitializeComponent();          
+        }       
     }
 }

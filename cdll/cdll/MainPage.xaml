@@ -8,6 +8,7 @@
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-
+        <TextBlock Text="{x:Bind view.reminder}" HorizontalAlignment="Center"/>
+        <Button Content="按钮" Click="{x:Bind view.ce}" HorizontalAlignment="Center"/>
     </Grid>
 </Page>
