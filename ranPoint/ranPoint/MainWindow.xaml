@@ -7,6 +7,20 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
     <Grid>
-        
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>            
+        </Grid.RowDefinitions>
+        <TextBox Text="{Binding Path=reminder,Mode=OneWay}" Grid.Row="0" Margin="10,10,10,10" TextWrapping="Wrap"/>
+        <StackPanel Grid.Row="1" Orientation="Horizontal">
+            <TextBlock Text="x最大"/>
+            <TextBox Text="{Binding Path=xl,Mode=TwoWay}" Width="100"/>
+            <TextBlock Text="y最大"/>
+            <TextBox Text="{Binding Path=yl,Mode=TwoWay}" Width="100"/>
+            <TextBlock Text="文件位置"/>
+            <TextBox Text="{Binding Path=fileAddress,Mode=TwoWay}"/>
+        </StackPanel>
+        <Button Content="确定" Grid.Row="2" Margin="10,10,10,10" Click="确定" Width="100" HorizontalAlignment="Right"/>
     </Grid>
 </Window>
