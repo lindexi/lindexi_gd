@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Xml.Serialization;
 
 namespace ViewModel
 {
+    [Serializable]
     public class viewModel : notify_property
     {
         public viewModel()
@@ -40,7 +43,7 @@ namespace ViewModel
                 num = Math.Sqrt(num);
             }
             points.Add(p);
-            write("(" + points[0].X.ToString() + "," + points[0].Y.ToString() + ")\r\n" + "(" + points[1].X.ToString() + "," + points[1].Y.ToString() + ")\r\n");           
+            write("(" + points[0].X.ToString() + "," + points[0].Y.ToString() + ")\r\n" + "(" + points[1].X.ToString() + "," + points[1].Y.ToString() + ")\r\n");
             reminder += "(" + points[0].X.ToString() + "," + points[0].Y.ToString() + ")\r\n";
             reminder += "(" + points[1].X.ToString() + "," + points[1].Y.ToString() + ")\r\n";
 
@@ -197,6 +200,27 @@ namespace ViewModel
             file.Close();
         }
 
+        private void read()
+        {
+            //序列化退出 [Serializable]   
+            if (!( points.Count == 0 ))
+            {
+                using (FileStream file = new FileStream(fileAddress , FileMode.Create , FileAccess.Write))
+                {
+                    XmlSerializer xml = new XmlSerializer(typeof(List<Point>));
+                    xml.Serialize(file , points);
+                }
+            }
+            else
+            {
+                using (FileStream file = new FileStream(fileAddress , FileMode.Open , FileAccess.Read))
+                {
+                    XmlSerializer xml = new XmlSerializer(typeof(List<Point>));
+                    points = (List<Point>)xml.Deserialize(file);
+                }
+            }
+        }
+
         private bool integer(double num)
         {
             double decimalnum = 0.000000001;
@@ -217,6 +241,6 @@ namespace ViewModel
         private int _xl;
         private int _yl;
         private List<Point> points = new List<Point>();
-        
+
     }
 }
