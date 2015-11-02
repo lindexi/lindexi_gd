@@ -26,7 +26,7 @@ namespace ViewModel
             //p.Y = (double)ran.Next(yl * 100) / 100;
             p.X = ran.Next(xl);
             p.Y = ran.Next(yl);
-            //points.Add(p);
+            points.Add(p);
             //p = new Point();
             //double num;
             //num = 0.1;
