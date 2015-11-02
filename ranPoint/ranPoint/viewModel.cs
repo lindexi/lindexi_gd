@@ -21,25 +21,25 @@ namespace ViewModel
             yl = 100;
             fileAddress = @"Y:\ran_ponit.txt";
 
-            Point p = new Point();
+            //Point p = new Point();
             //p.X = (double)ran.Next(xl * 100) / 100;
             //p.Y = (double)ran.Next(yl * 100) / 100;
-            p.X = ran.Next(xl);
-            p.Y = ran.Next(yl);
-            points.Add(p);
+            //p.X = ran.Next(xl);
+            //p.Y = ran.Next(yl);
+            //points.Add(p);
             //p = new Point();
             //double num;
             //num = 0.1;
             //while (!integer(num))
             //{
-            //    //p.X = (double)ran.Next(xl * 100) / 100;
-            //    //p.Y = (double)ran.Next(yl * 100) / 100;
-            //    p.X = ran.Next(xl);
-            //    p.Y = ran.Next(yl);
-            //    while (p.X == points[0].X || p.Y == points[0].Y)
-            //    {
-            //        //p.X = (double)ran.Next(xl * 100) / 100;
-            //        //p.Y = (double)ran.Next(yl * 100) / 100;
+                //p.X = (double)ran.Next(xl * 100) / 100;
+                //p.Y = (double)ran.Next(yl * 100) / 100;
+                //p.X = ran.Next(xl);
+                //p.Y = ran.Next(yl);
+                //while (p.X == points[0].X || p.Y == points[0].Y)
+                //{
+                    //p.X = (double)ran.Next(xl * 100) / 100;
+                    //p.Y = (double)ran.Next(yl * 100) / 100;
             //        p.X = ran.Next(xl);
             //        p.Y = ran.Next(yl);
             //    }
@@ -48,9 +48,9 @@ namespace ViewModel
             //    num = Math.Sqrt(num);
             //}
             //points.Add(p);
-            write("(" + points[0].X.ToString() + "," + points[0].Y.ToString() + ")\r\n");
+            //write("(" + points[0].X.ToString() + "," + points[0].Y.ToString() + ")\r\n");
             //write("(" + points[1].X.ToString() + "," + points[1].Y.ToString() + ")\r\n");
-            reminder += "(" + points[0].X.ToString() + "," + points[0].Y.ToString() + ")\r\n";
+            //reminder += "(" + points[0].X.ToString() + "," + points[0].Y.ToString() + ")\r\n";
             //reminder += "(" + points[1].X.ToString() + "," + points[1].Y.ToString() + ")\r\n";
 
             _cancel = true;
@@ -143,6 +143,38 @@ namespace ViewModel
             bool pointnull;
             bool finish;
             double num;
+
+            //p.X = (double)ran.Next(xl * 100) / 100;
+            //p.Y = (double)ran.Next(yl * 100) / 100;
+            p.X = ran.Next(xl);
+            p.Y = ran.Next(yl);
+            points.Add(p);
+            p = new Point();
+
+            num = 0.1;
+            while (!integer(num))
+            {
+                //p.X = (double)ran.Next(xl * 100) / 100;
+                //p.Y = (double)ran.Next(yl * 100) / 100;
+                p.X = ran.Next(xl);
+                p.Y = ran.Next(yl);
+                while (p.X == points[0].X || p.Y == points[0].Y)
+                {
+                    //p.X = (double)ran.Next(xl * 100) / 100;
+                    //p.Y = (double)ran.Next(yl * 100) / 100;
+                    p.X = ran.Next(xl);
+                    p.Y = ran.Next(yl);
+                }
+
+                num = Math.Pow(points[0].X - p.X , 2) + Math.Pow(points[0].Y - p.Y , 2);
+                num = Math.Sqrt(num);
+            }
+            points.Add(p);
+            //write("(" + points[0].X.ToString() + "," + points[0].Y.ToString() + ")\r\n");
+            //write("(" + points[1].X.ToString() + "," + points[1].Y.ToString() + ")\r\n");
+            reminder += "(" + points[0].X.ToString() + "," + points[0].Y.ToString() + ")\r\n";
+            reminder += "(" + points[1].X.ToString() + "," + points[1].Y.ToString() + ")\r\n";
+
             p.X = 0;
             p.Y = 0;
             pointnull = false;
@@ -182,13 +214,25 @@ namespace ViewModel
                 {
                     p = satisfy[ran.Next(satisfy.Count)];
                     points.Add(p);
-                    write("(" + p.X.ToString() + "," + p.Y.ToString() + ")\r\n");
+                    //write("(" + p.X.ToString() + "," + p.Y.ToString() + ")\r\n");
                     reminder += "(" + p.X.ToString() + "," + p.Y.ToString() + ")\r\n";
                 }
                 else
                 {
                     reminder += "没有点";
                     pointnull = true;
+                    string temp;
+                    temp=fileAddress;
+                    fileAddress = fileAddress.Substring(0 , fileAddress.Length - 4) + ran.Next().ToString();
+                    fileAddress = fileAddress + ".txt";
+                    StringBuilder str = new StringBuilder();
+                    foreach (var t in points)
+                    {
+                        str.Append("(" + p.X.ToString() + "," + p.Y.ToString() + ")\r\n");
+                    }
+                    write(str.ToString());
+                    points = new List<Point>();
+                    fileAddress = temp;
                 }
             }
 
