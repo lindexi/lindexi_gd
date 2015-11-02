@@ -27,30 +27,31 @@ namespace ViewModel
             p.X = ran.Next(xl);
             p.Y = ran.Next(yl);
             points.Add(p);
-            p = new Point();
-            double num;
-            num = 0.1;
-            while (!integer(num))
-            {
-                //p.X = (double)ran.Next(xl * 100) / 100;
-                //p.Y = (double)ran.Next(yl * 100) / 100;
-                p.X = ran.Next(xl);
-                p.Y = ran.Next(yl);
-                while (p.X == points[0].X || p.Y == points[0].Y)
-                {
-                    //p.X = (double)ran.Next(xl * 100) / 100;
-                    //p.Y = (double)ran.Next(yl * 100) / 100;
-                    p.X = ran.Next(xl);
-                    p.Y = ran.Next(yl);
-                }
+            //p = new Point();
+            //double num;
+            //num = 0.1;
+            //while (!integer(num))
+            //{
+            //    //p.X = (double)ran.Next(xl * 100) / 100;
+            //    //p.Y = (double)ran.Next(yl * 100) / 100;
+            //    p.X = ran.Next(xl);
+            //    p.Y = ran.Next(yl);
+            //    while (p.X == points[0].X || p.Y == points[0].Y)
+            //    {
+            //        //p.X = (double)ran.Next(xl * 100) / 100;
+            //        //p.Y = (double)ran.Next(yl * 100) / 100;
+            //        p.X = ran.Next(xl);
+            //        p.Y = ran.Next(yl);
+            //    }
 
-                num = Math.Pow(points[0].X - p.X , 2) + Math.Pow(points[0].Y - p.Y , 2);
-                num = Math.Sqrt(num);
-            }
-            points.Add(p);
-            write("(" + points[0].X.ToString() + "," + points[0].Y.ToString() + ")\r\n" + "(" + points[1].X.ToString() + "," + points[1].Y.ToString() + ")\r\n");
+            //    num = Math.Pow(points[0].X - p.X , 2) + Math.Pow(points[0].Y - p.Y , 2);
+            //    num = Math.Sqrt(num);
+            //}
+            //points.Add(p);
+            write("(" + points[0].X.ToString() + "," + points[0].Y.ToString() + ")\r\n");
+            //write("(" + points[1].X.ToString() + "," + points[1].Y.ToString() + ")\r\n");
             reminder += "(" + points[0].X.ToString() + "," + points[0].Y.ToString() + ")\r\n";
-            reminder += "(" + points[1].X.ToString() + "," + points[1].Y.ToString() + ")\r\n";
+            //reminder += "(" + points[1].X.ToString() + "," + points[1].Y.ToString() + ")\r\n";
 
             _cancel = true;
         }
@@ -139,49 +140,55 @@ namespace ViewModel
 
             List<Point> satisfy = new List<Point>();
             Point p = new Point();
+            bool pointnull;
             bool finish;
             double num;
             p.X = 0;
             p.Y = 0;
-            for (int i = 0; i < xl; i++)
+            pointnull = false;
+            while (!pointnull)
             {
-                for (int j = 0; j < yl; j++)
+                for (int i = 0; i < xl; i++)
                 {
-                    p.X = i;
-                    p.Y = j;
-                    finish = true;
-                    foreach (Point t in points)
+                    for (int j = 0; j < yl; j++)
                     {
-                        if (p.X == t.X && p.Y == t.Y)
+                        p.X = i;
+                        p.Y = j;
+                        finish = true;
+                        foreach (Point t in points)
                         {
-                            finish = false;
-                            break;
+                            if (p.X == t.X && p.Y == t.Y)
+                            {
+                                finish = false;
+                                break;
+                            }
+                            num = Math.Pow(t.X - p.X , 2) + Math.Pow(t.Y - p.Y , 2);
+                            num = Math.Sqrt(num);
+                            if (!integer(num))
+                            {
+                                finish = false;
+                                break;
+                            }
                         }
-                        num = Math.Pow(t.X - p.X , 2) + Math.Pow(t.Y - p.Y , 2);
-                        num = Math.Sqrt(num);
-                        if (!integer(num))
+                        if (finish)
                         {
-                            finish = false;
-                            break;
+                            satisfy.Add(p);
+                            p = new Point();
                         }
-                    }
-                    if (finish)
-                    {
-                        satisfy.Add(p);
-                        p = new Point();
                     }
                 }
-            }
-            if (satisfy.Count > 0)
-            {
-                p = satisfy[ran.Next(satisfy.Count)];
-                points.Add(p);
-                write("(" + p.X.ToString() + "," + p.Y.ToString() + ")\r\n");
-                reminder += "(" + p.X.ToString() + "," + p.Y.ToString() + ")\r\n";
-            }
-            else
-            {
-                reminder += "没有点";
+                if (satisfy.Count > 0)
+                {
+                    p = satisfy[ran.Next(satisfy.Count)];
+                    points.Add(p);
+                    write("(" + p.X.ToString() + "," + p.Y.ToString() + ")\r\n");
+                    reminder += "(" + p.X.ToString() + "," + p.Y.ToString() + ")\r\n";
+                }
+                else
+                {
+                    reminder += "没有点";
+                    pointnull = true;
+                }
             }
 
 
