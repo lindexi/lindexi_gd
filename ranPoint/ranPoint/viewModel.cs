@@ -26,7 +26,7 @@ namespace ViewModel
             //p.Y = (double)ran.Next(yl * 100) / 100;
             p.X = ran.Next(xl);
             p.Y = ran.Next(yl);
-            points.Add(p);
+            //points.Add(p);
             //p = new Point();
             //double num;
             //num = 0.1;
@@ -138,7 +138,7 @@ namespace ViewModel
         {
             _cancel = false;
 
-            List<Point> satisfy = new List<Point>();
+            List<Point> satisfy;
             Point p = new Point();
             bool pointnull;
             bool finish;
@@ -148,6 +148,7 @@ namespace ViewModel
             pointnull = false;
             while (!pointnull)
             {
+                satisfy = new List<Point>();
                 for (int i = 0; i < xl; i++)
                 {
                     for (int j = 0; j < yl; j++)
