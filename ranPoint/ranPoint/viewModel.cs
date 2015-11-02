@@ -172,8 +172,17 @@ namespace ViewModel
                     }
                 }
             }
-
-            p = satisfy[ran.Next(satisfy.Count)];
+            if (satisfy.Count > 0)
+            {
+                p = satisfy[ran.Next(satisfy.Count)];
+                points.Add(p);
+                write("(" + p.X.ToString() + "," + p.Y.ToString() + ")\r\n");
+                reminder += "(" + p.X.ToString() + "," + p.Y.ToString() + ")\r\n";
+            }
+            else
+            {
+                reminder += "没有点";
+            }
 
 
             //Point p = new Point();
@@ -228,9 +237,7 @@ namespace ViewModel
             //        }
             //    }
             //}
-            points.Add(p);
-            write("(" + p.X.ToString() + "," + p.Y.ToString() + ")\r\n");
-            reminder += "(" + p.X.ToString() + "," + p.Y.ToString() + ")\r\n";
+            
             _cancel = true;
         }
 
