@@ -22,21 +22,26 @@ namespace ViewModel
             fileAddress = @"Y:\ran_ponit.txt";
 
             Point p = new Point();
-
-            p.X = (double)ran.Next(xl * 100) / 100;
-            p.Y = (double)ran.Next(yl * 100) / 100;
+            //p.X = (double)ran.Next(xl * 100) / 100;
+            //p.Y = (double)ran.Next(yl * 100) / 100;
+            p.X = ran.Next(xl);
+            p.Y = ran.Next(yl);
             points.Add(p);
             p = new Point();
             double num;
             num = 0.1;
             while (!integer(num))
             {
-                p.X = (double)ran.Next(xl * 100) / 100;
-                p.Y = (double)ran.Next(yl * 100) / 100;
+                //p.X = (double)ran.Next(xl * 100) / 100;
+                //p.Y = (double)ran.Next(yl * 100) / 100;
+                p.X = ran.Next(xl);
+                p.Y = ran.Next(yl);
                 while (p.X == points[0].X || p.Y == points[0].Y)
                 {
-                    p.X = (double)ran.Next(xl * 100) / 100;
-                    p.Y = (double)ran.Next(yl * 100) / 100;
+                    //p.X = (double)ran.Next(xl * 100) / 100;
+                    //p.Y = (double)ran.Next(yl * 100) / 100;
+                    p.X = ran.Next(xl);
+                    p.Y = ran.Next(yl);
                 }
 
                 num = Math.Pow(points[0].X - p.X , 2) + Math.Pow(points[0].Y - p.Y , 2);
@@ -132,6 +137,43 @@ namespace ViewModel
         {
             _cancel = false;
 
+            List<Point> satisfy = new List<Point>();
+            Point p = new Point();
+            bool finish;
+            double num;
+            p.X = 0;
+            p.Y = 0;
+            for (int i = 0; i < xl; i++)
+            {
+                for (int j = 0; j < yl; j++)
+                {
+                    p.X = i;
+                    p.Y = j;
+                    finish = true;
+                    foreach (Point t in points)
+                    {
+                        if (p.X == t.X && p.Y == t.Y)
+                        {
+                            finish = false;
+                            break;
+                        }
+                        num = Math.Pow(t.X - p.X , 2) + Math.Pow(t.Y - p.Y , 2);
+                        num = Math.Sqrt(num);
+                        if (!integer(num))
+                        {
+                            finish = false;
+                            break;
+                        }
+                    }
+                    if (finish)
+                    {
+                        satisfy.Add(p);
+                        p = new Point();
+                    }
+                }
+            }
+
+            p = satisfy[ran.Next(satisfy.Count)];
 
 
             //Point p = new Point();
@@ -186,9 +228,9 @@ namespace ViewModel
             //        }
             //    }
             //}
-            //points.Add(p);
-            //write("(" + p.X.ToString() + "," + p.Y.ToString() + ")\r\n");
-            //reminder += "(" + p.X.ToString() + "," + p.Y.ToString() + ")\r\n";
+            points.Add(p);
+            write("(" + p.X.ToString() + "," + p.Y.ToString() + ")\r\n");
+            reminder += "(" + p.X.ToString() + "," + p.Y.ToString() + ")\r\n";
             _cancel = true;
         }
 
