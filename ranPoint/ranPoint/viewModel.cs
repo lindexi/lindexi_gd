@@ -132,61 +132,63 @@ namespace ViewModel
         {
             _cancel = false;
 
-            Point p = new Point();
-            bool finish;
-            double num;
-            //int[] x = new int[xl];
-            //int[] y = new int[yl];
-            //for (int i = 0; i < xl; i++)
-            //{
-            //    x[i] = 0;
-            //}
-            //for (int i = 0; i < yl; i++)
-            //{
-            //    y[i] = 0;
-            //}
 
-            //foreach (Point t in points)
+
+            //Point p = new Point();
+            //bool finish;
+            //double num;
+            ////int[] x = new int[xl];
+            ////int[] y = new int[yl];
+            ////for (int i = 0; i < xl; i++)
+            ////{
+            ////    x[i] = 0;
+            ////}
+            ////for (int i = 0; i < yl; i++)
+            ////{
+            ////    y[i] = 0;
+            ////}
+
+            ////foreach (Point t in points)
+            ////{
+            ////    x[(int)t.X]++;
+            ////    y[(int)t.Y]++;
+            ////}
+
+            //num = 0;
+            //finish = false;
+            //while (!finish)
             //{
-            //    x[(int)t.X]++;
-            //    y[(int)t.Y]++;
+            //    finish = true;
+            //    p.X = (double)ran.Next(xl * 100) / 100;
+            //    p.Y = (double)ran.Next(yl * 100) / 100;
+            //    //while (x[(int)p.X] > 3)
+            //    //{
+            //    //    p.X = ran.Next(xl);
+            //    //}
+            //    //while (y[(int)p.Y] > 3)
+            //    //{
+            //    //    p.X = ran.Next(xl);
+            //    //}
+
+            //    foreach (Point t in points)
+            //    {
+            //        if (p.X == t.X && p.Y == t.Y)
+            //        {
+            //            finish = false;
+            //            break;
+            //        }
+            //        num = Math.Pow(t.X - p.X , 2) + Math.Pow(t.Y - p.Y , 2);
+            //        num = Math.Sqrt(num);
+            //        if (!integer(num))
+            //        {
+            //            finish = false;
+            //            break;
+            //        }
+            //    }
             //}
-
-            num = 0;
-            finish = false;
-            while (!finish)
-            {
-                finish = true;
-                p.X = (double)ran.Next(xl * 100) / 100;
-                p.Y = (double)ran.Next(yl * 100) / 100;
-                //while (x[(int)p.X] > 3)
-                //{
-                //    p.X = ran.Next(xl);
-                //}
-                //while (y[(int)p.Y] > 3)
-                //{
-                //    p.X = ran.Next(xl);
-                //}
-
-                foreach (Point t in points)
-                {
-                    if (p.X == t.X && p.Y == t.Y)
-                    {
-                        finish = false;
-                        break;
-                    }
-                    num = Math.Pow(t.X - p.X , 2) + Math.Pow(t.Y - p.Y , 2);
-                    num = Math.Sqrt(num);
-                    if (!integer(num))
-                    {
-                        finish = false;
-                        break;
-                    }
-                }
-            }
-            points.Add(p);
-            write("(" + p.X.ToString() + "," + p.Y.ToString() + ")\r\n");
-            reminder += "(" + p.X.ToString() + "," + p.Y.ToString() + ")\r\n";
+            //points.Add(p);
+            //write("(" + p.X.ToString() + "," + p.Y.ToString() + ")\r\n");
+            //reminder += "(" + p.X.ToString() + "," + p.Y.ToString() + ")\r\n";
             _cancel = true;
         }
 
