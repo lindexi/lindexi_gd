@@ -44,6 +44,7 @@ namespace popupMenu菜单
             menu.Commands.Add(cmdYellow);
             GeneralTransform gt = tb.TransformToVisual(null);
             Point popupPoint = gt.TransformPoint(new Point(0d , tb.ActualHeight));
+            tb.Text = popupPoint.X.ToString() + " " + popupPoint.Y.ToString();
             await menu.ShowAsync(popupPoint);
         }
     }
