@@ -5,6 +5,8 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.UI;
+using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -27,9 +29,22 @@ namespace popupMenu菜单
             this.InitializeComponent();
         }
 
-        private void Button_Click(object sender , RoutedEventArgs e)
+        private async void Button_Click(object sender , RoutedEventArgs e)
         {
+            PopupMenu menu = new PopupMenu();
 
+            UICommandInvokedHandler invokedHandler = (cmd) =>
+            {
+                SolidColorBrush brush = cmd.Id as SolidColorBrush;
+                tb.Foreground = brush;
+            };
+            UICommand cmdred = new UICommand("红" , invokedHandler , new SolidColorBrush(Colors.Red));
+            UICommand cmdYellow = new UICommand("黄" , invokedHandler , new SolidColorBrush(Colors.Yellow));
+            menu.Commands.Add(cmdred);
+            menu.Commands.Add(cmdYellow);
+            GeneralTransform gt = tb.TransformToVisual(null);
+            Point popupPoint = gt.TransformPoint(new Point(0d , tb.ActualHeight));
+            await menu.ShowAsync(popupPoint);
         }
     }
 }
