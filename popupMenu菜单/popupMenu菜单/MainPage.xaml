@@ -9,6 +9,6 @@
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <TextBlock Text="asdhfciuawn" x:Name="tb" VerticalAlignment="Center" Margin="10,10,10,10"/>
-        <Button Content="确定" Margin="10,10,10,10" VerticalAlignment="Center" Click="Button_Click"/>
+        <Button Content="确定" Margin="300,598,0,10" VerticalAlignment="Center" Click="Button_Click"/>
     </Grid>
 </Page>
