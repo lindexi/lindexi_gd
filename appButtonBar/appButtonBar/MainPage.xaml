@@ -10,7 +10,6 @@
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <ScrollViewer HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Disabled">
             <StackPanel x:Name="xgrid" Orientation="Horizontal" Background="Black">
-
                 <StackPanel Orientation="Vertical"  VerticalAlignment="Bottom" Margin = "10,10,10,10">
                     <AppBarButton  Background = "White" Margin = "10,10,10,10" Icon = "Previous" Label = "Previous" />
                     <AppBarButton  Background = "White" Margin = "10,10,10,10" Icon = "Next" Label = "Next" />

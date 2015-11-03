@@ -25,8 +25,7 @@ namespace appButtonBar
     {
         public MainPage()
         {            
-            this.InitializeComponent();
+            this.InitializeComponent();            
         }
-
     }
 }

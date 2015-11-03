@@ -32,14 +32,14 @@ namespace ViewModel
             //num = 0.1;
             //while (!integer(num))
             //{
-                //p.X = (double)ran.Next(xl * 100) / 100;
-                //p.Y = (double)ran.Next(yl * 100) / 100;
-                //p.X = ran.Next(xl);
-                //p.Y = ran.Next(yl);
-                //while (p.X == points[0].X || p.Y == points[0].Y)
-                //{
-                    //p.X = (double)ran.Next(xl * 100) / 100;
-                    //p.Y = (double)ran.Next(yl * 100) / 100;
+            //p.X = (double)ran.Next(xl * 100) / 100;
+            //p.Y = (double)ran.Next(yl * 100) / 100;
+            //p.X = ran.Next(xl);
+            //p.Y = ran.Next(yl);
+            //while (p.X == points[0].X || p.Y == points[0].Y)
+            //{
+            //p.X = (double)ran.Next(xl * 100) / 100;
+            //p.Y = (double)ran.Next(yl * 100) / 100;
             //        p.X = ran.Next(xl);
             //        p.Y = ran.Next(yl);
             //    }
@@ -150,7 +150,7 @@ namespace ViewModel
             p.Y = ran.Next(yl);
             points.Add(p);
             p = new Point();
-
+            reminder = "";
             num = 0.1;
             while (!integer(num))
             {
@@ -222,13 +222,16 @@ namespace ViewModel
                     reminder += "没有点";
                     pointnull = true;
                     string temp;
-                    temp=fileAddress;
-                    fileAddress = fileAddress.Substring(0 , fileAddress.Length - 4) + ran.Next().ToString();
+                    temp = fileAddress;
+                    fileAddress = fileAddress.Substring(0 , fileAddress.Length - 4);
+                    fileAddress += DateTime.Now.Hour.ToString();
+                    fileAddress += DateTime.Now.Minute.ToString();
+                    fileAddress += DateTime.Now.Second.ToString();
                     fileAddress = fileAddress + ".txt";
                     StringBuilder str = new StringBuilder();
                     foreach (var t in points)
                     {
-                        str.Append("(" + p.X.ToString() + "," + p.Y.ToString() + ")\r\n");
+                        str.Append("(" + t.X.ToString() + "," + t.Y.ToString() + ")\r\n");
                     }
                     write(str.ToString());
                     points = new List<Point>();
@@ -289,7 +292,7 @@ namespace ViewModel
             //        }
             //    }
             //}
-            
+
             _cancel = true;
         }
 
