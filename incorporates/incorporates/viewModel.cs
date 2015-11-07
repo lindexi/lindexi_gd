@@ -40,6 +40,7 @@ namespace incorporates
         {
             set
             {
+                value = false;
             }
             get
             {
@@ -50,6 +51,7 @@ namespace incorporates
         {
             set
             {
+                value = false;
             }
             get
             {
@@ -60,6 +62,7 @@ namespace incorporates
         {
             set
             {
+                value = false;
             }
             get
             {
@@ -70,10 +73,96 @@ namespace incorporates
         {
             set
             {
+                value = false;
             }
             get
             {
                 return p.money >= 新建发电器钱;
+            }
+        }
+
+        public string 停靠reminder
+        {
+            set
+            {
+                value = string.Empty;
+                //OnPropertyChanged();
+            }
+            get
+            {
+                StringBuilder str = new StringBuilder();
+                str.Append("拥有停车 " + p.停靠.Count.ToString() + "\r\n");
+                str.Append("新建需要钱 " + 新建停靠钱.ToString() + "\r\n");
+                foreach (var t in p.停靠)
+                {
+                    str.Append(string.Format("需要电量{0} 停车{1} 停车率{2} 维修费用{3} 耐久{4}/{5}\r\n",t.num_电量,t.berth_停靠,t.per_停靠率,t.maintenanceCosts_维修费用,t.ng_耐久.n_耐久_durable,t.ng_耐久.max_最大耐久_max_durable));
+                    if (t.berth_停靠)
+                    {
+                        str.Append("    电量" + t.t.num_电量.ToString() + "\r\n");
+                    }
+                    //str.Append(t.reminder);
+                    //t.reminder = string.Empty;            
+                }
+                return str.ToString();
+            }
+        }
+        public string 集电器reminder
+        {
+            set
+            {
+                value = string.Empty;
+                //OnPropertyChanged();
+            }
+            get
+            {
+                StringBuilder str = new StringBuilder();
+                str.Append("拥有集电器 " + p.集电器.Count.ToString() + "\r\n");
+                str.Append("新建需要钱 " + 新建集电器钱.ToString() + "\r\n");
+                foreach (var t in p.集电器)
+                {
+                    str.Append(string.Format("电量{0}/{1} 维修费用{2} 耐久{3}/{4}\r\n",t.num_电量,t.max_最大电量,t.maintenanceCosts_维修费用,t.ng_耐久.n_耐久_durable,t.ng_耐久.max_最大耐久_max_durable));
+                }               
+                return str.ToString();
+            }
+        }
+        public string 充电reminder
+        {
+            set
+            {
+                value = string.Empty;
+                //OnPropertyChanged();
+            }
+            get
+            {
+                StringBuilder str = new StringBuilder();
+                str.Append("拥有充电 " + p.充电.Count.ToString() + "\r\n");
+                str.Append("新建需要钱 " + 新建充电钱.ToString() + "\r\n");
+                foreach (var t in p.充电)
+                {
+                    str.Append(string.Format("电量{0} 维修费用{1} 耐久{2}/{3}\r\n" , t.num_充电数 , t.maintenanceCosts_维修费用 , t.ng_耐久.n_耐久_durable , t.ng_耐久.max_最大耐久_max_durable));
+                    //str.Append("电量" + t.num_充电数.ToString() + " 维修费用" + t.maintenanceCosts_维修费用.ToString());
+                    //str.Append(" 耐久" + t.ng_耐久.n_耐久_durable.ToString() + "/" + t.ng_耐久.max_最大耐久_max_durable.ToString());
+                }
+                return str.ToString();
+            }
+        }
+        public string 发电器reminder
+        {
+            set
+            {
+                value = string.Empty;
+                //OnPropertyChanged();
+            }
+            get
+            {
+                StringBuilder str = new StringBuilder();
+                str.Append("拥有发电器 " + p.发电器.Count.ToString() + "\r\n");
+                str.Append("新建需要钱 " + 新建发电器钱.ToString() + "\r\n");
+                foreach (var t in p.发电器)
+                {
+                    str.Append(string.Format("发电{0} 维修费用{1} 耐久{2}/{3}\r\n" , t.num_发电数 , t.maintenanceCosts_维修费用 , t.ng_耐久.n_耐久_durable , t.ng_耐久.max_最大耐久_max_durable));
+                }
+                return str.ToString();
             }
         }
 
@@ -101,6 +190,12 @@ namespace incorporates
         public void n_下回合()
         {
             ( (In_下回合_bout)_property ).n_下回合();
+
+            OnPropertyChanged("停靠reminder");
+            OnPropertyChanged("集电器reminder");
+            OnPropertyChanged("充电reminder");
+            OnPropertyChanged("发电器reminder");
+
         }
 
         private double 新建停靠钱;

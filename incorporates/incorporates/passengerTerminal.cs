@@ -106,6 +106,7 @@ namespace incorporates
                 _property.money += t.money_价格;
                 berth_停靠 = false;
                 reminder = "获得金钱：" + t.money_价格.ToString();
+                _property.reminder= "获得金钱：" + t.money_价格.ToString();
                 return true;
             }
 
