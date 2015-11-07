@@ -37,7 +37,9 @@ namespace incorporates
         {
             set
             {
-                _停靠率 = value;
+                double max = 1;
+                double min = 0;
+                _停靠率 = instrument.region(max,min,value);
             }
             get
             {

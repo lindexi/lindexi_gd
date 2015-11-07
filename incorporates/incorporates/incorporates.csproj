@@ -102,6 +102,7 @@
     </Compile>
     <Compile Include="charger.cs" />
     <Compile Include="electricOrgan.cs" />
+    <Compile Include="instrument.cs" />
     <Compile Include="In_下回合_bout.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
