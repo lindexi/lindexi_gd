@@ -12,6 +12,9 @@ namespace incorporates
         {
             ng_耐久 = new ng_耐久_durable(2000);
             this._property = _property;
+
+            num_充电数 = instrument.ran.Next(1000);
+            maintenanceCosts_维修费用 = 100;
         }
         public double num_充电数
         {
@@ -24,7 +27,17 @@ namespace incorporates
                 return _充电数;
             }
         }
-
+        public double maintenanceCosts_维修费用
+        {
+            set
+            {
+                _维修费用_maintenanceCosts = value;
+            }
+            get
+            {
+                return _维修费用_maintenanceCosts;
+            }
+        }
         public ng_耐久_durable ng_耐久
         {
             set
@@ -39,11 +52,33 @@ namespace incorporates
 
         public void 充电()
         {
-
+            if (_train == null)
+            {
+                foreach (var t in _property.停靠)
+                {
+                    if (t.t.充电 == null)
+                    {
+                        t.t.充电 = this;
+                        _train = t.t;
+                    }
+                }
+            }
+            else
+            {
+                if (_train.num_电量 <= 0)
+                {
+                    _train = null;
+                }
+                else
+                {
+                    _train.num_电量 -= num_充电数;
+                }
+            }
         }
         private ng_耐久_durable _耐久;
         private double _充电数;
-        private double _维修费用;
+        private double _维修费用_maintenanceCosts;
+        private train _train;
         property _property;
     }
 }

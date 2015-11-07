@@ -11,6 +11,10 @@ namespace incorporates
         public electricOrgan(property _property)
         {
             this._property = _property;
+            ng_耐久 = new ng_耐久_durable(1000);
+
+            num_发电数 = 1000;
+            maintenanceCosts_维修费用 = 1000;
         }
         public double num_发电数
         {

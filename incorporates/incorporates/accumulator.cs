@@ -13,6 +13,9 @@ namespace incorporates
             this._property = _property;
             ng_耐久 = new ng_耐久_durable(1000);
 
+            max_最大电量 = 1000;
+            num_电量 = 0;
+            maintenanceCosts_维修费用 = 100;
         }
         public double max_最大电量
         {
@@ -50,7 +53,7 @@ namespace incorporates
                 return _耐久_durable;
             }
         }
-        public double 维修费用
+        public double maintenanceCosts_维修费用
         {
             set
             {
@@ -69,6 +72,12 @@ namespace incorporates
             {
                 n = num_电量 - max_最大电量;
                 num_电量 = max_最大电量;
+                return n;
+            }
+            else if (num_电量 < 0)
+            {
+                n = 0 - num_电量;
+                num_电量 = 0;
                 return n;
             }
             else

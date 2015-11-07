@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using ViewModel;
 namespace incorporates
 {
-    public class viewModel:notify_property, In_下回合_bout
+    public class viewModel : notify_property, In_下回合_bout
     {
         public viewModel()
         {
@@ -17,17 +17,11 @@ namespace incorporates
             充电 = new charger(p);
             停靠 = new passengerTerminal(p);
             发电器 = new electricOrgan(p);
-        }
 
-        private void _property_PropertyChanged(object sender , System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "money")
-            {
-                OnPropertyChanged("可以新建停靠");
-                OnPropertyChanged("可以新建集电器");
-                OnPropertyChanged("可以新建充电");
-                OnPropertyChanged("可以新建发电器");
-            }
+            新建停靠钱 = 1000;
+            新建集电器钱 = 1000;
+            新建充电钱 = 1000;
+            新建发电器钱 = 1000;
         }
 
         public property p
@@ -120,7 +114,15 @@ namespace incorporates
         private electricOrgan 发电器;
 
         private property _property;
-
-        
+        private void _property_PropertyChanged(object sender , System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "money")
+            {
+                OnPropertyChanged("可以新建停靠");
+                OnPropertyChanged("可以新建集电器");
+                OnPropertyChanged("可以新建充电");
+                OnPropertyChanged("可以新建发电器");
+            }
+        }
     }
 }

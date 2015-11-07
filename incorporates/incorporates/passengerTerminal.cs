@@ -15,6 +15,10 @@ namespace incorporates
 
             t = new train();
             berth_停靠 = false;
+
+            per_停靠率 = instrument.ran.Next(10000) / 10000.0;
+            _电量 = instrument.ran.Next(100);
+            maintenanceCosts_维修费用= instrument.ran.Next(100);
         }
         public ng_耐久_durable ng_耐久
         {
@@ -74,6 +78,10 @@ namespace incorporates
             }
             get
             {
+                if (berth_停靠)
+                {
+                    return instrument.ran.Next(1000);
+                }
                 return _电量;
             }
         }
@@ -101,7 +109,7 @@ namespace incorporates
                 return true;
             }
 
-            if (!berth_停靠)
+            if (!berth_停靠 && instrument.stochastic(per_停靠率))
             {
                 berth_停靠 = true;
                 t.newtrain();

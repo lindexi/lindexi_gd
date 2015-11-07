@@ -10,7 +10,11 @@ namespace incorporates
     {
         public property()
         {
-
+            money = 1000;
+            集电器.Add(new accumulator(this));
+            充电.Add(new charger(this));
+            停靠.Add(new passengerTerminal(this));
+            发电器.Add(new electricOrgan(this));
         }
         public double money
         {
@@ -121,8 +125,12 @@ namespace incorporates
                     money -= t.maintenanceCosts_维修费用;
                 }
             }
+            //抽集电器电
+
             foreach (var t in _停靠)
             {
+                t.停靠();
+                d -= t.num_电量;
 
                 t.ng_耐久.n_耐久_durable -= 1;
                 if (t.ng_耐久.percent_耐久度 < 0.5)
@@ -132,15 +140,26 @@ namespace incorporates
             }
             foreach (var t in _充电)
             {
+                t.充电();
 
+                t.ng_耐久.n_耐久_durable -= 1;
+                if (t.ng_耐久.percent_耐久度 < 0.5)
+                {
+                    money -= t.maintenanceCosts_维修费用;
+                }
             }
             foreach (var t in _集电器)
             {
-                if (d > 0)
+                if (d != 0)
                 {
                     d = t.充电(d);
                 }
-                
+
+                t.ng_耐久.n_耐久_durable -= 1;
+                if (t.ng_耐久.percent_耐久度 < 0.5)
+                {
+                    money -= t.maintenanceCosts_维修费用;
+                }
             }
 
 
