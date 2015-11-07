@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace 人
+namespace incorporates
 {
     interface In_下回合_bout
     {
