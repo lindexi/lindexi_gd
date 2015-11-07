@@ -6,12 +6,15 @@ using System.Threading.Tasks;
 
 namespace incorporates
 {
-    public class passengerTerminal
+    public class passengerTerminal:ViewModel.notify_property
     {
         public passengerTerminal(property _property)
         {
             this._property = _property;
             ng_耐久 = new ng_耐久_durable(1000);
+
+            t = new train();
+            berth_停靠 = false;
         }
         public ng_耐久_durable ng_耐久
         {
@@ -72,6 +75,40 @@ namespace incorporates
             get
             {
                 return _电量;
+            }
+        }
+
+        public train t
+        {
+            set
+            {
+                _train = value;
+            }
+            get
+            {
+                return _train;
+            }
+
+        }
+
+        public train 停靠()
+        {
+            if (berth_停靠 && t.num_电量 <= 0)
+            {
+                _property.money += t.money_价格;
+                berth_停靠 = false;
+                reminder = "获得金钱：" + t.money_价格.ToString();
+            }
+
+            if (!berth_停靠)
+            {
+                berth_停靠 = true;
+                t.newtrain();               
+                return t;
+            }
+            else
+            {
+                return null;
             }
         }
 
