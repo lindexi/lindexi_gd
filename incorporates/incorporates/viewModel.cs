@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using ViewModel;
 namespace incorporates
 {
-    public class viewModel:notify_property
+    public class viewModel:notify_property, In_下回合_bout
     {
         public viewModel()
         {
@@ -104,15 +104,20 @@ namespace incorporates
             p.发电器.Add(new electricOrgan(p));
         }
 
+        public void n_下回合()
+        {
+            ( (In_下回合_bout)_property ).n_下回合();
+        }
+
         private double 新建停靠钱;
         private double 新建集电器钱;
         private double 新建充电钱;
         private double 新建发电器钱;
 
-        accumulator 集电器;
-        charger 充电;
-        passengerTerminal 停靠;
-        electricOrgan 发电器;
+        private accumulator 集电器;
+        private charger 充电;
+        private passengerTerminal 停靠;
+        private electricOrgan 发电器;
 
         private property _property;
 
