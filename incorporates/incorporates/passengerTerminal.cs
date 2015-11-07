@@ -33,7 +33,7 @@ namespace incorporates
             }
         }
 
-        public double 停靠率
+        public double per_停靠率
         {
             set
             {
@@ -47,7 +47,7 @@ namespace incorporates
             }
         }
 
-        public double 维修费用
+        public double maintenanceCosts_维修费用
         {
             set
             {
@@ -59,9 +59,22 @@ namespace incorporates
             }
         }
 
+        public double num_电量
+        {
+            set
+            {
+                _电量 = value;
+            }
+            get
+            {
+                return _电量;
+            }
+        }
+
         private ng_耐久_durable _耐久;
         private bool _停靠;
         private double _停靠率;
         private double _维修费用;
+        private double _电量;
     }
 }
