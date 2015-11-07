@@ -25,6 +25,11 @@ namespace incorporates
             }
         }
 
+        private List<accumulator> _集电器 = new List<accumulator>();
+        private List<charger> _充电 = new List<charger>();
+        private List<passengerTerminal> _停靠 = new List<passengerTerminal>();
+        private List<electricOrgan> _发电器 = new List<electricOrgan>();
+
         private double _money;
 
         

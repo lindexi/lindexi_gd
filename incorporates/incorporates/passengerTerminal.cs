@@ -9,27 +9,27 @@ namespace incorporates
     class passengerTerminal
     {
 
-        public ng_耐久_durable 耐久
+        public ng_耐久_durable ng_耐久
         {
             set
             {
-                _耐久 = value;
+                _耐久_durable = value;
             }
             get
             {
-                return _耐久;
+                return _耐久_durable;
             }
         }
 
-        public bool 停靠
+        public bool berth_停靠
         {
             set
             {
-                _停靠 = value;
+                _停靠_berth = value;
             }
             get
             {
-                return _停靠;
+                return _停靠_berth;
             }
         }
 
@@ -51,11 +51,11 @@ namespace incorporates
         {
             set
             {
-                _维修费用 = value;
+                _维修费用_maintenanceCosts = value;
             }
             get
             {
-                return _维修费用;
+                return _维修费用_maintenanceCosts;
             }
         }
 
@@ -71,10 +71,10 @@ namespace incorporates
             }
         }
 
-        private ng_耐久_durable _耐久;
-        private bool _停靠;
+        private ng_耐久_durable _耐久_durable;
+        private bool _停靠_berth;
         private double _停靠率;
-        private double _维修费用;
+        private double _维修费用_maintenanceCosts;
         private double _电量;
     }
 }
