@@ -12,6 +12,11 @@ namespace incorporates
         {
             _property = new property();
             _property.PropertyChanged += _property_PropertyChanged;
+
+            集电器 = new accumulator(p);
+            充电 = new charger(p);
+            停靠 = new passengerTerminal(p);
+            发电器 = new electricOrgan(p);
         }
 
         private void _property_PropertyChanged(object sender , System.ComponentModel.PropertyChangedEventArgs e)
@@ -81,22 +86,22 @@ namespace incorporates
         public void 新建停靠()
         {
             p.money -= 新建停靠钱;
-            
+            p.停靠.Add(new passengerTerminal(p));
         }
         public void 新建集电器()
         {
             p.money -= 新建集电器钱;
-
+            p.集电器.Add(new accumulator(p));
         }
         public void 新建充电()
         {
             p.money -= 新建充电钱;
-
+            p.充电.Add(new charger(p));
         }
         public void 新建发电器()
         {
             p.money -= 新建发电器钱;
-
+            p.发电器.Add(new electricOrgan(p));
         }
 
         private double 新建停靠钱;
@@ -104,6 +109,10 @@ namespace incorporates
         private double 新建充电钱;
         private double 新建发电器钱;
 
+        accumulator 集电器;
+        charger 充电;
+        passengerTerminal 停靠;
+        electricOrgan 发电器;
 
         private property _property;
 

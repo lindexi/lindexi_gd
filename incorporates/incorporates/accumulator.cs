@@ -8,8 +8,9 @@ namespace incorporates
 {
     public class accumulator:ViewModel.notify_property
     {
-        public accumulator()
+        public accumulator(property _property)
         {
+            this._property = _property;
 
         }
         public double max_最大电量
@@ -57,5 +58,6 @@ namespace incorporates
         private double _最大电量_max;
         private double _电量;
         private double _维修费用;
+        property _property;
     }
 }

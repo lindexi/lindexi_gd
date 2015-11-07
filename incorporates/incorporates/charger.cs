@@ -8,9 +8,10 @@ namespace incorporates
 {
     public class charger
     {
-        public charger()
+        public charger(property _property)
         {
 
+            this._property = _property;
         }
         public double num_充电数
         {
@@ -43,5 +44,6 @@ namespace incorporates
         private ng_耐久_durable _耐久;
         private double _充电数;
         private double _维修费用;
+        property _property;
     }
 }

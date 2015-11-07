@@ -8,7 +8,11 @@ namespace incorporates
 {
     public class passengerTerminal
     {
+        public passengerTerminal(property _property)
+        {
+            this._property = _property;
 
+        }
         public ng_耐久_durable ng_耐久
         {
             set
@@ -76,5 +80,6 @@ namespace incorporates
         private double _停靠率;
         private double _维修费用_maintenanceCosts;
         private double _电量;
+        property _property;
     }
 }
