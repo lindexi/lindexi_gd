@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace incorporates
 {
-    class electricOrgan
+    public class electricOrgan
     {
         public electricOrgan(property _property)
         {

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace incorporates
 {
-    class passengerTerminal
+    public class passengerTerminal
     {
 
         public ng_耐久_durable ng_耐久
