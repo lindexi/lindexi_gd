@@ -22,9 +22,13 @@ namespace incorporates
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        viewModel view;
         public MainPage()
         {
+            view = new viewModel();
             this.InitializeComponent();
+            this.DataContext = view;
         }
+
     }
 }
