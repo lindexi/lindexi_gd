@@ -23,10 +23,24 @@ namespace incorporates
                 return _充电数;
             }
         }
+
+        public ng_耐久_durable ng_耐久
+        {
+            set
+            {
+                _耐久 = value;
+            }
+            get
+            {
+                return _耐久;
+            }
+        }
+
         public void 充电()
         {
 
         }
+        private ng_耐久_durable _耐久;
         private double _充电数;
         private double _维修费用;
     }
