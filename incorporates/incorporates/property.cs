@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace incorporates
 {
-    public class property:ViewModel.notify_property,In_下回合_bout
+    public class property : ViewModel.notify_property, In_下回合_bout
     {
         public property()
         {
@@ -36,7 +36,7 @@ namespace incorporates
             }
             get
             {
-                double f, d,m;
+                double f, d, m;
                 f = 0;
                 d = 0;
                 m = 0;
@@ -49,7 +49,7 @@ namespace incorporates
                     d += t.num_电量;
                     m += t.max_最大电量;
                 }
-                return "电量 "+d.ToString()+"/"+m.ToString() + " 发电量 " + f.ToString();
+                return "电量 " + d.ToString() + "/" + m.ToString() + " 发电量 " + f.ToString();
             }
         }
 
@@ -107,9 +107,9 @@ namespace incorporates
         private List<charger> _充电 = new List<charger>();
         private List<passengerTerminal> _停靠 = new List<passengerTerminal>();
         private List<electricOrgan> _发电器 = new List<electricOrgan>();
-        
+
         private double _money;
-        
+
 
         void In_下回合_bout.n_下回合()
         {
@@ -126,11 +126,23 @@ namespace incorporates
                 }
             }
             //抽集电器电
+            foreach (var t in _集电器)
+            {
+                d += t.num_电量;
+                t.num_电量 = 0;
+            }
 
             foreach (var t in _停靠)
             {
-                t.停靠();
-                d -= t.num_电量;
+                if (d >= t.num_电量)
+                {
+                    d -= t.num_电量;
+                    t.停靠();
+                }
+                else
+                {
+                    reminder = "电不足";
+                }
 
                 t.ng_耐久.n_耐久_durable -= 1;
                 if (t.ng_耐久.percent_耐久度 < 0.5)
@@ -140,8 +152,11 @@ namespace incorporates
             }
             foreach (var t in _充电)
             {
-                t.充电();
-
+                if (d >= t.num_充电数)
+                {
+                    d -= t.num_充电数;
+                    t.充电();
+                }
                 t.ng_耐久.n_耐久_durable -= 1;
                 if (t.ng_耐久.percent_耐久度 < 0.5)
                 {

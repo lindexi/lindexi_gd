@@ -94,6 +94,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="project.json" />
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="accumulator.cs" />

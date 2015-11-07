@@ -13,7 +13,7 @@ namespace incorporates
             ng_耐久 = new ng_耐久_durable(2000);
             this._property = _property;
 
-            num_充电数 = instrument.ran.Next(1000);
+            num_充电数 = instrument.ran.Next(10);
             maintenanceCosts_维修费用 = 100;
         }
         public double num_充电数
@@ -60,6 +60,7 @@ namespace incorporates
                     {
                         t.t.充电 = this;
                         _train = t.t;
+                        break;
                     }
                 }
             }

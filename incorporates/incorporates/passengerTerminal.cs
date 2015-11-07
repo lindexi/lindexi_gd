@@ -17,6 +17,7 @@ namespace incorporates
             berth_停靠 = false;
 
             per_停靠率 = instrument.ran.Next(10000) / 10000.0;
+            per_停靠率 = 1;
             _电量 = instrument.ran.Next(100);
             maintenanceCosts_维修费用= instrument.ran.Next(100);
         }
