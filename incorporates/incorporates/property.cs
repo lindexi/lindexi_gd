@@ -59,7 +59,8 @@ namespace incorporates
 
         void In_下回合_bout.n_下回合()
         {
-            throw new NotImplementedException();
+            总电量 = string.Empty;
+
         }
     }
 }

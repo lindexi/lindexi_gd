@@ -10,8 +10,22 @@ namespace incorporates
     {
         public viewModel()
         {
+            _property = new property();
 
         }
+        public property p
+        {
+            set
+            {
+                _property = value;
+            }
+            get
+            {
+                return _property;
+            }
+        }
+        private property _property;
 
+        
     }
 }
