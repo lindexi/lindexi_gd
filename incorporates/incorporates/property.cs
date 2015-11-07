@@ -114,13 +114,20 @@ namespace incorporates
             foreach (var t in _发电器)
             {
                 d += t.发电();
-            }
-            foreach (var t in _停靠)
-            {
+
                 t.ng_耐久.n_耐久_durable -= 1;
                 if (t.ng_耐久.percent_耐久度 < 0.5)
                 {
+                    money -= t.maintenanceCosts_维修费用;
+                }
+            }
+            foreach (var t in _停靠)
+            {
 
+                t.ng_耐久.n_耐久_durable -= 1;
+                if (t.ng_耐久.percent_耐久度 < 0.5)
+                {
+                    money -= t.maintenanceCosts_维修费用;
                 }
             }
             foreach (var t in _充电)

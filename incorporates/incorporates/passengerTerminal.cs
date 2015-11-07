@@ -91,24 +91,25 @@ namespace incorporates
 
         }
 
-        public train 停靠()
+        public bool 停靠()
         {
             if (berth_停靠 && t.num_电量 <= 0)
             {
                 _property.money += t.money_价格;
                 berth_停靠 = false;
                 reminder = "获得金钱：" + t.money_价格.ToString();
+                return true;
             }
 
             if (!berth_停靠)
             {
                 berth_停靠 = true;
-                t.newtrain();               
-                return t;
+                t.newtrain();
+                return true;
             }
             else
             {
-                return null;
+                return false;
             }
         }
 
