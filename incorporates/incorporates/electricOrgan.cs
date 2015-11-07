@@ -23,9 +23,9 @@ namespace incorporates
                 return _发电数_num;
             }
         }
-        public void 发电()
+        public double 发电()
         {
-
+            return instrument.ran.Next((int)num_发电数);
         }
         private double _发电数_num;
         property _property;

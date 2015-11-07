@@ -109,6 +109,34 @@ namespace incorporates
 
         void In_下回合_bout.n_下回合()
         {
+            double d;
+            d = 0;
+            foreach (var t in _发电器)
+            {
+                d += t.发电();
+            }
+            foreach (var t in _停靠)
+            {
+                t.ng_耐久.n_耐久_durable -= 1;
+                if (t.ng_耐久.percent_耐久度 < 0.5)
+                {
+
+                }
+            }
+            foreach (var t in _充电)
+            {
+
+            }
+            foreach (var t in _集电器)
+            {
+                if (d > 0)
+                {
+                    d = t.充电(d);
+                }
+                
+            }
+
+
             总电量 = string.Empty;
 
         }

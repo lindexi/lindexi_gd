@@ -11,7 +11,7 @@ namespace incorporates
         public passengerTerminal(property _property)
         {
             this._property = _property;
-
+            ng_耐久 = new ng_耐久_durable(1000);
         }
         public ng_耐久_durable ng_耐久
         {
@@ -80,6 +80,8 @@ namespace incorporates
         private double _停靠率;
         private double _维修费用_maintenanceCosts;
         private double _电量;
-        property _property;
+        private property _property;
+        private train _train;
+
     }
 }

@@ -10,7 +10,7 @@ namespace incorporates
     {
         public charger(property _property)
         {
-
+            ng_耐久 = new ng_耐久_durable(2000);
             this._property = _property;
         }
         public double num_充电数
