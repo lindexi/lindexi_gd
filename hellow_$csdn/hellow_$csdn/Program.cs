@@ -22,8 +22,8 @@ namespace hellow__csdn
         }
         public void ce()
         {
-            var csdn = "csdn";
-            var result = $"Hello {csdn}";
+            string csdn = "csdn";
+            string result = $"Hello {csdn}";
             Console.Write(result);
         }
     }
