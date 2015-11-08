@@ -10,8 +10,21 @@ namespace hellow__csdn
     {
         static void Main(string[] args)
         {
-
+            hellow h = new hellow();
+            h.ce();
         }
     }
+    class hellow
+    {
+        public hellow()
+        {
 
+        }
+        public void ce()
+        {
+            var csdn = "csdn";
+            var result = $"Hello {csdn}";
+            Console.Write(result);
+        }
+    }
 }
