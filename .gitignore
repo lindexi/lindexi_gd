@@ -187,3 +187,9 @@ FakesAssemblies/
 GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
+/incorporates/incorporates/BundleArtifacts/arm.txt
+/incorporates/incorporates/BundleArtifacts/x64.txt
+/incorporates/incorporates/BundleArtifacts/x86.txt
+/incorporates/incorporates/Package.appxmanifest
+/incorporates/incorporates/Package.appxmanifest
+/incorporates/incorporates/Package.appxmanifest
