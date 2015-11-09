@@ -26,5 +26,10 @@ namespace xDeferLoadStrategy
         {
             this.InitializeComponent();
         }
+
+        private void Button_Click(object sender , RoutedEventArgs e)
+        {
+            FindName(nameof(ximg2));
+        }
     }
 }
