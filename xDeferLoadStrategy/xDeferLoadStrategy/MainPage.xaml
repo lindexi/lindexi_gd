@@ -15,6 +15,6 @@
         </Grid.RowDefinitions>
         <Image x:Name="ximg1" Source="/assets/1.jpg" Grid.Row="0" Margin="10,10,10,10"/>
         <Image x:Name="ximg2" Source="/assets/2.jpg" Grid.Row="1" Margin="10,10,10,10" x:DeferLoadStrategy="Lazy"/>
-        <Button Content="显示" Grid.Row="2" Margin="10,10,10,10" HorizontalAlignment="Right" Click="Button_Click"/>
+        <Button Content="显示" Grid.Row="2" Margin="10,10,10,10" HorizontalAlignment="Right" Click="Button_Click"/>        
     </Grid>
 </Page>
