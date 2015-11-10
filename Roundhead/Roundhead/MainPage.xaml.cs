@@ -33,7 +33,7 @@ namespace Roundhead
         private void Grid_DragOver(object sender , DragEventArgs e)
         {
             //需要using Windows.ApplicationModel.DataTransfer;
-            e.AcceptedOperation = DataPackageOperation.Copy;
+            //e.AcceptedOperation = DataPackageOperation.Copy;
 
             // 设置拖放时显示的文字。
             //e.DragUIOverride.Caption = "拖放打开";
