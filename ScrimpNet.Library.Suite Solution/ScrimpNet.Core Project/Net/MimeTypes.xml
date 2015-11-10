@@ -1,0 +1,2143 @@
+﻿/**
+/// ScrimpNet.Core Library
+/// Copyright © 2005-2011
+///
+/// This module is Copyright © 2005-2011 Steve Powell
+/// All rights reserved.
+///
+/// This library is free software; you can redistribute it and/or
+/// modify it under the terms of the Microsoft Public License (Ms-PL)
+/// 
+/// This library is distributed in the hope that it will be
+/// useful, but WITHOUT ANY WARRANTY; without even the implied
+/// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+/// PURPOSE.  See theMicrosoft Public License (Ms-PL) License for more
+/// details.
+///
+/// You should have received a copy of the Microsoft Public License (Ms-PL)
+/// License along with this library; if not you may 
+/// find it here: http://www.opensource.org/licenses/ms-pl.html
+///
+/// Steve Powell, spowell@scrimpnet.com
+**/<?xml version="1.0"?>
+<MimeMap xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <MimeInfo>
+    <FileExtension>inf</FileExtension>
+    <ContentDisposition>application/octet-stream</ContentDisposition>
+    <Description>Place holder for 'Image Not Found'</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName>inf.jpg</FileName>
+        <GroupName>249x249</GroupName>
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Image</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension />
+    <ContentDisposition>application/octet-stream</ContentDisposition>
+    <Description>Unknown or undetermined</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>dwg</FileExtension>
+    <ContentDisposition>application/acad</ContentDisposition>
+    <Description>AutoCAD</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>arj</FileExtension>
+    <ContentDisposition>application/arj</ContentDisposition>
+    <Description>compressed archive</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>asd</FileExtension>
+    <ContentDisposition>application/astound</ContentDisposition>
+    <Description>Astound</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>asn</FileExtension>
+    <ContentDisposition>application/astound</ContentDisposition>
+    <Description>Astound</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>ccad</FileExtension>
+    <ContentDisposition>application/clariscad</ContentDisposition>
+    <Description>ClarisCAD</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>csv</FileExtension>
+    <ContentDisposition>application/msexcel</ContentDisposition>
+    <Description>Microsoft Excel</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath>inf</ImageNotFoundPath>
+        <FileName>Safeguard.Services.ImageLibrary.DocumentImages.csv.jpg</FileName>
+        <GroupName>249x249</GroupName>
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Document</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>drw</FileExtension>
+    <ContentDisposition>application/drafting</ContentDisposition>
+    <Description>MATRA Prelude drafting</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>dxf</FileExtension>
+    <ContentDisposition>application/dxf</ContentDisposition>
+    <Description>DXF (AutoCAD)</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>unv</FileExtension>
+    <ContentDisposition>application/i-deas</ContentDisposition>
+    <Description>SDRC I-DEAS </Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>iges</FileExtension>
+    <ContentDisposition>application/iges</ContentDisposition>
+    <Description>IGES graphics format</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>igs</FileExtension>
+    <ContentDisposition>application/iges</ContentDisposition>
+    <Description>IGES graphics format</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>jar</FileExtension>
+    <ContentDisposition>application/java-archive</ContentDisposition>
+    <Description>Java archive</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>hqx</FileExtension>
+    <ContentDisposition>application/mac-binhex40</ContentDisposition>
+    <Description>Macintosh binary BinHex 4.0</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>mdb</FileExtension>
+    <ContentDisposition>application/msaccess</ContentDisposition>
+    <Description>Microsoft Access</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>xla</FileExtension>
+    <ContentDisposition>application/msexcel</ContentDisposition>
+    <Description>Microsoft Excel</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>xls</FileExtension>
+    <ContentDisposition>application/msexcel</ContentDisposition>
+    <Description>Microsoft Excel</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath>inf</ImageNotFoundPath>
+        <FileName>Safeguard.Services.ImageLibrary.DocumentImages.xls.jpg</FileName>
+        <GroupName>249x249</GroupName>
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Document</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>xlt</FileExtension>
+    <ContentDisposition>application/msexcel</ContentDisposition>
+    <Description>Microsoft Excel</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>xlw</FileExtension>
+    <ContentDisposition>application/msexcel</ContentDisposition>
+    <Description>Microsoft Excel</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>pot</FileExtension>
+    <ContentDisposition>application/mspowerpoint</ContentDisposition>
+    <Description>Microsoft PowerPoint</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>pps</FileExtension>
+    <ContentDisposition>application/mspowerpoint</ContentDisposition>
+    <Description>Microsoft PowerPoint</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>ppt</FileExtension>
+    <ContentDisposition>application/mspowerpoint</ContentDisposition>
+    <Description>Microsoft PowerPoint</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>mpp</FileExtension>
+    <ContentDisposition>application/msproject</ContentDisposition>
+    <Description>Microsoft Project</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>doc</FileExtension>
+    <ContentDisposition>application/msword</ContentDisposition>
+    <Description>Microsoft Word</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath>inf</ImageNotFoundPath>
+        <FileName>Safeguard.Services.ImageLibrary.DocumentImages.doc.jpg</FileName>
+        <GroupName>249x249</GroupName>
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Document</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>word</FileExtension>
+    <ContentDisposition>application/msword</ContentDisposition>
+    <Description>Microsoft Word</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>w6w</FileExtension>
+    <ContentDisposition>application/msword</ContentDisposition>
+    <Description>Microsoft Word</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>wri</FileExtension>
+    <ContentDisposition>application/mswrite</ContentDisposition>
+    <Description>Microsoft Write</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>oda</FileExtension>
+    <ContentDisposition>application/oda</ContentDisposition>
+    <Description>ODA</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>pdf</FileExtension>
+    <ContentDisposition>application/pdf</ContentDisposition>
+    <Description>Adobe Acrobat</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName>Safeguard.Services.ImageLibrary.DocumentImages.pdf.jpg</FileName>
+        <GroupName>249x249</GroupName>
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Document</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>ai</FileExtension>
+    <ContentDisposition>application/postscript</ContentDisposition>
+    <Description>PostScript</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>eps</FileExtension>
+    <ContentDisposition>application/postscript</ContentDisposition>
+    <Description>PostScript</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>ps</FileExtension>
+    <ContentDisposition>application/postscript</ContentDisposition>
+    <Description>PostScript</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>part</FileExtension>
+    <ContentDisposition>application/pro_eng</ContentDisposition>
+    <Description>PTC Pro/ENGINEER</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>prt</FileExtension>
+    <ContentDisposition>application/pro_eng</ContentDisposition>
+    <Description>PTC Pro/ENGINEER</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>rtf</FileExtension>
+    <ContentDisposition>application/rtf</ContentDisposition>
+    <Description>Rich Text Format</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>set</FileExtension>
+    <ContentDisposition>application/set</ContentDisposition>
+    <Description>SET (French CAD)</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>stl</FileExtension>
+    <ContentDisposition>application/sla</ContentDisposition>
+    <Description>stereolithography</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>sol</FileExtension>
+    <ContentDisposition>application/solids</ContentDisposition>
+    <Description>MATRA Prelude Solids</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>st</FileExtension>
+    <ContentDisposition>application/STEP</ContentDisposition>
+    <Description>ISO-10303 STEP data</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>step</FileExtension>
+    <ContentDisposition>application/STEP</ContentDisposition>
+    <Description>ISO-10303 STEP data</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>stp</FileExtension>
+    <ContentDisposition>application/STEP</ContentDisposition>
+    <Description>ISO-10303 STEP data</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>vda</FileExtension>
+    <ContentDisposition>application/vda</ContentDisposition>
+    <Description>VDA-FS Surface data</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>bcpio</FileExtension>
+    <ContentDisposition>application/x-bcpio</ContentDisposition>
+    <Description>binary CPIO</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>cpio</FileExtension>
+    <ContentDisposition>application/x-cpio</ContentDisposition>
+    <Description>POSIX CPIO</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>csh</FileExtension>
+    <ContentDisposition>application/x-csh</ContentDisposition>
+    <Description>C-shell script</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>dcr</FileExtension>
+    <ContentDisposition>application/x-director</ContentDisposition>
+    <Description>Macromedia Director</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>dir</FileExtension>
+    <ContentDisposition>application/x-director</ContentDisposition>
+    <Description>Macromedia Director</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>dxr</FileExtension>
+    <ContentDisposition>application/x-director</ContentDisposition>
+    <Description>Macromedia Director</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>dvi</FileExtension>
+    <ContentDisposition>application/x-dvi</ContentDisposition>
+    <Description>TeX DVI</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>dwf</FileExtension>
+    <ContentDisposition>application/x-dwf</ContentDisposition>
+    <Description>AutoCAD</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>gtar</FileExtension>
+    <ContentDisposition>application/x-gtar</ContentDisposition>
+    <Description>GNU tar</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>gz</FileExtension>
+    <ContentDisposition>application/x-gzip</ContentDisposition>
+    <Description>GNU ZIP</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>hdf</FileExtension>
+    <ContentDisposition>application/x-hdf</ContentDisposition>
+    <Description>NCSA HDF Data File</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>js</FileExtension>
+    <ContentDisposition>application/x-javascript</ContentDisposition>
+    <Description>JavaScript</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>latex</FileExtension>
+    <ContentDisposition>application/x-latex</ContentDisposition>
+    <Description>LaTeX source</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>bin</FileExtension>
+    <ContentDisposition>application/x-macbinary</ContentDisposition>
+    <Description>Macintosh compressed</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>mif</FileExtension>
+    <ContentDisposition>application/x-mif</ContentDisposition>
+    <Description>FrameMaker MIF </Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>cdf</FileExtension>
+    <ContentDisposition>application/x-netcdf</ContentDisposition>
+    <Description>Unidata netCDF</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>nc</FileExtension>
+    <ContentDisposition>application/x-netcdf</ContentDisposition>
+    <Description>Unidata netCDF</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>sh</FileExtension>
+    <ContentDisposition>application/x-sh</ContentDisposition>
+    <Description>Bourne shell script</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>shar</FileExtension>
+    <ContentDisposition>application/x-shar</ContentDisposition>
+    <Description>shell archive</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>swf</FileExtension>
+    <ContentDisposition>application/x-shockwave-flash</ContentDisposition>
+    <Description>Macromedia Shockwave</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>sit</FileExtension>
+    <ContentDisposition>application/x-stuffit</ContentDisposition>
+    <Description>StuffIt archive</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>sv4cpio</FileExtension>
+    <ContentDisposition>application/x-sv4cpio</ContentDisposition>
+    <Description>SVR4 CPIO</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>sv4crc</FileExtension>
+    <ContentDisposition>application/x-sv4crc</ContentDisposition>
+    <Description>SVR4 CPIO with CRC</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>tar</FileExtension>
+    <ContentDisposition>application/x-tar</ContentDisposition>
+    <Description>4.3BSD tar format</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>tcl</FileExtension>
+    <ContentDisposition>application/x-tcl</ContentDisposition>
+    <Description>TCL script</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>tex</FileExtension>
+    <ContentDisposition>application/x-tex</ContentDisposition>
+    <Description>TeX source</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>texi</FileExtension>
+    <ContentDisposition>application/x-texinfo</ContentDisposition>
+    <Description>Texinfo (Emacs)</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>texinfo</FileExtension>
+    <ContentDisposition>application/x-texinfo</ContentDisposition>
+    <Description>Texinfo (Emacs)</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>roff</FileExtension>
+    <ContentDisposition>application/x-troff</ContentDisposition>
+    <Description>Troff</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>t</FileExtension>
+    <ContentDisposition>application/x-troff</ContentDisposition>
+    <Description>Troff</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>tr</FileExtension>
+    <ContentDisposition>application/x-troff</ContentDisposition>
+    <Description>Troff</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>man</FileExtension>
+    <ContentDisposition>application/x-troff-man</ContentDisposition>
+    <Description>Troff with MAN macros</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>me</FileExtension>
+    <ContentDisposition>application/x-troff-me</ContentDisposition>
+    <Description>Troff with ME macros</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>ms</FileExtension>
+    <ContentDisposition>application/x-troff-ms</ContentDisposition>
+    <Description>Troff with MS macros</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>ustar</FileExtension>
+    <ContentDisposition>application/x-ustar</ContentDisposition>
+    <Description>POSIX tar format</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>src</FileExtension>
+    <ContentDisposition>application/x-wais-source</ContentDisposition>
+    <Description>WAIS source</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>hlp</FileExtension>
+    <ContentDisposition>application/x-winhelp</ContentDisposition>
+    <Description>Microsoft Windows help</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>zip</FileExtension>
+    <ContentDisposition>application/zip</ContentDisposition>
+    <Description>ZIP archive</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>au</FileExtension>
+    <ContentDisposition>audio/basic</ContentDisposition>
+    <Description>BASIC audio (u-law)</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>snd</FileExtension>
+    <ContentDisposition>audio/basic</ContentDisposition>
+    <Description>BASIC audio (u-law)</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>mid</FileExtension>
+    <ContentDisposition>audio/midi</ContentDisposition>
+    <Description>MIDI</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>midi</FileExtension>
+    <ContentDisposition>audio/midi</ContentDisposition>
+    <Description>MIDI</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>aif</FileExtension>
+    <ContentDisposition>audio/x-aiff</ContentDisposition>
+    <Description>AIFF audio</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>aifc</FileExtension>
+    <ContentDisposition>audio/x-aiff</ContentDisposition>
+    <Description>AIFF audio</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>aiff</FileExtension>
+    <ContentDisposition>audio/x-aiff</ContentDisposition>
+    <Description>AIFF audio</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>mp3</FileExtension>
+    <ContentDisposition>audio/x-mpeg</ContentDisposition>
+    <Description>MPEG audio</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>ra</FileExtension>
+    <ContentDisposition>audio/x-pn-realaudio</ContentDisposition>
+    <Description>RealAudio</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>ram</FileExtension>
+    <ContentDisposition>audio/x-pn-realaudio</ContentDisposition>
+    <Description>RealAudio</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>rpm</FileExtension>
+    <ContentDisposition>audio/x-pn-realaudio-plugin</ContentDisposition>
+    <Description>RealAudio plug-in</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>voc</FileExtension>
+    <ContentDisposition>audio/x-voice</ContentDisposition>
+    <Description>Voice</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>wav</FileExtension>
+    <ContentDisposition>audio/x-wav</ContentDisposition>
+    <Description>Microsoft Windows WAVE audio</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>bmp</FileExtension>
+    <ContentDisposition>image/bmp</ContentDisposition>
+    <Description>Bitmap</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath>inf</ImageNotFoundPath>
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Image</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>gif</FileExtension>
+    <ContentDisposition>image/gif</ContentDisposition>
+    <Description>GIF image</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath>inf</ImageNotFoundPath>
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Image</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>ief</FileExtension>
+    <ContentDisposition>image/ief</ContentDisposition>
+    <Description>Image Exchange Format</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>jpe</FileExtension>
+    <ContentDisposition>image/jpeg</ContentDisposition>
+    <Description>JPEG image</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath>inf</ImageNotFoundPath>
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Image</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>jpeg</FileExtension>
+    <ContentDisposition>image/jpeg</ContentDisposition>
+    <Description>JPEG image</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath>inf</ImageNotFoundPath>
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Image</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>jpg</FileExtension>
+    <ContentDisposition>image/jpeg</ContentDisposition>
+    <Description>JPEG image</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath>inf</ImageNotFoundPath>
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Image</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>pict</FileExtension>
+    <ContentDisposition>image/pict</ContentDisposition>
+    <Description>Macintosh PICT</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>png</FileExtension>
+    <ContentDisposition>image/png</ContentDisposition>
+    <Description>Portable Network Graphic</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>tif</FileExtension>
+    <ContentDisposition>image/tiff</ContentDisposition>
+    <Description>TIFF image</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>tiff</FileExtension>
+    <ContentDisposition>image/tiff</ContentDisposition>
+    <Description>TIFF image</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>ras</FileExtension>
+    <ContentDisposition>image/x-cmu-raster</ContentDisposition>
+    <Description>CMU raster</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>pnm</FileExtension>
+    <ContentDisposition>image/x-portable-anymap</ContentDisposition>
+    <Description>PBM Anymap format</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>pbm</FileExtension>
+    <ContentDisposition>image/x-portable-bitmap</ContentDisposition>
+    <Description>PBM Bitmap format</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>pgm</FileExtension>
+    <ContentDisposition>image/x-portable-graymap</ContentDisposition>
+    <Description>PBM Graymap format</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>ppm</FileExtension>
+    <ContentDisposition>image/x-portable-pixmap</ContentDisposition>
+    <Description>PBM Pixmap format</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>rgb</FileExtension>
+    <ContentDisposition>image/x-rgb</ContentDisposition>
+    <Description>RGB image</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>xbm</FileExtension>
+    <ContentDisposition>image/x-xbitmap</ContentDisposition>
+    <Description>X Bitmap</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>xpm</FileExtension>
+    <ContentDisposition>image/x-xpixmap</ContentDisposition>
+    <Description>X Pixmap</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>xwd</FileExtension>
+    <ContentDisposition>image/x-xwindowdump</ContentDisposition>
+    <Description>X Window System dump</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>gzip</FileExtension>
+    <ContentDisposition>multipart/x-gzip</ContentDisposition>
+    <Description>GNU ZIP archive</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>htm</FileExtension>
+    <ContentDisposition>text/html</ContentDisposition>
+    <Description>HTML</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath>inf</ImageNotFoundPath>
+        <FileName>Safeguard.Services.ImageLibrary.DocumentImages.htm.jpg</FileName>
+        <GroupName>249x249</GroupName>
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Document</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>html</FileExtension>
+    <ContentDisposition>text/html</ContentDisposition>
+    <Description>HTML</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath>inf</ImageNotFoundPath>
+        <FileName>Safeguard.Services.ImageLibrary.DocumentImages.htm.jpg</FileName>
+        <GroupName>249x249</GroupName>
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>C</FileExtension>
+    <ContentDisposition>text/plain</ContentDisposition>
+    <Description>plain text</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>cc</FileExtension>
+    <ContentDisposition>text/plain</ContentDisposition>
+    <Description>plain text</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>h</FileExtension>
+    <ContentDisposition>text/plain</ContentDisposition>
+    <Description>plain text</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>txt</FileExtension>
+    <ContentDisposition>text/plain</ContentDisposition>
+    <Description>plain text</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>rtx</FileExtension>
+    <ContentDisposition>text/richtext</ContentDisposition>
+    <Description>MIME Richtext</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>tsv</FileExtension>
+    <ContentDisposition>text/tab-separated-values</ContentDisposition>
+    <Description>text with tabs</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>etx</FileExtension>
+    <ContentDisposition>text/x-setext</ContentDisposition>
+    <Description>Structurally Enhanced Text</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>sgm</FileExtension>
+    <ContentDisposition>text/x-sgml</ContentDisposition>
+    <Description>SGML</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>sgml</FileExtension>
+    <ContentDisposition>text/x-sgml</ContentDisposition>
+    <Description>SGML</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>mpe</FileExtension>
+    <ContentDisposition>video/mpeg</ContentDisposition>
+    <Description>MPEG video</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>mpeg</FileExtension>
+    <ContentDisposition>video/mpeg</ContentDisposition>
+    <Description>MPEG video</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>mpg</FileExtension>
+    <ContentDisposition>video/mpeg</ContentDisposition>
+    <Description>MPEG video</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>avi</FileExtension>
+    <ContentDisposition>video/msvideo</ContentDisposition>
+    <Description>Microsoft Windows video</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>mov</FileExtension>
+    <ContentDisposition>video/quicktime</ContentDisposition>
+    <Description>QuickTime video</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>qt</FileExtension>
+    <ContentDisposition>video/quicktime</ContentDisposition>
+    <Description>QuickTime video</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>vdo</FileExtension>
+    <ContentDisposition>video/vdo</ContentDisposition>
+    <Description>VDO streaming video</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>viv</FileExtension>
+    <ContentDisposition>video/vivo</ContentDisposition>
+    <Description>VIVO streaming video</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>vivo</FileExtension>
+    <ContentDisposition>video/vivo</ContentDisposition>
+    <Description>VIVO streaming video</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>movie</FileExtension>
+    <ContentDisposition>video/x-sgi-movie</ContentDisposition>
+    <Description>SGI Movieplayer format</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>ice</FileExtension>
+    <ContentDisposition>x-conference/x-cooltalk</ContentDisposition>
+    <Description>CoolTalk</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>svr</FileExtension>
+    <ContentDisposition>x-world/x-svr</ContentDisposition>
+    <Description>Virtual reality</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>wrl</FileExtension>
+    <ContentDisposition>x-world/x-vrml</ContentDisposition>
+    <Description>VRML Worlds</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>vrt</FileExtension>
+    <ContentDisposition>x-world/x-vrt</ContentDisposition>
+    <Description>Virtual reality</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>docx</FileExtension>
+    <ContentDisposition>application/vnd.openxmlformats-officedocument.wordprocessingml.document</ContentDisposition>
+    <Description>Microsoft Office Word 2007 document</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName>Safeguard.Services.ImageLibrary.DocumentImages.doc.jpg</FileName>
+        <GroupName>249x249</GroupName>
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Document</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>docm</FileExtension>
+    <ContentDisposition>application/vnd.ms-word.document.macroEnabled.12</ContentDisposition>
+    <Description>Office Word 2007 macro-enabled document</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>dotx</FileExtension>
+    <ContentDisposition>application/vnd.openxmlformats-officedocument.wordprocessingml.template</ContentDisposition>
+    <Description>Office Word 2007 template</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>dotm</FileExtension>
+    <ContentDisposition>application/vnd.ms-word.template.macroEnabled.12</ContentDisposition>
+    <Description>Office Word 2007 macro-enabled document template</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>xlsx</FileExtension>
+    <ContentDisposition>application/vnd.openxmlformats-officedocument.spreadsheetml.sheet</ContentDisposition>
+    <Description>Microsoft Office Excel 2007 workbook</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>xlsm</FileExtension>
+    <ContentDisposition>application/vnd.ms-excel.sheet.macroEnabled.12</ContentDisposition>
+    <Description>Office Excel 2007 macro-enabled workbook</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>xltx</FileExtension>
+    <ContentDisposition>application/vnd.openxmlformats-officedocument.spreadsheetml.template</ContentDisposition>
+    <Description>Office Excel 2007 template</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>xltm</FileExtension>
+    <ContentDisposition>application/vnd.ms-excel.template.macroEnabled.12</ContentDisposition>
+    <Description>Office Excel 2007 macro-enabled workbook template</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>xlsb</FileExtension>
+    <ContentDisposition>application/vnd.ms-excel.sheet.binary.macroEnabled.12</ContentDisposition>
+    <Description>Office Excel 2007 binary workbook</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>xlam</FileExtension>
+    <ContentDisposition>application/vnd.ms-excel.addin.macroEnabled.12</ContentDisposition>
+    <Description>Office Excel 2007 add-in</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>pptx</FileExtension>
+    <ContentDisposition>application/vnd.openxmlformats-officedocument.presentationml.presentation</ContentDisposition>
+    <Description>Microsoft Office PowerPoint 2007 presentation</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>pptm</FileExtension>
+    <ContentDisposition>application/vnd.ms-powerpoint.presentation.macroEnabled.12</ContentDisposition>
+    <Description>Office PowerPoint 2007 macro-enabled presentation</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>ppsx</FileExtension>
+    <ContentDisposition>application/vnd.openxmlformats-officedocument.presentationml.slideshow</ContentDisposition>
+    <Description>Office PowerPoint 2007 slide show</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>ppsm</FileExtension>
+    <ContentDisposition>application/vnd.ms-powerpoint.slideshow.macroEnabled.12</ContentDisposition>
+    <Description>Office PowerPoint 2007 macro-enabled slide show</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>potx</FileExtension>
+    <ContentDisposition>application/vnd.openxmlformats-officedocument.presentationml.template</ContentDisposition>
+    <Description>Office PowerPoint 2007 template</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>potm</FileExtension>
+    <ContentDisposition>application/vnd.ms-powerpoint.template.macroEnabled.12</ContentDisposition>
+    <Description>Office PowerPoint 2007 macro-enabled presentation template</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>ppam</FileExtension>
+    <ContentDisposition>application/vnd.ms-powerpoint.addin.macroEnabled.12</ContentDisposition>
+    <Description>Office PowerPoint 2007 add-in</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>sldx</FileExtension>
+    <ContentDisposition>application/vnd.openxmlformats-officedocument.presentationml.slide</ContentDisposition>
+    <Description>Office PowerPoint 2007 slide</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>sldm</FileExtension>
+    <ContentDisposition>application/vnd.ms-powerpoint.slide.macroEnabled.12</ContentDisposition>
+    <Description>Office PowerPoint 2007 macro-enabled slide</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>one</FileExtension>
+    <ContentDisposition>application/onenote</ContentDisposition>
+    <Description>Microsoft Office OneNote 2007 section</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>onetoc2</FileExtension>
+    <ContentDisposition>application/onenote</ContentDisposition>
+    <Description>Office OneNote 2007 TOC</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>onetmp</FileExtension>
+    <ContentDisposition>application/onenote</ContentDisposition>
+    <Description>Office OneNote 2007 temporary file</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>onepkg</FileExtension>
+    <ContentDisposition>application/onenote</ContentDisposition>
+    <Description>Office OneNote 2007 package</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+  <MimeInfo>
+    <FileExtension>thmx</FileExtension>
+    <ContentDisposition>application/vnd.ms-officetheme</ContentDisposition>
+    <Description>2007 Office system release theme</Description>
+    <Icons>
+      <MimeIconInfo>
+        <ImageNotFoundPath />
+        <FileName />
+        <GroupName />
+      </MimeIconInfo>
+    </Icons>
+    <TypeClass>Unknown</TypeClass>
+  </MimeInfo>
+</MimeMap>
