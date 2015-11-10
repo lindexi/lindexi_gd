@@ -7,11 +7,12 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <StackPanel Orientation="Vertical">
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+          AllowDrop="True" DragOver="Grid_DragOver" Drop="Grid_Drop">
+        <StackPanel Orientation="Vertical">           
             <Ellipse Width="200" Height="200" Margin="10,10,10,10">
                 <Ellipse.Fill>
-                    <ImageBrush ImageSource="assets/1.jpg"/>
+                    <ImageBrush x:Name="ximg" ImageSource="assets\1.jpg"/>
                 </Ellipse.Fill>
             </Ellipse>
             <TextBlock Text="我的头像是圆" HorizontalAlignment="Center" />
