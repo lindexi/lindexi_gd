@@ -38,6 +38,7 @@
         </DataTemplate>
     </Window.Resources>
     <Grid>
-        <ListBox x:Name="xl" Margin="10,10,10,10" ItemTemplate="{StaticResource xaddressBook}"/>
+        <!--<ListBox x:Name="xl" Margin="10,10,10,10" ItemTemplate="{StaticResource xaddressBook}"/>-->
+        <ListView x:Name="xl" ItemTemplate="{StaticResource xaddressBook}"/>
     </Grid>
 </Window>
