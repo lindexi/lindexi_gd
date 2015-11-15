@@ -17,7 +17,7 @@
                     <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
                 <!--通讯人姓名、联系方式、工作地点、城市、备注-->
-                <TextBlock Grid.Column="0" >
+                <!--<TextBlock Grid.Column="0" >
                     通讯人姓名：
                     <Run Text="{Binding name}"/>
                     联系方式：
@@ -28,7 +28,12 @@
                     <Run Text="{Binding city}"/>
                     备注：
                     <Run Text="{Binding remark}"/>
-                </TextBlock>
+                </TextBlock>-->
+                <TextBlock Grid.Column="0" Text="{Binding name}"/>
+                <TextBlock Grid.Column="1" Text="{Binding contact}"/>
+                <TextBlock Grid.Column="2" Text="{Binding address}"/>
+                <TextBlock Grid.Column="3" Text="{Binding city}"/>
+                <TextBlock Grid.Column="4" Text="{Binding remark}"/>
             </Grid>            
         </DataTemplate>
     </Window.Resources>
