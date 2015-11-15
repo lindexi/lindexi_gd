@@ -22,14 +22,14 @@ namespace 个人信息数据库
             get;
         } =
             {
-                new caddressBook()
-                {
-                    name ="通讯人姓名",
-                    contact ="联系方式",
-                    address ="工作地点",
-                    city ="城市",
-                    comment ="备注"
-                },
+                //new caddressBook()
+                //{
+                //    name ="通讯人姓名",
+                //    contact ="联系方式",
+                //    address ="工作地点",
+                //    city ="城市",
+                //    comment ="备注"
+                //},
                 new caddressBook()
                 {
                     name ="张三",
