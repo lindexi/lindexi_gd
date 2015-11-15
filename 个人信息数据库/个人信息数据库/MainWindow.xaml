@@ -19,15 +19,20 @@
                 <!--通讯人姓名、联系方式、工作地点、城市、备注-->
                 <TextBlock Grid.Column="0" >
                     通讯人姓名：
-                    <Run Text="{Binding name}"/>
+                    <Run Text="{Binding name}"/>  
+                    <LineBreak/>
                     联系方式：
                     <Run Text="{Binding contact}"/>
+                    <LineBreak/>
                     工作地点：
                     <Run Text="{Binding address}"/>
+                    <LineBreak/>
                     城市：
                     <Run Text="{Binding city}"/>
+                    <LineBreak/>
                     备注：
                     <Run Text="{Binding remark}"/>
+                    <LineBreak/>
                 </TextBlock>
                 <!--<TextBlock Grid.Column="0" Text="{Binding name}"/>
                 <TextBlock Grid.Column="1" Text="{Binding contact}"/>
@@ -38,7 +43,21 @@
         </DataTemplate>
     </Window.Resources>
     <Grid>
-        <!--<ListBox x:Name="xl" Margin="10,10,10,10" ItemTemplate="{StaticResource xaddressBook}"/>-->
-        <ListView x:Name="xl" ItemTemplate="{StaticResource xaddressBook}"/>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <ListView Grid.Column="0" x:Name="xl" ItemTemplate="{StaticResource xaddressBook}"/>
+        </Grid>
+        <Grid Grid.Row="1">
+            
+        </Grid>
     </Grid>
 </Window>
