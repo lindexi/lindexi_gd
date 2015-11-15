@@ -8,6 +8,7 @@
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-
+        <!--#region 可以压缩代码-->
+        <!--#endregion-->        
     </Grid>
 </Page>

@@ -8,14 +8,19 @@
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition />
+        </Grid.RowDefinitions>
         <!--<TextBox Text="{x:Bind view.reminder}" Margin="10,10,10,10"/>-->
-        <GridView>
+        <GridView Grid.Row="0">
             <Ellipse Height="200" Width="200" Fill="Black" Margin="10,10,10,10"/>
             <Ellipse Height="200" Width="100" Fill="Black" Margin="10,10,10,10"/>
             <Rectangle Height="200" Width="200" Fill="Black" Margin="10,10,10,10"/>
             <Rectangle Height="200" Width="200" Fill="Black" StrokeThickness="3" RadiusX="10" RadiusY="10" Margin="10,10,10,10"/>
             <Rectangle Height="200" Width="200" Fill="Black" StrokeThickness="3" RadiusX="10" RadiusY="10" Margin="10,10,10,10"/>
-            <Polygon Fill="Black" Points="0,100,200,100,200,0,0,0" Margin="10,10,10,10"/>
+            <Polygon Fill="Black" Points="0,100,200,100,200,0,0,0" Margin="10,10,10,10"/> 
         </GridView>
+        
     </Grid>
 </Page>
