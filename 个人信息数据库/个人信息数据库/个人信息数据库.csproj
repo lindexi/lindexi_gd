@@ -71,6 +71,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="model\caddressBook.cs" />
+    <Compile Include="model\model.cs" />
     <Compile Include="notify_property.cs" />
     <Compile Include="viewModel.cs" />
     <Page Include="MainWindow.xaml">
