@@ -6,7 +6,33 @@
         xmlns:local="clr-namespace:个人信息数据库"
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
+    <Window.Resources>
+        <DataTemplate x:Key="xaddressBook">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
+                <!--通讯人姓名、联系方式、工作地点、城市、备注-->
+                <TextBlock Grid.Column="0" >
+                    通讯人姓名：
+                    <Run Text="{Binding name}"/>
+                    联系方式：
+                    <Run Text="{Binding contact}"/>
+                    工作地点：
+                    <Run Text="{Binding address}"/>
+                    城市：
+                    <Run Text="{Binding city}"/>
+                    备注：
+                    <Run Text="{Binding remark}"/>
+                </TextBlock>
+            </Grid>            
+        </DataTemplate>
+    </Window.Resources>
     <Grid>
-        
+        <ListBox x:Name="xl" Margin="10,10,10,10" ItemTemplate="{StaticResource xaddressBook}"/>
     </Grid>
 </Window>
