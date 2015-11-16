@@ -90,9 +90,7 @@ namespace 个人信息数据库
                             int contactindex = read.GetOrdinal(contact);
                             int naddressindex = read.GetOrdinal(naddress);
                             int cityindex = read.GetOrdinal(city);
-                            int commentindex = read.GetOrdinal(comment);
-                            //int index = read.GetOrdinal(name);
-
+                            int commentindex = read.GetOrdinal(comment); 
                             while (read.Read())
                             {
                                 caddressBook temp = new caddressBook();
@@ -105,9 +103,7 @@ namespace 个人信息数据库
                                 addressBook.Add(temp);
                             }
                             reminder = "查询";
-                        }
-
-                        
+                        }                        
                     }
                 }
 
