@@ -26,12 +26,13 @@ namespace 个人信息数据库
             view = new viewModel();            
             InitializeComponent();
             this.DataContext = view;
-            xl.ItemsSource = view.addressBook;         
         }
 
         private void Button_Click(object sender , RoutedEventArgs e)
         {
             view.ce();
+            //xl.ItemsSource = view.addressBook;
         }
+       
     }
 }

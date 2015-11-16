@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using System.Data.Sql;
 using System.Data.SqlClient;
 using 个人信息数据库.model;
+using System.Windows.Threading;
+using System.Threading;
+
 namespace 个人信息数据库
 {
     public partial class viewModel : notify_property
@@ -20,12 +23,13 @@ namespace 个人信息数据库
 
             reminder = "运行";
 
-
+            
         }
 
         public void ce()
         {
             string connect = $"Data Source={DataSource};Initial Catalog={InitialCatalog};Integrated Security=True";
+            //List<caddressBook> addressBook = new List<caddressBook>();
             using (SqlConnection sql = new SqlConnection(connect))
             {
                 sql.Open();
@@ -91,9 +95,19 @@ namespace 个人信息数据库
 
                             while (read.Read())
                             {
-                                reminder = $"{read.GetInt32(idindex)} , {read.GetString(nameindex)} ,{read.GetString(contactindex)} , {read.GetString(naddressindex)}, {read.GetString(cityindex)} , {read.GetString(commentindex)}{line}";
+                                caddressBook temp = new caddressBook();
+                                temp.name = read.GetString(nameindex);
+                                temp.contact = read.GetString(contactindex);
+                                temp.address = read.GetString(nameindex);
+                                temp.city = read.GetString(cityindex);
+                                temp.comment = read.GetString(commentindex);
+
+                                addressBook.Add(temp);
                             }
+                            reminder = "查询";
                         }
+
+                        
                     }
                 }
 
@@ -107,12 +121,19 @@ namespace 个人信息数据库
             //reminder = "打开数据库";
 
         }
-        public caddressBook[] addressBook
+
+       private void AddItem(object item)
+        {
+            addressBook.Add(item as caddressBook);
+        }
+        public System.Collections.ObjectModel.ObservableCollection<caddressBook>
+        /*public List<caddressBook>*/ addressBook
         {
             set;
             get;
         } =
-            {
+           new System.Collections.ObjectModel.ObservableCollection<caddressBook>()
+           {
                 //new caddressBook()
                 //{
                 //    name ="通讯人姓名",
