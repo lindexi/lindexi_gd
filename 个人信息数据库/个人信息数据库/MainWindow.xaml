@@ -39,7 +39,7 @@
                 <TextBlock Grid.Column="2" Text="{Binding address}"/>
                 <TextBlock Grid.Column="3" Text="{Binding city}"/>
                 <TextBlock Grid.Column="4" Text="{Binding remark}"/>-->
-            </Grid>            
+            </Grid>
         </DataTemplate>
     </Window.Resources>
     <Grid>
@@ -48,18 +48,16 @@
             <ColumnDefinition Width="auto"/>
             <ColumnDefinition Width="auto"/>
             <ColumnDefinition Width="auto"/>
-        </Grid.ColumnDefinitions>        
-        <Grid Grid.Column="0">
-            <Grid.RowDefinitions>
-                <RowDefinition />
-                <RowDefinition Height="auto"/>
-            </Grid.RowDefinitions>
-            
-           
-            <ListView Grid.Row="1" x:Name="xl" ItemTemplate="{StaticResource xaddressBook}"/>
-        </Grid>
-        <Grid Grid.Row="1">
-            
-        </Grid>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <ListView  Grid.Column="0" Grid.Row="0" x:Name="xl" ItemTemplate="{StaticResource xaddressBook}"/>
+
+        <TextBlock Grid.Row="2" Grid.ColumnSpan="3" Text="{Binding Path=reminder,Mode=OneWay}" Margin="10,10,10,10" Height="20"/>
+        <Button Grid.Row="2" Grid.Column="3" Height="20" Content="确定" Margin="10,10,10,10" Click="Button_Click"/>
     </Grid>
 </Window>

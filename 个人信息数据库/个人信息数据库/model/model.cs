@@ -10,8 +10,7 @@ namespace 个人信息数据库.model
     {
         public model()
         {
-            ran = new Random();
-            
+            ran = new Random();            
         }
         Random ran
         {

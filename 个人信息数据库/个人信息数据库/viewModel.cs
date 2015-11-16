@@ -12,8 +12,40 @@ namespace 个人信息数据库
     {
         public viewModel()
         {
+            //连接字符串
 
-            //SqlConnection sql = new SqlConnection();
+            //使用windows身份验证方式
+            //string constr = "Data Source=steve-pc;Initial Catalog=itcast2013;Integrated Security=true";
+            //"server=.;database=itcast2013;uid=sa;pwd=sa"
+
+            reminder = "运行";
+
+
+        }
+
+        public void ce()
+        {
+            string connect = $"Data Source={DataSource};Initial Catalog={InitialCatalog};Integrated Security=True";
+            using (SqlConnection sql = new SqlConnection(connect))
+            {
+                sql.Open();
+                if (sql.State == System.Data.ConnectionState.Closed)
+                {
+                    sql.Open();
+                }
+                if (sql.State == System.Data.ConnectionState.Open)
+                {
+                    reminder = string.Empty;
+                    reminder = "打开数据库";
+                }
+            }
+
+            //SqlConnectionStringBuilder connStrbuilder = new SqlConnectionStringBuilder();
+            //connStrbuilder.DataSource = DataSource;
+            //connStrbuilder.InitialCatalog = InitialCatalog;
+            //connStrbuilder.IntegratedSecurity = true;
+            //connStrbuilder.Pooling = true;
+            //reminder = "打开数据库";
 
         }
         public caddressBook[] addressBook
@@ -47,5 +79,16 @@ namespace 个人信息数据库
                     comment =" "
                 }
             };
+
+        private string DataSource
+        {
+            set;
+            get;
+        } = "QQLINDEXI\\SQLEXPRESS";
+        private string InitialCatalog
+        {
+            set;
+            get;
+        } = "grxx";
     }
 }
