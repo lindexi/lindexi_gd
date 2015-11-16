@@ -128,6 +128,7 @@ namespace 个人信息数据库
             set;
             get;
         } =
+           //new List<caddressBook>()
            new System.Collections.ObjectModel.ObservableCollection<caddressBook>()
            {
                 //new caddressBook()

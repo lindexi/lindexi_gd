@@ -19,7 +19,8 @@
             <Rectangle Height="200" Width="200" Fill="Black" Margin="10,10,10,10"/>
             <Rectangle Height="200" Width="200" Fill="Black" StrokeThickness="3" RadiusX="10" RadiusY="10" Margin="10,10,10,10"/>
             <Rectangle Height="200" Width="200" Fill="Black" StrokeThickness="3" RadiusX="10" RadiusY="10" Margin="10,10,10,10"/>
-            <Polygon Fill="Black" Points="0,100,200,100,200,0,0,0" Margin="10,10,10,10"/> 
+            <Polygon Fill="Black" Points="0,100,200,100,200,0,0,0" Margin="10,10,10,10"/>
+            <Line X1="10" Y1="10" X2="100" Y2="100" Stroke="Black" StrokeThickness="10"  Margin="10,10,10,10"/> 
         </GridView>
         
     </Grid>

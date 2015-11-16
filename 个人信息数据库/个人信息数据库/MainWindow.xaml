@@ -55,7 +55,7 @@
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
-        <DataGrid  Grid.Column="0" Grid.Row="0" x:Name="xl" ItemTemplate="{StaticResource xaddressBook}" ItemsSource="{Binding Path=addressBook}"/>
+        <DataGrid  Grid.Column="0" Grid.Row="0" x:Name="xl" ItemsSource="{Binding Path=addressBook}"/>
 
         <TextBlock Grid.Row="2" Grid.ColumnSpan="3" Text="{Binding Path=reminder,Mode=OneWay}" Margin="10,10,10,10" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
         <Button Grid.Row="2" Grid.Column="3" Height="20" Content="确定" Margin="10,10,10,10" Click="Button_Click"/>
