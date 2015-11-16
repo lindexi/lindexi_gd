@@ -38,6 +38,33 @@ namespace 个人信息数据库
                     reminder = string.Empty;
                     reminder = "打开数据库";
                 }
+
+                //构建sql语句
+                string strsql;
+                string line = "\n";
+                string usesql = $"use {InitialCatalog}";//使用数据库
+                strsql = $"{usesql}{line}insert into temp(id,name,contact,naddress,city,comment){line}values('1','张三','1','中国',' ',' ');{line}";
+
+                //执行sql语句需要一个"命令对象"
+                //创建一个命令对象
+                using (SqlCommand cmd = new SqlCommand(strsql , sql))
+                {
+                    int r = cmd.ExecuteNonQuery();
+                    reminder = string.Empty;
+                    reminder = $"成功插入了{r.ToString()}";
+
+                    //执行sql语句
+                    //cmd.ExecuteNonQuery() //当执行insert,delete,update语句时，一般使用该方法
+
+
+                    //当执行返回单个值的sql语句时使用该方法。
+                    //cmd.ExecuteScalar()
+
+
+                    //当执行Sql语句返回多行多列时，一般使用该方法。
+                    //cmd.ExecuteReader()
+                }
+
             }
 
             //SqlConnectionStringBuilder connStrbuilder = new SqlConnectionStringBuilder();
