@@ -65,6 +65,38 @@ namespace 个人信息数据库
                     //cmd.ExecuteReader()
                 }
 
+                //查询
+                strsql = $"SELECT * FROM temp";
+                //列
+                string id = "id";
+                string name = "name";
+                string contact = "contact";
+                string naddress = "naddress";
+                string city = "city";
+                string comment = "comment";
+                using (SqlCommand cmd = new SqlCommand(strsql , sql))
+                {
+                    using (SqlDataReader read = cmd.ExecuteReader())
+                    {
+                        //判断当前的reader是否读取到了数据
+                        if (read.HasRows)
+                        {
+                            int idindex = read.GetOrdinal(id);
+                            int nameindex = read.GetOrdinal(name);
+                            int contactindex = read.GetOrdinal(contact);
+                            int naddressindex = read.GetOrdinal(naddress);
+                            int cityindex = read.GetOrdinal(city);
+                            int commentindex = read.GetOrdinal(comment);
+                            //int index = read.GetOrdinal(name);
+
+                            while (read.Read())
+                            {
+                                reminder = $"{read.GetInt32(idindex)} , {read.GetString(nameindex)} ,{read.GetString(contactindex)} , {read.GetString(naddressindex)}, {read.GetString(cityindex)} , {read.GetString(commentindex)}{line}";
+                            }
+                        }
+                    }
+                }
+
             }
 
             //SqlConnectionStringBuilder connStrbuilder = new SqlConnectionStringBuilder();
