@@ -48,7 +48,7 @@ namespace 个人信息数据库
             //string strsql = Properties.Resources.插入数据;
             //_model.refreshData(strsql);
             //reminder = "插入" + Properties.Resources.插入数据;
-
+            _model.ce();
         }
 
         public void ce()

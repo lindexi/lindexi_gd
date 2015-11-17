@@ -124,6 +124,9 @@
   <data name="创建数据库grxx" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>data\sql\创建数据库grxx.sql;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;gb2312</value>
   </data>
+  <data name="城市" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>data\城市.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;gb2312</value>
+  </data>
   <data name="插入数据" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>data\sql\插入数据.sql;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;gb2312</value>
   </data>

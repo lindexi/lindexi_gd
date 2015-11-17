@@ -146,6 +146,7 @@
     <Content Include="data\SQL\创建数据库grxx.sql" />
     <Content Include="data\SQL\插入数据.sql" />
     <Content Include="data\SQL\表.sql" />
+    <Resource Include="data\城市.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

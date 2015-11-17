@@ -53,14 +53,8 @@ namespace 个人信息数据库.model
 
         public void ce()
         {
-            List<caddressBook> addressBook = new List<caddressBook>();
+            List<caddressBook> addressBook = lajiaddressBook();
 
-            int n = 100;
-            caddressBook temp;
-            for (int i = 0; i < n; i++)
-            {
-                temp=new caddressBook() { }
-            }
         }
 
         /// <summary>
@@ -75,6 +69,36 @@ namespace 个人信息数据库.model
 
 
 
+            using (SqlConnection sql = new SqlConnection(connect))
+            {
+                sql.Open();
+                using (SqlCommand cmd = new SqlCommand(strsql , sql))
+                {
+                    int r = cmd.ExecuteNonQuery();
+                }
+            }
+        }
+        /// <summary>
+        /// 写入通讯录
+        /// </summary>
+        /// <param name="addressBook"></param>
+        public void writeaddressBook(List<caddressBook> addressBook)
+        {
+            string t = "temp";
+            string strsql;
+            foreach (var temp in addressBook)
+            {
+                strsql = $"{usesql}{line}insert into {t}(id,name,contact,naddress,city,comment){line}values('{temp.id}','{temp.name}','{temp.contact}','{temp.address}','{temp.city}','{temp.comment}');{line}";
+                write(strsql);
+            }
+        }
+
+        /// <summary>
+        /// 写数据
+        /// </summary>
+        /// <param name="strsql"></param>
+        public void write(string strsql)
+        {
             using (SqlConnection sql = new SqlConnection(connect))
             {
                 sql.Open();
@@ -117,10 +141,11 @@ namespace 个人信息数据库.model
             return str.ToString();
         }
 
-        private string line {
+        private string line
+        {
             set;
             get;
-        }= "\n";
+        } = "\n";
         string usesql
         {
             set
@@ -131,6 +156,44 @@ namespace 个人信息数据库.model
             {
                 return $"use {InitialCatalog}";
             }
+        }
+
+        private List<caddressBook> lajiaddressBook()
+        {
+            List<caddressBook> addressBook = new List<caddressBook>();
+            List<string> chinacity = new List<string>();
+            chinacity.AddRange(sql.城市.Split(new char[2] { '\r' , '\n' }));
+
+            for (int i = 0; i < chinacity.Count; i++)
+            {
+                if (string.IsNullOrEmpty(chinacity[i]))
+                {
+                    chinacity.RemoveAt(i);
+                    i--;
+                }
+                else
+                {
+                    chinacity[i] = chinacity[i].Trim();
+                }
+            }
+
+            int n = 100;
+            caddressBook temp;
+
+            for (int i = 0; i < n; i++)
+            {
+                temp = new caddressBook()
+                {
+                    id = i.ToString() ,
+                    name = ranstr(3) ,
+                    contact = ran.Next().ToString() ,
+                    address = chinacity[ran.Next(chinacity.Count)] ,
+                    city = chinacity[ran.Next(chinacity.Count)] ,
+                    comment = "随机的名，作为测试"
+                };
+                addressBook.Add(temp);
+            }
+            return addressBook;
         }
     }
 }
