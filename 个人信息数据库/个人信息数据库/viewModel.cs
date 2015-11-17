@@ -56,88 +56,88 @@ namespace 个人信息数据库
         {
             //_model.ce();
             addressBook = _model.newaddressBook();
-            return;
+           
 
-            string connect = $"Data Source={DataSource};Initial Catalog={InitialCatalog};Integrated Security=True";
-            //List<caddressBook> addressBook = new List<caddressBook>();
-            using (SqlConnection sql = new SqlConnection(connect))
-            {
-                sql.Open();
-                if (sql.State == System.Data.ConnectionState.Closed)
-                {
-                    sql.Open();
-                }
-                if (sql.State == System.Data.ConnectionState.Open)
-                {
-                    reminder = string.Empty;
-                    reminder = "打开数据库";
-                }
+            //string connect = $"Data Source={DataSource};Initial Catalog={InitialCatalog};Integrated Security=True";
+            ////List<caddressBook> addressBook = new List<caddressBook>();
+            //using (SqlConnection sql = new SqlConnection(connect))
+            //{
+            //    sql.Open();
+            //    if (sql.State == System.Data.ConnectionState.Closed)
+            //    {
+            //        sql.Open();
+            //    }
+            //    if (sql.State == System.Data.ConnectionState.Open)
+            //    {
+            //        reminder = string.Empty;
+            //        reminder = "打开数据库";
+            //    }
 
-                //构建sql语句
-                string strsql;
-                string line = "\n";
-                string usesql = $"use {InitialCatalog}";//使用数据库
-                strsql = $"{usesql}{line}insert into temp(id,name,contact,naddress,city,comment){line}values('1','张三','1','中国',' ',' ');{line}";
+            //    //构建sql语句
+            //    string strsql;
+            //    string line = "\n";
+            //    string usesql = $"use {InitialCatalog}";//使用数据库
+            //    strsql = $"{usesql}{line}insert into temp(id,name,contact,naddress,city,comment){line}values('1','张三','1','中国',' ',' ');{line}";
 
-                //执行sql语句需要一个"命令对象"
-                //创建一个命令对象
-                using (SqlCommand cmd = new SqlCommand(strsql , sql))
-                {
-                    int r = cmd.ExecuteNonQuery();
-                    reminder = string.Empty;
-                    reminder = $"成功插入了{r.ToString()}";
+            //    //执行sql语句需要一个"命令对象"
+            //    //创建一个命令对象
+            //    using (SqlCommand cmd = new SqlCommand(strsql , sql))
+            //    {
+            //        int r = cmd.ExecuteNonQuery();
+            //        reminder = string.Empty;
+            //        reminder = $"成功插入了{r.ToString()}";
 
-                    //执行sql语句
-                    //cmd.ExecuteNonQuery() //当执行insert,delete,update语句时，一般使用该方法
-
-
-                    //当执行返回单个值的sql语句时使用该方法。
-                    //cmd.ExecuteScalar()
+            //        //执行sql语句
+            //        //cmd.ExecuteNonQuery() //当执行insert,delete,update语句时，一般使用该方法
 
 
-                    //当执行Sql语句返回多行多列时，一般使用该方法。
-                    //cmd.ExecuteReader()
-                }
+            //        //当执行返回单个值的sql语句时使用该方法。
+            //        //cmd.ExecuteScalar()
 
-                //查询
-                strsql = $"SELECT * FROM temp";
-                //列
-                string id = "id";
-                string name = "name";
-                string contact = "contact";
-                string naddress = "naddress";
-                string city = "city";
-                string comment = "comment";
-                using (SqlCommand cmd = new SqlCommand(strsql , sql))
-                {
-                    using (SqlDataReader read = cmd.ExecuteReader())
-                    {
-                        //判断当前的reader是否读取到了数据
-                        if (read.HasRows)
-                        {
-                            int idindex = read.GetOrdinal(id);
-                            int nameindex = read.GetOrdinal(name);
-                            int contactindex = read.GetOrdinal(contact);
-                            int naddressindex = read.GetOrdinal(naddress);
-                            int cityindex = read.GetOrdinal(city);
-                            int commentindex = read.GetOrdinal(comment); 
-                            while (read.Read())
-                            {
-                                caddressBook temp = new caddressBook();
-                                temp.name = read.GetString(nameindex);
-                                temp.contact = read.GetString(contactindex);
-                                temp.address = read.GetString(nameindex);
-                                temp.city = read.GetString(cityindex);
-                                temp.comment = read.GetString(commentindex);
 
-                                addressBook.Add(temp);
-                            }
-                            reminder = "查询";
-                        }                        
-                    }
-                }
+            //        //当执行Sql语句返回多行多列时，一般使用该方法。
+            //        //cmd.ExecuteReader()
+            //    }
 
-            }
+            //    //查询
+            //    strsql = $"SELECT * FROM temp";
+            //    //列
+            //    string id = "id";
+            //    string name = "name";
+            //    string contact = "contact";
+            //    string naddress = "naddress";
+            //    string city = "city";
+            //    string comment = "comment";
+            //    using (SqlCommand cmd = new SqlCommand(strsql , sql))
+            //    {
+            //        using (SqlDataReader read = cmd.ExecuteReader())
+            //        {
+            //            //判断当前的reader是否读取到了数据
+            //            if (read.HasRows)
+            //            {
+            //                int idindex = read.GetOrdinal(id);
+            //                int nameindex = read.GetOrdinal(name);
+            //                int contactindex = read.GetOrdinal(contact);
+            //                int naddressindex = read.GetOrdinal(naddress);
+            //                int cityindex = read.GetOrdinal(city);
+            //                int commentindex = read.GetOrdinal(comment); 
+            //                while (read.Read())
+            //                {
+            //                    caddressBook temp = new caddressBook();
+            //                    temp.name = read.GetString(nameindex);
+            //                    temp.contact = read.GetString(contactindex);
+            //                    temp.address = read.GetString(nameindex);
+            //                    temp.city = read.GetString(cityindex);
+            //                    temp.comment = read.GetString(commentindex);
+
+            //                    addressBook.Add(temp);
+            //                }
+            //                reminder = "查询";
+            //            }                        
+            //        }
+            //    }
+
+            //}
 
             //SqlConnectionStringBuilder connStrbuilder = new SqlConnectionStringBuilder();
             //connStrbuilder.DataSource = DataSource;
