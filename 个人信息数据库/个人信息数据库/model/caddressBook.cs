@@ -12,7 +12,7 @@ namespace 个人信息数据库.model
         public caddressBook()
         {
 
-        }
+        }       
         /// <summary>
         /// 通讯人姓名
         /// </summary>

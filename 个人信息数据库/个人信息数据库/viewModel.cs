@@ -33,18 +33,21 @@ namespace 个人信息数据库
         /// </summary>
         public void readsql()
         {
-            string fileaddress = @"E:\倾世倩雪\程序\trojan\个人信息数据库\个人信息数据库\data\SQL\插入数据.sql";
-            string strsql;
-            Encoding encoding = Encoding.Default;
-            using (FileStream file = new FileStream(fileaddress , FileMode.Open))
-            {
-                int length = (int)file.Length;
-                byte[] buff = new byte[length];
-                file.Read(buff , 0 , length);
-                strsql = encoding.GetString(buff);
-            }
-            _model.refreshData(strsql);
-            reminder = "插入" + strsql;
+            //string fileaddress = @"data/sql/插入数据.sql";
+            //string strsql;
+            //Encoding encoding = Encoding.Default;
+
+            //using (FileStream file = new FileStream(fileaddress , FileMode.Open))
+            //{
+            //    int length = (int)file.Length;
+            //    byte[] buff = new byte[length];
+            //    file.Read(buff , 0 , length);
+            //    strsql = encoding.GetString(buff);
+            //}
+
+            //string strsql = Properties.Resources.插入数据;
+            //_model.refreshData(strsql);
+            //reminder = "插入" + Properties.Resources.插入数据;
 
         }
 

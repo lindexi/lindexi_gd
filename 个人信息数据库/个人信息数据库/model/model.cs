@@ -51,6 +51,18 @@ namespace 个人信息数据库.model
             }
         }
 
+        public void ce()
+        {
+            List<caddressBook> addressBook = new List<caddressBook>();
+
+            int n = 100;
+            caddressBook temp;
+            for (int i = 0; i < n; i++)
+            {
+                temp=new caddressBook() { }
+            }
+        }
+
         /// <summary>
         /// 刷新数据
         /// </summary>
