@@ -12,7 +12,15 @@ namespace 个人信息数据库.model
         public caddressBook()
         {
 
-        }       
+        }
+        /// <summary>
+        /// 标识符
+        /// </summary>
+        public string id
+        {
+            set;
+            get;
+        }
         /// <summary>
         /// 通讯人姓名
         /// </summary>
