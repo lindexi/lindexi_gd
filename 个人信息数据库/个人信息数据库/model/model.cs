@@ -54,7 +54,7 @@ namespace 个人信息数据库.model
         /// <summary>
         /// 刷新数据
         /// </summary>
-        public/* async*/ void refreshData()
+        public/* async*/ void refreshData(string strsql)
         {
             //构建sql语句
             string addressBookname = "";
@@ -65,7 +65,11 @@ namespace 个人信息数据库.model
 
             using (SqlConnection sql = new SqlConnection(connect))
             {
-
+                sql.Open();
+                using (SqlCommand cmd = new SqlCommand(strsql , sql))
+                {
+                    int r = cmd.ExecuteNonQuery();
+                }
             }
         }
 

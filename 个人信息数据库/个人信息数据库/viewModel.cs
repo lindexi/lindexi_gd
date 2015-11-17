@@ -9,6 +9,8 @@ using 个人信息数据库.model;
 using System.Windows.Threading;
 using System.Threading;
 
+using System.IO;
+
 namespace 个人信息数据库
 {
     public partial class viewModel : notify_property
@@ -20,7 +22,7 @@ namespace 个人信息数据库
             //使用windows身份验证方式
             //string constr = "Data Source=steve-pc;Initial Catalog=itcast2013;Integrated Security=true";
             //"server=.;database=itcast2013;uid=sa;pwd=sa"
-
+            _model = new model.model();
             reminder = "运行";
 
             
@@ -31,6 +33,18 @@ namespace 个人信息数据库
         /// </summary>
         public void readsql()
         {
+            string fileaddress = @"E:\倾世倩雪\程序\trojan\个人信息数据库\个人信息数据库\data\SQL\插入数据.sql";
+            string strsql;
+            Encoding encoding = Encoding.Default;
+            using (FileStream file = new FileStream(fileaddress , FileMode.Open))
+            {
+                int length = (int)file.Length;
+                byte[] buff = new byte[length];
+                file.Read(buff , 0 , length);
+                strsql = encoding.GetString(buff);
+            }
+            _model.refreshData(strsql);
+            reminder = "插入" + strsql;
 
         }
 
@@ -175,5 +189,6 @@ namespace 个人信息数据库
             set;
             get;
         } = "grxx";
+        private model.model _model;
     }
 }
