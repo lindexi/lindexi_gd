@@ -26,6 +26,14 @@ namespace 个人信息数据库
             
         }
 
+        /// <summary>
+        /// 读取sql
+        /// </summary>
+        public void readsql()
+        {
+
+        }
+
         public void ce()
         {
             string connect = $"Data Source={DataSource};Initial Catalog={InitialCatalog};Integrated Security=True";

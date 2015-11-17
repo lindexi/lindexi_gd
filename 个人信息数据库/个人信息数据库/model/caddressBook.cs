@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace 个人信息数据库.model
 {
+    [Serializable]
     public class caddressBook
     {
         public caddressBook()

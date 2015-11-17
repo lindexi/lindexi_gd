@@ -30,7 +30,8 @@ namespace 个人信息数据库
 
         private void Button_Click(object sender , RoutedEventArgs e)
         {
-            view.ce();
+            //view.ce();
+            view.readsql();
             //xl.ItemsSource = view.addressBook;
         }
        
