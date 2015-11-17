@@ -54,7 +54,7 @@ namespace 个人信息数据库.model
         public void ce()
         {
             List<caddressBook> addressBook = lajiaddressBook();
-
+            writeaddressBook(addressBook);
         }
 
         /// <summary>
@@ -85,7 +85,7 @@ namespace 个人信息数据库.model
         public void writeaddressBook(List<caddressBook> addressBook)
         {
             string t = "temp";
-            string strsql;
+            string strsql;       
             foreach (var temp in addressBook)
             {
                 strsql = $"{usesql}{line}insert into {t}(id,name,contact,naddress,city,comment){line}values('{temp.id}','{temp.name}','{temp.contact}','{temp.address}','{temp.city}','{temp.comment}');{line}";
