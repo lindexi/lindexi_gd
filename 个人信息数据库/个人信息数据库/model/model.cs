@@ -6,6 +6,7 @@ using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
 using System.Data.Sql;
 using System.Data.SqlClient;
+using System.Collections.ObjectModel;
 
 namespace 个人信息数据库.model
 {
@@ -53,31 +54,80 @@ namespace 个人信息数据库.model
 
         public void ce()
         {
-            List<caddressBook> addressBook = lajiaddressBook();
-            writeaddressBook(addressBook);
+            //List<caddressBook> addressBook = lajiaddressBook();
+            //writeaddressBook(addressBook);
+
+            refreshData();
+
         }
 
         /// <summary>
         /// 刷新数据
         /// </summary>
-        public/* async*/ void refreshData(string strsql)
+        public/* async*/ void refreshData()
         {
             //构建sql语句
             string addressBookname = "";
             string sqlAddressBook = $"{usesql}{line}SELECT * FROM {addressBookname};";
 
-
-
-
             using (SqlConnection sql = new SqlConnection(connect))
             {
                 sql.Open();
-                using (SqlCommand cmd = new SqlCommand(strsql , sql))
+                using (SqlCommand cmd = new SqlCommand(sqlAddressBook , sql))
                 {
                     int r = cmd.ExecuteNonQuery();
                 }
             }
         }
+
+
+        public ObservableCollection<caddressBook> newaddressBook()
+        {
+            string addressBookname = "temp";
+            string sqlAddressBook = $"{usesql}{line}SELECT * FROM {addressBookname};";
+            ObservableCollection<caddressBook> addressBook = new ObservableCollection<caddressBook>();
+            string id = "id";
+            string name = "name";
+            string contact = "contact";
+            string naddress = "naddress";
+            string city = "city";
+            string comment = "comment";
+            using (SqlConnection sql = new SqlConnection(connect))
+            {
+                sql.Open();
+                using (SqlCommand cmd = new SqlCommand(sqlAddressBook , sql))
+                {
+                    using (SqlDataReader read = cmd.ExecuteReader())
+                    {
+                        //判断当前的reader是否读取到了数据
+                        if (read.HasRows)
+                        {
+                            int idindex = read.GetOrdinal(id);
+                            int nameindex = read.GetOrdinal(name);
+                            int contactindex = read.GetOrdinal(contact);
+                            int naddressindex = read.GetOrdinal(naddress);
+                            int cityindex = read.GetOrdinal(city);
+                            int commentindex = read.GetOrdinal(comment);
+                            while (read.Read())
+                            {
+                                caddressBook temp = new caddressBook();
+                                temp.id = read.GetInt32(idindex).ToString();
+                                temp.name = read.GetString(nameindex).Trim();
+                                temp.contact = read.GetString(contactindex).Trim();
+                                temp.address = read.GetString(nameindex).Trim();
+                                temp.city = read.GetString(cityindex).Trim();
+                                temp.comment = read.GetString(commentindex).Trim();
+
+                                addressBook.Add(temp);
+                            }                           
+                        }
+                    }
+                }
+            }
+            return addressBook;
+        }
+
+
         /// <summary>
         /// 写入通讯录
         /// </summary>
@@ -104,6 +154,7 @@ namespace 个人信息数据库.model
                 sql.Open();
                 using (SqlCommand cmd = new SqlCommand(strsql , sql))
                 {
+                    //字符串比char(10)长 将截断字符串或二进制数据
                     int r = cmd.ExecuteNonQuery();
                 }
             }

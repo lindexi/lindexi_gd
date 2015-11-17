@@ -31,8 +31,8 @@ namespace 个人信息数据库
         /// <summary>
         /// 读取sql
         /// </summary>
-        public void readsql()
-        {
+        //public void readsql()
+        //{
             //string fileaddress = @"data/sql/插入数据.sql";
             //string strsql;
             //Encoding encoding = Encoding.Default;
@@ -48,11 +48,16 @@ namespace 个人信息数据库
             //string strsql = Properties.Resources.插入数据;
             //_model.refreshData(strsql);
             //reminder = "插入" + Properties.Resources.插入数据;
-            _model.ce();
-        }
+
+            //_model.ce();
+        //}
 
         public void ce()
         {
+            //_model.ce();
+            addressBook = _model.newaddressBook();
+            return;
+
             string connect = $"Data Source={DataSource};Initial Catalog={InitialCatalog};Integrated Security=True";
             //List<caddressBook> addressBook = new List<caddressBook>();
             using (SqlConnection sql = new SqlConnection(connect))
