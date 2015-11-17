@@ -57,29 +57,7 @@ namespace 个人信息数据库.model
             //List<caddressBook> addressBook = lajiaddressBook();
             //writeaddressBook(addressBook);
 
-            refreshData();
-
         }
-
-        /// <summary>
-        /// 刷新数据
-        /// </summary>
-        public/* async*/ void refreshData()
-        {
-            //构建sql语句
-            string addressBookname = "";
-            string sqlAddressBook = $"{usesql}{line}SELECT * FROM {addressBookname};";
-
-            using (SqlConnection sql = new SqlConnection(connect))
-            {
-                sql.Open();
-                using (SqlCommand cmd = new SqlCommand(sqlAddressBook , sql))
-                {
-                    int r = cmd.ExecuteNonQuery();
-                }
-            }
-        }
-
 
         public ObservableCollection<caddressBook> newaddressBook()
         {
