@@ -14,5 +14,21 @@
         </Grid.RowDefinitions>
         <Frame x:Name="xf"/>
         
+    
     </Grid>
+
+    <Page.BottomAppBar>
+        <CommandBar >
+            <CommandBar.SecondaryCommands>
+                <AppBarButton Label="菜单"/>
+                <AppBarButton Label="菜单"/>
+            </CommandBar.SecondaryCommands>
+            <CommandBar.Content>
+                <Grid>
+                    <TextBlock Text="图标"/>
+                </Grid>
+            </CommandBar.Content>
+            <AppBarButton Content="下回合" Icon="AlignRight"/>
+        </CommandBar>
+    </Page.BottomAppBar>    
 </Page>
