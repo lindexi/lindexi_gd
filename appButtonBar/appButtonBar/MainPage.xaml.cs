@@ -25,7 +25,8 @@ namespace appButtonBar
     {
         public MainPage()
         {            
-            this.InitializeComponent();            
+            this.InitializeComponent();
+            xf.Navigate(typeof(glyph));                 
         }
     }
 }
