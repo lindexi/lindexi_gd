@@ -12,7 +12,30 @@ namespace Toast_通知
     {
         public viewModel()
         {
-            ce();   
+            //ce();   
+           
+        }
+        /// <summary>
+        /// 显示在前台的string
+        /// </summary>
+        public string text
+        {
+            set;
+            get;
+        } = "text";
+        /// <summary>
+        /// 修改text
+        /// </summary>
+        public void modifytext()
+        {
+            text = "修改"; 
+        }
+        /// <summary>
+        /// 显示text
+        /// </summary>
+        public void revealtext()
+        {
+            
         }
 
         public void ce()

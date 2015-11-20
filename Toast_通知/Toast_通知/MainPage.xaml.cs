@@ -27,6 +27,12 @@ namespace Toast_通知
         {
             view = new viewModel();
             this.InitializeComponent();
+           
+        }
+
+        private void Button_Click(object sender , RoutedEventArgs e)
+        {
+
         }
     }
 }

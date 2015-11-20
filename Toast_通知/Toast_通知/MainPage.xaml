@@ -9,6 +9,8 @@
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <!--#region 可以压缩代码-->
-        <!--#endregion-->        
+        <!--#endregion-->                
+        <TextBlock Name="xtextblock" Text="{x:Bind view.text,Mode=OneWay}"/>
+        <Button Content="更改" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="Button_Click"/>
     </Grid>
 </Page>
