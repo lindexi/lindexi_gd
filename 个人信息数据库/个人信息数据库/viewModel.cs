@@ -148,10 +148,11 @@ namespace 个人信息数据库
 
         }
 
-       private void AddItem(object item)
-        {
-            addressBook.Add(item as caddressBook);
-        }
+       //private void AddItem(object item)
+       // {
+       //     addressBook.Add(item as caddressBook);
+       // }
+
         public System.Collections.ObjectModel.ObservableCollection<caddressBook>
         /*public List<caddressBook>*/ addressBook
         {

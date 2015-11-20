@@ -1,0 +1,43 @@
+﻿<Page
+    x:Class="observable_collection.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:observable_collection"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <Page.Resources>
+        <DataTemplate x:Key="xaddressBook">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <!--通讯人姓名、联系方式、工作地点、城市、备注-->
+            <TextBlock Grid.Column="0" >
+                    通讯人姓名：
+                    <Run Text="{Binding name}"/>  
+                    <LineBreak/>
+                    联系方式：
+                    <Run Text="{Binding contact}"/>
+                    <LineBreak/>
+                    工作地点：
+                    <Run Text="{Binding address}"/>
+                    <LineBreak/>
+                    城市：
+                    <Run Text="{Binding city}"/>
+                    <LineBreak/>
+                    备注：
+                    <Run Text="{Binding remark}"/>
+                    <LineBreak/>
+            </TextBlock>           
+        </Grid>
+    </DataTemplate>
+    </Page.Resources>
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <ListView ItemTemplate="{StaticResource xaddressBook}" ItemsSource="{x:Bind view.addressBook,Mode=OneWay}"/>
+    </Grid>
+</Page>
