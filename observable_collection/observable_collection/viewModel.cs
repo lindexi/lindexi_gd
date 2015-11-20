@@ -23,7 +23,7 @@ namespace observable_collection
                 new caddressBook()
                 {
                     name ="张三",
-                    contact ="1",
+                    contact ="0",
                     address ="中国",
                     city =" ",
                     comment =" "
@@ -37,6 +37,22 @@ namespace observable_collection
                     comment =" "
                 }
         };
+
+        /// <summary>
+        /// 修改
+        /// </summary>
+        public void modify()
+        {
+            var taddressBook = new caddressBook()
+            {
+                name = "张三" ,
+                contact = "2" ,
+                address = "中国" ,
+                city = " " ,
+                comment = " "
+            };
+            addressBook.Add(taddressBook);
+        }
 
     }
 }

@@ -39,5 +39,6 @@
     </Page.Resources>
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <ListView ItemTemplate="{StaticResource xaddressBook}" ItemsSource="{x:Bind view.addressBook,Mode=OneWay}"/>
+        <Button Content="确定" Margin="10,10,10,10" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="{x:Bind view.modify}"/>
     </Grid>
 </Page>
