@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using Windows.Devices.Geolocation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
@@ -24,9 +25,9 @@ namespace appButtonBar
     public sealed partial class MainPage : Page
     {
         public MainPage()
-        {            
+        {
             this.InitializeComponent();
-            xf.Navigate(typeof(glyph));                 
-        }
+            xf.Navigate(typeof(glyph));
+        }       
     }
 }
