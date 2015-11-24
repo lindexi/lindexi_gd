@@ -112,7 +112,7 @@ namespace 个人信息数据库.model
                         }
                         catch (SocketException e)
                         {
-                            reminder("对方断开连接" + e.Message);
+                            reminder("对方断开连接 " + e.Message);
                         }
 
                     } , RSocket);

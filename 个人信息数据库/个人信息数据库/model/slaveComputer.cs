@@ -101,7 +101,7 @@ namespace 个人信息数据库.model
             }
         }
         private int port = 54321; //端口号
-        private int id
+        public int id
         {
             set;
             get;

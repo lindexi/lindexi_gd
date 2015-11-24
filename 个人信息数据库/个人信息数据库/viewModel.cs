@@ -67,9 +67,11 @@ namespace 个人信息数据库
             //addressBook = _model.newaddressBook();
 
             string json = JsonConvert.SerializeObject(addressBook);
-            reminder = json;
-            addressBook = new System.Collections.ObjectModel.ObservableCollection<caddressBook>();
-            addressBook = JsonConvert.DeserializeObject<ObservableCollection<caddressBook>>(json);
+            //reminder = json;
+            //addressBook = new System.Collections.ObjectModel.ObservableCollection<caddressBook>();
+            //addressBook = JsonConvert.DeserializeObject<ObservableCollection<caddressBook>>(json);
+
+            _slaveComputer.send(new ctransmitter(_slaveComputer.id , ecommand.ce , json).ToString());
 
 
             //string connect = $"Data Source={DataSource};Initial Catalog={InitialCatalog};Integrated Security=True";
