@@ -70,8 +70,20 @@ namespace 个人信息数据库
             //reminder = json;
             //addressBook = new System.Collections.ObjectModel.ObservableCollection<caddressBook>();
             //addressBook = JsonConvert.DeserializeObject<ObservableCollection<caddressBook>>(json);
-
-            _slaveComputer.send(new ctransmitter(_slaveComputer.id , ecommand.ce , json).ToString());
+            if (_sx上位机下位机 == 上位机下位机.x下位机)
+            {
+                if (_slaveComputer != null)
+                {
+                    _slaveComputer.send(new ctransmitter(_slaveComputer.id , ecommand.ce , json).ToString());
+                }
+            }
+            else
+            {
+                if (_principal_Computer != null)
+                {
+                    _principal_Computer.send(new ctransmitter(-1 , ecommand.ce , json).ToString());
+                }
+            }
 
 
             //string connect = $"Data Source={DataSource};Initial Catalog={InitialCatalog};Integrated Security=True";
@@ -166,11 +178,13 @@ namespace 个人信息数据库
 
         public void principal_computer()
         {
+            _sx上位机下位机 = 上位机下位机.s上位机;
             _principal_Computer = new principal_Computer(ReceiveAction);
         }
 
         public void slave_computer()
         {
+            _sx上位机下位机 = 上位机下位机.x下位机;
             _slaveComputer = new slaveComputer(ReceiveAction);
             _slaveComputer.access("10.21.71.130");
         }
@@ -229,6 +243,12 @@ namespace 个人信息数据库
 
         private principal_Computer _principal_Computer;
         private slaveComputer _slaveComputer;
-        System.Action<string> ReceiveAction;
+        private System.Action<string> ReceiveAction;
+        private 上位机下位机 _sx上位机下位机;
+    }
+    enum 上位机下位机
+    {
+        s上位机,
+        x下位机
     }
 }
