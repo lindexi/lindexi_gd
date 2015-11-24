@@ -14,15 +14,20 @@ namespace 个人信息数据库.model
     /// </summary>
     public class slaveComputer
     {
-        public slaveComputer(System.Action<string> ReceiveAction)
-        {
-            this.ReceiveAction = ReceiveAction;
+        public slaveComputer(System.Action<string> reminder)
+        {    
+            this.reminder = reminder;
+            this.ReceiveAction = str =>
+            {
+                implement(str);
+            };
+
             //定义一个IPV4，TCP模式的Socket
             ClientSocket = new Socket(AddressFamily.InterNetwork , SocketType.Stream , ProtocolType.Tcp);
             //MsgBuffer = new Byte[65535];
             //MsgSend = new Byte[65535];
 
-            ReceiveAction("下位机");
+            reminder("下位机");
         }
         public void access(string ip)
         {
@@ -36,7 +41,7 @@ namespace 个人信息数据库.model
             //ClientSocket.BeginReceive(MsgBuffer , 0 , MsgBuffer.Length , SocketFlags.None , new AsyncCallback(ReceiveCallBack) , null);
             ReceiveCallBack(ReceiveAction);
 
-            ReceiveAction("连接");
+            reminder("连接");
         }
 
         public void exit()
@@ -60,6 +65,7 @@ namespace 个人信息数据库.model
         private Socket ClientSocket;      
         private Encoding encoding = Encoding.Default;
         private System.Action<string> ReceiveAction;
+        private System.Action<string> reminder;
         private void ReceiveCallBack(System.Action<string> ReceiveAction)
         {
             try
@@ -79,7 +85,7 @@ namespace 个人信息数据库.model
                     }
                     catch (SocketException e)
                     {
-                        ReceiveAction("对方断开连接" + e.Message);
+                        reminder("对方断开连接" + e.Message);
                     }
 
                 } /*new AsyncCallback(ReceiveCallBack)*/ , null);
@@ -91,6 +97,9 @@ namespace 个人信息数据库.model
             }
         }
         private int port = 54321; //端口号
-        
+        private void implement(string str)
+        {
+
+        }
     }
 }

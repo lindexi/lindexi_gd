@@ -14,9 +14,13 @@ namespace 个人信息数据库.model
     /// </summary>
     public class principal_Computer
     {    
-        public principal_Computer(System.Action<string> ReceiveAction)
+        public principal_Computer(System.Action<string> reminder)
         {
-            this.ReceiveAction = ReceiveAction;
+            this.reminder = reminder;
+            this.ReceiveAction = str =>
+            {
+                implement(str);
+            };
 
             ServerSocket = new Socket(AddressFamily.InterNetwork , SocketType.Stream , ProtocolType.Tcp);
             IPAddress ip = IPAddress.Any;
@@ -31,7 +35,7 @@ namespace 个人信息数据库.model
             ServerThread = new Thread(new ThreadStart(RecieveAccept));//将接受客户端连接的方法委托给线程
             ServerThread.Start();//线程开始运行
 
-            ReceiveAction("运行上位机");
+            reminder("运行上位机");
         }
 
         public void send(string str)
@@ -97,7 +101,7 @@ namespace 个人信息数据库.model
                         }
                         catch (SocketException e)
                         {
-                            ReceiveAction("对方断开连接" + e.Message);
+                            reminder("对方断开连接" + e.Message);
                         }
 
                     } , RSocket);
@@ -114,6 +118,12 @@ namespace 个人信息数据库.model
         private int ClientNumb;//存放客户端数量
         private int port = 54321; //端口号
         private System.Action<string> ReceiveAction;
+        private System.Action<string> reminder;
         private Encoding encoding = Encoding.Default;
+
+        private void implement(string str)
+        {
+
+        }
     }
 }
