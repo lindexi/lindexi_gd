@@ -50,5 +50,14 @@ namespace 个人信息数据库
         }
         private viewModel _view;
 
+        private void principal_Computer(object sender , RoutedEventArgs e)
+        {
+
+        }
+
+        private void slaveComputer(object sender , RoutedEventArgs e)
+        {
+
+        }
     }
 }

@@ -158,6 +158,16 @@ namespace 个人信息数据库
 
         }
 
+        public void principal_Computer()
+        {
+
+        }
+
+        public void slaveComputer()
+        {
+
+        }
+
        //private void AddItem(object item)
        // {
        //     addressBook.Add(item as caddressBook);

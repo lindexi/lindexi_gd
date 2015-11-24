@@ -58,6 +58,11 @@
         <DataGrid  Grid.Column="0" Grid.Row="0" x:Name="xl" ItemsSource="{Binding Path=addressBook}" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
         
         <TextBlock Grid.Row="2" Grid.ColumnSpan="3" Text="{Binding Path=reminder,Mode=OneWay}" Margin="10,10,10,10" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
-        <Button Grid.Row="2" Grid.Column="3" Height="20" Content="确定" Margin="10,10,10,10" Click="Button_Click"/>
+        <StackPanel Grid.Row="2" Grid.Column="3" Orientation="Vertical">
+            <Button Content="上位机" Margin="10,10,10,10" Click="principal_Computer"/>
+            <Button Content="下位机" Margin="10,10,10,10" Click="slaveComputer"/>
+            <Button Height="20" Content="确定" Margin="10,10,10,10" Click="Button_Click"/>
+        </StackPanel>
+        
     </Grid>
 </Window>
