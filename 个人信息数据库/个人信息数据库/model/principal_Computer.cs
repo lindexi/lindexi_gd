@@ -90,7 +90,7 @@ namespace 个人信息数据库.model
                 Socket RSocket = (Socket)AR.AsyncState;
                 //int REnd = RSocket.EndReceive(AR);
                 //对每一个侦听的客户端端口信息进行接收
-                for (int i = 0; i < ClientNumb; i++)
+                //for (int i = 0; i < ClientNumb; i++)
                 {
                     //if (ClientSocket[i].Connected)
                     //{
