@@ -6,6 +6,7 @@ using System.Text;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace 个人信息数据库.model
 {
@@ -113,7 +114,19 @@ namespace 个人信息数据库.model
         } = new Random();
         private void implement(string str)
         {
+            try
+            {
+                ctransmitter transmitter = JsonConvert.DeserializeObject<ctransmitter>(str);
+                ecommand command = (ecommand)Enum.Parse(typeof(ecommand) , transmitter.command);
+                switch (command)
+                {
 
+                }
+            }
+            catch (Exception e)
+            {
+                reminder("str不是ctransmitter " + e.Message);
+            }
         }
     }
 }
