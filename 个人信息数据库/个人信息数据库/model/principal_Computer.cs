@@ -1,0 +1,119 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Sockets;
+using System.Text;
+using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace 个人信息数据库.model
+{
+    /// <summary>
+    /// 上位机
+    /// </summary>
+    public class principal_Computer
+    {    
+        public principal_Computer(System.Action<string> ReceiveAction)
+        {
+            this.ReceiveAction = ReceiveAction;
+
+            ServerSocket = new Socket(AddressFamily.InterNetwork , SocketType.Stream , ProtocolType.Tcp);
+            IPAddress ip = IPAddress.Any;
+            ServerInfo = new IPEndPoint(ip , port);
+            ServerSocket.Bind(ServerInfo);//将SOCKET接口和IP端口绑定
+            ServerSocket.Listen(10);//开始监听，并且挂起数为10
+
+            ClientSocket = new Socket[65535];//为客户端提供连接个数
+            //MsgBuffer = new byte[65535];//消息数据大小
+            ClientNumb = 0;//数量从0开始统计
+
+            ServerThread = new Thread(new ThreadStart(RecieveAccept));//将接受客户端连接的方法委托给线程
+            ServerThread.Start();//线程开始运行
+
+            ReceiveAction("运行上位机");
+        }
+
+        public void send(string str)
+        {
+            byte[] MsgBuffer = encoding.GetBytes(str);
+            for (int i = 0; i < ClientNumb; i++)
+            {
+                if (ClientSocket[i].Connected)
+                {
+                    //回发数据到客户端
+                    ClientSocket[i].Send(MsgBuffer , 0 , MsgBuffer.Length , SocketFlags.None);
+                }
+            }
+        }
+
+        //接受客户端连接的方法
+        private void RecieveAccept()
+        {
+            while (true)
+            {
+                //Accept 以同步方式从侦听套接字的连接请求队列中提取第一个挂起的连接请求，然后创建并返回新的 Socket。
+                //在阻止模式中，Accept 将一直处于阻止状态，直到传入的连接尝试排入队列。连接被接受后，原来的 Socket 继续将传入的连接请求排入队列，直到您关闭它。
+                byte[] buffer = new byte[65535];
+                ClientSocket[ClientNumb] = ServerSocket.Accept();
+                ClientSocket[ClientNumb].BeginReceive(buffer , 0 , buffer.Length , SocketFlags.None ,
+                new AsyncCallback(RecieveCallBack) , ClientSocket[ClientNumb]);
+                //lock (this.ClientList)
+                //{
+                //    this.ClientList.Items.Add(ClientSocket[ClientNumb].RemoteEndPoint.ToString() + " 成功连接服务器.");
+                //}
+                ReceiveAction(encoding.GetString(buffer));
+                ClientNumb++;
+            }
+        }
+
+        //回发数据给客户端
+        private void RecieveCallBack(IAsyncResult AR)
+        {
+            try
+            {
+                Socket RSocket = (Socket)AR.AsyncState;
+                //int REnd = RSocket.EndReceive(AR);
+                //对每一个侦听的客户端端口信息进行接收
+                for (int i = 0; i < ClientNumb; i++)
+                {
+                    //if (ClientSocket[i].Connected)
+                    //{
+                    //    //回发数据到客户端
+                    //    ClientSocket[i].Send(MsgBuffer , 0 , REnd , SocketFlags.None);
+                    //}
+                    byte[] MsgBuffer = new byte[65535];
+                    //同时接收客户端回发的数据，用于回发
+                    RSocket.BeginReceive(MsgBuffer , 0 , MsgBuffer.Length , SocketFlags.None , ar =>
+                    {
+                        //对方断开连接时, 这里抛出Socket Exception
+                        //An existing connection was forcibly closed by the remote host 
+                        try
+                        {
+
+                            RSocket.EndReceive(ar);
+                            ReceiveAction(encoding.GetString(MsgBuffer).Trim('\0' , ' '));
+                            RecieveCallBack(ar);
+                        }
+                        catch (SocketException e)
+                        {
+                            ReceiveAction("对方断开连接" + e.Message);
+                        }
+
+                    } , RSocket);
+                }
+            }
+            catch { }
+
+        }
+
+        private IPEndPoint ServerInfo;//存放服务器的IP和端口信息
+        private Socket ServerSocket;//服务端运行的SOCKET
+        private Thread ServerThread;//服务端运行的线程
+        private Socket[] ClientSocket;//为客户端建立的SOCKET连接
+        private int ClientNumb;//存放客户端数量
+        private int port = 54321; //端口号
+        private System.Action<string> ReceiveAction;
+        private Encoding encoding = Encoding.Default;
+    }
+}

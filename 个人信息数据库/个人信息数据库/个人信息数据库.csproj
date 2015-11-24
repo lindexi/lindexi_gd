@@ -76,7 +76,8 @@
     </ApplicationDefinition>
     <Compile Include="model\caddressBook.cs" />
     <Compile Include="model\model.cs" />
-    <Compile Include="model\principalComputer.cs" />
+    <Compile Include="model\principal_Computer.cs" />
+    <Compile Include="model\slaveComputer.cs" />
     <Compile Include="notify_property.cs" />
     <Compile Include="sql.Designer.cs">
       <AutoGen>True</AutoGen>
