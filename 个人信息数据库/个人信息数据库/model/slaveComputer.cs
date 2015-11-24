@@ -19,6 +19,7 @@ namespace 个人信息数据库.model
             this.reminder = reminder;
             this.ReceiveAction = str =>
             {
+                reminder(str);
                 implement(str);
             };
 
