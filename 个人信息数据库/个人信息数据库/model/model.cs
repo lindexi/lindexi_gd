@@ -268,6 +268,7 @@ namespace 个人信息数据库.model
         login,//登录
         id,//分配id
         //get,//发送成功
+        faddressBook,//通讯录
         ce
     }
 }

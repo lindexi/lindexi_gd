@@ -21,7 +21,7 @@ namespace 个人信息数据库.model
             this.reminder = reminder;
             this.ReceiveAction = str =>
             {
-                reminder(str);
+                //reminder(str);
                 implement(str);
             };
 
@@ -142,7 +142,9 @@ namespace 个人信息数据库.model
                 ecommand command = (ecommand)Enum.Parse(typeof(ecommand) , transmitter.command);
                 switch (command)
                 {
-
+                    case ecommand.ce:
+                        reminder("收到" + transmitter.id);
+                        break;
                 }
             }
             catch(Exception e)
@@ -156,5 +158,6 @@ namespace 个人信息数据库.model
             send(id , new ctransmitter(-1 , ecommand.id , id.ToString()).ToString());
             reminder(id.ToString() + "连接");
         }
+        
     }
 }
