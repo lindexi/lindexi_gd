@@ -28,7 +28,11 @@ namespace 个人信息数据库
 
             ReceiveAction = str =>
             {
-                reminder = str.Trim('\0' , ' ');
+                string temp= str.Trim('\0' , ' ');
+                if (!string.IsNullOrEmpty(temp))
+                {
+                    reminder = temp;
+                }
             };
         }
 

@@ -36,7 +36,10 @@ namespace 个人信息数据库.model
             //客户端连接服务端指定IP端口，Sockket
             ClientSocket.Connect(ServerInfo);
             //将用户登录信息发送至服务器，由此可以让其他客户端获知
-            ClientSocket.Send(encoding.GetBytes(" 进入系统！\n"));
+            //ClientSocket.Send(encoding.GetBytes(" 进入系统！\n"));
+            //send("进入系统");            
+
+            send(new ctransmitter(-1,ecommand.login,"进入系统").ToString());
             //开始从连接的Socket异步读取数据。接收来自服务器，其他客户端转发来的信息
             //AsyncCallback引用在异步操作完成时调用的回调方法
             //ClientSocket.BeginReceive(MsgBuffer , 0 , MsgBuffer.Length , SocketFlags.None , new AsyncCallback(ReceiveCallBack) , null);
@@ -98,6 +101,16 @@ namespace 个人信息数据库.model
             }
         }
         private int port = 54321; //端口号
+        private int id
+        {
+            set;
+            get;
+        }
+        private Random ran
+        {
+            set;
+            get;
+        } = new Random();
         private void implement(string str)
         {
 

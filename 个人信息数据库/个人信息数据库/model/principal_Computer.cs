@@ -13,7 +13,7 @@ namespace 个人信息数据库.model
     /// 上位机
     /// </summary>
     public class principal_Computer
-    {    
+    {
         public principal_Computer(System.Action<string> reminder)
         {
             this.reminder = reminder;
@@ -52,6 +52,15 @@ namespace 个人信息数据库.model
             }
         }
 
+        public void send(int id , string str)
+        {
+            byte[] buffer = encoding.GetBytes(str);
+            if (ClientSocket[id].Connected)
+            {
+                //回发数据到客户端
+                ClientSocket[id].Send(buffer , 0 , buffer.Length , SocketFlags.None);
+            }
+        }
         //接受客户端连接的方法
         private void RecieveAccept()
         {
@@ -68,6 +77,7 @@ namespace 个人信息数据库.model
                 //    this.ClientList.Items.Add(ClientSocket[ClientNumb].RemoteEndPoint.ToString() + " 成功连接服务器.");
                 //}
                 ReceiveAction(encoding.GetString(buffer));
+                分配id(ClientNumb);
                 ClientNumb++;
             }
         }
@@ -125,6 +135,12 @@ namespace 个人信息数据库.model
         private void implement(string str)
         {
 
+        }
+
+        private void 分配id(int id)
+        {
+            send(id , new ctransmitter(-1 , ecommand.id , id.ToString()).ToString());
+            reminder(id.ToString() + "连接");
         }
     }
 }

@@ -229,11 +229,12 @@ namespace 个人信息数据库.model
     /// </summary>
     public class ctransmitter
     {
-        public ctransmitter(int id , ecommand command , string str)
+        public ctransmitter(int id , ecommand command , string str/*,int ran*/)
         {
             this.id = id.ToString();
             this.command = command.ToString();
             this.str = str;
+            //this.ran = ran.ToString();
         }
 
         public string id
@@ -251,6 +252,11 @@ namespace 个人信息数据库.model
             set;
             get;
         }
+        //public string ran
+        //{
+        //    set;
+        //    get;
+        //}
         public override string ToString()
         {
             return JsonConvert.SerializeObject(this);
@@ -259,6 +265,9 @@ namespace 个人信息数据库.model
 
     public enum ecommand
     {
-
+        login,//登录
+        id,//分配id
+        //get,//发送成功
+        ce
     }
 }
