@@ -75,8 +75,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="model\caddressBook.cs" />
-    <Compile Include="model\cjson.cs" />
     <Compile Include="model\model.cs" />
+    <Compile Include="model\principalComputer.cs" />
     <Compile Include="notify_property.cs" />
     <Compile Include="sql.Designer.cs">
       <AutoGen>True</AutoGen>

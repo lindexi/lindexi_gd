@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using Newtonsoft.Json.Linq;
-using System.Threading.Tasks;
-using System.Data.Sql;
 using System.Data.SqlClient;
 using System.Collections.ObjectModel;
-
+using Newtonsoft.Json;
 namespace 个人信息数据库.model
 {
     public class model : notify_property
@@ -54,22 +50,24 @@ namespace 个人信息数据库.model
 
         public void ce()
         {
-            //List<caddressBook> addressBook = lajiaddressBook();
-            //writeaddressBook(addressBook);
+            List<caddressBook> addressBook = lajiaddressBook();
+            //对象转json
+            var json = JsonConvert.SerializeObject(addressBook);
 
+            //writeaddressBook(addressBook);
         }
 
         public ObservableCollection<caddressBook> newaddressBook()
         {
-            string addressBookname = "temp";
+            const string addressBookname = "temp";
             string sqlAddressBook = $"{usesql}{line}SELECT * FROM {addressBookname};";
             ObservableCollection<caddressBook> addressBook = new ObservableCollection<caddressBook>();
-            string id = "id";
-            string name = "name";
-            string contact = "contact";
-            string naddress = "naddress";
-            string city = "city";
-            string comment = "comment";
+            const string id = "id";
+            const string name = "name";
+            const string contact = "contact";
+            const string naddress = "naddress";
+            const string city = "city";
+            const string comment = "comment";
             using (SqlConnection sql = new SqlConnection(connect))
             {
                 sql.Open();
@@ -78,26 +76,26 @@ namespace 个人信息数据库.model
                     using (SqlDataReader read = cmd.ExecuteReader())
                     {
                         //判断当前的reader是否读取到了数据
-                        if (read.HasRows)
+                        if (!read.HasRows) return addressBook;
+                        int idindex = read.GetOrdinal(id);
+                        int nameindex = read.GetOrdinal(name);
+                        int contactindex = read.GetOrdinal(contact);
+                        int naddressindex = read.GetOrdinal(naddress);
+                        int cityindex = read.GetOrdinal(city);
+                        int commentindex = read.GetOrdinal(comment);
+                        while (read.Read())
                         {
-                            int idindex = read.GetOrdinal(id);
-                            int nameindex = read.GetOrdinal(name);
-                            int contactindex = read.GetOrdinal(contact);
-                            int naddressindex = read.GetOrdinal(naddress);
-                            int cityindex = read.GetOrdinal(city);
-                            int commentindex = read.GetOrdinal(comment);
-                            while (read.Read())
+                            caddressBook temp = new caddressBook
                             {
-                                caddressBook temp = new caddressBook();
-                                temp.id = read.GetInt32(idindex).ToString();
-                                temp.name = read.GetString(nameindex).Trim();
-                                temp.contact = read.GetString(contactindex).Trim();
-                                temp.address = read.GetString(nameindex).Trim();
-                                temp.city = read.GetString(cityindex).Trim();
-                                temp.comment = read.GetString(commentindex).Trim();
+                                id = read.GetInt32(idindex).ToString(),
+                                name = read.GetString(nameindex).Trim(),
+                                contact = read.GetString(contactindex).Trim(),
+                                address = read.GetString(naddressindex).Trim(),
+                                city = read.GetString(cityindex).Trim(),
+                                comment = read.GetString(commentindex).Trim()
+                            };
 
-                                addressBook.Add(temp);
-                            }                           
+                            addressBook.Add(temp);
                         }
                     }
                 }
@@ -112,7 +110,7 @@ namespace 个人信息数据库.model
         /// <param name="addressBook"></param>
         public void writeaddressBook(List<caddressBook> addressBook)
         {
-            string t = "temp";
+            const string t = "temp";
             string strsql;       
             foreach (var temp in addressBook)
             {
@@ -175,7 +173,7 @@ namespace 个人信息数据库.model
             set;
             get;
         } = "\n";
-        string usesql
+        private string usesql
         {
             set
             {

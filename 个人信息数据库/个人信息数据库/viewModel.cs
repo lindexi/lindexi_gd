@@ -8,8 +8,9 @@ using System.Data.SqlClient;
 using 个人信息数据库.model;
 using System.Windows.Threading;
 using System.Threading;
-
+using Newtonsoft.Json;
 using System.IO;
+using System.Collections.ObjectModel;
 
 namespace 个人信息数据库
 {
@@ -55,8 +56,14 @@ namespace 个人信息数据库
         public void ce()
         {
             //_model.ce();
-            addressBook = _model.newaddressBook();
-           
+
+            //addressBook = _model.newaddressBook();
+
+            string json = JsonConvert.SerializeObject(addressBook);
+            reminder = json;
+            addressBook = new System.Collections.ObjectModel.ObservableCollection<caddressBook>();
+            addressBook = JsonConvert.DeserializeObject<ObservableCollection<caddressBook>>(json);
+
 
             //string connect = $"Data Source={DataSource};Initial Catalog={InitialCatalog};Integrated Security=True";
             ////List<caddressBook> addressBook = new List<caddressBook>();
