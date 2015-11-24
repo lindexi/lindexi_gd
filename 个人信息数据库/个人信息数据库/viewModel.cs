@@ -26,7 +26,10 @@ namespace 个人信息数据库
             _model = new model.model();
             reminder = "运行";
 
-            
+            ReceiveAction = str =>
+            {
+                reminder = str.Trim('\0' , ' ');
+            };
         }
 
         /// <summary>
@@ -206,5 +209,7 @@ namespace 个人信息数据库
             get;
         } = "grxx";
         private model.model _model;
+
+        System.Action<string> ReceiveAction;
     }
 }
