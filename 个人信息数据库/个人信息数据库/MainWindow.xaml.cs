@@ -52,12 +52,12 @@ namespace 个人信息数据库
 
         private void principal_Computer(object sender , RoutedEventArgs e)
         {
-
+            view.principal_computer();
         }
 
         private void slaveComputer(object sender , RoutedEventArgs e)
         {
-
+            view.slave_computer();
         }
     }
 }

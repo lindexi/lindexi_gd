@@ -158,14 +158,15 @@ namespace 个人信息数据库
 
         }
 
-        public void principal_Computer()
+        public void principal_computer()
         {
-
+            _principal_Computer = new principal_Computer(ReceiveAction);
         }
 
-        public void slaveComputer()
+        public void slave_computer()
         {
-
+            _slaveComputer = new slaveComputer(ReceiveAction);
+            _slaveComputer.access("10.21.71.130");
         }
 
        //private void AddItem(object item)
@@ -220,6 +221,8 @@ namespace 个人信息数据库
         } = "grxx";
         private model.model _model;
 
+        private principal_Computer _principal_Computer;
+        private slaveComputer _slaveComputer;
         System.Action<string> ReceiveAction;
     }
 }
