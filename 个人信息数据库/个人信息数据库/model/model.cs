@@ -223,4 +223,42 @@ namespace 个人信息数据库.model
             return addressBook;
         }
     }
+    //implement
+    /// <summary>
+    /// 发送消息
+    /// </summary>
+    public class ctransmitter
+    {
+        public ctransmitter(int id , ecommand command , string str)
+        {
+            this.id = id.ToString();
+            this.command = command.ToString();
+            this.str = str;
+        }
+
+        public string id
+        {
+            set;
+            get;
+        }
+        public string command
+        {
+            set;
+            get;
+        }
+        public string str
+        {
+            set;
+            get;
+        }
+        public override string ToString()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
+    }
+
+    public enum ecommand
+    {
+
+    }
 }
