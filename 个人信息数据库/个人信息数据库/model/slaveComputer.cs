@@ -15,9 +15,10 @@ namespace 个人信息数据库.model
     /// </summary>
     public class slaveComputer
     {
-        public slaveComputer(System.Action<string> reminder)
+        public slaveComputer(System.Action<string> reminder, System.Action<int , ecommand , string> switchimplement)
         {    
             this.reminder = reminder;
+            this.switchimplement = switchimplement;
             this.ReceiveAction = str =>
             {
                 //reminder(str);
@@ -30,6 +31,11 @@ namespace 个人信息数据库.model
             //MsgSend = new Byte[65535];
 
             reminder("下位机");
+        }
+        public System.Action<int , ecommand , string> switchimplement
+        {
+            set;
+            get;
         }
         public void access(string ip)
         {
@@ -118,13 +124,8 @@ namespace 个人信息数据库.model
             {
                 ctransmitter transmitter = JsonConvert.DeserializeObject<ctransmitter>(str);
                 ecommand command = (ecommand)Enum.Parse(typeof(ecommand) , transmitter.command);
-                switch (command)
-                {
-                    case ecommand.ce:
-                        reminder("收到" + transmitter.id);
-                        //addressBook(transmitter.str);
-                        break;
-                }
+                int id = Convert.ToInt32(transmitter.id);
+                switchimplement(id , command , transmitter.str);
             }
             catch (Exception e)
             {
