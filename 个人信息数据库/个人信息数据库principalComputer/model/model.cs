@@ -287,6 +287,7 @@ namespace 个人信息数据库principalComputer.model
         login,//登录
         id,//分配id      
         faddressBook,//通讯录
+        getdata,//获取
         ce
     }
 }

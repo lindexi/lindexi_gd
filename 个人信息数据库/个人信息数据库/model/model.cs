@@ -253,6 +253,20 @@ namespace 个人信息数据库.model
             }
         }
 
+        public void ce()
+        {
+            //_slaveComputer.send(reminder);
+            getdata();
+        }
+
+        public void getdata()
+        {
+            ctransmitter transmitter = new ctransmitter(id , ecommand.getdata , string.Empty);
+            send(transmitter.ToString());
+
+
+        }
+
 
         private slaveComputer _slaveComputer;
         private System.Action<string> ReceiveAction;
@@ -276,11 +290,16 @@ namespace 个人信息数据库.model
             {
                 int temp = Convert.ToInt32(id);
                 this.id = temp;
+                reminder = "id" + id;
             }
             catch(Exception e)
             {
                 reminder = "输入id不是数字" + e.Message;
             }
+        }
+        private void send(string str)
+        {
+            _slaveComputer.send(str);
         }
     }
 
@@ -328,6 +347,7 @@ namespace 个人信息数据库.model
         login,//登录
         id,//分配id
         //get,//发送成功
+        getdata,//获取
         faddressBook,//通讯录
         ce
     }

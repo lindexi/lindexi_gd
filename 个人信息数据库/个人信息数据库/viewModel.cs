@@ -26,16 +26,29 @@ namespace 个人信息数据库
             _model = new model.model();
             reminder = "运行";
 
-            ReceiveAction = str =>
-            {
-                string temp= str.Trim('\0' , ' ');
-                if (!string.IsNullOrEmpty(temp))
-                {
-                    reminder = temp;
-                }
-            };
+            //ReceiveAction = str =>
+            //{
+            //    string temp= str.Trim('\0' , ' ');
+            //    if (!string.IsNullOrEmpty(temp))
+            //    {
+            //        reminder = temp;
+            //    }
+            //};
 
-            slave_computer();
+            //slave_computer();
+           
+        }
+
+        public new string reminder
+        {
+            set
+            {
+                _model.reminder = value;
+            }
+            get
+            {
+                return _model.reminder;
+            }
         }
 
         /// <summary>
@@ -68,24 +81,26 @@ namespace 个人信息数据库
 
             //addressBook = _model.newaddressBook();
 
-            string json = JsonConvert.SerializeObject(addressBook);
+            //string json = JsonConvert.SerializeObject(addressBook);
+            _model.ce();
+
             //reminder = json;
             //addressBook = new System.Collections.ObjectModel.ObservableCollection<caddressBook>();
             //addressBook = JsonConvert.DeserializeObject<ObservableCollection<caddressBook>>(json);
-            if (_sx上位机下位机 == 上位机下位机.x下位机)
-            {
-                if (_slaveComputer != null)
-                {
-                    _slaveComputer.send(new ctransmitter(_slaveComputer.id , ecommand.ce , json).ToString());
-                }
-            }
-            else
-            {
-                if (_principal_Computer != null)
-                {
-                    _principal_Computer.send(new ctransmitter(-1 , ecommand.ce , json).ToString());
-                }
-            }
+            //if (_sx上位机下位机 == 上位机下位机.x下位机)
+            //{
+            //    if (_slaveComputer != null)
+            //    {
+            //        _slaveComputer.send(new ctransmitter(_slaveComputer.id , ecommand.ce , json).ToString());
+            //    }
+            //}
+            //else
+            //{
+            //    if (_principal_Computer != null)
+            //    {
+            //        _principal_Computer.send(new ctransmitter(-1 , ecommand.ce , json).ToString());
+            //    }
+            //}
 
 
             //string connect = $"Data Source={DataSource};Initial Catalog={InitialCatalog};Integrated Security=True";
@@ -186,15 +201,15 @@ namespace 个人信息数据库
 
         public void slave_computer()
         {
-            _sx上位机下位机 = 上位机下位机.x下位机;
-            _slaveComputer = new slaveComputer(ReceiveAction);
-            _slaveComputer.access("10.21.71.130");
+            //_sx上位机下位机 = 上位机下位机.x下位机;
+            //_slaveComputer = new slaveComputer(ReceiveAction);
+            //_slaveComputer.access("10.21.71.130");
         }
 
-       //private void AddItem(object item)
-       // {
-       //     addressBook.Add(item as caddressBook);
-       // }
+        //private void AddItem(object item)
+        // {
+        //     addressBook.Add(item as caddressBook);
+        // }
 
         public System.Collections.ObjectModel.ObservableCollection<caddressBook>
         /*public List<caddressBook>*/ addressBook
@@ -231,26 +246,26 @@ namespace 个人信息数据库
                 }
             };
 
-        private string DataSource
-        {
-            set;
-            get;
-        } = "QQLINDEXI\\SQLEXPRESS";
-        private string InitialCatalog
-        {
-            set;
-            get;
-        } = "grxx";
+        //private string DataSource
+        //{
+        //    set;
+        //    get;
+        //} = "QQLINDEXI\\SQLEXPRESS";
+        //private string InitialCatalog
+        //{
+        //    set;
+        //    get;
+        //} = "grxx";
         private model.model _model;
 
-        private principal_Computer _principal_Computer;
-        private slaveComputer _slaveComputer;
-        private System.Action<string> ReceiveAction;
-        private 上位机下位机 _sx上位机下位机;
+        //private principal_Computer _principal_Computer;
+        //private slaveComputer _slaveComputer;
+        //private System.Action<string> ReceiveAction;
+        //private 上位机下位机 _sx上位机下位机;
     }
-    enum 上位机下位机
-    {
-        s上位机,
-        x下位机
-    }
+    //enum 上位机下位机
+    //{
+    //    s上位机,
+    //    x下位机
+    //}
 }
