@@ -20,9 +20,12 @@ namespace 个人信息数据库principalComputer
     /// </summary>
     public partial class MainWindow : Window
     {
+        viewModel view;
         public MainWindow()
         {
+            view = new viewModel();
             InitializeComponent();
+            this.DataContext = view;
         }
     }
 }

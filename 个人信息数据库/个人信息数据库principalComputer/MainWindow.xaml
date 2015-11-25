@@ -7,6 +7,13 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
     <Grid>
-        
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <DataGrid  Grid.Column="0" Grid.Row="0" x:Name="xl" ItemsSource="{Binding Path=addressBook}" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <TextBlock Grid.Row="1" Text="{Binding Path=reminder}" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto" Margin="10,10,10,10" />
+        </ScrollViewer>
     </Grid>
 </Window>

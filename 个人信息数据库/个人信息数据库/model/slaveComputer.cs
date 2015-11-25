@@ -122,7 +122,7 @@ namespace 个人信息数据库.model
                 {
                     case ecommand.ce:
                         reminder("收到" + transmitter.id);
-                        addressBook(transmitter.str);
+                        //addressBook(transmitter.str);
                         break;
                 }
             }
@@ -131,15 +131,15 @@ namespace 个人信息数据库.model
                 reminder("str不是ctransmitter " + e.Message);
             }
         }
-        private void addressBook(string json)
-        {
-            System.Collections.ObjectModel.ObservableCollection<caddressBook> temp = JsonConvert.DeserializeObject<System.Collections.ObjectModel.ObservableCollection<caddressBook>>(json);
-            StringBuilder str = new StringBuilder();
-            foreach (var t in temp)
-            {
-                str.Append(t.name + "\n");
-            }
-            reminder(str.ToString());
-        }
+        //private void addressBook(string json)
+        //{
+        //    System.Collections.ObjectModel.ObservableCollection<caddressBook> temp = JsonConvert.DeserializeObject<System.Collections.ObjectModel.ObservableCollection<caddressBook>>(json);
+        //    StringBuilder str = new StringBuilder();
+        //    foreach (var t in temp)
+        //    {
+        //        str.Append(t.name + "\n");
+        //    }
+        //    reminder(str.ToString());
+        //}
     }
 }
