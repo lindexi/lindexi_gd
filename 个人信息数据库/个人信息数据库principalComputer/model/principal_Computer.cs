@@ -16,9 +16,10 @@ namespace 个人信息数据库principalComputer.model
     /// </summary>
     public class principal_Computer
     {
-        public principal_Computer(System.Action<string> reminder)
+        public principal_Computer(System.Action<string> reminder, System.Action<int , ecommand , string> switchimplement)
         {
             this.reminder = reminder;
+            this.switchimplement = switchimplement;
             this.ReceiveAction = str =>
             {
                 //reminder(str);
@@ -133,19 +134,29 @@ namespace 个人信息数据库principalComputer.model
         private System.Action<string> ReceiveAction;
         private System.Action<string> reminder;
         private Encoding encoding = Encoding.Default;
+        public System.Action<int,ecommand,string> switchimplement
+        {
+            set;
+            get;
+        }
 
         private void implement(string str)
         {
             try
             {
-                ctransmitter transmitter = JsonConvert.DeserializeObject<ctransmitter>(str);
-                ecommand command = (ecommand)Enum.Parse(typeof(ecommand) , transmitter.command);
-                switch (command)
+                if (switchimplement != null)
                 {
-                    case ecommand.ce:
-                        reminder("收到" + transmitter.id);
-                        break;
+                    ctransmitter transmitter = JsonConvert.DeserializeObject<ctransmitter>(str);
+                ecommand command = (ecommand)Enum.Parse(typeof(ecommand) , transmitter.command);
+                    int id = Convert.ToInt32(transmitter.id);
+                    switchimplement(id,command,transmitter.str);
                 }
+                //switch (command)
+                //{
+                //    case ecommand.ce:
+                //        reminder("收到" + transmitter.id);
+                //        break;
+                //}
             }
             catch(Exception e)
             {

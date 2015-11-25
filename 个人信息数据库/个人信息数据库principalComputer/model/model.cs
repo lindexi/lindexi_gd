@@ -11,6 +11,14 @@ namespace 个人信息数据库principalComputer.model
         public model()
         {
             ran = new Random();
+            _principal_computer = new principal_Computer(str =>
+              {
+                  string temp = str.Trim('\0' , ' ');
+                  if (!string.IsNullOrEmpty(temp))
+                  {
+                      reminder = temp;
+                  }
+              }, implement);
         }
         Random ran
         {
@@ -222,8 +230,19 @@ namespace 个人信息数据库principalComputer.model
             }
             return addressBook;
         }
+
+        private principal_Computer _principal_computer;
+
+        private void implement(int id , ecommand command , string str)
+        {
+            switch (command)
+            {
+                case ecommand.ce:
+                    break;
+            }
+        }
     }
-    
+
     /// <summary>
     /// 发送消息
     /// </summary>
@@ -266,8 +285,7 @@ namespace 个人信息数据库principalComputer.model
     public enum ecommand
     {
         login,//登录
-        id,//分配id
-        //get,//发送成功
+        id,//分配id      
         faddressBook,//通讯录
         ce
     }

@@ -34,6 +34,8 @@ namespace 个人信息数据库
                     reminder = temp;
                 }
             };
+
+            slave_computer();
         }
 
         /// <summary>
@@ -178,8 +180,8 @@ namespace 个人信息数据库
 
         public void principal_computer()
         {
-            _sx上位机下位机 = 上位机下位机.s上位机;
-            _principal_Computer = new principal_Computer(ReceiveAction);
+            //_sx上位机下位机 = 上位机下位机.s上位机;
+            //_principal_Computer = new principal_Computer(ReceiveAction);
         }
 
         public void slave_computer()
