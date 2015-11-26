@@ -33,7 +33,19 @@ namespace 个人信息数据库.ViewModel
             set;
             get;
         } = new System.Collections.ObjectModel.ObservableCollection<cmemorandum>();
-
+        public System.Windows.Visibility visibility
+        {
+            set
+            {
+                _visibility = value;
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _visibility;
+            }
+        }
+        private System.Windows.Visibility _visibility = System.Windows.Visibility.Hidden;
         private viewModel _viewModel;
 
         private cmemorandum _memorandum = new cmemorandum();

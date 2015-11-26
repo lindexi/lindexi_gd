@@ -224,14 +224,14 @@
         </Grid>
     </Grid>
 
-    <Grid x:Name="xreminder" Grid.Row="1" Visibility="{Binding Path=vreminder,Mode=OneWay}" Margin="10,10,10,10" d:IsHidden="True">
+    <Grid Grid.Row="1" Visibility="{Binding Path=vreminder,Mode=OneWay}" Margin="10,10,10,10" d:IsHidden="True">
         <!--日志-->
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
             <TextBlock Grid.Row="2" Text="{Binding Path=reminder,Mode=OneWay}" Margin="10,10,10,10" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
         </ScrollViewer>
     </Grid>
 
-    <Grid Grid.Row="2">
+    <Grid x:Name="button" Grid.Row="2">
         <Button Content="增加"/>
         <!--a-->
         <Button Content="删除"/>

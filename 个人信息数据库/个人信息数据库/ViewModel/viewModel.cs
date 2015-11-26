@@ -12,7 +12,7 @@ using Newtonsoft.Json;
 using System.IO;
 using System.Collections.ObjectModel;
 using System.Windows;
-
+using 个人信息数据库.ViewModel;
 namespace 个人信息数据库
 {
     public partial class viewModel : notify_property
@@ -36,10 +36,7 @@ namespace 个人信息数据库
             //    }
             //};
 
-            //slave_computer();
-            vaddressbook = Visibility.Visible;
-
-            
+            //slave_computer();            
         }
 
         public new string reminder
@@ -58,14 +55,24 @@ namespace 个人信息数据库
         {
             set
             {
-                _vaddressbook = value;
-                OnPropertyChanged();
+                if (addressbook != null)
+                {
+                    addressbook.visibility = value;
+                    OnPropertyChanged();
+                }
             }
             get
             {
-                return _vaddressbook;
+                if (addressbook == null)
+                {
+                    return Visibility.Hidden;
+                }
+                else
+                {
+                    return addressbook.visibility;
+                }
             }
-        } 
+        }
         public Visibility vreminder
         {
             set
@@ -77,43 +84,64 @@ namespace 个人信息数据库
             {
                 return _vreminde;
             }
-        } 
+        }
         public Visibility vdiary
         {
             set
             {
-                _vdiary = value;
-                OnPropertyChanged();
+                if (diary != null)
+                {
+                    diary.visibility = value;
+                    OnPropertyChanged();
+                }
             }
             get
             {
-                return _vdiary;
+                if (diary != null)
+                {
+                    return diary.visibility;
+                }
+                return Visibility.Hidden;
             }
-        } 
+        }
         public Visibility vmemorandum
         {
             set
             {
-                _vmemorandum = value;
-                OnPropertyChanged();
+                if (memorandum != null)
+                {
+                    memorandum.visibility = value;
+                    OnPropertyChanged();
+                }
             }
             get
             {
-                return _vmemorandum;
+                if (memorandum != null)
+                {
+                    return memorandum.visibility;
+                }
+                return Visibility.Hidden;
             }
-        } 
+        }
         public Visibility vproperty
         {
             set
             {
-                _vproperty = value;
-                OnPropertyChanged();
+                if (property != null)
+                {
+                    property.visibility = value;
+                    OnPropertyChanged();
+                }
             }
             get
             {
-                return _vproperty;
+                if (property != null)
+                {
+                    return property.visibility;
+                }
+                return Visibility.Hidden;
             }
-        } 
+        }
 
         public System.Collections.ObjectModel.ObservableCollection<caddressBook>
         /*public List<caddressBook>*/ addressBook
@@ -297,11 +325,35 @@ namespace 个人信息数据库
             //_slaveComputer.access("10.21.71.130");
         }
 
-        private Visibility _vaddressbook = Visibility.Hidden;
-        private Visibility _vproperty = Visibility.Hidden;
-        private Visibility _vmemorandum = Visibility.Hidden;
-        private Visibility _vdiary = Visibility.Hidden;
-        private Visibility _vreminde = Visibility.Hidden;        
+        public viewaddressBook addressbook
+        {
+            set;
+            get;
+        }
+
+        public viewproperty property
+        {
+            set;
+            get;
+        }
+
+        public viewmemorandum memorandum
+        {
+            set;
+            get;
+        }
+
+        public viewdiary diary
+        {
+            set;
+            get;
+        }
+
+        //private Visibility _vaddressbook = Visibility.Hidden;
+        //private Visibility _vproperty = Visibility.Hidden;
+        //private Visibility _vmemorandum = Visibility.Hidden;
+        //private Visibility _vdiary = Visibility.Hidden;
+        private Visibility _vreminde = Visibility.Visible;
     }
-    
+
 }
