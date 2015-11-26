@@ -46,6 +46,53 @@ namespace 个人信息数据库.ViewModel
                 return _visibility;
             }
         }
+        public new string reminder
+        {
+            set
+            {
+                _model.reminder = value;
+            }
+            get
+            {
+                return _model.reminder;
+            }
+        }
+        public void add()
+        {
+            reminder = "添加财物";
+        }
+        public void delete()
+        {
+            reminder = "删除财物";
+        }
+
+        public void select()
+        {
+            reminder = "查询财物";
+        }
+
+        public void modify()
+        {
+            reminder = "修改财物";
+        }
+
+        public void eliminate()
+        {
+            reminder = "清除";
+        }
+        public string warn
+        {
+            set
+            {
+                _warn = value;
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _warn;
+            }
+        }
+        private string _warn = "输入";
         private System.Windows.Visibility _visibility= System.Windows.Visibility.Hidden;
 
         private viewModel _viewModel;

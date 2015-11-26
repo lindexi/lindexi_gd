@@ -116,27 +116,27 @@ namespace 个人信息数据库
 
         private void add(object sender , RoutedEventArgs e)
         {
-
+            _view.add();
         }
 
         private void delete(object sender , RoutedEventArgs e)
         {
-
+            _view.delete();
         }
 
         private void select(object sender , RoutedEventArgs e)
         {
-
+            _view.select();
         }
 
         private void modify(object sender , RoutedEventArgs e)
         {
-
+            _view.modify();
         }
 
         private void eliminate(object sender , RoutedEventArgs e)
         {
-
+            _view.eliminate();
         }
     }
 }

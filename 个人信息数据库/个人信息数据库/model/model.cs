@@ -261,6 +261,30 @@ namespace 个人信息数据库.model
             }
         }
 
+        public ObservableCollection<caddressBook> addressbook
+        {
+            set;
+            get;
+        } = new ObservableCollection<caddressBook>();
+
+        public ObservableCollection<cproperty> property
+        {
+            set;
+            get;
+        } = new ObservableCollection<cproperty>();
+
+        public ObservableCollection<cmemorandum> memorandum
+        {
+            set;
+            get;
+        } = new ObservableCollection<cmemorandum>();
+
+        public ObservableCollection<cdiary> diary
+        {
+            set;
+            get;
+        } = new ObservableCollection<cdiary>();
+
         public void ce()
         {
             //_slaveComputer.send(reminder);
@@ -340,6 +364,7 @@ namespace 个人信息数据库.model
         private System.Action<string> ReceiveAction;
         private void implement(int id , ecommand command , string str)
         {
+            
             switch (command)
             {
                 case ecommand.id:

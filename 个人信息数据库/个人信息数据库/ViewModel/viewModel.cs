@@ -25,6 +25,7 @@ namespace 个人信息数据库
             //string constr = "Data Source=steve-pc;Initial Catalog=itcast2013;Integrated Security=true";
             //"server=.;database=itcast2013;uid=sa;pwd=sa"
             _model = new model.model();
+            _model.PropertyChanged += _model_PropertyChanged;
             //reminder = "运行";
 
             //ReceiveAction = str =>
@@ -38,6 +39,8 @@ namespace 个人信息数据库
 
             //slave_computer();            
         }
+
+       
 
         public new string reminder
         {
@@ -380,16 +383,16 @@ namespace 个人信息数据库
             switch (_visibilityform)
             {
                 case visibilityform.addressbook:
-                    
+                    addressbook.add();
                     break;
                 case visibilityform.diary:
-                    
+                    diary.add();
                     break;
                 case visibilityform.memorandum:
-                   
+                    memorandum.add();
                     break;
                 case visibilityform.property:
-                    
+                    property.add();
                     break;
                 case visibilityform.reminder:
                     reminder = "界面错误";
@@ -402,22 +405,102 @@ namespace 个人信息数据库
 
         public void delete()
         {
-
+            switch (_visibilityform)
+            {
+                case visibilityform.addressbook:
+                    addressbook.delete();
+                    break;
+                case visibilityform.diary:
+                    diary.delete();
+                    break;
+                case visibilityform.memorandum:
+                    memorandum.delete();
+                    break;
+                case visibilityform.property:
+                    property.delete();
+                    break;
+                case visibilityform.reminder:
+                    reminder = "界面错误";
+                    break;
+                default:
+                    reminder = "界面错误";
+                    break;
+            }
         }
 
         public void select()
         {
-
+            switch (_visibilityform)
+            {
+                case visibilityform.addressbook:
+                    addressbook.select();
+                    break;
+                case visibilityform.diary:
+                    diary.select();
+                    break;
+                case visibilityform.memorandum:
+                    memorandum.select();
+                    break;
+                case visibilityform.property:
+                    property.select();
+                    break;
+                case visibilityform.reminder:
+                    reminder = "界面错误";
+                    break;
+                default:
+                    reminder = "界面错误";
+                    break;
+            }
         }
 
         public void modify()
         {
-
+            switch (_visibilityform)
+            {
+                case visibilityform.addressbook:
+                    addressbook.modify();
+                    break;
+                case visibilityform.diary:
+                    diary.modify();
+                    break;
+                case visibilityform.memorandum:
+                    memorandum.modify();
+                    break;
+                case visibilityform.property:
+                    property.modify();
+                    break;
+                case visibilityform.reminder:
+                    reminder = "界面错误";
+                    break;
+                default:
+                    reminder = "界面错误";
+                    break;
+            }
         }
 
         public void eliminate()
         {
-
+            switch (_visibilityform)
+            {
+                case visibilityform.addressbook:
+                    addressbook.eliminate();
+                    break;
+                case visibilityform.diary:
+                    diary.eliminate();
+                    break;
+                case visibilityform.memorandum:
+                    memorandum.eliminate();
+                    break;
+                case visibilityform.property:
+                    property.eliminate();
+                    break;
+                case visibilityform.reminder:
+                    reminder = "界面错误";
+                    break;
+                default:
+                    reminder = "界面错误";
+                    break;
+            }
         }
 
         public viewaddressBook addressbook
@@ -450,6 +533,13 @@ namespace 个人信息数据库
         //private Visibility _vdiary = Visibility.Hidden;
         private Visibility _vreminde = Visibility.Visible;
         private visibilityform _visibilityform;
+        private void _model_PropertyChanged(object sender , System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(reminder))
+            {
+                OnPropertyChanged("reminder");
+            }
+        }
     }
 
     public enum visibilityform

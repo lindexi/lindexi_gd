@@ -63,7 +63,7 @@
             <Button Grid.Column="4" Content="日志" Margin="10,10,10,10" Click="remindervisibility"/>
         </Grid>
 
-        <Grid x:Name="xaddressBook" Grid.Row="1" Visibility="{Binding Path=visibility,Mode=OneWay}" Margin="10,10,10,10" d:IsHidden="True">
+        <Grid x:Name="xaddressBook" Grid.Row="1" Visibility="{Binding Path=visibility,Mode=OneWay}" Margin="10,10,10,10">
             <Grid.RowDefinitions>
                 <RowDefinition />
                 <RowDefinition Height="auto"/>
@@ -76,6 +76,7 @@
             <!--添加-->
             <Grid Grid.Row="0" Grid.Column="1">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
@@ -99,9 +100,9 @@
                 <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Path=addressBook.address,Mode=TwoWay}" VerticalAlignment="Center"/>
                 <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Path=addressBook.city,Mode=TwoWay}" VerticalAlignment="Center"/>
                 <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding Path=addressBook.comment,Mode=TwoWay}" VerticalAlignment="Center"/>
-            </Grid>
 
-            <Grid Grid.Row="0" Grid.ColumnSpan="2"/>
+                <TextBlock Grid.Row="6" Grid.Column="0" Text="{Binding Path=warn,Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,10,10,10"/>
+            </Grid>
         </Grid>
 
         <Grid x:Name="xdiary" Grid.Row="1" Visibility="{Binding Path=visibility,Mode=OneWay}" Margin="10,10,10,10" d:IsHidden="True">
@@ -117,6 +118,7 @@
                 <DataGrid Grid.Column="0" Margin="10,10,10,10" ItemsSource="{Binding Path=ldiary}" ScrollViewer.VerticalScrollBarVisibility="Auto" />
                 <Grid Grid.Column="1">
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
                         <RowDefinition Height="auto"/>
                         <RowDefinition Height="auto"/>
                         <RowDefinition Height="auto"/>
@@ -140,6 +142,8 @@
 
                     <TextBlock Grid.Row="4" Grid.Column="0" Text="人物" VerticalAlignment="Center" Margin="10,10,10,10"/>
                     <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Path=diary.CONTACTSID,Mode=TwoWay}" VerticalAlignment="Center"/>
+
+                    <TextBlock Grid.Row="5" Grid.Column="0" Text="{Binding Path=warn,Mode=OneWay}" HorizontalAlignment="Center" Margin="10,10,10,10"/>
                 </Grid>
             </Grid>
         </Grid>
@@ -157,6 +161,7 @@
                 <DataGrid Grid.Column="0" Margin="10,10,10,10" ItemsSource="{Binding Path=lmemorandum}" ScrollViewer.VerticalScrollBarVisibility="Auto" />
                 <Grid Grid.Column="1">
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
                         <RowDefinition Height="auto"/>
                         <RowDefinition Height="auto"/>
                         <RowDefinition Height="auto"/>
@@ -180,11 +185,13 @@
 
                     <TextBlock Grid.Row="4" Grid.Column="0" Text="人物" VerticalAlignment="Center" Margin="10,10,10,10"/>
                     <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Path=memorandum.CONTACTSID,Mode=TwoWay}" VerticalAlignment="Center"/>
+
+                    <TextBlock Grid.Row="5" Grid.Column="0" Text="{Binding Path=warn,Mode=OneWay}" HorizontalAlignment="Center" Margin="10,10,10,10"/>
                 </Grid>
             </Grid>
         </Grid>
 
-        <Grid x:Name="xproperty" Grid.Row="1" Visibility="{Binding Path=visibility,Mode=OneWay}" Margin="10,10,10,10">
+        <Grid x:Name="xproperty" Grid.Row="1" Visibility="{Binding Path=visibility,Mode=OneWay}" Margin="10,10,10,10" d:IsHidden="True">
             <Grid.RowDefinitions>
                 <RowDefinition />
                 <RowDefinition Height="auto"/>
@@ -197,6 +204,7 @@
                 <DataGrid Grid.Column="0" Margin="10,10,10,10" ItemsSource="{Binding Path=lproperty}" ScrollViewer.VerticalScrollBarVisibility="Auto" />
                 <Grid Grid.Column="1">
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
                         <RowDefinition Height="auto"/>
                         <RowDefinition Height="auto"/>
                         <RowDefinition Height="auto"/>
@@ -220,6 +228,8 @@
 
                     <TextBlock Grid.Row="4" Grid.Column="0" Text="人物" HorizontalAlignment="Center" Margin="10,10,10,10"/>
                     <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Path=property.CONTACTSID,Mode=TwoWay}" Margin="10,10,10,10"/>
+
+                    <TextBlock Grid.Row="5" Grid.Column="0" Text="{Binding Path=warn,Mode=OneWay}" HorizontalAlignment="Center" Margin="10,10,10,10"/>
                 </Grid>
             </Grid>
         </Grid>
@@ -234,7 +244,7 @@
         <Grid x:Name="button" Grid.Row="2" Visibility="{Binding Path=buttonvisibility,Mode=OneWay}">
             <Grid.RowDefinitions>
                 <RowDefinition/>
-                <RowDefinition/>
+                <RowDefinition Height="100"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
