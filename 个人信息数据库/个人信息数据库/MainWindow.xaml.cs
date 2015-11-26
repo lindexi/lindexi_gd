@@ -20,7 +20,6 @@ namespace 个人信息数据库
     /// </summary>
     public partial class MainWindow : Window
     {
-
         public MainWindow()
         {
             _view = new viewModel();
@@ -41,6 +40,7 @@ namespace 个人信息数据库
             xproperty.DataContext = _viewproperty;
 
             _view.form(visibilityform.reminder);
+            Title = title;
         }
 
         private viewModel view
@@ -79,10 +79,39 @@ namespace 个人信息数据库
         private viewdiary _viewdiary;
         private viewmemorandum _viewmemorandum;
         private viewproperty _viewproperty;
-
+        private string title
+        {
+            set;
+            get;
+        } = " 个人信息";
         private void addressbookvisibility(object sender , RoutedEventArgs e)
         {
+            _view.form(visibilityform.addressbook);
+            Title = "通讯录" + title;
+        }
 
+        private void memorandumvisibility(object sender , RoutedEventArgs e)
+        {
+            _view.form(visibilityform.memorandum);
+            Title = "备忘录" + title;
+        }
+
+        private void diaryvisibility(object sender , RoutedEventArgs e)
+        {
+            _view.form(visibilityform.diary);
+            Title = "日记" + title;
+        }
+
+        private void propertyvisibility(object sender , RoutedEventArgs e)
+        {
+            _view.form(visibilityform.property);
+            Title = "个人财物" + title;
+        }
+
+        private void remindervisibility(object sender , RoutedEventArgs e)
+        {
+            _view.form(visibilityform.reminder);
+            Title = title;
         }
     }
 }

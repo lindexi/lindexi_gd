@@ -57,10 +57,10 @@
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
             <Button Grid.Column="0" Content="通讯录" Margin="10,10,10,10" Click="addressbookvisibility"/>
-            <Button Grid.Column="1" Content="备忘录" Margin="10,10,10,10"/>
-            <Button Grid.Column="2" Content="日记" Margin="10,10,10,10"/>
-            <Button Grid.Column="3" Content="个人财务" Margin="10,10,10,10"/>
-            <Button Grid.Column="4" Content="日志" Margin="10,10,10,10"/>
+            <Button Grid.Column="1" Content="备忘录" Margin="10,10,10,10" Click="memorandumvisibility"/>
+            <Button Grid.Column="2" Content="日记" Margin="10,10,10,10" Click="diaryvisibility"/>
+            <Button Grid.Column="3" Content="个人财务" Margin="10,10,10,10" Click="propertyvisibility"/>
+            <Button Grid.Column="4" Content="日志" Margin="10,10,10,10" Click="remindervisibility"/>
         </Grid>
 
         <Grid x:Name="xaddressBook" Grid.Row="1" Visibility="{Binding Path=visibility,Mode=OneWay}" Margin="10,10,10,10" d:IsHidden="True">
@@ -213,38 +213,48 @@
                     <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Path=property.terminal,Mode=TwoWay}" Margin="10,10,10,10"/>
 
                     <TextBlock Grid.Row="2" Grid.Column="0" Text="金额" HorizontalAlignment="Center" Margin="10,10,10,10"/>
-                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Path=property.PMONEY,Mode=TwoWay}" Margin="10,10,10,10"/>                
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Path=property.PMONEY,Mode=TwoWay}" Margin="10,10,10,10"/>
 
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="时间" HorizontalAlignment="Center" Margin="10,10,10,10"/>
-                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Path=property.MTIME,Mode=TwoWay}" Margin="10,10,10,10"/>
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="时间" HorizontalAlignment="Center" Margin="10,10,10,10"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Path=property.MTIME,Mode=TwoWay}" Margin="10,10,10,10"/>
 
-                <TextBlock Grid.Row="4" Grid.Column="0" Text="人物" HorizontalAlignment="Center" Margin="10,10,10,10"/>
-                <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Path=property.CONTACTSID,Mode=TwoWay}" Margin="10,10,10,10"/>
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="人物" HorizontalAlignment="Center" Margin="10,10,10,10"/>
+                    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Path=property.CONTACTSID,Mode=TwoWay}" Margin="10,10,10,10"/>
+                </Grid>
             </Grid>
         </Grid>
-    </Grid>
 
-    <Grid Grid.Row="1" Visibility="{Binding Path=vreminder,Mode=OneWay}" Margin="10,10,10,10" d:IsHidden="True">
-        <!--日志-->
-        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-            <TextBlock Grid.Row="2" Text="{Binding Path=reminder,Mode=OneWay}" Margin="10,10,10,10" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
-        </ScrollViewer>
-    </Grid>
+        <Grid Grid.Row="1" Visibility="{Binding Path=vreminder,Mode=OneWay}" Margin="10,10,10,10" d:IsHidden="True">
+            <!--日志-->
+            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                <TextBlock Grid.Row="2" Text="{Binding Path=reminder,Mode=OneWay}" Margin="10,10,10,10" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+            </ScrollViewer>
+        </Grid>
 
-    <Grid x:Name="button" Grid.Row="2">
-        <Button Content="增加"/>
-        <!--a-->
-        <Button Content="删除"/>
-        <!--d-->
-        <Button Content="查询"/>
-        <!--f-->
-        <Button Content="修改"/>
-        <!--u-->
-        <Button Content="清除"/>
-    </Grid>
-
-    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-        <TextBlock Grid.Row="2" Text="{Binding Path=reminder,Mode=OneWay}" Margin="10,10,10,10" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
-    </ScrollViewer>
+        <Grid x:Name="button" Grid.Row="2" Visibility="{Binding Path=buttonvisibility,Mode=OneWay}">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Content="增加" Margin="10,10,10,10"/>
+            <!--a-->
+            <Button Grid.Column="1" Content="删除" Margin="10,10,10,10"/>
+            <!--d-->
+            <Button Grid.Column="2" Content="查询" Margin="10,10,10,10"/>
+            <!--f-->
+            <Button Grid.Column="3" Content="修改" Margin="10,10,10,10"/>
+            <!--u-->
+            <Button Grid.Column="4" Content="清除" Margin="10,10,10,10"/>
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Grid.ColumnSpan="5">
+                <TextBlock Grid.Row="2" Text="{Binding Path=reminder,Mode=OneWay}" Margin="10,10,10,10" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+            </ScrollViewer>
+        </Grid>
     </Grid>
 </Window>

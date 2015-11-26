@@ -78,7 +78,8 @@ namespace 个人信息数据库
             set
             {
                 _vreminde = value;
-                OnPropertyChanged();
+                OnPropertyChanged("vreminder");
+                OnPropertyChanged("buttonvisibility");
             }
             get
             {
@@ -140,6 +141,24 @@ namespace 个人信息数据库
                     return property.visibility;
                 }
                 return Visibility.Hidden;
+            }
+        }
+        public Visibility buttonvisibility
+        {
+            set
+            {
+                OnPropertyChanged();
+            }
+            get
+            {
+                if (vreminder == Visibility.Visible)
+                {
+                    return Visibility.Hidden;
+                }
+                else
+                {
+                    return Visibility.Visible;
+                }
             }
         }
 
@@ -384,7 +403,7 @@ namespace 个人信息数据库
         //private Visibility _vproperty = Visibility.Hidden;
         //private Visibility _vmemorandum = Visibility.Hidden;
         //private Visibility _vdiary = Visibility.Hidden;
-        private Visibility _vreminde = Visibility.Visible;
+        private Visibility _vreminde = Visibility.Visible;       
     }
 
     public enum visibilityform
