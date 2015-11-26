@@ -10,56 +10,95 @@ namespace 个人信息数据库.model
     /// <summary>
     /// 个人财物
     /// </summary>
-    public class cproperty
+    public class cproperty : notify_property
     {
         public cproperty()
         {
-
+            
         }
         /// <summary>
         /// 标识符
         /// </summary>
         public string id
         {
-            set;
-            get;
+            set
+            {
+                _id = value;
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _id;
+            }
         }
-
         /// <summary>
         /// 项目
         /// </summary>
         public string terminal
         {
-            set;
-            get;
+            set
+            {
+                _terminal = value;
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _terminal;
+            }
         }
         /// <summary>
-        /// 金额
-        /// </summary>
+         /// 金额
+         /// </summary>  
         public string PMONEY
         {
-            set;
-            get;
-        }
+            set
+            {
+                _money = value;
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _money;
+            }
+        }       
         /// <summary>
         /// 时间
         /// </summary>
         public string MTIME
         {
-            set;
-            get;
-        }
+            set
+            {
+                _time = value;
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _time;
+            }
+        }        
         /// <summary>
         /// 人物
         /// </summary>
         public string CONTACTSID
         {
-            set;
-            get;
+            set
+            {
+                _contactsid = value;
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _contactsid;
+            }
         }
         public override string ToString()
         {
             return JsonConvert.SerializeObject(this);
         }
+        private string _id;
+        private string _money;
+        private string _contactsid;
+        private string _time;
+        private string _terminal;
     }
 }

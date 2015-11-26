@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 
 namespace 个人信息数据库.model
 {
     [Serializable]
-    public class caddressBook
+    public class caddressBook:notify_property
     {
         public caddressBook()
         {
@@ -14,48 +15,100 @@ namespace 个人信息数据库.model
         /// </summary>
         public string id
         {
-            set;
-            get;
+            set
+            {
+                _id = value;
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _id;
+            }
         }
         /// <summary>
         /// 通讯人姓名
         /// </summary>
         public string name
         {
-            set;
-            get;
+            set
+            {
+                _name = value;
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _name;
+            }
         }
         /// <summary>
         /// 联系方式
         /// </summary>
         public string contact
         {
-            set;
-            get;
+            set
+            {
+                _contact = value;
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _contact;
+            }
         }
         /// <summary>
         /// 工作地点
         /// </summary>
         public string address
         {
-            set;
-            get;
+            set
+            {
+                _address = value;
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _address;
+            }
         }
         /// <summary>
-         /// 城市
-         /// </summary>
+        /// 城市
+        /// </summary>
         public string city
         {
-            set;
-            get;
+            set
+            {
+                _city = value;
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _city;
+            }
         }
         /// <summary>
         /// 备注
         /// </summary>
         public string comment
         {
-            set;
-            get;
+            set
+            {
+                _comment = value;
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _comment;
+            }
         }
+        public override string ToString()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
+        private string _id;
+        private string _name;
+        private string _contact;
+        private string _address;
+        private string _city;
+        private string _comment;
     }
 }
