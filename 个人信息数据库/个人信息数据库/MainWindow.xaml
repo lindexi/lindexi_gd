@@ -64,41 +64,125 @@
             <Button Height="20" Content="确定" Margin="10,10,10,10" Click="Button_Click"/>
         </StackPanel>-->
         <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
             <RowDefinition />
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
-
-        <Grid x:Name="xaddressBook" Grid.Row="0" Visibility="{Binding Path=vaddressbook,Mode=OneWay}">
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Content="通讯录" Margin="10,10,10,10"/>
+            <Button Grid.Column="1" Content="备忘录" Margin="10,10,10,10"/>
+            <Button Grid.Column="2" Content="日记" Margin="10,10,10,10"/>
+            <Button Grid.Column="3" Content="个人财务" Margin="10,10,10,10"/>
+            <Button Grid.Column="4" Content="日志" Margin="10,10,10,10"/>
+        </Grid>
+        
+        <Grid x:Name="xaddressBook" Grid.Row="1" Visibility="{Binding Path=vaddressbook,Mode=OneWay}" Margin="10,10,10,10" d:IsHidden="True">
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
-            <DataGrid Grid.Column="0" Grid.Row="0" x:Name="xl" Margin="10,10,10,10" ItemsSource="{Binding Path=addressBook}" ScrollViewer.VerticalScrollBarVisibility="Auto" />
+            <DataGrid Grid.Column="0" Grid.Row="0" x:Name="xl" Margin="10,10,10,10" ItemsSource="{Binding Path=laddressBook}" ScrollViewer.VerticalScrollBarVisibility="Auto" />
             <!--添加-->
-            <Grid Grid.Column="1">
+            <Grid Grid.Row="0" Grid.Column="1">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto"/>
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="添加" HorizontalAlignment="Center"/>
+                <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="条件" HorizontalAlignment="Center" Margin="10,10,10,10"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="通讯人姓名" VerticalAlignment="Center" Margin="10,10,10,10"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="联系方式" VerticalAlignment="Center" Margin="10,10,10,10"/>
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="工作地点" VerticalAlignment="Center" Margin="10,10,10,10"/>
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="城市" VerticalAlignment="Center" Margin="10,10,10,10"/>
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="备注" VerticalAlignment="Center" Margin="10,10,10,10"/>
+
+                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Path=addressBook.name,Mode=TwoWay}" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Path=addressBook.contact,Mode=TwoWay}" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Path=addressBook.address,Mode=TwoWay}" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Path=addressBook.city,Mode=TwoWay}" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding Path=addressBook.comment,Mode=TwoWay}" VerticalAlignment="Center"/>
+            </Grid>
+
+            <Grid Grid.Row="0" Grid.ColumnSpan="2">
                 
             </Grid>
+        </Grid>
+
+        <Grid x:Name="xdiary" Grid.Row="1" Visibility="{Binding Path=vdiary,Mode=OneWay}" Margin="10,10,10,10">
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0"> 
+                <Grid.ColumnDefinitions >
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <DataGrid Grid.Column="0" Margin="10,10,10,10" ItemsSource="{Binding Path=ldiary}" ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="条件" HorizontalAlignment="Center"/>
+                    
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="时间" VerticalAlignment="Center" Margin="10,10,10,10"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Path=diary.MTIME,Mode=TwoWay}" VerticalAlignment="Center"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="地点" VerticalAlignment="Center" Margin="10,10,10,10"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Path=diary.PLACE,Mode=TwoWay}" VerticalAlignment="Center"/>
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="事情" VerticalAlignment="Center" Margin="10,10,10,10"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Path=diary.incident,Mode=TwoWay}" VerticalAlignment="Center"/>
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="人物" VerticalAlignment="Center" Margin="10,10,10,10"/>
+                    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Path=diary.CONTACTSID,Mode=TwoWay}" VerticalAlignment="Center"/>
+                </Grid>
+            </Grid>
+            <Grid Grid.Row="1">
+                <Button Content="增加"/><!--a-->
+                <Button Content="删除"/><!--d-->
+                <Button Content="查询"/><!--f-->
+                <Button Content="修改"/><!--u-->
+            </Grid>
+        </Grid>
+
+        <Grid x:Name="xmemorandum" Grid.Row="1" Visibility="{Binding Path=vmemorandum,Mode=OneWay}" Margin="10,10,10,10" d:IsHidden="True">
+
+        </Grid>
+
+        <Grid x:Name="xcproperty" Grid.Row="1" Visibility="{Binding Path=vcproperty,Mode=OneWay}" Margin="10,10,10,10" d:IsHidden="True">
+
+        </Grid>
+
+        <Grid x:Name="xreminder" Grid.Row="1" Visibility="{Binding Path=vreminder,Mode=OneWay}" Margin="10,10,10,10" d:IsHidden="True">
+            <!--日志-->
             
-        </Grid>
-
-        <Grid Grid.Row="0" Visibility="{Binding Path=vdiary,Mode=OneWay}">
-
-        </Grid>
-
-        <Grid Grid.Row="0" Visibility="{Binding Path=vmemorandum,Mode=OneWay}">
-
-        </Grid>
-
-        <Grid Grid.Row="0" Visibility="{Binding Path=vcproperty,Mode=OneWay}">
-
         </Grid>
 
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">

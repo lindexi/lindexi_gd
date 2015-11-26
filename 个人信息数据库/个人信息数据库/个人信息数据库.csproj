@@ -89,6 +89,7 @@
       <DependentUpon>sql.resx</DependentUpon>
     </Compile>
     <Compile Include="ViewModel\viewaddressBook.cs" />
+    <Compile Include="ViewModel\viewdiary.cs" />
     <Compile Include="ViewModel\viewModel.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

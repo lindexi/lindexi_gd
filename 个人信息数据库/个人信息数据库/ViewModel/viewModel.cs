@@ -37,7 +37,9 @@ namespace 个人信息数据库
             //};
 
             //slave_computer();
-           
+            vaddressbook = Visibility.Visible;
+
+            
         }
 
         public new string reminder
@@ -52,13 +54,18 @@ namespace 个人信息数据库
             }
         }
 
+
+        /// <summary>
+        /// Visibility 需要OnPropertyChanged
+        /// </summary>
+
         public Visibility vaddressbook
         {
             set;
             get;
         } = Visibility.Hidden;
 
-        public Visibility vcontacts
+        public Visibility vreminder
         {
             set;
             get;
@@ -287,7 +294,11 @@ namespace 个人信息数据库
         //    set;
         //    get;
         //} = "grxx";
-        private model.model _model;
+        public model.model _model
+        {
+            set;
+            get;
+        }
 
         //private principal_Computer _principal_Computer;
         //private slaveComputer _slaveComputer;
