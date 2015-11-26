@@ -245,7 +245,7 @@ namespace 个人信息数据库.model
             }
             catch (System.Net.Sockets.SocketException e)
             {
-                reminder = "连接失败，服务器没开启";
+                reminder = "连接失败，服务器没开启 "+e.Message;
             }
         }
         public int id

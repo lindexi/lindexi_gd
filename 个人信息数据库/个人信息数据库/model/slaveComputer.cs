@@ -29,7 +29,7 @@ namespace 个人信息数据库.model
             ClientSocket = new Socket(AddressFamily.InterNetwork , SocketType.Stream , ProtocolType.Tcp);
             //MsgBuffer = new Byte[65535];
             //MsgSend = new Byte[65535];
-
+            
             reminder("下位机");
         }
         public System.Action<int , ecommand , string> switchimplement
@@ -39,6 +39,7 @@ namespace 个人信息数据库.model
         }
         public void access(string ip)
         {
+            this.ip = ip;
             ServerInfo = new IPEndPoint(IPAddress.Parse(ip) , port);
             //客户端连接服务端指定IP端口，Sockket
             ClientSocket.Connect(ServerInfo);
@@ -69,14 +70,33 @@ namespace 个人信息数据库.model
         }
         public void send(string str)
         {
-            byte[] buffer = encoding.GetBytes(str);
-            ClientSocket.Send(buffer , 0 , buffer.Length , SocketFlags.None);
+            if (ClientSocket.Connected)
+            {
+                byte[] buffer = encoding.GetBytes(str);
+                ClientSocket.Send(buffer , 0 , buffer.Length , SocketFlags.None);
+            }
+            else
+            {
+                try
+                {
+                    access(ip);                   
+                }
+                catch(SocketException e)
+                {
+                    reminder ("连接失败 " + e.Message);
+                }
+            }
         }
         private IPEndPoint ServerInfo;
         private Socket ClientSocket;      
         private Encoding encoding = Encoding.Default;
         private System.Action<string> ReceiveAction;
         private System.Action<string> reminder;
+        private string ip
+        {
+            set;
+            get;
+        }
         private void ReceiveCallBack(System.Action<string> ReceiveAction)
         {
             try
