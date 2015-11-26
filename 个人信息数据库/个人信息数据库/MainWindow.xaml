@@ -55,7 +55,7 @@
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
-        <DataGrid Grid.Column="0" Grid.Row="0" x:Name="xl" Margin="10,10,10,10" ItemsSource="{Binding Path=addressBook}" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+        <DataGrid Grid.Column="0" Grid.Row="0" x:Name="xl" Margin="10,10,10,10" ItemsSource="{Binding Path=addressBook}" ScrollViewer.VerticalScrollBarVisibility="Auto" />
         
         <TextBlock Grid.Row="2" Grid.ColumnSpan="3" Text="{Binding Path=reminder,Mode=OneWay}" Margin="10,10,10,10" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
         <StackPanel Grid.Row="2" Grid.Column="3" Orientation="Vertical">

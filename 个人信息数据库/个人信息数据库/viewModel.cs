@@ -11,6 +11,7 @@ using System.Threading;
 using Newtonsoft.Json;
 using System.IO;
 using System.Collections.ObjectModel;
+using System.Windows;
 
 namespace 个人信息数据库
 {
@@ -51,28 +52,58 @@ namespace 个人信息数据库
             }
         }
 
+        public Visibility vaddressbook
+        {
+            set;
+            get;
+        } = Visibility.Hidden;
+
+        public Visibility vcontacts
+        {
+            set;
+            get;
+        } = Visibility.Hidden;
+
+        public Visibility vdiary
+        {
+            set;
+            get;
+        } = Visibility.Hidden;
+
+        public Visibility vmemorandum
+        {
+            set;
+            get;
+        } = Visibility.Hidden;
+
+        public Visibility vcproperty
+        {
+            set;
+            get;
+        } = Visibility.Hidden;
+
         /// <summary>
         /// 读取sql
         /// </summary>
         //public void readsql()
         //{
-            //string fileaddress = @"data/sql/插入数据.sql";
-            //string strsql;
-            //Encoding encoding = Encoding.Default;
+        //string fileaddress = @"data/sql/插入数据.sql";
+        //string strsql;
+        //Encoding encoding = Encoding.Default;
 
-            //using (FileStream file = new FileStream(fileaddress , FileMode.Open))
-            //{
-            //    int length = (int)file.Length;
-            //    byte[] buff = new byte[length];
-            //    file.Read(buff , 0 , length);
-            //    strsql = encoding.GetString(buff);
-            //}
+        //using (FileStream file = new FileStream(fileaddress , FileMode.Open))
+        //{
+        //    int length = (int)file.Length;
+        //    byte[] buff = new byte[length];
+        //    file.Read(buff , 0 , length);
+        //    strsql = encoding.GetString(buff);
+        //}
 
-            //string strsql = Properties.Resources.插入数据;
-            //_model.refreshData(strsql);
-            //reminder = "插入" + Properties.Resources.插入数据;
+        //string strsql = Properties.Resources.插入数据;
+        //_model.refreshData(strsql);
+        //reminder = "插入" + Properties.Resources.插入数据;
 
-            //_model.ce();
+        //_model.ce();
         //}
 
         public void ce()
