@@ -243,15 +243,15 @@
                 <ColumnDefinition/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" Content="增加" Margin="10,10,10,10"/>
+            <Button Grid.Column="0" Content="增加" Margin="10,10,10,10" Click="add"/>
             <!--a-->
-            <Button Grid.Column="1" Content="删除" Margin="10,10,10,10"/>
+            <Button Grid.Column="1" Content="删除" Margin="10,10,10,10" Click="delete"/>
             <!--d-->
-            <Button Grid.Column="2" Content="查询" Margin="10,10,10,10"/>
+            <Button Grid.Column="2" Content="查询" Margin="10,10,10,10" Click="select"/>
             <!--f-->
-            <Button Grid.Column="3" Content="修改" Margin="10,10,10,10"/>
+            <Button Grid.Column="3" Content="修改" Margin="10,10,10,10" Click="modify"/>
             <!--u-->
-            <Button Grid.Column="4" Content="清除" Margin="10,10,10,10"/>
+            <Button Grid.Column="4" Content="清除" Margin="10,10,10,10" Click="eliminate"/>
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Grid.ColumnSpan="5">
                 <TextBlock Grid.Row="2" Text="{Binding Path=reminder,Mode=OneWay}" Margin="10,10,10,10" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
             </ScrollViewer>

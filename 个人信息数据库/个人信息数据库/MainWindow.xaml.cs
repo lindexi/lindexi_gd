@@ -113,5 +113,30 @@ namespace 个人信息数据库
             _view.form(visibilityform.reminder);
             Title = title;
         }
+
+        private void add(object sender , RoutedEventArgs e)
+        {
+
+        }
+
+        private void delete(object sender , RoutedEventArgs e)
+        {
+
+        }
+
+        private void select(object sender , RoutedEventArgs e)
+        {
+
+        }
+
+        private void modify(object sender , RoutedEventArgs e)
+        {
+
+        }
+
+        private void eliminate(object sender , RoutedEventArgs e)
+        {
+
+        }
     }
 }
