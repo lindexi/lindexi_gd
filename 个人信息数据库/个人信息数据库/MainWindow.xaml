@@ -173,7 +173,53 @@
         </Grid>
 
         <Grid x:Name="xmemorandum" Grid.Row="1" Visibility="{Binding Path=vmemorandum,Mode=OneWay}" Margin="10,10,10,10" d:IsHidden="True">
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions >
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <DataGrid Grid.Column="0" Margin="10,10,10,10" ItemsSource="{Binding Path=lmemorandum}" ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="条件" HorizontalAlignment="Center"/>
 
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="时间" VerticalAlignment="Center" Margin="10,10,10,10"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Path=memorandum.MTIME,Mode=TwoWay}" VerticalAlignment="Center"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="地点" VerticalAlignment="Center" Margin="10,10,10,10"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Path=memorandum.PLACE,Mode=TwoWay}" VerticalAlignment="Center"/>
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="事情" VerticalAlignment="Center" Margin="10,10,10,10"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Path=memorandum.incident,Mode=TwoWay}" VerticalAlignment="Center"/>
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="人物" VerticalAlignment="Center" Margin="10,10,10,10"/>
+                    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Path=memorandum.CONTACTSID,Mode=TwoWay}" VerticalAlignment="Center"/>
+                </Grid>
+            </Grid>
+            <Grid Grid.Row="1">
+                <Button Content="增加"/>
+                <!--a-->
+                <Button Content="删除"/>
+                <!--d-->
+                <Button Content="查询"/>
+                <!--f-->
+                <Button Content="修改"/>
+                <!--u-->
+            </Grid>
         </Grid>
 
         <Grid x:Name="xcproperty" Grid.Row="1" Visibility="{Binding Path=vcproperty,Mode=OneWay}" Margin="10,10,10,10" d:IsHidden="True">
@@ -182,7 +228,9 @@
 
         <Grid x:Name="xreminder" Grid.Row="1" Visibility="{Binding Path=vreminder,Mode=OneWay}" Margin="10,10,10,10" d:IsHidden="True">
             <!--日志-->
-            
+            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                <TextBlock Grid.Row="2" Text="{Binding Path=reminder,Mode=OneWay}" Margin="10,10,10,10" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+            </ScrollViewer>
         </Grid>
 
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
