@@ -88,7 +88,8 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>sql.resx</DependentUpon>
     </Compile>
-    <Compile Include="viewModel.cs" />
+    <Compile Include="ViewModel\viewaddressBook.cs" />
+    <Compile Include="ViewModel\viewModel.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

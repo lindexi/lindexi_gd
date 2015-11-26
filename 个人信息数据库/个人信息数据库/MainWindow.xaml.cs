@@ -12,7 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-
+using 个人信息数据库.ViewModel;
 namespace 个人信息数据库
 {
     /// <summary>
@@ -27,6 +27,10 @@ namespace 个人信息数据库
             InitializeComponent();
             this.DataContext = view;
             //xl.ItemsSource = View.addressBook;
+
+            _viewaddressBook = new viewaddressBook();
+            xaddressBook.DataContext = _viewaddressBook;
+
         }
 
         private viewModel view
@@ -48,7 +52,8 @@ namespace 个人信息数据库
             //View.readsql();
             xl.ItemsSource = view.addressBook;
         }
-        private viewModel _view;
+        
+
 
         private void principal_Computer(object sender , RoutedEventArgs e)
         {
@@ -59,5 +64,7 @@ namespace 个人信息数据库
         {
             view.slave_computer();
         }
+        private viewModel _view;
+        private viewaddressBook _viewaddressBook;
     }
 }

@@ -68,7 +68,7 @@
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" Visibility="{Binding Path=vaddressbook,Mode=OneWay}">
+        <Grid x:Name="xaddressBook" Grid.Row="0" Visibility="{Binding Path=vaddressbook,Mode=OneWay}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition />
@@ -84,6 +84,7 @@
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="添加" HorizontalAlignment="Center"/>
+                
             </Grid>
             
         </Grid>
