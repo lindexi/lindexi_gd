@@ -270,8 +270,8 @@ namespace 个人信息数据库.model
         public void add<T>(T obj)
         {
             string temp = typeof(T).ToString();
-            int i = temp.LastIndexOf('.');
-            temp = temp.Substring(i + 1);
+            //int i = temp.LastIndexOf('.');
+            //temp = temp.Substring(i + 1);
             ecommand c=ecommand.ce;
             if (string.Equals(temp , typeof(caddressBook).ToString()))
             {
@@ -301,7 +301,30 @@ namespace 个人信息数据库.model
 
         public void delete(object obj , int id)
         {
-
+            ecommand c = ecommand.ce;
+            if (obj as caddressBook != null)
+            {
+                c = ecommand.daddressBook;
+            }
+            else if (obj as ccontacts != null)
+            {
+                c = ecommand.dcontacts;
+            }
+            else if (obj as cdiary != null)
+            {
+                c = ecommand.ddiary;
+            }
+            else if (obj as cmemorandum != null)
+            {
+                c = ecommand.dmemorandum;
+            }
+            else if (obj as cproperty != null)
+            {
+                c = ecommand.dproperty;
+            }
+            string json = JsonConvert.SerializeObject(id);
+            ctransmitter transmitter = new ctransmitter(this.id , c , json);
+            send(transmitter.ToString());
         }
 
 
