@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 namespace 个人信息数据库.model
 {
     /// <summary>
-    /// 个人财物
+    /// 人物
     /// </summary>
-    public class cproperty
+    public class ccontacts
     {
-        public cproperty()
+        public ccontacts()
         {
 
         }
@@ -24,39 +24,47 @@ namespace 个人信息数据库.model
             set;
             get;
         }
+        /// <summary>
+        /// 通讯人姓名
+        /// </summary>
+        public string name
+        {
+            set;
+            get;
+        }
+        /// <summary>
+        /// 联系方式
+        /// </summary>
+        public string contact
+        {
+            set;
+            get;
+        }
+        /// <summary>
+        /// 工作地点
+        /// </summary>
+        public string address
+        {
+            set;
+            get;
+        }
+        /// <summary>
+        /// 城市
+        /// </summary>
+        public string city
+        {
+            set;
+            get;
+        }
+        /// <summary>
+        /// 备注
+        /// </summary>
+        public string comment
+        {
+            set;
+            get;
+        }
 
-        /// <summary>
-        /// 项目
-        /// </summary>
-        public string terminal
-        {
-            set;
-            get;
-        }
-        /// <summary>
-        /// 金额
-        /// </summary>
-        public string PMONEY
-        {
-            set;
-            get;
-        }
-        /// <summary>
-        /// 时间
-        /// </summary>
-        public string MTIME
-        {
-            set;
-            get;
-        }
-        /// <summary>
-        /// 人物
-        /// </summary>
-        public string CONTACTSID
-        {
-            set;
-            get;
-        }
         public override string ToString()
         {
             return JsonConvert.SerializeObject(this);
