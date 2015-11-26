@@ -54,73 +54,126 @@ namespace 个人信息数据库
             }
         }
 
-
-        /// <summary>
-        /// Visibility 需要OnPropertyChanged
-        /// </summary>
-
         public Visibility vaddressbook
         {
-            set;
-            get;
-        } = Visibility.Hidden;
-
+            set
+            {
+                _vaddressbook = value;
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _vaddressbook;
+            }
+        } 
         public Visibility vreminder
         {
-            set;
-            get;
-        } = Visibility.Hidden;
-
+            set
+            {
+                _vreminde = value;
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _vreminde;
+            }
+        } 
         public Visibility vdiary
         {
-            set;
-            get;
-        } = Visibility.Hidden;
-
+            set
+            {
+                _vdiary = value;
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _vdiary;
+            }
+        } 
         public Visibility vmemorandum
         {
-            set;
-            get;
-        } = Visibility.Hidden;
-
+            set
+            {
+                _vmemorandum = value;
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _vmemorandum;
+            }
+        } 
         public Visibility vcproperty
+        {
+            set
+            {
+                _vcproperty = value;
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _vcproperty;
+            }
+        } 
+
+        public System.Collections.ObjectModel.ObservableCollection<caddressBook>
+        /*public List<caddressBook>*/ addressBook
         {
             set;
             get;
-        } = Visibility.Hidden;
+        } =
+           //new List<caddressBook>()
+           new System.Collections.ObjectModel.ObservableCollection<caddressBook>()
+           {
+                //new caddressBook()
+                //{
+                //    name ="通讯人姓名",
+                //    contact ="联系方式",
+                //    address ="工作地点",
+                //    city ="城市",
+                //    comment ="备注"
+                //},
+                new caddressBook()
+                {
+                    name ="张三",
+                    contact ="1",
+                    address ="中国",
+                    city =" ",
+                    comment =" "
+                } ,
+                new caddressBook()
+                {
+                    name ="张三",
+                    contact ="1",
+                    address ="中国",
+                    city =" ",
+                    comment =" "
+                }
+            };
 
-        /// <summary>
-        /// 读取sql
-        /// </summary>
-        //public void readsql()
+        //private string DataSource
         //{
-        //string fileaddress = @"data/sql/插入数据.sql";
-        //string strsql;
-        //Encoding encoding = Encoding.Default;
-
-        //using (FileStream file = new FileStream(fileaddress , FileMode.Open))
+        //    set;
+        //    get;
+        //} = "QQLINDEXI\\SQLEXPRESS";
+        //private string InitialCatalog
         //{
-        //    int length = (int)file.Length;
-        //    byte[] buff = new byte[length];
-        //    file.Read(buff , 0 , length);
-        //    strsql = encoding.GetString(buff);
-        //}
-
-        //string strsql = Properties.Resources.插入数据;
-        //_model.refreshData(strsql);
-        //reminder = "插入" + Properties.Resources.插入数据;
-
-        //_model.ce();
-        //}
+        //    set;
+        //    get;
+        //} = "grxx";
+        public model.model _model
+        {
+            set;
+            get;
+        }
 
         public void ce()
         {
-            //_model.ce();
+            _model.ce();
 
             //addressBook = _model.newaddressBook();
 
             //string json = JsonConvert.SerializeObject(addressBook);
-            _model.ce();
+            //_model.ce();
 
             //reminder = json;
             //addressBook = new System.Collections.ObjectModel.ObservableCollection<caddressBook>();
@@ -244,70 +297,11 @@ namespace 个人信息数据库
             //_slaveComputer.access("10.21.71.130");
         }
 
-        //private void AddItem(object item)
-        // {
-        //     addressBook.Add(item as caddressBook);
-        // }
-
-        public System.Collections.ObjectModel.ObservableCollection<caddressBook>
-        /*public List<caddressBook>*/ addressBook
-        {
-            set;
-            get;
-        } =
-           //new List<caddressBook>()
-           new System.Collections.ObjectModel.ObservableCollection<caddressBook>()
-           {
-                //new caddressBook()
-                //{
-                //    name ="通讯人姓名",
-                //    contact ="联系方式",
-                //    address ="工作地点",
-                //    city ="城市",
-                //    comment ="备注"
-                //},
-                new caddressBook()
-                {
-                    name ="张三",
-                    contact ="1",
-                    address ="中国",
-                    city =" ",
-                    comment =" "
-                } ,
-                new caddressBook()
-                {
-                    name ="张三",
-                    contact ="1",
-                    address ="中国",
-                    city =" ",
-                    comment =" "
-                }
-            };
-
-        //private string DataSource
-        //{
-        //    set;
-        //    get;
-        //} = "QQLINDEXI\\SQLEXPRESS";
-        //private string InitialCatalog
-        //{
-        //    set;
-        //    get;
-        //} = "grxx";
-        public model.model _model
-        {
-            set;
-            get;
-        }
-
-        //private principal_Computer _principal_Computer;
-        //private slaveComputer _slaveComputer;
-        //private System.Action<string> ReceiveAction;
-        //private 上位机下位机 _sx上位机下位机;
+        private Visibility _vaddressbook = Visibility.Hidden;
+        private Visibility _vcproperty = Visibility.Hidden;
+        private Visibility _vmemorandum = Visibility.Hidden;
+        private Visibility _vdiary = Visibility.Hidden;
+        private Visibility _vreminde = Visibility.Hidden;        
     }
-    //enum 上位机下位机
-    //{
-    //    s上位机,
-    //    x下位机
-    //}
+    
 }
