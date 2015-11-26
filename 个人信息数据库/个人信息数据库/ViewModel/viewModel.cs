@@ -325,6 +325,37 @@ namespace 个人信息数据库
             //_slaveComputer.access("10.21.71.130");
         }
 
+        public void form(visibilityform visibility)
+        {
+            vaddressbook = Visibility.Hidden;
+            vreminder = Visibility.Hidden;
+            vdiary = Visibility.Hidden;
+            vmemorandum = Visibility.Hidden;
+            vproperty = Visibility.Hidden;
+
+            switch (visibility)
+            {
+                case visibilityform.addressbook:
+                    vaddressbook = Visibility.Visible;
+                    break;
+                case visibilityform.diary:
+                    vdiary = Visibility.Visible;
+                    break;
+                case visibilityform.memorandum:
+                    vmemorandum = Visibility.Visible;
+                    break;
+                case visibilityform.property:
+                    vproperty = Visibility.Visible;
+                    break;
+                case visibilityform.reminder:
+                    vreminder = Visibility.Visible;
+                    break;
+                default:
+                    vreminder = Visibility.Visible;
+                    break;
+            }
+        }
+
         public viewaddressBook addressbook
         {
             set;
@@ -356,4 +387,12 @@ namespace 个人信息数据库
         private Visibility _vreminde = Visibility.Visible;
     }
 
+    public enum visibilityform
+    {
+        addressbook,
+        property,
+        memorandum,
+        diary,
+        reminder
+    }
 }

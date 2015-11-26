@@ -13,6 +13,8 @@ namespace 个人信息数据库.ViewModel
         {
             this._model = _model;
             this._viewModel = _viewModel;
+
+            _viewModel.property = this;
         }
 
         public cproperty Property

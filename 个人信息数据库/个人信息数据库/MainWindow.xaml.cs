@@ -39,6 +39,8 @@ namespace 个人信息数据库
 
             _viewproperty = new viewproperty(view,view._model);
             xproperty.DataContext = _viewproperty;
+
+            _view.form(visibilityform.reminder);
         }
 
         private viewModel view
@@ -77,5 +79,10 @@ namespace 个人信息数据库
         private viewdiary _viewdiary;
         private viewmemorandum _viewmemorandum;
         private viewproperty _viewproperty;
+
+        private void addressbookvisibility(object sender , RoutedEventArgs e)
+        {
+
+        }
     }
 }
