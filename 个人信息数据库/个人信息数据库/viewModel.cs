@@ -24,7 +24,7 @@ namespace 个人信息数据库
             //string constr = "Data Source=steve-pc;Initial Catalog=itcast2013;Integrated Security=true";
             //"server=.;database=itcast2013;uid=sa;pwd=sa"
             _model = new model.model();
-            reminder = "运行";
+            //reminder = "运行";
 
             //ReceiveAction = str =>
             //{

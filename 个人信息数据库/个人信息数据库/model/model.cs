@@ -238,7 +238,15 @@ namespace 个人信息数据库.model
             };
             string ip = "10.21.71.130";
             _slaveComputer = new slaveComputer(ReceiveAction, implement);
-            _slaveComputer.access(ip);
+            try
+            {
+                _slaveComputer.access(ip);
+                reminder = "运行";
+            }
+            catch (System.Net.Sockets.SocketException e)
+            {
+                reminder = "连接失败，服务器没开启";
+            }
         }
         public int id
         {
