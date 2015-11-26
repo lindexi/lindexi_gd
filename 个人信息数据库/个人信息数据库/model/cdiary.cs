@@ -7,12 +7,9 @@ using System.Threading.Tasks;
 
 namespace 个人信息数据库.model
 {
-    /// <summary>
-    /// 备忘录
-    /// </summary>
-    public class cmemorandum
+    public class cdiary
     {
-        public cmemorandum()
+        public cdiary()
         {
 
         }
