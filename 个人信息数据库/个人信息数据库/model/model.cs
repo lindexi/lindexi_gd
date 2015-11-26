@@ -267,6 +267,39 @@ namespace 个人信息数据库.model
 
         }
 
+        public void add<T>(T obj)
+        {
+            string temp = typeof(T).ToString();
+            int i = temp.LastIndexOf('.');
+            temp = temp.Substring(i + 1);
+
+            if (string.Equals(temp , typeof(caddressBook).ToString()))
+            {
+
+            }
+            else if (string.Equals(temp , typeof(ccontacts).ToString()))
+            {
+
+            }
+            else if (string.Equals(temp , typeof(cdiary).ToString()))
+            {
+
+            }
+            else if (string.Equals(temp , typeof(cmemorandum).ToString()))
+            {
+
+            }
+            else if (string.Equals(temp , typeof(cproperty).ToString()))
+            {
+
+            }
+        }
+
+        public void delete(object obj , int id)
+        {
+
+        }
+
 
         private slaveComputer _slaveComputer;
         private System.Action<string> ReceiveAction;

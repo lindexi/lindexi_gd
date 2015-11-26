@@ -19,6 +19,8 @@ namespace 个人信息数据库principalComputer.model
                       reminder = temp;
                   }
               }, implement);
+
+            ce();
         }
         Random ran
         {
@@ -58,12 +60,20 @@ namespace 个人信息数据库principalComputer.model
 
         public void ce()
         {
-            List<caddressBook> addressBook = lajiaddressBook();
+            //List<caddressBook> addressBook = lajiaddressBook();
             //对象转json
-            var json = JsonConvert.SerializeObject(addressBook);
+            //var json = JsonConvert.SerializeObject(addressBook);
 
-            //writeaddressBook(addressBook);
+            //writeaddressBook(addressBook);  
         }
+
+        //public void add<T>(T obj)
+        //{
+        //    string temp = typeof(T).ToString();
+        //    int i = temp.LastIndexOf('.');
+        //    reminder = temp.Substring(i+1);
+            
+        //}
 
         public ObservableCollection<caddressBook> newaddressBook()
         {
@@ -150,6 +160,11 @@ namespace 个人信息数据库principalComputer.model
         {
 
         }
+
+        //修改 DataGrid 
+
+
+        
 
         /// <summary>
         /// 写数据
