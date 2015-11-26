@@ -351,7 +351,7 @@ namespace 个人信息数据库
             vdiary = Visibility.Hidden;
             vmemorandum = Visibility.Hidden;
             vproperty = Visibility.Hidden;
-
+            _visibilityform = visibility;
             switch (visibility)
             {
                 case visibilityform.addressbook:
@@ -373,6 +373,51 @@ namespace 个人信息数据库
                     vreminder = Visibility.Visible;
                     break;
             }
+        }
+
+        public void add()
+        {
+            switch (_visibilityform)
+            {
+                case visibilityform.addressbook:
+                    
+                    break;
+                case visibilityform.diary:
+                    
+                    break;
+                case visibilityform.memorandum:
+                   
+                    break;
+                case visibilityform.property:
+                    
+                    break;
+                case visibilityform.reminder:
+                    reminder = "界面错误";
+                    break;
+                default:
+                    reminder = "界面错误";
+                    break;
+            }
+        }
+
+        public void delete()
+        {
+
+        }
+
+        public void select()
+        {
+
+        }
+
+        public void modify()
+        {
+
+        }
+
+        public void eliminate()
+        {
+
         }
 
         public viewaddressBook addressbook
@@ -403,7 +448,8 @@ namespace 个人信息数据库
         //private Visibility _vproperty = Visibility.Hidden;
         //private Visibility _vmemorandum = Visibility.Hidden;
         //private Visibility _vdiary = Visibility.Hidden;
-        private Visibility _vreminde = Visibility.Visible;       
+        private Visibility _vreminde = Visibility.Visible;
+        private visibilityform _visibilityform;
     }
 
     public enum visibilityform
