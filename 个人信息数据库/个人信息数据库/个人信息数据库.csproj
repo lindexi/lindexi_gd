@@ -92,6 +92,7 @@
     <Compile Include="ViewModel\viewdiary.cs" />
     <Compile Include="ViewModel\viewmemorandum.cs" />
     <Compile Include="ViewModel\viewModel.cs" />
+    <Compile Include="ViewModel\viewproperty.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

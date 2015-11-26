@@ -8,9 +8,10 @@ namespace 个人信息数据库.ViewModel
 {
     public class viewaddressBook:notify_property
     {
-        public viewaddressBook(model.model _model)
+        public viewaddressBook(viewModel _viewModel,model.model _model)
         {
             this._model = _model;
+            this._viewModel = _viewModel;
         }
 
         public caddressBook addressBook
@@ -64,6 +65,7 @@ namespace 个人信息数据库.ViewModel
 
         //}
 
+        private viewModel _viewModel;    
         private model.model _model
         {
             set;

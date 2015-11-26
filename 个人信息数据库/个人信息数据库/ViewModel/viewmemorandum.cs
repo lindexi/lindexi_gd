@@ -9,9 +9,10 @@ namespace 个人信息数据库.ViewModel
 {
     public class viewmemorandum : notify_property
     {
-        public viewmemorandum(model.model _model)
+        public viewmemorandum(viewModel _viewModel,model.model _model)
         {
             this._model = _model;
+            this._viewModel = _viewModel;
         }
 
         public cmemorandum memorandum
@@ -33,6 +34,7 @@ namespace 个人信息数据库.ViewModel
             get;
         } = new System.Collections.ObjectModel.ObservableCollection<cmemorandum>();
 
+        private viewModel _viewModel;
 
         private cmemorandum _memorandum = new cmemorandum();
         private model.model _model;

@@ -102,16 +102,16 @@ namespace 个人信息数据库
                 return _vmemorandum;
             }
         } 
-        public Visibility vcproperty
+        public Visibility vproperty
         {
             set
             {
-                _vcproperty = value;
+                _vproperty = value;
                 OnPropertyChanged();
             }
             get
             {
-                return _vcproperty;
+                return _vproperty;
             }
         } 
 
@@ -298,7 +298,7 @@ namespace 个人信息数据库
         }
 
         private Visibility _vaddressbook = Visibility.Hidden;
-        private Visibility _vcproperty = Visibility.Hidden;
+        private Visibility _vproperty = Visibility.Hidden;
         private Visibility _vmemorandum = Visibility.Hidden;
         private Visibility _vdiary = Visibility.Hidden;
         private Visibility _vreminde = Visibility.Hidden;        

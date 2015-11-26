@@ -28,11 +28,17 @@ namespace 个人信息数据库
             this.DataContext = view;
             //xl.ItemsSource = View.addressBook;
 
-            _viewaddressBook = new viewaddressBook(view._model);
+            _viewaddressBook = new viewaddressBook(view,view._model);
             xaddressBook.DataContext = _viewaddressBook;
 
-            _viewdiary = new viewdiary(view._model);
+            _viewdiary = new viewdiary(view,view._model);
             xdiary.DataContext = _viewdiary;
+
+            _viewmemorandum = new viewmemorandum(view,view._model);
+            xmemorandum.DataContext = _viewmemorandum;
+
+            _viewproperty = new viewproperty(view,view._model);
+            xproperty.DataContext = _viewproperty;
         }
 
         private viewModel view
@@ -69,5 +75,7 @@ namespace 个人信息数据库
         private viewModel _view;
         private viewaddressBook _viewaddressBook;
         private viewdiary _viewdiary;
+        private viewmemorandum _viewmemorandum;
+        private viewproperty _viewproperty;
     }
 }

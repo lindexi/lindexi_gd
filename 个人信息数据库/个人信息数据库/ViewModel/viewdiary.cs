@@ -9,9 +9,10 @@ namespace 个人信息数据库.ViewModel
 {
     public class viewdiary:notify_property
     {
-        public viewdiary(model.model _model)
+        public viewdiary(viewModel _viewModel,model.model _model)
         {
             this._model = _model;
+            this._viewModel = _viewModel;
         }
 
         public cdiary diary
@@ -25,6 +26,8 @@ namespace 个人信息数据库.ViewModel
             set;
             get;
         } = new System.Collections.ObjectModel.ObservableCollection<cdiary>();
+
+        private viewModel _viewModel;
 
         private model.model _model
         {
