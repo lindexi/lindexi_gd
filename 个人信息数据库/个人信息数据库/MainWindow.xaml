@@ -43,7 +43,7 @@
         </DataTemplate>
     </Window.Resources>
     <Grid>
-        <Grid.ColumnDefinitions>
+        <!--<Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto"/>
             <ColumnDefinition Width="auto"/>
             <ColumnDefinition Width="auto"/>
@@ -62,7 +62,46 @@
             <Button Content="上位机" Margin="10,10,10,10" Click="principal_Computer"/>
             <Button Content="下位机" Margin="10,10,10,10" Click="slaveComputer"/>
             <Button Height="20" Content="确定" Margin="10,10,10,10" Click="Button_Click"/>
-        </StackPanel>
-        
+        </StackPanel>-->
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Visibility="{Binding Path=vaddressbook,Mode=OneWay}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <DataGrid Grid.Column="0" Grid.Row="0" x:Name="xl" Margin="10,10,10,10" ItemsSource="{Binding Path=addressBook}" ScrollViewer.VerticalScrollBarVisibility="Auto" />
+            <!--添加-->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="添加" HorizontalAlignment="Center"/>
+            </Grid>
+            
+        </Grid>
+
+        <Grid Grid.Row="0" Visibility="{Binding Path=vdiary,Mode=OneWay}">
+
+        </Grid>
+
+        <Grid Grid.Row="0" Visibility="{Binding Path=vmemorandum,Mode=OneWay}">
+
+        </Grid>
+
+        <Grid Grid.Row="0" Visibility="{Binding Path=vcproperty,Mode=OneWay}">
+
+        </Grid>
+
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <TextBlock Grid.Row="2" Text="{Binding Path=reminder,Mode=OneWay}" Margin="10,10,10,10" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+        </ScrollViewer>
     </Grid>
 </Window>
