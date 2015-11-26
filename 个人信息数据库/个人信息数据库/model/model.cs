@@ -272,27 +272,31 @@ namespace 个人信息数据库.model
             string temp = typeof(T).ToString();
             int i = temp.LastIndexOf('.');
             temp = temp.Substring(i + 1);
-
+            ecommand c=ecommand.ce;
             if (string.Equals(temp , typeof(caddressBook).ToString()))
             {
-
+                c = ecommand.addaddressBook;
             }
             else if (string.Equals(temp , typeof(ccontacts).ToString()))
             {
-
+                c = ecommand.addcontacts;
             }
             else if (string.Equals(temp , typeof(cdiary).ToString()))
             {
-
+                c = ecommand.adddiary;
             }
             else if (string.Equals(temp , typeof(cmemorandum).ToString()))
             {
-
+                c = ecommand.addmemorandum;
             }
             else if (string.Equals(temp , typeof(cproperty).ToString()))
             {
-
+                c = ecommand.addproperty;
             }
+
+            string json = JsonConvert.SerializeObject(obj);
+            ctransmitter transmitter = new ctransmitter(id , c , json);
+            send(transmitter.ToString());
         }
 
         public void delete(object obj , int id)
@@ -381,7 +385,18 @@ namespace 个人信息数据库.model
         id,//分配id
         //get,//发送成功
         getdata,//获取
-        faddressBook,//通讯录
+        addaddressBook,//通讯录
+        addcontacts,//人物
+        addproperty,
+        adddiary,
+        addmemorandum,
+
+        daddressBook,
+        dcontacts,
+        ddiary,
+        dproperty,
+        dmemorandum,
+
         ce
     }
 }
