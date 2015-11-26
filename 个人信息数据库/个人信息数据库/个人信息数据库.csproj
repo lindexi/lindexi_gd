@@ -75,6 +75,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="model\caddressBook.cs" />
+    <Compile Include="model\cmemorandum.cs" />
     <Compile Include="model\model.cs" />
     <Compile Include="model\principal_Computer.cs" />
     <Compile Include="model\slaveComputer.cs" />

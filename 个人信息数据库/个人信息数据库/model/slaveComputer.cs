@@ -100,7 +100,6 @@ namespace 个人信息数据库.model
                     }
 
                 } /*new AsyncCallback(ReceiveCallBack)*/ , null);
-
             }
             catch
             {
@@ -131,16 +130,6 @@ namespace 个人信息数据库.model
             {
                 reminder("str不是ctransmitter " + e.Message);
             }
-        }
-        //private void addressBook(string json)
-        //{
-        //    System.Collections.ObjectModel.ObservableCollection<caddressBook> temp = JsonConvert.DeserializeObject<System.Collections.ObjectModel.ObservableCollection<caddressBook>>(json);
-        //    StringBuilder str = new StringBuilder();
-        //    foreach (var t in temp)
-        //    {
-        //        str.Append(t.name + "\n");
-        //    }
-        //    reminder(str.ToString());
-        //}
+        }        
     }
 }

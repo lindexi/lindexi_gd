@@ -128,6 +128,30 @@ namespace 个人信息数据库principalComputer.model
         }
 
         /// <summary>
+        /// 全部更新为最新数据
+        /// </summary>
+        public void getdata()
+        {
+
+        }
+
+        /// <summary>
+        /// 添加通讯录
+        /// </summary>
+        public void addaddressBook(caddressBook addressbook)
+        {
+            //添加加上一个在末尾
+        }
+        /// <summary>
+        /// 删除通讯录
+        /// </summary>
+        /// <param name="id">要删除id</param>
+        public void deleteaddressBook(int id)
+        {
+
+        }
+
+        /// <summary>
         /// 写数据
         /// </summary>
         /// <param name="strsql"></param>
@@ -237,7 +261,7 @@ namespace 个人信息数据库principalComputer.model
         {
             switch (command)
             {
-                case ecommand.ce:
+                case ecommand.ce://2015年11月26日08:56:10
                     break;
             }
         }
