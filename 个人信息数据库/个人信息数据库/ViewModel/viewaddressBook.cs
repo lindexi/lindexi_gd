@@ -111,13 +111,27 @@ namespace 个人信息数据库.ViewModel
             if (!addressBook.accord)
             {
                 warn = "输入信息有误";
+                return;
             }
             else
             {
                 warn = string.Empty;
             }
 
-            reminder = "修改通讯";
+            if (addressBook.Equals(_item))
+            {
+                reminder = "没有修改";
+            }
+            else
+            {
+                _item = addressBook.Clone() as caddressBook;
+                ctransmitter transmitter = new ctransmitter(_model.id , ecommand.newaddressBook , addressBook.ToString());
+
+                _model.send(transmitter.ToString());
+
+                reminder = "修改通讯";
+            }
+            
         }
 
         public void eliminate()

@@ -85,6 +85,10 @@ namespace 个人信息数据库.model
                 {
                     reminder ("连接失败 " + e.Message);
                 }
+                catch(InvalidOperationException e)
+                {
+                    reminder("服务器没有开启"+e.Message);
+                }
             }
         }
         private IPEndPoint ServerInfo;

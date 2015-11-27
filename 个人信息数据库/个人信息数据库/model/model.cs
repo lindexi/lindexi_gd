@@ -510,7 +510,7 @@ namespace 个人信息数据库.model
                 reminder = "输入id不是数字" + e.Message;
             }
         }
-        private void send(string str)
+        public void send(string str)
         {
             _slaveComputer.send(str);
         }
