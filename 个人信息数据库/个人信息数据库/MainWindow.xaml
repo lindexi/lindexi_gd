@@ -72,7 +72,15 @@
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
-            <DataGrid x:Name="daddressBook" Grid.Column="0" Grid.Row="0" Margin="10,10,10,10" ItemsSource="{Binding Path=laddressBook}"  ScrollViewer.VerticalScrollBarVisibility="Auto" />
+            <DataGrid x:Name="daddressBook" AutoGenerateColumns="False" Grid.Column="0" Grid.Row="0" Margin="10,10,10,10" ItemsSource="{Binding Path=laddressBook}"  ScrollViewer.VerticalScrollBarVisibility="Auto" >
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="通讯人姓名" Binding="{Binding name}"/>
+                    <DataGridTextColumn Header="联系方式" Binding="{Binding contact}"/>
+                    <DataGridTextColumn Header="工作地点" Binding="{Binding address}"/>
+                    <DataGridTextColumn Header="城市" Binding="{Binding city}"/>
+                    <DataGridTextColumn Header="备注" Binding="{Binding comment}"/>
+                </DataGrid.Columns>
+            </DataGrid>
             <!--添加-->
             <Grid Grid.Row="0" Grid.Column="1">
                 <Grid.RowDefinitions>
