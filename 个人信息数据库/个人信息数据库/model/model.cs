@@ -489,18 +489,21 @@ namespace 个人信息数据库.model
         getdata,//获取
 
         addressBook,//返回通讯录
+        contacts,
+        property,
+        diary,
 
-        addaddressBook,//通讯录
-        addcontacts,//人物
-        addproperty,
-        adddiary,
-        addmemorandum,
+        newaddressBook,//通讯录
+        newcontacts,//人物
+        newproperty,
+        newdiary,
+        newmemorandum,
 
-        daddressBook,
-        dcontacts,
-        ddiary,
-        dproperty,
-        dmemorandum,
+        //daddressBook,
+        //dcontacts,
+        //ddiary,
+        //dproperty,
+        //dmemorandum,
 
         ce
     }
