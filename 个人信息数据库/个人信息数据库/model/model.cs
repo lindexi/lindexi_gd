@@ -370,6 +370,9 @@ namespace 个人信息数据库.model
                 case ecommand.id:
                     fitid(str);
                     break;
+                default:
+                    reminder = str;
+                    break;
                    
             }
         }
@@ -385,7 +388,7 @@ namespace 个人信息数据库.model
                 this.id = temp;
                 reminder = "id" + id;
 
-
+                getdata();//初始返回data
             }
             catch(Exception e)
             {
