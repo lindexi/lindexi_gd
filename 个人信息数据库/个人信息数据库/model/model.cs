@@ -384,6 +384,8 @@ namespace 个人信息数据库.model
                 int temp = Convert.ToInt32(id);
                 this.id = temp;
                 reminder = "id" + id;
+
+
             }
             catch(Exception e)
             {

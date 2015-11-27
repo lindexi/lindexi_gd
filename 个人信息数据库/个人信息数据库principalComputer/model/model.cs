@@ -75,6 +75,8 @@ namespace 个人信息数据库principalComputer.model
             
         //}
 
+
+
         public ObservableCollection<caddressBook> newaddressBook()
         {
             const string addressBookname = "temp";
@@ -112,7 +114,6 @@ namespace 个人信息数据库principalComputer.model
                                 city = read.GetString(cityindex).Trim(),
                                 comment = read.GetString(commentindex).Trim()
                             };
-
                             addressBook.Add(temp);
                         }
                     }
@@ -142,7 +143,11 @@ namespace 个人信息数据库principalComputer.model
         /// </summary>
         public void getdata()
         {
-
+            //返回addressBook
+            ObservableCollection<caddressBook> addressBook = newaddressBook();
+            string json = JsonConvert.SerializeObject(addressBook);
+            ctransmitter transmitter = new ctransmitter(-1 , ecommand.addressBook , json);
+            _principal_computer.send(transmitter.ToString());
         }
 
         /// <summary>
@@ -231,6 +236,7 @@ namespace 个人信息数据库principalComputer.model
                 return $"use {InitialCatalog}";
             }
         }
+        private principal_Computer _principal_computer;
 
         private List<caddressBook> lajiaddressBook()
         {
@@ -270,7 +276,6 @@ namespace 个人信息数据库principalComputer.model
             return addressBook;
         }
 
-        private principal_Computer _principal_computer;
 
         private void implement(int id , ecommand command , string str)
         {
