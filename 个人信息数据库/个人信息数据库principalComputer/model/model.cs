@@ -278,8 +278,18 @@ namespace 个人信息数据库principalComputer.model
             {
                 case ecommand.ce://2015年11月26日08:56:10
                     break;
+                case ecommand.getdata:
+                    getdata();
+                    reminder = id.ToString() + "获取数据";
+                    break;
+                default:
+                    reminder = str;
+                    break;
+
             }
         }
+
+        
     }
 
     /// <summary>
