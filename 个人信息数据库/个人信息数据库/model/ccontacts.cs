@@ -106,6 +106,24 @@ namespace 个人信息数据库.model
                 return _comment;
             }
         }
+        /// <summary>
+        /// 输入正确
+        /// </summary>
+        public bool accord
+        {
+            set
+            {
+                value = false;
+            }
+            get
+            {
+                if (name == null)
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
         public override string ToString()
         {
             return JsonConvert.SerializeObject(this);

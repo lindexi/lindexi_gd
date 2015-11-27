@@ -91,6 +91,32 @@ namespace 个人信息数据库.model
                 return _CONTACTSID;
             }
         }
+        /// <summary>
+        /// 输入正确
+        /// </summary>
+        public bool accord
+        {
+            set
+            {
+                value = false;
+            }
+            get
+            {
+                if (incident == null)
+                {
+                    return false;
+                }
+                try
+                {
+                    DateTime mydate = Convert.ToDateTime(MTIME);
+                }
+                catch
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
         public override string ToString()
         {
             return JsonConvert.SerializeObject(this);

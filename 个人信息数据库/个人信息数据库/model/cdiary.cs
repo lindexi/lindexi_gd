@@ -92,6 +92,32 @@ namespace 个人信息数据库.model
         {
             return JsonConvert.SerializeObject(this);
         }
+        /// <summary>
+        /// 输入正确
+        /// </summary>
+        public bool accord
+        {
+            set
+            {
+                value = false;
+            }
+            get
+            {
+                if (incident == null)
+                {
+                    return false;
+                }
+                try
+                {
+                    DateTime mydate = Convert.ToDateTime(MTIME);  
+                }
+                catch
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
         private string _id;
         private string _mtime;
         private string _place;

@@ -91,6 +91,38 @@ namespace 个人信息数据库.model
                 return _contactsid;
             }
         }
+        /// <summary>
+        /// 输入正确
+        /// </summary>
+        public bool accord
+        {
+            set
+            {
+                value = false;
+            }
+            get
+            {
+                int n = 0;
+                try
+                {
+                    n = Convert.ToInt32(PMONEY);
+                }
+                catch
+                {
+                    return false;
+                }
+                
+                try
+                {
+                    DateTime mydate = Convert.ToDateTime(MTIME);
+                }
+                catch
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
         public override string ToString()
         {
             return JsonConvert.SerializeObject(this);

@@ -199,7 +199,7 @@ namespace 个人信息数据库principalComputer.model
                         while (read.Read())
                         {
                             return read.GetDecimal(0).ToString();
-                        }
+                        }                        
                     }
                 }
             }
@@ -305,6 +305,10 @@ namespace 个人信息数据库principalComputer.model
             return addressBook;
         }
 
+        private void lajidiary()
+        {
+            
+        }
 
         private void implement(int id , ecommand command , string str)
         {
