@@ -364,7 +364,6 @@ namespace 个人信息数据库.model
         private System.Action<string> ReceiveAction;
         private void implement(int id , ecommand command , string str)
         {
-
             switch (command)
             {
                 case ecommand.id:
