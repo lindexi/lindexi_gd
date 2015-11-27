@@ -4,7 +4,7 @@ using System;
 namespace 个人信息数据库.model
 {
     [Serializable]
-    public class caddressBook:notify_property
+    public class caddressBook: notify_property, ICloneable
     {
         public caddressBook()
         {
@@ -117,6 +117,17 @@ namespace 个人信息数据库.model
                 }                
                 return true;
             }
+        }
+        public object Clone()
+        {
+            caddressBook addressbook = new caddressBook();
+            addressbook.id = id;
+            addressbook.name = name;
+            addressbook.contact = contact;
+            addressbook.address = address;
+            addressbook.city = city;
+            addressbook.comment = comment;
+            return addressbook;
         }
         public override string ToString()
         {

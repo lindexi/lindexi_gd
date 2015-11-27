@@ -126,7 +126,7 @@ namespace 个人信息数据库.ViewModel
             {
                 return;
             }
-            addressBook = item[0] as caddressBook;
+            addressBook =( item[0] as caddressBook).Clone() as caddressBook;
         }
         public string warn
         {
@@ -163,7 +163,7 @@ namespace 个人信息数据库.ViewModel
             set;
             get;
         }
-
+        private caddressBook _item;
         private caddressBook _addressBook = new caddressBook();
     }
 }
