@@ -375,8 +375,16 @@ namespace 个人信息数据库.model
                     newaddressBook(str);
                     break;
                 case ecommand.property:
-                    newproperty(str);
                     reminder = "上位机发来个人财物";
+                    newproperty(str);
+                    break;
+                case ecommand.diary:
+                    reminder = "上位机发来日记";
+                    newdiary(str);
+                    break;
+                case ecommand.memorandum:
+                    reminder = "上位机发来信息";
+                    newmemorandum(str);
                     break;
                 default:
                     reminder = str;
@@ -384,8 +392,35 @@ namespace 个人信息数据库.model
 
             }
         }
-        
-        //diary,
+
+        private void newmemorandum(string str)
+        {
+            var temp = DeserializeObject<cmemorandum>(str);
+            System.Windows.Application.Current.Dispatcher.Invoke
+              (() =>
+              {
+                  memorandum.Clear();
+
+                  foreach (var t in temp)
+                  {
+                      memorandum.Add(t);
+                  }
+              });
+        }
+        private void newdiary(string str)
+        {
+            var temp = DeserializeObject<cdiary>(str);
+            System.Windows.Application.Current.Dispatcher.Invoke
+               (() =>
+               {
+                   diary.Clear();
+
+                   foreach (var t in temp)
+                   {
+                       diary.Add(t);
+                   }
+               });
+        }
         private void newproperty(string str)
         {
             var temp = DeserializeObject<cproperty>(str);
@@ -525,6 +560,7 @@ namespace 个人信息数据库.model
         contacts,
         property,
         diary,
+        memorandum,
 
         newaddressBook,//通讯录
         newcontacts,//人物
