@@ -237,7 +237,7 @@ namespace 个人信息数据库.model
                 }
             };
             string ip = "10.21.71.130";
-            _slaveComputer = new slaveComputer(ReceiveAction, implement);
+            _slaveComputer = new slaveComputer(ReceiveAction , implement);
             try
             {
                 _slaveComputer.access(ip);
@@ -245,7 +245,7 @@ namespace 个人信息数据库.model
             }
             catch (System.Net.Sockets.SocketException e)
             {
-                reminder = "连接失败，服务器没开启 "+e.Message;
+                reminder = "连接失败，服务器没开启 " + e.Message;
             }
         }
         public int id
@@ -304,7 +304,7 @@ namespace 个人信息数据库.model
             string temp = typeof(T).ToString();
             //int i = temp.LastIndexOf('.');
             //temp = temp.Substring(i + 1);
-            ecommand c=ecommand.ce;
+            ecommand c = ecommand.ce;
             if (string.Equals(temp , typeof(caddressBook).ToString()))
             {
                 c = ecommand.addaddressBook;
@@ -364,7 +364,7 @@ namespace 个人信息数据库.model
         private System.Action<string> ReceiveAction;
         private void implement(int id , ecommand command , string str)
         {
-            
+
             switch (command)
             {
                 case ecommand.id:
@@ -372,19 +372,39 @@ namespace 个人信息数据库.model
                     break;
                 case ecommand.addressBook:
                     reminder = "上位机发来通讯录";
-                    newaddressBook(str);                    
+                    newaddressBook(str);
+                    break;
+                case ecommand.property:
+                    newproperty(str);
+                    reminder = "上位机发来个人财物";
                     break;
                 default:
                     reminder = str;
                     break;
-                   
+
             }
+        }
+        
+        //diary,
+        private void newproperty(string str)
+        {
+            var temp = DeserializeObject<cproperty>(str);
+            System.Windows.Application.Current.Dispatcher.Invoke
+                (() =>
+                {
+                    property.Clear();
+
+                    foreach (var t in temp)
+                    {
+                        property.Add(t);
+                    }
+                });
         }
         private void newaddressBook(string str)
         {
             try
             {
-                ObservableCollection<caddressBook> temp = JsonConvert.DeserializeObject<ObservableCollection<caddressBook>>(str);
+                ObservableCollection<caddressBook> temp = DeserializeObject<caddressBook>(str);
 
                 System.Windows.Application.Current.Dispatcher.Invoke
                 (() =>
@@ -396,14 +416,27 @@ namespace 个人信息数据库.model
                         addressbook.Add(t);
                     }
                 });
-                
             }
-            catch(JsonException e)
+
+            catch (JsonException e)
             {
                 reminder = "输入不是ObservableCollection<caddressBook> json" + e.Message;
             }
         }
 
+        private ObservableCollection<T> DeserializeObject<T>(string str)
+        {
+            try
+            {
+                ObservableCollection<T> temp = JsonConvert.DeserializeObject<ObservableCollection<T>>(str);
+                return temp;
+            }
+            catch (JsonException e)
+            {
+                reminder = "输入不是ObservableCollection<caddressBook> json" + e.Message;
+            }
+            return null;
+        }
         //private void cleanObservableCollection<T>(ObservableCollection<T> temp)
         //{
         //    if (temp == null)
@@ -431,7 +464,7 @@ namespace 个人信息数据库.model
 
                 getdata();//初始返回data
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 reminder = "输入id不是数字" + e.Message;
             }
