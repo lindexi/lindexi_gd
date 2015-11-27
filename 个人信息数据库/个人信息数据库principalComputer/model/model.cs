@@ -129,11 +129,15 @@ namespace 个人信息数据库principalComputer.model
         /// <param name="addressBook"></param>
         public void writeaddressBook(List<caddressBook> addressBook)
         {
-            const string t = "temp";
-            string strsql;       
+            string strsql;
+
+            //addressbook CONTACTS
+            const string addressbook = "addressbook";
+            const string contacts = "CONTACTS";
+
             foreach (var temp in addressBook)
             {
-                strsql = $"{usesql}{line}insert into {t}(id,name,contact,naddress,city,comment){line}values('{temp.id}','{temp.name}','{temp.contact}','{temp.address}','{temp.city}','{temp.comment}');{line}";
+                strsql = $"{usesql}{line}insert into {contacts}(name,contact,naddress,city,comment){line}values('{temp.name}','{temp.contact}','{temp.address}','{temp.city}','{temp.comment}');{go}insert into {addressbook}(CONTACTSID) values( @@identity);";
                 write(strsql);
             }
         }
@@ -148,6 +152,8 @@ namespace 个人信息数据库principalComputer.model
             string json = JsonConvert.SerializeObject(addressBook);
             ctransmitter transmitter = new ctransmitter(-1 , ecommand.addressBook , json);
             _principal_computer.send(transmitter.ToString());
+
+
         }
 
         /// <summary>
@@ -234,6 +240,17 @@ namespace 个人信息数据库principalComputer.model
             get
             {
                 return $"use {InitialCatalog}";
+            }
+        }
+        private string go
+        {
+            set
+            {
+                value = string.Empty;
+            }
+            get
+            {
+                return $"{line}GO{line}";
             }
         }
         private principal_Computer _principal_computer;
@@ -344,19 +361,24 @@ namespace 个人信息数据库principalComputer.model
         getdata,//获取
 
         addressBook,//返回通讯录
+        contacts,
+        property,
+        diary,
+        memorandum,
 
-        addaddressBook,//通讯录
-        addcontacts,//人物
-        addproperty,
-        adddiary,
-        addmemorandum,
+        newaddressBook,//通讯录
+        newcontacts,//人物
+        newproperty,
+        newdiary,
+        newmemorandum,
 
-        daddressBook,
-        dcontacts,
-        ddiary,
-        dproperty,
-        dmemorandum,
+        //daddressBook,
+        //dcontacts,
+        //ddiary,
+        //dproperty,
+        //dmemorandum,
 
         ce
     }
+
 }
