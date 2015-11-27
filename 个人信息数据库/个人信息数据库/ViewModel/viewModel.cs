@@ -359,15 +359,19 @@ namespace 个人信息数据库
             {
                 case visibilityform.addressbook:
                     vaddressbook = Visibility.Visible;
+                    addressbook.navigated();
                     break;
                 case visibilityform.diary:
                     vdiary = Visibility.Visible;
+                    diary.navigated();
                     break;
                 case visibilityform.memorandum:
                     vmemorandum = Visibility.Visible;
+                    memorandum.navigated();
                     break;
                 case visibilityform.property:
                     vproperty = Visibility.Visible;
+                    property.navigated();
                     break;
                 case visibilityform.reminder:
                     vreminder = Visibility.Visible;

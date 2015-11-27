@@ -75,6 +75,10 @@ namespace 个人信息数据库.ViewModel
         {
             reminder = "清除";
         }
+        public void navigated()
+        {
+
+        }
         public string warn
         {
             set
