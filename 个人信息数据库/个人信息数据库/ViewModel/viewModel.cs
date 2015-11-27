@@ -484,6 +484,8 @@ namespace 个人信息数据库
 
         public void eliminate()
         {
+            _model.getdata();
+
             switch (_visibilityform)
             {
                 case visibilityform.addressbook:

@@ -386,12 +386,17 @@ namespace 个人信息数据库.model
             {
                 ObservableCollection<caddressBook> temp = JsonConvert.DeserializeObject<ObservableCollection<caddressBook>>(str);
 
-                addressbook.Clear();
-
-                foreach (var t in temp)
+                System.Windows.Application.Current.Dispatcher.Invoke
+                (() =>
                 {
-                    addressbook.Add(t);
-                }
+                    addressbook.Clear();
+
+                    foreach (var t in temp)
+                    {
+                        addressbook.Add(t);
+                    }
+                });
+                
             }
             catch(JsonException e)
             {

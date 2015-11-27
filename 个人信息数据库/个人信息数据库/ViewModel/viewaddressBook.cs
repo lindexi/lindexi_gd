@@ -15,6 +15,7 @@ namespace 个人信息数据库.ViewModel
 
             _viewModel.addressbook = this;
             _model.addressbook = laddressBook;
+           
         }
 
         public caddressBook addressBook
@@ -116,7 +117,7 @@ namespace 个人信息数据库.ViewModel
         }
         public void navigated()
         {
-
+            warn = "点击修改把现有表修改到数据库，按delete删除行,双击修改列";
         }
         public string warn
         {

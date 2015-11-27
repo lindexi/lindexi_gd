@@ -131,6 +131,7 @@ namespace 个人信息数据库
 
         private void modify(object sender , RoutedEventArgs e)
         {
+            
             _view.modify();
         }
 
