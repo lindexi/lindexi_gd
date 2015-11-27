@@ -86,6 +86,7 @@ namespace 个人信息数据库.ViewModel
             set
             {
                 _warn = value;
+                warnvisibility = System.Windows.Visibility.Visible;
                 OnPropertyChanged();
             }
             get
@@ -93,6 +94,19 @@ namespace 个人信息数据库.ViewModel
                 return _warn;
             }
         }
+        public System.Windows.Visibility warnvisibility
+        {
+            set
+            {
+                _warnvisibility = value;
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _warnvisibility;
+            }
+        }
+        private System.Windows.Visibility _warnvisibility = System.Windows.Visibility.Hidden;
         private string _warn = "输入";
         private System.Windows.Visibility _visibility= System.Windows.Visibility.Hidden;
 
