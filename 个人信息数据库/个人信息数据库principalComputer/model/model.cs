@@ -324,9 +324,24 @@ namespace 个人信息数据库principalComputer.model
     public enum ecommand
     {
         login,//登录
-        id,//分配id      
-        faddressBook,//通讯录
+        id,//分配id
+        //get,//发送成功
         getdata,//获取
+
+        addressBook,//返回通讯录
+
+        addaddressBook,//通讯录
+        addcontacts,//人物
+        addproperty,
+        adddiary,
+        addmemorandum,
+
+        daddressBook,
+        dcontacts,
+        ddiary,
+        dproperty,
+        dmemorandum,
+
         ce
     }
 }
