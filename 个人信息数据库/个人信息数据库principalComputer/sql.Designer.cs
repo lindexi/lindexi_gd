@@ -8,8 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace 个人信息数据库principalComputer
-{
+namespace 个人信息数据库principalComputer {
     using System;
     
     
@@ -40,7 +39,7 @@ namespace 个人信息数据库principalComputer
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("个人信息数据库.sql", typeof(sql).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("个人信息数据库principalComputer.sql", typeof(sql).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -58,54 +57,6 @@ namespace 个人信息数据库principalComputer
             }
             set {
                 resourceCulture = value;
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 use grxx;--切换数据库
-        ///create table temp
-        ///(
-        ///   id int ,
-        ///   name nchar(10) ,--通讯人姓名
-        ///   contact nchar(10),--联系方式
-        ///   naddress nchar(10),--工作地点
-        ///   city nchar(10),--城市
-        ///   comment  nchar(10)--备注
-        ///); 的本地化字符串。
-        /// </summary>
-        internal static string 创建temp {
-            get {
-                return ResourceManager.GetString("创建temp", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 --1.创建一个数据库
-        ///--create database School;
-        ///----删除数据库
-        ///--drop database School;
-        ///--创建数据库的时候指定一些选项。
-        ///create database grxx
-        ///on primary
-        ///(
-        ///	name=&apos;grxx&apos;,
-        ///	filename=&apos;C:\Program Files\Microsoft SQL Server\MSSQL12.SQLEXPRESS\MSSQL\DATA\grxx.mdf&apos;,
-        ///	size=5MB,
-        ///	filegrowth=10MB,	
-        ///	maxsize=100MB
-        ///)
-        ///log on
-        ///(
-        ///	name=&apos;grxx_log&apos;,
-        ///	filename=&apos;C:\Program Files\Microsoft SQL Server\MSSQL12.SQLEXPRESS\MSSQL\DATA\grxx.ldf&apos;,
-        ///	size=3MB,
-        ///	filegrowth=3%,
-        ///	maxsize=20MB
-        ///) 的本地化字符串。
-        /// </summary>
-        internal static string 创建数据库grxx {
-            get {
-                return ResourceManager.GetString("创建数据库grxx", resourceCulture);
             }
         }
         
@@ -190,38 +141,6 @@ namespace 个人信息数据库principalComputer
         internal static string 城市 {
             get {
                 return ResourceManager.GetString("城市", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 use grxx
-        ///insert into temp(id,name,contact,naddress,city,comment)
-        ///values(&apos;3&apos;,&apos;黄林&apos;,&apos;1&apos;,&apos;中国&apos;,&apos; &apos;,&apos; &apos;);
-        /// 的本地化字符串。
-        /// </summary>
-        internal static string 插入数据 {
-            get {
-                return ResourceManager.GetString("插入数据", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 --切换数据库
-        ///--use grxx;
-        ///
-        ///
-        ///----在grxx数据库中创建addressBook。addressBook
-        ///--create table addressBook
-        ///--(
-        ///--	--表中列的定义在这对小括号中
-        ///--	tsid int 
-        ///	
-        ///--)
-        /// 的本地化字符串。
-        /// </summary>
-        internal static string 表 {
-            get {
-                return ResourceManager.GetString("表", resourceCulture);
             }
         }
     }

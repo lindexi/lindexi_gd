@@ -64,7 +64,7 @@ namespace 个人信息数据库principalComputer.model
             //对象转json
             //var json = JsonConvert.SerializeObject(addressBook);
 
-            //writeaddressBook(addressBook);  
+            //writeaddressBook(addressBook);
         }
 
         //public void add<T>(T obj)
@@ -134,10 +134,12 @@ namespace 个人信息数据库principalComputer.model
             //addressbook CONTACTS
             const string addressbook = "addressbook";
             const string contacts = "CONTACTS";
-
+            string id;           
             foreach (var temp in addressBook)
             {
-                strsql = $"{usesql}{line}insert into {contacts}(name,contact,naddress,city,comment){line}values('{temp.name}','{temp.contact}','{temp.address}','{temp.city}','{temp.comment}');{go}insert into {addressbook}(CONTACTSID) values( @@identity);";
+                strsql = $"{usesql}{line}insert into {contacts}(name,contact,caddress,city,comment){line}values('{temp.name}','{temp.contact}','{temp.address}','{temp.city}','{temp.comment}') SELECT @@IDENTITY AS Id;";
+                id= write(strsql);
+                strsql = $"insert into {addressbook}(CONTACTSID) values( '{id}');";
                 write(strsql);
             }
         }
@@ -181,17 +183,27 @@ namespace 个人信息数据库principalComputer.model
         /// 写数据
         /// </summary>
         /// <param name="strsql"></param>
-        public void write(string strsql)
+        public string write(string strsql)
         {
             using (SqlConnection sql = new SqlConnection(connect))
             {
                 sql.Open();
                 using (SqlCommand cmd = new SqlCommand(strsql , sql))
                 {
-                    //字符串比char(10)长 将截断字符串或二进制数据
-                    int r = cmd.ExecuteNonQuery();
+                    using (SqlDataReader read = cmd.ExecuteReader())
+                    {
+                        if (!read.HasRows)
+                            return null;
+                        const string id = "id";
+                        int idindex = read.GetOrdinal(id);
+                        while (read.Read())
+                        {
+                            return read.GetDecimal(0).ToString();
+                        }
+                    }
                 }
             }
+            return null;
         }
 
 
@@ -239,7 +251,7 @@ namespace 个人信息数据库principalComputer.model
             }
             get
             {
-                return $"use {InitialCatalog}";
+                return $"use {InitialCatalog};";
             }
         }
         private string go
