@@ -72,7 +72,7 @@
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
-            <DataGrid Grid.Column="0" Grid.Row="0" x:Name="xl" Margin="10,10,10,10" ItemsSource="{Binding Path=laddressBook}" ScrollViewer.VerticalScrollBarVisibility="Auto" />
+            <DataGrid x:Name="daddressBook" Grid.Column="0" Grid.Row="0" Margin="10,10,10,10" ItemsSource="{Binding Path=laddressBook}"  ScrollViewer.VerticalScrollBarVisibility="Auto" />
             <!--添加-->
             <Grid Grid.Row="0" Grid.Column="1">
                 <Grid.RowDefinitions>

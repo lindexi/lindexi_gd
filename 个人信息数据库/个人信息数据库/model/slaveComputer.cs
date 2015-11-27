@@ -149,6 +149,7 @@ namespace 个人信息数据库.model
             catch (Exception e)
             {
                 reminder("slaveComputer.implement:str不是ctransmitter " + e.Message);
+                reminder(str);
             }
         }        
     }

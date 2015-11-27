@@ -60,7 +60,7 @@ namespace 个人信息数据库
             view.ce();
 
             //View.readsql();
-            xl.ItemsSource = view.addressBook;
+            //daddressBook.ItemsSource = view.addressBook;
         }
         
 
@@ -137,6 +137,13 @@ namespace 个人信息数据库
         private void eliminate(object sender , RoutedEventArgs e)
         {
             _view.eliminate();
+        }
+
+        private void selectaddressbook(object sender , RoutedEventArgs e)
+        {
+            DataGrid datagrid = sender as DataGrid;
+
+            _view.selectitem();
         }
     }
 }

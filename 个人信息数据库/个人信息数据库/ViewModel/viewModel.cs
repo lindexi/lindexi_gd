@@ -507,6 +507,11 @@ namespace 个人信息数据库
             }
         }
 
+        public void selectitem()
+        {
+
+        }
+
         public viewaddressBook addressbook
         {
             set;
