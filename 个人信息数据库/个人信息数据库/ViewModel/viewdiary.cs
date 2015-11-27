@@ -15,6 +15,7 @@ namespace 个人信息数据库.ViewModel
             this._viewModel = _viewModel;
 
             _viewModel.diary = this;
+            _model.diary = ldiary;
         }
 
         public cdiary diary

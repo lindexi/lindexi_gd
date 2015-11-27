@@ -14,6 +14,7 @@ namespace 个人信息数据库.ViewModel
             this._viewModel = _viewModel;
 
             _viewModel.addressbook = this;
+            _model.addressbook = laddressBook;
         }
 
         public caddressBook addressBook

@@ -370,12 +370,48 @@ namespace 个人信息数据库.model
                 case ecommand.id:
                     fitid(str);
                     break;
+                case ecommand.addressBook:
+                    reminder = "上位机发来通讯录";
+                    newaddressBook(str);                    
+                    break;
                 default:
                     reminder = str;
                     break;
                    
             }
         }
+        private void newaddressBook(string str)
+        {
+            try
+            {
+                ObservableCollection<caddressBook> temp = JsonConvert.DeserializeObject<ObservableCollection<caddressBook>>(str);
+
+                addressbook.Clear();
+
+                foreach (var t in temp)
+                {
+                    addressbook.Add(t);
+                }
+            }
+            catch(JsonException e)
+            {
+                reminder = "输入不是ObservableCollection<caddressBook> json" + e.Message;
+            }
+        }
+
+        //private void cleanObservableCollection<T>(ObservableCollection<T> temp)
+        //{
+        //    if (temp == null)
+        //    {
+        //        return;
+        //    }
+        //    for (int i = 0; i < temp.Count;)
+        //    {
+        //        temp.RemoveAt(i);
+        //    }
+        //    temp.Clear();
+        //}
+
         /// <summary>
         /// 分配id
         /// </summary>
