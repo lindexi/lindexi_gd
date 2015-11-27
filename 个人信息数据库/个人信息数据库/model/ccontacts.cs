@@ -117,7 +117,7 @@ namespace 个人信息数据库.model
             }
             get
             {
-                if (name == null)
+                if (string.IsNullOrEmpty(name))
                 {
                     return false;
                 }

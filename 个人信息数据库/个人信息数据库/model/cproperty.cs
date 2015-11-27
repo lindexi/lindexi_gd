@@ -111,10 +111,14 @@ namespace 个人信息数据库.model
                 {
                     return false;
                 }
-                
+              
+               
                 try
                 {
-                    DateTime mydate = Convert.ToDateTime(MTIME);
+                    if (string.IsNullOrEmpty(MTIME))
+                    {
+                        DateTime mydate = Convert.ToDateTime(MTIME);
+                    }
                 }
                 catch
                 {

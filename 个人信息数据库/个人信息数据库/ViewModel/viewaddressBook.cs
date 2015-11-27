@@ -108,6 +108,15 @@ namespace 个人信息数据库.ViewModel
 
         public void modify()
         {
+            if (!addressBook.accord)
+            {
+                warn = "输入信息有误";
+            }
+            else
+            {
+                warn = string.Empty;
+            }
+
             reminder = "修改通讯";
         }
 
@@ -126,7 +135,11 @@ namespace 个人信息数据库.ViewModel
             {
                 return;
             }
-            addressBook =( item[0] as caddressBook).Clone() as caddressBook;
+            _item = item[0] as caddressBook;
+            if (_item != null)
+            {
+                addressBook = _item.Clone() as caddressBook;
+            }
         }
         public string warn
         {
