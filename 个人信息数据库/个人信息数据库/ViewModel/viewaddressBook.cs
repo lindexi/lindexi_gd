@@ -122,6 +122,10 @@ namespace 个人信息数据库.ViewModel
         }
         public void selectitem(System.Collections.IList item)
         {
+            if (item.Count == 0)
+            {
+                return;
+            }
             addressBook = item[0] as caddressBook;
         }
         public string warn

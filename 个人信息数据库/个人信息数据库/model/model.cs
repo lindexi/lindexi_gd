@@ -364,31 +364,38 @@ namespace 个人信息数据库.model
         private System.Action<string> ReceiveAction;
         private void implement(int id , ecommand command , string str)
         {
-            switch (command)
+            try
             {
-                case ecommand.id:
-                    fitid(str);
-                    break;
-                case ecommand.addressBook:
-                    reminder = "上位机发来通讯录";
-                    newaddressBook(str);
-                    break;
-                case ecommand.property:
-                    reminder = "上位机发来个人财物";
-                    newproperty(str);
-                    break;
-                case ecommand.diary:
-                    reminder = "上位机发来日记";
-                    newdiary(str);
-                    break;
-                case ecommand.memorandum:
-                    reminder = "上位机发来信息";
-                    newmemorandum(str);
-                    break;
-                default:
-                    reminder = str;
-                    break;
+                switch (command)
+                {
+                    case ecommand.id:
+                        fitid(str);
+                        break;
+                    case ecommand.addressBook:
+                        reminder = "上位机发来通讯录";
+                        newaddressBook(str);
+                        break;
+                    case ecommand.property:
+                        reminder = "上位机发来个人财物";
+                        newproperty(str);
+                        break;
+                    case ecommand.diary:
+                        reminder = "上位机发来日记";
+                        newdiary(str);
+                        break;
+                    case ecommand.memorandum:
+                        reminder = "上位机发来信息";
+                        newmemorandum(str);
+                        break;
+                    default:
+                        reminder = str;
+                        break;
 
+                }                
+            }
+            catch (Exception e)
+            {
+                reminder = "model implement" + e.Message;
             }
         }
 
