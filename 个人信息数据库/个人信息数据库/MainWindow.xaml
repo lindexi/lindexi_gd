@@ -72,13 +72,13 @@
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
-            <DataGrid x:Name="daddressBook" AutoGenerateColumns="False" Grid.Column="0" Grid.Row="0" Margin="10,10,10,10" ItemsSource="{Binding Path=laddressBook}"   ScrollViewer.VerticalScrollBarVisibility="Auto" >
+            <DataGrid x:Name="daddressBook" AutoGenerateColumns="False" Grid.Column="0" Grid.Row="0" Margin="10,10,10,10" ItemsSource="{Binding Path=laddressBook}"  ScrollViewer.VerticalScrollBarVisibility="Auto" SelectionChanged="selectitem" >
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="通讯人姓名" Binding="{Binding name,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
-                    <DataGridTextColumn Header="联系方式" Binding="{Binding contact,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
-                    <DataGridTextColumn Header="工作地点" Binding="{Binding address,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
-                    <DataGridTextColumn Header="城市" Binding="{Binding city,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
-                    <DataGridTextColumn Header="备注" Binding="{Binding comment,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
+                    <DataGridTextColumn Header="通讯人姓名" Binding="{Binding name,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="联系方式" Binding="{Binding contact,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="工作地点" Binding="{Binding address,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="城市" Binding="{Binding city,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="备注" Binding="{Binding comment,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
                 </DataGrid.Columns>
             </DataGrid>
             <!--添加-->
@@ -109,7 +109,7 @@
                 <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Path=addressBook.city,Mode=TwoWay}" VerticalAlignment="Center"/>
                 <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding Path=addressBook.comment,Mode=TwoWay}" VerticalAlignment="Center"/>
 
-                <TextBlock Grid.Row="6" Grid.Column="0" Text="{Binding Path=warn,Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,10,10,10"/>
+                <TextBlock Grid.Row="6" Grid.ColumnSpan="2" Grid.Column="0" Text="{Binding Path=warn,Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,10,10,10"/>
             </Grid>
         </Grid>
 
@@ -261,9 +261,9 @@
                 <ColumnDefinition/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <!--<Button Grid.Column="0" Content="增加" Margin="10,10,10,10" Click="add"/>-->
+            <Button Grid.Column="0" Content="增加" Margin="10,10,10,10" Click="add"/>
             <!--a-->
-            <!--<Button Grid.Column="1" Content="删除" Margin="10,10,10,10" Click="delete"/>-->
+            <Button Grid.Column="1" Content="删除" Margin="10,10,10,10" Click="delete"/>
             <!--d-->
             <Button Grid.Column="2" Content="查询" Margin="10,10,10,10" Click="select"/>
             <!--f-->

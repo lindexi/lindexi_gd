@@ -509,9 +509,34 @@ namespace 个人信息数据库
             }
         }
 
-        public void selectitem()
+        public void selectitem(int index)
         {
+            reminder = index.ToString();
+        }
 
+        public void selectitem(System.Collections.IList item)
+        {
+            switch (_visibilityform)
+            {
+                case visibilityform.addressbook:
+                    addressbook.selectitem(item);
+                    break;
+                case visibilityform.diary:
+                    diary.selectitem(item);
+                    break;
+                case visibilityform.memorandum:
+                    memorandum.selectitem(item);
+                    break;
+                case visibilityform.property:
+                    property.selectitem(item);
+                    break;
+                case visibilityform.reminder:
+                    reminder = "selectitem 界面错误";
+                    break;
+                default:
+                    reminder = "selectitem 界面错误";
+                    break;
+            }
         }
 
         public viewaddressBook addressbook

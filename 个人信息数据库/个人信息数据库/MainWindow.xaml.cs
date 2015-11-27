@@ -115,7 +115,7 @@ namespace 个人信息数据库
         }
 
         private void add(object sender , RoutedEventArgs e)
-        {
+        {            
             _view.add();
         }
 
@@ -144,7 +144,16 @@ namespace 个人信息数据库
         {
             DataGrid datagrid = sender as DataGrid;
 
-            _view.selectitem();
+            //_view.selectitem();
+        }
+
+       
+
+        private void selectitem(object sender , SelectionChangedEventArgs e)
+        {
+            
+            _view.selectitem(( sender as DataGrid ).SelectedIndex);
+            _view.selectitem(e.AddedItems);
         }
     }
 }

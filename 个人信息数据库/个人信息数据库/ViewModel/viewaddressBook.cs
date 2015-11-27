@@ -103,6 +103,7 @@ namespace 个人信息数据库.ViewModel
         public void select()
         {
             reminder = "查询通讯";
+            
         }
 
         public void modify()
@@ -118,6 +119,10 @@ namespace 个人信息数据库.ViewModel
         public void navigated()
         {
             warn = "点击修改把现有表修改到数据库，按delete删除行,双击修改列";
+        }
+        public void selectitem(System.Collections.IList item)
+        {
+            addressBook = item[0] as caddressBook;
         }
         public string warn
         {
