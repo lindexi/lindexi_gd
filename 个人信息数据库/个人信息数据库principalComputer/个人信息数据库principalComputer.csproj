@@ -59,6 +59,10 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="model\caddressBook.cs" />
+    <Compile Include="model\ccontacts.cs" />
+    <Compile Include="model\cdiary.cs" />
+    <Compile Include="model\cmemorandum.cs" />
+    <Compile Include="model\cproperty.cs" />
     <Compile Include="model\model.cs" />
     <Compile Include="model\principal_Computer.cs" />
     <Compile Include="sql.Designer.cs">

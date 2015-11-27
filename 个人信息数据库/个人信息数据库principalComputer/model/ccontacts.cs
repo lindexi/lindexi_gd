@@ -1,12 +1,18 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace 个人信息数据库principalComputer.model
 {
-    [Serializable]
-    public class caddressBook:notify_property
+    /// <summary>
+    /// 人物
+    /// </summary>
+    public class ccontacts : notify_property
     {
-        public caddressBook()
+        public ccontacts()
         {
 
         }
@@ -114,7 +120,7 @@ namespace 个人信息数据库principalComputer.model
                 if (name == null)
                 {
                     return false;
-                }                
+                }
                 return true;
             }
         }

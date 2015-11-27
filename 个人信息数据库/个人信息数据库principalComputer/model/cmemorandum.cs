@@ -1,12 +1,18 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace 个人信息数据库principalComputer.model
 {
-    [Serializable]
-    public class caddressBook:notify_property
+    /// <summary>
+    /// 备忘录
+    /// </summary>
+    public class cmemorandum:notify_property
     {
-        public caddressBook()
+        public cmemorandum()
         {
 
         }
@@ -23,81 +29,66 @@ namespace 个人信息数据库principalComputer.model
             get
             {
                 return _id;
-            }
+            }           
         }
         /// <summary>
-        /// 通讯人姓名
+        /// 时间
         /// </summary>
-        public string name
+        public string MTIME
         {
             set
             {
-                _name = value;
+                _mtime = value;
                 OnPropertyChanged();
             }
             get
             {
-                return _name;
+                return _mtime;
             }
         }
         /// <summary>
-        /// 联系方式
+        /// 地点
         /// </summary>
-        public string contact
+        public string PLACE
         {
             set
             {
-                _contact = value;
+                _place = value;
                 OnPropertyChanged();
             }
             get
             {
-                return _contact;
+                return _place;
             }
         }
         /// <summary>
-        /// 工作地点
+        /// 事件
         /// </summary>
-        public string address
+        public string incident
         {
             set
             {
-                _address = value;
+                _incident = value;
                 OnPropertyChanged();
             }
             get
             {
-                return _address;
+                return _incident;
             }
         }
         /// <summary>
-        /// 城市
+        /// 人物
         /// </summary>
-        public string city
+        public string CONTACTSID
         {
             set
             {
-                _city = value;
+                _CONTACTSID = value;
                 OnPropertyChanged();
             }
             get
             {
-                return _city;
-            }
-        }
-        /// <summary>
-        /// 备注
-        /// </summary>
-        public string comment
-        {
-            set
-            {
-                _comment = value;
-                OnPropertyChanged();
-            }
-            get
-            {
-                return _comment;
+                return _CONTACTSID;
             }
         }
         /// <summary>
@@ -111,10 +102,18 @@ namespace 个人信息数据库principalComputer.model
             }
             get
             {
-                if (name == null)
+                if (incident == null)
                 {
                     return false;
-                }                
+                }
+                try
+                {
+                    DateTime mydate = Convert.ToDateTime(MTIME);
+                }
+                catch
+                {
+                    return false;
+                }
                 return true;
             }
         }
@@ -123,10 +122,9 @@ namespace 个人信息数据库principalComputer.model
             return JsonConvert.SerializeObject(this);
         }
         private string _id;
-        private string _name;
-        private string _contact;
-        private string _address;
-        private string _city;
-        private string _comment;
+        private string _mtime;
+        private string _place;
+        private string _incident;
+        private string _CONTACTSID;
     }
 }
