@@ -145,10 +145,7 @@ namespace 个人信息数据库.ViewModel
             reminder = "查询通讯";
         }
 
-        private bool access(string anull , string b)
-        {
-            return string.IsNullOrEmpty(anull) || string.Equals(anull , b);
-        }
+       
 
         public void modify()
         {
@@ -251,5 +248,9 @@ namespace 个人信息数据库.ViewModel
         }
         private caddressBook _item;
         private caddressBook _addressBook = new caddressBook();
+        private bool access(string anull , string b)
+        {
+            return string.IsNullOrEmpty(anull) || string.Equals(anull , b);
+        }
     }
 }

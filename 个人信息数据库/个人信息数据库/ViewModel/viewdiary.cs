@@ -119,6 +119,9 @@ namespace 个人信息数据库.ViewModel
             get;
         }
 
-        
+        private bool access(string anull , string b)
+        {
+            return string.IsNullOrEmpty(anull) || string.Equals(anull , b);
+        }
     }
 }

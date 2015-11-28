@@ -123,6 +123,9 @@ namespace 个人信息数据库.ViewModel
         private viewModel _viewModel;
         private cproperty _property = new cproperty();
         private model.model _model;
-
+        private bool access(string anull , string b)
+        {
+            return string.IsNullOrEmpty(anull) || string.Equals(anull , b);
+        }
     }
 }
