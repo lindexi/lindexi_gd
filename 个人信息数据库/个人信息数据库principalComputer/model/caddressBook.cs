@@ -4,7 +4,7 @@ using System;
 namespace 个人信息数据库principalComputer.model
 {
     [Serializable]
-    public class caddressBook:notify_property
+    public class caddressBook: notify_property, ICloneable
     {
         public caddressBook()
         {
@@ -111,12 +111,72 @@ namespace 个人信息数据库principalComputer.model
             }
             get
             {
-                if (name == null)
+                if (string.IsNullOrEmpty(name))
                 {
                     return false;
                 }                
                 return true;
             }
+        }
+        public object Clone()
+        {
+            caddressBook addressbook = new caddressBook();
+            addressbook.id = id;
+            addressbook.name = name;
+            addressbook.contact = contact;
+            addressbook.address = address;
+            addressbook.city = city;
+            addressbook.comment = comment;
+            return addressbook;
+        }
+         // override object.Equals
+        public override bool Equals(object obj)
+        {
+            //       
+            // See the full list of guidelines at
+            //   http://go.microsoft.com/fwlink/?LinkID=85237  
+            // and also the guidance for operator== at
+            //   http://go.microsoft.com/fwlink/?LinkId=85238
+            //
+
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+            caddressBook addressbook = obj as caddressBook;
+            if (addressbook.id != id)
+            {
+                return false;
+            }
+            if (addressbook.name != name)
+            {
+                return false;
+            }
+            if (addressbook.contact != contact)
+            {
+                return false;
+            }
+            if (addressbook.address != address)
+            {
+                return false;
+            }
+            if (addressbook.city != city)
+            {
+                return false;
+            }
+            if (addressbook.comment != comment)
+            {
+                return false;
+            }
+            // TODO: write your implementation of Equals() here
+            return true;
+        }
+
+        // override object.GetHashCode
+        public override int GetHashCode()
+        {
+            // TODO: write your implementation of GetHashCode() here
+            return base.GetHashCode();
         }
         public override string ToString()
         {

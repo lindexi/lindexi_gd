@@ -124,7 +124,7 @@ namespace 个人信息数据库.ViewModel
             }
             else
             {
-                _item = addressBook.Clone() as caddressBook;
+                  addressBook.Clone(_item);
                 ctransmitter transmitter = new ctransmitter(_model.id , ecommand.newaddressBook , addressBook.ToString());
 
                 _model.send(transmitter.ToString());

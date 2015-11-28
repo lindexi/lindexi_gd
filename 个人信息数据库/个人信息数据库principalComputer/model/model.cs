@@ -18,7 +18,7 @@ namespace 个人信息数据库principalComputer.model
                   {
                       reminder = temp;
                   }
-              }, implement);
+              } , implement);
 
             ce();
         }
@@ -72,20 +72,20 @@ namespace 个人信息数据库principalComputer.model
         //    string temp = typeof(T).ToString();
         //    int i = temp.LastIndexOf('.');
         //    reminder = temp.Substring(i+1);
-            
+
         //}
 
 
 
         public ObservableCollection<caddressBook> newaddressBook()
         {
-            const string addressBookname = "temp";
+            const string addressBookname = "vaddressbook";
             string sqlAddressBook = $"{usesql}{line}SELECT * FROM {addressBookname};";
             ObservableCollection<caddressBook> addressBook = new ObservableCollection<caddressBook>();
             const string id = "id";
             const string name = "name";
             const string contact = "contact";
-            const string naddress = "naddress";
+            const string caddress = "caddress";
             const string city = "city";
             const string comment = "comment";
             using (SqlConnection sql = new SqlConnection(connect))
@@ -96,22 +96,23 @@ namespace 个人信息数据库principalComputer.model
                     using (SqlDataReader read = cmd.ExecuteReader())
                     {
                         //判断当前的reader是否读取到了数据
-                        if (!read.HasRows) return addressBook;
+                        if (!read.HasRows)
+                            return addressBook;
                         int idindex = read.GetOrdinal(id);
                         int nameindex = read.GetOrdinal(name);
                         int contactindex = read.GetOrdinal(contact);
-                        int naddressindex = read.GetOrdinal(naddress);
+                        int caddressindex = read.GetOrdinal(caddress);
                         int cityindex = read.GetOrdinal(city);
                         int commentindex = read.GetOrdinal(comment);
                         while (read.Read())
                         {
                             caddressBook temp = new caddressBook
                             {
-                                id = read.GetInt32(idindex).ToString(),
-                                name = read.GetString(nameindex).Trim(),
-                                contact = read.GetString(contactindex).Trim(),
-                                address = read.GetString(naddressindex).Trim(),
-                                city = read.GetString(cityindex).Trim(),
+                                id = read.GetInt32(idindex).ToString() ,
+                                name = read.GetString(nameindex).Trim() ,
+                                contact = read.GetString(contactindex).Trim() ,
+                                address = read.GetString(caddressindex).Trim() ,
+                                city = read.GetString(cityindex).Trim() ,
                                 comment = read.GetString(commentindex).Trim()
                             };
                             addressBook.Add(temp);
@@ -134,11 +135,11 @@ namespace 个人信息数据库principalComputer.model
             //addressbook CONTACTS
             const string addressbook = "addressbook";
             const string contacts = "CONTACTS";
-            string id;           
+            string id;
             foreach (var temp in addressBook)
             {
                 strsql = $"{usesql}{line}insert into {contacts}(name,contact,caddress,city,comment){line}values('{temp.name}','{temp.contact}','{temp.address}','{temp.city}','{temp.comment}') SELECT @@IDENTITY AS Id;";
-                id= write(strsql);
+                id = write(strsql);
                 strsql = $"insert into {addressbook}(CONTACTSID) values( '{id}');";
                 write(strsql);
             }
@@ -177,7 +178,7 @@ namespace 个人信息数据库principalComputer.model
         //修改 DataGrid 
 
 
-        
+
 
         /// <summary>
         /// 写数据
@@ -192,14 +193,21 @@ namespace 个人信息数据库principalComputer.model
                 {
                     using (SqlDataReader read = cmd.ExecuteReader())
                     {
-                        if (!read.HasRows)
-                            return null;
-                        const string id = "id";
-                        int idindex = read.GetOrdinal(id);
-                        while (read.Read())
+                        try
                         {
-                            return read.GetDecimal(0).ToString();
-                        }                        
+                            if (!read.HasRows)
+                                return null;
+                            const string id = "id";
+                            int idindex = read.GetOrdinal(id);
+                            while (read.Read())
+                            {
+                                return read.GetDecimal(0).ToString();
+                            }
+                        }
+                        catch
+                        {
+
+                        }
                     }
                 }
             }
@@ -307,7 +315,7 @@ namespace 个人信息数据库principalComputer.model
 
         private void lajidiary()
         {
-            
+
         }
 
         private void implement(int id , ecommand command , string str)
@@ -320,6 +328,9 @@ namespace 个人信息数据库principalComputer.model
                     getdata();
                     reminder = id.ToString() + "获取数据";
                     break;
+                case ecommand.newaddressBook:
+                    newaddressBook(str);
+                    break;
                 default:
                     reminder = str;
                     break;
@@ -327,7 +338,45 @@ namespace 个人信息数据库principalComputer.model
             }
         }
 
-        
+        private void newaddressBook(string str)
+        {
+            caddressBook temp = Deserialize<caddressBook>(str);
+            string strsql;
+
+            strsql = $"{usesql}{line}UPDATE CONTACTS{line}SET NAME='{temp.name}',CONTACT='{temp.contact}',CADDRESS='{temp.address}',CITY='{temp.city}',COMMENT='{temp.comment}'{line}WHERE ID IN (SELECT CONTACTSID FROM addressBook WHERE ID='{temp.id}');";
+            write(strsql);
+
+            reminder = "修改通讯录";
+
+        }
+        private T Deserialize<T>(string str)
+        {
+            try
+            {
+                T temp = JsonConvert.DeserializeObject<T>(str);
+                return temp;
+            }
+            catch (JsonException e)
+            {
+                reminder = "输入不是ObservableCollection<caddressBook> json" + e.Message;
+            }
+            return default(T);
+        }
+
+        private ObservableCollection<T> DeserializeObject<T>(string str)
+        {
+            try
+            {
+                ObservableCollection<T> temp = JsonConvert.DeserializeObject<ObservableCollection<T>>(str);
+                return temp;
+            }
+            catch (JsonException e)
+            {
+                reminder = "输入不是ObservableCollection<caddressBook> json" + e.Message;
+            }
+            return null;
+        }
+
     }
 
     /// <summary>

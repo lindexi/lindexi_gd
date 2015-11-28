@@ -243,8 +243,17 @@
         </Grid>
 
         <Grid Grid.Row="1" Visibility="{Binding Path=vreminder,Mode=OneWay}" Margin="10,10,10,10" d:IsHidden="True">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="10,10,10,10" >
+                <TextBlock Text="ip" />
+                <TextBox Text="{Binding Path=_model.ip,Mode=TwoWay}" Width="100"/>
+                <Button Content="确定" Click="确定"/>
+            </StackPanel>
             <!--日志-->
-            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                 <TextBlock Grid.Row="2" Text="{Binding Path=reminder,Mode=OneWay}" Margin="10,10,10,10" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
             </ScrollViewer>
         </Grid>

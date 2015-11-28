@@ -155,5 +155,10 @@ namespace 个人信息数据库
             _view.selectitem(( sender as DataGrid ).SelectedIndex);
             _view.selectitem(e.AddedItems);
         }
+
+        private void 确定(object sender , RoutedEventArgs e)
+        {
+            _view.slave_computer();
+        }
     }
 }

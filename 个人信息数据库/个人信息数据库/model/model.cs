@@ -236,17 +236,8 @@ namespace 个人信息数据库.model
                     reminder = temp;
                 }
             };
-            string ip = "10.21.71.130";
-            _slaveComputer = new slaveComputer(ReceiveAction , implement);
-            try
-            {
-                _slaveComputer.access(ip);
-                reminder = "运行";
-            }
-            catch (System.Net.Sockets.SocketException e)
-            {
-                reminder = "连接失败，服务器没开启 " + e.Message;
-            }
+            ip = "10.21.71.130";
+            access();           
         }
         public int id
         {
@@ -260,6 +251,21 @@ namespace 个人信息数据库.model
                 return _slaveComputer.id;
             }
         }
+
+
+        public string ip
+        {
+            set
+            {
+                _ip = value;
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _ip;
+            }
+        }
+
 
         public ObservableCollection<caddressBook> addressbook
         {
@@ -362,6 +368,8 @@ namespace 个人信息数据库.model
 
         private slaveComputer _slaveComputer;
         private System.Action<string> ReceiveAction;
+        private string _ip;
+
         private void implement(int id , ecommand command , string str)
         {
             try
@@ -513,6 +521,20 @@ namespace 个人信息数据库.model
         public void send(string str)
         {
             _slaveComputer.send(str);
+        }
+
+        private void access()
+        {            
+            try
+            {
+                _slaveComputer = new slaveComputer(ReceiveAction , implement);
+                _slaveComputer.access(ip);
+                reminder = "运行";
+            }
+            catch (System.Net.Sockets.SocketException e)
+            {
+                reminder = "连接失败，ip错误或服务器没开启 " + e.Message;
+            }
         }
     }
 
