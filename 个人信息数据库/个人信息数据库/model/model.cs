@@ -252,7 +252,6 @@ namespace 个人信息数据库.model
             }
         }
 
-
         public string ip
         {
             set
@@ -265,7 +264,6 @@ namespace 个人信息数据库.model
                 return _ip;
             }
         }
-
 
         public ObservableCollection<caddressBook> addressbook
         {
@@ -305,65 +303,65 @@ namespace 个人信息数据库.model
 
         }
 
-        //public void add<T>(T obj)
-        //{
-        //    string temp = typeof(T).ToString();
-        //    //int i = temp.LastIndexOf('.');
-        //    //temp = temp.Substring(i + 1);
-        //    ecommand c = ecommand.ce;
-        //    if (string.Equals(temp , typeof(caddressBook).ToString()))
-        //    {
-        //        c = ecommand.addaddressBook;
-        //    }
-        //    else if (string.Equals(temp , typeof(ccontacts).ToString()))
-        //    {
-        //        c = ecommand.addcontacts;
-        //    }
-        //    else if (string.Equals(temp , typeof(cdiary).ToString()))
-        //    {
-        //        c = ecommand.adddiary;
-        //    }
-        //    else if (string.Equals(temp , typeof(cmemorandum).ToString()))
-        //    {
-        //        c = ecommand.addmemorandum;
-        //    }
-        //    else if (string.Equals(temp , typeof(cproperty).ToString()))
-        //    {
-        //        c = ecommand.addproperty;
-        //    }
+        public void add<T>(T obj)
+        {
+            string temp = typeof(T).ToString();
+            //int i = temp.LastIndexOf('.');
+            //temp = temp.Substring(i + 1);
+            ecommand c = ecommand.ce;
+            if (string.Equals(temp , typeof(caddressBook).ToString()))
+            {
+                c = ecommand.addaddressBook;
+            }
+            else if (string.Equals(temp , typeof(ccontacts).ToString()))
+            {
+                c = ecommand.addcontacts;
+            }
+            else if (string.Equals(temp , typeof(cdiary).ToString()))
+            {
+                c = ecommand.adddiary;
+            }
+            else if (string.Equals(temp , typeof(cmemorandum).ToString()))
+            {
+                c = ecommand.addmemorandum;
+            }
+            else if (string.Equals(temp , typeof(cproperty).ToString()))
+            {
+                c = ecommand.addproperty;
+            }
 
-        //    string json = JsonConvert.SerializeObject(obj);
-        //    ctransmitter transmitter = new ctransmitter(id , c , json);
-        //    send(transmitter.ToString());
-        //}
+            string json = JsonConvert.SerializeObject(obj);
+            ctransmitter transmitter = new ctransmitter(id , c , json);
+            send(transmitter.ToString());
+        }
 
-        //public void delete(object obj , int id)
-        //{
-        //    ecommand c = ecommand.ce;
-        //    if (obj as caddressBook != null)
-        //    {
-        //        c = ecommand.daddressBook;
-        //    }
-        //    else if (obj as ccontacts != null)
-        //    {
-        //        c = ecommand.dcontacts;
-        //    }
-        //    else if (obj as cdiary != null)
-        //    {
-        //        c = ecommand.ddiary;
-        //    }
-        //    else if (obj as cmemorandum != null)
-        //    {
-        //        c = ecommand.dmemorandum;
-        //    }
-        //    else if (obj as cproperty != null)
-        //    {
-        //        c = ecommand.dproperty;
-        //    }
-        //    string json = JsonConvert.SerializeObject(id);
-        //    ctransmitter transmitter = new ctransmitter(this.id , c , json);
-        //    send(transmitter.ToString());
-        //}
+        public void delete(object obj , int id)
+        {
+            ecommand c = ecommand.ce;
+            if (obj as caddressBook != null)
+            {
+                c = ecommand.daddressBook;
+            }
+            else if (obj as ccontacts != null)
+            {
+                c = ecommand.dcontacts;
+            }
+            else if (obj as cdiary != null)
+            {
+                c = ecommand.ddiary;
+            }
+            else if (obj as cmemorandum != null)
+            {
+                c = ecommand.dmemorandum;
+            }
+            else if (obj as cproperty != null)
+            {
+                c = ecommand.dproperty;
+            }
+            string json = JsonConvert.SerializeObject(id);
+            ctransmitter transmitter = new ctransmitter(this.id , c , json);
+            send(transmitter.ToString());
+        }
 
 
         private slaveComputer _slaveComputer;
@@ -595,18 +593,34 @@ namespace 个人信息数据库.model
         diary,
         memorandum,
 
+        addaddressBook,//add
+        addcontacts,
+        adddiary,
+        addmemorandum,
+        addproperty,
+
+        daddressBook,
+        dcontacts,
+        ddiary,
+        dproperty,
+        dmemorandum,
+
+        saddressBook,
+        scontacts,
+        sdiary,
+        sproperty,
+        smemorandum,
+
         newaddressBook,//通讯录
         newcontacts,//人物
         newproperty,
         newdiary,
         newmemorandum,
 
-        //daddressBook,
-        //dcontacts,
-        //ddiary,
-        //dproperty,
-        //dmemorandum,
+       
 
-        ce
+        ce,
+        
+        
     }
 }

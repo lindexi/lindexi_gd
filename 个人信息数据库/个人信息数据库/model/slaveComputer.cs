@@ -113,7 +113,6 @@ namespace 个人信息数据库.model
                     //An existing connection was forcibly closed by the remote host 
                     try
                     {
-
                         ClientSocket.EndReceive(ar);
                         ReceiveAction(encoding.GetString(MsgBuffer).Trim('\0' , ' '));
                         ReceiveCallBack(ReceiveAction);
@@ -132,7 +131,7 @@ namespace 个人信息数据库.model
             }
             catch
             {
-                
+                reminder("ReceiveCallBack 错误");
             }
         }
         private int port = 54321; //端口号
