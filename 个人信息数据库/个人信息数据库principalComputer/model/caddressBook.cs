@@ -129,6 +129,18 @@ namespace 个人信息数据库principalComputer.model
             addressbook.comment = comment;
             return addressbook;
         }
+
+        public object Clone(caddressBook addressbook)
+        {
+            addressbook.id = id;
+            addressbook.name = name;
+            addressbook.contact = contact;
+            addressbook.address = address;
+            addressbook.city = city;
+            addressbook.comment = comment;
+            return addressbook;
+        }
+
          // override object.Equals
         public override bool Equals(object obj)
         {

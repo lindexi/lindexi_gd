@@ -165,6 +165,21 @@ namespace 个人信息数据库principalComputer.model
         public void addaddressBook(caddressBook addressbook)
         {
             //添加加上一个在末尾
+            string strsql;
+            const string addressBook = "addressbook";
+            const string contacts = "CONTACTS";
+            string id;
+
+            if (addressbook == null)
+            {
+                reminder = "添加通讯录，添加的通讯录空";
+                return;
+            }
+
+            strsql = $"{usesql}{line}insert into {contacts}(name,contact,caddress,city,comment){line}values('{addressbook.name}','{addressbook.contact}','{addressbook.address}','{addressbook.city}','{addressbook.comment}') SELECT @@IDENTITY AS Id;";
+            id = write(strsql);
+            strsql = $"insert into {addressBook}(CONTACTSID) values( '{id}');";
+            write(strsql);
         }
         /// <summary>
         /// 删除通讯录
@@ -328,9 +343,14 @@ namespace 个人信息数据库principalComputer.model
                     getdata();
                     reminder = id.ToString() + "获取数据";
                     break;
+                case ecommand.addaddressBook:
+                    caddressBook addressbook = Deserialize<caddressBook>(str);
+                    addaddressBook(addressbook);
+                    break;   
                 case ecommand.newaddressBook:
                     newaddressBook(str);
                     break;
+                    
                 default:
                     reminder = str;
                     break;
@@ -431,19 +451,36 @@ namespace 个人信息数据库principalComputer.model
         diary,
         memorandum,
 
+        addaddressBook,//add
+        addcontacts,
+        adddiary,
+        addmemorandum,
+        addproperty,
+
+        daddressBook,
+        dcontacts,
+        ddiary,
+        dproperty,
+        dmemorandum,
+
+        saddressBook,
+        scontacts,
+        sdiary,
+        sproperty,
+        smemorandum,
+
         newaddressBook,//通讯录
         newcontacts,//人物
         newproperty,
         newdiary,
         newmemorandum,
 
-        //daddressBook,
-        //dcontacts,
-        //ddiary,
-        //dproperty,
-        //dmemorandum,
 
-        ce
+
+        ce,
+
+
     }
+
 
 }
