@@ -345,7 +345,7 @@ namespace 个人信息数据库
             //_sx上位机下位机 = 上位机下位机.x下位机;
             //_slaveComputer = new slaveComputer(ReceiveAction);
             //_slaveComputer.access("10.21.71.130");
-
+            _model.access();
            
         }
 

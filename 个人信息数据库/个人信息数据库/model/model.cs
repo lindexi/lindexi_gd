@@ -523,11 +523,16 @@ namespace 个人信息数据库.model
             _slaveComputer.send(str);
         }
 
-        private void access()
+        public void access()
         {            
             try
             {
+                if (_slaveComputer != null)
+                {
+                    _slaveComputer.exit();
+                }
                 _slaveComputer = new slaveComputer(ReceiveAction , implement);
+
                 _slaveComputer.access(ip);
                 reminder = "运行";
             }

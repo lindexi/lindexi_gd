@@ -122,6 +122,11 @@ namespace 个人信息数据库.model
                     {
                         reminder("对方断开连接" + e.Message);
                     }
+                    catch(ObjectDisposedException e)
+                    {
+                        reminder (id.ToString() + "连接退出" + e.Message);
+                        return;
+                    }
 
                 } /*new AsyncCallback(ReceiveCallBack)*/ , null);
             }
