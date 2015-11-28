@@ -407,7 +407,7 @@ namespace 个人信息数据库
                     reminder = "界面错误";
                     break;
             }
-            _model.getdata();
+            //_model.getdata();
         }
 
         public void delete()
@@ -433,7 +433,7 @@ namespace 个人信息数据库
                     reminder = "界面错误";
                     break;
             }
-            _model.getdata();
+            //_model.getdata();
         }
 
         public void select()

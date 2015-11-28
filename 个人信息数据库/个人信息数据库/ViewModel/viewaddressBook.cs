@@ -105,6 +105,7 @@ namespace 个人信息数据库.ViewModel
                 }
                 _model.send(ecommand.addaddressBook , addressBook.ToString());
                 reminder = "添加通讯";
+                addressBook = new caddressBook();
             }            
         }
         public void delete()

@@ -360,24 +360,24 @@ namespace 个人信息数据库principalComputer.model
                 case ecommand.getdata:
                     getdata();
                     reminder = id.ToString() + "获取数据";
-                    break;
+                    return;                    
                 case ecommand.addaddressBook:
                     addressbook = Deserialize<caddressBook>(str);
                     addaddressBook(addressbook);
                     reminder = id.ToString() + "添加通讯录";
                     break;
                 case ecommand.newaddressBook:
-                    newaddressBook(str);
+                    newaddressBook(str);                   
                     break;
                 case ecommand.daddressBook:
                     addressbook = Deserialize<caddressBook>(str);
-                    deleteaddressBook(addressbook);
+                    deleteaddressBook(addressbook); 
                     break;
                 default:
                     reminder = str;
                     break;
-
             }
+            getdata();
         }
 
         private void newaddressBook(string str)
