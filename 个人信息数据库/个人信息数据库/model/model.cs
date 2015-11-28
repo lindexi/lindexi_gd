@@ -363,7 +363,6 @@ namespace 个人信息数据库.model
             send(transmitter.ToString());
         }
 
-
         private slaveComputer _slaveComputer;
         private System.Action<string> ReceiveAction;
         private string _ip;

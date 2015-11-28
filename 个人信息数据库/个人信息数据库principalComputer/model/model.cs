@@ -185,7 +185,7 @@ namespace 个人信息数据库principalComputer.model
         /// 删除通讯录
         /// </summary>
         /// <param name="id">要删除id</param>
-        public void deleteaddressBook(int id)
+        public void deleteaddressBook(caddressBook addressbook)
         {
 
         }
@@ -335,6 +335,7 @@ namespace 个人信息数据库principalComputer.model
 
         private void implement(int id , ecommand command , string str)
         {
+            caddressBook addressbook;
             switch (command)
             {
                 case ecommand.ce://2015年11月26日08:56:10
@@ -344,14 +345,17 @@ namespace 个人信息数据库principalComputer.model
                     reminder = id.ToString() + "获取数据";
                     break;
                 case ecommand.addaddressBook:
-                    caddressBook addressbook = Deserialize<caddressBook>(str);
+                    addressbook = Deserialize<caddressBook>(str);
                     addaddressBook(addressbook);
                     reminder = id.ToString() + "添加通讯录";
-                    break;   
+                    break;
                 case ecommand.newaddressBook:
                     newaddressBook(str);
                     break;
-                    
+                case ecommand.daddressBook:
+                    addressbook = Deserialize<caddressBook>(str);
+                    deleteaddressBook(addressbook);
+                    break;
                 default:
                     reminder = str;
                     break;
