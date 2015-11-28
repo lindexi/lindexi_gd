@@ -132,6 +132,10 @@ namespace 个人信息数据库.model
 
         public object Clone(caddressBook addressbook)
         {
+            if (addressbook == null)
+            {
+                addressbook = new caddressBook();
+            }
             addressbook.id = id;
             addressbook.name = name;
             addressbook.contact = contact;

@@ -141,6 +141,11 @@ namespace 个人信息数据库.ViewModel
             }
             else
             {
+                if (_item == null)
+                {
+                    warn = "没有选择通讯录";
+                    return;
+                }
                   addressBook.Clone(_item);
                 ctransmitter transmitter = new ctransmitter(_model.id , ecommand.newaddressBook , addressBook.ToString());
 
@@ -153,7 +158,8 @@ namespace 个人信息数据库.ViewModel
 
         public void eliminate()
         {
-            
+            _item = null;
+            addressBook = new caddressBook();
             reminder = "清除";
         }
         public void navigated()

@@ -187,7 +187,24 @@ namespace 个人信息数据库principalComputer.model
         /// <param name="id">要删除id</param>
         public void deleteaddressBook(caddressBook addressbook)
         {
+            string strsql;
+            string id;
+            const string addressBook = "addressbook";
+            const string contacts = "CONTACTS";
+            strsql = $"{usesql}{line}SELECT CONTACTSID{line}FROM {addressBook}{line}WHERE ID='{addressbook.id}';";
+            id = write(strsql);
 
+            //DELETE FROM ADDRESSBOOK
+            //WHERE addressBook.ID = '213';
+            strsql = $"{usesql}{line}DELETE FROM {addressBook}{line}WHERE {addressBook}.ID = '{addressbook.id}';";
+            write(strsql);
+
+            //DELETE FROM CONTACTS
+            //WHERE CONTACTS.ID = '218';
+            strsql = $"{usesql}{line}DELETE FROM {contacts}{line}WHERE {contacts}.ID = '{id}';";
+            write(strsql);
+
+            reminder = "删除" + addressbook.id + " " + addressbook.name;
         }
 
         //修改 DataGrid 
