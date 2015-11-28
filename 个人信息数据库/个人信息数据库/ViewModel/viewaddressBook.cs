@@ -6,16 +6,16 @@ using System.Threading.Tasks;
 using 个人信息数据库.model;
 namespace 个人信息数据库.ViewModel
 {
-    public class viewaddressBook:notify_property
+    public class viewaddressBook : notify_property
     {
-        public viewaddressBook(viewModel _viewModel,model.model _model)
+        public viewaddressBook(viewModel _viewModel , model.model _model)
         {
             this._model = _model;
             this._viewModel = _viewModel;
 
             _viewModel.addressbook = this;
             _model.addressbook = laddressBook;
-           
+
         }
 
         public caddressBook addressBook
@@ -29,7 +29,7 @@ namespace 个人信息数据库.ViewModel
             {
                 return _addressBook;
             }
-        } 
+        }
         public System.Collections.ObjectModel.ObservableCollection<caddressBook>
         /*public List<caddressBook>*/ laddressBook
         {
@@ -106,7 +106,7 @@ namespace 个人信息数据库.ViewModel
                 _model.send(ecommand.addaddressBook , addressBook.ToString());
                 reminder = "添加通讯";
                 addressBook = new caddressBook();
-            }            
+            }
         }
         public void delete()
         {
@@ -124,8 +124,30 @@ namespace 个人信息数据库.ViewModel
 
         public void select()
         {
+            int i = 0;
+
+            for (i = 0; i < laddressBook.Count; i++)
+            {
+                if (!
+                    (access(addressBook.name , laddressBook[i].name) &&
+                    access(addressBook.contact , laddressBook[i].contact) &&
+                    access(addressBook.address , laddressBook[i].address) &&
+                    access(addressBook.city , laddressBook[i].city) &&
+                    access(addressBook.comment , laddressBook[i].comment) 
+                    )
+                    )
+                {
+                    laddressBook.RemoveAt(i);
+                    i--;
+                }               
+            }
+
             reminder = "查询通讯";
-            
+        }
+
+        private bool access(string anull , string b)
+        {
+            return string.IsNullOrEmpty(anull) || string.Equals(anull , b);
         }
 
         public void modify()
@@ -134,7 +156,7 @@ namespace 个人信息数据库.ViewModel
             {
                 return;
             }
-            
+
 
             if (addressBook.Equals(_item))
             {
@@ -147,14 +169,14 @@ namespace 个人信息数据库.ViewModel
                     warn = "没有选择通讯录";
                     return;
                 }
-                  addressBook.Clone(_item);
+                addressBook.Clone(_item);
                 ctransmitter transmitter = new ctransmitter(_model.id , ecommand.newaddressBook , addressBook.ToString());
 
                 _model.send(transmitter.ToString());
 
                 reminder = "修改通讯";
             }
-            
+
         }
 
         public void eliminate()
@@ -184,7 +206,7 @@ namespace 个人信息数据库.ViewModel
             if (!addressBook.accord)
             {
                 warn = "输入信息有误";
-                return false;                
+                return false;
             }
             else
             {
@@ -217,11 +239,11 @@ namespace 个人信息数据库.ViewModel
             {
                 return _warnvisibility;
             }
-        }       
-        private System.Windows.Visibility _warnvisibility=System.Windows.Visibility.Hidden;
+        }
+        private System.Windows.Visibility _warnvisibility = System.Windows.Visibility.Hidden;
         private string _warn = "输入";
         private System.Windows.Visibility _visibility = System.Windows.Visibility.Hidden;
-        private viewModel _viewModel;    
+        private viewModel _viewModel;
         private model.model _model
         {
             set;
