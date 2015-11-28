@@ -520,7 +520,11 @@ namespace 个人信息数据库.model
         {
             _slaveComputer.send(str);
         }
-
+        public void send(ecommand command , string str)
+        {
+            ctransmitter transmitter = new ctransmitter(id , command , str);
+            send(transmitter.ToString());
+        }
         public void access()
         {            
             try

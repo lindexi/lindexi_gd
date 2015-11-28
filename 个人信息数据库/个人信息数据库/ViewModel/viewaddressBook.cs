@@ -93,7 +93,19 @@ namespace 个人信息数据库.ViewModel
         }
         public void add()
         {
-            reminder = "添加通讯";
+            if (accord())
+            {
+                foreach (var t in laddressBook)
+                {
+                    if (addressBook.Equals(t))
+                    {
+                        warn = "信息重复";
+                        return;
+                    }
+                }
+                _model.send(ecommand.addaddressBook , addressBook.ToString());
+                reminder = "添加通讯";
+            }            
         }
         public void delete()
         {
@@ -108,15 +120,11 @@ namespace 个人信息数据库.ViewModel
 
         public void modify()
         {
-            if (!addressBook.accord)
+            if (!accord())
             {
-                warn = "输入信息有误";
                 return;
             }
-            else
-            {
-                warn = string.Empty;
-            }
+            
 
             if (addressBook.Equals(_item))
             {
@@ -153,6 +161,19 @@ namespace 个人信息数据库.ViewModel
             if (_item != null)
             {
                 addressBook = _item.Clone() as caddressBook;
+            }
+        }
+        public bool accord()
+        {
+            if (!addressBook.accord)
+            {
+                warn = "输入信息有误";
+                return false;                
+            }
+            else
+            {
+                warn = string.Empty;
+                return true;
             }
         }
         public string warn
