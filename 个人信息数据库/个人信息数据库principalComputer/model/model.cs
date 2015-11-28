@@ -346,6 +346,7 @@ namespace 个人信息数据库principalComputer.model
                 case ecommand.addaddressBook:
                     caddressBook addressbook = Deserialize<caddressBook>(str);
                     addaddressBook(addressbook);
+                    reminder = id.ToString() + "添加通讯录";
                     break;   
                 case ecommand.newaddressBook:
                     newaddressBook(str);

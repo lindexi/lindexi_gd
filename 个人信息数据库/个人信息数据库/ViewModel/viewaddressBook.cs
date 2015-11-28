@@ -109,7 +109,16 @@ namespace 个人信息数据库.ViewModel
         }
         public void delete()
         {
-            reminder = "删除通讯";
+            if (addressBook.Equals(_item))
+            {
+                _model.send(ecommand.daddressBook , _item.ToString());
+                reminder = "删除通讯";
+            }
+            else
+            {
+                warn = "没有选择要删除通讯录或通讯录已修改";
+                return;
+            }
         }
 
         public void select()
