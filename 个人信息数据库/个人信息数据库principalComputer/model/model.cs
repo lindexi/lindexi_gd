@@ -187,11 +187,11 @@ namespace 个人信息数据库principalComputer.model
         public void deleteaddressBook(caddressBook addressbook)
         {
             string strsql;
-            string id;
+            //string id;
             const string addressBook = "addressbook";
-            const string contacts = "CONTACTS";
-            strsql = $"{usesql}{line}SELECT CONTACTSID{line}FROM {addressBook}{line}WHERE ID='{addressbook.id}';";
-            id = write(strsql);
+            //const string contacts = "CONTACTS";
+            //strsql = $"{usesql}{line}SELECT CONTACTSID{line}FROM {addressBook}{line}WHERE ID='{addressbook.id}';";
+            //id = write(strsql);
 
             //DELETE FROM ADDRESSBOOK
             //WHERE addressBook.ID = '213';
@@ -200,8 +200,8 @@ namespace 个人信息数据库principalComputer.model
 
             //DELETE FROM CONTACTS
             //WHERE CONTACTS.ID = '218';
-            strsql = $"{usesql}{line}DELETE FROM {contacts}{line}WHERE {contacts}.ID = '{id}';";
-            write(strsql);
+            //strsql = $"{usesql}{line}DELETE FROM {contacts}{line}WHERE {contacts}.ID = '{id}';";
+            //write(strsql);
 
             reminder = "删除" + addressbook.id + " " + addressbook.name;
         }
@@ -230,11 +230,25 @@ namespace 个人信息数据库principalComputer.model
 
             if (memorandum == null)
             {
-                reminder = "添加日记，添加的日记空";
+                reminder = "添加备忘，添加的备忘空";
                 return;
             }
 
             strsql = $"{usesql}{line}insert into {MEMORANDUM} (Mtime,INCIDENT){line}values('{memorandum.MTIME}','{memorandum.incident}');";
+            write(strsql);
+        }
+
+        public void addproperty(cproperty property)
+        {
+            string strsql;
+            const string PROPERTY = "property";
+
+            if (property == null)
+            {
+                return;
+            }
+
+            strsql = $"{usesql}{line}insert into {PROPERTY}(PMONEY,MTIME) values('{property.PMONEY}','{property.MTIME}')";
             write(strsql);
         }
 
@@ -486,6 +500,36 @@ namespace 个人信息数据库principalComputer.model
             foreach (var t in memorandum)
             {
                 addmemorandum(t);
+            }
+        }
+
+        private void lajiproperty()
+        {
+            DateTime time = new DateTime(year: 2012 , month: 1 , day: 1 , hour: 0 , second: 0 , minute: 0);
+            List<cproperty> property = new List<cproperty>();
+            int n = 1;
+            int money;
+            for (int i = 0; i < n; i++)
+            {
+                time = time.AddDays(ran.Next() % 10);
+                if (ran.Next() % 3 == 1)
+                {
+                    money = -1;
+                }
+                else
+                {
+                    money = 1;
+                }
+                property.Add(new cproperty()
+                {
+                    MTIME=time.ToString(),
+                    PMONEY=(money*ran.Next(10,100)).ToString()
+                });
+            }
+
+            foreach (var t in property)
+            {
+                addproperty(t);
             }
         }
 
