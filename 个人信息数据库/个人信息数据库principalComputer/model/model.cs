@@ -61,6 +61,8 @@ namespace 个人信息数据库principalComputer.model
             //var json = JsonConvert.SerializeObject(addressBook);
 
             //writeaddressBook(addressBook);
+
+            lajidiary();
         }
 
         //public void add<T>(T obj)
@@ -205,7 +207,20 @@ namespace 个人信息数据库principalComputer.model
 
         //修改 DataGrid 
 
+        public void adddiary(cdiary diary)
+        {
+            string strsql;
+            const string DIARY = "DIARY";
 
+            if (diary == null)
+            {
+                reminder = "添加日记，添加的日记空";
+                return;
+            }
+
+            strsql = $"{usesql}{line}insert into {DIARY} (Mtime,PLACE,INCIDENT,CONTACTSID){line}values('{diary.MTIME}','{diary.PLACE}','{diary.incident}','{diary.CONTACTSID}');";
+            write(strsql);
+        }
 
 
         /// <summary>
@@ -379,7 +394,7 @@ namespace 个人信息数据库principalComputer.model
                 }
             }
 
-            int n = 100;
+            int n = 10;
             DateTime time = new DateTime(year:2012,month:1,day:1,hour:0,second: 0,minute:0);  
 
             for (int i = 0; i < n; i++)
@@ -394,7 +409,11 @@ namespace 个人信息数据库principalComputer.model
                 });
             }
 
-        }
+            foreach (var t in diary)
+            {
+                adddiary(t);
+            }
+        }       
 
         private void implement(int id , ecommand command , string str)
         {
