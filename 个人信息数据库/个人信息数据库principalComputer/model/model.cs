@@ -22,7 +22,7 @@ namespace 个人信息数据库principalComputer.model
 
             ce();
         }
-        
+
         /// <summary>
         /// 数据库ip
         /// </summary>
@@ -62,7 +62,8 @@ namespace 个人信息数据库principalComputer.model
 
             //writeaddressBook(addressBook);
 
-            lajimemorandum();
+            //lajiproperty();
+            //lajimemorandum();
             //lajidiary();
         }
 
@@ -122,6 +123,111 @@ namespace 个人信息数据库principalComputer.model
             return addressBook;
         }
 
+        public ObservableCollection<cdiary> newdiary()
+        {
+            const string DIARY = "diary";
+            const string contacts = "CONTACTS";
+            string strsql;
+            ObservableCollection<cdiary> diary = new ObservableCollection<cdiary>();
+            //update {DIARY} set CONTACTSID=100 where contactsid is null; {go}
+            strsql = $"{usesql}{line} SELECT [{DIARY}].[id],[{DIARY}].[MTIME],[{DIARY}].[PLACE],[{DIARY}].[INCIDENT],[{contacts}].NAME FROM [dbo].[{DIARY}],CONTACTS where {DIARY}.CONTACTSID={contacts}.ID;";
+            const string id = "id";
+            const string MTIME = "MTIME";
+            const string PLACE = "PLACE";
+            const string INCIDENT = "INCIDENT";
+            const string CONTACTSID = "NAME";
+            using (SqlConnection sql = new SqlConnection(connect))
+            {
+                sql.Open();
+                using (SqlCommand cmd = new SqlCommand(strsql , sql))
+                {
+                    using (SqlDataReader read = cmd.ExecuteReader())
+                    {
+                        if (!read.HasRows)
+                            return diary;
+                        int idindex = read.GetOrdinal(id);
+                        int MTIMEindex = read.GetOrdinal(MTIME);
+                        int PLACEindex = read.GetOrdinal(PLACE);
+                        int INCIDENTindex = read.GetOrdinal(INCIDENT);
+                        int CONTACTSIDindex = read.GetOrdinal(CONTACTSID);
+                        while (read.Read())
+                        {
+                            diary.Add(new cdiary()
+                            {
+                                id = read.GetInt32(idindex).ToString() ,
+                                MTIME = read.GetDateTime(MTIMEindex).ToString() ,
+                                PLACE = read.GetString(PLACEindex) ,
+                                incident = read.GetString(INCIDENTindex) ,
+                                CONTACTSID = read.GetString(CONTACTSIDindex)
+                            });
+                        }
+                    }
+                }
+            }
+            return diary;
+        }
+
+        public ObservableCollection<cmemorandum> newmemorandum()
+        {
+            const string MEMORANDUM = "MEMORANDUM";
+            const string contacts = "CONTACTS";
+            string strsql;
+            ObservableCollection<cmemorandum> memorandum = new ObservableCollection<cmemorandum>();
+            //update {MEMORANDUM} set CONTACTSID=100 where CONTACTSID is null;{go}
+            strsql = $"{usesql}{line} SELECT [{MEMORANDUM}].[id],[{MEMORANDUM}].[MTIME],[{MEMORANDUM}].[PLACE],[{MEMORANDUM}].[INCIDENT],[{contacts}].NAME FROM [dbo].[{MEMORANDUM}],CONTACTS where {MEMORANDUM}.CONTACTSID={contacts}.ID;";
+            string id = "id";
+            string MTIME = "MTIME";
+            string PLACE = "PLACE";
+            string INCIDENT = "INCIDENT";
+            string CONTACTSID = "NAME";
+            using (SqlConnection sql = new SqlConnection(connect))
+            {
+                sql.Open();
+                using (SqlCommand cmd = new SqlCommand(strsql , sql))
+                {
+                    using (SqlDataReader read = cmd.ExecuteReader())
+                    {
+                        if (!read.HasRows)
+                            return memorandum;
+                        int idindex = read.GetOrdinal(id);
+                        int MTIMEindex = read.GetOrdinal(MTIME);
+                        int PLACEindex = read.GetOrdinal(PLACE);
+                        int INCIDENTindex = read.GetOrdinal(INCIDENT);
+                        int CONTACTSIDindex = read.GetOrdinal(CONTACTSID);
+
+                        while (read.Read())
+                        {
+                            //if (memorandum == null)
+                            //{
+                            //    memorandum = new ObservableCollection<cmemorandum>();
+                            //}
+                            id = read.GetInt32(idindex).ToString();
+                            MTIME = DBNullstring<DateTime>(read[MTIMEindex]); //== System.DBNull.Value ? string.Empty : read.GetDateTime(MTIMEindex).ToString();
+                            //MTIME = read.GetDateTime(MTIMEindex).ToString();
+                            //PLACE = read.GetString(PLACEindex);
+                            PLACE = DBNullstring<string>(read[PLACEindex]);
+                            INCIDENT = read[INCIDENTindex] as string;
+                            CONTACTSID = read[CONTACTSIDindex] as string;
+
+                            memorandum.Add(new cmemorandum()
+                            {
+                                //id = read.GetInt32(idindex).ToString() ,
+                                //MTIME = read.GetDateTime(MTIMEindex).ToString() ,
+                                //PLACE = read.GetString(PLACEindex) ,
+                                //incident = read.GetString(INCIDENTindex) ,
+                                //CONTACTSID = read.GetString(CONTACTSIDindex)
+                                id = id ,
+                                MTIME = MTIME.Trim() ,
+                                PLACE = PLACE.Trim() ,
+                                incident = INCIDENT.Trim() ,
+                                CONTACTSID = CONTACTSID.Trim()
+                            });
+                        }
+                    }
+                }
+            }
+            return memorandum;
+        }
 
         /// <summary>
         /// 写入通讯录
@@ -154,8 +260,17 @@ namespace 个人信息数据库principalComputer.model
             string json = JsonConvert.SerializeObject(addressBook);
             ctransmitter transmitter = new ctransmitter(-1 , ecommand.addressBook , json);
             _principal_computer.send(transmitter.ToString());
-
-
+            System.Threading.Thread.Sleep(1000);
+            ObservableCollection<cdiary> diary = newdiary();
+            json = JsonConvert.SerializeObject(diary);
+            transmitter = new ctransmitter(-1 , ecommand.diary , json);
+            _principal_computer.send(transmitter.ToString());
+            System.Threading.Thread.Sleep(1000);
+            ObservableCollection<cmemorandum> memorandum = newmemorandum();
+            json = JsonConvert.SerializeObject(memorandum);
+            transmitter = new ctransmitter(-1 , ecommand.memorandum , json);
+            _principal_computer.send(transmitter.ToString());
+            System.Threading.Thread.Sleep(1000);
         }
 
         /// <summary>
@@ -424,12 +539,12 @@ namespace 个人信息数据库principalComputer.model
             }
 
             int n = 10;
-            DateTime time = new DateTime(year:2012,month:1,day:1,hour:0,second: 0,minute:0);  
+            DateTime time = new DateTime(year: 2012 , month: 1 , day: 1 , hour: 0 , second: 0 , minute: 0);
 
             for (int i = 0; i < n; i++)
             {
-                time=  time.AddDays(ran.Next() % 10);
-                diary.Add ( new cdiary()
+                time = time.AddDays(ran.Next() % 10);
+                diary.Add(new cdiary()
                 {
                     MTIME = time.ToString() ,
                     PLACE = chinacity[ran.Next(chinacity.Count)] ,
@@ -478,7 +593,7 @@ namespace 个人信息数据库principalComputer.model
                 }
             }
 
-            
+
             DateTime time = new DateTime(year: 2012 , month: 1 , day: 1 , hour: 0 , second: 0 , minute: 0);
 
             for (int i = 0; true; i++)
@@ -488,7 +603,7 @@ namespace 个人信息数据库principalComputer.model
                 {
                     MTIME = time.ToString() ,
                     //PLACE = chinacity[ran.Next(chinacity.Count)] ,
-                    incident = temp[i] 
+                    incident = temp[i]
                     //CONTACTSID = ran.Next(20 , 201).ToString()
                 });
                 if (i == temp.Count - 1)
@@ -507,7 +622,7 @@ namespace 个人信息数据库principalComputer.model
         {
             DateTime time = new DateTime(year: 2012 , month: 1 , day: 1 , hour: 0 , second: 0 , minute: 0);
             List<cproperty> property = new List<cproperty>();
-            int n = 1;
+            int n = 100;
             int money;
             for (int i = 0; i < n; i++)
             {
@@ -522,8 +637,8 @@ namespace 个人信息数据库principalComputer.model
                 }
                 property.Add(new cproperty()
                 {
-                    MTIME=time.ToString(),
-                    PMONEY=(money*ran.Next(10,100)).ToString()
+                    MTIME = time.ToString() ,
+                    PMONEY = ( money * ran.Next(10 , 100) ).ToString()
                 });
             }
 
@@ -543,18 +658,18 @@ namespace 个人信息数据库principalComputer.model
                 case ecommand.getdata:
                     getdata();
                     reminder = id.ToString() + "获取数据";
-                    return;                    
+                    return;
                 case ecommand.addaddressBook:
                     addressbook = Deserialize<caddressBook>(str);
                     addaddressBook(addressbook);
                     reminder = id.ToString() + "添加通讯录";
                     break;
                 case ecommand.newaddressBook:
-                    newaddressBook(str);                   
+                    newaddressBook(str);
                     break;
                 case ecommand.daddressBook:
                     addressbook = Deserialize<caddressBook>(str);
-                    deleteaddressBook(addressbook); 
+                    deleteaddressBook(addressbook);
                     break;
                 default:
                     reminder = str;
@@ -574,6 +689,7 @@ namespace 个人信息数据库principalComputer.model
             reminder = "修改通讯录";
 
         }
+
         private T Deserialize<T>(string str)
         {
             try
@@ -600,6 +716,11 @@ namespace 个人信息数据库principalComputer.model
                 reminder = "输入不是ObservableCollection<caddressBook> json" + e.Message;
             }
             return null;
+        }
+
+        private string DBNullstring<T>(object obj)
+        {
+            return obj == System.DBNull.Value ? string.Empty : ((T)obj).ToString();
         }
 
     }
