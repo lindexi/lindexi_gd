@@ -131,6 +131,7 @@ namespace 个人信息数据库principalComputer.model
             ObservableCollection<cdiary> diary = new ObservableCollection<cdiary>();
             //update {DIARY} set CONTACTSID=100 where contactsid is null; {go}
             strsql = $"{usesql}{line} SELECT [{DIARY}].[id],[{DIARY}].[MTIME],[{DIARY}].[PLACE],[{DIARY}].[INCIDENT],[{contacts}].NAME FROM [dbo].[{DIARY}],CONTACTS where {DIARY}.CONTACTSID={contacts}.ID;";
+            //错
             const string id = "id";
             const string MTIME = "MTIME";
             const string PLACE = "PLACE";
@@ -175,6 +176,7 @@ namespace 个人信息数据库principalComputer.model
             ObservableCollection<cmemorandum> memorandum = new ObservableCollection<cmemorandum>();
             //update {MEMORANDUM} set CONTACTSID=100 where CONTACTSID is null;{go}
             strsql = $"{usesql}{line} SELECT [{MEMORANDUM}].[id],[{MEMORANDUM}].[MTIME],[{MEMORANDUM}].[PLACE],[{MEMORANDUM}].[INCIDENT],[{contacts}].NAME FROM [dbo].[{MEMORANDUM}],CONTACTS where {MEMORANDUM}.CONTACTSID={contacts}.ID;";
+            //错
             string id = "id";
             string MTIME = "MTIME";
             string PLACE = "PLACE";
@@ -229,6 +231,57 @@ namespace 个人信息数据库principalComputer.model
             return memorandum;
         }
 
+        public ObservableCollection<cproperty> newproperty()
+        {
+            const string PROPERTY = "property";
+            const string contacts = "CONTACTS";
+            /*
+SELECT [property].[id]
+      ,[terminal]
+      ,[PMONEY]
+      ,[MTIME]
+      ,CONTACTS.NAME AS NAME
+  FROM [dbo].[property],CONTACTS
+  WHERE [property].CONTACTSID=CONTACTS.ID
+
+UNION
+
+SELECT [property].[id]
+      ,[terminal]
+      ,[PMONEY]
+      ,[MTIME]
+      ,NULL AS NAME
+  FROM [dbo].[property]
+  WHERE [property].CONTACTSID IS NULL;
+*/
+            string strsql = $"{usesql}{line} SELECT [{PROPERTY}].[id],[terminal],[PMONEY],[MTIME],{contacts}.NAME AS NAME FROM [dbo].[{PROPERTY}],CONTACTS  WHERE [{PROPERTY}].CONTACTSID={contacts}.ID{line}UNION{line} SELECT [{PROPERTY}].[id],[terminal],[PMONEY],[MTIME],NULL AS NAME  FROM [{PROPERTY}] WHERE [{PROPERTY}].CONTACTSID IS NULL;";
+            ObservableCollection<cproperty> property = new ObservableCollection<cproperty>();            
+            using (SqlConnection sql = new SqlConnection(connect))
+            {
+                sql.Open();
+                using (SqlCommand cmd = new SqlCommand(strsql , sql))
+                {
+                    using (SqlDataReader read = cmd.ExecuteReader())
+                    {
+                        if (!read.HasRows)
+                            return property;
+                        while (read.Read())
+                        {
+                            property.Add(new cproperty()
+                            {
+                                id = DBNullstring<int>(read["id"]) ,
+                                terminal = DBNullstring<string>(read["terminal"]) ,
+                                PMONEY = DBNullstring<decimal>(read["PMONEY"]),
+                                MTIME=DBNullstring<DateTime>(read["MTIME"]),
+                                CONTACTSID=DBNullstring<string>(read["NAME"])
+                            });
+                        }
+                    }
+                }
+            }
+            return property;
+        }
+
         /// <summary>
         /// 写入通讯录
         /// </summary>
@@ -271,6 +324,10 @@ namespace 个人信息数据库principalComputer.model
             transmitter = new ctransmitter(-1 , ecommand.memorandum , json);
             _principal_computer.send(transmitter.ToString());
             System.Threading.Thread.Sleep(1000);
+            ObservableCollection<cproperty> property = newproperty();
+            json = JsonConvert.SerializeObject(property);
+            transmitter = new ctransmitter(-1 , ecommand.property , json);
+            _principal_computer.send(transmitter.ToString());
         }
 
         /// <summary>
@@ -720,7 +777,14 @@ namespace 个人信息数据库principalComputer.model
 
         private string DBNullstring<T>(object obj)
         {
-            return obj == System.DBNull.Value ? string.Empty : ((T)obj).ToString();
+            try
+            {
+                return obj == System.DBNull.Value ? " " : ( (T)obj ).ToString();
+            }
+            catch
+            {
+                return string.Empty;
+            }
         }
 
     }

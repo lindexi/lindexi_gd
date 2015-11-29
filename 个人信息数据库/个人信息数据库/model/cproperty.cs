@@ -102,10 +102,10 @@ namespace 个人信息数据库.model
             }
             get
             {
-                int n = 0;
+                decimal n = 0;
                 try
                 {
-                    n = Convert.ToInt32(PMONEY);
+                    n = Convert.ToDecimal(PMONEY);
                 }
                 catch
                 {
