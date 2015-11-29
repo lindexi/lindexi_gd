@@ -127,6 +127,64 @@ namespace 个人信息数据库.model
                 return true;
             }
         }
+
+        public object Clone()
+        {
+            cproperty property = new cproperty();
+            return Clone(property);
+        }
+
+        public object Clone(cproperty property)
+        {
+            if (property == null)
+            {
+                property = new cproperty();
+            }
+            property.id = id;
+            property.MTIME = MTIME;
+            property.PMONEY = PMONEY;
+            property.terminal = terminal;
+            property.CONTACTSID = CONTACTSID;
+            return property;
+        }
+
+        // override object.Equals
+        public override bool Equals(object obj)
+        {
+            //       
+            // See the full list of guidelines at
+            //   http://go.microsoft.com/fwlink/?LinkID=85237  
+            // and also the guidance for operator== at
+            //   http://go.microsoft.com/fwlink/?LinkId=85238
+            //
+
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+
+            // TODO: write your implementation of Equals() here
+
+            cproperty property = obj as cproperty;
+            if (property.id == id && property.MTIME == MTIME
+                && property.terminal == terminal
+                && property.PMONEY == PMONEY
+                && property.CONTACTSID == CONTACTSID)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        // override object.GetHashCode
+        public override int GetHashCode()
+        {
+            // TODO: write your implementation of GetHashCode() here
+
+            return base.GetHashCode();
+        }
+
         public override string ToString()
         {
             return JsonConvert.SerializeObject(this);

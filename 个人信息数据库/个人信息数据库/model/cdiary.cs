@@ -88,6 +88,35 @@ namespace 个人信息数据库.model
                 return _CONTACTSID;
             }
         }
+        /// <summary>
+        /// 输入正确
+        /// </summary>
+        public bool accord
+        {
+            set
+            {
+                value = false;
+            }
+            get
+            {
+                if (string.IsNullOrEmpty(incident))
+                {
+                    return false;
+                }
+                try
+                {
+                    if (string.IsNullOrEmpty(MTIME))
+                    {
+                        DateTime mydate = Convert.ToDateTime(MTIME);
+                    }
+                }
+                catch
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
         public override string ToString()
         {
             return JsonConvert.SerializeObject(this);
@@ -95,7 +124,7 @@ namespace 个人信息数据库.model
 
         public object Clone()
         {
-            cdiary diary= new cdiary();           
+            cdiary diary= new cdiary();            
             return Clone(diary);
         }
 
@@ -150,35 +179,7 @@ namespace 个人信息数据库.model
             return base.GetHashCode();
         }
         
-        /// <summary>
-        /// 输入正确
-        /// </summary>
-        public bool accord
-        {
-            set
-            {
-                value = false;
-            }
-            get
-            {
-                if (string.IsNullOrEmpty(incident))
-                {
-                    return false;
-                }
-                try
-                {
-                    if (string.IsNullOrEmpty(MTIME))
-                    {
-                        DateTime mydate = Convert.ToDateTime(MTIME);
-                    }
-                }
-                catch
-                {
-                    return false;
-                }
-                return true;
-            }
-        }
+        
        
         private string _id;
         private string _mtime;

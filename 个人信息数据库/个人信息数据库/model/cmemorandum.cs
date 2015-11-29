@@ -120,6 +120,64 @@ namespace 个人信息数据库.model
                 return true;
             }
         }
+
+        public object Clone()
+        {
+            cmemorandum memorandum = new cmemorandum();
+            return Clone(memorandum);
+        }
+
+        public object Clone(cmemorandum memorandum)
+        {
+            if (memorandum == null)
+            {
+                memorandum = new cmemorandum();
+            }
+            memorandum.id = id;
+            memorandum.MTIME = MTIME;
+            memorandum.PLACE = PLACE;
+            memorandum.incident = incident;
+            memorandum.CONTACTSID = CONTACTSID;
+            return memorandum;
+        }
+
+        // override object.Equals
+        public override bool Equals(object obj)
+        {
+            //       
+            // See the full list of guidelines at
+            //   http://go.microsoft.com/fwlink/?LinkID=85237  
+            // and also the guidance for operator== at
+            //   http://go.microsoft.com/fwlink/?LinkId=85238
+            //
+
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+
+            // TODO: write your implementation of Equals() here
+
+            cmemorandum memorandum = obj as cmemorandum;
+            if (memorandum.id == id && memorandum.MTIME == MTIME
+                && memorandum.PLACE == PLACE
+                && memorandum.incident == incident
+                && memorandum.CONTACTSID == CONTACTSID)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        // override object.GetHashCode
+        public override int GetHashCode()
+        {
+            // TODO: write your implementation of GetHashCode() here
+
+            return base.GetHashCode();
+        }
+
         public override string ToString()
         {
             return JsonConvert.SerializeObject(this);
