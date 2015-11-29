@@ -62,7 +62,8 @@ namespace 个人信息数据库principalComputer.model
 
             //writeaddressBook(addressBook);
 
-            lajidiary();
+            lajimemorandum();
+            //lajidiary();
         }
 
         //public void add<T>(T obj)
@@ -222,6 +223,20 @@ namespace 个人信息数据库principalComputer.model
             write(strsql);
         }
 
+        public void addmemorandum(cmemorandum memorandum)
+        {
+            string strsql;
+            const string MEMORANDUM = "MEMORANDUM";
+
+            if (memorandum == null)
+            {
+                reminder = "添加日记，添加的日记空";
+                return;
+            }
+
+            strsql = $"{usesql}{line}insert into {MEMORANDUM} (Mtime,INCIDENT){line}values('{memorandum.MTIME}','{memorandum.incident}');";
+            write(strsql);
+        }
 
         /// <summary>
         /// 写数据
@@ -413,7 +428,66 @@ namespace 个人信息数据库principalComputer.model
             {
                 adddiary(t);
             }
-        }       
+        }
+
+        private void lajimemorandum()
+        {
+            List<cmemorandum> memorandum = new List<cmemorandum>();
+            List<string> temp = new List<string>();
+            temp.AddRange(sql.incident.Split(new char[2] { '\r' , '\n' }));
+            for (int i = 0; i < temp.Count; i++)
+            {
+                if (string.IsNullOrEmpty(temp[i]))
+                {
+                    temp.RemoveAt(i);
+                    i--;
+                }
+                else
+                {
+                    temp[i] = temp[i].Trim();
+                }
+            }
+
+            List<string> chinacity = new List<string>();
+            chinacity.AddRange(sql.城市.Split(new char[2] { '\r' , '\n' }));
+
+            for (int i = 0; i < chinacity.Count; i++)
+            {
+                if (string.IsNullOrEmpty(chinacity[i]))
+                {
+                    chinacity.RemoveAt(i);
+                    i--;
+                }
+                else
+                {
+                    chinacity[i] = chinacity[i].Trim();
+                }
+            }
+
+            
+            DateTime time = new DateTime(year: 2012 , month: 1 , day: 1 , hour: 0 , second: 0 , minute: 0);
+
+            for (int i = 0; true; i++)
+            {
+                time = time.AddDays(ran.Next() % 10);
+                memorandum.Add(new cmemorandum()
+                {
+                    MTIME = time.ToString() ,
+                    //PLACE = chinacity[ran.Next(chinacity.Count)] ,
+                    incident = temp[i] 
+                    //CONTACTSID = ran.Next(20 , 201).ToString()
+                });
+                if (i == temp.Count - 1)
+                {
+                    break;
+                }
+            }
+
+            foreach (var t in memorandum)
+            {
+                addmemorandum(t);
+            }
+        }
 
         private void implement(int id , ecommand command , string str)
         {
