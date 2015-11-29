@@ -65,6 +65,9 @@ namespace 个人信息数据库principalComputer.model
             //lajiproperty();
             //lajimemorandum();
             //lajidiary();
+            //string strsql = $"{usesql} SELECT ID FROM CONTACTS WHERE NAME='A';";
+            //string id = write(strsql);
+
         }
 
         //public void add<T>(T obj)
@@ -352,6 +355,8 @@ SELECT [property].[id]
             strsql = $"insert into {addressBook}(CONTACTSID) values( '{id}');";
             write(strsql);
         }
+       
+
         /// <summary>
         /// 删除通讯录
         /// </summary>
@@ -384,15 +389,26 @@ SELECT [property].[id]
         {
             string strsql;
             const string DIARY = "DIARY";
-
+            const string contacts = "CONTACTS";
+            string id;
             if (diary == null)
             {
                 reminder = "添加日记，添加的日记空";
                 return;
             }
+            //if name==null
+            //insert name
+            strsql = $"{usesql} SELECT ID FROM {contacts} WHERE NAME='{diary.CONTACTSID}';";
+            id = write(strsql);
+            if (string.IsNullOrEmpty(id))
+            {
+                strsql = $"{usesql}{line}insert into {contacts}(name){line}values('{diary.CONTACTSID}') SELECT @@IDENTITY AS Id;";
+                id = write(strsql);
+            }
 
-            strsql = $"{usesql}{line}insert into {DIARY} (Mtime,PLACE,INCIDENT,CONTACTSID){line}values('{diary.MTIME}','{diary.PLACE}','{diary.incident}','{diary.CONTACTSID}');";
+            strsql = $"{usesql}{line}insert into {DIARY} (Mtime,PLACE,INCIDENT,CONTACTSID){line}values('{diary.MTIME}','{diary.PLACE}','{diary.incident}','{id}');";
             write(strsql);
+            //错
         }
 
         public void addmemorandum(cmemorandum memorandum)
@@ -450,7 +466,14 @@ SELECT [property].[id]
                         }
                         catch
                         {
-
+                            try
+                            {
+                                return DBNullstring<int>(read["id"]);
+                            }
+                            catch
+                            {
+                                
+                            }
                         }
                     }
                 }
@@ -728,6 +751,7 @@ SELECT [property].[id]
                     addressbook = Deserialize<caddressBook>(str);
                     deleteaddressBook(addressbook);
                     break;
+
                 default:
                     reminder = str;
                     break;
