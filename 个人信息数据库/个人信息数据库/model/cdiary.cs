@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace 个人信息数据库.model
 {
-    public class cdiary : notify_property
+    public class cdiary : notify_property,ICloneable
     {
         public cdiary()
         {
@@ -92,6 +92,64 @@ namespace 个人信息数据库.model
         {
             return JsonConvert.SerializeObject(this);
         }
+
+        public object Clone()
+        {
+            cdiary diary= new cdiary();           
+            return Clone(diary);
+        }
+
+        public object Clone(cdiary diary)
+        {
+            if (diary == null)
+            {
+                diary = new cdiary();
+            }
+            diary.id = id;
+            diary.MTIME = MTIME;
+            diary.PLACE = PLACE;
+            diary.incident = incident;
+            diary.CONTACTSID = CONTACTSID;
+            return diary;
+        }
+
+        // override object.Equals
+        public override bool Equals(object obj)
+        {
+            //       
+            // See the full list of guidelines at
+            //   http://go.microsoft.com/fwlink/?LinkID=85237  
+            // and also the guidance for operator== at
+            //   http://go.microsoft.com/fwlink/?LinkId=85238
+            //
+
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+
+            // TODO: write your implementation of Equals() here
+
+            cdiary diary = obj as cdiary;
+            if (diary.id == id && diary.MTIME == MTIME
+                && diary.PLACE == PLACE
+                && diary.incident == incident
+                && diary.CONTACTSID == CONTACTSID)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        // override object.GetHashCode
+        public override int GetHashCode()
+        {
+            // TODO: write your implementation of GetHashCode() here
+            
+            return base.GetHashCode();
+        }
+        
         /// <summary>
         /// 输入正确
         /// </summary>
@@ -121,6 +179,7 @@ namespace 个人信息数据库.model
                 return true;
             }
         }
+       
         private string _id;
         private string _mtime;
         private string _place;
