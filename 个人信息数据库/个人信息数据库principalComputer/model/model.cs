@@ -22,11 +22,7 @@ namespace 个人信息数据库principalComputer.model
 
             ce();
         }
-        Random ran
-        {
-            set;
-            get;
-        }
+        
         /// <summary>
         /// 数据库ip
         /// </summary>
@@ -277,7 +273,11 @@ namespace 个人信息数据库principalComputer.model
             }
             return str.ToString();
         }
-
+        private Random ran
+        {
+            set;
+            get;
+        }
         private string line
         {
             set;
@@ -347,6 +347,52 @@ namespace 个人信息数据库principalComputer.model
 
         private void lajidiary()
         {
+            List<cdiary> diary = new List<cdiary>();
+            List<string> temp = new List<string>();
+            temp.AddRange(sql.事件.Split(new char[2] { '\r' , '\n' }));
+            for (int i = 0; i < temp.Count; i++)
+            {
+                if (string.IsNullOrEmpty(temp[i]))
+                {
+                    temp.RemoveAt(i);
+                    i--;
+                }
+                else
+                {
+                    temp[i] = temp[i].Trim();
+                }
+            }
+
+            List<string> chinacity = new List<string>();
+            chinacity.AddRange(sql.城市.Split(new char[2] { '\r' , '\n' }));
+
+            for (int i = 0; i < chinacity.Count; i++)
+            {
+                if (string.IsNullOrEmpty(chinacity[i]))
+                {
+                    chinacity.RemoveAt(i);
+                    i--;
+                }
+                else
+                {
+                    chinacity[i] = chinacity[i].Trim();
+                }
+            }
+
+            int n = 100;
+            DateTime time = new DateTime(year:2012,month:1,day:1,hour:0,second: 0,minute:0);  
+
+            for (int i = 0; i < n; i++)
+            {
+                time=  time.AddDays(ran.Next() % 10);
+                diary.Add ( new cdiary()
+                {
+                    MTIME = time.ToString() ,
+                    PLACE = chinacity[ran.Next(chinacity.Count)] ,
+                    incident = temp[ran.Next(temp.Count)] ,
+                    CONTACTSID = ran.Next(20 , 201).ToString()
+                });
+            }
 
         }
 

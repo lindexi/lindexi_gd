@@ -61,6 +61,37 @@ namespace 个人信息数据库principalComputer {
         }
         
         /// <summary>
+        ///   查找类似 吃大餐
+        ///逛街
+        ///买东西
+        ///看电影
+        ///约会
+        ///聊天
+        ///去图书馆
+        ///去机场接机
+        ///去医院看医生
+        ///入手新出的iphone
+        ///旅游
+        ///写作
+        ///唱歌
+        ///摄影
+        ///去拔牙
+        ///去公园放风筝
+        ///举办生日派对
+        ///去看演唱会
+        ///去骑行50公里
+        ///去马场骑马
+        ///去高尔夫场打高尔夫
+        ///去做美容
+        /// 的本地化字符串。
+        /// </summary>
+        internal static string 事件 {
+            get {
+                return ResourceManager.GetString("事件", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 
         /// 东城区 
         /// 西城区 

@@ -123,6 +123,7 @@
     <Content Include="data\SQL\创建数据库grxx.sql" />
     <Content Include="data\SQL\插入数据.sql" />
     <Content Include="data\SQL\表.sql" />
+    <None Include="Resources\事件.txt" />
     <Resource Include="data\城市.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
