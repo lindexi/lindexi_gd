@@ -7,9 +7,9 @@ using 个人信息数据库.model;
 
 namespace 个人信息数据库.ViewModel
 {
-    public class viewdiary:notify_property
+    public class viewdiary : notify_property
     {
-        public viewdiary(viewModel _viewModel,model.model _model)
+        public viewdiary(viewModel _viewModel , model.model _model)
         {
             this._model = _model;
             this._viewModel = _viewModel;
@@ -20,9 +20,16 @@ namespace 个人信息数据库.ViewModel
 
         public cdiary diary
         {
-            set;
-            get;
-        } = new cdiary();
+            set
+            {
+                _diary = value;
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _diary;
+            }
+        } 
 
         public System.Collections.ObjectModel.ObservableCollection<cdiary> ldiary
         {
@@ -76,30 +83,80 @@ namespace 个人信息数据库.ViewModel
         }
         public void delete()
         {
+            if (diary.Equals(_item))
+            {
+                _model.send(ecommand.ddiary , _item.ToString());
+                reminder = "删除日记";
+            }
+            else
+            {
+                warn = "没有选择要删除日记或日记已修改";
+                return;
+            }
             reminder = "删除日记";
         }
 
         public void select()
         {
+            for (int i = 0; i < ldiary.Count; i++)
+            {
+                if (!diary_equals(ldiary[i]))
+                {
+                    ldiary.RemoveAt(i);
+                    i--;
+                }
+            }
             reminder = "查询日记";
         }
 
         public void modify()
         {
-            reminder = "修改日记";
+            if (!diary.accord)
+            {
+                warn = "输入信息有误";
+            }
+
+            if (diary.Equals(_item))
+            {
+                warn = "没有修改";
+            }
+            else
+            {
+                if (_item == null)
+                {
+                    warn = "没有选择日记";
+                }
+                else
+                {
+                    diary.Clone(_item);
+                    _model.send(ecommand.newdiary , diary.ToString());
+                    reminder = "修改日记";
+                }
+            }
         }
 
         public void eliminate()
         {
+            _item = null;
+            diary = new cdiary();
             reminder = "清除";
         }
         public void navigated()
         {
-            warn = "点击修改把现有表修改到数据库，按delete删除行,双击修改列";
+            //warn = "点击修改把现有表修改到数据库，按delete删除行,双击修改列";
+            warn = "";
         }
         public void selectitem(System.Collections.IList item)
         {
-
+            if (item.Count == 0)
+            {
+                return;
+            }
+            _item = item[0] as cdiary;
+            if (_item != null)
+            {
+                diary = _item.Clone() as cdiary;
+            }
         }
         public string warn
         {
@@ -127,10 +184,11 @@ namespace 个人信息数据库.ViewModel
             }
         }
         private System.Windows.Visibility _warnvisibility = System.Windows.Visibility.Hidden;
-        private string _warn="输入";
+        private string _warn = "输入";
         private System.Windows.Visibility _visibility = System.Windows.Visibility.Hidden;
         private viewModel _viewModel;
-
+        private cdiary _diary=new cdiary();
+        private cdiary _item;
         private model.model _model
         {
             set;

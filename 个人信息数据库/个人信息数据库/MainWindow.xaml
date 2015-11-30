@@ -72,7 +72,7 @@
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
-            <DataGrid x:Name="daddressBook" AutoGenerateColumns="False" Grid.Column="0" Grid.Row="0" Margin="10,10,10,10" ItemsSource="{Binding Path=laddressBook}"  ScrollViewer.VerticalScrollBarVisibility="Auto" SelectionChanged="selectitem" >
+            <DataGrid x:Name="daddressBook" AutoGenerateColumns="False" Grid.Column="0" Grid.Row="0" Margin="10,10,10,10" ItemsSource="{Binding Path=laddressBook}"  ScrollViewer.VerticalScrollBarVisibility="Auto" SelectionChanged="selectitem" IsReadOnly="True">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="通讯人姓名" Binding="{Binding name,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
                     <DataGridTextColumn Header="联系方式" Binding="{Binding contact,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
@@ -123,7 +123,14 @@
                     <ColumnDefinition Width="auto"/>
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
-                <DataGrid Grid.Column="0" Margin="10,10,10,10" ItemsSource="{Binding Path=ldiary}" ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                <DataGrid Grid.Column="0" Margin="10,10,10,10" ItemsSource="{Binding Path=ldiary}" ScrollViewer.VerticalScrollBarVisibility="Auto"  AutoGenerateColumns="False" SelectionChanged="selectitem" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="时间" Binding="{Binding MTIME,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="地点" Binding="{Binding PLACE,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="事件" Binding="{Binding incident,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="人物" Binding="{Binding CONTACTSID,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
+                    </DataGrid.Columns>
+                </DataGrid>
                 <Grid Grid.Column="1">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto"/>

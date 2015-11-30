@@ -115,7 +115,7 @@ namespace 个人信息数据库.model
                
                 try
                 {
-                    if (string.IsNullOrEmpty(MTIME))
+                    if (!string.IsNullOrEmpty(MTIME))
                     {
                         DateTime mydate = Convert.ToDateTime(MTIME);
                     }

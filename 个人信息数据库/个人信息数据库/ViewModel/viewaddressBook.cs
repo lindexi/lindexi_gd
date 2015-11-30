@@ -109,7 +109,7 @@ namespace 个人信息数据库.ViewModel
             }
         }
         public void delete()
-        {
+        {          
             if (addressBook.Equals(_item))
             {
                 _model.send(ecommand.daddressBook , _item.ToString());
