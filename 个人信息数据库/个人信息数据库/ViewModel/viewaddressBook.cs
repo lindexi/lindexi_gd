@@ -97,7 +97,7 @@ namespace 个人信息数据库.ViewModel
             {
                 foreach (var t in laddressBook)
                 {
-                    if (addressBook.Equals(t))
+                    if (addressbook_equals(addressBook, t))
                     {
                         warn = "信息重复";
                         return;
@@ -128,14 +128,7 @@ namespace 个人信息数据库.ViewModel
 
             for (i = 0; i < laddressBook.Count; i++)
             {
-                if (!
-                    (access(addressBook.name , laddressBook[i].name) &&
-                    access(addressBook.contact , laddressBook[i].contact) &&
-                    access(addressBook.address , laddressBook[i].address) &&
-                    access(addressBook.city , laddressBook[i].city) &&
-                    access(addressBook.comment , laddressBook[i].comment) 
-                    )
-                    )
+                if (!addressbook_equals(addressBook,laddressBook[i]))
                 {
                     laddressBook.RemoveAt(i);
                     i--;
@@ -248,6 +241,14 @@ namespace 个人信息数据库.ViewModel
         }
         private caddressBook _item;
         private caddressBook _addressBook = new caddressBook();
+        private bool addressbook_equals(caddressBook anull , caddressBook b)
+        {
+            return  access(anull.name , b.name) &&
+                    access(anull.contact , b.contact) &&
+                    access(anull.address , b.address) &&
+                    access(anull.city , b.city) &&
+                    access(anull.comment , b.comment);
+        }
         private bool access(string anull , string b)
         {
             return string.IsNullOrEmpty(anull) || string.Equals(anull , b);
