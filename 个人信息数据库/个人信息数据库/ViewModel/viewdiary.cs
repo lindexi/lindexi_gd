@@ -54,7 +54,25 @@ namespace 个人信息数据库.ViewModel
         }
         public void add()
         {
-            reminder = "添加日记";
+            if (diary.accord)
+            {
+                foreach (var temp in ldiary)
+                {
+                    if (temp.Equals(diary))
+                    {
+                        warn = "输入重复";
+                        return;
+                    }
+                }
+
+                reminder = "添加日记";
+                _model.send(ecommand.adddiary , diary.ToString());
+                diary = new cdiary();
+            }
+            else
+            {
+                warn = "输入信息有误";
+            }
         }
         public void delete()
         {
