@@ -58,7 +58,7 @@ namespace 个人信息数据库.ViewModel
             {
                 foreach (var temp in ldiary)
                 {
-                    if (temp.Equals(diary))
+                    if (diary_equals(temp))
                     {
                         warn = "输入重复";
                         return;
@@ -137,6 +137,13 @@ namespace 个人信息数据库.ViewModel
             get;
         }
 
+        private bool diary_equals(cdiary a)
+        {
+            return access(diary.MTIME , a.MTIME) &&
+                   access(diary.PLACE , a.PLACE) &&
+                   access(diary.incident , a.incident) &&
+                   access(diary.CONTACTSID , a.CONTACTSID);
+        }
         private bool access(string anull , string b)
         {
             return string.IsNullOrEmpty(anull) || string.Equals(anull , b);
