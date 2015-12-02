@@ -40,8 +40,8 @@ namespace 个人信息数据库.model
             }
             get
             {
-                //1900 / 1 / 1 0:00:00
-                if (DateTime.Equals(_mtime , new DateTime(1900,1,1,0,0,0)))
+                //1900 / 1 / 1 0:00:00   
+                if (string.Equals(_mtime , "1900 / 1 / 1 0:00:00"))
                 {
                     return string.Empty;
                 }

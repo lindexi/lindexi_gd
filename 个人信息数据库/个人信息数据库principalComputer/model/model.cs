@@ -68,6 +68,12 @@ namespace 个人信息数据库principalComputer.model
             //string strsql = $"{usesql} SELECT ID FROM CONTACTS WHERE NAME='A';";
             //string id = write(strsql);
 
+            //cmemorandum memorandum = new cmemorandum()
+            //{
+            //    incident="跑内环",
+            //    CONTACTSID="华艺"
+            //};
+            //addmemorandum(memorandum);
         }
 
         //public void add<T>(T obj)
@@ -149,21 +155,29 @@ namespace 个人信息数据库principalComputer.model
                     {
                         if (!read.HasRows)
                             return diary;
-                        int idindex = read.GetOrdinal(id);
-                        int MTIMEindex = read.GetOrdinal(MTIME);
-                        int PLACEindex = read.GetOrdinal(PLACE);
-                        int INCIDENTindex = read.GetOrdinal(INCIDENT);
-                        int CONTACTSIDindex = read.GetOrdinal(CONTACTSID);
+                        //int idindex = read.GetOrdinal(id);
+                        //int MTIMEindex = read.GetOrdinal(MTIME);
+                        //int PLACEindex = read.GetOrdinal(PLACE);
+                        //int INCIDENTindex = read.GetOrdinal(INCIDENT);
+                        //int CONTACTSIDindex = read.GetOrdinal(CONTACTSID);
                         while (read.Read())
                         {
                             diary.Add(new cdiary()
                             {
-                                id = read.GetInt32(idindex).ToString() ,
-                                MTIME = read.GetDateTime(MTIMEindex).ToString() ,
-                                PLACE = read.GetString(PLACEindex) ,
-                                incident = read.GetString(INCIDENTindex) ,
-                                CONTACTSID = read.GetString(CONTACTSIDindex)
+                                id = DBNullstring<int>(read[id]) ,
+                                MTIME = DBNullstring<DateTime>(read[MTIME]) ,
+                                PLACE = DBNullstring<string>(read[PLACE]),
+                                incident=DBNullstring<string>(read[INCIDENT]),
+                                CONTACTSID=DBNullstring<string>(read[CONTACTSID])
                             });
+                            //diary.Add(new cdiary()
+                            //{    
+                            //    id = read.GetInt32(idindex).ToString() ,
+                            //    MTIME = read.GetDateTime(MTIMEindex).ToString() ,
+                            //    PLACE = read.GetString(PLACEindex) ,
+                            //    incident = read.GetString(INCIDENTindex) ,
+                            //    CONTACTSID = read.GetString(CONTACTSIDindex)
+                            //});
                         }
                     }
                 }
@@ -222,10 +236,10 @@ namespace 个人信息数据库principalComputer.model
                                 //incident = read.GetString(INCIDENTindex) ,
                                 //CONTACTSID = read.GetString(CONTACTSIDindex)
                                 id = id ,
-                                MTIME = MTIME.Trim() ,
-                                PLACE = PLACE.Trim() ,
-                                incident = INCIDENT.Trim() ,
-                                CONTACTSID = CONTACTSID.Trim()
+                                MTIME = MTIME,//.Trim() ,
+                                PLACE = PLACE,//.Trim() ,
+                                incident = INCIDENT,//.Trim() ,
+                                CONTACTSID = CONTACTSID//.Trim()
                             });
                         }
                     }
@@ -455,38 +469,99 @@ SELECT [property].[id]
                 id = write(strsql);
             }
 
-            strsql = $"{usesql}{line}insert into {PROPERTY}(PMONEY,MTIME,terminal,contastsid) values('{property.PMONEY}','{property.MTIME}','{property.terminal}','{id}')";
+            strsql = $"{usesql}{line}insert into {PROPERTY}(PMONEY,MTIME,terminal,[CONTACTSID]) values('{property.PMONEY}','{property.MTIME}','{property.terminal}','{id}')";
             write(strsql);
         }
 
         public void ddiary(cdiary diary)
         {
-
+            string strsql;
+            const string DIARY = "DIARY";
+            strsql = $"{usesql}{line}DELETE FROM [dbo].[{DIARY}] WHERE id='{diary.id}';";
+            write(strsql);
         }
 
         public void newdiary(cdiary diary)
         {
+            string name = diary.CONTACTSID;
 
+            const string contacts = "CONTACTS";
+            string strsql;
+            string id;
+            
+            strsql = $"{usesql} SELECT ID FROM {contacts} WHERE NAME='{name}';";
+            id = write(strsql);
+            if (string.IsNullOrEmpty(id))
+            {
+                strsql = $"{usesql}{line}insert into {contacts}(name){line}values('{name}') SELECT @@IDENTITY AS Id;";
+                id = write(strsql);
+            }
+
+            string DIARY = "diary";
+
+            strsql = $" UPDATE [dbo].[{DIARY}]  SET [MTIME] = '{diary.MTIME}' ,[PLACE] = '{diary.PLACE}' ,[INCIDENT] = '{diary.incident}' ,[CONTACTSID] = '{id}' WHERE id='{diary.id}'";
+
+            write(strsql);
         }
 
         public void dmemorandum(cmemorandum memorandum)
         {
-
+            string strsql;
+            const string MEMORANDUM = "memorandum";
+            strsql = $"{usesql}{line}DELETE FROM [dbo].[{MEMORANDUM}] WHERE id='{memorandum.id}';";
+            write(strsql);
         }
 
         public void newmemorandum(cmemorandum memorandum)
         {
+            string name = memorandum.CONTACTSID;
 
+            const string contacts = "CONTACTS";
+            string strsql;
+            string id;
+
+            strsql = $"{usesql} SELECT ID FROM {contacts} WHERE NAME='{name}';";
+            id = write(strsql);
+            if (string.IsNullOrEmpty(id))
+            {
+                strsql = $"{usesql}{line}insert into {contacts}(name){line}values('{name}') SELECT @@IDENTITY AS Id;";
+                id = write(strsql);
+            }
+
+            string MEMORANDUM = "memorandum";
+
+            strsql = $" UPDATE [dbo].[{MEMORANDUM}]  SET [MTIME] = '{memorandum.MTIME}' ,[PLACE] = '{memorandum.PLACE}' ,[INCIDENT] = '{memorandum.incident}' ,[CONTACTSID] = '{id}' WHERE id='{memorandum.id}'";
+            write(strsql);
         }
 
         public void dproperty(cproperty property)
         {
-
+            string strsql;
+            const string PROPERTY = "property";
+            strsql = $"{usesql}{line}DELETE FROM [dbo].[{PROPERTY}] WHERE id='{property.id}';";
+            write(strsql);
         }
 
         public void newproperty(cproperty property)
         {
+            string name = property.CONTACTSID;
 
+            const string contacts = "CONTACTS";
+            string strsql;
+            string id;
+
+            strsql = $"{usesql} SELECT ID FROM {contacts} WHERE NAME='{name}';";
+            id = write(strsql);
+            if (string.IsNullOrEmpty(id))
+            {
+                strsql = $"{usesql}{line}insert into {contacts}(name){line}values('{name}') SELECT @@IDENTITY AS Id;";
+                id = write(strsql);
+            }
+
+            string PROPERTY = "property";
+
+            strsql = $" UPDATE [dbo].[{PROPERTY}]  SET [terminal] ='{property.terminal}' ,[PMONEY] = '{property.PMONEY}',[MTIME] ='{property.MTIME}',[CONTACTSID] = '{id}' WHERE id='{property.id}'";
+            write(strsql);
         }
 
         /// <summary>
@@ -781,6 +856,8 @@ SELECT [property].[id]
         {
             caddressBook addressbook;
             cdiary diary;
+            cmemorandum memorandum;
+            cproperty property;
             switch (command)
             {
                 case ecommand.ce://2015年11月26日08:56:10
@@ -804,6 +881,38 @@ SELECT [property].[id]
                 case ecommand.adddiary:
                     diary = Deserialize<cdiary>(str);
                     adddiary(diary);
+                    break;
+                case ecommand.ddiary:
+                    diary = Deserialize<cdiary>(str);
+                    ddiary(diary);
+                    break;
+                case ecommand.newdiary:
+                    diary= Deserialize<cdiary>(str);
+                    newdiary(diary);
+                    break;
+                case ecommand.addmemorandum:
+                    memorandum = Deserialize<cmemorandum>(str);
+                    addmemorandum(memorandum);
+                    break;
+                case ecommand.dmemorandum:
+                    memorandum = Deserialize<cmemorandum>(str);
+                    dmemorandum(memorandum);
+                    break;
+                case ecommand.newmemorandum:
+                    memorandum = Deserialize<cmemorandum>(str);
+                    newmemorandum(memorandum);
+                    break;
+                case ecommand.addproperty:
+                    property = Deserialize<cproperty>(str);
+                    addproperty(property);
+                    break;
+                case ecommand.dproperty:
+                    property = Deserialize<cproperty>(str);
+                    dproperty(property);
+                    break;
+                case ecommand.newproperty:
+                    property = Deserialize<cproperty>(str);
+                    newproperty(property);
                     break;
                 default:
                     reminder = str;
