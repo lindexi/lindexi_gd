@@ -62,35 +62,102 @@ namespace 个人信息数据库.ViewModel
         }
 
         public void add()
-        {
-            reminder = "添加备忘";
+        {           
+            if (memorandum.accord)
+            {
+                foreach (var temp in lmemorandum)
+                {
+                    if (memorandum_equals(temp))
+                    {
+                        warn = "输入重复";
+                        return;
+                    }
+                }
+                reminder = "添加日记";
+                _model.send(ecommand.addmemorandum , memorandum.ToString());
+                memorandum = new cmemorandum();
+            }
+            else
+            {
+                warn = "输入信息有误";
+            }
         }
         public void delete()
         {
-            reminder = "删除备忘";
+            if (memorandum.Equals(_item))
+            {
+                _model.send(ecommand.dmemorandum , _item.ToString());
+                reminder = "删除备忘";
+            }
+            else
+            {
+                warn = "没有选择要删除备忘或备忘已修改";
+                return;
+            }
         }
 
         public void select()
         {
+            for (int i = 0; i < lmemorandum.Count; i++)
+            {
+                if (!memorandum_equals(lmemorandum[i]))
+                {
+                    lmemorandum.RemoveAt(i);
+                    i--;
+                }
+            }
             reminder = "查询备忘";
         }
 
         public void modify()
         {
+            if (!memorandum.accord)
+            {
+                warn = "输入信息有误";
+            }
+
+            if (memorandum.Equals(_item))
+            {
+                warn = "没有修改";
+            }
+            else
+            {
+                if (_item == null)
+                {
+                    warn = "没有选择备忘";
+                }
+                else
+                {
+                    memorandum.Clone(_item);
+                    _model.send(ecommand.newmemorandum , memorandum.ToString());
+                    reminder = "修改备忘";
+                }
+            }
             reminder = "修改备忘";
         }
 
         public void eliminate()
         {
+            _item = null;
+            memorandum = new cmemorandum();
             reminder = "清除";
         }
         public void navigated()
         {
-            warn = "点击修改把现有表修改到数据库，按delete删除行,双击修改列";
+            //warn = "点击修改把现有表修改到数据库，按delete删除行,双击修改列";
+            warn = "";
         }
         public void selectitem(System.Collections.IList item)
         {
-
+            if (item.Count == 0)
+            {
+                return;
+            }
+            _item = item[0] as cmemorandum;
+            if (_item != null)
+            {
+                memorandum = _item.Clone() as cmemorandum;
+            }
         }
         public string warn
         {
@@ -122,7 +189,16 @@ namespace 个人信息数据库.ViewModel
         private System.Windows.Visibility _visibility = System.Windows.Visibility.Hidden;
         private viewModel _viewModel;
         private cmemorandum _memorandum = new cmemorandum();
+        private cmemorandum _item;
         private model.model _model;
+        private bool memorandum_equals(cmemorandum a)
+        {
+            return access(memorandum.MTIME , a.MTIME) &&
+                   access(memorandum.PLACE , a.PLACE) &&
+                   access(memorandum.incident , a.incident) &&
+                   access(memorandum.CONTACTSID , a.CONTACTSID);
+        }
+
         private bool access(string anull , string b)
         {
             return string.IsNullOrEmpty(anull) || string.Equals(anull , b);

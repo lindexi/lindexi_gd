@@ -415,14 +415,23 @@ SELECT [property].[id]
         {
             string strsql;
             const string MEMORANDUM = "MEMORANDUM";
-
+            const string contacts = "CONTACTS";
+            string id;
             if (memorandum == null)
             {
                 reminder = "添加备忘，添加的备忘空";
                 return;
             }
 
-            strsql = $"{usesql}{line}insert into {MEMORANDUM} (Mtime,INCIDENT){line}values('{memorandum.MTIME}','{memorandum.incident}');";
+            strsql = $"{usesql}{line} SELECT ID FROM {contacts} WHERE NAME='{memorandum.CONTACTSID}';";
+            id = write(strsql);
+            if (string.IsNullOrEmpty(id))
+            {
+                strsql = $"{usesql}{line}insert into {contacts}(name){line}values('{memorandum.CONTACTSID}') SELECT @@IDENTITY AS Id;";
+                id = write(strsql);
+            }
+
+            strsql = $"{usesql}{line}insert into {MEMORANDUM} (Mtime,PLACE,INCIDENT,contactsid){line}values('{memorandum.MTIME}','{memorandum.PLACE}','{memorandum.incident}','{id}');";
             write(strsql);
         }
 
@@ -430,14 +439,54 @@ SELECT [property].[id]
         {
             string strsql;
             const string PROPERTY = "property";
+            const string contacts = "CONTACTS";
+            string id;
 
             if (property == null)
             {
                 return;
             }
 
-            strsql = $"{usesql}{line}insert into {PROPERTY}(PMONEY,MTIME) values('{property.PMONEY}','{property.MTIME}')";
+            strsql = $"{usesql}{line} SELECT ID FROM {contacts} WHERE NAME='{property.CONTACTSID}';";
+            id = write(strsql);
+            if (string.IsNullOrEmpty(id))
+            {
+                strsql = $"{usesql}{line}insert into {contacts}(name){line}values('{property.CONTACTSID}') SELECT @@IDENTITY AS Id;";
+                id = write(strsql);
+            }
+
+            strsql = $"{usesql}{line}insert into {PROPERTY}(PMONEY,MTIME,terminal,contastsid) values('{property.PMONEY}','{property.MTIME}','{property.terminal}','{id}')";
             write(strsql);
+        }
+
+        public void ddiary(cdiary diary)
+        {
+
+        }
+
+        public void newdiary(cdiary diary)
+        {
+
+        }
+
+        public void dmemorandum(cmemorandum memorandum)
+        {
+
+        }
+
+        public void newmemorandum(cmemorandum memorandum)
+        {
+
+        }
+
+        public void dproperty(cproperty property)
+        {
+
+        }
+
+        public void newproperty(cproperty property)
+        {
+
         }
 
         /// <summary>
@@ -731,6 +780,7 @@ SELECT [property].[id]
         private void implement(int id , ecommand command , string str)
         {
             caddressBook addressbook;
+            cdiary diary;
             switch (command)
             {
                 case ecommand.ce://2015年11月26日08:56:10
@@ -751,7 +801,10 @@ SELECT [property].[id]
                     addressbook = Deserialize<caddressBook>(str);
                     deleteaddressBook(addressbook);
                     break;
-
+                case ecommand.adddiary:
+                    diary = Deserialize<cdiary>(str);
+                    adddiary(diary);
+                    break;
                 default:
                     reminder = str;
                     break;
@@ -780,7 +833,7 @@ SELECT [property].[id]
             }
             catch (JsonException e)
             {
-                reminder = "输入不是ObservableCollection<caddressBook> json" + e.Message;
+                reminder = "输入不是ObservableCollection<T> json" + e.Message;
             }
             return default(T);
         }

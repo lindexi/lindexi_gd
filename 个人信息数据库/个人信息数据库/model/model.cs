@@ -395,8 +395,8 @@ namespace 个人信息数据库.model
                     default:
                         reminder = str;
                         break;
-
-                }                
+                }           
+                     
             }
             catch (Exception e)
             {

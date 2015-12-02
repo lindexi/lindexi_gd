@@ -40,8 +40,6 @@ namespace 个人信息数据库
             //slave_computer();            
         }
 
-       
-
         public new string reminder
         {
             set
@@ -515,7 +513,7 @@ namespace 个人信息数据库
 
         public void selectitem(int index)
         {
-            reminder = index.ToString();
+            //reminder = index.ToString();
         }
 
         public void selectitem(System.Collections.IList item)

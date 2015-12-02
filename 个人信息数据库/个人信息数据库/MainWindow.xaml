@@ -173,7 +173,14 @@
                     <ColumnDefinition Width="auto"/>
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
-                <DataGrid Grid.Column="0" Margin="10,10,10,10" ItemsSource="{Binding Path=lmemorandum}" ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                <DataGrid Grid.Column="0" Margin="10,10,10,10" ItemsSource="{Binding Path=lmemorandum}" ScrollViewer.VerticalScrollBarVisibility="Auto"  AutoGenerateColumns="False" SelectionChanged="selectitem" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="时间" Binding="{Binding MTIME,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="地点" Binding="{Binding PLACE,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="事件" Binding="{Binding incident,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="人物" Binding="{Binding CONTACTSID,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
+                    </DataGrid.Columns>
+                </DataGrid>
                 <Grid Grid.Column="1">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto"/>
@@ -216,7 +223,14 @@
                     <ColumnDefinition Width="auto"/>
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
-                <DataGrid Grid.Column="0" Margin="10,10,10,10" ItemsSource="{Binding Path=lproperty}" ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                <DataGrid Grid.Column="0" Margin="10,10,10,10" ItemsSource="{Binding Path=lproperty}" ScrollViewer.VerticalScrollBarVisibility="Auto" AutoGenerateColumns="False" SelectionChanged="selectitem" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="时间" Binding="{Binding MTIME,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="项目" Binding="{Binding terminal,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="钱" Binding="{Binding PMONEY,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="人物" Binding="{Binding CONTACTSID,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" IsReadOnly="True"/>
+                    </DataGrid.Columns>
+                </DataGrid>
                 <Grid Grid.Column="1">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto"/>

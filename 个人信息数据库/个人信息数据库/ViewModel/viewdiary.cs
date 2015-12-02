@@ -93,7 +93,6 @@ namespace 个人信息数据库.ViewModel
                 warn = "没有选择要删除日记或日记已修改";
                 return;
             }
-            reminder = "删除日记";
         }
 
         public void select()
