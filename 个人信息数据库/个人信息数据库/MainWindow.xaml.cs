@@ -20,22 +20,44 @@ namespace 个人信息数据库
     /// </summary>
     public partial class MainWindow : Window
     {
-        viewModel view;
+
         public MainWindow()
         {
-            view = new viewModel();            
+            _view = new viewModel();
             InitializeComponent();
             this.DataContext = view;
-            //xl.ItemsSource = view.addressBook;
+            //xl.ItemsSource = View.addressBook;
+        }
+
+        private viewModel view
+        {
+            set
+            {
+                _view = value;
+            }
+            get
+            {
+                return _view;
+            }
         }
 
         private void Button_Click(object sender , RoutedEventArgs e)
         {
             view.ce();
 
-            //view.readsql();
+            //View.readsql();
             xl.ItemsSource = view.addressBook;
         }
+        private viewModel _view;
 
+        private void principal_Computer(object sender , RoutedEventArgs e)
+        {
+            view.principal_computer();
+        }
+
+        private void slaveComputer(object sender , RoutedEventArgs e)
+        {
+            view.slave_computer();
+        }
     }
 }

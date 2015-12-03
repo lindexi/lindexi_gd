@@ -8,8 +8,10 @@ using System.Data.SqlClient;
 using 个人信息数据库.model;
 using System.Windows.Threading;
 using System.Threading;
-
+using Newtonsoft.Json;
 using System.IO;
+using System.Collections.ObjectModel;
+using System.Windows;
 
 namespace 个人信息数据库
 {
@@ -23,40 +25,114 @@ namespace 个人信息数据库
             //string constr = "Data Source=steve-pc;Initial Catalog=itcast2013;Integrated Security=true";
             //"server=.;database=itcast2013;uid=sa;pwd=sa"
             _model = new model.model();
-            reminder = "运行";
+            //reminder = "运行";
 
-            
+            //ReceiveAction = str =>
+            //{
+            //    string temp= str.Trim('\0' , ' ');
+            //    if (!string.IsNullOrEmpty(temp))
+            //    {
+            //        reminder = temp;
+            //    }
+            //};
+
+            //slave_computer();
+           
         }
+
+        public new string reminder
+        {
+            set
+            {
+                _model.reminder = value;
+            }
+            get
+            {
+                return _model.reminder;
+            }
+        }
+
+        public Visibility vaddressbook
+        {
+            set;
+            get;
+        } = Visibility.Hidden;
+
+        public Visibility vcontacts
+        {
+            set;
+            get;
+        } = Visibility.Hidden;
+
+        public Visibility vdiary
+        {
+            set;
+            get;
+        } = Visibility.Hidden;
+
+        public Visibility vmemorandum
+        {
+            set;
+            get;
+        } = Visibility.Hidden;
+
+        public Visibility vcproperty
+        {
+            set;
+            get;
+        } = Visibility.Hidden;
 
         /// <summary>
         /// 读取sql
         /// </summary>
         //public void readsql()
         //{
-            //string fileaddress = @"data/sql/插入数据.sql";
-            //string strsql;
-            //Encoding encoding = Encoding.Default;
+        //string fileaddress = @"data/sql/插入数据.sql";
+        //string strsql;
+        //Encoding encoding = Encoding.Default;
 
-            //using (FileStream file = new FileStream(fileaddress , FileMode.Open))
-            //{
-            //    int length = (int)file.Length;
-            //    byte[] buff = new byte[length];
-            //    file.Read(buff , 0 , length);
-            //    strsql = encoding.GetString(buff);
-            //}
+        //using (FileStream file = new FileStream(fileaddress , FileMode.Open))
+        //{
+        //    int length = (int)file.Length;
+        //    byte[] buff = new byte[length];
+        //    file.Read(buff , 0 , length);
+        //    strsql = encoding.GetString(buff);
+        //}
 
-            //string strsql = Properties.Resources.插入数据;
-            //_model.refreshData(strsql);
-            //reminder = "插入" + Properties.Resources.插入数据;
+        //string strsql = Properties.Resources.插入数据;
+        //_model.refreshData(strsql);
+        //reminder = "插入" + Properties.Resources.插入数据;
 
-            //_model.ce();
+        //_model.ce();
         //}
 
         public void ce()
         {
             //_model.ce();
-            addressBook = _model.newaddressBook();
-           
+
+            //addressBook = _model.newaddressBook();
+
+            //string json = JsonConvert.SerializeObject(addressBook);
+            _model.ce();
+
+            //reminder = json;
+            //addressBook = new System.Collections.ObjectModel.ObservableCollection<caddressBook>();
+            //addressBook = JsonConvert.DeserializeObject<ObservableCollection<caddressBook>>(json);
+            //if (_sx上位机下位机 == 上位机下位机.x下位机)
+            //{
+            //    if (_slaveComputer != null)
+            //    {
+            //        _slaveComputer.send(new ctransmitter(_slaveComputer.id , ecommand.ce , json).ToString());
+            //    }
+            //}
+            //else
+            //{
+            //    if (_principal_Computer != null)
+            //    {
+            //        _principal_Computer.send(new ctransmitter(-1 , ecommand.ce , json).ToString());
+            //    }
+            //}
+
 
             //string connect = $"Data Source={DataSource};Initial Catalog={InitialCatalog};Integrated Security=True";
             ////List<caddressBook> addressBook = new List<caddressBook>();
@@ -148,10 +224,23 @@ namespace 个人信息数据库
 
         }
 
-       //private void AddItem(object item)
-       // {
-       //     addressBook.Add(item as caddressBook);
-       // }
+        public void principal_computer()
+        {
+            //_sx上位机下位机 = 上位机下位机.s上位机;
+            //_principal_Computer = new principal_Computer(ReceiveAction);
+        }
+
+        public void slave_computer()
+        {
+            //_sx上位机下位机 = 上位机下位机.x下位机;
+            //_slaveComputer = new slaveComputer(ReceiveAction);
+            //_slaveComputer.access("10.21.71.130");
+        }
+
+        //private void AddItem(object item)
+        // {
+        //     addressBook.Add(item as caddressBook);
+        // }
 
         public System.Collections.ObjectModel.ObservableCollection<caddressBook>
         /*public List<caddressBook>*/ addressBook
@@ -188,16 +277,26 @@ namespace 个人信息数据库
                 }
             };
 
-        private string DataSource
-        {
-            set;
-            get;
-        } = "QQLINDEXI\\SQLEXPRESS";
-        private string InitialCatalog
-        {
-            set;
-            get;
-        } = "grxx";
+        //private string DataSource
+        //{
+        //    set;
+        //    get;
+        //} = "QQLINDEXI\\SQLEXPRESS";
+        //private string InitialCatalog
+        //{
+        //    set;
+        //    get;
+        //} = "grxx";
         private model.model _model;
+
+        //private principal_Computer _principal_Computer;
+        //private slaveComputer _slaveComputer;
+        //private System.Action<string> ReceiveAction;
+        //private 上位机下位机 _sx上位机下位机;
     }
+    //enum 上位机下位机
+    //{
+    //    s上位机,
+    //    x下位机
+    //}
 }

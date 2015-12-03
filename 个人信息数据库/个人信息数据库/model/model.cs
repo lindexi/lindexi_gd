@@ -1,228 +1,433 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using Newtonsoft.Json.Linq;
-using System.Threading.Tasks;
-using System.Data.Sql;
 using System.Data.SqlClient;
 using System.Collections.ObjectModel;
-
+using Newtonsoft.Json;
 namespace 个人信息数据库.model
 {
+    //public class model : notify_property
+    //{
+    //    public model()
+    //    {
+    //        ran = new Random();
+    //    }
+    //    Random ran
+    //    {
+    //        set;
+    //        get;
+    //    }
+    //    /// <summary>
+    //    /// 数据库ip
+    //    /// </summary>
+    //    public string DataSource
+    //    {
+    //        set;
+    //        get;
+    //    } = "QQLINDEXI\\SQLEXPRESS";
+    //    /// <summary>
+    //    /// 数据库名
+    //    /// </summary>
+    //    public string InitialCatalog
+    //    {
+    //        set;
+    //        get;
+    //    } = "grxx";
+    //    /// <summary>
+    //    /// 连接数据库
+    //    /// </summary>
+    //    public string connect
+    //    {
+    //        set
+    //        {
+    //            value = string.Empty;
+    //        }
+    //        get
+    //        {
+    //            return $"Data Source={DataSource};Initial Catalog={InitialCatalog};Integrated Security=True";
+    //        }
+    //    }
+
+    //    public void ce()
+    //    {
+    //        List<caddressBook> addressBook = lajiaddressBook();
+    //        //对象转json
+    //        var json = JsonConvert.SerializeObject(addressBook);
+
+    //        //writeaddressBook(addressBook);
+    //    }
+
+    //    public ObservableCollection<caddressBook> newaddressBook()
+    //    {
+    //        const string addressBookname = "temp";
+    //        string sqlAddressBook = $"{usesql}{line}SELECT * FROM {addressBookname};";
+    //        ObservableCollection<caddressBook> addressBook = new ObservableCollection<caddressBook>();
+    //        const string id = "id";
+    //        const string name = "name";
+    //        const string contact = "contact";
+    //        const string naddress = "naddress";
+    //        const string city = "city";
+    //        const string comment = "comment";
+    //        using (SqlConnection sql = new SqlConnection(connect))
+    //        {
+    //            sql.Open();
+    //            using (SqlCommand cmd = new SqlCommand(sqlAddressBook , sql))
+    //            {
+    //                using (SqlDataReader read = cmd.ExecuteReader())
+    //                {
+    //                    //判断当前的reader是否读取到了数据
+    //                    if (!read.HasRows) return addressBook;
+    //                    int idindex = read.GetOrdinal(id);
+    //                    int nameindex = read.GetOrdinal(name);
+    //                    int contactindex = read.GetOrdinal(contact);
+    //                    int naddressindex = read.GetOrdinal(naddress);
+    //                    int cityindex = read.GetOrdinal(city);
+    //                    int commentindex = read.GetOrdinal(comment);
+    //                    while (read.Read())
+    //                    {
+    //                        caddressBook temp = new caddressBook
+    //                        {
+    //                            id = read.GetInt32(idindex).ToString(),
+    //                            name = read.GetString(nameindex).Trim(),
+    //                            contact = read.GetString(contactindex).Trim(),
+    //                            address = read.GetString(naddressindex).Trim(),
+    //                            city = read.GetString(cityindex).Trim(),
+    //                            comment = read.GetString(commentindex).Trim()
+    //                        };
+
+    //                        addressBook.Add(temp);
+    //                    }
+    //                }
+    //            }
+    //        }
+    //        return addressBook;
+    //    }
+
+
+    //    /// <summary>
+    //    /// 写入通讯录
+    //    /// </summary>
+    //    /// <param name="addressBook"></param>
+    //    public void writeaddressBook(List<caddressBook> addressBook)
+    //    {
+    //        const string t = "temp";
+    //        string strsql;       
+    //        foreach (var temp in addressBook)
+    //        {
+    //            strsql = $"{usesql}{line}insert into {t}(id,name,contact,naddress,city,comment){line}values('{temp.id}','{temp.name}','{temp.contact}','{temp.address}','{temp.city}','{temp.comment}');{line}";
+    //            write(strsql);
+    //        }
+    //    }
+
+    //    /// <summary>
+    //    /// 写数据
+    //    /// </summary>
+    //    /// <param name="strsql"></param>
+    //    public void write(string strsql)
+    //    {
+    //        using (SqlConnection sql = new SqlConnection(connect))
+    //        {
+    //            sql.Open();
+    //            using (SqlCommand cmd = new SqlCommand(strsql , sql))
+    //            {
+    //                //字符串比char(10)长 将截断字符串或二进制数据
+    //                int r = cmd.ExecuteNonQuery();
+    //            }
+    //        }
+    //    }
+
+
+    //    //public void ce()
+    //    //{
+    //    //    string inputJsonString = @"
+    //    //        [
+    //    //            {StudentID:'100',Name:'aaa',Hometown:'china'},
+    //    //            {StudentID:'101',Name:'bbb',Hometown:'us'},
+    //    //            {StudentID:'102',Name:'ccc',Hometown:'england'}
+    //    //        ]";
+    //    //    JArray jsonObj = JArray.Parse(inputJsonString);
+    //    //    string message = @"<table border='1'>
+    //    //            <tr><td width='80'>StudentID</td><td width='100'>Name</td><td width='100'>Hometown</td></tr>";
+    //    //    string tpl = "<tr><td>{0}</td><td>{1}</td><td>{2}</td></tr>";
+    //    //    foreach (JObject jObject in jsonObj)
+    //    //    {
+    //    //        message += String.Format(tpl , jObject["StudentID"] , jObject["Name"] , jObject["Hometown"]);
+    //    //    }
+    //    //    message += "</table>";
+    //    //    //lbMsg.InnerHtml = message;
+    //    //}
+
+    //    private string ranstr(int n)
+    //    {
+    //        StringBuilder str = new StringBuilder();
+    //        int[] 中文 = new int[2] { 19968 , 40895 };
+    //        for (int i = 0; i < n; i++)
+    //        {
+    //            str.Append(Convert.ToChar(ran.Next(中文[0] , 中文[1])));
+    //        }
+    //        return str.ToString();
+    //    }
+
+    //    private string line
+    //    {
+    //        set;
+    //        get;
+    //    } = "\n";
+    //    private string usesql
+    //    {
+    //        set
+    //        {
+    //            value = string.Empty;
+    //        }
+    //        get
+    //        {
+    //            return $"use {InitialCatalog}";
+    //        }
+    //    }
+
+    //    private List<caddressBook> lajiaddressBook()
+    //    {
+    //        List<caddressBook> addressBook = new List<caddressBook>();
+    //        List<string> chinacity = new List<string>();
+    //        chinacity.AddRange(sql.城市.Split(new char[2] { '\r' , '\n' }));
+
+    //        for (int i = 0; i < chinacity.Count; i++)
+    //        {
+    //            if (string.IsNullOrEmpty(chinacity[i]))
+    //            {
+    //                chinacity.RemoveAt(i);
+    //                i--;
+    //            }
+    //            else
+    //            {
+    //                chinacity[i] = chinacity[i].Trim();
+    //            }
+    //        }
+
+    //        int n = 100;
+    //        caddressBook temp;
+
+    //        for (int i = 0; i < n; i++)
+    //        {
+    //            temp = new caddressBook()
+    //            {
+    //                id = i.ToString() ,
+    //                name = ranstr(3) ,
+    //                contact = ran.Next().ToString() ,
+    //                address = chinacity[ran.Next(chinacity.Count)] ,
+    //                city = chinacity[ran.Next(chinacity.Count)] ,
+    //                comment = "随机的名，作为测试"
+    //            };
+    //            addressBook.Add(temp);
+    //        }
+    //        return addressBook;
+    //    }
+    //}
+
     public class model : notify_property
     {
         public model()
         {
-            ran = new Random();
+            ReceiveAction = (str) =>
+            {
+                string temp = str.Trim('\0' , ' ');
+                if (!string.IsNullOrEmpty(temp))
+                {
+                    reminder = temp;
+                }
+            };
+            string ip = "10.21.71.130";
+            _slaveComputer = new slaveComputer(ReceiveAction, implement);
+            try
+            {
+                _slaveComputer.access(ip);
+                reminder = "运行";
+            }
+            catch (System.Net.Sockets.SocketException e)
+            {
+                reminder = "连接失败，服务器没开启 "+e.Message;
+            }
         }
-        Random ran
-        {
-            set;
-            get;
-        }
-        /// <summary>
-        /// 数据库ip
-        /// </summary>
-        public string DataSource
-        {
-            set;
-            get;
-        } = "QQLINDEXI\\SQLEXPRESS";
-        /// <summary>
-        /// 数据库名
-        /// </summary>
-        public string InitialCatalog
-        {
-            set;
-            get;
-        } = "grxx";
-        /// <summary>
-        /// 连接数据库
-        /// </summary>
-        public string connect
+        public int id
         {
             set
             {
-                value = string.Empty;
+                _slaveComputer.id = value;
+                OnPropertyChanged();
             }
             get
             {
-                return $"Data Source={DataSource};Initial Catalog={InitialCatalog};Integrated Security=True";
+                return _slaveComputer.id;
             }
         }
 
         public void ce()
         {
-            //List<caddressBook> addressBook = lajiaddressBook();
-            //writeaddressBook(addressBook);
-
+            //_slaveComputer.send(reminder);
+            getdata();
         }
 
-        public ObservableCollection<caddressBook> newaddressBook()
+        public void getdata()
         {
-            string addressBookname = "temp";
-            string sqlAddressBook = $"{usesql}{line}SELECT * FROM {addressBookname};";
-            ObservableCollection<caddressBook> addressBook = new ObservableCollection<caddressBook>();
-            string id = "id";
-            string name = "name";
-            string contact = "contact";
-            string naddress = "naddress";
-            string city = "city";
-            string comment = "comment";
-            using (SqlConnection sql = new SqlConnection(connect))
-            {
-                sql.Open();
-                using (SqlCommand cmd = new SqlCommand(sqlAddressBook , sql))
-                {
-                    using (SqlDataReader read = cmd.ExecuteReader())
-                    {
-                        //判断当前的reader是否读取到了数据
-                        if (read.HasRows)
-                        {
-                            int idindex = read.GetOrdinal(id);
-                            int nameindex = read.GetOrdinal(name);
-                            int contactindex = read.GetOrdinal(contact);
-                            int naddressindex = read.GetOrdinal(naddress);
-                            int cityindex = read.GetOrdinal(city);
-                            int commentindex = read.GetOrdinal(comment);
-                            while (read.Read())
-                            {
-                                caddressBook temp = new caddressBook();
-                                temp.id = read.GetInt32(idindex).ToString();
-                                temp.name = read.GetString(nameindex).Trim();
-                                temp.contact = read.GetString(contactindex).Trim();
-                                temp.address = read.GetString(nameindex).Trim();
-                                temp.city = read.GetString(cityindex).Trim();
-                                temp.comment = read.GetString(commentindex).Trim();
+            ctransmitter transmitter = new ctransmitter(id , ecommand.getdata , string.Empty);
+            send(transmitter.ToString());
 
-                                addressBook.Add(temp);
-                            }                           
-                        }
-                    }
-                }
+
+        }
+
+        public void add<T>(T obj)
+        {
+            string temp = typeof(T).ToString();
+            //int i = temp.LastIndexOf('.');
+            //temp = temp.Substring(i + 1);
+            ecommand c=ecommand.ce;
+            if (string.Equals(temp , typeof(caddressBook).ToString()))
+            {
+                c = ecommand.addaddressBook;
             }
-            return addressBook;
+            else if (string.Equals(temp , typeof(ccontacts).ToString()))
+            {
+                c = ecommand.addcontacts;
+            }
+            else if (string.Equals(temp , typeof(cdiary).ToString()))
+            {
+                c = ecommand.adddiary;
+            }
+            else if (string.Equals(temp , typeof(cmemorandum).ToString()))
+            {
+                c = ecommand.addmemorandum;
+            }
+            else if (string.Equals(temp , typeof(cproperty).ToString()))
+            {
+                c = ecommand.addproperty;
+            }
+
+            string json = JsonConvert.SerializeObject(obj);
+            ctransmitter transmitter = new ctransmitter(id , c , json);
+            send(transmitter.ToString());
+        }
+
+        public void delete(object obj , int id)
+        {
+            ecommand c = ecommand.ce;
+            if (obj as caddressBook != null)
+            {
+                c = ecommand.daddressBook;
+            }
+            else if (obj as ccontacts != null)
+            {
+                c = ecommand.dcontacts;
+            }
+            else if (obj as cdiary != null)
+            {
+                c = ecommand.ddiary;
+            }
+            else if (obj as cmemorandum != null)
+            {
+                c = ecommand.dmemorandum;
+            }
+            else if (obj as cproperty != null)
+            {
+                c = ecommand.dproperty;
+            }
+            string json = JsonConvert.SerializeObject(id);
+            ctransmitter transmitter = new ctransmitter(this.id , c , json);
+            send(transmitter.ToString());
         }
 
 
+        private slaveComputer _slaveComputer;
+        private System.Action<string> ReceiveAction;
+        private void implement(int id , ecommand command , string str)
+        {
+            switch (command)
+            {
+                case ecommand.id:
+                    fitid(str);
+                    break;
+                   
+            }
+        }
         /// <summary>
-        /// 写入通讯录
+        /// 分配id
         /// </summary>
-        /// <param name="addressBook"></param>
-        public void writeaddressBook(List<caddressBook> addressBook)
+        /// <param name="id"></param>
+        private void fitid(string id)
         {
-            string t = "temp";
-            string strsql;       
-            foreach (var temp in addressBook)
+            try
             {
-                strsql = $"{usesql}{line}insert into {t}(id,name,contact,naddress,city,comment){line}values('{temp.id}','{temp.name}','{temp.contact}','{temp.address}','{temp.city}','{temp.comment}');{line}";
-                write(strsql);
+                int temp = Convert.ToInt32(id);
+                this.id = temp;
+                reminder = "id" + id;
+            }
+            catch(Exception e)
+            {
+                reminder = "输入id不是数字" + e.Message;
             }
         }
-
-        /// <summary>
-        /// 写数据
-        /// </summary>
-        /// <param name="strsql"></param>
-        public void write(string strsql)
+        private void send(string str)
         {
-            using (SqlConnection sql = new SqlConnection(connect))
-            {
-                sql.Open();
-                using (SqlCommand cmd = new SqlCommand(strsql , sql))
-                {
-                    //字符串比char(10)长 将截断字符串或二进制数据
-                    int r = cmd.ExecuteNonQuery();
-                }
-            }
+            _slaveComputer.send(str);
+        }
+    }
+
+    /// <summary>
+    /// 发送消息
+    /// </summary>
+    public class ctransmitter
+    {
+        public ctransmitter(int id , ecommand command , string str/*,int ran*/)
+        {
+            this.id = id.ToString();
+            this.command = command.ToString();
+            this.str = str;
+            //this.ran = ran.ToString();
         }
 
-
-        //public void ce()
-        //{
-        //    string inputJsonString = @"
-        //        [
-        //            {StudentID:'100',Name:'aaa',Hometown:'china'},
-        //            {StudentID:'101',Name:'bbb',Hometown:'us'},
-        //            {StudentID:'102',Name:'ccc',Hometown:'england'}
-        //        ]";
-        //    JArray jsonObj = JArray.Parse(inputJsonString);
-        //    string message = @"<table border='1'>
-        //            <tr><td width='80'>StudentID</td><td width='100'>Name</td><td width='100'>Hometown</td></tr>";
-        //    string tpl = "<tr><td>{0}</td><td>{1}</td><td>{2}</td></tr>";
-        //    foreach (JObject jObject in jsonObj)
-        //    {
-        //        message += String.Format(tpl , jObject["StudentID"] , jObject["Name"] , jObject["Hometown"]);
-        //    }
-        //    message += "</table>";
-        //    //lbMsg.InnerHtml = message;
-        //}
-
-        private string ranstr(int n)
-        {
-            StringBuilder str = new StringBuilder();
-            int[] 中文 = new int[2] { 19968 , 40895 };
-            for (int i = 0; i < n; i++)
-            {
-                str.Append(Convert.ToChar(ran.Next(中文[0] , 中文[1])));
-            }
-            return str.ToString();
-        }
-
-        private string line
+        public string id
         {
             set;
             get;
-        } = "\n";
-        string usesql
-        {
-            set
-            {
-                value = string.Empty;
-            }
-            get
-            {
-                return $"use {InitialCatalog}";
-            }
         }
-
-        private List<caddressBook> lajiaddressBook()
+        public string command
         {
-            List<caddressBook> addressBook = new List<caddressBook>();
-            List<string> chinacity = new List<string>();
-            chinacity.AddRange(sql.城市.Split(new char[2] { '\r' , '\n' }));
-
-            for (int i = 0; i < chinacity.Count; i++)
-            {
-                if (string.IsNullOrEmpty(chinacity[i]))
-                {
-                    chinacity.RemoveAt(i);
-                    i--;
-                }
-                else
-                {
-                    chinacity[i] = chinacity[i].Trim();
-                }
-            }
-
-            int n = 100;
-            caddressBook temp;
-
-            for (int i = 0; i < n; i++)
-            {
-                temp = new caddressBook()
-                {
-                    id = i.ToString() ,
-                    name = ranstr(3) ,
-                    contact = ran.Next().ToString() ,
-                    address = chinacity[ran.Next(chinacity.Count)] ,
-                    city = chinacity[ran.Next(chinacity.Count)] ,
-                    comment = "随机的名，作为测试"
-                };
-                addressBook.Add(temp);
-            }
-            return addressBook;
+            set;
+            get;
         }
+        public string str
+        {
+            set;
+            get;
+        }
+        //public string ran
+        //{
+        //    set;
+        //    get;
+        //}
+        public override string ToString()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
+    }
+
+    public enum ecommand
+    {
+        login,//登录
+        id,//分配id
+        //get,//发送成功
+        getdata,//获取
+        addaddressBook,//通讯录
+        addcontacts,//人物
+        addproperty,
+        adddiary,
+        addmemorandum,
+
+        daddressBook,
+        dcontacts,
+        ddiary,
+        dproperty,
+        dmemorandum,
+
+        ce
     }
 }

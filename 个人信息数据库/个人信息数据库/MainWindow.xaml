@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:个人信息数据库"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        Title="MainWindow" Height="600" Width="1000">
     <Window.Resources>
         <DataTemplate x:Key="xaddressBook">
             <Grid>
@@ -43,7 +43,7 @@
         </DataTemplate>
     </Window.Resources>
     <Grid>
-        <Grid.ColumnDefinitions>
+        <!--<Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto"/>
             <ColumnDefinition Width="auto"/>
             <ColumnDefinition Width="auto"/>
@@ -54,10 +54,54 @@
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
-        
-        <DataGrid  Grid.Column="0" Grid.Row="0" x:Name="xl" ItemsSource="{Binding Path=addressBook}" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+
+        <DataGrid Grid.Column="0" Grid.Row="0" x:Name="xl" Margin="10,10,10,10" ItemsSource="{Binding Path=addressBook}" ScrollViewer.VerticalScrollBarVisibility="Auto" />
         
         <TextBlock Grid.Row="2" Grid.ColumnSpan="3" Text="{Binding Path=reminder,Mode=OneWay}" Margin="10,10,10,10" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
-        <Button Grid.Row="2" Grid.Column="3" Height="20" Content="确定" Margin="10,10,10,10" Click="Button_Click"/>
+        <StackPanel Grid.Row="2" Grid.Column="3" Orientation="Vertical">
+            <Button Content="上位机" Margin="10,10,10,10" Click="principal_Computer"/>
+            <Button Content="下位机" Margin="10,10,10,10" Click="slaveComputer"/>
+            <Button Height="20" Content="确定" Margin="10,10,10,10" Click="Button_Click"/>
+        </StackPanel>-->
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Visibility="{Binding Path=vaddressbook,Mode=OneWay}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <DataGrid Grid.Column="0" Grid.Row="0" x:Name="xl" Margin="10,10,10,10" ItemsSource="{Binding Path=addressBook}" ScrollViewer.VerticalScrollBarVisibility="Auto" />
+            <!--添加-->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="添加" HorizontalAlignment="Center"/>
+            </Grid>
+            
+        </Grid>
+
+        <Grid Grid.Row="0" Visibility="{Binding Path=vdiary,Mode=OneWay}">
+
+        </Grid>
+
+        <Grid Grid.Row="0" Visibility="{Binding Path=vmemorandum,Mode=OneWay}">
+
+        </Grid>
+
+        <Grid Grid.Row="0" Visibility="{Binding Path=vcproperty,Mode=OneWay}">
+
+        </Grid>
+
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <TextBlock Grid.Row="2" Text="{Binding Path=reminder,Mode=OneWay}" Margin="10,10,10,10" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+        </ScrollViewer>
     </Grid>
 </Window>

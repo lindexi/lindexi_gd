@@ -1,11 +1,15 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace 个人信息数据库.model
 {
-    [Serializable]
-    public class caddressBook
+    public class cdiary
     {
-        public caddressBook()
+        public cdiary()
         {
 
         }
@@ -18,44 +22,40 @@ namespace 个人信息数据库.model
             get;
         }
         /// <summary>
-        /// 通讯人姓名
+        /// 时间
         /// </summary>
-        public string name
+        public string MTIME
         {
             set;
             get;
         }
         /// <summary>
-        /// 联系方式
+        /// 地点
         /// </summary>
-        public string contact
+        public string PLACE
         {
             set;
             get;
         }
         /// <summary>
-        /// 工作地点
+        /// 事件
         /// </summary>
-        public string address
+        public string incident
         {
             set;
             get;
         }
         /// <summary>
-         /// 城市
-         /// </summary>
-        public string city
+        /// 人物
+        /// </summary>
+        public string CONTACTSID
         {
             set;
             get;
         }
-        /// <summary>
-        /// 备注
-        /// </summary>
-        public string comment
+        public override string ToString()
         {
-            set;
-            get;
+            return JsonConvert.SerializeObject(this);
         }
     }
 }

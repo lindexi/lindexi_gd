@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace 个人信息数据库.model
+namespace 个人信息数据库principalComputer.model
 {
     [Serializable]
     public class caddressBook

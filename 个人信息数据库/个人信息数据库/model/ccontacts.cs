@@ -1,11 +1,18 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace 个人信息数据库.model
 {
-    [Serializable]
-    public class caddressBook
+    /// <summary>
+    /// 人物
+    /// </summary>
+    public class ccontacts
     {
-        public caddressBook()
+        public ccontacts()
         {
 
         }
@@ -42,8 +49,8 @@ namespace 个人信息数据库.model
             get;
         }
         /// <summary>
-         /// 城市
-         /// </summary>
+        /// 城市
+        /// </summary>
         public string city
         {
             set;
@@ -56,6 +63,11 @@ namespace 个人信息数据库.model
         {
             set;
             get;
+        }
+
+        public override string ToString()
+        {
+            return JsonConvert.SerializeObject(this);
         }
     }
 }
