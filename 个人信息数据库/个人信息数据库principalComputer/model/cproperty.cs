@@ -5,16 +5,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace 个人信息数据库.model
+namespace 个人信息数据库principalComputer.model
 {
     /// <summary>
-    /// 人物
+    /// 个人财物
     /// </summary>
-    public class ccontacts : notify_property
+    public class cproperty : notify_property
     {
-        public ccontacts()
+        public cproperty()
         {
-
+            
         }
         /// <summary>
         /// 标识符
@@ -32,78 +32,63 @@ namespace 个人信息数据库.model
             }
         }
         /// <summary>
-        /// 通讯人姓名
+        /// 项目
         /// </summary>
-        public string name
+        public string terminal
         {
             set
             {
-                _name = value;
+                _terminal = value;
                 OnPropertyChanged();
             }
             get
             {
-                return _name;
+                return _terminal;
             }
         }
         /// <summary>
-        /// 联系方式
-        /// </summary>
-        public string contact
+         /// 金额
+         /// </summary>  
+        public string PMONEY
         {
             set
             {
-                _contact = value;
+                _money = value;
                 OnPropertyChanged();
             }
             get
             {
-                return _contact;
+                return _money;
             }
-        }
+        }       
         /// <summary>
-        /// 工作地点
+        /// 时间
         /// </summary>
-        public string address
+        public string MTIME
         {
             set
             {
-                _address = value;
+                _time = value;
                 OnPropertyChanged();
             }
             get
             {
-                return _address;
+                return _time;
             }
-        }
+        }        
         /// <summary>
-        /// 城市
+        /// 人物
         /// </summary>
-        public string city
+        public string CONTACTSID
         {
             set
             {
-                _city = value;
+                _contactsid = value;
                 OnPropertyChanged();
             }
             get
             {
-                return _city;
-            }
-        }
-        /// <summary>
-        /// 备注
-        /// </summary>
-        public string comment
-        {
-            set
-            {
-                _comment = value;
-                OnPropertyChanged();
-            }
-            get
-            {
-                return _comment;
+                return _contactsid;
             }
         }
         /// <summary>
@@ -117,7 +102,21 @@ namespace 个人信息数据库.model
             }
             get
             {
-                if (string.IsNullOrEmpty(name))
+                int n = 0;
+                try
+                {
+                    n = Convert.ToInt32(PMONEY);
+                }
+                catch
+                {
+                    return false;
+                }
+                
+                try
+                {
+                    DateTime mydate = Convert.ToDateTime(MTIME);
+                }
+                catch
                 {
                     return false;
                 }
@@ -129,10 +128,9 @@ namespace 个人信息数据库.model
             return JsonConvert.SerializeObject(this);
         }
         private string _id;
-        private string _name;
-        private string _contact;
-        private string _address;
-        private string _city;
-        private string _comment;
+        private string _money;
+        private string _contactsid;
+        private string _time;
+        private string _terminal;
     }
 }

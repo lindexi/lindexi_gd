@@ -236,17 +236,8 @@ namespace 个人信息数据库.model
                     reminder = temp;
                 }
             };
-            string ip = "10.21.71.130";
-            _slaveComputer = new slaveComputer(ReceiveAction, implement);
-            try
-            {
-                _slaveComputer.access(ip);
-                reminder = "运行";
-            }
-            catch (System.Net.Sockets.SocketException e)
-            {
-                reminder = "连接失败，服务器没开启 "+e.Message;
-            }
+            ip = "10.21.71.130";
+            access();           
         }
         public int id
         {
@@ -260,6 +251,43 @@ namespace 个人信息数据库.model
                 return _slaveComputer.id;
             }
         }
+
+        public string ip
+        {
+            set
+            {
+                _ip = value;
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _ip;
+            }
+        }
+
+        public ObservableCollection<caddressBook> addressbook
+        {
+            set;
+            get;
+        } = new ObservableCollection<caddressBook>();
+
+        public ObservableCollection<cproperty> property
+        {
+            set;
+            get;
+        } = new ObservableCollection<cproperty>();
+
+        public ObservableCollection<cmemorandum> memorandum
+        {
+            set;
+            get;
+        } = new ObservableCollection<cmemorandum>();
+
+        public ObservableCollection<cdiary> diary
+        {
+            set;
+            get;
+        } = new ObservableCollection<cdiary>();
 
         public void ce()
         {
@@ -280,7 +308,7 @@ namespace 个人信息数据库.model
             string temp = typeof(T).ToString();
             //int i = temp.LastIndexOf('.');
             //temp = temp.Substring(i + 1);
-            ecommand c=ecommand.ce;
+            ecommand c = ecommand.ce;
             if (string.Equals(temp , typeof(caddressBook).ToString()))
             {
                 c = ecommand.addaddressBook;
@@ -335,19 +363,139 @@ namespace 个人信息数据库.model
             send(transmitter.ToString());
         }
 
-
         private slaveComputer _slaveComputer;
         private System.Action<string> ReceiveAction;
+        private string _ip;
+
         private void implement(int id , ecommand command , string str)
         {
-            switch (command)
+            try
             {
-                case ecommand.id:
-                    fitid(str);
-                    break;
-                   
+                switch (command)
+                {
+                    case ecommand.id:
+                        fitid(str);
+                        break;
+                    case ecommand.addressBook:
+                        reminder = "上位机发来通讯录";
+                        newaddressBook(str);
+                        break;
+                    case ecommand.property:
+                        reminder = "上位机发来个人财物";
+                        newproperty(str);
+                        break;
+                    case ecommand.diary:
+                        reminder = "上位机发来日记";
+                        newdiary(str);
+                        break;
+                    case ecommand.memorandum:
+                        reminder = "上位机发来信息";
+                        newmemorandum(str);
+                        break;
+                    default:
+                        reminder = str;
+                        break;
+                }           
+                     
+            }
+            catch (Exception e)
+            {
+                reminder = "model implement" + e.Message;
             }
         }
+
+        private void newmemorandum(string str)
+        {
+            var temp = DeserializeObject<cmemorandum>(str);
+            System.Windows.Application.Current.Dispatcher.Invoke
+              (() =>
+              {
+                  memorandum.Clear();
+
+                  foreach (var t in temp)
+                  {
+                      memorandum.Add(t);
+                  }
+              });
+        }
+        private void newdiary(string str)
+        {
+            var temp = DeserializeObject<cdiary>(str);
+            System.Windows.Application.Current.Dispatcher.Invoke
+               (() =>
+               {
+                   diary.Clear();
+
+                   foreach (var t in temp)
+                   {
+                       diary.Add(t);
+                   }
+               });
+        }
+        private void newproperty(string str)
+        {
+            var temp = DeserializeObject<cproperty>(str);
+            System.Windows.Application.Current.Dispatcher.Invoke
+                (() =>
+                {
+                    property.Clear();
+
+                    foreach (var t in temp)
+                    {
+                        property.Add(t);
+                    }                    
+                });
+        }
+        private void newaddressBook(string str)
+        {
+            try
+            {
+                ObservableCollection<caddressBook> temp = DeserializeObject<caddressBook>(str);
+
+                System.Windows.Application.Current.Dispatcher.Invoke
+                (() =>
+                {
+                    addressbook.Clear();
+
+                    foreach (var t in temp)
+                    {
+                        addressbook.Add(t);
+                    }
+                });
+            }
+
+            catch (JsonException e)
+            {
+                reminder = "输入不是ObservableCollection<caddressBook> json" + e.Message;
+            }
+        }
+
+        private ObservableCollection<T> DeserializeObject<T>(string str)
+        {
+            try
+            {
+                ObservableCollection<T> temp = JsonConvert.DeserializeObject<ObservableCollection<T>>(str);
+                return temp;
+            }
+            catch (JsonException e)
+            {
+                reminder = "输入不是ObservableCollection<caddressBook> json" + e.Message;
+            }
+            return null;
+        }
+        //private void cleanObservableCollection<T>(ObservableCollection<T> temp)
+        //{
+        //    if (temp == null)
+        //    {
+        //        return;
+        //    }
+        //    for (int i = 0; i < temp.Count;)
+        //    {
+        //        temp.RemoveAt(i);
+        //    }
+        //    temp.Clear();
+        //}
+
         /// <summary>
         /// 分配id
         /// </summary>
@@ -359,15 +507,40 @@ namespace 个人信息数据库.model
                 int temp = Convert.ToInt32(id);
                 this.id = temp;
                 reminder = "id" + id;
+
+                getdata();//初始返回data
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 reminder = "输入id不是数字" + e.Message;
             }
         }
-        private void send(string str)
+        public void send(string str)
         {
             _slaveComputer.send(str);
+        }
+        public void send(ecommand command , string str)
+        {
+            ctransmitter transmitter = new ctransmitter(id , command , str);
+            send(transmitter.ToString());
+        }
+        public void access()
+        {            
+            try
+            {
+                if (_slaveComputer != null)
+                {
+                    _slaveComputer.exit();
+                }
+                _slaveComputer = new slaveComputer(ReceiveAction , implement);
+
+                _slaveComputer.access(ip);
+                reminder = "运行";
+            }
+            catch (System.Net.Sockets.SocketException e)
+            {
+                reminder = "连接失败，ip错误或服务器没开启 " + e.Message;
+            }
         }
     }
 
@@ -416,11 +589,18 @@ namespace 个人信息数据库.model
         id,//分配id
         //get,//发送成功
         getdata,//获取
-        addaddressBook,//通讯录
-        addcontacts,//人物
-        addproperty,
+
+        addressBook,//返回通讯录
+        contacts,
+        property,
+        diary,
+        memorandum,
+
+        addaddressBook,//add
+        addcontacts,
         adddiary,
         addmemorandum,
+        addproperty,
 
         daddressBook,
         dcontacts,
@@ -428,6 +608,22 @@ namespace 个人信息数据库.model
         dproperty,
         dmemorandum,
 
-        ce
+        saddressBook,
+        scontacts,
+        sdiary,
+        sproperty,
+        smemorandum,
+
+        newaddressBook,//通讯录
+        newcontacts,//人物
+        newproperty,
+        newdiary,
+        newmemorandum,
+
+       
+
+        ce,
+        
+        
     }
 }

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace 个人信息数据库.model
+namespace 个人信息数据库principalComputer.model
 {
     /// <summary>
     /// 人物
@@ -117,7 +117,7 @@ namespace 个人信息数据库.model
             }
             get
             {
-                if (string.IsNullOrEmpty(name))
+                if (name == null)
                 {
                     return false;
                 }

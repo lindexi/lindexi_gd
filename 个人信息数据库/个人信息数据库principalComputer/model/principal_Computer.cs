@@ -37,6 +37,7 @@ namespace 个人信息数据库principalComputer.model
             ClientNumb = 0;//数量从0开始统计
 
             ServerThread = new Thread(new ThreadStart(RecieveAccept));//将接受客户端连接的方法委托给线程
+            ServerThread.IsBackground = true;
             ServerThread.Start();//线程开始运行
 
             reminder("运行上位机");
@@ -144,7 +145,8 @@ namespace 个人信息数据库principalComputer.model
         {
             try
             {
-                if (switchimplement != null)
+                str = str.TrimEnd('\0');
+                if (switchimplement != null && !string.IsNullOrEmpty(str))
                 {
                     ctransmitter transmitter = JsonConvert.DeserializeObject<ctransmitter>(str);
                 ecommand command = (ecommand)Enum.Parse(typeof(ecommand) , transmitter.command);

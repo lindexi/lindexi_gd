@@ -5,11 +5,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace 个人信息数据库.model
+namespace 个人信息数据库principalComputer.model
 {
-    public class cdiary : notify_property,ICloneable
+    /// <summary>
+    /// 备忘录
+    /// </summary>
+    public class cmemorandum:notify_property
     {
-        public cdiary()
+        public cmemorandum()
         {
 
         }
@@ -26,7 +29,7 @@ namespace 个人信息数据库.model
             get
             {
                 return _id;
-            }
+            }           
         }
         /// <summary>
         /// 时间
@@ -40,11 +43,6 @@ namespace 个人信息数据库.model
             }
             get
             {
-                //1900 / 1 / 1 0:00:00   
-                if (string.Equals(_mtime , "1900/1/1 0:00:00"))
-                {
-                    return string.Empty;
-                }
                 return _mtime;
             }
         }
@@ -110,7 +108,7 @@ namespace 个人信息数据库.model
                 }
                 try
                 {
-                    if (!string.IsNullOrEmpty(MTIME))
+                    if (string.IsNullOrEmpty(MTIME))
                     {
                         DateTime mydate = Convert.ToDateTime(MTIME);
                     }
@@ -122,29 +120,25 @@ namespace 个人信息数据库.model
                 return true;
             }
         }
-        public override string ToString()
-        {
-            return JsonConvert.SerializeObject(this);
-        }
 
         public object Clone()
         {
-            cdiary diary= new cdiary();            
-            return Clone(diary);
+            cmemorandum memorandum = new cmemorandum();
+            return Clone(memorandum);
         }
 
-        public object Clone(cdiary diary)
+        public object Clone(cmemorandum memorandum)
         {
-            if (diary == null)
+            if (memorandum == null)
             {
-                diary = new cdiary();
+                memorandum = new cmemorandum();
             }
-            diary.id = id;
-            diary.MTIME = MTIME;
-            diary.PLACE = PLACE;
-            diary.incident = incident;
-            diary.CONTACTSID = CONTACTSID;
-            return diary;
+            memorandum.id = id;
+            memorandum.MTIME = MTIME;
+            memorandum.PLACE = PLACE;
+            memorandum.incident = incident;
+            memorandum.CONTACTSID = CONTACTSID;
+            return memorandum;
         }
 
         // override object.Equals
@@ -164,11 +158,11 @@ namespace 个人信息数据库.model
 
             // TODO: write your implementation of Equals() here
 
-            cdiary diary = obj as cdiary;
-            if (diary.id == id && diary.MTIME == MTIME
-                && diary.PLACE == PLACE
-                && diary.incident == incident
-                && diary.CONTACTSID == CONTACTSID)
+            cmemorandum memorandum = obj as cmemorandum;
+            if (memorandum.id == id && memorandum.MTIME == MTIME
+                && memorandum.PLACE == PLACE
+                && memorandum.incident == incident
+                && memorandum.CONTACTSID == CONTACTSID)
             {
                 return true;
             }
@@ -180,12 +174,14 @@ namespace 个人信息数据库.model
         public override int GetHashCode()
         {
             // TODO: write your implementation of GetHashCode() here
-            
+
             return base.GetHashCode();
         }
-        
-        
-       
+
+        public override string ToString()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
         private string _id;
         private string _mtime;
         private string _place;

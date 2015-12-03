@@ -85,6 +85,10 @@ namespace 个人信息数据库.model
                 {
                     reminder ("连接失败 " + e.Message);
                 }
+                catch(InvalidOperationException e)
+                {
+                    reminder("服务器没有开启"+e.Message);
+                }
             }
         }
         private IPEndPoint ServerInfo;
@@ -109,7 +113,6 @@ namespace 个人信息数据库.model
                     //An existing connection was forcibly closed by the remote host 
                     try
                     {
-
                         ClientSocket.EndReceive(ar);
                         ReceiveAction(encoding.GetString(MsgBuffer).Trim('\0' , ' '));
                         ReceiveCallBack(ReceiveAction);
@@ -118,12 +121,17 @@ namespace 个人信息数据库.model
                     {
                         reminder("对方断开连接" + e.Message);
                     }
+                    catch(ObjectDisposedException e)
+                    {
+                        reminder (id.ToString() + "连接退出" + e.Message);
+                        return;
+                    }
 
                 } /*new AsyncCallback(ReceiveCallBack)*/ , null);
             }
             catch
             {
-                
+                reminder("ReceiveCallBack 错误");
             }
         }
         private int port = 54321; //端口号
@@ -148,7 +156,8 @@ namespace 个人信息数据库.model
             }
             catch (Exception e)
             {
-                reminder("str不是ctransmitter " + e.Message);
+                reminder("slaveComputer.implement:str不是ctransmitter " + e.Message);
+                reminder(str);
             }
         }        
     }

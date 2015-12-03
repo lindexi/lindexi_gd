@@ -59,12 +59,16 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="model\caddressBook.cs" />
+    <Compile Include="model\ccontacts.cs" />
+    <Compile Include="model\cdiary.cs" />
+    <Compile Include="model\cmemorandum.cs" />
+    <Compile Include="model\cproperty.cs" />
     <Compile Include="model\model.cs" />
     <Compile Include="model\principal_Computer.cs" />
     <Compile Include="sql.Designer.cs">
       <DependentUpon>sql.resx</DependentUpon>
-      <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
     </Compile>
     <Compile Include="viewModel.cs" />
     <Page Include="MainWindow.xaml">
@@ -100,9 +104,9 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="sql.resx">
+      <SubType>Designer</SubType>
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>sql.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -113,6 +117,15 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="data\SQL\创建temp.sql" />
+    <Content Include="data\SQL\创建数据库grxx.sql" />
+    <Content Include="data\SQL\插入数据.sql" />
+    <Content Include="data\SQL\表.sql" />
+    <None Include="Resources\incident.txt" />
+    <None Include="Resources\事件.txt" />
+    <Resource Include="data\城市.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

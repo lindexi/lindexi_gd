@@ -8,8 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace 个人信息数据库principalComputer
-{
+namespace 个人信息数据库principalComputer {
     using System;
     
     
@@ -40,7 +39,7 @@ namespace 个人信息数据库principalComputer
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("个人信息数据库.sql", typeof(sql).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("个人信息数据库principalComputer.sql", typeof(sql).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -62,50 +61,76 @@ namespace 个人信息数据库principalComputer
         }
         
         /// <summary>
-        ///   查找类似 use grxx;--切换数据库
-        ///create table temp
-        ///(
-        ///   id int ,
-        ///   name nchar(10) ,--通讯人姓名
-        ///   contact nchar(10),--联系方式
-        ///   naddress nchar(10),--工作地点
-        ///   city nchar(10),--城市
-        ///   comment  nchar(10)--备注
-        ///); 的本地化字符串。
+        ///   查找类似 我们5月12日和小文去图书馆
+        ///你周六9点和阿金聊天
+        ///你8月4日和小焕吃大餐
+        ///我们9月9日和小雪去骑行50公里
+        ///你周三21点和小红去马场骑马
+        ///我周五20点和菲菲去医院看医生
+        ///我后天7点和凌霜华旅游
+        ///你4月28日和湘林去图书馆
+        ///我们1月12日和千湄举办生日派对
+        ///我们2月29日和大军举办生日派对
+        ///我们周日12点和丽丽唱歌
+        ///我6月17日和小欢摄影
+        ///你5月14日和阴露萍去图书馆
+        ///我4月1日和建华买东西
+        ///我4月27日和华诗吃大餐
+        ///我们周五12点和李灵黛去马场骑马
+        ///我们4月25日和飞哥去机场接机
+        ///我10月30日和小超约会
+        ///我4月12日和小唐吃大餐
+        ///我们7月17日和华诗举办生日派对
+        ///我们6月1日和丽丽约会
+        ///我周三14点和水笙聊天
+        ///我明天10点和静静旅游
+        ///你2月30日和丁玲珑举办生日派对
+        ///我周五7点和弟弟去骑行50公里
+        ///你周三12点和文子摄影
+        ///我们周日21点和敏敏姐唱歌
+        ///我1月16日和建华旅游
+        ///我们10月9日和文子逛街
+        ///我1月29日和建华去马场骑马
+        ///你周五14点和卫国旅游
+        ///你7月30日和湘林摄影
+        ///你7月2日和小慧买东西
+        ///我4月5日和阴露萍唱歌
+        ///你3月12日和小 [字符串的其余部分被截断]&quot;; 的本地化字符串。
         /// </summary>
-        internal static string 创建temp {
+        internal static string incident {
             get {
-                return ResourceManager.GetString("创建temp", resourceCulture);
+                return ResourceManager.GetString("incident", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   查找类似 --1.创建一个数据库
-        ///--create database School;
-        ///----删除数据库
-        ///--drop database School;
-        ///--创建数据库的时候指定一些选项。
-        ///create database grxx
-        ///on primary
-        ///(
-        ///	name=&apos;grxx&apos;,
-        ///	filename=&apos;C:\Program Files\Microsoft SQL Server\MSSQL12.SQLEXPRESS\MSSQL\DATA\grxx.mdf&apos;,
-        ///	size=5MB,
-        ///	filegrowth=10MB,	
-        ///	maxsize=100MB
-        ///)
-        ///log on
-        ///(
-        ///	name=&apos;grxx_log&apos;,
-        ///	filename=&apos;C:\Program Files\Microsoft SQL Server\MSSQL12.SQLEXPRESS\MSSQL\DATA\grxx.ldf&apos;,
-        ///	size=3MB,
-        ///	filegrowth=3%,
-        ///	maxsize=20MB
-        ///) 的本地化字符串。
+        ///   查找类似 吃大餐
+        ///逛街
+        ///买东西
+        ///看电影
+        ///约会
+        ///聊天
+        ///去图书馆
+        ///去机场接机
+        ///去医院看医生
+        ///入手新出的iphone
+        ///旅游
+        ///写作
+        ///唱歌
+        ///摄影
+        ///去拔牙
+        ///去公园放风筝
+        ///举办生日派对
+        ///去看演唱会
+        ///去骑行50公里
+        ///去马场骑马
+        ///去高尔夫场打高尔夫
+        ///去做美容
+        /// 的本地化字符串。
         /// </summary>
-        internal static string 创建数据库grxx {
+        internal static string 事件 {
             get {
-                return ResourceManager.GetString("创建数据库grxx", resourceCulture);
+                return ResourceManager.GetString("事件", resourceCulture);
             }
         }
         
@@ -190,38 +215,6 @@ namespace 个人信息数据库principalComputer
         internal static string 城市 {
             get {
                 return ResourceManager.GetString("城市", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 use grxx
-        ///insert into temp(id,name,contact,naddress,city,comment)
-        ///values(&apos;3&apos;,&apos;黄林&apos;,&apos;1&apos;,&apos;中国&apos;,&apos; &apos;,&apos; &apos;);
-        /// 的本地化字符串。
-        /// </summary>
-        internal static string 插入数据 {
-            get {
-                return ResourceManager.GetString("插入数据", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 --切换数据库
-        ///--use grxx;
-        ///
-        ///
-        ///----在grxx数据库中创建addressBook。addressBook
-        ///--create table addressBook
-        ///--(
-        ///--	--表中列的定义在这对小括号中
-        ///--	tsid int 
-        ///	
-        ///--)
-        /// 的本地化字符串。
-        /// </summary>
-        internal static string 表 {
-            get {
-                return ResourceManager.GetString("表", resourceCulture);
             }
         }
     }

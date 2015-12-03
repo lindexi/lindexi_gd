@@ -118,19 +118,13 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="创建temp" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>data\sql\创建temp.sql;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;gb2312</value>
+  <data name="incident" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\incident.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="创建数据库grxx" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>data\sql\创建数据库grxx.sql;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;gb2312</value>
+  <data name="事件" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\事件.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;gb2312</value>
   </data>
   <data name="城市" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>data\城市.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;gb2312</value>
-  </data>
-  <data name="插入数据" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>data\sql\插入数据.sql;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;gb2312</value>
-  </data>
-  <data name="表" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>data\sql\表.sql;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;gb2312</value>
   </data>
 </root>
