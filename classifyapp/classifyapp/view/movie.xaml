@@ -74,7 +74,46 @@
                                 </Grid>
                             </Button.Content>
                         </Button>
-                        
+
+                        <Button Click="baofengyingyin_Click" Width="50" Height="50" Margin="10,10,10,10" Padding="0">
+                            <Button.Content>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="auto"/>
+                                        <RowDefinition Height="auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Image Source="ms-appx:///Assets/暴风影音.png" Width="50" ScrollViewer.VerticalScrollBarVisibility="Disabled" />
+                                    <TextBlock Text="暴风影音" Grid.Row="1" HorizontalAlignment="Center" />
+                                </Grid>
+                            </Button.Content>
+                        </Button>
+
+                        <Button Click="qiyi_Click" Width="50" Height="50" Margin="10,10,10,10" Padding="0">
+                            <Button.Content>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="auto"/>
+                                        <RowDefinition Height="auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Image Source="ms-appx:///Assets/爱奇艺.png" Width="50" ScrollViewer.VerticalScrollBarVisibility="Disabled" />
+                                    <TextBlock Text="爱奇艺" Grid.Row="1" HorizontalAlignment="Center" />
+                                </Grid>
+                            </Button.Content>
+                        </Button>
+
+                        <Button Click="xunlei_Click" Width="50" Height="50" Margin="10,10,10,10" Padding="0">
+                            <Button.Content>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="auto"/>
+                                        <RowDefinition Height="auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Image Source="ms-appx:///Assets/迅雷看看.png" Width="50" ScrollViewer.VerticalScrollBarVisibility="Disabled" />
+                                    <TextBlock Text="爱奇艺" Grid.Row="1" HorizontalAlignment="Center" />
+                                </Grid>
+                            </Button.Content>
+                        </Button>
+
                     </GridView>
                 </Grid>
             </Grid>

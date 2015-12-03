@@ -26,6 +26,8 @@ namespace classifyapp.view
 
         private async void QQ_Click(object sender , RoutedEventArgs e)
         {
+            //https://www.microsoft.com/zh-cn/store/apps/qq/9wzdncrfj1ps
+
             string uri = "ms-windows-store://pdp/?ProductId=9wzdncrfj1ps";
             await Windows.System.Launcher.LaunchUriAsync(new Uri(uri));
         }

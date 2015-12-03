@@ -61,5 +61,24 @@ namespace classifyapp.view
             _model.windowsapp(ProductId);
         }
 
+        private void baofengyingyin_Click(object sender , RoutedEventArgs e)
+        {
+            string ProductId = "9wzdncrfhv95";
+            _model.windowsapp(ProductId);
+        }
+
+        private void qiyi_Click(object sender , RoutedEventArgs e)
+        {
+            string ProductId = "9wzdncrfj15n";
+            _model.windowsapp(ProductId);
+        }
+
+        private void xunlei_Click(object sender , RoutedEventArgs e)
+        {
+            string ProductId = "9wzdncrfj3wx";
+            _model.windowsapp(ProductId);
+        }
+
+
     }
 }
