@@ -12,7 +12,8 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
-
+using classifyapp.view;
+using classifyapp.ViewModel;
 //“空白页”项模板在 http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409 上有介绍
 
 namespace classifyapp
@@ -22,15 +23,18 @@ namespace classifyapp
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        viewModel view;
         public MainPage()
         {
+            view = new viewModel();
             this.InitializeComponent();
             ce();
         }
 
         private void ce()
-        {
-            frame.Navigate(typeof(chatcommunication));
+        {            
+            chatcommunicationframe.Navigate(typeof(chatcommunication));
+            movieframe.Navigate(typeof(movie));
         }
     }
 }

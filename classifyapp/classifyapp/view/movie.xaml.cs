@@ -17,17 +17,29 @@ using classifyapp.ViewModel;
 
 namespace classifyapp.view
 {
-    public sealed partial class chatcommunication:Page
+    public sealed partial class movie:Page
     {
-        public chatcommunication()
+        public movie()
         {
             InitializeComponent();
         }
 
-        private async void QQ_Click(object sender , RoutedEventArgs e)
+        private void souhu_Click(object sender , RoutedEventArgs e)
+        {            
+            string ProductId = "9wzdncrfhvq0";
+            _model.windowsapp(ProductId);
+        }
+
+        private model _model
         {
-            string uri = "ms-windows-store://pdp/?ProductId=9wzdncrfj1ps";
-            await Windows.System.Launcher.LaunchUriAsync(new Uri(uri));
+            set
+            {
+                value = null;
+            }
+            get
+            {
+                return model.cmodel();
+            }
         }
     }
 }
