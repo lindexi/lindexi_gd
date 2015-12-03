@@ -13,24 +13,19 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
-//“空白页”项模板在 http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409 上有介绍
-
-namespace classifyapp
+namespace classifyapp.view
 {
-    /// <summary>
-    /// 可用于自身或导航至 Frame 内部的空白页。
-    /// </summary>
-    public sealed partial class MainPage : Page
+    public sealed partial class chatcommunication:Page
     {
-        public MainPage()
+        public chatcommunication()
         {
-            this.InitializeComponent();
-            ce();
+            InitializeComponent();
         }
 
-        private void ce()
+        private async void QQ_Click(object sender , RoutedEventArgs e)
         {
-            frame.Navigate(typeof(chatcommunication));
+            string uri = "s-windows-store://pdp/?ProductId=9wzdncrfj1ps";
+            await Windows.System.Launcher.LaunchUriAsync(new Uri(uri));
         }
     }
 }
