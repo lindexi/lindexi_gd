@@ -84,8 +84,6 @@ namespace 个人信息数据库principalComputer.model
 
         //}
 
-
-
         public ObservableCollection<caddressBook> newaddressBook()
         {
             const string addressBookname = "vaddressbook";

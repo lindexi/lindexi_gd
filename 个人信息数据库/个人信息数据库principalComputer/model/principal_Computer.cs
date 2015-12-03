@@ -145,7 +145,8 @@ namespace 个人信息数据库principalComputer.model
         {
             try
             {
-                if (switchimplement != null)
+                str = str.TrimEnd('\0');
+                if (switchimplement != null && !string.IsNullOrEmpty(str))
                 {
                     ctransmitter transmitter = JsonConvert.DeserializeObject<ctransmitter>(str);
                 ecommand command = (ecommand)Enum.Parse(typeof(ecommand) , transmitter.command);

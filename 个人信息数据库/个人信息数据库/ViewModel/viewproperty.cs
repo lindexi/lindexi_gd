@@ -17,7 +17,10 @@ namespace 个人信息数据库.ViewModel
             _viewModel.property = this;
             _model.property = lproperty;
 
+            lproperty.CollectionChanged += Lproperty_CollectionChanged;
         }
+
+     
 
         public cproperty property
         {
@@ -33,9 +36,16 @@ namespace 个人信息数据库.ViewModel
         }
         public System.Collections.ObjectModel.ObservableCollection<cproperty> lproperty
         {
-            set;
-            get;
-        } = new System.Collections.ObjectModel.ObservableCollection<cproperty>();
+            set
+            {
+                _lproperty = value;
+                OnPropertyChanged();
+            }
+            get
+            {                
+                return _lproperty;
+            }
+        } 
         public System.Windows.Visibility visibility
         {
             set
@@ -57,6 +67,34 @@ namespace 个人信息数据库.ViewModel
             get
             {
                 return _model.reminder;
+            }
+        }
+        public string money
+        {
+            set
+            {
+                value = string.Empty;
+                OnPropertyChanged();
+            }
+            get
+            {
+                decimal sum;
+                sum = 0;
+                decimal i;
+                i = 0;
+                foreach (var temp in lproperty)
+                {
+                    try
+                    {
+                        i = Convert.ToDecimal(temp.PMONEY);
+                    }
+                    catch
+                    {
+
+                    }
+                    sum += i;
+                }
+                return sum.ToString();
             }
         }
         public void add()
@@ -190,6 +228,7 @@ namespace 个人信息数据库.ViewModel
         private cproperty _property = new cproperty();
         private cproperty _item = new cproperty();
         private model.model _model;
+        private System.Collections.ObjectModel.ObservableCollection<cproperty> _lproperty = new System.Collections.ObjectModel.ObservableCollection<cproperty>();
         private bool property_equals(cproperty a)
         {
             return access(property.MTIME , a.MTIME) &&
@@ -198,7 +237,10 @@ namespace 个人信息数据库.ViewModel
                    access(property.MTIME , a.MTIME) &&
                    access(property.CONTACTSID , a.CONTACTSID);
         }
-
+        private void Lproperty_CollectionChanged(object sender , System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            OnPropertyChanged("money");
+        }
         private bool access(string anull , string b)
         {
             return string.IsNullOrEmpty(anull) || string.Equals(anull , b);
