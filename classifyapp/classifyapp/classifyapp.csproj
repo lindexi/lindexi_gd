@@ -121,8 +121,11 @@
     <None Include="classifyapp_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Assets\blibli.png" />
     <Content Include="Assets\QQ.png" />
+    <Content Include="Assets\优酷.png" />
     <Content Include="Assets\搜狐.png" />
+    <Content Include="Assets\芒果.png" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\SplashScreen.scale-200.png" />

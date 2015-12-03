@@ -14,5 +14,6 @@
         </Grid.RowDefinitions>
         <Frame Name="chatcommunicationframe" Grid.Row="0" Margin="10,10,10,10"/>
         <Frame Name="movieframe" Grid.Row="1" Margin="10,10,10,10"/>
+        
     </Grid>
 </Page>
