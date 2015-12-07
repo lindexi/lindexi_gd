@@ -8,7 +8,14 @@
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <TextBlock Text="{x:Bind view.reminder,Mode=OneWay}" Margin="10,100,10,10"/>
-        <Button Content="确定" Margin="10,500,10,10" Click="{x:Bind view.ce}"/>
+        <!--<TextBlock Text="{x:Bind view.reminder,Mode=OneWay}" Margin="10,100,10,10"/>-->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <TextBox Text="" Grid.Row="0" Margin="10,10,10,10"/>
+        <TextBox Name="tb" Text="asdfasdf" Grid.Row="1"/>
+        <Button Content="确定" Grid.Row="2"  Margin="10,500,10,10" Click="Button_Click"/>
     </Grid>
 </Page>
