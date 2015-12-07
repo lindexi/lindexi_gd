@@ -22,9 +22,12 @@ namespace tallyBook
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        viewModel view;
         public MainPage()
         {
-            this.InitializeComponent();
+            view = new viewModel();
+            this.InitializeComponent();            
         }
+
     }
 }

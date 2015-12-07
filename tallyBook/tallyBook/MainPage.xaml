@@ -8,6 +8,7 @@
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-
+        <TextBlock Text="{x:Bind view.reminder,Mode=OneWay}" Margin="10,100,10,10"/>
+        <Button Content="确定" Margin="10,500,10,10" Click="{x:Bind view.ce}"/>
     </Grid>
 </Page>
