@@ -8,6 +8,79 @@
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition />
+            </Grid.RowDefinitions>
 
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Ellipse Height="100" Width="100" Margin="10,10,10,10">
+                    <Ellipse.Fill>
+                        <ImageBrush ImageSource="Assets/Wide310x150Logo.png" />
+                    </Ellipse.Fill>
+                </Ellipse>
+               
+
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="名字" Grid.Row="0" Grid.Column="0"  Margin="10,10,10,10"/>
+                    <TextBox Text="" Grid.Row="0" Grid.Column="1" Margin="10,10,10,10"/>
+
+                    <TextBlock Text="生日" Grid.Row="1" Grid.Column="0"  Margin="10,10,10,10"/>
+                    <TextBox Text="" Grid.Row="1" Grid.Column="1" Margin="10,10,10,10"/>
+                </Grid>
+            </Grid>
+            <Grid Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="地址" Margin="10,10,10,10"/>
+                <TextBox Grid.Row="0" Grid.Column="1" Text="" Margin="10,10,10,10"/>
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="电话" Margin="10,10,10,10"/>
+                <TextBox Grid.Row="1" Grid.Column="1" Text="" Margin="10,10,10,10"/>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="最喜欢颜色" Margin="10,10,10,10"/>
+                <TextBox Grid.Row="2" Grid.Column="1" Text="" Margin="10,10,10,10"/>
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="最喜欢食物" Margin="10,10,10,10"/>
+                <TextBox Grid.Row="3" Grid.Column="1" Text="" Margin="10,10,10,10"/>
+
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="爱好" Margin="10,10,10,10"/>
+                <TextBox Grid.Row="4" Grid.Column="1" Text="" Margin="10,10,10,10"/>
+            </Grid>
+        </Grid>
     </Grid>
 </Page>
