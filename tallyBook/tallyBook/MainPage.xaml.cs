@@ -28,6 +28,8 @@ namespace tallyBook
         {
             view = new viewModel();
             this.InitializeComponent();
+            xf.Navigate(typeof(book));
+
             redit.Document.SetText(TextSetOptions.None , @"老周：当RichEditBox控件的上下文菜单即将弹出时，会引发ContextMenuOpening事件，我们需要处理该事件，并且将e.Handled属性设置为true，这样才能阻止默认上下文菜单的弹出
 通过FlyoutBase类的AttachedFlyout附加属性，可以将派出自FlyoutBase的弹出对象附加到任意的可视化对象上，由于这里咱们用的菜单，所以附加到RichEditBox控件的弹出对象为MenuFlyout实例。");           
         }
