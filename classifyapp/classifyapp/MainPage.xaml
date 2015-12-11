@@ -11,9 +11,22 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
-        <Frame Name="chatcommunicationframe" Grid.Row="0" Margin="10,10,10,10"/>
-        <Frame Name="movieframe" Grid.Row="1" Margin="10,10,10,10"/>
+        <FlipView Grid.Row="0" Height="100" Margin="10,10,10,10">
+            <Image Source="Assets/QQ.png"/>
+            <Image Source="Assets/搜狐.png"/>
+            <Image Source="Assets/暴风影音.png"/>
+            <Image Source="Assets/芒果.png"/>
+            <Image Source="Assets/迅雷看看.png"/>
+            <FlipView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel Orientation="Vertical"/>
+                </ItemsPanelTemplate>
+            </FlipView.ItemsPanel>
+        </FlipView>
+        <Frame Name="chatcommunicationframe" Grid.Row="1" Margin="10,10,10,10"/>
+        <Frame Name="movieframe" Grid.Row="2" Margin="10,10,10,10"/>
         
     </Grid>
 </Page>

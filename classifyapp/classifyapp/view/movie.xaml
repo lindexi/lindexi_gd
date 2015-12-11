@@ -6,6 +6,14 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
+    <Page.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Width" Value="50"/>
+            <Setter Property="Height" Value="50"/>
+            <Setter Property="Margin" Value="10,10,10,10"/>            
+        </Style>       
+    </Page.Resources>
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Border>
@@ -23,7 +31,7 @@
                 <TextBlock Text="视频" Grid.Row="0" Margin="10,10,10,10"/>
                 <Grid Grid.Row="1">
                     <GridView >
-                        <Button Click="souhu_Click" Width="50" Height="50" Margin="10,10,10,10" Padding="0" >
+                        <Button Click="souhu_Click" Padding="0" >
                             <Button.Content>
                                 <Grid>
                                     <Grid.RowDefinitions>
@@ -34,6 +42,9 @@
                                     <TextBlock Text="搜狐视频" Grid.Row="1" HorizontalAlignment="Center" />
                                 </Grid>
                             </Button.Content>
+                            <ToolTipService.ToolTip>
+                                <Image Height="50" Width="50" Source="ms-appx:///Assets/搜狐.png"/>
+                            </ToolTipService.ToolTip>
                         </Button>
 
                         <Button Click="blibli_Click" Width="50" Height="50" Margin="10,10,10,10" Padding="0">
@@ -118,6 +129,5 @@
                 </Grid>
             </Grid>
         </Border>
-    </Grid>
-   
+    </Grid>   
 </Page>
