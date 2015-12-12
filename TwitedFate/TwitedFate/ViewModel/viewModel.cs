@@ -6,11 +6,15 @@ using System.Threading.Tasks;
 
 namespace TwitedFate.ViewModel
 {
-   public class viewModel: notify_property
+    public class viewModel : notify_property
     {
         public viewModel()
         {
 
-        }
+        }        
+
+
+
+        model _m = new model();
     }
 }

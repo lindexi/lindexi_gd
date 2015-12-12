@@ -22,8 +22,10 @@ namespace TwitedFate
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        ViewModel.viewModel view;
         public MainPage()
         {
+            view = new ViewModel.viewModel();
             this.InitializeComponent();
         }
     }

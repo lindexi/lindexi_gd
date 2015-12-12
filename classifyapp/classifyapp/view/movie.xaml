@@ -11,7 +11,9 @@
             <Setter Property="Background" Value="White"/>
             <Setter Property="Width" Value="50"/>
             <Setter Property="Height" Value="50"/>
-            <Setter Property="Margin" Value="10,10,10,10"/>            
+            <Setter Property="Margin" Value="10,10,10,10"/>
+
+            
         </Style>       
     </Page.Resources>
 
@@ -44,7 +46,7 @@
                             </Button.Content>
                             <ToolTipService.ToolTip>
                                 <Image Height="50" Width="50" Source="ms-appx:///Assets/搜狐.png"/>
-                            </ToolTipService.ToolTip>
+                            </ToolTipService.ToolTip>                            
                         </Button>
 
                         <Button Click="blibli_Click" Width="50" Height="50" Margin="10,10,10,10" Padding="0">
@@ -58,6 +60,7 @@
                                     <TextBlock Text="搜狐视频" Grid.Row="1" HorizontalAlignment="Center" />
                                 </Grid>
                             </Button.Content>
+                            
                         </Button>
 
                         <Button Click="manguo_Click" Width="50" Height="50" Margin="10,10,10,10" Padding="0">
