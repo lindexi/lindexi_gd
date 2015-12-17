@@ -28,8 +28,7 @@ namespace TwitedFate
             StorageFile file = await StorageFile.GetFileFromApplicationUriAsync(new Uri("ms-appx:///Assets/桌面.jpg"));
 
             StorageFile tmp = await file.CopyAsync(ApplicationData.Current.LocalFolder , "桌面.jpg" , NameCollisionOption.ReplaceExisting);
-
-
+             
             bool success = false;
             //检查是否支持
             if (UserProfilePersonalizationSettings.IsSupported())

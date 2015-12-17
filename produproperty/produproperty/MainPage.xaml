@@ -1,14 +1,14 @@
 ﻿<Page
-    x:Class="TwitedFate.MainPage"
+    x:Class="produproperty.MainPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:TwitedFate"
+    xmlns:local="using:produproperty"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-<Image Source="Assets/桌面.jpg" />
-        <TextBox Text="{x:Bind view.reminder}" Margin="10,10,10,10" TextWrapping="Wrap" />
+        <TextBox Text="{x:Bind view.text,Mode=TwoWay}" Margin="10,10,10,10" TextWrapping="Wrap" AcceptsReturn="True"/>
+        <Button Content="确定" Click="{x:Bind view.property}" Margin="121,300,0,308"/>
     </Grid>
 </Page>
