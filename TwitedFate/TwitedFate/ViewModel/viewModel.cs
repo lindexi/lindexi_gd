@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Windows.Security.ExchangeActiveSyncProvisioning;
+﻿using Windows.Security.ExchangeActiveSyncProvisioning;
 
 namespace TwitedFate.ViewModel
 {
@@ -12,6 +7,13 @@ namespace TwitedFate.ViewModel
         public viewModel()
         {
             获取系统信息();
+           
+        }
+
+        public void quedin()
+        {
+            Windows.UI.Xaml.Controls.Image image = xf.SelectedItem as Windows.UI.Xaml.Controls.Image;
+            _m.writeasset桌面(image.Tag as Windows.Storage.StorageFile);
         }
 
         public void 获取系统信息()
@@ -32,7 +34,7 @@ namespace TwitedFate.ViewModel
             EasClientDeviceInformation eas = new EasClientDeviceInformation();
             reminder= eas.SystemManufacturer;
         }
-
+        public Windows.UI.Xaml.Controls.FlipView xf;
         model _m = new model();
     }
 }

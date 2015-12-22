@@ -23,9 +23,9 @@ namespace TwitedFate
 
         //设置壁纸
         //复制壁纸到localFolder
-        private async void writeasset桌面()
+        public async void writeasset桌面(StorageFile file)
         {
-            StorageFile file = await StorageFile.GetFileFromApplicationUriAsync(new Uri("ms-appx:///Assets/桌面.jpg"));
+            //StorageFile file = await StorageFile.GetFileFromApplicationUriAsync(new Uri("ms-appx:///Assets/桌面.jpg"));
 
             StorageFile tmp = await file.CopyAsync(ApplicationData.Current.LocalFolder , "桌面.jpg" , NameCollisionOption.ReplaceExisting);
              
