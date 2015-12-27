@@ -10,9 +10,21 @@ namespace delayeddisplay
     {
         public viewModel()
         {
-            ce();
+            img= new Windows.UI.Xaml.Media.Imaging.BitmapImage(new Uri("ms-appx:///Assets/gamersky_05small_10_20155131557102.jpg"));
         }
-
+        public Windows.UI.Xaml.Media.ImageSource img
+        {
+            set
+            {
+                _img = value;
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _img;
+            }
+        }
+        private Windows.UI.Xaml.Media.ImageSource _img;
         public void ce()
         {
             System.Net.Http.HttpClient http = new System.Net.Http.HttpClient();
@@ -47,6 +59,10 @@ namespace delayeddisplay
             //}
             //, null);
         }
+
+
+
+
 
         public modelbusiness.student student
         {

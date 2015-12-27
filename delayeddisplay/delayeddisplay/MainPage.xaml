@@ -17,6 +17,7 @@
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
+        <Image x:Name="img" Source="{x:Bind view.img}"/>
         <TextBlock Text="{x:Bind view.student.name,Mode=TwoWay}" Grid.Row="0" />
         <TextBlock Text="{x:Bind view.student.city,Mode=TwoWay}" Grid.Row="1" />
         <TextBlock Text="{x:Bind view.student.age,Mode=TwoWay}" Grid.Row="2" />

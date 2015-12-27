@@ -26,7 +26,7 @@ namespace delayeddisplay
         public MainPage()
         {
             view = new viewModel();
-            this.InitializeComponent();
+            this.InitializeComponent();           
         }
     }
 }
