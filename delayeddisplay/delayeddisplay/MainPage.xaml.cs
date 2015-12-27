@@ -22,7 +22,7 @@ namespace delayeddisplay
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        viewModel view=new viewModel();
+        viewModel view;
         public MainPage()
         {
             view = new viewModel();
