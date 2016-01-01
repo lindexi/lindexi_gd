@@ -37,11 +37,11 @@ namespace delayeddisplay
             {
                 Windows.UI.Xaml.Media.Imaging.BitmapImage temp = new Windows.UI.Xaml.Media.Imaging.BitmapImage();
                 await temp.SetSourceAsync(await file.OpenAsync(Windows.Storage.FileAccessMode.Read));
-                img = temp;                
+                img = temp;
             }
         }
 
-
+        
 
 
         public modelbusiness.student student
@@ -56,13 +56,13 @@ namespace delayeddisplay
                 return _student;
             }
         }
-        private modelbusiness.student _student=new modelbusiness.student()
+        private modelbusiness.student _student = new modelbusiness.student()
         {
-            name="学生",
-            city="上海",
-            age="100",
+            name = "学生",
+            city = "上海",
+            age = "100",
             //img=new Windows.UI.Xaml.Media.Imaging.BitmapImage(new Uri("ms-appx:///Assets/gamersky_05small_10_20155131557102.jpg"))
         };
-        private modelbusiness.model _model=new modelbusiness.model();
+        private modelbusiness.model _model = new modelbusiness.model();
     }
 }

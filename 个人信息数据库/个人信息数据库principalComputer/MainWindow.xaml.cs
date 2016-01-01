@@ -27,5 +27,10 @@ namespace 个人信息数据库principalComputer
             InitializeComponent();
             this.DataContext = view;
         }
+
+        private void quedin(object sender , RoutedEventArgs e)
+        {
+            view.ce();
+        }
     }
 }

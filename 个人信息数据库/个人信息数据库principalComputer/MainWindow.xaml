@@ -5,13 +5,29 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:个人信息数据库principalComputer"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        Title="MainWindow" Height="350" Width="525">    
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition/>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <DataGrid  Grid.Column="0" Grid.Row="0" x:Name="xl" ItemsSource="{Binding Path=addressBook}" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+        <Grid Grid.Row="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Row="0" Text="数据库ip" Grid.Column="0" Margin="10,10,10,10"/>
+            <TextBox Grid.Row="0" Text="{Binding Path=DataSource,Mode=TwoWay}" Width="200" Grid.Column="1" Margin="10,10,10,10"/>
+            <TextBlock Grid.Row="1" Text="数据库名" Grid.Column="0" Margin="10,10,10,10"/>
+            <TextBox Grid.Row="1" Text="{Binding Path=InitialCatalog,Mode=TwoWay}" Width="200" Grid.Column="1" Margin="10,10,10,10"/>
+            <Button Grid.Row="1" Content="确定" Grid.Column="2" Click="quedin"/>
+
+        </Grid>
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <TextBlock Grid.Row="1" Text="{Binding Path=reminder}" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto" Margin="10,10,10,10" />
         </ScrollViewer>

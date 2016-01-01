@@ -50,7 +50,7 @@ namespace delayeddisplay
             //PropertyChangedEventHandler handler = PropertyChanged;
             //if (handler != null)
             //{
-            //    handler(this , new PropertyChangedEventArgs(name));
+            //    handler(this, new PropertyChangedEventArgs(name));
             //}
             PropertyChanged?.Invoke(this , new PropertyChangedEventArgs(name));
         }

@@ -20,11 +20,6 @@ namespace modelbusiness
             
         }
 
-
-        private int _post;
-
-        private string _ip;
-
         /// <summary>
         /// 端口
         /// </summary>
@@ -55,7 +50,45 @@ namespace modelbusiness
             }
 
         }
+        public int id
+        {
+            set
+            {
+                _id = value;
+            }
+            get
+            {
+                return _id;
+            }
+        }
+
+        
+       
+        public void send(string str, int id)
+        {
+
+        }
+
+        private bool _server
+        {
+            set;
+            get;
+        }
+
+        private int _id;
+
+        private int _post;
+
+        private string _ip;
+
+       
     }    
+
+
+
+
+
+
 
     public class student:notify_property
     {
