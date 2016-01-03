@@ -12,5 +12,10 @@ namespace impressAlumniBook
         {
 
         }
+
+        public void ce()
+        {
+
+        }
     }
 }

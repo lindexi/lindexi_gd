@@ -22,8 +22,10 @@ namespace impressAlumniBook
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        viewModel view;
         public MainPage()
         {
+            view = new viewModel();
             this.InitializeComponent();
         }
     }
