@@ -14,6 +14,9 @@ namespace produproperty
         public viewModel()
         {
             _m = new model();
+
+            text = "选择要保存位置";
+            writetext = true;
         }
         public bool firstget
         {
@@ -72,6 +75,11 @@ namespace produproperty
         /// </summary>
         public async void dropimg(object sender, Windows.UI.Xaml.DragEventArgs e)
         {
+            if (writetext)
+            {
+                return;
+            }
+
             var defer = e.GetDeferral();
 
             try
@@ -96,7 +104,73 @@ namespace produproperty
                 defer.Complete();
             }
         }
+
+        /// <summary>
+        /// 获取存储文件位置
+        /// </summary>
+        public async void fileaddress()
+        {
+            //获取保存文件
+            Windows.Storage.Pickers.FileSavePicker picker = new Windows.Storage.Pickers.FileSavePicker();
+            //显示方式
+            //picker.ViewMode = Windows.Storage.Pickers.PickerViewMode.Thumbnail;
+            //选择最先的位置
+            picker.SuggestedStartLocation =
+                Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
+            //后缀名
+            picker.SuggestedFileName = "博客";
+            picker.DefaultFileExtension = ".md";
+            picker.FileTypeChoices.Add("博客", new List<string>() { ".md",".txt" });
+
+            StorageFile file = await picker.PickSaveFileAsync();
+            if (file != null)
+            {
+                reminder="选择 " + file.Name;
+                _file = file;
+                _folder = await file.GetParentAsync();
+                fileaddresstext();
+            }
+        }
+
+
+
+        public bool writetext
+        {
+            set
+            {
+                _writetext = value;
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _writetext;
+            }
+        }
+
         private string _text;
         private model _m;
+        private StorageFolder _folder;
+        private StorageFile _file;
+        private bool _writetext;
+
+        private void fileaddresstext()
+        {
+            writetext = false;
+            text = "#" + _file.DisplayName + "#\r\n";
+            
+        }
+
+        private async void imgfolder(StorageFile file)
+        {
+            string str = "image";
+            StorageFolder image = await _folder.GetFolderAsync(str);
+            if (image == null)
+            {
+                image = await _folder.CreateFolderAsync(str, CreationCollisionOption.OpenIfExists);
+            }
+            file=await file.CopyAsync(image, file.Name, NameCollisionOption.GenerateUniqueName);
+
+
+        }
     }
 }

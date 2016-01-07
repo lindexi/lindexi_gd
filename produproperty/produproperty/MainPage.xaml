@@ -8,12 +8,17 @@
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" AllowDrop="True" Drop="{x:Bind view.dropimg}" DragOver="Grid_DragOver">
-        <TextBox Text="{x:Bind view.text,Mode=TwoWay}" Margin="10,10,10,10" TextWrapping="Wrap" AcceptsReturn="True"/>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <TextBox Text="{x:Bind view.text,Mode=TwoWay}" Margin="10,10,10,10" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="{x:Bind view.writetext,Mode=OneWay}"/>
+        <TextBlock Text="{x:Bind view.reminder,Mode=OneWay}" Grid.Row="1" Margin="10,10,10,10" TextWrapping="Wrap"/>
         <!--<Button Content="确定" Click="{x:Bind view.property}" Margin="121,300,0,308"/>-->
     </Grid>
     <Page.TopAppBar>
         <CommandBar>
-            <AppBarButton Icon="Add" Content="新建"/>
+            <AppBarButton Icon="Add" Content="新建" Click="{x:Bind view.fileaddress}"/>
             <AppBarButton Icon="Setting" Content="设置"/>
         </CommandBar>   
     </Page.TopAppBar>
