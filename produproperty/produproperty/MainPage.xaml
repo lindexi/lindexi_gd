@@ -7,8 +7,14 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" AllowDrop="True" Drop="{x:Bind view.dropimg}" DragOver="Grid_DragOver">
         <TextBox Text="{x:Bind view.text,Mode=TwoWay}" Margin="10,10,10,10" TextWrapping="Wrap" AcceptsReturn="True"/>
-        <Button Content="确定" Click="{x:Bind view.property}" Margin="121,300,0,308"/>
+        <!--<Button Content="确定" Click="{x:Bind view.property}" Margin="121,300,0,308"/>-->
     </Grid>
+    <Page.TopAppBar>
+        <CommandBar>
+            <AppBarButton Icon="Add" Content="新建"/>
+            <AppBarButton Icon="Setting" Content="设置"/>
+        </CommandBar>   
+    </Page.TopAppBar>
 </Page>

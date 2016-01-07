@@ -28,5 +28,12 @@ namespace produproperty
             view = new viewModel();
             this.InitializeComponent();
         }
+
+        private void Grid_DragOver(object sender, DragEventArgs e)
+        {
+            e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Copy;
+            e.DragUIOverride.Caption = "打开";
+            e.Handled = true;
+        }
     }
 }
