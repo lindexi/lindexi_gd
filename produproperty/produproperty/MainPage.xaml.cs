@@ -27,6 +27,7 @@ namespace produproperty
         {
             view = new viewModel();
             this.InitializeComponent();
+            view.selectchange = selectchange;
         }
 
         private void Grid_DragOver(object sender, DragEventArgs e)
@@ -34,6 +35,16 @@ namespace produproperty
             e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Copy;
             e.DragUIOverride.Caption = "打开";
             e.Handled = true;
+        }
+
+        private void text_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+            view.select = text.SelectionStart;
+        }
+
+        private void selectchange(int select)
+        {
+            text.SelectionStart = select;
         }
     }
 }

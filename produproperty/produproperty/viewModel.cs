@@ -41,6 +41,19 @@ namespace produproperty
             }
         }
 
+        public Action<int> selectchange;
+
+        public int select
+        {
+            set
+            {
+                _select = value; 
+            }
+            get
+            {
+                return _select;
+            }
+        }
 
         public void property()
         {
@@ -93,15 +106,51 @@ namespace produproperty
                     if (file.FileType == ".png" || file.FileType == ".jpg")
                     {
                         // 拖放的是图片文件。
-                        BitmapImage bitmap = new BitmapImage();
-                        await bitmap.SetSourceAsync(await file.OpenAsync(FileAccessMode.Read));
+                        //BitmapImage bitmap = new BitmapImage();
+                        //await bitmap.SetSourceAsync(await file.OpenAsync(FileAccessMode.Read));
                         //ximg.ImageSource = bitmap;
+                        imgfolder(file);
                     }
                 }
             }
             finally
             {
                 defer.Complete();
+            }
+        }
+
+        public async void folderaddress()
+        {
+            Windows.Storage.Pickers.FolderPicker picker = new Windows.Storage.Pickers.FolderPicker();
+            picker.ViewMode= Windows.Storage.Pickers.PickerViewMode.Thumbnail;
+            picker.SuggestedStartLocation =
+               Windows.Storage.Pickers.PickerLocationId.PicturesLibrary;           
+            var folder = await picker.PickSingleFolderAsync();
+            if (folder != null)
+            {
+                _folder = folder;
+            }
+
+        }
+
+
+        public async Task file_open()
+        {
+            Windows.Storage.Pickers.FileOpenPicker picker = new Windows.Storage.Pickers.FileOpenPicker();
+            //显示方式
+            picker.ViewMode = Windows.Storage.Pickers.PickerViewMode.Thumbnail;
+            //选择最先的位置
+            picker.SuggestedStartLocation =
+                Windows.Storage.Pickers.PickerLocationId.PicturesLibrary;
+            //后缀名
+            picker.FileTypeFilter.Add(".txt");
+
+            StorageFile file = await picker.PickSingleFileAsync();
+            if (file != null)
+            {
+                reminder = "选择 " + file.Name;
+                _file = file;
+                fileaddresstext();
             }
         }
 
@@ -121,6 +170,7 @@ namespace produproperty
             picker.SuggestedFileName = "博客";
             picker.DefaultFileExtension = ".md";
             picker.FileTypeChoices.Add("博客", new List<string>() { ".md",".txt" });
+            
 
             StorageFile file = await picker.PickSaveFileAsync();
             if (file != null)
@@ -130,7 +180,10 @@ namespace produproperty
                 _folder = await file.GetParentAsync();
                 fileaddresstext();
             }
+
         }
+
+        
 
 
 
@@ -152,12 +205,15 @@ namespace produproperty
         private StorageFolder _folder;
         private StorageFile _file;
         private bool _writetext;
+        private int _select;
+
+
 
         private void fileaddresstext()
         {
             writetext = false;
             text = "#" + _file.DisplayName + "#\r\n";
-            
+            //selectchange(2);
         }
 
         private async void imgfolder(StorageFile file)
@@ -170,6 +226,9 @@ namespace produproperty
             }
             file=await file.CopyAsync(image, file.Name, NameCollisionOption.GenerateUniqueName);
 
+            str = $"![这里写图片描述](image/{file.Name})";
+
+            text.Insert(select, str);
 
         }
     }
