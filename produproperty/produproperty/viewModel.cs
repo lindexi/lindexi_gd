@@ -33,7 +33,7 @@ namespace produproperty
             set
             {
                 _text = value;
-                OnPropertyChanged();               
+                OnPropertyChanged();
             }
             get
             {
@@ -41,13 +41,17 @@ namespace produproperty
             }
         }
 
-        public Action<int> selectchange;
+        public Action<int, int> selectchange
+        {
+            set;
+            get;
+        }
 
         public int select
         {
             set
             {
-                _select = value; 
+                _select = value;
             }
             get
             {
@@ -122,15 +126,16 @@ namespace produproperty
         public async void folderaddress()
         {
             Windows.Storage.Pickers.FolderPicker picker = new Windows.Storage.Pickers.FolderPicker();
-            picker.ViewMode= Windows.Storage.Pickers.PickerViewMode.Thumbnail;
+            picker.ViewMode = Windows.Storage.Pickers.PickerViewMode.Thumbnail;
             picker.SuggestedStartLocation =
-               Windows.Storage.Pickers.PickerLocationId.PicturesLibrary;           
+               Windows.Storage.Pickers.PickerLocationId.PicturesLibrary;
+            picker.FileTypeFilter.Add(".md");
             var folder = await picker.PickSingleFolderAsync();
             if (folder != null)
             {
                 _folder = folder;
+                folderaddresstext();
             }
-
         }
 
 
@@ -144,6 +149,7 @@ namespace produproperty
                 Windows.Storage.Pickers.PickerLocationId.PicturesLibrary;
             //后缀名
             picker.FileTypeFilter.Add(".txt");
+            picker.FileTypeFilter.Add(".md");
 
             StorageFile file = await picker.PickSingleFileAsync();
             if (file != null)
@@ -169,21 +175,26 @@ namespace produproperty
             //后缀名
             picker.SuggestedFileName = "博客";
             picker.DefaultFileExtension = ".md";
-            picker.FileTypeChoices.Add("博客", new List<string>() { ".md",".txt" });
-            
+            picker.FileTypeChoices.Add("博客", new List<string>() { ".md", ".txt" });
+
 
             StorageFile file = await picker.PickSaveFileAsync();
             if (file != null)
             {
-                reminder="选择 " + file.Name;
+                reminder = "选择 " + file.Name;
                 _file = file;
                 _folder = await file.GetParentAsync();
                 fileaddresstext();
             }
 
         }
+        /// <summary>
+        /// 保存文件
+        /// </summary>
+        public void storage()
+        {
 
-        
+        }
 
 
 
@@ -214,22 +225,45 @@ namespace produproperty
             writetext = false;
             text = "#" + _file.DisplayName + "#\r\n";
             //selectchange(2);
+            if (_folder == null)
+            {
+                reminder = "没有找到保存文件夹";
+                folderaddress();
+            }
+        }
+
+        private void folderaddresstext()
+        {
+            //writetext = false;
+            //string str = "输入标题";
+            //text = "#" + str + "#\r\n";
+            //selectchange(1, str.Length);        
         }
 
         private async void imgfolder(StorageFile file)
         {
             string str = "image";
-            StorageFolder image = await _folder.GetFolderAsync(str);
+            StorageFolder image = null;
+            try
+            {
+                image = await _folder.GetFolderAsync(str);
+            }
+            catch
+            {
+
+
+            }
             if (image == null)
             {
                 image = await _folder.CreateFolderAsync(str, CreationCollisionOption.OpenIfExists);
             }
-            file=await file.CopyAsync(image, file.Name, NameCollisionOption.GenerateUniqueName);
+            file = await file.CopyAsync(image, file.Name, NameCollisionOption.GenerateUniqueName);
 
             str = $"![这里写图片描述](image/{file.Name})";
 
-            text.Insert(select, str);
+            text = text.Insert(select, str);
 
+            selectchange(select + 2, 7);
         }
     }
 }

@@ -42,9 +42,10 @@ namespace produproperty
             view.select = text.SelectionStart;
         }
 
-        private void selectchange(int select)
+        private void selectchange(int select,int selecti)
         {
             text.SelectionStart = select;
-        }
+            text.SelectionLength = selecti;
+        }        
     }
 }

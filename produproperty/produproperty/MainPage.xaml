@@ -18,8 +18,9 @@
     </Grid>
     <Page.TopAppBar>
         <CommandBar>
-            <AppBarButton Icon="Add" Content="新建" Click="{x:Bind view.folderaddress}"/>
-            <AppBarButton Icon="OpenFile" Content="打开" Click="{x:Bind view.file_file_open}" />
+            <AppBarButton Icon="Add" Content="新建" Click="{x:Bind view.fileaddress}"/>
+            <AppBarButton Icon="OpenFile" Content="打开" Click="{x:Bind view.file_open}" />
+            <AppBarButton Icon="Save" Content="保存" Click="{x:Bind view.storage}"/>
             <AppBarButton Icon="Setting" Content="设置"/>
         </CommandBar>   
     </Page.TopAppBar>
