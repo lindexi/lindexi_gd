@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
+using Windows.Graphics.Imaging;
 using Windows.Storage;
+using Windows.Storage.Streams;
+using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 
 namespace produproperty
@@ -58,6 +63,182 @@ namespace produproperty
                 return _select;
             }
         }
+
+        public string name
+        {
+            set
+            {
+                _name = value;
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _name;
+            }
+        }
+
+        public async void clipboard(Windows.UI.Xaml.Controls.TextControlPasteEventArgs e)
+        {
+            if (writetext)
+            {
+                return;
+            }
+            e.Handled = true;
+            DataPackageView con = Windows.ApplicationModel.DataTransfer.Clipboard.GetContent();
+            string str = string.Empty;
+            //文本
+            if (con.Contains(StandardDataFormats.Text))
+            {
+                str = await con.GetTextAsync();
+            }
+
+            //图片
+            if (con.Contains(StandardDataFormats.Bitmap))
+            {
+                RandomAccessStreamReference img = await con.GetBitmapAsync();
+                var imgstream = await img.OpenReadAsync();
+                BitmapImage bitmap = new BitmapImage();
+                bitmap.SetSource(imgstream);
+           
+                WriteableBitmap src = new WriteableBitmap(bitmap.PixelWidth, bitmap.PixelHeight);
+                src.SetSource(imgstream);
+
+                BitmapDecoder decoder = await BitmapDecoder.CreateAsync(imgstream);
+                PixelDataProvider pxprd = await decoder.GetPixelDataAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Straight, new BitmapTransform(), ExifOrientationMode.RespectExifOrientation, ColorManagementMode.DoNotColorManage);
+                byte[] buffer = pxprd.DetachPixelData();
+
+                StorageFile file = await _folder.CreateFileAsync(DateTime.Now.Year.ToString() + DateTime.Now.Month.ToString() + DateTime.Now.Day.ToString() + DateTime.Now.Hour.ToString() + DateTime.Now.Minute.ToString() + ".jpg", CreationCollisionOption.GenerateUniqueName);
+
+                using (var fileStream = await file.OpenAsync(FileAccessMode.ReadWrite))
+                {
+                    var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, fileStream);
+                    encoder.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Straight, (uint)bitmap.PixelWidth, (uint)bitmap.PixelHeight, 96, 96, buffer);
+                    await encoder.FlushAsync();
+
+                    //using (StreamWriter s=new StreamWriter(fileStream as Stream))
+                    //{
+                    //    s.Write(img);
+                    //    s.Flush();
+                    //}
+                }
+                //{
+                //    var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, fileStream);
+                //    encoder.SetPixelData(
+                //        BitmapPixelFormat.Bgra8,
+                //        BitmapAlphaMode.Ignore,
+                //        (uint)src.PixelWidth,
+                //        (uint)src.PixelHeight,
+                //        Windows.Graphics.Display.DisplayInformation.GetForCurrentView().LogicalDpi,
+                //        Windows.Graphics.Display.DisplayInformation.GetForCurrentView().LogicalDpi,
+                //        src.PixelBuffer.ToArray());
+                //    await encoder.FlushAsync();
+                //}
+
+
+                    //using (StorageStreamTransaction transaction = await file.OpenTransactedWriteAsync())
+                    //{
+                    //    using (DataWriter dataWriter = new DataWriter(transaction.Stream))
+                    //    {
+                    //        dataWriter.WriteBuffer(src.PixelBuffer);
+                    //        await transaction.CommitAsync();
+                    //    }
+                    //}
+
+                    //IRandomAccessStream fileStream = await file.OpenAsync(Windows.Storage.FileAccessMode.ReadWrite);
+
+                    //BitmapEncoder encoder = await BitmapEncoder.CreateAsync(encoderId, fileStream);
+
+
+                    //Stream stream = System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeBufferExtensions.AsStream(src.PixelBuffer);
+
+                    //byte[] pixels = new byte[src.PixelBuffer.Length];
+                    //stream.Read(pixels,0, pixels.Length);
+                    ////pixels = System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeBufferExtensions.ToArray(src.PixelBuffer, 0, (int)src.PixelBuffer.Length);
+
+                    //////pixal format shouldconvert to rgba8
+
+                    //for (int i = 0; i < pixels.Length; i += 4)
+
+                    //{
+
+                    //    byte temp = pixels[i];
+
+                    //    pixels[i] = pixels[i + 2];
+
+                    //    pixels[i + 2] = temp;
+
+                    //}
+
+                    //encoder.SetPixelData(
+
+                    // BitmapPixelFormat.Rgba8,
+
+                    // BitmapAlphaMode.Straight,
+
+                    // (uint)src.PixelWidth,
+
+                    // (uint)src.PixelHeight,
+
+                    // 96, // Horizontal DPI
+
+                    // 96, // Vertical DPI
+
+                    // pixels
+
+                    // );
+
+                    //await encoder.FlushAsync();
+
+                    //str = $"![这里写图片描述](image/{file.Name})";
+                    //text = text.Insert(select, str);
+
+                    //selectchange(select + 2, 7);
+
+            }
+
+            //文件
+            if (con.Contains(StandardDataFormats.StorageItems))
+            {
+                var filelist = await con.GetStorageItemsAsync();
+                foreach (StorageFile t in filelist)
+                {
+                    imgfolder(t);
+                }
+            }
+
+
+            //imageclipboard(con);
+            //textclipboard(con);
+            //storageclipboard(con);
+            //var image = await con.GetBitmapAsync();
+
+
+            //StorageFile file = await _folder.CreateFileAsync("adxbcyue.jpg", CreationCollisionOption.GenerateUniqueName);
+            //using (IRandomAccessStream readStream = await image.OpenReadAsync())
+            //{
+            //    using (DataReader dataReader = new DataReader(readStream))
+            //    {
+            //        UInt64 size = readStream.Size;
+            //        if (size <= UInt32.MaxValue)
+            //        {
+            //            UInt32 numBytesLoaded = await dataReader.LoadAsync((UInt32)size);
+            //            string fileContent = dataReader.ReadString(numBytesLoaded);
+            //            using (StorageStreamTransaction transaction = await file.OpenTransactedWriteAsync())
+            //            {
+
+            //                using (DataWriter dataWriter = new DataWriter(transaction.Stream))
+            //                {
+            //                    dataWriter.WriteString(fileContent);
+            //                    transaction.Stream.Size = await dataWriter.StoreAsync();
+            //                    await transaction.CommitAsync();
+            //                }
+            //            }
+            //        }
+            //    }
+            //}            
+        }
+
+
 
         public void property()
         {
@@ -217,7 +398,7 @@ namespace produproperty
         private StorageFile _file;
         private bool _writetext;
         private int _select;
-
+        private string _name;
 
 
         private void fileaddresstext()
@@ -259,11 +440,52 @@ namespace produproperty
             }
             file = await file.CopyAsync(image, file.Name, NameCollisionOption.GenerateUniqueName);
 
-            str = $"![这里写图片描述](image/{file.Name})";
+            if (file.FileType == ".png" || file.FileType == ".jpg")
+            {
+                str = $"![这里写图片描述](image/{file.Name})";
+                text = text.Insert(select, str);
 
-            text = text.Insert(select, str);
+                selectchange(select + 2, 7);
+            }
+            else
+            {
+                str = $"[这里写图片描述](image/{file.Name})";
+                text = text.Insert(select, str);
 
-            selectchange(select + 2, 7);
+                selectchange(select + 1, 7);
+            }
+
+
+
         }
+
+        //private void imageclipboard(DataPackageView con)
+        //{
+
+        //}
+        //private void storageclipboard(DataPackageView con)
+        //{
+
+        //}
+
+        //private async void textclipboard(DataPackageView con)
+        //{
+        //    try
+        //    {
+        //        var file = await con.GetStorageItemsAsync();
+        //        foreach (var t in file)
+        //        {
+        //            if (t.IsOfType(StorageItemTypes.File))
+        //            {
+        //                StorageFile f = t as StorageFile;
+        //            }
+        //        }
+        //    }
+        //    catch
+        //    {
+
+
+        //    }
+        //}
     }
 }

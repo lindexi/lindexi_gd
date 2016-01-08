@@ -1,16 +1,57 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Windows.ApplicationModel.DataTransfer;
+using Windows.Graphics.Imaging;
+using Windows.Storage;
+using Windows.Storage.Streams;
+using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Imaging;
 namespace produproperty
 {
     class model
     {
         public model()
         {
+            _open = false;
 
+            //默认存在
+            string name = "博客.md";
+            folder = ApplicationData.Current.LocalFolder;
+            folder.GetFileAsync(name);
+        }
+
+        public StorageFile file
+        {
+            set
+            {
+                _file = value;
+            }
+            get
+            {
+                return _file;
+            }
+        }
+
+        public StorageFolder folder
+        {
+            set
+            {
+                _folder = value;
+            }
+            get
+            {
+                return _folder;
+            }
+        }
+
+        public void openfile()
+        {
+            _open = true;
         }
 
         public string property(string str , bool firstget , bool updateproper)
@@ -41,6 +82,13 @@ namespace produproperty
 
         private List<string> publicproperty=new List<string>();
         private List<string> privatep=new List<string>();
+
+        private StorageFile _file;
+        private StorageFolder _folder;
+        private bool _open;
+
+
+
 
         private string stringproperty(string str , bool firstget , bool updateproper)
         {

@@ -103,6 +103,9 @@
     </Compile>
     <Compile Include="model.cs" />
     <Compile Include="notify_property.cs" />
+    <Compile Include="option.xaml.cs">
+      <DependentUpon>option.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="viewModel.cs" />
   </ItemGroup>
@@ -130,6 +133,10 @@
     <Page Include="MainPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="option.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
