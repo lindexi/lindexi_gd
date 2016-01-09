@@ -30,6 +30,7 @@ namespace produproperty
             view.selectchange = selectchange;
             //Windows.ApplicationModel.DataTransfer.Clipboard
             text.Paste += Text_Paste;
+            this.DataContext = view;
         }
 
         private void Text_Paste(object sender, TextControlPasteEventArgs e)
@@ -67,6 +68,15 @@ namespace produproperty
             {
                            
             }
+
+            if (_ctrl)
+            {
+                if (e.Key == Windows.System.VirtualKey.Z)
+                {
+                    
+                }
+            }
+           
             e.Handled = true;
         }
 
@@ -77,5 +87,17 @@ namespace produproperty
                 _ctrl = false;
             }
         }
+
+        private void option(object sender, RoutedEventArgs e)
+        {
+            Frame frame = Window.Current.Content as Frame;
+            frame.Navigate(typeof(option), view);
+        }
+
+        //protected override void OnNavigatedTo(NavigationEventArgs e)
+        //{
+        //    base.OnNavigatedTo(e);
+        //    view = e.Parameter as viewModel;
+        //}
     }
 }

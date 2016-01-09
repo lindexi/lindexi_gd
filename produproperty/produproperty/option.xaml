@@ -8,6 +8,21 @@
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-
-    </Grid>
+        <StackPanel Orientation="Vertical">
+            <AppBarButton Icon="Back" HorizontalAlignment="Left" Click="mainpage"/>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="默认保存位置"/>
+                <TextBlock Text="{x:Bind view.addressfolder,Mode=OneWay}"/>
+                <Button Content="修改" Click="Button_Click"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="文章末"/>
+                <TextBox Text=""/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="字体大小"/>
+                <TextBox Text=""/>
+            </StackPanel>
+        </StackPanel>
+    </Grid>   
 </Page>

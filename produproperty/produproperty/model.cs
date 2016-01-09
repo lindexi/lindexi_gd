@@ -15,14 +15,11 @@ namespace produproperty
 {
     class model
     {
-        public model()
+        public model(viewModel view)
         {
-            _open = false;
-
-            //默认存在
-            string name = "博客.md";
-            folder = ApplicationData.Current.LocalFolder;
-            folder.GetFileAsync(name);
+            _open = false;            
+            this.view = view;
+            ce();
         }
 
         public StorageFile file
@@ -54,18 +51,95 @@ namespace produproperty
             _open = true;
         }
 
-        public string property(string str , bool firstget , bool updateproper)
-        {          
+        public void accessfolder(StorageFolder folder)
+        {
+            Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.Clear();
+            Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.Add(folder);
+        }
+
+        public async void storage(StorageFolder folder)
+        {
+            string str = "image";
+            if (!_open)
+            {
+                using (StorageStreamTransaction transaction = await file.OpenTransactedWriteAsync())
+                {
+                    using (DataWriter dataWriter = new DataWriter(transaction.Stream))
+                    {
+                        dataWriter.WriteString(text);
+                        transaction.Stream.Size = await dataWriter.StoreAsync();
+                        await transaction.CommitAsync();
+                    }
+                }
+
+                file = await file.CopyAsync(folder, name + ".md", NameCollisionOption.GenerateUniqueName);
+
+                StorageFolder image = await this.folder.GetFolderAsync(str);
+                StorageFolder imagefolder = null;
+                try
+                {
+                    imagefolder = await folder.GetFolderAsync(str);
+                }
+                catch
+                {
+
+
+                }
+
+                if (imagefolder == null)
+                {
+                    imagefolder = await folder.CreateFolderAsync(str, CreationCollisionOption.OpenIfExists);
+                }
+
+                var filelist = await image.GetFilesAsync(Windows.Storage.Search.CommonFileQuery.DefaultQuery);
+                foreach (var t in filelist)
+                {
+                    await t.CopyAsync(imagefolder, t.Name, NameCollisionOption.GenerateUniqueName);
+                }
+
+
+                try
+                {
+                    Directory.Delete(image.Path, true);
+                    foreach (var t in await this.folder.GetFilesAsync())
+                    {
+                        File.Delete(t.Path);
+                    }
+                }
+                catch
+                {
+
+                }
+
+                _open = true;
+                this.folder = folder;
+            }
+            else
+            {
+                using (StorageStreamTransaction transaction = await file.OpenTransactedWriteAsync())
+                {
+                    using (DataWriter dataWriter = new DataWriter(transaction.Stream))
+                    {
+                        dataWriter.WriteString(text);
+                        transaction.Stream.Size = await dataWriter.StoreAsync();
+                        await transaction.CommitAsync();
+                    }
+                }
+            }
+        }
+
+        public string property(string str, bool firstget, bool updateproper)
+        {
             int i = 0;
             i = str.IndexOf("\r\n");
             while (i != -1)
             {
-                stringproperty(str.Substring(0 , i) , firstget , updateproper);
-               str= str.Substring(i + 2);
+                stringproperty(str.Substring(0, i), firstget, updateproper);
+                str = str.Substring(i + 2);
                 i = str.IndexOf("\r\n");
             }
 
-            stringproperty(str , firstget , updateproper);
+            stringproperty(str, firstget, updateproper);
 
 
             StringBuilder s = new StringBuilder();
@@ -80,17 +154,138 @@ namespace produproperty
             return s.ToString();
         }
 
-        private List<string> publicproperty=new List<string>();
-        private List<string> privatep=new List<string>();
+        private List<string> publicproperty = new List<string>();
+        private List<string> privatep = new List<string>();
 
         private StorageFile _file;
         private StorageFolder _folder;
-        private bool _open;
+        public bool _open;
+
+        private viewModel view
+        {
+            set;
+            get;
+        }
+
+        private string text
+        {
+            set
+            {
+                if (view == null)
+                {
+                    _text = value;
+                }
+                else
+                {
+                    view.text = value; 
+                }
+            }
+            get
+            {
+                if (view == null)
+                {
+                    return _text;
+                }
+                else
+                {
+                    return view.text;
+                }
+            }
+        }
+
+        private string name
+        {
+            set
+            {
+                if (view == null)
+                {
+                    _name = value;
+                }
+                else
+                {
+                    view.name = value;
+                }
+            }
+            get
+            {
+                if (view == null)
+                {
+                    return _name;
+                }
+                else
+                {
+                    return view.name;
+                }
+            }
+        }
 
 
+        private async void ce()
+        {
+            //默认存在
+            string name = "请输入标题";
+
+            //默认位置
+            try
+            {
+                folder = await Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.GetFolderAsync(Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.Entries[0].Token);
+            }
+            catch
+            {
+                folder = ApplicationData.Current.LocalFolder;
+
+            }
+
+            try
+            {
+                file = await folder.GetFileAsync(name);
+                using (IRandomAccessStream readStream = await file.OpenAsync(FileAccessMode.Read))
+                {
+                    using (DataReader dataReader = new DataReader(readStream))
+                    {
+                        UInt64 size = readStream.Size;
+                        if (size <= UInt32.MaxValue)
+                        {
+                            UInt32 numBytesLoaded = await dataReader.LoadAsync((UInt32)size);
+                            _text = dataReader.ReadString(numBytesLoaded);
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                file = await folder.CreateFileAsync(name, CreationCollisionOption.OpenIfExists);
+                _text = file.Path;
+            }
+
+            
+
+           
+
+            _name = file.DisplayName;
+
+            string str = "image";
+            StorageFolder image = null;
+            try
+            {
+                image = await _folder.GetFolderAsync(str);
+            }
+            catch
+            {
 
 
-        private string stringproperty(string str , bool firstget , bool updateproper)
+            }
+            if (image == null)
+            {
+                image = await _folder.CreateFolderAsync(str, CreationCollisionOption.OpenIfExists);
+            }
+
+        }
+
+        public string _text;
+        public string _name;
+
+        private string stringproperty(string str, bool firstget, bool updateproper)
         {
             string a;
             string b;
@@ -103,7 +298,7 @@ namespace produproperty
             s = string.Empty;
             g = string.Empty;
 
-            stringproperty(str , ref a , ref b , ref c);
+            stringproperty(str, ref a, ref b, ref c);
 
             if (string.IsNullOrEmpty(a) || string.IsNullOrEmpty(b))
             {
@@ -111,7 +306,7 @@ namespace produproperty
             }
             if (updateproper)
             {
-                s = "            set\n            { \n                UpdateProper(ref _" + b+ " , value);\n            }";
+                s = "            set\n            { \n                UpdateProper(ref _" + b + " , value);\n            }";
             }
             else
             {
@@ -130,14 +325,14 @@ namespace produproperty
                 publicproperty.Add("        public " + a + " " + b + " \n        {\n" + g + "\n" + s + "\n        }");
             }
 
-    
-            privatep.Add("        private " + a+" _"+b+" "+c+"");
+
+            privatep.Add("        private " + a + " _" + b + " " + c + "");
 
             return a + b + c;
         }
-     
 
-        private string stringproperty(string str , ref string a , ref string b , ref string c)
+
+        private string stringproperty(string str, ref string a, ref string b, ref string c)
         {
             a = null;
             b = null;
@@ -153,7 +348,7 @@ namespace produproperty
             {
                 return string.Empty;
             }
-            a = str.Substring(0 , i);
+            a = str.Substring(0, i);
             str = str.Substring(i).Trim();
             i = str.IndexOf('=');
             if (i == -1)
@@ -161,10 +356,10 @@ namespace produproperty
                 b = str;
                 return str;
             }
-            b = str.Substring(0 , i);
+            b = str.Substring(0, i);
             str = str.Substring(i).Trim();
             c = str;
-            if (string.Equals(c[c.Length - 1] , ';'))
+            if (string.Equals(c[c.Length - 1], ';'))
             {
                 return str;
             }
