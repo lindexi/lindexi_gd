@@ -1,13 +1,21 @@
-Windows下没有比较好的Markdown编辑器
+﻿Windows下没有比较好的Markdown编辑器
+
 我就自己写一个
+
 csdn的Markdown很好，就是我需要截图保存有麻烦
+
 需要把我的截图保存在本地，然后上传
+
 这个过程比较麻烦
+
 csdn的图没法外链
+
 我想把自己的博客放到github，发现都没有图片
 
 我自己写了的，可以把截图保存为图片，放到用户位置
+
 然后插入`![](image/file.png)`
+
 拖入图片也插入`![](image/file.png)`
 
 ![这里写图片描述](image/2016191443.png)
@@ -19,6 +27,7 @@ csdn的图没法外链
 拖入文件可以使用Drop
 
 在Grid写Drop="{x:Bind view.dropimg}" DragOver="Grid_DragOver"
+
 Grid要AllowDrop="True"
 
 在MainPage.xaml.cs
@@ -52,27 +61,41 @@ dropimg 处理拖进来的DataPackageView
             }
 
 文件有
+
 MainPage.xaml
+
 MainPage.xaml.cs
+
 option.xaml
+
 option.xaml.cs
+
 viewModel.cs
+
 model.cs
+
 notify_property.cs
 
 其中notify_property.cs提供继承通知UI改变值
 
 model包括
+
 正在编辑文件file
+
 保存位置folder
+
 其中folder根据StorageApplicationPermissions.FutureAccessList获得用户位置。
+
 可以访问的路径不多，因为一个程序可以访问文件路径多，不安全。如果每次放在一个不是程序目录的位置，都要用户设置，很麻烦。在用户第一次使用，让用户选择一个位置，然后应用程序可以直接访问用户选择的这个，不用每次都选择。
 
 用户输入text
+
 标题 name
 
 其中text和name都是public string _text;
+
 ![这里写图片描述](image/2016191456.png)
+
 这样是在viewModel使用，可以OnPropertyChanged();
 
 writetext是用户能输入，在没有设置用户位置，不能输入
@@ -80,8 +103,11 @@ writetext是用户能输入，在没有设置用户位置，不能输入
 _open是否打开
 
  public async Task<string> clipboard(DataPackageView con)
+
 处理剪贴板和拖入内容
+
 本来我是处理剪贴板，因为拖入也是DataPackageView 
+
         public async Task<string> clipboard(DataPackageView con)
         {
             string str = string.Empty;
@@ -172,15 +198,19 @@ _open是否打开
 拖入和剪贴板只用第一个文件
 
 public async void accessfolder(StorageFolder folder)
+
 更改用户位置
 
 public async void storage()
+
 保存
 
 在程序运行
+
     folder = await Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.GetFolderAsync(Windows.Storage.AccessCache.StorageApplicationPermissions.FutureAccessList.Entries[0].Token);
 
 viewModel.cs
+
         public string text
         {
             set
@@ -206,15 +236,21 @@ viewModel.cs
                 return _m._name;
             }
         }
+
 本来绑Textbox SelectionStart
+
 SelectionStart错误
+
 要用SelectionStart，只能public Action<int, int> selectchange;
+
 在MainPage.xaml.cs
+
         private void selectchange(int select, int selecti)
         {
             text.SelectionStart = select;
             text.SelectionLength = selecti;
         }
+
 因为选择可以把`![这里写图片描述](image/{file.Name})`
 
 ![这里写图片描述](image/201619156.png)
@@ -222,8 +258,11 @@ SelectionStart错误
 select Textbox选择的插入
 
 clipboard 保存剪贴板
+
 storage 保存
+
 accessfolder 更改用户位置
+
         public async void accessfolder()
         {
             FolderPicker pick = new FolderPicker();
@@ -235,12 +274,15 @@ accessfolder 更改用户位置
             }
             addressfolder = string.Empty;
         }
+
 model _m
 
         private void tianjia(string str)
+
 把str添加text
 
 MainPage.xaml
+
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" AllowDrop="True" Drop="{x:Bind view.dropimg}" DragOver="Grid_DragOver">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
@@ -357,7 +399,9 @@ MainPage.xaml
 ![这里写图片描述](image/2016191510.png)
 
 ##发布
+
 https://dev.windows.com/zh-cn
+
 登录
 
 ![这里写图片描述](image/2016191514.png)
@@ -373,7 +417,9 @@ https://dev.windows.com/zh-cn
 ![这里写图片描述](image/2016191515 (3).png)
 
 本来想写Markdown
+
 不过自己做的不是很好，不敢，就写win
+
 有人发了Markdown应用
 
 ![这里写图片描述](image/2016191517.png)
