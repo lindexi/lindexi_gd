@@ -42,7 +42,7 @@ namespace produproperty
         {
             e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Copy;
             e.DragUIOverride.Caption = "打开";
-            e.Handled = true;   
+            e.Handled = true;
         }
 
         private void text_SelectionChanged(object sender, RoutedEventArgs e)
@@ -50,7 +50,7 @@ namespace produproperty
             view.select = text.SelectionStart;
         }
 
-        private void selectchange(int select,int selecti)
+        private void selectchange(int select, int selecti)
         {
             text.SelectionStart = select;
             text.SelectionLength = selecti;
@@ -64,21 +64,27 @@ namespace produproperty
             {
                 _ctrl = true;
             }
-            else if (e.Key==Windows.System.VirtualKey.V && _ctrl)
+            else if (e.Key == Windows.System.VirtualKey.V && _ctrl)
             {
-                           
+
             }
 
             if (_ctrl)
             {
                 if (e.Key == Windows.System.VirtualKey.Z)
                 {
+
+                }
+                else if (e.Key == Windows.System.VirtualKey.K)
+                {
+                    //代码
                     
                 }
             }
-           
+
             e.Handled = true;
         }
+        
 
         private void text_KeyUp(object sender, KeyRoutedEventArgs e)
         {
