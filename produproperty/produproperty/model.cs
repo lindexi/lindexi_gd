@@ -22,17 +22,6 @@ namespace produproperty
 
         }
 
-        private async void Current_Suspending(object sender, SuspendingEventArgs e)
-        {
-            //throw new NotImplementedException();
-            if (!string.IsNullOrEmpty(_text))
-            {
-                bool temp = _open;
-                _open = true;
-                await storage();
-                _open = temp;
-            }
-        }
 
         public StorageFile file
         {
@@ -153,7 +142,7 @@ namespace produproperty
                 str = "image";
                 StorageFolder folder = await _folder.GetFolderAsync(str);
 
-                StorageFile file = await folder.CreateFileAsync(DateTime.Now.Year.ToString() + DateTime.Now.Month.ToString() + DateTime.Now.Day.ToString() + DateTime.Now.Hour.ToString() + DateTime.Now.Minute.ToString() +(ran.Next()%10000).ToString()+ ".png", CreationCollisionOption.GenerateUniqueName);
+                StorageFile file = await folder.CreateFileAsync(DateTime.Now.Year.ToString() + DateTime.Now.Month.ToString() + DateTime.Now.Day.ToString() + DateTime.Now.Hour.ToString() + DateTime.Now.Minute.ToString() + (ran.Next() % 10000).ToString() + ".png", CreationCollisionOption.GenerateUniqueName);
 
                 using (var fileStream = await file.OpenAsync(FileAccessMode.ReadWrite))
                 {
@@ -174,6 +163,18 @@ namespace produproperty
             }
 
             return str;
+        }
+
+        public async void Current_Suspending(object sender, SuspendingEventArgs e)
+        {
+            //throw new NotImplementedException();
+            if (!string.IsNullOrEmpty(_text))
+            {
+                bool temp = _open;
+                _open = true;
+                await storage();
+                _open = temp;
+            }
         }
 
         public async void open_file(StorageFile file)
@@ -271,11 +272,13 @@ namespace produproperty
                 return;
             }
 
+            string str = name + "\n" + text.Replace("\r\n", "\n");
+
             using (StorageStreamTransaction transaction = await file.OpenTransactedWriteAsync())
             {
                 using (DataWriter dataWriter = new DataWriter(transaction.Stream))
                 {
-                    dataWriter.WriteString(text);
+                    dataWriter.WriteString(str);
                     transaction.Stream.Size = await dataWriter.StoreAsync();
                     await transaction.CommitAsync();
                 }
@@ -294,7 +297,7 @@ namespace produproperty
                     //{
                     //    System.IO.File.Delete(t.Path);
                     //}
-                    StorageFolder folder =await ApplicationData.Current.LocalFolder.GetFolderAsync("text");
+                    StorageFolder folder = await ApplicationData.Current.LocalFolder.GetFolderAsync("text");
                     System.IO.Directory.Delete(folder.Path);
                 }
                 catch
@@ -340,12 +343,11 @@ namespace produproperty
             try
             {
                 str = "text";
-                 temp = await ApplicationData.Current.LocalFolder.CreateFolderAsync(str, CreationCollisionOption.OpenIfExists);
+                temp = await ApplicationData.Current.LocalFolder.CreateFolderAsync(str, CreationCollisionOption.OpenIfExists);
             }
             catch
             {
 
-                
             }
             //默认位置
             try

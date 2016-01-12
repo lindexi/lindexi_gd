@@ -20,7 +20,15 @@ namespace produproperty
             OnPropertyChanged("text");
             OnPropertyChanged("name");
 
-            width = "20";
+            object temp;
+            if (ApplicationData.Current.LocalSettings.Values.TryGetValue("width", out temp))
+            {
+                width = temp as string;
+            }
+            else
+            {
+                width = "20";
+            }
         }
 
 
@@ -89,6 +97,7 @@ namespace produproperty
                     temp = Convert.ToInt32(value);
                     _width = temp;
                     OnPropertyChanged();
+                    ApplicationData.Current.LocalSettings.Values["width"] = value;
                 }
                 catch
                 {
@@ -122,10 +131,7 @@ namespace produproperty
             }
             await _m.storage();
 
-            
-            //保存设置
-            var temp = ApplicationData.Current.LocalSettings;
-
+            //_m.Current_Suspending(this, new object() as SuspendingEventArgs);  
         }
 
         public async void dropimg(object sender, Windows.UI.Xaml.DragEventArgs e)

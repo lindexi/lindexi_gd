@@ -99,7 +99,7 @@ namespace produproperty
 
         private void option(object sender, RoutedEventArgs e)
         {
-            view.storage();
+            //view.storage();
             Frame frame = Window.Current.Content as Frame;
             frame.Navigate(typeof(option), view);
         }
