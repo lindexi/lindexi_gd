@@ -192,10 +192,20 @@ namespace produproperty
                     {
                         UInt32 numBytesLoaded = await dataReader.LoadAsync((UInt32)size);
                         text = dataReader.ReadString(numBytesLoaded);
+                        int i = text.IndexOf('\n');
+                        if (i > 0)
+                        {
+                            name = text.Substring(0, i);
+                            text = text.Substring(i + 1);
+                        }
+                        else
+                        {
+                            name = file.DisplayName;
+                        }
                     }
                 }
             }
-            name = file.DisplayName;
+            //name = file.DisplayName;
             reminder = "打开" + file.Path;
         }
 
@@ -408,6 +418,11 @@ namespace produproperty
                         {
                             UInt32 numBytesLoaded = await dataReader.LoadAsync((UInt32)size);
                             text = dataReader.ReadString(numBytesLoaded);
+                            int i = text.IndexOf('\n');
+                            if (i > 0)
+                            {
+                                text = text.Substring(i+1);
+                            }
                         }
                         name = file.DisplayName;
                     }
