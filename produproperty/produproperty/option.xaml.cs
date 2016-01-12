@@ -9,7 +9,7 @@ using Windows.UI.Xaml.Navigation;
 
 namespace produproperty
 {
-    public partial class  option
+    public partial class option
     {
         viewModel view;
         public option()

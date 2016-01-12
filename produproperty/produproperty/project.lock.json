@@ -3,7 +3,23 @@
   "version": 1,
   "targets": {
     "UAP,Version=v10.0": {
-      "Microsoft.ApplicationInsights/1.0.0": {
+      "JyAnalytics/1.0.10": {
+        "compile": {
+          "lib/netcore451/JYAnalyticsUniversal.dll": {}
+        },
+        "runtime": {
+          "lib/netcore451/JYAnalyticsUniversal.dll": {}
+        }
+      },
+      "JyUserInfoSdk/1.1.5": {
+        "compile": {
+          "lib/netcore451/JyUserInfo.dll": {}
+        },
+        "runtime": {
+          "lib/netcore451/JyUserInfo.dll": {}
+        }
+      },
+      "Microsoft.ApplicationInsights/1.2.3": {
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         },
@@ -11,9 +27,9 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.PersistenceChannel/1.0.0": {
+      "Microsoft.ApplicationInsights.PersistenceChannel/1.2.3": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, )"
         },
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
@@ -22,10 +38,10 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.WindowsApps/1.0.0": {
+      "Microsoft.ApplicationInsights.WindowsApps/1.1.1": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )",
-          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, 1.2.3]",
+          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.2.3, 1.2.3]"
         },
         "compile": {
           "lib/win81/Microsoft.ApplicationInsights.Extensibility.Windows.dll": {}
@@ -1569,7 +1585,23 @@
       }
     },
     "UAP,Version=v10.0/win10-arm": {
-      "Microsoft.ApplicationInsights/1.0.0": {
+      "JyAnalytics/1.0.10": {
+        "compile": {
+          "lib/netcore451/JYAnalyticsUniversal.dll": {}
+        },
+        "runtime": {
+          "lib/netcore451/JYAnalyticsUniversal.dll": {}
+        }
+      },
+      "JyUserInfoSdk/1.1.5": {
+        "compile": {
+          "lib/netcore451/JyUserInfo.dll": {}
+        },
+        "runtime": {
+          "lib/netcore451/JyUserInfo.dll": {}
+        }
+      },
+      "Microsoft.ApplicationInsights/1.2.3": {
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         },
@@ -1577,9 +1609,9 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.PersistenceChannel/1.0.0": {
+      "Microsoft.ApplicationInsights.PersistenceChannel/1.2.3": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, )"
         },
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
@@ -1588,10 +1620,10 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.WindowsApps/1.0.0": {
+      "Microsoft.ApplicationInsights.WindowsApps/1.1.1": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )",
-          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, 1.2.3]",
+          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.2.3, 1.2.3]"
         },
         "compile": {
           "lib/win81/Microsoft.ApplicationInsights.Extensibility.Windows.dll": {}
@@ -3225,7 +3257,23 @@
       }
     },
     "UAP,Version=v10.0/win10-arm-aot": {
-      "Microsoft.ApplicationInsights/1.0.0": {
+      "JyAnalytics/1.0.10": {
+        "compile": {
+          "lib/netcore451/JYAnalyticsUniversal.dll": {}
+        },
+        "runtime": {
+          "lib/netcore451/JYAnalyticsUniversal.dll": {}
+        }
+      },
+      "JyUserInfoSdk/1.1.5": {
+        "compile": {
+          "lib/netcore451/JyUserInfo.dll": {}
+        },
+        "runtime": {
+          "lib/netcore451/JyUserInfo.dll": {}
+        }
+      },
+      "Microsoft.ApplicationInsights/1.2.3": {
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         },
@@ -3233,9 +3281,9 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.PersistenceChannel/1.0.0": {
+      "Microsoft.ApplicationInsights.PersistenceChannel/1.2.3": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, )"
         },
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
@@ -3244,10 +3292,10 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.WindowsApps/1.0.0": {
+      "Microsoft.ApplicationInsights.WindowsApps/1.1.1": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )",
-          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, 1.2.3]",
+          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.2.3, 1.2.3]"
         },
         "compile": {
           "lib/win81/Microsoft.ApplicationInsights.Extensibility.Windows.dll": {}
@@ -4853,7 +4901,23 @@
       }
     },
     "UAP,Version=v10.0/win10-x64": {
-      "Microsoft.ApplicationInsights/1.0.0": {
+      "JyAnalytics/1.0.10": {
+        "compile": {
+          "lib/netcore451/JYAnalyticsUniversal.dll": {}
+        },
+        "runtime": {
+          "lib/netcore451/JYAnalyticsUniversal.dll": {}
+        }
+      },
+      "JyUserInfoSdk/1.1.5": {
+        "compile": {
+          "lib/netcore451/JyUserInfo.dll": {}
+        },
+        "runtime": {
+          "lib/netcore451/JyUserInfo.dll": {}
+        }
+      },
+      "Microsoft.ApplicationInsights/1.2.3": {
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         },
@@ -4861,9 +4925,9 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.PersistenceChannel/1.0.0": {
+      "Microsoft.ApplicationInsights.PersistenceChannel/1.2.3": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, )"
         },
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
@@ -4872,10 +4936,10 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.WindowsApps/1.0.0": {
+      "Microsoft.ApplicationInsights.WindowsApps/1.1.1": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )",
-          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, 1.2.3]",
+          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.2.3, 1.2.3]"
         },
         "compile": {
           "lib/win81/Microsoft.ApplicationInsights.Extensibility.Windows.dll": {}
@@ -6514,7 +6578,23 @@
       }
     },
     "UAP,Version=v10.0/win10-x64-aot": {
-      "Microsoft.ApplicationInsights/1.0.0": {
+      "JyAnalytics/1.0.10": {
+        "compile": {
+          "lib/netcore451/JYAnalyticsUniversal.dll": {}
+        },
+        "runtime": {
+          "lib/netcore451/JYAnalyticsUniversal.dll": {}
+        }
+      },
+      "JyUserInfoSdk/1.1.5": {
+        "compile": {
+          "lib/netcore451/JyUserInfo.dll": {}
+        },
+        "runtime": {
+          "lib/netcore451/JyUserInfo.dll": {}
+        }
+      },
+      "Microsoft.ApplicationInsights/1.2.3": {
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         },
@@ -6522,9 +6602,9 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.PersistenceChannel/1.0.0": {
+      "Microsoft.ApplicationInsights.PersistenceChannel/1.2.3": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, )"
         },
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
@@ -6533,10 +6613,10 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.WindowsApps/1.0.0": {
+      "Microsoft.ApplicationInsights.WindowsApps/1.1.1": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )",
-          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, 1.2.3]",
+          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.2.3, 1.2.3]"
         },
         "compile": {
           "lib/win81/Microsoft.ApplicationInsights.Extensibility.Windows.dll": {}
@@ -8142,7 +8222,23 @@
       }
     },
     "UAP,Version=v10.0/win10-x86": {
-      "Microsoft.ApplicationInsights/1.0.0": {
+      "JyAnalytics/1.0.10": {
+        "compile": {
+          "lib/netcore451/JYAnalyticsUniversal.dll": {}
+        },
+        "runtime": {
+          "lib/netcore451/JYAnalyticsUniversal.dll": {}
+        }
+      },
+      "JyUserInfoSdk/1.1.5": {
+        "compile": {
+          "lib/netcore451/JyUserInfo.dll": {}
+        },
+        "runtime": {
+          "lib/netcore451/JyUserInfo.dll": {}
+        }
+      },
+      "Microsoft.ApplicationInsights/1.2.3": {
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         },
@@ -8150,9 +8246,9 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.PersistenceChannel/1.0.0": {
+      "Microsoft.ApplicationInsights.PersistenceChannel/1.2.3": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, )"
         },
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
@@ -8161,10 +8257,10 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.WindowsApps/1.0.0": {
+      "Microsoft.ApplicationInsights.WindowsApps/1.1.1": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )",
-          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, 1.2.3]",
+          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.2.3, 1.2.3]"
         },
         "compile": {
           "lib/win81/Microsoft.ApplicationInsights.Extensibility.Windows.dll": {}
@@ -9803,7 +9899,23 @@
       }
     },
     "UAP,Version=v10.0/win10-x86-aot": {
-      "Microsoft.ApplicationInsights/1.0.0": {
+      "JyAnalytics/1.0.10": {
+        "compile": {
+          "lib/netcore451/JYAnalyticsUniversal.dll": {}
+        },
+        "runtime": {
+          "lib/netcore451/JYAnalyticsUniversal.dll": {}
+        }
+      },
+      "JyUserInfoSdk/1.1.5": {
+        "compile": {
+          "lib/netcore451/JyUserInfo.dll": {}
+        },
+        "runtime": {
+          "lib/netcore451/JyUserInfo.dll": {}
+        }
+      },
+      "Microsoft.ApplicationInsights/1.2.3": {
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         },
@@ -9811,9 +9923,9 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.PersistenceChannel/1.0.0": {
+      "Microsoft.ApplicationInsights.PersistenceChannel/1.2.3": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, )"
         },
         "compile": {
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
@@ -9822,10 +9934,10 @@
           "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll": {}
         }
       },
-      "Microsoft.ApplicationInsights.WindowsApps/1.0.0": {
+      "Microsoft.ApplicationInsights.WindowsApps/1.1.1": {
         "dependencies": {
-          "Microsoft.ApplicationInsights": "[1.0.0, )",
-          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.0.0, )"
+          "Microsoft.ApplicationInsights": "[1.2.3, 1.2.3]",
+          "Microsoft.ApplicationInsights.PersistenceChannel": "[1.2.3, 1.2.3]"
         },
         "compile": {
           "lib/win81/Microsoft.ApplicationInsights.Extensibility.Windows.dll": {}
@@ -11432,8 +11544,92 @@
     }
   },
   "libraries": {
-    "Microsoft.ApplicationInsights/1.0.0": {
-      "sha512": "HZ47/thX57SOuIivSvIbsR6L9CCb/Yt3IyB2i4KHmmNlf3DO+lqFwWIKDdbDNWKX+qh0Rg20/JSMPK0dwUsYYw==",
+    "JyAnalytics/1.0.10": {
+      "sha512": "8bEZLDRtYLgBJ0lasekEvxyDUKOhALaWAHvEUj3QSUJ9WtZ/x63h/+gRUKrDcVRF0TG1GVJ09+TCfeJRMjTe/w==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "JyAnalytics.nuspec",
+        "lib/netcore451/JYAnalyticsUniversal.dll",
+        "lib/netcore451/JYAnalyticsUniversal.pri",
+        "lib/netcore451/JYAnalyticsUniversal.xml",
+        "lib/WP8/JYAnalyticsSdk.dll",
+        "lib/WP8/JYAnalyticsSdk.xml",
+        "lib/wpa81/JYAnalyticsUniversal.dll",
+        "lib/wpa81/JYAnalyticsUniversal.pri",
+        "lib/wpa81/JYAnalyticsUniversal.xml",
+        "package/services/metadata/core-properties/a9b4c8302f8f445cbaa44902e1678183.psmdcp"
+      ]
+    },
+    "JyUserInfoSdk/1.1.5": {
+      "sha512": "H89BmQVelr1mGNQ+lrISk2vDhC+dRD71hEskDgzx74uxIwtqBmbGfwtAKZzq55iOEkWgG2l4MoghE6on1ty2NA==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "JyUserInfoSdk.nuspec",
+        "lib/netcore451/JyUserInfo.dll",
+        "lib/netcore451/JyUserInfo.pri",
+        "lib/netcore451/JyUserInfo.XML",
+        "lib/netcore451/JyUserInfo/JyImgs/background.jpg",
+        "lib/netcore451/JyUserInfo/JyImgs/snsImages/fb_03.png",
+        "lib/netcore451/JyUserInfo/JyImgs/snsImages/qq_03.png",
+        "lib/netcore451/JyUserInfo/JyImgs/snsImages/sina_03.png",
+        "lib/netcore451/JyUserInfo/JyImgs/snsImages/tw_03.png",
+        "lib/netcore451/JyUserInfo/JyImgs/tx/1.png",
+        "lib/netcore451/JyUserInfo/JyImgs/tx/10.png",
+        "lib/netcore451/JyUserInfo/JyImgs/tx/11.png",
+        "lib/netcore451/JyUserInfo/JyImgs/tx/12.png",
+        "lib/netcore451/JyUserInfo/JyImgs/tx/13.png",
+        "lib/netcore451/JyUserInfo/JyImgs/tx/14.png",
+        "lib/netcore451/JyUserInfo/JyImgs/tx/15.png",
+        "lib/netcore451/JyUserInfo/JyImgs/tx/2.png",
+        "lib/netcore451/JyUserInfo/JyImgs/tx/3.png",
+        "lib/netcore451/JyUserInfo/JyImgs/tx/4.png",
+        "lib/netcore451/JyUserInfo/JyImgs/tx/5.png",
+        "lib/netcore451/JyUserInfo/JyImgs/tx/6.png",
+        "lib/netcore451/JyUserInfo/JyImgs/tx/7.png",
+        "lib/netcore451/JyUserInfo/JyImgs/tx/8.png",
+        "lib/netcore451/JyUserInfo/JyImgs/tx/9.png",
+        "lib/netcore451/JyUserInfo/JyUserInfo.xr.xml",
+        "lib/netcore451/JyUserInfo/loading/loading.gif",
+        "lib/netcore451/JyUserInfo/loading/loading.html",
+        "lib/netcore451/JyUserInfo/View/Dictionary1.xbf",
+        "lib/netcore451/JyUserInfo/View/JyLoginControl.xbf",
+        "lib/wpa81/JyUserInfo.dll",
+        "lib/wpa81/JyUserInfo.pri",
+        "lib/wpa81/JyUserInfo.XML",
+        "lib/wpa81/JyUserInfo/JyImgs/background.jpg",
+        "lib/wpa81/JyUserInfo/JyImgs/snsImages/fb_03.png",
+        "lib/wpa81/JyUserInfo/JyImgs/snsImages/qq_03.png",
+        "lib/wpa81/JyUserInfo/JyImgs/snsImages/sina_03.png",
+        "lib/wpa81/JyUserInfo/JyImgs/snsImages/tw_03.png",
+        "lib/wpa81/JyUserInfo/JyImgs/tx/1.png",
+        "lib/wpa81/JyUserInfo/JyImgs/tx/10.png",
+        "lib/wpa81/JyUserInfo/JyImgs/tx/11.png",
+        "lib/wpa81/JyUserInfo/JyImgs/tx/12.png",
+        "lib/wpa81/JyUserInfo/JyImgs/tx/13.png",
+        "lib/wpa81/JyUserInfo/JyImgs/tx/14.png",
+        "lib/wpa81/JyUserInfo/JyImgs/tx/15.png",
+        "lib/wpa81/JyUserInfo/JyImgs/tx/2.png",
+        "lib/wpa81/JyUserInfo/JyImgs/tx/3.png",
+        "lib/wpa81/JyUserInfo/JyImgs/tx/4.png",
+        "lib/wpa81/JyUserInfo/JyImgs/tx/5.png",
+        "lib/wpa81/JyUserInfo/JyImgs/tx/6.png",
+        "lib/wpa81/JyUserInfo/JyImgs/tx/7.png",
+        "lib/wpa81/JyUserInfo/JyImgs/tx/8.png",
+        "lib/wpa81/JyUserInfo/JyImgs/tx/9.png",
+        "lib/wpa81/JyUserInfo/JyUserInfo.xr.xml",
+        "lib/wpa81/JyUserInfo/loading/loading.gif",
+        "lib/wpa81/JyUserInfo/loading/loading.html",
+        "lib/wpa81/JyUserInfo/View/Dictionary1.xbf",
+        "lib/wpa81/JyUserInfo/View/JyLoginControl.xbf",
+        "package/services/metadata/core-properties/2466c6d42cce428ba3c9fdcd39117c59.psmdcp"
+      ]
+    },
+    "Microsoft.ApplicationInsights/1.2.3": {
+      "sha512": "a34atobxpucCTTX9VCD7aIu6Ydzry+Va7TxK2tTQcfaMvefGW4kUKtg9GHKIn19IaXe+A4oZt/GBqsOt5vQrBA==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -11447,27 +11643,29 @@
         "lib/wp8/Microsoft.ApplicationInsights.dll",
         "lib/wp8/Microsoft.ApplicationInsights.XML",
         "Microsoft.ApplicationInsights.nuspec",
-        "package/services/metadata/core-properties/b9e7bc7ab2454491af07046165ff01d0.psmdcp"
+        "package/services/metadata/core-properties/3b36eef276524f5d883c618d5fd8c500.psmdcp"
       ]
     },
-    "Microsoft.ApplicationInsights.PersistenceChannel/1.0.0": {
-      "sha512": "0qQXC+CtbyF2RPuld5pF74fxsnP6ml0LUnzQ6GL9AXXY64LPsLDsPUAymoUffo7LZvPDppZboTYX59TfVxKA7A==",
+    "Microsoft.ApplicationInsights.PersistenceChannel/1.2.3": {
+      "sha512": "5MGcvPQVaGlGyAVh9adg4sSkIVSYDKn+H3+YnZa9hi1gH/g6UsRt4HLc8vp/IxjlbmXbJyAB7dYJV/NHmAGAgA==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
         "lib/net40/Microsoft.ApplicationInsights.PersistenceChannel.dll",
         "lib/net40/Microsoft.ApplicationInsights.PersistenceChannel.XML",
-        "lib/portable-win8+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.XML",
+        "lib/net45/Microsoft.ApplicationInsights.PersistenceChannel.dll",
+        "lib/net45/Microsoft.ApplicationInsights.PersistenceChannel.XML",
         "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.dll",
+        "lib/portable-win81+wpa81/Microsoft.ApplicationInsights.PersistenceChannel.XML",
         "lib/wp8/Microsoft.ApplicationInsights.PersistenceChannel.dll",
         "lib/wp8/Microsoft.ApplicationInsights.PersistenceChannel.XML",
         "Microsoft.ApplicationInsights.PersistenceChannel.nuspec",
-        "package/services/metadata/core-properties/dc9ebba80e7343fdbd0a39a3cdeb672c.psmdcp"
+        "package/services/metadata/core-properties/f973733421c14c3594986b3f2c22213a.psmdcp"
       ]
     },
-    "Microsoft.ApplicationInsights.WindowsApps/1.0.0": {
-      "sha512": "fNCAjIwvbTV+G0dT14bgM5tptsqeSaKQaCrlq7QknOq1Xdm8ZmgsDYddMgXkvykyKLjWyU6fKuOpj6fsQJy+wQ==",
+    "Microsoft.ApplicationInsights.WindowsApps/1.1.1": {
+      "sha512": "Orj0UQrjQ2z0aWZZoexl734Ge7Q4oVev3VFSsk6t8l2kImrfJ1eygkJWtQ1d7u0kF6MLLrvUvsMSxo+0rgPiMQ==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -11479,7 +11677,7 @@
         "lib/wpa81/Microsoft.ApplicationInsights.Extensibility.Windows.dll",
         "lib/wpa81/Microsoft.ApplicationInsights.Extensibility.Windows.XML",
         "Microsoft.ApplicationInsights.WindowsApps.nuspec",
-        "package/services/metadata/core-properties/4f6f732debe548beaa1183418e8d65cc.psmdcp"
+        "package/services/metadata/core-properties/8265b8c93c244c80b4e8bce27f31849d.psmdcp"
       ]
     },
     "Microsoft.CSharp/4.0.0": {
@@ -14833,9 +15031,11 @@
   },
   "projectFileDependencyGroups": {
     "": [
-      "Microsoft.ApplicationInsights >= 1.0.0",
-      "Microsoft.ApplicationInsights.PersistenceChannel >= 1.0.0",
-      "Microsoft.ApplicationInsights.WindowsApps >= 1.0.0",
+      "JyAnalytics >= 1.0.10",
+      "JyUserInfoSdk >= 1.1.5",
+      "Microsoft.ApplicationInsights >= 1.2.3",
+      "Microsoft.ApplicationInsights.PersistenceChannel >= 1.2.3",
+      "Microsoft.ApplicationInsights.WindowsApps >= 1.1.1",
       "Microsoft.NETCore.UniversalWindowsPlatform >= 5.0.0"
     ],
     "UAP,Version=v10.0": []

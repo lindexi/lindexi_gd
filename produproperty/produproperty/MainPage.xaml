@@ -7,16 +7,16 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" AllowDrop="True" Drop="{x:Bind view.dropimg}" DragOver="Grid_DragOver">
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" AllowDrop="True" Drop="{x:Bind view.dropimg}" DragOver="Grid_DragOver" KeyDown="text_KeyDown" KeyUp="text_KeyUp">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
             <RowDefinition />
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
         <TextBox Text="{x:Bind view.name,Mode=TwoWay}" Grid.Row="0" Margin="10,10,10,10"/>
-        <TextBox x:Name="text" Text="{Binding Path=text,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" Margin="10,10,10,10" Grid.Row="1" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="{x:Bind view.writetext,Mode=OneWay}" SelectionChanged="text_SelectionChanged"/>
+        <TextBox x:Name="text" Text="{Binding Path=text,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" Margin="10,10,10,10" Grid.Row="1" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="{x:Bind view.writetext,Mode=OneWay}" SelectionChanged="text_SelectionChanged" TextAlignment="Left"/>
         <!--<RichEditBox x:Name="rtext" Margin="10,10,10,10"/>-->
-        
+
         <TextBlock Text="{x:Bind view.reminder,Mode=OneWay}" Grid.Row="2" Margin="10,10,10,10" TextWrapping="Wrap"/>
         <!--<Button Content="确定" Click="{x:Bind view.property}" Margin="121,300,0,308"/>-->
     </Grid>
@@ -25,7 +25,7 @@
             <!--<AppBarButton Icon="Add" Content="新建" Click="{x:Bind view.fileaddress}"/>-->
             <AppBarButton Icon="OpenFile" Content="打开" Click="{x:Bind view.file_open}" />
             <AppBarButton Icon="Save" Content="保存" Click="{x:Bind view.storage}"/>
-            <AppBarButton Icon="Setting" Content="设置" Click="option"/>            
-        </CommandBar>   
-    </Page.TopAppBar>        
+            <AppBarButton Icon="Setting" Content="设置" Click="option"/>
+        </CommandBar>
+    </Page.TopAppBar>
 </Page>

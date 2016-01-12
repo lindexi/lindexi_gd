@@ -24,13 +24,9 @@ namespace produproperty
     {
         viewModel view;
         public MainPage()
-        {
-            view = new viewModel();
+        {            
             this.InitializeComponent();
-            view.selectchange = selectchange;
-            //Windows.ApplicationModel.DataTransfer.Clipboard
             text.Paste += Text_Paste;
-            this.DataContext = view;
         }
 
         private void Text_Paste(object sender, TextControlPasteEventArgs e)
@@ -60,6 +56,7 @@ namespace produproperty
 
         private void text_KeyDown(object sender, KeyRoutedEventArgs e)
         {
+            string str;
             if (e.Key.Equals(Windows.System.VirtualKey.Control))
             {
                 _ctrl = true;
@@ -77,14 +74,18 @@ namespace produproperty
                 }
                 else if (e.Key == Windows.System.VirtualKey.K)
                 {
-                    //代码
-                    
+                    str = "\r\n```\r\n\r\n\r\n\r\n```\r\n";
+                    view.tianjia(str);
+                    text.SelectionStart -= 6;
+                }
+                else if (e.Key == Windows.System.VirtualKey.S)
+                {
+                    view.storage();
                 }
             }
 
-            e.Handled = true;
+            //e.Handled = true;
         }
-        
 
         private void text_KeyUp(object sender, KeyRoutedEventArgs e)
         {
@@ -96,14 +97,26 @@ namespace produproperty
 
         private void option(object sender, RoutedEventArgs e)
         {
+            view.storage();
             Frame frame = Window.Current.Content as Frame;
             frame.Navigate(typeof(option), view);
         }
 
-        //protected override void OnNavigatedTo(NavigationEventArgs e)
-        //{
-        //    base.OnNavigatedTo(e);
-        //    view = e.Parameter as viewModel;
-        //}
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+            if (e.Parameter is viewModel)
+            {
+                view = e.Parameter as viewModel;
+                DataContext = view;
+            }
+            else
+            {
+                view = new viewModel();
+                view.selectchange = selectchange;               
+                this.DataContext = view;
+            }
+
+        }
     }
 }

@@ -1,0 +1,2 @@
+MainPackage=E:\倾世倩雪\程序\produproperty\produproperty\bin\x64\Release\Upload\produproperty_1.1.0.0_x64.appx
+SymbolPackage=Y:\AppPackages\produproperty_1.1.0.0\produproperty_1.1.0.0_x64.appxsym

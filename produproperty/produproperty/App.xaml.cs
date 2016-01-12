@@ -33,7 +33,21 @@ namespace produproperty
                 Microsoft.ApplicationInsights.WindowsCollectors.Session);
             this.InitializeComponent();
             this.Suspending += OnSuspending;
+            this.Resuming += App_Resuming;
         }
+
+        private void App_Resuming(object sender, object e)
+        {
+            track();
+        }
+
+        protected override void OnActivated(IActivatedEventArgs args)
+        {
+            base.OnActivated(args);
+            track();
+        }
+
+       
 
         /// <summary>
         /// 在应用程序由最终用户正常启动时进行调用。
@@ -79,6 +93,12 @@ namespace produproperty
             }
             // 确保当前窗口处于活动状态
             Window.Current.Activate();
+            track();
+        }
+
+        private async void track()
+        {
+            await JYAnalyticsUniversal.JYAnalytics.StartTrackAsync("95da5b5ebcc881d470104c1543763bbc");
         }
 
         /// <summary>
@@ -98,10 +118,11 @@ namespace produproperty
         /// </summary>
         /// <param name="sender">挂起的请求的源。</param>
         /// <param name="e">有关挂起请求的详细信息。</param>
-        private void OnSuspending(object sender, SuspendingEventArgs e)
+        private async void OnSuspending(object sender, SuspendingEventArgs e)
         {
             var deferral = e.SuspendingOperation.GetDeferral();
             //TODO: 保存应用程序状态并停止任何后台活动
+            await JYAnalyticsUniversal.JYAnalytics.EndTrackAsync(); //需注意此处代码位置不可更改 
             deferral.Complete();
         }
     }
