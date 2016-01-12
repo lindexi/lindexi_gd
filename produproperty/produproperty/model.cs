@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.ApplicationModel;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
 using Windows.Storage.Streams;
@@ -16,6 +17,21 @@ namespace produproperty
             this.view = view;
             ran = new Random();
             ce();
+
+            App.Current.Suspending += Current_Suspending;
+
+        }
+
+        private async void Current_Suspending(object sender, SuspendingEventArgs e)
+        {
+            //throw new NotImplementedException();
+            if (!string.IsNullOrEmpty(_text))
+            {
+                bool temp = _open;
+                _open = true;
+                await storage();
+                _open = temp;
+            }
         }
 
         public StorageFile file

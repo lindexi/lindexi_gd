@@ -26,8 +26,10 @@ namespace produproperty
         public MainPage()
         {            
             this.InitializeComponent();
-            text.Paste += Text_Paste;
+            text.Paste += Text_Paste;            
         }
+
+      
 
         private void Text_Paste(object sender, TextControlPasteEventArgs e)
         {
