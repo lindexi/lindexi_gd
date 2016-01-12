@@ -21,7 +21,7 @@
             </StackPanel>
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="字体大小"/>
-                <TextBox Text=""/>
+                <TextBox Text="{x:Bind view.width,Mode=TwoWay}" Margin="10,10,10,10"/>
             </StackPanel>
         </StackPanel>
     </Grid>

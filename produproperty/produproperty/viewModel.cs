@@ -19,6 +19,8 @@ namespace produproperty
             _m = new model(this);
             OnPropertyChanged("text");
             OnPropertyChanged("name");
+
+            width = "20";
         }
 
 
@@ -77,6 +79,28 @@ namespace produproperty
             }
         }
 
+        public string width
+        {
+            set
+            {
+                try
+                {
+                    int temp;
+                    temp = Convert.ToInt32(value);
+                    _width = temp;
+                    OnPropertyChanged();
+                }
+                catch
+                {
+
+                }                
+            }
+            get
+            {
+                return _width.ToString();
+            }
+        }
+
         public async void clipboard(TextControlPasteEventArgs e)
         {
             if (writetext)
@@ -97,6 +121,11 @@ namespace produproperty
                 return;
             }
             await _m.storage();
+
+            
+            //保存设置
+            var temp = ApplicationData.Current.LocalSettings;
+
         }
 
         public async void dropimg(object sender, Windows.UI.Xaml.DragEventArgs e)
@@ -152,6 +181,7 @@ namespace produproperty
         }
 
         private model _m;
+        private int _width;
 
         public void tianjia(string str)
         {

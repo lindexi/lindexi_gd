@@ -336,6 +336,17 @@ namespace produproperty
         {
             _open = false;
             string str;
+            StorageFolder temp = null;
+            try
+            {
+                str = "text";
+                 temp = await ApplicationData.Current.LocalFolder.CreateFolderAsync(str, CreationCollisionOption.OpenIfExists);
+            }
+            catch
+            {
+
+                
+            }
             //默认位置
             try
             {
@@ -344,8 +355,8 @@ namespace produproperty
             }
             catch
             {
-                str = "text";
-                folder =await ApplicationData.Current.LocalFolder.CreateFolderAsync(str,CreationCollisionOption.OpenIfExists);
+                //str = "text";
+                folder = temp;//=await ApplicationData.Current.LocalFolder.CreateFolderAsync(str,CreationCollisionOption.OpenIfExists);
                 //没有默认位置
 
                 writetext = true;
@@ -374,13 +385,13 @@ namespace produproperty
             bool open = false;
             try
             {
-                file = (await folder.GetFilesAsync()).First<StorageFile>();
+                file = (await temp.GetFilesAsync()).First<StorageFile>();
                 open = true;
             }
             catch
             {
                 //新建
-                file = await folder.CreateFileAsync(str, CreationCollisionOption.GenerateUniqueName);
+                file = await temp.CreateFileAsync(str, CreationCollisionOption.GenerateUniqueName);
                 open = false;
             }
 
@@ -394,7 +405,7 @@ namespace produproperty
                         if (size <= UInt32.MaxValue)
                         {
                             UInt32 numBytesLoaded = await dataReader.LoadAsync((UInt32)size);
-                            _text = dataReader.ReadString(numBytesLoaded);
+                            text = dataReader.ReadString(numBytesLoaded);
                         }
                         name = file.DisplayName;
                     }
@@ -402,7 +413,7 @@ namespace produproperty
             }
             else
             {
-                _text = @"
+                text = @"
 拖入图片自动生成![](图片)，粘贴自动生成![](图片)
 按ctrl+k快速输入代码";
             }
