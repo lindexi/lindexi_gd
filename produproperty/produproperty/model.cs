@@ -241,10 +241,10 @@ namespace produproperty
             {
                 image = await folder.CreateFolderAsync(str, CreationCollisionOption.OpenIfExists);
             }
-            if (!this.folder.Path.Equals(ApplicationData.Current.LocalFolder.Path))
-            {
-                await storage();
-            }
+            //if (!this.folder.Path.Equals(folder.Path))
+            //{
+            await storage();
+            //}
             this.folder = folder;
         }
 
@@ -274,10 +274,12 @@ namespace produproperty
                 file = await file.CopyAsync(folder, name + ".md", NameCollisionOption.GenerateUniqueName);
                 try
                 {
-                    foreach (var t in await ApplicationData.Current.LocalFolder.GetFilesAsync())
-                    {
-                        System.IO.File.Delete(t.Path);
-                    }
+                    //foreach (var t in await ApplicationData.Current.LocalFolder.GetFilesAsync())
+                    //{
+                    //    System.IO.File.Delete(t.Path);
+                    //}
+                    StorageFolder folder =await ApplicationData.Current.LocalFolder.GetFolderAsync("text");
+                    System.IO.Directory.Delete(folder.Path);
                 }
                 catch
                 {
@@ -326,7 +328,8 @@ namespace produproperty
             }
             catch
             {
-                folder = ApplicationData.Current.LocalFolder;
+                str = "text";
+                folder =await ApplicationData.Current.LocalFolder.CreateFolderAsync(str,CreationCollisionOption.OpenIfExists);
                 //没有默认位置
 
                 writetext = true;
@@ -355,13 +358,13 @@ namespace produproperty
             bool open = false;
             try
             {
-                file = (await ApplicationData.Current.LocalFolder.GetFilesAsync()).First<StorageFile>();
+                file = (await folder.GetFilesAsync()).First<StorageFile>();
                 open = true;
             }
             catch
             {
                 //新建
-                file = await ApplicationData.Current.LocalFolder.CreateFileAsync(str, CreationCollisionOption.GenerateUniqueName);
+                file = await folder.CreateFileAsync(str, CreationCollisionOption.GenerateUniqueName);
                 open = false;
             }
 
@@ -377,6 +380,7 @@ namespace produproperty
                             UInt32 numBytesLoaded = await dataReader.LoadAsync((UInt32)size);
                             _text = dataReader.ReadString(numBytesLoaded);
                         }
+                        name = file.DisplayName;
                     }
                 }
             }
@@ -386,7 +390,7 @@ namespace produproperty
 拖入图片自动生成![](图片)，粘贴自动生成![](图片)
 按ctrl+k快速输入代码";
             }
-            _name = file.DisplayName;
+            //_name = file.DisplayName;
         }
     }
 }
