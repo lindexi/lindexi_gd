@@ -120,7 +120,6 @@ namespace produproperty
             if (con.Contains(StandardDataFormats.Text))
             {
                 str = await con.GetTextAsync();
-                //tianjiatext(str);
                 return str;
             }
 
@@ -150,7 +149,7 @@ namespace produproperty
                     encoder.SetPixelData(Windows.Graphics.Imaging.BitmapPixelFormat.Bgra8, Windows.Graphics.Imaging.BitmapAlphaMode.Straight, decoder.PixelWidth, decoder.PixelHeight, decoder.DpiX, decoder.DpiY, buffer);
                     await encoder.FlushAsync();
 
-                    str = $"![这里写图片描述](image/{file.Name})\r\n\r\n";
+                    str = $"![这里写图片描述](image/{file.Name})\n";
                 }
             }
 
@@ -303,10 +302,6 @@ namespace produproperty
                 file = await file.CopyAsync(folder, name + ".md", NameCollisionOption.GenerateUniqueName);
                 try
                 {
-                    //foreach (var t in await ApplicationData.Current.LocalFolder.GetFilesAsync())
-                    //{
-                    //    System.IO.File.Delete(t.Path);
-                    //}
                     StorageFolder folder = await ApplicationData.Current.LocalFolder.GetFolderAsync("text");
                     System.IO.Directory.Delete(folder.Path);
                 }
@@ -421,7 +416,7 @@ namespace produproperty
                             int i = text.IndexOf('\n');
                             if (i > 0)
                             {
-                                text = text.Substring(i+1);
+                                text = text.Substring(i + 1);
                             }
                         }
                         name = file.DisplayName;

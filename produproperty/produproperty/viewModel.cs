@@ -28,7 +28,7 @@ namespace produproperty
             else
             {
                 width = "20";
-            }
+            }           
         }
 
 
@@ -102,7 +102,7 @@ namespace produproperty
                 catch
                 {
 
-                }                
+                }
             }
             get
             {
@@ -196,7 +196,7 @@ namespace produproperty
             int i;
             for (i = 0; n > 0 && i < text.Length; i++)
             {
-                if (text[i] != '\r' )//&& text[i] != '\n')
+                if (text[i] != '\r')//&& text[i] != '\n')
                 {
                     n--;
                 }
@@ -208,7 +208,7 @@ namespace produproperty
             {
                 n = text.Length;
             }
-            selectchange(n , 0);
+            selectchange(n, 0);
 
             //string t = text.Replace("\r\n", "\n");
             //t = t.Insert(select, str);

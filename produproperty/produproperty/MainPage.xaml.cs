@@ -24,12 +24,10 @@ namespace produproperty
     {
         viewModel view;
         public MainPage()
-        {            
+        {
             this.InitializeComponent();
-            text.Paste += Text_Paste;            
+            text.Paste += Text_Paste;
         }
-
-      
 
         private void Text_Paste(object sender, TextControlPasteEventArgs e)
         {
@@ -76,7 +74,7 @@ namespace produproperty
                 }
                 else if (e.Key == Windows.System.VirtualKey.K)
                 {
-                    str = "\r\n```\r\n\r\n\r\n\r\n```\r\n";
+                    str = "\n```\n\n\n\n```\n";
                     view.tianjia(str);
                     text.SelectionStart -= 6;
                 }
@@ -115,7 +113,7 @@ namespace produproperty
             else
             {
                 view = new viewModel();
-                view.selectchange = selectchange;               
+                view.selectchange = selectchange;
                 this.DataContext = view;
             }
 
