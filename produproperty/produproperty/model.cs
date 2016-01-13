@@ -195,11 +195,20 @@ namespace produproperty
                         if (i > 0)
                         {
                             name = text.Substring(0, i);
-                            text = text.Substring(i + 1);
+                            text = text.Substring(i + 2);
                         }
                         else
                         {
                             name = file.DisplayName;
+                        }
+                        i = text.LastIndexOf("http://blog.csdn.net/lindexi_gd");
+                        if (i > 0)
+                        {
+                            if (i - 2 > 0)
+                            {
+                                i = i - 2;
+                            }
+                            text = text.Substring(0, i);
                         }
                     }
                 }
@@ -281,13 +290,28 @@ namespace produproperty
                 return;
             }
 
-            string str = name + "\n" + text.Replace("\r\n", "\n");
+            //string str = name + "\n" + text.Replace("\r\n", "\n");
+            string[] temp = text.Split(new char[] { '\r', '\n' });
+            StringBuilder str = new StringBuilder();
+            str.Append(name + "\n\n");
+            foreach (var t in temp)
+            {
+                if (!string.IsNullOrEmpty(t))
+                {
+                    str.Append(t + "\n\n");
+                }
+            }
+
+            if (!_open)
+            {
+                str.Append("http://blog.csdn.net/lindexi_gd");
+            }
 
             using (StorageStreamTransaction transaction = await file.OpenTransactedWriteAsync())
             {
                 using (DataWriter dataWriter = new DataWriter(transaction.Stream))
                 {
-                    dataWriter.WriteString(str);
+                    dataWriter.WriteString(str.ToString());
                     transaction.Stream.Size = await dataWriter.StoreAsync();
                     await transaction.CommitAsync();
                 }

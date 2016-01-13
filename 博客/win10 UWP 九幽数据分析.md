@@ -10,7 +10,6 @@ http://www.windows.sc
 ![这里写图片描述](image/201611220345291.png)
 
 图片要72*72
-
 记密钥
 
 ![这里写图片描述](image/201611220348976.png)
@@ -128,9 +127,7 @@ JYAnalytics.TrackError(error);
 ```
 
 在Package.appxmanifest功能
-
 Internet(客户端服务器)使用
-
 ![这里写图片描述](image/201611220506879.png)
 
 

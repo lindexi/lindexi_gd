@@ -74,7 +74,7 @@ namespace produproperty
                 }
                 else if (e.Key == Windows.System.VirtualKey.K)
                 {
-                    str = "\n```\n\n\n\n```\n";
+                    str = "\n```C#\n\n\n\n```\n";
                     view.tianjia(str);
                     text.SelectionStart -= 6;
                 }
