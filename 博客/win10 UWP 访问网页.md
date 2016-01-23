@@ -62,4 +62,56 @@ Windows10 UWP要访问博客，可以使用Windows.Web.Http.HttpClient
 
 ![这里写图片描述](image/201612215233133.png)
 
+HttpWebRequest
+
+```C#
+
+            System.Net.HttpWebRequest request = null;
+
+            request = System.Net.WebRequest.Create(str) as System.Net.HttpWebRequest;
+
+            request.Accept = "text/html, application/xhtml+xml, image/jxr, */*";
+
+            request.Method = "GET";
+
+            request.CookieContainer = new System.Net.CookieContainer();
+
+            try
+
+            {
+
+                System.Net.HttpWebResponse response = (System.Net.HttpWebResponse)await request.GetResponseAsync();
+
+                if (response != null && response.StatusCode==System.Net.HttpStatusCode.OK)
+
+                {
+
+                    tb.Text = response.ContentLength.ToString();
+
+                    using (Stream stream= response.GetResponseStream())
+
+                    {
+
+                        byte[] buffer = new byte[10240];
+
+                        stream.Read(buffer, 0, 10240);
+
+                        tb.Text = System.Text.Encoding.UTF8.GetString(buffer);
+
+                    }
+
+                }
+
+            }
+
+            catch
+
+            {
+
+            }
+
+```
+
+![这里写图片描述](image/201612215558195.png)
+
 http://blog.csdn.net/lindexi_gd
