@@ -7,26 +7,33 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" SizeChanged="sizeChanged">
         <Grid.RowDefinitions>
             <RowDefinition />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
-            <ListView SelectionChanged="select" ItemsSource="{x:Bind view.rsslist}">
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition />
-                            </Grid.RowDefinitions>
-                            <TextBlock Text="{Binding title}" />
-                        </Grid>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
-            <!--<TextBlock Grid.Row="0" Text="{x:Bind view.reminder,Mode=OneWay}" TextWrapping="Wrap"/>-->
-        </ScrollViewer>
+        <Grid Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <ScrollViewer Grid.Row="0" Grid.Column="0" VerticalScrollBarVisibility="Auto">
+                <ListView SelectionChanged="select" ItemsSource="{x:Bind view.rsslist}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="{Binding title}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+                <!--<TextBlock Grid.Row="0" Text="{x:Bind view.reminder,Mode=OneWay}" TextWrapping="Wrap"/>-->
+            </ScrollViewer>
+            <Frame x:Name="rss_frame" Grid.Column="1" Visibility="{x:Bind view.rssVisibility,Mode=OneWay}" />
+        </Grid>
         <Button Grid.Row="1" Margin="10,10,10,10" Content="确定" Click="Button_Click" />
     </Grid>
 </Page>

@@ -8,6 +8,7 @@ using Windows.ApplicationModel.Core;
 using Windows.Storage;
 using Windows.Storage.Streams;
 using Windows.UI.Core;
+using Windows.UI.Xaml;
 using Windows.Web.Syndication;
 using ViewModel;
 
@@ -20,9 +21,33 @@ namespace rss.ViewModel
             //ce();
             //upload_file(null);
             syndication();
+
+            rssVisibility=Visibility.Collapsed;
         }
 
         public ObservableCollection<rssstr> rsslist { set; get; } = new ObservableCollection<rssstr>();
+
+        public Visibility rssVisibility
+        {
+            set
+            {
+                if (value == Visibility.Visible)
+                {
+                    _rssVisibility = true;
+                }
+                else
+                {
+                    _rssVisibility = false;
+                }
+                OnPropertyChanged();
+            }
+            get
+            {
+                return _rssVisibility ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+
+        private bool _rssVisibility;
 
         private void ce()
         {

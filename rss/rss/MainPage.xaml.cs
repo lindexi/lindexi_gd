@@ -24,11 +24,17 @@ namespace rss
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        ViewModel.viewModel view;
+        viewModel view;
         public MainPage()
         {
             view = new ViewModel.viewModel();
             this.InitializeComponent();
+            Windows.UI.Core.SystemNavigationManager.GetForCurrentView().BackRequested += BackRequested;
+        }
+
+        private void BackRequested(object sender, Windows.UI.Core.BackRequestedEventArgs e)
+        {
+            view.rssVisibility=Visibility.Collapsed;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -39,8 +45,17 @@ namespace rss
 
         private void select(object sender, SelectionChangedEventArgs e)
         {
-            Frame frame = Window.Current.Content as Frame;
-            frame?.Navigate(typeof(rss_page), (ViewModel.rssstr)(sender as ListView)?.SelectedItem);
+            //Frame frame = Window.Current.Content as Frame;
+            //frame?.Navigate(typeof(rss_page), (ViewModel.rssstr)(sender as ListView)?.SelectedItem);
+            rss_frame.Navigate(typeof(rss_page), (ViewModel.rssstr)(sender as ListView)?.SelectedItem);
+            view.rssVisibility = Visibility.Visible;
+        }
+
+
+        private void sizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            var grid=sender as Grid;
+            
         }
     }
 }

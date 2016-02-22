@@ -101,6 +101,7 @@
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="model.cs" />
     <Compile Include="rss_page.xaml.cs">
       <DependentUpon>rss_page.xaml</DependentUpon>
     </Compile>
