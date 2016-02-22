@@ -40,7 +40,7 @@ namespace rss
         private void select(object sender, SelectionChangedEventArgs e)
         {
             Frame frame = Window.Current.Content as Frame;
-            frame.Navigate(typeof(rss_page), (ViewModel.rssstr)(sender as ListView).SelectedItem);
+            frame?.Navigate(typeof(rss_page), (ViewModel.rssstr)(sender as ListView)?.SelectedItem);
         }
     }
 }
