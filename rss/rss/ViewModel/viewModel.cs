@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 using ViewModel;
 using Windows.Storage.Streams;
+using System.Text.RegularExpressions;
+using System.Collections.ObjectModel;
 
 namespace rss.ViewModel
 {
@@ -15,8 +17,10 @@ namespace rss.ViewModel
         public viewModel()
         {
             //ce();
-            upload_file(null);
+            //upload_file(null);
+            syndication();
         }
+        public ObservableCollection<rssstr> rsslist { set; get; } = new ObservableCollection<rssstr>();
         private void ce()
         {
             string url = "http://blog.csdn.net/lindexi_gd/article/details/50633565";
@@ -25,6 +29,66 @@ namespace rss.ViewModel
             request.Method = "GET";
             request.Headers["Cookie"] = "";
             request.BeginGetResponse(response_call_back, request);
+
+            //Windows.Web.Syndication
+        }
+
+        public async void syndication()
+        {
+            Windows.Web.Syndication.SyndicationClient client = new Windows.Web.Syndication.SyndicationClient();
+            Windows.Web.Syndication.SyndicationFeed feed;
+
+            // The URI is validated by catching exceptions thrown by the Uri constructor.
+            //uri写在外面，为了在try之外不会说找不到变量
+            Uri uri = null;
+
+            //uri字符串
+            string uriString = "http://www.win10.me/?feed=rss2";
+
+            try
+            {
+                uri = new Uri(uriString);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            try
+            {
+                //模拟http 
+                // 如果没有设置可能出错
+                client.SetRequestHeader("User-Agent", "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; WOW64; Trident/6.0)");
+
+                feed = await client.RetrieveFeedAsync(uri);
+
+                foreach (Windows.Web.Syndication.SyndicationItem item in feed.Items)
+                {
+                    displayCurrentItem(item);
+                }
+
+                //foreach (var temp in rsslist)
+                //{
+                //    reminder = temp.summary;
+                //}
+            }
+            catch (Exception ex)
+            {
+                // Handle the exception here.
+            }
+        }
+
+        private void displayCurrentItem(Windows.Web.Syndication.SyndicationItem item)
+        {
+            string itemTitle = item.Title == null ? "No title" : item.Title.Text;
+            string itemLink = item.Links == null ? "No link" : item.Links.FirstOrDefault().ToString();
+            string itemContent = item.Content == null ? "No content" : item.Content.Text;
+            string itemSummary = item.Summary.Text + "";
+            reminder = itemTitle + "\n" + itemLink + "\n" + itemContent+"\n"+itemSummary+"\n";
+
+            rsslist.Add(new rssstr(itemTitle, itemSummary));
+            
+            
         }
 
         public async void upload_file(Windows.Storage.StorageFile file)
@@ -92,4 +156,21 @@ namespace rss.ViewModel
 
 
     }
+
+
+    /// <summary>
+    ///
+    /// </summary>
+    public class rssstr
+    {
+        public rssstr(string title,string summary)
+        {
+            this.title = title;
+            this.summary = WebUtility.HtmlDecode(Regex.Replace(summary, "<[^>]+?>", ""));
+        }
+        
+        public string title { set; get; }
+        public string summary { set; get; }
+    }
+
 }

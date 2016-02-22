@@ -1,4 +1,5 @@
-﻿using System;
+﻿using rss.ViewModel;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -28,6 +29,18 @@ namespace rss
         {
             view = new ViewModel.viewModel();
             this.InitializeComponent();
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            Frame frame = Window.Current.Content as Frame;
+
+        }
+
+        private void select(object sender, SelectionChangedEventArgs e)
+        {
+            Frame frame = Window.Current.Content as Frame;
+            frame.Navigate(typeof(rss_page), (ViewModel.rssstr)(sender as ListView).SelectedItem);
         }
     }
 }

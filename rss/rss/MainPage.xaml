@@ -15,8 +15,20 @@
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
         <ScrollViewer Grid.Row="0"  VerticalScrollBarVisibility="Auto">
-            <TextBlock Text="{x:Bind view.reminder,Mode=OneWay}" TextWrapping="Wrap"/>
+            <ListView SelectionChanged="select" ItemsSource="{x:Bind view.rsslist}">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="{Binding title}"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <!--<TextBlock Grid.Row="0" Text="{x:Bind view.reminder,Mode=OneWay}" TextWrapping="Wrap"/>-->
         </ScrollViewer>
-        <Button Grid.Row="1" Margin="10,10,10,10" Content="确定"/>
+        <Button Grid.Row="1" Margin="10,10,10,10" Content="确定" Click="Button_Click"/>
     </Grid>
 </Page>
