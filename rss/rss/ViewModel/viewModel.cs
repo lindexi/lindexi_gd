@@ -1,4 +1,9 @@
-﻿using System;
+﻿// lindexi
+// 16:26
+
+#region
+
+using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -12,6 +17,8 @@ using Windows.UI.Xaml;
 using Windows.Web.Syndication;
 using ViewModel;
 
+#endregion
+
 namespace rss.ViewModel
 {
     public class viewModel : notify_property
@@ -22,7 +29,7 @@ namespace rss.ViewModel
             //upload_file(null);
             syndication();
 
-            rssVisibility=Visibility.Collapsed;
+            rssVisibility = Visibility.Collapsed;
         }
 
         public ObservableCollection<rssstr> rsslist { set; get; } = new ObservableCollection<rssstr>();
@@ -31,14 +38,7 @@ namespace rss.ViewModel
         {
             set
             {
-                if (value == Visibility.Visible)
-                {
-                    _rssVisibility = true;
-                }
-                else
-                {
-                    _rssVisibility = false;
-                }
+                _rssVisibility = value == Visibility.Visible;
                 OnPropertyChanged();
             }
             get
@@ -51,8 +51,8 @@ namespace rss.ViewModel
 
         private void ce()
         {
-            var url = "http://blog.csdn.net/lindexi_gd/article/details/50633565";
-            var request = WebRequest.Create(url);
+            string url = "http://blog.csdn.net/lindexi_gd/article/details/50633565";
+            WebRequest request = WebRequest.Create(url);
 
             request.Method = "GET";
             request.Headers["Cookie"] = "";
@@ -63,17 +63,17 @@ namespace rss.ViewModel
 
         public async void syndication()
         {
-            var client = new SyndicationClient();
+            SyndicationClient client = new SyndicationClient();
 
             //uri写在外面，为了在try之外不会说找不到变量
             Uri uri = null;
 
             //uri字符串
-            var uriString = "http://www.win10.me/?feed=rss2";
+            string uri_string = "http://www.win10.me/?feed=rss2";
 
             try
             {
-                uri = new Uri(uriString);
+                uri = new Uri(uri_string);
             }
             catch (Exception ex)
             {
@@ -89,9 +89,9 @@ namespace rss.ViewModel
 
                 SyndicationFeed feed = await client.RetrieveFeedAsync(uri);
 
-                foreach (var item in feed.Items)
+                foreach (SyndicationItem item in feed.Items)
                 {
-                    displayCurrentItem(item);
+                    display_current_item(item);
                 }
 
                 //foreach (var temp in rsslist)
@@ -99,21 +99,21 @@ namespace rss.ViewModel
                 //    reminder = temp.summary;
                 //}
             }
-            catch 
+            catch
             {
                 // Handle the exception here.
             }
         }
 
-        private void displayCurrentItem(SyndicationItem item)
+        private void display_current_item(SyndicationItem item)
         {
-            var itemTitle = item.Title?.Text ?? "No title";
-            var itemLink = item.Links == null ? "No link" : item.Links.FirstOrDefault().ToString();
-            var itemContent = item.Content?.Text ?? "No content";
-            var itemSummary = item.Summary.Text + "";
-            reminder = itemTitle + "\n" + itemLink + "\n" + itemContent + "\n" + itemSummary + "\n";
+            string item_title = item.Title?.Text ?? "No title";
+            string item_link = item.Links == null ? "No link" : item.Links.FirstOrDefault().ToString();
+            string item_content = item.Content?.Text ?? "No content";
+            string item_summary = item.Summary.Text + "";
+            reminder = item_title + "\n" + item_link + "\n" + item_content + "\n" + item_summary + "\n";
 
-            rsslist.Add(new rssstr(itemTitle, itemSummary));
+            rsslist.Add(new rssstr(item_title, item_summary));
         }
 
         public async void upload_file(StorageFile file)
@@ -125,15 +125,15 @@ namespace rss.ViewModel
                         StorageFile.GetFileFromApplicationUriAsync(
                             new Uri("ms-appx:///Assets/SplashScreen.scale-200.png"));
             }
-            var UP_HOST = "http://up.qiniu.com";
-            var url = UP_HOST;
-            var request = WebRequest.Create(url);
+            string UP_HOST = "http://up.qiniu.com";
+            string url = UP_HOST;
+            WebRequest request = WebRequest.Create(url);
             request.Method = "POST";
             request.BeginGetRequestStream(async result =>
             {
-                var http = (HttpWebRequest) result.AsyncState;
-                var buffer = new byte[1024];
-                using (var stream = http.EndGetRequestStream(result))
+                HttpWebRequest http = (HttpWebRequest) result.AsyncState;
+                byte[] buffer = new byte[1024];
+                using (Stream stream = http.EndGetRequestStream(result))
                 {
                     //using (Windows.Storage.StorageStreamTransaction transaction = await file.OpenTransactedWriteAsync())
                     //{
@@ -142,16 +142,16 @@ namespace rss.ViewModel
 
                     //    }
                     //}
-                    using (var readStream = await file.OpenAsync(FileAccessMode.Read))
+                    using (IRandomAccessStream read_stream = await file.OpenAsync(FileAccessMode.Read))
                     {
-                        using (var dataReader = new DataReader(readStream))
+                        using (DataReader data_reader = new DataReader(read_stream))
                         {
-                            var size = readStream.Size;
+                            ulong size = read_stream.Size;
                             if (size <= uint.MaxValue)
                             {
-                                var numBytesLoaded = await dataReader.LoadAsync((uint) size);
+                                await data_reader.LoadAsync((uint) size);
                                 buffer = new byte[size];
-                                dataReader.ReadBytes(buffer);
+                                data_reader.ReadBytes(buffer);
                             }
                         }
                     }
@@ -165,16 +165,20 @@ namespace rss.ViewModel
 
         private async void response_call_back(IAsyncResult result)
         {
-            var http = (HttpWebRequest) result.AsyncState;
-            var web_response = http.EndGetResponse(result);
-            using (var stream = web_response.GetResponseStream())
+            HttpWebRequest http = (HttpWebRequest) result.AsyncState;
+            WebResponse web_response = http.EndGetResponse(result);
+            using (Stream stream = web_response.GetResponseStream())
             {
-                using (var read = new StreamReader(stream))
+                using (StreamReader read = new StreamReader(stream))
                 {
-                    var content = read.ReadToEnd();
+                    string content = read.ReadToEnd();
                     await
-                        CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
-                            () => { reminder = content; });
+                        CoreApplication.MainView.
+                        CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
+                            () =>
+                            {
+                                reminder = content;
+                            });
                 }
             }
         }
