@@ -10,8 +10,32 @@ namespace hellow__csdn
     {
         static void Main(string[] args)
         {
-            hellow h = new hellow();
-            h.ce();
+            //hellow h = new hellow();
+            //h.ce();
+            
+            string csdn = "csdn";
+            double n = 1.1315;
+            string str = $"Hello {csdn} 新特性";
+            Console.WriteLine(str);
+
+            str = $"Hello {csdn} 新特性 {n}";
+            Console.WriteLine(str);
+
+            str = $"Hello {csdn} 新特性 {n:1.##}";
+            Console.WriteLine(str);
+
+            //不生效
+            str = $"Hello {csdn:10} 新特性 {n:1.##}";
+            Console.WriteLine(str);
+
+            str = $"Hello {csdn,10} 新特性 {n:1.##}";
+            Console.WriteLine(str);
+
+            str = $"Hello {csdn.PadRight(10)} 新特性 {n:1.##}";
+            Console.WriteLine(str);
+
+            str = $"Hello {(csdn =="csdn"?"csdn":"lindexi")} 新特性 {n:1.##}";
+            Console.WriteLine(str);
         }
     }
     class hellow
