@@ -16,6 +16,6 @@ namespace FojirCacarcallCeqoChecer.Models
 
         public DbSet<FojirCacarcallCeqoChecer.Model.PerekallbearvirFemheakorTirtaKema> PerekallbearvirFemheakorTirtaKema { get; set; }
 
-
+        public DbSet<LemurKireZeesaGupoodi> LemurKireZeesaGupoodis { get; set; }
     }
 }
