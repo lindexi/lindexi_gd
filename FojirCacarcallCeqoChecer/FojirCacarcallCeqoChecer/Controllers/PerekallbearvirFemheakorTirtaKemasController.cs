@@ -19,16 +19,6 @@ namespace FojirCacarcallCeqoChecer.Controllers
         public PerekallbearvirFemheakorTirtaKemasController(RasasCootrorvouContext context)
         {
             _context = context;
-
-            if (!context.PerekallbearvirFemheakorTirtaKema.Any())
-            {
-                context.PerekallbearvirFemheakorTirtaKema.Add(new PerekallbearvirFemheakorTirtaKema()
-                {
-                    Name = "逗比"
-                });
-
-                context.SaveChanges();
-            }
         }
 
         // GET: api/PerekallbearvirFemheakorTirtaKemas
