@@ -7,7 +7,6 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-
         <Grid.Resources>
             <XmlDataProvider x:Key="InventoryData" XPath="Books">
                 <x:XData>
@@ -38,14 +37,22 @@
         </Grid.Resources>
 
         <ListView ItemsSource="{Binding Source={StaticResource InventoryData}, XPath=Book}">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn Width="300" Header="Title" 
-                                    DisplayMemberBinding="{Binding XPath=Title}"/>
-                    <GridViewColumn Width="150" Header="ISBN" 
-                                    DisplayMemberBinding="{Binding XPath=@ISBN}"/>
-                </GridView>
-            </ListView.View>
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Grid Background="#5a5a5a" Margin="10,10,10,10">
+                        <StackPanel Margin="2,2,2,2">
+                            <TextBlock Text="{Binding XPath=Title}" />
+                            <TextBlock Text="{Binding XPath=@ISBN}" />
+                        </StackPanel>
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
         </ListView>
     </Grid>
 </Window>
