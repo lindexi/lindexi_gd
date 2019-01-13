@@ -7,6 +7,9 @@ namespace NileeCowwho
     {
         static void Main(string[] args)
         {
+            var geceWhiyu = new GeceWhiyu();
+            geceWhiyu.PeenorJaidorsayyou();
+
             var reserXelpiRoorairlurmer = new XmlSerializer(typeof(MuyorkearTisdusilu));
 
             var muyorkearTisdusilu = new MuyorkearTisdusilu()
