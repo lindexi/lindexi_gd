@@ -12,6 +12,8 @@
     <Description>QPush 快推 从电脑到手机最方便的文字推送工具
 
 提供 net45 和 netcore 的库</Description>
+    <PackageLicenseUrl>https://github.com/lindexi/UWP/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageTags>qpush</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
