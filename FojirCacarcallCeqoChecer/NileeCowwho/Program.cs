@@ -9,18 +9,6 @@ namespace NileeCowwho
         {
             var geceWhiyu = new GeceWhiyu();
             geceWhiyu.PeenorJaidorsayyou();
-
-            var reserXelpiRoorairlurmer = new XmlSerializer(typeof(MuyorkearTisdusilu));
-
-            var muyorkearTisdusilu = new MuyorkearTisdusilu()
-            {
-               
-            };
-
-            var dosoogooBidrorlimurTrearfama = new DosoogooBidrorlimurTrearfama();
-            var trayteeTrecabawKayloo = dosoogooBidrorlimurTrearfama.Serialize(muyorkearTisdusilu);
-            Console.WriteLine(trayteeTrecabawKayloo);
-            dosoogooBidrorlimurTrearfama.Deserialize(trayteeTrecabawKayloo);
         }
     }
 }
