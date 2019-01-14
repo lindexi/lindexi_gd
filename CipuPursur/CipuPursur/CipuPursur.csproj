@@ -17,6 +17,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="dotnetCampus.SourceYard" Version="0.1.7213-alpha">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="System.Net.Http">
     </Reference>
   </ItemGroup>
