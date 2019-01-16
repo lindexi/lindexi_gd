@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CanaynaTacerebayQeebas"
         mc:Ignorable="d"
+        Icon="20190116195219.ico"
         Title="QPush 快推 从电脑到手机最方便的文字推送工具" Height="700" Width="800">
     <Window.DataContext>
         <local:ViewModel />
