@@ -5,8 +5,11 @@ using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
+using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Storage;
+using Windows.Storage.Streams;
 using Windows.System;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
@@ -17,7 +20,6 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using lindexi.MVVM.Framework.ViewModel;
-using lindexi.src;
 
 // https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x804 上介绍了“空白页”项模板
 
@@ -79,6 +81,7 @@ namespace NubevearKenireno
             {
                 if (value == _name) return;
                 _name = value;
+                Storage();
                 OnPropertyChanged();
             }
         }
@@ -90,6 +93,7 @@ namespace NubevearKenireno
             {
                 if (value == _code) return;
                 _code = value;
+                Storage();
                 OnPropertyChanged();
             }
         }
@@ -123,7 +127,7 @@ namespace NubevearKenireno
         private string _name;
         private string _text;
 
-        private void Read()
+        private async void Read()
         {
             try
             {
@@ -139,6 +143,26 @@ namespace NubevearKenireno
                 //        Code = code;
                 //    }
                 //}
+
+                try
+                {
+                    var file = await ApplicationData.Current.RoamingFolder.GetFileAsync(File);
+                    using (var stream = await file.OpenReadAsync())
+                    {
+                        var streamReader = new StreamReader(stream.AsStreamForRead());
+                        using (streamReader)
+                        {
+                            var name = streamReader.ReadLine();
+                            var code = streamReader.ReadLine();
+
+                            Name = name;
+                            Code = code;
+                        }
+                    }
+                }
+                catch (FileNotFoundException )
+                {
+                }
             }
             catch (Exception e)
             {
@@ -146,17 +170,90 @@ namespace NubevearKenireno
             }
         }
 
-        private void Storage()
+        private async void Storage()
         {
-            //if (string.IsNullOrEmpty(Name) || string.IsNullOrEmpty(Code))
-            //{
-            //    return;
-            //}
+            if (string.IsNullOrEmpty(Name) || string.IsNullOrEmpty(Code))
+            {
+                return;
+            }
 
-            //var str = Name + "\n" + Code;
-            //System.IO.File.WriteAllText(File, str, Encoding.UTF8);
+            try
+            {
+                var file = await ApplicationData.Current.RoamingFolder.CreateFileAsync(File,
+                    CreationCollisionOption.ReplaceExisting);
+                using (StorageStreamTransaction transaction = await file.OpenTransactedWriteAsync())
+                {
+                    using (DataWriter dataWriter = new DataWriter(transaction.Stream))
+                    {
+                        dataWriter.WriteString($"{Name}\r\n{Code}");
+                        transaction.Stream.Size = await dataWriter.StoreAsync(); // reset stream size to override the file
+                        await transaction.CommitAsync();
+                    }
+                }
+               
+            }
+            catch (Exception )
+            {
+                
+            }
         }
 
         private const string File = "file.txt";
+    }
+
+    /// <summary>
+    /// QPush 快推 从电脑到手机最方便的文字推送工具
+    /// </summary>
+    public class Qpush
+    {
+        public Qpush(string name, string code)
+        {
+            if (name == null) throw new ArgumentNullException(nameof(name));
+            if (code == null) throw new ArgumentNullException(nameof(code));
+
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentNullException("name 不能为空");
+            }
+
+            if (string.IsNullOrEmpty(code))
+            {
+                throw new ArgumentNullException("code 不能为空");
+            }
+
+            Name = name;
+            Code = code;
+        }
+
+        /// <summary>
+        /// 推名
+        /// </summary>
+        public string Name { get; }
+
+        /// <summary>
+        /// 推码
+        /// </summary>
+        public string Code { get; }
+
+        /// <summary>
+        /// 推送信息
+        /// </summary>
+        public async Task<string> PushMessageAsync(string str)
+        {
+            const string url = "https://qpush.me/pusher/push_site/";
+
+            var httpClient = new HttpClient();
+
+            httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36");
+
+            HttpContent content =
+                new StringContent(
+                    $"name={Uri.EscapeUriString(Name)}&code={Uri.EscapeUriString(Code)}&sig=&cache=false&msg%5Btext%5D={Uri.EscapeUriString(str)}",
+                    Encoding.UTF8, "application/x-www-form-urlencoded");
+            var code = await (await httpClient.PostAsync(url, content)).Content.ReadAsStringAsync();
+
+            return code;
+        }
     }
 }
