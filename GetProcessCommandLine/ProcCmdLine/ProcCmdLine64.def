@@ -1,0 +1,3 @@
+LIBRARY ProcCmdLine64
+EXPORTS
+	GetProcCmdLine
