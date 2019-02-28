@@ -8,4 +8,14 @@ namespace MooperekemStalbo
 
         public string Sha { get; set; }
     }
+
+    public class DermaiGasterechakeWhurchurwall
+    {
+        /// <summary>
+        /// 包的名
+        /// </summary>
+        public string Name { get; set; }
+
+        public string Version { set; get; }
+    }
 }

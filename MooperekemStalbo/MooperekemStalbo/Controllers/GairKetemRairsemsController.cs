@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,10 +18,54 @@ namespace MooperekemStalbo.Controllers
     public class GairKetemRairsemsController : ControllerBase
     {
         private readonly MooperekemStalboContext _context;
+        private IHostingEnvironment _host;
 
-        public GairKetemRairsemsController(MooperekemStalboContext context)
+        public GairKetemRairsemsController(MooperekemStalboContext context,IHostingEnvironment host)
         {
             _context = context;
+
+            _host = host;
+
+            if (!_context.GairKetemRairsem.Any())
+            {
+                _context.GairKetemRairsem.AddRange(new[]
+                {
+                    new GairKetemRairsem()
+                    {
+                        Name = "lindexi",
+                        RequirementMinVersion = new Version("5.1.2").ToString(),
+                        RequirementMaxVersion = new Version("5.1.3").ToString(),
+                        Version = new Version("1.0.0").ToString(),
+                        Url = Path.Combine(host.WebRootPath,"Package","1.png")
+                    },
+                    new GairKetemRairsem()
+                    {
+                        Name = "lindexi",
+                        RequirementMinVersion = new Version("5.1.2").ToString(),
+                        RequirementMaxVersion = new Version("5.1.3").ToString(),
+                        Version = new Version("1.0.1").ToString(),
+                        Url = Path.Combine(host.WebRootPath,"Package","1.png")
+                    },
+                    new GairKetemRairsem()
+                    {
+                        Name = "lindexi",
+                        RequirementMinVersion = new Version("5.1.2").ToString(),
+                        RequirementMaxVersion = new Version("5.1.3").ToString(),
+                        Version = new Version("1.0.2").ToString(),
+                        Url = Path.Combine(host.WebRootPath,"Package","1.png")
+                    },
+                    new GairKetemRairsem()
+                    {
+                        Name = "lindexi",
+                        RequirementMinVersion = new Version("5.1.3").ToString(),
+                        RequirementMaxVersion = new Version("5.1.5").ToString(),
+                        Version = new Version("1.0.5").ToString(),
+                        Url = Path.Combine(host.WebRootPath,"Package","1.png")
+                    },
+                });
+
+                _context.SaveChanges();
+            }
         }
 
         // GET: api/GairKetemRairsems
@@ -51,7 +96,8 @@ namespace MooperekemStalbo.Controllers
 
         // PUT: api/GairKetemRairsems/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutGairKetemRairsem([FromRoute] long id, [FromBody] GairKetemRairsem gairKetemRairsem)
+        public async Task<IActionResult> PutGairKetemRairsem([FromRoute] long id,
+            [FromBody] GairKetemRairsem gairKetemRairsem)
         {
             if (!ModelState.IsValid)
             {
@@ -100,22 +146,25 @@ namespace MooperekemStalbo.Controllers
         }
 
         [HttpPost("UploadPackage")]
-        public async Task<StatusCodeResult> UploadPackage([FromForm]KanajeaLolowge file)
+        public async Task<StatusCodeResult> UploadPackage([FromForm] KanajeaLolowge file)
         {
             var fileInfo = new FileInfo("E:\\1.png");
 
             var fileStream = fileInfo.Open(FileMode.Create, FileAccess.ReadWrite);
 
-            await file.File.CopyToAsync(fileStream);
-
-            fileStream.Seek(0, SeekOrigin.Begin);
-
             string fileSha;
-            using (var sha = SHA256.Create())
+            using (fileStream)
             {
-                fileSha = Convert.ToBase64String(sha.ComputeHash(fileStream));
+                await file.File.CopyToAsync(fileStream);
 
                 fileStream.Seek(0, SeekOrigin.Begin);
+
+                using (var sha = SHA256.Create())
+                {
+                    fileSha = Convert.ToBase64String(sha.ComputeHash(fileStream));
+
+                    fileStream.Seek(0, SeekOrigin.Begin);
+                }
             }
 
             if (fileSha == file.Sha)
@@ -124,6 +173,32 @@ namespace MooperekemStalbo.Controllers
             }
 
             return BadRequest();
+        }
+
+        [HttpPost("Download")]
+        public ActionResult Download([FromBody]KebunerNeefunadrow saljudecooBolor)
+        {
+            
+            Console.WriteLine("Download");
+            var version = new Version(saljudecooBolor.Version);
+            var gairKetemRairsem = _context.GairKetemRairsem
+                .Where(temp => temp.Name == saljudecooBolor.Name
+                               && new Version(temp.RequirementMinVersion) <= version
+                               && new Version(temp.RequirementMaxVersion) > version)
+                .OrderBy(temp => new Version(temp.Version)).FirstOrDefault();
+            if (gairKetemRairsem != null)
+            {
+                return PhysicalFile(gairKetemRairsem.Url, "application/octet-stream");
+            }
+            Console.WriteLine("找不到文件");
+
+            return Ok();
+
+            //return BadRequest();
+        }
+
+        public void Download(DermaiGasterechakeWhurchurwall poojiSugou)
+        {
         }
 
         // DELETE: api/GairKetemRairsems/5
@@ -150,6 +225,14 @@ namespace MooperekemStalbo.Controllers
         private bool GairKetemRairsemExists(long id)
         {
             return _context.GairKetemRairsem.Any(e => e.Id == id);
+        }
+    }
+
+    public class MedaltraFairjousuFowluNererisMoubeturce
+    {
+        public void CheckFile()
+        {
+
         }
     }
 }

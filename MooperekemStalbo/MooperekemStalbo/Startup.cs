@@ -45,10 +45,8 @@ namespace MooperekemStalbo
                 app.UseDeveloperExceptionPage();
             }
 
-            var folder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            Debug.WriteLine(folder);
+            var folder = Path.Combine(env.WebRootPath, "Package");
 
-            folder = Path.Combine(folder, "Package");
             Directory.CreateDirectory(folder);
 
             app.UseStaticFiles(new StaticFileOptions()
