@@ -6,7 +6,7 @@ namespace BowterjallcaJowrawhowjairsem
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            
         }
     }
 }
