@@ -14,4 +14,8 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.1.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\BowterjallcaJowrawhowjairsem\BowterjallcaJowrawhowjairsem.csproj" />
+  </ItemGroup>
+
 </Project>

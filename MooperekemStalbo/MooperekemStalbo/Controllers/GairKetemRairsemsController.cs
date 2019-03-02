@@ -20,7 +20,7 @@ namespace MooperekemStalbo.Controllers
         private readonly MooperekemStalboContext _context;
         private IHostingEnvironment _host;
 
-        public GairKetemRairsemsController(MooperekemStalboContext context,IHostingEnvironment host)
+        public GairKetemRairsemsController(MooperekemStalboContext context, IHostingEnvironment host)
         {
             _context = context;
 
@@ -36,7 +36,7 @@ namespace MooperekemStalbo.Controllers
                         RequirementMinVersion = new Version("5.1.2").ToString(),
                         RequirementMaxVersion = new Version("5.1.3").ToString(),
                         Version = new Version("1.0.0").ToString(),
-                        Url = Path.Combine(host.WebRootPath,"Package","1.png")
+                        Url = Path.Combine(host.WebRootPath, "Package", "1.png")
                     },
                     new GairKetemRairsem()
                     {
@@ -44,7 +44,7 @@ namespace MooperekemStalbo.Controllers
                         RequirementMinVersion = new Version("5.1.2").ToString(),
                         RequirementMaxVersion = new Version("5.1.3").ToString(),
                         Version = new Version("1.0.1").ToString(),
-                        Url = Path.Combine(host.WebRootPath,"Package","1.png")
+                        Url = Path.Combine(host.WebRootPath, "Package", "1.png")
                     },
                     new GairKetemRairsem()
                     {
@@ -52,7 +52,7 @@ namespace MooperekemStalbo.Controllers
                         RequirementMinVersion = new Version("5.1.2").ToString(),
                         RequirementMaxVersion = new Version("5.1.3").ToString(),
                         Version = new Version("1.0.2").ToString(),
-                        Url = Path.Combine(host.WebRootPath,"Package","1.png")
+                        Url = Path.Combine(host.WebRootPath, "Package", "1.png")
                     },
                     new GairKetemRairsem()
                     {
@@ -60,7 +60,7 @@ namespace MooperekemStalbo.Controllers
                         RequirementMinVersion = new Version("5.1.3").ToString(),
                         RequirementMaxVersion = new Version("5.1.5").ToString(),
                         Version = new Version("1.0.5").ToString(),
-                        Url = Path.Combine(host.WebRootPath,"Package","1.png")
+                        Url = Path.Combine(host.WebRootPath, "Package", "1.png")
                     },
                 });
 
@@ -148,7 +148,7 @@ namespace MooperekemStalbo.Controllers
         [HttpPost("UploadPackage")]
         public async Task<StatusCodeResult> UploadPackage([FromForm] KanajeaLolowge file)
         {
-            var fileInfo = new FileInfo("E:\\1.png");
+            var fileInfo = new FileInfo("E:\\1.zip");
 
             var fileStream = fileInfo.Open(FileMode.Create, FileAccess.ReadWrite);
 
@@ -169,6 +169,11 @@ namespace MooperekemStalbo.Controllers
 
             if (fileSha == file.Sha)
             {
+                var medaltraFairjousuFowluNererisMoubeturce = new MedaltraFairjousuFowluNererisMoubeturce()
+                {
+                    Folder = Path.Combine(_host.WebRootPath, "Package")
+                };
+                medaltraFairjousuFowluNererisMoubeturce.CheckFile(fileInfo);
                 return Ok();
             }
 
@@ -176,9 +181,8 @@ namespace MooperekemStalbo.Controllers
         }
 
         [HttpPost("Download")]
-        public ActionResult Download([FromBody]KebunerNeefunadrow saljudecooBolor)
+        public ActionResult Download([FromBody] KebunerNeefunadrow saljudecooBolor)
         {
-            
             Console.WriteLine("Download");
             var version = new Version(saljudecooBolor.Version);
             var gairKetemRairsem = _context.GairKetemRairsem
@@ -190,6 +194,7 @@ namespace MooperekemStalbo.Controllers
             {
                 return PhysicalFile(gairKetemRairsem.Url, "application/octet-stream");
             }
+
             Console.WriteLine("找不到文件");
 
             return Ok();
@@ -225,14 +230,6 @@ namespace MooperekemStalbo.Controllers
         private bool GairKetemRairsemExists(long id)
         {
             return _context.GairKetemRairsem.Any(e => e.Id == id);
-        }
-    }
-
-    public class MedaltraFairjousuFowluNererisMoubeturce
-    {
-        public void CheckFile()
-        {
-
         }
     }
 }
