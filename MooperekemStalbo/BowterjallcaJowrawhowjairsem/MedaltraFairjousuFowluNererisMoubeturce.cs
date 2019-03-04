@@ -11,15 +11,21 @@ namespace MooperekemStalbo.Controllers
 {
     public class MedaltraFairjousuFowluNererisMoubeturce
     {
-        public Package CheckFile(FileInfo file)
+        /// <inheritdoc />
+        public MedaltraFairjousuFowluNererisMoubeturce(FileInfo file, string folder,string fileSha)
         {
-            // 如果文件夹不为空
-            if (!Directory.Exists(Folder))
-            {
-                Folder = Path.GetTempPath();
-            }
-
             _file = file;
+            Folder = folder;
+            _fileSha = fileSha;
+            if (!Directory.Exists(folder))
+            {
+                throw new ArgumentException("不能传入不存在文件夹");
+            }
+        }
+
+        public bool CheckFile()
+        {
+            var file = _file;
 
             var folder = Path.Combine(Folder, "temp", Guid.NewGuid().ToString());
             ZipFile.ExtractToDirectory(file.FullName, folder);
@@ -28,12 +34,13 @@ namespace MooperekemStalbo.Controllers
 
             Directory.Delete(folder,true);
 
-            return _package;
+            return true;
         }
 
 
-        public void MoveFile(string fileSha)
+        public void MoveFile()
         {
+            var fileSha = _fileSha;
             var folder = Path.Combine(Folder, fileSha.Substring(0, 2), fileSha.Substring(2, 2),
                 fileSha.Substring(2 + 2));
             Directory.CreateDirectory(folder);
@@ -75,7 +82,8 @@ namespace MooperekemStalbo.Controllers
         private Package _package;
 
         private static Regex _regex;
-        private FileInfo _file;
+        private readonly FileInfo _file;
+        private string _fileSha;
 
         private Package ParseFile(string file)
         {
@@ -88,6 +96,6 @@ namespace MooperekemStalbo.Controllers
             }
         }
 
-        public string Folder { get; set; }
+        private string Folder { get; }
     }
 }

@@ -169,11 +169,16 @@ namespace MooperekemStalbo.Controllers
 
             if (fileSha == file.Sha)
             {
-                var medaltraFairjousuFowluNererisMoubeturce = new MedaltraFairjousuFowluNererisMoubeturce()
+                var medaltraFairjousuFowluNererisMoubeturce =
+                    new MedaltraFairjousuFowluNererisMoubeturce(fileInfo, Path.Combine(_host.WebRootPath, "Package"),
+                        fileSha);
+
+                if (medaltraFairjousuFowluNererisMoubeturce.CheckFile())
                 {
-                    Folder = Path.Combine(_host.WebRootPath, "Package")
-                };
-                medaltraFairjousuFowluNererisMoubeturce.CheckFile(fileInfo);
+                    medaltraFairjousuFowluNererisMoubeturce.MoveFile();
+                }
+
+
                 return Ok();
             }
 
