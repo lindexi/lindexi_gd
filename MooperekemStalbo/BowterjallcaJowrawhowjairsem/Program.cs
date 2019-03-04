@@ -23,6 +23,7 @@ namespace BowterjallcaJowrawhowjairsem
             medaltraFairjousuFowluNererisMoubeturce.Folder = folder;
 
             medaltraFairjousuFowluNererisMoubeturce.CheckFile(new FileInfo(file));
+            medaltraFairjousuFowluNererisMoubeturce.MoveFile("1EC13AF4303E7114FF5B5F77FB65CB8D81B94B7C");
         }
     }
 }

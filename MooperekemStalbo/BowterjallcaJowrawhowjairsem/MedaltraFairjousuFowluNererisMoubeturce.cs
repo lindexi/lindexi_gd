@@ -19,12 +19,23 @@ namespace MooperekemStalbo.Controllers
                 Folder = Path.GetTempPath();
             }
 
+            _file = file;
+
             var folder = Path.Combine(Folder, "temp", Guid.NewGuid().ToString());
             ZipFile.ExtractToDirectory(file.FullName, folder);
 
             CheckPackage(folder);
 
             return _package;
+        }
+
+
+        public void MoveFile(string fileSha)
+        {
+            var folder = Path.Combine(Folder, fileSha.Substring(0, 2), fileSha.Substring(2, 2),
+                fileSha.Substring(2 + 2));
+            Directory.CreateDirectory(folder);
+            _file.MoveTo(Path.Combine(folder, _package.Name+".zip"));
         }
 
         internal void CheckPackage(string folder)
@@ -62,6 +73,7 @@ namespace MooperekemStalbo.Controllers
         private Package _package;
 
         private static Regex _regex;
+        private FileInfo _file;
 
         private Package ParseFile(string file)
         {
