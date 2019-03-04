@@ -37,6 +37,13 @@ namespace MooperekemStalbo.Controllers
 
             var package = ParseFile(file);
 
+            // 判断 Name 是否对的
+
+            if (_regex == null)
+            {
+                _regex = new Regex(@"^[a-zA-Z0-9]+$", RegexOptions.Compiled);
+            }
+
             if (string.IsNullOrEmpty(package.Name) || !_regex.IsMatch(package.Name) ||
                 (package.Name[0] >= '0' && package.Name[0] <= '9'))
             {
@@ -47,13 +54,6 @@ namespace MooperekemStalbo.Controllers
             if (!File.Exists(Path.Combine(folder, "File", package.File)))
             {
                 throw new ArgumentException($"找不到文件 package file {package.File}");
-            }
-
-            // 判断 Name 是否对的
-
-            if (_regex == null)
-            {
-                _regex = new Regex(@"^[a-zA-Z0-9]+$", RegexOptions.Compiled);
             }
 
             _package = package;
