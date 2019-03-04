@@ -26,6 +26,8 @@ namespace MooperekemStalbo.Controllers
 
             CheckPackage(folder);
 
+            Directory.Delete(folder,true);
+
             return _package;
         }
 
@@ -35,7 +37,7 @@ namespace MooperekemStalbo.Controllers
             var folder = Path.Combine(Folder, fileSha.Substring(0, 2), fileSha.Substring(2, 2),
                 fileSha.Substring(2 + 2));
             Directory.CreateDirectory(folder);
-            _file.MoveTo(Path.Combine(folder, _package.Name+".zip"));
+            _file.MoveTo(Path.Combine(folder, _package.Name + ".zip"));
         }
 
         internal void CheckPackage(string folder)
