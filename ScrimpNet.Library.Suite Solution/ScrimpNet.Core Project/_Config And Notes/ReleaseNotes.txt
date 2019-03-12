@@ -1,0 +1,61 @@
+﻿?.?.?.? ----------------------------
+!! ScripmNet (Core)
+| Change | Resource.EmbeddedFile | Now returns a list of all available embedded files in it's exception so you know what files the assembly has in it. |
+| *NEW* | ActionReply | Has new messages helper properties: Errors (List of only error messages) and ErrorMessages (string list of error messages) | 
+| Fix | CryptoUtils.HashCode | Would sometimes throw an error if plain text string was not correct length |
+| Fix | CryptoUtils.Encrypt | Internal string conversion would convert to bytes incorrectly |
+| Change | CryptoUtils | *Breaking!* Default (internal) keyfile has been updated.  Data encrypted with the old key will not be able to be decrypted | 
+| *NEW* | CryptoUtils | Decrypt/Encrypt with a simple password instead of using key files |
+!! ScrimpNet.Security.Core
+| *NEW* | SecurityCore.GetSecurityQuestions | Returns a list of random questions you can use in your 'Forget Password' routines.  You specify how many questions to return and you get back a random set from the internal question library.  The library is embedded into the assembly so there's no need to fumble about with external files, and you can easily add your own questions. |
+
+11.03.21.1 ---------------------------
+!! ScrimpNet
+| Fix | CoreConfig.Log | Default logging folder does better default folder selection |
+| Fix | CoreConfig.{app} | Resolving {app} meta tag was using wrong key.  Correct key is: ScrimpNet.Application.Name |
+| *NEW* | Utils.Date | Utils.Date.TZAbbreviation returns time zone abbreviation (EDT, EST, etc) of local machine |
+!! ScripNet.Diagnostics
+| Fix | HttpRequestToXml | Fixed error if serialized field contained invalid XML characters |
+| Change | RuntimeContext | MachineContext and HttpRequest properties are name-value pairs |
+| Deleted | RollingFileTraceListener | class wasn't used and only partially implemented |
+| Change | ScrimpNet.Diagnostics.LoggerLevels | Use this key in .config to change how much information will be sent to log dispatchers. Use pipe delimited value of the ScrimpNet.Diagnostics.LoggerLevels |
+!! ScrimpNet.Diagnostics.Logging
+| Change | config value | ScrimpNet.Logging.Dispatcher is now the key to specify an explict class to write log messages to |
+| Change | ApplicationLogMessage | Change format of output message |
+
+11.03.21.0 -----------------------
+*  ScrimpNet.Diagnostics
+*      Rename: LogPersisters to LogDispatcher (breaking change)
+*  ScrimpNet
+*	   New:    ExceptionFactory.FaultException - generates WCF fault from .Net Exception
+*      Change: Guard.GreaterThan now throws ArgumentException
+*      Change: Guard.Int32 - commented out for now
+*	   Change: Guard.Object - throws ArugmentNullException
+*      Change: Guard.String - NotNullOrEmpty throws ArugmentNull or Arguement exceptions
+*	   New:    CoreConfig.ActivityId - Gets (and auto sets) CorrelationManager.ActivityId
+*	   Change: CoreConfig.Log - lastChangeLogFolder does better default selection based on Web or WinForms app
+*      New:    Extensions.Linq - Support for IQueryable<T>.Distinct()
+*      New:    Extensions.Linq - Support for IQueryable<T>.Except()
+*      New:    Extensions.Text - IsNullOrWhitespace - for Framework < 4.0
+*  ScrimpNet.Net
+*	   New:	   MimeMediaType - comprehensive list of MIME type constants (e.g image/jpg).
+			     Useful when sending binary files via HTTP
+*  ScrimpNet.Reflection
+*	  New:    PropertyComparer<T> - compare property of a given type.  Used in Linq extensions
+*  ScrimpNet.Web
+*	  Rename: ActionResponse renamed to ActionReply to allow non-default WCF namespaces
+*	  Change: MessageItem - New constructors and added ability to associate severity with each message
+*     New:    MessageList - Properties and helper methods around MaximumSeverity
+*     Change: WebAppCacheBase - Added record locking around set/get values
+*     Change: WebSessionCacheBase - Exposed SetValue/GetValue for strong types
+*     New:    WebUtils.Request - get strongly typed value from web request (query string/form)
+
+10.05.14.0 -----------------------
+*  Added License Text To Source Files
+*  Removed vestigal references to source control
+*  Added VS2010 and VS2008 solution files
+*  Cleaned up unnecessary files (bin, obj, suo)
+*  Added Utils.Win32 file that was missing from 10.05.10.0
+
+10.05.14.0 -----------------------
+*  Initial upload

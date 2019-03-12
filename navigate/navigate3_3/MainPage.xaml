@@ -1,0 +1,38 @@
+﻿<Page
+    x:Class="navigate3_3.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:MyApp"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <TextBlock Text="输入员工信息" Style="{StaticResource HeaderTextBlockStyle}" Margin="0,6,0,12"/>
+        
+        <StackPanel Grid.Row="1" Margin="5">
+            <TextBox x:Name="txtID" Header="员工编号："/>
+            <TextBox x:Name="txtName" Header="员工姓名："/>
+            <TextBox x:Name="txtAge" Header="员工年龄：">
+                <TextBox.InputScope>
+                    <InputScope>
+                        <InputScope.Names>
+                            <InputScopeName NameValue="Number"/>
+                        </InputScope.Names>
+                    </InputScope>
+                </TextBox.InputScope>
+            </TextBox>
+        </StackPanel>
+    </Grid>
+    
+    <Page.BottomAppBar>
+        <AppBar>
+            <AppBarButton Icon="Accept" Label="确定" Click="OnClick"/>
+        </AppBar>
+    </Page.BottomAppBar>
+</Page>
