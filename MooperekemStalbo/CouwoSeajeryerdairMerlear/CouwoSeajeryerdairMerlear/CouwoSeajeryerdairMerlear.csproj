@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\BowterjallcaJowrawhowjairsem\Package.cs" Link="Package.cs" />
     <Compile Include="..\..\MooperekemStalbo\KebunerNeefunadrow.cs" Link="KebunerNeefunadrow.cs" />
-    <Compile Include="..\..\MooperekemStalbo\Package.cs" Link="Package.cs" />
   </ItemGroup>
 
   <ItemGroup>

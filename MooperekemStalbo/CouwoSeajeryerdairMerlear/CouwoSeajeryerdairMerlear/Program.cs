@@ -65,21 +65,6 @@ namespace CouwoSeajeryerdairMerlear
                 File = "1.dll"
             };
 
-            var str = new StringBuilder();
-
-            using (var xmlWriter = XmlWriter.Create(str, new XmlWriterSettings()
-            {
-                Encoding = Encoding.UTF8,
-                NewLineChars = "    ",
-                NewLineHandling = NewLineHandling.Replace,
-                Indent = true,
-                IndentChars = "\n",
-            }))
-            {
-                var xmlSerializer = new XmlSerializer(typeof(Package));
-                xmlSerializer.Serialize(xmlWriter, lirbehereTadriDruwhemLoser);
-            }
-
             if (!Directory.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                 "HemfaKarecelRisvenaStishorrorjoo")))
             {
@@ -92,7 +77,18 @@ namespace CouwoSeajeryerdairMerlear
             using (var fileStream = file.Create())
             using (var stream = new StreamWriter(fileStream))
             {
-                stream.WriteLine(str.ToString());
+                using (var xmlWriter = XmlWriter.Create(stream, new XmlWriterSettings()
+                {
+                    Encoding = Encoding.UTF8,
+                    NewLineChars = "    ",
+                    NewLineHandling = NewLineHandling.Replace,
+                    Indent = true,
+                    IndentChars = "\n",
+                }))
+                {
+                    var xmlSerializer = new XmlSerializer(typeof(Package));
+                    xmlSerializer.Serialize(xmlWriter, lirbehereTadriDruwhemLoser);
+                }
             }
 
             if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
@@ -105,8 +101,6 @@ namespace CouwoSeajeryerdairMerlear
             ZipFile.CreateFromDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                 "HemfaKarecelRisvenaStishorrorjoo"), Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                 "ChemtowNalltruTusiwurhel.zip"));
-
-            Console.WriteLine(str.ToString());
 
             file = new FileInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                 "ChemtowNalltruTusiwurhel.zip"));
