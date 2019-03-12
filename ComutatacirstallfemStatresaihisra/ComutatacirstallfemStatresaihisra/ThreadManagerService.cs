@@ -62,7 +62,7 @@ namespace ComutatacirstallfemStatresaihisra
         private TimeSpan MaxDelayTime { get; } = TimeSpan.FromSeconds(1);
         private TimeSpan MinDelayTime { get; } = TimeSpan.FromMilliseconds(5);
 
-        private TimeSpan[] WaitDelayTimeList { get; } = 
+        private TimeSpan[] WaitDelayTimeList { get; } =
         {
             TimeSpan.FromMilliseconds(5),
             TimeSpan.FromMilliseconds(10),
@@ -81,19 +81,14 @@ namespace ComutatacirstallfemStatresaihisra
             try
             {
                 int waitCount = 0;
-                while (true)
+                const int waitToExit = 12;
+                while (waitCount > waitToExit)
                 {
                     List<BackgroundTask> backgroundTaskList;
 
                     lock (_obj)
                     {
                         backgroundTaskList = BackgroundTaskList.ToList();
-                    }
-
-                    const int waitToExit = 12;
-                    if (waitCount > waitToExit)
-                    {
-                        return;
                     }
 
                     if (backgroundTaskList.Count == 0)
