@@ -1,0 +1,423 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<questionList>
+	<question>
+		<group>fair</group>
+		<text>In what city and country do you want to retire? </text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>To what city did you go on your honeymoon? </text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What are the last 5 digits of your credit card?</text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What are the last 5 digits of your driver's license number?</text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What are the last 5 of your Social Security number?</text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What is the country of your ultimate dream vacation?</text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What is the last name of your favorite high school teacher?</text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What is the license plate (registration) of your dad's first car?</text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What is the name of the company of your first job?</text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What is the name of the first school you attended?</text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What is the name of the first undergraduate college you attended?</text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What is the name of your favorite childhood teacher?</text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What is the name of your grandmother's dog? </text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What is the name, breed, and color of current pet?</text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What is the street number of the house you grew up in?</text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What is your current car registration number?</text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What is your grandmother's first name?</text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What is your mother's middle name? </text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What is your preferred musical genre? </text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What is your spouse's mother's maiden name?</text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What month and day is your anniversary? (e.g., January 2)</text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What time of the day were you born?</text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What was the first concert you attended?</text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What was the make and model of your first car?</text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What was the name of your elementary / primary school?</text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What was your dream job as a child? </text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What was your favorite place to visit as a child?</text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What was your high school mascot?</text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>What year did you graduate from High School?</text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>Where did you vacation last year?</text>
+	</question>
+	<question>
+		<group>fair</group>
+		<text>Who was your childhood hero? </text>
+	</question>
+	<question>
+		<group>good</group>
+		<text>In what city did you meet your spouse/significant other?</text>
+	</question>
+	<question>
+		<group>good</group>
+		<text>In what city does your nearest sibling live? </text>
+	</question>
+	<question>
+		<group>good</group>
+		<text>In what city or town did your mother and father meet? </text>
+	</question>
+	<question>
+		<group>good</group>
+		<text>In what city or town was your first job?</text>
+	</question>
+	<question>
+		<group>good</group>
+		<text>What is the first name of the boy or girl that you first kissed?</text>
+	</question>
+	<question>
+		<group>good</group>
+		<text>What is the middle name of your youngest child?</text>
+	</question>
+	<question>
+		<group>good</group>
+		<text>What is the name of a college you applied to but didn't attend?</text>
+	</question>
+	<question>
+		<group>good</group>
+		<text>What is the name of the place your wedding reception was held?</text>
+	</question>
+	<question>
+		<group>good</group>
+		<text>What is the name of your favorite childhood friend? </text>
+	</question>
+	<question>
+		<group>good</group>
+		<text>What is your maternal grandmother's maiden name?</text>
+	</question>
+	<question>
+		<group>good</group>
+		<text>What is your oldest cousin's first and last name?</text>
+	</question>
+	<question>
+		<group>good</group>
+		<text>What is your oldest sibling’s birthday month and year? (e.g., January 1900) </text>
+	</question>
+	<question>
+		<group>good</group>
+		<text>What is your oldest sibling's middle name?</text>
+	</question>
+	<question>
+		<group>good</group>
+		<text>What is your youngest brother’s birthday month and year? (e.g., January 1900) </text>
+	</question>
+	<question>
+		<group>good</group>
+		<text>What school did you attend for sixth grade?</text>
+	</question>
+	<question>
+		<group>good</group>
+		<text>What street did you live on in third grade?</text>
+	</question>
+	<question>
+		<group>good</group>
+		<text>What was the last name of your third grade teacher?</text>
+	</question>
+	<question>
+		<group>good</group>
+		<text>What was the name of your first stuffed animal?</text>
+	</question>
+	<question>
+		<group>good</group>
+		<text>What was your childhood nickname? </text>
+	</question>
+	<question>
+		<group>good</group>
+		<text>What was your childhood phone number including area code? (e.g., 000-000-0000)</text>
+	</question>
+	<question>
+		<group>good</group>
+		<text>Where were you when you first heard about 9/11?</text>
+	</question>
+	<question>
+		<group>good</group>
+		<text>Where were you when you had your first kiss? </text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>How many bones have you broken?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>In what city were you born?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>In what county where you born?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>In what year was your father born?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>In what year was your mother born?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>On which wrist do you wear your watch?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What high school did you attend?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is the city, state/province, and year of your birth?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is the color of your eyes?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is the color of your father’s eyes?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is the color of your mother’s eyes?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is the first and last name of your favorite college professor?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is the first and last name of your first boyfriend or girlfriend?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is the name of the High School you graduated from?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is the name of your favorite pet?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is the name of your first grade teacher?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is the name of your first school?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is the name of your hometown newspaper?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is the name of your hometown?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is the name, breed, and color of your favorite pet?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is the street name your work or office is located on?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is the title and artist of your favorite song?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is the title and author of your favorite book?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is your address, phone number?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is your father's middle name?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is your favorite animal?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is your favorite color?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is your favorite movie?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is your favorite movie?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is your favorite teacher's nickname?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is your favorite team?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is your favorite TV program?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is your least favorite nickname?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is your mother’s (father's) first name?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is your mother's maiden name?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is your mother's maiden name?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is your pet's name?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What is your work address?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What sports team do you love to see lose?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What street did you grow up on?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What was the color of your first car?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What was the last name of your favorite teacher? </text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What was the make of your first car?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What was the name of your first pet?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What was your favorite place to visit as a child?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What was your favorite sport in high school?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What was your hair color as a child?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>What was your high school mascot?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>When is your anniversary?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>Which is your favorite web browser?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>Which phone number do you remember most from your childhood?</text>
+	</question>
+	<question>
+		<group>poor</group>
+		<text>Who is your favorite actor, musician, or artist?</text>
+	</question>
+</questionList>

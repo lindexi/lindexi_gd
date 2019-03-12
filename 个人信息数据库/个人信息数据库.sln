@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "个人信息数据库", "个人信息数据库\个人信息数据库.csproj", "{BB87F344-D31B-4A4C-A8B4-79D526D8AA5B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "个人信息数据库principalComputer", "个人信息数据库principalComputer\个人信息数据库principalComputer.csproj", "{CFD26CD1-3D3A-485F-907D-7B292163B750}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BB87F344-D31B-4A4C-A8B4-79D526D8AA5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB87F344-D31B-4A4C-A8B4-79D526D8AA5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB87F344-D31B-4A4C-A8B4-79D526D8AA5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB87F344-D31B-4A4C-A8B4-79D526D8AA5B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFD26CD1-3D3A-485F-907D-7B292163B750}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFD26CD1-3D3A-485F-907D-7B292163B750}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFD26CD1-3D3A-485F-907D-7B292163B750}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFD26CD1-3D3A-485F-907D-7B292163B750}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

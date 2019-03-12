@@ -1,0 +1,9 @@
+﻿<Window x:Class="垃圾.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="垃圾" Height="600" Width="1000">
+    <Grid>
+        <TextBox x:Name="xt" TextWrapping="Wrap" Width="700"/>
+        <Button VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="10,10,10,10" Content="确定" Click="btn_Click"/>
+    </Grid>
+</Window>
