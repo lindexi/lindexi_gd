@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="microsoft.powershell.commands.diagnostics" Version="6.0.0-rc" />
+    <PackageReference Include="microsoft.powershell.sdk" Version="6.0.0-rc" />
+    <PackageReference Include="microsoft.wsman.management" Version="6.0.0-rc" />
+  </ItemGroup>
+
+</Project>

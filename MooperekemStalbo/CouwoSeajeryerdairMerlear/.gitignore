@@ -9,11 +9,11 @@
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
-
 [Rr]eleases/
 x64/
 x86/
@@ -31,9 +31,7 @@ bld/
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
 
-
-#NUNIT
-
+# NUNIT
 *.VisualState.xml
 TestResult.xml
 
@@ -41,7 +39,6 @@ TestResult.xml
 [Dd]ebugPS/
 [Rr]eleasePS/
 dlldata.c
-
 
 # DNX
 project.lock.json
@@ -80,7 +77,6 @@ _Chutzpah*
 ipch/
 *.aps
 *.ncb
-
 *.opendb
 *.opensdf
 *.sdf
@@ -88,13 +84,11 @@ ipch/
 *.VC.db
 *.VC.VC.opendb
 
-
 # Visual Studio profiler
 *.psess
 *.vsp
 *.vspx
 *.sap
-
 
 # TFS 2012 Local Workspace
 $tf/
@@ -107,8 +101,7 @@ _ReSharper*/
 *.[Rr]e[Ss]harper
 *.DotSettings.user
 
-
-# JustCode is a .NET coding addin-in
+# JustCode is a .NET coding add-in
 .JustCode
 
 # TeamCity is a build add-in
@@ -121,7 +114,6 @@ _TeamCity*
 _NCrunch_*
 .*crunch*.local.xml
 nCrunchTemp_*
-
 
 # MightyMoose
 *.mm.*
@@ -149,7 +141,6 @@ publish/
 # Publish Web Output
 *.[Pp]ublish.xml
 *.azurePubxml
-
 # TODO: Comment the next line if you want to checkin your web deploy settings
 # but database connection strings (with potential passwords) will be unencrypted
 #*.pubxml
@@ -198,7 +189,6 @@ ClientBin/
 *~
 *.dbmdl
 *.dbproj.schemaview
-
 *.jfm
 *.pfx
 *.publishsettings
@@ -208,7 +198,6 @@ orleans.codegen.cs
 # Since there are multiple workflows, uncomment next line to ignore bower_components
 # (https://github.com/github/gitignore/pull/1529#issuecomment-104372622)
 #bower_components/
-
 
 # RIA/Silverlight projects
 Generated_Code/
@@ -232,7 +221,6 @@ UpgradeLog*.htm
 
 # Microsoft Fakes
 FakesAssemblies/
-
 
 # GhostDoc plugin setting file
 *.GhostDoc.xml
@@ -271,16 +259,3 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
-/MooperekemStalbo/MooperekemStalbo/wwwroot/Package/*
-
-# LightSwitch generated files
-GeneratedArtifacts/
-_Pvt_Extensions/
-ModelManifest.xml
-/incorporates/incorporates/BundleArtifacts/arm.txt
-/incorporates/incorporates/BundleArtifacts/x64.txt
-/incorporates/incorporates/BundleArtifacts/x86.txt
-/incorporates/incorporates/Package.appxmanifest
-/incorporates/incorporates/Package.appxmanifest
-/incorporates/incorporates/Package.appxmanifest
-
