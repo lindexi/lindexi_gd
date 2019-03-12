@@ -17,6 +17,9 @@ namespace ComutatacirstallfemStatresaihisra
             {
                 BackgroundTaskList.Add(task);
                 Log("添加任务 " + task.Name);
+
+                // 如果线程还没启动，调用下面代码就启动线程，如果已经启动了，调用下面代码也没事
+                Start();
             }
         }
 
@@ -26,6 +29,12 @@ namespace ComutatacirstallfemStatresaihisra
             {
                 BackgroundTaskList.Remove(task);
                 Log("删除");
+
+                // 如果全部都被移除了
+                if (BackgroundTaskList.Count == 0)
+                {
+                    Stop();
+                }
             }
         }
 
@@ -35,7 +44,7 @@ namespace ComutatacirstallfemStatresaihisra
             Debug.WriteLine(str);
         }
 
-        public void Start()
+        private void Start()
         {
             if (_thread == null)
             {
@@ -46,7 +55,7 @@ namespace ComutatacirstallfemStatresaihisra
             _isStop = false;
         }
 
-        public void Stop()
+        private void Stop()
         {
             _isStop = true;
         }

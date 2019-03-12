@@ -15,7 +15,7 @@ namespace ComutatacirstallfemStatresaihisra
             //    TimeSpan.FromMilliseconds(150)));
             //threadManagerService.AddBackgroundTask(new BackgroundTask("等待500毫秒的任务", () => { },
             //    TimeSpan.FromMilliseconds(500)));
-            threadManagerService.Start();
+            //threadManagerService.Start();
 
             //Task.Delay(3000).ContinueWith(_ =>
             //{
