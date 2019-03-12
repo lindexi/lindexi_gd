@@ -34,12 +34,6 @@ namespace ComutatacirstallfemStatresaihisra
             {
                 BackgroundTaskList.Remove(task);
                 Log("删除");
-
-                // 如果全部都被移除了
-                if (BackgroundTaskList.Count == 0)
-                {
-                    Stop();
-                }
             }
         }
 
@@ -58,14 +52,7 @@ namespace ComutatacirstallfemStatresaihisra
                     _thread = new Thread(Run);
                     _thread.Start();
                 }
-
-                _isStop = false;
             }
-        }
-
-        private void Stop()
-        {
-            _isStop = true;
         }
 
         private readonly object _obj = new object();
@@ -92,13 +79,19 @@ namespace ComutatacirstallfemStatresaihisra
             try
             {
                 int waitCount = 0;
-                while (!_isStop)
+                while (true)
                 {
                     List<BackgroundTask> backgroundTaskList;
 
                     lock (_obj)
                     {
                         backgroundTaskList = BackgroundTaskList.ToList();
+                    }
+
+                    const int waitToExit = 12;
+                    if (waitCount > waitToExit)
+                    {
+                        return;
                     }
 
                     if (backgroundTaskList.Count == 0)
@@ -170,8 +163,6 @@ namespace ComutatacirstallfemStatresaihisra
                 }
             }
         }
-
-        private bool _isStop;
 
         private Thread _thread;
 
