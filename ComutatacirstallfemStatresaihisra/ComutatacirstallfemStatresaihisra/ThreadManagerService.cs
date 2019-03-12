@@ -46,13 +46,16 @@ namespace ComutatacirstallfemStatresaihisra
 
         private void Start()
         {
-            if (_thread == null)
+            lock (_obj)
             {
-                _thread = new Thread(Run);
-                _thread.Start();
-            }
+                if (_thread == null)
+                {
+                    _thread = new Thread(Run);
+                    _thread.Start();
+                }
 
-            _isStop = false;
+                _isStop = false;
+            }
         }
 
         private void Stop()
@@ -156,7 +159,10 @@ namespace ComutatacirstallfemStatresaihisra
             }
             finally
             {
-                _thread = null;
+                lock (_obj)
+                {
+                    _thread = null;
+                }
             }
         }
 
