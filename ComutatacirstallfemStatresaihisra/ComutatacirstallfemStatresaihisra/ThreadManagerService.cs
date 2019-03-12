@@ -51,6 +51,8 @@ namespace ComutatacirstallfemStatresaihisra
                 {
                     _thread = new Thread(Run);
                     _thread.Start();
+
+                    Log("新建线程");
                 }
             }
         }
@@ -60,7 +62,7 @@ namespace ComutatacirstallfemStatresaihisra
         private TimeSpan MaxDelayTime { get; } = TimeSpan.FromSeconds(1);
         private TimeSpan MinDelayTime { get; } = TimeSpan.FromMilliseconds(5);
 
-        private TimeSpan[] WaitDelayTimeList { get; } = new TimeSpan[]
+        private TimeSpan[] WaitDelayTimeList { get; } = 
         {
             TimeSpan.FromMilliseconds(5),
             TimeSpan.FromMilliseconds(10),

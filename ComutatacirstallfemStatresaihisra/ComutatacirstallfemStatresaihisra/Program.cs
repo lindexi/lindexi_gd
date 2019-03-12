@@ -28,14 +28,14 @@ namespace ComutatacirstallfemStatresaihisra
             while (true)
             {
                 Task.Delay(random.Next(1000, 3000)).Wait();
-                if (random.Next(2) == 1 ||backgroundTaskList.Count==0)
+                if (random.Next(2) == 1)
                 {
                     var n = random.Next(100, 1000);
                     var backgroundTask = new BackgroundTask($"等待{n}毫秒", () => { }, TimeSpan.FromMilliseconds(n));
                     backgroundTaskList.Add(backgroundTask);
                     threadManagerService.RunBackgroundTask(backgroundTask);
                 }
-                else
+                else if (backgroundTaskList.Count > 0)
                 {
                     var backgroundTask = backgroundTaskList[random.Next(backgroundTaskList.Count)];
                     backgroundTaskList.Remove(backgroundTask);
