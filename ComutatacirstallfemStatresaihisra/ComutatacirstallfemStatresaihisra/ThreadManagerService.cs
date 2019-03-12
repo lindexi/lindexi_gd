@@ -161,6 +161,8 @@ namespace ComutatacirstallfemStatresaihisra
                 {
                     _thread = null;
                 }
+
+                Log("退出线程");
             }
         }
 
