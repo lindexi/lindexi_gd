@@ -15,6 +15,11 @@ namespace ComutatacirstallfemStatresaihisra
         {
             lock (_obj)
             {
+                if (BackgroundTaskList.Contains(task))
+                {
+                    throw new ArgumentException("不能传入重复的任务");
+                }
+
                 BackgroundTaskList.Add(task);
                 Log("添加任务 " + task.Name);
 
