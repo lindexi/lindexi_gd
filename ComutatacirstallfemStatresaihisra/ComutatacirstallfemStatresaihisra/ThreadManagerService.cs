@@ -82,7 +82,7 @@ namespace ComutatacirstallfemStatresaihisra
             {
                 int waitCount = 0;
                 const int waitToExit = 12;
-                while (waitCount > waitToExit)
+                while (waitCount < waitToExit)
                 {
                     List<BackgroundTask> backgroundTaskList;
 
