@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Logging;
 using MooperekemStalbo;
 using MooperekemStalbo.Models;
 
@@ -171,6 +172,14 @@ namespace MooperekemStalbo.Controllers
 
                 if (medaltraFairjousuFowluNererisMoubeturce.CheckFile())
                 {
+                    var package = medaltraFairjousuFowluNererisMoubeturce.Package;
+
+                    // 判断没有存在重复
+                    if (_context.GairKetemRairsem.Any(temp=>temp.Name==package.Name && temp.Version==package.Version))
+                    {
+                        return BadRequest();
+                    }
+
                     var maytrawherehijooBoujallcheabel = new MaytrawherehijooBoujallcheabel()
                     {
                         File = medaltraFairjousuFowluNererisMoubeturce.MoveFile(),
@@ -179,7 +188,6 @@ namespace MooperekemStalbo.Controllers
 
                     _context.MaytrawherehijooBoujallcheabel.Add(maytrawherehijooBoujallcheabel);
 
-                    var package = medaltraFairjousuFowluNererisMoubeturce.Package;
                     var gairKetemRairsem = new GairKetemRairsem
                     {
                         Name = package.Name,
