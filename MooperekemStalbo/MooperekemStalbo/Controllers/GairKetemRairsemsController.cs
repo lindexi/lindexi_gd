@@ -160,12 +160,7 @@ namespace MooperekemStalbo.Controllers
 
                 fileStream.Seek(0, SeekOrigin.Begin);
 
-                using (var sha = SHA256.Create())
-                {
-                    fileSha = Convert.ToBase64String(sha.ComputeHash(fileStream));
-
-                    fileStream.Seek(0, SeekOrigin.Begin);
-                }
+                fileSha = Shafile.GetFile(fileStream);
             }
 
             if (fileSha == file.Sha)

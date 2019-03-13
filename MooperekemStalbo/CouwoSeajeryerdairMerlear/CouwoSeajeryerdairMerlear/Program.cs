@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 using MooperekemStalbo;
+using MooperekemStalbo.Controllers;
 using Newtonsoft.Json;
 
 namespace CouwoSeajeryerdairMerlear
@@ -39,13 +40,7 @@ namespace CouwoSeajeryerdairMerlear
             var fileInfo = new FileInfo("E:\\RevealHighlights.gif");
 
             var fileStream = fileInfo.OpenRead();
-            string fileSha;
-            using (var sha = SHA256.Create())
-            {
-                fileSha = Convert.ToBase64String(sha.ComputeHash(fileStream));
-
-                fileStream.Seek(0, SeekOrigin.Begin);
-            }
+            string fileSha = Shafile.GetFile(fileStream);
 
             Upload(fileStream, fileSha, "http://localhost:52074/api/GairKetemRairsems/UploadPackage").Wait();
 
@@ -110,13 +105,7 @@ namespace CouwoSeajeryerdairMerlear
 
             using (var fileStream = file.OpenRead())
             {
-                string fileSha;
-                using (var sha = SHA256.Create())
-                {
-                    fileSha = Convert.ToBase64String(sha.ComputeHash(fileStream));
-
-                    fileStream.Seek(0, SeekOrigin.Begin);
-                }
+                string fileSha = Shafile.GetFile(fileStream);
 
                 Upload(fileStream, fileSha, "http://localhost:5000/api/GairKetemRairsems/UploadPackage").Wait();
             }

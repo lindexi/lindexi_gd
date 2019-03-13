@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <Compile Include="..\..\BowterjallcaJowrawhowjairsem\Package.cs" Link="Package.cs" />
+    <Compile Include="..\..\BowterjallcaJowrawhowjairsem\Shafile.cs" Link="Shafile.cs" />
     <Compile Include="..\..\MooperekemStalbo\KebunerNeefunadrow.cs" Link="KebunerNeefunadrow.cs" />
   </ItemGroup>
 
