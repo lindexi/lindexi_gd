@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.IO.Compression;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -38,13 +39,15 @@ namespace MooperekemStalbo.Controllers
         }
 
 
-        public void MoveFile()
+        public string MoveFile()
         {
             var fileSha = _fileSha;
             var folder = Path.Combine(Folder, fileSha.Substring(0, 2), fileSha.Substring(2, 2),
                 fileSha.Substring(2 + 2));
             Directory.CreateDirectory(folder);
-            _file.MoveTo(Path.Combine(folder, _package.Name + ".zip"));
+            var file = Path.Combine(folder, _package.Name + ".zip");
+            _file.MoveTo(file);
+            return file;
         }
 
         internal void CheckPackage(string folder)
@@ -78,6 +81,8 @@ namespace MooperekemStalbo.Controllers
 
             _package = package;
         }
+
+        public Package Package => _package;
 
         private Package _package;
 

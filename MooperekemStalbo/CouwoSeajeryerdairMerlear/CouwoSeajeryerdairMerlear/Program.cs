@@ -66,10 +66,10 @@ namespace CouwoSeajeryerdairMerlear
             };
 
             if (!Directory.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                "HemfaKarecelRisvenaStishorrorjoo")))
+                "HemfaKarecelRisvenaStishorrorjoo", "File")))
             {
                 Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                    "HemfaKarecelRisvenaStishorrorjoo"));
+                    "HemfaKarecelRisvenaStishorrorjoo", "File"));
             }
 
             var file = new FileInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
@@ -90,6 +90,9 @@ namespace CouwoSeajeryerdairMerlear
                     xmlSerializer.Serialize(xmlWriter, lirbehereTadriDruwhemLoser);
                 }
             }
+
+            File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                "HemfaKarecelRisvenaStishorrorjoo", "File", "1.dll"), "林德熙逗比");
 
             if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                 "ChemtowNalltruTusiwurhel.zip")))

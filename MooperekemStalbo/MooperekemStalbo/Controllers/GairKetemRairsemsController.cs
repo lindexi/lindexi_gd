@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Security.Policy;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -28,41 +29,41 @@ namespace MooperekemStalbo.Controllers
 
             if (!_context.GairKetemRairsem.Any())
             {
-                _context.GairKetemRairsem.AddRange(new[]
-                {
-                    new GairKetemRairsem()
-                    {
-                        Name = "lindexi",
-                        RequirementMinVersion = new Version("5.1.2").ToString(),
-                        RequirementMaxVersion = new Version("5.1.3").ToString(),
-                        Version = new Version("1.0.0").ToString(),
-                        Url = Path.Combine(host.WebRootPath, "Package", "1.png")
-                    },
-                    new GairKetemRairsem()
-                    {
-                        Name = "lindexi",
-                        RequirementMinVersion = new Version("5.1.2").ToString(),
-                        RequirementMaxVersion = new Version("5.1.3").ToString(),
-                        Version = new Version("1.0.1").ToString(),
-                        Url = Path.Combine(host.WebRootPath, "Package", "1.png")
-                    },
-                    new GairKetemRairsem()
-                    {
-                        Name = "lindexi",
-                        RequirementMinVersion = new Version("5.1.2").ToString(),
-                        RequirementMaxVersion = new Version("5.1.3").ToString(),
-                        Version = new Version("1.0.2").ToString(),
-                        Url = Path.Combine(host.WebRootPath, "Package", "1.png")
-                    },
-                    new GairKetemRairsem()
-                    {
-                        Name = "lindexi",
-                        RequirementMinVersion = new Version("5.1.3").ToString(),
-                        RequirementMaxVersion = new Version("5.1.5").ToString(),
-                        Version = new Version("1.0.5").ToString(),
-                        Url = Path.Combine(host.WebRootPath, "Package", "1.png")
-                    },
-                });
+                //_context.GairKetemRairsem.AddRange(new[]
+                //{
+                //    new GairKetemRairsem()
+                //    {
+                //        Name = "lindexi",
+                //        RequirementMinVersion = new Version("5.1.2").ToString(),
+                //        RequirementMaxVersion = new Version("5.1.3").ToString(),
+                //        Version = new Version("1.0.0").ToString(),
+                //        Url = Path.Combine(host.WebRootPath, "Package", "1.png")
+                //    },
+                //    new GairKetemRairsem()
+                //    {
+                //        Name = "lindexi",
+                //        RequirementMinVersion = new Version("5.1.2").ToString(),
+                //        RequirementMaxVersion = new Version("5.1.3").ToString(),
+                //        Version = new Version("1.0.1").ToString(),
+                //        Url = Path.Combine(host.WebRootPath, "Package", "1.png")
+                //    },
+                //    new GairKetemRairsem()
+                //    {
+                //        Name = "lindexi",
+                //        RequirementMinVersion = new Version("5.1.2").ToString(),
+                //        RequirementMaxVersion = new Version("5.1.3").ToString(),
+                //        Version = new Version("1.0.2").ToString(),
+                //        Url = Path.Combine(host.WebRootPath, "Package", "1.png")
+                //    },
+                //    new GairKetemRairsem()
+                //    {
+                //        Name = "lindexi",
+                //        RequirementMinVersion = new Version("5.1.3").ToString(),
+                //        RequirementMaxVersion = new Version("5.1.5").ToString(),
+                //        Version = new Version("1.0.5").ToString(),
+                //        Url = Path.Combine(host.WebRootPath, "Package", "1.png")
+                //    },
+                //});
 
                 _context.SaveChanges();
             }
@@ -148,7 +149,7 @@ namespace MooperekemStalbo.Controllers
         [HttpPost("UploadPackage")]
         public async Task<StatusCodeResult> UploadPackage([FromForm] KanajeaLolowge file)
         {
-            var fileInfo = new FileInfo("E:\\1.zip");
+            var fileInfo = new FileInfo(Path.GetTempFileName());
 
             var fileStream = fileInfo.Open(FileMode.Create, FileAccess.ReadWrite);
 
@@ -175,7 +176,26 @@ namespace MooperekemStalbo.Controllers
 
                 if (medaltraFairjousuFowluNererisMoubeturce.CheckFile())
                 {
-                    medaltraFairjousuFowluNererisMoubeturce.MoveFile();
+                    var maytrawherehijooBoujallcheabel = new MaytrawherehijooBoujallcheabel()
+                    {
+                        File = medaltraFairjousuFowluNererisMoubeturce.MoveFile(),
+                        Sha = fileSha
+                    };
+
+                    _context.MaytrawherehijooBoujallcheabel.Add(maytrawherehijooBoujallcheabel);
+
+                    var package = medaltraFairjousuFowluNererisMoubeturce.Package;
+                    var gairKetemRairsem = new GairKetemRairsem
+                    {
+                        Name = package.Name,
+                        Version = package.Version,
+                        RequirementMaxVersion = package.RequirementMaxVersion,
+                        RequirementMinVersion = package.RequirementMinVersion,
+                        Url = maytrawherehijooBoujallcheabel.Id
+                    };
+
+                    _context.GairKetemRairsem.Add(gairKetemRairsem);
+                    _context.SaveChanges();
                 }
 
 
@@ -195,10 +215,10 @@ namespace MooperekemStalbo.Controllers
                                && new Version(temp.RequirementMinVersion) <= version
                                && new Version(temp.RequirementMaxVersion) > version)
                 .OrderBy(temp => new Version(temp.Version)).FirstOrDefault();
-            if (gairKetemRairsem != null)
-            {
-                return PhysicalFile(gairKetemRairsem.Url, "application/octet-stream");
-            }
+            //if (gairKetemRairsem != null)
+            //{
+            //    return PhysicalFile(gairKetemRairsem.Url, "application/octet-stream");
+            //}
 
             Console.WriteLine("找不到文件");
 
