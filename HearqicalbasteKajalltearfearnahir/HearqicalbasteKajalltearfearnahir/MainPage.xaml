@@ -11,13 +11,16 @@
     <Grid>
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
             <TextBlock Text="欢迎访问我博客 https://blog.lindexi.com/ 里面有大量 UWP WPF 博客"></TextBlock>
-            <StackPanel Orientation="Horizontal" >
-                <Button Margin="10,10,10,10" Content="放大前按钮">
-
-                </Button>
-                <Button VerticalAlignment="Center" HorizontalAlignment="Center" Content="放大的按钮">
+            <StackPanel Margin="10,10,10,10" Orientation="Horizontal" >
+                <Button VerticalAlignment="Center" HorizontalAlignment="Center" Content="放大的按钮" Click="Button_OnClick">
+                    <Button.Resources>
+                        <Storyboard x:Key="Storyboard">
+                            <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleX" To="1.5" Duration="0:0:1"></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="ScaleTransform" Storyboard.TargetProperty="ScaleY" To="1.5" Duration="0:0:1"></DoubleAnimation>
+                        </Storyboard>
+                    </Button.Resources>
                     <Button.RenderTransform>
-                        <ScaleTransform x:Name="ScaleTransform" ScaleX="2" ScaleY="2"></ScaleTransform>
+                        <ScaleTransform x:Name="ScaleTransform" ScaleX="1" ScaleY="1"></ScaleTransform>
                     </Button.RenderTransform>
                 </Button>
             </StackPanel>

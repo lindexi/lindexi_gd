@@ -13,6 +13,7 @@ using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
 
 // https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x804 上介绍了“空白页”项模板
@@ -27,6 +28,15 @@ namespace HearqicalbasteKajalltearfearnahir
         public MainPage()
         {
             this.InitializeComponent();
+        }
+
+        private void Button_OnClick(object sender, RoutedEventArgs e)
+        {
+            var button = (Button) sender;
+
+            var storyboard =(Storyboard) button.Resources["Storyboard"];
+
+            storyboard.Begin();
         }
     }
 }
