@@ -13,7 +13,7 @@ namespace MooperekemStalbo.Controllers
     public class MedaltraFairjousuFowluNererisMoubeturce
     {
         /// <inheritdoc />
-        public MedaltraFairjousuFowluNererisMoubeturce(FileInfo file, string folder,string fileSha)
+        public MedaltraFairjousuFowluNererisMoubeturce(FileInfo file, string folder, string fileSha)
         {
             _file = file;
             Folder = folder;
@@ -33,7 +33,7 @@ namespace MooperekemStalbo.Controllers
 
             CheckPackage(folder);
 
-            Directory.Delete(folder,true);
+            Directory.Delete(folder, true);
 
             return true;
         }
@@ -47,6 +47,18 @@ namespace MooperekemStalbo.Controllers
             Directory.CreateDirectory(folder);
             var file = Path.Combine(folder, _package.Name + ".zip");
             _file.MoveTo(file);
+            return GetRelativePath(file, Folder);
+        }
+
+        private string GetRelativePath(string filespec, string folder)
+        {
+            // 计算相对路径
+            var file = filespec.Replace(folder, "");
+            if (file.StartsWith("\\") || file.StartsWith("/"))
+            {
+                return file.Substring(1);
+            }
+
             return file;
         }
 
