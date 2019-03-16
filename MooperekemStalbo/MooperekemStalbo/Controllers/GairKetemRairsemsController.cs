@@ -187,15 +187,12 @@ namespace MooperekemStalbo.Controllers
                         Sha = fileSha
                     };
 
-                    //_context.MaytrawherehijooBoujallcheabel.Add(maytrawherehijooBoujallcheabel);
-
                     var gairKetemRairsem = new GairKetemRairsem
                     {
                         Name = package.Name,
                         Version = package.Version,
                         RequirementMaxVersion = package.RequirementMaxVersion,
                         RequirementMinVersion = package.RequirementMinVersion,
-                        //Url = maytrawherehijooBoujallcheabel.Id
                         File = maytrawherehijooBoujallcheabel
                     };
 
