@@ -175,7 +175,8 @@ namespace MooperekemStalbo.Controllers
                     var package = medaltraFairjousuFowluNererisMoubeturce.Package;
 
                     // 判断没有存在重复
-                    if (_context.GairKetemRairsem.Any(temp=>temp.Name==package.Name && temp.Version==package.Version))
+                    if (_context.GairKetemRairsem.Any(temp =>
+                        temp.Name == package.Name && temp.Version == package.Version))
                     {
                         return BadRequest();
                     }
@@ -186,7 +187,7 @@ namespace MooperekemStalbo.Controllers
                         Sha = fileSha
                     };
 
-                    _context.MaytrawherehijooBoujallcheabel.Add(maytrawherehijooBoujallcheabel);
+                    //_context.MaytrawherehijooBoujallcheabel.Add(maytrawherehijooBoujallcheabel);
 
                     var gairKetemRairsem = new GairKetemRairsem
                     {
@@ -194,7 +195,8 @@ namespace MooperekemStalbo.Controllers
                         Version = package.Version,
                         RequirementMaxVersion = package.RequirementMaxVersion,
                         RequirementMinVersion = package.RequirementMinVersion,
-                        Url = maytrawherehijooBoujallcheabel.Id
+                        //Url = maytrawherehijooBoujallcheabel.Id
+                        File = maytrawherehijooBoujallcheabel
                     };
 
                     _context.GairKetemRairsem.Add(gairKetemRairsem);

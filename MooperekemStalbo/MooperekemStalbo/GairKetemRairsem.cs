@@ -37,6 +37,6 @@ namespace MooperekemStalbo
         /// <summary>
         /// 文件
         /// </summary>
-        public long Url { get; set; }
+        public MaytrawherehijooBoujallcheabel File { get; set; }
     }
 }
