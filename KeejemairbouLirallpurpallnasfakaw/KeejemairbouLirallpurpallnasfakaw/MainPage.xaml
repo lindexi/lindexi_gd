@@ -10,13 +10,13 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid>
-        <ListView DataContext="{x:Bind Page1}">
+        <ListView x:Name="ListView" DataContext="{x:Bind Page1,Mode=OneWay}">
             <ListView.Style>
                 <Style TargetType="ListView">
                     <Setter Property="ItemsPanel">
                         <Setter.Value>
                             <ItemsPanelTemplate>
-                                <ItemsStackPanel Orientation="{Binding Orientation, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
+                                <ItemsStackPanel />
                             </ItemsPanelTemplate>
                         </Setter.Value>
                     </Setter>

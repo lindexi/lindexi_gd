@@ -61,21 +61,35 @@ namespace KeejemairbouLirallpurpallnasfakaw
             "ItemsPanelOrientation", typeof(bool), typeof(BindingHelper),
             new PropertyMetadata(default(bool), ItemsPanelOrientation_OnPropertyChanged));
 
-        private static async void ItemsPanelOrientation_OnPropertyChanged(DependencyObject d,
+        private static void ItemsPanelOrientation_OnPropertyChanged(DependencyObject d,
             DependencyPropertyChangedEventArgs e)
         {
             if (d is ListView listView)
             {
-                await listView.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                if (listView.IsLoaded)
                 {
-                    if (listView.ItemsPanelRoot is ItemsStackPanel stackPanel)
-                    {
-                        BindingOperations.SetBinding(stackPanel, ItemsStackPanel.OrientationProperty, new Binding()
-                        {
-                            Path = new PropertyPath("Orientation"),
-                            Mode = BindingMode.OneWay
-                        });
-                    }
+                    SetBind(listView);
+                }
+                else
+                {
+                    listView.Loaded += ListView_Loaded;
+                }
+            }
+        }
+
+        private static void ListView_Loaded(object sender, RoutedEventArgs e)
+        {
+            SetBind((ListView) sender);
+        }
+
+        private static void SetBind(ListView listView)
+        {
+            if (listView.ItemsPanelRoot is ItemsStackPanel stackPanel)
+            {
+                BindingOperations.SetBinding(stackPanel, ItemsStackPanel.OrientationProperty, new Binding()
+                {
+                    Path = new PropertyPath("Orientation"),
+                    Mode = BindingMode.OneWay
                 });
             }
         }
