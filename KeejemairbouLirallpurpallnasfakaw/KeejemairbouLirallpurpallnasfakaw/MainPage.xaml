@@ -1,0 +1,33 @@
+﻿<Page
+    x:Class="KeejemairbouLirallpurpallnasfakaw.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:KeejemairbouLirallpurpallnasfakaw"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    x:Name="Page1"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <ListView DataContext="{x:Bind Page1}">
+            <ListView.Style>
+                <Style TargetType="ListView">
+                    <Setter Property="ItemsPanel">
+                        <Setter.Value>
+                            <ItemsPanelTemplate>
+                                <ItemsStackPanel Orientation="{Binding Orientation, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
+                            </ItemsPanelTemplate>
+                        </Setter.Value>
+                    </Setter>
+                    <Setter Property="local:BindingHelper.ItemsPanelOrientation" Value="True"></Setter>
+                </Style>
+            </ListView.Style>
+            <ListView.Items>
+                <TextBlock Text="1"></TextBlock>
+                <TextBlock Text="2"></TextBlock>
+                <TextBlock Text="3"></TextBlock>
+            </ListView.Items>
+        </ListView>
+    </Grid>
+</Page>
