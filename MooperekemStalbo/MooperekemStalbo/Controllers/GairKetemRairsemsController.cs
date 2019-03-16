@@ -239,16 +239,10 @@ namespace MooperekemStalbo.Controllers
                     });
                 }
             }
-            //if (gairKetemRairsem != null)
-            //{
-            //    return PhysicalFile(gairKetemRairsem.Url, "application/octet-stream");
-            //}
 
             Console.WriteLine("找不到文件");
 
             return Ok();
-
-            //return BadRequest();
         }
 
         public void Download(DermaiGasterechakeWhurchurwall poojiSugou)
