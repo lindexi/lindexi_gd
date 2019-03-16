@@ -28,6 +28,8 @@ namespace MooperekemStalbo.Controllers
 
             _host = host;
 
+            Folder = Path.Combine(_host.WebRootPath, "Package");
+
             if (!_context.GairKetemRairsem.Any())
             {
                 //_context.GairKetemRairsem.AddRange(new[]
@@ -69,6 +71,8 @@ namespace MooperekemStalbo.Controllers
                 _context.SaveChanges();
             }
         }
+
+        private string Folder { get; }
 
         // GET: api/GairKetemRairsems
         [HttpGet]
@@ -167,8 +171,7 @@ namespace MooperekemStalbo.Controllers
             if (fileSha == file.Sha)
             {
                 var medaltraFairjousuFowluNererisMoubeturce =
-                    new MedaltraFairjousuFowluNererisMoubeturce(fileInfo, Path.Combine(_host.WebRootPath, "Package"),
-                        fileSha);
+                    new MedaltraFairjousuFowluNererisMoubeturce(fileInfo, Folder, fileSha);
 
                 if (medaltraFairjousuFowluNererisMoubeturce.CheckFile())
                 {
@@ -183,9 +186,12 @@ namespace MooperekemStalbo.Controllers
 
                     var maytrawherehijooBoujallcheabel = new MaytrawherehijooBoujallcheabel()
                     {
-                        File = medaltraFairjousuFowluNererisMoubeturce.MoveFile(),
+                        File = "/storage/package/" +
+                               medaltraFairjousuFowluNererisMoubeturce.MoveFile().Replace("\\", "/"),
                         Sha = fileSha
                     };
+
+                    _context.MaytrawherehijooBoujallcheabel.Add(maytrawherehijooBoujallcheabel);
 
                     var gairKetemRairsem = new GairKetemRairsem
                     {
@@ -193,10 +199,12 @@ namespace MooperekemStalbo.Controllers
                         Version = package.Version,
                         RequirementMaxVersion = package.RequirementMaxVersion,
                         RequirementMinVersion = package.RequirementMinVersion,
-                        File = maytrawherehijooBoujallcheabel
+                        File = maytrawherehijooBoujallcheabel.Id
                     };
 
+
                     _context.GairKetemRairsem.Add(gairKetemRairsem);
+
                     _context.SaveChanges();
                 }
 
@@ -217,6 +225,20 @@ namespace MooperekemStalbo.Controllers
                                && new Version(temp.RequirementMinVersion) <= version
                                && new Version(temp.RequirementMaxVersion) > version)
                 .OrderBy(temp => new Version(temp.Version)).FirstOrDefault();
+            if (gairKetemRairsem != null)
+            {
+                var maytrawherehijooBoujallcheabel =
+                    _context.MaytrawherehijooBoujallcheabel.FirstOrDefault(temp => temp.Id == gairKetemRairsem.File);
+
+                if (maytrawherehijooBoujallcheabel != null)
+                {
+                    return new JsonResult(new GemurboostatelnearseRurallnawrear
+                    {
+                        File = maytrawherehijooBoujallcheabel.File,
+                        Sha = maytrawherehijooBoujallcheabel.Sha
+                    });
+                }
+            }
             //if (gairKetemRairsem != null)
             //{
             //    return PhysicalFile(gairKetemRairsem.Url, "application/octet-stream");
