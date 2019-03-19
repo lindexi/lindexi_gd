@@ -13,7 +13,7 @@ namespace DretawmowwapiliPalloketoo
             var desktop = (FileSystemKnownFolder) folder.Parent;
             //desktop.FolderId {b4bfcc3a-db2c-424c-b029-7fe99a87c641}
 
-            Console.WriteLine(desktop.CanonicalName); // Desktop
+            Console.WriteLine(desktop.CanonicalName);
              
             Console.WriteLine(folder);
          }
