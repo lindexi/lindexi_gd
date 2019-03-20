@@ -1,0 +1,22 @@
+﻿<Page
+    x:Class="LekaryusijefowHirgemsterevepalltrallxay.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:LekaryusijefowHirgemsterevepalltrallxay"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <RichTextBlock HorizontalAlignment="Center" VerticalAlignment="Center">
+            <RichTextBlock.ContextFlyout>
+                <MenuFlyout>
+                    <MenuFlyoutItem Text="1" />
+                    <MenuFlyoutItem Text="2" />
+                </MenuFlyout>
+            </RichTextBlock.ContextFlyout>
+            <Paragraph>Welcome to my blog http://blog.lindexi.com I write some UWP blogs</Paragraph>
+        </RichTextBlock>
+    </Grid>
+</Page>
