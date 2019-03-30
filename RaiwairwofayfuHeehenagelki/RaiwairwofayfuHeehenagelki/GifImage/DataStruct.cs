@@ -1,16 +1,22 @@
-﻿
-
-using System;
+﻿using System;
 using System.IO;
 
 namespace RaiwairwofayfuHeehenagelki.GifImage
 {
     internal class DataStruct
     {
-
         internal DataStruct(int blockSize, Stream stream)
         {
-            var streamHelper = new StreamHelper(stream);
+            var streamHelper = new GifStream(stream);
+            BlockSize = (byte) blockSize;
+            if (BlockSize > 0)
+            {
+                Data = streamHelper.ReadByte(BlockSize);
+            }
+        }
+
+        internal DataStruct(int blockSize, GifStream streamHelper)
+        {
             BlockSize = (byte) blockSize;
             if (BlockSize > 0)
             {

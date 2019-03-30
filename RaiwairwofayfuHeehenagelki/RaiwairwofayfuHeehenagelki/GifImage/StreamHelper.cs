@@ -4,20 +4,20 @@ using System.IO;
 
 namespace RaiwairwofayfuHeehenagelki.GifImage
 {
-    internal class StreamHelper
+    internal class GifStream
     {
-        internal StreamHelper(Stream stream)
+        internal GifStream(Stream stream)
         {
-            this.stream = stream;
+            _stream = stream;
         }
 
-        private readonly Stream stream;
+        private readonly Stream _stream;
 
         //读取指定长度的字节字节
         internal byte[] ReadByte(int len)
         {
             var buffer = new byte[len];
-            stream.Read(buffer, 0, len);
+            _stream.Read(buffer, 0, len);
             return buffer;
         }
 
@@ -27,13 +27,13 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
         /// <returns></returns>
         internal int Read()
         {
-            return stream.ReadByte();
+            return _stream.ReadByte();
         }
 
-        internal short ReadShort()
+        private short ReadShort()
         {
             var buffer = new byte[2];
-            stream.Read(buffer, 0, buffer.Length);
+            _stream.Read(buffer, 0, buffer.Length);
             return BitConverter.ToInt16(buffer, 0);
         }
 
@@ -42,33 +42,15 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
             return new string(ReadChar(length));
         }
 
-        internal char[] ReadChar(int length)
+        private char[] ReadChar(int length)
         {
             var buffer = new byte[length];
-            stream.Read(buffer, 0, length);
+            _stream.Read(buffer, 0, length);
             var charBuffer = new char[length];
             buffer.CopyTo(charBuffer, 0);
             return charBuffer;
         }
 
-        internal void WriteString(string str)
-        {
-            var charBuffer = str.ToCharArray();
-            var buffer = new byte[charBuffer.Length];
-            var index = 0;
-            foreach (var c in charBuffer)
-            {
-                buffer[index] = (byte) c;
-                index++;
-            }
-
-            WriteBytes(buffer);
-        }
-
-        internal void WriteBytes(byte[] buffer)
-        {
-            stream.Write(buffer, 0, buffer.Length);
-        }
 
         #region 从文件流中读取应用程序扩展块
 
@@ -107,7 +89,7 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
         internal CommentEx GetCommentEx(Stream stream)
         {
             var cmtEx = new CommentEx();
-            var streamHelper = new StreamHelper(stream);
+            var streamHelper = new GifStream(stream);
             cmtEx.CommentDatas = new List<string>();
             var nextFlag = streamHelper.Read();
             cmtEx.CommentDatas = new List<string>();
@@ -235,77 +217,6 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
             lcd.BgColorIndex = (byte) Read();
             lcd.PixcelAspect = (byte) Read();
             return lcd;
-        }
-
-        #endregion
-
-        #region 写文件头
-
-        /// <summary>
-        ///     写文件头
-        /// </summary>
-        /// <param name="header">文件头</param>
-        internal void WriteHeader(string header)
-        {
-            WriteString(header);
-        }
-
-        #endregion
-
-        #region 写逻辑屏幕标识符
-
-        /// <summary>
-        ///     写逻辑屏幕标识符
-        /// </summary>
-        /// <param name="lsd"></param>
-        internal void WriteLSD(LogicalScreenDescriptor lsd)
-        {
-            WriteBytes(lsd.GetBuffer());
-        }
-
-        #endregion
-
-        #region 写全局颜色表
-
-        /// <summary>
-        ///     写全局颜色表
-        /// </summary>
-        /// <param name="buffer">全局颜色表</param>
-        internal void SetGlobalColorTable(byte[] buffer)
-        {
-            WriteBytes(buffer);
-        }
-
-        #endregion
-
-        #region 写入注释扩展集合
-
-        /// <summary>
-        ///     写入注释扩展集合
-        /// </summary>
-        /// <param name="comments">注释扩展集合</param>
-        internal void SetCommentExtensions(List<CommentEx> comments)
-        {
-            foreach (var ce in comments)
-            {
-                WriteBytes(ce.GetBuffer());
-            }
-        }
-
-        #endregion
-
-        #region 写入应用程序展集合
-
-        /// <summary>
-        ///     写入应用程序展集合
-        /// </summary>
-        /// <param name="comments">写入应用程序展集合</param>
-        internal void SetApplicationExtensions(List<ApplicationEx> applications)
-        {
-            foreach (var ap in applications)
-            {
-                WriteBytes(ap.GetBuffer());
-            }
         }
 
         #endregion

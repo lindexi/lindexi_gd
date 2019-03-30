@@ -36,7 +36,7 @@ namespace RaiwairwofayfuHeehenagelki
                      Dispatcher.Invoke(() =>
                      {
                          //Image.Source = BitmapToImageSource(temp.Image);
-                         Image.Source = temp.FearjallgarhifarFecheakabeli;
+                         Image.Source = temp.Image;
                      });
                     await Task.Delay(TimeSpan.FromMilliseconds(temp.Delay * 10));
                  }

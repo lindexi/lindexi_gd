@@ -53,13 +53,11 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
                 return act;
             }
         }
-
+       
         /// <summary>
         ///     图像
         /// </summary>
-        internal Bitmap Image { get; set; }
-
-        public ImageSource FearjallgarhifarFecheakabeli { set; get; }
+        public ImageSource Image { set; get; }
 
         /// <summary>
         ///     数据位大小
