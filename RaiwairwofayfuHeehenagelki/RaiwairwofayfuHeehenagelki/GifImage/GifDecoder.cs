@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Color = System.Drawing.Color;
@@ -177,7 +178,7 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
 
                         while (i < pixel.Length)
                         {
-                            dest[pointer] = colorTable[pixel[i++]].ToBgra32();
+                            dest[pointer] = colorTable[pixel[i++]].ToArgb();
                             pointer++;
 
                             offSet++;
@@ -201,7 +202,7 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
                 {
                     for (var i = 0; i < pixel.Length;)
                     {
-                        dest[pointer]= colorTable[pixel[i++]].ToBgra32();;
+                        dest[pointer]= colorTable[pixel[i++]].ToArgb();;
                         pointer++;
                     }
                 }
@@ -212,20 +213,4 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
    
         #endregion
     }
-
-    internal static class ColorToBgra
-    {
-        public static int ToBgra32(this Color color)
-        {
-            int c = color.B;
-            c <<= 8;
-            c += color.G;
-            c <<= 8;
-            c += color.R;
-            c <<= 8;
-            c += color.A;
-            return c;
-        }
-    }
-
 }

@@ -47,7 +47,7 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
                 var act = PaletteHelper.GetColor32s(LocalColorTable);
                 if (GraphicExtension != null && GraphicExtension.TransparencyFlag)
                 {
-                    act[GraphicExtension.TranIndex] = Color.FromArgb(0);
+                    act[GraphicExtension.TranIndex] = Color.FromArgb(0,0,0,0);
                 }
 
                 return act;

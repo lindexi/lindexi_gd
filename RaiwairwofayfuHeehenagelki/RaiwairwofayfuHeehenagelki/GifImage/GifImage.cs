@@ -40,7 +40,7 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
             get
             {
                 var act = PaletteHelper.GetColor32s(GlobalColorTable);
-                act[LogicalScreenDescriptor.BgColorIndex] = Color.FromArgb(0);
+                act[LogicalScreenDescriptor.BgColorIndex] = Color.FromArgb(0,0,0,0);
                 return act;
             }
         }
