@@ -47,11 +47,13 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
 
         #endregion
 
-        #region gif文件头，可能情况有两种:GIF89a或者GIF87a
-
+     
+        /// <summary>
+        ///    开始6字节是GIF署名 文件版本号，GIF署名 是“GIF”，文件版本号为 "87a"或"89a"
+        /// </summary>
         internal string Header { get; set; } = "";
 
-        #endregion
+       
 
         #region 全局颜色列表
 

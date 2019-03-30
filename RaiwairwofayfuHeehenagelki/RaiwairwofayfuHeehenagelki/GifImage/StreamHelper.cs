@@ -4,7 +4,7 @@ using System.IO;
 
 namespace RaiwairwofayfuHeehenagelki.GifImage
 {
-    internal class GifStream
+    internal class GifStream : Stream
     {
         internal GifStream(Stream stream)
         {
@@ -57,9 +57,8 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
         /// <summary>
         ///     从文件流中读取应用程序扩展块
         /// </summary>
-        /// <param name="stream"></param>
         /// <returns></returns>
-        internal ApplicationEx GetApplicationEx(Stream stream)
+        internal ApplicationEx GetApplicationEx()
         {
             var appEx = new ApplicationEx();
             var blockSize = Read();
@@ -71,11 +70,11 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
             appEx.ApplicationIdentifier = ReadChar(8);
             appEx.ApplicationAuthenticationCode = ReadChar(3);
             var nextFlag = Read();
-            appEx.Datas = new List<DataStruct>();
+            appEx.Data = new List<DataStruct>();
             while (nextFlag != 0)
             {
-                var data = new DataStruct(nextFlag, stream);
-                appEx.Datas.Add(data);
+                var data = new DataStruct(nextFlag, this);
+                appEx.Data.Add(data);
                 nextFlag = Read();
             }
 
@@ -86,19 +85,17 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
 
         #region 从文件数据流中读取注释扩展块
 
-        internal CommentEx GetCommentEx(Stream stream)
+        internal CommentEx GetCommentEx()
         {
-            var cmtEx = new CommentEx();
-            var streamHelper = new GifStream(stream);
-            cmtEx.CommentDatas = new List<string>();
-            var nextFlag = streamHelper.Read();
-            cmtEx.CommentDatas = new List<string>();
+            var cmtEx = new CommentEx { CommentData = new List<string>() };
+            var nextFlag = Read();
+            cmtEx.CommentData = new List<string>();
             while (nextFlag != 0)
             {
                 var blockSize = nextFlag;
-                var data = streamHelper.ReadString(blockSize);
-                cmtEx.CommentDatas.Add(data);
-                nextFlag = streamHelper.Read();
+                var data = ReadString(blockSize);
+                cmtEx.CommentData.Add(data);
+                nextFlag = Read();
             }
 
             return cmtEx;
@@ -111,36 +108,35 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
         /// <summary>
         ///     从文件数据流中读取图形文本扩展(Plain Text Extension)
         /// </summary>
-        /// <param name="stream"></param>
         /// <returns></returns>
-        internal PlainTextEx GetPlainTextEx(Stream stream)
+        internal PlainTextEx GetPlainTextEx()
         {
-            var pltEx = new PlainTextEx();
+            var plainText = new PlainTextEx();
             var blockSize = Read();
             if (blockSize != PlainTextEx.BlockSize)
             {
                 throw new Exception("数据格式错误！");
             }
 
-            pltEx.XOffSet = ReadShort();
-            pltEx.YOffSet = ReadShort();
-            pltEx.Width = ReadShort();
-            pltEx.Height = ReadShort();
-            pltEx.CharacterCellWidth = (byte) Read();
-            pltEx.CharacterCellHeight = (byte) Read();
-            pltEx.ForegroundColorIndex = (byte) Read();
-            pltEx.BgColorIndex = (byte) Read();
+            plainText.XOffSet = ReadShort();
+            plainText.YOffSet = ReadShort();
+            plainText.Width = ReadShort();
+            plainText.Height = ReadShort();
+            plainText.CharacterCellWidth = (byte) Read();
+            plainText.CharacterCellHeight = (byte) Read();
+            plainText.ForegroundColorIndex = (byte) Read();
+            plainText.BgColorIndex = (byte) Read();
             var nextFlag = Read();
-            pltEx.TextDatas = new List<string>();
+            plainText.TextDatas = new List<string>();
             while (nextFlag != 0)
             {
                 blockSize = nextFlag;
                 var data = ReadString(blockSize);
-                pltEx.TextDatas.Add(data);
+                plainText.TextDatas.Add(data);
                 nextFlag = Read();
             }
 
-            return pltEx;
+            return plainText;
         }
 
         #endregion
@@ -150,22 +146,23 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
         /// <summary>
         ///     从文件数据流中读取 图象标识符(Image Descriptor)
         /// </summary>
-        /// <param name="stream"></param>
         /// <returns></returns>
-        internal ImageDescriptor GetImageDescriptor(Stream stream)
+        internal ImageDescriptor GetImageDescriptor()
         {
-            var ides = new ImageDescriptor();
-            ides.XOffSet = ReadShort();
-            ides.YOffSet = ReadShort();
-            ides.Width = ReadShort();
-            ides.Height = ReadShort();
+            var imageDescriptor = new ImageDescriptor
+            {
+                XOffSet = ReadShort(),
+                YOffSet = ReadShort(),
+                Width = ReadShort(),
+                Height = ReadShort(),
+                Packed = (byte) Read()
+            };
 
-            ides.Packed = (byte) Read();
-            ides.LctFlag = (ides.Packed & 0x80) >> 7 == 1;
-            ides.InterlaceFlag = (ides.Packed & 0x40) >> 6 == 1;
-            ides.SortFlag = (ides.Packed & 0x20) >> 5 == 1;
-            ides.LctSize = 2 << (ides.Packed & 0x07);
-            return ides;
+            imageDescriptor.LocalColorTableFlag = (imageDescriptor.Packed & 0x80) >> 7 == 1;
+            imageDescriptor.InterlaceFlag = (imageDescriptor.Packed & 0x40) >> 6 == 1;
+            imageDescriptor.SortFlag = (imageDescriptor.Packed & 0x20) >> 5 == 1;
+            imageDescriptor.LocalColorTableSize = 2 << (imageDescriptor.Packed & 0x07);
+            return imageDescriptor;
         }
 
         #endregion
@@ -175,24 +172,23 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
         /// <summary>
         ///     从文件数据流中读取图形控制扩展(Graphic Control Extension)
         /// </summary>
-        /// <param name="stream"></param>
         /// <returns></returns>
-        internal GraphicEx GetGraphicControlExtension(Stream stream)
+        internal GraphicEx GetGraphicControlExtension()
         {
-            var gex = new GraphicEx();
+            var graphic = new GraphicEx();
             var blockSize = Read();
             if (blockSize != GraphicEx.BlockSize)
             {
                 throw new Exception("数据格式错误！");
             }
 
-            gex.Packed = (byte) Read();
-            gex.TransparencyFlag = (gex.Packed & 0x01) == 1;
-            gex.DisposalMethod = (gex.Packed & 0x1C) >> 2;
-            gex.Delay = ReadShort();
-            gex.TranIndex = (byte) Read();
+            graphic.Packed = (byte) Read();
+            graphic.TransparencyFlag = (graphic.Packed & 0x01) == 1;
+            graphic.DisposalMethod = (graphic.Packed & 0x1C) >> 2;
+            graphic.Delay = ReadShort();
+            graphic.TranIndex = (byte) Read();
             Read();
-            return gex;
+            return graphic;
         }
 
         #endregion
@@ -202,23 +198,71 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
         /// <summary>
         ///     从文件数据流中读取图形控制扩展(Graphic Control Extension)
         /// </summary>
-        /// <param name="stream"></param>
         /// <returns></returns>
-        internal LogicalScreenDescriptor GetLCD(Stream stream)
+        internal LogicalScreenDescriptor GetLogicalScreenDescriptor()
         {
-            var lcd = new LogicalScreenDescriptor();
-            lcd.Width = ReadShort();
-            lcd.Height = ReadShort();
-            lcd.Packed = (byte) Read();
-            lcd.GlobalColorTableFlag = (lcd.Packed & 0x80) >> 7 == 1;
-            lcd.ColorResoluTion = (byte) ((lcd.Packed & 0x60) >> 5);
-            lcd.SortFlag = (byte) (lcd.Packed & 0x10) >> 4;
-            lcd.GlobalColorTableSize = 2 << (lcd.Packed & 0x07);
-            lcd.BgColorIndex = (byte) Read();
-            lcd.PixcelAspect = (byte) Read();
-            return lcd;
+            var logicalScreenDescriptor = new LogicalScreenDescriptor();
+            logicalScreenDescriptor.Width = ReadShort();
+            logicalScreenDescriptor.Height = ReadShort();
+            logicalScreenDescriptor.Packed = (byte) Read();
+            logicalScreenDescriptor.GlobalColorTableFlag = (logicalScreenDescriptor.Packed & 0x80) >> 7 == 1;
+            logicalScreenDescriptor.ColorResoluTion = (byte) ((logicalScreenDescriptor.Packed & 0x60) >> 5);
+            logicalScreenDescriptor.SortFlag = (byte) (logicalScreenDescriptor.Packed & 0x10) >> 4;
+            logicalScreenDescriptor.GlobalColorTableSize = 2 << (logicalScreenDescriptor.Packed & 0x07);
+            logicalScreenDescriptor.BgColorIndex = (byte) Read();
+            logicalScreenDescriptor.PixcelAspect = (byte) Read();
+            return logicalScreenDescriptor;
         }
 
         #endregion
+
+        /// <inheritdoc />
+        public override void Flush()
+        {
+            _stream.Flush();
+        }
+
+        /// <inheritdoc />
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            return _stream.Seek(offset, origin);
+        }
+
+        /// <inheritdoc />
+        public override void SetLength(long value)
+        {
+            _stream.SetLength(value);
+        }
+
+        /// <inheritdoc />
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            return _stream.Read(buffer, offset, count);
+        }
+
+        /// <inheritdoc />
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            _stream.Write(buffer, offset, count);
+        }
+
+        /// <inheritdoc />
+        public override bool CanRead => _stream.CanRead;
+
+        /// <inheritdoc />
+        public override bool CanSeek => _stream.CanSeek;
+
+        /// <inheritdoc />
+        public override bool CanWrite => _stream.CanWrite;
+
+        /// <inheritdoc />
+        public override long Length => _stream.Length;
+
+        /// <inheritdoc />
+        public override long Position
+        {
+            get => _stream.Position;
+            set => _stream.Position = value;
+        }
     }
 }

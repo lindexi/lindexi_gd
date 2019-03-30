@@ -1,10 +1,8 @@
-
 using System;
 using System.Collections.Generic;
 
 namespace RaiwairwofayfuHeehenagelki.GifImage
 {
-
     /// <summary>
     ///     图象标识符(Image Descriptor)一个GIF文件内可以包含多幅图象，
     ///     一幅图象结束之后紧接着下是一幅图象的标识符，图象标识符以0x2C(',')
@@ -13,19 +11,16 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
     /// </summary>
     internal class ImageDescriptor
     {
-        #region 方法函数
 
         internal byte[] GetBuffer()
         {
-            var list = new List<byte>();
-            list.Add(GifExtensions.ImageDescriptorLabel);
+            var list = new List<byte> { GifExtensions.ImageDescriptorLabel };
             list.AddRange(BitConverter.GetBytes(XOffSet));
             list.AddRange(BitConverter.GetBytes(YOffSet));
             list.AddRange(BitConverter.GetBytes(Width));
             list.AddRange(BitConverter.GetBytes(Height));
-            byte packed = 0;
             var m = 0;
-            if (LctFlag)
+            if (LocalColorTableFlag)
             {
                 m = 1;
             }
@@ -42,64 +37,62 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
                 s = 1;
             }
 
-            var pixel = (byte) (Math.Log(LctSize, 2) - 1);
-            packed = (byte) (pixel | (s << 5) | (i << 6) | (m << 7));
+            var pixel = (byte) (Math.Log(LocalColorTableSize, 2) - 1);
+            var packed = (byte) (pixel | (s << 5) | (i << 6) | (m << 7));
             list.Add(packed);
             return list.ToArray();
         }
 
-        #endregion
 
         #region 结构字段      
 
         /// <summary>
         ///     X方向偏移量
         /// </summary>
-        internal short XOffSet;
+        internal short XOffSet { set; get; }
 
         /// <summary>
         ///     X方向偏移量
         /// </summary>
-        internal short YOffSet;
+        internal short YOffSet { set; get; }
 
         /// <summary>
         ///     图象宽度
         /// </summary>
-        internal short Width;
+        internal short Width { set; get; }
 
         /// <summary>
         ///     图象高度
         /// </summary>
-        internal short Height;
+        internal short Height { set; get; }
 
         /// <summary>
         ///     packed
         /// </summary>
-        internal byte Packed;
+        internal byte Packed { set; get; }
 
         /// <summary>
         ///     局部颜色列表标志(Local Color Table Flag)
         ///     置位时标识紧接在图象标识符之后有一个局部颜色列表，供紧跟在它之后的一幅图象使用；
         ///     值否时使用全局颜色列表，忽略pixel值。
         /// </summary>
-        internal bool LctFlag;
+        internal bool LocalColorTableFlag { set; get; }
 
         /// <summary>
         ///     交织标志(Interlace Flag)，置位时图象数据使用连续方式排列，否则使用顺序排列。
         /// </summary>
-        internal bool InterlaceFlag;
+        internal bool InterlaceFlag { set; get; }
 
         /// <summary>
         ///     分类标志(Sort Flag)，如果置位表示紧跟着的局部颜色列表分类排列.
         /// </summary>
-        internal bool SortFlag;
+        internal bool SortFlag { set; get; }
 
         /// <summary>
         ///     pixel - 局部颜色列表大小(Size of Local Color Table)，pixel+1就为颜色列表的位数
         /// </summary>
-        internal int LctSize;
+        internal int LocalColorTableSize { set; get; }
 
         #endregion
     }
-
 }

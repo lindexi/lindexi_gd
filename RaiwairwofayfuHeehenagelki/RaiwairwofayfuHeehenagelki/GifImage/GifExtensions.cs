@@ -3,10 +3,11 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
 {
 
 
-    internal class GifExtensions
+    internal static class GifExtensions
     {
         /// <summary>
         ///     Extension Introducer 
+        /// 图形控制扩展 放在一个图象块(图象标识符)或文本扩展块的前面，用来控制跟在它后面的第一个图象
         /// </summary>
         internal const byte ExtensionIntroducer = 0x21;
 
@@ -29,9 +30,9 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
 
 
         /// <summary>
-        ///   
+        /// 一个 Gif 包括很多个图片，使用 0x2C 说明图片开始
         /// </summary>
-        internal const byte ImageDescriptorLabel = 0x2C;
+        internal const byte ImageDescriptorLabel = ImageLabel;
 
         /// <summary>
         ///     Plain Text Label
@@ -43,9 +44,14 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
         /// </summary>
         internal const byte GraphicControlLabel = 0xF9;
 
+        /// <summary>
+        /// 一个 Gif 包括很多个图片，使用 0x2C 说明图片开始
+        /// </summary>
         internal const byte ImageLabel = 0x2C;
 
-       
+       /// <summary>
+        /// 标识GIF文件结束
+       /// </summary>
         internal const byte EndIntroducer = 0x3B;
     }
 

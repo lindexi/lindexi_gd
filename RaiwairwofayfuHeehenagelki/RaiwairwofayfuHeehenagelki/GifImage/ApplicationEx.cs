@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace RaiwairwofayfuHeehenagelki.GifImage
 {
@@ -14,7 +15,7 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
         /// <summary>
         ///     Block Size - 块大小，固定值11
         /// </summary>
-        internal static readonly byte BlockSize = 0X0B;
+        internal const byte BlockSize = 0X0B;
 
         /// <summary>
         ///     Application Identifier - 用来鉴别应用程序自身的标识(8个连续ASCII字符)
@@ -29,7 +30,7 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
         /// <summary>
         ///     应用程序自定义数据块 - 一个或多个数据块组成，保存应用程序自己定义的数据
         /// </summary>
-        internal List<DataStruct> Datas;
+        internal List<DataStruct> Data;
 
         #endregion
 
@@ -41,33 +42,27 @@ namespace RaiwairwofayfuHeehenagelki.GifImage
         /// <returns></returns>
         internal byte[] GetBuffer()
         {
-            var list = new List<byte>();
-            list.Add(GifExtensions.ExtensionIntroducer);
-            list.Add(GifExtensions.ApplicationExtensionLabel);
-            list.Add(BlockSize);
+            var list = new List<byte>
+            {
+                GifExtensions.ExtensionIntroducer, GifExtensions.ApplicationExtensionLabel, BlockSize
+            };
             if (ApplicationIdentifier == null)
             {
                 ApplicationIdentifier = "NETSCAPE".ToCharArray();
             }
 
-            foreach (var c in ApplicationIdentifier)
-            {
-                list.Add((byte) c);
-            }
+            list.AddRange(ApplicationIdentifier.Select(c => (byte) c));
 
             if (ApplicationAuthenticationCode == null)
             {
                 ApplicationAuthenticationCode = "2.0".ToCharArray();
             }
 
-            foreach (var c in ApplicationAuthenticationCode)
-            {
-                list.Add((byte) c);
-            }
+            list.AddRange(ApplicationAuthenticationCode.Select(c => (byte) c));
 
-            if (Datas != null)
+            if (Data != null)
             {
-                foreach (var ds in Datas)
+                foreach (var ds in Data)
                 {
                     list.AddRange(ds.GetBuffer());
                 }
