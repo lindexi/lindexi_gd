@@ -1,0 +1,47 @@
+﻿<Page
+    x:Class="PernemtanowsearDeerawkurkosa.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:PernemtanowsearDeerawkurkosa"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
+    xmlns:core="using:Microsoft.Xaml.Interactions.Core"
+    xmlns:media="using:Microsoft.Xaml.Interactions.Media"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <Border>
+            <Border.Resources>
+                <Storyboard x:Key="EnterStoryboard">
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Image" Storyboard.TargetProperty="Source">
+                        <ObjectAnimationUsingKeyFrames.KeyFrames>
+                            <DiscreteObjectKeyFrame KeyTime="0:0:0"
+                                                    Value="assets/click_cursor_mouse_pointer_select_128px_1225441_easyicon.net.png" />
+                        </ObjectAnimationUsingKeyFrames.KeyFrames>
+                    </ObjectAnimationUsingKeyFrames>
+                </Storyboard>
+                <Storyboard x:Key="ExitStoryboard">
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Image" Storyboard.TargetProperty="Source">
+                        <ObjectAnimationUsingKeyFrames.KeyFrames>
+                            <DiscreteObjectKeyFrame KeyTime="0:0:0"
+                                                    Value="Assets/click_cursor_mouse_pointer_select_121.7433808554px_1193623_easyicon.net.png" />
+                        </ObjectAnimationUsingKeyFrames.KeyFrames>
+                    </ObjectAnimationUsingKeyFrames>
+                </Storyboard>
+            </Border.Resources>
+            <interactivity:Interaction.Behaviors>
+                <core:EventTriggerBehavior EventName="PointerEntered">
+                    <media:ControlStoryboardAction Storyboard="{StaticResource EnterStoryboard}" />
+                </core:EventTriggerBehavior>
+                <core:EventTriggerBehavior EventName="PointerExited">
+                    <media:ControlStoryboardAction Storyboard="{StaticResource ExitStoryboard}" />
+                </core:EventTriggerBehavior>
+            </interactivity:Interaction.Behaviors>
+            <Image x:Name="Image"
+                   Source="Assets/click_cursor_mouse_pointer_select_121.7433808554px_1193623_easyicon.net.png"
+                   Height="120" Width="120" Margin="176,31,534,84" />
+        </Border>
+    </Grid>
+</Page>

@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Security.Policy;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Logging;
 using MooperekemStalbo;
 using MooperekemStalbo.Models;
 
@@ -26,47 +28,51 @@ namespace MooperekemStalbo.Controllers
 
             _host = host;
 
+            Folder = Path.Combine(_host.WebRootPath, "Package");
+
             if (!_context.GairKetemRairsem.Any())
             {
-                _context.GairKetemRairsem.AddRange(new[]
-                {
-                    new GairKetemRairsem()
-                    {
-                        Name = "lindexi",
-                        RequirementMinVersion = new Version("5.1.2").ToString(),
-                        RequirementMaxVersion = new Version("5.1.3").ToString(),
-                        Version = new Version("1.0.0").ToString(),
-                        Url = Path.Combine(host.WebRootPath, "Package", "1.png")
-                    },
-                    new GairKetemRairsem()
-                    {
-                        Name = "lindexi",
-                        RequirementMinVersion = new Version("5.1.2").ToString(),
-                        RequirementMaxVersion = new Version("5.1.3").ToString(),
-                        Version = new Version("1.0.1").ToString(),
-                        Url = Path.Combine(host.WebRootPath, "Package", "1.png")
-                    },
-                    new GairKetemRairsem()
-                    {
-                        Name = "lindexi",
-                        RequirementMinVersion = new Version("5.1.2").ToString(),
-                        RequirementMaxVersion = new Version("5.1.3").ToString(),
-                        Version = new Version("1.0.2").ToString(),
-                        Url = Path.Combine(host.WebRootPath, "Package", "1.png")
-                    },
-                    new GairKetemRairsem()
-                    {
-                        Name = "lindexi",
-                        RequirementMinVersion = new Version("5.1.3").ToString(),
-                        RequirementMaxVersion = new Version("5.1.5").ToString(),
-                        Version = new Version("1.0.5").ToString(),
-                        Url = Path.Combine(host.WebRootPath, "Package", "1.png")
-                    },
-                });
+                //_context.GairKetemRairsem.AddRange(new[]
+                //{
+                //    new GairKetemRairsem()
+                //    {
+                //        Name = "lindexi",
+                //        RequirementMinVersion = new Version("5.1.2").ToString(),
+                //        RequirementMaxVersion = new Version("5.1.3").ToString(),
+                //        Version = new Version("1.0.0").ToString(),
+                //        Url = Path.Combine(host.WebRootPath, "Package", "1.png")
+                //    },
+                //    new GairKetemRairsem()
+                //    {
+                //        Name = "lindexi",
+                //        RequirementMinVersion = new Version("5.1.2").ToString(),
+                //        RequirementMaxVersion = new Version("5.1.3").ToString(),
+                //        Version = new Version("1.0.1").ToString(),
+                //        Url = Path.Combine(host.WebRootPath, "Package", "1.png")
+                //    },
+                //    new GairKetemRairsem()
+                //    {
+                //        Name = "lindexi",
+                //        RequirementMinVersion = new Version("5.1.2").ToString(),
+                //        RequirementMaxVersion = new Version("5.1.3").ToString(),
+                //        Version = new Version("1.0.2").ToString(),
+                //        Url = Path.Combine(host.WebRootPath, "Package", "1.png")
+                //    },
+                //    new GairKetemRairsem()
+                //    {
+                //        Name = "lindexi",
+                //        RequirementMinVersion = new Version("5.1.3").ToString(),
+                //        RequirementMaxVersion = new Version("5.1.5").ToString(),
+                //        Version = new Version("1.0.5").ToString(),
+                //        Url = Path.Combine(host.WebRootPath, "Package", "1.png")
+                //    },
+                //});
 
                 _context.SaveChanges();
             }
         }
+
+        private string Folder { get; }
 
         // GET: api/GairKetemRairsems
         [HttpGet]
@@ -148,7 +154,7 @@ namespace MooperekemStalbo.Controllers
         [HttpPost("UploadPackage")]
         public async Task<StatusCodeResult> UploadPackage([FromForm] KanajeaLolowge file)
         {
-            var fileInfo = new FileInfo("E:\\1.zip");
+            var fileInfo = new FileInfo(Path.GetTempFileName());
 
             var fileStream = fileInfo.Open(FileMode.Create, FileAccess.ReadWrite);
 
@@ -159,23 +165,47 @@ namespace MooperekemStalbo.Controllers
 
                 fileStream.Seek(0, SeekOrigin.Begin);
 
-                using (var sha = SHA256.Create())
-                {
-                    fileSha = Convert.ToBase64String(sha.ComputeHash(fileStream));
-
-                    fileStream.Seek(0, SeekOrigin.Begin);
-                }
+                fileSha = Shafile.GetFile(fileStream);
             }
 
             if (fileSha == file.Sha)
             {
                 var medaltraFairjousuFowluNererisMoubeturce =
-                    new MedaltraFairjousuFowluNererisMoubeturce(fileInfo, Path.Combine(_host.WebRootPath, "Package"),
-                        fileSha);
+                    new MedaltraFairjousuFowluNererisMoubeturce(fileInfo, Folder, fileSha);
 
                 if (medaltraFairjousuFowluNererisMoubeturce.CheckFile())
                 {
-                    medaltraFairjousuFowluNererisMoubeturce.MoveFile();
+                    var package = medaltraFairjousuFowluNererisMoubeturce.Package;
+
+                    // 判断没有存在重复
+                    if (_context.GairKetemRairsem.Any(temp =>
+                        temp.Name == package.Name && temp.Version == package.Version))
+                    {
+                        return BadRequest();
+                    }
+
+                    var maytrawherehijooBoujallcheabel = new MaytrawherehijooBoujallcheabel()
+                    {
+                        File = "/storage/package/" +
+                               medaltraFairjousuFowluNererisMoubeturce.MoveFile().Replace("\\", "/"),
+                        Sha = fileSha
+                    };
+
+                    _context.MaytrawherehijooBoujallcheabel.Add(maytrawherehijooBoujallcheabel);
+
+                    var gairKetemRairsem = new GairKetemRairsem
+                    {
+                        Name = package.Name,
+                        Version = package.Version,
+                        RequirementMaxVersion = package.RequirementMaxVersion,
+                        RequirementMinVersion = package.RequirementMinVersion,
+                        File = maytrawherehijooBoujallcheabel.Id
+                    };
+
+
+                    _context.GairKetemRairsem.Add(gairKetemRairsem);
+
+                    _context.SaveChanges();
                 }
 
 
@@ -197,14 +227,22 @@ namespace MooperekemStalbo.Controllers
                 .OrderBy(temp => new Version(temp.Version)).FirstOrDefault();
             if (gairKetemRairsem != null)
             {
-                return PhysicalFile(gairKetemRairsem.Url, "application/octet-stream");
+                var maytrawherehijooBoujallcheabel =
+                    _context.MaytrawherehijooBoujallcheabel.FirstOrDefault(temp => temp.Id == gairKetemRairsem.File);
+
+                if (maytrawherehijooBoujallcheabel != null)
+                {
+                    return new JsonResult(new GemurboostatelnearseRurallnawrear
+                    {
+                        File = maytrawherehijooBoujallcheabel.File,
+                        Sha = maytrawherehijooBoujallcheabel.Sha
+                    });
+                }
             }
 
             Console.WriteLine("找不到文件");
 
             return Ok();
-
-            //return BadRequest();
         }
 
         public void Download(DermaiGasterechakeWhurchurwall poojiSugou)

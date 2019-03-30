@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 using MooperekemStalbo;
+using MooperekemStalbo.Controllers;
 using Newtonsoft.Json;
 
 namespace CouwoSeajeryerdairMerlear
@@ -18,12 +19,27 @@ namespace CouwoSeajeryerdairMerlear
         {
             SenairjerecisBelnear();
 
+            LaizanadesoDinesebe();
+
+
+            //var fileInfo = new FileInfo("E:\\RevealHighlights.gif");
+
+            //var fileStream = fileInfo.OpenRead();
+            //string fileSha = Shafile.GetFile(fileStream);
+
+            //Upload(fileStream, fileSha, "http://localhost:52074/api/GairKetemRairsems/UploadPackage").Wait();
+
+            Console.Read();
+        }
+
+        private static async void LaizanadesoDinesebe()
+        {
             var url = "http://localhost:5000/api/GairKetemRairsems/Download";
 
             var kebunerNeefunadrow = new KebunerNeefunadrow()
             {
                 Name = "lindexi",
-                Version = new Version("5.1.2").ToString()
+                Version = new Version("1.3.0").ToString()
             };
 
             var httpClient = new HttpClient();
@@ -33,25 +49,23 @@ namespace CouwoSeajeryerdairMerlear
             var stringContent = new StringContent(json);
             stringContent.Headers.ContentType.MediaType = "application/json";
 
-            var response = httpClient.PostAsync(url, stringContent).Result;
+            var response = await httpClient.PostAsync(url, stringContent);
 
+            var drehereposorrasCorxoustesaiyairal = await response.Content.ReadAsStringAsync();
+            var chilusterfaVocerjoulel = JsonConvert.DeserializeObject<GemurboostatelnearseRurallnawrear>(drehereposorrasCorxoustesaiyairal);
 
-            var fileInfo = new FileInfo("E:\\RevealHighlights.gif");
-
-            var fileStream = fileInfo.OpenRead();
-            string fileSha;
-            using (var sha = SHA256.Create())
+            url = "http://localhost:5000" + chilusterfaVocerjoulel.File;
+            var file = Path.GetTempFileName();
+            using (var stream=new FileStream(file,FileMode.Open))
             {
-                fileSha = Convert.ToBase64String(sha.ComputeHash(fileStream));
-
-                fileStream.Seek(0, SeekOrigin.Begin);
+                await (await httpClient.GetStreamAsync(url)).CopyToAsync(stream);
+                if (Shafile.GetFile(stream)==chilusterfaVocerjoulel.Sha)
+                {
+                    stream.Seek(0, SeekOrigin.End);
+                }
             }
-
-            Upload(fileStream, fileSha, "http://localhost:52074/api/GairKetemRairsems/UploadPackage").Wait();
-
-            Console.Read();
+            
         }
-
 
         private static void SenairjerecisBelnear()
         {
@@ -59,17 +73,17 @@ namespace CouwoSeajeryerdairMerlear
             {
                 Name = "lindexi",
                 Version = "1.0",
-                RequirementMaxVersion = new Version(1, 2, 1).ToString(),
-                RequirementMinVersion = new Version(1, 1, 0).ToString(),
+                RequirementMaxVersion = new Version(1, 5, 1).ToString(),
+                RequirementMinVersion = new Version(1, 3, 0).ToString(),
                 Author = "lindexi",
                 File = "1.dll"
             };
 
             if (!Directory.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                "HemfaKarecelRisvenaStishorrorjoo")))
+                "HemfaKarecelRisvenaStishorrorjoo", "File")))
             {
                 Directory.CreateDirectory(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                    "HemfaKarecelRisvenaStishorrorjoo"));
+                    "HemfaKarecelRisvenaStishorrorjoo", "File"));
             }
 
             var file = new FileInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
@@ -91,6 +105,9 @@ namespace CouwoSeajeryerdairMerlear
                 }
             }
 
+            File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                "HemfaKarecelRisvenaStishorrorjoo", "File", "1.dll"), "林德熙逗比");
+
             if (File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                 "ChemtowNalltruTusiwurhel.zip")))
             {
@@ -107,13 +124,7 @@ namespace CouwoSeajeryerdairMerlear
 
             using (var fileStream = file.OpenRead())
             {
-                string fileSha;
-                using (var sha = SHA256.Create())
-                {
-                    fileSha = Convert.ToBase64String(sha.ComputeHash(fileStream));
-
-                    fileStream.Seek(0, SeekOrigin.Begin);
-                }
+                string fileSha = Shafile.GetFile(fileStream);
 
                 Upload(fileStream, fileSha, "http://localhost:5000/api/GairKetemRairsems/UploadPackage").Wait();
             }

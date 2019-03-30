@@ -14,6 +14,7 @@ namespace MooperekemStalbo.Models
         {
         }
 
-        public DbSet<MooperekemStalbo.GairKetemRairsem> GairKetemRairsem { get; set; }
+        public DbSet<MooperekemStalbo.GairKetemRairsem> GairKetemRairsem {  set; get; }
+        public DbSet<MaytrawherehijooBoujallcheabel> MaytrawherehijooBoujallcheabel { set; get; }
     }
 }

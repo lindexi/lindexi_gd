@@ -37,6 +37,6 @@ namespace MooperekemStalbo
         /// <summary>
         /// 文件
         /// </summary>
-        public string Url { get; set; }
+        public long File { get; set; }
     }
 }
