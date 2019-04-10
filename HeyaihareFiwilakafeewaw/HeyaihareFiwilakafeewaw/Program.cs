@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -10,16 +11,41 @@ namespace HeyaihareFiwilakafeewaw
     {
         static void Main(string[] args)
         {
-            var file1 = @"F:\temp\file1";
-            var file2 = @"F:\temp\file2";
+            var sourceFolder = @"F:\temp\source";
+            var targetFolder = @"F:\temp\target";
+            var outFolder = @"F:\temp\out";
 
-            var foo = FileToIncrementalData(file1, file2);
+            foreach (var temp in GetDiffFile(new DirectoryInfo(sourceFolder), new DirectoryInfo(targetFolder)))
+            {
+                var incrementalData = FileToIncrementalData(temp.SourceFile.FullName, temp.TargetFile.FullName);
+                IncrementalDataToFile(incrementalData, Path.Combine(outFolder, temp.SourceFile.Name));
+            }
+
+            //var file1 = @"F:\temp\file1";
+            //var file2 = @"F:\temp\file2";
+
+            //var foo = FileToIncrementalData(file1, file2);
 
 
-            IncrementalDataToFile(foo, @"F:\temp\file2.inc");
+            //IncrementalDataToFile(foo, @"F:\temp\file2.inc");
 
             Console.Read();
         }
+
+        private static IEnumerable<DiffFile> GetDiffFile(DirectoryInfo sourceFolder, DirectoryInfo targetFolder)
+        {
+            // 比较两个文件夹不同文件
+            // 也就是在 Target 里面存在同时在 sourceFolder 也存在的文件才算
+            foreach (var temp in targetFolder.GetFiles())
+            {
+                var sourceFile = new FileInfo(Path.Combine(sourceFolder.FullName, temp.Name));
+                if (sourceFile.Exists)
+                {
+                    yield return new DiffFile(sourceFile, temp);
+                }
+            }
+        }
+
 
         private static Diff.Item[] FileToIncrementalData(string sourceFile, string targetFile)
         {
@@ -42,7 +68,7 @@ namespace HeyaihareFiwilakafeewaw
                     for (int i = 0; i < temp.insertedB; i++)
                     {
                         Debug.Assert(temp.InsertedData[i] <= byte.MaxValue);
-                        stream.Write((byte)temp.InsertedData[i]);
+                        stream.Write((byte) temp.InsertedData[i]);
                     }
                 }
             }
@@ -93,6 +119,20 @@ namespace HeyaihareFiwilakafeewaw
                 StartA = startA,
                 StartB = startB
             };
+        }
+
+        class DiffFile
+        {
+            /// <inheritdoc />
+            public DiffFile(FileInfo sourceFile, FileInfo targetFile)
+            {
+                SourceFile = sourceFile;
+                TargetFile = targetFile;
+            }
+
+            public FileInfo SourceFile { get; }
+
+            public FileInfo TargetFile { get; }
         }
 
 
