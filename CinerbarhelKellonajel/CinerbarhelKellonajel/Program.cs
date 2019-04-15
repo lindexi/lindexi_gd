@@ -17,17 +17,22 @@ namespace CinerbarhelKellonajel
 
             await ReadRssAsync();
 
+            //await SendSubscription(mailKey);
+        }
+
+        private static async Task SendSubscription(MailKey mailKey,string title,string context,string mail)
+        {
             var messageToSend = new MimeMessage
             {
                 Sender = new MailboxAddress("lindexi", "lindexi_gd@outlook.com"),
-                Subject = "邮件",
-                Body = new TextPart(MimeKit.Text.TextFormat.Plain)
+                Subject = title,
+                Body = new TextPart(MimeKit.Text.TextFormat.Html)
                 {
-                    Text = "测试",
+                    Text = context,
                 },
                 To =
                 {
-                    new MailboxAddress("lindexi_gd@163.com")
+                    new MailboxAddress(mail)
                 }
             };
 
