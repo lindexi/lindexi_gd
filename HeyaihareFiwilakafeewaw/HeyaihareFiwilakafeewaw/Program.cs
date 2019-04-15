@@ -29,6 +29,7 @@ namespace HeyaihareFiwilakafeewaw
 
             //IncrementalDataToFile(foo, @"F:\temp\file2.inc");
 
+            
             Console.Read();
         }
 

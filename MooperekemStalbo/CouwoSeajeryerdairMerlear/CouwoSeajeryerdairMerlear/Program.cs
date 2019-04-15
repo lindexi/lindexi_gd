@@ -52,19 +52,19 @@ namespace CouwoSeajeryerdairMerlear
             var response = await httpClient.PostAsync(url, stringContent);
 
             var drehereposorrasCorxoustesaiyairal = await response.Content.ReadAsStringAsync();
-            var chilusterfaVocerjoulel = JsonConvert.DeserializeObject<GemurboostatelnearseRurallnawrear>(drehereposorrasCorxoustesaiyairal);
+            var chilusterfaVocerjoulel =
+                JsonConvert.DeserializeObject<GemurboostatelnearseRurallnawrear>(drehereposorrasCorxoustesaiyairal);
 
             url = "http://localhost:5000" + chilusterfaVocerjoulel.File;
             var file = Path.GetTempFileName();
-            using (var stream=new FileStream(file,FileMode.Open))
+            using (var stream = new FileStream(file, FileMode.Open))
             {
                 await (await httpClient.GetStreamAsync(url)).CopyToAsync(stream);
-                if (Shafile.GetFile(stream)==chilusterfaVocerjoulel.Sha)
+                if (Shafile.GetFile(stream) == chilusterfaVocerjoulel.Sha)
                 {
                     stream.Seek(0, SeekOrigin.End);
                 }
             }
-            
         }
 
         private static void SenairjerecisBelnear()
