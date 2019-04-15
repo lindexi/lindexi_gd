@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.0</TargetFramework>
+    </PropertyGroup>
+    <ItemGroup>
+        <!--指定自己的在安装 nuget 时修改编译-->
+        <None Include="package\**" Pack="True" PackagePath="build\" />
+    </ItemGroup>
+</Project>
