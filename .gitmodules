@@ -1,3 +1,6 @@
 [submodule "D2dControl"]
 	path = D2dControl
 	url = https://github.com/dalance/D2dControl.git
+[submodule "WmTouchDevice"]
+	path = WmTouchDevice
+	url = https://github.com/jaytwo/WmTouchDevice.git
