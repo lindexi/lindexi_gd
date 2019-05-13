@@ -27,18 +27,12 @@ namespace DernijacallqaNaycerejerlal
 
             MouseDown += MainWindow_MouseDown;
 
-            Dispatcher.InvokeAsync(async () =>
-            {
-                var burnerkadelWallnadarli = new BurnerkadelWallnadarli(1, this);
-                //while (true)
-                {
-                    await Task.Delay(1000);
-                    burnerkadelWallnadarli.Down();
+            SourceInitialized += MainWindow_SourceInitialized;
+        }
 
-                    await Task.Delay(1000);
-                    burnerkadelWallnadarli.Move();
-                }
-            });
+        private void MainWindow_SourceInitialized(object sender, EventArgs e)
+        {
+             MessageTouchDevice.UseMessageTouch(this);
         }
 
         private void MainWindow_MouseDown(object sender, MouseButtonEventArgs e)
@@ -48,77 +42,6 @@ namespace DernijacallqaNaycerejerlal
         private void MainWindow_TouchDown(object sender, TouchEventArgs e)
         {
             Console.WriteLine("按下");
-        }
-    }
-
-    public class BurnerkadelWallnadarli : TouchDevice
-    {
-        /// <inheritdoc />
-        public BurnerkadelWallnadarli(int deviceId, Window window) : base(deviceId)
-        {
-            Window = window;
-        }
-
-        /// <summary>
-        /// 触摸点
-        /// </summary>
-        public Point Position { set; get; }
-
-        /// <summary>
-        /// 触摸大小
-        /// </summary>
-        public Size Size { set; get; }
-
-        public void Down()
-        {
-            TouchAction = TouchAction.Down;
-
-            if (!IsActive)
-            {
-                SetActiveSource(PresentationSource.FromVisual(Window));
-
-                Activate();
-                ReportDown();
-            }
-            else
-            {
-                ReportDown();
-            }
-        }
-
-        public void Move()
-        {
-            TouchAction = TouchAction.Move;
-
-            ReportMove();
-        }
-
-        public void Up()
-        {
-            TouchAction = TouchAction.Up;
-
-            ReportUp();
-            Deactivate();
-        }
-
-
-        private Window Window { get; }
-
-        private TouchAction TouchAction { set; get; }
-
-        /// <inheritdoc />
-        public override TouchPoint GetTouchPoint(IInputElement relativeTo)
-        {
-            return new TouchPoint(this, Position, new Rect(Position, Size), TouchAction);
-        }
-
-        /// <inheritdoc />
-        public override TouchPointCollection GetIntermediateTouchPoints(IInputElement relativeTo)
-        {
-            return new TouchPointCollection()
-            {
-                GetTouchPoint(relativeTo)
-            };
         }
     }
 }
