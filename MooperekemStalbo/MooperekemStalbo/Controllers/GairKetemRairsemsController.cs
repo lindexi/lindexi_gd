@@ -245,31 +245,6 @@ namespace MooperekemStalbo.Controllers
             return Ok();
         }
 
-        public void Download(DermaiGasterechakeWhurchurwall poojiSugou)
-        {
-        }
-
-        // DELETE: api/GairKetemRairsems/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteGairKetemRairsem([FromRoute] long id)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var gairKetemRairsem = await _context.GairKetemRairsem.FindAsync(id);
-            if (gairKetemRairsem == null)
-            {
-                return NotFound();
-            }
-
-            _context.GairKetemRairsem.Remove(gairKetemRairsem);
-            await _context.SaveChangesAsync();
-
-            return Ok(gairKetemRairsem);
-        }
-
         private bool GairKetemRairsemExists(long id)
         {
             return _context.GairKetemRairsem.Any(e => e.Id == id);

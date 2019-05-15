@@ -8,6 +8,11 @@ namespace MooperekemStalbo.Controllers
 {
     public static class Shafile
     {
+        public static bool Verify(FileStream stream, string sha)
+        {
+            return GetFile(stream) == sha;
+        }
+
         public static string GetFile(FileStream stream)
         {
             using (var sha = SHA256.Create())

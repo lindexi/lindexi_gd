@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
+using CommandLine;
 using MooperekemStalbo;
 using MooperekemStalbo.Controllers;
 using Newtonsoft.Json;
@@ -17,9 +18,11 @@ namespace CouwoSeajeryerdairMerlear
     {
         static void Main(string[] args)
         {
-            SenairjerecisBelnear();
+            Parser.Default.ParseArguments<SpecOption>(args).MapResult(RunSpecOption, errorList => { return -1; });
 
-            LaizanadesoDinesebe();
+            //SenairjerecisBelnear();
+
+            //LaizanadesoDinesebe();
 
 
             //var fileInfo = new FileInfo("E:\\RevealHighlights.gif");
@@ -30,6 +33,46 @@ namespace CouwoSeajeryerdairMerlear
             //Upload(fileStream, fileSha, "http://localhost:52074/api/GairKetemRairsems/UploadPackage").Wait();
 
             Console.Read();
+        }
+
+        private static int RunSpecOption(SpecOption specOption)
+        {
+            string packageId;
+            if (string.IsNullOrEmpty(specOption.PackageID))
+            {
+                packageId = "lindexi";
+                Console.WriteLine("没有找到 PackageID 使用默认");
+            }
+            else
+            {
+                packageId = specOption.PackageID;
+                Console.WriteLine("PackageID " + specOption.PackageID);
+            }
+
+            Console.WriteLine("开始创建文件");
+            Console.WriteLine("工作文件夹" + Environment.CurrentDirectory);
+
+            var str = $@"<?xml version=""1.0"" encoding=""utf-8""?>    
+<Package xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">  
+    <!-- 当前插件名，每个插件的名都需要唯一  -->
+    <Name>{packageId}</Name>    
+    <!-- 插件的版本 -->
+    <Version>1.0</Version>    
+    <!-- 插件的作者 -->
+    <Author>lindexi</Author>    
+    <!-- 插件的入口 dll 文件 -->
+    <File>{packageId}.dll</File>    
+    <!-- 要求的客户端最低版本 -->
+    <RequirementMinVersion>5.1.12.63002</RequirementMinVersion>    
+    <!-- 要求的客户端最高版本，要求大于等于最低版本，小于最高版本 -->
+    <RequirementMaxVersion>5.1.12.70000</RequirementMaxVersion>    
+</Package>";
+
+            File.WriteAllText("Package.xml", str, Encoding.UTF8);
+
+            Console.WriteLine("创建完成");
+
+            return 0;
         }
 
         private static async void LaizanadesoDinesebe()
