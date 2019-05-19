@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
+using System.Reflection;
 using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -25,9 +27,9 @@ namespace FayawlerjiraywereNiharjeechel.Controllers
         }
 
 
-        [Route("Image.png")]
+        [Route("csdn/Image.png")]
         [HttpGet]
-        public FileResult GetImage()
+        public FileResult GetCSDNImage()
         {
             Count++;
 
@@ -54,9 +56,16 @@ namespace FayawlerjiraywereNiharjeechel.Controllers
 
             Console.WriteLine(str);
 
-            var file = _cache.GetOrCreate("Image", entry => System.IO.File.ReadAllBytes("Image.png"));
+            var file = _cache.GetOrCreate("Image", entry => GetImage());
 
             return File(file, "image/png");
+        }
+
+        private byte[] GetImage()
+        {
+            var file = Path.Combine(Path.GetDirectoryName(Assembly.GetCallingAssembly().Location), "Image.png");
+
+            return System.IO.File.ReadAllBytes(file);
         }
 
         private static bool TryGetUserIpFromFrp(HttpRequest httpContextRequest, out StringValues ip)
@@ -67,9 +76,9 @@ namespace FayawlerjiraywereNiharjeechel.Controllers
         private static int Count { set; get; }
 
 
-        [Route("UrlMove")]
+        [Route("csdn/UrlMove")]
         [HttpGet]
-        public IActionResult UrlMove()
+        public IActionResult UrlCSDNMove()
         {
             return Redirect("https://blog.lindexi.com");
         }

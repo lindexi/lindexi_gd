@@ -21,7 +21,7 @@ namespace FayawlerjiraywereNiharjeechel
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                    webBuilder.UseUrls("http://0.0.0.0:5000");
+                    webBuilder.UseUrls("http://0.0.0.0:5123");
                 });
     }
 }
