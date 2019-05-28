@@ -102,7 +102,7 @@ namespace MooperekemStalbo.Controllers
         private readonly FileInfo _file;
         private string _fileSha;
 
-        private Package ParseFile(string file)
+        public static Package ParseFile(string file)
         {
             var xmlSerializer = new XmlSerializer(typeof(Package));
             using (var stream = new FileStream(file, FileMode.Open))

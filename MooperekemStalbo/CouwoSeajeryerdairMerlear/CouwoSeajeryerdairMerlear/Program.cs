@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
@@ -18,7 +20,27 @@ namespace CouwoSeajeryerdairMerlear
     {
         static void Main(string[] args)
         {
-            Parser.Default.ParseArguments<SpecOption>(args).MapResult(RunSpecOption, errorList => { return -1; });
+            //RunVerifyOption(new VerifyOption()
+            //{
+            //    File = "HemfaKarecelRisvenaStishorrorjoo\\lindexi1.0.zip"
+            //});
+
+            //RunUploadOption(new UploadOption()
+            //{
+            //    File = "HemfaKarecelRisvenaStishorrorjoo\\lindexi1.0.zip",
+            //});
+
+            //RunDownloadOption(new DownloadOption()
+            //{
+            //    Package = "lindexi",
+            //    Version = "5.1.12.63002",
+            //    Output = Path.GetTempPath()
+            //});
+
+            Parser.Default.ParseArguments<SpecOption, PackOption, VerifyOption, DownloadOption, UploadOption>(args)
+                .MapResult<SpecOption, PackOption, VerifyOption, DownloadOption, UploadOption, int>(RunSpecOption,
+                    RunPackOption, RunVerifyOption, RunDownloadOption, RunUploadOption,
+                    errorList => { return -1; });
 
             //SenairjerecisBelnear();
 
@@ -34,6 +56,223 @@ namespace CouwoSeajeryerdairMerlear
 
             Console.Read();
         }
+
+        private static int RunUploadOption(UploadOption upload)
+        {
+            Console.WriteLine("开始上传");
+
+            if (string.IsNullOrEmpty(upload.File))
+            {
+                Console.WriteLine("上传的文件不能为空");
+            }
+
+            if (!File.Exists(upload.File))
+            {
+                Console.WriteLine("上传的文件不存在" + Path.GetFullPath(upload.File));
+            }
+
+            try
+            {
+                using (var fileStream = new FileStream(Path.GetFullPath(upload.File), FileMode.Open))
+                {
+                    string fileSha = Shafile.GetFile(fileStream);
+
+                    Upload(fileStream, fileSha, Url + "/api/GairKetemRairsems/UploadPackage").Wait();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+
+            return 0;
+        }
+
+        private const string Url = "http://localhost:5000";
+
+        private static int RunDownloadOption(DownloadOption downloadOption)
+        {
+            var package = downloadOption.Package;
+
+            if (!Directory.Exists(downloadOption.Output))
+            {
+                Console.WriteLine("输出的文件夹" + downloadOption.Output + "不存在");
+                return -1;
+            }
+
+            if (Version.TryParse(downloadOption.Version, out var _))
+            {
+                Console.WriteLine("开始下载");
+
+                Console.WriteLine("下载" + package + "客户端版本" + downloadOption.Version);
+
+                try
+                {
+                    Donwload(downloadOption).Wait();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+            }
+            else
+            {
+                Console.WriteLine("传入的版本号无法解析");
+                return -1;
+            }
+
+            return 0;
+        }
+
+        private static async Task Donwload(DownloadOption downloadOption)
+        {
+            var url = Url + "/api/GairKetemRairsems/Download";
+            var httpClient = new HttpClient();
+
+            var kebunerNeefunadrow = new KebunerNeefunadrow()
+            {
+                Name = downloadOption.Package,
+                Version = downloadOption.Version
+            };
+
+            var json = JsonConvert.SerializeObject(kebunerNeefunadrow);
+
+            var stringContent = new StringContent(json);
+            stringContent.Headers.ContentType.MediaType = "application/json";
+
+            var response = await httpClient.PostAsync(url, stringContent);
+
+            var drehereposorrasCorxoustesaiyairal = await response.Content.ReadAsStringAsync();
+            var chilusterfaVocerjoulel =
+                JsonConvert.DeserializeObject<GemurboostatelnearseRurallnawrear>(drehereposorrasCorxoustesaiyairal);
+
+            if (chilusterfaVocerjoulel == null)
+            {
+                Console.WriteLine("找不到可以下载的文件");
+                return ;
+            }
+
+            url = Url + chilusterfaVocerjoulel.File;
+            var file = Path.GetTempFileName();
+            bool hawqelciyaihearKemladairheejaywer = false;
+            using (var stream = new FileStream(file, FileMode.Open))
+            {
+                await (await httpClient.GetStreamAsync(url)).CopyToAsync(stream);
+                if (Shafile.GetFile(stream) == chilusterfaVocerjoulel.Sha)
+                {
+                    stream.Seek(0, SeekOrigin.End);
+                    hawqelciyaihearKemladairheejaywer = true;
+                }
+                else
+                {
+                    Console.WriteLine("校验不通过");
+                    return;
+                }
+            }
+
+            if (hawqelciyaihearKemladairheejaywer)
+            {
+                Console.WriteLine("下载成功");
+
+                Console.WriteLine("开始移动文件");
+
+                var fileName = downloadOption.Package + chilusterfaVocerjoulel.Version + ".zip";
+                File.Copy(file, Path.Combine(downloadOption.Output, fileName));
+                Console.WriteLine("下载完成");
+            }
+        }
+
+        private static int RunVerifyOption(VerifyOption verifyOption)
+        {
+            if (string.IsNullOrEmpty(verifyOption.File))
+            {
+                Console.WriteLine("传入的文件不能为空");
+                return -1;
+            }
+
+            if (!File.Exists(verifyOption.File))
+            {
+                Console.WriteLine("找不到" + verifyOption.File);
+                return -1;
+            }
+
+            var folder = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(folder);
+
+            var medaltraFairjousuFowluNererisMoubeturce = new MedaltraFairjousuFowluNererisMoubeturce(
+                new FileInfo(verifyOption.File), folder, "");
+
+            try
+            {
+                if (medaltraFairjousuFowluNererisMoubeturce.CheckFile())
+                {
+                    Console.WriteLine("符合标准");
+                }
+                else
+                {
+                    Console.WriteLine("不符合标准");
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+
+            return 0;
+        }
+
+        private static int RunPackOption(PackOption packOption)
+        {
+            Console.WriteLine("开始打包");
+            var packageFile = new FileInfo("Package.xml");
+            if (!packageFile.Exists)
+            {
+                Console.WriteLine("打包文件" + packageFile.FullName + "不存在");
+                return -1;
+            }
+
+            Console.WriteLine("开始解析");
+
+            try
+            {
+                var package = MedaltraFairjousuFowluNererisMoubeturce.ParseFile(packageFile.FullName);
+
+                var regex = new Regex(@"^[a-zA-Z0-9]+$");
+
+                if (string.IsNullOrEmpty(package.Name) || !regex.IsMatch(package.Name) ||
+                    (package.Name[0] >= '0' && package.Name[0] <= '9'))
+                {
+                    throw new ArgumentException($"上传 package 的 Name 不符合规范");
+                }
+
+                if (!File.Exists("File\\" + package.File))
+                {
+                    Console.WriteLine("入口文件" + Path.GetFullPath("File\\" + package.File) + "不存在");
+                    return -1;
+                }
+
+                var file = Path.GetTempFileName();
+                File.Delete(file);
+                ZipFile.CreateFromDirectory(Environment.CurrentDirectory, file);
+                var moveFile = Path.Combine(Environment.CurrentDirectory, package.Name + package.Version + ".zip");
+                if (File.Exists(moveFile))
+                {
+                    File.Delete(moveFile);
+                }
+
+                File.Move(file, moveFile);
+
+                Console.WriteLine("完成");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return -1;
+            }
+
+            return 0;
+        }
+
 
         private static int RunSpecOption(SpecOption specOption)
         {

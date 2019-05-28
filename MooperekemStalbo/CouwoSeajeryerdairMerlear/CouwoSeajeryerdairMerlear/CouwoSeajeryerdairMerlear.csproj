@@ -6,15 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\BowterjallcaJowrawhowjairsem\GemurboostatelnearseRurallnawrear.cs" Link="GemurboostatelnearseRurallnawrear.cs" />
-    <Compile Include="..\..\BowterjallcaJowrawhowjairsem\Package.cs" Link="Package.cs" />
-    <Compile Include="..\..\BowterjallcaJowrawhowjairsem\Shafile.cs" Link="Shafile.cs" />
-    <Compile Include="..\..\MooperekemStalbo\KebunerNeefunadrow.cs" Link="KebunerNeefunadrow.cs" />
+    <PackageReference Include="CommandLineParser" Version="2.5.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.5.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <ProjectReference Include="..\..\BowterjallcaJowrawhowjairsem\BowterjallcaJowrawhowjairsem.csproj" />
   </ItemGroup>
 
 </Project>
