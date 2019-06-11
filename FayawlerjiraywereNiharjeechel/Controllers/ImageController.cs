@@ -95,7 +95,7 @@ namespace FayawlerjiraywereNiharjeechel.Controllers
 
         private byte[] GetImage()
         {
-            var file = Path.Combine(Path.GetDirectoryName(Assembly.GetCallingAssembly().Location), "Image.png");
+            var file = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Image.png");
 
             return System.IO.File.ReadAllBytes(file);
         }
