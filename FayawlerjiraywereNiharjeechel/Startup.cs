@@ -12,6 +12,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using FayawlerjiraywereNiharjeechel.Models;
 
 namespace FayawlerjiraywereNiharjeechel
 {
@@ -30,10 +32,25 @@ namespace FayawlerjiraywereNiharjeechel
             services.AddHttpContextAccessor();
             services.TryAddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
+            services.AddDistributedMemoryCache();
+
+            services.AddSession(options =>
+            {
+                // Set a short timeout for easy testing.
+                options.IdleTimeout = TimeSpan.FromSeconds(10);
+                options.Cookie.HttpOnly = true;
+                // Make the session cookie essential
+                options.Cookie.IsEssential = true;
+            });
+
+
             services.AddMemoryCache();
 
             services.AddControllers()
                 .AddNewtonsoftJson();
+
+            services.AddDbContext<FayawlerjiraywereNiharjeechelContext>(options =>
+                    options.UseSqlite("Filename=./FayawlerjiraywereNiharjeechel.db"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -48,6 +65,8 @@ namespace FayawlerjiraywereNiharjeechel
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+
+            app.UseSession();
 
             app.UseRouting();
 

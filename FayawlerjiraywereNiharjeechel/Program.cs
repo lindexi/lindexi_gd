@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -21,7 +21,7 @@ namespace FayawlerjiraywereNiharjeechel
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                    webBuilder.UseUrls("http://0.0.0.0:5123");
+                    webBuilder.UseUrls("http://0.0.0.0:5000");
                 });
     }
 }
