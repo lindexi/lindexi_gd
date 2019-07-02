@@ -33,7 +33,8 @@ namespace WaveLineDemo
             var waveLength = WaveLength;
             var waveHeight = WaveHeight;
             var howManyWaves = distance / waveLength;
-            var waveInterval = distance / howManyWaves;
+            //var waveInterval = distance / howManyWaves;
+            var waveInterval = waveLength;
             var maxBcpLength =
                 Math.Sqrt(waveInterval / 4.0 * (waveInterval / 4.0) + waveHeight / 2.0 * (waveHeight / 2.0));
 
@@ -84,12 +85,29 @@ namespace WaveLineDemo
             {
                 context.DrawGeometry(fillBrush, strokePen, streamGeometry);
 
-                //for (var i = 0; i < wigglePoints.Count; i += 1)
-                //{
-                //    var (bcpOut, bcpIn, anchor) = wigglePoints[i];
+                // for (var i = 0; i < wigglePoints.Count; i += 1)
+                // {
+                //     var (bcpOut, bcpIn, anchor) = wigglePoints[i];
+                //     if (i > 0 )
+                //     {
+                //         context.DrawEllipse(Brushes.LawnGreen, null, bcpOut, 5, 5);
+                //         context.DrawEllipse(Brushes.LawnGreen, null, bcpIn, 5, 5);
 
-                //    context.DrawEllipse(Brushes.Black, null, anchor, 5, 5);
-                //}
+                //         context.DrawLine(new Pen(Brushes.LawnGreen, 1), bcpOut, wigglePoints[i-1].anchor);
+                //         context.DrawLine(new Pen(Brushes.LawnGreen, 1), bcpIn, anchor);
+
+                //         context.DrawEllipse(Brushes.Black, null, wigglePoints[i - 1].anchor, 5, 5);
+
+                //         if (i == wigglePoints.Count - 1)
+                //         {
+                //             context.DrawEllipse(Brushes.Black, null, anchor, 5, 5);
+                //         }
+                //     }
+                //     else
+                //     {
+                //         context.DrawEllipse(Brushes.Black, null, anchor, 5, 5);
+                //     }
+                // }
             }
 
             _waveLineList.Add(visual);
