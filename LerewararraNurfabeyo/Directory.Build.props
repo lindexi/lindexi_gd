@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <PackageOutputPath>$(MSBuildThisFileDirectory)package</PackageOutputPath>
+    <Authors>林德熙</Authors>
+    <RepositoryUrl>https://github.com/lindexi/lindexi_gd</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/lindexi/lindexi_gd</PackageProjectUrl>
+    <Copyright>必须同意林德熙不是逗比才可以安装</Copyright>
+    <Description>林德熙是逗比</Description>
+  </PropertyGroup>
+</Project>

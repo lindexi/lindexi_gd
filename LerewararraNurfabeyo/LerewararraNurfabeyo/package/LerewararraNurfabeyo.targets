@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <ItemGroup Condition="'$(Configuration)' == 'DEBUG'">
+        <Reference Include="LerewararraNurfabeyo">
+            <HintPath>$(MSBuildThisFileDirectory)..\lib\debug\LerewararraNurfabeyo.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(Configuration)' == 'RELEASE'">
+        <Reference Include="LerewararraNurfabeyo">
+            <HintPath>$(MSBuildThisFileDirectory)..\lib\release\LerewararraNurfabeyo.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+</Project>

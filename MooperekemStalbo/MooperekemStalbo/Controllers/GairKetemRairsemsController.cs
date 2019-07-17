@@ -32,42 +32,6 @@ namespace MooperekemStalbo.Controllers
 
             if (!_context.GairKetemRairsem.Any())
             {
-                //_context.GairKetemRairsem.AddRange(new[]
-                //{
-                //    new GairKetemRairsem()
-                //    {
-                //        Name = "lindexi",
-                //        RequirementMinVersion = new Version("5.1.2").ToString(),
-                //        RequirementMaxVersion = new Version("5.1.3").ToString(),
-                //        Version = new Version("1.0.0").ToString(),
-                //        Url = Path.Combine(host.WebRootPath, "Package", "1.png")
-                //    },
-                //    new GairKetemRairsem()
-                //    {
-                //        Name = "lindexi",
-                //        RequirementMinVersion = new Version("5.1.2").ToString(),
-                //        RequirementMaxVersion = new Version("5.1.3").ToString(),
-                //        Version = new Version("1.0.1").ToString(),
-                //        Url = Path.Combine(host.WebRootPath, "Package", "1.png")
-                //    },
-                //    new GairKetemRairsem()
-                //    {
-                //        Name = "lindexi",
-                //        RequirementMinVersion = new Version("5.1.2").ToString(),
-                //        RequirementMaxVersion = new Version("5.1.3").ToString(),
-                //        Version = new Version("1.0.2").ToString(),
-                //        Url = Path.Combine(host.WebRootPath, "Package", "1.png")
-                //    },
-                //    new GairKetemRairsem()
-                //    {
-                //        Name = "lindexi",
-                //        RequirementMinVersion = new Version("5.1.3").ToString(),
-                //        RequirementMaxVersion = new Version("5.1.5").ToString(),
-                //        Version = new Version("1.0.5").ToString(),
-                //        Url = Path.Combine(host.WebRootPath, "Package", "1.png")
-                //    },
-                //});
-
                 _context.SaveChanges();
             }
         }
@@ -235,7 +199,8 @@ namespace MooperekemStalbo.Controllers
                     return new JsonResult(new GemurboostatelnearseRurallnawrear
                     {
                         File = maytrawherehijooBoujallcheabel.File,
-                        Sha = maytrawherehijooBoujallcheabel.Sha
+                        Sha = maytrawherehijooBoujallcheabel.Sha,
+                        Version = gairKetemRairsem.Version
                     });
                 }
             }
@@ -243,31 +208,6 @@ namespace MooperekemStalbo.Controllers
             Console.WriteLine("找不到文件");
 
             return Ok();
-        }
-
-        public void Download(DermaiGasterechakeWhurchurwall poojiSugou)
-        {
-        }
-
-        // DELETE: api/GairKetemRairsems/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteGairKetemRairsem([FromRoute] long id)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var gairKetemRairsem = await _context.GairKetemRairsem.FindAsync(id);
-            if (gairKetemRairsem == null)
-            {
-                return NotFound();
-            }
-
-            _context.GairKetemRairsem.Remove(gairKetemRairsem);
-            await _context.SaveChangesAsync();
-
-            return Ok(gairKetemRairsem);
         }
 
         private bool GairKetemRairsemExists(long id)

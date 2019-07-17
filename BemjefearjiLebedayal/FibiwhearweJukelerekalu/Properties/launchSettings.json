@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "FibiwhearweJukelerekalu": {
+      "commandName": "Executable",
+      "executablePath": "..\\..\\..\\..\\BemjefearjiLebedayal\\bin\\Debug\\netcoreapp3.0\\BemjefearjiLebedayal.exe"
+    }
+  }
+}
