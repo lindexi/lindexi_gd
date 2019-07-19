@@ -12,6 +12,8 @@ namespace JalniqejallQaneehemfu
             var repo = @"d:\lindexi\NolekekanuYemrobemjaywo\";
             var commit = "b81c6cdd0514a2bc643e1ae94398ec91fd0ab11d";
 
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
             AutoBuild(repo, commit);
         }
 
@@ -21,46 +23,51 @@ namespace JalniqejallQaneehemfu
             git.ShowLog();
             git.Checkout(commit);
             git.Clean();
+
+            var nuGet = new NuGet(repo);
+            nuGet.Restore();
+
+            var msbuild = new Msbuild(repo);
+            msbuild.Build();
         }
     }
 
-    class Git
+    class Msbuild
     {
         /// <inheritdoc />
-        public Git(string repo)
+        public Msbuild(string repo)
         {
             Repo = repo;
         }
 
         public string Repo { get; }
 
-        public void ShowLog()
+        public void Build()
         {
-            Console.WriteLine(Control("log"));
+            Command.Control("msbuild /m ", Repo);
+        }
+    }
+
+    class NuGet
+    {
+        /// <inheritdoc />
+        public NuGet(string repo)
+        {
+            Repo = repo;
         }
 
-        public void Checkout(string commit)
+        public string Repo { get; }
+
+        public void Restore()
         {
-            Console.WriteLine(Control(" reset ."));
-            Console.WriteLine(Control(" checkout ."));
-            Console.WriteLine(Control(" checkout " + commit));
+            Command.Control("nuget restore");
         }
+    }
 
-        public void Clean()
+    static class Command
+    {
+        public static string Control(string str, string workingDirectory = null)
         {
-            Console.WriteLine(Control(" clean -xdf"));
-        }
-
-        private string _gitStr = "git -C {0}";
-
-        private string FileStr()
-        {
-            return string.Format(_gitStr, Repo) + " ";
-        }
-
-        private string Control(string str)
-        {
-            str = FileStr() + str;
             // string str = Console.ReadLine();
             //System.Console.InputEncoding = System.Text.Encoding.UTF8;//乱码
 
@@ -71,7 +78,12 @@ namespace JalniqejallQaneehemfu
             p.StartInfo.RedirectStandardOutput = true; //由调用程序获取输出信息
             p.StartInfo.RedirectStandardError = true; //重定向标准错误输出
             p.StartInfo.CreateNoWindow = true; //不显示程序窗口
-            p.StartInfo.StandardOutputEncoding = Encoding.UTF8; //Encoding.GetEncoding("GBK");//乱码
+            p.StartInfo.StandardOutputEncoding = /*Encoding.UTF8; //*/Encoding.GetEncoding("GBK");//乱码
+            if (workingDirectory != null)
+            {
+                p.StartInfo.WorkingDirectory = workingDirectory;
+            }
+
             p.Start(); //启动程序
 
             //向cmd窗口发送输入信息
@@ -100,7 +112,50 @@ namespace JalniqejallQaneehemfu
             p.WaitForExit(); //等待程序执行完退出进程
             p.Close();
 
+            Console.WriteLine(output);
             return output + "\r\n";
+        }
+    }
+
+    class Git
+    {
+        /// <inheritdoc />
+        public Git(string repo)
+        {
+            Repo = repo;
+        }
+
+        public string Repo { get; }
+
+        public void ShowLog()
+        {
+            Control("log");
+        }
+
+        public void Checkout(string commit)
+        {
+            Control(" reset .");
+            Control(" checkout .");
+            Control(" checkout " + commit);
+        }
+
+        public void Clean()
+        {
+            Console.WriteLine(Control(" clean -xdf"));
+        }
+
+        private string _gitStr = "git -C {0}";
+
+        private string FileStr()
+        {
+            return string.Format(_gitStr, Repo) + " ";
+        }
+
+        private string Control(string str)
+        {
+            str = FileStr() + str;
+
+            return Command.Control(str);
         }
     }
 }
