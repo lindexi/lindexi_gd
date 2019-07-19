@@ -19,6 +19,8 @@ namespace JalniqejallQaneehemfu
         {
             var git = new Git(repo);
             git.ShowLog();
+            git.Checkout(commit);
+            git.Clean();
         }
     }
 
@@ -39,13 +41,16 @@ namespace JalniqejallQaneehemfu
 
         public void Checkout(string commit)
         {
-
+            Console.WriteLine(Control(" reset ."));
+            Console.WriteLine(Control(" checkout ."));
+            Console.WriteLine(Control(" checkout " + commit));
         }
 
         public void Clean()
         {
-
+            Console.WriteLine(Control(" clean -xdf"));
         }
+
         private string _gitStr = "git -C {0}";
 
         private string FileStr()
@@ -66,7 +71,7 @@ namespace JalniqejallQaneehemfu
             p.StartInfo.RedirectStandardOutput = true; //由调用程序获取输出信息
             p.StartInfo.RedirectStandardError = true; //重定向标准错误输出
             p.StartInfo.CreateNoWindow = true; //不显示程序窗口
-            p.StartInfo.StandardOutputEncoding = Encoding.UTF8;//Encoding.GetEncoding("GBK");//乱码
+            p.StartInfo.StandardOutputEncoding = Encoding.UTF8; //Encoding.GetEncoding("GBK");//乱码
             p.Start(); //启动程序
 
             //向cmd窗口发送输入信息
@@ -98,5 +103,4 @@ namespace JalniqejallQaneehemfu
             return output + "\r\n";
         }
     }
-
 }
