@@ -27,9 +27,29 @@ namespace JalniqejallQaneehemfu
             var nuGet = new NuGet(repo);
             nuGet.Restore();
 
+            var dotNet = new DotNet(repo);
+            dotNet.Restore();
+
             var msbuild = new Msbuild(repo);
             msbuild.Build();
         }
+    }
+
+    class DotNet
+    {
+        /// <inheritdoc />
+        public DotNet(string repo)
+        {
+            Repo = repo;
+        }
+
+        public string Repo { get; }
+
+        public void Restore()
+        {
+            Command.Control(" dotnet restore ", Repo);
+        }
+
     }
 
     class Msbuild
