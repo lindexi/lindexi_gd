@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using LibGit2Sharp;
 
 namespace dotnetCampus.GitCommand
 {
@@ -20,8 +19,8 @@ namespace dotnetCampus.GitCommand
             }
 
             Repo = repo;
-            Repository = new Repository(repo.FullName);
         }
+
 
         public void FetchAll()
         {
@@ -29,8 +28,6 @@ namespace dotnetCampus.GitCommand
         }
 
         public DirectoryInfo Repo { get; }
-
-        public Repository Repository { get; }
 
         private const string GitStr = "git -C \"{0}\" ";
 

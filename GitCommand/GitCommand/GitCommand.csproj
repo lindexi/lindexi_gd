@@ -7,8 +7,4 @@
     <RootNamespace>dotnetCampus.GitCommand</RootNamespace>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0007" />
-  </ItemGroup>
-
 </Project>
