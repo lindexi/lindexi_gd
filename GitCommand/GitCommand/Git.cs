@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,17 +10,26 @@ namespace dotnetCampus.GitCommand
 {
     public class Git
     {
+        static Git()
+        {
+#if NETCOREAPP
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+#endif
+        }
+
         /// <inheritdoc />
         public Git(DirectoryInfo repo)
         {
             if (ReferenceEquals(repo, null)) throw new ArgumentNullException(nameof(repo));
-            if (Directory.Exists(repo.FullName))
+            if (!Directory.Exists(repo.FullName))
             {
                 // 为什么不使用 repo.Exits 因为这个属性默认没有刷新，也就是在创建 DirectoryInfo 的时候文件夹不存在，那么这个值就是 false 即使后续创建了文件夹也不会刷新，需要调用 Refresh 才可以刷新，但是 Refresh 需要修改很多属性
                 throw new ArgumentException("必须传入存在的文件夹", nameof(repo));
             }
 
             Repo = repo;
+
+
         }
 
         /// <summary>
@@ -32,6 +42,22 @@ namespace dotnetCampus.GitCommand
             var gitDiffFileList = new List<GitDiffFile>();
 
             return gitDiffFileList;
+        }
+
+        public string[] GetLogCommit()
+        {
+            var file = Path.GetTempFileName();
+            Control($"log --pretty=format:\"%h\" > {file}");
+
+            return File.ReadAllLines(file);
+        }
+
+        public string[] GetLogCommit(string formCommit, string toCommit)
+        {
+            var file = Path.GetTempFileName();
+            Control($"log --pretty=format:\"%h\" {formCommit}..{toCommit} > {file}");
+
+            return File.ReadAllLines(file);
         }
 
         public void FetchAll()
