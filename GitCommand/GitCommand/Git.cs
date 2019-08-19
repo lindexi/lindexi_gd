@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -21,6 +22,17 @@ namespace dotnetCampus.GitCommand
             Repo = repo;
         }
 
+        /// <summary>
+        /// 两个版本修改的文件
+        /// </summary>
+        /// <param name="source">可以传入commit或分支</param>
+        /// <param name="target">可以传入commit或分支</param>
+        public List<GitDiffFile> DiffFile(string source, string target)
+        {
+            var gitDiffFileList = new List<GitDiffFile>();
+
+            return gitDiffFileList;
+        }
 
         public void FetchAll()
         {
@@ -129,5 +141,30 @@ namespace dotnetCampus.GitCommand
 
             return output + "\r\n";
         }
+    }
+
+    public class GitDiffFile
+    {
+        /// <inheritdoc />
+        public GitDiffFile(DiffType diffType, FileInfo file)
+        {
+            DiffType = diffType;
+            File = file;
+        }
+
+        public DiffType DiffType { get; }
+        public FileInfo File { get; }
+    }
+
+    public enum DiffType
+    {
+        Added,// A
+        Copied,// C
+        Deleted,// D
+        Modified,// M
+        Renamed,// R
+        Changed,// T
+        Unmerged,// U
+        Unknown,// X
     }
 }
