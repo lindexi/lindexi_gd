@@ -67,7 +67,7 @@ namespace dotnetCampus.GitCommand
 
         public DirectoryInfo Repo { get; }
 
-        private const string GitStr = "git -C \"{0}\" ";
+        private const string GitStr = "git ";
 
         private string Control(string str)
         {
@@ -89,7 +89,7 @@ namespace dotnetCampus.GitCommand
             return string.Format(GitStr, Repo.FullName);
         }
 
-        private static string Command(string str)
+        private string Command(string str)
         {
             // string str = Console.ReadLine();
             //System.Console.InputEncoding = System.Text.Encoding.UTF8;//乱码
@@ -99,6 +99,7 @@ namespace dotnetCampus.GitCommand
                 StartInfo =
                 {
                     FileName = "cmd.exe",
+                    WorkingDirectory = Repo.FullName,
                     UseShellExecute = false, //是否使用操作系统shell启动
                     RedirectStandardInput = true, //接受来自调用程序的输入信息
                     RedirectStandardOutput = true, //由调用程序获取输出信息
