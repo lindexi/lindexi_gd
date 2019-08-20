@@ -60,6 +60,11 @@ namespace dotnetCampus.GitCommand
             return File.ReadAllLines(file);
         }
 
+        public void Clean()
+        {
+            Control("clean -xdf");
+        }
+
         public void FetchAll()
         {
             Control("fetch --all");
@@ -167,6 +172,11 @@ namespace dotnetCampus.GitCommand
             exited = true;
 
             return output + "\r\n";
+        }
+
+        public void Checkout(string commit)
+        {
+            Control($"checkout {commit}");
         }
     }
 
