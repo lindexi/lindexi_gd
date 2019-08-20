@@ -1,101 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using dotnetCampus.GitCommand;
 
 namespace CopyAfterCompile
 {
-    class FuheericuYearfelfemkur
-    {
-        /// <inheritdoc />
-        public FuheericuYearfelfemkur(DirectoryInfo directory, DirectoryInfo targetDirectory,
-            DirectoryInfo outputDirectory = null)
-        {
-            Directory = directory;
-            TargetDirectory = targetDirectory;
-
-            var git = new Git(directory);
-
-            _git = git;
-            _lastCommit = ReadLastCommit();
-
-            Compiler = new Compiler(directory);
-
-            if (outputDirectory is null)
-            {
-                outputDirectory = new DirectoryInfo(Path.Combine(directory.FullName, "bin"));
-            }
-
-            OutputDirectory = outputDirectory;
-        }
-
-        private string ReadLastCommit()
-        {
-            if (System.IO.File.Exists(File))
-            {
-                return System.IO.File.ReadAllText(File);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        private const string File = "last commit.txt";
-
-        private string _lastCommit;
-        private Git _git;
-
-        public string OriginBranch { get; } = "dev";
-
-        private Compiler Compiler { get; }
-
-        public DirectoryInfo TargetDirectory { get; }
-
-        public DirectoryInfo Directory { get; }
-
-        public DirectoryInfo OutputDirectory { get; }
-
-        public void Compile()
-        {
-            var commitList = GetCommitList().Reverse();
-
-            foreach (var commit in commitList)
-            {
-                CleanDirectory(commit);
-                Compiler.Compile();
-                MoveFile();
-            }
-        }
-
-        private void MoveFile()
-        {
-        }
-
-        private void CleanDirectory(string commit)
-        {
-            var git = _git;
-            git.Clean();
-            git.Checkout(commit);
-        }
-
-        private string[] GetCommitList()
-        {
-            var git = _git;
-            if (_lastCommit is null)
-            {
-                return git.GetLogCommit();
-            }
-            else
-            {
-                return git.GetLogCommit(_lastCommit, OriginBranch);
-            }
-        }
-    }
-
     class Compiler
     {
         public DirectoryInfo Directory { get; }
@@ -108,7 +18,8 @@ namespace CopyAfterCompile
 
         public void Compile()
         {
-            Command("dotnet build");
+            Console.WriteLine($"开始编译");
+            Console.WriteLine(Command("dotnet build"));
         }
 
         private string Command(string str)
