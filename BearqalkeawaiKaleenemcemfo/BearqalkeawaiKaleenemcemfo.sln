@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29230.47
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BearqalkeawaiKaleenemcemfo", "BearqalkeawaiKaleenemcemfo\BearqalkeawaiKaleenemcemfo.csproj", "{0A414FEA-1C38-4CDC-BFB0-F205A4BF6700}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CeneewayhiGechacurjearfeferlel", "CeneewayhiGechacurjearfeferlel\CeneewayhiGechacurjearfeferlel.csproj", "{B0C6C3BC-8352-4EAF-8992-548C310F9DC5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0A414FEA-1C38-4CDC-BFB0-F205A4BF6700}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A414FEA-1C38-4CDC-BFB0-F205A4BF6700}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A414FEA-1C38-4CDC-BFB0-F205A4BF6700}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A414FEA-1C38-4CDC-BFB0-F205A4BF6700}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0C6C3BC-8352-4EAF-8992-548C310F9DC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0C6C3BC-8352-4EAF-8992-548C310F9DC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0C6C3BC-8352-4EAF-8992-548C310F9DC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0C6C3BC-8352-4EAF-8992-548C310F9DC5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C7727548-2BC9-4D1B-A51C-36A7239EE579}
+	EndGlobalSection
+EndGlobal
