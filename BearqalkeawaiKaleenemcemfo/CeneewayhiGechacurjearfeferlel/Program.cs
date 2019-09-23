@@ -14,18 +14,18 @@ namespace CeneewayhiGechacurjearfeferlel
 
     [ComImport]
     [CoClass(typeof(Foo))]
-    [Guid("5742D257-CCCC-4F7A-8191-6362609C458D")]
+    [Guid("5742D257-CCCC-4F7A-8191-63626092458D")]
     public interface IFoo
     {
         /// <summary>
         /// 有趣方法
         /// </summary>
         /// <returns></returns>
-        string Foo();
+        int Foo();
     }
 
     [ComImport]
-    [Guid("5742D257-CCCC-4F7A-8191-6362609C458D")]
+    [Guid("5742D257-CCCC-4F7A-8191-63626092458D")]
     internal class Foo
     {
     }

@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace BearqalkeawaiKaleenemcemfo
 {
     [ComVisible(true)]
-    [Guid("5742D257-CCCC-4F7A-8191-6362609C458D")]
+    [Guid("5742D257-CCCC-4F7A-8191-63626092458D")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     public interface IFoo
     {
@@ -12,17 +12,17 @@ namespace BearqalkeawaiKaleenemcemfo
         /// 有趣方法
         /// </summary>
         /// <returns></returns>
-        string Foo();
+        int Foo();
     }
 
     [ComVisible(true)]
-    [Guid("5742D257-CCCC-4F7A-8191-6362609C458D")]
+    [Guid("5742D257-CCCC-4F7A-8191-63626092458D")]
     public class Foo : IFoo
     {
         /// <inheritdoc />
-        string IFoo.Foo()
+        int IFoo.Foo()
         {
-            return "林德熙是逗比";
+            return -21376;
         }
     }
 }
