@@ -9,7 +9,23 @@ namespace HalelkeherCiwerecawqal
     {
         static void Main(string[] args)
         {
-            
+            var kekairwuceeYernellijewhebere = new KekairwuceeYernellijewhebere();
+            using (kekairwuceeYernellijewhebere)
+            {
+                if (kekairwuceeYernellijewhebere.Database.EnsureCreated())
+                {
+                    kekairwuceeYernellijewhebere.ResourceModel.Add(new ResourceModel()
+                    {
+                        ResourceId = "lindexi",
+                    });
+                    kekairwuceeYernellijewhebere.SaveChanges();
+                }
+
+                foreach (var temp in kekairwuceeYernellijewhebere.ResourceModel)
+                {
+                    Console.WriteLine(temp.ResourceId);
+                }
+            }
         }
     }
 
@@ -19,6 +35,8 @@ namespace HalelkeherCiwerecawqal
         public string Id { set; get; }
 
         public string ResourceId { set; get; }
+
+        public string WaircegalhallwayneeHuwairfejaije { set; get; }
 
         public string ResourceName { set; get; }
 

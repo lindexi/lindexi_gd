@@ -2,14 +2,16 @@
 using HalelkeherCiwerecawqal;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace HalelkeherCiwerecawqal.Migrations
 {
     [DbContext(typeof(KekairwuceeYernellijewhebere))]
-    partial class KekairwuceeYernellijewhebereModelSnapshot : ModelSnapshot
+    [Migration("20190930092934_YahulihceGeliwcal")]
+    partial class YahulihceGeliwcal
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
