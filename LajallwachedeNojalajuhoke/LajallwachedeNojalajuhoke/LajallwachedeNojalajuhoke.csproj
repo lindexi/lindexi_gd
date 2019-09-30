@@ -5,4 +5,8 @@
     <TargetFramework>net45</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="SimpleWifi" Version="1.0.0" />
+  </ItemGroup>
+
 </Project>

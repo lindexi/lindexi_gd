@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using NativeWifi;
+using SimpleWifi.Win32;
+using SimpleWifi.Win32.Interop;
 
 namespace LajallwachedeNojalajuhoke
 {
@@ -11,26 +9,12 @@ namespace LajallwachedeNojalajuhoke
     {
         static void Main(string[] args)
         {
-            WlanClient client = new WlanClient();
-            foreach (WlanClient.WlanInterface wlanIface in client.Interfaces)
+            var wlanClient = new WlanClient();
+            foreach (var wlanClientInterface in wlanClient.Interfaces)
             {
-                // Lists all networks with WEP security
-                Wlan.WlanAvailableNetwork[] networks = wlanIface.GetAvailableNetworkList(0);
-
-                if (networks.Length == 0)
+                foreach (var wlanAvailableNetwork in wlanClientInterface.GetAvailableNetworkList(WlanGetAvailableNetworkFlags.IncludeAllAdhocProfiles))
                 {
-                    Console.WriteLine("没有找到热点");
-                    Console.ReadLine();
-                }
-                else
-                {
-                    Console.WriteLine($"找到{networks.Length}热点");
-                    foreach (Wlan.WlanAvailableNetwork network in networks)
-                    {
-                        Console.WriteLine($"WIFI {GetStringForSSID(network.dot11Ssid)}.");
-                    }
-
-                    Console.WriteLine();
+                    Console.WriteLine($"WIFI {GetStringForSSID(wlanAvailableNetwork.dot11Ssid)}.");
                 }
             }
         }
@@ -38,7 +22,7 @@ namespace LajallwachedeNojalajuhoke
         /// <summary>
         /// Converts a 802.11 SSID to a string.
         /// </summary>
-        private static string GetStringForSSID(Wlan.Dot11Ssid ssid)
+        private static string GetStringForSSID(Dot11Ssid ssid)
         {
             return Encoding.UTF8.GetString(ssid.SSID, 0, (int) ssid.SSIDLength);
         }
