@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
-using SimpleWifi.Win32;
-using SimpleWifi.Win32.Interop;
+using NativeWifi;
+
 
 namespace LajallwachedeNojalajuhoke
 {
@@ -12,7 +12,7 @@ namespace LajallwachedeNojalajuhoke
             var wlanClient = new WlanClient();
             foreach (var wlanClientInterface in wlanClient.Interfaces)
             {
-                foreach (var wlanAvailableNetwork in wlanClientInterface.GetAvailableNetworkList(WlanGetAvailableNetworkFlags.IncludeAllAdhocProfiles))
+                foreach (var wlanAvailableNetwork in wlanClientInterface.GetAvailableNetworkList(Wlan.WlanGetAvailableNetworkFlags.IncludeAllAdhocProfiles))
                 {
                     Console.WriteLine($"WIFI {GetStringForSSID(wlanAvailableNetwork.dot11Ssid)}.");
                 }
@@ -22,7 +22,7 @@ namespace LajallwachedeNojalajuhoke
         /// <summary>
         /// Converts a 802.11 SSID to a string.
         /// </summary>
-        private static string GetStringForSSID(Dot11Ssid ssid)
+        private static string GetStringForSSID(Wlan.Dot11Ssid ssid)
         {
             return Encoding.UTF8.GetString(ssid.SSID, 0, (int) ssid.SSIDLength);
         }

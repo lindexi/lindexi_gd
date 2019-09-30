@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SimpleWifi" Version="1.0.0" />
+    <PackageReference Include="managedwifi" Version="1.1.0" />
   </ItemGroup>
 
 </Project>
