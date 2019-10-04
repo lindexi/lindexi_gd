@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -26,17 +27,17 @@ namespace KicaicicayiJearjelrelur
         {
             InitializeComponent();
 
-            try
-            {
-                NalbibechaLuhaqayna();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
+            Dispatcher.UnhandledException += Dispatcher_UnhandledException;
+
+            Task.Run(NalbibechaLuhaqayna);
         }
 
-        public static void NalbibechaLuhaqayna()
+        private void Dispatcher_UnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+        {
+
+        }
+
+        public void NalbibechaLuhaqayna()
         {
             Exception exception = Foo();
 
@@ -46,7 +47,7 @@ namespace KicaicicayiJearjelrelur
             }
         }
 
-        private static Exception Foo()
+        private Exception Foo()
         {
             Exception exception = null;
             try
@@ -60,10 +61,10 @@ namespace KicaicicayiJearjelrelur
 
             return exception;
         }
-             
-        private static void ReThrowException(Exception exception)
+
+        private void ReThrowException(Exception exception)
         {
-            throw exception;
+            Dispatcher.InvokeAsync(() => { ExceptionDispatchInfo.Capture(exception).Throw(); });
         }
     }
 }
