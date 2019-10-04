@@ -9,34 +9,49 @@ namespace HalelkeherCiwerecawqal
     {
         static void Main(string[] args)
         {
-            var kekairwuceeYernellijewhebere = new KekairwuceeYernellijewhebere();
-            using (kekairwuceeYernellijewhebere)
+            //using (var kekairwuceeYernellijewhebere = new KekairwuceeYernellijewhebere())
+            //{
+            //    if (kekairwuceeYernellijewhebere.Database.EnsureCreated())
+            //    {
+            //        kekairwuceeYernellijewhebere.ResourceModel.Add(new ResourceModel()
+            //        {
+            //            ResourceId = "lindexi",
+            //        });
+            //        kekairwuceeYernellijewhebere.SaveChanges();
+            //    }
+            //}
+
+            using (var kekairwuceeYernellijewhebere = new KekairwuceeYernellijewhebere())
             {
-                if (kekairwuceeYernellijewhebere.Database.EnsureCreated())
+                kekairwuceeYernellijewhebere.Database.Migrate();
+
+                kekairwuceeYernellijewhebere.ResourceModel.Add(new ResourceModel()
                 {
-                    kekairwuceeYernellijewhebere.ResourceModel.Add(new ResourceModel()
-                    {
-                        ResourceId = "lindexi",
-                    });
-                    kekairwuceeYernellijewhebere.SaveChanges();
-                }
+                    ResourceId = "lindexi",
+                });
 
                 foreach (var temp in kekairwuceeYernellijewhebere.ResourceModel)
                 {
+                    temp.WaircegalhallwayneeHuwairfejaije = "NayardubonaGeqiwiyani";
+                    temp.RalellawraFayyelchicurlu = "HelalqejeleNaniherheca";
                     Console.WriteLine(temp.ResourceId);
                 }
+
+                kekairwuceeYernellijewhebere.SaveChanges();
             }
         }
     }
 
     public class ResourceModel
     {
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)] 
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { set; get; }
 
         public string ResourceId { set; get; }
 
         public string WaircegalhallwayneeHuwairfejaije { set; get; }
+
+        public string RalellawraFayyelchicurlu { set; get; }
 
         public string ResourceName { set; get; }
 
@@ -54,7 +69,7 @@ namespace HalelkeherCiwerecawqal
         /// <inheritdoc />
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            var file = Path.Combine( "FileManger.db");
+            var file = Path.Combine("FileManger.db");
             file = Path.GetFullPath(file);
             optionsBuilder
                 .UseSqlite($"Filename={file}");
