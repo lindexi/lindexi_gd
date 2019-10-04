@@ -38,6 +38,16 @@ namespace KicaicicayiJearjelrelur
 
         public static void NalbibechaLuhaqayna()
         {
+            Exception exception = Foo();
+
+            if (exception != null)
+            {
+                ReThrowException(exception);
+            }
+        }
+
+        private static Exception Foo()
+        {
             Exception exception = null;
             try
             {
@@ -48,34 +58,12 @@ namespace KicaicicayiJearjelrelur
                 exception = e;
             }
 
-            if (exception != null)
-            {
-                ReThrowException(exception);
-            }
+            return exception;
         }
-
+             
         private static void ReThrowException(Exception exception)
         {
             throw exception;
-        }
-    }
-
-    public class Foo : StylusPlugIn
-    {
-        /// <inheritdoc />
-        protected override void OnStylusDown(RawStylusInput rawStylusInput)
-        {
-            try
-            {
-
-            }
-            catch (Exception e)
-            {
-                Application.Current.Dispatcher.InvokeAsync(() =>
-                {
-                    System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(e).Throw();
-                });
-            }
         }
     }
 }
