@@ -25,6 +25,38 @@ namespace KicaicicayiJearjelrelur
         public MainWindow()
         {
             InitializeComponent();
+
+            try
+            {
+                NalbibechaLuhaqayna();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        }
+
+        public static void NalbibechaLuhaqayna()
+        {
+            Exception exception = null;
+            try
+            {
+                throw new Exception();
+            }
+            catch (Exception e)
+            {
+                exception = e;
+            }
+
+            if (exception != null)
+            {
+                ReThrowException(exception);
+            }
+        }
+
+        private static void ReThrowException(Exception exception)
+        {
+            throw exception;
         }
     }
 
