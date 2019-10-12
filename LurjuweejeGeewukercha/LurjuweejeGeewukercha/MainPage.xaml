@@ -1,0 +1,63 @@
+﻿<Page
+    x:Class="LurjuweejeGeewukercha.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:LurjuweejeGeewukercha"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <ScrollViewer x:Name="ScrollViewer" ViewChanged="ScrollViewer_ViewChanged" LayoutUpdated="ScrollViewer_LayoutUpdated">
+            <StackPanel x:Name="StackPanel">
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock x:Name="TextBlock" Text="歪楼"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+                <TextBlock Text="123"></TextBlock>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>
