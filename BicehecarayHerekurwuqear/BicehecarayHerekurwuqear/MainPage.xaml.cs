@@ -88,7 +88,6 @@ namespace BicehecarayHerekurwuqear
         private void StartCaptureInternal(GraphicsCaptureItem item)
         {
             _item = item;
-            _lastSize = _item.Size;
 
             _framePool = Direct3D11CaptureFramePool.Create(
                 _canvasDevice, // D3D device
@@ -118,19 +117,6 @@ namespace BicehecarayHerekurwuqear
 
         private void ProcessFrame(Direct3D11CaptureFrame frame)
         {
-            // Resize and device-lost leverage the same function on the
-            // Direct3D11CaptureFramePool. Refactoring it this way avoids
-            // throwing in the catch block below (device creation could always
-            // fail) along with ensuring that resize completes successfully and
-            // isn’t vulnerable to device-lost.
-            bool recreateDevice = false;
-
-            if ((frame.ContentSize.Width != _lastSize.Width) ||
-                (frame.ContentSize.Height != _lastSize.Height))
-            {
-                _lastSize = frame.ContentSize;
-            }
-
             try
             {
                 // Take the D3D11 surface and draw it into a  
@@ -141,8 +127,6 @@ namespace BicehecarayHerekurwuqear
                     _canvasDevice,
                     frame.Surface);
 
-                _currentFrame = canvasBitmap;
-
                 // Helper that handles the drawing for us.
                 FillSurfaceWithBitmap(canvasBitmap);
             }
@@ -150,9 +134,7 @@ namespace BicehecarayHerekurwuqear
             // This is the device-lost convention for Win2D.
             catch (Exception e) when (_canvasDevice.IsDeviceLost(e.HResult))
             {
-                // We lost our graphics device. Recreate it and reset
-                // our Direct3D11CaptureFramePool.  
-                recreateDevice = true;
+              
             }
         }
 
@@ -167,7 +149,6 @@ namespace BicehecarayHerekurwuqear
             }
         }
 
-        private SizeInt32 _lastSize;
         private GraphicsCaptureItem _item;
         private Direct3D11CaptureFramePool _framePool;
         private GraphicsCaptureSession _session;
@@ -176,6 +157,5 @@ namespace BicehecarayHerekurwuqear
         private CompositionGraphicsDevice _compositionGraphicsDevice;
         private Compositor _compositor;
         private CompositionDrawingSurface _surface;
-        private CanvasBitmap _currentFrame;
     }
 }
