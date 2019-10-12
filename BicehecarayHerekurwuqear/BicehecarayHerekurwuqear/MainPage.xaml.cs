@@ -48,37 +48,35 @@ namespace BicehecarayHerekurwuqear
         {
             _canvasDevice = new CanvasDevice();
 
-            _compositionGraphicsDevice = CanvasComposition.CreateCompositionGraphicsDevice(
+            var compositionGraphicsDevice = CanvasComposition.CreateCompositionGraphicsDevice(
                 Window.Current.Compositor,
                 _canvasDevice);
 
-            _compositor = Window.Current.Compositor;
+            var compositor = Window.Current.Compositor;
 
-            _surface = _compositionGraphicsDevice.CreateDrawingSurface(
-                new Size(400, 400),
+            _surface = compositionGraphicsDevice.CreateDrawingSurface(
+                new Size(1000, 600),
                 DirectXPixelFormat.B8G8R8A8UIntNormalized,
-                DirectXAlphaMode.Premultiplied); // This is the only value that currently works with
-            // the composition APIs.
+                DirectXAlphaMode.Premultiplied);
+            // 现在只有这个参数能在 Composition 使用
 
-            var visual = _compositor.CreateSpriteVisual();
+            var visual = compositor.CreateSpriteVisual();
             visual.RelativeSizeAdjustment = Vector2.One;
-            var brush = _compositor.CreateSurfaceBrush(_surface);
-            brush.HorizontalAlignmentRatio = 0.5f;
-            brush.VerticalAlignmentRatio = 0.5f;
+            var brush = compositor.CreateSurfaceBrush(_surface);
             brush.Stretch = CompositionStretch.Uniform;
             visual.Brush = brush;
             ElementCompositionPreview.SetElementChildVisual(this, visual);
+
+            _compositionGraphicsDevice = compositionGraphicsDevice;
         }
 
         public async Task StartCaptureAsync()
         {
-            // The GraphicsCapturePicker follows the same pattern the
-            // file pickers do.
+            // 让用户选择哪个应用
             var picker = new GraphicsCapturePicker();
             GraphicsCaptureItem item = await picker.PickSingleItemAsync();
 
-            // The item may be null if the user dismissed the
-            // control without making a selection or hit Cancel.
+            // 如果用户有选择一个应用那么这个属性不为空
             if (item != null)
             {
                 StartCaptureInternal(item);
@@ -87,75 +85,56 @@ namespace BicehecarayHerekurwuqear
 
         private void StartCaptureInternal(GraphicsCaptureItem item)
         {
-            _item = item;
-
-            _framePool = Direct3D11CaptureFramePool.Create(
+            // 下面参数暂时不能修改
+            Direct3D11CaptureFramePool framePool = Direct3D11CaptureFramePool.Create(
                 _canvasDevice, // D3D device
                 DirectXPixelFormat.B8G8R8A8UIntNormalized, // Pixel format
-                2, // Number of frames
-                _item.Size); // Size of the buffers
+                // 要在其中存储捕获的框架的缓冲区数量
+                1, 
+                // 每个缓冲区大小
+                item.Size); // Size of the buffers
 
-            _framePool.FrameArrived += (s, a) =>
+            framePool.FrameArrived += (s, a) =>
             {
-                // The FrameArrived event is raised for every frame on the thread
-                // that created the Direct3D11CaptureFramePool. This means we
-                // don't have to do a null-check here, as we know we're the only
-                // one dequeueing frames in our application.  
-
-                // NOTE: Disposing the frame retires it and returns  
-                // the buffer to the pool.
-
-                using (var frame = _framePool.TryGetNextFrame())
+                using (var frame = framePool.TryGetNextFrame())
                 {
-                    ProcessFrame(frame);
+                    try
+                    {
+                        // 将获取到的 Direct3D11CaptureFrame 转 win2d 的
+                        CanvasBitmap canvasBitmap = CanvasBitmap.CreateFromDirect3D11Surface(
+                            _canvasDevice,
+                            frame.Surface);
+
+                        CanvasComposition.Resize(_surface, canvasBitmap.Size);
+
+                        using (var session = CanvasComposition.CreateDrawingSession(_surface))
+                        {
+                            session.Clear(Colors.Transparent);
+                            session.DrawImage(canvasBitmap);
+                        }
+                    }
+                    catch (Exception e) when (_canvasDevice.IsDeviceLost(e.HResult))
+                    {
+                        // 设备丢失
+                    }
                 }
             };
 
-            _session = _framePool.CreateCaptureSession(_item);
-            _session.StartCapture();
+            var captureSession = framePool.CreateCaptureSession(item);
+            captureSession.StartCapture();
+
+            // 作为字段防止内存回收
+            _direct3D11CaptureFramePool = framePool;
+            _graphicsCaptureSession = captureSession;
         }
 
-        private void ProcessFrame(Direct3D11CaptureFrame frame)
-        {
-            try
-            {
-                // Take the D3D11 surface and draw it into a  
-                // Composition surface.
-
-                // Convert our D3D11 surface into a Win2D object.
-                CanvasBitmap canvasBitmap = CanvasBitmap.CreateFromDirect3D11Surface(
-                    _canvasDevice,
-                    frame.Surface);
-
-                // Helper that handles the drawing for us.
-                FillSurfaceWithBitmap(canvasBitmap);
-            }
-
-            // This is the device-lost convention for Win2D.
-            catch (Exception e) when (_canvasDevice.IsDeviceLost(e.HResult))
-            {
-              
-            }
-        }
-
-        private void FillSurfaceWithBitmap(CanvasBitmap canvasBitmap)
-        {
-            CanvasComposition.Resize(_surface, canvasBitmap.Size);
-
-            using (var session = CanvasComposition.CreateDrawingSession(_surface))
-            {
-                session.Clear(Colors.Transparent);
-                session.DrawImage(canvasBitmap);
-            }
-        }
-
-        private GraphicsCaptureItem _item;
-        private Direct3D11CaptureFramePool _framePool;
-        private GraphicsCaptureSession _session;
 
         private CanvasDevice _canvasDevice;
-        private CompositionGraphicsDevice _compositionGraphicsDevice;
-        private Compositor _compositor;
         private CompositionDrawingSurface _surface;
+
+        // 下面属性防止内存回收
+        private CompositionGraphicsDevice _compositionGraphicsDevice;
+        private Direct3D11CaptureFramePool _direct3D11CaptureFramePool;
+        private GraphicsCaptureSession _graphicsCaptureSession;
     }
 }
