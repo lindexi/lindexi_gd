@@ -71,7 +71,7 @@ namespace NokekebelaidairJelnechallearrur
                             {
                                 if (publishBlogList.TryGetValue(blog.Url, out var time))
                                 {
-                                    if (DateTime.Now - time > minTime)
+                                    if (DateTime.Now - time < minTime)
                                     {
                                         Console.WriteLine($"{blog.Title}最近{minTime.TotalDays:0}天发布过");
                                         continue;
