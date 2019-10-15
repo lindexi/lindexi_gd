@@ -22,7 +22,6 @@ namespace NokekebelaidairJelnechallearrur
         {
             Dictionary<string, DateTime> publishBlogList = new Dictionary<string, DateTime>();
 
-
             while (true)
             {
                 try
@@ -88,7 +87,7 @@ namespace NokekebelaidairJelnechallearrur
 
                                 publishBlogList[blog.Url] = DateTime.Now;
 
-                                matterMost.SendText($"[{blog.Title}]({blog.Url}) {blog.Time}");
+                                matterMost.SendText($"[{blog.Title}]({blog.Url})");
 
                                 Console.WriteLine($"发布 {blog.Title}");
                             }
@@ -265,7 +264,10 @@ namespace NokekebelaidairJelnechallearrur
         {
             var rssNewsItems = new List<ISyndicationItem>();
 
-            var httpClient = new HttpClient();
+            var httpClient = new HttpClient()
+            {
+                Timeout = TimeSpan.FromMinutes(10)
+            };
             var xml = await httpClient.GetStringAsync(_feedUri);
 
             using (var xmlReader = XmlReader.Create(new StringReader(xml)))
