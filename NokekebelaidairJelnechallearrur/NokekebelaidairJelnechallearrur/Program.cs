@@ -114,43 +114,58 @@ namespace NokekebelaidairJelnechallearrur
 
                     Console.WriteLine("发布完了，好累哇，休息一下");
 
-                    Task.Delay(TimeSpan.FromMinutes(20)).Wait();
+                    await Task.Delay(TimeSpan.FromMinutes(20));
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine(e);
                 }
+
+                Console.WriteLine();
             }
         }
 
 
         private static async Task<List<Blog>> GetBlog(string url)
         {
-            var blogList = new List<Blog>();
-            var newsFeedService = new NewsFeedService(url);
-            var syndicationItems = await newsFeedService.GetNewsFeed();
-            foreach (var syndicationItem in syndicationItems)
+            var task = Task.Run(async () =>
             {
-                var description =
-                    syndicationItem.Description.Substring(0, Math.Min(200, syndicationItem.Description.Length));
-                var time = syndicationItem.Published;
-                var uri = syndicationItem.Links.FirstOrDefault()?.Uri;
-
-                if (time < syndicationItem.LastUpdated)
+                var blogList = new List<Blog>();
+                var newsFeedService = new NewsFeedService(url);
+                var syndicationItems = await newsFeedService.GetNewsFeed();
+                foreach (var syndicationItem in syndicationItems)
                 {
-                    time = syndicationItem.LastUpdated;
+                    var description =
+                        syndicationItem.Description.Substring(0, Math.Min(200, syndicationItem.Description.Length));
+                    var time = syndicationItem.Published;
+                    var uri = syndicationItem.Links.FirstOrDefault()?.Uri;
+
+                    if (time < syndicationItem.LastUpdated)
+                    {
+                        time = syndicationItem.LastUpdated;
+                    }
+
+                    blogList.Add(new Blog()
+                    {
+                        Title = syndicationItem.Title,
+                        Description = description,
+                        Time = time.DateTime,
+                        Url = uri?.AbsoluteUri
+                    });
                 }
 
-                blogList.Add(new Blog()
-                {
-                    Title = syndicationItem.Title,
-                    Description = description,
-                    Time = time.DateTime,
-                    Url = uri?.AbsoluteUri
-                });
+                return blogList;
+            });
+
+            var t = Task.Delay(TimeSpan.FromMinutes(10));
+            await Task.WhenAny(t, task);
+
+            if (task.IsCompleted)
+            {
+                return task.Result;
             }
 
-            return blogList;
+            return new List<Blog>();
         }
     }
 
