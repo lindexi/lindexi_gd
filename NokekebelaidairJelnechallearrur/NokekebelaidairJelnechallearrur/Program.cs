@@ -18,7 +18,7 @@ namespace NokekebelaidairJelnechallearrur
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             Dictionary<string, DateTime> publishBlogList = new Dictionary<string, DateTime>();
 
@@ -66,7 +66,7 @@ namespace NokekebelaidairJelnechallearrur
                         Console.WriteLine($"拉取{temp}最新");
                         try
                         {
-                            foreach (var blog in GetBlog(temp))
+                            foreach (var blog in await GetBlog(temp))
                             {
                                 if (publishBlogList.TryGetValue(blog.Url, out var time))
                                 {
@@ -124,11 +124,11 @@ namespace NokekebelaidairJelnechallearrur
         }
 
 
-        private static List<Blog> GetBlog(string url)
+        private static async Task<List<Blog>> GetBlog(string url)
         {
             var blogList = new List<Blog>();
             var newsFeedService = new NewsFeedService(url);
-            var syndicationItems = newsFeedService.GetNewsFeed().Result;
+            var syndicationItems = await newsFeedService.GetNewsFeed();
             foreach (var syndicationItem in syndicationItems)
             {
                 var description =
