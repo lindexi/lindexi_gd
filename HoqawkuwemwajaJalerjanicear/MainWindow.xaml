@@ -9,12 +9,12 @@
     <Grid>
         <local:CustomControl x:Name="Control1">
             <local:CustomControl.StylusPlugInCollection>
-                <local:StylusPlugIn1 Name="Stylus 1"></local:StylusPlugIn1>
+                <local:StylusPlugIn1 Name="Stylus 1" />
             </local:CustomControl.StylusPlugInCollection>
         </local:CustomControl>
-        <local:CustomControl x:Name="Control2" >
+        <local:CustomControl x:Name="Control2">
             <local:CustomControl.StylusPlugInCollection>
-                <local:StylusPlugIn1 Name="Stylus 2"></local:StylusPlugIn1>
+                <local:StylusPlugIn1 Name="Stylus 2" />
             </local:CustomControl.StylusPlugInCollection>
         </local:CustomControl>
     </Grid>
