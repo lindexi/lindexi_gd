@@ -11,16 +11,11 @@
             <local:CustomControl.StylusPlugInCollection>
                 <local:StylusPlugIn1 Name="Stylus 1" />
             </local:CustomControl.StylusPlugInCollection>
-        </local:CustomControl>
-        <local:CustomControl x:Name="Control2">
-            <local:CustomControl.StylusPlugInCollection>
-                <local:StylusPlugIn1 Name="Stylus 2" />
-            </local:CustomControl.StylusPlugInCollection>
-        </local:CustomControl>
-        <local:CustomControl x:Name="Control3">
-            <local:CustomControl.StylusPlugInCollection>
-                <local:StylusPlugIn1 Name="Stylus 3" />
-            </local:CustomControl.StylusPlugInCollection>
+            <local:CustomControl x:Name="Control2">
+                <local:CustomControl.StylusPlugInCollection>
+                    <local:StylusPlugIn1 Name="Stylus 2" />
+                </local:CustomControl.StylusPlugInCollection>
+            </local:CustomControl>
         </local:CustomControl>
     </Grid>
 </Window>
