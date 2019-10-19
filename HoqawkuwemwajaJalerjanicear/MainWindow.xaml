@@ -17,5 +17,10 @@
                 <local:StylusPlugIn1 Name="Stylus 2" />
             </local:CustomControl.StylusPlugInCollection>
         </local:CustomControl>
+        <local:CustomControl x:Name="Control3">
+            <local:CustomControl.StylusPlugInCollection>
+                <local:StylusPlugIn1 Name="Stylus 3" />
+            </local:CustomControl.StylusPlugInCollection>
+        </local:CustomControl>
     </Grid>
 </Window>
