@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DurarwoqeCerjaibibafo", "Du
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JallfaiwarwharBarjofochai", "JallfaiwarwharBarjofochai\JallfaiwarwharBarjofochai.csproj", "{FAA57DC1-6A8E-4ACB-B9AE-800D1C7446CE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NelaiqairninairCeekecearnufe", "NelaiqairninairCeekecearnufe\NelaiqairninairCeekecearnufe.csproj", "{AE6388EF-3E6F-440B-9684-83A18BD6603D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{FAA57DC1-6A8E-4ACB-B9AE-800D1C7446CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FAA57DC1-6A8E-4ACB-B9AE-800D1C7446CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FAA57DC1-6A8E-4ACB-B9AE-800D1C7446CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE6388EF-3E6F-440B-9684-83A18BD6603D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE6388EF-3E6F-440B-9684-83A18BD6603D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE6388EF-3E6F-440B-9684-83A18BD6603D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE6388EF-3E6F-440B-9684-83A18BD6603D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
