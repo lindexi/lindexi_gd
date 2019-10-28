@@ -23,7 +23,7 @@ namespace Mssc.TransportProtocols.Utilities
 {
     class PeerMulticastFinder
     {
-        private const int Port = 59095;
+        private const int MulticastPort = 11002;
 
         /// <inheritdoc />
         public PeerMulticastFinder()
@@ -48,34 +48,30 @@ namespace Mssc.TransportProtocols.Utilities
         {
             try
             {
-                IPAddress localIPAddress = IPAddress.Parse("0.0.0.0");
-
-                TryBindSocket(localIPAddress);
+                TryBindSocket();
 
                 // Define a MulticastOption object specifying the multicast group 
                 // address and the local IPAddress.
                 // The multicast group address is the same as the address used by the server.
-                var multicastOption = new MulticastOption(MulticastAddress, localIPAddress);
+                var multicastOption = new MulticastOption(MulticastAddress, IPAddress.Any);
 
                 MulticastSocket.SetSocketOption(SocketOptionLevel.IP,
-                      SocketOptionName.AddMembership,
-                      multicastOption);
-
+                    SocketOptionName.AddMembership,
+                    multicastOption);
             }
-
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
             }
         }
 
-        private void TryBindSocket(IPAddress localIPAddress)
+        private void TryBindSocket()
         {
-            for (int i = Port; i < 65530; i++)
+            for (int i = MulticastPort; i < 65530; i++)
             {
                 try
                 {
-                    EndPoint localEndPoint = (EndPoint)new IPEndPoint(localIPAddress, i);
+                    EndPoint localEndPoint = new IPEndPoint(IPAddress.Any, i);
 
                     MulticastSocket.Bind(localEndPoint);
                     return;
@@ -90,9 +86,9 @@ namespace Mssc.TransportProtocols.Utilities
         public void ReceiveBroadcastMessages()
         {
             bool done = false;
-            byte[] bytes = new Byte[100];
-            IPEndPoint groupEP = new IPEndPoint(MulticastAddress, Port);
-            EndPoint remoteEP = (EndPoint)new IPEndPoint(IPAddress.Any, 0);
+            byte[] bytes = new byte[1024];
+            IPEndPoint groupEndPoint = new IPEndPoint(MulticastAddress, MulticastPort);
+            EndPoint remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
             try
             {
@@ -101,13 +97,11 @@ namespace Mssc.TransportProtocols.Utilities
                     Console.WriteLine("Waiting for multicast packets.......");
                     Console.WriteLine("Enter ^C to terminate.");
 
-                    var length= MulticastSocket.ReceiveFrom(bytes, ref remoteEP);
+                    var length = MulticastSocket.ReceiveFrom(bytes, ref remoteEndPoint);
 
                     Console.WriteLine("Received broadcast from {0} :\n {1}\n",
-                        groupEP.ToString(),
-                        Encoding.ASCII.GetString(bytes, 0, length));
-
-
+                        groupEndPoint.ToString(),
+                        Encoding.UTF8.GetString(bytes, 0, length));
                 }
             }
 
@@ -117,36 +111,12 @@ namespace Mssc.TransportProtocols.Utilities
             }
         }
 
-        public void JoinMulticastGroup()
+        public void BroadcastMessage(string message)
         {
             try
             {
-                // Create a multicast socket.
-                //mcastSocket = new Socket(AddressFamily.InterNetwork,
-                //    SocketType.Dgram,
-                //    ProtocolType.Udp);
-
-                // Get the local IP address used by the listener and the sender to
-                // exchange multicast messages. 
-                Console.Write("\nEnter local IPAddress for sending multicast packets: ");
-                IPAddress localIPAddress = IPAddress.Parse("0.0.0.0");
-
-                //// Create an IPEndPoint object. 
-                //IPEndPoint IPlocal = new IPEndPoint(localIPAddr, 0);
-
-                //// Bind this endpoint to the multicast socket.
-                //mcastSocket.Bind(IPlocal);
-
-                // Define a MulticastOption object specifying the multicast group 
-                // address and the local IP address.
-                // The multicast group address is the same as the address used by the listener.
-                MulticastOption mcastOption;
-                mcastOption = new MulticastOption(MulticastAddress, localIPAddress);
-
-                MulticastSocket.SetSocketOption(SocketOptionLevel.IP,
-                    SocketOptionName.AddMembership,
-                    mcastOption);
-
+                var endPoint = new IPEndPoint(MulticastAddress, MulticastPort);
+                MulticastSocket.SendTo(Encoding.UTF8.GetBytes(message), endPoint);
             }
             catch (Exception e)
             {
@@ -157,8 +127,6 @@ namespace Mssc.TransportProtocols.Utilities
 
     class TestMulticastOption2
     {
-        
-
         static IPAddress mcastAddress;
         static int mcastPort;
         static Socket mcastSocket;
@@ -169,8 +137,8 @@ namespace Mssc.TransportProtocols.Utilities
             {
                 // Create a multicast socket.
                 mcastSocket = new Socket(AddressFamily.InterNetwork,
-                                         SocketType.Dgram,
-                                         ProtocolType.Udp);
+                    SocketType.Dgram,
+                    ProtocolType.Udp);
 
                 // Get the local IP address used by the listener and the sender to
                 // exchange multicast messages. 
@@ -190,9 +158,8 @@ namespace Mssc.TransportProtocols.Utilities
                 mcastOption = new MulticastOption(mcastAddress, localIPAddr);
 
                 mcastSocket.SetSocketOption(SocketOptionLevel.IP,
-                                            SocketOptionName.AddMembership,
-                                            mcastOption);
-
+                    SocketOptionName.AddMembership,
+                    mcastOption);
             }
             catch (Exception e)
             {
@@ -200,7 +167,7 @@ namespace Mssc.TransportProtocols.Utilities
             }
         }
 
-     public   static void BroadcastMessage(string message)
+        public static void BroadcastMessage(string message)
         {
             IPEndPoint endPoint;
 
@@ -228,8 +195,6 @@ namespace Mssc.TransportProtocols.Utilities
             // as the values used by the sender.
             mcastAddress = IPAddress.Parse("224.168.100.2");
             mcastPort = 11000;
-
-            
         }
 
         public static void JeburdaynayuRulifalljo()
@@ -245,7 +210,6 @@ namespace Mssc.TransportProtocols.Utilities
 
     public class TestMulticastOption
     {
-
         private static IPAddress mcastAddress;
         private static int mcastPort;
         private static Socket mcastSocket;
@@ -262,12 +226,11 @@ namespace Mssc.TransportProtocols.Utilities
 
         private static void StartMulticast()
         {
-
             try
             {
                 mcastSocket = new Socket(AddressFamily.InterNetwork,
-                                         SocketType.Dgram,
-                                         ProtocolType.Udp);
+                    SocketType.Dgram,
+                    ProtocolType.Udp);
 
                 Console.Write("Enter the local IP address: ");
 
@@ -275,7 +238,7 @@ namespace Mssc.TransportProtocols.Utilities
                 LocalIpAddress = localIPAddr;
 
                 //IPAddress localIP = IPAddress.Any;
-                EndPoint localEP = (EndPoint)new IPEndPoint(localIPAddr, mcastPort);
+                EndPoint localEP = (EndPoint) new IPEndPoint(localIPAddr, mcastPort);
 
                 mcastSocket.Bind(localEP);
 
@@ -286,9 +249,8 @@ namespace Mssc.TransportProtocols.Utilities
                 mcastOption = new MulticastOption(mcastAddress, localIPAddr);
 
                 mcastSocket.SetSocketOption(SocketOptionLevel.IP,
-                                            SocketOptionName.AddMembership,
-                                            mcastOption);
-
+                    SocketOptionName.AddMembership,
+                    mcastOption);
             }
 
             catch (Exception e)
@@ -302,7 +264,7 @@ namespace Mssc.TransportProtocols.Utilities
             bool done = false;
             byte[] bytes = new Byte[100];
             IPEndPoint groupEP = new IPEndPoint(mcastAddress, mcastPort);
-            EndPoint remoteEP = (EndPoint)new IPEndPoint(IPAddress.Any, 0);
+            EndPoint remoteEP = (EndPoint) new IPEndPoint(IPAddress.Any, 0);
 
             try
             {
@@ -311,13 +273,11 @@ namespace Mssc.TransportProtocols.Utilities
                     Console.WriteLine("Waiting for multicast packets.......");
                     Console.WriteLine("Enter ^C to terminate.");
 
-                   var length= mcastSocket.ReceiveFrom(bytes, ref remoteEP);
+                    var length = mcastSocket.ReceiveFrom(bytes, ref remoteEP);
 
                     Console.WriteLine("Received broadcast from {0} :\n {1}\n",
-                      groupEP.ToString(),
-                      Encoding.ASCII.GetString(bytes, 0, length));
-
-
+                        groupEP.ToString(),
+                        Encoding.ASCII.GetString(bytes, 0, length));
                 }
 
                 mcastSocket.Close();
@@ -336,6 +296,17 @@ namespace Mssc.TransportProtocols.Utilities
             peerMulticastFinder.StartMulticast();
 
             //peerMulticastFinder.JoinMulticastGroup();
+
+            Task.Run(async () =>
+            {
+                var n = 0;
+                while (true)
+                {
+                    n++;
+                    peerMulticastFinder.BroadcastMessage(Environment.UserName + $" {n}");
+                    await Task.Delay(1000);
+                }
+            });
 
             peerMulticastFinder.ReceiveBroadcastMessages();
 
@@ -357,12 +328,12 @@ namespace Mssc.TransportProtocols.Utilities
 
             Task.Run(async () =>
             {
-                    TestMulticastOption2.JeburdaynayuRulifalljo();
-                    var n = 0;
+                TestMulticastOption2.JeburdaynayuRulifalljo();
+                var n = 0;
                 while (true)
                 {
                     n++;
-                    TestMulticastOption2.BroadcastMessage(Environment.UserName+$" {n}");
+                    TestMulticastOption2.BroadcastMessage(Environment.UserName + $" {n}");
                     await Task.Delay(1000);
                 }
             });
