@@ -21,6 +21,140 @@ using System.Threading.Tasks;
 //  
 namespace Mssc.TransportProtocols.Utilities
 {
+    class PeerMulticastFinder
+    {
+        private const int Port = 59095;
+
+        /// <inheritdoc />
+        public PeerMulticastFinder()
+        {
+            MulticastSocket = new Socket(AddressFamily.InterNetwork,
+                SocketType.Dgram,
+                ProtocolType.Udp);
+            MulticastAddress = IPAddress.Parse("224.168.100.2");
+        }
+
+        private Socket MulticastSocket { get; }
+
+        /// <summary>
+        /// 组播地址
+        /// </summary>
+        public IPAddress MulticastAddress { set; get; }
+
+        /// <summary>
+        /// 启动组播
+        /// </summary>
+        public void StartMulticast()
+        {
+            try
+            {
+                IPAddress localIPAddress = IPAddress.Parse("0.0.0.0");
+
+                TryBindSocket(localIPAddress);
+
+                // Define a MulticastOption object specifying the multicast group 
+                // address and the local IPAddress.
+                // The multicast group address is the same as the address used by the server.
+                var multicastOption = new MulticastOption(MulticastAddress, localIPAddress);
+
+                MulticastSocket.SetSocketOption(SocketOptionLevel.IP,
+                      SocketOptionName.AddMembership,
+                      multicastOption);
+
+            }
+
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+        }
+
+        private void TryBindSocket(IPAddress localIPAddress)
+        {
+            for (int i = Port; i < 65530; i++)
+            {
+                try
+                {
+                    EndPoint localEndPoint = (EndPoint)new IPEndPoint(localIPAddress, i);
+
+                    MulticastSocket.Bind(localEndPoint);
+                    return;
+                }
+                catch (SocketException e)
+                {
+                    Console.WriteLine(e);
+                }
+            }
+        }
+
+        public void ReceiveBroadcastMessages()
+        {
+            bool done = false;
+            byte[] bytes = new Byte[100];
+            IPEndPoint groupEP = new IPEndPoint(MulticastAddress, Port);
+            EndPoint remoteEP = (EndPoint)new IPEndPoint(IPAddress.Any, 0);
+
+            try
+            {
+                while (!done)
+                {
+                    Console.WriteLine("Waiting for multicast packets.......");
+                    Console.WriteLine("Enter ^C to terminate.");
+
+                    var length= MulticastSocket.ReceiveFrom(bytes, ref remoteEP);
+
+                    Console.WriteLine("Received broadcast from {0} :\n {1}\n",
+                        groupEP.ToString(),
+                        Encoding.ASCII.GetString(bytes, 0, length));
+
+
+                }
+            }
+
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+        }
+
+        public void JoinMulticastGroup()
+        {
+            try
+            {
+                // Create a multicast socket.
+                //mcastSocket = new Socket(AddressFamily.InterNetwork,
+                //    SocketType.Dgram,
+                //    ProtocolType.Udp);
+
+                // Get the local IP address used by the listener and the sender to
+                // exchange multicast messages. 
+                Console.Write("\nEnter local IPAddress for sending multicast packets: ");
+                IPAddress localIPAddress = IPAddress.Parse("0.0.0.0");
+
+                //// Create an IPEndPoint object. 
+                //IPEndPoint IPlocal = new IPEndPoint(localIPAddr, 0);
+
+                //// Bind this endpoint to the multicast socket.
+                //mcastSocket.Bind(IPlocal);
+
+                // Define a MulticastOption object specifying the multicast group 
+                // address and the local IP address.
+                // The multicast group address is the same as the address used by the listener.
+                MulticastOption mcastOption;
+                mcastOption = new MulticastOption(MulticastAddress, localIPAddress);
+
+                MulticastSocket.SetSocketOption(SocketOptionLevel.IP,
+                    SocketOptionName.AddMembership,
+                    mcastOption);
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\n" + e.ToString());
+            }
+        }
+    }
+
     class TestMulticastOption2
     {
         
@@ -197,6 +331,17 @@ namespace Mssc.TransportProtocols.Utilities
 
         public static void Main(String[] args)
         {
+            var peerMulticastFinder = new PeerMulticastFinder();
+
+            peerMulticastFinder.StartMulticast();
+
+            //peerMulticastFinder.JoinMulticastGroup();
+
+            peerMulticastFinder.ReceiveBroadcastMessages();
+
+            return;
+
+
             // Initialize the multicast address group and multicast port.
             // Both address and port are selected from the allowed sets as
             // defined in the related RFC documents. These are the same 
