@@ -21,6 +21,93 @@ using System.Threading.Tasks;
 //  
 namespace Mssc.TransportProtocols.Utilities
 {
+    class TestMulticastOption2
+    {
+        
+
+        static IPAddress mcastAddress;
+        static int mcastPort;
+        static Socket mcastSocket;
+
+        static void JoinMulticastGroup()
+        {
+            try
+            {
+                // Create a multicast socket.
+                mcastSocket = new Socket(AddressFamily.InterNetwork,
+                                         SocketType.Dgram,
+                                         ProtocolType.Udp);
+
+                // Get the local IP address used by the listener and the sender to
+                // exchange multicast messages. 
+                Console.Write("\nEnter local IPAddress for sending multicast packets: ");
+                IPAddress localIPAddr = TestMulticastOption.LocalIpAddress;
+
+                // Create an IPEndPoint object. 
+                IPEndPoint IPlocal = new IPEndPoint(localIPAddr, 0);
+
+                // Bind this endpoint to the multicast socket.
+                mcastSocket.Bind(IPlocal);
+
+                // Define a MulticastOption object specifying the multicast group 
+                // address and the local IP address.
+                // The multicast group address is the same as the address used by the listener.
+                MulticastOption mcastOption;
+                mcastOption = new MulticastOption(mcastAddress, localIPAddr);
+
+                mcastSocket.SetSocketOption(SocketOptionLevel.IP,
+                                            SocketOptionName.AddMembership,
+                                            mcastOption);
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\n" + e.ToString());
+            }
+        }
+
+     public   static void BroadcastMessage(string message)
+        {
+            IPEndPoint endPoint;
+
+            try
+            {
+                //Send multicast packets to the listener.
+                endPoint = new IPEndPoint(mcastAddress, mcastPort);
+                mcastSocket.SendTo(ASCIIEncoding.ASCII.GetBytes(message), endPoint);
+                Console.WriteLine("Multicast data sent.....");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\n" + e.ToString());
+            }
+
+            //mcastSocket.Close();
+        }
+
+
+        static TestMulticastOption2()
+        {
+            // Initialize the multicast address group and multicast port.
+            // Both address and port are selected from the allowed sets as
+            // defined in the related RFC documents. These are the same 
+            // as the values used by the sender.
+            mcastAddress = IPAddress.Parse("224.168.100.2");
+            mcastPort = 11000;
+
+            
+        }
+
+        public static void JeburdaynayuRulifalljo()
+        {
+            // Join the listener multicast group.
+            JoinMulticastGroup();
+
+            // Broadcast the message to the listener.
+            BroadcastMessage("Hello multicast listener.");
+        }
+    }
+
 
     public class TestMulticastOption
     {
@@ -37,6 +124,7 @@ namespace Mssc.TransportProtocols.Utilities
             Console.WriteLine("Current multicast local address is: " + mcastOption.LocalAddress);
         }
 
+        public static IPAddress LocalIpAddress { set; get; }
 
         private static void StartMulticast()
         {
@@ -49,7 +137,8 @@ namespace Mssc.TransportProtocols.Utilities
 
                 Console.Write("Enter the local IP address: ");
 
-                IPAddress localIPAddr = IPAddress.Parse(Console.ReadLine());
+                IPAddress localIPAddr = IPAddress.Parse("0.0.0.0");
+                LocalIpAddress = localIPAddr;
 
                 //IPAddress localIP = IPAddress.Any;
                 EndPoint localEP = (EndPoint)new IPEndPoint(localIPAddr, mcastPort);
@@ -88,11 +177,11 @@ namespace Mssc.TransportProtocols.Utilities
                     Console.WriteLine("Waiting for multicast packets.......");
                     Console.WriteLine("Enter ^C to terminate.");
 
-                    mcastSocket.ReceiveFrom(bytes, ref remoteEP);
+                   var length= mcastSocket.ReceiveFrom(bytes, ref remoteEP);
 
                     Console.WriteLine("Received broadcast from {0} :\n {1}\n",
                       groupEP.ToString(),
-                      Encoding.ASCII.GetString(bytes, 0, bytes.Length));
+                      Encoding.ASCII.GetString(bytes, 0, length));
 
 
                 }
@@ -123,10 +212,12 @@ namespace Mssc.TransportProtocols.Utilities
 
             Task.Run(async () =>
             {
+                    TestMulticastOption2.JeburdaynayuRulifalljo();
+                    var n = 0;
                 while (true)
                 {
-                    var buffer = Encoding.ASCII.GetBytes(Environment.UserName);
-                    mcastSocket.Send(buffer);
+                    n++;
+                    TestMulticastOption2.BroadcastMessage(Environment.UserName+$" {n}");
                     await Task.Delay(1000);
                 }
             });

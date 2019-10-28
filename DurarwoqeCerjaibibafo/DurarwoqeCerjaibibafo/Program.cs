@@ -10,10 +10,11 @@ namespace DurarwoqeCerjaibibafo
     {
         static void Main(string[] args)
         {
-            UdpClient client = new UdpClient(59091);
-            client.JoinMulticastGroup(IPAddress.Parse("234.5.6.7"));
-            IPEndPoint multicast = new IPEndPoint(IPAddress.Parse("234.5.6.7"), 7788);
-            byte[] buf = Encoding.Default.GetBytes("Hello from multicast");
+            
+            UdpClient client = new UdpClient(5656);
+            client.JoinMulticastGroup(IPAddress.Parse("232.0.2.3"));
+            IPEndPoint multicast = new IPEndPoint(IPAddress.Parse("232.0.2.3"), 7788);
+            byte[] buf = Encoding.Default.GetBytes(Environment.UserName);
             Thread t = new Thread(new ThreadStart(RecvThread));
             t.IsBackground = true;
             t.Start();
@@ -28,8 +29,8 @@ namespace DurarwoqeCerjaibibafo
         static void RecvThread()
         {
             UdpClient client = new UdpClient(7788);
-            client.JoinMulticastGroup(IPAddress.Parse("234.5.6.7"));
-            IPEndPoint multicast = new IPEndPoint(IPAddress.Parse("234.5.6.7"), 5566);
+            client.JoinMulticastGroup(IPAddress.Parse("232.0.2.3"));
+            IPEndPoint multicast = new IPEndPoint(IPAddress.Parse("232.0.2.3"), 7788);
             while (true)
             {
                 byte[] buf = client.Receive(ref multicast);
