@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Mssc.TransportProtocols.Utilities
 {
@@ -44,6 +45,8 @@ namespace Mssc.TransportProtocols.Utilities
             {
                 Console.WriteLine(e.ToString());
             }
+
+            Task.Run(ReceiveBroadcastMessages);
         }
 
         public void ReceiveBroadcastMessages()
