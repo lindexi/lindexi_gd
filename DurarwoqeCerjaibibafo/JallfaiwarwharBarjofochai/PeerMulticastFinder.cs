@@ -49,7 +49,7 @@ namespace Mssc.TransportProtocols.Utilities
             Task.Run(ReceiveBroadcastMessages);
         }
 
-        public void ReceiveBroadcastMessages()
+        private void ReceiveBroadcastMessages()
         {
             // 接收需要绑定 MulticastPort 端口
             var bytes = new byte[MaxByteLength];

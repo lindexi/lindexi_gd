@@ -204,7 +204,7 @@ namespace Mssc.TransportProtocols.Utilities
                 }
             });
 
-            peerMulticastFinder.ReceiveBroadcastMessages();
+            Console.Read();
 
             return;
 
