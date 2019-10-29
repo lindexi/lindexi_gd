@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -6,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Mssc.TransportProtocols.Utilities
 {
-    internal class PeerMulticastFinder:IDisposable
+    internal class PeerMulticastFinder : IDisposable
     {
         /// <inheritdoc />
         public PeerMulticastFinder()
@@ -14,7 +16,39 @@ namespace Mssc.TransportProtocols.Utilities
             MulticastSocket = new Socket(AddressFamily.InterNetwork,
                 SocketType.Dgram,
                 ProtocolType.Udp);
-            MulticastAddress = IPAddress.Parse("224.169.52.69");
+            MulticastAddress = IPAddress.Parse("224.168.100.2");
+        }
+
+        /// <summary>
+        /// 寻找局域网设备
+        /// </summary>
+        public void FindPeer()
+        {
+            // 实际是反过来，让其他设备询问
+
+            StartMulticast();
+
+            var ipList = GetLocalIpList().ToList();
+            var message = string.Join(';',ipList);
+            SendBroadcastMessage(message);
+            // 先发送再获取消息，这样就不会收到自己发送的消息
+            ReceivedMessage += (s, e) => { Console.WriteLine($"找到 {e}"); };
+        }
+
+        /// <summary>
+        /// 获取本地 IP 地址
+        /// </summary>
+        /// <returns></returns>
+        private IEnumerable<IPAddress> GetLocalIpList()
+        {
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (var ip in host.AddressList)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    yield return ip;
+                }
+            }
         }
 
         /// <summary>
@@ -49,11 +83,15 @@ namespace Mssc.TransportProtocols.Utilities
             Task.Run(ReceiveBroadcastMessages);
         }
 
+        /// <summary>
+        /// 收到消息
+        /// </summary>
+        public event EventHandler<string> ReceivedMessage;
+
         private void ReceiveBroadcastMessages()
         {
             // 接收需要绑定 MulticastPort 端口
             var bytes = new byte[MaxByteLength];
-            var groupEndPoint = new IPEndPoint(MulticastAddress, MulticastPort);
             EndPoint remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
             try
@@ -62,9 +100,7 @@ namespace Mssc.TransportProtocols.Utilities
                 {
                     var length = MulticastSocket.ReceiveFrom(bytes, ref remoteEndPoint);
 
-                    Console.WriteLine("Received broadcast from {0} :\n {1}\n",
-                        groupEndPoint,
-                        Encoding.UTF8.GetString(bytes, 0, length));
+                    OnReceivedMessage(Encoding.UTF8.GetString(bytes, 0, length));
                 }
             }
             catch (Exception e)
@@ -73,7 +109,11 @@ namespace Mssc.TransportProtocols.Utilities
             }
         }
 
-        public void BroadcastMessage(string message)
+        /// <summary>
+        /// 发送组播
+        /// </summary>
+        /// <param name="message"></param>
+        public void SendBroadcastMessage(string message)
         {
             try
             {
@@ -100,7 +140,7 @@ namespace Mssc.TransportProtocols.Utilities
             }
         }
 
-        private const int MulticastPort = 56095;
+        private const int MulticastPort = 11000;
 
         private Socket MulticastSocket { get; }
 
@@ -125,6 +165,7 @@ namespace Mssc.TransportProtocols.Utilities
         private const int MaxByteLength = 1024;
 
         #region IDisposable Support
+
         private bool disposedValue = false; // 要检测冗余调用
 
         private void Dispose(bool disposing)
@@ -137,20 +178,28 @@ namespace Mssc.TransportProtocols.Utilities
 
                 MulticastSocket.Dispose();
 
+                ReceivedMessage = null;
+                MulticastAddress = null;
 
                 disposedValue = true;
             }
         }
-
-      
 
         // 添加此代码以正确实现可处置模式。
         public void Dispose()
         {
             // 请勿更改此代码。将清理代码放入以上 Dispose(bool disposing) 中。
             Dispose(true);
-             GC.SuppressFinalize(this);
+            GC.SuppressFinalize(this);
         }
+
         #endregion
+
+        private void OnReceivedMessage(string e)
+        {
+            ReceivedMessage?.Invoke(this, e);
+        }
+
+        
     }
 }

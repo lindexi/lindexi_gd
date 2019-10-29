@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 
@@ -187,26 +188,30 @@ namespace Mssc.TransportProtocols.Utilities
 
         public static void Main(String[] args)
         {
-            var peerMulticastFinder = new PeerMulticastFinder();
+            //var peerMulticastFinder = new PeerMulticastFinder();
 
-            peerMulticastFinder.StartMulticast();
+            //peerMulticastFinder.StartMulticast();
 
-            //peerMulticastFinder.JoinMulticastGroup();
+            //Task.Run(async () =>
+            //{
+            //    var n = 0;
+            //    while (true)
+            //    {
+            //        n++;
+            //        peerMulticastFinder.SendBroadcastMessage(Environment.UserName + $" {n}");
+            //        await Task.Delay(1000);
+            //    }
+            //});
 
-            Task.Run(async () =>
-            {
-                var n = 0;
-                while (true)
-                {
-                    n++;
-                    peerMulticastFinder.BroadcastMessage(Environment.UserName + $" {n}");
-                    await Task.Delay(1000);
-                }
-            });
+            //peerMulticastFinder.ReceivedMessage += (s, e) => Console.WriteLine(e);
 
-            Console.Read();
+            ////peerMulticastFinder.FindPeer();
 
-            return;
+            ////Console.WriteLine("等待设备上线");
+
+            //Console.Read();
+
+            //return;
 
 
             // Initialize the multicast address group and multicast port.
