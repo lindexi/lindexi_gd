@@ -16,7 +16,7 @@ namespace Mssc.TransportProtocols.Utilities
             MulticastSocket = new Socket(AddressFamily.InterNetwork,
                 SocketType.Dgram,
                 ProtocolType.Udp);
-            MulticastAddress = IPAddress.Parse("224.168.100.2");
+            MulticastAddress = IPAddress.Parse("230.138.100.2");
         }
 
         /// <summary>
@@ -53,8 +53,18 @@ namespace Mssc.TransportProtocols.Utilities
 
         /// <summary>
         /// 组播地址
+        /// <para/>
+        /// 224.0.0.0～224.0.0.255为预留的组播地址（永久组地址），地址224.0.0.0保留不做分配，其它地址供路由协议使用；
+        /// <para/>
+        /// 224.0.1.0～224.0.1.255是公用组播地址，可以用于Internet；
+        /// <para/>
+        /// 224.0.2.0～238.255.255.255为用户可用的组播地址（临时组地址），全网范围内有效；
+        /// <para/>
+        /// 239.0.0.0～239.255.255.255为本地管理组播地址，仅在特定的本地范围内有效。
         /// </summary>
         public IPAddress MulticastAddress { set; get; }
+
+        private const int MulticastPort = 15003;
 
         /// <summary>
         /// 启动组播
@@ -69,7 +79,7 @@ namespace Mssc.TransportProtocols.Utilities
                 // Define a MulticastOption object specifying the multicast group 
                 // address and the local IPAddress.
                 // The multicast group address is the same as the address used by the server.
-                var multicastOption = new MulticastOption(MulticastAddress, IPAddress.Any);
+                var multicastOption = new MulticastOption(MulticastAddress, IPAddress.Parse("172.18.134.16"));
 
                 MulticastSocket.SetSocketOption(SocketOptionLevel.IP,
                     SocketOptionName.AddMembership,
@@ -140,7 +150,6 @@ namespace Mssc.TransportProtocols.Utilities
             }
         }
 
-        private const int MulticastPort = 11000;
 
         private Socket MulticastSocket { get; }
 

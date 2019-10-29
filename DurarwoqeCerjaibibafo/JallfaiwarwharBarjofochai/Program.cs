@@ -188,30 +188,30 @@ namespace Mssc.TransportProtocols.Utilities
 
         public static void Main(String[] args)
         {
-            //var peerMulticastFinder = new PeerMulticastFinder();
+            var peerMulticastFinder = new PeerMulticastFinder();
 
-            //peerMulticastFinder.StartMulticast();
+            peerMulticastFinder.StartMulticast();
 
-            //Task.Run(async () =>
-            //{
-            //    var n = 0;
-            //    while (true)
-            //    {
-            //        n++;
-            //        peerMulticastFinder.SendBroadcastMessage(Environment.UserName + $" {n}");
-            //        await Task.Delay(1000);
-            //    }
-            //});
+            Task.Run(async () =>
+            {
+                var n = 0;
+                while (true)
+                {
+                    n++;
+                    peerMulticastFinder.SendBroadcastMessage(Environment.UserName + $" {n}");
+                    await Task.Delay(1000);
+                }
+            });
 
-            //peerMulticastFinder.ReceivedMessage += (s, e) => Console.WriteLine(e);
+            peerMulticastFinder.ReceivedMessage += (s, e) => Console.WriteLine(e);
 
-            ////peerMulticastFinder.FindPeer();
+            //peerMulticastFinder.FindPeer();
 
-            ////Console.WriteLine("等待设备上线");
+            //Console.WriteLine("等待设备上线");
 
-            //Console.Read();
+            Console.Read();
 
-            //return;
+            return;
 
 
             // Initialize the multicast address group and multicast port.
