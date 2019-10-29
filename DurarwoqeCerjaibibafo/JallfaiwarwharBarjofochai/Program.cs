@@ -23,7 +23,7 @@ namespace Mssc.TransportProtocols.Utilities
 {
     class PeerMulticastFinder
     {
-        private const int MulticastPort = 11002;
+        private const int MulticastPort = 56095;
 
         /// <inheritdoc />
         public PeerMulticastFinder()
@@ -31,7 +31,7 @@ namespace Mssc.TransportProtocols.Utilities
             MulticastSocket = new Socket(AddressFamily.InterNetwork,
                 SocketType.Dgram,
                 ProtocolType.Udp);
-            MulticastAddress = IPAddress.Parse("224.168.100.2");
+            MulticastAddress = IPAddress.Parse("224.169.52.69");
         }
 
         private Socket MulticastSocket { get; }
@@ -48,6 +48,7 @@ namespace Mssc.TransportProtocols.Utilities
         {
             try
             {
+                // 如果首次绑定失败，那么将无法接收，但是可以发送
                 TryBindSocket();
 
                 // Define a MulticastOption object specifying the multicast group 
@@ -83,10 +84,13 @@ namespace Mssc.TransportProtocols.Utilities
             }
         }
 
+        private const int MaxByteLength = 1024;
+
         public void ReceiveBroadcastMessages()
         {
+            // 接收需要绑定 MulticastPort 端口
             bool done = false;
-            byte[] bytes = new byte[1024];
+            byte[] bytes = new byte[MaxByteLength];
             IPEndPoint groupEndPoint = new IPEndPoint(MulticastAddress, MulticastPort);
             EndPoint remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
@@ -116,7 +120,21 @@ namespace Mssc.TransportProtocols.Utilities
             try
             {
                 var endPoint = new IPEndPoint(MulticastAddress, MulticastPort);
-                MulticastSocket.SendTo(Encoding.UTF8.GetBytes(message), endPoint);
+                var byteList = Encoding.UTF8.GetBytes(message);
+
+                if (byteList.Length > MaxByteLength)
+                {
+                    throw new ArgumentException($"传入 message 转换为 byte 数组长度太长，不能超过{MaxByteLength}字节")
+                    {
+                        Data =
+                        {
+                            { "message", message },
+                            { "byteList", byteList }
+                        }
+                    };
+                }
+
+                MulticastSocket.SendTo(byteList, endPoint);
             }
             catch (Exception e)
             {
@@ -238,7 +256,7 @@ namespace Mssc.TransportProtocols.Utilities
                 LocalIpAddress = localIPAddr;
 
                 //IPAddress localIP = IPAddress.Any;
-                EndPoint localEP = (EndPoint) new IPEndPoint(localIPAddr, mcastPort);
+                EndPoint localEP = (EndPoint)new IPEndPoint(localIPAddr, mcastPort);
 
                 mcastSocket.Bind(localEP);
 
@@ -264,7 +282,7 @@ namespace Mssc.TransportProtocols.Utilities
             bool done = false;
             byte[] bytes = new Byte[100];
             IPEndPoint groupEP = new IPEndPoint(mcastAddress, mcastPort);
-            EndPoint remoteEP = (EndPoint) new IPEndPoint(IPAddress.Any, 0);
+            EndPoint remoteEP = (EndPoint)new IPEndPoint(IPAddress.Any, 0);
 
             try
             {
