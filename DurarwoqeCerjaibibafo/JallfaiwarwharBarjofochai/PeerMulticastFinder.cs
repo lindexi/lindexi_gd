@@ -57,9 +57,6 @@ namespace Mssc.TransportProtocols.Utilities
             {
                 while (!disposedValue)
                 {
-                    Console.WriteLine("Waiting for multicast packets.......");
-                    Console.WriteLine("Enter ^C to terminate.");
-
                     var length = MulticastSocket.ReceiveFrom(bytes, ref remoteEndPoint);
 
                     Console.WriteLine("Received broadcast from {0} :\n {1}\n",
