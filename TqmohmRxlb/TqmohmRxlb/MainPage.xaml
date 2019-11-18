@@ -16,8 +16,9 @@
 
         <Grid x:Name="Grid2" Margin="10,10,10,10" Width="100" Background="#565656" HorizontalAlignment="Right" 
               PointerReleased="Grid2_OnPointerReleased"
+              GotFocus="Grid2_OnGotFocus"
               KeyDown="Grid2_OnKeyDown">
-            <local:Foo x:Name="Foo"></local:Foo>
+            <local:Foo x:Name="Foo" LostFocus="Foo_OnLostFocus"></local:Foo>
         </Grid>
 
     </Grid>

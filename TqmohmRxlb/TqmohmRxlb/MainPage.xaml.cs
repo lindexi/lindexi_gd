@@ -43,6 +43,16 @@ namespace TqmohmRxlb
         {
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => { Foo.Focus(FocusState.Keyboard); });
         }
+
+        private void Grid2_OnGotFocus(object sender, RoutedEventArgs e)
+        {
+            Debug.WriteLine("Grid2 focus");
+        }
+
+        private void Foo_OnLostFocus(object sender, RoutedEventArgs e)
+        {
+            Debug.WriteLine($"lost focus {FocusManager.GetFocusedElement()}");
+        }
     }
 
     class Foo : Control
