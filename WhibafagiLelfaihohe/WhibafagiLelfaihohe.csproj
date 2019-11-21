@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>netcoreapp3.1;net45</TargetFrameworks>
+  </PropertyGroup>
+
+  <Target Name="Foo" BeforeTargets="DispatchToInnerBuilds">
+  	<Warning Text="Foo"></Warning>
+  </Target>
+
+</Project>
