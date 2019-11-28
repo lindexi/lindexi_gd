@@ -8,7 +8,20 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
+    <Page.Resources>
+        <DataTemplate x:Key="Template1" >
+            <local:Template1 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></local:Template1>
+        </DataTemplate>
+        <DataTemplate x:Key="Template2"  >
+            <local:Template2 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></local:Template2>
+        </DataTemplate>
 
+        <local:ItemTemplateSelector x:Key="ItemTemplateSelector"
+                                   Template1="{StaticResource Template1}"
+                                   Template2="{StaticResource Template2}">
+
+        </local:ItemTemplateSelector>
+    </Page.Resources>
 
     <Grid>
         <GridView HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
@@ -22,19 +35,5 @@
         </GridView>
     </Grid>
 
-    <Page.Resources>
-        <local:ItemTemplateSelector x:Key="ItemTemplateSelector"
-                                   Template1="{StaticResource Template1}"
-                                   Template2="{StaticResource Template2}">
-
-        </local:ItemTemplateSelector>
-
-        <DataTemplate x:Key="Template1" >
-            <local:Template1 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></local:Template1>
-        </DataTemplate>
-        <DataTemplate x:Key="Template2"  >
-            <local:Template2 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></local:Template2>
-        </DataTemplate>
-    </Page.Resources>
 
 </Page>
