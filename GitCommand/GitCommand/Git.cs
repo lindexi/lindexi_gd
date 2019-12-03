@@ -127,30 +127,30 @@ namespace dotnetCampus.GitCommand
 
             bool exited = false;
 
-            // 超时
-            Task.Run(() =>
-            {
-                Task.Delay(TimeSpan.FromMinutes(1)).ContinueWith(_ =>
-                {
-                    if (exited)
-                    {
-                        return;
-                    }
+            //// 超时
+            //Task.Run(() =>
+            //{
+            //    Task.Delay(TimeSpan.FromMinutes(1)).ContinueWith(_ =>
+            //    {
+            //        if (exited)
+            //        {
+            //            return;
+            //        }
 
-                    try
-                    {
-                        if (!p.HasExited)
-                        {
-                            Console.WriteLine($"{str} 超时");
-                            p.Kill();
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e);
-                    }
-                });
-            });
+            //        try
+            //        {
+            //            if (!p.HasExited)
+            //            {
+            //                Console.WriteLine($"{str} 超时");
+            //                p.Kill();
+            //            }
+            //        }
+            //        catch (Exception e)
+            //        {
+            //            Console.WriteLine(e);
+            //        }
+            //    });
+            //});
 
             //获取cmd窗口的输出信息
             string output = p.StandardOutput.ReadToEnd();
@@ -166,7 +166,7 @@ namespace dotnetCampus.GitCommand
             //    line = reader.ReadLine();
             //}
 
-            p.WaitForExit(); //等待程序执行完退出进程
+            p.WaitForExit(TimeSpan.FromMinutes(1).Milliseconds); //等待程序执行完退出进程
             p.Close();
 
             exited = true;

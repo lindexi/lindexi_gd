@@ -1,0 +1,21 @@
+﻿<Window x:Class="HoqawkuwemwajaJalerjanicear.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:HoqawkuwemwajaJalerjanicear"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <local:CustomControl x:Name="Control1">
+            <local:CustomControl.StylusPlugInCollection>
+                <local:StylusPlugIn1 Name="Stylus 1" />
+            </local:CustomControl.StylusPlugInCollection>
+            <local:CustomControl x:Name="Control2">
+                <local:CustomControl.StylusPlugInCollection>
+                    <local:StylusPlugIn1 Name="Stylus 2" />
+                </local:CustomControl.StylusPlugInCollection>
+            </local:CustomControl>
+        </local:CustomControl>
+    </Grid>
+</Window>
