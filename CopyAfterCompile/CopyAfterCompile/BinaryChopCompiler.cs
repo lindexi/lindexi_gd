@@ -34,9 +34,9 @@ namespace CopyAfterCompile
 
         private string ReadLastCommit()
         {
-            if (System.IO.File.Exists(File))
+            if (System.IO.File.Exists(LastCommitFile))
             {
-                return System.IO.File.ReadAllText(File);
+                return System.IO.File.ReadAllText(LastCommitFile);
             }
             else
             {
@@ -44,7 +44,10 @@ namespace CopyAfterCompile
             }
         }
 
-        private const string File = "last commit.txt";
+        /// <summary>
+        /// 存放最后一次提交
+        /// </summary>
+        private const string LastCommitFile = "last commit.txt";
 
         private string _lastCommit;
         private Git _git;
@@ -83,7 +86,7 @@ namespace CopyAfterCompile
         private void SaveLastCommit(string commit)
         {
             _lastCommit = commit;
-            System.IO.File.WriteAllText(File, commit);
+            System.IO.File.WriteAllText(LastCommitFile, commit);
         }
 
         private void MoveFile(string commit)
