@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CopyAfterCompile
 {
-    class Compiler
+    class Compiler : ICompiler
     {
         public DirectoryInfo Directory { get; }
 

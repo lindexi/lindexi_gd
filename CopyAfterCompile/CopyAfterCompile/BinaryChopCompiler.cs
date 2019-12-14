@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using dotnetCampus.GitCommand;
@@ -11,22 +12,30 @@ namespace CopyAfterCompile
     class BinaryChopCompiler
     {
         /// <inheritdoc />
-        public BinaryChopCompiler(DirectoryInfo directory, DirectoryInfo targetDirectory,
-            DirectoryInfo outputDirectory = null)
+        public BinaryChopCompiler(DirectoryInfo codeDirectory,
+            DirectoryInfo targetDirectory,
+            DirectoryInfo outputDirectory = null,
+            string originBranch = null,
+            ICompiler compiler = null)
         {
-            Directory = directory;
+            CodeDirectory = codeDirectory;
             TargetDirectory = targetDirectory;
 
-            var git = new Git(directory);
+            if (!string.IsNullOrEmpty(originBranch))
+            {
+                OriginBranch = originBranch;
+            }
+
+            var git = new Git(codeDirectory);
 
             _git = git;
             _lastCommit = ReadLastCommit();
 
-            Compiler = new Compiler(directory);
+            Compiler = compiler ?? new Compiler(codeDirectory);
 
             if (outputDirectory is null)
             {
-                outputDirectory = new DirectoryInfo(Path.Combine(directory.FullName, "bin"));
+                outputDirectory = new DirectoryInfo(Path.Combine(codeDirectory.FullName, "bin"));
             }
 
             OutputDirectory = outputDirectory;
@@ -50,25 +59,25 @@ namespace CopyAfterCompile
         private const string LastCommitFile = "last commit.txt";
 
         private string _lastCommit;
-        private Git _git;
+        private readonly Git _git;
 
         public string OriginBranch { get; } = "dev";
 
-        private Compiler Compiler { get; }
+        private ICompiler Compiler { get; }
 
         /// <summary>
         /// 移动到的文件夹，编译完成将输出移动到这个文件夹
         /// </summary>
         public DirectoryInfo TargetDirectory { get; }
 
-        public DirectoryInfo Directory { get; }
+        public DirectoryInfo CodeDirectory { get; }
 
         /// <summary>
         /// 输出文件夹
         /// </summary>
         public DirectoryInfo OutputDirectory { get; }
 
-        public void Compile()
+        public void CompileAllCommitAndCopy()
         {
             var commitList = GetCommitList().Reverse().ToList();
 
@@ -76,6 +85,7 @@ namespace CopyAfterCompile
             {
                 Console.WriteLine($"开始 {commit} 二分");
                 CleanDirectory(commit);
+
                 Compiler.Compile();
                 MoveFile(commit);
 
