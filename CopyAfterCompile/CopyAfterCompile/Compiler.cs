@@ -1,38 +1,55 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using dotnetCampus.Configurations;
 
 namespace CopyAfterCompile
 {
-    class Compiler : ICompiler
+    /// <summary>
+    /// 编译器
+    /// </summary>
+    public class Compiler : ICompiler
     {
-        public DirectoryInfo Directory { get; }
+        public IAppConfigurator AppConfigurator => CopyAfterCompile.AppConfigurator.GetAppConfigurator();
+
+        public CompileConfiguration CompileConfiguration => AppConfigurator.Of<CompileConfiguration>();
 
         /// <inheritdoc />
-        public Compiler(DirectoryInfo directory)
+        public Compiler()
         {
-            Directory = directory;
+            var fileSniff = new FileSniff();
+            fileSniff.Sniff();
         }
 
-        public void Compile()
+        public virtual void Compile()
         {
             Console.WriteLine($"开始编译");
             Console.WriteLine(Command("dotnet build"));
         }
 
-        private string Command(string str)
+        /// <summary>
+        /// 执行命令
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="workingDirectory">工作路径默认为代码文件夹</param>
+        /// <returns></returns>
+        protected string Command(string str, string workingDirectory = "")
         {
             // string str = Console.ReadLine();
             //System.Console.InputEncoding = System.Text.Encoding.UTF8;//乱码
+
+            if (string.IsNullOrEmpty(workingDirectory))
+            {
+                workingDirectory = CompileConfiguration.CodeDirectory;
+            }
 
             Process p = new Process
             {
                 StartInfo =
                 {
                     FileName = "cmd.exe",
-                    WorkingDirectory = Directory.FullName,
+                    WorkingDirectory = workingDirectory,
                     UseShellExecute = false, //是否使用操作系统shell启动
                     RedirectStandardInput = true, //接受来自调用程序的输入信息
                     RedirectStandardOutput = true, //由调用程序获取输出信息
@@ -53,33 +70,6 @@ namespace CopyAfterCompile
             //向标准输入写入要执行的命令。这里使用&是批处理命令的符号，表示前面一个命令不管是否执行成功都执行后面(exit)命令，如果不执行exit命令，后面调用ReadToEnd()方法会假死
             //同类的符号还有&&和||前者表示必须前一个命令执行成功才会执行后面的命令，后者表示必须前一个命令执行失败才会执行后面的命令
 
-            bool exited = false;
-
-            // 超时
-            Task.Run(() =>
-            {
-                Task.Delay(TimeSpan.FromMinutes(1)).ContinueWith(_ =>
-                {
-                    if (exited)
-                    {
-                        return;
-                    }
-
-                    try
-                    {
-                        if (!p.HasExited)
-                        {
-                            Console.WriteLine($"{str} 超时");
-                            p.Kill();
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e);
-                    }
-                });
-            });
-
             //获取cmd窗口的输出信息
             string output = p.StandardOutput.ReadToEnd();
             //Console.WriteLine(output);
@@ -97,7 +87,6 @@ namespace CopyAfterCompile
             p.WaitForExit(); //等待程序执行完退出进程
             p.Close();
 
-            exited = true;
 
             return output + "\r\n";
         }

@@ -31,7 +31,7 @@ namespace CopyAfterCompile
             _git = git;
             _lastCommit = ReadLastCommit();
 
-            Compiler = compiler ?? new Compiler(codeDirectory);
+            Compiler = compiler ?? new Compiler();
 
             if (outputDirectory is null)
             {

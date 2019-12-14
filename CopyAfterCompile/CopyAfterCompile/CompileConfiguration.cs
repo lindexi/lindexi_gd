@@ -1,35 +1,86 @@
 ﻿using System.IO;
+using dotnetCampus.Configurations;
 
 namespace CopyAfterCompile
 {
     /// <summary>
     /// 编译配置
     /// </summary>
-    class CompileConfiguration
+    public class CompileConfiguration : Configuration
     {
-        public FileInfo SlnPath { get; set; }
+        public string SlnPath
+        {
+            set
+            {
+                SetValue(value);
+            }
+            get { return GetString(); }
+        }
 
-        public FileInfo NugetFile { get; set; }
+        public string NugetFile
+        {
+            set
+            {
+                SetValue(value);
+            }
+            get { return GetString(); }
+        }
 
-        public FileInfo MsbuildFile { get; set; }
+        public string MsbuildFile
+        {
+            set
+            {
+                SetValue(value);
+            }
+            get { return GetString(); }
+        }
 
-        public string CurrentCommit { get; set; }
+        public string Vs2019CommunityMsbuild
+        {
+            set
+            {
+                SetValue(value);
+            }
+            get { return GetString(); }
+        }
+
+        public string CurrentCommit
+        {
+            set => SetValue(value);
+            get => GetString();
+        }
 
         /// <summary>
         /// 输出文件夹
         /// </summary>
-        public DirectoryInfo OutputDirectory { get; set; }
+        public string OutputDirectory
+        {
+            set => SetValue(value);
+            get => GetString();
+        }
 
         /// <summary>
         /// 打包输出文件夹
         /// </summary>
-        public DirectoryInfo NupkgDirectory { get; set; }
+        public string NupkgDirectory
+        {
+            set => SetValue(value);
+            get => GetString();
+        }
 
-        public string BuildVersion { get; set; }
+        public string BuildVersion
+        {
+            set => SetValue(value);
+            get => GetString();
+        }
 
         /// <summary>
         /// 代码文件夹
         /// </summary>
-        public DirectoryInfo CodeDirectory { get; set; }
+        public string CodeDirectory
+        {
+            set => SetValue(value);
+            get => GetString();
+        }
     }
 }
