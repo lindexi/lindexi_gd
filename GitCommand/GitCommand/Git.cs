@@ -178,6 +178,15 @@ namespace dotnetCampus.GitCommand
         {
             Control($"checkout {commit}");
         }
+
+        /// <summary>
+        /// 创建新分支
+        /// </summary>
+        /// <param name="branchName"></param>
+        public void CheckoutNewBranch(string branchName)
+        {
+            Control($"checkout -b {branchName}");
+        }
     }
 
     public class GitDiffFile
