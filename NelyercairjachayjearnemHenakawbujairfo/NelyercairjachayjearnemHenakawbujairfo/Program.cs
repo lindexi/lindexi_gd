@@ -9,8 +9,6 @@ namespace NelyercairjachayjearnemHenakawbujairfo
     {
         static void Main(string[] args)
         {
-            //Console.WriteLine($"当前文件夹 {Environment.CurrentDirectory}");
-
             var git = new Git(new DirectoryInfo(Environment.CurrentDirectory));
 
             var randomIdentifier = new RandomIdentifier();
