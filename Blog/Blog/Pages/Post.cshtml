@@ -2,73 +2,16 @@
 @model Blog.Pages.PostModel
 @using Microsoft.AspNetCore.Components;
 
-<div class="header-panel shadow-z-2">
-    <div class="container">
-        <div class="row">
-            <component type="typeof(Header)" render-mode="ServerPrerendered" />
 
-            <div class="col-md-9 col-sm-8 col-xs-12">
-                <div class="row">
-                    <h2 class="blog-title-pro ">
-                        @Model.Blog.Title
-                    </h2>
-                    @*                                          {% if site.allowsearch ==  true %}  *@
-                    @*                                          <div class="col-md-6 col-sm-12 col-xs-12 searchcontrol" id="js-search">  *@
-                    @*                                              <!-- <input class="form-control" type="text" id="js-search__input" placeholder="搜索"> -->  *@
-                    @*                                              <!-- <ul class="search__results" id="js-search__results"></ul> -->  *@
-                    @*                       *@
-                    @*                                              <input class="form-control" type="text" id="search-input" placeholder="搜索">  *@
-                    @*                                              <ul class="search__results" id="results-container"></ul>  *@
-                    @*                                              <script src="{{ site.baseurl }}/js/super-search.js"></script>  *@
-                    @*                                              <script type="text/javascript">  *@
-                    @*                                          SimpleJekyllSearch({  *@
-                    @*                                            searchInput: document.getElementById('search-input'),  *@
-                    @*                                            resultsContainer: document.getElementById('results-container'),  *@
-                    @*                                            json: '{{ site.baseurl }}/search.json',  *@
-                    @*                                            searchResultTemplate: '<li><a href="{url}" title="{desc}">{title}</a></li>',  *@
-                    @*                                            noResultsText: 'No results found',  *@
-                    @*                                            limit: 10,  *@
-                    @*                                            fuzzy: false,  *@
-                    @*                                            exclude: ['Welcome']  *@
-                    @*                                          })  *@
-                    @*                                              </script>  *@
-                    @*                                          </div>  *@
-                    @*                                          {% endif %}  *@
-                </div>
-                <p class="info">
-                    <!-- {% if page.date %}
-                      <span class="time">{{ page.date | date: "%Y-%m-%d %H:%M" }}</span>
-                    {% endif %} -->
-                    @* <span class="categories">分类 </span> *@
-                    @* {% if page.categories.size > 0 %} *@
-                    @* <span class="categories"> *@
-                    @*     {% for category in page.categories %} *@
-                    @*     <a href="{{ site.baseurl }}/category/{{ category }}">{{ category }}</a> *@
-                    @*     {% if forloop.last == false %}, {% endif %} *@
-                    @*     {% endfor %} *@
-                    @* </span> *@
-                    @* {% endif %} *@
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="container main outer">
-    <div class="row">
-        <div class="col-md-3 col-xs-12">
-            @(await Html.RenderComponentAsync<Blog.Pages.SideMenu>(RenderMode.ServerPrerendered))
-        </div>
-        <div class="col-md-9 col-xs-12 full">
+<div class="col-md-9 col-xs-12 full">
 
-            <div class="post-content well" style="word-break: break-all;">
-                <article class="content">
-                    <div class="post">
-                        <component type="typeof(MarkupBlog)" render-mode="ServerPrerendered"
-                                   param-HtmlContent=@Model.HtmlContent />
-                    </div>
-                </article>
+    <div class="post-content well" style="word-break: break-all;">
+        <article class="content">
+            <div class="post">
+                <component type="typeof(MarkupBlog)" render-mode="ServerPrerendered"
+                           param-HtmlContent=@Model.HtmlContent />
             </div>
-        </div>
+        </article>
     </div>
 </div>
 

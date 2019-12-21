@@ -1,0 +1,23 @@
+﻿@page
+@model Blog.Pages.MindModel
+@{
+    ViewData["Title"] = "归档";
+}
+
+<div class="well">
+    <div class="list-group">
+
+        @foreach (var blogExcerptModel in Model.BlogExcerptModelList)
+        {
+            <dd>
+                <div class="posts">
+                    <a href="@blogExcerptModel.Url">@blogExcerptModel.Title</a>
+                    <!-- <span style="float:right">{{ post.date | date:"%Y-%m-%d" }}</span> -->
+                    <div /><br />
+                </div>
+            </dd>
+        }
+        
+    </div>
+</div>
+

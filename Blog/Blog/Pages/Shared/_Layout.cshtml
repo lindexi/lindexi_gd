@@ -5,7 +5,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <title>@ViewBag.Title</title>
-    <link rel="stylesheet" href="/css/bootstrap/bootstrap.min.css" />
+    @* <link rel="stylesheet" href="/css/bootstrap/bootstrap.min.css" /> *@
+    <link href="http://libs.baidu.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/css/bootstrap/bootstrap-material-design.min.css" />
     @* <link rel="stylesheet" href="/css/fontawesome/font-awesome-css.min.css" /> *@
     <link rel="stylesheet" href="/css/main.css" />
@@ -23,8 +24,72 @@
     <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
-    <div>
-        @RenderBody()
+
+    <div class="header-panel shadow-z-2">
+        <div class="container">
+            <div class="row">
+                <component type="typeof(Header)" render-mode="ServerPrerendered" />
+                <div class="col-md-9 col-sm-8 col-xs-12">
+                    <div class="row">
+                        @if (@ViewBag.BlogTitle != null)
+                        {
+                            <h2 class="blog-title-pro ">
+                                @ViewBag.BlogTitle
+                            </h2>
+                        }
+
+                        @*                                          {% if site.allowsearch ==  true %}  *@
+                        @*                                          <div class="col-md-6 col-sm-12 col-xs-12 searchcontrol" id="js-search">  *@
+                        @*                                              <!-- <input class="form-control" type="text" id="js-search__input" placeholder="搜索"> -->  *@
+                        @*                                              <!-- <ul class="search__results" id="js-search__results"></ul> -->  *@
+                        @*                       *@
+                        @*                                              <input class="form-control" type="text" id="search-input" placeholder="搜索">  *@
+                        @*                                              <ul class="search__results" id="results-container"></ul>  *@
+                        @*                                              <script src="{{ site.baseurl }}/js/super-search.js"></script>  *@
+                        @*                                              <script type="text/javascript">  *@
+                        @*                                          SimpleJekyllSearch({  *@
+                        @*                                            searchInput: document.getElementById('search-input'),  *@
+                        @*                                            resultsContainer: document.getElementById('results-container'),  *@
+                        @*                                            json: '{{ site.baseurl }}/search.json',  *@
+                        @*                                            searchResultTemplate: '<li><a href="{url}" title="{desc}">{title}</a></li>',  *@
+                        @*                                            noResultsText: 'No results found',  *@
+                        @*                                            limit: 10,  *@
+                        @*                                            fuzzy: false,  *@
+                        @*                                            exclude: ['Welcome']  *@
+                        @*                                          })  *@
+                        @*                                              </script>  *@
+                        @*                                          </div>  *@
+                        @*                                          {% endif %}  *@
+                    </div>
+                    <p class="info">
+                        <!-- {% if page.date %}
+                      <span class="time">{{ page.date | date: "%Y-%m-%d %H:%M" }}</span>
+                    {% endif %} -->
+                        @* <span class="categories">分类 </span> *@
+                        @* {% if page.categories.size > 0 %} *@
+                        @* <span class="categories"> *@
+                        @*     {% for category in page.categories %} *@
+                        @*     <a href="{{ site.baseurl }}/category/{{ category }}">{{ category }}</a> *@
+                        @*     {% if forloop.last == false %}, {% endif %} *@
+                        @*     {% endfor %} *@
+                        @* </span> *@
+                        @* {% endif %} *@
+                    </p>
+                </div>
+            </div>
+        </div>
     </div>
+<div>
+    <div class="container main outer">
+        <div class="row">
+            <div class="col-md-3 col-xs-12">
+                @(await Html.RenderComponentAsync<Blog.Pages.SideMenu>(RenderMode.ServerPrerendered))
+            </div>
+            <div class="col-md-9 col-xs-12 full">
+                @RenderBody()
+            </div> <!-- end /.col-md-9 -->
+        </div> <!-- end /.row -->
+    </div>
+</div>
 </body>
 </html>

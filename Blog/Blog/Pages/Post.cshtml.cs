@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Reflection;
+using Blog.Data;
 using Blog.Model;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Mvc;
@@ -10,20 +11,36 @@ namespace Blog.Pages
 {
     public class PostModel : PageModel
     {
+        private readonly BlogContext _blogContext;
         public MarkupString HtmlContent { get; private set; }
+
+        public PostModel(BlogContext blogContext)
+        {
+            _blogContext = blogContext;
+        }
 
         public BlogModel Blog { set; get; }
 
-        public IActionResult OnGet([FromRoute]string blogName)
+        public IActionResult OnGet([FromRoute] string blogName)
         {
-            var file = GetBlogFile(blogName);
+            var folder = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "blog");
 
-            if (file is null)
+            blogName = $"/post/{blogName}";
+
+            var blogExcerptModel = _blogContext.BlogExcerptModel.FirstOrDefault(temp => temp.Url == blogName);
+
+
+            if (blogExcerptModel is null)
             {
                 return NotFound();
             }
 
-            var str = System.IO.File.ReadAllText(file.FullName);
+            ViewData["title"] = blogExcerptModel.Title;
+            ViewData["BlogTitle"] = blogExcerptModel.Time;
+
+            var file = Path.Combine(folder, blogExcerptModel.FileName);
+
+            var str = System.IO.File.ReadAllText(file);
 
             str = ParseBlog(str);
 
@@ -50,42 +67,7 @@ namespace Blog.Pages
                 Title = title
             };
 
-            ViewData["title"] = title;
-
             return stringReader.ReadToEnd();
-        }
-
-        private FileInfo GetBlogFile(string blogName)
-        {
-            var folder = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "blog");
-
-            blogName = blogName.Replace(".html", "");
-
-            var fileList = Directory.GetFiles(folder);
-            var file = fileList.FirstOrDefault(temp =>
-              {
-                  var name = Path.GetFileNameWithoutExtension(temp);
-                  if (name == blogName)
-                  {
-                      return true;
-                  }
-
-                  name = name.Replace("#", "");
-                  if (name == blogName)
-                  {
-                      return true;
-                  }
-
-                  name = name.Replace(" ", "-");
-                  if (name == blogName)
-                  {
-                      return true;
-                  }
-
-                  return false;
-              });
-
-            return !string.IsNullOrEmpty(file) ? new FileInfo(file) : null;
         }
     }
 }

@@ -9,6 +9,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using Blog.Data;
 
 namespace Blog
 {
@@ -25,6 +27,15 @@ namespace Blog
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
+
+            services.AddDbContext<BlogContext>(options =>
+                    options.UseInMemoryDatabase("blog"));
+
+            using (var buildServiceProvider = services.BuildServiceProvider())
+            {
+                var blogContext = buildServiceProvider.GetService<BlogContext>();
+                blogContext.Init();
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
