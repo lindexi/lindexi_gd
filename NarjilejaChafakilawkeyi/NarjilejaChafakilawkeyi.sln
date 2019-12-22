@@ -11,11 +11,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NarjilejaChafakilawkeyi.iOS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NarjilejaChafakilawkeyi.UWP", "NarjilejaChafakilawkeyi\NarjilejaChafakilawkeyi.UWP\NarjilejaChafakilawkeyi.UWP.csproj", "{0E8FDB7F-A36D-404B-8CC8-8D8BA943B438}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NarjilejaChafakilawkeyi.Wasm", "NarjilejaChafakilawkeyi\NarjilejaChafakilawkeyi.Wasm\NarjilejaChafakilawkeyi.Wasm.csproj", "{8D252272-EB5C-43B3-A9D5-7EBDD7AFACDB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NarjilejaChafakilawkeyi.Wasm", "NarjilejaChafakilawkeyi\NarjilejaChafakilawkeyi.Wasm\NarjilejaChafakilawkeyi.Wasm.csproj", "{8D252272-EB5C-43B3-A9D5-7EBDD7AFACDB}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		NarjilejaChafakilawkeyi\NarjilejaChafakilawkeyi.Shared\NarjilejaChafakilawkeyi.Shared.projitems*{0e8fdb7f-a36d-404b-8cc8-8d8ba943b438}*SharedItemsImports = 4
+		NarjilejaChafakilawkeyi\NarjilejaChafakilawkeyi.Shared\NarjilejaChafakilawkeyi.Shared.projitems*{53096c25-3787-4b66-b186-81f1edda769e}*SharedItemsImports = 4
 		NarjilejaChafakilawkeyi\NarjilejaChafakilawkeyi.Shared\NarjilejaChafakilawkeyi.Shared.projitems*{6279c845-92f8-4333-ab99-3d213163593c}*SharedItemsImports = 13
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
