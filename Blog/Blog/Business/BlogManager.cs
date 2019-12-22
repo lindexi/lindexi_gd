@@ -18,9 +18,14 @@ namespace Blog.Business
             Logger = logger;
         }
 
+        private string GetBlogFolder()
+        {
+            return Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "blog");
+        }
+
         public void UpdateBlog()
         {
-            var folder = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "blog");
+            var folder = GetBlogFolder();
 
             BlogContext.BlogExcerptModel.RemoveRange(BlogContext.BlogExcerptModel);
 
@@ -96,5 +101,10 @@ namespace Blog.Business
 
         public BlogContext BlogContext { get; }
         public ILogger<BlogManager> Logger { get; }
+
+        public string GetBlog(string fileName)
+        {
+            return Path.Combine(GetBlogFolder(), fileName);
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Reflection;
+using Blog.Business;
 using Blog.Data;
 using Blog.Model;
 using Microsoft.AspNetCore.Components;
@@ -14,12 +15,14 @@ namespace Blog.Pages
     public class PostModel : PageModel
     {
         private readonly BlogContext _blogContext;
+        private readonly BlogManager _blogManager;
         private readonly IConfiguration _configuration;
         public MarkupString HtmlContent { get; private set; }
 
-        public PostModel(BlogContext blogContext, IConfiguration configuration)
+        public PostModel(BlogContext blogContext, BlogManager blogManager, IConfiguration configuration)
         {
             _blogContext = blogContext;
+            _blogManager = blogManager;
             _configuration = configuration;
         }
 
@@ -27,8 +30,6 @@ namespace Blog.Pages
 
         public IActionResult OnGet([FromRoute] string blogName)
         {
-            var folder = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "blog");
-
             var url = $"/post/{blogName}";
 
             var blogExcerptModel = _blogContext.BlogExcerptModel.FirstOrDefault(temp => temp.Url == url);
@@ -45,7 +46,7 @@ namespace Blog.Pages
                 ViewData["title"] = blogExcerptModel.Title;
                 ViewData["BlogTitle"] = blogExcerptModel.Title;
 
-                var file = Path.Combine(folder, blogExcerptModel.FileName);
+                var file = _blogManager.GetBlog(blogExcerptModel.FileName);
 
                 var str = System.IO.File.ReadAllText(file);
 
