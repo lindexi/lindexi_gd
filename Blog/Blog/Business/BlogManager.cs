@@ -6,15 +6,18 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Blog.Data;
 using Blog.Model;
+using dotnetCampus.GitCommand;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Blog.Business
 {
     public class BlogManager
     {
-        public BlogManager(BlogContext blogContext, ILogger<BlogManager> logger)
+        public BlogManager(BlogContext blogContext, IConfiguration configuration, ILogger<BlogManager> logger)
         {
             BlogContext = blogContext;
+            Configuration = configuration;
             Logger = logger;
         }
 
@@ -23,9 +26,35 @@ namespace Blog.Business
             return Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "blog");
         }
 
+        private void DownloadBlog(string folder)
+        {
+            var blogGitUrl = Configuration["BlogGitUrl"];
+
+            var blogGitBranch = Configuration["BlogGitBranch"];
+
+            if (string.IsNullOrEmpty(blogGitBranch))
+            {
+                blogGitBranch = "master";
+            }
+
+            Logger.LogInformation($"开始从 {blogGitUrl} 下载 {blogGitBranch} 分支博客");
+
+            if (Directory.Exists(folder))
+            {
+                var git = new Git(new DirectoryInfo(folder));
+                git.FetchAll();
+                git.Checkout($"origin/{blogGitBranch}");
+            }
+            else
+            {
+            }
+        }
+
         public void UpdateBlog()
         {
             var folder = GetBlogFolder();
+
+            DownloadBlog(folder);
 
             BlogContext.BlogExcerptModel.RemoveRange(BlogContext.BlogExcerptModel);
 
@@ -100,6 +129,7 @@ namespace Blog.Business
         }
 
         public BlogContext BlogContext { get; }
+        public IConfiguration Configuration { get; }
         public ILogger<BlogManager> Logger { get; }
 
         public string GetBlog(string fileName)
