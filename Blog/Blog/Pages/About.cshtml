@@ -1,7 +1,9 @@
 ﻿@page
+@using Microsoft.Extensions.Configuration
 @model Blog.AboutModel
+@inject IConfiguration Configuration;
 @{
-    ViewData["Title"] = "林德熙的博客";
+    ViewData["Title"] = Configuration["Title"];
 }
 
 

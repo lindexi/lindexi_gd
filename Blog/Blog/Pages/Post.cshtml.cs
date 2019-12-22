@@ -7,17 +7,20 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Configuration;
 
 namespace Blog.Pages
 {
     public class PostModel : PageModel
     {
         private readonly BlogContext _blogContext;
+        private readonly IConfiguration _configuration;
         public MarkupString HtmlContent { get; private set; }
 
-        public PostModel(BlogContext blogContext)
+        public PostModel(BlogContext blogContext, IConfiguration configuration)
         {
             _blogContext = blogContext;
+            _configuration = configuration;
         }
 
         public BlogModel Blog { set; get; }
@@ -33,7 +36,7 @@ namespace Blog.Pages
 
             if (blogExcerptModel is null)
             {
-                ViewData["title"] = "林德熙的博客";
+                ViewData["title"] = _configuration["Title"];
                 // lang=html
                 HtmlContent = new MarkupString(@"<h3>找不到这篇博客</h3>");
             }
@@ -52,7 +55,7 @@ namespace Blog.Pages
 
                 HtmlContent = new MarkupString(html);
             }
-         
+
 
             return Page();
         }

@@ -67,7 +67,7 @@ namespace Blog.Controllers
             var xmlString = $@"<?xml version=""1.0"" encoding=""UTF-8""?>
 <rss version=""2.0"" xmlns:atom=""http://www.w3.org/2005/Atom"">
   <channel>
-    <title>林德熙的博客</title>
+    <title>{_configuration["Title"]}</title>
     <description>欢迎小伙伴访问我的博客</description>
     <link>{blogSite}</link>
     <atom:link href=""{blogSite}/feed.xml"" rel=""self"" type=""application/rss+xml""/>
