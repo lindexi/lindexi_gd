@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace YelayqurnereDolibaikaycu
@@ -28,9 +29,16 @@ namespace YelayqurnereDolibaikaycu
 
     class Business
     {
+        public Business()
+        {
+            NumberList = new List<int>(1000);
+        }
+
         public void Do()
         {
             Program.Foo += Do;
         }
+
+        public List<int> NumberList { get; }
     }
 }
