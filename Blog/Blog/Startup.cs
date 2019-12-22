@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Blog.Business;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -27,15 +28,12 @@ namespace Blog
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
+            services.AddServerSideBlazor();
 
             services.AddDbContext<BlogContext>(options =>
                     options.UseInMemoryDatabase("blog"));
 
-            using (var buildServiceProvider = services.BuildServiceProvider())
-            {
-                var blogContext = buildServiceProvider.GetService<BlogContext>();
-                blogContext.Init();
-            }
+            services.AddScoped<BlogManager>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -56,6 +54,7 @@ namespace Blog
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();
             });
+
         }
     }
 }
