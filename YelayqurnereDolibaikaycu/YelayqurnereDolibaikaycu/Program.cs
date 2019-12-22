@@ -31,7 +31,7 @@ namespace YelayqurnereDolibaikaycu
     {
         public Business()
         {
-            NumberList = new List<int>(1000);
+            NumberList = new BusinessNumber(1000);
         }
 
         public void Do()
@@ -39,6 +39,13 @@ namespace YelayqurnereDolibaikaycu
             Program.Foo += Do;
         }
 
-        public List<int> NumberList { get; }
+        public BusinessNumber NumberList { get; }
+    }
+
+    class BusinessNumber : List<int>
+    {
+        public BusinessNumber(int capacity) : base(capacity)
+        {
+        }
     }
 }
