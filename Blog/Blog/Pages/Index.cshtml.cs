@@ -10,18 +10,12 @@ namespace Blog.Pages
 {
     public class IndexModel : PageModel
     {
-        public IndexModel(BlogContext blogContext)
+        public IndexModel()
         {
-            _blogContext = blogContext;
         }
-
-        public List<BlogExcerptModel> BlogExcerptModelList { get; } = new List<BlogExcerptModel>();
 
         public void OnGet()
         {
-            BlogExcerptModelList.AddRange(_blogContext.BlogExcerptModel.Take(10));
         }
-
-        private readonly BlogContext _blogContext;
     }
 }

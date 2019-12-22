@@ -220,6 +220,11 @@ ul.pager {
 .pager li.active a {
     background: rgba(126, 126, 126, 0.3);
 }
+
+.pager li > a, .pager li > span {
+    border-radius: 0px;
+}
+
 /** Search input **/
 .searchcontrol {
     margin-top: 35px;
@@ -291,3 +296,4 @@ ul.pager {
     bottom: 0;
     max-width: 1000px;
 }
+

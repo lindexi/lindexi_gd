@@ -12,6 +12,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using Blog.Data;
+using Microsoft.AspNetCore.Http;
 
 namespace Blog
 {
@@ -28,6 +29,7 @@ namespace Blog
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
+
             services.AddServerSideBlazor();
 
             services.AddDbContext<BlogContext>(options =>
@@ -52,6 +54,7 @@ namespace Blog
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapRazorPages();
+                
                 endpoints.MapControllers();
             });
 

@@ -5,6 +5,7 @@ using Blog.Data;
 using Blog.Model;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Blog.Pages
@@ -25,28 +26,33 @@ namespace Blog.Pages
         {
             var folder = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "blog");
 
-            blogName = $"/post/{blogName}";
+            var url = $"/post/{blogName}";
 
-            var blogExcerptModel = _blogContext.BlogExcerptModel.FirstOrDefault(temp => temp.Url == blogName);
+            var blogExcerptModel = _blogContext.BlogExcerptModel.FirstOrDefault(temp => temp.Url == url);
 
 
             if (blogExcerptModel is null)
             {
-                return NotFound();
+                ViewData["title"] = "林德熙的博客";
+                // lang=html
+                HtmlContent = new MarkupString(@"<h3>找不到这篇博客</h3>");
             }
+            else
+            {
+                ViewData["title"] = blogExcerptModel.Title;
+                ViewData["BlogTitle"] = blogExcerptModel.Title;
 
-            ViewData["title"] = blogExcerptModel.Title;
-            ViewData["BlogTitle"] = blogExcerptModel.Time;
+                var file = Path.Combine(folder, blogExcerptModel.FileName);
 
-            var file = Path.Combine(folder, blogExcerptModel.FileName);
+                var str = System.IO.File.ReadAllText(file);
 
-            var str = System.IO.File.ReadAllText(file);
+                str = ParseBlog(str);
 
-            str = ParseBlog(str);
+                var html = Markdig.Markdown.ToHtml(str);
 
-            var html = Markdig.Markdown.ToHtml(str);
-
-            HtmlContent = new MarkupString(html);
+                HtmlContent = new MarkupString(html);
+            }
+         
 
             return Page();
         }

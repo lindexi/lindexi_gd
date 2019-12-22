@@ -4,64 +4,8 @@
     ViewData["Title"] = "林德熙博客";
 }
 
-<div class="well">
-    <div class="list-group">
+<component type="typeof(BlogPage)" render-mode="ServerPrerendered"
+           param-PageNumber=1 />
 
-        @foreach (var blogExcerptModel in Model.BlogExcerptModelList)
-        {
-            <div class="list-group-item">
-                <div class="row-content">
-                    <h4 class="list-group-item-heading"><a href="@blogExcerptModel.Url">@blogExcerptModel.Title</a></h4>
-                    <!-- <p style="font-size: 0.8em">{{ post.date | date: "%Y-%m-%d %H:%M" }}</p> -->
-                    <p class="list-group-item-text">@blogExcerptModel.Excerpt</p>
-                </div>
-            </div>
-            <div class="list-group-separator"></div>
-        }
-
-
-    </div>
-
-
-    @* <!-- Pagination links --> *@
-    @* $1${% if paginator.total_pages > 1 %}#1# *@
-    @* <ul class="pager"> *@
-    @*     $1${% if paginator.previous_page %}#1# *@
-    @*     <li class="previous"> *@
-    @*         <a href="{{ paginator.previous_page_path | prepend: site.baseurl | replace: '//', '/' }}">←</a> *@
-    @*     </li> *@
-    @*     {% else %} *@
-    @*     <li class="previous disabled"><span aria-hidden="true">←</span></li> *@
-    @*     {% endif %} *@
-    @* *@
-    @*     {% for page in (1..paginator.total_pages) %} *@
-    @*     {% if page == paginator.page %} *@
-    @*     <li class="active"> *@
-    @*         <a>{{ page }}<span class="sr-only">(current)</span></a> *@
-    @*     </li> *@
-    @*     {% elsif page == 1 %} *@
-    @*     <li><a href="/">{{ page }}</a></li> *@
-    @*     {% else %} *@
-    @*     <li> *@
-    @*         <a href="{{ site.paginate_path | prepend: site.baseurl | replace: '//', '/' | replace: ':num', page }}">{{ page }}</a> *@
-    @*     </li> *@
-    @*     {% endif %} *@
-    @*     {% endfor %} *@
-    @* *@
-    @*     {% if paginator.next_page %} *@
-    @*     <li class="next"> *@
-    @*         <a href="{{ paginator.next_page_path | prepend: site.baseurl | replace: '//', '/' }}">→</a> *@
-    @*     </li> *@
-    @*     {% else %} *@
-    @*     <li class="next disabled"><span>→</span></li> *@
-    @*     {% endif %} *@
-    @* </ul> *@
-    @* {% endif %} *@
-</div>
-<div class="row">
-    <div class="col-md-12 col-xs-12 footer">
-        @* {% include footer.html %} *@
-    </div>
-</div>
 
 

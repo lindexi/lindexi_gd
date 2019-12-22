@@ -1,0 +1,9 @@
+﻿@page "/blog/page/{PageNumber:int}"
+@model Blog.Pages.BlogHexoModel
+@{
+    ViewData["Title"] = "林德熙博客";
+}
+
+<component type="typeof(BlogPage)" render-mode="ServerPrerendered"
+           param-PageNumber=@Model.PageNumber />
+
