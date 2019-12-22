@@ -1,0 +1,54 @@
+﻿@page "/counter"
+
+@using Blog.Model
+@using Microsoft.AspNetCore.Mvc.RazorPages;
+@using Microsoft.AspNetCore.Mvc;
+
+@*<input class="form-control" type="search" id="search-input" placeholder="搜索"
+           style="margin-right: 100px;" @bind="@SearchTerm" value="@SearchTerm" />
+
+    <button onclick="HandleMyPropertyChange">Click</button>*@
+
+<input @bind="SearchTerm" />
+
+<button class="btn btn-primary" @onclick="UpdateHeading">
+            Update heading
+        </button>
+
+        @code {
+            private void UpdateHeading()
+            {
+            }
+        }
+
+
+@code
+{
+    private void HandleMyPropertyChange()
+    {
+        SearchTerm = "123";
+    }
+
+    private string _searchTerm = "12";
+
+    [BindProperty]
+    public string SearchTerm
+    {
+        get { return _searchTerm; }
+        set { _searchTerm = value; Search(); }
+    }
+
+    private void Search()
+    {
+        Console.WriteLine("SearchTerm");
+    }
+
+    [Parameter]
+    public List<BlogExcerptModel> BlogExcerptModelList { set; get; }
+
+    private void OnSearchTextChanged()
+    {
+
+    }
+
+}
