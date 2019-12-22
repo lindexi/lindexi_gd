@@ -1,8 +1,12 @@
 ﻿@page
+@using System.Runtime.CompilerServices
 @model Blog.Pages.MindModel
 @{
     ViewData["Title"] = "归档";
 }
+
+@*<input class="form-control" type="text" id="search-input" placeholder="搜索" 
+       style="margin-right: 100px;" />*@
 
 <div class="well">
     <div class="list-group">
@@ -16,8 +20,9 @@
                     <div /><br />
                 </div>
             </dd>
+
         }
-        
+
     </div>
 </div>
 
