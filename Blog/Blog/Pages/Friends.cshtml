@@ -1,7 +1,8 @@
-﻿@page "/post/{blogName}"
-@model Blog.Pages.PostModel
-@using Microsoft.AspNetCore.Components;
-
+﻿@page
+@model Blog.Pages.FriendsModel
+@{
+    ViewData["Title"] = "朋友和收藏";
+}
 
 <component type="typeof(MarkupBlog)" render-mode="ServerPrerendered"
            param-HtmlContent=@Model.HtmlContent />
