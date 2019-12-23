@@ -47,6 +47,7 @@ namespace Blog.Business
             }
             else
             {
+                Git.Clone(blogGitUrl, new DirectoryInfo(folder));
             }
         }
 

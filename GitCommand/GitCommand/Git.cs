@@ -59,6 +59,28 @@ namespace dotnetCampus.GitCommand
 
             return File.ReadAllLines(file);
         }
+        public void Clone(string repoUrl)
+        {
+            Control($"clone {repoUrl}");
+        }
+
+        public static Git Clone(string repoUrl, DirectoryInfo directory)
+        {
+            var command = $"clone {repoUrl} \"{directory.FullName}\"";
+            Console.WriteLine(command);
+
+            var git = @"C:\Program Files\Git\bin\git.exe";
+            if (!File.Exists(git))
+            {
+                git = "git";
+            }
+
+            var processStartInfo = new ProcessStartInfo(git, command);
+            var process = Process.Start(processStartInfo);
+            process.WaitForExit((int)TimeSpan.FromMinutes(10).TotalMilliseconds);
+
+            return new Git(directory);
+        }
 
         public void Clean()
         {
@@ -78,7 +100,7 @@ namespace dotnetCampus.GitCommand
         {
             str = FileStr() + str;
             WriteLog(str);
-            str = Command(str);
+            str = Command(str,Repo.FullName);
 
             WriteLog(str);
             return str;
@@ -94,7 +116,7 @@ namespace dotnetCampus.GitCommand
             return string.Format(GitStr, Repo.FullName);
         }
 
-        private string Command(string str)
+        private static string Command(string str,string workingDirectory)
         {
             // string str = Console.ReadLine();
             //System.Console.InputEncoding = System.Text.Encoding.UTF8;//乱码
@@ -104,7 +126,7 @@ namespace dotnetCampus.GitCommand
                 StartInfo =
                 {
                     FileName = "cmd.exe",
-                    WorkingDirectory = Repo.FullName,
+                    WorkingDirectory = workingDirectory,
                     UseShellExecute = false, //是否使用操作系统shell启动
                     RedirectStandardInput = true, //接受来自调用程序的输入信息
                     RedirectStandardOutput = true, //由调用程序获取输出信息
