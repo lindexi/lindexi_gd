@@ -16,7 +16,7 @@ namespace Mssc.TransportProtocols.Utilities
             MulticastSocket = new Socket(AddressFamily.InterNetwork,
                 SocketType.Dgram,
                 ProtocolType.Udp);
-            MulticastAddress = IPAddress.Parse("230.138.100.2");
+            MulticastAddress = IPAddress.Parse("230.139.69.2");
         }
 
         /// <summary>
@@ -25,11 +25,9 @@ namespace Mssc.TransportProtocols.Utilities
         public void FindPeer()
         {
             // 实际是反过来，让其他设备询问
-
             StartMulticast();
 
-            var ipList = GetLocalIpList().ToList();
-            var message = string.Join(';',ipList);
+            var message = LocalIpAddress.ToString();
             SendBroadcastMessage(message);
             // 先发送再获取消息，这样就不会收到自己发送的消息
             ReceivedMessage += (s, e) => { Console.WriteLine($"找到 {e}"); };
@@ -39,7 +37,7 @@ namespace Mssc.TransportProtocols.Utilities
         /// 获取本地 IP 地址
         /// </summary>
         /// <returns></returns>
-        private IEnumerable<IPAddress> GetLocalIpList()
+        public static IEnumerable<IPAddress> GetLocalIpList()
         {
             var host = Dns.GetHostEntry(Dns.GetHostName());
             foreach (var ip in host.AddressList)
@@ -64,7 +62,7 @@ namespace Mssc.TransportProtocols.Utilities
         /// </summary>
         public IPAddress MulticastAddress { set; get; }
 
-        private const int MulticastPort = 15003;
+        public int MulticastPort { set; get; } = 15003;
 
         /// <summary>
         /// 启动组播
@@ -79,7 +77,8 @@ namespace Mssc.TransportProtocols.Utilities
                 // Define a MulticastOption object specifying the multicast group 
                 // address and the local IPAddress.
                 // The multicast group address is the same as the address used by the server.
-                var multicastOption = new MulticastOption(MulticastAddress, IPAddress.Parse("172.18.134.16"));
+                // 有多个 IP 时，指定本机的 IP 地址，此时可以接收到具体的内容
+                var multicastOption = new MulticastOption(MulticastAddress, LocalIpAddress);
 
                 MulticastSocket.SetSocketOption(SocketOptionLevel.IP,
                     SocketOptionName.AddMembership,
@@ -106,7 +105,7 @@ namespace Mssc.TransportProtocols.Utilities
 
             try
             {
-                while (!disposedValue)
+                while (!_disposedValue)
                 {
                     var length = MulticastSocket.ReceiveFrom(bytes, ref remoteEndPoint);
 
@@ -150,6 +149,7 @@ namespace Mssc.TransportProtocols.Utilities
             }
         }
 
+        public IPAddress LocalIpAddress { set; get; } = IPAddress.Any;
 
         private Socket MulticastSocket { get; }
 
@@ -159,7 +159,7 @@ namespace Mssc.TransportProtocols.Utilities
             {
                 try
                 {
-                    EndPoint localEndPoint = new IPEndPoint(IPAddress.Any, i);
+                    EndPoint localEndPoint = new IPEndPoint(LocalIpAddress, i);
 
                     MulticastSocket.Bind(localEndPoint);
                     return;
@@ -175,11 +175,11 @@ namespace Mssc.TransportProtocols.Utilities
 
         #region IDisposable Support
 
-        private bool disposedValue = false; // 要检测冗余调用
+        private bool _disposedValue = false; // 要检测冗余调用
 
         private void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!_disposedValue)
             {
                 if (disposing)
                 {
@@ -190,7 +190,7 @@ namespace Mssc.TransportProtocols.Utilities
                 ReceivedMessage = null;
                 MulticastAddress = null;
 
-                disposedValue = true;
+                _disposedValue = true;
             }
         }
 
@@ -208,7 +208,5 @@ namespace Mssc.TransportProtocols.Utilities
         {
             ReceivedMessage?.Invoke(this, e);
         }
-
-        
     }
 }
