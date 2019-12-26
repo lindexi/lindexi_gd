@@ -7,16 +7,50 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 
-namespace KeahelnawwalyoNelwerchaje
+namespace KeahelnawwalyoNelwerchaje.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class PeerController : ControllerBase
     {
-        public PeerController(NodeContext context,ILogger<PeerController> logger)
+        public PeerController(NodeContext context, ILogger<PeerController> logger)
         {
             _context = context;
             _logger = logger;
+        }
+
+        [HttpGet]
+        [Route("Device")]
+        public IActionResult GetDevice()
+        {
+            var ipList = new Dictionary<string, List<Node>>();
+
+            foreach (var node in _context.Node)
+            {
+                if (ipList.ContainsKey(node.MainIp))
+                {
+                    ipList[node.MainIp].Add(node);
+                }
+                else
+                {
+                    ipList[node.MainIp] = new List<Node>() { node };
+                }
+            }
+
+            var deviceList = new List<Device>();
+            foreach (var nodeList in ipList)
+            {
+                var device = new Device()
+                {
+                    MainIp = nodeList.Key,
+                    NodeList = nodeList.Value
+                };
+                device.DeviceCount = device.NodeList.Count;
+
+                deviceList.Add(device);
+            }
+
+            return Ok(deviceList);
         }
 
         [HttpGet("{localIp}")]

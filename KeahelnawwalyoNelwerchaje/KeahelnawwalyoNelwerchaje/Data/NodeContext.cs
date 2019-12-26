@@ -14,6 +14,14 @@ namespace KeahelnawwalyoNelwerchaje.Models
         {
         }
 
+        /// <inheritdoc />
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Node>().HasIndex(temp => temp.MainIp);
+
+            base.OnModelCreating(modelBuilder);
+        }
+
         public DbSet<KeahelnawwalyoNelwerchaje.Node> Node { get; set; }
     }
 }
