@@ -89,11 +89,12 @@ namespace Blog.Controllers
         }
 
 
-        [HttpGet]
+        [HttpPost]
         [Route("update")]
-        public void UpdateBlog()
+        public IActionResult UpdateBlog()
         {
             _blogManager.UpdateBlog();
+            return Ok();
         }
 
         // GET: api/Blog
