@@ -4,6 +4,7 @@ using System.Linq;
 using KeahelnawwalyoNelwerchaje.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 
 namespace KeahelnawwalyoNelwerchaje
@@ -12,9 +13,10 @@ namespace KeahelnawwalyoNelwerchaje
     [ApiController]
     public class PeerController : ControllerBase
     {
-        public PeerController(NodeContext context)
+        public PeerController(NodeContext context,ILogger<PeerController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         [HttpGet("{localIp}")]
@@ -38,6 +40,8 @@ namespace KeahelnawwalyoNelwerchaje
 
             var node = nodeList.FirstOrDefault(temp => temp.LocalIp == localIp);
 
+            _logger.LogInformation($"访问 ip={ip} 本地地址 {localIp} 局域网设备 {nodeList.Count}");
+
             if (node != null)
             {
                 _context.Node.Remove(node);
@@ -57,6 +61,7 @@ namespace KeahelnawwalyoNelwerchaje
         }
 
         private readonly NodeContext _context;
+        private readonly ILogger<PeerController> _logger;
 
         private string GetIp()
         {
