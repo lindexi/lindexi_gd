@@ -1,6 +1,7 @@
-﻿using System;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using Microsoft.DotNet.CodeFormatting;
+using System.Linq;
 
 namespace FealeneredeeJiwinurdejeenel
 {
@@ -8,31 +9,48 @@ namespace FealeneredeeJiwinurdejeenel
     {
         static void Main(string[] args)
         {
-            var file = new FileInfo(@"..\..\..\..\CearfilunemNalnogeenayaiwhem\Program.cs");
-            if (file.Exists)
+            var csporjFile = new FileInfo(@"..\..\..\..\CearfilunemNalnogeenayaiwhem\CearfilunemNalnogeenayaiwhem.csproj");
+            var fileFormatChecker = new FileFormatChecker(new[]
             {
-                var fileFormatChecker = new FileFormatChecker(file);
-                fileFormatChecker.FormatFile();
-            }
+                new FileInfo(@"..\..\..\..\CearfilunemNalnogeenayaiwhem\Program.cs"),
+                new FileInfo(@"..\..\..\..\CearfilunemNalnogeenayaiwhem\LogunolifiHifurcairqe.cs"),
+            }, csporjFile);
+            fileFormatChecker.FormatFile();
         }
     }
 
     public class FileFormatChecker
     {
-        public FileFormatChecker(FileInfo file)
+        public FileFormatChecker(IReadOnlyList<FileInfo> fileList, FileInfo csprojFile)
         {
-            File = file;
+            FileList = fileList;
+            CsprojFile = csprojFile;
         }
 
-        public FileInfo File { get; }
+        public FileInfo CsprojFile { get; }
+
+        public IReadOnlyList<FileInfo> FileList { get; }
 
         /// <summary>
         /// 尝试格式化文件
         /// </summary>
         public void FormatFile()
         {
-            var formattingEngine = FormattingEngine.Create();
+            var fileList = string.Join(",", FileList.Select(file => file.FullName));
 
+            var processStartInfo = new ProcessStartInfo("dotnet")
+            {
+                ArgumentList =
+                {
+                    "format",
+                    "--workspace",
+                    CsprojFile.FullName,
+                    "--files",
+                    fileList
+                }
+            };
+
+            Process.Start(processStartInfo)?.WaitForExit();
         }
     }
 }
