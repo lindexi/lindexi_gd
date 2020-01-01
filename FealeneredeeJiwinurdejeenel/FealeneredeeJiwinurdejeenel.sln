@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29613.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FealeneredeeJiwinurdejeenel", "FealeneredeeJiwinurdejeenel\FealeneredeeJiwinurdejeenel.csproj", "{78B16C1B-2CE2-40CF-BBC1-B6BBD52618C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FealeneredeeJiwinurdejeenel", "FealeneredeeJiwinurdejeenel\FealeneredeeJiwinurdejeenel.csproj", "{78B16C1B-2CE2-40CF-BBC1-B6BBD52618C3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GitCommand", "..\..\..\..\lindexi_gd\GitCommand\GitCommand\GitCommand.csproj", "{FA210727-C883-4E07-B952-3CB7206736F3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GitCommand", "..\GitCommand\GitCommand\GitCommand.csproj", "{FA210727-C883-4E07-B952-3CB7206736F3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CearfilunemNalnogeenayaiwhem", "CearfilunemNalnogeenayaiwhem\CearfilunemNalnogeenayaiwhem.csproj", "{06E035EA-BC31-4720-9B33-5F9D2272B3D2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CearfilunemNalnogeenayaiwhem", "CearfilunemNalnogeenayaiwhem\CearfilunemNalnogeenayaiwhem.csproj", "{06E035EA-BC31-4720-9B33-5F9D2272B3D2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
