@@ -1,0 +1,25 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>服务器发送事件 Server-Sent Events </title>
+</head>
+
+<body>
+
+    <div id="lindexi"></div>
+
+    <script>
+
+        var source = new EventSource("/foo");
+        source.onmessage = function (event) 
+        {
+            document.getElementById("lindexi").innerHTML += event.data + "<br>";
+        };
+
+    </script>
+
+</body>
+
+</html>
