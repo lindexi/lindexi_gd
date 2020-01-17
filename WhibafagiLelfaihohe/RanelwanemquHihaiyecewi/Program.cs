@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace WhibafagiLelfaihohe
+namespace RanelwanemquHihaiyecewi
 {
     class Program
     {
