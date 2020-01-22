@@ -1,0 +1,28 @@
+﻿<Window x:Class="NakacehenaHemqawhearlel.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NakacehenaHemqawhearlel"
+        xmlns:system="clr-namespace:System;assembly=mscorlib"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <avalonEdit:TextEditor
+            xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
+            Name="TextEditor"
+            SyntaxHighlighting="C#"
+            FontFamily="Consolas"
+            FontSize="10pt" 
+            LineNumbersForeground="Black" 
+            ShowLineNumbers="True">
+            <avalonEdit:TextEditor.Options>
+                <avalonEdit:TextEditorOptions ShowSpaces="True" >
+                    <avalonEdit:TextEditorOptions.ColumnRulerPosition>
+                        <system:Int32>10</system:Int32>
+                    </avalonEdit:TextEditorOptions.ColumnRulerPosition>
+                </avalonEdit:TextEditorOptions>
+            </avalonEdit:TextEditor.Options>
+        </avalonEdit:TextEditor>
+    </Grid>
+</Window>
