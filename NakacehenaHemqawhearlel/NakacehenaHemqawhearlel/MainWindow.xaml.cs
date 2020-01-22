@@ -23,6 +23,9 @@ namespace NakacehenaHemqawhearlel
         {
             InitializeComponent();
             TextEditor.TextArea.TextEntered += TextAreaOnTextEntered;
+
+            //TextEditor.Document.Lines[1].
+            
         }
 
         private void TextAreaOnTextEntered(object sender, TextCompositionEventArgs e)
@@ -36,6 +39,9 @@ namespace NakacehenaHemqawhearlel
                 _completionWindow.Show();
 
                 _completionWindow.Closed += (o, args) => _completionWindow = null;
+            }
+            else if(e.Text == "\n")
+            {
             }
         }
 

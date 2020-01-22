@@ -11,13 +11,13 @@
         <avalonEdit:TextEditor
             xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
             Name="TextEditor"
-            SyntaxHighlighting="C#"
+            SyntaxHighlighting="XML"
             FontFamily="Consolas"
             FontSize="10pt" 
             LineNumbersForeground="Black" 
             ShowLineNumbers="True">
             <avalonEdit:TextEditor.Options>
-                <avalonEdit:TextEditorOptions ShowSpaces="True" >
+                <avalonEdit:TextEditorOptions ShowSpaces="True" WordWrapIndentation="4" InheritWordWrapIndentation="true">
                     <avalonEdit:TextEditorOptions.ColumnRulerPosition>
                         <system:Int32>10</system:Int32>
                     </avalonEdit:TextEditorOptions.ColumnRulerPosition>
