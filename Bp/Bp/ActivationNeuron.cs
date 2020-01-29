@@ -37,7 +37,11 @@ namespace Bp
             Threshold = RandRange.GetRan();
         }
 
-        // 计算神经元的输出
+        /// <summary>
+        /// 计算神经元的输出
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override double Compute(double[] input)
         {
             if (input.Length != InputsCount)
@@ -55,108 +59,4 @@ namespace Bp
             return output;
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
