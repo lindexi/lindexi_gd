@@ -1,4 +1,6 @@
-﻿namespace Bp
+﻿using System;
+
+namespace Bp
 {
     public class SigmoidFunction : IActivationFunction
     {
