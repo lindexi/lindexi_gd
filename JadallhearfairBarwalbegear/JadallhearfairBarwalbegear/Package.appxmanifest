@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  xmlns:desktop2="http://schemas.microsoft.com/appx/manifest/desktop/windows10/2"
+  IgnorableNamespaces="uap rescap">
+
+  <Identity
+    Name="c43c1e0b-58c6-4c73-b705-2c75cea6965f"
+    Publisher="CN=lindexi"
+    Version="1.0.11.0" />
+
+  <Properties>
+    <DisplayName>JadallhearfairBarwalbegear</DisplayName>
+    <PublisherDisplayName>linde</PublisherDisplayName>
+    <Logo>Images\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.0.0" MaxVersionTested="10.0.0.0" />
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.14393.0" MaxVersionTested="10.0.14393.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="x-generate"/>
+  </Resources>
+
+  <Applications>
+    <Application Id="App"
+      Executable="$targetnametoken$.exe"
+      EntryPoint="$targetentrypoint$">
+      <uap:VisualElements
+        DisplayName="JadallhearfairBarwalbegear"
+        Description="JadallhearfairBarwalbegear"
+        BackgroundColor="transparent"
+        Square150x150Logo="Images\Square150x150Logo.png"
+        Square44x44Logo="Images\Square44x44Logo.png">
+        <uap:DefaultTile Wide310x150Logo="Images\Wide310x150Logo.png" />
+        <uap:SplashScreen Image="Images\SplashScreen.png" />
+      </uap:VisualElements>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <Capability Name="internetClient" />
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+
+    <Extensions>
+        <desktop2:Extension Category="windows.firewallRules">
+            <desktop2:FirewallRules Executable="DalljalfonafearBairyekeregu\NarhedeachawhearWeargijawgowe.exe">
+                <desktop2:Rule Direction="in" IPProtocol="TCP" Profile="all"/>
+                <desktop2:Rule Direction="in" IPProtocol="UDP"
+                               Profile="all"/>
+                <desktop2:Rule Direction="out"
+                               IPProtocol="TCP"
+                               Profile="all"/>
+                <desktop2:Rule Direction="out"
+                               IPProtocol="UDP"
+                               Profile="all"/>
+            </desktop2:FirewallRules>
+        </desktop2:Extension>
+    </Extensions>
+</Package>
