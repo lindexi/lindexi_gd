@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29613.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RanelwanemquHihaiyecewi", "RanelwanemquHihaiyecewi\RanelwanemquHihaiyecewi.csproj", "{4ADE41E7-084F-40B9-8F71-31FC9613BB05}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LembowulalHiwhemjercurherwejem", "LembowulalHiwhemjercurherwejem\LembowulalHiwhemjercurherwejem.csproj", "{AD2D2C65-2FC8-4FE5-AD24-C81E8384D3FA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4ADE41E7-084F-40B9-8F71-31FC9613BB05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4ADE41E7-084F-40B9-8F71-31FC9613BB05}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4ADE41E7-084F-40B9-8F71-31FC9613BB05}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4ADE41E7-084F-40B9-8F71-31FC9613BB05}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD2D2C65-2FC8-4FE5-AD24-C81E8384D3FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD2D2C65-2FC8-4FE5-AD24-C81E8384D3FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD2D2C65-2FC8-4FE5-AD24-C81E8384D3FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD2D2C65-2FC8-4FE5-AD24-C81E8384D3FA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4527408B-6495-497C-BA38-42B596E8AE2E}
+	EndGlobalSection
+EndGlobal

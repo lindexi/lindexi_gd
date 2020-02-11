@@ -1,0 +1,10 @@
+﻿@page
+@model Blog.Pages.FriendsModel
+@{
+    ViewData["Title"] = "朋友和收藏";
+}
+
+<component type="typeof(MarkupBlog)" render-mode="ServerPrerendered"
+           param-HtmlContent=@Model.HtmlContent />
+
+

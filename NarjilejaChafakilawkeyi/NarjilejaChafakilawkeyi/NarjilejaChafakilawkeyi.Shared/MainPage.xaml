@@ -1,0 +1,79 @@
+﻿<Page
+    x:Class="NarjilejaChafakilawkeyi.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:NarjilejaChafakilawkeyi"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <!--<ColumnDefinition Width="*" />-->
+            </Grid.ColumnDefinitions>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+
+                <Grid>
+                    <!-- 列表项目 -->
+                    <ListView x:Name="ToolItem" SelectionChanged="ToolItem_OnSelectionChanged"
+                              IsMultiSelectCheckBoxEnabled="False">
+                        <TextBlock x:Name="ColorConvertText" Text="颜色转换" />
+                        <TextBlock x:Name="DecimalConvertText" Text="进制转换" />
+                        <TextBlock x:Name="Base64ConvertText" Text="base64转换" />
+                        <TextBlock x:Name="WhitmanConvertText" Text="随机命名" />
+                    </ListView>
+                </Grid>
+
+                <Grid Grid.Column="1">
+                    <AutoSuggestBox x:Name="GotoSuggestBox" PlaceholderText="输入功能名快速跳转"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    Width="200">
+                        <AutoSuggestBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" />
+                            </DataTemplate>
+                        </AutoSuggestBox.ItemTemplate>
+                    </AutoSuggestBox>
+
+                    <Grid x:Name="ColorConvertGrid" Visibility="Collapsed">
+                        <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <StackPanel>
+                                <Border x:Name="ColorBorder" BorderThickness="1" BorderBrush="Black"
+                                        Width="200" Height="30"
+                                        Background="#FF000000" />
+                                <TextBox x:Name="ColorText" Margin="10,10,10,10" Header="请输入颜色值"
+                                         PlaceholderText="FF000000"
+                                         Text="FF000000" SelectionStart="0"
+                                         SelectionLength="8"
+                                         TextChanged="ColorText_OnTextChanged" />
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+
+                    <Grid x:Name="DecimalConvertGrid" Visibility="Collapsed">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBox x:Name="DecimalText" Margin="10,10,10,10" Header="10进制" Width="200"
+                                     TextChanged="DecimalText_OnTextChanged" />
+                            <TextBox x:Name="HexText" Margin="10,10,10,10" Header="16进制"
+                                     Width="200"
+                                     TextChanged="HexText_OnTextChanged" />
+                            <TextBox x:Name="OctalText" Margin="10,10,10,10"
+                                     Header="8进制" Width="200"
+                                     TextChanged="OctalText_OnTextChanged" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid x:Name="Base64ConvertGrid" Visibility="Collapsed" />
+
+                    <Grid x:Name="WhitmanGrid" Visibility="Collapsed" />
+                </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</Page>

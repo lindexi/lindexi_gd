@@ -1,0 +1,13 @@
+﻿@page "/"
+@using Microsoft.Extensions.Configuration
+@model Blog.Pages.IndexModel
+@inject IConfiguration Configuration;
+@{
+    ViewData["Title"] = Configuration["Title"];
+}
+
+<component type="typeof(BlogPage)" render-mode="ServerPrerendered"
+           param-PageNumber=1 />
+
+
+

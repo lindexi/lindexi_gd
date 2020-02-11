@@ -340,3 +340,17 @@ ASALocalRun/
 healthchecksdb
 /ZelsolarlicoLinarmalne/.cov
 /MooperekemStalbo/MooperekemStalbo/wwwroot/Package
+/Blog/Blog/Properties/launchSettings.json
+.vscode
+/RohafearyowheLewechairhalde/JicewalcereyemlalHeryoducugafe/wwwroot/managed
+
+/unity/*/[Ll]ibrary/
+/unity/*/[Tt]emp/
+/unity/*/[Oo]bj/
+/unity/*/[Bb]uild/
+/unity/*/[Bb]uilds/
+/unity/*/[Pp]rojectSettings/ProjectVersion.txt
+/unity/*/Assets/AssetStoreTools*
+*.pidb.meta
+*.apk
+*.unitypackage

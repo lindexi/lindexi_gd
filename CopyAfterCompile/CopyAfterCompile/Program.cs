@@ -17,6 +17,7 @@ namespace CopyAfterCompile
 
             var git = new Git(directory);
             var logCommit = git.GetLogCommit();
+
         }
     }
 

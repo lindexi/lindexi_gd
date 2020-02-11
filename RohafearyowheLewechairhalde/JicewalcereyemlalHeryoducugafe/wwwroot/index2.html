@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<!-- Required meta tags -->
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+	<!-- Bootstrap CSS -->
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.0/css/bootstrap.min.css"
+		integrity="sha384-SI27wrMjH3ZZ89r4o+fGIJtnzkAnFs3E4qz9DIYioCQ5l9Rd/7UAa8DHcaL8jkWt" crossorigin="anonymous">
+
+	<title>Hello, Mono WASM!</title>
+</head>
+
+<body>
+	<div class="container">
+		<h1>Hello, world!</h1>
+
+		<form>
+			<div class="form-group">
+				<label for="output">Output from C#:</label>
+				<textarea class="form-control" id="output" rows="10"></textarea>
+			</div>
+
+			<div class="form-group">
+				<button class="btn btn-primary" type="button" id="button" onclick="App.onClick">Run WASM, Run!</button>
+			</div>
+		</form>
+	</div>
+
+	<script type='text/javascript'>
+		let that = this;
+		var App = 
+		{
+			onClick: function () {
+
+				console.log(document.getElementById("output").value);
+				
+				that.output.value = that.execute(document.getElementById("output").value);
+			},
+
+			init: function () {
+				that.execute = Module.mono_bind_static_method("[Example] YadernawcoLofeleabe.Example:Hello");
+				that.output = document.getElementById("output");
+				that.button = document.getElementById("button");
+
+				that.button.disabled = false;
+			}
+		};		
+		document.getElementById("button").addEventListener("click",App.onClick);
+		document.body.addEventListener("load", App.init);
+	</script>
+	<script type="text/javascript" src="./mono-config.js"></script>
+	<script type="text/javascript" src="./runtime.js"></script>
+	<script async type="text/javascript" src="./dotnet.js"></script>	
+</body>
+
+</html>
