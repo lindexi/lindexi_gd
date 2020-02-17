@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap2="http://schemas.microsoft.com/appx/manifest/uap/windows10/2"
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+  IgnorableNamespaces="uap mp">
+
+  <Identity
+    Name="54ed5e19-a0af-43b7-8cc0-6b65ac14101b"
+    Publisher="CN=linde"
+    Version="1.0.0.0" />
+
+  <mp:PhoneIdentity PhoneProductId="54ed5e19-a0af-43b7-8cc0-6b65ac14101b" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+
+  <Properties>
+    <DisplayName>NoweenanemkoGefefenaijel</DisplayName>
+    <PublisherDisplayName>linde</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.0.0" MaxVersionTested="10.0.0.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="x-generate"/>
+  </Resources>
+
+  <Applications>
+    <Application Id="App"
+      Executable="$targetnametoken$.exe"
+      EntryPoint="NoweenanemkoGefefenaijel.App">
+      <uap:VisualElements
+        DisplayName="NoweenanemkoGefefenaijel"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png"
+        Description="NoweenanemkoGefefenaijel"
+        BackgroundColor="transparent">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"/>
+        <uap:SplashScreen Image="Assets\SplashScreen.png" />
+      </uap:VisualElements>
+      <Extensions>
+        <uap3:Extension Category="windows.fileTypeAssociation">
+          <uap3:FileTypeAssociation Name="lindexi">
+            <uap:SupportedFileTypes>
+              <uap:FileType ContentType="foo/foo">.x</uap:FileType>
+            </uap:SupportedFileTypes>
+              <uap2:SupportedVerbs>
+                  <uap3:Verb Id="doubi">逗比</uap3:Verb>
+                  <uap3:Verb Id="Print">林德熙是逗比</uap3:Verb>
+              </uap2:SupportedVerbs>
+            <uap:DisplayName>林德熙逗比</uap:DisplayName>
+            <uap:EditFlags OpenIsSafe="true"/>
+          </uap3:FileTypeAssociation>
+        </uap3:Extension>
+
+      </Extensions>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <Capability Name="internetClient" />
+  </Capabilities>
+</Package>
