@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:d="http://xamarin.com/schemas/2014/forms/design"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             x:Class="JardalllojoHayeajemjuli.MainPage">
+
+    <StackLayout>
+        <StackLayout Margin="10,10,10,10">
+            <Label Text="请输入你的手机号码" />
+            <Editor x:Name="PhotoText" />
+        </StackLayout>
+
+        <Grid>
+            <Button Font="Large" Text="选取PPT文件" HorizontalOptions="Center"
+                    CornerRadius="5"
+                    BackgroundColor="Transparent"
+                    BorderColor="Aquamarine" 
+                    BorderWidth="2">
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroup x:Name="CommonStates">
+                        <VisualState x:Name="Normal">
+                            <VisualState.Setters>
+                                <Setter Property="Scale"
+                                        Value="1" />
+                            </VisualState.Setters>
+                        </VisualState>
+
+                        <VisualState x:Name="Pressed">
+                            <VisualState.Setters>
+                                <Setter Property="Scale"
+                                        Value="0.6" />
+                            </VisualState.Setters>
+                        </VisualState>
+
+                        <VisualState x:Name="Released">
+                            <VisualState.Setters>
+                                <Setter Property="Scale"
+                                        Value="2" />
+                            </VisualState.Setters>
+                        </VisualState>
+                    </VisualStateGroup>
+                </VisualStateManager.VisualStateGroups>
+            </Button>
+        </Grid>
+    </StackLayout>
+
+</ContentPage>
