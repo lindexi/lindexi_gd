@@ -8,13 +8,32 @@
              x:Class="JardalllojoHayeajemjuli.MainPage">
 
     <StackLayout>
-        <StackLayout Margin="10,10,10,10">
-            <Label Text="请输入你的手机号码" />
-            <Editor x:Name="PhotoText" />
-        </StackLayout>
 
         <Grid>
-            <Button Font="Large" Text="选取PPT文件" HorizontalOptions="Center"
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"></RowDefinition>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0">
+                <StackLayout>
+                    <Editor x:Name="N1Text" TextColor="Black" Margin="10,10,10,10" Text="1"></Editor>
+                    <Editor x:Name="N2Text" TextColor="Black" Margin="10,10,10,10" Text="1"></Editor>
+                </StackLayout>
+            </Grid>
+            <Grid Grid.Column="1">
+                <Label Text="=" VerticalOptions="Center"></Label>
+            </Grid>
+            <Grid Grid.Column="2">
+                <Label x:Name="Text" Text="1" VerticalOptions="Center" HorizontalOptions="Start"></Label>
+            </Grid>
+        </Grid>
+        <StackLayout Orientation="Horizontal">
+            <Button Font="Large" Text="训练“或”算法" HorizontalOptions="Center"
+                    Margin="10,10,10,10"
                     CornerRadius="5"
                     BackgroundColor="Transparent"
                     BorderColor="Aquamarine" 
@@ -44,7 +63,18 @@
                     </VisualStateGroup>
                 </VisualStateManager.VisualStateGroups>
             </Button>
-        </Grid>
+
+            <Button Margin="10,10,10,10" Text="计算" CornerRadius="5"
+                    BackgroundColor="Transparent"
+                    BorderColor="Aquamarine" 
+                    BorderWidth="2"
+                    Clicked="Button_OnClicked"></Button>
+        </StackLayout>
+
+        <!--<StackLayout Margin="10,10,10,10">
+            <Label Text="请输入你的手机号码" />
+            <Editor x:Name="PhotoText" />
+        </StackLayout>-->
     </StackLayout>
 
 </ContentPage>
