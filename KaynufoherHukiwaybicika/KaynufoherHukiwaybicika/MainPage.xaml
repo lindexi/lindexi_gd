@@ -12,7 +12,12 @@
         <AppBarButton Margin="10,10,10,10">
             <AppBarButton.Flyout>
                 <Flyout>
-                    <ListView Width="500">
+                    <Flyout.FlyoutPresenterStyle>
+                        <Style TargetType="FlyoutPresenter">
+                            <Setter Property="MinWidth" Value="500"></Setter>
+                        </Style>
+                    </Flyout.FlyoutPresenterStyle>
+                    <ListView >
                         <x:String>Short</x:String>
                         <x:String>Very very very long</x:String>
                         <x:String>Short</x:String>
