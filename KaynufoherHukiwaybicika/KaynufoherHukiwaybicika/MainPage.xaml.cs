@@ -25,17 +25,6 @@ namespace KaynufoherHukiwaybicika
         public MainPage()
         {
             InitializeComponent();
-
-            Text = "foo";
-        }
-
-        public static readonly DependencyProperty TextProperty = DependencyProperty.Register(
-            "Text", typeof(string), typeof(MainPage), new PropertyMetadata(default(string)));
-
-        public string Text
-        {
-            get { return (string) GetValue(TextProperty); }
-            set { SetValue(TextProperty, value); }
         }
     }
 }

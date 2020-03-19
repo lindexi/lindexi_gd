@@ -9,6 +9,21 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid>
-        <TextBox Text="{x:Bind Text}" />
+        <AppBarButton Margin="10,10,10,10">
+            <AppBarButton.Flyout>
+                <Flyout>
+                    <ListView Width="500">
+                        <x:String>Short</x:String>
+                        <x:String>Very very very long</x:String>
+                        <x:String>Short</x:String>
+                        <x:String>Short</x:String>
+                        <x:String>Short</x:String>
+                        <x:String>Short</x:String>
+                        <x:String>Short</x:String>
+                        <x:String>Short</x:String>
+                    </ListView>
+                </Flyout>
+            </AppBarButton.Flyout>
+        </AppBarButton>
     </Grid>
 </Page>
