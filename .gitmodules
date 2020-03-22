@@ -4,3 +4,6 @@
 [submodule "WmTouchDevice"]
 	path = WmTouchDevice
 	url = https://github.com/jaytwo/WmTouchDevice.git
+[submodule "Json实体类驼峰名称转化器/JsonModelConvert"]
+	path = Json实体类驼峰名称转化器/JsonModelConvert
+	url = https://github.com/yinghualuowu/JsonModelConvert.git
