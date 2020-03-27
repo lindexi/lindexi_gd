@@ -14,6 +14,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace Babukeelleneeoai
 {
@@ -26,19 +28,64 @@ namespace Babukeelleneeoai
         {
             InitializeComponent();
 
-            Loaded += MainWindow_Loaded;
         }
 
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        private void Button_OnClick(object sender, RoutedEventArgs e)
         {
-            var encoding = System.Text.Encoding.GetEncodings();
-            foreach (var temp in encoding)
+            // 修改这个路径
+            string fileName = @"c:\path\to\my\file.xlsx";
+
+            using (FileStream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
-                Debug.WriteLine(temp.GetEncoding().EncodingName);
+                using (SpreadsheetDocument doc = SpreadsheetDocument.Open(fs, false))
+                {
+                    WorkbookPart workbookPart = doc.WorkbookPart;
+                    SharedStringTablePart sstpart = workbookPart.GetPartsOfType<SharedStringTablePart>().First();
+                    SharedStringTable sst = sstpart.SharedStringTable;
+
+                    WorksheetPart worksheetPart = workbookPart.WorksheetParts.First();
+                    Worksheet sheet = worksheetPart.Worksheet;
+
+                    var cells = sheet.Descendants<Cell>();
+                    var rows = sheet.Descendants<Row>();
+
+                    Debug.WriteLine("Row count = {0}", rows.LongCount());
+                    Debug.WriteLine("Cell count = {0}", cells.LongCount());
+
+                    // One way: go through each cell in the sheet
+                    foreach (Cell cell in cells)
+                    {
+                        if ((cell.DataType != null) && (cell.DataType == CellValues.SharedString))
+                        {
+                            int ssid = int.Parse(cell.CellValue.Text);
+                            string str = sst.ChildElements[ssid].InnerText;
+                            Debug.WriteLine("Shared string {0}: {1}", ssid, str);
+                        }
+                        else if (cell.CellValue != null)
+                        {
+                            Debug.WriteLine("Cell contents: {0}", cell.CellValue.Text);
+                        }
+                    }
+
+                    // Or... via each row
+                    foreach (Row row in rows)
+                    {
+                        foreach (Cell c in row.Elements<Cell>())
+                        {
+                            if ((c.DataType != null) && (c.DataType == CellValues.SharedString))
+                            {
+                                int ssid = int.Parse(c.CellValue.Text);
+                                string str = sst.ChildElements[ssid].InnerText;
+                                Debug.WriteLine("Shared string {0}: {1}", ssid, str);
+                            }
+                            else if (c.CellValue != null)
+                            {
+                                Debug.WriteLine("Cell contents: {0}", c.CellValue.Text);
+                            }
+                        }
+                    }
+                }
             }
-            var file = new FileInfo("../../MainWindow.xaml.cs");
-            var str = file.FullName;
-            new ConvertFileEncodingPage(file).Show();
         }
     }
 }

@@ -7,3 +7,6 @@
 [submodule "Json实体类驼峰名称转化器/JsonModelConvert"]
 	path = Json实体类驼峰名称转化器/JsonModelConvert
 	url = https://github.com/yinghualuowu/JsonModelConvert.git
+[submodule "ant-design-blazor"]
+	path = ant-design-blazor
+	url = https://gitee.com/ant-design-blazor/ant-design-blazor.git
