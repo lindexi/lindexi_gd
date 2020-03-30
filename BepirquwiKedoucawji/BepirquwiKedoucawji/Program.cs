@@ -23,11 +23,14 @@ namespace BepirquwiKedoucawji
     {
         public string Name { get; } = "林德熙";
         public string Doubi { get; } = "逗比";
+    }
 
-        public void Deconstruct(out string name, out string doubi)
+    static class Extension
+    {
+        public static void Deconstruct(this Lindexi lindexi, out string name, out string doubi)
         {
-            name = Name;
-            doubi = Doubi;
+            name = lindexi.Name;
+            doubi = lindexi.Doubi;
         }
     }
 }
