@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
@@ -13,24 +14,18 @@ namespace BepirquwiKedoucawji
     {
         static void Main(string[] args)
         {
-            var lindexi = new Lindexi();
-            var (name, doubi) = lindexi;
-            Console.WriteLine($"{name} {doubi}");
+            var (name, count) = new List<int>() { 1, 2, 3 };
+            Console.WriteLine($"{name} {count}");
         }
     }
 
-    class Lindexi
-    {
-        public string Name { get; } = "林德熙";
-        public string Doubi { get; } = "逗比";
-    }
 
     static class Extension
     {
-        public static void Deconstruct(this Lindexi lindexi, out string name, out string doubi)
+        public static void Deconstruct(this List<int> list, out string name, out int count)
         {
-            name = lindexi.Name;
-            doubi = lindexi.Doubi;
+            name = string.Join(",", list);
+            count = list.Count;
         }
     }
 }
