@@ -10,3 +10,12 @@
 [submodule "ant-design-blazor"]
 	path = ant-design-blazor
 	url = https://gitee.com/ant-design-blazor/ant-design-blazor.git
+[submodule "CloudFileUriTool"]
+	path = CloudFileUriTool
+	url = https://github.com/Kybs0/CloudFileUriTool.git
+[submodule "dotnet-imgup"]
+	path = dotnet-imgup
+	url = https://github.com/rohith/dotnet-imgup.git
+[submodule "Imageshack"]
+	path = Imageshack
+	url = git@github.com:lindexi/Imageshack.git
