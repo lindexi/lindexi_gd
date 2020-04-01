@@ -5,9 +5,11 @@
     xmlns:local="using:Tool"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:model="using:Tool.Shared.Model"
+    xmlns:view="using:Tool.Shared.View"
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-		<TextBlock Text="Hello, world!" Margin="20" FontSize="30" />
+        <Frame x:Name="MainFrame"></Frame>
     </Grid>
 </Page>
