@@ -30,7 +30,6 @@ namespace Tool
         public MainPage()
         {
             this.InitializeComponent();
-
         }
 
         public MainModel ViewModel { get; } = new MainModel();
@@ -46,7 +45,13 @@ namespace Tool
             MainFrame.Navigate(typeof(NavigatePage));
         }
 
-        public ViewModelPageBind ViewModelPageBind { get; } = new ViewModelPageBind();
+        public ViewModelPageBind ViewModelPageBind { get; } = new ViewModelPageBind
+        (
+            new (string name, Type page, Func<IViewModel> createViewModel)[]
+            {
+                (nameof(NavigatePage), typeof(NavigatePage), () => new NavigateModel())
+            }
+        );
 
         private void ViewModel_OnNavigate(object sender, NavigationPage e)
         {

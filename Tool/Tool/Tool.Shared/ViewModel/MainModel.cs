@@ -21,7 +21,6 @@ namespace Tool.Shared.ViewModel
                 navigateViewModelSensitivity.NavigateViewModel = this;
             }
 
-
             OnNavigate?.Invoke(this,new NavigationPage()
             {
                 PageName = name,
@@ -37,8 +36,6 @@ namespace Tool.Shared.ViewModel
             ViewModelPageBind = (ViewModelPageBind)parameter;
 
             Navigate("NavigatePage", null);
-
-          
         }
 
         public ViewModelPageBind ViewModelPageBind { private set; get; }
