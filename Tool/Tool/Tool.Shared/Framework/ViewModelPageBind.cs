@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using Tool.Shared.Model;
 
 namespace Tool.Shared.Framework
 {
@@ -7,14 +9,15 @@ namespace Tool.Shared.Framework
     {
         public ViewModelPageBind()
         {
+            PageModelList = new ReadOnlyCollection<PageModel>(_pageModelList);
         }
 
-        public ViewModelPageBind(IEnumerable<(string name, Type page, Func<IViewModel> createViewModel)> list)
+        public ViewModelPageBind(IEnumerable<(PageModel name, Type page, Func<IViewModel> createViewModel)> list) : this()
         {
             RegisterPage(list);
         }
 
-        public void RegisterPage(IEnumerable<(string name, Type page, Func<IViewModel> createViewModel)> list)
+        public void RegisterPage(IEnumerable<(PageModel name, Type page, Func<IViewModel> createViewModel)> list)
         {
             foreach (var (name, page, createViewModel) in list)
             {
@@ -22,10 +25,16 @@ namespace Tool.Shared.Framework
             }
         }
 
-        private void RegisterPage(string name, Type page, Func<IViewModel> createViewModel)
+        private void RegisterPage(PageModel name, Type page, Func<IViewModel> createViewModel)
         {
-            ViewModelPageList.Add(name, (page, createViewModel));
+            ViewModelPageList.Add(name.Name, (page, createViewModel));
+
+            _pageModelList.Add(name);
         }
+
+        public IReadOnlyCollection<PageModel> PageModelList { get; }
+
+        private readonly List<PageModel> _pageModelList = new List<PageModel>();
 
         // string name, Type page, Lazy<IViewModel> createViewModel
         private Dictionary<string, (Type page, Func<IViewModel> createViewModel)> ViewModelPageList { get; } = new Dictionary<string, (Type, Func<IViewModel>)>();

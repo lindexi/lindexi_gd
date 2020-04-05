@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
@@ -37,18 +38,6 @@ namespace Tool.Shared.View
         }
 
         public NavigateModel ViewModel { set; get; }
-
-        public ObservableCollection<PageModel> PageList { get; } = new ObservableCollection<PageModel>()
-        {
-            new PageModel()
-            {
-                Name = "Json 属性大小写转换"
-            },
-            new PageModel()
-            {
-                Name = "PPT 单位转换"
-            },
-        };
 
         private void Grid_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {

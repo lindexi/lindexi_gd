@@ -25,7 +25,7 @@
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Model\NavigationModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Model\NavigationPage.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Model\PageModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Framework\PageModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Framework\INavigateViewModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModel\INavigateViewModelSensitivity.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModel\MainModel.cs" />

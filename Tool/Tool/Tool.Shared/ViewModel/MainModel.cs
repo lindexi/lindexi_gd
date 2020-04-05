@@ -35,7 +35,7 @@ namespace Tool.Shared.ViewModel
         {
             ViewModelPageBind = (ViewModelPageBind)parameter;
 
-            Navigate("NavigatePage", null);
+            Navigate("NavigatePage", this);
         }
 
         public ViewModelPageBind ViewModelPageBind { private set; get; }

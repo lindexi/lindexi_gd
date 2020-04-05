@@ -10,13 +10,13 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid>
-        <GridView ItemsSource="{x:Bind PageList}" HorizontalAlignment="Center" 
+        <GridView ItemsSource="{x:Bind ViewModel.PageList,Mode=OneWay}" HorizontalAlignment="Center" 
                   IsMultiSelectCheckBoxEnabled="False"
                   VerticalAlignment="Center" SelectionChanged="Grid_OnSelectionChanged">
             <GridView.ItemTemplate>
                 <DataTemplate x:DataType="model:PageModel">
                     <Grid>
-                        <TextBlock Margin="10,10,10,10" Text="{Binding Name}" HorizontalAlignment="Center"
+                        <TextBlock Margin="10,10,10,10" Text="{Binding Describe}" HorizontalAlignment="Center"
                                    VerticalAlignment="Center" />
                     </Grid>
                 </DataTemplate>

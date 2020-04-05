@@ -32,6 +32,7 @@ namespace Tool
             this.InitializeComponent();
         }
 
+
         public MainModel ViewModel { get; } = new MainModel();
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -41,15 +42,22 @@ namespace Tool
             ViewModel.OnNavigate += ViewModel_OnNavigate;
 
             ViewModel.OnNavigatedTo(ViewModelPageBind);
-
-            MainFrame.Navigate(typeof(NavigatePage));
         }
 
         public ViewModelPageBind ViewModelPageBind { get; } = new ViewModelPageBind
         (
-            new (string name, Type page, Func<IViewModel> createViewModel)[]
+            new (PageModel name, Type page, Func<IViewModel> createViewModel)[]
             {
-                (nameof(NavigatePage), typeof(NavigatePage), () => new NavigateModel())
+                (new PageModel(nameof(NavigatePage)), typeof(NavigatePage), () => new NavigateModel()),
+
+                (new PageModel("JsonPropertyConvertPage")
+                {
+                    Describe = "Json 属性大小写转换"
+                },null,null ),
+                (new PageModel("PptValueConvertPage")
+                {
+                    Describe = "PPT 单位转换"
+                },null,null ),
             }
         );
 
