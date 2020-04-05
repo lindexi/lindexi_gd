@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Cla.GTK": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "Path": "C:\\Program Files (x86)\\GtkSharp\\2.12\\bin"
+      }
+    }
+  }
+}
