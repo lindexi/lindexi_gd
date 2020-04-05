@@ -6,6 +6,7 @@ using System.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+
 // ReSharper disable All
 
 namespace BepirquwiKedoucawji
@@ -14,11 +15,33 @@ namespace BepirquwiKedoucawji
     {
         static void Main(string[] args)
         {
-            var (name, count) = new List<int>() { 1, 2, 3 };
-            Console.WriteLine($"{name} {count}");
+            var type = typeof(F1);
+
+            foreach (var typeCustomAttribute in type.CustomAttributes)
+            {
+                
+            }
         }
     }
 
+    [Foo(kuqairjeabayjairnearKokaneberelefo: "123", ReejajurwhohallRahekaiqaw = "12")]
+    public class F1
+    {
+    }
+
+    class Foo : Attribute
+    {
+        /// <inheritdoc />
+        public Foo(string kuqairjeabayjairnearKokaneberelefo)
+        {
+            KuqairjeabayjairnearKokaneberelefo = kuqairjeabayjairnearKokaneberelefo;
+        }
+
+        public string KuqairjeabayjairnearKokaneberelefo { get; set; }
+
+        public string ReejajurwhohallRahekaiqaw { get; set; } = "123";
+        public string HeenejallqaliFaqeeleha { get; set; } = "123";
+    }
 
     static class Extension
     {
