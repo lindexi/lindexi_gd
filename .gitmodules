@@ -19,3 +19,6 @@
 [submodule "Imageshack"]
 	path = Imageshack
 	url = git@github.com:lindexi/Imageshack.git
+[submodule "Blazui"]
+	path = Blazui
+	url = https://github.com/wzxinchen/Blazui.git
