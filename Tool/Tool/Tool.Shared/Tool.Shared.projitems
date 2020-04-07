@@ -15,10 +15,13 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Annotations.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Core\JsonPropertyConvert_\JsonPropertyConvert.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Framework\IViewModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Framework\ViewModelBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Framework\ViewModelPageBind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
@@ -28,9 +31,17 @@
     <Compile Include="$(MSBuildThisFileDirectory)Framework\PageModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Framework\INavigateViewModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModel\INavigateViewModelSensitivity.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModel\JsonPropertyConvertModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModel\MainModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModel\NavigateModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModel\PptValueConvertModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)View\JsonPropertyConvertPage.xaml.cs">
+      <DependentUpon>$fileinputname$.xaml</DependentUpon>
+    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)View\NavigatePage.xaml.cs">
+      <DependentUpon>$fileinputname$.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)View\PptValueConvertPage.xaml.cs">
       <DependentUpon>$fileinputname$.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
@@ -39,7 +50,15 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="$(MSBuildThisFileDirectory)View\JsonPropertyConvertPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="$(MSBuildThisFileDirectory)View\NavigatePage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="$(MSBuildThisFileDirectory)View\PptValueConvertPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

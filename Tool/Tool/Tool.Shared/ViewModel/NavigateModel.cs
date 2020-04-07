@@ -11,7 +11,7 @@ namespace Tool.Shared.ViewModel
 
         public void OnNavigatedTo(object parameter)
         {
-            NavigateViewModel = (INavigateViewModel) parameter;
+            NavigateViewModel = (INavigateViewModel)parameter;
 
             if (parameter is MainModel mainModel)
             {
@@ -24,6 +24,11 @@ namespace Tool.Shared.ViewModel
                     }
                 }
             }
+        }
+
+        public void Navigate(PageModel pageModel)
+        {
+            NavigateViewModel.Navigate(pageModel.Name, null);
         }
 
         public ObservableCollection<PageModel> PageList { get; } = new ObservableCollection<PageModel>();

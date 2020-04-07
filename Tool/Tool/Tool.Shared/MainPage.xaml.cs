@@ -49,15 +49,14 @@ namespace Tool
             new (PageModel name, Type page, Func<IViewModel> createViewModel)[]
             {
                 (new PageModel(nameof(NavigatePage)), typeof(NavigatePage), () => new NavigateModel()),
-
                 (new PageModel("JsonPropertyConvertPage")
                 {
                     Describe = "Json 属性大小写转换"
-                },null,null ),
+                }, typeof(JsonPropertyConvertPage), () => new JsonPropertyConvertModel()),
                 (new PageModel("PptValueConvertPage")
                 {
                     Describe = "PPT 单位转换"
-                },null,null ),
+                }, typeof(PptValueConvertPage), () => new PptValueConvertModel()),
             }
         );
 
