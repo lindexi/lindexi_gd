@@ -1,15 +1,14 @@
 ﻿<Page
-    x:Class="Tool.MainPage"
+    x:Class="Tool.Shared.View.PptValueConvertPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:Tool"
+    xmlns:local="using:Tool.Shared.View"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:model="using:Tool.Shared.Model"
-    xmlns:view="using:Tool.Shared.View"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <Frame x:Name="MainFrame"></Frame>
+    <Grid>
+
     </Grid>
 </Page>
