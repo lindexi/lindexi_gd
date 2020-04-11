@@ -7,6 +7,7 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        
+        <Button HorizontalAlignment="Center" VerticalAlignment="Center" Content="转换文件"
+                Click="Button_OnClick"/>
     </Grid>
 </Window>

@@ -4,58 +4,38 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BallkowhejallColalljaygairwair"
+        xmlns:system="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
+    <Window.Resources>
+
+    </Window.Resources>
     <Grid>
-        <ScrollViewer ScrollChanged="ScrollViewer_OnScrollChanged">
-            <StackPanel x:Name="StackPanel">
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock x:Name="TextBlock" Text="歪楼"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-                <TextBlock Text="123"></TextBlock>
-            </StackPanel>
-        </ScrollViewer>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        <StackPanel>
+            <TextBlock Margin="10,10,10,10" FontWeight="Bold" Text="没有重写模版" />
+            <Label>Normal Text</Label>
+            <Label>Access _Text</Label>
+            <Label ContentStringFormat="Formatted {0}">Text</Label>
+            <Label ContentStringFormat="Formatted Access {0}">_Text</Label>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1">
+            <StackPanel.Resources>
+                <ResourceDictionary>
+                    <DataTemplate DataType="{x:Type system:String}">
+                        <TextBlock Text="{Binding}" />
+                    </DataTemplate>
+                </ResourceDictionary>
+            </StackPanel.Resources>
+            <TextBlock Margin="10,10,10,10" FontWeight="Bold" Text="重写模版" />
+            <Label>Normal Text</Label>
+            <Label>Access _Text</Label>
+            <Label ContentStringFormat="Formatted {0}">Text</Label>
+            <Label ContentStringFormat="Formatted Access {0}">_Text</Label>
+        </StackPanel>
     </Grid>
 </Window>

@@ -1,8 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+
+// ReSharper disable All
 
 namespace BepirquwiKedoucawji
 {
@@ -10,27 +16,22 @@ namespace BepirquwiKedoucawji
     {
         static void Main(string[] args)
         {
-            List<string> errors = new List<string>();
+            foreach (var temp in WarellereleKeneaberecembe().Reverse())
+            {
+                
+            }
+        }
 
-            List<DateTime> list = JsonConvert.DeserializeObject<List<DateTime>>(@"[
-      '2009-09-09T00:00:00Z',
-      '这是歪楼的',
-      [
-        1
-      ],
-      '1977-02-20T00:00:00Z',
-      null,
-      '2000-12-01T00:00:00Z'
-    ]",
-                new JsonSerializerSettings
-                {
-                    Error = (sender, e) =>
-                    {
-                        errors.Add(e.ErrorContext.Error.Message);
-                        e.ErrorContext.Handled = true;
-                    },
-                    Converters = { new IsoDateTimeConverter() }
-                });
+        private static IEnumerable<int> WarellereleKeneaberecembe()
+        {
+            while (true)
+            {
+                yield return 0;
+            }
         }
     }
+
+   
+
+ 
 }

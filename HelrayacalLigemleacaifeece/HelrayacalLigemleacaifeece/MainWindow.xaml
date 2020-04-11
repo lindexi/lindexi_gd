@@ -1,0 +1,29 @@
+﻿<Window x:Class="HelrayacalLigemleacaifeece.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:HelrayacalLigemleacaifeece"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <local:Foo x:Name="Foo" />
+
+        <TextBlock x:Name="Text" HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
+            <StackPanel.Resources>
+                <Style TargetType="Button">
+                    <Setter Property="Margin" Value="10,10,10,10" />
+                    <Setter Property="Width" Value="100" />
+                    <Setter Property="Height" Value="100" />
+                </Style>
+            </StackPanel.Resources>
+            <Button Content="InvalidateVisual" Click="Button_OnClick" />
+            <Button Content="Show" Click="Show_OnClick" />
+            <Button Content="Collapsed" Click="Collapsed_OnClick" />
+            <Button Content="Hidden" Click="Hidden_OnClick" />
+        </StackPanel>
+
+    </Grid>
+</Window>

@@ -7,11 +7,11 @@
   IgnorableNamespaces="uap mp">
 
   <Identity
-    Name="79785fc3-0cfe-4bd3-af9d-25270d9ff2b4"
+    Name="eb322426-bb14-4381-b732-d1bc88c95592"
     Publisher="CN=linde"
     Version="1.0.0.0" />
 
-  <mp:PhoneIdentity PhoneProductId="79785fc3-0cfe-4bd3-af9d-25270d9ff2b4" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="eb322426-bb14-4381-b732-d1bc88c95592" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
     <DisplayName>CetursearhebirLefelembemki</DisplayName>
