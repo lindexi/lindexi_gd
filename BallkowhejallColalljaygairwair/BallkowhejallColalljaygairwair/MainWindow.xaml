@@ -6,36 +6,8 @@
         xmlns:local="clr-namespace:BallkowhejallColalljaygairwair"
         xmlns:system="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Window.Resources>
-
-    </Window.Resources>
+        Title="欢迎访问我博客 https://blog.lindexi.com/ 里面有大量 UWP WPF 博客" Height="450" Width="800">
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition />
-            <ColumnDefinition />
-        </Grid.ColumnDefinitions>
-        <StackPanel>
-            <TextBlock Margin="10,10,10,10" FontWeight="Bold" Text="没有重写模版" />
-            <Label>Normal Text</Label>
-            <Label>Access _Text</Label>
-            <Label ContentStringFormat="Formatted {0}">Text</Label>
-            <Label ContentStringFormat="Formatted Access {0}">_Text</Label>
-        </StackPanel>
-
-        <StackPanel Grid.Column="1">
-            <StackPanel.Resources>
-                <ResourceDictionary>
-                    <DataTemplate DataType="{x:Type system:String}">
-                        <TextBlock Text="{Binding}" />
-                    </DataTemplate>
-                </ResourceDictionary>
-            </StackPanel.Resources>
-            <TextBlock Margin="10,10,10,10" FontWeight="Bold" Text="重写模版" />
-            <Label>Normal Text</Label>
-            <Label>Access _Text</Label>
-            <Label ContentStringFormat="Formatted {0}">Text</Label>
-            <Label ContentStringFormat="Formatted Access {0}">_Text</Label>
-        </StackPanel>
+        <Canvas x:Name="Canvas" Background="Transparent" MouseDown="Canvas_OnMouseDown"></Canvas>
     </Grid>
 </Window>
