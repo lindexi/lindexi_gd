@@ -2,10 +2,10 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFrameworks>net45;netcoreapp3.0</TargetFrameworks>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <EnableComHosting>true</EnableComHosting>
-  </PropertyGroup>
+  <ItemGroup>
+  	<PackageReference Include="NuGetPackage" Version="1.0.0"/>
+  </ItemGroup>
 </Project>
