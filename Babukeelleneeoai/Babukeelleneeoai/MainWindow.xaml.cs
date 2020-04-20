@@ -16,6 +16,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.StylusInput;
 
 namespace Babukeelleneeoai
 {
@@ -28,6 +29,7 @@ namespace Babukeelleneeoai
         {
             InitializeComponent();
 
+            var realTimeStylus = new RealTimeStylus();
         }
 
         private void Button_OnClick(object sender, RoutedEventArgs e)
@@ -86,6 +88,20 @@ namespace Babukeelleneeoai
                     }
                 }
             }
+        }
+
+        private void Border_TouchDown(object sender, TouchEventArgs e)
+        {
+
+        }
+
+        private void Border_StylusDown(object sender, StylusDownEventArgs e)
+        {
+
+        }
+
+        private void Border_MouseDown(object sender, MouseButtonEventArgs e)
+        {
         }
     }
 }

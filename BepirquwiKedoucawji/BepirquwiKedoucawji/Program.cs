@@ -16,22 +16,9 @@ namespace BepirquwiKedoucawji
     {
         static void Main(string[] args)
         {
-            foreach (var temp in WarellereleKeneaberecembe().Reverse())
-            {
-                
-            }
+            
         }
 
-        private static IEnumerable<int> WarellereleKeneaberecembe()
-        {
-            while (true)
-            {
-                yield return 0;
-            }
-        }
+    
     }
-
-   
-
- 
 }

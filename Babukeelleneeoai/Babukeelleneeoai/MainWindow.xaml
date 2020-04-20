@@ -6,7 +6,13 @@
         xmlns:local="clr-namespace:Babukeelleneeoai"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
+    <!--<WindowChrome.WindowChrome>
+        <WindowChrome />
+    </WindowChrome.WindowChrome>-->
     <Grid>
+        <Border Background="Transparent" TouchDown="Border_TouchDown" StylusDown="Border_StylusDown" MouseDown="Border_MouseDown">
+            
+        </Border>
         <Button HorizontalAlignment="Center" VerticalAlignment="Center" Content="转换文件"
                 Click="Button_OnClick"/>
     </Grid>
