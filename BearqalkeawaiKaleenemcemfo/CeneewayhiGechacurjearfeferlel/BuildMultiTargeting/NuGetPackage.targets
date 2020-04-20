@@ -1,5 +1,0 @@
-﻿<Project>
-    <Target Name="BuildSourceNuGet" AfterTargets="Build">
-        <Message Text="Compile Array @(Compile)"/>
-    </Target>
-</Project>
