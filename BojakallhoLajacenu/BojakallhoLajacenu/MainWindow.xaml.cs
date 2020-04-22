@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -23,6 +24,34 @@ namespace BojakallhoLajacenu
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void Border_OnMouseUp(object sender, MouseButtonEventArgs e)
+        {
+            AddPopup(sender);
+        }
+
+        private void Border_OnMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            AddPopup(sender);
+        }
+
+        private void AddPopup(object sender)
+        {
+            var popup = new Popup
+            {
+                Child = new Border()
+                {
+                    Width = 100,
+                    Height = 100,
+                    Background = Brushes.Gray
+                },
+
+                IsOpen = true,
+                StaysOpen = false,
+                PlacementTarget = (UIElement) sender,
+                Placement = PlacementMode.Center
+            };
         }
     }
 }

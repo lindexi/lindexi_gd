@@ -7,16 +7,12 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <Rectangle>
-            <Rectangle.Fill>
-                <LinearGradientBrush>
-                    <GradientStopCollection>
-                        <GradientStop Color="#FFFFF9BB" Offset="0.000000" />
-                        <GradientStop Color="#FFFCE95F" Offset="0.640000" />
-                        <GradientStop Color="#FFF8AD1C" Offset="1.000000" />
-                    </GradientStopCollection>
-                </LinearGradientBrush>
-            </Rectangle.Fill>
-        </Rectangle>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Border Grid.Row="1" Background="#A6A6A6" MouseUp="Border_OnMouseUp"></Border>
+        <Border Grid.Row="2" Background="#A626AA" MouseDown="Border_OnMouseDown"></Border>
     </Grid>
 </Window>
