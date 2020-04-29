@@ -1,6 +1,7 @@
-﻿using Microsoft.Diagnostics.Runtime;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace BerjearnearheliCallrachurjallhelur
 {
@@ -8,29 +9,38 @@ namespace BerjearnearheliCallrachurjallhelur
     {
         static void Main(string[] args)
         {
-            using (DataTarget dataTarget = DataTarget.LoadCrashDump(@"f:\lindexi\test\dotnet.exe.52348.dmp"))
+            var folder = @"e:\上传\坚果云\回收站\网络课程\Enbx\";
+            var pptFolder = @"e:\上传\坚果云\回收站\网络课程\PPTX\";
+
+            var outputFolder = @"f:\temp\分配的课件任务\";
+
+            var enbxFileList = Directory.GetFiles(folder, "*.enbx", SearchOption.AllDirectories);
+
+            foreach (var file in Directory.GetFiles(pptFolder).Select(temp => new FileInfo(temp)))
             {
-                foreach (ClrInfo version in dataTarget.ClrVersions)
+                var fileName = Path.GetFileNameWithoutExtension(file.FullName);
+
+                var output = Path.Combine(outputFolder, fileName);
+                Directory.CreateDirectory(output);
+
+                var matchFileList = enbxFileList.Where(temp=>temp.Contains(fileName)).ToList();
+                file.CopyTo(Path.Combine(output, file.Name));
+                foreach (var enbxFile in matchFileList)
                 {
-                    Console.WriteLine("Found CLR Version: " + version.Version);
+                    var newEnbxName = fileName + ".enbx";
+                    var newEnbxFile = Path.Combine(output, newEnbxName);
 
-                    // This is the data needed to request the dac from the symbol server:
-                    DacInfo dacInfo = version.DacInfo;
+                    while (File.Exists(newEnbxFile))
+                    {
+                        newEnbxName = "修改版 " + newEnbxName;
+                        newEnbxFile = Path.Combine(output, newEnbxName);
+                    }
 
-                    Console.WriteLine("Filesize:  {0:X}", dacInfo.IndexFileSize);
-                    Console.WriteLine("Timestamp: {0:X}", dacInfo.IndexTimeStamp);
-                    Console.WriteLine("Dac File:  {0}", dacInfo.PlatformSpecificFileName);
-
-                    // If we just happen to have the correct dac file installed on the machine,
-                    // the "LocalMatchingDac" property will return its location on disk:
-                    string dacLocation = version.LocalMatchingDac;
-                    if (!string.IsNullOrEmpty(dacLocation))
-                        Console.WriteLine("Local dac location: " + dacLocation);
-
-                    // You may also download the dac from the symbol server, which is covered
-                    // in a later section of this tutorial.
+                    File.Copy(enbxFile,newEnbxFile);
                 }
             }
+
+            Console.Read();
         }
     }
 }
