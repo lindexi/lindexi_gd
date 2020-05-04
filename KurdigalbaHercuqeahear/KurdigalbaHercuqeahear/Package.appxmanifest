@@ -7,14 +7,14 @@
   IgnorableNamespaces="uap mp">
 
   <Identity
-    Name="3e027228-e201-43b0-9520-25198a248564"
+    Name="191f9622-73a7-4950-bbc7-304904091ff6"
     Publisher="CN=linde"
     Version="1.0.0.0" />
 
-  <mp:PhoneIdentity PhoneProductId="3e027228-e201-43b0-9520-25198a248564" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="191f9622-73a7-4950-bbc7-304904091ff6" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>BalreMahouVoomawbatu</DisplayName>
+    <DisplayName>KurdigalbaHercuqeahear</DisplayName>
     <PublisherDisplayName>linde</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
@@ -30,12 +30,12 @@
   <Applications>
     <Application Id="App"
       Executable="$targetnametoken$.exe"
-      EntryPoint="BalreMahouVoomawbatu.App">
+      EntryPoint="KurdigalbaHercuqeahear.App">
       <uap:VisualElements
-        DisplayName="BalreMahouVoomawbatu"
+        DisplayName="KurdigalbaHercuqeahear"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png"
-        Description="BalreMahouVoomawbatu"
+        Description="KurdigalbaHercuqeahear"
         BackgroundColor="transparent">
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"/>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
