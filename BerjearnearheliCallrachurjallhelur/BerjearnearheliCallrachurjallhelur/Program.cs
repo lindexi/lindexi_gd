@@ -95,6 +95,12 @@ namespace BerjearnearheliCallrachurjallhelur
 
         static void Main(string[] args)
         {
+            Console.WriteLine(OptimizationSize(new Size(2, 100), new Size(100, 100), new Size(500, 500)));
+
+            Console.WriteLine(OptimizationSize(new Size(2, 100), new Size(100, 200), new Size(500, 500)));
+            Console.WriteLine(OptimizationSize(new Size(2, 10), new Size(100, 200), new Size(1000, 1000)));
+            
+
             try
             {
                 FilterDelegate win32Handler = new FilterDelegate(Win32Handler);
@@ -113,6 +119,67 @@ namespace BerjearnearheliCallrachurjallhelur
             }
 
             Console.Read();
+        }
+
+        /// <summary>
+        /// 宽度和高度不小于最小大小，但是不大于最大大小，缩放使用等比缩放
+        /// <para/>
+        /// 规则：
+        /// <para/>
+        /// - 如果有一边小于最小大小，那么缩放到这一边大于等于最小大小
+        /// <para/>
+        /// - 如果一边缩放之后大于最大的大小，那么限制不能超过最大的大小
+        /// <para/>
+        /// - 尽可能让大小接近最小大小，但是保证宽度和高度都不大于最大大小
+        /// </summary>
+        /// <param name="currentSize"></param>
+        /// <param name="minSize"></param>
+        /// <param name="maxSize"></param>
+        /// <returns></returns>
+        static Size OptimizationSize(Size currentSize, Size minSize, Size maxSize)
+        {
+            if (currentSize.Width > minSize.Width && currentSize.Height > minSize.Height)
+            {
+                if (currentSize.Width <= maxSize.Width && currentSize.Height <= maxSize.Height)
+                {
+                    return currentSize;
+                }
+            }
+
+            var height = currentSize.Height;
+            var width = currentSize.Width;
+            var widthScale = minSize.Width / width;
+            var heightScale = minSize.Height / height;
+
+            // 如果超过最大的大小
+            var maxWidthScale = maxSize.Width / width;
+            var maxHeightScale = maxSize.Height / height;
+
+            var maxScale = Math.Min(maxWidthScale, maxHeightScale);
+            var minScale = Math.Max(widthScale, heightScale);
+            minScale = Math.Max(minScale, 1.0);
+            var scale = Math.Min(minScale, maxScale);
+            // 尽可能使用整数
+            scale = Math.Ceiling(scale);
+            return new Size(width * scale, height * scale);
+        }
+    }
+
+    public class Size
+    {
+        public Size(double width, double height)
+        {
+            Width = width;
+            Height = height;
+        }
+
+        public double Width { set; get; }
+        public double Height { set; get; }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"Width={Width:0.00} Height={Height:0.00}";
         }
     }
 }
