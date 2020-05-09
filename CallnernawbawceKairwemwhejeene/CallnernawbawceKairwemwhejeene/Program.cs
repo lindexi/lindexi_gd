@@ -4,101 +4,62 @@ using System.Threading.Tasks;
 
 namespace CallnernawbawceKairwemwhejeene
 {
-    class Context : IContext
+    class SycnContext : SynchronizationContext
     {
-        public async Task WaitForContinue()
+        /// <inheritdoc />
+        public override void Post(SendOrPostCallback d, object state)
         {
-            await (CurrentTask?.Task ?? Task.CompletedTask);
+            Run = () => d(state);
+            Event.Set();
         }
 
-        private TaskCompletionSource<bool> CurrentTask { set; get; }
-
-        public void SetState(State state)
+        /// <inheritdoc />
+        public override void Send(SendOrPostCallback d, object state)
         {
-            switch (state)
+            // 用于了解执行完成
+            AutoResetEvent autoResetEvent = new AutoResetEvent(false);
+            Run = () =>
             {
-                case State.Continue:
-                    CurrentTask?.TrySetResult(false);
-                    CurrentTask = null;
-                    break;
-                case State.Pause:
-                    CurrentTask ??= new TaskCompletionSource<bool>();
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+                d(state);
+                autoResetEvent.Set();
+            };
+            Event.Set();
+            autoResetEvent.WaitOne();
         }
+
+        public Action Run { private set; get; }
+
+        public AutoResetEvent Event { get; } = new AutoResetEvent(false);
     }
 
-    enum State
-    {
-        Continue,
-        Pause,
-    }
-
-    interface IContext
-    {
-        Task WaitForContinue();
-    }
 
     class Program
     {
         static void Main(string[] args)
         {
-            var context = new Context();
-            Task.Run(() =>
-            {
-                var random = new Random();
-                while (true)
-                {
-                    Task.Run(() => context.SetState(State.Pause)).Wait();
-                    Task.Delay(random.Next(1000, 3000)).Wait();
-                    Task.Run(() =>
-                    {
-                        context.SetState(State.Continue);
-                    });
-                }
-            });
-            Task.Delay(100).Wait();
-            Foo(context).Wait();
-        }
+            var synchronizationContext = new SycnContext();
+            
+            SynchronizationContext.SetSynchronizationContext(synchronizationContext);
+         
+            Console.WriteLine($"{Thread.CurrentThread.ManagedThreadId}");
+            Foo();
 
-        static async Task Foo(IContext context)
-        {
-            var n = 0;
-            var n1 = 1;
-            var n2 = 1;
-            while (n1 > 0)
+            while (true)
             {
-                F1();
-                await context.WaitForContinue();
-                n1 = F2(n, n1);
-                await context.WaitForContinue();
-                n = F3(n1, n2);
-                await context.WaitForContinue();
-                await Task.Delay(10);
+                synchronizationContext.Event.WaitOne();
+                synchronizationContext.Run();
             }
         }
 
-        private static int F3(int n1, in int n2)
+        private static async void Foo()
         {
-            Task.Delay(10).Wait();
-            Console.WriteLine($"{DateTime.Now:hh:mm:ss} F3");
-            return 10;
-        }
-
-        private static int F2(int n, int n1)
-        {
-            Task.Delay(10).Wait();
-            Console.WriteLine($"{DateTime.Now:hh:mm:ss} F2");
-            return 10;
-        }
-
-        private static void F1()
-        {
-            Task.Delay(10).Wait();
-
-            Console.WriteLine($"{DateTime.Now:hh:mm:ss} F1");
+            var task = Task.Run(async () =>
+            {
+                await Task.Delay(100);
+                Console.WriteLine($"{Thread.CurrentThread.ManagedThreadId}");
+            });
+            await task;
+            Console.WriteLine($"{Thread.CurrentThread.ManagedThreadId}");
         }
     }
 }
