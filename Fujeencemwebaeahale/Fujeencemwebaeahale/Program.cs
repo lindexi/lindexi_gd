@@ -39,7 +39,13 @@ namespace Fujeencemwebaeahale
 
         public IEnumerator<T> GetEnumerator()
         {
-            return Source.SelectMany(readOnlyList => readOnlyList).GetEnumerator();
+            foreach (var list in Source)
+            {
+                foreach (var temp in list)
+                {
+                    yield return temp;
+                }
+            }
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -61,7 +67,13 @@ namespace Fujeencemwebaeahale
 
         public IEnumerator<T> GetEnumerator()
         {
-            return Source.SelectMany(readOnlyList => readOnlyList).GetEnumerator();
+            foreach (var list in Source)
+            {
+                foreach (var temp in list)
+                {
+                    yield return temp;
+                }
+            }
         }
 
         IEnumerator IEnumerable.GetEnumerator()
