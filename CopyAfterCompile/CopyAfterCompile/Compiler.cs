@@ -9,23 +9,28 @@ namespace CopyAfterCompile
     /// <summary>
     /// 编译器
     /// </summary>
-    public class Compiler : ICompiler
+    internal class Compiler : ICompiler
     {
+        private readonly ILogger _logger;
         public IAppConfigurator AppConfigurator => CopyAfterCompile.AppConfigurator.GetAppConfigurator();
 
         public CompileConfiguration CompileConfiguration => AppConfigurator.Of<CompileConfiguration>();
 
         /// <inheritdoc />
-        public Compiler()
+        public Compiler(ILogger logger)
         {
+            _logger = logger;
             var fileSniff = new FileSniff();
             fileSniff.Sniff();
         }
 
+        private void Log(string str) => _logger?.Info(str);
+
         public virtual void Compile()
         {
-            Console.WriteLine($"开始编译");
-            Console.WriteLine(Command("dotnet build"));
+            Log($"开始编译");
+            Log(Command("dotnet restore"));
+            Log(Command("msbuild /m /p:configuration=\"release\""));
         }
 
         /// <summary>

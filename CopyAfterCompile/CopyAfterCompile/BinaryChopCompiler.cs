@@ -16,10 +16,14 @@ namespace CopyAfterCompile
             DirectoryInfo targetDirectory,
             DirectoryInfo outputDirectory = null,
             string originBranch = null,
-            ICompiler compiler = null)
+            string lastCommit = null,
+            ICompiler compiler = null,
+            ILogger logger = null)
         {
             CodeDirectory = codeDirectory;
             TargetDirectory = targetDirectory;
+
+            Logger = logger ?? new FileLogger();
 
             if (!string.IsNullOrEmpty(originBranch))
             {
@@ -31,7 +35,7 @@ namespace CopyAfterCompile
             _git = git;
             _lastCommit = ReadLastCommit();
 
-            Compiler = compiler ?? new Compiler();
+            Compiler = compiler ?? new Compiler(Logger);
 
             if (outputDirectory is null)
             {
@@ -39,7 +43,16 @@ namespace CopyAfterCompile
             }
 
             OutputDirectory = outputDirectory;
+
+            if (!string.IsNullOrEmpty(lastCommit))
+            {
+                SaveLastCommit(lastCommit);
+            }
         }
+
+        private ILogger Logger { get; }
+
+        private void Log(string str) => Logger.Info(str);
 
         private string ReadLastCommit()
         {
@@ -79,17 +92,26 @@ namespace CopyAfterCompile
 
         public void CompileAllCommitAndCopy()
         {
+            _git.FetchAll();
+
             var commitList = GetCommitList().Reverse().ToList();
 
             foreach (var commit in commitList)
             {
-                Console.WriteLine($"开始 {commit} 二分");
-                CleanDirectory(commit);
+                try
+                {
+                    Log($"开始 {commit} 二分");
+                    CleanDirectory(commit);
 
-                Compiler.Compile();
-                MoveFile(commit);
+                    Compiler.Compile();
+                    MoveFile(commit);
 
-                SaveLastCommit(commit);
+                    SaveLastCommit(commit);
+                }
+                catch (Exception e)
+                {
+                    Log(e.ToString());
+                }
             }
         }
 
@@ -104,14 +126,14 @@ namespace CopyAfterCompile
             var outputDirectory = new DirectoryInfo(OutputDirectory.FullName);
 
             var moveDirectory = Path.Combine(TargetDirectory.FullName, commit);
-            Console.WriteLine($"将{outputDirectory.FullName}移动到{moveDirectory}");
+            Log($"将{outputDirectory.FullName}移动到{moveDirectory}");
 
             outputDirectory.MoveTo(moveDirectory);
         }
 
         private void CleanDirectory(string commit)
         {
-            Console.WriteLine($"开始清空仓库");
+            Log($"开始清空仓库");
 
             var git = _git;
             git.Clean();

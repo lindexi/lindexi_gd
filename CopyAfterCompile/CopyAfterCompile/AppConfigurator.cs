@@ -27,7 +27,7 @@ namespace CopyAfterCompile
         /// <summary>
         /// 配置文件路径
         /// </summary>
-        public static FileInfo ConfigurationFile { get; private set; } = new FileInfo("Build.fkv");
+        public static FileInfo ConfigurationFile { get; private set; } = new FileInfo("Build.coin");
 
         public static IAppConfigurator GetAppConfigurator()
         {
