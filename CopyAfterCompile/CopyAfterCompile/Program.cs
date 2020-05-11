@@ -3,7 +3,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
+using dotnetCampus.DotNETBuild.Context;
+using dotnetCampus.DotNETBuild.Utils;
 using dotnetCampus.GitCommand;
 using dotnetCampus.Threading;
 
@@ -13,9 +17,12 @@ namespace CopyAfterCompile
     {
         static void Main(string[] args)
         {
+            var folder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
             var compileConfiguration = AppConfigurator.GetAppConfigurator().Of<CompileConfiguration>();
 
-            Console.WriteLine($"这个工具可以用来 CodeDirectory 的代码从 OriginBranch 的最新版每一个 commit 进行构建，将构建输出文件夹 OutputDirectory 的内容保存到 TargetDirectory 文件夹");
+            Console.WriteLine(
+                $"这个工具可以用来 CodeDirectory 的代码从 OriginBranch 的最新版每一个 commit 进行构建，将构建输出文件夹 OutputDirectory 的内容保存到 TargetDirectory 文件夹");
 
             Console.WriteLine($"代码仓库文件夹 {compileConfiguration.CodeDirectory}");
             Console.WriteLine($"代码构建输出文件夹 {compileConfiguration.OutputDirectory}");
@@ -35,9 +42,15 @@ namespace CopyAfterCompile
 
             Directory.CreateDirectory(targetDirectory.FullName);
 
+            var logFile = new FileInfo(Path.Combine(folder, "Log", $"{DateTime.Now:yyMMdd hhmmss}.txt"));
+            Console.WriteLine($"日志文件{logFile}");
+
             var binaryChopCompiler = new BinaryChopCompiler(codeDirectory, targetDirectory, outputDirectory,
-                originBranch, compileConfiguration.LastCommit);
+                originBranch, new FileLogger(logFile));
             binaryChopCompiler.CompileAllCommitAndCopy();
+
+            Console.WriteLine("构建完成");
+            Thread.Sleep(1000);
         }
     }
 
@@ -48,100 +61,18 @@ namespace CopyAfterCompile
 
     class FileLogger : ILogger
     {
-        private LogFileManager LogFileManager { get; } = new LogFileManager();
+        private FileLog FileLog { get; }
+
+        public FileLogger(FileInfo logFile)
+        {
+            FileLog = new FileLog(logFile);
+        }
 
         /// <inheritdoc />
         public void Info(string str)
         {
             Console.WriteLine(str);
-            LogFileManager.WriteLine(str);
-        }
-    }
-
-    public class LogFileManager
-    {
-        public LogFileManager()
-        {
-            WriteToFile();
-        }
-
-        public static DirectoryInfo LogFolder { set; get; } = new DirectoryInfo("Log");
-
-        public FileInfo LogFile { set; get; }
-
-        public static void CleanLogFile()
-        {
-            if (LogFolder == null) return;
-            try
-            {
-                var time = TimeSpan.FromDays(7);
-                foreach (var temp in LogFolder.GetFiles())
-                {
-                    if (DateTime.Now - temp.CreationTime > time)
-                    {
-                        try
-                        {
-                            temp.Delete();
-                        }
-                        catch (Exception)
-                        {
-                            // 删除文件
-                        }
-                    }
-                }
-            }
-            catch (Exception)
-            {
-            }
-        }
-
-        public void WriteLine(string message)
-        {
-            var time = DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss.ffffff");
-            _cache.Enqueue($"{time} {message}");
-
-            _asyncAutoResetEvent.Set();
-        }
-
-        private readonly AsyncAutoResetEvent _asyncAutoResetEvent = new AsyncAutoResetEvent(false);
-
-        private readonly ConcurrentQueue<string> _cache = new ConcurrentQueue<string>();
-
-        private void WriteToFile()
-        {
-            Task.Run(async () =>
-            {
-                while (true)
-                {
-                    await _asyncAutoResetEvent.WaitOneAsync();
-
-                    var count = Math.Max(_cache.Count, 8);
-
-                    var cache = new List<string>(count);
-
-                    while (_cache.TryDequeue(out var message))
-                    {
-                        cache.Add(message);
-                    }
-
-                    if (LogFile is null)
-                    {
-                        var folder = LogFolder?.FullName ?? "";
-                        if (!string.IsNullOrEmpty(folder))
-                        {
-                            Directory.CreateDirectory(folder);
-                        }
-
-                        var id = Process.GetCurrentProcess().Id;
-                        var time = DateTime.Now.ToString("yyMMddhhmmss");
-                        var file = Path.Combine(folder, $"{time} {id}.txt");
-
-                        LogFile = new FileInfo(file);
-                    }
-
-                    await File.AppendAllLinesAsync(LogFile.FullName, cache);
-                }
-            });
+            FileLog.WriteLine(str);
         }
     }
 }

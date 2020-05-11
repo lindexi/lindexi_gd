@@ -10,12 +10,14 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="dotnetCampus.Configurations" Version="1.0.0" />
+    <PackageReference Include="dotnetCampus.Configurations" Version="1.2.6" />
+    <PackageReference Include="dotnetCampus.DotNETBuildSDK" Version="1.1.306" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="Walterlv.IO.PackageManagement" Version="0.15.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\GitCommand\GitCommand\GitCommand.csproj" />
+    <!--<ProjectReference Include="..\..\GitCommand\GitCommand\GitCommand.csproj" />-->
   </ItemGroup>
 
 </Project>
