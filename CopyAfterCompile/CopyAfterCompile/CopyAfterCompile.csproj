@@ -11,7 +11,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="dotnetCampus.Configurations" Version="1.2.6" />
-    <PackageReference Include="dotnetCampus.DotNETBuildSDK" Version="1.1.306" />
+    <PackageReference Include="dotnetCampus.DotNETBuildSDK" Version="1.1.307" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
     <PackageReference Include="Walterlv.IO.PackageManagement" Version="0.15.0" />
   </ItemGroup>
