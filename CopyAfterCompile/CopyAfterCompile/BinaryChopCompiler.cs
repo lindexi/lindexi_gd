@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using dotnetCampus.Configurations;
 using dotnetCampus.Configurations.Core;
 using dotnetCampus.DotNETBuild.Context;
@@ -144,6 +145,9 @@ namespace CopyAfterCompile
             {
                 try
                 {
+                    // 等待日志写完
+                    Thread.Sleep(3000);
+
                     Directory.CreateDirectory(moveDirectory);
                     var logFile = Path.Combine(moveDirectory, "BuildLog.txt");
                     buildLogFile.CopyTo(logFile);
