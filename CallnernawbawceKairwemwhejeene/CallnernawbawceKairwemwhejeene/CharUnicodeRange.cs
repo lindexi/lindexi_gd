@@ -76,7 +76,7 @@ namespace CallnernawbawceKairwemwhejeene
         /// <param name="unicodeRange"></param>
         /// <returns></returns>
         public static string GetUnicodeRangeName(UnicodeRange unicodeRange) => UnicodeRangeInfoList
-            .FirstOrDefault(temp => ReferenceEquals(temp, unicodeRange))?.UnicodeRangeName;
+            .FirstOrDefault(temp => ReferenceEquals(temp.UnicodeRange, unicodeRange))?.UnicodeRangeName;
 
         /// <summary>
         /// 按照 FirstCodePoint 排序，看顺序是否是对的，这个方法仅是让你知道这个列表是排序的
