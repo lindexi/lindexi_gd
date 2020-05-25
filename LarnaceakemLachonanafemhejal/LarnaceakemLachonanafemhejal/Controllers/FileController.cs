@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using Microsoft.AspNetCore.Mvc;
 using System.IO;
 using System.IO.Compression;
 using System.Security.AccessControl;
@@ -13,27 +14,43 @@ namespace LarnaceakemLachonanafemhejal.Controllers
     {
         [HttpGet]
         [Route("{id}")]
-        public async Task Get([FromRoute]string id)
+        public async Task Get([FromRoute] string id)
         {
             var folder = @"f:\lindexi\test\";
-            var fileList = Directory.GetFiles(folder);
             HttpContext.Response.StatusCode = StatusCodes.Status200OK;
 
-            using var fileStream = HttpContext.Response.BodyWriter.AsStream();
+            using var stream = HttpContext.Response.BodyWriter.AsStream();
 
-            using var zipArchive = new ZipArchive(fileStream, ZipArchiveMode.Create);
+            await ReadDirectoryToZipStreamAsync(new DirectoryInfo(folder), stream);
+        }
 
+        /// <summary>
+        /// 将一个文件夹的内容读取为 Stream 的压缩包
+        /// </summary>
+        /// <param name="directory"></param>
+        /// <param name="stream"></param>
+        public static async Task ReadDirectoryToZipStreamAsync(DirectoryInfo directory, Stream stream)
+        {
+            var fileList = directory.GetFiles();
+
+            using var zipArchive = new ZipArchive(stream, ZipArchiveMode.Create);
             foreach (var file in fileList)
             {
-                var zipArchiveEntry = zipArchive.CreateEntry(Path.GetFileName(file), CompressionLevel.NoCompression);
-
-                using (var stream = zipArchiveEntry.Open())
+                var relativePath = file.FullName.Replace(directory.FullName, "");
+                if (relativePath.StartsWith("\\") || relativePath.StartsWith("//"))
                 {
-                    using var toZipStream = new FileStream(file, FileMode.Open, FileAccess.Read);
+                    relativePath = relativePath.Substring(1);
+                }
+
+                var zipArchiveEntry = zipArchive.CreateEntry(relativePath, CompressionLevel.NoCompression);
+
+                using (var entryStream = zipArchiveEntry.Open())
+                {
+                    using var toZipStream = file.OpenRead();
                     await toZipStream.CopyToAsync(stream);
                 }
 
-                await fileStream.FlushAsync();
+                await stream.FlushAsync();
             }
         }
     }
