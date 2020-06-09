@@ -10,15 +10,11 @@ namespace NalrailallhaLellerlawcem
         {
             var folder = Environment.CurrentDirectory;
             
-            var dateTime = new DateTime(2018, 02, 05, 09, 16, 02);
+            var dateTime = new DateTime(2018, 11, 17, 09, 16, 02);
 
             var random = new Random();
             var git = new Git(new DirectoryInfo(folder));
             var n = 0;
-
-            git.Add(Path.Combine(folder, ".gitignore"));
-            dateTime = dateTime.AddSeconds(random.Next(60));
-            git.Commit(time: dateTime);
 
             foreach (var directory in Directory.GetDirectories(folder))
             {
