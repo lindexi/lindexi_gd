@@ -95,6 +95,9 @@ namespace BerjearnearheliCallrachurjallhelur
 
         static void Main(string[] args)
         {
+            Console.WriteLine(DateTime.Now.ToString("MMM"));
+            return;
+
             Console.WriteLine(OptimizationSize(new Size(2, 100), new Size(100, 100), new Size(500, 500)));
 
             Console.WriteLine(OptimizationSize(new Size(2, 100), new Size(100, 200), new Size(500, 500)));
