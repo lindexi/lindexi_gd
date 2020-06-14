@@ -39,19 +39,27 @@ public class MeshPainter : MonoBehaviour
     void Update()
     {
         // 鼠标左键
-        //if (Input.GetButtonDown("Fire1"))
+        if (Input.GetButtonDown("Fire1"))
         {
-            for (int i = 0; i < Width; i++)
-            {
-                var c = new Color(Random.value, Random.value, Random.value);
-                for (int j = 0; j < Height; j++)
-                {
-                    Color color = ((i & j) != 0 ? Color.white : Color.gray);
-                    _texture2D.SetPixel(i, j, c);
-                }
-            }
+            //for (int i = 0; i < Width; i++)
+            //{
+            //    var c = new Color(Random.value, Random.value, Random.value);
+            //    for (int j = 0; j < Height; j++)
+            //    {
+            //        Color color = ((i & j) != 0 ? Color.white : Color.gray);
+            //        _texture2D.SetPixel(i, j, c);
+            //    }
+            //}
 
-            _texture2D.Apply();
+            //_texture2D.Apply();
+
+
+            _texture2D.LoadImage(File.ReadAllBytes(_imageList[_count++]));
+
+            if (_count == _imageList.Length)
+            {
+                _count = 0;
+            }
         }
     }
 
