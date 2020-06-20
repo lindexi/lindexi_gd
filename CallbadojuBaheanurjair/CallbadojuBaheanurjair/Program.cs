@@ -69,7 +69,7 @@ namespace CallbadojuBaheanurjair
             }
         }
 
-        public const int MaxCount = 20000000;
+        public const int MaxCount = 2000000;
 
         public IEnumerable<List<Foo>> GetArgumentList()
         {
