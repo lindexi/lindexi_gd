@@ -1,0 +1,35 @@
+@page "/todo"
+@page "/todo123"
+@page "/todo/{Id:int}"
+  
+<h1>Lindexi @Id</h1>
+
+<ul>
+@foreach(var temp in TodoList)
+{
+	<li>@temp</li>
+}
+</ul>
+
+<input @bind="NewTodoItem"/>
+<button @onclick="AddTodo">添加</button>
+
+@code
+{
+    [Parameter]
+    public int Id { set; get; }
+
+    private string NewTodoItem { set; get; }
+
+	private List<string> TodoList { get; } = new List<string>()
+	{
+	    "lindexi",
+	    "doubi"
+	};
+
+	private void AddTodo()
+	{
+	    TodoList.Add(NewTodoItem);
+	    NewTodoItem = "";
+	}
+}
