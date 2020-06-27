@@ -1,0 +1,52 @@
+﻿@page "/mind"
+@using Blog.Model;
+@inject NavigationManager NavigationManager;
+@inject HttpClient HttpClient;
+
+<div class="well">
+    <div class="list-group">
+
+        @foreach (var blogExcerptModel in BlogExcerptModelList)
+        {
+            var currentUrl = blogExcerptModel.Url;
+            <dd>
+                <div class="posts">
+                    <button @onclick="(e=>GotoBlog(e,currentUrl))">@blogExcerptModel.Title</button>
+                    <!-- <span style="float:right">{{ post.date | date:"%Y-%m-%d" }}</span> -->
+                    <div /><br />
+                </div>
+            </dd>
+
+        }
+
+    </div>
+</div>
+
+
+@code
+{
+    [Parameter]
+    public List<BlogExcerptModel> BlogExcerptModelList { set; get; }
+    = new List<BlogExcerptModel>();
+
+    private void GotoBlog(MouseEventArgs e, string url)
+    {
+        NavigationManager.NavigateTo(url);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // 拉取文件列表
+        var fileUrl = "/Blog/FileList.txt";
+
+        var fileText = await HttpClient.GetStringAsync(fileUrl);
+
+        var blogList = fileText.Split("\n");
+
+        BlogExcerptModelList.AddRange(blogList.Select(temp => new BlogExcerptModel
+        {
+            Title = temp,
+            Url = $"/post/{BlogTool.BlogNameConverter.ConvertTitleToFileName(temp)}"
+        }));
+    }
+}

@@ -9,7 +9,19 @@ namespace BlogTool
         public static string ConvertTitleToFileName(string title, string replaceText = "-")
         {
             title = MakeValidFileName(title, replaceText);
-            return title.Replace(" ", replaceText);
+            var replaceList = new[]
+            {
+                " ",
+                ".",
+                "#",
+            };
+
+            foreach (var str in replaceList)
+            {
+                title = title.Replace(str, replaceText);
+            }
+
+            return title;
         }
 
         private static string MakeValidFileName(string text, string replacement = "_")
