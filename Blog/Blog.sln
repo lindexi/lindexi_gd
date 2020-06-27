@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blog", "Blog\Blog.csproj", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GitCommand", "..\GitCommand\GitCommand\GitCommand.csproj", "{B7AE2EEF-001F-4D7C-9EEA-042CF284D3E8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StaticBlog", "StaticBlog\StaticBlog.csproj", "{6688128C-B5E7-4067-BFA2-6114B17F773E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{B7AE2EEF-001F-4D7C-9EEA-042CF284D3E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B7AE2EEF-001F-4D7C-9EEA-042CF284D3E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B7AE2EEF-001F-4D7C-9EEA-042CF284D3E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6688128C-B5E7-4067-BFA2-6114B17F773E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6688128C-B5E7-4067-BFA2-6114B17F773E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6688128C-B5E7-4067-BFA2-6114B17F773E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6688128C-B5E7-4067-BFA2-6114B17F773E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

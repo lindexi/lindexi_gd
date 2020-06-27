@@ -2,8 +2,22 @@
 @page "/todo123"
 @page "/todo/{Id:int}"
 @inject NavigationManager NavigationManager
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+@using Microsoft.Extensions.Logging;
+@inject ILogger<Todo> logger;
 
 <h1>Lindexi @Id</h1>
+
+<p>Message: @Configuration["message"]</p>
+
+<ul>
+    <li>Count: @Configuration["wheels:count"]</li>
+    <li>Brand: @Configuration["wheels:brand"]</li>
+    <li>Type: @Configuration["wheels:brand:type"]</li>
+    <li>Year: @Configuration["wheels:year"]</li>
+</ul>
+
 
 <ul>
 @foreach(var temp in TodoList)
@@ -16,8 +30,61 @@
 <button @onclick="AddTodo">添加</button>
 <button class="btn btn-primary" @onclick="NavigateToCounterComponent">跳转界面</button>
 
+<EditForm Model="@exampleModel" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <InputText id="name" @bind-Value="exampleModel.Name" />
+
+    <button type="submit">Submit</button>
+</EditForm>
+
+<p>
+	NavigationManager.Uri = @NavigationManager.Uri
+</p>
+
+<p>
+	NavigationManager.BaseUri = @NavigationManager.BaseUri
+</p>
+
+<p>
+    <input type="text" @bind="paragraphStyle" />
+</p>
+
+<p @bind-style="paragraphStyle" @bind-style:event="onchange">
+    Blazorify the app!
+</p>
+
+@code 
+{
+    private string paragraphStyle = "color:red";
+}
+
+<input value="@count" @onkeypress="KeyHandler" @onkeypress:preventDefault />
+
+@code 
+{
+    private int count = 0;
+
+    private void KeyHandler(KeyboardEventArgs e)
+    {
+        if (e.Key == "+")
+        {
+            count++;
+        }
+    }
+}
+
 @code
 {
+
+    private ExampleModel exampleModel = new ExampleModel();
+
+    private void HandleValidSubmit()
+    {
+	    logger.LogWarning(exampleModel.Name);
+    }
+
     [Parameter]
     public int Id { set; get; }
 
@@ -32,6 +99,7 @@
 	private void AddTodo()
 	{
 	    TodoList.Add(NewTodoItem);
+	    logger.LogWarning(NewTodoItem);
 	    NewTodoItem = "";
 	}
 

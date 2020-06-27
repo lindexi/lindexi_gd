@@ -5,3 +5,17 @@
 Welcome to your new app.
 
 <SurveyPrompt Title="How is Blazor working for you?" />
+
+@code 
+{
+    [JSInvokable]
+    public static Task<int[]> ReturnArrayAsync(int n)
+    {
+        var buffer = new int[n];
+        for (int i = 0; i < n; i++)
+        {
+            buffer[i] = i;
+        }
+        return Task.FromResult(buffer);
+    }
+}
