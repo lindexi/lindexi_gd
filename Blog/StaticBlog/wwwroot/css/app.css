@@ -152,7 +152,7 @@ app {
 
 @media (min-width: 768px) {
     app {
-        flex-direction: row;
+/*        flex-direction: row;*/
     }
 
     .sidebar {
