@@ -1,6 +1,5 @@
 ﻿using Blog.Model;
 using CommandLine;
-using System;
 using System.IO;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
@@ -32,7 +31,7 @@ namespace BlogTool
                     continue;
                 }
 
-                var fileName = ConvertTitle(blog.Title);
+                var fileName = BlogNameConverter.ConvertTitleToFileName(blog.Title);
                 fileName += ".md";
                 blog.FileName = fileName;
                 Debug.WriteLine(fileName);
@@ -54,30 +53,6 @@ namespace BlogTool
             return 0;
         }
 
-        private static string ConvertTitle(string title, string replaceText = "-")
-        {
-            title = MakeValidFileName(title, replaceText);
-            return title.Replace(" ", replaceText);
-        }
-
-        private static string MakeValidFileName(string text, string replacement = "_")
-        {
-            StringBuilder str = new StringBuilder();
-            var invalidFileNameChars = System.IO.Path.GetInvalidFileNameChars();
-            foreach (var c in text)
-            {
-                if (invalidFileNameChars.Contains(c))
-                {
-                    str.Append(replacement ?? "");
-                }
-                else
-                {
-                    str.Append(c);
-                }
-            }
-
-            return str.ToString();
-        }
 
         private static BlogExcerptModel ParseBlog(string file)
         {
