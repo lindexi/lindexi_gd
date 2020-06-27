@@ -1,10 +1,11 @@
 ﻿@inherits LayoutComponentBase
-
+@using StaticBlog.Pages;
 
 <div class="header-panel shadow-z-2">
     <div class="container">
         <div class="row">
             @*<component type="typeof(Header)" render-mode="ServerPrerendered" />*@
+            <HeaderPage/>
             <div class="col-md-9 col-sm-8 col-xs-12">
                 <div class="row">
                     @if (@BlogTitle != null)
