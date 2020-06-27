@@ -96,7 +96,7 @@
     public int Id { set; get; }
 
     [Parameter]
-    public int PageNumber { set; get; } = 1;
+    public int PageNumber { set; get; }
 
     [Parameter]
     public List<BlogExcerptModel> BlogExcerptModelList { set; get; }
@@ -107,10 +107,8 @@
 
     private const int BlogNumberPage = 25;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
-        Console.WriteLine("OnInitializedAsync");
-
         // 拉取文件列表
         var fileUrl = "/Blog/FileList.txt";
 
