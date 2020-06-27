@@ -2,7 +2,7 @@
 @page "/todo123"
 @page "/todo/{Id:int}"
 @page "/todo/{Id:int}/foo.html"
-@page "/todo?id={Id:int}"
+@page "/todo/{Name}"
 
 @inject NavigationManager NavigationManager
 @using Microsoft.Extensions.Configuration
@@ -90,6 +90,9 @@
 
     [Parameter]
     public int Id { set; get; }
+
+    [Parameter]
+    public string Name { set; get; }
 
     private string NewTodoItem { set; get; }
 

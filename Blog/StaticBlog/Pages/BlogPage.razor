@@ -1,0 +1,25 @@
+﻿@page "/post/{PostName}"
+
+<h1>
+    @PostName
+</h1>
+
+<div class="post-content well" style="word-break: break-all;">
+    <article class="content">
+        <div class="post">
+            @HtmlContent
+        </div>
+    </article>
+</div>
+
+
+@code
+{
+    // 博客界面
+
+    [Parameter]
+    public string PostName { set; get; }
+
+    [Parameter]
+    public MarkupString HtmlContent { get; set; }
+}
