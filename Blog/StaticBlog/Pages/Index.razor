@@ -3,6 +3,7 @@
 
 @using Blog.Model;
 @inject NavigationManager NavigationManager;
+@inject HttpClient HttpClient;
 
 <div class="well">
     <div class="list-group">
@@ -95,7 +96,7 @@
     public int Id { set; get; }
 
     [Parameter]
-    public int PageNumber { set; get; }
+    public int PageNumber { set; get; } = 1;
 
     [Parameter]
     public List<BlogExcerptModel> BlogExcerptModelList { set; get; }
@@ -106,18 +107,49 @@
 
     private const int BlogNumberPage = 25;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        for (int i = 0; i < 10; i++)
+        Console.WriteLine("OnInitializedAsync");
+
+        // 拉取文件列表
+        var fileUrl = "/Blog/FileList.txt";
+
+        var fileText = await HttpClient.GetStringAsync(fileUrl);
+
+        var blogList = fileText.Split("\n");
+
+        var count = blogList.Length;
+        PageCount = count / BlogNumberPage;
+
+        IEnumerable<string> currnetBlogList;
+
+        if (count < (PageNumber - 1) * BlogNumberPage)
         {
-            BlogExcerptModelList.Add(new BlogExcerptModel()
-            {
-                Title = i.ToString(),
-                Url = "/post/dotnet-CBB-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%86%B3%E5%AE%9A%E6%8E%A8%E9%80%81-Tag-%E6%89%8D%E8%83%BD%E6%89%93%E5%8C%85",
-            });
+            currnetBlogList = blogList.TakeLast(BlogNumberPage);
+        }
+        else
+        {
+            currnetBlogList = blogList.Skip((PageNumber - 1) * BlogNumberPage).Take(BlogNumberPage);
         }
 
-        PageCount = 100;
+        BlogExcerptModelList.Clear();
+
+        BlogExcerptModelList.AddRange(currnetBlogList.Select(temp => new BlogExcerptModel
+        {
+            Title = temp,
+            Url = $"/post/{BlogTool.BlogNameConverter.ConvertTitleToFileName(temp)}"
+        }));
+    }
+
+    protected override void OnInitialized()
+    {
+        BlogExcerptModelList.Add(new BlogExcerptModel()
+        {
+            Title = "欢迎访问林德熙博客",
+            Excerpt = "数据加载，请稍后"
+        });
+
+        PageCount = 0;
 
         //var count = BlogContext.BlogExcerptModel.Count();
         //PageCount = count / BlogNumberPage;
