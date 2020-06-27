@@ -16,9 +16,7 @@
                     <div /><br />
                 </div>
             </dd>
-
         }
-
     </div>
 </div>
 
@@ -26,8 +24,7 @@
 @code
 {
     [Parameter]
-    public List<BlogExcerptModel> BlogExcerptModelList { set; get; }
-    = new List<BlogExcerptModel>();
+    public List<BlogExcerptModel> BlogExcerptModelList { set; get; } = new List<BlogExcerptModel>();
 
     private void GotoBlog(MouseEventArgs e, string url)
     {

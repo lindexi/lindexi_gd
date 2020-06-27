@@ -99,44 +99,34 @@
     public int PageNumber { set; get; }
 
     [Parameter]
-    public List<BlogExcerptModel> BlogExcerptModelList { set; get; }
-        = new List<BlogExcerptModel>();
+    public List<BlogExcerptModel> BlogExcerptModelList { set; get; } = new List<BlogExcerptModel>();
 
 
     public int PageCount { set; get; }
 
-    private const int BlogNumberPage = 25;
-
     protected override async Task OnParametersSetAsync()
     {
         // 拉取文件列表
-        var fileUrl = "/Blog/FileList.txt";
+        var fileUrl = $"/Blog/Summary-{PageNumber}.json";
+        Console.WriteLine(fileUrl);
 
         var fileText = await HttpClient.GetStringAsync(fileUrl);
 
-        var blogList = fileText.Split("\n");
+        var blogPage = System.Text.Json.JsonSerializer.Deserialize<BlogTool.BlogPageModel>(fileText);
 
-        var count = blogList.Length;
-        PageCount = count / BlogNumberPage;
+        var blogList = blogPage.BlogList;
 
-        IEnumerable<string> currnetBlogList;
-
-        if (count < (PageNumber - 1) * BlogNumberPage)
+        foreach(var blog in blogList)
         {
-            currnetBlogList = blogList.TakeLast(BlogNumberPage);
+            blog.Url = $"/post/{blog.FileName}";
+            blog.FileName = null;
         }
-        else
-        {
-            currnetBlogList = blogList.Skip((PageNumber - 1) * BlogNumberPage).Take(BlogNumberPage);
-        }
+
+        PageCount = blogPage.PageCount;
 
         BlogExcerptModelList.Clear();
 
-        BlogExcerptModelList.AddRange(currnetBlogList.Select(temp => new BlogExcerptModel
-        {
-            Title = temp,
-            Url = $"/post/{BlogTool.BlogNameConverter.ConvertTitleToFileName(temp)}"
-        }));
+        BlogExcerptModelList.AddRange(blogList);
     }
 
     protected override void OnInitialized()
@@ -148,18 +138,6 @@
         });
 
         PageCount = 0;
-
-        //var count = BlogContext.BlogExcerptModel.Count();
-        //PageCount = count / BlogNumberPage;
-
-        //if (count < (PageNumber - 1) * BlogNumberPage)
-        //{
-        //    BlogExcerptModelList.AddRange(BlogContext.BlogExcerptModel.TakeLast(BlogNumberPage));
-        //}
-        //else
-        //{
-        //    BlogExcerptModelList.AddRange(BlogContext.BlogExcerptModel.Skip((PageNumber - 1) * BlogNumberPage).Take(BlogNumberPage));
-        //}
 
         base.OnInitialized();
     }

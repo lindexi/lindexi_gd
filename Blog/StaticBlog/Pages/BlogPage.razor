@@ -26,7 +26,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var url = $"/Blog/{PostName}.md";
+        var url = $"/Blog/{PostName}";
         Console.WriteLine(url);
         var text = await HttpClient.GetStringAsync(url);
 
