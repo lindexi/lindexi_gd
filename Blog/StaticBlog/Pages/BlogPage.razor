@@ -1,8 +1,7 @@
 ﻿@page "/post/{PostName}"
-
-<h1>
-    @PostName
-</h1>
+@using System.IO;
+@using Blog.Model;
+@inject HttpClient HttpClient;
 
 <div class="post-content well" style="word-break: break-all;">
     <article class="content">
@@ -22,4 +21,37 @@
 
     [Parameter]
     public MarkupString HtmlContent { get; set; }
+
+    private BlogModel Blog { set; get; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var url = $"/Blog/{PostName}.md";
+        var text = await HttpClient.GetStringAsync(url);
+
+        text = ParseBlog(text);
+
+        var html = Markdig.Markdown.ToHtml(text);
+
+        HtmlContent = new MarkupString(html);
+    }
+
+    private string ParseBlog(string str)
+    {
+        var stringReader = new StringReader(str);
+        var title = stringReader.ReadLine() ?? "";
+
+        if (title.StartsWith("#"))
+        {
+            title = title.Substring(1);
+            title = title.Trim();
+        }
+
+        Blog = new BlogModel()
+        {
+            Title = title
+        };
+
+        return stringReader.ReadToEnd();
+    }
 }
