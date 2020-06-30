@@ -14,4 +14,4 @@ jobs:
       with:
         dotnet-version: 3.1.301
     - name: Build with dotnet
-      run: dotnet build Caching.Memory/Microsoft.Extensions.Caching.Memory.csproj --configuration Release
+      run: dotnet build Caching.Memory/Microsoft.Extensions.Caching.Memory.csproj --configuration Release -v n
