@@ -29,40 +29,73 @@ namespace FileDownloader
         /// </summary>
         public DownloadSegment GetNewDownloadSegment()
         {
-            var downloadSegment = NewDownloadSegment();
             lock (_locker)
             {
-                DownloadSegmentList.Add(downloadSegment);
+                var downloadSegment = NewDownloadSegment();
+
+                RegisterDownloadSegment(downloadSegment);
+
+                return downloadSegment;
             }
-
-            downloadSegment.SegmentManager = this;
-
-            return downloadSegment;
         }
 
         private DownloadSegment NewDownloadSegment()
         {
-            lock (_locker)
+            if (DownloadSegmentList.Count == 0)
             {
-                if (DownloadSegmentList.Count == 0)
-                {
-                    return new DownloadSegment(startPoint: 0, requirementDownloadPoint: FileLength);
-                }
-                else if (DownloadSegmentList.Count == 1)
-                {
-                    // 只有一段的时候，假定这一段就是开始
-                    var firstDownloadSegment = DownloadSegmentList[0];
-                    Debug.Assert(firstDownloadSegment.StartPoint == 0);
+                return new DownloadSegment(startPoint: 0, requirementDownloadPoint: FileLength);
+            }
 
-                    // 当前下载到的地方
-                    var currentDownloadPoint = firstDownloadSegment.CurrentDownloadPoint;
-                    // 找到中间的下载
-                    var center = (FileLength - currentDownloadPoint) / 2;
-                    // 更新当前第一个的下载范围
-                    firstDownloadSegment.RequirementDownloadPoint = center - 1;
+            // 此时需要拿到当前最大的空段是哪一段
 
-                    return new DownloadSegment(startPoint: center, requirementDownloadPoint: FileLength);
+            long emptySegmentLength = 0;
+            var previousSegmentIndex = -1;
+
+            for (var i = 0; i < DownloadSegmentList.Count - 1; i++)
+            {
+                var segment = DownloadSegmentList[i];
+                var nextSegment = DownloadSegmentList[i + 1];
+
+                var emptyLength = nextSegment.StartPoint - segment.CurrentDownloadPoint;
+                if (emptyLength > emptySegmentLength)
+                {
+                    emptySegmentLength = emptyLength;
+                    previousSegmentIndex = i;
                 }
+            }
+
+            // 最后一段
+            var lastDownloadSegmentIndex = DownloadSegmentList.Count - 1;
+            var lastDownloadSegment = DownloadSegmentList[lastDownloadSegmentIndex];
+            var lastDownloadSegmentEmptyLength = FileLength - lastDownloadSegment.CurrentDownloadPoint;
+            if (lastDownloadSegmentEmptyLength > emptySegmentLength)
+            {
+                emptySegmentLength = lastDownloadSegmentEmptyLength;
+                previousSegmentIndex = lastDownloadSegmentIndex;
+            }
+
+            if (previousSegmentIndex >= 0)
+            {
+                long requirementDownloadPoint;
+
+                var previousDownloadSegment = DownloadSegmentList[previousSegmentIndex];
+                long currentDownloadPoint = previousDownloadSegment.CurrentDownloadPoint;
+
+                if (previousSegmentIndex == lastDownloadSegmentIndex)
+                {
+                    requirementDownloadPoint = FileLength;
+                }
+                else
+                {
+                    var nextDownloadSegment = DownloadSegmentList[previousSegmentIndex + 1];
+                    requirementDownloadPoint = nextDownloadSegment.StartPoint - 1;
+                }
+
+                var length = emptySegmentLength;
+                var center = length / 2 + currentDownloadPoint;
+
+                previousDownloadSegment.RequirementDownloadPoint = center - 1;
+                return new DownloadSegment(center, requirementDownloadPoint);
             }
 
             return null;
@@ -73,6 +106,8 @@ namespace FileDownloader
             lock (_locker)
             {
                 DownloadSegmentList.Add(downloadSegment);
+
+                downloadSegment.SegmentManager = this;
             }
         }
 
@@ -92,4 +127,9 @@ namespace FileDownloader
             public long Length { get; }
         }
     }
+
+    //internal static class EmptySegmentCalculator
+    //{
+    //    public void 
+    //}
 }
