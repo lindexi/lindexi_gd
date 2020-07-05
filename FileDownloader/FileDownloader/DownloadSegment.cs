@@ -8,7 +8,6 @@ namespace FileDownloader
     public class DownloadSegment
     {
         private long _startPoint;
-        private long _requirementDownloadLength;
         private long _downloadedLength;
         private long _requirementDownloadPoint;
 
@@ -17,6 +16,12 @@ namespace FileDownloader
         public DownloadSegment(long startPoint)
         {
             _startPoint = startPoint;
+        }
+
+        public DownloadSegment(long startPoint, long requirementDownloadPoint)
+        {
+            _startPoint = startPoint;
+            _requirementDownloadPoint = requirementDownloadPoint;
         }
 
         public long StartPoint

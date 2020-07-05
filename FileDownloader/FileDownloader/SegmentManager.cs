@@ -29,15 +29,24 @@ namespace FileDownloader
         /// </summary>
         public DownloadSegment GetNewDownloadSegment()
         {
+            var downloadSegment = NewDownloadSegment();
+            lock (_locker)
+            {
+                DownloadSegmentList.Add(downloadSegment);
+            }
+
+            downloadSegment.SegmentManager = this;
+
+            return downloadSegment;
+        }
+
+        private DownloadSegment NewDownloadSegment()
+        {
             lock (_locker)
             {
                 if (DownloadSegmentList.Count == 0)
                 {
-                    return new DownloadSegment(0)
-                    {
-                        SegmentManager = this,
-                        RequirementDownloadPoint = FileLength
-                    };
+                    return new DownloadSegment(startPoint: 0, requirementDownloadPoint: FileLength);
                 }
                 else if (DownloadSegmentList.Count == 1)
                 {
@@ -50,6 +59,9 @@ namespace FileDownloader
                     // 找到中间的下载
                     var center = (FileLength - currentDownloadPoint) / 2;
                     // 更新当前第一个的下载范围
+                    firstDownloadSegment.RequirementDownloadPoint = center - 1;
+
+                    return new DownloadSegment(startPoint: center, requirementDownloadPoint: FileLength);
                 }
             }
 
