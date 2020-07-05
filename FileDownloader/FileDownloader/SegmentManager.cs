@@ -36,7 +36,7 @@ namespace FileDownloader
                     return new DownloadSegment(0)
                     {
                         SegmentManager = this,
-                        RequirementDownloadLength = FileLength
+                        RequirementDownloadPoint = FileLength
                     };
                 }
                 else if (DownloadSegmentList.Count == 1)
@@ -48,9 +48,8 @@ namespace FileDownloader
                     // 当前下载到的地方
                     var currentDownloadPoint = firstDownloadSegment.CurrentDownloadPoint;
                     // 找到中间的下载
-                    var center = FileLength - currentDownloadPoint;
+                    var center = (FileLength - currentDownloadPoint) / 2;
                     // 更新当前第一个的下载范围
-
                 }
             }
 

@@ -10,6 +10,7 @@ namespace FileDownloader
         private long _startPoint;
         private long _requirementDownloadLength;
         private long _downloadedLength;
+        private long _requirementDownloadPoint;
 
         public event EventHandler SegmentChanged;
 
@@ -24,16 +25,16 @@ namespace FileDownloader
         }
 
         /// <summary>
-        /// 需要下载的长度
+        /// 需要下载到的点
         /// </summary>
-        public long RequirementDownloadLength
+        public long RequirementDownloadPoint
         {
-            get => _requirementDownloadLength;
             set
             {
-                _requirementDownloadLength = value;
+                _requirementDownloadPoint = value;
                 SegmentChanged?.Invoke(this, null);
             }
+            get => _requirementDownloadPoint;
         }
 
         /// <summary>

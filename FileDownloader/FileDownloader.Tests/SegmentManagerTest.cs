@@ -16,7 +16,7 @@ namespace FileDownloader.Tests
 
                 var downloadSegment = segmentManager.GetNewDownloadSegment();
 
-                Assert.AreEqual(fileLength, downloadSegment.RequirementDownloadLength);
+                Assert.AreEqual(fileLength, downloadSegment.RequirementDownloadPoint);
             });
 
             "默认第一段下载内容是从零开始".Test(() =>
