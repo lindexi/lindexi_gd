@@ -15,9 +15,9 @@ namespace FileDownloader
         /// </summary>
         public event EventHandler SegmentChanged;
 
-        public DownloadSegment(long startPoint)
+        public DownloadSegment()
         {
-            StartPoint = startPoint;
+            StartPoint = 0;
         }
 
         public DownloadSegment(long startPoint, long requirementDownloadPoint)
