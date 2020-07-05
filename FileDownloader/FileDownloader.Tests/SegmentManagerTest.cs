@@ -9,6 +9,20 @@ namespace FileDownloader.Tests
         [ContractTestCase]
         public void GetNewDownloadSegment()
         {
+            "在获取第三段的时候，可以获取第一段和第二段的中间".Test(() =>
+            {
+                const long fileLength = 1000;
+                var segmentManager = new SegmentManager(fileLength);
+
+                var firstDownloadSegment = segmentManager.GetNewDownloadSegment();
+                Assert.AreEqual(fileLength, firstDownloadSegment.RequirementDownloadPoint);
+
+                var secondDownloadSegment = segmentManager.GetNewDownloadSegment();
+
+                var thirdDownloadSegment = segmentManager.GetNewDownloadSegment();
+                Assert.AreEqual(250, thirdDownloadSegment.StartPoint);
+            });
+
             "在获取第二段的时候，将修改第一段需要下载的长度，同时第二段从中间开始".Test(() =>
             {
                 const long fileLength = 1000;
@@ -22,7 +36,7 @@ namespace FileDownloader.Tests
                 Assert.AreEqual(0, firstDownloadSegment.StartPoint);
                 Assert.AreEqual(fileLength / 2 - 1, firstDownloadSegment.RequirementDownloadPoint);
 
-                Assert.AreEqual(fileLength/2, secondDownloadSegment.StartPoint);
+                Assert.AreEqual(fileLength / 2, secondDownloadSegment.StartPoint);
                 Assert.AreEqual(fileLength, secondDownloadSegment.RequirementDownloadPoint);
             });
 

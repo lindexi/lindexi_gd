@@ -42,6 +42,11 @@ namespace FileDownloader
             get => _requirementDownloadPoint;
         }
 
+        public override string ToString()
+        {
+            return $"Start={StartPoint} Require={RequirementDownloadPoint} Download={DownloadedLength}/{RequirementDownloadPoint - StartPoint}";
+        }
+
         /// <summary>
         /// 已经下载的长度
         /// </summary>
