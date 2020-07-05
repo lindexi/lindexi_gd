@@ -35,6 +35,14 @@ namespace FileDownloader
             }
         }
 
+        public bool IsFinished()
+        {
+            lock (_locker)
+            {
+                return DownloadSegmentList.TrueForAll(segment => segment.Finished);
+            }
+        }
+
         private DownloadSegment NewDownloadSegment()
         {
             if (DownloadSegmentList.Count == 0)

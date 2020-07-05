@@ -66,6 +66,8 @@ namespace FileDownloader
         /// 需要处理多线程访问
         public long CurrentDownloadPoint => StartPoint + DownloadedLength;
 
+        public bool Finished => CurrentDownloadPoint == RequirementDownloadPoint;
+
         /// <summary>
         /// 分段管理
         /// </summary>

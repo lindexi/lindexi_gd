@@ -9,6 +9,47 @@ namespace FileDownloader.Tests
     public class SegmentManagerTest
     {
         [ContractTestCase]
+        public void Finished()
+        {
+            "分配两段，在全部下载完成之后，那么下载完成".Test(() =>
+            {
+                const long fileLength = 1000;
+                var segmentManager = new SegmentManager(fileLength);
+
+                var firstDownloadSegment = segmentManager.GetNewDownloadSegment();
+                var secondDownloadSegment = segmentManager.GetNewDownloadSegment();
+                secondDownloadSegment.DownloadedLength = fileLength / 2;
+                firstDownloadSegment.DownloadedLength = fileLength / 2;
+
+                Assert.AreEqual(true, segmentManager.IsFinished());
+            });
+
+            "只分配一段，在一段没有完成，那么下载没有完成".Test(() =>
+            {
+                const long fileLength = 1000;
+                var segmentManager = new SegmentManager(fileLength);
+
+                var firstDownloadSegment = segmentManager.GetNewDownloadSegment();
+                Assert.AreEqual(fileLength, firstDownloadSegment.RequirementDownloadPoint);
+                firstDownloadSegment.DownloadedLength = fileLength / 2;
+
+                Assert.AreEqual(false, segmentManager.IsFinished());
+            });
+
+            "只分配一段，在一段下载完成之后，那么下载完成".Test(() =>
+            {
+                const long fileLength = 1000;
+                var segmentManager = new SegmentManager(fileLength);
+
+                var firstDownloadSegment = segmentManager.GetNewDownloadSegment();
+                Assert.AreEqual(fileLength, firstDownloadSegment.RequirementDownloadPoint);
+                firstDownloadSegment.DownloadedLength = fileLength;
+
+                Assert.AreEqual(true, segmentManager.IsFinished());
+            });
+        }
+
+        [ContractTestCase]
         public void GetNewDownloadSegment()
         {
             "在获取第二段的时候，如第一段有下载内容，会在下载内容点之后继续第二段".Test(() =>
