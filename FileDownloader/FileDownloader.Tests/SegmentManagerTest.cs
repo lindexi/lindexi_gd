@@ -11,6 +11,27 @@ namespace FileDownloader.Tests
         [ContractTestCase]
         public void GetNewDownloadSegment()
         {
+            "在获取第二段的时候，如第一段有下载内容，会在下载内容点之后继续第二段".Test(() =>
+            {
+                const long fileLength = 1000;
+                var segmentManager = new SegmentManager(fileLength);
+
+                var firstDownloadSegment = segmentManager.GetNewDownloadSegment();
+                Assert.AreEqual(fileLength, firstDownloadSegment.RequirementDownloadPoint);
+
+                const long downloadLength = 100;
+                firstDownloadSegment.DownloadedLength = downloadLength;
+
+                var secondDownloadSegment = segmentManager.GetNewDownloadSegment();
+
+                Assert.AreEqual(0, firstDownloadSegment.StartPoint);
+                Assert.AreEqual(fileLength / 2 + downloadLength / 2, firstDownloadSegment.RequirementDownloadPoint);
+
+                Assert.AreEqual(fileLength / 2 + downloadLength / 2, secondDownloadSegment.StartPoint);
+                Assert.AreEqual(fileLength, secondDownloadSegment.RequirementDownloadPoint);
+            });
+
+
             "多次获取将会不断分段，所有分段合起来是文件大小".Test(() =>
             {
                 const long fileLength = 1000;
@@ -52,7 +73,7 @@ namespace FileDownloader.Tests
                 var secondDownloadSegment = segmentManager.GetNewDownloadSegment();
 
                 Assert.AreEqual(0, firstDownloadSegment.StartPoint);
-                Assert.AreEqual(fileLength / 2 - 1, firstDownloadSegment.RequirementDownloadPoint);
+                Assert.AreEqual(fileLength / 2, firstDownloadSegment.RequirementDownloadPoint);
 
                 Assert.AreEqual(fileLength / 2, secondDownloadSegment.StartPoint);
                 Assert.AreEqual(fileLength, secondDownloadSegment.RequirementDownloadPoint);
