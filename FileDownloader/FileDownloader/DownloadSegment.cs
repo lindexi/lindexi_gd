@@ -7,27 +7,26 @@ namespace FileDownloader
     /// </summary>
     public class DownloadSegment
     {
-        private long _startPoint;
         private long _downloadedLength;
         private long _requirementDownloadPoint;
 
+        /// <summary>
+        /// 下载管理在发现支持分段下载的时候给出事件
+        /// </summary>
         public event EventHandler SegmentChanged;
 
         public DownloadSegment(long startPoint)
         {
-            _startPoint = startPoint;
+            StartPoint = startPoint;
         }
 
         public DownloadSegment(long startPoint, long requirementDownloadPoint)
         {
-            _startPoint = startPoint;
+            StartPoint = startPoint;
             _requirementDownloadPoint = requirementDownloadPoint;
         }
 
-        public long StartPoint
-        {
-            get => _startPoint;
-        }
+        public long StartPoint { get; }
 
         /// <summary>
         /// 需要下载到的点
