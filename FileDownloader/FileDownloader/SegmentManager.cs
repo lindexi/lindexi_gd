@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace FileDownloader
@@ -88,13 +89,13 @@ namespace FileDownloader
                 else
                 {
                     var nextDownloadSegment = DownloadSegmentList[previousSegmentIndex + 1];
-                    requirementDownloadPoint = nextDownloadSegment.StartPoint - 1;
+                    requirementDownloadPoint = nextDownloadSegment.StartPoint;
                 }
 
                 var length = emptySegmentLength;
                 var center = length / 2 + currentDownloadPoint;
 
-                previousDownloadSegment.RequirementDownloadPoint = center - 1;
+                previousDownloadSegment.RequirementDownloadPoint = center;
                 return new DownloadSegment(center, requirementDownloadPoint);
             }
 
@@ -105,7 +106,16 @@ namespace FileDownloader
         {
             lock (_locker)
             {
-                DownloadSegmentList.Add(downloadSegment);
+                // 找到顺序
+                var n = DownloadSegmentList.FindIndex(temp => temp.StartPoint > downloadSegment.StartPoint);
+                if (n < 0)
+                {
+                    DownloadSegmentList.Add(downloadSegment);
+                }
+                else
+                {
+                    DownloadSegmentList.Insert(n, downloadSegment);
+                }
 
                 downloadSegment.SegmentManager = this;
             }

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MSTest.Extensions.Contracts;
 
@@ -9,6 +11,22 @@ namespace FileDownloader.Tests
         [ContractTestCase]
         public void GetNewDownloadSegment()
         {
+            "多次获取将会不断分段，所有分段合起来是文件大小".Test(() =>
+            {
+                const long fileLength = 1000;
+                var segmentManager = new SegmentManager(fileLength);
+                var downloadSegmentList = new List<DownloadSegment>();
+
+                for (int i = 0; i < 100; i++)
+                {
+                    DownloadSegment downloadSegment = segmentManager.GetNewDownloadSegment();
+                    downloadSegmentList.Add(downloadSegment);
+                }
+
+                var length = downloadSegmentList.Select(temp => temp.RequirementDownloadPoint - temp.StartPoint).Sum();
+                Assert.AreEqual(fileLength, length);
+            });
+
             "在获取第三段的时候，可以获取第一段和第二段的中间".Test(() =>
             {
                 const long fileLength = 1000;
