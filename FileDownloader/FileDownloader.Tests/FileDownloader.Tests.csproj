@@ -17,4 +17,8 @@
       <PackageReference Include="MSTestEnhancer" Version="2.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\FileDownloader\FileDownloader.csproj" />
+  </ItemGroup>
+
 </Project>
