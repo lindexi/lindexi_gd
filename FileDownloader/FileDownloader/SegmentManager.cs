@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace FileDownloader
 {
@@ -34,10 +35,23 @@ namespace FileDownloader
                 {
                     return new DownloadSegment(0)
                     {
-                        SegmentManager = this
+                        SegmentManager = this,
+                        RequirementDownloadLength = FileLength
                     };
                 }
+                else if (DownloadSegmentList.Count == 1)
+                {
+                    // 只有一段的时候，假定这一段就是开始
+                    var firstDownloadSegment = DownloadSegmentList[0];
+                    Debug.Assert(firstDownloadSegment.StartPoint == 0);
 
+                    // 当前下载到的地方
+                    var currentDownloadPoint = firstDownloadSegment.CurrentDownloadPoint;
+                    // 找到中间的下载
+                    var center = FileLength - currentDownloadPoint;
+                    // 更新当前第一个的下载范围
+
+                }
             }
 
             return null;

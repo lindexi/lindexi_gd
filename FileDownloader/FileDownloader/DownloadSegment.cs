@@ -52,6 +52,12 @@ namespace FileDownloader
         }
 
         /// <summary>
+        /// 当前的下载点
+        /// </summary>
+        /// 需要处理多线程访问
+        public long CurrentDownloadPoint => StartPoint + DownloadedLength;
+
+        /// <summary>
         /// 分段管理
         /// </summary>
         public SegmentManager SegmentManager { set; get; }
