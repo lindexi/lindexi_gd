@@ -22,19 +22,19 @@ namespace FileDownloader
 
         }
 
-        public List<DownloadSegmenet> DownloadSegmenetList { get; } = new List<DownloadSegmenet>();
+        public List<DownloadSegment> DownloadSegmentList { get; } = new List<DownloadSegment>();
     }
 
     /// <summary>
     /// 下载的段，这个段的内容和长度将会不断更改
     /// </summary>
-    public class DownloadSegmenet
+    public class DownloadSegment
     {
         private long _startPoint;
         private long _requirementDownloadLength;
         private long _downloadedLength;
 
-        public event EventHandler SegmenetChanged;
+        public event EventHandler SegmentChanged;
 
         public long StartPoint
         {
@@ -50,7 +50,7 @@ namespace FileDownloader
             set
             {
                 _requirementDownloadLength = value;
-                SegmenetChanged?.Invoke(this, null);
+                SegmentChanged?.Invoke(this, null);
             }
         }
 
