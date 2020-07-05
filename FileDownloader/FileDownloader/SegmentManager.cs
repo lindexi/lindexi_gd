@@ -20,11 +20,6 @@ namespace FileDownloader
 
         public long FileLength { get; }
 
-        public void RegisterCurrentDownload(long startPoint, long downloadLength)
-        {
-            // 不需要的代码
-        }
-
         /// <summary>
         /// 创建一个新的分段用于下载
         /// </summary>

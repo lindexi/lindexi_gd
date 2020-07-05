@@ -57,7 +57,6 @@ namespace FileDownloader
             {
                 // 不支持越下载内容越小
                 _downloadedLength = value;
-                SegmentManager.RegisterCurrentDownload(StartPoint, value);
             }
         }
 
