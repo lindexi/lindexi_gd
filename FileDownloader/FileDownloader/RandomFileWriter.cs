@@ -41,12 +41,15 @@ namespace FileDownloader
 
                 await Stream.WriteAsync(fileSegment.Data, 0, fileSegment.DataLength);
 
+                bool isEmpty;
                 lock (DownloadSegmentList)
                 {
                     Count--;
+
+                    isEmpty = Count == 0;
                 }
 
-                if (Count == 0)
+                if (isEmpty)
                 {
                     WriteFinished?.Invoke(this, EventArgs.Empty);
                     if (_isDispose)
