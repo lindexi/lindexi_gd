@@ -102,6 +102,14 @@ namespace FileDownloader
                 WriteFinished = null;
             };
 
+            lock (DownloadSegmentList)
+            {
+                if (Count == 0)
+                {
+                    return;
+                }
+            }
+
             await task.Task;
         }
 
