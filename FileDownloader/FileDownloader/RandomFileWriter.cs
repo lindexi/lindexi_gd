@@ -19,17 +19,9 @@ namespace FileDownloader
 
         public void WriteAsync(long fileStartPoint, byte[] data, int dataLength)
         {
-            lock (DownloadSegmentList)
-            {
-                Count++;
-            }
-
             var fileSegment = new FileSegment(fileStartPoint, data, dataLength);
             DownloadSegmentList.Enqueue(fileSegment);
         }
-
-        // 使用 AsyncQueue 的 Count 判断
-        private int Count { set; get; }
 
         private async Task WriteToFile()
         {
@@ -41,13 +33,7 @@ namespace FileDownloader
 
                 await Stream.WriteAsync(fileSegment.Data, 0, fileSegment.DataLength);
 
-                bool isEmpty;
-                lock (DownloadSegmentList)
-                {
-                    Count--;
-
-                    isEmpty = Count == 0;
-                }
+                var isEmpty = DownloadSegmentList.Count == 0;
 
                 if (isEmpty)
                 {
@@ -89,12 +75,9 @@ namespace FileDownloader
         {
             _isDispose = true;
 
-            lock (DownloadSegmentList)
+            if (DownloadSegmentList.Count == 0)
             {
-                if (Count == 0)
-                {
-                    return;
-                }
+                return;
             }
 
             var task = new TaskCompletionSource<bool>();
@@ -105,12 +88,9 @@ namespace FileDownloader
                 WriteFinished = null;
             };
 
-            lock (DownloadSegmentList)
+            if (DownloadSegmentList.Count == 0)
             {
-                if (Count == 0)
-                {
-                    return;
-                }
+                return;
             }
 
             await task.Task;
