@@ -1,16 +1,23 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using dotnetCampus.Threading;
+using Microsoft.Extensions.Logging;
 
 namespace FileDownloader
 {
     public class SegmentFileDownloader
     {
-        public SegmentFileDownloader(string url, FileInfo file)
+        private readonly ILogger<SegmentFileDownloader> _logger;
+
+        public SegmentFileDownloader(string url, FileInfo file, ILogger<SegmentFileDownloader> logger)
         {
+            _logger = logger;
             Url = url;
             File = file;
+
+            logger.BeginScope("Url={url} File={file}", url, file);
         }
 
         public string Url { get; }
@@ -25,14 +32,43 @@ namespace FileDownloader
 
         private SegmentManager SegmentManager { set; get; }
 
+        /// <summary>
+        /// 获取整个下载的长度
+        /// </summary>
+        /// <returns></returns>
+        private async Task<(WebResponse response, long contentLength)> GetContentLength()
+        {
+            _logger.LogInformation($"开始获取整个下载长度");
+
+            // 如果用户没有说停下，那么不断下载
+
+            for (int i = 0; true; i++)
+            {
+                try
+                {
+                    var url = Url;
+                    HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(url);
+                    webRequest.Method = "GET";
+                    var response = await webRequest.GetResponseAsync();
+                    var contentLength = response.ContentLength;
+
+                    return (response, contentLength);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogInformation($"第{i}次获取长度失败 {e}");
+                }
+
+                // 后续需要配置不断下降时间
+                await Task.Delay(TimeSpan.FromMilliseconds(100));
+            }
+        }
+
         public async Task DownloadFile()
         {
-            var url = Url;
+            _logger.LogInformation($"Start download Url={Url} File={File.FullName}");
 
-            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(url);
-            webRequest.Method = "GET";
-            using var response = await webRequest.GetResponseAsync();
-            var contentLength = response.ContentLength;
+            (WebResponse response, long contentLength) = await GetContentLength();
 
             FileStream = File.Create();
             FileStream.SetLength(contentLength);
@@ -45,7 +81,7 @@ namespace FileDownloader
             // 下载第一段
             Download(response, downloadSegment);
 
-            var supportSegment = await TryDownloadLast(url, contentLength);
+            var supportSegment = await TryDownloadLast(contentLength);
 
             var threadCount = 1;
 
@@ -88,7 +124,8 @@ namespace FileDownloader
 
                 var dataDownloadSegment = data.DownloadSegment;
 
-                await using var responseStream = data.WebResponse.GetResponseStream();
+                using var response = data.WebResponse;
+                await using var responseStream = response.GetResponseStream();
                 const int length = 1024;
                 var buffer = SharedArrayPool.Rent(length);
                 int n = 0;
@@ -135,8 +172,9 @@ namespace FileDownloader
             FileDownloadTask.SetResult(true);
         }
 
-        private async Task<bool> TryDownloadLast(string url, long contentLength)
+        private async Task<bool> TryDownloadLast(long contentLength)
         {
+            string url = Url;
             // 尝试下载后部分，如果可以下载后续的 100 个字节，那么这个链接支持分段下载
             const int downloadLength = 100;
             var webRequest = (HttpWebRequest)WebRequest.Create(url);
