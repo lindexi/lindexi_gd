@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using dotnetCampus.Threading;
 using Microsoft.Extensions.Logging;
@@ -52,6 +53,9 @@ namespace FileDownloader
                     webRequest.Method = "GET";
                     var response = await webRequest.GetResponseAsync();
                     var contentLength = response.ContentLength;
+
+                    _logger.LogInformation(
+                        $"完成获取文件长度，文件长度 {contentLength} {contentLength / 1024}KB {contentLength / 1024.0 / 1024.0:0.00}MB");
 
                     return (response, contentLength);
                 }
@@ -131,7 +135,7 @@ namespace FileDownloader
 
         private async Task DownloadTask()
         {
-            while (SegmentManager.IsFinished())
+            while (!SegmentManager.IsFinished())
             {
                 var data = await DownloadDataList.DequeueAsync();
               
@@ -150,7 +154,7 @@ namespace FileDownloader
                     Debug.Assert(responseStream != null, nameof(responseStream) + " != null");
                     while ((n = await responseStream.ReadAsync(buffer, 0, length)) > 0)
                     {
-                        _logger.LogInformation($"Download {downloadSegment.StartPoint}-{downloadSegment.CurrentDownloadPoint}/{downloadSegment.RequirementDownloadPoint}");
+                        _logger.LogInformation($"Download  {downloadSegment.CurrentDownloadPoint * 100.0/ downloadSegment.RequirementDownloadPoint:0.00} Thread {Thread.CurrentThread.ManagedThreadId} {downloadSegment.StartPoint}-{downloadSegment.CurrentDownloadPoint}/{downloadSegment.RequirementDownloadPoint}");
 
                         FileWriter.WriteAsync(downloadSegment.CurrentDownloadPoint, buffer, n);
 

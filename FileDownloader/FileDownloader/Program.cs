@@ -22,7 +22,7 @@ namespace FileDownloader
             url =
                 "https://download.jetbrains.8686c.com/resharper/ReSharperUltimate.2020.1.3/JetBrains.ReSharperUltimate.2020.1.3.exe";
             var md5 = "7d6bbeb6617a7c0b7e615098fca1b167";// resharper
-
+            
             var file = new FileInfo(@"File.txt");
 
             var segmentFileDownloader = new SegmentFileDownloader(url, file, logger);
