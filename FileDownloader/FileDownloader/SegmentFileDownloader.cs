@@ -52,6 +52,7 @@ namespace FileDownloader
                     HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(url);
                     webRequest.Method = "GET";
                     var response = await webRequest.GetResponseAsync();
+
                     var contentLength = response.ContentLength;
 
                     _logger.LogInformation(
@@ -93,12 +94,12 @@ namespace FileDownloader
             if (supportSegment)
             {
                 // 多创建几个线程下载
-                for (int i = 0; i < 2; i++)
+                threadCount = 10;
+
+                for (int i = 0; i < threadCount; i++)
                 {
                     Download(SegmentManager.GetNewDownloadSegment());
                 }
-
-                threadCount = 10;
             }
 
             for (int i = 0; i < threadCount; i++)
@@ -113,7 +114,7 @@ namespace FileDownloader
         {
             _logger.LogInformation($"Start Get WebResponse{downloadSegment.StartPoint}-{downloadSegment.CurrentDownloadPoint}/{downloadSegment.RequirementDownloadPoint}");
 
-            for (int i = 0; true ; i++)
+            for (int i = 0; true; i++)
             {
                 try
                 {
@@ -138,7 +139,7 @@ namespace FileDownloader
             while (!SegmentManager.IsFinished())
             {
                 var data = await DownloadDataList.DequeueAsync();
-              
+
                 var downloadSegment = data.DownloadSegment;
 
                 _logger.LogInformation($"Download {downloadSegment.StartPoint}-{downloadSegment.CurrentDownloadPoint}/{downloadSegment.RequirementDownloadPoint}");
@@ -149,12 +150,19 @@ namespace FileDownloader
                 {
                     await using var responseStream = response.GetResponseStream();
                     const int length = 1024;
-                    var buffer = SharedArrayPool.Rent(length);
-                    int n = 0;
                     Debug.Assert(responseStream != null, nameof(responseStream) + " != null");
-                    while ((n = await responseStream.ReadAsync(buffer, 0, length)) > 0)
+
+                    while (!downloadSegment.Finished)
                     {
-                        _logger.LogInformation($"Download  {downloadSegment.CurrentDownloadPoint * 100.0/ downloadSegment.RequirementDownloadPoint:0.00} Thread {Thread.CurrentThread.ManagedThreadId} {downloadSegment.StartPoint}-{downloadSegment.CurrentDownloadPoint}/{downloadSegment.RequirementDownloadPoint}");
+                        var buffer = SharedArrayPool.Rent(length);
+                        var n = await responseStream.ReadAsync(buffer, 0, length);
+
+                        if (n < 0)
+                        {
+                            break;
+                        }
+
+                        _logger.LogInformation($"Download  {downloadSegment.CurrentDownloadPoint * 100.0 / downloadSegment.RequirementDownloadPoint:0.00} Thread {Thread.CurrentThread.ManagedThreadId} {downloadSegment.StartPoint}-{downloadSegment.CurrentDownloadPoint}/{downloadSegment.RequirementDownloadPoint}");
 
                         FileWriter.WriteAsync(downloadSegment.CurrentDownloadPoint, buffer, n);
 
@@ -172,6 +180,12 @@ namespace FileDownloader
 
                     // 下载失败了，那么放回去继续下载
                     Download(downloadSegment);
+                }
+
+                // 下载比较快，尝试再分配一段下载
+                if (downloadSegment.RequirementDownloadPoint - downloadSegment.StartPoint > 1024 * 1024)
+                {
+                    Download(SegmentManager.GetNewDownloadSegment());
                 }
             }
 
