@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30204.135
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YuqerejearniLearjiwhurhemcacemke", "YuqerejearniLearjiwhurhemcacemke\YuqerejearniLearjiwhurhemcacemke.csproj", "{201D13F0-6B49-4FB0-8D00-4CCEA72A7468}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeakebawoLelelcejee", "WeakebawoLelelcejee\WeakebawoLelelcejee.csproj", "{2E6A0282-3630-49C5-AF37-850BD5570A55}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{201D13F0-6B49-4FB0-8D00-4CCEA72A7468}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{201D13F0-6B49-4FB0-8D00-4CCEA72A7468}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{201D13F0-6B49-4FB0-8D00-4CCEA72A7468}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{201D13F0-6B49-4FB0-8D00-4CCEA72A7468}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E6A0282-3630-49C5-AF37-850BD5570A55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E6A0282-3630-49C5-AF37-850BD5570A55}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E6A0282-3630-49C5-AF37-850BD5570A55}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E6A0282-3630-49C5-AF37-850BD5570A55}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CECFA9B9-8335-413B-8357-58D329C15A99}
+	EndGlobalSection
+EndGlobal
