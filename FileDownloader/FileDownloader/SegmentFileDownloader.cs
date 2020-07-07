@@ -141,6 +141,8 @@ namespace FileDownloader
                     }
                 }
             }
+
+            await FinishDownload();
         }
 
         private void Download(WebResponse webResponse, DownloadSegment downloadSegment)
