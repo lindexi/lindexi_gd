@@ -33,6 +33,9 @@ namespace FileDownloader
 
                 await Stream.WriteAsync(fileSegment.Data, 0, fileSegment.DataLength);
 
+                // 释放缓存
+                SharedArrayPool.Return(fileSegment.Data);
+
                 var isEmpty = DownloadSegmentList.Count == 0;
 
                 if (isEmpty)
