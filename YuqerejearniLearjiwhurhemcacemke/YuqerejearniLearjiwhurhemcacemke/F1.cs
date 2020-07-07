@@ -11,16 +11,16 @@ namespace YuqerejearniLearjiwhurhemcacemke
             F2 = f2;
         }
 
-        public Info Info {  get; }
-
-        private ILogger<F1> _logger;
-
-        private F2 F2 { get; }
+        public Info Info { get; }
 
         public void Do()
         {
             _logger.LogInformation(Info.Id);
             F2.Do();
         }
+
+        private readonly ILogger<F1> _logger;
+
+        private F2 F2 { get; }
     }
 }

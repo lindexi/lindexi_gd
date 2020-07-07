@@ -4,19 +4,19 @@ namespace YuqerejearniLearjiwhurhemcacemke
 {
     public class F3
     {
-        public Info Info { get; }
-
         public F3(ILogger<F3> logger, Info info)
         {
             _logger = logger;
             Info = info;
         }
 
-        private ILogger<F3> _logger;
+        public Info Info { get; }
 
         public void Do()
         {
             _logger.LogInformation(Info.Id);
         }
+
+        private readonly ILogger<F3> _logger;
     }
 }

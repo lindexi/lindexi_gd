@@ -5,9 +5,9 @@ using YuqerejearniLearjiwhurhemcacemke;
 
 namespace WeakebawoLelelcejee
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             var httpClient = new HttpClient();
             while (true)
@@ -21,7 +21,6 @@ namespace WeakebawoLelelcejee
                 }
                 catch (Exception e)
                 {
-                    
                 }
             }
         }
