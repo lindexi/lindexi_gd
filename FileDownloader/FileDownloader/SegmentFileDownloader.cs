@@ -24,6 +24,10 @@ namespace FileDownloader
 
         public FileInfo File { get; }
 
+        /// <summary>
+        /// 开始下载文件
+        /// </summary>
+        /// <returns></returns>
         public async Task DownloadFile()
         {
             _logger.LogInformation($"Start download Url={Url} File={File.FullName}");
@@ -86,12 +90,12 @@ namespace FileDownloader
 
             // 如果用户没有说停下，那么不断下载
 
-            for (var i = 0;; i++)
+            for (var i = 0; !_isDisposing; i++)
             {
                 try
                 {
                     var url = Url;
-                    var webRequest = (HttpWebRequest) WebRequest.Create(url);
+                    var webRequest = (HttpWebRequest)WebRequest.Create(url);
                     webRequest.Method = "GET";
                     var response = await webRequest.GetResponseAsync();
 
@@ -110,18 +114,25 @@ namespace FileDownloader
                 // 后续需要配置不断下降时间
                 await Task.Delay(TimeSpan.FromMilliseconds(100));
             }
+
+            return default;
         }
 
+        /// <summary>
+        /// 尝试获取链接响应
+        /// </summary>
+        /// <param name="downloadSegment"></param>
+        /// <returns></returns>
         private async Task<WebResponse> GetWebResponse(DownloadSegment downloadSegment)
         {
             _logger.LogInformation(
                 $"Start Get WebResponse{downloadSegment.StartPoint}-{downloadSegment.CurrentDownloadPoint}/{downloadSegment.RequirementDownloadPoint}");
 
-            for (var i = 0;; i++)
+            for (var i = 0; !_isDisposing; i++)
             {
                 try
                 {
-                    var webRequest = (HttpWebRequest) WebRequest.Create(Url);
+                    var webRequest = (HttpWebRequest)WebRequest.Create(Url);
                     webRequest.Method = "GET";
 
                     // 为什么不使用 StartPoint 而是使用 CurrentDownloadPoint 是因为需要处理重试
@@ -136,6 +147,8 @@ namespace FileDownloader
                         $"第{i}次获取 WebResponse失败 {downloadSegment.StartPoint}-{downloadSegment.CurrentDownloadPoint}/{downloadSegment.RequirementDownloadPoint} {e}");
                 }
             }
+
+            return null;
         }
 
         private async Task DownloadTask()
@@ -239,7 +252,7 @@ namespace FileDownloader
             var url = Url;
             // 尝试下载后部分，如果可以下载后续的 100 个字节，那么这个链接支持分段下载
             const int downloadLength = 100;
-            var webRequest = (HttpWebRequest) WebRequest.Create(url);
+            var webRequest = (HttpWebRequest)WebRequest.Create(url);
             var startPoint = contentLength - downloadLength;
             webRequest.AddRange(startPoint, contentLength);
             var responseLast = await webRequest.GetResponseAsync();
