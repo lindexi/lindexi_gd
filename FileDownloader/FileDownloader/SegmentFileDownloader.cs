@@ -29,7 +29,7 @@ namespace FileDownloader
 
         private FileStream FileStream { set; get; }
 
-        private TaskCompletionSource<bool> FileDownloadTask { set; get; } = new TaskCompletionSource<bool>();
+        private TaskCompletionSource<bool> FileDownloadTask { get; } = new TaskCompletionSource<bool>();
 
         private SegmentManager SegmentManager { set; get; }
 
@@ -183,11 +183,28 @@ namespace FileDownloader
 
         private async Task FinishDownload()
         {
+            if (_isDisposing)
+            {
+                return;
+            }
+
+            lock (FileDownloadTask)
+            {
+                if (_isDisposing)
+                {
+                    return;
+                }
+
+                _isDisposing = true;
+            }
+
             await FileWriter.DisposeAsync();
             await FileStream.DisposeAsync();
 
             FileDownloadTask.SetResult(true);
         }
+
+        private bool _isDisposing = false;
 
         private async Task<bool> TryDownloadLast(long contentLength)
         {
