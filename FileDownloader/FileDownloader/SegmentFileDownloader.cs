@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -90,7 +91,7 @@ namespace FileDownloader
                 // 多创建几个线程下载
                 for (int i = 0; i < 2; i++)
                 {
-                    await CreateDownloadTask();
+                    Download(SegmentManager.GetNewDownloadSegment());
                 }
 
                 threadCount = 10;
@@ -104,16 +105,16 @@ namespace FileDownloader
             await FileDownloadTask.Task;
         }
 
-        private async Task CreateDownloadTask()
+        private async Task<WebResponse> CreateDownloadTask(DownloadSegment downloadSegment)
         {
             HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(Url);
             webRequest.Method = "GET";
 
-            var downloadSegment = SegmentManager.GetNewDownloadSegment();
-            webRequest.AddRange(downloadSegment.StartPoint, downloadSegment.RequirementDownloadPoint);
+            // 为什么不使用 StartPoint 而是使用 CurrentDownloadPoint 是因为需要处理重试
+            webRequest.AddRange(downloadSegment.CurrentDownloadPoint, downloadSegment.RequirementDownloadPoint);
 
-            using var response = await webRequest.GetResponseAsync();
-            Download(response, downloadSegment);
+            var response = await webRequest.GetResponseAsync();
+            return response;
         }
 
         private async Task DownloadTask()
@@ -122,23 +123,34 @@ namespace FileDownloader
             {
                 var data = await DownloadDataList.DequeueAsync();
 
-                var dataDownloadSegment = data.DownloadSegment;
+                var downloadSegment = data.DownloadSegment;
+                using var response = data.WebResponse ?? await CreateDownloadTask(downloadSegment);
 
-                using var response = data.WebResponse;
-                await using var responseStream = response.GetResponseStream();
-                const int length = 1024;
-                var buffer = SharedArrayPool.Rent(length);
-                int n = 0;
-                while ((n = await responseStream.ReadAsync(buffer, 0, length)) > 0)
+                try
                 {
-                    FileWriter.WriteAsync(dataDownloadSegment.CurrentDownloadPoint, buffer, n);
-
-                    dataDownloadSegment.DownloadedLength += n;
-
-                    if (dataDownloadSegment.Finished)
+                    await using var responseStream = response.GetResponseStream();
+                    const int length = 1024;
+                    var buffer = SharedArrayPool.Rent(length);
+                    int n = 0;
+                    Debug.Assert(responseStream != null, nameof(responseStream) + " != null");
+                    while ((n = await responseStream.ReadAsync(buffer, 0, length)) > 0)
                     {
-                        break;
+                        FileWriter.WriteAsync(downloadSegment.CurrentDownloadPoint, buffer, n);
+
+                        downloadSegment.DownloadedLength += n;
+
+                        if (downloadSegment.Finished)
+                        {
+                            break;
+                        }
                     }
+                }
+                catch (Exception e)
+                {
+                    _logger.LogInformation($"Download {downloadSegment.StartPoint}-{downloadSegment.RequirementDownloadPoint} error {e}");
+
+                    // 下载失败了，那么放回去继续下载
+                    Download(downloadSegment);
                 }
             }
 
@@ -149,6 +161,9 @@ namespace FileDownloader
         {
             DownloadDataList.Enqueue(new DownloadData(webResponse, downloadSegment));
         }
+
+        private void Download(DownloadSegment downloadSegment)
+            => Download(null, downloadSegment);
 
         private AsyncQueue<DownloadData> DownloadDataList { get; } = new AsyncQueue<DownloadData>();
 
