@@ -105,16 +105,28 @@ namespace FileDownloader
             await FileDownloadTask.Task;
         }
 
-        private async Task<WebResponse> CreateDownloadTask(DownloadSegment downloadSegment)
+        private async Task<WebResponse> GetWebResponse(DownloadSegment downloadSegment)
         {
-            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(Url);
-            webRequest.Method = "GET";
+            _logger.LogInformation($"Start Get WebResponse{downloadSegment.StartPoint}-{downloadSegment.CurrentDownloadPoint}/{downloadSegment.RequirementDownloadPoint}");
 
-            // 为什么不使用 StartPoint 而是使用 CurrentDownloadPoint 是因为需要处理重试
-            webRequest.AddRange(downloadSegment.CurrentDownloadPoint, downloadSegment.RequirementDownloadPoint);
+            for (int i = 0; true ; i++)
+            {
+                try
+                {
+                    HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(Url);
+                    webRequest.Method = "GET";
 
-            var response = await webRequest.GetResponseAsync();
-            return response;
+                    // 为什么不使用 StartPoint 而是使用 CurrentDownloadPoint 是因为需要处理重试
+                    webRequest.AddRange(downloadSegment.CurrentDownloadPoint, downloadSegment.RequirementDownloadPoint);
+
+                    var response = await webRequest.GetResponseAsync();
+                    return response;
+                }
+                catch (Exception e)
+                {
+                    _logger.LogInformation($"第{i}次获取 WebResponse失败 {downloadSegment.StartPoint}-{downloadSegment.CurrentDownloadPoint}/{downloadSegment.RequirementDownloadPoint} {e}");
+                }
+            }
         }
 
         private async Task DownloadTask()
@@ -122,9 +134,12 @@ namespace FileDownloader
             while (SegmentManager.IsFinished())
             {
                 var data = await DownloadDataList.DequeueAsync();
-
+              
                 var downloadSegment = data.DownloadSegment;
-                using var response = data.WebResponse ?? await CreateDownloadTask(downloadSegment);
+
+                _logger.LogInformation($"Download {downloadSegment.StartPoint}-{downloadSegment.CurrentDownloadPoint}/{downloadSegment.RequirementDownloadPoint}");
+
+                using var response = data.WebResponse ?? await GetWebResponse(downloadSegment);
 
                 try
                 {
@@ -135,6 +150,8 @@ namespace FileDownloader
                     Debug.Assert(responseStream != null, nameof(responseStream) + " != null");
                     while ((n = await responseStream.ReadAsync(buffer, 0, length)) > 0)
                     {
+                        _logger.LogInformation($"Download {downloadSegment.StartPoint}-{downloadSegment.CurrentDownloadPoint}/{downloadSegment.RequirementDownloadPoint}");
+
                         FileWriter.WriteAsync(downloadSegment.CurrentDownloadPoint, buffer, n);
 
                         downloadSegment.DownloadedLength += n;
