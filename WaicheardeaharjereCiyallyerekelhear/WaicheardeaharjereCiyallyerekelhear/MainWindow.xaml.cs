@@ -37,7 +37,7 @@ namespace WaicheardeaharjereCiyallyerekelhear
 
             DataContext = this;
         }
-
+         
         public ObservableCollection<Foo> DataList { get; } = new ObservableCollection<Foo>();
     }
 
