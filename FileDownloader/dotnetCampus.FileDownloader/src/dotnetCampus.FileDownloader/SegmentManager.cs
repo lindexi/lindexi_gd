@@ -1,8 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Collections.Generic;
 
-namespace FileDownloader
+namespace dotnetCampus.FileDownloader
 {
     /// <summary>
     /// 文件分段管理

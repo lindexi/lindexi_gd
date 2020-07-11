@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FileDownloader
+namespace dotnetCampus.FileDownloader
 {
     /// <summary>
     /// 下载的段，这个段的内容和长度将会不断更改
