@@ -8,10 +8,20 @@
         Title="MainWindow" Height="450" Width="800">
 
     <Grid>
-        <ListView Margin="10,10,10,10" ItemsSource="{Binding DataList}">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn Width="80" Header="Index" DisplayMemberBinding="{Binding Index}"/>
+        <ListView Margin="10,10,10,10" ItemsSource="{Binding DataList}" Background="#565656">
+            <ListView.Resources>
+                <!-- 列表项颜色 -->
+                <SolidColorBrush x:Key="RegionBrush" Color="#02A2A3"></SolidColorBrush>
+
+                <!-- 列表文本颜色 -->
+                <SolidColorBrush x:Key="PrimaryTextBrush" Color="White"></SolidColorBrush>
+
+                <!-- 选中颜色 -->
+                <SolidColorBrush x:Key="PrimaryBrush" Color="#A602A5"></SolidColorBrush>
+            </ListView.Resources>
+            <ListView.View >
+                <GridView >
+                    <GridViewColumn Width="80" Header="Index" DisplayMemberBinding="{Binding Index}" />
                     <GridViewColumn Width="100" Header="Name" DisplayMemberBinding="{Binding Name}"/>
                     <GridViewColumn Width="200" Header="Remark" DisplayMemberBinding="{Binding Remark}"/>
                 </GridView>

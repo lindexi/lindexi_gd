@@ -4,7 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using dotnetCampus.Threading;
 
-namespace FileDownloader
+namespace dotnetCampus.FileDownloader
 {
     /// <summary>
     /// 不按照顺序，随机写入文件

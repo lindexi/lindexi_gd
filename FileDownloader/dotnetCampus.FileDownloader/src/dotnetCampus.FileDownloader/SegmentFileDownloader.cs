@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using dotnetCampus.Threading;
 using Microsoft.Extensions.Logging;
 
-namespace FileDownloader
+namespace dotnetCampus.FileDownloader
 {
     public class SegmentFileDownloader
     {
