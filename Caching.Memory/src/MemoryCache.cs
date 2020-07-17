@@ -39,7 +39,7 @@ namespace Microsoft.Extensions.Caching.Memory
         /// </summary>
         /// <param name="optionsAccessor">The options of the cache.</param>
         public MemoryCache(IOptions<MemoryCacheOptions> optionsAccessor)
-            : this(optionsAccessor, NullLoggerFactory.Instance) { }
+            /*: this(optionsAccessor, NullLoggerFactory.Instance)*/ { }
 
         /// <summary>
         /// Creates a new <see cref="MemoryCache"/> instance.

@@ -17,7 +17,7 @@ namespace Microsoft.Extensions.Caching.Distributed
         private readonly IMemoryCache _memCache;
 
         public MemoryDistributedCache(IOptions<MemoryDistributedCacheOptions> optionsAccessor)
-            : this(optionsAccessor, NullLoggerFactory.Instance) { }
+            /*: this(optionsAccessor, NullLoggerFactory.Instance) */{ }
 
         public MemoryDistributedCache(IOptions<MemoryDistributedCacheOptions> optionsAccessor, ILoggerFactory loggerFactory)
         {
@@ -42,6 +42,11 @@ namespace Microsoft.Extensions.Caching.Distributed
             }
 
             return (byte[])_memCache.Get(key);
+        }
+
+        public Task<byte[]> GetAsync(string key)
+        {
+            throw new NotImplementedException();
         }
 
         public Task<byte[]> GetAsync(string key, CancellationToken token = default(CancellationToken))
@@ -75,9 +80,14 @@ namespace Microsoft.Extensions.Caching.Distributed
             memoryCacheEntryOptions.AbsoluteExpiration = options.AbsoluteExpiration;
             memoryCacheEntryOptions.AbsoluteExpirationRelativeToNow = options.AbsoluteExpirationRelativeToNow;
             memoryCacheEntryOptions.SlidingExpiration = options.SlidingExpiration;
-            memoryCacheEntryOptions.Size = value.Length;
+            //memoryCacheEntryOptions.Size = value.Length;
 
             _memCache.Set(key, value, memoryCacheEntryOptions);
+        }
+
+        public Task SetAsync(string key, byte[] value, DistributedCacheEntryOptions options)
+        {
+            throw new NotImplementedException();
         }
 
         public Task SetAsync(string key, byte[] value, DistributedCacheEntryOptions options, CancellationToken token = default(CancellationToken))
@@ -111,6 +121,11 @@ namespace Microsoft.Extensions.Caching.Distributed
             _memCache.TryGetValue(key, out object value);
         }
 
+        public Task RefreshAsync(string key)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task RefreshAsync(string key, CancellationToken token = default(CancellationToken))
         {
             if (key == null)
@@ -130,6 +145,11 @@ namespace Microsoft.Extensions.Caching.Distributed
             }
 
             _memCache.Remove(key);
+        }
+
+        public Task RemoveAsync(string key)
+        {
+            throw new NotImplementedException();
         }
 
         public Task RemoveAsync(string key, CancellationToken token = default(CancellationToken))
