@@ -7,23 +7,48 @@ namespace WayhemcurwelWemqonairbay
     {
         static void Main(string[] args)
         {
-            _semaphoreSlim = new SemaphoreSlim(0);
+            F3();
 
-            Foo();
+            GC.Collect();
+            GC.WaitForFullGCComplete();
+            GC.Collect();
 
-            Thread.Sleep(1000);
-            _semaphoreSlim.Dispose();
-            Thread.Sleep(1000);
+            Console.WriteLine(_weakReference1.TryGetTarget(out _));
+            Console.WriteLine(_weakReference2.TryGetTarget(out _));
+
             Console.Read();
         }
 
-        private static async void Foo()
+        private static void F3()
+        {
+            _weakReference1 = new WeakReference<Foo>(new Foo());
+
+            var foo = new Foo();
+            _weakReference2 = new WeakReference<Foo>(foo);
+
+            foo.F1();
+        }
+
+        private static WeakReference<Foo> _weakReference1;
+        private static WeakReference<Foo> _weakReference2;
+    }
+
+    class Foo
+    {
+        public void F1()
+        {
+            _semaphoreSlim = new SemaphoreSlim(0);
+            F2();
+            _semaphoreSlim.Dispose();
+            _semaphoreSlim = null;
+        }
+
+        private async void F2()
         {
             await _semaphoreSlim.WaitAsync();
             Console.WriteLine("F");
         }
 
-        private static SemaphoreSlim _semaphoreSlim;
-
+        private SemaphoreSlim _semaphoreSlim;
     }
 }
