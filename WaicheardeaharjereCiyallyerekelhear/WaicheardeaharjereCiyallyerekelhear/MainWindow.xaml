@@ -5,10 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WaicheardeaharjereCiyallyerekelhear"
         mc:Ignorable="d"
+        x:Name="Root"
         Title="MainWindow" Height="450" Width="800">
 
     <Grid>
-        <ListView Margin="10,10,10,10" ItemsSource="{Binding DataList}" Background="#565656">
+        <ListView Margin="10,10,10,10" ItemsSource="{Binding ElementName=Root,Path=FileResourceList}" Background="#565656">
             <ListView.Resources>
                 <!-- 列表项颜色 -->
                 <SolidColorBrush x:Key="RegionBrush" Color="#02A2A3"></SolidColorBrush>
@@ -21,9 +22,11 @@
             </ListView.Resources>
             <ListView.View >
                 <GridView >
-                    <GridViewColumn Width="80" Header="Index" DisplayMemberBinding="{Binding Index}" />
-                    <GridViewColumn Width="100" Header="Name" DisplayMemberBinding="{Binding Name}"/>
-                    <GridViewColumn Width="200" Header="Remark" DisplayMemberBinding="{Binding Remark}"/>
+                    <GridViewColumn Width="80" Header="文件名" DisplayMemberBinding="{Binding FileName}" />
+                    <GridViewColumn Width="100" Header="大小" DisplayMemberBinding="{Binding Name}"/>
+                    <GridViewColumn Width="200" Header="日期" DisplayMemberBinding="{Binding Remark}"/>
+                    <GridViewColumn Width="200" Header="保存文件夹" DisplayMemberBinding="{Binding Remark}"/>
+                    <GridViewColumn Width="200" Header="下载地址" DisplayMemberBinding="{Binding Remark}"/>
                 </GridView>
             </ListView.View>
         </ListView>

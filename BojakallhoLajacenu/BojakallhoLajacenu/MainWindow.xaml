@@ -4,15 +4,10 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BojakallhoLajacenu"
+        xmlns:hc="https://handyorg.github.io/handycontrol"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"></RowDefinition>
-            <RowDefinition Height="*"></RowDefinition>
-            <RowDefinition Height="*"></RowDefinition>
-        </Grid.RowDefinitions>
-        <Border Grid.Row="1" Background="#A6A6A6" MouseUp="Border_OnMouseUp"></Border>
-        <Border Grid.Row="2" Background="#A626AA" MouseDown="Border_OnMouseDown"></Border>
+        <hc:TimeBar x:Name="Time"></hc:TimeBar>
     </Grid>
 </Window>

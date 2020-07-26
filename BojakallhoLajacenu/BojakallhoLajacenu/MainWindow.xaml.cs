@@ -24,6 +24,9 @@ namespace BojakallhoLajacenu
         public MainWindow()
         {
             InitializeComponent();
+
+            Time.TimeFormat = "HH:mm:ss.fff";
+            Time.SelectedTime = new DateTime(2020,1,2,0,0,0);
         }
 
         private void Border_OnMouseUp(object sender, MouseButtonEventArgs e)
@@ -49,7 +52,7 @@ namespace BojakallhoLajacenu
 
                 IsOpen = true,
                 StaysOpen = false,
-                PlacementTarget = (UIElement) sender,
+                PlacementTarget = (UIElement)sender,
                 Placement = PlacementMode.Center
             };
         }
