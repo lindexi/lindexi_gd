@@ -7,10 +7,11 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-<Grid.RowDefinitions>
-    <RowDefinition Height="*"></RowDefinition>
-    <RowDefinition Height="Auto"></RowDefinition>
-</Grid.RowDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+        </Grid.RowDefinitions>
+
         <Grid>
             <TextBlock x:Name="TextBlock" Margin="10,10,10,10"></TextBlock>
         </Grid>
