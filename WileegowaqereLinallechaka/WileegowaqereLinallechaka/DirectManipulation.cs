@@ -3,11 +3,10 @@ using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
+// https://gist.github.com/garuma/0c25992777c19f5239c73e5b6d66a074
 
 namespace DirectManipulation
 {
-	// https://gist.github.com/garuma/0c25992777c19f5239c73e5b6d66a074
-
 	[Guid("FBF5D3B4-70C7-4163-9322-5A6F660D6FBC")]
 	[CoClass(typeof(DirectManipulationManagerClass))]
 	[ComImport]
@@ -58,7 +57,7 @@ namespace DirectManipulation
 	[Guid("B89962CB-3D89-442B-BB58-5098FA0F9F16")]
 	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 	[ComImport]
-	public interface IDirectManipulationContent
+	public unsafe interface IDirectManipulationContent
 	{
 		void GetContentRect(out tagRECT contentSize);
 
@@ -70,9 +69,9 @@ namespace DirectManipulation
 
 		void SetTag([MarshalAs(UnmanagedType.IUnknown), In] object @object, [In] uint id);
 
-		void GetOutputTransform(IntPtr matrix, [In] uint pointCount);
+		void GetOutputTransform(float* matrix, [In] uint pointCount);
 
-		void GetContentTransform(IntPtr matrix, [In] uint pointCount);
+		void GetContentTransform(float* matrix, [In] uint pointCount);
 
 		void SyncContentTransform([In] ref float matrix, [In] uint pointCount);
 	}

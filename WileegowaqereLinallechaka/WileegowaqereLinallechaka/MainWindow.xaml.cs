@@ -22,64 +22,55 @@ namespace WileegowaqereLinallechaka
     public partial class MainWindow : Window
     {
 
+
         public MainWindow()
         {
             InitializeComponent();
 
-            for (int i = 0; i < 10000; i++)
-            {
-                StackPanel.Children.Add(new TextBlock()
-                {
-                    Text = i.ToString()
-                });
-            }
+            //for (int i = 0; i < 10000; i++)
+            //{
+            //    StackPanel.Children.Add(new TextBlock()
+            //    {
+            //        Text = i.ToString()
+            //    });
+            //}
 
-            var transform = new TranslateTransform();
-            StackPanel.RenderTransform = transform;
+           var transform = new ScaleTransform(1, 1);
+            MainGrid.RenderTransform = transform;
             _transform = transform;
 
             DataContext = this;
 
-            PointerBasedManipulationHandler manipulationHandler = new PointerBasedManipulationHandler()
-            {
-            };
+            PresentationSource.AddSourceChangedHandler(this, OnSourceChanged);
 
-            manipulationHandler.TranslationUpdated += ManipulationHandler_TranslationUpdated;
+            _manipulationHandler.ScaleUpdated += ManipulationHandler_ScaleUpdated;
 
-            PointerBasedManipulationHandler = manipulationHandler;
+            this.SizeChanged += MainWindow_SizeChanged;
 
-            PresentationSource.AddSourceChangedHandler(this, HandleSourceUpdated);
-
-            SourceInitialized += MainWindow_SourceInitialized;
-
-            SizeChanged += MainWindow_SizeChanged;
         }
+
+        private readonly PointerBasedManipulationHandler _manipulationHandler = new PointerBasedManipulationHandler();
 
         private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            PointerBasedManipulationHandler.InitializeDirectManipulation(e.NewSize);
+            _manipulationHandler.InitializeDirectManipulation(e.NewSize);
         }
 
-        private void MainWindow_SourceInitialized(object sender, EventArgs e)
+        private void ManipulationHandler_ScaleUpdated(float newScale)
         {
-        
+            _transform.ScaleX = _transform.ScaleY = newScale;
         }
 
-        private void ManipulationHandler_TranslationUpdated(float arg1, float arg2)
+        void OnSourceChanged(object sender, SourceChangedEventArgs e)
         {
-            _transform.Y += arg2;
+            Console.WriteLine("Foo");
+            if (e.NewSource is HwndSource source)
+                _manipulationHandler.HwndSource = source;
         }
 
         public List<string> Foo { set; get; } = new List<string>();
       
-        private TranslateTransform _transform;
+        private ScaleTransform _transform;
 
-        private void HandleSourceUpdated(object sender, SourceChangedEventArgs e)
-        {
-            if (PointerBasedManipulationHandler != null && e.NewSource is System.Windows.Interop.HwndSource newHwnd)
-                PointerBasedManipulationHandler.HwndSource = newHwnd;
-        }
-
-        private PointerBasedManipulationHandler PointerBasedManipulationHandler { get; set; }
     }
 }

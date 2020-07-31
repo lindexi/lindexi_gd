@@ -7,6 +7,8 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-      <StackPanel x:Name="StackPanel"></StackPanel>
+        <Grid Name="MainGrid" Background="Red">
+
+        </Grid>
     </Grid>
 </Window>
