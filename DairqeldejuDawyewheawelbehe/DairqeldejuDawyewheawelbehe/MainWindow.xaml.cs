@@ -76,6 +76,7 @@ namespace DairqeldejuDawyewheawelbehe
 
             RecognizePhoneNumber(text, modelInfoList);
             RecognizeIpAddress(text, modelInfoList);
+            RecognizeUrl(text, modelInfoList);
 
             RecognizeBoolean(text, modelInfoList);
 
@@ -99,6 +100,16 @@ namespace DairqeldejuDawyewheawelbehe
             if (recognizeIpAddress.Count > 0)
             {
                 modelInfoList.Add(new ModelInfo("IP", ModelResultToString(recognizeIpAddress)));
+            }
+        }
+
+        private void RecognizeUrl(string text, List<ModelInfo> modelInfoList)
+        {
+            var recognizeUrl = SequenceRecognizer.RecognizeURL(text, Culture.Chinese);
+
+            if (recognizeUrl.Count > 0)
+            {
+                modelInfoList.Add(new ModelInfo("Url", ModelResultToString(recognizeUrl)));
             }
         }
 
