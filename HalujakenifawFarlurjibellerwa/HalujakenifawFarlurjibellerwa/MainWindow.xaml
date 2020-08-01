@@ -13,7 +13,7 @@
             <RowDefinition Height="Auto"></RowDefinition>
         </Grid.RowDefinitions>
         <Grid>
-            <TextBox x:Name="Text" Margin="10,10,10,10" TextWrapping="Wrap" AcceptsReturn="True"></TextBox>
+            <TextBox x:Name="Text" HorizontalScrollBarVisibility="Visible" Margin="10,10,10,10" TextWrapping="WrapWithOverflow" AcceptsReturn="True"></TextBox>
         </Grid>
         <Grid Grid.Row="1">
             <TextBox x:Name="ShowText" Margin="10,10,10,10" IsReadOnly="True" TextWrapping="Wrap"></TextBox>
