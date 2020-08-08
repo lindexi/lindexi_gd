@@ -11,14 +11,15 @@
 
     <Target Name="LaldalllayjeaCawerequrwai" BeforeTargets="CollectPackageReferences">
         <ItemGroup>
-            <PackageReference Update="Microsoft.Extensions.Logging.Abstractions" Version="3.1.6" PrivateAssets="123" />
+            <PackageReferenceVersion Include="Name='%(PackageReference.Identity)' Version='%(PackageReference.Version)' PrivateAssets='%(PackageReference.PrivateAssets)'"></PackageReferenceVersion>
+        </ItemGroup>
+        <ItemGroup>
+            <PackageReference Update="Microsoft.Extensions.Logging.Abstractions" PrivateAssets="123" />
         </ItemGroup>
     </Target>
 
     <Target Name="LabaijalacarDaqarheelu" BeforeTargets="Build">
-        <ItemGroup>
-            <PackageReferenceVersion Include="Name='%(PackageReference.Identity)' Version='%(PackageReference.Version)' PrivateAssets='%(PackageReference.PrivateAssets)'"></PackageReferenceVersion>
-        </ItemGroup>
+        
         <Warning Text="@(PackageReferenceVersion)"/>
     </Target>
 
