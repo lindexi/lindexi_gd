@@ -3,22 +3,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:d="http://xamarin.com/schemas/2014/forms/design"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" Title="工具"
+             mc:Ignorable="d" Title="工具" 
+             NavigationPage.HasNavigationBar="False"
              x:Class="XamarinNeller.MainPage">
 
     <StackLayout>
-        <Grid RowDefinitions="*,*">
-            <BoxView Grid.Row="0" MinimumHeightRequest="100" HeightRequest="500" Background="#565656"></BoxView>
-            <BoxView Grid.Row="1" Background="#232323"></BoxView>
-        </Grid>
-        <Grid x:Name="Grid">
-            <ListView x:Name="ListView">
-                <ListView.Header>
-                    <Label Text="123"></Label>
-                </ListView.Header>
-            </ListView>
-        </Grid>
-     <Button Margin="10,10,10,10" Text="Button" Clicked="Button_OnClicked"></Button>
+        <Label Text="内容" HorizontalOptions="Center" VerticalOptions="CenterAndExpand"></Label>
     </StackLayout>
 
 </ContentPage>
