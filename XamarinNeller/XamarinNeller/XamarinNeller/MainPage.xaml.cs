@@ -17,5 +17,13 @@ namespace XamarinNeller
         {
             InitializeComponent();
         }
+
+        private void Button_OnClicked(object sender, EventArgs e)
+        {
+            ListView.Header = new Label()
+            {
+                Text = "123"
+            };
+        }
     }
 }
