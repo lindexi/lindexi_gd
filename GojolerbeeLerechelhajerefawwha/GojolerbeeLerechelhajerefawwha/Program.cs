@@ -26,7 +26,7 @@ namespace GojolerbeeLerechelhajerefawwha
                 foreach (var slideId in slideIdList.ChildElements.OfType<SlideId>())
                 {
                     // 获取页面内容
-                    SlidePart slidePart = (SlidePart) presentationPart.GetPartById(slideId.RelationshipId);
+                    SlidePart slidePart = (SlidePart)presentationPart.GetPartById(slideId.RelationshipId);
 
                     var slide = slidePart.Slide;
 
@@ -39,7 +39,7 @@ namespace GojolerbeeLerechelhajerefawwha
 
                         var textBodyListStyle = textBody.ListStyle;
 
-                        Debug.Assert(textBodyListStyle.ChildElements.Count == 0);
+                        Debug.Assert((textBodyListStyle?.ChildElements.Count ?? 0) == 0);
 
                         var paragraph = textBody.Descendants<Paragraph>().First();
                         var level = paragraph.ParagraphProperties?.Level?.Value ?? 1;
@@ -67,15 +67,18 @@ namespace GojolerbeeLerechelhajerefawwha
                                 // 这个字体的意思里面 mn 表示 Body 字体
                                 // 而 mj 表示 Title 字体，也就是 Major 字体
                                 // 后续的 ea 和 lt 等表示采用东亚文字或拉丁文等
-                                TextContentType fontType;
+                                // 此时需要获取字体主题
+                                var fontScheme = GetFontScheme(slidePart);
+                                FontCollectionType fontCollection;
+
                                 // mn 的 n 传入字符串是 +mn-ea 也就是第三个字符
                                 if (typeface[2] == 'n')
                                 {
-                                    fontType = TextContentType.Body;
+                                    fontCollection = fontScheme.MinorFont;
                                 }
                                 else
                                 {
-                                    fontType = TextContentType.Title;
+                                    fontCollection = fontScheme.MajorFont;
                                 }
 
                                 FontLang fontLang = FontLang.Unknown;
@@ -93,20 +96,7 @@ namespace GojolerbeeLerechelhajerefawwha
                                     fontLang = FontLang.EastAsianFont;
                                 }
 
-                                // 此时需要获取字体主题
-                                var fontScheme = GetFontScheme(slidePart);
-
                                 Debug.Assert(fontScheme != null);
-
-                                FontCollectionType fontCollection = null;
-                                if (fontType == TextContentType.Title)
-                                {
-                                    fontCollection = fontScheme.MajorFont;
-                                }
-                                else if (fontType == TextContentType.Body)
-                                {
-                                    fontCollection = fontScheme.MinorFont;
-                                }
 
                                 var language = runProperties.Language;
 
@@ -167,7 +157,17 @@ namespace GojolerbeeLerechelhajerefawwha
                 <a:font script="Hans" typeface="宋体" />
             </a:minorFont>
              */
-            // 也就是先尝试获取对应语言的，如果获取不到，就采用语言文化的
+
+            foreach (var font in fontCollection.Elements<SupplementalFont>())
+            {
+                // <a:font script="Hang" typeface="맑은 고딕" />
+                if (string.Equals(font.Script, scriptTag, StringComparison.OrdinalIgnoreCase))
+                {
+                    return font.Typeface;
+                }
+            }
+
+            // 也就是先尝试获取语言文化的，如果获取不到，就采用对应语言的
             TextFontType textFont = null;
             switch (themeTypefaceFontLang)
             {
@@ -193,15 +193,6 @@ namespace GojolerbeeLerechelhajerefawwha
             if (!string.IsNullOrEmpty(typeface))
             {
                 return typeface;
-            }
-
-            foreach (var font in fontCollection.Elements<SupplementalFont>())
-            {
-                // <a:font script="Hang" typeface="맑은 고딕" />
-                if (string.Equals(font.Script, scriptTag, StringComparison.OrdinalIgnoreCase))
-                {
-                    return font.Typeface;
-                }
             }
 
             Debug.Assert(false, "找不到字体");
