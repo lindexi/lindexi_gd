@@ -65,7 +65,7 @@ namespace GojolerbeeLerechelhajerefawwha
                             {
                                 // 进入这个分支，字体是 +mn-ea 字体
                                 // 这个字体的意思里面 mn 表示 Body 字体
-                                // 而 nn 表示 Title 字体，也就是 Major 字体
+                                // 而 mj 表示 Title 字体，也就是 Major 字体
                                 // 后续的 ea 和 lt 等表示采用东亚文字或拉丁文等
                                 TextContentType fontType;
                                 // mn 的 n 传入字符串是 +mn-ea 也就是第三个字符
