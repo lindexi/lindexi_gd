@@ -225,22 +225,6 @@ namespace GojolerbeeLerechelhajerefawwha
             new Regex(@"(^\+(mn|mj)\-(lt|cs|ea)$)", RegexOptions.Compiled);
     }
 
-    /// <summary>
-    /// 文字内容的类型
-    /// </summary>
-    public enum TextContentType
-    {
-        /// <summary>
-        /// 标题
-        /// </summary>
-        Title,
-
-        /// <summary>
-        /// 正文
-        /// </summary>
-        Body
-    }
-
     public enum FontLang
     {
         /// <summary>
