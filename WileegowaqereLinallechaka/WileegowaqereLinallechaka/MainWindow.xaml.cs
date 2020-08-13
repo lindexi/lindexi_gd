@@ -21,8 +21,6 @@ namespace WileegowaqereLinallechaka
     /// </summary>
     public partial class MainWindow : Window
     {
-
-
         public MainWindow()
         {
             InitializeComponent();
@@ -45,8 +43,7 @@ namespace WileegowaqereLinallechaka
 
             _manipulationHandler.ScaleUpdated += ManipulationHandler_ScaleUpdated;
 
-            this.SizeChanged += MainWindow_SizeChanged;
-
+            SizeChanged += MainWindow_SizeChanged;
         }
 
         private readonly PointerBasedManipulationHandler _manipulationHandler = new PointerBasedManipulationHandler();
