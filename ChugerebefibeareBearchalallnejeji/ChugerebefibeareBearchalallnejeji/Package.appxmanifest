@@ -38,7 +38,6 @@
         Description="ChugerebefibeareBearchalallnejeji"
         BackgroundColor="transparent">
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"/>
-        <uap:SplashScreen a:Optional="true" xmlns:a="http://schemas.microsoft.com/appx/manifest/uap/windows10/5" Image="Assets\SplashScreen.png"/>
       </uap:VisualElements>
     </Application>
   </Applications>
