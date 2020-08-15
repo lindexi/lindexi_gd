@@ -5,6 +5,6 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
     </PropertyGroup>
     <ItemGroup>
-     
+         <PackageReference Include="dotnetCampus.SourceYard" Version="0.1.19263-alpha" PrivateAssets="All" />
     </ItemGroup>
 </Project>
