@@ -7,6 +7,6 @@
 		<SourceYardCompile Include="Foo\a.cs" SourcePackagePath="analyzer\a.cs" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="dotnetCampus.SourceYard" Version="0.1.19309-alpha" PrivateAssets="All" />
+		<PackageReference Include="dotnetCampus.SourceYard" Version="0.1.19317-alpha" PrivateAssets="All" />
 	</ItemGroup>
 </Project>

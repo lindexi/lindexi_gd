@@ -16,12 +16,14 @@ namespace HaifeljiweajeYeelarkerjairere
             var autoResetEvent = new AutoResetEvent(false);
 
             Foo(autoResetEvent);
+            Foo2(autoResetEvent);
 
             autoResetEvent.Set();
 
             for (int i = 0; i < 10; i++)
             {
                 autoResetEvent.Set();
+                Thread.Sleep(100);
             }
 
             Console.Read();
@@ -36,6 +38,19 @@ namespace HaifeljiweajeYeelarkerjairere
                     autoResetEvent.WaitOne();
 
                     Console.WriteLine("Foo");
+                }
+            });
+        }
+
+        private static void Foo2(AutoResetEvent autoResetEvent)
+        {
+            Task.Run(() =>
+            {
+                while (true)
+                {
+                    autoResetEvent.WaitOne();
+
+                    Console.WriteLine("Foo2");
                 }
             });
         }
