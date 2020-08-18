@@ -22,7 +22,6 @@ namespace HaifeljiweajeYeelarkerjairere
             for (int i = 0; i < 10; i++)
             {
                 autoResetEvent.Set();
-                Thread.Sleep(100);
             }
 
             Console.Read();
