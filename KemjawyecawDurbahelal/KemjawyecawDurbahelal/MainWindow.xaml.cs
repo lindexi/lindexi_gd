@@ -10,6 +10,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Ink;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
@@ -28,6 +29,31 @@ namespace KemjawyecawDurbahelal
 
             StylusMove += MainWindow_StylusMove;
             StylusUp += MainWindow_StylusUp;
+
+            SourceInitialized += OnSourceInitialized;
+        }
+
+        private void OnSourceInitialized(object sender, EventArgs e)
+        {
+            var windowInteropHelper = new WindowInteropHelper(this);
+            var hwnd = windowInteropHelper.Handle;
+
+            HwndSource source = HwndSource.FromHwnd(hwnd);
+            source.AddHook(Hook);
+        }
+
+        private IntPtr Hook(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam, ref bool handled)
+        {
+            const int WM_POINTERDOWN = 0x0246;
+
+            if (msg == WM_POINTERDOWN)
+            {
+                // 开启了 Pointer 消息
+                Debugger.Break();
+            }
+
+
+            return IntPtr.Zero;
         }
 
         private void MainWindow_StylusUp(object sender, StylusEventArgs e)
