@@ -30,7 +30,7 @@ namespace KemjawyecawDurbahelal
             StylusMove += MainWindow_StylusMove;
             StylusUp += MainWindow_StylusUp;
 
-            //SourceInitialized += OnSourceInitialized;
+            SourceInitialized += OnSourceInitialized;
         }
 
         private void OnSourceInitialized(object sender, EventArgs e)
