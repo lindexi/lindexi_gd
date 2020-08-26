@@ -83,6 +83,7 @@ namespace KemjawyecawDurbahelal
             var strokeVisual = new StrokeVisual();
             StrokeVisualList[id] = strokeVisual;
             var visualCanvas = new VisualCanvas(strokeVisual);
+            Stylus.SetIsPressAndHoldEnabled(visualCanvas, false);
             Grid.Children.Add(visualCanvas);
 
             return strokeVisual;
