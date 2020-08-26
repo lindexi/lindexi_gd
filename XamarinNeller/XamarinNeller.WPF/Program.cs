@@ -33,11 +33,22 @@ namespace XamarinNeller.WPF
                         Width = 600
                     };
 
-                    var mainPage = new MainPage();
-                    var formsContentLoader = new FormsContentLoader();
-                    var content = formsContentLoader.LoadContentAsync(window,null, mainPage,new CancellationToken()).Result;
+                    var viewPage = new ViewPage()
+                    {
+                        HeightRequest = 500,
+                        WidthRequest = 500
+                    };
 
-                    window.Content = content;
+                    var pageRenderer = new PageRenderer();
+
+                    var mainPage = new MainPage();
+                    pageRenderer.SetElement(viewPage);
+                    
+                    //var formsContentLoader = new FormsContentLoader();
+                    //var content = formsContentLoader.LoadContentAsync(window,null, mainPage,new CancellationToken()).Result;
+
+                    var frameworkElement = pageRenderer.GetNativeElement();
+                    window.Content = frameworkElement;
                     window.Show();
                 });
             });
