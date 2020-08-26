@@ -51,12 +51,12 @@ namespace KemjawyecawDurbahelal
             if (msg == WM_TABLET_QUERYSYSTEMGESTURESTATUS)
             {
                 uint flags = 0;
-                bool isPressAndHoldEnabled = false;// Debug code
 
-                if (!isPressAndHoldEnabled)
-                {
-                    flags |= TABLET_PRESSANDHOLD_DISABLED;
-                }
+                flags |= TABLET_PRESSANDHOLD_DISABLED;
+                flags |= TABLET_TAPFEEDBACK_DISABLED;
+                flags |= TABLET_TOUCHUI_FORCEON;
+                flags |= TABLET_TOUCHUI_FORCEOFF;
+                flags |= TABLET_FLICKS_DISABLED;
 
                 handled = true;
                 return new IntPtr(flags);
