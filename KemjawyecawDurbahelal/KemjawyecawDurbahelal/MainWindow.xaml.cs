@@ -30,7 +30,7 @@ namespace KemjawyecawDurbahelal
             StylusMove += MainWindow_StylusMove;
             StylusUp += MainWindow_StylusUp;
 
-            //SourceInitialized += OnSourceInitialized;
+            SourceInitialized += OnSourceInitialized;
         }
 
         private void OnSourceInitialized(object sender, EventArgs e)
@@ -44,17 +44,37 @@ namespace KemjawyecawDurbahelal
 
         private IntPtr Hook(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam, ref bool handled)
         {
-            const int WM_POINTERDOWN = 0x0246;
+            const int WM_TABLET_DEFBASE =0x02C0;
+            const int WM_TABLET_QUERYSYSTEMGESTURESTATUS = WM_TABLET_DEFBASE + 12;
+            const int WM_TABLET_FLICK = WM_TABLET_DEFBASE + 11;
 
-            if (msg == WM_POINTERDOWN)
+            if (msg == WM_TABLET_QUERYSYSTEMGESTURESTATUS)
             {
-                // 开启了 Pointer 消息
-                Debugger.Break();
-            }
+                uint flags = 0;
+                bool isPressAndHoldEnabled = false;// Debug code
 
+                if (!isPressAndHoldEnabled)
+                {
+                    flags |= TABLET_PRESSANDHOLD_DISABLED;
+                }
+
+                handled = true;
+                return new IntPtr(flags);
+            }
+            else if (msg == WM_TABLET_FLICK)
+            {
+                handled = true;
+                return new IntPtr(1);
+            }
 
             return IntPtr.Zero;
         }
+
+        private const uint TABLET_PRESSANDHOLD_DISABLED = 0x00000001;
+        private const uint TABLET_TAPFEEDBACK_DISABLED = 0x00000008;
+        private const uint TABLET_TOUCHUI_FORCEON = 0x00000100;
+        private const uint TABLET_TOUCHUI_FORCEOFF = 0x00000200;
+        private const uint TABLET_FLICKS_DISABLED = 0x00010000;
 
         private void MainWindow_StylusUp(object sender, StylusEventArgs e)
         {
@@ -83,7 +103,6 @@ namespace KemjawyecawDurbahelal
             var strokeVisual = new StrokeVisual();
             StrokeVisualList[id] = strokeVisual;
             var visualCanvas = new VisualCanvas(strokeVisual);
-            Stylus.SetIsPressAndHoldEnabled(visualCanvas, false);
             Grid.Children.Add(visualCanvas);
 
             return strokeVisual;
