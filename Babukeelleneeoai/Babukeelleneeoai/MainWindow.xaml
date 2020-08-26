@@ -6,54 +6,46 @@
         xmlns:local="clr-namespace:Babukeelleneeoai"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Window.Resources>
-        <Style TargetType="ListBox">
-            <Setter Property="ItemContainerStyle">
-                <Setter.Value>
-                    <Style TargetType="ListBoxItem">
-                        <Setter Property="Margin" Value="5" />
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="ListBoxItem">
-                                    <Border Name="b1" BorderBrush="Orange" BorderThickness="4">
-                                        <StackPanel x:Name="StackPanel" Margin="10,10,10,10" Background="#A2A2A2">
-                                            <ContentPresenter />
-                                        </StackPanel>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsSelected" Value="True">
-                                            <Setter TargetName="b1" Property="BorderBrush" Value="Red" />
-                                            <Setter TargetName="StackPanel" Property="Visibility" Value="Collapsed" />
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                        <Style.Triggers>
-                            <Trigger Property="ListBoxItem.IsMouseOver" Value="true">
-                                <Setter Property="Background" Value="DarkBlue" />
-                            </Trigger>
-                            <Trigger Property="ListBoxItem.IsSelected" Value="true">
-                                <Setter Property="Foreground" Value="Red" />
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </Setter.Value>
-            </Setter>
-            <Setter Property="ItemTemplate">
-                <Setter.Value>
-                    <DataTemplate>
-                        <TextBlock
-                            Background="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListBoxItem},Path=Background}"
-                            Text="{Binding Path=Name}" />
-                    </DataTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </Window.Resources>
-    <Grid >
-        <ListBox x:Name="ListBox">
+    <Grid>
+        <StackPanel>
+            <StackPanel.Resources>
+                <Style TargetType="Button">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="Border">
+                                    <Border.RenderTransform>
+                                        <ScaleTransform />
+                                    </Border.RenderTransform>
+                                    <VisualStateManager.VisualStateGroups>
+                                        <VisualStateGroup x:Name="CommonStates">
+                                            <VisualState x:Name="Normal" />
+                                            <VisualState x:Name="Pressed">
+                                                <Storyboard>
+                                                    <DoubleAnimation
+                                                        Storyboard.TargetProperty="(RenderTransform).(ScaleTransform.ScaleX)"
+                                                        To="0.5" />
+                                                    <DoubleAnimation
+                                                        Storyboard.TargetProperty="(RenderTransform).(ScaleTransform.ScaleY)"
+                                                        To="0.5" />
+                                                </Storyboard>
+                                            </VisualState>
+                                        </VisualStateGroup>
+                                    </VisualStateManager.VisualStateGroups>
 
-        </ListBox>
+                                    <Grid>
+                                        <Rectangle Fill="Blue"/>
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </StackPanel.Resources>
+
+            <Button Margin="10,10,10,10" Width="100" Height="100" Content="Button 1" HorizontalAlignment="Center"
+                    VerticalAlignment="Center" />
+        </StackPanel>
     </Grid>
 </Window>

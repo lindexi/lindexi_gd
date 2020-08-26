@@ -29,22 +29,6 @@ namespace Babukeelleneeoai
         public MainWindow()
         {
             InitializeComponent();
-
-            var challcharyiqerelalCaykihelnere = new List<ChallcharyiqerelalCaykihelnere>();
-            for (int i = 0; i < 10; i++)
-            {
-                challcharyiqerelalCaykihelnere.Add(new ChallcharyiqerelalCaykihelnere()
-                {
-                    Name = (i + 1).ToString()
-                });
-            }
-
-            ListBox.ItemsSource = challcharyiqerelalCaykihelnere;
         }
-    }
-
-    public class ChallcharyiqerelalCaykihelnere
-    {
-        public string Name { set; get; }
     }
 }
