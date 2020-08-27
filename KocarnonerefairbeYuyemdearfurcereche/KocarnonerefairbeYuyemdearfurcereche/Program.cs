@@ -2,6 +2,8 @@
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.IO;
+using dotnetCampus.FileDownloader;
 
 namespace KocarnonerefairbeYuyemdearfurcereche
 {
@@ -9,6 +11,18 @@ namespace KocarnonerefairbeYuyemdearfurcereche
     {
         static void Main(string[] args)
         {
+            var url = "http://172.20.115.34:5721/image1.emf";
+
+            var downloadFile = new FileInfo(Path.GetTempFileName());
+
+            var segmentFileDownloader = new SegmentFileDownloader(url, downloadFile);
+            
+            segmentFileDownloader.DownloadFileAsync().Wait();
+
+            downloadFile.Refresh();
+            Console.WriteLine(downloadFile.Length);
+
+
             var file = "image1.emf";
             using var image = Image.FromFile(file);
 
