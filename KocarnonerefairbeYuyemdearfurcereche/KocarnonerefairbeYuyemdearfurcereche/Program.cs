@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -14,7 +15,7 @@ namespace KocarnonerefairbeYuyemdearfurcereche
         {
             var port = 8080;
 
-            var server = $"http://127.0.0.1:{port}";
+            var server = $"http://172.30.162.24:{port}";
             var url = server + $"/ImageTest/";
             var httpClient = new HttpClient();
 
@@ -27,7 +28,7 @@ namespace KocarnonerefairbeYuyemdearfurcereche
             var resizedFile = $"{server}{response.Content.ReadAsStringAsync().Result}";
             Console.WriteLine(resizedFile);
 
-            var downloadFile = new FileInfo(Path.GetTempFileName());
+            var downloadFile = new FileInfo(Path.GetTempFileName()+".png");
 
             var segmentFileDownloader = new SegmentFileDownloader(resizedFile, downloadFile);
 
@@ -35,6 +36,7 @@ namespace KocarnonerefairbeYuyemdearfurcereche
 
             downloadFile.Refresh();
             Console.WriteLine(downloadFile.Length);
+            Process.Start("explorer", downloadFile.FullName);
 
             var file = "image1.emf";
             using var image = Image.FromFile(file);
@@ -53,10 +55,21 @@ namespace KocarnonerefairbeYuyemdearfurcereche
                 Console.WriteLine($"Saving resized-{file} thumbnail");
             }
         }
+
+
     }
 
     public class ImageConvertTaskRequest
     {
         public string ImageUrl { set; get; } = null!;
+    }
+
+
+    /// <summary>
+    /// 图片优化
+    /// </summary>
+    public static class ImageOptimization
+    {
+
     }
 }
