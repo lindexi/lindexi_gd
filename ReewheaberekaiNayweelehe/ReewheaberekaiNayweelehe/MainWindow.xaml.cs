@@ -38,6 +38,7 @@ namespace ReewheaberekaiNayweelehe
             var writeableBitmap = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgra32, BitmapPalettes.Halftone256Transparent);
             return writeableBitmap;
         }
+
         private void UpdateImage(WriteableBitmap writeableBitmap)
         {
             int width = (int)writeableBitmap.Width,
@@ -52,17 +53,40 @@ namespace ReewheaberekaiNayweelehe
                 ColorSpace = SKColorSpace.CreateSrgb()
             };
 
+            var name = "微软雅黑";
+            var skTypeface = SKTypeface.FromFamilyName(name);
+            if (skTypeface.FamilyName != name)
+            {
+                // 字体加载失败了
+            }
+
+            var fontFamily = new FontFamily(name);
+            foreach (var familyNamesValue in fontFamily.FamilyNames.Values)
+            {
+                skTypeface = SKTypeface.FromFamilyName(familyNamesValue);
+                if (skTypeface.FamilyName == familyNamesValue)
+                {
+                    break;
+                }
+            }
+          
             using (var surface = SKSurface.Create(skImageInfo, writeableBitmap.BackBuffer))
             {
                 SKCanvas canvas = surface.Canvas;
                 canvas.Clear(new SKColor(130, 130, 130));
                 canvas.DrawText("SkiaSharp on Wpf!", 50, 200, new SKPaint() { Color = new SKColor(0, 0, 0), TextSize = 100 });
-                canvas.DrawText("https://blog.lindexi.com", new SKPoint(50, 500), new SKPaint(new SKFont(SKTypeface.FromFamilyName("微软雅黑")))
+                canvas.DrawText("星系", new SKPoint(50, 500), new SKPaint(new SKFont(skTypeface))
                 {
                     Color = new SKColor(0, 0, 0),
                     TextSize = 20
                 });
             }
+
+            Task.Run(() =>
+            {
+              
+            }).ConfigureAwait(false).GetAwaiter().GetResult();
+            
             writeableBitmap.AddDirtyRect(new Int32Rect(0, 0, width, height));
             writeableBitmap.Unlock();
         }
