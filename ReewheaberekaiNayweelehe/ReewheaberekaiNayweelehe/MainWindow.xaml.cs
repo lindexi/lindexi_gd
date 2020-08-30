@@ -58,6 +58,7 @@ namespace ReewheaberekaiNayweelehe
             if (skTypeface.FamilyName != name)
             {
                 // 字体加载失败了
+                skTypeface.Dispose();
             }
 
             var fontFamily = new FontFamily(name);
@@ -68,19 +69,27 @@ namespace ReewheaberekaiNayweelehe
                 {
                     break;
                 }
+                else
+                {
+                    skTypeface.Dispose();
+                }
             }
           
             using (var surface = SKSurface.Create(skImageInfo, writeableBitmap.BackBuffer))
             {
                 SKCanvas canvas = surface.Canvas;
                 canvas.Clear(new SKColor(130, 130, 130));
-                canvas.DrawText("SkiaSharp on Wpf!", 50, 200, new SKPaint() { Color = new SKColor(0, 0, 0), TextSize = 100 });
-                canvas.DrawText("星系", new SKPoint(50, 500), new SKPaint(new SKFont(skTypeface))
+                using var skPaint = new SKPaint() { Color = new SKColor(0, 0, 0), TextSize = 100 };
+                canvas.DrawText("SkiaSharp on Wpf!", 50, 200, skPaint);
+                using var paint = new SKPaint(new SKFont(skTypeface))
                 {
                     Color = new SKColor(0, 0, 0),
                     TextSize = 20
-                });
+                };
+                canvas.DrawText("星系", new SKPoint(50, 500), paint);
             }
+
+            skTypeface.Dispose();
 
             Task.Run(() =>
             {
