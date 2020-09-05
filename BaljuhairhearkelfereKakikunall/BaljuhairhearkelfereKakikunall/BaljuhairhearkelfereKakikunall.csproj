@@ -5,4 +5,7 @@
     <TargetFramework>netcoreapp3.0</TargetFramework>
   </PropertyGroup>
 
+  <Target Name="KofegaheqallwhikaDalbedalkihi" AfterTargets="BeforeBuild">
+  	<Warning Text="Solution $(SolutionDir)"/>
+  </Target>
 </Project>
