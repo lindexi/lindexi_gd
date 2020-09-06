@@ -16,6 +16,66 @@ using SkiaSharp;
 
 namespace ReewheaberekaiNayweelehe
 {
+    public class SkiaCanvas : Image
+    {
+        public SkiaCanvas()
+        {
+            Loaded += SkiaCanvas_Loaded;
+        }
+
+        private void SkiaCanvas_Loaded(object sender, RoutedEventArgs e)
+        {
+            var writeableBitmap = new WriteableBitmap(PixelWidth, PixelHeight, 96, 96, PixelFormats.Bgra32,
+                BitmapPalettes.Halftone256Transparent);
+
+            _writeableBitmap = writeableBitmap;
+
+            var skImageInfo = new SKImageInfo()
+            {
+                Width = PixelWidth,
+                Height = PixelHeight,
+                ColorType = SKColorType.Bgra8888,
+                AlphaType = SKAlphaType.Premul,
+                ColorSpace = SKColorSpace.CreateSrgb()
+            };
+
+            SKSurface surface = SKSurface.Create(skImageInfo, writeableBitmap.BackBuffer);
+            _skSurface = surface;
+
+            Source = writeableBitmap;
+        }
+
+        public void Draw(Action<SKCanvas> action)
+        {
+            Draw(canvas =>
+            {
+                action(canvas);
+                return null;
+            });
+        }
+
+        public void Draw(Func<SKCanvas, Int32Rect?> draw)
+        {
+            var writeableBitmap = _writeableBitmap;
+            writeableBitmap.Lock();
+
+            var canvas = _skSurface.Canvas;
+            var dirtyRect = draw(canvas);
+            canvas.Flush();
+
+            dirtyRect ??= new Int32Rect(0, 0, PixelWidth, PixelHeight);
+
+            writeableBitmap.AddDirtyRect(dirtyRect.Value);
+            writeableBitmap.Unlock();
+        }
+
+        private WriteableBitmap _writeableBitmap = null!; // 这里的 null! 是 C# 的新语法，是给智能分析用的，表示这个字段在使用的时候不会为空
+        private SKSurface _skSurface = null!; // 实际上 null! 的含义是我明确给他一个空值，也就是说如果是空也是预期的
+
+        public int PixelWidth => (int) Width;
+        public int PixelHeight => (int) Height;
+    }
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -26,78 +86,34 @@ namespace ReewheaberekaiNayweelehe
             InitializeComponent();
         }
 
+        private void Draw(Action<SKCanvas> action)
+        {
+            Image.Draw(action);
+        }
+
         private void Button_OnClick(object sender, RoutedEventArgs e)
         {
-            var writeableBitmap = CreateImage(1920, 1080);
-            UpdateImage(writeableBitmap);
-            Image.Source = writeableBitmap;
+            Draw(canvas =>
+            {
+                using var skPaint = new SKPaint() {Color = new SKColor(0, 0, 0), TextSize = 100};
+                canvas.DrawLine(10, 10, 100, 100, skPaint);
+            });
         }
 
-        private WriteableBitmap CreateImage(int width, int height)
+        private void UIElement_OnMouseMove(object sender, MouseEventArgs e)
         {
-            var writeableBitmap = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgra32, BitmapPalettes.Halftone256Transparent);
-            return writeableBitmap;
+            var position = e.GetPosition(this);
+
+            Draw(canvas =>
+            {
+                using var skPaint = new SKPaint() {Color = new SKColor(0, 0, 0), TextSize = 100};
+                canvas.DrawLine(new SKPoint((float) _lastPosition.X, (float) _lastPosition.Y),
+                    new SKPoint((float) position.X, (float) position.Y), skPaint);
+            });
+
+            _lastPosition = position;
         }
 
-        private void UpdateImage(WriteableBitmap writeableBitmap)
-        {
-            int width = (int)writeableBitmap.Width,
-                height = (int)writeableBitmap.Height;
-            writeableBitmap.Lock();
-            var skImageInfo = new SKImageInfo()
-            {
-                Width = width,
-                Height = height,
-                ColorType = SKColorType.Bgra8888,
-                AlphaType = SKAlphaType.Premul,
-                ColorSpace = SKColorSpace.CreateSrgb()
-            };
-
-            var name = "微软雅黑";
-            var skTypeface = SKTypeface.FromFamilyName(name);
-            if (skTypeface.FamilyName != name)
-            {
-                // 字体加载失败了
-                skTypeface.Dispose();
-            }
-
-            var fontFamily = new FontFamily(name);
-            foreach (var familyNamesValue in fontFamily.FamilyNames.Values)
-            {
-                skTypeface = SKTypeface.FromFamilyName(familyNamesValue);
-                if (skTypeface.FamilyName == familyNamesValue)
-                {
-                    break;
-                }
-                else
-                {
-                    skTypeface.Dispose();
-                }
-            }
-          
-            using (var surface = SKSurface.Create(skImageInfo, writeableBitmap.BackBuffer))
-            {
-                SKCanvas canvas = surface.Canvas;
-                canvas.Clear(new SKColor(130, 130, 130));
-                using var skPaint = new SKPaint() { Color = new SKColor(0, 0, 0), TextSize = 100 };
-                canvas.DrawText("SkiaSharp on Wpf!", 50, 200, skPaint);
-                using var paint = new SKPaint(new SKFont(skTypeface))
-                {
-                    Color = new SKColor(0, 0, 0),
-                    TextSize = 20
-                };
-                canvas.DrawText("星系", new SKPoint(50, 500), paint);
-            }
-
-            skTypeface.Dispose();
-
-            Task.Run(() =>
-            {
-              
-            }).ConfigureAwait(false).GetAwaiter().GetResult();
-            
-            writeableBitmap.AddDirtyRect(new Int32Rect(0, 0, width, height));
-            writeableBitmap.Unlock();
-        }
+        private Point _lastPosition = new Point(0, 0);
     }
 }
