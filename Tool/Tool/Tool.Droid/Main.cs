@@ -14,30 +14,30 @@ using Windows.UI.Xaml.Media;
 
 namespace Tool.Droid
 {
-    [global::Android.App.ApplicationAttribute(
-        Label = "@string/ApplicationName",
-        LargeHeap = true,
-        HardwareAccelerated = true,
-        Theme = "@style/AppTheme"
-    )]
-    public class Application : Windows.UI.Xaml.NativeApplication
-    {
-        public Application(IntPtr javaReference, JniHandleOwnership transfer)
-            : base(() => new App(), javaReference, transfer)
-        {
-            ConfigureUniversalImageLoader();
-        }
+	[global::Android.App.ApplicationAttribute(
+		Label = "@string/ApplicationName",
+		LargeHeap = true,
+		HardwareAccelerated = true,
+		Theme = "@style/AppTheme"
+	)]
+	public class Application : Windows.UI.Xaml.NativeApplication
+	{
+		public Application(IntPtr javaReference, JniHandleOwnership transfer)
+			: base(() => new App(), javaReference, transfer)
+		{
+			ConfigureUniversalImageLoader();
+		}
 
-        private void ConfigureUniversalImageLoader()
-        {
-            // Create global configuration and initialize ImageLoader with this config
-            ImageLoaderConfiguration config = new ImageLoaderConfiguration
-                .Builder(Context)
-                .Build();
+		private void ConfigureUniversalImageLoader()
+		{
+			// Create global configuration and initialize ImageLoader with this config
+			ImageLoaderConfiguration config = new ImageLoaderConfiguration
+				.Builder(Context)
+				.Build();
 
-            ImageLoader.Instance.Init(config);
+			ImageLoader.Instance.Init(config);
 
-            ImageSource.DefaultImageLoader = ImageLoader.Instance.LoadImageAsync;
-        }
-    }
+			ImageSource.DefaultImageLoader = ImageLoader.Instance.LoadImageAsync;
+		}
+	}
 }
