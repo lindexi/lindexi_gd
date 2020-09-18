@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.OleDb;
 using System.IO;
 using OpenMcdf;
@@ -20,6 +21,10 @@ namespace KaldaygeduWalaineejaw
         private static bool CheckOfficeDocumentWithPassword(FileInfo file)
         {
             CompoundFile cf = new CompoundFile(file.FullName);
+
+            var dataSpaces = DataSpaces.Load(cf);
+            var encryptionInfo = EncryptionInfo.Load(cf);
+
             var numDirectories = cf.GetNumDirectories();
             for (int i = 0; i < numDirectories; i++)
             {
@@ -37,4 +42,17 @@ namespace KaldaygeduWalaineejaw
             return false;
         }
     }
+
+
+    // 注意: 生成的代码可能至少需要 .NET Framework 4.5 或 .NET Core/Standard 2.0。
+
+
+    // ReSharper disable once InconsistentNaming
+
+    // ReSharper disable once InconsistentNaming
+
+
+    // UNICODE-LP-P4
+
+    // UTF-8-LP-P4
 }
