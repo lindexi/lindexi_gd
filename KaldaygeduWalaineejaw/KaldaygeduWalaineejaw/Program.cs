@@ -14,6 +14,13 @@ namespace KaldaygeduWalaineejaw
     {
         static void Main(string[] args)
         {
+            var file = @"带密码的课件PPTX.pptx";
+
+            if (CheckOfficeDocumentWithPassword(new FileInfo(file)))
+            {
+                Console.WriteLine("带密码");
+            }
+
             //var fromBase64String = Convert.FromBase64String("dehYIJ5fJ/8ykdnFaPPn7g==");
             //var text = Encoding.UTF8.GetString(fromBase64String);
 
@@ -39,12 +46,8 @@ namespace KaldaygeduWalaineejaw
 
             var hf = sha512.ComputeHash(hn.Concat(new byte[]{0x5f, 0xb2, 0xad, 0x01, 0x0c, 0xb9, 0xe1, 0xf6 }).ToArray());
 
-            var file = @"带密码的课件PPTX.pptx";
 
-            if (CheckOfficeDocumentWithPassword(new FileInfo(file)))
-            {
-                Console.WriteLine("带密码");
-            }
+          
         }
 
         private static bool CheckOfficeDocumentWithPassword(FileInfo file)
@@ -53,6 +56,7 @@ namespace KaldaygeduWalaineejaw
 
             var dataSpaces = DataSpaces.Load(cf);
             var encryptionInfo = EncryptionInfo.Load(cf);
+            var encryptedPackage = EncryptedPackage.Load(cf);
 
 
             var numDirectories = cf.GetNumDirectories();
