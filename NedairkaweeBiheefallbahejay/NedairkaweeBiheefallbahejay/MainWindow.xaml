@@ -1,0 +1,23 @@
+﻿<Window x:Class="NedairkaweeBiheefallbahejay.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NedairkaweeBiheefallbahejay"
+        mc:Ignorable="d"
+        Title="lindexi 是逗比" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid>
+            <TextBlock x:Name="LogTextBlock" Margin="10,10,10,10" TextWrapping="Wrap" VerticalAlignment="Bottom"></TextBlock>
+        </Grid>
+        <StackPanel Grid.Row="1" Margin="10,10,10,10"
+                    Orientation="Horizontal" >
+            <Button Margin="10,10,10,10" Content="启动任务" Click="StartTaskButton_OnClick"></Button>
+            <Button Margin="10,10,10,10" Content="重置任务" Click="ResetTaskButton_OnClick"></Button>
+        </StackPanel>
+    </Grid>
+</Window>
