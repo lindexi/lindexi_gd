@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using dotnetCampus.Threading;
@@ -25,6 +26,12 @@ namespace dotnetCampus.FastFileLogger
         public void QueueWriteLineToFile(string text)
         {
             _bufferTaskDoUtilInitialized.AddTask(text);
+        }
+
+        public Task DisposeAsync()
+        {
+            _bufferTaskDoUtilInitialized.Finish();
+            return _bufferTaskDoUtilInitialized.WaitAllTaskFinish();
         }
 
         private Task WriteLinesToFile(List<string> textList)
