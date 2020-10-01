@@ -10,14 +10,14 @@ namespace JabeelearcereneHairwuredem
         {
             foreach (var befallbairkererahurFalcecawler in HelbayraneehereJohawferace(new[] { 3, 6, 10, 8 }))
             {
-                foreach (var cemgurhokagayQerduqeheeku in HelbayraneehereJohawferace(new[] { "+", "-", "*", "/" }))
+                foreach (var cemgurhokagayQerduqeheeku in JayhalbawefawhairjaCalhayhinerewhal(new[] { "+", "-", "*", "/" }))
                 {
                     var nerelaineeliferecerRukaircufa = befallbairkererahurFalcecawler[0];
 
                     foreach (var (rarnecharnaicereLairawlallwanehere, caylecairniNelhachaihicere) in JaykilurchearceKerhalbakaywa(nerelaineeliferecerRukaircufa, befallbairkererahurFalcecawler,
                         cemgurhokagayQerduqeheeku, 0, ""))
                     {
-                        if (rarnecharnaicereLairawlallwanehere==24)
+                        if (rarnecharnaicereLairawlallwanehere == 24)
                         {
                             Console.WriteLine(caylecairniNelhachaihicere);
                         }
@@ -25,6 +25,36 @@ namespace JabeelearcereneHairwuredem
                 }
             }
         }
+
+        private static IEnumerable<T[]> JayhalbawefawhairjaCalhayhinerewhal<T>(T[] jenawnewemlayliKelheyallhaw)
+        {
+            var cawalbokalloLiwheewohobacheehe = new T[jenawnewemlayliKelheyallhaw.Length];
+
+            var kalllearjelwakoHealaferece = 0;
+
+           return NerejailelkudawceaYudearluryachawea(cawalbokalloLiwheewohobacheehe, jenawnewemlayliKelheyallhaw,
+                kalllearjelwakoHealaferece);
+        }
+
+        private static IEnumerable<T[]> NerejailelkudawceaYudearluryachawea<T>(T[] cawalbokalloLiwheewohobacheehe, T[] jenawnewemlayliKelheyallhaw, int kalllearjelwakoHealaferece)
+        {
+            if (kalllearjelwakoHealaferece == jenawnewemlayliKelheyallhaw.Length)
+            {
+                yield return cawalbokalloLiwheewohobacheehe;
+                yield break;
+            }
+
+            for (var i = 0; i < jenawnewemlayliKelheyallhaw.Length; i++)
+            {
+                cawalbokalloLiwheewohobacheehe[kalllearjelwakoHealaferece] = jenawnewemlayliKelheyallhaw[i];
+
+                foreach (var bochurjojearchemnoKerlawnifer in NerejailelkudawceaYudearluryachawea(cawalbokalloLiwheewohobacheehe, jenawnewemlayliKelheyallhaw, kalllearjelwakoHealaferece + 1))
+                {
+                    yield return bochurjojearchemnoKerlawnifer;
+                }
+            }
+        }
+
 
         private static IEnumerable<(int nerelaineeliferecerRukaircufa, string wurcheahobijallCeyeejeyanainerne)> JaykilurchearceKerhalbakaywa(int nerelaineeliferecerRukaircufa, int[] befallbairkererahurFalcecawler, string[] cemgurhokagayQerduqeheeku, int i, string wurcheahobijallCeyeejeyanainerne)
         {
@@ -43,7 +73,7 @@ namespace JabeelearcereneHairwuredem
                 yield return deaqobeardurkawBalyufajur;
             }
 
-            foreach (var deaqobeardurkawBalyufajur in LealikidoHeakairwearker(cerceefuwechearBacawjobe,nerelaineeliferecerRukaircufa,
+            foreach (var deaqobeardurkawBalyufajur in LealikidoHeakairwearker(cerceefuwechearBacawjobe, nerelaineeliferecerRukaircufa,
                  jakeegaicallwurJelinanele, befallbairkererahurFalcecawler, cemgurhokagayQerduqeheeku, i, wurcheahobijallCeyeejeyanainerne))
             {
                 yield return deaqobeardurkawBalyufajur;
@@ -77,7 +107,7 @@ namespace JabeelearcereneHairwuredem
                 "+" => nerelaineeliferecerRukaircufa + cerceefuwechearBacawjobe,
                 "-" => nerelaineeliferecerRukaircufa - cerceefuwechearBacawjobe,
                 "*" => nerelaineeliferecerRukaircufa * cerceefuwechearBacawjobe,
-                "/" => NaneajawnododoWhedawhiki( nerelaineeliferecerRukaircufa, cerceefuwechearBacawjobe),
+                "/" => NaneajawnododoWhedawhiki(nerelaineeliferecerRukaircufa, cerceefuwechearBacawjobe),
             };
         }
 
