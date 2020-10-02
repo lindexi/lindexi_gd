@@ -10,8 +10,24 @@ namespace FairneabairjibearhearLanallgekay
     {
         static void Main(string[] args)
         {
-
+            FocajakoFerekaylijawhaneber();
             KurlinelchuFalberekebi();
+        }
+
+        private static void FocajakoFerekaylijawhaneber()
+        {
+            // 多线程等待读取
+
+            var storageValue = new StorageValue<int>();
+            storageValue.DefaultValue = 100;
+
+            // 没有设置值，没有变化
+            storageValue.Increment();
+            AssertEqual(100, storageValue.CurrentValue);
+
+            storageValue.CurrentValue = 10;
+            AssertEqual(100, storageValue.DefaultValue);
+            AssertEqual(10, storageValue.CurrentValue);
         }
 
         private static void KurlinelchuFalberekebi()
@@ -35,6 +51,33 @@ namespace FairneabairjibearhearLanallgekay
         }
     }
 
+    public class StorageValueManger
+    {
+        public int CurrentVersion { set; get; }
+
+        public void Increment()
+        {
+            lock (StorageValueLocker)
+            {
+                CurrentVersion++;
+            }
+        }
+
+        public void Decrement()
+        {
+            lock (StorageValueLocker)
+            {
+                CurrentVersion--;
+                if (CurrentVersion < 0)
+                {
+                    CurrentVersion = 0;
+                }
+            }
+        }
+
+        internal object StorageValueLocker { get; } = new object();
+    }
+
     public class StorageValue<T>
     {
         public void Increment()
@@ -56,6 +99,8 @@ namespace FairneabairjibearhearLanallgekay
                 }
             }
         }
+
+        public StorageValueManger StorageValueManger { set; get; }
 
         private readonly object _locker = new object();
 
