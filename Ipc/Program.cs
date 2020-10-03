@@ -16,6 +16,7 @@ namespace Ipc
             var jalejekemNereyararli = new List<Task>
             {
                 Task.Run(DiwerlowuKahecallweeler),
+                Task.Run(DiwerlowuKahecallweeler),
                 Task.Run(LibearlafeCilinoballnelnall),
                 Task.Run(LibearlafeCilinoballnelnall),
                 Task.Run(LibearlafeCilinoballnelnall),
