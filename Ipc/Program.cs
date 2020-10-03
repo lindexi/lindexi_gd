@@ -20,15 +20,29 @@ namespace Ipc
             {
                 //Task.Run(DiwerlowuKahecallweeler),
                 //Task.Run(DiwerlowuKahecallweeler),
-                Task.Run(HalrowemfeareeHeabemnikeci),
-                Task.Run(LibearlafeCilinoballnelnall),
-                Task.Run(LibearlafeCilinoballnelnall),
-                Task.Run(LibearlafeCilinoballnelnall),
-                Task.Run(WhejeewukawBalbejelnewearfe),
+                //Task.Run(HalrowemfeareeHeabemnikeci),
+                //Task.Run(LibearlafeCilinoballnelnall),
+                //Task.Run(LibearlafeCilinoballnelnall),
+                //Task.Run(LibearlafeCilinoballnelnall),
+                //Task.Run(WhejeewukawBalbejelnewearfe),
+                Task.Run(WheehakawlucearHalwahewurlaiwhair),
+                Task.Run(BaiqealawbawKeqakeyawaw),
             };
 
             Task.WaitAll(jalejekemNereyararli.ToArray());
             Console.Read();
+        }
+
+        private static Task? BaiqealawbawKeqakeyawaw()
+        {
+            var ipcProvider = new IpcProvider();
+            return ipcProvider.ConnectServer(IpcContext.PipeName);
+        }
+
+        private static Task? WheehakawlucearHalwahewurlaiwhair()
+        {
+            var ipcProvider = new IpcProvider(IpcContext.PipeName);
+            return ipcProvider.StartServer();
         }
 
         private static async Task WhejeewukawBalbejelnewearfe()
@@ -148,6 +162,11 @@ namespace Ipc
 
     class PipeServerMessage
     {
+        public PipeServerMessage(string pipeName)
+        {
+            PipeName = pipeName;
+        }
+
         private NamedPipeServerStream NamedPipeServerStream { set; get; } = null!;
 
         public async Task Start()
@@ -189,7 +208,7 @@ namespace Ipc
 
         private string ClientName { set; get; } = null!;
 
-        public string PipeName { get; } = IpcContext.PipeName;
+        public string PipeName { get; }
 
         private IpcConfiguration IpcConfiguration { get; set; } = new IpcConfiguration();
 
@@ -232,11 +251,11 @@ namespace Ipc
 
     class NamedPipeServerStreamPool
     {
-        public async void Start()
+        public async Task Start()
         {
             while (true)
             {
-                var pipeServerMessage = new PipeServerMessage();
+                var pipeServerMessage = new PipeServerMessage(PipeName);
 
                 pipeServerMessage.ClientConnected += PipeServerMessage_ClientConnected;
                 pipeServerMessage.MessageReceived += PipeServerMessage_MessageReceived;
@@ -245,23 +264,37 @@ namespace Ipc
             }
         }
 
+        public NamedPipeServerStreamPool(string pipeName)
+        {
+            PipeName = pipeName;
+        }
+
+        public string PipeName { get; }
+
         private void PipeServerMessage_MessageReceived(object? sender, ClientMessageArgs e)
         {
+            MessageReceived?.Invoke(sender, e);
         }
 
         private void PipeServerMessage_ClientConnected(object? sender, ClientConnectedArgs e)
         {
             if (NamedPipeServerStreamList.TryAdd(e.ClientName, e.NamedPipeServerStream))
             {
+
             }
             else
             {
-                // 有客户端重复连接
+                // 有客户端重复连接，或这是服务器端连接
             }
+
+            ClientConnected?.Invoke(sender, e);
         }
 
-        private ConcurrentDictionary<string, NamedPipeServerStream> NamedPipeServerStreamList { get; } =
-            new ConcurrentDictionary<string, NamedPipeServerStream>();
+        public event EventHandler<ClientMessageArgs>? MessageReceived;
+
+        public event EventHandler<ClientConnectedArgs>? ClientConnected;
+
+        private ConcurrentDictionary<string, NamedPipeServerStream> NamedPipeServerStreamList { get; } = new ConcurrentDictionary<string, NamedPipeServerStream>();
 
         private IpcConfiguration IpcConfiguration { get; set; } = new IpcConfiguration();
     }
@@ -325,40 +358,103 @@ namespace Ipc
     //    public override long Position { get; set; }
     //}
 
+    /// <summary>
+    /// 对等通讯，每个都是服务器端，每个都是客户端
+    /// </summary>
     public class IpcProvider
     {
-        public IpcProvider()
+        public IpcProvider() : this(Guid.NewGuid().ToString("N"))
         {
-            ClientName = Guid.NewGuid().ToString("N");
+
         }
 
-        public void StartServer()
+        public IpcProvider(string clientName)
         {
-            var ipcServerService = new IpcServerService();
-            ipcServerService.Start();
+            ClientName = clientName;
         }
 
-        public async void ConnectServer(string serverName)
+        public async Task StartServer()
         {
-            StartServer();
-            var ipcClientService = new IpcClientService();
+            if (IpcServerService != null)
+            {
+                return;
+            }
+
+            var ipcServerService = new IpcServerService(ClientName);
+            IpcServerService = ipcServerService;
+
+            ipcServerService.NamedPipeServerStreamPool.ClientConnected += NamedPipeServerStreamPool_ClientConnected;
+
+            await ipcServerService.Start();
+        }
+
+        private async void NamedPipeServerStreamPool_ClientConnected(object? sender, ClientConnectedArgs e)
+        {
+            // 也许是服务器连接
+            if (ConnectedServerManagerList.Any(temp => temp.ServerName == e.ClientName))
+            {
+
+            }
+            else
+            {
+                // 其他客户端连接
+                await ConnectServer(e.ClientName);
+            }
+        }
+
+        public IpcServerService IpcServerService { set; get; } = null!;
+
+        public async Task ConnectServer(string serverName)
+        {
+            var task = StartServer();
+
+            var connectedServerManager = new ConnectedServerManager(serverName, ClientName);
+
+            ConnectedServerManagerList.Add(connectedServerManager);
+
+            await connectedServerManager.ConnectServer();
+
+            await task;
+        }
+
+        public string ClientName { get; }
+
+        public ConcurrentBag<ConnectedServerManager> ConnectedServerManagerList { get; } = new ConcurrentBag<ConnectedServerManager>();
+    }
+
+    public class ConnectedServerManager
+    {
+        public ConnectedServerManager(string serverName, string clientName)
+        {
+            ServerName = serverName;
+            ClientName = clientName;
+        }
+
+        public async Task ConnectServer()
+        {
+            var ipcClientService = new IpcClientService(ServerName);
+            IpcClientService = ipcClientService;
             await ipcClientService.Start();
             await ipcClientService.WriteStringAsync(ClientName);
         }
 
+        public string ServerName { get; }
         public string ClientName { get; }
+
+        public IpcClientService IpcClientService { get; set; } = null!;
+
     }
 
     public class IpcClientService
     {
-        public IpcClientService()
+        public IpcClientService(string serverName = IpcContext.PipeName)
         {
-            ClientName = Guid.NewGuid().ToString("N");
+            ServerName = serverName;
         }
 
         public async Task Start()
         {
-            var namedPipeClientStream = new NamedPipeClientStream(".", IpcContext.PipeName, PipeDirection.InOut,
+            var namedPipeClientStream = new NamedPipeClientStream(".", ServerName, PipeDirection.InOut,
                 PipeOptions.None, TokenImpersonationLevel.Impersonation);
             await namedPipeClientStream.ConnectAsync();
 
@@ -389,18 +485,26 @@ namespace Ipc
 
         private IpcConfiguration IpcConfiguration { get; set; } = new IpcConfiguration();
 
-        public string ClientName { get; }
+        public string ServerName { get; }
     }
 
     public class IpcServerService
     {
-        public async void Start()
+        public IpcServerService(string pipeName = IpcContext.PipeName)
         {
-            var namedPipeServerStreamPool = new NamedPipeServerStreamPool();
-            namedPipeServerStreamPool.Start();
+            PipeName = pipeName;
+            var namedPipeServerStreamPool = new NamedPipeServerStreamPool(PipeName);
+            NamedPipeServerStreamPool = namedPipeServerStreamPool;
         }
 
-        public string PipeName { get; } = IpcContext.PipeName;
+        public async Task Start()
+        {
+            await NamedPipeServerStreamPool.Start();
+        }
+
+        internal NamedPipeServerStreamPool NamedPipeServerStreamPool { set; get; } = null!;
+
+        public string PipeName { get; }
 
         private void StreamMessageConverter_MessageReceived(object? sender, ByteListMessageStream e)
         {
