@@ -116,12 +116,12 @@ namespace Ipc
         public async Task Start()
         {
             var namedPipeServerStream = new NamedPipeServerStream(PipeName);
-            await namedPipeServerStream.WaitForConnectionAsync();
             NamedPipeServerStream = namedPipeServerStream;
 
             var streamMessageConverter = new StreamMessageConverter(namedPipeServerStream, IpcConfiguration.MessageHeader, IpcConfiguration.SharedArrayPool);
             streamMessageConverter.MessageReceived += OnClientConnectReceived;
             StreamMessageConverter = streamMessageConverter;
+            await namedPipeServerStream.WaitForConnectionAsync();
         }
 
         private StreamMessageConverter StreamMessageConverter { set; get; } = null!;
@@ -236,8 +236,9 @@ namespace Ipc
     {
         public void Start()
         {
-            var namedPipeServerStreamPool = new NamedPipeServerStreamPool();
-            namedPipeServerStreamPool.Start();
+            //var namedPipeServerStreamPool = new NamedPipeServerStreamPool();
+            //namedPipeServerStreamPool.Start();
+
         }
 
         private void StreamMessageConverter_MessageReceived(object? sender, ByteListMessageStream e)
