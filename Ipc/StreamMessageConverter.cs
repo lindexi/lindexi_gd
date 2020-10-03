@@ -32,6 +32,12 @@ namespace Ipc
                     // 后续优化，使用异步读取，可以使用 stackalloc 减少内存使用
                     var messageLength = BinaryReader.ReadUInt32();
 
+                    if (messageLength > ushort.MaxValue * 1024)
+                    {
+                        // 太长了
+                        continue;
+                    }
+
                     var messageBuffer = SharedArrayPool.Rent((int)messageLength);
 
                     try
