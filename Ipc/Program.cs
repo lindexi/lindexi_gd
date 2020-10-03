@@ -7,6 +7,7 @@ using System.IO.Pipes;
 using System.Linq;
 using System.Security.Principal;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Ipc
@@ -270,6 +271,84 @@ namespace Ipc
         public const string PipeName = "1231";
     }
 
+    //class IpcClientStream:Stream
+    //{
+    //    public override void Flush()
+    //    {
+
+    //    }
+
+    //    public override Task FlushAsync(CancellationToken cancellationToken)
+    //    {
+    //        return base.FlushAsync(cancellationToken);
+    //    }
+
+    //    public override void Write(ReadOnlySpan<byte> buffer)
+    //    {
+    //        base.Write(buffer);
+    //    }
+
+    //    public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+    //    {
+    //        return base.WriteAsync(buffer, offset, count, cancellationToken);
+    //    }
+
+    //    public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
+    //    {
+    //        return base.WriteAsync(buffer, cancellationToken);
+    //    }
+
+    //    public override int Read(byte[] buffer, int offset, int count)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    public override long Seek(long offset, SeekOrigin origin)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    public override void SetLength(long value)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    public override void Write(byte[] buffer, int offset, int count)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    public override bool CanRead { get; }
+    //    public override bool CanSeek { get; }
+    //    public override bool CanWrite { get; }
+    //    public override long Length { get; }
+    //    public override long Position { get; set; }
+    //}
+
+    public class IpcProvider
+    {
+        public IpcProvider()
+        {
+            ClientName = Guid.NewGuid().ToString("N");
+        }
+
+        public void StartServer()
+        {
+            var ipcServerService = new IpcServerService();
+            ipcServerService.Start();
+        }
+
+        public async void ConnectServer(string serverName)
+        {
+            StartServer();
+            var ipcClientService = new IpcClientService();
+            await ipcClientService.Start();
+            await ipcClientService.WriteStringAsync(ClientName);
+        }
+
+        public string ClientName { get; }
+    }
+
     public class IpcClientService
     {
         public IpcClientService()
@@ -286,7 +365,18 @@ namespace Ipc
             NamedPipeClientStream = namedPipeClientStream;
         }
 
+        public void Stop()
+        {
+            // 告诉服务器端不连接
+        }
+
         private NamedPipeClientStream NamedPipeClientStream { set; get; } = null!;
+
+        public Task WriteStringAsync(string text)
+        {
+            var buffer = Encoding.UTF8.GetBytes(text);
+            return WriteMessageAsync(buffer, 0, buffer.Length);
+        }
 
         public async Task WriteMessageAsync(byte[] buffer, int offset, int count)
         {
