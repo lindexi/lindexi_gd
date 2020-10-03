@@ -23,17 +23,30 @@ namespace Ipc
                 Task.Run(LibearlafeCilinoballnelnall),
                 Task.Run(LibearlafeCilinoballnelnall),
                 Task.Run(LibearlafeCilinoballnelnall),
+                Task.Run(WhejeewukawBalbejelnewearfe),
             };
 
             Task.WaitAll(jalejekemNereyararli.ToArray());
             Console.Read();
         }
 
+        private static async Task WhejeewukawBalbejelnewearfe()
+        {
+            var ipcClientService = new IpcClientService();
+            await ipcClientService.Start();
+
+            while (true)
+            {
+                var buffer = Encoding.UTF8.GetBytes(DateTime.Now.ToString());
+                await ipcClientService.WriteMessageAsync(buffer, 0, buffer.Length);
+                await Task.Delay(1000);
+            }
+        }
+
         private static void HalrowemfeareeHeabemnikeci()
         {
             var ipcServerService = new IpcServerService();
             ipcServerService.Start();
-
         }
 
         private static async void LibearlafeCilinoballnelnall()
@@ -48,7 +61,8 @@ namespace Ipc
                     beebeniharHijocerene = _loyawfanawKererocarwho;
                 }
 
-                var neachearjarcaiYahofairwufu = new NamedPipeClientStream(".", IpcContext.PipeName,PipeDirection.InOut,PipeOptions.None,TokenImpersonationLevel.Impersonation);
+                var neachearjarcaiYahofairwufu = new NamedPipeClientStream(".", IpcContext.PipeName,
+                    PipeDirection.InOut, PipeOptions.None, TokenImpersonationLevel.Impersonation);
                 //neachearjarcaiYahofairwufu=new NamedPipeClientStream(IpcContext.PipeName);
                 NamedPipeClientStreamList.Add(neachearjarcaiYahofairwufu);
                 neachearjarcaiYahofairwufu.Connect();
@@ -85,13 +99,11 @@ namespace Ipc
             }
             catch (Exception e)
             {
-
             }
-
-
         }
 
-        private static async void WebecucecefawJajaywurrere(StreamReader streamReader, string raywheawaljalciChewhaiballlo)
+        private static async void WebecucecefawJajaywurrere(StreamReader streamReader,
+            string raywheawaljalciChewhaiballlo)
         {
             while (true)
             {
@@ -99,7 +111,8 @@ namespace Ipc
             }
         }
 
-        private static List<NamedPipeClientStream> NamedPipeClientStreamList { get; } = new List<NamedPipeClientStream>();
+        private static List<NamedPipeClientStream> NamedPipeClientStreamList { get; } =
+            new List<NamedPipeClientStream>();
 
         private static int _loyawfanawKererocarwho;
 
@@ -130,8 +143,6 @@ namespace Ipc
         //    //var ipcServerService = new IpcServerService();
         //    //ipcServerService.Start();
         //}
-
-
     }
 
     class PipeServerMessage
@@ -145,7 +156,8 @@ namespace Ipc
 
             await namedPipeServerStream.WaitForConnectionAsync();
 
-            var streamMessageConverter = new StreamMessageConverter(namedPipeServerStream, IpcConfiguration.MessageHeader, IpcConfiguration.SharedArrayPool);
+            var streamMessageConverter = new StreamMessageConverter(namedPipeServerStream,
+                IpcConfiguration.MessageHeader, IpcConfiguration.SharedArrayPool);
             streamMessageConverter.MessageReceived += OnClientConnectReceived;
             StreamMessageConverter = streamMessageConverter;
             streamMessageConverter.Start();
@@ -240,7 +252,6 @@ namespace Ipc
         {
             if (NamedPipeServerStreamList.TryAdd(e.ClientName, e.NamedPipeServerStream))
             {
-
             }
             else
             {
@@ -248,7 +259,8 @@ namespace Ipc
             }
         }
 
-        private ConcurrentDictionary<string, NamedPipeServerStream> NamedPipeServerStreamList { get; } = new ConcurrentDictionary<string, NamedPipeServerStream>();
+        private ConcurrentDictionary<string, NamedPipeServerStream> NamedPipeServerStreamList { get; } =
+            new ConcurrentDictionary<string, NamedPipeServerStream>();
 
         private IpcConfiguration IpcConfiguration { get; set; } = new IpcConfiguration();
     }
@@ -256,6 +268,38 @@ namespace Ipc
     public static class IpcContext
     {
         public const string PipeName = "1231";
+    }
+
+    public class IpcClientService
+    {
+        public IpcClientService()
+        {
+            ClientName = Guid.NewGuid().ToString("N");
+        }
+
+        public async Task Start()
+        {
+            var namedPipeClientStream = new NamedPipeClientStream(".", IpcContext.PipeName, PipeDirection.InOut,
+                PipeOptions.None, TokenImpersonationLevel.Impersonation);
+            await namedPipeClientStream.ConnectAsync();
+
+            NamedPipeClientStream = namedPipeClientStream;
+        }
+
+        private NamedPipeClientStream NamedPipeClientStream { set; get; } = null!;
+
+        public async Task WriteMessageAsync(byte[] buffer, int offset, int count)
+        {
+            await NamedPipeClientStream.WriteAsync(IpcConfiguration.MessageHeader);
+            var byteList = BitConverter.GetBytes(count);
+            await NamedPipeClientStream.WriteAsync(byteList, 0, byteList.Length);
+            await NamedPipeClientStream.WriteAsync(buffer, offset, count);
+            await NamedPipeClientStream.FlushAsync();
+        }
+
+        private IpcConfiguration IpcConfiguration { get; set; } = new IpcConfiguration();
+
+        public string ClientName { get; }
     }
 
     public class IpcServerService
@@ -285,7 +329,9 @@ namespace Ipc
         public ISharedArrayPool SharedArrayPool { get; set; } = new SharedArrayPool();
 
         // dotnet campus 0x64, 0x6F, 0x74, 0x6E, 0x65, 0x74, 0x20, 0x63, 0x61, 0x6D, 0x70, 0x75, 0x73 
-        public byte[] MessageHeader { set; get; } = { 0x64, 0x6F, 0x74, 0x6E, 0x65, 0x74, 0x20, 0x63, 0x61, 0x6D, 0x70, 0x75, 0x73 };
+        public byte[] MessageHeader { set; get; } =
+            {0x64, 0x6F, 0x74, 0x6E, 0x65, 0x74, 0x20, 0x63, 0x61, 0x6D, 0x70, 0x75, 0x73};
+
         /*
          * Message:
          * Header
