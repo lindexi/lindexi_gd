@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
@@ -15,8 +16,9 @@ namespace Ipc
         {
             var jalejekemNereyararli = new List<Task>
             {
-                Task.Run(DiwerlowuKahecallweeler),
-                Task.Run(DiwerlowuKahecallweeler),
+                //Task.Run(DiwerlowuKahecallweeler),
+                //Task.Run(DiwerlowuKahecallweeler),
+                Task.Run(HalrowemfeareeHeabemnikeci),
                 Task.Run(LibearlafeCilinoballnelnall),
                 Task.Run(LibearlafeCilinoballnelnall),
                 Task.Run(LibearlafeCilinoballnelnall),
@@ -24,6 +26,13 @@ namespace Ipc
 
             Task.WaitAll(jalejekemNereyararli.ToArray());
             Console.Read();
+        }
+
+        private static void HalrowemfeareeHeabemnikeci()
+        {
+            var ipcServerService = new IpcServerService();
+            ipcServerService.Start();
+
         }
 
         private static async void LibearlafeCilinoballnelnall()
@@ -36,7 +45,7 @@ namespace Ipc
                 beebeniharHijocerene = _loyawfanawKererocarwho;
             }
 
-            var neachearjarcaiYahofairwufu = new NamedPipeClientStream("123");
+            var neachearjarcaiYahofairwufu = new NamedPipeClientStream(IpcContext.PipeName);
             NamedPipeClientStreamList.Add(neachearjarcaiYahofairwufu);
             neachearjarcaiYahofairwufu.Connect();
 
@@ -69,7 +78,7 @@ namespace Ipc
 
         private static async Task DiwerlowuKahecallweeler()
         {
-            var namedPipeServerStream = new NamedPipeServerStream("123", PipeDirection.InOut, 10);
+            var namedPipeServerStream = new NamedPipeServerStream(IpcContext.PipeName, PipeDirection.InOut, 10);
             NamedPipeServerStream = namedPipeServerStream;
 
             var streamWriter = new StreamWriter(namedPipeServerStream);
@@ -100,18 +109,135 @@ namespace Ipc
         }
     }
 
+    class PipeServerMessage
+    {
+        private NamedPipeServerStream NamedPipeServerStream { set; get; } = null!;
+
+        public async Task Start()
+        {
+            var namedPipeServerStream = new NamedPipeServerStream(PipeName);
+            await namedPipeServerStream.WaitForConnectionAsync();
+            NamedPipeServerStream = namedPipeServerStream;
+
+            var streamMessageConverter = new StreamMessageConverter(namedPipeServerStream, IpcConfiguration.MessageHeader, IpcConfiguration.SharedArrayPool);
+            streamMessageConverter.MessageReceived += OnClientConnectReceived;
+            StreamMessageConverter = streamMessageConverter;
+        }
+
+        private StreamMessageConverter StreamMessageConverter { set; get; } = null!;
+
+        private void OnClientConnectReceived(object? sender, ByteListMessageStream stream)
+        {
+            var streamReader = new StreamReader(stream);
+            var clientName = streamReader.ReadToEnd();
+            ClientName = clientName;
+
+            OnClientConnected(new ClientConnectedArgs(clientName, NamedPipeServerStream));
+
+            StreamMessageConverter.MessageReceived -= OnClientConnectReceived;
+            StreamMessageConverter.MessageReceived += StreamMessageConverter_MessageReceived;
+        }
+
+        private void StreamMessageConverter_MessageReceived(object? sender, ByteListMessageStream e)
+        {
+            OnMessageReceived(new ClientMessageArgs(ClientName, e));
+        }
+
+        public event EventHandler<ClientMessageArgs>? MessageReceived;
+
+        public event EventHandler<ClientConnectedArgs>? ClientConnected;
+
+        private string ClientName { set; get; } = null!;
+
+        public string PipeName { get; } = IpcContext.PipeName;
+
+        private IpcConfiguration IpcConfiguration { get; set; } = new IpcConfiguration();
+
+        protected virtual void OnClientConnected(ClientConnectedArgs e)
+        {
+            ClientConnected?.Invoke(this, e);
+        }
+
+        protected virtual void OnMessageReceived(ClientMessageArgs e)
+        {
+            MessageReceived?.Invoke(this, e);
+        }
+    }
+
+    public class ClientConnectedArgs : EventArgs
+    {
+        public ClientConnectedArgs(string clientName, NamedPipeServerStream namedPipeServerStream)
+        {
+            ClientName = clientName;
+            NamedPipeServerStream = namedPipeServerStream;
+        }
+
+        public string ClientName { get; }
+
+        public NamedPipeServerStream NamedPipeServerStream { get; }
+    }
+
+    public class ClientMessageArgs : EventArgs
+    {
+        public ClientMessageArgs(string clientName, Stream stream)
+        {
+            Stream = stream;
+            ClientName = clientName;
+        }
+
+        public Stream Stream { get; }
+
+        public string ClientName { get; }
+    }
+
+    class NamedPipeServerStreamPool
+    {
+
+        public async void Start()
+        {
+            while (true)
+            {
+                var pipeServerMessage = new PipeServerMessage();
+
+                pipeServerMessage.ClientConnected += PipeServerMessage_ClientConnected;
+                pipeServerMessage.MessageReceived += PipeServerMessage_MessageReceived;
+
+                await pipeServerMessage.Start();
+            }
+        }
+
+        private void PipeServerMessage_MessageReceived(object? sender, ClientMessageArgs e)
+        {
+        }
+
+        private void PipeServerMessage_ClientConnected(object? sender, ClientConnectedArgs e)
+        {
+            if (NamedPipeServerStreamList.TryAdd(e.ClientName,e.NamedPipeServerStream))
+            {
+                
+            }
+            else
+            {
+                // 有客户端重复连接
+            }
+        }
+
+        private ConcurrentDictionary<string, NamedPipeServerStream> NamedPipeServerStreamList { get; } = new ConcurrentDictionary<string, NamedPipeServerStream>();
+
+        private IpcConfiguration IpcConfiguration { get; set; } = new IpcConfiguration();
+    }
+
+    public static class IpcContext
+    {
+        public const string PipeName = "1231";
+    }
+
     public class IpcServerService
     {
         public void Start()
         {
-            var namedPipeServerStream = new NamedPipeServerStream("123");
-            NamedPipeServerStream = namedPipeServerStream;
-
-            var streamMessageConverter = new StreamMessageConverter(namedPipeServerStream, IpcConfiguration.MessageHeader, IpcConfiguration.SharedArrayPool);
-            StreamMessageConverter = streamMessageConverter;
-
-            streamMessageConverter.MessageReceived += StreamMessageConverter_MessageReceived;
-            streamMessageConverter.Start();
+            var namedPipeServerStreamPool = new NamedPipeServerStreamPool();
+            namedPipeServerStreamPool.Start();
         }
 
         private void StreamMessageConverter_MessageReceived(object? sender, ByteListMessageStream e)
