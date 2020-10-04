@@ -8,8 +8,9 @@ namespace Ipc
 {
     public class IpcClientService
     {
-        public IpcClientService(string serverName = IpcContext.PipeName)
+        internal IpcClientService(IpcContext ipcContext, string serverName = IpcContext.PipeName)
         {
+            IpcContext = ipcContext;
             ServerName = serverName;
         }
 
@@ -37,15 +38,17 @@ namespace Ipc
 
         public async Task WriteMessageAsync(byte[] buffer, int offset, int count)
         {
-            await NamedPipeClientStream.WriteAsync(IpcConfiguration.MessageHeader);
-            var byteList = BitConverter.GetBytes(count);
-            await NamedPipeClientStream.WriteAsync(byteList, 0, byteList.Length);
-            await NamedPipeClientStream.WriteAsync(buffer, offset, count);
+            var ack = AckManager.GetAck();
+            await IpcMessageConverter.WriteAsync(NamedPipeClientStream, IpcConfiguration.MessageHeader, ack, buffer, offset,
+                  count);
             await NamedPipeClientStream.FlushAsync();
         }
 
-        private IpcConfiguration IpcConfiguration { get; set; } = new IpcConfiguration();
+        internal AckManager AckManager => IpcContext.AckManager;
 
+        private IpcConfiguration IpcConfiguration => IpcContext.IpcConfiguration;
+
+        public IpcContext IpcContext { get; }
         public string ServerName { get; }
     }
 }

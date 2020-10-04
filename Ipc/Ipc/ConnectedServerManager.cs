@@ -4,15 +4,16 @@ namespace Ipc
 {
     public class ConnectedServerManager
     {
-        public ConnectedServerManager(string serverName, string clientName)
+        public ConnectedServerManager(string serverName, string clientName, IpcContext ipcContext)
         {
             ServerName = serverName;
             ClientName = clientName;
+            IpcContext = ipcContext;
         }
 
         public async Task ConnectServer()
         {
-            var ipcClientService = new IpcClientService(ServerName);
+            var ipcClientService = new IpcClientService(IpcContext, ServerName);
             IpcClientService = ipcClientService;
             await ipcClientService.Start();
             await ipcClientService.WriteStringAsync(ClientName);
@@ -20,6 +21,7 @@ namespace Ipc
 
         public string ServerName { get; }
         public string ClientName { get; }
+        public IpcContext IpcContext { get; }
 
         public IpcClientService IpcClientService { get; set; } = null!;
 
