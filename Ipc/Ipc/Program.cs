@@ -17,7 +17,10 @@ namespace Ipc
         {
             //Console.WriteLine(string.Join(",", Encoding.UTF8.GetBytes("ACK").Select(temp => "0x" + temp.ToString("X2"))));
             //var byteList = BitConverter.GetBytes((ulong) 100);
-            Console.WriteLine(sizeof(ulong));
+            //Console.WriteLine(sizeof(ulong));
+
+            var ipcMessageConverterTest = new IpcMessageConverterTest();
+            ipcMessageConverterTest.Run();
 
             var ackManagerTest = new AckManagerTest();
             ackManagerTest.Run();

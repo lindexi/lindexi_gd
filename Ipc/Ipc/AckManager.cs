@@ -5,6 +5,12 @@ namespace Ipc
 {
     class AckManager
     {
+        public ulong GetAck()
+        {
+            CurrentAck++;
+            return CurrentAck;
+        }
+
         private ulong _currentAck;
 
         public ulong CurrentAck

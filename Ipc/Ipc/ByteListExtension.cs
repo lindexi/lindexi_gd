@@ -2,6 +2,19 @@
 {
     static class ByteListExtension
     {
+        public static bool Equals(byte[] a, byte[] b, int length)
+        {
+            for (var i = 0; i < length; i++)
+            {
+                if (a[i] != b[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         public static bool Equals(byte[] a, byte[] b)
         {
             if (ReferenceEquals(a, b))
@@ -14,15 +27,7 @@
                 return false;
             }
 
-            for (var i = 0; i < a.Length; i++)
-            {
-                if (a[i] != b[i])
-                {
-                    return false;
-                }
-            }
-
-            return false;
+            return Equals(a, b, a.Length);
         }
     }
 }
