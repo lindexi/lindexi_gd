@@ -77,7 +77,7 @@ namespace Ipc
             }
         }
 
-        private async Task SendAck(ulong receivedAck)
+        private async Task SendAck(Ack receivedAck)
         {
             var ipcProvider = IpcContext.IpcProvider;
             var ipcClient = await ipcProvider.ConnectServer(ClientName);

@@ -51,7 +51,7 @@ namespace Ipc
         public IpcContext IpcContext { get; }
         public string ServerName { get; }
 
-        public async Task SendAck(ulong receivedAck)
+        public async Task SendAck(Ack receivedAck)
         {
             var ackMessage = AckManager.BuildAckMessage(receivedAck);
             await WriteMessageAsync(ackMessage, 0, ackMessage.Length);

@@ -17,7 +17,7 @@ namespace Ipc
             using var memoryStream = new MemoryStream(buildAckMessage, false);
             if (AckManager.IsAckMessage(memoryStream, out var ack))
             {
-                if (ack == 100)
+                if (ack.Value == 100)
                 {
 
                 }
