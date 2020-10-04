@@ -34,7 +34,6 @@ namespace Ipc
             binaryWriter.Write((UInt32.MinValue));
             binaryWriter.Write(count);
             await stream.WriteAsync(buffer, offset, count);
-            await stream.FlushAsync();
         }
 
         public static async Task<(bool success, IpcMessageContext ipcMessageContext)> ReadAsync(Stream stream, byte[] messageHeader, ISharedArrayPool sharedArrayPool, int maxMessageLength = ushort.MaxValue * byte.MaxValue)

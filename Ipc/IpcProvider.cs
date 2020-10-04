@@ -21,6 +21,8 @@ namespace Ipc
             ClientName = clientName;
         }
 
+        private IpcContext IpcContext { get; } = new IpcContext();
+
         public async Task StartServer()
         {
             if (IpcServerService != null)
@@ -40,7 +42,7 @@ namespace Ipc
         private void NamedPipeServerStreamPool_MessageReceived(object? sender, ClientMessageArgs e)
         {
             // 使用 e.ClientName 可以回复消息
-            
+
             // 是否回复 ack 命令
             var ack = new BinaryReader(e.Stream).ReadUInt64();
 
@@ -74,7 +76,7 @@ namespace Ipc
 
                 var task = StartServer();
 
-                connectedServerManager = new ConnectedServerManager(serverName, ClientName);
+                connectedServerManager = new ConnectedServerManager(serverName, ClientName, IpcContext);
 
                 if (ConnectedServerManagerList.TryAdd(serverName, connectedServerManager))
                 {
