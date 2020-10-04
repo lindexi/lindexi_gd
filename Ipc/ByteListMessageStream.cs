@@ -2,20 +2,23 @@
 
 namespace Ipc
 {
-    class ByteListMessageStream : MemoryStream
+    internal class ByteListMessageStream : MemoryStream
     {
         private readonly ISharedArrayPool _sharedArrayPool;
-        private byte[] Buffer { get; }
 
-        public ByteListMessageStream(byte[] buffer, int count, ISharedArrayPool sharedArrayPool) : base(buffer, 0, count, false)
+        public ByteListMessageStream(byte[] buffer, int count, ISharedArrayPool sharedArrayPool) : base(buffer, 0,
+            count, false)
         {
             _sharedArrayPool = sharedArrayPool;
             Buffer = buffer;
         }
 
-        public ByteListMessageStream(in IpcMessageContext ipcMessageContext):this(ipcMessageContext.MessageBuffer,(int) ipcMessageContext.MessageLength,ipcMessageContext.SharedArrayPool)
+        public ByteListMessageStream(in IpcMessageContext ipcMessageContext) : this(ipcMessageContext.MessageBuffer,
+            (int) ipcMessageContext.MessageLength, ipcMessageContext.SharedArrayPool)
         {
         }
+
+        private byte[] Buffer { get; }
 
         ~ByteListMessageStream()
         {

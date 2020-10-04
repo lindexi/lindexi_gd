@@ -1,6 +1,4 @@
-﻿using System;
-using System.IO.Pipes;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace Ipc
 {
@@ -14,15 +12,15 @@ namespace Ipc
             NamedPipeServerStreamPool = namedPipeServerStreamPool;
         }
 
-        public async Task Start()
-        {
-            await NamedPipeServerStreamPool.Start();
-        }
-
         internal NamedPipeServerStreamPool NamedPipeServerStreamPool { set; get; } = null!;
 
         public string PipeName { get; }
         public IpcContext IpcContext { get; }
+
+        public async Task Start()
+        {
+            await NamedPipeServerStreamPool.Start();
+        }
 
         //private void StreamMessageConverter_MessageReceived(object? sender, ByteListMessageStream e)
         //{

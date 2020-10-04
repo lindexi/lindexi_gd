@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Ipc
 {
     // 提供一个客户端连接
-    class PipeServerMessage
+    internal class PipeServerMessage
     {
         public PipeServerMessage(string pipeName, IpcContext ipcContext)
         {
@@ -15,6 +15,13 @@ namespace Ipc
         }
 
         private NamedPipeServerStream NamedPipeServerStream { set; get; } = null!;
+
+        private string ClientName { set; get; } = null!;
+
+        public string PipeName { get; }
+        public IpcContext IpcContext { get; }
+
+        private IpcConfiguration IpcConfiguration => IpcContext.IpcConfiguration;
 
         public async Task Start()
         {
@@ -36,7 +43,8 @@ namespace Ipc
         {
             while (true)
             {
-                var (success, ipcMessageContext) = await IpcMessageConverter.ReadAsync(NamedPipeServerStream, IpcConfiguration.MessageHeader,
+                var (success, ipcMessageContext) = await IpcMessageConverter.ReadAsync(NamedPipeServerStream,
+                    IpcConfiguration.MessageHeader,
                     IpcConfiguration.SharedArrayPool);
                 if (success)
                 {
@@ -56,7 +64,8 @@ namespace Ipc
 
             while (true)
             {
-                var (success, ipcMessageContext) = await IpcMessageConverter.ReadAsync(NamedPipeServerStream, IpcConfiguration.MessageHeader,
+                var (success, ipcMessageContext) = await IpcMessageConverter.ReadAsync(NamedPipeServerStream,
+                    IpcConfiguration.MessageHeader,
                     IpcConfiguration.SharedArrayPool);
 
                 if (success)
@@ -103,13 +112,6 @@ namespace Ipc
         public event EventHandler<ClientConnectedArgs>? ClientConnected;
 
         public event EventHandler<AckArgs>? AckReceived;
-
-        private string ClientName { set; get; } = null!;
-
-        public string PipeName { get; }
-        public IpcContext IpcContext { get; }
-
-        private IpcConfiguration IpcConfiguration => IpcContext.IpcConfiguration;
 
         protected virtual void OnClientConnected(ClientConnectedArgs e)
         {

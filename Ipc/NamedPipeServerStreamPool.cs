@@ -5,8 +5,22 @@ using System.Threading.Tasks;
 
 namespace Ipc
 {
-    class NamedPipeServerStreamPool
+    internal class NamedPipeServerStreamPool
     {
+        public NamedPipeServerStreamPool(string pipeName, IpcContext ipcContext)
+        {
+            PipeName = pipeName;
+            IpcContext = ipcContext;
+        }
+
+        public string PipeName { get; }
+        public IpcContext IpcContext { get; }
+
+        private ConcurrentDictionary<string, NamedPipeServerStream> NamedPipeServerStreamList { get; } =
+            new ConcurrentDictionary<string, NamedPipeServerStream>();
+
+        private IpcConfiguration IpcConfiguration { get; set; } = new IpcConfiguration();
+
         public async Task Start()
         {
             while (true)
@@ -20,15 +34,6 @@ namespace Ipc
             }
         }
 
-        public NamedPipeServerStreamPool(string pipeName, IpcContext ipcContext)
-        {
-            PipeName = pipeName;
-            IpcContext = ipcContext;
-        }
-
-        public string PipeName { get; }
-        public IpcContext IpcContext { get; }
-
         private void PipeServerMessage_MessageReceived(object? sender, ClientMessageArgs e)
         {
             MessageReceived?.Invoke(sender, e);
@@ -38,11 +43,6 @@ namespace Ipc
         {
             if (NamedPipeServerStreamList.TryAdd(e.ClientName, e.NamedPipeServerStream))
             {
-
-            }
-            else
-            {
-                // 有客户端重复连接，或这是服务器端连接
             }
 
             ClientConnected?.Invoke(sender, e);
@@ -51,9 +51,5 @@ namespace Ipc
         public event EventHandler<ClientMessageArgs>? MessageReceived;
 
         public event EventHandler<ClientConnectedArgs>? ClientConnected;
-
-        private ConcurrentDictionary<string, NamedPipeServerStream> NamedPipeServerStreamList { get; } = new ConcurrentDictionary<string, NamedPipeServerStream>();
-
-        private IpcConfiguration IpcConfiguration { get; set; } = new IpcConfiguration();
     }
 }

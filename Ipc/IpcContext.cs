@@ -2,6 +2,8 @@
 {
     public class IpcContext
     {
+        public const string DefaultPipeName = "1231";
+
         public IpcContext(IpcProvider ipcProvider, string clientName)
         {
             IpcProvider = ipcProvider;
@@ -9,8 +11,6 @@
 
             AckManager = new AckManager(this);
         }
-
-        public const string DefaultPipeName = "1231";
 
         internal AckManager AckManager { get; }
 

@@ -1,19 +1,17 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Ipc
 {
     /// <summary>
-    /// 对等通讯，每个都是服务器端，每个都是客户端
+    ///     对等通讯，每个都是服务器端，每个都是客户端
     /// </summary>
     public class IpcProvider
     {
         public IpcProvider() : this(Guid.NewGuid().ToString("N"))
         {
-
         }
 
         public IpcProvider(string clientName)
@@ -24,12 +22,16 @@ namespace Ipc
 
         private IpcContext IpcContext { get; }
 
+        public IpcServerService IpcServerService { set; get; } = null!;
+
+        public string ClientName { get; }
+
+        public ConcurrentDictionary<string, ConnectedServerManager> ConnectedServerManagerList { get; } =
+            new ConcurrentDictionary<string, ConnectedServerManager>();
+
         public async Task StartServer()
         {
-            if (IpcServerService != null)
-            {
-                return;
-            }
+            if (IpcServerService != null) return;
 
             var ipcServerService = new IpcServerService(IpcContext, ClientName);
             IpcServerService = ipcServerService;
@@ -46,7 +48,6 @@ namespace Ipc
 
             // 是否回复 ack 命令
             var ack = new BinaryReader(e.Stream).ReadUInt64();
-
         }
 
 
@@ -55,7 +56,6 @@ namespace Ipc
             // 也许是服务器连接
             if (ConnectedServerManagerList.TryGetValue(e.ClientName, out _))
             {
-
             }
             else
             {
@@ -63,8 +63,6 @@ namespace Ipc
                 await ConnectServer(e.ClientName);
             }
         }
-
-        public IpcServerService IpcServerService { set; get; } = null!;
 
         public async Task<IpcClientService> ConnectServer(string serverName)
         {
@@ -81,12 +79,6 @@ namespace Ipc
 
                 if (ConnectedServerManagerList.TryAdd(serverName, connectedServerManager))
                 {
-                    
-                }
-                else
-                {
-                    // 连接过
-                    // 是否更新
                 }
 
                 await connectedServerManager.ConnectServer();
@@ -96,9 +88,5 @@ namespace Ipc
 
             return connectedServerManager.IpcClientService;
         }
-
-        public string ClientName { get; }
-
-        public ConcurrentDictionary<string, ConnectedServerManager> ConnectedServerManagerList { get; } = new ConcurrentDictionary<string, ConnectedServerManager>();
     }
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO.Pipes;
+﻿using System.IO.Pipes;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,6 +12,15 @@ namespace Ipc
             IpcContext = ipcContext;
             ServerName = serverName;
         }
+
+        private NamedPipeClientStream NamedPipeClientStream { set; get; } = null!;
+
+        internal AckManager AckManager => IpcContext.AckManager;
+
+        private IpcConfiguration IpcConfiguration => IpcContext.IpcConfiguration;
+
+        public IpcContext IpcContext { get; }
+        public string ServerName { get; }
 
         public async Task Start()
         {
@@ -28,8 +36,6 @@ namespace Ipc
             // 告诉服务器端不连接
         }
 
-        private NamedPipeClientStream NamedPipeClientStream { set; get; } = null!;
-
         public Task WriteStringAsync(string text)
         {
             var buffer = Encoding.UTF8.GetBytes(text);
@@ -39,17 +45,11 @@ namespace Ipc
         public async Task WriteMessageAsync(byte[] buffer, int offset, int count)
         {
             var ack = AckManager.GetAck();
-            await IpcMessageConverter.WriteAsync(NamedPipeClientStream, IpcConfiguration.MessageHeader, ack, buffer, offset,
-                  count);
+            await IpcMessageConverter.WriteAsync(NamedPipeClientStream, IpcConfiguration.MessageHeader, ack, buffer,
+                offset,
+                count);
             await NamedPipeClientStream.FlushAsync();
         }
-
-        internal AckManager AckManager => IpcContext.AckManager;
-
-        private IpcConfiguration IpcConfiguration => IpcContext.IpcConfiguration;
-
-        public IpcContext IpcContext { get; }
-        public string ServerName { get; }
 
         public async Task SendAck(Ack receivedAck)
         {
