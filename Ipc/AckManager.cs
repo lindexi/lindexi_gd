@@ -5,7 +5,30 @@ namespace Ipc
 {
     class AckManager
     {
-        public ulong CurrentAck { set; get; }
+        private ulong _currentAck;
+
+        public ulong CurrentAck
+        {
+            set
+            {
+                lock (Locker)
+                {
+                    if (value > ulong.MaxValue - ushort.MaxValue)
+                    {
+                        value = 0;
+                    }
+
+                    _currentAck = value;
+                }
+            }
+            get
+            {
+                lock (Locker)
+                {
+                    return _currentAck;
+                }
+            }
+        }
 
         public bool IsAckMessage(Stream stream, out ulong ack)
         {
@@ -25,7 +48,7 @@ namespace Ipc
             const int ackLength = sizeof(ulong) + sizeof(ulong);
             byte[] buffer = new byte[AckHeader.Length + ackLength];
 
-            Array.Copy(AckHeader,buffer,AckHeader.Length);
+            Array.Copy(AckHeader, buffer, AckHeader.Length);
 
             var memoryStream = new MemoryStream(buffer)
             {
@@ -33,6 +56,10 @@ namespace Ipc
             };
             var binaryWriter = new BinaryWriter(memoryStream);
             binaryWriter.Write(receivedAck);
+            lock (Locker)
+            {
+                CurrentAck = Math.Max(CurrentAck, receivedAck);
+            }
             CurrentAck++;
             binaryWriter.Write(CurrentAck);
 
@@ -58,7 +85,11 @@ namespace Ipc
             var binaryReader = new BinaryReader(stream);
             ack = binaryReader.ReadUInt64();
             var nextAck = binaryReader.ReadUInt64();
-            CurrentAck = Math.Max(CurrentAck, nextAck);
+
+            lock (Locker)
+            {
+                CurrentAck = Math.Max(CurrentAck, nextAck);
+            }
 
             return false;
         }
@@ -77,6 +108,8 @@ namespace Ipc
         }
 
         // ACK 0x41, 0x43, 0x4B
-        public byte[] AckHeader { get; } = new byte[] { 0x41, 0x43, 0x4B };
+        public byte[] AckHeader { get; } = new byte[] {0x41, 0x43, 0x4B};
+
+        private object Locker => AckHeader;
     }
 }
