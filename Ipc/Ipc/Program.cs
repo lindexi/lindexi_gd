@@ -19,11 +19,11 @@ namespace Ipc
             //var byteList = BitConverter.GetBytes((ulong) 100);
             //Console.WriteLine(sizeof(ulong));
 
-            var ipcMessageConverterTest = new IpcMessageConverterTest();
-            ipcMessageConverterTest.Run();
+            //var ipcMessageConverterTest = new IpcMessageConverterTest();
+            //ipcMessageConverterTest.Run();
 
-            var ackManagerTest = new AckManagerTest();
-            ackManagerTest.Run();
+            //var ackManagerTest = new AckManagerTest();
+            //ackManagerTest.Run();
 
             var jalejekemNereyararli = new List<Task>
             {
@@ -45,12 +45,12 @@ namespace Ipc
         private static Task? BaiqealawbawKeqakeyawaw()
         {
             var ipcProvider = new IpcProvider();
-            return ipcProvider.ConnectServer(IpcContext.PipeName);
+            return ipcProvider.ConnectServer(IpcContext.DefaultPipeName);
         }
 
         private static Task? WheehakawlucearHalwahewurlaiwhair()
         {
-            var ipcProvider = new IpcProvider(IpcContext.PipeName);
+            var ipcProvider = new IpcProvider(IpcContext.DefaultPipeName);
             return ipcProvider.StartServer();
         }
 

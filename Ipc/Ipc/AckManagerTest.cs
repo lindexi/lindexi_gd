@@ -15,15 +15,15 @@ namespace Ipc
 
             var buildAckMessage = AckManager.BuildAckMessage(100);
             using var memoryStream = new MemoryStream(buildAckMessage, false);
-            if (AckManager.IsAckMessage(memoryStream,out var ack))
+            if (AckManager.IsAckMessage(memoryStream, out var ack))
             {
-                if (ack==100)
+                if (ack == 100)
                 {
-                    
+
                 }
             }
         }
 
-        private AckManager AckManager { get; } = new AckManager();
+        private AckManager AckManager { get; } = new AckManager(new IpcContext(new IpcProvider(), "123123"));
     }
 }

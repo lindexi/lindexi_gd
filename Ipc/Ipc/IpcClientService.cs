@@ -8,7 +8,7 @@ namespace Ipc
 {
     public class IpcClientService
     {
-        internal IpcClientService(IpcContext ipcContext, string serverName = IpcContext.PipeName)
+        internal IpcClientService(IpcContext ipcContext, string serverName = IpcContext.DefaultPipeName)
         {
             IpcContext = ipcContext;
             ServerName = serverName;
@@ -50,5 +50,11 @@ namespace Ipc
 
         public IpcContext IpcContext { get; }
         public string ServerName { get; }
+
+        public async Task SendAck(ulong receivedAck)
+        {
+            var ackMessage = AckManager.BuildAckMessage(receivedAck);
+            await WriteMessageAsync(ackMessage, 0, ackMessage.Length);
+        }
     }
 }
