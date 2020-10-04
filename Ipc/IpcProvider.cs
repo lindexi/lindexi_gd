@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -31,14 +32,25 @@ namespace Ipc
             IpcServerService = ipcServerService;
 
             ipcServerService.NamedPipeServerStreamPool.ClientConnected += NamedPipeServerStreamPool_ClientConnected;
+            ipcServerService.NamedPipeServerStreamPool.MessageReceived += NamedPipeServerStreamPool_MessageReceived;
 
             await ipcServerService.Start();
         }
 
+        private void NamedPipeServerStreamPool_MessageReceived(object? sender, ClientMessageArgs e)
+        {
+            // 使用 e.ClientName 可以回复消息
+            
+            // 是否回复 ack 命令
+            var ack = new BinaryReader(e.Stream).ReadUInt64();
+
+        }
+
+
         private async void NamedPipeServerStreamPool_ClientConnected(object? sender, ClientConnectedArgs e)
         {
             // 也许是服务器连接
-            if (ConnectedServerManagerList.Any(temp => temp.ServerName == e.ClientName))
+            if (ConnectedServerManagerList.TryGetValue(e.ClientName, out _))
             {
 
             }
@@ -51,21 +63,39 @@ namespace Ipc
 
         public IpcServerService IpcServerService { set; get; } = null!;
 
-        public async Task ConnectServer(string serverName)
+        public async Task<IpcClientService> ConnectServer(string serverName)
         {
-            var task = StartServer();
+            if (ConnectedServerManagerList.TryGetValue(serverName, out var connectedServerManager))
+            {
+            }
+            else
+            {
+                // 这里无视多次加入，这里的多线程问题也可以忽略
 
-            var connectedServerManager = new ConnectedServerManager(serverName, ClientName);
+                var task = StartServer();
 
-            ConnectedServerManagerList.Add(connectedServerManager);
+                connectedServerManager = new ConnectedServerManager(serverName, ClientName);
 
-            await connectedServerManager.ConnectServer();
+                if (ConnectedServerManagerList.TryAdd(serverName, connectedServerManager))
+                {
 
-            await task;
+                }
+                else
+                {
+                    // 连接过
+                    // 是否更新
+                }
+
+                await connectedServerManager.ConnectServer();
+
+                await task;
+            }
+
+            return connectedServerManager.IpcClientService;
         }
 
         public string ClientName { get; }
 
-        public ConcurrentBag<ConnectedServerManager> ConnectedServerManagerList { get; } = new ConcurrentBag<ConnectedServerManager>();
+        public ConcurrentDictionary<string, ConnectedServerManager> ConnectedServerManagerList { get; } = new ConcurrentDictionary<string, ConnectedServerManager>();
     }
 }

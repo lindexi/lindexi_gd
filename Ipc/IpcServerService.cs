@@ -22,15 +22,15 @@ namespace Ipc
 
         public string PipeName { get; }
 
-        private void StreamMessageConverter_MessageReceived(object? sender, ByteListMessageStream e)
-        {
-            Console.WriteLine(string.Join(",", e));
-        }
+        //private void StreamMessageConverter_MessageReceived(object? sender, ByteListMessageStream e)
+        //{
+        //    Console.WriteLine(string.Join(",", e));
+        //}
 
-        private NamedPipeServerStream NamedPipeServerStream { set; get; } = null!;
-        private StreamMessageConverter StreamMessageConverter { set; get; } = null!;
+        //private NamedPipeServerStream NamedPipeServerStream { set; get; } = null!;
+        //private StreamMessageConverter StreamMessageConverter { set; get; } = null!;
 
-        // 后续需要优化支持传入
-        private IpcConfiguration IpcConfiguration { get; set; } = new IpcConfiguration();
+        //// 后续需要优化支持传入
+        //private IpcConfiguration IpcConfiguration { get; set; } = new IpcConfiguration();
     }
 }

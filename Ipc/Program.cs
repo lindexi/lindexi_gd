@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
+using System.Linq;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
@@ -14,6 +15,10 @@ namespace Ipc
     {
         static void Main(string[] args)
         {
+            //Console.WriteLine(string.Join(",", Encoding.UTF8.GetBytes("ACK").Select(temp => "0x" + temp.ToString("X2"))));
+            //var byteList = BitConverter.GetBytes((ulong) 100);
+            Console.WriteLine(sizeof(ulong));
+
             var jalejekemNereyararli = new List<Task>
             {
                 //Task.Run(DiwerlowuKahecallweeler),
