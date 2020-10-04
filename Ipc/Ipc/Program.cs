@@ -19,6 +19,9 @@ namespace Ipc
             //var byteList = BitConverter.GetBytes((ulong) 100);
             Console.WriteLine(sizeof(ulong));
 
+            var ackManagerTest = new AckManagerTest();
+            ackManagerTest.Run();
+
             var jalejekemNereyararli = new List<Task>
             {
                 //Task.Run(DiwerlowuKahecallweeler),
