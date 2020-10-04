@@ -26,32 +26,42 @@ namespace Ipc
             {
                 try
                 {
-                    await GetHeader();
-
-                    // 读取长度
-                    // 后续优化，使用异步读取，可以使用 stackalloc 减少内存使用
-                    var messageLength = BinaryReader.ReadUInt32();
-
-                    if (messageLength > ushort.MaxValue * 1024)
+                    var (success, ipcMessageContext) = await IpcMessageConverter.ReadAsync(Stream, MessageHeader, SharedArrayPool);
+                    if (success)
                     {
-                        // 太长了
-                        continue;
+                        OnMessageReceived(new ByteListMessageStream(ipcMessageContext.MessageBuffer, (int) ipcMessageContext.MessageLength, SharedArrayPool));
+                    }
+                    else
+                    {
+                        
                     }
 
-                    var messageBuffer = SharedArrayPool.Rent((int)messageLength);
+                    //await GetHeader();
 
-                    try
-                    {
-                        var readCount = await Stream.ReadAsync(messageBuffer, 0, (int)messageLength).ConfigureAwait(false);
+                    //// 读取长度
+                    //// 后续优化，使用异步读取，可以使用 stackalloc 减少内存使用
+                    //var messageLength = BinaryReader.ReadUInt32();
 
-                        Debug.Assert(readCount == messageLength);
-                        OnMessageReceived(new ByteListMessageStream(messageBuffer, readCount, SharedArrayPool));
-                    }
-                    finally
-                    {
-                        // 为什么不适合使用 SharedArrayPool 方法？原因是将会作为事件给出去使用，此时如果业务层存放这个数组，在使用的时候被更改就不好玩了
-                        //SharedArrayPool.Return(messageBuffer);
-                    }
+                    //if (messageLength > ushort.MaxValue * 1024)
+                    //{
+                    //    // 太长了
+                    //    continue;
+                    //}
+
+                    //var messageBuffer = SharedArrayPool.Rent((int)messageLength);
+
+                    //try
+                    //{
+                    //    var readCount = await Stream.ReadAsync(messageBuffer, 0, (int)messageLength).ConfigureAwait(false);
+
+                    //    Debug.Assert(readCount == messageLength);
+                    //    OnMessageReceived(new ByteListMessageStream(messageBuffer, readCount, SharedArrayPool));
+                    //}
+                    //finally
+                    //{
+                    //    // 为什么不适合使用 SharedArrayPool 方法？原因是将会作为事件给出去使用，此时如果业务层存放这个数组，在使用的时候被更改就不好玩了
+                    //    //SharedArrayPool.Return(messageBuffer);
+                    //}
                 }
                 catch (Exception e)
                 {
@@ -77,29 +87,6 @@ namespace Ipc
         //    }
         //}
 
-        private async Task GetHeader()
-        {
-            var messageHeaderBuffer = SharedArrayPool.Rent(MessageHeader.Length);
-
-            try
-            {
-                var readCount = await Stream.ReadAsync(messageHeaderBuffer, 0, MessageHeader.Length).ConfigureAwait(false);
-                Debug.Assert(readCount == MessageHeader.Length);
-                if (ByteListExtension.Equals(messageHeaderBuffer, MessageHeader))
-                {
-                    // 读对了
-                }
-                else
-                {
-                    // 发过来的消息是出错的
-                }
-            }
-            finally
-            {
-                SharedArrayPool.Return(messageHeaderBuffer);
-            }
-        }
-
         private Stream Stream { get; }
 
         public byte[] MessageHeader { get; }
@@ -111,7 +98,6 @@ namespace Ipc
         private void OnMessageReceived(ByteListMessageStream byteListMessageStream)
         {
             MessageReceived?.Invoke(this, byteListMessageStream);
-
         }
     }
 }

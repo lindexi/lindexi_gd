@@ -24,7 +24,7 @@ namespace Ipc
             uint version = 0;
 
             var binaryWriter = new BinaryWriter(stream);
-            UInt16 messageHeaderLength = (ushort) messageHeader.Length;
+            UInt16 messageHeaderLength = (ushort)messageHeader.Length;
             binaryWriter.Write(messageHeaderLength);
 
             await stream.WriteAsync(messageHeader);
@@ -37,7 +37,7 @@ namespace Ipc
             await stream.FlushAsync();
         }
 
-        public static async Task<(bool success, IpcMessageContext ipcMessageContext)> ReadAsync(Stream stream, byte[] messageHeader, ISharedArrayPool sharedArrayPool)
+        public static async Task<(bool success, IpcMessageContext ipcMessageContext)> ReadAsync(Stream stream, byte[] messageHeader, ISharedArrayPool sharedArrayPool, int maxMessageLength = ushort.MaxValue * byte.MaxValue)
         {
             /*
             * UInt16 Message Header Length
@@ -49,21 +49,13 @@ namespace Ipc
             * byte[] Content
             */
 
-            var binaryReader = new BinaryReader(stream);
-            var messageHeaderLength = binaryReader.ReadUInt16();
-            Debug.Assert(messageHeaderLength == messageHeader.Length);
-            if (messageHeaderLength != messageHeader.Length)
-            {
-                // 消息不对，忽略
-                return (false, default)!;
-            }
-
             if (!await GetHeader(stream, messageHeader, sharedArrayPool))
             {
                 // 消息不对，忽略
                 return (false, default)!;
             }
 
+            var binaryReader = new BinaryReader(stream);
             var version = binaryReader.ReadUInt32();
             Debug.Assert(version == 0);
 
@@ -74,7 +66,7 @@ namespace Ipc
 
             var messageLength = binaryReader.ReadUInt32();
 
-            if (messageLength > ushort.MaxValue * 1024)
+            if (messageLength > maxMessageLength)
             {
                 // 太长了
                 return (false, default)!;
@@ -91,6 +83,15 @@ namespace Ipc
 
         private static async Task<bool> GetHeader(Stream stream, byte[] messageHeader, ISharedArrayPool sharedArrayPool)
         {
+            var binaryReader = new BinaryReader(stream);
+            var messageHeaderLength = binaryReader.ReadUInt16();
+            Debug.Assert(messageHeaderLength == messageHeader.Length);
+            if (messageHeaderLength != messageHeader.Length)
+            {
+                // 消息不对，忽略
+                return false;
+            }
+
             var messageHeaderBuffer = sharedArrayPool.Rent(messageHeader.Length);
 
             try
