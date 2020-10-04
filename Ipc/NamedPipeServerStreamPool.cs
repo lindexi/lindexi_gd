@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace Ipc
 {
-    internal class NamedPipeServerStreamPool
+    internal class IpcServerService
     {
-        public NamedPipeServerStreamPool(string pipeName, IpcContext ipcContext)
+        public IpcServerService(string pipeName, IpcContext ipcContext)
         {
             PipeName = pipeName;
             IpcContext = ipcContext;
@@ -15,11 +15,6 @@ namespace Ipc
 
         public string PipeName { get; }
         public IpcContext IpcContext { get; }
-
-        private ConcurrentDictionary<string, NamedPipeServerStream> NamedPipeServerStreamList { get; } =
-            new ConcurrentDictionary<string, NamedPipeServerStream>();
-
-        private IpcConfiguration IpcConfiguration { get; set; } = new IpcConfiguration();
 
         public async Task Start()
         {
@@ -41,10 +36,6 @@ namespace Ipc
 
         private void PipeServerMessage_ClientConnected(object? sender, ClientConnectedArgs e)
         {
-            if (NamedPipeServerStreamList.TryAdd(e.ClientName, e.NamedPipeServerStream))
-            {
-            }
-
             ClientConnected?.Invoke(sender, e);
         }
 

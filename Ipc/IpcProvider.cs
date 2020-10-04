@@ -22,7 +22,7 @@ namespace Ipc
 
         private IpcContext IpcContext { get; }
 
-        public IpcServerService IpcServerService { set; get; } = null!;
+        internal IpcServerService IpcServerService { set; get; } = null!;
 
         public string ClientName { get; }
 
@@ -33,11 +33,11 @@ namespace Ipc
         {
             if (IpcServerService != null) return;
 
-            var ipcServerService = new IpcServerService(IpcContext, ClientName);
+            var ipcServerService = new IpcServerService( ClientName,IpcContext);
             IpcServerService = ipcServerService;
 
-            ipcServerService.NamedPipeServerStreamPool.ClientConnected += NamedPipeServerStreamPool_ClientConnected;
-            ipcServerService.NamedPipeServerStreamPool.MessageReceived += NamedPipeServerStreamPool_MessageReceived;
+            ipcServerService.ClientConnected += NamedPipeServerStreamPool_ClientConnected;
+            ipcServerService.MessageReceived += NamedPipeServerStreamPool_MessageReceived;
 
             await ipcServerService.Start();
         }
