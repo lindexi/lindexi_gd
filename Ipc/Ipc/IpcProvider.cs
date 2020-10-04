@@ -22,7 +22,7 @@ namespace Ipc
 
         private IpcContext IpcContext { get; }
 
-        internal IpcServerService IpcServerService { set; get; } = null!;
+        public IpcServerService IpcServerService { set; get; } = null!;
 
         public string ClientName { get; }
 
@@ -44,10 +44,7 @@ namespace Ipc
 
         private void NamedPipeServerStreamPool_MessageReceived(object? sender, ClientMessageArgs e)
         {
-            // 使用 e.ClientName 可以回复消息
-
-            // 是否回复 ack 命令
-            var ack = new BinaryReader(e.Stream).ReadUInt64();
+            
         }
 
 

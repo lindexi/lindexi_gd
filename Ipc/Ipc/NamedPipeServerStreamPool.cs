@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Ipc
 {
-    internal class IpcServerService
+    public class IpcServerService
     {
         public IpcServerService(string pipeName, IpcContext ipcContext)
         {
