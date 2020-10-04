@@ -11,7 +11,7 @@ namespace Ipc
         {
             while (true)
             {
-                var pipeServerMessage = new PipeServerMessage(PipeName);
+                var pipeServerMessage = new PipeServerMessage(PipeName, IpcContext);
 
                 pipeServerMessage.ClientConnected += PipeServerMessage_ClientConnected;
                 pipeServerMessage.MessageReceived += PipeServerMessage_MessageReceived;
@@ -20,12 +20,14 @@ namespace Ipc
             }
         }
 
-        public NamedPipeServerStreamPool(string pipeName)
+        public NamedPipeServerStreamPool(string pipeName, IpcContext ipcContext)
         {
             PipeName = pipeName;
+            IpcContext = ipcContext;
         }
 
         public string PipeName { get; }
+        public IpcContext IpcContext { get; }
 
         private void PipeServerMessage_MessageReceived(object? sender, ClientMessageArgs e)
         {

@@ -13,6 +13,10 @@ namespace Ipc
             Buffer = buffer;
         }
 
+        public ByteListMessageStream(in IpcMessageContext ipcMessageContext):this(ipcMessageContext.MessageBuffer,(int) ipcMessageContext.MessageLength,ipcMessageContext.SharedArrayPool)
+        {
+        }
+
         ~ByteListMessageStream()
         {
             _sharedArrayPool.Return(Buffer);

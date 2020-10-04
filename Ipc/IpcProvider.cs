@@ -19,9 +19,10 @@ namespace Ipc
         public IpcProvider(string clientName)
         {
             ClientName = clientName;
+            IpcContext = new IpcContext(this, clientName);
         }
 
-        private IpcContext IpcContext { get; } = new IpcContext();
+        private IpcContext IpcContext { get; }
 
         public async Task StartServer()
         {
@@ -30,7 +31,7 @@ namespace Ipc
                 return;
             }
 
-            var ipcServerService = new IpcServerService(ClientName);
+            var ipcServerService = new IpcServerService(IpcContext, ClientName);
             IpcServerService = ipcServerService;
 
             ipcServerService.NamedPipeServerStreamPool.ClientConnected += NamedPipeServerStreamPool_ClientConnected;
@@ -80,7 +81,7 @@ namespace Ipc
 
                 if (ConnectedServerManagerList.TryAdd(serverName, connectedServerManager))
                 {
-
+                    
                 }
                 else
                 {

@@ -5,6 +5,13 @@ namespace Ipc
 {
     class AckManager
     {
+        private IpcContext IpcContext { get; }
+
+        public AckManager(IpcContext ipcContext)
+        {
+            IpcContext = ipcContext;
+        }
+
         public ulong GetAck()
         {
             CurrentAck++;

@@ -6,10 +6,11 @@ namespace Ipc
 {
     public class IpcServerService
     {
-        public IpcServerService(string pipeName = IpcContext.PipeName)
+        public IpcServerService(IpcContext ipcContext, string pipeName = IpcContext.DefaultPipeName)
         {
             PipeName = pipeName;
-            var namedPipeServerStreamPool = new NamedPipeServerStreamPool(PipeName);
+            IpcContext = ipcContext;
+            var namedPipeServerStreamPool = new NamedPipeServerStreamPool(PipeName, IpcContext);
             NamedPipeServerStreamPool = namedPipeServerStreamPool;
         }
 
@@ -21,6 +22,7 @@ namespace Ipc
         internal NamedPipeServerStreamPool NamedPipeServerStreamPool { set; get; } = null!;
 
         public string PipeName { get; }
+        public IpcContext IpcContext { get; }
 
         //private void StreamMessageConverter_MessageReceived(object? sender, ByteListMessageStream e)
         //{

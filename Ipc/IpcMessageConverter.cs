@@ -82,8 +82,8 @@ namespace Ipc
 
         private static async Task<bool> GetHeader(Stream stream, byte[] messageHeader, ISharedArrayPool sharedArrayPool)
         {
-            var binaryReader = new BinaryReader(stream);
-            var messageHeaderLength = binaryReader.ReadUInt16();
+            var binaryReader = new AsyncBinaryReader(stream);
+            var messageHeaderLength = await binaryReader.ReadUInt16Async();
             Debug.Assert(messageHeaderLength == messageHeader.Length);
             if (messageHeaderLength != messageHeader.Length)
             {
