@@ -11,6 +11,8 @@ namespace Ipc
             Stream = stream;
         }
 
+        private Stream Stream { get; }
+
         public async Task<ushort> ReadUInt16Async()
         {
             var byteList = await InternalReadAsync(2);
@@ -20,21 +22,19 @@ namespace Ipc
         private async Task<byte[]> InternalReadAsync(int numBytes)
         {
             var byteList = new byte[numBytes];
-            int bytesRead = 0;
+            var bytesRead = 0;
 
             do
             {
-                int n = await Stream.ReadAsync(byteList, bytesRead, numBytes - bytesRead);
+                var n = await Stream.ReadAsync(byteList, bytesRead, numBytes - bytesRead);
                 if (n == 0)
                 {
-
                 }
+
                 bytesRead += n;
             } while (bytesRead < numBytes);
 
             return byteList;
         }
-
-        private Stream Stream { get; }
     }
 }

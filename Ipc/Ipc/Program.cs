@@ -1,19 +1,12 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Pipes;
-using System.Linq;
-using System.Security.Principal;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Ipc
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             //Console.WriteLine(string.Join(",", Encoding.UTF8.GetBytes("ACK").Select(temp => "0x" + temp.ToString("X2"))));
             //var byteList = BitConverter.GetBytes((ulong) 100);
@@ -35,7 +28,7 @@ namespace Ipc
                 //Task.Run(LibearlafeCilinoballnelnall),
                 //Task.Run(WhejeewukawBalbejelnewearfe),
                 Task.Run(WheehakawlucearHalwahewurlaiwhair),
-                Task.Run(BaiqealawbawKeqakeyawaw),
+                Task.Run(BaiqealawbawKeqakeyawaw)
             };
 
             Task.WaitAll(jalejekemNereyararli.ToArray());

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Ipc
 {
-    class IpcMessageConverterTest
+    internal class IpcMessageConverterTest
     {
         public async void Run()
         {
@@ -17,22 +17,20 @@ namespace Ipc
 
             var ipcConfiguration = new IpcConfiguration();
             ulong ack = 10;
-            var buffer = new byte[] { 0x12, 0x12, 0x00 };
-            await IpcMessageConverter.WriteAsync(memoryStream, ipcConfiguration.MessageHeader, ack, buffer, 0, buffer.Length);
+            var buffer = new byte[] {0x12, 0x12, 0x00};
+            await IpcMessageConverter.WriteAsync(memoryStream, ipcConfiguration.MessageHeader, ack, buffer, 0,
+                buffer.Length);
 
             memoryStream.Position = 0;
-            var (success, ipcMessageContext) = await IpcMessageConverter.ReadAsync(memoryStream, ipcConfiguration.MessageHeader, new SharedArrayPool());
+            var (success, ipcMessageContext) = await IpcMessageConverter.ReadAsync(memoryStream,
+                ipcConfiguration.MessageHeader, new SharedArrayPool());
             if (success)
             {
-
             }
 
             if (ipcMessageContext.Ack == ack)
             {
-
             }
         }
     }
-
-
 }

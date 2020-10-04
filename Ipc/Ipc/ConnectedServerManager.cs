@@ -11,6 +11,12 @@ namespace Ipc
             IpcContext = ipcContext;
         }
 
+        public string ServerName { get; }
+        public string ClientName { get; }
+        public IpcContext IpcContext { get; }
+
+        public IpcClientService IpcClientService { get; set; } = null!;
+
         public async Task ConnectServer()
         {
             var ipcClientService = new IpcClientService(IpcContext, ServerName);
@@ -18,12 +24,5 @@ namespace Ipc
             await ipcClientService.Start();
             await ipcClientService.WriteStringAsync(ClientName);
         }
-
-        public string ServerName { get; }
-        public string ClientName { get; }
-        public IpcContext IpcContext { get; }
-
-        public IpcClientService IpcClientService { get; set; } = null!;
-
     }
 }

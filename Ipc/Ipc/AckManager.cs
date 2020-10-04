@@ -3,22 +3,16 @@ using System.IO;
 
 namespace Ipc
 {
-    class AckManager
+    internal class AckManager
     {
-        private IpcContext IpcContext { get; }
+        private ulong _currentAck;
 
         public AckManager(IpcContext ipcContext)
         {
             IpcContext = ipcContext;
         }
 
-        public Ack GetAck()
-        {
-            CurrentAck = CurrentAck.Value + 1;
-            return CurrentAck;
-        }
-
-        private ulong _currentAck;
+        private IpcContext IpcContext { get; }
 
         public Ack CurrentAck
         {
@@ -27,10 +21,7 @@ namespace Ipc
                 lock (Locker)
                 {
                     var ack = value.Value;
-                    if (ack > ulong.MaxValue - ushort.MaxValue)
-                    {
-                        ack = 0;
-                    }
+                    if (ack > ulong.MaxValue - ushort.MaxValue) ack = 0;
 
                     _currentAck = ack;
                 }
@@ -44,13 +35,21 @@ namespace Ipc
             }
         }
 
+        // ACK 0x41, 0x43, 0x4B
+        public byte[] AckHeader { get; } = {0x41, 0x43, 0x4B};
+
+        private object Locker => AckHeader;
+
+        public Ack GetAck()
+        {
+            CurrentAck = CurrentAck.Value + 1;
+            return CurrentAck;
+        }
+
         public bool IsAckMessage(Stream stream, out Ack ack)
         {
             var position = stream.Position;
-            if (IsAckMessageInner(stream, out ack))
-            {
-                return true;
-            }
+            if (IsAckMessageInner(stream, out ack)) return true;
 
             stream.Position = position;
 
@@ -74,6 +73,7 @@ namespace Ipc
             {
                 CurrentAck = Math.Max(CurrentAck.Value, receivedAck.Value);
             }
+
             CurrentAck = CurrentAck.Value + 1;
             binaryWriter.Write(CurrentAck.Value);
 
@@ -89,10 +89,7 @@ namespace Ipc
              */
             ack = 0;
             const int ackLength = sizeof(ulong) + sizeof(ulong);
-            if (stream.Length - stream.Position != AckHeader.Length + ackLength)
-            {
-                return false;
-            }
+            if (stream.Length - stream.Position != AckHeader.Length + ackLength) return false;
 
             if (!IsAckHeader(stream)) return false;
 
@@ -111,19 +108,10 @@ namespace Ipc
         private bool IsAckHeader(Stream stream)
         {
             foreach (var ack in AckHeader)
-            {
                 if (stream.ReadByte() != ack)
-                {
                     return false;
-                }
-            }
 
             return true;
         }
-
-        // ACK 0x41, 0x43, 0x4B
-        public byte[] AckHeader { get; } = new byte[] { 0x41, 0x43, 0x4B };
-
-        private object Locker => AckHeader;
     }
 }

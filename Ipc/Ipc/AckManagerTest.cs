@@ -2,8 +2,10 @@
 
 namespace Ipc
 {
-    class AckManagerTest
+    internal class AckManagerTest
     {
+        private AckManager AckManager { get; } = new AckManager(new IpcContext(new IpcProvider(), "123123"));
+
         public void Run()
         {
             KerekeryawreeDeawhakeewawjear();
@@ -16,14 +18,9 @@ namespace Ipc
             var buildAckMessage = AckManager.BuildAckMessage(100);
             using var memoryStream = new MemoryStream(buildAckMessage, false);
             if (AckManager.IsAckMessage(memoryStream, out var ack))
-            {
                 if (ack.Value == 100)
                 {
-
                 }
-            }
         }
-
-        private AckManager AckManager { get; } = new AckManager(new IpcContext(new IpcProvider(), "123123"));
     }
 }

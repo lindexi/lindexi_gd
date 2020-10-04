@@ -1,9 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Threading.Tasks;
-
-namespace Ipc
+﻿namespace Ipc
 {
     //sealed class StreamMessageConverter
     //{
@@ -33,7 +28,7 @@ namespace Ipc
     //                }
     //                else
     //                {
-                        
+
     //                }
 
     //                //await GetHeader();

@@ -9,6 +9,9 @@
 
         public ulong Value { get; }
 
-        public static implicit operator Ack(ulong ack) => new Ack(ack);
+        public static implicit operator Ack(ulong ack)
+        {
+            return new Ack(ack);
+        }
     }
 }
