@@ -43,93 +43,93 @@ namespace Ipc
             return ipcProvider.StartServer();
         }
 
-        private static async Task WhejeewukawBalbejelnewearfe()
-        {
-            var ipcClientService = new IpcClientService();
-            await ipcClientService.Start();
+        //private static async Task WhejeewukawBalbejelnewearfe()
+        //{
+        //    var ipcClientService = new IpcClientService();
+        //    await ipcClientService.Start();
 
-            while (true)
-            {
-                var buffer = Encoding.UTF8.GetBytes(DateTime.Now.ToString());
-                await ipcClientService.WriteMessageAsync(buffer, 0, buffer.Length);
-                await Task.Delay(1000);
-            }
-        }
+        //    while (true)
+        //    {
+        //        var buffer = Encoding.UTF8.GetBytes(DateTime.Now.ToString());
+        //        await ipcClientService.WriteMessageAsync(buffer, 0, buffer.Length);
+        //        await Task.Delay(1000);
+        //    }
+        //}
 
-        private static void HalrowemfeareeHeabemnikeci()
-        {
-            var ipcServerService = new IpcServerService();
-            ipcServerService.Start();
-        }
+        //private static void HalrowemfeareeHeabemnikeci()
+        //{
+        //    var ipcServerService = new IpcServerService();
+        //    ipcServerService.Start();
+        //}
 
-        private static async void LibearlafeCilinoballnelnall()
-        {
-            try
-            {
-                int beebeniharHijocerene;
+        //private static async void LibearlafeCilinoballnelnall()
+        //{
+        //    try
+        //    {
+        //        int beebeniharHijocerene;
 
-                lock (NamedPipeClientStreamList)
-                {
-                    _loyawfanawKererocarwho++;
-                    beebeniharHijocerene = _loyawfanawKererocarwho;
-                }
+        //        lock (NamedPipeClientStreamList)
+        //        {
+        //            _loyawfanawKererocarwho++;
+        //            beebeniharHijocerene = _loyawfanawKererocarwho;
+        //        }
 
-                var neachearjarcaiYahofairwufu = new NamedPipeClientStream(".", IpcContext.PipeName,
-                    PipeDirection.InOut, PipeOptions.None, TokenImpersonationLevel.Impersonation);
-                //neachearjarcaiYahofairwufu=new NamedPipeClientStream(IpcContext.PipeName);
-                NamedPipeClientStreamList.Add(neachearjarcaiYahofairwufu);
-                neachearjarcaiYahofairwufu.Connect();
+        //        var neachearjarcaiYahofairwufu = new NamedPipeClientStream(".", IpcContext.PipeName,
+        //            PipeDirection.InOut, PipeOptions.None, TokenImpersonationLevel.Impersonation);
+        //        //neachearjarcaiYahofairwufu=new NamedPipeClientStream(IpcContext.PipeName);
+        //        NamedPipeClientStreamList.Add(neachearjarcaiYahofairwufu);
+        //        neachearjarcaiYahofairwufu.Connect();
 
-                //WebecucecefawJajaywurrere(new StreamReader(neachearjarcaiYahofairwufu), "Client" + beebeniharHijocerene);
+        //        //WebecucecefawJajaywurrere(new StreamReader(neachearjarcaiYahofairwufu), "Client" + beebeniharHijocerene);
 
-                while (true)
-                {
-                    var buffer = Encoding.UTF8.GetBytes(DateTime.Now.ToString());
-                    await neachearjarcaiYahofairwufu.WriteAsync(buffer, 0, buffer.Length);
-                    await neachearjarcaiYahofairwufu.FlushAsync();
-                    await Task.Delay(1000);
-                }
+        //        while (true)
+        //        {
+        //            var buffer = Encoding.UTF8.GetBytes(DateTime.Now.ToString());
+        //            await neachearjarcaiYahofairwufu.WriteAsync(buffer, 0, buffer.Length);
+        //            await neachearjarcaiYahofairwufu.FlushAsync();
+        //            await Task.Delay(1000);
+        //        }
 
 
-                //while (true)
-                //{
-                //    var buffer = new byte[64];
-                //    var n = await neachearjarcaiYahofairwufu.ReadAsync(buffer, 0, 64);
-                //    var text = Encoding.UTF8.GetString(buffer, 0, n);
-                //    Console.WriteLine($"Client {beebeniharHijocerene} {text}");
-                //}
+        //        //while (true)
+        //        //{
+        //        //    var buffer = new byte[64];
+        //        //    var n = await neachearjarcaiYahofairwufu.ReadAsync(buffer, 0, 64);
+        //        //    var text = Encoding.UTF8.GetString(buffer, 0, n);
+        //        //    Console.WriteLine($"Client {beebeniharHijocerene} {text}");
+        //        //}
 
-                // 下面方法发送失败
-                int n = 0;
-                while (true)
-                {
-                    var gachajurkakaiyiFewalkurbe = new StreamWriter(neachearjarcaiYahofairwufu);
-                    await gachajurkakaiyiFewalkurbe.WriteLineAsync($"Client {beebeniharHijocerene} {n}");
-                    await neachearjarcaiYahofairwufu.FlushAsync();
-                    n++;
-                    await Task.Delay(1000);
-                }
-            }
-            catch (Exception e)
-            {
-            }
-        }
+        //        // 下面方法发送失败
+        //        int n = 0;
+        //        while (true)
+        //        {
+        //            var gachajurkakaiyiFewalkurbe = new StreamWriter(neachearjarcaiYahofairwufu);
+        //            await gachajurkakaiyiFewalkurbe.WriteLineAsync($"Client {beebeniharHijocerene} {n}");
+        //            await neachearjarcaiYahofairwufu.FlushAsync();
+        //            n++;
+        //            await Task.Delay(1000);
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //    }
+        //}
 
-        private static async void WebecucecefawJajaywurrere(StreamReader streamReader,
-            string raywheawaljalciChewhaiballlo)
-        {
-            while (true)
-            {
-                Console.WriteLine($"{raywheawaljalciChewhaiballlo} {await streamReader.ReadLineAsync()}");
-            }
-        }
+        //private static async void WebecucecefawJajaywurrere(StreamReader streamReader,
+        //    string raywheawaljalciChewhaiballlo)
+        //{
+        //    while (true)
+        //    {
+        //        Console.WriteLine($"{raywheawaljalciChewhaiballlo} {await streamReader.ReadLineAsync()}");
+        //    }
+        //}
 
-        private static List<NamedPipeClientStream> NamedPipeClientStreamList { get; } =
-            new List<NamedPipeClientStream>();
+        //private static List<NamedPipeClientStream> NamedPipeClientStreamList { get; } =
+        //    new List<NamedPipeClientStream>();
 
-        private static int _loyawfanawKererocarwho;
+        //private static int _loyawfanawKererocarwho;
 
-        private static NamedPipeServerStream NamedPipeServerStream { set; get; }
+        //private static NamedPipeServerStream NamedPipeServerStream { set; get; }
 
         //private static async Task DiwerlowuKahecallweeler()
         //{
