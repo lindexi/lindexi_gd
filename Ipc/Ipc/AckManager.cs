@@ -12,26 +12,27 @@ namespace Ipc
             IpcContext = ipcContext;
         }
 
-        public ulong GetAck()
+        public Ack GetAck()
         {
-            CurrentAck++;
+            CurrentAck = CurrentAck.Value + 1;
             return CurrentAck;
         }
 
         private ulong _currentAck;
 
-        public ulong CurrentAck
+        public Ack CurrentAck
         {
             set
             {
                 lock (Locker)
                 {
-                    if (value > ulong.MaxValue - ushort.MaxValue)
+                    var ack = value.Value;
+                    if (ack > ulong.MaxValue - ushort.MaxValue)
                     {
-                        value = 0;
+                        ack = 0;
                     }
 
-                    _currentAck = value;
+                    _currentAck = ack;
                 }
             }
             get
@@ -43,7 +44,7 @@ namespace Ipc
             }
         }
 
-        public bool IsAckMessage(Stream stream, out ulong ack)
+        public bool IsAckMessage(Stream stream, out Ack ack)
         {
             var position = stream.Position;
             if (IsAckMessageInner(stream, out ack))
@@ -56,7 +57,7 @@ namespace Ipc
             return false;
         }
 
-        public byte[] BuildAckMessage(ulong receivedAck)
+        public byte[] BuildAckMessage(Ack receivedAck)
         {
             const int ackLength = sizeof(ulong) + sizeof(ulong);
             byte[] buffer = new byte[AckHeader.Length + ackLength];
@@ -68,18 +69,18 @@ namespace Ipc
                 Position = AckHeader.Length
             };
             var binaryWriter = new BinaryWriter(memoryStream);
-            binaryWriter.Write(receivedAck);
+            binaryWriter.Write(receivedAck.Value);
             lock (Locker)
             {
-                CurrentAck = Math.Max(CurrentAck, receivedAck);
+                CurrentAck = Math.Max(CurrentAck.Value, receivedAck.Value);
             }
-            CurrentAck++;
-            binaryWriter.Write(CurrentAck);
+            CurrentAck = CurrentAck.Value + 1;
+            binaryWriter.Write(CurrentAck.Value);
 
             return buffer;
         }
 
-        private bool IsAckMessageInner(Stream stream, out ulong ack)
+        private bool IsAckMessageInner(Stream stream, out Ack ack)
         {
             /*
              * AckHeader
@@ -101,7 +102,7 @@ namespace Ipc
 
             lock (Locker)
             {
-                CurrentAck = Math.Max(CurrentAck, nextAck);
+                CurrentAck = Math.Max(CurrentAck.Value, nextAck);
             }
 
             return false;
@@ -121,7 +122,7 @@ namespace Ipc
         }
 
         // ACK 0x41, 0x43, 0x4B
-        public byte[] AckHeader { get; } = new byte[] {0x41, 0x43, 0x4B};
+        public byte[] AckHeader { get; } = new byte[] { 0x41, 0x43, 0x4B };
 
         private object Locker => AckHeader;
     }

@@ -9,7 +9,7 @@ namespace Ipc
 {
     internal static class IpcMessageConverter
     {
-        public static async Task WriteAsync(Stream stream, byte[] messageHeader, ulong ack, byte[] buffer, int offset, int count)
+        public static async Task WriteAsync(Stream stream, byte[] messageHeader,Ack ack, byte[] buffer, int offset, int count)
         {
             /*
              * UInt16 Message Header Length
@@ -29,7 +29,7 @@ namespace Ipc
 
             await stream.WriteAsync(messageHeader);
             binaryWriter.Write(version);
-            binaryWriter.Write(ack);
+            binaryWriter.Write(ack.Value);
             // Empty
             binaryWriter.Write((UInt32.MinValue));
             binaryWriter.Write(count);

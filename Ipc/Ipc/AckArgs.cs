@@ -4,13 +4,13 @@ namespace Ipc
 {
     public class AckArgs : EventArgs
     {
-        public AckArgs(string clientName, ulong ack)
+        public AckArgs(string clientName, in Ack ack)
         {
             Ack = ack;
             ClientName = clientName;
         }
 
-        public ulong Ack { get; }
+        public Ack Ack { get; }
         public string ClientName { get; }
     }
 }
