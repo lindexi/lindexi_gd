@@ -25,8 +25,8 @@ namespace Ipc
 
         public string PipeName => IpcContext.PipeName;
 
-        public ConcurrentDictionary<string, ConnectedServerManager> ConnectedServerManagerList { get; } =
-            new ConcurrentDictionary<string, ConnectedServerManager>();
+        public ConcurrentDictionary<string, IpcClientService> ConnectedServerManagerList { get; } =
+            new ConcurrentDictionary<string, IpcClientService>();
 
         public async Task StartServer()
         {
@@ -68,7 +68,7 @@ namespace Ipc
         /// <returns></returns>
         public async Task<IpcClientService> ConnectPeer(string peerName)
         {
-            if (ConnectedServerManagerList.TryGetValue(peerName, out var connectedServerManager))
+            if (ConnectedServerManagerList.TryGetValue(peerName, out var ipcClientService))
             {
             }
             else
@@ -77,18 +77,18 @@ namespace Ipc
 
                 var task = StartServer();
 
-                connectedServerManager = new ConnectedServerManager(peerName, IpcContext);
+                ipcClientService = new IpcClientService(IpcContext, peerName);
 
-                if (ConnectedServerManagerList.TryAdd(peerName, connectedServerManager))
+                if (ConnectedServerManagerList.TryAdd(peerName, ipcClientService))
                 {
                 }
 
-                await connectedServerManager.ConnectServer();
+                await ipcClientService.Start();
 
                 await task;
             }
 
-            return connectedServerManager.IpcClientService;
+            return ipcClientService;
         }
     }
 }
