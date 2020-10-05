@@ -1,4 +1,5 @@
-﻿using System.IO.Pipes;
+﻿using System;
+using System.IO.Pipes;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
@@ -44,11 +45,13 @@ namespace Ipc
 
         public async Task WriteMessageAsync(byte[] buffer, int offset, int count)
         {
-            var ack = AckManager.GetAck();
-            await IpcMessageConverter.WriteAsync(NamedPipeClientStream, IpcConfiguration.MessageHeader, ack, buffer,
-                offset,
-                count);
-            await NamedPipeClientStream.FlushAsync();
+            await AckManager.DoWillReceivedAck(async ack =>
+            {
+                await IpcMessageConverter.WriteAsync(NamedPipeClientStream, IpcConfiguration.MessageHeader, ack, buffer,
+                    offset,
+                    count);
+                await NamedPipeClientStream.FlushAsync();
+            }, ServerName, TimeSpan.FromSeconds(3), maxRetryCount: 10);
         }
 
         public async Task SendAck(Ack receivedAck)
