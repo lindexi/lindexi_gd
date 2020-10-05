@@ -4,10 +4,10 @@
     {
         public const string DefaultPipeName = "1231";
 
-        public IpcContext(IpcProvider ipcProvider, string clientName)
+        public IpcContext(IpcProvider ipcProvider, string pipeName)
         {
             IpcProvider = ipcProvider;
-            ClientName = clientName;
+            PipeName = pipeName;
 
             AckManager = new AckManager(this);
         }
@@ -17,6 +17,6 @@
         internal IpcConfiguration IpcConfiguration { get; set; } = new IpcConfiguration();
 
         internal IpcProvider IpcProvider { get; }
-        public string ClientName { get; }
+        public string PipeName { get; }
     }
 }

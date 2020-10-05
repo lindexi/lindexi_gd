@@ -4,15 +4,15 @@ namespace Ipc
 {
     public class ConnectedServerManager
     {
-        public ConnectedServerManager(string serverName, string clientName, IpcContext ipcContext)
+        public ConnectedServerManager(string serverName, string pipeName, IpcContext ipcContext)
         {
             ServerName = serverName;
-            ClientName = clientName;
+            PipeName = pipeName;
             IpcContext = ipcContext;
         }
 
         public string ServerName { get; }
-        public string ClientName { get; }
+        public string PipeName { get; }
         public IpcContext IpcContext { get; }
 
         public IpcClientService IpcClientService { get; set; } = null!;
@@ -22,7 +22,7 @@ namespace Ipc
             var ipcClientService = new IpcClientService(IpcContext, ServerName);
             IpcClientService = ipcClientService;
             await ipcClientService.Start();
-            await ipcClientService.WriteStringAsync(ClientName);
+            await ipcClientService.WriteStringAsync(PipeName);
         }
     }
 }
