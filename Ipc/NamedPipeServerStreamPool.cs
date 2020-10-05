@@ -20,27 +20,31 @@ namespace Ipc
         {
             while (true)
             {
-                var pipeServerMessage = new PipeServerMessage(PipeName, IpcContext);
-
-                pipeServerMessage.ClientConnected += PipeServerMessage_ClientConnected;
-                pipeServerMessage.MessageReceived += PipeServerMessage_MessageReceived;
+                var pipeServerMessage = new PipeServerMessage(PipeName, IpcContext, this);
 
                 await pipeServerMessage.Start();
             }
         }
 
-        private void PipeServerMessage_MessageReceived(object? sender, ClientMessageArgs e)
-        {
-            MessageReceived?.Invoke(sender, e);
-        }
-
-        private void PipeServerMessage_ClientConnected(object? sender, ClientConnectedArgs e)
-        {
-            ClientConnected?.Invoke(sender, e);
-        }
-
         public event EventHandler<ClientMessageArgs>? MessageReceived;
 
         public event EventHandler<ClientConnectedArgs>? ClientConnected;
+
+        public event EventHandler<AckArgs>? AckReceived;
+
+        internal void OnAckReceived(AckArgs e)
+        {
+            AckReceived?.Invoke(this, e);
+        }
+
+        internal void OnMessageReceived(ClientMessageArgs e)
+        {
+            MessageReceived?.Invoke(this, e);
+        }
+
+        internal void OnClientConnected(ClientConnectedArgs e)
+        {
+            ClientConnected?.Invoke(this, e);
+        }
     }
 }

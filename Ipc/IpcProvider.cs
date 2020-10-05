@@ -57,7 +57,7 @@ namespace Ipc
             else
             {
                 // 其他客户端连接
-                await ConnectServer(e.ClientName);
+                await ConnectServer(e.ClientName); 
             }
         }
 

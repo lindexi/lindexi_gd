@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.IO.Pipes;
 using System.Threading.Tasks;
 
@@ -8,10 +7,11 @@ namespace Ipc
     // 提供一个客户端连接
     internal class PipeServerMessage
     {
-        public PipeServerMessage(string pipeName, IpcContext ipcContext)
+        public PipeServerMessage(string pipeName, IpcContext ipcContext, IpcServerService ipcServerService)
         {
             PipeName = pipeName;
             IpcContext = ipcContext;
+            IpcServerService = ipcServerService;
         }
 
         private NamedPipeServerStream NamedPipeServerStream { set; get; } = null!;
@@ -20,6 +20,7 @@ namespace Ipc
 
         public string PipeName { get; }
         public IpcContext IpcContext { get; }
+        public IpcServerService IpcServerService { get; }
 
         private IpcConfiguration IpcConfiguration => IpcContext.IpcConfiguration;
 
@@ -55,7 +56,7 @@ namespace Ipc
                     var clientName = streamReader.ReadToEnd();
                     ClientName = clientName;
 
-                    OnClientConnected(new ClientConnectedArgs(clientName, NamedPipeServerStream));
+                    IpcServerService.OnClientConnected(new ClientConnectedArgs(clientName, NamedPipeServerStream));
                     await SendAck(ipcMessageContext.Ack);
 
                     break;
@@ -74,12 +75,12 @@ namespace Ipc
 
                     if (IpcContext.AckManager.IsAckMessage(stream, out var ack))
                     {
-                        OnAckReceived(new AckArgs(ClientName, ack));
+                        IpcServerService.OnAckReceived(new AckArgs(ClientName, ack));
                     }
                     else
                     {
                         var task = SendAck(ack);
-                        OnMessageReceived(new ClientMessageArgs(ClientName, stream));
+                        IpcServerService.OnMessageReceived(new ClientMessageArgs(ClientName, stream));
                         await task;
                     }
                 }
@@ -106,26 +107,6 @@ namespace Ipc
         //private void StreamMessageConverter_MessageReceived(object? sender, ByteListMessageStream e)
         //{
         //}
-
-        public event EventHandler<ClientMessageArgs>? MessageReceived;
-
-        public event EventHandler<ClientConnectedArgs>? ClientConnected;
-
-        public event EventHandler<AckArgs>? AckReceived;
-
-        protected virtual void OnClientConnected(ClientConnectedArgs e)
-        {
-            ClientConnected?.Invoke(this, e);
-        }
-
-        protected virtual void OnMessageReceived(ClientMessageArgs e)
-        {
-            MessageReceived?.Invoke(this, e);
-        }
-
-        protected virtual void OnAckReceived(AckArgs e)
-        {
-            AckReceived?.Invoke(this, e);
-        }
+       
     }
 }
