@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 namespace Ipc
@@ -42,7 +44,15 @@ namespace Ipc
 
         public Ack GetAck()
         {
-            CurrentAck = CurrentAck.Value + 1;
+            lock (Locker)
+            {
+                CurrentAck = CurrentAck.Value + 1;
+                while (AckTaskList.TryGetValue(CurrentAck.Value, out _))
+                {
+                    CurrentAck = CurrentAck.Value + 1;
+                }
+            }
+
             return CurrentAck;
         }
 
@@ -108,10 +118,67 @@ namespace Ipc
         private bool IsAckHeader(Stream stream)
         {
             foreach (var ack in AckHeader)
+            {
                 if (stream.ReadByte() != ack)
+                {
                     return false;
+                }
+            }
 
             return true;
         }
+
+        internal async void RegisterAckTask(AckTask ackTask)
+        {
+            lock (Locker)
+            {
+                if (AckTaskList.TryAdd(ackTask.Ack.Value, ackTask))
+                {
+                }
+                else
+                {
+                    // 理论上是找不到的
+                }
+            }
+
+            await ackTask.Task.Task;
+
+            lock (Locker)
+            {
+                if (AckTaskList.Remove(ackTask.Ack.Value, out var removedTask))
+                {
+                    Debug.Assert(ReferenceEquals(removedTask, ackTask));
+                }
+                else
+                {
+                    Debug.Assert(false, "收到的一定存在");
+                }
+            }
+        }
+
+        internal void OnAckReceived(object? sender, AckArgs e)
+        {
+            AckTask ackTask;
+
+            lock (Locker)
+            {
+                if (!AckTaskList.TryGetValue(e.Ack.Value, out ackTask!))
+                {
+                    // 被干掉了，也许是因为等待太久
+                    return;
+                }
+            }
+
+            if (ackTask.ClientName.Equals(e.ClientName))
+            {
+                ackTask.Task.SetResult(true);
+            }
+            else
+            {
+                // 不是发生给这个客户端的，只是 ack 相同，这个类被改错
+            }
+        }
+
+        private Dictionary<ulong, AckTask> AckTaskList { get; } = new Dictionary<ulong, AckTask>();
     }
 }
