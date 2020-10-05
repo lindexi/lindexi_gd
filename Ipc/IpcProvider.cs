@@ -16,7 +16,6 @@ namespace Ipc
 
         public IpcProvider(string pipeName)
         {
-            PipeName = pipeName;
             IpcContext = new IpcContext(this, pipeName);
         }
 
@@ -24,7 +23,7 @@ namespace Ipc
 
         public IpcServerService IpcServerService { private set; get; } = null!;
 
-        public string PipeName { get; }
+        public string PipeName => IpcContext.PipeName;
 
         public ConcurrentDictionary<string, ConnectedServerManager> ConnectedServerManagerList { get; } =
             new ConcurrentDictionary<string, ConnectedServerManager>();
@@ -33,7 +32,7 @@ namespace Ipc
         {
             if (IpcServerService != null) return;
 
-            var ipcServerService = new IpcServerService(PipeName, IpcContext);
+            var ipcServerService = new IpcServerService(IpcContext);
             IpcServerService = ipcServerService;
 
             ipcServerService.ClientConnected += NamedPipeServerStreamPool_ClientConnected;
@@ -73,7 +72,7 @@ namespace Ipc
 
                 var task = StartServer();
 
-                connectedServerManager = new ConnectedServerManager(serverName, PipeName, IpcContext);
+                connectedServerManager = new ConnectedServerManager(serverName, IpcContext);
 
                 if (ConnectedServerManagerList.TryAdd(serverName, connectedServerManager))
                 {

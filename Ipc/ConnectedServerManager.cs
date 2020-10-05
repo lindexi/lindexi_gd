@@ -4,15 +4,14 @@ namespace Ipc
 {
     public class ConnectedServerManager
     {
-        public ConnectedServerManager(string serverName, string pipeName, IpcContext ipcContext)
+        public ConnectedServerManager(string serverName, IpcContext ipcContext)
         {
             ServerName = serverName;
-            PipeName = pipeName;
             IpcContext = ipcContext;
         }
 
         public string ServerName { get; }
-        public string PipeName { get; }
+        public string PipeName => IpcContext.PipeName;
         public IpcContext IpcContext { get; }
 
         public IpcClientService IpcClientService { get; set; } = null!;

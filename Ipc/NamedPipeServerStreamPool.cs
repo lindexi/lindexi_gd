@@ -7,13 +7,12 @@ namespace Ipc
 {
     public class IpcServerService
     {
-        public IpcServerService(string pipeName, IpcContext ipcContext)
+        public IpcServerService(IpcContext ipcContext)
         {
-            PipeName = pipeName;
             IpcContext = ipcContext;
         }
 
-        public string PipeName { get; }
+        public string PipeName => IpcContext.PipeName;
         public IpcContext IpcContext { get; }
 
         public async Task Start()
