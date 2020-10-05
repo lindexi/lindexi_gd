@@ -4,9 +4,9 @@ namespace Ipc
 {
     class AckTask
     {
-        public AckTask(string clientName, in Ack ack, TaskCompletionSource<bool> task)
+        public AckTask(string peerName, in Ack ack, TaskCompletionSource<bool> task)
         {
-            ClientName = clientName;
+            PeerName = peerName;
             Ack = ack;
             Task = task;
         }
@@ -14,6 +14,6 @@ namespace Ipc
         public TaskCompletionSource<bool> Task { get; }
 
         public Ack Ack { get; }
-        public string ClientName { get; }
+        public string PeerName { get; }
     }
 }

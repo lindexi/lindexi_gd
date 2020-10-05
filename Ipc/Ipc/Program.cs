@@ -38,7 +38,7 @@ namespace Ipc
         private static Task? BaiqealawbawKeqakeyawaw()
         {
             var ipcProvider = new IpcProvider();
-            return ipcProvider.ConnectServer(IpcContext.DefaultPipeName);
+            return ipcProvider.ConnectPeer(IpcContext.DefaultPipeName);
         }
 
         private static Task? WheehakawlucearHalwahewurlaiwhair()

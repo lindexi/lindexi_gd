@@ -129,14 +129,14 @@ namespace Ipc
             return true;
         }
 
-        internal async Task<bool> DoWillReceivedAck(Func<Ack, Task> task, string serverName, TimeSpan timeout, uint maxRetryCount)
+        internal async Task<bool> DoWillReceivedAck(Func<Ack, Task> task, string peerName, TimeSpan timeout, uint maxRetryCount)
         {
             for (uint i = 0; i < maxRetryCount; i++)
             {
                 var ack = GetAck();
                 var taskCompletionSource = new TaskCompletionSource<bool>();
 
-                var ackTask = new AckTask(serverName, ack, taskCompletionSource);
+                var ackTask = new AckTask(peerName, ack, taskCompletionSource);
                 RegisterAckTask(ackTask);
 
                 // 先注册，然后执行任务，解决任务速度太快，收到消息然后再注册
@@ -196,7 +196,7 @@ namespace Ipc
                 }
             }
 
-            if (ackTask.ClientName.Equals(e.ClientName))
+            if (ackTask.PeerName.Equals(e.PeerName))
             {
                 // 此时也许是等待太久
                 ackTask.Task.TrySetResult(true);

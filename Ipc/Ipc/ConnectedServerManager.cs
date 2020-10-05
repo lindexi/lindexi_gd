@@ -4,13 +4,18 @@ namespace Ipc
 {
     public class ConnectedServerManager
     {
-        public ConnectedServerManager(string serverName, IpcContext ipcContext)
+        /// <summary>
+        /// 连接管理
+        /// </summary>
+        /// <param name="peerName"></param>
+        /// <param name="ipcContext"></param>
+        public ConnectedServerManager(string peerName, IpcContext ipcContext)
         {
-            ServerName = serverName;
+            PeerName = peerName;
             IpcContext = ipcContext;
         }
 
-        public string ServerName { get; }
+        public string PeerName { get; }
         public string PipeName => IpcContext.PipeName;
         public IpcContext IpcContext { get; }
 
@@ -18,7 +23,7 @@ namespace Ipc
 
         public async Task ConnectServer()
         {
-            var ipcClientService = new IpcClientService(IpcContext, ServerName);
+            var ipcClientService = new IpcClientService(IpcContext, PeerName);
             IpcClientService = ipcClientService;
             await ipcClientService.Start();
             await ipcClientService.WriteStringAsync(PipeName);

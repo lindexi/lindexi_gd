@@ -19,7 +19,7 @@ namespace Ipc
         {
             while (true)
             {
-                var pipeServerMessage = new PipeServerMessage(PipeName, IpcContext, this);
+                var pipeServerMessage = new PipeServerMessage(IpcContext, this);
 
                 await pipeServerMessage.Start();
             }

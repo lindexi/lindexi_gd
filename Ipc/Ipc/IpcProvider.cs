@@ -57,13 +57,18 @@ namespace Ipc
             else
             {
                 // 其他客户端连接
-                await ConnectServer(e.ClientName);
+                await ConnectPeer(e.ClientName);
             }
         }
 
-        public async Task<IpcClientService> ConnectServer(string serverName)
+        /// <summary>
+        /// 连接其他客户端
+        /// </summary>
+        /// <param name="peerName">对方</param>
+        /// <returns></returns>
+        public async Task<IpcClientService> ConnectPeer(string peerName)
         {
-            if (ConnectedServerManagerList.TryGetValue(serverName, out var connectedServerManager))
+            if (ConnectedServerManagerList.TryGetValue(peerName, out var connectedServerManager))
             {
             }
             else
@@ -72,9 +77,9 @@ namespace Ipc
 
                 var task = StartServer();
 
-                connectedServerManager = new ConnectedServerManager(serverName, IpcContext);
+                connectedServerManager = new ConnectedServerManager(peerName, IpcContext);
 
-                if (ConnectedServerManagerList.TryAdd(serverName, connectedServerManager))
+                if (ConnectedServerManagerList.TryAdd(peerName, connectedServerManager))
                 {
                 }
 

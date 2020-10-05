@@ -7,18 +7,23 @@ namespace Ipc
     // 提供一个客户端连接
     internal class PipeServerMessage
     {
-        public PipeServerMessage(string pipeName, IpcContext ipcContext, IpcServerService ipcServerService)
+        public PipeServerMessage(IpcContext ipcContext, IpcServerService ipcServerService)
         {
-            PipeName = pipeName;
             IpcContext = ipcContext;
             IpcServerService = ipcServerService;
         }
 
         private NamedPipeServerStream NamedPipeServerStream { set; get; } = null!;
 
-        private string ClientName { set; get; } = null!;
+        /// <summary>
+        /// 被对方连接
+        /// </summary>
+        private string PeerName { set; get; } = null!;
 
-        public string PipeName { get; }
+        /// <summary>
+        /// 自身的名字
+        /// </summary>
+        public string PipeName => IpcContext.PipeName;
         public IpcContext IpcContext { get; }
         public IpcServerService IpcServerService { get; }
 
@@ -53,10 +58,10 @@ namespace Ipc
 
                     var streamReader = new StreamReader(stream);
                     // ReSharper disable once MethodHasAsyncOverload
-                    var clientName = streamReader.ReadToEnd();
-                    ClientName = clientName;
+                    var peerName = streamReader.ReadToEnd();
+                    PeerName = peerName;
 
-                    IpcServerService.OnClientConnected(new ClientConnectedArgs(clientName, NamedPipeServerStream));
+                    IpcServerService.OnClientConnected(new ClientConnectedArgs(peerName, NamedPipeServerStream));
                     await SendAck(ipcMessageContext.Ack);
 
                     break;
@@ -75,12 +80,12 @@ namespace Ipc
 
                     if (IpcContext.AckManager.IsAckMessage(stream, out var ack))
                     {
-                        IpcServerService.OnAckReceived(new AckArgs(ClientName, ack));
+                        IpcServerService.OnAckReceived(new AckArgs(PeerName, ack));
                     }
                     else
                     {
                         var task = SendAck(ack);
-                        IpcServerService.OnMessageReceived(new ClientMessageArgs(ClientName, stream));
+                        IpcServerService.OnMessageReceived(new ClientMessageArgs(PeerName, stream));
                         await task;
                     }
                 }
@@ -90,7 +95,7 @@ namespace Ipc
         private async Task SendAck(Ack receivedAck)
         {
             var ipcProvider = IpcContext.IpcProvider;
-            var ipcClient = await ipcProvider.ConnectServer(ClientName);
+            var ipcClient = await ipcProvider.ConnectPeer(PeerName);
             await ipcClient.SendAck(receivedAck);
         }
 
