@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Ipc
 {
@@ -38,7 +39,7 @@ namespace Ipc
         }
 
         // ACK 0x41, 0x43, 0x4B
-        public byte[] AckHeader { get; } = {0x41, 0x43, 0x4B};
+        public byte[] AckHeader { get; } = { 0x41, 0x43, 0x4B };
 
         private object Locker => AckHeader;
 
@@ -126,6 +127,32 @@ namespace Ipc
             }
 
             return true;
+        }
+
+        internal async Task<bool> DoWillReceivedAck(Func<Ack, Task> task, string serverName, TimeSpan timeout, uint maxRetryCount)
+        {
+            for (uint i = 0; i < maxRetryCount; i++)
+            {
+                var ack = GetAck();
+                var taskCompletionSource = new TaskCompletionSource<bool>();
+
+                var ackTask = new AckTask(serverName, ack, taskCompletionSource);
+                RegisterAckTask(ackTask);
+
+                // 先注册，然后执行任务，解决任务速度太快，收到消息然后再注册
+                await task(ack);
+
+                await Task.WhenAny(taskCompletionSource.Task, Task.Delay(timeout));
+                taskCompletionSource.TrySetResult(false);
+                if (await taskCompletionSource.Task)
+                {
+                    // 执行完成
+                    return true;
+                }
+            }
+
+            // 执行失败
+            return false;
         }
 
         internal async void RegisterAckTask(AckTask ackTask)
