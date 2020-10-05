@@ -39,6 +39,15 @@ namespace Ipc
             await namedPipeClientStream.ConnectAsync();
 
             NamedPipeClientStream = namedPipeClientStream;
+
+            // 启动之后，向对方注册，此时对方是服务器
+           await RegisterToPeer();
+        }
+
+        private async Task RegisterToPeer()
+        {
+            // 注册自己
+            await WriteStringAsync(IpcContext.PipeName);
         }
 
         public void Stop()
