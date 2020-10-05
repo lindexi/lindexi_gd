@@ -171,7 +171,8 @@ namespace Ipc
 
             if (ackTask.ClientName.Equals(e.ClientName))
             {
-                ackTask.Task.SetResult(true);
+                // 此时也许是等待太久
+                ackTask.Task.TrySetResult(true);
             }
             else
             {

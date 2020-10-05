@@ -22,7 +22,7 @@ namespace Ipc
 
         private IpcContext IpcContext { get; }
 
-        public IpcServerService IpcServerService { set; get; } = null!;
+        public IpcServerService IpcServerService { private set; get; } = null!;
 
         public string ClientName { get; }
 
@@ -38,6 +38,7 @@ namespace Ipc
 
             ipcServerService.ClientConnected += NamedPipeServerStreamPool_ClientConnected;
             ipcServerService.MessageReceived += NamedPipeServerStreamPool_MessageReceived;
+            ipcServerService.AckReceived += IpcContext.AckManager.OnAckReceived;
 
             await ipcServerService.Start();
         }
