@@ -8,10 +8,15 @@ namespace Ipc
 {
     public class IpcClientService
     {
-        internal IpcClientService(IpcContext ipcContext, string serverName = IpcContext.DefaultPipeName)
+        /// <summary>
+        /// 连接其他端，用来发送
+        /// </summary>
+        /// <param name="ipcContext"></param>
+        /// <param name="peerName">对方</param>
+        internal IpcClientService(IpcContext ipcContext, string peerName = IpcContext.DefaultPipeName)
         {
             IpcContext = ipcContext;
-            ServerName = serverName;
+            PeerName = peerName;
         }
 
         private NamedPipeClientStream NamedPipeClientStream { set; get; } = null!;
@@ -21,11 +26,15 @@ namespace Ipc
         private IpcConfiguration IpcConfiguration => IpcContext.IpcConfiguration;
 
         public IpcContext IpcContext { get; }
-        public string ServerName { get; }
+
+        /// <summary>
+        /// 对方
+        /// </summary>
+        public string PeerName { get; }
 
         public async Task Start()
         {
-            var namedPipeClientStream = new NamedPipeClientStream(".", ServerName, PipeDirection.InOut,
+            var namedPipeClientStream = new NamedPipeClientStream(".", PeerName, PipeDirection.InOut,
                 PipeOptions.None, TokenImpersonationLevel.Impersonation);
             await namedPipeClientStream.ConnectAsync();
 
@@ -51,7 +60,7 @@ namespace Ipc
                     offset,
                     count);
                 await NamedPipeClientStream.FlushAsync();
-            }, ServerName, TimeSpan.FromSeconds(3), maxRetryCount: 10);
+            }, PeerName, TimeSpan.FromSeconds(3), maxRetryCount: 10);
         }
 
         public async Task SendAck(Ack receivedAck)
