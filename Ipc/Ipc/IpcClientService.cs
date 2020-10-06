@@ -1,65 +1,11 @@
 ﻿using System;
-using System.IO;
 using System.IO.Pipes;
-using System.Linq;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Ipc
 {
-    class PeerRegisterProvider
-    {
-        public IpcBufferMessageContext BuildPeerRegisterMessage(string pipeName)
-        {
-            var peerRegisterHeaderIpcBufferMessage = new IpcBufferMessage(PeerRegisterHeader);
-            var buffer = Encoding.UTF8.GetBytes(pipeName);
-            var pipeNameIpcBufferMessage = new IpcBufferMessage(buffer);
-
-            return new IpcBufferMessageContext(peerRegisterHeaderIpcBufferMessage, pipeNameIpcBufferMessage);
-        }
-
-        public bool TryParsePeerRegisterMessage(Stream stream, out string pipeName)
-        {
-            var position = stream.Position;
-            pipeName = string.Empty;
-            if (stream.Length - position <= PeerRegisterHeader.Length)
-            {
-                return false;
-            }
-
-            for (var i = 0; i < PeerRegisterHeader.Length; i++)
-            {
-                if (stream.ReadByte() != PeerRegisterHeader[i])
-                {
-                    return false;
-                }
-            }
-
-            var streamReader = new StreamReader(stream,Encoding.UTF8);
-            pipeName = streamReader.ReadToEnd();
-            return true;
-        }
-
-        // PeerRegisterHeader 0x50, 0x65, 0x65, 0x72, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x20
-        private byte[] PeerRegisterHeader { get; } = { 0x50, 0x65, 0x65, 0x72, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x20 };
-    }
-
-    class BinaryArrayExtension
-    {
-        public static byte[] Combine(params byte[][] arrays)
-        {
-            byte[] ret = new byte[arrays.Sum(x => x.Length)];
-            int offset = 0;
-            foreach (byte[] data in arrays)
-            {
-                Buffer.BlockCopy(data, 0, ret, offset, data.Length);
-                offset += data.Length;
-            }
-            return ret;
-        }
-    }
-
     public class IpcClientService
     {
         /// <summary>

@@ -12,6 +12,9 @@ namespace Ipc
             //var byteList = BitConverter.GetBytes((ulong) 100);
             //Console.WriteLine(sizeof(ulong));
 
+            //var peerRegisterProviderTests = new PeerRegisterProviderTests();
+            //peerRegisterProviderTests.Run();
+
             //var ipcMessageConverterTest = new IpcMessageConverterTest();
             //ipcMessageConverterTest.Run();
 
