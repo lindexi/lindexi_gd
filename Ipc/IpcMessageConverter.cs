@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -6,8 +7,38 @@ namespace Ipc
 {
     internal static class IpcMessageConverter
     {
+        public static async Task WriteAsync(Stream stream, byte[] messageHeader, Ack ack,
+            IpcBufferMessageContext ipcBufferMessageContext)
+        {
+            var binaryWriter = await WriteHeaderAsync(stream, messageHeader, ack);
+
+            binaryWriter.Write(ipcBufferMessageContext.Length);
+            foreach (var ipcBufferMessage in ipcBufferMessageContext.IpcBufferMessageList)
+            {
+                await stream.WriteAsync(ipcBufferMessage.Buffer, ipcBufferMessage.Start, ipcBufferMessage.Count);
+            }
+        }
+
+        public static async Task WriteAsync(Stream stream, byte[] messageHeader, Ack ack,
+            IpcBufferMessage ipcBufferMessage)
+        {
+            var binaryWriter = await WriteHeaderAsync(stream, messageHeader, ack);
+
+            binaryWriter.Write(ipcBufferMessage.Count);
+
+            await stream.WriteAsync(ipcBufferMessage.Buffer, ipcBufferMessage.Start, ipcBufferMessage.Count);
+        }
+
         public static async Task WriteAsync(Stream stream, byte[] messageHeader, Ack ack, byte[] buffer, int offset,
             int count)
+        {
+            var binaryWriter = await WriteHeaderAsync(stream, messageHeader, ack);
+
+            binaryWriter.Write(count);
+            await stream.WriteAsync(buffer, offset, count);
+        }
+
+        public static async Task<BinaryWriter> WriteHeaderAsync(Stream stream, byte[] messageHeader, Ack ack)
         {
             /*
              * UInt16 Message Header Length
@@ -22,7 +53,7 @@ namespace Ipc
             uint version = 0;
 
             var binaryWriter = new BinaryWriter(stream);
-            var messageHeaderLength = (ushort) messageHeader.Length;
+            var messageHeaderLength = (ushort)messageHeader.Length;
             binaryWriter.Write(messageHeaderLength);
 
             await stream.WriteAsync(messageHeader);
@@ -30,8 +61,7 @@ namespace Ipc
             binaryWriter.Write(ack.Value);
             // Empty
             binaryWriter.Write(uint.MinValue);
-            binaryWriter.Write(count);
-            await stream.WriteAsync(buffer, offset, count);
+            return binaryWriter;
         }
 
         public static async Task<(bool success, IpcMessageContext ipcMessageContext)> ReadAsync(Stream stream,
@@ -67,8 +97,8 @@ namespace Ipc
                 // 太长了
                 return (false, default)!;
 
-            var messageBuffer = sharedArrayPool.Rent((int) messageLength);
-            var readCount = await stream.ReadAsync(messageBuffer, 0, (int) messageLength).ConfigureAwait(false);
+            var messageBuffer = sharedArrayPool.Rent((int)messageLength);
+            var readCount = await stream.ReadAsync(messageBuffer, 0, (int)messageLength).ConfigureAwait(false);
 
             Debug.Assert(readCount == messageLength);
 

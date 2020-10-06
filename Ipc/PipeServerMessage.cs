@@ -55,16 +55,21 @@ namespace Ipc
                 if (success)
                 {
                     var stream = new ByteListMessageStream(ipcMessageContext);
+                    if (IpcContext.PeerRegisterProvider.TryParsePeerRegisterMessage(stream,out var peerName))
+                    {
+                        // ReSharper disable once MethodHasAsyncOverload
+                        PeerName = peerName;
 
-                    var streamReader = new StreamReader(stream);
-                    // ReSharper disable once MethodHasAsyncOverload
-                    var peerName = streamReader.ReadToEnd();
-                    PeerName = peerName;
+                        IpcServerService.OnClientConnected(new ClientConnectedArgs(peerName, NamedPipeServerStream));
 
-                    IpcServerService.OnClientConnected(new ClientConnectedArgs(peerName, NamedPipeServerStream));
-                    await SendAck(ipcMessageContext.Ack);
+                        await SendAck(ipcMessageContext.Ack);
 
-                    break;
+                        break;
+                    }
+                    else
+                    {
+                        // 后续需要要求重发设备名
+                    }
                 }
             }
 
