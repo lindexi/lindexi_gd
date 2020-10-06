@@ -35,29 +35,28 @@ namespace Ipc
             var ipcServerService = new IpcServerService(IpcContext);
             IpcServerService = ipcServerService;
 
-            ipcServerService.ClientConnected += NamedPipeServerStreamPool_ClientConnected;
+            ipcServerService.PeerConnected += NamedPipeServerStreamPoolPeerConnected;
             ipcServerService.MessageReceived += NamedPipeServerStreamPool_MessageReceived;
-            ipcServerService.AckReceived += IpcContext.AckManager.OnAckReceived;
 
             await ipcServerService.Start();
         }
 
-        private void NamedPipeServerStreamPool_MessageReceived(object? sender, ClientMessageArgs e)
+        private void NamedPipeServerStreamPool_MessageReceived(object? sender, PeerMessageArgs e)
         {
 
         }
 
 
-        private async void NamedPipeServerStreamPool_ClientConnected(object? sender, ClientConnectedArgs e)
+        private async void NamedPipeServerStreamPoolPeerConnected(object? sender, PeerConnectedArgs e)
         {
             // 也许是服务器连接
-            if (ConnectedServerManagerList.TryGetValue(e.ClientName, out _))
+            if (ConnectedServerManagerList.TryGetValue(e.PeerName, out _))
             {
             }
             else
             {
                 // 其他客户端连接
-                await ConnectPeer(e.ClientName);
+                await ConnectPeer(e.PeerName);
             }
         }
 

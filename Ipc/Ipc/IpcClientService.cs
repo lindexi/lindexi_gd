@@ -34,6 +34,8 @@ namespace Ipc
         /// </summary>
         public string PeerName { get; }
 
+        private ILogger Logger => IpcContext.Logger;
+
         public async Task Start()
         {
             var namedPipeClientStream = new NamedPipeClientStream(".", PeerName, PipeDirection.InOut,
@@ -48,6 +50,8 @@ namespace Ipc
 
         private async Task RegisterToPeer()
         {
+            Logger.Debug($"[{nameof(IpcClientService)}] StartRegisterToPeer PipeName={IpcContext.PipeName}");
+           
             // 注册自己
             var peerRegisterMessage = PeerRegisterProvider.BuildPeerRegisterMessage(IpcContext.PipeName);
             await WriteMessageAsync(peerRegisterMessage);

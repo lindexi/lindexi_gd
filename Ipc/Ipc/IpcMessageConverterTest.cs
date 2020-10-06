@@ -28,7 +28,7 @@ namespace Ipc
             {
             }
 
-            if (ipcMessageContext.Ack == ack)
+            if (ipcMessageContext.Ack.Value == ack)
             {
             }
         }
