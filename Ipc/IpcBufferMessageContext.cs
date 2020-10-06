@@ -2,12 +2,15 @@
 {
     readonly struct IpcBufferMessageContext
     {
-        public IpcBufferMessageContext(params IpcBufferMessage[] ipcBufferMessageList)
+        public IpcBufferMessageContext(string summary, params IpcBufferMessage[] ipcBufferMessageList)
         {
+            Summary = summary;
             IpcBufferMessageList = ipcBufferMessageList;
         }
 
         public IpcBufferMessage[] IpcBufferMessageList { get; }
+
+        public string Summary { get; }
 
         public int Length
         {

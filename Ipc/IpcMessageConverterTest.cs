@@ -19,7 +19,7 @@ namespace Ipc
             ulong ack = 10;
             var buffer = new byte[] {0x12, 0x12, 0x00};
             await IpcMessageConverter.WriteAsync(memoryStream, ipcConfiguration.MessageHeader, ack, buffer, 0,
-                buffer.Length);
+                buffer.Length,"test",null!);
 
             memoryStream.Position = 0;
             var (success, ipcMessageContext) = await IpcMessageConverter.ReadAsync(memoryStream,
