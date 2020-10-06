@@ -1,8 +1,9 @@
-﻿using System.IO;
-using System.IO.Pipes;
+﻿using System.IO.Pipes;
 using System.Threading.Tasks;
+using dotnetCampus.Ipc.PipeCore.Context;
+using dotnetCampus.Ipc.PipeCore.Utils;
 
-namespace Ipc
+namespace dotnetCampus.Ipc.PipeCore
 {
     // 提供一个客户端连接
     internal class PipeServerMessage

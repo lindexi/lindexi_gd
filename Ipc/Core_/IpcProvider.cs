@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.IO;
 using System.Threading.Tasks;
+using dotnetCampus.Ipc.PipeCore.Context;
 
-namespace Ipc
+namespace dotnetCampus.Ipc.PipeCore
 {
     /// <summary>
     ///     对等通讯，每个都是服务器端，每个都是客户端

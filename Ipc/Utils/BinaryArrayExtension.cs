@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace Ipc
+namespace dotnetCampus.Ipc.PipeCore.Utils
 {
     class BinaryArrayExtension
     {

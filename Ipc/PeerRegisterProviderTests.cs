@@ -1,6 +1,8 @@
 ﻿using System.IO;
+using dotnetCampus.Ipc.PipeCore.Context;
+using dotnetCampus.Ipc.PipeCore.Utils;
 
-namespace Ipc
+namespace dotnetCampus.Ipc.PipeCore
 {
     class PeerRegisterProviderTests
     {

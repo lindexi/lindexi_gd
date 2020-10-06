@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using dotnetCampus.Threading;
 
-namespace Ipc
+namespace dotnetCampus.Ipc.PipeCore.Utils.Extensions
 {
     static class DoubleBufferTaskExtension
     {

@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.IO.Pipes;
 using System.Threading.Tasks;
+using dotnetCampus.Ipc.PipeCore.Context;
 
-namespace Ipc
+namespace dotnetCampus.Ipc.PipeCore
 {
     public class IpcServerService
     {

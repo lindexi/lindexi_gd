@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO.Pipes;
 
-namespace Ipc
+namespace dotnetCampus.Ipc.PipeCore.Context
 {
     public class PeerConnectedArgs : EventArgs
     {

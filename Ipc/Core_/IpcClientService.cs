@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.IO.Pipes;
 using System.Runtime.CompilerServices;
 using System.Security.Principal;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
+using dotnetCampus.Ipc.PipeCore.Context;
+using dotnetCampus.Ipc.PipeCore.Utils.Extensions;
 using dotnetCampus.Threading;
 
-namespace Ipc
+namespace dotnetCampus.Ipc.PipeCore
 {
     public class IpcClientService
     {

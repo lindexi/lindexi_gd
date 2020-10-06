@@ -1,6 +1,7 @@
 ﻿using System.IO;
+using dotnetCampus.Ipc.PipeCore.Context;
 
-namespace Ipc
+namespace dotnetCampus.Ipc.PipeCore.Utils
 {
     internal class ByteListMessageStream : MemoryStream
     {

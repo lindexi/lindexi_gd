@@ -1,4 +1,6 @@
-﻿namespace Ipc
+﻿using dotnetCampus.Ipc.PipeCore.Utils;
+
+namespace dotnetCampus.Ipc.PipeCore.Context
 {
     public class IpcConfiguration
     {
