@@ -53,7 +53,7 @@ namespace Ipc
             uint version = 0;
 
             var binaryWriter = new BinaryWriter(stream);
-            var messageHeaderLength = (ushort)messageHeader.Length;
+            var messageHeaderLength = (ushort) messageHeader.Length;
             binaryWriter.Write(messageHeaderLength);
 
             await stream.WriteAsync(messageHeader);
@@ -68,43 +68,70 @@ namespace Ipc
             byte[] messageHeader, ISharedArrayPool sharedArrayPool,
             int maxMessageLength = ushort.MaxValue * byte.MaxValue)
         {
-            /*
-            * UInt16 Message Header Length
-            * byte[] Message Header
-            * UInt32 Version
-            * UInt64 Ack
-            * UInt32 Empty
-            * UInt32 Content Length
-            * byte[] Content
-            */
+            try
+            {
+                /*
+                * UInt16 Message Header Length
+                * byte[] Message Header
+                * UInt32 Version
+                * UInt64 Ack
+                * UInt32 Empty
+                * UInt32 Content Length
+                * byte[] Content
+                */
 
-            if (!await GetHeader(stream, messageHeader, sharedArrayPool))
-                // 消息不对，忽略
-                return (false, default)!;
+                if (!await GetHeader(stream, messageHeader, sharedArrayPool))
+                {
+                    // 消息不对，忽略
+                    return (false, default)!;
+                }
 
-            var binaryReader = new BinaryReader(stream);
-            var version = binaryReader.ReadUInt32();
-            Debug.Assert(version == 0);
+                var binaryReader = new BinaryReader(stream);
+                var version = binaryReader.ReadUInt32();
+                Debug.Assert(version == 0);
 
-            var ack = binaryReader.ReadUInt64();
+                var ack = binaryReader.ReadUInt64();
 
-            var empty = binaryReader.ReadUInt32();
-            Debug.Assert(empty == 0);
+                var empty = binaryReader.ReadUInt32();
+                Debug.Assert(empty == 0);
 
-            var messageLength = binaryReader.ReadUInt32();
+                var messageLength = binaryReader.ReadUInt32();
 
-            if (messageLength > maxMessageLength)
-                // 太长了
-                return (false, default)!;
+                if (messageLength > maxMessageLength)
+                {
+                    // 太长了
+                    return (false, default)!;
+                }
 
-            var messageBuffer = sharedArrayPool.Rent((int)messageLength);
-            var readCount = await stream.ReadAsync(messageBuffer, 0, (int)messageLength).ConfigureAwait(false);
+                var messageBuffer = sharedArrayPool.Rent((int) messageLength);
 
-            Debug.Assert(readCount == messageLength);
+                var readCount = await ReadBufferAsync(stream, messageBuffer, (int) messageLength);
 
-            var ipcMessageContext = new IpcMessageContext(ack, messageBuffer, messageLength, sharedArrayPool);
-            return (true, ipcMessageContext);
+                Debug.Assert(readCount == messageLength);
+
+                var ipcMessageContext = new IpcMessageContext(ack, messageBuffer, messageLength, sharedArrayPool);
+                return (true, ipcMessageContext);
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
         }
+
+        private static async Task<int> ReadBufferAsync(Stream stream, byte[] messageBuffer, int messageLength)
+        {
+            var readCount = 0;
+
+            do
+            {
+                var n = await stream.ReadAsync(messageBuffer, readCount, (int) messageLength - readCount)
+                    .ConfigureAwait(false);
+                readCount += n;
+            } while (readCount < messageLength);
+
+            return readCount;
+        }
+
 
         private static async Task<bool> GetHeader(Stream stream, byte[] messageHeader, ISharedArrayPool sharedArrayPool)
         {
@@ -112,15 +139,16 @@ namespace Ipc
             var messageHeaderLength = await binaryReader.ReadUInt16Async();
             Debug.Assert(messageHeaderLength == messageHeader.Length);
             if (messageHeaderLength != messageHeader.Length)
+            {
                 // 消息不对，忽略
                 return false;
+            }
 
             var messageHeaderBuffer = sharedArrayPool.Rent(messageHeader.Length);
 
             try
             {
-                var readCount = await stream.ReadAsync(messageHeaderBuffer, 0, messageHeader.Length)
-                    .ConfigureAwait(false);
+                var readCount = await ReadBufferAsync(stream, messageHeaderBuffer, messageHeader.Length);
                 Debug.Assert(readCount == messageHeader.Length);
                 if (ByteListExtension.Equals(messageHeaderBuffer, messageHeader, readCount))
                     // 读对了
