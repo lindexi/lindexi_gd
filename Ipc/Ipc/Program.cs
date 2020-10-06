@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using dotnetCampus.Ipc.PipeCore.Context;
 
-namespace Ipc
+namespace dotnetCampus.Ipc.PipeCore
 {
     internal class Program
     {

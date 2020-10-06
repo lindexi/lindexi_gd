@@ -2,7 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Ipc
+namespace dotnetCampus.Ipc.PipeCore.Utils
 {
     class AsyncBinaryWriter
     {

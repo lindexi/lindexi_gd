@@ -1,4 +1,4 @@
-﻿namespace Ipc
+﻿namespace dotnetCampus.Ipc.PipeCore.Utils
 {
     //sealed class StreamMessageConverter
     //{

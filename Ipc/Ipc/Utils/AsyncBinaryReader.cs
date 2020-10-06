@@ -2,9 +2,9 @@
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Ipc
+namespace dotnetCampus.Ipc.PipeCore.Utils
 {
-    public class AsyncBinaryReader
+    class AsyncBinaryReader
     {
         public AsyncBinaryReader(Stream stream)
         {

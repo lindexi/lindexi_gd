@@ -1,7 +1,8 @@
 ﻿using System.IO;
 using System.Text;
+using dotnetCampus.Ipc.PipeCore.Context;
 
-namespace Ipc
+namespace dotnetCampus.Ipc.PipeCore
 {
     class PeerRegisterProvider
     {

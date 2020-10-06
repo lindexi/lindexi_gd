@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Ipc
+namespace dotnetCampus.Ipc.PipeCore.Context
 {
     class AckTask
     {

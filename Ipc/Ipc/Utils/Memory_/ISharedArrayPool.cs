@@ -1,4 +1,4 @@
-﻿namespace Ipc
+﻿namespace dotnetCampus.Ipc.PipeCore.Utils
 {
     /// <summary>
     ///     提供共享的数组

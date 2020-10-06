@@ -1,6 +1,6 @@
 ﻿using System.Buffers;
 
-namespace Ipc
+namespace dotnetCampus.Ipc.PipeCore.Utils
 {
     /// <summary>
     ///     共享数组内存，底层使用 ArrayPool 实现

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Ipc
+namespace dotnetCampus.Ipc.PipeCore.Context
 {
     public class AckArgs : EventArgs
     {

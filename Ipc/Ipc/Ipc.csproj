@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Nullable>enable</Nullable>
+    <RootNamespace>dotnetCampus.Ipc.PipeCore</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
