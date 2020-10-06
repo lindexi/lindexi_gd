@@ -62,7 +62,9 @@ namespace Ipc
 
                         IpcServerService.OnPeerConnected(new PeerConnectedArgs(peerName, NamedPipeServerStream, ipcMessageContext.Ack));
 
-                        await SendAck(ipcMessageContext.Ack);
+                        SendAck(ipcMessageContext.Ack);
+                        // 不等待对方收到，因为对方也在等待
+                        //await SendAckAsync(ipcMessageContext.Ack);
 
                         break;
                     }
@@ -96,20 +98,21 @@ namespace Ipc
                     }
                     else
                     {
-                        var task = SendAck(ack);
+                        SendAck(ack);
                         IpcServerService.OnMessageReceived(new PeerMessageArgs(PeerName, stream, ack));
-                        await task;
                     }
                 }
             }
         }
 
-        private async Task SendAck(Ack receivedAck)
+        private async void SendAck(Ack receivedAck) => await SendAckAsync(receivedAck);
+
+        private async Task SendAckAsync(Ack receivedAck)
         {
             IpcContext.Logger.Debug($"[{nameof(IpcServerService)}] SendAck {receivedAck} to {PeerName}");
             var ipcProvider = IpcContext.IpcProvider;
             var ipcClient = await ipcProvider.ConnectPeer(PeerName);
-            await ipcClient.SendAck(receivedAck);
+            await ipcClient.SendAckAsync(receivedAck);
         }
 
         //private StreamMessageConverter StreamMessageConverter { set; get; } = null!;
