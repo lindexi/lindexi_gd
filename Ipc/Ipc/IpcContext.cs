@@ -18,5 +18,7 @@
 
         internal IpcProvider IpcProvider { get; }
         public string PipeName { get; }
+
+        internal PeerRegisterProvider PeerRegisterProvider { get; } = new PeerRegisterProvider();
     }
 }
