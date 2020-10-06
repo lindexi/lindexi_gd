@@ -8,8 +8,10 @@ namespace Ipc
     internal static class IpcMessageConverter
     {
         public static async Task WriteAsync(Stream stream, byte[] messageHeader, Ack ack,
-            IpcBufferMessageContext ipcBufferMessageContext)
+            IpcBufferMessageContext ipcBufferMessageContext, ILogger logger)
         {
+            logger.Debug($"[{nameof(IpcMessageConverter)}] Start Write {ipcBufferMessageContext.Summary}");
+
             var binaryWriter = await WriteHeaderAsync(stream, messageHeader, ack);
 
             await binaryWriter.WriteAsync(ipcBufferMessageContext.Length);
@@ -17,25 +19,35 @@ namespace Ipc
             {
                 await stream.WriteAsync(ipcBufferMessage.Buffer, ipcBufferMessage.Start, ipcBufferMessage.Count);
             }
+
+            logger.Debug($"[{nameof(IpcMessageConverter)}] Finished Write {ipcBufferMessageContext.Summary}");
         }
 
         public static async Task WriteAsync(Stream stream, byte[] messageHeader, Ack ack,
-            IpcBufferMessage ipcBufferMessage)
+            IpcBufferMessage ipcBufferMessage, string? summary, ILogger logger)
         {
+            logger.Debug($"[{nameof(IpcMessageConverter)}] Start Write {summary}");
+
             var binaryWriter = await WriteHeaderAsync(stream, messageHeader, ack);
 
             await binaryWriter.WriteAsync(ipcBufferMessage.Count);
 
             await stream.WriteAsync(ipcBufferMessage.Buffer, ipcBufferMessage.Start, ipcBufferMessage.Count);
+
+            logger.Debug($"[{nameof(IpcMessageConverter)}] Finished Write {summary}");
         }
 
         public static async Task WriteAsync(Stream stream, byte[] messageHeader, Ack ack, byte[] buffer, int offset,
-            int count)
+            int count, string? summary, ILogger logger)
         {
+            logger.Debug($"[{nameof(IpcMessageConverter)}] Start Write {summary}");
+
             var binaryWriter = await WriteHeaderAsync(stream, messageHeader, ack);
 
             await binaryWriter.WriteAsync(count);
             await stream.WriteAsync(buffer, offset, count);
+
+            logger.Debug($"[{nameof(IpcMessageConverter)}] Finished Write {summary}");
         }
 
         public static async Task<AsyncBinaryWriter> WriteHeaderAsync(Stream stream, byte[] messageHeader, Ack ack)

@@ -11,7 +11,7 @@ namespace Ipc
             var buffer = Encoding.UTF8.GetBytes(pipeName);
             var pipeNameIpcBufferMessage = new IpcBufferMessage(buffer);
 
-            return new IpcBufferMessageContext(peerRegisterHeaderIpcBufferMessage, pipeNameIpcBufferMessage);
+            return new IpcBufferMessageContext($"PeerRegisterMessage PipeName={pipeName}", peerRegisterHeaderIpcBufferMessage, pipeNameIpcBufferMessage);
         }
 
         public bool TryParsePeerRegisterMessage(Stream stream, out string pipeName)

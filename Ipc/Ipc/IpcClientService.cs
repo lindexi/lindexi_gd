@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO.Pipes;
+using System.Runtime.CompilerServices;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
@@ -34,7 +35,6 @@ namespace Ipc
                 }
                 catch (Exception)
                 {
-
                 }
             }
         }
@@ -82,39 +82,48 @@ namespace Ipc
             // 告诉服务器端不连接
         }
 
-        public Task WriteStringAsync(string text)
-        {
-            var buffer = Encoding.UTF8.GetBytes(text);
-            return WriteMessageAsync(buffer, 0, buffer.Length);
-        }
+        //public Task WriteStringAsync(string text)
+        //{
+        //    var buffer = Encoding.UTF8.GetBytes(text);
+        //    return WriteMessageAsync(buffer, 0, buffer.Length);
+        //}
 
         internal async Task WriteMessageAsync(IpcBufferMessageContext ipcBufferMessageContext)
         {
             await QueueWriteAsync(async ack =>
             {
                 await IpcMessageConverter.WriteAsync(NamedPipeClientStream, IpcConfiguration.MessageHeader, ack,
-                    ipcBufferMessageContext);
+                    ipcBufferMessageContext, IpcContext.Logger);
                 await NamedPipeClientStream.FlushAsync();
             });
         }
 
-        internal async Task WriteMessageAsync(IpcBufferMessage ipcBufferMessage)
-        {
-            await QueueWriteAsync(async ack =>
-            {
-                await IpcMessageConverter.WriteAsync(NamedPipeClientStream, IpcConfiguration.MessageHeader, ack,
-                    ipcBufferMessage);
-                await NamedPipeClientStream.FlushAsync();
-            });
-        }
+        //internal async Task WriteMessageAsync(IpcBufferMessage ipcBufferMessage)
+        //{
+        //    await QueueWriteAsync(async ack =>
+        //    {
+        //        await IpcMessageConverter.WriteAsync(NamedPipeClientStream, IpcConfiguration.MessageHeader, ack,
+        //            ipcBufferMessage);
+        //        await NamedPipeClientStream.FlushAsync();
+        //    });
+        //}
 
-        public async Task WriteMessageAsync(byte[] buffer, int offset, int count)
+        public async Task WriteMessageAsync(byte[] buffer, int offset, int count,
+            [CallerMemberName] string summary = null!)
         {
             await QueueWriteAsync(async ack =>
             {
-                await IpcMessageConverter.WriteAsync(NamedPipeClientStream, IpcConfiguration.MessageHeader, ack, buffer,
+                await IpcMessageConverter.WriteAsync
+                (
+                    NamedPipeClientStream,
+                    IpcConfiguration.MessageHeader,
+                    ack,
+                    buffer,
                     offset,
-                    count);
+                    count,
+                    summary,
+                    Logger
+                );
                 await NamedPipeClientStream.FlushAsync();
             });
         }

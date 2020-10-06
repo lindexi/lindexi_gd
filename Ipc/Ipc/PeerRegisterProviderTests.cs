@@ -19,11 +19,11 @@ namespace Ipc
             var memoryStream = new MemoryStream(bufferMessageContext.Length);
             var ipcConfiguration = new IpcConfiguration();
 
-            IpcMessageConverter.WriteAsync(memoryStream, ipcConfiguration.MessageHeader, 10, bufferMessageContext)
+            IpcMessageConverter.WriteAsync(memoryStream, ipcConfiguration.MessageHeader, 10, bufferMessageContext, null!)
                 .Wait();
 
             memoryStream.Position = 0;
-            var (success, ipcMessageContext) = IpcMessageConverter.ReadAsync(memoryStream, ipcConfiguration.MessageHeader,new SharedArrayPool()).Result;
+            var (success, ipcMessageContext) = IpcMessageConverter.ReadAsync(memoryStream, ipcConfiguration.MessageHeader, new SharedArrayPool()).Result;
             if (success)
             {
                 var stream = new ByteListMessageStream(ipcMessageContext);
