@@ -1,4 +1,6 @@
-﻿namespace Ipc
+﻿using System;
+
+namespace Ipc
 {
     public class IpcContext
     {
@@ -20,5 +22,26 @@
         public string PipeName { get; }
 
         internal PeerRegisterProvider PeerRegisterProvider { get; } = new PeerRegisterProvider();
+
+        internal ILogger Logger { get; } = null!;
     }
+
+    public interface ILogger
+    {
+
+    }
+
+    internal static class LoggerExtension
+    {
+        public static void Debug(this ILogger logger, string message)
+        {
+            Console.WriteLine(message);
+        }
+
+        public static void Trace(this ILogger logger, string message)
+        {
+            Console.WriteLine(message);
+        }
+    }
+
 }

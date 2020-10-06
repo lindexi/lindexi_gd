@@ -13,5 +13,10 @@
         {
             return new Ack(ack);
         }
+
+        public override string ToString()
+        {
+            return $"Ack={Value}";
+        }
     }
 }

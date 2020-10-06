@@ -15,6 +15,8 @@ namespace Ipc
         public string PipeName => IpcContext.PipeName;
         public IpcContext IpcContext { get; }
 
+        private ILogger Logger => IpcContext.Logger;
+
         public async Task Start()
         {
             while (true)
@@ -25,25 +27,21 @@ namespace Ipc
             }
         }
 
-        public event EventHandler<ClientMessageArgs>? MessageReceived;
+        public event EventHandler<PeerMessageArgs>? MessageReceived;
 
-        public event EventHandler<ClientConnectedArgs>? ClientConnected;
+        public event EventHandler<PeerConnectedArgs>? PeerConnected;
 
-        public event EventHandler<AckArgs>? AckReceived;
-
-        internal void OnAckReceived(AckArgs e)
+        internal void OnMessageReceived(PeerMessageArgs e)
         {
-            AckReceived?.Invoke(this, e);
-        }
-
-        internal void OnMessageReceived(ClientMessageArgs e)
-        {
+            Logger.Debug($"[{nameof(IpcServerService)}] MessageReceived PeerName={e.PeerName} {e.Ack}");
             MessageReceived?.Invoke(this, e);
         }
 
-        internal void OnClientConnected(ClientConnectedArgs e)
+        internal void OnPeerConnected(PeerConnectedArgs e)
         {
-            ClientConnected?.Invoke(this, e);
+            Logger.Debug($"[{nameof(IpcServerService)}] PeerConnected PeerName={e.PeerName} {e.Ack}");
+
+            PeerConnected?.Invoke(this, e);
         }
     }
 }

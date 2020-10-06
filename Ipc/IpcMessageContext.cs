@@ -11,7 +11,7 @@
             SharedArrayPool = sharedArrayPool;
         }
 
-        public ulong Ack { get; }
+        public Ack Ack { get; }
         public byte[] MessageBuffer { get; }
         public uint MessageLength { get; }
         public ISharedArrayPool SharedArrayPool { get; }
