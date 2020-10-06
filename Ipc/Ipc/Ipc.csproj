@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\dotnetCampus.Ipc.PipeCore\dotnetCampus.Ipc.PipeCore.csproj" />
+    <PackageReference Include="dotnetCampus.AsyncWorkerCollection" Version="1.4.0" />
+
   </ItemGroup>
 
 </Project>

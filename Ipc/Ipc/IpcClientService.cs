@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO.Pipes;
 using System.Security.Principal;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using dotnetCampus.Threading;
 
 namespace Ipc
 {
@@ -17,6 +20,23 @@ namespace Ipc
         {
             IpcContext = ipcContext;
             PeerName = peerName;
+
+            DoubleBufferTask = new DoubleBufferTask<Func<Task>>(DoTask);
+        }
+
+        private static async Task DoTask(List<Func<Task>> list)
+        {
+            foreach (var func in list)
+            {
+                try
+                {
+                    await func();
+                }
+                catch (Exception)
+                {
+
+                }
+            }
         }
 
         private NamedPipeClientStream NamedPipeClientStream { set; get; } = null!;
@@ -51,7 +71,7 @@ namespace Ipc
         private async Task RegisterToPeer()
         {
             Logger.Debug($"[{nameof(IpcClientService)}] StartRegisterToPeer PipeName={IpcContext.PipeName}");
-           
+
             // 注册自己
             var peerRegisterMessage = PeerRegisterProvider.BuildPeerRegisterMessage(IpcContext.PipeName);
             await WriteMessageAsync(peerRegisterMessage);
@@ -70,7 +90,7 @@ namespace Ipc
 
         internal async Task WriteMessageAsync(IpcBufferMessageContext ipcBufferMessageContext)
         {
-            await DoWillReceivedAck(async ack =>
+            await QueueWriteAsync(async ack =>
             {
                 await IpcMessageConverter.WriteAsync(NamedPipeClientStream, IpcConfiguration.MessageHeader, ack,
                     ipcBufferMessageContext);
@@ -80,7 +100,7 @@ namespace Ipc
 
         internal async Task WriteMessageAsync(IpcBufferMessage ipcBufferMessage)
         {
-            await DoWillReceivedAck(async ack =>
+            await QueueWriteAsync(async ack =>
             {
                 await IpcMessageConverter.WriteAsync(NamedPipeClientStream, IpcConfiguration.MessageHeader, ack,
                     ipcBufferMessage);
@@ -90,7 +110,7 @@ namespace Ipc
 
         public async Task WriteMessageAsync(byte[] buffer, int offset, int count)
         {
-            await DoWillReceivedAck(async ack =>
+            await QueueWriteAsync(async ack =>
             {
                 await IpcMessageConverter.WriteAsync(NamedPipeClientStream, IpcConfiguration.MessageHeader, ack, buffer,
                     offset,
@@ -99,60 +119,20 @@ namespace Ipc
             });
         }
 
-        private async Task DoWillReceivedAck(Func<Ack, Task> task)
+        private async Task QueueWriteAsync(Func<Ack, Task> task)
         {
-            await AckManager.DoWillReceivedAck(task, PeerName, TimeSpan.FromSeconds(3), maxRetryCount: 10);
+            await DoubleBufferTask.AddTaskAsync(async () =>
+            {
+                await AckManager.DoWillReceivedAck(task, PeerName, TimeSpan.FromSeconds(3), maxRetryCount: 10);
+            });
         }
+
+        private DoubleBufferTask<Func<Task>> DoubleBufferTask { get; }
 
         public async Task SendAck(Ack receivedAck)
         {
             var ackMessage = AckManager.BuildAckMessage(receivedAck);
             await WriteMessageAsync(ackMessage, 0, ackMessage.Length);
         }
-    }
-
-    readonly struct IpcBufferMessageContext
-    {
-        public IpcBufferMessageContext(params IpcBufferMessage[] ipcBufferMessageList)
-        {
-            IpcBufferMessageList = ipcBufferMessageList;
-        }
-
-        public IpcBufferMessage[] IpcBufferMessageList { get; }
-
-        public int Length
-        {
-            get
-            {
-                var length = 0;
-                foreach (var ipcBufferMessage in IpcBufferMessageList)
-                {
-                    length += ipcBufferMessage.Count;
-                }
-
-                return length;
-            }
-        }
-    }
-
-    readonly struct IpcBufferMessage
-    {
-        public IpcBufferMessage(byte[] buffer)
-        {
-            Buffer = buffer;
-            Start = 0;
-            Count = buffer.Length;
-        }
-
-        public IpcBufferMessage(byte[] buffer, int start, int count)
-        {
-            Buffer = buffer;
-            Start = start;
-            Count = count;
-        }
-
-        public byte[] Buffer { get; }
-        public int Start { get; }
-        public int Count { get; }
     }
 }
