@@ -129,7 +129,7 @@ namespace Ipc
 
         private DoubleBufferTask<Func<Task>> DoubleBufferTask { get; }
 
-        public async Task SendAck(Ack receivedAck)
+        public async Task SendAckAsync(Ack receivedAck)
         {
             var ackMessage = AckManager.BuildAckMessage(receivedAck);
             await WriteMessageAsync(ackMessage, 0, ackMessage.Length);
