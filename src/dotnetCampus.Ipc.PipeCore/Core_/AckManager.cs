@@ -167,31 +167,41 @@ namespace dotnetCampus.Ipc.PipeCore
             return false;
         }
 
-        internal async void RegisterAckTask(AckTask ackTask)
+        internal void RegisterAckTask(AckTask ackTask)
         {
-            lock (Locker)
+            AddToAckTaskList();
+
+            WaitForTask();
+
+            async void WaitForTask()
             {
-                if (AckTaskList.TryAdd(ackTask.Ack.Value, ackTask))
+                await ackTask.Task.Task;
+
+                lock (Locker)
                 {
-                }
-                else
-                {
-                    // 理论上是找不到的
-                    throw new ArgumentException($"传入的消息的 ack 已经存在 Ack={ackTask.Ack.Value} Summary={ackTask.Summary}");
+                    if (AckTaskList.Remove(ackTask.Ack.Value, out var removedTask))
+                    {
+                        Debug.Assert(ReferenceEquals(removedTask, ackTask));
+                    }
+                    else
+                    {
+                        Debug.Assert(false, "收到的一定存在");
+                    }
                 }
             }
 
-            await ackTask.Task.Task;
-
-            lock (Locker)
+            void AddToAckTaskList()
             {
-                if (AckTaskList.Remove(ackTask.Ack.Value, out var removedTask))
+                lock (Locker)
                 {
-                    Debug.Assert(ReferenceEquals(removedTask, ackTask));
-                }
-                else
-                {
-                    Debug.Assert(false, "收到的一定存在");
+                    if (AckTaskList.TryAdd(ackTask.Ack.Value, ackTask))
+                    {
+                    }
+                    else
+                    {
+                        // 理论上是找不到的
+                        throw new ArgumentException($"传入的消息的 ack 已经存在 Ack={ackTask.Ack.Value} Summary={ackTask.Summary}");
+                    }
                 }
             }
         }
