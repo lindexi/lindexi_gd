@@ -4,6 +4,9 @@ using dotnetCampus.Ipc.PipeCore.Context;
 
 namespace dotnetCampus.Ipc.PipeCore
 {
+    /// <summary>
+    /// 用于进行 Ipc 连接时的建立通讯，建立通讯的时候需要向对方发送自己的管道名，用于让对方连接
+    /// </summary>
     class PeerRegisterProvider
     {
         public IpcBufferMessageContext BuildPeerRegisterMessage(string pipeName)

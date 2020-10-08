@@ -166,7 +166,7 @@ namespace dotnetCampus.Ipc.PipeCore
         //}
     }
 
-    //class IpcClientStream:Stream
+    //class IpcClientStream:Message
     //{
     //    public override void Flush()
     //    {

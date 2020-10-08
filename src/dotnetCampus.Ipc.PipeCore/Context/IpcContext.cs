@@ -1,11 +1,20 @@
-﻿using System;
-
-namespace dotnetCampus.Ipc.PipeCore.Context
+﻿namespace dotnetCampus.Ipc.PipeCore.Context
 {
+    /// <summary>
+    /// 用于作为 Ipc 库的上下文，包括各个过程需要使用的工具和配置等
+    /// </summary>
     public class IpcContext
     {
+        /// <summary>
+        /// 默认的管道名
+        /// </summary>
         public const string DefaultPipeName = "1231";
 
+        /// <summary>
+        /// 创建上下文
+        /// </summary>
+        /// <param name="ipcProvider"></param>
+        /// <param name="pipeName">管道名，也将被做来作为服务器名或当前服务名</param>
         public IpcContext(IpcProvider ipcProvider, string pipeName)
         {
             IpcProvider = ipcProvider;
@@ -19,29 +28,14 @@ namespace dotnetCampus.Ipc.PipeCore.Context
         internal IpcConfiguration IpcConfiguration { get; set; } = new IpcConfiguration();
 
         internal IpcProvider IpcProvider { get; }
+
+        /// <summary>
+        /// 管道名
+        /// </summary>
         public string PipeName { get; }
 
         internal PeerRegisterProvider PeerRegisterProvider { get; } = new PeerRegisterProvider();
 
         internal ILogger Logger { get; } = null!;
     }
-
-    public interface ILogger
-    {
-
-    }
-
-    internal static class LoggerExtension
-    {
-        public static void Debug(this ILogger logger, string message)
-        {
-            Console.WriteLine(message);
-        }
-
-        public static void Trace(this ILogger logger, string message)
-        {
-            Console.WriteLine(message);
-        }
-    }
-
 }

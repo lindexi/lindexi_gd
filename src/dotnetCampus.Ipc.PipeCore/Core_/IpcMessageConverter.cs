@@ -7,6 +7,9 @@ using dotnetCampus.Ipc.PipeCore.Utils;
 
 namespace dotnetCampus.Ipc.PipeCore
 {
+    /// <summary>
+    /// 消息的封包和解包代码，用于将传入的内容包装为 Ipc 通讯使用的二进制内容，或将 Ipc 通讯使用的二进制内容读取为业务端使用的内容
+    /// </summary>
     internal static class IpcMessageConverter
     {
         public static async Task WriteAsync(Stream stream, byte[] messageHeader, Ack ack,

@@ -8,12 +8,20 @@ namespace dotnetCampus.Ipc.PipeCore
     /// <summary>
     ///     对等通讯，每个都是服务器端，每个都是客户端
     /// </summary>
+    /// 这是这个程序集最顶层的类
     public class IpcProvider
     {
+        /// <summary>
+        /// 创建对等通讯
+        /// </summary>
         public IpcProvider() : this(Guid.NewGuid().ToString("N"))
         {
         }
 
+        /// <summary>
+        /// 创建对等通讯
+        /// </summary>
+        /// <param name="pipeName">本地服务名，将作为管道名，管道服务端名</param>
         public IpcProvider(string pipeName)
         {
             IpcContext = new IpcContext(this, pipeName);
@@ -21,13 +29,18 @@ namespace dotnetCampus.Ipc.PipeCore
 
         private IpcContext IpcContext { get; }
 
+        /// <summary>
+        /// 开启的管道服务端，用于接收消息
+        /// </summary>
         public IpcServerService IpcServerService { private set; get; } = null!;
 
-        public string PipeName => IpcContext.PipeName;
-
-        public ConcurrentDictionary<string, IpcClientService> ConnectedServerManagerList { get; } =
+        internal ConcurrentDictionary<string, IpcClientService> ConnectedServerManagerList { get; } =
             new ConcurrentDictionary<string, IpcClientService>();
 
+        /// <summary>
+        /// 启动服务，启动之后将可以被连接
+        /// </summary>
+        /// <returns></returns>
         public async Task StartServer()
         {
             if (IpcServerService != null) return;

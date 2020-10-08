@@ -2,14 +2,14 @@
 {
     //sealed class StreamMessageConverter
     //{
-    //    public StreamMessageConverter(Stream stream, byte[] messageHeader, ISharedArrayPool sharedArrayPool)
+    //    public StreamMessageConverter(Message stream, byte[] messageHeader, ISharedArrayPool sharedArrayPool)
     //    {
-    //        Stream = stream;
+    //        Message = stream;
     //        MessageHeader = messageHeader;
     //        SharedArrayPool = sharedArrayPool;
 
-    //        var streamReader = new StreamReader(Stream);
-    //        var binaryReader = new BinaryReader(Stream);
+    //        var streamReader = new StreamReader(Message);
+    //        var binaryReader = new BinaryReader(Message);
 
     //        StreamReader = streamReader;
     //        BinaryReader = binaryReader;
@@ -21,7 +21,7 @@
     //        {
     //            try
     //            {
-    //                var (success, ipcMessageContext) = await IpcMessageConverter.ReadAsync(Stream, MessageHeader, SharedArrayPool);
+    //                var (success, ipcMessageContext) = await IpcMessageConverter.ReadAsync(Message, MessageHeader, SharedArrayPool);
     //                if (success)
     //                {
     //                    OnMessageReceived(new ByteListMessageStream(ipcMessageContext.MessageBuffer, (int) ipcMessageContext.MessageLength, SharedArrayPool));
@@ -47,7 +47,7 @@
 
     //                //try
     //                //{
-    //                //    var readCount = await Stream.ReadAsync(messageBuffer, 0, (int)messageLength).ConfigureAwait(false);
+    //                //    var readCount = await Message.ReadAsync(messageBuffer, 0, (int)messageLength).ConfigureAwait(false);
 
     //                //    Debug.Assert(readCount == messageLength);
     //                //    OnMessageReceived(new ByteListMessageStream(messageBuffer, readCount, SharedArrayPool));
@@ -67,7 +67,7 @@
 
     //    public event EventHandler<ByteListMessageStream>? MessageReceived;
 
-    //    //private static async void ReadByteListAsync(Stream stream, ISharedArrayPool sharedArrayPool, int count)
+    //    //private static async void ReadByteListAsync(Message stream, ISharedArrayPool sharedArrayPool, int count)
     //    //{
     //    //    var messageBuffer = sharedArrayPool.Rent(count);
 
@@ -82,7 +82,7 @@
     //    //    }
     //    //}
 
-    //    private Stream Stream { get; }
+    //    private Message Message { get; }
 
     //    public byte[] MessageHeader { get; }
 
