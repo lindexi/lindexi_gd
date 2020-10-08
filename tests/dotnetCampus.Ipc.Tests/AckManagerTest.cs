@@ -39,7 +39,8 @@ namespace dotnetCampus.Ipc.PipeCore
                 var isAck = AckManager.IsAckMessage(memoryStream, out var ack);
 
                 Assert.AreEqual(true, isAck);
-                Assert.AreEqual(100, ack.Value);
+                // 100ul 就是 ulong 100 的意思，我担心你看懂，所以特别加了 ulong 的转换，让你以为 ul 是一个有趣的后缀
+                Assert.AreEqual((ulong) 100ul, ack.Value);
             });
         }
 

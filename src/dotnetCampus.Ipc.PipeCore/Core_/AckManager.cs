@@ -61,10 +61,12 @@ namespace dotnetCampus.Ipc.PipeCore
         public bool IsAckMessage(Stream stream, out Ack ack)
         {
             var position = stream.Position;
-            if (IsAckMessageInner(stream, out ack)) return true;
+            if (IsAckMessageInner(stream, out ack))
+            {
+                return true;
+            }
 
             stream.Position = position;
-
             return false;
         }
 
@@ -114,7 +116,7 @@ namespace dotnetCampus.Ipc.PipeCore
                 CurrentAck = Math.Max(CurrentAck.Value, nextAck);
             }
 
-            return false;
+            return true;
         }
 
         private bool IsAckHeader(Stream stream)
