@@ -11,7 +11,7 @@ namespace dotnetCampus.Ipc.PipeCore
         {
             //Console.WriteLine(string.Join(",", Encoding.UTF8.GetBytes("ACK").Select(temp => "0x" + temp.ToString("X2"))));
             //var byteList = BitConverter.GetBytes((ulong) 100);
-            //Console.WriteLine(sizeof(ulong));
+            //Console.WriteLine(sizeof(ulong)); 
 
             //var peerRegisterProviderTests = new PeerRegisterProviderTests();
             //peerRegisterProviderTests.Run();
