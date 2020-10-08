@@ -85,9 +85,7 @@ namespace dotnetCampus.Ipc.PipeCore
             byte[] messageHeader, ISharedArrayPool sharedArrayPool,
             int maxMessageLength = ushort.MaxValue * byte.MaxValue)
         {
-            try
-            {
-                /*
+            /*
                 * UInt16 Message Header Length
                 * byte[] Message Header
                 * UInt32 Version
@@ -97,42 +95,37 @@ namespace dotnetCampus.Ipc.PipeCore
                 * byte[] Content
                 */
 
-                if (!await GetHeader(stream, messageHeader, sharedArrayPool))
-                {
-                    // 消息不对，忽略
-                    return (false, default)!;
-                }
-
-                var binaryReader = new BinaryReader(stream);
-                var version = binaryReader.ReadUInt32();
-                Debug.Assert(version == 0);
-
-                var ack = binaryReader.ReadUInt64();
-
-                var empty = binaryReader.ReadUInt32();
-                Debug.Assert(empty == 0);
-
-                var messageLength = binaryReader.ReadUInt32();
-
-                if (messageLength > maxMessageLength)
-                {
-                    // 太长了
-                    return (false, default)!;
-                }
-
-                var messageBuffer = sharedArrayPool.Rent((int)messageLength);
-
-                var readCount = await ReadBufferAsync(stream, messageBuffer, (int)messageLength);
-
-                Debug.Assert(readCount == messageLength);
-
-                var ipcMessageContext = new IpcMessageContext(ack, messageBuffer, messageLength, sharedArrayPool);
-                return (true, ipcMessageContext);
-            }
-            catch (Exception e)
+            if (!await GetHeader(stream, messageHeader, sharedArrayPool))
             {
-                throw;
+                // 消息不对，忽略
+                return (false, default)!;
             }
+
+            var binaryReader = new BinaryReader(stream);
+            var version = binaryReader.ReadUInt32();
+            Debug.Assert(version == 0);
+
+            var ack = binaryReader.ReadUInt64();
+
+            var empty = binaryReader.ReadUInt32();
+            Debug.Assert(empty == 0);
+
+            var messageLength = binaryReader.ReadUInt32();
+
+            if (messageLength > maxMessageLength)
+            {
+                // 太长了
+                return (false, default)!;
+            }
+
+            var messageBuffer = sharedArrayPool.Rent((int)messageLength);
+
+            var readCount = await ReadBufferAsync(stream, messageBuffer, (int)messageLength);
+
+            Debug.Assert(readCount == messageLength);
+
+            var ipcMessageContext = new IpcMessageContext(ack, messageBuffer, messageLength, sharedArrayPool);
+            return (true, ipcMessageContext);
         }
 
         private static async Task<int> ReadBufferAsync(Stream stream, byte[] messageBuffer, int messageLength)
