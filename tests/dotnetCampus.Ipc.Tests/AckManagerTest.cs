@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using dotnetCampus.Ipc.PipeCore.Context;
@@ -13,6 +14,20 @@ namespace dotnetCampus.Ipc.PipeCore
         [ContractTestCase]
         public void RegisterAckTask()
         {
+            "重复注册相同编号的消息，提示错误".Test(() =>
+            {
+                var clientName = "lindexi";
+                Ack ack = 20;
+                var taskCompletionSource = new TaskCompletionSource<bool>();
+
+                var ackTask = new AckTask(clientName, ack, taskCompletionSource, "调试");
+                AckManager.RegisterAckTask(ackTask);
+                Assert.ThrowsException<ArgumentException>(() =>
+                {
+                    AckManager.RegisterAckTask(ackTask);
+                });
+            });
+
             "将消息注册，如果没有收到回复，那么注册的任务依然没有完成".Test(() =>
             {
                 // 注册的消息可以完成
@@ -20,7 +35,7 @@ namespace dotnetCampus.Ipc.PipeCore
                 Ack ack = 2;
                 var taskCompletionSource = new TaskCompletionSource<bool>();
 
-                var ackTask = new AckTask(clientName, ack, taskCompletionSource);
+                var ackTask = new AckTask(clientName, ack, taskCompletionSource, "调试");
                 AckManager.RegisterAckTask(ackTask);
                 Assert.AreEqual(false, taskCompletionSource.Task.IsCompleted);
             });
@@ -32,7 +47,7 @@ namespace dotnetCampus.Ipc.PipeCore
                 Ack ack = 2;
                 var taskCompletionSource = new TaskCompletionSource<bool>();
 
-                var ackTask = new AckTask(clientName, ack, taskCompletionSource);
+                var ackTask = new AckTask(clientName, ack, taskCompletionSource, "调试");
                 AckManager.RegisterAckTask(ackTask);
                 AckManager.OnAckReceived(this, new AckArgs(clientName, ack));
                 //Debug.Assert(taskCompletionSource.Task.IsCompleted);

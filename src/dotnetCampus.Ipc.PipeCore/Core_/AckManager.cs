@@ -132,14 +132,23 @@ namespace dotnetCampus.Ipc.PipeCore
             return true;
         }
 
-        internal async Task<bool> DoWillReceivedAck(Func<Ack, Task> task, string peerName, TimeSpan timeout, uint maxRetryCount)
+        /// <summary>
+        /// 执行任务，直到收到回复才返回或超时等
+        /// </summary>
+        /// <param name="task"></param>
+        /// <param name="peerName"></param>
+        /// <param name="timeout"></param>
+        /// <param name="maxRetryCount"></param>
+        /// <param name="summary"></param>
+        /// <returns></returns>
+        internal async Task<bool> DoWillReceivedAck(Func<Ack, Task> task, string peerName, TimeSpan timeout, uint maxRetryCount, string summary)
         {
             for (uint i = 0; i < maxRetryCount; i++)
             {
                 var ack = GetAck();
                 var taskCompletionSource = new TaskCompletionSource<bool>();
 
-                var ackTask = new AckTask(peerName, ack, taskCompletionSource);
+                var ackTask = new AckTask(peerName, ack, taskCompletionSource, summary);
                 RegisterAckTask(ackTask);
 
                 // 先注册，然后执行任务，解决任务速度太快，收到消息然后再注册
@@ -168,6 +177,7 @@ namespace dotnetCampus.Ipc.PipeCore
                 else
                 {
                     // 理论上是找不到的
+                    throw new ArgumentException($"传入的消息的 ack 已经存在 Ack={ackTask.Ack.Value} Summary={ackTask.Summary}");
                 }
             }
 

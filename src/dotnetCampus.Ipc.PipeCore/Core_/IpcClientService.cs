@@ -109,7 +109,7 @@ namespace dotnetCampus.Ipc.PipeCore
                 await IpcMessageConverter.WriteAsync(NamedPipeClientStream, IpcConfiguration.MessageHeader, ack,
                     ipcBufferMessageContext, IpcContext.Logger);
                 await NamedPipeClientStream.FlushAsync();
-            });
+            }, ipcBufferMessageContext.Summary);
         }
 
         //internal async Task WriteMessageAsync(IpcBufferMessage ipcBufferMessage)
@@ -128,7 +128,7 @@ namespace dotnetCampus.Ipc.PipeCore
         /// <param name="buffer"></param>
         /// <param name="offset"></param>
         /// <param name="count"></param>
-        /// <param name="summary"></param>
+        /// <param name="summary">这一次写入的是什么内容，用于调试</param>
         /// <returns></returns>
         public async Task WriteMessageAsync(byte[] buffer, int offset, int count,
             [CallerMemberName] string summary = null!)
@@ -147,14 +147,14 @@ namespace dotnetCampus.Ipc.PipeCore
                     Logger
                 );
                 await NamedPipeClientStream.FlushAsync();
-            });
+            }, summary);
         }
 
-        private async Task QueueWriteAsync(Func<Ack, Task> task)
+        private async Task QueueWriteAsync(Func<Ack, Task> task, string summary)
         {
             await DoubleBufferTask.AddTaskAsync(async () =>
             {
-                await AckManager.DoWillReceivedAck(task, PeerName, TimeSpan.FromSeconds(3), maxRetryCount: 10);
+                await AckManager.DoWillReceivedAck(task, PeerName, TimeSpan.FromSeconds(3), maxRetryCount: 10, summary);
             });
         }
 

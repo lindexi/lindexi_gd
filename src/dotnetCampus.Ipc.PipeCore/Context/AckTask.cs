@@ -7,14 +7,16 @@ namespace dotnetCampus.Ipc.PipeCore.Context
     /// </summary>
     class AckTask
     {
-        public AckTask(string peerName, in Ack ack, TaskCompletionSource<bool> task)
+        public AckTask(string peerName, in Ack ack, TaskCompletionSource<bool> task, string summary)
         {
             PeerName = peerName;
             Ack = ack;
             Task = task;
+            Summary = summary;
         }
 
         public TaskCompletionSource<bool> Task { get; }
+        public string Summary { get; }
 
         public Ack Ack { get; }
         public string PeerName { get; }
