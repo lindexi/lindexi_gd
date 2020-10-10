@@ -130,7 +130,6 @@ namespace WhalelqebaWerarwhekem
 
     class ConcurrentWriteOnlyList<T>
     {
-        private int _doingCount;
 
         public ConcurrentWriteOnlyList()
         {
@@ -139,21 +138,27 @@ namespace WhalelqebaWerarwhekem
 
         public ConcurrentWriteOnlyList(int capacity)
         {
+            //_readerWriterLockSlim.
             _capacity = capacity;
         }
+
+        private readonly ReaderWriterLockSlim _readerWriterLockSlim =new ReaderWriterLockSlim();
 
         public void Add(T value)
         {
             var currentIndex = Interlocked.Increment(ref _currentIndex);
-            Interlocked.Increment(ref _enterCount);
             var currentCapacity = _capacity;
             bool shouldResize = currentIndex >= currentCapacity;
 
+            _readerWriterLockSlim.EnterReadLock();
+
             if (shouldResize)
             {
-                Interlocked.Decrement(ref _enterCount);
+                _readerWriterLockSlim.ExitReadLock();
+                _readerWriterLockSlim.EnterWriteLock();
+
                 // 所有线程等待
-                lock (_locker)
+                //lock (_locker)
                 {
                     // 如果上一个线程修改好了，那么忽略
                     // 如果上个线程修改了值还依然不够，那么继续修改
@@ -165,12 +170,6 @@ namespace WhalelqebaWerarwhekem
                         capacity = Math.Max(capacity, currentIndex);
 
                         var newList = new T[capacity];
-
-                        // 等待还在执行的线程全部执行完成
-                        while (_doingCount > 0 || _enterCount > 0)
-                        {
-                            // 等待，加入的速度很快，因此让线程在这里执行
-                        }
 
                         for (var i = 0; i < _list.Length; i++)
                         {
@@ -188,19 +187,18 @@ namespace WhalelqebaWerarwhekem
                         _capacity = capacity;
                     }
                 }
+
+                _readerWriterLockSlim.ExitWriteLock();
             }
             else
             {
             }
 
-            Interlocked.Increment(ref _doingCount);
             _list[currentIndex] = value;
-
-            Interlocked.Decrement(ref _doingCount);
 
             if (!shouldResize)
             {
-                Interlocked.Decrement(ref _enterCount);
+                _readerWriterLockSlim.ExitReadLock();
             }
         }
 
@@ -211,6 +209,5 @@ namespace WhalelqebaWerarwhekem
         private int _currentIndex = -1;
         private volatile T[] _list;
         private volatile int _capacity = 16;
-        private int _enterCount = 0;
     }
 }
