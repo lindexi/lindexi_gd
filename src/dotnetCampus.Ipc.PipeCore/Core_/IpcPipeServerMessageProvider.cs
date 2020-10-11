@@ -68,20 +68,5 @@ namespace dotnetCampus.Ipc.PipeCore
             var ipcClient = await ipcProvider.ConnectPeer(PeerName);
             await ipcClient.SendAckAsync(receivedAck);
         }
-
-        //private StreamMessageConverter StreamMessageConverter { set; get; } = null!;
-
-        //private void OnClientConnectReceived(object? sender, ByteListMessageStream stream)
-        //{
-
-
-        //    StreamMessageConverter.MessageReceived -= OnClientConnectReceived;
-        //    StreamMessageConverter.MessageReceived += StreamMessageConverter_MessageReceived;
-        //}
-
-        //private void StreamMessageConverter_MessageReceived(object? sender, ByteListMessageStream e)
-        //{
-        //}
-
     }
 }
