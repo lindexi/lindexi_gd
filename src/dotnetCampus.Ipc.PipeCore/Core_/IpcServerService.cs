@@ -8,7 +8,7 @@ namespace dotnetCampus.Ipc.PipeCore
     /// 管道服务端，用于接收消息
     /// </summary>
     /// 采用两个半工的管道做到双向通讯，这里的管道服务端用于接收
-    public class IpcServerService
+    public class IpcServerService:IDisposable
     {
         /// <summary>
         /// 管道服务端
@@ -32,7 +32,7 @@ namespace dotnetCampus.Ipc.PipeCore
         /// <returns></returns>
         public async Task Start()
         {
-            while (true)
+            while (!_isDisposed)
             {
                 var pipeServerMessage = new IpcPipeServerMessageProvider(IpcContext, this);
 
@@ -61,6 +61,24 @@ namespace dotnetCampus.Ipc.PipeCore
             Logger.Debug($"[{nameof(IpcServerService)}] PeerConnected PeerName={e.PeerName} {e.Ack}");
 
             PeerConnected?.Invoke(sender, e);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+            }
+
+            _isDisposed = true;
+        }
+
+        private bool _isDisposed;
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }
