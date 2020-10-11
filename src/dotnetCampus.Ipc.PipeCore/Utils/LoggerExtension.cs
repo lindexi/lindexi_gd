@@ -13,5 +13,15 @@ namespace dotnetCampus.Ipc.PipeCore.Context
         {
             Console.WriteLine(message);
         }
+
+        public static void Error(this ILogger logger, string message)
+        {
+            Console.WriteLine(message);
+        }
+
+        public static void Error(this ILogger logger, Exception exception)
+        {
+            Console.WriteLine(exception);
+        }
     }
 }

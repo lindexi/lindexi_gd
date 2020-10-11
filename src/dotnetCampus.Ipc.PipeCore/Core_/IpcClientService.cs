@@ -39,7 +39,7 @@ namespace dotnetCampus.Ipc.PipeCore
                 }
                 catch (Exception e)
                 {
-                    IpcContext.Logger.Debug($"[{nameof(IpcClientService)}.{nameof(DoTask)}] {e}");
+                    IpcContext.Logger.Error($"[{nameof(IpcClientService)}.{nameof(DoTask)}] {e}");
                 }
             }
         }
