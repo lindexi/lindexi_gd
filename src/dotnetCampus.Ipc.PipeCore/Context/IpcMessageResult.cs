@@ -6,7 +6,6 @@ namespace dotnetCampus.Ipc.PipeCore
     {
         public IpcMessageResult(in IpcMessageContext ipcMessageContext) : this(success: true, ipcMessageContext)
         {
-
         }
 
         public IpcMessageResult(bool success, in IpcMessageContext ipcMessageContext = default)
@@ -15,7 +14,7 @@ namespace dotnetCampus.Ipc.PipeCore
             IpcMessageContext = ipcMessageContext;
         }
 
-        public IpcMessageResult(string debugText):this(false)
+        public IpcMessageResult(string debugText) : this(false)
         {
             DebugText = debugText;
         }
