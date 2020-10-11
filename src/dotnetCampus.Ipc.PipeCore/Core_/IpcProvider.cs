@@ -124,7 +124,8 @@ namespace dotnetCampus.Ipc.PipeCore
                     // 而且回复 Ack 需要两个信息，一个是 Ack 的值，另一个是连接的设备名。因此让注册消息在前面就能
                     // 先读取设备名，用于后续回复 Ack 了解是哪个设备回复
                     var ackAndPeerRegisterMessage =
-                        peerRegisterMessage.BuildWithCombine(summary, IpcMessageCommandType.SendAckAndRegisterToPeer,mergeBefore: false,
+                        peerRegisterMessage.BuildWithCombine(summary, IpcMessageCommandType.SendAckAndRegisterToPeer,
+                            mergeBefore: false,
                             new IpcBufferMessage(ackMessage));
                     await ipcClientService.WriteMessageAsync(ackAndPeerRegisterMessage);
                 }
