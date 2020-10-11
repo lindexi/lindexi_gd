@@ -1,6 +1,4 @@
-﻿using dotnetCampus.Ipc.PipeCore.Context;
-
-namespace dotnetCampus.Ipc.PipeCore
+﻿namespace dotnetCampus.Ipc.PipeCore.Context
 {
     class IpcMessageResult
     {
