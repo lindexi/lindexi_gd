@@ -124,19 +124,21 @@ namespace dotnetCampus.Ipc.PipeCore
                     IpcConfiguration.SharedArrayPool);
                 var success = ipcMessageResult.Success;
                 var ipcMessageContext = ipcMessageResult.IpcMessageContext;
+                var ipcMessageCommandType = ipcMessageResult.IpcMessageCommandType;
 
                 if (success)
                 {
                     var stream = new ByteListMessageStream(ipcMessageContext);
 
-                    if (IpcContext.AckManager.IsAckMessage(stream, out var ack))
+                    if (ipcMessageCommandType == IpcMessageCommandType.SendAck && IpcContext.AckManager.IsAckMessage(stream, out var ack))
                     {
                         IpcContext.Logger.Debug($"[{nameof(IpcServerService)}] AckReceived {ack} From {PeerName}");
                         OnAckReceived(new AckArgs(PeerName, ack));
                         // 如果是收到 ack 回复了，那么只需要向 AckManager 注册
                         Debug.Assert(ipcMessageContext.Ack.Value == IpcContext.AckUsedForReply.Value);
                     }
-                    else
+                    // 只有业务的才能发给上层
+                    else if(ipcMessageCommandType == IpcMessageCommandType.Business)
                     {
                         ack = ipcMessageContext.Ack;
                         OnAckRequested(ack);
