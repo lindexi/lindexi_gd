@@ -5,10 +5,29 @@
     /// </summary>
     internal enum IpcMessageCommandType : ushort
     {
+        /// <summary>
+        /// 业务层的消息
+        /// </summary>
         Business = 0,
+
+        /// <summary>
+        /// 向对方服务器注册
+        /// </summary>
         PeerRegister = 1,
+
+        /// <summary>
+        /// 发送回复信息
+        /// </summary>
         SendAck = 2,
+
+        /// <summary>
+        /// 发送回复信息，同时向对方服务器注册
+        /// </summary>
         SendAckAndRegisterToPeer = 3,
+
+        /// <summary>
+        /// 其他信息
+        /// </summary>
         Unknown = ushort.MaxValue,
     }
 }
