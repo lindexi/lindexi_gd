@@ -29,7 +29,7 @@ namespace dotnetCampus.Ipc.PipeCore
             DoubleBufferTask = new DoubleBufferTask<Func<Task>>(DoTask);
         }
 
-        private static async Task DoTask(List<Func<Task>> list)
+        private async Task DoTask(List<Func<Task>> list)
         {
             foreach (var func in list)
             {
@@ -37,8 +37,9 @@ namespace dotnetCampus.Ipc.PipeCore
                 {
                     await func();
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    IpcContext.Logger.Debug($"[{nameof(IpcClientService)}.{nameof(DoTask)}] {e}");
                 }
             }
         }
