@@ -62,6 +62,7 @@ namespace dotnetCampus.Ipc.PipeCore
                         // ReSharper disable once MethodHasAsyncOverload
                         PeerName = peerName;
 
+                        // 代码审查 需要开放下面这句代码
                         IpcServerService.OnPeerConnected(new PeerConnectedArgs(peerName, NamedPipeServerStream, ipcMessageContext.Ack));
 
                         SendAck(ipcMessageContext.Ack);
