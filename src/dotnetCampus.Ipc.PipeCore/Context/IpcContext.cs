@@ -30,7 +30,7 @@
         internal IpcProvider IpcProvider { get; }
 
         /// <summary>
-        /// 管道名
+        /// 管道名，本地服务器名
         /// </summary>
         public string PipeName { get; }
 
