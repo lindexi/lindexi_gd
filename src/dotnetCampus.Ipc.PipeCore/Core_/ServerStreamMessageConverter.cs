@@ -10,7 +10,7 @@ namespace dotnetCampus.Ipc.PipeCore
     /// <summary>
     /// 基础的数据读取
     /// </summary>
-    class ServerStreamMessageConverter
+    class ServerStreamMessageConverter : IDisposable
     {
         public ServerStreamMessageConverter(IpcContext ipcContext, Stream stream)
         {
@@ -57,7 +57,7 @@ namespace dotnetCampus.Ipc.PipeCore
 
         private async Task WaitForConnectionAsync()
         {
-            while (true)
+            while (!_isDisposed)
             {
                 var (success, ipcMessageContext) = await IpcMessageConverter.ReadAsync(Stream,
                     IpcConfiguration.MessageHeader,
@@ -113,7 +113,7 @@ namespace dotnetCampus.Ipc.PipeCore
 
         private async Task ReadMessageAsync()
         {
-            while (true)
+            while (!_isDisposed)
             {
                 var (success, ipcMessageContext) = await IpcMessageConverter.ReadAsync(Stream,
                     IpcConfiguration.MessageHeader,
@@ -158,6 +158,29 @@ namespace dotnetCampus.Ipc.PipeCore
         private void OnAckRequested(in Ack e)
         {
             AckRequested?.Invoke(this, e);
+        }
+
+        ~ServerStreamMessageConverter()
+        {
+            Dispose(false);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+            }
+
+            _isDisposed = true;
+            Stream.Dispose();
+        }
+
+        private bool _isDisposed;
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }
