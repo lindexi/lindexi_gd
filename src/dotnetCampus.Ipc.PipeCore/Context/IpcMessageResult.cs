@@ -2,14 +2,12 @@
 {
     class IpcMessageResult
     {
-        public IpcMessageResult(in IpcMessageContext ipcMessageContext) : this(success: true, ipcMessageContext)
-        {
-        }
-
-        public IpcMessageResult(bool success, in IpcMessageContext ipcMessageContext = default)
+        public IpcMessageResult(bool success, in IpcMessageContext ipcMessageContext = default,
+            in IpcMessageCommandType ipcMessageCommandType = IpcMessageCommandType.Unknown)
         {
             Success = success;
             IpcMessageContext = ipcMessageContext;
+            IpcMessageCommandType = ipcMessageCommandType;
         }
 
         public IpcMessageResult(string debugText) : this(false)
@@ -24,6 +22,8 @@
         /// 用于调试的信息
         /// </summary>
         public string? DebugText { get; }
+
+        internal IpcMessageCommandType IpcMessageCommandType { get; }
 
         public void Deconstruct(out bool success, out IpcMessageContext ipcMessageContext)
         {

@@ -83,7 +83,7 @@ namespace dotnetCampus.Ipc.PipeCore
             // UInt32 Empty
             await asyncBinaryWriter.WriteAsync(uint.MinValue);
             // UInt16 Command Type   命令类型，业务端的值将会是 0 而框架层采用其他值
-            const ushort commandType = (ushort) IpcMessageCommandType.Business;
+            const ushort commandType = (ushort)IpcMessageCommandType.Business;
             await asyncBinaryWriter.WriteAsync(commandType);
 
             return asyncBinaryWriter;
@@ -123,7 +123,7 @@ namespace dotnetCampus.Ipc.PipeCore
             Debug.Assert(empty == 0);
 
             // UInt16 Command Type   命令类型，业务端的值将会是 0 而框架层采用其他值
-            var commandType = (IpcMessageCommandType) binaryReader.ReadUInt16();
+            var commandType = (IpcMessageCommandType)binaryReader.ReadUInt16();
 
             // UInt32 Content Length 这条消息的内容长度
             var messageLength = binaryReader.ReadUInt32();
@@ -141,7 +141,7 @@ namespace dotnetCampus.Ipc.PipeCore
             Debug.Assert(readCount == messageLength);
 
             var ipcMessageContext = new IpcMessageContext(ack, messageBuffer, messageLength, sharedArrayPool);
-            return new IpcMessageResult(ipcMessageContext);
+            return new IpcMessageResult(success: true, ipcMessageContext,commandType);
         }
 
         private static async Task<int> ReadBufferAsync(Stream stream, byte[] messageBuffer, int messageLength)
