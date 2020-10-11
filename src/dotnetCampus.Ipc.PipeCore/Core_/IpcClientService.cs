@@ -66,8 +66,9 @@ namespace dotnetCampus.Ipc.PipeCore
         /// <summary>
         /// 启动客户端，启动的时候将会去主动连接服务端，然后向服务端注册自身
         /// </summary>
+        /// <param name="shouldRegisterToPeer">是否需要向对方注册</param>
         /// <returns></returns>
-        public async Task Start()
+        public async Task Start(bool shouldRegisterToPeer = true)
         {
             var namedPipeClientStream = new NamedPipeClientStream(".", PeerName, PipeDirection.InOut,
                 PipeOptions.None, TokenImpersonationLevel.Impersonation);
@@ -75,8 +76,11 @@ namespace dotnetCampus.Ipc.PipeCore
 
             NamedPipeClientStream = namedPipeClientStream;
 
-            // 启动之后，向对方注册，此时对方是服务器
-            await RegisterToPeer();
+            if (shouldRegisterToPeer)
+            {
+                // 启动之后，向对方注册，此时对方是服务器
+                await RegisterToPeer();
+            }
         }
 
         private async Task RegisterToPeer()
