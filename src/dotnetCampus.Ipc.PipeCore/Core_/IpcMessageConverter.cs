@@ -7,6 +7,29 @@ using dotnetCampus.Ipc.PipeCore.Utils;
 
 namespace dotnetCampus.Ipc.PipeCore
 {
+    class IpcMessageResult
+    {
+        public IpcMessageResult(bool success, in IpcMessageContext ipcMessageContext = default)
+        {
+            Success = success;
+            IpcMessageContext = ipcMessageContext;
+        }
+
+        public bool Success { get; }
+        public IpcMessageContext IpcMessageContext { get; }
+
+        /// <summary>
+        /// 用于调试的信息
+        /// </summary>
+        public string? DebugText { set; get; }
+
+        public void Deconstruct(out bool success, out IpcMessageContext ipcMessageContext)
+        {
+            success = Success;
+            ipcMessageContext = IpcMessageContext;
+        }
+    }
+
     /// <summary>
     /// 消息的封包和解包代码，用于将传入的内容包装为 Ipc 通讯使用的二进制内容，或将 Ipc 通讯使用的二进制内容读取为业务端使用的内容
     /// </summary>
@@ -89,7 +112,7 @@ namespace dotnetCampus.Ipc.PipeCore
             return asyncBinaryWriter;
         }
 
-        public static async Task<(bool success, IpcMessageContext ipcMessageContext)> ReadAsync(Stream stream,
+        public static async Task<IpcMessageResult> ReadAsync(Stream stream,
             byte[] messageHeader, ISharedArrayPool sharedArrayPool,
             int maxMessageLength = ushort.MaxValue * byte.MaxValue)
         {
@@ -107,7 +130,10 @@ namespace dotnetCampus.Ipc.PipeCore
             if (!await GetHeader(stream, messageHeader, sharedArrayPool))
             {
                 // 消息不对，忽略
-                return (false, default)!;
+                return new IpcMessageResult(false)
+                {
+                    DebugText = "Message Header no match"
+                };
             }
 
             var binaryReader = new BinaryReader(stream);
@@ -131,7 +157,10 @@ namespace dotnetCampus.Ipc.PipeCore
             if (messageLength > maxMessageLength)
             {
                 // 太长了
-                return (false, default)!;
+                return new IpcMessageResult(false)
+                {
+                    DebugText = $"Message Length too long  MessageLength={messageLength} MaxMessageLength={maxMessageLength}"
+                };
             }
 
             var messageBuffer = sharedArrayPool.Rent((int)messageLength);
@@ -141,7 +170,7 @@ namespace dotnetCampus.Ipc.PipeCore
             Debug.Assert(readCount == messageLength);
 
             var ipcMessageContext = new IpcMessageContext(ack, messageBuffer, messageLength, sharedArrayPool);
-            return (true, ipcMessageContext);
+            return new IpcMessageResult(true, ipcMessageContext);
         }
 
         private static async Task<int> ReadBufferAsync(Stream stream, byte[] messageBuffer, int messageLength)
