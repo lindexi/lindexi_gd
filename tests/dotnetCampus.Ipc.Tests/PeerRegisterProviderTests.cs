@@ -40,7 +40,7 @@ namespace dotnetCampus.Ipc.Tests
             });
 
             "如果消息不是对方的注册消息，那么将不修改Stream的起始".Test(() =>
-             {
+            {
                 var peerRegisterProvider = new PeerRegisterProvider();
                 var memoryStream = new MemoryStream();
                 for (int i = 0; i < 1000; i++)
@@ -63,10 +63,12 @@ namespace dotnetCampus.Ipc.Tests
                 var memoryStream = new MemoryStream(bufferMessageContext.Length);
                 var ipcConfiguration = new IpcConfiguration();
 
-                await IpcMessageConverter.WriteAsync(memoryStream, ipcConfiguration.MessageHeader, 10, bufferMessageContext, null!);
+                await IpcMessageConverter.WriteAsync(memoryStream, ipcConfiguration.MessageHeader, 10,
+                    bufferMessageContext, null!);
 
                 memoryStream.Position = 0;
-                var (success, ipcMessageContext) = await IpcMessageConverter.ReadAsync(memoryStream, ipcConfiguration.MessageHeader, new SharedArrayPool());
+                var (success, ipcMessageContext) = await IpcMessageConverter.ReadAsync(memoryStream,
+                    ipcConfiguration.MessageHeader, new SharedArrayPool());
 
                 Assert.AreEqual(true, success);
 
