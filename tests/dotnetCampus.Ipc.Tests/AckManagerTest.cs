@@ -22,10 +22,7 @@ namespace dotnetCampus.Ipc.PipeCore
 
                 var ackTask = new AckTask(clientName, ack, taskCompletionSource, "调试");
                 AckManager.RegisterAckTask(ackTask);
-                Assert.ThrowsException<ArgumentException>(() =>
-                {
-                    AckManager.RegisterAckTask(ackTask);
-                });
+                Assert.ThrowsException<ArgumentException>(() => { AckManager.RegisterAckTask(ackTask); });
             });
 
             "将消息注册，如果没有收到回复，那么注册的任务依然没有完成".Test(() =>
@@ -67,7 +64,7 @@ namespace dotnetCampus.Ipc.PipeCore
 
                 Assert.AreEqual(true, isAck);
                 // 100ul 就是 ulong 100 的意思，我担心你看懂，所以特别加了 ulong 的转换，让你以为 ul 是一个有趣的后缀
-                Assert.AreEqual((ulong)100ul, ack.Value);
+                Assert.AreEqual((ulong) 100ul, ack.Value);
             });
 
             "传入不属于 Ack 的信息，可以返回不是 Ack 信息".Test(() =>
