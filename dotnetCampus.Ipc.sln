@@ -9,13 +9,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnetCampus.Ipc", "src\dot
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{C0B9B0B5-D172-4309-A8C4-2C8B77E470CD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotnetCampus.Ipc.Tests", "tests\dotnetCampus.Ipc.Tests\dotnetCampus.Ipc.Tests.csproj", "{E007FBCE-2F83-499F-9060-7D1FB673E24B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnetCampus.Ipc.Tests", "tests\dotnetCampus.Ipc.Tests\dotnetCampus.Ipc.Tests.csproj", "{E007FBCE-2F83-499F-9060-7D1FB673E24B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnetCampus.Ipc.PipeCore", "src\dotnetCampus.Ipc.PipeCore\dotnetCampus.Ipc.PipeCore.csproj", "{AA3EB068-A211-43C4-955D-F54C4EC9E492}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnetCampus.Ipc.Abstractions", "src\dotnetCampus.Ipc.Abstractions\dotnetCampus.Ipc.Abstractions.csproj", "{DD4F9A11-F789-4D0D-B581-718B1046661B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotnetCampus.Ipc.Demo", "demo\dotnetCampus.Ipc.Demo\dotnetCampus.Ipc.Demo.csproj", "{4D078B2A-029B-4B53-8FA9-5D2F9330BC72}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnetCampus.Ipc.Demo", "demo\dotnetCampus.Ipc.Demo\dotnetCampus.Ipc.Demo.csproj", "{4D078B2A-029B-4B53-8FA9-5D2F9330BC72}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "demo", "demo", "{65FA7B8E-7D2E-41D1-9740-BBB7D8B8ABE3}"
 EndProject
