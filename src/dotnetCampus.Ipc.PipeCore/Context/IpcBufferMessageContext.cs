@@ -13,7 +13,7 @@ namespace dotnetCampus.Ipc.PipeCore.Context
         /// 创建包含多条信息的上下文
         /// </summary>
         /// <param name="summary">表示写入的是什么内容，用于调试</param>
-        /// <param name="ipcMessageCommandType"></param>
+        /// <param name="ipcMessageCommandType">命令类型，用于分开框架内的消息和业务的</param>
         /// <param name="ipcBufferMessageList"></param>
         public IpcBufferMessageContext(string summary, IpcMessageCommandType ipcMessageCommandType, params IpcBufferMessage[] ipcBufferMessageList)
         {
@@ -22,6 +22,9 @@ namespace dotnetCampus.Ipc.PipeCore.Context
             IpcBufferMessageList = ipcBufferMessageList;
         }
 
+        /// <summary>
+        /// 命令类型，用于分开框架内的消息和业务的
+        /// </summary>
         public IpcMessageCommandType IpcMessageCommandType { get; }
 
         public IpcBufferMessage[] IpcBufferMessageList { get; }
