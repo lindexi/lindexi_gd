@@ -154,8 +154,7 @@ namespace dotnetCampus.Ipc.PipeCore
 
             do
             {
-                var n = await stream.ReadAsync(messageBuffer, readCount, (int) messageLength - readCount)
-                    .ConfigureAwait(false);
+                var n = await stream.ReadAsync(messageBuffer, readCount, (int) messageLength - readCount);
                 readCount += n;
             } while (readCount < messageLength);
 
