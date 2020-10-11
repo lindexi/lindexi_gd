@@ -64,6 +64,7 @@ namespace dotnetCampus.Ipc.PipeCore
                     IpcConfiguration.SharedArrayPool);
                 var success = ipcMessageResult.Success;
                 var ipcMessageContext = ipcMessageResult.IpcMessageContext;
+                Debug.Assert(ipcMessageResult.IpcMessageCommandType != IpcMessageCommandType.Business);
 
                 if (success)
                 {
