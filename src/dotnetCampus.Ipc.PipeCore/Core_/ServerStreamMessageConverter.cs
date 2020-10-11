@@ -144,6 +144,10 @@ namespace dotnetCampus.Ipc.PipeCore
                         OnAckRequested(ack);
                         OnMessageReceived(new PeerMessageArgs(PeerName, stream, ack));
                     }
+                    else
+                    {
+                        // 有不能解析的信息，后续需要告诉开发
+                    }
                 }
             }
         }
