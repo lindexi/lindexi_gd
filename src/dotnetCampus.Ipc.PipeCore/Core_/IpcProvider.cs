@@ -59,7 +59,6 @@ namespace dotnetCampus.Ipc.PipeCore
 
         private void NamedPipeServerStreamPool_MessageReceived(object? sender, PeerMessageArgs e)
         {
-
         }
 
         /// <summary>
@@ -112,7 +111,8 @@ namespace dotnetCampus.Ipc.PipeCore
                 {
                     IpcContext.Logger.Debug($"[{nameof(SendAckAndRegisterToPeer)}] Start SendAckAndRegisterToPeer");
                     var ackMessage = IpcContext.AckManager.BuildAckMessage(receivedAck);
-                    var peerRegisterMessage = IpcContext.PeerRegisterProvider.BuildPeerRegisterMessage(IpcContext.PipeName);
+                    var peerRegisterMessage =
+                        IpcContext.PeerRegisterProvider.BuildPeerRegisterMessage(IpcContext.PipeName);
                     const string summary = nameof(SendAckAndRegisterToPeer);
 
                     // 消息的顺序是有要求的，先发送注册消息，然后加上回复 Ack 的消息
@@ -124,12 +124,12 @@ namespace dotnetCampus.Ipc.PipeCore
                     // 而且回复 Ack 需要两个信息，一个是 Ack 的值，另一个是连接的设备名。因此让注册消息在前面就能
                     // 先读取设备名，用于后续回复 Ack 了解是哪个设备回复
                     var ackAndPeerRegisterMessage =
-                        peerRegisterMessage.BuildWithCombine(summary, mergeBefore: false, new IpcBufferMessage(ackMessage));
+                        peerRegisterMessage.BuildWithCombine(summary, mergeBefore: false,
+                            new IpcBufferMessage(ackMessage));
                     await ipcClientService.WriteMessageAsync(ackAndPeerRegisterMessage);
                 }
             }
         }
-
 
         /// <summary>
         /// 连接其他客户端
