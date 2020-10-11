@@ -101,12 +101,6 @@ namespace dotnetCampus.Ipc.PipeCore
             // 告诉服务器端不连接
         }
 
-        //public Task WriteStringAsync(string text)
-        //{
-        //    var buffer = Encoding.UTF8.GetBytes(text);
-        //    return WriteMessageAsync(buffer, 0, buffer.Length);
-        //}
-
         internal async Task WriteMessageAsync(IpcBufferMessageContext ipcBufferMessageContext)
         {
             await QueueWriteAsync(async ack =>
@@ -116,16 +110,6 @@ namespace dotnetCampus.Ipc.PipeCore
                 await NamedPipeClientStream.FlushAsync();
             }, ipcBufferMessageContext.Summary);
         }
-
-        //internal async Task WriteMessageAsync(IpcBufferMessage ipcBufferMessage)
-        //{
-        //    await QueueWriteAsync(async ack =>
-        //    {
-        //        await IpcMessageConverter.WriteAsync(NamedPipeClientStream, IpcConfiguration.MessageHeader, ack,
-        //            ipcBufferMessage);
-        //        await NamedPipeClientStream.FlushAsync();
-        //    });
-        //}
 
         /// <summary>
         /// 向服务端发送消息
