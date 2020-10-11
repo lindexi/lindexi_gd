@@ -13,7 +13,7 @@ namespace dotnetCampus.Ipc.PipeCore
         [ContractTestCase]
         public void IpcMessageConverterWriteAsync()
         {
-            "读取消息头不对的数据，可以返回读取失败".Test(async () =>
+            "读取消息头长度不对的数据，可以返回读取失败".Test(async () =>
             {
                 using var memoryStream = new MemoryStream();
 
