@@ -1,10 +1,11 @@
 ﻿using System.IO;
+using dotnetCampus.Ipc.PipeCore;
 using dotnetCampus.Ipc.PipeCore.Context;
 using dotnetCampus.Ipc.PipeCore.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MSTest.Extensions.Contracts;
 
-namespace dotnetCampus.Ipc.PipeCore
+namespace dotnetCampus.Ipc.Tests
 {
     [TestClass]
     public class PeerRegisterProviderTests
@@ -12,6 +13,22 @@ namespace dotnetCampus.Ipc.PipeCore
         [ContractTestCase]
         public void BuildPeerRegisterMessage()
         {
+            "如果消息不是对方的注册消息，那么将不修改Stream的起始".Test(() =>
+             {
+                var peerRegisterProvider = new PeerRegisterProvider();
+                var memoryStream = new MemoryStream();
+                for (int i = 0; i < 1000; i++)
+                {
+                    memoryStream.WriteByte(0x00);
+                }
+
+                const int position = 10;
+                memoryStream.Position = position;
+                var isPeerRegisterMessage = peerRegisterProvider.TryParsePeerRegisterMessage(memoryStream, out _);
+                Assert.AreEqual(false, isPeerRegisterMessage);
+                Assert.AreEqual(position, memoryStream.Position);
+            });
+
             "使用发送端之后，能序列化之前的字符串".Test(async () =>
             {
                 var peerRegisterProvider = new PeerRegisterProvider();

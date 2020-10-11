@@ -21,6 +21,20 @@ namespace dotnetCampus.Ipc.PipeCore
         public bool TryParsePeerRegisterMessage(Stream stream, out string pipeName)
         {
             var position = stream.Position;
+            var isPeerRegisterMessage = TryParsePeerRegisterMessageInner(stream, position, out pipeName);
+            if (isPeerRegisterMessage)
+            {
+                return true;
+            }
+            else
+            {
+                stream.Position = position;
+                return false;
+            }
+        }
+
+        private bool TryParsePeerRegisterMessageInner(Stream stream, long position, out string pipeName)
+        {
             pipeName = string.Empty;
             if (stream.Length - position <= PeerRegisterHeader.Length)
             {
