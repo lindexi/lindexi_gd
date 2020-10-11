@@ -161,7 +161,6 @@ namespace dotnetCampus.Ipc.PipeCore
             return readCount;
         }
 
-
         private static async Task<bool> GetHeader(Stream stream, byte[] messageHeader, ISharedArrayPool sharedArrayPool)
         {
             var binaryReader = new AsyncBinaryReader(stream);
