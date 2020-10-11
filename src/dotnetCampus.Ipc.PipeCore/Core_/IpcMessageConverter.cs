@@ -58,26 +58,34 @@ namespace dotnetCampus.Ipc.PipeCore
         public static async Task<AsyncBinaryWriter> WriteHeaderAsync(Stream stream, byte[] messageHeader, Ack ack)
         {
             /*
-             * UInt16 Message Header Length
-             * byte[] Message Header
-             * UInt32 Version
-             * UInt64 Ack
-             * UInt32 Empty
-             * UInt32 Content Length
-             * byte[] Content
+             * UInt16 Message Header Length 消息头的长度
+             * byte[] Message Header        消息头的内容
+             * UInt32 Version        当前IPC服务的版本
+             * UInt64 Ack            用于给对方确认收到消息使用
+             * UInt32 Empty          给以后版本使用的值
+             * UInt16 Command Type   命令类型，业务端的值将会是 0 而框架层采用其他值
+             * UInt32 Content Length 这条消息的内容长度
+             * byte[] Content        实际的内容
              */
 
-            uint version = 0;
+            // 当前版本默认是 0 版本，这个值用来后续如果有协议上的更改时，兼容旧版本使用
+            const uint version = 0;
 
             var asyncBinaryWriter = new AsyncBinaryWriter(stream);
             var messageHeaderLength = (ushort)messageHeader.Length;
             await asyncBinaryWriter.WriteAsync(messageHeaderLength);
 
             await stream.WriteAsync(messageHeader);
+            // UInt32 Version
             await asyncBinaryWriter.WriteAsync(version);
+            // UInt64 Ack
             await asyncBinaryWriter.WriteAsync(ack.Value);
-            // Empty
+            // UInt32 Empty
             await asyncBinaryWriter.WriteAsync(uint.MinValue);
+            // UInt16 Command Type   命令类型，业务端的值将会是 0 而框架层采用其他值
+            var commandType = 0;
+            await asyncBinaryWriter.WriteAsync(commandType);
+
             return asyncBinaryWriter;
         }
 
@@ -86,14 +94,15 @@ namespace dotnetCampus.Ipc.PipeCore
             int maxMessageLength = ushort.MaxValue * byte.MaxValue)
         {
             /*
-                * UInt16 Message Header Length
-                * byte[] Message Header
-                * UInt32 Version
-                * UInt64 Ack
-                * UInt32 Empty
-                * UInt32 Content Length
-                * byte[] Content
-                */
+             * UInt16 Message Header Length 消息头的长度
+             * byte[] Message Header        消息头的内容
+             * UInt32 Version        当前IPC服务的版本
+             * UInt64 Ack            用于给对方确认收到消息使用
+             * UInt32 Empty          给以后版本使用的值
+             * UInt16 Command Type   命令类型，业务端的值将会是 0 而框架层采用其他值
+             * UInt32 Content Length 这条消息的内容长度
+             * byte[] Content        实际的内容
+             */
 
             if (!await GetHeader(stream, messageHeader, sharedArrayPool))
             {
@@ -102,14 +111,21 @@ namespace dotnetCampus.Ipc.PipeCore
             }
 
             var binaryReader = new BinaryReader(stream);
+            // UInt32 Version        当前IPC服务的版本
             var version = binaryReader.ReadUInt32();
             Debug.Assert(version == 0);
 
+            // UInt64 Ack            用于给对方确认收到消息使用
             var ack = binaryReader.ReadUInt64();
 
+            // UInt32 Empty          给以后版本使用的值
             var empty = binaryReader.ReadUInt32();
             Debug.Assert(empty == 0);
 
+            // UInt16 Command Type   命令类型，业务端的值将会是 0 而框架层采用其他值
+            var commandType = binaryReader.ReadUInt16();
+
+            // UInt32 Content Length 这条消息的内容长度
             var messageLength = binaryReader.ReadUInt32();
 
             if (messageLength > maxMessageLength)
@@ -119,7 +135,7 @@ namespace dotnetCampus.Ipc.PipeCore
             }
 
             var messageBuffer = sharedArrayPool.Rent((int)messageLength);
-
+            // byte[] Content        实际的内容
             var readCount = await ReadBufferAsync(stream, messageBuffer, (int)messageLength);
 
             Debug.Assert(readCount == messageLength);
@@ -161,11 +177,15 @@ namespace dotnetCampus.Ipc.PipeCore
                 var readCount = await ReadBufferAsync(stream, messageHeaderBuffer, messageHeader.Length);
                 Debug.Assert(readCount == messageHeader.Length);
                 if (ByteListExtension.Equals(messageHeaderBuffer, messageHeader, readCount))
+                {
                     // 读对了
                     return true;
+                }
                 else
+                {
                     // 发过来的消息是出错的
                     return false;
+                }
             }
             finally
             {
