@@ -185,6 +185,7 @@ namespace dotnetCampus.Ipc.PipeCore
                     NamedPipeClientStream,
                     IpcConfiguration.MessageHeader,
                     ack: IpcContext.AckUsedForReply,
+                    // 需要使用框架的命令
                     ipcMessageCommandType: IpcMessageCommandType.SendAck,
                     buffer: ackMessage,
                     offset: 0,
