@@ -21,7 +21,7 @@ namespace dotnetCampus.Ipc.PipeCore
         public IpcContext IpcContext { get; }
 
         /// <summary>
-        /// 被对方连接
+        /// 被对方连接的对方设备名
         /// </summary>
         public string PeerName { set; get; } = null!;
 
