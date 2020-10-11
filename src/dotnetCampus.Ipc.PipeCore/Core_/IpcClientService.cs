@@ -134,6 +134,7 @@ namespace dotnetCampus.Ipc.PipeCore
         /// <param name="count"></param>
         /// <param name="summary">这一次写入的是什么内容，用于调试</param>
         /// <returns></returns>
+        /// 业务层使用的
         public async Task WriteMessageAsync(byte[] buffer, int offset, int count,
             [CallerMemberName] string summary = null!)
         {
@@ -144,6 +145,8 @@ namespace dotnetCampus.Ipc.PipeCore
                     NamedPipeClientStream,
                     IpcConfiguration.MessageHeader,
                     ack,
+                    // 表示这是业务层的消息
+                    IpcMessageCommandType.Business,
                     buffer,
                     offset,
                     count,
@@ -181,6 +184,7 @@ namespace dotnetCampus.Ipc.PipeCore
                     NamedPipeClientStream,
                     IpcConfiguration.MessageHeader,
                     ack: IpcContext.AckUsedForReply,
+                    ipcMessageCommandType: IpcMessageCommandType.SendAck,
                     buffer: ackMessage,
                     offset: 0,
                     count: ackMessage.Length,

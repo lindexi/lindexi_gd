@@ -6,7 +6,9 @@
     internal enum IpcMessageCommandType : ushort
     {
         Business = 0,
-
+        PeerRegister = 1,
+        SendAck = 2,
+        SendAckAndRegisterToPeer = 3,
         Unknown = ushort.MaxValue,
     }
 }

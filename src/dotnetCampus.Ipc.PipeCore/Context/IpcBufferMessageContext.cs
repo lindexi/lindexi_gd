@@ -13,12 +13,16 @@ namespace dotnetCampus.Ipc.PipeCore.Context
         /// 创建包含多条信息的上下文
         /// </summary>
         /// <param name="summary">表示写入的是什么内容，用于调试</param>
+        /// <param name="ipcMessageCommandType"></param>
         /// <param name="ipcBufferMessageList"></param>
-        public IpcBufferMessageContext(string summary, params IpcBufferMessage[] ipcBufferMessageList)
+        public IpcBufferMessageContext(string summary, IpcMessageCommandType ipcMessageCommandType, params IpcBufferMessage[] ipcBufferMessageList)
         {
             Summary = summary;
+            IpcMessageCommandType = ipcMessageCommandType;
             IpcBufferMessageList = ipcBufferMessageList;
         }
+
+        public IpcMessageCommandType IpcMessageCommandType { get; }
 
         public IpcBufferMessage[] IpcBufferMessageList { get; }
 
@@ -44,20 +48,22 @@ namespace dotnetCampus.Ipc.PipeCore.Context
         /// <summary>
         /// 和其他的合并然后创建新的
         /// </summary>
+        /// <param name="ipcMessageCommandType"></param>
         /// <param name="mergeBefore">将加入的内容合并到新的消息前面，为 true 合并到前面，否则合并到后面</param>
         /// <param name="ipcBufferMessageList"></param>
         /// <returns></returns>
-        public IpcBufferMessageContext BuildWithCombine(bool mergeBefore, params IpcBufferMessage[] ipcBufferMessageList)
-            => BuildWithCombine(Summary, mergeBefore, ipcBufferMessageList);
+        public IpcBufferMessageContext BuildWithCombine(IpcMessageCommandType ipcMessageCommandType, bool mergeBefore,  params IpcBufferMessage[] ipcBufferMessageList)
+            => BuildWithCombine(Summary, ipcMessageCommandType, mergeBefore, ipcBufferMessageList);
 
         /// <summary>
         /// 和其他的合并然后创建新的
         /// </summary>
         /// <param name="summary">表示写入的是什么内容，用于调试</param>
+        /// <param name="ipcMessageCommandType"></param>
         /// <param name="mergeBefore">将加入的内容合并到新的消息前面，为 true 合并到前面，否则合并到后面</param>
         /// <param name="ipcBufferMessageList"></param>
         /// <returns></returns>
-        public IpcBufferMessageContext BuildWithCombine(string summary, bool mergeBefore, params IpcBufferMessage[] ipcBufferMessageList)
+        public IpcBufferMessageContext BuildWithCombine(string summary, IpcMessageCommandType ipcMessageCommandType, bool mergeBefore, params IpcBufferMessage[] ipcBufferMessageList)
         {
             var newIpcBufferMessageList = new List<IpcBufferMessage>(ipcBufferMessageList.Length + IpcBufferMessageList.Length);
             if (mergeBefore)
@@ -71,7 +77,7 @@ namespace dotnetCampus.Ipc.PipeCore.Context
                 newIpcBufferMessageList.AddRange(ipcBufferMessageList);
             }
 
-            return new IpcBufferMessageContext(summary, newIpcBufferMessageList.ToArray());
+            return new IpcBufferMessageContext(summary, ipcMessageCommandType, newIpcBufferMessageList.ToArray());
         }
     }
 }

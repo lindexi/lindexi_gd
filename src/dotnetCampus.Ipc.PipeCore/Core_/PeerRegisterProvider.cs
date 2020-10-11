@@ -23,7 +23,9 @@ namespace dotnetCampus.Ipc.PipeCore
             var peerNameLengthBufferMessage = new IpcBufferMessage(BitConverter.GetBytes(buffer.Length));
             var peerNameIpcBufferMessage = new IpcBufferMessage(buffer);
 
-            return new IpcBufferMessageContext($"PeerRegisterMessage PipeName={peerName}", peerRegisterHeaderIpcBufferMessage, peerNameLengthBufferMessage, peerNameIpcBufferMessage);
+            return new IpcBufferMessageContext($"PeerRegisterMessage PipeName={peerName}",
+                IpcMessageCommandType.PeerRegister, peerRegisterHeaderIpcBufferMessage, peerNameLengthBufferMessage,
+                peerNameIpcBufferMessage);
         }
 
         public bool TryParsePeerRegisterMessage(Stream stream, out string peerName)
@@ -64,6 +66,10 @@ namespace dotnetCampus.Ipc.PipeCore
         }
 
         // PeerRegisterHeader 0x50, 0x65, 0x65, 0x72, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x20
-        private byte[] PeerRegisterHeader { get; } = { 0x50, 0x65, 0x65, 0x72, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x20 };
+        private byte[] PeerRegisterHeader { get; } =
+        {
+            0x50, 0x65, 0x65, 0x72, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72,
+            0x20
+        };
     }
 }
