@@ -23,7 +23,7 @@
         /// <summary>
         /// 发送回复信息，同时向对方服务器注册
         /// </summary>
-        SendAckAndRegisterToPeer = 3,
+        SendAckAndRegisterToPeer = PeerRegister | SendAck,
 
         /// <summary>
         /// 其他信息
