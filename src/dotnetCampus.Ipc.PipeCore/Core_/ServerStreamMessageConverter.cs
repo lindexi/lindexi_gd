@@ -48,7 +48,7 @@ namespace dotnetCampus.Ipc.PipeCore
                     if (IpcContext.AckManager.IsAckMessage(stream, out var ack))
                     {
                         IpcContext.Logger.Debug($"[{nameof(IpcServerService)}] AckReceived {ack} From {PeerName}");
-                        IpcContext.AckManager.OnAckReceived(this, new AckArgs(PeerName, ack));
+                        OnAckReceived(new AckArgs(PeerName, ack));
                         // 如果是收到 ack 回复了，那么只需要向 AckManager 注册
                         Debug.Assert(ipcMessageContext.Ack.Value == IpcContext.AckUsedForReply.Value);
                     }
@@ -94,7 +94,7 @@ namespace dotnetCampus.Ipc.PipeCore
                     {
                         // 只有作为去连接对方的时候，才会收到这个消息
                         IpcContext.Logger.Debug($"[{nameof(IpcServerService)}] AckReceived {ack} From {PeerName}");
-                        IpcContext.AckManager.OnAckReceived(this, new AckArgs(PeerName, ack));
+                        OnAckReceived(new AckArgs(PeerName, ack));
 
                         if (isPeerRegisterMessage)
                         {
