@@ -13,6 +13,32 @@ namespace dotnetCampus.Ipc.Tests
         [ContractTestCase]
         public void BuildPeerRegisterMessage()
         {
+            "如果注册消息的内容添加了其他内容，不会读取到不属于注册消息的内容".Test(() =>
+            {
+                // 创建的内容可以序列化
+                var peerRegisterProvider = new PeerRegisterProvider();
+                var pipeName = "123";
+                var bufferMessageContext = peerRegisterProvider.BuildPeerRegisterMessage(pipeName);
+                var memoryStream = new MemoryStream(bufferMessageContext.Length);
+
+                foreach (var ipcBufferMessage in bufferMessageContext.IpcBufferMessageList)
+                {
+                    memoryStream.Write(ipcBufferMessage.Buffer, ipcBufferMessage.Start, ipcBufferMessage.Count);
+                }
+
+                // 写入其他内容
+                var streamWriter = new StreamWriter(memoryStream);
+                streamWriter.Write("林德熙是逗比");
+                streamWriter.Flush();
+
+                memoryStream.Position = 0;
+
+                var success = peerRegisterProvider.TryParsePeerRegisterMessage(memoryStream, out var peerName);
+
+                Assert.AreEqual(true, success);
+                Assert.AreEqual(pipeName, peerName);
+            });
+
             "如果消息不是对方的注册消息，那么将不修改Stream的起始".Test(() =>
              {
                 var peerRegisterProvider = new PeerRegisterProvider();

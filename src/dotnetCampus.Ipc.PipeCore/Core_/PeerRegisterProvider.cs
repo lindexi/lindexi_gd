@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text;
 using dotnetCampus.Ipc.PipeCore.Context;
 
@@ -9,19 +10,26 @@ namespace dotnetCampus.Ipc.PipeCore
     /// </summary>
     class PeerRegisterProvider
     {
-        public IpcBufferMessageContext BuildPeerRegisterMessage(string pipeName)
+        public IpcBufferMessageContext BuildPeerRegisterMessage(string peerName)
         {
+            /*
+             * byte[] Header
+             * Int32 PipeNameLength
+             * byte[] PipeName
+             */
             var peerRegisterHeaderIpcBufferMessage = new IpcBufferMessage(PeerRegisterHeader);
-            var buffer = Encoding.UTF8.GetBytes(pipeName);
-            var pipeNameIpcBufferMessage = new IpcBufferMessage(buffer);
+            var buffer = Encoding.UTF8.GetBytes(peerName);
 
-            return new IpcBufferMessageContext($"PeerRegisterMessage PipeName={pipeName}", peerRegisterHeaderIpcBufferMessage, pipeNameIpcBufferMessage);
+            var peerNameLengthBufferMessage = new IpcBufferMessage(BitConverter.GetBytes(buffer.Length));
+            var peerNameIpcBufferMessage = new IpcBufferMessage(buffer);
+
+            return new IpcBufferMessageContext($"PeerRegisterMessage PipeName={peerName}", peerRegisterHeaderIpcBufferMessage, peerNameLengthBufferMessage, peerNameIpcBufferMessage);
         }
 
-        public bool TryParsePeerRegisterMessage(Stream stream, out string pipeName)
+        public bool TryParsePeerRegisterMessage(Stream stream, out string peerName)
         {
             var position = stream.Position;
-            var isPeerRegisterMessage = TryParsePeerRegisterMessageInner(stream, position, out pipeName);
+            var isPeerRegisterMessage = TryParsePeerRegisterMessageInner(stream, position, out peerName);
             if (isPeerRegisterMessage)
             {
                 return true;
@@ -33,9 +41,9 @@ namespace dotnetCampus.Ipc.PipeCore
             }
         }
 
-        private bool TryParsePeerRegisterMessageInner(Stream stream, long position, out string pipeName)
+        private bool TryParsePeerRegisterMessageInner(Stream stream, long position, out string peerName)
         {
-            pipeName = string.Empty;
+            peerName = string.Empty;
             if (stream.Length - position <= PeerRegisterHeader.Length)
             {
                 return false;
@@ -49,8 +57,9 @@ namespace dotnetCampus.Ipc.PipeCore
                 }
             }
 
-            var streamReader = new StreamReader(stream, Encoding.UTF8);
-            pipeName = streamReader.ReadToEnd();
+            var binaryReader = new BinaryReader(stream);
+            var peerNameLength = binaryReader.ReadInt32();
+            peerName = new string(binaryReader.ReadChars(peerNameLength));
             return true;
         }
 
