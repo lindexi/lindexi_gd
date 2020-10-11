@@ -18,7 +18,6 @@ namespace dotnetCampus.Ipc.PipeCore
             Stream = stream;
         }
 
-        private IpcConfiguration IpcConfiguration => IpcContext.IpcConfiguration;
         public IpcContext IpcContext { get; }
 
         /// <summary>
@@ -33,34 +32,28 @@ namespace dotnetCampus.Ipc.PipeCore
             await ReadMessageAsync();
         }
 
-        private async Task ReadMessageAsync()
-        {
-            while (true)
-            {
-                var (success, ipcMessageContext) = await IpcMessageConverter.ReadAsync(Stream,
-                    IpcConfiguration.MessageHeader,
-                    IpcConfiguration.SharedArrayPool);
+        private IpcConfiguration IpcConfiguration => IpcContext.IpcConfiguration;
+        private Stream Stream { get; }
 
-                if (success)
-                {
-                    var stream = new ByteListMessageStream(ipcMessageContext);
+        /// <summary>
+        /// 请求发送回复的 ack 消息
+        /// </summary>
+        internal event EventHandler<Ack>? AckRequested;
 
-                    if (IpcContext.AckManager.IsAckMessage(stream, out var ack))
-                    {
-                        IpcContext.Logger.Debug($"[{nameof(IpcServerService)}] AckReceived {ack} From {PeerName}");
-                        OnAckReceived(new AckArgs(PeerName, ack));
-                        // 如果是收到 ack 回复了，那么只需要向 AckManager 注册
-                        Debug.Assert(ipcMessageContext.Ack.Value == IpcContext.AckUsedForReply.Value);
-                    }
-                    else
-                    {
-                        ack = ipcMessageContext.Ack;
-                        OnAckRequested(ack);
-                        OnMessageReceived(new PeerMessageArgs(PeerName, stream, ack));
-                    }
-                }
-            }
-        }
+        /// <summary>
+        /// 当收到对方确定收到消息时触发
+        /// </summary>
+        public event EventHandler<AckArgs>? AckReceived;
+
+        /// <summary>
+        /// 当收到消息时触发
+        /// </summary>
+        public event EventHandler<PeerMessageArgs>? MessageReceived;
+
+        /// <summary>
+        /// 当有对方连接时触发
+        /// </summary>
+        public event EventHandler<PeerConnectedArgs>? PeerConnected;
 
         private async Task WaitForConnectionAsync()
         {
@@ -118,27 +111,34 @@ namespace dotnetCampus.Ipc.PipeCore
             }
         }
 
-        private Stream Stream { get; }
+        private async Task ReadMessageAsync()
+        {
+            while (true)
+            {
+                var (success, ipcMessageContext) = await IpcMessageConverter.ReadAsync(Stream,
+                    IpcConfiguration.MessageHeader,
+                    IpcConfiguration.SharedArrayPool);
 
-        /// <summary>
-        /// 请求发送回复的 ack 消息
-        /// </summary>
-        internal event EventHandler<Ack>? AckRequested;
+                if (success)
+                {
+                    var stream = new ByteListMessageStream(ipcMessageContext);
 
-        /// <summary>
-        /// 当收到对方确定收到消息时触发
-        /// </summary>
-        public event EventHandler<AckArgs>? AckReceived;
-
-        /// <summary>
-        /// 当收到消息时触发
-        /// </summary>
-        public event EventHandler<PeerMessageArgs>? MessageReceived;
-
-        /// <summary>
-        /// 当有对方连接时触发
-        /// </summary>
-        public event EventHandler<PeerConnectedArgs>? PeerConnected;
+                    if (IpcContext.AckManager.IsAckMessage(stream, out var ack))
+                    {
+                        IpcContext.Logger.Debug($"[{nameof(IpcServerService)}] AckReceived {ack} From {PeerName}");
+                        OnAckReceived(new AckArgs(PeerName, ack));
+                        // 如果是收到 ack 回复了，那么只需要向 AckManager 注册
+                        Debug.Assert(ipcMessageContext.Ack.Value == IpcContext.AckUsedForReply.Value);
+                    }
+                    else
+                    {
+                        ack = ipcMessageContext.Ack;
+                        OnAckRequested(ack);
+                        OnMessageReceived(new PeerMessageArgs(PeerName, stream, ack));
+                    }
+                }
+            }
+        }
 
         private void OnAckReceived(AckArgs e)
         {
