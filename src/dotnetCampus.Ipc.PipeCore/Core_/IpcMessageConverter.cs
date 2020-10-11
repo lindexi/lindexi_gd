@@ -107,10 +107,7 @@ namespace dotnetCampus.Ipc.PipeCore
             if (!await GetHeader(stream, messageHeader, sharedArrayPool))
             {
                 // 消息不对，忽略
-                return new IpcMessageResult(false)
-                {
-                    DebugText = "Message Header no match"
-                };
+                return new IpcMessageResult("Message Header no match");
             }
 
             var binaryReader = new BinaryReader(stream);
@@ -134,10 +131,7 @@ namespace dotnetCampus.Ipc.PipeCore
             if (messageLength > maxMessageLength)
             {
                 // 太长了
-                return new IpcMessageResult(false)
-                {
-                    DebugText = $"Message Length too long  MessageLength={messageLength} MaxMessageLength={maxMessageLength}"
-                };
+                return new IpcMessageResult($"Message Length too long  MessageLength={messageLength} MaxMessageLength={maxMessageLength}");
             }
 
             var messageBuffer = sharedArrayPool.Rent((int)messageLength);
@@ -147,7 +141,7 @@ namespace dotnetCampus.Ipc.PipeCore
             Debug.Assert(readCount == messageLength);
 
             var ipcMessageContext = new IpcMessageContext(ack, messageBuffer, messageLength, sharedArrayPool);
-            return new IpcMessageResult(true, ipcMessageContext);
+            return new IpcMessageResult(ipcMessageContext);
         }
 
         private static async Task<int> ReadBufferAsync(Stream stream, byte[] messageBuffer, int messageLength)
