@@ -59,9 +59,12 @@ namespace dotnetCampus.Ipc.PipeCore
         {
             while (!_isDisposed)
             {
-                var (success, ipcMessageContext) = await IpcMessageConverter.ReadAsync(Stream,
+                var ipcMessageResult = await IpcMessageConverter.ReadAsync(Stream,
                     IpcConfiguration.MessageHeader,
                     IpcConfiguration.SharedArrayPool);
+                var success = ipcMessageResult.Success;
+                var ipcMessageContext = ipcMessageResult.IpcMessageContext;
+
                 if (success)
                 {
                     var stream = new ByteListMessageStream(ipcMessageContext);
@@ -115,9 +118,11 @@ namespace dotnetCampus.Ipc.PipeCore
         {
             while (!_isDisposed)
             {
-                var (success, ipcMessageContext) = await IpcMessageConverter.ReadAsync(Stream,
+                var ipcMessageResult = await IpcMessageConverter.ReadAsync(Stream,
                     IpcConfiguration.MessageHeader,
                     IpcConfiguration.SharedArrayPool);
+                var success = ipcMessageResult.Success;
+                var ipcMessageContext = ipcMessageResult.IpcMessageContext;
 
                 if (success)
                 {
