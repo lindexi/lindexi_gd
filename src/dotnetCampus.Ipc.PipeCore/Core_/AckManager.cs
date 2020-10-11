@@ -150,7 +150,7 @@ namespace dotnetCampus.Ipc.PipeCore
                 var ack = GetAck();
                 var taskCompletionSource = new TaskCompletionSource<bool>();
 
-                logger.Debug($"[{nameof(AckManager)}.{nameof(DoWillReceivedAck)}] StartSend Count={i} Ack={ack} Summary={summary} PeerName={peerName}");
+                logger.Debug($"[{nameof(AckManager)}.{nameof(DoWillReceivedAck)}] StartSend Count={i} {ack} Summary={summary} PeerName={peerName}");
 
                 var ackTask = new AckTask(peerName, ack, taskCompletionSource, summary);
                 RegisterAckTask(ackTask);
@@ -162,14 +162,14 @@ namespace dotnetCampus.Ipc.PipeCore
                 taskCompletionSource.TrySetResult(false);
                 if (await taskCompletionSource.Task)
                 {
-                    logger.Debug($"[{nameof(AckManager)}.{nameof(DoWillReceivedAck)}] Finish Send Count={i} Ack={ack} Summary={summary} PeerName={peerName}");
+                    logger.Debug($"[{nameof(AckManager)}.{nameof(DoWillReceivedAck)}] Finish Send Count={i} {ack} Summary={summary} PeerName={peerName}");
 
                     // 执行完成
                     return true;
                 }
                 else
                 {
-                    logger.Debug($"[{nameof(AckManager)}.{nameof(DoWillReceivedAck)}] Fail Send Count={i} Ack={ack} Summary={summary} PeerName={peerName}");
+                    logger.Debug($"[{nameof(AckManager)}.{nameof(DoWillReceivedAck)}] Fail Send Count={i} {ack} Summary={summary} PeerName={peerName}");
                 }
             }
 
@@ -232,9 +232,7 @@ namespace dotnetCampus.Ipc.PipeCore
                 }
             }
 
-            if (ackTask.PeerName.Equals(e.PeerName) 
-                // 在首次注册的时候，将收到一个 PeerName 是空的值
-                || string.IsNullOrEmpty(e.PeerName))
+            if (ackTask.PeerName.Equals(e.PeerName))
             {
                 // 此时也许是等待太久，因此需要使用 Try 方法
                 ackTask.Task.TrySetResult(true);

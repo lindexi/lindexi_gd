@@ -57,29 +57,44 @@ namespace dotnetCampus.Ipc.PipeCore
                 if (success)
                 {
                     var stream = new ByteListMessageStream(ipcMessageContext);
-                    if (IpcContext.PeerRegisterProvider.TryParsePeerRegisterMessage(stream, out var peerName))
+
+                    var isPeerRegisterMessage = IpcContext.PeerRegisterProvider.TryParsePeerRegisterMessage(stream, out var peerName);
+
+                    if (isPeerRegisterMessage)
                     {
                         // ReSharper disable once MethodHasAsyncOverload
                         PeerName = peerName;
 
-                        // 代码审查 需要开放下面这句代码
                         IpcServerService.OnPeerConnected(new PeerConnectedArgs(peerName, NamedPipeServerStream, ipcMessageContext.Ack));
 
-                        SendAck(ipcMessageContext.Ack);
-                        // 不等待对方收到，因为对方也在等待
-                        //await SendAckAsync(ipcMessageContext.Ack);
+                        //SendAckAndRegisterToPeer(ipcMessageContext.Ack);
+                        //SendAck(ipcMessageContext.Ack);
+                        //// 不等待对方收到，因为对方也在等待
+                        ////await SendAckAsync(ipcMessageContext.Ack);
 
-                        break;
                     }
-                    else if (IpcContext.AckManager.IsAckMessage(stream, out var ack))
+                    // 如果是 对方的注册消息 同时也许是回应的消息，所以不能加上 else if 判断
+                    if (IpcContext.AckManager.IsAckMessage(stream, out var ack))
                     {
                         // 只有作为去连接对方的时候，才会收到这个消息
                         IpcContext.Logger.Debug($"[{nameof(IpcServerService)}] AckReceived {ack} From {PeerName}");
                         IpcContext.AckManager.OnAckReceived(this, new AckArgs(PeerName, ack));
+
+                        if (isPeerRegisterMessage)
+                        {
+                            // 这是一条本地主动去连接对方，然后收到对方的反过来的连接的信息，此时需要回复对方
+                            SendAck(ipcMessageContext.Ack);
+                        }
                     }
                     else
                     {
                         // 后续需要要求重发设备名
+                    }
+
+                    if (isPeerRegisterMessage)
+                    {
+                        // 收到注册消息了
+                        break;
                     }
                 }
             }
@@ -109,6 +124,15 @@ namespace dotnetCampus.Ipc.PipeCore
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// 发送 ack 同时注册自身
+        /// </summary>
+        /// <param name="ack"></param>
+        private void SendAckAndRegisterToPeer(Ack ack)
+        {
+            
         }
 
         private async void SendAck(Ack receivedAck) => await SendAckAsync(receivedAck);

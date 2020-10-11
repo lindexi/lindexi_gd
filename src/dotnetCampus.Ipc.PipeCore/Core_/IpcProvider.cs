@@ -80,7 +80,7 @@ namespace dotnetCampus.Ipc.PipeCore
             }
         }
 
-        private async Task ConnectBackToPeer(string peerName, Ack ack)
+        private async Task ConnectBackToPeer(string peerName, Ack receivedAck)
         {
             if (ConnectedServerManagerList.TryGetValue(peerName, out _))
             {
@@ -104,6 +104,21 @@ namespace dotnetCampus.Ipc.PipeCore
                 // 此时不需要向对方注册，因为对方知道本地的存在，是对方主动连接本地
                 var shouldRegisterToPeer = false;
                 await ipcClientService.Start(shouldRegisterToPeer: shouldRegisterToPeer);
+
+                SendAckAndRegisterToPeer();
+
+                // 发送 ack 同时注册自身
+                async void SendAckAndRegisterToPeer()
+                {
+                    IpcContext.Logger.Debug($"[{nameof(SendAckAndRegisterToPeer)}] Start SendAckAndRegisterToPeer");
+                    var ackMessage = IpcContext.AckManager.BuildAckMessage(receivedAck);
+                    var peerRegisterMessage = IpcContext.PeerRegisterProvider.BuildPeerRegisterMessage(IpcContext.PipeName);
+                    const string summary = nameof(SendAckAndRegisterToPeer);
+
+                    var ackAndPeerRegisterMessage =
+                        peerRegisterMessage.BuildWithCombine(summary, mergeBefore: false, new IpcBufferMessage(ackMessage));
+                    await ipcClientService.WriteMessageAsync(ackAndPeerRegisterMessage);
+                }
             }
         }
 
