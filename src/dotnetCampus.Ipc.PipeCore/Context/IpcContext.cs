@@ -8,7 +8,7 @@
         /// <summary>
         /// 默认的管道名
         /// </summary>
-        public const string DefaultPipeName = "1231";
+        public const string DefaultPipeName = "dotnet campus";
 
         /// <summary>
         /// 创建上下文
