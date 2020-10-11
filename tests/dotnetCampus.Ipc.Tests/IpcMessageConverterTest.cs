@@ -1,11 +1,11 @@
 ﻿using System.IO;
-using System.Threading.Tasks;
+using dotnetCampus.Ipc.PipeCore;
 using dotnetCampus.Ipc.PipeCore.Context;
 using dotnetCampus.Ipc.PipeCore.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MSTest.Extensions.Contracts;
 
-namespace dotnetCampus.Ipc.PipeCore
+namespace dotnetCampus.Ipc.Tests
 {
     [TestClass]
     public class IpcMessageConverterTest
