@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using dotnetCampus.Ipc.PipeCore.Context;
 using dotnetCampus.Ipc.PipeCore.Utils;
 
@@ -27,6 +28,42 @@ namespace dotnetCampus.Ipc.PipeCore
 
         public async void Run()
         {
+            await WaitForConnectionAsync();
+
+            await ReadMessageAsync();
+        }
+
+        private async Task ReadMessageAsync()
+        {
+            while (true)
+            {
+                var (success, ipcMessageContext) = await IpcMessageConverter.ReadAsync(Stream,
+                    IpcConfiguration.MessageHeader,
+                    IpcConfiguration.SharedArrayPool);
+
+                if (success)
+                {
+                    var stream = new ByteListMessageStream(ipcMessageContext);
+
+                    if (IpcContext.AckManager.IsAckMessage(stream, out var ack))
+                    {
+                        IpcContext.Logger.Debug($"[{nameof(IpcServerService)}] AckReceived {ack} From {PeerName}");
+                        IpcContext.AckManager.OnAckReceived(this, new AckArgs(PeerName, ack));
+                        // 如果是收到 ack 回复了，那么只需要向 AckManager 注册
+                        Debug.Assert(ipcMessageContext.Ack.Value == IpcContext.AckUsedForReply.Value);
+                    }
+                    else
+                    {
+                        ack = ipcMessageContext.Ack;
+                        OnAckRequested(ack);
+                        OnMessageReceived(new PeerMessageArgs(PeerName, stream, ack));
+                    }
+                }
+            }
+        }
+
+        private async Task WaitForConnectionAsync()
+        {
             while (true)
             {
                 var (success, ipcMessageContext) = await IpcMessageConverter.ReadAsync(Stream,
@@ -36,7 +73,8 @@ namespace dotnetCampus.Ipc.PipeCore
                 {
                     var stream = new ByteListMessageStream(ipcMessageContext);
 
-                    var isPeerRegisterMessage = IpcContext.PeerRegisterProvider.TryParsePeerRegisterMessage(stream, out var peerName);
+                    var isPeerRegisterMessage =
+                        IpcContext.PeerRegisterProvider.TryParsePeerRegisterMessage(stream, out var peerName);
 
                     if (isPeerRegisterMessage)
                     {
@@ -49,8 +87,8 @@ namespace dotnetCampus.Ipc.PipeCore
                         //SendAck(ipcMessageContext.Ack);
                         //// 不等待对方收到，因为对方也在等待
                         ////await SendAckAsync(ipcMessageContext.Ack);
-
                     }
+
                     // 如果是 对方的注册消息 同时也许是回应的消息，所以不能加上 else if 判断
                     if (IpcContext.AckManager.IsAckMessage(stream, out var ack))
                     {
@@ -75,32 +113,6 @@ namespace dotnetCampus.Ipc.PipeCore
                     {
                         // 收到注册消息了
                         break;
-                    }
-                }
-            }
-
-            while (true)
-            {
-                var (success, ipcMessageContext) = await IpcMessageConverter.ReadAsync(Stream,
-                    IpcConfiguration.MessageHeader,
-                    IpcConfiguration.SharedArrayPool);
-
-                if (success)
-                {
-                    var stream = new ByteListMessageStream(ipcMessageContext);
-
-                    if (IpcContext.AckManager.IsAckMessage(stream, out var ack))
-                    {
-                        IpcContext.Logger.Debug($"[{nameof(IpcServerService)}] AckReceived {ack} From {PeerName}");
-                        IpcContext.AckManager.OnAckReceived(this, new AckArgs(PeerName, ack));
-                        // 如果是收到 ack 回复了，那么只需要向 AckManager 注册
-                        Debug.Assert(ipcMessageContext.Ack.Value == IpcContext.AckUsedForReply.Value);
-                    }
-                    else
-                    {
-                        ack = ipcMessageContext.Ack;
-                        OnAckRequested(ack);
-                        OnMessageReceived(new PeerMessageArgs(PeerName, stream, ack));
                     }
                 }
             }
