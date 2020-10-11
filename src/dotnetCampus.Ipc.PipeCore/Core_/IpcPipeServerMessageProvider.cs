@@ -126,15 +126,6 @@ namespace dotnetCampus.Ipc.PipeCore
             }
         }
 
-        /// <summary>
-        /// 发送 ack 同时注册自身
-        /// </summary>
-        /// <param name="ack"></param>
-        private void SendAckAndRegisterToPeer(Ack ack)
-        {
-            
-        }
-
         private async void SendAck(Ack receivedAck) => await SendAckAsync(receivedAck);
 
         private async Task SendAckAsync(Ack receivedAck)
