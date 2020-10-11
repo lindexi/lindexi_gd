@@ -34,7 +34,7 @@ namespace dotnetCampus.Ipc.PipeCore
         {
             while (true)
             {
-                var pipeServerMessage = new PipeServerMessage(IpcContext, this);
+                var pipeServerMessage = new IpcPipeServerMessageProvider(IpcContext, this);
 
                 await pipeServerMessage.Start();
             }

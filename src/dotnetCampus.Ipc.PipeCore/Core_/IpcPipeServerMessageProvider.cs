@@ -7,9 +7,9 @@ using dotnetCampus.Ipc.PipeCore.Utils;
 namespace dotnetCampus.Ipc.PipeCore
 {
     // 提供一个客户端连接
-    internal class PipeServerMessage
+    internal class IpcPipeServerMessageProvider
     {
-        public PipeServerMessage(IpcContext ipcContext, IpcServerService ipcServerService)
+        public IpcPipeServerMessageProvider(IpcContext ipcContext, IpcServerService ipcServerService)
         {
             IpcContext = ipcContext;
             IpcServerService = ipcServerService;
