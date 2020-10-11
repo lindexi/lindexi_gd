@@ -13,7 +13,7 @@ namespace dotnetCampus.Ipc.PipeCore.Context
         /// <param name="peerName"></param>
         /// <param name="ack"></param>
         /// <param name="task"></param>
-        /// <param name="summary"></param>
+        /// <param name="summary">用于调试的信息</param>
         public AckTask(string peerName, in Ack ack, TaskCompletionSource<bool> task, string summary)
         {
             PeerName = peerName;
