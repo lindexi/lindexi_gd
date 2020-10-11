@@ -1,8 +1,6 @@
-﻿using System.Diagnostics;
-using System.IO.Pipes;
+﻿using System.IO.Pipes;
 using System.Threading.Tasks;
 using dotnetCampus.Ipc.PipeCore.Context;
-using dotnetCampus.Ipc.PipeCore.Utils;
 
 namespace dotnetCampus.Ipc.PipeCore
 {
@@ -20,7 +18,7 @@ namespace dotnetCampus.Ipc.PipeCore
         /// <summary>
         /// 被对方连接
         /// </summary>
-        private string PeerName { set; get; } = null!;
+        private string PeerName => ServerStreamMessageConverter.PeerName;
 
         /// <summary>
         /// 自身的名字
@@ -29,7 +27,6 @@ namespace dotnetCampus.Ipc.PipeCore
         public IpcContext IpcContext { get; }
         public IpcServerService IpcServerService { get; }
 
-        private IpcConfiguration IpcConfiguration => IpcContext.IpcConfiguration;
 
         public async Task Start()
         {
@@ -44,87 +41,23 @@ namespace dotnetCampus.Ipc.PipeCore
             //StreamMessageConverter = streamMessageConverter;
             //streamMessageConverter.Start();
 
-            Read();
+            var serverStreamMessageConverter = new ServerStreamMessageConverter(IpcContext, NamedPipeServerStream);
+            ServerStreamMessageConverter = serverStreamMessageConverter;
+
+            serverStreamMessageConverter.AckRequested += ServerStreamMessageConverter_AckRequested;
+            serverStreamMessageConverter.AckReceived += IpcContext.AckManager.OnAckReceived;
+            serverStreamMessageConverter.PeerConnected += IpcServerService.OnPeerConnected;
+            serverStreamMessageConverter.MessageReceived += IpcServerService.OnMessageReceived;
+
+            serverStreamMessageConverter.Run();
         }
 
-        private async void Read()
+        private void ServerStreamMessageConverter_AckRequested(object? sender, Ack e)
         {
-            while (true)
-            {
-                var (success, ipcMessageContext) = await IpcMessageConverter.ReadAsync(NamedPipeServerStream,
-                    IpcConfiguration.MessageHeader,
-                    IpcConfiguration.SharedArrayPool);
-                if (success)
-                {
-                    var stream = new ByteListMessageStream(ipcMessageContext);
-
-                    var isPeerRegisterMessage = IpcContext.PeerRegisterProvider.TryParsePeerRegisterMessage(stream, out var peerName);
-
-                    if (isPeerRegisterMessage)
-                    {
-                        // ReSharper disable once MethodHasAsyncOverload
-                        PeerName = peerName;
-
-                        IpcServerService.OnPeerConnected(new PeerConnectedArgs(peerName, NamedPipeServerStream, ipcMessageContext.Ack));
-
-                        //SendAckAndRegisterToPeer(ipcMessageContext.Ack);
-                        //SendAck(ipcMessageContext.Ack);
-                        //// 不等待对方收到，因为对方也在等待
-                        ////await SendAckAsync(ipcMessageContext.Ack);
-
-                    }
-                    // 如果是 对方的注册消息 同时也许是回应的消息，所以不能加上 else if 判断
-                    if (IpcContext.AckManager.IsAckMessage(stream, out var ack))
-                    {
-                        // 只有作为去连接对方的时候，才会收到这个消息
-                        IpcContext.Logger.Debug($"[{nameof(IpcServerService)}] AckReceived {ack} From {PeerName}");
-                        IpcContext.AckManager.OnAckReceived(this, new AckArgs(PeerName, ack));
-
-                        if (isPeerRegisterMessage)
-                        {
-                            // 这是一条本地主动去连接对方，然后收到对方的反过来的连接的信息，此时需要回复对方
-                            SendAck(ipcMessageContext.Ack);
-                        }
-                    }
-                    else
-                    {
-                        // 后续需要要求重发设备名
-                    }
-
-                    if (isPeerRegisterMessage)
-                    {
-                        // 收到注册消息了
-                        break;
-                    }
-                }
-            }
-
-            while (true)
-            {
-                var (success, ipcMessageContext) = await IpcMessageConverter.ReadAsync(NamedPipeServerStream,
-                    IpcConfiguration.MessageHeader,
-                    IpcConfiguration.SharedArrayPool);
-
-                if (success)
-                {
-                    var stream = new ByteListMessageStream(ipcMessageContext);
-
-                    if (IpcContext.AckManager.IsAckMessage(stream, out var ack))
-                    {
-                        IpcContext.Logger.Debug($"[{nameof(IpcServerService)}] AckReceived {ack} From {PeerName}");
-                        IpcContext.AckManager.OnAckReceived(this, new AckArgs(PeerName, ack));
-                        // 如果是收到 ack 回复了，那么只需要向 AckManager 注册
-                        Debug.Assert(ipcMessageContext.Ack.Value == IpcContext.AckUsedForReply.Value);
-                    }
-                    else
-                    {
-                        ack = ipcMessageContext.Ack;
-                        SendAck(ack);
-                        IpcServerService.OnMessageReceived(new PeerMessageArgs(PeerName, stream, ack));
-                    }
-                }
-            }
+            SendAck(e);
         }
+
+        private ServerStreamMessageConverter ServerStreamMessageConverter { set; get; } = null!;
 
         private async void SendAck(Ack receivedAck) => await SendAckAsync(receivedAck);
 

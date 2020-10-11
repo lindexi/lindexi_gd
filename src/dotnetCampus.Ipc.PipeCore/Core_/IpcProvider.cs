@@ -115,6 +115,14 @@ namespace dotnetCampus.Ipc.PipeCore
                     var peerRegisterMessage = IpcContext.PeerRegisterProvider.BuildPeerRegisterMessage(IpcContext.PipeName);
                     const string summary = nameof(SendAckAndRegisterToPeer);
 
+                    // 消息的顺序是有要求的，先发送注册消息，然后加上回复 Ack 的消息
+                    // 在收到对方的连接的时候，需要去连接对方，而在连接的时候需要有两个步骤
+                    // 1. 回复对方的连接消息，需要发送 Ack 回复
+                    // 2. 连接对方，需要发送注册消息
+                    // 以下将上面两个步骤合并为一条消息，这一条消息包含了注册消息和 Ack 回复的消息
+                    // 为什么注册消息在前面，而回复 Ack 在后面？原因是为了在解析的时候，可以先了解是哪个服务进行连接
+                    // 而且回复 Ack 需要两个信息，一个是 Ack 的值，另一个是连接的设备名。因此让注册消息在前面就能
+                    // 先读取设备名，用于后续回复 Ack 了解是哪个设备回复
                     var ackAndPeerRegisterMessage =
                         peerRegisterMessage.BuildWithCombine(summary, mergeBefore: false, new IpcBufferMessage(ackMessage));
                     await ipcClientService.WriteMessageAsync(ackAndPeerRegisterMessage);

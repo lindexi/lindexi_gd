@@ -7,6 +7,13 @@ namespace dotnetCampus.Ipc.PipeCore.Context
     /// </summary>
     class AckTask
     {
+        /// <summary>
+        /// 创建回复 Ack 的任务
+        /// </summary>
+        /// <param name="peerName"></param>
+        /// <param name="ack"></param>
+        /// <param name="task"></param>
+        /// <param name="summary"></param>
         public AckTask(string peerName, in Ack ack, TaskCompletionSource<bool> task, string summary)
         {
             PeerName = peerName;

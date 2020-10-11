@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.IO.Pipes;
 
 namespace dotnetCampus.Ipc.PipeCore.Context
@@ -14,7 +15,7 @@ namespace dotnetCampus.Ipc.PipeCore.Context
         /// <param name="peerName"></param>
         /// <param name="namedPipeServerStream"></param>
         /// <param name="ack"></param>
-        public PeerConnectedArgs(string peerName, NamedPipeServerStream namedPipeServerStream, in Ack ack)
+        public PeerConnectedArgs(string peerName, Stream namedPipeServerStream, in Ack ack)
         {
             PeerName = peerName;
             NamedPipeServerStream = namedPipeServerStream;
@@ -29,7 +30,7 @@ namespace dotnetCampus.Ipc.PipeCore.Context
         /// <summary>
         /// 用于接受对方的通讯服务，只读
         /// </summary>
-        public NamedPipeServerStream NamedPipeServerStream { get; }
+        public Stream NamedPipeServerStream { get; }
 
         /// <summary>
         /// 消息编号

@@ -50,17 +50,17 @@ namespace dotnetCampus.Ipc.PipeCore
         /// </summary>
         public event EventHandler<PeerConnectedArgs>? PeerConnected;
 
-        internal void OnMessageReceived(PeerMessageArgs e)
+        internal void OnMessageReceived(object? sender, PeerMessageArgs e)
         {
             Logger.Debug($"[{nameof(IpcServerService)}] MessageReceived PeerName={e.PeerName} {e.Ack}");
-            MessageReceived?.Invoke(this, e);
+            MessageReceived?.Invoke(sender, e);
         }
 
-        internal void OnPeerConnected(PeerConnectedArgs e)
+        internal void OnPeerConnected(object? sender, PeerConnectedArgs e)
         {
             Logger.Debug($"[{nameof(IpcServerService)}] PeerConnected PeerName={e.PeerName} {e.Ack}");
 
-            PeerConnected?.Invoke(this, e);
+            PeerConnected?.Invoke(sender, e);
         }
     }
 }
