@@ -37,5 +37,10 @@
         internal PeerRegisterProvider PeerRegisterProvider { get; } = new PeerRegisterProvider();
 
         internal ILogger Logger { get; } = null!;
+
+        /// <summary>
+        /// 规定回应 ack 的值使用的 ack 是最大值
+        /// </summary>
+        internal Ack AckUsedForReply { get; } = new Ack(ulong.MaxValue); 
     }
 }

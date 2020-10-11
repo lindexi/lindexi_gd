@@ -40,7 +40,7 @@ namespace dotnetCampus.Ipc.PipeCore
         }
 
         // ACK 0x41, 0x43, 0x4B
-        public byte[] AckHeader { get; } = { 0x41, 0x43, 0x4B };
+        public byte[] AckHeader { get; } = {0x41, 0x43, 0x4B};
 
         private object Locker => AckHeader;
 
@@ -140,8 +140,10 @@ namespace dotnetCampus.Ipc.PipeCore
         /// <param name="timeout"></param>
         /// <param name="maxRetryCount"></param>
         /// <param name="summary"></param>
+        /// <param name="logger"></param>
         /// <returns></returns>
-        internal async Task<bool> DoWillReceivedAck(Func<Ack, Task> task, string peerName, TimeSpan timeout, uint maxRetryCount, string summary)
+        internal async Task<bool> DoWillReceivedAck(Func<Ack, Task> task, string peerName, TimeSpan timeout,
+            uint maxRetryCount, string summary, ILogger logger)
         {
             for (uint i = 0; i < maxRetryCount; i++)
             {
@@ -200,7 +202,8 @@ namespace dotnetCampus.Ipc.PipeCore
                     else
                     {
                         // 理论上是找不到的
-                        throw new ArgumentException($"传入的消息的 ack 已经存在 Ack={ackTask.Ack.Value} Summary={ackTask.Summary}");
+                        throw new ArgumentException(
+                            $"传入的消息的 ack 已经存在 Ack={ackTask.Ack.Value} Summary={ackTask.Summary}");
                     }
                 }
             }

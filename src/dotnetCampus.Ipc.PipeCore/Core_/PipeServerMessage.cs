@@ -1,4 +1,5 @@
-﻿using System.IO.Pipes;
+﻿using System.Diagnostics;
+using System.IO.Pipes;
 using System.Threading.Tasks;
 using dotnetCampus.Ipc.PipeCore.Context;
 using dotnetCampus.Ipc.PipeCore.Utils;
@@ -96,9 +97,12 @@ namespace dotnetCampus.Ipc.PipeCore
                     {
                         IpcContext.Logger.Debug($"[{nameof(IpcServerService)}] AckReceived {ack} From {PeerName}");
                         IpcContext.AckManager.OnAckReceived(this, new AckArgs(PeerName, ack));
+                        // 如果是收到 ack 回复了，那么只需要向 AckManager 注册
+                        Debug.Assert(ipcMessageContext.Ack.Value == IpcContext.AckUsedForReply.Value);
                     }
                     else
                     {
+                        ack = ipcMessageContext.Ack;
                         SendAck(ack);
                         IpcServerService.OnMessageReceived(new PeerMessageArgs(PeerName, stream, ack));
                     }

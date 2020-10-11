@@ -158,7 +158,7 @@ namespace dotnetCampus.Ipc.PipeCore
         {
             await DoubleBufferTask.AddTaskAsync(async () =>
             {
-                await AckManager.DoWillReceivedAck(task, PeerName, TimeSpan.FromSeconds(3), maxRetryCount: 10, summary);
+                await AckManager.DoWillReceivedAck(task, PeerName, TimeSpan.FromSeconds(3), maxRetryCount: 10, summary,IpcContext.Logger);
             });
         }
 
@@ -172,7 +172,23 @@ namespace dotnetCampus.Ipc.PipeCore
         public async Task SendAckAsync(Ack receivedAck)
         {
             var ackMessage = AckManager.BuildAckMessage(receivedAck);
-            await WriteMessageAsync(ackMessage, 0, ackMessage.Length);
+
+            // 这里不能调用 WriteMessageAsync 方法，因为这些方法都使用了 QueueWriteAsync 方法，在这里面将会不断尝试发送信息，需要收到对方的 ack 才能完成。而作为回复 ack 消息的逻辑，如果还需要等待对方回复 ack 那么将会存在相互等待。本地回复对方的 ack 消息需要等待对方的 ack 消息，而对方的 ack 消息又需要等待本地的回复
+            await DoubleBufferTask.AddTaskAsync(async () =>
+            {
+                await IpcMessageConverter.WriteAsync
+                (
+                    NamedPipeClientStream,
+                    IpcConfiguration.MessageHeader,
+                    ack: IpcContext.AckUsedForReply,
+                    buffer: ackMessage,
+                    offset: 0,
+                    count: ackMessage.Length,
+                    summary: nameof(SendAckAsync),
+                    Logger
+                );
+                await NamedPipeClientStream.FlushAsync();
+            });
         }
     }
 }
