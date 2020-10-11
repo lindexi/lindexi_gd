@@ -8,7 +8,7 @@ namespace dotnetCampus.Ipc.PipeCore
     /// 管道服务端，用于接收消息
     /// </summary>
     /// 采用两个半工的管道做到双向通讯，这里的管道服务端用于接收
-    public class IpcServerService:IDisposable
+    public class IpcServerService : IDisposable
     {
         /// <summary>
         /// 管道服务端
