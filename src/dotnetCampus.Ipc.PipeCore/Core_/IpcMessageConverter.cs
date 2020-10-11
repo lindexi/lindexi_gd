@@ -7,29 +7,6 @@ using dotnetCampus.Ipc.PipeCore.Utils;
 
 namespace dotnetCampus.Ipc.PipeCore
 {
-    class IpcMessageResult
-    {
-        public IpcMessageResult(bool success, in IpcMessageContext ipcMessageContext = default)
-        {
-            Success = success;
-            IpcMessageContext = ipcMessageContext;
-        }
-
-        public bool Success { get; }
-        public IpcMessageContext IpcMessageContext { get; }
-
-        /// <summary>
-        /// 用于调试的信息
-        /// </summary>
-        public string? DebugText { set; get; }
-
-        public void Deconstruct(out bool success, out IpcMessageContext ipcMessageContext)
-        {
-            success = Success;
-            ipcMessageContext = IpcMessageContext;
-        }
-    }
-
     /// <summary>
     /// 消息的封包和解包代码，用于将传入的内容包装为 Ipc 通讯使用的二进制内容，或将 Ipc 通讯使用的二进制内容读取为业务端使用的内容
     /// </summary>
