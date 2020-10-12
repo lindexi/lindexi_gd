@@ -26,9 +26,13 @@ namespace dotnetCampus.Ipc.WpfDemo
             InitializeComponent();
         }
 
-        private void ServerPage_OnServerStarting(object? sender, string e)
+        private async void ServerPage_OnServerStarting(object? sender, string e)
         {
             var ipcProvider = new IpcProvider();
+
+            await Task.Delay(TimeSpan.FromSeconds(1));
+            ServerPage.Visibility = Visibility.Collapsed;
+            MainGrid.Visibility = Visibility.Visible;
         }
     }
 }

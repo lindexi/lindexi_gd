@@ -14,10 +14,14 @@
                 <RowDefinition Height="Auto"></RowDefinition>
                 <RowDefinition Height="Auto"></RowDefinition>
             </Grid.RowDefinitions>
-            <TextBlock Margin="10,10,2,10" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="60" Text="本地服务器名:"></TextBlock>
+            <TextBlock Margin="10,10,2,10" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="60" 
+                       Text="本地服务器名:"></TextBlock>
             <TextBox x:Name="ServerNameTextBox" Grid.Row="1" Margin="2,10,10,10" 
-                     HorizontalAlignment="Center" FontSize="50" Text="{Binding ElementName=Root,Path=ServerName,Mode=TwoWay}"></TextBox>
-            <Button Grid.Row="2" Margin="10,50,10,10" HorizontalAlignment="Center" Width="300" FontSize="50" Content="启动服务器" Click="Button_OnClick"></Button>
+                     HorizontalAlignment="Center" FontSize="50" 
+                     Text="{Binding ElementName=Root,Path=ServerName,Mode=TwoWay}"></TextBox>
+            <Button Grid.Row="2" Margin="10,50,10,10" HorizontalAlignment="Center" Width="300" FontSize="50" 
+                    Content="启动服务器" 
+                    Click="Button_OnClick"></Button>
         </Grid>
     </Grid>
 </UserControl>

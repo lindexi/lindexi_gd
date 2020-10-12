@@ -7,14 +7,16 @@
         mc:Ignorable="d"
         Title="dotnetCampus.Ipc.WpfDemo" Height="1000" Width="1900">
     <Grid>
-        <local:ServerPage ServerStarting="ServerPage_OnServerStarting"></local:ServerPage>
+        <local:ServerPage x:Name="ServerPage" ServerStarting="ServerPage_OnServerStarting"></local:ServerPage>
 
-        <Grid Visibility="Collapsed">
+        <Grid x:Name="MainGrid" Visibility="Collapsed">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"></RowDefinition>
                 <RowDefinition Height="Auto"></RowDefinition>
                 <RowDefinition Height="*"></RowDefinition>
             </Grid.RowDefinitions>
 
+            <Grid></Grid>
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="200"></ColumnDefinition>
