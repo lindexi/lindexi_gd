@@ -59,58 +59,65 @@ namespace dotnetCampus.Ipc.PipeCore
         {
             while (!_isDisposed)
             {
-                var ipcMessageResult = await IpcMessageConverter.ReadAsync(Stream,
-                    IpcConfiguration.MessageHeader,
-                    IpcConfiguration.SharedArrayPool);
-                var success = ipcMessageResult.Success;
-                var ipcMessageContext = ipcMessageResult.IpcMessageContext;
-                Debug.Assert(ipcMessageResult.IpcMessageCommandType != IpcMessageCommandType.Business);
-
-                if (success)
+                try
                 {
-                    var stream = new ByteListMessageStream(ipcMessageContext);
+                    var ipcMessageResult = await IpcMessageConverter.ReadAsync(Stream,
+                        IpcConfiguration.MessageHeader,
+                        IpcConfiguration.SharedArrayPool);
+                    var success = ipcMessageResult.Success;
+                    var ipcMessageContext = ipcMessageResult.IpcMessageContext;
+                    Debug.Assert(ipcMessageResult.IpcMessageCommandType != IpcMessageCommandType.Business);
 
-                    var isPeerRegisterMessage =
-                        IpcContext.PeerRegisterProvider.TryParsePeerRegisterMessage(stream, out var peerName);
-
-                    if (isPeerRegisterMessage)
+                    if (success)
                     {
-                        // ReSharper disable once MethodHasAsyncOverload
-                        PeerName = peerName;
+                        var stream = new ByteListMessageStream(ipcMessageContext);
 
-                        OnPeerConnected(new PeerConnectedArgs(peerName, Stream, ipcMessageContext.Ack));
-
-                        //SendAckAndRegisterToPeer(ipcMessageContext.Ack);
-                        //SendAck(ipcMessageContext.Ack);
-                        //// 不等待对方收到，因为对方也在等待
-                        ////await SendAckAsync(ipcMessageContext.Ack);
-                    }
-
-                    // 如果是 对方的注册消息 同时也许是回应的消息，所以不能加上 else if 判断
-                    if (IpcContext.AckManager.IsAckMessage(stream, out var ack))
-                    {
-                        // 只有作为去连接对方的时候，才会收到这个消息
-                        IpcContext.Logger.Debug($"[{nameof(IpcServerService)}] AckReceived {ack} From {PeerName}");
-                        OnAckReceived(new AckArgs(PeerName, ack));
+                        var isPeerRegisterMessage =
+                            IpcContext.PeerRegisterProvider.TryParsePeerRegisterMessage(stream, out var peerName);
 
                         if (isPeerRegisterMessage)
                         {
-                            // 这是一条本地主动去连接对方，然后收到对方的反过来的连接的信息，此时需要回复对方
-                            // 参阅 SendAckAndRegisterToPeer 方法的实现
+                            // ReSharper disable once MethodHasAsyncOverload
+                            PeerName = peerName;
+
+                            OnPeerConnected(new PeerConnectedArgs(peerName, Stream, ipcMessageContext.Ack));
+
+                            //SendAckAndRegisterToPeer(ipcMessageContext.Ack);
                             //SendAck(ipcMessageContext.Ack);
-                            OnAckRequested(ipcMessageContext.Ack);
+                            //// 不等待对方收到，因为对方也在等待
+                            ////await SendAckAsync(ipcMessageContext.Ack);
+                        }
+
+                        // 如果是 对方的注册消息 同时也许是回应的消息，所以不能加上 else if 判断
+                        if (IpcContext.AckManager.IsAckMessage(stream, out var ack))
+                        {
+                            // 只有作为去连接对方的时候，才会收到这个消息
+                            IpcContext.Logger.Debug($"[{nameof(IpcServerService)}] AckReceived {ack} From {PeerName}");
+                            OnAckReceived(new AckArgs(PeerName, ack));
+
+                            if (isPeerRegisterMessage)
+                            {
+                                // 这是一条本地主动去连接对方，然后收到对方的反过来的连接的信息，此时需要回复对方
+                                // 参阅 SendAckAndRegisterToPeer 方法的实现
+                                //SendAck(ipcMessageContext.Ack);
+                                OnAckRequested(ipcMessageContext.Ack);
+                            }
+                        }
+                        else
+                        {
+                            // 后续需要要求重发设备名
+                        }
+
+                        if (isPeerRegisterMessage)
+                        {
+                            // 收到注册消息了
+                            break;
                         }
                     }
-                    else
-                    {
-                        // 后续需要要求重发设备名
-                    }
-
-                    if (isPeerRegisterMessage)
-                    {
-                        // 收到注册消息了
-                        break;
-                    }
+                }
+                catch (Exception e)
+                {
+                    IpcContext.Logger.Error(e);
                 }
             }
         }
@@ -119,35 +126,42 @@ namespace dotnetCampus.Ipc.PipeCore
         {
             while (!_isDisposed)
             {
-                var ipcMessageResult = await IpcMessageConverter.ReadAsync(Stream,
-                    IpcConfiguration.MessageHeader,
-                    IpcConfiguration.SharedArrayPool);
-                var success = ipcMessageResult.Success;
-                var ipcMessageContext = ipcMessageResult.IpcMessageContext;
-                var ipcMessageCommandType = ipcMessageResult.IpcMessageCommandType;
-
-                if (success)
+                try
                 {
-                    var stream = new ByteListMessageStream(ipcMessageContext);
+                    var ipcMessageResult = await IpcMessageConverter.ReadAsync(Stream,
+                        IpcConfiguration.MessageHeader,
+                        IpcConfiguration.SharedArrayPool);
+                    var success = ipcMessageResult.Success;
+                    var ipcMessageContext = ipcMessageResult.IpcMessageContext;
+                    var ipcMessageCommandType = ipcMessageResult.IpcMessageCommandType;
 
-                    if (ipcMessageCommandType == IpcMessageCommandType.SendAck && IpcContext.AckManager.IsAckMessage(stream, out var ack))
+                    if (success)
                     {
-                        IpcContext.Logger.Debug($"[{nameof(IpcServerService)}] AckReceived {ack} From {PeerName}");
-                        OnAckReceived(new AckArgs(PeerName, ack));
-                        // 如果是收到 ack 回复了，那么只需要向 AckManager 注册
-                        Debug.Assert(ipcMessageContext.Ack.Value == IpcContext.AckUsedForReply.Value);
+                        var stream = new ByteListMessageStream(ipcMessageContext);
+
+                        if (ipcMessageCommandType == IpcMessageCommandType.SendAck && IpcContext.AckManager.IsAckMessage(stream, out var ack))
+                        {
+                            IpcContext.Logger.Debug($"[{nameof(IpcServerService)}] AckReceived {ack} From {PeerName}");
+                            OnAckReceived(new AckArgs(PeerName, ack));
+                            // 如果是收到 ack 回复了，那么只需要向 AckManager 注册
+                            Debug.Assert(ipcMessageContext.Ack.Value == IpcContext.AckUsedForReply.Value);
+                        }
+                        // 只有业务的才能发给上层
+                        else if(ipcMessageCommandType == IpcMessageCommandType.Business)
+                        {
+                            ack = ipcMessageContext.Ack;
+                            OnAckRequested(ack);
+                            OnMessageReceived(new PeerMessageArgs(PeerName, stream, ack));
+                        }
+                        else
+                        {
+                            // 有不能解析的信息，后续需要告诉开发
+                        }
                     }
-                    // 只有业务的才能发给上层
-                    else if(ipcMessageCommandType == IpcMessageCommandType.Business)
-                    {
-                        ack = ipcMessageContext.Ack;
-                        OnAckRequested(ack);
-                        OnMessageReceived(new PeerMessageArgs(PeerName, stream, ack));
-                    }
-                    else
-                    {
-                        // 有不能解析的信息，后续需要告诉开发
-                    }
+                }
+                catch (Exception e)
+                {
+                    IpcContext.Logger.Error(e);
                 }
             }
         }
