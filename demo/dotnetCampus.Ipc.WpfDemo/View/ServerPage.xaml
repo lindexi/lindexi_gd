@@ -8,14 +8,16 @@
              x:Name="Root"
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"></ColumnDefinition>
-            <ColumnDefinition MinWidth="200" MaxWidth="300"></ColumnDefinition>
-            <ColumnDefinition Width="Auto"></ColumnDefinition>
-        </Grid.ColumnDefinitions>
-        <TextBlock Margin="10,10,2,10" VerticalAlignment="Center" Text="本地服务器名:"></TextBlock>
-        <TextBox x:Name="ServerNameTextBox" Grid.Column="1" Margin="2,10,10,10" 
-                  Text="{Binding ElementName=Root,Path=ServerName,Mode=TwoWay}"></TextBox>
-        <Button Grid.Column="2" Margin="10,10,10,10" Content="启动服务器" Click="Button_OnClick"></Button>
+        <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+            </Grid.RowDefinitions>
+            <TextBlock Margin="10,10,2,10" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="60" Text="本地服务器名:"></TextBlock>
+            <TextBox x:Name="ServerNameTextBox" Grid.Row="1" Margin="2,10,10,10" 
+                     HorizontalAlignment="Center" FontSize="50" Text="{Binding ElementName=Root,Path=ServerName,Mode=TwoWay}"></TextBox>
+            <Button Grid.Row="2" Margin="10,50,10,10" HorizontalAlignment="Center" Width="300" FontSize="50" Content="启动服务器" Click="Button_OnClick"></Button>
+        </Grid>
     </Grid>
 </UserControl>
