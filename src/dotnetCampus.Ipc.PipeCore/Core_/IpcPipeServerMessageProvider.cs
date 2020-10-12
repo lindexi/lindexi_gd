@@ -18,7 +18,7 @@ namespace dotnetCampus.Ipc.PipeCore
         /// <summary>
         /// 被对方连接
         /// </summary>
-        private string PeerName => ServerStreamMessageConverter.PeerName;
+        private string PeerName => ServerStreamMessageReader.PeerName;
 
         /// <summary>
         /// 自身的名字
@@ -41,8 +41,8 @@ namespace dotnetCampus.Ipc.PipeCore
             //StreamMessageConverter = streamMessageConverter;
             //streamMessageConverter.Start();
 
-            var serverStreamMessageConverter = new ServerStreamMessageConverter(IpcContext, NamedPipeServerStream);
-            ServerStreamMessageConverter = serverStreamMessageConverter;
+            var serverStreamMessageConverter = new ServerStreamMessageReader(IpcContext, NamedPipeServerStream);
+            ServerStreamMessageReader = serverStreamMessageConverter;
 
             serverStreamMessageConverter.AckRequested += ServerStreamMessageConverter_AckRequested;
             serverStreamMessageConverter.AckReceived += IpcContext.AckManager.OnAckReceived;
@@ -57,7 +57,7 @@ namespace dotnetCampus.Ipc.PipeCore
             SendAck(e);
         }
 
-        private ServerStreamMessageConverter ServerStreamMessageConverter { set; get; } = null!;
+        private ServerStreamMessageReader ServerStreamMessageReader { set; get; } = null!;
 
         private async void SendAck(Ack receivedAck) => await SendAckAsync(receivedAck);
 

@@ -10,9 +10,9 @@ namespace dotnetCampus.Ipc.PipeCore
     /// <summary>
     /// 基础的数据读取
     /// </summary>
-    class ServerStreamMessageConverter : IDisposable
+    class ServerStreamMessageReader : IDisposable
     {
-        public ServerStreamMessageConverter(IpcContext ipcContext, Stream stream)
+        public ServerStreamMessageReader(IpcContext ipcContext, Stream stream)
         {
             IpcContext = ipcContext;
             Stream = stream;
@@ -172,7 +172,7 @@ namespace dotnetCampus.Ipc.PipeCore
             AckRequested?.Invoke(this, e);
         }
 
-        ~ServerStreamMessageConverter()
+        ~ServerStreamMessageReader()
         {
             Dispose(false);
         }
