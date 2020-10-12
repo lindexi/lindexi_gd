@@ -25,13 +25,6 @@ namespace dotnetCampus.Ipc.PipeCore
         /// </summary>
         public string PeerName { set; get; } = null!;
 
-        public async void Run()
-        {
-            await WaitForConnectionAsync();
-
-            await ReadMessageAsync();
-        }
-
         private IpcConfiguration IpcConfiguration => IpcContext.IpcConfiguration;
         private Stream Stream { get; }
 
@@ -54,6 +47,13 @@ namespace dotnetCampus.Ipc.PipeCore
         /// 当有对方连接时触发
         /// </summary>
         public event EventHandler<PeerConnectedArgs>? PeerConnected;
+
+        public async void Run()
+        {
+            await WaitForConnectionAsync();
+
+            await ReadMessageAsync();
+        }
 
         private async Task WaitForConnectionAsync()
         {
