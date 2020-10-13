@@ -27,7 +27,8 @@ jobs:
           git config --local user.name "github-actions-dotnet-formatter[bot]"
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -a -m 'Automated dotnet-format update'
-
+        continue-on-error: true
+        
       - name: Create Pull Request
         # if: steps.format.outputs.has-changes == 'true' # 如果有格式化，才继续
         uses: peter-evans/create-pull-request@v3
