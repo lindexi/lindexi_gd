@@ -35,7 +35,7 @@ jobs:
           git commit -a -m 'Automated dotnet-format update'
 
       - name: Create Pull Request
-        if: steps.format.outputs.has-changes == 'true' # 如果有格式化，才继续
+        # if: steps.format.outputs.has-changes == 'true' # 如果有格式化，才继续
         uses: peter-evans/create-pull-request@v3
         with:
           title: '[Bot] Automated PR to fix formatting errors'
