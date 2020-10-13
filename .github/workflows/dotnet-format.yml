@@ -1,4 +1,4 @@
-name: Daily code format check
+name: Code format check
 
 on: 
   push:
