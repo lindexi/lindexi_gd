@@ -39,6 +39,6 @@ jobs:
           committer: GitHub <noreply@github.com>
           author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           labels: t/housekeeping ♻︎
-          assignees: rmarinho,samhouts
-          reviewers: rmarinho,samhouts
+          assignees: lindexi,walterlv
+          reviewers: lindexi,walterlv
           branch: housekeeping/fix-codeformatting
