@@ -55,7 +55,7 @@ namespace dotnetCampus.Ipc.PipeCore.Context
         /// <param name="mergeBefore">将加入的内容合并到新的消息前面，为 true 合并到前面，否则合并到后面</param>
         /// <param name="ipcBufferMessageList"></param>
         /// <returns></returns>
-        public IpcBufferMessageContext BuildWithCombine(IpcMessageCommandType ipcMessageCommandType, bool mergeBefore,  params IpcBufferMessage[] ipcBufferMessageList)
+        public IpcBufferMessageContext BuildWithCombine(IpcMessageCommandType ipcMessageCommandType, bool mergeBefore, params IpcBufferMessage[] ipcBufferMessageList)
             => BuildWithCombine(Summary, ipcMessageCommandType, mergeBefore, ipcBufferMessageList);
 
         /// <summary>

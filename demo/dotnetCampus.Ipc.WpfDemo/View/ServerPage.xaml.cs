@@ -35,7 +35,7 @@ namespace dotnetCampus.Ipc.WpfDemo
         private void Button_OnClick(object sender, RoutedEventArgs e)
         {
             OnServerStarting(ServerName);
-            var button = (Button)sender;
+            var button = (Button) sender;
             button.IsEnabled = false;
             ServerNameTextBox.IsReadOnly = true;
         }
