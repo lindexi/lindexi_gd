@@ -147,7 +147,7 @@ namespace dotnetCampus.Ipc.PipeCore
                             Debug.Assert(ipcMessageContext.Ack.Value == IpcContext.AckUsedForReply.Value);
                         }
                         // 只有业务的才能发给上层
-                        else if(ipcMessageCommandType == IpcMessageCommandType.Business)
+                        else if (ipcMessageCommandType == IpcMessageCommandType.Business)
                         {
                             ack = ipcMessageContext.Ack;
                             OnAckRequested(ack);

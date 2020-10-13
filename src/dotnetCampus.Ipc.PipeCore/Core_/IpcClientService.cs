@@ -146,7 +146,7 @@ namespace dotnetCampus.Ipc.PipeCore
         {
             await DoubleBufferTask.AddTaskAsync(async () =>
             {
-                await AckManager.DoWillReceivedAck(task, PeerName, TimeSpan.FromSeconds(3), maxRetryCount: 10, summary,IpcContext.Logger);
+                await AckManager.DoWillReceivedAck(task, PeerName, TimeSpan.FromSeconds(3), maxRetryCount: 10, summary, IpcContext.Logger);
             });
         }
 

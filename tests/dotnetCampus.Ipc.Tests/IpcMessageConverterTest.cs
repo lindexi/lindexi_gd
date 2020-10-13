@@ -18,9 +18,9 @@ namespace dotnetCampus.Ipc.Tests
                 using var memoryStream = new MemoryStream();
 
                 ulong ack = 10;
-                var buffer = new byte[] {0x12, 0x12, 0x00};
-                var messageHeader = new byte[] {0x00, 0x00};
-                var breakMessageHeader = new byte[] {0x00, 0x01};
+                var buffer = new byte[] { 0x12, 0x12, 0x00 };
+                var messageHeader = new byte[] { 0x00, 0x00 };
+                var breakMessageHeader = new byte[] { 0x00, 0x01 };
 
                 await IpcMessageConverter.WriteAsync(memoryStream, messageHeader, ack, IpcMessageCommandType.Unknown,
                     buffer, 0,
@@ -42,8 +42,8 @@ namespace dotnetCampus.Ipc.Tests
 
                 var ipcConfiguration = new IpcConfiguration();
                 ulong ack = 10;
-                var buffer = new byte[] {0x12, 0x12, 0x00};
-                var messageHeader = new byte[] {0x00, 0x00};
+                var buffer = new byte[] { 0x12, 0x12, 0x00 };
+                var messageHeader = new byte[] { 0x00, 0x00 };
                 await IpcMessageConverter.WriteAsync(memoryStream, messageHeader, ack, IpcMessageCommandType.Unknown,
                     buffer, 0,
                     buffer.Length, "test", null!);
@@ -65,7 +65,7 @@ namespace dotnetCampus.Ipc.Tests
 
                 var ipcConfiguration = new IpcConfiguration();
                 ulong ack = 10;
-                var buffer = new byte[] {0x12, 0x12, 0x00};
+                var buffer = new byte[] { 0x12, 0x12, 0x00 };
                 await IpcMessageConverter.WriteAsync(memoryStream, ipcConfiguration.MessageHeader, ack,
                     IpcMessageCommandType.Unknown, buffer, 0,
                     buffer.Length, "test", null!);

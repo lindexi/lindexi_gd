@@ -40,7 +40,7 @@ namespace dotnetCampus.Ipc.PipeCore
         }
 
         // ACK 0x41, 0x43, 0x4B
-        public byte[] AckHeader { get; } = {0x41, 0x43, 0x4B};
+        public byte[] AckHeader { get; } = { 0x41, 0x43, 0x4B };
 
         private object Locker => AckHeader;
 
