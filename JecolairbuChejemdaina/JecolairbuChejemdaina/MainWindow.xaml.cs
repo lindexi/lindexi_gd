@@ -154,25 +154,6 @@ namespace JecolairbuChejemdaina
         private readonly DrawingAttributes _drawingAttributes;
     }
 
-    //public class GeometryCanvas : DrawingVisual
-    //{
-    //    public Geometry Geometry { set; get; }
-
-    //    public Brush
-
-    //    /// <summary>
-    //    ///     重新画出笔迹
-    //    /// </summary>
-    //    public void Redraw()
-    //    {
-    //        using var dc = RenderOpen();
-    //        if (Geometry != null)
-    //        {
-    //            dc.DrawGeometry();
-    //        }
-    //    }
-    //}
-
     public class VisualCanvas : FrameworkElement
     {
         protected override Visual GetVisualChild(int index)
