@@ -54,7 +54,12 @@ namespace JecolairbuChejemdaina
 
         public void CleanInk()
         {
-            foreach (var panel in RootGrid.Children.OfType<Panel>()) panel.Children.Clear();
+            var userControl = (UserControl) RootGrid.Children[0];
+
+            foreach (var panel in ((Panel) userControl.Content).Children.OfType<Panel>())
+            {
+                panel.Children.Clear();
+            }
         }
 
         private Grid[] GridList { set; get; }

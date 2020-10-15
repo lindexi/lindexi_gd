@@ -20,5 +20,10 @@ namespace JecolairbuChejemdaina
         {
             InitializeComponent();
         }
+
+        private void Button_OnClick(object sender, RoutedEventArgs e)
+        {
+            FlipDrawingCanvas.CleanInk();
+        }
     }
 }
