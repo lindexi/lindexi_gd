@@ -29,7 +29,7 @@ namespace JecolairbuChejemdaina
 
             GridList = new Grid[]
             {
-              Grid1,Grid2,Grid3,Grid4
+                Grid1, Grid2, Grid3, Grid4
             };
         }
 
@@ -80,7 +80,8 @@ namespace JecolairbuChejemdaina
         }
 
         public static readonly DependencyProperty StrokeVisualListProperty = DependencyProperty.RegisterAttached(
-            "StrokeVisualList", typeof(Dictionary<int, StrokeVisual>), typeof(MainWindow), new PropertyMetadata(default(Dictionary<int, StrokeVisual>)));
+            "StrokeVisualList", typeof(Dictionary<int, StrokeVisual>), typeof(MainWindow),
+            new PropertyMetadata(default(Dictionary<int, StrokeVisual>)));
 
         public static void SetStrokeVisualList(DependencyObject element, Dictionary<int, StrokeVisual> value)
         {
@@ -89,9 +90,8 @@ namespace JecolairbuChejemdaina
 
         public static Dictionary<int, StrokeVisual> GetStrokeVisualList(DependencyObject element)
         {
-            return (Dictionary<int, StrokeVisual>)element.GetValue(StrokeVisualListProperty);
+            return (Dictionary<int, StrokeVisual>) element.GetValue(StrokeVisualListProperty);
         }
-
     }
 
     /// <summary>
@@ -119,6 +119,7 @@ namespace JecolairbuChejemdaina
         {
             _drawingAttributes = drawingAttributes;
         }
+
         /// <summary>
         ///     设置或获取显示的笔迹
         /// </summary>
@@ -132,8 +133,8 @@ namespace JecolairbuChejemdaina
         {
             if (Stroke == null)
             {
-                var collection = new StylusPointCollection { point };
-                Stroke = new Stroke(collection) { DrawingAttributes = _drawingAttributes };
+                var collection = new StylusPointCollection {point};
+                Stroke = new Stroke(collection) {DrawingAttributes = _drawingAttributes};
             }
             else
             {
@@ -149,6 +150,7 @@ namespace JecolairbuChejemdaina
             using var dc = RenderOpen();
             Stroke.Draw(dc);
         }
+
         private readonly DrawingAttributes _drawingAttributes;
     }
 
