@@ -48,7 +48,7 @@ namespace dotnetCampus.Ipc.PipeCore
         /// <summary>
         /// 当有对方连接时触发
         /// </summary>
-        public event EventHandler<PeerConnectedArgs>? PeerConnected;
+        internal event EventHandler<PeerConnectedArgs>? PeerConnected;
 
         internal void OnMessageReceived(object? sender, PeerMessageArgs e)
         {

@@ -7,7 +7,7 @@ namespace dotnetCampus.Ipc.PipeCore.Context
     /// <summary>
     /// 对方连接的事件参数
     /// </summary>
-    public class PeerConnectedArgs : EventArgs
+    internal class PeerConnectedArgs : EventArgs
     {
         /// <summary>
         /// 创建对方连接的事件参数
