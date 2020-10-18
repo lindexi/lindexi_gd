@@ -1,46 +1,25 @@
 ﻿using System;
-using System.IO;
-using System.IO.Pipes;
 
 namespace dotnetCampus.Ipc.PipeCore.Context
 {
     /// <summary>
     /// 对方连接的事件参数
-    /// 用于在框架内部使用
     /// </summary>
-    internal class IpcInternalPeerConnectedArgs : EventArgs
+    /// 这是给上层使用的事件参数
+    public class PeerConnectedArgs : EventArgs
     {
         /// <summary>
         /// 创建对方连接的事件参数
         /// </summary>
-        /// <param name="peerName"></param>
-        /// <param name="namedPipeServerStream"></param>
-        /// <param name="ack"></param>
-        /// <param name="serverStreamMessageReader"></param>
-        internal IpcInternalPeerConnectedArgs(string peerName, Stream namedPipeServerStream, in Ack ack,
-            ServerStreamMessageReader serverStreamMessageReader)
+        /// <param name="peer"></param>
+        public PeerConnectedArgs(PeerProxy peer)
         {
-            PeerName = peerName;
-            NamedPipeServerStream = namedPipeServerStream;
-            Ack = ack;
-            ServerStreamMessageReader = serverStreamMessageReader;
+            Peer = peer;
         }
 
         /// <summary>
-        /// 对方的服务器连接名
+        /// 获取用来代表对方的属性
         /// </summary>
-        public string PeerName { get; }
-
-        /// <summary>
-        /// 用于接受对方的通讯服务，只读
-        /// </summary>
-        public Stream NamedPipeServerStream { get; }
-
-        /// <summary>
-        /// 消息编号
-        /// </summary>
-        public Ack Ack { get; }
-
-        internal ServerStreamMessageReader ServerStreamMessageReader { get; }
+        public PeerProxy Peer { get; }
     }
 }

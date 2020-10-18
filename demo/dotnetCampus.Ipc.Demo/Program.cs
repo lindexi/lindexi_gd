@@ -54,9 +54,9 @@ namespace dotnetCampus.Ipc.Demo
         private static Task? WheehakawlucearHalwahewurlaiwhair()
         {
             var ipcProvider = new IpcProvider(IpcContext.DefaultPipeName);
-            ipcProvider.PeerConnected += (sender, proxy) =>
+            ipcProvider.PeerConnected += (sender, args) =>
             {
-                Console.WriteLine($"连接上{proxy.PeerName}");
+                Console.WriteLine($"连接上{args.Peer.PeerName}");
             };
             return ipcProvider.StartServer();
         }

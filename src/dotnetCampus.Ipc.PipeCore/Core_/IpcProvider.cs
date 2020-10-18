@@ -139,14 +139,14 @@ namespace dotnetCampus.Ipc.PipeCore
                 }
 
                 // 通知有其他客户端连接过来
-                PeerConnected?.Invoke(this, peerProxy);
+                PeerConnected?.Invoke(this, new PeerConnectedArgs(peerProxy));
             }
         }
 
         /// <summary>
         /// 本机作为服务端，有对方连接过来时触发
         /// </summary>
-        public event EventHandler<PeerProxy>? PeerConnected;
+        public event EventHandler<PeerConnectedArgs>? PeerConnected;
 
         /// <summary>
         /// 连接其他客户端
