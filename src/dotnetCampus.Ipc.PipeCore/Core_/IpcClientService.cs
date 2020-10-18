@@ -15,7 +15,7 @@ namespace dotnetCampus.Ipc.PipeCore
     /// 管道的客户端，用于发送消息
     /// </summary>
     /// 采用两个半工的管道做到双向通讯，这里的管道客户端用于发送
-    public class IpcClientService
+    public class IpcClientService : IMessageWriter
     {
         /// <summary>
         /// 连接其他端，用来发送
@@ -182,6 +182,4 @@ namespace dotnetCampus.Ipc.PipeCore
             });
         }
     }
-
-
 }

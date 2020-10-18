@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
 using dotnetCampus.Ipc.PipeCore.Context;
+using dotnetCampus.Ipc.PipeCore.Utils;
 
 namespace dotnetCampus.Ipc.PipeCore
 {
@@ -14,6 +15,7 @@ namespace dotnetCampus.Ipc.PipeCore
         {
             PeerName = peerName;
             IpcClientService = ipcClientService;
+            IpcMessageWriter = new IpcMessageWriter(ipcClientService);
         }
 
         internal PeerProxy(string peerName, IpcClientService ipcClientService, IpcInternalPeerConnectedArgs ipcInternalPeerConnectedArgs) :
@@ -38,7 +40,13 @@ namespace dotnetCampus.Ipc.PipeCore
         /// <summary>
         /// 用于写入数据
         /// </summary>
-        public IpcClientService IpcClientService { get; }
+        public IpcMessageWriter IpcMessageWriter { get; }
+
+        /// <summary>
+        /// 表示作为客户端和对方连接
+        /// </summary>
+        /// 框架内使用
+        internal IpcClientService IpcClientService { get; }
 
         /// <summary>
         /// 获取是否连接完成，也就是可以读取，可以发送
