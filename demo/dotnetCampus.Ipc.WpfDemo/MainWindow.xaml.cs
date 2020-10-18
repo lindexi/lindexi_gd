@@ -24,6 +24,17 @@ namespace dotnetCampus.Ipc.WpfDemo
         public MainWindow()
         {
             InitializeComponent();
+
+            Loaded += MainWindow_Loaded;
+        }
+
+        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            for (int i = 0; i < int.MaxValue; i++)
+            {
+                await Task.Delay(100);
+                Log(i.ToString());
+            }
         }
 
         private async void ServerPage_OnServerStarting(object? sender, string e)
@@ -33,6 +44,21 @@ namespace dotnetCampus.Ipc.WpfDemo
             await Task.Delay(TimeSpan.FromSeconds(1));
             ServerPage.Visibility = Visibility.Collapsed;
             MainGrid.Visibility = Visibility.Visible;
+
+            ServerNameTextBox.Text = e;
+        }
+
+        private void Log(string message)
+        {
+            LogTextBox.Text += message + "\r\n";
+            if (LogTextBox.Text.Length > 2000)
+            {
+                LogTextBox.Text = LogTextBox.Text.Substring(1000);
+            }
+
+            LogTextBox.SelectionStart = LogTextBox.Text.Length - 1;
+            LogTextBox.SelectionLength = 0;
+            LogTextBox.ScrollToEnd();
         }
     }
 }
