@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using dotnetCampus.Ipc.PipeCore.Context;
 using dotnetCampus.Ipc.PipeCore.Utils;
@@ -28,6 +29,12 @@ namespace dotnetCampus.Ipc.PipeCore
         private ILogger Logger => IpcContext.Logger;
 
         /// <summary>
+        /// 用于解决对象被回收
+        /// </summary>
+        private List<IpcPipeServerMessageProvider> IpcPipeServerMessageProviderList { get; } =
+            new List<IpcPipeServerMessageProvider>();
+
+        /// <summary>
         /// 启动服务
         /// </summary>
         /// <returns></returns>
@@ -36,6 +43,7 @@ namespace dotnetCampus.Ipc.PipeCore
             while (!_isDisposed)
             {
                 var pipeServerMessage = new IpcPipeServerMessageProvider(IpcContext, this);
+                IpcPipeServerMessageProviderList.Add(pipeServerMessage);
 
                 await pipeServerMessage.Start();
             }
@@ -71,6 +79,11 @@ namespace dotnetCampus.Ipc.PipeCore
             }
 
             _isDisposed = true;
+
+            foreach (var ipcPipeServerMessageProvider in IpcPipeServerMessageProviderList)
+            {
+                ipcPipeServerMessageProvider.Dispose();
+            }
         }
 
         private bool _isDisposed;
