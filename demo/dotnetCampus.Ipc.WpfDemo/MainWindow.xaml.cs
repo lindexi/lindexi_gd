@@ -27,10 +27,10 @@ namespace dotnetCampus.Ipc.WpfDemo
 
         }
 
-        private async void ServerPage_OnServerStarting(object? sender, string e)
+        private void ServerPage_OnServerStarting(object? sender, string e)
         {
             var ipcProvider = new IpcProvider(e);
-            await ipcProvider.StartServer();
+            _ = ipcProvider.StartServer();
             Log($"Start Server Name={e}");
 
             ServerPage.Visibility = Visibility.Collapsed;
@@ -50,6 +50,11 @@ namespace dotnetCampus.Ipc.WpfDemo
             LogTextBox.SelectionStart = LogTextBox.Text.Length - 1;
             LogTextBox.SelectionLength = 0;
             LogTextBox.ScrollToEnd();
+        }
+
+        private void AddConnectButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            
         }
     }
 }

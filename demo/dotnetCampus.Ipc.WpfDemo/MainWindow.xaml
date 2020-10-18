@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:dotnetCampus.Ipc.WpfDemo"
-        mc:Ignorable="d"
+        mc:Ignorable="d" WindowState="Maximized"
         Title="dotnetCampus.Ipc.WpfDemo" Height="1000" Width="1900">
     <Grid>
         <local:ServerPage x:Name="ServerPage" ServerStarting="ServerPage_OnServerStarting"></local:ServerPage>
@@ -25,7 +25,6 @@
                     <TextBlock Text="本服务器名："></TextBlock>
                     <TextBox x:Name="ServerNameTextBox" Grid.Column="1" IsReadOnly="True" MaxWidth="300" HorizontalAlignment="Left"></TextBox>
                 </Grid>
-                
             </Grid>
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
@@ -33,7 +32,14 @@
                     <ColumnDefinition></ColumnDefinition>
                 </Grid.ColumnDefinitions>
                 <Grid>
-                    <Border Background="Gray"></Border>
+                    <Grid.RowDefinitions>
+                        <RowDefinition></RowDefinition>
+                        <RowDefinition Height="Auto"></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <ListView x:Name="ConnectedPeerListView" Background="#A2A2A2">
+                     
+                    </ListView>
+                    <Button x:Name="AddConnectButton" Grid.Row="1" Margin="10,10,10,10" Content="+" Click="AddConnectButton_OnClick"></Button>
                 </Grid>
                 <Grid Grid.Column="1">
                     <Grid.RowDefinitions>
@@ -42,6 +48,7 @@
                     </Grid.RowDefinitions>
                     <Grid>
                         <Border Background="#A6A6A6"></Border>
+                        <ContentControl x:Name="MainPanelContentControl"></ContentControl>
                     </Grid>
                     <Grid Grid.Row="1" Margin="10,10,10,10">
                         <TextBox x:Name="LogTextBox" TextWrapping="Wrap" AcceptsReturn="True" ></TextBox>
