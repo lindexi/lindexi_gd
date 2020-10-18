@@ -5,10 +5,11 @@ using dotnetCampus.Ipc.PipeCore.Context;
 
 namespace dotnetCampus.Ipc.PipeCore
 {
+    /// <summary>
+    /// 用于表示远程的对方
+    /// </summary>
     public class PeerProxy
     {
-        public string PeerName { get; }
-
         internal PeerProxy(string peerName, IpcClientService ipcClientService)
         {
             PeerName = peerName;
@@ -21,15 +22,27 @@ namespace dotnetCampus.Ipc.PipeCore
             Update(peerConnectedArgs);
         }
 
-        internal TaskCompletionSource<bool> WaitForFinishedTaskCompletionSource { get; } = new TaskCompletionSource<bool>();
+        /// <summary>
+        /// 对方的服务器名
+        /// </summary>
+        public string PeerName { get; }
+
+        internal TaskCompletionSource<bool> WaitForFinishedTaskCompletionSource { get; } =
+            new TaskCompletionSource<bool>();
 
         /// <summary>
         /// 当收到消息时触发
         /// </summary>
         public event EventHandler<PeerMessageArgs>? MessageReceived;
 
+        /// <summary>
+        /// 用于写入数据
+        /// </summary>
         public IpcClientService IpcClientService { get; }
 
+        /// <summary>
+        /// 获取是否连接完成，也就是可以读取，可以发送
+        /// </summary>
         public bool IsConnectedFinished { get; private set; }
 
         internal void Update(PeerConnectedArgs peerConnectedArgs)
@@ -45,7 +58,6 @@ namespace dotnetCampus.Ipc.PipeCore
 
             if (WaitForFinishedTaskCompletionSource.TrySetResult(true))
             {
-
             }
             else
             {

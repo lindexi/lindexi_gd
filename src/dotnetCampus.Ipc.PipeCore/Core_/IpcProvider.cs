@@ -143,6 +143,9 @@ namespace dotnetCampus.Ipc.PipeCore
             }
         }
 
+        /// <summary>
+        /// 本机作为服务端，有对方连接过来时触发
+        /// </summary>
         public event EventHandler<PeerProxy>? PeerConnected;
 
         /// <summary>
@@ -185,7 +188,5 @@ namespace dotnetCampus.Ipc.PipeCore
 
             return peerProxy;
         }
-
-
     }
 }
