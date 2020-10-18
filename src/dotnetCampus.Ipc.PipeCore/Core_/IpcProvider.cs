@@ -172,8 +172,8 @@ namespace dotnetCampus.Ipc.PipeCore
             else
             {
                 // 这里无视多次加入，这里的多线程问题也可以忽略
-
-                var task = StartServer();
+                // 不需要等待服务器有连接
+                _ = StartServer();
 
                 var ipcClientService = new IpcClientService(IpcContext, peerName);
 
@@ -181,8 +181,6 @@ namespace dotnetCampus.Ipc.PipeCore
                 PeerManager.TryAdd(peerProxy);
 
                 await ipcClientService.Start();
-
-                await task;
             }
 
             return peerProxy;

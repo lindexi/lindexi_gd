@@ -48,7 +48,7 @@ namespace dotnetCampus.Ipc.Demo
 
             };
             var peer = await ipcProvider.ConnectToPeerAsync(IpcContext.DefaultPipeName);
-            Console.WriteLine(peer.PeerName);
+            Console.WriteLine($"连接上{peer.PeerName}");
         }
 
         private static Task? WheehakawlucearHalwahewurlaiwhair()
@@ -56,7 +56,7 @@ namespace dotnetCampus.Ipc.Demo
             var ipcProvider = new IpcProvider(IpcContext.DefaultPipeName);
             ipcProvider.PeerConnected += (sender, proxy) =>
             {
-
+                Console.WriteLine($"连接上{proxy.PeerName}");
             };
             return ipcProvider.StartServer();
         }

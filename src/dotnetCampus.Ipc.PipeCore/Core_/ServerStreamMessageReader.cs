@@ -139,7 +139,7 @@ namespace dotnetCampus.Ipc.PipeCore
                     {
                         var stream = new ByteListMessageStream(ipcMessageContext);
 
-                        if (ipcMessageCommandType == IpcMessageCommandType.SendAck && IpcContext.AckManager.IsAckMessage(stream, out var ack))
+                        if (ipcMessageCommandType.HasFlag(IpcMessageCommandType.SendAck) && IpcContext.AckManager.IsAckMessage(stream, out var ack))
                         {
                             IpcContext.Logger.Debug($"[{nameof(IpcServerService)}] AckReceived {ack} From {PeerName}");
                             OnAckReceived(new AckArgs(PeerName, ack));
@@ -156,6 +156,8 @@ namespace dotnetCampus.Ipc.PipeCore
                         else
                         {
                             // 有不能解析的信息，后续需要告诉开发
+                            // 依然回复一条 Ack 消息给对方，让对方不用重复发送
+                            OnAckRequested(ipcMessageContext.Ack);
                         }
                     }
                 }
