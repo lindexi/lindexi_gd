@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.IO;
+using System.IO.Pipes;
 using System.Threading.Tasks;
 using dotnetCampus.Ipc.PipeCore.Context;
 
@@ -32,14 +33,12 @@ namespace dotnetCampus.Ipc.PipeCore
         }
 
         private IpcContext IpcContext { get; }
+        private PeerManager PeerManager { get; } = new PeerManager();
 
         /// <summary>
         /// 开启的管道服务端，用于接收消息
         /// </summary>
         public IpcServerService IpcServerService { private set; get; } = null!;
-
-        internal ConcurrentDictionary<string, IpcClientService> ConnectedServerManagerList { get; } =
-            new ConcurrentDictionary<string, IpcClientService>();
 
         /// <summary>
         /// 启动服务，启动之后将可以被对方连接。此方法几乎不会返回
@@ -53,13 +52,8 @@ namespace dotnetCampus.Ipc.PipeCore
             IpcServerService = ipcServerService;
 
             ipcServerService.PeerConnected += NamedPipeServerStreamPoolPeerConnected;
-            ipcServerService.MessageReceived += NamedPipeServerStreamPool_MessageReceived;
 
             await ipcServerService.Start();
-        }
-
-        private void NamedPipeServerStreamPool_MessageReceived(object? sender, PeerMessageArgs e)
-        {
         }
 
         /// <summary>
@@ -69,20 +63,24 @@ namespace dotnetCampus.Ipc.PipeCore
         /// <param name="e"></param>
         private async void NamedPipeServerStreamPoolPeerConnected(object? sender, PeerConnectedArgs e)
         {
-            // 也许是服务器连接
-            if (ConnectedServerManagerList.TryGetValue(e.PeerName, out _))
+            // 也许是对方反过来连接
+            if (PeerManager.ConnectedServerManagerList.TryGetValue(e.PeerName, out var peerProxy))
             {
+                peerProxy.Update(e);
             }
             else
             {
                 // 其他客户端连接，需要反过来连接对方的服务器端
-                await ConnectBackToPeer(e.PeerName, e.Ack);
+                await ConnectBackToPeer(e);
             }
         }
 
-        private async Task ConnectBackToPeer(string peerName, Ack receivedAck)
+        private async Task ConnectBackToPeer(PeerConnectedArgs e)
         {
-            if (ConnectedServerManagerList.TryGetValue(peerName, out _))
+            var peerName = e.PeerName;
+            var receivedAck = e.Ack;
+
+            if (PeerManager.ConnectedServerManagerList.TryGetValue(peerName, out _))
             {
                 // 预期不会进入此分支，也就是之前没有连接过才对
                 Debug.Assert(false, "对方连接之前没有记录对方");
@@ -91,15 +89,6 @@ namespace dotnetCampus.Ipc.PipeCore
             {
                 // 无须再次启动本地的服务器端，因为有对方连接过来，此时一定开启了本地的服务器端
                 var ipcClientService = new IpcClientService(IpcContext, peerName);
-                if (ConnectedServerManagerList.TryAdd(peerName, ipcClientService))
-                {
-                    // 理论上会进入此分支，除非是此时收到了多次的发送
-                }
-                else
-                {
-                    // 后续需要处理，并发收到对方的多次连接
-                    Debug.Assert(false, "对方的连接并发进入，此时也许会存在多次重复连接对方的服务器端");
-                }
 
                 // 此时不需要向对方注册，因为对方知道本地的存在，是对方主动连接本地
                 var shouldRegisterToPeer = false;
@@ -129,8 +118,45 @@ namespace dotnetCampus.Ipc.PipeCore
                             mergeBefore: false,
                             new IpcBufferMessage(ackMessage));
                     await ipcClientService.WriteMessageAsync(ackAndPeerRegisterMessage);
+
+                    // 此时就建立完成了链接
+                    CreatePeerProxy(ipcClientService);
                 }
             }
+
+            void CreatePeerProxy(IpcClientService ipcClientService)
+            {
+                var peerProxy = new PeerProxy(e.PeerName, ipcClientService, e);
+
+                if (PeerManager.TryAdd(peerProxy))
+                {
+                    // 理论上会进入此分支，除非是此时收到了多次的发送
+                }
+                else
+                {
+                    // 后续需要处理，并发收到对方的多次连接
+                    Debug.Assert(false, "对方的连接并发进入，此时也许会存在多次重复连接对方的服务器端");
+                }
+
+                // 通知有其他客户端连接过来
+                PeerConnected?.Invoke(this, peerProxy);
+            }
+        }
+
+        public event EventHandler<PeerProxy>? PeerConnected;
+
+        /// <summary>
+        /// 连接其他客户端
+        /// </summary>
+        /// <param name="peerName">对方</param>
+        /// <returns></returns>
+        public async Task<PeerProxy> ConnectToPeerAsync(string peerName)
+        {
+            var peerProxy = await GetOrCreatePeerProxyAsync(peerName);
+
+            await PeerManager.WaitForPeerConnectFinishedAsync(peerProxy);
+
+            return peerProxy;
         }
 
         /// <summary>
@@ -138,9 +164,9 @@ namespace dotnetCampus.Ipc.PipeCore
         /// </summary>
         /// <param name="peerName">对方</param>
         /// <returns></returns>
-        public async Task<IpcClientService> ConnectPeer(string peerName)
+        internal async Task<PeerProxy> GetOrCreatePeerProxyAsync(string peerName)
         {
-            if (ConnectedServerManagerList.TryGetValue(peerName, out var ipcClientService))
+            if (PeerManager.ConnectedServerManagerList.TryGetValue(peerName, out var peerProxy))
             {
             }
             else
@@ -149,18 +175,19 @@ namespace dotnetCampus.Ipc.PipeCore
 
                 var task = StartServer();
 
-                ipcClientService = new IpcClientService(IpcContext, peerName);
+                var ipcClientService = new IpcClientService(IpcContext, peerName);
 
-                if (ConnectedServerManagerList.TryAdd(peerName, ipcClientService))
-                {
-                }
+                peerProxy = new PeerProxy(peerName, ipcClientService);
+                PeerManager.TryAdd(peerProxy);
 
                 await ipcClientService.Start();
 
                 await task;
             }
 
-            return ipcClientService;
+            return peerProxy;
         }
+
+
     }
 }
