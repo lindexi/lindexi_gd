@@ -31,8 +31,8 @@ namespace dotnetCampus.Ipc.WpfDemo
         {
             var ipcProvider = new IpcProvider(e);
             await ipcProvider.StartServer();
+            Log($"Start Server Name={e}");
 
-            await Task.Delay(TimeSpan.FromSeconds(1));
             ServerPage.Visibility = Visibility.Collapsed;
             MainGrid.Visibility = Visibility.Visible;
 
