@@ -42,7 +42,7 @@ namespace dotnetCampus.Ipc.PipeCore
             new ConcurrentDictionary<string, IpcClientService>();
 
         /// <summary>
-        /// 启动服务，启动之后将可以被对方连接
+        /// 启动服务，启动之后将可以被对方连接。此方法几乎不会返回
         /// </summary>
         /// <returns></returns>
         public async Task StartServer()
