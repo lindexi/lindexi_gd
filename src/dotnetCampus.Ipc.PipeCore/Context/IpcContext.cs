@@ -15,17 +15,20 @@
         /// </summary>
         /// <param name="ipcProvider"></param>
         /// <param name="pipeName">管道名，也将被做来作为服务器名或当前服务名</param>
-        public IpcContext(IpcProvider ipcProvider, string pipeName)
+        /// <param name="ipcConfiguration"></param>
+        public IpcContext(IpcProvider ipcProvider, string pipeName, IpcConfiguration? ipcConfiguration = null)
         {
             IpcProvider = ipcProvider;
             PipeName = pipeName;
 
             AckManager = new AckManager(this);
+
+            IpcConfiguration = ipcConfiguration ?? new IpcConfiguration();
         }
 
         internal AckManager AckManager { get; }
 
-        internal IpcConfiguration IpcConfiguration { get; set; } = new IpcConfiguration();
+        internal IpcConfiguration IpcConfiguration { get; }
 
         internal IpcProvider IpcProvider { get; }
 

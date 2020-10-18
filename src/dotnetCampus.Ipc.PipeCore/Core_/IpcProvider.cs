@@ -25,9 +25,10 @@ namespace dotnetCampus.Ipc.PipeCore
         /// 创建对等通讯
         /// </summary>
         /// <param name="pipeName">本地服务名，将作为管道名，管道服务端名</param>
-        public IpcProvider(string pipeName)
+        /// <param name="ipcConfiguration"></param>
+        public IpcProvider(string pipeName, IpcConfiguration? ipcConfiguration = null)
         {
-            IpcContext = new IpcContext(this, pipeName);
+            IpcContext = new IpcContext(this, pipeName, ipcConfiguration);
         }
 
         private IpcContext IpcContext { get; }
