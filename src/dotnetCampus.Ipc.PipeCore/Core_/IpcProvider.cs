@@ -45,7 +45,7 @@ namespace dotnetCampus.Ipc.PipeCore
         /// 启动服务，启动之后将可以被对方连接。此方法几乎不会返回
         /// </summary>
         /// <returns></returns>
-        public async Task StartServer()
+        public async void StartServer()
         {
             if (IpcServerService != null) return;
 
@@ -176,8 +176,7 @@ namespace dotnetCampus.Ipc.PipeCore
             else
             {
                 // 这里无视多次加入，这里的多线程问题也可以忽略
-                // 不需要等待服务器有连接
-                _ = StartServer();
+                StartServer();
 
                 var ipcClientService = new IpcClientService(IpcContext, peerName);
 

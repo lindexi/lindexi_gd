@@ -51,14 +51,14 @@ namespace dotnetCampus.Ipc.Demo
             Console.WriteLine($"连接上{peer.PeerName}");
         }
 
-        private static Task? WheehakawlucearHalwahewurlaiwhair()
+        private static void WheehakawlucearHalwahewurlaiwhair()
         {
             var ipcProvider = new IpcProvider(IpcContext.DefaultPipeName);
             ipcProvider.PeerConnected += (sender, args) =>
             {
                 Console.WriteLine($"连接上{args.Peer.PeerName}");
             };
-            return ipcProvider.StartServer();
+            ipcProvider.StartServer();
         }
 
         //private static async Task WhejeewukawBalbejelnewearfe()
