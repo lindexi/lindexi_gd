@@ -16,10 +16,10 @@ namespace dotnetCampus.Ipc.PipeCore
             IpcClientService = ipcClientService;
         }
 
-        internal PeerProxy(string peerName, IpcClientService ipcClientService, PeerConnectedArgs peerConnectedArgs) :
+        internal PeerProxy(string peerName, IpcClientService ipcClientService, IpcInternalPeerConnectedArgs ipcInternalPeerConnectedArgs) :
             this(peerName, ipcClientService)
         {
-            Update(peerConnectedArgs);
+            Update(ipcInternalPeerConnectedArgs);
         }
 
         /// <summary>
@@ -45,11 +45,11 @@ namespace dotnetCampus.Ipc.PipeCore
         /// </summary>
         public bool IsConnectedFinished { get; private set; }
 
-        internal void Update(PeerConnectedArgs peerConnectedArgs)
+        internal void Update(IpcInternalPeerConnectedArgs ipcInternalPeerConnectedArgs)
         {
-            Debug.Assert(peerConnectedArgs.PeerName == PeerName);
+            Debug.Assert(ipcInternalPeerConnectedArgs.PeerName == PeerName);
 
-            var serverStreamMessageReader = peerConnectedArgs.ServerStreamMessageReader;
+            var serverStreamMessageReader = ipcInternalPeerConnectedArgs.ServerStreamMessageReader;
 
             serverStreamMessageReader.MessageReceived -= ServerStreamMessageReader_MessageReceived;
             serverStreamMessageReader.MessageReceived += ServerStreamMessageReader_MessageReceived;

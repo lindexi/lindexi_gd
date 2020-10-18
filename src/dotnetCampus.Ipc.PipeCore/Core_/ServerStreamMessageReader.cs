@@ -46,7 +46,7 @@ namespace dotnetCampus.Ipc.PipeCore
         /// <summary>
         /// 当有对方连接时触发
         /// </summary>
-        public event EventHandler<PeerConnectedArgs>? PeerConnected;
+        public event EventHandler<IpcInternalPeerConnectedArgs>? PeerConnected;
 
         public async void Run()
         {
@@ -80,7 +80,7 @@ namespace dotnetCampus.Ipc.PipeCore
                             // ReSharper disable once MethodHasAsyncOverload
                             PeerName = peerName;
 
-                            OnPeerConnected(new PeerConnectedArgs(peerName, Stream, ipcMessageContext.Ack,this));
+                            OnPeerConnected(new IpcInternalPeerConnectedArgs(peerName, Stream, ipcMessageContext.Ack,this));
 
                             //SendAckAndRegisterToPeer(ipcMessageContext.Ack);
                             //SendAck(ipcMessageContext.Ack);
@@ -178,7 +178,7 @@ namespace dotnetCampus.Ipc.PipeCore
             MessageReceived?.Invoke(this, e);
         }
 
-        private void OnPeerConnected(PeerConnectedArgs e)
+        private void OnPeerConnected(IpcInternalPeerConnectedArgs e)
         {
             PeerConnected?.Invoke(this, e);
         }

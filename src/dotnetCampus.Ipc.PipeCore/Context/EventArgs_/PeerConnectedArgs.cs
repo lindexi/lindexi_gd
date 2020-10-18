@@ -6,8 +6,9 @@ namespace dotnetCampus.Ipc.PipeCore.Context
 {
     /// <summary>
     /// 对方连接的事件参数
+    /// 用于在框架内部使用
     /// </summary>
-    internal class PeerConnectedArgs : EventArgs
+    internal class IpcInternalPeerConnectedArgs : EventArgs
     {
         /// <summary>
         /// 创建对方连接的事件参数
@@ -16,7 +17,7 @@ namespace dotnetCampus.Ipc.PipeCore.Context
         /// <param name="namedPipeServerStream"></param>
         /// <param name="ack"></param>
         /// <param name="serverStreamMessageReader"></param>
-        internal PeerConnectedArgs(string peerName, Stream namedPipeServerStream, in Ack ack,
+        internal IpcInternalPeerConnectedArgs(string peerName, Stream namedPipeServerStream, in Ack ack,
             ServerStreamMessageReader serverStreamMessageReader)
         {
             PeerName = peerName;

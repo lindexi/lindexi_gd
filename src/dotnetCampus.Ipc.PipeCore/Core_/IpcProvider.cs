@@ -61,7 +61,7 @@ namespace dotnetCampus.Ipc.PipeCore
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private async void NamedPipeServerStreamPoolPeerConnected(object? sender, PeerConnectedArgs e)
+        private async void NamedPipeServerStreamPoolPeerConnected(object? sender, IpcInternalPeerConnectedArgs e)
         {
             // 也许是对方反过来连接
             if (PeerManager.ConnectedServerManagerList.TryGetValue(e.PeerName, out var peerProxy))
@@ -75,7 +75,7 @@ namespace dotnetCampus.Ipc.PipeCore
             }
         }
 
-        private async Task ConnectBackToPeer(PeerConnectedArgs e)
+        private async Task ConnectBackToPeer(IpcInternalPeerConnectedArgs e)
         {
             var peerName = e.PeerName;
             var receivedAck = e.Ack;
