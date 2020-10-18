@@ -15,14 +15,11 @@ namespace dotnetCampus.Ipc.PipeCore.Context
         /// <param name="peerName"></param>
         /// <param name="namedPipeServerStream"></param>
         /// <param name="ack"></param>
-        /// <param name="serverStreamMessageReader"></param>
-        internal PeerConnectedArgs(string peerName, Stream namedPipeServerStream, in Ack ack,
-            ServerStreamMessageReader serverStreamMessageReader)
+        public PeerConnectedArgs(string peerName, Stream namedPipeServerStream, in Ack ack)
         {
             PeerName = peerName;
             NamedPipeServerStream = namedPipeServerStream;
             Ack = ack;
-            ServerStreamMessageReader = serverStreamMessageReader;
         }
 
         /// <summary>
@@ -39,7 +36,5 @@ namespace dotnetCampus.Ipc.PipeCore.Context
         /// 消息编号
         /// </summary>
         public Ack Ack { get; }
-
-        internal ServerStreamMessageReader ServerStreamMessageReader { get; }
     }
 }

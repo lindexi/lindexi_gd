@@ -65,8 +65,7 @@ namespace dotnetCampus.Ipc.PipeCore
         {
             IpcContext.Logger.Debug($"[{nameof(IpcServerService)}] SendAck {receivedAck} to {PeerName}");
             var ipcProvider = IpcContext.IpcProvider;
-            var peerProxy = await ipcProvider.GetOrCreatePeerProxyAsync(PeerName);
-            var ipcClient = peerProxy.IpcClientService;
+            var ipcClient = await ipcProvider.ConnectPeer(PeerName);
             await ipcClient.SendAckAsync(receivedAck);
         }
     }
