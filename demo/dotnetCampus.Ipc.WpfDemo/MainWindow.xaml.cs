@@ -54,7 +54,7 @@ namespace dotnetCampus.Ipc.WpfDemo
 
         private void AddConnectButton_OnClick(object sender, RoutedEventArgs e)
         {
-            
+
         }
     }
 }
