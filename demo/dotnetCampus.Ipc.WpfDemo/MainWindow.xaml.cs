@@ -25,16 +25,6 @@ namespace dotnetCampus.Ipc.WpfDemo
         {
             InitializeComponent();
 
-            Loaded += MainWindow_Loaded;
-        }
-
-        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
-        {
-            for (int i = 0; i < int.MaxValue; i++)
-            {
-                await Task.Delay(100);
-                Log(i.ToString());
-            }
         }
 
         private async void ServerPage_OnServerStarting(object? sender, string e)
