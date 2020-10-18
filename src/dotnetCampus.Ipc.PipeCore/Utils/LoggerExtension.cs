@@ -1,6 +1,7 @@
 ﻿using System;
+using dotnetCampus.Ipc.PipeCore.Context;
 
-namespace dotnetCampus.Ipc.PipeCore.Context
+namespace dotnetCampus.Ipc.PipeCore.Utils
 {
     internal static class LoggerExtension
     {
