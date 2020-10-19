@@ -1,10 +1,10 @@
 name: Code format check
+# 代码格式化机器人，详细请看 [dotnet 基于 dotnet format 的 GitHub Action 自动代码格式化机器人](https://blog.lindexi.com/post/dotnet-%E5%9F%BA%E4%BA%8E-dotnet-format-%E7%9A%84-GitHub-Action-%E8%87%AA%E5%8A%A8%E4%BB%A3%E7%A0%81%E6%A0%BC%E5%BC%8F%E5%8C%96%E6%9C%BA%E5%99%A8%E4%BA%BA.html )
 
 on: 
   push:
     branches: 
       - master
-      - interprocesscommunication
 jobs:
   dotnet-format:
     runs-on: windows-latest
@@ -14,6 +14,12 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: ${{ github.head_ref }}
+      
+      - name: Install dotnetCampus.EncodingNormalior
+        run: dotnet tool update -g dotnetCampus.EncodingNormalior
+
+      - name: Fix encoding
+        run: EncodingNormalior -f . --TryFix true
 
       - name: Install dotnet-format
         run: dotnet tool install -g dotnet-format
