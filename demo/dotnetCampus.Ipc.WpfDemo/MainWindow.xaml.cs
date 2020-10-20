@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -27,11 +28,21 @@ namespace dotnetCampus.Ipc.WpfDemo
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = this;
 
             var options = dotnetCampus.Cli.CommandLine.Parse(Environment.GetCommandLineArgs()).As<Options>();
             if (!string.IsNullOrEmpty(options.ServerName))
             {
                 StartServer(options.ServerName);
+
+                if (!string.IsNullOrEmpty(options.PeerName))
+                {
+                    Task.Run(async () =>
+                    {
+                        var peer = await IpcProvider.ConnectToPeerAsync(options.PeerName);
+                        AddPeer(peer);
+                    });
+                }
             }
         }
 
@@ -44,6 +55,9 @@ namespace dotnetCampus.Ipc.WpfDemo
         {
             var ipcProvider = new IpcProvider(serverName);
             ipcProvider.StartServer();
+            ipcProvider.PeerConnected += IpcProvider_PeerConnected;
+            IpcProvider = ipcProvider;
+
             Log($"Start Server Name={serverName}");
 
             ServerPage.Visibility = Visibility.Collapsed;
@@ -52,9 +66,25 @@ namespace dotnetCampus.Ipc.WpfDemo
             ServerNameTextBox.Text = serverName;
         }
 
+        private void IpcProvider_PeerConnected(object? sender, PipeCore.Context.PeerConnectedArgs e)
+        {
+            AddPeer(e.Peer);
+        }
+
+        private void AddPeer(PeerProxy peer)
+        {
+            Dispatcher.InvokeAsync(() =>
+            {
+                Log($"收到 {peer.PeerName} 连接");
+                ConnectedPeerModelList.Add(new ConnectedPeerModel(peer));
+            });
+        }
+
+        private IpcProvider IpcProvider { set; get; } = null!;
+
         private void Log(string message)
         {
-            LogTextBox.Text += message + "\r\n";
+            LogTextBox.Text += DateTime.Now.ToString("hh:mm:ss.fff") + " " + message + "\r\n";
             if (LogTextBox.Text.Length > 2000)
             {
                 LogTextBox.Text = LogTextBox.Text.Substring(1000);
@@ -78,9 +108,12 @@ namespace dotnetCampus.Ipc.WpfDemo
                 }
 
                 Process.Start(file, $"--server-name {args} --peer-name {ServerNameTextBox.Text}");
+                Log($"启动对方服务 {args}");
             };
             MainPanelContentControl.Content = addConnectPage;
         }
+
+        public ObservableCollection<ConnectedPeerModel> ConnectedPeerModelList { get; } = new ObservableCollection<ConnectedPeerModel>();
     }
 
     public class ConnectedPeerModel
@@ -91,5 +124,7 @@ namespace dotnetCampus.Ipc.WpfDemo
         }
 
         public PeerProxy Peer { get; }
+
+        public string PeerName => Peer.PeerName;
     }
 }

@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:dotnetCampus.Ipc.WpfDemo"
         mc:Ignorable="d" WindowState="Maximized"
+        x:Name="Root"
         Title="dotnetCampus.Ipc.WpfDemo" Height="1000" Width="1900">
     <Grid>
         <local:ServerPage x:Name="ServerPage" ServerStarting="ServerPage_OnServerStarting"></local:ServerPage>
@@ -36,8 +37,12 @@
                         <RowDefinition></RowDefinition>
                         <RowDefinition Height="Auto"></RowDefinition>
                     </Grid.RowDefinitions>
-                    <ListView x:Name="ConnectedPeerListView" Background="#A2A2A2">
-                     
+                    <ListView x:Name="ConnectedPeerListView" ItemsSource="{Binding ElementName=Root,Path=ConnectedPeerModelList}" >
+                        <ListView.ItemTemplate>
+                            <DataTemplate DataType="{x:Type local:ConnectedPeerModel}">
+                                <TextBlock Text="{Binding Path=PeerName}"></TextBlock>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
                     </ListView>
                     <Button x:Name="AddConnectButton" Grid.Row="1" Margin="10,10,10,10" Content="+" Click="AddConnectButton_OnClick"></Button>
                 </Grid>
