@@ -30,7 +30,7 @@ namespace dotnetCampus.Ipc.WpfDemo
         private void ServerPage_OnServerStarting(object? sender, string e)
         {
             var ipcProvider = new IpcProvider(e);
-            _ = ipcProvider.StartServer();
+            ipcProvider.StartServer();
             Log($"Start Server Name={e}");
 
             ServerPage.Visibility = Visibility.Collapsed;
