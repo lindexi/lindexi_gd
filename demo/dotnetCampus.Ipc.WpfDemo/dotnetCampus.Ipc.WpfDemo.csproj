@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+      <PackageReference Include="dotnetCampus.CommandLine" Version="3.3.0" />
     <ProjectReference Include="..\..\src\dotnetCampus.Ipc.PipeCore\dotnetCampus.Ipc.PipeCore.csproj" />
   </ItemGroup>
 

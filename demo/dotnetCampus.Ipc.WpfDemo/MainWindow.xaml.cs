@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -26,18 +28,28 @@ namespace dotnetCampus.Ipc.WpfDemo
         {
             InitializeComponent();
 
+            var options = dotnetCampus.Cli.CommandLine.Parse(Environment.GetCommandLineArgs()).As<Options>();
+            if (!string.IsNullOrEmpty(options.ServerName))
+            {
+                StartServer(options.ServerName);
+            }
         }
 
         private void ServerPage_OnServerStarting(object? sender, string e)
         {
-            var ipcProvider = new IpcProvider(e);
+            StartServer(e);
+        }
+
+        private void StartServer(string serverName)
+        {
+            var ipcProvider = new IpcProvider(serverName);
             ipcProvider.StartServer();
-            Log($"Start Server Name={e}");
+            Log($"Start Server Name={serverName}");
 
             ServerPage.Visibility = Visibility.Collapsed;
             MainGrid.Visibility = Visibility.Visible;
 
-            ServerNameTextBox.Text = e;
+            ServerNameTextBox.Text = serverName;
         }
 
         private void Log(string message)
@@ -56,6 +68,17 @@ namespace dotnetCampus.Ipc.WpfDemo
         private void AddConnectButton_OnClick(object sender, RoutedEventArgs e)
         {
             var addConnectPage = new AddConnectPage();
+            addConnectPage.ServerStarting += (o, args) =>
+            {
+                var assembly = GetType().Assembly;
+                var file = assembly.Location;
+                if (System.IO.Path.GetExtension(file).Equals(".dll",StringComparison.OrdinalIgnoreCase))
+                {
+                    file = System.IO.Path.GetFileNameWithoutExtension(file) + ".exe";
+                }
+
+                Process.Start(file, $"--server-name {args} --peer-name {ServerNameTextBox.Text}");
+            };
             MainPanelContentControl.Content = addConnectPage;
         }
     }
