@@ -21,6 +21,21 @@ namespace dotnetCampus.Ipc.WpfDemo.View
         public AddConnectPage()
         {
             InitializeComponent();
+            ServerNameTextBox.Text = Guid.NewGuid().ToString("N");
         }
+
+        private void ConnectServerButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            ServerConnecting?.Invoke(this, ServerNameTextBox.Text);
+        }
+
+        private void StartServerButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            ServerStarting?.Invoke(this, ServerNameTextBox.Text);
+        }
+
+        public event EventHandler<string>? ServerConnecting;
+
+        public event EventHandler<string>? ServerStarting;
     }
 }

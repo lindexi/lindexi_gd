@@ -17,15 +17,15 @@
                         <ColumnDefinition Width="*"></ColumnDefinition>
                     </Grid.ColumnDefinitions>
                     <TextBlock FontSize="30" Text="服务器名："></TextBlock>
-                    <TextBox FontSize="30" Grid.Column="1"></TextBox>
+                    <TextBox x:Name="ServerNameTextBox" FontSize="30" Grid.Column="1"></TextBox>
                 </Grid>
                 <Grid >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"></ColumnDefinition>
                         <ColumnDefinition Width="*"></ColumnDefinition>
                     </Grid.ColumnDefinitions>
-                    <Button Margin="10,10,10,10" Content="连接现有服务"></Button>
-                    <Button Margin="10,10,10,10" Grid.Column="1" Content="启动新服务"></Button>
+                    <Button Margin="10,10,10,10" Content="连接现有服务" Click="ConnectServerButton_OnClick"></Button>
+                    <Button Margin="10,10,10,10" Grid.Column="1" Content="启动新服务" Click="StartServerButton_OnClick"></Button>
                 </Grid>
             </StackPanel>
           
