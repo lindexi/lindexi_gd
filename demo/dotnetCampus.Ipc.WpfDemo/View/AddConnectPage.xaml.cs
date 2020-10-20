@@ -32,6 +32,7 @@ namespace dotnetCampus.Ipc.WpfDemo.View
         private void StartServerButton_OnClick(object sender, RoutedEventArgs e)
         {
             ServerStarting?.Invoke(this, ServerNameTextBox.Text);
+            ServerNameTextBox.Text = Guid.NewGuid().ToString("N");
         }
 
         public event EventHandler<string>? ServerConnecting;
