@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Security.Principal;
 using System.Threading.Tasks;
 using dotnetCampus.Ipc.PipeCore.Context;
+using dotnetCampus.Ipc.PipeCore.Utils;
 using dotnetCampus.Ipc.PipeCore.Utils.Extensions;
 using dotnetCampus.Threading;
 
@@ -14,7 +15,7 @@ namespace dotnetCampus.Ipc.PipeCore
     /// 管道的客户端，用于发送消息
     /// </summary>
     /// 采用两个半工的管道做到双向通讯，这里的管道客户端用于发送
-    public class IpcClientService
+    public class IpcClientService : IMessageWriter, IDisposable
     {
         /// <summary>
         /// 连接其他端，用来发送
@@ -146,7 +147,8 @@ namespace dotnetCampus.Ipc.PipeCore
         {
             await DoubleBufferTask.AddTaskAsync(async () =>
             {
-                await AckManager.DoWillReceivedAck(task, PeerName, TimeSpan.FromSeconds(3), maxRetryCount: 10, summary, IpcContext.Logger);
+                await AckManager.DoWillReceivedAck(task, PeerName, TimeSpan.FromSeconds(3), maxRetryCount: 10, summary,
+                    IpcContext.Logger);
             });
         }
 
@@ -179,6 +181,13 @@ namespace dotnetCampus.Ipc.PipeCore
                 );
                 await NamedPipeClientStream.FlushAsync();
             });
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            NamedPipeClientStream.Dispose();
+            DoubleBufferTask.Finish();
         }
     }
 }

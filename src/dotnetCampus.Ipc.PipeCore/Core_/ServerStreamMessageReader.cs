@@ -46,7 +46,7 @@ namespace dotnetCampus.Ipc.PipeCore
         /// <summary>
         /// 当有对方连接时触发
         /// </summary>
-        public event EventHandler<PeerConnectedArgs>? PeerConnected;
+        public event EventHandler<IpcInternalPeerConnectedArgs>? PeerConnected;
 
         public async void Run()
         {
@@ -80,7 +80,7 @@ namespace dotnetCampus.Ipc.PipeCore
                             // ReSharper disable once MethodHasAsyncOverload
                             PeerName = peerName;
 
-                            OnPeerConnected(new PeerConnectedArgs(peerName, Stream, ipcMessageContext.Ack));
+                            OnPeerConnected(new IpcInternalPeerConnectedArgs(peerName, Stream, ipcMessageContext.Ack,this));
 
                             //SendAckAndRegisterToPeer(ipcMessageContext.Ack);
                             //SendAck(ipcMessageContext.Ack);
@@ -139,7 +139,7 @@ namespace dotnetCampus.Ipc.PipeCore
                     {
                         var stream = new ByteListMessageStream(ipcMessageContext);
 
-                        if (ipcMessageCommandType == IpcMessageCommandType.SendAck && IpcContext.AckManager.IsAckMessage(stream, out var ack))
+                        if (ipcMessageCommandType.HasFlag(IpcMessageCommandType.SendAck) && IpcContext.AckManager.IsAckMessage(stream, out var ack))
                         {
                             IpcContext.Logger.Debug($"[{nameof(IpcServerService)}] AckReceived {ack} From {PeerName}");
                             OnAckReceived(new AckArgs(PeerName, ack));
@@ -156,6 +156,8 @@ namespace dotnetCampus.Ipc.PipeCore
                         else
                         {
                             // 有不能解析的信息，后续需要告诉开发
+                            // 依然回复一条 Ack 消息给对方，让对方不用重复发送
+                            OnAckRequested(ipcMessageContext.Ack);
                         }
                     }
                 }
@@ -176,7 +178,7 @@ namespace dotnetCampus.Ipc.PipeCore
             MessageReceived?.Invoke(this, e);
         }
 
-        private void OnPeerConnected(PeerConnectedArgs e)
+        private void OnPeerConnected(IpcInternalPeerConnectedArgs e)
         {
             PeerConnected?.Invoke(this, e);
         }

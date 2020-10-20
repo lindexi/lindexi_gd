@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using dotnetCampus.Ipc.PipeCore.Context;
@@ -154,7 +153,7 @@ namespace dotnetCampus.Ipc.PipeCore
 
             do
             {
-                var n = await stream.ReadAsync(messageBuffer, readCount, (int) messageLength - readCount);
+                var n = await stream.ReadAsync(messageBuffer, readCount, messageLength - readCount);
                 readCount += n;
             } while (readCount < messageLength);
 

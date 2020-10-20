@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using dotnetCampus.Ipc.PipeCore.Context;
+using dotnetCampus.Ipc.PipeCore.Utils;
 
 namespace dotnetCampus.Ipc.PipeCore
 {
@@ -27,6 +29,12 @@ namespace dotnetCampus.Ipc.PipeCore
         private ILogger Logger => IpcContext.Logger;
 
         /// <summary>
+        /// 用于解决对象被回收
+        /// </summary>
+        private List<IpcPipeServerMessageProvider> IpcPipeServerMessageProviderList { get; } =
+            new List<IpcPipeServerMessageProvider>();
+
+        /// <summary>
         /// 启动服务
         /// </summary>
         /// <returns></returns>
@@ -35,6 +43,7 @@ namespace dotnetCampus.Ipc.PipeCore
             while (!_isDisposed)
             {
                 var pipeServerMessage = new IpcPipeServerMessageProvider(IpcContext, this);
+                IpcPipeServerMessageProviderList.Add(pipeServerMessage);
 
                 await pipeServerMessage.Start();
             }
@@ -48,7 +57,7 @@ namespace dotnetCampus.Ipc.PipeCore
         /// <summary>
         /// 当有对方连接时触发
         /// </summary>
-        public event EventHandler<PeerConnectedArgs>? PeerConnected;
+        internal event EventHandler<IpcInternalPeerConnectedArgs>? PeerConnected;
 
         internal void OnMessageReceived(object? sender, PeerMessageArgs e)
         {
@@ -56,7 +65,7 @@ namespace dotnetCampus.Ipc.PipeCore
             MessageReceived?.Invoke(sender, e);
         }
 
-        internal void OnPeerConnected(object? sender, PeerConnectedArgs e)
+        internal void OnPeerConnected(object? sender, IpcInternalPeerConnectedArgs e)
         {
             Logger.Debug($"[{nameof(IpcServerService)}] PeerConnected PeerName={e.PeerName} {e.Ack}");
 
@@ -70,6 +79,11 @@ namespace dotnetCampus.Ipc.PipeCore
             }
 
             _isDisposed = true;
+
+            foreach (var ipcPipeServerMessageProvider in IpcPipeServerMessageProviderList)
+            {
+                ipcPipeServerMessageProvider.Dispose();
+            }
         }
 
         private bool _isDisposed;

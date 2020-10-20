@@ -1,11 +1,13 @@
-﻿using System.IO.Pipes;
+﻿using System;
+using System.IO.Pipes;
 using System.Threading.Tasks;
 using dotnetCampus.Ipc.PipeCore.Context;
+using dotnetCampus.Ipc.PipeCore.Utils;
 
 namespace dotnetCampus.Ipc.PipeCore
 {
     // 提供一个客户端连接
-    internal class IpcPipeServerMessageProvider
+    internal class IpcPipeServerMessageProvider : IDisposable
     {
         public IpcPipeServerMessageProvider(IpcContext ipcContext, IpcServerService ipcServerService)
         {
@@ -24,6 +26,7 @@ namespace dotnetCampus.Ipc.PipeCore
         /// 自身的名字
         /// </summary>
         public string PipeName => IpcContext.PipeName;
+
         public IpcContext IpcContext { get; }
         public IpcServerService IpcServerService { get; }
 
@@ -65,8 +68,16 @@ namespace dotnetCampus.Ipc.PipeCore
         {
             IpcContext.Logger.Debug($"[{nameof(IpcServerService)}] SendAck {receivedAck} to {PeerName}");
             var ipcProvider = IpcContext.IpcProvider;
-            var ipcClient = await ipcProvider.ConnectPeer(PeerName);
+            var peerProxy = await ipcProvider.GetOrCreatePeerProxyAsync(PeerName);
+            var ipcClient = peerProxy.IpcClientService;
             await ipcClient.SendAckAsync(receivedAck);
+        }
+
+        public void Dispose()
+        {
+            // 不在这一层释放 NamedPipeServerStream 类
+            //NamedPipeServerStream.Dispose();
+            ServerStreamMessageReader.Dispose();
         }
     }
 }
