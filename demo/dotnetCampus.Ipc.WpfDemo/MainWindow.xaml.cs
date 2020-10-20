@@ -72,7 +72,7 @@ namespace dotnetCampus.Ipc.WpfDemo
             {
                 var assembly = GetType().Assembly;
                 var file = assembly.Location;
-                if (System.IO.Path.GetExtension(file).Equals(".dll",StringComparison.OrdinalIgnoreCase))
+                if (System.IO.Path.GetExtension(file).Equals(".dll", StringComparison.OrdinalIgnoreCase))
                 {
                     file = System.IO.Path.GetFileNameWithoutExtension(file) + ".exe";
                 }
