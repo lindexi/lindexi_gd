@@ -40,16 +40,25 @@ namespace dotnetCampus.Ipc.Demo
             Console.Read();
         }
 
-        private static Task? BaiqealawbawKeqakeyawaw()
+        private static async Task? BaiqealawbawKeqakeyawaw()
         {
             var ipcProvider = new IpcProvider();
-            return ipcProvider.ConnectPeer(IpcContext.DefaultPipeName);
+            ipcProvider.PeerConnected += (sender, proxy) =>
+            {
+
+            };
+            var peer = await ipcProvider.ConnectToPeerAsync(IpcContext.DefaultPipeName);
+            Console.WriteLine($"连接上{peer.PeerName}");
         }
 
-        private static Task? WheehakawlucearHalwahewurlaiwhair()
+        private static void WheehakawlucearHalwahewurlaiwhair()
         {
             var ipcProvider = new IpcProvider(IpcContext.DefaultPipeName);
-            return ipcProvider.StartServer();
+            ipcProvider.PeerConnected += (sender, args) =>
+            {
+                Console.WriteLine($"连接上{args.Peer.PeerName}");
+            };
+            ipcProvider.StartServer();
         }
 
         //private static async Task WhejeewukawBalbejelnewearfe()

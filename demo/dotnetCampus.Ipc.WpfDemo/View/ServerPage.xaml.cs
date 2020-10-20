@@ -40,7 +40,7 @@ namespace dotnetCampus.Ipc.WpfDemo
             ServerNameTextBox.IsReadOnly = true;
         }
 
-        public event EventHandler<string> ServerStarting;
+        public event EventHandler<string>? ServerStarting;
 
         protected virtual void OnServerStarting(string e)
         {
