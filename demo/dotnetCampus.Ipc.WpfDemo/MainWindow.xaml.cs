@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using dotnetCampus.Ipc.PipeCore;
+using dotnetCampus.Ipc.WpfDemo.View;
 
 namespace dotnetCampus.Ipc.WpfDemo
 {
@@ -54,7 +55,18 @@ namespace dotnetCampus.Ipc.WpfDemo
 
         private void AddConnectButton_OnClick(object sender, RoutedEventArgs e)
         {
-
+            var addConnectPage = new AddConnectPage();
+            MainPanelContentControl.Content = addConnectPage;
         }
+    }
+
+    public class ConnectedPeerModel
+    {
+        public ConnectedPeerModel(PeerProxy peer)
+        {
+            Peer = peer;
+        }
+
+        public PeerProxy Peer { get; }
     }
 }
