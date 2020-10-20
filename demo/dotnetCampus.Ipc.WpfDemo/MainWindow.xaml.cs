@@ -37,13 +37,15 @@ namespace dotnetCampus.Ipc.WpfDemo
 
                 if (!string.IsNullOrEmpty(options.PeerName))
                 {
-                    Task.Run(async () =>
-                    {
-                        var peer = await IpcProvider.ConnectToPeerAsync(options.PeerName);
-                        AddPeer(peer);
-                    });
+                    ConnectToPeer(options.PeerName);
                 }
             }
+        }
+
+        private async void ConnectToPeer(string peerName)
+        {
+            var peer = await IpcProvider.ConnectToPeerAsync(peerName);
+            AddPeer(peer);
         }
 
         private void ServerPage_OnServerStarting(object? sender, string e)
@@ -110,6 +112,11 @@ namespace dotnetCampus.Ipc.WpfDemo
                 Process.Start(file, $"--server-name {args} --peer-name {ServerNameTextBox.Text}");
                 Log($"启动对方服务 {args}");
             };
+            addConnectPage.ServerConnecting += (o, args) =>
+            {
+                ConnectToPeer(args);
+            };
+
             MainPanelContentControl.Content = addConnectPage;
         }
 
