@@ -80,7 +80,7 @@ namespace dotnetCampus.Ipc.PipeCore
                             // ReSharper disable once MethodHasAsyncOverload
                             PeerName = peerName;
 
-                            OnPeerConnected(new IpcInternalPeerConnectedArgs(peerName, Stream, ipcMessageContext.Ack,this));
+                            OnPeerConnected(new IpcInternalPeerConnectedArgs(peerName, Stream, ipcMessageContext.Ack, this));
 
                             //SendAckAndRegisterToPeer(ipcMessageContext.Ack);
                             //SendAck(ipcMessageContext.Ack);
