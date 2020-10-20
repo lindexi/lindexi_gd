@@ -14,7 +14,7 @@ namespace dotnetCampus.Ipc.PipeCore
     /// 这是这个程序集最顶层的类
     /// 这里有两个概念，一个是对方，另一个是本地
     /// 对方就是其他的开启的Ipc服务的端，可以在相同的进程内。而本地是指此Ipc服务
-    public class IpcProvider:IDisposable
+    public class IpcProvider : IDisposable
     {
         /// <summary>
         /// 创建对等通讯
