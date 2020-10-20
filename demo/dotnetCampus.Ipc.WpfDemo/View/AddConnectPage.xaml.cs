@@ -21,7 +21,7 @@ namespace dotnetCampus.Ipc.WpfDemo.View
         public AddConnectPage()
         {
             InitializeComponent();
-            ServerNameTextBox.Text = Guid.NewGuid().ToString("N");
+            BuildServerName();
         }
 
         private void ConnectServerButton_OnClick(object sender, RoutedEventArgs e)
@@ -32,7 +32,12 @@ namespace dotnetCampus.Ipc.WpfDemo.View
         private void StartServerButton_OnClick(object sender, RoutedEventArgs e)
         {
             ServerStarting?.Invoke(this, ServerNameTextBox.Text);
-            ServerNameTextBox.Text = Guid.NewGuid().ToString("N");
+            BuildServerName();
+        }
+
+        private void BuildServerName()
+        {
+            ServerNameTextBox.Text = System.IO.Path.GetRandomFileName();
         }
 
         public event EventHandler<string>? ServerConnecting;
