@@ -12,8 +12,15 @@ namespace dotnetCampus.Ipc.PipeCore.Utils.Extensions
 
             doubleBufferTask.AddTask(async () =>
             {
-                await task();
-                taskCompletionSource.SetResult(true);
+                try
+                {
+                    await task();
+                    taskCompletionSource.SetResult(true);
+                }
+                catch (Exception e)
+                {
+                    taskCompletionSource.SetException(e);
+                }
             });
 
             await taskCompletionSource.Task;

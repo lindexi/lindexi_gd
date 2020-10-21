@@ -56,3 +56,7 @@
 
 进度：等待 API 设计中，也许会接入 [https://github.com/jacqueskang/IpcServiceFramework](https://github.com/jacqueskang/IpcServiceFramework) 的实现，或者模拟 WCF 或 Remoting 的实现
 
+## 进度
+
+- 基本完成 dotnetCampus.Ipc.PipeCore 部分
+- 最小可用呆魔

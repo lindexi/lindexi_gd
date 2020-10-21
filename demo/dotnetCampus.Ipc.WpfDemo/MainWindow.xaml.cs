@@ -33,6 +33,9 @@ namespace dotnetCampus.Ipc.WpfDemo
             var options = dotnetCampus.Cli.CommandLine.Parse(Environment.GetCommandLineArgs()).As<Options>();
             if (!string.IsNullOrEmpty(options.ServerName))
             {
+                Debugger.Launch();
+                Debugger.Break();
+
                 StartServer(options.ServerName);
 
                 if (!string.IsNullOrEmpty(options.PeerName))
@@ -127,17 +130,19 @@ namespace dotnetCampus.Ipc.WpfDemo
 
         public ObservableCollection<ConnectedPeerModel> ConnectedPeerModelList { get; } =
             new ObservableCollection<ConnectedPeerModel>();
-    }
 
-    public class ConnectedPeerModel
-    {
-        public ConnectedPeerModel(PeerProxy peer)
+        private void ConnectedPeerListView_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            Peer = peer;
+            if (e.AddedItems.Count == 1)
+            {
+                var connectedPeerModel = (ConnectedPeerModel) e.AddedItems[0]!;
+                var charPage = new CharPage()
+                {
+                    ConnectedPeerModel = connectedPeerModel,
+                    ServerName = ServerNameTextBox.Text
+                };
+                MainPanelContentControl.Content = charPage;
+            }
         }
-
-        public PeerProxy Peer { get; }
-
-        public string PeerName => Peer.PeerName;
     }
 }
