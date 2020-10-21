@@ -127,5 +127,13 @@ namespace dotnetCampus.Ipc.WpfDemo
 
         public ObservableCollection<ConnectedPeerModel> ConnectedPeerModelList { get; } =
             new ObservableCollection<ConnectedPeerModel>();
+
+        private void ConnectedPeerListView_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.AddedItems.Count==1)
+            {
+                var connectedPeerModel = (ConnectedPeerModel) e.AddedItems[0]!;
+            }
+        }
     }
 }

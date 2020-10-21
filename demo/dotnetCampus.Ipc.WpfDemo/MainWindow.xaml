@@ -37,7 +37,9 @@
                         <RowDefinition></RowDefinition>
                         <RowDefinition Height="Auto"></RowDefinition>
                     </Grid.RowDefinitions>
-                    <ListView x:Name="ConnectedPeerListView" ItemsSource="{Binding ElementName=Root,Path=ConnectedPeerModelList}" >
+                    <ListView x:Name="ConnectedPeerListView"
+                              ItemsSource="{Binding ElementName=Root,Path=ConnectedPeerModelList}"
+                              SelectionChanged="ConnectedPeerListView_OnSelectionChanged">
                         <ListView.ItemTemplate>
                             <DataTemplate DataType="{x:Type local:ConnectedPeerModel}">
                                 <TextBlock Text="{Binding Path=PeerName}"></TextBlock>
