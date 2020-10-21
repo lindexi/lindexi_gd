@@ -40,6 +40,8 @@ namespace dotnetCampus.Ipc.WpfDemo
                     ConnectToPeer(options.PeerName);
                 }
             }
+
+            Title = $"dotnetCampus.Ipc.WpfDemo PID={Process.GetCurrentProcess().Id}";
         }
 
         private async void ConnectToPeer(string peerName)
@@ -78,7 +80,10 @@ namespace dotnetCampus.Ipc.WpfDemo
             Dispatcher.InvokeAsync(() =>
             {
                 Log($"收到 {peer.PeerName} 连接");
-                ConnectedPeerModelList.Add(new ConnectedPeerModel(peer));
+                if (ConnectedPeerModelList.All(temp => !ReferenceEquals(temp.Peer, peer)))
+                {
+                    ConnectedPeerModelList.Add(new ConnectedPeerModel(peer));
+                }
             });
         }
 
@@ -120,7 +125,8 @@ namespace dotnetCampus.Ipc.WpfDemo
             MainPanelContentControl.Content = addConnectPage;
         }
 
-        public ObservableCollection<ConnectedPeerModel> ConnectedPeerModelList { get; } = new ObservableCollection<ConnectedPeerModel>();
+        public ObservableCollection<ConnectedPeerModel> ConnectedPeerModelList { get; } =
+            new ObservableCollection<ConnectedPeerModel>();
     }
 
     public class ConnectedPeerModel

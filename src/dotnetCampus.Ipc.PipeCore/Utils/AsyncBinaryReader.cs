@@ -19,6 +19,18 @@ namespace dotnetCampus.Ipc.PipeCore.Utils
             return BitConverter.ToUInt16(byteList);
         }
 
+        public async Task<UInt64> ReadReadUInt64Async()
+        {
+            var byteList = await InternalReadAsync(sizeof(UInt64));
+            return BitConverter.ToUInt64(byteList);
+        }
+
+        public async Task<UInt32> ReadUInt32Async()
+        {
+            var byteList = await InternalReadAsync(sizeof(UInt32));
+            return BitConverter.ToUInt32(byteList);
+        }
+
         private async Task<byte[]> InternalReadAsync(int numBytes)
         {
             var byteList = new byte[numBytes];
@@ -26,7 +38,7 @@ namespace dotnetCampus.Ipc.PipeCore.Utils
 
             do
             {
-                var n = await Stream.ReadAsync(byteList, bytesRead, numBytes - bytesRead);
+                var n = await Stream.ReadAsync(byteList, bytesRead, numBytes - bytesRead).ConfigureAwait(false);
                 if (n == 0)
                 {
                 }

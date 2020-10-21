@@ -112,23 +112,23 @@ namespace dotnetCampus.Ipc.PipeCore
                 return new IpcMessageResult("Message Header no match");
             }
 
-            var binaryReader = new BinaryReader(stream);
+            var binaryReader = new AsyncBinaryReader(stream);
             // UInt32 Version        当前IPC服务的版本
-            var version = binaryReader.ReadUInt32();
+            var version = await binaryReader.ReadUInt32Async();
             Debug.Assert(version == 0);
 
             // UInt64 Ack            用于给对方确认收到消息使用
-            var ack = binaryReader.ReadUInt64();
+            var ack = await binaryReader.ReadReadUInt64Async();
 
             // UInt32 Empty          给以后版本使用的值
-            var empty = binaryReader.ReadUInt32();
+            var empty = await binaryReader.ReadUInt32Async();
             Debug.Assert(empty == 0);
 
             // UInt16 Command Type   命令类型，业务端的值将会是 0 而框架层采用其他值
-            var commandType = (IpcMessageCommandType) binaryReader.ReadUInt16();
+            var commandType = (IpcMessageCommandType) await binaryReader.ReadUInt16Async();
 
             // UInt32 Content Length 这条消息的内容长度
-            var messageLength = binaryReader.ReadUInt32();
+            var messageLength = await binaryReader.ReadUInt32Async();
 
             if (messageLength > maxMessageLength)
             {

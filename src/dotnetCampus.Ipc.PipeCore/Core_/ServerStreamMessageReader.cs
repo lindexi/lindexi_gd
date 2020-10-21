@@ -50,9 +50,9 @@ namespace dotnetCampus.Ipc.PipeCore
 
         public async void Run()
         {
-            await WaitForConnectionAsync();
+            await WaitForConnectionAsync().ConfigureAwait(false);
 
-            await ReadMessageAsync();
+            await ReadMessageAsync().ConfigureAwait(false);
         }
 
         private async Task WaitForConnectionAsync()
@@ -63,7 +63,7 @@ namespace dotnetCampus.Ipc.PipeCore
                 {
                     var ipcMessageResult = await IpcMessageConverter.ReadAsync(Stream,
                         IpcConfiguration.MessageHeader,
-                        IpcConfiguration.SharedArrayPool);
+                        IpcConfiguration.SharedArrayPool).ConfigureAwait(false);
                     var success = ipcMessageResult.Success;
                     var ipcMessageContext = ipcMessageResult.IpcMessageContext;
                     Debug.Assert(ipcMessageResult.IpcMessageCommandType != IpcMessageCommandType.Business);
