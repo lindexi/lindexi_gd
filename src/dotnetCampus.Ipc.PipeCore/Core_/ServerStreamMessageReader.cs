@@ -80,7 +80,8 @@ namespace dotnetCampus.Ipc.PipeCore
                             // ReSharper disable once MethodHasAsyncOverload
                             PeerName = peerName;
 
-                            OnPeerConnected(new IpcInternalPeerConnectedArgs(peerName, Stream, ipcMessageContext.Ack, this));
+                            OnPeerConnected(new IpcInternalPeerConnectedArgs(peerName, Stream, ipcMessageContext.Ack,
+                                this));
 
                             //SendAckAndRegisterToPeer(ipcMessageContext.Ack);
                             //SendAck(ipcMessageContext.Ack);
@@ -114,6 +115,13 @@ namespace dotnetCampus.Ipc.PipeCore
                             break;
                         }
                     }
+                }
+                catch (EndOfStreamException)
+                {
+                    // 对方关闭了
+                    // [断开某个进程 使用大量CPU在读取 · Issue #15 · dotnet-campus/dotnetCampus.Ipc](https://github.com/dotnet-campus/dotnetCampus.Ipc/issues/15 )
+                    IpcContext.Logger.Error($"对方已关闭");
+                    return;
                 }
                 catch (Exception e)
                 {
@@ -160,6 +168,13 @@ namespace dotnetCampus.Ipc.PipeCore
                             OnAckRequested(ipcMessageContext.Ack);
                         }
                     }
+                }
+                catch (EndOfStreamException)
+                {
+                    // 对方关闭了
+                    // [断开某个进程 使用大量CPU在读取 · Issue #15 · dotnet-campus/dotnetCampus.Ipc](https://github.com/dotnet-campus/dotnetCampus.Ipc/issues/15 )
+                    IpcContext.Logger.Error($"对方已关闭");
+                    return;
                 }
                 catch (Exception e)
                 {

@@ -41,6 +41,7 @@ namespace dotnetCampus.Ipc.PipeCore.Utils
                 var n = await Stream.ReadAsync(byteList, bytesRead, numBytes - bytesRead).ConfigureAwait(false);
                 if (n == 0)
                 {
+                    throw new EndOfStreamException();
                 }
 
                 bytesRead += n;
