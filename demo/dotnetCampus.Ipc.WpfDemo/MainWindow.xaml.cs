@@ -133,9 +133,15 @@ namespace dotnetCampus.Ipc.WpfDemo
 
         private void ConnectedPeerListView_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (e.AddedItems.Count==1)
+            if (e.AddedItems.Count == 1)
             {
                 var connectedPeerModel = (ConnectedPeerModel) e.AddedItems[0]!;
+                var charPage = new CharPage()
+                {
+                    ConnectedPeerModel = connectedPeerModel,
+                    ServerName = ServerNameTextBox.Text
+                };
+                MainPanelContentControl.Content = charPage;
             }
         }
     }
