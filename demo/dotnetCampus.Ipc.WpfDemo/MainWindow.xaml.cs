@@ -33,6 +33,9 @@ namespace dotnetCampus.Ipc.WpfDemo
             var options = dotnetCampus.Cli.CommandLine.Parse(Environment.GetCommandLineArgs()).As<Options>();
             if (!string.IsNullOrEmpty(options.ServerName))
             {
+                Debugger.Launch();
+                Debugger.Break();
+
                 StartServer(options.ServerName);
 
                 if (!string.IsNullOrEmpty(options.PeerName))
