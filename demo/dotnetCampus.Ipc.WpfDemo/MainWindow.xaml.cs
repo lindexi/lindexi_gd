@@ -128,16 +128,4 @@ namespace dotnetCampus.Ipc.WpfDemo
         public ObservableCollection<ConnectedPeerModel> ConnectedPeerModelList { get; } =
             new ObservableCollection<ConnectedPeerModel>();
     }
-
-    public class ConnectedPeerModel
-    {
-        public ConnectedPeerModel(PeerProxy peer)
-        {
-            Peer = peer;
-        }
-
-        public PeerProxy Peer { get; }
-
-        public string PeerName => Peer.PeerName;
-    }
 }
