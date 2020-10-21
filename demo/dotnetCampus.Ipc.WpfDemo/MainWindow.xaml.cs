@@ -40,6 +40,8 @@ namespace dotnetCampus.Ipc.WpfDemo
                     ConnectToPeer(options.PeerName);
                 }
             }
+
+            Title = $"dotnetCampus.Ipc.WpfDemo PID={Process.GetCurrentProcess().Id}";
         }
 
         private async void ConnectToPeer(string peerName)
