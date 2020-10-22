@@ -7,7 +7,6 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
@@ -42,16 +41,6 @@ namespace dotnetCampus.Ipc.WpfDemo.View
         {
             ConnectedPeerModel.AddMessage(ServerName, MessageTextBox.Text);
             await ConnectedPeerModel.Peer.IpcMessageWriter.WriteMessageAsync(MessageTextBox.Text, "CharPage").ConfigureAwait(false);
-        }
-    }
-
-    public static class ListViewExtensions
-    {
-        public static void ScrollToBottom(this ListView listView)
-        {
-            DependencyObject border = VisualTreeHelper.GetChild(listView, 0);
-            ScrollViewer scrollViewer = (ScrollViewer) VisualTreeHelper.GetChild(border, 0);
-            scrollViewer.ScrollToBottom();
         }
     }
 }
