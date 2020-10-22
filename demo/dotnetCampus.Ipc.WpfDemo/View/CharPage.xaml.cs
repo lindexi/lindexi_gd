@@ -10,6 +10,7 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace dotnetCampus.Ipc.WpfDemo.View
 {
@@ -31,6 +32,15 @@ namespace dotnetCampus.Ipc.WpfDemo.View
 
             DataContext = ConnectedPeerModel;
             MessageListView.ScrollToBottom();
+
+            // 有消息过来，自动滚动到最下
+            ConnectedPeerModel.MessageList.CollectionChanged += (o, args) =>
+            {
+                Dispatcher.InvokeAsync(() =>
+                {
+                    MessageListView.ScrollToBottom();
+                }, DispatcherPriority.Background);
+            };
         }
 
         public ConnectedPeerModel ConnectedPeerModel { set; get; } = null!;
