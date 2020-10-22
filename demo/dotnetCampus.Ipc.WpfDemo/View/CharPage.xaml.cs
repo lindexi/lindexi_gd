@@ -7,10 +7,10 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace dotnetCampus.Ipc.WpfDemo.View
 {
@@ -32,6 +32,15 @@ namespace dotnetCampus.Ipc.WpfDemo.View
 
             DataContext = ConnectedPeerModel;
             MessageListView.ScrollToBottom();
+
+            // 有消息过来，自动滚动到最下
+            ConnectedPeerModel.MessageList.CollectionChanged += (o, args) =>
+            {
+                Dispatcher.InvokeAsync(() =>
+                {
+                    MessageListView.ScrollToBottom();
+                }, DispatcherPriority.Background);
+            };
         }
 
         public ConnectedPeerModel ConnectedPeerModel { set; get; } = null!;
@@ -40,18 +49,8 @@ namespace dotnetCampus.Ipc.WpfDemo.View
 
         private async void SendButton_OnClick(object sender, RoutedEventArgs e)
         {
-            ConnectedPeerModel.MessageList.Add($"{ServerName} {DateTime.Now:yyyy/MM/dd hh:mm:ss.fff}:\r\n{MessageTextBox.Text}");
+            ConnectedPeerModel.AddMessage(ServerName, MessageTextBox.Text);
             await ConnectedPeerModel.Peer.IpcMessageWriter.WriteMessageAsync(MessageTextBox.Text, "CharPage").ConfigureAwait(false);
-        }
-    }
-
-    public static class ListViewExtensions
-    {
-        public static void ScrollToBottom(this ListView listView)
-        {
-            DependencyObject border = VisualTreeHelper.GetChild(listView, 0);
-            ScrollViewer scrollViewer = (ScrollViewer) VisualTreeHelper.GetChild(border, 0);
-            scrollViewer.ScrollToBottom();
         }
     }
 }

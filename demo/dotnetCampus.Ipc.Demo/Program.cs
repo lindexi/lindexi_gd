@@ -23,6 +23,8 @@ namespace dotnetCampus.Ipc.Demo
             //var ackManagerTest = new AckManagerTest();
             //ackManagerTest.Run();
 
+            LerlocunaihukeajerJinenenay();
+
             var jalejekemNereyararli = new List<Task>
             {
                 //Task.Run(DiwerlowuKahecallweeler),
@@ -39,6 +41,37 @@ namespace dotnetCampus.Ipc.Demo
             Task.WaitAll(jalejekemNereyararli.ToArray());
             Console.Read();
         }
+
+        private static void LerlocunaihukeajerJinenenay()
+        {
+            // 测试有一方断开
+
+            var jalejekemNereyararli = new List<Task>
+            {
+                Task.Run(FagurhaircerenaJawehefeljeane),
+                // 开启服务
+                Task.Run(WheehakawlucearHalwahewurlaiwhair)
+            };
+
+            Task.WaitAll(jalejekemNereyararli.ToArray());
+
+            Console.Read();
+        }
+
+        private static async Task? FagurhaircerenaJawehefeljeane()
+        {
+            // 会断开的一端
+            var ipcProvider = new IpcProvider();
+            ipcProvider.PeerConnected += (sender, proxy) =>
+            {
+
+            };
+            var peer = await ipcProvider.ConnectToPeerAsync(IpcContext.DefaultPipeName);
+            await peer.IpcMessageWriter.WriteMessageAsync("林德熙是逗比");
+            await Task.Delay(TimeSpan.FromSeconds(1));
+            ipcProvider.Dispose();
+        }
+
 
         private static async Task? BaiqealawbawKeqakeyawaw()
         {

@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows.Threading;
 using dotnetCampus.Ipc.PipeCore;
@@ -25,8 +26,13 @@ namespace dotnetCampus.Ipc.WpfDemo
 
             Dispatcher.InvokeAsync(() =>
             {
-                MessageList.Add($"{PeerName}:\r\n{message}");
+                AddMessage(PeerName, message);
             });
+        }
+
+        public void AddMessage(string name, string message)
+        {
+            MessageList.Add($"{name} {DateTime.Now:yyyy/MM/dd hh:mm:ss.fff}:\r\n{message}");
         }
 
         public ObservableCollection<string> MessageList { get; } = new ObservableCollection<string>();
