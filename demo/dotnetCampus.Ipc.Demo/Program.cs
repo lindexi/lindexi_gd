@@ -1,15 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 using dotnetCampus.Ipc.PipeCore;
 using dotnetCampus.Ipc.PipeCore.Context;
 
 namespace dotnetCampus.Ipc.Demo
 {
+    public class IpcProxy : DispatchProxy
+    {
+        protected override object Invoke(MethodInfo targetMethod, object[] args)
+        {
+            return default!;
+        }
+    }
+
+    public interface IF1
+    {
+        Task<int> F2();
+
+        Task F3();
+    }
+
     internal class Program
     {
         private static void Main(string[] args)
         {
+            var f1 = DispatchProxy.Create<IF1, IpcProxy>();
+            f1.F2();
+            f1.F3();
+
             //Console.WriteLine(string.Join(",", Encoding.UTF8.GetBytes("ACK").Select(temp => "0x" + temp.ToString("X2"))));
             //var byteList = BitConverter.GetBytes((ulong) 100);
             //Console.WriteLine(sizeof(ulong)); 
