@@ -11,6 +11,18 @@ namespace dotnetCampus.Ipc.Demo
     {
         protected override object Invoke(MethodInfo targetMethod, object[] args)
         {
+            var returnType = targetMethod.ReturnType;
+            if (returnType == typeof(Task))
+            {
+                
+            }
+            else if(returnType.BaseType == typeof(Task))
+            {
+                if (returnType.Name == "Task`1")
+                {
+
+                }
+            }
             return default!;
         }
     }
