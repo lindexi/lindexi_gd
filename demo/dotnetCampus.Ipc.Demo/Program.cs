@@ -11,19 +11,29 @@ namespace dotnetCampus.Ipc.Demo
     {
         protected override object Invoke(MethodInfo targetMethod, object[] args)
         {
-            var returnType = targetMethod.ReturnType;
+            var actualReturnType = GetAndCheckActualReturnType(targetMethod.ReturnType);
+
+            return default!;
+        }
+
+        private Type GetAndCheckActualReturnType(Type returnType)
+        {
             if (returnType == typeof(Task))
             {
-                
+                return typeof(void);
             }
-            else if(returnType.BaseType == typeof(Task))
+            else if (returnType.BaseType == typeof(Task))
             {
                 if (returnType.Name == "Task`1")
                 {
-
+                    if (returnType.GenericTypeArguments.Length == 1)
+                    {
+                        return returnType.GenericTypeArguments[0];
+                    }
                 }
             }
-            return default!;
+
+            throw new ArgumentException($"方法返回值只能是 Task 或 Task 泛形");
         }
     }
 
@@ -32,6 +42,8 @@ namespace dotnetCampus.Ipc.Demo
         Task<int> F2();
 
         Task F3();
+
+        void Fx();
     }
 
     internal class Program
@@ -39,6 +51,7 @@ namespace dotnetCampus.Ipc.Demo
         private static void Main(string[] args)
         {
             var f1 = DispatchProxy.Create<IF1, IpcProxy>();
+
             f1.F2();
             f1.F3();
 
