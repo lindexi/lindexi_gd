@@ -22,11 +22,4 @@ namespace dotnetCampus.Ipc
             return JsonSerializer.Deserialize<T>(byteList);
         }
     }
-
-    public interface IIpcObjectSerializer
-    {
-        byte[] Serialize(object obj);
-
-        T Deserialize<T>(byte[] byteList);
-    }
 }
