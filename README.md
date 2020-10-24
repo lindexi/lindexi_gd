@@ -61,6 +61,34 @@
 - 基本完成 dotnetCampus.Ipc.PipeCore 部分
 - 最小可用呆魔
 
+## 不支持的列表
+
+也许后续会支持
+
+### 传入实例类
+
+在 dotnet core 的 DispatchProxy 只支持代理
+
+### 使用属性
+
+因为不能使用同步方法，因此属性都不能使用
+
+### 同步的方法
+
+所有方法都需要是异步的
+
+### 返回值不是 Task 或 Task 泛形或框架封装的类型
+
+框架不知道业务层的返回类型，因此无法封装返回值
+
+### 返回值包含两层 Task 如 `Task<Task<int>>` 类型
+
+框架无法封装和序列化传递
+
+### 事件和方法传入委托
+
+无法序列化由另一个进程调用
+
 ## 感谢
 
 [jacqueskang/IpcServiceFramework](https://github.com/jacqueskang/IpcServiceFramework)
