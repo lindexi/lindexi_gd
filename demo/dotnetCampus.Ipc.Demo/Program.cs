@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text.Json;
 using System.Threading.Tasks;
 using dotnetCampus.Ipc.PipeCore;
 using dotnetCampus.Ipc.PipeCore.Context;
 
 namespace dotnetCampus.Ipc.Demo
 {
-    public class IpcProxy : DispatchProxy
+
+    public class IpcProxy<T> : DispatchProxy
     {
         protected override object Invoke(MethodInfo targetMethod, object[] args)
         {
@@ -46,11 +48,21 @@ namespace dotnetCampus.Ipc.Demo
         void Fx();
     }
 
+    class IpcClientProvider
+    {
+        public T GetObject<T>()
+        {
+            return DispatchProxy.Create<T, IpcProxy<T>>();
+        }
+    }
+
     internal class Program
     {
         private static void Main(string[] args)
         {
-            var f1 = DispatchProxy.Create<IF1, IpcProxy>();
+            var ipcProvider = new IpcClientProvider();
+
+            var f1 = ipcProvider.GetObject<IF1>();
 
             f1.F2();
             f1.F3();
