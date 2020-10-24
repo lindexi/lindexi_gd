@@ -53,6 +53,11 @@ namespace dotnetCampus.Ipc.PipeCore
         /// </summary>
         public bool IsConnectedFinished { get; private set; }
 
+        ///// <summary>
+        ///// 当断开连接的时候触发
+        ///// </summary>
+        //public event EventHandler<PeerProxy>? Disconnected;
+
         internal void Update(IpcInternalPeerConnectedArgs ipcInternalPeerConnectedArgs)
         {
             Debug.Assert(ipcInternalPeerConnectedArgs.PeerName == PeerName);
