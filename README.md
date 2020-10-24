@@ -60,3 +60,7 @@
 
 - 基本完成 dotnetCampus.Ipc.PipeCore 部分
 - 最小可用呆魔
+
+## 感谢
+
+[jacqueskang/IpcServiceFramework](https://github.com/jacqueskang/IpcServiceFramework)
