@@ -1,9 +1,5 @@
-﻿using System;
-using System.IO;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Xml.Schema;
+﻿using System.Text;
+using Newtonsoft.Json;
 
 namespace dotnetCampus.Ipc
 {
@@ -11,15 +7,14 @@ namespace dotnetCampus.Ipc
     {
         public byte[] Serialize(object obj)
         {
-            using var memoryStream = new MemoryStream();
-            var utf8JsonWriter = new Utf8JsonWriter(memoryStream);
-            JsonSerializer.Serialize(utf8JsonWriter, obj);
-            return memoryStream.ToArray();
+            var json = JsonConvert.SerializeObject(obj);
+            return Encoding.UTF8.GetBytes(json);
         }
 
         public T Deserialize<T>(byte[] byteList)
         {
-            return JsonSerializer.Deserialize<T>(byteList);
+            var json = Encoding.UTF8.GetString(byteList);
+            return JsonConvert.DeserializeObject<T>(json);
         }
     }
 }
