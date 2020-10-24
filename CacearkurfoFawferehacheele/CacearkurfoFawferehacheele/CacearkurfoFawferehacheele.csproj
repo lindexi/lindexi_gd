@@ -6,12 +6,4 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="QQ截图20200209210846.png" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Resource Include="QQ截图20200209210846.png" />
-  </ItemGroup>
-
 </Project>
