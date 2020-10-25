@@ -24,14 +24,11 @@ namespace dotnetCampus.Ipc.Demo
             {
                 return typeof(void);
             }
-            else if (returnType.BaseType == typeof(Task))
+            else if (returnType.IsGenericType is true && returnType.GetGenericTypeDefinition() == typeof(Task<>))
             {
-                if (returnType.Name == "Task`1")
+                if (returnType.GenericTypeArguments.Length == 1)
                 {
-                    if (returnType.GenericTypeArguments.Length == 1)
-                    {
-                        return returnType.GenericTypeArguments[0];
-                    }
+                    return returnType.GenericTypeArguments[0];
                 }
             }
 
