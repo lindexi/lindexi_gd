@@ -4,6 +4,13 @@ using System.Threading.Tasks;
 
 namespace dotnetCampus.Ipc
 {
+#if !NETCOREAPP
+    public abstract class DispatchProxy
+    {
+        protected abstract object Invoke(MethodInfo targetMethod, object[] args);
+    }
+#endif
+
     public class IpcProxy<T> : DispatchProxy
     {
         public IpcClientProvider IpcClientProvider { set; get; } = null!;

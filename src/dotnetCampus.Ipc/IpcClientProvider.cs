@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace dotnetCampus.Ipc
@@ -13,11 +14,15 @@ namespace dotnetCampus.Ipc
     {
         public T GetObject<T>()
         {
+#if NETCOREAPP
             var obj= DispatchProxy.Create<T, IpcProxy<T>>();
             var ipcProxy = obj as IpcProxy<T>;
             Debug.Assert(ipcProxy!=null);
             ipcProxy!.IpcClientProvider = this;
             return obj;
+#endif
+            // 还需要加上 NET45 使用的透明代理
+            throw new NotImplementedException();
         }
     }
 }
