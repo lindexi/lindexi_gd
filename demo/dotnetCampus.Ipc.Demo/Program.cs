@@ -8,37 +8,6 @@ using dotnetCampus.Ipc.PipeCore.Context;
 
 namespace dotnetCampus.Ipc.Demo
 {
-
-    public class IpcProxy<T> : DispatchProxy
-    {
-        protected override object Invoke(MethodInfo targetMethod, object[] args)
-        {
-            var actualReturnType = GetAndCheckActualReturnType(targetMethod.ReturnType);
-
-            return default!;
-        }
-
-        private Type GetAndCheckActualReturnType(Type returnType)
-        {
-            if (returnType == typeof(Task))
-            {
-                return typeof(void);
-            }
-            else if (returnType.BaseType == typeof(Task))
-            {
-                if (returnType.Name == "Task`1")
-                {
-                    if (returnType.GenericTypeArguments.Length == 1)
-                    {
-                        return returnType.GenericTypeArguments[0];
-                    }
-                }
-            }
-
-            throw new ArgumentException($"方法返回值只能是 Task 或 Task 泛形");
-        }
-    }
-
     public interface IF1
     {
         Task<int> F2();
@@ -48,13 +17,6 @@ namespace dotnetCampus.Ipc.Demo
         void Fx();
     }
 
-    class IpcClientProvider
-    {
-        public T GetObject<T>()
-        {
-            return DispatchProxy.Create<T, IpcProxy<T>>();
-        }
-    }
 
     internal class Program
     {
@@ -91,8 +53,7 @@ namespace dotnetCampus.Ipc.Demo
                 //Task.Run(LibearlafeCilinoballnelnall),
                 //Task.Run(LibearlafeCilinoballnelnall),
                 //Task.Run(WhejeewukawBalbejelnewearfe),
-                Task.Run(WheehakawlucearHalwahewurlaiwhair),
-                Task.Run(BaiqealawbawKeqakeyawaw)
+                Task.Run(WheehakawlucearHalwahewurlaiwhair), Task.Run(BaiqealawbawKeqakeyawaw)
             };
 
             Task.WaitAll(jalejekemNereyararli.ToArray());
@@ -121,7 +82,6 @@ namespace dotnetCampus.Ipc.Demo
             var ipcProvider = new IpcProvider();
             ipcProvider.PeerConnected += (sender, proxy) =>
             {
-
             };
             var peer = await ipcProvider.ConnectToPeerAsync(IpcContext.DefaultPipeName);
             await peer.IpcMessageWriter.WriteMessageAsync("林德熙是逗比");
@@ -135,7 +95,6 @@ namespace dotnetCampus.Ipc.Demo
             var ipcProvider = new IpcProvider();
             ipcProvider.PeerConnected += (sender, proxy) =>
             {
-
             };
             var peer = await ipcProvider.ConnectToPeerAsync(IpcContext.DefaultPipeName);
             Console.WriteLine($"连接上{peer.PeerName}");
