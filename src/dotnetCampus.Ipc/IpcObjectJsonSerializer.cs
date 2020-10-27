@@ -21,17 +21,6 @@ namespace dotnetCampus.Ipc
         }
     }
 
-    public class IpcClientProvider
-    {
-        public T GetObject<T>()
-        {
-            var obj= DispatchProxy.Create<T, IpcProxy<T>>();
-            var ipcProxy = obj as IpcProxy<T>;
-            ipcProxy.IpcClientProvider = this;
-            return obj;
-        }
-    }
-
     public class IpcProxy<T> : DispatchProxy
     {
         public IpcClientProvider IpcClientProvider { set; get; } = null!;
