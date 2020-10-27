@@ -31,6 +31,11 @@ namespace dotnetCampus.Ipc
     {
         public Type ObjectType { set; get; }
 
+        /// <summary>
+        /// 用来标识服务器端的对象
+        /// </summary>
+        public ulong ObjectId { set; get; }
+
         public string MethodName { get; set; }
 
         public List<IpcRequestParameter> ParameterList { set; get; }
