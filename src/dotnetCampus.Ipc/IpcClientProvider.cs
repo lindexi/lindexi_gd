@@ -15,9 +15,9 @@ namespace dotnetCampus.Ipc
         public T GetObject<T>()
         {
 #if NETCOREAPP
-            var obj= DispatchProxy.Create<T, IpcProxy<T>>();
+            var obj = DispatchProxy.Create<T, IpcProxy<T>>();
             var ipcProxy = obj as IpcProxy<T>;
-            Debug.Assert(ipcProxy!=null);
+            Debug.Assert(ipcProxy != null);
             ipcProxy!.IpcClientProvider = this;
             return obj;
 #endif
