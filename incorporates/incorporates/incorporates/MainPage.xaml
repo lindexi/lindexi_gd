@@ -1,0 +1,53 @@
+﻿<Page
+    x:Class="incorporates.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:incorporates"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition />
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="{x:Bind view.p.money,Mode=OneWay}" HorizontalAlignment="Left" Margin="100,10,10,10"/>
+            <TextBlock Grid.Column="1" Text="{x:Bind view.p.总电量,Mode=OneWay}" HorizontalAlignment="Right"/>
+        </Grid>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="{x:Bind view.停靠reminder,Mode=OneWay}" Margin="10,10,10,10" TextWrapping="Wrap" />
+            <TextBlock Grid.Column="1" Text="{x:Bind view.集电器reminder,Mode=OneWay}" Margin="10,10,10,10" TextWrapping="Wrap" />
+            <TextBlock Grid.Column="2" Text="{x:Bind view.充电reminder,Mode=OneWay}" Margin="10,10,10,10" TextWrapping="Wrap" />
+            <TextBlock Grid.Column="3" Text="{x:Bind view.发电器reminder,Mode=OneWay}" Margin="10,10,10,10" TextWrapping="Wrap" />
+            <TextBlock Grid.Column="4" Text="{x:Bind view.p.reminder,Mode=OneWay}" Margin="10,10,10,10" TextWrapping="Wrap" />
+        </Grid>
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Button Content="增加停车" Grid.Column="0" IsEnabled="{x:Bind view.可以新建停靠,Mode=OneWay}" Click="{x:Bind view.新建停靠}" Width="200" Margin="10,10,10,10"/>
+            <Button Content="增加集电" Grid.Column="1" IsEnabled="{x:Bind view.可以新建集电器,Mode=OneWay}" Click="{x:Bind view.新建集电器}" Width="200" Margin="10,10,10,10"/>
+            <Button Content="增加充电" Grid.Column="2" IsEnabled="{x:Bind view.可以新建充电,Mode=OneWay}" Click="{x:Bind view.新建充电}" Width="200" Margin="10,10,10,10"/>
+            <Button Content="增加发电" Grid.Column="3" IsEnabled="{x:Bind view.可以新建发电器,Mode=OneWay}" Click="{x:Bind view.新建发电器}" Width="200" Margin="10,10,10,10"/>
+            <Button Content="下回合" Grid.Column="4" Click="{x:Bind view.n_下回合}" Width="200" Margin="10,10,10,10"/>
+        </Grid>
+    </Grid>
+</Page>
