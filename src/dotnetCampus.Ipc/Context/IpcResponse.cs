@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace dotnetCampus.Ipc
+namespace dotnetCampus.Ipc.Context
 {
     /// <summary>
     /// 从服务器返回的信息

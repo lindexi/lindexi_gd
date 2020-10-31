@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace dotnetCampus.Ipc
+namespace dotnetCampus.Ipc.Context
 {
     /// <summary>
     /// 发送给服务器的请求数据

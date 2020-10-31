@@ -1,4 +1,4 @@
-﻿namespace dotnetCampus.Ipc
+﻿namespace dotnetCampus.Ipc.Context
 {
     /// <summary>
     /// 从服务器返回的值

@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using dotnetCampus.Ipc.Utils;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MSTest.Extensions.Contracts;
 
 namespace dotnetCampus.Ipc.Tests

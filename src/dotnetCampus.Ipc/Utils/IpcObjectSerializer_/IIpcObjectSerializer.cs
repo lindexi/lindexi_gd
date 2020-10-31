@@ -1,4 +1,4 @@
-﻿namespace dotnetCampus.Ipc
+﻿namespace dotnetCampus.Ipc.Utils
 {
     public interface IIpcObjectSerializer
     {

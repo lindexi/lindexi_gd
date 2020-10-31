@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace dotnetCampus.Ipc
+namespace dotnetCampus.Ipc.Context
 {
     public class IpcRequestParameter
     {
