@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 namespace dotnetCampus.Ipc
 {
 #if !NETCOREAPP
+// todo 后续需要放在 .NET Core 程序集，因此这个库后续理论上是需要支持 .NET Framework 的
     public abstract class DispatchProxy
     {
         protected abstract object Invoke(MethodInfo targetMethod, object[] args);
