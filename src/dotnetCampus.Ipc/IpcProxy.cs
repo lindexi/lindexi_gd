@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using dotnetCampus.Ipc.Context;
+using dotnetCampus.Ipc.Utils;
 
 namespace dotnetCampus.Ipc
 {
@@ -12,13 +16,61 @@ namespace dotnetCampus.Ipc
     }
 #endif
 
+
+
     public class IpcProxy<T> : DispatchProxy
     {
+        /// <summary>
+        /// 用来标识服务器端的对象
+        /// </summary>
+        public ulong ObjectId { set; get; }
+
+        public IIpcObjectSerializer IpcObjectSerializer { set; get; }
+
         public IpcClientProvider IpcClientProvider { set; get; } = null!;
 
         protected override object Invoke(MethodInfo targetMethod, object[] args)
         {
             var actualReturnType = GetAndCheckActualReturnType(targetMethod.ReturnType);
+
+            var parameters = targetMethod.GetParameters();
+
+            var parameterTypes = parameters.Select(p => new IpcRequestParameterType(p.ParameterType)).ToArray();
+
+            var parameterList = new List<IpcRequestParameter>(parameterTypes.Length);
+
+            for (var i = 0; i < parameterTypes.Length; i++)
+            {
+                var ipcRequestParameter = new IpcRequestParameter()
+                {
+                    ParameterType = parameterTypes[i],
+                    Value = args[i]
+                };
+
+                parameterList.Add(ipcRequestParameter);
+            }
+
+            var genericTypes = targetMethod.GetGenericArguments();
+
+            var genericArgumentList = genericTypes.Select(type => new IpcRequestParameterType(type)).Cast<IpcSerializableType>().ToList();
+
+            var ipcRequest = new IpcRequest()
+            {
+                MethodName = targetMethod.Name,
+                ParameterList = parameterList,
+                GenericArgumentList = genericArgumentList,
+                ReturnType = new IpcSerializableType(actualReturnType),
+                ObjectType = new IpcSerializableType(typeof(T)),
+                ObjectId = ObjectId,
+            };
+
+            //IpcResponse response = await GetResponseAsync(ipcRequest);
+            ////Task<T>
+
+            //TaskCompletionSource<int> t = new TaskCompletionSource<int>();
+
+            //int n = await foo.FooAsync();
+            //var re = IpcObjectSerializer.Serialize(ipcRequest);
 
             return default!;
         }
