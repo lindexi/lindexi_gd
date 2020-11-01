@@ -45,13 +45,6 @@ namespace dotnetCampus.Ipc.Demo
         void Fx();
     }
 
-    class IpcClientProvider
-    {
-        public T GetObject<T>()
-        {
-            return DispatchProxy.Create<T, IpcProxy<T>>();
-        }
-    }
 
     internal class Program
     {
@@ -88,8 +81,7 @@ namespace dotnetCampus.Ipc.Demo
                 //Task.Run(LibearlafeCilinoballnelnall),
                 //Task.Run(LibearlafeCilinoballnelnall),
                 //Task.Run(WhejeewukawBalbejelnewearfe),
-                Task.Run(WheehakawlucearHalwahewurlaiwhair),
-                Task.Run(BaiqealawbawKeqakeyawaw)
+                Task.Run(WheehakawlucearHalwahewurlaiwhair), Task.Run(BaiqealawbawKeqakeyawaw)
             };
 
             Task.WaitAll(jalejekemNereyararli.ToArray());
@@ -118,7 +110,6 @@ namespace dotnetCampus.Ipc.Demo
             var ipcProvider = new IpcProvider();
             ipcProvider.PeerConnected += (sender, proxy) =>
             {
-
             };
             var peer = await ipcProvider.ConnectToPeerAsync(IpcContext.DefaultPipeName);
             await peer.IpcMessageWriter.WriteMessageAsync("林德熙是逗比");
@@ -132,7 +123,6 @@ namespace dotnetCampus.Ipc.Demo
             var ipcProvider = new IpcProvider();
             ipcProvider.PeerConnected += (sender, proxy) =>
             {
-
             };
             var peer = await ipcProvider.ConnectToPeerAsync(IpcContext.DefaultPipeName);
             Console.WriteLine($"连接上{peer.PeerName}");

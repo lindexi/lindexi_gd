@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using Newtonsoft.Json;
 
-namespace dotnetCampus.Ipc
+namespace dotnetCampus.Ipc.Utils
 {
     public class IpcObjectJsonSerializer : IIpcObjectSerializer
     {

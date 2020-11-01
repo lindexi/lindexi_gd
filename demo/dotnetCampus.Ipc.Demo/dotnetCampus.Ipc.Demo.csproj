@@ -8,6 +8,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\dotnetCampus.Ipc.PipeCore\dotnetCampus.Ipc.PipeCore.csproj" />
+        <ProjectReference Include="..\..\src\dotnetCampus.Ipc\dotnetCampus.Ipc.csproj" />
     </ItemGroup>
 
 </Project>
