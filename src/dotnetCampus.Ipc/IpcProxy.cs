@@ -16,8 +16,6 @@ namespace dotnetCampus.Ipc
     }
 #endif
 
-
-
     public class IpcProxy<T> : DispatchProxy
     {
         /// <summary>
