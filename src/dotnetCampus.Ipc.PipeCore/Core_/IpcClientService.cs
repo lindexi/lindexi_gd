@@ -11,11 +11,16 @@ using dotnetCampus.Threading;
 
 namespace dotnetCampus.Ipc.PipeCore
 {
+    internal interface IClientMessageWriter : IMessageWriter
+    {
+        Task WriteMessageAsync(in IpcBufferMessageContext ipcBufferMessageContext);
+    }
+
     /// <summary>
     /// 管道的客户端，用于发送消息
     /// </summary>
     /// 采用两个半工的管道做到双向通讯，这里的管道客户端用于发送
-    public class IpcClientService : IMessageWriter, IDisposable
+    public class IpcClientService : IMessageWriter, IDisposable, IClientMessageWriter
     {
         /// <summary>
         /// 连接其他端，用来发送
@@ -189,5 +194,8 @@ namespace dotnetCampus.Ipc.PipeCore
             NamedPipeClientStream.Dispose();
             DoubleBufferTask.Finish();
         }
+
+        Task IClientMessageWriter.WriteMessageAsync(in IpcBufferMessageContext ipcBufferMessageContext) =>
+            WriteMessageAsync(ipcBufferMessageContext);
     }
 }

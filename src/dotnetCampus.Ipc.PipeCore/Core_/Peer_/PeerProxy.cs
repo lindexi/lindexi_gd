@@ -10,13 +10,15 @@ namespace dotnetCampus.Ipc.PipeCore
     /// <summary>
     /// 用于表示远程的对方
     /// </summary>
-    public class PeerProxy: IPeerProxy
+    public class PeerProxy : IPeerProxy
     {
         internal PeerProxy(string peerName, IpcClientService ipcClientService)
         {
             PeerName = peerName;
             IpcClientService = ipcClientService;
             IpcMessageWriter = new IpcMessageWriter(ipcClientService);
+
+            ResponseManager=new ResponseManager(ipcClientService);
         }
 
         internal PeerProxy(string peerName, IpcClientService ipcClientService, IpcInternalPeerConnectedArgs ipcInternalPeerConnectedArgs) :
@@ -37,6 +39,13 @@ namespace dotnetCampus.Ipc.PipeCore
         /// 当收到消息时触发
         /// </summary>
         public event EventHandler<IPeerMessageArgs>? MessageReceived;
+
+        public Task<IpcBufferMessage> GetResponseAsync(IpcRequestMessage request)
+        {
+            return ResponseManager.GetResponseAsync(request);
+        }
+
+        private ResponseManager ResponseManager { get; }
 
         /// <summary>
         /// 用于写入数据
@@ -81,6 +90,8 @@ namespace dotnetCampus.Ipc.PipeCore
 
         private void ServerStreamMessageReader_MessageReceived(object? sender, PeerMessageArgs e)
         {
+            ResponseManager.ReceiveMessage(e);
+
             MessageReceived?.Invoke(sender, e);
         }
     }

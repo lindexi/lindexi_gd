@@ -7,7 +7,7 @@ namespace dotnetCampus.Ipc.PipeCore.Context
     /// <summary>
     /// 对方通讯的消息事件参数
     /// </summary>
-    public class PeerMessageArgs : EventArgs,IPeerMessageArgs
+    public class PeerMessageArgs : EventArgs, IPeerMessageArgs
     {
         /// <summary>
         /// 创建对方通讯的消息事件参数
@@ -36,5 +36,10 @@ namespace dotnetCampus.Ipc.PipeCore.Context
         /// 对方的名字，此名字是对方的服务器名字，可以用来连接
         /// </summary>
         public string PeerName { get; }
+
+        /// <summary>
+        /// 表示是否被上一级处理了
+        /// </summary>
+        public bool Handle { set; get; }
     }
 }

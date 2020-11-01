@@ -2,9 +2,31 @@
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
+using dotnetCampus.Ipc.Abstractions;
+using dotnetCampus.Ipc.Context;
+using dotnetCampus.Ipc.Utils;
 
 namespace dotnetCampus.Ipc
 {
+    public class IpcGetObjectRequest
+    {
+        public IpcSerializableType ObjectType { set; get; }
+    }
+
+    //public class IpcRequestManager
+    //{
+    //    public IPeerProxy PeerProxy { set; get; } = null!;
+
+    //    public IIpcObjectSerializer IpcObjectSerializer { set; get; } = new IpcObjectJsonSerializer();
+
+    //    public Task<TResponse> GetResponseAsync<TRequest, TResponse>(TRequest request)
+    //    {
+
+    //    }
+    //}
+
+  
+
     /// <summary>
     /// 提供客户端使用的方法，可以拿到服务器端的对象
     /// </summary>
@@ -13,7 +35,6 @@ namespace dotnetCampus.Ipc
     /// 使用这个标识拿到对应的对象
     public class IpcClientProvider
     {
-
         ///// <summary>
         ///// 从远程获取到对象
         ///// </summary>
@@ -21,8 +42,21 @@ namespace dotnetCampus.Ipc
         ///// <returns></returns>
         //public Task<T> GetObjectAsync<T>()
         //{
+        //    var type = typeof(T);
+        //    var ipcSerializableType = new IpcSerializableType(type);
+        //    var ipcGetObjectRequest = new IpcGetObjectRequest()
+        //    {
+        //        ObjectType = ipcSerializableType
+        //    };
+
 
         //}
+
+        //public IpcRequestManager IpcRequestManager { set; get; } = new IpcRequestManager();
+
+       
+
+        public IPeerProxy PeerProxy { set; get; } = null!;
 
         public T GetObject<T>()
         {

@@ -1,6 +1,6 @@
 ﻿namespace dotnetCampus.Ipc.PipeCore.Context
 {
-    readonly struct IpcBufferMessage
+    public readonly struct IpcBufferMessage
     {
         public IpcBufferMessage(byte[] buffer)
         {
