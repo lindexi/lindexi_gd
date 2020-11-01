@@ -18,7 +18,7 @@ namespace dotnetCampus.Ipc.PipeCore
             IpcClientService = ipcClientService;
             IpcMessageWriter = new IpcMessageWriter(ipcClientService);
 
-            ResponseManager=new ResponseManager(ipcClientService);
+            ResponseManager = new ResponseManager();
         }
 
         internal PeerProxy(string peerName, IpcClientService ipcClientService, IpcInternalPeerConnectedArgs ipcInternalPeerConnectedArgs) :
@@ -40,9 +40,11 @@ namespace dotnetCampus.Ipc.PipeCore
         /// </summary>
         public event EventHandler<IPeerMessageArgs>? MessageReceived;
 
-        public Task<IpcBufferMessage> GetResponseAsync(IpcRequestMessage request)
+        public async Task<IpcBufferMessage> GetResponseAsync(IpcRequestMessage request)
         {
-            return ResponseManager.GetResponseAsync(request);
+            var ipcClientRequestMessage = ResponseManager.GetRequestMessage(request);
+            await IpcClientService.WriteMessageAsync(ipcClientRequestMessage.IpcBufferMessageContext);
+            return await ipcClientRequestMessage.Task;
         }
 
         private ResponseManager ResponseManager { get; }

@@ -12,12 +12,7 @@ namespace dotnetCampus.Ipc.PipeCore
     /// </summary>
     class ResponseManager
     {
-        public ResponseManager(IClientMessageWriter messageWriter)
-        {
-            _messageWriter = messageWriter;
-        }
-
-        public async Task<IpcBufferMessage> GetResponseAsync(IpcRequestMessage request)
+        public IpcClientRequestMessage GetRequestMessage(IpcRequestMessage request)
         {
             ulong currentMessageId;
             var task = new TaskCompletionSource<IpcBufferMessage>();
@@ -31,8 +26,7 @@ namespace dotnetCampus.Ipc.PipeCore
             }
 
             var requestMessage = CreateRequestMessage(request, currentMessageId);
-            await _messageWriter.WriteMessageAsync(requestMessage);
-            return await task.Task;
+            return new IpcClientRequestMessage(requestMessage, task.Task, currentMessageId);
         }
 
         public IpcBufferMessageContext CreateResponseMessage(ulong messageId, IpcBufferMessage response, string summary)
@@ -179,8 +173,6 @@ namespace dotnetCampus.Ipc.PipeCore
             var header = RequestMessageHeader;
             return CheckHeader(stream, header);
         }
-
-        private readonly IClientMessageWriter _messageWriter;
 
         private IpcBufferMessageContext CreateRequestMessage(in IpcRequestMessage request, ulong currentMessageId)
         {

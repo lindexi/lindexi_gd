@@ -16,12 +16,13 @@ namespace dotnetCampus.Ipc.Tests
         {
             "发送消息之后，能等待收到对应的回复".Test(() =>
             {
-                var clientMessageWriter = new FakeClientMessageWriter();
-                var responseManager = new ResponseManager(clientMessageWriter);
+                var responseManager = new ResponseManager();
                 var requestByteList = new byte[] { 0xFF, 0xFE };
                 var request = new IpcRequestMessage("Tests", new IpcBufferMessage(requestByteList));
-                var task = responseManager.GetResponseAsync(request);
-                Assert.AreEqual(false,task.IsCompleted);
+                var ipcClientRequestMessage = responseManager.GetRequestMessage(request);
+                Assert.AreEqual(false, ipcClientRequestMessage.Task.IsCompleted);
+
+                var requestStream = IpcBufferMessageContextToStream(ipcClientRequestMessage.IpcBufferMessageContext);
 
                 IpcClientRequestArgs ipcClientRequestArgs = null;
                 responseManager.OnIpcClientRequestReceived += (sender, args) =>
@@ -29,8 +30,8 @@ namespace dotnetCampus.Ipc.Tests
                     ipcClientRequestArgs = args;
                 };
 
-                Assert.IsNotNull(clientMessageWriter.Stream);
-                responseManager.ReceiveMessage(new PeerMessageArgs("Foo", clientMessageWriter.Stream, ack: 100));
+                Assert.IsNotNull(requestStream);
+                responseManager.ReceiveMessage(new PeerMessageArgs("Foo", requestStream, ack: 100));
 
                 Assert.IsNotNull(ipcClientRequestArgs);
                 var responseByteList = new byte[] { 0xF1,0xF2 };
@@ -38,7 +39,7 @@ namespace dotnetCampus.Ipc.Tests
                 var responseStream = IpcBufferMessageContextToStream(responseMessageContext);
                 responseManager.ReceiveMessage(new PeerMessageArgs("Foo", responseStream, ack: 100));
 
-                Assert.AreEqual(true, task.IsCompleted);
+                Assert.AreEqual(true, ipcClientRequestMessage.Task.IsCompleted);
             });
         }
 
