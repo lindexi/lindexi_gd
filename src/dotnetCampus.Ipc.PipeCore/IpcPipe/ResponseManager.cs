@@ -35,9 +35,43 @@ namespace dotnetCampus.Ipc.PipeCore
             return await task.Task;
         }
 
-        private Dictionary<ulong, TaskCompletionSource<IpcBufferMessage>> TaskList { get; } = new Dictionary<ulong, TaskCompletionSource<IpcBufferMessage>>();
+        public IpcBufferMessageContext CreateResponseMessage(ulong messageId, IpcBufferMessage response, string summary)
+        {
+            /*
+           * MessageHeader
+           * MessageId
+            * Response Message Length
+           * Response Message
+           */
+            var currentMessageIdByteList = BitConverter.GetBytes(messageId);
+
+            var responseMessageLengthByteList = BitConverter.GetBytes(response.Count);
+            return new IpcBufferMessageContext
+            (
+                summary,
+                IpcMessageCommandType.Business,
+                new IpcBufferMessage(ResponseMessageHeader),
+                new IpcBufferMessage(currentMessageIdByteList),
+                new IpcBufferMessage(responseMessageLengthByteList),
+                response
+            );
+        }
+
+        private Dictionary<ulong, TaskCompletionSource<IpcBufferMessage>> TaskList { get; } =
+            new Dictionary<ulong, TaskCompletionSource<IpcBufferMessage>>();
 
         public void ReceiveMessage(PeerMessageArgs args)
+        {
+            HandleResponse(args);
+            if (args.Handle)
+            {
+                return;
+            }
+
+            HandleRequest(args);
+        }
+
+        private void HandleRequest(PeerMessageArgs args)
         {
             Stream message = args.Message;
             if (message.Length < RequestMessageHeader.Length + sizeof(ulong))
@@ -48,17 +82,51 @@ namespace dotnetCampus.Ipc.PipeCore
             var currentPosition = message.Position;
             try
             {
-                if (CheckHeader(message))
+                if (CheckRequestHeader(message))
                 {
                     // 标记在这一级消费
                     args.Handle = true;
 
                     var binaryReader = new BinaryReader(message);
                     var messageId = binaryReader.ReadUInt64();
-                    TaskCompletionSource<IpcBufferMessage>? task=null;
+                    var requestMessageLength = binaryReader.ReadInt32();
+                    var requestMessageByteList = binaryReader.ReadBytes(requestMessageLength);
+                    var ipcClientRequestArgs =
+                        new IpcClientRequestArgs(messageId, new IpcBufferMessage(requestMessageByteList));
+                    OnIpcClientRequestReceived?.Invoke(this, ipcClientRequestArgs);
+                }
+            }
+            finally
+            {
+                message.Position = currentPosition;
+            }
+        }
+
+        public event EventHandler<IpcClientRequestArgs>? OnIpcClientRequestReceived;
+
+        private void HandleResponse(PeerMessageArgs args)
+        {
+            Stream message = args.Message;
+
+            if (message.Length < ResponseMessageHeader.Length + sizeof(ulong))
+            {
+                return;
+            }
+
+            var currentPosition = message.Position;
+            try
+            {
+                if (CheckResponseHeader(message))
+                {
+                    // 标记在这一级消费
+                    args.Handle = true;
+
+                    var binaryReader = new BinaryReader(message);
+                    var messageId = binaryReader.ReadUInt64();
+                    TaskCompletionSource<IpcBufferMessage>? task = null;
                     lock (Locker)
                     {
-                        if (TaskList.TryGetValue(messageId,out task))
+                        if (TaskList.TryGetValue(messageId, out task))
                         {
                         }
                         else
@@ -72,8 +140,8 @@ namespace dotnetCampus.Ipc.PipeCore
                         return;
                     }
 
-                    var requestMessageLength = binaryReader.ReadInt32();
-                    var responseMessageByteList = binaryReader.ReadBytes(requestMessageLength);
+                    var responseMessageLength = binaryReader.ReadInt32();
+                    var responseMessageByteList = binaryReader.ReadBytes(responseMessageLength);
                     task.SetResult(new IpcBufferMessage(responseMessageByteList));
                 }
             }
@@ -83,13 +151,19 @@ namespace dotnetCampus.Ipc.PipeCore
             }
         }
 
-        private bool CheckHeader(Stream stream)
+        private bool CheckResponseHeader(Stream stream)
         {
-            for (var i = 0; i < RequestMessageHeader.Length; i++)
+            var header = ResponseMessageHeader;
+
+            return CheckHeader(stream, header);
+        }
+
+        private static bool CheckHeader(Stream stream, byte[] header)
+        {
+            for (var i = 0; i < header.Length; i++)
             {
-                if (stream.ReadByte()== RequestMessageHeader[i])
+                if (stream.ReadByte() == header[i])
                 {
-                    
                 }
                 else
                 {
@@ -98,6 +172,12 @@ namespace dotnetCampus.Ipc.PipeCore
             }
 
             return true;
+        }
+
+        private bool CheckRequestHeader(Stream stream)
+        {
+            var header = RequestMessageHeader;
+            return CheckHeader(stream, header);
         }
 
         private readonly IClientMessageWriter _messageWriter;
@@ -131,7 +211,9 @@ namespace dotnetCampus.Ipc.PipeCore
         /// 用于标识请求消息
         /// </summary>
         /// 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74 0x00 就是 Request 字符
-        private byte[] RequestMessageHeader { get; } = { 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x00 };
+        private byte[] RequestMessageHeader { get; } = {0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x00};
+
+        private byte[] ResponseMessageHeader { get; } = {0x52, 0x65, 0x73, 0x70, 0x6F, 0x6E, 0x73, 0x65};
 
         private ulong CurrentMessageId { set; get; }
     }
