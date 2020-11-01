@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace dotnetCampus.Ipc
 {
@@ -12,6 +13,17 @@ namespace dotnetCampus.Ipc
     /// 使用这个标识拿到对应的对象
     public class IpcClientProvider
     {
+
+        ///// <summary>
+        ///// 从远程获取到对象
+        ///// </summary>
+        ///// <typeparam name="T"></typeparam>
+        ///// <returns></returns>
+        //public Task<T> GetObjectAsync<T>()
+        //{
+
+        //}
+
         public T GetObject<T>()
         {
 #if NETCOREAPP

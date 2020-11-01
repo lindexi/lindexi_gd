@@ -3,7 +3,10 @@ using System.Threading.Tasks;
 
 namespace dotnetCampus.Ipc.PipeCore.Context
 {
-    interface IMessageWriter
+    /// <summary>
+    /// 用于表示发送消息
+    /// </summary>
+    public interface IMessageWriter
     {
         /// <summary>
         /// 向服务端发送消息

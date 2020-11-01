@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using dotnetCampus.Ipc.Abstractions;
 using dotnetCampus.Ipc.PipeCore.Context;
 using dotnetCampus.Ipc.PipeCore.Utils;
 
@@ -9,7 +10,7 @@ namespace dotnetCampus.Ipc.PipeCore
     /// <summary>
     /// 用于表示远程的对方
     /// </summary>
-    public class PeerProxy
+    public class PeerProxy: IPeerProxy
     {
         internal PeerProxy(string peerName, IpcClientService ipcClientService)
         {
@@ -35,7 +36,7 @@ namespace dotnetCampus.Ipc.PipeCore
         /// <summary>
         /// 当收到消息时触发
         /// </summary>
-        public event EventHandler<PeerMessageArgs>? MessageReceived;
+        public event EventHandler<IPeerMessageArgs>? MessageReceived;
 
         /// <summary>
         /// 用于写入数据

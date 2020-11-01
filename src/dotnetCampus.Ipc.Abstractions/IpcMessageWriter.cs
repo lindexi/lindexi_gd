@@ -14,7 +14,7 @@ namespace dotnetCampus.Ipc.PipeCore.Utils
         /// 创建提供消息的写入方法
         /// </summary>
         /// <param name="messageWriter">实际用来写入的方法</param>
-        internal IpcMessageWriter(IMessageWriter messageWriter)
+        public IpcMessageWriter(IMessageWriter messageWriter)
         {
             MessageWriter = messageWriter;
         }

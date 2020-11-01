@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows.Threading;
+using dotnetCampus.Ipc.Abstractions;
 using dotnetCampus.Ipc.PipeCore;
 
 namespace dotnetCampus.Ipc.WpfDemo
@@ -19,7 +20,7 @@ namespace dotnetCampus.Ipc.WpfDemo
             peer.MessageReceived += Peer_MessageReceived;
         }
 
-        private void Peer_MessageReceived(object? sender, PipeCore.Context.PeerMessageArgs e)
+        private void Peer_MessageReceived(object? sender, IPeerMessageArgs e)
         {
             var streamReader = new StreamReader(e.Message);
             var message = streamReader.ReadToEnd();

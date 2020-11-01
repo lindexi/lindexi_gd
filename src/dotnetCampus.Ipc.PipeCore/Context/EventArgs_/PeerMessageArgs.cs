@@ -1,12 +1,13 @@
 ﻿using System;
 using System.IO;
+using dotnetCampus.Ipc.Abstractions;
 
 namespace dotnetCampus.Ipc.PipeCore.Context
 {
     /// <summary>
     /// 对方通讯的消息事件参数
     /// </summary>
-    public class PeerMessageArgs : EventArgs
+    public class PeerMessageArgs : EventArgs,IPeerMessageArgs
     {
         /// <summary>
         /// 创建对方通讯的消息事件参数
