@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -37,6 +37,6 @@
     <ItemGroup>
         <!-- 链接源代码到 GitHub 仓库，方便调试 -->
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
-        <PackageReference Include="dotnetCampus.AsyncWorkerCollection" Version="1.5.2" />
+        <PackageReference Include="dotnetCampus.AsyncWorkerCollection" Version="1.5.3" />
     </ItemGroup>
 </Project>
