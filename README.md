@@ -56,6 +56,14 @@
 
 进度：等待 API 设计中，也许会接入 [https://github.com/jacqueskang/IpcServiceFramework](https://github.com/jacqueskang/IpcServiceFramework) 的实现，或者模拟 WCF 或 Remoting 的实现
 
+## API 特点
+
+### Summary
+
+底层每次调用需要传入 `string summary` 用于标识
+
+优势在于解决调试的时候，看到传送的二进制以及调用堆栈的时候，如何对应上具体的业务方的问题
+
 ## 进度
 
 - 基本完成 dotnetCampus.Ipc.PipeCore 部分
