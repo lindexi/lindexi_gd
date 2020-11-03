@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2047
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DavudrerKutisnisHitoumalce", "DavudrerKutisnisHitoumalce\DavudrerKutisnisHitoumalce.csproj", "{8020351D-F58A-4604-89A8-A902AD95C3FF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8020351D-F58A-4604-89A8-A902AD95C3FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8020351D-F58A-4604-89A8-A902AD95C3FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8020351D-F58A-4604-89A8-A902AD95C3FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8020351D-F58A-4604-89A8-A902AD95C3FF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {83724C5A-ACD4-4859-A5EE-5646E53B63E0}
+	EndGlobalSection
+EndGlobal

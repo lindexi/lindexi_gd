@@ -32,6 +32,73 @@ namespace dotnetCampus.GitCommand
 
         }
 
+        public string Add(string file = ".")
+        {
+            file = file.Replace(Repo.FullName, "");
+            if (file.StartsWith("\\"))
+            {
+                file = file.Substring(1);
+            }
+
+            string str = "add " + file;
+            return Control(str);
+        }
+
+        private string ConvertDate(DateTime time)
+        {
+            //1.  一月     January      （Jan）2.  二月      February   （Feb）
+            //3.  三月      March        （Mar） 
+            //4.  四月      April           （Apr）
+            //5.  五月      May           （May）
+            //6.  六月      June           （Jun）
+            //7.  七月      July             （Jul）
+            //8.  八月      August        （Aug）
+            //9.  九月      September  （Sep）
+            //10.  十月     October      （Oct） 
+            //11.  十一月   November （Nov）12.  十二月   December （Dec）
+            List<string> temp = new List<string>()
+            {
+                "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug",
+                "Sep","Oct","Nov","Dec"
+            };
+
+            //StringBuilder str = new StringBuilder();
+            //            git commit --date = "月 日 时间 年 +0800" - am "提交"
+
+            //git commit --date = "May 7 9:05:20 2016 +0800" - am "提交"
+            return $"--date=\"{temp[time.Month - 1]} {time.Day} {time.Hour}:{time.Minute}:{time.Second} {time.Year} +0800\" ";
+        }
+
+        public string Commit(string str = null, DateTime time = default(DateTime))
+        {
+            string commit = " commit";
+            if (time != (default(DateTime)))
+            {
+                commit += " " + ConvertDate(time);
+            }
+
+            if (string.IsNullOrEmpty(str))
+            {
+                if (time == default(DateTime))
+                {
+                    time = DateTime.Now;
+                }
+                str = time.Year + "年" + time.Month + "月" +
+                      time.Day + "日 " +
+                      time.Hour + ":" +
+                      time.Minute + ":" + time.Second;
+            }
+            commit += " -m " + "\"" + str + "\"";
+            //commit = FileStr() + commit;
+            return Control(commit);
+        }
+
+        public string Tag(string tag)
+        {
+            var str = $"tag {tag}";
+            return Control(str);
+        }
+
         /// <summary>
         /// 两个版本修改的文件
         /// </summary>

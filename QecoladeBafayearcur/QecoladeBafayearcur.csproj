@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="NewLife.RocketMQ" Version="1.3.2020.802" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.6" PrivateAssets="all"></PackageReference>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReferenceVersion Include="Name='%(PackageReference.Identity)' Version='%(PackageReference.Version)' PrivateAssets='%(PackageReference.PrivateAssets)'"></PackageReferenceVersion>
+    </ItemGroup>
+    <Target Name="LabaijalacarDaqarheelu" BeforeTargets="Build">
+        <Warning Text="@(PackageReferenceVersion)"/>
+    </Target>
+</Project>

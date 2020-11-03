@@ -22,3 +22,9 @@
 [submodule "Blazui"]
 	path = Blazui
 	url = https://github.com/wzxinchen/Blazui.git
+[submodule "dotnet-tools"]
+	path = dotnet-tools
+	url = git@github.com:lindexi/dotnet-tools.git
+[submodule "Advanced-Algorithms"]
+	path = Advanced-Algorithms
+	url = https://github.com/justcoding121/Advanced-Algorithms.git

@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Nullable>enable</Nullable>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="NewLife.RocketMQ" Version="1.3.2020.802" />
+        <PackageReference Include="dotnetCampus.AsyncWorkerCollection.Source" Version="1.1.6">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="dotnetCampus.SourceYard" Version="0.1.19099-alpha">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.6"></PackageReference>
+    </ItemGroup>
+    <Target Name="LabaijalacarDaqarheelu" BeforeTargets="Build">
+        <ItemGroup>
+            <_PackageReferenceVersiont Include="Name='%(PackageReference.Identity)' Version='%(PackageReference.Version)' PrivateAssets='%(PackageReference.PrivateAssets)'"></_PackageReferenceVersiont>
+        </ItemGroup>
+        <Warning Text="@(_PackageReferenceVersiont)"/>
+    </Target>
+</Project>

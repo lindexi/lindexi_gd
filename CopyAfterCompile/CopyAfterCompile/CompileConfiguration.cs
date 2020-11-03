@@ -8,6 +8,27 @@ namespace CopyAfterCompile
     /// </summary>
     public class CompileConfiguration : Configuration
     {
+        public string OriginBranch
+        {
+            set => SetValue(value);
+            get => GetString() ?? "origin/dev";
+        }
+
+        /// <summary>
+        /// 保存构建完成的文件夹
+        /// </summary>
+        public string TargetDirectory
+        {
+            set => SetValue(value);
+            get => GetString();
+        }
+
+        public string LastCommit
+        {
+            set => SetValue(value);
+            get => GetString();
+        }
+
         public string SlnPath
         {
             set

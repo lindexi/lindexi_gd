@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <UseWPF>true</UseWPF>
+        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+<ItemGroup>
+    <PackageReference Include="Vanara.PInvoke.User32" Version="2.3.0" />
+</ItemGroup>
+</Project>

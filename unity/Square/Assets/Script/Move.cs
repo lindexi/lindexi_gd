@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Move : MonoBehaviour
 {
-    public float Speed = 1;
+    public float Speed = 10;
 
     // Start is called before the first frame update
     void Start()
@@ -21,6 +21,6 @@ public class Move : MonoBehaviour
         var verticalAsixName = "Vertical";
         var vertical = Input.GetAxis(verticalAsixName);
 
-        transform.Translate(new Vector3(horizontal, vertical) * Time.deltaTime * Speed);
+        transform.Rotate(new Vector3(horizontal, vertical) * Time.deltaTime * Speed, Space.World);
     }
 }

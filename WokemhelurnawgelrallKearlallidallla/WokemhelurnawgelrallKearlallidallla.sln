@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30225.117
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WokemhelurnawgelrallKearlallidallla", "WokemhelurnawgelrallKearlallidallla\WokemhelurnawgelrallKearlallidallla\WokemhelurnawgelrallKearlallidallla.csproj", "{44E06FC0-5D28-407A-AA34-DF069D1EE42D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WokemhelurnawgelrallKearlallidallla.GTK", "WokemhelurnawgelrallKearlallidallla.GTK\WokemhelurnawgelrallKearlallidallla.GTK.csproj", "{A80C1411-F37D-43BB-95C7-E7FD0580072A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{44E06FC0-5D28-407A-AA34-DF069D1EE42D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44E06FC0-5D28-407A-AA34-DF069D1EE42D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44E06FC0-5D28-407A-AA34-DF069D1EE42D}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{44E06FC0-5D28-407A-AA34-DF069D1EE42D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44E06FC0-5D28-407A-AA34-DF069D1EE42D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{44E06FC0-5D28-407A-AA34-DF069D1EE42D}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{A80C1411-F37D-43BB-95C7-E7FD0580072A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A80C1411-F37D-43BB-95C7-E7FD0580072A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A80C1411-F37D-43BB-95C7-E7FD0580072A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A80C1411-F37D-43BB-95C7-E7FD0580072A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DE3E4ED2-4C61-4B3E-B34C-4FF40CA9F80B}
+	EndGlobalSection
+EndGlobal
