@@ -3001,6 +3001,7 @@ namespace System.Xaml
             }
         }
 
+        // ÔÚ https://github.com/dotnet/wpf/pull/3738 É¾³ý
         // need to implement our own Set class to alleviate ties to System.Core.dll
         // HashSet<T> lives in System.Core.dll
         class HashSet<T>
