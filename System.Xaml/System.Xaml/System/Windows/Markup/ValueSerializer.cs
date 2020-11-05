@@ -92,6 +92,7 @@ namespace System.Windows.Markup
             throw GetConvertFromException(value);
         }
 
+        // 在 https://github.com/dotnet/wpf/pull/3085 已更改
         static List<Type> Empty = new List<Type>();
 
         /// <summary>
