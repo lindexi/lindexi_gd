@@ -15,7 +15,6 @@ using System.ComponentModel;
 using System.ComponentModel.Design.Serialization;
 using System.Globalization;
 using System.Security;
-using System.Xaml;
 
 namespace System.Windows.Markup
 {

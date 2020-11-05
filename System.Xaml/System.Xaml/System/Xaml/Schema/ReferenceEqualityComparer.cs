@@ -17,12 +17,16 @@ namespace System.Xaml.Schema
 
         public override bool Equals(object obj)
         {
+            // 特别更改
             return false;
+            //return ((IStructuralEquatable)this).Equals(obj, ReferenceEqualityComparer.Instance);
         }
 
         public override int GetHashCode()
         {
+            // 特别更改
             return 0;
+            //return ((IStructuralEquatable)this).GetHashCode(ReferenceEqualityComparer.Instance);
         }
     }
 
@@ -35,12 +39,16 @@ namespace System.Xaml.Schema
 
         public override bool Equals(object obj)
         {
+            // 特别更改
             return false;
+            //return ((IStructuralEquatable)this).Equals(obj, ReferenceEqualityComparer.Instance);
         }
 
         public override int GetHashCode()
         {
+            // 特别更改
             return 0;
+            //return ((IStructuralEquatable)this).GetHashCode(ReferenceEqualityComparer.Instance);
         }
     }
 }

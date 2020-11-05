@@ -1265,8 +1265,7 @@ namespace System.Xaml
                 }
                 else
                 {
-                    if (SRID.ObjectReaderInstanceDescriptorInvalidMethod != null)
-                        throw new XamlObjectReaderException(SR.Get(SRID.ObjectReaderInstanceDescriptorInvalidMethod));
+                    throw new XamlObjectReaderException(SR.Get(SRID.ObjectReaderInstanceDescriptorInvalidMethod));
                 }
 
                 if (arguments != null)
