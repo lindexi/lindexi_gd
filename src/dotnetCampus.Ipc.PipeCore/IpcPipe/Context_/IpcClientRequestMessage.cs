@@ -5,7 +5,7 @@ namespace dotnetCampus.Ipc.PipeCore
 {
     class IpcClientRequestMessage
     {
-        public IpcClientRequestMessage(IpcBufferMessageContext ipcBufferMessageContext, Task<IpcBufferMessage> task, ulong messageId)
+        public IpcClientRequestMessage(IpcBufferMessageContext ipcBufferMessageContext, Task<IpcBufferMessage> task, IpcClientRequestMessageId messageId)
         {
             IpcBufferMessageContext = ipcBufferMessageContext;
             Task = task;
@@ -16,6 +16,6 @@ namespace dotnetCampus.Ipc.PipeCore
 
         public Task<IpcBufferMessage> Task { get; }
 
-        public ulong MessageId { get; }
+        public IpcClientRequestMessageId MessageId { get; }
     }
 }

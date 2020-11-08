@@ -26,7 +26,7 @@ namespace dotnetCampus.Ipc.PipeCore
             }
 
             var requestMessage = CreateRequestMessage(request, currentMessageId);
-            return new IpcClientRequestMessage(requestMessage, task.Task, currentMessageId);
+            return new IpcClientRequestMessage(requestMessage, task.Task, new IpcClientRequestMessageId(currentMessageId));
         }
 
         public IpcBufferMessageContext CreateResponseMessage(ulong messageId, IpcBufferMessage response, string summary)
