@@ -46,7 +46,7 @@ namespace dotnetCampus.Ipc.PipeCore.Context
         /// 处理者的消息
         /// </summary>
         /// 框架大了，不能只有 <see cref="Handle"/> 一个属性，还需要能做到调试，调试是谁处理了，因此加添加了这个属性
-        public string HandlerMessage { private set;get; }
+        public string? HandlerMessage { private set;get; }
 
         /// <summary>
         /// 设置被处理，同时添加 <paramref name="message"/> 用于调试的信息
