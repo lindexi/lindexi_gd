@@ -52,7 +52,7 @@ namespace dotnetCampus.Ipc.PipeCore
             );
         }
 
-        public IpcBufferMessageContext CreateResponseMessage(ulong messageId, IpcBufferMessage response, string summary)
+        public IpcBufferMessageContext CreateResponseMessage(IpcClientRequestMessageId messageId, IpcBufferMessage response, string summary)
         {
             /*
            * MessageHeader
@@ -60,7 +60,7 @@ namespace dotnetCampus.Ipc.PipeCore
             * Response Message Length
            * Response Message
            */
-            var currentMessageIdByteList = BitConverter.GetBytes(messageId);
+            var currentMessageIdByteList = BitConverter.GetBytes(messageId.MessageIdValue);
 
             var responseMessageLengthByteList = BitConverter.GetBytes(response.Count);
             return new IpcBufferMessageContext
@@ -109,7 +109,7 @@ namespace dotnetCampus.Ipc.PipeCore
                     var requestMessageLength = binaryReader.ReadInt32();
                     var requestMessageByteList = binaryReader.ReadBytes(requestMessageLength);
                     var ipcClientRequestArgs =
-                        new IpcClientRequestArgs(messageId, new IpcBufferMessage(requestMessageByteList));
+                        new IpcClientRequestArgs(new IpcClientRequestMessageId(messageId), new IpcBufferMessage(requestMessageByteList));
                     OnIpcClientRequestReceived?.Invoke(this, ipcClientRequestArgs);
                 }
             }
@@ -167,8 +167,6 @@ namespace dotnetCampus.Ipc.PipeCore
                 message.Position = currentPosition;
             }
         }
-
- 
 
         private static bool CheckHeader(Stream stream, byte[] header)
         {
