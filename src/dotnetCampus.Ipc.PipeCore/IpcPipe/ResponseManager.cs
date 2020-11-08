@@ -29,6 +29,29 @@ namespace dotnetCampus.Ipc.PipeCore
             return new IpcClientRequestMessage(requestMessage, task.Task, new IpcClientRequestMessageId(currentMessageId));
         }
 
+        private IpcBufferMessageContext CreateRequestMessage(in IpcRequestMessage request, ulong currentMessageId)
+        {
+            /*
+            * MessageHeader
+            * MessageId
+             * Request Message Length
+            * Request Message
+            */
+            var currentMessageIdByteList = BitConverter.GetBytes(currentMessageId);
+
+            var requestMessageLengthByteList = BitConverter.GetBytes(request.RequestMessage.Count);
+
+            return new IpcBufferMessageContext
+            (
+                request.Summary,
+                IpcMessageCommandType.RequestMessage,
+                new IpcBufferMessage(RequestMessageHeader),
+                new IpcBufferMessage(currentMessageIdByteList),
+                new IpcBufferMessage(requestMessageLengthByteList),
+                request.RequestMessage
+            );
+        }
+
         public IpcBufferMessageContext CreateResponseMessage(ulong messageId, IpcBufferMessage response, string summary)
         {
             /*
@@ -145,12 +168,7 @@ namespace dotnetCampus.Ipc.PipeCore
             }
         }
 
-        private bool CheckResponseHeader(Stream stream)
-        {
-            var header = ResponseMessageHeader;
-
-            return CheckHeader(stream, header);
-        }
+ 
 
         private static bool CheckHeader(Stream stream, byte[] header)
         {
@@ -167,34 +185,16 @@ namespace dotnetCampus.Ipc.PipeCore
 
             return true;
         }
+        private bool CheckResponseHeader(Stream stream)
+        {
+            var header = ResponseMessageHeader;
 
+            return CheckHeader(stream, header);
+        }
         private bool CheckRequestHeader(Stream stream)
         {
             var header = RequestMessageHeader;
             return CheckHeader(stream, header);
-        }
-
-        private IpcBufferMessageContext CreateRequestMessage(in IpcRequestMessage request, ulong currentMessageId)
-        {
-            /*
-            * MessageHeader
-            * MessageId
-             * Request Message Length
-            * Request Message
-            */
-            var currentMessageIdByteList = BitConverter.GetBytes(currentMessageId);
-
-            var requestMessageLengthByteList = BitConverter.GetBytes(request.RequestMessage.Count);
-
-            return new IpcBufferMessageContext
-            (
-                request.Summary,
-                IpcMessageCommandType.RequestMessage,
-                new IpcBufferMessage(RequestMessageHeader),
-                new IpcBufferMessage(currentMessageIdByteList),
-                new IpcBufferMessage(requestMessageLengthByteList),
-                request.RequestMessage
-            );
         }
 
         private object Locker => RequestMessageHeader;
