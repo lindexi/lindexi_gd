@@ -66,7 +66,9 @@ namespace dotnetCampus.Ipc.PipeCore
                         IpcConfiguration.SharedArrayPool).ConfigureAwait(false);
                     var success = ipcMessageResult.Success;
                     var ipcMessageContext = ipcMessageResult.IpcMessageContext;
-                    Debug.Assert(ipcMessageResult.IpcMessageCommandType != IpcMessageCommandType.Business);
+
+                    // 这不是业务消息
+                    Debug.Assert(!ipcMessageResult.IpcMessageCommandType.HasFlag(IpcMessageCommandType.Business));
 
                     if (success)
                     {
@@ -155,7 +157,7 @@ namespace dotnetCampus.Ipc.PipeCore
                             Debug.Assert(ipcMessageContext.Ack.Value == IpcContext.AckUsedForReply.Value);
                         }
                         // 只有业务的才能发给上层
-                        else if (ipcMessageCommandType == IpcMessageCommandType.Business)
+                        else if (ipcMessageCommandType.HasFlag(IpcMessageCommandType.Business))
                         {
                             ack = ipcMessageContext.Ack;
                             OnAckRequested(ack);
