@@ -111,7 +111,7 @@ namespace dotnetCampus.Ipc.PipeCore
                 if (CheckRequestHeader(message))
                 {
                     // 标记在这一级消费
-                    args.Handle = true;
+                    args.SetHandle(message: nameof(HandleRequest));
 
                     var binaryReader = new BinaryReader(message);
                     var messageId = binaryReader.ReadUInt64();
@@ -145,7 +145,7 @@ namespace dotnetCampus.Ipc.PipeCore
                 if (CheckResponseHeader(message))
                 {
                     // 标记在这一级消费
-                    args.Handle = true;
+                    args.SetHandle(message: nameof(HandleResponse));
 
                     var binaryReader = new BinaryReader(message);
                     var messageId = binaryReader.ReadUInt64();
@@ -210,9 +210,9 @@ namespace dotnetCampus.Ipc.PipeCore
         /// 用于标识请求消息
         /// </summary>
         /// 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74 0x00 就是 Request 字符
-        private byte[] RequestMessageHeader { get; } = {0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x00};
+        private byte[] RequestMessageHeader { get; } = { 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x00 };
 
-        private byte[] ResponseMessageHeader { get; } = {0x52, 0x65, 0x73, 0x70, 0x6F, 0x6E, 0x73, 0x65};
+        private byte[] ResponseMessageHeader { get; } = { 0x52, 0x65, 0x73, 0x70, 0x6F, 0x6E, 0x73, 0x65 };
 
         private ulong CurrentMessageId { set; get; }
     }

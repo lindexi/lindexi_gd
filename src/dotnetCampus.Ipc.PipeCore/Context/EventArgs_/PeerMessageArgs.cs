@@ -38,8 +38,24 @@ namespace dotnetCampus.Ipc.PipeCore.Context
         public string PeerName { get; }
 
         /// <summary>
-        /// 表示是否被上一级处理了
+        /// 表示是否被上一级处理了，可以通过 <see cref="HandlerMessage"/> 了解处理者的信息
         /// </summary>
-        public bool Handle { set; get; }
+        public bool Handle { private set; get; }
+
+        /// <summary>
+        /// 处理者的消息
+        /// </summary>
+        /// 框架大了，不能只有 <see cref="Handle"/> 一个属性，还需要能做到调试，调试是谁处理了，因此加添加了这个属性
+        public string HandlerMessage { private set;get; }
+
+        /// <summary>
+        /// 设置被处理，同时添加 <paramref name="message"/> 用于调试的信息
+        /// </summary>
+        /// <param name="message"></param>
+        public void SetHandle(string message)
+        {
+            Handle = true;
+            HandlerMessage = message;
+        }
     }
 }
