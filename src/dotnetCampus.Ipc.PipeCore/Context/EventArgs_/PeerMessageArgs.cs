@@ -15,10 +15,12 @@ namespace dotnetCampus.Ipc.PipeCore.Context
         /// <param name="peerName"></param>
         /// <param name="message"></param>
         /// <param name="ack"></param>
-        public PeerMessageArgs(string peerName, Stream message, in Ack ack)
+        /// <param name="messageCommandType"></param>
+        public PeerMessageArgs(string peerName, Stream message, in Ack ack, IpcMessageCommandType messageCommandType)
         {
             Message = message;
             Ack = ack;
+            MessageCommandType = messageCommandType;
             PeerName = peerName;
         }
 
@@ -36,6 +38,8 @@ namespace dotnetCampus.Ipc.PipeCore.Context
         /// 对方的名字，此名字是对方的服务器名字，可以用来连接
         /// </summary>
         public string PeerName { get; }
+
+        internal IpcMessageCommandType MessageCommandType { get; }
 
         /// <summary>
         /// 表示是否被上一级处理了，可以通过 <see cref="HandlerMessage"/> 了解处理者的信息

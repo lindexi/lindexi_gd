@@ -161,7 +161,7 @@ namespace dotnetCampus.Ipc.PipeCore
                         {
                             ack = ipcMessageContext.Ack;
                             OnAckRequested(ack);
-                            OnMessageReceived(new PeerMessageArgs(PeerName, stream, ack));
+                            OnMessageReceived(new PeerMessageArgs(PeerName, stream, ack,ipcMessageCommandType));
                         }
                         else
                         {
