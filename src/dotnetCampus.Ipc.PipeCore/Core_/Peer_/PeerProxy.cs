@@ -92,7 +92,7 @@ namespace dotnetCampus.Ipc.PipeCore
 
         private void ServerStreamMessageReader_MessageReceived(object? sender, PeerMessageArgs e)
         {
-            ResponseManager.ReceiveMessage(e);
+            ResponseManager.OnReceiveMessage(e);
 
             MessageReceived?.Invoke(sender, e);
         }

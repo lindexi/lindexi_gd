@@ -86,7 +86,7 @@ namespace dotnetCampus.Ipc.PipeCore
         private Dictionary<ulong, TaskCompletionSource<IpcBufferMessage>> TaskList { get; } =
             new Dictionary<ulong, TaskCompletionSource<IpcBufferMessage>>();
 
-        public void ReceiveMessage(PeerMessageArgs args)
+        public void OnReceiveMessage(PeerMessageArgs args)
         {
             HandleResponse(args);
             if (args.Handle)

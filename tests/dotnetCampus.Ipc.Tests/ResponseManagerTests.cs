@@ -31,13 +31,13 @@ namespace dotnetCampus.Ipc.Tests
                 };
 
                 Assert.IsNotNull(requestStream);
-                responseManager.ReceiveMessage(new PeerMessageArgs("Foo", requestStream, ack: 100));
+                responseManager.OnReceiveMessage(new PeerMessageArgs("Foo", requestStream, ack: 100));
 
                 Assert.IsNotNull(ipcClientRequestArgs);
                 var responseByteList = new byte[] { 0xF1,0xF2 };
                 var responseMessageContext = responseManager.CreateResponseMessage(ipcClientRequestArgs.MessageId,new IpcBufferMessage(responseByteList),"Tests");
                 var responseStream = IpcBufferMessageContextToStream(responseMessageContext);
-                responseManager.ReceiveMessage(new PeerMessageArgs("Foo", responseStream, ack: 100));
+                responseManager.OnReceiveMessage(new PeerMessageArgs("Foo", responseStream, ack: 100));
 
                 Assert.AreEqual(true, ipcClientRequestMessage.Task.IsCompleted);
             });
