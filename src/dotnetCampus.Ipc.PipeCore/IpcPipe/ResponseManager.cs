@@ -43,7 +43,7 @@ namespace dotnetCampus.Ipc.PipeCore
             return new IpcBufferMessageContext
             (
                 summary,
-                IpcMessageCommandType.Business,
+                IpcMessageCommandType.ResponseMessage,
                 new IpcBufferMessage(ResponseMessageHeader),
                 new IpcBufferMessage(currentMessageIdByteList),
                 new IpcBufferMessage(responseMessageLengthByteList),
@@ -189,7 +189,7 @@ namespace dotnetCampus.Ipc.PipeCore
             return new IpcBufferMessageContext
             (
                 request.Summary,
-                IpcMessageCommandType.Business,
+                IpcMessageCommandType.RequestMessage,
                 new IpcBufferMessage(RequestMessageHeader),
                 new IpcBufferMessage(currentMessageIdByteList),
                 new IpcBufferMessage(requestMessageLengthByteList),

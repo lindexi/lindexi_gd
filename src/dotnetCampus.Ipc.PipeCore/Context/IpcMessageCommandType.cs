@@ -6,24 +6,34 @@
     internal enum IpcMessageCommandType : ushort
     {
         /// <summary>
-        /// 业务层的消息
-        /// </summary>
-        Business = 0,
-
-        /// <summary>
         /// 向对方服务器注册
         /// </summary>
-        PeerRegister = 1,
+        PeerRegister = 0B0001,
 
         /// <summary>
         /// 发送回复信息
         /// </summary>
-        SendAck = 2,
+        SendAck = 0B0010,
 
         /// <summary>
         /// 发送回复信息，同时向对方服务器注册
         /// </summary>
         SendAckAndRegisterToPeer = PeerRegister | SendAck,
+
+        /// <summary>
+        /// 业务层的消息
+        /// </summary>
+        Business = 0B0000_1000_0000,
+
+        /// <summary>
+        /// 请求信息，这也是业务层消息
+        /// </summary>
+        RequestMessage = 0B0001_0000_0000 | Business,
+
+        /// <summary>
+        /// 回应信息，这也是业务层消息
+        /// </summary>
+        ResponseMessage = 0B0010_0000_0000 | Business,
 
         /// <summary>
         /// 其他信息

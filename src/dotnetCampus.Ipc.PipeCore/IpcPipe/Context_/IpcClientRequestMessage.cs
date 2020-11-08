@@ -14,6 +14,9 @@ namespace dotnetCampus.Ipc.PipeCore
 
         public IpcBufferMessageContext IpcBufferMessageContext { get; }
 
+        /// <summary>
+        /// 用于等待消息被对方回复完成
+        /// </summary>
         public Task<IpcBufferMessage> Task { get; }
 
         public IpcClientRequestMessageId MessageId { get; }
