@@ -99,6 +99,12 @@ namespace dotnetCampus.Ipc.PipeCore
 
         private void HandleRequest(PeerMessageArgs args)
         {
+            if (!args.MessageCommandType.HasFlag(IpcMessageCommandType.RequestMessage))
+            {
+                // 如果没有命令标识，那么返回
+                return;
+            }
+
             Stream message = args.Message;
             if (message.Length < RequestMessageHeader.Length + sizeof(ulong))
             {
@@ -132,6 +138,12 @@ namespace dotnetCampus.Ipc.PipeCore
 
         private void HandleResponse(PeerMessageArgs args)
         {
+            if (!args.MessageCommandType.HasFlag(IpcMessageCommandType.ResponseMessage))
+            {
+                // 如果没有命令标识，那么返回
+                return;
+            }
+
             Stream message = args.Message;
 
             if (message.Length < ResponseMessageHeader.Length + sizeof(ulong))
