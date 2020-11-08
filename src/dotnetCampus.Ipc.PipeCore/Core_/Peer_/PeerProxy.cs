@@ -42,7 +42,7 @@ namespace dotnetCampus.Ipc.PipeCore
 
         public async Task<IpcBufferMessage> GetResponseAsync(IpcRequestMessage request)
         {
-            var ipcClientRequestMessage = ResponseManager.GetRequestMessage(request);
+            var ipcClientRequestMessage = ResponseManager.CreateRequestMessage(request);
             await IpcClientService.WriteMessageAsync(ipcClientRequestMessage.IpcBufferMessageContext);
             return await ipcClientRequestMessage.Task;
         }

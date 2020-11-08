@@ -13,7 +13,7 @@ namespace dotnetCampus.Ipc.PipeCore
     /// 这是用来期待发送一条消息之后，在对方的业务层能有回复的消息 <para/>
     /// 这是服务器-客户端模型 <para/>
     /// 客户端向服务器发起请求，服务器端业务层处理之后返回响应信息 <para/>
-    /// 通过调用 <see cref="GetRequestMessage"/> 方法创建出请求消息 <para/>
+    /// 通过调用 <see cref="CreateRequestMessage"/> 方法创建出请求消息 <para/>
     /// 然后将此消息的 <see cref="IpcClientRequestMessage.IpcBufferMessageContext"/> 通过现有 <see cref="PeerProxy"/> 发送到服务器端。同时客户端可以使用 <see cref="IpcClientRequestMessage.Task"/> 进行等待 <para/>
     /// 服务器端接收到 <see cref="IpcClientRequestMessage"/> 的内容，将会在 <see cref="OnIpcClientRequestReceived"/> 事件触发，这个事件将会带上 <see cref="IpcClientRequestArgs"/> 参数 <para/>
     /// 在服务器端处理完成之后，底层的方法是通过调用 <see cref="CreateResponseMessage"/> 方法创建响应消息，通过 <see cref="PeerProxy"/> 发送给客户端 <para/>
@@ -21,7 +21,7 @@ namespace dotnetCampus.Ipc.PipeCore
     /// </summary>
     class ResponseManager
     {
-        public IpcClientRequestMessage GetRequestMessage(IpcRequestMessage request)
+        public IpcClientRequestMessage CreateRequestMessage(IpcRequestMessage request)
         {
             ulong currentMessageId;
             var task = new TaskCompletionSource<IpcBufferMessage>();
@@ -34,11 +34,11 @@ namespace dotnetCampus.Ipc.PipeCore
                 TaskList[currentMessageId] = task;
             }
 
-            var requestMessage = CreateRequestMessage(request, currentMessageId);
+            var requestMessage = CreateRequestMessageInner(request, currentMessageId);
             return new IpcClientRequestMessage(requestMessage, task.Task, new IpcClientRequestMessageId(currentMessageId));
         }
 
-        private IpcBufferMessageContext CreateRequestMessage(in IpcRequestMessage request, ulong currentMessageId)
+        private IpcBufferMessageContext CreateRequestMessageInner(in IpcRequestMessage request, ulong currentMessageId)
         {
             /*
             * MessageHeader

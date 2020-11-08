@@ -19,7 +19,7 @@ namespace dotnetCampus.Ipc.Tests
                 var responseManager = new ResponseManager();
                 var requestByteList = new byte[] { 0xFF, 0xFE };
                 var request = new IpcRequestMessage("Tests", new IpcBufferMessage(requestByteList));
-                var ipcClientRequestMessage = responseManager.GetRequestMessage(request);
+                var ipcClientRequestMessage = responseManager.CreateRequestMessage(request);
                 Assert.AreEqual(false, ipcClientRequestMessage.Task.IsCompleted);
 
                 var requestStream = IpcBufferMessageContextToStream(ipcClientRequestMessage.IpcBufferMessageContext);
