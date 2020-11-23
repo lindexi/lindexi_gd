@@ -5,8 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:KemkicemdurFemceloja"
         mc:Ignorable="d"
+        x:Name="Root"
         Title="MainWindow" Height="450" Width="800">
+    <Window.Resources>
+        <SolidColorBrush x:Key="Foo" Color="#565656"></SolidColorBrush>
+    </Window.Resources>
     <Grid>
-        <local:Foo Visibility="Collapsed"></local:Foo>
+        <local:LekiyelhuqiLawnaryemlurkear ></local:LekiyelhuqiLawnaryemlurkear>
     </Grid>
 </Window>

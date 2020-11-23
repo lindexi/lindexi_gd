@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -17,13 +14,17 @@ using System.Windows.Shapes;
 namespace KemkicemdurFemceloja
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// LekiyelhuqiLawnaryemlurkear.xaml 的交互逻辑
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class LekiyelhuqiLawnaryemlurkear : UserControl
     {
-        public MainWindow()
+        public LekiyelhuqiLawnaryemlurkear()
         {
-            Debugger.Launch();
+            Loaded += LekiyelhuqiLawnaryemlurkear_Loaded;
+        }
+
+        private void LekiyelhuqiLawnaryemlurkear_Loaded(object sender, RoutedEventArgs e)
+        {
             InitializeComponent();
         }
     }
