@@ -1,7 +1,7 @@
-﻿<Application x:Class="KemkicemdurFemceloja.App"
+﻿<Application x:Class="NurkagucemNairrebulaleki.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:KemkicemdurFemceloja"
+             xmlns:local="clr-namespace:NurkagucemNairrebulaleki"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
          

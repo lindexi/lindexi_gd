@@ -1,5 +1,0 @@
-﻿ <local:ResourceJainahijainenelHuceenukur xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                           xmlns:local="clr-namespace:KemkicemdurFemceloja">
-    <SolidColorBrush x:Key="Foo" Color="Aquamarine"></SolidColorBrush>
-</local:ResourceJainahijainenelHuceenukur>
