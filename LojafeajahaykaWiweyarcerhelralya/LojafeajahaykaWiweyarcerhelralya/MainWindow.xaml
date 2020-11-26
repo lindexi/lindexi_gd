@@ -4,16 +4,20 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LojafeajahaykaWiweyarcerhelralya"
+        xmlns:system="clr-namespace:System;assembly=System.Runtime"
         mc:Ignorable="d"
+        x:Name="Root"
         Title="MainWindow" Height="450" Width="800">
+    <Window.DataContext>
+        <local:ViewModel></local:ViewModel>
+    </Window.DataContext>
+
     <Window.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <local:Foo></local:Foo>
-            </ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary x:Name="ResourceDictionary">
+           <SolidColorBrush x:Key="Foo" Color="Gray"></SolidColorBrush>
         </ResourceDictionary>
     </Window.Resources>
     <Grid Background="{StaticResource Foo}">
-
+        <local:F1 Resources="{x:Reference ResourceDictionary}"></local:F1>
     </Grid>
 </Window>
