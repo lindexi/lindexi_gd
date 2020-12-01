@@ -1,4 +1,4 @@
-﻿// copy from https://github.com/dnSpy/dnSpy/blob/2fa5c978b1a9fb8d1979c8aa4cfa6d177bf5aa9c/Build/AppHostPatcher/Program.cs#L1
+﻿// copy from https://github.com/dnSpy/dnSpy/blob/2fa5c978b1a9fb8d1979c8aa4cfa6d177bf5aa9c/Build/AppHostPatcher/Program.cs
 
 using System;
 using System.Diagnostics;
@@ -7,47 +7,37 @@ using System.Text;
 
 namespace AppHostPatcher
 {
+	/// <summary>
+	/// 在 dotnet runtime\src\installer\corehost\ 将会构建出 apphost.exe 文件
+	/// 在安装 dotnet sdk 的时候，将会输出到 c:\Program Files\dotnet\sdk\5.0.100\AppHostTemplate\apphost.exe 文件夹
+	/// 这个 apphost.exe 文件将会在构建的时候，输出到 obj 文件夹里面
+	/// 然后被替换执行的 dll 路径，根据 dotnet runtime\src\installer\corehost\corehost.cpp 的注释以及 https://github.com/dnSpy/dnSpy/blob/2fa5c978b1a9fb8d1979c8aa4cfa6d177bf5aa9c/Build/AppHostPatcher/Program.cs 的代码，可以了解到，替换这个路径就可以自己定制执行的路径
+	/// </summary>
 	class Program
 	{
 		static void Usage()
 		{
-			Console.WriteLine("apphostpatcher <apphostexe> <origdllpath> <newdllpath>");
-			Console.WriteLine("apphostpatcher <apphostexe> <newdllpath>");
-			Console.WriteLine("apphostpatcher <apphostexe> -d <newsubdir>");
-			Console.WriteLine("example: apphostpatcher my.exe -d bin");
+			Console.WriteLine("apphostpatcher.exe <apphostexe> <newdllpath>");
+			Console.WriteLine("使用方法: apphostpatcher Foo.exe C:\\新的文件夹\\Foo.dll");
 		}
 
-		const int maxPathBytes = 1024;
+		/// <summary>
+		/// 这里有 1024 个 byte 空间用来决定加载路径
+		/// 详细请看 dotnet runtime\src\installer\corehost\corehost.cpp 的注释
+		/// </summary>
+		private const int MaxPathBytes = 1024;
 
 		static string ChangeExecutableExtension(string apphostExe) =>
 			// Windows apphosts have an .exe extension. Don't call Path.ChangeExtension() unless it's guaranteed
 			// to have an .exe extension, eg. 'some.file' => 'some.file.dll', not 'some.dll'
 			apphostExe.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? Path.ChangeExtension(apphostExe, ".dll") : apphostExe + ".dll";
 
-		static string GetPathSeparator(string apphostExe) =>
-			apphostExe.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? @"\" : "/";
-
 		static int Main(string[] args)
 		{
 			try
 			{
 				string apphostExe, origPath, newPath;
-				if (args.Length == 3)
-				{
-					if (args[1] == "-d")
-					{
-						apphostExe = args[0];
-						origPath = Path.GetFileName(ChangeExecutableExtension(apphostExe));
-						newPath = args[2] + GetPathSeparator(apphostExe) + origPath;
-					}
-					else
-					{
-						apphostExe = args[0];
-						origPath = args[1];
-						newPath = args[2];
-					}
-				}
-				else if (args.Length == 2)
+				if (args.Length == 2)
 				{
 					apphostExe = args[0];
 					origPath = Path.GetFileName(ChangeExecutableExtension(apphostExe));
@@ -72,12 +62,12 @@ namespace AppHostPatcher
 				var origPathBytes = Encoding.UTF8.GetBytes(origPath + "\0");
 				Debug.Assert(origPathBytes.Length > 0);
 				var newPathBytes = Encoding.UTF8.GetBytes(newPath + "\0");
-				if (origPathBytes.Length > maxPathBytes)
+				if (origPathBytes.Length > MaxPathBytes)
 				{
 					Console.WriteLine($"Original path is too long");
 					return 1;
 				}
-				if (newPathBytes.Length > maxPathBytes)
+				if (newPathBytes.Length > MaxPathBytes)
 				{
 					Console.WriteLine($"New path is too long");
 					return 1;
