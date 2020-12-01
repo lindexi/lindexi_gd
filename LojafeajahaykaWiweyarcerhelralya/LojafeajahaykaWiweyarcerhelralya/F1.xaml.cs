@@ -20,7 +20,12 @@ namespace LojafeajahaykaWiweyarcerhelralya
     {
         public F1()
         {
+            Loaded += F1_Loaded;
+        }
 
+        private void F1_Loaded(object sender, RoutedEventArgs e)
+        {
+            InitializeComponent();
         }
 
         public override void OnApplyTemplate()

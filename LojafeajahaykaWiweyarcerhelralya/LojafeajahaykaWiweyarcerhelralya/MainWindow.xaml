@@ -7,43 +7,42 @@
         xmlns:system="clr-namespace:System;assembly=System.Runtime"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Window.DataContext>
-        <local:ViewModel></local:ViewModel>
-    </Window.DataContext>
+  <Window.DataContext>
+    <local:ViewModel></local:ViewModel>
+  </Window.DataContext>
 
-    <Window.Resources>
-        <ResourceDictionary x:Name="ResourceDictionary">
-            <ResourceDictionary.MergedDictionaries>
-                <local:Foo></local:Foo>
-            </ResourceDictionary.MergedDictionaries>
+  <Window.Resources>
+    <ResourceDictionary x:Name="ResourceDictionary">
+      <ResourceDictionary.MergedDictionaries>
+        <local:Foo></local:Foo>
+      </ResourceDictionary.MergedDictionaries>
 
-            <Style x:Key="ListStyle" TargetType="ListView">
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="ListBox">
-                            <Border >
-                                <ScrollViewer CanContentScroll="true">
-                                    <ItemsPresenter/>
-                                    <!--<StackPanel>
-                                        <Button Content="逗比"></Button>
-                                    </StackPanel>-->
-                                </ScrollViewer>
-                            </Border>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-        </ResourceDictionary>
-    </Window.Resources>
-    <Grid >
-        <ListView Style="{StaticResource ListStyle}" ItemsSource="{Binding Collection}"
+      <Style x:Key="ListStyle" TargetType="ListView">
+        <Setter Property="Template">
+          <Setter.Value>
+            <ControlTemplate TargetType="ListBox">
+              <Border >
+                <ScrollViewer CanContentScroll="true">
+                  <local:ItemsPresenterWithBottomControl VirtualizingPanel.IsVirtualizingWhenGrouping="true">
+                    <ItemsPresenter VirtualizingPanel.IsVirtualizingWhenGrouping="true"></ItemsPresenter>
+                  </local:ItemsPresenterWithBottomControl>
+                </ScrollViewer>
+              </Border>
+            </ControlTemplate>
+          </Setter.Value>
+        </Setter>
+      </Style>
+    </ResourceDictionary>
+  </Window.Resources>
+  <Grid >
+    <ListView Style="{StaticResource ListStyle}" ItemsSource="{Binding Collection}"
                   VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.ScrollUnit="Pixel">
-            <ListView.ItemTemplate>
-                <DataTemplate DataType="system:String">
-                    <local:FooTextBlock Text="{Binding .}"></local:FooTextBlock>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
-        <local:F1 ></local:F1>
-    </Grid>
+      <ListView.ItemTemplate>
+        <DataTemplate DataType="system:String">
+          <local:FooTextBlock Text="{Binding .}"></local:FooTextBlock>
+        </DataTemplate>
+      </ListView.ItemTemplate>
+    </ListView>
+    <local:F1 Resources="{x:Reference ResourceDictionary}"></local:F1>
+  </Grid>
 </Window>
