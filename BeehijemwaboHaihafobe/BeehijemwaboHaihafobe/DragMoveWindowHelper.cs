@@ -8,8 +8,18 @@ using System.Windows.Interop;
 
 namespace BeehijemwaboHaihafobe
 {
-    public static class DragMoveWindowHelper
+    /// <summary>
+    /// 使用触摸拖动窗口的辅助类
+    /// </summary>
+    /// <remarks>
+    /// 细节请看 [WPF 多指触摸拖拽窗口 拖动修改窗口坐标](https://blog.lindexi.com/post/WPF-%E5%A4%9A%E6%8C%87%E8%A7%A6%E6%91%B8%E6%8B%96%E6%8B%BD%E7%AA%97%E5%8F%A3-%E6%8B%96%E5%8A%A8%E4%BF%AE%E6%94%B9%E7%AA%97%E5%8F%A3%E5%9D%90%E6%A0%87.html)
+    /// </remarks>
+    public static class TouchDragMoveWindowHelper
     {
+        /// <summary>
+        /// 开始使用触摸拖动窗口，在触摸抬起后自动结束
+        /// </summary>
+        /// <param name="window"></param>
         public static void DragMove(Window window)
         {
             var dragMoveMode = new DragMoveMode(window);
@@ -31,7 +41,6 @@ namespace BeehijemwaboHaihafobe
                 window.PreviewMouseUp += Window_PreviewMouseUp;
                 window.LostMouseCapture += Window_LostMouseCapture;
             }
-
 
             public void Stop()
             {

@@ -38,7 +38,7 @@ namespace BeehijemwaboHaihafobe
 
             if (_currentTouchCount == 0)
             {
-                DragMoveWindowHelper.DragMove(this);
+                TouchDragMoveWindowHelper.DragMove(this);
             }
 
             _currentTouchCount++;
