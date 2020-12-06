@@ -12,7 +12,8 @@ namespace KawbacayerelaKejeldemwearlai
             try
             {
                 var fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Read, FileShare.None, bufferSize: 1024, FileOptions.None);
-                File.Open(filePath, FileMode.OpenOrCreate, FileAccess.Read, FileShare.None);
+                fileStream.Dispose();
+                using var stream = File.Open(filePath, FileMode.OpenOrCreate, FileAccess.Read, FileShare.None);
             }
             catch (Exception e)
             {
@@ -21,7 +22,7 @@ namespace KawbacayerelaKejeldemwearlai
 
             try
             {
-                File.Open(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+                using var stream = File.Open(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
             }
             catch (Exception e)
             {
@@ -30,7 +31,7 @@ namespace KawbacayerelaKejeldemwearlai
 
             try
             {
-                File.Open("1.txt", FileMode.Append, FileAccess.Read, FileShare.None);
+                using var stream = File.Open("1.txt", FileMode.Append, FileAccess.Read, FileShare.None);
             }
             catch (Exception e)
             {
