@@ -10,9 +10,9 @@
     </Properties>
     <Database>
         <DbProvider Name="SQLite"/>
-        <Write Name="WriteDB" ConnectionString="${ConnectionString}"/>
-        <Read Name="ReadDb-1" ConnectionString="${ConnectionString}" Weight="100"/>
-        <Read Name="ReadDb-2" ConnectionString="${ConnectionString}" Weight="100"/>
+        <Write Name="WriteDB" ConnectionString="${SmartSqlConnectionString}"/>
+        <Read Name="ReadDb-1" ConnectionString="${SmartSqlConnectionString}" Weight="100"/>
+        <Read Name="ReadDb-2" ConnectionString="${SmartSqlConnectionString}" Weight="100"/>
     </Database>
     <TypeHandlers>
         <TypeHandler Name="Json" Type="${JsonTypeHandler}">

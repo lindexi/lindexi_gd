@@ -28,3 +28,9 @@
 [submodule "Advanced-Algorithms"]
 	path = Advanced-Algorithms
 	url = https://github.com/justcoding121/Advanced-Algorithms.git
+[submodule "prometheus-net.DotNetRuntime"]
+	path = prometheus-net.DotNetRuntime
+	url = https://github.com/djluck/prometheus-net.DotNetRuntime.git
+[submodule "SmartSql-Docs"]
+	path = SmartSql-Docs
+	url = https://github.com/Smart-Kit/SmartSql-Docs.git

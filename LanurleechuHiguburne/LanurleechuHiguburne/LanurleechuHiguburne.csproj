@@ -14,5 +14,11 @@
     <PackageReference Include="SmartSql.TypeHandler" Version="4.1.56" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="SmartSqlMapConfig.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 
 </Project>
