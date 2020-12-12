@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.0</TargetFramework>
+    <AssemblyTitle>Doubi</AssemblyTitle>
   </PropertyGroup>
 
   <Target Name="KofegaheqallwhikaDalbedalkihi" AfterTargets="BeforeBuild">

@@ -1,4 +1,9 @@
 ﻿using System;
+using System.Reflection;
+using System.Resources;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Windows;
 
 namespace BaljuhairhearkelfereKakikunall
 {
@@ -8,6 +13,8 @@ namespace BaljuhairhearkelfereKakikunall
         {
             var obj = new TestObject();
             obj.Foo += Obj_Foo;
+
+            Console.Read();
         }
 
         private static void Obj_Foo(object sender, int e)
