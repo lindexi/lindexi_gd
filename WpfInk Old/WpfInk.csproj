@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net5.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>$(DefineConstants);PRESENTATION_CORE</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="ref\WpfCommon\Graphics\**" />
+    <EmbeddedResource Remove="ref\WpfCommon\Graphics\**" />
+    <None Remove="ref\WpfCommon\Graphics\**" />
+    <Page Remove="ref\WpfCommon\Graphics\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="PresentationCore\MS\Internal\Ink\GestureRecognizer\NativeRecognizer.cs" />
+    <Compile Remove="PresentationCore\System\Windows\Ink\GestureRecognizer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="PresentationCore\MS\Internal\Ink\GestureRecognizer\" />
+  </ItemGroup>
+
+</Project>
