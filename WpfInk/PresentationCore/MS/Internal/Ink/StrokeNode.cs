@@ -20,7 +20,7 @@ namespace MS.Internal.Ink
     /// StrokeNode represents a single segment on a stroke spine.
     /// It's used in enumerating through basic geometries making a stroke contour.
     /// </summary>
-    internal readonly struct StrokeNode
+    internal struct StrokeNode
     {
         #region Constructors
 
@@ -35,20 +35,21 @@ namespace MS.Internal.Ink
         internal StrokeNode(
             StrokeNodeOperations operations,
             int index,
-            in StrokeNodeData nodeData,
-            in StrokeNodeData lastNodeData,
+            StrokeNodeData nodeData,
+            StrokeNodeData lastNodeData,
             bool isLastNode)
         {
             System.Diagnostics.Debug.Assert(operations != null);
             System.Diagnostics.Debug.Assert((nodeData.IsEmpty == false) && (index >= 0));
           
+
             _operations = operations;
             _index = index;
             _thisNode = nodeData;
             _lastNode = lastNodeData;
+            _isQuadCached = lastNodeData.IsEmpty;
+            _connectingQuad = Quad.Empty;
             _isLastNode = isLastNode;
-
-            _lazyConnectingQuad = new LazyConnectingQuad(_lastNode, _thisNode, operations);
         }
 
         #endregion
@@ -417,7 +418,7 @@ namespace MS.Internal.Ink
         /// <summary>
         /// GetPointsAtMiddleSegment
         /// </summary>
-        internal void GetPointsAtMiddleSegment(in StrokeNode previous, 
+        internal void GetPointsAtMiddleSegment( StrokeNode previous, 
                                                 double angleBetweenNodes, 
                                                 List<Point> abPoints, 
                                                 List<Point> dcPoints,
@@ -849,7 +850,7 @@ namespace MS.Internal.Ink
         /// </summary>
         /// <param name="hitNode"></param>
         /// <returns></returns>
-        internal bool HitTest(in StrokeNode hitNode)
+        internal bool HitTest(StrokeNode hitNode)
         {
             if (!IsValid || !hitNode.IsValid)
             {
@@ -867,7 +868,7 @@ namespace MS.Internal.Ink
         /// </summary>
         /// <param name="hitNode"></param>
         /// <returns></returns>
-        internal StrokeFIndices CutTest(in StrokeNode hitNode)
+        internal StrokeFIndices CutTest(StrokeNode hitNode)
         {
             if ((IsValid == false) || (hitNode.IsValid == false))
             {
@@ -1006,7 +1007,12 @@ namespace MS.Internal.Ink
             {
                 System.Diagnostics.Debug.Assert(IsValid);
 
-                return _lazyConnectingQuad.GetConnectingQuad();
+                if (_isQuadCached == false)
+                {
+                    _connectingQuad = _operations.GetConnectingQuad(_lastNode, _thisNode);
+                    _isQuadCached = true;
+                }
+                return _connectingQuad;
             }
         }
 
@@ -1077,44 +1083,23 @@ namespace MS.Internal.Ink
         #region Fields
 
         // Internal objects created for particular rendering
-        private readonly StrokeNodeOperations    _operations;
+        private StrokeNodeOperations    _operations;
 
         // Node's index on the stroke spine
-        private readonly int             _index;
+        private int             _index;
 
         // This and the previous node data that used by the StrokeNodeOperations object to build
         // and/or hit-test the contour of the node/segment
-        private readonly StrokeNodeData  _thisNode;
-        private readonly StrokeNodeData  _lastNode;
+        private StrokeNodeData  _thisNode;
+        private StrokeNodeData  _lastNode;
 
         // Calculating of the connecting quadrangle is not a cheap operations, therefore,
         // first, it's computed only by request, and second, once computed it's cached in the StrokeNode
-        private readonly LazyConnectingQuad _lazyConnectingQuad;
-
-        private class LazyConnectingQuad
-        {
-            private readonly StrokeNodeData _lastNode;
-            private readonly StrokeNodeData _thisNode;
-            private readonly StrokeNodeOperations _operations;
-
-            public LazyConnectingQuad(in StrokeNodeData lastNode, in StrokeNodeData thisNode,
-                StrokeNodeOperations operations)
-            {
-                _lastNode = lastNode;
-                _thisNode = thisNode;
-                _operations = operations;
-            }
-
-            public Quad GetConnectingQuad()
-            {
-                return _connectingQuad ??= _operations.GetConnectingQuad(_lastNode, _thisNode);
-            }
-
-            private Quad? _connectingQuad;
-        }
+        private bool            _isQuadCached;
+        private Quad            _connectingQuad;
 
         // Is the current stroke node the last node?
-        private readonly bool _isLastNode;
+        private bool _isLastNode;
 
         #endregion
     }

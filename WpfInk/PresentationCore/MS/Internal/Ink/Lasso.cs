@@ -356,7 +356,7 @@ namespace MS.Internal.Ink
         /// <summary>
         /// Helper function to find out whether a point is inside the lasso
         /// </summary>
-        private bool SegmentWithinLasso(in StrokeNode strokeNode, double fIndex)
+        private bool SegmentWithinLasso(StrokeNode strokeNode, double fIndex)
         {
             bool currentSegmentWithinLasso;
             if (DoubleUtil.AreClose(fIndex, StrokeFIndices.BeforeFirst))
@@ -556,7 +556,7 @@ namespace MS.Internal.Ink
             /// </summary>
             /// <param name="newFIndices"></param>
             /// <param name="strokeNode"></param>
-            public LassoCrossing(StrokeFIndices newFIndices, in StrokeNode strokeNode)
+            public LassoCrossing(StrokeFIndices newFIndices, StrokeNode strokeNode)
             {
                 System.Diagnostics.Debug.Assert(!newFIndices.IsEmpty);
                 System.Diagnostics.Debug.Assert(strokeNode.IsValid);
