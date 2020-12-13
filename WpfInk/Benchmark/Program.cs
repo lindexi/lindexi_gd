@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 
@@ -8,6 +10,7 @@ namespace Benchmark
     {
         static void Main(string[] args)
         {
+            WpfInk.Test.CalcGeometryAndBoundsWithTransform();
             BenchmarkRunner.Run<Test>();
             Console.Read();
         }
@@ -16,15 +19,29 @@ namespace Benchmark
     public class Test
     {
         [Benchmark()]
-        public void CalcGeometry()
+        [ArgumentsSource(nameof(WpfInkSource))]
+        public void CalcGeometry(WpfInk.Context context)
         {
-            WpfInk.Test.CalcGeometryAndBoundsWithTransform();
+            WpfInk.Test.CalcGeometryAndBoundsWithTransform(context);
         }
 
         [Benchmark(Baseline = true)]
-        public void CalcGeometryOld()
+        [ArgumentsSource(nameof(WpfInkOldSource))]
+        public void CalcGeometryOld(WpfInkOld.Context context)
         {
-            WpfInkOld.Test.CalcGeometryAndBoundsWithTransform();
+            WpfInkOld.Test.CalcGeometryAndBoundsWithTransform(context);
+        }
+
+        public IEnumerable<WpfInk.Context> WpfInkSource()
+        {
+            var context = WpfInk.Test.GetContext(PointList.GetPointList());
+            yield return context;
+        }
+
+        public IEnumerable<WpfInkOld.Context> WpfInkOldSource()
+        {
+            var context = WpfInkOld.Test.GetContext(PointList.GetPointList());
+            yield return context;
         }
     }
 }
