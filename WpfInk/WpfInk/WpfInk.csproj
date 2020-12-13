@@ -5,7 +5,7 @@
     <TargetFramework>net5.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
       <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DefineConstants>$(DefineConstants);PRESENTATION_CORE</DefineConstants>
+    <DefineConstants>$(DefineConstants);PRESENTATION_CORE;WpfInk</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

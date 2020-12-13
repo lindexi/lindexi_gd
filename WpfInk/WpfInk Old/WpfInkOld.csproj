@@ -21,6 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\WpfInk\Test.cs" Link="Test.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="PresentationCore\MS\Internal\Ink\GestureRecognizer\" />
   </ItemGroup>
 
