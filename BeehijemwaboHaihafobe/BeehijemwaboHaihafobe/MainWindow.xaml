@@ -5,8 +5,16 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BeehijemwaboHaihafobe"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-
-    </Grid>
+        Title="MainWindow" WindowStyle="None" Height="450" Width="800">
+  <WindowChrome.WindowChrome>
+    <WindowChrome CaptionHeight="20" />
+  </WindowChrome.WindowChrome>
+  <Grid>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition />
+      <ColumnDefinition />
+    </Grid.ColumnDefinitions>
+    <Button Grid.ColumnSpan="2" WindowChrome.IsHitTestVisibleInChrome="True" />
+    <Button IsEnabled="False" />
+  </Grid>
 </Window>
