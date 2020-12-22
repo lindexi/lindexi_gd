@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace KeenaihemchiQallhawearhina
 {
@@ -24,10 +25,26 @@ namespace KeenaihemchiQallhawearhina
         public MainWindow()
         {
             InitializeComponent();
+
+            _setHiddenTimer = new DispatcherTimer()
+            {
+                Interval = TimeSpan.FromSeconds(1)
+            };
+            _setHiddenTimer.Tick += (s, e) =>
+            {
+                SetBarHidden();
+            };
         }
 
+        private void SetBarHidden()
+        {
+            VolumeSliderPanel.Visibility = Visibility.Hidden;
+        }
+
+        private readonly DispatcherTimer _setHiddenTimer;
+
         public static readonly DependencyProperty VolumeNumberProperty = DependencyProperty.Register(
-            "VolumeNumber", typeof(double), typeof(MainWindow), new PropertyMetadata(default(double),PropertyChangedCallback,CoerceValueCallback));
+            "VolumeNumber", typeof(double), typeof(MainWindow), new PropertyMetadata(default(double), PropertyChangedCallback, CoerceValueCallback));
 
         private static object CoerceValueCallback(DependencyObject d, object baseValue)
         {
@@ -47,12 +64,12 @@ namespace KeenaihemchiQallhawearhina
 
         private static void PropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            
+
         }
 
         public double VolumeNumber
         {
-            get { return (double) GetValue(VolumeNumberProperty); }
+            get { return (double)GetValue(VolumeNumberProperty); }
             set { SetValue(VolumeNumberProperty, value); }
         }
 
@@ -64,6 +81,8 @@ namespace KeenaihemchiQallhawearhina
 
                 OriginPosition = e.GetPosition(this);
                 LastPosition = OriginPosition;
+
+                _setHiddenTimer.Stop();
             }
 
             Debug.WriteLine(e.TapCount);
@@ -100,7 +119,7 @@ namespace KeenaihemchiQallhawearhina
             if (e.StylusDevice.Id == CurrentStylusId)
             {
                 CurrentStylusId = null;
-                VolumeSliderPanel.Visibility = Visibility.Hidden;
+                _setHiddenTimer.Start();
             }
         }
 
@@ -109,6 +128,7 @@ namespace KeenaihemchiQallhawearhina
             if (e.StylusDevice.Id == CurrentStylusId)
             {
                 CurrentStylusId = null;
+                _setHiddenTimer.Start();
             }
         }
 
@@ -119,6 +139,7 @@ namespace KeenaihemchiQallhawearhina
             if (e.StylusDevice.Id == CurrentStylusId)
             {
                 CurrentStylusId = null;
+                _setHiddenTimer.Start();
             }
         }
 
