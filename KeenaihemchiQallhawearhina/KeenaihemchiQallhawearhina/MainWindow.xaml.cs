@@ -10,6 +10,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
@@ -17,6 +18,55 @@ using System.Windows.Threading;
 
 namespace KeenaihemchiQallhawearhina
 {
+    public static class AnimationHelper
+    {
+        public static void ClearAnimationValue(this UIElement element, DependencyProperty dependencyProperty)
+        {
+            element.BeginAnimation(dependencyProperty, null);
+        }
+    }
+
+    public class ElementHiddenAnimation
+    {
+        public ElementHiddenAnimation(UIElement element)
+        {
+            _element = element;
+
+            DoubleAnimation opacityAnimation = new DoubleAnimation()
+            {
+                From = 1,
+                To = 0,
+                Duration = TimeSpan.FromMilliseconds(500),
+                EasingFunction = new CubicEase() {EasingMode = EasingMode.EaseIn}
+            };
+            Storyboard.SetTarget(opacityAnimation, _element);
+            Storyboard.SetTargetProperty(opacityAnimation, new PropertyPath(UIElement.OpacityProperty));
+            Storyboard storyboard = new Storyboard()
+            {
+                AutoReverse = false // 设置为 true 将会闪一下，因为透明度被还原
+            };
+            storyboard.Children.Add(opacityAnimation);
+            _hideStoryboard = storyboard;
+            _hideStoryboard.Completed += (s, e) =>
+            {
+                //防止在消失动画过程中改变了播放状态，导致播放条隐藏
+                _element.Visibility = Visibility.Hidden;
+
+                // 先隐藏再恢复透明度
+                _element.ClearAnimationValue(UIElement.OpacityProperty);
+            };
+        }
+
+        public void Begin()
+        {
+            _hideStoryboard.Begin();
+        }
+
+        private readonly UIElement _element;
+
+        private readonly Storyboard _hideStoryboard;
+    }
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -34,21 +84,27 @@ namespace KeenaihemchiQallhawearhina
             {
                 SetBarHidden();
             };
+
+            ElementHiddenAnimation = new ElementHiddenAnimation(VolumeSliderPanel);
         }
+
+        private ElementHiddenAnimation ElementHiddenAnimation { get; }
 
         private void SetBarHidden()
         {
-            VolumeSliderPanel.Visibility = Visibility.Hidden;
+            ElementHiddenAnimation.Begin();
+            //VolumeSliderPanel.Visibility = Visibility.Hidden;
         }
 
         private readonly DispatcherTimer _setHiddenTimer;
 
         public static readonly DependencyProperty VolumeNumberProperty = DependencyProperty.Register(
-            "VolumeNumber", typeof(double), typeof(MainWindow), new PropertyMetadata(default(double), PropertyChangedCallback, CoerceValueCallback));
+            "VolumeNumber", typeof(double), typeof(MainWindow),
+            new PropertyMetadata(default(double), PropertyChangedCallback, CoerceValueCallback));
 
         private static object CoerceValueCallback(DependencyObject d, object baseValue)
         {
-            var value = (double)baseValue;
+            var value = (double) baseValue;
             if (value < 0)
             {
                 value = 0;
@@ -64,12 +120,11 @@ namespace KeenaihemchiQallhawearhina
 
         private static void PropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-
         }
 
         public double VolumeNumber
         {
-            get { return (double)GetValue(VolumeNumberProperty); }
+            get { return (double) GetValue(VolumeNumberProperty); }
             set { SetValue(VolumeNumberProperty, value); }
         }
 
