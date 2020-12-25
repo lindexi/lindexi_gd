@@ -25,11 +25,11 @@ namespace HurnabahearwhawJehearhefena
           DefaultJob : .NET Core 3.1.9 (CoreCLR 4.700.20.47201, CoreFX 4.700.20.47203), X64 RyuJIT
 
 
-        |             Method |              argList |       Mean |    Error |   StdDev | Ratio | RatioSD |
-        |------------------- |--------------------- |-----------:|---------:|---------:|------:|--------:|
-        | 'AddAndRemove New' | Syste(...)ener] [89] | 2,424.9 us | 28.53 us | 23.83 us |     ? |       ? |
-        |                    |                      |            |          |          |       |         |
-        | 'AddAndRemove Old' | Syste(...)ence] [55] |   686.0 us |  5.61 us |  4.97 us |  1.00 |    0.00 |
+|             Method |              argList |     Mean |    Error |   StdDev | Ratio | RatioSD |
+|------------------- |--------------------- |---------:|---------:|---------:|------:|--------:|
+| 'AddAndRemove Old' | Syste(...)ence] [55] | 679.7 us | 10.42 us |  8.70 us |  1.00 |    0.00 |
+|                    |                      |          |          |          |       |         |
+| 'AddAndRemove New' |  Syst(...)er]] [113] | 667.7 us | 11.07 us | 10.35 us |     ? |       ? |
          */
         public IEnumerable<List<WeakReference>> GetOldAppDomainShutdownMonitorArgList()
         {
@@ -107,11 +107,11 @@ namespace HurnabahearwhawJehearhefena
           DefaultJob : .NET Core 3.1.9 (CoreCLR 4.700.20.47201, CoreFX 4.700.20.47203), X64 RyuJIT
 
 
-        |                Method |              argList |     Mean |     Error |    StdDev | Ratio | RatioSD |
-        |---------------------- |--------------------- |---------:|----------:|----------:|------:|--------:|
-        | 'AddBeforeRemove New' | Syste(...)ener] [89] | 2.582 ms | 0.0303 ms | 0.0253 ms |     ? |       ? |
-        |                       |                      |          |           |           |       |         |
-        | 'AddBeforeRemove Old' | Syste(...)ence] [55] | 1.366 ms | 0.0192 ms | 0.0170 ms |  1.00 |    0.00 |
+|                Method |              argList |     Mean |     Error |    StdDev | Ratio | RatioSD |
+|---------------------- |--------------------- |---------:|----------:|----------:|------:|--------:|
+| 'AddBeforeRemove Old' | Syste(...)ence] [55] | 1.414 ms | 0.0174 ms | 0.0154 ms |  1.00 |    0.00 |
+|                       |                      |          |           |           |       |         |
+| 'AddBeforeRemove New' |  Syst(...)er]] [113] | 1.197 ms | 0.0097 ms | 0.0081 ms |     ? |       ? |
          */
 
         public IEnumerable<List<WeakReference>> GetOldAppDomainShutdownMonitorArgList()
@@ -204,10 +204,10 @@ namespace HurnabahearwhawJehearhefena
           DefaultJob : .NET Core 3.1.9 (CoreCLR 4.700.20.47201, CoreFX 4.700.20.47203), X64 RyuJIT
 
 
-        |        Method |     Mean |     Error |    StdDev | Ratio | RatioSD |
-        |-------------- |---------:|----------:|----------:|------:|--------:|
-        | 'AddOnly Old' | 2.855 ms | 0.0380 ms | 0.0317 ms |  1.00 |    0.00 |
-        | 'AddOnly New' | 2.371 ms | 0.0466 ms | 0.0697 ms |  0.83 |    0.02 |
+|        Method |     Mean |     Error |    StdDev |   Median | Ratio | RatioSD |
+|-------------- |---------:|----------:|----------:|---------:|------:|--------:|
+| 'AddOnly Old' | 2.886 ms | 0.0574 ms | 0.1160 ms | 2.821 ms |  1.00 |    0.00 |
+| 'AddOnly New' | 2.880 ms | 0.0639 ms | 0.1865 ms | 2.827 ms |  1.00 |    0.09 |
          */
 
         [Benchmark(Baseline = true, Description = "AddOnly Old")]
@@ -221,7 +221,6 @@ namespace HurnabahearwhawJehearhefena
                 var weakReference = new WeakReference(fakeAppDomainShutdownListener);
                 appDomainShutdownMonitor.Add(weakReference);
             }
-
         }
 
         [Benchmark(Description = "AddOnly New")]
@@ -235,7 +234,6 @@ namespace HurnabahearwhawJehearhefena
                 var weakReference = new WeakReference<IAppDomainShutdownListener>(fakeAppDomainShutdownListener);
                 appDomainShutdownMonitor.Add(weakReference);
             }
-
         }
 
         //[Benchmark(Description = "AddOnly New")]
@@ -262,8 +260,11 @@ namespace HurnabahearwhawJehearhefena
 
     internal class AppDomainShutdownMonitor
     {
-        private readonly Dictionary<WeakReference, WeakReference> _dictionary = new Dictionary<WeakReference, WeakReference>();
+        private readonly Dictionary<WeakReference, WeakReference> _dictionary =
+            new Dictionary<WeakReference, WeakReference>();
+
         private static bool _shuttingDown;
+
         public void Add(WeakReference listener)
         {
             Debug.Assert(listener.Target != null);
@@ -316,7 +317,8 @@ namespace HurnabahearwhawJehearhefena
 
         private object Locker => ListenerList;
 
-        private LinkedList<WeakReference<IAppDomainShutdownListener>> ListenerList { get; } = new LinkedList<WeakReference<IAppDomainShutdownListener>>();
+        private LinkedList<WeakReference<IAppDomainShutdownListener>> ListenerList { get; } =
+            new LinkedList<WeakReference<IAppDomainShutdownListener>>();
     }
 
     public interface IAppDomainShutdownListener
@@ -328,7 +330,6 @@ namespace HurnabahearwhawJehearhefena
     {
         public void NotifyShutdown()
         {
-
         }
     }
 
@@ -383,8 +384,9 @@ namespace HurnabahearwhawJehearhefena
             }
         }
 
-        private readonly HashSet<WeakReference<IAppDomainShutdownListener>> _hashSet = new HashSet<WeakReference<IAppDomainShutdownListener>>();
+        private readonly HashSet<WeakReference<IAppDomainShutdownListener>> _hashSet =
+            new HashSet<WeakReference<IAppDomainShutdownListener>>();
+
         private bool _shuttingDown;
     }
-
 }
