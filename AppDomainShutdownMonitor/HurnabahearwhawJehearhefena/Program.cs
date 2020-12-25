@@ -335,11 +335,11 @@ namespace HurnabahearwhawJehearhefena
 
     internal class AppDomainShutdownMonitorNew
     {
-        public AppDomainShutdownMonitorNew()
-        {
-            AppDomain.CurrentDomain.DomainUnload += OnShutdown;
-            AppDomain.CurrentDomain.ProcessExit += OnShutdown;
-        }
+        //public AppDomainShutdownMonitorNew()
+        //{
+        //    AppDomain.CurrentDomain.DomainUnload += OnShutdown;
+        //    AppDomain.CurrentDomain.ProcessExit += OnShutdown;
+        //}
 
         public void Add(WeakReference<IAppDomainShutdownListener> listener)
         {
