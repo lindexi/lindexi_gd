@@ -5,10 +5,13 @@
     xmlns:local="using:KucalyabiHuwelberyearni"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:xaml="using:Microsoft.Graphics.Canvas.UI.Xaml"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid>
       <CaptureElement Name="PreviewControl" Stretch="Uniform"/>
+      <xaml:CanvasVirtualControl x:Name="Canvas" ClearColor="#000F261E" Width="1000000"
+                                 Height="1000000" />
   </Grid>
 </Page>
