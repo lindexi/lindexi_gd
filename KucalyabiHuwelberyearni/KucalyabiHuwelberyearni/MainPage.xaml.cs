@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Graphics.Display;
 using Windows.Media.Capture;
 using Windows.Media.Core;
+using Windows.Media.Devices;
+using Windows.Media.MediaProperties;
 using Windows.Storage;
 using Windows.System.Display;
 using Windows.UI.Xaml;
@@ -42,6 +45,32 @@ namespace KucalyabiHuwelberyearni
                 _mediaCapture = new MediaCapture();
                 await _mediaCapture.InitializeAsync();
 
+                _mediaCapture.VideoDeviceController.DesiredOptimization = MediaCaptureOptimization.Quality;
+                _mediaCapture.VideoDeviceController.PrimaryUse = CaptureUse.Video;
+                _mediaCapture.VideoDeviceController.TrySetPowerlineFrequency(PowerlineFrequency.SixtyHertz);
+
+                try
+                {
+                    var comboBox = ComboBox;
+
+                    var availableMediaStreamProperties = _mediaCapture.VideoDeviceController.GetAvailableMediaStreamProperties(MediaStreamType.VideoRecord).ToList().OfType<VideoEncodingProperties>()
+                        //.OrderByDescending(x => x.Height * x.Width).ThenByDescending(x => x.FrameRate);
+                        .ToList() ;
+
+                    // Populate the combo box with the entries
+                    foreach (VideoEncodingProperties property in availableMediaStreamProperties)
+                    {
+                        ComboBoxItem comboBoxItem = new ComboBoxItem();
+                        comboBoxItem.Content = property.Width + "x" + property.Height + " " + property.FrameRate + "FPS " + property.Subtype;
+                        comboBoxItem.Tag = property;
+                        comboBox.Items.Add(comboBoxItem);
+                    }
+                }
+                catch (Exception)
+                {
+
+                }
+
                 displayRequest.RequestActive();
                 DisplayInformation.AutoRotationPreferences = DisplayOrientations.Landscape;
             }
@@ -58,11 +87,25 @@ namespace KucalyabiHuwelberyearni
             }
             catch (System.IO.FileLoadException)
             {
-             
+
             }
 
         }
 
         MediaCapture _mediaCapture;
+
+        private async void ComboBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                var selectedItem = (sender as ComboBox).SelectedItem as ComboBoxItem;
+                var encodingProperties = (selectedItem.Tag as VideoEncodingProperties);
+                await _mediaCapture.VideoDeviceController.SetMediaStreamPropertiesAsync(MediaStreamType.VideoRecord, encodingProperties);
+            }
+            catch (Exception)
+            {
+              
+            }
+        }
     }
 }

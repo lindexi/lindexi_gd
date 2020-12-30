@@ -11,7 +11,6 @@
 
     <Grid>
       <CaptureElement Name="PreviewControl" Stretch="Uniform"/>
-      <xaml:CanvasVirtualControl x:Name="Canvas" ClearColor="#000F261E" Width="1000000"
-                                 Height="1000000" />
+     <ComboBox x:Name="ComboBox" Margin="10,10,10,10" HorizontalAlignment="Right" VerticalAlignment="Top" SelectionChanged="ComboBox_OnSelectionChanged"></ComboBox>
   </Grid>
 </Page>

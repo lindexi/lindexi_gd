@@ -8,7 +8,7 @@
 
   <Identity
     Name="8bdcf330-6ecf-4c5b-a33d-c69980b4423b"
-    Publisher="CN=linde"
+    Publisher="CN=lindexi"
     Version="1.0.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="8bdcf330-6ecf-4c5b-a33d-c69980b4423b" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
