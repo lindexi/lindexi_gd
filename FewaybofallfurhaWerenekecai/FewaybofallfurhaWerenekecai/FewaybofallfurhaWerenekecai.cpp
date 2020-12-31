@@ -27,69 +27,59 @@ typedef unsigned  u32;
 #define SVN_PASS_MIN            47479
 #define SVN_PASS_MAX            99999999
 
-u32 RegisterCrc32(u8* Buffer, u8 Length)
+#define ROTATE_LEFT(x, s, n)    ((x) << (n)) | ((x) >> ((s) - (n)))
+#define ROTATE_RIGHT(x, s, n)   ((x) >> (n)) | ((x) << ((s) - (n)))
+
+
+u32 DataDecode(u8* Data)
 {
-	unsigned int i = 0, j = 0; // byte counter, bit counter
-	unsigned int byte = 0;
-	unsigned int poly = 0x04C11DB7;
-	unsigned int crc = 0xFFFFFFFF;
-	unsigned int* message = (unsigned int*)Buffer;
-	unsigned int msgsize = Length / 4;
+	u8 buf[9];
+	u8 i = 1;
+	u32 SvnVersion = 0;
 
-	i = 0;
-	byte = 0x5BE87C00;  /* Firt Data Head */
-	for (j = 0; j < 32; j++)
-	{
-		if ((int)(crc ^ byte) < 0)
-		{
-			crc = (crc << 1) ^ poly;
-		}
-		else
-		{
-			crc = crc << 1;
-		}
-		byte = byte << 1;    // Ready next msg bit.
-	}
+	buf[7] = Data[0];
+	buf[5] = Data[1];
+	buf[3] = Data[2];
+	buf[1] = Data[3];
+	buf[2] = Data[4];
+	buf[4] = Data[5];
+	buf[6] = Data[6];
+	buf[8] = Data[7];
 
-	for (i = 0; i < msgsize; i++)
+	for (i = 1; i < 9; i++)
 	{
-		byte = message[i];
-		for (j = 0; j < 32; j++)
+		buf[i] = (buf[i] / (i + 7)) - i;
+		if (buf[i] > 9)
 		{
-			if ((int)(crc ^ byte) < 0)
-			{
-				crc = (crc << 1) ^ poly;
-			}
-			else
-			{
-				crc = crc << 1;
-			}
-			byte = byte << 1;    // Ready next msg bit.
+			return 0;
 		}
 	}
 
-	byte = 0x75D63F00;  /* End  Data */
-	for (j = 0; j < 32; j++)
+	for (i = 1; i < 9; i++)
 	{
-		if ((int)(crc ^ byte) < 0)
-		{
-			crc = (crc << 1) ^ poly;
-		}
-		else
-		{
-			crc = crc << 1;
-		}
-		byte = byte << 1;    // Ready next msg bit.
+		SvnVersion = SvnVersion * 10 + buf[9 - i];
 	}
 
-	return crc;
+	return SvnVersion;
 }
 
 int main()
 {
-	u8 Register[REGISTER_DATA_LEN] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };
+	u8 DecodeBuf[REGISTER_DATA_LEN] = { 0x4C, 0x42, 0x23, 0x05, 0x8D, 0x12, 0xD4, 0x96 };
 
-    std::cout << RegisterCrc32(Register, REGISTER_DATA_LEN);
+	u32 crc = 0;
+	u32 n = 0;
+	u32 i = 0;
+
+	crc = 1704837083;
+
+	for (i = 0; i < 8; i++)
+	{
+		n = (crc >> ((7 - i) * 4)) % 8;     /* 计算循环右移的值 */
+		DecodeBuf[i] = ROTATE_RIGHT(DecodeBuf[i], 8, (crc >> ((7 - i) * 4)) % 8);
+	}
+
+	auto svn = DataDecode(DecodeBuf);
 }
 
 // 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单
