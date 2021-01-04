@@ -25,6 +25,13 @@ namespace BelehereluJewelemkiho
             }
         }
 
+        /// <summary>
+        /// 表示如何重写修复超链接格式
+        /// </summary>
+        /// <param name="partUri">这个 <paramref name="uri"/> 属于哪个文档 Part 内容，值如 /xl/worksheets/_rels/sheet1.xml.rels 等</param>
+        /// <param name="id">这个资源的值</param>
+        /// <param name="uri">格式不对的 Uri 内容</param>
+        /// <returns></returns>
         static string Rewriter(Uri partUri, string id, string uri)
             => $"http://unknown?id={id}";
     }
