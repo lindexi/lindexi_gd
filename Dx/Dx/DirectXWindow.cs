@@ -121,6 +121,9 @@ namespace Dx
                 // 2. D3D设备的版本取决于所处的系统（有时候可以打特定的系统补丁来支持高版本的DX，比如让Win7支持DX12的部分）
             }
 
+            // 该函数可以创建Direct3D 11.0或更高子版本的D3D设备与设备上下文，但都统一输出 _d3DDevice 设备
+            var featureLevel = _d3DDevice.FeatureLevel;
+
             using (D3D11.Texture2D backBuffer = _swapChain.GetBackBuffer<D3D11.Texture2D>(0))
             {
                 _renderTargetView = new D3D11.RenderTargetView(_d3DDevice, backBuffer);
