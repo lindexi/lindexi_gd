@@ -90,10 +90,20 @@ namespace Dx
                 // 特性等级数组 [Direct3D feature levels - Win32 apps | Microsoft Docs](https://docs.microsoft.com/en-us/windows/win32/direct3d11/overviews-direct3d-11-devices-downlevel-intro)
                 featureLevels: new FeatureLevel[]
                 {
+                    // 特性等级 也可以翻译为 功能等级
+                    // 为了兼容新设备新系统和古老设备的系统，在 Dx11 推出的时候，就引入了功能等级的概念。每个显卡都会根据它自身的 GPU 图形处理单元采用一定等级的 DirectX 功能。在 DirectX 11 引入的功能等级的概念是一组明确的 GPU 功能，也就是说这是一个沟通硬件 GPU 和编程人员中间的特性，在调用此方法创建设备的时候，可以尝试为请求的功能等级创建设备（_d3DDevice）如果设备创建成功了，那么证明此特性等级存在。否则，表示在此设备上不支持此功能等级，咱可以使用较低的功能等级重新创建设备
+                    // 利用此特性，就可以为 Dx9 和 Dx11 和 Dx12 开发应用程序，然后在不同的支持 Dx12 和 Dx11 和 Dx9 的设备上运行程序，可以极大减少开发人员对具体硬件的关注
+                    // 需要了解的是：
+                    // - 默认的 GPU 是允许设备创建的特性等级等于或超过他的能支持的功能等级
+                    // - 功能等级始终包含先前的低功能等级的功能，换句话说就是 Level_12_1 等级的包含了 Level_11_1 等级功能
+                    // - 功能等级不代表性能，而仅代表功能。性能取决于硬件实现
+                    // 不同的功能等级对应支持的功能列表请看  [Direct3D feature levels - Win32 apps | Microsoft Docs](https://docs.microsoft.com/en-us/windows/win32/direct3d11/overviews-direct3d-11-devices-downlevel-intro)
                     FeatureLevel.Level_12_1,
                     FeatureLevel.Level_11_1,
                     // 给 Win7 用的
                     FeatureLevel.Level_11_0,
+                    // 给 xp 用的
+                    FeatureLevel.Level_9_1,
                 },
                 // 第三个参数是输入上面的交换链描述
                 swapChainDesc,
@@ -103,6 +113,13 @@ namespace Dx
             // D3D设备上下文(ID3D11DeviceContext)可以看做是一个渲染管线。通常我们在创建D3D设备的同时也会附赠一个立即设备上下文(Immediate Context)。一个D3D设备仅对应一个D3D立即设备上下文
             // 渲染管线主要负责渲染和计算工作，它需要绑定来自与它关联的D3D设备所创建的各种资源、视图和着色器才能正常运转，除此之外，它还能够负责对资源的直接读写操作
             _d3DDeviceContext = _d3DDevice.ImmediateContext;
+
+            if (_d3DDevice.CheckD3D113Features4().ExtendedNV12SharedTextureSupported==true)
+            {
+                // 1. 特性等级的支持情况取决于当前使用的显示适配器，只要显示适配器支持某一特性等级，意味着它能够支持该特性等级下的统一功能（如特性等级11.0支持纹理宽高最大为16384，而10.1仅支持纹理宽高最大为8192）
+                // 
+                // 2. D3D设备的版本取决于所处的系统（有时候可以打特定的系统补丁来支持高版本的DX，比如让Win7支持DX12的部分）
+            }
 
             using (D3D11.Texture2D backBuffer = _swapChain.GetBackBuffer<D3D11.Texture2D>(0))
             {
