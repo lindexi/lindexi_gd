@@ -7,12 +7,13 @@
         <UseWindowsForms>true</UseWindowsForms>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="SharpDX" Version="4.1.0" />
-        <PackageReference Include="SharpDX.D3DCompiler" Version="4.1.0" />
-        <PackageReference Include="SharpDX.Desktop" Version="3.1.1" />
-        <PackageReference Include="SharpDX.Direct2D1" Version="4.1.0" />
-        <PackageReference Include="SharpDX.Direct3D11" Version="4.1.0" />
-        <PackageReference Include="SharpDX.DXGI" Version="4.1.0" />
+        <PackageReference Include="SharpDX" Version="4.2.0" />
+        <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" />
+        <PackageReference Include="SharpDX.Desktop" Version="4.2.0" />
+        <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
+        <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
+        <PackageReference Include="SharpDX.Direct3D12" Version="4.2.0" />
+        <PackageReference Include="SharpDX.DXGI" Version="4.2.0" />
     </ItemGroup>
 
 </Project>

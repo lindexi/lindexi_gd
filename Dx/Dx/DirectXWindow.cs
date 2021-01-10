@@ -5,6 +5,8 @@ using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
 using SharpDX.Windows;
 using D3D11 = SharpDX.Direct3D11;
+using DXGI = SharpDX.DXGI;
+using D3D12 = SharpDX.Direct3D12;
 
 namespace Dx
 {
@@ -114,7 +116,7 @@ namespace Dx
             // 渲染管线主要负责渲染和计算工作，它需要绑定来自与它关联的D3D设备所创建的各种资源、视图和着色器才能正常运转，除此之外，它还能够负责对资源的直接读写操作
             _d3DDeviceContext = _d3DDevice.ImmediateContext;
 
-            if (_d3DDevice.CheckD3D113Features4().ExtendedNV12SharedTextureSupported==true)
+            if (_d3DDevice.CheckD3D113Features4().ExtendedNV12SharedTextureSupported == true)
             {
                 // 1. 特性等级的支持情况取决于当前使用的显示适配器，只要显示适配器支持某一特性等级，意味着它能够支持该特性等级下的统一功能（如特性等级11.0支持纹理宽高最大为16384，而10.1仅支持纹理宽高最大为8192）
                 // 
@@ -123,6 +125,18 @@ namespace Dx
 
             // 该函数可以创建Direct3D 11.0或更高子版本的D3D设备与设备上下文，但都统一输出 _d3DDevice 设备
             var featureLevel = _d3DDevice.FeatureLevel;
+            //if (featureLevel == FeatureLevel.Level_12_1)
+            //{
+            //    var d3D12Device = D3D12.Device.FromPointer<D3D12.Device>(_d3DDevice.NativePointer);
+            //    var nodeCount = d3D12Device.NodeCount;
+            //    if (d3D12Device.CheckFeatureSupport(D3D12.Feature.D3D12Options,ref backBufferDesc))
+            //    {
+                    
+            //    }
+            //    var d3D12Options = d3D12Device.D3D12Options;
+            //}
+
+
 
             using (D3D11.Texture2D backBuffer = _swapChain.GetBackBuffer<D3D11.Texture2D>(0))
             {
