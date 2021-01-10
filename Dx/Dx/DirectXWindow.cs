@@ -125,18 +125,25 @@ namespace Dx
 
             // 该函数可以创建Direct3D 11.0或更高子版本的D3D设备与设备上下文，但都统一输出 _d3DDevice 设备
             var featureLevel = _d3DDevice.FeatureLevel;
-            //if (featureLevel == FeatureLevel.Level_12_1)
-            //{
-            //    var d3D12Device = D3D12.Device.FromPointer<D3D12.Device>(_d3DDevice.NativePointer);
-            //    var nodeCount = d3D12Device.NodeCount;
-            //    if (d3D12Device.CheckFeatureSupport(D3D12.Feature.D3D12Options,ref backBufferDesc))
-            //    {
-                    
-            //    }
-            //    var d3D12Options = d3D12Device.D3D12Options;
-            //}
 
+            var dxgiDevice = _d3DDevice.QueryInterface<DXGI.Device>();
+            DXGI.Adapter dxgiDeviceAdapter = dxgiDevice.Adapter;
+            var dxgiFactory = dxgiDeviceAdapter.GetParent<DXGI.Factory>();
 
+            var dxgiFactory2 = _swapChain.GetParent<DXGI.Factory>();
+            var dxgiDevice2 = _swapChain.GetDevice<DXGI.Device>();
+
+            if (dxgiDevice.NativePointer == dxgiDevice2.NativePointer)
+            {
+
+            }
+
+            if (dxgiFactory.NativePointer == dxgiFactory2.NativePointer)
+            {
+
+            }
+
+            dxgiFactory.MakeWindowAssociation(_renderForm.Handle, WindowAssociationFlags.IgnoreAltEnter);
 
             using (D3D11.Texture2D backBuffer = _swapChain.GetBackBuffer<D3D11.Texture2D>(0))
             {
@@ -153,7 +160,7 @@ namespace Dx
 
         private D3D11.Device _d3DDevice;
         private D3D11.DeviceContext _d3DDeviceContext;
-        private SwapChain _swapChain;
+        private DXGI.SwapChain _swapChain;
         private D3D11.RenderTargetView _renderTargetView;
 
         private void Draw()
