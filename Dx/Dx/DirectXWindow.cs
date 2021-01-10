@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Drawing;
+using SharpDX;
+using SharpDX.Direct2D1;
 using SharpDX.Direct3D;
 using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
 using SharpDX.Windows;
+using AlphaMode = SharpDX.Direct2D1.AlphaMode;
 using D3D11 = SharpDX.Direct3D11;
 using DXGI = SharpDX.DXGI;
 using D3D12 = SharpDX.Direct3D12;
+using Factory = SharpDX.Direct2D1.Factory;
+using FeatureLevel = SharpDX.Direct3D.FeatureLevel;
 
 namespace Dx
 {
@@ -19,8 +24,61 @@ namespace Dx
                 ClientSize = new Size(Width, Height)
             };
 
-            InitializeDeviceResources();
+            //InitializeDeviceResources();
+
+            Foo();
         }
+
+        private void Foo()
+        {
+            // Get the default hardware device and enable debugging. Don't care about the available feature level.
+            SharpDX.Direct3D11.Device defaultDevice = new SharpDX.Direct3D11.Device(DriverType.Hardware, D3D11.DeviceCreationFlags.Debug);
+
+            // Query the default device for the supported device and context interfaces.
+            device = defaultDevice.QueryInterface<SharpDX.Direct3D11.Device1>();
+            context = device.ImmediateContext.QueryInterface<DeviceContext1>();
+
+            // Query for the adapter and more advanced DXGI objects.
+            SharpDX.DXGI.Device2 dxgiDevice2 = device.QueryInterface<SharpDX.DXGI.Device2>();
+            SharpDX.DXGI.Adapter dxgiAdapter = dxgiDevice2.Adapter;
+            SharpDX.DXGI.Factory2 dxgiFactory2 = dxgiAdapter.GetParent<SharpDX.DXGI.Factory2>();
+
+            // Description for our swap chain settings.
+            SwapChainDescription1 description = new SwapChainDescription1()
+            {
+                // 0 means to use automatic buffer sizing.
+                Width = 0,
+                Height = 0,
+                // 32 bit RGBA color.
+                Format = Format.B8G8R8A8_UNorm,
+                // No stereo (3D) display.
+                Stereo = false,
+                // No multisampling.
+                SampleDescription = new SampleDescription(1, 0),
+                // Use the swap chain as a render target.
+                Usage = Usage.RenderTargetOutput,
+                // Enable double buffering to prevent flickering.
+                BufferCount = 2,
+                // No scaling.
+                Scaling = Scaling.None,
+                // Flip between both buffers.
+                SwapEffect = SwapEffect.FlipSequential,
+            };
+
+            // Generate a swap chain for our window based on the specified description.
+            swapChain = dxgiFactory2.CreateSwapChainForCoreWindow(device, new ComObject(window), ref description, null);
+
+            // Create the texture and render target that will hold our backbuffer.
+            D3D11.Texture2D backBufferTexture = D3D11.Texture2D.FromSwapChain<D3D11.Texture2D>(swapChain, 0);
+            backBuffer = new D3D11.RenderTargetView(device, backBufferTexture);
+
+            backBufferTexture.Dispose();
+        }
+
+        private SharpDX.Direct3D11.Device1 device;
+        private SharpDX.Direct3D11.DeviceContext1 context;
+        private D3D11.RenderTargetView backBuffer;
+        private SwapChain1 swapChain;
 
         public void Run()
         {
@@ -145,9 +203,28 @@ namespace Dx
 
             dxgiFactory.MakeWindowAssociation(_renderForm.Handle, WindowAssociationFlags.IgnoreAltEnter);
 
+            SharpDX.Direct2D1.Device d2dDevice = new SharpDX.Direct2D1.Device(dxgiDevice2);
+
+
             using (D3D11.Texture2D backBuffer = _swapChain.GetBackBuffer<D3D11.Texture2D>(0))
             {
                 _renderTargetView = new D3D11.RenderTargetView(_d3DDevice, backBuffer);
+
+                var surface = backBuffer.QueryInterface<DXGI.Surface>();
+
+                var factory = new Factory();
+
+                var renderTarget = new RenderTarget(factory, surface, new RenderTargetProperties()
+                {
+                    DpiX = 96,
+                    DpiY = 96,
+                    MinLevel = SharpDX.Direct2D1.FeatureLevel.Level_DEFAULT,
+                    PixelFormat = new PixelFormat(surface.Description.Format, AlphaMode.Ignore),
+                    Usage = RenderTargetUsage.ForceBitmapRemoting,
+                    Type = RenderTargetType.Hardware
+                });
+
+
             }
         }
 
