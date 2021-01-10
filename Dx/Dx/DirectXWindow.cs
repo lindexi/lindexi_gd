@@ -24,61 +24,8 @@ namespace Dx
                 ClientSize = new Size(Width, Height)
             };
 
-            //InitializeDeviceResources();
-
-            Foo();
+            InitializeDeviceResources();
         }
-
-        private void Foo()
-        {
-            // Get the default hardware device and enable debugging. Don't care about the available feature level.
-            SharpDX.Direct3D11.Device defaultDevice = new SharpDX.Direct3D11.Device(DriverType.Hardware, D3D11.DeviceCreationFlags.Debug);
-
-            // Query the default device for the supported device and context interfaces.
-            device = defaultDevice.QueryInterface<SharpDX.Direct3D11.Device1>();
-            context = device.ImmediateContext.QueryInterface<DeviceContext1>();
-
-            // Query for the adapter and more advanced DXGI objects.
-            SharpDX.DXGI.Device2 dxgiDevice2 = device.QueryInterface<SharpDX.DXGI.Device2>();
-            SharpDX.DXGI.Adapter dxgiAdapter = dxgiDevice2.Adapter;
-            SharpDX.DXGI.Factory2 dxgiFactory2 = dxgiAdapter.GetParent<SharpDX.DXGI.Factory2>();
-
-            // Description for our swap chain settings.
-            SwapChainDescription1 description = new SwapChainDescription1()
-            {
-                // 0 means to use automatic buffer sizing.
-                Width = 0,
-                Height = 0,
-                // 32 bit RGBA color.
-                Format = Format.B8G8R8A8_UNorm,
-                // No stereo (3D) display.
-                Stereo = false,
-                // No multisampling.
-                SampleDescription = new SampleDescription(1, 0),
-                // Use the swap chain as a render target.
-                Usage = Usage.RenderTargetOutput,
-                // Enable double buffering to prevent flickering.
-                BufferCount = 2,
-                // No scaling.
-                Scaling = Scaling.None,
-                // Flip between both buffers.
-                SwapEffect = SwapEffect.FlipSequential,
-            };
-
-            // Generate a swap chain for our window based on the specified description.
-            swapChain = dxgiFactory2.CreateSwapChainForCoreWindow(device, new ComObject(window), ref description, null);
-
-            // Create the texture and render target that will hold our backbuffer.
-            D3D11.Texture2D backBufferTexture = D3D11.Texture2D.FromSwapChain<D3D11.Texture2D>(swapChain, 0);
-            backBuffer = new D3D11.RenderTargetView(device, backBufferTexture);
-
-            backBufferTexture.Dispose();
-        }
-
-        private SharpDX.Direct3D11.Device1 device;
-        private SharpDX.Direct3D11.DeviceContext1 context;
-        private D3D11.RenderTargetView backBuffer;
-        private SwapChain1 swapChain;
 
         public void Run()
         {
