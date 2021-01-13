@@ -27,7 +27,7 @@ namespace MacListConvert
             var stringBuilder = new StringBuilder();
 
             var csvFileTextLine = File.ReadLines(csvFile).ToList();
-            var regex = new Regex(@"""([\d:]*)"",""(\d)""");
+            var regex = new Regex(@"""([\d:]*)""(,""[\d-]*"",""[\d:]*"")");
             for (var i = 1; i < csvFileTextLine.Count; i++)
             {
                 var textLine = csvFileTextLine[i];
@@ -45,7 +45,7 @@ namespace MacListConvert
                         //};
 
                         //csvWriter.WriteRecord(macInfo);
-                        stringBuilder.Append($"\"{mac}\",\"{match.Groups[2].Value}\"\r\n");
+                        stringBuilder.Append($"\"{mac}\"{match.Groups[2].Value}\r\n");
                     }
                 }
             }
