@@ -4,16 +4,20 @@ using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Input.StylusPlugIns;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace LayfilejonarchoDawherehebafonur
 {
@@ -24,10 +28,13 @@ namespace LayfilejonarchoDawherehebafonur
     {
         public MainWindow()
         {
+            //RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly;
+
             InitializeComponent();
 
             //StylusMove += MainWindow_StylusMove;
-            TouchMove += MainWindow_TouchMove;
+            //TouchMove += MainWindow_TouchMove;
+            StylusPlugIns.Add(new F1(this));
         }
 
         private void MainWindow_TouchMove(object sender, TouchEventArgs e)
@@ -66,6 +73,38 @@ namespace LayfilejonarchoDawherehebafonur
         public static long TouchTickCount { set; get; }
     }
 
+    public class F1 : StylusPlugIn
+    {
+        public F1(MainWindow mainWindow)
+        {
+            _mainWindow = mainWindow;
+        }
+
+        protected override void OnStylusMove(RawStylusInput rawStylusInput)
+        {
+            EraserInkView.Count++;
+            Debug.WriteLine($"TTTTTTTTTTTT {EraserInkView.Count:D5} " + Environment.TickCount);
+            MainWindow.TouchTickCount = Environment.TickCount;
+
+            var stylusPointCollection = rawStylusInput.GetStylusPoints();
+            if (stylusPointCollection.Count>0)
+            {
+                foreach (var stylusPoint in stylusPointCollection)
+                {
+                    _mainWindow.Dispatcher.InvokeAsync(() =>
+                    {
+                        var point = stylusPoint;
+
+                        _mainWindow.EraserView.X = point.X - _mainWindow.EraserView.Width / 2;
+                        _mainWindow.EraserView.Y = point.Y - _mainWindow.EraserView.Height / 2;
+                    }, DispatcherPriority.Send);
+                }
+            }
+        }
+
+        private readonly MainWindow _mainWindow;
+    }
+
     public class EraserInkView : EraserView
     {
         public static int Count { set; get; }
@@ -97,7 +136,7 @@ namespace LayfilejonarchoDawherehebafonur
 
         protected override void OnRender(DrawingContext drawingContext)
         {
-            Debug.WriteLine($"RRRRRRRRRRRR {Count:D5} {Environment.TickCount} {Environment.TickCount - MainWindow.TouchTickCount:D5} {Environment.TickCount- TickCount:D5}");
+            Debug.WriteLine($"RRRRRRRRRRRR {Count:D5} {Environment.TickCount} {Environment.TickCount - MainWindow.TouchTickCount:D5} {Environment.TickCount - TickCount:D5}");
 
             TickCount = Environment.TickCount;
 
