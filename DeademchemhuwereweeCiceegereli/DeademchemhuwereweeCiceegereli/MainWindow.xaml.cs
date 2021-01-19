@@ -23,16 +23,24 @@ namespace DeademchemhuwereweeCiceegereli
     {
         public MainWindow()
         {
-            var manipulationProcessor2D = new ManipulationProcessor2D(Manipulations2D.All);
-            manipulationProcessor2D.SetParameters(new ManipulationPivot2D()
-            {
-
-            });
-            manipulationProcessor2D.ProcessManipulators(0, new Manipulator2D[]
-            {
-                new Manipulator2D(1,0,0),
-            });
             InitializeComponent();
+
+            XamlObjectCreationFactory.RegisterCreator(() => new MainWindow());
+        }
+    }
+
+    class F1 : UIElement
+    {
+        public F1()
+        {
+        }
+    }
+
+    public static class XamlObjectCreationFactory
+    {
+        public static void RegisterCreator<T>(Func<T> creator)
+        {
+
         }
     }
 }
