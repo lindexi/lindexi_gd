@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\System.Xaml\System.Xaml.csproj" />
   </ItemGroup>
 
