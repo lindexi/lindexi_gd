@@ -16,17 +16,16 @@ namespace System.Xaml.Demo
         }
         /*
          * BenchmarkDotNet=v0.12.1, OS=Windows 10.0.19041.746 (2004/?/20H1)
-        Intel Core i7-6700 CPU 3.40GHz (Skylake), 1 CPU, 8 logical and 4 physical cores
-        .NET Core SDK=5.0.101
-          [Host]     : .NET Core 5.0.1 (CoreCLR 5.0.120.57516, CoreFX 5.0.120.57516), X64 RyuJIT
-          DefaultJob : .NET Core 5.0.1 (CoreCLR 5.0.120.57516, CoreFX 5.0.120.57516), X64 RyuJIT
-
-
-        |                                                    Method |     Mean |    Error |   StdDev | Ratio | RatioSD |
-        |---------------------------------------------------------- |---------:|---------:|---------:|------:|--------:|
-        |                        CreateInstanceInXamlTypeInvokerOld | 592.2 ns | 11.36 ns | 11.16 ns |  1.00 |    0.00 |
-        |    CreateInstanceWhichRegisterInXamlObjectCreationFactory | 202.7 ns |  2.09 ns |  1.86 ns |  0.34 |    0.01 |
-        | CreateInstanceWhichNotRegisterInXamlObjectCreationFactory | 609.2 ns |  9.95 ns |  8.82 ns |  1.03 |    0.02 |
+           Intel Core i7-6700 CPU 3.40GHz (Skylake), 1 CPU, 8 logical and 4 physical cores
+           .NET Core SDK=5.0.101
+           [Host]     : .NET Core 5.0.1 (CoreCLR 5.0.120.57516, CoreFX 5.0.120.57516), X64 RyuJIT
+           DefaultJob : .NET Core 5.0.1 (CoreCLR 5.0.120.57516, CoreFX 5.0.120.57516), X64 RyuJIT
+           
+           
+           |                                                    Method |     Mean |    Error |   StdDev | Ratio | RatioSD |
+           |---------------------------------------------------------- |---------:|---------:|---------:|------:|--------:|
+           |                        CreateInstanceInXamlTypeInvokerOld | 619.6 ns | 12.38 ns | 11.58 ns |  1.00 |    0.00 |
+           | CreateInstanceWhichNotRegisterInXamlObjectCreationFactory | 582.9 ns |  7.26 ns |  6.79 ns |  0.94 |    0.02 |
          */
 
         [Benchmark(Baseline = true)]
