@@ -55,7 +55,7 @@ namespace System.Xaml.Demo
         {
             XamlSchemaContext = new XamlSchemaContext();
 
-            //XamlObjectCreationFactory.RegisterCreator(() => new F1());
+            XamlObjectCreationFactory.RegisterCreator(() => new F1());
         }
 
         private static XamlSchemaContext XamlSchemaContext { set; get; } = new XamlSchemaContext();
