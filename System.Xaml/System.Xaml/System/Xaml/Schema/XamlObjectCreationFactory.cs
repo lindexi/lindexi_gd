@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace System.Xaml.Schema
 {
@@ -19,7 +20,7 @@ namespace System.Xaml.Schema
         internal static bool TryGetCreator(Type type, out Func<object> creator)
             => s_xamlObjectCreatorDictionary.TryGetValue(type, out creator);
 
-        private static readonly ConcurrentDictionary<Type, Func<object>> s_xamlObjectCreatorDictionary =
-            new ConcurrentDictionary<Type, Func<object>>();
+        private static readonly Dictionary<Type, Func<object>> s_xamlObjectCreatorDictionary =
+            new Dictionary<Type, Func<object>>();
     }
 }
