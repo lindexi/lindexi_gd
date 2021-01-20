@@ -22,10 +22,11 @@ namespace System.Xaml.Demo
            DefaultJob : .NET Core 5.0.1 (CoreCLR 5.0.120.57516, CoreFX 5.0.120.57516), X64 RyuJIT
            
            
-           |                                                    Method |     Mean |    Error |   StdDev | Ratio | RatioSD |
-           |---------------------------------------------------------- |---------:|---------:|---------:|------:|--------:|
-           |                        CreateInstanceInXamlTypeInvokerOld | 619.6 ns | 12.38 ns | 11.58 ns |  1.00 |    0.00 |
-           | CreateInstanceWhichNotRegisterInXamlObjectCreationFactory | 582.9 ns |  7.26 ns |  6.79 ns |  0.94 |    0.02 |
+           |                                                    Method |     Mean |    Error |  StdDev | Ratio | RatioSD |
+           |---------------------------------------------------------- |---------:|---------:|--------:|------:|--------:|
+           |                        CreateInstanceInXamlTypeInvokerOld | 595.1 ns | 10.20 ns | 8.51 ns |  1.00 |    0.00 |
+           |    CreateInstanceWhichRegisterInXamlObjectCreationFactory | 575.1 ns |  7.04 ns | 5.88 ns |  0.97 |    0.02 |
+           | CreateInstanceWhichNotRegisterInXamlObjectCreationFactory | 575.6 ns |  6.45 ns | 6.03 ns |  0.97 |    0.01 |
          */
 
         [Benchmark(Baseline = true)]
