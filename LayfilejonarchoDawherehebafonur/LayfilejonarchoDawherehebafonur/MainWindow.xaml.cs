@@ -39,6 +39,20 @@ namespace LayfilejonarchoDawherehebafonur
 
         private void MainWindow_TouchMove(object sender, TouchEventArgs e)
         {
+            int n = 2;
+
+            var base64FormattingOptions = Base64FormattingOptions.InsertLineBreaks;
+
+            for (int i = 0; i < 100; i++)
+            {
+                var f1 = n;
+            }
+
+            if (true)
+            {
+                var f2 = base64FormattingOptions;
+            }
+
             var touchPoint = e.GetTouchPoint(this);
             var point = touchPoint.Position;
 
@@ -61,9 +75,18 @@ namespace LayfilejonarchoDawherehebafonur
 
         private void UIElement_OnManipulationDelta(object? sender, ManipulationDeltaEventArgs e)
         {
+            var base64FormattingOptions = e;
             var translation = e.DeltaManipulation.Translation;
             EraserView.X += translation.X;
             EraserView.Y += translation.Y;
+
+            Loaded += (o, args) =>
+            {
+                switch (base64FormattingOptions)
+                {
+                    
+                }
+            };
 
             //var point = translation;
             //EraserView.X = point.X - EraserView.Width / 2;
@@ -82,9 +105,31 @@ namespace LayfilejonarchoDawherehebafonur
 
         protected override void OnStylusMove(RawStylusInput rawStylusInput)
         {
+            var n = rawStylusInput;
             EraserInkView.Count++;
             Debug.WriteLine($"TTTTTTTTTTTT {EraserInkView.Count:D5} " + Environment.TickCount);
             MainWindow.TouchTickCount = Environment.TickCount;
+
+
+
+           var  TranslateTransform = new TranslateTransform();
+           var  RotateTransform = new RotateTransform();
+          var  ScaleTransform = new ScaleTransform()
+          {
+              
+          };
+
+
+
+
+
+
+
+
+
+
+
+
 
             var stylusPointCollection = rawStylusInput.GetStylusPoints();
             if (stylusPointCollection.Count>0)
@@ -93,6 +138,7 @@ namespace LayfilejonarchoDawherehebafonur
                 {
                     _mainWindow.Dispatcher.InvokeAsync(() =>
                     {
+                        var f1 = n;
                         var point = stylusPoint;
 
                         _mainWindow.EraserView.X = point.X - _mainWindow.EraserView.Width / 2;

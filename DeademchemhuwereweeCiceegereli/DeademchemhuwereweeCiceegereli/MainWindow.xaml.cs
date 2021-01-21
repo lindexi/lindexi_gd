@@ -33,6 +33,7 @@ namespace DeademchemhuwereweeCiceegereli
     {
         public F1()
         {
+            
         }
     }
 
@@ -40,7 +41,7 @@ namespace DeademchemhuwereweeCiceegereli
     {
         public static void RegisterCreator<T>(Func<T> creator)
         {
-
+            
         }
     }
 }
