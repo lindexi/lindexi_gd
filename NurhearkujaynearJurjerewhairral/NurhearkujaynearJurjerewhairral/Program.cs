@@ -25,7 +25,7 @@ namespace NurhearkujaynearJurjerewhairral
             var httpClient = new HttpClient();
             for (int i = 0; i > -1; i++)
             {
-                await httpClient.GetAsync("http://localhost:5000/");
+                 httpClient.GetAsync("http://localhost:5000/");
             }
         }
 
