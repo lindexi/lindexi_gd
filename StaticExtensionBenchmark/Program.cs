@@ -52,7 +52,7 @@ namespace StaticExtensionBenchmark
         [ArgumentsSource(nameof(GetTime))]
         public object GetFieldWithCache(object[] getObjectTimeList)
         {
-            var creatorDictionary = new Dictionary<(Type type, string name), Func<object>>();
+            var creatorDictionary = new Dictionary<(Type type, string name), IFieldOrPropertyValueGetter>();
             for (var i = 0; i < getObjectTimeList.Length; i++)
             {
                 GetFieldOrPropertyValueWithCache(typeof(Foo), "Field", out var value, creatorDictionary);
@@ -67,7 +67,7 @@ namespace StaticExtensionBenchmark
         [ArgumentsSource(nameof(GetTime))]
         public object GetPropertyWithCache(object[] getObjectTimeList)
         {
-            var creatorDictionary = new Dictionary<(Type type, string name), Func<object>>();
+            var creatorDictionary = new Dictionary<(Type type, string name), IFieldOrPropertyValueGetter>();
             for (var i = 0; i < getObjectTimeList.Length; i++)
             {
                 GetFieldOrPropertyValueWithCache(typeof(Foo), "Property", out var value, creatorDictionary);
@@ -110,7 +110,7 @@ namespace StaticExtensionBenchmark
         {
             foreach (var count in GetTimeInner())
             {
-                yield return new object[]{ new object[count] };
+                yield return new object[] {new object[count]};
             }
 
             IEnumerable<int> GetTimeInner()
@@ -123,8 +123,43 @@ namespace StaticExtensionBenchmark
             }
         }
 
+        interface IFieldOrPropertyValueGetter
+        {
+            object GetObject();
+        }
+
+        class FieldValueGetter : IFieldOrPropertyValueGetter
+        {
+            public FieldValueGetter(FieldInfo fieldInfo)
+            {
+                _fieldInfo = fieldInfo;
+            }
+
+            public object GetObject()
+            {
+                return _fieldInfo.GetValue(null);
+            }
+
+            private readonly FieldInfo _fieldInfo;
+        }
+
+        class PropertyValueGetter : IFieldOrPropertyValueGetter
+        {
+            public PropertyValueGetter(PropertyInfo propertyInfo)
+            {
+                _propertyInfo = propertyInfo;
+            }
+
+            public object GetObject()
+            {
+                return _propertyInfo.GetValue(null, null);
+            }
+
+            private readonly PropertyInfo _propertyInfo;
+        }
+
         private bool GetFieldOrPropertyValueWithCache(Type type, string name, out object value,
-            Dictionary<(Type type, string name), Func<object>> creatorDictionary)
+            Dictionary<(Type type, string name), IFieldOrPropertyValueGetter> creatorDictionary)
         {
             if (!creatorDictionary.TryGetValue((type, name), out var creator))
             {
@@ -134,7 +169,7 @@ namespace StaticExtensionBenchmark
 
             if (creator != null)
             {
-                value = creator();
+                value = creator.GetObject();
                 return true;
             }
             else
@@ -144,7 +179,7 @@ namespace StaticExtensionBenchmark
             }
         }
 
-        private Func<object> GetCreator(Type type, string name)
+        private IFieldOrPropertyValueGetter GetCreator(Type type, string name)
         {
             FieldInfo field = null;
             Type temp = type;
@@ -154,7 +189,7 @@ namespace StaticExtensionBenchmark
                 field = temp.GetField(name, BindingFlags.Public | BindingFlags.Static);
                 if (field != null)
                 {
-                    return () => field.GetValue(null);
+                    return new FieldValueGetter(field);
                 }
 
                 temp = temp.BaseType;
@@ -169,7 +204,7 @@ namespace StaticExtensionBenchmark
                 prop = temp.GetProperty(name, BindingFlags.Public | BindingFlags.Static);
                 if (prop != null)
                 {
-                    return () => prop.GetValue(null, null);
+                    return new PropertyValueGetter(prop);
                 }
 
                 temp = temp.BaseType;
@@ -177,9 +212,6 @@ namespace StaticExtensionBenchmark
 
             return null;
         }
-
-        private Dictionary<(Type type, string name), Func<object>> CreatorDictionary { get; } =
-            new Dictionary<(Type type, string name), Func<object>>();
 
         private bool GetFieldOrPropertyValue(Type type, string name, out object value)
         {
