@@ -17,6 +17,9 @@ namespace StaticExtensionBenchmark
     {
         static void Main(string[] args)
         {
+            //var program = new Program();
+            //program.GetFieldWithCache(new object[10]);
+
             BenchmarkRunner.Run<Program>();
         }
 
@@ -126,6 +129,7 @@ namespace StaticExtensionBenchmark
             if (!creatorDictionary.TryGetValue((type, name), out var creator))
             {
                 creator = GetCreator(type, name);
+                creatorDictionary.Add((type, name), creator);
             }
 
             if (creator != null)
