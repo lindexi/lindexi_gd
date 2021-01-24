@@ -13,6 +13,9 @@ namespace BerjearnearheliCallrachurjallhelur
         [DllImport("BeyajaydahifallChecheecaifelwarlerenel.dll")]
         static extern Int16 HeederajiYeafalludall();
 
+        [DllImport("BeyajaydahifallChecheecaifelwarlerenel.dll")]
+        static extern Int16 SetUnhandledExceptionFilterInner();
+
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern uint SetUnhandledExceptionFilter(FilterDelegate n);
 
@@ -95,20 +98,11 @@ namespace BerjearnearheliCallrachurjallhelur
         [DllImport("kernel32.dll")]
         static extern uint SetErrorMode(uint n);
 
-        [HandleProcessCorruptedStateExceptions]
         static void Main(string[] args)
         {
             try
             {
-
-                AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-                FilterDelegate win32Handler = new FilterDelegate(Win32Handler);
-                _win32Handler = win32Handler;
-
-                var n = SetUnhandledExceptionFilter(_win32Handler);
-                Console.WriteLine(GetLastError());
-
-                SetErrorMode(1);
+                SetUnhandledExceptionFilterInner();
 
                 Console.WriteLine(HeederajiYeafalludall());
             }

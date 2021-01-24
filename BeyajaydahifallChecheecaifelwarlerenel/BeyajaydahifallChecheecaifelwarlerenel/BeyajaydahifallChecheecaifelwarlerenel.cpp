@@ -2,6 +2,25 @@
 //
 
 #include <iostream>
+#include <Windows.h>
+
+LONG MyUnhandledExceptionFilter(_EXCEPTION_POINTERS* ExceptionInfo)
+{
+    std::cout << "MyUnhandledExceptionFilter\n";
+
+    return EXCEPTION_CONTINUE_SEARCH;
+}
+
+extern "C" __declspec(dllexport) int SetUnhandledExceptionFilterInner()
+{
+    std::cout << "Hello World!\n";
+
+
+    SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER)MyUnhandledExceptionFilter);
+
+    return 0;
+}
+
 
 extern "C" __declspec(dllexport) int HeederajiYeafalludall() 
 {
@@ -15,8 +34,13 @@ extern "C" __declspec(dllexport) int HeederajiYeafalludall()
     return 123;
 }
 
+
+
 int main()
 {
+    SetUnhandledExceptionFilterInner();
+	
+    HeederajiYeafalludall();
     std::cout << "Hello World!\n";
 }
 
