@@ -17,8 +17,8 @@ namespace StaticExtensionBenchmark
     {
         static void Main(string[] args)
         {
-            //var program = new Program();
-            //program.GetFieldWithCache(new object[10]);
+            var program = new Program();
+            program.GetFieldWithField(new object[10]);
 
             BenchmarkRunner.Run<Program>();
         }
@@ -78,6 +78,43 @@ namespace StaticExtensionBenchmark
             return getObjectTimeList;
         }
 
+
+        [Benchmark()]
+        [ArgumentsSource(nameof(GetTime))]
+        public object GetPropertyWithProperty(object[] getObjectTimeList)
+        {
+            var creatorDictionary = new Dictionary<(Type type, string name), IFieldOrPropertyValueGetter>()
+            {
+                {(typeof(Foo), "Property"), new DelegateValueGetter(() => Foo.Property)}
+            };
+            for (var i = 0; i < getObjectTimeList.Length; i++)
+            {
+                GetFieldOrPropertyValueWithCache(typeof(Foo), "Property", out var value, creatorDictionary);
+
+                getObjectTimeList[i] = value;
+            }
+
+            return getObjectTimeList;
+        }
+
+        [Benchmark()]
+        [ArgumentsSource(nameof(GetTime))]
+        public object GetFieldWithField(object[] getObjectTimeList)
+        {
+            var creatorDictionary = new Dictionary<(Type type, string name), IFieldOrPropertyValueGetter>()
+            {
+                {(typeof(Foo), "Field"), new DelegateValueGetter(() => Foo.Field)}
+            };
+            for (var i = 0; i < getObjectTimeList.Length; i++)
+            {
+                GetFieldOrPropertyValueWithCache(typeof(Foo), "Field", out var value, creatorDictionary);
+
+                getObjectTimeList[i] = value;
+            }
+
+            return getObjectTimeList;
+        }
+
         [Benchmark()]
         [ArgumentsSource(nameof(GetTime))]
         public object GetFieldWithOriginMethod(object[] getObjectTimeList)
@@ -126,6 +163,21 @@ namespace StaticExtensionBenchmark
         interface IFieldOrPropertyValueGetter
         {
             object GetObject();
+        }
+
+        class DelegateValueGetter : IFieldOrPropertyValueGetter
+        {
+            public DelegateValueGetter(Func<object> getter)
+            {
+                _getter = getter;
+            }
+
+            public object GetObject()
+            {
+                return _getter();
+            }
+
+            private readonly Func<object> _getter;
         }
 
         class FieldValueGetter : IFieldOrPropertyValueGetter
