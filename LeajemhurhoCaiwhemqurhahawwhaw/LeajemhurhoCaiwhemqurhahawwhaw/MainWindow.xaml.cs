@@ -33,8 +33,13 @@ namespace LeajemhurhoCaiwhemqurhahawwhaw
 
             PointList.Add(position);
 
-            var rect = CreateRect(PointList);
-            DrawRectangle("Rectangle", rect);
+            var polygon = new Polygon()
+            {
+                Points = new PointCollection(PointList),
+                Stroke = Brushes.Red,
+            };
+
+            AddElement(nameof(polygon), polygon);
 
             if (e.RightButton == MouseButtonState.Pressed)
             {
@@ -44,31 +49,12 @@ namespace LeajemhurhoCaiwhemqurhahawwhaw
             }
         }
 
-        private Rect CreateRect(List<Point> pointList)
-        {
-            var rect = new Rect(pointList[0], new Size(0, 0));
-
-            for (var i = 1; i < pointList.Count; i++)
-            {
-                rect.Union(pointList[i]);
-            }
-
-            return rect;
-        }
-
         private List<Point> PointList { get; } = new List<Point>();
 
-        private void DrawRectangle(string id, Rect rect)
+        private T GetElement<T>(string id) where T : UIElement
         {
-            var rectangle = new Rectangle()
-            {
-                Width = rect.Width,
-                Height = rect.Height,
-                Stroke = Brushes.RoyalBlue,
-                RenderTransform = new TranslateTransform(rect.X, rect.Y)
-            };
-
-            AddElement(id, rectangle);
+            var element = Board.Children.OfType<UIElement>().FirstOrDefault(temp => id.Equals(GetId(temp)));
+            return (T) element;
         }
 
         private void AddElement(string id, UIElement element)
