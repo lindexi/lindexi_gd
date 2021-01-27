@@ -100,6 +100,27 @@ namespace LeajemhurhoCaiwhemqurhahawwhaw
         {
             return (string) element.GetValue(IdProperty);
         }
+
+        private void Board_OnMouseMove(object sender, MouseEventArgs e)
+        {
+            var position = e.GetPosition(this);
+
+            var polygon = GetElement<Polygon>("polygon");
+
+            if (polygon == null)
+            {
+                return;
+            }
+
+            if (polygon.RenderedGeometry.FillContains(position))
+            {
+                polygon.Stroke = Brushes.Gray;
+            }
+            else
+            {
+                polygon.Stroke = Brushes.Red;
+            }
+        }
     }
 
     static class DoHelper
