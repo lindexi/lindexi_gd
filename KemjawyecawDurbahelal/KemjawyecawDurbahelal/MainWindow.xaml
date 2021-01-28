@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid x:Name="Grid">
-      <Button Content="按钮" HorizontalAlignment="Center" VerticalAlignment="Center"
+      <Button Content="Click" HorizontalAlignment="Center" VerticalAlignment="Center"
               Click="Button_OnClick"/>
     </Grid>
 </Window>
