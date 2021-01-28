@@ -26,43 +26,35 @@ namespace KemjawyecawDurbahelal
         {
             InitializeComponent();
 
-            StylusMove += MainWindow_StylusMove;
-            StylusUp += MainWindow_StylusUp;
-        }
-
-        private void MainWindow_StylusUp(object sender, StylusEventArgs e)
-        {
-            StrokeVisualList.Remove(e.StylusDevice.Id);
-        }
-
-        private void MainWindow_StylusMove(object sender, StylusEventArgs e)
-        {
-            var strokeVisual = GetStrokeVisual(e.StylusDevice.Id);
-            var stylusPointCollection = e.GetStylusPoints(this);
-            foreach (var stylusPoint in stylusPointCollection)
-            {
-                strokeVisual.Add(new StylusPoint(stylusPoint.X, stylusPoint.Y));
-            }
-
-            strokeVisual.Redraw();
-        }
-
-        private StrokeVisual GetStrokeVisual(int id)
-        {
-            if (StrokeVisualList.TryGetValue(id, out var visual))
-            {
-                return visual;
-            }
-
-            var strokeVisual = new StrokeVisual();
-            StrokeVisualList[id] = strokeVisual;
+            var strokeVisual = new StrokeVisual(new DrawingAttributes());
             var visualCanvas = new VisualCanvas(strokeVisual);
             Grid.Children.Add(visualCanvas);
 
-            return strokeVisual;
+            for (int i = 0; i < 1000; i++)
+            {
+                strokeVisual.Add(new StylusPoint(i, i));
+            }
+
+            strokeVisual.Redraw();
+
+            StrokeVisual = strokeVisual;
         }
 
-        private Dictionary<int, StrokeVisual> StrokeVisualList { get; } = new Dictionary<int, StrokeVisual>();
+        public StrokeVisual StrokeVisual { get; set; }
+
+        private void Button_OnClick(object sender, RoutedEventArgs e)
+        {
+            for (int i = 0; i < 100; i++)
+            {
+                var stylusPointList = new List<StylusPoint>();
+                for (int j = 0; j < 1000; j++)
+                {
+                    stylusPointList.Add(new StylusPoint(i, i));
+                }
+
+                var stroke = new Stroke(new StylusPointCollection(stylusPointList), StrokeVisual.Stroke.DrawingAttributes);
+            }
+        }
     }
 
     public class VisualCanvas : FrameworkElement
@@ -122,8 +114,8 @@ namespace KemjawyecawDurbahelal
         {
             if (Stroke == null)
             {
-                var collection = new StylusPointCollection {point};
-                Stroke = new Stroke(collection) {DrawingAttributes = _drawingAttributes};
+                var collection = new StylusPointCollection { point };
+                Stroke = new Stroke(collection) { DrawingAttributes = _drawingAttributes };
             }
             else
             {
