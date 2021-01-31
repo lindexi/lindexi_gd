@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
@@ -10,6 +11,8 @@ namespace Benchmark
     {
         static void Main(string[] args)
         {
+            var erasingStrokeTest = new ErasingStrokeTest();
+            erasingStrokeTest.EraseTestOnce(erasingStrokeTest.WpfInkSource().First());
             //WpfInk.Test.CalcGeometryAndBoundsWithTransform();
             BenchmarkRunner.Run<ErasingStrokeTest>();
             Console.Read();
@@ -18,7 +21,51 @@ namespace Benchmark
 
     public class ErasingStrokeTest
     {
+        [Benchmark()]
+        [ArgumentsSource(nameof(WpfInkSource))]
+        public void EraseTestOnce(WpfInkErasingStroke.ErasingStrokeTest.TextContext textContext)
+        {
+            textContext.EraseTest();
+        }
 
+        [Benchmark()]
+        [ArgumentsSource(nameof(WpfInkSource))]
+        public void EraseTest10Times(WpfInkErasingStroke.ErasingStrokeTest.TextContext textContext)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                textContext.EraseTest();
+            }
+        }
+
+        [Benchmark()]
+        [ArgumentsSource(nameof(WpfInkOldSource))]
+        public void EraseTextOldOnce(WpfInkOld.ErasingStrokeTest.TextContext textContext)
+        {
+            textContext.EraseTest();
+        }
+
+        [Benchmark()]
+        [ArgumentsSource(nameof(WpfInkOldSource))]
+        public void EraseTextOld10Times(WpfInkOld.ErasingStrokeTest.TextContext textContext)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                textContext.EraseTest();
+            }
+        }
+
+        public IEnumerable<WpfInkErasingStroke.ErasingStrokeTest.TextContext> WpfInkSource()
+        {
+            var erasingStrokeTest = new WpfInkErasingStroke.ErasingStrokeTest();
+            yield return erasingStrokeTest.GetErasingStroke(PointList.GetPointList());
+        }
+
+        public IEnumerable<WpfInkOld.ErasingStrokeTest.TextContext> WpfInkOldSource()
+        {
+            var erasingStrokeTest = new WpfInkOld.ErasingStrokeTest();
+            yield return erasingStrokeTest.GetErasingStroke(PointList.GetPointList());
+        }
     }
 
     public class Test

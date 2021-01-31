@@ -5,7 +5,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UseWPF>true</UseWPF>
       <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DefineConstants>$(DefineConstants);PRESENTATION_CORE</DefineConstants>
+      <DefineConstants>$(DefineConstants);PRESENTATION_CORE;WpfInkErasingStroke</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

@@ -12,6 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\WpfInk ErasingStroke\WpfInk ErasingStroke.csproj" />
         <ProjectReference Include="..\WpfInk Old\WpfInkOld.csproj" />
         <ProjectReference Include="..\WpfInk\WpfInk.csproj" />
     </ItemGroup>
