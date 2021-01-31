@@ -10,10 +10,15 @@ namespace Benchmark
     {
         static void Main(string[] args)
         {
-            WpfInk.Test.CalcGeometryAndBoundsWithTransform();
-            BenchmarkRunner.Run<Test>();
+            //WpfInk.Test.CalcGeometryAndBoundsWithTransform();
+            BenchmarkRunner.Run<ErasingStrokeTest>();
             Console.Read();
         }
+    }
+
+    public class ErasingStrokeTest
+    {
+
     }
 
     public class Test
