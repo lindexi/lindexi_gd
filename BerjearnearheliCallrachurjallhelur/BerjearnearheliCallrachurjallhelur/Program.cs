@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
+using System.Security;
 
 namespace BerjearnearheliCallrachurjallhelur
 {
@@ -11,8 +13,11 @@ namespace BerjearnearheliCallrachurjallhelur
         [DllImport("BeyajaydahifallChecheecaifelwarlerenel.dll")]
         static extern Int16 HeederajiYeafalludall();
 
+        [DllImport("BeyajaydahifallChecheecaifelwarlerenel.dll")]
+        static extern Int16 SetUnhandledExceptionFilterInner();
+
         [DllImport("kernel32.dll", SetLastError = true)]
-        static extern uint SetUnhandledExceptionFilter(uint n);
+        static extern uint SetUnhandledExceptionFilter(FilterDelegate n);
 
         static int Win32Handler(IntPtr nope)
         {
@@ -95,24 +100,9 @@ namespace BerjearnearheliCallrachurjallhelur
 
         static void Main(string[] args)
         {
-            Console.WriteLine(DateTime.Now.ToString("MMM"));
-            return;
-
-            Console.WriteLine(OptimizationSize(new Size(2, 100), new Size(100, 100), new Size(500, 500)));
-
-            Console.WriteLine(OptimizationSize(new Size(2, 100), new Size(100, 200), new Size(500, 500)));
-            Console.WriteLine(OptimizationSize(new Size(2, 10), new Size(100, 200), new Size(1000, 1000)));
-            
-
             try
             {
-                FilterDelegate win32Handler = new FilterDelegate(Win32Handler);
-                _win32Handler = win32Handler;
-
-                var n = SetUnhandledExceptionFilter(1);
-                Console.WriteLine(GetLastError());
-
-                SetErrorMode(1);
+                SetUnhandledExceptionFilterInner();
 
                 Console.WriteLine(HeederajiYeafalludall());
             }
@@ -122,6 +112,12 @@ namespace BerjearnearheliCallrachurjallhelur
             }
 
             Console.Read();
+        }
+
+        [SecurityCritical] 
+        [HandleProcessCorruptedStateExceptions]
+        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
         }
 
         /// <summary>

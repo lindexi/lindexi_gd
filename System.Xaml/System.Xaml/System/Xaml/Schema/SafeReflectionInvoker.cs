@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -188,6 +189,8 @@ namespace System.Xaml.Schema
         {
             return Activator.CreateInstance(type, arguments);
         }
+
+        public static Dictionary<Type,Func<object[],object>> CreatorDictionary { get; } = new Dictionary<Type, Func<object[], object>>();
 
         internal static object InvokeMethod(MethodInfo method, object instance, object[] args)
         {

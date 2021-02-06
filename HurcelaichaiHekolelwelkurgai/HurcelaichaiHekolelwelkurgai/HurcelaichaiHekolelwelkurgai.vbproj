@@ -1,9 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>HurcelaichaiHekolelwelkurgai</RootNamespace>
-    <TargetFramework>netcoreapp5.0</TargetFramework>
-  </PropertyGroup>
-
-</Project>
