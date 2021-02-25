@@ -30,24 +30,61 @@ namespace Eraser
             _circleEraserManager.SetLastPoint(new Point(200, 200));
             _circleEraserManager.Move(new Point(100, 100));
 
-            _circleEraserManager.SetLastPoint(new Point(300, 200));
+            _circleEraserManager.SetLastPoint(new Point(300 + 半径, 200 + 半径));
 
             TouchMove += EraserEllipse_TouchMove;
+            MouseMove += MainWindow_MouseMove;
+            MouseWheel += MainWindow_MouseWheel;
         }
+
+        private void MainWindow_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            半径 += e.Delta / 10.0;
+
+            半径 = Math.Max(1, 半径);
+
+            _circleEraserManager.Move(半径);
+            DrawElement.Geometry = _circleEraserManager.GetCurrentGeometry();
+        }
+
+        private void MainWindow_MouseMove(object sender, MouseEventArgs e)
+        {
+            var point = e.GetPosition(this);
+            Move(point);
+        }
+
+        public double 半径 { get; set; } = 75;
 
         private readonly CircleEraserManager _circleEraserManager;
 
         private void EraserEllipse_TouchMove(object sender, TouchEventArgs e)
         {
             var point = e.GetTouchPoint(this);
-            //var x = point.Position.X - EraserEllipse.ActualWidth / 2;
-            //var y = point.Position.Y - EraserEllipse.ActualHeight / 2;
 
-            ////EraserEllipse.Margin = new Thickness(x, y, 0, 0);
-            //EraserTranslate.X = x;
-            //EraserTranslate.Y = y;
+            Move(point.Position);
+        }
 
-            _circleEraserManager.Move(point.Position);
+        private void Move(Point point)
+        {
+            _circleEraserManager.Move(point, 半径);
+            DrawElement.Geometry = _circleEraserManager.GetCurrentGeometry();
+        }
+    }
+
+    public class GeometryElement : FrameworkElement
+    {
+        public static readonly DependencyProperty GeometryProperty = DependencyProperty.Register(
+            "Geometry", typeof(Geometry), typeof(GeometryElement), new FrameworkPropertyMetadata(default(Geometry), FrameworkPropertyMetadataOptions.AffectsRender));
+
+        public Geometry Geometry
+        {
+            get { return (Geometry)GetValue(GeometryProperty); }
+            set { SetValue(GeometryProperty, value); }
+        }
+
+        protected override void OnRender(DrawingContext drawingContext)
+        {
+            drawingContext.DrawGeometry(null, new Pen(Brushes.Red, 2), Geometry);
         }
     }
 
@@ -63,8 +100,11 @@ namespace Eraser
 
         public void Move(Point point, double 半径 = 75)
         {
-            var x = point.X - _eraserElement.ActualWidth / 2;
-            var y = point.Y - _eraserElement.ActualHeight / 2;
+            _eraserElement.Width = 半径 * 2;
+            _eraserElement.Height = 半径 * 2;
+
+            var x = point.X - 半径;
+            var y = point.Y - 半径;
 
             //EraserEllipse.Margin = new Thickness(x, y, 0, 0);
             EraserTranslate.X = x;
@@ -72,27 +112,29 @@ namespace Eraser
 
             _currentPoint = point;
             this.半径 = 半径;
-
-
-            //var vector = _lastPoint - point;
-            //var 斜边 = vector.Length;
-            //var cosθ = vector.Y / 斜边;
-            //var 弧度 = Math.Acos(cosθ);
-            //var 角度 = 弧度 / Math.PI * 180;
-
-            //var 切线角度 = 角度 + 90;
-            //var 半径 = 75.0;
-
         }
 
-        public void GetCurrentGeometry()
+        public void Move(double 半径)
+        {
+            Point point = _lastPoint;
+            Move(point, 半径);
+        }
+
+        public Geometry GetCurrentGeometry()
         {
             圆 圆2 = new 圆(_currentPoint, 半径);
             var 轨迹线 = 圆1.求两圆轨迹线(圆2);
 
+            return new PathGeometry(new PathFigure[]
+            {
+               new PathFigure(轨迹线.线段1.A,new PathSegment[]
+               {
+                   new PolyLineSegment(new []{轨迹线.线段1.A,轨迹线.线段1.B,轨迹线.线段2.B,轨迹线.线段2.A},true),
+               }, true),
+            });
         }
 
-        public double 半径 { set; get; }
+        private double 半径 { set; get; }
 
         private Point _currentPoint;
 

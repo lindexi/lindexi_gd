@@ -6,19 +6,19 @@
         xmlns:local="clr-namespace:Eraser"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        <Canvas x:Name="EraserCanvas">
-            <Ellipse Width="150" Height="150" HorizontalAlignment="Left" VerticalAlignment="Top" Fill="Red">
-                <Ellipse.RenderTransform>
-                    <TranslateTransform X="300" Y="200"></TranslateTransform>
-                </Ellipse.RenderTransform>
-            </Ellipse>
-            <Ellipse x:Name="EraserEllipse" Width="150" Height="150" HorizontalAlignment="Left" VerticalAlignment="Top" Fill="Red">
-                <Ellipse.RenderTransform>
-                    <TranslateTransform x:Name="EraserTranslate"></TranslateTransform>
-                </Ellipse.RenderTransform>
-            </Ellipse>
-        </Canvas>
-        
-    </Grid>
+  <Grid>
+    <Canvas x:Name="EraserCanvas">
+      <Ellipse Width="150" Height="150" HorizontalAlignment="Left" VerticalAlignment="Top" Fill="Red">
+        <Ellipse.RenderTransform>
+          <TranslateTransform X="300" Y="200"></TranslateTransform>
+        </Ellipse.RenderTransform>
+      </Ellipse>
+      <Ellipse x:Name="EraserEllipse" Width="150" Height="150" HorizontalAlignment="Left" VerticalAlignment="Top" Fill="Red">
+        <Ellipse.RenderTransform>
+          <TranslateTransform x:Name="EraserTranslate"></TranslateTransform>
+        </Ellipse.RenderTransform>
+      </Ellipse>
+      <local:GeometryElement x:Name="DrawElement" HorizontalAlignment="Left" VerticalAlignment="Top"></local:GeometryElement>
+    </Canvas>
+  </Grid>
 </Window>
