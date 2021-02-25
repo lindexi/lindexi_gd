@@ -1,0 +1,24 @@
+﻿<Window x:Class="Eraser.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Eraser"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Canvas x:Name="EraserCanvas">
+            <Ellipse Width="150" Height="150" HorizontalAlignment="Left" VerticalAlignment="Top" Fill="Red">
+                <Ellipse.RenderTransform>
+                    <TranslateTransform X="300" Y="200"></TranslateTransform>
+                </Ellipse.RenderTransform>
+            </Ellipse>
+            <Ellipse x:Name="EraserEllipse" Width="150" Height="150" HorizontalAlignment="Left" VerticalAlignment="Top" Fill="Red">
+                <Ellipse.RenderTransform>
+                    <TranslateTransform x:Name="EraserTranslate"></TranslateTransform>
+                </Ellipse.RenderTransform>
+            </Ellipse>
+        </Canvas>
+        
+    </Grid>
+</Window>
