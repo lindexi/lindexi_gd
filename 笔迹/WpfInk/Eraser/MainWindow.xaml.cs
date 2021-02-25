@@ -61,7 +61,7 @@ namespace Eraser
             _eraserElement.RenderTransform = EraserTranslate;
         }
 
-        public void Move(Point point)
+        public void Move(Point point, double 半径 = 75)
         {
             var x = point.X - _eraserElement.ActualWidth / 2;
             var y = point.Y - _eraserElement.ActualHeight / 2;
@@ -70,16 +70,31 @@ namespace Eraser
             EraserTranslate.X = x;
             EraserTranslate.Y = y;
 
-            var vector = _lastPoint - point;
-            var 斜边 = vector.Length;
-            var cosθ = vector.Y / 斜边;
-            var 弧度 = Math.Acos(cosθ);
-            var 角度 = 弧度 / Math.PI * 180;
+            _currentPoint = point;
+            this.半径 = 半径;
 
-            var 切线角度 = 角度 + 90;
-            var 半径 = 75.0;
+
+            //var vector = _lastPoint - point;
+            //var 斜边 = vector.Length;
+            //var cosθ = vector.Y / 斜边;
+            //var 弧度 = Math.Acos(cosθ);
+            //var 角度 = 弧度 / Math.PI * 180;
+
+            //var 切线角度 = 角度 + 90;
+            //var 半径 = 75.0;
 
         }
+
+        public void GetCurrentGeometry()
+        {
+            圆 圆2 = new 圆(_currentPoint, 半径);
+            var 轨迹线 = 圆1.求两圆轨迹线(圆2);
+
+        }
+
+        public double 半径 { set; get; }
+
+        private Point _currentPoint;
 
         public void SetLastPoint(Point point)
         {
@@ -89,7 +104,7 @@ namespace Eraser
             圆1 = new 圆(_lastPoint, 半径);
         }
 
-        private 圆 圆1 { set;  get; }
+        private 圆 圆1 { set; get; }
 
 
 
