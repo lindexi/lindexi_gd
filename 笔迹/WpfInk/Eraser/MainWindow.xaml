@@ -18,7 +18,7 @@
           <TranslateTransform x:Name="EraserTranslate"></TranslateTransform>
         </Ellipse.RenderTransform>
       </Ellipse>
-      <local:GeometryElement x:Name="DrawElement" HorizontalAlignment="Left" VerticalAlignment="Top"></local:GeometryElement>
+      <Path x:Name="DrawElement" Stroke="Red" StrokeThickness="1" HorizontalAlignment="Left" VerticalAlignment="Top"></Path>
     </Canvas>
   </Grid>
 </Window>

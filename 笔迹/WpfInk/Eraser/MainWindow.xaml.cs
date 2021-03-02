@@ -43,7 +43,7 @@ namespace Eraser
             半径 = Math.Max(1, 半径);
 
             _circleEraserManager.Move(半径);
-            DrawElement.Geometry = _circleEraserManager.GetCurrentGeometry();
+            DrawElement.Data = _circleEraserManager.GetCurrentGeometry();
         }
 
         private void MainWindow_MouseMove(object sender, MouseEventArgs e)
@@ -66,7 +66,7 @@ namespace Eraser
         private void Move(Point point)
         {
             _circleEraserManager.Move(point, 半径);
-            DrawElement.Geometry = _circleEraserManager.GetCurrentGeometry();
+            DrawElement.Data = _circleEraserManager.GetCurrentGeometry();
         }
     }
 }
