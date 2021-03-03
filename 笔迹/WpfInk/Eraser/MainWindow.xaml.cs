@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
@@ -32,9 +33,40 @@ namespace Eraser
             _circleEraserManager.SetLastPoint(new Point(300 + 半径, 200 + 半径));
 
             TouchMove += EraserEllipse_TouchMove;
+            MouseDown += MainWindow_MouseDown;
             MouseMove += MainWindow_MouseMove;
+            MouseUp += MainWindow_MouseUp;
             MouseWheel += MainWindow_MouseWheel;
         }
+
+        private void MainWindow_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+        }
+
+        public static readonly DependencyProperty GeometryBrushProperty = DependencyProperty.Register(
+            "GeometryBrush", typeof(Brush), typeof(MainWindow), new PropertyMetadata(NormalBrush));
+
+        public Brush GeometryBrush
+        {
+            get { return (Brush) GetValue(GeometryBrushProperty); }
+            set { SetValue(GeometryBrushProperty, value); }
+        }
+
+        public static Brush NormalBrush => Brushes.Red;
+
+        public static Brush HitTestBrush => Brushes.Khaki;
+
+        private void MainWindow_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            _isHitTest = !_isHitTest;
+
+            if (!_isHitTest)
+            {
+                GeometryBrush = NormalBrush;
+            }
+        }
+
+        private bool _isHitTest;
 
         private void MainWindow_MouseWheel(object sender, MouseWheelEventArgs e)
         {
@@ -65,8 +97,22 @@ namespace Eraser
 
         private void Move(Point point)
         {
-            _circleEraserManager.Move(point, 半径);
-            DrawElement.Data = _circleEraserManager.GetCurrentGeometry();
+            if (_isHitTest)
+            {
+                if (_circleEraserManager.HitTest(point))
+                {
+                    GeometryBrush = HitTestBrush;
+                }
+                else
+                {
+                    GeometryBrush = NormalBrush;
+                }
+            }
+            else
+            {
+                _circleEraserManager.Move(point, 半径);
+                DrawElement.Data = _circleEraserManager.GetCurrentGeometry();
+            }
         }
     }
 }

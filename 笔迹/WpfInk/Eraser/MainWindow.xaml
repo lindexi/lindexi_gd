@@ -5,20 +5,21 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Eraser"
         mc:Ignorable="d"
+        x:Name="Root"
         Title="MainWindow" Height="450" Width="800">
   <Grid>
     <Canvas x:Name="EraserCanvas">
-      <Ellipse Width="150" Height="150" HorizontalAlignment="Left" VerticalAlignment="Top" Fill="Red">
+      <Ellipse Width="150" Height="150" HorizontalAlignment="Left" VerticalAlignment="Top" Fill="{Binding ElementName=Root,Path=GeometryBrush}">
         <Ellipse.RenderTransform>
           <TranslateTransform X="300" Y="200"></TranslateTransform>
         </Ellipse.RenderTransform>
       </Ellipse>
-      <Ellipse x:Name="EraserEllipse" Width="150" Height="150" HorizontalAlignment="Left" VerticalAlignment="Top" Fill="Red">
+      <Ellipse x:Name="EraserEllipse" Width="150" Height="150" HorizontalAlignment="Left" VerticalAlignment="Top" Fill="{Binding ElementName=Root,Path=GeometryBrush}">
         <Ellipse.RenderTransform>
           <TranslateTransform x:Name="EraserTranslate"></TranslateTransform>
         </Ellipse.RenderTransform>
       </Ellipse>
-      <Path x:Name="DrawElement" Stroke="Red" StrokeThickness="1" HorizontalAlignment="Left" VerticalAlignment="Top"></Path>
+      <Path x:Name="DrawElement" Stroke="{Binding ElementName=Root,Path=GeometryBrush}" StrokeThickness="1" HorizontalAlignment="Left" VerticalAlignment="Top"></Path>
     </Canvas>
   </Grid>
 </Window>

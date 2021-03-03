@@ -13,6 +13,9 @@ namespace Eraser
             _eraserElement.RenderTransform = EraserTranslate;
         }
 
+        public void Move(Point point)
+            => Move(point, 半径);
+
         public void Move(Point point, double 半径 = 75)
         {
             _eraserElement.Width = 半径 * 2;
@@ -27,29 +30,61 @@ namespace Eraser
 
             _currentPoint = point;
             this.半径 = 半径;
+
+            当前落点的圆 = new 圆(_currentPoint, 半径);
+            两圆轨迹 轨迹线 = 前一个落点圆.求两圆轨迹线(当前落点的圆);
+            当前轨迹线 = 轨迹线;
         }
+
+        private 圆 当前落点的圆 { set; get; }
 
         public void Move(double 半径)
         {
-            Point point = _lastPoint;
+            Point point = _currentPoint;
             Move(point, 半径);
         }
 
+        /// <summary>
+        /// 判断点是否在圆形橡皮擦里面
+        /// </summary>
+        /// <param name="point"></param>
+        /// <returns></returns>
+        public bool HitTest(Point point)
+        {
+            if (当前轨迹线 == null)
+            {
+                if (前一个落点圆 != null)
+                {
+                    return 前一个落点圆.Contains(point);
+                }
+
+                return false;
+            }
+
+            if (当前轨迹线.Contains(point))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private 两圆轨迹 当前轨迹线 { set; get; }
+
         public Geometry GetCurrentGeometry()
         {
-            圆 圆2 = new 圆(_currentPoint, 半径);
-            var 轨迹线 = 圆1.求两圆轨迹线(圆2);
+            两圆轨迹 轨迹线 = 当前轨迹线;
 
             return new PathGeometry(new PathFigure[]
             {
-                new PathFigure(轨迹线.线段1.A,new PathSegment[]
+                new PathFigure(轨迹线.四边形的点集[0],new PathSegment[]
                 {
-                    new PolyLineSegment(new []{轨迹线.线段1.A,轨迹线.线段1.B,轨迹线.线段2.B,轨迹线.线段2.A},true),
+                    new PolyLineSegment(轨迹线.四边形的点集,true),
                 }, true),
             });
         }
 
-        private double 半径 { set; get; }
+        private double 半径 { set; get; } = 75;
 
         private Point _currentPoint;
 
@@ -58,10 +93,10 @@ namespace Eraser
             var 半径 = 75.0;
 
             _lastPoint = point;
-            圆1 = new 圆(_lastPoint, 半径);
+            前一个落点圆 = new 圆(_lastPoint, 半径);
         }
 
-        private 圆 圆1 { set; get; }
+        private 圆 前一个落点圆 { set; get; }
 
         private Point _lastPoint;
 
