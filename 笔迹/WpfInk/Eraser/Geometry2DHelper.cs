@@ -24,7 +24,7 @@ namespace Eraser
                 var p = 点;
                 var vp = p - currentPoint;
 
-                var n = v * vp;
+                var n = Vector.CrossProduct(v, vp);
                 if (n > 0)
                 {
                     if (sign == null)
