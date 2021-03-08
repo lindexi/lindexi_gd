@@ -1,0 +1,34 @@
+﻿<Window x:Class="KelerbelaChukoqayhi.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:KelerbelaChukoqayhi"
+        mc:Ignorable="d"
+        x:Name="Root"
+        Title="MainWindow" Height="450" Width="800">
+  <Grid>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition></ColumnDefinition>
+      <ColumnDefinition Width="Auto"></ColumnDefinition>
+    </Grid.ColumnDefinitions>
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition></RowDefinition>
+        <RowDefinition Height="Auto"></RowDefinition>
+      </Grid.RowDefinitions>
+      <Grid x:Name="Grid"></Grid>
+      <StackPanel Grid.Row="1" Orientation="Horizontal">
+        <TextBlock Margin="10,10,10,10">
+          <Run>笔迹数量：</Run>
+          <Run Text="{Binding ElementName=Root,Path=StrokeCount}"></Run>
+        </TextBlock>
+        <Button x:Name="CleanInkButton" Content="清空画布笔迹"></Button>
+        <Button x:Name="ShowNextPointButton" Content="显示下一个点"></Button>
+        <Button x:Name="ShowNextStrokeButton" Content="显示下一个笔迹"></Button>
+        <Button x:Name="SaveInkButton" Content="保存笔迹数据" Click="SaveInkButton_OnClick"/>
+      </StackPanel>
+    </Grid>
+    <local:InkRecordUserControl x:Name="InkRecordUserControl" Grid.Column="1" />
+  </Grid>
+</Window>
