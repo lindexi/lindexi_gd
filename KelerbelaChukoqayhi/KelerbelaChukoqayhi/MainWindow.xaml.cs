@@ -26,6 +26,8 @@ namespace KelerbelaChukoqayhi
         {
             InitializeComponent();
 
+            InkCollectionManager = new InkCollectionManager(InkRecordUserControl, this);
+
             StylusDown += MainWindow_StylusDown;
             StylusMove += MainWindow_StylusMove;
             StylusUp += MainWindow_StylusUp;
@@ -33,21 +35,12 @@ namespace KelerbelaChukoqayhi
 
         private void MainWindow_StylusDown(object sender, StylusDownEventArgs e)
         {
-            InkRecordUserControl.InkDataModelCollection.Clear();
-            _lastTime = DateTime.Now;
         }
 
-        private DateTime _lastTime;
 
         private void MainWindow_StylusMove(object sender, StylusEventArgs e)
         {
-            var time = DateTime.Now - _lastTime;
-
             var stylusPointCollection = e.GetStylusPoints(this);
-            foreach (var stylusPoint in stylusPointCollection)
-            {
-                InkRecordUserControl.InkDataModelCollection.Add(new InkDataModel(stylusPoint, time));
-            }
 
             var strokeVisual = GetStrokeVisual(e.StylusDevice.Id);
             foreach (var stylusPoint in stylusPointCollection)
@@ -61,12 +54,15 @@ namespace KelerbelaChukoqayhi
         private void MainWindow_StylusUp(object sender, StylusEventArgs e)
         {
             StrokeVisualList.Remove(e.StylusDevice.Id);
-            StrokeDataModelList.Add(new StrokeDataModel(InkRecordUserControl.InkDataModelCollection));
 
             StrokeCount = StrokeDataModelList.Count;
         }
 
-        private StrokeDataModelList StrokeDataModelList { get; } = new StrokeDataModelList();
+
+        private InkCollectionManager InkCollectionManager { get; }
+
+        private StrokeDataModelList StrokeDataModelList => InkCollectionManager.StrokeDataModelList;
+
 
         private void SaveInkButton_OnClick(object sender, RoutedEventArgs e)
         {
@@ -86,8 +82,6 @@ namespace KelerbelaChukoqayhi
             System.IO.Directory.CreateDirectory(directoryName);
 
             System.IO.File.WriteAllText(file, text);
-
-            var strokeDataModelList = StrokeDataModelList.Deserialize(text);
         }
 
         public static readonly DependencyProperty StrokeCountProperty = DependencyProperty.Register(
@@ -115,11 +109,7 @@ namespace KelerbelaChukoqayhi
         }
 
         private Dictionary<int, StrokeVisual> StrokeVisualList { get; } = new Dictionary<int, StrokeVisual>();
-
-       
     }
-
-   
 
     public class VisualCanvas : FrameworkElement
     {
@@ -178,8 +168,8 @@ namespace KelerbelaChukoqayhi
         {
             if (Stroke == null)
             {
-                var collection = new StylusPointCollection { point };
-                Stroke = new Stroke(collection) { DrawingAttributes = _drawingAttributes };
+                var collection = new StylusPointCollection {point};
+                Stroke = new Stroke(collection) {DrawingAttributes = _drawingAttributes};
             }
             else
             {

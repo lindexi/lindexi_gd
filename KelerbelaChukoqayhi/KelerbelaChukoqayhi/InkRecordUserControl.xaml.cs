@@ -137,4 +137,48 @@ namespace KelerbelaChukoqayhi
             throw new NotImplementedException();
         }
     }
+
+    class InkCollectionManager
+    {
+        public InkCollectionManager(InkRecordUserControl inkRecordUserControl, FrameworkElement inputElement)
+        {
+            InkRecordUserControl = inkRecordUserControl;
+            InputElement = inputElement;
+
+            InputElement.StylusDown += MainWindow_StylusDown;
+            InputElement.StylusMove += MainWindow_StylusMove;
+            InputElement.StylusUp += MainWindow_StylusUp;
+        }
+
+        private void MainWindow_StylusUp(object sender, StylusEventArgs e)
+        {
+            StrokeDataModelList.Add(new StrokeDataModel(InkRecordUserControl.InkDataModelCollection));
+        }
+
+        public StrokeDataModelList StrokeDataModelList { get; } = new StrokeDataModelList();
+
+        private void MainWindow_StylusMove(object sender, StylusEventArgs e)
+        {
+            var time = DateTime.Now - _lastTime;
+
+            var stylusPointCollection = e.GetStylusPoints(InputElement);
+            foreach (var stylusPoint in stylusPointCollection)
+            {
+                InkRecordUserControl.InkDataModelCollection.Add(new InkDataModel(stylusPoint, time));
+            }
+        }
+
+        private void MainWindow_StylusDown(object sender, StylusDownEventArgs e)
+        {
+            InkRecordUserControl.InkDataModelCollection.Clear();
+            _lastTime = DateTime.Now;
+        }
+
+        private DateTime _lastTime;
+
+
+        public InkRecordUserControl InkRecordUserControl { get; }
+
+        public FrameworkElement InputElement { get; }
+    }
 }
