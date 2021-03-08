@@ -23,10 +23,10 @@
           <Run>笔迹数量：</Run>
           <Run Text="{Binding ElementName=Root,Path=StrokeCount}"></Run>
         </TextBlock>
-        <Button x:Name="CleanInkButton" Content="清空画布笔迹"></Button>
-        <Button x:Name="ShowNextPointButton" Content="显示下一个点"></Button>
-        <Button x:Name="ShowNextStrokeButton" Content="显示下一个笔迹"></Button>
-        <Button x:Name="SaveInkButton" Content="保存笔迹数据" Click="SaveInkButton_OnClick"/>
+        <Button x:Name="CleanInkButton" Margin="10,10,10,10" Content="清空画布笔迹"></Button>
+        <Button x:Name="ShowNextPointButton" Margin="10,10,10,10" Content="显示下一个点"></Button>
+        <Button x:Name="ShowNextStrokeButton" Margin="10,10,10,10" Content="显示下一个笔迹"></Button>
+        <Button x:Name="SaveInkButton" Margin="10,10,10,10" Content="保存笔迹数据" Click="SaveInkButton_OnClick"/>
       </StackPanel>
     </Grid>
     <local:InkRecordUserControl x:Name="InkRecordUserControl" Grid.Column="1" />
