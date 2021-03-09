@@ -20,7 +20,7 @@ namespace BairbacearbakurgaicairCearlellerfenall
 
     class Tiger : Animal
     {
-        public new Meat GetFood() => new Meat();
+        public override Meat GetFood() => new Meat();
     }
 
     public class Food
