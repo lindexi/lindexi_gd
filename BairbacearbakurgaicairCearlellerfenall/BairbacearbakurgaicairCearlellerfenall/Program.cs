@@ -16,12 +16,11 @@ namespace BairbacearbakurgaicairCearlellerfenall
         {
             return null;
         }
-
     }
 
     class Tiger : Animal
     {
-        public new Food GetFood() => new Meat();
+        public new Meat GetFood() => new Meat();
     }
 
     public class Food
