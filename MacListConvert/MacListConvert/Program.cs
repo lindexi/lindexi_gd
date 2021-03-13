@@ -15,6 +15,9 @@ namespace MacListConvert
         {
             var csvFile = "1.csv";
 
+            十六进制Mac地址转十进制(csvFile);
+            return;
+
             if (args.Length > 0)
             {
                 csvFile = args[0];
@@ -52,6 +55,32 @@ namespace MacListConvert
 
             //csvWriter.Dispose();
             File.WriteAllText(output, stringBuilder.ToString());
+        }
+
+        private static void 十六进制Mac地址转十进制(string filePath)
+        {
+            var textLineList = File.ReadAllLines(filePath);
+            List<string> macList = new List<string>();
+
+            foreach (var textLine in textLineList)
+            {
+                if (string.IsNullOrEmpty(textLine))
+                {
+                    continue;
+                }
+
+                var macTextList = textLine.Split(':');
+
+                List<int> decimalList = new List<int>();
+                foreach (var macText in macTextList)
+                {
+                    decimalList.Add(Convert.ToInt32(macText, 16));
+                }
+
+                macList.Add(string.Join(':', decimalList.Select(temp => temp.ToString())));
+            }
+
+            File.WriteAllLines("2.csv", macList);
         }
 
         private static List<string> ConvertMacList(string text)
