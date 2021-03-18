@@ -118,16 +118,11 @@ namespace WokayficeKegayurbu
             // x1 < x < x2, assuming x1 < x2
             // y1 < y < y2, assuming y1 < y2
 
-            if (EqualPoint(point, line.APoint, epsilon) || EqualPoint(point, line.BPoint, epsilon))
-            {
-                return true;
-            }
-
             // 乘法性能更高，误差大。请试试在返回 true 的时候，看看 crossProduct 的值，可以发现这个值依然很大
             var crossProduct = (point.X - line.APoint.X) * (line.BPoint.Y - line.APoint.Y) -
                                (point.Y - line.APoint.Y) * (line.BPoint.X - line.APoint.X);
-
-            if (Math.Abs((point.X - line.APoint.X) / (line.BPoint.X - line.APoint.X) - (point.Y - line.APoint.Y) / (line.BPoint.Y - line.APoint.Y)) < epsilon)
+            // 先判断 crossProduct 是否等于 0 可以解决 A 和 B 两个点的 Y 坐标相同或 X 坐标相同的时候，使用除法的坑
+            if (crossProduct == 0 || Math.Abs((point.X - line.APoint.X) / (line.BPoint.X - line.APoint.X) - (point.Y - line.APoint.Y) / (line.BPoint.Y - line.APoint.Y)) < epsilon)
             {
                 var minX = Math.Min(line.APoint.X, line.BPoint.X);
                 var maxX = Math.Max(line.APoint.X, line.BPoint.X);
@@ -135,7 +130,7 @@ namespace WokayficeKegayurbu
                 var minY = Math.Min(line.APoint.Y, line.BPoint.Y);
                 var maxY = Math.Max(line.APoint.Y, line.BPoint.Y);
 
-                if (minX < point.X && point.X < maxX && minY < point.Y && point.Y < maxY)
+                if (minX <= point.X && point.X <= maxX && minY <= point.Y && point.Y <= maxY)
                 {
                     return true;
                 }
