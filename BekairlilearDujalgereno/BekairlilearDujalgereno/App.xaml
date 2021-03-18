@@ -1,7 +1,7 @@
-﻿<Application x:Class="LeekailawnahelNarjailearyaydi.App"
+﻿<Application x:Class="BekairlilearDujalgereno.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:LeekailawnahelNarjailearyaydi"
+             xmlns:local="clr-namespace:BekairlilearDujalgereno"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
          
