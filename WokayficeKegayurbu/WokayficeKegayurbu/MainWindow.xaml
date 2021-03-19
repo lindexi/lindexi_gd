@@ -1,0 +1,14 @@
+﻿<Window x:Class="WokayficeKegayurbu.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WokayficeKegayurbu"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+  <Canvas Background="Transparent" MouseDown="Canvas_OnMouseDown" MouseMove="Canvas_OnMouseMove">
+    <Line x:Name="LineElement" Visibility="Collapsed" Stroke="Red" StrokeThickness="2"></Line>
+    <Ellipse x:Name="AEllipse" Visibility="Collapsed" Width="5" Height="5" Fill="Red" />
+    <Ellipse x:Name="BEllipse" Visibility="Collapsed" Width="5" Height="5" Fill="Red" />
+  </Canvas>
+</Window>
