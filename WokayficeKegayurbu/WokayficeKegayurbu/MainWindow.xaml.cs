@@ -60,7 +60,7 @@ namespace WokayficeKegayurbu
 
             if (Line != null)
             {
-                if (CheckIsPointOnLine(point, Line))
+                if (Math2DExtensions.CheckIsPointOnLineSegment(point, Line))
                 {
                     LineElement.Stroke = Brushes.DarkGray;
                 }
@@ -90,66 +90,6 @@ namespace WokayficeKegayurbu
             }
         }
 
-        private static bool CheckIsPointOnLine(Point point, Line line, double epsilon = 0.1)
-        {
-            // 最简单理解的算法是根据两点之间直线距离最短，只需要求 P 点和线段的 AB 两点的距离是否等于 AB 的距离。如果相等，那么证明 P 点在线段 AB 上
-            var ap = point - line.APoint;
-            var bp = point - line.BPoint;
-            var ab = line.BPoint - line.APoint;
-
-            // 只不过求 Length 内部需要用到一次 Math.Sqrt 性能会比较差
-            if (Math.Abs(ap.Length + bp.Length - ab.Length) < epsilon)
-            {
-                // 相等
-            }
-            else
-            {
-                // 不相等
-            }
-
-            // 以下是另一个方法，以下方法性能比上面一个好
-
-            // 根据点和任意线段端点连接的线段和当前线段斜率相同，同时点在两个端点中间
-            // (x - x1) / (x2 - x1) = (y - y1) / (y2 - y1)
-            // 因为乘法性能更高，因此计算方法可以如下
-            // (x - x1) * (y2 - y1) = (y - y1) * (x2 - x1)
-            // (x - x1) * (y2 - y1) - (y - y1) * (x2 - x1) = 0
-            // 但是乘法的误差很大，因此还是继续使用除法
-            // x1 < x < x2, assuming x1 < x2
-            // y1 < y < y2, assuming y1 < y2
-
-            // 乘法性能更高，误差大。请试试在返回 true 的时候，看看 crossProduct 的值，可以发现这个值依然很大
-            var crossProduct = (point.X - line.APoint.X) * (line.BPoint.Y - line.APoint.Y) -
-                               (point.Y - line.APoint.Y) * (line.BPoint.X - line.APoint.X);
-            // 先判断 crossProduct 是否等于 0 可以解决 A 和 B 两个点的 Y 坐标相同或 X 坐标相同的时候，使用除法的坑
-            if (crossProduct == 0 || Math.Abs((point.X - line.APoint.X) / (line.BPoint.X - line.APoint.X) - (point.Y - line.APoint.Y) / (line.BPoint.Y - line.APoint.Y)) < epsilon)
-            {
-                var minX = Math.Min(line.APoint.X, line.BPoint.X);
-                var maxX = Math.Max(line.APoint.X, line.BPoint.X);
-
-                var minY = Math.Min(line.APoint.Y, line.BPoint.Y);
-                var maxY = Math.Max(line.APoint.Y, line.BPoint.Y);
-
-                if (minX <= point.X && point.X <= maxX && minY <= point.Y && point.Y <= maxY)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        private static bool EqualPoint(Point a, Point b, double epsilon = 0.001)
-        {
-            return Math.Abs(a.X - b.X) < epsilon && Math.Abs(a.Y - b.Y) < epsilon;
-        }
-
         private void Move(FrameworkElement element, Point point)
         {
             if (element.RenderTransform is not TranslateTransform translateTransform)
@@ -164,6 +104,53 @@ namespace WokayficeKegayurbu
         private Point? _lastPoint;
 
         private Line? Line { set; get; }
+    }
+
+    public static class Math2DExtensions
+    {
+        public static bool CheckIsPointOnLineSegment(Point point, Line line, double epsilon = 0.1)
+        {
+            // 以下是另一个方法，以下方法性能比上面一个好
+
+            // 根据点和任意线段端点连接的线段和当前线段斜率相同，同时点在两个端点中间
+            // (x - x1) / (x2 - x1) = (y - y1) / (y2 - y1)
+            // x1 < x < x2, assuming x1 < x2
+            // y1 < y < y2, assuming y1 < y2
+            // 但是需要额外处理 X1 == X2 和 Y1 == Y2 的计算
+
+            var minX = Math.Min(line.APoint.X, line.BPoint.X);
+            var maxX = Math.Max(line.APoint.X, line.BPoint.X);
+
+            var minY = Math.Min(line.APoint.Y, line.BPoint.Y);
+            var maxY = Math.Max(line.APoint.Y, line.BPoint.Y);
+
+            if (!(minX <= point.X) || !(point.X <= maxX) || !(minY <= point.Y) || !(point.Y <= maxY))
+            {
+                return false;
+            }
+
+            // 以下处理水平和垂直线段
+            if (Math.Abs(line.APoint.X - line.BPoint.X) < epsilon)
+            {
+                // 如果 X 坐标是相同，那么只需要判断点的 X 坐标是否相同
+                // 因为在上面代码已经判断了 点的 Y 坐标是在线段两个点之内
+                return Math.Abs(line.APoint.X - point.X) < epsilon || Math.Abs(line.BPoint.X - point.X) < epsilon;
+            }
+
+            if (Math.Abs(line.APoint.Y - line.BPoint.Y) < epsilon)
+            {
+                return Math.Abs(line.APoint.Y - point.Y) < epsilon || Math.Abs(line.BPoint.Y - point.Y) < epsilon;
+            }
+
+            if (Math.Abs((point.X - line.APoint.X) / (line.BPoint.X - line.APoint.X) - (point.Y - line.APoint.Y) / (line.BPoint.Y - line.APoint.Y)) < epsilon)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 
     public record Line
