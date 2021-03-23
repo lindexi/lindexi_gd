@@ -1,0 +1,374 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{4CCD8FCC-8BFD-4787-8D0F-67994CB1D83D}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ScrimpNet</RootNamespace>
+    <AssemblyName>ScrimpNet.Core</AssemblyName>
+    <SccProjectName>
+    </SccProjectName>
+    <SccLocalPath>
+    </SccLocalPath>
+    <SccAuxPath>
+    </SccAuxPath>
+    <SccProvider>
+    </SccProvider>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <IsWebBootstrapper>true</IsWebBootstrapper>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <PublishUrl>http://localhost/ScrimpNet.Core/</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Web</InstallFrom>
+    <UpdateEnabled>true</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <CodeContractsAssemblyMode>1</CodeContractsAssemblyMode>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;FRAMEWORK_35</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug\ScrimpNet.Core.XML</DocumentationFile>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <CodeAnalysisRules>
+    </CodeAnalysisRules>
+    <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRules>
+    </CodeAnalysisRules>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DocumentationFile>bin\Debug\ScrimpNet.Core.XML</DocumentationFile>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <CodeAnalysisRules>
+    </CodeAnalysisRules>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeContractsEnableRuntimeChecking>False</CodeContractsEnableRuntimeChecking>
+    <CodeContractsRuntimeOnlyPublicSurface>False</CodeContractsRuntimeOnlyPublicSurface>
+    <CodeContractsRuntimeThrowOnFailure>True</CodeContractsRuntimeThrowOnFailure>
+    <CodeContractsRuntimeCallSiteRequires>False</CodeContractsRuntimeCallSiteRequires>
+    <CodeContractsRuntimeSkipQuantifiers>False</CodeContractsRuntimeSkipQuantifiers>
+    <CodeContractsRunCodeAnalysis>False</CodeContractsRunCodeAnalysis>
+    <CodeContractsNonNullObligations>False</CodeContractsNonNullObligations>
+    <CodeContractsBoundsObligations>False</CodeContractsBoundsObligations>
+    <CodeContractsArithmeticObligations>False</CodeContractsArithmeticObligations>
+    <CodeContractsEnumObligations>False</CodeContractsEnumObligations>
+    <CodeContractsRedundantAssumptions>False</CodeContractsRedundantAssumptions>
+    <CodeContractsRunInBackground>True</CodeContractsRunInBackground>
+    <CodeContractsShowSquigglies>False</CodeContractsShowSquigglies>
+    <CodeContractsUseBaseLine>False</CodeContractsUseBaseLine>
+    <CodeContractsEmitXMLDocs>False</CodeContractsEmitXMLDocs>
+    <CodeContractsCustomRewriterAssembly />
+    <CodeContractsCustomRewriterClass />
+    <CodeContractsLibPaths />
+    <CodeContractsExtraRewriteOptions />
+    <CodeContractsExtraAnalysisOptions />
+    <CodeContractsBaseLineFile />
+    <CodeContractsCacheAnalysisResults>False</CodeContractsCacheAnalysisResults>
+    <CodeContractsRuntimeCheckingLevel>Full</CodeContractsRuntimeCheckingLevel>
+    <CodeContractsReferenceAssembly>%28none%29</CodeContractsReferenceAssembly>
+    <CodeContractsAnalysisWarningLevel>0</CodeContractsAnalysisWarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.Linq" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Serialization">
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization.Formatters.Soap" />
+    <Reference Include="System.ServiceModel">
+      <RequiredTargetFramework>3.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.ServiceModel.Activation" />
+    <Reference Include="System.ServiceModel.Web">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\PropertyInfo.cs">
+      <Link>Properties\PropertyInfo.cs</Link>
+    </Compile>
+    <Compile Include="ActionReply.cs" />
+    <Compile Include="ActionReply.Log.cs" />
+    <Compile Include="ActionReplyMessageItem.cs" />
+    <Compile Include="ActionReplyMessageList.cs" />
+    <Compile Include="ActionStatus.cs" />
+    <Compile Include="Cache\ICacheProvider.cs" />
+    <Compile Include="Cache\MemoryCache.cs" />
+    <Compile Include="Collections\Generic\OrderDictionary.cs" />
+    <Compile Include="Configuration\ConfigBase.cs" />
+    <Compile Include="Configuration\ConfigMergeOptions.cs" />
+    <Compile Include="Configuration\ConfigResolveMethodEnumeration.cs" />
+    <Compile Include="Configuration\ConfigScopeEnumeration.cs" />
+    <Compile Include="Configuration\ConfigSetting.cs" />
+    <Compile Include="Configuration\ConfigSettingAttribute.cs" />
+    <Compile Include="Configuration\ConfigSystems\ConfigWcfConfigSystem.cs" />
+    <Compile Include="Configuration\IWcfConfigurationService.cs" />
+    <Compile Include="Configuration\ConfigVariant.cs" />
+    <Compile Include="Configuration\ConfigVariantCollection.cs" />
+    <Compile Include="Configuration\IConfigurationProvider.cs" />
+    <Compile Include="CoreConfig.Configuration.cs" />
+    <Compile Include="Cryptography\Crypto.Constants.cs" />
+    <Compile Include="Cryptography\CryptoUtils.cs" />
+    <Compile Include="Cryptography\CryptoUtils.Generate.cs" />
+    <Compile Include="Cryptography\CryptoUtils.Machine.cs" />
+    <Compile Include="Cryptography\CryptoUtils.Simple.cs" />
+    <Compile Include="Cryptography\HashKeySalted.cs" />
+    <Compile Include="Cryptography\KeyBase.cs" />
+    <Compile Include="Cryptography\KeyProperties.cs" />
+    <Compile Include="Cryptography\HashKeySimple.cs" />
+    <Compile Include="Cryptography\SymmetricKey.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Cryptography\KeySegment.cs" />
+    <Compile Include="Cryptography\StringFormat.cs" />
+    <Compile Include="Data\IDetachable.cs" />
+    <Compile Include="Data\LinqBase.cs" />
+    <Compile Include="Data\LinqEntityBase.cs" />
+    <Compile Include="Diagnostics\Logging\Log.LastChance.cs" />
+    <Compile Include="Diagnostics\Logging\MessageLevel.cs" />
+    <Compile Include="Diagnostics\RollingFileTraceListener.cs" />
+    <Compile Include="Documentation\CiitationAttribute.cs" />
+    <Compile Include="Documentation\CitationExclusionAttribute.cs" />
+    <Compile Include="Collections\Generic\ComplexSubtree.cs" />
+    <Compile Include="Collections\Generic\ComplexTree.cs" />
+    <Compile Include="Collections\Generic\ComplexTreeNode.cs" />
+    <Compile Include="Collections\Generic\ComplexTreeNodeList.cs" />
+    <Compile Include="Collections\Generic\Enums.cs" />
+    <Compile Include="Diagnostics\Logging\LoggerLevels.cs" />
+    <Compile Include="Diagnostics\Logging\Log.cs" />
+    <Compile Include="Diagnostics\Logging\Log.Events.cs" />
+    <Compile Include="Diagnostics\Logging\Log.New.cs" />
+    <Compile Include="Diagnostics\Logging\Log.Write.cs" />
+    <Compile Include="Diagnostics\Logging\LogOutputOptions.cs" />
+    <Compile Include="Exceptions\ExceptionFactory.cs" />
+    <Compile Include="Extensions.Date.cs" />
+    <Compile Include="Extensions.Linq.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="I18n\CultureCode.cs" />
+    <Compile Include="Reflection\PropertyComparer.cs" />
+    <Compile Include="ServiceModel\WcfClientFactory.cs" />
+    <Compile Include="ServiceModel\WcfFault.cs" />
+    <Compile Include="ServiceModel\WcfSharedHostFactory.cs" />
+    <Compile Include="ServiceModel\WcfUtils.cs" />
+    <Compile Include="Singleton.cs" />
+    <Compile Include="Validation\Guard.cs" />
+    <Compile Include="Validation\GuardEventArgs.cs" />
+    <Compile Include="Validation\GuardInvalidException.cs" />
+    <Compile Include="Validation\GuardValidDelegate.cs" />
+    <Compile Include="Validation\Guard.Boolean.cs" />
+    <Compile Include="Validation\Guard.Byte.cs" />
+    <Compile Include="Validation\Guard.DateTime.cs" />
+    <Compile Include="Validation\Guard.Decimal.cs" />
+    <Compile Include="Validation\Guard.Double.cs" />
+    <Compile Include="Validation\Guard.Generic.cs" />
+    <Compile Include="Validation\Guard.Generic.Nullable.cs" />
+    <Compile Include="Validation\Guard.Guid.cs" />
+    <Compile Include="Validation\Guard.Int16.cs" />
+    <Compile Include="Validation\Guard.Int16.Nullable.cs" />
+    <Compile Include="Validation\Guard.Int32.cs" />
+    <Compile Include="Validation\Guard.Int64.cs" />
+    <Compile Include="Validation\Guard.Object.cs" />
+    <Compile Include="Validation\Guard.Pattern.cs" />
+    <Compile Include="Validation\Guard.SByte.cs" />
+    <Compile Include="Validation\Guard.Single.cs" />
+    <Compile Include="Validation\Guard.String.cs" />
+    <Compile Include="Validation\Guard.UInt16.cs" />
+    <Compile Include="Validation\Guard.UInt32.cs" />
+    <Compile Include="Validation\Guard.UInt64.cs" />
+    <Compile Include="Reflection\ProviderFactory.cs" />
+    <Compile Include="Transform\Transform.cs" />
+    <Compile Include="Diagnostics\Logging\MachineContext.cs" />
+    <Compile Include="Diagnostics\Logging\MachineContextFormatter.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utils.cs" />
+    <Compile Include="Utils.Date.cs" />
+    <Compile Include="Diagnostics\Logging\RuntimeContext.cs" />
+    <Compile Include="Utils.Win32.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Collections\AsyncBuffer.cs" />
+    <Compile Include="Configuration\ConfigManager.cs" />
+    <Compile Include="CoreConfig.cs" />
+    <Compile Include="CoreConfig.Log.cs" />
+    <Compile Include="Diagnostics\Logging\ILogDispatcher.cs" />
+    <Compile Include="Diagnostics\Logging\Log.MessageBuffer.cs" />
+    <Compile Include="Diagnostics\Logging\LogDispatchers\InternalLogFileDispatcher.cs" />
+    <Compile Include="Diagnostics\Logging\LogDispatchers\RollingFileBase.cs" />
+    <Compile Include="Diagnostics\Logging\Messages\ApplicationLogMessage.cs" />
+    <Compile Include="Diagnostics\Logging\Messages\LogMessageBase.cs" />
+    <Compile Include="Diagnostics\Logging\Messages\TraceLogMessage.cs" />
+    <Compile Include="Diagnostics\TraceProbe.cs" />
+    <Compile Include="Diagnostics\Logging\LogMessageClass.cs" />
+    <Compile Include="Diagnostics\Logging\MessagePriority.cs" />
+    <Compile Include="Drawing\DrawingUtils.cs" />
+    <Compile Include="Extensions.cs" />
+    <Compile Include="Extensions.Data.cs" />
+    <Compile Include="Extensions.Is.cs" />
+    <Compile Include="Extensions.Reflection.cs" />
+    <Compile Include="Extensions.Text.cs" />
+    <Compile Include="I18n\Coordinate.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="I18n\DistanceSpan.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="I18n\GeoConstant.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IO\IOUtils.cs" />
+    <Compile Include="Net\MimeTypes.cs" />
+    <Compile Include="Validation\Check.Generic.cs" />
+    <Compile Include="Validation\Guard.EMail.cs" />
+    <Compile Include="Validation\GuardCompareResult.cs" />
+    <Compile Include="Validation\Is.cs" />
+    <Compile Include="Validation\Validator.Boolean.cs" />
+    <Compile Include="Validation\Validator.cs" />
+    <Compile Include="Validation\Validator.Double.cs" />
+    <Compile Include="Validation\Validator.EMail.cs" />
+    <Compile Include="Validation\Validator.Generic.cs" />
+    <Compile Include="Validation\Validator.Generic.Nullable.cs" />
+    <Compile Include="Validation\Validator.Guid.cs" />
+    <Compile Include="Validation\Validator.Object.cs" />
+    <Compile Include="Validation\Validator.Pattern.cs" />
+    <Compile Include="Validation\Validator.Single.cs" />
+    <Compile Include="Validation\Validator.String.cs" />
+    <Compile Include="Net\MimeMediaType.cs" />
+    <Compile Include="Net\Mime.cs" />
+    <Compile Include="Net\MimeExtension.cs" />
+    <Compile Include="Net\MimeIcon.cs" />
+    <Compile Include="Net\MimeInfo.cs" />
+    <Compile Include="Net\MimeTypeMap.cs" />
+    <Compile Include="Reflection\AssemblyVersion.ExcludedNamespaces.cs" />
+    <Compile Include="Reflection\ProviderFactory.Secure..cs" />
+    <Compile Include="Reflection\AssemblyVersion.CallerInfo.cs" />
+    <Compile Include="Reflection\AssemblyVersion.cs" />
+    <Compile Include="Reflection\Resource.cs" />
+    <Compile Include="Serialization\Serialize.From.cs" />
+    <Compile Include="Serialization\Serialize.To.cs" />
+    <Compile Include="ServiceModel\WcfSelfHost.cs" />
+    <Compile Include="Text\TextUtils.cs" />
+    <Compile Include="Web\CrossSiteScriptingValidation.cs" />
+    <Compile Include="Web\WebAppCacheBase.cs" />
+    <Compile Include="Web\WebCacheBase.cs" />
+    <Compile Include="Web\WebRequest.cs" />
+    <Compile Include="Web\WebSessionCacheBase.cs" />
+    <Compile Include="Web\WebUtils.cs" />
+    <Compile Include="Configuration\ConfigManager.ConnectionStrings.cs" />
+    <None Include="Diagnostics\Logging\AnnotatedLoggingConfiguration.config" />
+    <None Include="Documentation\ScrimpNetCore.shfb" />
+    <Compile Include="Extensions.Collections.cs" />
+    <Compile Include="Validation\Is.EMail.cs" />
+    <None Include="_Config And Notes\Sample.App.config">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 2.0 %28x86%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="_Config And Notes\License.txt" />
+    <EmbeddedResource Include="_Config And Notes\ReleaseNotes.txt" />
+    <EmbeddedResource Include="Net\MimeTypes.xml" />
+    <EmbeddedResource Include="Net\Images\32x32\mime_pdf_32x32bmp.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Documentation\Help\" />
+    <Folder Include="Help\" />
+    <Folder Include="Interop\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy "$(TargetDir)$(TargetFileName)" "$(SolutionDir)__ScrimpNet.Libraries" /Y</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

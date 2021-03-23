@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+    <ItemGroup>
+        <None Include="build\package.targets" Pack="True" PackagePath="\build\$(PackageId).targets" />
+        <None Include="build\F.targets" Pack="True" PackagePath="\build\F.targets" />
+        <None Include="BuildMultiTargeting\package.targets" Pack="True" PackagePath="\buildMultiTargeting\$(PackageId).targets" />
+    </ItemGroup>
+</Project>

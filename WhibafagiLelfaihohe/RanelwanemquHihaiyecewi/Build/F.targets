@@ -1,0 +1,5 @@
+﻿<Project>
+	<Target Name="F">
+        <Message Text="林德熙是逗比"/>
+    </Target>
+</Project>

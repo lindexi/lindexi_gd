@@ -1,0 +1,62 @@
+﻿<UserControl x:Class="KelerbelaChukoqayhi.InkRecordUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:KelerbelaChukoqayhi"
+             xmlns:data="clr-namespace:System.Data;assembly=System.Data.Common"
+             mc:Ignorable="d"
+             x:Name="Root"
+             d:DesignHeight="450" d:DesignWidth="220" Width="220">
+  <UserControl.Resources>
+    <CompositeCollection x:Key="Collection">
+      <local:InkDataModel X="100" Y="200" PressureFactor="200" />
+      <local:InkDataModel X="10.02" Y="200.05" PressureFactor="200.12" />
+      <local:InkDataModel X="210.02" Y="200.05" PressureFactor="200.12" />
+      <local:InkDataModel X="515.02" Y="210.15" PressureFactor="100.12" />
+      <local:InkDataModel X="1215.02" Y="1710.15" PressureFactor="160.12" />
+      <local:InkDataModel X="1515.02" Y="1210.15" PressureFactor="100.12" />
+    </CompositeCollection>
+    <local:DoubleToStringConverter x:Key="DoubleToStringConverter"></local:DoubleToStringConverter>
+  </UserControl.Resources>
+  <Grid Background="#565656">
+    <ListView ItemsSource="{Binding ElementName=Root,Path=InkDataModelCollection}"
+              d:ItemsSource="{StaticResource Collection}" Background="#505050"
+              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+      <ListView.ItemTemplate>
+        <DataTemplate>
+          <Border Margin="-2,0,0,0"
+                  BorderThickness="0,1,0,0"
+                  BorderBrush="#D5D5A5"
+                  HorizontalAlignment="Stretch">
+
+            <Grid HorizontalAlignment="Stretch">
+              <Grid.Resources>
+                <Style TargetType="TextBlock">
+                  <Setter Property="Foreground" Value="#D5D5D5" />
+                </Style>
+              </Grid.Resources>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="70" />
+                <ColumnDefinition Width="70" />
+                <ColumnDefinition Width="100" />
+              </Grid.ColumnDefinitions>
+              <TextBlock>
+                <Run Text="X=" />
+                <Run Foreground="#D5D5A5" Text="{Binding Path=X,Converter={StaticResource DoubleToStringConverter}}" />
+              </TextBlock>
+              <TextBlock Grid.Column="1" Padding="0,0,0,0">
+                <Run Text="Y=" />
+                <Run Foreground="#D5D5A5" Text="{Binding Path=Y,Converter={StaticResource DoubleToStringConverter}}" />
+              </TextBlock>
+              <TextBlock Grid.Column="2">
+                <Run Text="P=" />
+                <Run Foreground="#D5D5A5" Text="{Binding Path=PressureFactor,Converter={StaticResource DoubleToStringConverter}}" />
+              </TextBlock>
+            </Grid>
+          </Border>
+        </DataTemplate>
+      </ListView.ItemTemplate>
+    </ListView>
+  </Grid>
+</UserControl>

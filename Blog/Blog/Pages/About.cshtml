@@ -1,0 +1,25 @@
+﻿@page
+@using Microsoft.Extensions.Configuration
+@model Blog.AboutModel
+@inject IConfiguration Configuration;
+@{
+    ViewData["Title"] = Configuration["Title"];
+}
+
+
+<div class="col-md-9 col-xs-12 full">
+    <div class="post-content well" style="word-break: break-all;">
+        <article class="content">
+            <div class="post">
+                <p>
+                    欢迎小伙伴访问我的博客
+                </p>
+                <p>
+                    这个博客使用 Blazor 写的
+                </p>
+            </div>
+        </article>
+    </div>
+</div>
+
+

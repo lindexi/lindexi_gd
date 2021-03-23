@@ -1,0 +1,28 @@
+﻿@page
+@using System.Runtime.CompilerServices
+@model Blog.Pages.MindModel
+@{
+    ViewData["Title"] = "归档";
+}
+
+@*<input class="form-control" type="text" id="search-input" placeholder="搜索" 
+       style="margin-right: 100px;" />*@
+
+<div class="well">
+    <div class="list-group">
+
+        @foreach (var blogExcerptModel in Model.BlogExcerptModelList)
+        {
+            <dd>
+                <div class="posts">
+                    <a href="@blogExcerptModel.Url">@blogExcerptModel.Title</a>
+                    <!-- <span style="float:right">{{ post.date | date:"%Y-%m-%d" }}</span> -->
+                    <div /><br />
+                </div>
+            </dd>
+
+        }
+
+    </div>
+</div>
+

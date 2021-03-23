@@ -1,0 +1,21 @@
+﻿<Page
+    x:Class="LurhanuhaRahewigejer.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:LurhanuhaRahewigejer"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <Border HorizontalAlignment="Center" VerticalAlignment="Center"
+                BorderThickness="20 20 2 2" BorderBrush="Transparent" CornerRadius="5 2 10 2"
+                Background="{x:Bind BorderBackground,Mode=OneWay}" BackgroundSizing="OuterBorderEdge">
+            <Border.BackgroundTransition>
+                <BrushTransition />
+            </Border.BackgroundTransition>
+            <TextBlock Margin="10,10,10,10" Text="林德熙是逗比" />
+        </Border>
+    </Grid>
+</Page>

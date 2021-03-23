@@ -1,0 +1,159 @@
+﻿@page "/"
+@page "/blog/page/{PageNumber:int}"
+
+@using Blog.Model;
+@inject NavigationManager NavigationManager;
+@inject HttpClient HttpClient;
+
+<div class="well">
+    <div class="list-group">
+
+        @foreach (var blogExcerptModel in BlogExcerptModelList)
+        {
+            <div class="list-group-item">
+                <div class="row-content">
+                    <h4 class="list-group-item-heading">
+                        <a href="@blogExcerptModel.Url">@blogExcerptModel.Title</a>
+                    </h4>
+                    <!-- <p style="font-size: 0.8em">{{ post.date | date: "%Y-%m-%d %H:%M" }}</p> -->
+                    <p class="list-group-item-text">@blogExcerptModel.Excerpt</p>
+                </div>
+            </div>
+            <div class="list-group-separator"></div>
+        }
+    </div>
+
+    @if (PageCount > 1)
+    {
+        <ul class="pager">
+            @if (PageNumber == 1)
+            {
+                <li class="previous disabled"><span aria-hidden="true">←</span></li>
+            }
+            else
+            {
+                <li class="previous">
+                    <button @onclick="GotoPreviousPage">←</button>
+                    @*<NavLink  href="/blog/page/@(PageNumber-1)">←</NavLink>*@
+                </li>
+            }
+
+            @for (int i = 1; i < PageCount + 1; i++)
+            {
+                if (i == PageNumber)
+                {
+                    <li class="active">
+                        <a> @(i)<span class="sr-only">(current)</span></a>
+                    </li>
+                }
+                else if (i == 0)
+                {
+                    <li>
+
+                        <NavLink href="/">@(i)</NavLink>
+                    </li>
+                }
+                else
+                {
+                    // 必须放在标签之前，如下面代码放在标签下面是不对的
+                    var currentPage = i;
+                    <li>
+                        @* 下面这一行代码将会显示为 HTML 内容 *@
+                        @*var currentPage = i;*@
+                        <button @onclick="@(e => GotoPage(e,currentPage))">@i</button>
+
+                        @*<NavLink href="/blog/page/@(i)">@(i)</NavLink>*@
+                    </li>
+                }
+            }
+
+            @if (PageNumber == PageCount - 1)
+            {
+                <li class="next disabled"><span>→</span></li>
+            }
+            else
+            {
+                <li class="next">
+                    @*<NavLink href="/blog/page/@(PageNumber+1)">→</NavLink>*@
+                    <button @onclick="GotoNextPage">→</button>
+                </li>
+            }
+        </ul>
+    }
+
+
+</div>
+<div class="row">
+    <div class="col-md-12 col-xs-12 footer">
+        @* {% include footer.html %} *@
+    </div>
+</div>
+
+@code
+{
+
+    [Parameter]
+    public int Id { set; get; }
+
+    [Parameter]
+    public int PageNumber { set; get; }
+
+    [Parameter]
+    public List<BlogExcerptModel> BlogExcerptModelList { set; get; } = new List<BlogExcerptModel>();
+
+
+    public int PageCount { set; get; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // 拉取文件列表
+        var fileUrl = $"/Blog/Summary-{PageNumber}.json";
+        Console.WriteLine(fileUrl);
+
+        var fileText = await HttpClient.GetStringAsync(fileUrl);
+
+        var blogPage = System.Text.Json.JsonSerializer.Deserialize<BlogTool.BlogPageModel>(fileText);
+
+        var blogList = blogPage.BlogList;
+
+        foreach(var blog in blogList)
+        {
+            blog.Url = $"/post/{blog.FileName}";
+            blog.FileName = null;
+        }
+
+        PageCount = blogPage.PageCount;
+
+        BlogExcerptModelList.Clear();
+
+        BlogExcerptModelList.AddRange(blogList);
+    }
+
+    protected override void OnInitialized()
+    {
+        BlogExcerptModelList.Add(new BlogExcerptModel()
+        {
+            Title = "欢迎访问林德熙博客",
+            Excerpt = "数据加载，请稍后"
+        });
+
+        PageCount = 0;
+
+        base.OnInitialized();
+    }
+
+    private void GotoPreviousPage()
+    {
+        NavigationManager.NavigateTo($"/blog/page/{PageNumber - 1}");
+    }
+
+    private void GotoPage(MouseEventArgs e, int currentPage)
+    {
+        NavigationManager.NavigateTo($"/blog/page/{currentPage}");
+    }
+
+    private void GotoNextPage()
+    {
+        NavigationManager.NavigateTo($"/blog/page/{PageNumber + 1}");
+    }
+}

@@ -1,0 +1,36 @@
+[submodule "D2dControl"]
+	path = D2dControl
+	url = https://github.com/dalance/D2dControl.git
+[submodule "WmTouchDevice"]
+	path = WmTouchDevice
+	url = https://github.com/jaytwo/WmTouchDevice.git
+[submodule "Json实体类驼峰名称转化器/JsonModelConvert"]
+	path = Json实体类驼峰名称转化器/JsonModelConvert
+	url = https://github.com/yinghualuowu/JsonModelConvert.git
+[submodule "ant-design-blazor"]
+	path = ant-design-blazor
+	url = https://gitee.com/ant-design-blazor/ant-design-blazor.git
+[submodule "CloudFileUriTool"]
+	path = CloudFileUriTool
+	url = https://github.com/Kybs0/CloudFileUriTool.git
+[submodule "dotnet-imgup"]
+	path = dotnet-imgup
+	url = https://github.com/rohith/dotnet-imgup.git
+[submodule "Imageshack"]
+	path = Imageshack
+	url = git@github.com:lindexi/Imageshack.git
+[submodule "Blazui"]
+	path = Blazui
+	url = https://github.com/wzxinchen/Blazui.git
+[submodule "dotnet-tools"]
+	path = dotnet-tools
+	url = git@github.com:lindexi/dotnet-tools.git
+[submodule "Advanced-Algorithms"]
+	path = Advanced-Algorithms
+	url = https://github.com/justcoding121/Advanced-Algorithms.git
+[submodule "prometheus-net.DotNetRuntime"]
+	path = prometheus-net.DotNetRuntime
+	url = https://github.com/djluck/prometheus-net.DotNetRuntime.git
+[submodule "SmartSql-Docs"]
+	path = SmartSql-Docs
+	url = https://github.com/Smart-Kit/SmartSql-Docs.git

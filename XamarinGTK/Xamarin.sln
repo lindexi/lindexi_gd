@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29911.84
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xamarin.Android", "Xamarin\Xamarin.Android\Xamarin.Android.csproj", "{0403D596-BB6A-4171-AC75-F53C58A4B550}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xamarin", "Xamarin\Xamarin\Xamarin.csproj", "{41B3E936-3695-42AB-9DE1-AB356C92E06B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cla.GTK", "Cla\Cla.GTK.csproj", "{4DAFD798-A35C-415D-840A-526A88BF3235}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0403D596-BB6A-4171-AC75-F53C58A4B550}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0403D596-BB6A-4171-AC75-F53C58A4B550}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0403D596-BB6A-4171-AC75-F53C58A4B550}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{0403D596-BB6A-4171-AC75-F53C58A4B550}.Debug|x86.ActiveCfg = Debug|x86
+		{0403D596-BB6A-4171-AC75-F53C58A4B550}.Debug|x86.Build.0 = Debug|x86
+		{0403D596-BB6A-4171-AC75-F53C58A4B550}.Debug|x86.Deploy.0 = Debug|x86
+		{0403D596-BB6A-4171-AC75-F53C58A4B550}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0403D596-BB6A-4171-AC75-F53C58A4B550}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0403D596-BB6A-4171-AC75-F53C58A4B550}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{0403D596-BB6A-4171-AC75-F53C58A4B550}.Release|x86.ActiveCfg = Release|x86
+		{0403D596-BB6A-4171-AC75-F53C58A4B550}.Release|x86.Build.0 = Release|x86
+		{0403D596-BB6A-4171-AC75-F53C58A4B550}.Release|x86.Deploy.0 = Release|x86
+		{41B3E936-3695-42AB-9DE1-AB356C92E06B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41B3E936-3695-42AB-9DE1-AB356C92E06B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41B3E936-3695-42AB-9DE1-AB356C92E06B}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{41B3E936-3695-42AB-9DE1-AB356C92E06B}.Debug|x86.ActiveCfg = Debug|x86
+		{41B3E936-3695-42AB-9DE1-AB356C92E06B}.Debug|x86.Build.0 = Debug|x86
+		{41B3E936-3695-42AB-9DE1-AB356C92E06B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41B3E936-3695-42AB-9DE1-AB356C92E06B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41B3E936-3695-42AB-9DE1-AB356C92E06B}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{41B3E936-3695-42AB-9DE1-AB356C92E06B}.Release|x86.ActiveCfg = Release|x86
+		{41B3E936-3695-42AB-9DE1-AB356C92E06B}.Release|x86.Build.0 = Release|x86
+		{4DAFD798-A35C-415D-840A-526A88BF3235}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4DAFD798-A35C-415D-840A-526A88BF3235}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4DAFD798-A35C-415D-840A-526A88BF3235}.Debug|x86.ActiveCfg = Debug|x86
+		{4DAFD798-A35C-415D-840A-526A88BF3235}.Debug|x86.Build.0 = Debug|x86
+		{4DAFD798-A35C-415D-840A-526A88BF3235}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4DAFD798-A35C-415D-840A-526A88BF3235}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4DAFD798-A35C-415D-840A-526A88BF3235}.Release|x86.ActiveCfg = Release|x86
+		{4DAFD798-A35C-415D-840A-526A88BF3235}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D2278E2B-86AE-4D67-B7B3-E11C72A781A8}
+	EndGlobalSection
+EndGlobal

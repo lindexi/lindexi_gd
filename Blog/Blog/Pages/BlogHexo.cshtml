@@ -1,0 +1,11 @@
+﻿@page "/blog/page/{PageNumber:int}"
+@using Microsoft.Extensions.Configuration
+@model Blog.Pages.BlogHexoModel
+@inject IConfiguration Configuration;
+@{
+    ViewData["Title"] = Configuration["Title"];
+}
+
+<component type="typeof(BlogPage)" render-mode="ServerPrerendered"
+           param-PageNumber=@Model.PageNumber />
+

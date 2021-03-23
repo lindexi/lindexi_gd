@@ -1,0 +1,111 @@
+﻿@using Blog.Data
+@using Blog.Model
+@inject BlogContext BlogContext;
+
+
+<div class="well">
+    <div class="list-group">
+
+        @foreach (var blogExcerptModel in BlogExcerptModelList)
+        {
+            <div class="list-group-item">
+                <div class="row-content">
+                    <h4 class="list-group-item-heading">
+                        <a href="@blogExcerptModel.Url">@blogExcerptModel.Title</a>
+                    </h4>
+                    <!-- <p style="font-size: 0.8em">{{ post.date | date: "%Y-%m-%d %H:%M" }}</p> -->
+                    <p class="list-group-item-text">@blogExcerptModel.Excerpt</p>
+                </div>
+            </div>
+            <div class="list-group-separator"></div>
+        }
+    </div>
+
+    @if (PageCount > 1)
+    {
+        <ul class="pager">
+            @if (PageNumber == 1)
+            {
+                <li class="previous disabled"><span aria-hidden="true">←</span></li>
+            }
+            else
+            {
+                <li class="previous">
+                    <a href="/blog/page/@(PageNumber-1)">←</a>
+                </li>
+            }
+
+            @for (int i = 1; i < PageCount+1; i++)
+            {
+                if (i == PageNumber)
+                {
+                    <li class="active">
+                        <a> @(i)<span class="sr-only">(current)</span></a>
+                    </li>
+                }
+                else if (i == 0)
+                {
+                    <li><a href="/">@(i)</a></li>
+                }
+                else
+                {
+                    <li>
+                        <a href="/blog/page/@(i)">@(i)</a>
+                    </li>
+                }
+            }
+
+            @if (PageNumber == PageCount - 1)
+            {
+                <li class="next disabled"><span>→</span></li>
+            }
+            else
+            {
+                <li class="next">
+                    <a href="/blog/page/@(PageNumber+1)">→</a>
+                </li>
+            }
+        </ul>
+    }
+
+
+</div>
+<div class="row">
+    <div class="col-md-12 col-xs-12 footer">
+        @* {% include footer.html %} *@
+    </div>
+</div>
+
+@code
+{
+
+    [Parameter]
+    public int PageNumber { set; get; }
+
+    [Parameter]
+    public List<BlogExcerptModel> BlogExcerptModelList { set; get; }
+        = new List<BlogExcerptModel>();
+
+
+    public int PageCount { set; get; }
+
+    private const int BlogNumberPage = 25;
+
+    protected override void OnInitialized()
+    {
+        var count = BlogContext.BlogExcerptModel.Count();
+        PageCount = count / BlogNumberPage;
+
+        if (count < (PageNumber-1) * BlogNumberPage)
+        {
+            BlogExcerptModelList.AddRange(BlogContext.BlogExcerptModel.TakeLast(BlogNumberPage));
+        }
+        else
+        {
+            BlogExcerptModelList.AddRange(BlogContext.BlogExcerptModel.Skip((PageNumber-1) * BlogNumberPage).Take(BlogNumberPage));
+        }
+
+        base.OnInitialized();
+    }
+
+}

@@ -1,0 +1,9 @@
+﻿@page "/post/{blogName}"
+@model Blog.Pages.PostModel
+@using Microsoft.AspNetCore.Components;
+
+
+<component type="typeof(MarkupBlog)" render-mode="ServerPrerendered"
+           param-HtmlContent=@Model.HtmlContent />
+
+

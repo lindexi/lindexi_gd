@@ -1,0 +1,7 @@
+﻿<Project>
+    <Import Project="F.targets"/>
+	<Target Name="Foo" AfterTargets="Build"
+            Condition="'$(TargetFrameworks)' == ''"
+            DependsOnTargets="F">
+    </Target>
+</Project>
