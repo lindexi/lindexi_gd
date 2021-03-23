@@ -29,27 +29,48 @@ namespace LeajemhurhoCaiwhemqurhahawwhaw
         {
             var position = e.GetPosition(this);
 
-            DrawEllipse(position);
-
-            PointList.Add(position);
-
-            var polygon = new Polygon()
-            {
-                Points = new PointCollection(PointList),
-                Stroke = Brushes.Red,
-            };
-
-            AddElement(nameof(polygon), polygon);
+            _currentPoint = position;
+            DrawRectangle();
 
             if (e.RightButton == MouseButtonState.Pressed)
             {
                 CleanBoard();
-
-                PointList.Clear();
+                _旋转矩形 = null;
             }
         }
 
-        private List<Point> PointList { get; } = new List<Point>();
+        private void DrawRectangle()
+        {
+            var width = 100.0;
+            var height = 100.0;
+
+            var 旋转矩形 = LeajemhurhoCaiwhemqurhahawwhaw.旋转矩形.Create旋转矩形(_currentPoint, width, height, Rotation);
+            _旋转矩形 = 旋转矩形;
+
+            var polygon = new Polygon()
+            {
+                Points = new PointCollection(旋转矩形.Polygon),
+                Stroke = Brushes.Red
+            };
+
+            AddElement(nameof(polygon), polygon);
+        }
+
+        private Point _currentPoint;
+        private 旋转矩形 _旋转矩形;
+
+        public static readonly DependencyProperty RotationProperty = DependencyProperty.Register(
+            "Rotation", typeof(double), typeof(MainWindow), new PropertyMetadata(default(double), (o, args) =>
+            {
+                var mainWindow = (MainWindow) o;
+                mainWindow.DrawRectangle();
+            }));
+
+        public double Rotation
+        {
+            get { return (double) GetValue(RotationProperty); }
+            set { SetValue(RotationProperty, value); }
+        }
 
         private T GetElement<T>(string id) where T : UIElement
         {
@@ -112,14 +133,22 @@ namespace LeajemhurhoCaiwhemqurhahawwhaw
                 return;
             }
 
-            if (polygon.RenderedGeometry.FillContains(position))
+            if (_旋转矩形 != null)
             {
-                polygon.Stroke = Brushes.Gray;
+                if (_旋转矩形.Contains(position))
+                {
+                    polygon.Stroke = Brushes.Gray;
+                }
+                else
+                {
+                    polygon.Stroke = Brushes.Red;
+                }
             }
-            else
-            {
-                polygon.Stroke = Brushes.Red;
-            }
+        }
+
+        private void Board_OnMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            Rotation += e.Delta / 20.0;
         }
     }
 
