@@ -1,0 +1,15 @@
+﻿<Window x:Class="JurchaichallwogalHeegukacealalbe.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:JurchaichallwogalHeegukacealalbe"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+  <Grid>
+    <StackPanel>
+      <TextBlock x:Name="TextBlock" Margin="10,10,10,10" Text="123"></TextBlock>
+      <local:TextControl Margin="10,10,10,10" Text="{Binding ElementName=TextBlock,Path=Text}"></local:TextControl>
+    </StackPanel>
+  </Grid>
+</Window>
