@@ -81,8 +81,15 @@ int wmain(int argc, wchar_t* argv[])
 	// 判断是否相对路径，暂时没有找到啥库函数，只通过判断第二个字符是否冒号
 	if (stringLength < 2 || applicationConfigPath[1] != ':')
 	{
-		// 拼接回绝对路径
-		_makepath_s(applicationFullPath, drive, currentDirectory, applicationConfigPath, nullptr);
+		if (strstr(applicationConfigPath, "%") != nullptr)
+		{
+			ExpandEnvironmentStrings(applicationConfigPath, applicationFullPath, MAX_PATH);
+		}
+		else
+		{
+			// 拼接回绝对路径
+			_makepath_s(applicationFullPath, drive, currentDirectory, applicationConfigPath, nullptr);
+		}
 	}
 	else
 	{
@@ -106,8 +113,15 @@ int wmain(int argc, wchar_t* argv[])
 	// 判断是否相对路径，暂时没有找到啥库函数，只通过判断第二个字符是否冒号
 	if (stringLength < 2 || frameworkConfigPath[1] != ':')
 	{
-		// 拼接回绝对路径
-		_makepath_s(frameworkFullPath, drive, currentDirectory, frameworkConfigPath, nullptr);
+		if(strstr(frameworkConfigPath,"%"))
+		{
+			ExpandEnvironmentStrings(frameworkConfigPath, frameworkFullPath, MAX_PATH);
+		}
+		else
+		{
+			// 拼接回绝对路径
+			_makepath_s(frameworkFullPath, drive, currentDirectory, frameworkConfigPath, nullptr);
+		}
 	}
 	else
 	{
