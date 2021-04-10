@@ -8,9 +8,14 @@
         Title="MainWindow" Height="450" Width="800">
   <Grid>
     <Grid.RowDefinitions>
-      <RowDefinition local:GridExtensions.Name="R0"></RowDefinition>
-      <RowDefinition local:GridExtensions.Name="R1"></RowDefinition>
+      <RowDefinition local:GridExtensions.Name="R0" />
+      <RowDefinition local:GridExtensions.Name="R1" />
     </Grid.RowDefinitions>
-    <TextBlock local:GridExtensions.RowName="R1" Text="12"></TextBlock>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition />
+      <ColumnDefinition />
+      <ColumnDefinition local:GridExtensions.Name="C1" />
+    </Grid.ColumnDefinitions>
+    <TextBlock local:GridExtensions.RowName="R1" local:GridExtensions.ColumnName="C1" Text="12" />
   </Grid>
 </Window>
