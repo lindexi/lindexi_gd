@@ -29,30 +29,14 @@ namespace BitmapSourceTest
 			{
 				FilePath.ToolTip = FilePath.Text = openDialog.FileName;
 
-				Dispatcher backgroundDispatcher = null!;
-				AutoResetEvent resetEvent = new AutoResetEvent(false);
-				Thread thread = new Thread(() =>
-				{
-					backgroundDispatcher = Dispatcher.CurrentDispatcher;
-					resetEvent.Set();
-					Dispatcher.Run();
-				});
-				thread.SetApartmentState(ApartmentState.STA);
-				thread.IsBackground = true;
-				thread.Start();
-
-				resetEvent.WaitOne();
-
-				// To Create the MediaContext which is thread static
-				backgroundDispatcher.InvokeAsync(() => new WriteableBitmap(1, 1, 96, 96, PixelFormats.Bgr32, null));
-
-				backgroundDispatcher.InvokeAsync(() =>
+				Task.Run(() =>
 				{
 					var image = new BitmapImage(new Uri(openDialog.FileName));
 
-					image.Freeze(); // locks the bitmap source, so other threads can access
+					image.Freeze();  // locks the bitmap source, so other threads can access
 
 					Dispatcher.InvokeAsync(() => Image.Source = (BitmapSource) image);
+					//Thread.Sleep(10);   // WPF needs time to render the bitmap. During this period, creating a WriteableBitmap makes the program hang.
 
 					_ = new WriteableBitmap(image);
 				});
