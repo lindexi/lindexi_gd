@@ -1,0 +1,16 @@
+﻿root = true
+
+
+[*]
+
+indent_style = tab
+
+
+[*.cs]
+
+# IDE0090: "new(...)" verwenden
+csharp_style_implicit_object_creation_when_type_is_apparent = false
+
+csharp_style_var_for_built_in_types = false
+csharp_style_var_when_type_is_apparent = false
+csharp_style_var_elsewhere = false
