@@ -11,5 +11,10 @@
       <SubType>Designer</SubType>
       <ContainsDesignTimeResources>true</ContainsDesignTimeResources>
     </Page>
+
+    <ApplicationDefinition Include="App_MakeReshaperHappy.xaml" Condition="false">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
   </ItemGroup>
 </Project>

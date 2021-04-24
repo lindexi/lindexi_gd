@@ -1,0 +1,12 @@
+﻿<Application x:Class="App_MakeReshaperHappy" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!--这个文件只是为了让Reshaper的智能感知开心-->
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <!--以下替换为你自己的路径，我推荐引用的是设计时资源文件-->
+        <ResourceDictionary Source="Properties/DesignTimeResources.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+</Application>
