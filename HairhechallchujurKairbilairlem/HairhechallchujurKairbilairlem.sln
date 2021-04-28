@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30804.86
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HairhechallchujurKairbilairlem", "HairhechallchujurKairbilairlem.csproj", "{45171CDC-EDAC-4D0B-BDF8-63DE2D4F947B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KeqirawaKebuwheke", "..\KeqirawaKebuwheke\KeqirawaKebuwheke.csproj", "{AE3577E5-5D4E-44F8-B181-88A31B92584A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{45171CDC-EDAC-4D0B-BDF8-63DE2D4F947B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45171CDC-EDAC-4D0B-BDF8-63DE2D4F947B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45171CDC-EDAC-4D0B-BDF8-63DE2D4F947B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45171CDC-EDAC-4D0B-BDF8-63DE2D4F947B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE3577E5-5D4E-44F8-B181-88A31B92584A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE3577E5-5D4E-44F8-B181-88A31B92584A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE3577E5-5D4E-44F8-B181-88A31B92584A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE3577E5-5D4E-44F8-B181-88A31B92584A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3CDC0A3F-E269-4543-A70A-AA2A3984BB35}
+	EndGlobalSection
+EndGlobal
