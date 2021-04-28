@@ -12,15 +12,25 @@ namespace HairhechallchujurKairbilairlem
     {
         static void Main(string[] args)
         {
-            var suo = new FileInfo(@"..\..\..\.vs\HairhechallchujurKairbilairlem\v16\.suo");
-
             var sln = new FileInfo(@"..\..\..\HairhechallchujurKairbilairlem.sln");
 
-            var projectList = SetStartupProjects.SolutionProjectExtractor.GetAllProjectFiles(sln.FullName).ToList();
+            Console.WriteLine(GetStartupProject(sln));
+        }
 
-            using (var fileStream = suo.Open(FileMode.Open))
+        private static FileInfo GetStartupProject(FileInfo solutionFile)
+        {
+            var solutionFilePath = solutionFile.FullName;
+            var solutionDirectory = solutionFile.DirectoryName;
+
+            var solutionName = Path.GetFileNameWithoutExtension(solutionFilePath);
+            var suoDirectoryPath = Path.Combine(solutionDirectory, ".vs", solutionName, "v16");
+            Directory.CreateDirectory(suoDirectoryPath);
+            var suoFilePath = Path.Combine(suoDirectoryPath, ".suo");
+
+            var projectList = SetStartupProjects.SolutionProjectExtractor.GetAllProjectFiles(solutionFile.FullName).ToList();
+            using (var fileStream = new FileStream(suoFilePath, FileMode.Open))
             {
-                CompoundFile compoundFile = new CompoundFile(fileStream, CFSUpdateMode.ReadOnly, CFSConfiguration.SectorRecycle | CFSConfiguration.EraseFreeSectors);
+                using CompoundFile compoundFile = new CompoundFile(fileStream, CFSUpdateMode.ReadOnly, CFSConfiguration.SectorRecycle | CFSConfiguration.EraseFreeSectors);
                 var cfStream = compoundFile.RootStorage.GetStream("SolutionConfiguration");
                 var byteList = cfStream.GetData();
                 var encoding = Encoding.GetEncodings()
@@ -32,15 +42,15 @@ namespace HairhechallchujurKairbilairlem
                 const char etx = '\u0003';
                 const char soh = '\u0001';
 
-                var regex = new Regex(@$"{dc1}{nul}MultiStartupProj{nul}={etx}[{nul}{soh}]{nul};4{nul}(.{{38}}).dwStartupOpt");
-                var match = regex.Match(text);
+                //var regex = new Regex(@$"{dc1}{nul}MultiStartupProj{nul}={etx}[{nul}{soh}]{nul};4{nul}(.{{38}}).dwStartupOpt");
+                //var match = regex.Match(text);
 
-                if (match.Success)
-                {
-                    var guid = Guid.Parse(match.Groups[1].Value);
-                    var project = projectList.FirstOrDefault(temp => new Guid(temp.Guid) == guid);
+                //if (match.Success)
+                //{
+                //    var guid = Guid.Parse(match.Groups[1].Value);
+                //    var project = projectList.FirstOrDefault(temp => new Guid(temp.Guid) == guid);
 
-                }
+                //}
 
                 var startupProjectRegex = new Regex(@$"StartupProject{nul}={'\b'}&{nul}(.{{38}});A");
                 var startupProjectMatch = startupProjectRegex.Match(text);
@@ -48,9 +58,11 @@ namespace HairhechallchujurKairbilairlem
                 {
                     var guid = Guid.Parse(startupProjectMatch.Groups[1].Value);
                     var project = projectList.FirstOrDefault(temp => new Guid(temp.Guid) == guid);
+                    return new FileInfo(project.FullPath);
                 }
             }
 
+            return null;
         }
     }
 }
