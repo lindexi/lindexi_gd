@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Shoot : MonoBehaviour
+public class ShootWithRotation : MonoBehaviour
 {
     public GameObject Sphere;
     public GameObject Player;
@@ -25,11 +25,18 @@ public class Shoot : MonoBehaviour
             sphere.transform.Translate(base.transform.position);
             sphere.transform.Translate(new Vector3(0, 0, 1));
 
-            //// 向着用户看到方向
-            //sphere.transform.Rotate(new Vector3(0, Player.transform.rotation.y), Space.Self);
-
+            // 向着用户看到方向
+            sphere.transform.rotation = Player.transform.rotation;
+           
             var rigidbody = sphere.GetComponent<Rigidbody>();
-            rigidbody.velocity = new Vector3(1* Player.transform.localRotation.y, 0, 1) * Speed;
+
+            rigidbody.velocity = sphere.transform.forward * Speed;
+
+            //// 旋转发射
+            //var rotation = Player.transform.eulerAngles.y;
+            //var vx = 1 * Mathf.Cos(rotation);
+            //var vy = -1 * Mathf.Sin(rotation);
+            //rigidbody.velocity = new Vector3(vx, 0, vy) * Speed;
         }
     }
 }
