@@ -5,6 +5,7 @@ using UnityEngine;
 public class Shoot : MonoBehaviour
 {
     public GameObject Sphere;
+    public GameObject Player;
 
     public float Speed = 5;
 
@@ -24,8 +25,12 @@ public class Shoot : MonoBehaviour
             sphere.transform.Translate(base.transform.position);
             sphere.transform.Translate(new Vector3(0, 0, 1));
 
+            //// 向着用户看到方向
+            //sphere.transform.Rotate(new Vector3(0, Player.transform.rotation.y), Space.World);
+
             var rigidbody = sphere.GetComponent<Rigidbody>();
             rigidbody.velocity = new Vector3(0, 0, 1) * Speed;
+            //rigidbody.MoveRotation(Player.transform.rotation);
         }
     }
 }

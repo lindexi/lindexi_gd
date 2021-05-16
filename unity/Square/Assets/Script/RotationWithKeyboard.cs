@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class RotationWithMouse : MonoBehaviour
+public class RotationWithKeyboard : MonoBehaviour
 {
     public float Speed = 5;
 
@@ -20,9 +20,6 @@ public class RotationWithMouse : MonoBehaviour
 
         var verticalAsixName = "Vertical";
         var vertical = Input.GetAxis(verticalAsixName);
-
-        Debug.LogWarning($"horizontal={horizontal};vertical={vertical}");
-
 
         transform.Rotate(new Vector3(0, horizontal) * Time.deltaTime * Speed, Space.World);
     }
