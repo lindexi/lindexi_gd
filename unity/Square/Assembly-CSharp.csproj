@@ -59,6 +59,7 @@
     <Compile Include="Assets\Script\MeshPainter.cs" />
     <Compile Include="Assets\Script\Shoot.cs" />
     <Compile Include="Assets\Script\RotationProvider.cs" />
+    <Compile Include="Assets\Script\RotationWithKeyboard.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

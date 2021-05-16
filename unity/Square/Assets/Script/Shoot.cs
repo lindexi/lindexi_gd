@@ -26,7 +26,6 @@ public class Shoot : MonoBehaviour
 
             var rigidbody = sphere.GetComponent<Rigidbody>();
             rigidbody.velocity = new Vector3(0, 0, 1) * Speed;
-
         }
     }
 }
