@@ -26,11 +26,10 @@ public class Shoot : MonoBehaviour
             sphere.transform.Translate(new Vector3(0, 0, 1));
 
             //// 向着用户看到方向
-            //sphere.transform.Rotate(new Vector3(0, Player.transform.rotation.y), Space.World);
+            //sphere.transform.Rotate(new Vector3(0, Player.transform.rotation.y), Space.Self);
 
             var rigidbody = sphere.GetComponent<Rigidbody>();
-            rigidbody.velocity = new Vector3(0, 0, 1) * Speed;
-            //rigidbody.MoveRotation(Player.transform.rotation);
+            rigidbody.velocity = new Vector3(1* Player.transform.localRotation.y, 0, 1) * Speed;
         }
     }
 }
