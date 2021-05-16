@@ -6,7 +6,7 @@ public class Shoot : MonoBehaviour
 {
     public GameObject Sphere;
 
-    public float Speed = 2;
+    public float Speed = 5;
 
     // Start is called before the first frame update
     void Start()
@@ -17,7 +17,7 @@ public class Shoot : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetButtonDown("Fire1"))
         {
             var sphere = GameObject.Instantiate(Sphere);
 
@@ -26,7 +26,7 @@ public class Shoot : MonoBehaviour
 
             var rigidbody = sphere.GetComponent<Rigidbody>();
             rigidbody.velocity = new Vector3(0, 0, 1) * Speed;
-           
+
         }
     }
 }
