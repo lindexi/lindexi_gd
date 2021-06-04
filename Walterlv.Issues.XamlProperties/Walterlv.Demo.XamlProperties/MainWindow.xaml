@@ -1,0 +1,16 @@
+﻿<Window x:Class="Walterlv.Demo.XamlProperties.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Walterlv.Demo.XamlProperties"
+        xmlns:system="clr-namespace:System;assembly=System.Runtime"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <local:DependencyTest.Foo>
+        <system:Boolean>True</system:Boolean>
+    </local:DependencyTest.Foo>
+    <!--<Grid>
+
+    </Grid>-->
+</Window>
