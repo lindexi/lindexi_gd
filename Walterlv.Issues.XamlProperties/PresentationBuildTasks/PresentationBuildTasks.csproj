@@ -70,6 +70,16 @@
       <EmbeddedResource Include="Resources\Strings.resx" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <WpfCommonDir>$(MSBuildThisFileDirectory)..\WpfCommon\</WpfCommonDir>
+    <WpfSharedDir>$(MSBuildThisFileDirectory)..\Shared\</WpfSharedDir>
+    <WpfSourceDir>e:\程序\ethylene156\God\wpf_3.1\src\Microsoft.DotNet.Wpf\src\</WpfSourceDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\FixCompile\**\*.cs"></Compile>
+  </ItemGroup>
+
   <ItemGroup>
     <Compile Include="$(WpfCommonDir)src\System\LocalAppContext.cs" />
     <Compile Include="$(WpfCommonDir)src\System\AppContextDefaultValues.cs" />
