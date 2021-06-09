@@ -244,6 +244,10 @@ namespace Microsoft.Build.Tasks.Windows
             set { _compileTypeName = value; }
         }
 
+        public string BaseIntermediateOutputPath { set; get; }
+        public string Analyzers { set; get; }
+        public string TemporaryTargetAssemblyProjectName { set; get; }
+        public string IncludePackageReferencesDuringMarkupCompilation { set; get; }
 
         /// <summary>
         /// ReferencePath

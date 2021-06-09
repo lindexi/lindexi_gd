@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using System.Xaml.Resources;
 using Microsoft.Build.Framework;
@@ -9,6 +10,29 @@ namespace System.Xaml.Resources
     public class Strings
     {
 
+    }
+}
+
+class FakeResourceManager : global::System.Resources.ResourceManager
+{
+    public override string GetString(string name)
+    {
+        return name;
+    }
+
+    public override string GetString(string name, CultureInfo culture)
+    {
+        return name;
+    }
+
+    public override object GetObject(string name)
+    {
+        return name;
+    }
+
+    public override object GetObject(string name, CultureInfo culture)
+    {
+        return name;
     }
 }
 
@@ -28,8 +52,7 @@ namespace System.Xaml.Resources
                 {
                     if (object.ReferenceEquals(resourceMan, null))
                     {
-                        global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("System.Xaml.Resources.Strings", typeof(Strings).Assembly);
-                        resourceMan = temp;
+                        resourceMan = new FakeResourceManager();
                     }
                     return resourceMan;
                 }

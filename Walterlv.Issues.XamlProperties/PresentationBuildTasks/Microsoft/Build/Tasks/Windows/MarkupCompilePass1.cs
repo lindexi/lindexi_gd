@@ -101,6 +101,8 @@ namespace Microsoft.Build.Tasks.Windows
         /// <returns></returns>
         public override bool Execute()
         {
+            Debugger.Launch();
+
             TaskHelper.DisplayLogo(Log, nameof(MarkupCompilePass1));
 
             bool bSuccess = true;
@@ -283,6 +285,8 @@ namespace Microsoft.Build.Tasks.Windows
                 }
             }
         }
+
+        public string SupportCustomOutputPaths { set; get; }
 
         ///<summary>
         /// OutputType

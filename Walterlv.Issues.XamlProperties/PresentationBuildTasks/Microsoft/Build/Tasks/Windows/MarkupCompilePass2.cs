@@ -382,6 +382,8 @@ namespace Microsoft.Build.Tasks.Windows
             }
         }
 
+        public string SupportCustomOutputPaths { set; get; }
+
         /// <summary>
         /// Controls how to generate localization information for each xaml file.
         /// Valid values: None, CommentsOnly, All.
