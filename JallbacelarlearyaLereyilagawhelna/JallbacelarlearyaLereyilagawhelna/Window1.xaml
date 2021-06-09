@@ -1,0 +1,18 @@
+﻿<Window x:Class="JallbacelarlearyaLereyilagawhelna.Window1"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:JallbacelarlearyaLereyilagawhelna"
+        mc:Ignorable="d"
+        Title="Window1" Height="450" Width="800">
+    <Grid>
+        <Button x:Name="OpenPopupButton" HorizontalAlignment="Center" VerticalAlignment="Center"
+                Content="Open Popup" Click="OpenPopupButton_OnClick"></Button>
+        <Popup x:Name="Popup" StaysOpen="False" PlacementTarget="{x:Reference OpenPopupButton}">
+            <Grid Background="Gray" Width="100" Height="100">
+                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center">The popup</TextBlock>
+            </Grid>
+        </Popup>
+    </Grid>
+</Window>
