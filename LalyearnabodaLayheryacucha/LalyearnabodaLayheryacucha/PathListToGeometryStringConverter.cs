@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System;
+using System.Diagnostics;
+using System.Text;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Drawing;
 using dotnetCampus.OpenXMLUnitConverter;
@@ -19,9 +21,11 @@ namespace LalyearnabodaLayheryacucha
 
             foreach (var path in pathList.Elements<DocumentFormat.OpenXml.Drawing.Path>())
             {
+                EmuPoint currentPixelPoint = default;
                 foreach (var pathData in path.ChildElements)
                 {
-                    ConvertToPathString(pathData, stringPath, out var isPathLine);
+                    currentPixelPoint =
+                        ConvertToPathString(pathData, stringPath, currentPixelPoint, out var isPathLine);
                     if (!isPathLine)
                     {
                         isLine = false;
@@ -34,9 +38,9 @@ namespace LalyearnabodaLayheryacucha
 
         private const string Comma = ",";
 
-        private static void ConvertToPathString(OpenXmlElement pathData, StringBuilder stringPath, out bool isLine)
+        private static EmuPoint ConvertToPathString(OpenXmlElement pathData, StringBuilder stringPath,
+            EmuPoint currentPoint, out bool isLine)
         {
-            const string comma = Comma;
             isLine = true;
 
             switch (pathData)
@@ -49,8 +53,10 @@ namespace LalyearnabodaLayheryacucha
                     if (moveToPoint?.X != null && moveToPoint?.Y != null)
                     {
                         stringPath.Append(defineKey);
-                        var point = PointToPixelPoint(moveToPoint);
+                        var emuPoint = moveToPoint.PointToEmuPoint();
+                        var point = emuPoint.ToPixelPoint();
                         PointToString(point);
+                        return emuPoint;
                     }
 
                     break;
@@ -63,66 +69,53 @@ namespace LalyearnabodaLayheryacucha
                     if (lineToPoint?.X != null && lineToPoint?.Y != null)
                     {
                         stringPath.Append(defineKey);
-                        var point = PointToPixelPoint(lineToPoint);
+                        var emuPoint = lineToPoint.PointToEmuPoint();
+                        var point = emuPoint.ToPixelPoint();
                         PointToString(point);
+                        return emuPoint;
                     }
 
                     break;
                 }
                 case ArcTo arcTo:
                 {
-                    var defineKey = "A";
-
-                    Degree rotationAngle = new Degree(0);
+                    Degree swingAngDegree = new Degree(0);
                     var swingAngleString = arcTo.SwingAngle;
                     if (swingAngleString != null)
                     {
                         if (int.TryParse(swingAngleString, out var swingAngle))
                         {
-                            rotationAngle = new Degree(swingAngle);
+                            swingAngDegree = new Degree(swingAngle);
                         }
                     }
 
-                    var isLargeArcFlag = rotationAngle.DoubleValue > 180;
+                    Degree startAngleDegree = new Degree(0);
+                    var startAngleString = arcTo.StartAngle;
+                    if (startAngleString != null)
+                    {
+                        if (int.TryParse(startAngleString.Value, out var startAngle))
+                        {
+                            startAngleDegree = new Degree(startAngle);
+                        }
+                    }
 
-                    var widthRadius = EmuStringToPixel(arcTo.WidthRadius);
-                    var heightRadius = EmuStringToPixel(arcTo.HeightRadius);
-                    var (x, y) = EllipseCoordinateHelper.GetEllipseCoordinate(widthRadius, heightRadius, rotationAngle);
+                    var widthRadius = EmuStringToEmu(arcTo.WidthRadius);
+                    var heightRadius = EmuStringToEmu(arcTo.HeightRadius);
 
-                    // 格式如下
-                    // A rx ry x-axis-rotation large-arc-flag sweep-flag x y
-                    // 这里 large-arc-flag 是 1 和 0 表示
-                    stringPath.Append(defineKey)
-                        .Append(EmuToPixelString(arcTo.WidthRadius)) //rx
-                        .Append(comma)
-                        .Append(EmuToPixelString(arcTo.HeightRadius)) //ry
-                        .Append(comma)
-                        .Append(rotationAngle.DoubleValue.ToString("0.000")) // x-axis-rotation
-                        .Append(comma)
-                        .Append(isLargeArcFlag ? "1" : "0") //large-arc-flag
-                        .Append(comma)
-                        .Append("0") // sweep-flag
-                        .Append(comma)
-                        .Append(PixelToString(x))
-                        .Append(comma)
-                        .Append(PixelToString(y));
-                    break;
+                    return ArcToToString(stringPath, currentPoint, widthRadius, heightRadius,
+                        startAngleDegree, swingAngDegree);
                 }
                 case QuadraticBezierCurveTo quadraticBezierCurveTo:
                 {
                     var defineKey = "Q";
 
-                    ConvertPointList(quadraticBezierCurveTo, defineKey, stringPath);
-
-                    break;
+                    return ConvertPointList(quadraticBezierCurveTo, defineKey, stringPath);
                 }
                 case CubicBezierCurveTo cubicBezierCurveTo:
                 {
                     var defineKey = "C";
 
-                    ConvertPointList(cubicBezierCurveTo, defineKey, stringPath);
-
-                    break;
+                    return ConvertPointList(cubicBezierCurveTo, defineKey, stringPath);
                 }
                 case CloseShapePath closeShapePath:
                 {
@@ -133,12 +126,65 @@ namespace LalyearnabodaLayheryacucha
                 }
             }
 
+            return default;
+
             void PointToString(PixelPoint point) => PixelPointToString(point, stringPath);
         }
 
-        static void ConvertPointList(OpenXmlCompositeElement element, string defineKey, StringBuilder stringPath)
+        private static EmuPoint ArcToToString(StringBuilder stringPath, EmuPoint currentPoint,
+            Emu widthRadius,
+            Emu heightRadius,
+            Degree startAngleString, Degree swingAngleString)
+        {
+            const string comma = Comma;
+
+            var stAng = DegreeToRadiansAngle(startAngleString);
+            var swAng = DegreeToRadiansAngle(swingAngleString);
+
+            var wR = widthRadius.Value;
+            var hR = heightRadius.Value;
+
+            var p1 = GetEllipsePoint(wR, hR, stAng);
+            var p2 = GetEllipsePoint(wR, hR, stAng + swAng);
+            var pt = new EmuPoint(currentPoint.X.Value - p1.X.Value + p2.X.Value,
+                currentPoint.Y.Value - p1.Y.Value + p2.Y.Value);
+
+            var isLargeArcFlag = swAng >= Math.PI;
+            currentPoint = pt;
+
+            // 格式如下
+            // A rx ry x-axis-rotation large-arc-flag sweep-flag x y
+            // 这里 large-arc-flag 是 1 和 0 表示
+            stringPath.Append("A")
+                .Append(EmuToPixelString(wR)) //rx
+                .Append(comma)
+                .Append(EmuToPixelString(hR)) //ry
+                .Append(comma)
+                .Append("0") // x-axis-rotation
+                .Append(comma)
+                .Append(isLargeArcFlag ? "1" : "0") //large-arc-flag
+                .Append(comma)
+                .Append("1") // sweep-flag
+                .Append(comma)
+                .Append(EmuToPixelString(pt.X))
+                .Append(comma)
+                .Append(EmuToPixelString(pt.Y))
+                .Append(' ');
+            return currentPoint;
+        }
+
+        private static EmuPoint GetEllipsePoint(double a, double b, double theta)
+        {
+            var aSinTheta = a * Math.Sin(theta);
+            var bCosTheta = b * Math.Cos(theta);
+            var circleRadius = Math.Sqrt(aSinTheta * aSinTheta + bCosTheta * bCosTheta);
+            return new EmuPoint(a * bCosTheta / circleRadius, b * aSinTheta / circleRadius);
+        }
+
+        static EmuPoint ConvertPointList(OpenXmlCompositeElement element, string defineKey, StringBuilder stringPath)
         {
             bool isFirstPoint = true;
+            EmuPoint lastPoint = default;
             foreach (var point in element.Elements<Point>())
             {
                 if (isFirstPoint)
@@ -152,27 +198,36 @@ namespace LalyearnabodaLayheryacucha
                     stringPath.Append(" ");
                 }
 
-                var pixelPoint = PointToPixelPoint(point);
+                var emuPoint = point.PointToEmuPoint();
+                PixelPoint pixelPoint = emuPoint.ToPixelPoint();
                 PixelPointToString(pixelPoint, stringPath);
+                lastPoint = emuPoint;
             }
+
+            return lastPoint;
         }
 
-        static void PixelPointToString(PixelPoint point, StringBuilder stringPath)
+        private static double DegreeToRadiansAngle(Degree x)
         {
-            stringPath.Append(PixelToString(point.X))
-                .Append(Comma)
-                .Append(PixelToString(point.Y));
+            return x.DoubleValue * Math.PI / 180;
         }
 
-        static string PixelToString(Pixel x) =>
-            // 太小了很看不到形状，丢失精度，这里的值都是采用形状的大小进行填充，所以参数都是相对大小就可以
-            (x.Value * 1.000).ToString("0.000");
-
-        static PixelPoint PointToPixelPoint(Point? point)
+        readonly struct EmuPoint
         {
-            var x = EmuStringToPixel(point?.X);
-            var y = EmuStringToPixel(point?.Y);
-            return new PixelPoint(x, y);
+            public EmuPoint(Emu x, Emu y)
+            {
+                X = x;
+                Y = y;
+            }
+
+            public EmuPoint(double x, double y)
+            {
+                X = new Emu(x);
+                Y = new Emu(y);
+            }
+
+            public Emu X { get; }
+            public Emu Y { get; }
         }
 
         readonly struct PixelPoint
@@ -187,7 +242,19 @@ namespace LalyearnabodaLayheryacucha
             public Pixel Y { get; }
         }
 
-        static Pixel EmuStringToPixel(StringValue? emuString)
+        static PixelPoint ToPixelPoint(this EmuPoint emuPoint)
+        {
+            return new PixelPoint(emuPoint.X.ToPixel(), emuPoint.Y.ToPixel());
+        }
+
+        static EmuPoint PointToEmuPoint(this Point? point)
+        {
+            var x = EmuStringToEmu(point?.X);
+            var y = EmuStringToEmu(point?.Y);
+            return new EmuPoint(x, y);
+        }
+
+        static Emu EmuStringToEmu(StringValue? emuString)
         {
             if (emuString == null)
             {
@@ -203,29 +270,32 @@ namespace LalyearnabodaLayheryacucha
             if (int.TryParse(emuString, out var emuValue))
             {
                 var emu = new Emu(emuValue);
-                return emu.ToPixel();
+                return emu;
             }
 
             return default;
         }
 
-        static string EmuToPixelString(StringValue? emuString) => EmuStringToPixelString(emuString?.Value);
-
-        static string EmuStringToPixelString(string? emuString)
+        static void PixelPointToString(PixelPoint point, StringBuilder stringPath)
         {
-            if (string.IsNullOrEmpty(emuString))
-            {
-                return "0";
-            }
+            stringPath.Append(PixelToString(point.X))
+                .Append(Comma)
+                .Append(PixelToString(point.Y));
+        }
 
-            if (int.TryParse(emuString, out var emuValue))
-            {
-                var emu = new Emu(emuValue);
-                return PixelToString(emu.ToPixel());
-            }
+        static string PixelToString(Pixel x) =>
+            // 太小了很看不到形状，丢失精度，这里的值都是采用形状的大小进行填充，所以参数都是相对大小就可以
+            (x.Value * 1.000).ToString("0.000");
 
-            // 保持数据不出错，但是如果此时的值不对了，应该这个课件是乱写的
-            return "0";
+        private static string EmuToPixelString(double emuValue)
+        {
+            var emu = new Emu(emuValue);
+            return EmuToPixelString(emu);
+        }
+
+        private static string EmuToPixelString(Emu emu)
+        {
+            return PixelToString(emu.ToPixel());
         }
     }
 }
