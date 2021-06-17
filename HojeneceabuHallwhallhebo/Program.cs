@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
 namespace HojeneceabuHallwhallhebo
@@ -11,7 +12,7 @@ namespace HojeneceabuHallwhallhebo
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
             var program = new Program();
-            program.F1();
+            program.F2();
 
             GC.Collect();
             GC.WaitForFullGCComplete();
@@ -28,18 +29,56 @@ namespace HojeneceabuHallwhallhebo
 
         private void F1()
         {
+            Foo foo = null;
             try
             {
-                _ = new Foo();
+                foo = new Foo();
             }
             catch
             {
-               // 忽略
+                // 忽略
+            }
+            finally
+            {
+                try
+                {
+                    foo?.Dispose();
+                }
+                catch 
+                {
+                   // 刚好 foo 对象是空，因此不会进入此函数
+                }
+            }
+        }
+
+        private void F2()
+        {
+            Foo foo = null;
+            try
+            {
+                foo = (Foo) FormatterServices.GetUninitializedObject(typeof(Foo));
+                var constructorInfo = typeof(Foo).GetConstructor(new Type[0]);
+                constructorInfo!.Invoke(foo, null);
+            }
+            catch
+            {
+                // 忽略
+            }
+            finally
+            {
+                try
+                {
+                    foo?.Dispose();
+                }
+                catch
+                {
+                    // 可以调用到 Dispose 方法
+                }
             }
         }
     }
 
-    class Foo
+    class Foo : IDisposable
     {
         public Foo()
         {
@@ -48,7 +87,14 @@ namespace HojeneceabuHallwhallhebo
 
         ~Foo()
         {
-            throw new Exception("lsj is doubi");
+            Dispose();
+        }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+
+            throw new Exception($"lsj is doubi");
         }
     }
 }
