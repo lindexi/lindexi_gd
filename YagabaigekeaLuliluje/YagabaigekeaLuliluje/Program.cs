@@ -16,10 +16,11 @@ namespace YagabaigekeaLuliluje
 
         public static int GetAvailablePort(IPAddress ip)
         {
-            TcpListener l = new TcpListener(ip, 0);
-            l.Start();
-            int port = ((IPEndPoint)l.LocalEndpoint).Port;
-            l.Stop();
+            using var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+            socket.Bind(new IPEndPoint(ip, 0));
+            socket.Listen(1);
+            var ipEndPoint = (IPEndPoint)socket.LocalEndPoint;
+            var port = ipEndPoint.Port;
             return port;
         }
     }
