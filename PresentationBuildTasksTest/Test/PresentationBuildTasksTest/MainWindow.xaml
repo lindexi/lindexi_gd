@@ -1,0 +1,39 @@
+﻿<Window x:Class="Walterlv.Demo.XamlProperties.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Walterlv.Demo.XamlProperties"
+        xmlns:system="clr-namespace:System;assembly=System.Runtime"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+  <Grid>
+    <Button Height="100" HorizontalAlignment="Center" VerticalAlignment="Center" Click="Button_OnClick">
+      <Button.Template>
+        <ControlTemplate TargetType="Button">
+          <ControlTemplate.Resources>
+            <Storyboard x:Key="TestStoryboard">
+              <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Height"
+                                             Completed="DoubleAnimationUsingKeyFrames_Completed">
+                <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="48" />
+                <EasingDoubleKeyFrame KeyTime="0:0:0.6" Value="10">
+                  <EasingDoubleKeyFrame.EasingFunction>
+                    <CubicEase EasingMode="EaseOut" />
+                  </EasingDoubleKeyFrame.EasingFunction>
+                </EasingDoubleKeyFrame>
+              </DoubleAnimationUsingKeyFrames>
+            </Storyboard>
+          </ControlTemplate.Resources>
+          <ControlTemplate.Triggers>
+            <DataTrigger Binding="{Binding TestBool}" Value="True">
+              <DataTrigger.EnterActions>
+                <BeginStoryboard Storyboard="{StaticResource TestStoryboard}" />
+              </DataTrigger.EnterActions>
+            </DataTrigger>
+          </ControlTemplate.Triggers>
+          <Border Height="{TemplateBinding Height}" Width="100" Background="Red" />
+        </ControlTemplate>
+      </Button.Template>
+    </Button>
+  </Grid>
+</Window>
