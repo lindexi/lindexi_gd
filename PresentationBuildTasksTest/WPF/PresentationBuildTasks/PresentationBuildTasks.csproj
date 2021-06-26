@@ -73,7 +73,7 @@
   <PropertyGroup>
     <WpfCommonDir>$(MSBuildThisFileDirectory)..\WpfCommon\</WpfCommonDir>
     <WpfSharedDir>$(MSBuildThisFileDirectory)..\Shared\</WpfSharedDir>
-    <WpfSourceDir>e:\程序\ethylene156\God\wpf_3.1\src\Microsoft.DotNet.Wpf\src\</WpfSourceDir>
+    <WpfSourceDir>$(MSBuildThisFileDirectory)..\WpfSourceDir</WpfSourceDir>
   </PropertyGroup>
 
   <ItemGroup>
