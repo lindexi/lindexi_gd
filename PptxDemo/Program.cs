@@ -33,32 +33,40 @@ namespace PptxDemo
             {
                 // [TimeLine 对象 (PowerPoint) | Microsoft Docs](https://docs.microsoft.com/zh-cn/office/vba/api/PowerPoint.TimeLine )
                 //  MainSequence 主动画序列
-                var mainParallelTimeNode = mainSequenceTimeNode.ChildTimeNodeList
-                    .GetFirstChild<ParallelTimeNode>().CommonTimeNode.ChildTimeNodeList
-                    .GetFirstChild<ParallelTimeNode>().CommonTimeNode.ChildTimeNodeList
-                    .GetFirstChild<ParallelTimeNode>();
+                var mainParallelTimeNode = mainSequenceTimeNode.ChildTimeNodeList;
 
-                switch (mainParallelTimeNode.CommonTimeNode.PresetClass.Value)
+                foreach (var openXmlElement in mainParallelTimeNode)
                 {
-                    case TimeNodePresetClassValues.Entrance:
-                        // 进入动画
-                        break;
-                    case TimeNodePresetClassValues.Exit:
-                        // 退出动画
-                        break;
-                    case TimeNodePresetClassValues.Emphasis:
-                        // 强调动画
-                        break;
-                    case TimeNodePresetClassValues.Path:
-                        // 路由动画
-                        break;
-                    case TimeNodePresetClassValues.Verb:
-                        break;
-                    case TimeNodePresetClassValues.MediaCall:
-                        // 播放动画
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
+                    // 并行关系的
+                    if (openXmlElement is ParallelTimeNode parallelTimeNode)
+                    {
+                        var timeNode = parallelTimeNode.CommonTimeNode.ChildTimeNodeList
+                            .GetFirstChild<ParallelTimeNode>().CommonTimeNode.ChildTimeNodeList
+                            .GetFirstChild<ParallelTimeNode>().CommonTimeNode;
+
+                        switch (timeNode.PresetClass.Value)
+                        {
+                            case TimeNodePresetClassValues.Entrance:
+                                // 进入动画
+                                break;
+                            case TimeNodePresetClassValues.Exit:
+                                // 退出动画
+                                break;
+                            case TimeNodePresetClassValues.Emphasis:
+                                // 强调动画
+                                break;
+                            case TimeNodePresetClassValues.Path:
+                                // 路由动画
+                                break;
+                            case TimeNodePresetClassValues.Verb:
+                                break;
+                            case TimeNodePresetClassValues.MediaCall:
+                                // 播放动画
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException();
+                        }
+                    }
                 }
             }
 
