@@ -15,6 +15,12 @@ namespace PptxDemo
             var slidePart = presentationPart!.SlideParts.First();
             var slide = slidePart.Slide;
             var timing = slide.Timing;
+            /*
+             * <p:timing>
+                <p:tnLst>
+                  <p:par>
+                    <p:cTn id="1" dur="indefinite" restart="never" nodeType="tmRoot">
+             */
             // 第一级里面默认只有一项
             var commonTimeNode = timing?.TimeNodeList?.ParallelTimeNode?.CommonTimeNode;
 
@@ -25,9 +31,12 @@ namespace PptxDemo
             }
 
             if (commonTimeNode?.ChildTimeNodeList == null) return;
+            // <p:childTnLst>
+            //   <p:seq concurrent="1" nextAc="seek">
             // 理论上只有一项，而且一定是 SequenceTimeNode 类型
             var sequenceTimeNode = commonTimeNode.ChildTimeNodeList.GetFirstChild<SequenceTimeNode>();
 
+            // <p:cTn id="2" dur="indefinite" nodeType="mainSeq">
             var mainSequenceTimeNode = sequenceTimeNode.CommonTimeNode;
             if (mainSequenceTimeNode?.NodeType?.Value == TimeNodeValues.MainSequence)
             {
