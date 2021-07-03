@@ -40,20 +40,32 @@ namespace PptxDemo
             var mainSequenceTimeNode = sequenceTimeNode.CommonTimeNode;
             if (mainSequenceTimeNode?.NodeType?.Value == TimeNodeValues.MainSequence)
             {
+                // <p:childTnLst>
                 // [TimeLine 对象 (PowerPoint) | Microsoft Docs](https://docs.microsoft.com/zh-cn/office/vba/api/PowerPoint.TimeLine )
                 //  MainSequence 主动画序列
-                var mainParallelTimeNode = mainSequenceTimeNode.ChildTimeNodeList;
-
-                foreach (var openXmlElement in mainParallelTimeNode)
+                ChildTimeNodeList mainChildTimeNodeList = mainSequenceTimeNode.ChildTimeNodeList!;
+                // <p:par>
+                var mainParallelTimeNode = mainChildTimeNodeList!.GetFirstChild<ParallelTimeNode>();
+                // <p:cTn id="3" fill="hold">
+                var subCommonTimeNode = mainParallelTimeNode!.CommonTimeNode;
+                // <p:childTnLst>
+                var subChildTimeNodeList = subCommonTimeNode!.ChildTimeNodeList;
+                foreach (var openXmlElement in subChildTimeNodeList!)
                 {
-                    // 并行关系的
+                    // 按照顺序获取
+                    // <p:par>
+                    // <!-- 进入动画-->
+                    // </p:par>
+                    // <p:par>
+                    // <!-- 强调动画-->
+                    // </p:par>
+                    // <p:par>
+                    // <!-- 退出动画-->
+                    // </p:par>
                     if (openXmlElement is ParallelTimeNode parallelTimeNode)
                     {
-                        var timeNode = parallelTimeNode.CommonTimeNode.ChildTimeNodeList
-                            .GetFirstChild<ParallelTimeNode>().CommonTimeNode.ChildTimeNodeList
-                            .GetFirstChild<ParallelTimeNode>().CommonTimeNode;
-
-                        switch (timeNode.PresetClass.Value)
+                        var timeNode = parallelTimeNode!.CommonTimeNode!.ChildTimeNodeList!.GetFirstChild<ParallelTimeNode>()!.CommonTimeNode;
+                        switch (timeNode!.PresetClass!.Value)
                         {
                             case TimeNodePresetClassValues.Entrance:
                                 // 进入动画
