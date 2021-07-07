@@ -48,42 +48,22 @@ namespace KechinabeleenalLechefahar
                 BitmapPropertySet propertySet = new BitmapPropertySet();
                 BitmapTypedValue qualityValue = new BitmapTypedValue(0.77, PropertyType.Single);
                 propertySet.Add("ImageQuality", qualityValue);
-                propertySet.Add("f-number", new BitmapTypedValue(6f, PropertyType.Single));
 
                 var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.JpegEncoderId, pngStream.AsRandomAccessStream(), propertySet);
 
-                /*var propertySet = new Windows.Graphics.Imaging.BitmapPropertySet();
-                //propertySet.Add("Focal length", new BitmapTypedValue(Encoding.UTF8.GetBytes("20.3 mm"), PropertyType.UInt8Array));
-                //propertySet.Add("Exposure time", new BitmapTypedValue(Encoding.UTF8.GetBytes("1/659 s "), PropertyType.UInt8Array));
-                //propertySet.Add("F-Number", new BitmapTypedValue(6f, PropertyType.Single));
-                //propertySet.Add("City", new BitmapTypedValue("London", PropertyType.String));
-                //propertySet.Add("Focal Length in 35mm Format", new BitmapTypedValue("12", PropertyType.String));
-                propertySet.Add("ImageQuality", new BitmapTypedValue(0.1f, PropertyType.Single));
-                propertySet.Add("System.Photo.Orientation", new Windows.Graphics.Imaging.BitmapTypedValue
-                (
-                    1, // Defined as EXIF orientation = "normal"
-                    Windows.Foundation.PropertyType.UInt16
-                ));
+                // https://docs.microsoft.com/en-us/windows/win32/properties/windows-properties-system?WT.mc_id=WD-MVP-5003260
+                propertySet = new BitmapPropertySet();
+                // 作者
+                propertySet.Add("System.Author", new BitmapTypedValue("lindexi", PropertyType.String));
+                // 相机型号
+                propertySet.Add("System.Photo.CameraModel", new BitmapTypedValue("lindexi", PropertyType.String));
+                // 制造商
+                propertySet.Add("System.Photo.CameraManufacturer", new BitmapTypedValue("lindexi manufacturer", PropertyType.String));
+                // 光圈值 System.Photo.FNumberNumerator/System.Photo.FNumberDenominator
+                propertySet.Add("System.Photo.FNumberNumerator", new BitmapTypedValue(1, PropertyType.UInt32));
+                propertySet.Add("System.Photo.FNumberDenominator", new BitmapTypedValue(10, PropertyType.UInt32));
 
-                await encoder.BitmapProperties.SetPropertiesAsync(propertySet);*/
-
-                /*BitmapPropertySet properties = await encoder.BitmapProperties.GetPropertiesAsync(new []{ "/appext/Data" });
-                properties = new BitmapPropertySet()
-                {
-                    {
-                        "/appext/Application",
-                        new BitmapTypedValue(Encoding.UTF8.GetBytes("NETSCAPE2.0"), Windows.Foundation.PropertyType.UInt8Array)
-                    },
-                    {
-                        "/appext/Data",
-                        new BitmapTypedValue(new byte[] { 3, 1, 0, 0, 0 }, Windows.Foundation.PropertyType.UInt8Array)
-                    }
-                };
-
-                await encoder.BitmapProperties.SetPropertiesAsync(properties);*/
-
-                var list = new List<string>();
-                var bitmapPropertySet = await encoder.BitmapProperties.GetPropertiesAsync(list);
+                await encoder.BitmapProperties.SetPropertiesAsync(propertySet);
 
                 var pixelBuffer = await renderTargetBitmap.GetPixelsAsync();
 
