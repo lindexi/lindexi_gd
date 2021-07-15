@@ -1,0 +1,6 @@
+﻿<Project>
+  <Target Name="CopyImage1File" BeforeTargets="AfterCompile">
+     <Copy SourceFiles="$(MSBuildThisFileDirectory)..\content\Image1.png" 
+           DestinationFolder="$(OutputPath)" SkipUnchangedFiles="True" /> 
+  </Target>
+</Project>
