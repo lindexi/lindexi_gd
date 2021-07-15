@@ -15,6 +15,12 @@ namespace PptxDemo
             var slidePart = presentationPart!.SlideParts.First();
             var slide = slidePart.Slide;
             var timing = slide.Timing;
+            /*
+             * <p:timing>
+                <p:tnLst>
+                  <p:par>
+                    <p:cTn id="1" dur="indefinite" restart="never" nodeType="tmRoot">
+             */
             // 第一级里面默认只有一项
             var commonTimeNode = timing?.TimeNodeList?.ParallelTimeNode?.CommonTimeNode;
 
@@ -25,26 +31,41 @@ namespace PptxDemo
             }
 
             if (commonTimeNode?.ChildTimeNodeList == null) return;
+            // <p:childTnLst>
+            //   <p:seq concurrent="1" nextAc="seek">
             // 理论上只有一项，而且一定是 SequenceTimeNode 类型
             var sequenceTimeNode = commonTimeNode.ChildTimeNodeList.GetFirstChild<SequenceTimeNode>();
 
+            // <p:cTn id="2" dur="indefinite" nodeType="mainSeq">
             var mainSequenceTimeNode = sequenceTimeNode.CommonTimeNode;
             if (mainSequenceTimeNode?.NodeType?.Value == TimeNodeValues.MainSequence)
             {
+                // <p:childTnLst>
                 // [TimeLine 对象 (PowerPoint) | Microsoft Docs](https://docs.microsoft.com/zh-cn/office/vba/api/PowerPoint.TimeLine )
                 //  MainSequence 主动画序列
-                var mainParallelTimeNode = mainSequenceTimeNode.ChildTimeNodeList;
-
-                foreach (var openXmlElement in mainParallelTimeNode)
+                ChildTimeNodeList mainChildTimeNodeList = mainSequenceTimeNode.ChildTimeNodeList!;
+                // <p:par>
+                var mainParallelTimeNode = mainChildTimeNodeList!.GetFirstChild<ParallelTimeNode>();
+                // <p:cTn id="3" fill="hold">
+                var subCommonTimeNode = mainParallelTimeNode!.CommonTimeNode;
+                // <p:childTnLst>
+                var subChildTimeNodeList = subCommonTimeNode!.ChildTimeNodeList;
+                foreach (var openXmlElement in subChildTimeNodeList!)
                 {
-                    // 并行关系的
+                    // 按照顺序获取
+                    // <p:par>
+                    // <!-- 进入动画-->
+                    // </p:par>
+                    // <p:par>
+                    // <!-- 强调动画-->
+                    // </p:par>
+                    // <p:par>
+                    // <!-- 退出动画-->
+                    // </p:par>
                     if (openXmlElement is ParallelTimeNode parallelTimeNode)
                     {
-                        var timeNode = parallelTimeNode.CommonTimeNode.ChildTimeNodeList
-                            .GetFirstChild<ParallelTimeNode>().CommonTimeNode.ChildTimeNodeList
-                            .GetFirstChild<ParallelTimeNode>().CommonTimeNode;
-
-                        switch (timeNode.PresetClass.Value)
+                        var timeNode = parallelTimeNode!.CommonTimeNode!.ChildTimeNodeList!.GetFirstChild<ParallelTimeNode>()!.CommonTimeNode;
+                        switch (timeNode!.PresetClass!.Value)
                         {
                             case TimeNodePresetClassValues.Entrance:
                                 // 进入动画
