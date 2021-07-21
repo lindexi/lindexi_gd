@@ -1,7 +1,7 @@
 ﻿namespace JinaldalurhaBelnallbune
 {
-    class F2
+    struct F2
     {
-        public F3 F3 { get; } = new F3();
+        public F3 F3 { get; }
     }
 }

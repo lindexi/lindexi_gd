@@ -2,7 +2,7 @@
 
 namespace JinaldalurhaBelnallbune
 {
-    public class F3
+    public struct F3
     {
         static F3()
         {
