@@ -1,0 +1,20 @@
+﻿<Window x:Class="HehemkelwijemKefaiderhea.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:HehemkelwijemKefaiderhea"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Border Background="#FF0078E6">
+            <Ellipse Fill="#FFB8FEFE" HorizontalAlignment="Left" Width="20" Height="20" Margin="10,1,0,0" StrokeThickness="0">
+                <Ellipse.Effect>
+                    <DropShadowEffect BlurRadius="15"
+                                      Direction="502" 
+                                      ShadowDepth="0" Color="White"/>
+                </Ellipse.Effect>
+            </Ellipse>
+        </Border>
+    </Grid>
+</Window>
