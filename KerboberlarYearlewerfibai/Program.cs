@@ -4,6 +4,7 @@ using System.Text;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 using Vanara.PInvoke;
+using Microsoft.Win32;
 
 namespace KerboberlarYearlewerfibai
 {
@@ -11,7 +12,7 @@ namespace KerboberlarYearlewerfibai
     {
         static void Main(string[] args)
         {
-            BenchmarkRunner.Run<Program>();
+            Console.WriteLine(Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\BIOS")?.GetValue("SystemProductName")??"null");
         }
 
         [Benchmark]

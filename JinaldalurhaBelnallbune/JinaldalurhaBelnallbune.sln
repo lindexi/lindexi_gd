@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30804.86
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JinaldalurhaBelnallbune", "JinaldalurhaBelnallbune.csproj", "{A77BA487-AF10-4F72-B5E8-80365BFB1132}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JecairwhawlerfurWheheeqerehere", "..\JecairwhawlerfurWheheeqerehere\JecairwhawlerfurWheheeqerehere.csproj", "{E060D323-B2EB-4DE4-BCA0-9DB8DE113F1C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A77BA487-AF10-4F72-B5E8-80365BFB1132}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A77BA487-AF10-4F72-B5E8-80365BFB1132}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A77BA487-AF10-4F72-B5E8-80365BFB1132}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A77BA487-AF10-4F72-B5E8-80365BFB1132}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E060D323-B2EB-4DE4-BCA0-9DB8DE113F1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E060D323-B2EB-4DE4-BCA0-9DB8DE113F1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E060D323-B2EB-4DE4-BCA0-9DB8DE113F1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E060D323-B2EB-4DE4-BCA0-9DB8DE113F1C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {314FAED0-63A1-48C9-B3E4-3097CED94A9E}
+	EndGlobalSection
+EndGlobal
