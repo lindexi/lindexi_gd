@@ -104,6 +104,10 @@ namespace PptxDemo
                 {
                     ReadShape(shape);
                 }
+                else if (openXmlElement is GroupShape group)
+                {
+                    ReadGroupShape(group);
+                }
             }
         }
 
@@ -130,6 +134,21 @@ namespace PptxDemo
                 // 如果是组合的颜色画刷，那需要去获取组合的
                 var groupShape = shape.Parent as GroupShape;
                 var solidFill = groupShape?.GroupShapeProperties?.GetFirstChild<SolidFill>();
+
+                if (solidFill is null)
+                {
+                    // 继续获取组合的组合
+                    while (groupShape!=null)
+                    {
+                        groupShape = groupShape.Parent as GroupShape;
+                        solidFill = groupShape?.GroupShapeProperties?.GetFirstChild<SolidFill>();
+
+                        if (solidFill != null)
+                        {
+                            break;
+                        }
+                    }
+                }
 
                 Debug.Assert(solidFill?.RgbColorModelHex?.Val != null, "solidFill.RgbColorModelHex.Val != null");
                 Console.WriteLine(solidFill.RgbColorModelHex.Val.Value);
