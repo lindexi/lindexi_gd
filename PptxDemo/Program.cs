@@ -2,6 +2,8 @@
 using System.Linq;
 using DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.Presentation;
+using dotnetCampus.OpenXmlUnitConverter;
+using Shape = DocumentFormat.OpenXml.Presentation.Shape;
 
 namespace PptxDemo
 {
@@ -14,6 +16,9 @@ namespace PptxDemo
             var presentationPart = presentationDocument.PresentationPart;
             var slidePart = presentationPart!.SlideParts.First();
             var slide = slidePart.Slide;
+
+            GetShape(slide);
+
             var timing = slide.Timing;
             // 第一级里面默认只有一项
             var commonTimeNode = timing?.TimeNodeList?.ParallelTimeNode?.CommonTimeNode;
@@ -72,6 +77,34 @@ namespace PptxDemo
 
             // 文档规定，必须存在一个AttributeNameList列表，一定存在AttributeName元素，如果有多个只取第一个元素。
             // 见"[MS-OI 29500].PDF 第2.1.1137章节（g选项）"
+        }
+
+        private static void GetShape(Slide slide)
+        {
+            foreach (var openXmlElement in slide.CommonSlideData.ShapeTree)
+            {
+                if (openXmlElement is Shape shape)
+                {
+                    ReadShape(shape);
+                }
+            }
+        }
+
+        private static void ReadShape(Shape shape)
+        {
+            // 读取线条宽度的方法
+            var outline = shape.ShapeProperties?.GetFirstChild<Outline>();
+            if (outline != null)
+            {
+                var lineWidth = outline.Width;
+                var emu = new Emu(lineWidth);
+                var pixel = emu.ToPixel();
+                Console.WriteLine($"线条宽度 {pixel.Value}");
+            }
+            else
+            {
+                // 这形状没有定义轮廓
+            }
         }
     }
 }
