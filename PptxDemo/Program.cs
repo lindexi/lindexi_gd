@@ -136,8 +136,15 @@ static void ReadFill(Shape shape)
             }
         }
 
-        Debug.Assert(solidFill?.RgbColorModelHex?.Val != null, "solidFill.RgbColorModelHex.Val != null");
-        Console.WriteLine(solidFill.RgbColorModelHex.Val.Value);
+        if (solidFill is null)
+        {
+            Console.WriteLine($"没有颜色");
+        }
+        else
+        {
+            Debug.Assert(solidFill.RgbColorModelHex?.Val != null, "solidFill.RgbColorModelHex.Val != null");
+            Console.WriteLine(solidFill.RgbColorModelHex.Val.Value);
+        }
     }
     else
     {
