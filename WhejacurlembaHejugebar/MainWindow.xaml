@@ -1,0 +1,123 @@
+﻿<Window x:Class="WhejacurlembaHejugebar.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WhejacurlembaHejugebar"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+  <Grid>
+    <ListView Background="Transparent" BorderThickness="0" 
+              ScrollViewer.VerticalScrollBarVisibility="Disabled"
+              SelectedValue="{Binding SelectedValue}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+
+      <ListView.ItemContainerStyle>
+        <Style TargetType="ListViewItem">
+          <Setter Property="Template">
+            <Setter.Value>
+              <ControlTemplate TargetType="{x:Type ListViewItem}">
+                <Grid x:Name="parent_Grid" Tag="{Binding ExcrementYellow}" Height="80" Background="#00000000">
+                  <Grid.RowDefinitions>
+                    <RowDefinition Height="40*" />
+                    <RowDefinition Height="20*" />
+                  </Grid.RowDefinitions>
+
+                  <Border x:Name="icon" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                          Margin="0 0 0 10" RenderTransformOrigin="0.5,0.5">
+
+                    <Border.RenderTransform>
+
+                      <TransformGroup>
+
+                        <ScaleTransform x:Name="iconScale" />
+
+                        <SkewTransform />
+
+                        <RotateTransform />
+
+                        <TranslateTransform />
+
+                      </TransformGroup>
+
+                    </Border.RenderTransform>
+
+                    <Path x:Name="iconPath" Stretch="Fill" Stroke="Transparent" Height="20" Width="20" Data=""
+                          Fill="#BBBBBB" />
+
+                  </Border>
+
+                  <Border Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Top"
+                          RenderTransformOrigin="0.5,0.5">
+
+                    <Border.RenderTransform>
+
+                      <TransformGroup>
+
+                        <ScaleTransform ScaleX="{Binding ElementName=iconScale,Path=ScaleX}"
+                                        ScaleY="{Binding ElementName=iconScale,Path=ScaleY}" />
+
+                        <SkewTransform />
+
+                        <RotateTransform />
+
+                        <TranslateTransform />
+
+                      </TransformGroup>
+
+                    </Border.RenderTransform>
+
+                    <TextBlock x:Name="iconText" Text="{Binding}" Foreground="#BBBBBB" />
+
+                  </Border>
+
+                </Grid>
+
+                <ControlTemplate.Triggers>
+
+                  <EventTrigger RoutedEvent="ListBoxItem.Selected">
+
+                    <BeginStoryboard>
+
+                      <Storyboard>
+
+                        <ColorAnimation To="{Binding ExcrementYellow,Mode=OneWay}" Duration="0:0:0.2"
+                                        Storyboard.TargetName="iconPath"
+                                        Storyboard.TargetProperty="(Path.Stroke).(SolidColorBrush.Color)" />
+
+                        <ColorAnimation To="{Binding ExcrementYellow,Mode=OneWay}" Duration="0:0:0.2"
+                                        Storyboard.TargetName="iconPath"
+                                        Storyboard.TargetProperty="(Path.Fill).(SolidColorBrush.Color)" />
+
+                        <ColorAnimation To="{Binding ExcrementYellow,Mode=OneWay}" Duration="0:0:0.2"
+                                        Storyboard.TargetName="iconText"
+                                        Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)" />
+
+                      </Storyboard>
+
+                    </BeginStoryboard>
+
+                  </EventTrigger>
+
+                </ControlTemplate.Triggers>
+
+              </ControlTemplate>
+
+            </Setter.Value>
+
+          </Setter>
+
+        </Style>
+
+      </ListView.ItemContainerStyle>
+
+      <ListViewItem>123</ListViewItem>
+      <ListViewItem>123</ListViewItem>
+      <ListViewItem>123</ListViewItem>
+      <ListViewItem>123</ListViewItem>
+      <ListViewItem>123</ListViewItem>
+      <ListViewItem>123</ListViewItem>
+    </ListView>
+
+
+  </Grid>
+</Window>
