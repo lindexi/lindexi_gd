@@ -80,15 +80,15 @@
 
                       <Storyboard>
 
-                        <ColorAnimation To="{Binding ExcrementYellow,Mode=OneWay}" Duration="0:0:0.2"
+                        <ColorAnimation To="Red" Duration="0:0:0.2"
                                         Storyboard.TargetName="iconPath"
                                         Storyboard.TargetProperty="(Path.Stroke).(SolidColorBrush.Color)" />
 
-                        <ColorAnimation To="{Binding ExcrementYellow,Mode=OneWay}" Duration="0:0:0.2"
+                        <ColorAnimation To="Red" Duration="0:0:0.2"
                                         Storyboard.TargetName="iconPath"
                                         Storyboard.TargetProperty="(Path.Fill).(SolidColorBrush.Color)" />
 
-                        <ColorAnimation To="{Binding ExcrementYellow,Mode=OneWay}" Duration="0:0:0.2"
+                        <ColorAnimation To="Red" Duration="0:0:0.2"
                                         Storyboard.TargetName="iconText"
                                         Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)" />
 
