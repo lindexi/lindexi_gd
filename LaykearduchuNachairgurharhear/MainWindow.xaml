@@ -6,9 +6,8 @@
         xmlns:local="clr-namespace:LaykearduchuNachairgurharhear"
         xmlns:controls="clr-namespace:Microsoft.Toolkit.Wpf.UI.Controls;assembly=Microsoft.Toolkit.Wpf.UI.Controls"
         mc:Ignorable="d"
-    
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
-      <controls:InkCanvas x:Name="InkCanvas" DockPanel.Dock="Top" Loaded="InkCanvas_Loaded"/>
+  <Grid>
+    <controls:InkCanvas x:Name="InkCanvas" DockPanel.Dock="Top" Loaded="InkCanvas_Loaded" />
   </Grid>
 </Window>
