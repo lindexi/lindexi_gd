@@ -23,9 +23,9 @@ namespace LightTextEditorPlus.TextEditorPlus
             return base.ArrangeOverride(finalSize);
         }
 
-        protected override void OnRender(DrawingContext drawingContext)
-        {
-            base.OnRender(drawingContext);
-        }
+        //protected override void OnRender(DrawingContext drawingContext)
+        //{
+        //    base.OnRender(drawingContext);
+        //}
     }
 }
