@@ -20,7 +20,7 @@ namespace LightTextEditorPlus.TextEditorPlus.Render
         /// <param name="unicodeChar"></param>
         /// <param name="info"></param>
         /// <returns></returns>
-        public static bool TryGetGlyphInfo([NotNull] Typeface typeface, char unicodeChar, out GlyphInfo info)
+        public static bool TryGetGlyphInfo( Typeface typeface, char unicodeChar, out GlyphInfo info)
         {
             if (typeface is null)
             {
@@ -65,7 +65,7 @@ namespace LightTextEditorPlus.TextEditorPlus.Render
         /// <param name="info"></param>
         /// <param name="fontSize"></param>
         /// <returns></returns>
-        public static GlyphRun BuildSingleGlyphRun([NotNull] GlyphInfo info, double fontSize)
+        public static GlyphRun BuildSingleGlyphRun(GlyphInfo info, double fontSize)
         {
             return BuildSingleGlyphRun(info, fontSize, new Point());
         }
@@ -78,7 +78,7 @@ namespace LightTextEditorPlus.TextEditorPlus.Render
         /// <param name="fontSize"></param>
         /// <param name="baselineOrigin"></param>
         /// <returns></returns>
-        public static GlyphRun BuildSingleGlyphRun([NotNull] GlyphInfo info, double fontSize, Point baselineOrigin)
+        public static GlyphRun BuildSingleGlyphRun( GlyphInfo info, double fontSize, Point baselineOrigin)
         {
             if (info is null)
             {
