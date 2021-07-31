@@ -6,11 +6,13 @@ namespace LightTextEditorPlus.TextEditorPlus.Document
 {
     record RunProperty
     {
-
+        public double FontSize { get; init; }
     }
 
     class ReadOnlyRunProperty
     {
        
     }
+
+  
 }
