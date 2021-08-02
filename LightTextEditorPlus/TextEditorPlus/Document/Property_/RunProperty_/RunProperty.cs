@@ -24,6 +24,7 @@ namespace LightTextEditorPlus.TextEditorPlus.Document
             {
                 var valueToSet = value.CoerceValue(1, 65536);
                 _fontSize = valueToSet;
+                RaiseOnTextRunPropertyChanged();
             }
             get => _fontSize ?? StyleRunProperty?.FontSize ?? DefaultFontSize;
         }
@@ -35,7 +36,11 @@ namespace LightTextEditorPlus.TextEditorPlus.Document
 
         public FontFamily FontFamily
         {
-            set => _fontFamily = value;
+            set
+            {
+                _fontFamily = value;
+                RaiseOnTextRunPropertyChanged();
+            }
             get => _fontFamily ?? StyleRunProperty?.FontFamily ?? DefaultFontFamily;
         }
 
@@ -49,7 +54,11 @@ namespace LightTextEditorPlus.TextEditorPlus.Document
         /// </summary>
         public FontStyle FontStyle
         {
-            set => _fontStyle = value;
+            set
+            {
+                _fontStyle = value;
+                RaiseOnTextRunPropertyChanged();
+            }
             get => _fontStyle ?? StyleRunProperty?.FontStyle ?? DefaultFontStyle;
         }
 
@@ -61,7 +70,11 @@ namespace LightTextEditorPlus.TextEditorPlus.Document
         /// </summary>
         public FontWeight FontWeight
         {
-            set => _fontWeight = value;
+            set
+            {
+                _fontWeight = value;
+                RaiseOnTextRunPropertyChanged();
+            }
             get => _fontWeight ?? StyleRunProperty?.FontWeight ?? DefaultFontWeight;
         }
 
@@ -75,6 +88,11 @@ namespace LightTextEditorPlus.TextEditorPlus.Document
             var runProperty = new RunProperty(this);
             action(runProperty);
             return runProperty;
+        }
+
+        private void RaiseOnTextRunPropertyChanged()
+        {
+
         }
     }
 

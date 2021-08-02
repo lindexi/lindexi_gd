@@ -13,6 +13,8 @@ namespace LightTextEditorPlus.TextEditorPlus
     /// <remarks> 这个项目的核心和入口就是这个类</remarks>
     public partial class TextEditor : FrameworkElement
     {
+        public string Text { set; get; }
+
         protected override Size MeasureOverride(Size availableSize)
         {
             return base.MeasureOverride(availableSize);
