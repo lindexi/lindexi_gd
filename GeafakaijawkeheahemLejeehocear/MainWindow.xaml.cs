@@ -32,7 +32,7 @@ namespace GeafakaijawkeheahemLejeehocear
                 4096,
                 FileOptions.Asynchronous);
 
-            var decoder = BitmapDecoder.Create(fs,BitmapCreateOptions.PreservePixelFormat,BitmapCacheOption.None);
+            var decoder = BitmapDecoder.Create(fs, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.None);
         }
     }
 }
