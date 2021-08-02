@@ -25,7 +25,7 @@ namespace GeafakaijawkeheahemLejeehocear
         {
             InitializeComponent();
 
-            using var fs = new FileStream("image.png",
+            var fs = new FileStream("image.png",
                 FileMode.Open,
                 FileAccess.Read,
                 FileShare.Read,
@@ -33,6 +33,10 @@ namespace GeafakaijawkeheahemLejeehocear
                 FileOptions.Asynchronous);
 
             var decoder = BitmapDecoder.Create(fs, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.None);
+
+            var bitmapFrame = decoder.Frames.First();
+
+            Image.Source = bitmapFrame;
         }
     }
 }
