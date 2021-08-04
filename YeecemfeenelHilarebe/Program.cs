@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MSTest.Extensions.Contracts;
 using MSTest.Extensions.Core;
@@ -15,7 +16,7 @@ namespace YeecemfeenelHilarebe
         static void Main(string[] args)
         {
             var customTestManager = new CustomTestManager();
-            customTestManager.Run();
+            Console.WriteLine(customTestManager.Run());
         }
     }
 
@@ -36,13 +37,16 @@ namespace YeecemfeenelHilarebe
 
     public class TestManagerRunResult
     {
-        public TestManagerRunResult(int allTestCount, List<TestExceptionResult> testExceptionResultList)
+        public TestManagerRunResult(int allTestCount, TimeSpan duration, List<TestExceptionResult> testExceptionResultList)
         {
             AllTestCount = allTestCount;
+            Duration = duration;
             TestExceptionResultList = testExceptionResultList;
         }
 
         public bool Success => FailTestCount == 0;
+
+        public TimeSpan Duration { get; }
 
         public int AllTestCount { get; }
 
@@ -51,6 +55,29 @@ namespace YeecemfeenelHilarebe
         public int SuccessTestCount => AllTestCount - FailTestCount;
 
         public List<TestExceptionResult> TestExceptionResultList { get; }
+
+        public override string ToString()
+        {
+            if (Success)
+            {
+                return
+                    $"已通过! - 失败:{FailTestCount.ToString().PadLeft(8)}，通过:{SuccessTestCount.ToString().PadLeft(8)}，已跳过:     0，总计:{AllTestCount.ToString().PadLeft(8)}，持续时间: {Duration.TotalSeconds:0.00} s";
+            }
+            else
+            {
+                var stringBuilder = new StringBuilder();
+                foreach (var exception in TestExceptionResultList)
+                {
+                    stringBuilder.AppendLine($"失败 {exception.DisplayName}");
+                    stringBuilder.AppendLine($"错误信息：");
+                    stringBuilder.AppendLine(exception.Exception.ToString());
+                    stringBuilder.AppendLine();
+                }
+
+                stringBuilder.AppendLine($"失败! - 失败:{FailTestCount.ToString().PadLeft(8)}，通过:{SuccessTestCount.ToString().PadLeft(8)}，已跳过:     0，总计:{AllTestCount.ToString().PadLeft(8)}，持续时间: {Duration.TotalSeconds:0.00} s");
+                return stringBuilder.ToString();
+            }
+        }
     }
 
     public class TestExceptionResult
@@ -74,6 +101,8 @@ namespace YeecemfeenelHilarebe
             var exceptionList = new List<TestExceptionResult>();
             int count = 0;
 
+            TimeSpan duration = TimeSpan.Zero;
+
             foreach (var type in assembly.GetTypes())
             {
                 if (type.GetCustomAttribute<TestClassAttribute>() != null)
@@ -91,7 +120,9 @@ namespace YeecemfeenelHilarebe
 
                                 try
                                 {
-                                    contractTestCaseAttribute.Execute(new FakeTestMethod(methodInfo));
+                                    var resultList = contractTestCaseAttribute.Execute(new FakeTestMethod(methodInfo));
+                                    var result = resultList[0];
+                                    duration += result.Duration;
                                 }
 #pragma warning disable CA1031 // 不捕获常规异常类型
                                 catch (Exception e)
@@ -104,8 +135,7 @@ namespace YeecemfeenelHilarebe
                     }
                 }
             }
-
-            return new TestManagerRunResult(count, exceptionList);
+            return new TestManagerRunResult(count, duration, exceptionList);
         }
 
         class FakeTestMethod : ITestMethod
@@ -156,7 +186,7 @@ namespace YeecemfeenelHilarebe
         }
     }
 
-   
 
-    
+
+
 }
