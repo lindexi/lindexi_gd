@@ -3,7 +3,10 @@ using Xwt;
 
 namespace LarwearceceyokuDokealuwo
 {
+<<<<<<< HEAD
     
+=======
+>>>>>>> 11125ca50dc91e50cf581c36476f03b853bc7ef8
     class Program
     {
         [STAThread]
