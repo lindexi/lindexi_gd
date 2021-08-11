@@ -242,7 +242,7 @@ namespace KenafearcuweYemjecahee
                             if (rect == info.MonitorRect)
                             {
                                 var hwndSource = HwndSource.FromHwnd(hwnd);
-                                if (hwndSource?.RootVisual is Window window) //这个hwnd是前面从Window来的，如果现在他不是Window......
+                                if (hwndSource?.RootVisual is Window window)
                                 {
                                     //确保窗口的 WPF 属性与 Win32 位置一致，防止有逗比全屏后改 WPF 的属性，发生一些诡异的行为
                                     //下面这样做其实不太好，会再次触发 WM_WINDOWPOSCHANGING 来着.....但是又没有其他时机了
@@ -260,6 +260,10 @@ namespace KenafearcuweYemjecahee
                                     window.Width = logicalSize.X;
                                     window.Height = logicalSize.Y;
                                 }
+                                else
+                                {
+                                    //这个hwnd是前面从Window来的，如果现在他不是Window...... 你信么
+                                }
                             }
 
                             //将修改后的结构体拷贝回去
@@ -269,6 +273,7 @@ namespace KenafearcuweYemjecahee
                 }
                 catch
                 {
+                    // 这里也不需要日志啥的，只是为了防止上面有逗比逻辑，在消息循环里面炸了
                 }
             }
 
