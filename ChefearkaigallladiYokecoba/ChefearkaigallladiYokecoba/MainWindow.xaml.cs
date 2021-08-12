@@ -22,19 +22,6 @@ namespace ChefearkaigallladiYokecoba
     {
         public MainWindow()
         {
-            var codeBase = new Uri("file:///f:/Code/lindexi/ChefearkaigallladiYokecoba/ChefearkaigallladiYokecoba/bin/Debug/net6.0-windows/win-x86/ChefearkaigallladiYokecoba.dll");
-            var filePath = "Image.png";
-            if (codeBase.IsFile)
-            {
-            var combine = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(codeBase.LocalPath),filePath);
-            }
-            else
-            {
-            var combine = System.IO.Path.Combine(codeBase.LocalPath,filePath);
-
-            }
-            Uri file = new Uri(codeBase, filePath);
-
             InitializeComponent();
         }
     }
