@@ -42,17 +42,17 @@ namespace BawwawnijakeChemlekodoher
 
             }
 
-            Foo(file, peReader);
+            Foo(file);
 #endif
         }
 
 #if NETCOREAPP
-        private static void Foo(string file, PEReader peReader)
+        private static void Foo(string file)
         {
             var fx = Path.Combine(file, @"..\..\net45\BawwawnijakeChemlekodoher.exe");
             var peReaderFx = new PEReader(File.OpenRead(fx));
-            var peHeadersFx = peReader.PEHeaders;
-            var metadataFx = peReader.GetMetadataReader();
+            var peHeadersFx = peReaderFx.PEHeaders;
+            var metadataFx = peReaderFx.GetMetadataReader();
             if (metadataFx.IsAssembly)
             {
                 foreach (var metadataAssemblyFile in metadataFx.AssemblyFiles)
