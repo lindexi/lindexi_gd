@@ -13,5 +13,20 @@ namespace LaykearduchuNachairgurharhear
     /// </summary>
     public partial class App : Application
     {
+      
+    }
+
+    class Program
+    {
+        [STAThread]
+        static void Main()
+        {
+            using (new HinembereneabemWhejurnicelem.App())
+            {
+                App app = new App();
+                app.InitializeComponent();
+                app.Run();
+            }
+        }
     }
 }

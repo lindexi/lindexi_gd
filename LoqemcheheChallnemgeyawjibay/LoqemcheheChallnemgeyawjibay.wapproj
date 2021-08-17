@@ -56,7 +56,7 @@
     <DefaultLanguage>zh-CN</DefaultLanguage>
     <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
     <EntryPointProjectUniqueName>..\LaykearduchuNachairgurharhear\LaykearduchuNachairgurharhear.csproj</EntryPointProjectUniqueName>
-    <PackageCertificateThumbprint>BF135BDB37EB12E6286E734BA912632A2E17C63E</PackageCertificateThumbprint>
+    <PackageCertificateThumbprint>5133727039BDF5C0DE5F1AF40BB07D62A60A0FF4</PackageCertificateThumbprint>
     <PackageCertificateKeyFile>LoqemcheheChallnemgeyawjibay_TemporaryKey.pfx</PackageCertificateKeyFile>
   </PropertyGroup>
   <ItemGroup>

@@ -5,9 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LaykearduchuNachairgurharhear"
         xmlns:controls="clr-namespace:Microsoft.Toolkit.Wpf.UI.Controls;assembly=Microsoft.Toolkit.Wpf.UI.Controls"
+        xmlns:xaml="clr-namespace:Microsoft.Toolkit.Wpf.UI.XamlHost;assembly=Microsoft.Toolkit.Wpf.UI.XamlHost"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-  <Grid>
-    <controls:InkCanvas x:Name="InkCanvas" DockPanel.Dock="Top" Loaded="InkCanvas_Loaded" />
+  <Grid Background="Gray">
+    <xaml:WindowsXamlHost InitialTypeName="HinembereneabemWhejurnicelem.XamlIsland.CustomInkControl" ChildChanged="WindowsXamlHost_ChildChanged" />
   </Grid>
 </Window>

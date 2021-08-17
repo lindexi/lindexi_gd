@@ -28,7 +28,11 @@ namespace LaykearduchuNachairgurharhear
 
         private void InkCanvas_Loaded(object sender, RoutedEventArgs e)
         {
-            InkCanvas.InkPresenter.InputDeviceTypes = CoreInputDeviceTypes.Mouse;
+            //InkCanvas.InkPresenter.InputDeviceTypes = CoreInputDeviceTypes.Mouse;
+        }
+
+        private void WindowsXamlHost_ChildChanged(object? sender, EventArgs e)
+        {
         }
     }
 }
