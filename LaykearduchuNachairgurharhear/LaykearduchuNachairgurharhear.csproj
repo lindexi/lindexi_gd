@@ -8,6 +8,7 @@
     <AssetTargetFallback>uap10.0.19041</AssetTargetFallback>
     <RuntimeIdentifiers>win10-x64;win-x64;win10-x86;win-x86</RuntimeIdentifiers>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <StartupObject>LaykearduchuNachairgurharhear.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\HinembereneabemWhejurnicelem.XamlIsland\HinembereneabemWhejurnicelem.XamlIsland.csproj" />
     <ProjectReference Include="..\HinembereneabemWhejurnicelem\HinembereneabemWhejurnicelem.csproj" />
   </ItemGroup>
 
