@@ -1,18 +1,13 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
-using DocumentFormat.OpenXml.Drawing;
+﻿using System.Linq;
 using DocumentFormat.OpenXml.Presentation;
-using dotnetCampus.OpenXmlUnitConverter;
-using GroupShape = DocumentFormat.OpenXml.Presentation.GroupShape;
-using Shape = DocumentFormat.OpenXml.Presentation.Shape;
+using NonVisualDrawingProperties = DocumentFormat.OpenXml.Presentation.NonVisualDrawingProperties;
+using NonVisualShapeProperties = DocumentFormat.OpenXml.Presentation.NonVisualShapeProperties;
 
 using var presentationDocument =
     DocumentFormat.OpenXml.Packaging.PresentationDocument.Open("Test.pptx", false);
 var presentationPart = presentationDocument.PresentationPart;
 var slidePart = presentationPart!.SlideParts.First();
 var slide = slidePart.Slide;
-GetShape(slide);
 var timing = slide.Timing;
 // 第一级里面默认只有一项
 var commonTimeNode = timing?.TimeNodeList?.ParallelTimeNode?.CommonTimeNode;
@@ -25,14 +20,26 @@ if (commonTimeNode?.NodeType?.Value == TimeNodeValues.TmingRoot)
 if (commonTimeNode?.ChildTimeNodeList == null) return;
 // 理论上只有一项，而且一定是 SequenceTimeNode 类型
 var sequenceTimeNode = commonTimeNode.ChildTimeNodeList.GetFirstChild<SequenceTimeNode>();
-var mainSequenceTimeNode = sequenceTimeNode.CommonTimeNode;
-if (mainSequenceTimeNode?.NodeType?.Value == TimeNodeValues.MainSequence)
+var interactiveSequenceTimeNode = sequenceTimeNode.CommonTimeNode;
+if (interactiveSequenceTimeNode?.NodeType?.Value == TimeNodeValues.InteractiveSequence)
 {
     // [TimeLine 对象 (PowerPoint) | Microsoft Docs](https://docs.microsoft.com/zh-cn/office/vba/api/PowerPoint.TimeLine )
-    //  MainSequence 主动画序列
-    var mainParallelTimeNode = mainSequenceTimeNode.ChildTimeNodeList;
+    // 触发动画序列
 
-    foreach (var openXmlElement in mainParallelTimeNode)
+    // 获取触发动画的元素
+    var condition = interactiveSequenceTimeNode.StartConditionList.GetFirstChild<Condition>();
+    if (condition.Event.Value == TriggerEventValues.OnClick)
+    {
+        // 点击触发动画，还有其他的方式
+    }
+
+    var targetElement = condition.TargetElement;
+    var shapeId = targetElement.ShapeTarget.ShapeId.Value;
+    var shape = slide.CommonSlideData.ShapeTree.FirstOrDefault(t =>
+        t.GetFirstChild<NonVisualShapeProperties>()?.GetFirstChild<NonVisualDrawingProperties>()?.Id?.Value.ToString() == shapeId);
+    // 由 shape 点击触发的动画
+
+    foreach (var openXmlElement in interactiveSequenceTimeNode.ChildTimeNodeList)
     {
         // 并行关系的
         if (openXmlElement is ParallelTimeNode parallelTimeNode)
@@ -41,60 +48,16 @@ if (mainSequenceTimeNode?.NodeType?.Value == TimeNodeValues.MainSequence)
                 .GetFirstChild<ParallelTimeNode>().CommonTimeNode.ChildTimeNodeList
                 .GetFirstChild<ParallelTimeNode>().CommonTimeNode;
 
-            switch (timeNode.PresetClass.Value)
+            if (timeNode.NodeType.Value == TimeNodeValues.ClickEffect)
             {
-                case TimeNodePresetClassValues.Entrance:
-                    // 进入动画
-                    break;
-                case TimeNodePresetClassValues.Exit:
-                    // 退出动画
-                    break;
-                case TimeNodePresetClassValues.Emphasis:
-                    // 强调动画
-                    break;
-                case TimeNodePresetClassValues.Path:
-                    // 路由动画
-                    break;
-                case TimeNodePresetClassValues.Verb:
-                    break;
-                case TimeNodePresetClassValues.MediaCall:
-                    // 播放动画
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
+                // 点击触发
             }
-        }
-    }
-}
 
-static void GetShape(Slide slide)
-{
-    foreach (var openXmlElement in slide.CommonSlideData.ShapeTree)
-    {
-        if (openXmlElement is Shape shape)
-        {
-            ReadShape(shape);
-        }
-        else if (openXmlElement is GroupShape groupShape)
-        {
-            ReadGroupShape(groupShape);
+            // 其他逻辑和主序列相同
+           
         }
     }
-}
-
-static void ReadGroupShape(GroupShape groupShape)
-{
-    foreach (var openXmlElement in groupShape.ChildElements)
-    {
-        if (openXmlElement is Shape shape)
-        {
-            ReadShape(shape);
-        }
-        else if (openXmlElement is GroupShape group)
-        {
-            ReadGroupShape(group);
-        }
-    }
+<<<<<<< HEAD
 }
 
 static void ReadShape(Shape shape)
@@ -171,3 +134,6 @@ static void ReadLineWidth(Shape shape)
         // 这形状没有定义轮廓
     }
 }
+=======
+}
+>>>>>>> e48a633377bb933ad09e3782272b0a01ffd42ab5
