@@ -1,0 +1,22 @@
+﻿<Window x:Class="CalbuhewaNallrolayrani.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CalbuhewaNallrolayrani"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+  <Grid x:Name="Grid">
+    <Border x:Name="Border">
+      <Border.Background>
+        <VisualBrush Visual="{Binding ElementName=Container}"></VisualBrush>
+      </Border.Background>
+    </Border>
+
+    <Grid x:Name="Container">
+      <local:MyUserControl x:Name="MyUserControl"></local:MyUserControl>
+    </Grid>
+
+    <Button HorizontalAlignment="Center" VerticalAlignment="Center" Click="Button_OnClick">Click</Button>
+  </Grid>
+</Window>
