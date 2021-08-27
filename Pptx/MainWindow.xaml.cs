@@ -94,20 +94,70 @@ namespace Pptx
                   </a:schemeClr>
                 </a:lnRef>
              */
-            // 读取里层的颜色
-            var schemeColor = lineReference.GetFirstChild<SchemeColor>()!;
-            // 读取 SchemeColor 方法请参阅如下文档
-            // [dotnet OpenXML 如何获取 schemeClr 颜色](https://blog.lindexi.com/post/dotnet-OpenXML-%E5%A6%82%E4%BD%95%E8%8E%B7%E5%8F%96-schemeClr-%E9%A2%9C%E8%89%B2.html )
-            var colorMap = slide.GetColorMap()!;
-            var colorScheme = slide.GetColorScheme()!;
-            var value = schemeColor.Val!.Value; // accent1
-            value = ColorHelper.SchemeColorMap(value, colorMap);
-            var actualColor = ColorHelper.FindSchemeColor(value, colorScheme)!; // <a:srgbClr val="5B9BD5"/>
-            RgbColorModelHex rgbColorModelHex = actualColor.RgbColorModelHex!;
-            var color = (Color) ColorConverter.ConvertFromString($"#{rgbColorModelHex.Val!.Value}");
-            // 根据 [dotnet OpenXML 颜色变换](https://blog.lindexi.com/post/dotnet-OpenXML-%E9%A2%9C%E8%89%B2%E5%8F%98%E6%8D%A2.html ) 进行修改颜色
-            var shade = schemeColor.GetFirstChild<Shade>()!;// 让颜色变暗
-            color = ColorTransform.HandleShade(color, shade);
+            // 读取引用的样式
+            // [dotnet OpenXML 读取形状轮廓线条样式序号超过主题样式列表数](https://blog.lindexi.com/post/dotnet-OpenXML-%E8%AF%BB%E5%8F%96%E5%BD%A2%E7%8A%B6%E8%BD%AE%E5%BB%93%E7%BA%BF%E6%9D%A1%E6%A0%B7%E5%BC%8F%E5%BA%8F%E5%8F%B7%E8%B6%85%E8%BF%87%E4%B8%BB%E9%A2%98%E6%A0%B7%E5%BC%8F%E5%88%97%E8%A1%A8%E6%95%B0.html )
+            var lineStyle = lineReference.Index!.Value;// idx="2"
+            lineStyle--;
+            // 获取主题
+            var slidePart = slide.SlidePart!;
+            var themeOverride = slidePart.ThemeOverridePart?.ThemeOverride
+                                ?? slidePart.SlideLayoutPart!.ThemeOverridePart?.ThemeOverride;
+            FormatScheme? formatScheme = themeOverride?.FormatScheme;
+            if (formatScheme is null)
+            {
+                formatScheme = slidePart.SlideLayoutPart!.SlideMasterPart!.ThemePart!.Theme!.ThemeElements!.FormatScheme;
+            }
+            var lineStyleList = formatScheme!.LineStyleList;
+            var outlineList = lineStyleList!.Elements<Outline>().ToList(); // 其实，别用 ToList 的好，这里只是简化逻辑
+            Outline themeOutline;
+            if (lineStyle > outlineList.Count)
+            {
+                themeOutline = outlineList[^1];
+            }
+            else
+            {
+                themeOutline = outlineList[(int)lineStyle];
+            }
+
+            Color color = Colors.Black;
+
+            // 读取主题样式里面的颜色
+            var solidFill = themeOutline.GetFirstChild<SolidFill>()!;
+            var colorModelHex = solidFill.GetFirstChild<RgbColorModelHex>();
+            if (colorModelHex is not null)
+            {
+                /*
+                        <a:ln w="12700" cap="flat" cmpd="sng" algn="ctr">
+                          <a:solidFill>
+                            <a:srgbClr val="999999" />
+                          </a:solidFill>
+                          <a:prstDash val="solid" />
+                          <a:miter lim="800000" />
+                        </a:ln>
+                 */
+                color = (Color)ColorConverter.ConvertFromString($"#{colorModelHex.Val!.Value}");
+            }
+            else
+            {
+                var themeSchemeColor = solidFill.GetFirstChild<SchemeColor>()!;
+                if (themeSchemeColor.Val!.Value == SchemeColorValues.PhColor)
+                {
+                    // 读取里层的颜色
+                    var schemeColor = lineReference.GetFirstChild<SchemeColor>()!;
+                    // 读取 SchemeColor 方法请参阅如下文档
+                    // [dotnet OpenXML 如何获取 schemeClr 颜色](https://blog.lindexi.com/post/dotnet-OpenXML-%E5%A6%82%E4%BD%95%E8%8E%B7%E5%8F%96-schemeClr-%E9%A2%9C%E8%89%B2.html )
+                    var colorMap = slide.GetColorMap()!;
+                    var colorScheme = slide.GetColorScheme()!;
+                    var value = schemeColor.Val!.Value; // accent1
+                    value = ColorHelper.SchemeColorMap(value, colorMap);
+                    var actualColor = ColorHelper.FindSchemeColor(value, colorScheme)!; // <a:srgbClr val="5B9BD5"/>
+                    RgbColorModelHex rgbColorModelHex = actualColor.RgbColorModelHex!;
+                    color = (Color)ColorConverter.ConvertFromString($"#{rgbColorModelHex.Val!.Value}");
+                    // 根据 [dotnet OpenXML 颜色变换](https://blog.lindexi.com/post/dotnet-OpenXML-%E9%A2%9C%E8%89%B2%E5%8F%98%E6%8D%A2.html ) 进行修改颜色
+                    var shade = schemeColor.GetFirstChild<Shade>()!;// 让颜色变暗
+                    color = ColorTransform.HandleShade(color, shade);
+                }
+            }
 
             // 获取坐标
             var offset = shapeProperties.Transform2D!.Offset!;
