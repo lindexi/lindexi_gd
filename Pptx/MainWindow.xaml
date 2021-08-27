@@ -6,7 +6,8 @@
         xmlns:local="clr-namespace:Pptx"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
-      <Canvas x:Name="Canvas"></Canvas>
-    </Grid>
+  <Grid>
+    <Canvas x:Name="Canvas">
+    </Canvas>
+  </Grid>
 </Window>
