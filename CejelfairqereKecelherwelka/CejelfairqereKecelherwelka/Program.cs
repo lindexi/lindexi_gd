@@ -10,6 +10,7 @@ Intel Core i7-9700K CPU 3.60GHz (Coffee Lake), 1 CPU, 8 logical and 8 physical c
   [Host]     : .NET 6.0.0 (6.0.21.37719), X64 RyuJIT
   DefaultJob : .NET 6.0.0 (6.0.21.37719), X64 RyuJIT
 
+<<<<<<< HEAD
 
 |      Method | start | length |      Mean |     Error |    StdDev |  Gen 0 |  Gen 1 | Allocated |
 |------------ |------ |------- |----------:|----------:|----------:|-------:|-------:|----------:|
@@ -31,6 +32,13 @@ Intel Core i7-9700K CPU 3.60GHz (Coffee Lake), 1 CPU, 8 logical and 8 physical c
 | CopyByArray |   100 |     20 | 13.211 ns | 0.0924 ns | 0.0819 ns | 0.0166 |      - |     104 B |
 |   CopyByFor |   100 |    100 | 87.571 ns | 0.5975 ns | 0.5589 ns | 0.0675 |      - |     424 B |
 | CopyByArray |   100 |    100 | 35.169 ns | 0.5966 ns | 0.5581 ns | 0.0675 | 0.0001 |     424 B |
+=======
+|      Method |     Mean |   Error |  StdDev |  Gen 0 |  Gen 1 | Allocated |
+|------------ |---------:|--------:|--------:|-------:|-------:|----------:|
+|   CopyByFor | 765.7 ns | 3.72 ns | 3.11 ns | 0.6409 | 0.0095 |      4 KB |
+| CopyByArray | 260.6 ns | 3.39 ns | 3.17 ns | 0.6413 | 0.0095 |      4 KB |
+| CopyByClone | 250.3 ns | 2.04 ns | 1.70 ns | 0.6390 | 0.0095 |      4 KB |
+>>>>>>> 5aef1567e56bf2b8a67c21f94b18f9827c18aaf4
      */
 
     [MemoryDiagnoser]
@@ -51,6 +59,7 @@ Intel Core i7-9700K CPU 3.60GHz (Coffee Lake), 1 CPU, 8 logical and 8 physical c
         }
 
         [Benchmark]
+<<<<<<< HEAD
         [ArgumentsSource(nameof(ProvideArguments))]
         public object CopyByFor(int start, int length)
         {
@@ -58,6 +67,15 @@ Intel Core i7-9700K CPU 3.60GHz (Coffee Lake), 1 CPU, 8 logical and 8 physical c
 
             var data = new int[length];
             for (int localIndex = 0, rawArrayIndex = start; localIndex < data.Length; localIndex++, rawArrayIndex++)
+=======
+        public object CopyByFor()
+        {
+            var rawPacketData = TestData;
+            var length = TestData.Length;
+
+            var data = new int[length];
+            for (int localIndex = 0, rawArrayIndex = 0; localIndex < data.Length; localIndex++, rawArrayIndex++)
+>>>>>>> 5aef1567e56bf2b8a67c21f94b18f9827c18aaf4
             {
                 data[localIndex] = rawPacketData[rawArrayIndex];
             }
@@ -65,15 +83,24 @@ Intel Core i7-9700K CPU 3.60GHz (Coffee Lake), 1 CPU, 8 logical and 8 physical c
         }
 
         [Benchmark]
+<<<<<<< HEAD
         [ArgumentsSource(nameof(ProvideArguments))]
         public object CopyByArray(int start, int length)
         {
+=======
+        public object CopyByArray()
+        {
+            var length = TestData.Length;
+            var start = 0;
+
+>>>>>>> 5aef1567e56bf2b8a67c21f94b18f9827c18aaf4
             var rawPacketData = TestData;
             var data = new int[length];
             Array.Copy(rawPacketData,start,data,0, length);
             return data;
         }
 
+<<<<<<< HEAD
         private static readonly int[] TestData;
 
         public IEnumerable<object[]> ProvideArguments()
@@ -86,5 +113,17 @@ Intel Core i7-9700K CPU 3.60GHz (Coffee Lake), 1 CPU, 8 logical and 8 physical c
                 }
             }
         }
+=======
+        [Benchmark]
+        public object CopyByClone()
+        {
+            var data = (int[]) TestData.Clone();
+            return data;
+        }
+
+        private static readonly int[] TestData;
+
+       
+>>>>>>> 5aef1567e56bf2b8a67c21f94b18f9827c18aaf4
     }
 }
