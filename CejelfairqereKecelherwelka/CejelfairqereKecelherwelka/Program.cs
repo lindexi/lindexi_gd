@@ -1,4 +1,6 @@
-﻿using BenchmarkDotNet.Attributes;
+﻿using System;
+using System.Collections.Generic;
+using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 
 namespace CejelfairqereKecelherwelka
@@ -101,6 +103,19 @@ Intel Core i7-9700K CPU 3.60GHz (Coffee Lake), 1 CPU, 8 logical and 8 physical c
         }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+        [Benchmark]
+        [ArgumentsSource(nameof(ProvideArguments))]
+        public object CopyBySpan(int start, int length)
+        {
+            var rawPacketData = TestData;
+            var rawArrayStartIndex = start;
+            var data = rawPacketData.AsSpan(rawArrayStartIndex, length).ToArray();
+            return data;
+        }
+
+>>>>>>> bb71c02beff7a9b257275190b7c6f0c3c2eebe96
         private static readonly int[] TestData;
 
         public IEnumerable<object[]> ProvideArguments()
