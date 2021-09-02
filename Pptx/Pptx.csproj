@@ -13,9 +13,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="dotnetCampus.OpenXmlUnitConverter" Version="1.7.1"/>
+    <PackageReference Include="dotnetCampus.OpenXmlUnitConverter" Version="1.7.1" />
     <PackageReference Include="DocumentFormat.OpenXml" Version="2.13.1" />
-    <PackageReference Include="DataGridExtensions" Version="2.5.11" />
+    <PackageReference Include="OpenMcdf" Version="2.2.1.9" />
   </ItemGroup>
 
 </Project>
