@@ -13,8 +13,10 @@ using DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Presentation;
 using dotnetCampus.OpenXmlUnitConverter;
+using OpenMcdf;
 using ColorMap = DocumentFormat.OpenXml.Presentation.ColorMap;
 using GraphicFrame = DocumentFormat.OpenXml.Presentation.GraphicFrame;
+using Path = DocumentFormat.OpenXml.Drawing.Path;
 using Rectangle = System.Windows.Shapes.Rectangle;
 using SchemeColorValues = DocumentFormat.OpenXml.Drawing.SchemeColorValues;
 using Shape = DocumentFormat.OpenXml.Presentation.Shape;
@@ -44,83 +46,42 @@ namespace Pptx
             var graphicFrame = slide.CommonSlideData!.ShapeTree!.GetFirstChild<GraphicFrame>()!;
             var graphic = graphicFrame.Graphic!;
             var graphicData = graphic.GraphicData!;
-            var table = graphicData.GetFirstChild<Table>()!; // a:tbl
-            /*
-               <a:tbl>
-                 <a:tr h="370840">
-                   <a:tc rowSpan="2">
-                     <a:txBody>
-                       <a:bodyPr />
-                       <a:lstStyle />
-                       <a:p>
-                         <a:r>
-                           <a:rPr lang="en-US" altLang="zh-CN" dirty="0" smtClean="0" />
-                           <a:t>123123</a:t>
-                         </a:r>
-                         <a:endParaRPr lang="zh-CN" altLang="en-US" dirty="0" />
-                       </a:p>
-                     </a:txBody>
-                     <a:tcPr />
-                   </a:tc>
-                   <a:tc></a:tc>
-                 </a:tr>
-                 <a:tr h="370840">
-                   <a:tc vMerge="1">
-                     <a:txBody>
-                       <a:bodyPr />
-                       <a:lstStyle />
-                       <a:p>
-                         <a:r>
-                           <a:rPr lang="en-US" altLang="zh-CN" smtClean="0" />
-                           <a:t>投毒</a:t>
-                         </a:r>
-                         <a:endParaRPr lang="zh-CN" altLang="en-US" />
-                       </a:p>
-                     </a:txBody>
-                     <a:tcPr />
-                   </a:tc>
-                   <a:tc></a:tc>
-                 </a:tr>
-               </a:tbl>
-             */
+            var alternateContent = graphicData.GetFirstChild<AlternateContent>()!;
+            var choice = alternateContent.GetFirstChild<AlternateContentChoice>()!;
+            var oleObject = choice.GetFirstChild<OleObject>()!;
+            Debug.Assert(oleObject.GetFirstChild<OleObjectEmbed>() != null);
+            var id = oleObject.Id!;
+            var part = slide.SlidePart!.GetPartById(id!);
+            Debug.Assert(part.ContentType== "application/vnd.openxmlformats-officedocument.oleObject");
 
-            var dataTable = new DataTable();
-            DataGrid.DataContext = dataTable;
-            DataGrid.HeadersVisibility = DataGridHeadersVisibility.None;
-
-            var n = 0;
-            foreach (var gridColumn in table.TableGrid!.Elements<GridColumn>())
+            var tempFolder = @"F:\temp";
+            if (!Directory.Exists(tempFolder))
             {
-                var emu = new Emu(gridColumn.Width?.Value ?? 95250);
-
-                DataGrid.Columns.Add(new DataGridTextColumn()
-                {
-                    Width = emu.ToPixel().Value,
-                    Binding = new Binding(n.ToString())
-                });
-
-                dataTable.Columns.Add(n.ToString());
-                n++;
+                tempFolder = System.IO.Path.GetTempPath();
             }
 
-            foreach (var openXmlElement in table)
+            //// OpenMcdf.CFException:“Cannot load a non-seekable Stream”
+            //var compoundFile = new CompoundFile(part.GetStream(FileMode.Open));
+
+            var oleFile = System.IO.Path.Combine(tempFolder, System.IO.Path.GetRandomFileName());
+            using (var fileStream = File.OpenWrite(oleFile))
             {
-                // a:tr 表格的行
-                if (openXmlElement is TableRow tableRow)
-                {
-                    var dataRow = dataTable.NewRow();
-                    dataTable.Rows.Add(dataRow);
-
-                    var index = 0;
-                    foreach (var tableCell in tableRow.Elements<TableCell>())
-                    {
-                        var text = tableCell.TextBody!.InnerText;
-                        dataRow[index.ToString()] = text;
-
-                        index++;
-                    }
-                }
+                using var stream = part.GetStream(FileMode.Open);
+                stream.CopyTo(fileStream);
             }
+
+            var compoundFile = new CompoundFile(oleFile);
+            var packageStream = compoundFile.RootStorage.GetStream("Package");
+            var xlsxFile = System.IO.Path.Combine(tempFolder, System.IO.Path.GetRandomFileName()+".xlsx");
+            using (var fileStream = File.OpenWrite(xlsxFile))
+            {
+                fileStream.Write(packageStream.GetData().AsSpan());
+            }
+
+            using var spreadsheetDocument = SpreadsheetDocument.Open(xlsxFile,false);
+            var sheets = spreadsheetDocument.WorkbookPart!.Workbook.Sheets;
+
+
         }
     }
 }
