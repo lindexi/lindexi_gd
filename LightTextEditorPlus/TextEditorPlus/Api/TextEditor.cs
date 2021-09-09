@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Windows;
 using System.Windows.Media;
+using LightTextEditorPlus.TextEditorPlus.Document.DocumentManagers;
 
 namespace LightTextEditorPlus.TextEditorPlus
 {
@@ -17,7 +18,7 @@ namespace LightTextEditorPlus.TextEditorPlus
 
         protected override Size MeasureOverride(Size availableSize)
         {
-            return base.MeasureOverride(availableSize);
+            return new Size(100, 100);
         }
 
         protected override Size ArrangeOverride(Size finalSize)
@@ -25,7 +26,7 @@ namespace LightTextEditorPlus.TextEditorPlus
             return base.ArrangeOverride(finalSize);
         }
 
-
+        private DocumentManager DocumentManager { get; }
 
         //protected override void OnRender(DrawingContext drawingContext)
         //{
