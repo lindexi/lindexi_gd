@@ -27,6 +27,11 @@ namespace LightTextEditorPlus.TextEditorPlus
             AddVisualChild(_textView);
         }
 
+        protected override void OnRender(DrawingContext drawingContext)
+        {
+            base.OnRender(drawingContext);
+        }
+
         public override void BeginInit()
         {
             base.BeginInit();
@@ -51,6 +56,7 @@ namespace LightTextEditorPlus.TextEditorPlus
 
         protected override Size ArrangeOverride(Size finalSize)
         {
+            _textView.Arrange(new Rect(new Point(), finalSize));
             return base.ArrangeOverride(finalSize);
         }
 
