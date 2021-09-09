@@ -29,6 +29,7 @@ namespace LightTextEditorPlus.TextEditorPlus.Layout
 
         protected override void OnRender(DrawingContext drawingContext)
         {
+            // 这是没有被调用的
             drawingContext.DrawRectangle(Brushes.Black, null, new Rect(10, 10, 100, 100));
             base.OnRender(drawingContext);
         }
