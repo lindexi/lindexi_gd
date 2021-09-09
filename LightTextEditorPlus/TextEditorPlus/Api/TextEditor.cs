@@ -4,6 +4,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Media;
 using LightTextEditorPlus.TextEditorPlus.Document.DocumentManagers;
+using LightTextEditorPlus.TextEditorPlus.Render;
 
 namespace LightTextEditorPlus.TextEditorPlus
 {
@@ -17,6 +18,7 @@ namespace LightTextEditorPlus.TextEditorPlus
         public TextEditor()
         {
             DocumentManager = new DocumentManager(this);
+            RenderManager = new RenderManager(this);
         }
 
         public override void BeginInit()
@@ -28,6 +30,9 @@ namespace LightTextEditorPlus.TextEditorPlus
         {
             // 在 XAML 设置，拿到所有 XAML 的属性
             // <textEditorPlus:TextEditor Text="123" /> 这里可以拿到 Text 属性的值
+            DocumentManager.DocumentWidth = Width;
+            DocumentManager.DocumentHeight = Height;
+
             base.EndInit();
         }
 
@@ -44,6 +49,8 @@ namespace LightTextEditorPlus.TextEditorPlus
         }
 
         public DocumentManager DocumentManager { get; }
+
+        private RenderManager RenderManager { get; }
 
         //protected override void OnRender(DrawingContext drawingContext)
         //{

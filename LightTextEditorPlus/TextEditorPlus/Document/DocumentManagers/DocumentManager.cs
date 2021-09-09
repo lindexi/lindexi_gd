@@ -10,5 +10,15 @@ namespace LightTextEditorPlus.TextEditorPlus.Document.DocumentManagers
         {
             
         }
+
+        /// <summary>
+        /// 文档的宽度
+        /// </summary>
+        internal double DocumentWidth { set; get; }
+
+        /// <summary>
+        /// 文档的高度
+        /// </summary>
+        internal double DocumentHeight { set; get; }
     }
 }

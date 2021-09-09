@@ -6,5 +6,9 @@ namespace LightTextEditorPlus.TextEditorPlus.Render
 {
     class RenderManager
     {
+        public RenderManager(TextEditor textEditor)
+        {
+            
+        }
     }
 }
