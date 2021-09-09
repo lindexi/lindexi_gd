@@ -29,6 +29,7 @@ namespace LightTextEditorPlus.TextEditorPlus
 
         protected override void OnRender(DrawingContext drawingContext)
         {
+            drawingContext.DrawRectangle(Brushes.Black, new Pen(Brushes.Black, 1), new Rect(2, 2, 100, 100));
             base.OnRender(drawingContext);
         }
 
