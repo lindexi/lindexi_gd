@@ -6,5 +6,9 @@ namespace LightTextEditorPlus.TextEditorPlus.Document.DocumentManagers
 {
     public class DocumentManager
     {
+        public DocumentManager(TextEditor textEditor)
+        {
+            
+        }
     }
 }

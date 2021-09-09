@@ -14,6 +14,23 @@ namespace LightTextEditorPlus.TextEditorPlus
     /// <remarks> 这个项目的核心和入口就是这个类</remarks>
     public partial class TextEditor : FrameworkElement
     {
+        public TextEditor()
+        {
+            DocumentManager = new DocumentManager(this);
+        }
+
+        public override void BeginInit()
+        {
+            base.BeginInit();
+        }
+
+        public override void EndInit()
+        {
+            // 在 XAML 设置，拿到所有 XAML 的属性
+            // <textEditorPlus:TextEditor Text="123" /> 这里可以拿到 Text 属性的值
+            base.EndInit();
+        }
+
         public string Text { set; get; }
 
         protected override Size MeasureOverride(Size availableSize)
@@ -26,7 +43,7 @@ namespace LightTextEditorPlus.TextEditorPlus
             return base.ArrangeOverride(finalSize);
         }
 
-        private DocumentManager DocumentManager { get; }
+        public DocumentManager DocumentManager { get; }
 
         //protected override void OnRender(DrawingContext drawingContext)
         //{
