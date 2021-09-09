@@ -22,10 +22,10 @@ namespace LightTextEditorPlus.TextEditorPlus.Layout
         #region 属性
 
         /// <inheritdoc />
-        protected override int VisualChildrenCount => _layers.Count + 1;
+        protected override int VisualChildrenCount => _layers.Count;
 
         /// <inheritdoc />
-        protected override Visual GetVisualChild(int index) => index == 0 ? this : _layers[index - 1];
+        protected override Visual GetVisualChild(int index) => _layers[index];
 
         protected override void OnRender(DrawingContext drawingContext)
         {
