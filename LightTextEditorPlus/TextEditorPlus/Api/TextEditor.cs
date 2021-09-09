@@ -4,6 +4,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Media;
 using LightTextEditorPlus.TextEditorPlus.Document.DocumentManagers;
+using LightTextEditorPlus.TextEditorPlus.Layout;
 using LightTextEditorPlus.TextEditorPlus.Render;
 
 namespace LightTextEditorPlus.TextEditorPlus
@@ -19,6 +20,11 @@ namespace LightTextEditorPlus.TextEditorPlus
         {
             DocumentManager = new DocumentManager(this);
             RenderManager = new RenderManager(this);
+
+            _textView = new TextView(RenderManager);
+            // 需要将子元素加入到可视化树以便在子元素发生改变之后能够自行重绘。
+            // 如果你决定完全自己接手重绘逻辑（就像 DrawingVisual.RenderOpen 那样），那么你可以不将其加入到可视化树中。
+            AddVisualChild(_textView);
         }
 
         public override void BeginInit()
@@ -51,6 +57,11 @@ namespace LightTextEditorPlus.TextEditorPlus
         public DocumentManager DocumentManager { get; }
 
         private RenderManager RenderManager { get; }
+
+        /// <summary>
+        /// 负责文本的渲染（不包含任何交互）。
+        /// </summary>
+        private readonly TextView _textView;
 
         //protected override void OnRender(DrawingContext drawingContext)
         //{
