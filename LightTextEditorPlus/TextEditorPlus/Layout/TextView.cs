@@ -37,11 +37,11 @@ namespace LightTextEditorPlus.TextEditorPlus.Layout
             return base.MeasureOverride(availableSize);
         }
 
-        protected override void OnRender(DrawingContext drawingContext)
-        {
-            // 这是没有被调用的
-            drawingContext.DrawRectangle(Brushes.Black, new Pen(Brushes.Black, 1), new Rect(2, 2, 100, 100));
-        }
+        //protected override void OnRender(DrawingContext drawingContext)
+        //{
+        //    // 这是没有被调用的，除非被布局
+        //    drawingContext.DrawRectangle(Brushes.Black, new Pen(Brushes.Black, 1), new Rect(2, 2, 100, 100));
+        //}
 
         #endregion
 
