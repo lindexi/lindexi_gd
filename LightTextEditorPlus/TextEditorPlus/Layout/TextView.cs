@@ -27,6 +27,17 @@ namespace LightTextEditorPlus.TextEditorPlus.Layout
         /// <inheritdoc />
         protected override Visual GetVisualChild(int index) => _layers[index];
 
+        protected override void OnRender(DrawingContext drawingContext)
+        {
+            drawingContext.DrawRectangle(Brushes.Black, null, new Rect(10, 10, 100, 100));
+            base.OnRender(drawingContext);
+        }
+
+        protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
+        {
+            base.OnRenderSizeChanged(sizeInfo);
+        }
+
         #endregion
 
         private readonly RenderManager _renderManager;
