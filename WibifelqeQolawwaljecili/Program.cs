@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Xml;
+using System.Xml.Linq;
 
 namespace WibifelqeQolawwaljecili
 {
@@ -10,8 +11,15 @@ namespace WibifelqeQolawwaljecili
         {
             var file = new FileInfo("slide1.xml");
             using var fileStream = file.OpenRead();
-            var xmlReader = XmlReader.Create(fileStream);
-            var readElementContentAsString = xmlReader.ReadElementContentAsString();
+
+            var xDocument = XDocument.Load(fileStream);
+            foreach (var xElement in xDocument.Elements())
+            {
+                if (xElement is IXmlLineInfo xmlLineInfo)
+                {
+                    var lineNumber = xmlLineInfo.LineNumber;
+                }
+            }
         }
     }
 }
