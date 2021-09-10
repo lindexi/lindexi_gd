@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+
+  <!--这个文件由代码创建，不建议删除这个文件-->
+
+  <!--取消下面的注释，并且修改路径为自己对应的 lindexi.src.Qpush.Source 文件夹的目录，可以通过修改源代码测试-->
+
+  <!--<PropertyGroup Condition=" !$(DefineConstants.Contains('CipuPursurSOURCE_REFERENCE')) ">
+    <DefineConstants>$(DefineConstants);CipuPursurSOURCE_REFERENCE</DefineConstants>
+  </PropertyGroup>-->
+  
+  <!--修改路径为自己的源代码文件夹-->
+  <!--  <PropertyGroup>
+    <CipuPursurSourceFolder>c:\lindexi\source\ 这是一个示例文件夹，请将这个替换为自己的源代码包文件夹</CipuPursurSourceFolder>
+  </PropertyGroup>  -->
+
+
+</Project>
