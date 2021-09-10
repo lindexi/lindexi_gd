@@ -34,14 +34,15 @@ namespace LightTextEditorPlus.TextEditorPlus.Layout
 
         protected override Size MeasureOverride(Size availableSize)
         {
+            HorizontalTextLayer.Arrange(new Rect(new Point(), availableSize));
+
             return base.MeasureOverride(availableSize);
         }
 
-        //protected override void OnRender(DrawingContext drawingContext)
-        //{
-        //    // 这是没有被调用的，除非被布局
-        //    drawingContext.DrawRectangle(Brushes.Black, new Pen(Brushes.Black, 1), new Rect(2, 2, 100, 100));
-        //}
+        protected override void OnRender(DrawingContext drawingContext)
+        {
+            //drawingContext.DrawRectangle(Brushes.Black, new Pen(Brushes.Black, 1), new Rect(2, 2, 100, 100));
+        }
 
         #endregion
 
@@ -59,13 +60,15 @@ namespace LightTextEditorPlus.TextEditorPlus.Layout
                 drawingContext.DrawRectangle(Brushes.Black, null, new Rect(10, 10, 100, 100));
             }
 
-            Visuals.Add(drawingVisual);
+            //Visuals.Add(drawingVisual);
         }
 
         private List<Visual> Visuals { get; } = new();
 
         protected override void OnRender(DrawingContext drawingContext)
         {
+            drawingContext.DrawRectangle(Brushes.Black, new Pen(Brushes.Black, 1), new Rect(2, 2, 100, 100));
+
             // 这是没有被调用的
             base.OnRender(drawingContext);
         }

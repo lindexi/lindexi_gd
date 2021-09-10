@@ -24,14 +24,17 @@ namespace LightTextEditorPlus.TextEditorPlus
             _textView = new TextView(RenderManager);
             // 需要将子元素加入到可视化树以便在子元素发生改变之后能够自行重绘。
             // 如果你决定完全自己接手重绘逻辑（就像 DrawingVisual.RenderOpen 那样），那么你可以不将其加入到可视化树中。
-            AddVisualChild(_textView);
+            AddVisualChild(_textView); // 让 _textView 可以找到 Parent 从而可以交互
         }
 
-        protected override void OnRender(DrawingContext drawingContext)
-        {
-            drawingContext.DrawRectangle(Brushes.Black, new Pen(Brushes.Black, 1), new Rect(2, 2, 100, 100));
-            base.OnRender(drawingContext);
-        }
+        protected override Visual GetVisualChild(int index) => _textView; // 让外层可以找到里层，从而里层可以被渲染
+        protected override int VisualChildrenCount => 1;
+
+        //protected override void OnRender(DrawingContext drawingContext)
+        //{
+        //    drawingContext.DrawRectangle(Brushes.Black, new Pen(Brushes.Black, 1), new Rect(2, 2, 100, 100));
+        //    base.OnRender(drawingContext);
+        //}
 
         public override void BeginInit()
         {
