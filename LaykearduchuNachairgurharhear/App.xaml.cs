@@ -21,12 +21,9 @@ namespace LaykearduchuNachairgurharhear
         [STAThread]
         static void Main()
         {
-            using (new HinembereneabemWhejurnicelem.App())
-            {
-                App app = new App();
-                app.InitializeComponent();
-                app.Run();
-            }
+            App app = new App();
+            app.InitializeComponent();
+            app.Run();
         }
     }
 }
