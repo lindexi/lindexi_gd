@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 
 namespace WemjallnacaleayayLerelaywhekebelnaw
 {
@@ -6,26 +7,23 @@ namespace WemjallnacaleayayLerelaywhekebelnaw
     {
         static void Main(string[] args)
         {
-            var start = 3;
-
-            string subString = _pathString.Substring(start, _curIndex - start);
-            var num1 = System.Convert.ToDouble(subString, _formatProvider);
-
-            try
+            var newSize = 200;
+            var _buffer = new byte[100];
+            for (int i = 0; i < _buffer.Length; i++)
             {
-                start = 2;
-
-                var span = _pathString.AsSpan(start, _curIndex - start);
-                var num2 = double.Parse(span, provider: _formatProvider);
+                _buffer[i] = (byte)i;
             }
-            catch (Exception e)
+
+            byte[] newBuffer = ArrayPool<byte>.Shared.Rent(newSize);
+
+            unsafe
             {
-                Console.WriteLine(e);
+                fixed (byte* pBuffer = _buffer)
+                fixed (byte* pNewBuffer = newBuffer)
+                {
+                    Buffer.MemoryCopy(pBuffer, pNewBuffer, _buffer.Length, _buffer.Length);
+                }
             }
         }
-
-        private static string _pathString = "abc123ab";
-        private static int _curIndex = 6;
-        private static IFormatProvider _formatProvider = System.Globalization.CultureInfo.InvariantCulture;
     }
 }
