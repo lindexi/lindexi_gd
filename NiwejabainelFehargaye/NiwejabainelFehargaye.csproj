@@ -5,5 +5,8 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
+  <ItemGroup>
+  	    <PackageReference Include="dotnetCampus.DirectShowLib" Version="2.1.0.1" />
+  </ItemGroup>
 
 </Project>
