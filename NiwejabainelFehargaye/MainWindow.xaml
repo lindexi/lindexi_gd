@@ -7,15 +7,6 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
   <Grid>
-    <StackPanel>
-      <StackPanel>
-        <local:F1></local:F1>
-        <local:F1></local:F1>
-      </StackPanel>
-      <StackPanel Margin="10,10,10,10">
-        <local:F1></local:F1>
-        <local:F2></local:F2>
-      </StackPanel>
-    </StackPanel>
+
   </Grid>
 </Window>
