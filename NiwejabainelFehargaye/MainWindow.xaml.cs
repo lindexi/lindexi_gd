@@ -41,16 +41,29 @@ namespace NiwejabainelFehargaye
 
                 drawingContext.DrawRectangle(Brushes.DarkSalmon, null, new Rect(10, 10, 100, 100));
 
-                var text = "林德熙abc123";
+                var text = "林德熙abc123ATdVACC";
 
                 var fontFamily = new FontFamily("微软雅黑");
                 var typeface = fontFamily.GetTypefaces().First();
                 typeface.TryGetGlyphTypeface(out var glyphTypeface);
-                var glyphIndex = glyphTypeface.CharacterToGlyphMap[text[0]];
                 var location = new Point(10, 10);
                 var fontSize = 25;
 
-                var width = glyphTypeface.AdvanceWidths[glyphIndex] * fontSize;
+                List<ushort> glyphIndices = new List<ushort>();
+                List<double> advanceWidths = new List<double>();
+                List<Point> glyphOffsets = new List<Point>();
+                for (var i = 0; i < text.Length; i++)
+                {
+                    var c = text[i];
+                    var glyphIndex = glyphTypeface.CharacterToGlyphMap[c];
+                    glyphIndices.Add(glyphIndex);
+
+                    var width = glyphTypeface.AdvanceWidths[glyphIndex] * fontSize;
+                    advanceWidths.Add(width);
+
+                    // 只是决定每个字的偏移量，记得加上 i 乘以哦。字符最好是叠加上 fontSize 的值，使用 fontSize 的倍数
+                    //glyphOffsets.Add(new Point(fontSize * i, 0));
+                }
 
                 XmlLanguage defaultXmlLanguage =
                     XmlLanguage.GetLanguage(CultureInfo.CurrentUICulture.IetfLanguageTag);
@@ -60,13 +73,13 @@ namespace NiwejabainelFehargaye
                     glyphTypeface,
                     bidiLevel: 0,
                     isSideways: false,
-                    renderingEmSize: 15,
+                    renderingEmSize: fontSize,
                     pixelsPerDip: pixelsPerDip,
-                    glyphIndices: new[] {glyphIndex},
+                    glyphIndices: glyphIndices,
                     baselineOrigin: location,
-                    advanceWidths: new[] {width},
-                    glyphOffsets: new Point[] {new Point(0, 0)},
-                    characters: new char[] {text[0]},
+                    advanceWidths: advanceWidths,
+                    glyphOffsets: glyphOffsets,
+                    characters: text.ToCharArray(), //new char[] {text[0]},
                     deviceFontName: null,
                     clusterMap: null,
                     caretStops: null,
