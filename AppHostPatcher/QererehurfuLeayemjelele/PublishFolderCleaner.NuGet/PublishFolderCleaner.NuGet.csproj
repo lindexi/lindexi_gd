@@ -6,17 +6,20 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>PublishFolderCleaner</PackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <Version>1.0.5</Version>
+    <Version>1.0.6</Version>
     <DevelopmentToolPath>..\PublishFolderCleaner\bin\$(Configuration)\</DevelopmentToolPath>
 
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net5.0' ">
+    <!-- 用于设置项目构建顺序 -->
+    <!-- 必须等待 PublishFolderCleaner 构建完成之后才能构建此项目 -->
     <ProjectReference Include="..\PublishFolderCleaner\PublishFolderCleaner.csproj" ReferenceOutputAssembly="false"/>
   </ItemGroup>
 
   <Target Name="IncludeAllPublishFolderCleanerDependencies" BeforeTargets="_GetPackageFiles">
     <ItemGroup>
+      <!-- 将 PublishFolderCleaner 的输出打包 -->
       <None Include="$(DevelopmentToolPath)**" Pack="True" PackagePath="tools"/>
       <None Include="Assets\package.targets" Pack="True" PackagePath="\build\$(PackageId).targets" />
     </ItemGroup>

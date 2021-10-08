@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.IO;
 using dotnetCampus.Cli;
 
 namespace PublishFolderCleaner
@@ -7,7 +9,16 @@ namespace PublishFolderCleaner
     {
         static void Main(string[] args)
         {
-            Console.WriteLine($"PublishFolderCleaner {Environment.CommandLine}");
+            Debugger.Launch();
+
+            var options = CommandLine.Parse(args).As<Options>();
+
+            const string libFolderName = "lib";
+            var libFolder = Path.GetFullPath(Path.Combine(options.PublishFolder, libFolderName));
+            var tempFolder = Path.GetFullPath(Path.Combine(options.PublishFolder, "..", Path.GetRandomFileName()));
+            Directory.Move(options.PublishFolder, tempFolder);
+            Directory.CreateDirectory(options.PublishFolder);
+            Directory.Move(tempFolder, libFolder);
         }
     }
 
