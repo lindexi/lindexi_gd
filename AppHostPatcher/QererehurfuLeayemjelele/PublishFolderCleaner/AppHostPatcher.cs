@@ -17,7 +17,7 @@ namespace PublishFolderCleaner
 
                 if (!File.Exists(appHostExe))
                 {
-                    Console.WriteLine($"Apphost '{appHostExe}' does not exist");
+                    Console.WriteLine($"AppHost '{appHostExe}' does not exist");
                     return 1;
                 }
                 if (origPath == string.Empty)
