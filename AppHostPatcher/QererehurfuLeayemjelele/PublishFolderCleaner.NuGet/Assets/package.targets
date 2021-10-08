@@ -6,7 +6,5 @@
     </PropertyGroup>
 
     <Exec Command="$(PublishFolderCleanerCommandArgs)"></Exec>
-
-    <Warning Text="FiciyarwhachejallWhikolealeakearfalhe PublishDir=$(PublishDir) AssemblyName=$(AssemblyName)"></Warning>
   </Target>
 </Project>
