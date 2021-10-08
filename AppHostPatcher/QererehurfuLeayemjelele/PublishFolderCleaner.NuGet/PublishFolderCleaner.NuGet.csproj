@@ -1,15 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <!-- 发布应用用到 AppHost 不包括 .NET 45 等框架版本 -->
-    <TargetFrameworks>net6.0;net5.0;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>net5.0;netcoreapp3.1</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>PublishFolderCleaner</PackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <Version>1.0.1</Version>
-    <DevelopmentToolPath>..\dotnetCampus.TelescopeTask\bin\$(Configuration)\</DevelopmentToolPath>
+    <Version>1.0.2</Version>
+    <DevelopmentToolPath>..\PublishFolderCleaner\bin\$(Configuration)\</DevelopmentToolPath>
 
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="Assets\package.targets" Pack="True" PackagePath="\build\$(PackageId).targets" />
+  </ItemGroup>
 
 </Project>
