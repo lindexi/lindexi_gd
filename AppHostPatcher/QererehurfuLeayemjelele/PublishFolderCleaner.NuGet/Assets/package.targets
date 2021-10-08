@@ -2,7 +2,7 @@
   <Target Name="MoveThePublishFolderToLibFolder" AfterTargets="Publish">
 
     <PropertyGroup>
-      <PublishFolderCleanerCommandArgs>dotnet "$(MSBuildThisFileDirectory)..\tools\net5.0\any\PublishFolderCleaner.dll" -p "$(PublishDir)" -a "$(AssemblyName)"</PublishFolderCleanerCommandArgs>
+      <PublishFolderCleanerCommandArgs>dotnet "$(MSBuildThisFileDirectory)..\tools\net5.0\PublishFolderCleaner.dll" -p "$(PublishDir)" -a "$(AssemblyName)"</PublishFolderCleanerCommandArgs>
     </PropertyGroup>
 
     <Exec Command="$(PublishFolderCleanerCommandArgs)"></Exec>

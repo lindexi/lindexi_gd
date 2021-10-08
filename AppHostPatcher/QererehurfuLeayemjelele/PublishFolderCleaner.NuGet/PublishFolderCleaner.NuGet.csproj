@@ -6,17 +6,19 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>PublishFolderCleaner</PackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <Version>1.0.2</Version>
+    <Version>1.0.5</Version>
     <DevelopmentToolPath>..\PublishFolderCleaner\bin\$(Configuration)\</DevelopmentToolPath>
 
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Include="Assets\package.targets" Pack="True" PackagePath="\build\$(PackageId).targets" />
-  </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net5.0' ">
     <ProjectReference Include="..\PublishFolderCleaner\PublishFolderCleaner.csproj" ReferenceOutputAssembly="false"/>
   </ItemGroup>
 
+  <Target Name="IncludeAllPublishFolderCleanerDependencies" BeforeTargets="_GetPackageFiles">
+    <ItemGroup>
+      <None Include="$(DevelopmentToolPath)**" Pack="True" PackagePath="tools"/>
+      <None Include="Assets\package.targets" Pack="True" PackagePath="\build\$(PackageId).targets" />
+    </ItemGroup>
+  </Target>
 </Project>
