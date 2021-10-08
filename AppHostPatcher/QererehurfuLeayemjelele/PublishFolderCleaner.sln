@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PublishFolderCleaner", "Pub
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PublishFolderCleaner.NuGet", "PublishFolderCleaner.NuGet\PublishFolderCleaner.NuGet.csproj", "{40B27D0B-E741-4634-A2DD-1AA3957527F3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HalrerbelfehiQaneebihegal", "HalrerbelfehiQaneebihegal\HalrerbelfehiQaneebihegal.csproj", "{7616527D-F15C-4F74-9A58-A39389E44FAF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PublishFolderCleaner.Demo", "PublishFolderCleaner.Demo\PublishFolderCleaner.Demo.csproj", "{D9FF2B2A-94F6-4FB1-B36F-D25184AD5B39}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +23,10 @@ Global
 		{40B27D0B-E741-4634-A2DD-1AA3957527F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40B27D0B-E741-4634-A2DD-1AA3957527F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{40B27D0B-E741-4634-A2DD-1AA3957527F3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7616527D-F15C-4F74-9A58-A39389E44FAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7616527D-F15C-4F74-9A58-A39389E44FAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7616527D-F15C-4F74-9A58-A39389E44FAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7616527D-F15C-4F74-9A58-A39389E44FAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9FF2B2A-94F6-4FB1-B36F-D25184AD5B39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9FF2B2A-94F6-4FB1-B36F-D25184AD5B39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9FF2B2A-94F6-4FB1-B36F-D25184AD5B39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9FF2B2A-94F6-4FB1-B36F-D25184AD5B39}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

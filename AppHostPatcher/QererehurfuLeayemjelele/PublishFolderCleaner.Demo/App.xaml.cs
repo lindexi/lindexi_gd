@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace HalrerbelfehiQaneebihegal
+namespace PublishFolderCleaner.Demo
 {
     /// <summary>
     /// Interaction logic for App.xaml
