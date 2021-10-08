@@ -15,4 +15,8 @@
     <None Include="Assets\package.targets" Pack="True" PackagePath="\build\$(PackageId).targets" />
   </ItemGroup>
 
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net5.0' ">
+    <ProjectReference Include="..\PublishFolderCleaner\PublishFolderCleaner.csproj" ReferenceOutputAssembly="false"/>
+  </ItemGroup>
+
 </Project>
