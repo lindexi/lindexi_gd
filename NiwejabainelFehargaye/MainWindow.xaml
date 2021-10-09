@@ -7,6 +7,7 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
   <Grid>
-
+    <TextBox FontFamily="微软雅黑" FontSize="15" TextChanged="TextBox_OnTextChanged"/>
+    <local:LightTextEditor x:Name="TextEditor"/>
   </Grid>
 </Window>
