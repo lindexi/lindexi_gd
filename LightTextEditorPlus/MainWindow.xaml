@@ -9,5 +9,7 @@
         Title="MainWindow" Height="450" Width="800">
   <Grid>
     <textEditorPlus:TextEditor></textEditorPlus:TextEditor>
+    <TextBox FontFamily="微软雅黑" FontSize="15" TextChanged="TextBoxBase_OnTextChanged"></TextBox>
+    <local:Foo x:Name="Foo" IsHitTestVisible="False"/>
   </Grid>
 </Window>
