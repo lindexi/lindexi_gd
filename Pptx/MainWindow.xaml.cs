@@ -54,6 +54,13 @@ namespace Pptx
             var part = slide.SlidePart!.GetPartById(id!);
             Debug.Assert(part.ContentType== "application/vnd.openxmlformats-officedocument.oleObject");
 
+            var allocatedBytesForCurrentThread = GC.GetAllocatedBytesForCurrentThread();
+            var s = part.GetStream();
+            var cf = new CompoundFile(s);
+
+            var lastAllocatedBytesForCurrentThread = GC.GetAllocatedBytesForCurrentThread();
+            Debug.WriteLine(lastAllocatedBytesForCurrentThread - allocatedBytesForCurrentThread);
+
             var tempFolder = @"F:\temp";
             if (!Directory.Exists(tempFolder))
             {
