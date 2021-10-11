@@ -118,9 +118,9 @@ namespace OpenMcdf
 
         public int ReadInt32()
         {
-
             this.Read(buf, 0, 4);
-            return (((this.buf[0] | (this.buf[1] << 8)) | (this.buf[2] << 16)) | (this.buf[3] << 24));
+            var buffer = this.buf;
+            return BitConverter.ToInt32(buffer,0);
         }
 
         public override int Read(byte[] buffer, int offset, int count)
