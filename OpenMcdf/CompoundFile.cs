@@ -1452,10 +1452,8 @@ namespace OpenMcdf
             StreamView fatStream
                 = new StreamView(fatSectors, GetSectorSize(), fatSectors.Count * GetSectorSize(), null, sourceStream);
 
-            while (true)
+            while (nextSecID != Sector.ENDOFCHAIN)
             {
-                if (nextSecID == Sector.ENDOFCHAIN) break;
-
                 if (nextSecID < 0)
                     throw new CFCorruptedFileException(String.Format("Next Sector ID reference is below zero. NextID : {0}", nextSecID));
 
