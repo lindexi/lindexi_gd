@@ -19,14 +19,9 @@ namespace OpenMcdf
 
         public byte[] HeaderSignature
         {
-            get => _headerSignature ??= OLE_CFS_SIGNATURE.ToArray();
+            get => _headerSignature ??= new byte[] { 0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1 };
             private set => _headerSignature = value;
         }
-
-        /// <summary>
-        /// Structured Storage signature
-        /// </summary>
-        private byte[] OLE_CFS_SIGNATURE = new byte[] { 0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1 };
 
         //8 16 Unique identifier (UID) of this file (not of interest in the following, may be all 0)
         private byte[] clsid = new byte[16];
@@ -301,11 +296,13 @@ namespace OpenMcdf
 
 
 
-        private void CheckSignature(byte[] headerSignature)
+        private static void CheckSignature(byte[] headerSignature)
         {
+            var oleCfsSignature = new byte[] { 0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1 };
+
             for (int i = 0; i < headerSignature.Length; i++)
             {
-                if (headerSignature[i] != OLE_CFS_SIGNATURE[i])
+                if (headerSignature[i] != oleCfsSignature[i])
                     throw new CFFileFormatException("Invalid OLE structured storage file");
             }
         }
