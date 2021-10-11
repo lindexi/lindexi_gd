@@ -46,8 +46,6 @@ namespace OpenMcdf
             this.sectorChain = sectorChain;
             this.sectorSize = sectorSize;
             this.stream = stream;
-            _streamReader = new StreamReader(stream);
-            _binaryReader = new BinaryReader(stream);
         }
 
         public StreamView(List<Sector> sectorChain, int sectorSize, long length, Queue<Sector> availableSectors, Stream stream, bool isFatStream = false)
@@ -117,8 +115,6 @@ namespace OpenMcdf
         }
 
         private byte[] buf = new byte[4];
-        private StreamReader _streamReader;
-        private BinaryReader _binaryReader;
 
         public int ReadInt32()
         {
