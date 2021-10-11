@@ -27,7 +27,7 @@ namespace OpenMcdf
     }
 
     /// <summary>
-    /// Configuration parameters for the compund files.
+    /// Configuration parameters for the compound files.
     /// They can be OR-combined to configure 
     /// <see cref="T:OpenMcdf.CompoundFile">Compound file</see> behaviour.
     /// All flags are NOT set by Default.
@@ -523,7 +523,7 @@ namespace OpenMcdf
                 CheckForLockSector();
 
             sourceStream.Seek(0, SeekOrigin.Begin);
-            sourceStream.Write((byte[])Array.CreateInstance(typeof(byte), GetSectorSize()), 0, sSize);
+            sourceStream.Write(new byte[GetSectorSize()], 0, sSize);
 
             CommitDirectory();
 
@@ -563,8 +563,6 @@ namespace OpenMcdf
                     s = null;
                     sectors[i] = null;
                 }
-
-
 
 #else
                
