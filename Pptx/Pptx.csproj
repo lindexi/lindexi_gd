@@ -15,7 +15,10 @@
   <ItemGroup>
     <PackageReference Include="dotnetCampus.OpenXmlUnitConverter" Version="1.7.1" />
     <PackageReference Include="DocumentFormat.OpenXml" Version="2.13.1" />
-    <PackageReference Include="OpenMcdf" Version="2.2.1.9" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenMcdf\OpenMcdf.csproj" />
   </ItemGroup>
 
 </Project>
