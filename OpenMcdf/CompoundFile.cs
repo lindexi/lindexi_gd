@@ -679,15 +679,15 @@ namespace OpenMcdf
 
                 header.Read(stream);
 
-                int n_sector = Ceiling(((double)(stream.Length - GetSectorSize()) / (double)GetSectorSize()));
+                int sectorCount = Ceiling(((double)(stream.Length - GetSectorSize()) / (double)GetSectorSize()));
 
                 if (stream.Length > 0x7FFFFF0)
                     this._transactionLockAllocated = true;
 
 
-                sectors = new SectorCollection();
+                sectors = new SectorCollection(sectorCount);
                 //sectors = new ArrayList();
-                for (int i = 0; i < n_sector; i++)
+                for (int i = 0; i < sectorCount; i++)
                 {
                     sectors.Add(null);
                 }
