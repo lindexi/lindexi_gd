@@ -742,11 +742,11 @@ namespace OpenMcdf
             if (stream == null)
                 throw new CFException("Stream parameter cannot be null");
 
-            //if (!stream.CanSeek)
-            //    throw new CFException("Cannot load a non-seekable Stream");
+            if (!stream.CanSeek)
+                throw new CFException("Cannot load a non-seekable Stream");
 
 
-            //stream.Seek(0, SeekOrigin.Begin);
+            stream.Seek(0, SeekOrigin.Begin);
 
             Load(stream);
         }
