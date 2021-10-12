@@ -44,6 +44,14 @@ namespace Pptx
         {
             var file = new FileInfo("Test.pptx");
 
+            var tf = @"F:\temp\KewalnaidiNaborereefal.pptx";
+            if (File.Exists(tf))
+            {
+                file = new FileInfo(tf);
+            }
+
+            long lastAllocatedBytesForCurrentThread;
+
             using var presentationDocument = PresentationDocument.Open(file.FullName, false);
             var slide = presentationDocument.PresentationPart!.SlideParts.First().Slide;
 
@@ -61,6 +69,10 @@ namespace Pptx
             var allocatedBytesForCurrentThread = GC.GetAllocatedBytesForCurrentThread();
             var s = part.GetStream();
 
+            lastAllocatedBytesForCurrentThread = GC.GetAllocatedBytesForCurrentThread();
+            Debug.WriteLine($"GetStream {lastAllocatedBytesForCurrentThread - allocatedBytesForCurrentThread}");
+            allocatedBytesForCurrentThread = lastAllocatedBytesForCurrentThread;
+
             var byteArrayPool = new ByteArrayPool();
             var tempFolder = @"F:\temp";
             if (!Directory.Exists(tempFolder))
@@ -69,23 +81,33 @@ namespace Pptx
             }
 
             tempFolder = System.IO.Path.Combine(tempFolder, System.IO.Path.GetRandomFileName());
-
+            Directory.CreateDirectory(tempFolder);
             //CompoundFileUnzipper.Unzip(s, tempFolder, byteArrayPool);
 
-            var fakeStream = new ForwardSeekStream(s,byteArrayPool);
-            var cf = new CompoundFile(fakeStream);
+            var forwardSeekStream = new ForwardSeekStream(s,byteArrayPool);
+            var cf = new CompoundFile(forwardSeekStream);
             var packageStream = cf.RootStorage.GetStream("Package");
+
+            lastAllocatedBytesForCurrentThread = GC.GetAllocatedBytesForCurrentThread();
+            Debug.WriteLine($"CompoundFile {lastAllocatedBytesForCurrentThread - allocatedBytesForCurrentThread}");
+            allocatedBytesForCurrentThread = lastAllocatedBytesForCurrentThread;
+
             //var tempFolder = @"F:\temp";
             //if (!Directory.Exists(tempFolder))
             //{
             //    tempFolder = System.IO.Path.GetTempPath();
             //}
-            var xlsxFile = System.IO.Path.Combine(tempFolder, System.IO.Path.GetRandomFileName() + ".xlsx");
-            using (var fileStream = File.OpenWrite(xlsxFile))
-            {
-                //fileStream.Write(packageStream.GetData().AsSpan());
-                cf.CopyTo(packageStream, fileStream);
-            }
+
+            //var xlsxFile = System.IO.Path.Combine(tempFolder, System.IO.Path.GetRandomFileName() + ".xlsx");
+            //using (var fileStream = File.OpenWrite(xlsxFile))
+            //{
+            //    //fileStream.Write(packageStream.GetData().AsSpan());
+            //    cf.CopyTo(packageStream, fileStream, byteArrayPool);
+            //}
+
+            var fakeStream = new FakeStream();
+            cf.CopyTo(packageStream, fakeStream, byteArrayPool);
+
             //using (var fileStream = File.OpenWrite(xlsxFile))
             //{
             //    fileStream.Write(packageStream.GetData().AsSpan());
@@ -93,8 +115,9 @@ namespace Pptx
             //using var spreadsheetDocument = SpreadsheetDocument.Open(xlsxFile, false);
             //var sheets = spreadsheetDocument.WorkbookPart!.Workbook.Sheets;
 
-            var lastAllocatedBytesForCurrentThread = GC.GetAllocatedBytesForCurrentThread();
-            Debug.WriteLine(lastAllocatedBytesForCurrentThread - allocatedBytesForCurrentThread);
+            lastAllocatedBytesForCurrentThread = GC.GetAllocatedBytesForCurrentThread();
+            Debug.WriteLine($"CopyTo {lastAllocatedBytesForCurrentThread - allocatedBytesForCurrentThread}");
+            allocatedBytesForCurrentThread = lastAllocatedBytesForCurrentThread;
 
 
 
@@ -123,4 +146,35 @@ namespace Pptx
         }
     }
 
+    class FakeStream : Stream
+    {
+        public override void Flush()
+        {
+            
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            return 0;
+        }
+
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            return 0;
+        }
+
+        public override void SetLength(long value)
+        {
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+        }
+
+        public override bool CanRead => true;
+        public override bool CanSeek => true;
+        public override bool CanWrite => true;
+        public override long Length => 0;
+        public override long Position { get; set; }
+    }
 }

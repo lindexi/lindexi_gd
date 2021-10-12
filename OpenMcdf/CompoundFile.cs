@@ -2417,9 +2417,25 @@ namespace OpenMcdf
             return result;
         }
 
-        public void CopyTo(CFStream sourceCompoundFileStream, Stream destinationStream)
+        public void CopyTo(CFStream sourceCompoundFileStream, Stream destinationStream,IByteArrayPool byteArrayPool)
         {
+            List<Sector> sectorChain;
+            IDirectoryEntry de = sourceCompoundFileStream.DirEntry;
+            if (de.Size < header.MinSizeStandardStream)
+            {
+                sectorChain = GetSectorChain(de.StartSetc, SectorType.Mini);
+            }
+            else
+            {
+                sectorChain = GetSectorChain(de.StartSetc, SectorType.Normal);
+            }
 
+            var count = de.Size;
+            foreach (var sector in sectorChain)
+            {
+                sector.CopyTo(destinationStream, byteArrayPool, 0, count);
+                count -= sector.Size;
+            }
         }
 
         internal byte[] GetData(CFStream cFStream)
