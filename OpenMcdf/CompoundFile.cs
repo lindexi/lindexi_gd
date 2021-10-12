@@ -2417,6 +2417,10 @@ namespace OpenMcdf
             return result;
         }
 
+        public void CopyTo(CFStream sourceCompoundFileStream, Stream destinationStream)
+        {
+
+        }
 
         internal byte[] GetData(CFStream cFStream)
         {
