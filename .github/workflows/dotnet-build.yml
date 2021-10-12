@@ -14,4 +14,4 @@ jobs:
       run: dotnet build LightTextEditorPlus.sln --configuration Release
 
     - name: Test
-      run: dotnet test --configuration Release
+      run: dotnet test LightTextEditorPlus.sln --configuration Release
