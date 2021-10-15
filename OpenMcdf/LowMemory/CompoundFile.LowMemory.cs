@@ -53,10 +53,10 @@ namespace OpenMcdf
 
            while (dirReader.Position < dirReader.Length)
            {
-               IDirectoryEntry de
-                   = DirectoryEntry.New(String.Empty, StgType.StgInvalid, directoryEntries);
+               DirectoryEntry directoryEntry
+                   = (DirectoryEntry) DirectoryEntry.New(string.Empty, StgType.StgInvalid, directoryEntries);
                //We are not inserting dirs. Do not use 'InsertNewDirectoryEntry'
-               de.Read(dirReader, this.Version);
+               directoryEntry.Read(dirReader, this.Version);
            }
         }
 
@@ -200,6 +200,8 @@ namespace OpenMcdf
             return new SectorList(idIndexList, sourceStream, GetSectorSize(), SectorType.FAT);
         }
     }
+
+
 
     class ReadonlyStreamViewForSectorList:Stream
     {
