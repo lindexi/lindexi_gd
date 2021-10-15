@@ -85,11 +85,16 @@ namespace Pptx
             //CompoundFileUnzipper.Unzip(s, tempFolder, byteArrayPool);
 
             var forwardSeekStream = new ForwardSeekStream(s,byteArrayPool);
-            var cf = new CompoundFile(forwardSeekStream);
-            var packageStream = cf.RootStorage.GetStream("Package");
+            var cf = new CompoundFile(forwardSeekStream, byteArrayPool);
 
             lastAllocatedBytesForCurrentThread = GC.GetAllocatedBytesForCurrentThread();
             Debug.WriteLine($"CompoundFile {lastAllocatedBytesForCurrentThread - allocatedBytesForCurrentThread}");
+            allocatedBytesForCurrentThread = lastAllocatedBytesForCurrentThread;
+
+            var packageStream = cf.RootStorage.GetStream("Package");
+
+            lastAllocatedBytesForCurrentThread = GC.GetAllocatedBytesForCurrentThread();
+            Debug.WriteLine($"GetStream {lastAllocatedBytesForCurrentThread - allocatedBytesForCurrentThread}");
             allocatedBytesForCurrentThread = lastAllocatedBytesForCurrentThread;
 
             //var tempFolder = @"F:\temp";

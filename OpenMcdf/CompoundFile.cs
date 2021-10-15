@@ -115,7 +115,7 @@ namespace OpenMcdf
     /// efficent storage of multiple kinds of documents in a single file.
     /// Version 3 and 4 of specifications are supported.
     /// </summary>
-    public class CompoundFile : IDisposable
+    public partial class CompoundFile : IDisposable
     {
         private CFSConfiguration configuration
             = CFSConfiguration.Default;
@@ -684,8 +684,7 @@ namespace OpenMcdf
                 if (stream.Length > 0x7FFFFF0)
                     this._transactionLockAllocated = true;
 
-
-                sectors = new SectorCollection(sectorCount);
+                sectors = new SectorCollection();
                 //sectors = new ArrayList();
                 for (int i = 0; i < sectorCount; i++)
                 {
@@ -1265,6 +1264,11 @@ namespace OpenMcdf
         /// <returns>A list of DIFAT sectors</returns>
         private List<Sector> GetDifatSectorChain()
         {
+            if (header.DIFATSectorsNumber == 0)
+            {
+                return new List<Sector>(0);
+            }
+
             int validationCount = 0;
 
             List<Sector> result
