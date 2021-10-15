@@ -23,7 +23,7 @@ namespace OpenMcdf
         long ReadInt64();
         ulong ReadUInt64();
         byte[] ReadBytes(int count);
-        byte[] ReadBytes(int count, out int r_count);
+        byte[] ReadBytes(int count, out int readCount);
         void Close();
     }
 

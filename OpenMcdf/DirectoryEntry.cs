@@ -415,7 +415,7 @@ namespace OpenMcdf
                 // where most significant bits are not initialized to zero
 
                 size = rw.ReadInt32();
-                rw.ReadBytes(4); //discard most significant 4 (possibly) dirty bytes
+                rw.ReadInt32(); //rw.ReadBytes(4); //discard most significant 4 (possibly) dirty bytes
             }
             else
             {

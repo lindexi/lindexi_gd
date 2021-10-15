@@ -203,7 +203,7 @@ namespace OpenMcdf
 
 
 
-    class ReadonlyStreamViewForSectorList:Stream
+    class ReadonlyStreamViewForSectorList:Stream,IStreamReader
     {
 
         public ReadonlyStreamViewForSectorList(SectorList sectorChain, long length, Stream sourceStream,
@@ -221,12 +221,69 @@ namespace OpenMcdf
             throw new NotSupportedException();
         }
 
+        public long Seek(long offset)
+        {
+            return Seek(offset, SeekOrigin.Begin);
+        }
+
+        public T ReadValue<T>(int length, Func<byte[], T> convert)
+        {
+            var buffer = _byteArrayPool.Rent(length);
+            Read(buffer, 0, length);
+
+            var result = convert(buffer);
+
+            _byteArrayPool.Return(buffer);
+            return result;
+        }
+
+        byte IStreamReader.ReadByte()
+        {
+            return ReadValue(1, buffer => buffer[0]);
+        }
+
+        public ushort ReadUInt16()
+        {
+            return ReadValue(2, buffer => (ushort) (buffer[0] | (buffer[1] << 8)));
+        }
+
         public int ReadInt32()
         {
-            var buffer = _byteArrayPool.Rent(4);
-            const int sizeOfInt32 = 4;
-            Read(buffer, 0, sizeOfInt32);
-            return BitConverter.ToInt32(buffer, 0);
+            return ReadValue(4, buffer => BitConverter.ToInt32(buffer, 0));
+        }
+
+        public uint ReadUInt32()
+        {
+            return ReadValue(4, buffer => (uint)(buffer[0] | (buffer[1] << 8) | (buffer[2] << 16) | (buffer[3] << 24)));
+        }
+
+        public long ReadInt64()
+        {
+            return ReadValue(8, buffer =>
+            {
+                uint ls = (uint)(buffer[0] | (buffer[1] << 8) | (buffer[2] << 16) | (buffer[3] << 24));
+                uint ms = (uint)((buffer[4]) | (buffer[5] << 8) | (buffer[6] << 16) | (buffer[7] << 24));
+                return (long)(((ulong)ms << 32) | ls);
+            });
+        }
+
+        public ulong ReadUInt64()
+        {
+            return ReadValue(8, buffer => BitConverter.ToUInt64(buffer, 0));
+        }
+
+        public byte[] ReadBytes(int count)
+        {
+            byte[] result = new byte[count];
+            Read(result, 0, count);
+            return result;
+        }
+
+        public byte[] ReadBytes(int count, out int readCount)
+        {
+            byte[] result = new byte[count];
+            readCount = Read(result, 0, count);
+            return result;
         }
 
         public override int Read(byte[] buffer, int offset, int count)
