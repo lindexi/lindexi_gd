@@ -41,11 +41,6 @@ namespace OpenMcdf
             _largeArraySlices = new List<ArrayList>();
         }
 
-        public SectorCollection(int capacity)
-        {
-            _largeArraySlices = new List<ArrayList>(capacity);
-        }
-
         private bool sizeLimitReached = false;
         private void DoCheckSizeLimitReached()
         {

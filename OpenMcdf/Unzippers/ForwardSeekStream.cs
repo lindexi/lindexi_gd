@@ -37,8 +37,19 @@ namespace OpenMcdf
             if (offset > CurrentPosition)
             {
                 int length = (int)(offset - CurrentPosition);
-                var byteList = _byteArrayPool.Rent(length);
-                Read(byteList, 0, length);
+
+                var currentReadCount = 0;
+                const int defaultMaxBufferLength = 4096;
+                var bufferLength = Math.Min(length, defaultMaxBufferLength);
+                var byteList = _byteArrayPool.Rent(bufferLength);
+                while (currentReadCount < length)
+                {
+                    var size = length - currentReadCount;
+                    size = Math.Min(size, bufferLength);
+
+                    currentReadCount += Read(byteList, 0, size);
+                }
+
                 _byteArrayPool.Return(byteList);
 
                 Debug.Assert(offset == CurrentPosition);
