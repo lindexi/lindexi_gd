@@ -33,17 +33,31 @@ namespace OpenMcdf
             FAT_SECTOR_ENTRIES_COUNT = (GetSectorSize() / 4);
         }
 
-        private IByteArrayPool _byteArrayPool;
+        private readonly IByteArrayPool _byteArrayPool;
 
         /// <summary>
         /// Load directory entries from compound file. Header and FAT MUST be already loaded.
         /// </summary>
         private void LoadDirectoriesWithLowMemory()
         {
-            GetSectorChainLowMemory(header.FirstDirectorySectorID, SectorType.Normal);
+           var directoryChain = GetSectorChainLowMemory(header.FirstDirectorySectorID, SectorType.Normal);
 
-            List<Sector> directoryChain
-                = GetSectorChain(header.FirstDirectorySectorID, SectorType.Normal);
+           if (!(directoryChain.Count > 0))
+               throw new CFCorruptedFileException("Directory sector chain MUST contain at least 1 sector");
+
+           if (header.FirstDirectorySectorID == Sector.ENDOFCHAIN)
+               header.FirstDirectorySectorID = directoryChain.IdIndexList[0];
+
+           var dirReader = new ReadonlyStreamViewForSectorList(directoryChain, directoryChain.Count * GetSectorSize(),
+               sourceStream, _byteArrayPool);
+
+           while (dirReader.Position < dirReader.Length)
+           {
+               IDirectoryEntry de
+                   = DirectoryEntry.New(String.Empty, StgType.StgInvalid, directoryEntries);
+               //We are not inserting dirs. Do not use 'InsertNewDirectoryEntry'
+               de.Read(dirReader, this.Version);
+           }
         }
 
         /// <summary>
