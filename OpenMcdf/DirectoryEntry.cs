@@ -384,7 +384,7 @@ namespace OpenMcdf
 
         public void Read(Stream stream, CFSVersion ver = CFSVersion.Ver_3)
         {
-            StreamRW rw = new StreamRW(stream);
+            IStreamReader rw = stream.ToStreamReader();
 
             entryName = rw.ReadBytes(64);
             nameLength = rw.ReadUInt16();

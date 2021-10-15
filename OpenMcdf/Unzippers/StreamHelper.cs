@@ -29,5 +29,15 @@ namespace OpenMcdf
 
             byteArrayPool.Return(buffer);
         }
+
+        public static IStreamReader ToStreamReader(this Stream stream)
+        {
+            if (stream is IStreamReader reader)
+            {
+                return reader;
+            }
+
+            return new StreamRW(stream);
+        }
     }
 }
