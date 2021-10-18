@@ -19,9 +19,9 @@ namespace OpenMcdf
     /// It is contained inside a Storage object in a file-directory
     /// relationship and indexed by its name.
     /// </summary>
-    public class CFStream : ReadonlyCFItem
+    public class ReadonlyCompoundFileStream : ReadonlyCompoundFileItem
     {
-        internal CFStream(ReadonlyCompoundFile compoundFile, IDirectoryEntry dirEntry)
+        internal ReadonlyCompoundFileStream(ReadonlyCompoundFile compoundFile, IDirectoryEntry dirEntry)
             : base(compoundFile)
         {
             if (dirEntry == null || dirEntry.SID < 0)

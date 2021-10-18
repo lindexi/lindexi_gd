@@ -2,9 +2,9 @@
 
 namespace OpenMcdf
 {
-    internal class CFItemComparer : IComparer<ReadonlyCFItem>
+    internal class CFItemComparer : IComparer<ReadonlyCompoundFileItem>
     {
-        public int Compare(ReadonlyCFItem x, ReadonlyCFItem y)
+        public int Compare(ReadonlyCompoundFileItem x, ReadonlyCompoundFileItem y)
         {
             // X CompareTo Y : X > Y --> 1 ; X < Y  --> -1
             return (x.DirEntry.CompareTo(y.DirEntry));

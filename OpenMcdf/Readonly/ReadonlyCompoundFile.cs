@@ -202,7 +202,7 @@ namespace OpenMcdf
         ///    ncf.Close();
         /// </code>
         /// </example>
-        public CFStorage RootStorage { get; private set; }
+        public ReadonlyCompoundFileStorage RootStorage { get; private set; }
 
         public CFSVersion Version => (CFSVersion) _header.MajorVersion;
 
@@ -379,7 +379,7 @@ namespace OpenMcdf
                 LoadDirectoriesWithLowMemory();
 
                 RootStorage
-                    = new CFStorage(this, _directoryEntries[0]);
+                    = new ReadonlyCompoundFileStorage(this, _directoryEntries[0]);
             }
             catch (Exception)
             {
@@ -495,7 +495,7 @@ namespace OpenMcdf
             }
         }
 
-        internal void FreeData(CFStream stream)
+        internal void FreeData(ReadonlyCompoundFileStream stream)
         {
             if (stream.Size == 0)
                 return;
@@ -1453,7 +1453,7 @@ namespace OpenMcdf
         ///     INTERNAL DEVELOPMENT. DO NOT CALL.
         ///     <param name="directoryEntry"></param>
         ///     <param name="buffer"></param>
-        internal void AppendData(ReadonlyCFItem cfItem, byte[] buffer)
+        internal void AppendData(ReadonlyCompoundFileItem cfItem, byte[] buffer)
         {
             WriteData(cfItem, cfItem.Size, buffer);
         }
@@ -1463,7 +1463,7 @@ namespace OpenMcdf
         /// </summary>
         /// <param name="cfItem"></param>
         /// <param name="length"></param>
-        internal void SetStreamLength(ReadonlyCFItem cfItem, long length)
+        internal void SetStreamLength(ReadonlyCompoundFileItem cfItem, long length)
         {
             if (cfItem.Size == length)
                 return;
@@ -1664,12 +1664,12 @@ namespace OpenMcdf
             }
         }
 
-        internal void WriteData(ReadonlyCFItem cfItem, long position, byte[] buffer)
+        internal void WriteData(ReadonlyCompoundFileItem cfItem, long position, byte[] buffer)
         {
             WriteData(cfItem, buffer, position, 0, buffer.Length);
         }
 
-        internal void WriteData(ReadonlyCFItem cfItem, byte[] buffer, long position, int offset, int count)
+        internal void WriteData(ReadonlyCompoundFileItem cfItem, byte[] buffer, long position, int offset, int count)
         {
             if (buffer == null)
                 throw new CFInvalidOperation("Parameter [buffer] cannot be null");
@@ -1706,12 +1706,12 @@ namespace OpenMcdf
             //SetSectorChain(sv.BaseSectorChain);
         }
 
-        internal void WriteData(ReadonlyCFItem cfItem, byte[] buffer)
+        internal void WriteData(ReadonlyCompoundFileItem cfItem, byte[] buffer)
         {
             WriteData(cfItem, 0, buffer);
         }
 
-        internal int ReadData(CFStream cFStream, long position, byte[] buffer, int count)
+        internal int ReadData(ReadonlyCompoundFileStream cFStream, long position, byte[] buffer, int count)
         {
             if (count > buffer.Length)
                 throw new ArgumentException("count parameter exceeds buffer size");
@@ -1738,7 +1738,7 @@ namespace OpenMcdf
             return result;
         }
 
-        internal int ReadData(CFStream cFStream, long position, byte[] buffer, int offset, int count)
+        internal int ReadData(ReadonlyCompoundFileStream cFStream, long position, byte[] buffer, int offset, int count)
         {
             var de = cFStream.DirEntry;
 
@@ -1762,7 +1762,7 @@ namespace OpenMcdf
             return result;
         }
 
-        public void CopyTo(CFStream sourceCompoundFileStream, Stream destinationStream, IByteArrayPool byteArrayPool)
+        public void CopyTo(ReadonlyCompoundFileStream sourceCompoundFileStream, Stream destinationStream, IByteArrayPool byteArrayPool)
         {
             SectorList sectorChain = null;
             var de = sourceCompoundFileStream.DirEntry;
@@ -1779,7 +1779,7 @@ namespace OpenMcdf
             reader.CopyTo(destinationStream, byteArrayPool, 0, count);
         }
 
-        internal byte[] GetData(CFStream cFStream)
+        internal byte[] GetData(ReadonlyCompoundFileStream cFStream)
         {
             if (IsClosed)
                 throw new CFDisposedException("Compound File closed: cannot access data");
@@ -1959,17 +1959,17 @@ namespace OpenMcdf
         ///     without the performance penalty related to entities hierarchy constraints.
         ///     There is no implied hierarchy in the returned list.
         /// </remarks>
-        public IList<ReadonlyCFItem> GetAllNamedEntries(string entryName)
+        public IList<ReadonlyCompoundFileItem> GetAllNamedEntries(string entryName)
         {
             var r = FindDirectoryEntries(entryName);
-            var result = new List<ReadonlyCFItem>();
+            var result = new List<ReadonlyCompoundFileItem>();
 
             foreach (var id in r)
                 if (id.GetEntryName() == entryName && id.StgType != StgType.StgInvalid)
                 {
-                    ReadonlyCFItem i = id.StgType == StgType.StgStorage
-                        ? new CFStorage(this, id)
-                        : new CFStream(this, id);
+                    ReadonlyCompoundFileItem i = id.StgType == StgType.StgStorage
+                        ? new ReadonlyCompoundFileStorage(this, id)
+                        : new ReadonlyCompoundFileStream(this, id);
                     result.Add(i);
                 }
 

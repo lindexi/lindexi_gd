@@ -34,7 +34,7 @@ namespace OpenMcdf
     /// 
     /// </code>
     /// </example>
-    public abstract class ReadonlyCFItem : IComparable<ReadonlyCFItem>
+    public abstract class ReadonlyCompoundFileItem : IComparable<ReadonlyCompoundFileItem>
     {
         protected ReadonlyCompoundFile CompoundFile { get; }
 
@@ -45,11 +45,11 @@ namespace OpenMcdf
                     "Owner Compound file has been closed and owned items have been invalidated");
         }
 
-        protected ReadonlyCFItem()
+        protected ReadonlyCompoundFileItem()
         {
         }
 
-        protected ReadonlyCFItem(ReadonlyCompoundFile compoundFile)
+        protected ReadonlyCompoundFileItem(ReadonlyCompoundFile compoundFile)
         {
             this.CompoundFile = compoundFile;
         }
@@ -59,7 +59,7 @@ namespace OpenMcdf
         internal IDirectoryEntry DirEntry { get; set; }
 
 
-        internal int CompareTo(ReadonlyCFItem other)
+        internal int CompareTo(ReadonlyCompoundFileItem other)
         {
             return this.DirEntry.CompareTo(other.DirEntry);
         }
@@ -70,12 +70,12 @@ namespace OpenMcdf
 
         public int CompareTo(object obj)
         {
-            return this.DirEntry.CompareTo(((ReadonlyCFItem) obj).DirEntry);
+            return this.DirEntry.CompareTo(((ReadonlyCompoundFileItem) obj).DirEntry);
         }
 
         #endregion
 
-        public static bool operator ==(ReadonlyCFItem leftItem, ReadonlyCFItem rightItem)
+        public static bool operator ==(ReadonlyCompoundFileItem leftItem, ReadonlyCompoundFileItem rightItem)
         {
             // If both are null, or both are same instance, return true.
             if (System.Object.ReferenceEquals(leftItem, rightItem))
@@ -93,7 +93,7 @@ namespace OpenMcdf
             return leftItem.CompareTo(rightItem) == 0;
         }
 
-        public static bool operator !=(ReadonlyCFItem leftItem, ReadonlyCFItem rightItem)
+        public static bool operator !=(ReadonlyCompoundFileItem leftItem, ReadonlyCompoundFileItem rightItem)
         {
             return !(leftItem == rightItem);
         }
@@ -220,7 +220,7 @@ namespace OpenMcdf
             }
         }
 
-        int IComparable<ReadonlyCFItem>.CompareTo(ReadonlyCFItem other)
+        int IComparable<ReadonlyCompoundFileItem>.CompareTo(ReadonlyCompoundFileItem other)
         {
             return this.DirEntry.CompareTo(other.DirEntry);
         }
