@@ -43,10 +43,10 @@ namespace OpenMcdf
         }
 
         internal static Int32 NOSTREAM
-            = unchecked((int)0xFFFFFFFF);
+            => unchecked((int)0xFFFFFFFF);
 
         internal static Int32 ZERO
-            = 0;
+            => 0;
 
         private DirectoryEntry(String name, StgType stgType, IList<IDirectoryEntry> dirRepository)
         {
@@ -71,13 +71,13 @@ namespace OpenMcdf
             }
         }
 
-        private byte[] entryName = new byte[64];
+        private byte[] entryName;//= new byte[64];
 
         public byte[] EntryName
         {
             get
             {
-                return entryName;
+                return entryName ?? new byte[64];
             }
             //set
             //{
@@ -214,13 +214,13 @@ namespace OpenMcdf
             set { stateBits = value; }
         }
 
-        private byte[] creationDate = new byte[8] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+        private byte[] creationDate;//= new byte[8] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
         public byte[] CreationDate
         {
             get
             {
-                return creationDate;
+                return creationDate ?? new byte[8];
             }
             set
             {
@@ -228,13 +228,13 @@ namespace OpenMcdf
             }
         }
 
-        private byte[] modifyDate = new byte[8] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+        private byte[] modifyDate;//= new byte[8] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
         public byte[] ModifyDate
         {
             get
             {
-                return modifyDate;
+                return modifyDate ?? new byte[8];
             }
             set
             {
@@ -331,14 +331,14 @@ namespace OpenMcdf
 
         public override int GetHashCode()
         {
-            return (int)fnv_hash(this.entryName);
+            return (int)fnv_hash(this.EntryName);
         }
 
         public void Write(Stream stream)
         {
             StreamRW rw = new StreamRW(stream);
 
-            rw.Write(entryName);
+            rw.Write(EntryName);
             rw.Write(nameLength);
             rw.Write((byte)stgType);
             rw.Write((byte)stgColor);
@@ -347,8 +347,8 @@ namespace OpenMcdf
             rw.Write(child);
             rw.Write(storageCLSID.ToByteArray());
             rw.Write(stateBits);
-            rw.Write(creationDate);
-            rw.Write(modifyDate);
+            rw.Write(CreationDate);
+            rw.Write(ModifyDate);
             rw.Write(startSetc);
             rw.Write(size);
 
@@ -405,8 +405,8 @@ namespace OpenMcdf
 
             storageCLSID = new Guid(rw.ReadBytes(16));
             stateBits = rw.ReadInt32();
-            creationDate = rw.ReadBytes(8);
-            modifyDate = rw.ReadBytes(8);
+            CreationDate = rw.ReadBytes(8);
+            ModifyDate = rw.ReadBytes(8);
             startSetc = rw.ReadInt32();
 
             if (ver == CFSVersion.Ver_3)
