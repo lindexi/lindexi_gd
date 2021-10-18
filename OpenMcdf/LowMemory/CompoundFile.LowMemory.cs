@@ -100,31 +100,25 @@ namespace OpenMcdf
         private SectorList GetNormalSectorChainLowMemory(int secID)
         {
             var sectorIdIndexList = new List<int>();
-            int nextSecID = secID;
+            int nextSecId = secID;
             var fatSectors = GetFatSectorChainLowMemory();
-            //HashSet<int> processedSectors = new HashSet<int>();
 
             var fatStream =
                 new ReadonlyStreamViewForSectorList(fatSectors, fatSectors.Count * GetSectorSize(), sourceStream,
                     _byteArrayPool);
 
-            while (nextSecID != Sector.ENDOFCHAIN)
+            while (nextSecId != Sector.ENDOFCHAIN)
             {
-                if (nextSecID < 0)
-                    throw new CFCorruptedFileException($"Next Sector ID reference is below zero. NextID : {nextSecID}");
+                if (nextSecId < 0)
+                    throw new CFCorruptedFileException($"Next Sector ID reference is below zero. NextID : {nextSecId}");
 
-                //if (nextSecID >= sectors.Count)
-                //    throw new CFCorruptedFileException(
-                //        $"Next Sector ID reference an out of range sector. NextID : {nextSecID} while sector count {sectors.Count}");
-
-                sectorIdIndexList.Add(nextSecID);
+                sectorIdIndexList.Add(nextSecId);
 
                 const int sizeOfInt32 = 4;
-                fatStream.Seek(nextSecID * sizeOfInt32, SeekOrigin.Begin);
+                fatStream.Seek(nextSecId * sizeOfInt32, SeekOrigin.Begin);
                 int next = fatStream.ReadInt32();
 
-                //EnsureUniqueSectorIndex(next, processedSectors);
-                nextSecID = next;
+                nextSecId = next;
             }
 
             var sectorList = new SectorList(sectorIdIndexList,sourceStream,GetSectorSize(), SectorType.Normal);
