@@ -15,6 +15,11 @@ namespace OpenMcdf
 {
     internal class Header
     {
+        /// <summary>
+        ///     Number of DIFAT entries in the header
+        /// </summary>
+        private const int HEADER_DIFAT_ENTRIES_COUNT = 109;
+
         //0 8 Compound document file identifier: D0H CFH 11H E0H A1H B1H 1AH E1H
 
         public byte[] HeaderSignature
@@ -172,7 +177,7 @@ namespace OpenMcdf
         }
 
         //76 436 First part of the master sector allocation table (➜5.1) containing 109 SecIDs
-        private int[] difat = new int[109];
+        private int[] difat = new int[HEADER_DIFAT_ENTRIES_COUNT];
         private byte[] _headerSignature;
 
         public int[] DIFAT
@@ -213,44 +218,6 @@ namespace OpenMcdf
             {
                 difat[i] = Sector.FREESECT;
             }
-
-
-        }
-
-        public void Write(Stream stream)
-        {
-            StreamRW rw = new StreamRW(stream);
-
-            rw.Write(HeaderSignature);
-            rw.Write(clsid);
-            rw.Write(minorVersion);
-            rw.Write(majorVersion);
-            rw.Write(byteOrder);
-            rw.Write(sectorShift);
-            rw.Write(miniSectorShift);
-            rw.Write(unUsed);
-            rw.Write(directorySectorsNumber);
-            rw.Write(fatSectorsNumber);
-            rw.Write(firstDirectorySectorID);
-            rw.Write(unUsed2);
-            rw.Write(minSizeStandardStream);
-            rw.Write(firstMiniFATSectorID);
-            rw.Write(miniFATSectorsNumber);
-            rw.Write(firstDIFATSectorID);
-            rw.Write(difatSectorsNumber);
-
-            foreach (int i in difat)
-            {
-                rw.Write(i);
-            }
-
-            if (majorVersion == 4)
-            {
-                byte[] zeroHead = new byte[3584];
-                rw.Write(zeroHead);
-            }
-
-            rw.Close();
         }
 
         public void Read(Stream stream)
@@ -279,7 +246,7 @@ namespace OpenMcdf
             firstDIFATSectorID = rw.ReadInt32();
             difatSectorsNumber = rw.ReadUInt32();
 
-            for (int i = 0; i < 109; i++)
+            for (int i = 0; i < HEADER_DIFAT_ENTRIES_COUNT; i++)
             {
                 this.DIFAT[i] = rw.ReadInt32();
             }
