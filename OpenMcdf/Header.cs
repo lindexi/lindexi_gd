@@ -220,6 +220,42 @@ namespace OpenMcdf
             }
         }
 
+        public void Write(Stream stream)
+        {
+            StreamRW rw = new StreamRW(stream);
+
+            rw.Write(HeaderSignature);
+            rw.Write(clsid);
+            rw.Write(minorVersion);
+            rw.Write(majorVersion);
+            rw.Write(byteOrder);
+            rw.Write(sectorShift);
+            rw.Write(miniSectorShift);
+            rw.Write(unUsed);
+            rw.Write(directorySectorsNumber);
+            rw.Write(fatSectorsNumber);
+            rw.Write(firstDirectorySectorID);
+            rw.Write(unUsed2);
+            rw.Write(minSizeStandardStream);
+            rw.Write(firstMiniFATSectorID);
+            rw.Write(miniFATSectorsNumber);
+            rw.Write(firstDIFATSectorID);
+            rw.Write(difatSectorsNumber);
+
+            foreach (int i in difat)
+            {
+                rw.Write(i);
+            }
+
+            if (majorVersion == 4)
+            {
+                byte[] zeroHead = new byte[3584];
+                rw.Write(zeroHead);
+            }
+
+            rw.Close();
+        }
+
         public void Read(Stream stream)
         {
             var rw = stream.ToStreamReader();
