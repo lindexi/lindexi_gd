@@ -61,38 +61,6 @@ namespace OpenMcdf
         }
 
         /// <summary>
-        /// Get a sector chain from a compound file given the first sector ID
-        /// and the required sector type.
-        /// </summary>
-        /// <param name="secId">First chain sector's id </param>
-        /// <param name="chainType">Type of Sectors in the required chain (mini sectors, normal sectors or FAT)</param>
-        /// <returns>A list of Sectors as the result of their concatenation</returns>
-        private SectorList GetSectorChainLowMemory(int secId, SectorType chainType)
-        {
-            //switch (chainType)
-            //{
-            //    case SectorType.DIFAT:
-            //        return GetDifatSectorChain();
-
-            //    case SectorType.FAT:
-            //        return GetFatSectorChain();
-
-            //    case SectorType.Normal:
-            //        return GetNormalSectorChain(secId);
-            //GetNormalSectorChain(secId);
-            return GetNormalSectorChainLowMemory(secId);
-
-            //    case SectorType.Mini:
-            //        return GetMiniSectorChain(secId);
-
-            //    default:
-            //        throw new CFException("Unsupproted chain type");
-            //}
-
-
-        }
-
-        /// <summary>
         /// Get a standard sector chain
         /// </summary>
         /// <param name="secID">First SecID of the required chain</param>
