@@ -330,7 +330,7 @@ namespace OpenMcdf
             {
                 if (sectorIndex > sectorChain.Count) throw new CFCorruptedFileException("The file is probably corrupted.");
                 var readPosition = 0;
-                sectorChain.Read(sectorIndex, buffer, readPosition, offset + readCount, needToReadCount);
+                readCount += sectorChain.Read(sectorIndex, buffer, readPosition, offset + readCount, needToReadCount);
             }
 
             Position += readCount;
