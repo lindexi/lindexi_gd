@@ -9,6 +9,7 @@ namespace OpenMcdf
     {
         public CompoundFile(Stream stream, IByteArrayPool byteArrayPool) //:this(stream)
         {
+            _disableCache = true;
             this.header = new Header();
             this.directoryEntries = new List<IDirectoryEntry>();
             _byteArrayPool = byteArrayPool;
@@ -32,7 +33,6 @@ namespace OpenMcdf
             DIFAT_SECTOR_FAT_ENTRIES_COUNT = (GetSectorSize() / 4) - 1;
             FAT_SECTOR_ENTRIES_COUNT = (GetSectorSize() / 4);
 
-            _disableCache = true;
         }
 
         private readonly bool _disableCache;
