@@ -1520,12 +1520,13 @@ namespace OpenMcdf
         }
 
         public void CopyTo(ReadonlyCompoundFileStream sourceCompoundFileStream, Stream destinationStream,
-            IByteArrayPool byteArrayPool)
+            IByteArrayPool byteArrayPool = null)
         {
+            byteArrayPool ??= _byteArrayPool;
             SectorList sectorChain = null;
             var de = sourceCompoundFileStream.DirEntry;
             if (de.Size < _header.MinSizeStandardStream)
-            //sectorChain = GetSectorChain(de.StartSetc, SectorType.Mini);
+                //sectorChain = GetSectorChain(de.StartSetc, SectorType.Mini);
             {
                 throw new NotSupportedException();
             }

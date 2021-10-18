@@ -73,7 +73,6 @@ namespace Pptx
             Debug.WriteLine($"GetStream {lastAllocatedBytesForCurrentThread - allocatedBytesForCurrentThread}");
             allocatedBytesForCurrentThread = lastAllocatedBytesForCurrentThread;
 
-            var byteArrayPool = new ByteArrayPool();
             var tempFolder = @"F:\temp";
             if (!Directory.Exists(tempFolder))
             {
@@ -93,7 +92,7 @@ namespace Pptx
             oleFileStream.Position = 0;
 
             //Origin(forwardSeekStream);
-            var cf = new ReadonlyCompoundFile(oleFileStream, byteArrayPool);
+            var cf = new ReadonlyCompoundFile(oleFileStream);
 
             lastAllocatedBytesForCurrentThread = GC.GetAllocatedBytesForCurrentThread();
             Debug.WriteLine($"CompoundFile {lastAllocatedBytesForCurrentThread - allocatedBytesForCurrentThread}");
@@ -115,7 +114,7 @@ namespace Pptx
             using (var fileStream = File.OpenWrite(xlsxFile))
             {
                 //fileStream.Write(packageStream.GetData().AsSpan());
-                cf.CopyTo(packageStream, fileStream, byteArrayPool);
+                cf.CopyTo(packageStream, fileStream);
             }
 
             //var fakeStream = new FakeStream();

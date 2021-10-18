@@ -7,9 +7,7 @@
  * The Initial Developer of the Original Code is Federico Blaseotto.*/
 
 
-using System;
 using System.IO;
-using System.Linq;
 
 namespace OpenMcdf
 {
@@ -69,7 +67,7 @@ namespace OpenMcdf
         public ushort SectorShift
         {
             get { return sectorShift; }
-            
+
         }
 
         //32 2 Size of a short-sector in the short-stream container stream (➜6.1) in power-of-two (sssz),

@@ -120,7 +120,7 @@ namespace OpenMcdf
         {
             this.Read(buf, 0, 4);
             var buffer = this.buf;
-            return BitConverter.ToInt32(buffer,0);
+            return BitConverter.ToInt32(buffer, 0);
         }
 
         public override int Read(byte[] buffer, int offset, int count)
@@ -177,7 +177,7 @@ namespace OpenMcdf
 
                 if (nToRead != 0)
                 {
-					if (secIndex > sectorChain.Count) throw new CFCorruptedFileException("The file is probably corrupted.");
+                    if (secIndex > sectorChain.Count) throw new CFCorruptedFileException("The file is probably corrupted.");
 
                     Buffer.BlockCopy(
                         sectorChain[secIndex].GetData(),
