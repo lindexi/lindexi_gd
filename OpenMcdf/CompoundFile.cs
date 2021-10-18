@@ -2432,7 +2432,7 @@ namespace OpenMcdf
             }
             else
             {
-                sectorChain = GetSectorChainLowMemory(de.StartSetc, SectorType.Normal);
+                sectorChain = GetNormalSectorChainLowMemory(de.StartSetc);
             }
             if (sectorChain == null)
             {

@@ -40,7 +40,7 @@ namespace OpenMcdf
         /// </summary>
         private void LoadDirectoriesWithLowMemory()
         {
-           var directoryChain = GetSectorChainLowMemory(header.FirstDirectorySectorID, SectorType.Normal);
+           var directoryChain = GetNormalSectorChainLowMemory(header.FirstDirectorySectorID);
 
            if (!(directoryChain.Count > 0))
                throw new CFCorruptedFileException("Directory sector chain MUST contain at least 1 sector");
@@ -153,7 +153,6 @@ namespace OpenMcdf
             //Is there any DIFAT sector containing other FAT entries ?
             if (difatSectors.Count > 0)
             {
-                HashSet<int> processedSectors = new HashSet<int>();
                 StreamView difatStream
                     = new StreamView
                         (
@@ -171,8 +170,6 @@ namespace OpenMcdf
                 while (idIndexList.Count < header.FATSectorsNumber)
                 {
                     nextSecId = difatStream.ReadInt32();
-
-                    EnsureUniqueSectorIndex(nextSecId, processedSectors);
 
                     idIndexList.Add(nextSecId);
 
