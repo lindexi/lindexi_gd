@@ -42,24 +42,24 @@ namespace OpenMcdf
         /// </summary>
         private void LoadDirectoriesWithLowMemory()
         {
-           var directoryChain = GetNormalSectorChainLowMemory(header.FirstDirectorySectorID);
+            var directoryChain = GetNormalSectorChainLowMemory(header.FirstDirectorySectorID);
 
-           if (!(directoryChain.Count > 0))
-               throw new CFCorruptedFileException("Directory sector chain MUST contain at least 1 sector");
+            if (!(directoryChain.Count > 0))
+                throw new CFCorruptedFileException("Directory sector chain MUST contain at least 1 sector");
 
-           if (header.FirstDirectorySectorID == Sector.ENDOFCHAIN)
-               header.FirstDirectorySectorID = directoryChain.IdIndexList[0];
+            if (header.FirstDirectorySectorID == Sector.ENDOFCHAIN)
+                header.FirstDirectorySectorID = directoryChain.IdIndexList[0];
 
-           var dirReader = new ReadonlyStreamViewForSectorList(directoryChain, directoryChain.Count * GetSectorSize(),
-               sourceStream, _byteArrayPool);
+            var dirReader = new ReadonlyStreamViewForSectorList(directoryChain, directoryChain.Count * GetSectorSize(),
+                sourceStream, _byteArrayPool);
 
-           while (dirReader.Position < dirReader.Length)
-           {
-               DirectoryEntry directoryEntry
-                   = (DirectoryEntry) DirectoryEntry.New(string.Empty, StgType.StgInvalid, directoryEntries);
-               //We are not inserting dirs. Do not use 'InsertNewDirectoryEntry'
-               directoryEntry.Read(dirReader, this.Version);
-           }
+            while (dirReader.Position < dirReader.Length)
+            {
+                DirectoryEntry directoryEntry
+                    = (DirectoryEntry)DirectoryEntry.New(string.Empty, StgType.StgInvalid, directoryEntries);
+                //We are not inserting dirs. Do not use 'InsertNewDirectoryEntry'
+                directoryEntry.Read(dirReader, this.Version);
+            }
         }
 
         /// <summary>
@@ -91,7 +91,7 @@ namespace OpenMcdf
                 nextSecId = next;
             }
 
-            var sectorList = new SectorList(sectorIdIndexList,sourceStream,GetSectorSize(), SectorType.Normal);
+            var sectorList = new SectorList(sectorIdIndexList, sourceStream, GetSectorSize(), SectorType.Normal);
             return sectorList;
         }
 
@@ -101,7 +101,7 @@ namespace OpenMcdf
         /// <returns>List of FAT sectors</returns>
         private SectorList GetFatSectorChainLowMemory()
         {
-           const int N_HEADER_FAT_ENTRY = 109; //Number of FAT sectors id in the header
+            const int N_HEADER_FAT_ENTRY = 109; //Number of FAT sectors id in the header
 
             int nextSecId;
 
@@ -164,7 +164,7 @@ namespace OpenMcdf
 
 
 
-    class ReadonlyStreamViewForSectorList:Stream,IStreamReader
+    class ReadonlyStreamViewForSectorList : Stream, IStreamReader
     {
 
         public ReadonlyStreamViewForSectorList(SectorList sectorChain, long length, Stream sourceStream,
@@ -205,7 +205,7 @@ namespace OpenMcdf
 
         public ushort ReadUInt16()
         {
-            return ReadValue(2, buffer => (ushort) (buffer[0] | (buffer[1] << 8)));
+            return ReadValue(2, buffer => (ushort)(buffer[0] | (buffer[1] << 8)));
         }
 
         public int ReadInt32()
@@ -267,7 +267,7 @@ namespace OpenMcdf
                 count);
             if (sectorIndex < sectorChain.Count)
             {
-                var readPosition = (int) (Position % sectorSize);
+                var readPosition = (int)(Position % sectorSize);
 
                 sectorChain.Read(sectorIndex, buffer, readPosition, offset, needToReadCount);
             }
