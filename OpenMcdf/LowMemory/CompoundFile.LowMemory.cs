@@ -31,7 +31,11 @@ namespace OpenMcdf
 
             DIFAT_SECTOR_FAT_ENTRIES_COUNT = (GetSectorSize() / 4) - 1;
             FAT_SECTOR_ENTRIES_COUNT = (GetSectorSize() / 4);
+
+            _disableCache = true;
         }
+
+        private readonly bool _disableCache;
 
         private readonly IByteArrayPool _byteArrayPool;
 

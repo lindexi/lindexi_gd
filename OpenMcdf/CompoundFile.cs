@@ -1283,14 +1283,26 @@ namespace OpenMcdf
             {
                 validationCount = (int)header.DIFATSectorsNumber;
 
-                Sector s = sectors[header.FirstDIFATSectorID] as Sector;
+                Sector s;
+                if (_disableCache)
+                {
+                    s = null;
+                }
+                else
+                {
+                    s = sectors[header.FirstDIFATSectorID];
+                }
 
                 if (s == null) //Lazy loading
                 {
                     s = new Sector(GetSectorSize(), sourceStream);
                     s.Type = SectorType.DIFAT;
                     s.Id = header.FirstDIFATSectorID;
-                    sectors[header.FirstDIFATSectorID] = s;
+
+                    if (!_disableCache)
+                    {
+                        sectors[header.FirstDIFATSectorID] = s;
+                    }
                 }
 
                 result.Add(s);
@@ -1317,13 +1329,24 @@ namespace OpenMcdf
                             throw new CFCorruptedFileException("DIFAT sectors count mismatched. Corrupted compound file");
                     }
 
-                    s = sectors[nextSecID] as Sector;
+                    if (_disableCache)
+                    {
+                        s = null;
+                    }
+                    else
+                    {
+                        s = sectors[nextSecID] as Sector;
+                    }
 
                     if (s == null)
                     {
                         s = new Sector(GetSectorSize(), sourceStream);
                         s.Id = nextSecID;
-                        sectors[nextSecID] = s;
+
+                        if (!_disableCache)
+                        {
+                            sectors[nextSecID] = s;
+                        }
                     }
 
                     result.Add(s);
