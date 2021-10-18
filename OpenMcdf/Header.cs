@@ -214,7 +214,7 @@ namespace OpenMcdf
 
             }
 
-            for (int i = 0; i < 109; i++)
+            for (int i = 0; i < HEADER_DIFAT_ENTRIES_COUNT; i++)
             {
                 difat[i] = Sector.FREESECT;
             }
@@ -222,7 +222,7 @@ namespace OpenMcdf
 
         public void Read(Stream stream)
         {
-            StreamRW rw = new StreamRW(stream);
+            var rw = stream.ToStreamReader();
 
             var headerSignature = rw.ReadBytes(8);
             CheckSignature(headerSignature);
@@ -250,8 +250,6 @@ namespace OpenMcdf
             {
                 this.DIFAT[i] = rw.ReadInt32();
             }
-
-            rw.Close();
         }
 
         private void CheckVersion()
