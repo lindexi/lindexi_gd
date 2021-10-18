@@ -21,7 +21,7 @@ namespace OpenMcdf
     /// </summary>
     public class CFStream : CFItem
     {
-        internal CFStream(CompoundFile compoundFile, IDirectoryEntry dirEntry)
+        internal CFStream(ReadonlyCompoundFile compoundFile, IDirectoryEntry dirEntry)
             : base(compoundFile)
         {
             if (dirEntry == null || dirEntry.SID < 0)

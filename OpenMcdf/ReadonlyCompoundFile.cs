@@ -115,7 +115,7 @@ namespace OpenMcdf
     /// efficent storage of multiple kinds of documents in a single file.
     /// Version 3 and 4 of specifications are supported.
     /// </summary>
-    public partial class CompoundFile : IDisposable
+    public partial class ReadonlyCompoundFile : IDisposable
     {
         private CFSConfiguration configuration
             = CFSConfiguration.Default;
@@ -221,7 +221,7 @@ namespace OpenMcdf
         ///     
         /// </code>
         /// </example>
-        public CompoundFile(): this(CFSVersion.Ver_3,CFSConfiguration.Default)
+        public ReadonlyCompoundFile(): this(CFSVersion.Ver_3,CFSConfiguration.Default)
         {
 
             //this.header = new Header();
@@ -278,7 +278,7 @@ namespace OpenMcdf
         ///     
         /// </code>
         /// </example>
-        public CompoundFile(CFSVersion cfsVersion, CFSConfiguration configFlags)
+        public ReadonlyCompoundFile(CFSVersion cfsVersion, CFSConfiguration configFlags)
         {
             this.configuration = configFlags;
 
@@ -334,7 +334,7 @@ namespace OpenMcdf
         /// automatically recognized from the file. Sector recycle is turned off
         /// to achieve the best reading/writing performance in most common scenarios.
         /// </remarks>
-        public CompoundFile(String fileName)
+        public ReadonlyCompoundFile(String fileName)
         {
             this.sectorRecycle = false;
             this.updateMode = CFSUpdateMode.ReadOnly;
@@ -371,7 +371,7 @@ namespace OpenMcdf
         ///
         /// </code>
         /// </example>
-        public CompoundFile(String fileName, CFSUpdateMode updateMode, CFSConfiguration configParameters)
+        public ReadonlyCompoundFile(String fileName, CFSUpdateMode updateMode, CFSConfiguration configParameters)
         {
             this.configuration = configParameters;
             this.validationExceptionEnabled = !configParameters.HasFlag(CFSConfiguration.NoValidationException);
@@ -419,7 +419,7 @@ namespace OpenMcdf
         /// </example>
         /// <exception cref="T:OpenMcdf.CFException">Raised when trying to open a non-seekable stream</exception>
         /// <exception cref="T:OpenMcdf.CFException">Raised stream is null</exception>
-        public CompoundFile(Stream stream, CFSUpdateMode updateMode, CFSConfiguration configParameters)
+        public ReadonlyCompoundFile(Stream stream, CFSUpdateMode updateMode, CFSConfiguration configParameters)
         {
             this.configuration = configParameters;
             this.validationExceptionEnabled = !configParameters.HasFlag(CFSConfiguration.NoValidationException);
@@ -458,7 +458,7 @@ namespace OpenMcdf
         /// </example>
         /// <exception cref="T:OpenMcdf.CFException">Raised when trying to open a non-seekable stream</exception>
         /// <exception cref="T:OpenMcdf.CFException">Raised stream is null</exception>
-        public CompoundFile(Stream stream)
+        public ReadonlyCompoundFile(Stream stream)
         {
             LoadStream(stream);
 
@@ -2844,12 +2844,12 @@ namespace OpenMcdf
         /// </example>
         public static void ShrinkCompoundFile(Stream s)
         {
-            CompoundFile cf = new CompoundFile(s);
+            ReadonlyCompoundFile cf = new ReadonlyCompoundFile(s);
 
             if (cf.header.MajorVersion != (ushort)CFSVersion.Ver_3)
                 throw new CFException("Current implementation of free space compression does not support version 4 of Compound File Format");
 
-            using (CompoundFile tempCF = new CompoundFile((CFSVersion)cf.header.MajorVersion, cf.Configuration))
+            using (ReadonlyCompoundFile tempCF = new ReadonlyCompoundFile((CFSVersion)cf.header.MajorVersion, cf.Configuration))
             {
                 //Copy Root CLSID
                 tempCF.RootStorage.CLSID = new Guid(cf.RootStorage.CLSID.ToByteArray());

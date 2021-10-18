@@ -5,9 +5,9 @@ using System.Text;
 
 namespace OpenMcdf
 {
-    public partial class CompoundFile
+    public partial class ReadonlyCompoundFile
     {
-        public CompoundFile(Stream stream, IByteArrayPool byteArrayPool) //:this(stream)
+        public ReadonlyCompoundFile(Stream stream, IByteArrayPool byteArrayPool)
         {
             _disableCache = true;
             this.header = new Header();

@@ -37,9 +37,9 @@ namespace OpenMcdf
     /// </example>
     public abstract class CFItem : IComparable<CFItem>
     {
-        private CompoundFile compoundFile;
+        private ReadonlyCompoundFile compoundFile;
 
-        protected CompoundFile CompoundFile
+        protected ReadonlyCompoundFile CompoundFile
         {
             get { return compoundFile; }
         }
@@ -54,7 +54,7 @@ namespace OpenMcdf
         {
         }
 
-        protected CFItem(CompoundFile compoundFile)
+        protected CFItem(ReadonlyCompoundFile compoundFile)
         {
             this.compoundFile = compoundFile;
         }

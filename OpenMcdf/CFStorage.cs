@@ -77,7 +77,7 @@ namespace OpenMcdf
         /// </summary>
         /// <param name="compFile">The Storage Owner - CompoundFile</param>
         /// <param name="dirEntry">An existing Directory Entry</param>
-        internal CFStorage(CompoundFile compFile, IDirectoryEntry dirEntry)
+        internal CFStorage(ReadonlyCompoundFile compFile, IDirectoryEntry dirEntry)
             : base(compFile)
         {
             if (dirEntry == null || dirEntry.SID < 0)

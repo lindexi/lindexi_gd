@@ -42,7 +42,7 @@ namespace Pptx
 
         private void Origin(Stream stream)
         {
-            var cf = new CompoundFile(stream);
+            var cf = new ReadonlyCompoundFile(stream);
             var packageStream = cf.RootStorage.GetStream("Package");
             var bytes = packageStream.GetData();
         }
@@ -100,7 +100,7 @@ namespace Pptx
             oleFileStream.Position = 0;
 
             //Origin(forwardSeekStream);
-            var cf = new CompoundFile(oleFileStream, byteArrayPool);
+            var cf = new ReadonlyCompoundFile(oleFileStream, byteArrayPool);
 
             lastAllocatedBytesForCurrentThread = GC.GetAllocatedBytesForCurrentThread();
             Debug.WriteLine($"CompoundFile {lastAllocatedBytesForCurrentThread - allocatedBytesForCurrentThread}");
