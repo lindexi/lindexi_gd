@@ -287,23 +287,29 @@ namespace OpenMcdf
             rw.Close();
         }
 
-
         private void CheckVersion()
         {
             if (this.majorVersion != 3 && this.majorVersion != 4)
                 throw new CFFileFormatException("Unsupported Binary File Format version: OpenMcdf only supports Compound Files with major version equal to 3 or 4 ");
         }
 
-
-
         private static void CheckSignature(byte[] headerSignature)
         {
-            var oleCfsSignature = new byte[] { 0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1 };
+            var success = headerSignature.Length == 8;
+            success = success
+            //var oleCfsSignature = new byte[] { 0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1 };
+                      && headerSignature[0] == 0xD0
+                      && headerSignature[1] == 0xCF
+                      && headerSignature[2] == 0x11
+                      && headerSignature[3] == 0xE0
+                      && headerSignature[4] == 0xA1
+                      && headerSignature[5] == 0xB1
+                      && headerSignature[6] == 0x1A
+                      && headerSignature[7] == 0xE1;
 
-            for (int i = 0; i < headerSignature.Length; i++)
+            if (!success)
             {
-                if (headerSignature[i] != oleCfsSignature[i])
-                    throw new CFFileFormatException("Invalid OLE structured storage file");
+                throw new CFFileFormatException("Invalid OLE structured storage file");
             }
         }
     }
