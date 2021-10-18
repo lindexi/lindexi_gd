@@ -555,8 +555,6 @@ namespace OpenMcdf
         private void FreeChain(List<Sector> sectorChain, int nth_sector_to_remove, bool zeroSector)
         {
             // Dummy zero buffer
-            var zeroedSector = new byte[GetSectorSize()];
-
             var fat
                 = GetSectorChain(-1, SectorType.FAT);
 
