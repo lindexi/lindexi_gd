@@ -40,13 +40,6 @@ namespace Pptx
             //File.WriteAllText(file, "123");
         }
 
-        private void Origin(Stream stream)
-        {
-            var cf = new ReadonlyCompoundFile(stream);
-            var packageStream = cf.RootStorage.GetStream("Package");
-            var bytes = packageStream.GetData();
-        }
-
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             var file = new FileInfo("Test.pptx");

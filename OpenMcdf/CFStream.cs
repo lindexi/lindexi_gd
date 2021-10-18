@@ -19,7 +19,7 @@ namespace OpenMcdf
     /// It is contained inside a Storage object in a file-directory
     /// relationship and indexed by its name.
     /// </summary>
-    public class CFStream : CFItem
+    public class CFStream : ReadonlyCFItem
     {
         internal CFStream(ReadonlyCompoundFile compoundFile, IDirectoryEntry dirEntry)
             : base(compoundFile)

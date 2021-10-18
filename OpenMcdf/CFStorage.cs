@@ -39,13 +39,13 @@ namespace OpenMcdf
     ///
     /// </code>
     /// </example>
-    public delegate void VisitedEntryAction(CFItem item);
+    public delegate void VisitedEntryAction(ReadonlyCFItem item);
 
     /// <summary>
     /// Storage entity that acts like a logic container for streams
     /// or substorages in a compound file.
     /// </summary>
-    public class CFStorage : CFItem
+    public class CFStorage : ReadonlyCFItem
     {
         private RBTree children;
 
@@ -492,7 +492,7 @@ namespace OpenMcdf
         /// tw.Close();
         /// </code>
         /// </example>
-        public void VisitEntries(Action<CFItem> action, bool recursive)
+        public void VisitEntries(Action<ReadonlyCFItem> action, bool recursive)
         {
             CheckDisposed();
 
