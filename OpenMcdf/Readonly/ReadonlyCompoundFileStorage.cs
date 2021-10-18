@@ -86,12 +86,12 @@ namespace OpenMcdf
             this.DirEntry = dirEntry;
         }
 
-        private RBTree LoadChildren(int SID)
+        private RBTree LoadChildren(int sId)
         {
-            RBTree childrenTree = this.CompoundFile.GetChildrenTree(SID);
+            RBTree childrenTree = this.CompoundFile.GetChildrenTree(sId);
 
             if (childrenTree.Root != null)
-                this.DirEntry.Child = (childrenTree.Root as IDirectoryEntry).SID;
+                this.DirEntry.Child = (childrenTree.Root as IDirectoryEntry)?.SID ?? 0;
             else
                 this.DirEntry.Child = DirectoryEntry.NOSTREAM;
 
@@ -142,7 +142,7 @@ namespace OpenMcdf
                 this.Children.Insert(dirEntry);
 
                 //... and set the root of the tree as new child of the current item directory entry
-                this.DirEntry.Child = (Children.Root as IDirectoryEntry).SID;
+                this.DirEntry.Child = (Children.Root as IDirectoryEntry)?.SID ?? 0;
             }
             catch (RBTreeException)
             {
@@ -182,14 +182,7 @@ namespace OpenMcdf
 
             IDirectoryEntry tmp = DirectoryEntry.Mock(streamName, StgType.StgStream);
 
-            //if (children == null)
-            //{
-            //    children = compoundFile.GetChildrenTree(SID);
-            //}
-
-            IRBNode outDe = null;
-
-            if (Children.TryLookup(tmp, out outDe) && (((IDirectoryEntry)outDe).StgType == StgType.StgStream))
+            if (Children.TryLookup(tmp, out var outDe) && (((IDirectoryEntry)outDe).StgType == StgType.StgStream))
             {
                 return new ReadonlyCompoundFileStream(this.CompoundFile, (IDirectoryEntry)outDe);
             }
@@ -231,9 +224,7 @@ namespace OpenMcdf
 
                 IDirectoryEntry tmp = DirectoryEntry.Mock(streamName, StgType.StgStream);
 
-                IRBNode outDe = null;
-
-                if (Children.TryLookup(tmp, out outDe) && (((IDirectoryEntry)outDe).StgType == StgType.StgStream))
+                if (Children.TryLookup(tmp, out var outDe) && (((IDirectoryEntry)outDe).StgType == StgType.StgStream))
                 {
                     cfStream = new ReadonlyCompoundFileStream(this.CompoundFile, (IDirectoryEntry)outDe);
                     result = true;
@@ -247,51 +238,6 @@ namespace OpenMcdf
 
             return result;
         }
-
-        /// <summary>
-        /// Get a named <see cref="T:OpenMcdf.CFStream">stream</see> contained in the current storage if existing.
-        /// </summary>
-        /// <param name="streamName">Name of the stream to look for</param>
-        /// <returns>A stream reference if found, else null</returns>
-        /// <exception cref="T:OpenMcdf.CFDisposedException">Raised if trying to delete item from a closed compound file</exception>
-        /// <example>
-        /// <code>
-        /// String filename = "report.xls";
-        ///
-        /// CompoundFile cf = new CompoundFile(filename);
-        /// CFStream foundStream = cf.RootStorage.TryGetStream("Workbook");
-        ///
-        /// byte[] temp = foundStream.GetData();
-        ///
-        /// Assert.IsNotNull(temp);
-        ///
-        /// cf.Close();
-        /// </code>
-        /// </example>
-        [Obsolete("Please use TryGetStream(string, out cfStream) instead.")]
-        public ReadonlyCompoundFileStream TryGetStream(String streamName)
-        {
-            CheckDisposed();
-
-            IDirectoryEntry tmp = DirectoryEntry.Mock(streamName, StgType.StgStream);
-
-            //if (children == null)
-            //{
-            //    children = compoundFile.GetChildrenTree(SID);
-            //}
-
-            IRBNode outDe = null;
-
-            if (Children.TryLookup(tmp, out outDe) && (((IDirectoryEntry)outDe).StgType == StgType.StgStream))
-            {
-                return new ReadonlyCompoundFileStream(this.CompoundFile, (IDirectoryEntry)outDe);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
 
         /// <summary>
         /// Get a named storage contained in the current one if existing.
@@ -326,42 +272,6 @@ namespace OpenMcdf
             else
             {
                 throw new CFItemNotFound("Cannot find item [" + storageName + "] within the current storage");
-            }
-        }
-
-        /// <summary>
-        /// Get a named storage contained in the current one if existing.
-        /// </summary>
-        /// <param name="storageName">Name of the storage to look for</param>
-        /// <returns>A storage reference if found else null</returns>
-        /// <exception cref="T:OpenMcdf.CFDisposedException">Raised if trying to delete item from a closed compound file</exception>
-        /// <example>
-        /// <code>
-        /// 
-        /// String FILENAME = "MultipleStorage2.cfs";
-        /// CompoundFile cf = new CompoundFile(FILENAME, UpdateMode.ReadOnly, false, false);
-        ///
-        /// CFStorage st = cf.RootStorage.TryGetStorage("MyStorage");
-        ///
-        /// Assert.IsNotNull(st);
-        /// cf.Close();
-        /// </code>
-        /// </example>
-        [Obsolete("Please use TryGetStorage(string, out cfStorage) instead.")]
-        public ReadonlyCompoundFileStorage TryGetStorage(String storageName)
-        {
-            CheckDisposed();
-
-            IDirectoryEntry template = DirectoryEntry.Mock(storageName, StgType.StgInvalid);
-            IRBNode outDe = null;
-
-            if (Children.TryLookup(template, out outDe) && ((IDirectoryEntry)outDe).StgType == StgType.StgStorage)
-            {
-                return new ReadonlyCompoundFileStorage(this.CompoundFile, outDe as IDirectoryEntry);
-            }
-            else
-            {
-                return null;
             }
         }
 
@@ -524,147 +434,6 @@ namespace OpenMcdf
                         IDirectoryEntry d = n as IDirectoryEntry;
                         (new ReadonlyCompoundFileStorage(this.CompoundFile, d)).VisitEntries(action, recursive);
                     }
-            }
-        }
-
-        /// <summary>
-        /// Remove an entry from the current storage and compound file.
-        /// </summary>
-        /// <param name="entryName">The name of the entry in the current storage to delete</param>
-        /// <example>
-        /// <code>
-        /// cf = new CompoundFile("A_FILE_YOU_CAN_CHANGE.cfs", UpdateMode.Update, true, false);
-        /// cf.RootStorage.Delete("AStream"); // AStream item is assumed to exist.
-        /// cf.Commit(true);
-        /// cf.Close();
-        /// </code>
-        /// </example>
-        /// <exception cref="T:OpenMcdf.CFDisposedException">Raised if trying to delete item from a closed compound file</exception>
-        /// <exception cref="T:OpenMcdf.CFItemNotFound">Raised if item to delete is not found</exception>
-        /// <exception cref="T:OpenMcdf.CFException">Raised if trying to delete root storage</exception>
-        public void Delete(String entryName)
-        {
-            CheckDisposed();
-
-            // Find entry to delete
-            IDirectoryEntry tmp = DirectoryEntry.Mock(entryName, StgType.StgInvalid);
-
-            IRBNode foundObj = null;
-
-            this.Children.TryLookup(tmp, out foundObj);
-
-            if (foundObj == null)
-                throw new CFItemNotFound("Entry named [" + entryName + "] was not found");
-
-            //if (foundObj.GetType() != typeCheck)
-            //    throw new CFException("Entry named [" + entryName + "] has not the correct type");
-
-            if (((IDirectoryEntry)foundObj).StgType == StgType.StgRoot)
-                throw new CFException("Root storage cannot be removed");
-
-
-            IRBNode altDel = null;
-            switch (((IDirectoryEntry)foundObj).StgType)
-            {
-                case StgType.StgStorage:
-
-                    ReadonlyCompoundFileStorage temp = new ReadonlyCompoundFileStorage(this.CompoundFile, ((IDirectoryEntry)foundObj));
-
-                    // This is a storage. we have to remove children items first
-                    foreach (IRBNode de in temp.Children)
-                    {
-                        IDirectoryEntry ded = de as IDirectoryEntry;
-                        temp.Delete(ded.Name);
-                    }
-
-
-
-
-                    // ...then we need to rethread the root of siblings tree...
-                    if (this.Children.Root != null)
-                        this.DirEntry.Child = (this.Children.Root as IDirectoryEntry).SID;
-                    else
-                        this.DirEntry.Child = DirectoryEntry.NOSTREAM;
-
-                    // ...and finally Remove storage item from children tree...
-                    this.Children.Delete(foundObj, out altDel);
-
-                    // ...and remove directory (storage) entry
-
-                    if (altDel != null)
-                    {
-                        foundObj = altDel;
-                    }
-
-                    this.CompoundFile.InvalidateDirectoryEntry(((IDirectoryEntry)foundObj).SID);
-
-                    break;
-
-                case StgType.StgStream:
-
-                    // Free directory associated data stream. 
-                    CompoundFile.FreeAssociatedData((foundObj as IDirectoryEntry).SID);
-
-                    // Remove item from children tree
-                    this.Children.Delete(foundObj, out altDel);
-
-                    // Rethread the root of siblings tree...
-                    if (this.Children.Root != null)
-                        this.DirEntry.Child = (this.Children.Root as IDirectoryEntry).SID;
-                    else
-                        this.DirEntry.Child = DirectoryEntry.NOSTREAM;
-
-                    // Delete operation could possibly have cloned a directory, changing its SID.
-                    // Invalidate the ACTUALLY deleted directory.
-                    if (altDel != null)
-                    {
-                        foundObj = altDel;
-                    }
-
-                    this.CompoundFile.InvalidateDirectoryEntry(((IDirectoryEntry)foundObj).SID);
-
-
-
-                    break;
-            }
-
-            //// Refresh recursively all SIDs (invariant for tree sorting)
-            //VisitedEntryAction action = delegate(CFSItem target)
-            //{
-            //    if( ((IDirectoryEntry)target).SID>foundObj.SID )
-            //    {
-            //        ((IDirectoryEntry)target).SID--;
-            //    }                   
-
-
-            //    ((IDirectoryEntry)target).LeftSibling--;
-            //};
-
-
-        }
-
-
-        /// <summary>
-        /// Rename a Stream or Storage item in the current storage
-        /// </summary>
-        /// <param name="oldItemName">The item old name to lookup</param>
-        /// <param name="newItemName">The new name to assign</param>
-        public void RenameItem(string oldItemName, string newItemName)
-        {
-            IDirectoryEntry template = DirectoryEntry.Mock(oldItemName, StgType.StgInvalid);
-            IRBNode item;
-            if (Children.TryLookup(template, out item))
-            {
-                ((DirectoryEntry)item).SetEntryName(newItemName);
-            }
-            else throw new CFItemNotFound("Item " + oldItemName + " not found in Storage");
-
-            children = null;
-            children = LoadChildren(this.DirEntry.SID); //Rethread
-
-            if (children == null)
-            {
-                children = this.CompoundFile.CreateNewTree();
             }
         }
     }
