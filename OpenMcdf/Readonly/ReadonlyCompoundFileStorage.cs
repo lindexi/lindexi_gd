@@ -39,13 +39,13 @@ namespace OpenMcdf
     ///
     /// </code>
     /// </example>
-    public delegate void VisitedEntryAction(CFItem item);
+    public delegate void VisitedEntryAction(ReadonlyCompoundFileItem item);
 
     /// <summary>
     /// Storage entity that acts like a logic container for streams
     /// or substorages in a compound file.
     /// </summary>
-    public class CFStorage : CFItem
+    public class ReadonlyCompoundFileStorage : ReadonlyCompoundFileItem
     {
         private RBTree children;
 
@@ -77,7 +77,7 @@ namespace OpenMcdf
         /// </summary>
         /// <param name="compFile">The Storage Owner - CompoundFile</param>
         /// <param name="dirEntry">An existing Directory Entry</param>
-        internal CFStorage(CompoundFile compFile, IDirectoryEntry dirEntry)
+        internal ReadonlyCompoundFileStorage(ReadonlyCompoundFile compFile, IDirectoryEntry dirEntry)
             : base(compFile)
         {
             if (dirEntry == null || dirEntry.SID < 0)
@@ -122,7 +122,7 @@ namespace OpenMcdf
         ///  
         /// </code>
         /// </example>
-        public CFStream AddStream(String streamName)
+        public ReadonlyCompoundFileStream AddStream(String streamName)
         {
             CheckDisposed();
 
@@ -151,7 +151,7 @@ namespace OpenMcdf
                 throw new CFDuplicatedItemException("An entry with name '" + streamName + "' is already present in storage '" + this.Name + "' ");
             }
 
-            return new CFStream(this.CompoundFile, dirEntry);
+            return new ReadonlyCompoundFileStream(this.CompoundFile, dirEntry);
         }
 
 
@@ -176,7 +176,7 @@ namespace OpenMcdf
         /// cf.Close();
         /// </code>
         /// </example>
-        public CFStream GetStream(String streamName)
+        public ReadonlyCompoundFileStream GetStream(String streamName)
         {
             CheckDisposed();
 
@@ -191,7 +191,7 @@ namespace OpenMcdf
 
             if (Children.TryLookup(tmp, out outDe) && (((IDirectoryEntry)outDe).StgType == StgType.StgStream))
             {
-                return new CFStream(this.CompoundFile, (IDirectoryEntry)outDe);
+                return new ReadonlyCompoundFileStream(this.CompoundFile, (IDirectoryEntry)outDe);
             }
             else
             {
@@ -220,7 +220,7 @@ namespace OpenMcdf
         /// cf.Close();
         /// </code>
         /// </example>
-        public bool TryGetStream(String streamName, out CFStream cfStream)
+        public bool TryGetStream(String streamName, out ReadonlyCompoundFileStream cfStream)
         {
             bool result = false;
             cfStream = null;
@@ -235,7 +235,7 @@ namespace OpenMcdf
 
                 if (Children.TryLookup(tmp, out outDe) && (((IDirectoryEntry)outDe).StgType == StgType.StgStream))
                 {
-                    cfStream = new CFStream(this.CompoundFile, (IDirectoryEntry)outDe);
+                    cfStream = new ReadonlyCompoundFileStream(this.CompoundFile, (IDirectoryEntry)outDe);
                     result = true;
                 }
             }
@@ -269,7 +269,7 @@ namespace OpenMcdf
         /// </code>
         /// </example>
         [Obsolete("Please use TryGetStream(string, out cfStream) instead.")]
-        public CFStream TryGetStream(String streamName)
+        public ReadonlyCompoundFileStream TryGetStream(String streamName)
         {
             CheckDisposed();
 
@@ -284,7 +284,7 @@ namespace OpenMcdf
 
             if (Children.TryLookup(tmp, out outDe) && (((IDirectoryEntry)outDe).StgType == StgType.StgStream))
             {
-                return new CFStream(this.CompoundFile, (IDirectoryEntry)outDe);
+                return new ReadonlyCompoundFileStream(this.CompoundFile, (IDirectoryEntry)outDe);
             }
             else
             {
@@ -312,7 +312,7 @@ namespace OpenMcdf
         /// cf.Close();
         /// </code>
         /// </example>
-        public CFStorage GetStorage(String storageName)
+        public ReadonlyCompoundFileStorage GetStorage(String storageName)
         {
             CheckDisposed();
 
@@ -321,7 +321,7 @@ namespace OpenMcdf
 
             if (Children.TryLookup(template, out outDe) && ((IDirectoryEntry)outDe).StgType == StgType.StgStorage)
             {
-                return new CFStorage(this.CompoundFile, outDe as IDirectoryEntry);
+                return new ReadonlyCompoundFileStorage(this.CompoundFile, outDe as IDirectoryEntry);
             }
             else
             {
@@ -348,7 +348,7 @@ namespace OpenMcdf
         /// </code>
         /// </example>
         [Obsolete("Please use TryGetStorage(string, out cfStorage) instead.")]
-        public CFStorage TryGetStorage(String storageName)
+        public ReadonlyCompoundFileStorage TryGetStorage(String storageName)
         {
             CheckDisposed();
 
@@ -357,7 +357,7 @@ namespace OpenMcdf
 
             if (Children.TryLookup(template, out outDe) && ((IDirectoryEntry)outDe).StgType == StgType.StgStorage)
             {
-                return new CFStorage(this.CompoundFile, outDe as IDirectoryEntry);
+                return new ReadonlyCompoundFileStorage(this.CompoundFile, outDe as IDirectoryEntry);
             }
             else
             {
@@ -385,7 +385,7 @@ namespace OpenMcdf
         /// cf.Close();
         /// </code>
         /// </example>
-        public bool TryGetStorage(String storageName, out CFStorage cfStorage)
+        public bool TryGetStorage(String storageName, out ReadonlyCompoundFileStorage cfStorage)
         {
             bool result = false;
             cfStorage = null;
@@ -399,7 +399,7 @@ namespace OpenMcdf
 
                 if (Children.TryLookup(template, out outDe) && ((IDirectoryEntry)outDe).StgType == StgType.StgStorage)
                 {
-                    cfStorage = new CFStorage(this.CompoundFile, outDe as IDirectoryEntry);
+                    cfStorage = new ReadonlyCompoundFileStorage(this.CompoundFile, outDe as IDirectoryEntry);
                     result = true;
                 }
 
@@ -437,7 +437,7 @@ namespace OpenMcdf
         ///  
         /// </code>
         /// </example>
-        public CFStorage AddStorage(String storageName)
+        public ReadonlyCompoundFileStorage AddStorage(String storageName)
         {
             CheckDisposed();
 
@@ -465,7 +465,7 @@ namespace OpenMcdf
             IDirectoryEntry childrenRoot = Children.Root as IDirectoryEntry;
             this.DirEntry.Child = childrenRoot.SID;
 
-            return new CFStorage(this.CompoundFile, cfo);
+            return new ReadonlyCompoundFileStorage(this.CompoundFile, cfo);
         }
 
         /// <summary>
@@ -492,7 +492,7 @@ namespace OpenMcdf
         /// tw.Close();
         /// </code>
         /// </example>
-        public void VisitEntries(Action<CFItem> action, bool recursive)
+        public void VisitEntries(Action<ReadonlyCompoundFileItem> action, bool recursive)
         {
             CheckDisposed();
 
@@ -506,9 +506,9 @@ namespace OpenMcdf
                     {
                         IDirectoryEntry d = targetNode as IDirectoryEntry;
                         if (d.StgType == StgType.StgStream)
-                            action(new CFStream(this.CompoundFile, d));
+                            action(new ReadonlyCompoundFileStream(this.CompoundFile, d));
                         else
-                            action(new CFStorage(this.CompoundFile, d));
+                            action(new ReadonlyCompoundFileStorage(this.CompoundFile, d));
 
                         if (d.Child != DirectoryEntry.NOSTREAM)
                             subStorages.Add(targetNode);
@@ -522,7 +522,7 @@ namespace OpenMcdf
                     foreach (IRBNode n in subStorages)
                     {
                         IDirectoryEntry d = n as IDirectoryEntry;
-                        (new CFStorage(this.CompoundFile, d)).VisitEntries(action, recursive);
+                        (new ReadonlyCompoundFileStorage(this.CompoundFile, d)).VisitEntries(action, recursive);
                     }
             }
         }
@@ -568,7 +568,7 @@ namespace OpenMcdf
             {
                 case StgType.StgStorage:
 
-                    CFStorage temp = new CFStorage(this.CompoundFile, ((IDirectoryEntry)foundObj));
+                    ReadonlyCompoundFileStorage temp = new ReadonlyCompoundFileStorage(this.CompoundFile, ((IDirectoryEntry)foundObj));
 
                     // This is a storage. we have to remove children items first
                     foreach (IRBNode de in temp.Children)

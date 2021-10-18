@@ -13,7 +13,21 @@ using System.IO;
 
 namespace OpenMcdf
 {
-    internal class StreamRW
+    internal interface IStreamReader
+    {
+        long Seek(long offset);
+        byte ReadByte();
+        ushort ReadUInt16();
+        int ReadInt32();
+        uint ReadUInt32();
+        long ReadInt64();
+        ulong ReadUInt64();
+        byte[] ReadBytes(int count);
+        byte[] ReadBytes(int count, out int readCount);
+        void Close();
+    }
+
+    internal class StreamRW : IStreamReader
     {
         private byte[] buffer = new byte[8];
         private Stream stream;
