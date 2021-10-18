@@ -406,35 +406,35 @@ namespace OpenMcdf
         {
             CheckDisposed();
 
-            if (action != null)
+            if (action == null)
             {
-                List<IRBNode> subStorages
-                    = new List<IRBNode>();
-
-                Action<IRBNode> internalAction =
-                    delegate (IRBNode targetNode)
-                    {
-                        IDirectoryEntry d = targetNode as IDirectoryEntry;
-                        if (d.StgType == StgType.StgStream)
-                            action(new ReadonlyCompoundFileStream(this.CompoundFile, d));
-                        else
-                            action(new ReadonlyCompoundFileStorage(this.CompoundFile, d));
-
-                        if (d.Child != DirectoryEntry.NOSTREAM)
-                            subStorages.Add(targetNode);
-
-                        return;
-                    };
-
-                this.Children.VisitTreeNodes(internalAction);
-
-                if (recursive && subStorages.Count > 0)
-                    foreach (IRBNode n in subStorages)
-                    {
-                        IDirectoryEntry d = n as IDirectoryEntry;
-                        (new ReadonlyCompoundFileStorage(this.CompoundFile, d)).VisitEntries(action, recursive);
-                    }
+                return;
             }
+
+            List<IRBNode> subStorages
+                = new List<IRBNode>();
+
+            void InternalAction(IRBNode targetNode)
+            {
+                IDirectoryEntry d = targetNode as IDirectoryEntry;
+                if (d.StgType == StgType.StgStream)
+                    action(new ReadonlyCompoundFileStream(this.CompoundFile, d));
+                else
+                    action(new ReadonlyCompoundFileStorage(this.CompoundFile, d));
+
+                if (d.Child != DirectoryEntry.NOSTREAM) subStorages.Add(targetNode);
+
+                return;
+            }
+
+            this.Children.VisitTreeNodes(InternalAction);
+
+            if (recursive && subStorages.Count > 0)
+                foreach (IRBNode n in subStorages)
+                {
+                    IDirectoryEntry d = n as IDirectoryEntry;
+                    (new ReadonlyCompoundFileStorage(this.CompoundFile, d)).VisitEntries(action, recursive);
+                }
         }
     }
 }

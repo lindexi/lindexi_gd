@@ -77,7 +77,6 @@ namespace OpenMcdf
         private List<IDirectoryEntry> _directoryEntries
             = new();
 
-
         /// <summary>
         ///     CompoundFile header
         /// </summary>
@@ -520,71 +519,6 @@ namespace OpenMcdf
             }
         }
 
-        internal void FreeData(ReadonlyCompoundFileStream stream)
-        {
-            if (stream.Size == 0)
-            {
-                return;
-            }
-
-            List<Sector> sectorChain = null;
-
-            if (stream.Size < _header.MinSizeStandardStream)
-            {
-                sectorChain = GetSectorChain(stream.DirEntry.StartSetc, SectorType.Mini);
-                FreeMiniChain(sectorChain, _eraseFreeSectors);
-            }
-            else
-            {
-                sectorChain = GetSectorChain(stream.DirEntry.StartSetc, SectorType.Normal);
-                FreeChain(sectorChain, _eraseFreeSectors);
-            }
-
-            stream.DirEntry.StartSetc = Sector.ENDOFCHAIN;
-            stream.DirEntry.Size = 0;
-        }
-
-        private void FreeChain(List<Sector> sectorChain, bool zeroSector)
-        {
-            FreeChain(sectorChain, 0, zeroSector);
-        }
-
-        private void FreeChain(List<Sector> sectorChain, int nth_sector_to_remove, bool zeroSector)
-        {
-            // Dummy zero buffer
-            var fat
-                = GetSectorChain(-1, SectorType.FAT);
-
-            var fatView
-                = new StreamView(fat, GetSectorSize(), fat.Count * GetSectorSize(), null, SourceStream);
-
-            // Zeroes out sector data (if required)-------------
-            if (zeroSector)
-            {
-                for (var i = nth_sector_to_remove; i < sectorChain.Count; i++)
-                {
-                    var s = sectorChain[i];
-                    s.ZeroData();
-                }
-            }
-
-            // Update FAT marking unallocated sectors ----------
-            for (var i = nth_sector_to_remove; i < sectorChain.Count; i++)
-            {
-                var currentId = sectorChain[i].Id;
-
-                fatView.Seek(currentId * 4, SeekOrigin.Begin);
-                fatView.Write(BitConverter.GetBytes(Sector.FREESECT), 0, 4);
-            }
-
-            // Write new end of chain if partial free ----------
-            if (nth_sector_to_remove > 0 && sectorChain.Count > 0)
-            {
-                fatView.Seek(sectorChain[nth_sector_to_remove - 1].Id * 4, SeekOrigin.Begin);
-                fatView.Write(BitConverter.GetBytes(Sector.ENDOFCHAIN), 0, 4);
-            }
-        }
-
         private void FreeMiniChain(List<Sector> sectorChain, bool zeroSector)
         {
             FreeMiniChain(sectorChain, 0, zeroSector);
@@ -913,7 +847,6 @@ namespace OpenMcdf
             _header.FATSectorsNumber = fatSv.BaseSectorChain.Count;
         }
 
-
         /// <summary>
         ///     Get the DIFAT Sector chain
         /// </summary>
@@ -1236,7 +1169,6 @@ namespace OpenMcdf
             return result;
         }
 
-
         /// <summary>
         ///     Get a sector chain from a compound file given the first sector ID
         ///     and the required sector type.
@@ -1286,16 +1218,6 @@ namespace OpenMcdf
             _directoryEntries[sid].ModifyDate = new byte[8];
         }
 
-
-        //internal class NodeFactory : IRBTreeDeserializer<CFItem>
-        //{
-
-        //    public RBNode<CFItem> DeserizlizeFromValues()
-        //    {
-        //           RBNode<CFItem> node = new RBNode<CFItem>(value,(Color)value.DirEntry.StgColor,
-        //    }
-        //}
-
         internal RBTree CreateNewTree()
         {
             var bst = new RBTree();
@@ -1305,18 +1227,6 @@ namespace OpenMcdf
             //  bst.ValueAssignedAction += new Action<RBNode<CFItem>, CFItem>(OnValueAssigned);
             return bst;
         }
-
-        //void OnValueAssigned(RBNode<CFItem> node, CFItem from)
-        //{
-        //    if (from.DirEntry != null && from.DirEntry.LeftSibling != DirectoryEntry.NOSTREAM)
-
-        //    if (from.DirEntry != null && from.DirEntry.LeftSibling != DirectoryEntry.NOSTREAM)
-        //        node.Value.DirEntry.LeftSibling = from.DirEntry.LeftSibling;
-
-        //    if (from.DirEntry != null && from.DirEntry.RightSibling != DirectoryEntry.NOSTREAM)
-        //        node.Value.DirEntry.RightSibling = from.DirEntry.RightSibling;
-        //}
-
 
         internal RBTree GetChildrenTree(int sid)
         {
@@ -1345,7 +1255,6 @@ namespace OpenMcdf
 
             return bst;
         }
-
 
         private void DoLoadChildren(RBTree bst, IDirectoryEntry de)
         {
@@ -1549,291 +1458,6 @@ namespace OpenMcdf
             return freeList;
         }
 
-        /// <summary>
-        ///     INTERNAL DEVELOPMENT. DO NOT CALL.
-        ///     <param name="directoryEntry"></param>
-        ///     <param name="buffer"></param>
-        internal void AppendData(ReadonlyCompoundFileItem cfItem, byte[] buffer)
-        {
-            WriteData(cfItem, cfItem.Size, buffer);
-        }
-
-        /// <summary>
-        ///     Resize stream length
-        /// </summary>
-        /// <param name="cfItem"></param>
-        /// <param name="length"></param>
-        internal void SetStreamLength(ReadonlyCompoundFileItem cfItem, long length)
-        {
-            if (cfItem.Size == length)
-            {
-                return;
-            }
-
-            var newSectorType = SectorType.Normal;
-            var newSectorSize = GetSectorSize();
-
-            if (length < _header.MinSizeStandardStream)
-            {
-                newSectorType = SectorType.Mini;
-                newSectorSize = Sector.MINISECTOR_SIZE;
-            }
-
-            var oldSectorType = SectorType.Normal;
-            var oldSectorSize = GetSectorSize();
-
-            if (cfItem.Size < _header.MinSizeStandardStream)
-            {
-                oldSectorType = SectorType.Mini;
-                oldSectorSize = Sector.MINISECTOR_SIZE;
-            }
-
-            var oldSize = cfItem.Size;
-
-
-            // Get Sector chain and delta size induced by client
-            var sectorChain = GetSectorChain(cfItem.DirEntry.StartSetc, oldSectorType);
-            var delta = length - cfItem.Size;
-
-            // Check for transition ministream -> stream:
-            // Only in this case we need to free old sectors,
-            // otherwise they will be overwritten.
-
-            var transitionToMini = false;
-            var transitionToNormal = false;
-            List<Sector> oldChain = null;
-
-            if (cfItem.DirEntry.StartSetc != Sector.ENDOFCHAIN)
-            {
-                if (
-                    length < _header.MinSizeStandardStream && cfItem.DirEntry.Size >= _header.MinSizeStandardStream
-                    || length >= _header.MinSizeStandardStream && cfItem.DirEntry.Size < _header.MinSizeStandardStream
-                )
-                {
-                    if (cfItem.DirEntry.Size < _header.MinSizeStandardStream)
-                    {
-                        transitionToNormal = true;
-                        oldChain = sectorChain;
-                    }
-                    else
-                    {
-                        transitionToMini = true;
-                        oldChain = sectorChain;
-                    }
-
-                    // No transition caused by size change
-                }
-            }
-
-
-            Queue<Sector> freeList = null;
-            StreamView sv = null;
-
-            if (!transitionToMini && !transitionToNormal) //############  NO TRANSITION
-            {
-                if (delta > 0) // Enlarging stream...
-                {
-                    if (_sectorRecycle)
-                    {
-                        freeList = FindFreeSectors(newSectorType); // Collect available free sectors
-                    }
-
-                    sv = new StreamView(sectorChain, newSectorSize, length, freeList, SourceStream);
-
-                    //Set up  destination chain
-                    SetSectorChain(sectorChain);
-                }
-                else if (delta < 0) // Reducing size...
-                {
-                    var nSec = (int)Math.Floor((double)Math.Abs(delta) /
-                                                newSectorSize); //number of sectors to mark as free
-
-                    if (newSectorSize == Sector.MINISECTOR_SIZE)
-                    {
-                        FreeMiniChain(sectorChain, nSec, _eraseFreeSectors);
-                    }
-                    else
-                    {
-                        FreeChain(sectorChain, nSec, _eraseFreeSectors);
-                    }
-                }
-
-                if (sectorChain.Count > 0)
-                {
-                    cfItem.DirEntry.StartSetc = sectorChain[0].Id;
-                    cfItem.DirEntry.Size = length;
-                }
-                else
-                {
-                    cfItem.DirEntry.StartSetc = Sector.ENDOFCHAIN;
-                    cfItem.DirEntry.Size = 0;
-                }
-            }
-            else if (transitionToMini) //############## TRANSITION TO MINISTREAM
-            {
-                // Transition Normal chain -> Mini chain
-
-                // Collect available MINI free sectors
-
-                if (_sectorRecycle)
-                {
-                    freeList = FindFreeSectors(SectorType.Mini);
-                }
-
-                sv = new StreamView(oldChain, oldSectorSize, oldSize, null, SourceStream);
-
-                // Reset start sector and size of dir entry
-                cfItem.DirEntry.StartSetc = Sector.ENDOFCHAIN;
-                cfItem.DirEntry.Size = 0;
-
-                var newChain = GetMiniSectorChain(Sector.ENDOFCHAIN);
-                var destSv = new StreamView(newChain, Sector.MINISECTOR_SIZE, length, freeList, SourceStream);
-
-                // Buffered trimmed copy from old (larger) to new (smaller)
-                var cnt = 4096 < length ? 4096 : (int)length;
-
-                var buf = new byte[4096];
-                var toRead = length;
-
-                //Copy old to new chain
-                while (toRead > cnt)
-                {
-                    cnt = sv.Read(buf, 0, cnt);
-                    toRead -= cnt;
-                    destSv.Write(buf, 0, cnt);
-                }
-
-                sv.Read(buf, 0, (int)toRead);
-                destSv.Write(buf, 0, (int)toRead);
-
-                //Free old chain
-                FreeChain(oldChain, _eraseFreeSectors);
-
-                //Set up destination chain
-                AllocateMiniSectorChain(destSv.BaseSectorChain);
-
-                // Persist to normal strea
-                PersistMiniStreamToStream(destSv.BaseSectorChain);
-
-                //Update dir item
-                if (destSv.BaseSectorChain.Count > 0)
-                {
-                    cfItem.DirEntry.StartSetc = destSv.BaseSectorChain[0].Id;
-                    cfItem.DirEntry.Size = length;
-                }
-                else
-                {
-                    cfItem.DirEntry.StartSetc = Sector.ENDOFCHAIN;
-                    cfItem.DirEntry.Size = 0;
-                }
-            }
-            else if (transitionToNormal) //############## TRANSITION TO NORMAL STREAM
-            {
-                // Transition Mini chain -> Normal chain
-
-                if (_sectorRecycle)
-                {
-                    freeList = FindFreeSectors(SectorType.Normal); // Collect available Normal free sectors
-                }
-
-                sv = new StreamView(oldChain, oldSectorSize, oldSize, null, SourceStream);
-
-                var newChain = GetNormalSectorChain(Sector.ENDOFCHAIN);
-                var destSv = new StreamView(newChain, GetSectorSize(), length, freeList, SourceStream);
-
-                var cnt = 256 < length ? 256 : (int)length;
-
-                var buf = new byte[256];
-                var toRead = Math.Min(length, cfItem.Size);
-
-                //Copy old to new chain
-                while (toRead > cnt)
-                {
-                    cnt = sv.Read(buf, 0, cnt);
-                    toRead -= cnt;
-                    destSv.Write(buf, 0, cnt);
-                }
-
-                sv.Read(buf, 0, (int)toRead);
-                destSv.Write(buf, 0, (int)toRead);
-
-                //Free old mini chain
-                var oldChainCount = oldChain.Count;
-                FreeMiniChain(oldChain, _eraseFreeSectors);
-
-                //Set up normal destination chain
-                AllocateSectorChain(destSv.BaseSectorChain);
-
-                //Update dir item
-                if (destSv.BaseSectorChain.Count > 0)
-                {
-                    cfItem.DirEntry.StartSetc = destSv.BaseSectorChain[0].Id;
-                    cfItem.DirEntry.Size = length;
-                }
-                else
-                {
-                    cfItem.DirEntry.StartSetc = Sector.ENDOFCHAIN;
-                    cfItem.DirEntry.Size = 0;
-                }
-            }
-        }
-
-        internal void WriteData(ReadonlyCompoundFileItem cfItem, long position, byte[] buffer)
-        {
-            WriteData(cfItem, buffer, position, 0, buffer.Length);
-        }
-
-        internal void WriteData(ReadonlyCompoundFileItem cfItem, byte[] buffer, long position, int offset, int count)
-        {
-            if (buffer == null)
-            {
-                throw new CFInvalidOperation("Parameter [buffer] cannot be null");
-            }
-
-            if (cfItem.DirEntry == null)
-            {
-                throw new CFException("Internal error [cfItem.DirEntry] cannot be null");
-            }
-
-            if (buffer.Length == 0)
-            {
-                return;
-            }
-
-            // Get delta size induced by client
-            var delta = position + count - cfItem.Size < 0 ? 0 : position + count - cfItem.Size;
-            var newLength = cfItem.Size + delta;
-
-            SetStreamLength(cfItem, newLength);
-
-            // Calculate NEW sectors SIZE
-            var _st = SectorType.Normal;
-            var _sectorSize = GetSectorSize();
-
-            if (cfItem.Size < _header.MinSizeStandardStream)
-            {
-                _st = SectorType.Mini;
-                _sectorSize = Sector.MINISECTOR_SIZE;
-            }
-
-            var sectorChain = GetSectorChain(cfItem.DirEntry.StartSetc, _st);
-            var sv = new StreamView(sectorChain, _sectorSize, newLength, null, SourceStream);
-
-            sv.Seek(position, SeekOrigin.Begin);
-            sv.Write(buffer, offset, count);
-
-            if (cfItem.Size < _header.MinSizeStandardStream)
-            {
-                PersistMiniStreamToStream(sv.BaseSectorChain);
-            }
-            //SetSectorChain(sv.BaseSectorChain);
-        }
-
-        internal void WriteData(ReadonlyCompoundFileItem cfItem, byte[] buffer)
-        {
-            WriteData(cfItem, 0, buffer);
-        }
-
         internal int ReadData(ReadonlyCompoundFileStream cFStream, long position, byte[] buffer, int count)
         {
             if (count > buffer.Length)
@@ -2009,7 +1633,6 @@ namespace OpenMcdf
             return i > 0 ? i : 0;
         }
 
-
         internal void InvalidateDirectoryEntry(int sid)
         {
             if (sid >= _directoryEntries.Count)
@@ -2018,26 +1641,6 @@ namespace OpenMcdf
             }
 
             ResetDirectoryEntry(sid);
-        }
-
-        internal void FreeAssociatedData(int sid)
-        {
-            // Clear the associated stream (or ministream) if required
-            if (_directoryEntries[sid].Size > 0) //thanks to Mark Bosold for this !
-            {
-                if (_directoryEntries[sid].Size < _header.MinSizeStandardStream)
-                {
-                    var miniChain
-                        = GetSectorChain(_directoryEntries[sid].StartSetc, SectorType.Mini);
-                    FreeMiniChain(miniChain, _eraseFreeSectors);
-                }
-                else
-                {
-                    var chain
-                        = GetSectorChain(_directoryEntries[sid].StartSetc, SectorType.Normal);
-                    FreeChain(chain, _eraseFreeSectors);
-                }
-            }
         }
 
         /// <summary>

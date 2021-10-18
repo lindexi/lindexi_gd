@@ -5,7 +5,6 @@ namespace OpenMcdf
 {
     class ReadonlyStreamViewForSectorList : Stream, IStreamReader
     {
-
         public ReadonlyStreamViewForSectorList(SectorList sectorChain, long length, Stream sourceStream,
             IByteArrayPool byteArrayPool)
         {
@@ -14,7 +13,6 @@ namespace OpenMcdf
             _byteArrayPool = byteArrayPool;
             Length = length;
         }
-
 
         public override void Flush()
         {

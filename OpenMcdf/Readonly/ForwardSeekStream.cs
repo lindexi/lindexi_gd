@@ -4,7 +4,7 @@ using System.IO;
 
 namespace OpenMcdf
 {
-    public class ForwardSeekStream : Stream
+    class ForwardSeekStream : Stream
     {
         public ForwardSeekStream(Stream sourceStream, IByteArrayPool byteArrayPool)
         {
@@ -36,7 +36,7 @@ namespace OpenMcdf
             if (offset == CurrentPosition) return CurrentPosition;
             if (offset > CurrentPosition)
             {
-                int length = (int)(offset - CurrentPosition);
+                int length = (int) (offset - CurrentPosition);
 
                 var currentReadCount = 0;
                 const int defaultMaxBufferLength = 4096;

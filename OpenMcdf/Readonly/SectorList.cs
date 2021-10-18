@@ -22,7 +22,7 @@ namespace OpenMcdf
             IdIndexList = new List<int>();
         }
 
-        public List<int> IdIndexList { set; get; }
+        public List<int> IdIndexList { get; }
 
         public int Count => IdIndexList.Count;
 
