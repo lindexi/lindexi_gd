@@ -152,8 +152,8 @@ namespace Pptx
             //    fileStream.Write(packageStream.GetData().AsSpan());
             //}
 
-            //using var spreadsheetDocument = SpreadsheetDocument.Open(xlsxFile, false);
-            //var sheets = spreadsheetDocument.WorkbookPart!.Workbook.Sheets;
+            using var spreadsheetDocument = SpreadsheetDocument.Open(xlsxFile, false);
+            var sheets = spreadsheetDocument.WorkbookPart!.Workbook.Sheets;
 
 
         }
