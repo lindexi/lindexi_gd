@@ -2423,23 +2423,27 @@ namespace OpenMcdf
 
         public void CopyTo(CFStream sourceCompoundFileStream, Stream destinationStream,IByteArrayPool byteArrayPool)
         {
-            List<Sector> sectorChain;
+            SectorList sectorChain = null;
             IDirectoryEntry de = sourceCompoundFileStream.DirEntry;
             if (de.Size < header.MinSizeStandardStream)
             {
-                sectorChain = GetSectorChain(de.StartSetc, SectorType.Mini);
+                //sectorChain = GetSectorChain(de.StartSetc, SectorType.Mini);
+                throw new NotSupportedException();
             }
             else
             {
-                sectorChain = GetSectorChain(de.StartSetc, SectorType.Normal);
+                sectorChain = GetSectorChainLowMemory(de.StartSetc, SectorType.Normal);
+            }
+            if (sectorChain == null)
+            {
+                return;
             }
 
+            var reader = new ReadonlyStreamViewForSectorList(sectorChain, sectorChain.Count * GetSectorSize(),
+                sourceStream, byteArrayPool);
+
             var count = de.Size;
-            foreach (var sector in sectorChain)
-            {
-                sector.CopyTo(destinationStream, byteArrayPool, 0, count);
-                count -= sector.Size;
-            }
+            reader.CopyTo(destinationStream,byteArrayPool,0, count);
         }
 
         internal byte[] GetData(CFStream cFStream)

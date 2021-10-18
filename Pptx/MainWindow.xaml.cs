@@ -40,6 +40,13 @@ namespace Pptx
             //File.WriteAllText(file, "123");
         }
 
+        private void Origin(Stream stream)
+        {
+            var cf = new CompoundFile(stream);
+            var packageStream = cf.RootStorage.GetStream("Package");
+            var bytes = packageStream.GetData();
+        }
+
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             var file = new FileInfo("Test.pptx");
@@ -84,8 +91,16 @@ namespace Pptx
             Directory.CreateDirectory(tempFolder);
             //CompoundFileUnzipper.Unzip(s, tempFolder, byteArrayPool);
 
-            var forwardSeekStream = new ForwardSeekStream(s,byteArrayPool);
-            var cf = new CompoundFile(forwardSeekStream, byteArrayPool);
+            // 为了性能考虑，不再使用内存方式，全部写入到文件
+            //var forwardSeekStream = new ForwardSeekStream(s, byteArrayPool);
+            var oleFile = System.IO.Path.Combine(tempFolder, System.IO.Path.GetRandomFileName());
+            using var oleFileStream = new FileStream(oleFile, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None,
+                bufferSize: 4096, FileOptions.RandomAccess);
+            s.CopyTo(oleFileStream);
+            oleFileStream.Position = 0;
+
+            //Origin(forwardSeekStream);
+            var cf = new CompoundFile(oleFileStream, byteArrayPool);
 
             lastAllocatedBytesForCurrentThread = GC.GetAllocatedBytesForCurrentThread();
             Debug.WriteLine($"CompoundFile {lastAllocatedBytesForCurrentThread - allocatedBytesForCurrentThread}");
@@ -103,15 +118,15 @@ namespace Pptx
             //    tempFolder = System.IO.Path.GetTempPath();
             //}
 
-            //var xlsxFile = System.IO.Path.Combine(tempFolder, System.IO.Path.GetRandomFileName() + ".xlsx");
-            //using (var fileStream = File.OpenWrite(xlsxFile))
-            //{
-            //    //fileStream.Write(packageStream.GetData().AsSpan());
-            //    cf.CopyTo(packageStream, fileStream, byteArrayPool);
-            //}
+            var xlsxFile = System.IO.Path.Combine(tempFolder, System.IO.Path.GetRandomFileName() + ".xlsx");
+            using (var fileStream = File.OpenWrite(xlsxFile))
+            {
+                //fileStream.Write(packageStream.GetData().AsSpan());
+                cf.CopyTo(packageStream, fileStream, byteArrayPool);
+            }
 
-            var fakeStream = new FakeStream();
-            cf.CopyTo(packageStream, fakeStream, byteArrayPool);
+            //var fakeStream = new FakeStream();
+            //cf.CopyTo(packageStream, fakeStream, byteArrayPool);
 
             //using (var fileStream = File.OpenWrite(xlsxFile))
             //{
@@ -155,7 +170,7 @@ namespace Pptx
     {
         public override void Flush()
         {
-            
+
         }
 
         public override int Read(byte[] buffer, int offset, int count)
