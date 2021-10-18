@@ -86,7 +86,7 @@ namespace OpenMcdf
         private int _lockSectorId = -1;
 
 
-        private List<Sector> _sectors = new();
+        private Dictionary<int, Sector> _sectors = new();
 
         private bool _transactionLockAdded;
         private bool _transactionLockAllocated;
@@ -243,7 +243,7 @@ namespace OpenMcdf
         private void OnSizeLimitReached()
         {
             var rangeLockSector = new Sector(GetSectorSize(), SourceStream);
-            _sectors.Add(rangeLockSector);
+            _sectors.Add(_sectors.Count, rangeLockSector);
 
             rangeLockSector.Type = SectorType.RangeLockSector;
 
@@ -694,7 +694,7 @@ namespace OpenMcdf
             {
                 if (s.Id == -1)
                 {
-                    _sectors.Add(s);
+                    _sectors.Add(_sectors.Count, s);
                     s.Id = _sectors.Count - 1;
                 }
             }
@@ -770,7 +770,7 @@ namespace OpenMcdf
             {
                 if (s.Id == -1)
                 {
-                    _sectors.Add(s);
+                    _sectors.Add(_sectors.Count, s);
                     s.Id = _sectors.Count - 1;
                     s.Type = SectorType.FAT;
                 }
@@ -796,7 +796,7 @@ namespace OpenMcdf
             while (_header.FATSectorsNumber * FAT_SECTOR_ENTRIES_COUNT < nCurrentSectors)
             {
                 var extraFATSector = new Sector(GetSectorSize(), SourceStream);
-                _sectors.Add(extraFATSector);
+                _sectors.Add(_sectors.Count, extraFATSector);
 
                 extraFATSector.Id = _sectors.Count - 1;
                 extraFATSector.Type = SectorType.FAT;
@@ -852,7 +852,7 @@ namespace OpenMcdf
             {
                 if (difatStream.BaseSectorChain[i].Id == -1)
                 {
-                    _sectors.Add(difatStream.BaseSectorChain[i]);
+                    _sectors.Add(_sectors.Count, difatStream.BaseSectorChain[i]);
                     difatStream.BaseSectorChain[i].Id = _sectors.Count - 1;
                     difatStream.BaseSectorChain[i].Type = SectorType.DIFAT;
                 }
