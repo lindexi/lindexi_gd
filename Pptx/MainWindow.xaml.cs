@@ -36,9 +36,14 @@ namespace Pptx
 
             Loaded += MainWindow_Loaded;
 
-            //var file = @"F:\temp\foo" + (char) 1+".txt";
-            //File.WriteAllText(file, "123");
-            using var s = Foo();
+            var file = @"F:\temp\foo" +".txt";
+            using (var fileStream = File.Open(file,FileMode.Create))
+            {
+                var streamWriter = new StreamWriter(fileStream);
+                streamWriter.WriteLine("hello");
+            }
+
+            File.Delete(file);
         }
 
         private Stream Foo()
