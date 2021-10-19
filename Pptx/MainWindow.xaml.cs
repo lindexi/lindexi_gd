@@ -38,6 +38,12 @@ namespace Pptx
 
             //var file = @"F:\temp\foo" + (char) 1+".txt";
             //File.WriteAllText(file, "123");
+            using var s = Foo();
+        }
+
+        private Stream Foo()
+        {
+            return null;
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
