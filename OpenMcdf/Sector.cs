@@ -109,7 +109,7 @@ namespace OpenMcdf
             return data;
         }
 
-        public void CopyTo(Stream destinationStream, IByteArrayPool byteArrayPool,int position, long count)
+        public void CopyTo(Stream destinationStream, IByteArrayPool byteArrayPool, int position, long count)
         {
             if (data != null)
             {

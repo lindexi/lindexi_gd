@@ -73,7 +73,6 @@ namespace Pptx
             Debug.WriteLine($"GetStream {lastAllocatedBytesForCurrentThread - allocatedBytesForCurrentThread}");
             allocatedBytesForCurrentThread = lastAllocatedBytesForCurrentThread;
 
-            var byteArrayPool = new ByteArrayPool();
             var tempFolder = @"F:\temp";
             if (!Directory.Exists(tempFolder))
             {
@@ -84,8 +83,16 @@ namespace Pptx
             Directory.CreateDirectory(tempFolder);
             //CompoundFileUnzipper.Unzip(s, tempFolder, byteArrayPool);
 
-            var forwardSeekStream = new ForwardSeekStream(s,byteArrayPool);
-            var cf = new CompoundFile(forwardSeekStream, byteArrayPool);
+            // 为了性能考虑，不再使用内存方式，全部写入到文件
+            //var forwardSeekStream = new ForwardSeekStream(s, byteArrayPool);
+            var oleFile = System.IO.Path.Combine(tempFolder, System.IO.Path.GetRandomFileName());
+            using var oleFileStream = new FileStream(oleFile, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None,
+                bufferSize: 4096, FileOptions.RandomAccess);
+            s.CopyTo(oleFileStream);
+            oleFileStream.Position = 0;
+
+            //Origin(forwardSeekStream);
+            var cf = new ReadonlyCompoundFile(oleFileStream);
 
             lastAllocatedBytesForCurrentThread = GC.GetAllocatedBytesForCurrentThread();
             Debug.WriteLine($"CompoundFile {lastAllocatedBytesForCurrentThread - allocatedBytesForCurrentThread}");
@@ -103,15 +110,15 @@ namespace Pptx
             //    tempFolder = System.IO.Path.GetTempPath();
             //}
 
-            //var xlsxFile = System.IO.Path.Combine(tempFolder, System.IO.Path.GetRandomFileName() + ".xlsx");
-            //using (var fileStream = File.OpenWrite(xlsxFile))
-            //{
-            //    //fileStream.Write(packageStream.GetData().AsSpan());
-            //    cf.CopyTo(packageStream, fileStream, byteArrayPool);
-            //}
+            var xlsxFile = System.IO.Path.Combine(tempFolder, System.IO.Path.GetRandomFileName() + ".xlsx");
+            using (var fileStream = File.OpenWrite(xlsxFile))
+            {
+                //fileStream.Write(packageStream.GetData().AsSpan());
+                cf.CopyTo(packageStream, fileStream);
+            }
 
-            var fakeStream = new FakeStream();
-            cf.CopyTo(packageStream, fakeStream, byteArrayPool);
+            //var fakeStream = new FakeStream();
+            //cf.CopyTo(packageStream, fakeStream, byteArrayPool);
 
             //using (var fileStream = File.OpenWrite(xlsxFile))
             //{
@@ -144,8 +151,8 @@ namespace Pptx
             //    fileStream.Write(packageStream.GetData().AsSpan());
             //}
 
-            //using var spreadsheetDocument = SpreadsheetDocument.Open(xlsxFile, false);
-            //var sheets = spreadsheetDocument.WorkbookPart!.Workbook.Sheets;
+            using var spreadsheetDocument = SpreadsheetDocument.Open(xlsxFile, false);
+            var sheets = spreadsheetDocument.WorkbookPart!.Workbook.Sheets;
 
 
         }
@@ -155,7 +162,7 @@ namespace Pptx
     {
         public override void Flush()
         {
-            
+
         }
 
         public override int Read(byte[] buffer, int offset, int count)

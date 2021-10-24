@@ -1,6 +1,6 @@
 ﻿namespace OpenMcdf
 {
-    public class ByteArrayPool : IByteArrayPool
+    class ByteArrayPool : IByteArrayPool
     {
         public byte[] Rent(int minimumLength)
         {

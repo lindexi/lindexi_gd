@@ -27,7 +27,7 @@ namespace OpenMcdf
     }
 
     /// <summary>
-    /// Configuration parameters for the compound files.
+    /// Configuration parameters for the compund files.
     /// They can be OR-combined to configure 
     /// <see cref="T:OpenMcdf.CompoundFile">Compound file</see> behaviour.
     /// All flags are NOT set by Default.
@@ -115,7 +115,7 @@ namespace OpenMcdf
     /// efficent storage of multiple kinds of documents in a single file.
     /// Version 3 and 4 of specifications are supported.
     /// </summary>
-    public partial class CompoundFile : IDisposable
+    public class CompoundFile : IDisposable
     {
         private CFSConfiguration configuration
             = CFSConfiguration.Default;
@@ -523,7 +523,7 @@ namespace OpenMcdf
                 CheckForLockSector();
 
             sourceStream.Seek(0, SeekOrigin.Begin);
-            sourceStream.Write(new byte[GetSectorSize()], 0, sSize);
+            sourceStream.Write((byte[])Array.CreateInstance(typeof(byte), GetSectorSize()), 0, sSize);
 
             CommitDirectory();
 
@@ -563,6 +563,8 @@ namespace OpenMcdf
                     s = null;
                     sectors[i] = null;
                 }
+
+
 
 #else
                
@@ -679,14 +681,15 @@ namespace OpenMcdf
 
                 header.Read(stream);
 
-                int sectorCount = Ceiling(((double)(stream.Length - GetSectorSize()) / (double)GetSectorSize()));
+                int n_sector = Ceiling(((double)(stream.Length - GetSectorSize()) / (double)GetSectorSize()));
 
                 if (stream.Length > 0x7FFFFF0)
                     this._transactionLockAllocated = true;
 
+
                 sectors = new SectorCollection();
                 //sectors = new ArrayList();
-                for (int i = 0; i < sectorCount; i++)
+                for (int i = 0; i < n_sector; i++)
                 {
                     sectors.Add(null);
                 }
@@ -1264,11 +1267,6 @@ namespace OpenMcdf
         /// <returns>A list of DIFAT sectors</returns>
         private List<Sector> GetDifatSectorChain()
         {
-            if (header.DIFATSectorsNumber == 0)
-            {
-                return new List<Sector>(0);
-            }
-
             int validationCount = 0;
 
             List<Sector> result
@@ -1396,11 +1394,16 @@ namespace OpenMcdf
                             sourceStream
                         );
 
+                byte[] nextDIFATSectorBuffer = new byte[4];
+
+
+
                 int i = 0;
 
                 while (result.Count < header.FATSectorsNumber)
                 {
-                    nextSecID = difatStream.ReadInt32();
+                    difatStream.Read(nextDIFATSectorBuffer, 0, 4);
+                    nextSecID = BitConverter.ToInt32(nextDIFATSectorBuffer, 0);
 
                     EnsureUniqueSectorIndex(nextSecID, processedSectors);
 
@@ -1419,11 +1422,12 @@ namespace OpenMcdf
                     //difatStream.Read(nextDIFATSectorBuffer, 0, 4);
                     //nextSecID = BitConverter.ToInt32(nextDIFATSectorBuffer, 0);
 
+
                     if (difatStream.Position == ((GetSectorSize() - 4) + i * GetSectorSize()))
                     {
                         // Skip DIFAT chain fields considering the possibility that the last FAT entry has been already read
-                        var sign = difatStream.ReadInt32();
-                        if (sign == Sector.ENDOFCHAIN)
+                        difatStream.Read(nextDIFATSectorBuffer, 0, 4);
+                        if (BitConverter.ToInt32(nextDIFATSectorBuffer, 0) == Sector.ENDOFCHAIN)
                             break;
                         else
                         {
@@ -1456,8 +1460,10 @@ namespace OpenMcdf
             StreamView fatStream
                 = new StreamView(fatSectors, GetSectorSize(), fatSectors.Count * GetSectorSize(), null, sourceStream);
 
-            while (nextSecID != Sector.ENDOFCHAIN)
+            while (true)
             {
+                if (nextSecID == Sector.ENDOFCHAIN) break;
+
                 if (nextSecID < 0)
                     throw new CFCorruptedFileException(String.Format("Next Sector ID reference is below zero. NextID : {0}", nextSecID));
 
@@ -1522,6 +1528,7 @@ namespace OpenMcdf
                         break;
 
                     Sector ms = new Sector(Sector.MINISECTOR_SIZE, sourceStream);
+                    byte[] temp = new byte[Sector.MINISECTOR_SIZE];
 
                     ms.Id = nextSecID;
                     ms.Type = SectorType.Mini;
@@ -2421,26 +2428,6 @@ namespace OpenMcdf
             return result;
         }
 
-        public void CopyTo(CFStream sourceCompoundFileStream, Stream destinationStream,IByteArrayPool byteArrayPool)
-        {
-            List<Sector> sectorChain;
-            IDirectoryEntry de = sourceCompoundFileStream.DirEntry;
-            if (de.Size < header.MinSizeStandardStream)
-            {
-                sectorChain = GetSectorChain(de.StartSetc, SectorType.Mini);
-            }
-            else
-            {
-                sectorChain = GetSectorChain(de.StartSetc, SectorType.Normal);
-            }
-
-            var count = de.Size;
-            foreach (var sector in sectorChain)
-            {
-                sector.CopyTo(destinationStream, byteArrayPool, 0, count);
-                count -= sector.Size;
-            }
-        }
 
         internal byte[] GetData(CFStream cFStream)
         {
