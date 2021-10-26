@@ -18,6 +18,11 @@ namespace Microsoft.AspNetCore.TestHost
     /// </summary>
     public static class WebHostBuilderExtensions
     {
+        static void Main(string[] args)
+        {
+            
+        }
+
         /// <summary>
         /// Enables the <see cref="TestServer" /> service.
         /// </summary>

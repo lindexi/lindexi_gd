@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30804.86
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.TestHost", "Microsoft.AspNetCore.TestHost.csproj", "{675DDC9F-454D-4CD6-9D67-2E3D550EE574}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BelaberalhileQairfawheechal", "..\BelaberalhileQairfawheechal\BelaberalhileQairfawheechal.csproj", "{BD170313-11D9-4A6C-BA47-8C5A11E116CE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{675DDC9F-454D-4CD6-9D67-2E3D550EE574}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{675DDC9F-454D-4CD6-9D67-2E3D550EE574}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{675DDC9F-454D-4CD6-9D67-2E3D550EE574}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{675DDC9F-454D-4CD6-9D67-2E3D550EE574}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD170313-11D9-4A6C-BA47-8C5A11E116CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD170313-11D9-4A6C-BA47-8C5A11E116CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD170313-11D9-4A6C-BA47-8C5A11E116CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD170313-11D9-4A6C-BA47-8C5A11E116CE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {98CFA515-0DB6-4E01-AF55-D31D6B9A6B22}
+	EndGlobalSection
+EndGlobal
