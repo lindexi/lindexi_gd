@@ -12,53 +12,82 @@ namespace dotnetCampus.Ipc.PipeCore
     {
         private ulong _currentAck;
 
+        /*
         public AckManager(IpcContext ipcContext)
         {
             IpcContext = ipcContext;
         }
 
         private IpcContext IpcContext { get; }
+        */
 
         public Ack CurrentAck
         {
             set
             {
-                lock (Locker)
-                {
-                    var ack = value.Value;
-                    if (ack > ulong.MaxValue - ushort.MaxValue) ack = 0;
+                // 又不是啥重要的数据，瞎改就瞎改咯
+                //lock (Locker)
+                //{
+                //    var ack = value.Value;
+                //    if (ack > ulong.MaxValue - ushort.MaxValue) ack = 0;
 
+                //    _currentAck = ack;
+                //}
+
+                var ack = value.Value;
+                if (ack > ulong.MaxValue - ushort.MaxValue)
+                {
+                    // 我预计这是不会进入的
+                    ack = 0;
+                }
+
+                if (ack < _currentAck)
+                {
+                    // 意思一下，加个值
+                    _currentAck++;
+                }
+                else
+                {
                     _currentAck = ack;
                 }
             }
             get
             {
-                lock (Locker)
-                {
-                    return _currentAck;
-                }
+                //lock (Locker)
+                //{
+                //    return _currentAck;
+                //}
+                return _currentAck;
             }
         }
 
+        /*
+        /// <summary>
+        /// 后续不单独发送 ACK 了，因此就不再需要这个信息了
+        /// </summary>
+        [Obsolete(DebugContext.DoNotUseAck)]
         // ACK 0x41, 0x43, 0x4B
         public byte[] AckHeader { get; } = { 0x41, 0x43, 0x4B };
 
         private object Locker => AckHeader;
+        */
 
         public Ack GetAck()
         {
-            lock (Locker)
-            {
-                CurrentAck = CurrentAck.Value + 1;
-                while (AckTaskList.TryGetValue(CurrentAck.Value, out _))
-                {
-                    CurrentAck = CurrentAck.Value + 1;
-                }
-            }
+            //lock (Locker)
+            //{
+            //    CurrentAck = CurrentAck.Value + 1;
+            //    while (AckTaskList.TryGetValue(CurrentAck.Value, out _))
+            //    {
+            //        CurrentAck = CurrentAck.Value + 1;
+            //    }
+            //}
 
+            CurrentAck = CurrentAck.Value + 1;
             return CurrentAck;
         }
 
+        /*
         public bool IsAckMessage(Stream stream, out Ack ack)
         {
             var position = stream.Position;
@@ -71,6 +100,10 @@ namespace dotnetCampus.Ipc.PipeCore
             return false;
         }
 
+        /// <summary>
+        /// 后续不单独发送 ACK 了，因此就不再需要这个信息了
+        /// </summary>
+        [Obsolete(DebugContext.DoNotUseAck)]
         public byte[] BuildAckMessage(Ack receivedAck)
         {
             const int ackLength = sizeof(ulong) + sizeof(ulong);
@@ -101,7 +134,7 @@ namespace dotnetCampus.Ipc.PipeCore
              * AckHeader
              * 回复的 ACK ulong
              * 推荐的下一次使用的Ack ulong
-             */
+             #1#
             ack = 0;
             const int ackLength = sizeof(ulong) + sizeof(ulong);
             if (stream.Length - stream.Position != AckHeader.Length + ackLength) return false;
@@ -143,6 +176,7 @@ namespace dotnetCampus.Ipc.PipeCore
         /// <param name="summary"></param>
         /// <param name="logger"></param>
         /// <returns></returns>
+        [Obsolete(DebugContext.DoNotUseAck)]
         internal async Task<bool> DoWillReceivedAck(Func<Ack, Task> task, string peerName, TimeSpan timeout,
             uint maxRetryCount, string summary, ILogger logger)
         {
@@ -180,6 +214,8 @@ namespace dotnetCampus.Ipc.PipeCore
             return false;
         }
 
+
+        [Obsolete(DebugContext.DoNotUseAck)]
         internal void RegisterAckTask(AckTask ackTask)
         {
             AddToAckTaskList();
@@ -220,8 +256,15 @@ namespace dotnetCampus.Ipc.PipeCore
             }
         }
 
+        private Dictionary<ulong, AckTask> AckTaskList { get; } = new Dictionary<ulong, AckTask>();
+
+        */
         internal void OnAckReceived(object? sender, AckArgs e)
         {
+            CurrentAck = e.Ack;
+            /*
+            // 其他的也不用干了
+
             AckTask ackTask;
 
             lock (Locker)
@@ -242,8 +285,7 @@ namespace dotnetCampus.Ipc.PipeCore
             {
                 // 不是发生给这个客户端的，只是 ack 相同，这个类被改错
             }
+            */
         }
-
-        private Dictionary<ulong, AckTask> AckTaskList { get; } = new Dictionary<ulong, AckTask>();
     }
 }

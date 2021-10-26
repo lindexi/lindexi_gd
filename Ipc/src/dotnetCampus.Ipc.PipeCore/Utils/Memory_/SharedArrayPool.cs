@@ -1,7 +1,7 @@
-﻿using System.Buffers;
-
-namespace dotnetCampus.Ipc.PipeCore.Utils
+﻿namespace dotnetCampus.Ipc.PipeCore.Utils
 {
+#if NETCOREAPP
+    using System.Buffers;
     /// <summary>
     ///     共享数组内存，底层使用 ArrayPool 实现
     /// </summary>
@@ -33,4 +33,23 @@ namespace dotnetCampus.Ipc.PipeCore.Utils
             ArrayPool.Return(array);
         }
     }
+#else
+    /// <summary>
+    /// 共享数组内存，没有真的实现
+    /// </summary>
+    public class SharedArrayPool : ISharedArrayPool
+    {
+        /// <inheritdoc />
+        public byte[] Rent(int minLength)
+        {
+            return new byte[minLength];
+        }
+
+        /// <inheritdoc />
+        public void Return(byte[] array)
+        {
+        }
+    }
+#endif
+
 }

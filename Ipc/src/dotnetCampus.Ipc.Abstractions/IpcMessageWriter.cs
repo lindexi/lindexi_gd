@@ -1,9 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using dotnetCampus.Ipc.PipeCore.Context;
 
-namespace dotnetCampus.Ipc.PipeCore.Utils
+namespace dotnetCampus.Ipc.Abstractions
 {
     /// <summary>
     /// 提供消息的写入方法

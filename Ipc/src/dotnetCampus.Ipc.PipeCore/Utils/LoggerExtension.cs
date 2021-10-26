@@ -7,7 +7,7 @@ namespace dotnetCampus.Ipc.PipeCore.Utils
     {
         public static void Debug(this ILogger logger, string message)
         {
-            Console.WriteLine(message);
+            Console.WriteLine(logger?.ToString() + message);
         }
 
         public static void Trace(this ILogger logger, string message)

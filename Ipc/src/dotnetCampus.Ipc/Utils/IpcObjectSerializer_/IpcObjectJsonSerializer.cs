@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using dotnetCampus.Ipc.Abstractions;
 using Newtonsoft.Json;
 
 namespace dotnetCampus.Ipc.Utils
