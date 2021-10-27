@@ -60,12 +60,15 @@ namespace Microsoft.AspNetCore.TestHost
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
+            return await SendInnerAsync(request, cancellationToken);
+        }
+
+        public async Task<HttpResponseMessage> SendInnerAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
-
-            HttpMessageSerializer.Serialize(request);
 
             var contextBuilder = new HttpContextBuilder(_application, AllowSynchronousIO, PreserveExecutionContext);
 
@@ -138,6 +141,7 @@ namespace Microsoft.AspNetCore.TestHost
                         req.Body = new AsyncStreamWrapper(reader.AsStream(), () => contextBuilder.AllowSynchronousIO);
                     }
                 }
+
                 context.Features.Set<IHttpRequestBodyDetectionFeature>(new RequestBodyDetectionFeature(canHaveBody));
 
                 foreach (var header in request.Headers)
@@ -170,6 +174,7 @@ namespace Microsoft.AspNetCore.TestHost
                     req.Path = remainder;
                     req.PathBase = _pathBase;
                 }
+
                 req.QueryString = QueryString.FromUriComponent(request.RequestUri);
             });
 
@@ -185,7 +190,8 @@ namespace Microsoft.AspNetCore.TestHost
                 {
                     foreach (var trailer in responseTrailersFeature.Trailers)
                     {
-                        bool success = response.TrailingHeaders.TryAddWithoutValidation(trailer.Key, (IEnumerable<string>)trailer.Value);
+                        bool success =
+                            response.TrailingHeaders.TryAddWithoutValidation(trailer.Key, (IEnumerable<string>) trailer.Value);
                         Contract.Assert(success, "Bad trailer");
                     }
                 }
@@ -193,7 +199,7 @@ namespace Microsoft.AspNetCore.TestHost
 
             var httpContext = await contextBuilder.SendAsync(cancellationToken);
 
-            response.StatusCode = (HttpStatusCode)httpContext.Response.StatusCode;
+            response.StatusCode = (HttpStatusCode) httpContext.Response.StatusCode;
             response.ReasonPhrase = httpContext.Features.Get<IHttpResponseFeature>()!.ReasonPhrase;
             response.RequestMessage = request;
             response.Version = request.Version;
@@ -202,12 +208,14 @@ namespace Microsoft.AspNetCore.TestHost
 
             foreach (var header in httpContext.Response.Headers)
             {
-                if (!response.Headers.TryAddWithoutValidation(header.Key, (IEnumerable<string>)header.Value))
+                if (!response.Headers.TryAddWithoutValidation(header.Key, (IEnumerable<string>) header.Value))
                 {
-                    bool success = response.Content.Headers.TryAddWithoutValidation(header.Key, (IEnumerable<string>)header.Value);
+                    bool success =
+                        response.Content.Headers.TryAddWithoutValidation(header.Key, (IEnumerable<string>) header.Value);
                     Contract.Assert(success, "Bad header");
                 }
             }
+
             return response;
         }
     }

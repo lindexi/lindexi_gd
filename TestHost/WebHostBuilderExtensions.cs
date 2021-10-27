@@ -31,12 +31,11 @@ namespace Microsoft.AspNetCore.TestHost
         /// <returns>The <see cref="IWebHostBuilder"/>.</returns>
         public static IWebHostBuilder UseTestServer(this IWebHostBuilder builder)
         {
-            IpcCore.Build().Wait();
-
             return builder.ConfigureServices(services =>
             {
                 services.AddSingleton<IHostLifetime, NoopHostLifetime>();
                 services.AddSingleton<IServer, TestServer>();
+                services.AddSingleton<IpcCore>();
             });
         }
 

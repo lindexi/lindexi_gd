@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.AspNetCore.TestHost.Ipc;
 
 namespace BelaberalhileQairfawheechal
 {
@@ -20,7 +21,7 @@ namespace BelaberalhileQairfawheechal
             {
                 await build.StartAsync();
 
-                var testClient = build.GetTestClient();
+                var testClient = await IpcCore.GetHttpClientAsync();
                 await testClient.PostAsJsonAsync("/123/12", new Foo()
                 {
                     F1 = "12"
