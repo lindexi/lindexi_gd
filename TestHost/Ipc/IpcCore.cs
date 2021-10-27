@@ -58,33 +58,37 @@ namespace Microsoft.AspNetCore.TestHost.Ipc
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var message = HttpMessageSerializer.Serialize(request);
-            throw null;
+
+            var response = await Client.GetResponseAsync(new IpcRequestMessage(request.RequestUri?.ToString() ?? request.Method.ToString(),
+                 message));
+
+            return HttpMessageSerializer.DeserializeToResponse(response.Buffer);
         }
     }
 
-    public class HttpRequestMessageContent
+    public class HttpRequestMessageSerializeContent: HttpRequestMessageContentBase
     {
-        //public HttpRequestMessageContent(HttpRequestMessage httpRequestMessage)
-        //{
-        //}
+        public HttpRequestMessageSerializeContent(HttpRequestMessage message) : base(message)
+        {
+            Headers = message.Headers;
+        }
 
-        public Version Version { set; get; }
-        public HttpVersionPolicy VersionPolicy { set; get; }
-        public JObject Content { set; get; }
-        public HttpMethod Method { set; get; }
-        public Uri? RequestUri { set; get; }
+        public HttpRequestHeaders Headers { get; set; }
+    }
+
+    public class HttpRequestMessageDeserializeContent : HttpRequestMessageContentBase
+    {
         public JContainer Headers { set; get; }
-        public HttpRequestOptions Options { set; get; }
 
         public HttpRequestMessage ToHttpResponseMessage()
         {
             var result = new HttpRequestMessage()
             {
                 Version = Version,
-                VersionPolicy= VersionPolicy,
-                Method= Method,
-                RequestUri= RequestUri,
-                
+                VersionPolicy = VersionPolicy,
+                Method = Method,
+                RequestUri = RequestUri,
+
             };
 
             foreach (var httpRequestOption in Options)
@@ -97,6 +101,38 @@ namespace Microsoft.AspNetCore.TestHost.Ipc
         }
     }
 
+    public class HttpRequestMessageContentBase
+    {
+        public HttpRequestMessageContentBase(HttpRequestMessage message)
+        {
+            Version = message.Version;
+            VersionPolicy = message.VersionPolicy;
+            Method = message.Method;
+            RequestUri = message.RequestUri;
+            Options = message.Options;
+
+            if (message.Content is JsonContent jsonContent)
+            {
+                ContentJson = JsonConvert.SerializeObject(jsonContent);
+            }
+        }
+
+        public HttpRequestMessageContentBase()
+        {
+        }
+
+        public string ContentJson { set; get; }
+
+        public Version Version { set; get; }
+        public HttpVersionPolicy VersionPolicy { set; get; }
+     
+        public HttpMethod Method { set; get; }
+        public Uri? RequestUri { set; get; }
+        public HttpRequestOptions Options { set; get; }
+
+       
+    }
+
     public static class HttpMessageSerializer
     {
         public static byte[] Serialize(HttpResponseMessage response)
@@ -106,10 +142,11 @@ namespace Microsoft.AspNetCore.TestHost.Ipc
 
         public static byte[] Serialize(HttpRequestMessage request)
         {
-            var json = JsonConvert.SerializeObject(request);
-            var r = JsonConvert.DeserializeObject<HttpRequestMessageContent>(json);
+            var json = JsonConvert.SerializeObject(new HttpRequestMessageSerializeContent(request));
+            var r = JsonConvert.DeserializeObject<HttpRequestMessageDeserializeContent>(json);
             if (request.Content is JsonContent jsonContent)
             {
+
             }
 
 
