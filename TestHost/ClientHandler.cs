@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.TestHost.Ipc;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNetCore.TestHost
@@ -64,6 +65,8 @@ namespace Microsoft.AspNetCore.TestHost
                 throw new ArgumentNullException(nameof(request));
             }
 
+            HttpMessageSerializer.Serialize(request);
+
             var contextBuilder = new HttpContextBuilder(_application, AllowSynchronousIO, PreserveExecutionContext);
 
             var requestContent = request.Content;
@@ -76,13 +79,13 @@ namespace Microsoft.AspNetCore.TestHost
                 {
                     if (requestContent is StreamContent)
                     {
-                    // This is odd but required for backwards compat. If StreamContent is passed in then seek to beginning.
-                    // This is safe because StreamContent.ReadAsStreamAsync doesn't block. It will return the inner stream.
-                    var body = await requestContent.ReadAsStreamAsync();
+                        // This is odd but required for backwards compat. If StreamContent is passed in then seek to beginning.
+                        // This is safe because StreamContent.ReadAsStreamAsync doesn't block. It will return the inner stream.
+                        var body = await requestContent.ReadAsStreamAsync();
                         if (body.CanSeek)
                         {
-                        // This body may have been consumed before, rewind it.
-                        body.Seek(0, SeekOrigin.Begin);
+                            // This body may have been consumed before, rewind it.
+                            body.Seek(0, SeekOrigin.Begin);
                         }
 
                         await body.CopyToAsync(writer);

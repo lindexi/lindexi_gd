@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
 
@@ -20,7 +21,11 @@ namespace BelaberalhileQairfawheechal
                 await build.StartAsync();
 
                 var testClient = build.GetTestClient();
-                var text = await testClient.GetStringAsync("/");
+                await testClient.PostAsJsonAsync("/123/12", new Foo()
+                {
+                    F1 = "12"
+                });
+                var text = await testClient.GetStringAsync("/123/123");
             });
 
             Console.Read();
@@ -33,5 +38,10 @@ namespace BelaberalhileQairfawheechal
                     webBuilder.UseStartup<Startup>();
                     webBuilder.UseTestServer();
                 });
+    }
+
+    class Foo
+    {
+        public string F1 { set; get; }
     }
 }

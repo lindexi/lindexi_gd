@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net.Http;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.TestHost.Ipc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -30,6 +31,8 @@ namespace Microsoft.AspNetCore.TestHost
         /// <returns>The <see cref="IWebHostBuilder"/>.</returns>
         public static IWebHostBuilder UseTestServer(this IWebHostBuilder builder)
         {
+            IpcCore.Build().Wait();
+
             return builder.ConfigureServices(services =>
             {
                 services.AddSingleton<IHostLifetime, NoopHostLifetime>();

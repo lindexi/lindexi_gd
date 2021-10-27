@@ -47,7 +47,11 @@ namespace Microsoft.AspNetCore.TestHost
             AllowSynchronousIO = options.AllowSynchronousIO;
             PreserveExecutionContext = options.PreserveExecutionContext;
             BaseAddress = options.BaseAddress;
-    }
+
+            CurrentTestServer = this;
+        }
+
+        internal static TestServer CurrentTestServer { set; get; }
 
         /// <summary>
         /// For use with IHostBuilder.
@@ -137,7 +141,7 @@ namespace Microsoft.AspNetCore.TestHost
         /// </summary>
         public bool PreserveExecutionContext { get; set; }
 
-        private ApplicationWrapper Application
+        internal ApplicationWrapper Application
         {
             get => _application ?? throw new InvalidOperationException("The server has not been started or no web application was configured.");
         }

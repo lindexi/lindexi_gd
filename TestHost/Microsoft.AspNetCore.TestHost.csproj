@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <Description>ASP.NET Core web server for writing and running tests.</Description>
@@ -12,6 +12,12 @@
     <PackageReference Include="Microsoft.AspNetCore.Hosting" />
     <PackageReference Include="System.IO.Pipelines" />
     <!-- <PackageReference Include="Microsoft.Extensions.HostFactoryResolver.Sources" /> -->
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Ipc\src\dotnetCampus.Ipc.Abstractions\dotnetCampus.Ipc.Abstractions.csproj" />
+    <ProjectReference Include="..\Ipc\src\dotnetCampus.Ipc.PipeCore\dotnetCampus.Ipc.PipeCore.csproj" />
+    <ProjectReference Include="..\Ipc\src\dotnetCampus.Ipc\dotnetCampus.Ipc.csproj" />
   </ItemGroup>
 
 </Project>
