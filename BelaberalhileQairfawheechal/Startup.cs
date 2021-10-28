@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace BelaberalhileQairfawheechal
 {
@@ -38,6 +39,16 @@ namespace BelaberalhileQairfawheechal
                 endpoints.MapGet("/123/123", async context =>
                 {
                     await context.Response.WriteAsync("Hello World!");
+                });
+
+                endpoints.MapPost("/123/12", async context =>
+                {
+                    var foo = await context.Request.ReadFromJsonAsync<Foo>();
+                    var result = new Foo()
+                    {
+                        F1 = "return" + foo?.F1
+                    };
+                    await context.Response.WriteAsJsonAsync(result);
                 });
             });
         }

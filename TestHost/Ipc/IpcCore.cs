@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -31,7 +32,7 @@ namespace Microsoft.AspNetCore.TestHost.Ipc
 
                     var requestMessage = HttpMessageSerializer.DeserializeToRequest(context.IpcBufferMessage.Buffer);
 
-                    var clientHandler = (ClientHandler) server.CreateHandler();
+                    var clientHandler = (ClientHandler)server.CreateHandler();
                     var response = await clientHandler.SendInnerAsync(requestMessage, CancellationToken.None);
 
                     var responseByteList = HttpMessageSerializer.Serialize(response);
@@ -39,7 +40,7 @@ namespace Microsoft.AspNetCore.TestHost.Ipc
                     return new IpcHandleRequestMessageResult(new IpcRequestMessage($"[Response][{requestMessage.Method}] {requestMessage.RequestUri}", responseByteList));
                 })
             });
-           
+
         }
 
         public void Start() => IpcServer.StartServer();
@@ -73,7 +74,7 @@ namespace Microsoft.AspNetCore.TestHost.Ipc
 
     public class IpcNamedPipeClientHandler : HttpMessageHandler
     {
-       
+
 
         public IpcNamedPipeClientHandler(PeerProxy client)
         {
@@ -103,10 +104,14 @@ namespace Microsoft.AspNetCore.TestHost.Ipc
         public HttpRequestHeaders Headers { get; set; }
     }
 
+    public class HeaderContent
+    {
+        public string Key { set; get; }
+        public List<string> Value { set; get; }
+    }
+
     public class HttpRequestMessageDeserializeContent : HttpRequestMessageContentBase
     {
-        public JContainer Headers { set; get; }
-
         public HttpRequestMessage ToHttpResponseMessage()
         {
             var result = new HttpRequestMessage()
@@ -115,7 +120,6 @@ namespace Microsoft.AspNetCore.TestHost.Ipc
                 VersionPolicy = VersionPolicy,
                 Method = Method,
                 RequestUri = RequestUri,
-
             };
 
             var memoryStream = new MemoryStream(Convert.FromBase64String(ContentBase64));
@@ -123,8 +127,57 @@ namespace Microsoft.AspNetCore.TestHost.Ipc
             var streamContent = new StreamContent(memoryStream);
             result.Content = streamContent;
 
+
+            var headerContentList = ContentHeaders.ToObject<List<HeaderContent>>();
+
+            if (headerContentList != null)
+            {
+                foreach (var headerContent in  headerContentList)
+                {
+                    result.Content.Headers.Add(headerContent.Key, headerContent.Value);
+                }
+            }
+
+            //if (ContentHeaders is JArray jArray)
+            //{
+            //    foreach (var jToken in jArray)
+            //    {
+            //        if (jToken is JObject jObject)
+            //        {
+            //            string key = null;
+
+            //            if (jObject.First is JProperty keyProperty)
+            //            {
+            //                if (keyProperty.Name=="Key")
+            //                {
+            //                    key = keyProperty.Value.ToString();
+            //                }
+            //            }
+
+            //            if (jObject.Last is JProperty valueProperty)
+            //            {
+
+            //            }
+            //        }
+            //    }
+            //}
+
+            headerContentList = Headers.ToObject<List<HeaderContent>>();
+            if (headerContentList != null)
+            {
+                foreach (var headerContent in headerContentList)
+                {
+                    result.Headers.Add(headerContent.Key, headerContent.Value);
+                }
+            }
+
+
             return result;
         }
+
+        public JContainer Headers { set; get; }
+
+        public JContainer ContentHeaders { set; get; }
     }
 
     public class HttpRequestMessageContentBase
@@ -139,6 +192,7 @@ namespace Microsoft.AspNetCore.TestHost.Ipc
 
             if (message.Content != null)
             {
+                ContentHeaders = message.Content.Headers;
                 using var memoryStream = new MemoryStream();
                 message.Content.CopyTo(memoryStream, null, CancellationToken.None);
                 ContentBase64 = Convert.ToBase64String(memoryStream.ToArray());
@@ -149,6 +203,7 @@ namespace Microsoft.AspNetCore.TestHost.Ipc
         {
         }
 
+
         public string ContentBase64 { set; get; }
 
         public Version Version { set; get; }
@@ -157,15 +212,98 @@ namespace Microsoft.AspNetCore.TestHost.Ipc
         public HttpMethod Method { set; get; }
         public Uri? RequestUri { set; get; }
         public HttpRequestOptions Options { set; get; }
+        public HttpContentHeaders ContentHeaders { get; set; }
+    }
 
+    public class HttpResponseMessageSerializeContent : HttpResponseMessageContentBase
+    {
+        public HttpResponseMessageSerializeContent(HttpResponseMessage message) : base(message)
+        {
+            Headers = message.Headers;
+            ContentHeaders = message.Content?.Headers;
+        }
+        public HttpResponseHeaders Headers { get; set; }
+        public HttpContentHeaders? ContentHeaders { get; set; }
+    }
 
+    public class HttpResponseMessageDeserializeContent : HttpResponseMessageContentBase
+    {
+        public JContainer Headers { set; get; }
+        public JContainer ContentHeaders { get; set; }
+
+        public HttpResponseMessage ToHttpResponseMessage()
+        {
+            var httpResponseMessage = new HttpResponseMessage(StatusCode)
+            {
+                Version = Version,
+            };
+
+            //foreach (var httpResponseHeader in Headers)
+            //{
+            //    httpResponseMessage.Headers.Add(httpResponseHeader.Key, httpResponseHeader.Value);
+            //}
+
+            var memoryStream = new MemoryStream(Convert.FromBase64String(ContentBase64));
+            var text = Encoding.UTF8.GetString(memoryStream.ToArray());
+            var streamContent = new StreamContent(memoryStream);
+            httpResponseMessage.Content = streamContent;
+
+            var headerContentList = ContentHeaders.ToObject<List<HeaderContent>>();
+
+            if (headerContentList != null)
+            {
+                foreach (var headerContent in headerContentList)
+                {
+                    httpResponseMessage.Content.Headers.Add(headerContent.Key, headerContent.Value);
+                }
+            }
+
+            headerContentList = Headers.ToObject<List<HeaderContent>>();
+            if (headerContentList != null)
+            {
+                foreach (var headerContent in headerContentList)
+                {
+                    httpResponseMessage.Headers.Add(headerContent.Key, headerContent.Value);
+                }
+            }
+
+            return httpResponseMessage;
+        }
+    }
+
+    public class HttpResponseMessageContentBase
+    {
+        public HttpResponseMessageContentBase()
+        {
+        }
+
+        public HttpResponseMessageContentBase(HttpResponseMessage message)
+        {
+            if (message.Content != null)
+            {
+                using var memoryStream = new MemoryStream();
+                message.Content.CopyTo(memoryStream, null, CancellationToken.None);
+                ContentBase64 = Convert.ToBase64String(memoryStream.ToArray());
+
+            }
+
+            Version = message.Version;
+            StatusCode = message.StatusCode;
+        }
+
+        public string ContentBase64 { set; get; }
+        public Version Version { get; set; }
+        public HttpStatusCode StatusCode { get; set; }
     }
 
     public static class HttpMessageSerializer
     {
         public static byte[] Serialize(HttpResponseMessage response)
         {
-            throw null;
+            var httpResponseMessageContentBase = new HttpResponseMessageSerializeContent(response);
+            var json = JsonConvert.SerializeObject(httpResponseMessageContentBase);
+
+            return Encoding.UTF8.GetBytes(json);
         }
 
         public static byte[] Serialize(HttpRequestMessage request)
@@ -177,7 +315,10 @@ namespace Microsoft.AspNetCore.TestHost.Ipc
 
         public static HttpResponseMessage DeserializeToResponse(byte[] d)
         {
-            throw null;
+            var json = Encoding.UTF8.GetString(d);
+            var content = JsonConvert.DeserializeObject<HttpResponseMessageDeserializeContent>(json);
+
+            return content.ToHttpResponseMessage();
         }
 
         public static HttpRequestMessage DeserializeToRequest(byte[] d)
