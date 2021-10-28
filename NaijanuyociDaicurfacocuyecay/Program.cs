@@ -12,9 +12,12 @@ namespace NaijanuyociDaicurfacocuyecay
         {
             var file = @"f:\temp\KewalnaidiNaborereefal.pptx";
 
-            foreach (var process in FileUtil.WhoIsLocking(file))
+            var processList = FileUtil.WhoIsLocking(file);
+            if (processList != null)
             {
-                
+                foreach (var process in processList)
+                {
+                }
             }
         }
     }
@@ -28,6 +31,10 @@ namespace NaijanuyociDaicurfacocuyecay
         // ReSharper disable InconsistentNaming
         // ReSharper disable FieldCanBeMadeReadOnly.Local
         // ReSharper disable StringLiteralTypo
+        // ReSharper disable InlineOutVariableDeclaration
+        // ReSharper disable MemberCanBePrivate.Local
+        // ReSharper disable UnusedMember.Local
+        // ReSharper disable RedundantAssignment
         [StructLayout(LayoutKind.Sequential)]
         struct RM_UNIQUE_PROCESS
         {
@@ -72,11 +79,11 @@ namespace NaijanuyociDaicurfacocuyecay
         [DllImport("rstrtmgr.dll", CharSet = CharSet.Unicode)]
         static extern int RmRegisterResources(uint pSessionHandle,
                                               UInt32 nFiles,
-                                              string[] rgsFilenames,
+                                              string[]? rgsFilenames,
                                               UInt32 nApplications,
-                                              [In] RM_UNIQUE_PROCESS[] rgApplications,
+                                              [In] RM_UNIQUE_PROCESS[]? rgApplications,
                                               UInt32 nServices,
-                                              string[] rgsServiceNames);
+                                              string[]? rgsServiceNames);
 
         [DllImport("rstrtmgr.dll", CharSet = CharSet.Unicode)]
         static extern int RmStartSession(out uint pSessionHandle, int dwSessionFlags, string strSessionKey);
@@ -88,7 +95,7 @@ namespace NaijanuyociDaicurfacocuyecay
         static extern int RmGetList(uint dwSessionHandle,
                                     out uint pnProcInfoNeeded,
                                     ref uint pnProcInfo,
-                                    [In, Out] RM_PROCESS_INFO[] rgAffectedApps,
+                                    [In, Out] RM_PROCESS_INFO[]? rgAffectedApps,
                                     ref uint lpdwRebootReasons);
 
         /// <summary>
@@ -120,7 +127,11 @@ namespace NaijanuyociDaicurfacocuyecay
 
                 res = RmRegisterResources(handle, (uint)resources.Length, resources, 0, null, 0, null);
 
-                if (res != 0) throw new Exception("Could not register resource.");
+                if (res != 0)
+                {
+                    //throw new Exception("Could not register resource.");
+                    return null;
+                }
 
                 //Note: there's a race condition here -- the first call to RmGetList() returns
                 //      the total number of process. However, when we call RmGetList() again to get
