@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics.X86;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -15,9 +17,36 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using Vector = System.Numerics.Vector;
 
 namespace LereleweawaLinojairgeefonechal
 {
+    internal interface IAppDomainShutdownListener
+    {
+        void NotifyShutdown();
+    }
+
+    internal class AppDomainShutdownNotifier : WeakReference, IDisposable
+    {
+        public AppDomainShutdownNotifier(IAppDomainShutdownListener target) : base(target)
+        {
+            AppDomain.CurrentDomain.DomainUnload += OnShutdown;
+            AppDomain.CurrentDomain.ProcessExit += OnShutdown;
+        }
+
+        private void OnShutdown(object sender, EventArgs e)
+        {
+            var listener = (IAppDomainShutdownListener) Target;
+            listener?.NotifyShutdown();
+        }
+
+        public void Dispose()
+        {
+            AppDomain.CurrentDomain.DomainUnload -= OnShutdown;
+            AppDomain.CurrentDomain.ProcessExit -= OnShutdown;
+        }
+    }
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -27,8 +56,10 @@ namespace LereleweawaLinojairgeefonechal
         {
             InitializeComponent();
 
-
             Loaded += MainWindow_Loaded;
+
+            var appDomain = AppDomain.CreateDomain("Foo");
+            AppDomain.Unload(appDomain);
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -45,7 +76,7 @@ namespace LereleweawaLinojairgeefonechal
 
             var typeChannel = typeof(Visual).Assembly.GetType("System.Windows.Media.Composition.DUCE+Channel");
             var hChannelFieldInfo = typeChannel.GetField("_hChannel", BindingFlags.NonPublic | BindingFlags.Instance);
-            var hChannel = (IntPtr) hChannelFieldInfo.GetValue(channel);
+            var hChannel = (IntPtr)hChannelFieldInfo.GetValue(channel);
 
             ResourceHandle handle = default;
             var result = MilResource_CreateOrAddRefOnChannel(hChannel, ResourceType.TYPE_BRUSH, ref handle);
