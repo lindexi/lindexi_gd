@@ -6,10 +6,7 @@
         xmlns:local="clr-namespace:Pptx"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-  <Grid x:Name="Grid" Background="Gray" AllowDrop="True" Drop="File_OnDrop">
-    <TextBlock HorizontalAlignment="Center" 
-               VerticalAlignment="Center"
-               IsHitTestVisible="False"
-                Foreground="White">Drop PPTX File Here</TextBlock>
+  <Grid>
+    <DataGrid x:Name="DataGrid" ItemsSource="{Binding}"></DataGrid>
   </Grid>
 </Window>

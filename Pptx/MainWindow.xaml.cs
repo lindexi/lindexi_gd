@@ -14,7 +14,6 @@ using DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Presentation;
 using dotnetCampus.OpenXmlUnitConverter;
-using OpenMcdf;
 using ColorMap = DocumentFormat.OpenXml.Presentation.ColorMap;
 using GraphicFrame = DocumentFormat.OpenXml.Presentation.GraphicFrame;
 using Path = DocumentFormat.OpenXml.Drawing.Path;
@@ -22,6 +21,7 @@ using Rectangle = System.Windows.Shapes.Rectangle;
 using SchemeColorValues = DocumentFormat.OpenXml.Drawing.SchemeColorValues;
 using Shape = DocumentFormat.OpenXml.Presentation.Shape;
 using ShapeProperties = DocumentFormat.OpenXml.Presentation.ShapeProperties;
+using Transform = System.Windows.Media.Transform;
 
 namespace Pptx
 {
@@ -35,158 +35,272 @@ namespace Pptx
             InitializeComponent();
 
             Loaded += MainWindow_Loaded;
-
-            //var file = @"F:\temp\foo" + (char) 1+".txt";
-            //File.WriteAllText(file, "123");
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            var file = new FileInfo("Test.pptx");
+            OpenPptxFile(new FileInfo("Test.pptx"));
+        }
 
-            var tf = @"F:\temp\KewalnaidiNaborereefal.pptx";
-            if (File.Exists(tf))
+        private void File_OnDrop(object sender, DragEventArgs e)
+        {
+            string? fileName = ((System.Array)e.Data.GetData(DataFormats.FileDrop))?.GetValue(0)?.ToString();
+            if (string.IsNullOrWhiteSpace(fileName))
             {
-                file = new FileInfo(tf);
+                return;
             }
 
-            long lastAllocatedBytesForCurrentThread;
+            OpenPptxFile(new FileInfo(fileName));
+        }
 
+        private void OpenPptxFile(FileInfo file)
+        {
             using var presentationDocument = PresentationDocument.Open(file.FullName, false);
             var slide = presentationDocument.PresentationPart!.SlideParts.First().Slide;
+            // 这是对测试文件有要求的，要求一定传入的是立方体。请在具体的项目代码里面，替换为你需要的逻辑
+            var shape = slide.Descendants<Shape>().First();
+            var shapeProperties = shape.ShapeProperties;
+            var presetGeometry = shapeProperties!.GetFirstChild<PresetGeometry>();
+            var elementSize = new EmuSize(new Emu(1216152),new Emu(1216152));
+            
+            var shapePathList = GetPresetGeometryPath(presetGeometry!.Preset!.Value, elementSize);
 
-            var graphicFrame = slide.CommonSlideData!.ShapeTree!.GetFirstChild<GraphicFrame>()!;
-            var graphic = graphicFrame.Graphic!;
-            var graphicData = graphic.GraphicData!;
-            var alternateContent = graphicData.GetFirstChild<AlternateContent>()!;
-            var choice = alternateContent.GetFirstChild<AlternateContentChoice>()!;
-            var oleObject = choice.GetFirstChild<OleObject>()!;
-            Debug.Assert(oleObject.GetFirstChild<OleObjectEmbed>() != null);
-            var id = oleObject.Id!;
-            var part = slide.SlidePart!.GetPartById(id!);
-            Debug.Assert(part.ContentType == "application/vnd.openxmlformats-officedocument.oleObject");
+            var drawingVisual = new DrawingGroup();
+            var drawingContext = drawingVisual.Open();
+            /*
+                  <a:accent1>
+                    <a:srgbClr val="4472C4" />
+                  </a:accent1>
+             */
+            var fillBrush = new SolidColorBrush((Color) ColorConverter.ConvertFromString("#4472C4"));
 
-            var allocatedBytesForCurrentThread = GC.GetAllocatedBytesForCurrentThread();
-            var s = part.GetStream();
+            // 创建底色几何
+            var pathGeometry = BuildShapePathGeometry(shapePathList);
+            // 只有多路径下才先绘制底色
+            drawingContext.DrawGeometry(fillBrush, null, pathGeometry);
 
-            lastAllocatedBytesForCurrentThread = GC.GetAllocatedBytesForCurrentThread();
-            Debug.WriteLine($"GetStream {lastAllocatedBytesForCurrentThread - allocatedBytesForCurrentThread}");
-            allocatedBytesForCurrentThread = lastAllocatedBytesForCurrentThread;
-
-            var tempFolder = @"F:\temp";
-            if (!Directory.Exists(tempFolder))
+            foreach (var shapePath in shapePathList)
             {
-                tempFolder = System.IO.Path.GetTempPath();
+                if (!shapePath.IsFilled && !shapePath.IsStroke) continue;
+
+                var geometry = GetPathGeometry(shapePath);
+                if (geometry == null)
+                {
+                    continue;
+                }
+
+                var brush = GetShapeFillBrush(shapePath, fillBrush);
+                // 忽略线条
+                Pen? pen = null;
+                drawingContext.DrawGeometry(brush, pen, geometry);
+            }
+            drawingContext.Close();
+
+            var element = new Border()
+            {
+                Width = elementSize.Width.ToPixel().Value,
+                Height = elementSize.Height.ToPixel().Value,
+
+                Margin = new Thickness(10, 10, 10, 10),
+                Background = new DrawingBrush(drawingVisual)
+            };
+            AddElement(element);
+        }
+
+        private SolidColorBrush? GetShapeFillBrush(ShapePath shapePath, SolidColorBrush fillBrush, bool isMultiPath=true)
+        {
+            if (shapePath.IsFilled is false)
+            {
+                return null;
             }
 
-            tempFolder = System.IO.Path.Combine(tempFolder, System.IO.Path.GetRandomFileName());
-            Directory.CreateDirectory(tempFolder);
-            //CompoundFileUnzipper.Unzip(s, tempFolder, byteArrayPool);
-
-            // 为了性能考虑，不再使用内存方式，全部写入到文件
-            //var forwardSeekStream = new ForwardSeekStream(s, byteArrayPool);
-            var oleFile = System.IO.Path.Combine(tempFolder, System.IO.Path.GetRandomFileName());
-            using var oleFileStream = new FileStream(oleFile, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None,
-                bufferSize: 4096, FileOptions.RandomAccess);
-            s.CopyTo(oleFileStream);
-            oleFileStream.Position = 0;
-
-            //Origin(forwardSeekStream);
-            var cf = new ReadonlyCompoundFile(oleFileStream);
-
-            lastAllocatedBytesForCurrentThread = GC.GetAllocatedBytesForCurrentThread();
-            Debug.WriteLine($"CompoundFile {lastAllocatedBytesForCurrentThread - allocatedBytesForCurrentThread}");
-            allocatedBytesForCurrentThread = lastAllocatedBytesForCurrentThread;
-
-            var packageStream = cf.RootStorage.GetStream("Package");
-
-            lastAllocatedBytesForCurrentThread = GC.GetAllocatedBytesForCurrentThread();
-            Debug.WriteLine($"GetStream {lastAllocatedBytesForCurrentThread - allocatedBytesForCurrentThread}");
-            allocatedBytesForCurrentThread = lastAllocatedBytesForCurrentThread;
-
-            //var tempFolder = @"F:\temp";
-            //if (!Directory.Exists(tempFolder))
-            //{
-            //    tempFolder = System.IO.Path.GetTempPath();
-            //}
-
-            var xlsxFile = System.IO.Path.Combine(tempFolder, System.IO.Path.GetRandomFileName() + ".xlsx");
-            using (var fileStream = File.OpenWrite(xlsxFile))
+            switch (shapePath.FillMode)
             {
-                //fileStream.Write(packageStream.GetData().AsSpan());
-                cf.CopyTo(packageStream, fileStream);
+                case PathFillModeValues.Norm:
+                {
+                    if (isMultiPath)
+                    {
+                        // 多路径下，不需要重复绘制，绘制内容和底色相同。但是底色已绘制，因此啥都不用做
+                        return null;
+                    }
+                    else
+                    {
+                        return fillBrush;
+                    }
+                }
+                case PathFillModeValues.None:
+                    return null;
+                case PathFillModeValues.Darken:
+                    return GetOrCreate("#64000000");
+                case PathFillModeValues.DarkenLess:
+                    return GetOrCreate("#32000000");
+                case PathFillModeValues.Lighten:
+                    return GetOrCreate("#64FFFFFF");
+                case PathFillModeValues.LightenLess:
+                    return GetOrCreate("#32FFFFFF");
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
 
-            //var fakeStream = new FakeStream();
-            //cf.CopyTo(packageStream, fakeStream, byteArrayPool);
+            static SolidColorBrush GetOrCreate(string color)
+            {
+                return new SolidColorBrush((Color)ColorConverter.ConvertFromString(color));
+            }
+        }
 
-            //using (var fileStream = File.OpenWrite(xlsxFile))
-            //{
-            //    fileStream.Write(packageStream.GetData().AsSpan());
-            //}
-            //using var spreadsheetDocument = SpreadsheetDocument.Open(xlsxFile, false);
-            //var sheets = spreadsheetDocument.WorkbookPart!.Workbook.Sheets;
+        private void AddElement(UIElement element)
+        {
+            Grid.Children.Clear();
+            Grid.Background = null;
+            Grid.Children.Add(element);
+        }
 
-            lastAllocatedBytesForCurrentThread = GC.GetAllocatedBytesForCurrentThread();
-            Debug.WriteLine($"CopyTo {lastAllocatedBytesForCurrentThread - allocatedBytesForCurrentThread}");
-            allocatedBytesForCurrentThread = lastAllocatedBytesForCurrentThread;
+        private PathGeometry? GetPathGeometry(ShapePath shapePath)
+        {
+            var pathGeometry = new PathGeometry();
+            var pathFigureCollection = new PathFigureCollection();
+            var path = shapePath.Path;
+            if (!string.IsNullOrEmpty(path))
+            {
+                var pathFigures = PathFigureCollection.Parse(path);
+                if (!pathFigures.Any())
+                {
+                    return null;
+                }
+                foreach (var pathFigure in pathFigures)
+                {
+                    pathFigure.IsFilled = shapePath.IsFilled;
+                    pathFigureCollection.Add(pathFigure);
+                }
+            }
+            pathGeometry.Figures = pathFigureCollection;
+            return pathGeometry;
+        }
 
+        private PathGeometry BuildShapePathGeometry(ShapePath[] shapePathList)
+        {
+            PathGeometry? result = null;
+            foreach (var shapePath in shapePathList)
+            {
+                if (shapePath.FillMode is PathFillModeValues.None && !shapePath.IsStroke)
+                {
+                    // 不是可填充的，而且不是线条的，啥都不做
+                    continue;
+                }
 
+                var geometry = Geometry.Parse(shapePath.Path);
+                if (result is null)
+                {
+                    result = PathGeometry.CreateFromGeometry(geometry);
+                }
+                else
+                {
+                    result = Geometry.Combine(result, geometry, GeometryCombineMode.Union, Transform.Identity);
+                }
+            }
 
-            //// OpenMcdf.CFException:“Cannot load a non-seekable Stream”
-            //var compoundFile = new CompoundFile(part.GetStream(FileMode.Open));
+            return result!;
+        }
 
-            //var oleFile = System.IO.Path.Combine(tempFolder, System.IO.Path.GetRandomFileName());
-            //using (var fileStream = File.OpenWrite(oleFile))
-            //{
-            //    using var stream = part.GetStream(FileMode.Open);
-            //    stream.CopyTo(fileStream);
-            //}
+        private ShapePath[] GetPresetGeometryPath(ShapeTypeValues presetValue, EmuSize elementSize)
+        {
+            if (presetValue != ShapeTypeValues.Cube)
+            {
+                throw new ArgumentException($"本代码仅支持立方体");
+            }
 
-            //var compoundFile = new CompoundFile(oleFile);
-            //var packageStream = compoundFile.RootStorage.GetStream("Package");
-            //var xlsxFile = System.IO.Path.Combine(tempFolder, System.IO.Path.GetRandomFileName() + ".xlsx");
-            //using (var fileStream = File.OpenWrite(xlsxFile))
-            //{
-            //    fileStream.Write(packageStream.GetData().AsSpan());
-            //}
+            var shapePathList = new ShapePath[4];
 
-            using var spreadsheetDocument = SpreadsheetDocument.Open(xlsxFile, false);
-            var sheets = spreadsheetDocument.WorkbookPart!.Workbook.Sheets;
+            // 没有想着使用 elementSize 哈，假设都是固定的大小
+            // M 0.000,31.920 L 95.760,31.920 L 95.760,127.680 L 0.000,127.680 z
+            // 		FillMode	Norm
+            shapePathList[0] = new ShapePath("M 0.000,31.920 L 95.760,31.920 L 95.760,127.680 L 0.000,127.680 z",
+                isStroke: false);
 
+            // M 95.760,31.920 L 127.680,0.000 L 127.680,95.760 L 95.760,127.680 z
+            // 		FillMode	DarkenLess	
+            shapePathList[1] = new ShapePath("M 95.760,31.920 L 127.680,0.000 L 127.680,95.760 L 95.760,127.680 z", PathFillModeValues.DarkenLess, false);
 
+            // M 0.000,31.920 L 31.920,0.000 L 127.680,0.000 L 95.760,31.920 z
+            // 		FillMode	LightenLess	
+            shapePathList[2] = new ShapePath("M 0.000,31.920 L 31.920,0.000 L 127.680,0.000 L 95.760,31.920 z", PathFillModeValues.LightenLess, false);
+
+            // M 0.000,31.920 L 31.920,0.000 L 127.680,0.000 L 127.680,95.760 L 95.760,127.680 L 0.000,127.680 z M 0.000,31.920 L 95.760,31.920 L 127.680,0.000 M 95.760,31.920 L 95.760,127.680
+            // 		FillMode	None	
+            shapePathList[3] = new ShapePath("M 0.000,31.920 L 31.920,0.000 L 127.680,0.000 L 127.680,95.760 L 95.760,127.680 L 0.000,127.680 z M 0.000,31.920 L 95.760,31.920 L 127.680,0.000 M 95.760,31.920 L 95.760,127.680", PathFillModeValues.None);
+            return shapePathList;
         }
     }
 
-    class FakeStream : Stream
+    /// <summary>
+    /// 对应PPT的Shape Path
+    /// </summary>
+    public readonly struct ShapePath
     {
-        public override void Flush()
+        /// <summary>
+        /// 创建PPT的Geometry Path
+        /// </summary>
+        /// <param name="path">OpenXml  Path字符串</param>
+        /// <param name="fillMode">OpenXml的Path Fill Mode  </param>
+        /// <param name="isStroke">是否有轮廓</param>
+        /// <param name="isExtrusionOk">指定使用 3D 拉伸可能在此路径</param>
+        /// <param name="eumWidth">指定的宽度或在路径坐标系统中应在使用的最大的 x 坐标</param>
+        /// <param name="eumHeight">指定框架的高度或在路径坐标系统中应在使用的最大的 y 坐标</param>
+        public ShapePath(string path, PathFillModeValues fillMode = PathFillModeValues.Norm, bool isStroke = true, bool isExtrusionOk = false, double eumWidth = 0, double eumHeight = 0)
+        {
+            Path = path;
+            IsStroke = isStroke;
+            FillMode = fillMode;
+            IsFilled = fillMode is not PathFillModeValues.None;
+            IsExtrusionOk = isExtrusionOk;
+            Width = new Emu(eumWidth);
+            Height = new Emu(eumHeight);
+        }
+
+        /// <summary>
+        /// 创建PPT的Geometry Path
+        /// </summary>
+        /// <param name="path">OpenXml  Path字符串</param>
+        /// <param name="eumWidth">指定的宽度或在路径坐标系统中应在使用的最大的 x 坐标</param>
+        /// <param name="eumHeight">指定框架的高度或在路径坐标系统中应在使用的最大的 y 坐标</param>
+        public ShapePath(string path, double eumWidth, double eumHeight) : this(path, PathFillModeValues.Norm, eumWidth: eumWidth, eumHeight: eumHeight)
         {
 
         }
 
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            return 0;
-        }
+        /// <summary>
+        /// 是否填充
+        /// </summary>
+        public bool IsFilled { get; }
 
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            return 0;
-        }
+        /// <summary>
+        /// OpenXml 的 Path Stroke, 默认true
+        /// </summary>
+        public bool IsStroke { get; }
 
-        public override void SetLength(long value)
-        {
-        }
+        /// <summary>
+        /// OpenXml的Path Fill Mode  
+        /// </summary>
+        public PathFillModeValues FillMode { get; }
 
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-        }
+        /// <summary>
+        ///OpenXml  Path字符串
+        /// </summary>
+        public string Path { get; }
 
-        public override bool CanRead => true;
-        public override bool CanSeek => true;
-        public override bool CanWrite => true;
-        public override long Length => 0;
-        public override long Position { get; set; }
+        /// <summary>
+        /// 指定使用 3D 拉伸可能在此路径，默认false或0
+        /// </summary>
+        public bool IsExtrusionOk { get; }
+
+        /// <summary>
+        /// 指定的宽度或在路径坐标系统中应在使用的最大的 x 坐标
+        /// </summary>
+        public Emu Width { get; }
+
+        /// <summary>
+        /// 指定框架的高度或在路径坐标系统中应在使用的最大的 y 坐标
+        /// </summary>
+        public Emu Height { get; }
     }
 }
