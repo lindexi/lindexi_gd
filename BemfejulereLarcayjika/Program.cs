@@ -7,12 +7,14 @@ namespace BemfejulereLarcayjika
     {
         public static void Main(string[] args)
         {
-            var a = Directory.CreateDirectory("aa");
+            File.WriteAllText("a.txt", "123");
 
-            var result = Directory.CreateSymbolicLink("bbb", a.FullName) as DirectoryInfo;
+            var result = File.CreateSymbolicLink("b.txt", "a.txt") as FileInfo;
 
-            // 输出 bbb 文件夹
+            // 输出 b 文件
             Console.WriteLine(result.FullName);
+
+            Console.WriteLine(File.ReadAllText("b.txt"));
         }
     }
 }
