@@ -23,8 +23,9 @@ namespace HafiyelnarnurFeferjicher
             foreach (Window documentWindow in document.Windows)
             {
                 var documentWindowPanes = documentWindow.Panes;
-                foreach (Pane documentWindowPane in documentWindowPanes)
+                for (var index = 0; index < documentWindowPanes.Count; index++)
                 {
+                    Pane documentWindowPane = documentWindowPanes[index + 1];
                     var pagesCount = documentWindowPane.Pages.Count;
                     for (int i = 0; i < pagesCount; i++)
                     {
