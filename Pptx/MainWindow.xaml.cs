@@ -1,13 +1,26 @@
 ﻿#nullable enable
 using System;
+using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Media;
 using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Presentation;
+using dotnetCampus.OpenXmlUnitConverter;
+using OpenMcdf;
+using ColorMap = DocumentFormat.OpenXml.Presentation.ColorMap;
 using GraphicFrame = DocumentFormat.OpenXml.Presentation.GraphicFrame;
+using Path = DocumentFormat.OpenXml.Drawing.Path;
+using Rectangle = System.Windows.Shapes.Rectangle;
+using SchemeColorValues = DocumentFormat.OpenXml.Drawing.SchemeColorValues;
+using Shape = DocumentFormat.OpenXml.Presentation.Shape;
+using ShapeProperties = DocumentFormat.OpenXml.Presentation.ShapeProperties;
 
 namespace Pptx
 {
@@ -39,12 +52,7 @@ namespace Pptx
             Debug.Assert(oleObject.GetFirstChild<OleObjectEmbed>() != null);
             var id = oleObject.Id!;
             var part = slide.SlidePart!.GetPartById(id!);
-            Debug.Assert(part.ContentType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-
-            // 预期字符串是 “Excel.Sheet.12” 等内容
-            var isEmbedExcel = oleObject.ProgId?.Value?.StartsWith("Excel.Sheet", StringComparison.OrdinalIgnoreCase) is true;
-
-            Debug.Assert(isEmbedExcel);
+            Debug.Assert(part.ContentType== "application/vnd.openxmlformats-officedocument.oleObject");
 
             var tempFolder = @"F:\temp";
             if (!Directory.Exists(tempFolder))
@@ -52,14 +60,25 @@ namespace Pptx
                 tempFolder = System.IO.Path.GetTempPath();
             }
 
-            var xlsxFile = System.IO.Path.Combine(tempFolder, System.IO.Path.GetRandomFileName() + ".xlsx");
-            using (var fileStream = File.OpenWrite(xlsxFile))
+            //// OpenMcdf.CFException:“Cannot load a non-seekable Stream”
+            //var compoundFile = new CompoundFile(part.GetStream(FileMode.Open));
+
+            var oleFile = System.IO.Path.Combine(tempFolder, System.IO.Path.GetRandomFileName());
+            using (var fileStream = File.OpenWrite(oleFile))
             {
-                using var partStream = part.GetStream(FileMode.Open,FileAccess.Read);
-                partStream.CopyTo(fileStream);
+                using var stream = part.GetStream(FileMode.Open);
+                stream.CopyTo(fileStream);
             }
 
-            using var spreadsheetDocument = SpreadsheetDocument.Open(xlsxFile, false);
+            var compoundFile = new CompoundFile(oleFile);
+            var packageStream = compoundFile.RootStorage.GetStream("Package");
+            var xlsxFile = System.IO.Path.Combine(tempFolder, System.IO.Path.GetRandomFileName()+".xlsx");
+            using (var fileStream = File.OpenWrite(xlsxFile))
+            {
+                fileStream.Write(packageStream.GetData().AsSpan());
+            }
+
+            using var spreadsheetDocument = SpreadsheetDocument.Open(xlsxFile,false);
             var sheets = spreadsheetDocument.WorkbookPart!.Workbook.Sheets;
 
 
