@@ -37,7 +37,7 @@ namespace Xlsx
             var workbookView = workbook.BookViews?.GetFirstChild<WorkbookView>();
             var activeTabIndex = workbookView?.ActiveTab?.Value;
             Console.WriteLine($"当前激活的工作表序号：{activeTabIndex}");
-            Debug.Assert(activeTabIndex != null); 
+            Debug.Assert(activeTabIndex != null);
             // 通过序号去找到对应的工作表
 
             // 下面的获取方法是错误的，不能通过 WorksheetParts 的序号获取，原因是这里的顺序是依靠 workbook.xml.rels 文件里面存放的顺序决定的
@@ -56,6 +56,13 @@ namespace Xlsx
             var sheetViews = worksheet.SheetViews;
             var sheetView = sheetViews!.GetFirstChild<SheetView>();
             Console.WriteLine($"当前工作表被选择：{sheetView!.TabSelected}");
+
+            RootGrid.Children.Add(new TextBlock
+            {
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                Text = worksheet.InnerText,
+            });
         }
     }
 
