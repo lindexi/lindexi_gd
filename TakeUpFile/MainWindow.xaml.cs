@@ -48,9 +48,20 @@ namespace TakeUpFile
                         }
                         catch (IOException ioException)
                         {
-                            if(ioException.HResult== unchecked((int)0x80070020))
+                            if (ioException.HResult == unchecked((int)0x80070020))
                             {
+                                var processList = FileUtil.WhoIsLocking(file);
+                                if (processList != null)
+                                {
+                                    var message = $"文件{file}被程序占用中：";
+                                    foreach (var item in processList)
+                                    {
+                                        message += $"{item.ProcessName}({item.Id});";
+                                    }
 
+                                    TracerTextBlock.Text = message;
+                                    return;
+                                }
                             }
                         }
 
