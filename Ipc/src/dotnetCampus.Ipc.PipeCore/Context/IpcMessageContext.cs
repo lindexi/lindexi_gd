@@ -18,12 +18,4 @@ namespace dotnetCampus.Ipc.PipeCore.Context
         public uint MessageLength { get; }
         public ISharedArrayPool SharedArrayPool { get; }
     }
-
-    static class IpcMessageContextExtension
-    {
-        public static ByteListMessageStream ToStream(this in IpcMessageContext ipcMessageContext)
-        {
-            return new ByteListMessageStream(ipcMessageContext);
-        }
-    }
 }

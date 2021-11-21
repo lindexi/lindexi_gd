@@ -10,7 +10,7 @@
             IpcMessageCommandType = ipcMessageCommandType;
         }
 
-        public IpcMessageResult(string debugText) : this(false)
+        public IpcMessageResult(string debugText) : this(success: false)
         {
             DebugText = debugText;
         }

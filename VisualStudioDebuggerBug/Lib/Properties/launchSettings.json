@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Lib": {
+      "commandName": "Executable",
+      "executablePath": "..\\..\\..\\..\\App\\bin\\Debug\\net5.0\\App.exe"
+    }
+  }
+}

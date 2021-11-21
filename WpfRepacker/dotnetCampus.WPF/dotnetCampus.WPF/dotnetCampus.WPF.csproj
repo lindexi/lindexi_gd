@@ -1,0 +1,61 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net5-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>dotnet-campus.snk</AssemblyOriginatorKeyFile>
+    <SignAssembly>true</SignAssembly>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="..\Lib\DirectWriteForwarder.dll" />
+    <Reference Include="..\Lib\Microsoft.VisualBasic.Forms.dll" />
+    <Reference Include="..\Lib\PresentationCore.dll" />
+    <Reference Include="..\Lib\PresentationFramework-SystemCore.dll" />
+    <Reference Include="..\Lib\PresentationFramework-SystemData.dll" />
+    <Reference Include="..\Lib\PresentationFramework-SystemDrawing.dll" />
+    <Reference Include="..\Lib\PresentationFramework-SystemXml.dll" />
+    <Reference Include="..\Lib\PresentationFramework-SystemXmlLinq.dll" />
+    <Reference Include="..\Lib\PresentationFramework.Aero.dll" />
+    <Reference Include="..\Lib\PresentationFramework.Aero2.dll" />
+    <Reference Include="..\Lib\PresentationFramework.AeroLite.dll" />
+    <Reference Include="..\Lib\PresentationFramework.Classic.dll" />
+    <Reference Include="..\Lib\PresentationFramework.dll" />
+    <Reference Include="..\Lib\PresentationFramework.Luna.dll" />
+    <Reference Include="..\Lib\PresentationFramework.Royale.dll" />
+    <Reference Include="..\Lib\PresentationUI.dll" />
+    <Reference Include="..\Lib\ReachFramework.dll" />
+    <Reference Include="..\Lib\System.Design.dll" />
+    <Reference Include="..\Lib\System.Drawing.Common.dll" />
+    <Reference Include="..\Lib\System.Drawing.Design.dll" />
+    <Reference Include="..\Lib\System.Drawing.dll" />
+    <Reference Include="..\Lib\System.Printing.dll" />
+    <Reference Include="..\Lib\System.Private.DataContractSerialization.dll" />
+    <Reference Include="..\Lib\System.Private.Uri.dll" />
+    <Reference Include="..\Lib\System.Private.Xml.dll" />
+    <Reference Include="..\Lib\System.Private.Xml.Linq.dll" />
+    <Reference Include="..\Lib\System.Security.Cryptography.OpenSsl.dll" />
+    <Reference Include="..\Lib\System.Windows.Controls.Ribbon.dll" />
+    <Reference Include="..\Lib\System.Windows.Forms.Design.dll" />
+    <Reference Include="..\Lib\System.Windows.Forms.Design.Editors.dll" />
+    <Reference Include="..\Lib\System.Windows.Forms.dll" />
+    <Reference Include="..\Lib\System.Windows.Forms.Primitives.dll" />
+    <Reference Include="..\Lib\System.Windows.Input.Manipulations.dll" />
+    <Reference Include="..\Lib\System.Windows.Presentation.dll" />
+    <Reference Include="..\Lib\System.Xaml.dll" />
+    <Reference Include="..\Lib\UIAutomationClient.dll" />
+    <Reference Include="..\Lib\UIAutomationClientSideProviders.dll" />
+    <Reference Include="..\Lib\UIAutomationProvider.dll" />
+    <Reference Include="..\Lib\UIAutomationTypes.dll" />
+    <Reference Include="..\Lib\WindowsBase.dll" />
+    <Reference Include="..\Lib\WindowsFormsIntegration.dll" />
+  
+  </ItemGroup>
+
+</Project>

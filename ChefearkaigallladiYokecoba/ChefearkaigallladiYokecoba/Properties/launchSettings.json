@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "ChefearkaigallladiYokecoba": {
+      "commandName": "Project"
+    },
+    "newProfile1": {
+      "commandName": "Executable",
+      "executablePath": "f:\\Code\\lindexi\\ChefearkaigallladiYokecoba\\ChefearkaigallladiYokecoba\\bin\\Debug\\net6.0-windows\\win##x86\\ChefearkaigallladiYokecoba.exe"
+    }
+  }
+}

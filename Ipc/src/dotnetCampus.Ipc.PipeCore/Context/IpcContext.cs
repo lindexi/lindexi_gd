@@ -1,4 +1,6 @@
-﻿namespace dotnetCampus.Ipc.PipeCore.Context
+﻿using dotnetCampus.Ipc.PipeCore.IpcPipe;
+
+namespace dotnetCampus.Ipc.PipeCore.Context
 {
     /// <summary>
     /// 用于作为 Ipc 库的上下文，包括各个过程需要使用的工具和配置等
@@ -21,16 +23,29 @@
             IpcProvider = ipcProvider;
             PipeName = pipeName;
 
-            AckManager = new AckManager(this);
+            AckManager = new AckManager();
+            IpcRequestHandlerProvider = new IpcRequestHandlerProvider(this);
 
             IpcConfiguration = ipcConfiguration ?? new IpcConfiguration();
+
+            Logger = new IpcLogger(this);
         }
 
         internal AckManager AckManager { get; }
 
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"[{PipeName}]";
+        }
+
         internal IpcConfiguration IpcConfiguration { get; }
 
         internal IpcProvider IpcProvider { get; }
+
+        internal IpcRequestHandlerProvider IpcRequestHandlerProvider { get; }
+
+        internal IpcMessageResponseManager IpcMessageResponseManager { get; } = new IpcMessageResponseManager();
 
         /// <summary>
         /// 管道名，本地服务器名
@@ -39,7 +54,7 @@
 
         internal PeerRegisterProvider PeerRegisterProvider { get; } = new PeerRegisterProvider();
 
-        internal ILogger Logger { get; } = null!;
+        internal ILogger Logger { get; }
 
         /// <summary>
         /// 规定回应 ack 的值使用的 ack 是最大值

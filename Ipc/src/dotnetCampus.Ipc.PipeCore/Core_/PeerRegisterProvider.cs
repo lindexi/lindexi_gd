@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using dotnetCampus.Ipc.Abstractions.Context;
 using dotnetCampus.Ipc.PipeCore.Context;
 
 namespace dotnetCampus.Ipc.PipeCore

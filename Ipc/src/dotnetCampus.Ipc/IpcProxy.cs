@@ -3,17 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using dotnetCampus.Ipc.Abstractions;
 using dotnetCampus.Ipc.Context;
 using dotnetCampus.Ipc.Utils;
 
 namespace dotnetCampus.Ipc
 {
+
 #if !NETCOREAPP
-// todo 后续需要放在 .NET Core 程序集，因此这个库后续理论上是需要支持 .NET Framework 的
-    public abstract class DispatchProxy
-    {
-        protected abstract object Invoke(MethodInfo targetMethod, object[] args);
-    }
+    // todo 后续需要放在 .NET Core 程序集，因此这个库后续理论上是需要支持 .NET Framework 的
+        public abstract class DispatchProxy
+        {
+            protected abstract object Invoke(MethodInfo targetMethod, object[] args);
+        }
 #endif
 
     public class IpcProxy<T> : DispatchProxy
@@ -70,7 +72,8 @@ namespace dotnetCampus.Ipc
             //int n = await foo.FooAsync();
             //var re = IpcObjectSerializer.Serialize(ipcRequest);
 
-            return default!;
+            // 此方法还没完成，等待下一次实现，有技术实现问题
+            throw new NotImplementedException();
         }
 
         private Type GetAndCheckActualReturnType(Type returnType)
@@ -90,7 +93,7 @@ namespace dotnetCampus.Ipc
                 }
             }
 
-            throw new ArgumentException($"方法返回值只能是 Task 或 Task 泛形");
+            throw new ArgumentException($"方法返回值只能是 Task 或 Task 泛型");
         }
     }
 }

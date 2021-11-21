@@ -1,7 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-namespace dotnetCampus.Ipc.PipeCore.Context
+namespace dotnetCampus.Ipc.Abstractions
 {
     /// <summary>
     /// 用于表示发送消息

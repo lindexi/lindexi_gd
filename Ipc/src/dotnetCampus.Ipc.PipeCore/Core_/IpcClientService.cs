@@ -4,6 +4,7 @@ using System.IO.Pipes;
 using System.Runtime.CompilerServices;
 using System.Security.Principal;
 using System.Threading.Tasks;
+using dotnetCampus.Ipc.Abstractions;
 using dotnetCampus.Ipc.PipeCore.Context;
 using dotnetCampus.Ipc.PipeCore.Utils;
 using dotnetCampus.Ipc.PipeCore.Utils.Extensions;
@@ -11,11 +12,6 @@ using dotnetCampus.Threading;
 
 namespace dotnetCampus.Ipc.PipeCore
 {
-    internal interface IClientMessageWriter : IMessageWriter
-    {
-        Task WriteMessageAsync(in IpcBufferMessageContext ipcBufferMessageContext);
-    }
-
     /// <summary>
     /// 管道的客户端，用于发送消息
     /// </summary>
@@ -77,9 +73,14 @@ namespace dotnetCampus.Ipc.PipeCore
         /// <returns></returns>
         public async Task Start(bool shouldRegisterToPeer = true)
         {
-            var namedPipeClientStream = new NamedPipeClientStream(".", PeerName, PipeDirection.InOut,
+            var namedPipeClientStream = new NamedPipeClientStream(".", PeerName, PipeDirection.Out,
                 PipeOptions.None, TokenImpersonationLevel.Impersonation);
+#if NETCOREAPP
             await namedPipeClientStream.ConnectAsync();
+#else
+            // 在 NET45 没有 ConnectAsync 方法
+            await Task.Run(namedPipeClientStream.Connect);
+#endif
 
             NamedPipeClientStream = namedPipeClientStream;
 
@@ -107,14 +108,28 @@ namespace dotnetCampus.Ipc.PipeCore
             // 告诉服务器端不连接
         }
 
+        /// <summary>
+        /// 向服务端发送消息
+        /// </summary>
+        /// <remarks>
+        /// 框架层使用的
+        /// </remarks>
         internal async Task WriteMessageAsync(IpcBufferMessageContext ipcBufferMessageContext)
         {
-            await QueueWriteAsync(async ack =>
+            await DoubleBufferTask.AddTaskAsync(WriteMessageAsyncInner);
+
+            async Task WriteMessageAsyncInner()
             {
-                await IpcMessageConverter.WriteAsync(NamedPipeClientStream, IpcConfiguration.MessageHeader, ack,
-                    ipcBufferMessageContext, IpcContext.Logger);
+                await IpcMessageConverter.WriteAsync
+                (
+                    NamedPipeClientStream,
+                    IpcConfiguration.MessageHeader,
+                    AckManager.GetAck(),
+                    ipcBufferMessageContext,
+                    Logger
+                );
                 await NamedPipeClientStream.FlushAsync();
-            }, ipcBufferMessageContext.Summary);
+            }
         }
 
         /// <summary>
@@ -125,17 +140,21 @@ namespace dotnetCampus.Ipc.PipeCore
         /// <param name="count"></param>
         /// <param name="summary">这一次写入的是什么内容，用于调试</param>
         /// <returns></returns>
+        /// <remarks>
         /// 业务层使用的
+        /// </remarks>
         public async Task WriteMessageAsync(byte[] buffer, int offset, int count,
             [CallerMemberName] string summary = null!)
         {
-            await QueueWriteAsync(async ack =>
+            await DoubleBufferTask.AddTaskAsync(WriteMessageAsyncInner);
+
+            async Task WriteMessageAsyncInner()
             {
                 await IpcMessageConverter.WriteAsync
                 (
                     NamedPipeClientStream,
                     IpcConfiguration.MessageHeader,
-                    ack,
+                    AckManager.GetAck(),
                     // 表示这是业务层的消息
                     IpcMessageCommandType.Business,
                     buffer,
@@ -145,27 +164,38 @@ namespace dotnetCampus.Ipc.PipeCore
                     Logger
                 );
                 await NamedPipeClientStream.FlushAsync();
-            }, summary);
+            }
         }
 
+
+        /*
         private async Task QueueWriteAsync(Func<Ack, Task> task, string summary)
         {
-            await DoubleBufferTask.AddTaskAsync(async () =>
+            async Task CreateDoubleBufferTaskFunc(Ack ack)
             {
-                await AckManager.DoWillReceivedAck(task, PeerName, TimeSpan.FromSeconds(3), maxRetryCount: 10, summary,
-                    IpcContext.Logger);
-            });
+                await DoubleBufferTask.AddTaskAsync(async () => { await task(ack); });
+            }
+
+            await AckManager.DoWillReceivedAck(CreateDoubleBufferTaskFunc, PeerName, TimeSpan.FromSeconds(3), maxRetryCount: 10, summary,
+                IpcContext.Logger);
         }
+        */
+
 
         private DoubleBufferTask<Func<Task>> DoubleBufferTask { get; }
 
+        /*
         /// <summary>
         /// 向服务器端发送收到某条消息，或用于回复某条消息已收到
         /// </summary>
         /// <param name="receivedAck"></param>
         /// <returns></returns>
+        /// 不需要回复，因为如果消息能发送过去到对方，就是对方收到消息了
+        [Obsolete(DebugContext.DoNotUseAck)]
         public async Task SendAckAsync(Ack receivedAck)
         {
+            Logger.Debug($"[{nameof(IpcClientService)}][{nameof(SendAckAsync)}] {receivedAck} Start AddTaskAsync");
+
             var ackMessage = AckManager.BuildAckMessage(receivedAck);
 
             // 这里不能调用 WriteMessageAsync 方法，因为这些方法都使用了 QueueWriteAsync 方法，在这里面将会不断尝试发送信息，需要收到对方的 ack 才能完成。而作为回复 ack 消息的逻辑，如果还需要等待对方回复 ack 那么将会存在相互等待。本地回复对方的 ack 消息需要等待对方的 ack 消息，而对方的 ack 消息又需要等待本地的回复
@@ -187,13 +217,22 @@ namespace dotnetCampus.Ipc.PipeCore
                 await NamedPipeClientStream.FlushAsync();
             });
         }
+        */
 
         /// <inheritdoc />
         public void Dispose()
         {
+            if (IsDisposed)
+            {
+                return;
+            }
+
+            IsDisposed = true;
             NamedPipeClientStream.Dispose();
             DoubleBufferTask.Finish();
         }
+
+        private bool IsDisposed { set; get; }
 
         Task IClientMessageWriter.WriteMessageAsync(in IpcBufferMessageContext ipcBufferMessageContext) =>
             WriteMessageAsync(ipcBufferMessageContext);

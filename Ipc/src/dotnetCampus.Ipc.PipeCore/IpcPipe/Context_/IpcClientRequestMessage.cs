@@ -1,7 +1,8 @@
 ﻿using System.Threading.Tasks;
+using dotnetCampus.Ipc.Abstractions.Context;
 using dotnetCampus.Ipc.PipeCore.Context;
 
-namespace dotnetCampus.Ipc.PipeCore
+namespace dotnetCampus.Ipc.PipeCore.IpcPipe
 {
     class IpcClientRequestMessage
     {

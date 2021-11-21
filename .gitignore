@@ -355,3 +355,4 @@ healthchecksdb
 *.apk
 *.unitypackage
 /unity/SteamDemo
+/WpfRepacker/dotnetCampus.WPF/Lib

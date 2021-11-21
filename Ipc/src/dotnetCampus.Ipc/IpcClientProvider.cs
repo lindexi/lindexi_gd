@@ -13,19 +13,19 @@ namespace dotnetCampus.Ipc
         public IpcSerializableType ObjectType { set; get; }
     }
 
-    //public class IpcRequestManager
-    //{
-    //    public IPeerProxy PeerProxy { set; get; } = null!;
+    public class IpcRequestManager
+    {
+        public IPeerProxy PeerProxy { set; get; } = null!;
 
-    //    public IIpcObjectSerializer IpcObjectSerializer { set; get; } = new IpcObjectJsonSerializer();
+        public IIpcObjectSerializer IpcObjectSerializer { set; get; } = new IpcObjectJsonSerializer();
 
-    //    public Task<TResponse> GetResponseAsync<TRequest, TResponse>(TRequest request)
-    //    {
+        public Task<TResponse> GetResponseAsync<TRequest, TResponse>(TRequest request)
+        {
+            throw new NotImplementedException();
+        }
+    }
 
-    //    }
-    //}
 
-  
 
     /// <summary>
     /// 提供客户端使用的方法，可以拿到服务器端的对象
@@ -35,26 +35,26 @@ namespace dotnetCampus.Ipc
     /// 使用这个标识拿到对应的对象
     public class IpcClientProvider
     {
-        ///// <summary>
-        ///// 从远程获取到对象
-        ///// </summary>
-        ///// <typeparam name="T"></typeparam>
-        ///// <returns></returns>
-        //public Task<T> GetObjectAsync<T>()
-        //{
-        //    var type = typeof(T);
-        //    var ipcSerializableType = new IpcSerializableType(type);
-        //    var ipcGetObjectRequest = new IpcGetObjectRequest()
-        //    {
-        //        ObjectType = ipcSerializableType
-        //    };
+        /// <summary>
+        /// 从远程获取到对象
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public Task<T> GetObjectAsync<T>()
+        {
+            var type = typeof(T);
+            var ipcSerializableType = new IpcSerializableType(type);
+            var ipcGetObjectRequest = new IpcGetObjectRequest()
+            {
+                ObjectType = ipcSerializableType
+            };
+
+            throw new NotImplementedException();
+        }
+
+        public IpcRequestManager IpcRequestManager { set; get; } = new IpcRequestManager();
 
 
-        //}
-
-        //public IpcRequestManager IpcRequestManager { set; get; } = new IpcRequestManager();
-
-       
 
         public IPeerProxy PeerProxy { set; get; } = null!;
 

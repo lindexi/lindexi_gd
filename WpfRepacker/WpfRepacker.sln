@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31702.278
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfRepacker", "WpfRepacker\WpfRepacker.csproj", "{B039C055-0210-4CC6-B017-0721DA00D61D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B039C055-0210-4CC6-B017-0721DA00D61D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B039C055-0210-4CC6-B017-0721DA00D61D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B039C055-0210-4CC6-B017-0721DA00D61D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B039C055-0210-4CC6-B017-0721DA00D61D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {94AB4D64-963C-469B-B46B-56575F5CA3C4}
+	EndGlobalSection
+EndGlobal

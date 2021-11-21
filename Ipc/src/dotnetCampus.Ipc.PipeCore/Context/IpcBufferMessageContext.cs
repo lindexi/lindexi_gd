@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using dotnetCampus.Ipc.Abstractions.Context;
 
 namespace dotnetCampus.Ipc.PipeCore.Context
 {

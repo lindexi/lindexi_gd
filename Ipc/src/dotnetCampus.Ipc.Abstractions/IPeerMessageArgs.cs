@@ -2,6 +2,9 @@
 
 namespace dotnetCampus.Ipc.Abstractions
 {
+    /// <summary>
+    /// 收到的对方的信息事件参数
+    /// </summary>
     public interface IPeerMessageArgs
     {
         /// <summary>
