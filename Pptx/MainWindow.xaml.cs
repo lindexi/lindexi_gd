@@ -9,11 +9,21 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
+
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Presentation;
+
 using dotnetCampus.OpenXmlUnitConverter;
+<<<<<<< HEAD
+=======
+
+using GeneratedCode;
+
+using OpenMcdf;
+
+>>>>>>> cd98a7a6b29e9297864aad9d7326a635b6b68e5b
 using ColorMap = DocumentFormat.OpenXml.Presentation.ColorMap;
 using GraphicFrame = DocumentFormat.OpenXml.Presentation.GraphicFrame;
 using Path = DocumentFormat.OpenXml.Drawing.Path;
@@ -39,6 +49,7 @@ namespace Pptx
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+<<<<<<< HEAD
             OpenPptxFile(new FileInfo("Test.pptx"));
         }
 
@@ -175,6 +186,20 @@ namespace Pptx
             }
             pathGeometry.Figures = pathFigureCollection;
             return pathGeometry;
+=======
+            foreach (var textAlignmentTypeValue in Enum.GetValues<TextAlignmentTypeValues>())
+            {
+                var generatedClass = new GeneratedClass()
+                {
+                    TextAlignment = textAlignmentTypeValue
+                };
+
+                var file = $"{textAlignmentTypeValue}.pptx";
+                generatedClass.CreatePackage(file);
+
+                Process.Start("explorer.exe", file);
+            }
+>>>>>>> cd98a7a6b29e9297864aad9d7326a635b6b68e5b
         }
 
         private PathGeometry BuildShapePathGeometry(ShapePath[] shapePathList)
