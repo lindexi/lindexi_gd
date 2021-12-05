@@ -1,0 +1,73 @@
+﻿<Window x:Class="CowhahiloRallkemnuke.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CowhahiloRallkemnuke"
+        mc:Ignorable="d"
+        x:Name="Root"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid Background="Gray">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Margin="10,100,10,100">
+            <Viewbox Stretch="Uniform">
+                <Grid Width="100" Height="100">
+                    <Ellipse Fill="White">
+                        <Ellipse.Clip>
+                            <RectangleGeometry Rect="0,0,50,100"></RectangleGeometry>
+                        </Ellipse.Clip>
+                    </Ellipse>
+                    <Ellipse Fill="Black">
+                        <Ellipse.Clip>
+                            <RectangleGeometry Rect="50,0,100,100"></RectangleGeometry>
+                        </Ellipse.Clip>
+                    </Ellipse>
+                    <Ellipse Width="50" Height="50" VerticalAlignment="Top"
+                             Fill="White">
+                        <Ellipse.Clip>
+                            <RectangleGeometry Rect="0,0,50,100"></RectangleGeometry>
+                        </Ellipse.Clip>
+                    </Ellipse>
+                    <Ellipse Width="10" Height="10" Margin="20" VerticalAlignment="Top"
+                             Fill="Black">
+                        <Ellipse.Clip>
+                            <RectangleGeometry Rect="0,0,50,100"></RectangleGeometry>
+                        </Ellipse.Clip>
+                    </Ellipse>
+                    <Ellipse Width="50" Height="50" VerticalAlignment="Bottom"
+                             Fill="Black">
+                        <Ellipse.Clip>
+                            <RectangleGeometry Rect="0,0,50,100"></RectangleGeometry>
+                        </Ellipse.Clip>
+                    </Ellipse>
+                    <Ellipse Width="10" Height="10" Margin="20" VerticalAlignment="Bottom"
+                             Fill="White">
+                        <Ellipse.Clip>
+                            <RectangleGeometry Rect="0,0,50,100"></RectangleGeometry>
+                        </Ellipse.Clip>
+                    </Ellipse>
+
+                    <Grid.RenderTransform>
+                        <RotateTransform x:Name="GridRotateTransform" CenterX="50" CenterY="50"></RotateTransform>
+                    </Grid.RenderTransform>
+                </Grid>
+            </Viewbox>
+        </Border>
+        <StackPanel Grid.Row="1" Orientation="Horizontal">
+            <Button x:Name="StartButton" Margin="10,10,10,10" Content="开始旋转" 
+                    Click="StartButton_Click"/>
+            <RepeatButton x:Name="SpeedUpButton" Margin="10,10,10,10" Content="加速旋转" 
+                    Click="SpeedUpButton_Click"/>
+            <RepeatButton x:Name="SpeedDownButton" Margin="10,10,10,10" Content="减速旋转" 
+                    Click="SpeedDownButton_Click"/>
+        </StackPanel>
+        <TextBlock Grid.Row="0" Margin="10">
+            <Run Text="速度："></Run>
+            <Run Text="{Binding ElementName=Root,Path=Speed}"></Run>
+        </TextBlock>
+    </Grid>
+</Window>
