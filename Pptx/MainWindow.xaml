@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Pptx"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-  <Grid>
-    <DataGrid x:Name="DataGrid" ItemsSource="{Binding}"></DataGrid>
+  <Grid x:Name="Root">
+      <DataGrid x:Name="DataGrid" ItemsSource="{Binding}" Visibility="Collapsed"></DataGrid>
   </Grid>
 </Window>
