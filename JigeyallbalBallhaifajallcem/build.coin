@@ -1,0 +1,39 @@
+> 配置文件
+> 版本 1.0
+BuildConfigurationDirectory
+d:\程序\ethylene156\lindexi_gd\JigeyallbalBallhaifajallcem\Build
+>
+BuildLogFile
+d:\程序\ethylene156\lindexi_gd\JigeyallbalBallhaifajallcem\BuildLogs\211213075824.txt
+>
+CodeDirectory
+d:\程序\ethylene156\lindexi_gd
+>
+CurrentCommit
+544f8fda7ff935b4aab6f43aadc59d942a454699
+>
+GitCount
+1953
+>
+InstallerCompilingDirectory
+d:\程序\ethylene156\lindexi_gd\JigeyallbalBallhaifajallcem\Build\working\compiling
+>
+InstallerPackingDirectory
+d:\程序\ethylene156\lindexi_gd\JigeyallbalBallhaifajallcem\Build\working\packing
+>
+InstallerWorkingDirectory
+d:\程序\ethylene156\lindexi_gd\JigeyallbalBallhaifajallcem\Build\working
+>
+NugetPath
+C:\Users\linde\.dotnet\tools\.store\dotnetcampus.gitrevisiontask\3.0.6\dotnetcampus.gitrevisiontask\3.0.6\tools\netcoreapp3.1\any\tools\nuget.exe
+>
+ObfuscationConfigurationSaprojDirectory
+d:\程序\ethylene156\lindexi_gd\JigeyallbalBallhaifajallcem\Build\obfuscation
+>
+SetupConfigurationDirectory
+d:\程序\ethylene156\lindexi_gd\JigeyallbalBallhaifajallcem\Build\Setup
+>
+Vs2019EnterpriseMsBuild
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe
+>
+> 配置文件结束

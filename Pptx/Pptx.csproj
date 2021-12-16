@@ -13,8 +13,14 @@
   </ItemGroup>
 
   <ItemGroup>
+<<<<<<< HEAD
     <PackageReference Include="dotnetCampus.OpenXmlUnitConverter" Version="1.7.1" />
     <PackageReference Include="DocumentFormat.OpenXml" Version="2.14.0" />
+=======
+    <PackageReference Include="dotnetCampus.OpenXmlUnitConverter" Version="1.10.0" />
+    <PackageReference Include="DocumentFormat.OpenXml" Version="2.14.0" />
+    <PackageReference Include="OpenMcdf" Version="2.2.1.9" />
+>>>>>>> 71af5b0e47493ff7f5f43be33583265805da9d84
   </ItemGroup>
 
 </Project>
