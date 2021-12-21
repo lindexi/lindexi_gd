@@ -14,6 +14,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
@@ -117,6 +118,9 @@ namespace NaferfairqeLidajekawnal
             hr = m_privateTexture.GetSurfaceLevel(0, out m_privateSurface);
 
             var backBuffer = Marshal.GetIUnknownForObject(m_privateSurface);
+
+            var surface = new D3D9.Surface(backBuffer);
+            var queryInterface = surface.QueryInterface<D3D9.Surface>();
             //// 只是减少引用计数而已
             //Marshal.Release(backBuffer);
 
@@ -154,6 +158,12 @@ namespace NaferfairqeLidajekawnal
             D3DImage.Unlock();
 
             Render();
+
+            string s = "123";
+            var stringBuilder = new StringBuilder(s);
+            stringBuilder.Replace("%", "%25").Replace("#", "%23");
+            stringBuilder.Insert(0, "123");
+            stringBuilder.Insert("123".Length, "#");
         }
 
         private async void Render()
@@ -255,6 +265,23 @@ namespace NaferfairqeLidajekawnal
                 default:
                     return D3D9.Format.Unknown;
             }
+        }
+
+        private static PixelFormat TranslateFormatToPixelFormat(D3D9.Format format, bool preMultiplied = true)
+        {
+            return format switch
+            {
+                D3D9.Format.R8G8B8 => PixelFormats.Bgr24,
+                D3D9.Format.A8R8G8B8 => preMultiplied ? PixelFormats.Pbgra32 : PixelFormats.Bgra32,
+                D3D9.Format.X8R8G8B8 => PixelFormats.Bgr32,
+                //D3D9.Format.R5G6B5 => PixelFormats.Bgr16bpp565,
+                //D3D9.Format.X1R5G5B5 => PixelFormats.BGR16bpp555,
+                D3D9.Format.P8 => PixelFormats.Indexed8,
+                D3D9.Format.L8 => PixelFormats.Gray8,
+                D3D9.Format.A2R10G10B10 => PixelFormats.Bgr101010,
+                D3D9.Format.A32B32G32R32F => preMultiplied ? PixelFormats.Prgba128Float : PixelFormats.Rgb128Float,
+                _ => throw new NotSupportedException(),
+            };
         }
 
         private Texture2D CreateRenderTarget()
