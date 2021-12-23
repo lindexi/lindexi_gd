@@ -1,6 +1,7 @@
 ﻿#nullable disable
 
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
@@ -69,6 +70,9 @@ namespace RawluharkewalQeaninanel
                 (D3D11.ID3D11DeviceContext**) &pD3D11DeviceContext
             );
             SilkMarshal.ThrowHResult(hr);
+
+            Debugger.Launch();
+            Debugger.Break();
 
             _pD3D11Device = pD3D11Device;
             _pD3D11DeviceContext = pD3D11DeviceContext;
