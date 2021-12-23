@@ -1,6 +1,7 @@
 ﻿#nullable disable
 
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
@@ -41,7 +42,7 @@ namespace RawluharkewalQeaninanel
             var texture2DDesc = new D3D11.Texture2DDesc()
             {
                 BindFlags = (uint) (D3D11.BindFlag.BindRenderTarget | D3D11.BindFlag.BindShaderResource),
-                Format = DXGI.Format.FormatB8G8R8A8Unorm,
+                Format = DXGI.Format.FormatB8G8R8A8Unorm, // 最好使用此格式，否则还需要后续转换
                 Width = (uint) width,
                 Height = (uint) height,
                 MipLevels = 1,
@@ -64,11 +65,14 @@ namespace RawluharkewalQeaninanel
                 (D3DFeatureLevel*) IntPtr.Zero,
                 FeatureLevels: 0, // D3DFeatureLevel 的长度
                 SDKVersion: 7,
-                (D3D11.ID3D11Device**) &pD3D11Device,
+                (D3D11.ID3D11Device**) &pD3D11Device, // 参阅 [C# 从零开始写 SharpDx 应用 聊聊功能等级](https://blog.lindexi.com/post/C-%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E5%86%99-SharpDx-%E5%BA%94%E7%94%A8-%E8%81%8A%E8%81%8A%E5%8A%9F%E8%83%BD%E7%AD%89%E7%BA%A7.html )
                 ref pD3DFeatureLevel,
                 (D3D11.ID3D11DeviceContext**) &pD3D11DeviceContext
             );
             SilkMarshal.ThrowHResult(hr);
+
+            Debugger.Launch();
+            Debugger.Break();
 
             _pD3D11Device = pD3D11Device;
             _pD3D11DeviceContext = pD3D11DeviceContext;
@@ -81,7 +85,7 @@ namespace RawluharkewalQeaninanel
             _pD3D11Texture2D = pD3D11Texture2D;
 
             DXGI.IDXGISurface* pDXGISurface;
-            var dxgiSurfaceGuid = new Guid("cafcb56c-6ac3-4889-bf47-9e23bbd260ec");
+            var dxgiSurfaceGuid = DXGI.IDXGISurface.Guid;
             renderTarget->QueryInterface(ref dxgiSurfaceGuid, (void**) &pDXGISurface);
             _pDXGISurface = pDXGISurface;
 
@@ -143,9 +147,8 @@ namespace RawluharkewalQeaninanel
 
         private void SetRenderTarget(D3D11.ID3D11Texture2D* target)
         {
-            // D3D9.Format.A8R8G8B8
             DXGI.IDXGIResource* pDXGIResource;
-            var dxgiResourceGuid = new Guid("035f3ab4-482e-4e50-b41f-8a7f8bd8960b");
+            var dxgiResourceGuid = DXGI.IDXGIResource.Guid;
             target->QueryInterface(ref dxgiResourceGuid, (void**) &pDXGIResource);
 
             D3D11.Texture2DDesc texture2DDescription = default;
@@ -167,21 +170,30 @@ namespace RawluharkewalQeaninanel
                 Windowed = 1,// true
                 SwapEffect = D3D9.Swapeffect.SwapeffectDiscard,
                 HDeviceWindow = GetDesktopWindow(),
-                PresentationInterval = 0,// PresentInterval.Default
+                PresentationInterval = D3D9.D3D9.PresentIntervalDefault,
             };
 
+            // 设置使用多线程方式，这样的性能才足够
             uint createFlags = D3D9.D3D9.CreateHardwareVertexprocessing | D3D9.D3D9.CreateMultithreaded | D3D9.D3D9.CreateFpuPreserve;
 
             D3D9.IDirect3DDevice9Ex* pDirect3DDevice9Ex;
-            hr = d3DContext->CreateDeviceEx(Adapter: 0, D3D9.Devtype.DevtypeHal, IntPtr.Zero, createFlags,
-                ref presentParameters, (D3D9.Displaymodeex*) IntPtr.Zero, &pDirect3DDevice9Ex);
+            hr = d3DContext->CreateDeviceEx(Adapter: 0, 
+                DeviceType: D3D9.Devtype.DevtypeHal,// 使用硬件渲染
+                hFocusWindow: IntPtr.Zero, 
+                createFlags,
+                ref presentParameters, 
+                pFullscreenDisplayMode: (D3D9.Displaymodeex*) IntPtr.Zero, 
+                &pDirect3DDevice9Ex);
             SilkMarshal.ThrowHResult(hr);
 
             var d3DDevice = pDirect3DDevice9Ex;
 
             D3D9.IDirect3DTexture9* pDirect3DTexture9;
             hr = d3DDevice->CreateTexture(texture2DDescription.Width, texture2DDescription.Height, Levels: 1,
-                D3D9.D3D9.UsageRendertarget, D3D9.Format.FmtA8R8G8B8, D3D9.Pool.PoolDefault, &pDirect3DTexture9,
+                D3D9.D3D9.UsageRendertarget, 
+                D3D9.Format.FmtA8R8G8B8, // 这是必须要求的颜色，不能使用其他颜色
+                D3D9.Pool.PoolDefault, 
+                &pDirect3DTexture9,
                 &sharedHandle);
             SilkMarshal.ThrowHResult(hr);
             _renderTarget = pDirect3DTexture9;
@@ -195,6 +207,7 @@ namespace RawluharkewalQeaninanel
             D3DImage.Unlock();
         }
 
+        // 这些字段的另一个作用是防止回收
         private D2D.RenderTarget _d2DRenderTarget;
 
         private D3D11.ID3D11Device* _pD3D11Device;
