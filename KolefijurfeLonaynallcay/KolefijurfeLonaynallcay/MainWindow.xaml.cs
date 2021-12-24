@@ -24,20 +24,42 @@ namespace KolefijurfeLonaynallcay
         {
             InitializeComponent();
 
-            var path = new Path()
-            {
-                Data = Geometry.Parse("M 48.000,0.000 A48.000,48.000,0,0,1,96.000,48.000 L 48.000,48.000 z"),
-                Stroke = Brushes.Black,
-                StrokeThickness = 5,
-                StrokeDashArray = new DoubleCollection(new[] { 0, 0.0d })
-            };
+            Foo = new Foo();
+            Grid.Children.Add(Foo);
 
-            StackPanel.Children.Add(path);
+            MouseMove += MainWindow_MouseMove;
         }
 
-        private void Line_OnMouseDown(object sender, MouseButtonEventArgs e)
-        {
+        private Foo Foo { get; }
 
+        private void MainWindow_MouseMove(object sender, MouseEventArgs e)
+        {
+            Foo.InvalidateVisual();
+        }
+    }
+
+    class Foo : FrameworkElement
+    {
+        public Foo()
+        {
+            Width = 500;
+            Height = 100;
+        }
+
+        protected override void OnRender(DrawingContext drawingContext)
+        {
+            var pen = new Pen()
+            {
+                Brush = Brushes.Black,
+                DashStyle = new DashStyle(new double[] { 0, 0 }, 0),
+                Thickness = 10,
+            };
+
+            var geometry = new LineGeometry(new Point(0, 0), new Point(500, 0));
+
+            drawingContext.DrawGeometry(Brushes.Beige, pen, geometry);
+
+            base.OnRender(drawingContext);
         }
     }
 }

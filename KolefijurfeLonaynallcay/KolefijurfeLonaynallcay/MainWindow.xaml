@@ -6,24 +6,7 @@
         xmlns:local="clr-namespace:KolefijurfeLonaynallcay"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        <Grid MouseDown="Line_OnMouseDown">
-            <StackPanel x:Name="StackPanel" HorizontalAlignment="Center" 
-                        VerticalAlignment="Center">
-                <!--<Path Data="M 48.000,0.000 A48.000,48.000,0,0,1,96.000,48.000 L 48.000,48.000 z" 
-                      Stroke="Black" StrokeThickness="2"
-                      StrokeDashArray="0 0"
-                      ></Path>
-                <Path Data="M 48.000,0.000 A48.000,48.000,0,0,1,96.000,48.000 L 48.000,48.000 z" 
-                      Stroke="Black" StrokeThickness="2"
-                      StrokeDashArray="0 0"
-                ></Path>
-                <Path Data="M 48.000,0.000 A48.000,48.000,0,0,1,96.000,48.000 L 48.000,48.000 z" 
-                      Stroke="Black" StrokeThickness="2"
-                      StrokeDashArray="0 0"
-                ></Path>-->
-            </StackPanel>
-
-        </Grid>
+    <Grid x:Name="Grid">
+        
     </Grid>
 </Window>
