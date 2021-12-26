@@ -1,0 +1,6 @@
+2021/12/13 07:58:24.765363 [Information][] 0 寻找 nuget 文件完成
+2021/12/13 07:58:24.771418 [Information][] 0 寻找 msbuild 文件完成
+2021/12/13 07:58:24.772245 [Information][] 0 查找代码文件夹，通过定位 .git 文件夹方式
+2021/12/13 07:58:24.772797 [Information][] 0 从 d:\程序\ethylene156\lindexi_gd\JigeyallbalBallhaifajallcem 向上寻找
+2021/12/13 07:58:24.773780 [Information][] 0 找到代码文件夹 d:\程序\ethylene156\lindexi_gd
+2021/12/13 07:58:24.774687 [Information][] 0 没有在配置文件找到 CodeConfiguration.SlnFile 配置项，将进行自动查找

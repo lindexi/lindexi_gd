@@ -1,0 +1,50 @@
+﻿<Window x:Class="NawhejefurWheekaijerehu.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NawhejefurWheekaijerehu"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800" >
+    <Window.Resources>
+        <local:MirrorPopupContentPasswordMaxWidthConverter x:Key="MirrorPopupContentPasswordMaxWidthConverter"/>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid Margin="10,10,10,10" HorizontalAlignment="Center">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Margin="10" Text="名称:"></TextBlock>
+            <TextBox x:Name="NameTextBox" MinWidth="200" Grid.Row="0" Grid.Column="1" Margin="10"></TextBox>
+            <TextBlock Grid.Row="1" Grid.Column="0" Margin="10" Text="密码:"/>
+            <TextBox x:Name="KeyTextBox" Grid.Row="1" Grid.Column="1" Margin="10"/>
+        </Grid>
+        <StackPanel x:Name="OuterStackPanel" Grid.Row="1" Margin="100,10,100,10" MaxWidth="300" HorizontalAlignment="Center" Orientation="Horizontal">
+            <TextBlock x:Name="SSIDTextBlock" d:Text="热点：" Text="热点：" FontSize="14" />
+            <TextBlock x:Name="SSIDContentTextBlock" d:Text="SSID" Text="{Binding ElementName=NameTextBox,Path=Text}" FontSize="14" MaxWidth="150" TextTrimming="CharacterEllipsis" />
+            <TextBlock x:Name="SpaceTextBlock" Text="   " FontSize="14" />
+            <TextBlock x:Name="PasswordTextBlock" d:Text="密码：" Text="密码：" FontSize="14" />
+            <TextBlock x:Name="PasswordContentTextBlock" Grid.Column="4"  d:Text="Password" Text="{Binding ElementName=KeyTextBox,Path=Text}" FontSize="14" TextTrimming="CharacterEllipsis">
+                <TextBlock.MaxWidth>
+                    <MultiBinding Converter="{StaticResource MirrorPopupContentPasswordMaxWidthConverter}">
+                        <Binding ElementName="OuterStackPanel" Path="MaxWidth"/>
+                        <Binding ElementName="SSIDTextBlock" Path="ActualWidth"/>
+                        <Binding ElementName="SSIDContentTextBlock" Path="ActualWidth"/>
+                        <Binding ElementName="SpaceTextBlock" Path="ActualWidth"/>
+                        <Binding ElementName="PasswordTextBlock" Path="ActualWidth"/>
+                    </MultiBinding>
+                </TextBlock.MaxWidth>
+            </TextBlock>
+
+        </StackPanel>
+    </Grid>
+</Window>

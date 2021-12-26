@@ -1,0 +1,33 @@
+> 配置文件
+> 版本 1.0
+BuildConfigurationDirectory
+d:\程序\ethylene156\lindexi_gd\QayrearwhalaWarberehalaica\Build
+>
+BuildLogFile
+d:\程序\ethylene156\lindexi_gd\QayrearwhalaWarberehalaica\BuildLogs\211213084154.txt
+>
+CodeDirectory
+d:\程序\ethylene156\lindexi_gd
+>
+InstallerCompilingDirectory
+d:\程序\ethylene156\lindexi_gd\QayrearwhalaWarberehalaica\Build\working\compiling
+>
+InstallerPackingDirectory
+d:\程序\ethylene156\lindexi_gd\QayrearwhalaWarberehalaica\Build\working\packing
+>
+InstallerWorkingDirectory
+d:\程序\ethylene156\lindexi_gd\QayrearwhalaWarberehalaica\Build\working
+>
+NugetPath
+D:\程序\公司\dotnet 职业技术学院\dotnetcampus.DotNETBuildSDK\GitRevisionTask\bin\Debug\netcoreapp3.1\tools\nuget.exe
+>
+ObfuscationConfigurationSaprojDirectory
+d:\程序\ethylene156\lindexi_gd\QayrearwhalaWarberehalaica\Build\obfuscation
+>
+SetupConfigurationDirectory
+d:\程序\ethylene156\lindexi_gd\QayrearwhalaWarberehalaica\Build\Setup
+>
+Vs2019EnterpriseMsBuild
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe
+>
+> 配置文件结束
