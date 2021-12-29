@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -24,16 +25,13 @@ namespace LuwhiyailejawharKeafernereje
         {
             InitializeComponent();
 
-            TaskHelper.WaitAsync(() =>
-            {
-                return Task.Run(() =>
-                {
-                    Dispatcher.Invoke(() =>
-                    {
+            SynchronizationContext.SetSynchronizationContext(null);
+            Fx().Wait();
+        }
 
-                    });
-                });
-            });
+        private async Task Fx()
+        {
+            await Task.Delay(100);
         }
     }
 
