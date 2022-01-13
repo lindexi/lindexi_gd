@@ -90,7 +90,7 @@ namespace YefajiharwearhaBurharberecall
 
             DisableWPFTabletSupport();
 
-            RegisterTouchWindow(hWnd, TWF_WANTPALM);
+            RegisterTouchWindow(hWnd, 0x00000001 | TWF_WANTPALM);
 
             _wndproc = WndProcStub;
             _wndprocPtr = Marshal.GetFunctionPointerForDelegate(_wndproc);
@@ -141,6 +141,7 @@ namespace YefajiharwearhaBurharberecall
         private static MouseProc _proc = HookCallback;
         private static IntPtr _hookID = IntPtr.Zero;
         private const int WH_MOUSE_LL = 14;
+        private const int WH_GETMESSAGE = 3;
 
         private enum MouseMessages
         {
@@ -187,7 +188,7 @@ namespace YefajiharwearhaBurharberecall
             using (Process currentProcess = Process.GetCurrentProcess())
             using (ProcessModule module = currentProcess.MainModule!)
             {
-                return SetWindowsHookEx(WH_MOUSE_LL, proc,
+                return SetWindowsHookEx(WH_GETMESSAGE, proc,
                     GetModuleHandle(module.ModuleName!), 0);
             }
         }
