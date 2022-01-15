@@ -52,6 +52,7 @@ namespace Pptx
         {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             OpenPptxFile(new FileInfo("Test.pptx"));
         }
 
@@ -204,6 +205,8 @@ namespace Pptx
             //    Process.Start("explorer.exe", file);
             //}
 
+=======
+>>>>>>> 24230fc0bb8202c567ccf9ffffb49eebc08be120
             var file = new FileInfo("Test.pptx");
 
             using var presentationDocument = PresentationDocument.Open(file.FullName, false);
@@ -211,32 +214,37 @@ namespace Pptx
 
             var shape = slide.CommonSlideData!.ShapeTree!.GetFirstChild<Shape>()!;
             /*
-                  <p:sp>
-                    <p:spPr>
-                      <a:prstGeom prst="rect">
-                      </a:prstGeom>
-                      <a:noFill />
-                    </p:spPr>
-                    <p:txBody>
-                      <a:bodyPr wrap="square" rtlCol="0">
-                        <a:spAutoFit />
-                      </a:bodyPr>
-                      <a:lstStyle />
-                      <a:p>
-                        <a:r>
-                          <a:rPr lang="zh-CN" altLang="en-US" sz="10000">
-                            <a:ln w="9525">
-                              <a:solidFill>
-                                <a:srgbClr val="00FF00" />
-                              </a:solidFill>
-                            </a:ln>
-                          </a:rPr>
-                          <a:t>一行文本</a:t>
-                        </a:r>
-                        <a:endParaRPr lang="en-US" sz="10000" dirty="0" />
-                      </a:p>
-                    </p:txBody>
-                  </p:sp>
+                <p:sp>
+                  <p:nvSpPr>
+                    <p:cNvPr id="4" name="文本框 3" />
+                    <p:cNvSpPr txBox="1" />
+                    <p:nvPr />
+                  </p:nvSpPr>
+                  <p:spPr>
+                    <a:xfrm>
+                      <a:off x="4168346" y="914401" />
+                      <a:ext cx="6096000" cy="3170090" />
+                    </a:xfrm>
+                    <a:prstGeom prst="rect">
+                      <a:avLst />
+                    </a:prstGeom>
+                    <a:noFill />
+                  </p:spPr>
+                  <p:txBody>
+                    <a:bodyPr wrap="square" rtlCol="0">
+                      <a:normAutofit fontScale="60000"/>
+                    </a:bodyPr>
+                    <a:lstStyle />
+                    <a:p>
+                      <a:r>
+                        <a:rPr lang="zh-CN" altLang="en-US" sz="10000">
+                        </a:rPr>
+                        <a:t>一行文本</a:t>
+                      </a:r>
+                      <a:endParaRPr lang="en-US" sz="10000" dirty="0" />
+                    </a:p>
+                  </p:txBody>
+                </p:sp>
              */
             var shapeProperties = shape.ShapeProperties!;
             var presetGeometry = shapeProperties.GetFirstChild<PresetGeometry>()!;
@@ -246,6 +254,13 @@ namespace Pptx
 
             var textBody = shape.TextBody!;
             Debug.Assert(textBody != null);
+            var textBodyProperties = textBody.BodyProperties!;
+            Debug.Assert(textBodyProperties != null);
+            var normalAutoFit = textBodyProperties.GetFirstChild<NormalAutoFit>()!;
+            Debug.Assert(normalAutoFit != null);
+            Percentage fontScale = normalAutoFit.FontScale is null
+                ? Percentage.FromDouble(1)
+                : new Percentage(normalAutoFit.FontScale);
 
             foreach (var paragraph in textBody.Elements<DocumentFormat.OpenXml.Drawing.Paragraph>())
 >>>>>>> 71af5b0e47493ff7f5f43be33583265805da9d84
@@ -262,57 +277,19 @@ namespace Pptx
                     var runProperties = run.RunProperties!;
                     var fontSize = new PoundHundredfold(runProperties.FontSize!.Value).ToPound();
 
-                    var outline = runProperties.Outline!;
-                    /*
-                       <a:ln w="9525">
-                         <a:solidFill>
-                           <a:srgbClr val="00FF00" />
-                         </a:solidFill>
-                       </a:ln>
-                     */
-                    // 描边粗细
-                    var outlineWidth = new Emu(outline.Width!.Value);
-                    var solidFill = outline.GetFirstChild<SolidFill>()!;
-                    var rgbColorModelHex = solidFill.GetFirstChild<RgbColorModelHex>()!;
-                    // 描边颜色
-                    var colorText = rgbColorModelHex.Val!;
-
                     // 默认字体前景色是黑色
-
-                    // 文本
                     var text = run.Text!.Text;
 
-                    // 在 WPF 里面绘制文本描边
-                    // 请看 [WPF 文字描边](https://blog.lindexi.com/post/WPF-%E6%96%87%E5%AD%97%E6%8F%8F%E8%BE%B9.html )
-                    var formattedText = new FormattedText(text, CultureInfo.CurrentCulture,
-                        FlowDirection.LeftToRight,
-                        new Typeface
-                        (
-                            // 默认是宋体
-                            new FontFamily("宋体"),
-                            FontStyles.Normal,
-                            FontWeights.Normal,
-                            FontStretches.Normal
-                        ),
-                        // 在 WPF 里面，采用的是 EM 单位，约等于像素单位
-                         fontSize.ToPixel().Value,
-                        Brushes.Black, 96);
-
-                    var geometry = formattedText.BuildGeometry(new ());
-
-                    var path = new System.Windows.Shapes.Path
+                    var textBlock = new TextBlock()
                     {
-                        Data = geometry,
-                        Fill = Brushes.Black,
-                        // 描边颜色
-                        Stroke = BrushCreator.CreateSolidColorBrush(colorText),
-                        StrokeThickness = outlineWidth.ToPixel().Value,
-
+                        Text = text,
+                        FontSize = fontSize.ToPixel().Value * fontScale.DoubleValue,
+                        FontFamily = new FontFamily("宋体"),
                         HorizontalAlignment = HorizontalAlignment.Center,
                         VerticalAlignment = VerticalAlignment.Center,
                     };
 
-                    Root.Children.Add(path);
+                    Root.Children.Add(textBlock);
                 }
             }
 >>>>>>> cd98a7a6b29e9297864aad9d7326a635b6b68e5b
