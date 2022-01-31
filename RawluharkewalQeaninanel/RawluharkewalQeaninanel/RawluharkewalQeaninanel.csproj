@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
+    <PackageReference Include="Silk.NET.Direct3D11" Version="2.11.0" />
+    <PackageReference Include="Silk.NET.Direct3D9" Version="2.11.0" />
+    <PackageReference Include="Silk.NET.DXGI" Version="2.11.0" />
+  </ItemGroup>
+
+</Project>

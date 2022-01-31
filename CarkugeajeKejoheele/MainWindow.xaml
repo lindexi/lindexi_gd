@@ -1,0 +1,24 @@
+﻿<Window x:Class="CarkugeajeKejoheele.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CarkugeajeKejoheele"
+        xmlns:hc="https://handyorg.github.io/handycontrol"
+        xmlns:hcDesignTimeControls="https://handyorg.github.io/handycontrol/design"
+        mc:Ignorable="d hcDesignTimeControls"
+        Title="MainWindow" Height="450" Width="800">
+  <Grid>
+    <hc:TagContainer>
+      <hcDesignTimeControls:TagContainer.Items>
+        <hc:Tag>
+          <hc:Tag.Content>
+            <TextBlock>123</TextBlock>
+          </hc:Tag.Content>
+        </hc:Tag>
+        <hc:Tag Content="2" />
+        <hc:Tag Content="3" />
+      </hcDesignTimeControls:TagContainer.Items>
+    </hc:TagContainer>
+  </Grid>
+</Window>

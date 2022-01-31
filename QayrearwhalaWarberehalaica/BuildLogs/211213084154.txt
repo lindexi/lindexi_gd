@@ -1,0 +1,14 @@
+2021/12/13 08:42:21.156014 [Information][] 0 寻找 nuget 文件完成
+2021/12/13 08:42:26.512773 [Information][] 0 寻找 msbuild 文件完成
+2021/12/13 08:42:26.515145 [Information][] 0 查找代码文件夹，通过定位 .git 文件夹方式
+2021/12/13 08:42:26.521374 [Information][] 0 从 d:\程序\ethylene156\lindexi_gd\QayrearwhalaWarberehalaica 向上寻找
+2021/12/13 08:42:26.524022 [Information][] 0 找到代码文件夹 d:\程序\ethylene156\lindexi_gd
+2021/12/13 08:42:26.527921 [Information][] 0 没有在配置文件找到 CodeConfiguration.SlnFile 配置项，将进行自动查找
+2021/12/13 08:57:17.083250 [Information][] 0 获取配置文件的 NuGet 文件 D:\程序\公司\dotnet 职业技术学院\dotnetcampus.DotNETBuildSDK\GitRevisionTask\bin\Debug\netcoreapp3.1\tools\nuget.exe
+2021/12/13 08:57:17.089110 [Information][] 0 寻找 nuget 文件完成
+2021/12/13 08:57:17.090391 [Information][] 0 寻找 msbuild 文件完成
+2021/12/13 08:57:17.091211 [Information][] 0 查找代码文件夹，通过定位 .git 文件夹方式
+2021/12/13 08:57:17.091708 [Information][] 0 从 d:\程序\ethylene156\lindexi_gd\QayrearwhalaWarberehalaica 向上寻找
+2021/12/13 08:57:17.092827 [Information][] 0 找到代码文件夹 d:\程序\ethylene156\lindexi_gd
+2021/12/13 08:57:20.706804 [Information][] 0 没有在配置文件找到 CodeConfiguration.SlnFile 配置项，将进行自动查找
+2021/12/13 08:57:27.986236 [Information][] 0 找到项目文件：d:\程序\ethylene156\lindexi_gd\QayrearwhalaWarberehalaica\QayrearwhalaWarberehalaica.sln
