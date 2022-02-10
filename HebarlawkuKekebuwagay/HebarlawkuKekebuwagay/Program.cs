@@ -30,6 +30,8 @@ namespace HebarlawkuKekebuwagay
             var exe = Path.Combine(directory, fileName + ".exe");
             var processStartInfo = new ProcessStartInfo(exe, "fx")
             {
+                // net framework 炸掉
+                // net core 啥都没发生，使用 I:\ 作为路径
                 UseShellExecute = false,
             };
             var process = Process.Start(processStartInfo);
