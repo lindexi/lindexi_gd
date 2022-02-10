@@ -28,7 +28,10 @@ namespace HebarlawkuKekebuwagay
             Environment.CurrentDirectory = @"I:\";
 
             var exe = Path.Combine(directory, fileName + ".exe");
-            var processStartInfo = new ProcessStartInfo(exe, "fx");
+            var processStartInfo = new ProcessStartInfo(exe, "fx")
+            {
+                UseShellExecute = false,
+            };
             var process = Process.Start(processStartInfo);
             process.WaitForExit();
             // System.ComponentModel.Win32Exception: 'An error occurred trying to start process' 目录名称无效
