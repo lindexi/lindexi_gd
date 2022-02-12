@@ -32,7 +32,7 @@ namespace HebarlawkuKekebuwagay
             {
                 // net framework 炸掉
                 // net core 啥都没发生，使用 I:\ 作为路径
-                UseShellExecute = false,
+                UseShellExecute = true,
             };
             var process = Process.Start(processStartInfo);
             process.WaitForExit();
