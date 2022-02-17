@@ -6,21 +6,13 @@
         xmlns:local="clr-namespace:LightTextEditorPlus.Demo"
         xmlns:textEditorPlus="clr-namespace:LightTextEditorPlus.TextEditorPlus;assembly=LightTextEditorPlus"
         mc:Ignorable="d"
-        Title="MainWindow" Height="500" Width="600">
+        Title="输入法" Height="500" Width="600">
   <Grid Width="600" Height="500">
-    <Grid.ColumnDefinitions>
-      <ColumnDefinition />
-      <ColumnDefinition />
-    </Grid.ColumnDefinitions>
-    <Grid.RowDefinitions>
-      <RowDefinition />
-      <RowDefinition />
-    </Grid.RowDefinitions>
 
     <!--<textEditorPlus:TextEditor HorizontalAlignment="Left" VerticalAlignment="Top" />-->
 
     <textEditorPlus:TextEditor Text="123"
-      Grid.Row="0" Grid.Column="1"
+                               Width="600"
       HorizontalAlignment="Left"
       VerticalAlignment="Stretch" />
 
