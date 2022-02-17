@@ -291,5 +291,4 @@ namespace LightTextEditorPlus.TextEditorPlus.Editing
             Debug.WriteLine($"[IMESupport] {message}");
         }
     }
-    
 }
