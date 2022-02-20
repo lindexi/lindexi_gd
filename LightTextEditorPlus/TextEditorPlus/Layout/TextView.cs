@@ -67,7 +67,7 @@ namespace LightTextEditorPlus.TextEditorPlus.Layout
 
         protected override void OnRender(DrawingContext drawingContext)
         {
-            drawingContext.DrawRectangle(Brushes.Black, new Pen(Brushes.Black, 1), new Rect(2, 2, 100, 100));
+            //drawingContext.DrawRectangle(Brushes.Black, new Pen(Brushes.Black, 1), new Rect(2, 2, 100, 100));
 
             // 这是没有被调用的
             base.OnRender(drawingContext);

@@ -9,7 +9,8 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid>
-        <MediaElement x:Name="MediaElement"></MediaElement>
-        <Button Margin="10,10,10,10" Content="选择单词列表" Click="Button_OnClick"></Button>
+        <TextBox x:Name="InputTextBox" Margin="10,10,10,100" Text="你好，我是林德熙 , 我是 2006 年开始接触 dot net 的，我的第一个项目因为年代过于久远已忘记, 因为当年 dot net 是最强大无敌的原因，我选择了 dot net ，新一代的 dot net ， 我最喜欢它的全方位无所限制的开发功能，可快速开发顶层业务，也可接触最底层做极致的优化，希望 dot net 在中国有更加辉煌的发展! 祝贺 dot net 20周年生日快乐" HorizontalTextAlignment="Left" HorizontalAlignment="Left" TextWrapping="Wrap">
+        </TextBox>
+        <Button Margin="10,10,10,10" VerticalAlignment="Bottom" Content="文字转语音" Click="Button_OnClick"></Button>
     </Grid>
 </Page>
