@@ -32,6 +32,8 @@ namespace FurwihobawNawkanenea
         {
             var hwndSource1 = (HwndSource) PresentationSource.FromVisual(TextBox1); // not null
             var hwndSource2 = (HwndSource) PresentationSource.FromVisual(TextBox2); // null
+            var logicalParent = LogicalTreeHelper.GetParent(TextBox2); // Button
+            var visualParent = VisualTreeHelper.GetParent(TextBox2); // null
 
             if (hwndSource1 is null)
             {

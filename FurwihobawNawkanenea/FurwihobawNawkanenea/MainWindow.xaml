@@ -10,8 +10,11 @@
         <Grid Visibility="Collapsed">
             <TextBox x:Name="TextBox1"></TextBox>
         </Grid>
-        <UserControl Visibility="Collapsed">
+        <!--<UserControl x:Name="UserControl" Visibility="Visible">
             <TextBox x:Name="TextBox2"></TextBox>
-        </UserControl>
+        </UserControl>-->
+        <Button x:Name="Button" Visibility="Collapsed">
+            <TextBox x:Name="TextBox2"></TextBox>
+        </Button>
     </Grid>
 </Window>
