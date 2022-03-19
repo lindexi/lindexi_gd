@@ -7,11 +7,6 @@
         xmlns:interop="clr-namespace:System.Windows.Interop;assembly=PresentationCore"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        <Image>
-            <Image.Source>
-                <interop:D3DImage x:Name="D3DImage"></interop:D3DImage>
-            </Image.Source>
-        </Image>
+    <Grid x:Name="Grid" Background="Transparent" AllowDrop="True" Drop="Grid_OnDrop">
     </Grid>
 </Window>
