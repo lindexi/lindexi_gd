@@ -30,8 +30,7 @@ class GifImage : Image
         {
             var gifDecoderFrame = _gifDecoder.Frames[i];
             var bitmapMetadata = gifDecoderFrame.Metadata as BitmapMetadata;
-
-            var delayTime = bitmapMetadata?.GetQuery("/grctlext/Delay") as int?;
+            var delayTime = bitmapMetadata?.GetQuery("/grctlext/Delay") as ushort?;
             var delay = delayTime ?? 10;
             last += TimeSpan.FromMilliseconds(delay * 10);
             keyFrames.Add(new DiscreteInt32KeyFrame(i, KeyTime.FromTimeSpan(last)));
