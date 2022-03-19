@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 
@@ -66,10 +67,15 @@ class GifImage : Image
     public static readonly DependencyProperty FrameIndexProperty =
         DependencyProperty.Register("FrameIndex", typeof(int), typeof(GifImage), new UIPropertyMetadata(0, new PropertyChangedCallback(ChangingFrameIndex)));
 
-    static void ChangingFrameIndex(DependencyObject obj, DependencyPropertyChangedEventArgs ev)
+    static void ChangingFrameIndex(DependencyObject obj, DependencyPropertyChangedEventArgs e)
     {
         var gifImage = obj as GifImage;
-        gifImage.Source = gifImage._gifDecoder.Frames[(int) ev.NewValue];
+        gifImage.ChangingFrameIndex((int) e.NewValue);
+    }
+
+    private void ChangingFrameIndex(int index)
+    {
+        Source = _gifDecoder.Frames[index];
     }
 
     /// <summary>
