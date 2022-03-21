@@ -31,6 +31,10 @@ class GifImage : FrameworkElement
             var bitmapMetadata = gifDecoderFrame.Metadata as BitmapMetadata;
             var delayTime = bitmapMetadata?.GetQuery("/grctlext/Delay") as ushort?;
             var delay = delayTime ?? 10;
+            if (delay == 0)
+            {
+                delay = 10;
+            }
             last += TimeSpan.FromMilliseconds(delay * 10);
             keyFrames.Add(new DiscreteInt32KeyFrame(i, KeyTime.FromTimeSpan(last)));
         }
@@ -73,7 +77,6 @@ class GifImage : FrameworkElement
 
     private void ChangingFrameIndex(int index)
     {
-        //Source = _gifDecoder.Frames[index];
         InvalidateVisual();
     }
 
