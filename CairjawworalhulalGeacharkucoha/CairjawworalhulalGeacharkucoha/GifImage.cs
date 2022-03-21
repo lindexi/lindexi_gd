@@ -7,7 +7,7 @@ using System.Windows.Media.Imaging;
 
 namespace CairjawworalhulalGeacharkucoha;
 
-class GifImage : Image
+class GifImage : FrameworkElement
 {
     private bool _isInitialized;
     private GifBitmapDecoder _gifDecoder;
@@ -22,8 +22,6 @@ class GifImage : Image
     private void Initialize()
     {
         _gifDecoder = new GifBitmapDecoder(GifSource, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
-
-        this.Source = _gifDecoder.Frames[0];
 
         var keyFrames = new Int32KeyFrameCollection();
         TimeSpan last = TimeSpan.Zero;
@@ -65,7 +63,7 @@ class GifImage : Image
     }
 
     public static readonly DependencyProperty FrameIndexProperty =
-        DependencyProperty.Register("FrameIndex", typeof(int), typeof(GifImage), new UIPropertyMetadata(0, new PropertyChangedCallback(ChangingFrameIndex)));
+        DependencyProperty.Register("FrameIndex", typeof(int), typeof(GifImage), new FrameworkPropertyMetadata(0, new PropertyChangedCallback(ChangingFrameIndex)));
 
     static void ChangingFrameIndex(DependencyObject obj, DependencyPropertyChangedEventArgs e)
     {
@@ -75,7 +73,15 @@ class GifImage : Image
 
     private void ChangingFrameIndex(int index)
     {
-        Source = _gifDecoder.Frames[index];
+        //Source = _gifDecoder.Frames[index];
+        InvalidateVisual();
+    }
+
+    protected override void OnRender(DrawingContext drawingContext)
+    {
+        var gifDecoderFrame = _gifDecoder.Frames[FrameIndex];
+
+        drawingContext.DrawImage(gifDecoderFrame,new Rect(new Size(gifDecoderFrame.PixelWidth, gifDecoderFrame.PixelHeight)));
     }
 
     /// <summary>
