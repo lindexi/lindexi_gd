@@ -1,9 +1,14 @@
 ﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
 
 Fx fx = new Fx();
 
 Console.WriteLine(fx.F3());
+
+foreach (var file in Directory.GetFiles(@"f:\temp\Ink RuheajercheWhereneebane\Main\", "*.dll"))
+{
+    var name = Path.GetFileName(file);
+    Console.WriteLine($"<Module file=\"$(InPath)\\{name}\" />");
+}
 
 class Fx
 {
