@@ -13,6 +13,8 @@ namespace DernijacallqaNaycerejerlal
         private MessageTouchDevice(int deviceId, Window window) : base(deviceId)
         {
             Window = window;
+
+            SetActiveSource(HwndSource.FromVisual(window));
         }
 
         /// <summary>
@@ -85,8 +87,6 @@ namespace DernijacallqaNaycerejerlal
 
             if (!IsActive)
             {
-                SetActiveSource(PresentationSource.FromVisual(Window));
-
                 Activate();
                 ReportDown();
             }
