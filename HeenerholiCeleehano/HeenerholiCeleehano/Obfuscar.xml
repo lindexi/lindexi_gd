@@ -1,0 +1,16 @@
+﻿<?xml version='1.0'?>
+<Obfuscator>
+  <Var name="InPath" value="." />
+  <Var name="OutPath" value=".\Obfuscar" />
+  <Var name="KeepPublicApi" value="true" />
+  <Var name="HidePrivateApi" value="true" />
+  <Var name="HideStrings" value="false" />
+  <Var name="UseUnicodeNames" value="true" />
+  <Var name="ReuseNames" value="true" />
+  <Var name="RenameFields" value="true" />
+  <Var name="RegenerateDebugInfo" value="true" />
+  <Module file="$(InPath)\HeenerholiCeleehano.dll" />
+
+  <AssemblySearchPath path="C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.2\" />
+  <AssemblySearchPath path="C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\6.0.2\" />
+</Obfuscator>
