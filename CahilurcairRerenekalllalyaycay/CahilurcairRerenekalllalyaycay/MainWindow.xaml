@@ -13,5 +13,24 @@
     </Window.Resources>
     <Grid>
         <Grid x:Name="MainPage" Background="{StaticResource MainPageBackgroundBrush}"></Grid>
+
+        <Grid>
+            <TextBox x:Name="TextBox" CaretBrush="Transparent" />
+            <Canvas>
+                <Border x:Name="CaretBorder" Visibility="Collapsed" Canvas.Left="0" Canvas.Top="0" Width="2" Height="15">
+                    <Border.Background>
+                        <LinearGradientBrush MappingMode="RelativeToBoundingBox"
+                                             StartPoint="0,0"
+                                             EndPoint="0,1">
+                            <LinearGradientBrush.GradientStops>
+                                <GradientStop Color="Blue"    Offset="0" />
+                                <GradientStop Color="Magenta" Offset="0.5" />
+                                <GradientStop Color="Green"   Offset="1" />
+                            </LinearGradientBrush.GradientStops>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+            </Canvas>
+        </Grid>
     </Grid>
 </Window>
