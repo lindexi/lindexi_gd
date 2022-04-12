@@ -24,10 +24,10 @@
     </None>
   </ItemGroup>
 
-  <Target Name="ObfuscarTask" AfterTargets="AfterBuild">
-    <PropertyGroup>
-      <ObfuscateCommand>$(Obfuscar) "Obfuscar.xml"</ObfuscateCommand>
-    </PropertyGroup>
-    <Exec WorkingDirectory="$(OutputPath)" Command="$(ObfuscateCommand)" />
-  </Target>
+  <!-- <Target Name="ObfuscarTask" AfterTargets="AfterBuild"> -->
+  <!--   <PropertyGroup> -->
+  <!--     <ObfuscateCommand>$(Obfuscar) "Obfuscar.xml"</ObfuscateCommand> -->
+  <!--   </PropertyGroup> -->
+  <!--   <Exec WorkingDirectory="$(OutputPath)" Command="$(ObfuscateCommand)" /> -->
+  <!-- </Target> -->
 </Project>
