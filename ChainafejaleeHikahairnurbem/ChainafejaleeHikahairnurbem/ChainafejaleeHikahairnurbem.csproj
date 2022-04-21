@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="dotnetCampus.WPF.Resource" Version="6.0.4-alpha01-00123123" />
+  </ItemGroup>
+
+  <Target Name="LofekairkiWafernallhem" AfterTargets="Build">
+    <Warning Text="xxx=$(CustomWpfAssetsFolder)"></Warning>
+  </Target>
+</Project>
