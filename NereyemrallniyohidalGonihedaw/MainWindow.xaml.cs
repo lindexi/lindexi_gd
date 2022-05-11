@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -14,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace ChainafejaleeHikahairnurbem
+namespace NereyemrallniyohidalGonihedaw
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -24,17 +23,6 @@ namespace ChainafejaleeHikahairnurbem
         public MainWindow()
         {
             InitializeComponent();
-
-            Loaded += MainWindow_Loaded;
-        }
-
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
-        {
-            GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
-            GC.Collect();
-            GC.WaitForFullGCComplete();
-            GC.Collect(2, GCCollectionMode.Forced);
-            GCSettings.LatencyMode = GCLatencyMode.Interactive;
         }
     }
 }
