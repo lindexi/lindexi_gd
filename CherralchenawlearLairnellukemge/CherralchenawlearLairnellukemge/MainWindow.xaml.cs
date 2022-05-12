@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Loader;
 using System.Text;
@@ -27,15 +28,21 @@ namespace CherralchenawlearLairnellukemge
 
             Loaded += MainWindow_Loaded;
 
+            var file = System.IO.Path.GetFullPath("Lib1.dll");
+            var assembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(file);
+
             AssemblyLoadContext.Default.Resolving += Default_Resolving;
         }
 
         private System.Reflection.Assembly? Default_Resolving(AssemblyLoadContext assemblyLoadContext, System.Reflection.AssemblyName assemblyName)
         {
-            if (assemblyName.Name=="Lib1")
+            if (assemblyName.Name == "Lib1")
             {
+                var stopwatch = Stopwatch.StartNew();
                 var file = System.IO.Path.GetFullPath("Lib1.dll");
                 var assembly = assemblyLoadContext.LoadFromAssemblyPath(file);
+                stopwatch.Stop();
+                var milliseconds = stopwatch.ElapsedMilliseconds;
                 return assembly;
             }
 
