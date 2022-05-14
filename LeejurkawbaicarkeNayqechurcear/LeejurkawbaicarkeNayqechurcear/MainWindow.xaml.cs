@@ -73,6 +73,8 @@ public partial class MainWindow : Window
         ListView.ItemsSource = newList;
     }
 
+
+ 
     private async void Button3_Click(object sender, RoutedEventArgs e)
     {
         if (ListView.ItemsSource is not FooList<string> list)
