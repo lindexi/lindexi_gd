@@ -12,3 +12,11 @@
 2021/12/13 08:57:17.092827 [Information][] 0 找到代码文件夹 d:\程序\ethylene156\lindexi_gd
 2021/12/13 08:57:20.706804 [Information][] 0 没有在配置文件找到 CodeConfiguration.SlnFile 配置项，将进行自动查找
 2021/12/13 08:57:27.986236 [Information][] 0 找到项目文件：d:\程序\ethylene156\lindexi_gd\QayrearwhalaWarberehalaica\QayrearwhalaWarberehalaica.sln
+2022/04/24 03:50:52.447772 [2022-04-24 15:50:52,412][Information] 找不到 D:\程序\公司\dotnet 职业技术学院\dotnetcampus.DotNETBuildSDK\GitRevisionTask\bin\Debug\netcoreapp3.1\tools\nuget.exe 文件，从资源拿到文件
+2022/04/24 03:51:53.497716 [2022-04-24 15:51:53,497][Information] 找不到 D:\程序\公司\dotnet 职业技术学院\dotnetcampus.DotNETBuildSDK\GitRevisionTask\bin\Debug\netcoreapp3.1\tools\nuget.exe 文件，从资源拿到文件
+2022/04/24 04:01:07.742026 [2022-04-24 16:01:07,729][Information] 获取配置文件的 NuGet 文件 D:\程序\公司\dotnet 职业技术学院\dotnetcampus.DotNETBuildSDK\GitRevisionTask\bin\Debug\netcoreapp3.1\tools\nuget.exe
+2022/04/24 04:01:07.750771 [2022-04-24 16:01:07,750][Information] 寻找 nuget 文件完成
+2022/04/24 04:01:07.759740 [2022-04-24 16:01:07,759][Information] 寻找 msbuild 文件完成
+2022/04/24 04:01:07.760693 [2022-04-24 16:01:07,760][Information] 代码文件夹 d:\程序\ethylene156\lindexi_gd
+2022/04/24 04:01:27.581787 [2022-04-24 16:01:27,569][Information] 找不到 D:\程序\公司\dotnet 职业技术学院\dotnetcampus.DotNETBuildSDK\GitRevisionTask\bin\Debug\netcoreapp3.1\tools\nuget.exe 文件，从资源拿到文件
+2022/04/24 04:01:40.370975 [2022-04-24 16:01:40,370][Information] 从资源拿到 NuGet 文件 File=D:\程序\公司\dotnet 职业技术学院\dotnetcampus.DotNETBuildSDK\GitRevisionTask\bin\Debug\netcoreapp3.1\tools\nuget.exe
