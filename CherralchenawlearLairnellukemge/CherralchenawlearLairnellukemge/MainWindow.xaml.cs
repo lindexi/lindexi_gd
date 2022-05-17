@@ -32,6 +32,7 @@ namespace CherralchenawlearLairnellukemge
             var assembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(file);
 
             AssemblyLoadContext.Default.Resolving += Default_Resolving;
+            
         }
 
         private System.Reflection.Assembly? Default_Resolving(AssemblyLoadContext assemblyLoadContext, System.Reflection.AssemblyName assemblyName)

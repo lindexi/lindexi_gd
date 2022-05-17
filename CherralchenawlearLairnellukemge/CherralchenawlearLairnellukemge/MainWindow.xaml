@@ -6,7 +6,36 @@
         xmlns:local="clr-namespace:CherralchenawlearLairnellukemge"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
+    <Window.Resources>
+        <Style x:Key="Style.Button.DefaultListViewHeader" TargetType="Button">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Height" Value="24" />
+            <Setter Property="Foreground" Value="#888888" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="RootBorder" Background="{TemplateBinding Background}">
+                            <StackPanel Orientation="Horizontal"  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
+                                <TextBlock Text="{TemplateBinding Content}" Padding="{TemplateBinding Padding}" VerticalAlignment="Center" />
+                                <Image x:Name="TriangleImage" Margin="5 0"
+                                   Stretch="None" SnapsToDevicePixels="True" UseLayoutRounding="True" Visibility="Collapsed"/>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Background" Value="#565656">
+                                <Setter TargetName="TriangleImage" Property="Source" Value="{StaticResource Image.SortAscending}"/>
+                                <Setter TargetName="TriangleImage" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
     <Grid>
-
+        <Button Style="{StaticResource Style.Button.DefaultListViewHeader}"></Button>
     </Grid>
 </Window>
