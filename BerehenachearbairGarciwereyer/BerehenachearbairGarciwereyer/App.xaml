@@ -1,0 +1,44 @@
+﻿<Application x:Class="BerehenachearbairGarciwereyer.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:BerehenachearbairGarciwereyer"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <!--<SolidColorBrush x:Key="SolidColorBrush">#565656</SolidColorBrush>-->
+        <!--<BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"></BooleanToVisibilityConverter>
+        <BrushConverter x:Key="BrushConverter"/>-->
+        <Style x:Key="DefaultButtonStyle" TargetType="Button">
+            <!--<Setter Property="Background" Value="{StaticResource SolidColorBrush}"></Setter>-->
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Width" Value="100" />
+            <Setter Property="Height" Value="100" />
+            <Setter Property="Margin" Value="10,10,10,10" />
+            <Setter Property="Template" >
+                <Setter.Value>
+                    <ControlTemplate>
+                        <!--<Grid>
+                            <AdornerDecorator>
+                                <StackPanel>
+                                    <TextBlock></TextBlock>
+                                    <AccessText></AccessText>
+                                    <TextBox></TextBox>
+                                    <Path Data="M0,0L1,1"></Path>
+                                    <Image>
+                                    </Image>
+                                    <Canvas>
+                                        <Canvas.Background>
+                                            <VisualBrush></VisualBrush>
+                                        </Canvas.Background>
+                                    </Canvas>
+                                    <Border></Border>
+                                </StackPanel>
+                            </AdornerDecorator>
+                        </Grid>-->
+                        <ContentPresenter Content="123"></ContentPresenter>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Application.Resources>
+</Application>
