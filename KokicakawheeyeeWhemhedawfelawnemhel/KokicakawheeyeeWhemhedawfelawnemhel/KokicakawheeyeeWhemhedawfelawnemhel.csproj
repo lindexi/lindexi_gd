@@ -2,19 +2,10 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net5.0-windows10.0.19041.0</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
-    <Platforms>x86</Platforms>
-    <RuntimeIdentifier>win10-x86</RuntimeIdentifier>
     <Version>1.0.0</Version>
-    <LangVersion>latest</LangVersion>
-    <RuntimePack>win10-x86</RuntimePack>
-    <ResolvedRuntimePack>win10-x86</ResolvedRuntimePack>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.1.0-preview3" />
-  </ItemGroup>
 
 </Project>
