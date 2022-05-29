@@ -2,6 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Style x:Key="ButtonStyleInB" TargetType="Button">
         <!--<Setter Property="Background" Value="{StaticResource SolidColorBrush1InC}" />-->
-        <Setter Property="Background" Value="{StaticResource SolidColorBrush1InD}" />
+        <!--<Setter Property="Background" Value="{StaticResource SolidColorBrush1InD}" />-->
+        <Setter Property="Background" Value="{StaticResource SolidColorBrush1InF}" />
     </Style>
 </ResourceDictionary>
