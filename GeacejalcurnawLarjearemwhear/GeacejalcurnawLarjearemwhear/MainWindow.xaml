@@ -7,6 +7,6 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <Button Style="{StaticResource ButtonStyleInE}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="100" Height="100"> </Button>
+        <Button Style="{StaticResource ButtonStyleInB}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="100" Height="100"> </Button>
     </Grid>
 </Window>
