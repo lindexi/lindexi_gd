@@ -6,8 +6,6 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="DictionaryC.xaml"/>
-                <!--<ResourceDictionary Source="DictionaryB.xaml"/>-->
                 <ResourceDictionary Source="DictionaryA.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
