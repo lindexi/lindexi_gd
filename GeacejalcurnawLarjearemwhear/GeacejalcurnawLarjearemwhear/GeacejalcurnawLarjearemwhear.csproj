@@ -5,6 +5,14 @@
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="dotnetCampus.WPF" Version="6.0.4-alpha01-StaticResourceExtension01" />
+    <PackageReference Include="dotnetCampus.WPF.Dependencies" Version="6.0.4-alpha01-StaticResourceExtension01" />
+    <PackageReference Include="dotnetCampus.WPF.Resource" Version="6.0.4-alpha01-StaticResourceExtension01" />
+    <Reference Include="$(CustomWpfAssetsFolder)lib\net6.0\*.dll" />
+  </ItemGroup>
 
 </Project>
