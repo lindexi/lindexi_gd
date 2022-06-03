@@ -5,6 +5,15 @@
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <PlatformTarget>x86</PlatformTarget>
+      <CustomWpfAssetsFolder>F:\temp\回收\自定义 WPF 框架\WPF_Debug(2) 更新项目\runtime.win-x86.Microsoft.DotNet.Wpf.GitHub.Debug.6.0.4-ci\</CustomWpfAssetsFolder>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="dotnetCampus.WPF" Version="6.0.4-alpha01-StaticResourceExtension01" />
+    <PackageReference Include="dotnetCampus.WPF.Dependencies" Version="6.0.4-alpha01-StaticResourceExtension01" />
+    <!-- <PackageReference Include="dotnetCampus.WPF.Resource" Version="6.0.4-alpha01-StaticResourceExtension01" /> -->
+    <Reference Include="$(CustomWpfAssetsFolder)lib\net6.0\*.dll" />
+  </ItemGroup>
 
 </Project>
