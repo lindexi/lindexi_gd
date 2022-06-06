@@ -22,5 +22,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        var resource = FindResource("Geometry.AccountProfile.Setting");
     }
 }
