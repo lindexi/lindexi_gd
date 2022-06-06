@@ -39,7 +39,7 @@ internal static class ProcessHelper
             return _sessionId.Value;
         }
 
-        var result = ProcessIdToSessionId((uint) GetCurrentProcessId(), out var sessionId);
+        ProcessIdToSessionId((uint) GetCurrentProcessId(), out var sessionId);
         _sessionId = sessionId;
         return sessionId;
     }
