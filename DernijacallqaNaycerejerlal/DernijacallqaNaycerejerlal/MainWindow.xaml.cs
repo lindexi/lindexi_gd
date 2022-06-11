@@ -24,15 +24,21 @@ namespace DernijacallqaNaycerejerlal
         {
             InitializeComponent();
             TouchDown += MainWindow_TouchDown;
+            StylusDown += MainWindow_StylusDown;
 
             MouseDown += MainWindow_MouseDown;
 
             SourceInitialized += MainWindow_SourceInitialized;
         }
 
+        private void MainWindow_StylusDown(object sender, StylusDownEventArgs e)
+        {
+            Console.WriteLine("StylusDown");
+        }
+
         private void MainWindow_SourceInitialized(object sender, EventArgs e)
         {
-             MessageTouchDevice.UseMessageTouch(this);
+             //MessageTouchDevice.UseMessageTouch(this);
         }
 
         private void MainWindow_MouseDown(object sender, MouseButtonEventArgs e)

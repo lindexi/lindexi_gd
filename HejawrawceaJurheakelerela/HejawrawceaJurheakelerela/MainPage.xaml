@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:HejawrawceaJurheakelerela"
+             x:Class="HejawrawceaJurheakelerela.MainPage">
+    <ContentPage.Resources>
+        <local:GraphicsDrawable x:Key="GraphicsDrawable"></local:GraphicsDrawable>
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <VerticalStackLayout 
+            Spacing="25" 
+            Padding="30,0" 
+            VerticalOptions="Center">
+            <Grid RowDefinitions="*,auto,*">
+                <GraphicsView x:Name="GraphicsView" WidthRequest="100" HeightRequest="100" Drawable="{StaticResource GraphicsDrawable}"></GraphicsView>
+            </Grid>
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

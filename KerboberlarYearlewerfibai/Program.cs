@@ -12,6 +12,8 @@ namespace KerboberlarYearlewerfibai
     {
         static void Main(string[] args)
         {
+            var program = new Program();
+            program.GetSystemFirmwareTable();
             Console.WriteLine(Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\BIOS")?.GetValue("SystemProductName")??"null");
         }
 
@@ -35,6 +37,7 @@ namespace KerboberlarYearlewerfibai
                     var smBIOSTableDataLength = x.Length;
                     var pSMBIOSTableData = p + 8;
                     var str = Encoding.ASCII.GetString(pSMBIOSTableData, (int)smBIOSTableDataLength);
+                    Console.WriteLine(str);
                 }
             }
         }

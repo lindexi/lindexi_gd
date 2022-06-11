@@ -1,0 +1,8 @@
+﻿<?xml version='1.0'?>
+<Obfuscator>
+    <Var name="InPath" value="." />
+    <Var name="OutPath" value=".\Obfuscator_Output" />
+    <Var name="HidePrivateApi" value="true" />
+
+    <Module file="$(InPath)\BajereleehaNalleedihechear.dll" />
+</Obfuscator>

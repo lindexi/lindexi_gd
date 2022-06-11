@@ -1,0 +1,10 @@
+﻿{
+    "profiles": {
+      "QechewholayJekaljiqi (Package)": {
+        "commandName": "MsixPackage"
+      },
+      "QechewholayJekaljiqi (Unpackaged)": {
+        "commandName": "Project"
+      }
+    }
+}

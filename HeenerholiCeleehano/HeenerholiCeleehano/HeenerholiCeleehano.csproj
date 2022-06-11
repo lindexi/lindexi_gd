@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Obfuscar" Version="2.2.33">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Lib\Lib.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Obfuscar.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <!-- <Target Name="ObfuscarTask" AfterTargets="AfterBuild"> -->
+  <!--   <PropertyGroup> -->
+  <!--     <ObfuscateCommand>$(Obfuscar) "Obfuscar.xml"</ObfuscateCommand> -->
+  <!--   </PropertyGroup> -->
+  <!--   <Exec WorkingDirectory="$(OutputPath)" Command="$(ObfuscateCommand)" /> -->
+  <!-- </Target> -->
+</Project>

@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+  
+  
+  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' != '.NETFramework' 
+             And $(DisableCopyCustomWpfLibraries) != 'true'">
+
+      <Reference Include="$(SolutionDir)Build\dotnet runtime\WpfLibraries\*.dll"/>
+      <ReferenceCopyLocalPaths Include="$(SolutionDir)Build\dotnet runtime\WpfLibraries\*.dll"/>
+
+  </ItemGroup>
+  
+  
+  
+</Project>

@@ -72,6 +72,8 @@ namespace FayawlerjiraywereNiharjeechel.Controllers
                 visitingCount.Ip = ip;
             }
 
+            str.Append(HttpContext.Connection.RemoteIpAddress.ToString());
+
             str.Append($"总共有{Count}访问");
 
             if (HttpContext.Request.Headers.TryGetValue("User-Agent", out var userAgent))
