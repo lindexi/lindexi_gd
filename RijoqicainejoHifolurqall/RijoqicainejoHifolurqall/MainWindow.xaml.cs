@@ -41,27 +41,27 @@ public partial class MainWindow : Window
         this.SizeChanged += (source, args) => Draw();
     }
 
-	public IDrawable Drawable
-	{
-		get => _drawable;
-		set
-		{
-			_drawable = value;
-			Draw();
-		}
-	}
+    public IDrawable Drawable
+    {
+        get => _drawable;
+        set
+        {
+            _drawable = value;
+            Draw();
+        }
+    }
 
-	private void Draw()
-	{
-		if (_drawable != null)
-		{
-			using (_canvas.CreateSession())
-			{
-				_drawable.Draw(_canvas, new RectF(0, 0, (float) Canvas.Width, (float) Canvas.Height));
-			}
-		}
-	}
+    private void Draw()
+    {
+        if (_drawable != null)
+        {
+            using (_canvas.CreateSession())
+            {
+                _drawable.Draw(_canvas, new RectF(0, 0, (float) Canvas.Width, (float) Canvas.Height));
+            }
+        }
+    }
 
-	private readonly XamlCanvas _canvas = new XamlCanvas();
+    private readonly XamlCanvas _canvas = new XamlCanvas();
     private IDrawable _drawable;
 }

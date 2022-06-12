@@ -155,10 +155,6 @@ namespace Microsoft.Maui.Graphics
 
         public static Vector2 Transform(this Matrix3x2 target, float x, float y)
         {
-            /*target.M31 += dx;
-			target.M32 += dy;
-			return target;*/
-
             Vector2 vector2 = new Vector2(x, y);
             return Vector2.Transform(vector2, target);
         }

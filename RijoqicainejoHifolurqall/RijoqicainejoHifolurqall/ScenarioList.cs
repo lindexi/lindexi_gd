@@ -4,20 +4,20 @@ using System.Collections.Generic;
 namespace GraphicsTester.Scenarios
 {
     public static class ScenarioList
-	{
-		private static List<AbstractScenario> _scenarios;
+    {
+        private static List<AbstractScenario> _scenarios;
 
-		public static List<AbstractScenario> Scenarios
-		{
-			get
-			{
-				if (_scenarios == null)
-				{
-					_scenarios = new List<AbstractScenario>()
-					{
-						new DrawLines(),
-						new DrawLinesScaled(),
-						new DrawRectangles(),
+        public static List<AbstractScenario> Scenarios
+        {
+            get
+            {
+                if (_scenarios == null)
+                {
+                    _scenarios = new List<AbstractScenario>()
+                    {
+                        new DrawLines(),
+                        new DrawLinesScaled(),
+                        new DrawRectangles(),
 						//new DrawEllipses(),
 						//new DrawRoundedRectangles(),
 						//new DrawArcs(),
@@ -64,10 +64,10 @@ namespace GraphicsTester.Scenarios
 						//new DimensionTest(),
 						//new ScaleCanvas(),
 					};
-				}
+                }
 
-				return _scenarios;
-			}
-		}
-	}
+                return _scenarios;
+            }
+        }
+    }
 }
