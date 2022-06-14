@@ -1,0 +1,18 @@
+﻿<Window x:Class="HelixBiyawubiburwhoKaiwunaikarwheqar.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:HelixBiyawubiburwhoKaiwunaikarwheqar"
+        xmlns:HelixToolkit="clr-namespace:HelixToolkit.Wpf;assembly=HelixToolkit.Wpf"
+        mc:Ignorable="d"
+        Title="3D元素播放器" Height="450" Width="800" Icon="F:\temp\Icon64.png">
+    <Grid>
+        <HelixToolkit:HelixViewport3D x:Name="View" RotationSensitivity="0.3" 
+                                        ShowCoordinateSystem="False" ShowViewCube="False" ShowCameraTarget="False" >
+            <!--<HelixToolkit:SunLight Brightness="0.1" Ambient="0.9" Altitude="60"/>-->
+            <HelixToolkit:DefaultLights></HelixToolkit:DefaultLights>
+            <ModelVisual3D x:Name="Model"/>
+        </HelixToolkit:HelixViewport3D>
+    </Grid>
+</Window>
