@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32014.148
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NekejawcharlereJibabearcel", "NekejawcharlereJibabearcel\NekejawcharlereJibabearcel.csproj", "{BCC8B850-8109-4157-B408-48866E147CB1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KodawbakawReafalokur", "KodawbakawReafalokur\KodawbakawReafalokur.csproj", "{ABCDD2CD-C9F7-4930-B4F1-70F0723E5016}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BCC8B850-8109-4157-B408-48866E147CB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCC8B850-8109-4157-B408-48866E147CB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BCC8B850-8109-4157-B408-48866E147CB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BCC8B850-8109-4157-B408-48866E147CB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ABCDD2CD-C9F7-4930-B4F1-70F0723E5016}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABCDD2CD-C9F7-4930-B4F1-70F0723E5016}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABCDD2CD-C9F7-4930-B4F1-70F0723E5016}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABCDD2CD-C9F7-4930-B4F1-70F0723E5016}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BDB7BAD3-318A-4F24-B598-B5131660C083}
+	EndGlobalSection
+EndGlobal
