@@ -20,7 +20,9 @@ var socketsHttpHandler = new SocketsHttpHandler()
     PooledConnectionLifetime = TimeSpan.FromSeconds(1000),
     SslOptions = new SslClientAuthenticationOptions()
     {
-        RemoteCertificateValidationCallback = (sender, certificate, chain, errors) => true, // HttpClientHandler.DangerousAcceptAnyServerCertificateValidator 忽略证书错误
+        RemoteCertificateValidationCallback =
+            (sender, certificate, chain, errors) =>
+                true, // HttpClientHandler.DangerousAcceptAnyServerCertificateValidator 忽略证书错误
     },
 };
 
@@ -67,7 +69,7 @@ class FakeStream : Stream
         {
             for (int i = 0; i < count; i++)
             {
-                buffer[i + offset] = (byte) i;
+                buffer[i + offset] = (byte)i;
             }
 
             Position += count;
