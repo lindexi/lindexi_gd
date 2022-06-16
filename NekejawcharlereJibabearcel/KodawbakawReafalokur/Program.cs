@@ -3,26 +3,45 @@
 using System.Buffers;
 using System.Diagnostics;
 using System.Net;
+using System.Net.Security;
 
-var httpClientHandler = new HttpClientHandler();
-httpClientHandler.MaxRequestContentBufferSize = 1024 * 1024;
-var httpClient = new HttpClient(httpClientHandler);
+var httpClientHandler = new HttpClientHandler()
+{
+    MaxRequestContentBufferSize = 1024 * 1024,
+    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator,
+};
+
+var socketsHttpHandler = new SocketsHttpHandler()
+{
+    // 这个可以设置连接的超时时间
+    ConnectTimeout = TimeSpan.FromSeconds(10),
+    //PooledConnectionIdleTimeout = TimeSpan.FromSeconds(100),
+    // HttpClient only resolves DNS entries when a connection is created. It does not track any time to live (TTL) durations specified by the DNS server. If DNS entries change regularly, which can happen in some container scenarios, the client won't respect those updates. To solve this issue, you can limit the lifetime of the connection by setting the SocketsHttpHandler.PooledConnectionLifetime property, so that DNS lookup is required when the connection is replaced.
+    PooledConnectionLifetime = TimeSpan.FromSeconds(1000),
+    SslOptions = new SslClientAuthenticationOptions()
+    {
+        RemoteCertificateValidationCallback =
+            (sender, certificate, chain, errors) =>
+                true, // HttpClientHandler.DangerousAcceptAnyServerCertificateValidator 忽略证书错误
+    },
+};
+
+var httpClient = new HttpClient(socketsHttpHandler);
 httpClient.Timeout = TimeSpan.FromMinutes(30); // 即使在传输过程中，有网络传输，但是超过了时间，依然炸掉
 
 var streamContent = new StreamContent(new FakeStream(1024_0000));
 var cancellationTokenSource = new CancellationTokenSource();
 var uploadHttpContent = new UploadHttpContent(streamContent, cancellationTokenSource);
 
-var result = await httpClient.PostAsync("http://127.0.0.1:12367/Upload", uploadHttpContent, cancellationTokenSource.Token);
-Console.WriteLine(await result.Content.ReadAsStringAsync());
+//var result = await httpClient.PostAsync("http://127.0.0.1:12367/Upload", uploadHttpContent, cancellationTokenSource.Token);
+//Console.WriteLine(await result.Content.ReadAsStringAsync());
 
 try
 {
     streamContent = new StreamContent(new FakeStream(1024_0000));
     cancellationTokenSource = new CancellationTokenSource();
-    uploadHttpContent = new UploadHttpContent(streamContent, cancellationTokenSource);
 
-    await httpClient.PostAsync("http://127.0.0.1:12367/UploadTimeout", uploadHttpContent, cancellationTokenSource.Token);
+    await httpClient.PostAsync("http://127.0.0.1:12367/UploadTimeout", streamContent, cancellationTokenSource.Token);
     uploadHttpContent.SetIsFinished();
 }
 catch (TimeoutException e)
@@ -50,7 +69,7 @@ class FakeStream : Stream
         {
             for (int i = 0; i < count; i++)
             {
-                buffer[i + offset] = (byte) i;
+                buffer[i + offset] = (byte)i;
             }
 
             Position += count;
