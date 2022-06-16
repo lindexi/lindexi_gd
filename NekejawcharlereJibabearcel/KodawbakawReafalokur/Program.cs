@@ -5,18 +5,23 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Security;
 
-var httpClientHandler = new HttpClientHandler();
-httpClientHandler.MaxRequestContentBufferSize = 1024 * 1024;
+var httpClientHandler = new HttpClientHandler()
+{
+    MaxRequestContentBufferSize = 1024 * 1024,
+    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator,
+};
 
 var socketsHttpHandler = new SocketsHttpHandler()
 {
     // 这个可以设置连接的超时时间
     ConnectTimeout = TimeSpan.FromSeconds(10),
-    //PooledConnectionIdleTimeout = TimeSpan.FromSeconds(10),
+    //PooledConnectionIdleTimeout = TimeSpan.FromSeconds(100),
+    // HttpClient only resolves DNS entries when a connection is created. It does not track any time to live (TTL) durations specified by the DNS server. If DNS entries change regularly, which can happen in some container scenarios, the client won't respect those updates. To solve this issue, you can limit the lifetime of the connection by setting the SocketsHttpHandler.PooledConnectionLifetime property, so that DNS lookup is required when the connection is replaced.
+    PooledConnectionLifetime = TimeSpan.FromSeconds(1000),
     SslOptions = new SslClientAuthenticationOptions()
     {
-        RemoteCertificateValidationCallback = (sender, certificate, chain, errors) => true,
-    }
+        RemoteCertificateValidationCallback = (sender, certificate, chain, errors) => true, // HttpClientHandler.DangerousAcceptAnyServerCertificateValidator 忽略证书错误
+    },
 };
 
 var httpClient = new HttpClient(socketsHttpHandler);
