@@ -15,14 +15,6 @@ static class SKPaintHelper
                 Color = SKColors.Blue,
                 StrokeWidth = 5,
             },
-            //new SKPaint
-            //{
-            //    IsAntialias = false,
-            //    Style = SKPaintStyle.Stroke,
-            //    Color = SKColors.Blue,
-            //    StrokeWidth = 5,
-            //    BlendMode = SKBlendMode.ColorBurn,
-            //},
             new SKPaint
             {
                 IsAntialias = false,
@@ -92,6 +84,34 @@ static class SKPaintHelper
                 StrokeWidth = 5,
                 StrokeCap = SKStrokeCap.Square,
                 StrokeMiter = 20,
+            },
+            new SKPaint
+            {
+                IsAntialias = true, // 抗锯齿
+                Style = SKPaintStyle.Stroke,
+                Color = SKColors.Blue,
+                StrokeWidth = 5,
+                StrokeCap = SKStrokeCap.Square,
+                StrokeMiter = 20,
+                PathEffect = SKPathEffect.CreateDash(new float[] { 10, 5, 2, 5 }, 10),
+            },
+            new SKPaint
+            {
+                IsAntialias = true, // 抗锯齿
+                Style = SKPaintStyle.Stroke,
+                Color = SKColors.Blue,
+                StrokeWidth = 5,
+                StrokeCap = SKStrokeCap.Square,
+                PathEffect = SKPathEffect.CreateDash(new float[] { 10, 10 }, 20),
+            },
+            new SKPaint
+            {
+                IsAntialias = true, // 抗锯齿
+                Style = SKPaintStyle.Stroke,
+                Color = SKColors.Blue,
+                StrokeWidth = 5,
+                StrokeCap = SKStrokeCap.Square,
+                PathEffect = SKPathEffect.CreateDash(new float[] { 10, 10, 30, 10 }, 20),
             },
         };
     }
