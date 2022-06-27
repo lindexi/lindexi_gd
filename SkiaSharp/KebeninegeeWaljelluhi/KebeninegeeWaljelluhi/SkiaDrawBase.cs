@@ -8,7 +8,7 @@ abstract class SkiaDrawBase
     {
         var fileName = $"{GetType().Name}.png";
 
-        var skImageInfo = new SKImageInfo(1920, 1080, SKColorType.Bgra8888, SKAlphaType.Premul, SKColorSpace.CreateSrgb());
+        var skImageInfo = new SKImageInfo(1920, 1080, SKColorType.Bgra8888, SKAlphaType.Opaque, SKColorSpace.CreateSrgb());
 
         using var skImage = SKImage.Create(skImageInfo);
 

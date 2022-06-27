@@ -84,6 +84,15 @@ static class SKPaintHelper
                 StrokeCap = SKStrokeCap.Square,
                 StrokeMiter = 20,
             },
+            new SKPaint
+            {
+                IsAntialias = true, // 抗锯齿
+                Style = SKPaintStyle.Stroke,
+                Color = SKColors.Blue,
+                StrokeWidth = 5,
+                StrokeCap = SKStrokeCap.Square,
+                StrokeMiter = 20,
+            },
         };
     }
 }
