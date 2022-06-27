@@ -32,7 +32,12 @@ class SkiaDrawLine : SkiaDrawBase
 
         for (var i = 0; i < paintList.Length; i++)
         {
-            canvas.DrawLine(new SKPoint(10, 50 + i * 10 + 10), new SKPoint(200, 50 + i * 10 + 10), paintList[i]);
+            canvas.DrawLine(new SKPoint(10, 50 + i * 20 + 10), new SKPoint(200, 50 + i * 20 + 10), paintList[i]);
+        }
+
+        for (var i = 0; i < paintList.Length; i++)
+        {
+            canvas.DrawLine(new SKPoint(10, 50 + paintList.Length * 20 + 20 + i * 20), new SKPoint(200, 50 + paintList.Length * 20 + 20 + i * 20 + 10), paintList[i]);
         }
     }
 }
