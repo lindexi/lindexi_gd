@@ -2,6 +2,7 @@
 
 using KebeninegeeWaljelluhi;
 
+Run<SkiaDrawLine>();
 Run<SkiaDrawCircle>();
 
 void Run<T>() where T : SkiaDrawBase, new()
