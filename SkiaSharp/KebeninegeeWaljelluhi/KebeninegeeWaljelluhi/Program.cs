@@ -7,6 +7,8 @@ Run<SkiaDrawCircle>();
 Run<SkiaDrawRectangle>();
 Run<SkiaDrawImageFile>();
 Run<SkiaScaleImageFile>();
+Run<SkiaDrawRoundRectangle>();
+Run<SkiaDrawDissolve>();
 
 void Run<T>() where T : SkiaDrawBase, new()
 {
