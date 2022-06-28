@@ -4,9 +4,9 @@ namespace KebeninegeeWaljelluhi;
 
 class SKPaintProvider
 {
-    public SKPaintProvider()
+    public SKPaintProvider(SKPaint? paint = null)
     {
-        SKPaintList.Add(new SKPaint());
+        SKPaintList.Add(paint ?? new SKPaint());
     }
 
     public List<SKPaint> SKPaintList { get; } = new List<SKPaint>();
