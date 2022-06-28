@@ -18,7 +18,7 @@ class SkiaDrawImageFile : SkiaDrawBase
         const int width = 1920;
         const int height = 1080;
 
-        // 这个解码会变糊
+        // 这个解码会变糊 [SkiaSharp decode the png file be blur · Issue #2132 · mono/SkiaSharp](https://github.com/mono/SkiaSharp/issues/2132 )
         canvas.DrawBitmap(resourceBitmap1, new SKPoint(0, 0));
 
         //canvas.DrawBitmap(resourceBitmap1, dest: new SKRect(0, 0, width / 2, height));
