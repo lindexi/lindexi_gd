@@ -25,3 +25,10 @@ class SkiaDrawImageFile : SkiaDrawBase
         //canvas.DrawBitmap(resourceBitmap2, dest: new SKRect(width / 2, 0, width, height));
     }
 }
+
+class SkiaScaleImageFile : SkiaDrawBase
+{
+    protected override void OnDraw(SKCanvas canvas)
+    {
+    }
+}
