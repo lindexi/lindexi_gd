@@ -28,89 +28,16 @@ class SkiaDrawLine : SkiaDrawBase
 
         canvas.DrawLine(new SKPoint(10, 50), new SKPoint(100, 50), strokePaint);
 
-        var paintList = new[]
-        {
-            new SKPaint
-            {
-                IsAntialias = false,
-                Style = SKPaintStyle.Stroke,
-                Color = SKColors.Blue,
-                StrokeWidth = 5,
-            },
-            //new SKPaint
-            //{
-            //    IsAntialias = false,
-            //    Style = SKPaintStyle.Stroke,
-            //    Color = SKColors.Blue,
-            //    StrokeWidth = 5,
-            //    BlendMode = SKBlendMode.ColorBurn,
-            //},
-            new SKPaint
-            {
-                IsAntialias = false,
-                Style = SKPaintStyle.Stroke,
-                Color = SKColors.Blue,
-                StrokeWidth = 5,
-                StrokeCap = SKStrokeCap.Butt,
-            },
-            new SKPaint
-            {
-                IsAntialias = false,
-                Style = SKPaintStyle.Stroke,
-                Color = SKColors.Blue,
-                StrokeWidth = 5,
-                StrokeCap = SKStrokeCap.Round,
-            },
-            new SKPaint
-            {
-                IsAntialias = false,
-                Style = SKPaintStyle.Stroke,
-                Color = SKColors.Blue,
-                StrokeWidth = 5,
-                StrokeCap = SKStrokeCap.Round,
-                StrokeJoin = SKStrokeJoin.Bevel,
-            },
-            new SKPaint
-            {
-                IsAntialias = false,
-                Style = SKPaintStyle.Stroke,
-                Color = SKColors.Blue,
-                StrokeWidth = 6,
-                StrokeCap = SKStrokeCap.Round,
-                StrokeJoin = SKStrokeJoin.Bevel,
-                StrokeMiter = 3,
-            },
-            new SKPaint
-            {
-                IsAntialias = false,
-                Style = SKPaintStyle.Stroke,
-                Color = SKColors.Blue,
-                StrokeWidth = 5,
-                StrokeCap = SKStrokeCap.Square,
-            },
-            new SKPaint
-            {
-                IsAntialias = false,
-                Style = SKPaintStyle.Stroke,
-                Color = SKColors.Blue,
-                StrokeWidth = 5,
-                StrokeCap = SKStrokeCap.Square,
-                StrokeMiter = 10,
-            },
-            new SKPaint
-            {
-                IsAntialias = false,
-                Style = SKPaintStyle.Stroke,
-                Color = SKColors.Blue,
-                StrokeWidth = 5,
-                StrokeCap = SKStrokeCap.Square,
-                StrokeMiter = 20,
-            },
-        };
+        var paintList = SKPaintHelper.GetSKPaintList();
 
         for (var i = 0; i < paintList.Length; i++)
         {
-            canvas.DrawLine(new SKPoint(10, 50 + i * 10 + 10), new SKPoint(200, 50 + i * 10 + 10), paintList[i]);
+            canvas.DrawLine(new SKPoint(10, 50 + i * 20 + 10), new SKPoint(200, 50 + i * 20 + 10), paintList[i]);
+        }
+
+        for (var i = 0; i < paintList.Length; i++)
+        {
+            canvas.DrawLine(new SKPoint(10, 50 + paintList.Length * 20 + 20 + i * 20), new SKPoint(200, 50 + paintList.Length * 20 + 20 + i * 20 + 10), paintList[i]);
         }
     }
 }
