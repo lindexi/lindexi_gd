@@ -2,7 +2,7 @@
 
 namespace KebeninegeeWaljelluhi;
 
-class SkiaDrawRectangle : SkiaDrawBase
+class SkiaDrawRoundRectangle : SkiaDrawBase
 {
     protected override void OnDraw(SKCanvas canvas)
     {
@@ -10,10 +10,10 @@ class SkiaDrawRectangle : SkiaDrawBase
 
         var warpPanel = new WarpPanel();
 
-        for (var i = 0; i < int.MaxValue; i++)
+        foreach (var skPaint in skPaintList)
         {
             var result =
-                warpPanel.AddDraw((skRect) => { canvas.DrawRect(skRect, skPaintList[i % skPaintList.Length]); });
+                warpPanel.AddDraw(skRect => { canvas.DrawRoundRect(skRect, 2, 2, skPaint); });
 
             if (!result)
             {
