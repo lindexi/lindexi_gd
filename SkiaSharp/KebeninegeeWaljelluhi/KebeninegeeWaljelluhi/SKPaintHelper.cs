@@ -26,7 +26,7 @@ static class SKPaintHelper
             .Do((skPaint, value) => skPaint.StrokeJoin = value, SKStrokeJoin.Round, SKStrokeJoin.Bevel,
                 SKStrokeJoin.Miter)
             .Do((skPaint, value) => skPaint.StrokeMiter = value, 0.5f, 2f, 5f)
-
+            .Do((skPaint, value) => skPaint.PathEffect = value, null, SKPathEffect.CreateDash(new float[] { 10, 5, 2, 5 }, 10), SKPathEffect.CreateDash(new float[] { 10, 10 }, 20))
             ;
 
         foreach (var skPaint in skPaintProvider.SKPaintList)
