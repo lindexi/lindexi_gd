@@ -18,6 +18,8 @@ abstract class SkiaDrawBase
             {
                 skCanvas.Clear(SKColors.White);
 
+                var view = new SK3dView();
+
                 OnDraw(skCanvas);
 
                 skCanvas.Flush();

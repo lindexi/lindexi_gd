@@ -2,37 +2,24 @@
 
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Graphics.Skia;
+
 using SkiaSharp;
 
 var skImageInfo = new SKImageInfo(1920, 1080, SKColorType.Bgra8888, SKAlphaType.Opaque, SKColorSpace.CreateSrgb());
 
-var fileName = $"xx.png";
+var fileName = $"xx.svg";
 
-using var skImage = SKImage.Create(skImageInfo);
-using (SKBitmap skBitmap = SKBitmap.FromImage(skImage))
-{
-    using (var skCanvas = new SKCanvas(skBitmap))
-    {
-        var skiaCanvas = new SkiaCanvas();
-        skiaCanvas.Canvas = skCanvas;
+using var stream = File.OpenWrite(fileName);
+using var skCanvas = SKSvgCanvas.Create(new SKRect(0, 0, 100, 100), stream);
 
-        ICanvas canvas = skiaCanvas;
+var skiaCanvas = new SkiaCanvas();
+skiaCanvas.Canvas = skCanvas;
 
-        canvas.StrokeSize = 2;
-        canvas.StrokeColor = Colors.Blue;
+ICanvas canvas = skiaCanvas;
 
-        canvas.DrawLine(10, 10, 100, 10);
+canvas.StrokeSize = 2;
+canvas.StrokeColor = Colors.Blue;
 
-        skCanvas.Flush();
+canvas.DrawLine(10, 10, 100, 10);
 
-        using (var skData = skBitmap.Encode(SKEncodedImageFormat.Png, 100))
-        {
-            var file = new FileInfo(fileName);
-            using (var fileStream = file.OpenWrite())
-            {
-                fileStream.SetLength(0);
-                skData.SaveTo(fileStream);
-            }
-        }
-    }
-}
+skCanvas.Flush();
