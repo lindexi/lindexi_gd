@@ -12,8 +12,8 @@ foreach (var line in File.ReadAllLines(file))
     {
         if
         (
-            line.Contains("Roslyn", StringComparison.OrdinalIgnoreCase)
-            //|| line.Contains("TotalCommander", StringComparison.OrdinalIgnoreCase)
+            line.Contains("docker", StringComparison.OrdinalIgnoreCase)
+        //|| line.Contains("TotalCommander", StringComparison.OrdinalIgnoreCase)
         )
         {
             File.AppendAllText(file2, $"{line}\r\n\r\n");

@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using BihuwelcairkiDelalurnere;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Graphics.Skia;
 
@@ -17,9 +18,10 @@ skiaCanvas.Canvas = skCanvas;
 
 ICanvas canvas = skiaCanvas;
 
-canvas.StrokeSize = 2;
-canvas.StrokeColor = Colors.Blue;
+var areaDraw = new AreaDraw();
+areaDraw.OnRender(canvas);
 
 canvas.DrawLine(10, 10, 100, 10);
 
 skCanvas.Flush();
+
