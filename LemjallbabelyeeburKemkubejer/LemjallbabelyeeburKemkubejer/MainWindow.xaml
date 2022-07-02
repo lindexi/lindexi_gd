@@ -1,0 +1,27 @@
+﻿<Window x:Class="LemjallbabelyeeburKemkubejer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:LemjallbabelyeeburKemkubejer"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
+            <StackPanel.Resources>
+                <Style TargetType="Button">
+                    <Setter Property="Margin" Value="10,10,10,10" />
+                </Style>
+            </StackPanel.Resources>
+            <Button Click="Button_Click">
+                进入断点
+            </Button>
+            <Button x:Name="FreeObjectButton" Click="FreeObjectButton_Click">
+                释放引用
+            </Button>
+            <Button x:Name="GCButton" Click="GCButton_Click">
+                GC
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>

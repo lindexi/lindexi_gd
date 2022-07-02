@@ -28,3 +28,6 @@
 [submodule "SmartSql-Docs"]
 	path = SmartSql-Docs
 	url = https://github.com/Smart-Kit/SmartSql-Docs.git
+[submodule "MediaWPF"]
+	path = MediaWPF
+	url = https://github.com/qian-o/MediaWPF.git
