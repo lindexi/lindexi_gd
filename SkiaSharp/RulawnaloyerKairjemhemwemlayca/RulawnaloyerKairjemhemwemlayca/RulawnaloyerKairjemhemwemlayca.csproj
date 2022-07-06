@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -8,8 +8,27 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="6.0.403" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.0" />
+    <PackageReference Include="SkiaSharp.NativeAssets.macOS" Version="2.88.0" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="2.88.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Microsoft.Maui.Graphics">
+      <HintPath>Microsoft.Maui.Graphics.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Maui.Graphics.Skia">
+      <HintPath>Microsoft.Maui.Graphics.Skia.dll</HintPath>
+    </Reference>
+    <Reference Include="SkiaSharp">
+      <HintPath>SkiaSharp.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="CopyReference" AfterTargets="Build">
+    <ItemGroup>
+      <ItemToCopy Include="*.dll"></ItemToCopy>
+    </ItemGroup>
+    <Copy SourceFiles="@(ItemToCopy)" DestinationFolder="$(OutputPath)"></Copy>
+  </Target>
 </Project>
