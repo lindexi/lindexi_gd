@@ -19,7 +19,8 @@ using (var skImage = SKImage.Create(skImageInfo))
             skiaCanvas.Canvas = skCanvas;
 
             ICanvas canvas = skiaCanvas;
-            canvas.Font = new Font("MicrosoftYaHei");
+            canvas.Font = new Font("微软雅黑");
+
             canvas.FontSize = 100;
             canvas.DrawString("汉字", 100, 100, HorizontalAlignment.Left);
 

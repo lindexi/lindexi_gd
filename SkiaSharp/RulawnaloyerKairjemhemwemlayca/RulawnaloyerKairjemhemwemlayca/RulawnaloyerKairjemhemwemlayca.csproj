@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="6.0.403" />
+    <PackageReference Include="SkiaSharp" Version="2.88.1-preview.79" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.0" />
   </ItemGroup>
 
