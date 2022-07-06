@@ -22,7 +22,10 @@ using (var skImage = SKImage.Create(skImageInfo))
             canvas.Font = new Font("微软雅黑");
 
             canvas.FontSize = 100;
-            canvas.DrawString("汉字", 100, 100, HorizontalAlignment.Left);
+            canvas.DrawString("汉字", 100, 100, 500, 500, HorizontalAlignment.Left, VerticalAlignment.Top);
+            canvas.StrokeColor = Colors.Blue;
+            canvas.StrokeSize = 2;
+            canvas.DrawRectangle(100, 100, 500, 500);
 
             skCanvas.Flush();
 
