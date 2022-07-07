@@ -5,7 +5,7 @@ using SkiaSharp;
 
 var skImageInfo = new SKImageInfo(1920, 1080, SKColorType.Bgra8888, SKAlphaType.Unpremul, SKColorSpace.CreateSrgb());
 
-var fileName = $"xx.png";
+var fileName = $"xx.jpg";
 
 using (var skImage = SKImage.Create(skImageInfo))
 {
@@ -21,15 +21,23 @@ using (var skImage = SKImage.Create(skImageInfo))
             ICanvas canvas = skiaCanvas;
             canvas.Font = new Font("微软雅黑");
 
-            canvas.FontSize = 100;
-            canvas.DrawString("汉字", 100, 100, 500, 500, HorizontalAlignment.Left, VerticalAlignment.Top);
-            canvas.StrokeColor = Colors.Blue;
-            canvas.StrokeSize = 2;
-            canvas.DrawRectangle(100, 100, 500, 500);
+            var linearGradientPaint = new LinearGradientPaint(new PaintGradientStop[]
+            {
+                new PaintGradientStop(0,Colors.Blue),
+                new PaintGradientStop(100,Colors.Black),
+            })
+            {
+                StartPoint = new Point(),
+                EndPoint = new Point(1,1)
+            };
+            canvas.FillColor = Colors.Beige;
+            canvas.FillRectangle(new RectF(10, 10, 200, 200));
+            canvas.SetFillPaint(linearGradientPaint, new RectF(10, 10, 200, 200));
+            canvas.FillRectangle(new RectF(10, 10, 200, 200));
 
             skCanvas.Flush();
 
-            using (var skData = skBitmap.Encode(SKEncodedImageFormat.Png, 100))
+            using (var skData = skBitmap.Encode(SKEncodedImageFormat.Jpeg, 2))
             {
                 var file = new FileInfo(fileName);
                 using (var fileStream = file.OpenWrite())
