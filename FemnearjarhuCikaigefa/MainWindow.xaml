@@ -1,0 +1,38 @@
+﻿<Window x:Class="WpfApp1.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfApp1"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Window.DataContext>
+        <local:ThemeKeyValuePair />
+    </Window.DataContext>
+    <StackPanel>
+        <Border>
+            <StackPanel>
+                <Border HorizontalAlignment="Center" Visibility="Visible" Height="50" Width="280" VerticalAlignment="Center" BorderThickness="10"
+                 BorderBrush="{Binding LinearGradientBrush}"
+                 x:Name="textbox2">
+
+                </Border>
+
+                <TextBox HorizontalAlignment="Center" Margin="10" Width="280" VerticalAlignment="Center" BorderThickness="10"
+                 BorderBrush="{Binding LinearGradientBrush}"
+                 x:Name="textbox4">
+
+                </TextBox>
+
+                <Button HorizontalAlignment="Center" Margin="10" Height="200" Visibility="Visible"   Width="280" VerticalAlignment="Center" BorderThickness="10"
+                 BorderBrush="{Binding LinearGradientBrush}" Background="White"
+                 x:Name="textbox3">
+                    <StackPanel>
+                        <TextBlock x:Name="firstPara" FontSize="11">Hello, world!</TextBlock>
+                        <TextBlock TextAlignment="Left">The RichTextBox control enables you to display or edit flow content including paragraphs, images, tables, and more. This topic introduces the TextBox class and provides examples of how to use it in both Extensible Application Markup Language (XAML) and C#.</TextBlock>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</Window>
