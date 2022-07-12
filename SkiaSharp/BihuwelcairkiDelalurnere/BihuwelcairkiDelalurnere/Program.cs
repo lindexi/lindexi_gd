@@ -17,7 +17,7 @@ using (var skImage = SKImage.Create(skImageInfo))
     {
         using (var skCanvas = new SKCanvas(skBitmap))
         {
-            skCanvas.Clear(SKColors.Transparent);
+            skCanvas.Clear(SKColors.White);
 
             var skiaCanvas = new SkiaCanvas();
             skiaCanvas.Canvas = skCanvas;
@@ -39,3 +39,6 @@ using (var skImage = SKImage.Create(skImageInfo))
         }
     }
 }
+
+System.Console.WriteLine("生成图表完成，输出图片 xx.png ");
+System.Console.Read();
