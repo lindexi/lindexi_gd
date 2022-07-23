@@ -11,7 +11,16 @@
             <RowDefinition></RowDefinition>
             <RowDefinition></RowDefinition>
         </Grid.RowDefinitions>
+
+        <local:SelectionCanvas></local:SelectionCanvas>
+        
+        
         <TextBox x:Name="OcrText" Grid.Row="0" Margin="10,10,10,10"></TextBox>
+
+        <local:ImageSelectionCanvas Grid.Row="0" 
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Stretch" x:Name="ImageSelectionCanvas"></local:ImageSelectionCanvas>
+
         <Button Grid.Row="1" Margin="15,10,10,10" HorizontalAlignment="Center" VerticalAlignment="Top" Content="识别图片" Click="Button_Click"></Button>
     </Grid>
 </Window>
