@@ -32,11 +32,15 @@ public partial class MainWindow : Window
     {
         var directory = FindSlnFolder();
         var file = System.IO.Path.Combine(directory.FullName, "JagerekukibeHelcewhalay", "Test.png");
+        file = @"C:\Users\linde\Pictures\202188206162793.jpg";
+
+        BitmapImage bitmapImage = new BitmapImage(new Uri(System.IO.Path.GetFullPath(file)));
+        ImageSelectionCanvas.Image.Source = bitmapImage;
 
         using IRandomAccessStream stream = await FileRandomAccessStream.OpenAsync(file, Windows.Storage.FileAccessMode.Read);
 
         // 解码图片
-        var decoder = await Windows.Graphics.Imaging.BitmapDecoder.CreateAsync(Windows.Graphics.Imaging.BitmapDecoder.PngDecoderId, stream);
+        var decoder = await Windows.Graphics.Imaging.BitmapDecoder.CreateAsync(stream);
 
         // 获取图像
         var softwareBitmap = await decoder.GetSoftwareBitmapAsync();
@@ -50,6 +54,11 @@ public partial class MainWindow : Window
             if (engine != null)
             {
                 var result = await engine.RecognizeAsync(softwareBitmap);
+
+                foreach (var line in result.Lines)
+                {
+                }
+
                 OcrText.Text = result.Text;
             }
         }
