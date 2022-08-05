@@ -14,7 +14,6 @@ namespace BihuwelcairkiDelalurnere
         {
             10, 32, 29, 12, 15
         };
-
         public List<double> 系列2 { get; } = new List<double>()
         {
             12, 5, 12, 21, 29
