@@ -12,7 +12,7 @@ namespace KajijuniLiguqujokemka
         {
             Application app = new Application();
             app.Startup += App_Startup;
-
+            
             app.Run();
         }
         
