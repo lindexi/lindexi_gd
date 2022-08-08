@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using SkiaSharp;
+using Svg.Skia;
 using Path = System.IO.Path;
 
 namespace GafawwaybalachaCemleardearha
@@ -37,20 +38,29 @@ namespace GafawwaybalachaCemleardearha
             var svgFile = "Test.svg";
             svgFile = Path.GetFullPath(svgFile);
 
+            using var skSvg = new SKSvg();
+            skSvg.Load(svgFile);
+            if (skSvg.Picture is null)
+            {
+                return;
+            }
 
+            var skSvgPicture = skSvg.Picture;
 
-            var fileStream = new FileStream(svgFile,FileMode.Open,FileAccess.ReadWrite);
-            //var skBitmap = SKBitmap.Decode(svgFile);
+            var skBitmap = skSvgPicture.ToBitmap(SKColor.Empty, 1, 1, SKColorType.Bgra8888, SKAlphaType.Premul, SKColorSpace.CreateSrgb());
 
-            using var skCanvas = SKSvgCanvas.Create(new SKRect(0,0,100,100), fileStream);
+            if (skBitmap is null)
+            {
+                return;
+            }
 
-            var writeableBitmap = new WriteableBitmap(100, 100, 96, 96, PixelFormats.Bgra32,
+            var writeableBitmap = new WriteableBitmap(skBitmap.Width, skBitmap.Height, 96, 96, PixelFormats.Bgra32,
                 BitmapPalettes.Halftone256Transparent);
 
             var skImageInfo = new SKImageInfo()
             {
-                Width = 100,
-                Height = 100,
+                Width = skBitmap.Width,
+                Height = skBitmap.Height,
                 ColorType = SKColorType.Bgra8888,
                 AlphaType = SKAlphaType.Premul,
                 ColorSpace = SKColorSpace.CreateSrgb()
@@ -59,10 +69,9 @@ namespace GafawwaybalachaCemleardearha
             using SKSurface surface = SKSurface.Create(skImageInfo, writeableBitmap.BackBuffer);
 
             writeableBitmap.Lock();
-            var skPaint = new SKPaint();
-            surface.Draw(skCanvas, 0, 0, skPaint);
+            surface.Canvas.DrawBitmap(skBitmap,0,0);
 
-            writeableBitmap.AddDirtyRect(new Int32Rect(0,0,100,100));
+            writeableBitmap.AddDirtyRect(new Int32Rect(0,0, skBitmap.Width, skBitmap.Height));
             writeableBitmap.Unlock();
 
             var image = new Image()
