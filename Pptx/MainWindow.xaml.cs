@@ -1,33 +1,16 @@
 ﻿#nullable enable
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Media;
 
-using DocumentFormat.OpenXml;
-using DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.Drawing.Charts;
 using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Presentation;
 
-using dotnetCampus.OpenXmlUnitConverter;
-
-using GeneratedCode;
-using ColorMap = DocumentFormat.OpenXml.Presentation.ColorMap;
 using GraphicFrame = DocumentFormat.OpenXml.Presentation.GraphicFrame;
-using Path = DocumentFormat.OpenXml.Drawing.Path;
-using Rectangle = System.Windows.Shapes.Rectangle;
-using SchemeColorValues = DocumentFormat.OpenXml.Drawing.SchemeColorValues;
-using Shape = DocumentFormat.OpenXml.Presentation.Shape;
-using ShapeProperties = DocumentFormat.OpenXml.Presentation.ShapeProperties;
-
 using PlotArea = DocumentFormat.OpenXml.Drawing.Charts.PlotArea;
 using Chart = DocumentFormat.OpenXml.Drawing.Charts.Chart;
 
@@ -160,57 +143,65 @@ namespace Pptx
                 if (areaChartChildElement is DocumentFormat.OpenXml.Drawing.Charts.AreaChartSeries areaChartSeries)
                 {
                     // 类别轴上的数据 横坐标轴上的数据
-                    var categoryAxisData = areaChartSeries.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.CategoryAxisData>()!;
-                    // 类别轴上的数据 横坐标轴上的数据 可能是数据，也就是 NumberReference 类型。也可能是字符串，也就是 StringReference 类型。这份课件里面，存放的是 StringReference 类型，以下代码只演示采用 StringReference 类型的读取方式，还请在具体项目，自行判断
+                    var categoryAxisData =
+                        areaChartSeries.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.CategoryAxisData>()!;
+                    // 类别轴上的数据 横坐标轴上的数据 可能是数据，也就是 NumberReference 类型。也可能是字符串，也就是 StringReference 类型。这份课件里面，存放的是 NumberReference 类型，以下代码只演示采用 NumberReference 类型的读取方式，还请在具体项目，自行判断
                     // 以下是 NumberReference 类型读取的例子
-                    //var categoryAxisDataNumberReference = categoryAxisData.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.NumberReference>();
-                    //if (categoryAxisDataNumberReference != null)
-                    //{
-                    //    // 这个公式表示是从 Excel 哪个数据获取的，获取的方式比较复杂。这里还是先从缓存获取
-                    //    var categoryAxisDataFormula = categoryAxisDataNumberReference.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Formula>();
-                    //
-                    //    // 读取缓存
-                    //    var categoryAxisDataNumberingCache = categoryAxisDataNumberReference.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.NumberingCache>();
-                    //    // 字符串格式化方式，例如日期方式格式化，可以是空，空表示不需要格式化
-                    //    var formatCodeText = categoryAxisDataNumberingCache?.FormatCode?.Text;
-                    //}
-
-                    var categoryAxisDataStringReference = categoryAxisData.GetFirstChild<StringReference>();
-                    if (categoryAxisDataStringReference != null)
+                    var categoryAxisDataNumberReference = categoryAxisData
+                        .GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.NumberReference>();
+                    if (categoryAxisDataNumberReference != null)
                     {
                         // 这个公式表示是从 Excel 哪个数据获取的，获取的方式比较复杂。这里还是先从缓存获取
-                        var categoryAxisDataFormula = categoryAxisDataStringReference.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Formula>();
+                        var categoryAxisDataFormula = categoryAxisDataNumberReference
+                            .GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Formula>();
 
                         // 读取缓存
-                        var categoryAxisDataStringCache = categoryAxisDataStringReference.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.StringCache>()!;
-                        /*
-                         <c:strCache>
-                            <c:ptCount val="5" />
-                            <c:pt idx="0">
-                              <c:v>A</c:v>
-                            </c:pt>
-                            <c:pt idx="1">
-                              <c:v>B</c:v>
-                            </c:pt>
-                            <c:pt idx="2">
-                              <c:v>C</c:v>
-                            </c:pt>
-                            <c:pt idx="3">
-                              <c:v>D</c:v>
-                            </c:pt>
-                            <c:pt idx="4">
-                              <c:v>E</c:v>
-                            </c:pt>
-                          </c:strCache>
-                         */
-                        var list = new List<string>();
-                        foreach (var stringPoint in categoryAxisDataStringCache.Elements<DocumentFormat.OpenXml.Drawing.Charts.StringPoint>())
-                        {
-                            // 以下的 类别轴上的数据 横坐标轴上的数据，各个列项的名称
-                            // 对于面积图来说，多个系列的列项都是相同的。尽管在 OpenXml 存储里面存放了两份，但以第零个系列的为准
-                            var text = stringPoint.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.NumericValue>()!.Text;
+                        var categoryAxisDataNumberingCache = categoryAxisDataNumberReference
+                            .GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.NumberingCache>()!;
+                        // 字符串格式化方式，例如日期方式格式化，可以是空，空表示不需要格式化
+                        var formatCodeText = categoryAxisDataNumberingCache.FormatCode?.Text;
 
-                            list.Add(text);
+                        var list = new List<string>();
+
+                        foreach (var numericPoint in categoryAxisDataNumberingCache
+                                     .Elements<DocumentFormat.OpenXml.Drawing.Charts.NumericPoint>())
+                        {
+                            var numericPointFormatCode = numericPoint.FormatCode;
+                            var numericPointFormatCodeText = numericPointFormatCode?.Value ?? formatCodeText;
+
+                            var numericValueText = numericPoint.NumericValue?.Text;
+
+                            var format = numericPointFormatCodeText;
+                            if (format == null || format == "m/d/yyyy")
+                            {
+                                // 如果是空和默认的，转换为中文的。后续可以根据设备的语言，转换为对应的日期
+                                format = "yyyy/M/d";
+                            }
+
+                            if (numericValueText != null && double.TryParse(numericValueText, out var value))
+                            {
+                                var days = value;
+                                days--; // 不包括当天
+
+                                // 这里只格式化日期的
+                                // This element specifies that the chart uses the 1904 date system. If the 1904 date system is used, then all dates
+                                // and times shall be specified as a decimal number of days since Dec. 31, 1903. If the 1904 date system is not
+                                // used, then all dates and times shall be specified as a decimal number of days since Dec. 31, 1899.
+                                // [Date systems in Excel](https://support.microsoft.com/en-us/office/date-systems-in-excel-e7fe7167-48a9-4b96-bb53-5612a800b487 )
+                                var useDate1904 = chartSpace.Date1904?.Val?.Value ?? false;
+                                if (useDate1904)
+                                {
+                                    list.Add(new DateTime(1903, 12, 31).AddDays(days).ToString(format));
+                                }
+                                else
+                                {
+                                    list.Add(new DateTime(1899, 12, 31).AddDays(days).ToString(format));
+                                }
+                            }
+                            else
+                            {
+                                list.Add(numericValueText ?? string.Empty);
+                            }
                         }
 
                         if (firstSeries)
@@ -218,7 +209,6 @@ namespace Pptx
                             outputText += string.Join(',', list) + "\r\n";
                         }
                     }
-
 
                     // 获取系列标题，放心，可以不读取 Excel 的内容，通过缓存内容即可。但是缓存内容也许和 Excel 内容不对应
                     /*
@@ -242,9 +232,11 @@ namespace Pptx
                         </c:plotArea>
                      */
                     var seriesText = areaChartSeries.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.SeriesText>()!;
-                    var seriesTextStringReference = seriesText.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.StringReference>()!;
+                    var seriesTextStringReference =
+                        seriesText.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.StringReference>()!;
                     // 这个公式表示是从 Excel 哪个数据获取的，获取的方式比较复杂。这里还是先从缓存获取
-                    var seriesTextFormula = seriesTextStringReference.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Formula>();
+                    var seriesTextFormula = seriesTextStringReference
+                        .GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Formula>();
 
                     // 有缓存的话，从缓存获取就可以，缓存内容也许和 Excel 内容不对应
                     /*
@@ -255,44 +247,20 @@ namespace Pptx
                           </c:pt>
                         </c:strCache>
                      */
-                    var seriesTextStringCache = seriesTextStringReference.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.StringCache>();
+                    var seriesTextStringCache = seriesTextStringReference
+                        .GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.StringCache>();
                     if (seriesTextStringCache != null)
                     {
-                        var seriesTextStringPoint = seriesTextStringCache.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.StringPoint>();
+                        var seriesTextStringPoint = seriesTextStringCache
+                            .GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.StringPoint>();
 
-                        var numericValue = seriesTextStringPoint!.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.NumericValue>();
+                        var numericValue = seriesTextStringPoint!
+                            .GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.NumericValue>();
                         // 系列1 标题
                         var title = numericValue!.Text;
 
                         outputText += "\r\n" + title + ":\r\n";
                     }
-
-                    // 图表的形状属性的内容和 形状属性 的内容是差不多的
-                    /*
-                        <c:plotArea>
-                          <c:areaChart>
-                            <c:ser>
-                              <c:tx>
-                                ...
-                              </c:tx>
-                              <c:spPr>
-                                <a:solidFill>
-                                  <a:srgbClr val="FF0000" />
-                                </a:solidFill>
-                              </c:spPr>
-                            </c:ser>
-                          </c:areaChart>
-                        </c:plotArea>
-                     */
-                    var chartShapeProperties = areaChartSeries.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.ChartShapeProperties>()!;
-                    // 获取画刷，画刷有好多不同的类型，这个课件只用了纯色
-                    var solidFill = chartShapeProperties.GetFirstChild<SolidFill>()!;
-                    // 画刷纯色颜色有很多个颜色表示方法，这个课件只用了 RGB 的纯色
-                    var rgbColorModelHex = solidFill.GetFirstChild<DocumentFormat.OpenXml.Drawing.RgbColorModelHex>()!;
-                    // 这就是这个系列的颜色
-                    var colorValue = rgbColorModelHex.Val!.Value;
-
-                    outputText += "系列颜色: " + colorValue + "\r\n";
 
                     // 获取系列的值
                     /*
@@ -340,7 +308,8 @@ namespace Pptx
                     var valueList = new List<string>();
                     var values = areaChartSeries.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Values>();
                     // 基本上都是 NumberReference 类型，存放的是数值
-                    var valuesNumberReference = values?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.NumberReference>();
+                    var valuesNumberReference =
+                        values?.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.NumberReference>();
                     if (valuesNumberReference != null)
                     {
                         /*
@@ -371,17 +340,21 @@ namespace Pptx
                          */
                         // 这份课件一定存在 values 内容
                         // 和其他的一样，存在引用 Excel 的内容。这里同样也是采用缓存
-                        var valuesFormula = valuesNumberReference.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Formula>();
+                        var valuesFormula = valuesNumberReference
+                            .GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.Formula>();
 
-                        var valuesNumberingCache = valuesNumberReference.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.NumberingCache>()!;
+                        var valuesNumberingCache = valuesNumberReference
+                            .GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.NumberingCache>()!;
 
                         // 通过 FormatCode 决定界面效果。这份课件是 General 表示不用格式化
                         var formatCode = valuesNumberingCache.FormatCode;
                         Debug.Assert(formatCode?.Text == "General");
 
-                        foreach (var numericPoint in valuesNumberingCache.Elements<DocumentFormat.OpenXml.Drawing.Charts.NumericPoint>())
+                        foreach (var numericPoint in valuesNumberingCache
+                                     .Elements<DocumentFormat.OpenXml.Drawing.Charts.NumericPoint>())
                         {
-                            var numericValue = numericPoint.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.NumericValue>()!;
+                            var numericValue =
+                                numericPoint.GetFirstChild<DocumentFormat.OpenXml.Drawing.Charts.NumericValue>()!;
                             var numericValueText = numericValue.Text;
 
                             valueList.Add(numericValueText);
