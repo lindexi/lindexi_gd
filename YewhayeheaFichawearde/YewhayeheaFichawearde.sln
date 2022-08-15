@@ -1,0 +1,52 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32014.148
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "YewhayeheaFichawearde.Shared", "YewhayeheaFichawearde\YewhayeheaFichawearde.Shared\YewhayeheaFichawearde.Shared.shproj", "{6279C845-92F8-4333-AB99-3D213163593C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Platforms", "Platforms", "{E5EC95AC-CBA0-4BD6-968C-E6DEA936D098}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YewhayeheaFichawearde.Skia.Gtk", "YewhayeheaFichawearde\YewhayeheaFichawearde.Skia.Gtk\YewhayeheaFichawearde.Skia.Gtk.csproj", "{27E9C152-1216-4070-990A-21D9199ABA8C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YewhayeheaFichawearde.Skia.Linux.FrameBuffer", "YewhayeheaFichawearde\YewhayeheaFichawearde.Skia.Linux.FrameBuffer\YewhayeheaFichawearde.Skia.Linux.FrameBuffer.csproj", "{E57C0419-1C1A-4F2C-A8E0-E730E09531D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YewhayeheaFichawearde.Skia.Wpf", "YewhayeheaFichawearde\YewhayeheaFichawearde.Skia.Wpf\YewhayeheaFichawearde.Skia.Wpf.csproj", "{CBFDDEA2-6A8B-4594-ADFD-4D8E58242DD7}"
+EndProject
+Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		YewhayeheaFichawearde\YewhayeheaFichawearde.Shared\YewhayeheaFichawearde.Shared.projitems*{27e9c152-1216-4070-990a-21d9199aba8c}*SharedItemsImports = 5
+		YewhayeheaFichawearde\YewhayeheaFichawearde.Shared\YewhayeheaFichawearde.Shared.projitems*{6279c845-92f8-4333-ab99-3d213163593c}*SharedItemsImports = 13
+		YewhayeheaFichawearde\YewhayeheaFichawearde.Shared\YewhayeheaFichawearde.Shared.projitems*{cbfddea2-6a8b-4594-adfd-4d8e58242dd7}*SharedItemsImports = 5
+		YewhayeheaFichawearde\YewhayeheaFichawearde.Shared\YewhayeheaFichawearde.Shared.projitems*{e57c0419-1c1a-4f2c-a8e0-e730e09531d2}*SharedItemsImports = 5
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{27E9C152-1216-4070-990A-21D9199ABA8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{27E9C152-1216-4070-990A-21D9199ABA8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{27E9C152-1216-4070-990A-21D9199ABA8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{27E9C152-1216-4070-990A-21D9199ABA8C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E57C0419-1C1A-4F2C-A8E0-E730E09531D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E57C0419-1C1A-4F2C-A8E0-E730E09531D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E57C0419-1C1A-4F2C-A8E0-E730E09531D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E57C0419-1C1A-4F2C-A8E0-E730E09531D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CBFDDEA2-6A8B-4594-ADFD-4D8E58242DD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CBFDDEA2-6A8B-4594-ADFD-4D8E58242DD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CBFDDEA2-6A8B-4594-ADFD-4D8E58242DD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CBFDDEA2-6A8B-4594-ADFD-4D8E58242DD7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{27E9C152-1216-4070-990A-21D9199ABA8C} = {E5EC95AC-CBA0-4BD6-968C-E6DEA936D098}
+		{E57C0419-1C1A-4F2C-A8E0-E730E09531D2} = {E5EC95AC-CBA0-4BD6-968C-E6DEA936D098}
+		{CBFDDEA2-6A8B-4594-ADFD-4D8E58242DD7} = {E5EC95AC-CBA0-4BD6-968C-E6DEA936D098}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {032DF19A-326C-4A06-A14E-28A752D98AF4}
+	EndGlobalSection
+EndGlobal
