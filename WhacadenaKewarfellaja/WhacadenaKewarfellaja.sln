@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32630.192
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WhacadenaKewarfellaja", "WhacadenaKewarfellaja\WhacadenaKewarfellaja.csproj", "{B3554AF4-E874-48BD-AF7A-11235C6C733D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WhacadenaKewarfellaja.Analyzers", "WhacadenaKewarfellaja.Analyzers\WhacadenaKewarfellaja.Analyzers.csproj", "{2ED40203-903A-4FC7-8D39-7ED16DCED9F9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B3554AF4-E874-48BD-AF7A-11235C6C733D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3554AF4-E874-48BD-AF7A-11235C6C733D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3554AF4-E874-48BD-AF7A-11235C6C733D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3554AF4-E874-48BD-AF7A-11235C6C733D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2ED40203-903A-4FC7-8D39-7ED16DCED9F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2ED40203-903A-4FC7-8D39-7ED16DCED9F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2ED40203-903A-4FC7-8D39-7ED16DCED9F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2ED40203-903A-4FC7-8D39-7ED16DCED9F9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3A9E216E-9E25-4A6E-8B0F-9F59DBF1B268}
+	EndGlobalSection
+EndGlobal
