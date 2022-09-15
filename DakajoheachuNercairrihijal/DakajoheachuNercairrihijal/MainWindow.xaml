@@ -1,0 +1,36 @@
+﻿<Window x:Class="DakajoheachuNercairrihijal.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DakajoheachuNercairrihijal"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Grid ClipToBounds="False">
+            <Grid.Background>
+                <VisualBrush
+                    Stretch="None"
+                    TileMode="Tile"
+                    Viewport="0,0,0.2,0.2"
+                    ViewportUnits="RelativeToBoundingBox">
+                    <VisualBrush.Visual>
+                        <TextBox
+                            Width="100"
+                            Height="50"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Top"
+                            VerticalContentAlignment="Center"
+                            Background="Blue"
+                            Foreground="White"
+                            Text="Hello .NET 6">
+                            <TextBox.LayoutTransform>
+                                <RotateTransform Angle="15" CenterX="50" CenterY="25" />
+                            </TextBox.LayoutTransform>
+                        </TextBox>
+                    </VisualBrush.Visual>
+                </VisualBrush>
+            </Grid.Background>
+        </Grid>
+    </Grid>
+</Window>
