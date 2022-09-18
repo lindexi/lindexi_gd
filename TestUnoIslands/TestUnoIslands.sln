@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32630.192
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "TestUnoIslands", "TestUnoIslands\TestUnoIslands.shproj", "{6CE00227-65F9-405A-B4EC-E03EF5F8ACD3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestUnoIslands.Wpf", "TestUnoIslands.Wpf\TestUnoIslands.Wpf.csproj", "{8AB4199C-3A78-4555-86B3-BE8F6553AA0A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8AB4199C-3A78-4555-86B3-BE8F6553AA0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8AB4199C-3A78-4555-86B3-BE8F6553AA0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8AB4199C-3A78-4555-86B3-BE8F6553AA0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8AB4199C-3A78-4555-86B3-BE8F6553AA0A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {761F243F-9108-44A1-B111-1F55348F7263}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		TestUnoIslands\TestUnoIslands.projitems*{6ce00227-65f9-405a-b4ec-e03ef5f8acd3}*SharedItemsImports = 13
+		TestUnoIslands\TestUnoIslands.projitems*{8ab4199c-3a78-4555-86b3-be8f6553aa0a}*SharedItemsImports = 5
+	EndGlobalSection
+EndGlobal
