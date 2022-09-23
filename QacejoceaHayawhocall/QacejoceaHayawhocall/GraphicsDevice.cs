@@ -110,20 +110,20 @@ class GraphicsDevice : IGraphicsDevice
 
         //for (int i = 0; i < 10; i++)
         //{
-        Task.Run(() =>
-        {
-            while (true)
-            {
-                D2D1RenderTarget.BeginDraw();
+        //    Task.Run(() =>
+        //    {
+        //        while (true)
+        //        {
+        //            D2D1RenderTarget.BeginDraw();
 
-                D2D1RenderTarget.Clear(new Color4((byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255)));
+        //            D2D1RenderTarget.Clear(new Color4((byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255)));
 
-                D2D1RenderTarget.EndDraw();
+        //            D2D1RenderTarget.EndDraw();
 
-                SwapChain.Present(1, PresentFlags.None);
-                Device.ImmediateContext1.Flush();
-            }
-        });
+        //            SwapChain.Present(1, PresentFlags.None);
+        //            //Device.ImmediateContext1.Flush();
+        //        }
+        //    });
         //}
     }
 
@@ -208,14 +208,14 @@ class GraphicsDevice : IGraphicsDevice
 
     public void DrawFrame()
     {
-        //D2D1RenderTarget.BeginDraw();
+        D2D1RenderTarget.BeginDraw();
 
-        //D2D1RenderTarget.Clear(new Color4((byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255)));
+        D2D1RenderTarget.Clear(new Color4((byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255)));
 
-        //D2D1RenderTarget.EndDraw();
+        D2D1RenderTarget.EndDraw();
 
-        //SwapChain.Present(1, PresentFlags.None);
-        //Device.ImmediateContext1.Flush();
+        SwapChain.Present(1, PresentFlags.None);
+        DeviceContext.Flush();
     }
 
     public void Dispose()
