@@ -1,5 +1,6 @@
 ﻿
 using System;
+using LightTextEditorPlus.Core.Primitive;
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Document.DocumentManagers
@@ -42,21 +43,15 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         /// </summary>
         internal event EventHandler? InternalDocumentChanged;
 
-        public IReadonlyParagraphProperty CurrentParagraphProperty { private set; get; }
+        /// <summary>
+        /// 设置或获取当前文本的默认段落属性。设置之后，只影响新变更的文本，不影响之前的文本
+        /// </summary>
+        public ParagraphProperty CurrentParagraphProperty { set; get; }
 
         #endregion
 
 
         #region 公开方法
-
-
-        /// <summary>
-        /// 设置当前文本的默认段落属性。设置之后，只影响新变更的文本，不影响之前的文本
-        /// </summary>
-        public void SetDefaultParagraphProperty()
-        {
-
-        }
 
         /// <summary>
         /// 设置当前文本的默认字符属性

@@ -30,6 +30,6 @@ class ParagraphManager
 class ParagraphData
 {
     // todo 实现默认的段落数据
-    public IReadonlyParagraphProperty ParagraphProperty { set; get; }
+    public ParagraphProperty ParagraphProperty { set; get; }
     public List<ITextRun> TextRunList { get; } = new List<ITextRun>();
 }

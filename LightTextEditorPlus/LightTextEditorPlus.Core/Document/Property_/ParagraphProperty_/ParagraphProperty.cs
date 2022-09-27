@@ -7,33 +7,33 @@ using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Document;
 
-/// <summary>
-/// 段落属性
-/// </summary>
-public interface IReadonlyParagraphProperty
-{
-    /// <summary>
-    /// 构建新的属性
-    /// </summary>
-    /// <param name="action"></param>
-    /// <returns></returns>
-    IReadonlyParagraphProperty BuildNewProperty(Action<ParagraphProperty> action);
-}
+///// <summary>
+///// 段落属性
+///// </summary>
+//public interface IReadonlyParagraphProperty
+//{
+//    /// <summary>
+//    /// 构建新的属性
+//    /// </summary>
+//    /// <param name="action"></param>
+//    /// <returns></returns>
+//    IReadonlyParagraphProperty BuildNewProperty(Action<ParagraphProperty> action);
+//}
 
 /// <summary>
 /// 段落属性
 /// </summary>
-public class ParagraphProperty : IReadonlyParagraphProperty
+public record ParagraphProperty
 {
     /// <summary>
     /// 文本从右向左布局还是从左向右布局
     /// </summary>
-    public FlowDirection Direction { get; set; } = FlowDirection.LeftToRight;
+    public FlowDirection Direction { get; init; } = FlowDirection.LeftToRight;
 
     /// <summary>
     /// 缩进度量值
     /// </summary>
-    public double Indent { get; set; } = 0;
+    public double Indent { get; init; } = 0;
 
     /// <summary>
     /// 行间距倍数，默认值为1，范围0~1000
@@ -41,7 +41,7 @@ public class ParagraphProperty : IReadonlyParagraphProperty
     public double LineSpacing
     {
         get;
-        set;
+        init;
     } = 1;
 
     /// <summary>
@@ -51,7 +51,7 @@ public class ParagraphProperty : IReadonlyParagraphProperty
     public double FixedLineSpacing
     {
         get;
-        set;
+        init;
     } = double.NaN;
 
     ///// <summary>
@@ -87,7 +87,7 @@ public class ParagraphProperty : IReadonlyParagraphProperty
     public double ParagraphBefore
     {
         get;
-        set;
+        init;
     }
 
     /// <summary>
@@ -96,14 +96,6 @@ public class ParagraphProperty : IReadonlyParagraphProperty
     public double ParagraphAfter
     {
         get;
-        set;
-    }
-
-    public IReadonlyParagraphProperty BuildNewProperty(Action<ParagraphProperty> action)
-    {
-        var paragraphProperty = new ParagraphProperty();
-        // todo 完成拷贝逻辑
-        action(paragraphProperty);
-        return paragraphProperty;
+        init;
     }
 }
