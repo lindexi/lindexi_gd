@@ -10,8 +10,11 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
     {
         public DocumentManager(TextEditor textEditor)
         {
-
+            TextEditor = textEditor;
+            TextRunManager = new TextRunManager(this);
         }
+
+        public TextEditorCore TextEditor { get; }
 
         /// <summary>
         /// 文档的宽度
@@ -22,5 +25,9 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         /// 文档的高度
         /// </summary>
         internal double DocumentHeight { set; get; }
+
+        internal TextRunManager TextRunManager { get; } 
     }
+
+
 }
