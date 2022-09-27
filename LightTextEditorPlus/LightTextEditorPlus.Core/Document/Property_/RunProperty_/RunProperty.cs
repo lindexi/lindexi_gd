@@ -32,7 +32,7 @@ namespace LightTextEditorPlus.Core.Document
         IReadOnlyRunProperty BuildNewProperty(Action<RunProperty> action);
     }
 
-    class RunProperty : IReadOnlyRunProperty
+    public class RunProperty : IReadOnlyRunProperty
     {
         public RunProperty()
         {
