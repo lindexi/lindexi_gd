@@ -93,6 +93,14 @@ public partial class TextEditorCore
 
     #region 公开方法
 
+    /// <summary>
+    /// 追加一段文本，追加的文本按照段末的样式
+    /// </summary>
+    /// 其实这个方法不应该放在这里
+    public void AppendText(string text)
+    {
+        DocumentManager.AppendText(text);
+    }
 
     #endregion
 

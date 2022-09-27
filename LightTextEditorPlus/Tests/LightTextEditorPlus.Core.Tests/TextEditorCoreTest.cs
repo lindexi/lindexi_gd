@@ -17,7 +17,6 @@ public class TextEditorCoreTest
         });
     }
 
-
     [ContractTestCase]
     public void BuildTextLogger()
     {
@@ -32,5 +31,48 @@ public class TextEditorCoreTest
             // Assert
             Assert.IsNotNull(textEditorCore.Logger);
         });
+    }
+
+    [ContractTestCase]
+    public void AppendText()
+    {
+        "给文本编辑器追加一段纯文本，先触发 DocumentChanging 再触发 DocumentChanged 事件".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            var raiseCount = 0;
+
+            textEditorCore.DocumentChanging += (sender, args) =>
+            {
+                // Assert
+                Assert.AreEqual(0, raiseCount);
+                raiseCount++;
+            };
+
+            textEditorCore.DocumentChanged += (sender, args) =>
+            {
+                // Assert
+                Assert.AreEqual(1, raiseCount);
+                raiseCount = 2;
+            };
+
+            // Action
+            textEditorCore.AppendText(TestHelper.PlainNumberText);
+
+            // Assert
+            Assert.AreEqual(2, raiseCount);
+        });
+    }
+}
+
+static class TestHelper
+{
+    public const string PlainNumberText = "123";
+
+    public static TextEditorCore GetTextEditorCore()
+    {
+        var testPlatformProvider = new TestPlatformProvider();
+        var textEditorCore = new TextEditorCore(testPlatformProvider);
+        return textEditorCore;
     }
 }

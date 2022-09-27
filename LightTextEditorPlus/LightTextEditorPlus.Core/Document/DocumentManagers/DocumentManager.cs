@@ -1,5 +1,6 @@
 ﻿
 using System;
+
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Document.DocumentManagers
@@ -66,6 +67,24 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
             CurrentRunProperty = CurrentRunProperty.BuildNewProperty(config);
         }
 
+        /// <summary>
+        /// 追加一段文本
+        /// </summary>
+        /// 其实这个方法不应该放在这里
+        public void AppendText(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                // 空白内容
+                return;
+            }
+
+            InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
+
+
+
+            InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
+        }
         #endregion
     }
 }
