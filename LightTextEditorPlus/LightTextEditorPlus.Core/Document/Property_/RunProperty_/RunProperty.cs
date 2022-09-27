@@ -7,7 +7,7 @@ using LightTextEditorPlus.Core.Utils.Maths;
 
 namespace LightTextEditorPlus.Core.Document
 {
-    internal interface IReadOnlyRunProperty
+    public interface IReadOnlyRunProperty
     {
         double FontSize { get; }
         FontName FontFamily { get; }
