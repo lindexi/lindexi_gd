@@ -10,8 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
-    - name: Build with dotnet
-      run: dotnet build --configuration Release LightTextEditorPlus
-
-    - name: Test
-      run: dotnet test --configuration Release LightTextEditorPlus
+    - name: Build and Test
+      run: |
+        dotnet build --configuration release LightTextEditorPlus
+        dotnet test --configuration release LightTextEditorPlus --no-build
