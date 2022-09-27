@@ -116,7 +116,7 @@ namespace LightTextEditorPlus.TextEditorPlus.Editing
 
             // 尽管文档说传递null是无效的，但这似乎有助于在与WPF共享的默认输入上下文中激活IME输入法
             // 这里需要了解的是，在 WPF 的逻辑，是需要传入 DefaultTextStore.Current.DocumentManager 才符合预期
-            var threadMgr = IMENative.GetTextFrameworkThreadManager();
+            IMENative.ITfThreadMgr? threadMgr = IMENative.GetTextFrameworkThreadManager();
             threadMgr?.SetFocus(IntPtr.Zero);
         }
 
