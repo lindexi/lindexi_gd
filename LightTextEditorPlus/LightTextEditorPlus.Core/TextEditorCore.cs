@@ -14,6 +14,6 @@ namespace LightTextEditorPlus.Core;
 /// 这是一个底层类型，提供很多定制逻辑，设计上属于功能多但是不可简单使用，上层应该对此进行再次封装
 /// </summary>
 /// <remarks> 这个项目的核心和入口就是这个类</remarks>
-public class TextEditorCore
+public partial class TextEditorCore
 {
 }
