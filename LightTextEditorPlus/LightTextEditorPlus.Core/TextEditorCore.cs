@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LightTextEditorPlus.Core.Document.DocumentManagers;
+using LightTextEditorPlus.Core.Layout;
+using LightTextEditorPlus.Core.Platform;
 
 namespace LightTextEditorPlus.Core;
 
@@ -16,4 +19,30 @@ namespace LightTextEditorPlus.Core;
 /// <remarks> 这个项目的核心和入口就是这个类</remarks>
 public partial class TextEditorCore
 {
+    public TextEditorCore(IPlatformProvider platformProvider)
+    {
+        PlatformProvider = platformProvider;
+
+        DocumentManager = new DocumentManager(this);
+        DocumentManager.DocumentChanged += DocumentManager_DocumentChanged;
+
+        _layoutManager = new LayoutManager(this);
+    }
+
+    private void DocumentManager_DocumentChanged(object? sender, EventArgs e)
+    {
+        // 文档变更，更新布局
+        PlatformProvider.RequireDispatchUpdateLayout(UpdateLayout);
+    }
+
+    private void UpdateLayout()
+    {
+        // 更新布局完成之后，更新渲染信息
+        _layoutManager.UpdateLayout();
+    }
+
+    private readonly LayoutManager _layoutManager;
+    public DocumentManager DocumentManager { get; }
+
+    public IPlatformProvider PlatformProvider { get; }
 }

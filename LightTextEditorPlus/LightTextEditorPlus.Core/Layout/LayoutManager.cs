@@ -8,4 +8,8 @@ class LayoutManager
     {
     }
 
+    public void UpdateLayout()
+    {
+        
+    }
 }

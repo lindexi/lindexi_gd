@@ -1,4 +1,5 @@
 ﻿
+using System;
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Document.DocumentManagers
@@ -19,15 +20,15 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         /// <summary>
         /// 文档的宽度
         /// </summary>
-        internal double DocumentWidth { set; get; }
+        internal double DocumentWidth { set; get; } = double.PositiveInfinity;
 
         /// <summary>
         /// 文档的高度
         /// </summary>
-        internal double DocumentHeight { set; get; }
+        internal double DocumentHeight { set; get; } = double.PositiveInfinity;
 
-        internal TextRunManager TextRunManager { get; } 
+        internal TextRunManager TextRunManager { get; }
+
+        public event EventHandler? DocumentChanged;
     }
-
-
 }
