@@ -70,21 +70,6 @@ public partial class TextEditorCore
 
     #region 公开方法
 
-    /// <summary>
-    /// 设置当前文本的默认段落属性。设置之后，只影响新变更的文本，不影响之前的文本
-    /// </summary>
-    public void SetDefaultParagraphProperty()
-    {
-
-    }
-
-    /// <summary>
-    /// 设置当前文本的默认字符属性
-    /// </summary>
-    public void SetDefaultTextRunProperty()
-    {
-
-    }
 
     #endregion
 }

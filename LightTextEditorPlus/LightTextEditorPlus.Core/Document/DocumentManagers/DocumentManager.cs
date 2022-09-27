@@ -5,7 +5,7 @@ using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 namespace LightTextEditorPlus.Core.Document.DocumentManagers
 {
     /// <summary>
-    /// 提供文档管理，只提供数据管理
+    /// 提供文档管理，只提供数据管理，这里属于更高级的 API 层，将提供更多的细节控制
     /// </summary>
     public class DocumentManager
     {
@@ -15,6 +15,7 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
             TextRunManager = new TextRunManager(this);
         }
 
+        #region 框架
         public TextEditorCore TextEditor { get; }
 
         /// <summary>
@@ -30,5 +31,31 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         internal TextRunManager TextRunManager { get; }
 
         public event EventHandler? DocumentChanged;
+
+        internal IReadonlyParagraphProperty CurrentParagraphProperty { set; get; }
+
+        #endregion
+
+
+        #region 公开方法
+
+
+        /// <summary>
+        /// 设置当前文本的默认段落属性。设置之后，只影响新变更的文本，不影响之前的文本
+        /// </summary>
+        public void SetDefaultParagraphProperty()
+        {
+
+        }
+
+        /// <summary>
+        /// 设置当前文本的默认字符属性
+        /// </summary>
+        public void SetDefaultTextRunProperty()
+        {
+
+        }
+
+        #endregion
     }
 }
