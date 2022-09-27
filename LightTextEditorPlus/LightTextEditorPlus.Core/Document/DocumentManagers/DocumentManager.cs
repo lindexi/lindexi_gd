@@ -13,6 +13,8 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         {
             TextEditor = textEditor;
             TextRunManager = new TextRunManager(this);
+
+            CurrentParagraphProperty = new ParagraphProperty();
         }
 
         #region 框架
@@ -40,7 +42,7 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         /// </summary>
         internal event EventHandler? InternalDocumentChanged;
 
-        internal IReadonlyParagraphProperty CurrentParagraphProperty { set; get; }
+        public IReadonlyParagraphProperty CurrentParagraphProperty { private set; get; }
 
         #endregion
 

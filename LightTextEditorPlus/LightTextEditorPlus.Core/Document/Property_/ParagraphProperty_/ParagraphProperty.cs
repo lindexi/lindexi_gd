@@ -1,6 +1,10 @@
 ﻿
 using LightTextEditorPlus.Core.Primitive;
 
+using System;
+
+using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
+
 namespace LightTextEditorPlus.Core.Document;
 
 /// <summary>
@@ -8,13 +12,18 @@ namespace LightTextEditorPlus.Core.Document;
 /// </summary>
 public interface IReadonlyParagraphProperty
 {
-
+    /// <summary>
+    /// 构建新的属性
+    /// </summary>
+    /// <param name="action"></param>
+    /// <returns></returns>
+    IReadonlyParagraphProperty BuildNewProperty(Action<ParagraphProperty> action);
 }
 
 /// <summary>
 /// 段落属性
 /// </summary>
-class ParagraphProperty : IReadonlyParagraphProperty
+public class ParagraphProperty : IReadonlyParagraphProperty
 {
     /// <summary>
     /// 文本从右向左布局还是从左向右布局
@@ -88,5 +97,13 @@ class ParagraphProperty : IReadonlyParagraphProperty
     {
         get;
         set;
+    }
+
+    public IReadonlyParagraphProperty BuildNewProperty(Action<ParagraphProperty> action)
+    {
+        var paragraphProperty = new ParagraphProperty();
+        // todo 完成拷贝逻辑
+        action(paragraphProperty);
+        return paragraphProperty;
     }
 }
