@@ -15,7 +15,7 @@ namespace LightTextEditorPlus.TextEditorPlus.Editing
             internal Guid clsid;
             internal short langid;
             internal Guid catid;
-            [MarshalAs(UnmanagedType.Bool)] 
+            [MarshalAs(UnmanagedType.Bool)]
             internal bool fActive;
             internal Guid guidProfile;
         }
@@ -140,7 +140,7 @@ namespace LightTextEditorPlus.TextEditorPlus.Editing
 
         [ThreadStatic]
         private static bool TextFrameworkThreadMgrInitialized;
-        [ThreadStatic] 
+        [ThreadStatic]
         private static ITfThreadMgr? TextFrameworkThreadMgr;
 
         internal static ITfThreadMgr? GetTextFrameworkThreadManager()

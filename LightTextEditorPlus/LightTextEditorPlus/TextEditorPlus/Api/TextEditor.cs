@@ -30,6 +30,10 @@ namespace LightTextEditorPlus.TextEditorPlus
 
             _imeSupporter = new IMESupporter<TextEditor>(this);
 
+        }
+
+        static TextEditor()
+        {
             // 用于接收 Tab 按键，而不是被切换焦点
             KeyboardNavigation.IsTabStopProperty.OverrideMetadata(typeof(TextEditor),
                 new FrameworkPropertyMetadata(true));
