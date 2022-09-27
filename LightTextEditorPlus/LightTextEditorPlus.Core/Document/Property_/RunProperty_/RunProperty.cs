@@ -44,38 +44,36 @@ namespace LightTextEditorPlus.Core.Document
         private FontName? _fontFamily;
 
         //runProperty.FontStyle, runProperty.FontWeight,
-       
-        ///// <summary>
-        ///// 斜体表示，默认值为Normal
-        ///// </summary>
-        //public FontStyle FontStyle
-        //{
-        //    set
-        //    {
-        //        _fontStyle = value;
-        //        RaiseOnTextRunPropertyChanged();
-        //    }
-        //    get => _fontStyle ?? StyleRunProperty?.FontStyle ?? DefaultFontStyle;
-        //}
 
-        //private FontStyle? _fontStyle;
-        //private static FontStyle DefaultFontStyle => FontStyles.Normal;
+        /// <summary>
+        /// 斜体表示，默认值为Normal
+        /// </summary>
+        public FontStyle FontStyle
+        {
+            set
+            {
+                _fontStyle = value;
+                RaiseOnTextRunPropertyChanged();
+            }
+            get => _fontStyle ?? StyleRunProperty?.FontStyle ?? FontStyle.DefaultNotDefine;
+        }
 
-        ///// <summary>
-        ///// 字的粗细度，默认值为Normal
-        ///// </summary>
-        //public FontWeight FontWeight
-        //{
-        //    set
-        //    {
-        //        _fontWeight = value;
-        //        RaiseOnTextRunPropertyChanged();
-        //    }
-        //    get => _fontWeight ?? StyleRunProperty?.FontWeight ?? DefaultFontWeight;
-        //}
+        private FontStyle? _fontStyle;
 
-        //private FontWeight? _fontWeight;
-        //private static FontWeight DefaultFontWeight => FontWeights.Normal;
+        /// <summary>
+        /// 字的粗细度，默认值为Normal
+        /// </summary>
+        public FontWeight FontWeight
+        {
+            set
+            {
+                _fontWeight = value;
+                RaiseOnTextRunPropertyChanged();
+            }
+            get => _fontWeight ?? StyleRunProperty?.FontWeight ?? FontWeight.DefaultNotDefine;
+        }
+
+        private FontWeight? _fontWeight;
 
         /// <summary>
         /// 继承样式里的属性
