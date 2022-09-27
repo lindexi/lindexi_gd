@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Platform;
 
@@ -16,6 +17,12 @@ public interface IPlatformProvider
     /// 推荐处理：快速多次触发时，只触发一次，以及调度到合适的时机去执行
     /// <param name="textLayout"></param>
     void RequireDispatchUpdateLayout(Action textLayout);
+
+    /// <summary>
+    /// 创建文本日志
+    /// </summary>
+    /// <returns>可为空，为空采用空白日志</returns>
+    ITextLogger? BuildTextLogger();
 }
 
  

@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using LightTextEditorPlus.Core.Document.DocumentManagers;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
+using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core;
 
@@ -29,7 +31,16 @@ public partial class TextEditorCore
         DocumentManager.DocumentChanged += DocumentManager_DocumentChanged;
 
         _layoutManager = new LayoutManager(this);
+
+        Logger = platformProvider.BuildTextLogger() ?? new EmptyTextLogger();
     }
+
+    #region 框架逻辑
+
+    private readonly LayoutManager _layoutManager;
+
+    public DocumentManager DocumentManager { get; }
+    public IPlatformProvider PlatformProvider { get; }
 
     private void DocumentManager_DocumentChanged(object? sender, EventArgs e)
     {
@@ -43,10 +54,15 @@ public partial class TextEditorCore
         _layoutManager.UpdateLayout();
     }
 
-    private readonly LayoutManager _layoutManager;
+    /// <summary>
+    /// 日志
+    /// </summary>
+    public ITextLogger Logger { get; }
 
-    public DocumentManager DocumentManager { get; }
-    public IPlatformProvider PlatformProvider { get; }
+    #endregion
+
+
+
 
     #region 公开属性
 
@@ -55,7 +71,7 @@ public partial class TextEditorCore
 
     #region 公开方法
 
-    
+
 
     #endregion
 }

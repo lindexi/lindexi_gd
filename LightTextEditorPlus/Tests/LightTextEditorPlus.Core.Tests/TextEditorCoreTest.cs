@@ -16,4 +16,21 @@ public class TextEditorCoreTest
             Assert.IsNotNull(textEditorCore);
         });
     }
+
+
+    [ContractTestCase]
+    public void BuildTextLogger()
+    {
+        "文本的日志属性不为空，即使平台返回空".Test(() =>
+        {
+            // Arrange
+            var testPlatformProvider = new TestPlatformProvider();
+
+            // Action
+            var textEditorCore = new TextEditorCore(testPlatformProvider);
+
+            // Assert
+            Assert.IsNotNull(textEditorCore.Logger);
+        });
+    }
 }
