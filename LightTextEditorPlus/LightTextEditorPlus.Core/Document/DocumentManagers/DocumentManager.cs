@@ -1,6 +1,5 @@
 ﻿
 using System;
-using LightTextEditorPlus.Core.Primitive;
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Document.DocumentManagers
@@ -13,9 +12,10 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         public DocumentManager(TextEditor textEditor)
         {
             TextEditor = textEditor;
-            TextRunManager = new TextRunManager(this);
-
             CurrentParagraphProperty = new ParagraphProperty();
+            CurrentRunProperty = new RunProperty();
+
+            TextRunManager = new TextRunManager(this);
         }
 
         #region 框架
@@ -48,6 +48,11 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         /// </summary>
         public ParagraphProperty CurrentParagraphProperty { set; get; }
 
+        /// <summary>
+        /// 获取当前文本的默认字符属性
+        /// </summary>
+        public IReadOnlyRunProperty CurrentRunProperty { private set; get; }
+
         #endregion
 
 
@@ -56,9 +61,9 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         /// <summary>
         /// 设置当前文本的默认字符属性
         /// </summary>
-        public void SetDefaultTextRunProperty()
+        public void SetDefaultTextRunProperty(Action<RunProperty> config)
         {
-
+            CurrentRunProperty = CurrentRunProperty.BuildNewProperty(config);
         }
 
         #endregion
