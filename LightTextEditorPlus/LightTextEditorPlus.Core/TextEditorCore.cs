@@ -17,6 +17,8 @@ namespace LightTextEditorPlus.Core;
 /// 这是一个底层类型，提供很多定制逻辑，设计上属于功能多但是不可简单使用，上层应该对此进行再次封装
 /// </summary>
 /// <remarks> 这个项目的核心和入口就是这个类</remarks>
+/// 此文件放置框架内的逻辑
+/// 其他 API 相关的，放入到 API 文件夹里
 public partial class TextEditorCore
 {
     public TextEditorCore(IPlatformProvider platformProvider)
@@ -42,7 +44,18 @@ public partial class TextEditorCore
     }
 
     private readonly LayoutManager _layoutManager;
-    public DocumentManager DocumentManager { get; }
 
+    public DocumentManager DocumentManager { get; }
     public IPlatformProvider PlatformProvider { get; }
+
+    #region 公开属性
+
+
+    #endregion
+
+    #region 公开方法
+
+    
+
+    #endregion
 }
