@@ -45,14 +45,21 @@ public partial class TextEditorCore
     private void DocumentManager_DocumentChanged(object? sender, EventArgs e)
     {
         // 文档变更，更新布局
+        Logger.LogDebug($"[TextEditorCore] 文档变更，更新布局");
         PlatformProvider.RequireDispatchUpdateLayout(UpdateLayout);
     }
 
     private void UpdateLayout()
     {
         // 更新布局完成之后，更新渲染信息
+        Logger.LogDebug($"[TextEditorCore][UpdateLayout] 开始更新布局");
         _layoutManager.UpdateLayout();
+        Logger.LogDebug($"[TextEditorCore][UpdateLayout] 完成更新布局");
     }
+
+    #endregion
+
+    #region 公开属性
 
     /// <summary>
     /// 日志
@@ -61,17 +68,23 @@ public partial class TextEditorCore
 
     #endregion
 
-
-
-
-    #region 公开属性
-
-
-    #endregion
-
     #region 公开方法
 
+    /// <summary>
+    /// 设置当前文本的默认段落属性。设置之后，只影响新变更的文本，不影响之前的文本
+    /// </summary>
+    public void SetDefaultParagraphProperty()
+    {
 
+    }
+
+    /// <summary>
+    /// 设置当前文本的默认字符属性
+    /// </summary>
+    public void SetDefaultTextRunProperty()
+    {
+
+    }
 
     #endregion
 }
