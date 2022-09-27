@@ -16,7 +16,7 @@ jobs:
         dotnet test --configuration release LightTextEditorPlus --no-build
 
   BuildInLinux:
-    runs-on: ubuntu-lastest
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v1
