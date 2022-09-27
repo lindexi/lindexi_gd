@@ -8,4 +8,5 @@ namespace LightTextEditorPlus.Core.Platform;
 
 public interface IPlatformProvider
 {
+    // 获取默认字体
 }
