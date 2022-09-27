@@ -1,7 +1,7 @@
 ﻿namespace LightTextEditorPlus.Core.Document;
 
 /// <summary>
-/// 表示一段文本，具有相同的属性定义
+/// 表示一段文本，具有相同的属性定义。表示共享单个属性集的字符序列
 /// </summary>
 public interface IRun
 {
