@@ -28,11 +28,18 @@ public partial class TextEditorCore
         PlatformProvider = platformProvider;
 
         DocumentManager = new DocumentManager(this);
+        DocumentManager.InternalDocumentChanging += DocumentManager_InternalDocumentChanging;
         DocumentManager.InternalDocumentChanged += DocumentManager_DocumentChanged;
 
         _layoutManager = new LayoutManager(this);
 
         Logger = platformProvider.BuildTextLogger() ?? new EmptyTextLogger();
+    }
+
+    private void DocumentManager_InternalDocumentChanging(object? sender, EventArgs e)
+    {
+        // 文档开始变更
+        DocumentChanging?.Invoke(this, e);
     }
 
     #region 框架逻辑
@@ -47,6 +54,8 @@ public partial class TextEditorCore
         // 文档变更，更新布局
         Logger.LogDebug($"[TextEditorCore] 文档变更，更新布局");
         PlatformProvider.RequireDispatchUpdateLayout(UpdateLayout);
+
+        DocumentChanged?.Invoke(this, e);
     }
 
     private void UpdateLayout()
@@ -68,8 +77,24 @@ public partial class TextEditorCore
 
     #endregion
 
+    #region 公开事件
+
+    /// <summary>
+    /// 文档开始变更事件
+    /// </summary>
+    public event EventHandler? DocumentChanging;
+
+    /// <summary>
+    /// 文档变更完成事件
+    /// </summary>
+    public event EventHandler? DocumentChanged;
+
+    #endregion
+
     #region 公开方法
 
 
     #endregion
+
+
 }

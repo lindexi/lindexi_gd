@@ -31,9 +31,14 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         internal TextRunManager TextRunManager { get; }
 
         /// <summary>
-        /// 给内部提供的文档变更事件
+        /// 给内部提供的文档开始变更事件
         /// </summary>
-        public event EventHandler? InternalDocumentChanged;
+        internal event EventHandler? InternalDocumentChanging;
+
+        /// <summary>
+        /// 给内部提供的文档变更完成事件
+        /// </summary>
+        internal event EventHandler? InternalDocumentChanged;
 
         internal IReadonlyParagraphProperty CurrentParagraphProperty { set; get; }
 
