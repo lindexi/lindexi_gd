@@ -28,7 +28,7 @@ public partial class TextEditorCore
         PlatformProvider = platformProvider;
 
         DocumentManager = new DocumentManager(this);
-        DocumentManager.DocumentChanged += DocumentManager_DocumentChanged;
+        DocumentManager.InternalDocumentChanged += DocumentManager_DocumentChanged;
 
         _layoutManager = new LayoutManager(this);
 
