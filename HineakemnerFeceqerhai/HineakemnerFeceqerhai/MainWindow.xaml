@@ -1,0 +1,15 @@
+﻿<Window x:Class="HineakemnerFeceqerhai.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:HineakemnerFeceqerhai"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Button x:Name="DispatcherInvokeShutdownButton" Margin="10,10,10,10" Click="DispatcherInvokeShutdownButton_OnClick">Dispatcher.InvokeShutdown</Button>
+            <Button x:Name="ApplicationCurrentShutdownButton" Margin="10,10,10,10" Click="ApplicationCurrentShutdownButton_OnClick">Application.Current.Shutdown</Button>
+        </StackPanel>
+    </Grid>
+</Window>
