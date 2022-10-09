@@ -1,7 +1,5 @@
 ﻿using Vortice.Mathematics;
 using Vortice.WIC;
-using D3D = Vortice.Direct3D;
-using D3D11 = Vortice.Direct3D11;
 using D2D = Vortice.Direct2D1;
 using PixelFormat = Vortice.DCommon.PixelFormat;
 
