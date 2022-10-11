@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -28,17 +29,71 @@ internal class DefaultRunParagraphSplitter : IRunParagraphSplitter
         }
     }
 
-    private IEnumerable<IRun> Split(TextRun textRun)
+    private static IEnumerable<IRun> Split(TextRun textRun)
     {
         var text = textRun.Text;
         foreach (var subText in Split(text))
         {
-            yield return new TextRun(subText, textRun.RunProperty);
+            if (subText is null)
+            {
+                yield return new EmptyRun(textRun.RunProperty);
+            }
+            else
+            {
+                yield return new TextRun(subText, textRun.RunProperty);
+            }
         }
     }
 
-    private IEnumerable<string> Split(string text)
+    private static IEnumerable<string?> Split(string text)
     {
-        throw new NotImplementedException();
+        int position = 0;
+        bool endWithBreakLine = false;
+        for (int i = 0; i < text.Length; i++)
+        {
+            var currentChar = text[i];
+            if (currentChar is '\r' or '\n')
+            {
+                if (position == i)
+                {
+                    yield return null;
+                }
+                else
+                {
+                    var length = i - position;
+                    yield return text.Substring(position, length);
+                }
+
+                if (i != text.Length - 1)
+                {
+                    var nextChar = text[i + 1];
+                    if (nextChar is '\n')
+                    {
+                        i++;
+                    }
+                }
+
+                position = i + 1;
+
+                endWithBreakLine = true;
+            }
+            else
+            {
+                endWithBreakLine = false;
+            }
+        }
+
+        if (position < text.Length)
+        {
+            Debug.Assert(endWithBreakLine is false);
+
+            var length = text.Length - position;
+            yield return text.Substring(position, length);
+        }
+
+        if (endWithBreakLine)
+        {
+            yield return null;
+        }
     }
 }
