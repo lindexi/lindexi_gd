@@ -29,7 +29,7 @@ internal class TextRunManager
             // 没有替换的长度，加入即可
         }
 
-
+        InsertInner(section.SectionStart, run);
     }
 
     /// <summary>
