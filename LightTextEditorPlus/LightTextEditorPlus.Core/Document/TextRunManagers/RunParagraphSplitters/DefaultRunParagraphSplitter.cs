@@ -9,21 +9,16 @@ internal class DefaultRunParagraphSplitter : IRunParagraphSplitter
     {
         if (run is TextRun textRun)
         {
-            return Split(textRun);
+            var text = textRun.Text;
+            foreach (var subText in Split(text))
+            {
+                yield return new TextRun(subText, textRun.RunProperty);
+            }
         }
         else
         {
             // todo 处理非文本的情况
             throw new NotImplementedException();
-        }
-    }
-
-    private IEnumerable<IRun> Split(TextRun textRun)
-    {
-        var text = textRun.Text;
-        foreach (var subText in Split(text))
-        {
-            yield return new TextRun(subText, textRun.RunProperty);
         }
     }
 
