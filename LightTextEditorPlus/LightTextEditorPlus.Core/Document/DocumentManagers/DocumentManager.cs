@@ -1,4 +1,6 @@
 ﻿
+using LightTextEditorPlus.Core.Document.Segments;
+
 using System;
 
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
@@ -56,6 +58,14 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
 
         #endregion
 
+        #region 公开属性
+
+        /// <summary>
+        /// 文档的字符数量
+        /// </summary>
+        public int CharCount { get; }
+
+        #endregion
 
         #region 公开方法
 
@@ -71,7 +81,7 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         /// 追加一段文本
         /// </summary>
         /// 其实这个方法不应该放在这里
-        public void AppendText(string text)
+        internal void AppendText(string text)
         {
             if (string.IsNullOrEmpty(text))
             {
@@ -79,12 +89,21 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
                 return;
             }
 
+            // 追加在字符数量，也就是最末
+            EditAndReplaceRun(new SectionSegment(CharCount, 0), new TextRun(text));
+        }
+
+        public void EditAndReplaceRun(SectionSegment section, IRun run)
+        {
             InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
+            // 这里只处理数据变更，后续渲染需要通过 InternalDocumentChanged 事件触发
 
-
+            // 先放在末尾
+            TextRunManager.Replace(section, run);
 
             InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
         }
+
         #endregion
     }
 }

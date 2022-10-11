@@ -25,4 +25,15 @@ public interface IPlatformProvider
     ITextLogger? BuildTextLogger();
 }
 
- 
+public abstract class PlatformProvider : IPlatformProvider
+{
+    public virtual void RequireDispatchUpdateLayout(Action textLayout)
+    {
+        textLayout();
+    }
+
+    public virtual ITextLogger? BuildTextLogger()
+    {
+        return null;
+    }
+}
