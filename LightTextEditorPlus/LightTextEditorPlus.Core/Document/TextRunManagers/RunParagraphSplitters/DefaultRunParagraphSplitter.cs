@@ -36,7 +36,7 @@ internal class DefaultRunParagraphSplitter : IRunParagraphSplitter
         {
             if (subText is null)
             {
-                yield return new EmptyRun(textRun.RunProperty);
+                yield return new LineBreakRun(textRun.RunProperty);
             }
             else
             {
