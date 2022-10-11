@@ -68,5 +68,4 @@ public class TextEditorCoreTest
         // todo 考虑传入 123\r\n123\r\n 文本
 
     }
-
 }
