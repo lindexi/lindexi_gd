@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Platform;
@@ -23,6 +25,8 @@ public interface IPlatformProvider
     /// </summary>
     /// <returns>可为空，为空采用空白日志</returns>
     ITextLogger? BuildTextLogger();
+
+    IRunParagraphSplitter GetRunParagraphSplitter();
 }
 
 public abstract class PlatformProvider : IPlatformProvider
@@ -36,4 +40,11 @@ public abstract class PlatformProvider : IPlatformProvider
     {
         return null;
     }
+
+    public virtual IRunParagraphSplitter GetRunParagraphSplitter()
+    {
+        return _defaultRunParagraphSplitter ??= new DefaultRunParagraphSplitter();
+    }
+
+    private DefaultRunParagraphSplitter? _defaultRunParagraphSplitter;
 }

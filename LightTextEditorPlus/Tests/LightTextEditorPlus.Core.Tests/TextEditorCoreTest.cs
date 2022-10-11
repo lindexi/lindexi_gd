@@ -64,6 +64,8 @@ public class TextEditorCoreTest
         });
 
         // todo 考虑首次追加的就是 \r\n 换行
+        // todo 考虑传入 123\r\n123 文本
+        // todo 考虑传入 123\r\n123\r\n 文本
 
     }
 

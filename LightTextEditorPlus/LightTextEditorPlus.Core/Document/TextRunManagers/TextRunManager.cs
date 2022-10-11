@@ -10,12 +10,15 @@ namespace LightTextEditorPlus.Core.Document;
 
 internal class TextRunManager
 {
+
     public TextRunManager(TextEditorCore textEditor)
     {
+        TextEditor = textEditor;
         ParagraphManager = new ParagraphManager(textEditor);
     }
 
     public ParagraphManager ParagraphManager { get; }
+    public TextEditorCore TextEditor { get; }
 
     public void Replace(SelectionSegment selection, IRun run)
     {
@@ -43,6 +46,11 @@ internal class TextRunManager
         var paragraphData = ParagraphManager.GetParagraphData(offset);
 
         // 获取 run 的分段逻辑，大部分情况下都是按照 \r\n 作为分段逻辑
+        var runParagraphSplitter = TextEditor.PlatformProvider.GetRunParagraphSplitter();
+        foreach (var subRun in runParagraphSplitter.Split(run))
+        {
+            
+        }
     }
 
     private void RemoveInner(int offset, int length)
