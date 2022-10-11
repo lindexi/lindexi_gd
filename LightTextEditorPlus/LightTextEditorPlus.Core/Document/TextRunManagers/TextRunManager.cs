@@ -10,9 +10,9 @@ namespace LightTextEditorPlus.Core.Document;
 
 internal class TextRunManager
 {
-    public TextRunManager(DocumentManager documentManager)
+    public TextRunManager(TextEditorCore textEditor)
     {
-        ParagraphManager = new ParagraphManager(documentManager.TextEditor);
+        ParagraphManager = new ParagraphManager(textEditor);
     }
 
     public ParagraphManager ParagraphManager { get; }
@@ -39,6 +39,7 @@ internal class TextRunManager
     /// <param name="run"></param>
     private void InsertInner(int offset, IRun run)
     {
+        // 插入的逻辑，找到插入变更的行
         var paragraphData = ParagraphManager.GetParagraphData(offset);
 
         // 获取 run 的分段逻辑，大部分情况下都是按照 \r\n 作为分段逻辑
@@ -46,7 +47,7 @@ internal class TextRunManager
 
     private void RemoveInner(int offset, int length)
     {
-
+        // todo 实现删除逻辑
     }
 }
 

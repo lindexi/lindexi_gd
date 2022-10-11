@@ -62,5 +62,9 @@ public class TextEditorCoreTest
             // Assert
             Assert.AreEqual(2, raiseCount);
         });
+
+        // todo 考虑首次追加的就是 \r\n 换行
+
     }
+
 }
