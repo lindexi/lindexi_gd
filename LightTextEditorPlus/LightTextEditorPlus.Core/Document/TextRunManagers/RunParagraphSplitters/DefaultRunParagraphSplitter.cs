@@ -9,7 +9,17 @@ internal class DefaultRunParagraphSplitter : IRunParagraphSplitter
     {
         if (run is TextRun textRun)
         {
-            return Split(textRun);
+            var text = textRun.Text;
+
+            if (text.Contains('\n') || text.Contains('\r'))
+            {
+                return Split(textRun);
+            }
+            else
+            {
+                // 这是一个优化，大部分的文本都没有包含换行的输入，那就返回自身即可，不需要再构建复杂的逻辑
+                return new[] { textRun };
+            }
         }
         else
         {
