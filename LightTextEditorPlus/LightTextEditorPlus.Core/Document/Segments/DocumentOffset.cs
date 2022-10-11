@@ -9,11 +9,16 @@ public readonly struct DocumentOffset : IEquatable<DocumentOffset>, IEquatable<i
 {
     public DocumentOffset(int offset)
     {
-        if (offset < DefaultDocumentOffset.Offset)
+        if (offset < DefaultDocumentOffsetValue)
         {
             throw new ArgumentOutOfRangeException(nameof(offset), "文档的偏移量最小值不能小于 -1 默认值");
         }
 
+        Offset = offset;
+    }
+
+    private DocumentOffset(int offset, bool isInternal)
+    {
         Offset = offset;
     }
 
@@ -25,7 +30,9 @@ public readonly struct DocumentOffset : IEquatable<DocumentOffset>, IEquatable<i
     /// <summary>
     /// 默认的文档偏移
     /// </summary>
-    public static DocumentOffset DefaultDocumentOffset => new DocumentOffset(-1);
+    public static DocumentOffset DefaultDocumentOffset => new DocumentOffset(DefaultDocumentOffsetValue, true);
+
+    private const int DefaultDocumentOffsetValue = -1;
 
     /// <summary>
     /// 转换代码
