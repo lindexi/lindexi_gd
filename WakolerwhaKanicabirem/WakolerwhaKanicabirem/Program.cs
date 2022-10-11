@@ -1,5 +1,9 @@
-﻿using Vortice.Mathematics;
+﻿using System.Diagnostics;
+using System.Numerics;
+
+using Vortice.Mathematics;
 using Vortice.WIC;
+
 using D2D = Vortice.Direct2D1;
 using PixelFormat = Vortice.DCommon.PixelFormat;
 
@@ -16,13 +20,16 @@ class Program
         var renderTargetProperties = new D2D.RenderTargetProperties(PixelFormat.Premultiplied);
 
         using var wicImagingFactory = new IWICImagingFactory();
+        var width = 1000;
+        var height = 1000;
         using var wicBitmap =
-            wicImagingFactory.CreateBitmap(1000, 1000, Win32.Graphics.Imaging.Apis.GUID_WICPixelFormat32bppPBGRA);
+            wicImagingFactory.CreateBitmap(width, height, Win32.Graphics.Imaging.Apis.GUID_WICPixelFormat32bppPBGRA);
 
         D2D.ID2D1RenderTarget d2D1RenderTarget =
             d2DFactory.CreateWicBitmapRenderTarget(wicBitmap, renderTargetProperties);
 
         using var renderTarget = d2D1RenderTarget;
+        var stopwatch = Stopwatch.StartNew();
         // 开始绘制逻辑
         renderTarget.BeginDraw();
 
@@ -30,8 +37,27 @@ class Program
         var color = new Color4((byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255),
             (byte) Random.Shared.Next(255));
         renderTarget.Clear(color);
+        color = new Color4(GetRandom(), GetRandom(), GetRandom());
+        using var brush = renderTarget.CreateSolidColorBrush(color);
+
+        for (int i = 0; i < 10; i++)
+        {
+            var radiusX = 5;
+            var radiusY = 5;
+            renderTarget.DrawEllipse(new D2D.Ellipse(new Vector2(Random.Shared.Next(width - radiusX), Random.Shared.Next(height - radiusY)), radiusX, radiusY), brush, 2);
+        }
+
+        stopwatch.Stop();
+        Console.WriteLine($"Draw: {stopwatch.ElapsedMilliseconds}");
+        stopwatch.Restart();
 
         renderTarget.EndDraw();
+
+        stopwatch.Stop();
+        Console.WriteLine($"EndDraw: {stopwatch.ElapsedMilliseconds}");
+        stopwatch.Restart();
+
+        byte GetRandom() => (byte) Random.Shared.Next(255);
 
         var file = @"D2D.png";
         using (var fileStream = File.OpenWrite(file))
