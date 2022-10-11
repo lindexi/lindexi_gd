@@ -90,16 +90,16 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
             }
 
             // 追加在字符数量，也就是最末
-            EditAndReplaceRun(new SectionSegment(CharCount, 0), new TextRun(text));
+            EditAndReplaceRun(new SelectionSegment(CharCount, 0), new TextRun(text));
         }
 
-        public void EditAndReplaceRun(SectionSegment section, IRun run)
+        public void EditAndReplaceRun(SelectionSegment selection, IRun run)
         {
             InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
             // 这里只处理数据变更，后续渲染需要通过 InternalDocumentChanged 事件触发
 
             // 先放在末尾
-            TextRunManager.Replace(section, run);
+            TextRunManager.Replace(selection, run);
 
             InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
         }

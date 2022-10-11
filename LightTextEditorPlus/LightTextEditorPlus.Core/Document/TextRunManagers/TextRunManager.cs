@@ -17,19 +17,19 @@ internal class TextRunManager
 
     public ParagraphManager ParagraphManager { get; }
 
-    public void Replace(SectionSegment section, IRun run)
+    public void Replace(SelectionSegment selection, IRun run)
     {
         // 先执行删除，再执行插入
-        if (section.SectionLength != 0)
+        if (selection.SectionLength != 0)
         {
-            RemoveInner(section.SectionStart,section.SectionLength);
+            RemoveInner(selection.SelectionStart,selection.SectionLength);
         }
         else
         {
             // 没有替换的长度，加入即可
         }
 
-        InsertInner(section.SectionStart, run);
+        InsertInner(selection.SelectionStart, run);
     }
 
     /// <summary>
