@@ -18,4 +18,6 @@ public class TextRun : ITextRun
     }
 
     public IReadOnlyRunProperty? RunProperty { get; }
+
+    public override string ToString() => Text;
 }
