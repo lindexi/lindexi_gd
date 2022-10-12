@@ -5,6 +5,9 @@
 /// </summary>
 readonly struct ParagraphOffset
 {
+    /// <summary>
+    /// 创建段落的偏移量
+    /// </summary>
     public ParagraphOffset(int offset)
     {
         Offset = offset;

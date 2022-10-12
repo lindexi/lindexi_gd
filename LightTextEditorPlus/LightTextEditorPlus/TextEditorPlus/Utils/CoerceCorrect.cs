@@ -7,6 +7,7 @@ namespace LightTextEditorPlus.TextEditorPlus.Utils
     /// <summary>
     /// 做强制检查的辅助类
     /// </summary>
+    /// todo 考虑不开放
     public static class CoerceCorrect
     {
         /// <summary>

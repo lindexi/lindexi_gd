@@ -39,4 +39,16 @@ public static class TextContext
     /// 文本库统一写入的换行符，此换行符和平台无关，所有平台写入相同的值
     /// </summary>
     public const string NewLine = "\r\n";
+
+    /// <summary>
+    /// 表示一个无效字符
+    /// </summary>
+    internal const char NotChar = '\uFFFE';
+
+    internal const string DefaultText = "1";
+
+    /// <summary>
+    ///  文本内部渲染使用的double的阈值, 渲染宽度计算时应使用较大的精度
+    /// </summary>
+    internal const double RenderEpsilon = 0.001;
 }
