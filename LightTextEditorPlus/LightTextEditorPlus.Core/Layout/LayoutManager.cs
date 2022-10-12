@@ -1,4 +1,6 @@
-﻿using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
+﻿using System;
+using LightTextEditorPlus.Core.Primitive;
+using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Layout;
 
@@ -7,7 +9,6 @@ class LayoutManager
     public LayoutManager(TextEditor textEditor)
     {
         TextEditor = textEditor;
-        ArrangingLayoutProvider = new HorizontalArrangingLayoutProvider(textEditor);
     }
 
     public TextEditorCore TextEditor { get; }
@@ -16,11 +17,22 @@ class LayoutManager
     {
         // todo 完成测量最大宽度
 
+        if (ArrangingLayoutProvider?.ArrangingType != TextEditor.ArrangingType)
+        {
+            ArrangingLayoutProvider = TextEditor.ArrangingType switch
+            {
+                ArrangingType.Horizontal => new HorizontalArrangingLayoutProvider(TextEditor),
+                // todo 支持竖排文本
+                _=>throw new NotSupportedException()
+            };
+        }
+
         var sizeToContent = TextEditor.SizeToContent;
+
 
     }
 
-    public ArrangingLayoutProvider ArrangingLayoutProvider { get; }
+    private ArrangingLayoutProvider? ArrangingLayoutProvider { set; get; }
 }
 
 /// <summary>
@@ -31,6 +43,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     public HorizontalArrangingLayoutProvider(TextEditorCore textEditor) : base(textEditor)
     {
     }
+
+    public override ArrangingType ArrangingType => ArrangingType.Horizontal;
 }
 
 /// <summary>
@@ -43,6 +57,7 @@ abstract class ArrangingLayoutProvider
         TextEditor = textEditor;
     }
 
+    public abstract ArrangingType ArrangingType { get; }
     public TextEditorCore TextEditor { get; }
 
 }

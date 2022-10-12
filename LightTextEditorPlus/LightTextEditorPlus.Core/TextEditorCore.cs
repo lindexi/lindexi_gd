@@ -83,6 +83,12 @@ public partial class TextEditorCore
     public LineSpacingStrategy LineSpacingStrategy { set; get; }
 
     /// <summary>
+    /// 布局方式
+    /// </summary>
+    /// todo 实现布局方式
+    public ArrangingType ArrangingType { set; get; }
+
+    /// <summary>
     /// 日志
     /// </summary>
     public ITextLogger Logger { get; }
