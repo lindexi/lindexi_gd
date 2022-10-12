@@ -52,47 +52,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
     public override ArrangingType ArrangingType => ArrangingType.Horizontal;
 
-    protected override void LayoutParagraph(ParagraphData paragraph)
+    protected override void LayoutParagraphCore(ParagraphData paragraph, int startTextRunIndex, ParagraphOffset startParagraphOffset)
     {
-        // 先找到首个需要更新的坐标点，这里的坐标是段坐标
-        var dirtyParagraphOffset = 0;
-        var lastIndex = -1;
-        for (var index = 0; index < paragraph.LineVisualDataList.Count; index++)
-        {
-            LineVisualData lineVisualData = paragraph.LineVisualDataList[index];
-            if (lineVisualData.IsDirty == false)
-            {
-                dirtyParagraphOffset += lineVisualData.CharCount;
-            }
-            else
-            {
-                lastIndex = index;
-                break;
-            }
-        }
-
-        if (lastIndex > 0)
-        {
-            // todo 考虑行信息的复用，或者调用释放方法
-            paragraph.LineVisualDataList.RemoveRange(lastIndex, paragraph.LineVisualDataList.Count - lastIndex);
-        }
-
-        // 不需要通过如此复杂的逻辑获取有哪些，因为存在的坑在于后续分拆 IRun 逻辑将会复杂
-        //paragraph.GetRunRange(dirtyParagraphOffset);
-
-        if (paragraph.TextRunList.Count == 0)
-        {
-            // todo 考虑 paragraph.TextRunList 数量为空的情况，只有一个换行的情况
-        }
-
-        var dirtyTextRunIndex = paragraph.GetRunIndex(new ParagraphOffset(dirtyParagraphOffset));
-
-        if (dirtyTextRunIndex == -1)
-        {
-            // 理论上不可能
-        }
-       
-        for (var i = dirtyTextRunIndex; i < paragraph.TextRunList.Count; i++)
+        for (var i = startTextRunIndex; i < paragraph.TextRunList.Count; i++)
         {
             // 预期刚好 dirtyParagraphOffset 是某个 IRun 的起始
 
@@ -170,5 +132,50 @@ abstract class ArrangingLayoutProvider
     /// 段落内布局
     /// </summary>
     /// <param name="paragraph"></param>
-    protected abstract void LayoutParagraph(ParagraphData paragraph);
+    private void LayoutParagraph(ParagraphData paragraph)
+    {
+        // 先找到首个需要更新的坐标点，这里的坐标是段坐标
+        var dirtyParagraphOffset = 0;
+        var lastIndex = -1;
+        for (var index = 0; index < paragraph.LineVisualDataList.Count; index++)
+        {
+            LineVisualData lineVisualData = paragraph.LineVisualDataList[index];
+            if (lineVisualData.IsDirty == false)
+            {
+                dirtyParagraphOffset += lineVisualData.CharCount;
+            }
+            else
+            {
+                lastIndex = index;
+                break;
+            }
+        }
+
+        if (lastIndex > 0)
+        {
+            // todo 考虑行信息的复用，或者调用释放方法
+            paragraph.LineVisualDataList.RemoveRange(lastIndex, paragraph.LineVisualDataList.Count - lastIndex);
+        }
+
+        // 不需要通过如此复杂的逻辑获取有哪些，因为存在的坑在于后续分拆 IRun 逻辑将会复杂
+        //paragraph.GetRunRange(dirtyParagraphOffset);
+
+        if (paragraph.TextRunList.Count == 0)
+        {
+            // todo 考虑 paragraph.TextRunList 数量为空的情况，只有一个换行的情况
+        }
+
+        var startParagraphOffset = new ParagraphOffset(dirtyParagraphOffset);
+        var startTextRunIndex = paragraph.GetRunIndex(startParagraphOffset);
+
+        if (startTextRunIndex == -1)
+        {
+            // todo 理论上不可能
+        }
+
+        LayoutParagraphCore(paragraph, startTextRunIndex, startParagraphOffset);
+    }
+
+    protected abstract void LayoutParagraphCore(ParagraphData paragraph, int startTextRunIndex,
+        ParagraphOffset startParagraphOffset);
 }
