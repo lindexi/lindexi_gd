@@ -71,6 +71,12 @@ public partial class TextEditorCore
     #region 公开属性
 
     /// <summary>
+    /// 获取或设置文本框的尺寸自适应模式
+    /// </summary>
+    /// todo 处理自适应变更的重新更新
+    public SizeToContent SizeToContent { set; get; }
+
+    /// <summary>
     /// 日志
     /// </summary>
     public ITextLogger Logger { get; }
