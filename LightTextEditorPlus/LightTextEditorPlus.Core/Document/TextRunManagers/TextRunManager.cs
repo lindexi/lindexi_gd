@@ -173,6 +173,8 @@ class ParagraphData
     /// </summary>
     public bool IsDirty { set; get; } = true;
 
+
+
     /// <summary>
     /// 在段落中间插入的时候，需要将段落在插入后面的内容分割删除
     /// </summary>
@@ -221,4 +223,18 @@ class ParagraphData
             AppendRun(run);
         }
     }
+
+    #region 渲染排版数据
+
+    public List<LineVisualData> LineVisualDataList { get; } = new List<LineVisualData>();
+
+    #endregion
+}
+
+/// <summary>
+/// 行渲染信息
+/// </summary>
+class LineVisualData
+{
+
 }
