@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using LightTextEditorPlus.Core.Document.DocumentManagers;
 using LightTextEditorPlus.Core.Document.Segments;
+using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -185,8 +186,7 @@ class ParagraphData
     /// 当本行被删除后这个属性值依然有效，这种情况下，它包含在删除之前的行分隔符的长度
     /// </summary>
     /// 无论在哪个平台上，都统一为 \r\n 两个字符
-    public const int DelimiterLength = 2;
-
+    public static int DelimiterLength => TextContext.NewLine.Length;
 
 
     // 不合适，将会让段落必须知道文档坐标
