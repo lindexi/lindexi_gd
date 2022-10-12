@@ -77,6 +77,12 @@ public partial class TextEditorCore
     public SizeToContent SizeToContent { set; get; }
 
     /// <summary>
+    /// 设置当前多倍行距呈现策略
+    /// </summary>
+    /// todo 实现当前多倍行距呈现策略
+    public LineSpacingStrategy LineSpacingStrategy { set; get; }
+
+    /// <summary>
     /// 日志
     /// </summary>
     public ITextLogger Logger { get; }
