@@ -63,6 +63,7 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         /// <summary>
         /// 文档的字符数量
         /// </summary>
+        /// todo 文档的字符数量
         public int CharCount { get; }
 
         #endregion
