@@ -117,6 +117,11 @@ class ParagraphManager
         }
         else
         {
+            if (offset.Offset == 0)
+            {
+                return ParagraphList[0];
+            }
+
             //todo 还没实现非空行的逻辑
             throw new NotImplementedException();
         }
@@ -187,6 +192,7 @@ class ParagraphData
     /// <exception cref="NotImplementedException"></exception>
     public IList<IRun>? SplitRemoveByDocumentOffset(int offset)
     {
+        // todo 设置LineVisualData是脏的
         if (offset == CharCount)
         {
             // 如果插入在最后，那就啥都不需要做
@@ -236,6 +242,25 @@ class ParagraphData
     public List<LineVisualData> LineVisualDataList { get; } = new List<LineVisualData>();
 
     #endregion
+
+    public ParagraphOffset GetParagraphOffset(IRun run)
+    {
+        var paragraphOffset = 0;
+
+        foreach (var currentRun in TextRunList)
+        {
+            if (ReferenceEquals(currentRun, run))
+            {
+                return new ParagraphOffset(paragraphOffset);
+            }
+            else
+            {
+                paragraphOffset += currentRun.Count;
+            }
+        }
+
+        throw new ArgumentException($"传入的 Run 不是此段落的元素", nameof(run));
+    }
 
     /// <summary>
     /// 给定传入的段落偏移获取是对应 <see cref="TextRunList"/> 的从哪项开始
