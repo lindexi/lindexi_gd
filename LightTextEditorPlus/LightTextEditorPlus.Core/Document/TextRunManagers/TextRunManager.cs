@@ -236,6 +236,33 @@ class ParagraphData
     public List<LineVisualData> LineVisualDataList { get; } = new List<LineVisualData>();
 
     #endregion
+
+    /// <summary>
+    /// 给定传入的段落偏移获取是对应 <see cref="TextRunList"/> 的从哪项开始
+    /// </summary>
+    /// <param name="paragraphOffset"></param>
+    /// <returns></returns>
+    public int GetRunIndex(ParagraphOffset paragraphOffset)
+    {
+        var paragraph = this;
+        int currentParagraphOffset = 0;
+        for (var i = 0; i < paragraph.TextRunList.Count; i++)
+        {
+            var length = paragraph.TextRunList[i].Count;
+            var behindOffset = currentParagraphOffset + length;
+            if (behindOffset >= paragraphOffset.Offset)
+            {
+                var dirtyTextRunIndex = i;
+                return dirtyTextRunIndex;
+            }
+            else
+            {
+                currentParagraphOffset = behindOffset;
+            }
+        }
+
+        return -1;
+    }
 }
 
 /// <summary>

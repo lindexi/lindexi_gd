@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive;
 
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
@@ -84,25 +85,17 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             // todo 考虑 paragraph.TextRunList 数量为空的情况，只有一个换行的情况
         }
 
-        var dirtyTextRunIndex = 0;
-        int currentParagraphOffset = 0;
-        for (var i = 0; i < paragraph.TextRunList.Count; i++)
-        {
-            var length = paragraph.TextRunList[i].Count;
-            var behindOffset = currentParagraphOffset + length;
-            if (behindOffset >= dirtyParagraphOffset)
-            {
-                dirtyTextRunIndex = i;
-                break;
-            }
-            else
-            {
-                currentParagraphOffset = behindOffset;
-            }
-        }
+        var dirtyTextRunIndex = paragraph.GetRunIndex(new ParagraphOffset(dirtyParagraphOffset));
 
+        if (dirtyTextRunIndex == -1)
+        {
+            // 理论上不可能
+        }
+       
         for (var i = dirtyTextRunIndex; i < paragraph.TextRunList.Count; i++)
         {
+            // 预期刚好 dirtyParagraphOffset 是某个 IRun 的起始
+
             var run = paragraph.TextRunList[i];
             // 开始行布局
 
