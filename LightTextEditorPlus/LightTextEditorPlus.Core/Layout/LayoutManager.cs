@@ -50,6 +50,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     }
 
     public override ArrangingType ArrangingType => ArrangingType.Horizontal;
+
+    protected override void LayoutParagraph(ParagraphData paragraph)
+    {
+        // todo 未更改的行，不需要重新布局更新
+
+
+    }
 }
 
 /// <summary>
@@ -75,18 +82,36 @@ abstract class ArrangingLayoutProvider
         // - 获取需要更新布局段落的逻辑
         // - 进入段落布局
         //   - 进入行布局
+        // - 所有段落布局完成之后，再根据段落之间的高度信息，更新每个段落的 YOffset 的值
 
+        // 首行出现变脏的序号
+        var firstDirtyParagraphIndex = -1;
         var dirtyParagraphDataList = new List<ParagraphData>();
-        foreach (ParagraphData paragraphData in TextEditor.DocumentManager.TextRunManager.ParagraphManager.GetParagraphList())
+        var list = TextEditor.DocumentManager.TextRunManager.ParagraphManager.GetParagraphList();
+        for (var index = 0; index < list.Count; index++)
         {
+            ParagraphData paragraphData = list[index];
             if (paragraphData.IsDirty)
             {
+                if (firstDirtyParagraphIndex == -1)
+                {
+                    firstDirtyParagraphIndex = index;
+                }
+
                 dirtyParagraphDataList.Add(paragraphData);
             }
         }
 
+        // 进入段落内布局
+        foreach (var paragraphData in dirtyParagraphDataList)
+        {
+            LayoutParagraph(paragraphData);
+        }
+
         // todo 完成测量最大宽度
         var sizeToContent = TextEditor.SizeToContent;
+
+
 
         // 完成布局之后，全部设置为非脏的（或者是段落内自己实现）
         foreach (var paragraphData in dirtyParagraphDataList)
@@ -96,4 +121,10 @@ abstract class ArrangingLayoutProvider
 
         Debug.Assert(TextEditor.DocumentManager.TextRunManager.ParagraphManager.GetParagraphList().All(t => t.IsDirty == false));
     }
+
+    /// <summary>
+    /// 段落内布局
+    /// </summary>
+    /// <param name="paragraph"></param>
+    protected abstract void LayoutParagraph(ParagraphData paragraph);
 }

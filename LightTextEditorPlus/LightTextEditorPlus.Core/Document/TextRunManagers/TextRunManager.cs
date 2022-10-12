@@ -173,7 +173,11 @@ class ParagraphData
     /// </summary>
     public bool IsDirty { set; get; } = true;
 
-
+    // 不合适，将会让段落必须知道文档坐标
+    ///// <summary>
+    ///// 从哪个开始
+    ///// </summary>
+    //public DocumentOffset? DirtyOffset { set; get; }
 
     /// <summary>
     /// 在段落中间插入的时候，需要将段落在插入后面的内容分割删除
@@ -209,6 +213,8 @@ class ParagraphData
         {
             throw new NotImplementedException($"还没实现从段落中间插入的功能");
         }
+
+        // todo 设置LineVisualData是脏的
     }
 
     public void AppendRun(IRun run)
@@ -236,5 +242,8 @@ class ParagraphData
 /// </summary>
 class LineVisualData
 {
-
+    /// <summary>
+    /// 是否是脏的，需要重新布局渲染
+    /// </summary>
+    public bool IsDirty { set; get; }
 }
