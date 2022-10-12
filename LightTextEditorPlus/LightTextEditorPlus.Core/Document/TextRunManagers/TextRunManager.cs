@@ -161,6 +161,7 @@ class ParagraphData
     /// <summary>
     /// 这一段的字符长度
     /// </summary>
+    /// todo 考虑缓存字符数量，不需要每次都计算
     public int CharCount => TextRunList.Sum(t => t.Count);
 
     /// <summary>

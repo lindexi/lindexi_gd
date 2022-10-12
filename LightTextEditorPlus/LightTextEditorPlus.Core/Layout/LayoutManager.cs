@@ -53,8 +53,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
     protected override void LayoutParagraph(ParagraphData paragraph)
     {
-        // todo 未更改的行，不需要重新布局更新
-
         // 先找到首个需要更新的坐标点，这里的坐标是段坐标
         var dirtyParagraphOffset = 0;
         var lastIndex = -1;
@@ -74,7 +72,40 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         if (lastIndex > 0)
         {
+            // todo 考虑行信息的复用，或者调用释放方法
             paragraph.LineVisualDataList.RemoveRange(lastIndex, paragraph.LineVisualDataList.Count - lastIndex);
+        }
+
+        // 不需要通过如此复杂的逻辑获取有哪些，因为存在的坑在于后续分拆 IRun 逻辑将会复杂
+        //paragraph.GetRunRange(dirtyParagraphOffset);
+
+        if (paragraph.TextRunList.Count == 0)
+        {
+            // todo 考虑 paragraph.TextRunList 数量为空的情况，只有一个换行的情况
+        }
+
+        var dirtyTextRunIndex = 0;
+        int currentParagraphOffset = 0;
+        for (var i = 0; i < paragraph.TextRunList.Count; i++)
+        {
+            var length = paragraph.TextRunList[i].Count;
+            var behindOffset = currentParagraphOffset + length;
+            if (behindOffset >= dirtyParagraphOffset)
+            {
+                dirtyTextRunIndex = i;
+                break;
+            }
+            else
+            {
+                currentParagraphOffset = behindOffset;
+            }
+        }
+
+        for (var i = dirtyTextRunIndex; i < paragraph.TextRunList.Count; i++)
+        {
+            var run = paragraph.TextRunList[i];
+            // 开始行布局
+
         }
     }
 }
