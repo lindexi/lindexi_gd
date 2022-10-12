@@ -179,6 +179,16 @@ class ParagraphData
     /// </summary>
     public bool IsDirty { set; get; } = true;
 
+    /// <summary>
+    /// 获取行分隔符的长度
+    /// 0 为文档中的最后一行， 1 for <c>"\r"</c> or <c>"\n"</c>, 2 for <c>"\r\n"</c> 
+    /// 当本行被删除后这个属性值依然有效，这种情况下，它包含在删除之前的行分隔符的长度
+    /// </summary>
+    /// 无论在哪个平台上，都统一为 \r\n 两个字符
+    public const int DelimiterLength = 2;
+
+
+
     // 不合适，将会让段落必须知道文档坐标
     ///// <summary>
     ///// 从哪个开始
