@@ -246,4 +246,14 @@ class LineVisualData
     /// 是否是脏的，需要重新布局渲染
     /// </summary>
     public bool IsDirty { set; get; }
+
+    /// <summary>
+    /// 这一行的字符长度
+    /// </summary>
+    public int CharCount => LineRunList?.Sum(t => t.Count) ?? 0;
+
+    /// <summary>
+    /// 行里面的文本
+    /// </summary>
+    public List<IRun>? LineRunList { set; get; }
 }

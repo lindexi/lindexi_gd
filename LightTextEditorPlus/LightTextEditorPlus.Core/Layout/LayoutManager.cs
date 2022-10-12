@@ -55,7 +55,27 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     {
         // todo 未更改的行，不需要重新布局更新
 
+        // 先找到首个需要更新的坐标点，这里的坐标是段坐标
+        var dirtyParagraphOffset = 0;
+        var lastIndex = -1;
+        for (var index = 0; index < paragraph.LineVisualDataList.Count; index++)
+        {
+            LineVisualData lineVisualData = paragraph.LineVisualDataList[index];
+            if (lineVisualData.IsDirty == false)
+            {
+                dirtyParagraphOffset += lineVisualData.CharCount;
+            }
+            else
+            {
+                lastIndex = index;
+                break;
+            }
+        }
 
+        if (lastIndex > 0)
+        {
+            paragraph.LineVisualDataList.RemoveRange(lastIndex, paragraph.LineVisualDataList.Count - lastIndex);
+        }
     }
 }
 
