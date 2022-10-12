@@ -122,7 +122,9 @@ class ParagraphManager
         }
     }
 
-    public List<ParagraphData> ParagraphList { get; } = new List<ParagraphData>();
+    public IReadOnlyList<ParagraphData> GetParagraphList() => ParagraphList;
+
+    private List<ParagraphData> ParagraphList { get; } = new List<ParagraphData>();
 
     public void InsertParagraphAfter(ParagraphData currentParagraph, ParagraphData newParagraph)
     {
@@ -165,6 +167,11 @@ class ParagraphData
     /// 获取这个文本行是否已经从文档中删除.
     /// </summary>
     public bool IsDeleted { set; get; }
+
+    /// <summary>
+    /// 是否是脏的，需要重新布局渲染
+    /// </summary>
+    public bool IsDirty { set; get; } = true;
 
     /// <summary>
     /// 在段落中间插入的时候，需要将段落在插入后面的内容分割删除

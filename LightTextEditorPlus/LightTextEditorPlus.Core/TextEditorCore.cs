@@ -26,6 +26,12 @@ namespace LightTextEditorPlus.Core;
 /// - DocumentChanging
 /// - DocumentChanged
 /// - LayoutCompleted
+/// todo 光标系统
+/// todo 选择模块
+/// todo 选择效果视觉反馈
+/// todo 下划线模块
+/// todo 项目符号
+/// todo 上下标
 public partial class TextEditorCore
 {
     public TextEditorCore(IPlatformProvider platformProvider)
@@ -104,6 +110,8 @@ public partial class TextEditorCore
     /// 日志
     /// </summary>
     public ITextLogger Logger { get; }
+
+    // todo 考虑设置可见范围，用来支持长文本
 
     #endregion
 
