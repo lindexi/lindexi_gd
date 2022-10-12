@@ -34,6 +34,44 @@ public class TextEditorCoreTest
     }
 
     [ContractTestCase]
+    public void EventArrange()
+    {
+        "文本编辑的事件触发是 DocumentChanging DocumentChanged LayoutCompleted 顺序".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            var raiseCount = 0;
+
+            textEditorCore.DocumentChanging += (sender, args) =>
+            {
+                // Assert
+                Assert.AreEqual(0, raiseCount);
+                raiseCount++;
+            };
+
+            textEditorCore.DocumentChanged += (sender, args) =>
+            {
+                // Assert
+                Assert.AreEqual(1, raiseCount);
+                raiseCount = 2;
+            };
+
+            textEditorCore.LayoutCompleted += (sender, args) =>
+            {
+                // Assert
+                Assert.AreEqual(2, raiseCount);
+                raiseCount = 3;
+            };
+
+            // Action
+            textEditorCore.AppendText(TestHelper.PlainNumberText);
+
+            // Assert
+            Assert.AreEqual(3, raiseCount);
+        });
+    }
+
+    [ContractTestCase]
     public void AppendText()
     {
         "给文本编辑器追加一段纯文本，先触发 DocumentChanging 再触发 DocumentChanged 事件".Test(() =>

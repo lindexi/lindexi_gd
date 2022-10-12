@@ -21,6 +21,11 @@ namespace LightTextEditorPlus.Core;
 /// <remarks> 这个项目的核心和入口就是这个类</remarks>
 /// 此文件放置框架内的逻辑
 /// 其他 API 相关的，放入到 API 文件夹里
+///
+/// 事件触发顺序：
+/// - DocumentChanging
+/// - DocumentChanged
+/// - LayoutCompleted
 public partial class TextEditorCore
 {
     public TextEditorCore(IPlatformProvider platformProvider)
@@ -32,14 +37,9 @@ public partial class TextEditorCore
         DocumentManager.InternalDocumentChanged += DocumentManager_DocumentChanged;
 
         _layoutManager = new LayoutManager(this);
+        _layoutManager.InternalLayoutCompleted += LayoutManager_InternalLayoutCompleted;
 
         Logger = platformProvider.BuildTextLogger() ?? new EmptyTextLogger();
-    }
-
-    private void DocumentManager_InternalDocumentChanging(object? sender, EventArgs e)
-    {
-        // 文档开始变更
-        DocumentChanging?.Invoke(this, e);
     }
 
     #region 框架逻辑
@@ -49,13 +49,20 @@ public partial class TextEditorCore
     public DocumentManager DocumentManager { get; }
     public IPlatformProvider PlatformProvider { get; }
 
+    private void DocumentManager_InternalDocumentChanging(object? sender, EventArgs e)
+    {
+        // 文档开始变更
+        DocumentChanging?.Invoke(this, e);
+    }
+
     private void DocumentManager_DocumentChanged(object? sender, EventArgs e)
     {
+        // 按照 事件触发顺序 需要先触发 DocumentChanged 事件，再触发 LayoutCompleted 事件
+        DocumentChanged?.Invoke(this, e);
+
         // 文档变更，更新布局
         Logger.LogDebug($"[TextEditorCore] 文档变更，更新布局");
         PlatformProvider.RequireDispatchUpdateLayout(UpdateLayout);
-
-        DocumentChanged?.Invoke(this, e);
     }
 
     private void UpdateLayout()
@@ -64,6 +71,11 @@ public partial class TextEditorCore
         Logger.LogDebug($"[TextEditorCore][UpdateLayout] 开始更新布局");
         _layoutManager.UpdateLayout();
         Logger.LogDebug($"[TextEditorCore][UpdateLayout] 完成更新布局");
+    }
+
+    private void LayoutManager_InternalLayoutCompleted(object? sender, EventArgs e)
+    {
+        LayoutCompleted?.Invoke(this,e);
     }
 
     #endregion
@@ -106,6 +118,11 @@ public partial class TextEditorCore
     /// 文档变更完成事件
     /// </summary>
     public event EventHandler? DocumentChanged;
+
+    /// <summary>
+    /// 文档布局完成事件
+    /// </summary>
+    public event EventHandler? LayoutCompleted;
 
     #endregion
 

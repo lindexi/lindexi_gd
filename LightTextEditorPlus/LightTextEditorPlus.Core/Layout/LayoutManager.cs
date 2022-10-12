@@ -12,7 +12,7 @@ class LayoutManager
     }
 
     public TextEditorCore TextEditor { get; }
-    public event EventHandler? LayoutFinish;
+    public event EventHandler? InternalLayoutCompleted;
 
     public void UpdateLayout()
     {
@@ -30,7 +30,7 @@ class LayoutManager
 
         var sizeToContent = TextEditor.SizeToContent;
 
-        LayoutFinish?.Invoke(this,EventArgs.Empty);
+        InternalLayoutCompleted?.Invoke(this,EventArgs.Empty);
     }
 
     private ArrangingLayoutProvider? ArrangingLayoutProvider { set; get; }
