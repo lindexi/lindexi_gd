@@ -19,4 +19,8 @@ public class LineBreakRun : IRun
     }
 
     public IReadOnlyRunProperty? RunProperty { get; }
+    public (IRun FirstRun, IRun SecondRun) SplitAt(int index)
+    {
+        throw new NotSupportedException($"{nameof(LineBreakRun)} not support split.");
+    }
 }
