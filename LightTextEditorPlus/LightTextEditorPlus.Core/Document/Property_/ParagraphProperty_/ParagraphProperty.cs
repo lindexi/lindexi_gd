@@ -35,6 +35,16 @@ public record ParagraphProperty
     /// </summary>
     public double Indent { get; init; } = 0;
 
+
+    /// <summary>
+    /// 是否允许标点溢出边界
+    /// <para>
+    /// 这个功能是在一段文本排版时，在接近末尾，如果再加上标点符号，将会超过文本的约束宽度。如果此属性设置为 true 将会允许加上标点符号之后的文本段超过约束宽度
+    /// </para>
+    /// </summary>
+    /// todo 实现允许标点溢出边界
+    public bool AllowHangingPunctuation { get; init; } = false;
+
     /// <summary>
     /// 行间距倍数，默认值为1，范围0~1000
     /// </summary>
