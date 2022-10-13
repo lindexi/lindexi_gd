@@ -1,4 +1,4 @@
-using LightTextEditorPlus.Core.Carets;
+ï»¿using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 using MSTest.Extensions.Contracts;
 
@@ -10,7 +10,7 @@ public class ParagraphDataTest
     [ContractTestCase]
     public void GetRunIndex()
     {
-        "¸ø¶¨¶ÎÂä×ø±êÊÇ 0 »ñÈ¡¶ÎÂäµÄ RunIndex ¿ÉÒÔ»ñÈ¡µ½Ê×¸ö".Test(() =>
+        "ç»™å®šæ®µè½åæ ‡æ˜¯ 0 èŽ·å–æ®µè½çš„ RunIndex å¯ä»¥èŽ·å–åˆ°é¦–ä¸ª".Test(() =>
         {
             // Arrange
             var textEditor = TestHelper.GetTextEditorCore();

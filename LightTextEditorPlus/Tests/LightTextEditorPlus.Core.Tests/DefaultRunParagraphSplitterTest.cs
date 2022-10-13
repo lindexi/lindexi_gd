@@ -1,4 +1,4 @@
-using LightTextEditorPlus.Core.Document;
+ï»¿using LightTextEditorPlus.Core.Document;
 using MSTest.Extensions.Contracts;
 
 namespace LightTextEditorPlus.Core.Tests;
@@ -9,7 +9,7 @@ public class DefaultRunParagraphSplitterTest
     [ContractTestCase]
     public void Split()
     {
-        "´«ÈëµÄÎÄ±¾µÄ½áÎ²°üº¬Á¬ÐøÁ½¸ö»»ÐÐ·û£¬¿ÉÒÔ¶à¼ÓÁ½¸ö¿Õ¶Î".Test(() =>
+        "ä¼ å…¥çš„æ–‡æœ¬çš„ç»“å°¾åŒ…å«è¿žç»­ä¸¤ä¸ªæ¢è¡Œç¬¦ï¼Œå¯ä»¥å¤šåŠ ä¸¤ä¸ªç©ºæ®µ".Test(() =>
         {
             // Arrange
             var textEditorCore = TestHelper.GetTextEditorCore();
@@ -24,7 +24,7 @@ public class DefaultRunParagraphSplitterTest
         });
 
 
-        "´«ÈëµÄÎÄ±¾µÄ½áÎ²°üº¬»»ÐÐ·û£¬¿ÉÒÔ¶à¼ÓÒ»¸ö¿Õ¶Î".Test(() =>
+        "ä¼ å…¥çš„æ–‡æœ¬çš„ç»“å°¾åŒ…å«æ¢è¡Œç¬¦ï¼Œå¯ä»¥å¤šåŠ ä¸€ä¸ªç©ºæ®µ".Test(() =>
         {
             // Arrange
             var textEditorCore = TestHelper.GetTextEditorCore();
@@ -38,7 +38,7 @@ public class DefaultRunParagraphSplitterTest
             Assert.AreEqual(2, result.Count);
         });
 
-        "´«Èë°üº¬¶à¸öÁ¬Ðø»»ÐÐ·ûµÄÎÄ±¾£¬¿ÉÒÔ·Ö³ö¿Õ¶Î".Test(() =>
+        "ä¼ å…¥åŒ…å«å¤šä¸ªè¿žç»­æ¢è¡Œç¬¦çš„æ–‡æœ¬ï¼Œå¯ä»¥åˆ†å‡ºç©ºæ®µ".Test(() =>
         {
             // Arrange
             var textEditorCore = TestHelper.GetTextEditorCore();
@@ -52,7 +52,7 @@ public class DefaultRunParagraphSplitterTest
             Assert.AreEqual(5, result.Count);
         });
 
-        "´«Èë°üº¬¶à¸ö»»ÐÐ·ûµÄÎÄ±¾£¬¿ÉÒÔ¸ù¾Ý»»ÐÐ·û½øÐÐ·Ö¶Î".Test(() =>
+        "ä¼ å…¥åŒ…å«å¤šä¸ªæ¢è¡Œç¬¦çš„æ–‡æœ¬ï¼Œå¯ä»¥æ ¹æ®æ¢è¡Œç¬¦è¿›è¡Œåˆ†æ®µ".Test(() =>
         {
             // Arrange
             var textEditorCore = TestHelper.GetTextEditorCore();
@@ -66,7 +66,7 @@ public class DefaultRunParagraphSplitterTest
             Assert.AreEqual(3, result.Count);
         });
 
-        "¶ÔÓÚÒ»¶ÎÎÄ±¾²»°üº¬ÈÎºÎ»»ÐÐ·û£¬¿ÉÒÔ·Ö¸îÖ®ºó£¬·µ»ØÒÀÈ»ÊÇÒ»¶Î".Test(() =>
+        "å¯¹äºŽä¸€æ®µæ–‡æœ¬ä¸åŒ…å«ä»»ä½•æ¢è¡Œç¬¦ï¼Œå¯ä»¥åˆ†å‰²ä¹‹åŽï¼Œè¿”å›žä¾ç„¶æ˜¯ä¸€æ®µ".Test(() =>
         {
             // Arrange
             var textEditorCore = TestHelper.GetTextEditorCore();

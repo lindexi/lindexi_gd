@@ -1,4 +1,4 @@
-using MSTest.Extensions.Contracts;
+ï»¿using MSTest.Extensions.Contracts;
 
 namespace LightTextEditorPlus.Core.Tests;
 
@@ -8,11 +8,11 @@ public class TextEditorCoreTest
     [ContractTestCase]
     public void TestCreate()
     {
-        "²âÊÔÎÄ±¾µÄ´´½¨".Test(() =>
+        "æµ‹è¯•æ–‡æœ¬çš„åˆ›å»º".Test(() =>
         {
             var textEditorCore = new TextEditorCore(new TestPlatformProvider());
 
-            // Ã»ÓĞÒì³££¬ÄÇ¾ÍÊÇ·ûºÏÔ¤ÆÚ
+            // æ²¡æœ‰å¼‚å¸¸ï¼Œé‚£å°±æ˜¯ç¬¦åˆé¢„æœŸ
             Assert.IsNotNull(textEditorCore);
         });
     }
@@ -20,7 +20,7 @@ public class TextEditorCoreTest
     [ContractTestCase]
     public void BuildTextLogger()
     {
-        "ÎÄ±¾µÄÈÕÖ¾ÊôĞÔ²»Îª¿Õ£¬¼´Ê¹Æ½Ì¨·µ»Ø¿Õ".Test(() =>
+        "æ–‡æœ¬çš„æ—¥å¿—å±æ€§ä¸ä¸ºç©ºï¼Œå³ä½¿å¹³å°è¿”å›ç©º".Test(() =>
         {
             // Arrange
             var testPlatformProvider = new TestPlatformProvider();
@@ -36,7 +36,7 @@ public class TextEditorCoreTest
     [ContractTestCase]
     public void EventArrange()
     {
-        "ÎÄ±¾±à¼­µÄÊÂ¼ş´¥·¢ÊÇ DocumentChanging DocumentChanged LayoutCompleted Ë³Ğò".Test(() =>
+        "æ–‡æœ¬ç¼–è¾‘çš„äº‹ä»¶è§¦å‘æ˜¯ DocumentChanging DocumentChanged LayoutCompleted é¡ºåº".Test(() =>
         {
             // Arrange
             var textEditorCore = TestHelper.GetTextEditorCore();
@@ -74,7 +74,7 @@ public class TextEditorCoreTest
     [ContractTestCase]
     public void AppendText()
     {
-        "¸øÎÄ±¾±à¼­Æ÷×·¼ÓÒ»¶Î´¿ÎÄ±¾£¬ÏÈ´¥·¢ DocumentChanging ÔÙ´¥·¢ DocumentChanged ÊÂ¼ş".Test(() =>
+        "ç»™æ–‡æœ¬ç¼–è¾‘å™¨è¿½åŠ ä¸€æ®µçº¯æ–‡æœ¬ï¼Œå…ˆè§¦å‘ DocumentChanging å†è§¦å‘ DocumentChanged äº‹ä»¶".Test(() =>
         {
             // Arrange
             var textEditorCore = TestHelper.GetTextEditorCore();
@@ -101,9 +101,9 @@ public class TextEditorCoreTest
             Assert.AreEqual(2, raiseCount);
         });
 
-        // todo ¿¼ÂÇÊ×´Î×·¼ÓµÄ¾ÍÊÇ \r\n »»ĞĞ
-        // todo ¿¼ÂÇ´«Èë 123\r\n123 ÎÄ±¾
-        // todo ¿¼ÂÇ´«Èë 123\r\n123\r\n ÎÄ±¾
+        // todo è€ƒè™‘é¦–æ¬¡è¿½åŠ çš„å°±æ˜¯ \r\n æ¢è¡Œ
+        // todo è€ƒè™‘ä¼ å…¥ 123\r\n123 æ–‡æœ¬
+        // todo è€ƒè™‘ä¼ å…¥ 123\r\n123\r\n æ–‡æœ¬
 
     }
 }
