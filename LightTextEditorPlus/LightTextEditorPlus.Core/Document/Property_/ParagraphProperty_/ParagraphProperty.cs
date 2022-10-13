@@ -64,6 +64,8 @@ public record ParagraphProperty
         init;
     } = double.NaN;
 
+    // todo 首行缩进 悬挂缩进
+
     ///// <summary>
     ///// 项目符号
     ///// </summary>

@@ -11,6 +11,8 @@ using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Layout;
 
+// todo 支持输出排版信息，渲染信息。如每一行，每个字符的坐标和尺寸
+// todo 文本公式混排 文本图片混排 文本和其他元素的混排多选 文本和其他可交互元素混排的光标策略
 class LayoutManager
 {
     public LayoutManager(TextEditor textEditor)
