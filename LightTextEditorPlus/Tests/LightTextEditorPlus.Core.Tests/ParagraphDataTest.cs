@@ -1,3 +1,4 @@
+using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 using MSTest.Extensions.Contracts;
 
@@ -16,7 +17,7 @@ public class ParagraphDataTest
             textEditor.AppendText("123");
 
             // Action
-            var paragraphData = textEditor.DocumentManager.TextRunManager.ParagraphManager.GetParagraphData(0);
+            var paragraphData = textEditor.DocumentManager.TextRunManager.ParagraphManager.GetParagraphData(new CaretOffset(0));
             var runIndex = paragraphData.GetRunIndex(new ParagraphOffset(0));
 
             // Assert

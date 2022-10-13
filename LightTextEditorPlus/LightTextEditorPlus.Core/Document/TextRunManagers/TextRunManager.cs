@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.DocumentManagers;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Utils;
@@ -21,19 +22,19 @@ internal class TextRunManager
     public ParagraphManager ParagraphManager { get; }
     public TextEditorCore TextEditor { get; }
 
-    public void Replace(SelectionSegment selection, IRun run)
+    public void Replace(Selection selection, IRun run)
     {
         // 先执行删除，再执行插入
-        if (selection.SectionLength != 0)
+        if (selection.Length != 0)
         {
-            RemoveInner(selection.SelectionStart, selection.SectionLength);
+            RemoveInner(selection);
         }
         else
         {
             // 没有替换的长度，加入即可
         }
 
-        InsertInner(selection.SelectionStart, run);
+        InsertInner(selection.StartOffset, run);
     }
 
     /// <summary>
@@ -41,7 +42,7 @@ internal class TextRunManager
     /// </summary>
     /// <param name="offset"></param>
     /// <param name="run"></param>
-    private void InsertInner(int offset, IRun run)
+    private void InsertInner(CaretOffset offset, IRun run)
     {
         // 插入的逻辑，找到插入变更的行
         var paragraphData = ParagraphManager.GetParagraphData(offset);
@@ -63,7 +64,7 @@ internal class TextRunManager
             if (subRun is LineBreakRun || !isFirstSubRun)
             {
                 // 如果这是一个分段，那直接插入新的段落
-                var newParagraph = new ParagraphData(paragraphData.ParagraphProperty);
+                var newParagraph = ParagraphManager.CreateParagraphData(paragraphData.ParagraphProperty);
                 ParagraphManager.InsertParagraphAfter(currentParagraph, newParagraph);
 
                 currentParagraph = newParagraph;
@@ -87,7 +88,7 @@ internal class TextRunManager
         }
     }
 
-    private void RemoveInner(int offset, int length)
+    private void RemoveInner(Selection selection)
     {
         // todo 实现删除逻辑
     }
@@ -105,14 +106,11 @@ class ParagraphManager
 
     public TextEditorCore TextEditor { get; }
 
-    public ParagraphData GetParagraphData(DocumentOffset offset)
+    public ParagraphData GetParagraphData(CaretOffset offset)
     {
         if (ParagraphList.Count == 0)
         {
-            // 获取当前的段落属性作为默认段落属性
-            var paragraphProperty = TextEditor.DocumentManager.CurrentParagraphProperty;
-
-            var paragraphData = new ParagraphData(paragraphProperty);
+            var paragraphData = CreateParagraphData();
             ParagraphList.Add(paragraphData);
             return paragraphData;
         }
@@ -126,6 +124,20 @@ class ParagraphManager
             //todo 还没实现非空行的逻辑
             throw new NotImplementedException();
         }
+    }
+
+    public ParagraphData CreateParagraphData(ParagraphProperty? paragraphProperty = null)
+    {
+        if (paragraphProperty == null)
+        {
+            // 不优化语法，方便加上断点
+
+            // 获取当前的段落属性作为默认段落属性
+            paragraphProperty = TextEditor.DocumentManager.CurrentParagraphProperty;
+        }
+
+        var paragraphData = new ParagraphData(paragraphProperty, this);
+        return paragraphData;
     }
 
     public IReadOnlyList<ParagraphData> GetParagraphList() => ParagraphList;
@@ -148,6 +160,30 @@ class ParagraphManager
         // todo 完成获取某个段落的起始的文档偏移
         return 0;
     }
+
+
+    /// <summary>
+    /// 获取文本行的起始位置在文档中的偏移量，此偏移量的计算考虑了换行符，如123/r/n123，那么第二个段落的Offset为5
+    /// </summary>
+    /// <exception cref="InvalidOperationException">这个文本行被删除后引发此异常</exception>
+    public DocumentOffset GetParagraphStartOffset(ParagraphData paragraphData)
+    {
+        var offset = 0;
+        foreach (var current in ParagraphList)
+        {
+            if (ReferenceEquals(current, paragraphData))
+            {
+                return new DocumentOffset(offset);
+            }
+            else
+            {
+                offset += current.CharCount + ParagraphData.DelimiterLength;
+            }
+        }
+
+        // 没有找到段落，证明段落被删除
+        throw new InvalidOperationException();
+    }
 }
 
 /// <summary>
@@ -155,12 +191,14 @@ class ParagraphManager
 /// </summary>
 class ParagraphData
 {
-    public ParagraphData(ParagraphProperty paragraphProperty)
+    public ParagraphData(ParagraphProperty paragraphProperty, ParagraphManager paragraphManager)
     {
         ParagraphProperty = paragraphProperty;
+        ParagraphManager = paragraphManager;
     }
 
     public ParagraphProperty ParagraphProperty { set; get; }
+    public ParagraphManager ParagraphManager { get; }
 
     public List<IRun> TextRunList { get; } = new List<IRun>();
 
@@ -171,8 +209,9 @@ class ParagraphData
     public int CharCount => TextRunList.Sum(t => t.Count);
 
     /// <summary>
-    /// 获取这个文本行是否已经从文档中删除.
+    /// 获取这个文本行是否已经从文档中删除
     /// </summary>
+    /// 这个属性更多是给调试
     public bool IsDeleted { set; get; }
 
     /// <summary>
@@ -188,6 +227,11 @@ class ParagraphData
     /// 无论在哪个平台上，都统一为 \r\n 两个字符
     public static int DelimiterLength => TextContext.NewLine.Length;
 
+    /// <summary>
+    /// 获取本文本行的起始位置在文档中的偏移量，此偏移量的计算考虑了换行符，如123/r/n123，那么第二个段落的Offset为5
+    /// </summary>
+    /// <exception cref="InvalidOperationException">这个文本行被删除后引发此异常</exception>
+    public DocumentOffset GetParagraphStartOffset() => ParagraphManager.GetParagraphStartOffset(this);
 
     // 不合适，将会让段落必须知道文档坐标
     ///// <summary>
@@ -200,10 +244,24 @@ class ParagraphData
     /// </summary>
     /// <param name="offset"></param>
     /// <exception cref="NotImplementedException"></exception>
-    public IList<IRun>? SplitRemoveByDocumentOffset(int offset)
+    public IList<IRun>? SplitRemoveByDocumentOffset(CaretOffset offset)
+    {
+        // 从光标坐标系，换为段落坐标
+        DocumentOffset paragraphStartOffset = GetParagraphStartOffset();
+        // 准确来说，这是段落的光标坐标
+        var paragraphOffset = offset.Offset - paragraphStartOffset;
+        var runList = SplitRemoveByDocumentOffset(new ParagraphOffset(paragraphOffset));
+        return runList;
+    }
+
+    /// <summary>
+    /// 在段落中间插入的时候，需要将段落在插入后面的内容分割删除
+    /// </summary>
+    /// <param name="offset"></param>
+    private IList<IRun>? SplitRemoveByDocumentOffset(ParagraphOffset offset)
     {
         // todo 设置LineVisualData是脏的
-        if (offset == CharCount)
+        if (offset.Offset == CharCount)
         {
             // 如果插入在最后，那就啥都不需要做
             return null;
@@ -211,6 +269,7 @@ class ParagraphData
         else
         {
             // 需要考虑将原本合并的 IRun 拆开为多个
+
             throw new NotImplementedException($"还没实现段落分割的功能");
         }
     }
