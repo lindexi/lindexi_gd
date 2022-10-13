@@ -2,7 +2,7 @@
 using LightTextEditorPlus.Core.Document.Segments;
 
 using System;
-
+using LightTextEditorPlus.Core.Carets;
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Document.DocumentManagers
@@ -65,6 +65,38 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         /// </summary>
         /// todo 文档的字符数量
         public int CharCount { get; }
+
+        /// <summary>
+        /// 获取或设置当前光标位置
+        /// </summary>
+        public CaretOffset CurrentCaretOffset
+        {
+            set
+            {
+                // todo 设置光标的选择范围
+                throw new NotImplementedException($"还没实现选择功能");
+            }
+            get
+            {
+                throw new NotImplementedException($"还没实现选择功能");
+            }
+        }
+
+        /// <summary>
+        /// 获取或设置当前的选择范围
+        /// </summary>
+        /// 当没有选择时，将和 <see cref="CurrentCaretOffset"/> 相同
+        public Selection CurrentSelection
+        {
+            set
+            {
+                throw new NotImplementedException($"还没实现选择功能");
+            }
+            get
+            {
+                throw new NotImplementedException($"还没实现选择功能");
+            }
+        }
 
         #endregion
 

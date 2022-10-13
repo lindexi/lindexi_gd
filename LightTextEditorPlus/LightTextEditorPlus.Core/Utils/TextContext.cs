@@ -45,6 +45,9 @@ public static class TextContext
     /// </summary>
     internal const char NotChar = '\uFFFE';
 
+    /// <summary>
+    /// 默认用来测量的文本，似乎用不到
+    /// </summary>
     internal const string DefaultText = "1";
 
     /// <summary>
