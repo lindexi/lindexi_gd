@@ -346,7 +346,8 @@ class ParagraphData
         int currentParagraphOffset = 0;
         for (var i = 0; i < paragraph.TextRunList.Count; i++)
         {
-            var length = paragraph.TextRunList[i].Count;
+            var run = paragraph.TextRunList[i];
+            var length = run.Count;
             var behindOffset = currentParagraphOffset + length;
 
             // 判断是否落在当前的里面
@@ -354,7 +355,7 @@ class ParagraphData
             if (hitIndex >= 0)
             {
                 var paragraphIndex = i;
-                return new RunIndexInParagraph(paragraphIndex, this, hitIndex, _version);
+                return new RunIndexInParagraph(paragraphIndex, this, run, hitIndex, _version);
             }
             else
             {
@@ -362,7 +363,7 @@ class ParagraphData
             }
         }
 
-        return new RunIndexInParagraph(-1, this, -1, _version);
+        return new RunIndexInParagraph(-1, this, null!,-1, _version);
     }
 
     internal bool IsInvalidVersion(uint version) => version != _version;
