@@ -199,7 +199,9 @@ class ParagraphData
     public ParagraphProperty ParagraphProperty { set; get; }
     public ParagraphManager ParagraphManager { get; }
 
-    public List<IRun> TextRunList { get; } = new List<IRun>();
+    private List<IRun> TextRunList { get; } = new List<IRun>();
+
+    public IReadOnlyList<IRun> GetRunList() => TextRunList;
 
     /// <summary>
     /// 这一段的字符长度

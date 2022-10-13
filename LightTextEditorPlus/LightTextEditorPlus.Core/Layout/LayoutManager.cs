@@ -56,11 +56,12 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
     protected override void LayoutParagraphCore(ParagraphData paragraph, in RunIndexInParagraph startTextRunIndex, ParagraphOffset startParagraphOffset)
     {
-        for (var i = startTextRunIndex.ParagraphIndex; i < paragraph.TextRunList.Count; i++)
+        var runList = paragraph.GetRunList();
+        for (var i = startTextRunIndex.ParagraphIndex; i < runList.Count; i++)
         {
             // 预期刚好 dirtyParagraphOffset 是某个 IRun 的起始
 
-            var run = paragraph.TextRunList[i];
+            var run = runList[i];
             // 开始行布局
 
         }
@@ -162,7 +163,7 @@ abstract class ArrangingLayoutProvider
         // 不需要通过如此复杂的逻辑获取有哪些，因为存在的坑在于后续分拆 IRun 逻辑将会复杂
         //paragraph.GetRunRange(dirtyParagraphOffset);
 
-        if (paragraph.TextRunList.Count == 0)
+        if (paragraph.GetRunList().Count == 0)
         {
             // todo 考虑 paragraph.TextRunList 数量为空的情况，只有一个换行的情况
         }
