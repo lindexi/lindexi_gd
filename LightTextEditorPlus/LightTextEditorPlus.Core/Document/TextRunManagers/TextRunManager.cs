@@ -351,9 +351,9 @@ class ParagraphData
             var behindOffset = currentParagraphOffset + length;
 
             // 判断是否落在当前的里面
-            var hitIndex = behindOffset - paragraphOffset.Offset;
-            if (hitIndex >= 0)
+            if (behindOffset >= paragraphOffset.Offset)
             {
+                var hitIndex = paragraphOffset.Offset - currentParagraphOffset;
                 var paragraphIndex = i;
                 return new RunIndexInParagraph(paragraphIndex, this, run, hitIndex, _version);
             }

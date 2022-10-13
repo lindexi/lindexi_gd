@@ -7,7 +7,7 @@
 /// <param name="Paragraph"></param>
 /// <param name="HitIndex">命中到当前的 TextRun 的哪个字符</param>
 /// <param name="ParagraphVersion">段落的更改版本</param>
-readonly record struct RunIndexInParagraph(int ParagraphIndex, ParagraphData Paragraph,IRun Run,int HitIndex,
+readonly record struct RunIndexInParagraph(int ParagraphIndex, ParagraphData Paragraph, IRun Run, int HitIndex,
     uint ParagraphVersion)
 {
     /// <summary>
