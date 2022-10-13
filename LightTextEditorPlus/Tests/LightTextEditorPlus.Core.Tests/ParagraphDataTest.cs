@@ -21,7 +21,7 @@ public class ParagraphDataTest
             var runIndex = paragraphData.GetRunIndex(new ParagraphOffset(0));
 
             // Assert
-            Assert.AreEqual(0, runIndex);
+            Assert.AreEqual(0, runIndex.ParagraphIndex);
         });
     }
 }
