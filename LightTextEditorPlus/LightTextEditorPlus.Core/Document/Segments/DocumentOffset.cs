@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace LightTextEditorPlus.Core.Document.Segments;
 
@@ -7,6 +8,10 @@ namespace LightTextEditorPlus.Core.Document.Segments;
 /// </summary>
 public readonly struct DocumentOffset : IEquatable<DocumentOffset>, IEquatable<int>
 {
+    /// <summary>
+    /// 创建文档的偏移量
+    /// </summary>
+    [DebuggerStepThrough]
     public DocumentOffset(int offset)
     {
         if (offset < DefaultDocumentOffsetValue)
