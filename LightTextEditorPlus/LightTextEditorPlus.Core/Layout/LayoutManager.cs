@@ -54,9 +54,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
     public override ArrangingType ArrangingType => ArrangingType.Horizontal;
 
-    protected override void LayoutParagraphCore(ParagraphData paragraph, int startTextRunIndex, ParagraphOffset startParagraphOffset)
+    protected override void LayoutParagraphCore(ParagraphData paragraph, in RunIndexInParagraph startTextRunIndex, ParagraphOffset startParagraphOffset)
     {
-        for (var i = startTextRunIndex; i < paragraph.TextRunList.Count; i++)
+        for (var i = startTextRunIndex.ParagraphIndex; i < paragraph.TextRunList.Count; i++)
         {
             // 预期刚好 dirtyParagraphOffset 是某个 IRun 的起始
 
@@ -170,7 +170,7 @@ abstract class ArrangingLayoutProvider
         var startParagraphOffset = new ParagraphOffset(dirtyParagraphOffset);
         var startTextRunIndex = paragraph.GetRunIndex(startParagraphOffset);
 
-        if (startTextRunIndex == -1)
+        if (startTextRunIndex.ParagraphIndex == -1)
         {
             // todo 理论上不可能
         }
@@ -178,6 +178,6 @@ abstract class ArrangingLayoutProvider
         LayoutParagraphCore(paragraph, startTextRunIndex, startParagraphOffset);
     }
 
-    protected abstract void LayoutParagraphCore(ParagraphData paragraph, int startTextRunIndex,
+    protected abstract void LayoutParagraphCore(ParagraphData paragraph, in RunIndexInParagraph startTextRunIndex,
         ParagraphOffset startParagraphOffset);
 }

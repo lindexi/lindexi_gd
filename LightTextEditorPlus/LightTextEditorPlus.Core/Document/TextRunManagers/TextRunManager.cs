@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.DocumentManagers;
 using LightTextEditorPlus.Core.Document.Segments;
@@ -269,6 +268,7 @@ class ParagraphData
         else
         {
             // 需要考虑将原本合并的 IRun 拆开为多个
+            _version++;
 
             throw new NotImplementedException($"还没实现段落分割的功能");
         }
@@ -291,11 +291,13 @@ class ParagraphData
         }
 
         // todo 设置LineVisualData是脏的
+        _version++;
     }
 
     public void AppendRun(IRun run)
     {
         TextRunList.Add(run);
+        _version++;
     }
 
     public void AppendRun(IList<IRun> runList)
@@ -304,6 +306,8 @@ class ParagraphData
         {
             AppendRun(run);
         }
+
+        _version++;
     }
 
     #region 渲染排版数据
@@ -336,7 +340,7 @@ class ParagraphData
     /// </summary>
     /// <param name="paragraphOffset"></param>
     /// <returns></returns>
-    public int GetRunIndex(ParagraphOffset paragraphOffset)
+    public RunIndexInParagraph GetRunIndex(ParagraphOffset paragraphOffset)
     {
         var paragraph = this;
         int currentParagraphOffset = 0;
@@ -344,10 +348,13 @@ class ParagraphData
         {
             var length = paragraph.TextRunList[i].Count;
             var behindOffset = currentParagraphOffset + length;
-            if (behindOffset >= paragraphOffset.Offset)
+
+            // 判断是否落在当前的里面
+            var hitIndex = behindOffset - paragraphOffset.Offset;
+            if (hitIndex >= 0)
             {
-                var dirtyTextRunIndex = i;
-                return dirtyTextRunIndex;
+                var paragraphIndex = i;
+                return new RunIndexInParagraph(paragraphIndex, this, hitIndex, _version);
             }
             else
             {
@@ -355,8 +362,15 @@ class ParagraphData
             }
         }
 
-        return -1;
+        return new RunIndexInParagraph(-1, this, -1, _version);
     }
+
+    internal bool IsInvalidVersion(uint version) => version != _version;
+
+    /// <summary>
+    /// 段落的更改版本
+    /// </summary>
+    private uint _version;
 }
 
 /// <summary>
