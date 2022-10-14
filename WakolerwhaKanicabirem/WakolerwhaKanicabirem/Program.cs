@@ -135,16 +135,16 @@ class Program
 
             d3D11DeviceContext.Flush();
 
-            CopyResourceAndToFile(d3D11Device, d3D11DeviceContext, d3D11Texture2D);
+            //CopyResourceAndToFile(d3D11Device, d3D11DeviceContext, d3D11Texture2D);
 
-            //ToFile(d3D11Device, d3D11DeviceContext, dxgiSurface);
+            ////ToFile(d3D11Device, d3D11DeviceContext, dxgiSurface);
 
-            var dataRectangle = dxgiSurface.Map(DXGI.MapFlags.Read);
-            var dataRectangleDataPointer = (byte*) dataRectangle.DataPointer;
-            for (int i = 0; i < 10000; i++)
-            {
-                var t = *(dataRectangleDataPointer + i);
-            }
+            //var dataRectangle = dxgiSurface.Map(DXGI.MapFlags.Read);
+            //var dataRectangleDataPointer = (byte*) dataRectangle.DataPointer;
+            //for (int i = 0; i < 10000; i++)
+            //{
+            //    var t = *(dataRectangleDataPointer + i);
+            //}
         }
 
 
