@@ -10,6 +10,7 @@ using DXGI = Vortice.DXGI;
 using D2D = Vortice.Direct2D1;
 using PixelFormat = Vortice.DCommon.PixelFormat;
 using Win32.Graphics.Direct3D11;
+using System.Drawing;
 
 namespace WakolerwhaKanicabirem;
 
@@ -17,7 +18,7 @@ class Program
 {
     // 设置可以支持 Win7 和以上版本。如果用到 WinRT 可以设置为支持 win10 和以上。这个特性只是给 VS 看的，没有实际影响运行的逻辑
     [SupportedOSPlatform("Windows")]
-    static void Main(string[] args)
+    static unsafe void Main(string[] args)
     {
         D3D.FeatureLevel[] featureLevels = new[]
         {
@@ -53,60 +54,135 @@ class Program
         using D2D.ID2D1DeviceContext d2D1DeviceContext = d2D1Device.CreateDeviceContext(D2D.DeviceContextOptions.EnableMultithreadedOptimizations);
         DXGI.Format colorFormat = DXGI.Format.B8G8R8A8_UNorm;
 
-        //var d3D11Texture2D = d3D11Device.CreateTexture2D(colorFormat, width, height,mipLevels: 1);
-        //var dxgiSurface = d3D11Texture2D.QueryInterface<DXGI.IDXGISurface>();
-
-        var dxgiSurface = dxgiDevice.CreateSurface(new DXGI.SurfaceDescription()
+        var texture2DDescription = new D3D11.Texture2DDescription
         {
-            Format = colorFormat,
+            CPUAccessFlags = D3D11.CpuAccessFlags.Read,
+            BindFlags = D3D11.BindFlags.RenderTarget | D3D11.BindFlags.ShaderResource,
+            Usage = D3D11.ResourceUsage.Default,
             Width = width,
             Height = height,
+            Format = colorFormat,
+            MipLevels = 1,
+            ArraySize = 1,
             SampleDescription = DXGI.SampleDescription.Default,
-        }, 1, DXGI.Usage.Shared | DXGI.Usage.RenderTargetOutput | DXGI.Usage.UnorderedAccess);
+            MiscFlags = D3D11.ResourceOptionFlags.Shared,
+            //{
+            //    Count = 1,
+            //    Quality = 0
+            //},
+        };
+
+        using D3D11.ID3D11Texture2D d3D11Texture2D = d3D11Device.CreateTexture2D(texture2DDescription);
+        using var dxgiSurface = d3D11Texture2D.QueryInterface<DXGI.IDXGISurface>();
+
+        using var d3D11RenderTargetView = d3D11Device.CreateRenderTargetView(d3D11Texture2D,
+            new D3D11.RenderTargetViewDescription(d3D11Texture2D, D3D11.RenderTargetViewDimension.Texture2D,
+                texture2DDescription.Format));
+
+        using var d3D11ShaderResourceView = d3D11Device.CreateShaderResourceView(d3D11Texture2D,
+            new D3D11.ShaderResourceViewDescription(d3D11Texture2D, D3D.ShaderResourceViewDimension.Texture2D,
+                texture2DDescription.Format, mostDetailedMip: 0, mipLevels: 1));
+
+        d3D11DeviceContext.OMSetRenderTargets(d3D11RenderTargetView);
+
+
+        //var dxgiSurface = dxgiDevice.CreateSurface(new DXGI.SurfaceDescription()
+        //{
+        //    Format = colorFormat,
+        //    Width = width,
+        //    Height = height,
+        //    SampleDescription = DXGI.SampleDescription.Default,
+        //}, 1, DXGI.Usage.Shared | DXGI.Usage.RenderTargetOutput | DXGI.Usage.UnorderedAccess);
         var renderTargetProperties = new D2D.RenderTargetProperties(PixelFormat.Premultiplied);
 
-        D2D.ID2D1RenderTarget d2D1RenderTarget =
+        using D2D.ID2D1RenderTarget d2D1RenderTarget =
             d2DFactory.CreateDxgiSurfaceRenderTarget(dxgiSurface, renderTargetProperties);
 
         using var renderTarget = d2D1RenderTarget;
         var stopwatch = Stopwatch.StartNew();
 
-        // 开始绘制逻辑
-        renderTarget.BeginDraw();
-
-        // 随意创建颜色
-        var color = new Color4((byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255),
-            (byte) Random.Shared.Next(255));
-        renderTarget.Clear(color);
-        color = new Color4(GetRandom(), GetRandom(), GetRandom());
-        using D2D.ID2D1SolidColorBrush brush = renderTarget.CreateSolidColorBrush(color);
-
-        for (int i = 0; i < 10000; i++)
+        while (true)
         {
-            var radiusX = 5;
-            var radiusY = 5;
-            renderTarget.DrawEllipse(new D2D.Ellipse(new Vector2(Random.Shared.Next(width - radiusX), Random.Shared.Next(height - radiusY)), radiusX, radiusY), brush, 2);
+            // 开始绘制逻辑
+            renderTarget.BeginDraw();
+
+            // 随意创建颜色
+            var color = new Color4((byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255),
+                (byte) Random.Shared.Next(255));
+            renderTarget.Clear(color);
+            color = new Color4(GetRandom(), GetRandom(), GetRandom());
+            using D2D.ID2D1SolidColorBrush brush = renderTarget.CreateSolidColorBrush(color);
+
+            for (int i = 0; i < 10000; i++)
+            {
+                var radiusX = 5;
+                var radiusY = 5;
+                renderTarget.DrawEllipse(new D2D.Ellipse(new Vector2(Random.Shared.Next(width - radiusX), Random.Shared.Next(height - radiusY)), radiusX, radiusY), brush, 2);
+            }
+
+            stopwatch.Stop();
+            Console.WriteLine($"Draw: {stopwatch.ElapsedMilliseconds}");
+            stopwatch.Restart();
+
+            renderTarget.EndDraw();
+
+            stopwatch.Stop();
+            Console.WriteLine($"EndDraw: {stopwatch.ElapsedMilliseconds}");
+            stopwatch.Restart();
+
+
+            byte GetRandom() => (byte) Random.Shared.Next(255);
+
+            d3D11DeviceContext.Flush();
+
+            CopyResourceAndToFile(d3D11Device, d3D11DeviceContext, d3D11Texture2D);
+
+            //ToFile(d3D11Device, d3D11DeviceContext, dxgiSurface);
+
+            var dataRectangle = dxgiSurface.Map(DXGI.MapFlags.Read);
+            var dataRectangleDataPointer = (byte*) dataRectangle.DataPointer;
+            for (int i = 0; i < 10000; i++)
+            {
+                var t = *(dataRectangleDataPointer + i);
+            }
         }
 
-        stopwatch.Stop();
-        Console.WriteLine($"Draw: {stopwatch.ElapsedMilliseconds}");
-        stopwatch.Restart();
 
-        renderTarget.EndDraw();
-
-        stopwatch.Stop();
-        Console.WriteLine($"EndDraw: {stopwatch.ElapsedMilliseconds}");
-        stopwatch.Restart();
-
-
-        byte GetRandom() => (byte) Random.Shared.Next(255);
-
-        ToFile(d3D11Device, d3D11DeviceContext, dxgiSurface);
+        //
 
     }
 
     [SupportedOSPlatform("Windows")]
-    private static void ToFile(D3D11.ID3D11Device d3D11Device, D3D11.ID3D11DeviceContext d3D11DeviceContext,DXGI.IDXGISurface dxgiSurface)
+    private static void CopyResourceAndToFile(D3D11.ID3D11Device d3D11Device,
+        D3D11.ID3D11DeviceContext d3D11DeviceContext, D3D11.ID3D11Texture2D originalTexture)
+    {
+        var originalDesc = originalTexture.Description;
+        var texture2DDescription = new D3D11.Texture2DDescription
+        {
+            CPUAccessFlags = D3D11.CpuAccessFlags.Read,
+            BindFlags = D3D11.BindFlags.None,
+            Usage = D3D11.ResourceUsage.Staging,
+            Width = originalDesc.Width,
+            Height = originalDesc.Height,
+            Format = originalDesc.Format,
+            MipLevels = 1,
+            ArraySize = 1,
+            SampleDescription =
+            {
+                Count = 1,
+                Quality = 0
+            },
+        };
+
+        var texture2D = d3D11Device.CreateTexture2D(texture2DDescription);
+        d3D11DeviceContext.CopyResource(originalTexture, texture2D);
+        d3D11DeviceContext.Flush();
+
+        ToFile(d3D11Device, d3D11DeviceContext, texture2D);
+    }
+
+    [SupportedOSPlatform("Windows")]
+    private static void ToFile(D3D11.ID3D11Device d3D11Device, D3D11.ID3D11DeviceContext d3D11DeviceContext, DXGI.IDXGISurface dxgiSurface)
     {
         var d3D11Texture2D = dxgiSurface.QueryInterface<D3D11.ID3D11Texture2D>();
 
@@ -153,9 +229,9 @@ class Program
 
             for (var x = 0; x < texture2D.Description.Width; x++)
             {
-                var b = *(ptr +sizeOfColor * x);
-                var g = *(ptr +sizeOfColor * x + 1);
-                var r = *(ptr +sizeOfColor * x + 2);
+                var b = *(ptr + sizeOfColor * x);
+                var g = *(ptr + sizeOfColor * x + 1);
+                var r = *(ptr + sizeOfColor * x + 2);
                 var a = *(ptr + sizeOfColor * x + 3);
                 bitmap.SetPixel(x, y, System.Drawing.Color.FromArgb(a, r, g, b));
             }
