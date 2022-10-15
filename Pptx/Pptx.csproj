@@ -4,23 +4,17 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net6.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
-    <IncludePackageReferencesDuringMarkupCompilation>False</IncludePackageReferencesDuringMarkupCompilation>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
+    <ItemGroup>
     <None Update="Test.pptx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="dotnetCampus.DocumentFormat.OpenXml.Flatten.Source" Version="2.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="dotnetCampus.OpenXmlUnitConverter" Version="2.0.0" />
-    <PackageReference Include="DocumentFormat.OpenXml" Version="2.15.0" />
-    <PackageReference Include="OpenMcdf" Version="2.2.1.9" />
+    <ProjectReference Include="..\PptxCore\PptxCore.csproj" />
   </ItemGroup>
 
 </Project>

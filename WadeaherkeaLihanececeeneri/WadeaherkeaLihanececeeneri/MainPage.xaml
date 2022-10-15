@@ -1,0 +1,23 @@
+﻿<Page
+    x:Class="WadeaherkeaLihanececeeneri.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:WadeaherkeaLihanececeeneri"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition></RowDefinition>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
+        <TextBox x:Name="OcrTextBox" Margin="10,10,10,10">
+            
+        </TextBox>
+        <Grid Grid.Row="1">
+            <Button x:Name="Button" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="15" Click="Button_Click">Open Image</Button>
+        </Grid>
+    </Grid>
+</Page>
