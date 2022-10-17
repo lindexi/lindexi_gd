@@ -16,5 +16,4 @@
   <ItemGroup>
     <AdditionalFiles Include="Properties\BannedSymbols.txt" />
   </ItemGroup>
-
 </Project>
