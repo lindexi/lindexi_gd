@@ -31,13 +31,6 @@ namespace LightTextEditorPlus.Core.Document
         IReadOnlyRunProperty BuildNewProperty(Action<RunProperty> action);
     }
 
-    /// <summary>
-    /// 表示一个不可变的对象值
-    /// </summary>
-    public interface IImmutableRunPropertyValue
-    {
-    }
-
     // todo 考虑属性系统支持设置是否影响布局，不影响布局的，例如改个颜色，可以不重新布局
     public class RunProperty : IReadOnlyRunProperty
     {
