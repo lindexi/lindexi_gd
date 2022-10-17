@@ -184,18 +184,6 @@ class ParagraphManager
     }
 
     /// <summary>
-    /// 获取某个段落的起始的文档偏移
-    /// </summary>
-    /// <param name="currentParagraph"></param>
-    /// <returns></returns>
-    public DocumentOffset GetParagraphStartDocumentOffset(ParagraphData currentParagraph)
-    {
-        // todo 完成获取某个段落的起始的文档偏移
-        return 0;
-    }
-
-
-    /// <summary>
     /// 获取文本行的起始位置在文档中的偏移量，此偏移量的计算考虑了换行符，如123/r/n123，那么第二个段落的Offset为5
     /// </summary>
     /// <exception cref="InvalidOperationException">这个文本行被删除后引发此异常</exception>
