@@ -229,6 +229,24 @@ class ParagraphManager
         // 没有找到段落，证明段落被删除
         throw new InvalidOperationException();
     }
+
+    public string GetText()
+    {
+        bool isFirst = true;
+        var stringBuilder = new StringBuilder();
+        foreach (var paragraphData in ParagraphList)
+        {
+            if (!isFirst)
+            {
+                stringBuilder.AppendLine();
+            }
+
+            paragraphData.GetText(stringBuilder);
+            isFirst = false;
+        }
+
+        return stringBuilder.ToString();
+    }
 }
 
 /// <summary>
@@ -286,20 +304,21 @@ class ParagraphData
     ///// </summary>
     //public DocumentOffset? DirtyOffset { set; get; }
 
-    /// <summary>
-    /// 在段落中间插入的时候，需要将段落在插入后面的内容分割删除
-    /// </summary>
-    /// <param name="offset"></param>
-    /// <exception cref="NotImplementedException"></exception>
-    public IList<IRun>? SplitRemoveByDocumentOffset(CaretOffset offset)
-    {
-        // 从光标坐标系，换为段落坐标
-        DocumentOffset paragraphStartOffset = GetParagraphStartOffset();
-        // 准确来说，这是段落的光标坐标
-        var paragraphOffset = offset.Offset - paragraphStartOffset;
-        var runList = SplitRemoveByDocumentOffset(new ParagraphOffset(paragraphOffset));
-        return runList;
-    }
+    // 不需要重复计算从 CaretOffset 转换为段落坐标
+    ///// <summary>
+    ///// 在段落中间插入的时候，需要将段落在插入后面的内容分割删除
+    ///// </summary>
+    ///// <param name="offset"></param>
+    ///// <exception cref="NotImplementedException"></exception>
+    //public IList<IRun>? SplitRemoveByDocumentOffset(CaretOffset offset)
+    //{
+    //    // 从光标坐标系，换为段落坐标
+    //    DocumentOffset paragraphStartOffset = GetParagraphStartOffset();
+    //    // 准确来说，这是段落的光标坐标
+    //    var paragraphOffset = offset.Offset - paragraphStartOffset;
+    //    var runList = SplitRemoveByDocumentOffset(new ParagraphOffset(paragraphOffset));
+    //    return runList;
+    //}
 
     /// <summary>
     /// 在段落中间插入的时候，需要将段落在插入后面的内容分割删除
@@ -315,10 +334,30 @@ class ParagraphData
         }
         else
         {
-            // 需要考虑将原本合并的 IRun 拆开为多个
             _version++;
+            var runIndexInParagraph = GetRunIndex(offset);
 
-            throw new NotImplementedException($"还没实现段落分割的功能");
+            var count = TextRunList.Count - runIndexInParagraph.ParagraphIndex;
+            var result = TextRunList.GetRange(runIndexInParagraph.ParagraphIndex, count);
+            TextRunList.RemoveRange(runIndexInParagraph.ParagraphIndex, count);
+
+            // 判断是否刚好落在一个 TextRun 的起点，如果落在起点，就不需要拆开
+            if (runIndexInParagraph.HitRunIndex == 0)
+            {
+            }
+            else
+            {
+                // 需要考虑将原本合并的 IRun 拆开为多个
+                // 对拿到的 Run 进行分割
+                var (firstRun, secondRun) = runIndexInParagraph.Run.SplitAt(runIndexInParagraph.HitRunIndex);
+                // 将 firstRun 替换原有的，将 SecondRun 和之后的进行返回
+                // 由于原有的被删除了，替换原有的，就是添加到列表里
+                TextRunList.Add(firstRun);
+                // 将 SecondRun 和之后的进行返回，也就是将 result 的首项替换为 SecondRun 的内容
+                result[0] = secondRun;
+            }
+
+            return result;
         }
     }
 
@@ -420,6 +459,33 @@ class ParagraphData
     /// 段落的更改版本
     /// </summary>
     private uint _version;
+
+    public string GetText()
+    {
+        var stringBuilder = new StringBuilder();
+
+        GetText(stringBuilder);
+
+        return stringBuilder.ToString();
+    }
+
+    public void GetText(StringBuilder stringBuilder)
+    {
+        foreach (var run in TextRunList)
+        {
+            if (run is TextRun textRun)
+            {
+                stringBuilder.Append(textRun.Text);
+            }
+            else
+            {
+                for (int i = 0; i < run.Count; i++)
+                {
+                    stringBuilder.Append(run.GetChar(i).ToText());
+                }
+            }
+        }
+    }
 }
 
 /// <summary>

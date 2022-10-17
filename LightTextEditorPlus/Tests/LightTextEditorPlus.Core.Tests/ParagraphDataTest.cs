@@ -23,7 +23,7 @@ public class ParagraphDataTest
 
             // Assert
             Assert.AreEqual(0, runIndex.ParagraphIndex);
-            Assert.AreEqual(1, runIndex.HitIndex);
+            Assert.AreEqual(1, runIndex.HitRunIndex);
         });
 
         "给定段落坐标是 0 获取段落的 RunIndex 可以获取到首个".Test(() =>
