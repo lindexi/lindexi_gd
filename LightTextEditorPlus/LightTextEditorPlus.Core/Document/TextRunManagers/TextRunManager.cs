@@ -339,6 +339,17 @@ class ParagraphData
     }
 
     /// <summary>
+    /// 在行渲染的时候，将行末的一个 IRun 按照需求，分割为多个的时候，替换原有的
+    /// </summary>
+    internal void SplitReplace(int paragraphIndex, IRun firstRun, IRun secondRun)
+    {
+        _version++;
+
+        TextRunList[paragraphIndex] = firstRun;
+        TextRunList.Insert(paragraphIndex + 1, secondRun);
+    }
+
+    /// <summary>
     /// 在指定的地方插入一段文本
     /// </summary>
     /// <param name="insertOffset"></param>
@@ -463,6 +474,7 @@ class ParagraphData
             }
         }
     }
+
 }
 
 /// <summary>
