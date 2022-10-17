@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils.Maths;
 
 namespace LightTextEditorPlus.Core.Document
 {
-    public interface IReadOnlyRunProperty:IEquatable<IReadOnlyRunProperty>
+    public interface IReadOnlyRunProperty : IEquatable<IReadOnlyRunProperty>
     {
         double FontSize { get; }
         FontName FontFamily { get; }
@@ -23,7 +21,7 @@ namespace LightTextEditorPlus.Core.Document
         /// </summary>
         FontWeight FontWeight { get; }
 
-        bool TryGetProperty(string propertyName, [NotNullWhen(true)] out IImmutableRunPropertyValue value);
+        bool TryGetProperty(string propertyName, [NotNullWhen(true)] out IImmutableRunPropertyValue? value);
 
         /// <summary>
         /// 构建新的属性
@@ -123,7 +121,7 @@ namespace LightTextEditorPlus.Core.Document
             AdditionalPropertyDictionary[propertyName] = value;
         }
 
-        public bool TryGetProperty(string propertyName, [NotNullWhen(true)] out IImmutableRunPropertyValue value)
+        public bool TryGetProperty(string propertyName, [NotNullWhen(true)] out IImmutableRunPropertyValue? value)
         {
             if (AdditionalPropertyDictionary?.TryGetValue(propertyName, out value!) is true)
             {
@@ -164,8 +162,8 @@ namespace LightTextEditorPlus.Core.Document
 
         private void RaiseOnTextRunPropertyChanged()
         {
-
         }
+
         #endregion
 
         private HashSet<string> GetAdditionalPropertyKeyList()
@@ -197,7 +195,8 @@ namespace LightTextEditorPlus.Core.Document
         public bool Equals(RunProperty other)
         {
             // 先判断一定存在的属性，再判断业务端注入的属性
-            if (Equals(FontSize, other.FontSize) && Equals(FontFamily, other.FontFamily) && Equals(FontStyle, other.FontStyle) && Equals(FontWeight, other.FontWeight))
+            if (Equals(FontSize, other.FontSize) && Equals(FontFamily, other.FontFamily) &&
+                Equals(FontStyle, other.FontStyle) && Equals(FontWeight, other.FontWeight))
             {
                 var thisAdditionalPropertyKeyList = GetAdditionalPropertyKeyList();
                 var otherAdditionalPropertyKeyList = other.GetAdditionalPropertyKeyList();
@@ -211,7 +210,7 @@ namespace LightTextEditorPlus.Core.Document
 
                 foreach (var key in thisAdditionalPropertyKeyList)
                 {
-                    if (!TryGetProperty(key,out var thisValue))
+                    if (!TryGetProperty(key, out var thisValue))
                     {
                         // 理论上不可能
                         return false;
