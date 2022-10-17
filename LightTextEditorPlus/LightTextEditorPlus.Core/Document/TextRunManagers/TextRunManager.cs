@@ -91,6 +91,8 @@ internal class TextRunManager
     {
         // todo 实现删除逻辑
     }
+
+    
 }
 
 /// <summary>
@@ -119,8 +121,26 @@ class ParagraphManager
             {
                 return ParagraphList[0];
             }
-
-            //todo 还没实现非空行的逻辑
+            else
+            {
+                // 判断落在哪个段落里
+                // 判断方法就是判断字符范围是否在段落内
+                var currentDocumentOffset = 0;
+                foreach (var paragraphData in ParagraphList)
+                {
+                    var endOffset = currentDocumentOffset + paragraphData.CharCount + ParagraphData.DelimiterLength;// todo 这里是否遇到 -1 问题
+                    if (offset.Offset < endOffset)
+                    {
+                        return paragraphData;
+                    }
+                    else
+                    {
+                        currentDocumentOffset = endOffset;
+                    }
+                }
+            }
+            // 没有落到哪个段落？
+            //todo 还没实现落在段落外的逻辑
             throw new NotImplementedException();
         }
     }
