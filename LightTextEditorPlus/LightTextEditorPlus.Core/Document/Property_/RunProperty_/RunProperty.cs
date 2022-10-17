@@ -8,7 +8,7 @@ using LightTextEditorPlus.Core.Utils.Maths;
 
 namespace LightTextEditorPlus.Core.Document
 {
-    public interface IReadOnlyRunProperty
+    public interface IReadOnlyRunProperty:IEquatable<IReadOnlyRunProperty>
     {
         double FontSize { get; }
         FontName FontFamily { get; }
@@ -167,7 +167,19 @@ namespace LightTextEditorPlus.Core.Document
 
         }
         #endregion
+
+        public bool Equals(IReadOnlyRunProperty? other)
+        {
+            if (other is null) return false;
+            if (ReferenceEquals(this, other)) return true;
+
+            // 先判断一定存在的属性，再判断业务端注入的属性
+            if (Equals(FontSize, other.FontSize) && Equals(FontFamily, other.FontFamily) && Equals(FontStyle, other.FontStyle) && Equals(FontWeight, other.FontWeight))
+            {
+                // todo 实现判断业务端的属性，需要考虑判断属性数量
+            }
+
+            return false;
+        }
     }
-
-
 }
