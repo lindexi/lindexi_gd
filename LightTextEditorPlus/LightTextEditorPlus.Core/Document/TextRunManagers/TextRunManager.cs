@@ -49,7 +49,7 @@ internal class TextRunManager
 
         // 看看是不是在段落中间插入的，如果在段落中间插入的，需要将段落中间移除掉
         // 在插入完成之后，重新加入
-        var lastParagraphRunList = paragraphData.SplitRemoveByDocumentOffset(offset);
+        var lastParagraphRunList = paragraphData.SplitRemoveByDocumentOffset(paragraphDataResult.HitOffset);
 
         // 当前的段落，如果插入的分行的内容，那自然需要自动分段
         var currentParagraph = paragraphData;
@@ -305,7 +305,7 @@ class ParagraphData
     /// 在段落中间插入的时候，需要将段落在插入后面的内容分割删除
     /// </summary>
     /// <param name="offset"></param>
-    private IList<IRun>? SplitRemoveByDocumentOffset(ParagraphOffset offset)
+    public IList<IRun>? SplitRemoveByDocumentOffset(ParagraphOffset offset)
     {
         // todo 设置LineVisualData是脏的
         if (offset.Offset == CharCount)
