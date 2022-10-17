@@ -19,7 +19,7 @@ public readonly struct FontName:IEquatable<FontName>
     /// <exception cref="ArgumentNullException"><paramref name="userFontName"/> 为 null。</exception>
     public FontName(string userFontName)
     {
-        UserFontName = userFontName ?? throw new ArgumentNullException(nameof(userFontName)); ;
+        UserFontName = userFontName ?? throw new ArgumentNullException(nameof(userFontName));
     }
 
     /// <summary>

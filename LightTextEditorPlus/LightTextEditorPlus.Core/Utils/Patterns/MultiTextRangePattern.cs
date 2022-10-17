@@ -16,7 +16,6 @@ class MultiTextRangePattern
     /// <summary>
     /// 存放格式是 (MinChar,MaxChar) 两个两个存放，这是为了性能考虑
     /// </summary>
-
     private char[] TextRange { get; }
 
     /// <summary>

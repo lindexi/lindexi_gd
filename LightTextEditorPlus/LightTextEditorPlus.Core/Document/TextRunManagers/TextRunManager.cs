@@ -92,8 +92,6 @@ internal class TextRunManager
     {
         // todo 实现删除逻辑
     }
-
-    
 }
 
 /// <summary>

@@ -120,8 +120,6 @@ abstract class ArrangingLayoutProvider
         // todo 完成测量最大宽度
         var sizeToContent = TextEditor.SizeToContent;
 
-
-
         // 完成布局之后，全部设置为非脏的（或者是段落内自己实现）
         foreach (var paragraphData in dirtyParagraphDataList)
         {

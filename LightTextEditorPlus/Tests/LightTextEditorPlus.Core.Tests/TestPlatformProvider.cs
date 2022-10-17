@@ -5,5 +5,4 @@ namespace LightTextEditorPlus.Core.Tests;
 
 public class TestPlatformProvider : PlatformProvider
 {
- 
 }

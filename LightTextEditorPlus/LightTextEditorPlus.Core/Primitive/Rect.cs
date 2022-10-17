@@ -173,7 +173,7 @@ public struct Rect
         }
     }
 
-    public Point Center => new Point(X + Width / 2, Y + Height / 2);
+    public Point Center => new Point(X + (Width / 2), Y + (Height / 2));
 
     // Inflate and Offset
     public Rect Inflate(Size size)

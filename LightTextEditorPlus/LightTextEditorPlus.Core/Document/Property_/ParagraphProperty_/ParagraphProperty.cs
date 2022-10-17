@@ -35,7 +35,6 @@ public record ParagraphProperty
     /// </summary>
     public double Indent { get; init; } = 0;
 
-
     /// <summary>
     /// 是否允许标点溢出边界
     /// <para>

@@ -177,6 +177,4 @@ public partial class TextEditorCore
     }
 
     #endregion
-
-
 }

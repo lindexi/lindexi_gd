@@ -23,7 +23,6 @@ public class DefaultRunParagraphSplitterTest
             Assert.AreEqual(3, result.Count);
         });
 
-
         "传入的文本的结尾包含换行符，可以多加一个空段".Test(() =>
         {
             // Arrange

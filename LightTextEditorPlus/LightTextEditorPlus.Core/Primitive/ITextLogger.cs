@@ -12,23 +12,3 @@ public interface ITextLogger
     void LogInfo(string message);
     void LogWarning(string message);
 }
-
-class EmptyTextLogger : ITextLogger
-{
-    public void LogDebug(string message)
-    {
-        
-    }
-
-    public void LogException(Exception exception, string? message)
-    {
-    }
-
-    public void LogInfo(string message)
-    {
-    }
-
-    public void LogWarning(string message)
-    {
-    }
-}
