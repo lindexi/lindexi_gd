@@ -15,7 +15,8 @@ public class ParagraphDataTest
             // Arrange
             var textEditor = TestHelper.GetTextEditorCore();
             textEditor.AppendText("123");
-            var paragraphData = textEditor.DocumentManager.TextRunManager.ParagraphManager.GetParagraphData(new CaretOffset(0));
+            var paragraphDataResult = textEditor.DocumentManager.TextRunManager.ParagraphManager.GetHitParagraphData(new CaretOffset(0));
+            var paragraphData = paragraphDataResult.ParagraphData;
 
             // Action
             var runIndex = paragraphData.GetRunIndex(new ParagraphOffset(1));
@@ -32,7 +33,8 @@ public class ParagraphDataTest
             textEditor.AppendText("123");
 
             // Action
-            var paragraphData = textEditor.DocumentManager.TextRunManager.ParagraphManager.GetParagraphData(new CaretOffset(0));
+            var paragraphDataResult = textEditor.DocumentManager.TextRunManager.ParagraphManager.GetHitParagraphData(new CaretOffset(0));
+            var paragraphData = paragraphDataResult.ParagraphData;
             var runIndex = paragraphData.GetRunIndex(new ParagraphOffset(0));
 
             // Assert

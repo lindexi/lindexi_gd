@@ -44,7 +44,8 @@ internal class TextRunManager
     private void InsertInner(CaretOffset offset, IRun run)
     {
         // 插入的逻辑，找到插入变更的行
-        var paragraphData = ParagraphManager.GetParagraphData(offset);
+        var paragraphDataResult = ParagraphManager.GetHitParagraphData(offset);
+        var paragraphData = paragraphDataResult.ParagraphData;
 
         // 看看是不是在段落中间插入的，如果在段落中间插入的，需要将段落中间移除掉
         // 在插入完成之后，重新加入
@@ -96,6 +97,18 @@ internal class TextRunManager
 }
 
 /// <summary>
+/// 命中段落数据的结果
+/// </summary>
+/// <param name="Offset">参与命中的光标偏移量</param>
+/// <param name="ParagraphData">命中到的段落</param>
+/// <param name="HitOffset">命中到的段落偏移量</param>
+/// <param name="ParagraphManager"></param>
+/// 此类型用来减少重复计算
+readonly record struct HitParagraphDataResult(CaretOffset Offset, ParagraphData ParagraphData, ParagraphOffset HitOffset, ParagraphManager ParagraphManager)
+{
+}
+
+/// <summary>
 /// 段落管理
 /// </summary>
 class ParagraphManager
@@ -106,20 +119,26 @@ class ParagraphManager
     }
 
     public TextEditorCore TextEditor { get; }
-
-    public ParagraphData GetParagraphData(CaretOffset offset)
+    
+    /// <summary>
+    /// 获取被指定的光标偏移命中的段落信息
+    /// </summary>
+    /// <param name="offset"></param>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    public HitParagraphDataResult GetHitParagraphData(CaretOffset offset)
     {
         if (ParagraphList.Count == 0)
         {
             var paragraphData = CreateParagraphData();
             ParagraphList.Add(paragraphData);
-            return paragraphData;
+            return ResultResult(paragraphData);
         }
         else
         {
             if (offset.Offset == 0)
             {
-                return ParagraphList[0];
+                return ResultResult(ParagraphList[0]);
             }
             else
             {
@@ -131,7 +150,9 @@ class ParagraphManager
                     var endOffset = currentDocumentOffset + paragraphData.CharCount + ParagraphData.DelimiterLength;// todo 这里是否遇到 -1 问题
                     if (offset.Offset < endOffset)
                     {
-                        return paragraphData;
+                        var hitParagraphOffset = offset.Offset - currentDocumentOffset;
+
+                        return ResultResult(paragraphData,new ParagraphOffset(hitParagraphOffset));
                     }
                     else
                     {
@@ -142,6 +163,11 @@ class ParagraphManager
             // 没有落到哪个段落？
             //todo 还没实现落在段落外的逻辑
             throw new NotImplementedException();
+        }
+
+        HitParagraphDataResult ResultResult(ParagraphData paragraphData, ParagraphOffset? hitOffset = null)
+        {
+            return new HitParagraphDataResult(offset, paragraphData, hitOffset ?? new ParagraphOffset(0), this);
         }
     }
 
