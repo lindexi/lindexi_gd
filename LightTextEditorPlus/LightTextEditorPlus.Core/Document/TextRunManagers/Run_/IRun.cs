@@ -35,6 +35,7 @@ public interface IRun
 /// <summary>
 /// 表示一个支持合入的文本段
 /// </summary>
+/// todo 实现文本段合并功能
 public interface IMergeableRun
 {
     /// <summary>
@@ -44,3 +45,4 @@ public interface IMergeableRun
     /// <returns></returns>
     List<IRun?> MergeRunList(IList<IRun> runList);
 }
+

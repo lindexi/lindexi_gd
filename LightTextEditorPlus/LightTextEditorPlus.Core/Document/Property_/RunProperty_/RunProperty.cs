@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
 using LightTextEditorPlus.Core.Primitive;
@@ -22,7 +23,7 @@ namespace LightTextEditorPlus.Core.Document
         /// </summary>
         FontWeight FontWeight { get; }
 
-        bool TryGetProperty(string propertyName, [NotNullWhen(true)] out object value);
+        bool TryGetProperty(string propertyName, [NotNullWhen(true)] out IImmutableRunPropertyValue value);
 
         /// <summary>
         /// 构建新的属性
@@ -30,6 +31,13 @@ namespace LightTextEditorPlus.Core.Document
         /// <param name="action"></param>
         /// <returns></returns>
         IReadOnlyRunProperty BuildNewProperty(Action<RunProperty> action);
+    }
+
+    /// <summary>
+    /// 表示一个不可变的对象值
+    /// </summary>
+    public interface IImmutableRunPropertyValue
+    {
     }
 
     // todo 考虑属性系统支持设置是否影响布局，不影响布局的，例如改个颜色，可以不重新布局
@@ -108,14 +116,14 @@ namespace LightTextEditorPlus.Core.Document
         /// </summary>
         /// <param name="propertyName"></param>
         /// <param name="value"></param>
-        public void SetProperty(string propertyName, object value)
+        public void SetProperty(string propertyName, IImmutableRunPropertyValue value)
         {
-            AdditionalPropertyDictionary ??= new Dictionary<string, object>();
+            AdditionalPropertyDictionary ??= new Dictionary<string, IImmutableRunPropertyValue>();
 
             AdditionalPropertyDictionary[propertyName] = value;
         }
 
-        public bool TryGetProperty(string propertyName, [NotNullWhen(true)] out object value)
+        public bool TryGetProperty(string propertyName, [NotNullWhen(true)] out IImmutableRunPropertyValue value)
         {
             if (AdditionalPropertyDictionary?.TryGetValue(propertyName, out value!) is true)
             {
@@ -131,7 +139,7 @@ namespace LightTextEditorPlus.Core.Document
             return false;
         }
 
-        private Dictionary<string, object>? AdditionalPropertyDictionary { set; get; }
+        private Dictionary<string, IImmutableRunPropertyValue>? AdditionalPropertyDictionary { set; get; }
 
         #endregion
 
