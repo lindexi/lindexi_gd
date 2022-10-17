@@ -168,18 +168,86 @@ namespace LightTextEditorPlus.Core.Document
         }
         #endregion
 
+        private HashSet<string> GetAdditionalPropertyKeyList()
+        {
+            var hashSet = new HashSet<string>();
+
+            GetAdditionalPropertyKeyList(hashSet);
+
+            return hashSet;
+        }
+
+        private void GetAdditionalPropertyKeyList(ISet<string> hashSet)
+        {
+            if (AdditionalPropertyDictionary != null)
+            {
+                foreach (var key in AdditionalPropertyDictionary.Keys)
+                {
+                    hashSet.Add(key);
+                }
+            }
+
+            if (StyleRunProperty is not null)
+            {
+                // 不优化为一句话，方便打断点
+                StyleRunProperty.GetAdditionalPropertyKeyList(hashSet);
+            }
+        }
+
+        public bool Equals(RunProperty other)
+        {
+            // 先判断一定存在的属性，再判断业务端注入的属性
+            if (Equals(FontSize, other.FontSize) && Equals(FontFamily, other.FontFamily) && Equals(FontStyle, other.FontStyle) && Equals(FontWeight, other.FontWeight))
+            {
+                var thisAdditionalPropertyKeyList = GetAdditionalPropertyKeyList();
+                var otherAdditionalPropertyKeyList = other.GetAdditionalPropertyKeyList();
+
+                if (thisAdditionalPropertyKeyList.Count != otherAdditionalPropertyKeyList.Count
+                    || !thisAdditionalPropertyKeyList.SetEquals(otherAdditionalPropertyKeyList))
+                {
+                    // 如果属性数量等都不同，那就返回不相同
+                    return false;
+                }
+
+                foreach (var key in thisAdditionalPropertyKeyList)
+                {
+                    if (!TryGetProperty(key,out var thisValue))
+                    {
+                        // 理论上不可能
+                        return false;
+                    }
+
+                    if (!other.TryGetProperty(key, out var otherValue))
+                    {
+                        // 理论上不可能
+                        return false;
+                    }
+
+                    if (!Equals(thisValue, otherValue))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
         public bool Equals(IReadOnlyRunProperty? other)
         {
             if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;
 
-            // 先判断一定存在的属性，再判断业务端注入的属性
-            if (Equals(FontSize, other.FontSize) && Equals(FontFamily, other.FontFamily) && Equals(FontStyle, other.FontStyle) && Equals(FontWeight, other.FontWeight))
+            if (other is RunProperty runProperty)
             {
-                // todo 实现判断业务端的属性，需要考虑判断属性数量
+                return Equals(runProperty);
             }
-
-            return false;
+            else
+            {
+                return false;
+            }
         }
     }
 }
