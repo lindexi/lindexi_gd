@@ -1,13 +1,16 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.DocumentManagers;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Utils;
+using Microsoft.VisualBasic.CompilerServices;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -243,6 +246,8 @@ class ParagraphData
     private List<IRun> TextRunList { get; } = new List<IRun>();
 
     public IReadOnlyList<IRun> GetRunList() => TextRunList;
+
+    public Span<IRun> AsSpan() => CollectionsMarshal.AsSpan(TextRunList);
 
     /// <summary>
     /// 这一段的字符长度
@@ -483,6 +488,17 @@ class ParagraphData
 class LineVisualData
 {
     /// <summary>
+    /// 行渲染信息
+    /// </summary>
+    /// <param name="currentParagraph">行所在的段落</param>
+    public LineVisualData(ParagraphData currentParagraph)
+    {
+        CurrentParagraph = currentParagraph;
+    }
+
+    public ParagraphData CurrentParagraph { get; }
+
+    /// <summary>
     /// 是否是脏的，需要重新布局渲染
     /// </summary>
     public bool IsDirty { set; get; }
@@ -490,10 +506,33 @@ class LineVisualData
     /// <summary>
     /// 这一行的字符长度
     /// </summary>
-    public int CharCount => LineRunList?.Sum(t => t.Count) ?? 0;
+    public int CharCount
+    {
+        get
+        {
+            var count = 0;
+            foreach (var run in GetSpan())
+            {
+                count += run.Count;
+            }
+
+            return count;
+        }
+    }
 
     /// <summary>
     /// 行里面的文本
     /// </summary>
+    /// todo 看起来这个属性设计失误，将会存在两端不同步问题
     public List<IRun>? LineRunList { set; get; }
+
+    public int StartParagraphIndex { set; get; }
+
+    public int EndParagraphIndex { set; get; }
+
+    public Span<IRun> GetSpan()
+    {
+        //return CurrentParagraph.AsSpan().Slice(StartParagraphIndex, EndParagraphIndex - StartParagraphIndex);
+        return CurrentParagraph.AsSpan()[StartParagraphIndex..EndParagraphIndex];
+    }
 }

@@ -60,7 +60,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         // 当前行的 RunList 列表，看起来设计不对，没有加上在段落的坐标
         var currentLineRunList = new List<IRun>();
-        var currentLineVisualData = new LineVisualData()
+        var currentLineVisualData = new LineVisualData(paragraph)
         {
             IsDirty = false,
             LineRunList = currentLineRunList
