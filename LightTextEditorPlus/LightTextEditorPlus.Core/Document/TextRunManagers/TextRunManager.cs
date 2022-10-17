@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.DocumentManagers;
 using LightTextEditorPlus.Core.Document.Segments;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils;
 using Microsoft.VisualBasic.CompilerServices;
 
@@ -526,9 +527,10 @@ class LineVisualData
     /// todo 看起来这个属性设计失误，将会存在两端不同步问题
     public List<IRun>? LineRunList { set; get; }
 
-    public int StartParagraphIndex { set; get; }
+    public int StartParagraphIndex { set; get; } = -1;
 
-    public int EndParagraphIndex { set; get; }
+    public int EndParagraphIndex { set; get; } = -1;
+    public Size Size { get; set; }
 
     public Span<IRun> GetSpan()
     {

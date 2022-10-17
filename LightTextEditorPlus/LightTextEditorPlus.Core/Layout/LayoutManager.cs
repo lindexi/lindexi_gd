@@ -58,14 +58,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     {
         var runList = paragraph.GetRunList();
 
-        // 当前行的 RunList 列表，看起来设计不对，没有加上在段落的坐标
-        var currentLineRunList = new List<IRun>();
-        var currentLineVisualData = new LineVisualData(paragraph)
-        {
-            IsDirty = false,
-            LineRunList = currentLineRunList
-        };
-
+        //// 当前行的 RunList 列表，看起来设计不对，没有加上在段落的坐标
+        //var currentLineRunList = new List<IRun>();
+        // 当前的行渲染信息
+        LineVisualData? currentLineVisualData = null;
+       
         // 获取最大宽度信息
         double lineMaxWidth = TextEditor.SizeToContent switch
         {
@@ -76,18 +73,79 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             _ => throw new ArgumentOutOfRangeException()
         };
 
-        // 行还剩余的空闲宽度
-        double lineRemainingWidth = lineMaxWidth;
-        for (var i = startTextRunIndex.ParagraphIndex; i < runList.Count; i++)
+        for (var i = startTextRunIndex.ParagraphIndex; i < runList.Count;)
         {
             // 预期刚好 dirtyParagraphOffset 是某个 IRun 的起始
+            //if (currentLineVisualData is null)
+            //{
+            //    currentLineVisualData = new LineVisualData(paragraph)
+            //    {
+            //        IsDirty = false,
+            //        StartParagraphIndex = i,
+            //    };
+            //}
 
-            var run = runList[i];
             // 开始行布局
             // 第一个 Run 就是行的开始
+            var runSpan = paragraph.AsSpan().Slice(i);
+            var result = MeasureAndArrangeRunLine(runSpan, lineMaxWidth);
 
+            // 先判断是否需要分割
+            if (result.NeedSplitLastRun)
+            {
+                var lastRunIndex = i + result.RunCount-1; // todo 这里是否存在 -1 问题
+                IRun lastRun = runSpan[result.RunCount-1];
+                var (firstRun, secondRun) = lastRun.SplitAt(result.LastRunHitIndex);
+                paragraph.SplitReplace(lastRunIndex,firstRun,secondRun);
+            }
+
+            currentLineVisualData = new LineVisualData(paragraph)
+            {
+                IsDirty = false,
+                StartParagraphIndex = i,
+                EndParagraphIndex = i+ result.RunCount,
+                Size=result.Size,
+            };
+
+            paragraph.LineVisualDataList.Add(currentLineVisualData);
+
+            i+= result.RunCount;
         }
+
+        // todo 考虑行复用，例如刚好添加的内容是一行。或者在一行内做文本替换等
+        // 这个没有啥优先级。测试了 SublimeText 和 NotePad 工具，都没有做此复用，预计有坑
     }
+
+    /// <summary>
+    /// 测量和布局行
+    /// </summary>
+    /// <param name="runSpan"></param>
+    /// <param name="lineMaxWidth"></param>
+    private RunLineMeasureAndArrangeResult MeasureAndArrangeRunLine(Span<IRun> runSpan, double lineMaxWidth)
+    {
+        // todo 允许注入可定制的自定义布局方法
+        //TextEditor.PlatformProvider.GetCustomMeasureAndArrangeRunLine
+
+        // 行还剩余的空闲宽度
+        double lineRemainingWidth = lineMaxWidth;
+
+        // todo 以下是测试数据
+        return new RunLineMeasureAndArrangeResult(new Size(100,100),1,0);
+    }
+}
+
+/// <summary>
+/// 段内行测量布局结果
+/// </summary>
+/// <param name="Size">这一行的尺寸</param>
+/// <param name="RunCount">这一行使用的 <see cref="IRun"/> 的数量</param>
+/// <param name="LastRunHitIndex">最后一个 <see cref="IRun"/> 被使用的字符数量，如刚好用完一个 <see cref="IRun"/> 那么设置默认为 0 的值。设置为非 0 的值，将会分割最后一个 <see cref="IRun"/> 为多个，保证没有一个 <see cref="IRun"/> 是跨行的</param>
+public readonly record struct RunLineMeasureAndArrangeResult(Size Size,int RunCount, int LastRunHitIndex)
+{
+    /// <summary>
+    /// 是否最后一个 Run 需要被分割。也就是最后一个 Run 将会跨多行
+    /// </summary>
+    public bool NeedSplitLastRun => LastRunHitIndex > 0;
 }
 
 /// <summary>
