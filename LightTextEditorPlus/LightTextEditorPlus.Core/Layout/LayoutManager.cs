@@ -57,9 +57,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     protected override void LayoutParagraphCore(ParagraphData paragraph, in RunIndexInParagraph startTextRunIndex, ParagraphOffset startParagraphOffset)
     {
         var runList = paragraph.GetRunList();
+
+        // 当前行的 RunList 列表，看起来设计不对，没有加上在段落的坐标
+        var currentLineRunList = new List<IRun>();
         var currentLineVisualData = new LineVisualData()
         {
             IsDirty = false,
+            LineRunList = currentLineRunList
         };
 
         // 获取最大宽度信息
@@ -81,6 +85,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             var run = runList[i];
             // 开始行布局
             // 第一个 Run 就是行的开始
+
         }
     }
 }
