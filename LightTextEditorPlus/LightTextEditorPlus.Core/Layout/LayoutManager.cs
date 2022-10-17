@@ -57,12 +57,31 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     protected override void LayoutParagraphCore(ParagraphData paragraph, in RunIndexInParagraph startTextRunIndex, ParagraphOffset startParagraphOffset)
     {
         var runList = paragraph.GetRunList();
+        var currentLineVisualData = new LineVisualData()
+        {
+            IsDirty = false,
+        };
+
+        // 获取最大宽度信息
+        double lineMaxWidth = TextEditor.SizeToContent switch
+        {
+            SizeToContent.Manual => TextEditor.DocumentManager.DocumentWidth,
+            SizeToContent.Width => double.PositiveInfinity,
+            SizeToContent.Height => TextEditor.DocumentManager.DocumentWidth,
+            SizeToContent.WidthAndHeight => double.PositiveInfinity,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+
+        // 行还剩余的空闲宽度
+        double lineRemainingWidth = lineMaxWidth;
         for (var i = startTextRunIndex.ParagraphIndex; i < runList.Count; i++)
         {
             // 预期刚好 dirtyParagraphOffset 是某个 IRun 的起始
 
             var run = runList[i];
             // 开始行布局
+            // 第一个 Run 就是行的开始
+
 
         }
     }
@@ -73,13 +92,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 /// </summary>
 abstract class ArrangingLayoutProvider
 {
-    protected ArrangingLayoutProvider(TextEditorCore textEditor)
+    protected ArrangingLayoutProvider(TextEditor textEditor)
     {
         TextEditor = textEditor;
     }
 
     public abstract ArrangingType ArrangingType { get; }
-    public TextEditorCore TextEditor { get; }
+    public TextEditor TextEditor { get; }
 
     public void UpdateLayout()
     {
@@ -118,7 +137,6 @@ abstract class ArrangingLayoutProvider
         }
 
         // todo 完成测量最大宽度
-        var sizeToContent = TextEditor.SizeToContent;
 
         // 完成布局之后，全部设置为非脏的（或者是段落内自己实现）
         foreach (var paragraphData in dirtyParagraphDataList)

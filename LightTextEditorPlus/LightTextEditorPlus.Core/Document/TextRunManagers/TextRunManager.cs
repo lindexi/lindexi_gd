@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -97,6 +98,7 @@ internal class TextRunManager
 /// <summary>
 /// 段落管理
 /// </summary>
+[DebuggerDisplay("{GetText()}")]
 class ParagraphManager
 {
     public ParagraphManager(TextEditorCore textEditor)
@@ -226,6 +228,7 @@ class ParagraphManager
 /// <summary>
 /// 段落数据
 /// </summary>
+[DebuggerDisplay("{GetText()}")]
 class ParagraphData
 {
     public ParagraphData(ParagraphProperty paragraphProperty, ParagraphManager paragraphManager)
