@@ -24,7 +24,6 @@ public readonly struct CaretOffset : IEquatable<CaretOffset>
     public CaretOffset(int offset)
     {
         Offset = offset;
-        System.Threading.Thread.Sleep(1);
     }
 
     /// <summary>

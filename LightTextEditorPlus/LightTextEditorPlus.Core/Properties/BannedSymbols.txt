@@ -1,1 +1,1 @@
-﻿M:System.Threading.Thread.Sleep;Dont
+﻿T:命名空间.类型;描述
