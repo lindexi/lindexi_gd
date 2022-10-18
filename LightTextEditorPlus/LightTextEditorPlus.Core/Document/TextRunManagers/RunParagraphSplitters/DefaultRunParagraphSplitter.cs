@@ -6,7 +6,7 @@ namespace LightTextEditorPlus.Core.Document;
 
 internal class DefaultRunParagraphSplitter : IRunParagraphSplitter
 {
-    public IEnumerable<IRun> Split(IRun run)
+    public IEnumerable<IImmutableRun> Split(IImmutableRun run)
     {
         if (run is TextRun textRun)
         {
@@ -29,7 +29,7 @@ internal class DefaultRunParagraphSplitter : IRunParagraphSplitter
         }
     }
 
-    private static IEnumerable<IRun> Split(TextRun textRun)
+    private static IEnumerable<IImmutableRun> Split(TextRun textRun)
     {
         var text = textRun.Text;
         foreach (var subText in Split(text))

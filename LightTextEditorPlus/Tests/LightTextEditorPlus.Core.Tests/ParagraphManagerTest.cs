@@ -9,7 +9,7 @@ public class ParagraphManagerTest
     [ContractTestCase]
     public void SplitReplace()
     {
-        "一共有三个 IRun 的段落，将中间一个 IRun 拆分替换为两个，可以按照顺序替换掉".Test(() =>
+        "一共有三个 IImmutableRun 的段落，将中间一个 IImmutableRun 拆分替换为两个，可以按照顺序替换掉".Test(() =>
         {
             // Arrange
             var textEditor = TestHelper.GetTextEditorCore();
@@ -17,14 +17,14 @@ public class ParagraphManagerTest
             var paragraphManager = textEditor.DocumentManager.TextRunManager.ParagraphManager;
             var paragraphData = paragraphManager.CreateParagraphData();
 
-            // 一共有三个 IRun 的段落
+            // 一共有三个 IImmutableRun 的段落
             var originRun0 = new TextRun("1");
             var originRun1 = new TextRun("23");
             var originRun2 = new TextRun("4");
-            paragraphData.AppendRun(new IRun[] { originRun0, originRun1, originRun2 });
+            paragraphData.AppendRun(new IImmutableRun[] { originRun0, originRun1, originRun2 });
 
             // Action
-            // 将中间一个 IRun 拆分替换为两个
+            // 将中间一个 IImmutableRun 拆分替换为两个
             var firstRun = new TextRun("2");
             var secondRun = new TextRun("3");
 

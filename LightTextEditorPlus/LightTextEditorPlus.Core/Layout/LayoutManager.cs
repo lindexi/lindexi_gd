@@ -60,7 +60,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         var runList = paragraph.GetRunList();
 
         //// 当前行的 RunList 列表，看起来设计不对，没有加上在段落的坐标
-        //var currentLineRunList = new List<IRun>();
+        //var currentLineRunList = new List<IImmutableRun>();
         // 当前的行渲染信息
         LineVisualData? currentLineVisualData = null;
        
@@ -76,7 +76,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         for (var i = startTextRunIndex.ParagraphIndex; i < runList.Count;)
         {
-            // 预期刚好 dirtyParagraphOffset 是某个 IRun 的起始
+            // 预期刚好 dirtyParagraphOffset 是某个 IImmutableRun 的起始
             //if (currentLineVisualData is null)
             //{
             //    currentLineVisualData = new LineVisualData(paragraph)
@@ -95,7 +95,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             if (result.NeedSplitLastRun)
             {
                 var lastRunIndex = i + result.RunCount-1; // todo 这里是否存在 -1 问题
-                IRun lastRun = runSpan[result.RunCount-1];
+                IImmutableRun lastRun = runSpan[result.RunCount-1];
                 var (firstRun, secondRun) = lastRun.SplitAt(result.LastRunHitIndex);
                 paragraph.SplitReplace(lastRunIndex,firstRun,secondRun);
             }
@@ -131,7 +131,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// <param name="runList"></param>
     /// <param name="lineMaxWidth"></param>
     private RunLineMeasureAndArrangeResult MeasureAndArrangeRunLine(ParagraphData paragraph,
-        IReadOnlyList<IRun> runList, double lineMaxWidth)
+        IReadOnlyList<IImmutableRun> runList, double lineMaxWidth)
     {
         // todo 允许注入可定制的自定义布局方法
         //TextEditor.PlatformProvider.GetCustomMeasureAndArrangeRunLine
@@ -167,20 +167,20 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
 // 这里无法确定采用字符加上属性的方式是否会更优
 // 通过字符获取对应的属性，如此即可不需要每次都需要考虑将
-// 一个 IRun 进行分割而已
+// 一个 IImmutableRun 进行分割而已
 
-// 尝试根据字符给出属性的方式，如此可以不用考虑将一个 IRun 进行分割
+// 尝试根据字符给出属性的方式，如此可以不用考虑将一个 IImmutableRun 进行分割
 
 public class RunVisitor
 {
-    public RunVisitor(IReadOnlyRunProperty defaultRunProperty, IReadOnlyList<IRun> runList)
+    public RunVisitor(IReadOnlyRunProperty defaultRunProperty, IReadOnlyList<IImmutableRun> runList)
     {
         DefaultRunProperty = defaultRunProperty;
         RunList = runList;
     }
 
     private IReadOnlyRunProperty DefaultRunProperty { get; }
-    private IReadOnlyList<IRun> RunList { get; }
+    private IReadOnlyList<IImmutableRun> RunList { get; }
 
     public int CurrentCharIndex { get; private set; }
 
@@ -208,7 +208,7 @@ public class RunVisitor
     }
 }
 
-public readonly record struct MeasureRunInLineArguments(IReadOnlyList<IRun> RunList,int CurrentIndex, double LineRemainingWidth, ParagraphProperty ParagraphProperty)
+public readonly record struct MeasureRunInLineArguments(IReadOnlyList<IImmutableRun> RunList,int CurrentIndex, double LineRemainingWidth, ParagraphProperty ParagraphProperty)
 {
     
 }
@@ -217,8 +217,8 @@ public readonly record struct MeasureRunInLineArguments(IReadOnlyList<IRun> RunL
 /// 测量行内字符的结果
 /// </summary>
 /// <param name="Size">这一行的布局尺寸</param>
-/// <param name="TaskCount">使用了多少个 IRun 元素</param>
-/// <param name="SplitLastRunIndex">最后一个 IRun 元素是否需要拆分跨行，需要拆分也就意味着需要分行了</param>
+/// <param name="TaskCount">使用了多少个 IImmutableRun 元素</param>
+/// <param name="SplitLastRunIndex">最后一个 IImmutableRun 元素是否需要拆分跨行，需要拆分也就意味着需要分行了</param>
 public readonly record struct MeasureRunInLineResult(int TaskCount,int SplitLastRunIndex, Size Size)
 {
     // 测量一个 Run 在行内布局的结果
@@ -243,8 +243,8 @@ public readonly record struct MeasureRunInLineResult(int TaskCount,int SplitLast
 /// 段内行测量布局结果
 /// </summary>
 /// <param name="Size">这一行的尺寸</param>
-/// <param name="RunCount">这一行使用的 <see cref="IRun"/> 的数量</param>
-/// <param name="LastRunHitIndex">最后一个 <see cref="IRun"/> 被使用的字符数量，如刚好用完一个 <see cref="IRun"/> 那么设置默认为 0 的值。设置为非 0 的值，将会分割最后一个 <see cref="IRun"/> 为多个，保证没有一个 <see cref="IRun"/> 是跨行的</param>
+/// <param name="RunCount">这一行使用的 <see cref="IImmutableRun"/> 的数量</param>
+/// <param name="LastRunHitIndex">最后一个 <see cref="IImmutableRun"/> 被使用的字符数量，如刚好用完一个 <see cref="IImmutableRun"/> 那么设置默认为 0 的值。设置为非 0 的值，将会分割最后一个 <see cref="IImmutableRun"/> 为多个，保证没有一个 <see cref="IImmutableRun"/> 是跨行的</param>
 public readonly record struct RunLineMeasureAndArrangeResult(Size Size,int RunCount, int LastRunHitIndex)
 {
     /// <summary>
@@ -342,7 +342,7 @@ abstract class ArrangingLayoutProvider
             paragraph.LineVisualDataList.RemoveRange(lastIndex, paragraph.LineVisualDataList.Count - lastIndex);
         }
 
-        // 不需要通过如此复杂的逻辑获取有哪些，因为存在的坑在于后续分拆 IRun 逻辑将会复杂
+        // 不需要通过如此复杂的逻辑获取有哪些，因为存在的坑在于后续分拆 IImmutableRun 逻辑将会复杂
         //paragraph.GetRunRange(dirtyParagraphOffset);
 
         if (paragraph.GetRunList().Count == 0)

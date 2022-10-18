@@ -13,5 +13,5 @@ public interface IMergeableRun
     /// </summary>
     /// <param name="runList"></param>
     /// <returns></returns>
-    List<IRun?> MergeRunList(IList<IRun> runList);
+    List<IImmutableRun?> MergeRunList(IList<IImmutableRun> runList);
 }

@@ -5,7 +5,7 @@ namespace LightTextEditorPlus.Core.Document;
 /// <summary>
 /// 一个表示换行的文本段，大部分用来表示一个分段内容
 /// </summary>
-public class LineBreakRun : IRun
+public class LineBreakRun : IImmutableRun
 {
     public LineBreakRun(IReadOnlyRunProperty? runProperty = null)
     {
@@ -19,7 +19,7 @@ public class LineBreakRun : IRun
     }
 
     public IReadOnlyRunProperty? RunProperty { get; }
-    public (IRun FirstRun, IRun SecondRun) SplitAt(int index)
+    public (IImmutableRun FirstRun, IImmutableRun SecondRun) SplitAt(int index)
     {
         throw new NotSupportedException($"{nameof(LineBreakRun)} not support split.");
     }

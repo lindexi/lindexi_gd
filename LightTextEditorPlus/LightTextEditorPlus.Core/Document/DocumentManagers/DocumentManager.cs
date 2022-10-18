@@ -126,7 +126,7 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
             EditAndReplaceRun(this.GetDocumentEndSelection(), new TextRun(text));
         }
 
-        public void EditAndReplaceRun(Selection selection, IRun run)
+        public void EditAndReplaceRun(Selection selection, IImmutableRun run)
         {
             InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
             // 这里只处理数据变更，后续渲染需要通过 InternalDocumentChanged 事件触发

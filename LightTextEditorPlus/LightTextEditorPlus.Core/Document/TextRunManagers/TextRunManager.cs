@@ -26,7 +26,7 @@ internal class TextRunManager
     public ParagraphManager ParagraphManager { get; }
     public TextEditorCore TextEditor { get; }
 
-    public void Replace(Selection selection, IRun run)
+    public void Replace(Selection selection, IImmutableRun run)
     {
         // 先执行删除，再执行插入
         if (selection.Length != 0)
@@ -46,7 +46,7 @@ internal class TextRunManager
     /// </summary>
     /// <param name="offset"></param>
     /// <param name="run"></param>
-    private void InsertInner(CaretOffset offset, IRun run)
+    private void InsertInner(CaretOffset offset, IImmutableRun run)
     {
         // 插入的逻辑，找到插入变更的行
         var paragraphDataResult = ParagraphManager.GetHitParagraphData(offset);
@@ -244,15 +244,15 @@ class ParagraphData
     public ParagraphProperty ParagraphProperty { set; get; }
     public ParagraphManager ParagraphManager { get; }
 
-    private List<IRun> TextRunList { get; } = new List<IRun>();
+    private List<IImmutableRun> TextRunList { get; } = new List<IImmutableRun>();
 
-    public IReadOnlyList<IRun> GetRunList() => TextRunList;
+    public IReadOnlyList<IImmutableRun> GetRunList() => TextRunList;
 
-    public Span<IRun> AsSpan() => CollectionsMarshal.AsSpan(TextRunList);
+    public Span<IImmutableRun> AsSpan() => CollectionsMarshal.AsSpan(TextRunList);
 
-    public ReadOnlyListSpan<IRun> ToReadOnlyListSpan(int start) => ToReadOnlyListSpan(start, TextRunList.Count - start);
-    public ReadOnlyListSpan<IRun> ToReadOnlyListSpan(int start, int length) =>
-        new ReadOnlyListSpan<IRun>(TextRunList, start, length);
+    public ReadOnlyListSpan<IImmutableRun> ToReadOnlyListSpan(int start) => ToReadOnlyListSpan(start, TextRunList.Count - start);
+    public ReadOnlyListSpan<IImmutableRun> ToReadOnlyListSpan(int start, int length) =>
+        new ReadOnlyListSpan<IImmutableRun>(TextRunList, start, length);
 
     /// <summary>
     /// 这一段的字符长度
@@ -297,7 +297,7 @@ class ParagraphData
     ///// </summary>
     ///// <param name="offset"></param>
     ///// <exception cref="NotImplementedException"></exception>
-    //public IList<IRun>? SplitRemoveByDocumentOffset(CaretOffset offset)
+    //public IList<IImmutableRun>? SplitRemoveByDocumentOffset(CaretOffset offset)
     //{
     //    // 从光标坐标系，换为段落坐标
     //    DocumentOffset paragraphStartOffset = GetParagraphStartOffset();
@@ -311,7 +311,7 @@ class ParagraphData
     /// 在段落中间插入的时候，需要将段落在插入后面的内容分割删除
     /// </summary>
     /// <param name="offset"></param>
-    public IList<IRun>? SplitRemoveByDocumentOffset(ParagraphOffset offset)
+    public IList<IImmutableRun>? SplitRemoveByDocumentOffset(ParagraphOffset offset)
     {
         // todo 设置LineVisualData是脏的
         if (offset.Offset == CharCount)
@@ -334,7 +334,7 @@ class ParagraphData
             }
             else
             {
-                // 需要考虑将原本合并的 IRun 拆开为多个
+                // 需要考虑将原本合并的 IImmutableRun 拆开为多个
                 // 对拿到的 Run 进行分割
                 var (firstRun, secondRun) = runIndexInParagraph.Run.SplitAt(runIndexInParagraph.HitRunIndex);
                 // 将 firstRun 替换原有的，将 SecondRun 和之后的进行返回
@@ -349,9 +349,9 @@ class ParagraphData
     }
 
     /// <summary>
-    /// 在行渲染的时候，将行末的一个 IRun 按照需求，分割为多个的时候，替换原有的
+    /// 在行渲染的时候，将行末的一个 IImmutableRun 按照需求，分割为多个的时候，替换原有的
     /// </summary>
-    internal void SplitReplace(int paragraphIndex, IRun firstRun, IRun secondRun)
+    internal void SplitReplace(int paragraphIndex, IImmutableRun firstRun, IImmutableRun secondRun)
     {
         _version++;
 
@@ -364,7 +364,7 @@ class ParagraphData
     /// </summary>
     /// <param name="insertOffset"></param>
     /// <param name="run"></param>
-    public void InsertRun(int insertOffset, IRun run)
+    public void InsertRun(int insertOffset, IImmutableRun run)
     {
         if (insertOffset == CharCount)
         {
@@ -379,13 +379,13 @@ class ParagraphData
         _version++;
     }
 
-    public void AppendRun(IRun run)
+    public void AppendRun(IImmutableRun run)
     {
         TextRunList.Add(run);
         _version++;
     }
 
-    public void AppendRun(IList<IRun> runList)
+    public void AppendRun(IList<IImmutableRun> runList)
     {
         foreach (var run in runList)
         {
@@ -401,7 +401,7 @@ class ParagraphData
 
     #endregion
 
-    public ParagraphOffset GetParagraphOffset(IRun run)
+    public ParagraphOffset GetParagraphOffset(IImmutableRun run)
     {
         var paragraphOffset = 0;
 
@@ -512,7 +512,7 @@ class LineVisualData
     /// 行里面的文本
     /// </summary>
     /// todo 看起来这个属性设计失误，将会存在两端不同步问题
-    public List<IRun>? LineRunList { set; get; }
+    public List<IImmutableRun>? LineRunList { set; get; }
 
     public int StartParagraphIndex { set; get; } = -1;
 
@@ -528,7 +528,7 @@ class LineVisualData
     /// </summary>
     public Size Size { get; set; }
 
-    public Span<IRun> GetSpan()
+    public Span<IImmutableRun> GetSpan()
     {
         //return CurrentParagraph.AsSpan().Slice(StartParagraphIndex, EndParagraphIndex - StartParagraphIndex);
         return CurrentParagraph.AsSpan()[StartParagraphIndex..EndParagraphIndex];

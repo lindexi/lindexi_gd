@@ -2,7 +2,7 @@
 
 namespace LightTextEditorPlus.Core.Document;
 
-public class TextRun : ITextRun
+public class TextRun : IImmutableTextRun
 {
     public TextRun(string text, IReadOnlyRunProperty? runProperty=null)
     {
@@ -25,7 +25,7 @@ public class TextRun : ITextRun
     public IReadOnlyRunProperty? RunProperty { get; }
 
     /// <inheritdoc />
-    public (IRun FirstRun, IRun SecondRun) SplitAt(int index)
+    public (IImmutableRun FirstRun, IImmutableRun SecondRun) SplitAt(int index)
     {
         if (index >= Count)
         {
