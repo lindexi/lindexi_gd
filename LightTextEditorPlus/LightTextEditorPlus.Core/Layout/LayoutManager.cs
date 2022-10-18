@@ -145,13 +145,23 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         while (currentRunIndex < runList.Count)
         {
-            var runInfo = new RunInfo(runList, currentRunIndex, lastRunHitIndex, TextEditor.DocumentManager.CurrentRunProperty);
-            var arguments = new MeasureRunInLineArguments(runInfo, currentRunIndex, lineRemainingWidth, paragraph.ParagraphProperty);
+            var arguments = new MeasureRunInLineArguments(runList, currentRunIndex, lineRemainingWidth, paragraph.ParagraphProperty);
 
+            MeasureRunInLineResult result = MeasureAndArrangeCharLine(arguments);
+
+            if (result.CanTake)
+            {
+                currentRunIndex += result.TaskCount;
+            }
+
+            lastRunHitIndex = result.SplitLastRunIndex;
+
+            if (result.ShouldBreakLine)
+            {
+                // 换行
+            }
             //MeasureRunInLineResult result = runMeasureProvider.MeasureAndArrangeRunLine(arguments);
         }
-
-       
 
         //for (; i < runList.Count; i++)
         //{
@@ -167,12 +177,80 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         //throw new NotImplementedException();
     }
 
+    private MeasureRunInLineResult MeasureAndArrangeCharLine(MeasureRunInLineArguments arguments)
+    {
+        var runMeasureProvider = TextEditor.PlatformProvider.GetRunMeasureProvider();
+
+        var currentRun = arguments.RunList[arguments.CurrentIndex];
+        var currentSize = new Size(0, 0);
+
+        for (int i = 0; i < currentRun.Count;)
+        {
+            var runInfo = new RunInfo(arguments.RunList, arguments.CurrentIndex, i, TextEditor.DocumentManager.CurrentRunProperty);
+
+            var measureCharInLineArguments = new MeasureCharInLineArguments(runInfo,arguments.LineRemainingWidth,arguments.ParagraphProperty);
+
+            //MeasureCharInLineResult result = runMeasureProvider.MeasureAndArrangeCharLine(measureCharInLineArguments);
+            MeasureCharInLineResult result = MeasureCharInLine(measureCharInLineArguments);
+
+            if (result.CanTake)
+            {
+                i += result.TakeCharCount;
+                var width = currentSize.Width + result.Size.Width;
+                var height = Math.Max(currentSize.Height, result.Size.Height);
+
+                currentSize = new Size(width, height);
+            }
+            else
+            {
+                if (i == 0)
+                {
+                    // 一个都获取不到
+                    return new MeasureRunInLineResult(0, 0, currentSize);
+                }
+                else
+                {
+                    // 无法将整个 Run 都排版进去，只能排版部分
+                    var hitIndex = i - 1;
+                    return new MeasureRunInLineResult(1, hitIndex, currentSize);
+                }
+            }
+        }
+
+        // 整个 Run 都排版进去，不需要将这个 Run 拆分
+        return new MeasureRunInLineResult(1, 0, currentSize);
+    }
+
+    private MeasureCharInLineResult MeasureCharInLine(in MeasureCharInLineArguments arguments)
+    {
+        var runMeasureProvider = TextEditor.PlatformProvider.GetRunMeasureProvider();
+
+        var runInfo = arguments.RunInfo;
+        var charInfo = runInfo.GetCurrentCharInfo();
+
+        CharInfoMeasureResult result = runMeasureProvider.MeasureCharInfo(charInfo);
+
+        if (result.Bounds.Width > arguments.LineRemainingWidth)
+        {
+            return new MeasureCharInLineResult(0,default);
+        }
+        else
+        {
+            return new MeasureCharInLineResult(1, result.Bounds.Size);
+        }
+    }
+
     //private void TakeChar(RunInfo runInfo, double lineMaxWidth, ParagraphProperty paragraphProperty)
     //{
     //    runInfo.GetCurrentCharInfo();
     //    runInfo.GetNextCharInfo(index);
 
     //}
+}
+
+public readonly record struct CharInfoMeasureResult(Rect Bounds)
+{
+
 }
 
 public readonly record struct CharInfo(ICharObject CharObject,IReadOnlyRunProperty RunProperty)
@@ -235,7 +313,17 @@ public readonly record struct RunInfo(ReadOnlyListSpan<IImmutableRun> RunList, i
     }
 }
 
-public readonly record struct MeasureRunInLineArguments(RunInfo RunInfo, int CurrentIndex, double LineRemainingWidth, ParagraphProperty ParagraphProperty)
+public readonly record struct MeasureCharInLineArguments(RunInfo RunInfo, double LineRemainingWidth, ParagraphProperty ParagraphProperty)
+{
+
+}
+
+public readonly record struct MeasureCharInLineResult(int TakeCharCount, Size Size)
+{
+    public bool CanTake => TakeCharCount > 0;
+}
+
+public readonly record struct MeasureRunInLineArguments(ReadOnlyListSpan<IImmutableRun> RunList, int CurrentIndex, double LineRemainingWidth, ParagraphProperty ParagraphProperty)
 {
     
 }

@@ -35,6 +35,8 @@ public interface IPlatformProvider
 public interface IRunMeasureProvider
 {
     MeasureRunInLineResult MeasureAndArrangeRunLine(in MeasureRunInLineArguments arguments);
+    MeasureCharInLineResult MeasureAndArrangeCharLine(in MeasureCharInLineArguments measureCharInLineArguments);
+    CharInfoMeasureResult MeasureCharInfo(in CharInfo charInfo);
 }
 
 public class DefaultRunMeasureProvider : IRunMeasureProvider
@@ -42,6 +44,17 @@ public class DefaultRunMeasureProvider : IRunMeasureProvider
     public MeasureRunInLineResult MeasureAndArrangeRunLine(in MeasureRunInLineArguments arguments)
     {
         throw new NotImplementedException();
+    }
+
+    public MeasureCharInLineResult MeasureAndArrangeCharLine(in MeasureCharInLineArguments measureCharInLineArguments)
+    {
+        throw new NotImplementedException();
+    }
+
+    public CharInfoMeasureResult MeasureCharInfo(in CharInfo charInfo)
+    {
+        var bounds = new Rect(0, 0, charInfo.RunProperty.FontSize, charInfo.RunProperty.FontSize);
+        return new CharInfoMeasureResult(bounds);
     }
 }
 
