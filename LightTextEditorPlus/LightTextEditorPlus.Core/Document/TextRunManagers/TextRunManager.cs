@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -249,6 +248,9 @@ class ParagraphData
     public IReadOnlyList<IRun> GetRunList() => TextRunList;
 
     public Span<IRun> AsSpan() => CollectionsMarshal.AsSpan(TextRunList);
+
+    public ReadOnlyListSpan<IRun> ToReadOnlyListSpan(int start, int length) =>
+        new ReadOnlyListSpan<IRun>(TextRunList, start, length);
 
     /// <summary>
     /// 这一段的字符长度
