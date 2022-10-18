@@ -148,7 +148,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         {
             var arguments = new MeasureRunInLineArguments(runList, currentRunIndex, lineRemainingWidth, paragraph.ParagraphProperty);
 
-            MeasureRunInLineResult result = MeasureAndArrangeCharLine(arguments);
+            MeasureRunInLineResult result = MeasureRunLine(arguments);
 
             if (result.CanTake)
             {
@@ -175,7 +175,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         return new RunLineMeasureAndArrangeResult(currentSize, currentRunIndex, lastRunHitIndex);
     }
 
-    private MeasureRunInLineResult MeasureAndArrangeCharLine(MeasureRunInLineArguments arguments)
+    private MeasureRunInLineResult MeasureRunLine(MeasureRunInLineArguments arguments)
     {
         var runMeasureProvider = TextEditor.PlatformProvider.GetRunMeasureProvider();
 
