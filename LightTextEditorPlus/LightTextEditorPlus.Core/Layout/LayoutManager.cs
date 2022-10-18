@@ -165,11 +165,40 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     }
 }
 
+// 这里无法确定采用字符加上属性的方式是否会更优
+// 通过字符获取对应的属性，如此即可不需要每次都需要考虑将
+// 一个 IRun 进行分割而已
+
+// 尝试根据字符给出属性的方式，如此可以不用考虑将一个 IRun 进行分割
+
+public class RunVisitor
+{
+    private IReadOnlyRunProperty DefaultRunProperty { get; }
+    private IReadOnlyList<IRun> RunList { get; }
+
+    public int CurrentCharIndex { get; private set; }
+
+    /// <summary>
+    /// 当前的 <see cref="RunIndex"/> 对应的字符起始点
+    /// </summary>
+    private int CharStartIndexOfCurrentRun { get; set; }
+
+    /// <summary>
+    /// 当前的 <see cref="RunList"/> 的序号
+    /// </summary>
+    private int RunIndex { get; set; }
+
+    public (ICharObject charObject, IReadOnlyRunProperty RunProperty) GetCurrentChar()
+    {
+        var run = RunList[RunIndex];
+        var charObject = run.GetChar(CurrentCharIndex- CharStartIndexOfCurrentRun);
+        return (charObject, run.RunProperty ?? DefaultRunProperty);
+    }
+}
+
 public readonly record struct MeasureRunInLineArguments(IReadOnlyList<IRun> RunList,int CurrentIndex, double LineRemainingWidth, ParagraphProperty ParagraphProperty)
 {
-    // 这里无法确定采用字符加上属性的方式是否会更优
-    // 通过字符获取对应的属性，如此即可不需要每次都需要考虑将
-    // 一个 IRun 进行分割而已
+    
 }
 
 /// <summary>
