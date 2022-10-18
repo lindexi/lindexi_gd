@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Platform;
@@ -33,12 +34,15 @@ public interface IPlatformProvider
 
 public interface IRunMeasureProvider
 {
-
+    MeasureRunInLineResult MeasureAndArrangeRunLine(in MeasureRunInLineArguments arguments);
 }
 
 public class DefaultRunMeasureProvider : IRunMeasureProvider
 {
-
+    public MeasureRunInLineResult MeasureAndArrangeRunLine(in MeasureRunInLineArguments arguments)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 public abstract class PlatformProvider : IPlatformProvider
