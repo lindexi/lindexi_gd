@@ -145,9 +145,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     }
 }
 
-public readonly record struct MeasureRunInLineArguments(Span<IRun> RunSpan, double LineRemainingWidth)
-{
-}
+//public readonly record struct MeasureRunInLineArguments(Span<IRun> RunSpan, double LineRemainingWidth)
+//{
+//}
 
 public readonly record struct MeasureRunInLineResult()
 {
