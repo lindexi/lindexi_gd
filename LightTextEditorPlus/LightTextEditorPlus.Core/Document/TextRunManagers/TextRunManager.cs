@@ -427,28 +427,11 @@ class ParagraphData
     /// <returns></returns>
     public RunIndexInParagraph GetRunIndex(ParagraphOffset paragraphOffset)
     {
-        var paragraph = this;
-        int currentParagraphOffset = 0;
-        for (var i = 0; i < paragraph.TextRunList.Count; i++)
-        {
-            var run = paragraph.TextRunList[i];
-            var length = run.Count;
-            var behindOffset = currentParagraphOffset + length;
+        var (run, runIndex, hitIndex) = TextRunList.GetRunByCharIndex(paragraphOffset.Offset);
 
-            // 判断是否落在当前的里面
-            if (behindOffset >= paragraphOffset.Offset)
-            {
-                var hitIndex = paragraphOffset.Offset - currentParagraphOffset;
-                var paragraphIndex = i;
-                return new RunIndexInParagraph(paragraphIndex, this, run, hitIndex, _version);
-            }
-            else
-            {
-                currentParagraphOffset = behindOffset;
-            }
-        }
+        return new RunIndexInParagraph(runIndex, this, run, hitIndex, _version);
 
-        return new RunIndexInParagraph(-1, this, null!,-1, _version);
+        //return new RunIndexInParagraph(-1, this, null!,-1, _version);
     }
 
     internal bool IsInvalidVersion(uint version) => version != _version;
