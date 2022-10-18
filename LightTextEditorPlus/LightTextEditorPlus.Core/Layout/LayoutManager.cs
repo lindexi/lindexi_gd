@@ -143,10 +143,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         int lastRunHitIndex = 0;
         int currentRunIndex = 0;
 
-        while (currentRunIndex < runList.Count)
-        {
+        //while (currentRunIndex < runList.Count)
+        //{
             
-        }
+        //}
 
         var arguments = new MeasureRunInLineArguments(runList, currentRunIndex, lineRemainingWidth,paragraph.ParagraphProperty);
 
