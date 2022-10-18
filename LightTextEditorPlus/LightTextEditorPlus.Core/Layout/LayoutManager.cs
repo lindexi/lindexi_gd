@@ -142,6 +142,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         int lastRunHitIndex = 0;
         int currentRunIndex = 0;
+        var currentSize = Size.Zero;
 
         while (currentRunIndex < runList.Count)
         {
@@ -152,6 +153,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             if (result.CanTake)
             {
                 currentRunIndex += result.TaskCount;
+
+                var width = currentSize.Width + result.Size.Width;
+                var height = Math.Max(currentSize.Height, result.Size.Height);
+                currentSize = new Size(width, height);
             }
 
             lastRunHitIndex = result.SplitLastRunIndex;
@@ -159,22 +164,15 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             if (result.ShouldBreakLine)
             {
                 // 换行
+                //return new RunLineMeasureAndArrangeResult(currentSize, currentRunIndex, lastRunHitIndex);
+                break;
             }
             //MeasureRunInLineResult result = runMeasureProvider.MeasureAndArrangeRunLine(arguments);
         }
 
-        //for (; i < runList.Count; i++)
-        //{
-        //    var run = runList[i];
-            
-        //    //runMeasureProvider.MeasureRun()
-        //}
+        // 能完全将这 RunList 布局完成
 
-        var runCount = 0;
-
-        // todo 以下是测试数据
-        return new RunLineMeasureAndArrangeResult(new Size(100,100), runCount, 0);
-        //throw new NotImplementedException();
+        return new RunLineMeasureAndArrangeResult(currentSize, currentRunIndex, lastRunHitIndex);
     }
 
     private MeasureRunInLineResult MeasureAndArrangeCharLine(MeasureRunInLineArguments arguments)
@@ -182,7 +180,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         var runMeasureProvider = TextEditor.PlatformProvider.GetRunMeasureProvider();
 
         var currentRun = arguments.RunList[arguments.CurrentIndex];
-        var currentSize = new Size(0, 0);
+        var currentSize = Size.Zero;
 
         for (int i = 0; i < currentRun.Count;)
         {
