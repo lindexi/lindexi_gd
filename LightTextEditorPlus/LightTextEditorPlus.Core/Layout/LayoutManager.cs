@@ -111,6 +111,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             paragraph.LineVisualDataList.Add(currentLineVisualData);
 
             i+= result.RunCount;
+
+            if (result.RunCount == 0)
+            {
+                // todo 理论上不可能，表示行布局出错了
+                TextEditor.Logger.LogWarning($"某一行在布局时，只采用了零个字符");
+                return;
+            }
         }
 
         // todo 考虑行复用，例如刚好添加的内容是一行。或者在一行内做文本替换等
@@ -120,9 +127,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// <summary>
     /// 测量和布局行
     /// </summary>
-    /// <param name="runSpan"></param>
+    /// <param name="runList"></param>
     /// <param name="lineMaxWidth"></param>
-    private RunLineMeasureAndArrangeResult MeasureAndArrangeRunLine(IReadOnlyList<IRun> runSpan, double lineMaxWidth)
+    private RunLineMeasureAndArrangeResult MeasureAndArrangeRunLine(IReadOnlyList<IRun> runList, double lineMaxWidth)
     {
         // todo 允许注入可定制的自定义布局方法
         //TextEditor.PlatformProvider.GetCustomMeasureAndArrangeRunLine
@@ -133,9 +140,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         int lastRunHitIndex = 0;
         int i = 0;
-        for (; i < runSpan.Count; i++)
+        for (; i < runList.Count; i++)
         {
-            var run = runSpan[i];
+            var run = runList[i];
             //runMeasureProvider.MeasureRun()
         }
 
@@ -146,13 +153,18 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     }
 }
 
-//public readonly record struct MeasureRunInLineArguments(Span<IRun> RunSpan, double LineRemainingWidth)
-//{
-//}
+public readonly record struct MeasureRunInLineArguments(IReadOnlyList<IRun> RunList,int CurrentIndex, double LineRemainingWidth)
+{
+    // 这里无法确定采用字符加上属性的方式是否会更优
+    // 通过字符获取对应的属性，如此即可不需要每次都需要考虑将
+    // 一个 IRun 进行分割而已
+}
 
-public readonly record struct MeasureRunInLineResult()
+public readonly record struct MeasureRunInLineResult(Size Size,int TaskCount,int SplitLastRunIndex)
 {
     // 测量一个 Run 在行内布局的结果
+
+    public bool CanTake => TaskCount > 0;
 }
 
 /// <summary>
