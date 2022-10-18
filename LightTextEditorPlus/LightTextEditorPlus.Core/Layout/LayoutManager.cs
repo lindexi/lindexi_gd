@@ -157,11 +157,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         //    //runMeasureProvider.MeasureRun()
         //}
 
-        //var runCount = i;
+        var runCount = 0;
 
         // todo 以下是测试数据
-        //return new RunLineMeasureAndArrangeResult(new Size(100,100), runCount, 0);
-        throw new NotImplementedException();
+        return new RunLineMeasureAndArrangeResult(new Size(100,100), runCount, 0);
+        //throw new NotImplementedException();
     }
 }
 
@@ -179,8 +179,8 @@ public class RunVisitor
         RunList = runList;
     }
 
-    private IReadOnlyRunProperty DefaultRunProperty { get; }
-    private IReadOnlyList<IImmutableRun> RunList { get; }
+    public IReadOnlyRunProperty DefaultRunProperty { get; }
+    public IReadOnlyList<IImmutableRun> RunList { get; }
 
     public int CurrentCharIndex { get; private set; }
 
@@ -192,12 +192,12 @@ public class RunVisitor
     /// <summary>
     /// 当前的 <see cref="RunList"/> 的序号
     /// </summary>
-    private int RunIndex { get; set; }
+    public int RunIndex { get; set; }
 
     public (ICharObject charObject, IReadOnlyRunProperty RunProperty) GetCurrentCharInfo()
     {
         var run = RunList[RunIndex];
-        var charObject = run.GetChar(CurrentCharIndex- CharStartIndexOfCurrentRun);
+        var charObject = run.GetChar(CurrentCharIndex - CharStartIndexOfCurrentRun);
         return (charObject, run.RunProperty ?? DefaultRunProperty);
     }
 
