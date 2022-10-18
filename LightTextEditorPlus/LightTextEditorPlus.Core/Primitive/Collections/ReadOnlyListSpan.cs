@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -30,4 +31,20 @@ public readonly struct ReadOnlyListSpan<T> : IReadOnlyList<T>
     public int Count => _length;
 
     public T this[int index] => _source[index + _start];
+
+    public ReadOnlyListSpan<T> Slice(int start)
+    {
+        var length = _length-start;
+        return Slice(start, length);
+    }
+
+    public ReadOnlyListSpan<T> Slice(int start, int length)
+    {
+        if (length + start > _length)
+        {
+            throw new ArgumentOutOfRangeException(nameof(length));
+        } 
+
+        return new ReadOnlyListSpan<T>(_source, _start + start, length);
+    }
 }
