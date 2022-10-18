@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace LightTextEditorPlus.Core.Document;
+namespace LightTextEditorPlus.Core.Primitive.Collections;
 
-// todo 修改命名空间
 public class ReadOnlyListSpan<T> : IReadOnlyList<T>
 {
-    public ReadOnlyListSpan(IReadOnlyList<T> source,int start,int length)
+    public ReadOnlyListSpan(IReadOnlyList<T> source, int start, int length)
     {
         _source = source;
         _start = start;

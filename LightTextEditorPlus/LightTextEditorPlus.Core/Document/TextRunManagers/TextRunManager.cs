@@ -9,6 +9,7 @@ using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.DocumentManagers;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Utils;
 using Microsoft.VisualBasic.CompilerServices;
 

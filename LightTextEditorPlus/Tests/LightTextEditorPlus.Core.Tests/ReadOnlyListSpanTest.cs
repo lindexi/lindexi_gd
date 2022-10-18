@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Document;
+﻿using LightTextEditorPlus.Core.Primitive.Collections;
 using MSTest.Extensions.Contracts;
 
 namespace LightTextEditorPlus.Core.Tests;
