@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using LightTextEditorPlus.Core.Document;
 
-namespace LightTextEditorPlus.Core.Layout;
+namespace LightTextEditorPlus.Core.Utils;
 
 static class ReadOnlyRunListExtension
 {
