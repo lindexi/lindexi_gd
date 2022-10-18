@@ -89,7 +89,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             // 开始行布局
             // 第一个 Run 就是行的开始
             var runSpan = paragraph.ToReadOnlyListSpan(i);
-            var result = MeasureAndArrangeRunLine(runSpan, lineMaxWidth);
+            var result = MeasureAndArrangeRunLine(paragraph,runSpan, lineMaxWidth);
 
             // 先判断是否需要分割
             if (result.NeedSplitLastRun)
@@ -127,9 +127,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// <summary>
     /// 测量和布局行
     /// </summary>
+    /// <param name="paragraph"></param>
     /// <param name="runList"></param>
     /// <param name="lineMaxWidth"></param>
-    private RunLineMeasureAndArrangeResult MeasureAndArrangeRunLine(IReadOnlyList<IRun> runList, double lineMaxWidth)
+    private RunLineMeasureAndArrangeResult MeasureAndArrangeRunLine(ParagraphData paragraph,
+        IReadOnlyList<IRun> runList, double lineMaxWidth)
     {
         // todo 允许注入可定制的自定义布局方法
         //TextEditor.PlatformProvider.GetCustomMeasureAndArrangeRunLine
@@ -139,32 +141,61 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         double lineRemainingWidth = lineMaxWidth;
 
         int lastRunHitIndex = 0;
-        int i = 0;
-        for (; i < runList.Count; i++)
+        int currentRunIndex = 0;
+
+        while (currentRunIndex < runList.Count)
         {
-            var run = runList[i];
-            //runMeasureProvider.MeasureRun()
+            
         }
 
-        var runCount = i;
+        var arguments = new MeasureRunInLineArguments(runList, currentRunIndex, lineRemainingWidth,paragraph.ParagraphProperty);
+
+        //for (; i < runList.Count; i++)
+        //{
+        //    var run = runList[i];
+            
+        //    //runMeasureProvider.MeasureRun()
+        //}
+
+        //var runCount = i;
 
         // todo 以下是测试数据
-        return new RunLineMeasureAndArrangeResult(new Size(100,100), runCount, 0);
+        //return new RunLineMeasureAndArrangeResult(new Size(100,100), runCount, 0);
+        throw new NotImplementedException();
     }
 }
 
-public readonly record struct MeasureRunInLineArguments(IReadOnlyList<IRun> RunList,int CurrentIndex, double LineRemainingWidth)
+public readonly record struct MeasureRunInLineArguments(IReadOnlyList<IRun> RunList,int CurrentIndex, double LineRemainingWidth, ParagraphProperty ParagraphProperty)
 {
     // 这里无法确定采用字符加上属性的方式是否会更优
     // 通过字符获取对应的属性，如此即可不需要每次都需要考虑将
     // 一个 IRun 进行分割而已
 }
 
-public readonly record struct MeasureRunInLineResult(Size Size,int TaskCount,int SplitLastRunIndex)
+/// <summary>
+/// 测量行内字符的结果
+/// </summary>
+/// <param name="Size">这一行的布局尺寸</param>
+/// <param name="TaskCount">使用了多少个 IRun 元素</param>
+/// <param name="SplitLastRunIndex">最后一个 IRun 元素是否需要拆分跨行，需要拆分也就意味着需要分行了</param>
+public readonly record struct MeasureRunInLineResult(int TaskCount,int SplitLastRunIndex, Size Size)
 {
     // 测量一个 Run 在行内布局的结果
 
+    /// <summary>
+    /// 是否最后一个 Run 需要被分割。也就是最后一个 Run 将会跨多行
+    /// </summary>
+    public bool NeedSplitLastRun => SplitLastRunIndex > 0;
+
+    /// <summary>
+    /// 是否这一行可以加入字符。不可加入等于需要换行
+    /// </summary>
     public bool CanTake => TaskCount > 0;
+
+    /// <summary>
+    /// 是否需要换行了。等同于这一行不可再加入字符
+    /// </summary>
+    public bool ShouldBreakLine => CanTake is false || NeedSplitLastRun;
 }
 
 /// <summary>
