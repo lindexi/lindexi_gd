@@ -27,6 +27,18 @@ public interface IPlatformProvider
     ITextLogger? BuildTextLogger();
 
     IRunParagraphSplitter GetRunParagraphSplitter();
+
+    IRunMeasureProvider GetRunMeasureProvider();
+}
+
+public interface IRunMeasureProvider
+{
+
+}
+
+public class DefaultRunMeasureProvider : IRunMeasureProvider
+{
+
 }
 
 public abstract class PlatformProvider : IPlatformProvider
@@ -44,6 +56,11 @@ public abstract class PlatformProvider : IPlatformProvider
     public virtual IRunParagraphSplitter GetRunParagraphSplitter()
     {
         return _defaultRunParagraphSplitter ??= new DefaultRunParagraphSplitter();
+    }
+
+    public virtual IRunMeasureProvider GetRunMeasureProvider()
+    {
+        return  new DefaultRunMeasureProvider();
     }
 
     private DefaultRunParagraphSplitter? _defaultRunParagraphSplitter;

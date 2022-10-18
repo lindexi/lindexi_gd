@@ -530,6 +530,15 @@ class LineVisualData
     public int StartParagraphIndex { set; get; } = -1;
 
     public int EndParagraphIndex { set; get; } = -1;
+
+    /// <summary>
+    /// 这一行的左上角的点，相对于文本框
+    /// </summary>
+    public Point LeftTop { set; get; }
+
+    /// <summary>
+    /// 这一行的尺寸
+    /// </summary>
     public Size Size { get; set; }
 
     public Span<IRun> GetSpan()

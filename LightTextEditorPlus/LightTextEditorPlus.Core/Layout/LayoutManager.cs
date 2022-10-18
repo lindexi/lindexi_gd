@@ -125,13 +125,33 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     {
         // todo 允许注入可定制的自定义布局方法
         //TextEditor.PlatformProvider.GetCustomMeasureAndArrangeRunLine
+        var runMeasureProvider = TextEditor.PlatformProvider.GetRunMeasureProvider();
 
         // 行还剩余的空闲宽度
         double lineRemainingWidth = lineMaxWidth;
 
+        int lastRunHitIndex = 0;
+        int i = 0;
+        for (; i < runSpan.Length; i++)
+        {
+            var run = runSpan[i];
+            //runMeasureProvider.MeasureRun()
+        }
+
+        var runCount = i;
+
         // todo 以下是测试数据
-        return new RunLineMeasureAndArrangeResult(new Size(100,100),1,0);
+        return new RunLineMeasureAndArrangeResult(new Size(100,100), runCount, 0);
     }
+}
+
+public readonly record struct MeasureRunInLineArguments(Span<IRun> RunSpan, double LineRemainingWidth)
+{
+}
+
+public readonly record struct MeasureRunInLineResult()
+{
+    // 测量一个 Run 在行内布局的结果
 }
 
 /// <summary>
