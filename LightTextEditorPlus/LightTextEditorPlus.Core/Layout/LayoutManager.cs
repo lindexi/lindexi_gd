@@ -131,7 +131,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// <param name="runList"></param>
     /// <param name="lineMaxWidth"></param>
     private RunLineMeasureAndArrangeResult MeasureAndArrangeRunLine(ParagraphData paragraph,
-        IReadOnlyList<IImmutableRun> runList, double lineMaxWidth)
+       in ReadOnlyListSpan<IImmutableRun> runList, double lineMaxWidth)
     {
         // todo 允许注入可定制的自定义布局方法
         //TextEditor.PlatformProvider.GetCustomMeasureAndArrangeRunLine
@@ -173,14 +173,14 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
 public class RunVisitor
 {
-    public RunVisitor(IReadOnlyRunProperty defaultRunProperty, IReadOnlyList<IImmutableRun> runList)
+    public RunVisitor(IReadOnlyRunProperty defaultRunProperty, ReadOnlyListSpan<IImmutableRun> runList)
     {
         DefaultRunProperty = defaultRunProperty;
         RunList = runList;
     }
 
     public IReadOnlyRunProperty DefaultRunProperty { get; }
-    public IReadOnlyList<IImmutableRun> RunList { get; }
+    public ReadOnlyListSpan<IImmutableRun> RunList { get; }
 
     public int CurrentCharIndex { get; private set; }
 

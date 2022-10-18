@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace LightTextEditorPlus.Core.Primitive.Collections;
 
-public class ReadOnlyListSpan<T> : IReadOnlyList<T>
+public readonly struct ReadOnlyListSpan<T> : IReadOnlyList<T>
 {
     public ReadOnlyListSpan(IReadOnlyList<T> source, int start, int length)
     {

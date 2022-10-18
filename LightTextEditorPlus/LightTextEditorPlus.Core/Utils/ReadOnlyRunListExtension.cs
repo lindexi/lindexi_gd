@@ -1,19 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Primitive.Collections;
 
 namespace LightTextEditorPlus.Core.Utils;
 
 static class ReadOnlyRunListExtension
 {
     public static (ICharObject charObject, IReadOnlyRunProperty? RunProperty) GetCharInfo(
-        this IReadOnlyList<IImmutableRun> runList, int charIndex)
+        this in ReadOnlyListSpan<IImmutableRun> runList, int charIndex)
     {
         var (run, _, hitIndex) = runList.GetRunByCharIndex(charIndex);
         return (run.GetChar(hitIndex), run.RunProperty);
     }
 
-    public static (IImmutableRun run, int runIndex, int hitIndex) GetRunByCharIndex(this IReadOnlyList<IImmutableRun> runList, int charIndex)
+    public static (IImmutableRun run, int runIndex, int hitIndex) GetRunByCharIndex(this in ReadOnlyListSpan<IImmutableRun> runList, int charIndex)
     {
         var currentCharCount = 0;
         for (var i = 0; i < runList.Count; i++)

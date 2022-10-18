@@ -427,7 +427,8 @@ class ParagraphData
     /// <returns></returns>
     public RunIndexInParagraph GetRunIndex(ParagraphOffset paragraphOffset)
     {
-        var (run, runIndex, hitIndex) = TextRunList.GetRunByCharIndex(paragraphOffset.Offset);
+        var readOnlyListSpan = ToReadOnlyListSpan(0);
+        var (run, runIndex, hitIndex) = readOnlyListSpan.GetRunByCharIndex(paragraphOffset.Offset);
 
         return new RunIndexInParagraph(runIndex, this, run, hitIndex, _version);
 
