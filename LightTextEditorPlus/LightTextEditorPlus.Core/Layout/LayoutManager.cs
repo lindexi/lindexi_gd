@@ -6,6 +6,7 @@ using System.Linq;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Primitive.Collections;
 
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
@@ -87,7 +88,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
             // 开始行布局
             // 第一个 Run 就是行的开始
-            var runSpan = paragraph.AsSpan().Slice(i);
+            var runSpan = paragraph.ToReadOnlyListSpan(i);
             var result = MeasureAndArrangeRunLine(runSpan, lineMaxWidth);
 
             // 先判断是否需要分割
@@ -121,7 +122,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// </summary>
     /// <param name="runSpan"></param>
     /// <param name="lineMaxWidth"></param>
-    private RunLineMeasureAndArrangeResult MeasureAndArrangeRunLine(Span<IRun> runSpan, double lineMaxWidth)
+    private RunLineMeasureAndArrangeResult MeasureAndArrangeRunLine(IReadOnlyList<IRun> runSpan, double lineMaxWidth)
     {
         // todo 允许注入可定制的自定义布局方法
         //TextEditor.PlatformProvider.GetCustomMeasureAndArrangeRunLine
@@ -132,7 +133,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         int lastRunHitIndex = 0;
         int i = 0;
-        for (; i < runSpan.Length; i++)
+        for (; i < runSpan.Count; i++)
         {
             var run = runSpan[i];
             //runMeasureProvider.MeasureRun()

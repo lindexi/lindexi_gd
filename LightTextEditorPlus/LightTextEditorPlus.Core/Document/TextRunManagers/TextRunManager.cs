@@ -250,6 +250,7 @@ class ParagraphData
 
     public Span<IRun> AsSpan() => CollectionsMarshal.AsSpan(TextRunList);
 
+    public ReadOnlyListSpan<IRun> ToReadOnlyListSpan(int start) => ToReadOnlyListSpan(start, TextRunList.Count - start);
     public ReadOnlyListSpan<IRun> ToReadOnlyListSpan(int start, int length) =>
         new ReadOnlyListSpan<IRun>(TextRunList, start, length);
 
