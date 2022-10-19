@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\LightTextEditorPlus.Core\LightTextEditorPlus.Core.csproj" />
+    <ProjectReference Include="..\LightTextEditorPlus.Core.TestsFramework\LightTextEditorPlus.Core.TestsFramework.csproj" />
   </ItemGroup>
 
 </Project>
