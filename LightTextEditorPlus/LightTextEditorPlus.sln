@@ -9,13 +9,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightTextEditorPlus", "Ligh
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightTextEditorPlus.Demo", "Demos\LightTextEditorPlus.Demo\LightTextEditorPlus.Demo.csproj", "{1B809253-48C8-4B5B-BD14-48BDA5AA08B9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightTextEditorPlus.Core", "LightTextEditorPlus.Core\LightTextEditorPlus.Core.csproj", "{DE7945D5-DB3B-419C-8EEA-9AE02E03E1FF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightTextEditorPlus.Core", "LightTextEditorPlus.Core\LightTextEditorPlus.Core.csproj", "{DE7945D5-DB3B-419C-8EEA-9AE02E03E1FF}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{20384127-4EE9-4DE2-8BA9-57457E9B438A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightTextEditorPlus.Core.Tests", "Tests\LightTextEditorPlus.Core.Tests\LightTextEditorPlus.Core.Tests.csproj", "{1E919915-5878-439D-A88D-CFE0E9752F8A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightTextEditorPlus.Core.Tests", "Tests\LightTextEditorPlus.Core.Tests\LightTextEditorPlus.Core.Tests.csproj", "{1E919915-5878-439D-A88D-CFE0E9752F8A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightTextEditorPlus.Tests", "Tests\LightTextEditorPlus.Tests\LightTextEditorPlus.Tests.csproj", "{6CD26B09-48B9-418D-93A2-A144896E4CC3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightTextEditorPlus.Tests", "Tests\LightTextEditorPlus.Tests\LightTextEditorPlus.Tests.csproj", "{6CD26B09-48B9-418D-93A2-A144896E4CC3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightTextEditorPlus.Core.BenchmarkTests", "Tests\LightTextEditorPlus.Core.BenchmarkTests\LightTextEditorPlus.Core.BenchmarkTests.csproj", "{D7FE6D00-39AD-407D-8E3F-643155A79215}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightTextEditorPlus.Core.TestsFramework", "Tests\LightTextEditorPlus.Core.TestsFramework\LightTextEditorPlus.Core.TestsFramework.csproj", "{B90D5F8D-66F8-4FB5-ADE0-CEE52877F630}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,6 +47,14 @@ Global
 		{6CD26B09-48B9-418D-93A2-A144896E4CC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6CD26B09-48B9-418D-93A2-A144896E4CC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6CD26B09-48B9-418D-93A2-A144896E4CC3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D7FE6D00-39AD-407D-8E3F-643155A79215}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7FE6D00-39AD-407D-8E3F-643155A79215}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7FE6D00-39AD-407D-8E3F-643155A79215}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7FE6D00-39AD-407D-8E3F-643155A79215}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B90D5F8D-66F8-4FB5-ADE0-CEE52877F630}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B90D5F8D-66F8-4FB5-ADE0-CEE52877F630}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B90D5F8D-66F8-4FB5-ADE0-CEE52877F630}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B90D5F8D-66F8-4FB5-ADE0-CEE52877F630}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -51,6 +63,8 @@ Global
 		{1B809253-48C8-4B5B-BD14-48BDA5AA08B9} = {5F8FEFD7-226B-4821-8087-5EF1086A6164}
 		{1E919915-5878-439D-A88D-CFE0E9752F8A} = {20384127-4EE9-4DE2-8BA9-57457E9B438A}
 		{6CD26B09-48B9-418D-93A2-A144896E4CC3} = {20384127-4EE9-4DE2-8BA9-57457E9B438A}
+		{D7FE6D00-39AD-407D-8E3F-643155A79215} = {20384127-4EE9-4DE2-8BA9-57457E9B438A}
+		{B90D5F8D-66F8-4FB5-ADE0-CEE52877F630} = {20384127-4EE9-4DE2-8BA9-57457E9B438A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E48340DD-252E-4F4F-8FD7-DA0F41E2557E}
