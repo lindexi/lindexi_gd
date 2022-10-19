@@ -154,7 +154,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         var runVisualDataList = new List<RunVisualData>(currentLineVisualData.RunCount);
 
         var currentCharCount = 0;
-        foreach (var run in currentLineVisualData.GetSpan())
+        foreach (IImmutableRun run in currentLineVisualData.GetSpan())
         {
             var runSize = Size.Zero;
             IList<Size>? charSizeList;
@@ -177,13 +177,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 }
             }
 
-            var runVisualData = new RunVisualData()
-            {
-                CharIndexInLine = currentCharCount,
-                CharCount = run.Count,
-                Size = runSize,
-                CharSizeList = charSizeList,
-            };
+            var runVisualData = new RunVisualData(run, runSize, charSizeList, currentCharCount);
 
             runVisualDataList.Add(runVisualData);
         }

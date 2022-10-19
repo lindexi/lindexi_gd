@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -233,6 +234,7 @@ class ParagraphManager
 /// 段落的 Run 数据
 /// </summary>
 /// 准备将字符和具体的渲染信息放在一起，如此可以减少一些判断逻辑，解决不对应问题
+/// 似乎除了减少重复计算尺寸之外，没有其他优势
 class ParagraphRunData
 {
     public ParagraphRunData(IImmutableRun run, ParagraphData paragraph)
@@ -523,6 +525,19 @@ class ParagraphData
 ///  RunRenderInfo
 class RunVisualData
 {
+    public RunVisualData(IImmutableRun run, Size size, IList<Size>? charSizeList,int charIndexInLine)
+    {
+        Run = run;
+        Size = size;
+        CharSizeList = charSizeList;
+        CharIndexInLine = charIndexInLine;
+    }
+
+    /// <summary>
+    /// 当前的 Run 用来调试使用
+    /// </summary>
+    public IImmutableRun Run {  get; }
+
     /// <summary>
     /// 左上角的点，相对于文本框
     /// </summary>
@@ -532,14 +547,14 @@ class RunVisualData
     /// <summary>
     /// 尺寸
     /// </summary>
-    public Size Size { get; set; }
+    public Size Size { get;  }
 
     /// <summary>
     /// 相对于行的字符序号
     /// </summary>
-    public int CharIndexInLine { set; get; }
+    public int CharIndexInLine { get; }
 
-    public int CharCount { set; get; }
+    public int CharCount => Run.Count;
 
     public IList<Size>? CharSizeList { set; get; }
 }
