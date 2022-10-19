@@ -37,10 +37,14 @@ public class TextRun : IImmutableTextRun
             throw new ArgumentException($"{nameof(index)} must more than 0");
         }
 
-        var firstText = Text.Substring(0,index);
-        var secondText = Text.Substring(index);
+        var firstStart = 0;
+        var firstLength = index;
 
-        return (new TextRun(firstText, RunProperty), new TextRun(secondText, RunProperty));
+        var secondStart = 0 + index;
+        var secondLength = Count - index;
+
+        return (new SpanTextRun(Text, firstStart, firstLength, RunProperty),
+            new SpanTextRun(Text, secondStart, secondLength));
     }
 
     public override string ToString() => Text;
