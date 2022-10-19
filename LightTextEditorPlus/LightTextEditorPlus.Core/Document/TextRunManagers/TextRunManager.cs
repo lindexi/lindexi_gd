@@ -289,6 +289,8 @@ interface IParagraphCache
 [DebuggerDisplay("{GetText()}")]
 class ParagraphData
 {
+    private uint _version = 1;
+
     public ParagraphData(ParagraphProperty paragraphProperty, ParagraphManager paragraphManager)
     {
         ParagraphProperty = paragraphProperty;
@@ -516,7 +518,18 @@ class ParagraphData
     /// <summary>
     /// 段落的更改版本
     /// </summary>
-    private uint Version { get; set; } = 1;
+    private uint Version
+    {
+        get => _version;
+        set
+        {
+            if (value == 0)
+            {
+                value = 1;
+            }
+            _version = value;
+        }
+    }
 
     public string GetText()
     {
