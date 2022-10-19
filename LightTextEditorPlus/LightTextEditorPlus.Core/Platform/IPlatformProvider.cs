@@ -33,19 +33,19 @@ public interface IPlatformProvider
     /// 获取整行的 Run 的测量器，返回空则采用默认的测量逻辑
     /// </summary>
     /// <returns></returns>
-    IWholeRunLineMeasurer? GetWholeRunLineMeasurer();
+    IWholeRunLineLayouter? GetWholeRunLineLayouter();
 
     /// <summary>
     /// 获取文本的行测量器，返回空则采用默认的行测量逻辑
     /// </summary>
     /// <returns></returns>
-    ISingleRunLineMeasurer? GetSingleRunLineMeasurer();
+    ISingleRunInLineLayouter? GetSingleRunLineLayouter();
 
     /// <summary>
     /// 获取字符的行测量器，用来测量哪些字符可以加入到当前行。返回空则采用默认的行测量逻辑
     /// </summary>
     /// <returns></returns>
-    ICharLineMeasurer? GetCharLineMeasurer();
+    ISingleCharInLineLayouter? GetSingleCharInLineLayouter();
 
     /// <summary>
     /// 获取文本的字符测量器，返回空则采用默认的字符测量逻辑
@@ -57,17 +57,17 @@ public interface IPlatformProvider
 /// <summary>
 /// 整行的 Run 的测量器，用来测量一整行
 /// </summary>
-public interface IWholeRunLineMeasurer
+public interface IWholeRunLineLayouter
 {
-    RunLineMeasureAndArrangeResult MeasureWholeRunLine(in ParagraphRunLineMeasureAndArrangeArgument argument);
+    WholeRunLineLayoutResult LayoutWholeRunLine(in WholeRunLineLayoutArgument argument);
 }
 
 /// <summary>
 /// 获取字符的行测量器，用来测量哪些字符可以加入到当前行
 /// </summary>
-public interface ICharLineMeasurer
+public interface ISingleCharInLineLayouter
 {
-    MeasureCharInLineResult MeasureCharInLine(in MeasureCharInLineArguments measureCharInLineArguments);
+    SingleCharInLineLayoutResult LayoutSingleCharInLine(in SingleCharInLineLayoutArguments singleCharInLineLayoutArguments);
 }
 
 /// <summary>
@@ -81,9 +81,9 @@ public interface ICharInfoMeasurer
 /// <summary>
 /// 文本的行测量器，用来测量一行内可布局上的文本
 /// </summary>
-public interface ISingleRunLineMeasurer
+public interface ISingleRunInLineLayouter
 {
-    MeasureSingleRunInLineResult MeasureSingleRunLine(in MeasureSingleRunInLineArguments arguments);
+    SingleRunInLineLayoutResult LayoutSingleRunInLine(in SingleRunInLineLayoutArguments arguments);
 }
 
 public abstract class PlatformProvider : IPlatformProvider
@@ -103,7 +103,7 @@ public abstract class PlatformProvider : IPlatformProvider
         return _defaultRunParagraphSplitter ??= new DefaultRunParagraphSplitter();
     }
 
-    public IWholeRunLineMeasurer? GetWholeRunLineMeasurer()
+    public IWholeRunLineLayouter? GetWholeRunLineLayouter()
     {
         return null;
     }
@@ -113,12 +113,12 @@ public abstract class PlatformProvider : IPlatformProvider
     //    return  new DefaultRunMeasureProvider();
     //}
 
-    public ISingleRunLineMeasurer? GetSingleRunLineMeasurer()
+    public ISingleRunInLineLayouter? GetSingleRunLineLayouter()
     {
         return null;
     }
 
-    public ICharLineMeasurer? GetCharLineMeasurer()
+    public ISingleCharInLineLayouter? GetSingleCharInLineLayouter()
     {
         return null;
     }

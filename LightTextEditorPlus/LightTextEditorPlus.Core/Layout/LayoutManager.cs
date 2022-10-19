@@ -91,7 +91,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             _ => throw new ArgumentOutOfRangeException()
         };
 
-        var wholeRunLineMeasurer = TextEditor.PlatformProvider.GetWholeRunLineMeasurer();
+        var wholeRunLineMeasurer = TextEditor.PlatformProvider.GetWholeRunLineLayouter();
 
         for (var i = startTextRunIndex.ParagraphIndex; i < runList.Count;)
         {
@@ -108,11 +108,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             // 开始行布局
             // 第一个 Run 就是行的开始
             var runSpan = paragraph.ToReadOnlyListSpan(i);
-            RunLineMeasureAndArrangeResult result;
+            WholeRunLineLayoutResult result;
             if (wholeRunLineMeasurer != null)
             {
-                var argument = new ParagraphRunLineMeasureAndArrangeArgument(paragraph.ParagraphProperty, runSpan, lineMaxWidth);
-                result = wholeRunLineMeasurer.MeasureWholeRunLine(argument);
+                var argument = new WholeRunLineLayoutArgument(paragraph.ParagraphProperty, runSpan, lineMaxWidth);
+                result = wholeRunLineMeasurer.LayoutWholeRunLine(argument);
             }
             else
             {
@@ -153,10 +153,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 这个没有啥优先级。测试了 SublimeText 和 NotePad 工具，都没有做此复用，预计有坑
     }
 
-    private RunLineMeasureAndArrangeResult MeasureWholeRunLine(ParagraphData paragraph, ReadOnlyListSpan<IImmutableRun> runList,
+    private WholeRunLineLayoutResult MeasureWholeRunLine(ParagraphData paragraph, ReadOnlyListSpan<IImmutableRun> runList,
         double lineMaxWidth)
     {
-        var runLineMeasurer = TextEditor.PlatformProvider.GetSingleRunLineMeasurer();
+        var runLineMeasurer = TextEditor.PlatformProvider.GetSingleRunLineLayouter();
 
         // RunLineMeasurer
         // 行还剩余的空闲宽度
@@ -168,13 +168,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         while (currentRunIndex < runList.Count)
         {
-            var arguments = new MeasureSingleRunInLineArguments(runList, currentRunIndex, lineRemainingWidth,
+            var arguments = new SingleRunInLineLayoutArguments(runList, currentRunIndex, lineRemainingWidth,
                 paragraph.ParagraphProperty);
 
-            MeasureSingleRunInLineResult result;
+            SingleRunInLineLayoutResult result;
             if (runLineMeasurer is not null)
             {
-                result = runLineMeasurer.MeasureSingleRunLine(arguments);
+                result = runLineMeasurer.LayoutSingleRunInLine(arguments);
             }
             else
             {
@@ -194,19 +194,17 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
             if (result.ShouldBreakLine)
             {
-                // 换行
-                //return new RunLineMeasureAndArrangeResult(currentSize, currentRunIndex, lastRunHitIndex);
+                // 换行，这一行布局完成
                 break;
             }
-            //MeasureSingleRunInLineResult result = runMeasureProvider.MeasureAndArrangeRunLine(arguments);
         }
 
-        return new RunLineMeasureAndArrangeResult(currentSize, currentRunIndex, lastRunHitIndex);
+        return new WholeRunLineLayoutResult(currentSize, currentRunIndex, lastRunHitIndex);
     }
 
-    private MeasureSingleRunInLineResult MeasureSingleRunLine(MeasureSingleRunInLineArguments arguments)
+    private SingleRunInLineLayoutResult MeasureSingleRunLine(SingleRunInLineLayoutArguments arguments)
     {
-        var charLineMeasurer = TextEditor.PlatformProvider.GetCharLineMeasurer();
+        var charLineMeasurer = TextEditor.PlatformProvider.GetSingleCharInLineLayouter();
 
         var currentRun = arguments.RunList[arguments.CurrentIndex];
         var currentSize = Size.Zero;
@@ -217,13 +215,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 TextEditor.DocumentManager.CurrentRunProperty);
 
             var measureCharInLineArguments =
-                new MeasureCharInLineArguments(runInfo, arguments.LineRemainingWidth, arguments.ParagraphProperty);
+                new SingleCharInLineLayoutArguments(runInfo, arguments.LineRemainingWidth, arguments.ParagraphProperty);
 
-            MeasureCharInLineResult result;
+            SingleCharInLineLayoutResult result;
 
             if (charLineMeasurer is not null)
             {
-                result = charLineMeasurer.MeasureCharInLine(measureCharInLineArguments);
+                result = charLineMeasurer.LayoutSingleCharInLine(measureCharInLineArguments);
             }
             else
             {
@@ -243,26 +241,26 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 if (i == 0)
                 {
                     // 一个都获取不到
-                    return new MeasureSingleRunInLineResult(0, 0, currentSize);
+                    return new SingleRunInLineLayoutResult(0, 0, currentSize);
                 }
                 else
                 {
                     // 无法将整个 Run 都排版进去，只能排版部分
                     var hitIndex = i - 1;
-                    return new MeasureSingleRunInLineResult(1, hitIndex, currentSize);
+                    return new SingleRunInLineLayoutResult(1, hitIndex, currentSize);
                 }
             }
         }
 
         // 整个 Run 都排版进去，不需要将这个 Run 拆分
-        return new MeasureSingleRunInLineResult(1, 0, currentSize);
+        return new SingleRunInLineLayoutResult(1, 0, currentSize);
     }
 
-    private MeasureCharInLineResult MeasureCharInLine(in MeasureCharInLineArguments arguments)
+    private SingleCharInLineLayoutResult MeasureCharInLine(in SingleCharInLineLayoutArguments layoutArguments)
     {
         var charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
 
-        var runInfo = arguments.RunInfo;
+        var runInfo = layoutArguments.RunInfo;
         var charInfo = runInfo.GetCurrentCharInfo();
 
         CharInfoMeasureResult result;
@@ -275,13 +273,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             result = MeasureCharInfo(charInfo);
         }
 
-        if (result.Bounds.Width > arguments.LineRemainingWidth)
+        if (result.Bounds.Width > layoutArguments.LineRemainingWidth)
         {
-            return new MeasureCharInLineResult(0, default);
+            return new SingleCharInLineLayoutResult(0, default);
         }
         else
         {
-            return new MeasureCharInLineResult(1, result.Bounds.Size);
+            return new SingleCharInLineLayoutResult(1, result.Bounds.Size);
         }
     }
 
@@ -290,13 +288,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         var bounds = new Rect(0, 0, charInfo.RunProperty.FontSize, charInfo.RunProperty.FontSize);
         return new CharInfoMeasureResult(bounds);
     }
-
-    //private void TakeChar(RunInfo runInfo, double lineMaxWidth, ParagraphProperty paragraphProperty)
-    //{
-    //    runInfo.GetCurrentCharInfo();
-    //    runInfo.GetNextCharInfo(index);
-
-    //}
 }
 
 public readonly record struct CharInfoMeasureResult(Rect Bounds)
@@ -331,7 +322,6 @@ public readonly record struct RunInfo(ReadOnlyListSpan<IImmutableRun> RunList, i
                 return new CharInfo(currentRun.GetChar(charIndex), currentRun.RunProperty ?? DefaultRunProperty);
             }
 
-
             // 从当前开始进行拆分，拆分之后即可相对于当前的索引开始计算
             var runSpan = RunList.Slice(CurrentIndex);
 
@@ -363,17 +353,17 @@ public readonly record struct RunInfo(ReadOnlyListSpan<IImmutableRun> RunList, i
     }
 }
 
-public readonly record struct MeasureCharInLineArguments(RunInfo RunInfo, double LineRemainingWidth,
+public readonly record struct SingleCharInLineLayoutArguments(RunInfo RunInfo, double LineRemainingWidth,
     ParagraphProperty ParagraphProperty)
 {
 }
 
-public readonly record struct MeasureCharInLineResult(int TakeCharCount, Size Size)
+public readonly record struct SingleCharInLineLayoutResult(int TakeCharCount, Size Size)
 {
     public bool CanTake => TakeCharCount > 0;
 }
 
-public readonly record struct MeasureSingleRunInLineArguments(ReadOnlyListSpan<IImmutableRun> RunList, int CurrentIndex,
+public readonly record struct SingleRunInLineLayoutArguments(ReadOnlyListSpan<IImmutableRun> RunList, int CurrentIndex,
     double LineRemainingWidth, ParagraphProperty ParagraphProperty)
 {
 }
@@ -384,7 +374,7 @@ public readonly record struct MeasureSingleRunInLineArguments(ReadOnlyListSpan<I
 /// <param name="Size">这一行的布局尺寸</param>
 /// <param name="TaskCount">使用了多少个 IImmutableRun 元素</param>
 /// <param name="SplitLastRunIndex">最后一个 IImmutableRun 元素是否需要拆分跨行，需要拆分也就意味着需要分行了</param>
-public readonly record struct MeasureSingleRunInLineResult(int TaskCount, int SplitLastRunIndex, Size Size)
+public readonly record struct SingleRunInLineLayoutResult(int TaskCount, int SplitLastRunIndex, Size Size)
 {
     // 测量一个 Run 在行内布局的结果
 
@@ -404,7 +394,7 @@ public readonly record struct MeasureSingleRunInLineResult(int TaskCount, int Sp
     public bool ShouldBreakLine => CanTake is false || NeedSplitLastRun;
 }
 
-public readonly record struct ParagraphRunLineMeasureAndArrangeArgument(ParagraphProperty ParagraphProperty, in ReadOnlyListSpan<IImmutableRun> RunList, double LineMaxWidth)
+public readonly record struct WholeRunLineLayoutArgument(ParagraphProperty ParagraphProperty, in ReadOnlyListSpan<IImmutableRun> RunList, double LineMaxWidth)
 {
     
 }
@@ -415,7 +405,7 @@ public readonly record struct ParagraphRunLineMeasureAndArrangeArgument(Paragrap
 /// <param name="Size">这一行的尺寸</param>
 /// <param name="RunCount">这一行使用的 <see cref="IImmutableRun"/> 的数量</param>
 /// <param name="LastRunHitIndex">最后一个 <see cref="IImmutableRun"/> 被使用的字符数量，如刚好用完一个 <see cref="IImmutableRun"/> 那么设置默认为 0 的值。设置为非 0 的值，将会分割最后一个 <see cref="IImmutableRun"/> 为多个，保证没有一个 <see cref="IImmutableRun"/> 是跨行的</param>
-public readonly record struct RunLineMeasureAndArrangeResult(Size Size, int RunCount, int LastRunHitIndex)
+public readonly record struct WholeRunLineLayoutResult(Size Size, int RunCount, int LastRunHitIndex)
 {
     /// <summary>
     /// 是否最后一个 Run 需要被分割。也就是最后一个 Run 将会跨多行
