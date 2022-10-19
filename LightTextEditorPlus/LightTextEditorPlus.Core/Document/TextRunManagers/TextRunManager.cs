@@ -1,18 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 using LightTextEditorPlus.Core.Carets;
-using LightTextEditorPlus.Core.Document.DocumentManagers;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Utils;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -289,7 +285,6 @@ interface IParagraphCache
 [DebuggerDisplay("{GetText()}")]
 class ParagraphData
 {
-
     public ParagraphData(ParagraphProperty paragraphProperty, ParagraphManager paragraphManager)
     {
         ParagraphProperty = paragraphProperty;
