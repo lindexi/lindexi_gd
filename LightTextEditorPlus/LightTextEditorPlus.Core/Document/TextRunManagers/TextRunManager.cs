@@ -468,7 +468,35 @@ class ParagraphData
             }
         }
     }
+}
+// todo 需要每个字符的坐标和尺寸，否则难以做命中测试哦
 
+/// <summary>
+/// 文本 Run 的渲染数据
+/// </summary>
+/// todo 此类型考虑给业务渲染层
+///  RunRenderInfo
+class RunVisualData
+{
+    /// <summary>
+    /// 左上角的点，相对于文本框
+    /// </summary>
+    /// 可用来辅助布局上下标
+    public Point LeftTop { set; get; }
+
+    /// <summary>
+    /// 尺寸
+    /// </summary>
+    public Size Size { get; set; }
+
+    /// <summary>
+    /// 相对于行的字符序号
+    /// </summary>
+    public int CharIndexInLine { set; get; }
+
+    public int CharCount { set; get; }
+
+    public IList<Size>? CharSizeList { set; get; }
 }
 
 /// <summary>
@@ -528,6 +556,8 @@ class LineVisualData
     /// 这一行的尺寸
     /// </summary>
     public Size Size { get; set; }
+
+    public List<RunVisualData>? RunVisualDataList { set; get; }
 
     public Span<IImmutableRun> GetSpan()
     {

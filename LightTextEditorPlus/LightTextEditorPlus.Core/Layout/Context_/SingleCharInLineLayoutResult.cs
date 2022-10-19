@@ -19,17 +19,18 @@ public readonly struct SingleCharInLineLayoutResult
     {
        TakeCharCount = takeCharCount;
        TotalSize = totalSize;
-       CharSizeList = charSizeList;
 
-       if (TakeCharCount > 1)
+        if (TakeCharCount > 1)
        {
-           ArgumentNullException.ThrowIfNull(CharSizeList,nameof(CharSizeList));
+           ArgumentNullException.ThrowIfNull(charSizeList, nameof(charSizeList));
 
-           if (CharSizeList.Count != TakeCharCount)
+           if (charSizeList.Count != TakeCharCount)
            {
-               throw new ArgumentException($"所记录的字符尺寸信息的数量和所采用的字符数量不匹配。 CharSizeList.Count != TakeCharCount; CharSizeList.Count={CharSizeList.Count}；TakeCharCount={TakeCharCount}");
+               throw new ArgumentException($"所记录的字符尺寸信息的数量和所采用的字符数量不匹配。 CharSizeList.Count != TakeCharCount; CharSizeList.Count={charSizeList.Count}；TakeCharCount={TakeCharCount}");
            }
        }
+
+        CharSizeList = charSizeList ?? Array.Empty<Size>();
     }
 
     public bool CanTake => TakeCharCount > 0;
@@ -41,7 +42,7 @@ public readonly struct SingleCharInLineLayoutResult
     public Size TotalSize { get;  }
 
     /// <summary>各个字符的尺寸。如果采用的字符数量是 1 个时，此属性可以为空，因为字符的尺寸等于 <see cref="TotalSize"/> 尺寸</summary>
-    public IReadOnlyList<Size>? CharSizeList { get; }
+    public IReadOnlyList<Size> CharSizeList { get; }
 
     
 

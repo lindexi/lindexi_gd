@@ -90,7 +90,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             _ => throw new ArgumentOutOfRangeException()
         };
 
-        var wholeRunLineMeasurer = TextEditor.PlatformProvider.GetWholeRunLineLayouter();
+        var wholeRunLineLayouter = TextEditor.PlatformProvider.GetWholeRunLineLayouter();
 
         for (var i = startTextRunIndex.ParagraphIndex; i < runList.Count;)
         {
@@ -98,10 +98,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             // 第一个 Run 就是行的开始
             var runSpan = paragraph.ToReadOnlyListSpan(i);
             WholeRunLineLayoutResult result;
-            if (wholeRunLineMeasurer != null)
+            if (wholeRunLineLayouter != null)
             {
                 var argument = new WholeRunLineLayoutArgument(paragraph.ParagraphProperty, runSpan, lineMaxWidth);
-                result = wholeRunLineMeasurer.LayoutWholeRunLine(argument);
+                result = wholeRunLineLayouter.LayoutWholeRunLine(argument);
             }
             else
             {
@@ -118,13 +118,18 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 paragraph.SplitReplace(lastRunIndex, firstRun, secondRun);
             }
 
+            var runVisualDataList = new List<RunVisualData>();
+
+
             currentLineVisualData = new LineVisualData(paragraph)
             {
                 IsDirty = false,
                 StartParagraphIndex = i,
                 EndParagraphIndex = i + result.RunCount,
                 Size = result.Size,
+                //LeftTop = 等待所有行完成了，再赋值
             };
+            FillRunVisualDataList(currentLineVisualData, result.CharSizeListInRunLine);
 
             paragraph.LineVisualDataList.Add(currentLineVisualData);
 
@@ -142,10 +147,52 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 这个没有啥优先级。测试了 SublimeText 和 NotePad 工具，都没有做此复用，预计有坑
     }
 
+    private void FillRunVisualDataList(LineVisualData currentLineVisualData, IReadOnlyList<Size> charSizeListInRunLine)
+    {
+        var runVisualDataList = new List<RunVisualData>();
+
+        var currentCharCount = 0;
+        foreach (var run in currentLineVisualData.GetSpan())
+        {
+            var runSize = Size.Zero;
+            IList<Size>? charSizeList;
+            if (run.Count==1)
+            {
+                runSize = charSizeListInRunLine[currentCharCount];
+                // 一个字符就需要创建列表
+                charSizeList = null;
+
+                currentCharCount++;
+            }
+            else
+            {
+                charSizeList = new List<Size>(run.Count);
+
+                for (int i = 0; i < run.Count; i++)
+                {
+                    charSizeList.Add(charSizeListInRunLine[currentCharCount]);
+                    currentCharCount++;
+                }
+            }
+
+            var runVisualData = new RunVisualData()
+            {
+                CharIndexInLine = currentCharCount,
+                CharCount = run.Count,
+                Size = runSize,
+                CharSizeList = charSizeList,
+            };
+
+            runVisualDataList.Add(runVisualData);
+        }
+
+        currentLineVisualData.RunVisualDataList = runVisualDataList;
+    }
+
     private WholeRunLineLayoutResult MeasureWholeRunLine(ParagraphData paragraph, ReadOnlyListSpan<IImmutableRun> runList,
         double lineMaxWidth)
     {
-        var runLineMeasurer = TextEditor.PlatformProvider.GetSingleRunLineLayouter();
+        var singleRunLineLayouter = TextEditor.PlatformProvider.GetSingleRunLineLayouter();
 
         // RunLineMeasurer
         // 行还剩余的空闲宽度
@@ -155,15 +202,18 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         int currentRunIndex = 0;
         var currentSize = Size.Zero;
 
+        // 一行里面的各个字符的布局尺寸
+        var currentCharSizeInRunLine = new List<Size>(); // todo 这里申请的尺寸的列表过多，考虑后续优化
+
         while (currentRunIndex < runList.Count)
         {
             var arguments = new SingleRunInLineLayoutArguments(runList, currentRunIndex, lineRemainingWidth,
                 paragraph.ParagraphProperty);
 
             SingleRunInLineLayoutResult result;
-            if (runLineMeasurer is not null)
+            if (singleRunLineLayouter is not null)
             {
-                result = runLineMeasurer.LayoutSingleRunInLine(arguments);
+                result = singleRunLineLayouter.LayoutSingleRunInLine(arguments);
             }
             else
             {
@@ -174,9 +224,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             {
                 currentRunIndex += result.TaskCount;
 
-                var width = currentSize.Width + result.Size.Width;
-                var height = Math.Max(currentSize.Height, result.Size.Height);
+                var width = currentSize.Width + result.TotalSize.Width;
+                var height = Math.Max(currentSize.Height, result.TotalSize.Height);
                 currentSize = new Size(width, height);
+
+                currentCharSizeInRunLine.AddRange(result.CharSizeList);
             }
 
             lastRunHitIndex = result.SplitLastRunIndex;
@@ -188,15 +240,17 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             }
         }
 
-        return new WholeRunLineLayoutResult(currentSize, currentRunIndex, lastRunHitIndex);
+        return new WholeRunLineLayoutResult(currentSize, currentRunIndex, lastRunHitIndex, currentCharSizeInRunLine);
     }
 
     private SingleRunInLineLayoutResult MeasureSingleRunLine(SingleRunInLineLayoutArguments arguments)
     {
-        var charLineMeasurer = TextEditor.PlatformProvider.GetSingleCharInLineLayouter();
+        var singleCharInLineLayouter = TextEditor.PlatformProvider.GetSingleCharInLineLayouter();
 
         var currentRun = arguments.RunList[arguments.CurrentIndex];
         var currentSize = Size.Zero;
+
+        var currentCharSizeInRun = new List<Size>();
 
         for (int i = 0; i < currentRun.Count;)
         {
@@ -208,9 +262,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
             SingleCharInLineLayoutResult result;
 
-            if (charLineMeasurer is not null)
+            if (singleCharInLineLayouter is not null)
             {
-                result = charLineMeasurer.LayoutSingleCharInLine(measureCharInLineArguments);
+                result = singleCharInLineLayouter.LayoutSingleCharInLine(measureCharInLineArguments);
             }
             else
             {
@@ -220,8 +274,19 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             if (result.CanTake)
             {
                 i += result.TakeCharCount;
-                var width = currentSize.Width + result.Size.Width;
-                var height = Math.Max(currentSize.Height, result.Size.Height);
+                var width = currentSize.Width + result.TotalSize.Width;
+                var height = Math.Max(currentSize.Height, result.TotalSize.Height);
+
+                if (result.TakeCharCount == 1)
+                {
+                    // 各个字符的尺寸。如果采用的字符数量是 1 个时，因为字符的尺寸等于 TotalSize 尺寸
+                    currentCharSizeInRun.Add(result.TotalSize);
+                }
+                else
+                {
+                    var charSizeList = result.CharSizeList;// 内部判断这个流程一定不为空
+                    currentCharSizeInRun.AddRange(charSizeList);
+                }
 
                 currentSize = new Size(width, height);
             }
@@ -230,19 +295,19 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 if (i == 0)
                 {
                     // 一个都获取不到
-                    return new SingleRunInLineLayoutResult(0, 0, currentSize);
+                    return new SingleRunInLineLayoutResult(0, 0, currentSize,Array.Empty<Size>());
                 }
                 else
                 {
                     // 无法将整个 Run 都排版进去，只能排版部分
                     var hitIndex = i - 1;
-                    return new SingleRunInLineLayoutResult(1, hitIndex, currentSize);
+                    return new SingleRunInLineLayoutResult(1, hitIndex, currentSize,currentCharSizeInRun);
                 }
             }
         }
 
         // 整个 Run 都排版进去，不需要将这个 Run 拆分
-        return new SingleRunInLineLayoutResult(1, 0, currentSize);
+        return new SingleRunInLineLayoutResult(1, 0, currentSize, currentCharSizeInRun);
     }
 
     private SingleCharInLineLayoutResult MeasureCharInLine(in SingleCharInLineLayoutArguments layoutArguments)

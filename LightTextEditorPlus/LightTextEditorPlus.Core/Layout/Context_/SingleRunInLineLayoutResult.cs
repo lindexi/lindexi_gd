@@ -1,14 +1,15 @@
-﻿using LightTextEditorPlus.Core.Primitive;
+﻿using System.Collections.Generic;
+using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Layout;
 
 /// <summary>
 /// 测量行内字符的结果
 /// </summary>
-/// <param name="Size">这一行的布局尺寸</param>
+/// <param name="TotalSize">这一行的布局尺寸</param>
 /// <param name="TaskCount">使用了多少个 IImmutableRun 元素</param>
 /// <param name="SplitLastRunIndex">最后一个 IImmutableRun 元素是否需要拆分跨行，需要拆分也就意味着需要分行了</param>
-public readonly record struct SingleRunInLineLayoutResult(int TaskCount, int SplitLastRunIndex, Size Size)
+public readonly record struct SingleRunInLineLayoutResult(int TaskCount, int SplitLastRunIndex, Size TotalSize,IReadOnlyList<Size> CharSizeList)
 {
     // 测量一个 Run 在行内布局的结果
 
