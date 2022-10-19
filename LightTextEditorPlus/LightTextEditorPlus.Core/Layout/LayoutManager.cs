@@ -144,6 +144,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 这个没有啥优先级。测试了 SublimeText 和 NotePad 工具，都没有做此复用，预计有坑
     }
 
+    /// <summary>
+    /// 填充 RunVisualDataList 的内容，需要根据字符进行填充
+    /// </summary>
+    /// <param name="currentLineVisualData"></param>
+    /// <param name="charSizeListInRunLine"></param>
     private void FillRunVisualDataList(LineVisualData currentLineVisualData, IReadOnlyList<Size> charSizeListInRunLine)
     {
         var runVisualDataList = new List<RunVisualData>(currentLineVisualData.RunCount);

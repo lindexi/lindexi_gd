@@ -230,6 +230,47 @@ class ParagraphManager
 }
 
 /// <summary>
+/// 段落的 Run 数据
+/// </summary>
+/// 准备将字符和具体的渲染信息放在一起，如此可以减少一些判断逻辑，解决不对应问题
+class ParagraphRunData
+{
+    public ParagraphRunData(IImmutableRun run, ParagraphData paragraph)
+    {
+        Run = run;
+        Paragraph = paragraph;
+        ParagraphVersion = paragraph.Version;
+    }
+
+    public IImmutableRun Run { get; }
+
+    internal ParagraphData Paragraph { get; }
+    public uint ParagraphVersion { private set; get; } = 0;
+
+    public void IsInvalidVersion() => Paragraph.IsInvalidVersion(ParagraphVersion);
+
+    public void UpdateVersion() => ParagraphVersion = Paragraph.Version;
+
+    public int CharCount => Run.Count;
+
+    /// <summary>
+    /// 左上角的点，相对于文本框
+    /// </summary>
+    /// 可用来辅助布局上下标
+    public Point LeftTop { set; get; }
+
+    /// <summary>
+    /// 尺寸
+    /// </summary>
+    /// 尺寸是可以复用的
+    public Size Size { get; set; } = new Size(-1, -1);
+
+    public ParagraphOffset CharIndex { set; get; }
+
+    public IList<Size>? CharSizeList { set; get; }
+}
+
+/// <summary>
 /// 段落数据
 /// </summary>
 [DebuggerDisplay("{GetText()}")]
@@ -440,7 +481,12 @@ class ParagraphData
     /// <summary>
     /// 段落的更改版本
     /// </summary>
-    private uint _version;
+    internal uint Version => _version;
+
+    /// <summary>
+    /// 段落的更改版本
+    /// </summary>
+    private uint _version = 1;
 
     public string GetText()
     {
