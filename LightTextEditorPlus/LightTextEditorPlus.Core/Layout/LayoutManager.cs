@@ -54,6 +54,23 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
     public override ArrangingType ArrangingType => ArrangingType.Horizontal;
 
+    /// <summary>
+    /// 布局段落的核心逻辑
+    /// </summary>
+    /// <param name="paragraph"></param>
+    /// <param name="startTextRunIndex"></param>
+    /// <param name="startParagraphOffset"></param>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    /// <remarks>
+    /// 逻辑上是：
+    /// 布局按照： 文本-段落-行-Run-字符
+    /// 布局整个文本
+    /// 布局文本的每个段落 <see cref="LayoutParagraphCore"/>
+    /// 段落里面，需要对每一行进行布局 <see cref="MeasureWholeRunLine"/>
+    /// 每一行里面，需要对每个 Run 进行布局 <see cref="MeasureSingleRunLine"/>
+    /// 每个 Run 需要对每个 Char 字符进行布局 <see cref="MeasureCharInLine"/>
+    /// 每个字符需要调用平台的测量 <see cref="MeasureCharInfo"/>
+    /// </remarks>
     protected override void LayoutParagraphCore(ParagraphData paragraph, in RunIndexInParagraph startTextRunIndex,
         ParagraphOffset startParagraphOffset)
     {
@@ -74,6 +91,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             _ => throw new ArgumentOutOfRangeException()
         };
 
+        var wholeRunLineMeasurer = TextEditor.PlatformProvider.GetWholeRunLineMeasurer();
+
         for (var i = startTextRunIndex.ParagraphIndex; i < runList.Count;)
         {
             // 预期刚好 dirtyParagraphOffset 是某个 IImmutableRun 的起始
@@ -89,7 +108,17 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             // 开始行布局
             // 第一个 Run 就是行的开始
             var runSpan = paragraph.ToReadOnlyListSpan(i);
-            var result = MeasureAndArrangeRunLine(paragraph, runSpan, lineMaxWidth);
+            RunLineMeasureAndArrangeResult result;
+            if (wholeRunLineMeasurer != null)
+            {
+                var argument = new ParagraphRunLineMeasureAndArrangeArgument(paragraph.ParagraphProperty, runSpan, lineMaxWidth);
+                result = wholeRunLineMeasurer.MeasureWholeRunLine(argument);
+            }
+            else
+            {
+                // 继续往下执行，如果没有注入自定义的行布局层的话
+                result = MeasureWholeRunLine(paragraph, runSpan, lineMaxWidth);
+            }
 
             // 先判断是否需要分割
             if (result.NeedSplitLastRun)
@@ -122,30 +151,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         // todo 考虑行复用，例如刚好添加的内容是一行。或者在一行内做文本替换等
         // 这个没有啥优先级。测试了 SublimeText 和 NotePad 工具，都没有做此复用，预计有坑
-    }
-
-    /// <summary>
-    /// 测量和布局行
-    /// </summary>
-    /// <param name="paragraph"></param>
-    /// <param name="runList"></param>
-    /// <param name="lineMaxWidth"></param>
-    private RunLineMeasureAndArrangeResult MeasureAndArrangeRunLine(ParagraphData paragraph,
-        in ReadOnlyListSpan<IImmutableRun> runList, double lineMaxWidth)
-    {
-        var wholeRunLineMeasurer = TextEditor.PlatformProvider.GetWholeRunLineMeasurer();
-        if (wholeRunLineMeasurer != null)
-        {
-            var argument = new ParagraphRunLineMeasureAndArrangeArgument(paragraph.ParagraphProperty, runList, lineMaxWidth);
-            RunLineMeasureAndArrangeResult result = wholeRunLineMeasurer.MeasureWholeRunLine(argument);
-            return result;
-        }
-        else
-        {
-            // 继续往下执行，如果没有注入自定义的行布局层的话
-
-            return MeasureWholeRunLine(paragraph, runList, lineMaxWidth);
-        }
     }
 
     private RunLineMeasureAndArrangeResult MeasureWholeRunLine(ParagraphData paragraph, ReadOnlyListSpan<IImmutableRun> runList,
