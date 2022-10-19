@@ -120,7 +120,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
             currentLineVisualData = new LineVisualData(paragraph)
             {
-                IsDirty = false,
                 StartParagraphIndex = i,
                 EndParagraphIndex = i + result.RunCount,
                 Size = result.Size,

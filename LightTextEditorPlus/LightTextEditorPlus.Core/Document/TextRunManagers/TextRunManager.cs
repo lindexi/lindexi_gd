@@ -571,14 +571,19 @@ class LineVisualData
     public LineVisualData(ParagraphData currentParagraph)
     {
         CurrentParagraph = currentParagraph;
+        _paragraphVersion = currentParagraph.Version;
     }
 
     public ParagraphData CurrentParagraph { get; }
 
+    private uint _paragraphVersion;
+
     /// <summary>
     /// 是否是脏的，需要重新布局渲染
     /// </summary>
-    public bool IsDirty { set; get; }
+    public bool IsDirty => CurrentParagraph.IsInvalidVersion(_paragraphVersion);
+
+    public void UpdateVersion() => _paragraphVersion = CurrentParagraph.Version;
 
     /// <summary>
     /// 这一行的字符长度
