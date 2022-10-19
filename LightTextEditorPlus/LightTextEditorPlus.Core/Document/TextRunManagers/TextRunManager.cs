@@ -515,7 +515,6 @@ class ParagraphData
         }
     }
 }
-// todo 需要每个字符的坐标和尺寸，否则难以做命中测试哦
 
 /// <summary>
 /// 文本 Run 的渲染数据
