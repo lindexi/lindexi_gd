@@ -268,6 +268,11 @@ class ParagraphRunData
     public ParagraphOffset CharIndex { set; get; }
 
     public IList<Size>? CharSizeList { set; get; }
+
+    /// <summary>
+    /// 当前所在的行
+    /// </summary>
+    public LineVisualData? CurrentLine { set; get; }
 }
 
 /// <summary>
