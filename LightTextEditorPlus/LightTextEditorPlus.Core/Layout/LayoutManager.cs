@@ -144,6 +144,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         {
             // 继续往下执行，如果没有注入自定义的行布局层的话
 
+            return MeasureWholeRunLine(paragraph, runList, lineMaxWidth);
+        }
+    }
+
+    private RunLineMeasureAndArrangeResult MeasureWholeRunLine(ParagraphData paragraph, ReadOnlyListSpan<IImmutableRun> runList,
+        double lineMaxWidth)
+    {
         var runLineMeasurer = TextEditor.PlatformProvider.GetSingleRunLineMeasurer();
 
         // RunLineMeasurer
@@ -190,7 +197,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         }
 
         return new RunLineMeasureAndArrangeResult(currentSize, currentRunIndex, lastRunHitIndex);
-        }
     }
 
     private MeasureSingleRunInLineResult MeasureSingleRunLine(MeasureSingleRunInLineArguments arguments)
