@@ -235,23 +235,22 @@ class ParagraphManager
 /// </summary>
 /// 准备将字符和具体的渲染信息放在一起，如此可以减少一些判断逻辑，解决不对应问题
 /// 似乎除了减少重复计算尺寸之外，没有其他优势
-class ParagraphRunData
+class ParagraphRunData:IParagraphCache
 {
     public ParagraphRunData(IImmutableRun run, ParagraphData paragraph)
     {
         Run = run;
         Paragraph = paragraph;
-        ParagraphVersion = paragraph.Version;
+        paragraph.InitVersion(this);
     }
 
     public IImmutableRun Run { get; }
 
     internal ParagraphData Paragraph { get; }
-    public uint ParagraphVersion { private set; get; } = 0;
 
-    public void IsInvalidVersion() => Paragraph.IsInvalidVersion(ParagraphVersion);
+    public void IsInvalidVersion() => Paragraph.IsInvalidVersion(this);
 
-    public void UpdateVersion() => ParagraphVersion = Paragraph.Version;
+    public void UpdateVersion() => Paragraph.UpdateVersion(this);
 
     public int CharCount => Run.Count;
 
@@ -275,6 +274,13 @@ class ParagraphRunData
     /// 当前所在的行
     /// </summary>
     public LineVisualData? CurrentLine { set; get; }
+
+    public uint CurrentParagraphVersion { get; set; }
+}
+
+interface IParagraphCache
+{
+    uint CurrentParagraphVersion { set; get; }
 }
 
 /// <summary>
@@ -485,10 +491,32 @@ class ParagraphData
 
     internal bool IsInvalidVersion(uint version) => version != Version;
 
+    internal bool IsInvalidVersion(IParagraphCache cache) => IsInvalidVersion(cache.CurrentParagraphVersion);
+
+    internal void UpdateVersion(IParagraphCache cache)
+    {
+        if (cache.CurrentParagraphVersion == 0)
+        {
+            throw new InvalidOperationException($"初始化先调用 {nameof(InitVersion)} 方法");
+        }
+
+        cache.CurrentParagraphVersion = Version;
+    }
+
+    internal void InitVersion(IParagraphCache cache)
+    {
+        if (cache.CurrentParagraphVersion !=0)
+        {
+            throw new InvalidOperationException($"禁止重复初始化");
+        }
+
+        cache.CurrentParagraphVersion = Version;
+    }
+
     /// <summary>
     /// 段落的更改版本
     /// </summary>
-    internal uint Version { get; private set; } = 1;
+    private uint Version { get; set; } = 1;
 
     public string GetText()
     {
@@ -562,7 +590,7 @@ class RunVisualData
 /// <summary>
 /// 行渲染信息
 /// </summary>
-class LineVisualData
+class LineVisualData: IParagraphCache
 {
     /// <summary>
     /// 行渲染信息
@@ -571,19 +599,17 @@ class LineVisualData
     public LineVisualData(ParagraphData currentParagraph)
     {
         CurrentParagraph = currentParagraph;
-        _paragraphVersion = currentParagraph.Version;
+        currentParagraph.InitVersion(this);
     }
 
     public ParagraphData CurrentParagraph { get; }
 
-    private uint _paragraphVersion;
-
     /// <summary>
     /// 是否是脏的，需要重新布局渲染
     /// </summary>
-    public bool IsDirty => CurrentParagraph.IsInvalidVersion(_paragraphVersion);
+    public bool IsDirty => CurrentParagraph.IsInvalidVersion(this);
 
-    public void UpdateVersion() => _paragraphVersion = CurrentParagraph.Version;
+    public void UpdateVersion() => CurrentParagraph.UpdateVersion(this);
 
     /// <summary>
     /// 这一行的字符长度
@@ -657,4 +683,6 @@ class LineVisualData
 
         return stringBuilder.ToString();
     }
+
+    public uint CurrentParagraphVersion { get; set; }
 }
