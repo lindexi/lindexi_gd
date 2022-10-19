@@ -486,8 +486,6 @@ class ParagraphData
         var (run, runIndex, hitIndex) = readOnlyListSpan.GetRunByCharIndex(paragraphOffset.Offset);
 
         return new RunIndexInParagraph(runIndex, this, run, hitIndex, Version);
-
-        //return new RunIndexInParagraph(-1, this, null!,-1, _version);
     }
 
     #region Version
