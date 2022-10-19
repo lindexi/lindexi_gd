@@ -94,16 +94,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         for (var i = startTextRunIndex.ParagraphIndex; i < runList.Count;)
         {
-            // 预期刚好 dirtyParagraphOffset 是某个 IImmutableRun 的起始
-            //if (currentLineVisualData is null)
-            //{
-            //    currentLineVisualData = new LineVisualData(paragraph)
-            //    {
-            //        IsDirty = false,
-            //        StartParagraphIndex = i,
-            //    };
-            //}
-
             // 开始行布局
             // 第一个 Run 就是行的开始
             var runSpan = paragraph.ToReadOnlyListSpan(i);
