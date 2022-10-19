@@ -4,6 +4,9 @@ using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Platform;
 
+/// <summary>
+/// 提供平台接入的辅助类，可以减少编写的代码量
+/// </summary>
 public abstract class PlatformProvider : IPlatformProvider
 {
     public virtual void RequireDispatchUpdateLayout(Action textLayout)
