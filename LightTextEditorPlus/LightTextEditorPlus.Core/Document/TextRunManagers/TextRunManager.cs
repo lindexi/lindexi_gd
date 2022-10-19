@@ -289,7 +289,6 @@ interface IParagraphCache
 [DebuggerDisplay("{GetText()}")]
 class ParagraphData
 {
-    private uint _version = 1;
 
     public ParagraphData(ParagraphProperty paragraphProperty, ParagraphManager paragraphManager)
     {
@@ -491,6 +490,8 @@ class ParagraphData
         //return new RunIndexInParagraph(-1, this, null!,-1, _version);
     }
 
+    #region Version
+
     internal bool IsInvalidVersion(uint version) => version != Version;
 
     internal bool IsInvalidVersion(IParagraphCache cache) => IsInvalidVersion(cache.CurrentParagraphVersion);
@@ -530,6 +531,9 @@ class ParagraphData
             _version = value;
         }
     }
+    private uint _version = 1;
+    #endregion
+
 
     public string GetText()
     {
