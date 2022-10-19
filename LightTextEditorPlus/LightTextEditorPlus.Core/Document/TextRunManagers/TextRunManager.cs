@@ -274,11 +274,6 @@ class ParagraphRunData:IParagraphCache
     public uint CurrentParagraphVersion { get; set; }
 }
 
-interface IParagraphCache
-{
-    uint CurrentParagraphVersion { set; get; }
-}
-
 /// <summary>
 /// 段落数据
 /// </summary>
