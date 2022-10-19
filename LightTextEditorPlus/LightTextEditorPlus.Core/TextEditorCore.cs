@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -145,6 +146,43 @@ public partial class TextEditorCore
     public ITextLogger Logger { get; }
 
     // todo 考虑设置可见范围，用来支持长文本
+
+    #region 调试属性
+
+    /// <summary>
+    /// 是否正在调试模式
+    /// </summary>
+    /// 文本库将使用 Release 构建进行分发，但是依然提供调试方法，开启调试模式之后会有更多输出和判断逻辑，以及抛出调试异常。不应该在正式发布时，设置进入调试模式
+    public bool IsInDebugMode
+    {
+        private set => _isInDebugMode = value;
+        get => _isInDebugMode || IsAllInDebugMode;
+    }
+    private bool _isInDebugMode;
+
+    /// <summary>
+    /// 设置当前的文本进入调试模式
+    /// </summary>
+    public void SetInDebugMode()
+    {
+        IsInDebugMode = true;
+        Logger.LogInfo($"文本进入调试模式");
+    }
+
+    /// <summary>
+    /// 是否全部的文本都进入调试模式
+    /// </summary>
+    public static bool IsAllInDebugMode { private set; get; }
+
+    /// <summary>
+    /// 设置全部的文本都进入调试模式，理论上不能将此调用此方法的代码进行发布
+    /// </summary>
+    public static void SetAllInDebugMode()
+    {
+        IsAllInDebugMode = true;
+    }
+
+    #endregion
 
     #endregion
 
