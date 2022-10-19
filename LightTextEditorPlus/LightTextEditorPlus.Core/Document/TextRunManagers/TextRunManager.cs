@@ -367,7 +367,7 @@ class ParagraphData
         }
         else
         {
-            _version++;
+            Version++;
             var runIndexInParagraph = GetRunIndex(offset);
 
             var count = TextRunList.Count - runIndexInParagraph.ParagraphIndex;
@@ -399,7 +399,7 @@ class ParagraphData
     /// </summary>
     internal void SplitReplace(int paragraphIndex, IImmutableRun firstRun, IImmutableRun secondRun)
     {
-        _version++;
+        Version++;
 
         TextRunList[paragraphIndex] = firstRun;
         TextRunList.Insert(paragraphIndex + 1, secondRun);
@@ -422,13 +422,13 @@ class ParagraphData
         }
 
         // todo 设置LineVisualData是脏的
-        _version++;
+        Version++;
     }
 
     public void AppendRun(IImmutableRun run)
     {
         TextRunList.Add(run);
-        _version++;
+        Version++;
     }
 
     public void AppendRun(IList<IImmutableRun> runList)
@@ -438,7 +438,7 @@ class ParagraphData
             AppendRun(run);
         }
 
-        _version++;
+        Version++;
     }
 
     #region 渲染排版数据
@@ -476,22 +476,17 @@ class ParagraphData
         var readOnlyListSpan = ToReadOnlyListSpan(0);
         var (run, runIndex, hitIndex) = readOnlyListSpan.GetRunByCharIndex(paragraphOffset.Offset);
 
-        return new RunIndexInParagraph(runIndex, this, run, hitIndex, _version);
+        return new RunIndexInParagraph(runIndex, this, run, hitIndex, Version);
 
         //return new RunIndexInParagraph(-1, this, null!,-1, _version);
     }
 
-    internal bool IsInvalidVersion(uint version) => version != _version;
+    internal bool IsInvalidVersion(uint version) => version != Version;
 
     /// <summary>
     /// 段落的更改版本
     /// </summary>
-    internal uint Version => _version;
-
-    /// <summary>
-    /// 段落的更改版本
-    /// </summary>
-    private uint _version = 1;
+    internal uint Version { get; private set; } = 1;
 
     public string GetText()
     {
