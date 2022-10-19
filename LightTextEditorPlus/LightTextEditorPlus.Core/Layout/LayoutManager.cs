@@ -118,9 +118,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 paragraph.SplitReplace(lastRunIndex, firstRun, secondRun);
             }
 
-            var runVisualDataList = new List<RunVisualData>();
-
-
             currentLineVisualData = new LineVisualData(paragraph)
             {
                 IsDirty = false,
