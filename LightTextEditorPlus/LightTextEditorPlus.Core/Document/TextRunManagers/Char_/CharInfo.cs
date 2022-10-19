@@ -1,6 +1,4 @@
-﻿using LightTextEditorPlus.Core.Document;
-
-namespace LightTextEditorPlus.Core.Layout;
+﻿namespace LightTextEditorPlus.Core.Document;
 
 public readonly record struct CharInfo(ICharObject CharObject, IReadOnlyRunProperty RunProperty)
 {
