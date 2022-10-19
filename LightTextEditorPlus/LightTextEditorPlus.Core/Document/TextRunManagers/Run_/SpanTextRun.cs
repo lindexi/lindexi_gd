@@ -1,4 +1,6 @@
-﻿namespace LightTextEditorPlus.Core.Document;
+﻿using System;
+
+namespace LightTextEditorPlus.Core.Document;
 
 class SpanTextRun : IImmutableTextRun
 {
@@ -24,6 +26,16 @@ class SpanTextRun : IImmutableTextRun
 
     public (IImmutableRun FirstRun, IImmutableRun SecondRun) SplitAt(int index)
     {
+        if (index >= Count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index));
+        }
+
+        if (index == 0)
+        {
+            throw new ArgumentException($"{nameof(index)} must more than 0");
+        }
+
         var firstStart = Start;
         var firstLength = index;
 
