@@ -144,7 +144,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         {
             // 继续往下执行，如果没有注入自定义的行布局层的话
 
-        var runLineMeasurer = TextEditor.PlatformProvider.GetRunLineMeasurer();
+        var runLineMeasurer = TextEditor.PlatformProvider.GetSingleRunLineMeasurer();
 
         // RunLineMeasurer
         // 行还剩余的空闲宽度
@@ -156,17 +156,17 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         while (currentRunIndex < runList.Count)
         {
-            var arguments = new MeasureRunInLineArguments(runList, currentRunIndex, lineRemainingWidth,
+            var arguments = new MeasureSingleRunInLineArguments(runList, currentRunIndex, lineRemainingWidth,
                 paragraph.ParagraphProperty);
 
-            MeasureRunInLineResult result;
+            MeasureSingleRunInLineResult result;
             if (runLineMeasurer is not null)
             {
-                result = runLineMeasurer.MeasureRunLine(arguments);
+                result = runLineMeasurer.MeasureSingleRunLine(arguments);
             }
             else
             {
-                result = MeasureRunLine(arguments);
+                result = MeasureSingleRunLine(arguments);
             }
 
             if (result.CanTake)
@@ -186,14 +186,14 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 //return new RunLineMeasureAndArrangeResult(currentSize, currentRunIndex, lastRunHitIndex);
                 break;
             }
-            //MeasureRunInLineResult result = runMeasureProvider.MeasureAndArrangeRunLine(arguments);
+            //MeasureSingleRunInLineResult result = runMeasureProvider.MeasureAndArrangeRunLine(arguments);
         }
 
         return new RunLineMeasureAndArrangeResult(currentSize, currentRunIndex, lastRunHitIndex);
         }
     }
 
-    private MeasureRunInLineResult MeasureRunLine(MeasureRunInLineArguments arguments)
+    private MeasureSingleRunInLineResult MeasureSingleRunLine(MeasureSingleRunInLineArguments arguments)
     {
         var charLineMeasurer = TextEditor.PlatformProvider.GetCharLineMeasurer();
 
@@ -232,19 +232,19 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 if (i == 0)
                 {
                     // 一个都获取不到
-                    return new MeasureRunInLineResult(0, 0, currentSize);
+                    return new MeasureSingleRunInLineResult(0, 0, currentSize);
                 }
                 else
                 {
                     // 无法将整个 Run 都排版进去，只能排版部分
                     var hitIndex = i - 1;
-                    return new MeasureRunInLineResult(1, hitIndex, currentSize);
+                    return new MeasureSingleRunInLineResult(1, hitIndex, currentSize);
                 }
             }
         }
 
         // 整个 Run 都排版进去，不需要将这个 Run 拆分
-        return new MeasureRunInLineResult(1, 0, currentSize);
+        return new MeasureSingleRunInLineResult(1, 0, currentSize);
     }
 
     private MeasureCharInLineResult MeasureCharInLine(in MeasureCharInLineArguments arguments)
@@ -362,7 +362,7 @@ public readonly record struct MeasureCharInLineResult(int TakeCharCount, Size Si
     public bool CanTake => TakeCharCount > 0;
 }
 
-public readonly record struct MeasureRunInLineArguments(ReadOnlyListSpan<IImmutableRun> RunList, int CurrentIndex,
+public readonly record struct MeasureSingleRunInLineArguments(ReadOnlyListSpan<IImmutableRun> RunList, int CurrentIndex,
     double LineRemainingWidth, ParagraphProperty ParagraphProperty)
 {
 }
@@ -373,7 +373,7 @@ public readonly record struct MeasureRunInLineArguments(ReadOnlyListSpan<IImmuta
 /// <param name="Size">这一行的布局尺寸</param>
 /// <param name="TaskCount">使用了多少个 IImmutableRun 元素</param>
 /// <param name="SplitLastRunIndex">最后一个 IImmutableRun 元素是否需要拆分跨行，需要拆分也就意味着需要分行了</param>
-public readonly record struct MeasureRunInLineResult(int TaskCount, int SplitLastRunIndex, Size Size)
+public readonly record struct MeasureSingleRunInLineResult(int TaskCount, int SplitLastRunIndex, Size Size)
 {
     // 测量一个 Run 在行内布局的结果
 

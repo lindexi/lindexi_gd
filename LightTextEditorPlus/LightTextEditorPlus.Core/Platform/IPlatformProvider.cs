@@ -39,7 +39,7 @@ public interface IPlatformProvider
     /// 获取文本的行测量器，返回空则采用默认的行测量逻辑
     /// </summary>
     /// <returns></returns>
-    IRunLineMeasurer? GetRunLineMeasurer();
+    ISingleRunLineMeasurer? GetSingleRunLineMeasurer();
 
     /// <summary>
     /// 获取字符的行测量器，用来测量哪些字符可以加入到当前行。返回空则采用默认的行测量逻辑
@@ -81,9 +81,9 @@ public interface ICharInfoMeasurer
 /// <summary>
 /// 文本的行测量器，用来测量一行内可布局上的文本
 /// </summary>
-public interface IRunLineMeasurer
+public interface ISingleRunLineMeasurer
 {
-    MeasureRunInLineResult MeasureRunLine(in MeasureRunInLineArguments arguments);
+    MeasureSingleRunInLineResult MeasureSingleRunLine(in MeasureSingleRunInLineArguments arguments);
 }
 
 public abstract class PlatformProvider : IPlatformProvider
@@ -113,7 +113,7 @@ public abstract class PlatformProvider : IPlatformProvider
     //    return  new DefaultRunMeasureProvider();
     //}
 
-    public IRunLineMeasurer? GetRunLineMeasurer()
+    public ISingleRunLineMeasurer? GetSingleRunLineMeasurer()
     {
         return null;
     }
