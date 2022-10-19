@@ -29,33 +29,61 @@ public interface IPlatformProvider
 
     IRunParagraphSplitter GetRunParagraphSplitter();
 
-    IRunMeasureProvider GetRunMeasureProvider();
+    /// <summary>
+    /// 获取整行的 Run 的测量器，返回空则采用默认的测量逻辑
+    /// </summary>
+    /// <returns></returns>
+    IWholeRunLineMeasurer? GetWholeRunLineMeasurer();
+
+    /// <summary>
+    /// 获取文本的行测量器，返回空则采用默认的行测量逻辑
+    /// </summary>
+    /// <returns></returns>
+    IRunLineMeasurer? GetRunLineMeasurer();
+
+    /// <summary>
+    /// 获取字符的行测量器，用来测量哪些字符可以加入到当前行。返回空则采用默认的行测量逻辑
+    /// </summary>
+    /// <returns></returns>
+    ICharLineMeasurer? GetCharLineMeasurer();
+
+    /// <summary>
+    /// 获取文本的字符测量器，返回空则采用默认的字符测量逻辑
+    /// </summary>
+    /// <returns></returns>
+    ICharInfoMeasurer? GetCharInfoMeasurer();
 }
 
-public interface IRunMeasureProvider
+/// <summary>
+/// 整行的 Run 的测量器，用来测量一整行
+/// </summary>
+public interface IWholeRunLineMeasurer
 {
-    MeasureRunInLineResult MeasureAndArrangeRunLine(in MeasureRunInLineArguments arguments);
-    MeasureCharInLineResult MeasureAndArrangeCharLine(in MeasureCharInLineArguments measureCharInLineArguments);
+    RunLineMeasureAndArrangeResult MeasureWholeRunLine(in ParagraphRunLineMeasureAndArrangeArgument argument);
+}
+
+/// <summary>
+/// 获取字符的行测量器，用来测量哪些字符可以加入到当前行
+/// </summary>
+public interface ICharLineMeasurer
+{
+    MeasureCharInLineResult MeasureCharInLine(in MeasureCharInLineArguments measureCharInLineArguments);
+}
+
+/// <summary>
+/// 文本的字符测量器
+/// </summary>
+public interface ICharInfoMeasurer
+{
     CharInfoMeasureResult MeasureCharInfo(in CharInfo charInfo);
 }
 
-public class DefaultRunMeasureProvider : IRunMeasureProvider
+/// <summary>
+/// 文本的行测量器，用来测量一行内可布局上的文本
+/// </summary>
+public interface IRunLineMeasurer
 {
-    public MeasureRunInLineResult MeasureAndArrangeRunLine(in MeasureRunInLineArguments arguments)
-    {
-        throw new NotImplementedException();
-    }
-
-    public MeasureCharInLineResult MeasureAndArrangeCharLine(in MeasureCharInLineArguments measureCharInLineArguments)
-    {
-        throw new NotImplementedException();
-    }
-
-    public CharInfoMeasureResult MeasureCharInfo(in CharInfo charInfo)
-    {
-        var bounds = new Rect(0, 0, charInfo.RunProperty.FontSize, charInfo.RunProperty.FontSize);
-        return new CharInfoMeasureResult(bounds);
-    }
+    MeasureRunInLineResult MeasureRunLine(in MeasureRunInLineArguments arguments);
 }
 
 public abstract class PlatformProvider : IPlatformProvider
@@ -75,9 +103,29 @@ public abstract class PlatformProvider : IPlatformProvider
         return _defaultRunParagraphSplitter ??= new DefaultRunParagraphSplitter();
     }
 
-    public virtual IRunMeasureProvider GetRunMeasureProvider()
+    public IWholeRunLineMeasurer? GetWholeRunLineMeasurer()
     {
-        return  new DefaultRunMeasureProvider();
+        return null;
+    }
+
+    //public virtual IRunMeasureProvider GetRunMeasureProvider()
+    //{
+    //    return  new DefaultRunMeasureProvider();
+    //}
+
+    public IRunLineMeasurer? GetRunLineMeasurer()
+    {
+        return null;
+    }
+
+    public ICharLineMeasurer? GetCharLineMeasurer()
+    {
+        return null;
+    }
+
+    public ICharInfoMeasurer? GetCharInfoMeasurer()
+    {
+        return null;
     }
 
     private DefaultRunParagraphSplitter? _defaultRunParagraphSplitter;

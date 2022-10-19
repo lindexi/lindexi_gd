@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive;
@@ -55,7 +54,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
     public override ArrangingType ArrangingType => ArrangingType.Horizontal;
 
-    protected override void LayoutParagraphCore(ParagraphData paragraph, in RunIndexInParagraph startTextRunIndex, ParagraphOffset startParagraphOffset)
+    protected override void LayoutParagraphCore(ParagraphData paragraph, in RunIndexInParagraph startTextRunIndex,
+        ParagraphOffset startParagraphOffset)
     {
         var runList = paragraph.GetRunList();
 
@@ -63,7 +63,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         //var currentLineRunList = new List<IImmutableRun>();
         // 当前的行渲染信息
         LineVisualData? currentLineVisualData = null;
-       
+
         // 获取最大宽度信息
         double lineMaxWidth = TextEditor.SizeToContent switch
         {
@@ -89,28 +89,28 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             // 开始行布局
             // 第一个 Run 就是行的开始
             var runSpan = paragraph.ToReadOnlyListSpan(i);
-            var result = MeasureAndArrangeRunLine(paragraph,runSpan, lineMaxWidth);
+            var result = MeasureAndArrangeRunLine(paragraph, runSpan, lineMaxWidth);
 
             // 先判断是否需要分割
             if (result.NeedSplitLastRun)
             {
-                var lastRunIndex = i + result.RunCount-1; // todo 这里是否存在 -1 问题
-                IImmutableRun lastRun = runSpan[result.RunCount-1];
+                var lastRunIndex = i + result.RunCount - 1; // todo 这里是否存在 -1 问题
+                IImmutableRun lastRun = runSpan[result.RunCount - 1];
                 var (firstRun, secondRun) = lastRun.SplitAt(result.LastRunHitIndex);
-                paragraph.SplitReplace(lastRunIndex,firstRun,secondRun);
+                paragraph.SplitReplace(lastRunIndex, firstRun, secondRun);
             }
 
             currentLineVisualData = new LineVisualData(paragraph)
             {
                 IsDirty = false,
                 StartParagraphIndex = i,
-                EndParagraphIndex = i+ result.RunCount,
-                Size=result.Size,
+                EndParagraphIndex = i + result.RunCount,
+                Size = result.Size,
             };
 
             paragraph.LineVisualDataList.Add(currentLineVisualData);
 
-            i+= result.RunCount;
+            i += result.RunCount;
 
             if (result.RunCount == 0)
             {
@@ -131,12 +131,22 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// <param name="runList"></param>
     /// <param name="lineMaxWidth"></param>
     private RunLineMeasureAndArrangeResult MeasureAndArrangeRunLine(ParagraphData paragraph,
-       in ReadOnlyListSpan<IImmutableRun> runList, double lineMaxWidth)
+        in ReadOnlyListSpan<IImmutableRun> runList, double lineMaxWidth)
     {
-        // todo 允许注入可定制的自定义布局方法
-        //TextEditor.PlatformProvider.GetCustomMeasureAndArrangeRunLine
-        var runMeasureProvider = TextEditor.PlatformProvider.GetRunMeasureProvider();
+        var wholeRunLineMeasurer = TextEditor.PlatformProvider.GetWholeRunLineMeasurer();
+        if (wholeRunLineMeasurer != null)
+        {
+            var argument = new ParagraphRunLineMeasureAndArrangeArgument(paragraph.ParagraphProperty, runList, lineMaxWidth);
+            RunLineMeasureAndArrangeResult result = wholeRunLineMeasurer.MeasureWholeRunLine(argument);
+            return result;
+        }
+        else
+        {
+            // 继续往下执行，如果没有注入自定义的行布局层的话
 
+        var runLineMeasurer = TextEditor.PlatformProvider.GetRunLineMeasurer();
+
+        // RunLineMeasurer
         // 行还剩余的空闲宽度
         double lineRemainingWidth = lineMaxWidth;
 
@@ -146,9 +156,18 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         while (currentRunIndex < runList.Count)
         {
-            var arguments = new MeasureRunInLineArguments(runList, currentRunIndex, lineRemainingWidth, paragraph.ParagraphProperty);
+            var arguments = new MeasureRunInLineArguments(runList, currentRunIndex, lineRemainingWidth,
+                paragraph.ParagraphProperty);
 
-            MeasureRunInLineResult result = MeasureRunLine(arguments);
+            MeasureRunInLineResult result;
+            if (runLineMeasurer is not null)
+            {
+                result = runLineMeasurer.MeasureRunLine(arguments);
+            }
+            else
+            {
+                result = MeasureRunLine(arguments);
+            }
 
             if (result.CanTake)
             {
@@ -170,26 +189,35 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             //MeasureRunInLineResult result = runMeasureProvider.MeasureAndArrangeRunLine(arguments);
         }
 
-        // 能完全将这 RunList 布局完成
-
         return new RunLineMeasureAndArrangeResult(currentSize, currentRunIndex, lastRunHitIndex);
+        }
     }
 
     private MeasureRunInLineResult MeasureRunLine(MeasureRunInLineArguments arguments)
     {
-        var runMeasureProvider = TextEditor.PlatformProvider.GetRunMeasureProvider();
+        var charLineMeasurer = TextEditor.PlatformProvider.GetCharLineMeasurer();
 
         var currentRun = arguments.RunList[arguments.CurrentIndex];
         var currentSize = Size.Zero;
 
         for (int i = 0; i < currentRun.Count;)
         {
-            var runInfo = new RunInfo(arguments.RunList, arguments.CurrentIndex, i, TextEditor.DocumentManager.CurrentRunProperty);
+            var runInfo = new RunInfo(arguments.RunList, arguments.CurrentIndex, i,
+                TextEditor.DocumentManager.CurrentRunProperty);
 
-            var measureCharInLineArguments = new MeasureCharInLineArguments(runInfo,arguments.LineRemainingWidth,arguments.ParagraphProperty);
+            var measureCharInLineArguments =
+                new MeasureCharInLineArguments(runInfo, arguments.LineRemainingWidth, arguments.ParagraphProperty);
 
-            //MeasureCharInLineResult result = runMeasureProvider.MeasureAndArrangeCharLine(measureCharInLineArguments);
-            MeasureCharInLineResult result = MeasureCharInLine(measureCharInLineArguments);
+            MeasureCharInLineResult result;
+
+            if (charLineMeasurer is not null)
+            {
+                result = charLineMeasurer.MeasureCharInLine(measureCharInLineArguments);
+            }
+            else
+            {
+                result = MeasureCharInLine(measureCharInLineArguments);
+            }
 
             if (result.CanTake)
             {
@@ -221,21 +249,35 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
     private MeasureCharInLineResult MeasureCharInLine(in MeasureCharInLineArguments arguments)
     {
-        var runMeasureProvider = TextEditor.PlatformProvider.GetRunMeasureProvider();
+        var charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
 
         var runInfo = arguments.RunInfo;
         var charInfo = runInfo.GetCurrentCharInfo();
 
-        CharInfoMeasureResult result = runMeasureProvider.MeasureCharInfo(charInfo);
+        CharInfoMeasureResult result;
+        if (charInfoMeasurer != null)
+        {
+            result = charInfoMeasurer.MeasureCharInfo(charInfo);
+        }
+        else
+        {
+            result = MeasureCharInfo(charInfo);
+        }
 
         if (result.Bounds.Width > arguments.LineRemainingWidth)
         {
-            return new MeasureCharInLineResult(0,default);
+            return new MeasureCharInLineResult(0, default);
         }
         else
         {
             return new MeasureCharInLineResult(1, result.Bounds.Size);
         }
+    }
+
+    private CharInfoMeasureResult MeasureCharInfo(CharInfo charInfo)
+    {
+        var bounds = new Rect(0, 0, charInfo.RunProperty.FontSize, charInfo.RunProperty.FontSize);
+        return new CharInfoMeasureResult(bounds);
     }
 
     //private void TakeChar(RunInfo runInfo, double lineMaxWidth, ParagraphProperty paragraphProperty)
@@ -248,15 +290,14 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
 public readonly record struct CharInfoMeasureResult(Rect Bounds)
 {
-
 }
 
-public readonly record struct CharInfo(ICharObject CharObject,IReadOnlyRunProperty RunProperty)
+public readonly record struct CharInfo(ICharObject CharObject, IReadOnlyRunProperty RunProperty)
 {
-
 }
 
-public readonly record struct RunInfo(ReadOnlyListSpan<IImmutableRun> RunList, int CurrentIndex,int CurrentCharHitIndex, IReadOnlyRunProperty DefaultRunProperty)
+public readonly record struct RunInfo(ReadOnlyListSpan<IImmutableRun> RunList, int CurrentIndex,
+    int CurrentCharHitIndex, IReadOnlyRunProperty DefaultRunProperty)
 {
     public CharInfo GetCurrentCharInfo()
     {
@@ -265,22 +306,22 @@ public readonly record struct RunInfo(ReadOnlyListSpan<IImmutableRun> RunList, i
         return new CharInfo(charObject, run.RunProperty ?? DefaultRunProperty);
     }
 
-    public CharInfo GetNextCharInfo(int index=1)
+    public CharInfo GetNextCharInfo(int index = 1)
     {
         if (index > 0)
         {
             var charIndex = CurrentCharHitIndex + index;
 
-        var currentRun = RunList[CurrentIndex];
-        if (charIndex < currentRun.Count)
-        {
-            // 这是一个优化，判断是否在当前的文本段内
+            var currentRun = RunList[CurrentIndex];
+            if (charIndex < currentRun.Count)
+            {
+                // 这是一个优化，判断是否在当前的文本段内
 
-            return new CharInfo(currentRun.GetChar(charIndex), currentRun.RunProperty ?? DefaultRunProperty);
-        }
+                return new CharInfo(currentRun.GetChar(charIndex), currentRun.RunProperty ?? DefaultRunProperty);
+            }
 
 
-        // 从当前开始进行拆分，拆分之后即可相对于当前的索引开始计算
+            // 从当前开始进行拆分，拆分之后即可相对于当前的索引开始计算
             var runSpan = RunList.Slice(CurrentIndex);
 
             var (charObject, runProperty) = runSpan.GetCharInfo(charIndex);
@@ -311,9 +352,9 @@ public readonly record struct RunInfo(ReadOnlyListSpan<IImmutableRun> RunList, i
     }
 }
 
-public readonly record struct MeasureCharInLineArguments(RunInfo RunInfo, double LineRemainingWidth, ParagraphProperty ParagraphProperty)
+public readonly record struct MeasureCharInLineArguments(RunInfo RunInfo, double LineRemainingWidth,
+    ParagraphProperty ParagraphProperty)
 {
-
 }
 
 public readonly record struct MeasureCharInLineResult(int TakeCharCount, Size Size)
@@ -321,9 +362,9 @@ public readonly record struct MeasureCharInLineResult(int TakeCharCount, Size Si
     public bool CanTake => TakeCharCount > 0;
 }
 
-public readonly record struct MeasureRunInLineArguments(ReadOnlyListSpan<IImmutableRun> RunList, int CurrentIndex, double LineRemainingWidth, ParagraphProperty ParagraphProperty)
+public readonly record struct MeasureRunInLineArguments(ReadOnlyListSpan<IImmutableRun> RunList, int CurrentIndex,
+    double LineRemainingWidth, ParagraphProperty ParagraphProperty)
 {
-    
 }
 
 /// <summary>
@@ -332,7 +373,7 @@ public readonly record struct MeasureRunInLineArguments(ReadOnlyListSpan<IImmuta
 /// <param name="Size">这一行的布局尺寸</param>
 /// <param name="TaskCount">使用了多少个 IImmutableRun 元素</param>
 /// <param name="SplitLastRunIndex">最后一个 IImmutableRun 元素是否需要拆分跨行，需要拆分也就意味着需要分行了</param>
-public readonly record struct MeasureRunInLineResult(int TaskCount,int SplitLastRunIndex, Size Size)
+public readonly record struct MeasureRunInLineResult(int TaskCount, int SplitLastRunIndex, Size Size)
 {
     // 测量一个 Run 在行内布局的结果
 
@@ -352,13 +393,18 @@ public readonly record struct MeasureRunInLineResult(int TaskCount,int SplitLast
     public bool ShouldBreakLine => CanTake is false || NeedSplitLastRun;
 }
 
+public readonly record struct ParagraphRunLineMeasureAndArrangeArgument(ParagraphProperty ParagraphProperty, in ReadOnlyListSpan<IImmutableRun> RunList, double LineMaxWidth)
+{
+    
+}
+
 /// <summary>
 /// 段内行测量布局结果
 /// </summary>
 /// <param name="Size">这一行的尺寸</param>
 /// <param name="RunCount">这一行使用的 <see cref="IImmutableRun"/> 的数量</param>
 /// <param name="LastRunHitIndex">最后一个 <see cref="IImmutableRun"/> 被使用的字符数量，如刚好用完一个 <see cref="IImmutableRun"/> 那么设置默认为 0 的值。设置为非 0 的值，将会分割最后一个 <see cref="IImmutableRun"/> 为多个，保证没有一个 <see cref="IImmutableRun"/> 是跨行的</param>
-public readonly record struct RunLineMeasureAndArrangeResult(Size Size,int RunCount, int LastRunHitIndex)
+public readonly record struct RunLineMeasureAndArrangeResult(Size Size, int RunCount, int LastRunHitIndex)
 {
     /// <summary>
     /// 是否最后一个 Run 需要被分割。也就是最后一个 Run 将会跨多行
@@ -423,7 +469,8 @@ abstract class ArrangingLayoutProvider
             paragraphData.IsDirty = false;
         }
 
-        Debug.Assert(TextEditor.DocumentManager.TextRunManager.ParagraphManager.GetParagraphList().All(t => t.IsDirty == false));
+        Debug.Assert(TextEditor.DocumentManager.TextRunManager.ParagraphManager.GetParagraphList()
+            .All(t => t.IsDirty == false));
     }
 
     /// <summary>
