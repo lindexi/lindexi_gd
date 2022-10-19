@@ -149,7 +149,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
     private void FillRunVisualDataList(LineVisualData currentLineVisualData, IReadOnlyList<Size> charSizeListInRunLine)
     {
-        var runVisualDataList = new List<RunVisualData>();
+        var runVisualDataList = new List<RunVisualData>(currentLineVisualData.RunCount);
 
         var currentCharCount = 0;
         foreach (var run in currentLineVisualData.GetSpan())

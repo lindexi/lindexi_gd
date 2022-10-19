@@ -547,6 +547,8 @@ class LineVisualData
 
     public int EndParagraphIndex { set; get; } = -1;
 
+    public int RunCount => EndParagraphIndex - StartParagraphIndex;
+
     /// <summary>
     /// 这一行的左上角的点，相对于文本框
     /// </summary>
