@@ -6,7 +6,6 @@ using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
-using LightTextEditorPlus.Core.Utils;
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Layout;
@@ -288,129 +287,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         var bounds = new Rect(0, 0, charInfo.RunProperty.FontSize, charInfo.RunProperty.FontSize);
         return new CharInfoMeasureResult(bounds);
     }
-}
-
-public readonly record struct CharInfoMeasureResult(Rect Bounds)
-{
-}
-
-public readonly record struct CharInfo(ICharObject CharObject, IReadOnlyRunProperty RunProperty)
-{
-}
-
-public readonly record struct RunInfo(ReadOnlyListSpan<IImmutableRun> RunList, int CurrentIndex,
-    int CurrentCharHitIndex, IReadOnlyRunProperty DefaultRunProperty)
-{
-    public CharInfo GetCurrentCharInfo()
-    {
-        var run = RunList[CurrentIndex];
-        var charObject = run.GetChar(CurrentCharHitIndex);
-        return new CharInfo(charObject, run.RunProperty ?? DefaultRunProperty);
-    }
-
-    public CharInfo GetNextCharInfo(int index = 1)
-    {
-        if (index > 0)
-        {
-            var charIndex = CurrentCharHitIndex + index;
-
-            var currentRun = RunList[CurrentIndex];
-            if (charIndex < currentRun.Count)
-            {
-                // 这是一个优化，判断是否在当前的文本段内
-
-                return new CharInfo(currentRun.GetChar(charIndex), currentRun.RunProperty ?? DefaultRunProperty);
-            }
-
-            // 从当前开始进行拆分，拆分之后即可相对于当前的索引开始计算
-            var runSpan = RunList.Slice(CurrentIndex);
-
-            var (charObject, runProperty) = runSpan.GetCharInfo(charIndex);
-
-            return new CharInfo(charObject, runProperty ?? DefaultRunProperty);
-        }
-        else if (index == 0)
-        {
-            throw new ArgumentException($"请使用 {nameof(GetCurrentCharInfo)} 方法代替", nameof(index));
-        }
-        else
-        {
-            // 计算出 index 的相对于 RunList 的字符序号是多少
-            // 然后对整个进行计算获取到对应的字符
-            var charIndex = 0;
-            for (var i = 0; i < CurrentIndex; i++)
-            {
-                var run = RunList[i];
-                charIndex += run.Count;
-            }
-
-            charIndex += CurrentCharHitIndex;
-            charIndex += index;
-
-            var (charObject, runProperty) = RunList.GetCharInfo(charIndex);
-            return new CharInfo(charObject, runProperty ?? DefaultRunProperty);
-        }
-    }
-}
-
-public readonly record struct SingleCharInLineLayoutArguments(RunInfo RunInfo, double LineRemainingWidth,
-    ParagraphProperty ParagraphProperty)
-{
-}
-
-public readonly record struct SingleCharInLineLayoutResult(int TakeCharCount, Size Size)
-{
-    public bool CanTake => TakeCharCount > 0;
-}
-
-public readonly record struct SingleRunInLineLayoutArguments(ReadOnlyListSpan<IImmutableRun> RunList, int CurrentIndex,
-    double LineRemainingWidth, ParagraphProperty ParagraphProperty)
-{
-}
-
-/// <summary>
-/// 测量行内字符的结果
-/// </summary>
-/// <param name="Size">这一行的布局尺寸</param>
-/// <param name="TaskCount">使用了多少个 IImmutableRun 元素</param>
-/// <param name="SplitLastRunIndex">最后一个 IImmutableRun 元素是否需要拆分跨行，需要拆分也就意味着需要分行了</param>
-public readonly record struct SingleRunInLineLayoutResult(int TaskCount, int SplitLastRunIndex, Size Size)
-{
-    // 测量一个 Run 在行内布局的结果
-
-    /// <summary>
-    /// 是否最后一个 Run 需要被分割。也就是最后一个 Run 将会跨多行
-    /// </summary>
-    public bool NeedSplitLastRun => SplitLastRunIndex > 0;
-
-    /// <summary>
-    /// 是否这一行可以加入字符。不可加入等于需要换行
-    /// </summary>
-    public bool CanTake => TaskCount > 0;
-
-    /// <summary>
-    /// 是否需要换行了。等同于这一行不可再加入字符
-    /// </summary>
-    public bool ShouldBreakLine => CanTake is false || NeedSplitLastRun;
-}
-
-public readonly record struct WholeRunLineLayoutArgument(ParagraphProperty ParagraphProperty, in ReadOnlyListSpan<IImmutableRun> RunList, double LineMaxWidth)
-{
-    
-}
-
-/// <summary>
-/// 段内行测量布局结果
-/// </summary>
-/// <param name="Size">这一行的尺寸</param>
-/// <param name="RunCount">这一行使用的 <see cref="IImmutableRun"/> 的数量</param>
-/// <param name="LastRunHitIndex">最后一个 <see cref="IImmutableRun"/> 被使用的字符数量，如刚好用完一个 <see cref="IImmutableRun"/> 那么设置默认为 0 的值。设置为非 0 的值，将会分割最后一个 <see cref="IImmutableRun"/> 为多个，保证没有一个 <see cref="IImmutableRun"/> 是跨行的</param>
-public readonly record struct WholeRunLineLayoutResult(Size Size, int RunCount, int LastRunHitIndex)
-{
-    /// <summary>
-    /// 是否最后一个 Run 需要被分割。也就是最后一个 Run 将会跨多行
-    /// </summary>
-    public bool NeedSplitLastRun => LastRunHitIndex > 0;
 }
 
 /// <summary>

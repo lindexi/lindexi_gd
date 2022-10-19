@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 using LightTextEditorPlus.Core.Document;
-using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Platform;
@@ -52,81 +51,4 @@ public interface IPlatformProvider
     /// </summary>
     /// <returns></returns>
     ICharInfoMeasurer? GetCharInfoMeasurer();
-}
-
-/// <summary>
-/// 整行的 Run 的测量器，用来测量一整行
-/// </summary>
-public interface IWholeRunLineLayouter
-{
-    WholeRunLineLayoutResult LayoutWholeRunLine(in WholeRunLineLayoutArgument argument);
-}
-
-/// <summary>
-/// 获取字符的行测量器，用来测量哪些字符可以加入到当前行
-/// </summary>
-public interface ISingleCharInLineLayouter
-{
-    SingleCharInLineLayoutResult LayoutSingleCharInLine(in SingleCharInLineLayoutArguments singleCharInLineLayoutArguments);
-}
-
-/// <summary>
-/// 文本的字符测量器
-/// </summary>
-public interface ICharInfoMeasurer
-{
-    CharInfoMeasureResult MeasureCharInfo(in CharInfo charInfo);
-}
-
-/// <summary>
-/// 文本的行测量器，用来测量一行内可布局上的文本
-/// </summary>
-public interface ISingleRunInLineLayouter
-{
-    SingleRunInLineLayoutResult LayoutSingleRunInLine(in SingleRunInLineLayoutArguments arguments);
-}
-
-public abstract class PlatformProvider : IPlatformProvider
-{
-    public virtual void RequireDispatchUpdateLayout(Action textLayout)
-    {
-        textLayout();
-    }
-
-    public virtual ITextLogger? BuildTextLogger()
-    {
-        return null;
-    }
-
-    public virtual IRunParagraphSplitter GetRunParagraphSplitter()
-    {
-        return _defaultRunParagraphSplitter ??= new DefaultRunParagraphSplitter();
-    }
-
-    public IWholeRunLineLayouter? GetWholeRunLineLayouter()
-    {
-        return null;
-    }
-
-    //public virtual IRunMeasureProvider GetRunMeasureProvider()
-    //{
-    //    return  new DefaultRunMeasureProvider();
-    //}
-
-    public ISingleRunInLineLayouter? GetSingleRunLineLayouter()
-    {
-        return null;
-    }
-
-    public ISingleCharInLineLayouter? GetSingleCharInLineLayouter()
-    {
-        return null;
-    }
-
-    public ICharInfoMeasurer? GetCharInfoMeasurer()
-    {
-        return null;
-    }
-
-    private DefaultRunParagraphSplitter? _defaultRunParagraphSplitter;
 }
