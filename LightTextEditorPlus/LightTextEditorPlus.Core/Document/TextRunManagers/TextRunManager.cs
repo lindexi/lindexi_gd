@@ -534,4 +534,30 @@ class LineVisualData
         //return CurrentParagraph.AsSpan().Slice(StartParagraphIndex, EndParagraphIndex - StartParagraphIndex);
         return CurrentParagraph.AsSpan()[StartParagraphIndex..EndParagraphIndex];
     }
+
+    public override string ToString()
+    {
+        return $"{nameof(LineVisualData)}: {GetText()}";
+    }
+
+    public string GetText()
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+        foreach (var run in GetSpan())
+        {
+            if (run is TextRun textRun)
+            {
+                stringBuilder.Append(textRun.Text);
+            }
+            else
+            {
+                for (int i = 0; i < run.Count; i++)
+                {
+                    stringBuilder.Append(run.GetChar(i).ToText());
+                }
+            }
+        }
+
+        return stringBuilder.ToString();
+    }
 }
