@@ -677,7 +677,7 @@ class LineVisualData : IParagraphCache
     /// </summary>
     public Size Size { get; set; }
 
-    public List<RunVisualData>? RunVisualDataList { set; get; }
+    //public List<RunVisualData>? RunVisualDataList { set; get; }
 
     //public Span<IImmutableRun> GetSpan()
     //{
