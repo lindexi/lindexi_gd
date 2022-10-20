@@ -368,6 +368,14 @@ class ParagraphCharDataManager
 }
 
 /// <summary>
+/// 段落的渲染数据
+/// </summary>
+class ParagraphRenderData
+{
+    public Point LeftTop { set; get; }
+}
+
+/// <summary>
 /// 段落数据
 /// </summary>
 [DebuggerDisplay("{GetText()}")]
@@ -380,6 +388,8 @@ class ParagraphData
 
         CharDataManager = new ParagraphCharDataManager(this);
     }
+
+    public ParagraphRenderData ParagraphRenderData { get; } = new ParagraphRenderData();
 
     public ParagraphProperty ParagraphProperty { set; get; }
     public ParagraphManager ParagraphManager { get; }
