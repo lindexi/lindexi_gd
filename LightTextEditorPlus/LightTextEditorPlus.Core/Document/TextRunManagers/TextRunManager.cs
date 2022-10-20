@@ -320,6 +320,12 @@ class ParagraphCharDataManager
     private List<CharData> CharDataList { get; } = new List<CharData>();
 
     public int CharCount => CharDataList.Count;
+
+    public ReadOnlyListSpan<CharData> ToReadOnlyListSpan(int start) =>
+        ToReadOnlyListSpan(start, CharDataList.Count - start);
+
+    public ReadOnlyListSpan<CharData> ToReadOnlyListSpan(int start, int length) =>
+        new ReadOnlyListSpan<CharData>(CharDataList, start, length);
 }
 
 /// <summary>
