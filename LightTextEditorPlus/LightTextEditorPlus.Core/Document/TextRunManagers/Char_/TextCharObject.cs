@@ -54,6 +54,8 @@ public class TextSpanCharObject : ICharObject, IEquatable<string>
             return _originText.Substring(_charIndex, _charCount);
         }
     }
+
+    // todo 加上判断是否连续的方法
 }
 
 

@@ -277,7 +277,24 @@ class ParagraphRunData : IParagraphCache
     public uint CurrentParagraphVersion { get; set; }
 }
 
+/// <summary>
+/// 表示一个 人类语言文化 的字符
+/// <para>
+/// 有一些字符，如表情，是需要使用两个 char 表示。这里当成一个处理
+/// </para>
+/// </summary>
+public class CharData
+{
+    public CharData(ICharObject charObject, IReadOnlyRunProperty runProperty)
+    {
+        CharObject = charObject;
+        RunProperty = runProperty;
+    }
 
+    public ICharObject CharObject { get; }
+
+    public IReadOnlyRunProperty RunProperty { get; }
+}
 
 /// <summary>
 /// 段落数据
