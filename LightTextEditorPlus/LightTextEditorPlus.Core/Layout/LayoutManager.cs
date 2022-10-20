@@ -67,8 +67,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// 布局按照： 文本-段落-行-Run-字符
     /// 布局整个文本
     /// 布局文本的每个段落 <see cref="LayoutParagraphCore"/>
-    /// 段落里面，需要对每一行进行布局 <see cref="MeasureWholeRunLine"/>
-    /// 每一行里面，需要对每个 Char 字符进行布局 <see cref="MeasureSingleRunLine"/>
+    /// 段落里面，需要对每一行进行布局 <see cref="LayoutWholeLine"/>
+    /// 每一行里面，需要对每个 Char 字符进行布局 <see cref="LayoutSingleCharInLine"/>
     /// 每个字符需要调用平台的测量 <see cref="MeasureCharInfo"/>
     /// </remarks>
     protected override void LayoutParagraphCore(ParagraphData paragraph, in RunIndexInParagraph startTextRunIndex,
@@ -105,7 +105,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             else
             {
                 // 继续往下执行，如果没有注入自定义的行布局层的话
-                result = MeasureWholeRunLine(paragraph, charDataList, lineMaxWidth);
+                result = LayoutWholeLine(paragraph, charDataList, lineMaxWidth);
             }
 
             // 使用字符作为最小单位，也就不需要分割
@@ -185,7 +185,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     //    currentLineVisualData.RunVisualDataList = runVisualDataList;
     //}
 
-    private WholeRunLineLayoutResult MeasureWholeRunLine(ParagraphData paragraph, ReadOnlyListSpan<CharData> charDataList,
+    private WholeRunLineLayoutResult LayoutWholeLine(ParagraphData paragraph, ReadOnlyListSpan<CharData> charDataList,
         double lineMaxWidth)
     {
         var singleRunLineLayouter = TextEditor.PlatformProvider.GetSingleRunLineLayouter();
@@ -246,7 +246,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             }
             else
             {
-                result = MeasureSingleRunLine(arguments);
+                result = LayoutSingleCharInLine(arguments);
             }
 
             if (result.CanTake)
@@ -278,7 +278,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         return new WholeRunLineLayoutResult(currentSize, currentRunIndex, lastRunHitIndex, Array.Empty<Size>());
     }
 
-    private SingleRunInLineLayoutResult MeasureSingleRunLine(SingleRunInLineLayoutArguments arguments)
+    private SingleRunInLineLayoutResult LayoutSingleCharInLine(SingleRunInLineLayoutArguments arguments)
     {
         var charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
 
@@ -339,7 +339,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         //    }
         //    else
         //    {
-        //        result = MeasureCharInLine(measureCharInLineArguments);
+        //        result = LayoutSingleCharInLine(measureCharInLineArguments);
         //    }
 
         //    if (result.CanTake)
@@ -381,7 +381,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         //return new SingleRunInLineLayoutResult(1, 0, currentSize, currentCharSizeInRun);
     }
 
-    //private SingleCharInLineLayoutResult MeasureCharInLine(in SingleCharInLineLayoutArguments layoutArguments)
+    //private SingleCharInLineLayoutResult LayoutSingleCharInLine(in SingleCharInLineLayoutArguments layoutArguments)
     //{
     //    var charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
 

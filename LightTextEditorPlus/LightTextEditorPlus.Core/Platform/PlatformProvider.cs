@@ -39,10 +39,10 @@ public abstract class PlatformProvider : IPlatformProvider
         return null;
     }
 
-    public ISingleCharInLineLayouter? GetSingleCharInLineLayouter()
-    {
-        return null;
-    }
+    //public ISingleCharInLineLayouter? GetSingleCharInLineLayouter()
+    //{
+    //    return null;
+    //}
 
     public ICharInfoMeasurer? GetCharInfoMeasurer()
     {
