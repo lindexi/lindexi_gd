@@ -71,7 +71,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// 每一行里面，需要对每个 Char 字符进行布局 <see cref="LayoutSingleCharInLine"/>
     /// 每个字符需要调用平台的测量 <see cref="MeasureCharInfo"/>
     /// </remarks>
-    protected override void LayoutParagraphCore(ParagraphData paragraph, in RunIndexInParagraph startTextRunIndex,
+    protected override void LayoutParagraphCore(ParagraphData paragraph,
         ParagraphOffset startParagraphOffset)
     {
         //// 当前行的 RunList 列表，看起来设计不对，没有加上在段落的坐标
@@ -91,7 +91,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         var wholeRunLineLayouter = TextEditor.PlatformProvider.GetWholeRunLineLayouter();
 
-        for (var i = startTextRunIndex.ParagraphIndex; i < paragraph.CharCount;)
+        for (var i = startParagraphOffset.Offset; i < paragraph.CharCount;)
         {
             // 开始行布局
             // 第一个 Run 就是行的开始
@@ -331,16 +331,16 @@ abstract class ArrangingLayoutProvider
         }
 
         var startParagraphOffset = new ParagraphOffset(dirtyParagraphOffset);
-        var startTextRunIndex = paragraph.GetRunIndex(startParagraphOffset);
+        //var startTextRunIndex = paragraph.GetRunIndex(startParagraphOffset);
 
-        if (startTextRunIndex.ParagraphIndex == -1)
-        {
-            // todo 理论上不可能
-        }
+        //if (startTextRunIndex.ParagraphIndex == -1)
+        //{
+        //    // todo 理论上不可能
+        //}
 
-        LayoutParagraphCore(paragraph, startTextRunIndex, startParagraphOffset);
+        LayoutParagraphCore(paragraph, startParagraphOffset);
     }
 
-    protected abstract void LayoutParagraphCore(ParagraphData paragraph, in RunIndexInParagraph startTextRunIndex,
+    protected abstract void LayoutParagraphCore(ParagraphData paragraph,
         ParagraphOffset startParagraphOffset);
 }

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
@@ -87,7 +85,7 @@ internal class TextRunManager
         if (lastParagraphRunList != null)
         {
             // 如果是从一段的中间插入的，需要将这一段在插入点后面的内容继续放入到当前的段落
-            currentParagraph.AppendRun(lastParagraphRunList);
+            currentParagraph.AppendCharData(lastParagraphRunList);
         }
     }
 
@@ -260,6 +258,8 @@ class CharRenderData : IParagraphCache
     /// 尺寸
     /// </summary>
     /// 尺寸是可以复用的
+    /// todo 尺寸更好的放在具体的 CharObject 里面，而不是放在这里
+    /// 也就是是否缓存，是通过业务方决定的
     public Size Size { get; } 
 
     public ParagraphOffset CharIndex { set; get; }
@@ -323,7 +323,14 @@ class ParagraphCharDataManager
     public int CharCount => CharDataList.Count;
 
     public void Add(CharData charData) => CharDataList.Add(charData);
+    public void AddRange(IEnumerable<CharData> charDataList)
+    {
+        CharDataList.AddRange(charDataList);
+    }
 
+    public void RemoveRange(int index, int count) => CharDataList.RemoveRange(index, count);
+
+    public IList<CharData> GetRange(int index, int count) => CharDataList.GetRange(index, count);
 
     public ReadOnlyListSpan<CharData> ToReadOnlyListSpan(int start) =>
         ToReadOnlyListSpan(start, CharDataList.Count - start);
@@ -424,7 +431,8 @@ class ParagraphData
     /// 在段落中间插入的时候，需要将段落在插入后面的内容分割删除
     /// </summary>
     /// <param name="offset"></param>
-    public IList<IImmutableRun>? SplitRemoveByDocumentOffset(ParagraphOffset offset)
+    /// todo 需要重命名
+    public IList<CharData>? SplitRemoveByDocumentOffset(ParagraphOffset offset)
     {
         // todo 设置LineVisualData是脏的
         if (offset.Offset == CharCount)
@@ -432,32 +440,31 @@ class ParagraphData
             // 如果插入在最后，那就啥都不需要做
             return null;
         }
+        else if (offset.Offset > CharCount)
+        {
+            // 超过段落了
+            //todo 处理超过段落
+            throw new ArgumentOutOfRangeException(nameof(offset), $"段落字符:{CharCount};Offset={offset.Offset}");
+        }
         else
         {
             Version++;
-            var runIndexInParagraph = GetRunIndex(offset);
+            var count = CharCount-offset.Offset;
+            var charDataList = CharDataManager.GetRange(offset.Offset,count);
+            CharDataManager.RemoveRange(offset.Offset,count);
 
-            var count = TextRunList.Count - runIndexInParagraph.ParagraphIndex;
-            var result = TextRunList.GetRange(runIndexInParagraph.ParagraphIndex, count);
-            TextRunList.RemoveRange(runIndexInParagraph.ParagraphIndex, count);
+            foreach (var charData in charDataList)
+            {
+                var lineVisualData = charData.CharRenderData?.CurrentLine;
+                //if (lineVisualData != null)
+                //{
+                //    lineVisualData.IsDirty = true;
+                //}
 
-            // 判断是否刚好落在一个 TextRun 的起点，如果落在起点，就不需要拆开
-            if (runIndexInParagraph.HitRunIndex == 0)
-            {
-            }
-            else
-            {
-                // 需要考虑将原本合并的 IImmutableRun 拆开为多个
-                // 对拿到的 Run 进行分割
-                var (firstRun, secondRun) = runIndexInParagraph.Run.SplitAt(runIndexInParagraph.HitRunIndex);
-                // 将 firstRun 替换原有的，将 SecondRun 和之后的进行返回
-                // 由于原有的被删除了，替换原有的，就是添加到列表里
-                TextRunList.Add(firstRun);
-                // 将 SecondRun 和之后的进行返回，也就是将 result 的首项替换为 SecondRun 的内容
-                result[0] = secondRun;
+                charData.CharRenderData = null;
             }
 
-            return result;
+            return charDataList;
         }
     }
 
@@ -501,7 +508,7 @@ class ParagraphData
         {
             var charObject = run.GetChar(i).DeepClone();
             var charData = new CharData(charObject,runProperty);
-            CharDataManager.Add(charData);
+            AppendCharData(charData);
         }
 
         Version++;
@@ -515,6 +522,16 @@ class ParagraphData
         }
 
         Version++;
+    }
+
+    public void AppendCharData(CharData charData)
+    {
+        CharDataManager.Add(charData);
+    }
+
+    public void AppendCharData(IEnumerable<CharData> charDataList)
+    {
+        CharDataManager.AddRange(charDataList);
     }
 
     #region 渲染排版数据
@@ -542,19 +559,19 @@ class ParagraphData
         throw new ArgumentException($"传入的 Run 不是此段落的元素", nameof(run));
     }
 
-    /// <summary>
-    /// 给定传入的段落偏移获取是对应 <see cref="TextRunList"/> 的从哪项开始
-    /// </summary>
-    /// <param name="paragraphOffset"></param>
-    /// <returns></returns>
-    public RunIndexInParagraph GetRunIndex(ParagraphOffset paragraphOffset)
-    {
-        //var readOnlyListSpan = ToReadOnlyListSpan(0);
-        //var (run, runIndex, hitIndex) = readOnlyListSpan.GetRunByCharIndex(paragraphOffset.Offset);
+    ///// <summary>
+    ///// 给定传入的段落偏移获取是对应 <see cref="TextRunList"/> 的从哪项开始
+    ///// </summary>
+    ///// <param name="paragraphOffset"></param>
+    ///// <returns></returns>
+    //public RunIndexInParagraph GetRunIndex(ParagraphOffset paragraphOffset)
+    //{
+    //    //var readOnlyListSpan = ToReadOnlyListSpan(0);
+    //    //var (run, runIndex, hitIndex) = readOnlyListSpan.GetRunByCharIndex(paragraphOffset.Offset);
 
-        //return new RunIndexInParagraph(runIndex, this, run, hitIndex, Version);
-        return new RunIndexInParagraph(0, this, default, 0, Version);
-    }
+    //    //return new RunIndexInParagraph(runIndex, this, run, hitIndex, Version);
+    //    return new RunIndexInParagraph(0, this, default, 0, Version);
+    //}
 
     #region Version
 
