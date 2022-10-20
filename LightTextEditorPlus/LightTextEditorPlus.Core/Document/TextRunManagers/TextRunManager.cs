@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
+using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Utils;
@@ -287,6 +288,38 @@ public class CharData
     public ICharObject CharObject { get; }
 
     public IReadOnlyRunProperty RunProperty { get; }
+
+    internal CharRenderData? CharRenderData { set; get; }
+
+    internal void DebugVerify()
+    {
+        if (CharRenderData != null)
+        {
+            if (!ReferenceEquals(CharRenderData.CharData, this))
+            {
+                throw new TextEditorDebugException($"此 CharData 存放的渲染数据对应的字符，不是当前的 CharData 数据");
+            }
+        }
+    }
+}
+
+/// <summary>
+/// 段落里的字符管理
+/// </summary>
+class ParagraphCharDataManager
+{
+    public ParagraphCharDataManager(ParagraphData paragraph)
+    {
+        _paragraph = paragraph;
+    }
+
+    // 这个字段没有什么用，更多是给调试使用，防止一个 ParagraphCharDataManager 被在多个段落使用
+    private readonly ParagraphData _paragraph;
+
+    // 不公开，后续也许会更换数据类型
+    private List<CharData> CharDataList { get; } = new List<CharData>();
+
+    public int CharCount => CharDataList.Count;
 }
 
 /// <summary>
@@ -299,10 +332,17 @@ class ParagraphData
     {
         ParagraphProperty = paragraphProperty;
         ParagraphManager = paragraphManager;
+
+        CharDataManager = new ParagraphCharDataManager(this);
     }
 
     public ParagraphProperty ParagraphProperty { set; get; }
     public ParagraphManager ParagraphManager { get; }
+
+    /// <summary>
+    /// 段落的字符管理
+    /// </summary>
+    private ParagraphCharDataManager CharDataManager { get; }
 
     // todo 由于使用 Run 将需要不断拆分，在命中测试也需要使用字符，会遇到两个不同的列表的同步
     // 后续替换为使用 Char 作为存储
