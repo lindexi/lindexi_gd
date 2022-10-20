@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
+using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
@@ -67,8 +68,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// 布局整个文本
     /// 布局文本的每个段落 <see cref="LayoutParagraphCore"/>
     /// 段落里面，需要对每一行进行布局 <see cref="MeasureWholeRunLine"/>
-    /// 每一行里面，需要对每个 Run 进行布局 <see cref="MeasureSingleRunLine"/>
-    /// 每个 Run 需要对每个 Char 字符进行布局 <see cref="MeasureCharInLine"/>
+    /// 每一行里面，需要对每个 Char 字符进行布局 <see cref="MeasureSingleRunLine"/>
     /// 每个字符需要调用平台的测量 <see cref="MeasureCharInfo"/>
     /// </remarks>
     protected override void LayoutParagraphCore(ParagraphData paragraph, in RunIndexInParagraph startTextRunIndex,
@@ -198,175 +198,215 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         int currentRunIndex = 0;
         var currentSize = Size.Zero;
 
-        var charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
-
         while (currentRunIndex < charDataList.Count)
         {
-            var charData = charDataList[currentRunIndex];
-            var charRenderData = charData.CharRenderData;
+            //var charData = charDataList[currentRunIndex];
+            //var charRenderData = charData.CharRenderData;
 
-            if (charRenderData == null)
-            {
-                var charInfo = new CharInfo(charData.CharObject, charData.RunProperty);
-                CharInfoMeasureResult charInfoMeasureResult;
-                if (charInfoMeasurer != null)
-                {
-                    charInfoMeasureResult = charInfoMeasurer.MeasureCharInfo(charInfo);
-                }
-                else
-                {
-                    charInfoMeasureResult = MeasureCharInfo(charInfo);
-                }
-
-                charRenderData = new CharRenderData(charData, paragraph, charInfoMeasureResult.Bounds.Size);
-
-                charData.CharRenderData = charRenderData;
-            }
-
-            if (lineRemainingWidth > charRenderData.Size.Width)
-            {
-                currentRunIndex++;
-                var width = currentSize.Width + charRenderData.Size.Width;
-                var height = Math.Max(currentSize.Height, charRenderData.Size.Height);
-                currentSize = new Size(width, height);
-
-                lineRemainingWidth -= charRenderData.Size.Width;
-            }
-            else
-            {
-                // 换行，这一行布局完成
-                break;
-            }
-
-            //var arguments = new SingleRunInLineLayoutArguments(runList, currentRunIndex, lineRemainingWidth,
-            //    paragraph.ParagraphProperty);
-
-            //SingleRunInLineLayoutResult result;
-            //if (singleRunLineLayouter is not null)
+            //if (charRenderData == null)
             //{
-            //    result = singleRunLineLayouter.LayoutSingleRunInLine(arguments);
-            //}
-            //else
-            //{
-            //    result = MeasureSingleRunLine(arguments);
+            //    var charInfo = new CharInfo(charData.CharObject, charData.RunProperty);
+            //    CharInfoMeasureResult charInfoMeasureResult;
+            //    if (charInfoMeasurer != null)
+            //    {
+            //        charInfoMeasureResult = charInfoMeasurer.MeasureCharInfo(charInfo);
+            //    }
+            //    else
+            //    {
+            //        charInfoMeasureResult = MeasureCharInfo(charInfo);
+            //    }
+
+            //    charRenderData = new CharRenderData(charData, paragraph, charInfoMeasureResult.Bounds.Size);
+
+            //    charData.CharRenderData = charRenderData;
             //}
 
-            //if (result.CanTake)
+            //if (lineRemainingWidth > charRenderData.Size.Width)
             //{
-            //    currentRunIndex += result.TaskCount;
-
-            //    var width = currentSize.Width + result.TotalSize.Width;
-            //    var height = Math.Max(currentSize.Height, result.TotalSize.Height);
+            //    currentRunIndex++;
+            //    var width = currentSize.Width + charRenderData.Size.Width;
+            //    var height = Math.Max(currentSize.Height, charRenderData.Size.Height);
             //    currentSize = new Size(width, height);
 
-            //    currentCharSizeInRunLine.AddRange(result.CharSizeList);
+            //    lineRemainingWidth -= charRenderData.Size.Width;
             //}
-
-            //lastRunHitIndex = result.SplitLastRunIndex;
-
-            //if (result.ShouldBreakLine)
+            //else
             //{
             //    // 换行，这一行布局完成
             //    break;
             //}
+
+            var arguments = new SingleRunInLineLayoutArguments(charDataList, currentRunIndex, lineRemainingWidth,
+                paragraph.ParagraphProperty);
+
+            SingleRunInLineLayoutResult result;
+            if (singleRunLineLayouter is not null)
+            {
+                result = singleRunLineLayouter.LayoutSingleRunInLine(arguments);
+            }
+            else
+            {
+                result = MeasureSingleRunLine(arguments);
+            }
+
+            if (result.CanTake)
+            {
+                var width = currentSize.Width + result.TotalSize.Width;
+                var height = Math.Max(currentSize.Height, result.TotalSize.Height);
+                currentSize = new Size(width, height);
+
+                for (int i = currentRunIndex; i < currentRunIndex + result.TaskCount; i++)
+                {
+                    var charData = charDataList[i];
+                    charData.CharRenderData ??=
+                        new CharRenderData(charData, paragraph, result.CharSizeList[i - currentRunIndex]);
+                }
+
+                currentRunIndex += result.TaskCount;
+                //currentCharSizeInRunLine.AddRange(result.CharSizeList);
+            }
+
+            lastRunHitIndex = result.SplitLastRunIndex;
+
+            if (result.ShouldBreakLine)
+            {
+                // 换行，这一行布局完成
+                break;
+            }
         }
 
         return new WholeRunLineLayoutResult(currentSize, currentRunIndex, lastRunHitIndex, Array.Empty<Size>());
     }
 
-    //private SingleRunInLineLayoutResult MeasureSingleRunLine(SingleRunInLineLayoutArguments arguments)
-    //{
-    //    var singleCharInLineLayouter = TextEditor.PlatformProvider.GetSingleCharInLineLayouter();
-
-    //    var currentRun = arguments.RunList[arguments.CurrentIndex];
-    //    var currentSize = Size.Zero;
-
-    //    var currentCharSizeInRun = new List<Size>();
-
-    //    for (int i = 0; i < currentRun.Count;)
-    //    {
-    //        var runInfo = new RunInfo(arguments.RunList, arguments.CurrentIndex, i,
-    //            TextEditor.DocumentManager.CurrentRunProperty);
-
-    //        var measureCharInLineArguments =
-    //            new SingleCharInLineLayoutArguments(runInfo, arguments.LineRemainingWidth, arguments.ParagraphProperty);
-
-    //        SingleCharInLineLayoutResult result;
-
-    //        if (singleCharInLineLayouter is not null)
-    //        {
-    //            result = singleCharInLineLayouter.LayoutSingleCharInLine(measureCharInLineArguments);
-    //        }
-    //        else
-    //        {
-    //            result = MeasureCharInLine(measureCharInLineArguments);
-    //        }
-
-    //        if (result.CanTake)
-    //        {
-    //            i += result.TakeCharCount;
-    //            var width = currentSize.Width + result.TotalSize.Width;
-    //            var height = Math.Max(currentSize.Height, result.TotalSize.Height);
-
-    //            if (result.TakeCharCount == 1)
-    //            {
-    //                // 各个字符的尺寸。如果采用的字符数量是 1 个时，因为字符的尺寸等于 TotalSize 尺寸
-    //                currentCharSizeInRun.Add(result.TotalSize);
-    //            }
-    //            else
-    //            {
-    //                var charSizeList = result.CharSizeList;// 内部判断这个流程一定不为空
-    //                currentCharSizeInRun.AddRange(charSizeList);
-    //            }
-
-    //            currentSize = new Size(width, height);
-    //        }
-    //        else
-    //        {
-    //            if (i == 0)
-    //            {
-    //                // 一个都获取不到
-    //                return new SingleRunInLineLayoutResult(0, 0, currentSize,Array.Empty<Size>());
-    //            }
-    //            else
-    //            {
-    //                // 无法将整个 Run 都排版进去，只能排版部分
-    //                var hitIndex = i - 1;
-    //                return new SingleRunInLineLayoutResult(1, hitIndex, currentSize,currentCharSizeInRun);
-    //            }
-    //        }
-    //    }
-
-    //    // 整个 Run 都排版进去，不需要将这个 Run 拆分
-    //    return new SingleRunInLineLayoutResult(1, 0, currentSize, currentCharSizeInRun);
-    //}
-
-    private SingleCharInLineLayoutResult MeasureCharInLine(in SingleCharInLineLayoutArguments layoutArguments)
+    private SingleRunInLineLayoutResult MeasureSingleRunLine(SingleRunInLineLayoutArguments arguments)
     {
         var charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
 
-        var runInfo = layoutArguments.RunInfo;
-        var charInfo = runInfo.GetCurrentCharInfo();
+        var charData = arguments.RunList[arguments.CurrentIndex];
 
-        CharInfoMeasureResult result;
-        if (charInfoMeasurer != null)
+        var charRenderData = charData.CharRenderData;
+
+        Size size;
+        if (charRenderData == null)
         {
-            result = charInfoMeasurer.MeasureCharInfo(charInfo);
+            var charInfo = new CharInfo(charData.CharObject, charData.RunProperty);
+            CharInfoMeasureResult charInfoMeasureResult;
+            if (charInfoMeasurer != null)
+            {
+                charInfoMeasureResult = charInfoMeasurer.MeasureCharInfo(charInfo);
+            }
+            else
+            {
+                charInfoMeasureResult = MeasureCharInfo(charInfo);
+            }
+
+            size = charInfoMeasureResult.Bounds.Size;
         }
         else
         {
-            result = MeasureCharInfo(charInfo);
+            size = charRenderData.Size;
         }
 
-        if (result.Bounds.Width > layoutArguments.LineRemainingWidth)
+        if (arguments.LineRemainingWidth > size.Width)
         {
-            return new SingleCharInLineLayoutResult(0, default);
+            return new SingleRunInLineLayoutResult(1, 0, size, new Size[]{size});
         }
         else
         {
-            return new SingleCharInLineLayoutResult(1, result.Bounds.Size);
+            return new SingleRunInLineLayoutResult(0, 0, default, Array.Empty<Size>());
         }
+
+        //var singleCharInLineLayouter = TextEditor.PlatformProvider.GetSingleCharInLineLayouter();
+
+        //var currentRun = arguments.RunList[arguments.CurrentIndex];
+        //var currentSize = Size.Zero;
+
+        //var currentCharSizeInRun = new List<Size>();
+
+        //for (int i = 0; i < currentRun.Count;)
+        //{
+        //    var runInfo = new RunInfo(arguments.RunList, arguments.CurrentIndex, i,
+        //        TextEditor.DocumentManager.CurrentRunProperty);
+
+        //    var measureCharInLineArguments =
+        //        new SingleCharInLineLayoutArguments(runInfo, arguments.LineRemainingWidth, arguments.ParagraphProperty);
+
+        //    SingleCharInLineLayoutResult result;
+
+        //    if (singleCharInLineLayouter is not null)
+        //    {
+        //        result = singleCharInLineLayouter.LayoutSingleCharInLine(measureCharInLineArguments);
+        //    }
+        //    else
+        //    {
+        //        result = MeasureCharInLine(measureCharInLineArguments);
+        //    }
+
+        //    if (result.CanTake)
+        //    {
+        //        i += result.TakeCharCount;
+        //        var width = currentSize.Width + result.TotalSize.Width;
+        //        var height = Math.Max(currentSize.Height, result.TotalSize.Height);
+
+        //        if (result.TakeCharCount == 1)
+        //        {
+        //            // 各个字符的尺寸。如果采用的字符数量是 1 个时，因为字符的尺寸等于 TotalSize 尺寸
+        //            currentCharSizeInRun.Add(result.TotalSize);
+        //        }
+        //        else
+        //        {
+        //            var charSizeList = result.CharSizeList;// 内部判断这个流程一定不为空
+        //            currentCharSizeInRun.AddRange(charSizeList);
+        //        }
+
+        //        currentSize = new Size(width, height);
+        //    }
+        //    else
+        //    {
+        //        if (i == 0)
+        //        {
+        //            // 一个都获取不到
+        //            return new SingleRunInLineLayoutResult(0, 0, currentSize, Array.Empty<Size>());
+        //        }
+        //        else
+        //        {
+        //            // 无法将整个 Run 都排版进去，只能排版部分
+        //            var hitIndex = i - 1;
+        //            return new SingleRunInLineLayoutResult(1, hitIndex, currentSize, currentCharSizeInRun);
+        //        }
+        //    }
+        //}
+
+        //// 整个 Run 都排版进去，不需要将这个 Run 拆分
+        //return new SingleRunInLineLayoutResult(1, 0, currentSize, currentCharSizeInRun);
     }
+
+    //private SingleCharInLineLayoutResult MeasureCharInLine(in SingleCharInLineLayoutArguments layoutArguments)
+    //{
+    //    var charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
+
+    //    var runInfo = layoutArguments.RunInfo;
+    //    var charInfo = runInfo.GetCurrentCharInfo();
+
+    //    CharInfoMeasureResult result;
+    //    if (charInfoMeasurer != null)
+    //    {
+    //        result = charInfoMeasurer.MeasureCharInfo(charInfo);
+    //    }
+    //    else
+    //    {
+    //        result = MeasureCharInfo(charInfo);
+    //    }
+
+    //    if (result.Bounds.Width > layoutArguments.LineRemainingWidth)
+    //    {
+    //        return new SingleCharInLineLayoutResult(0, default);
+    //    }
+    //    else
+    //    {
+    //        return new SingleCharInLineLayoutResult(1, result.Bounds.Size);
+    //    }
+    //}
 
     private CharInfoMeasureResult MeasureCharInfo(CharInfo charInfo)
     {
