@@ -108,16 +108,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 result = LayoutWholeLine(paragraph, charDataList, lineMaxWidth);
             }
 
-            // 使用字符作为最小单位，也就不需要分割
-            //// 先判断是否需要分割
-            //if (result.NeedSplitLastRun)
-            //{
-            //    var lastRunIndex = i + result.RunCount - 1; // todo 这里是否存在 -1 问题
-            //    var lastRun = charDataList[result.RunCount - 1];
-            //    var (firstRun, secondRun) = lastRun.SplitAt(result.LastRunHitIndex);
-            //    paragraph.SplitReplace(lastRunIndex, firstRun, secondRun);
-            //}
-
             currentLineVisualData = new LineVisualData(paragraph)
             {
                 StartParagraphIndex = i,
@@ -125,8 +115,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 Size = result.Size,
                 //LeftTop = 等待所有行完成了，再赋值
             };
-            // 由于修改为使用 Char 为最小单位，不需要再次填充
-            //FillRunVisualDataList(currentLineVisualData, result.CharSizeListInRunLine);
 
             paragraph.LineVisualDataList.Add(currentLineVisualData);
 
@@ -144,47 +132,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 这个没有啥优先级。测试了 SublimeText 和 NotePad 工具，都没有做此复用，预计有坑
     }
 
-    ///// <summary>
-    ///// 填充 RunVisualDataList 的内容，需要根据字符进行填充
-    ///// </summary>
-    ///// <param name="currentLineVisualData"></param>
-    ///// <param name="charSizeListInRunLine"></param>
-    //private void FillRunVisualDataList(LineVisualData currentLineVisualData, IReadOnlyList<Size> charSizeListInRunLine)
-    //{
-    //    var runVisualDataList = new List<RunVisualData>(currentLineVisualData.CharCount);
-
-    //    var currentCharCount = 0;
-    //    foreach (IImmutableRun run in currentLineVisualData.GetSpan())
-    //    {
-    //        var runSize = Size.Zero;
-    //        IList<Size>? charSizeList;
-    //        if (run.Count==1)
-    //        {
-    //            runSize = charSizeListInRunLine[currentCharCount];
-    //            // 一个字符就需要创建列表
-    //            charSizeList = null;
-
-    //            currentCharCount++;
-    //        }
-    //        else
-    //        {
-    //            charSizeList = new List<Size>(run.Count);
-
-    //            for (int i = 0; i < run.Count; i++)
-    //            {
-    //                charSizeList.Add(charSizeListInRunLine[currentCharCount]);
-    //                currentCharCount++;
-    //            }
-    //        }
-
-    //        var runVisualData = new RunVisualData(run, runSize, charSizeList, currentCharCount);
-
-    //        runVisualDataList.Add(runVisualData);
-    //    }
-
-    //    currentLineVisualData.RunVisualDataList = runVisualDataList;
-    //}
-
     private WholeRunLineLayoutResult LayoutWholeLine(ParagraphData paragraph, ReadOnlyListSpan<CharData> charDataList,
         double lineMaxWidth)
     {
@@ -194,49 +141,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 行还剩余的空闲宽度
         double lineRemainingWidth = lineMaxWidth;
 
-        // 现在使用字符布局了，不再需要对 Run 进行分割
-        //int lastRunHitIndex = 0;
         int currentRunIndex = 0;
         var currentSize = Size.Zero;
 
         while (currentRunIndex < charDataList.Count)
         {
-            //var charData = charDataList[currentRunIndex];
-            //var charRenderData = charData.CharRenderData;
-
-            //if (charRenderData == null)
-            //{
-            //    var charInfo = new CharInfo(charData.CharObject, charData.RunProperty);
-            //    CharInfoMeasureResult charInfoMeasureResult;
-            //    if (charInfoMeasurer != null)
-            //    {
-            //        charInfoMeasureResult = charInfoMeasurer.MeasureCharInfo(charInfo);
-            //    }
-            //    else
-            //    {
-            //        charInfoMeasureResult = MeasureCharInfo(charInfo);
-            //    }
-
-            //    charRenderData = new CharRenderData(charData, paragraph, charInfoMeasureResult.Bounds.Size);
-
-            //    charData.CharRenderData = charRenderData;
-            //}
-
-            //if (lineRemainingWidth > charRenderData.Size.Width)
-            //{
-            //    currentRunIndex++;
-            //    var width = currentSize.Width + charRenderData.Size.Width;
-            //    var height = Math.Max(currentSize.Height, charRenderData.Size.Height);
-            //    currentSize = new Size(width, height);
-
-            //    lineRemainingWidth -= charRenderData.Size.Width;
-            //}
-            //else
-            //{
-            //    // 换行，这一行布局完成
-            //    break;
-            //}
-
             // 一行里面需要逐个字符进行布局
             var arguments = new SingleCharInLineLayoutArguments(charDataList, currentRunIndex, lineRemainingWidth,
                 paragraph.ParagraphProperty);
@@ -265,10 +174,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 }
 
                 currentRunIndex += result.TaskCount;
-                //currentCharSizeInRunLine.AddRange(result.CharSizeList);
             }
-
-            //lastRunHitIndex = result.SplitLastRunIndex;
 
             if (result.ShouldBreakLine)
             {
@@ -317,98 +223,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         {
             return new SingleCharInLineLayoutResult(0, default, Array.Empty<Size>());
         }
-
-        //var singleCharInLineLayouter = TextEditor.PlatformProvider.GetSingleCharInLineLayouter();
-
-        //var currentRun = arguments.RunList[arguments.CurrentIndex];
-        //var currentSize = Size.Zero;
-
-        //var currentCharSizeInRun = new List<Size>();
-
-        //for (int i = 0; i < currentRun.Count;)
-        //{
-        //    var runInfo = new RunInfo(arguments.RunList, arguments.CurrentIndex, i,
-        //        TextEditor.DocumentManager.CurrentRunProperty);
-
-        //    var measureCharInLineArguments =
-        //        new SingleCharInLineLayoutArguments(runInfo, arguments.LineRemainingWidth, arguments.ParagraphProperty);
-
-        //    SingleCharInLineLayoutResult result;
-
-        //    if (singleCharInLineLayouter is not null)
-        //    {
-        //        result = singleCharInLineLayouter.LayoutSingleCharInLine(measureCharInLineArguments);
-        //    }
-        //    else
-        //    {
-        //        result = LayoutSingleCharInLine(measureCharInLineArguments);
-        //    }
-
-        //    if (result.CanTake)
-        //    {
-        //        i += result.TakeCharCount;
-        //        var width = currentSize.Width + result.TotalSize.Width;
-        //        var height = Math.Max(currentSize.Height, result.TotalSize.Height);
-
-        //        if (result.TakeCharCount == 1)
-        //        {
-        //            // 各个字符的尺寸。如果采用的字符数量是 1 个时，因为字符的尺寸等于 TotalSize 尺寸
-        //            currentCharSizeInRun.Add(result.TotalSize);
-        //        }
-        //        else
-        //        {
-        //            var charSizeList = result.CharSizeList;// 内部判断这个流程一定不为空
-        //            currentCharSizeInRun.AddRange(charSizeList);
-        //        }
-
-        //        currentSize = new Size(width, height);
-        //    }
-        //    else
-        //    {
-        //        if (i == 0)
-        //        {
-        //            // 一个都获取不到
-        //            return new SingleCharInLineLayoutResult(0, 0, currentSize, Array.Empty<Size>());
-        //        }
-        //        else
-        //        {
-        //            // 无法将整个 Run 都排版进去，只能排版部分
-        //            var hitIndex = i - 1;
-        //            return new SingleCharInLineLayoutResult(1, hitIndex, currentSize, currentCharSizeInRun);
-        //        }
-        //    }
-        //}
-
-        //// 整个 Run 都排版进去，不需要将这个 Run 拆分
-        //return new SingleCharInLineLayoutResult(1, 0, currentSize, currentCharSizeInRun);
     }
-
-    //private SingleCharInLineLayoutResult LayoutSingleCharInLine(in SingleCharInLineLayoutArguments layoutArguments)
-    //{
-    //    var charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
-
-    //    var runInfo = layoutArguments.RunInfo;
-    //    var charInfo = runInfo.GetCurrentCharInfo();
-
-    //    CharInfoMeasureResult result;
-    //    if (charInfoMeasurer != null)
-    //    {
-    //        result = charInfoMeasurer.MeasureCharInfo(charInfo);
-    //    }
-    //    else
-    //    {
-    //        result = MeasureCharInfo(charInfo);
-    //    }
-
-    //    if (result.Bounds.Width > layoutArguments.LineRemainingWidth)
-    //    {
-    //        return new SingleCharInLineLayoutResult(0, default);
-    //    }
-    //    else
-    //    {
-    //        return new SingleCharInLineLayoutResult(1, result.Bounds.Size);
-    //    }
-    //}
 
     private CharInfoMeasureResult MeasureCharInfo(CharInfo charInfo)
     {
