@@ -170,7 +170,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                     var charData = charDataList[i];
                     //charData.CharRenderData ??=
                     //    new CharRenderData(charData, paragraph);
-                    charData.CharRenderCacheData ??= new CharRenderCacheData(result.CharSizeList[i - currentRunIndex]);
+                    charData.Size??= result.CharSizeList[i - currentRunIndex];
                 }
 
                 currentRunIndex += result.TaskCount;
@@ -192,10 +192,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         var charData = arguments.RunList[arguments.CurrentIndex];
 
-        var charRenderCacheData = charData.CharRenderCacheData;
+        var cacheSize = charData.Size;
 
         Size size;
-        if (charRenderCacheData == null)
+        if (cacheSize == null)
         {
             var charInfo = new CharInfo(charData.CharObject, charData.RunProperty);
             CharInfoMeasureResult charInfoMeasureResult;
@@ -212,7 +212,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         }
         else
         {
-            size = charRenderCacheData.Size;
+            size = cacheSize.Value;
         }
 
         if (arguments.LineRemainingWidth > size.Width)

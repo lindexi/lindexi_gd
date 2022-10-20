@@ -263,23 +263,23 @@ class CharRenderData : IParagraphCache
     public LineVisualData? CurrentLine { set; get; }
 }
 
-/// <summary>
-/// 字符的可被缓存的渲染信息
-/// </summary>
-/// 例如尺寸
-class CharRenderCacheData
-{
-    public CharRenderCacheData(Size size)
-    {
-        Size = size;
-    }
+///// <summary>
+///// 字符的可被缓存的渲染信息
+///// </summary>
+///// 例如尺寸
+//class CharRenderCacheData
+//{
+//    public CharRenderCacheData(Size size)
+//    {
+//        Size = size;
+//    }
 
-    /// <summary>
-    /// 尺寸
-    /// </summary>
-    /// 尺寸是可以复用的
-    public Size Size { get; }
-}
+//    /// <summary>
+//    /// 尺寸
+//    /// </summary>
+//    /// 尺寸是可以复用的
+//    public Size Size { get; }
+//}
 
 /// <summary>
 /// 表示一个 人类语言文化 的字符
@@ -289,6 +289,8 @@ class CharRenderCacheData
 /// </summary>
 public class CharData
 {
+    private Size? _size;
+
     public CharData(ICharObject charObject, IReadOnlyRunProperty runProperty)
     {
         CharObject = charObject;
@@ -301,7 +303,22 @@ public class CharData
 
     internal CharRenderData? CharRenderData { set; get; }
 
-    internal CharRenderCacheData? CharRenderCacheData { set; get; }
+    /// <summary>
+    /// 尺寸
+    /// </summary>
+    /// 尺寸是可以复用的
+    public Size? Size
+    {
+        set
+        {
+            if (_size != null)
+            {
+                throw new InvalidOperationException($"禁止重复给尺寸赋值");
+            }
+            _size = value;
+        }
+        get => _size;
+    }
 
     internal void DebugVerify()
     {
