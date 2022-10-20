@@ -194,7 +194,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 行还剩余的空闲宽度
         double lineRemainingWidth = lineMaxWidth;
 
-        int lastRunHitIndex = 0;
+        // 现在使用字符布局了，不再需要对 Run 进行分割
+        //int lastRunHitIndex = 0;
         int currentRunIndex = 0;
         var currentSize = Size.Zero;
 
@@ -267,7 +268,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 //currentCharSizeInRunLine.AddRange(result.CharSizeList);
             }
 
-            lastRunHitIndex = result.SplitLastRunIndex;
+            //lastRunHitIndex = result.SplitLastRunIndex;
 
             if (result.ShouldBreakLine)
             {
@@ -276,7 +277,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             }
         }
 
-        return new WholeRunLineLayoutResult(currentSize, currentRunIndex, lastRunHitIndex, Array.Empty<Size>());
+        return new WholeRunLineLayoutResult(currentSize, currentRunIndex);
     }
 
     private SingleCharInLineLayoutResult LayoutSingleCharInLine(SingleCharInLineLayoutArguments arguments)
@@ -310,11 +311,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         if (arguments.LineRemainingWidth > size.Width)
         {
-            return new SingleCharInLineLayoutResult(1, 0, size, new Size[]{size});
+            return new SingleCharInLineLayoutResult(1, size, new Size[]{size});
         }
         else
         {
-            return new SingleCharInLineLayoutResult(0, 0, default, Array.Empty<Size>());
+            return new SingleCharInLineLayoutResult(0, default, Array.Empty<Size>());
         }
 
         //var singleCharInLineLayouter = TextEditor.PlatformProvider.GetSingleCharInLineLayouter();
