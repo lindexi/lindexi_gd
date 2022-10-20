@@ -277,6 +277,8 @@ class ParagraphRunData : IParagraphCache
     public uint CurrentParagraphVersion { get; set; }
 }
 
+
+
 /// <summary>
 /// 段落数据
 /// </summary>
