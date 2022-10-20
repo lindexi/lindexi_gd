@@ -59,7 +59,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// 布局段落的核心逻辑
     /// </summary>
     /// <param name="paragraph"></param>
-    /// <param name="startTextRunIndex"></param>
     /// <param name="startParagraphOffset"></param>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     /// <remarks>
@@ -169,8 +168,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 for (int i = currentRunIndex; i < currentRunIndex + result.TaskCount; i++)
                 {
                     var charData = charDataList[i];
-                    charData.CharRenderData ??=
-                        new CharRenderData(charData, paragraph, result.CharSizeList[i - currentRunIndex]);
+                    //charData.CharRenderData ??=
+                    //    new CharRenderData(charData, paragraph);
+                    charData.CharRenderCacheData ??= new CharRenderCacheData(result.CharSizeList[i - currentRunIndex]);
                 }
 
                 currentRunIndex += result.TaskCount;
@@ -192,10 +192,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         var charData = arguments.RunList[arguments.CurrentIndex];
 
-        var charRenderData = charData.CharRenderData;
+        var charRenderCacheData = charData.CharRenderCacheData;
 
         Size size;
-        if (charRenderData == null)
+        if (charRenderCacheData == null)
         {
             var charInfo = new CharInfo(charData.CharObject, charData.RunProperty);
             CharInfoMeasureResult charInfoMeasureResult;
@@ -212,7 +212,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         }
         else
         {
-            size = charRenderData.Size;
+            size = charRenderCacheData.Size;
         }
 
         if (arguments.LineRemainingWidth > size.Width)

@@ -230,11 +230,10 @@ class ParagraphManager
 
 class CharRenderData : IParagraphCache
 {
-    public CharRenderData(CharData charData, ParagraphData paragraph, Size size)
+    public CharRenderData(CharData charData, ParagraphData paragraph)
     {
         CharData = charData;
         Paragraph = paragraph;
-        Size = size;
         paragraph.InitVersion(this);
     }
 
@@ -254,14 +253,6 @@ class CharRenderData : IParagraphCache
     /// 可用来辅助布局上下标
     public Point LeftTop { set; get; }
 
-    /// <summary>
-    /// 尺寸
-    /// </summary>
-    /// 尺寸是可以复用的
-    /// todo 尺寸更好的放在具体的 CharObject 里面，而不是放在这里
-    /// 也就是是否缓存，是通过业务方决定的
-    public Size Size { get; } 
-
     public ParagraphOffset CharIndex { set; get; }
 
     // todo 提供获取是第几行，第几个字符功能
@@ -270,6 +261,24 @@ class CharRenderData : IParagraphCache
     /// 当前所在的行
     /// </summary>
     public LineVisualData? CurrentLine { set; get; }
+}
+
+/// <summary>
+/// 字符的可被缓存的渲染信息
+/// </summary>
+/// 例如尺寸
+class CharRenderCacheData
+{
+    public CharRenderCacheData(Size size)
+    {
+        Size = size;
+    }
+
+    /// <summary>
+    /// 尺寸
+    /// </summary>
+    /// 尺寸是可以复用的
+    public Size Size { get; }
 }
 
 /// <summary>
@@ -291,6 +300,8 @@ public class CharData
     public IReadOnlyRunProperty RunProperty { get; }
 
     internal CharRenderData? CharRenderData { set; get; }
+
+    internal CharRenderCacheData? CharRenderCacheData { set; get; }
 
     internal void DebugVerify()
     {
