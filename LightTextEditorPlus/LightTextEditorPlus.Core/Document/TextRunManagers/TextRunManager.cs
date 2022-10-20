@@ -363,11 +363,7 @@ class ParagraphData
     /// </summary>
     private ParagraphCharDataManager CharDataManager { get; }
 
-    // todo 由于使用 Run 将需要不断拆分，在命中测试也需要使用字符，会遇到两个不同的列表的同步
-    // 后续替换为使用 Char 作为存储
-    private List<IImmutableRun> TextRunList { get; } = new List<IImmutableRun>();
-
-    public IReadOnlyList<IImmutableRun> GetRunList() => TextRunList;
+    //public IReadOnlyList<IImmutableRun> GetRunList() => TextRunList;
 
     public ReadOnlyListSpan<CharData> ToReadOnlyListSpan(int start) =>
         CharDataManager.ToReadOnlyListSpan(start);
@@ -467,16 +463,16 @@ class ParagraphData
         }
     }
 
-    /// <summary>
-    /// 在行渲染的时候，将行末的一个 IImmutableRun 按照需求，分割为多个的时候，替换原有的
-    /// </summary>
-    internal void SplitReplace(int paragraphIndex, IImmutableRun firstRun, IImmutableRun secondRun)
-    {
-        Version++;
+    ///// <summary>
+    ///// 在行渲染的时候，将行末的一个 IImmutableRun 按照需求，分割为多个的时候，替换原有的
+    ///// </summary>
+    //internal void SplitReplace(int paragraphIndex, IImmutableRun firstRun, IImmutableRun secondRun)
+    //{
+    //    Version++;
 
-        TextRunList[paragraphIndex] = firstRun;
-        TextRunList.Insert(paragraphIndex + 1, secondRun);
-    }
+    //    TextRunList[paragraphIndex] = firstRun;
+    //    TextRunList.Insert(paragraphIndex + 1, secondRun);
+    //}
 
     /// <summary>
     /// 在指定的地方插入一段文本
@@ -487,7 +483,7 @@ class ParagraphData
     {
         if (insertOffset == CharCount)
         {
-            TextRunList.Add(run);
+            AppendRun(run);
         }
         else
         {
@@ -495,6 +491,7 @@ class ParagraphData
         }
 
         // todo 设置LineVisualData是脏的
+
         Version++;
     }
 
@@ -539,24 +536,24 @@ class ParagraphData
 
     #endregion
 
-    public ParagraphOffset GetParagraphOffset(IImmutableRun run)
-    {
-        var paragraphOffset = 0;
+    //public ParagraphOffset GetParagraphOffset(IImmutableRun run)
+    //{
+    //    var paragraphOffset = 0;
 
-        foreach (var currentRun in TextRunList)
-        {
-            if (ReferenceEquals(currentRun, run))
-            {
-                return new ParagraphOffset(paragraphOffset);
-            }
-            else
-            {
-                paragraphOffset += currentRun.Count;
-            }
-        }
+    //    foreach (var currentRun in TextRunList)
+    //    {
+    //        if (ReferenceEquals(currentRun, run))
+    //        {
+    //            return new ParagraphOffset(paragraphOffset);
+    //        }
+    //        else
+    //        {
+    //            paragraphOffset += currentRun.Count;
+    //        }
+    //    }
 
-        throw new ArgumentException($"传入的 Run 不是此段落的元素", nameof(run));
-    }
+    //    throw new ArgumentException($"传入的 Run 不是此段落的元素", nameof(run));
+    //}
 
     ///// <summary>
     ///// 给定传入的段落偏移获取是对应 <see cref="TextRunList"/> 的从哪项开始
@@ -619,7 +616,6 @@ class ParagraphData
 
     #endregion
 
-
     public string GetText()
     {
         var stringBuilder = new StringBuilder();
@@ -631,19 +627,9 @@ class ParagraphData
 
     public void GetText(StringBuilder stringBuilder)
     {
-        foreach (var run in TextRunList)
+        foreach (var charData in CharDataManager.ToReadOnlyListSpan(0))
         {
-            if (run is TextRun textRun)
-            {
-                stringBuilder.Append(textRun.Text);
-            }
-            else
-            {
-                for (int i = 0; i < run.Count; i++)
-                {
-                    stringBuilder.Append(run.GetChar(i).ToText());
-                }
-            }
+            stringBuilder.Append(charData.CharObject.ToText());
         }
     }
 }

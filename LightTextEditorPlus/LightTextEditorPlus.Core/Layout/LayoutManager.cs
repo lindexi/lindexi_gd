@@ -325,7 +325,7 @@ abstract class ArrangingLayoutProvider
         // 不需要通过如此复杂的逻辑获取有哪些，因为存在的坑在于后续分拆 IImmutableRun 逻辑将会复杂
         //paragraph.GetRunRange(dirtyParagraphOffset);
 
-        if (paragraph.GetRunList().Count == 0)
+        if (paragraph.CharCount == 0)
         {
             // todo 考虑 paragraph.TextRunList 数量为空的情况，只有一个换行的情况
         }
