@@ -229,29 +229,24 @@ class ParagraphManager
     }
 }
 
-/// <summary>
-/// 段落的 Run 数据
-/// </summary>
-/// 准备将字符和具体的渲染信息放在一起，如此可以减少一些判断逻辑，解决不对应问题
-/// 似乎除了减少重复计算尺寸之外，没有其他优势
-class ParagraphRunData : IParagraphCache
+class CharRenderData : IParagraphCache
 {
-    public ParagraphRunData(IImmutableRun run, ParagraphData paragraph)
+    public CharRenderData(CharData charData, ParagraphData paragraph)
     {
-        Run = run;
+        CharData = charData;
         Paragraph = paragraph;
         paragraph.InitVersion(this);
     }
 
-    public IImmutableRun Run { get; }
+    public CharData CharData { get; }
 
     internal ParagraphData Paragraph { get; }
+
+    public uint CurrentParagraphVersion { get; set; }
 
     public void IsInvalidVersion() => Paragraph.IsInvalidVersion(this);
 
     public void UpdateVersion() => Paragraph.UpdateVersion(this);
-
-    public int CharCount => Run.Count;
 
     /// <summary>
     /// 左上角的点，相对于文本框
@@ -267,14 +262,12 @@ class ParagraphRunData : IParagraphCache
 
     public ParagraphOffset CharIndex { set; get; }
 
-    public IList<Size>? CharSizeList { set; get; }
+    // todo 提供获取是第几行，第几个字符功能
 
     /// <summary>
     /// 当前所在的行
     /// </summary>
     public LineVisualData? CurrentLine { set; get; }
-
-    public uint CurrentParagraphVersion { get; set; }
 }
 
 /// <summary>
