@@ -232,10 +232,11 @@ class ParagraphManager
 
 class CharRenderData : IParagraphCache
 {
-    public CharRenderData(CharData charData, ParagraphData paragraph)
+    public CharRenderData(CharData charData, ParagraphData paragraph, Size size)
     {
         CharData = charData;
         Paragraph = paragraph;
+        Size = size;
         paragraph.InitVersion(this);
     }
 
@@ -259,7 +260,7 @@ class CharRenderData : IParagraphCache
     /// 尺寸
     /// </summary>
     /// 尺寸是可以复用的
-    public Size Size { get; set; } = new Size(-1, -1);
+    public Size Size { get; } 
 
     public ParagraphOffset CharIndex { set; get; }
 
@@ -321,6 +322,9 @@ class ParagraphCharDataManager
 
     public int CharCount => CharDataList.Count;
 
+    public void Add(CharData charData) => CharDataList.Add(charData);
+
+
     public ReadOnlyListSpan<CharData> ToReadOnlyListSpan(int start) =>
         ToReadOnlyListSpan(start, CharDataList.Count - start);
 
@@ -345,6 +349,8 @@ class ParagraphData
     public ParagraphProperty ParagraphProperty { set; get; }
     public ParagraphManager ParagraphManager { get; }
 
+    private TextEditorCore TextEditor => ParagraphManager.TextEditor;
+
     /// <summary>
     /// 段落的字符管理
     /// </summary>
@@ -356,13 +362,11 @@ class ParagraphData
 
     public IReadOnlyList<IImmutableRun> GetRunList() => TextRunList;
 
-    public Span<IImmutableRun> AsSpan() => CollectionsMarshal.AsSpan(TextRunList);
+    public ReadOnlyListSpan<CharData> ToReadOnlyListSpan(int start) =>
+        CharDataManager.ToReadOnlyListSpan(start);
 
-    public ReadOnlyListSpan<IImmutableRun> ToReadOnlyListSpan(int start) =>
-        ToReadOnlyListSpan(start, TextRunList.Count - start);
-
-    public ReadOnlyListSpan<IImmutableRun> ToReadOnlyListSpan(int start, int length) =>
-        new ReadOnlyListSpan<IImmutableRun>(TextRunList, start, length);
+    public ReadOnlyListSpan<CharData> ToReadOnlyListSpan(int start, int length) =>
+        CharDataManager.ToReadOnlyListSpan(start,length);
 
     /// <summary>
     /// 这一段的字符长度
@@ -490,7 +494,16 @@ class ParagraphData
 
     public void AppendRun(IImmutableRun run)
     {
-        TextRunList.Add(run);
+        var runProperty = run.RunProperty ??ParagraphProperty.ParagraphStartRunProperty?? TextEditor.DocumentManager.CurrentRunProperty;
+
+        //TextRunList.Add(run);
+        for (int i = 0; i < run.Count; i++)
+        {
+            var charObject = run.GetChar(i).DeepClone();
+            var charData = new CharData(charObject,runProperty);
+            CharDataManager.Add(charData);
+        }
+
         Version++;
     }
 
@@ -536,10 +549,11 @@ class ParagraphData
     /// <returns></returns>
     public RunIndexInParagraph GetRunIndex(ParagraphOffset paragraphOffset)
     {
-        var readOnlyListSpan = ToReadOnlyListSpan(0);
-        var (run, runIndex, hitIndex) = readOnlyListSpan.GetRunByCharIndex(paragraphOffset.Offset);
+        //var readOnlyListSpan = ToReadOnlyListSpan(0);
+        //var (run, runIndex, hitIndex) = readOnlyListSpan.GetRunByCharIndex(paragraphOffset.Offset);
 
-        return new RunIndexInParagraph(runIndex, this, run, hitIndex, Version);
+        //return new RunIndexInParagraph(runIndex, this, run, hitIndex, Version);
+        return new RunIndexInParagraph(0, this, default, 0, Version);
     }
 
     #region Version
@@ -683,34 +697,14 @@ class LineVisualData : IParagraphCache
 
     public void UpdateVersion() => CurrentParagraph.UpdateVersion(this);
 
-    /// <summary>
-    /// 这一行的字符长度
-    /// </summary>
-    public int CharCount
-    {
-        get
-        {
-            var count = 0;
-            foreach (var run in GetSpan())
-            {
-                count += run.Count;
-            }
-
-            return count;
-        }
-    }
-
-    /// <summary>
-    /// 行里面的文本
-    /// </summary>
-    /// todo 看起来这个属性设计失误，将会存在两端不同步问题
-    public List<IImmutableRun>? LineRunList { set; get; }
-
     public int StartParagraphIndex { set; get; } = -1;
 
     public int EndParagraphIndex { set; get; } = -1;
 
-    public int RunCount => EndParagraphIndex - StartParagraphIndex;
+    /// <summary>
+    /// 这一行的字符长度
+    /// </summary>
+    public int CharCount => EndParagraphIndex - StartParagraphIndex;
 
     /// <summary>
     /// 这一行的左上角的点，相对于文本框
@@ -724,11 +718,13 @@ class LineVisualData : IParagraphCache
 
     public List<RunVisualData>? RunVisualDataList { set; get; }
 
-    public Span<IImmutableRun> GetSpan()
-    {
-        //return CurrentParagraph.AsSpan().Slice(StartParagraphIndex, EndParagraphIndex - StartParagraphIndex);
-        return CurrentParagraph.AsSpan()[StartParagraphIndex..EndParagraphIndex];
-    }
+    //public Span<IImmutableRun> GetSpan()
+    //{
+    //    //return CurrentParagraph.AsSpan().Slice(StartParagraphIndex, EndParagraphIndex - StartParagraphIndex);
+    //    return CurrentParagraph.AsSpan()[StartParagraphIndex..EndParagraphIndex];
+    //}
+
+    public ReadOnlyListSpan<CharData> GetCharList() => CurrentParagraph.ToReadOnlyListSpan(StartParagraphIndex, EndParagraphIndex);
 
     public override string ToString()
     {
@@ -738,19 +734,9 @@ class LineVisualData : IParagraphCache
     public string GetText()
     {
         StringBuilder stringBuilder = new StringBuilder();
-        foreach (var run in GetSpan())
+        foreach (var charData in GetCharList())
         {
-            if (run is TextRun textRun)
-            {
-                stringBuilder.Append(textRun.Text);
-            }
-            else
-            {
-                for (int i = 0; i < run.Count; i++)
-                {
-                    stringBuilder.Append(run.GetChar(i).ToText());
-                }
-            }
+            stringBuilder.Append(charData.CharObject.ToText());
         }
 
         return stringBuilder.ToString();

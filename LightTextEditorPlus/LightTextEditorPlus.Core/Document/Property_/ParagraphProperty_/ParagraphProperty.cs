@@ -2,7 +2,7 @@
 using LightTextEditorPlus.Core.Primitive;
 
 using System;
-
+using System.Runtime.CompilerServices;
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Document;
@@ -91,6 +91,15 @@ public record ParagraphProperty
     //    get;
     //    set;
     //} = new RunProperty();
+
+    /// <summary>
+    /// 段落起始的文本格式，表示在段落第一个字符之前的样式
+    /// </summary>
+    public IReadOnlyRunProperty? ParagraphStartRunProperty
+    {
+        init;
+        get;
+    }
 
     /// <summary>
     /// 段前间距

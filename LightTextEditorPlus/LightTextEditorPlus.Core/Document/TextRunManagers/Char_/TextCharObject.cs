@@ -38,7 +38,7 @@ public class TextSpanCharObject : ICharObject, IEquatable<string>
         }
     }
 
-    public object Clone()
+    public ICharObject DeepClone()
     {
         return this;
     }
@@ -80,7 +80,7 @@ public class TextCharObject : ICharObject, IEquatable<string>
         return TextChar.Equals(other);
     }
 
-    public object Clone()
+    public ICharObject DeepClone()
     {
         return this;
     }
