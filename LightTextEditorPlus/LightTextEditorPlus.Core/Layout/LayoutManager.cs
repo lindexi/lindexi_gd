@@ -236,10 +236,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             //    break;
             //}
 
-            var arguments = new SingleRunInLineLayoutArguments(charDataList, currentRunIndex, lineRemainingWidth,
+            // 一行里面需要逐个字符进行布局
+            var arguments = new SingleCharInLineLayoutArguments(charDataList, currentRunIndex, lineRemainingWidth,
                 paragraph.ParagraphProperty);
 
-            SingleRunInLineLayoutResult result;
+            SingleCharInLineLayoutResult result;
             if (singleRunLineLayouter is not null)
             {
                 result = singleRunLineLayouter.LayoutSingleRunInLine(arguments);
@@ -278,7 +279,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         return new WholeRunLineLayoutResult(currentSize, currentRunIndex, lastRunHitIndex, Array.Empty<Size>());
     }
 
-    private SingleRunInLineLayoutResult LayoutSingleCharInLine(SingleRunInLineLayoutArguments arguments)
+    private SingleCharInLineLayoutResult LayoutSingleCharInLine(SingleCharInLineLayoutArguments arguments)
     {
         var charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
 
@@ -309,11 +310,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         if (arguments.LineRemainingWidth > size.Width)
         {
-            return new SingleRunInLineLayoutResult(1, 0, size, new Size[]{size});
+            return new SingleCharInLineLayoutResult(1, 0, size, new Size[]{size});
         }
         else
         {
-            return new SingleRunInLineLayoutResult(0, 0, default, Array.Empty<Size>());
+            return new SingleCharInLineLayoutResult(0, 0, default, Array.Empty<Size>());
         }
 
         //var singleCharInLineLayouter = TextEditor.PlatformProvider.GetSingleCharInLineLayouter();
@@ -366,19 +367,19 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         //        if (i == 0)
         //        {
         //            // 一个都获取不到
-        //            return new SingleRunInLineLayoutResult(0, 0, currentSize, Array.Empty<Size>());
+        //            return new SingleCharInLineLayoutResult(0, 0, currentSize, Array.Empty<Size>());
         //        }
         //        else
         //        {
         //            // 无法将整个 Run 都排版进去，只能排版部分
         //            var hitIndex = i - 1;
-        //            return new SingleRunInLineLayoutResult(1, hitIndex, currentSize, currentCharSizeInRun);
+        //            return new SingleCharInLineLayoutResult(1, hitIndex, currentSize, currentCharSizeInRun);
         //        }
         //    }
         //}
 
         //// 整个 Run 都排版进去，不需要将这个 Run 拆分
-        //return new SingleRunInLineLayoutResult(1, 0, currentSize, currentCharSizeInRun);
+        //return new SingleCharInLineLayoutResult(1, 0, currentSize, currentCharSizeInRun);
     }
 
     //private SingleCharInLineLayoutResult LayoutSingleCharInLine(in SingleCharInLineLayoutArguments layoutArguments)

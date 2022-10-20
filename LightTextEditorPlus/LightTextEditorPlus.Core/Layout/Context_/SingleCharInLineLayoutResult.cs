@@ -7,9 +7,9 @@ namespace LightTextEditorPlus.Core.Layout;
 /// 测量行内字符的结果
 /// </summary>
 /// <param name="TotalSize">这一行的布局尺寸</param>
-/// <param name="TaskCount">使用了多少个 IImmutableRun 元素</param>
+/// <param name="TaskCount">使用了多少个字符元素，有一些是需要连带字符后面的标点符号字符一起，于是就需要获取到多个</param>
 /// <param name="SplitLastRunIndex">最后一个 IImmutableRun 元素是否需要拆分跨行，需要拆分也就意味着需要分行了</param>
-public readonly record struct SingleRunInLineLayoutResult(int TaskCount, int SplitLastRunIndex, Size TotalSize,IReadOnlyList<Size> CharSizeList)
+public readonly record struct SingleCharInLineLayoutResult(int TaskCount, int SplitLastRunIndex, Size TotalSize,IReadOnlyList<Size> CharSizeList)
 {
     // 测量一个 Run 在行内布局的结果
 

@@ -7,5 +7,5 @@ namespace LightTextEditorPlus.Core.Platform;
 /// </summary>
 public interface ISingleRunInLineLayouter
 {
-    SingleRunInLineLayoutResult LayoutSingleRunInLine(in SingleRunInLineLayoutArguments arguments);
+    SingleCharInLineLayoutResult LayoutSingleRunInLine(in SingleCharInLineLayoutArguments arguments);
 }
