@@ -6,7 +6,6 @@
 ///// <summary>
 ///// 文本 Run 的渲染数据
 ///// </summary>
-///// todo 此类型考虑给业务渲染层
 /////  RunRenderInfo
 //class RunVisualData
 //{
