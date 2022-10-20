@@ -72,6 +72,28 @@ public class TextEditorCoreTest
     }
 
     [ContractTestCase]
+    public void GetDocumentBounds()
+    {
+        "给文本编辑器追加一段纯文本，在布局渲染完成之后，可以获取到文档的尺寸".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+
+            textEditorCore.LayoutCompleted += (sender, args) =>
+            {
+                // Assert
+                // 可以获取到文档的尺寸
+                var documentBounds = textEditorCore.GetDocumentBounds();
+                Assert.AreEqual(true, documentBounds.Width > 0);
+                Assert.AreEqual(true, documentBounds.Height > 0);
+            };
+
+            // Action
+            textEditorCore.AppendText(TestHelper.PlainNumberText);
+        });
+    }
+
+    [ContractTestCase]
     public void AppendText()
     {
         "给文本编辑器追加一段纯文本，先触发 DocumentChanging 再触发 DocumentChanged 事件".Test(() =>
