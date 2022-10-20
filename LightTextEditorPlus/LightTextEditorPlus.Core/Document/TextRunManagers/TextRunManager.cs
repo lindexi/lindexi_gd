@@ -378,6 +378,8 @@ class ParagraphRenderData
     /// 段落尺寸
     /// </summary>
     public Size Size { set; get; }
+
+    public Rect GetBounds() => new Rect(LeftTop, Size);
 }
 
 /// <summary>

@@ -37,12 +37,26 @@ class LayoutManager
             };
         }
 
-        ArrangingLayoutProvider.UpdateLayout();
+        var result = ArrangingLayoutProvider.UpdateLayout();
+        DocumentRenderData.DocumentBounds = result.DocumentBounds;
+        DocumentRenderData.IsDirty = false;
 
         InternalLayoutCompleted?.Invoke(this, EventArgs.Empty);
     }
 
     private ArrangingLayoutProvider? ArrangingLayoutProvider { set; get; }
+
+    public DocumentRenderData DocumentRenderData { get; } = new DocumentRenderData()
+    {
+        IsDirty = true,
+    };
+}
+
+class DocumentRenderData
+{
+    public bool IsDirty { set; get; }
+
+    public Rect DocumentBounds { set; get; }
 }
 
 /// <summary>
@@ -285,7 +299,7 @@ abstract class ArrangingLayoutProvider
     public abstract ArrangingType ArrangingType { get; }
     public TextEditor TextEditor { get; }
 
-    public void UpdateLayout()
+    public DocumentLayoutResult UpdateLayout()
     {
         // todo 项目符号的段落，如果在段落上方新建段落，那需要项目符号更新
         // 这个逻辑准备给项目符号逻辑更新，逻辑是，假如现在有两段，分别采用 `1. 2.` 作为项目符号
@@ -342,16 +356,23 @@ abstract class ArrangingLayoutProvider
             currentLeftTop = result.CurrentLeftTop;
         }
 
-        // todo 完成测量最大宽度
-
         // 完成布局之后，全部设置为非脏的（或者是段落内自己实现）
         foreach (var paragraphData in dirtyParagraphDataList)
         {
             paragraphData.IsDirty = false;
         }
 
+        var documentBounds = Rect.Zero;
+        foreach (var paragraphData in list)
+        {
+            var bounds = paragraphData.ParagraphRenderData.GetBounds();
+            documentBounds = documentBounds.Union(bounds);
+        }
+
         Debug.Assert(TextEditor.DocumentManager.TextRunManager.ParagraphManager.GetParagraphList()
             .All(t => t.IsDirty == false));
+
+        return new DocumentLayoutResult(documentBounds);
     }
 
     protected abstract ParagraphLeftTopLayoutResult LayoutParagraphLeftTop(in ParagraphLeftTopLayoutArgument argument);
@@ -406,6 +427,11 @@ abstract class ArrangingLayoutProvider
 
     protected abstract void LayoutParagraphCore(ParagraphData paragraph,
         ParagraphOffset startParagraphOffset);
+}
+
+readonly record struct DocumentLayoutResult(Rect DocumentBounds)
+{
+
 }
 
 readonly record struct ParagraphLeftTopLayoutArgument(int ParagraphIndex, Point CurrentLeftTop, ParagraphData ParagraphData, IReadOnlyList<ParagraphData> ParagraphList)
