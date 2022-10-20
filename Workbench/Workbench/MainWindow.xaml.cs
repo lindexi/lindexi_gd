@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,5 +21,43 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        CurrentMainWindow = this;
+
+        Closed += MainWindow_Closed;
     }
+
+    private void MainWindow_Closed(object? sender, EventArgs e)
+    {
+        CurrentMainWindow = null;
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape)
+        {
+            Hide();
+        }
+
+        base.OnKeyDown(e);
+    }
+
+    public static void ShowMainWindow()
+    {
+        if (CurrentMainWindow is null)
+        {
+            var mainWindow = new MainWindow()
+            {
+                ShowActivated = true
+            };
+            mainWindow.Show();
+        }
+        else
+        {
+            CurrentMainWindow.Show();
+            CurrentMainWindow.Activate();
+        }
+    }
+
+    public static MainWindow? CurrentMainWindow { set; get; }
 }

@@ -12,4 +12,11 @@ namespace Workbench;
 /// </summary>
 public partial class App : Application
 {
+    protected override void OnStartup(StartupEventArgs e)
+    {
+        var hotKey = new HotKey();
+        hotKey.Start();
+
+        base.OnStartup(e);
+    }
 }
