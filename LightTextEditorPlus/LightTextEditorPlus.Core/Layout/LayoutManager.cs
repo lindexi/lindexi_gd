@@ -165,12 +165,20 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 var height = Math.Max(currentSize.Height, result.TotalSize.Height);
                 currentSize = new Size(width, height);
 
-                for (int i = currentRunIndex; i < currentRunIndex + result.TaskCount; i++)
+                if (result.TaskCount == 1)
                 {
-                    var charData = charDataList[i];
-                    //charData.CharRenderData ??=
-                    //    new CharRenderData(charData, paragraph);
-                    charData.Size??= result.CharSizeList[i - currentRunIndex];
+                    var charData = charDataList[currentRunIndex];
+                    charData.Size ??= result.TotalSize;
+                }
+                else
+                {
+                    for (int i = currentRunIndex; i < currentRunIndex + result.TaskCount; i++)
+                    {
+                        var charData = charDataList[i];
+                        //charData.CharRenderData ??=
+                        //    new CharRenderData(charData, paragraph);
+                        charData.Size ??= result.CharSizeList![i - currentRunIndex];
+                    }
                 }
 
                 currentRunIndex += result.TaskCount;
@@ -217,11 +225,12 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         if (arguments.LineRemainingWidth > size.Width)
         {
-            return new SingleCharInLineLayoutResult(1, size, new Size[]{size});
+            return new SingleCharInLineLayoutResult(taskCount: 1, size, charSizeList: default);
         }
         else
         {
-            return new SingleCharInLineLayoutResult(0, default, Array.Empty<Size>());
+            // 如果尺寸不足，也就是一个都拿不到
+            return new SingleCharInLineLayoutResult(taskCount: 0, default, charSizeList: default);
         }
     }
 
