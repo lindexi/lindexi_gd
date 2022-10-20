@@ -373,6 +373,11 @@ class ParagraphCharDataManager
 class ParagraphRenderData
 {
     public Point LeftTop { set; get; }
+
+    /// <summary>
+    /// 段落尺寸
+    /// </summary>
+    public Size Size { set; get; }
 }
 
 /// <summary>

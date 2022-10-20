@@ -56,6 +56,31 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
     public override ArrangingType ArrangingType => ArrangingType.Horizontal;
 
+    protected override ParagraphLeftTopLayoutResult LayoutParagraphLeftTop(in ParagraphLeftTopLayoutArgument argument)
+    {
+        var leftTop = argument.CurrentLeftTop;
+
+        var paragraphSize = new Size(0, 0);
+
+        foreach (var lineVisualData in argument.ParagraphData.LineVisualDataList)
+        {
+            lineVisualData.LeftTop = leftTop;
+
+            var width = Math.Max(paragraphSize.Width, lineVisualData.Size.Width);
+            var height = paragraphSize.Height + lineVisualData.Size.Height;
+
+            paragraphSize = new Size(width, height);
+
+            leftTop = new Point(leftTop.X, leftTop.Y + lineVisualData.Size.Height);
+
+            lineVisualData.UpdateVersion();
+        }
+
+        argument.ParagraphData.ParagraphRenderData.Size = paragraphSize;
+
+        return new ParagraphLeftTopLayoutResult(leftTop);
+    }
+
     /// <summary>
     /// 布局段落的核心逻辑
     /// </summary>
@@ -132,7 +157,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 return;
             }
         }
-
 
         // todo 考虑行复用，例如刚好添加的内容是一行。或者在一行内做文本替换等
         // 这个没有啥优先级。测试了 SublimeText 和 NotePad 工具，都没有做此复用，预计有坑
@@ -297,6 +321,27 @@ abstract class ArrangingLayoutProvider
             LayoutParagraph(paragraphData);
         }
 
+        // 进入各个段落的段落之间和行之间的布局
+        Point firstLeftTop;
+        if (firstDirtyParagraphIndex == 0)
+        {
+            // 从首段落开始
+            firstLeftTop=new Point(0, 0);
+        }
+        else
+        {
+            firstLeftTop = list[firstDirtyParagraphIndex - 1].ParagraphRenderData.LeftTop;
+        }
+
+        var currentLeftTop = firstLeftTop;
+        for (var index = firstDirtyParagraphIndex; index < list.Count; index++)
+        {
+            ParagraphData paragraphData = list[index];
+            var argument = new ParagraphLeftTopLayoutArgument(index, currentLeftTop, paragraphData, list);
+            ParagraphLeftTopLayoutResult result = LayoutParagraphLeftTop(argument);
+            currentLeftTop = result.CurrentLeftTop;
+        }
+
         // todo 完成测量最大宽度
 
         // 完成布局之后，全部设置为非脏的（或者是段落内自己实现）
@@ -308,6 +353,8 @@ abstract class ArrangingLayoutProvider
         Debug.Assert(TextEditor.DocumentManager.TextRunManager.ParagraphManager.GetParagraphList()
             .All(t => t.IsDirty == false));
     }
+
+    protected abstract ParagraphLeftTopLayoutResult LayoutParagraphLeftTop(in ParagraphLeftTopLayoutArgument argument);
 
     /// <summary>
     /// 段落内布局
@@ -360,3 +407,9 @@ abstract class ArrangingLayoutProvider
     protected abstract void LayoutParagraphCore(ParagraphData paragraph,
         ParagraphOffset startParagraphOffset);
 }
+
+readonly record struct ParagraphLeftTopLayoutArgument(int ParagraphIndex, Point CurrentLeftTop, ParagraphData ParagraphData, IReadOnlyList<ParagraphData> ParagraphList)
+{
+}
+
+readonly record struct ParagraphLeftTopLayoutResult(Point CurrentLeftTop);
