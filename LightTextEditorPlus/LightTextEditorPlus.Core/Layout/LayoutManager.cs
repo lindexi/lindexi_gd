@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
+using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
@@ -121,11 +122,17 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
             if (result.RunCount == 0)
             {
+                if (TextEditor.IsInDebugMode)
+                {
+                    throw new TextEditorDebugException($"某一行在布局时，只采用了零个字符");
+                }
+
                 // todo 理论上不可能，表示行布局出错了
                 TextEditor.Logger.LogWarning($"某一行在布局时，只采用了零个字符");
                 return;
             }
         }
+
 
         // todo 考虑行复用，例如刚好添加的内容是一行。或者在一行内做文本替换等
         // 这个没有啥优先级。测试了 SublimeText 和 NotePad 工具，都没有做此复用，预计有坑
