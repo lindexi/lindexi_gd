@@ -108,7 +108,7 @@ class ParagraphManager
     }
 
     public TextEditorCore TextEditor { get; }
-    
+
     /// <summary>
     /// 获取被指定的光标偏移命中的段落信息
     /// </summary>
@@ -136,12 +136,14 @@ class ParagraphManager
                 var currentDocumentOffset = 0;
                 foreach (var paragraphData in ParagraphList)
                 {
-                    var endOffset = currentDocumentOffset + paragraphData.CharCount + ParagraphData.DelimiterLength;// todo 这里是否遇到 -1 问题
+                    var endOffset =
+                        currentDocumentOffset + paragraphData.CharCount +
+                        ParagraphData.DelimiterLength; // todo 这里是否遇到 -1 问题
                     if (offset.Offset < endOffset)
                     {
                         var hitParagraphOffset = offset.Offset - currentDocumentOffset;
 
-                        return ResultResult(paragraphData,new ParagraphOffset(hitParagraphOffset));
+                        return ResultResult(paragraphData, new ParagraphOffset(hitParagraphOffset));
                     }
                     else
                     {
@@ -149,6 +151,7 @@ class ParagraphManager
                     }
                 }
             }
+
             // 没有落到哪个段落？
             //todo 还没实现落在段落外的逻辑
             throw new NotImplementedException();
@@ -231,7 +234,7 @@ class ParagraphManager
 /// </summary>
 /// 准备将字符和具体的渲染信息放在一起，如此可以减少一些判断逻辑，解决不对应问题
 /// 似乎除了减少重复计算尺寸之外，没有其他优势
-class ParagraphRunData:IParagraphCache
+class ParagraphRunData : IParagraphCache
 {
     public ParagraphRunData(IImmutableRun run, ParagraphData paragraph)
     {
@@ -289,13 +292,17 @@ class ParagraphData
     public ParagraphProperty ParagraphProperty { set; get; }
     public ParagraphManager ParagraphManager { get; }
 
+    // todo 由于使用 Run 将需要不断拆分，在命中测试也需要使用字符，会遇到两个不同的列表的同步
+    // 后续替换为使用 Char 作为存储
     private List<IImmutableRun> TextRunList { get; } = new List<IImmutableRun>();
 
     public IReadOnlyList<IImmutableRun> GetRunList() => TextRunList;
 
     public Span<IImmutableRun> AsSpan() => CollectionsMarshal.AsSpan(TextRunList);
 
-    public ReadOnlyListSpan<IImmutableRun> ToReadOnlyListSpan(int start) => ToReadOnlyListSpan(start, TextRunList.Count - start);
+    public ReadOnlyListSpan<IImmutableRun> ToReadOnlyListSpan(int start) =>
+        ToReadOnlyListSpan(start, TextRunList.Count - start);
+
     public ReadOnlyListSpan<IImmutableRun> ToReadOnlyListSpan(int start, int length) =>
         new ReadOnlyListSpan<IImmutableRun>(TextRunList, start, length);
 
@@ -496,7 +503,7 @@ class ParagraphData
 
     internal void InitVersion(IParagraphCache cache)
     {
-        if (cache.CurrentParagraphVersion !=0)
+        if (cache.CurrentParagraphVersion != 0)
         {
             throw new InvalidOperationException($"禁止重复初始化");
         }
@@ -516,10 +523,13 @@ class ParagraphData
             {
                 value = 1;
             }
+
             _version = value;
         }
     }
+
     private uint _version = 1;
+
     #endregion
 
 
@@ -558,7 +568,7 @@ class ParagraphData
 ///  RunRenderInfo
 class RunVisualData
 {
-    public RunVisualData(IImmutableRun run, Size size, IList<Size>? charSizeList,int charIndexInLine)
+    public RunVisualData(IImmutableRun run, Size size, IList<Size>? charSizeList, int charIndexInLine)
     {
         Run = run;
         Size = size;
@@ -569,7 +579,7 @@ class RunVisualData
     /// <summary>
     /// 当前的 Run 用来调试使用
     /// </summary>
-    public IImmutableRun Run {  get; }
+    public IImmutableRun Run { get; }
 
     /// <summary>
     /// 左上角的点，相对于文本框
@@ -580,7 +590,7 @@ class RunVisualData
     /// <summary>
     /// 尺寸
     /// </summary>
-    public Size Size { get;  }
+    public Size Size { get; }
 
     /// <summary>
     /// 相对于行的字符序号
@@ -595,7 +605,7 @@ class RunVisualData
 /// <summary>
 /// 行渲染信息
 /// </summary>
-class LineVisualData: IParagraphCache
+class LineVisualData : IParagraphCache
 {
     /// <summary>
     /// 行渲染信息
