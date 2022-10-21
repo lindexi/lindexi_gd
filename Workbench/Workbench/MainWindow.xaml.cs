@@ -25,7 +25,11 @@ public partial class MainWindow : Window
         CurrentMainWindow = this;
 
         Closed += MainWindow_Closed;
+
+        MainViewModel = (MainViewModel) DataContext;
     }
+
+    public MainViewModel MainViewModel { get; }
 
     private void MainWindow_Closed(object? sender, EventArgs e)
     {
@@ -36,7 +40,7 @@ public partial class MainWindow : Window
     {
         if (e.Key == Key.Escape)
         {
-            Hide();
+            Close();
         }
 
         base.OnKeyDown(e);

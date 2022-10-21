@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Workbench"
         mc:Ignorable="d"
-        Title="工作台" Height="600" Width="1000" WindowState="Maximized" Background="#1F1F1F">
+        Title="工作台" Height="600" Width="1000" WindowState="Maximized" Background="#1F1F1F" DataContext="{StaticResource MainViewModel}">
     <Grid>
 
     </Grid>
