@@ -84,11 +84,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 先更新非脏的行的坐标
         // 布局左上角坐标
         var currentStartPoint = argument.CurrentStartPoint;
-        var paragraph = argument.ParagraphData;
+        ParagraphData paragraph = argument.ParagraphData;
 
         foreach (LineVisualData lineVisualData in argument.ParagraphData.LineVisualDataList)
         {
-            UpdateLineVisualDataStartPoint(lineVisualData);
+            UpdateLineVisualDataStartPoint(lineVisualData, currentStartPoint);
+
+            currentStartPoint = UpdateStartPoint(currentStartPoint, lineVisualData);
         }
 
         //// 当前行的 RunList 列表，看起来设计不对，没有加上在段落的坐标
@@ -115,15 +117,15 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             // 第一个 Run 就是行的开始
             ReadOnlyListSpan<CharData> charDataList = paragraph.ToReadOnlyListSpan(i);
             WholeRunLineLayoutResult result;
+            var wholeRunLineLayoutArgument = new WholeLineLayoutArgument(paragraph.ParagraphProperty, charDataList, lineMaxWidth, currentStartPoint);
             if (wholeRunLineLayouter != null)
             {
-                var wholeRunLineLayoutArgument = new WholeLineLayoutArgument(paragraph.ParagraphProperty, charDataList, lineMaxWidth);
                 result = wholeRunLineLayouter.LayoutWholeLine(wholeRunLineLayoutArgument);
             }
             else
             {
                 // 继续往下执行，如果没有注入自定义的行布局层的话
-                result = LayoutWholeLine(paragraph, charDataList, lineMaxWidth);
+                result = LayoutWholeLine(wholeRunLineLayoutArgument);
             }
 
             currentLineVisualData = new LineVisualData(paragraph)
@@ -131,8 +133,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 StartParagraphIndex = i,
                 EndParagraphIndex = i + result.RunCount,
                 Size = result.Size,
+                LeftTop = currentStartPoint,
             };
-            UpdateLineVisualDataStartPoint(currentLineVisualData);
+            currentStartPoint = UpdateStartPoint(currentStartPoint, currentLineVisualData);
+            //UpdateLineVisualDataStartPoint(currentLineVisualData);
 
             paragraph.LineVisualDataList.Add(currentLineVisualData);
 
@@ -159,40 +163,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         paragraph.IsDirty = false;
 
         return new ParagraphLayoutResult(currentStartPoint);
-
-        void UpdateLineVisualDataStartPoint(LineVisualData lineVisualData)
-        {
-            lineVisualData.LeftTop = currentStartPoint;
-            // 更新行内所有字符的坐标
-            var lineTop = currentStartPoint.Y;
-            var list = lineVisualData.GetCharList();
-            var currentX = 0d;
-
-            for (var index = 0; index < list.Count; index++)
-            {
-                var charData = list[index];
-                charData.CharRenderData ??= new CharRenderData(charData, paragraph)
-                {
-                    CharIndex = new ParagraphOffset(lineVisualData.StartParagraphIndex+ index),
-                    CurrentLine = lineVisualData,
-                    LeftTop = new Point(currentX,lineTop),
-                };
-
-                Debug.Assert(charData.Size is not null);
-                currentX += charData.Size!.Value.Width;
-            }
-
-            currentStartPoint = new Point(currentStartPoint.X, currentStartPoint.Y + lineVisualData.Size.Height);
-
-            lineVisualData.UpdateVersion();
-        }
     }
 
-   
 
-    private WholeRunLineLayoutResult LayoutWholeLine(ParagraphData paragraph, ReadOnlyListSpan<CharData> charDataList,
-        double lineMaxWidth)
+    private WholeRunLineLayoutResult LayoutWholeLine(WholeLineLayoutArgument argument)
     {
+        var (paragraphProperty, charDataList, lineMaxWidth, currentStartPoint) = argument;
+
         var singleRunLineLayouter = TextEditor.PlatformProvider.GetSingleRunLineLayouter();
 
         // RunLineMeasurer
@@ -206,7 +183,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         {
             // 一行里面需要逐个字符进行布局
             var arguments = new SingleCharInLineLayoutArguments(charDataList, currentRunIndex, lineRemainingWidth,
-                paragraph.ParagraphProperty);
+                paragraphProperty);
 
             SingleCharInLineLayoutResult result;
             if (singleRunLineLayouter is not null)
@@ -301,6 +278,37 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
     #region 辅助方法
 
+    private static Point UpdateStartPoint(Point currentStartPoint, LineVisualData currentLineVisualData)
+    {
+        currentStartPoint = new Point(currentStartPoint.X, currentStartPoint.Y + currentLineVisualData.Size.Height);
+        return currentStartPoint;
+    }
+
+    static void UpdateLineVisualDataStartPoint(LineVisualData lineVisualData, Point startPoint)
+    {
+        var currentStartPoint = startPoint;
+        lineVisualData.LeftTop = currentStartPoint;
+        // 更新行内所有字符的坐标
+        var lineTop = currentStartPoint.Y;
+        var list = lineVisualData.GetCharList();
+        var currentX = 0d;
+
+        for (var index = 0; index < list.Count; index++)
+        {
+            var charData = list[index];
+            charData.CharRenderData ??= new CharRenderData(charData, lineVisualData.CurrentParagraph)
+            {
+                CharIndex = new ParagraphOffset(lineVisualData.StartParagraphIndex + index),
+                CurrentLine = lineVisualData,
+                LeftTop = new Point(currentX, lineTop),
+            };
+
+            Debug.Assert(charData.Size is not null);
+            currentX += charData.Size!.Value.Width;
+        }
+
+        lineVisualData.UpdateVersion();
+    }
 
     private static Size BuildParagraphSize(in ParagraphLayoutArgument argument)
     {
