@@ -67,7 +67,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// 布局段落的核心逻辑
     /// </summary>
     /// <param name="argument"></param>
-    /// <param name="startParagraphOffset"></param>
+    /// <param name="startParagraphOffset">开始布局的字符，刚好是一行的开始</param>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     /// <remarks>
     /// 逻辑上是：
@@ -83,7 +83,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     {
         // 先更新非脏的行的坐标
         // 布局左上角坐标
-        var leftTop = argument.CurrentStartPoint;
+        var currentStartPoint = argument.CurrentStartPoint;
         var paragraph = argument.ParagraphData;
 
         foreach (LineVisualData lineVisualData in argument.ParagraphData.LineVisualDataList)
@@ -158,13 +158,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         paragraph.IsDirty = false;
 
-        return new ParagraphLayoutResult(leftTop);
+        return new ParagraphLayoutResult(currentStartPoint);
 
         void UpdateLineVisualDataStartPoint(LineVisualData lineVisualData)
         {
-            lineVisualData.LeftTop = leftTop;
+            lineVisualData.LeftTop = currentStartPoint;
             // 更新行内所有字符的坐标
-            var lineTop = leftTop.Y;
+            var lineTop = currentStartPoint.Y;
             var list = lineVisualData.GetCharList();
             var currentX = 0d;
 
@@ -182,7 +182,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 currentX += charData.Size!.Value.Width;
             }
 
-            leftTop = new Point(leftTop.X, leftTop.Y + lineVisualData.Size.Height);
+            currentStartPoint = new Point(currentStartPoint.X, currentStartPoint.Y + lineVisualData.Size.Height);
 
             lineVisualData.UpdateVersion();
         }
