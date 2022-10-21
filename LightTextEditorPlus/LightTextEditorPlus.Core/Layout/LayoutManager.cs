@@ -339,6 +339,11 @@ abstract class ArrangingLayoutProvider
         //    LayoutParagraph(paragraphData);
         //}
 
+        if (firstDirtyParagraphIndex == -1)
+        {
+            throw new NotImplementedException($"进入布局时，没有任何一段需要布局");
+        }
+
         //// 进入各个段落的段落之间和行之间的布局
         // 获取首个脏段的左上角的点
         Point firstLeftTop;
