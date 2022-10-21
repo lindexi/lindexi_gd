@@ -251,7 +251,7 @@ class CharRenderData : IParagraphCache
     /// 左上角的点，相对于文本框
     /// </summary>
     /// 可用来辅助布局上下标
-    public Point LeftTop { set; get; }
+    public Point StartPoint { set; get; }
 
     public ParagraphOffset CharIndex { set; get; }
 
@@ -310,7 +310,7 @@ public class CharData
             throw new InvalidOperationException($"禁止在开始布局之前设置");
         }
 
-        CharRenderData.LeftTop=point;
+        CharRenderData.StartPoint=point;
 
         IsSetStartPointInDebugMode = true;
     }
@@ -394,14 +394,14 @@ class ParagraphCharDataManager
 /// </summary>
 class ParagraphRenderData
 {
-    public Point LeftTop { set; get; }
+    public Point StartPoint { set; get; }
 
     /// <summary>
     /// 段落尺寸
     /// </summary>
     public Size Size { set; get; }
 
-    public Rect GetBounds() => new Rect(LeftTop, Size);
+    public Rect GetBounds() => new Rect(StartPoint, Size);
 }
 
 /// <summary>
@@ -754,18 +754,18 @@ class LineVisualData : IParagraphCache
     public int CharCount => EndParagraphIndex - StartParagraphIndex;
 
     /// <summary>
-    /// 这一行的左上角的点，相对于文本框
+    /// 这一行的起始的点，相对于文本框
     /// </summary>
-    public Point LeftTop
+    public Point StartPoint
     {
         set
         {
-            _leftTop = value;
+            _startPoint = value;
             IsLineStartPointUpdated = true;
         }
-        get => _leftTop;
+        get => _startPoint;
     }
-    private Point _leftTop;
+    private Point _startPoint;
 
     /// <summary>
     /// 是否需要绘制

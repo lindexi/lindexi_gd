@@ -143,7 +143,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 StartParagraphIndex = i,
                 EndParagraphIndex = i + result.CharCount,
                 Size = result.Size,
-                LeftTop = currentStartPoint,
+                StartPoint = currentStartPoint,
             };
             // 更新字符信息
             for (var index = 0; index < charDataList.Count; index++)
@@ -186,7 +186,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // todo 考虑行复用，例如刚好添加的内容是一行。或者在一行内做文本替换等
         // 这个没有啥优先级。测试了 SublimeText 和 NotePad 工具，都没有做此复用，预计有坑
 
-        argument.ParagraphData.ParagraphRenderData.LeftTop = argument.ParagraphData.LineVisualDataList[0].LeftTop;
+        argument.ParagraphData.ParagraphRenderData.StartPoint = argument.ParagraphData.LineVisualDataList[0].StartPoint;
         argument.ParagraphData.ParagraphRenderData.Size = BuildParagraphSize(argument);
 
         paragraph.IsDirty = false;
@@ -329,7 +329,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     static void UpdateLineVisualDataStartPoint(LineVisualData lineVisualData, Point startPoint)
     {
         var currentStartPoint = startPoint;
-        lineVisualData.LeftTop = currentStartPoint;
+        lineVisualData.StartPoint = currentStartPoint;
         // 更新行内所有字符的坐标
         var lineTop = currentStartPoint.Y;
         var list = lineVisualData.GetCharList();
@@ -340,7 +340,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
             Debug.Assert(charData.CharRenderData is not null);
 
-            charData.CharRenderData!.LeftTop = new Point(charData.CharRenderData.LeftTop.X, lineTop);
+            charData.CharRenderData!.StartPoint = new Point(charData.CharRenderData.StartPoint.X, lineTop);
             charData.CharRenderData.UpdateVersion();
         }
 
@@ -409,12 +409,12 @@ abstract class ArrangingLayoutProvider
         }
 
         //// 进入各个段落的段落之间和行之间的布局
-        // 获取首个脏段的左上角的点
-        Point firstLeftTop;
+        // 获取首个脏段的起始 也就是横排左上角的点
+        Point firstStartPoint;
         if (firstDirtyParagraphIndex == 0)
         {
             // 从首段落开始
-            firstLeftTop=new Point(0, 0);
+            firstStartPoint=new Point(0, 0);
         }
         else
         {
@@ -424,15 +424,15 @@ abstract class ArrangingLayoutProvider
         }
 
         // 进入段落内布局
-        var currentLeftTop = firstLeftTop;
+        var currentStartPoint = firstStartPoint;
         for (var index = firstDirtyParagraphIndex; index < paragraphList.Count; index++)
         {
             ParagraphData paragraphData = paragraphList[index];
 
-            var argument = new ParagraphLayoutArgument(index, currentLeftTop, paragraphData, paragraphList);
+            var argument = new ParagraphLayoutArgument(index, currentStartPoint, paragraphData, paragraphList);
 
             ParagraphLayoutResult result = LayoutParagraph(argument);
-            currentLeftTop = result.CurrentLeftTop;
+            currentStartPoint = result.CurrentStartPoint;
         }
 
         var documentBounds = Rect.Zero;
