@@ -126,7 +126,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 }
             }
 
-            WholeRunLineLayoutResult result;
+            WholeLineLayoutResult result;
             var wholeRunLineLayoutArgument = new WholeLineLayoutArgument(paragraph.ParagraphProperty, charDataList, lineMaxWidth, currentStartPoint);
             if (wholeRunLineLayouter != null)
             {
@@ -141,7 +141,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             currentLineVisualData = new LineVisualData(paragraph)
             {
                 StartParagraphIndex = i,
-                EndParagraphIndex = i + result.RunCount,
+                EndParagraphIndex = i + result.CharCount,
                 Size = result.Size,
                 LeftTop = currentStartPoint,
             };
@@ -168,9 +168,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
             paragraph.LineVisualDataList.Add(currentLineVisualData);
 
-            i += result.RunCount;
+            i += result.CharCount;
 
-            if (result.RunCount == 0)
+            if (result.CharCount == 0)
             {
                 if (TextEditor.IsInDebugMode)
                 {
@@ -193,7 +193,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         return new ParagraphLayoutResult(currentStartPoint);
     }
 
-    private WholeRunLineLayoutResult LayoutWholeLine(WholeLineLayoutArgument argument)
+    private WholeLineLayoutResult LayoutWholeLine(WholeLineLayoutArgument argument)
     {
         var (paragraphProperty, charDataList, lineMaxWidth, currentStartPoint) = argument;
 
@@ -268,7 +268,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             currentX = charData.Size!.Value.Width;
         }
 
-        return new WholeRunLineLayoutResult(currentSize, wholeCharCount);
+        return new WholeLineLayoutResult(currentSize, wholeCharCount);
     }
 
     private SingleCharInLineLayoutResult LayoutSingleCharInLine(SingleCharInLineLayoutArguments arguments)

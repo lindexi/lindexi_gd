@@ -7,5 +7,5 @@ namespace LightTextEditorPlus.Core.Platform;
 /// </summary>
 public interface IWholeLineLayouter
 {
-    WholeRunLineLayoutResult LayoutWholeLine(in WholeLineLayoutArgument argument);
+    WholeLineLayoutResult LayoutWholeLine(in WholeLineLayoutArgument argument);
 }
