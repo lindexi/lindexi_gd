@@ -303,6 +303,16 @@ public class CharData
 
     internal CharRenderData? CharRenderData { set; get; }
 
+    public void SetStartPoint(Point point)
+    {
+        if (CharRenderData is null)
+        {
+            throw new InvalidOperationException($"禁止在开始布局之前设置");
+        }
+
+        CharRenderData.LeftTop=point;
+    }
+
     /// <summary>
     /// 尺寸
     /// </summary>
@@ -350,7 +360,12 @@ class ParagraphCharDataManager
 
     public int CharCount => CharDataList.Count;
 
-    public void Add(CharData charData) => CharDataList.Add(charData);
+    public void Add(CharData charData)
+    {
+        charData.CharRenderData = new CharRenderData(charData, _paragraph);
+        CharDataList.Add(charData);
+    }
+
     public void AddRange(IEnumerable<CharData> charDataList)
     {
         CharDataList.AddRange(charDataList);
@@ -565,12 +580,20 @@ class ParagraphData
         Version++;
     }
 
-    public void AppendCharData(CharData charData)
+    internal void AppendCharData(CharData charData)
     {
+        // 谨慎 CharData 的加入开放给框架之外，原因在于 CharData 不能被加入到文本多次
+        // 一个 CharData 只能存在一个文本，且只存在一次。原因是 CharData 里面包含了渲染布局信息
+        // 加入多次将会让布局很乱
+        if (charData.CharRenderData is not null)
+        {
+            throw new ArgumentException($"此 CharData 已经被加入到某个段落，不能重复加入");
+        }
+
         CharDataManager.Add(charData);
     }
 
-    public void AppendCharData(IEnumerable<CharData> charDataList)
+    internal void AppendCharData(IEnumerable<CharData> charDataList)
     {
         CharDataManager.AddRange(charDataList);
     }

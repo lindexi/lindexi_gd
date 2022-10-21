@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
@@ -116,6 +117,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             // 开始行布局
             // 第一个 Run 就是行的开始
             ReadOnlyListSpan<CharData> charDataList = paragraph.ToReadOnlyListSpan(i);
+            //foreach (var charData in charDataList)
+            //{
+            //    charData.CharRenderData ??= new CharRenderData(charData, paragraph);
+            //}
+
             WholeRunLineLayoutResult result;
             var wholeRunLineLayoutArgument = new WholeLineLayoutArgument(paragraph.ParagraphProperty, charDataList, lineMaxWidth, currentStartPoint);
             if (wholeRunLineLayouter != null)
@@ -135,6 +141,14 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 Size = result.Size,
                 LeftTop = currentStartPoint,
             };
+            // 更新字符信息
+            for (var index = 0; index < charDataList.Count; index++)
+            {
+                var charData = charDataList[index];
+                charData.CharRenderData!.CharIndex = new ParagraphOffset(i + index);
+                charData.CharRenderData.CurrentLine = currentLineVisualData;
+                charData.CharRenderData.UpdateVersion();
+            }
 
             currentStartPoint = UpdateStartPoint(currentStartPoint, currentLineVisualData);
 
@@ -176,13 +190,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 行还剩余的空闲宽度
         double lineRemainingWidth = lineMaxWidth;
 
-        int currentRunIndex = 0;
+        int currentIndex = 0;
         var currentSize = Size.Zero;
 
-        while (currentRunIndex < charDataList.Count)
+        while (currentIndex < charDataList.Count)
         {
             // 一行里面需要逐个字符进行布局
-            var arguments = new SingleCharInLineLayoutArguments(charDataList, currentRunIndex, lineRemainingWidth,
+            var arguments = new SingleCharInLineLayoutArguments(charDataList, currentIndex, lineRemainingWidth,
                 paragraphProperty);
 
             SingleCharInLineLayoutResult result;
@@ -203,21 +217,21 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
                 if (result.TaskCount == 1)
                 {
-                    var charData = charDataList[currentRunIndex];
+                    var charData = charDataList[currentIndex];
                     charData.Size ??= result.TotalSize;
                 }
                 else
                 {
-                    for (int i = currentRunIndex; i < currentRunIndex + result.TaskCount; i++)
+                    for (int i = currentIndex; i < currentIndex + result.TaskCount; i++)
                     {
                         var charData = charDataList[i];
                         //charData.CharRenderData ??=
                         //    new CharRenderData(charData, paragraph);
-                        charData.Size ??= result.CharSizeList![i - currentRunIndex];
+                        charData.Size ??= result.CharSizeList![i - currentIndex];
                     }
                 }
 
-                currentRunIndex += result.TaskCount;
+                currentIndex += result.TaskCount;
             }
 
             if (result.ShouldBreakLine)
@@ -227,7 +241,21 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             }
         }
 
-        return new WholeRunLineLayoutResult(currentSize, currentRunIndex);
+        // todo 这里可以支持两端对齐
+        // 整行的字符布局
+        var wholeCharCount = currentIndex;
+        var lineTop = currentStartPoint.Y;
+        var currentX = 0d;
+        for (var i = 0; i < wholeCharCount; i++)
+        {
+            var charData = charDataList[i];
+            charData.SetStartPoint(new Point(currentX,lineTop));
+
+            Debug.Assert(charData.Size != null, "charData.Size != null");
+            currentX = charData.Size!.Value.Width;
+        }
+
+        return new WholeRunLineLayoutResult(currentSize, wholeCharCount);
     }
 
     private SingleCharInLineLayoutResult LayoutSingleCharInLine(SingleCharInLineLayoutArguments arguments)

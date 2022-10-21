@@ -9,6 +9,7 @@ namespace LightTextEditorPlus.Core.Layout;
 /// </summary>
 /// <param name="Size">这一行的尺寸</param>
 /// <param name="RunCount">这一行使用的 字符 的数量</param>
+/// todo 重命名
 public readonly record struct WholeRunLineLayoutResult(Size Size, int RunCount)
 {
     // 现在使用字符布局了，不再需要对 Run 进行分割
