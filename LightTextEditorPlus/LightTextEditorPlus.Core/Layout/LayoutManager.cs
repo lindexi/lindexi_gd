@@ -320,7 +320,6 @@ abstract class ArrangingLayoutProvider
             }
         }
 
-
         if (firstDirtyParagraphIndex == -1)
         {
             throw new NotImplementedException($"进入布局时，没有任何一段需要布局");
