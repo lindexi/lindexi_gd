@@ -680,6 +680,17 @@ class ParagraphData
 }
 
 /// <summary>
+/// 行的渲染结果
+/// </summary>
+/// <param name="LineAssociatedRenderData">行的关联渲染信息。下次更新渲染，将会自动带上</param>
+public readonly record struct LineDrawnResult(object? LineAssociatedRenderData)
+{
+
+}
+
+public readonly record struct LineDrawnArgument(bool IsDrawn, bool IsLineStartPointUpdated, object? LineAssociatedRenderData, ReadOnlyListSpan<CharData> CharList);
+
+/// <summary>
 /// 行渲染信息
 /// </summary>
 class LineVisualData : IParagraphCache
@@ -743,12 +754,19 @@ class LineVisualData : IParagraphCache
     public bool IsLineStartPointUpdated { get; private set; } = false;
 
     /// <summary>
+    /// 行的关联渲染信息
+    /// </summary>
+    public object? LineAssociatedRenderData { private set; get; }
+
+    /// <summary>
     /// 设置已经画完了
     /// </summary>
-    public void SetDrawn()
+    public void SetDrawn(in LineDrawnResult result)
     {
         IsDrawn = true;
         IsLineStartPointUpdated = false;
+
+        LineAssociatedRenderData = result.LineAssociatedRenderData;
     }
 
     /// <summary>
