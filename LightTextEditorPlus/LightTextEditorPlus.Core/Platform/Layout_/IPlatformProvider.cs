@@ -36,14 +36,14 @@ public interface IPlatformProvider
     /// </summary>
     /// <remarks>需要处理横竖排等布局方式</remarks>
     /// <returns></returns>
-    IWholeRunLineLayouter? GetWholeRunLineLayouter();
+    IWholeLineLayouter? GetWholeRunLineLayouter();
 
     /// <summary>
     /// 获取文本的行测量器，返回空则采用默认的行测量逻辑
     /// </summary>
     /// <remarks>需要处理横竖排等布局方式</remarks>
     /// <returns></returns>
-    ISingleRunInLineLayouter? GetSingleRunLineLayouter();
+    ISingleCharInLineLayouter? GetSingleRunLineLayouter();
 
     ///// <summary>
     ///// 获取字符的行测量器，用来测量哪些字符可以加入到当前行。返回空则采用默认的行测量逻辑

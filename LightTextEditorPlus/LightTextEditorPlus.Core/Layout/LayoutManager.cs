@@ -108,8 +108,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             WholeRunLineLayoutResult result;
             if (wholeRunLineLayouter != null)
             {
-                var wholeRunLineLayoutArgument = new WholeRunLineLayoutArgument(paragraph.ParagraphProperty, charDataList, lineMaxWidth);
-                result = wholeRunLineLayouter.LayoutWholeRunLine(wholeRunLineLayoutArgument);
+                var wholeRunLineLayoutArgument = new WholeLineLayoutArgument(paragraph.ParagraphProperty, charDataList, lineMaxWidth);
+                result = wholeRunLineLayouter.LayoutWholeLine(wholeRunLineLayoutArgument);
             }
             else
             {
@@ -192,7 +192,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             SingleCharInLineLayoutResult result;
             if (singleRunLineLayouter is not null)
             {
-                result = singleRunLineLayouter.LayoutSingleRunInLine(arguments);
+                result = singleRunLineLayouter.LayoutSingleCharInLine(arguments);
             }
             else
             {

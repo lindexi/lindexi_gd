@@ -24,7 +24,7 @@ public abstract class PlatformProvider : IPlatformProvider
         return _defaultRunParagraphSplitter ??= new DefaultRunParagraphSplitter();
     }
 
-    public IWholeRunLineLayouter? GetWholeRunLineLayouter()
+    public IWholeLineLayouter? GetWholeRunLineLayouter()
     {
         return null;
     }
@@ -34,7 +34,7 @@ public abstract class PlatformProvider : IPlatformProvider
     //    return  new DefaultRunMeasureProvider();
     //}
 
-    public ISingleRunInLineLayouter? GetSingleRunLineLayouter()
+    public ISingleCharInLineLayouter? GetSingleRunLineLayouter()
     {
         return null;
     }
