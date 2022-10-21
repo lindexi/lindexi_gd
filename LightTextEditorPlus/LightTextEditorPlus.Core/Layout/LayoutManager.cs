@@ -311,11 +311,11 @@ abstract class ArrangingLayoutProvider
         // - 获取需要更新布局段落的逻辑
         // - 进入段落布局
         //   - 进入行布局
-        // - 所有段落布局完成之后，再根据段落之间的高度信息，更新每个段落的 YOffset 的值
+        // - 获取文档整个的布局信息
+        //   - 获取文档的布局尺寸
 
         // 首行出现变脏的序号
         var firstDirtyParagraphIndex = -1;
-        //var dirtyParagraphDataList = new List<ParagraphData>();
         var paragraphList = TextEditor.DocumentManager.TextRunManager.ParagraphManager.GetParagraphList();
         for (var index = 0; index < paragraphList.Count; index++)
         {
@@ -324,20 +324,9 @@ abstract class ArrangingLayoutProvider
             {
                 firstDirtyParagraphIndex = index;
                 break;
-                //if (firstDirtyParagraphIndex == -1)
-                //{
-                //    firstDirtyParagraphIndex = index;
-                //}
-
-                //dirtyParagraphDataList.Add(paragraphData);
             }
         }
 
-        //// 进入段落内布局
-        //foreach (var paragraphData in dirtyParagraphDataList)
-        //{
-        //    LayoutParagraph(paragraphData);
-        //}
 
         if (firstDirtyParagraphIndex == -1)
         {
@@ -359,6 +348,7 @@ abstract class ArrangingLayoutProvider
             throw new NotImplementedException();
         }
 
+        // 进入段落内布局
         var currentLeftTop = firstLeftTop;
         for (var index = firstDirtyParagraphIndex; index < paragraphList.Count; index++)
         {
@@ -369,12 +359,6 @@ abstract class ArrangingLayoutProvider
             ParagraphLayoutResult result = LayoutParagraph(argument);
             currentLeftTop = result.CurrentLeftTop;
         }
-
-        //// 完成布局之后，全部设置为非脏的（或者是段落内自己实现）
-        //foreach (var paragraphData in dirtyParagraphDataList)
-        //{
-        //    paragraphData.IsDirty = false;
-        //}
 
         var documentBounds = Rect.Zero;
         foreach (var paragraphData in paragraphList)
@@ -388,8 +372,6 @@ abstract class ArrangingLayoutProvider
 
         return new DocumentLayoutResult(documentBounds);
     }
-
-    //protected abstract ParagraphLayoutResult LayoutParagraphLeftTop(in ParagraphLayoutArgument argument);
 
     /// <summary>
     /// 段落内布局
@@ -429,12 +411,6 @@ abstract class ArrangingLayoutProvider
         }
 
         var startParagraphOffset = new ParagraphOffset(dirtyParagraphOffset);
-        //var startTextRunIndex = paragraph.GetRunIndex(startParagraphOffset);
-
-        //if (startTextRunIndex.ParagraphIndex == -1)
-        //{
-        //    // todo 理论上不可能
-        //}
 
        var result = LayoutParagraphCore(argument, startParagraphOffset);
 
