@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="dotnetCampus.Configurations" Version="1.6.10" />
+    <PackageReference Include="HandyControl" Version="3.3.0" />
   </ItemGroup>
 
 </Project>

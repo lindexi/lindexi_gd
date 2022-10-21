@@ -5,8 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Workbench"
         mc:Ignorable="d"
+        xmlns:hc="https://handyorg.github.io/handycontrol"
         Title="工作台" Height="600" Width="1000" WindowState="Maximized" Background="#1F1F1F" DataContext="{StaticResource MainViewModel}">
     <Grid>
-
+        <!--<hc:AutoCompleteTextBox x:Name="CommandTextBox" Margin="10,10,10,10" Width="600" FontSize="30" HorizontalAlignment="Center" VerticalAlignment="Top" ItemsSource="{Binding Items}" Text="{Binding SearchText}" DisplayMemberPath="Name"></hc:AutoCompleteTextBox>-->
+        <hc:TextBox x:Name="CommandTextBox" Margin="10,10,10,10" Width="600" FontSize="30" HorizontalAlignment="Center" VerticalAlignment="Top" Text="{Binding SearchText}" ShowClearButton="True"></hc:TextBox>
     </Grid>
 </Window>

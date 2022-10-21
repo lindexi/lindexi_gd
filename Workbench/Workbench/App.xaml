@@ -4,6 +4,14 @@
              xmlns:local="clr-namespace:Workbench"
              StartupUri="MainWindow.xaml" ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
-         <local:MainViewModel x:Key="MainViewModel"></local:MainViewModel>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDefault.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml" />
+                <ResourceDictionary>
+                    <local:MainViewModel x:Key="MainViewModel"></local:MainViewModel>
+                </ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>
