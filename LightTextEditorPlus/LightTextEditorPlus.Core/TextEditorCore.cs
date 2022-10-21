@@ -9,6 +9,7 @@ using LightTextEditorPlus.Core.Document.DocumentManagers;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Rendering;
 
 namespace LightTextEditorPlus.Core;
 
@@ -79,6 +80,8 @@ public partial class TextEditorCore
         _layoutManager = new LayoutManager(this);
         _layoutManager.InternalLayoutCompleted += LayoutManager_InternalLayoutCompleted;
 
+        _renderInfoProvider = new RenderInfoProvider(this);
+
         Logger = platformProvider.BuildTextLogger() ?? new EmptyTextLogger();
 
 #if DEBUG
@@ -89,6 +92,7 @@ public partial class TextEditorCore
     #region 框架逻辑
 
     private readonly LayoutManager _layoutManager;
+    private readonly RenderInfoProvider _renderInfoProvider;
 
     public DocumentManager DocumentManager { get; }
     public IPlatformProvider PlatformProvider { get; }
@@ -120,6 +124,12 @@ public partial class TextEditorCore
     private void LayoutManager_InternalLayoutCompleted(object? sender, EventArgs e)
     {
         LayoutCompleted?.Invoke(this,e);
+
+        Logger.LogDebug($"[TextEditorCore][Render] 开始调用平台渲染");
+        // 布局完成，触发渲染
+        var renderManager = PlatformProvider.GetRenderManager();
+        renderManager?.Render(_renderInfoProvider);
+        Logger.LogDebug($"[TextEditorCore][Render] 完成调用平台渲染");
     }
 
     #endregion

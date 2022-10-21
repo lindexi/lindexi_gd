@@ -57,4 +57,6 @@ public interface IPlatformProvider
     /// </summary>
     /// <returns></returns>
     ICharInfoMeasurer? GetCharInfoMeasurer();
+
+    IRenderManager? GetRenderManager();
 }

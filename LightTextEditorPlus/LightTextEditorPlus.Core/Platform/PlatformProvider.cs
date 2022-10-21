@@ -49,5 +49,10 @@ public abstract class PlatformProvider : IPlatformProvider
         return null;
     }
 
+    public IRenderManager? GetRenderManager()
+    {
+        return null;
+    }
+
     private DefaultRunParagraphSplitter? _defaultRunParagraphSplitter;
 }
