@@ -52,13 +52,6 @@ class LayoutManager
     };
 }
 
-class DocumentRenderData
-{
-    public bool IsDirty { set; get; }
-
-    public Rect DocumentBounds { set; get; }
-}
-
 /// <summary>
 /// 水平方向布局的提供器
 /// </summary>
@@ -419,9 +412,4 @@ abstract class ArrangingLayoutProvider
 
     protected abstract ParagraphLayoutResult LayoutParagraphCore(ParagraphLayoutArgument paragraph,
         ParagraphOffset startParagraphOffset);
-}
-
-readonly record struct DocumentLayoutResult(Rect DocumentBounds)
-{
-
 }
