@@ -703,9 +703,9 @@ class LineVisualData : IParagraphCache
 
     public void UpdateVersion() => CurrentParagraph.UpdateVersion(this);
 
-    public int StartParagraphIndex { set; get; } = -1;
+    public int StartParagraphIndex { init; get; } = -1;
 
-    public int EndParagraphIndex { set; get; } = -1;
+    public int EndParagraphIndex { init; get; } = -1;
 
     /// <summary>
     /// 这一行的字符长度
@@ -720,7 +720,7 @@ class LineVisualData : IParagraphCache
     /// <summary>
     /// 这一行的尺寸
     /// </summary>
-    public Size Size { get; set; }
+    public Size Size { get; init; }
 
     //public List<RunVisualData>? RunVisualDataList { set; get; }
 
