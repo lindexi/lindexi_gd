@@ -186,6 +186,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // todo 考虑行复用，例如刚好添加的内容是一行。或者在一行内做文本替换等
         // 这个没有啥优先级。测试了 SublimeText 和 NotePad 工具，都没有做此复用，预计有坑
 
+        argument.ParagraphData.ParagraphRenderData.LeftTop = argument.ParagraphData.LineVisualDataList[0].LeftTop;
         argument.ParagraphData.ParagraphRenderData.Size = BuildParagraphSize(argument);
 
         paragraph.IsDirty = false;
