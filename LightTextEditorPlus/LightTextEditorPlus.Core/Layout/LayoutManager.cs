@@ -70,35 +70,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
     public override ArrangingType ArrangingType => ArrangingType.Horizontal;
 
-    protected override ParagraphLeftTopLayoutResult LayoutParagraphLeftTop(in ParagraphLeftTopLayoutArgument argument)
-    {
-        var leftTop = argument.CurrentLeftTop;
-
-        var paragraphSize = new Size(0, 0);
-
-        foreach (var lineVisualData in argument.ParagraphData.LineVisualDataList)
-        {
-            lineVisualData.LeftTop = leftTop;
-
-            var width = Math.Max(paragraphSize.Width, lineVisualData.Size.Width);
-            var height = paragraphSize.Height + lineVisualData.Size.Height;
-
-            paragraphSize = new Size(width, height);
-
-            leftTop = new Point(leftTop.X, leftTop.Y + lineVisualData.Size.Height);
-
-            lineVisualData.UpdateVersion();
-        }
-
-        argument.ParagraphData.ParagraphRenderData.Size = paragraphSize;
-
-        return new ParagraphLeftTopLayoutResult(leftTop);
-    }
-
     /// <summary>
     /// 布局段落的核心逻辑
     /// </summary>
-    /// <param name="paragraph"></param>
+    /// <param name="argument"></param>
     /// <param name="startParagraphOffset"></param>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     /// <remarks>
@@ -110,13 +85,15 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// 每一行里面，需要对每个 Char 字符进行布局 <see cref="LayoutSingleCharInLine"/>
     /// 每个字符需要调用平台的测量 <see cref="MeasureCharInfo"/>
     /// </remarks>
-    protected override void LayoutParagraphCore(ParagraphData paragraph,
+    protected override ParagraphLeftTopLayoutResult LayoutParagraphCore(ParagraphLeftTopLayoutArgument argument,
         ParagraphOffset startParagraphOffset)
     {
         //// 当前行的 RunList 列表，看起来设计不对，没有加上在段落的坐标
         //var currentLineRunList = new List<IImmutableRun>();
         // 当前的行渲染信息
         LineVisualData? currentLineVisualData = null;
+
+        var paragraph = argument.ParagraphData;
 
         // 获取最大宽度信息
         double lineMaxWidth = TextEditor.SizeToContent switch
@@ -138,8 +115,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             WholeRunLineLayoutResult result;
             if (wholeRunLineLayouter != null)
             {
-                var argument = new WholeRunLineLayoutArgument(paragraph.ParagraphProperty, charDataList, lineMaxWidth);
-                result = wholeRunLineLayouter.LayoutWholeRunLine(argument);
+                var wholeRunLineLayoutArgument = new WholeRunLineLayoutArgument(paragraph.ParagraphProperty, charDataList, lineMaxWidth);
+                result = wholeRunLineLayouter.LayoutWholeRunLine(wholeRunLineLayoutArgument);
             }
             else
             {
@@ -168,12 +145,37 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
                 // todo 理论上不可能，表示行布局出错了
                 TextEditor.Logger.LogWarning($"某一行在布局时，只采用了零个字符");
-                return;
+                throw new NotImplementedException();
             }
         }
 
         // todo 考虑行复用，例如刚好添加的内容是一行。或者在一行内做文本替换等
         // 这个没有啥优先级。测试了 SublimeText 和 NotePad 工具，都没有做此复用，预计有坑
+
+        // 布局左上角坐标
+        var leftTop = argument.CurrentLeftTop;
+
+        var paragraphSize = new Size(0, 0);
+
+        foreach (var lineVisualData in argument.ParagraphData.LineVisualDataList)
+        {
+            lineVisualData.LeftTop = leftTop;
+
+            var width = Math.Max(paragraphSize.Width, lineVisualData.Size.Width);
+            var height = paragraphSize.Height + lineVisualData.Size.Height;
+
+            paragraphSize = new Size(width, height);
+
+            leftTop = new Point(leftTop.X, leftTop.Y + lineVisualData.Size.Height);
+
+            lineVisualData.UpdateVersion();
+        }
+
+        argument.ParagraphData.ParagraphRenderData.Size = paragraphSize;
+
+        paragraph.IsDirty = false;
+
+        return new ParagraphLeftTopLayoutResult(leftTop);
     }
 
     private WholeRunLineLayoutResult LayoutWholeLine(ParagraphData paragraph, ReadOnlyListSpan<CharData> charDataList,
@@ -313,29 +315,32 @@ abstract class ArrangingLayoutProvider
 
         // 首行出现变脏的序号
         var firstDirtyParagraphIndex = -1;
-        var dirtyParagraphDataList = new List<ParagraphData>();
-        var list = TextEditor.DocumentManager.TextRunManager.ParagraphManager.GetParagraphList();
-        for (var index = 0; index < list.Count; index++)
+        //var dirtyParagraphDataList = new List<ParagraphData>();
+        var paragraphList = TextEditor.DocumentManager.TextRunManager.ParagraphManager.GetParagraphList();
+        for (var index = 0; index < paragraphList.Count; index++)
         {
-            ParagraphData paragraphData = list[index];
+            ParagraphData paragraphData = paragraphList[index];
             if (paragraphData.IsDirty)
             {
-                if (firstDirtyParagraphIndex == -1)
-                {
-                    firstDirtyParagraphIndex = index;
-                }
+                firstDirtyParagraphIndex = index;
+                break;
+                //if (firstDirtyParagraphIndex == -1)
+                //{
+                //    firstDirtyParagraphIndex = index;
+                //}
 
-                dirtyParagraphDataList.Add(paragraphData);
+                //dirtyParagraphDataList.Add(paragraphData);
             }
         }
 
-        // 进入段落内布局
-        foreach (var paragraphData in dirtyParagraphDataList)
-        {
-            LayoutParagraph(paragraphData);
-        }
+        //// 进入段落内布局
+        //foreach (var paragraphData in dirtyParagraphDataList)
+        //{
+        //    LayoutParagraph(paragraphData);
+        //}
 
-        // 进入各个段落的段落之间和行之间的布局
+        //// 进入各个段落的段落之间和行之间的布局
+        // 获取首个脏段的左上角的点
         Point firstLeftTop;
         if (firstDirtyParagraphIndex == 0)
         {
@@ -344,26 +349,30 @@ abstract class ArrangingLayoutProvider
         }
         else
         {
-            firstLeftTop = list[firstDirtyParagraphIndex - 1].ParagraphRenderData.LeftTop;
+            // todo 获取非首段的左上角坐标
+            //firstLeftTop = list[firstDirtyParagraphIndex - 1].ParagraphRenderData.LeftTop;
+            throw new NotImplementedException();
         }
 
         var currentLeftTop = firstLeftTop;
-        for (var index = firstDirtyParagraphIndex; index < list.Count; index++)
+        for (var index = firstDirtyParagraphIndex; index < paragraphList.Count; index++)
         {
-            ParagraphData paragraphData = list[index];
-            var argument = new ParagraphLeftTopLayoutArgument(index, currentLeftTop, paragraphData, list);
-            ParagraphLeftTopLayoutResult result = LayoutParagraphLeftTop(argument);
+            ParagraphData paragraphData = paragraphList[index];
+
+            var argument = new ParagraphLeftTopLayoutArgument(index, currentLeftTop, paragraphData, paragraphList);
+
+            ParagraphLeftTopLayoutResult result = LayoutParagraph(argument);
             currentLeftTop = result.CurrentLeftTop;
         }
 
-        // 完成布局之后，全部设置为非脏的（或者是段落内自己实现）
-        foreach (var paragraphData in dirtyParagraphDataList)
-        {
-            paragraphData.IsDirty = false;
-        }
+        //// 完成布局之后，全部设置为非脏的（或者是段落内自己实现）
+        //foreach (var paragraphData in dirtyParagraphDataList)
+        //{
+        //    paragraphData.IsDirty = false;
+        //}
 
         var documentBounds = Rect.Zero;
-        foreach (var paragraphData in list)
+        foreach (var paragraphData in paragraphList)
         {
             var bounds = paragraphData.ParagraphRenderData.GetBounds();
             documentBounds = documentBounds.Union(bounds);
@@ -375,17 +384,17 @@ abstract class ArrangingLayoutProvider
         return new DocumentLayoutResult(documentBounds);
     }
 
-    protected abstract ParagraphLeftTopLayoutResult LayoutParagraphLeftTop(in ParagraphLeftTopLayoutArgument argument);
+    //protected abstract ParagraphLeftTopLayoutResult LayoutParagraphLeftTop(in ParagraphLeftTopLayoutArgument argument);
 
     /// <summary>
     /// 段落内布局
     /// </summary>
-    /// <param name="paragraph"></param>
-    private void LayoutParagraph(ParagraphData paragraph)
+    private ParagraphLeftTopLayoutResult LayoutParagraph(ParagraphLeftTopLayoutArgument argument)
     {
         // 先找到首个需要更新的坐标点，这里的坐标是段坐标
         var dirtyParagraphOffset = 0;
         var lastIndex = -1;
+        var paragraph = argument.ParagraphData;
         for (var index = 0; index < paragraph.LineVisualDataList.Count; index++)
         {
             LineVisualData lineVisualData = paragraph.LineVisualDataList[index];
@@ -422,10 +431,12 @@ abstract class ArrangingLayoutProvider
         //    // todo 理论上不可能
         //}
 
-        LayoutParagraphCore(paragraph, startParagraphOffset);
+       var result = LayoutParagraphCore(argument, startParagraphOffset);
+
+       return result;
     }
 
-    protected abstract void LayoutParagraphCore(ParagraphData paragraph,
+    protected abstract ParagraphLeftTopLayoutResult LayoutParagraphCore(ParagraphLeftTopLayoutArgument paragraph,
         ParagraphOffset startParagraphOffset);
 }
 
