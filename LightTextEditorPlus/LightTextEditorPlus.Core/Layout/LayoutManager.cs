@@ -84,10 +84,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 先更新非脏的行的坐标
         // 布局左上角坐标
         var leftTop = argument.CurrentStartPoint;
-        var paragraphSize = new Size(0, 0);
         var paragraph = argument.ParagraphData;
 
-        var currentCharCount = 0;
         foreach (LineVisualData lineVisualData in argument.ParagraphData.LineVisualDataList)
         {
             UpdateLineVisualDataStartPoint(lineVisualData);
@@ -156,9 +154,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // todo 考虑行复用，例如刚好添加的内容是一行。或者在一行内做文本替换等
         // 这个没有啥优先级。测试了 SublimeText 和 NotePad 工具，都没有做此复用，预计有坑
 
-       
-
-        argument.ParagraphData.ParagraphRenderData.Size = paragraphSize;
+        argument.ParagraphData.ParagraphRenderData.Size = BuildParagraphSize(argument);
 
         paragraph.IsDirty = false;
 
@@ -172,33 +168,27 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             var list = lineVisualData.GetCharList();
             var currentX = 0d;
 
-            Debug.Assert(currentCharCount==lineVisualData.StartParagraphIndex);
-
             for (var index = 0; index < list.Count; index++)
             {
                 var charData = list[index];
                 charData.CharRenderData ??= new CharRenderData(charData, paragraph)
                 {
-                    CharIndex = new ParagraphOffset(currentCharCount),
+                    CharIndex = new ParagraphOffset(lineVisualData.StartParagraphIndex+ index),
                     CurrentLine = lineVisualData,
                     LeftTop = new Point(currentX,lineTop),
                 };
 
                 Debug.Assert(charData.Size is not null);
                 currentX += charData.Size!.Value.Width;
-                currentCharCount++;
             }
-
-            var width = Math.Max(paragraphSize.Width, lineVisualData.Size.Width);
-            var height = paragraphSize.Height + lineVisualData.Size.Height;
-
-            paragraphSize = new Size(width, height);
 
             leftTop = new Point(leftTop.X, leftTop.Y + lineVisualData.Size.Height);
 
             lineVisualData.UpdateVersion();
         }
     }
+
+   
 
     private WholeRunLineLayoutResult LayoutWholeLine(ParagraphData paragraph, ReadOnlyListSpan<CharData> charDataList,
         double lineMaxWidth)
@@ -308,6 +298,25 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         var bounds = new Rect(0, 0, charInfo.RunProperty.FontSize, charInfo.RunProperty.FontSize);
         return new CharInfoMeasureResult(bounds);
     }
+
+    #region 辅助方法
+
+
+    private static Size BuildParagraphSize(in ParagraphLayoutArgument argument)
+    {
+        var paragraphSize = new Size(0, 0);
+        foreach (var lineVisualData in argument.ParagraphData.LineVisualDataList)
+        {
+            var width = Math.Max(paragraphSize.Width, lineVisualData.Size.Width);
+            var height = paragraphSize.Height + lineVisualData.Size.Height;
+
+            paragraphSize = new Size(width, height);
+        }
+
+        return paragraphSize;
+    }
+
+    #endregion
 }
 
 /// <summary>
