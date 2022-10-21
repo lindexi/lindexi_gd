@@ -80,6 +80,10 @@ public partial class TextEditorCore
         _layoutManager.InternalLayoutCompleted += LayoutManager_InternalLayoutCompleted;
 
         Logger = platformProvider.BuildTextLogger() ?? new EmptyTextLogger();
+
+#if DEBUG
+        IsInDebugMode = true;
+#endif
     }
 
     #region 框架逻辑
