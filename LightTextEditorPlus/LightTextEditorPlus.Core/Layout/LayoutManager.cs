@@ -153,7 +153,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 这个没有啥优先级。测试了 SublimeText 和 NotePad 工具，都没有做此复用，预计有坑
 
         // 布局左上角坐标
-        var leftTop = argument.CurrentLeftTop;
+        var leftTop = argument.CurrentStartPoint;
 
         var paragraphSize = new Size(0, 0);
 

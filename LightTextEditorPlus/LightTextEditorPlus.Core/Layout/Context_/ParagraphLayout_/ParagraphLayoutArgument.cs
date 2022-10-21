@@ -4,6 +4,6 @@ using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Layout;
 
-readonly record struct ParagraphLayoutArgument(int ParagraphIndex, Point CurrentLeftTop, ParagraphData ParagraphData, IReadOnlyList<ParagraphData> ParagraphList)
+readonly record struct ParagraphLayoutArgument(int ParagraphIndex, Point CurrentStartPoint, ParagraphData ParagraphData, IReadOnlyList<ParagraphData> ParagraphList)
 {
 }
