@@ -7,13 +7,18 @@ namespace LightTextEditorPlus.Core.Exceptions;
 /// </summary>
 public class TextEditorDebugException : Exception
 {
-    public TextEditorDebugException(string? message) : base(message)
+    public TextEditorDebugException(string? message, object? exceptionData = null) : base(message)
     {
+        ExceptionData = exceptionData;
     }
 
-    public TextEditorDebugException(string? message, Exception? innerException) : base(message, innerException)
+    public TextEditorDebugException(string? message, Exception? innerException, object? exceptionData = null) : base(
+        message, innerException)
     {
+        ExceptionData = exceptionData;
     }
+
+    public object? ExceptionData { get; }
 
     public override string ToString()
     {

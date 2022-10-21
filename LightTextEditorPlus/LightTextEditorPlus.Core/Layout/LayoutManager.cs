@@ -99,7 +99,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 当前的行渲染信息
         LineVisualData? currentLineVisualData = null;
 
-
         // 获取最大宽度信息
         double lineMaxWidth = TextEditor.SizeToContent switch
         {
@@ -117,10 +116,15 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             // 开始行布局
             // 第一个 Run 就是行的开始
             ReadOnlyListSpan<CharData> charDataList = paragraph.ToReadOnlyListSpan(i);
-            //foreach (var charData in charDataList)
-            //{
-            //    charData.CharRenderData ??= new CharRenderData(charData, paragraph);
-            //}
+
+            if (TextEditor.IsInDebugMode)
+            {
+                    // 这是调试代码，判断是否在布局过程，漏掉某个字符
+                foreach (var charData in charDataList)
+                {
+                    charData.IsSetStartPointInDebugMode = false;
+                }
+            }
 
             WholeRunLineLayoutResult result;
             var wholeRunLineLayoutArgument = new WholeLineLayoutArgument(paragraph.ParagraphProperty, charDataList, lineMaxWidth, currentStartPoint);
@@ -145,6 +149,16 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             for (var index = 0; index < charDataList.Count; index++)
             {
                 var charData = charDataList[index];
+
+                if (TextEditor.IsInDebugMode)
+                {
+                    if (charData.IsSetStartPointInDebugMode==false)
+                    {
+                        throw new TextEditorDebugException($"存在某个字符没有在布局时设置坐标",
+                            (charData, currentLineVisualData, i + index));
+                    }
+                }
+
                 charData.CharRenderData!.CharIndex = new ParagraphOffset(i + index);
                 charData.CharRenderData.CurrentLine = currentLineVisualData;
                 charData.CharRenderData.UpdateVersion();
@@ -178,7 +192,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         return new ParagraphLayoutResult(currentStartPoint);
     }
-
 
     private WholeRunLineLayoutResult LayoutWholeLine(WholeLineLayoutArgument argument)
     {
@@ -319,25 +332,15 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 更新行内所有字符的坐标
         var lineTop = currentStartPoint.Y;
         var list = lineVisualData.GetCharList();
-        //var currentX = 0d;
 
         for (var index = 0; index < list.Count; index++)
         {
             var charData = list[index];
-            //charData.CharRenderData ??= new CharRenderData(charData, lineVisualData.CurrentParagraph)
-            //{
-            //    CharIndex = new ParagraphOffset(lineVisualData.StartParagraphIndex + index),
-            //    CurrentLine = lineVisualData,
-            //    LeftTop = new Point(currentX, lineTop),
-            //};
 
             Debug.Assert(charData.CharRenderData is not null);
 
             charData.CharRenderData!.LeftTop = new Point(charData.CharRenderData.LeftTop.X, lineTop);
             charData.CharRenderData.UpdateVersion();
-
-            //Debug.Assert(charData.Size is not null);
-            //currentX += charData.Size!.Value.Width;
         }
 
         lineVisualData.UpdateVersion();

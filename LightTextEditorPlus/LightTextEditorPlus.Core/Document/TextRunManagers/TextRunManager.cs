@@ -311,7 +311,14 @@ public class CharData
         }
 
         CharRenderData.LeftTop=point;
+
+        IsSetStartPointInDebugMode = true;
     }
+
+    /// <summary>
+    /// 这是一个调试属性，仅调试下有用
+    /// </summary>
+    public bool IsSetStartPointInDebugMode { set; get; }
 
     /// <summary>
     /// 尺寸
