@@ -85,7 +85,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// 每一行里面，需要对每个 Char 字符进行布局 <see cref="LayoutSingleCharInLine"/>
     /// 每个字符需要调用平台的测量 <see cref="MeasureCharInfo"/>
     /// </remarks>
-    protected override ParagraphLeftTopLayoutResult LayoutParagraphCore(ParagraphLeftTopLayoutArgument argument,
+    protected override ParagraphLayoutResult LayoutParagraphCore(ParagraphLayoutArgument argument,
         ParagraphOffset startParagraphOffset)
     {
         //// 当前行的 RunList 列表，看起来设计不对，没有加上在段落的坐标
@@ -175,7 +175,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         paragraph.IsDirty = false;
 
-        return new ParagraphLeftTopLayoutResult(leftTop);
+        return new ParagraphLayoutResult(leftTop);
     }
 
     private WholeRunLineLayoutResult LayoutWholeLine(ParagraphData paragraph, ReadOnlyListSpan<CharData> charDataList,
@@ -359,9 +359,9 @@ abstract class ArrangingLayoutProvider
         {
             ParagraphData paragraphData = paragraphList[index];
 
-            var argument = new ParagraphLeftTopLayoutArgument(index, currentLeftTop, paragraphData, paragraphList);
+            var argument = new ParagraphLayoutArgument(index, currentLeftTop, paragraphData, paragraphList);
 
-            ParagraphLeftTopLayoutResult result = LayoutParagraph(argument);
+            ParagraphLayoutResult result = LayoutParagraph(argument);
             currentLeftTop = result.CurrentLeftTop;
         }
 
@@ -384,12 +384,12 @@ abstract class ArrangingLayoutProvider
         return new DocumentLayoutResult(documentBounds);
     }
 
-    //protected abstract ParagraphLeftTopLayoutResult LayoutParagraphLeftTop(in ParagraphLeftTopLayoutArgument argument);
+    //protected abstract ParagraphLayoutResult LayoutParagraphLeftTop(in ParagraphLayoutArgument argument);
 
     /// <summary>
     /// 段落内布局
     /// </summary>
-    private ParagraphLeftTopLayoutResult LayoutParagraph(ParagraphLeftTopLayoutArgument argument)
+    private ParagraphLayoutResult LayoutParagraph(ParagraphLayoutArgument argument)
     {
         // 先找到首个需要更新的坐标点，这里的坐标是段坐标
         var dirtyParagraphOffset = 0;
@@ -436,7 +436,7 @@ abstract class ArrangingLayoutProvider
        return result;
     }
 
-    protected abstract ParagraphLeftTopLayoutResult LayoutParagraphCore(ParagraphLeftTopLayoutArgument paragraph,
+    protected abstract ParagraphLayoutResult LayoutParagraphCore(ParagraphLayoutArgument paragraph,
         ParagraphOffset startParagraphOffset);
 }
 

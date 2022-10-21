@@ -2,4 +2,4 @@
 
 namespace LightTextEditorPlus.Core.Layout;
 
-readonly record struct ParagraphLeftTopLayoutResult(Point CurrentLeftTop);
+readonly record struct ParagraphLayoutResult(Point CurrentLeftTop);
