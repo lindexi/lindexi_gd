@@ -81,12 +81,23 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     protected override ParagraphLayoutResult LayoutParagraphCore(ParagraphLayoutArgument argument,
         ParagraphOffset startParagraphOffset)
     {
+        // 先更新非脏的行的坐标
+        // 布局左上角坐标
+        var leftTop = argument.CurrentStartPoint;
+        var paragraphSize = new Size(0, 0);
+        var paragraph = argument.ParagraphData;
+
+        var currentCharCount = 0;
+        foreach (LineVisualData lineVisualData in argument.ParagraphData.LineVisualDataList)
+        {
+            UpdateLineVisualDataStartPoint(lineVisualData);
+        }
+
         //// 当前行的 RunList 列表，看起来设计不对，没有加上在段落的坐标
         //var currentLineRunList = new List<IImmutableRun>();
         // 当前的行渲染信息
         LineVisualData? currentLineVisualData = null;
 
-        var paragraph = argument.ParagraphData;
 
         // 获取最大宽度信息
         double lineMaxWidth = TextEditor.SizeToContent switch
@@ -122,8 +133,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 StartParagraphIndex = i,
                 EndParagraphIndex = i + result.RunCount,
                 Size = result.Size,
-                //LeftTop = 等待所有行完成了，再赋值
             };
+            UpdateLineVisualDataStartPoint(currentLineVisualData);
 
             paragraph.LineVisualDataList.Add(currentLineVisualData);
 
@@ -145,14 +156,38 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // todo 考虑行复用，例如刚好添加的内容是一行。或者在一行内做文本替换等
         // 这个没有啥优先级。测试了 SublimeText 和 NotePad 工具，都没有做此复用，预计有坑
 
-        // 布局左上角坐标
-        var leftTop = argument.CurrentStartPoint;
+       
 
-        var paragraphSize = new Size(0, 0);
+        argument.ParagraphData.ParagraphRenderData.Size = paragraphSize;
 
-        foreach (var lineVisualData in argument.ParagraphData.LineVisualDataList)
+        paragraph.IsDirty = false;
+
+        return new ParagraphLayoutResult(leftTop);
+
+        void UpdateLineVisualDataStartPoint(LineVisualData lineVisualData)
         {
             lineVisualData.LeftTop = leftTop;
+            // 更新行内所有字符的坐标
+            var lineTop = leftTop.Y;
+            var list = lineVisualData.GetCharList();
+            var currentX = 0d;
+
+            Debug.Assert(currentCharCount==lineVisualData.StartParagraphIndex);
+
+            for (var index = 0; index < list.Count; index++)
+            {
+                var charData = list[index];
+                charData.CharRenderData ??= new CharRenderData(charData, paragraph)
+                {
+                    CharIndex = new ParagraphOffset(currentCharCount),
+                    CurrentLine = lineVisualData,
+                    LeftTop = new Point(currentX,lineTop),
+                };
+
+                Debug.Assert(charData.Size is not null);
+                currentX += charData.Size!.Value.Width;
+                currentCharCount++;
+            }
 
             var width = Math.Max(paragraphSize.Width, lineVisualData.Size.Width);
             var height = paragraphSize.Height + lineVisualData.Size.Height;
@@ -163,12 +198,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
             lineVisualData.UpdateVersion();
         }
-
-        argument.ParagraphData.ParagraphRenderData.Size = paragraphSize;
-
-        paragraph.IsDirty = false;
-
-        return new ParagraphLayoutResult(leftTop);
     }
 
     private WholeRunLineLayoutResult LayoutWholeLine(ParagraphData paragraph, ReadOnlyListSpan<CharData> charDataList,
