@@ -433,9 +433,3 @@ readonly record struct DocumentLayoutResult(Rect DocumentBounds)
 {
 
 }
-
-readonly record struct ParagraphLeftTopLayoutArgument(int ParagraphIndex, Point CurrentLeftTop, ParagraphData ParagraphData, IReadOnlyList<ParagraphData> ParagraphList)
-{
-}
-
-readonly record struct ParagraphLeftTopLayoutResult(Point CurrentLeftTop);
