@@ -135,8 +135,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 Size = result.Size,
                 LeftTop = currentStartPoint,
             };
+
             currentStartPoint = UpdateStartPoint(currentStartPoint, currentLineVisualData);
-            //UpdateLineVisualDataStartPoint(currentLineVisualData);
 
             paragraph.LineVisualDataList.Add(currentLineVisualData);
 
@@ -291,20 +291,25 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 更新行内所有字符的坐标
         var lineTop = currentStartPoint.Y;
         var list = lineVisualData.GetCharList();
-        var currentX = 0d;
+        //var currentX = 0d;
 
         for (var index = 0; index < list.Count; index++)
         {
             var charData = list[index];
-            charData.CharRenderData ??= new CharRenderData(charData, lineVisualData.CurrentParagraph)
-            {
-                CharIndex = new ParagraphOffset(lineVisualData.StartParagraphIndex + index),
-                CurrentLine = lineVisualData,
-                LeftTop = new Point(currentX, lineTop),
-            };
+            //charData.CharRenderData ??= new CharRenderData(charData, lineVisualData.CurrentParagraph)
+            //{
+            //    CharIndex = new ParagraphOffset(lineVisualData.StartParagraphIndex + index),
+            //    CurrentLine = lineVisualData,
+            //    LeftTop = new Point(currentX, lineTop),
+            //};
 
-            Debug.Assert(charData.Size is not null);
-            currentX += charData.Size!.Value.Width;
+            Debug.Assert(charData.CharRenderData is not null);
+
+            charData.CharRenderData!.LeftTop = new Point(charData.CharRenderData.LeftTop.X, lineTop);
+            charData.CharRenderData.UpdateVersion();
+
+            //Debug.Assert(charData.Size is not null);
+            //currentX += charData.Size!.Value.Width;
         }
 
         lineVisualData.UpdateVersion();
