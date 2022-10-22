@@ -53,6 +53,8 @@ public partial class MainWindow : Window
 
     private static BitmapSource WICBitmapToBitmapSource(IWICBitmap wicBitmap)
     {
+        return System.Windows.Interop.Imaging.CreateBitmapSourceFromWICBitmapSource(wicBitmap.NativePointer);
+
         var presentationCoreAssembly = typeof(BitmapSource).Assembly;
         var bitmapSourceSafeMILHandleType =
             presentationCoreAssembly.GetType("System.Windows.Media.Imaging.BitmapSourceSafeMILHandle", throwOnError: true)!;
