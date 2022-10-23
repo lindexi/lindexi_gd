@@ -29,20 +29,15 @@ public partial class MainWindow : Window
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        var size = new Size(100, 100);
+        var size = new Size(10, 10);
 
         var drawingGroup = new DrawingGroup();
         using (var drawingContext = drawingGroup.Open())
         {
             drawingContext.DrawRectangle(Brushes.White, null, new Rect(0, 0, ActualWidth, ActualHeight));
 
-            for (int i = 0; i < 1000; i++)
+            for (int i = 0; i < 100; i++)
             {
-                var startPoint = new Point(Random.Shared.Next((int) (ActualWidth - size.Width)),
-                    Random.Shared.Next((int) (ActualHeight - size.Height)));
-                var endPoint = new Point(Random.Shared.Next((int) (ActualWidth - size.Width)),
-                    Random.Shared.Next((int) (ActualHeight - size.Height)));
-
                 var random = new byte[3];
                 Random.Shared.NextBytes(random);
                 var brush = new SolidColorBrush(Color.FromRgb(random[0], random[1], random[2]))
@@ -64,7 +59,10 @@ public partial class MainWindow : Window
                     _ => null,
                 };
 
-                var rectAnimation = new RectAnimation(new Rect(startPoint, size), new Rect(endPoint, size),
+                
+                var endPoint = new Point(Random.Shared.Next((int) (ActualWidth - size.Width)),
+                    Random.Shared.Next((int) (ActualHeight - size.Height)));
+                var rectAnimation = new RectAnimation(new Rect(endPoint, size),
                     new Duration(TimeSpan.FromSeconds(Random.Shared.Next(1, 100))))
                 {
                     RepeatBehavior = RepeatBehavior.Forever,
@@ -74,7 +72,12 @@ public partial class MainWindow : Window
 
                 var animationClock = rectAnimation.CreateClock();
 
-                drawingContext.DrawRectangle(brush, null, new Rect(startPoint, size), animationClock);
+                for (int j = 0; j < 100; j++)
+                {
+                    var startPoint = new Point(Random.Shared.Next((int) (ActualWidth - size.Width)),
+                        Random.Shared.Next((int) (ActualHeight - size.Height)));
+                    drawingContext.DrawRectangle(brush, null, new Rect(startPoint, size), animationClock);
+                }
             }
         }
 
