@@ -40,6 +40,20 @@ public partial class TextEditor : FrameworkElement
 
     public TextEditorCore TextEditorCore { get; }
     internal TextEditorPlatformProvider TextEditorPlatformProvider { get; }
+
+    internal void UpdateRender()
+    {
+
+
+        InvalidateVisual();
+    }
+
+    private readonly DrawingGroup _drawingGroup = new DrawingGroup();
+
+    protected override void OnRender(DrawingContext drawingContext)
+    {
+        drawingContext.DrawDrawing(_drawingGroup);
+    }
 }
 
 
@@ -57,6 +71,8 @@ internal class TextEditorPlatformProvider : PlatformProvider
     {
         Debug.Assert(_lastTextLayout is not null);
         _lastTextLayout?.Invoke();
+
+        TextEditor.UpdateRender();
     }
 
     private TextEditor TextEditor { get; }
