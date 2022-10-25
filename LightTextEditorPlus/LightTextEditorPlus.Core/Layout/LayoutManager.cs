@@ -264,7 +264,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             charData.SetStartPoint(new Point(currentX,lineTop));
 
             Debug.Assert(charData.Size != null, "charData.Size != null");
-            currentX = charData.Size!.Value.Width;
+            currentX += charData.Size!.Value.Width;
         }
 
         return new WholeLineLayoutResult(currentSize, wholeCharCount);
