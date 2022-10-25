@@ -15,3 +15,4 @@ public partial class TextEditorCore
         return _layoutManager.DocumentRenderData.DocumentBounds;
     }
 }
+

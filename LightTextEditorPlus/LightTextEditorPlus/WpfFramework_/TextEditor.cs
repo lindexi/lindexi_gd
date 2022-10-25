@@ -14,6 +14,7 @@ using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Rendering;
 using Microsoft.Win32;
 using Point = LightTextEditorPlus.Core.Primitive.Point;
 using Rect = LightTextEditorPlus.Core.Primitive.Rect;
@@ -21,7 +22,7 @@ using Size = LightTextEditorPlus.Core.Primitive.Size;
 
 namespace LightTextEditorPlus;
 
-public partial class TextEditor : FrameworkElement
+public partial class TextEditor : FrameworkElement, IRenderManager
 {
     public TextEditor()
     {
@@ -41,18 +42,16 @@ public partial class TextEditor : FrameworkElement
     public TextEditorCore TextEditorCore { get; }
     internal TextEditorPlatformProvider TextEditorPlatformProvider { get; }
 
-    internal void UpdateRender()
-    {
-
-
-        InvalidateVisual();
-    }
-
     private readonly DrawingGroup _drawingGroup = new DrawingGroup();
 
     protected override void OnRender(DrawingContext drawingContext)
     {
         drawingContext.DrawDrawing(_drawingGroup);
+    }
+
+    void IRenderManager.Render(RenderInfoProvider renderInfoProvider)
+    {
+        InvalidateVisual();
     }
 }
 
@@ -71,8 +70,6 @@ internal class TextEditorPlatformProvider : PlatformProvider
     {
         Debug.Assert(_lastTextLayout is not null);
         _lastTextLayout?.Invoke();
-
-        TextEditor.UpdateRender();
     }
 
     private TextEditor TextEditor { get; }
@@ -91,6 +88,11 @@ internal class TextEditorPlatformProvider : PlatformProvider
     }
 
     private readonly CharInfoMeasurer? _charInfoMeasurer;
+
+    public override IRenderManager? GetRenderManager()
+    {
+        return TextEditor;
+    }
 }
 
 class CharInfoMeasurer : ICharInfoMeasurer
@@ -158,6 +160,8 @@ class CharInfoMeasurer : ICharInfoMeasurer
         var fontFamily = new FontFamily(runPropertyFontFamily.UserFontName);
         return fontFamily;
     }
+
+    
 }
 
 /// <summary>
