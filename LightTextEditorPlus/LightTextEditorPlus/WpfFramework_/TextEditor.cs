@@ -133,7 +133,7 @@ class CharInfoMeasurer : ICharInfoMeasurer
 
     private FontFamily ToFontFamily(FontName runPropertyFontFamily)
     {
-        if (runPropertyFontFamily.Equals(FontName.DefaultNotDefineFontName))
+        if (runPropertyFontFamily.IsNotDefineFontName)
         {
             // 如果采用没有定义的字体名，那就返回默认的字体
             return _defaultFontFamily;
