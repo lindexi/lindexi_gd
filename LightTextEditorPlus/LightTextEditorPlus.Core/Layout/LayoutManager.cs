@@ -225,9 +225,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
             if (result.CanTake)
             {
-                var width = currentSize.Width + result.TotalSize.Width;
-                var height = Math.Max(currentSize.Height, result.TotalSize.Height);
-                currentSize = new Size(width, height);
+                currentSize = currentSize.HorizontalUnion(result.TotalSize);
 
                 if (result.TaskCount == 1)
                 {
