@@ -24,7 +24,7 @@ public abstract class PlatformProvider : IPlatformProvider
         return _defaultRunParagraphSplitter ??= new DefaultRunParagraphSplitter();
     }
 
-    public IWholeLineLayouter? GetWholeRunLineLayouter()
+    public virtual IWholeLineLayouter? GetWholeRunLineLayouter()
     {
         return null;
     }
@@ -34,7 +34,7 @@ public abstract class PlatformProvider : IPlatformProvider
     //    return  new DefaultRunMeasureProvider();
     //}
 
-    public ISingleCharInLineLayouter? GetSingleRunLineLayouter()
+    public virtual ISingleCharInLineLayouter? GetSingleRunLineLayouter()
     {
         return null;
     }
@@ -44,12 +44,12 @@ public abstract class PlatformProvider : IPlatformProvider
     //    return null;
     //}
 
-    public ICharInfoMeasurer? GetCharInfoMeasurer()
+    public virtual ICharInfoMeasurer? GetCharInfoMeasurer()
     {
         return null;
     }
 
-    public IRenderManager? GetRenderManager()
+    public virtual IRenderManager? GetRenderManager()
     {
         return null;
     }
