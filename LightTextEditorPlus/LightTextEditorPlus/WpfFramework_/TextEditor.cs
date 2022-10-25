@@ -75,6 +75,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager
                         var runProperty = charData.RunProperty;
                         var fontSize = runProperty.FontSize;
 
+                        // todo 支持多个字符一起排版
                         var text = charData.CharObject.ToText();
                         List<ushort> glyphIndices = new List<ushort>();
                         for (var i = 0; i < text.Length; i++)
@@ -122,6 +123,9 @@ public partial class TextEditor : FrameworkElement, IRenderManager
                         // todo 属性系统，支持设置前景色
                         Brush brush = Brushes.Black;
                         drawingContext.DrawGlyphRun(brush, glyphRun);
+
+                        // todo 考虑加上缓存
+                        lineRenderInfo.SetDrawnResult(new LineDrawnResult(null));
                     }
                 }
             }
