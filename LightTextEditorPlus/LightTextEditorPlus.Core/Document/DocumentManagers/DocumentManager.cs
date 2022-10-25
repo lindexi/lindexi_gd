@@ -122,6 +122,8 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
                 return;
             }
 
+            TextEditor.AddLayoutReason(nameof(AppendText));
+
             // 追加在字符数量，也就是最末
             EditAndReplaceRun(this.GetDocumentEndSelection(), new TextRun(text));
         }

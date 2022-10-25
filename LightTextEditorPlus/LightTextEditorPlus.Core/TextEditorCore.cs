@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Document.DocumentManagers;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
@@ -130,6 +130,7 @@ public partial class TextEditorCore
         var renderManager = PlatformProvider.GetRenderManager();
         renderManager?.Render(_renderInfoProvider);
         Logger.LogDebug($"[TextEditorCore][Render] 完成调用平台渲染");
+
     }
 
     #endregion
@@ -229,6 +230,30 @@ public partial class TextEditorCore
     {
         DocumentManager.AppendText(text);
     }
+
+    #endregion
+
+    #region 框架内使用的属性
+
+    #region 更新布局原因
+
+    /// <summary>
+    /// 添加触发布局的原因，仅仅设置 <see cref="IsInDebugMode"/> 有效
+    /// </summary>
+    /// <param name="reason"></param>
+    public void AddLayoutReason(string reason)
+    {
+        if (IsInDebugMode)
+        {
+            _layoutUpdateReasonManager ??= new LayoutUpdateReasonManager(this);
+            _layoutUpdateReasonManager.AddLayoutReason(reason);
+            Logger.LogDebug($"[TextEditorCore][AddLayoutReason] {reason}");
+        }
+    }
+
+    private LayoutUpdateReasonManager? _layoutUpdateReasonManager;
+
+    #endregion
 
     #endregion
 }
