@@ -228,9 +228,9 @@ class ParagraphManager
     }
 }
 
-class CharRenderData : IParagraphCache
+class CharLayoutData : IParagraphCache
 {
-    public CharRenderData(CharData charData, ParagraphData paragraph)
+    public CharLayoutData(CharData charData, ParagraphData paragraph)
     {
         CharData = charData;
         Paragraph = paragraph;
@@ -301,16 +301,16 @@ public class CharData
 
     public IReadOnlyRunProperty RunProperty { get; }
 
-    internal CharRenderData? CharRenderData { set; get; }
+    internal CharLayoutData? CharLayoutData { set; get; }
 
     public void SetStartPoint(Point point)
     {
-        if (CharRenderData is null)
+        if (CharLayoutData is null)
         {
             throw new InvalidOperationException($"禁止在开始布局之前设置");
         }
 
-        CharRenderData.StartPoint=point;
+        CharLayoutData.StartPoint=point;
 
         IsSetStartPointInDebugMode = true;
     }
@@ -339,9 +339,9 @@ public class CharData
 
     internal void DebugVerify()
     {
-        if (CharRenderData != null)
+        if (CharLayoutData != null)
         {
-            if (!ReferenceEquals(CharRenderData.CharData, this))
+            if (!ReferenceEquals(CharLayoutData.CharData, this))
             {
                 throw new TextEditorDebugException($"此 CharData 存放的渲染数据对应的字符，不是当前的 CharData 数据");
             }
@@ -369,7 +369,7 @@ class ParagraphCharDataManager
 
     public void Add(CharData charData)
     {
-        charData.CharRenderData = new CharRenderData(charData, _paragraph);
+        charData.CharLayoutData = new CharLayoutData(charData, _paragraph);
         CharDataList.Add(charData);
     }
 
@@ -392,7 +392,7 @@ class ParagraphCharDataManager
 /// <summary>
 /// 段落的渲染数据
 /// </summary>
-class ParagraphRenderData
+class ParagraphLayoutData
 {
     public Point StartPoint { set; get; }
 
@@ -418,7 +418,7 @@ class ParagraphData
         CharDataManager = new ParagraphCharDataManager(this);
     }
 
-    public ParagraphRenderData ParagraphRenderData { get; } = new ParagraphRenderData();
+    public ParagraphLayoutData ParagraphLayoutData { get; } = new ParagraphLayoutData();
 
     public ParagraphProperty ParagraphProperty { set; get; }
     public ParagraphManager ParagraphManager { get; }
@@ -517,13 +517,13 @@ class ParagraphData
 
             foreach (var charData in charDataList)
             {
-                var lineVisualData = charData.CharRenderData?.CurrentLine;
+                var lineVisualData = charData.CharLayoutData?.CurrentLine;
                 //if (lineVisualData != null)
                 //{
                 //    lineVisualData.IsDirty = true;
                 //}
 
-                charData.CharRenderData = null;
+                charData.CharLayoutData = null;
             }
 
             return charDataList;
@@ -592,7 +592,7 @@ class ParagraphData
         // 谨慎 CharData 的加入开放给框架之外，原因在于 CharData 不能被加入到文本多次
         // 一个 CharData 只能存在一个文本，且只存在一次。原因是 CharData 里面包含了渲染布局信息
         // 加入多次将会让布局很乱
-        if (charData.CharRenderData is not null)
+        if (charData.CharLayoutData is not null)
         {
             throw new ArgumentException($"此 CharData 已经被加入到某个段落，不能重复加入");
         }

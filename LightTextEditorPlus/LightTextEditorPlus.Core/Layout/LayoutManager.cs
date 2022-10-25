@@ -159,9 +159,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                     }
                 }
 
-                charData.CharRenderData!.CharIndex = new ParagraphOffset(i + index);
-                charData.CharRenderData.CurrentLine = currentLineVisualData;
-                charData.CharRenderData.UpdateVersion();
+                charData.CharLayoutData!.CharIndex = new ParagraphOffset(i + index);
+                charData.CharLayoutData.CurrentLine = currentLineVisualData;
+                charData.CharLayoutData.UpdateVersion();
             }
 
             currentStartPoint = UpdateStartPoint(currentStartPoint, currentLineVisualData);
@@ -186,8 +186,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // todo 考虑行复用，例如刚好添加的内容是一行。或者在一行内做文本替换等
         // 这个没有啥优先级。测试了 SublimeText 和 NotePad 工具，都没有做此复用，预计有坑
 
-        argument.ParagraphData.ParagraphRenderData.StartPoint = argument.ParagraphData.LineVisualDataList[0].StartPoint;
-        argument.ParagraphData.ParagraphRenderData.Size = BuildParagraphSize(argument);
+        argument.ParagraphData.ParagraphLayoutData.StartPoint = argument.ParagraphData.LineVisualDataList[0].StartPoint;
+        argument.ParagraphData.ParagraphLayoutData.Size = BuildParagraphSize(argument);
 
         paragraph.IsDirty = false;
 
@@ -336,10 +336,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         {
             var charData = list[index];
 
-            Debug.Assert(charData.CharRenderData is not null);
+            Debug.Assert(charData.CharLayoutData is not null);
 
-            charData.CharRenderData!.StartPoint = new Point(charData.CharRenderData.StartPoint.X, lineTop);
-            charData.CharRenderData.UpdateVersion();
+            charData.CharLayoutData!.StartPoint = new Point(charData.CharLayoutData.StartPoint.X, lineTop);
+            charData.CharLayoutData.UpdateVersion();
         }
 
         lineVisualData.UpdateVersion();
@@ -436,7 +436,7 @@ abstract class ArrangingLayoutProvider
         var documentBounds = Rect.Zero;
         foreach (var paragraphData in paragraphList)
         {
-            var bounds = paragraphData.ParagraphRenderData.GetBounds();
+            var bounds = paragraphData.ParagraphLayoutData.GetBounds();
             documentBounds = documentBounds.Union(bounds);
         }
 
