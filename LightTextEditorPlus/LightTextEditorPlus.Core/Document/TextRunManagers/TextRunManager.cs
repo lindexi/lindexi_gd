@@ -243,7 +243,7 @@ class CharLayoutData : IParagraphCache
 
     public uint CurrentParagraphVersion { get; set; }
 
-    public void IsInvalidVersion() => Paragraph.IsInvalidVersion(this);
+    public bool IsInvalidVersion() => Paragraph.IsInvalidVersion(this);
 
     public void UpdateVersion() => Paragraph.UpdateVersion(this);
 
@@ -302,6 +302,16 @@ public class CharData
     public IReadOnlyRunProperty RunProperty { get; }
 
     internal CharLayoutData? CharLayoutData { set; get; }
+
+    public Point GetStartPoint()
+    {
+        if (CharLayoutData is null || CharLayoutData.IsInvalidVersion())
+        {
+            throw new InvalidOperationException($"禁止在开始布局之前获取");
+        }
+
+        return CharLayoutData.StartPoint;
+    }
 
     public void SetStartPoint(Point point)
     {
@@ -718,7 +728,9 @@ public readonly record struct LineDrawnResult(object? LineAssociatedRenderData)
 
 }
 
-public readonly record struct LineDrawnArgument(bool IsDrawn, bool IsLineStartPointUpdated, object? LineAssociatedRenderData, ReadOnlyListSpan<CharData> CharList);
+public readonly record struct LineDrawnArgument(bool IsDrawn, bool IsLineStartPointUpdated, object? LineAssociatedRenderData, Point StartPoint, Size Size, ReadOnlyListSpan<CharData> CharList)
+{
+}
 
 /// <summary>
 /// 行渲染信息
@@ -831,4 +843,9 @@ class LineVisualData : IParagraphCache
     }
 
     public uint CurrentParagraphVersion { get; set; }
+
+    public LineDrawnArgument GetLineDrawnArgument()
+    {
+        return new LineDrawnArgument(IsDrawn, IsLineStartPointUpdated, LineAssociatedRenderData, StartPoint, Size, GetCharList());
+    }
 }

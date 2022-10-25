@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Navigation;
 using System.Windows.Threading;
@@ -15,7 +17,9 @@ using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
+
 using Microsoft.Win32;
+
 using Point = LightTextEditorPlus.Core.Primitive.Point;
 using Rect = LightTextEditorPlus.Core.Primitive.Rect;
 using Size = LightTextEditorPlus.Core.Primitive.Size;
@@ -51,6 +55,78 @@ public partial class TextEditor : FrameworkElement, IRenderManager
 
     void IRenderManager.Render(RenderInfoProvider renderInfoProvider)
     {
+        var pixelsPerDip = (float) VisualTreeHelper.GetDpi(this).PixelsPerDip;
+
+        using (var drawingContext = _drawingGroup.Open())
+        {
+            foreach (var paragraphRenderInfo in renderInfoProvider.GetParagraphRenderInfoList())
+            {
+                foreach (var lineRenderInfo in paragraphRenderInfo.GetLineRenderInfoList())
+                {
+                    var argument = lineRenderInfo.Argument;
+                    foreach (var charData in argument.CharList)
+                    {
+                        var startPoint = charData.GetStartPoint();
+
+                        var fontFamily = new FontFamily("微软雅黑"); //ToFontFamily(runPropertyFontFamily);
+                        Typeface typeface = fontFamily.GetTypefaces().First();
+                        bool success = typeface.TryGetGlyphTypeface(out GlyphTypeface glyphTypeface);
+                        //drawingContext.DrawGlyphRun();
+                        var runProperty = charData.RunProperty;
+                        var fontSize = runProperty.FontSize;
+
+                        var text = charData.CharObject.ToText();
+                        List<ushort> glyphIndices = new List<ushort>();
+                        for (var i = 0; i < text.Length; i++)
+                        {
+                            var c = text[i];
+                            var glyphIndex = glyphTypeface.CharacterToGlyphMap[c];
+                            glyphIndices.Add(glyphIndex);
+                        }
+
+                        List<double> advanceWidths = new List<double>();
+                        var height = 0d;
+
+                        for (var i = 0; i < text.Length; i++)
+                        {
+                            var glyphIndex = glyphIndices[i];
+
+                            var width = glyphTypeface.AdvanceWidths[glyphIndex] * fontSize;
+                            advanceWidths.Add(width);
+
+                            height = glyphTypeface.AdvanceHeights[glyphIndex] * fontSize;
+                        }
+
+                        var location = new System.Windows.Point(startPoint.X, startPoint.Y + height);
+                        XmlLanguage defaultXmlLanguage =
+                            XmlLanguage.GetLanguage(CultureInfo.CurrentUICulture.IetfLanguageTag);
+
+                        var glyphRun = new GlyphRun
+                        (
+                            glyphTypeface,
+                            bidiLevel: 0,
+                            isSideways: false,
+                            renderingEmSize: fontSize,
+                            pixelsPerDip: pixelsPerDip,   // 只有在高版本的 .NET 才有此参数
+                            glyphIndices: glyphIndices,
+                            baselineOrigin: location,     // 设置文本的偏移量
+                            advanceWidths: advanceWidths, // 设置每个字符的字宽，也就是字号
+                            glyphOffsets: null,           // 设置每个字符的偏移量，可以为空
+                            characters: text.ToCharArray(),
+                            deviceFontName: null,
+                            clusterMap: null,
+                            caretStops: null,
+                            language: defaultXmlLanguage
+                        );
+
+                        // todo 属性系统，支持设置前景色
+                        Brush brush = Brushes.Black;
+                        drawingContext.DrawGlyphRun(brush, glyphRun);
+                    }
+                }
+            }
+        }
+
         InvalidateVisual();
     }
 }
@@ -161,7 +237,7 @@ class CharInfoMeasurer : ICharInfoMeasurer
         return fontFamily;
     }
 
-    
+
 }
 
 /// <summary>

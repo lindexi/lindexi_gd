@@ -30,12 +30,38 @@ public class RenderInfoProvider
     }
 }
 
-public class ParagraphRenderInfo
+public readonly struct ParagraphRenderInfo
 {
     internal ParagraphRenderInfo(int index, ParagraphData paragraphData)
     {
-        
+        Index = index;
+        _paragraphData = paragraphData;
     }
-    // todo 考虑作为结构体
+    public int Index { get; }
+    private readonly ParagraphData _paragraphData;
 
+    public IEnumerable<ParagraphLineRenderInfo> GetLineRenderInfoList()
+    {
+        for (var i = 0; i < _paragraphData.LineVisualDataList.Count; i++)
+        {
+            LineVisualData lineVisualData = _paragraphData.LineVisualDataList[i];
+
+            var argument = lineVisualData.GetLineDrawnArgument();
+
+            yield return new ParagraphLineRenderInfo(i,argument)
+            {
+                LineVisualData = lineVisualData
+            };
+        }
+    }
+}
+
+public readonly record struct ParagraphLineRenderInfo(int Index, LineDrawnArgument Argument)
+{
+    internal LineVisualData LineVisualData { init; get; } = null!;
+
+    public void SetDrawnResult(in LineDrawnResult lineDrawnResult)
+    {
+        LineVisualData.SetDrawn(lineDrawnResult);
+    }
 }
