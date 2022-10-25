@@ -27,7 +27,7 @@ public readonly struct FontName:IEquatable<FontName>
     /// </summary>
     public string UserFontName { get; }
 
-    internal static FontName DefaultNotDefineFontName => new FontName("_NotDefine_");
+    public static FontName DefaultNotDefineFontName => new FontName("_NotDefine_");
 
     public bool Equals(FontName other)
     {

@@ -17,6 +17,18 @@ public readonly struct Size : IEquatable<Size>
     public double Width { get; }
     public double Height { get; }
 
+    public Size HorizontalUnion(Size other)
+    {
+        return HorizontalUnion(other.Width, other.Height);
+    }
+
+    public Size HorizontalUnion(double otherWidth,double otherHeight)
+    {
+        var width = Width + otherWidth;
+        var height = Math.Max(Height, otherHeight);
+        return new Size(width, height);
+    }
+
     public static Size Zero => new Size(0, 0);
 
     public bool Equals(Size other)

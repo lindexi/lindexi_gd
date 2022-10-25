@@ -5,11 +5,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media;
+using System.Windows.Navigation;
 using System.Windows.Threading;
 
 using LightTextEditorPlus.Core;
+using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
+using LightTextEditorPlus.Core.Primitive;
 using Microsoft.Win32;
+using Point = LightTextEditorPlus.Core.Primitive.Point;
+using Rect = LightTextEditorPlus.Core.Primitive.Rect;
+using Size = LightTextEditorPlus.Core.Primitive.Size;
 
 namespace LightTextEditorPlus;
 
@@ -42,6 +50,7 @@ internal class TextEditorPlatformProvider : PlatformProvider
         TextEditor = textEditor;
 
         _textLayoutDispatcherRequiring = new DispatcherRequiring(UpdateLayout, DispatcherPriority.Render);
+        _charInfoMeasurer = new CharInfoMeasurer(textEditor);
     }
 
     private void UpdateLayout()
@@ -58,6 +67,80 @@ internal class TextEditorPlatformProvider : PlatformProvider
     {
         _lastTextLayout = textLayout;
         _textLayoutDispatcherRequiring.Require();
+    }
+
+    public override ICharInfoMeasurer? GetCharInfoMeasurer()
+    {
+        return _charInfoMeasurer;
+    }
+
+    private readonly CharInfoMeasurer? _charInfoMeasurer;
+}
+
+class CharInfoMeasurer : ICharInfoMeasurer
+{
+    public CharInfoMeasurer(TextEditor textEditor)
+    {
+        _textEditor = textEditor;
+    }
+    private readonly TextEditor _textEditor;
+
+    // todo 允许开发者设置默认字体
+    private readonly FontFamily _defaultFontFamily = new FontFamily($"微软雅黑");
+
+    public CharInfoMeasureResult MeasureCharInfo(in CharInfo charInfo)
+    {
+        // todo 属性系统需要加上字体管理模块
+        // todo 处理字体回滚
+        var runPropertyFontFamily = charInfo.RunProperty.FontFamily;
+        var fontFamily = ToFontFamily(runPropertyFontFamily);
+        Typeface typeface = fontFamily.GetTypefaces().First();
+        bool success = typeface.TryGetGlyphTypeface(out GlyphTypeface glyphTypeface);
+
+        if (!success)
+        {
+            // 处理字体回滚
+        }
+
+        // todo 对于字符来说，反复在字符串和字符转换，需要优化
+        var text = charInfo.CharObject.ToText();
+
+        var size = Size.Zero;
+
+        if (_textEditor.TextEditorCore.ArrangingType == ArrangingType.Horizontal)
+        {
+            for (var i = 0; i < text.Length; i++)
+            {
+                var c = text[i];
+
+                var glyphIndex = glyphTypeface.CharacterToGlyphMap[c];
+
+                var fontSize = charInfo.RunProperty.FontSize;
+
+                var width = glyphTypeface.AdvanceWidths[glyphIndex] * fontSize;
+                var height = glyphTypeface.AdvanceHeights[glyphIndex] * fontSize;
+
+                size = size.HorizontalUnion(width, height);
+            }
+        }
+        else
+        {
+            throw new NotImplementedException("还没有实现竖排的文本测量");
+        }
+
+        return new CharInfoMeasureResult(new Rect(new Point(), size));
+    }
+
+    private FontFamily ToFontFamily(FontName runPropertyFontFamily)
+    {
+        if (runPropertyFontFamily.Equals(FontName.DefaultNotDefineFontName))
+        {
+            // 如果采用没有定义的字体名，那就返回默认的字体
+            return _defaultFontFamily;
+        }
+
+        var fontFamily = new FontFamily(runPropertyFontFamily.UserFontName);
+        return fontFamily;
     }
 }
 
