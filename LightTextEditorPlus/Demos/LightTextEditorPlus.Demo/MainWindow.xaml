@@ -4,17 +4,16 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LightTextEditorPlus.Demo"
-        xmlns:textEditorPlus="clr-namespace:LightTextEditorPlus.TextEditorPlus;assembly=LightTextEditorPlus"
+        xmlns:textEditorPlus="clr-namespace:LightTextEditorPlus;assembly=LightTextEditorPlus"
         mc:Ignorable="d"
         Title="输入法" Height="500" Width="600">
   <Grid Width="600" Height="500">
 
     <!--<textEditorPlus:TextEditor HorizontalAlignment="Left" VerticalAlignment="Top" />-->
 
-    <textEditorPlus:TextEditor Text="123"
-                               Width="600"
-      HorizontalAlignment="Left"
-      VerticalAlignment="Stretch" />
+    <textEditorPlus:TextEditor Width="600"
+                               HorizontalAlignment="Left"
+                               VerticalAlignment="Stretch" />
 
     <!--<StackPanel
       Grid.Row="1" Grid.Column="0">
