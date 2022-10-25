@@ -17,9 +17,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightTextEditorPlus.Core.Te
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightTextEditorPlus.Tests", "Tests\LightTextEditorPlus.Tests\LightTextEditorPlus.Tests.csproj", "{6CD26B09-48B9-418D-93A2-A144896E4CC3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightTextEditorPlus.Core.BenchmarkTests", "Tests\LightTextEditorPlus.Core.BenchmarkTests\LightTextEditorPlus.Core.BenchmarkTests.csproj", "{D7FE6D00-39AD-407D-8E3F-643155A79215}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightTextEditorPlus.Core.BenchmarkTests", "Tests\LightTextEditorPlus.Core.BenchmarkTests\LightTextEditorPlus.Core.BenchmarkTests.csproj", "{D7FE6D00-39AD-407D-8E3F-643155A79215}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightTextEditorPlus.Core.TestsFramework", "Tests\LightTextEditorPlus.Core.TestsFramework\LightTextEditorPlus.Core.TestsFramework.csproj", "{B90D5F8D-66F8-4FB5-ADE0-CEE52877F630}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightTextEditorPlus.Core.TestsFramework", "Tests\LightTextEditorPlus.Core.TestsFramework\LightTextEditorPlus.Core.TestsFramework.csproj", "{B90D5F8D-66F8-4FB5-ADE0-CEE52877F630}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{792F2192-B7F7-42B3-8414-4F02301F795E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Docs", "Docs\Docs.csproj", "{A2B80955-5E13-4C4F-9DE5-840A5D022F75}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,6 +59,10 @@ Global
 		{B90D5F8D-66F8-4FB5-ADE0-CEE52877F630}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B90D5F8D-66F8-4FB5-ADE0-CEE52877F630}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B90D5F8D-66F8-4FB5-ADE0-CEE52877F630}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2B80955-5E13-4C4F-9DE5-840A5D022F75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2B80955-5E13-4C4F-9DE5-840A5D022F75}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2B80955-5E13-4C4F-9DE5-840A5D022F75}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2B80955-5E13-4C4F-9DE5-840A5D022F75}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -65,6 +73,7 @@ Global
 		{6CD26B09-48B9-418D-93A2-A144896E4CC3} = {20384127-4EE9-4DE2-8BA9-57457E9B438A}
 		{D7FE6D00-39AD-407D-8E3F-643155A79215} = {20384127-4EE9-4DE2-8BA9-57457E9B438A}
 		{B90D5F8D-66F8-4FB5-ADE0-CEE52877F630} = {20384127-4EE9-4DE2-8BA9-57457E9B438A}
+		{A2B80955-5E13-4C4F-9DE5-840A5D022F75} = {792F2192-B7F7-42B3-8414-4F02301F795E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E48340DD-252E-4F4F-8FD7-DA0F41E2557E}
