@@ -1,7 +1,5 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using Microsoft.Maui.Graphics;
-using Microsoft.Maui.Graphics.Skia;
 using SkiaSharp;
 
 var skImageInfo = new SKImageInfo(1920, 1080, SKColorType.Bgra8888, SKAlphaType.Opaque, SKColorSpace.CreateSrgb());
@@ -13,15 +11,18 @@ using (SKBitmap skBitmap = SKBitmap.FromImage(skImage))
 {
     using (var skCanvas = new SKCanvas(skBitmap))
     {
-        var skiaCanvas = new SkiaCanvas();
-        skiaCanvas.Canvas = skCanvas;
+        skCanvas.Clear(SKColors.White);
 
-        ICanvas canvas = skiaCanvas;
+        var name = "微软雅黑";
+        var skTypeface = SKTypeface.FromFamilyName(name);
 
-        canvas.StrokeSize = 2;
-        canvas.StrokeColor = Colors.Blue;
+        var skPaint = new SKPaint(skTypeface.ToFont(30))
+        {
+            Color = SKColors.Black,
+        };
 
-        canvas.DrawLine(10, 10, 100, 10);
+        var skTextBlob = SKTextBlob.Create("林德熙", skTypeface.ToFont(30), new SKPoint(10, 30));
+        skCanvas.DrawText(skTextBlob, 10, 10, skPaint);
 
         skCanvas.Flush();
 
