@@ -10,7 +10,7 @@
 
     <Grid>
         <TextBlock Margin="20" FontSize="30">
-            <Run Text="Hello, " /><Run Text="{Binding}" /><Run Text="!" />
+            <Run Text="林德熙" /><Run Text="{Binding}" /><Run Text="!" />
         </TextBlock>
         <Button Margin="100">Hello from Uno</Button>
     </Grid>
