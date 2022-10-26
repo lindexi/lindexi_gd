@@ -56,7 +56,7 @@ namespace LightTextEditorPlus.Core.Document
 
         private double? _fontSize;
 
-        private const double DefaultFontSize = 30;
+        private const double DefaultFontSize = 15;
 
         public FontName FontFamily
         {
