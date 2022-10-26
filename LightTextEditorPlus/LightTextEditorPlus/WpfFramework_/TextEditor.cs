@@ -33,6 +33,11 @@ public partial class TextEditor : FrameworkElement, IRenderManager
     {
         var textEditorPlatformProvider = new TextEditorPlatformProvider(this);
         TextEditorCore = new TextEditorCore(textEditorPlatformProvider);
+        TextEditorCore.DocumentManager.SetDefaultTextRunProperty(property =>
+        {
+            property.FontSize = 30;
+        });
+
         TextEditorPlatformProvider = textEditorPlatformProvider;
 
         SnapsToDevicePixels = true;
