@@ -379,13 +379,19 @@ class ParagraphCharDataManager
 
     public void Add(CharData charData)
     {
+        Debug.Assert(charData.CharLayoutData is null);
         charData.CharLayoutData = new CharLayoutData(charData, _paragraph);
         CharDataList.Add(charData);
     }
 
     public void AddRange(IEnumerable<CharData> charDataList)
     {
-        CharDataList.AddRange(charDataList);
+        foreach (var charData in charDataList)
+        {
+            Add(charData);
+        }
+
+        //CharDataList.AddRange(charDataList);
     }
 
     public void RemoveRange(int index, int count) => CharDataList.RemoveRange(index, count);
