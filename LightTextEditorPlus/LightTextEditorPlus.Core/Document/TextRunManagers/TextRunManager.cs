@@ -228,6 +228,9 @@ class ParagraphManager
     }
 }
 
+/// <summary>
+/// 字符的布局信息，包括字符所在的段落和所在的行，字符所在的相对于文本框的坐标
+/// </summary>
 class CharLayoutData : IParagraphCache
 {
     public CharLayoutData(CharData charData, ParagraphData paragraph)
@@ -289,7 +292,6 @@ class CharLayoutData : IParagraphCache
 /// </summary>
 public class CharData
 {
-    private Size? _size;
 
     public CharData(ICharObject charObject, IReadOnlyRunProperty runProperty)
     {
@@ -303,6 +305,11 @@ public class CharData
 
     internal CharLayoutData? CharLayoutData { set; get; }
 
+    /// <summary>
+    /// 获取当前字符的左上角坐标，坐标相对于文本框。此属性必须是在布局完成之后才能获取
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
     public Point GetStartPoint()
     {
         if (CharLayoutData is null || CharLayoutData.IsInvalidVersion())
@@ -313,6 +320,11 @@ public class CharData
         return CharLayoutData.StartPoint;
     }
 
+    /// <summary>
+    /// 设置当前字符的左上角坐标，坐标相对于文本框
+    /// </summary>
+    /// <param name="point"></param>
+    /// <exception cref="InvalidOperationException"></exception>
     public void SetStartPoint(Point point)
     {
         if (CharLayoutData is null)
@@ -346,7 +358,12 @@ public class CharData
         }
         get => _size;
     }
+    private Size? _size;
 
+    /// <summary>
+    /// 调试下的判断逻辑
+    /// </summary>
+    /// <exception cref="TextEditorDebugException"></exception>
     internal void DebugVerify()
     {
         if (CharLayoutData != null)
@@ -379,7 +396,7 @@ class ParagraphCharDataManager
 
     public void Add(CharData charData)
     {
-        Debug.Assert(charData.CharLayoutData is null);
+        Debug.Assert(charData.CharLayoutData is null, "一个 CharData 不会被加入两次");
         charData.CharLayoutData = new CharLayoutData(charData, _paragraph);
         CharDataList.Add(charData);
     }
@@ -533,6 +550,7 @@ class ParagraphData
 
             foreach (var charData in charDataList)
             {
+                // 这里也许可以考虑一下设置脏的
                 var lineVisualData = charData.CharLayoutData?.CurrentLine;
                 //if (lineVisualData != null)
                 //{
