@@ -6,16 +6,35 @@ using CSharpMarkup.Wpf;
 using static CSharpMarkup.Wpf.Helpers;
 using Application = System.Windows.Application;
 using Window = System.Windows.Window;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace LightTextEditorPlus.Tests;
 
 [TestClass]
 public class TestFramework
 {
+    private static Application _application;
+
     [AssemblyInitialize]
     public static void InitializeApplication(TestContext testContext)
     {
-        UITestManager.InitializeApplication(() => new Application());
+        UITestManager.InitializeApplication(() =>
+        {
+            _application = new Application()
+            {
+                ShutdownMode = ShutdownMode.OnExplicitShutdown
+            };
+            return _application;
+        });
+    }
+
+    [AssemblyCleanup]
+    public static void CleanApplication()
+    {
+        _application.Dispatcher.InvokeAsync(() =>
+        {
+            _application.Shutdown();
+        });
     }
 
     public static (Window mainWindow, TextEditor textEditor) CreateTextEditorInNewWindow()

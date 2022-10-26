@@ -16,7 +16,7 @@ public class TextEditorTest
 
             textEditor.TextEditorCore.AppendText("123");
 
-            await Task.Delay(TimeSpan.FromSeconds(10));
+            await Task.Delay(TimeSpan.FromSeconds(1));
 
             mainWindow.Close();
         });
