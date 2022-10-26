@@ -17,6 +17,7 @@ using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
+using LightTextEditorPlus.TextEditorPlus.Render;
 
 using Microsoft.Win32;
 
@@ -34,13 +35,17 @@ public partial class TextEditor : FrameworkElement, IRenderManager
         TextEditorCore = new TextEditorCore(textEditorPlatformProvider);
         TextEditorPlatformProvider = textEditorPlatformProvider;
 
+        SnapsToDevicePixels = true;
+        RenderOptions.SetClearTypeHint(this, ClearTypeHint.Enabled);
+        RenderOptions.SetEdgeMode(this, EdgeMode.Aliased);
+
         Loaded += TextEditor_Loaded;
     }
 
     private void TextEditor_Loaded(object sender, RoutedEventArgs e)
     {
         // 这是测试代码 todo 删除测试代码
-        TextEditorCore.AppendText("123");
+        TextEditorCore.AppendText("123gf");
     }
 
     public TextEditorCore TextEditorCore { get; }
@@ -69,7 +74,16 @@ public partial class TextEditor : FrameworkElement, IRenderManager
                         var startPoint = charData.GetStartPoint();
 
                         var fontFamily = new FontFamily("微软雅黑"); //ToFontFamily(runPropertyFontFamily);
-                        Typeface typeface = fontFamily.GetTypefaces().First();
+                        var collection = fontFamily.GetTypefaces();
+                        Typeface typeface = collection.First();
+                        foreach (var t in collection)
+                        {
+                            if (t.Stretch == FontStretches.Normal && t.Weight == FontWeights.Normal)
+                            {
+                                typeface = t;
+                                break;
+                            }
+                        }
                         bool success = typeface.TryGetGlyphTypeface(out GlyphTypeface glyphTypeface);
                         //drawingContext.DrawGlyphRun();
                         var runProperty = charData.RunProperty;
@@ -93,6 +107,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager
                             var glyphIndex = glyphIndices[i];
 
                             var width = glyphTypeface.AdvanceWidths[glyphIndex] * fontSize;
+                            width = GlyphExtension.RefineValue(width);
                             advanceWidths.Add(width);
 
                             height = glyphTypeface.AdvanceHeights[glyphIndex] * fontSize;
@@ -192,7 +207,17 @@ class CharInfoMeasurer : ICharInfoMeasurer
         // todo 处理字体回滚
         var runPropertyFontFamily = charInfo.RunProperty.FontFamily;
         var fontFamily = ToFontFamily(runPropertyFontFamily);
-        Typeface typeface = fontFamily.GetTypefaces().First();
+        var collection = fontFamily.GetTypefaces();
+        Typeface typeface = collection.First();
+        foreach (var t in collection)
+        {
+            if (t.Stretch == FontStretches.Normal && t.Weight == FontWeights.Normal)
+            {
+                typeface = t;
+                break;
+            }
+        }
+
         bool success = typeface.TryGetGlyphTypeface(out GlyphTypeface glyphTypeface);
 
         if (!success)
@@ -216,6 +241,7 @@ class CharInfoMeasurer : ICharInfoMeasurer
                 var fontSize = charInfo.RunProperty.FontSize;
 
                 var width = glyphTypeface.AdvanceWidths[glyphIndex] * fontSize;
+                width = GlyphExtension.RefineValue(width);
                 var height = glyphTypeface.AdvanceHeights[glyphIndex] * fontSize;
 
                 size = size.HorizontalUnion(width, height);

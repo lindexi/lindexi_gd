@@ -6,22 +6,27 @@
         xmlns:local="clr-namespace:LightTextEditorPlus.Demo"
         xmlns:textEditorPlus="clr-namespace:LightTextEditorPlus;assembly=LightTextEditorPlus"
         mc:Ignorable="d"
-        Title="输入法" Height="500" Width="600">
-  <Grid Width="600" Height="500">
+        Title="输入法" Height="600" Width="1000">
+    <Grid Width="600" Height="500">
 
-    <!--<textEditorPlus:TextEditor HorizontalAlignment="Left" VerticalAlignment="Top" />-->
+        <!--<textEditorPlus:TextEditor HorizontalAlignment="Left" VerticalAlignment="Top" />-->
 
-    <textEditorPlus:TextEditor Margin="10,10,10,10" Width="600"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Stretch" />
+        <Border Margin="10,10,10,10" BorderBrush="Blue" BorderThickness="1">
+            <textEditorPlus:TextEditor Width="600"
+                                       HorizontalAlignment="Left"
+                                       VerticalAlignment="Stretch" />
+            
+        </Border>
+        <TextBlock Margin="10,50,10,10" Text="123gf" FontSize="30"></TextBlock>
 
-    <!--<StackPanel
+
+        <!--<StackPanel
       Grid.Row="1" Grid.Column="0">
       <textEditorPlus:TextEditor />
     </StackPanel>-->
 
-    <!--<Canvas Grid.Row="1" Grid.Column="1">
+        <!--<Canvas Grid.Row="1" Grid.Column="1">
       <textEditorPlus:TextEditor />
     </Canvas>-->
-  </Grid>
+    </Grid>
 </Window>
