@@ -18,7 +18,7 @@ public class TextRun : IImmutableTextRun
     /// <inheritdoc />
     public ICharObject GetChar(int index)
     {
-        return new TextCharObject(Text[index].ToString());
+        return new TextSpanCharObject(Text, index);
     }
 
     /// <inheritdoc />
