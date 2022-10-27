@@ -146,7 +146,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 StartPoint = currentStartPoint,
             };
             // 更新字符信息
-            Debug.Assert(result.CharCount < charDataList.Count, "所获取的行的字符数量不能超过可提供布局的行的字符数量");
+            Debug.Assert(result.CharCount <= charDataList.Count, "所获取的行的字符数量不能超过可提供布局的行的字符数量");
             for (var index = 0; index < result.CharCount; index++)
             {
                 var charData = charDataList[index];
