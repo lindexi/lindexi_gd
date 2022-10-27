@@ -146,13 +146,14 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 StartPoint = currentStartPoint,
             };
             // 更新字符信息
-            for (var index = 0; index < charDataList.Count; index++)
+            Debug.Assert(result.CharCount < charDataList.Count, "所获取的行的字符数量不能超过可提供布局的行的字符数量");
+            for (var index = 0; index < result.CharCount; index++)
             {
                 var charData = charDataList[index];
 
                 if (TextEditor.IsInDebugMode)
                 {
-                    if (charData.IsSetStartPointInDebugMode==false)
+                    if (charData.IsSetStartPointInDebugMode == false)
                     {
                         throw new TextEditorDebugException($"存在某个字符没有在布局时设置坐标",
                             (charData, currentLineVisualData, i + index));
