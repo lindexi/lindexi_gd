@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
@@ -21,24 +22,27 @@ public partial class TextEditorCore
     }
 
     /// <summary>
-    /// 获取文本的渲染信息，必须要在布局完成之后才能获取
+    /// 获取文本的渲染信息，必须要在布局完成之后才能获取。可选使用 <see cref="WaitLayoutCompletedAsync"/> 等待布局完成
     /// </summary>
     /// <returns></returns>
     public RenderInfoProvider GetRenderInfo()
     {
         VerifyNotDirty();
-        return _renderInfoProvider;
+
+        Debug.Assert(_renderInfoProvider != null, nameof(_renderInfoProvider) + " != null");
+        return _renderInfoProvider!;
     }
 
     #region WaitLayoutCompleted
 
+    /// <summary>
+    /// 等待布局完成
+    /// </summary>
+    /// <returns></returns>
+    /// 为什么设计使用 Task 没有加返回值？返回值如果是 <see cref="RenderInfoProvider"/> 类型，但是等待调度过程中，文本再次是脏的，那将会导致获取到的渲染数据不对
     public Task WaitLayoutCompletedAsync()
     {
         if (IsDirty())
-        {
-            return Task.CompletedTask;
-        }
-        else
         {
             if (_waitLayoutCompletedTask == null)
             {
@@ -47,6 +51,10 @@ public partial class TextEditorCore
             }
 
             return _waitLayoutCompletedTask.Task;
+        }
+        else
+        {
+            return Task.CompletedTask;
         }
     }
 
@@ -60,9 +68,13 @@ public partial class TextEditorCore
 
     #endregion
 
-    #region 辅助方法
+    /// <summary>
+    /// 文本是不是脏的，需要等待布局完成。可选使用 <see cref="WaitLayoutCompletedAsync"/> 等待布局完成
+    /// </summary>
+    /// <returns></returns>
+    public bool IsDirty() => _layoutManager.DocumentRenderData.IsDirty;
 
-    private bool IsDirty() => _layoutManager.DocumentRenderData.IsDirty;
+    #region 辅助方法
 
     internal void VerifyNotDirty()
     {

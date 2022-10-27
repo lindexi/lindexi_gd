@@ -17,7 +17,7 @@
                                        VerticalAlignment="Stretch" />
             
         </Border>
-        <TextBlock Margin="10,50,10,10" Text="123gf" FontSize="30"></TextBlock>
+        <TextBlock Margin="10,100,10,10" Text="123" FontSize="30" Foreground="#1F1F1F"></TextBlock>
 
 
         <!--<StackPanel

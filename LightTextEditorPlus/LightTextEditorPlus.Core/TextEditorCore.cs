@@ -80,8 +80,6 @@ public partial class TextEditorCore
         _layoutManager = new LayoutManager(this);
         _layoutManager.InternalLayoutCompleted += LayoutManager_InternalLayoutCompleted;
 
-        _renderInfoProvider = new RenderInfoProvider(this);
-
         Logger = platformProvider.BuildTextLogger() ?? new EmptyTextLogger();
 
 #if DEBUG
@@ -92,7 +90,7 @@ public partial class TextEditorCore
     #region 框架逻辑
 
     private readonly LayoutManager _layoutManager;
-    private readonly RenderInfoProvider _renderInfoProvider;
+    private RenderInfoProvider? _renderInfoProvider;
 
     public DocumentManager DocumentManager { get; }
     public IPlatformProvider PlatformProvider { get; }
@@ -100,6 +98,11 @@ public partial class TextEditorCore
     private void DocumentManager_InternalDocumentChanging(object? sender, EventArgs e)
     {
         _layoutManager.DocumentRenderData.IsDirty = true;
+        if (_renderInfoProvider != null)
+        {
+            _renderInfoProvider.IsDirty = true;
+            _renderInfoProvider = null;
+        }
 
         // 文档开始变更
         DocumentChanging?.Invoke(this, e);
@@ -128,6 +131,8 @@ public partial class TextEditorCore
         LayoutCompleted?.Invoke(this, new LayoutCompletedEventArgs());
 
         Logger.LogDebug($"[TextEditorCore][Render] 开始调用平台渲染");
+        Debug.Assert(_renderInfoProvider is null);
+        _renderInfoProvider = new RenderInfoProvider(this);
         // 布局完成，触发渲染
         var renderManager = PlatformProvider.GetRenderManager();
         renderManager?.Render(_renderInfoProvider);
