@@ -9,6 +9,22 @@ public class DefaultRunParagraphSplitterTest
     [ContractTestCase]
     public void Split()
     {
+        "只传入一个换行符，只会返回一次空段".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            var splitter = textEditorCore.PlatformProvider.GetRunParagraphSplitter();
+
+            // Action
+            // 只传入一个换行符
+            var textRun = new TextRun("\r\n");
+            var result = splitter.Split(textRun).ToList();
+
+            // Assert
+            // 只会返回一次空段
+            Assert.AreEqual(1, result.Count);
+        });
+
         "传入的文本的结尾包含连续两个换行符，可以多加两个空段".Test(() =>
         {
             // Arrange

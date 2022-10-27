@@ -62,6 +62,8 @@ internal class DefaultRunParagraphSplitter : IRunParagraphSplitter
                 {
                     var length = i - position;
                     yield return text.Substring(position, length);
+
+                    endWithBreakLine = true;
                 }
 
                 if (i != text.Length - 1)
@@ -74,8 +76,6 @@ internal class DefaultRunParagraphSplitter : IRunParagraphSplitter
                 }
 
                 position = i + 1;
-
-                endWithBreakLine = true;
             }
             else
             {
