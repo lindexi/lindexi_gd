@@ -19,7 +19,7 @@ class SpanTextRun : IImmutableTextRun
 
     public ICharObject GetChar(int index)
     {
-        return new TextCharObject(OriginText[index + Start].ToString());
+        return new TextSpanCharObject(OriginText, index + Start);
     }
 
     public IReadOnlyRunProperty? RunProperty { get; }

@@ -40,6 +40,7 @@ public sealed class TextSpanCharObject : ICharObject, IEquatable<string>
 
     public ICharObject DeepClone()
     {
+        // 由于毫无可变，因此深拷贝等于自身
         return this;
     }
 
