@@ -244,6 +244,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 }
 
                 currentIndex += result.TaskCount;
+
+                // 计算此行剩余的宽度
+                lineRemainingWidth -= result.TotalSize.Width;
             }
 
             if (result.ShouldBreakLine)
