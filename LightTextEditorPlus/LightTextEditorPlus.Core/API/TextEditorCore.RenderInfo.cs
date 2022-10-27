@@ -5,7 +5,12 @@ namespace LightTextEditorPlus.Core;
 
 public partial class TextEditorCore
 {
-    public Rect GetDocumentBounds()
+    /// <summary>
+    /// 获取文档的布局尺寸，实际布局尺寸。此方法必须在文本布局完成之后才能调用
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="TextEditorDirtyException"></exception>
+    public Rect GetDocumentLayoutBounds()
     {
         if (_layoutManager.DocumentRenderData.IsDirty)
         {

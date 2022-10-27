@@ -83,7 +83,7 @@ public class TextEditorCoreTest
             {
                 // Assert
                 // 可以获取到文档的尺寸
-                var documentBounds = textEditorCore.GetDocumentBounds();
+                var documentBounds = textEditorCore.GetDocumentLayoutBounds();
                 Assert.AreEqual(true, documentBounds.Width > 0);
                 Assert.AreEqual(true, documentBounds.Height > 0);
             };
