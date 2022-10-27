@@ -123,8 +123,25 @@ public class TextEditorCoreTest
             Assert.AreEqual(2, raiseCount);
         });
 
-        // todo 考虑首次追加的就是 \r\n 换行
         // todo 考虑传入 123\r\n123 文本
         // todo 考虑传入 123\r\n123\r\n 文本
+    }
+
+
+    [ContractTestCase]
+    public void AppendBreakParagraph()
+    {
+        "给文本追加一个 \\r\\n 字符串，文本可以分两段".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+
+            // Action
+            textEditorCore.AppendText("\r\n");
+
+            // Assert
+            Assert.AreEqual(0, textEditorCore.GetDocumentLayoutBounds().Width);
+            Assert.AreEqual(30, textEditorCore.GetDocumentLayoutBounds().Height);
+        });
     }
 }

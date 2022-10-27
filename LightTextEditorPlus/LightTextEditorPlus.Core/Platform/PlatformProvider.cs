@@ -54,5 +54,10 @@ public abstract class PlatformProvider : IPlatformProvider
         return null;
     }
 
+    public IEmptyParagraphLineHeightMeasurer? GetEmptyParagraphLineHeightMeasurer()
+    {
+        return null;
+    }
+
     private DefaultRunParagraphSplitter? _defaultRunParagraphSplitter;
 }

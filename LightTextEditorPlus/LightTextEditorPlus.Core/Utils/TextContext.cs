@@ -46,9 +46,14 @@ public static class TextContext
     internal const char NotChar = '\uFFFE';
 
     /// <summary>
-    /// 默认用来测量的文本，似乎用不到
+    /// 默认用来测量的文本
     /// </summary>
     internal const string DefaultText = "1";
+
+    /// <summary>
+    /// 默认用来测量的文本
+    /// </summary>
+    internal const char DefaultChar = '1';
 
     /// <summary>
     ///  文本内部渲染使用的double的阈值, 渲染宽度计算时应使用较大的精度

@@ -10,6 +10,7 @@ using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
+using LightTextEditorPlus.Core.Utils;
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Layout;
@@ -381,6 +382,40 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     }
 
     #endregion
+
+    /// <summary>
+    /// 测量空段的行高
+    /// </summary>
+    /// <param name="argument"></param>
+    /// <returns></returns>
+    protected override EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeight(in EmptyParagraphLineHeightMeasureArgument argument)
+    {
+        var paragraphProperty = argument.ParagraphProperty;
+
+        var runProperty = paragraphProperty.ParagraphStartRunProperty;
+        runProperty ??= TextEditor.DocumentManager.CurrentRunProperty;
+        var singleCharObject = new SingleCharObject(TextContext.DefaultChar);
+
+        var charInfo = new CharInfo(singleCharObject, runProperty);
+        var charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
+
+        CharInfoMeasureResult charInfoMeasureResult;
+        if (charInfoMeasurer != null)
+        {
+            charInfoMeasureResult = charInfoMeasurer.MeasureCharInfo(charInfo);
+        }
+        else
+        {
+            charInfoMeasureResult = MeasureCharInfo(charInfo);
+        }
+
+        // 下一行的开始就是这一行的行高
+        var height = charInfoMeasureResult.Bounds.Height;
+        var nextLineStartPoint = new Point(0, height);
+        // 段落没有宽度，只有高度
+        var paragraphBounds = new Rect(0, 0, 0, height);
+        return new EmptyParagraphLineHeightMeasureResult(paragraphBounds, nextLineStartPoint);
+    }
 }
 
 /// <summary>
@@ -501,15 +536,42 @@ abstract class ArrangingLayoutProvider
 
         if (paragraph.CharCount == 0)
         {
-            // todo 考虑 paragraph.TextRunList 数量为空的情况，只有一个换行的情况
+            // 考虑 paragraph.TextRunList 数量为空的情况，只有一个换行的情况
+            // 使用空行测量器，测量空行高度
+            var emptyParagraphLineHeightMeasureArgument = new EmptyParagraphLineHeightMeasureArgument(argument.ParagraphData.ParagraphProperty);
+
+            EmptyParagraphLineHeightMeasureResult result;
+
+            var emptyParagraphLineHeightMeasurer = TextEditor.PlatformProvider.GetEmptyParagraphLineHeightMeasurer();
+            if (emptyParagraphLineHeightMeasurer != null)
+            {
+                // 有具体平台的测量，那就采用具体平台的测量
+                result = emptyParagraphLineHeightMeasurer.MeasureEmptyParagraphLineHeight(emptyParagraphLineHeightMeasureArgument);
+            }
+            else
+            {
+                result = MeasureEmptyParagraphLineHeight(emptyParagraphLineHeightMeasureArgument);
+            }
+
+            argument.ParagraphData.ParagraphLayoutData.StartPoint = argument.CurrentStartPoint;
+            argument.ParagraphData.ParagraphLayoutData.Size = result.ParagraphBounds.Size;
+
+            // 设置当前段落已经布局完成
+            paragraph.SetFinishLayout();
+
+            return new ParagraphLayoutResult(result.NextLineStartPoint);
         }
+        else
+        {
+            var startParagraphOffset = new ParagraphOffset(dirtyParagraphOffset);
 
-        var startParagraphOffset = new ParagraphOffset(dirtyParagraphOffset);
+            var result = LayoutParagraphCore(argument, startParagraphOffset);
 
-       var result = LayoutParagraphCore(argument, startParagraphOffset);
-
-       return result;
+            return result;
+        }
     }
+
+    protected abstract EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeight(in EmptyParagraphLineHeightMeasureArgument argument);
 
     protected abstract ParagraphLayoutResult LayoutParagraphCore(ParagraphLayoutArgument paragraph,
         ParagraphOffset startParagraphOffset);

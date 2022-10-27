@@ -221,6 +221,8 @@ public partial class TextEditorCore
     /// </summary>
     public event EventHandler<LayoutCompletedEventArgs>? LayoutCompleted;
 
+    // todo 考虑 DocumentLayoutBoundsChanged 事件
+
     #endregion
 
     #region 公开方法
