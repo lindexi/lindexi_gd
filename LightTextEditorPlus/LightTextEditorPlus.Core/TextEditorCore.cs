@@ -54,6 +54,7 @@ namespace LightTextEditorPlus.Core;
 /// - DocumentChanging
 /// - DocumentChanged
 /// - LayoutCompleted
+///    - 触发平台渲染
 /// todo 光标系统
 /// todo 鼠标命中字符
 /// todo 选择模块
@@ -123,7 +124,7 @@ public partial class TextEditorCore
 
     private void LayoutManager_InternalLayoutCompleted(object? sender, EventArgs e)
     {
-        LayoutCompleted?.Invoke(this,e);
+        LayoutCompleted?.Invoke(this, new LayoutCompletedEventArgs());
 
         Logger.LogDebug($"[TextEditorCore][Render] 开始调用平台渲染");
         // 布局完成，触发渲染
@@ -218,7 +219,7 @@ public partial class TextEditorCore
     /// <summary>
     /// 文档布局完成事件
     /// </summary>
-    public event EventHandler? LayoutCompleted;
+    public event EventHandler<LayoutCompletedEventArgs>? LayoutCompleted;
 
     #endregion
 
