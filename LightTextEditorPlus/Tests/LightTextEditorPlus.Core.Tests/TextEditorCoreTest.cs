@@ -1,4 +1,5 @@
-﻿using MSTest.Extensions.Contracts;
+﻿using LightTextEditorPlus.Core.Platform;
+using MSTest.Extensions.Contracts;
 
 namespace LightTextEditorPlus.Core.Tests;
 
@@ -134,7 +135,7 @@ public class TextEditorCoreTest
         "给文本追加一个 \\r\\n 字符串，文本可以分两段".Test(() =>
         {
             // Arrange
-            var textEditorCore = TestHelper.GetTextEditorCore();
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
 
             // Action
             textEditorCore.AppendText("\r\n");
@@ -144,4 +145,5 @@ public class TextEditorCoreTest
             Assert.AreEqual(30, textEditorCore.GetDocumentLayoutBounds().Height);
         });
     }
+
 }
