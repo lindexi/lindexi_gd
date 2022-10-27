@@ -570,7 +570,7 @@ class ParagraphData
 
         // todo 设置LineVisualData是脏的
 
-        SetIsDirty();
+        SetDirty();
     }
 
     public void AppendRun(IImmutableRun run)
@@ -585,7 +585,7 @@ class ParagraphData
             AppendCharData(charData);
         }
 
-        SetIsDirty();
+        SetDirty();
     }
 
     public void AppendRun(IList<IImmutableRun> runList)
@@ -595,7 +595,7 @@ class ParagraphData
             AppendRun(run);
         }
 
-        SetIsDirty();
+        SetDirty();
     }
 
     internal void AppendCharData(CharData charData)
@@ -660,16 +660,16 @@ class ParagraphData
     /// <summary>
     /// 是否是脏的，需要重新布局渲染
     /// </summary>
-    public bool IsDirty
+    public bool IsDirty()
         // 如果已经布局的版本不等于当前版本，那就是此段文本是脏的
         => IsInvalidVersion(_updatedLayoutVersion);
 
     /// <summary>
     /// 设置当前文本段是脏的
     /// </summary>
-    public void SetIsDirty()
+    public void SetDirty()
     {
-        if (!IsDirty)
+        if (!IsDirty())
         {
             Version++;
         }

@@ -415,7 +415,7 @@ abstract class ArrangingLayoutProvider
         for (var index = 0; index < paragraphList.Count; index++)
         {
             ParagraphData paragraphData = paragraphList[index];
-            if (paragraphData.IsDirty)
+            if (paragraphData.IsDirty())
             {
                 firstDirtyParagraphIndex = index;
                 break;
@@ -462,7 +462,7 @@ abstract class ArrangingLayoutProvider
         }
 
         Debug.Assert(TextEditor.DocumentManager.TextRunManager.ParagraphManager.GetParagraphList()
-            .All(t => t.IsDirty == false));
+            .All(t => t.IsDirty() == false));
 
         return new DocumentLayoutResult(documentBounds);
     }
