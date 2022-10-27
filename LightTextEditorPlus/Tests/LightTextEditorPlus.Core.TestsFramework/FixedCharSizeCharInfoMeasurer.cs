@@ -3,7 +3,7 @@ using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 
-namespace LightTextEditorPlus.Core.Tests;
+namespace LightTextEditorPlus.Core.TestsFramework;
 
 /// <summary>
 /// 固定字符使用字号作为尺寸的测量

@@ -1,6 +1,6 @@
 using LightTextEditorPlus.Core.Platform;
 
-namespace LightTextEditorPlus.Core.Tests;
+namespace LightTextEditorPlus.Core.TestsFramework;
 
 public class TestPlatformProvider : PlatformProvider
 {

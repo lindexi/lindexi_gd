@@ -1,7 +1,6 @@
 ﻿using System.Text;
 using BenchmarkDotNet.Attributes;
-
-using LightTextEditorPlus.Core.Tests;
+using LightTextEditorPlus.Core.TestsFramework;
 
 namespace LightTextEditorPlus.Core.BenchmarkTests;
 

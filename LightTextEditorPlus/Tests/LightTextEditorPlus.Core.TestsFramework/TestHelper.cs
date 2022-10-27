@@ -1,4 +1,4 @@
-namespace LightTextEditorPlus.Core.Tests;
+namespace LightTextEditorPlus.Core.TestsFramework;
 
 public static class TestHelper
 {

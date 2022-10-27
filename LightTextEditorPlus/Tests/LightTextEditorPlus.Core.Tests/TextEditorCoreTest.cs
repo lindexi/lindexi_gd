@@ -1,4 +1,5 @@
 ﻿using LightTextEditorPlus.Core.Platform;
+using LightTextEditorPlus.Core.TestsFramework;
 using MSTest.Extensions.Contracts;
 
 namespace LightTextEditorPlus.Core.Tests;
