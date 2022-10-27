@@ -338,7 +338,7 @@ public class CharData
     }
 
     /// <summary>
-    /// 这是一个调试属性，仅调试下有用
+    /// 是否已经设置了此字符的起始（左上角）坐标。这是一个调试属性，仅调试下有用
     /// </summary>
     public bool IsSetStartPointInDebugMode { set; get; }
 

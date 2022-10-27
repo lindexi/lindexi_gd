@@ -91,7 +91,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         {
             UpdateLineVisualDataStartPoint(lineVisualData, currentStartPoint);
 
-            currentStartPoint = UpdateStartPoint(currentStartPoint, lineVisualData);
+            currentStartPoint = GetNextLineStartPoint(currentStartPoint, lineVisualData);
         }
 
         //// 当前行的 RunList 列表，看起来设计不对，没有加上在段落的坐标
@@ -165,8 +165,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 charData.CharLayoutData.UpdateVersion();
             }
 
-            currentStartPoint = UpdateStartPoint(currentStartPoint, currentLineVisualData);
-
             paragraph.LineVisualDataList.Add(currentLineVisualData);
 
             i += result.CharCount;
@@ -182,6 +180,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 TextEditor.Logger.LogWarning($"某一行在布局时，只采用了零个字符");
                 throw new NotImplementedException();
             }
+
+            currentStartPoint = GetNextLineStartPoint(currentStartPoint, currentLineVisualData);
         }
 
         // todo 考虑行复用，例如刚好添加的内容是一行。或者在一行内做文本替换等
@@ -322,7 +322,14 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
     #region 辅助方法
 
-    private static Point UpdateStartPoint(Point currentStartPoint, LineVisualData currentLineVisualData)
+    /// <summary>
+    /// 获取下一行的起始点
+    /// </summary>
+    /// 对于横排布局来说，只是更新 Y 值即可
+    /// <param name="currentStartPoint"></param>
+    /// <param name="currentLineVisualData"></param>
+    /// <returns></returns>
+    private static Point GetNextLineStartPoint(Point currentStartPoint, LineVisualData currentLineVisualData)
     {
         currentStartPoint = new Point(currentStartPoint.X, currentStartPoint.Y + currentLineVisualData.Size.Height);
         return currentStartPoint;
@@ -434,7 +441,7 @@ abstract class ArrangingLayoutProvider
             var argument = new ParagraphLayoutArgument(index, currentStartPoint, paragraphData, paragraphList);
 
             ParagraphLayoutResult result = LayoutParagraph(argument);
-            currentStartPoint = result.CurrentStartPoint;
+            currentStartPoint = result.NextLineStartPoint;
         }
 
         var documentBounds = Rect.Zero;
