@@ -190,7 +190,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         argument.ParagraphData.ParagraphLayoutData.StartPoint = argument.ParagraphData.LineVisualDataList[0].StartPoint;
         argument.ParagraphData.ParagraphLayoutData.Size = BuildParagraphSize(argument);
 
-        paragraph.IsDirty = false;
+        // 设置当前段落已经布局完成
+        paragraph.SetFinishLayout();
 
         return new ParagraphLayoutResult(currentStartPoint);
     }

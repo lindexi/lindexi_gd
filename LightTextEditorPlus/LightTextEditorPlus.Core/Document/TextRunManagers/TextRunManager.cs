@@ -465,11 +465,6 @@ class ParagraphData
     public bool IsDeleted { set; get; }
 
     /// <summary>
-    /// 是否是脏的，需要重新布局渲染
-    /// </summary>
-    public bool IsDirty { set; get; } = true;
-
-    /// <summary>
     /// 获取行分隔符的长度
     /// 0 为文档中的最后一行， 1 for <c>"\r"</c> or <c>"\n"</c>, 2 for <c>"\r\n"</c> 
     /// 当本行被删除后这个属性值依然有效，这种情况下，它包含在删除之前的行分隔符的长度
@@ -661,6 +656,38 @@ class ParagraphData
     //}
 
     #region Version
+
+    /// <summary>
+    /// 是否是脏的，需要重新布局渲染
+    /// </summary>
+    public bool IsDirty
+        // 如果已经布局的版本不等于当前版本，那就是此段文本是脏的
+        => IsInvalidVersion(_updatedLayoutVersion);
+
+    /// <summary>
+    /// 设置当前文本段是脏的
+    /// </summary>
+    public void SetIsDirty()
+    {
+        if (!IsDirty)
+        {
+            Version++;
+        }
+    }
+
+    /// <summary>
+    /// 设置当前布局完成，布局完成就不是脏的
+    /// </summary>
+    public void SetFinishLayout()
+    {
+        _updatedLayoutVersion = Version;
+    }
+
+    /// <summary>
+    /// 已经更新布局的版本
+    /// </summary>
+    private uint _updatedLayoutVersion = 0;
+
 
     internal bool IsInvalidVersion(uint version) => version != Version;
 
