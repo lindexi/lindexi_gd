@@ -317,11 +317,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         }
     }
 
-    private CharInfoMeasureResult MeasureCharInfo(CharInfo charInfo)
-    {
-        var bounds = new Rect(0, 0, charInfo.RunProperty.FontSize, charInfo.RunProperty.FontSize);
-        return new CharInfoMeasureResult(bounds);
-    }
+    
 
     #region 辅助方法
 
@@ -386,29 +382,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// <summary>
     /// 测量空段的行高
     /// </summary>
-    /// <param name="argument"></param>
     /// <returns></returns>
-    protected override EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeight(in EmptyParagraphLineHeightMeasureArgument argument)
+    protected override EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeightCore(in CharInfoMeasureResult charInfoMeasureResult)
     {
-        var paragraphProperty = argument.ParagraphProperty;
-
-        var runProperty = paragraphProperty.ParagraphStartRunProperty;
-        runProperty ??= TextEditor.DocumentManager.CurrentRunProperty;
-        var singleCharObject = new SingleCharObject(TextContext.DefaultChar);
-
-        var charInfo = new CharInfo(singleCharObject, runProperty);
-        var charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
-
-        CharInfoMeasureResult charInfoMeasureResult;
-        if (charInfoMeasurer != null)
-        {
-            charInfoMeasureResult = charInfoMeasurer.MeasureCharInfo(charInfo);
-        }
-        else
-        {
-            charInfoMeasureResult = MeasureCharInfo(charInfo);
-        }
-
         // 下一行的开始就是这一行的行高
         var height = charInfoMeasureResult.Bounds.Height;
         var nextLineStartPoint = new Point(0, height);
@@ -571,8 +547,42 @@ abstract class ArrangingLayoutProvider
         }
     }
 
-    protected abstract EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeight(in EmptyParagraphLineHeightMeasureArgument argument);
-
     protected abstract ParagraphLayoutResult LayoutParagraphCore(ParagraphLayoutArgument paragraph,
         ParagraphOffset startParagraphOffset);
+
+    private EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeight(in EmptyParagraphLineHeightMeasureArgument argument)
+    {
+        var paragraphProperty = argument.ParagraphProperty;
+
+        var runProperty = paragraphProperty.ParagraphStartRunProperty;
+        runProperty ??= TextEditor.DocumentManager.CurrentRunProperty;
+        var singleCharObject = new SingleCharObject(TextContext.DefaultChar);
+
+        var charInfo = new CharInfo(singleCharObject, runProperty);
+        var charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
+
+        CharInfoMeasureResult charInfoMeasureResult;
+        if (charInfoMeasurer != null)
+        {
+            charInfoMeasureResult = charInfoMeasurer.MeasureCharInfo(charInfo);
+        }
+        else
+        {
+            charInfoMeasureResult = MeasureCharInfo(charInfo);
+        }
+
+        return MeasureEmptyParagraphLineHeightCore(charInfoMeasureResult);
+    }
+
+    protected abstract EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeightCore(in CharInfoMeasureResult argument);
+
+    #region 通用辅助方法
+
+    protected CharInfoMeasureResult MeasureCharInfo(CharInfo charInfo)
+    {
+        var bounds = new Rect(0, 0, charInfo.RunProperty.FontSize, charInfo.RunProperty.FontSize);
+        return new CharInfoMeasureResult(bounds);
+    }
+
+    #endregion
 }
