@@ -278,8 +278,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     {
         var charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
 
-        var charData = arguments.RunList[arguments.CurrentIndex];
+        var charData = arguments.CurrentCharData;
 
+        // 字符可能自己缓存有了自己的尺寸，如果有缓存，那是可以重复使用
         var cacheSize = charData.Size;
 
         Size size;
@@ -335,8 +336,16 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         return currentStartPoint;
     }
 
+    /// <summary>
+    /// 重新更新每一行的起始点。例如现在第一段的文本加了一行，那第二段的所有文本都需要更新每一行的起始点，而不需要重新布局第二段
+    /// </summary>
+    /// <param name="lineVisualData"></param>
+    /// <param name="startPoint"></param>
     static void UpdateLineVisualDataStartPoint(LineVisualData lineVisualData, Point startPoint)
     {
+        // 更新包括两个方面：
+        // 1. 此行的起点
+        // 2. 此行内的所有字符的起点坐标
         var currentStartPoint = startPoint;
         lineVisualData.StartPoint = currentStartPoint;
         // 更新行内所有字符的坐标
