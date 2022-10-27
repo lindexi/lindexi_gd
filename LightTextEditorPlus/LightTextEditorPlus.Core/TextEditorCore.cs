@@ -66,7 +66,6 @@ namespace LightTextEditorPlus.Core;
 /// todo 支持下加注释
 /// todo 撤销重做
 /// todo 支持文档获取 SaveInfo 序列化存储
-/// todo 支持 WaitLayoutCompleted 方法
 /// todo 支持设置当前的文本需要等待布局之后才能获取布局信息的属性
 public partial class TextEditorCore
 {
@@ -100,6 +99,8 @@ public partial class TextEditorCore
 
     private void DocumentManager_InternalDocumentChanging(object? sender, EventArgs e)
     {
+        _layoutManager.DocumentRenderData.IsDirty = true;
+
         // 文档开始变更
         DocumentChanging?.Invoke(this, e);
     }

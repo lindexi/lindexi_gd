@@ -24,6 +24,7 @@ public class RenderInfoProvider
         var list = paragraphManager.GetParagraphList();
         for (var index = 0; index < list.Count; index++)
         {
+            TextEditor.VerifyNotDirty();
             var paragraphData = list[index];
             yield return new ParagraphRenderInfo(index, paragraphData);
         }
@@ -47,6 +48,8 @@ public readonly struct ParagraphRenderInfo
             LineVisualData lineVisualData = _paragraphData.LineVisualDataList[i];
 
             var argument = lineVisualData.GetLineDrawnArgument();
+
+            _paragraphData.ParagraphManager.TextEditor.VerifyNotDirty();
 
             yield return new ParagraphLineRenderInfo(i,argument)
             {
