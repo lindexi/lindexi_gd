@@ -848,7 +848,8 @@ class LineVisualData : IParagraphCache
     //    return CurrentParagraph.AsSpan()[StartParagraphIndex..EndParagraphIndex];
     //}
 
-    public ReadOnlyListSpan<CharData> GetCharList() => CurrentParagraph.ToReadOnlyListSpan(StartParagraphIndex, EndParagraphIndex);
+    public ReadOnlyListSpan<CharData> GetCharList() =>
+        CurrentParagraph.ToReadOnlyListSpan(StartParagraphIndex, EndParagraphIndex - StartParagraphIndex);
 
     public override string ToString()
     {
