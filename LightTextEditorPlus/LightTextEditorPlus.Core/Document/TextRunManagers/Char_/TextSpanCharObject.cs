@@ -2,7 +2,7 @@
 
 namespace LightTextEditorPlus.Core.Document;
 
-public class TextSpanCharObject : ICharObject, IEquatable<string>
+public sealed class TextSpanCharObject : ICharObject, IEquatable<string>
 {
     /// <summary>
     /// 字符串的某个字符
@@ -55,5 +55,23 @@ public class TextSpanCharObject : ICharObject, IEquatable<string>
         }
     }
 
+    public string GetOriginText() => _originText;
+
     // todo 加上判断是否连续的方法
+
+    /// <summary>
+    /// 判断传入的 <paramref name="other"/> 和当前的是否字符串连续的字符。传入的 <paramref name="other"/> 是否属于相同的一个字符串的下一个字符
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
+    public bool IsIncreasingContinuous(TextSpanCharObject other)
+    {
+        if (!ReferenceEquals(_originText, other._originText))
+        {
+            // 性能考虑，而不是准确性考虑。判断引用即可，不需要遍历字符串内容
+            return false;
+        }
+
+        return _charIndex + 1 == other._charIndex;
+    }
 }
