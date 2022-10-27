@@ -213,7 +213,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         while (currentIndex < charDataList.Count)
         {
             // 一行里面需要逐个字符进行布局
-            var arguments = new SingleCharInLineLayoutArguments(charDataList, currentIndex, lineRemainingWidth,
+            var arguments = new SingleCharInLineLayoutArgument(charDataList, currentIndex, lineRemainingWidth,
                 paragraphProperty);
 
             SingleCharInLineLayoutResult result;
@@ -276,11 +276,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         return new WholeLineLayoutResult(currentSize, wholeCharCount);
     }
 
-    private SingleCharInLineLayoutResult LayoutSingleCharInLine(SingleCharInLineLayoutArguments arguments)
+    private SingleCharInLineLayoutResult LayoutSingleCharInLine(SingleCharInLineLayoutArgument argument)
     {
         var charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
 
-        var charData = arguments.CurrentCharData;
+        var charData = argument.CurrentCharData;
 
         // 字符可能自己缓存有了自己的尺寸，如果有缓存，那是可以重复使用
         var cacheSize = charData.Size;
@@ -306,7 +306,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             size = cacheSize.Value;
         }
 
-        if (arguments.LineRemainingWidth > size.Width)
+        if (argument.LineRemainingWidth > size.Width)
         {
             return new SingleCharInLineLayoutResult(taskCount: 1, size, charSizeList: default);
         }
