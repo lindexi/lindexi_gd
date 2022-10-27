@@ -120,7 +120,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
             if (TextEditor.IsInDebugMode)
             {
-                    // 这是调试代码，判断是否在布局过程，漏掉某个字符
+                // 这是调试代码，判断是否在布局过程，漏掉某个字符
                 foreach (var charData in charDataList)
                 {
                     charData.IsSetStartPointInDebugMode = false;
@@ -128,7 +128,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             }
 
             WholeLineLayoutResult result;
-            var wholeRunLineLayoutArgument = new WholeLineLayoutArgument(paragraph.ParagraphProperty, charDataList, lineMaxWidth, currentStartPoint);
+            var wholeRunLineLayoutArgument = new WholeLineLayoutArgument(paragraph.ParagraphProperty, charDataList,
+                lineMaxWidth, currentStartPoint);
             if (wholeRunLineLayouter != null)
             {
                 result = wholeRunLineLayouter.LayoutWholeLine(wholeRunLineLayoutArgument);
@@ -267,7 +268,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         for (var i = 0; i < wholeCharCount; i++)
         {
             var charData = charDataList[i];
-            charData.SetStartPoint(new Point(currentX,lineTop));
+            charData.SetStartPoint(new Point(currentX, lineTop));
 
             Debug.Assert(charData.Size != null, "charData.Size != null");
             currentX += charData.Size!.Value.Width;
@@ -316,8 +317,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             return new SingleCharInLineLayoutResult(taskCount: 0, default, charSizeList: default);
         }
     }
-
-    
 
     #region 辅助方法
 
@@ -383,7 +382,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// 测量空段的行高
     /// </summary>
     /// <returns></returns>
-    protected override EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeightCore(in CharInfoMeasureResult charInfoMeasureResult)
+    protected override EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeightCore(
+        in CharInfoMeasureResult charInfoMeasureResult)
     {
         // 下一行的开始就是这一行的行高
         var height = charInfoMeasureResult.Bounds.Height;
@@ -444,7 +444,7 @@ abstract class ArrangingLayoutProvider
         if (firstDirtyParagraphIndex == 0)
         {
             // 从首段落开始
-            firstStartPoint=new Point(0, 0);
+            firstStartPoint = new Point(0, 0);
         }
         else
         {
@@ -514,7 +514,8 @@ abstract class ArrangingLayoutProvider
         {
             // 考虑 paragraph.TextRunList 数量为空的情况，只有一个换行的情况
             // 使用空行测量器，测量空行高度
-            var emptyParagraphLineHeightMeasureArgument = new EmptyParagraphLineHeightMeasureArgument(argument.ParagraphData.ParagraphProperty);
+            var emptyParagraphLineHeightMeasureArgument =
+                new EmptyParagraphLineHeightMeasureArgument(argument.ParagraphData.ParagraphProperty);
 
             EmptyParagraphLineHeightMeasureResult result;
 
@@ -522,7 +523,8 @@ abstract class ArrangingLayoutProvider
             if (emptyParagraphLineHeightMeasurer != null)
             {
                 // 有具体平台的测量，那就采用具体平台的测量
-                result = emptyParagraphLineHeightMeasurer.MeasureEmptyParagraphLineHeight(emptyParagraphLineHeightMeasureArgument);
+                result = emptyParagraphLineHeightMeasurer.MeasureEmptyParagraphLineHeight(
+                    emptyParagraphLineHeightMeasureArgument);
             }
             else
             {
@@ -550,7 +552,8 @@ abstract class ArrangingLayoutProvider
     protected abstract ParagraphLayoutResult LayoutParagraphCore(ParagraphLayoutArgument paragraph,
         ParagraphOffset startParagraphOffset);
 
-    private EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeight(in EmptyParagraphLineHeightMeasureArgument argument)
+    private EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeight(
+        in EmptyParagraphLineHeightMeasureArgument argument)
     {
         var paragraphProperty = argument.ParagraphProperty;
 
@@ -574,7 +577,8 @@ abstract class ArrangingLayoutProvider
         return MeasureEmptyParagraphLineHeightCore(charInfoMeasureResult);
     }
 
-    protected abstract EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeightCore(in CharInfoMeasureResult argument);
+    protected abstract EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeightCore(
+        in CharInfoMeasureResult argument);
 
     #region 通用辅助方法
 
