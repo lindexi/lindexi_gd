@@ -60,6 +60,8 @@ public partial class TextEditorCore
 
     private void SetLayoutCompleted(object? sender, EventArgs e)
     {
+        DocumentManager.InternalDocumentChanging -= SetLayoutCompleted;
+
         _waitLayoutCompletedTask?.TrySetResult();
         _waitLayoutCompletedTask = null;
     }
