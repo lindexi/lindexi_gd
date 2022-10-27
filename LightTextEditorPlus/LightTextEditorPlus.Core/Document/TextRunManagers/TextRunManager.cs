@@ -266,24 +266,6 @@ class CharLayoutData : IParagraphCache
     public LineVisualData? CurrentLine { set; get; }
 }
 
-///// <summary>
-///// 字符的可被缓存的渲染信息
-///// </summary>
-///// 例如尺寸
-//class CharRenderCacheData
-//{
-//    public CharRenderCacheData(Size size)
-//    {
-//        Size = size;
-//    }
-
-//    /// <summary>
-//    /// 尺寸
-//    /// </summary>
-//    /// 尺寸是可以复用的
-//    public Size Size { get; }
-//}
-
 /// <summary>
 /// 表示一个 人类语言文化 的字符
 /// <para>
