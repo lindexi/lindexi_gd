@@ -570,7 +570,7 @@ class ParagraphData
 
         // todo 设置LineVisualData是脏的
 
-        Version++;
+        SetIsDirty();
     }
 
     public void AppendRun(IImmutableRun run)
@@ -585,7 +585,7 @@ class ParagraphData
             AppendCharData(charData);
         }
 
-        Version++;
+        SetIsDirty();
     }
 
     public void AppendRun(IList<IImmutableRun> runList)
@@ -595,7 +595,7 @@ class ParagraphData
             AppendRun(run);
         }
 
-        Version++;
+        SetIsDirty();
     }
 
     internal void AppendCharData(CharData charData)
