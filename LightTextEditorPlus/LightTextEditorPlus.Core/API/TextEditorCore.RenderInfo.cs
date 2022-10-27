@@ -47,7 +47,6 @@ public partial class TextEditorCore
             if (_waitLayoutCompletedTask == null)
             {
                 _waitLayoutCompletedTask = new TaskCompletionSource();
-                DocumentManager.InternalDocumentChanging += SetLayoutCompleted;
             }
 
             return _waitLayoutCompletedTask.Task;
@@ -58,10 +57,8 @@ public partial class TextEditorCore
         }
     }
 
-    private void SetLayoutCompleted(object? sender, EventArgs e)
+    private void SetLayoutCompleted()
     {
-        DocumentManager.InternalDocumentChanging -= SetLayoutCompleted;
-
         _waitLayoutCompletedTask?.TrySetResult();
         _waitLayoutCompletedTask = null;
     }
