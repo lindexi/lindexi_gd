@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32929.385
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XamlToCSharpTool", "XamlToCSharpTool\XamlToCSharpTool.csproj", "{D9116AD7-5001-4446-B515-EA84C1DA8BDB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D9116AD7-5001-4446-B515-EA84C1DA8BDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9116AD7-5001-4446-B515-EA84C1DA8BDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9116AD7-5001-4446-B515-EA84C1DA8BDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9116AD7-5001-4446-B515-EA84C1DA8BDB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B7EDE510-4871-4E9C-A23D-769A14DBAC51}
+	EndGlobalSection
+EndGlobal
