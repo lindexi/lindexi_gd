@@ -25,8 +25,6 @@ public class PackageController : ControllerBase
     [HttpGet]
     public IActionResult Get([FromQuery] GetPackageRequest? request)
     {
-
-
         return Ok(new GetPackageResponse($"Hello Version={request}"));
     }
 
@@ -47,7 +45,8 @@ public class PackageController : ControllerBase
     [HttpPut]
     public IActionResult Put([FromBody] PutPackageRequest request)
     {
-        if (HttpContext.Request.Headers.TryGetValue("Token",out var value) && string.Equals(value.ToString(),TokenConfiguration.Token,StringComparison.Ordinal))
+        if (HttpContext.Request.Headers.TryGetValue("Token", out var value) &&
+            string.Equals(value.ToString(), TokenConfiguration.Token, StringComparison.Ordinal))
         {
             // 证明有权限可以推送
             PackageManagerContext.LatestPackageDbSet.Add(request.PackageInfo);
