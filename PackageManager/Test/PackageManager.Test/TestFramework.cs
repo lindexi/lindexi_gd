@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PackageManager.Server;
 
 namespace PackageManager.Test;
+
 [TestClass]
 public static class TestFramework
 {
