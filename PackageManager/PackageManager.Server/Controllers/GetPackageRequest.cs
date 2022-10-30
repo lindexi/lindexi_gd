@@ -1,6 +1,7 @@
 namespace PackageManager.Server.Controllers;
 
-public class GetPackageRequest
+public record GetPackageRequest(string? ClientVersion)
 {
-    public string? ClientVersion { set; get; }
 }
+
+public record GetPackageResponse(string Message);
