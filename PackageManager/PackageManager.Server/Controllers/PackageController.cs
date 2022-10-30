@@ -7,5 +7,6 @@ namespace PackageManager.Server.Controllers;
 public class PackageController : ControllerBase
 {
     [HttpGet]
-    public string Get() => "Test";
+    public string Get([FromQuery] GetPackageRequest? request) => $"Hello Version={request?.ClientVersion}";
+
 }
