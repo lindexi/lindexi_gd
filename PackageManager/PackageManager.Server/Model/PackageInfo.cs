@@ -19,6 +19,7 @@ public class PackageInfo
     /// 人类友好的插件名
     /// </summary>
     public string Name { set; get; }
+
     public string Author { set; get; }
     public string Version { set; get; }
     public string Description { set; get; }
