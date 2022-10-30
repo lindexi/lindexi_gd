@@ -22,4 +22,14 @@ public class PackageManagerContext:DbContext
     public DbSet<PackageInfo> PackageStorageDbSet { set; get; }
     // 框架注入
         = null!;
+
+    //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    //{
+    //    var file = Path.Combine("PackageManger.db");
+    //    file = Path.GetFullPath(file);
+    //    optionsBuilder
+    //        .UseSqlite($"Filename={file}");
+
+    //    base.OnConfiguring(optionsBuilder);
+    //}
 }
