@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PackageManager.Server.Context;
 using PackageManager.Server.Model;
 
@@ -23,10 +24,22 @@ public class PackageController : ControllerBase
     /// 返回给定的包的最新版本，最新版本指的是传入的参数所能支持的最新版本
     /// </returns>
     [HttpGet]
-    public IActionResult Get([FromQuery] GetPackageRequest? request)
+    public async Task<IActionResult> Get([FromQuery] GetPackageRequest? request)
     {
-        return Ok(new GetPackageResponse($"Hello Version={request}"));
+        if (!string.IsNullOrEmpty(request?.PackageId))
+        {
+            var packageInfo = await 
+                PackageManagerContext.LatestPackageDbSet.FirstOrDefaultAsync(t => t.PackageId == request.PackageId);
+
+            if (packageInfo != null)
+            {
+                return Ok(new GetPackageResponse("Success", packageInfo));
+            }
+        }
+
+        return Ok(new GetPackageResponse($"NotFound {request}",null));
     }
+
 
     // 获取所有的包的更新
 
