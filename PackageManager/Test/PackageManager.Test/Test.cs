@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Hosting;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -11,7 +12,7 @@ using PackageManager.Server;
 
 namespace PackageManager.Test;
 [TestClass]
-public static class TestHostBuild
+public static class TestFramework
 {
     public static HttpClient GetTestClient() => _host.GetTestClient();
 
