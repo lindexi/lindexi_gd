@@ -1,7 +1,7 @@
 #nullable disable
 
 using System.ComponentModel.DataAnnotations.Schema;
-
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 namespace PackageManager.Server.Model;
@@ -9,6 +9,7 @@ namespace PackageManager.Server.Model;
 [Index(nameof(PackageId))]
 public class PackageInfo
 {
+    [JsonIgnore]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { set; get; }
 

@@ -1,6 +1,6 @@
 namespace PackageManager.Server.Controllers;
 
-public record GetPackageRequest(string? ClientVersion)
+public record GetPackageRequest(string? ClientVersion,string PackageId)
 {
 }
 
