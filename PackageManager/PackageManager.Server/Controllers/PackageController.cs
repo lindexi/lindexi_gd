@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using PackageManager.Server.Context;
+using PackageManager.Server.Model;
 
 namespace PackageManager.Server.Controllers;
 
@@ -6,6 +8,13 @@ namespace PackageManager.Server.Controllers;
 [Route("[controller]")]
 public class PackageController : ControllerBase
 {
+    public PackageController(PackageManagerContext packageManagerContext)
+    {
+        PackageManagerContext = packageManagerContext;
+    }
+
+    private PackageManagerContext PackageManagerContext { get; }
+
     /// <summary>
     /// 获取包下载或更新
     /// </summary>
@@ -21,7 +30,16 @@ public class PackageController : ControllerBase
         return Ok(new GetPackageResponse($"Hello Version={request}"));
     }
 
+    // 获取所有的包的更新
+
     // 列举首页的所有包
+
+    [HttpGet(nameof(GetPackageListInMainPage))]
+    public IActionResult GetPackageListInMainPage()
+    {
+        var list = PackageManagerContext.LatestPackageDbSet.Where(t => t.CanShow).ToList();
+        return Ok(list);
+    }
 
     /// <summary>
     /// 推送包
@@ -32,6 +50,10 @@ public class PackageController : ControllerBase
         if (HttpContext.Request.Headers.TryGetValue("Token",out var value) && string.Equals(value.ToString(),TokenConfiguration.Token,StringComparison.Ordinal))
         {
             // 证明有权限可以推送
+            PackageManagerContext.LatestPackageDbSet.Add(request.PackageInfo);
+            PackageManagerContext.PackageStorageDbSet.Add(request.PackageInfo);
+            PackageManagerContext.SaveChangesAsync();
+            return Ok();
         }
 
         return NotFound();
@@ -43,4 +65,4 @@ public static class TokenConfiguration
     public const string Token = "B44A0A9E-D6C8-434F-9215-894A30BC5674";
 }
 
-public record PutPackageRequest();
+public record PutPackageRequest(PackageInfo PackageInfo);
