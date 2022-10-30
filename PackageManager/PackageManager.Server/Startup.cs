@@ -6,7 +6,7 @@ public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
-        var file = Path.Combine("PackageManger.db");
+        var file = Path.Combine(Path.GetDirectoryName(this.GetType().Assembly.Location)!, "PackageManger.db");
         file = Path.GetFullPath(file);
         var connect = $"Filename={file}";
 
