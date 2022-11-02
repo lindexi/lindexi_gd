@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace WemfogerekemhemWeekererewallji;
 
 public class Program
@@ -13,6 +15,14 @@ public class Program
         var app = builder.Build();
 
         var keyValuePairs = app.Configuration.AsEnumerable().ToList();
+
+        foreach (var keyValuePair in keyValuePairs)
+        {
+            Debug.WriteLine(keyValuePair.ToString());
+        }
+
+        Console.WriteLine(keyValuePairs.Count);
+        Debugger.Break();
 
         app.MapControllers();
 
