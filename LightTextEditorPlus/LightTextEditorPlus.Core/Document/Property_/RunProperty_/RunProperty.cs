@@ -9,7 +9,8 @@ namespace LightTextEditorPlus.Core.Document
     public interface IReadOnlyRunProperty : IEquatable<IReadOnlyRunProperty>
     {
         double FontSize { get; }
-        FontName FontFamily { get; }
+        
+        FontName FontName { get; }
 
         /// <summary>
         /// 斜体表示，默认值为Normal
@@ -58,14 +59,14 @@ namespace LightTextEditorPlus.Core.Document
 
         private const double DefaultFontSize = 15;
 
-        public FontName FontFamily
+        public FontName FontName
         {
             set
             {
                 _fontFamily = value;
                 RaiseOnTextRunPropertyChanged();
             }
-            get => _fontFamily ?? StyleRunProperty?.FontFamily ?? FontName.DefaultNotDefineFontName;
+            get => _fontFamily ?? StyleRunProperty?.FontName ?? FontName.DefaultNotDefineFontName;
         }
 
         private FontName? _fontFamily;
@@ -188,7 +189,7 @@ namespace LightTextEditorPlus.Core.Document
         public bool Equals(RunProperty other)
         {
             // 先判断一定存在的属性，再判断业务端注入的属性
-            if (Equals(FontSize, other.FontSize) && Equals(FontFamily, other.FontFamily) &&
+            if (Equals(FontSize, other.FontSize) && Equals(FontName, other.FontName) &&
                 Equals(FontStyle, other.FontStyle) && Equals(FontWeight, other.FontWeight))
             {
                 var thisAdditionalPropertyKeyList = GetAdditionalPropertyKeyList();
