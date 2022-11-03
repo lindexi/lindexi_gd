@@ -140,6 +140,9 @@ public partial class TextEditorCore
 
     private void LayoutManager_InternalLayoutCompleted(object? sender, EventArgs e)
     {
+        // 布局完成了，文本不是脏的，可以获取布局内容
+        IsDirty = false;
+
         SetLayoutCompleted();
 
         LayoutCompleted?.Invoke(this, new LayoutCompletedEventArgs());
