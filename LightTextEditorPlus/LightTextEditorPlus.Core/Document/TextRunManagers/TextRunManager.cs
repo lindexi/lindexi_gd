@@ -22,6 +22,12 @@ internal class TextRunManager
     public ParagraphManager ParagraphManager { get; }
     public TextEditorCore TextEditor { get; }
 
+    public void Append(IImmutableRun run)
+    {
+        // 追加是使用最多的，需要做额外的优化
+        throw new NotImplementedException($"还没有实现追加的功能");
+    }
+
     public void Replace(Selection selection, IImmutableRun run)
     {
         // 先执行删除，再执行插入
@@ -52,6 +58,24 @@ internal class TextRunManager
         // 在插入完成之后，重新加入
         var lastParagraphRunList = paragraphData.SplitRemoveByParagraphOffset(paragraphDataResult.HitOffset);
 
+        // 追加文本，获取追加之后的当前段落
+        var currentParagraph = AppendRunToParagraph(run, paragraphData);
+
+        if (lastParagraphRunList != null)
+        {
+            // 如果是从一段的中间插入的，需要将这一段在插入点后面的内容继续放入到当前的段落
+            currentParagraph.AppendCharData(lastParagraphRunList);
+        }
+    }
+
+    /// <summary>
+    /// 给段落追加文本
+    /// </summary>
+    /// <param name="run"></param>
+    /// <param name="paragraphData"></param>
+    /// <returns>由于文本追加可能带上换行符，会新加段落。返回当前的段落</returns>
+    private ParagraphData AppendRunToParagraph(IImmutableRun run, ParagraphData paragraphData)
+    {
         // 当前的段落，如果插入的分行的内容，那自然需要自动分段
         var currentParagraph = paragraphData;
         // 看起来不需要中间插入逻辑，只需要插入到最后
@@ -83,11 +107,7 @@ internal class TextRunManager
             isFirstSubRun = false;
         }
 
-        if (lastParagraphRunList != null)
-        {
-            // 如果是从一段的中间插入的，需要将这一段在插入点后面的内容继续放入到当前的段落
-            currentParagraph.AppendCharData(lastParagraphRunList);
-        }
+        return currentParagraph;
     }
 
     private void RemoveInner(Selection selection)
