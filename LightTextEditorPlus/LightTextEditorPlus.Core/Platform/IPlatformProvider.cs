@@ -12,7 +12,6 @@ namespace LightTextEditorPlus.Core.Platform;
 /// <summary>
 /// 用于提供各个平台的不同方式的接入
 /// </summary>
-/// todo 修改所在文件夹
 public interface IPlatformProvider
 {
     // 获取默认字体
