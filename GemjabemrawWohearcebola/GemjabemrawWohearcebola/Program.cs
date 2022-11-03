@@ -33,6 +33,7 @@ internal partial class Program
         public string? Summary { get; set; }
     }
 
+    [JsonSerializableAttribute(typeof(Foo))]
     [JsonSerializableAttribute(typeof(WeatherForecast))]
     internal partial class MyJsonContext : JsonSerializerContext
     {
