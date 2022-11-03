@@ -32,20 +32,26 @@ internal class DefaultRunParagraphSplitter : IRunParagraphSplitter
     private static IEnumerable<IImmutableRun> Split(TextRun textRun)
     {
         var text = textRun.Text;
-        foreach (var subText in Split(text))
+        foreach (SplitTextResult result in Split(text))
         {
-            if (subText is null)
+            if (result.IsLineBreak)
             {
                 yield return new LineBreakRun(textRun.RunProperty);
             }
             else
             {
-                yield return new TextRun(subText, textRun.RunProperty);
+                yield return new SpanTextRun(text, result.Start, result.Length, textRun.RunProperty);
+                //yield return new TextRun(subText, textRun.RunProperty);
             }
         }
     }
 
-    private static IEnumerable<string?> Split(string text)
+    private readonly record struct SplitTextResult(int Start, int Length)
+    {
+        public bool IsLineBreak => Length == 0;
+    }
+
+    private static IEnumerable<SplitTextResult> Split(string text)
     {
         int position = 0;
         bool endWithBreakLine = false;
@@ -56,12 +62,12 @@ internal class DefaultRunParagraphSplitter : IRunParagraphSplitter
             {
                 if (position == i)
                 {
-                    yield return null;
+                    yield return new SplitTextResult(i,0);
                 }
                 else
                 {
                     var length = i - position;
-                    yield return text.Substring(position, length);
+                    yield return new SplitTextResult(position, length); //text.Substring(position, length);
 
                     endWithBreakLine = true;
                 }
@@ -88,12 +94,13 @@ internal class DefaultRunParagraphSplitter : IRunParagraphSplitter
             Debug.Assert(endWithBreakLine is false);
 
             var length = text.Length - position;
-            yield return text.Substring(position, length);
+            yield return new SplitTextResult(position, length);
+            //yield return text.Substring(position, length);
         }
 
         if (endWithBreakLine)
         {
-            yield return null;
+            yield return new SplitTextResult(text.Length - 1, 0);
         }
     }
 }
