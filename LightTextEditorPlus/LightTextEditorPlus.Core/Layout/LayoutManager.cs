@@ -41,7 +41,7 @@ class LayoutManager
 
         var result = ArrangingLayoutProvider.UpdateLayout();
         DocumentRenderData.DocumentBounds = result.DocumentBounds;
-        DocumentRenderData.IsDirty = false;
+        //DocumentRenderData.IsDirty = false;
 
         InternalLayoutCompleted?.Invoke(this, EventArgs.Empty);
     }
@@ -50,7 +50,7 @@ class LayoutManager
 
     public DocumentRenderData DocumentRenderData { get; } = new DocumentRenderData()
     {
-        IsDirty = true,
+        //IsDirty = true,
     };
 }
 

@@ -42,7 +42,7 @@ public partial class TextEditorCore
     /// 为什么设计使用 Task 没有加返回值？返回值如果是 <see cref="RenderInfoProvider"/> 类型，但是等待调度过程中，文本再次是脏的，那将会导致获取到的渲染数据不对
     public Task WaitLayoutCompletedAsync()
     {
-        if (IsDirty())
+        if (IsDirty)
         {
             if (_waitLayoutCompletedTask == null)
             {
@@ -67,17 +67,13 @@ public partial class TextEditorCore
 
     #endregion
 
-    /// <summary>
-    /// 文本是不是脏的，需要等待布局完成。可选使用 <see cref="WaitLayoutCompletedAsync"/> 等待布局完成
-    /// </summary>
-    /// <returns></returns>
-    public bool IsDirty() => _layoutManager.DocumentRenderData.IsDirty;
+    
 
     #region 辅助方法
 
     internal void VerifyNotDirty()
     {
-        if (IsDirty())
+        if (IsDirty)
         {
             ThrowTextEditorDirtyException();
         }

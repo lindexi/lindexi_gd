@@ -98,7 +98,7 @@ public partial class TextEditorCore
 
     private void DocumentManager_InternalDocumentChanging(object? sender, EventArgs e)
     {
-        _layoutManager.DocumentRenderData.IsDirty = true;
+        IsDirty = true;
         if (_renderInfoProvider != null)
         {
             _renderInfoProvider.IsDirty = true;
@@ -121,9 +121,20 @@ public partial class TextEditorCore
 
     private void UpdateLayout()
     {
+        IsUpdatingLayout = true;
+
         // 更新布局完成之后，更新渲染信息
         Logger.LogDebug($"[TextEditorCore][UpdateLayout] 开始更新布局");
-        _layoutManager.UpdateLayout();
+
+        try
+        {
+            _layoutManager.UpdateLayout();
+        }
+        finally
+        {
+            IsUpdatingLayout = false;
+        }
+
         Logger.LogDebug($"[TextEditorCore][UpdateLayout] 完成更新布局");
     }
 
@@ -145,6 +156,8 @@ public partial class TextEditorCore
     #endregion
 
     #region 公开属性
+
+    #region 文本属性
 
     // todo FontSize
 
@@ -172,6 +185,24 @@ public partial class TextEditorCore
     public ITextLogger Logger { get; }
 
     // todo 考虑设置可见范围，用来支持长文本
+
+    #endregion
+
+    #region 状态属性 
+
+    // 存放文本当前的状态
+
+    /// <summary>
+    /// 是否正在更新布局。更新布局的过程中，不允许修改文档
+    /// </summary>
+    public bool IsUpdatingLayout { get; private set; }
+
+    /// <summary>
+    /// 文本是不是脏的，需要等待布局完成。可选使用 <see cref="WaitLayoutCompletedAsync"/> 等待布局完成
+    /// </summary>
+    public bool IsDirty { get; private set; } = true;
+
+    #endregion
 
     #region 调试属性
 
