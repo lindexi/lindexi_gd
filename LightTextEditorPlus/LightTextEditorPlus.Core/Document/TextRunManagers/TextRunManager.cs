@@ -65,6 +65,7 @@ internal class TextRunManager
             if (subRun is LineBreakRun || !isFirstSubRun)
             {
                 // 如果这是一个分段，那直接插入新的段落
+                // todo 如果有明确的分行，那就给定一个段落的字符属性
                 var newParagraph = ParagraphManager.CreateParagraphData(paragraphData.ParagraphProperty);
                 ParagraphManager.InsertParagraphAfter(currentParagraph, newParagraph);
 
