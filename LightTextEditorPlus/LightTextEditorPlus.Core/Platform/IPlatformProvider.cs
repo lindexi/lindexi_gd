@@ -29,6 +29,10 @@ public interface IPlatformProvider
     /// <returns>可为空，为空采用空白日志</returns>
     ITextLogger? BuildTextLogger();
 
+    /// <summary>
+    /// 获取对文本的分段分离器
+    /// </summary>
+    /// <returns></returns>
     IRunParagraphSplitter GetRunParagraphSplitter();
 
     /// <summary>
@@ -58,6 +62,15 @@ public interface IPlatformProvider
     /// <returns></returns>
     ICharInfoMeasurer? GetCharInfoMeasurer();
 
-    IRenderManager? GetRenderManager();
+    /// <summary>
+    /// 获取空段落的行高测量
+    /// </summary>
+    /// <returns></returns>
     IEmptyParagraphLineHeightMeasurer? GetEmptyParagraphLineHeightMeasurer();
+
+    /// <summary>
+    /// 获取渲染管理器
+    /// </summary>
+    /// <returns></returns>
+    IRenderManager? GetRenderManager();
 }
