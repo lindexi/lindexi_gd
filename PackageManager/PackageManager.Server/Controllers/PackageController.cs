@@ -47,10 +47,15 @@ public class PackageController : ControllerBase
                     return Ok(new GetPackageResponse("Success", packageInfo));
                 }
 
-                
-
                 // 否则返回能支持他这个版本的最大版本号的资源
-                //PackageManagerContext.PackageStorageDbSet.Where()
+                var storagePackageInfo = await PackageManagerContext.PackageStorageDbSet
+                    .Where(t => clientVersionValue >= t.SupportMinClientVersion).OrderByDescending(t => t.Version)
+                    .FirstOrDefaultAsync();
+
+                if (storagePackageInfo is not null)
+                {
+                    return Ok(new GetPackageResponse("Success", storagePackageInfo));
+                }
             }
         }
 
