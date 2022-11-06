@@ -17,13 +17,12 @@ namespace PackageManager.Server.Migrations
                     PackageId = table.Column<string>(type: "TEXT", nullable: true),
                     Name = table.Column<string>(type: "TEXT", nullable: true),
                     Author = table.Column<string>(type: "TEXT", nullable: true),
-                    Version = table.Column<string>(type: "TEXT", nullable: true),
+                    Version = table.Column<long>(type: "INTEGER", nullable: false),
                     Description = table.Column<string>(type: "TEXT", nullable: true),
                     IconUrl = table.Column<string>(type: "TEXT", nullable: true),
                     CanShow = table.Column<bool>(type: "INTEGER", nullable: false),
                     DownloadUrl = table.Column<string>(type: "TEXT", nullable: true),
-                    SupportMinClientVersion = table.Column<string>(type: "TEXT", nullable: true),
-                    SupportClientPlatform = table.Column<string>(type: "TEXT", nullable: true)
+                    SupportMinClientVersion = table.Column<long>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {

@@ -10,7 +10,7 @@ using PackageManager.Server.Context;
 namespace PackageManager.Server.Migrations
 {
     [DbContext(typeof(PackageManagerContext))]
-    [Migration("20221030102303_FirstVersion")]
+    [Migration("20221106115818_FirstVersion")]
     partial class FirstVersion
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -45,14 +45,11 @@ namespace PackageManager.Server.Migrations
                     b.Property<string>("PackageId")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("SupportClientPlatform")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("SupportMinClientVersion")
+                        .HasColumnType("INTEGER");
 
-                    b.Property<string>("SupportMinClientVersion")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Version")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Version")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
