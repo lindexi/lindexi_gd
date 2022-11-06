@@ -18,10 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Migrations\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="PackageManger.db">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
