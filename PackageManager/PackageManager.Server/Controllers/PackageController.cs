@@ -56,15 +56,24 @@ public class PackageController : ControllerBase
     /// 推送包
     /// </summary>
     [HttpPut]
-    public IActionResult Put([FromBody] PutPackageRequest request)
+    public async Task<IActionResult> Put([FromBody] PutPackageRequest request)
     {
-        if (HttpContext.Request.Headers.TryGetValue("Token", out var value) &&
-            string.Equals(value.ToString(), TokenConfiguration.Token, StringComparison.Ordinal))
-        {
+        if (HttpContext.Request.Headers.TryGetValue("Token", out var value)
             // 证明有权限可以推送
+            && string.Equals(value.ToString(), TokenConfiguration.Token, StringComparison.Ordinal))
+        {
+            // 先从 LatestPackageDbSet 里面移除其他的所有的，然后再加上新的
+            // 如此就让 LatestPackageDbSet 只存放最新的
+            var packageId = request.PackageInfo.PackageId;
+            var currentPackageInfo = await PackageManagerContext.LatestPackageDbSet.FirstOrDefaultAsync(t => t.PackageId == packageId);
+            if (currentPackageInfo != null)
+            {
+                PackageManagerContext.LatestPackageDbSet.Remove(currentPackageInfo);
+            }
+
             PackageManagerContext.LatestPackageDbSet.Add(request.PackageInfo);
             PackageManagerContext.PackageStorageDbSet.Add(request.PackageInfo);
-            PackageManagerContext.SaveChangesAsync();
+            await PackageManagerContext.SaveChangesAsync();
             return Ok();
         }
 
