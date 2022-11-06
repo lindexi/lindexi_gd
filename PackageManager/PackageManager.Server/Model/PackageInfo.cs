@@ -3,16 +3,13 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
+using PackageManager.Server.Context;
 
 namespace PackageManager.Server.Model;
 
 [Index(nameof(PackageId))]
 public class PackageInfo
 {
-    [JsonIgnore]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int Id { set; get; }
-
     public string PackageId { set; get; }
 
     /// <summary>
@@ -40,4 +37,17 @@ public class PackageInfo
     public string DownloadUrl { set; get; }
 
     public long SupportMinClientVersion { set; get; }
+
+    public void CopyTo(PackageInfo packageInfo)
+    {
+        packageInfo.Author = Author;
+        packageInfo.Name = Name;
+        packageInfo.Version = Version;
+        packageInfo.Description = Description;
+        packageInfo.IconUrl = IconUrl;
+        packageInfo.SupportMinClientVersion = SupportMinClientVersion;
+        packageInfo.DownloadUrl = DownloadUrl;
+        packageInfo.CanShow = CanShow;
+        packageInfo.PackageId = PackageId;
+    }
 }

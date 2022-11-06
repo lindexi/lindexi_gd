@@ -49,6 +49,7 @@ public class PackageController : ControllerBase
 
                 // 否则返回能支持他这个版本的最大版本号的资源
                 var storagePackageInfo = await PackageManagerContext.PackageStorageDbSet
+                    .Where(t=>t.PackageId== request.PackageId)
                     .Where(t => clientVersionValue >= t.SupportMinClientVersion).OrderByDescending(t => t.Version)
                     .FirstOrDefaultAsync();
 
@@ -93,8 +94,13 @@ public class PackageController : ControllerBase
                 PackageManagerContext.LatestPackageDbSet.Remove(currentPackageInfo);
             }
 
-            PackageManagerContext.LatestPackageDbSet.Add(request.PackageInfo);
-            PackageManagerContext.PackageStorageDbSet.Add(request.PackageInfo);
+            var latestPackageInfo = new LatestPackageInfo();
+            request.PackageInfo.CopyTo(latestPackageInfo);
+            PackageManagerContext.LatestPackageDbSet.Add(latestPackageInfo);
+
+            var storagePackageInfo = new StoragePackageInfo();
+            request.PackageInfo.CopyTo(storagePackageInfo);
+            PackageManagerContext.PackageStorageDbSet.Add(storagePackageInfo);
             await PackageManagerContext.SaveChangesAsync();
             return Ok();
         }

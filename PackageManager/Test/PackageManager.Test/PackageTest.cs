@@ -33,7 +33,7 @@ public class PackageTest
                 // 推送相同的Id的不同版本的包
                 var putPackageRequest = GetTestPutPackageRequest();
                 putPackageRequest.PackageInfo.PackageId = packageId;
-                putPackageRequest.PackageInfo.Version=new Version($"1.0.{i}").VersionToLong();
+                putPackageRequest.PackageInfo.Version = new Version($"1.0.{i}").VersionToLong();
 
                 var jsonContent = JsonContent.Create(putPackageRequest);
 
@@ -117,13 +117,42 @@ public class PackageTest
 
             Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
         });
-
-        
     }
 
     [ContractTestCase]
     public void Get()
     {
+        "传入的客户端版本比当前的包最低能支持的版本小，能从历史版本里面找到能支持此客户端版本的最大版本号的资源".Test(async () =>
+        {
+            var httpClient = TestFramework.GetTestClient();
+
+            var packageId = Guid.NewGuid().ToString();
+
+            // 先推送历史版本
+            var testPutPackageRequest = GetTestPutPackageRequest();
+            testPutPackageRequest.PackageInfo.PackageId = packageId;
+            testPutPackageRequest.PackageInfo.Version = new Version("1.0.0").VersionToLong();
+            testPutPackageRequest.PackageInfo.SupportMinClientVersion = new Version("1.0.0").VersionToLong();
+            await PutPackage(httpClient, testPutPackageRequest);
+
+            // 继续推送一个版本略高的历史版本
+            testPutPackageRequest.PackageInfo.Version = new Version("1.0.1").VersionToLong();
+            testPutPackageRequest.PackageInfo.SupportMinClientVersion = new Version("1.0.10").VersionToLong();
+            await PutPackage(httpClient, testPutPackageRequest);
+
+            // 接着再推送一个新版本
+            testPutPackageRequest.PackageInfo.SupportMinClientVersion = new Version("1.0.100").VersionToLong();
+            await PutPackage(httpClient, testPutPackageRequest);
+
+            // 然后申请一个客户端版本比能支持的更小的
+            var clientVersion = "1.0.99";
+            var response = await httpClient.GetFromJsonAsync<GetPackageResponse>(
+                    $"/Package?ClientVersion={clientVersion}&PackageId={packageId}");
+
+            // 能从历史版本里面找到能支持此客户端版本的最大版本号的资源
+            Assert.AreEqual(new Version("1.0.1").VersionToLong(), response.PackageInfo.Version);
+        });
+
         "传入客户端版本比能支持的版本号小，返回找不到可用的资源".Test(async () =>
         {
             var httpClient = TestFramework.GetTestClient();
@@ -132,13 +161,15 @@ public class PackageTest
 
             var testPutPackageRequest = GetTestPutPackageRequest();
             testPutPackageRequest.PackageInfo.PackageId = packageId;
-            testPutPackageRequest.PackageInfo.SupportMinClientVersion=new Version("1.0.100").VersionToLong();
+            testPutPackageRequest.PackageInfo.SupportMinClientVersion = new Version("1.0.100").VersionToLong();
 
             // 先推送一个版本过去
             await PutPackage(httpClient, testPutPackageRequest);
             // 然后申请一个客户端版本比能支持的更小的
             var clientVersion = "1.0.99";
-            var response = await httpClient.GetFromJsonAsync<GetPackageResponse>($"/Package?ClientVersion={clientVersion}&PackageId={packageId}");
+            var response =
+                await httpClient.GetFromJsonAsync<GetPackageResponse>(
+                    $"/Package?ClientVersion={clientVersion}&PackageId={packageId}");
 
             // 返回找不到可用的资源
             Assert.AreEqual(true, response?.IsNotFound);
@@ -158,7 +189,6 @@ public class PackageTest
     {
         if (httpClient.DefaultRequestHeaders.TryGetValues("Token", out _))
         {
-
         }
         else
         {
