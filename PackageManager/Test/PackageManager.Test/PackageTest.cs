@@ -5,7 +5,6 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 using MSTest.Extensions.Contracts;
 using Newtonsoft.Json;
 using PackageManager.Server.Controllers;
@@ -40,7 +39,7 @@ public class PackageTest
             }
 
             // 最新记录的只有最后一次推送
-            var response =await httpClient.GetAsync($"/Package?ClientVersion=1.0&PackageId={packageId}");
+            var response = await httpClient.GetAsync($"/Package?ClientVersion=1.0&PackageId={packageId}");
             var text = await response.Content.ReadAsStringAsync();
             var (message, packageInfo) = JsonConvert.DeserializeObject<GetPackageResponse>(text);
             Assert.IsNotNull(packageInfo);
@@ -83,9 +82,11 @@ public class PackageTest
             // 判断推送成功需要判断是否加入
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
 
-            var packageResponse = await httpClient.GetFromJsonAsync<GetPackageResponse>($"/Package?PackageId={putPackageRequest.PackageInfo.PackageId}");
+            var packageResponse =
+                await httpClient.GetFromJsonAsync<GetPackageResponse>(
+                    $"/Package?PackageId={putPackageRequest.PackageInfo.PackageId}");
 
-            Assert.AreEqual(putPackageRequest.PackageInfo.PackageId,packageResponse.PackageInfo.PackageId);
+            Assert.AreEqual(putPackageRequest.PackageInfo.PackageId, packageResponse.PackageInfo.PackageId);
 
             var list = await httpClient.GetFromJsonAsync<List<PackageInfo>>("/Package/GetPackageListInMainPage");
             Assert.IsNotNull(list);
