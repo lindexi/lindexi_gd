@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PackageManager.Server.Context;
 using PackageManager.Server.Model;
+using PackageManager.Server.Utils;
 
 namespace PackageManager.Server.Controllers;
 
@@ -33,7 +34,23 @@ public class PackageController : ControllerBase
 
             if (packageInfo != null)
             {
-                return Ok(new GetPackageResponse("Success", packageInfo));
+                // 判断最新版本的是否支持
+                // 当前的客户端版本大于等于最低支持客户端版本
+                var clientVersionValue = long.MaxValue;
+                if (Version.TryParse(request.ClientVersion, out var clientVersion))
+                {
+                    clientVersionValue = clientVersion.VersionToLong();
+                }
+
+                if (clientVersionValue >= packageInfo.SupportMinClientVersion)
+                {
+                    return Ok(new GetPackageResponse("Success", packageInfo));
+                }
+
+                
+
+                // 否则返回能支持他这个版本的最大版本号的资源
+                //PackageManagerContext.PackageStorageDbSet.Where()
             }
         }
 
