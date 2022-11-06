@@ -2,13 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MSTest.Extensions.Contracts;
 using Newtonsoft.Json;
 using PackageManager.Server.Controllers;
 using PackageManager.Server.Model;
+using PackageManager.Server.Utils;
 
 namespace PackageManager.Test;
 
@@ -30,7 +33,7 @@ public class PackageTest
                 // 推送相同的Id的不同版本的包
                 var putPackageRequest = GetTestPutPackageRequest();
                 putPackageRequest.PackageInfo.PackageId = packageId;
-                putPackageRequest.PackageInfo.Version = $"1.0.{i}";
+                putPackageRequest.PackageInfo.Version=new Version($"1.0.{i}").VersionToLong();
 
                 var jsonContent = JsonContent.Create(putPackageRequest);
 
@@ -115,18 +118,32 @@ public class PackageTest
             Assert.AreEqual(HttpStatusCode.NotFound, result.StatusCode);
         });
 
-        PutPackageRequest GetTestPutPackageRequest() => new PutPackageRequest(new PackageInfo()
-        {
-            PackageId = "Test",
-            Author = "lindexi",
-            Name = "Test",
-            CanShow = true,
-        });
+        
     }
 
     [ContractTestCase]
     public void Get()
     {
+        "传入客户端版本比能支持的版本号小，返回找不到可用的资源".Test(async () =>
+        {
+            var httpClient = TestFramework.GetTestClient();
+
+            var packageId = Guid.NewGuid().ToString();
+
+            var testPutPackageRequest = GetTestPutPackageRequest();
+            testPutPackageRequest.PackageInfo.PackageId = packageId;
+            testPutPackageRequest.PackageInfo.SupportMinClientVersion=new Version("1.0.100").VersionToLong();
+
+            // 先推送一个版本过去
+            await PutPackage(httpClient, testPutPackageRequest);
+            // 然后申请一个客户端版本比能支持的更小的
+            var clientVersion = "1.0.99";
+            var response = await httpClient.GetFromJsonAsync<GetPackageResponse>($"/Package?ClientVersion={clientVersion}&PackageId={packageId}");
+
+            // 返回找不到可用的资源
+            Assert.AreEqual(true, response?.IsNotFound);
+        });
+
         "测试默认的 Get 方法，可以有返回值，证明有联通".Test(async () =>
         {
             var httpClient = TestFramework.GetTestClient();
@@ -136,4 +153,29 @@ public class PackageTest
             Assert.IsNotNull(result);
         });
     }
+
+    private async Task<HttpResponseMessage> PutPackage(HttpClient httpClient, PutPackageRequest putPackageRequest)
+    {
+        if (httpClient.DefaultRequestHeaders.TryGetValues("Token", out _))
+        {
+
+        }
+        else
+        {
+            httpClient.DefaultRequestHeaders.Add("Token", TokenConfiguration.Token);
+        }
+
+        var jsonContent = JsonContent.Create(putPackageRequest);
+
+        var result = await httpClient.PutAsync("/Package", jsonContent);
+        return result;
+    }
+
+    private PutPackageRequest GetTestPutPackageRequest() => new PutPackageRequest(new PackageInfo()
+    {
+        PackageId = "Test",
+        Author = "lindexi",
+        Name = "Test",
+        CanShow = true,
+    });
 }

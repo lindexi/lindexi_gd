@@ -21,7 +21,7 @@ public class PackageInfo
     public string Name { set; get; }
 
     public string Author { set; get; }
-    public string Version { set; get; }
+    public long Version { set; get; }
     public string Description { set; get; }
 
     /// <summary>
@@ -39,6 +39,5 @@ public class PackageInfo
     /// </summary>
     public string DownloadUrl { set; get; }
 
-    public string SupportMinClientVersion { set; get; }
-    public string SupportClientPlatform { set; get; }
+    public long SupportMinClientVersion { set; get; }
 }
