@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Net;
 using System.Net.Http.Json;
-
+using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using MSTest.Extensions.Contracts;
@@ -18,6 +18,28 @@ public class PackageTest
     [ContractTestCase]
     public void Put()
     {
+        "测试推送一个包，这个包的描述字符串十分长".Test(async () =>
+        {
+            var httpClient = TestFramework.GetTestClient();
+
+            var putPackageRequest = GetTestPutPackageRequest();
+            var length = 100_0000;
+            var stringBuilder = new StringBuilder(length);
+            for (int i = 0; i < length; i++)
+            {
+                stringBuilder.Append('A');
+            }
+
+            putPackageRequest.PackageInfo.PackageId = "TestA";
+            putPackageRequest.PackageInfo.Description = stringBuilder.ToString();
+            var jsonContent = JsonContent.Create(putPackageRequest);
+            httpClient.DefaultRequestHeaders.Add("Token", TokenConfiguration.Token);
+
+            var result = await httpClient.PutAsync("/Package", jsonContent);
+
+            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+        });
+
         "推送一个包，可以推送成功".Test(async () =>
         {
             var httpClient = TestFramework.GetTestClient();
