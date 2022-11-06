@@ -1,12 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 using MSTest.Extensions.Contracts;
-
+using Newtonsoft.Json;
 using PackageManager.Server.Controllers;
 using PackageManager.Server.Model;
 
@@ -18,6 +18,35 @@ public class PackageTest
     [ContractTestCase]
     public void Put()
     {
+        "测试推送相同的Id的不同版本的包，最新记录的只有最后一次推送".Test(async () =>
+        {
+            var httpClient = TestFramework.GetTestClient();
+            httpClient.DefaultRequestHeaders.Add("Token", TokenConfiguration.Token);
+
+            var packageId = Guid.NewGuid().ToString();
+
+            for (int i = 0; i < 100; i++)
+            {
+                // 推送相同的Id的不同版本的包
+                var putPackageRequest = GetTestPutPackageRequest();
+                putPackageRequest.PackageInfo.PackageId = packageId;
+                putPackageRequest.PackageInfo.Version = $"1.0.{i}";
+
+                var jsonContent = JsonContent.Create(putPackageRequest);
+
+                var result = await httpClient.PutAsync("/Package", jsonContent);
+                Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
+            }
+
+            // 最新记录的只有最后一次推送
+            var response = await httpClient.GetAsync($"/Package?ClientVersion=1.0&PackageId={packageId}");
+            var text = await response.Content.ReadAsStringAsync();
+            var (message, packageInfo) = JsonConvert.DeserializeObject<GetPackageResponse>(text);
+            Assert.IsNotNull(packageInfo);
+            Assert.AreEqual(packageId, packageInfo.PackageId);
+            Assert.AreEqual($"1.0.99", packageInfo.Version);
+        });
+
         "测试推送一个包，这个包的描述字符串十分长".Test(async () =>
         {
             var httpClient = TestFramework.GetTestClient();
@@ -53,9 +82,11 @@ public class PackageTest
             // 判断推送成功需要判断是否加入
             Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
 
-            var packageResponse = await httpClient.GetFromJsonAsync<GetPackageResponse>($"/Package?PackageId={putPackageRequest.PackageInfo.PackageId}");
+            var packageResponse =
+                await httpClient.GetFromJsonAsync<GetPackageResponse>(
+                    $"/Package?PackageId={putPackageRequest.PackageInfo.PackageId}");
 
-            Assert.AreEqual(putPackageRequest.PackageInfo.PackageId,packageResponse.PackageInfo.PackageId);
+            Assert.AreEqual(putPackageRequest.PackageInfo.PackageId, packageResponse.PackageInfo.PackageId);
 
             var list = await httpClient.GetFromJsonAsync<List<PackageInfo>>("/Package/GetPackageListInMainPage");
             Assert.IsNotNull(list);
