@@ -3,7 +3,7 @@
 namespace LightTextEditorPlus.Core.Primitive;
 
 /// <summary>
-/// 文本的日志记录
+///     文本的日志记录
 /// </summary>
 public interface ITextLogger
 {

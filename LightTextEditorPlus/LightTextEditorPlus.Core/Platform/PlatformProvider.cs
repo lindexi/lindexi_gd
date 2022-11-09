@@ -5,25 +5,31 @@ using LightTextEditorPlus.Core.Primitive;
 namespace LightTextEditorPlus.Core.Platform;
 
 /// <summary>
-/// 提供平台接入的辅助类，可以减少编写的代码量
+///     提供平台接入的辅助类，可以减少编写的代码量
 /// </summary>
 public abstract class PlatformProvider : IPlatformProvider
 {
+    private DefaultRunParagraphSplitter? _defaultRunParagraphSplitter;
+
+    /// <inheritdoc />
     public virtual void RequireDispatchUpdateLayout(Action textLayout)
     {
         textLayout();
     }
 
+    /// <inheritdoc />
     public virtual ITextLogger? BuildTextLogger()
     {
         return null;
     }
 
+    /// <inheritdoc />
     public virtual IRunParagraphSplitter GetRunParagraphSplitter()
     {
         return _defaultRunParagraphSplitter ??= new DefaultRunParagraphSplitter();
     }
 
+    /// <inheritdoc />
     public virtual IWholeLineLayouter? GetWholeRunLineLayouter()
     {
         return null;
@@ -34,6 +40,7 @@ public abstract class PlatformProvider : IPlatformProvider
     //    return  new DefaultRunMeasureProvider();
     //}
 
+    /// <inheritdoc />
     public virtual ISingleCharInLineLayouter? GetSingleRunLineLayouter()
     {
         return null;
@@ -44,20 +51,21 @@ public abstract class PlatformProvider : IPlatformProvider
     //    return null;
     //}
 
+    /// <inheritdoc />
     public virtual ICharInfoMeasurer? GetCharInfoMeasurer()
     {
         return null;
     }
 
+    /// <inheritdoc />
     public virtual IRenderManager? GetRenderManager()
     {
         return null;
     }
 
-    public IEmptyParagraphLineHeightMeasurer? GetEmptyParagraphLineHeightMeasurer()
+    /// <inheritdoc />
+    public virtual IEmptyParagraphLineHeightMeasurer? GetEmptyParagraphLineHeightMeasurer()
     {
         return null;
     }
-
-    private DefaultRunParagraphSplitter? _defaultRunParagraphSplitter;
 }

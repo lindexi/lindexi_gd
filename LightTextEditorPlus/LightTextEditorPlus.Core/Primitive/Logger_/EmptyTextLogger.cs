@@ -2,7 +2,7 @@
 
 namespace LightTextEditorPlus.Core.Primitive;
 
-class EmptyTextLogger : ITextLogger
+internal class EmptyTextLogger : ITextLogger
 {
     public void LogDebug(string message)
     {
