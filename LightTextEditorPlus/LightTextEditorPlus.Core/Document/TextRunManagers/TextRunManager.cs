@@ -101,8 +101,9 @@ internal class TextRunManager
             {
                 //paragraphData.InsertRun(insertOffset,subRun);
                 //insertOffset += subRun.Count;
-                paragraphData.AppendRun(subRun);
             }
+
+            currentParagraph.AppendRun(subRun);
 
             isFirstSubRun = false;
         }

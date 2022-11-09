@@ -108,9 +108,23 @@ public class TextEditorCoreTest
                 // Assert
                 var renderInfoProvider = textEditorCore.GetRenderInfo();
                 Assert.IsNotNull(renderInfoProvider);
+
+                var paragraphRenderInfoList = renderInfoProvider.GetParagraphRenderInfoList().ToList();
+
+                // 可以排版出来两段两行
+                Assert.AreEqual(2, paragraphRenderInfoList.Count);
+
+                foreach (var paragraphRenderInfo in paragraphRenderInfoList)
+                {
+                    var paragraphLineRenderInfoList = paragraphRenderInfo.GetLineRenderInfoList().ToList();
+                    Assert.AreEqual(1, paragraphLineRenderInfoList.Count);
+
+                    Assert.AreEqual("123", paragraphLineRenderInfoList[0].LineVisualData.GetText());
+                }
             };
 
             // Action
+            // 给文本编辑器追加两段纯文本
             textEditorCore.AppendText("123\r\n123");
         });
 
