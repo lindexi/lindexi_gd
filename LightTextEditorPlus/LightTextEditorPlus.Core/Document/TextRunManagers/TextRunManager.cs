@@ -819,14 +819,6 @@ class ParagraphData
     }
 }
 
-/// <summary>
-/// 行的渲染结果
-/// </summary>
-/// <param name="LineAssociatedRenderData">行的关联渲染信息。下次更新渲染，将会自动带上</param>
-public readonly record struct LineDrawnResult(object? LineAssociatedRenderData)
-{
-}
-
 public readonly record struct LineDrawnArgument(bool IsDrawn, bool IsLineStartPointUpdated,
     object? LineAssociatedRenderData, Point StartPoint, Size Size, ReadOnlyListSpan<CharData> CharList)
 {
