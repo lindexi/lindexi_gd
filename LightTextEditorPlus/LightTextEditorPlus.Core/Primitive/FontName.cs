@@ -6,7 +6,7 @@ namespace LightTextEditorPlus.Core.Primitive;
 /// 表示一个抽象的字体名称，整个文本库都将使用此类型来表示文本所使用的字体。
 /// 它所指代的字体甚至可以是未安装的，会协助找到最接近的可用来真实渲染的字体。
 /// </summary>
-public readonly struct FontName:IEquatable<FontName>
+public readonly struct FontName : IEquatable<FontName>
 {
     /// <summary>
     /// 初始化抽象字体名称的新实例。
