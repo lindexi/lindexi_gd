@@ -143,13 +143,13 @@ class ParagraphManager
         {
             var paragraphData = CreateParagraphData();
             ParagraphList.Add(paragraphData);
-            return ResultResult(paragraphData);
+            return GetResult(paragraphData);
         }
         else
         {
             if (offset.Offset == 0)
             {
-                return ResultResult(ParagraphList[0]);
+                return GetResult(ParagraphList[0]);
             }
             else
             {
@@ -165,7 +165,7 @@ class ParagraphManager
                     {
                         var hitParagraphOffset = offset.Offset - currentDocumentOffset;
 
-                        return ResultResult(paragraphData, new ParagraphOffset(hitParagraphOffset));
+                        return GetResult(paragraphData, new ParagraphOffset(hitParagraphOffset));
                     }
                     else
                     {
@@ -179,8 +179,7 @@ class ParagraphManager
             throw new NotImplementedException();
         }
 
-        // todo 重命名
-        HitParagraphDataResult ResultResult(ParagraphData paragraphData, ParagraphOffset? hitOffset = null)
+        HitParagraphDataResult GetResult(ParagraphData paragraphData, ParagraphOffset? hitOffset = null)
         {
             return new HitParagraphDataResult(offset, paragraphData, hitOffset ?? new ParagraphOffset(0), this);
         }
