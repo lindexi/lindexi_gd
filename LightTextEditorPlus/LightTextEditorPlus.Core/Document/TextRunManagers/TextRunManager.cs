@@ -226,7 +226,7 @@ class ParagraphManager
         }
         else
         {
-            var index = ParagraphList.IndexOf(relativeParagraph);
+            var index = relativeParagraph.Index;
             ParagraphList.Insert(index + 1, paragraphData);
         }
 
@@ -282,6 +282,12 @@ class ParagraphManager
         }
 
         return stringBuilder.ToString();
+    }
+
+    public int GetParagraphIndex(ParagraphData paragraphData)
+    {
+        var index = ParagraphList.IndexOf(paragraphData);
+        return index;
     }
 }
 
@@ -480,7 +486,7 @@ class ParagraphLayoutData
 /// <summary>
 /// 段落数据
 /// </summary>
-[DebuggerDisplay("{GetText()}")]
+[DebuggerDisplay("第{Index}段，文本：{GetText()}")]
 class ParagraphData
 {
     public ParagraphData(ParagraphProperty paragraphProperty, ParagraphManager paragraphManager)
@@ -495,6 +501,8 @@ class ParagraphData
 
     public ParagraphProperty ParagraphProperty { set; get; }
     public ParagraphManager ParagraphManager { get; }
+
+    public int Index => ParagraphManager.GetParagraphIndex(this);
 
     private TextEditorCore TextEditor => ParagraphManager.TextEditor;
 
