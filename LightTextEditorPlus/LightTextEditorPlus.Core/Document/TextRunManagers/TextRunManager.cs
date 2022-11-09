@@ -91,8 +91,7 @@ internal class TextRunManager
             {
                 // 如果这是一个分段，那直接插入新的段落
                 // todo 如果有明确的分行，那就给定一个段落的字符属性
-                var newParagraph = ParagraphManager.CreateParagraphData(paragraphData.ParagraphProperty);
-                ParagraphManager.InsertParagraphAfter(currentParagraph, newParagraph);
+                var newParagraph = ParagraphManager.CreateParagraphAndInsertAfter(currentParagraph);
 
                 currentParagraph = newParagraph;
 
@@ -141,7 +140,7 @@ class ParagraphManager
     {
         if (ParagraphList.Count == 0)
         {
-            var paragraphData = CreateParagraphData();
+            var paragraphData = CreateParagraphAndInsertAfter(relativeParagraph: null);
             ParagraphList.Add(paragraphData);
             return GetResult(paragraphData);
         }
@@ -193,8 +192,7 @@ class ParagraphManager
     {
         if (ParagraphList.Count == 0)
         {
-            var paragraphData = CreateParagraphData();
-            ParagraphList.Add(paragraphData);
+            var paragraphData = CreateParagraphAndInsertAfter(relativeParagraph: null);
             return paragraphData;
         }
         else
@@ -204,8 +202,14 @@ class ParagraphManager
         }
     }
 
-    public ParagraphData CreateParagraphData(ParagraphProperty? paragraphProperty = null)
+    /// <summary>
+    /// 创建段落且插入到某个段落后面
+    /// </summary>
+    /// <param name="relativeParagraph">相对的段落，如果是空，那将插入到最后</param>
+    /// <returns></returns>
+    public ParagraphData CreateParagraphAndInsertAfter(ParagraphData? relativeParagraph)
     {
+        ParagraphProperty? paragraphProperty = relativeParagraph?.ParagraphProperty;
         if (paragraphProperty == null)
         {
             // 不优化语法，方便加上断点
@@ -215,6 +219,17 @@ class ParagraphManager
         }
 
         var paragraphData = new ParagraphData(paragraphProperty, this);
+
+        if (relativeParagraph is null)
+        {
+            ParagraphList.Add(paragraphData);
+        }
+        else
+        {
+            var index = ParagraphList.IndexOf(relativeParagraph);
+            ParagraphList.Insert(index + 1, paragraphData);
+        }
+
         return paragraphData;
     }
 
@@ -222,11 +237,11 @@ class ParagraphManager
 
     private List<ParagraphData> ParagraphList { get; } = new List<ParagraphData>();
 
-    public void InsertParagraphAfter(ParagraphData currentParagraph, ParagraphData newParagraph)
-    {
-        var index = ParagraphList.IndexOf(currentParagraph);
-        ParagraphList.Insert(index + 1, newParagraph);
-    }
+    //public void InsertParagraphAfter(ParagraphData currentParagraph, ParagraphData newParagraph)
+    //{
+    //    var index = ParagraphList.IndexOf(currentParagraph);
+    //    ParagraphList.Insert(index + 1, newParagraph);
+    //}
 
     /// <summary>
     /// 获取文本行的起始位置在文档中的偏移量，此偏移量的计算考虑了换行符，如123/r/n123，那么第二个段落的Offset为5
