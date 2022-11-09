@@ -98,6 +98,22 @@ public class TextEditorCoreTest
     [ContractTestCase]
     public void AppendText()
     {
+        "给文本编辑器追加两段纯文本，可以排版出来两段两行".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+
+            textEditorCore.LayoutCompleted += (sender, args) =>
+            {
+                // Assert
+                var renderInfoProvider = textEditorCore.GetRenderInfo();
+                Assert.IsNotNull(renderInfoProvider);
+            };
+
+            // Action
+            textEditorCore.AppendText("123\r\n123");
+        });
+
         "给文本编辑器追加一段纯文本，先触发 DocumentChanging 再触发 DocumentChanged 事件".Test(() =>
         {
             // Arrange
@@ -125,7 +141,6 @@ public class TextEditorCoreTest
             Assert.AreEqual(2, raiseCount);
         });
 
-        // todo 考虑传入 123\r\n123 文本
         // todo 考虑传入 123\r\n123\r\n 文本
     }
 

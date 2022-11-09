@@ -54,6 +54,7 @@ namespace LightTextEditorPlus.Core;
 /// - DocumentChanging
 /// - DocumentChanged
 /// - 释放 <see cref="WaitLayoutCompletedAsync"/> 等待
+///   - 可以获取到 <see cref="RenderInfoProvider"/> 内容
 /// - <see cref="LayoutCompleted"/>
 /// - 触发平台渲染
 /// todo 光标系统
@@ -143,13 +144,15 @@ public partial class TextEditorCore
         // 布局完成了，文本不是脏的，可以获取布局内容
         IsDirty = false;
 
+        Debug.Assert(_renderInfoProvider is null);
+        _renderInfoProvider = new RenderInfoProvider(this);
+
         SetLayoutCompleted();
 
         LayoutCompleted?.Invoke(this, new LayoutCompletedEventArgs());
 
         Logger.LogDebug($"[TextEditorCore][Render] 开始调用平台渲染");
-        Debug.Assert(_renderInfoProvider is null);
-        _renderInfoProvider = new RenderInfoProvider(this);
+ 
         // 布局完成，触发渲染
         var renderManager = PlatformProvider.GetRenderManager();
         renderManager?.Render(_renderInfoProvider);
