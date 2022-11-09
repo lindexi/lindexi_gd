@@ -45,4 +45,6 @@ class SpanTextRun : IImmutableTextRun
         return (new SpanTextRun(OriginText, firstStart, firstLength, RunProperty),
             new SpanTextRun(OriginText, secondStart, secondLength));
     }
+
+    public override string ToString() => OriginText.Substring(Start, Count);
 }
