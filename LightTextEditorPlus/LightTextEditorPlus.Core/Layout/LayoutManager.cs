@@ -78,7 +78,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// 布局文本的每个段落 <see cref="LayoutParagraphCore"/>
     /// 段落里面，需要对每一行进行布局 <see cref="LayoutWholeLine"/>
     /// 每一行里面，需要对每个 Char 字符进行布局 <see cref="LayoutSingleCharInLine"/>
-    /// 每个字符需要调用平台的测量 <see cref="MeasureCharInfo"/>
+    /// 每个字符需要调用平台的测量 <see cref="ArrangingLayoutProvider.MeasureCharInfo"/>
     /// </remarks>
     protected override ParagraphLayoutResult LayoutParagraphCore(ParagraphLayoutArgument argument,
         ParagraphOffset startParagraphOffset)
