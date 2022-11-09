@@ -124,8 +124,15 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
 
             TextEditor.AddLayoutReason(nameof(AppendText));
 
-            // 追加在字符数量，也就是最末
-            EditAndReplaceRun(this.GetDocumentEndSelection(), new TextRun(text));
+            //// 追加在字符数量，也就是最末
+            //EditAndReplaceRun(this.GetDocumentEndSelection(), new TextRun(text));
+
+            InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
+
+            var textRun = new TextRun(text);
+            TextRunManager.Append(textRun);
+
+            InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public void EditAndReplaceRun(Selection selection, IImmutableRun run)
@@ -133,7 +140,6 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
             InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
             // 这里只处理数据变更，后续渲染需要通过 InternalDocumentChanged 事件触发
 
-            // 先放在末尾
             TextRunManager.Replace(selection, run);
 
             InternalDocumentChanged?.Invoke(this, EventArgs.Empty);

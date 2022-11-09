@@ -25,7 +25,8 @@ internal class TextRunManager
     public void Append(IImmutableRun run)
     {
         // 追加是使用最多的，需要做额外的优化
-        throw new NotImplementedException($"还没有实现追加的功能");
+        var lastParagraph = ParagraphManager.GetLastParagraph();
+        AppendRunToParagraph(run, lastParagraph);
     }
 
     public void Replace(Selection selection, IImmutableRun run)
@@ -178,9 +179,29 @@ class ParagraphManager
             throw new NotImplementedException();
         }
 
+        // todo 重命名
         HitParagraphDataResult ResultResult(ParagraphData paragraphData, ParagraphOffset? hitOffset = null)
         {
             return new HitParagraphDataResult(offset, paragraphData, hitOffset ?? new ParagraphOffset(0), this);
+        }
+    }
+
+    /// <summary>
+    /// 获取最后一段。如果这个文本连一段都没有，那就创建新的一段
+    /// </summary>
+    /// <returns></returns>
+    public ParagraphData GetLastParagraph()
+    {
+        if (ParagraphList.Count == 0)
+        {
+            var paragraphData = CreateParagraphData();
+            ParagraphList.Add(paragraphData);
+            return paragraphData;
+        }
+        else
+        {
+            // ReSharper disable once UseIndexFromEndExpression
+            return ParagraphList[ParagraphList.Count - 1];
         }
     }
 
@@ -296,7 +317,6 @@ class CharLayoutData : IParagraphCache
 /// </summary>
 public class CharData
 {
-
     public CharData(ICharObject charObject, IReadOnlyRunProperty runProperty)
     {
         CharObject = charObject;
@@ -336,7 +356,7 @@ public class CharData
             throw new InvalidOperationException($"禁止在开始布局之前设置");
         }
 
-        CharLayoutData.StartPoint=point;
+        CharLayoutData.StartPoint = point;
 
         IsSetStartPointInDebugMode = true;
     }
@@ -358,10 +378,12 @@ public class CharData
             {
                 throw new InvalidOperationException($"禁止重复给尺寸赋值");
             }
+
             _size = value;
         }
         get => _size;
     }
+
     private Size? _size;
 
     /// <summary>
@@ -473,7 +495,7 @@ class ParagraphData
         CharDataManager.ToReadOnlyListSpan(start);
 
     public ReadOnlyListSpan<CharData> ToReadOnlyListSpan(int start, int length) =>
-        CharDataManager.ToReadOnlyListSpan(start,length);
+        CharDataManager.ToReadOnlyListSpan(start, length);
 
     /// <summary>
     /// 这一段的字符长度
@@ -543,9 +565,9 @@ class ParagraphData
         else
         {
             Version++;
-            var count = CharCount-offset.Offset;
-            var charDataList = CharDataManager.GetRange(offset.Offset,count);
-            CharDataManager.RemoveRange(offset.Offset,count);
+            var count = CharCount - offset.Offset;
+            var charDataList = CharDataManager.GetRange(offset.Offset, count);
+            CharDataManager.RemoveRange(offset.Offset, count);
 
             foreach (var charData in charDataList)
             {
@@ -597,13 +619,14 @@ class ParagraphData
 
     public void AppendRun(IImmutableRun run)
     {
-        var runProperty = run.RunProperty ??ParagraphProperty.ParagraphStartRunProperty?? TextEditor.DocumentManager.CurrentRunProperty;
+        var runProperty = run.RunProperty ??
+                          ParagraphProperty.ParagraphStartRunProperty ?? TextEditor.DocumentManager.CurrentRunProperty;
 
         //TextRunList.Add(run);
         for (int i = 0; i < run.Count; i++)
         {
             var charObject = run.GetChar(i).DeepClone();
-            var charData = new CharData(charObject,runProperty);
+            var charData = new CharData(charObject, runProperty);
             AppendCharData(charData);
         }
 
@@ -780,10 +803,10 @@ class ParagraphData
 /// <param name="LineAssociatedRenderData">行的关联渲染信息。下次更新渲染，将会自动带上</param>
 public readonly record struct LineDrawnResult(object? LineAssociatedRenderData)
 {
-
 }
 
-public readonly record struct LineDrawnArgument(bool IsDrawn, bool IsLineStartPointUpdated, object? LineAssociatedRenderData, Point StartPoint, Size Size, ReadOnlyListSpan<CharData> CharList)
+public readonly record struct LineDrawnArgument(bool IsDrawn, bool IsLineStartPointUpdated,
+    object? LineAssociatedRenderData, Point StartPoint, Size Size, ReadOnlyListSpan<CharData> CharList)
 {
 }
 
@@ -832,6 +855,7 @@ class LineVisualData : IParagraphCache
         }
         get => _startPoint;
     }
+
     private Point _startPoint;
 
     /// <summary>
@@ -902,6 +926,7 @@ class LineVisualData : IParagraphCache
 
     public LineDrawnArgument GetLineDrawnArgument()
     {
-        return new LineDrawnArgument(IsDrawn, IsLineStartPointUpdated, LineAssociatedRenderData, StartPoint, Size, GetCharList());
+        return new LineDrawnArgument(IsDrawn, IsLineStartPointUpdated, LineAssociatedRenderData, StartPoint, Size,
+            GetCharList());
     }
 }
