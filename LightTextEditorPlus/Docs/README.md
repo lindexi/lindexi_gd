@@ -20,7 +20,7 @@
 
 数据走向：
 
-![](http://image.acmx.xyz/lindexi%2F2022119161408932.jpg)
+![](http://image.acmx.xyz/lindexi%2F20221192012258129.jpg)
 
 ## 各个项目的作用
 
