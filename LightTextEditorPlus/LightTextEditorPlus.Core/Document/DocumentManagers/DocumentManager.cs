@@ -2,6 +2,7 @@
 using LightTextEditorPlus.Core.Document.Segments;
 
 using System;
+using System.Linq;
 using LightTextEditorPlus.Core.Carets;
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
@@ -63,8 +64,27 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         /// <summary>
         /// 文档的字符数量
         /// </summary>
-        /// todo 文档的字符数量
-        public int CharCount { get; }
+        public int CharCount
+        {
+            get
+            {
+                var sum = 0;
+                foreach (var paragraphData in TextRunManager.ParagraphManager.GetParagraphList())
+                {
+                    sum += paragraphData.CharCount;
+                    // 加上换行符的字符
+                    sum += ParagraphData.DelimiterLength;
+                }
+
+                if (sum > 0)
+                {
+                    // 证明存在一段以上，那减去最后一段多加上的换行符
+                    sum -= ParagraphData.DelimiterLength;
+                }
+
+                return sum;
+            }
+        }
 
         /// <summary>
         /// 获取或设置当前光标位置
