@@ -37,6 +37,15 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
 
         internal TextRunManager TextRunManager { get; }
 
+        #region 事件
+
+        internal event EventHandler<TextEditorValueChangeEventArgs<CaretOffset>>?
+            InternalCurrentCaretOffsetChanging;
+
+        internal event EventHandler<TextEditorValueChangeEventArgs<CaretOffset>>?
+            InternalCurrentCaretOffsetChanged;
+
+        #endregion
         /// <summary>
         /// 给内部提供的文档开始变更事件
         /// </summary>
@@ -93,14 +102,23 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         {
             set
             {
+                var oldValue = _currentCaretOffset;
+
                 // todo 设置光标的选择范围
-                throw new NotImplementedException($"还没实现选择功能");
+                var args = new TextEditorValueChangeEventArgs<CaretOffset>(oldValue,value);
+                InternalCurrentCaretOffsetChanging?.Invoke(this,args);
+
+                _currentCaretOffset = value;
+
+                InternalCurrentCaretOffsetChanged?.Invoke(this,args);
             }
             get
             {
-                throw new NotImplementedException($"还没实现选择功能");
+                return _currentCaretOffset;
             }
         }
+
+        private CaretOffset _currentCaretOffset = new CaretOffset(0);
 
         /// <summary>
         /// 获取或设置当前的选择范围
