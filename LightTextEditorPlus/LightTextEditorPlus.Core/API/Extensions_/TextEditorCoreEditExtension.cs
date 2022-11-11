@@ -6,7 +6,7 @@ namespace LightTextEditorPlus.Core;
 /// <summary>
 /// 文档的编辑扩展
 /// </summary>
-public static class DocumentManagerEditExtension
+public static class TextEditorCoreEditExtension
 {
     /// <summary>
     /// 在当前光标后面加入纯文本
