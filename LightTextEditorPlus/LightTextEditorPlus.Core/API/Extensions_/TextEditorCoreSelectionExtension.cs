@@ -12,7 +12,7 @@ public static class TextEditorCoreSelectionExtension
     {
         DocumentManager documentManager = textEditor.DocumentManager;
         var allDocumentSelection = documentManager.GetAllDocumentSelection();
-        documentManager.SetSelection(allDocumentSelection);
+        textEditor.CurrentSelection = allDocumentSelection;
     }
 
     /// <summary>
@@ -21,9 +21,8 @@ public static class TextEditorCoreSelectionExtension
     public static void ClearSelection(this TextEditorCore textEditor)
     {
         // todo 确认清空选择的时候，光标应该在哪
-        DocumentManager documentManager = textEditor.DocumentManager;
 
-        var selection = new Selection(documentManager.CurrentCaretOffset, 0);
-        documentManager.SetSelection(selection);
+        var selection = new Selection(textEditor.CurrentCaretOffset, 0);
+        textEditor.CurrentSelection = selection;
     }
 }

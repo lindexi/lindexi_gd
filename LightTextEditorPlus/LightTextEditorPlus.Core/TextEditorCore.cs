@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Document.DocumentManagers;
 using LightTextEditorPlus.Core.Events;
@@ -77,6 +78,7 @@ public partial class TextEditorCore
         PlatformProvider = platformProvider;
 
         DocumentManager = new DocumentManager(this);
+        CaretManager = new CaretManager(this);
         DocumentManager.InternalDocumentChanging += DocumentManager_InternalDocumentChanging;
         DocumentManager.InternalDocumentChanged += DocumentManager_DocumentChanged;
 
@@ -94,7 +96,7 @@ public partial class TextEditorCore
 
     private readonly LayoutManager _layoutManager;
     private RenderInfoProvider? _renderInfoProvider;
-
+    internal CaretManager CaretManager { get; }
     public DocumentManager DocumentManager { get; }
     public IPlatformProvider PlatformProvider { get; }
 
@@ -194,6 +196,28 @@ public partial class TextEditorCore
     public ITextLogger Logger { get; }
 
     // todo 考虑设置可见范围，用来支持长文本
+
+    #endregion
+
+    #region 光标和选择
+
+    /// <summary>
+    /// 获取或设置当前光标位置
+    /// </summary>
+    public CaretOffset CurrentCaretOffset
+    {
+        set => CaretManager.CurrentCaretOffset = value;
+        get => CaretManager.CurrentCaretOffset;
+    }
+
+    /// <summary>
+    /// 获取或设置当前的选择范围
+    /// </summary>
+    public Selection CurrentSelection
+    {
+        set => CaretManager.SetSelection(value);
+        get => CaretManager.CurrentSelection;
+    }
 
     #endregion
 

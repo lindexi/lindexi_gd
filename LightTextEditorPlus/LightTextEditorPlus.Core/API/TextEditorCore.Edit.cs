@@ -23,8 +23,8 @@ public partial class TextEditorCore
         TextEditorCore textEditor = this;
         DocumentManager documentManager = textEditor.DocumentManager;
         // 判断光标是否在文档末尾，且没有选择内容
-        var currentSelection = documentManager.CurrentSelection;
-        var caretOffset = documentManager.CurrentCaretOffset;
+        var currentSelection = CaretManager.CurrentSelection;
+        var caretOffset = CaretManager.CurrentCaretOffset;
         if (currentSelection.IsEmpty && caretOffset.Offset == documentManager.CharCount)
         {
             // 在末尾，调用追加，性能更好

@@ -24,7 +24,7 @@ public class CaretTests
 
             // Assert
             // 选择的长度是所有的文本
-            Assert.AreEqual(text.Length,textEditorCore.DocumentManager.CurrentSelection.Length);
+            Assert.AreEqual(text.Length,textEditorCore.CurrentSelection.Length);
         });
     }
 
@@ -39,19 +39,19 @@ public class CaretTests
             textEditorCore.AppendText("123123123");
             // 当前是已选择部分内容
             var selection = new Selection(new CaretOffset(1), 2);
-            textEditorCore.DocumentManager.SetSelection(selection);
+            textEditorCore.CurrentSelection=selection;
 
             // 当前是有选择的
-            Assert.AreEqual(false, textEditorCore.DocumentManager.CurrentSelection.IsEmpty);
+            Assert.AreEqual(false, textEditorCore.CurrentSelection.IsEmpty);
 
             // Action
             // 修改光标坐标
-            textEditorCore.DocumentManager.CurrentCaretOffset = new CaretOffset(1);
+            textEditorCore.CurrentCaretOffset = new CaretOffset(1);
 
             // Assert
             // 将会清空当前选择
-            Assert.AreEqual(new CaretOffset(1), textEditorCore.DocumentManager.CurrentSelection.StartOffset);
-            Assert.AreEqual(true, textEditorCore.DocumentManager.CurrentSelection.IsEmpty);
+            Assert.AreEqual(new CaretOffset(1), textEditorCore.CurrentSelection.StartOffset);
+            Assert.AreEqual(true, textEditorCore.CurrentSelection.IsEmpty);
         });
 
         "修改光标坐标，将会同步设置选择范围".Test(() =>
@@ -63,12 +63,12 @@ public class CaretTests
 
             // Action
             // 修改光标坐标
-            textEditorCore.DocumentManager.CurrentCaretOffset = new CaretOffset(1);
+            textEditorCore.CurrentCaretOffset = new CaretOffset(1);
 
             // Assert
             // 将会同步设置选择范围
-            Assert.AreEqual(new CaretOffset(1), textEditorCore.DocumentManager.CurrentSelection.StartOffset);
-            Assert.AreEqual(true, textEditorCore.DocumentManager.CurrentSelection.IsEmpty);
+            Assert.AreEqual(new CaretOffset(1), textEditorCore.CurrentSelection.StartOffset);
+            Assert.AreEqual(true, textEditorCore.CurrentSelection.IsEmpty);
         });
     }
 }
