@@ -2,6 +2,7 @@
 using LightTextEditorPlus.Core.Document.Segments;
 
 using System;
+using System.Collections.Specialized;
 using System.Linq;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Events;
@@ -139,12 +140,21 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         private CaretOffset _currentCaretOffset = new CaretOffset(0);
 
         /// <summary>
+        /// 设置选择范围
+        /// </summary>
+        /// <param name="selection"></param>
+        public void SetSelection(in Selection selection)
+        {
+            CurrentSelection = selection;
+        }
+
+        /// <summary>
         /// 获取或设置当前的选择范围
         /// </summary>
         /// 当没有选择时，将和 <see cref="CurrentCaretOffset"/> 相同
         public Selection CurrentSelection
         {
-            internal set
+            private set
             {
                 var oldValue = _currentSelection;
 

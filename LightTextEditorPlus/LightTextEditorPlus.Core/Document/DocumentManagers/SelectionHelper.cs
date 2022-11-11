@@ -1,8 +1,9 @@
-﻿using LightTextEditorPlus.Core.Carets;
+﻿using System.Collections.Specialized;
+using LightTextEditorPlus.Core.Carets;
 
 namespace LightTextEditorPlus.Core.Document.DocumentManagers;
 
-static class SelectionHelper
+static class DocumentManagerSelectionExtension
 {
     /// <summary>
     /// 获取文档开始的光标
@@ -41,4 +42,24 @@ static class SelectionHelper
     /// <returns></returns>
     public static Selection GetAllDocumentSelection(this DocumentManager documentManager) =>
         new Selection(documentManager.GetDocumentStartCaretOffset(), documentManager.GetDocumentEndCaretOffset());
+
+    /// <summary>
+    /// 全选文本
+    /// </summary>
+    public static void SelectAll(this DocumentManager documentManager)
+    {
+        var allDocumentSelection = documentManager.GetAllDocumentSelection();
+        documentManager.SetSelection(allDocumentSelection);
+    }
+
+    /// <summary>
+    /// 清空选择
+    /// </summary>
+    public static void ClearSelection(this DocumentManager documentManager)
+    {
+        // todo 确认清空选择的时候，光标应该在哪
+
+        var selection = new Selection(documentManager.CurrentCaretOffset,0);
+        documentManager.SetSelection(selection);
+    }
 }
