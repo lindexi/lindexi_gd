@@ -2,6 +2,8 @@
 using LightTextEditorPlus.Core.Document.DocumentManagers;
 using LightTextEditorPlus.Core.Events;
 
+using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
+
 namespace LightTextEditorPlus.Core.Carets;
 
 /// <summary>
@@ -9,12 +11,12 @@ namespace LightTextEditorPlus.Core.Carets;
 /// </summary>
 class CaretManager
 {
-    public CaretManager(TextEditorCore textEditor)
+    public CaretManager(TextEditor textEditor)
     {
         TextEditor = textEditor;
     }
 
-    private TextEditorCore TextEditor { get; }
+    private TextEditor TextEditor { get; }
     private DocumentManager DocumentManager => TextEditor.DocumentManager;
 
     #region 事件

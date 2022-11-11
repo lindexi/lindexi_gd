@@ -1,6 +1,7 @@
 ﻿using System;
+
 using LightTextEditorPlus.Core.Carets;
-using LightTextEditorPlus.Core.Events;
+
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Document.DocumentManagers
@@ -20,7 +21,7 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         }
 
         #region 框架
-        public TextEditorCore TextEditor { get; }
+        public TextEditor TextEditor { get; }
 
         /// <summary>
         /// 文档的宽度
@@ -88,12 +89,6 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
                 return sum;
             }
         }
-
-        #region 选择和光标
-
-       
-
-        #endregion
 
         #endregion
 
