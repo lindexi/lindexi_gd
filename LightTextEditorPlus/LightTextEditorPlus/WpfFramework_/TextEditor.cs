@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -271,8 +272,16 @@ class CharInfoMeasurer : ICharInfoMeasurer
         var fontFamily = new FontFamily(runPropertyFontFamily.UserFontName);
         return fontFamily;
     }
+}
 
-
+internal static class Win32
+{
+    /// <summary>
+    /// 获取光标闪烁时间
+    /// </summary>
+    /// <returns>毫秒</returns>
+    [DllImport("user32.dll")]
+    internal static extern int GetCaretBlinkTime();
 }
 
 /// <summary>

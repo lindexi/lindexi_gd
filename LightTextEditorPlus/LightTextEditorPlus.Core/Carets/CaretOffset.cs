@@ -13,7 +13,6 @@ namespace LightTextEditorPlus.Core.Carets;
 /// <remarks>
 /// 光标偏移量和 <see cref="DocumentOffset"/> 是不相同的，光标是在某个字符的前和后，但 <see cref="DocumentOffset"/> 就是某个字符。光标偏移量的最大值，是等于字符数量而 <see cref="DocumentOffset"/> 的最大值是字符数量 -1 的值
 /// </remarks>
-/// todo 完成光标系统
 public readonly struct CaretOffset : IEquatable<CaretOffset>
 {
     /// <summary>

@@ -9,6 +9,11 @@ namespace LightTextEditorPlus.Core.Carets;
 /// <summary>
 /// 光标管理
 /// </summary>
+/// todo 光标系统
+/// - 项目符号
+///   - 在空段里面，如果设置项目符号，在光标落在此空段内，将会显示半透明的项目符号。可以提供开关，给底层进行设置，或者是只是触发一个平台渲染层，因为没有影响布局
+/// - 光标落在 \r\n 的中间的处理
+/// - 光标变更的时候，可视化的光标是否跟随文本字符属性的颜色和字号，以及横排和竖排，以及光标所在的坐标，这是需要通知到渲染层
 class CaretManager
 {
     public CaretManager(TextEditor textEditor)
