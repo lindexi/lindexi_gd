@@ -2,6 +2,9 @@
 
 namespace LightTextEditorPlus.Core.Document.DocumentManagers;
 
+/// <summary>
+/// 文档的选择扩展
+/// </summary>
 public static class DocumentManagerSelectionExtension
 {
     /// <summary>
