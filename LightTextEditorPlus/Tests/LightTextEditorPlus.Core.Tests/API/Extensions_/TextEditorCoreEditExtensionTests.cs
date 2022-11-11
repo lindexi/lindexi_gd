@@ -1,11 +1,10 @@
-﻿using LightTextEditorPlus.Core.Document.DocumentManagers;
-using LightTextEditorPlus.Core.TestsFramework;
+﻿using LightTextEditorPlus.Core.TestsFramework;
 using MSTest.Extensions.Contracts;
 
-namespace LightTextEditorPlus.Core.Tests.Document.DocumentManagers;
+namespace LightTextEditorPlus.Core.Tests;
 
 [TestClass()]
-public class DocumentManagerEditExtensionTests
+public class TextEditorCoreEditExtensionTests
 {
     [ContractTestCase]
     public void InsertTextAfterCurrentCaretOffsetTest()
