@@ -1,4 +1,7 @@
-﻿namespace LightTextEditorPlus.Core.Document.DocumentManagers;
+﻿using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.DocumentManagers;
+
+namespace LightTextEditorPlus.Core;
 
 /// <summary>
 /// 文档的编辑扩展
