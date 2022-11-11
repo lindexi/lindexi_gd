@@ -2,7 +2,7 @@
 
 namespace LightTextEditorPlus;
 
-internal static class Win32
+internal static class Win32Interop
 {
     /// <summary>
     /// 获取光标闪烁时间
