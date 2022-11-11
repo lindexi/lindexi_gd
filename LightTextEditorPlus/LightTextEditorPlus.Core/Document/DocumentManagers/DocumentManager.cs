@@ -1,9 +1,4 @@
-﻿
-using LightTextEditorPlus.Core.Document.Segments;
-
-using System;
-using System.Collections.Specialized;
-using System.Linq;
+﻿using System;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Events;
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
@@ -78,7 +73,7 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         #region 公开属性
 
         /// <summary>
-        /// 文档的字符数量。段落之间，使用 `\r\n` 换行符，加入计算为两个字符
+        /// 文档的字符数量。段落之间，使用 `\r\n` 换行符，加入计算为两个字符。包含项目符号
         /// </summary>
         public int CharCount
         {
@@ -154,6 +149,7 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         /// 当没有选择时，将和 <see cref="CurrentCaretOffset"/> 相同
         public Selection CurrentSelection
         {
+            // 设置为私有，只允许内部设置。方便打断点，解决 SetSelection 接收对外调用
             private set
             {
                 var oldValue = _currentSelection;

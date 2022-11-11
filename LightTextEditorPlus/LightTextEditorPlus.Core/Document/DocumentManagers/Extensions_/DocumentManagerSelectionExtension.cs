@@ -2,7 +2,7 @@
 
 namespace LightTextEditorPlus.Core.Document.DocumentManagers;
 
-static class DocumentManagerSelectionExtension
+public static class DocumentManagerSelectionExtension
 {
     /// <summary>
     /// 获取文档开始的光标
