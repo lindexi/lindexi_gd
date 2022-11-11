@@ -1,21 +1,26 @@
-﻿using System;
+﻿using LightTextEditorPlus.Core.Document.DocumentManagers;
 using LightTextEditorPlus.Core.Document;
-using LightTextEditorPlus.Core.Document.DocumentManagers;
+using System;
 
 namespace LightTextEditorPlus.Core;
 
-/// <summary>
-/// 文档的编辑扩展
-/// </summary>
-public static class TextEditorCoreEditExtension
+public partial class TextEditorCore
 {
+    /// <summary>
+    /// 追加一段文本，追加的文本按照段末的样式
+    /// </summary>
+    public void AppendText(string text)
+    {
+        DocumentManager.AppendText(text);
+    }
+
     /// <summary>
     /// 在当前的文本上编辑且替换。文本没有选择时，将在当前光标后面加入文本。文本有选择时，替换选择内容为输入内容
     /// </summary>
-    /// <param name="textEditor"></param>
     /// <param name="text"></param>
-    public static void EditAndReplace(this TextEditorCore textEditor, string text)
+    public void EditAndReplace( string text)
     {
+        TextEditorCore textEditor = this;
         DocumentManager documentManager = textEditor.DocumentManager;
         // 判断光标是否在文档末尾，且没有选择内容
         var currentSelection = documentManager.CurrentSelection;
@@ -34,9 +39,8 @@ public static class TextEditorCoreEditExtension
     /// <summary>
     /// 在当前光标后面加入纯文本
     /// </summary>
-    /// <param name="textEditor"></param>
     /// <param name="text"></param>
     [Obsolete("请使用" + nameof(EditAndReplace) + "代替。此方法只是用来告诉你正确的用法是调用" + nameof(EditAndReplace) + "方法")]
-    public static void InsertTextAfterCurrentCaretOffset(this TextEditorCore textEditor, string text) =>
-        textEditor.EditAndReplace(text);
+    public void InsertTextAfterCurrentCaretOffset(string text) =>
+        EditAndReplace(text);
 }
