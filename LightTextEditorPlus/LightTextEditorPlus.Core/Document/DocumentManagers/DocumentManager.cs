@@ -4,6 +4,7 @@ using LightTextEditorPlus.Core.Document.Segments;
 using System;
 using System.Linq;
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Events;
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Document.DocumentManagers
@@ -117,6 +118,7 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
                 var args = new TextEditorValueChangeEventArgs<CaretOffset>(oldValue,value);
                 InternalCurrentCaretOffsetChanging?.Invoke(this,args);
 
+                // todo 处理越界
                 _currentCaretOffset = value;
 
                 // 如果当前的进入不是由选择范围触发的，那么更新选择范围
@@ -157,7 +159,7 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
                 {
                     CurrentCaretOffset = value.EndOffset;
                 }
-
+                // todo 处理越界
                 _isCurrentSelectionChanging = false;
                 InternalCurrentSelectionChanged?.Invoke(this, args);
             }

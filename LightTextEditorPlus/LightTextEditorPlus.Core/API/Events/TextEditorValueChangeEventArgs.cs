@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LightTextEditorPlus.Core;
+namespace LightTextEditorPlus.Core.Events;
 
 /// <summary>
 /// 值变更的事件参数

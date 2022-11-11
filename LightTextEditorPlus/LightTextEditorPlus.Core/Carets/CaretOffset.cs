@@ -23,6 +23,7 @@ public readonly struct CaretOffset : IEquatable<CaretOffset>
     [DebuggerStepThrough]
     public CaretOffset(int offset)
     {
+        // todo 判断光标的值大于等于零
         Offset = offset;
     }
 

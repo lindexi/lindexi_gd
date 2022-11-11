@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Document.DocumentManagers;
+using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
