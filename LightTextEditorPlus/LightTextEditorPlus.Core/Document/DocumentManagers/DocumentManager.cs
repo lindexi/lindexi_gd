@@ -226,6 +226,7 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
             InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
             // 这里只处理数据变更，后续渲染需要通过 InternalDocumentChanged 事件触发
 
+            // todo 此时文本应该继承的样式是哪个？光标前的字符？还是被选择的文本的样式？被选择的文本有多个样式？
             TextRunManager.Replace(selection, run);
 
             // todo 更新光标
