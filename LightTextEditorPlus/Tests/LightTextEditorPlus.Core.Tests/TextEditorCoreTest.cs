@@ -98,6 +98,27 @@ public class TextEditorCoreTest
     [ContractTestCase]
     public void AppendText()
     {
+        @"给文本编辑器追加 123\r\n123\r\n 文本，可以排版出来三段".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+
+            textEditorCore.LayoutCompleted += (sender, args) =>
+            {
+                // Assert
+                var renderInfoProvider = textEditorCore.GetRenderInfo();
+                Assert.IsNotNull(renderInfoProvider);
+
+                var paragraphRenderInfoList = renderInfoProvider.GetParagraphRenderInfoList().ToList();
+
+                // 可以排版出来三段
+                Assert.AreEqual(3, paragraphRenderInfoList.Count);
+            };
+
+            // Action
+            textEditorCore.AppendText("123\r\n123\r\n");
+        });
+
         "给文本编辑器追加两段纯文本，可以排版出来两段两行".Test(() =>
         {
             // Arrange
@@ -154,8 +175,6 @@ public class TextEditorCoreTest
             // Assert
             Assert.AreEqual(2, raiseCount);
         });
-
-        // todo 考虑传入 123\r\n123\r\n 文本
     }
 
 
@@ -175,5 +194,4 @@ public class TextEditorCoreTest
             Assert.AreEqual(30, textEditorCore.GetDocumentLayoutBounds().Height);
         });
     }
-
 }
