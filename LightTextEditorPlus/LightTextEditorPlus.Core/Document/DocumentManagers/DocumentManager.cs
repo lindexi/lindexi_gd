@@ -216,7 +216,7 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
             var textRun = new TextRun(text);
             TextRunManager.Append(textRun);
 
-            // todo 更新光标
+            CurrentCaretOffset = new CaretOffset(CharCount);
 
             InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
         }
