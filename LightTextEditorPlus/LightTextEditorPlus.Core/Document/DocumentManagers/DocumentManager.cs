@@ -132,7 +132,7 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         /// 当没有选择时，将和 <see cref="CurrentCaretOffset"/> 相同
         public Selection CurrentSelection
         {
-            set
+            internal set
             {
                 var oldValue = _currentSelection;
 
