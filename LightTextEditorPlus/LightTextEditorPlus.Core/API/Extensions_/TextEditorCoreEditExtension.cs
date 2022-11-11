@@ -11,10 +11,11 @@ public static class TextEditorCoreEditExtension
     /// <summary>
     /// 在当前光标后面加入纯文本
     /// </summary>
-    /// <param name="documentManager"></param>
+    /// <param name="textEditor"></param>
     /// <param name="text"></param>
-    public static void InsertTextAfterCurrentCaretOffset(this DocumentManager documentManager, string text)
+    public static void InsertTextAfterCurrentCaretOffset(this TextEditorCore textEditor, string text)
     {
+        var documentManager = textEditor.DocumentManager;
         // 判断光标是否在文档末尾，且没有选择内容
         var currentSelection = documentManager.CurrentSelection;
         var caretOffset = documentManager.CurrentCaretOffset;

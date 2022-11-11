@@ -16,7 +16,7 @@ public class DocumentManagerEditExtensionTests
             var textEditorCore = TestHelper.GetTextEditorCore();
 
             // Action
-            textEditorCore.DocumentManager.InsertTextAfterCurrentCaretOffset(TestHelper.PlainNumberText);
+            textEditorCore.InsertTextAfterCurrentCaretOffset(TestHelper.PlainNumberText);
 
             // Assert
             Assert.AreEqual(3, textEditorCore.DocumentManager.CharCount);
