@@ -20,7 +20,7 @@ public class CaretTests
             textEditorCore.AppendText(text);
 
             // Action
-            textEditorCore.DocumentManager.SelectAll();
+            textEditorCore.SelectAll();
 
             // Assert
             // 选择的长度是所有的文本
