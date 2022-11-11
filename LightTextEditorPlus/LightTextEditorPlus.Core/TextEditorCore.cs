@@ -117,6 +117,8 @@ public partial class TextEditorCore
 
         // 文档变更，更新布局
         Logger.LogDebug($"[TextEditorCore] 文档变更，更新布局");
+
+        // todo 考虑在需要立刻获取布局信息时，直接更新布局
         PlatformProvider.RequireDispatchUpdateLayout(UpdateLayout);
     }
 

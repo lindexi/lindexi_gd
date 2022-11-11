@@ -45,7 +45,12 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         internal event EventHandler<TextEditorValueChangeEventArgs<CaretOffset>>?
             InternalCurrentCaretOffsetChanged;
 
+        internal event EventHandler<TextEditorValueChangeEventArgs<Selection>>? InternalCurrentSelectionChanging;
+
+        internal event EventHandler<TextEditorValueChangeEventArgs<Selection>>? InternalCurrentSelectionChanged;
+
         #endregion
+
         /// <summary>
         /// 给内部提供的文档开始变更事件
         /// </summary>
@@ -104,6 +109,7 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
             {
                 var oldValue = _currentCaretOffset;
 
+                // todo 完成光标系统
                 // todo 设置光标的选择范围
                 var args = new TextEditorValueChangeEventArgs<CaretOffset>(oldValue,value);
                 InternalCurrentCaretOffsetChanging?.Invoke(this,args);
@@ -128,13 +134,22 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         {
             set
             {
-                throw new NotImplementedException($"还没实现选择功能");
+                var oldValue = _currentSelection;
+
+                var args = new TextEditorValueChangeEventArgs<Selection>(oldValue,value);
+                InternalCurrentSelectionChanging?.Invoke(this,args);
+
+                _currentSelection = value;
+
+                InternalCurrentSelectionChanged?.Invoke(this, args);
             }
             get
             {
-                throw new NotImplementedException($"还没实现选择功能");
+                return _currentSelection;
             }
         }
+
+        private Selection _currentSelection = new Selection(new CaretOffset(0), 0);
 
         #endregion
 
@@ -170,6 +185,8 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
             var textRun = new TextRun(text);
             TextRunManager.Append(textRun);
 
+            // todo 更新光标
+
             InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
         }
 
@@ -179,6 +196,8 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
             // 这里只处理数据变更，后续渲染需要通过 InternalDocumentChanged 事件触发
 
             TextRunManager.Replace(selection, run);
+
+            // todo 更新光标
 
             InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
         }
