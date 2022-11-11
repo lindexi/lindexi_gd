@@ -100,6 +100,8 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
             }
         }
 
+        #region 选择和光标
+
         /// <summary>
         /// 获取或设置当前光标位置
         /// </summary>
@@ -108,6 +110,7 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
             set
             {
                 var oldValue = _currentCaretOffset;
+                _isCurrentCaretOffsetChanging = true;
 
                 // todo 完成光标系统
                 // todo 设置光标的选择范围
@@ -116,6 +119,13 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
 
                 _currentCaretOffset = value;
 
+                // 如果当前的进入不是由选择范围触发的，那么更新选择范围
+                if (_isCurrentSelectionChanging is false)
+                {
+                    CurrentSelection = new Selection(value, 0);
+                }
+
+                _isCurrentCaretOffsetChanging = false;
                 InternalCurrentCaretOffsetChanged?.Invoke(this,args);
             }
             get
@@ -137,10 +147,18 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
                 var oldValue = _currentSelection;
 
                 var args = new TextEditorValueChangeEventArgs<Selection>(oldValue,value);
+                _isCurrentSelectionChanging = true;
                 InternalCurrentSelectionChanging?.Invoke(this,args);
 
                 _currentSelection = value;
 
+                // 如果当前的进入不是由光标触发的，那么更新光标
+                if (_isCurrentCaretOffsetChanging is false)
+                {
+                    CurrentCaretOffset = value.EndOffset;
+                }
+
+                _isCurrentSelectionChanging = false;
                 InternalCurrentSelectionChanged?.Invoke(this, args);
             }
             get
@@ -150,6 +168,11 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         }
 
         private Selection _currentSelection = new Selection(new CaretOffset(0), 0);
+
+        private bool _isCurrentSelectionChanging;
+        private bool _isCurrentCaretOffsetChanging;
+
+        #endregion
 
         #endregion
 
