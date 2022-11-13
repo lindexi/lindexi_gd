@@ -118,6 +118,15 @@ public class PackageController : ControllerBase
 
 public record PutPackageRequest(PackageInfo PackageInfo);
 
+public record UpdateAllPackageResponse(string Message, List<PackageInfo> PackageList);
+
+public record UpdateAllPackageRequest(List<UpdatePackageRequest> PackageList,string ClientVersion)
+{
+
+}
+
+public record UpdatePackageRequest(string PackageId,long CurrentPackageVersion);
+
 public class StringVersionComparer : IComparer<string>
 {
     public int Compare(string? x, string? y)
