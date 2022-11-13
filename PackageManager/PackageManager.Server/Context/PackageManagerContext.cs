@@ -3,7 +3,7 @@ using PackageManager.Server.Model;
 
 namespace PackageManager.Server.Context;
 
-public class PackageManagerContext:DbContext
+public class PackageManagerContext : DbContext
 {
     public PackageManagerContext(DbContextOptions options) : base(options)
     {
@@ -12,7 +12,7 @@ public class PackageManagerContext:DbContext
     /// <summary>
     /// 只包含最新版本的信息
     /// </summary>
-    public DbSet<LatestPackageInfo> LatestPackageDbSet { set; get; } 
+    public DbSet<LatestPackageInfo> LatestPackageDbSet { set; get; }
     // 框架注入
         = null!;
 
