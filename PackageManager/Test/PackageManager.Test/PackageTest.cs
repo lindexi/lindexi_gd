@@ -147,7 +147,7 @@ public class PackageTest
             // 然后申请一个客户端版本比能支持的更小的
             var clientVersion = "1.0.99";
             var response = await httpClient.GetFromJsonAsync<GetPackageResponse>(
-                    $"/Package?ClientVersion={clientVersion}&PackageId={packageId}");
+                $"/Package?ClientVersion={clientVersion}&PackageId={packageId}");
 
             // 能从历史版本里面找到能支持此客户端版本的最大版本号的资源
             Assert.AreEqual(new Version("1.0.1").VersionToLong(), response.PackageInfo.Version);
@@ -182,6 +182,87 @@ public class PackageTest
             var result = await httpClient.GetStringAsync("/Package");
 
             Assert.IsNotNull(result);
+        });
+    }
+
+    [ContractTestCase]
+    public void UpdateAllPackage()
+    {
+        "传入都有新版本的包的列表，可以返回更新的版本".Test(async () =>
+        {
+            var httpClient = TestFramework.GetTestClient();
+            var packageIdList = new List<string>();
+            for (int i = 0; i < 100; i++)
+            {
+                packageIdList.Add(Guid.NewGuid().ToString("N"));
+            }
+
+            // 先准备一些包
+            foreach (var packageId in packageIdList)
+            {
+                var putPackageRequest = GetTestPutPackageRequest();
+                var packageInfo = putPackageRequest.PackageInfo;
+                packageInfo.Name = "测试用的插件";
+                packageInfo.Version = 1;
+                packageInfo.PackageId = packageId;
+
+                await PutPackage(httpClient, putPackageRequest);
+            }
+
+            var requestList = packageIdList.Select(t => new UpdatePackageRequest(t, 0)).ToList();
+            var updateAllPackageRequest = new UpdateAllPackageRequest(requestList, "5.2.1.6111");
+            var response = await httpClient.PostAsJsonAsync("/Package/UpdateAllPackage", updateAllPackageRequest);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+            var packageResponse = await response.Content.ReadFromJsonAsync<UpdateAllPackageResponse>();
+
+            Assert.IsNotNull(packageResponse);
+
+            var (code, message, packageInfoList) = packageResponse;
+
+            Assert.AreEqual(ResponseErrorCode.Ok.Code, code);
+            Assert.AreEqual(packageIdList.Count, packageInfoList.Count);
+        });
+
+        "传入没有存在的包Id列表，返回空的更新列表".Test(async () =>
+        {
+            var httpClient = TestFramework.GetTestClient();
+
+            var requestList = new List<UpdatePackageRequest>();
+            // 传入没有存在的包Id列表
+            for (int i = 0; i < 100; i++)
+            {
+                requestList.Add(new UpdatePackageRequest($"不存在_{Guid.NewGuid():N}", 0));
+            }
+
+            var updateAllPackageRequest = new UpdateAllPackageRequest(requestList, "5.2.1.6111");
+
+            var response = await httpClient.PostAsJsonAsync("/Package/UpdateAllPackage", updateAllPackageRequest);
+
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+            var packageResponse = await response.Content.ReadFromJsonAsync<UpdateAllPackageResponse>();
+
+            Assert.IsNotNull(packageResponse);
+
+            var (code, message, packageInfoList) = packageResponse;
+
+            Assert.AreEqual(ResponseErrorCode.Ok.Code, code);
+            Assert.AreEqual(0, packageInfoList.Count);
+        });
+
+        "没有传入客户端版本，返回客户端版本不支持".Test(async () =>
+        {
+            var httpClient = TestFramework.GetTestClient();
+
+            var updateAllPackageRequest = new UpdateAllPackageRequest(new List<UpdatePackageRequest>(0), "");
+
+            var response = await httpClient.PostAsJsonAsync("/Package/UpdateAllPackage", updateAllPackageRequest);
+            Assert.IsNotNull(response);
+
+            var (code, message, packageInfoList) = await response.Content.ReadFromJsonAsync<UpdateAllPackageResponse>();
+            Assert.AreEqual(ResponseErrorCode.DoNotSupportClientVersion.Code, code);
+            Assert.AreEqual(0, packageInfoList.Count);
         });
     }
 
