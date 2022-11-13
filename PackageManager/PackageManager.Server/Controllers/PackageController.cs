@@ -27,10 +27,10 @@ public class PackageController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Get([FromQuery] GetPackageRequest? request)
     {
-        if (!string.IsNullOrEmpty(request?.PackageId))
+        if (!string.IsNullOrEmpty(request?.PackageIdOrNamePattern))
         {
             var packageInfo = await 
-                PackageManagerContext.LatestPackageDbSet.FirstOrDefaultAsync(t => t.PackageId == request.PackageId);
+                PackageManagerContext.LatestPackageDbSet.FirstOrDefaultAsync(t => t.PackageId == request.PackageIdOrNamePattern);
 
             if (packageInfo != null)
             {
@@ -49,7 +49,7 @@ public class PackageController : ControllerBase
 
                 // 否则返回能支持他这个版本的最大版本号的资源
                 var storagePackageInfo = await PackageManagerContext.PackageStorageDbSet
-                    .Where(t=>t.PackageId== request.PackageId)
+                    .Where(t=>t.PackageId== request.PackageIdOrNamePattern)
                     .Where(t => clientVersionValue >= t.SupportMinClientVersion).OrderByDescending(t => t.Version)
                     .FirstOrDefaultAsync();
 
@@ -58,16 +58,23 @@ public class PackageController : ControllerBase
                     return Ok(new GetPackageResponse("Success", storagePackageInfo));
                 }
             }
+            else
+            {
+                // 尝试进入遍历的方式，传入的也许是名字
+                // 但是有些不愿意作为可见的，那还是不给好了，只允许采用包 Id 的方式提供
+                // 于是这里就不再处理
+            }
         }
 
         return Ok(new GetPackageResponse($"NotFound {request}",null));
     }
 
-
     // 获取所有的包的更新
 
-    // 列举首页的所有包
-
+    /// <summary>
+    /// 列举首页的所有包
+    /// </summary>
+    /// <returns></returns>
     [HttpGet(nameof(GetPackageListInMainPage))]
     public IActionResult GetPackageListInMainPage()
     {
@@ -110,6 +117,15 @@ public class PackageController : ControllerBase
 }
 
 public record PutPackageRequest(PackageInfo PackageInfo);
+
+public record UpdateAllPackageResponse(string Message, List<PackageInfo> PackageList);
+
+public record UpdateAllPackageRequest(List<UpdatePackageRequest> PackageList,string ClientVersion)
+{
+
+}
+
+public record UpdatePackageRequest(string PackageId,long CurrentPackageVersion);
 
 public class StringVersionComparer : IComparer<string>
 {
