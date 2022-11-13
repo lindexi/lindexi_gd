@@ -19,6 +19,10 @@ public class PackageInfo
 
     public string Author { set; get; }
     public long Version { set; get; }
+
+    /// <summary>
+    /// 描述信息，可不要太长哦
+    /// </summary>
     public string Description { set; get; }
 
     /// <summary>
@@ -31,10 +35,14 @@ public class PackageInfo
     /// </summary>
     public bool CanShow { set; get; }
 
-    /// <summary>
-    /// 描述信息，可不要太长哦
-    /// </summary>
+
     public string DownloadUrl { set; get; }
+
+    /// <summary>
+    /// 需要下架
+    /// </summary>
+    /// 需要下架时，可以没有下载地址
+    public bool ShouldUninstall { set; get; }
 
     public long SupportMinClientVersion { set; get; }
 
@@ -49,5 +57,6 @@ public class PackageInfo
         packageInfo.DownloadUrl = DownloadUrl;
         packageInfo.CanShow = CanShow;
         packageInfo.PackageId = PackageId;
+        packageInfo.ShouldUninstall = ShouldUninstall;
     }
 }
