@@ -8,6 +8,7 @@ public class Startup
     {
         var file = Path.Combine(Path.GetDirectoryName(this.GetType().Assembly.Location)!, "PackageManger.db");
         file = Path.GetFullPath(file);
+        //file = "PackageManger.db";
         var connect = $"Filename={file}";
 
         services.AddControllers();
