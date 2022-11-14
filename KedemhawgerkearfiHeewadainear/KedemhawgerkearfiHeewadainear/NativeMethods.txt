@@ -1,0 +1,2 @@
+﻿GetModuleHandle
+RegisterWaitUntilOOBECompleted
