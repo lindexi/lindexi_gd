@@ -79,17 +79,20 @@ public partial class MainWindow : Window
                     Debug.WriteLine($"Hid {hid.Hid}");
                     TextBlock.Text = @$"DevicePath: {hid.Device.DevicePath}
 VID:{hid.Device.VendorId:X2} PID:{hid.Device.ProductId:X2}
-RawData:{hid.Hid}";
+RawData:{hid.Hid}
+
+";
+                    if (hid is RawInputDigitizerData rawInputDigitizerData)
+                    {
+                        foreach (var rawInputDigitizerContact in rawInputDigitizerData.Contacts)
+                        {
+                            TextBlock.Text += rawInputDigitizerContact.ToString() + "\r\n";
+                        }
+                    }
                     break;
             }
         }
 
         return IntPtr.Zero;
     }
-
-    internal const ushort TouchPadUsage = 0x05;
-    internal const ushort TouchScreenUsage = 0x04;
-    internal const ushort PenUsage = 0x02;
-
-    internal const int RID_INPUT = 0x10000003;
 }
