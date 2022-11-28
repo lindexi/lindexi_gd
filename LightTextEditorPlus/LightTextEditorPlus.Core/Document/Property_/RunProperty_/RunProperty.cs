@@ -29,6 +29,7 @@ namespace LightTextEditorPlus.Core.Document
         /// </summary>
         /// <param name="action"></param>
         /// <returns></returns>
+        /// todo 废弃掉，使用平台相关的方式创建
         IReadOnlyRunProperty BuildNewProperty(Action<RunProperty> action);
     }
 
@@ -36,10 +37,11 @@ namespace LightTextEditorPlus.Core.Document
     /// 平台相关的字符属性，用于给各个平台继承，实现其特定属性。要求此属性是不可变的
     /// </summary>
     public class PlatformImmutableRunProperty<T> : RunProperty
-      where T:RunProperty
+      where T: PlatformImmutableRunProperty<T>
     {
         
     }
+
 
     /// <summary>
     /// 用来限制某个类型不能被其他程序集继承
