@@ -17,6 +17,7 @@ using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
+using LightTextEditorPlus.Document;
 using LightTextEditorPlus.TextEditorPlus.Render;
 using LightTextEditorPlus.Threading;
 using Microsoft.Win32;
@@ -193,6 +194,10 @@ internal class TextEditorPlatformProvider : PlatformProvider
     {
         return TextEditor;
     }
+
+    public override IPlatformRunPropertyCreator GetPlatformRunPropertyCreator() => _runPropertyCreator;
+
+    private readonly RunPropertyCreator _runPropertyCreator = new RunPropertyCreator();
 }
 
 class CharInfoMeasurer : ICharInfoMeasurer
