@@ -215,7 +215,7 @@ class CharInfoMeasurer : ICharInfoMeasurer
     {
         // todo 属性系统需要加上字体管理模块
         // todo 处理字体回滚
-        var runPropertyFontFamily = charInfo.RunProperty.FontName;
+        var runPropertyFontFamily = charInfo.RunProperty.AsRunProperty().FontName;
         var fontFamily = ToFontFamily(runPropertyFontFamily);
         var collection = fontFamily.GetTypefaces();
         Typeface typeface = collection.First();
