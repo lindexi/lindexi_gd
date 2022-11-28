@@ -1,7 +1,6 @@
 ﻿using System;
 
 using LightTextEditorPlus.Core.Carets;
-using LightTextEditorPlus.Core.Platform;
 
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
@@ -16,7 +15,7 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         {
             TextEditor = textEditor;
             CurrentParagraphProperty = new ParagraphProperty();
-            CurrentRunProperty = new LayoutOnlyRunProperty();
+            CurrentRunProperty = textEditor.PlatformRunPropertyCreator.GetDefaultRunProperty();
 
             TextRunManager = new TextRunManager(textEditor);
         }
