@@ -5,17 +5,18 @@ namespace LightTextEditorPlus.Document;
 
 public class RunProperty : LayoutOnlyRunProperty
 {
-    public RunProperty(RunProperty? styleRunProperty = null) : base(styleRunProperty)
+    internal RunProperty(RunPropertyPlatformManager runPropertyPlatformManager, RunProperty? styleRunProperty = null) : base(styleRunProperty)
     {
+        RunPropertyPlatformManager = runPropertyPlatformManager;
         StyleRunProperty = styleRunProperty;
     }
+
+    private RunPropertyPlatformManager RunPropertyPlatformManager { get; }
 
     /// <summary>
     /// 继承样式里的属性
     /// </summary>
     private LayoutOnlyRunProperty? StyleRunProperty { get; }
-
-
 }
 
 /// <summary>

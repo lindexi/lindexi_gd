@@ -197,7 +197,7 @@ internal class TextEditorPlatformProvider : PlatformProvider
 
     public override IPlatformRunPropertyCreator GetPlatformRunPropertyCreator() => _runPropertyCreator;
 
-    private readonly RunPropertyCreator _runPropertyCreator = new RunPropertyCreator();
+    private readonly RunPropertyCreator _runPropertyCreator; //= new RunPropertyCreator();
 }
 
 class CharInfoMeasurer : ICharInfoMeasurer
