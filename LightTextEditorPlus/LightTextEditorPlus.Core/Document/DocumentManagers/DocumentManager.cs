@@ -16,7 +16,7 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         {
             TextEditor = textEditor;
             CurrentParagraphProperty = new ParagraphProperty();
-            CurrentRunProperty = new RunProperty();
+            CurrentRunProperty = new LayoutOnlyRunProperty();
 
             TextRunManager = new TextRunManager(textEditor);
         }

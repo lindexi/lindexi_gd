@@ -41,18 +41,18 @@ public abstract class PlatformRunPropertyCreatorBase<T> : IPlatformRunPropertyCr
     protected abstract T OnGetDefaultRunProperty();
 }
 
-public class DefaultPlatformRunPropertyCreator : PlatformRunPropertyCreatorBase<RunProperty>
+public class DefaultPlatformRunPropertyCreator : PlatformRunPropertyCreatorBase<LayoutOnlyRunProperty>
 {
-    protected override RunProperty OnBuildNewProperty(Action<IReadOnlyRunProperty> config, RunProperty baseRunProperty)
+    protected override LayoutOnlyRunProperty OnBuildNewProperty(Action<IReadOnlyRunProperty> config, LayoutOnlyRunProperty baseRunProperty)
     {
-        var runProperty = new RunProperty(baseRunProperty);
+        var runProperty = new LayoutOnlyRunProperty(baseRunProperty);
         config(runProperty);
         return runProperty;
     }
 
-    protected override RunProperty OnGetDefaultRunProperty()
+    protected override LayoutOnlyRunProperty OnGetDefaultRunProperty()
     {
-        return new RunProperty();
+        return new LayoutOnlyRunProperty();
     }
 }
 

@@ -36,7 +36,7 @@ namespace LightTextEditorPlus.Core.Document
     /// <summary>
     /// 平台相关的字符属性，用于给各个平台继承，实现其特定属性。要求此属性是不可变的
     /// </summary>
-    public class PlatformImmutableRunProperty<T> : RunProperty
+    public class PlatformImmutableRunProperty<T> : LayoutOnlyRunProperty
       where T: PlatformImmutableRunProperty<T>
     {
         
@@ -52,15 +52,14 @@ namespace LightTextEditorPlus.Core.Document
 
     }
 
-    // todo 改名
     // todo 考虑属性系统支持设置是否影响布局，不影响布局的，例如改个颜色，可以不重新布局
-    public class RunProperty : IReadOnlyRunProperty
+    public class LayoutOnlyRunProperty : IReadOnlyRunProperty
     {
-        public RunProperty()
+        public LayoutOnlyRunProperty()
         {
         }
 
-        private RunProperty(RunProperty? styleRunProperty)
+        public LayoutOnlyRunProperty(LayoutOnlyRunProperty? styleRunProperty)
         {
             StyleRunProperty = styleRunProperty;
         }
@@ -161,16 +160,16 @@ namespace LightTextEditorPlus.Core.Document
         /// <summary>
         /// 继承样式里的属性
         /// </summary>
-        private RunProperty? StyleRunProperty { get; }
+        private LayoutOnlyRunProperty? StyleRunProperty { get; }
 
         /// <summary>
         /// 构建新的属性
         /// </summary>
         /// <param name="action"></param>
         /// <returns></returns>
-        public IReadOnlyRunProperty BuildNewProperty(Action<RunProperty> action)
+        public IReadOnlyRunProperty BuildNewProperty(Action<LayoutOnlyRunProperty> action)
         {
-            var runProperty = new RunProperty(this);
+            var runProperty = new LayoutOnlyRunProperty(this);
             action(runProperty);
             return runProperty;
         }
@@ -207,7 +206,7 @@ namespace LightTextEditorPlus.Core.Document
             }
         }
 
-        public bool Equals(RunProperty other)
+        public bool Equals(LayoutOnlyRunProperty other)
         {
             // 先判断一定存在的属性，再判断业务端注入的属性
             if (Equals(FontSize, other.FontSize) && Equals(FontName, other.FontName) &&
@@ -254,7 +253,7 @@ namespace LightTextEditorPlus.Core.Document
             if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;
 
-            if (other is RunProperty runProperty)
+            if (other is LayoutOnlyRunProperty runProperty)
             {
                 return Equals(runProperty);
             }
