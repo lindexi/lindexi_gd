@@ -98,7 +98,14 @@ public partial class TextEditorCore
     private RenderInfoProvider? _renderInfoProvider;
     internal CaretManager CaretManager { get; }
     public DocumentManager DocumentManager { get; }
+
+    #region 平台相关
+
     public IPlatformProvider PlatformProvider { get; }
+
+    internal IPlatformRunPropertyCreator PlatformRunPropertyCreator => PlatformProvider.GetPlatformRunPropertyCreator();
+
+    #endregion
 
     private void DocumentManager_InternalDocumentChanging(object? sender, EventArgs e)
     {

@@ -1,6 +1,7 @@
 ﻿using System;
 
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Platform;
 
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
@@ -97,9 +98,9 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         /// <summary>
         /// 设置当前文本的默认字符属性
         /// </summary>
-        public void SetDefaultTextRunProperty(Action<RunProperty> config)
+        public void SetDefaultTextRunProperty(Action<IReadOnlyRunProperty> config)
         {
-            CurrentRunProperty = CurrentRunProperty.BuildNewProperty(config);
+            CurrentRunProperty = TextEditor.PlatformRunPropertyCreator.BuildNewProperty(config, CurrentRunProperty);
         }
 
         /// <summary>

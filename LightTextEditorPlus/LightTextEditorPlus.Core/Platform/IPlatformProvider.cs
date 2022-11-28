@@ -12,6 +12,12 @@ public interface IPlatformProvider
     // 获取默认字体
 
     /// <summary>
+    /// 获取平台相关的字符属性创建器
+    /// </summary>
+    /// <returns></returns>
+    IPlatformRunPropertyCreator GetPlatformRunPropertyCreator();
+
+    /// <summary>
     ///     加入调度更新布局请求
     /// </summary>
     /// 推荐处理：快速多次触发时，只触发一次，以及调度到合适的时机去执行

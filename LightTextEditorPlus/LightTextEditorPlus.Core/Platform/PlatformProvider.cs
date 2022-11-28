@@ -11,6 +11,12 @@ public abstract class PlatformProvider : IPlatformProvider
 {
     private DefaultRunParagraphSplitter? _defaultRunParagraphSplitter;
 
+    public virtual IPlatformRunPropertyCreator GetPlatformRunPropertyCreator()
+    {
+        // 尽管有默认的实现，但是推荐还是有具体的平台实现逻辑
+        return new DefaultPlatformRunPropertyCreator();
+    }
+
     /// <inheritdoc />
     public virtual void RequireDispatchUpdateLayout(Action textLayout)
     {

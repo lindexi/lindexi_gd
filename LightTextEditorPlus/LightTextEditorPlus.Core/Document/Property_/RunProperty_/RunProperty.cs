@@ -24,13 +24,13 @@ namespace LightTextEditorPlus.Core.Document
 
         bool TryGetProperty(string propertyName, [NotNullWhen(true)] out IImmutableRunPropertyValue? value);
 
-        /// <summary>
-        /// 构建新的属性
-        /// </summary>
-        /// <param name="action"></param>
-        /// <returns></returns>
-        /// todo 废弃掉，使用平台相关的方式创建
-        IReadOnlyRunProperty BuildNewProperty(Action<RunProperty> action);
+        ///// <summary>
+        ///// 构建新的属性
+        ///// </summary>
+        ///// <param name="action"></param>
+        ///// <returns></returns>
+        ///// todo 废弃掉，使用平台相关的方式创建
+        //IReadOnlyRunProperty BuildNewProperty(Action<RunProperty> action);
     }
 
     /// <summary>
@@ -52,6 +52,7 @@ namespace LightTextEditorPlus.Core.Document
 
     }
 
+    // todo 改名
     // todo 考虑属性系统支持设置是否影响布局，不影响布局的，例如改个颜色，可以不重新布局
     public class RunProperty : IReadOnlyRunProperty
     {
