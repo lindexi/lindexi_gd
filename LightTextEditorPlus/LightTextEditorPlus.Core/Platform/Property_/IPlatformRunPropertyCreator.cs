@@ -55,8 +55,3 @@ public class DefaultPlatformRunPropertyCreator : PlatformRunPropertyCreatorBase<
         return new LayoutOnlyRunProperty();
     }
 }
-
-public interface IParagraphPropertyCreator
-{
-
-}
