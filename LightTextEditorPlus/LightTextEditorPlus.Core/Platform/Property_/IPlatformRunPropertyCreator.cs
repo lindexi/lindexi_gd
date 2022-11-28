@@ -7,3 +7,8 @@ public interface IPlatformRunPropertyCreator
 {
 
 }
+
+public interface IParagraphPropertyCreator
+{
+
+}
