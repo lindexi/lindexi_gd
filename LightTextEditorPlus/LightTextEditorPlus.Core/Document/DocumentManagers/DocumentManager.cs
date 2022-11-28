@@ -98,9 +98,9 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         /// <summary>
         /// 设置当前文本的默认字符属性
         /// </summary>
-        public void SetDefaultTextRunProperty(Action<IReadOnlyRunProperty> config)
+        public void SetDefaultTextRunProperty<T>(Action<T> config) where T: IReadOnlyRunProperty
         {
-            CurrentRunProperty = TextEditor.PlatformRunPropertyCreator.BuildNewProperty(config, CurrentRunProperty);
+            CurrentRunProperty = TextEditor.PlatformRunPropertyCreator.BuildNewProperty(property => config((T) property), CurrentRunProperty);
         }
 
         /// <summary>

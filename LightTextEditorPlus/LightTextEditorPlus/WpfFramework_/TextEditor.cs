@@ -33,10 +33,9 @@ public partial class TextEditor : FrameworkElement, IRenderManager
     {
         var textEditorPlatformProvider = new TextEditorPlatformProvider(this);
         TextEditorCore = new TextEditorCore(textEditorPlatformProvider);
-        TextEditorCore.DocumentManager.SetDefaultTextRunProperty(property =>
+        TextEditorCore.DocumentManager.SetDefaultTextRunProperty<RunProperty>(property =>
         {
-            var runProperty = (RunProperty) property;
-            runProperty.FontSize = 30;
+            property.FontSize = 30;
         });
 
         TextEditorPlatformProvider = textEditorPlatformProvider;
