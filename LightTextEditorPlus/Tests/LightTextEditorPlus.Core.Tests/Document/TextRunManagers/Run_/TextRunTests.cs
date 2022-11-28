@@ -6,11 +6,19 @@ namespace LightTextEditorPlus.Core.Tests.Document.TextRunManagers;
 [TestClass()]
 public class TextRunTests
 {
+
+    class Fx : PlatformImmutableRunProperty<Fx>
+    {
+
+    }
+
     [ContractTestCase()]
     public void SplitAtTest()
     {
         "给定字符串为 123456 的 TextRun 对象，从第 3 个开始分割，再将分割获取的第一个 Run 从 1 开始分割，可以分割为 1 和 23 两个 Run 对象".Test(() =>
         {
+            var fx = new Fx();
+
             // Arrange
             // 给定字符串为 123456 的 TextRun 对象
             var run = new TextRun("123456");
