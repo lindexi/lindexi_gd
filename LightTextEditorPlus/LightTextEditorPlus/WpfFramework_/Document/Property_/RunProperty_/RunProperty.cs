@@ -11,6 +11,8 @@ public class RunProperty : LayoutOnlyRunProperty
         StyleRunProperty = styleRunProperty;
     }
 
+    #region 属性
+
     #region Foreground
 
     public ImmutableBrush Foreground
@@ -45,7 +47,9 @@ public class RunProperty : LayoutOnlyRunProperty
 
     #endregion
 
+    #endregion
 
+    #region 框架
 
     private RunPropertyPlatformManager RunPropertyPlatformManager { get; }
 
@@ -53,6 +57,8 @@ public class RunProperty : LayoutOnlyRunProperty
     /// 继承样式里的属性
     /// </summary>
     private RunProperty? StyleRunProperty { get; }
+
+    #endregion
 }
 
 /// <summary>
