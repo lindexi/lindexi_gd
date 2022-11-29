@@ -23,14 +23,6 @@ namespace LightTextEditorPlus.Core.Document
         FontWeight FontWeight { get; }
 
         bool TryGetProperty(string propertyName, [NotNullWhen(true)] out IImmutableRunPropertyValue? value);
-
-        ///// <summary>
-        ///// 构建新的属性
-        ///// </summary>
-        ///// <param name="action"></param>
-        ///// <returns></returns>
-        ///// todo 废弃掉，使用平台相关的方式创建
-        //IReadOnlyRunProperty BuildNewProperty(Action<RunProperty> action);
     }
 
     /// <summary>
@@ -41,7 +33,6 @@ namespace LightTextEditorPlus.Core.Document
     {
         
     }
-
 
     /// <summary>
     /// 用来限制某个类型不能被其他程序集继承
@@ -161,18 +152,6 @@ namespace LightTextEditorPlus.Core.Document
         /// 继承样式里的属性
         /// </summary>
         private LayoutOnlyRunProperty? StyleRunProperty { get; }
-
-        /// <summary>
-        /// 构建新的属性
-        /// </summary>
-        /// <param name="action"></param>
-        /// <returns></returns>
-        public IReadOnlyRunProperty BuildNewProperty(Action<LayoutOnlyRunProperty> action)
-        {
-            var runProperty = new LayoutOnlyRunProperty(this);
-            action(runProperty);
-            return runProperty;
-        }
 
         private void RaiseOnTextRunPropertyChanged()
         {
