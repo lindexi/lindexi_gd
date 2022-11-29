@@ -50,6 +50,20 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
 
     #endregion
 
+    #region Opacity
+
+    public double Opacity
+    {
+        set => _opacity = value;
+        get => _opacity ?? StyleRunProperty?.Opacity ?? DefaultOpacity;
+    }
+
+    public const double DefaultOpacity = 1;
+
+    private double? _opacity;
+
+    #endregion
+
     #endregion
 
     #region 框架
@@ -91,11 +105,17 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
         }
 
         // 按照用户可能修改的属性排序，被设置越多的属性放在最前面
+        
         if (!Equals(Foreground, other.Foreground))
         {
             return false;
         }
         if (!Equals(Background, other.Background))
+        {
+            return false;
+        }
+
+        if (!Equals(Opacity, other.Opacity))
         {
             return false;
         }
