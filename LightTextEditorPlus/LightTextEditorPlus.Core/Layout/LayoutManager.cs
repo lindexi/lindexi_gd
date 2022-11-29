@@ -81,7 +81,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// 每个字符需要调用平台的测量 <see cref="ArrangingLayoutProvider.MeasureCharInfo"/>
     /// </remarks>
     protected override ParagraphLayoutResult LayoutParagraphCore(ParagraphLayoutArgument argument,
-        ParagraphOffset startParagraphOffset)
+        ParagraphCharOffset startParagraphOffset)
     {
         // 先更新非脏的行的坐标
         // 布局左上角坐标
@@ -162,7 +162,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                     }
                 }
 
-                charData.CharLayoutData!.CharIndex = new ParagraphOffset(i + index);
+                charData.CharLayoutData!.CharIndex = new ParagraphCharOffset(i + index);
                 charData.CharLayoutData.CurrentLine = currentLineVisualData;
                 charData.CharLayoutData.UpdateVersion();
             }
@@ -555,7 +555,7 @@ abstract class ArrangingLayoutProvider
         }
         else
         {
-            var startParagraphOffset = new ParagraphOffset(dirtyParagraphOffset);
+            var startParagraphOffset = new ParagraphCharOffset(dirtyParagraphOffset);
 
             var result = LayoutParagraphCore(argument, startParagraphOffset);
 
@@ -564,7 +564,7 @@ abstract class ArrangingLayoutProvider
     }
 
     protected abstract ParagraphLayoutResult LayoutParagraphCore(ParagraphLayoutArgument paragraph,
-        ParagraphOffset startParagraphOffset);
+        ParagraphCharOffset startParagraphOffset);
 
     private EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeight(
         in EmptyParagraphLineHeightMeasureArgument argument)

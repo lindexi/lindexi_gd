@@ -5,14 +5,13 @@ namespace LightTextEditorPlus.Core.Document.Segments;
 /// <summary>
 /// 表示段落的偏移量
 /// </summary>
-/// todo 修改命名
-readonly struct ParagraphOffset
+readonly struct ParagraphCharOffset
 {
     /// <summary>
     /// 创建段落的偏移量
     /// </summary>
     [DebuggerStepThrough]
-    public ParagraphOffset(int offset)
+    public ParagraphCharOffset(int offset)
     {
         Offset = offset;
     }

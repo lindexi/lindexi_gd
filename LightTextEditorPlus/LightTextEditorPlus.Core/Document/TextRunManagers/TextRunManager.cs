@@ -35,7 +35,7 @@ internal class TextRunManager
         }
         else
         {
-            var charData = lastParagraph.GetCharData(new ParagraphOffset(index));
+            var charData = lastParagraph.GetCharData(new ParagraphCharOffset(index));
             styleRunProperty = charData.RunProperty;
         }
 
@@ -62,7 +62,7 @@ internal class TextRunManager
                 A B C  ------ 字符 
              * 假设光标是 1 的值，那将取 B 字符，因此换算方法就是获取当前光标的偏移转换
              */
-            var paragraphCharOffset = new ParagraphOffset(paragraphDataResult.HitOffset.Offset);
+            var paragraphCharOffset = new ParagraphCharOffset(paragraphDataResult.HitOffset.Offset);
             var charData = paragraphDataResult.ParagraphData.GetCharData(paragraphCharOffset);
             styleRunProperty = charData.RunProperty;
 
@@ -107,7 +107,7 @@ internal class TextRunManager
             }
             else
             {
-                var paragraphCharOffset = new ParagraphOffset(paragraphDataResult.HitOffset.Offset - 1);
+                var paragraphCharOffset = new ParagraphCharOffset(paragraphDataResult.HitOffset.Offset - 1);
                 var charData = paragraphData.GetCharData(paragraphCharOffset);
                 styleRunProperty = charData.RunProperty;
             }
@@ -383,7 +383,7 @@ class CharLayoutData : IParagraphCache
     /// 可用来辅助布局上下标
     public Point StartPoint { set; get; }
 
-    public ParagraphOffset CharIndex { set; get; }
+    public ParagraphCharOffset CharIndex { set; get; }
 
     // todo 提供获取是第几行，第几个字符功能
 
@@ -583,7 +583,7 @@ class ParagraphData
 
     //public IReadOnlyList<IImmutableRun> GetRunList() => TextRunList;
 
-    public CharData GetCharData(ParagraphOffset offset)
+    public CharData GetCharData(ParagraphCharOffset offset)
     {
         return CharDataManager.GetCharData(offset.Offset);
     }
