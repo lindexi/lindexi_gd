@@ -248,7 +248,7 @@ namespace LightTextEditorPlus.Core.Document
             return false;
         }
 
-        public bool Equals(IReadOnlyRunProperty? other)
+        public virtual bool Equals(IReadOnlyRunProperty? other)
         {
             if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;
