@@ -25,5 +25,11 @@ namespace LightTextEditorPlus.Demo
         {
             InitializeComponent();
         }
+
+        private void InputButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            TextEditor.TextEditorCore.AppendText(TextBox.Text);
+            TextBox.Text = string.Empty;
+        }
     }
 }
