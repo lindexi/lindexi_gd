@@ -1,7 +1,5 @@
 ﻿using System;
-
 using LightTextEditorPlus.Core.Carets;
-
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Document.DocumentManagers
@@ -21,6 +19,7 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         }
 
         #region 框架
+
         public TextEditor TextEditor { get; }
 
         /// <summary>
@@ -97,9 +96,11 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         /// <summary>
         /// 设置当前文本的默认字符属性
         /// </summary>
-        public void SetDefaultTextRunProperty<T>(Action<T> config) where T: IReadOnlyRunProperty
+        public void SetDefaultTextRunProperty<T>(Action<T> config) where T : IReadOnlyRunProperty
         {
-            CurrentRunProperty = TextEditor.PlatformRunPropertyCreator.BuildNewProperty(property => config((T) property), CurrentRunProperty);
+            CurrentRunProperty =
+                TextEditor.PlatformRunPropertyCreator.BuildNewProperty(property => config((T)property),
+                    CurrentRunProperty);
         }
 
         /// <summary>

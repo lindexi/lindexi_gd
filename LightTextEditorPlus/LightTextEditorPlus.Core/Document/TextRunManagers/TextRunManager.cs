@@ -26,19 +26,20 @@ internal class TextRunManager
     {
         // 追加是使用最多的，需要做额外的优化
         var lastParagraph = ParagraphManager.GetLastParagraph();
-        var index = lastParagraph.CharCount -1;
+        var index = lastParagraph.CharCount - 1;
         IReadOnlyRunProperty styleRunProperty;
         if (index < 0)
         {
             styleRunProperty = lastParagraph.ParagraphProperty.ParagraphStartRunProperty ??
-                          TextEditor.DocumentManager.CurrentRunProperty;
+                               TextEditor.DocumentManager.CurrentRunProperty;
         }
         else
         {
             var charData = lastParagraph.GetCharData(new ParagraphOffset(index));
             styleRunProperty = charData.RunProperty;
         }
-        AppendRunToParagraph(run, lastParagraph,styleRunProperty);
+
+        AppendRunToParagraph(run, lastParagraph, styleRunProperty);
     }
 
     public void Replace(Selection selection, IImmutableRun run)
@@ -109,7 +110,8 @@ internal class TextRunManager
     /// <param name="paragraphData"></param>
     /// <param name="styleRunProperty">如果 <paramref name="run"/> 没有字符属性，将继承使用这个属性</param>
     /// <returns>由于文本追加可能带上换行符，会新加段落。返回当前的段落</returns>
-    private ParagraphData AppendRunToParagraph(IImmutableRun run, ParagraphData paragraphData, IReadOnlyRunProperty styleRunProperty)
+    private ParagraphData AppendRunToParagraph(IImmutableRun run, ParagraphData paragraphData,
+        IReadOnlyRunProperty styleRunProperty)
     {
         var runProperty = run.RunProperty ?? styleRunProperty;
 
