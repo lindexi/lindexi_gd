@@ -22,6 +22,11 @@ public readonly struct CaretOffset : IEquatable<CaretOffset>
     [DebuggerStepThrough]
     public CaretOffset(int offset)
     {
+        if (offset < 0)
+        {
+            throw new ArgumentException($"Offset must greater or equals than 0");
+        }
+
         // todo 判断光标的值大于等于零
         Offset = offset;
     }
