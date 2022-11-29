@@ -32,7 +32,8 @@ public partial class TextEditorCore
         }
         else
         {
-            documentManager.EditAndReplaceRun(currentSelection, new TextRun(text));
+            var textRun = new TextRun(text);
+            documentManager.EditAndReplaceRun(currentSelection, textRun);
         }
     }
 

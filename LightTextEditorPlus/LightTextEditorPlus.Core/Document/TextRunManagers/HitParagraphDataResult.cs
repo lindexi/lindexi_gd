@@ -11,6 +11,6 @@ namespace LightTextEditorPlus.Core.Document;
 /// <param name="HitOffset">命中到的段落偏移量</param>
 /// <param name="ParagraphManager"></param>
 /// 此类型用来减少重复计算
-readonly record struct HitParagraphDataResult(CaretOffset Offset, ParagraphData ParagraphData, ParagraphOffset HitOffset, ParagraphManager ParagraphManager)
+readonly record struct HitParagraphDataResult(CaretOffset Offset, ParagraphData ParagraphData, ParagraphCaretOffset HitOffset, ParagraphManager ParagraphManager)
 {
 }

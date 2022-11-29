@@ -54,8 +54,16 @@ internal class TextRunManager
         if (selection.Length != 0)
         {
             var paragraphDataResult = ParagraphManager.GetHitParagraphData(selection.StartOffset);
-            // todo 这里的 HitOffset 是存在加一问题的
-            var charData = paragraphDataResult.ParagraphData.GetCharData(paragraphDataResult.HitOffset);
+
+            /*
+             * 替换文本时，采用靠近文档的光标的后续一个字符的字符属性
+             * 0 1 2 3 ------ 光标偏移量
+               | | | |
+                A B C  ------ 字符 
+             * 假设光标是 1 的值，那将取 B 字符，因此换算方法就是获取当前光标的偏移转换
+             */
+            var paragraphCharOffset = new ParagraphOffset(paragraphDataResult.HitOffset.Offset);
+            var charData = paragraphDataResult.ParagraphData.GetCharData(paragraphCharOffset);
             styleRunProperty = charData.RunProperty;
 
             RemoveInner(selection);
@@ -84,9 +92,25 @@ internal class TextRunManager
         {
             // 仅加入 styleRunProperty 是空
             // 仅加入新文本时，采用光标的前一个字符的字符属性
-            // todo 这里可能存在加一问题，导致获取到后面的字符
-            var charData = paragraphData.GetCharData(paragraphDataResult.HitOffset);
-            styleRunProperty = charData.RunProperty;
+            /*
+             * 仅加入新文本时，采用光标的前一个字符的字符属性
+             * 0 1 2 3 ------ 光标偏移量
+               | | | |
+                A B C  ------ 字符 
+             * 假设光标是 1 的值，那将取 A 字符，因此换算方法就是获取当前光标的前面一个字符
+             */
+            if (paragraphDataResult.HitOffset.Offset == 0)
+            {
+                // 规定，光标是 0 获取段落的字符属性
+                styleRunProperty = paragraphData.ParagraphProperty.ParagraphStartRunProperty ??
+                                   TextEditor.DocumentManager.CurrentRunProperty;
+            }
+            else
+            {
+                var paragraphCharOffset = new ParagraphOffset(paragraphDataResult.HitOffset.Offset - 1);
+                var charData = paragraphData.GetCharData(paragraphCharOffset);
+                styleRunProperty = charData.RunProperty;
+            }
         }
 
         // 看看是不是在段落中间插入的，如果在段落中间插入的，需要将段落中间移除掉
@@ -202,10 +226,9 @@ class ParagraphManager
                         ParagraphData.DelimiterLength; // todo 这里是否遇到 -1 问题
                     if (offset.Offset < endOffset)
                     {
-                        // todo 这里是存在加一问题的，不应该让光标和字符坐标直接转换
                         var hitParagraphOffset = offset.Offset - currentDocumentOffset;
 
-                        return GetResult(paragraphData, new ParagraphOffset(hitParagraphOffset));
+                        return GetResult(paragraphData, new ParagraphCaretOffset(hitParagraphOffset));
                     }
                     else
                     {
@@ -219,9 +242,9 @@ class ParagraphManager
             throw new NotImplementedException();
         }
 
-        HitParagraphDataResult GetResult(ParagraphData paragraphData, ParagraphOffset? hitOffset = null)
+        HitParagraphDataResult GetResult(ParagraphData paragraphData, ParagraphCaretOffset? hitOffset = null)
         {
-            return new HitParagraphDataResult(offset, paragraphData, hitOffset ?? new ParagraphOffset(0), this);
+            return new HitParagraphDataResult(offset, paragraphData, hitOffset ?? new ParagraphCaretOffset(0), this);
         }
     }
 
@@ -622,7 +645,7 @@ class ParagraphData
     /// 在段落中间插入的时候，需要将段落在插入后面的内容分割删除
     /// </summary>
     /// <param name="offset"></param>
-    public IList<CharData>? SplitRemoveByParagraphOffset(ParagraphOffset offset)
+    public IList<CharData>? SplitRemoveByParagraphOffset(ParagraphCaretOffset offset)
     {
         // todo 设置LineVisualData是脏的
         if (offset.Offset == CharCount)
