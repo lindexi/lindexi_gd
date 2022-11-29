@@ -136,7 +136,8 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
 
             TextRunManager.Replace(selection, run);
 
-            // todo 更新光标
+            var caretOffset = new CaretOffset(selection.BehindOffset.Offset - selection.Length + run.Count);
+            CaretManager.CurrentCaretOffset = caretOffset;
 
             InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
         }
