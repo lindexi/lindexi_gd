@@ -44,4 +44,6 @@ public sealed class SingleCharObject : ISingleCharObject, ICharObject, IEquatabl
     {
         return _currentChar.GetHashCode();
     }
+
+    public override string ToString() => _currentChar.ToString();
 }

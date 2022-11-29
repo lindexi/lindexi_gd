@@ -27,7 +27,6 @@ public readonly struct CaretOffset : IEquatable<CaretOffset>
             throw new ArgumentException($"Offset must greater or equals than 0");
         }
 
-        // todo 判断光标的值大于等于零
         Offset = offset;
     }
 
