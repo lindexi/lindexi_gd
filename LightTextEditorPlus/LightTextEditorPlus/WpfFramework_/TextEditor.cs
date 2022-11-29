@@ -51,7 +51,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager
     private void TextEditor_Loaded(object sender, RoutedEventArgs e)
     {
         // 这是测试代码 todo 删除测试代码
-        TextEditorCore.AppendText("123\r\n123");
+        //TextEditorCore.AppendText("123\r\n123");
     }
 
     public TextEditorCore TextEditorCore { get; }
