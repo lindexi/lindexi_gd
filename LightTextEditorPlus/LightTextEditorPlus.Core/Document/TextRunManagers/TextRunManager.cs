@@ -900,11 +900,6 @@ class ParagraphData
     }
 }
 
-public readonly record struct LineDrawnArgument(bool IsDrawn, bool IsLineStartPointUpdated,
-    object? LineAssociatedRenderData, Point StartPoint, Size Size, ReadOnlyListSpan<CharData> CharList)
-{
-}
-
 /// <summary>
 /// 行渲染信息
 /// </summary>

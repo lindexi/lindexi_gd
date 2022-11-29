@@ -77,6 +77,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager
                     {
                         var startPoint = charData.GetStartPoint();
 
+                        // 获取到字体信息
                         var currentRunProperty = charData.RunProperty.AsRunProperty();
                         var glyphTypeface = currentRunProperty.GetGlyphTypeface();
 
