@@ -98,6 +98,27 @@ public class TextEditorCoreTest
     [ContractTestCase]
     public void AppendText()
     {
+        "给文本编辑器连续两次追加文本，可以将后追加的文本，追加在最后".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+
+            // Action
+            textEditorCore.AppendText("123");
+            textEditorCore.AppendText("456");
+
+            // Assert
+            var renderInfoProvider = textEditorCore.GetRenderInfo();
+            Assert.IsNotNull(renderInfoProvider);
+
+            var paragraphRenderInfoList = renderInfoProvider.GetParagraphRenderInfoList().ToList();
+
+            // 可以排版出来1段1行
+            Assert.AreEqual(1, paragraphRenderInfoList.Count);
+
+            Assert.AreEqual("123456", paragraphRenderInfoList.First().GetLineRenderInfoList().First().LineVisualData.GetText());
+        });
+
         @"给文本编辑器追加 123\r\n123\r\n 文本，可以排版出来三段".Test(() =>
         {
             // Arrange

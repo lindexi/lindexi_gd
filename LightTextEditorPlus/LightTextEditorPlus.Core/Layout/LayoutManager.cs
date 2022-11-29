@@ -485,6 +485,7 @@ abstract class ArrangingLayoutProvider
     {
         // 先找到首个需要更新的坐标点，这里的坐标是段坐标
         var dirtyParagraphOffset = 0;
+        // 首个是脏的行的序号
         var lastIndex = -1;
         var paragraph = argument.ParagraphData;
         for (var index = 0; index < paragraph.LineVisualDataList.Count; index++)
@@ -501,10 +502,23 @@ abstract class ArrangingLayoutProvider
             }
         }
 
-        if (lastIndex > 0)
+        // 将脏的行移除掉，然后重新添加新的行
+        // 例如在一段里面，首行就是脏的，那么此时应该就是从 0 开始，将后续所有行都移除掉
+        // 例如在一段里面，有三行，首行不是脏的，第一行是脏的，那就需要删除第一行和第二行
+        if (lastIndex == 0)
+        {
+            // 一段的首行是脏的，将后续全部删掉
+            paragraph.LineVisualDataList.Clear();
+        }
+        else if (lastIndex > 0)
         {
             // todo 考虑行信息的复用，或者调用释放方法
             paragraph.LineVisualDataList.RemoveRange(lastIndex, paragraph.LineVisualDataList.Count - lastIndex);
+        }
+        else
+        {
+            // 这一段一个脏的行都没有。那可能是直接在空段追加，或者是首次布局
+            Debug.Assert(paragraph.LineVisualDataList.Count == 0);
         }
 
         // 不需要通过如此复杂的逻辑获取有哪些，因为存在的坑在于后续分拆 IImmutableRun 逻辑将会复杂
