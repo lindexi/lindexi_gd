@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Threading;
 
-namespace LightTextEditorPlus.Threading;
+namespace LightTextEditorPlus.Utils.Threading;
 
 /// <summary>
 /// 表示一种调度模型。在这种模型中，任务只能通过申请来执行，一系列申请结束后，任务会按照预定的优先级调度执行。

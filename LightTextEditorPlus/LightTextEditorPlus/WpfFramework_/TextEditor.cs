@@ -19,7 +19,7 @@ using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.TextEditorPlus.Render;
-using LightTextEditorPlus.Threading;
+using LightTextEditorPlus.Utils.Threading;
 using Microsoft.Win32;
 
 using Point = LightTextEditorPlus.Core.Primitive.Point;
