@@ -12,15 +12,15 @@ namespace LightTextEditorPlus.Core.Document
 
         FontName FontName { get; }
 
-        /// <summary>
-        /// 斜体表示，默认值为Normal
-        /// </summary>
-        FontStyle FontStyle { get; }
+        ///// <summary>
+        ///// 斜体表示，默认值为Normal
+        ///// </summary>
+        //FontStyle FontStyle { get; }
 
-        /// <summary>
-        /// 字的粗细度，默认值为Normal
-        /// </summary>
-        FontWeight FontWeight { get; }
+        ///// <summary>
+        ///// 字的粗细度，默认值为Normal
+        ///// </summary>
+        //FontWeight FontWeight { get; }
 
         bool TryGetProperty(string propertyName, [NotNullWhen(true)] out IImmutableRunPropertyValue? value);
     }
@@ -80,35 +80,35 @@ namespace LightTextEditorPlus.Core.Document
 
         private FontName? _fontFamily;
 
-        /// <summary>
-        /// 斜体表示，默认值为Normal
-        /// </summary>
-        public FontStyle FontStyle
-        {
-            set
-            {
-                _fontStyle = value;
-                RaiseOnTextRunPropertyChanged();
-            }
-            get => _fontStyle ?? StyleRunProperty?.FontStyle ?? FontStyle.DefaultNotDefine;
-        }
+        ///// <summary>
+        ///// 斜体表示，默认值为Normal
+        ///// </summary>
+        //public FontStyle FontStyle
+        //{
+        //    set
+        //    {
+        //        _fontStyle = value;
+        //        RaiseOnTextRunPropertyChanged();
+        //    }
+        //    get => _fontStyle ?? StyleRunProperty?.FontStyle ?? FontStyle.DefaultNotDefine;
+        //}
 
-        private FontStyle? _fontStyle;
+        //private FontStyle? _fontStyle;
 
-        /// <summary>
-        /// 字的粗细度，默认值为Normal
-        /// </summary>
-        public FontWeight FontWeight
-        {
-            set
-            {
-                _fontWeight = value;
-                RaiseOnTextRunPropertyChanged();
-            }
-            get => _fontWeight ?? StyleRunProperty?.FontWeight ?? FontWeight.DefaultNotDefine;
-        }
+        ///// <summary>
+        ///// 字的粗细度，默认值为Normal
+        ///// </summary>
+        //public FontWeight FontWeight
+        //{
+        //    set
+        //    {
+        //        _fontWeight = value;
+        //        RaiseOnTextRunPropertyChanged();
+        //    }
+        //    get => _fontWeight ?? StyleRunProperty?.FontWeight ?? FontWeight.DefaultNotDefine;
+        //}
 
-        private FontWeight? _fontWeight;
+        //private FontWeight? _fontWeight;
 
         #region 附加属性
 
@@ -186,8 +186,14 @@ namespace LightTextEditorPlus.Core.Document
         public bool Equals(LayoutOnlyRunProperty other)
         {
             // 先判断一定存在的属性，再判断业务端注入的属性
-            if (Equals(FontSize, other.FontSize) && Equals(FontName, other.FontName) &&
-                Equals(FontStyle, other.FontStyle) && Equals(FontWeight, other.FontWeight))
+            if 
+            (
+                Equals(FontSize, other.FontSize)
+                && Equals(FontName, other.FontName)
+
+                //&& Equals(FontStyle, other.FontStyle) 
+                //&& Equals(FontWeight, other.FontWeight)
+            )
             {
                 var thisAdditionalPropertyKeyList = GetAdditionalPropertyKeyList();
                 var otherAdditionalPropertyKeyList = other.GetAdditionalPropertyKeyList();

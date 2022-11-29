@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Windows;
 using System.Windows.Media;
 
 using LightTextEditorPlus.Core.Document;
@@ -63,6 +65,32 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
 
     #endregion
 
+    #region FontStretch
+
+    public FontStretch Stretch
+    {
+        set => _stretch = value;
+        get => _stretch ?? StyleRunProperty?.Stretch ?? DefaultFontStretch;
+    }
+
+    private FontStretch ? _stretch;
+    public static FontStretch DefaultFontStretch => FontStretches.Normal;
+
+    #endregion
+
+    #region FontWeight
+
+    public FontWeight Weight
+    {
+        set => _weight = value;
+        get => _weight ?? StyleRunProperty?.Weight ?? DefaultWeight;
+    }
+
+    private FontWeight? _weight;
+    public static FontWeight DefaultWeight => FontWeights.Normal;
+
+    #endregion
+
     #endregion
 
     #region 框架
@@ -73,6 +101,42 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
     /// 继承样式里的属性
     /// </summary>
     private RunProperty? StyleRunProperty { get; }
+
+    public GlyphTypeface GetGlyphTypeface()
+    {
+        return _glyphTypeface ??= GetGlyphTypefaceInner();
+
+        GlyphTypeface GetGlyphTypefaceInner()
+        {
+            // todo 字体回滚，字体缓存
+            FontFamily fontFamily;
+            if (FontName.IsNotDefineFontName)
+            {
+                fontFamily = new FontFamily("微软雅黑");
+            }
+            else
+            {
+                fontFamily = new FontFamily(FontName.UserFontName);
+            }
+
+            var collection = fontFamily.GetTypefaces();
+            Typeface typeface = collection.First();
+
+            foreach (var t in collection)
+            {
+                if (t.Stretch == Stretch && t.Weight == Weight)
+                {
+                    typeface = t;
+                    break;
+                }
+            }
+
+            bool success = typeface.TryGetGlyphTypeface(out var glyphTypeface);
+            return glyphTypeface;
+        }
+    }
+
+    private GlyphTypeface? _glyphTypeface;
 
     #endregion
 
@@ -119,9 +183,18 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
             return false;
         }
 
+        if (!Equals(Stretch, other.Stretch))
+        {
+            return false;
+        }
+
+        if (!Equals(Weight, other.Weight))
+        {
+            return false;
+        }
+
         return true;
     }
 
     #endregion
-
 }

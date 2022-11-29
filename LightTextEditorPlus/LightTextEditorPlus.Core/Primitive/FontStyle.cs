@@ -1,6 +1,6 @@
-﻿namespace LightTextEditorPlus.Core.Primitive;
+﻿//namespace LightTextEditorPlus.Core.Primitive;
 
-public readonly struct FontStyle
-{
-    internal static FontStyle DefaultNotDefine => new FontStyle();
-}
+//public readonly struct FontStyle
+//{
+//    internal static FontStyle DefaultNotDefine => new FontStyle();
+//}

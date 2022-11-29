@@ -77,18 +77,9 @@ public partial class TextEditor : FrameworkElement, IRenderManager
                     {
                         var startPoint = charData.GetStartPoint();
 
-                        var fontFamily = new FontFamily("微软雅黑"); //ToFontFamily(runPropertyFontFamily);
-                        var collection = fontFamily.GetTypefaces();
-                        Typeface typeface = collection.First();
-                        foreach (var t in collection)
-                        {
-                            if (t.Stretch == FontStretches.Normal && t.Weight == FontWeights.Normal)
-                            {
-                                typeface = t;
-                                break;
-                            }
-                        }
-                        bool success = typeface.TryGetGlyphTypeface(out GlyphTypeface glyphTypeface);
+                        var currentRunProperty = charData.RunProperty.AsRunProperty();
+                        var glyphTypeface = currentRunProperty.GetGlyphTypeface();
+
                         //drawingContext.DrawGlyphRun();
                         var runProperty = charData.RunProperty;
                         var fontSize = runProperty.FontSize;

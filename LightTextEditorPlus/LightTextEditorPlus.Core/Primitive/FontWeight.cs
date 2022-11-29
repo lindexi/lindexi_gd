@@ -1,6 +1,6 @@
-﻿namespace LightTextEditorPlus.Core.Primitive;
+﻿//namespace LightTextEditorPlus.Core.Primitive;
 
-public readonly struct FontWeight
-{
-    internal static FontWeight DefaultNotDefine => new FontWeight();
-}
+//public readonly struct FontWeight
+//{
+//    internal static FontWeight DefaultNotDefine => new FontWeight();
+//}
