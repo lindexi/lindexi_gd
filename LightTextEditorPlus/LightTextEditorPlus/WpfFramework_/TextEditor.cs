@@ -165,6 +165,7 @@ internal class TextEditorPlatformProvider : PlatformProvider
 
         _textLayoutDispatcherRequiring = new DispatcherRequiring(UpdateLayout, DispatcherPriority.Render);
         _charInfoMeasurer = new CharInfoMeasurer(textEditor);
+        _runPropertyCreator = new RunPropertyCreator();
     }
 
     private void UpdateLayout()
@@ -188,7 +189,7 @@ internal class TextEditorPlatformProvider : PlatformProvider
         return _charInfoMeasurer;
     }
 
-    private readonly CharInfoMeasurer? _charInfoMeasurer;
+    private readonly CharInfoMeasurer _charInfoMeasurer;
 
     public override IRenderManager? GetRenderManager()
     {

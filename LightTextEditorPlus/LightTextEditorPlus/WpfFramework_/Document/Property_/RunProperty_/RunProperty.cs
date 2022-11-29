@@ -11,12 +11,48 @@ public class RunProperty : LayoutOnlyRunProperty
         StyleRunProperty = styleRunProperty;
     }
 
+    #region Foreground
+
+    public ImmutableBrush Foreground
+    {
+        set
+        {
+            _foreground = value;
+        }
+        get
+        {
+            return _foreground ?? StyleRunProperty?.Foreground ?? DefaultForeground;
+        }
+    }
+
+    public static readonly ImmutableBrush DefaultForeground = new ImmutableBrush(Brushes.Black);
+
+    private ImmutableBrush? _foreground;
+
+    #endregion
+
+    #region Background
+
+    public ImmutableBrush? Background
+    {
+        set => _background = value;
+        get => _background ?? StyleRunProperty?.Background ?? DefaultBackground;
+    }
+
+    public static ImmutableBrush? DefaultBackground => null;
+
+    private ImmutableBrush? _background;
+
+    #endregion
+
+
+
     private RunPropertyPlatformManager RunPropertyPlatformManager { get; }
 
     /// <summary>
     /// 继承样式里的属性
     /// </summary>
-    private LayoutOnlyRunProperty? StyleRunProperty { get; }
+    private RunProperty? StyleRunProperty { get; }
 }
 
 /// <summary>
