@@ -7,6 +7,7 @@ namespace LightTextEditorPlus.Core.Document;
 /// <summary>
 /// 行渲染信息
 /// </summary>
+/// todo 改名 LineLayoutData
 class LineVisualData : IParagraphCache
 {
     /// <summary>
