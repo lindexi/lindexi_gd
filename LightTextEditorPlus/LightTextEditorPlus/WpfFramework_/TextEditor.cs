@@ -130,9 +130,8 @@ public partial class TextEditor : FrameworkElement, IRenderManager
                             caretStops: null,
                             language: defaultXmlLanguage
                         );
-
-                        // todo 属性系统，支持设置前景色
-                        Brush brush = Brushes.Black;
+                       
+                        Brush brush = currentRunProperty.Foreground.Value;
                         drawingContext.DrawGlyphRun(brush, glyphRun);
 
                         // todo 考虑加上缓存
