@@ -9,7 +9,7 @@ using System.Windows.Media;
 
 namespace LightTextEditorPlus.Utils;
 
-internal class Converter
+internal static class Converter
 {
     /// <summary>
     /// 比较 <see cref="System.Windows.Media.Brush"/> 实例所设置的文本是否会渲染成相同效果。

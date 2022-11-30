@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Markup;
 using System.Windows.Media;
+using System.Windows.Media.Media3D;
 using System.Windows.Navigation;
 using System.Windows.Threading;
 
@@ -17,6 +18,7 @@ using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
+using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.TextEditorPlus.Render;
 using LightTextEditorPlus.Utils.Threading;
@@ -73,78 +75,90 @@ public partial class TextEditor : FrameworkElement, IRenderManager
                 foreach (var lineRenderInfo in paragraphRenderInfo.GetLineRenderInfoList())
                 {
                     var argument = lineRenderInfo.Argument;
-                    foreach (var charData in argument.CharList)
-                    {
-                        var startPoint = charData.GetStartPoint();
+                    var lineVisual = DrawLine(argument, pixelsPerDip);
+                    drawingContext.DrawDrawing(lineVisual.Drawing);
 
-                        // 获取到字体信息
-                        var currentRunProperty = charData.RunProperty.AsRunProperty();
-                        var glyphTypeface = currentRunProperty.GetGlyphTypeface();
-
-                        //drawingContext.DrawGlyphRun();
-                        var runProperty = charData.RunProperty;
-                        var fontSize = runProperty.FontSize;
-
-                        // todo 支持多个字符一起排版
-                        var text = charData.CharObject.ToText();
-                        List<ushort> glyphIndices = new List<ushort>();
-                        for (var i = 0; i < text.Length; i++)
-                        {
-                            var c = text[i];
-                            var glyphIndex = glyphTypeface.CharacterToGlyphMap[c];
-                            glyphIndices.Add(glyphIndex);
-                        }
-
-                        List<double> advanceWidths = new List<double>();
-                        var height = 0d;
-
-                        for (var i = 0; i < text.Length; i++)
-                        {
-                            var glyphIndex = glyphIndices[i];
-
-                            var width = glyphTypeface.AdvanceWidths[glyphIndex] * fontSize;
-                            width = GlyphExtension.RefineValue(width);
-                            advanceWidths.Add(width);
-
-                            height = glyphTypeface.AdvanceHeights[glyphIndex] * fontSize;
-                        }
-
-                        var location = new System.Windows.Point(startPoint.X, startPoint.Y + height);
-                        XmlLanguage defaultXmlLanguage =
-                            XmlLanguage.GetLanguage(CultureInfo.CurrentUICulture.IetfLanguageTag);
-
-                        var glyphRun = new GlyphRun
-                        (
-                            glyphTypeface,
-                            bidiLevel: 0,
-                            isSideways: false,
-                            renderingEmSize: fontSize,
-                            pixelsPerDip: pixelsPerDip,   // 只有在高版本的 .NET 才有此参数
-                            glyphIndices: glyphIndices,
-                            baselineOrigin: location,     // 设置文本的偏移量
-                            advanceWidths: advanceWidths, // 设置每个字符的字宽，也就是字号
-                            glyphOffsets: null,           // 设置每个字符的偏移量，可以为空
-                            characters: text.ToCharArray(),
-                            deviceFontName: null,
-                            clusterMap: null,
-                            caretStops: null,
-                            language: defaultXmlLanguage
-                        );
-                       
-                        Brush brush = currentRunProperty.Foreground.Value;
-                        drawingContext.DrawGlyphRun(brush, glyphRun);
-
-                        // todo 考虑加上缓存
-                        lineRenderInfo.SetDrawnResult(new LineDrawnResult(null));
-                    }
+                    // todo 考虑加上缓存
+                    lineRenderInfo.SetDrawnResult(new LineDrawnResult(null));
                 }
             }
         }
 
         InvalidateVisual();
     }
-}
 
+    private DrawingVisual DrawLine(in LineDrawingArgument argument,float pixelsPerDip)
+    {
+        //var drawingGroup = new DrawingGroup();
+
+        var drawingVisual = new DrawingVisual();
+        using var drawingContext = drawingVisual.RenderOpen();
+
+        var splitList = argument.CharList.SplitContinuousCharData((last,current)=> last.RunProperty.Equals(current.RunProperty));
+
+        foreach (var charList in splitList)
+        {
+            var runProperty = charList[0].RunProperty;
+            // 获取到字体信息
+            var currentRunProperty = runProperty.AsRunProperty();
+            var glyphTypeface = currentRunProperty.GetGlyphTypeface();
+            var fontSize = runProperty.FontSize;
+
+            var glyphIndices = new List<ushort>(charList.Count);
+            var advanceWidths = new List<double>(charList.Count);
+            var characters = new List<char>(charList.Count);
+            var startPoint = charList[0].GetStartPoint();
+            var height = 0d;
+
+            foreach (var charData in charList)
+            {
+                var text = charData.CharObject.ToText();
+
+                for (var i = 0; i < text.Length; i++)
+                {
+                    var c = text[i];
+                    var glyphIndex = glyphTypeface.CharacterToGlyphMap[c];
+                    glyphIndices.Add(glyphIndex);
+
+                    var width = glyphTypeface.AdvanceWidths[glyphIndex] * fontSize;
+                    width = GlyphExtension.RefineValue(width);
+                    advanceWidths.Add(width);
+
+                    height = glyphTypeface.AdvanceHeights[glyphIndex] * fontSize;
+
+                    characters.Add(c);
+                }
+            }
+
+            var location = new System.Windows.Point(startPoint.X, startPoint.Y + height);
+            XmlLanguage defaultXmlLanguage =
+                XmlLanguage.GetLanguage(CultureInfo.CurrentUICulture.IetfLanguageTag);
+
+            var glyphRun = new GlyphRun
+            (
+                glyphTypeface,
+                bidiLevel: 0,
+                isSideways: false,
+                renderingEmSize: fontSize,
+                pixelsPerDip: pixelsPerDip,
+                glyphIndices: glyphIndices,
+                baselineOrigin: location,     // 设置文本的偏移量
+                advanceWidths: advanceWidths, // 设置每个字符的字宽，也就是字号
+            glyphOffsets: null,           // 设置每个字符的偏移量，可以为空
+                characters: characters,
+                deviceFontName: null,
+                clusterMap: null,
+                caretStops: null,
+                language: defaultXmlLanguage
+            );
+
+            Brush brush = currentRunProperty.Foreground.Value;
+            drawingContext.DrawGlyphRun(brush, glyphRun);
+        }
+
+        return drawingVisual;
+    }
+}
 
 internal class TextEditorPlatformProvider : PlatformProvider
 {
