@@ -24,10 +24,20 @@ class ParagraphData
 
     public ParagraphLayoutData ParagraphLayoutData { get; } = new ParagraphLayoutData();
 
+    /// <summary>
+    /// 段落属性样式
+    /// </summary>
     // todo 还没开始写段落样式
     public ParagraphProperty ParagraphProperty { set; get; }
+
+    /// <summary>
+    /// 段落管理器
+    /// </summary>
     public ParagraphManager ParagraphManager { get; }
 
+    /// <summary>
+    /// 获取当前段落是文档的第几段，从0开始
+    /// </summary>
     public int Index => ParagraphManager.GetParagraphIndex(this);
 
     private TextEditorCore TextEditor => ParagraphManager.TextEditor;

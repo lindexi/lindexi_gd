@@ -7,6 +7,9 @@ namespace LightTextEditorPlus.Core.Document;
 /// </summary>
 class ParagraphLayoutData
 {
+    /// <summary>
+    /// 段落的起始点
+    /// </summary>
     public Point StartPoint { set; get; }
 
     /// <summary>
@@ -14,5 +17,9 @@ class ParagraphLayoutData
     /// </summary>
     public Size Size { set; get; }
 
+    /// <summary>
+    /// 段落的范围
+    /// </summary>
+    /// <returns></returns>
     public Rect GetBounds() => new Rect(StartPoint, Size);
 }

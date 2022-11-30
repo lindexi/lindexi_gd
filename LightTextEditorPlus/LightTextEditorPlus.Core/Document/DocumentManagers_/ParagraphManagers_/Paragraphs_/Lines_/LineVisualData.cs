@@ -118,9 +118,9 @@ class LineVisualData : IParagraphCache
 
     public uint CurrentParagraphVersion { get; set; }
 
-    public LineDrawnArgument GetLineDrawnArgument()
+    public LineDrawingArgument GetLineDrawingArgument()
     {
-        return new LineDrawnArgument(IsDrawn, IsLineStartPointUpdated, LineAssociatedRenderData, StartPoint, Size,
+        return new LineDrawingArgument(IsDrawn, IsLineStartPointUpdated, LineAssociatedRenderData, StartPoint, Size,
             GetCharList());
     }
 }

@@ -12,7 +12,7 @@ namespace LightTextEditorPlus.Core.Document;
 /// <param name="StartPoint">行的起始点坐标</param>
 /// <param name="Size">行的尺寸</param>
 /// <param name="CharList">行里面的字符信息</param>
-public readonly record struct LineDrawnArgument(bool IsDrawn, bool IsLineStartPointUpdated,
+public readonly record struct LineDrawingArgument(bool IsDrawn, bool IsLineStartPointUpdated,
     object? LineAssociatedRenderData, Point StartPoint, Size Size, ReadOnlyListSpan<CharData> CharList)
 {
 }
