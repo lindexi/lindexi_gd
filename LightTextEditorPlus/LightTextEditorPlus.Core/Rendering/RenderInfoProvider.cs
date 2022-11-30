@@ -23,7 +23,7 @@ public class RenderInfoProvider
 
     public IEnumerable<ParagraphRenderInfo> GetParagraphRenderInfoList()
     {
-        var paragraphManager = TextEditor.DocumentManager.TextRunManager.ParagraphManager;
+        var paragraphManager = TextEditor.DocumentManager.DocumentRunEditProvider.ParagraphManager;
         var list = paragraphManager.GetParagraphList();
         for (var index = 0; index < list.Count; index++)
         {

@@ -422,7 +422,7 @@ abstract class ArrangingLayoutProvider
 
         // 首行出现变脏的序号
         var firstDirtyParagraphIndex = -1;
-        var paragraphList = TextEditor.DocumentManager.TextRunManager.ParagraphManager.GetParagraphList();
+        var paragraphList = TextEditor.DocumentManager.DocumentRunEditProvider.ParagraphManager.GetParagraphList();
         for (var index = 0; index < paragraphList.Count; index++)
         {
             ParagraphData paragraphData = paragraphList[index];
@@ -472,7 +472,7 @@ abstract class ArrangingLayoutProvider
             documentBounds = documentBounds.Union(bounds);
         }
 
-        Debug.Assert(TextEditor.DocumentManager.TextRunManager.ParagraphManager.GetParagraphList()
+        Debug.Assert(TextEditor.DocumentManager.DocumentRunEditProvider.ParagraphManager.GetParagraphList()
             .All(t => t.IsDirty() == false));
 
         return new DocumentLayoutResult(documentBounds);

@@ -16,7 +16,7 @@ public class TextEditorInsertTest
             // Arrange
             var textEditorCore = TestHelper.GetTextEditorCore();
             textEditorCore.AppendText("123");
-            var textRunManager = textEditorCore.DocumentManager.TextRunManager;
+            var textRunManager = textEditorCore.DocumentManager.DocumentRunEditProvider;
 
             // Action
 

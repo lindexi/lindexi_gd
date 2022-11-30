@@ -16,7 +16,7 @@ namespace LightTextEditorPlus.Core.Document
             CurrentRunProperty = textEditor.PlatformRunPropertyCreator.GetDefaultRunProperty();
 
             ParagraphManager = new ParagraphManager(textEditor);
-            TextRunManager = new TextRunManager(textEditor);
+            DocumentRunEditProvider = new DocumentRunEditProvider(textEditor);
         }
 
         #region 框架
@@ -33,7 +33,7 @@ namespace LightTextEditorPlus.Core.Document
         /// </summary>
         internal double DocumentHeight { set; get; } = double.PositiveInfinity;
 
-        internal TextRunManager TextRunManager { get; }
+        internal DocumentRunEditProvider DocumentRunEditProvider { get; }
 
         internal ParagraphManager ParagraphManager { get; }
 
@@ -75,7 +75,7 @@ namespace LightTextEditorPlus.Core.Document
             get
             {
                 var sum = 0;
-                foreach (var paragraphData in TextRunManager.ParagraphManager.GetParagraphList())
+                foreach (var paragraphData in DocumentRunEditProvider.ParagraphManager.GetParagraphList())
                 {
                     sum += paragraphData.CharCount;
                     // 加上换行符的字符
@@ -126,7 +126,7 @@ namespace LightTextEditorPlus.Core.Document
             InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
 
             var textRun = new TextRun(text);
-            TextRunManager.Append(textRun);
+            DocumentRunEditProvider.Append(textRun);
 
             CaretManager.CurrentCaretOffset = new CaretOffset(CharCount);
 
@@ -138,7 +138,7 @@ namespace LightTextEditorPlus.Core.Document
             InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
             // 这里只处理数据变更，后续渲染需要通过 InternalDocumentChanged 事件触发
 
-            TextRunManager.Replace(selection, run);
+            DocumentRunEditProvider.Replace(selection, run);
 
             var caretOffset = new CaretOffset(selection.BehindOffset.Offset - selection.Length + run.Count);
             CaretManager.CurrentCaretOffset = caretOffset;
