@@ -7,4 +7,8 @@
     <AnalysisLevel>latest</AnalysisLevel>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Document\DocumentManagers\Primitive_\" />
+  </ItemGroup>
+
 </Project>
