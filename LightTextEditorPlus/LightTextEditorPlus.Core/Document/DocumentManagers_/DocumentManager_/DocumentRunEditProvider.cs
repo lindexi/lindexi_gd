@@ -4,8 +4,9 @@ using LightTextEditorPlus.Core.Document.Segments;
 namespace LightTextEditorPlus.Core.Document;
 
 /// <summary>
-/// 文档的字符编辑提供器
+/// 文档的字符编辑提供器。不对外，只处理字符编辑
 /// </summary>
+/// 为了让 <see cref="DocumentManager"/> 不要包含太多的逻辑，就将编辑字符相关的独立在这个类型
 internal class DocumentRunEditProvider
 {
     public DocumentRunEditProvider(TextEditorCore textEditor)
