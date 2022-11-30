@@ -85,9 +85,7 @@ public class TextEditorCoreEditExtensionTests
             var textEditorCore = TestHelper.GetTextEditorCore();
 
             // Action
-#pragma warning disable CS0618
-            textEditorCore.InsertTextAfterCurrentCaretOffset(TestHelper.PlainNumberText);
-#pragma warning restore CS0618
+            textEditorCore.EditAndReplace(TestHelper.PlainNumberText);
 
             // Assert
             Assert.AreEqual(TestHelper.PlainNumberText.Length, textEditorCore.DocumentManager.CharCount);

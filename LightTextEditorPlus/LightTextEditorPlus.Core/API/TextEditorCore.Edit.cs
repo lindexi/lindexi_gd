@@ -40,7 +40,7 @@ public partial class TextEditorCore
     /// 在当前光标后面加入纯文本
     /// </summary>
     /// <param name="text"></param>
-    [Obsolete("请使用" + nameof(EditAndReplace) + "代替。此方法只是用来告诉你正确的用法是调用" + nameof(EditAndReplace) + "方法")]
+    [Obsolete("请使用" + nameof(EditAndReplace) + "代替。此方法只是用来告诉你正确的用法是调用" + nameof(EditAndReplace) + "方法", true)]
     public void InsertTextAfterCurrentCaretOffset(string text) =>
         EditAndReplace(text);
 }
