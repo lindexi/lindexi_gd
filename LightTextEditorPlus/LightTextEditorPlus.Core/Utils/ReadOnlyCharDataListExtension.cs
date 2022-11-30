@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive.Collections;
 
@@ -17,41 +18,47 @@ public static class ReadOnlyCharDataListExtension
         Func<CharData, CharData, bool> predicate)
     {
         CharData lastCharData = null!;
-        int startIndex = 0;
+        int length = 0;
         for (var i = 0; i < charDataList.Count; i++)
         {
             var charData = charDataList[i];
 
             if (i == 0)
             {
-                lastCharData = charData;
+                length++;
             }
             else
             {
-               var result = predicate(lastCharData,charData);
-               if (result)
-               {
-                   // 如果是相同的，那就继续 i++ 读取下一个字符
-               }
-               else
-               {
-                   var length = i - startIndex + 1;
+                var result = predicate(lastCharData, charData);
+                if (result)
+                {
+                    // 如果是相同的
+                    length++;
+                }
+                else
+                {
+                    // 如果是不相同的，那就将当前的列表返回
+                    var startIndex = i - length + 1;
 
-                   yield return charDataList.Slice(i, length);
+                    yield return charDataList.Slice(startIndex, length);
 
-                   startIndex = i;
-               }
+                    // 当前列表返回了，那就剩下当前这个一个
+                    // 例子，如只有两个元素，且两个元素不相同。那第一个元素返回之后，还剩下一个元素
+                    length = 1;
+                }
             }
 
             if (i == charDataList.Count - 1)
             {
-                if (startIndex != i)
+                if (length != 0)
                 {
-                    var length = i - startIndex + 1;
+                    var startIndex = i - length + 1;
 
-                    yield return charDataList.Slice(i, length);
+                    yield return charDataList.Slice(startIndex, length);
                 }
             }
+
+            lastCharData = charData;
         }
     }
 }
