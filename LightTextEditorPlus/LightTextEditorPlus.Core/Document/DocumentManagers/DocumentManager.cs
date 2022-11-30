@@ -15,6 +15,7 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
             CurrentParagraphProperty = new ParagraphProperty();
             CurrentRunProperty = textEditor.PlatformRunPropertyCreator.GetDefaultRunProperty();
 
+            ParagraphManager = new ParagraphManager(textEditor);
             TextRunManager = new TextRunManager(textEditor);
         }
 
@@ -33,6 +34,8 @@ namespace LightTextEditorPlus.Core.Document.DocumentManagers
         internal double DocumentHeight { set; get; } = double.PositiveInfinity;
 
         internal TextRunManager TextRunManager { get; }
+
+        internal ParagraphManager ParagraphManager { get; }
 
         private CaretManager CaretManager => TextEditor.CaretManager;
 

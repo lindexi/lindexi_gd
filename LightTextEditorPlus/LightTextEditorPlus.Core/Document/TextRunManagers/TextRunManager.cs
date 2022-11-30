@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Text;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
@@ -14,13 +13,13 @@ namespace LightTextEditorPlus.Core.Document;
 
 internal class TextRunManager
 {
+    // DocumentRunEditProvider
     public TextRunManager(TextEditorCore textEditor)
     {
         TextEditor = textEditor;
-        ParagraphManager = new ParagraphManager(textEditor);
     }
 
-    public ParagraphManager ParagraphManager { get; }
+    public ParagraphManager ParagraphManager => TextEditor.DocumentManager.ParagraphManager;
     public TextEditorCore TextEditor { get; }
 
     public void Append(IImmutableRun run)
@@ -191,6 +190,7 @@ internal class TextRunManager
 /// <summary>
 /// 段落管理
 /// </summary>
+/// 段落的组织，段落的创建删除和查找
 [DebuggerDisplay("{GetText()}")]
 class ParagraphManager
 {
@@ -206,7 +206,6 @@ class ParagraphManager
     /// </summary>
     /// <param name="offset"></param>
     /// <returns></returns>
-    /// <exception cref="NotImplementedException"></exception>
     public HitParagraphDataResult GetHitParagraphData(CaretOffset offset)
     {
         if (ParagraphList.Count == 0)
