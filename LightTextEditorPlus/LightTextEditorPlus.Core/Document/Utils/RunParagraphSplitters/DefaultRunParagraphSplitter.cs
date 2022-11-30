@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace LightTextEditorPlus.Core.Document;
+namespace LightTextEditorPlus.Core.Document.Utils;
 
 internal class DefaultRunParagraphSplitter : IRunParagraphSplitter
 {

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace LightTextEditorPlus.Core.Document;
+namespace LightTextEditorPlus.Core.Document.Utils;
 
 /// <summary>
 /// 提供将给定的 <see cref="IImmutableRun"/> 进行分段的功能的分离器。由于一个 <see cref="IImmutableRun"/> 可以是 `123\r\n123` 的内容，需要在底层分为两个不同的段

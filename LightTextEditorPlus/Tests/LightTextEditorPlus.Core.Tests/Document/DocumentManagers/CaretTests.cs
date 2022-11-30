@@ -1,5 +1,4 @@
 ﻿using LightTextEditorPlus.Core.Carets;
-using LightTextEditorPlus.Core.Document.DocumentManagers;
 using LightTextEditorPlus.Core.TestsFramework;
 using MSTest.Extensions.Contracts;
 

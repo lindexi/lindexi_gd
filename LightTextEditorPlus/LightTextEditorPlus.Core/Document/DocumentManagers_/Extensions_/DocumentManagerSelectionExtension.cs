@@ -1,6 +1,6 @@
 ﻿using LightTextEditorPlus.Core.Carets;
 
-namespace LightTextEditorPlus.Core.Document.DocumentManagers;
+namespace LightTextEditorPlus.Core.Document;
 
 /// <summary>
 /// 文档的选择扩展

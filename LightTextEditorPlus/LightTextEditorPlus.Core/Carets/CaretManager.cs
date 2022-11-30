@@ -1,5 +1,5 @@
 ﻿using System;
-using LightTextEditorPlus.Core.Document.DocumentManagers;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Events;
 
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;

@@ -2,7 +2,7 @@
 using LightTextEditorPlus.Core.Carets;
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
-namespace LightTextEditorPlus.Core.Document.DocumentManagers
+namespace LightTextEditorPlus.Core.Document
 {
     /// <summary>
     /// 提供文档管理，只提供数据管理，这里属于更高级的 API 层，将提供更多的细节控制

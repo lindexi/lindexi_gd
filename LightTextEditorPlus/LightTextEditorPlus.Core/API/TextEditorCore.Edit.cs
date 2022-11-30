@@ -1,5 +1,4 @@
-﻿using LightTextEditorPlus.Core.Document.DocumentManagers;
-using LightTextEditorPlus.Core.Document;
+﻿using LightTextEditorPlus.Core.Document;
 using System;
 
 namespace LightTextEditorPlus.Core;

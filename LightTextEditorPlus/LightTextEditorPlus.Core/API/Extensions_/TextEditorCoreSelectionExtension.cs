@@ -1,5 +1,5 @@
 ﻿using LightTextEditorPlus.Core.Carets;
-using LightTextEditorPlus.Core.Document.DocumentManagers;
+using LightTextEditorPlus.Core.Document;
 
 namespace LightTextEditorPlus.Core;
 
