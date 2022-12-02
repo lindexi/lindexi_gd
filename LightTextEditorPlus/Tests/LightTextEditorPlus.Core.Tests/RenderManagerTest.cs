@@ -1,6 +1,5 @@
 ﻿using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Platform;
-using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.TestsFramework;
 using MSTest.Extensions.Contracts;
 
@@ -9,7 +8,7 @@ namespace LightTextEditorPlus.Core.Tests;
 [TestClass]
 public class RenderManagerTest
 {
-    //[ContractTestCase]
+    [ContractTestCase]
     public void TestLineDrawnResult()
     {
         "文本在执行渲染完成之后，可以设置行缓存数据，在下次渲染时使用".Test(() =>
@@ -52,6 +51,7 @@ public class RenderManagerTest
             textEditorCore.AppendText("a");
             // 再次触发渲染，也就是触发渲染次数两次
             Assert.AreEqual(2, testRenderManager.RenderCount);
+            provider = testRenderManager.CurrentRenderInfoProvider;
             var nextParagraphRenderInfoList = provider.GetParagraphRenderInfoList().ToList();
             var nextLineRenderInfoList = nextParagraphRenderInfoList[0].GetLineRenderInfoList().ToList();
             // 首段依然只有一行
@@ -59,9 +59,9 @@ public class RenderManagerTest
 
             var lineDrawingArgument = nextLineRenderInfoList[0].Argument;
             // 渲染过了
-            Assert.AreEqual(true,lineDrawingArgument.IsDrawn);
+            Assert.AreEqual(true, lineDrawingArgument.IsDrawn);
             // 能获取上次渲染设置的缓存
-            Assert.AreSame(renderCache,lineDrawingArgument.LineAssociatedRenderData);
+            Assert.AreSame(renderCache, lineDrawingArgument.LineAssociatedRenderData);
         });
     }
 
