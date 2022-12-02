@@ -7,14 +7,13 @@ namespace LightTextEditorPlus.Core.Document;
 /// <summary>
 /// 行渲染信息
 /// </summary>
-/// todo 改名 LineLayoutData
-class LineVisualData : IParagraphCache
+class LineLayoutData : IParagraphCache
 {
     /// <summary>
     /// 行渲染信息
     /// </summary>
     /// <param name="currentParagraph">行所在的段落</param>
-    public LineVisualData(ParagraphData currentParagraph)
+    public LineLayoutData(ParagraphData currentParagraph)
     {
         CurrentParagraph = currentParagraph;
         currentParagraph.InitVersion(this);
@@ -103,7 +102,7 @@ class LineVisualData : IParagraphCache
 
     public override string ToString()
     {
-        return $"{nameof(LineVisualData)}: {GetText()}";
+        return $"{nameof(LineLayoutData)}: {GetText()}";
     }
 
     public string GetText()

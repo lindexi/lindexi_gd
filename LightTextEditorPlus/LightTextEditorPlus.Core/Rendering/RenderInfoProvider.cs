@@ -65,15 +65,15 @@ public readonly struct ParagraphRenderInfo
     {
         for (var i = 0; i < _paragraphData.LineVisualDataList.Count; i++)
         {
-            LineVisualData lineVisualData = _paragraphData.LineVisualDataList[i];
+            LineLayoutData lineLayoutData = _paragraphData.LineVisualDataList[i];
 
-            var argument = lineVisualData.GetLineDrawingArgument();
+            var argument = lineLayoutData.GetLineDrawingArgument();
 
             _renderInfoProvider.VerifyNotDirty();
 
             yield return new ParagraphLineRenderInfo(i, argument)
             {
-                LineVisualData = lineVisualData
+                LineLayoutData = lineLayoutData
             };
         }
     }
@@ -90,10 +90,10 @@ public readonly record struct ParagraphLineRenderInfo(int LineIndex, LineDrawing
     /// 内部使用的行信息
     /// </summary>
     /// 由于需要修改访问权限，修改为属性
-    internal LineVisualData LineVisualData { init; get; } = null!;
+    internal LineLayoutData LineLayoutData { init; get; } = null!;
 
     public void SetDrawnResult(in LineDrawnResult lineDrawnResult)
     {
-        LineVisualData.SetDrawn(lineDrawnResult);
+        LineLayoutData.SetDrawn(lineDrawnResult);
     }
 }

@@ -16,7 +16,7 @@ namespace LightTextEditorPlus.Core.Document;
 ///- 文档管理 <see cref="DocumentManager"/>
 ///   - 段落管理器 <see cref="ParagraphManager"/>：文档包含多个段落，需要有一个段落管理器
 ///      - 段落 <see cref="ParagraphData"/>：段落里面有多个行，也有多个字符
-///         - 文本行 <see cref="LineVisualData"/>：由于文本行属于布局的概念，独立与字符的概念
+///         - 文本行 <see cref="LineLayoutData"/>：由于文本行属于布局的概念，独立与字符的概念
 ///         - 字符：字符包括文档概念的 <see cref="CharData"/> 和布局概念的 <see cref="CharLayoutData"/> 两个类型
 ///- Segments：各种偏移量坐标定义，隶属于光标系统，但是和文档关系更加紧密
 ///- UndoRedo：撤销重做相关

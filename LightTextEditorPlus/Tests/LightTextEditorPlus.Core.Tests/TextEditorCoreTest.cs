@@ -116,7 +116,7 @@ public class TextEditorCoreTest
             // 可以排版出来1段1行
             Assert.AreEqual(1, paragraphRenderInfoList.Count);
 
-            Assert.AreEqual("123456", paragraphRenderInfoList.First().GetLineRenderInfoList().First().LineVisualData.GetText());
+            Assert.AreEqual("123456", paragraphRenderInfoList.First().GetLineRenderInfoList().First().LineLayoutData.GetText());
         });
 
         @"给文本编辑器追加 123\r\n123\r\n 文本，可以排版出来三段".Test(() =>
@@ -161,7 +161,7 @@ public class TextEditorCoreTest
                     var paragraphLineRenderInfoList = paragraphRenderInfo.GetLineRenderInfoList().ToList();
                     Assert.AreEqual(1, paragraphLineRenderInfoList.Count);
 
-                    Assert.AreEqual("123", paragraphLineRenderInfoList[0].LineVisualData.GetText());
+                    Assert.AreEqual("123", paragraphLineRenderInfoList[0].LineLayoutData.GetText());
                 }
             };
 

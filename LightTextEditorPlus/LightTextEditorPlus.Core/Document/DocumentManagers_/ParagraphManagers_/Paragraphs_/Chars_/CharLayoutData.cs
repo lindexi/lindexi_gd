@@ -38,5 +38,5 @@ class CharLayoutData : IParagraphCache
     /// <summary>
     /// 当前所在的行
     /// </summary>
-    public LineVisualData? CurrentLine { set; get; }
+    public LineLayoutData? CurrentLine { set; get; }
 }

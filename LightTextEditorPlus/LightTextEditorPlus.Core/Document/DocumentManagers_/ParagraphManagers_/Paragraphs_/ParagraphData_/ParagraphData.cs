@@ -226,7 +226,7 @@ class ParagraphData
 
     #region 渲染排版数据
 
-    public List<LineVisualData> LineVisualDataList { get; } = new List<LineVisualData>();
+    public List<LineLayoutData> LineVisualDataList { get; } = new List<LineLayoutData>();
 
     #endregion
 
