@@ -1,5 +1,6 @@
 ﻿using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Platform;
+using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.TestsFramework;
 using MSTest.Extensions.Contracts;
 
@@ -99,11 +100,11 @@ public class RenderManagerTest
             Assert.AreEqual(1, testRenderManager.RenderCount);
         });
     }
+}
 
-    class RenderManagerTestPlatformProvider : TestPlatformProvider
-    {
-        public override IRenderManager GetRenderManager() => TestRenderManager;
+class RenderManagerTestPlatformProvider : TestPlatformProvider
+{
+    public override IRenderManager GetRenderManager() => TestRenderManager;
 
-        public TestRenderManager TestRenderManager { set; get; } = new TestRenderManager();
-    }
+    public TestRenderManager TestRenderManager { set; get; } = new TestRenderManager();
 }

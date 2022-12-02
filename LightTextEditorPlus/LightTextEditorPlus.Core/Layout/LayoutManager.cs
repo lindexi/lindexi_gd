@@ -392,6 +392,14 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         var paragraphBounds = new Rect(0, 0, 0, height);
         return new EmptyParagraphLineHeightMeasureResult(paragraphBounds, nextLineStartPoint);
     }
+
+    protected override Point GetNextParagraphLineStartPoint(ParagraphData paragraphData)
+    {
+        var lineVisualData = paragraphData.LineVisualDataList.Last();
+        const double x = 0;
+        var y = lineVisualData.StartPoint.Y + lineVisualData.Size.Height;
+        return new Point(x, y);
+    }
 }
 
 /// <summary>
@@ -422,13 +430,30 @@ abstract class ArrangingLayoutProvider
 
         // 首行出现变脏的序号
         var firstDirtyParagraphIndex = -1;
+        // 首个脏段的起始 也就是横排左上角的点。等于非脏段的下一个行起点
+        Point firstStartPoint = default;
+
         var paragraphList = TextEditor.DocumentManager.DocumentRunEditProvider.ParagraphManager.GetParagraphList();
+        Debug.Assert(paragraphList.Count > 0);
         for (var index = 0; index < paragraphList.Count; index++)
         {
             ParagraphData paragraphData = paragraphList[index];
             if (paragraphData.IsDirty())
             {
                 firstDirtyParagraphIndex = index;
+
+                if (index == 0)
+                {
+                    // 从首段落开始
+                    firstStartPoint = new Point(0, 0);
+                }
+                else
+                {
+                    // 非首段开始，需要进行不同的排版计算。例如横排和竖排的规则不相同
+                    var lastParagraph = paragraphList[index - 1];
+                    firstStartPoint = GetNextParagraphLineStartPoint(lastParagraph);
+                }
+
                 break;
             }
         }
@@ -439,19 +464,6 @@ abstract class ArrangingLayoutProvider
         }
 
         //// 进入各个段落的段落之间和行之间的布局
-        // 获取首个脏段的起始 也就是横排左上角的点
-        Point firstStartPoint;
-        if (firstDirtyParagraphIndex == 0)
-        {
-            // 从首段落开始
-            firstStartPoint = new Point(0, 0);
-        }
-        else
-        {
-            // todo 获取非首段的左上角坐标
-            //firstLeftTop = list[firstDirtyParagraphIndex - 1].ParagraphRenderData.LeftTop;
-            throw new NotImplementedException();
-        }
 
         // 进入段落内布局
         var currentStartPoint = firstStartPoint;
@@ -566,6 +578,11 @@ abstract class ArrangingLayoutProvider
     protected abstract ParagraphLayoutResult LayoutParagraphCore(ParagraphLayoutArgument paragraph,
         ParagraphCharOffset startParagraphOffset);
 
+    /// <summary>
+    /// 测量空段的行高
+    /// </summary>
+    /// <param name="argument"></param>
+    /// <returns></returns>
     private EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeight(
         in EmptyParagraphLineHeightMeasureArgument argument)
     {
@@ -593,6 +610,13 @@ abstract class ArrangingLayoutProvider
 
     protected abstract EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeightCore(
         in CharInfoMeasureResult argument);
+
+    /// <summary>
+    /// 获取下一段的首行起始点
+    /// </summary>
+    /// <param name="paragraphData"></param>
+    /// <returns></returns>
+    protected abstract Point GetNextParagraphLineStartPoint(ParagraphData paragraphData);
 
     #region 通用辅助方法
 
