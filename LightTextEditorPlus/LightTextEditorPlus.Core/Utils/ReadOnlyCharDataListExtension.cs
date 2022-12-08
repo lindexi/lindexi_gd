@@ -38,7 +38,7 @@ public static class ReadOnlyCharDataListExtension
                 else
                 {
                     // 如果是不相同的，那就将当前的列表返回
-                    var startIndex = i - length + 1;
+                    var startIndex = i - length;
 
                     yield return charDataList.Slice(startIndex, length);
 

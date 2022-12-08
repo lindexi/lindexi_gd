@@ -15,6 +15,47 @@ public class ReadOnlyCharDataListExtensionTests
     [ContractTestCase]
     public void SplitContinuousCharDataTest()
     {
+        "获取有六项的 CharData 列表的相邻内容，列表元素是 1-1-1-2-2-2 组织，可以获取到两个列表".Test(() =>
+        {
+            var runProperty1 = new LayoutOnlyRunProperty();
+            var runProperty2 = new LayoutOnlyRunProperty();
+
+            var charData1 = new CharData(new SingleCharObject('1'), runProperty1);
+            var charData2 = new CharData(new SingleCharObject('2'), runProperty1);
+            var charData3 = new CharData(new SingleCharObject('3'), runProperty1);
+
+            var charData4 = new CharData(new SingleCharObject('4'), runProperty2);
+            var charData5 = new CharData(new SingleCharObject('5'), runProperty2);
+            var charData6 = new CharData(new SingleCharObject('6'), runProperty2);
+
+            var source = new CharData[]
+            {
+                charData1,
+                charData2,
+                charData3,
+                charData4,
+                charData5,
+                charData6,
+            };
+
+            var list = new ReadOnlyListSpan<CharData>(source, 0, source.Length);
+
+            var splitList = list.SplitContinuousCharData((last, current) => ReferenceEquals(last.RunProperty, current.RunProperty)).ToList();
+
+            Assert.AreEqual(2, splitList.Count);
+
+            var list1 = splitList[0];
+            var list2 = splitList[1];
+
+            Assert.AreEqual("1",list1[0].CharObject.ToText());
+            Assert.AreEqual("2", list1[1].CharObject.ToText());
+            Assert.AreEqual("3", list1[2].CharObject.ToText());
+
+            Assert.AreEqual("4", list2[0].CharObject.ToText());
+            Assert.AreEqual("5", list2[1].CharObject.ToText());
+            Assert.AreEqual("6", list2[2].CharObject.ToText());
+        });
+
         "获取有五项的 CharData 列表的相邻内容，列表元素是 1-2-3-2-1 组织，可以获取到五个列表".Test(() =>
         {
             var charData1 = GetCharData();
