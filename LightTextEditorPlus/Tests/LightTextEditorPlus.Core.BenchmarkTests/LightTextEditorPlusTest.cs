@@ -1,5 +1,7 @@
 ﻿using System.Text;
+
 using BenchmarkDotNet.Attributes;
+
 using LightTextEditorPlus.Core.TestsFramework;
 
 namespace LightTextEditorPlus.Core.BenchmarkTests;
@@ -14,6 +16,33 @@ public class LightTextEditorPlusTest
     {
         var textEditor = TestHelper.GetTextEditorCore();
         textEditor.AppendText(text);
+    }
+
+    [Benchmark()]
+    [Arguments(TestHelper.PlainNumberText, 10)]
+    [Arguments(TestHelper.PlainNumberText, 100)]
+    [Arguments(TestHelper.PlainNumberText, 1000)]
+    public void AppendTextMultiTime(string text, int time)
+    {
+        var textEditor = TestHelper.GetTextEditorCore();
+        for (int i = 0; i < time; i++)
+        {
+            textEditor.AppendText(text);
+        }
+    }
+
+    [Benchmark()]
+    [Arguments(TestHelper.PlainNumberText, 10)]
+    [Arguments(TestHelper.PlainNumberText, 100)]
+    [Arguments(TestHelper.PlainNumberText, 1000)]
+    public void AppTextMultiLine(string text, int time)
+    {
+        text = text + "\r\n";
+        var textEditor = TestHelper.GetTextEditorCore();
+        for (int i = 0; i < time; i++)
+        {
+            textEditor.AppendText(text);
+        }
     }
 
     [Benchmark()]
