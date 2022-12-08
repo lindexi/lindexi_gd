@@ -1,5 +1,8 @@
 ﻿using System;
+
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document.Segments;
+
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Document
@@ -63,6 +66,13 @@ namespace LightTextEditorPlus.Core.Document
         /// </summary>
         public IReadOnlyRunProperty CurrentRunProperty { private set; get; }
 
+        /// <inheritdoc cref="P:LightTextEditorPlus.Core.Carets.CaretManager.CurrentCaretRunProperty"/>
+        public IReadOnlyRunProperty? CurrentCaretRunProperty
+        {
+            //private set => CaretManager.CurrentCaretRunProperty = value;
+            get => CaretManager.CurrentCaretRunProperty;
+        }
+
         #endregion
 
         #region 公开属性
@@ -96,15 +106,75 @@ namespace LightTextEditorPlus.Core.Document
 
         #region 公开方法
 
+        #region RunProperty
+
         /// <summary>
         /// 设置当前文本的默认字符属性
         /// </summary>
+        /// <typeparam name="T">实际业务端使用的字符属性类型</typeparam>
         public void SetDefaultTextRunProperty<T>(Action<T> config) where T : IReadOnlyRunProperty
         {
             CurrentRunProperty =
-                TextEditor.PlatformRunPropertyCreator.BuildNewProperty(property => config((T)property),
+                TextEditor.PlatformRunPropertyCreator.BuildNewProperty(property => config((T) property),
                     CurrentRunProperty);
         }
+
+        /// <summary>
+        /// 设置当前光标的字符属性。在光标切走之后，自动失效
+        /// </summary>
+        /// <typeparam name="T">实际业务端使用的字符属性类型</typeparam>
+        /// <param name="config"></param>
+        public void SetCurrentCaretRunProperty<T>(Action<T> config) where T : IReadOnlyRunProperty
+        {
+            // 先获取当前光标的字符属性吧
+            // 规则：
+            // 无任何文本字符时，获取段落和文档的属性
+            // 有字符时，非段首则获取字符前一个字符的属性；段首则获取段落的字符属性
+            IReadOnlyRunProperty currentCaretRunProperty;
+            if (CharCount == 0)
+            {
+                // 无任何文本字符时，获取段落和文档的属性
+                currentCaretRunProperty = CurrentRunProperty;
+            }
+            else
+            {
+                var hitParagraphDataResult = ParagraphManager.GetHitParagraphData(CaretManager.CurrentCaretOffset);
+                var paragraphData = hitParagraphDataResult.ParagraphData;
+
+                // 当前光标是否在段首
+                if (hitParagraphDataResult.HitOffset.Offset == 0)
+                {
+                    // 如果是在段首（当前只判断是文档开头）
+                    // 则取此光标之后一个字符的，如果光标之后没有字符了，那只能使用默认的
+                    if (paragraphData.CharCount > 0)
+                    {
+                        // 取段落首个字符的字符属性
+                        var charData = paragraphData.GetCharData(new ParagraphCharOffset(0));
+                        currentCaretRunProperty = charData.RunProperty;
+                    }
+                    else
+                    {
+                        // 这个段落没有字符，那就使用段落默认字符属性，段落没有默认的字符属性，那就采用文档属性
+                        currentCaretRunProperty =
+                            paragraphData.ParagraphProperty.ParagraphStartRunProperty ??
+                            CurrentRunProperty;
+                    }
+                }
+                else
+                {
+                    // 不在段首，那就取光标前一个字符的文本属性
+                    var paragraphCharOffset = new ParagraphCharOffset(hitParagraphDataResult.HitOffset.Offset - 1);
+                    var charData = paragraphData.GetCharData(paragraphCharOffset);
+                    currentCaretRunProperty = charData.RunProperty;
+                }
+            }
+
+            CaretManager.CurrentCaretRunProperty = TextEditor.PlatformRunPropertyCreator.BuildNewProperty(property => config((T) property),
+                currentCaretRunProperty);
+        }
+
+        #endregion
+
 
         /// <summary>
         /// 追加一段文本

@@ -21,6 +21,13 @@ class CaretManager
         TextEditor = textEditor;
     }
 
+    /// <summary>
+    /// 当前光标的字符属性
+    /// </summary>
+    /// 用户可以设置当前光标的字符属性，但是在光标切走之后，将会自动清掉此属性
+    /// 之前我做的文本库的设计是当前光标的字符属性和 <see cref="P:LightTextEditorPlus.Core.Document.DocumentManager.CurrentRunProperty"/> 耦合，存在的一个问题是文档的字符属性不断被变更
+    public IReadOnlyRunProperty? CurrentCaretRunProperty { get; set; }
+
     private TextEditor TextEditor { get; }
     private DocumentManager DocumentManager => TextEditor.DocumentManager;
 
@@ -45,6 +52,11 @@ class CaretManager
     {
         set
         {
+            if (_currentCaretOffset == value)
+            {
+                return;
+            }
+
             var oldValue = _currentCaretOffset;
             _isCurrentCaretOffsetChanging = true;
 
@@ -52,6 +64,9 @@ class CaretManager
             // todo 设置光标的选择范围
             var args = new TextEditorValueChangeEventArgs<CaretOffset>(oldValue, value);
             InternalCurrentCaretOffsetChanging?.Invoke(this, args);
+
+            // 清理当前光标的属性
+            CurrentCaretRunProperty = null;
 
             // todo 处理越界
             _currentCaretOffset = value;
