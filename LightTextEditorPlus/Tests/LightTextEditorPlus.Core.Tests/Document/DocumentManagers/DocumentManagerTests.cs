@@ -1,7 +1,6 @@
 ﻿using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.TestsFramework;
-
 using MSTest.Extensions.Contracts;
 
 namespace LightTextEditorPlus.Core.Tests.Document.DocumentManagers;
@@ -12,6 +11,38 @@ public class DocumentManagerTests
     [ContractTestCase]
     public void SetCurrentCaretRunProperty()
     {
+        "对当前的光标设置文本字符属性，在当前的光标继续输入文本，输入的文本可以使用当前的光标设置文本字符属性".Test(() =>
+        {
+            // Arrange
+            var testPlatformProvider = new RenderManagerTestPlatformProvider();
+            var testRenderManager = testPlatformProvider.TestRenderManager;
+            var textEditorCore = new TextEditorCore(testPlatformProvider);
+
+            // 对当前的光标设置文本字符属性
+            var fontSize = 0d;
+            // 对当前的光标设置文本字符属性
+            textEditorCore.DocumentManager.SetCurrentCaretRunProperty<LayoutOnlyRunProperty>(runProperty =>
+            {
+                fontSize = runProperty.FontSize + 10;
+                runProperty.FontSize = fontSize;
+            });
+
+            // Action
+            // 在当前的光标继续输入文本
+            // 当前的文本是空文本，只需要追加
+            textEditorCore.AppendText("1");
+
+            // Assert
+            // 输入的文本可以使用当前的光标设置文本字符属性
+            var provider = testRenderManager.CurrentRenderInfoProvider;
+            Assert.IsNotNull(provider);
+            // 取第一段第一行第一个字符，因为这是在空文本加上一个字符
+            var paragraphRenderInfoList = provider.GetParagraphRenderInfoList().ToList();
+            var line = paragraphRenderInfoList[0].GetLineRenderInfoList().ToList()[0];
+            var charData = line.Argument.CharList[0];
+            Assert.AreEqual(fontSize, charData.RunProperty.FontSize);
+        });
+
         "对当前的光标设置文本字符属性，在光标移动之后，将会清空当前的设置".Test(() =>
         {
             // Arrange
