@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -37,7 +38,7 @@ public class TestFramework
         });
     }
 
-    public static (Window mainWindow, TextEditor textEditor) CreateTextEditorInNewWindow()
+    public static TextEditTestContext CreateTextEditorInNewWindow()
     {
         var mainWindow = new Window()
         {
@@ -61,6 +62,31 @@ public class TestFramework
         };
 
         mainWindow.Show();
-        return (mainWindow, textEditor);
+        return new TextEditTestContext(mainWindow, textEditor);
+    }
+
+    /// <summary>
+    /// 用于调试下辅助了解到当前是否符合预期，将暂停测试逻辑，可以重新进入此方法退出。仅 Debug 下有效
+    /// </summary>
+    /// <returns></returns>
+    public static async Task FreezeTestToDebug()
+    {
+        if (IsDebug())
+        {
+            for (int i = 0; i < int.MaxValue; i++)
+            {
+                // 可以在这里打断点进行退出逻辑
+                await Task.Delay(TimeSpan.FromSeconds(1));
+            }
+        }
+    }
+
+    public static bool IsDebug()
+    {
+#if DEBUG
+        return Debugger.IsAttached;
+#else
+        return false;
+#endif
     }
 }

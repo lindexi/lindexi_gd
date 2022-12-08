@@ -12,13 +12,12 @@ public class TextEditorTest
     {
         "给空的文本框追加 123 字符串，可以显示出 123 的文本".Test(async () =>
         {
-            var (mainWindow, textEditor) = TestFramework.CreateTextEditorInNewWindow();
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
 
             textEditor.TextEditorCore.AppendText("123");
 
-            await Task.Delay(TimeSpan.FromSeconds(1));
-
-            mainWindow.Close();
+            await TestFramework.FreezeTestToDebug();
         });
     }
 }
