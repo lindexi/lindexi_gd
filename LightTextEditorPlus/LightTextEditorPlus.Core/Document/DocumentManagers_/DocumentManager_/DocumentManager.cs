@@ -1,8 +1,6 @@
 ﻿using System;
-
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
-
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Document
@@ -115,7 +113,7 @@ namespace LightTextEditorPlus.Core.Document
         public void SetDefaultTextRunProperty<T>(Action<T> config) where T : IReadOnlyRunProperty
         {
             CurrentRunProperty =
-                TextEditor.PlatformRunPropertyCreator.BuildNewProperty(property => config((T) property),
+                TextEditor.PlatformRunPropertyCreator.BuildNewProperty(property => config((T)property),
                     CurrentRunProperty);
         }
 
@@ -169,7 +167,8 @@ namespace LightTextEditorPlus.Core.Document
                 }
             }
 
-            CaretManager.CurrentCaretRunProperty = TextEditor.PlatformRunPropertyCreator.BuildNewProperty(property => config((T) property),
+            CaretManager.CurrentCaretRunProperty = TextEditor.PlatformRunPropertyCreator.BuildNewProperty(
+                property => config((T)property),
                 currentCaretRunProperty);
         }
 

@@ -1,7 +1,6 @@
 ﻿using System;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Events;
-
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Carets;
@@ -80,10 +79,7 @@ class CaretManager
             _isCurrentCaretOffsetChanging = false;
             InternalCurrentCaretOffsetChanged?.Invoke(this, args);
         }
-        get
-        {
-            return _currentCaretOffset;
-        }
+        get { return _currentCaretOffset; }
     }
 
     private CaretOffset _currentCaretOffset = new CaretOffset(0);
@@ -119,14 +115,12 @@ class CaretManager
             {
                 CurrentCaretOffset = value.EndOffset;
             }
+
             // todo 处理越界
             _isCurrentSelectionChanging = false;
             InternalCurrentSelectionChanged?.Invoke(this, args);
         }
-        get
-        {
-            return _currentSelection;
-        }
+        get { return _currentSelection; }
     }
 
     private Selection _currentSelection = new Selection(new CaretOffset(0), 0);

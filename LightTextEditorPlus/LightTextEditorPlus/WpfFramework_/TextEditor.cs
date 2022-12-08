@@ -36,7 +36,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager
     {
         var textEditorPlatformProvider = new TextEditorPlatformProvider(this);
         TextEditorCore = new TextEditorCore(textEditorPlatformProvider);
-        TextEditorCore.DocumentManager.SetDefaultTextRunProperty<LayoutOnlyRunProperty>(property =>
+        SetDefaultTextRunProperty(property =>
         {
             property.FontSize = 30;
         });
@@ -54,7 +54,30 @@ public partial class TextEditor : FrameworkElement, IRenderManager
     {
     }
 
+    #region 公开属性
+
     public TextEditorCore TextEditorCore { get; }
+
+    #endregion
+
+    #region 公开方法
+
+    /// <summary>
+    /// 设置当前文本的默认字符属性
+    /// </summary>
+    public void SetDefaultTextRunProperty(Action<RunProperty> config)
+    {
+        TextEditorCore.DocumentManager.SetDefaultTextRunProperty<RunProperty>(config);
+    }
+
+    /// <summary>
+    /// 设置当前光标的字符属性。在光标切走之后，自动失效
+    /// </summary>
+    public void SetCurrentCaretRunProperty(Action<RunProperty> config)
+        => TextEditorCore.DocumentManager.SetCurrentCaretRunProperty<RunProperty>(config);
+
+    #endregion
+
     internal TextEditorPlatformProvider TextEditorPlatformProvider { get; }
 
     private readonly DrawingGroup _drawingGroup = new DrawingGroup();
