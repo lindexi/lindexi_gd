@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing.Text;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,7 @@ using System.Windows.Navigation;
 using System.Windows.Threading;
 
 using LightTextEditorPlus.Core;
+using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
@@ -76,7 +78,11 @@ public partial class TextEditor : FrameworkElement, IRenderManager
     public void SetCurrentCaretRunProperty(Action<RunProperty> config)
         => TextEditorCore.DocumentManager.SetCurrentCaretRunProperty<RunProperty>(config);
 
+    public void SetRunProperty(Action<RunProperty> config, Selection? selection = null)
+        => TextEditorCore.DocumentManager.SetRunProperty(config, selection);
+
     #endregion
+
 
     internal TextEditorPlatformProvider TextEditorPlatformProvider { get; }
 

@@ -34,7 +34,7 @@
         </Grid>
 
         <Grid Grid.Column="1">
-
+            <local:TextEditorSettingsControl TextEditor="{x:Reference TextEditor}"></local:TextEditorSettingsControl>
         </Grid>
 
         <!--<textEditorPlus:TextEditor HorizontalAlignment="Left" VerticalAlignment="Top" />-->
