@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 // ReSharper disable All
@@ -65,6 +66,24 @@ class LineLayoutData : IParagraphCache
     /// 这一行的尺寸
     /// </summary>
     public Size Size { get; init; }
+
+    /// <summary>
+    /// 这一行是当前段落的第几行
+    /// </summary>
+    public int LineInParagraphIndex
+    {
+        get
+        {
+            if (IsDirty)
+            {
+                // 理论上框架内不会进入此分支，于是可以在 get 方法抛出异常
+                // 业务层无法访问到这个属性
+                throw new TextEditorDirtyException();
+            }
+
+            return CurrentParagraph.LineVisualDataList.FindIndex(t => ReferenceEquals(t, this));
+        }
+    }
 
     public ReadOnlyListSpan<CharData> GetCharList() =>
         CurrentParagraph.ToReadOnlyListSpan(CharStartParagraphIndex, CharEndParagraphIndex - CharStartParagraphIndex);

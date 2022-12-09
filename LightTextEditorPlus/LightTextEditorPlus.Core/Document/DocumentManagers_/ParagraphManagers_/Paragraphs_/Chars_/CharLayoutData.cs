@@ -36,10 +36,26 @@ class CharLayoutData : IParagraphCache
     /// </summary>
     public ParagraphCharOffset CharIndex { set; get; }
 
-    // todo 提供获取是第几行，第几个字符功能
+    public int CharIndexInLine
+    {
+        get
+        {
+            if (CurrentLine is null)
+            {
+                return -1;
+            }
+
+            return CharIndex.Offset - CurrentLine.CharStartParagraphIndex;
+        }
+    }
 
     /// <summary>
     /// 当前所在的行
     /// </summary>
     public LineLayoutData? CurrentLine { set; get; }
+
+    public override string ToString()
+    {
+        return $"'{CharData.CharObject}' 第{Paragraph.Index}段，第{CurrentLine?.LineInParagraphIndex}行，段内第{CharIndex.Offset}个字符，行内第{CharIndexInLine}个字符";
+    }
 }
