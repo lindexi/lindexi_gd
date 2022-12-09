@@ -31,6 +31,9 @@ class CharLayoutData : IParagraphCache
     /// 可用来辅助布局上下标
     public Point StartPoint { set; get; }
 
+    /// <summary>
+    /// 字符是当前段落 <see cref="Paragraph"/> 的第几个字符
+    /// </summary>
     public ParagraphCharOffset CharIndex { set; get; }
 
     // todo 提供获取是第几行，第几个字符功能

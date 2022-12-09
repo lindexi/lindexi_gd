@@ -145,8 +145,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             // 当前的行布局信息
             var currentLineLayoutData = new LineLayoutData(paragraph)
             {
-                StartParagraphIndex = i,
-                EndParagraphIndex = i + result.CharCount,
+                CharStartParagraphIndex = i,
+                CharEndParagraphIndex = i + result.CharCount,
                 Size = result.Size,
                 StartPoint = currentStartPoint,
             };
