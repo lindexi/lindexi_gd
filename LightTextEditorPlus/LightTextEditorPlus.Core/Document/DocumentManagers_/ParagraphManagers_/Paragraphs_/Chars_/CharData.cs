@@ -95,4 +95,11 @@ public class CharData
             }
         }
     }
+
+    public override string ToString()
+    {
+        DebugVerify();
+
+        return $"'{CharObject}' {(CharLayoutData != null?$"X:{CharLayoutData.StartPoint.X:0.00} Y:{CharLayoutData.StartPoint.Y:0.00}":"")} {(Size!=null?$"W:{Size.Value.Width:0.00} H:{Size.Value.Height:0.00}":"")}";
+    }
 }

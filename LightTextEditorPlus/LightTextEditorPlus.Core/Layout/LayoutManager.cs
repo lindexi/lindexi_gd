@@ -15,7 +15,11 @@ using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Layout;
 
-// todo 支持输出排版信息，渲染信息。如每一行，每个字符的坐标和尺寸
+/// <summary>
+/// 布局管理器
+/// </summary>
+/// 布局和渲染是拆开的，先进行布局再进行渲染
+/// 布局的
 // todo 文本公式混排 文本图片混排 文本和其他元素的混排多选 文本和其他可交互元素混排的光标策略
 class LayoutManager
 {
@@ -261,16 +265,27 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         // todo 这里可以支持两端对齐
         // 整行的字符布局
+        // CorrectCharBounds AdaptBaseLine
         var wholeCharCount = currentIndex;
+        // todo 这里需要处理行距和段距
         var lineTop = currentStartPoint.Y;
         var currentX = 0d;
+        var lineHeight = currentSize.Height;
         for (var i = 0; i < wholeCharCount; i++)
         {
+            // 简单版本的 AdaptBaseLine 方法，正确的做法是：
+            // 1. 求出最大字符的 Baseline 出来
+            // 2. 求出当前字符的 Baseline 出来
+            // 3. 求出 最大字符的 Baseline 和 当前字符的 Baseline 的差，此结果叠加 lineTop 就是偏移量了
+            // 这里只使用简单的方法，求尺寸和行高的差，让字符底部对齐
             var charData = charDataList[i];
-            charData.SetStartPoint(new Point(currentX, lineTop));
-
             Debug.Assert(charData.Size != null, "charData.Size != null");
-            currentX += charData.Size!.Value.Width;
+            var charDataSize = charData.Size!.Value;
+
+            var yOffset = (lineHeight - charDataSize.Height) + lineTop;
+            charData.SetStartPoint(new Point(currentX, yOffset));
+
+            currentX += charDataSize.Width;
         }
 
         return new WholeLineLayoutResult(currentSize, wholeCharCount);
@@ -572,6 +587,21 @@ abstract class ArrangingLayoutProvider
             var startParagraphOffset = new ParagraphCharOffset(dirtyParagraphOffset);
 
             var result = LayoutParagraphCore(argument, startParagraphOffset);
+
+#if DEBUG
+            // 排版的结果如何？通过段落里面的每一行的信息，可以了解
+            var lineVisualDataList = paragraph.LineVisualDataList;
+            foreach (var lineLayoutData in lineVisualDataList)
+            {
+                // 每一行有多少个字符，字符的坐标
+                var charList = lineLayoutData.GetCharList();
+                foreach (var charData in charList)
+                {
+                    // 字符的坐标是多少
+                    var startPoint = charData.GetStartPoint();
+                }
+            }
+#endif
 
             return result;
         }

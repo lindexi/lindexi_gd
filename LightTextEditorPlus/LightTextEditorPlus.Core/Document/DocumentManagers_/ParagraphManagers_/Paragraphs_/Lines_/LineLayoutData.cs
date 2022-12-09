@@ -97,6 +97,13 @@ class LineLayoutData : IParagraphCache
     //    return CurrentParagraph.AsSpan()[StartParagraphIndex..EndParagraphIndex];
     //}
 
+#if DEBUG
+    /// <summary>
+    /// 调试下，用来了解有那些字符
+    /// </summary>
+    private ReadOnlyListSpan<CharData> DebugCharList => GetCharList();
+#endif
+
     public ReadOnlyListSpan<CharData> GetCharList() =>
         CurrentParagraph.ToReadOnlyListSpan(StartParagraphIndex, EndParagraphIndex - StartParagraphIndex);
 
