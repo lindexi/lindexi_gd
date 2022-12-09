@@ -97,8 +97,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         //// 当前行的 RunList 列表，看起来设计不对，没有加上在段落的坐标
         //var currentLineRunList = new List<IImmutableRun>();
-        // 当前的行渲染信息
-        LineLayoutData? currentLineVisualData = null;
 
         // 获取最大宽度信息
         double lineMaxWidth = TextEditor.SizeToContent switch
@@ -140,7 +138,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 result = LayoutWholeLine(wholeRunLineLayoutArgument);
             }
 
-            currentLineVisualData = new LineLayoutData(paragraph)
+            // 当前的行布局信息
+            var currentLineLayoutData = new LineLayoutData(paragraph)
             {
                 StartParagraphIndex = i,
                 EndParagraphIndex = i + result.CharCount,
@@ -158,16 +157,16 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                     if (charData.IsSetStartPointInDebugMode == false)
                     {
                         throw new TextEditorDebugException($"存在某个字符没有在布局时设置坐标",
-                            (charData, currentLineVisualData, i + index));
+                            (charData, currentLineLayoutData, i + index));
                     }
                 }
 
                 charData.CharLayoutData!.CharIndex = new ParagraphCharOffset(i + index);
-                charData.CharLayoutData.CurrentLine = currentLineVisualData;
+                charData.CharLayoutData.CurrentLine = currentLineLayoutData;
                 charData.CharLayoutData.UpdateVersion();
             }
 
-            paragraph.LineVisualDataList.Add(currentLineVisualData);
+            paragraph.LineVisualDataList.Add(currentLineLayoutData);
 
             i += result.CharCount;
 
@@ -183,7 +182,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 throw new NotImplementedException();
             }
 
-            currentStartPoint = GetNextLineStartPoint(currentStartPoint, currentLineVisualData);
+            currentStartPoint = GetNextLineStartPoint(currentStartPoint, currentLineLayoutData);
         }
 
         // todo 考虑行复用，例如刚好添加的内容是一行。或者在一行内做文本替换等
@@ -536,6 +535,9 @@ abstract class ArrangingLayoutProvider
         // 不需要通过如此复杂的逻辑获取有哪些，因为存在的坑在于后续分拆 IImmutableRun 逻辑将会复杂
         //paragraph.GetRunRange(dirtyParagraphOffset);
 
+        // 段落布局规则：
+        // 1. 先判断是不是空段，空段的意思是这一段里没有任何字符。如果是空段，则进行空段高度测量计算
+        // 2. 非空段情况下，进入具体的排版测量，如横排和竖排文本的段落测量方法进行测量排版
         if (paragraph.CharCount == 0)
         {
             // 考虑 paragraph.TextRunList 数量为空的情况，只有一个换行的情况
@@ -575,6 +577,13 @@ abstract class ArrangingLayoutProvider
         }
     }
 
+    /// <summary>
+    /// 排版和测量布局段落，处理段落内布局
+    /// </summary>
+    /// 这是一段一段进行排版和测量布局
+    /// <param name="paragraph"></param>
+    /// <param name="startParagraphOffset"></param>
+    /// <returns></returns>
     protected abstract ParagraphLayoutResult LayoutParagraphCore(ParagraphLayoutArgument paragraph,
         ParagraphCharOffset startParagraphOffset);
 
@@ -608,6 +617,11 @@ abstract class ArrangingLayoutProvider
         return MeasureEmptyParagraphLineHeightCore(charInfoMeasureResult);
     }
 
+    /// <summary>
+    /// 测量空段的行高
+    /// </summary>
+    /// <param name="argument"></param>
+    /// <returns></returns>
     protected abstract EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeightCore(
         in CharInfoMeasureResult argument);
 

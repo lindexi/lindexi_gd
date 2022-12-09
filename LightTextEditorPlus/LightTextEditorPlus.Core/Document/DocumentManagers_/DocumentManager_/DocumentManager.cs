@@ -209,7 +209,7 @@ namespace LightTextEditorPlus.Core.Document
             }
             else
             {
-                // todo 设置范围内的文本的字符属性
+                throw new NotImplementedException("设置范围内的文本的字符属性");
             }
         }
 
