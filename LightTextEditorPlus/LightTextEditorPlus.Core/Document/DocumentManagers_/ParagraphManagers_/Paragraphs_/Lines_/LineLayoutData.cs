@@ -1,7 +1,7 @@
 ﻿using System.Text;
-using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
+// ReSharper disable All
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -28,6 +28,7 @@ class LineLayoutData : IParagraphCache
     public bool IsDirty => CurrentParagraph.IsInvalidVersion(this);
 
     public void UpdateVersion() => CurrentParagraph.UpdateVersion(this);
+    public uint CurrentParagraphVersion { get; set; }
 
     /// <summary>
     /// 此行包含的字符，字符在段落中的起始点
@@ -61,6 +62,16 @@ class LineLayoutData : IParagraphCache
     private Point _startPoint;
 
     /// <summary>
+    /// 这一行的尺寸
+    /// </summary>
+    public Size Size { get; init; }
+
+    public ReadOnlyListSpan<CharData> GetCharList() =>
+        CurrentParagraph.ToReadOnlyListSpan(CharStartParagraphIndex, CharEndParagraphIndex - CharStartParagraphIndex);
+
+    #region 绘制渲染
+
+    /// <summary>
     /// 是否需要绘制
     /// </summary>
     /// 如果没有画过，或者是行的起始点变更，需要绘制
@@ -74,7 +85,9 @@ class LineLayoutData : IParagraphCache
     /// <summary>
     /// 是否行的起始点变更
     /// </summary>
-    public bool IsLineStartPointUpdated { get; private set; } = false;
+    public bool IsLineStartPointUpdated { get; private set; }
+    // 一行的起始点，明确初始值是没有变更的。强行赋值，虽然没有实际的代码逻辑意义，但用来说明这个属性默认就是没有变更
+        = false;
 
     /// <summary>
     /// 行的关联渲染信息
@@ -91,11 +104,13 @@ class LineLayoutData : IParagraphCache
 
         LineAssociatedRenderData = result.LineAssociatedRenderData;
     }
+    public LineDrawingArgument GetLineDrawingArgument()
+    {
+        return new LineDrawingArgument(IsDrawn, IsLineStartPointUpdated, LineAssociatedRenderData, StartPoint, Size,
+            GetCharList());
+    }
 
-    /// <summary>
-    /// 这一行的尺寸
-    /// </summary>
-    public Size Size { get; init; }
+    #endregion
 
     //public List<RunVisualData>? RunVisualDataList { set; get; }
 
@@ -109,11 +124,9 @@ class LineLayoutData : IParagraphCache
     /// <summary>
     /// 调试下，用来了解有那些字符
     /// </summary>
+    // ReSharper disable once UnusedMember.Local
     private ReadOnlyListSpan<CharData> DebugCharList => GetCharList();
 #endif
-
-    public ReadOnlyListSpan<CharData> GetCharList() =>
-        CurrentParagraph.ToReadOnlyListSpan(CharStartParagraphIndex, CharEndParagraphIndex - CharStartParagraphIndex);
 
     public override string ToString()
     {
@@ -129,13 +142,5 @@ class LineLayoutData : IParagraphCache
         }
 
         return stringBuilder.ToString();
-    }
-
-    public uint CurrentParagraphVersion { get; set; }
-
-    public LineDrawingArgument GetLineDrawingArgument()
-    {
-        return new LineDrawingArgument(IsDrawn, IsLineStartPointUpdated, LineAssociatedRenderData, StartPoint, Size,
-            GetCharList());
     }
 }
