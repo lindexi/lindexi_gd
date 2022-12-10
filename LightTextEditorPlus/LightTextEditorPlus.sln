@@ -1,13 +1,31 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30804.86
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32901.215
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Demos", "Demos", "{5F8FEFD7-226B-4821-8087-5EF1086A6164}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightTextEditorPlus", "LightTextEditorPlus\LightTextEditorPlus.csproj", "{8B1FEA31-8BCB-412A-B879-01377375BC23}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightTextEditorPlus.Demo", "Demos\LightTextEditorPlus.Demo\LightTextEditorPlus.Demo.csproj", "{1B809253-48C8-4B5B-BD14-48BDA5AA08B9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightTextEditorPlus.Core", "LightTextEditorPlus.Core\LightTextEditorPlus.Core.csproj", "{DE7945D5-DB3B-419C-8EEA-9AE02E03E1FF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{20384127-4EE9-4DE2-8BA9-57457E9B438A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightTextEditorPlus.Core.Tests", "Tests\LightTextEditorPlus.Core.Tests\LightTextEditorPlus.Core.Tests.csproj", "{1E919915-5878-439D-A88D-CFE0E9752F8A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightTextEditorPlus.Tests", "Tests\LightTextEditorPlus.Tests\LightTextEditorPlus.Tests.csproj", "{6CD26B09-48B9-418D-93A2-A144896E4CC3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightTextEditorPlus.Core.BenchmarkTests", "Tests\LightTextEditorPlus.Core.BenchmarkTests\LightTextEditorPlus.Core.BenchmarkTests.csproj", "{D7FE6D00-39AD-407D-8E3F-643155A79215}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightTextEditorPlus.Core.TestsFramework", "Tests\LightTextEditorPlus.Core.TestsFramework\LightTextEditorPlus.Core.TestsFramework.csproj", "{B90D5F8D-66F8-4FB5-ADE0-CEE52877F630}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{792F2192-B7F7-42B3-8414-4F02301F795E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Docs", "Docs\Docs.csproj", "{A2B80955-5E13-4C4F-9DE5-840A5D022F75}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightTextEditorPlus.MauiGraphics", "LightTextEditorPlus.MauiGraphics\LightTextEditorPlus.MauiGraphics.csproj", "{7B14EBAF-9869-4493-89B8-F9DE09594550}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,12 +41,45 @@ Global
 		{1B809253-48C8-4B5B-BD14-48BDA5AA08B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B809253-48C8-4B5B-BD14-48BDA5AA08B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B809253-48C8-4B5B-BD14-48BDA5AA08B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE7945D5-DB3B-419C-8EEA-9AE02E03E1FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE7945D5-DB3B-419C-8EEA-9AE02E03E1FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE7945D5-DB3B-419C-8EEA-9AE02E03E1FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE7945D5-DB3B-419C-8EEA-9AE02E03E1FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E919915-5878-439D-A88D-CFE0E9752F8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E919915-5878-439D-A88D-CFE0E9752F8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E919915-5878-439D-A88D-CFE0E9752F8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E919915-5878-439D-A88D-CFE0E9752F8A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6CD26B09-48B9-418D-93A2-A144896E4CC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6CD26B09-48B9-418D-93A2-A144896E4CC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6CD26B09-48B9-418D-93A2-A144896E4CC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6CD26B09-48B9-418D-93A2-A144896E4CC3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D7FE6D00-39AD-407D-8E3F-643155A79215}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7FE6D00-39AD-407D-8E3F-643155A79215}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7FE6D00-39AD-407D-8E3F-643155A79215}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7FE6D00-39AD-407D-8E3F-643155A79215}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B90D5F8D-66F8-4FB5-ADE0-CEE52877F630}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B90D5F8D-66F8-4FB5-ADE0-CEE52877F630}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B90D5F8D-66F8-4FB5-ADE0-CEE52877F630}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B90D5F8D-66F8-4FB5-ADE0-CEE52877F630}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2B80955-5E13-4C4F-9DE5-840A5D022F75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2B80955-5E13-4C4F-9DE5-840A5D022F75}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2B80955-5E13-4C4F-9DE5-840A5D022F75}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2B80955-5E13-4C4F-9DE5-840A5D022F75}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B14EBAF-9869-4493-89B8-F9DE09594550}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B14EBAF-9869-4493-89B8-F9DE09594550}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B14EBAF-9869-4493-89B8-F9DE09594550}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B14EBAF-9869-4493-89B8-F9DE09594550}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{1B809253-48C8-4B5B-BD14-48BDA5AA08B9} = {5F8FEFD7-226B-4821-8087-5EF1086A6164}
+		{1E919915-5878-439D-A88D-CFE0E9752F8A} = {20384127-4EE9-4DE2-8BA9-57457E9B438A}
+		{6CD26B09-48B9-418D-93A2-A144896E4CC3} = {20384127-4EE9-4DE2-8BA9-57457E9B438A}
+		{D7FE6D00-39AD-407D-8E3F-643155A79215} = {20384127-4EE9-4DE2-8BA9-57457E9B438A}
+		{B90D5F8D-66F8-4FB5-ADE0-CEE52877F630} = {20384127-4EE9-4DE2-8BA9-57457E9B438A}
+		{A2B80955-5E13-4C4F-9DE5-840A5D022F75} = {792F2192-B7F7-42B3-8414-4F02301F795E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E48340DD-252E-4F4F-8FD7-DA0F41E2557E}

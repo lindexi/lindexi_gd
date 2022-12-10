@@ -4,25 +4,52 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LightTextEditorPlus.Demo"
-        xmlns:textEditorPlus="clr-namespace:LightTextEditorPlus.TextEditorPlus;assembly=LightTextEditorPlus"
+        xmlns:textEditorPlus="clr-namespace:LightTextEditorPlus;assembly=LightTextEditorPlus"
         mc:Ignorable="d"
-        Title="输入法" Height="500" Width="600">
-  <Grid Width="600" Height="500">
+        Title="文本" Height="600" Width="1000">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="600"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+            </Grid.RowDefinitions>
+            <Border Margin="10,10,10,10" BorderBrush="Blue" BorderThickness="1">
+                <textEditorPlus:TextEditor x:Name="TextEditor" x:FieldModifier="public" Width="600"
+                                           HorizontalAlignment="Left"
+                                           VerticalAlignment="Stretch" />
 
-    <!--<textEditorPlus:TextEditor HorizontalAlignment="Left" VerticalAlignment="Top" />-->
+            </Border>
+            <Grid Grid.Row="1" Margin="10,0,10,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="Auto"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="TextBox" AcceptsReturn="True"></TextBox>
+                <Button Grid.Column="1" Click="InputButton_OnClick">输入</Button>
+            </Grid>
+        </Grid>
 
-    <textEditorPlus:TextEditor Text="123"
-                               Width="600"
-      HorizontalAlignment="Left"
-      VerticalAlignment="Stretch" />
+        <Grid Grid.Column="1">
+            <local:TextEditorSettingsControl TextEditor="{x:Reference TextEditor}"></local:TextEditorSettingsControl>
+        </Grid>
 
-    <!--<StackPanel
+        <!--<textEditorPlus:TextEditor HorizontalAlignment="Left" VerticalAlignment="Top" />-->
+
+       
+        <!-- <TextBlock Margin="10,100,10,10" Text="123" FontSize="30" Foreground="#1F1F1F"></TextBlock> -->
+
+
+        <!--<StackPanel
       Grid.Row="1" Grid.Column="0">
       <textEditorPlus:TextEditor />
     </StackPanel>-->
 
-    <!--<Canvas Grid.Row="1" Grid.Column="1">
+        <!--<Canvas Grid.Row="1" Grid.Column="1">
       <textEditorPlus:TextEditor />
     </Canvas>-->
-  </Grid>
+    </Grid>
 </Window>

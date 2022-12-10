@@ -1,9 +1,9 @@
 name: .NET Build
 
-on: [push, pull_request]
+on: push
 
 jobs:
-  build:
+  BuildInWindows:
 
     runs-on: windows-latest
 
@@ -14,3 +14,14 @@ jobs:
       run: |
         dotnet build --configuration release LightTextEditorPlus
         dotnet test --configuration release LightTextEditorPlus --no-build
+
+  BuildInLinux:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Build and Test
+      run: |
+        dotnet build --configuration release LightTextEditorPlus/LightTextEditorPlus.Core/LightTextEditorPlus.Core.csproj
+        dotnet test --configuration release LightTextEditorPlus/Tests/LightTextEditorPlus.Core.Tests/LightTextEditorPlus.Core.Tests.csproj
