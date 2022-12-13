@@ -7,7 +7,7 @@ namespace LightTextEditorPlus.TextEditorPlus.Utils
     /// <summary>
     /// 做强制检查的辅助类
     /// </summary>
-    public static class CoerceCorrect
+    internal static class CoerceCorrect
     {
         /// <summary>
         /// 使给定值限定在最大与最小范围内

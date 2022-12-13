@@ -69,7 +69,7 @@ namespace LightTextEditorPlus.TextEditorPlus
             base.EndInit();
         }
 
-        public string Text { set; get; }
+        public string Text { set; get; } = string.Empty;
 
         protected override Size MeasureOverride(Size availableSize)
         {
