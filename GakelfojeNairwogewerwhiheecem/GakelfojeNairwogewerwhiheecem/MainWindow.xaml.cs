@@ -29,9 +29,9 @@ public partial class MainWindow : Window
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        string xaml = "<Section xmlns=\"[http://schemas.microsoft.com/winfx/2006/xaml/presentation\"](http://schemas.microsoft.com/winfx/2006/xaml/presentation/%22) >" +
+        string xaml = "<Section xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" >" +
                       "<Paragraph><Run>" +
-                      "<Run.TextDecorations><TextDecorationCollection xmlns=\"[http://schemas.microsoft.com/winfx/2006/xaml/presentation\"><TextDecoration](http://schemas.microsoft.com/winfx/2006/xaml/presentation/%22%3E%3CTextDecoration) PenThicknessUnit=\"FontRecommended\" Location=\"Underline\"><TextDecoration.Pen><Pen Brush=\"#FF00FFFF\" Thickness=\"2\" /></TextDecoration.Pen></TextDecoration></TextDecorationCollection></Run.TextDecorations>" +
+                      "<Run.TextDecorations><TextDecorationCollection xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"><TextDecoration PenThicknessUnit=\"FontRecommended\" Location=\"Underline\"><TextDecoration.Pen><Pen Brush=\"#FF00FFFF\" Thickness=\"2\" /></TextDecoration.Pen></TextDecoration></TextDecorationCollection></Run.TextDecorations>" +
                       "xxx</Run></Paragraph></Section>";
 
 
@@ -57,8 +57,6 @@ public partial class MainWindow : Window
 
         saveStream.Position = 0;
         all = new TextRange(doc.ContentStart, doc.ContentEnd);
-
-        // THIS LINE THROWS
         all.Load(saveStream, DataFormats.XamlPackage);
     }
 }
