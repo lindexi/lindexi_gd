@@ -2,19 +2,23 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace GakelfojeNairwogewerwhiheecem;
+
 /// <summary>
 /// Interaction logic for MainWindow.xaml
 /// </summary>
@@ -24,39 +28,24 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        Loaded += MainWindow_Loaded;
+        TextBox.AddHandler(UIElement.MouseDownEvent, new MouseButtonEventHandler(TextBox_OnMouseDown), true);
     }
 
-    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    private void TextBox_OnMouseDown(object sender, MouseButtonEventArgs e)
     {
-        string xaml = "<Section xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" >" +
-                      "<Paragraph><Run>" +
-                      "<Run.TextDecorations><TextDecorationCollection xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"><TextDecoration PenThicknessUnit=\"FontRecommended\" Location=\"Underline\"><TextDecoration.Pen><Pen Brush=\"#FF00FFFF\" Thickness=\"2\" /></TextDecoration.Pen></TextDecoration></TextDecorationCollection></Run.TextDecorations>" +
-                      "xxx</Run></Paragraph></Section>";
+        ActivatePopup(Popup);
+        TextBox.Focus();
+    }
 
+    [DllImport("USER32.DLL")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetForegroundWindow(IntPtr hWnd);
 
+    private static void ActivatePopup(Popup popup)
+    {
+        HwndSource source = (HwndSource) PresentationSource.FromVisual(popup.Child)!;
+        IntPtr handle = source.Handle;
 
-        MemoryStream mems = new MemoryStream();
-        mems.Write(Encoding.UTF8.GetBytes(xaml));
-        mems.Position = 0;
-
-        FlowDocument doc = new FlowDocument();
-
-
-
-        TextRange all = new TextRange(doc.ContentStart, doc.ContentEnd);
-        all.Load(mems, DataFormats.Xaml);
-
-
-
-        MemoryStream saveStream = new MemoryStream();
-        all = new TextRange(doc.ContentStart, doc.ContentEnd);
-        all.Save(saveStream, DataFormats.XamlPackage);
-
-
-
-        saveStream.Position = 0;
-        all = new TextRange(doc.ContentStart, doc.ContentEnd);
-        all.Load(saveStream, DataFormats.XamlPackage);
+        SetForegroundWindow(handle);
     }
 }

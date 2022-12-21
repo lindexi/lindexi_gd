@@ -7,6 +7,10 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-
+        <Popup x:Name="Popup" StaysOpen="True" IsOpen="True">
+            <Grid Width="100" Height="100" Background="Gray">
+                <TextBox x:Name="TextBox" Margin="10,10,10,10" VerticalAlignment="Center"></TextBox>
+            </Grid>
+        </Popup>
     </Grid>
 </Window>
