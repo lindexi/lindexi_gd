@@ -11,7 +11,7 @@ internal class Program
     }
 }
 
-class Manager
+class Manager : IKeyManager
 {
     public Manager()
     {
@@ -31,6 +31,8 @@ class Manager
             ElementList.Add(element);
         }
 
+        var indexList = new int[3];
+
         for (int i = 0; i < 10000; i++)
         {
             foreach (var element in ElementList)
@@ -46,7 +48,6 @@ class Manager
             {
                 if (element.KeyList.Count > 10)
                 {
-
                 }
             }
 
@@ -88,9 +89,20 @@ class Manager
         {
             if (element.KeyList.Count > 900)
             {
-
             }
         }
+    }
+
+    private int BuildByKey(IKeyManager keyManager, IList<int> indexList)
+    {
+        var n = 0;
+        foreach (var index in indexList)
+        {
+            var key = keyManager.GetKey(index);
+            n += key.N;
+        }
+
+        return n;
     }
 
     private Element CreateElement()
@@ -110,7 +122,12 @@ class Manager
     public List<Element> ElementList { get; } = new List<Element>();
 }
 
-class Element
+interface IKeyManager
+{
+    Key GetKey(int n);
+}
+
+class Element : IKeyManager
 {
     public Element(Random random)
     {
@@ -153,6 +170,7 @@ class Element
         {
             element.KeyList.Add(key);
         }
+
         return element;
     }
 }
