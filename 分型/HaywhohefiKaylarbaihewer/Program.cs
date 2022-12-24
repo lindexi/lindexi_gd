@@ -146,7 +146,7 @@ class Element : IKeyManager
 
         _buildKeyCount++;
 
-        var key = Random.Next(Key.MaxKeyValue);
+        var key = Random.Shared.Next(Key.MaxKeyValue);
         KeyList.Add(new Key(key));
 
         return true;
