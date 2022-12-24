@@ -33,25 +33,26 @@ class Manager : IKeyManager
 
         var indexList = new int[3];
 
-        var recreateCount = 0;
-
         for (int i = 0; i < 10000; i++)
         {
-            UpdateRandomIndexList(indexList);
-            var key = BuildByKey(this, indexList);
+            foreach (var element in ElementList)
+            {
+                element.BuildKey();
+            }
 
-            ElementList.RemoveAll(element => BuildByKey(element, indexList) != key);
+            var key = GetKey(i);
 
-            //foreach (var element in ElementList)
-            //{
-            //    if (element.KeyList.Count > 10)
-            //    {
-            //    }
-            //}
+            ElementList.RemoveAll(element => element.GetKey(i).N != key.N);
+
+            foreach (var element in ElementList)
+            {
+                if (element.KeyList.Count > 10)
+                {
+                }
+            }
 
             bool addElement = false;
             var currentCount = ElementList.Count;
-
             while (ElementList.Count < 10000)
             {
                 for (int index = 0; index < currentCount; index++)
@@ -60,22 +61,18 @@ class Manager : IKeyManager
                     ElementList.Add(element.Create());
                 }
 
-                if (currentCount == 0)
+                if (addElement)
                 {
-                    Console.WriteLine("灭");
-                    recreateCount++;
+                    continue;
                 }
 
-                if (!addElement || currentCount==0)
+                addElement = true;
+                var addCount = 10000 - ElementList.Count;
+                addCount = Math.Min(addCount, 100);
+                for (int index = 0; index < addCount; index++)
                 {
-                    addElement = true;
-                    var addCount = 10000 - ElementList.Count;
-                    addCount = Math.Min(addCount, 100);
-                    for (int index = 0; index < addCount; index++)
-                    {
-                        var element = CreateElement();
-                        ElementList.Add(element);
-                    }
+                    var element = CreateElement();
+                    ElementList.Add(element);
                 }
             }
         }
@@ -85,13 +82,14 @@ class Manager : IKeyManager
             var key = GetKey(i);
             ElementList.RemoveAll(element => element.GetKey(i).N != key.N);
         }
-    }
 
-    private void UpdateRandomIndexList(int[] indexList)
-    {
-        for (var i = 0; i < indexList.Length; i++)
+        var maxCount = ElementList.Max(element => element.KeyList.Count);
+
+        foreach (var element in ElementList)
         {
-            indexList[i] = Random.Shared.Next();
+            if (element.KeyList.Count > 900)
+            {
+            }
         }
     }
 
@@ -110,7 +108,6 @@ class Manager : IKeyManager
     private Element CreateElement()
     {
         Element element = new Element(new Random(Random.Shared.Next()));
-        element.BuildKey();
         return element;
     }
 
@@ -139,24 +136,20 @@ class Element : IKeyManager
 
     public Random Random { get; }
 
-    public void BuildKey()
+    public bool BuildKey()
     {
-        const int count = 10;
-        while (KeyList.Count<count)
+        if (_buildKeyCount > 0 && (FinishBuildKey || Random.Shared.Next(10) == 1))
         {
-            var key = Random.Next(Key.MaxKeyValue);
-            KeyList.Add(new Key(key));
+            FinishBuildKey = true;
+            return false;
         }
 
-        KeyList[Random.Next(count)] = new Key(Random.Next(Key.MaxKeyValue));
+        _buildKeyCount++;
 
-        //var updateCount = Random.Next(1, count);
-        //for (int i = 0; i < updateCount; i++)
-        //{
-        //    //var key = Random.Next(Key.MaxKeyValue);
-        //    //KeyList[i] = new Key(key);
-        //    KeyList[Random.Next(count)] = new Key(Random.Next(Key.MaxKeyValue));
-        //}
+        var key = Random.Shared.Next(Key.MaxKeyValue);
+        KeyList.Add(new Key(key));
+
+        return true;
     }
 
     public Key GetKey(int n)
@@ -164,6 +157,9 @@ class Element : IKeyManager
         var index = n % KeyList.Count;
         return KeyList[index];
     }
+
+    private int _buildKeyCount = 0;
+    private bool FinishBuildKey { get; set; }
 
     public List<Key> KeyList { get; } = new List<Key>();
 
@@ -174,8 +170,6 @@ class Element : IKeyManager
         {
             element.KeyList.Add(key);
         }
-
-        element.BuildKey();
 
         return element;
     }
