@@ -5,6 +5,8 @@ VisualStudioVersion = 17.4.33122.133
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "分型", "分型\分型.csproj", "{702ED147-1CBC-4A95-B28D-A500D5D95A51}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HaywhohefiKaylarbaihewer", "HaywhohefiKaylarbaihewer\HaywhohefiKaylarbaihewer.csproj", "{B2E29472-8AE0-4249-A1DB-EECB50D5FB22}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{702ED147-1CBC-4A95-B28D-A500D5D95A51}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{702ED147-1CBC-4A95-B28D-A500D5D95A51}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{702ED147-1CBC-4A95-B28D-A500D5D95A51}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2E29472-8AE0-4249-A1DB-EECB50D5FB22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2E29472-8AE0-4249-A1DB-EECB50D5FB22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2E29472-8AE0-4249-A1DB-EECB50D5FB22}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2E29472-8AE0-4249-A1DB-EECB50D5FB22}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
