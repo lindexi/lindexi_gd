@@ -52,18 +52,18 @@ class Manager : IKeyManager
             bool addElement = false;
             var currentCount = ElementList.Count;
 
+            if (currentCount == 0)
+            {
+                Console.WriteLine("灭");
+                recreateCount++;
+            }
+
             while (ElementList.Count < 10000)
             {
                 for (int index = 0; index < currentCount; index++)
                 {
                     var element = ElementList[index];
                     ElementList.Add(element.Create());
-                }
-
-                if (currentCount == 0)
-                {
-                    Console.WriteLine("灭");
-                    recreateCount++;
                 }
 
                 if (!addElement || currentCount==0)
