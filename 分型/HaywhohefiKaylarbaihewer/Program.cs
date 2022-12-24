@@ -42,13 +42,13 @@ class Manager
 
             ElementList.RemoveAll(element => element.GetKey(i).N != key.N);
 
-            //foreach (var element in ElementList)
-            //{
-            //    if (element.KeyList.Count > 10)
-            //    {
+            foreach (var element in ElementList)
+            {
+                if (element.KeyList.Count > 10)
+                {
 
-            //    }
-            //}
+                }
+            }
 
             bool addElement = false;
             var currentCount = ElementList.Count;
@@ -82,13 +82,15 @@ class Manager
             ElementList.RemoveAll(element => element.GetKey(i).N != key.N);
         }
 
-        //foreach (var element in ElementList)
-        //{
-        //    if (element.KeyList.Count > 10)
-        //    {
-                
-        //    }
-        //}
+        var maxCount = ElementList.Max(element => element.KeyList.Count);
+
+        foreach (var element in ElementList)
+        {
+            if (element.KeyList.Count > 900)
+            {
+
+            }
+        }
     }
 
     private Element CreateElement()
@@ -119,11 +121,13 @@ class Element
 
     public bool BuildKey()
     {
-        if (KeyList.Count > 0 && (FinishBuildKey || Random.Shared.Next(10) == 1))
+        if (_buildKeyCount > 0 && (FinishBuildKey || Random.Shared.Next(10) == 1))
         {
             FinishBuildKey = true;
             return false;
         }
+
+        _buildKeyCount++;
 
         var key = Random.Shared.Next(Key.MaxKeyValue);
         KeyList.Add(new Key(key));
@@ -137,6 +141,7 @@ class Element
         return KeyList[index];
     }
 
+    private int _buildKeyCount = 0;
     private bool FinishBuildKey { get; set; }
 
     public List<Key> KeyList { get; } = new List<Key>();
