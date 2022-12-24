@@ -148,15 +148,15 @@ class Element : IKeyManager
             KeyList.Add(new Key(key));
         }
 
-        KeyList[Random.Next(count)] = new Key(Random.Next(Key.MaxKeyValue));
+        //KeyList[Random.Next(count)] = new Key(Random.Next(Key.MaxKeyValue));
 
-        //var updateCount = Random.Next(1, count);
-        //for (int i = 0; i < updateCount; i++)
-        //{
-        //    //var key = Random.Next(Key.MaxKeyValue);
-        //    //KeyList[i] = new Key(key);
-        //    KeyList[Random.Next(count)] = new Key(Random.Next(Key.MaxKeyValue));
-        //}
+        var updateCount = Random.Next(1, count);
+        for (int i = 0; i < updateCount; i++)
+        {
+            //var key = Random.Next(Key.MaxKeyValue);
+            //KeyList[i] = new Key(key);
+            KeyList[Random.Next(count)] = new Key(Random.Next(Key.MaxKeyValue));
+        }
     }
 
     public Key GetKey(int n)
