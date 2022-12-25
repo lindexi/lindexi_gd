@@ -63,7 +63,7 @@ class Manager : IKeyManager
                 for (int index = 0; index < currentCount; index++)
                 {
                     var element = ElementList[index];
-                    ElementList.Add(element.Create());
+                    ElementList.Add(element.Create(indexList));
                 }
 
                 if (!addElement || currentCount==0)
@@ -167,7 +167,7 @@ class Element : IKeyManager
 
     public List<Key> KeyList { get; } = new List<Key>();
 
-    public Element Create()
+    public Element Create(int[] indexList)
     {
         Element element = new Element(Random);
         foreach (var key in KeyList)
@@ -176,6 +176,13 @@ class Element : IKeyManager
         }
 
         element.BuildKey();
+
+        for (var i = 0; i < indexList.Length; i++)
+        {
+            var index = indexList[i];
+            index = index % KeyList.Count;
+            element.KeyList[index] = KeyList[index];
+        }
 
         return element;
     }
