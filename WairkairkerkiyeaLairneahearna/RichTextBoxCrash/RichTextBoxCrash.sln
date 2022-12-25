@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RichTextBoxCrash", "RichTextBoxCrash\RichTextBoxCrash.csproj", "{65BE5578-7BAC-49F2-B22D-25DC28BDBEAC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RichTextBoxCrash.NetCore", "RichTextBoxCrash.NetCore\RichTextBoxCrash.NetCore.csproj", "{6EDF3D36-55EF-4F2F-8A30-78FC56F673FE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{65BE5578-7BAC-49F2-B22D-25DC28BDBEAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65BE5578-7BAC-49F2-B22D-25DC28BDBEAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65BE5578-7BAC-49F2-B22D-25DC28BDBEAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65BE5578-7BAC-49F2-B22D-25DC28BDBEAC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6EDF3D36-55EF-4F2F-8A30-78FC56F673FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6EDF3D36-55EF-4F2F-8A30-78FC56F673FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6EDF3D36-55EF-4F2F-8A30-78FC56F673FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6EDF3D36-55EF-4F2F-8A30-78FC56F673FE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
