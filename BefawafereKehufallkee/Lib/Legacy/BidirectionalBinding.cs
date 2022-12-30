@@ -1,42 +1,6 @@
 ﻿using System.ComponentModel;
-using System.Windows;
 
 namespace BefawafereKehufallkee;
-
-static class Program
-{
-    [STAThread]
-    static void Main(string[] args)
-    {
-        var application = new Application();
-        application.Startup += Application_Startup;
-        application.Run();
-    }
-    private static void Application_Startup(object sender, StartupEventArgs e)
-    {
-    }
-}
-
-public class ClrBindingHelper
-{
-    /// <summary>
-    /// 设置源到目标的单向绑定
-    /// </summary>
-    /// <param name="source">数据源，通常指底层提供的数据类</param>
-    /// <param name="sourcePropertyPath">数据源中，属性的路径（名称）</param>
-    /// <param name="target">目标，通常指 ViewModel，需要跟随源的变化而更新数据</param>
-    /// <param name="targetPropertyPath">目标类中，属性的路径（名称）</param>
-    public static void SetBindingByOneWay(
-        object source, string sourcePropertyPath,
-        object target, string targetPropertyPath)
-    {
-        BidirectionalBindingOperations.SetBinding(target, targetPropertyPath, new BidirectionalBinding(source, sourcePropertyPath)
-        {
-            Direction = BindingDirection.OneWay,
-            InitMode = BindingInitMode.SourceToTarget
-        });
-    }
-}
 
 /// <summary>
 /// 实现两个 CLR 属性的双向绑定
@@ -298,58 +262,4 @@ public class BidirectionalBinding
 
         return converter(GetValue(obj, propertyPath), targetType, parameter, out success);
     }
-}
-
-/// <summary>
-/// CLR 双向绑定操作
-/// </summary>
-public class BidirectionalBindingOperations
-{
-    private static readonly List<BidirectionalBinding> BidirectionalBindingPool = new List<BidirectionalBinding>();
-
-    public static void SetBinding(
-        object source, string sourcePropertyPath,
-        object target, string targetPropertyPath)
-    {
-        var binding = new BidirectionalBinding(source, sourcePropertyPath, target, targetPropertyPath);
-        BidirectionalBindingPool.Add(binding);
-        CleanBindingPool();
-    }
-
-    public static void SetBinding(object target, string targetPropertyPath, BidirectionalBinding binding)
-    {
-        binding.BindableTarget = new WeakReference(target);
-        binding.TargetPath = targetPropertyPath;
-        binding.InnerSetBinding();
-
-        BidirectionalBindingPool.Add(binding);
-        CleanBindingPool();
-    }
-
-    private static void CleanBindingPool()
-    {
-        BidirectionalBindingPool.RemoveAll(binding => !binding.IsAlive());
-    }
-}
-
-public interface IClrValueConverter
-{
-    object Convert(object value, Type targetType, object parameter, out bool success);
-    object ConvertBack(object value, Type targetType, object parameterm, out bool success);
-}
-
-/// <summary>
-/// 绑定初始化时的值传递方向
-/// </summary>
-public enum BindingInitMode
-{
-    /// <summary>
-    /// 使用被绑定对象的值设置当前对象的值（默认）
-    /// </summary>
-    SourceToTarget = 0,
-
-    /// <summary>
-    /// 使用当前对象的值设置被绑定对象的值
-    /// </summary>
-    TargetToSource = 1,
 }
