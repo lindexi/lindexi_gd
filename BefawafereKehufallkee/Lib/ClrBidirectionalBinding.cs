@@ -143,7 +143,12 @@ public class ClrBidirectionalBinding
 
         if (string.Equals(e.PropertyName, Source.Path, StringComparison.Ordinal))
         {
+            _lastUpdateTick = Environment.TickCount64;
             SetSourceToTarget();
+        }
+        else
+        {
+            CheckAlive();
         }
     }
 
@@ -156,7 +161,32 @@ public class ClrBidirectionalBinding
 
         if (string.Equals(e.PropertyName, Target.Path, StringComparison.Ordinal))
         {
+            _lastUpdateTick = Environment.TickCount64;
             SetTargetToSource();
+        }
+        else
+        {
+            CheckAlive();
+        }
+    }
+
+    private void CheckAlive()
+    {
+        // 距离上次更新的毫秒数
+        var current = Environment.TickCount64;
+        var delta = current - _lastUpdateTick; // 理论上不会存在负数的，除非开机 （long.MaxValue / 1000 / 3600 / 24 / 365）= 292471208 年
+        // 约定，大概 100 秒之后没有更新，那就判断一次是否存在吧
+        if (delta > 100_1000)
+        {
+            // 放心，这个判断是非常快捷的，约等于获取一个属性，然后判断是否空
+            if (!IsAlive())
+            {
+                // 如果不存活了，那就断开关系吧。断开关系之后，此对象即可被回收
+                // 不存活的意思就是绑定的双方对象里面，超过一个对象已经被回收
+                BreakBinding();
+            }
+
+            _lastUpdateTick = current;
         }
     }
 
@@ -205,6 +235,11 @@ public class ClrBidirectionalBinding
     }
 
     private bool _isInnerSet;
+
+    /// <summary>
+    /// 最后更新时间
+    /// </summary>
+    private long _lastUpdateTick;
 
     public ClrBindingPropertyContext Source { get; }
     public ClrBindingPropertyContext Target { get; }
