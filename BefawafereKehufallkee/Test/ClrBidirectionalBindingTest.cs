@@ -10,6 +10,80 @@ namespace BefawafereKehufallkee;
 public class ClrBidirectionalBindingTest
 {
     [ContractTestCase]
+    public void GCTest()
+    {
+        "设置 A 和 B 的单向绑定，当 A 和 B 被回收之后，设置的绑定也会被回收".Test(() =>
+        {
+            // 设置 A 和 B 的单向绑定
+            var weakReference = SetBinding();
+
+            // 当 A 和 B 被回收之后
+            GC.Collect();
+            GC.WaitForFullGCComplete();
+            GC.Collect();
+
+            // 设置的绑定也会被回收
+            Assert.AreEqual(false, weakReference.TryGetTarget(out _));
+
+            static WeakReference<ClrBidirectionalBinding> SetBinding()
+            {
+                var a = new A();
+                var b = new B();
+                var binding = new ClrBidirectionalBinding
+                (
+                    source: new ClrBindingPropertyContext(a, nameof(a.AProperty1)),
+                    target: new ClrBindingPropertyContext(b, nameof(b.BProperty1)),
+                    BindingDirection.OneWay
+                );
+                return new WeakReference<ClrBidirectionalBinding>(binding);
+            }
+        });
+
+        "设置 A 和 B 的单向绑定，当 B 被回收后，当 A 触发绑定事件时，设置的绑定也会被回收".Test(() =>
+        {
+            var a = new A();
+            var weakReference = SetBinding(a);
+
+            GC.Collect();
+            GC.WaitForFullGCComplete();
+            GC.Collect();
+
+            // 当 A 触发绑定事件时
+            a.AProperty1 = Guid.NewGuid().ToString();
+
+            // 放在独立的方法，否则局部变量将会引用，从而不会回收
+            AssertClrBidirectionalBinding(weakReference);
+
+            // 设置的绑定也会被回收
+            GC.Collect();
+            GC.WaitForFullGCComplete();
+            GC.Collect();
+
+            Assert.AreEqual(false,weakReference.TryGetTarget(out _));
+
+            static void AssertClrBidirectionalBinding(WeakReference<ClrBidirectionalBinding> weakReference)
+            {
+                if (weakReference.TryGetTarget(out var binding))
+                {
+                    Assert.AreEqual(false, binding.IsAlive());
+                }
+            }
+
+            static WeakReference<ClrBidirectionalBinding> SetBinding(A a)
+            {
+                var b = new B();
+                var binding = new ClrBidirectionalBinding
+                (
+                    source: new ClrBindingPropertyContext(a, nameof(a.AProperty1)),
+                    target: new ClrBindingPropertyContext(b, nameof(b.BProperty1)),
+                    BindingDirection.OneWay
+                );
+                return new WeakReference<ClrBidirectionalBinding>(binding);
+            }
+        });
+    }
+
+    [ContractTestCase]
     public void BindingTest()
     {
         "设置 A 和 B 的单向绑定，设置 TargetToSource 初始化，创建绑定完成，即将 B 属性的值赋值给到 A 上".Test(() =>
