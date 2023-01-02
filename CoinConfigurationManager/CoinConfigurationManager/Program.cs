@@ -67,7 +67,23 @@ class CoinConfigurationAppManager
         var manifestAppConfigurator = manifestConfiguration.CreateAppConfigurator();
         var configuration = manifestAppConfigurator.Of<ManifestConfiguration>();
 
+        var installFolder = Path.Join(_storageDirectory.FullName, configuration.Id);
+        // 判断重复安装
+        if (CheckInstalled(installFolder))
+        {
+            // 如果重复安装了，那就试试删掉之前的
+            Directory.Delete(installFolder);
+        }
 
+        Directory.CreateDirectory(installFolder);
+
+
+    }
+
+    private bool CheckInstalled(string installFolder)
+    {
+        var file = Path.Join(installFolder, "Manifest.coin");
+        return File.Exists(file);
     }
 
     private async Task<MemoryConfigurationRepo> ToMemoryConfigurationRepoAsync(FileInfo file)
