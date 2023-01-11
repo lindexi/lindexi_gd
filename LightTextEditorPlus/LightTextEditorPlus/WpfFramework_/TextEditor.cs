@@ -112,15 +112,16 @@ public partial class TextEditor : FrameworkElement, IRenderManager
                         if (lineRenderInfo.Argument.IsDrawn)
                         {
                             // 如果行已经绘制过，那就尝试复用
-                            if (lineRenderInfo.Argument.LineAssociatedRenderData is DrawingVisual cacheLineVisual)
+                            if (lineRenderInfo.Argument.LineAssociatedRenderData is DrawingGroup cacheLineVisual)
                             {
-                                drawingContext.DrawDrawing(cacheLineVisual.Drawing);
+                                drawingContext.DrawDrawing(cacheLineVisual);
                                 continue;
                             }
                         }
 
-                        DrawingVisual lineVisual = DrawLine(argument, pixelsPerDip);
-                        drawingContext.DrawDrawing(lineVisual.Drawing);
+                        var lineVisual = DrawLine(argument, pixelsPerDip);
+                        lineVisual.Freeze();
+                        drawingContext.DrawDrawing(lineVisual);
                         lineRenderInfo.SetDrawnResult(new LineDrawnResult(lineVisual));
                     }
                     finally
@@ -134,12 +135,11 @@ public partial class TextEditor : FrameworkElement, IRenderManager
         InvalidateVisual();
     }
 
-    private DrawingVisual DrawLine(in LineDrawingArgument argument, float pixelsPerDip)
+    private DrawingGroup DrawLine(in LineDrawingArgument argument, float pixelsPerDip)
     {
-        //var drawingGroup = new DrawingGroup();
+        var drawingGroup = new DrawingGroup();
 
-        var drawingVisual = new DrawingVisual();
-        using var drawingContext = drawingVisual.RenderOpen();
+        using var drawingContext = drawingGroup.Open();
 
         var splitList = argument.CharList.SplitContinuousCharData((last, current) => last.RunProperty.Equals(current.RunProperty));
 
@@ -206,7 +206,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager
             drawingContext.DrawGlyphRun(brush, glyphRun);
         }
 
-        return drawingVisual;
+        return drawingGroup;
     }
 
     private readonly XmlLanguage _defaultXmlLanguage =
