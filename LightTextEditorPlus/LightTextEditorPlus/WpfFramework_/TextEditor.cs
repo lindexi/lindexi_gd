@@ -105,25 +105,29 @@ public partial class TextEditor : FrameworkElement, IRenderManager
                 foreach (var lineRenderInfo in paragraphRenderInfo.GetLineRenderInfoList())
                 {
                     var argument = lineRenderInfo.Argument;
-                    var translateTransform = new TranslateTransform(0, argument.StartPoint.Y);
+                    drawingContext.PushTransform(new TranslateTransform(0, argument.StartPoint.Y));
 
-                    if (lineRenderInfo.Argument.IsDrawn)
+                    try
                     {
-                        // 如果行已经绘制过，那就尝试复用
-                        if (lineRenderInfo.Argument.LineAssociatedRenderData is DrawingGroup cacheLineVisual)
+                        if (lineRenderInfo.Argument.IsDrawn)
                         {
-                            cacheLineVisual.Transform = translateTransform;
-                            drawingContext.DrawDrawing(cacheLineVisual);
-                            continue;
+                            // 如果行已经绘制过，那就尝试复用
+                            if (lineRenderInfo.Argument.LineAssociatedRenderData is DrawingGroup cacheLineVisual)
+                            {
+                                drawingContext.DrawDrawing(cacheLineVisual);
+                                continue;
+                            }
                         }
+
+                        var lineVisual = DrawLine(argument, pixelsPerDip);
+                        lineVisual.Freeze();
+                        drawingContext.DrawDrawing(lineVisual);
+                        lineRenderInfo.SetDrawnResult(new LineDrawnResult(lineVisual));
                     }
-
-                    var lineVisual = DrawLine(argument, pixelsPerDip);
-                    lineVisual.Freeze();
-                    lineVisual.Transform = translateTransform;
-
-                    drawingContext.DrawDrawing(lineVisual);
-                    lineRenderInfo.SetDrawnResult(new LineDrawnResult(lineVisual));
+                    finally
+                    {
+                        drawingContext.Pop();
+                    }
                 }
             }
         }
