@@ -153,11 +153,11 @@ internal class DocumentRunEditProvider
         {
             if (subRun is LineBreakRun || !isFirstSubRun)
             {
-                // 如果这是一个分段，那直接插入新的段落
-                var newParagraph = ParagraphManager.CreateParagraphAndInsertAfter(currentParagraph);
+                // 如果有明确的分行，那就给定一个段落的字符属性
+                var paragraphStartRunProperty = runProperty;
 
-                // todo 如果有明确的分行，那就给定一个段落的字符属性
-                //newParagraph.ParagraphProperty.ParagraphStartRunProperty = runProperty;
+                // 如果这是一个分段，那直接插入新的段落
+                var newParagraph = ParagraphManager.CreateParagraphAndInsertAfter(currentParagraph, paragraphStartRunProperty);
 
                 currentParagraph = newParagraph;
 

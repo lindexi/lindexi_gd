@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 
@@ -96,8 +97,10 @@ class ParagraphManager
     /// 创建段落且插入到某个段落后面
     /// </summary>
     /// <param name="relativeParagraph">相对的段落，如果是空，那将插入到最后</param>
+    /// <param name="paragraphStartRunProperty">段落的字符起始属性</param>
     /// <returns></returns>
-    public ParagraphData CreateParagraphAndInsertAfter(ParagraphData? relativeParagraph)
+    public ParagraphData CreateParagraphAndInsertAfter(ParagraphData? relativeParagraph,
+        IReadOnlyRunProperty? paragraphStartRunProperty = null)
     {
         ParagraphProperty? paragraphProperty = relativeParagraph?.ParagraphProperty;
         if (paragraphProperty == null)
@@ -107,6 +110,12 @@ class ParagraphManager
             // 获取当前的段落属性作为默认段落属性
             paragraphProperty = TextEditor.DocumentManager.CurrentParagraphProperty;
         }
+
+        // 使用 with 关键词，重新拷贝一份对象，防止多个段落之间使用相同的段落对象属性，导致可能存在的对象变更
+        paragraphProperty = paragraphProperty with
+        {
+            ParagraphStartRunProperty = paragraphStartRunProperty ?? paragraphProperty.ParagraphStartRunProperty
+        };
 
         var paragraphData = new ParagraphData(paragraphProperty, this);
 
