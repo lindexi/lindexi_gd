@@ -105,29 +105,25 @@ public partial class TextEditor : FrameworkElement, IRenderManager
                 foreach (var lineRenderInfo in paragraphRenderInfo.GetLineRenderInfoList())
                 {
                     var argument = lineRenderInfo.Argument;
-                    drawingContext.PushTransform(new TranslateTransform(0, argument.StartPoint.Y));
+                    var translateTransform = new TranslateTransform(0, argument.StartPoint.Y);
 
-                    try
+                    if (lineRenderInfo.Argument.IsDrawn)
                     {
-                        if (lineRenderInfo.Argument.IsDrawn)
+                        // 如果行已经绘制过，那就尝试复用
+                        if (lineRenderInfo.Argument.LineAssociatedRenderData is DrawingGroup cacheLineVisual)
                         {
-                            // 如果行已经绘制过，那就尝试复用
-                            if (lineRenderInfo.Argument.LineAssociatedRenderData is DrawingGroup cacheLineVisual)
-                            {
-                                drawingContext.DrawDrawing(cacheLineVisual);
-                                continue;
-                            }
+                            cacheLineVisual.Transform = translateTransform;
+                            drawingContext.DrawDrawing(cacheLineVisual);
+                            continue;
                         }
+                    }
 
-                        var lineVisual = DrawLine(argument, pixelsPerDip);
-                        lineVisual.Freeze();
-                        drawingContext.DrawDrawing(lineVisual);
-                        lineRenderInfo.SetDrawnResult(new LineDrawnResult(lineVisual));
-                    }
-                    finally
-                    {
-                        drawingContext.Pop();
-                    }
+                    var lineVisual = DrawLine(argument, pixelsPerDip);
+                    lineVisual.Freeze();
+                    lineVisual.Transform = translateTransform;
+
+                    drawingContext.DrawDrawing(lineVisual);
+                    lineRenderInfo.SetDrawnResult(new LineDrawnResult(lineVisual));
                 }
             }
         }
