@@ -61,7 +61,18 @@ public sealed class TextSpanCharObject : ICharObject, IEquatable<string>
 
     public string GetOriginText() => _originText;
 
-    // todo 加上判断是否连续的方法
+    /// <summary>
+    /// 判断是否连续的字符。给定的 <paramref name="other"/> 是否此对象的相同字符串的下一个字符
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
+    public bool IsContinuousNextCharObject(TextSpanCharObject other)
+    {
+        // 判断方法就是 other 的字符起始就是当前的对象的字符起始加字符数量的值
+        // 同时要求使用相同的字符串。为了提升性能，这里只判断字符串的引用相同，不判断字符串本身的内容
+        return other._charIndex  == (_charCount + _charIndex) 
+               && ReferenceEquals(_originText, other._originText);
+    }
 
     /// <summary>
     /// 判断传入的 <paramref name="other"/> 和当前的是否字符串连续的字符。传入的 <paramref name="other"/> 是否属于相同的一个字符串的下一个字符
