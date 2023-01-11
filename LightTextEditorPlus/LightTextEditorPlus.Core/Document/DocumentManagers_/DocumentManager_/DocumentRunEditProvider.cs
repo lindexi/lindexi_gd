@@ -7,6 +7,7 @@ namespace LightTextEditorPlus.Core.Document;
 /// 文档的字符编辑提供器。不对外，只处理字符编辑
 /// </summary>
 /// 为了让 <see cref="DocumentManager"/> 不要包含太多的逻辑，就将编辑字符相关的独立在这个类型
+/// 和 <see cref="ParagraphManager"/> 的不同在于，只让 <see cref="ParagraphManager"/> 处理存放段落的功能，不需要关心字符编辑的功能。字符编辑为了让代码比较方便调用，需要许多辅助方法。这些辅助方法将会让总体逻辑复杂，于是放在独立的类型，简化框架
 internal class DocumentRunEditProvider
 {
     public DocumentRunEditProvider(TextEditorCore textEditor)

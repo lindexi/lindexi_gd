@@ -27,13 +27,18 @@ namespace LightTextEditorPlus.Core.Document
         /// <summary>
         /// 文档的宽度
         /// </summary>
+        /// 文档的宽度不等于渲染宽度
         internal double DocumentWidth { set; get; } = double.PositiveInfinity;
 
         /// <summary>
         /// 文档的高度
         /// </summary>
+        /// 文档的高度不等于渲染高度
         internal double DocumentHeight { set; get; } = double.PositiveInfinity;
 
+        /// <summary>
+        /// 文档的字符编辑提供器
+        /// </summary>
         internal DocumentRunEditProvider DocumentRunEditProvider { get; }
 
         internal ParagraphManager ParagraphManager { get; }
@@ -245,6 +250,11 @@ namespace LightTextEditorPlus.Core.Document
             InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
         }
 
+        /// <summary>
+        /// 编辑和替换文本
+        /// </summary>
+        /// <param name="selection"></param>
+        /// <param name="run"></param>
         public void EditAndReplaceRun(Selection selection, IImmutableRun run)
         {
             InternalDocumentChanging?.Invoke(this, EventArgs.Empty);

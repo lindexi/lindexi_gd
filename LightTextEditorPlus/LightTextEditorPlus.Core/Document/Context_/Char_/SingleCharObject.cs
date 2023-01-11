@@ -2,8 +2,15 @@
 
 namespace LightTextEditorPlus.Core.Document;
 
+/// <summary>
+/// 表示一个单字符构成的对象
+/// </summary>
 public sealed class SingleCharObject : ISingleCharObject, ICharObject, IEquatable<string>
 {
+    /// <summary>
+    /// 创建单字符构成的对象
+    /// </summary>
+    /// <param name="currentChar"></param>
     public SingleCharObject(char currentChar)
     {
         _currentChar = currentChar;

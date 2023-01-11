@@ -2,6 +2,9 @@
 
 namespace LightTextEditorPlus.Core.Primitive;
 
+/// <summary>
+/// 空白的文本日志
+/// </summary>
 internal class EmptyTextLogger : ITextLogger
 {
     public void LogDebug(string message)

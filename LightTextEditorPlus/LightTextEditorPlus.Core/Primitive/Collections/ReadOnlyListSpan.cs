@@ -5,6 +5,11 @@ using System.Linq;
 
 namespace LightTextEditorPlus.Core.Primitive.Collections;
 
+/// <summary>
+/// 表示一个 List 里面一段只读集合
+/// </summary>
+/// <typeparam name="T"></typeparam>
+/// <remarks>无法处理传入的 source 实际源被更改问题。在 source 不变更情况下，读取是线程安全。 使用结构体能够减少 GC 压力</remarks>
 public readonly struct ReadOnlyListSpan<T> : IReadOnlyList<T>
 {
     public ReadOnlyListSpan(IReadOnlyList<T> source, int start, int length)

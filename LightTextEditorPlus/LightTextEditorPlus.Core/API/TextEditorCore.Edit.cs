@@ -17,7 +17,7 @@ public partial class TextEditorCore
     /// 在当前的文本上编辑且替换。文本没有选择时，将在当前光标后面加入文本。文本有选择时，替换选择内容为输入内容
     /// </summary>
     /// <param name="text"></param>
-    public void EditAndReplace( string text)
+    public void EditAndReplace(string text)
     {
         TextEditorCore textEditor = this;
         DocumentManager documentManager = textEditor.DocumentManager;

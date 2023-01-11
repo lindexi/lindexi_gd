@@ -2,6 +2,9 @@
 
 namespace LightTextEditorPlus.Core.Document;
 
+/// <summary>
+/// 文本字符
+/// </summary>
 public class TextCharObject : ICharObject, IEquatable<string>
 {
     /// <summary>

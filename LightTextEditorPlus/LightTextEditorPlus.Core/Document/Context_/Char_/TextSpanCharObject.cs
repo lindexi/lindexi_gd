@@ -2,6 +2,9 @@
 
 namespace LightTextEditorPlus.Core.Document;
 
+/// <summary>
+/// 表示字符串的某个片段的字符对象
+/// </summary>
 public sealed class TextSpanCharObject : ICharObject, IEquatable<string>
 {
     /// <summary>
@@ -11,7 +14,7 @@ public sealed class TextSpanCharObject : ICharObject, IEquatable<string>
     /// <param name="originText">原始字符串</param>
     /// <param name="charIndex">是哪个字符</param>
     /// <param name="charCount">有多少个字符，这是因为有一些字符，如表情，是需要使用两个 char 表示</param>
-    public TextSpanCharObject(string originText,int charIndex,int charCount=1)
+    public TextSpanCharObject(string originText, int charIndex, int charCount = 1)
     {
         _originText = originText;
         _charIndex = charIndex;
