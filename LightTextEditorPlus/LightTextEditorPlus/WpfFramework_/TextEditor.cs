@@ -24,6 +24,7 @@ using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.TextEditorPlus.Render;
 using LightTextEditorPlus.Utils.Threading;
+
 using Microsoft.Win32;
 
 using Point = LightTextEditorPlus.Core.Primitive.Point;
@@ -104,11 +105,28 @@ public partial class TextEditor : FrameworkElement, IRenderManager
                 foreach (var lineRenderInfo in paragraphRenderInfo.GetLineRenderInfoList())
                 {
                     var argument = lineRenderInfo.Argument;
-                    var lineVisual = DrawLine(argument, pixelsPerDip);
-                    drawingContext.DrawDrawing(lineVisual.Drawing);
+                    drawingContext.PushTransform(new TranslateTransform(0, argument.StartPoint.Y));
 
-                    // todo 考虑加上缓存
-                    lineRenderInfo.SetDrawnResult(new LineDrawnResult(null));
+                    try
+                    {
+                        if (lineRenderInfo.Argument.IsDrawn)
+                        {
+                            // 如果行已经绘制过，那就尝试复用
+                            if (lineRenderInfo.Argument.LineAssociatedRenderData is DrawingVisual cacheLineVisual)
+                            {
+                                drawingContext.DrawDrawing(cacheLineVisual.Drawing);
+                                continue;
+                            }
+                        }
+
+                        DrawingVisual lineVisual = DrawLine(argument, pixelsPerDip);
+                        drawingContext.DrawDrawing(lineVisual.Drawing);
+                        lineRenderInfo.SetDrawnResult(new LineDrawnResult(lineVisual));
+                    }
+                    finally
+                    {
+                        drawingContext.Pop();
+                    }
                 }
             }
         }
@@ -116,14 +134,14 @@ public partial class TextEditor : FrameworkElement, IRenderManager
         InvalidateVisual();
     }
 
-    private DrawingVisual DrawLine(in LineDrawingArgument argument,float pixelsPerDip)
+    private DrawingVisual DrawLine(in LineDrawingArgument argument, float pixelsPerDip)
     {
         //var drawingGroup = new DrawingGroup();
 
         var drawingVisual = new DrawingVisual();
         using var drawingContext = drawingVisual.RenderOpen();
 
-        var splitList = argument.CharList.SplitContinuousCharData((last,current)=> last.RunProperty.Equals(current.RunProperty));
+        var splitList = argument.CharList.SplitContinuousCharData((last, current) => last.RunProperty.Equals(current.RunProperty));
 
         foreach (var charList in splitList)
         {
@@ -136,7 +154,12 @@ public partial class TextEditor : FrameworkElement, IRenderManager
             var glyphIndices = new List<ushort>(charList.Count);
             var advanceWidths = new List<double>(charList.Count);
             var characters = new List<char>(charList.Count);
+
             var startPoint = charList[0].GetStartPoint();
+            // 为了尽可能的进行复用，尝试减去行的偏移，如此行绘制信息可以重复使用。只需要上层使用重新设置行的偏移量
+            startPoint = startPoint with { Y = startPoint.Y - argument.StartPoint.Y };
+
+            // 行渲染高度
             var height = 0d;
 
             foreach (var charData in charList)
@@ -153,15 +176,13 @@ public partial class TextEditor : FrameworkElement, IRenderManager
                     width = GlyphExtension.RefineValue(width);
                     advanceWidths.Add(width);
 
-                    height = glyphTypeface.AdvanceHeights[glyphIndex] * fontSize;
+                    height = Math.Max(height, glyphTypeface.AdvanceHeights[glyphIndex] * fontSize);
 
                     characters.Add(c);
                 }
             }
 
             var location = new System.Windows.Point(startPoint.X, startPoint.Y + height);
-            XmlLanguage defaultXmlLanguage =
-                XmlLanguage.GetLanguage(CultureInfo.CurrentUICulture.IetfLanguageTag);
 
             var glyphRun = new GlyphRun
             (
@@ -171,14 +192,14 @@ public partial class TextEditor : FrameworkElement, IRenderManager
                 renderingEmSize: fontSize,
                 pixelsPerDip: pixelsPerDip,
                 glyphIndices: glyphIndices,
-                baselineOrigin: location,     // 设置文本的偏移量
+                baselineOrigin: location, // 设置文本的偏移量
                 advanceWidths: advanceWidths, // 设置每个字符的字宽，也就是字号
-            glyphOffsets: null,           // 设置每个字符的偏移量，可以为空
+                glyphOffsets: null, // 设置每个字符的偏移量，可以为空
                 characters: characters,
                 deviceFontName: null,
                 clusterMap: null,
                 caretStops: null,
-                language: defaultXmlLanguage
+                language: _defaultXmlLanguage
             );
 
             Brush brush = currentRunProperty.Foreground.Value;
@@ -187,6 +208,9 @@ public partial class TextEditor : FrameworkElement, IRenderManager
 
         return drawingVisual;
     }
+
+    private readonly XmlLanguage _defaultXmlLanguage =
+        XmlLanguage.GetLanguage(CultureInfo.CurrentUICulture.IetfLanguageTag);
 }
 
 internal class TextEditorPlatformProvider : PlatformProvider
