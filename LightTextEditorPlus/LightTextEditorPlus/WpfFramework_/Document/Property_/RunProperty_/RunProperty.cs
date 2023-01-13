@@ -73,7 +73,7 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
         get => _stretch ?? StyleRunProperty?.Stretch ?? DefaultFontStretch;
     }
 
-    private FontStretch ? _stretch;
+    private FontStretch? _stretch;
     public static FontStretch DefaultFontStretch => FontStretches.Normal;
 
     #endregion
@@ -104,7 +104,22 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
 
     public GlyphTypeface GetGlyphTypeface()
     {
-        return _glyphTypeface ??= RunPropertyPlatformManager.GetGlyphTypeface(this);
+        return _glyphTypeface ??= GetGlyphTypefaceInner();
+
+        GlyphTypeface GetGlyphTypefaceInner()
+        {
+            // 先判断是否配置了文本的字体等属性，如果没有就从 StyleRunProperty 里面获取。如此可以尽可能复用 StyleRunProperty 的字体
+            if (StyleRunProperty is not null)
+            {
+                if (_stretch is null && _weight is null && FontName.Equals(StyleRunProperty.FontName))
+                {
+                    // 如果当前的字符属性啥字体相关的都没有设置，那就使用 StyleRunProperty 的，如此可以尽可能复用字体
+                    return StyleRunProperty.GetGlyphTypeface();
+                }
+            }
+
+            return RunPropertyPlatformManager.GetGlyphTypeface(this);
+        }
     }
 
     private GlyphTypeface? _glyphTypeface;
