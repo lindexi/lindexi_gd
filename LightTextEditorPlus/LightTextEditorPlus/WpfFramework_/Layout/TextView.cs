@@ -25,8 +25,9 @@ class TextView : UIElement, IRenderManager
     {
         var textRender = GetTextRenderBase();
 
-        var drawingVisual = textRender.Render(renderInfoProvider,_textEditor);
+        var drawingVisual = textRender.Render(renderInfoProvider, _textEditor);
 
+        // 需要加入逻辑树，且需要将旧的从逻辑树移除。否则将看不到文本
         if (_drawingVisual is not null)
         {
             RemoveVisualChild(_drawingVisual);
@@ -68,11 +69,11 @@ class TextView : UIElement, IRenderManager
     protected override int VisualChildrenCount => _drawingVisual is null ? 0 : 1;
 
     #region 禁用命中测试
+
     // 只是用来呈现，不进行交互，关闭命中测试可以提升很多性能
 
     protected override HitTestResult? HitTestCore(PointHitTestParameters hitTestParameters) => null;
     protected override GeometryHitTestResult? HitTestCore(GeometryHitTestParameters hitTestParameters) => null;
 
     #endregion
-
 }

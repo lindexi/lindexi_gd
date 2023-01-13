@@ -30,5 +30,21 @@ namespace LightTextEditorPlus.Demo
         {
             TextEditor.TextEditorCore.AppendText(TextBox.Text);
         }
+
+        private async void DebugButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            // 给调试使用的按钮，可以在这里编写调试代码
+
+            while (true)
+            {
+                for (int i = 0; i < 100; i++)
+                {
+                    TextEditor.TextEditorCore.AppendText(((char) Random.Shared.Next('a', 'z')).ToString());
+                    await Task.Delay(10);
+                }
+
+                TextEditor.TextEditorCore.AppendText("\r\n");
+            }
+        }
     }
 }
