@@ -77,6 +77,11 @@ public partial class TextEditor : FrameworkElement, IRenderManager
 
     public TextEditorCore TextEditorCore { get; }
 
+    /// <summary>
+    /// 文本库的静态配置
+    /// </summary>
+    public static StaticConfiguration StaticConfiguration { get; } = new StaticConfiguration();
+
     #endregion
 
     #region 公开方法
