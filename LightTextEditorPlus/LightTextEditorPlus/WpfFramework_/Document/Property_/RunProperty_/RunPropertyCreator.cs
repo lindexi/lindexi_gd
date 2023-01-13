@@ -35,6 +35,17 @@ class RunPropertyCreator : PlatformRunPropertyCreatorBase<RunProperty>
 /// </summary>
 class RunPropertyPlatformManager
 {
+    /// <summary>
+    /// 判断两个字符属性是否有相等字体
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns></returns>
+    public bool IsSameTypeface(RunProperty a, RunProperty b)
+    {
+
+    }
+
     public GlyphTypeface GetGlyphTypeface(RunProperty runProperty)
     {
         // todo 字体回滚，字体缓存
