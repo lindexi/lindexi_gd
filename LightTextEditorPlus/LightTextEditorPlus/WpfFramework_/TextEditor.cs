@@ -177,28 +177,43 @@ class CharInfoMeasurer : ICharInfoMeasurer
 
     public CharInfoMeasureResult MeasureCharInfo(in CharInfo charInfo)
     {
-        var glyphTypeface = charInfo.RunProperty.AsRunProperty().GetGlyphTypeface();
+        GlyphTypeface glyphTypeface = charInfo.RunProperty.AsRunProperty().GetGlyphTypeface();
+        var fontSize = charInfo.RunProperty.FontSize;
 
-        // todo 对于字符来说，反复在字符串和字符转换，需要优化
-        var text = charInfo.CharObject.ToText();
-
-        var size = Size.Zero;
+        Size size;
 
         if (_textEditor.TextEditorCore.ArrangingType == ArrangingType.Horizontal)
         {
-            for (var i = 0; i < text.Length; i++)
+            if (charInfo.CharObject is SingleCharObject singleCharObject)
             {
-                var c = text[i];
+                var (width, height) = MeasureChar(singleCharObject.GetChar());
+                size = new Size(width, height);
+            }
+            else
+            {
+                size = Size.Zero;
 
+                var text = charInfo.CharObject.ToText();
+
+                for (var i = 0; i < text.Length; i++)
+                {
+                    var c = text[i];
+
+                    var (width, height) = MeasureChar(c);
+
+                    size = size.HorizontalUnion(width, height);
+                }
+            }
+
+            (double width, double height) MeasureChar(char c)
+            {
                 var glyphIndex = glyphTypeface.CharacterToGlyphMap[c];
-
-                var fontSize = charInfo.RunProperty.FontSize;
 
                 var width = glyphTypeface.AdvanceWidths[glyphIndex] * fontSize;
                 width = GlyphExtension.RefineValue(width);
                 var height = glyphTypeface.AdvanceHeights[glyphIndex] * fontSize;
 
-                size = size.HorizontalUnion(width, height);
+                return (width, height);
             }
         }
         else
