@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+
 using Microsoft.Win32;
 
 namespace LightTextEditorPlus.Demo
@@ -33,9 +34,12 @@ namespace LightTextEditorPlus.Demo
 
         private async void DebugButton_OnClick(object sender, RoutedEventArgs e)
         {
-            // 给调试使用的按钮，可以在这里编写调试代码
+#pragma warning disable CS0618
+            TextEditor.TextEditorCore.Clear();
 
-            while (true)
+            // 给调试使用的按钮，可以在这里编写调试代码
+            var count = 0;
+            while (count >= 0)
             {
                 for (int i = 0; i < 100; i++)
                 {
@@ -44,7 +48,18 @@ namespace LightTextEditorPlus.Demo
                 }
 
                 TextEditor.TextEditorCore.AppendText("\r\n");
+                await Task.Delay(10);
+
+                count++;
+
+                if (count == 10)
+                {
+                    TextEditor.TextEditorCore.Clear();
+
+                    count = 0;
+                }
             }
+#pragma warning restore CS0618
         }
     }
 }

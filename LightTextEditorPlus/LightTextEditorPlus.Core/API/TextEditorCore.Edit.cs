@@ -1,5 +1,6 @@
 ﻿using LightTextEditorPlus.Core.Document;
 using System;
+using System.Collections.Generic;
 
 namespace LightTextEditorPlus.Core;
 
@@ -34,6 +35,17 @@ public partial class TextEditorCore
             var textRun = new TextRun(text);
             documentManager.EditAndReplaceRun(currentSelection, textRun);
         }
+    }
+
+    /// <summary>
+    /// 清空文本，现在仅调试下使用
+    /// </summary>
+    [Obsolete("仅调试使用")]
+    public void Clear()
+    {
+        // 调试代码，就这么强行转换
+        var paragraphDataList = (List<ParagraphData>) DocumentManager.DocumentRunEditProvider.ParagraphManager.GetParagraphList();
+        paragraphDataList.Clear();
     }
 
     /// <summary>
