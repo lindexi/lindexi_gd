@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Drawing.Text;
 using System.Globalization;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Security;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -22,6 +24,7 @@ using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Document;
+using LightTextEditorPlus.Layout;
 using LightTextEditorPlus.TextEditorPlus.Render;
 using LightTextEditorPlus.Utils.Threading;
 
@@ -37,6 +40,21 @@ public partial class TextEditor : FrameworkElement, IRenderManager
 {
     public TextEditor()
     {
+        TextView = new TextView(this);
+        // 加入视觉树，方便调试和方便触发视觉变更
+        AddVisualChild(TextView);
+        AddLogicalChild(TextView);
+
+        #region 清晰文本
+
+        SnapsToDevicePixels = true;
+        RenderOptions.SetClearTypeHint(this, ClearTypeHint.Enabled);
+        RenderOptions.SetEdgeMode(this, EdgeMode.Aliased);
+
+        #endregion
+
+        #region 配置文本
+
         var textEditorPlatformProvider = new TextEditorPlatformProvider(this);
         TextEditorCore = new TextEditorCore(textEditorPlatformProvider);
         SetDefaultTextRunProperty(property =>
@@ -46,9 +64,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager
 
         TextEditorPlatformProvider = textEditorPlatformProvider;
 
-        SnapsToDevicePixels = true;
-        RenderOptions.SetClearTypeHint(this, ClearTypeHint.Enabled);
-        RenderOptions.SetEdgeMode(this, EdgeMode.Aliased);
+        #endregion
 
         Loaded += TextEditor_Loaded;
     }
@@ -84,133 +100,22 @@ public partial class TextEditor : FrameworkElement, IRenderManager
 
     #endregion
 
+    #region 框架
+    /// <summary>
+    /// 视觉呈现容器
+    /// </summary>
+    private TextView TextView { get; }
+    protected override int VisualChildrenCount => 1; // 当前只有视觉呈现容器一个而已
+    protected override Visual GetVisualChild(int index) => TextView;
 
     internal TextEditorPlatformProvider TextEditorPlatformProvider { get; }
 
-    private readonly DrawingGroup _drawingGroup = new DrawingGroup();
-
-    protected override void OnRender(DrawingContext drawingContext)
-    {
-        drawingContext.DrawDrawing(_drawingGroup);
-    }
-
     void IRenderManager.Render(RenderInfoProvider renderInfoProvider)
     {
-        var pixelsPerDip = (float) VisualTreeHelper.GetDpi(this).PixelsPerDip;
-
-        using (var drawingContext = _drawingGroup.Open())
-        {
-            foreach (var paragraphRenderInfo in renderInfoProvider.GetParagraphRenderInfoList())
-            {
-                foreach (var lineRenderInfo in paragraphRenderInfo.GetLineRenderInfoList())
-                {
-                    var argument = lineRenderInfo.Argument;
-                    drawingContext.PushTransform(new TranslateTransform(0, argument.StartPoint.Y));
-
-                    try
-                    {
-                        if (lineRenderInfo.Argument.IsDrawn)
-                        {
-                            // 如果行已经绘制过，那就尝试复用
-                            if (lineRenderInfo.Argument.LineAssociatedRenderData is DrawingGroup cacheLineVisual)
-                            {
-                                drawingContext.DrawDrawing(cacheLineVisual);
-                                continue;
-                            }
-                        }
-
-                        var lineVisual = DrawLine(argument, pixelsPerDip);
-                        lineVisual.Freeze();
-                        drawingContext.DrawDrawing(lineVisual);
-                        lineRenderInfo.SetDrawnResult(new LineDrawnResult(lineVisual));
-                    }
-                    finally
-                    {
-                        drawingContext.Pop();
-                    }
-                }
-            }
-        }
-
-        InvalidateVisual();
+        TextView.Render(renderInfoProvider);
     }
 
-    private DrawingGroup DrawLine(in LineDrawingArgument argument, float pixelsPerDip)
-    {
-        var drawingGroup = new DrawingGroup();
-
-        using var drawingContext = drawingGroup.Open();
-
-        var splitList = argument.CharList.SplitContinuousCharData((last, current) => last.RunProperty.Equals(current.RunProperty));
-
-        foreach (var charList in splitList)
-        {
-            var runProperty = charList[0].RunProperty;
-            // 获取到字体信息
-            var currentRunProperty = runProperty.AsRunProperty();
-            var glyphTypeface = currentRunProperty.GetGlyphTypeface();
-            var fontSize = runProperty.FontSize;
-
-            var glyphIndices = new List<ushort>(charList.Count);
-            var advanceWidths = new List<double>(charList.Count);
-            var characters = new List<char>(charList.Count);
-
-            var startPoint = charList[0].GetStartPoint();
-            // 为了尽可能的进行复用，尝试减去行的偏移，如此行绘制信息可以重复使用。只需要上层使用重新设置行的偏移量
-            startPoint = startPoint with { Y = startPoint.Y - argument.StartPoint.Y };
-
-            // 行渲染高度
-            var height = 0d;
-
-            foreach (var charData in charList)
-            {
-                var text = charData.CharObject.ToText();
-
-                for (var i = 0; i < text.Length; i++)
-                {
-                    var c = text[i];
-                    var glyphIndex = glyphTypeface.CharacterToGlyphMap[c];
-                    glyphIndices.Add(glyphIndex);
-
-                    var width = glyphTypeface.AdvanceWidths[glyphIndex] * fontSize;
-                    width = GlyphExtension.RefineValue(width);
-                    advanceWidths.Add(width);
-
-                    height = Math.Max(height, glyphTypeface.AdvanceHeights[glyphIndex] * fontSize);
-
-                    characters.Add(c);
-                }
-            }
-
-            var location = new System.Windows.Point(startPoint.X, startPoint.Y + height);
-
-            var glyphRun = new GlyphRun
-            (
-                glyphTypeface,
-                bidiLevel: 0,
-                isSideways: false,
-                renderingEmSize: fontSize,
-                pixelsPerDip: pixelsPerDip,
-                glyphIndices: glyphIndices,
-                baselineOrigin: location, // 设置文本的偏移量
-                advanceWidths: advanceWidths, // 设置每个字符的字宽，也就是字号
-                glyphOffsets: null, // 设置每个字符的偏移量，可以为空
-                characters: characters,
-                deviceFontName: null,
-                clusterMap: null,
-                caretStops: null,
-                language: _defaultXmlLanguage
-            );
-
-            Brush brush = currentRunProperty.Foreground.Value;
-            drawingContext.DrawGlyphRun(brush, glyphRun);
-        }
-
-        return drawingGroup;
-    }
-
-    private readonly XmlLanguage _defaultXmlLanguage =
-        XmlLanguage.GetLanguage(CultureInfo.CurrentUICulture.IetfLanguageTag);
+    #endregion
 }
 
 internal class TextEditorPlatformProvider : PlatformProvider
