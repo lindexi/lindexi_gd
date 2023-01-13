@@ -170,32 +170,9 @@ class CharInfoMeasurer : ICharInfoMeasurer
     }
     private readonly TextEditor _textEditor;
 
-    // todo 允许开发者设置默认字体
-    private readonly FontFamily _defaultFontFamily = new FontFamily($"微软雅黑");
-
     public CharInfoMeasureResult MeasureCharInfo(in CharInfo charInfo)
     {
-        // todo 属性系统需要加上字体管理模块
-        // todo 处理字体回滚
-        var runPropertyFontFamily = charInfo.RunProperty.AsRunProperty().FontName;
-        var fontFamily = ToFontFamily(runPropertyFontFamily);
-        var collection = fontFamily.GetTypefaces();
-        Typeface typeface = collection.First();
-        foreach (var t in collection)
-        {
-            if (t.Stretch == FontStretches.Normal && t.Weight == FontWeights.Normal)
-            {
-                typeface = t;
-                break;
-            }
-        }
-
-        bool success = typeface.TryGetGlyphTypeface(out GlyphTypeface glyphTypeface);
-
-        if (!success)
-        {
-            // 处理字体回滚
-        }
+        var glyphTypeface = charInfo.RunProperty.AsRunProperty().GetGlyphTypeface();
 
         // todo 对于字符来说，反复在字符串和字符转换，需要优化
         var text = charInfo.CharObject.ToText();
@@ -225,17 +202,5 @@ class CharInfoMeasurer : ICharInfoMeasurer
         }
 
         return new CharInfoMeasureResult(new Rect(new Point(), size));
-    }
-
-    private FontFamily ToFontFamily(FontName runPropertyFontFamily)
-    {
-        if (runPropertyFontFamily.IsNotDefineFontName)
-        {
-            // 如果采用没有定义的字体名，那就返回默认的字体
-            return _defaultFontFamily;
-        }
-
-        var fontFamily = new FontFamily(runPropertyFontFamily.UserFontName);
-        return fontFamily;
     }
 }

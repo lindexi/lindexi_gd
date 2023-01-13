@@ -14,6 +14,7 @@ class RunPropertyPlatformManager
         FontFamily fontFamily;
         if (runProperty.FontName.IsNotDefineFontName)
         {
+            // todo 允许开发者设置默认字体
             fontFamily = new FontFamily("微软雅黑");
         }
         else
