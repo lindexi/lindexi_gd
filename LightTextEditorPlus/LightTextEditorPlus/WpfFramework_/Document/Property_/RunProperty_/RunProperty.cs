@@ -104,36 +104,7 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
 
     public GlyphTypeface GetGlyphTypeface()
     {
-        return _glyphTypeface ??= GetGlyphTypefaceInner();
-
-        GlyphTypeface GetGlyphTypefaceInner()
-        {
-            // todo 字体回滚，字体缓存
-            FontFamily fontFamily;
-            if (FontName.IsNotDefineFontName)
-            {
-                fontFamily = new FontFamily("微软雅黑");
-            }
-            else
-            {
-                fontFamily = new FontFamily(FontName.UserFontName);
-            }
-
-            var collection = fontFamily.GetTypefaces();
-            Typeface typeface = collection.First();
-
-            foreach (var t in collection)
-            {
-                if (t.Stretch == Stretch && t.Weight == Weight)
-                {
-                    typeface = t;
-                    break;
-                }
-            }
-
-            bool success = typeface.TryGetGlyphTypeface(out var glyphTypeface);
-            return glyphTypeface;
-        }
+        return _glyphTypeface ??= RunPropertyPlatformManager.GetGlyphTypeface(this);
     }
 
     private GlyphTypeface? _glyphTypeface;
