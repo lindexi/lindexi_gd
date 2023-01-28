@@ -1,5 +1,8 @@
 ﻿using System.Diagnostics;
+using System.Xml;
+using System.Xml.Linq;
 
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Drawing.Charts;
 using DocumentFormat.OpenXml.Flatten.ElementConverters.CommonElement;
 using DocumentFormat.OpenXml.Flatten.Framework.Context;
@@ -10,8 +13,107 @@ using dotnetCampus.OpenXmlUnitConverter;
 
 namespace PptxCore;
 
+/// <summary>
+/// 评估结果
+/// </summary>
+class EvaluationResult
+{
+
+}
+
+readonly record struct EvaluationArgument(bool IsElement, OpenXmlElement CurrentElement, List<OpenXmlElement> PathElementList, XmlQualifiedName Name)
+{
+
+}
+
+class OpenXmlElementEvaluationHandler
+{
+
+}
+
+/// <summary>
+/// 元素评估结果
+/// </summary>
+/// <param name="IsMatch">当前的 <see cref="OpenXmlElementEvaluationHandler"/> 是否能处理</param>
+/// <param name="Success">在 <see cref="IsMatch"/> 的前提下，此属性才有用。表示是否能处理</param>
+readonly record struct OpenXmlElementEvaluationResult(bool IsMatch, bool Success)
+{
+}
+
+class OpenXmlConverterEvaluator
+{
+    public void Evaluate(Slide slide)
+    {
+        var stack = new Stack<OpenXmlElement>();
+        stack.Push(slide);
+
+        while (stack.TryPop(out var result))
+        {
+
+            foreach (var openXmlElement in result.Elements())
+            {
+                stack.Push(openXmlElement);
+            }
+        }
+    }
+
+    private OpenXmlElementEvaluationResult Handle(in EvaluationArgument argument) =>
+        new OpenXmlElementEvaluationResult(IsMatch: false, Success: true);
+
+    private void Evaluate(in EvaluationArgument argument)
+    {
+        var element = argument.CurrentElement;
+
+        // 导航信息
+        var navigateEvaluationArgumentList = new List<EvaluationArgument>();
+
+       
+
+
+
+        foreach (var currentElement in element.Elements())
+        {
+            // 深度遍历
+            //argument.PathElementList.Add(currentElement);
+
+            try
+            {
+
+
+                var xmlQualifiedName = currentElement.XmlQualifiedName;
+                foreach (var openXmlAttribute in currentElement.GetAttributes())
+                {
+
+                }
+            }
+            finally
+            {
+                //argument.PathElementList.RemoveAt(argument.PathElementList.Count - 1);
+            }
+
+
+        }
+    }
+}
+
 public class ModelReader
 {
+
+
+    private void ShowElement(OpenXmlElement element)
+    {
+        foreach (var openXmlElement in element.Elements())
+        {
+            var elementXName = element.XName;
+            var xmlQualifiedName = openXmlElement.XmlQualifiedName;
+            foreach (var openXmlAttribute in openXmlElement.GetAttributes())
+            {
+
+            }
+            ShowElement(openXmlElement);
+        }
+    }
+
     /// <summary>
     ///     构建出面积图上下文
     /// </summary>
@@ -21,6 +123,9 @@ public class ModelReader
     {
         using var presentationDocument = PresentationDocument.Open(file.FullName, false);
         var slide = presentationDocument.PresentationPart!.SlideParts.First().Slide;
+        var slideXmlQualifiedName = slide.XmlQualifiedName;
+
+        ShowElement(slide);
 
         /*
      <p:cSld>
