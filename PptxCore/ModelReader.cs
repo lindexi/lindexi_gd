@@ -1,5 +1,9 @@
 ﻿using System.Diagnostics;
+using System.Text;
+using System.Xml;
+using System.Xml.Linq;
 
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Drawing.Charts;
 using DocumentFormat.OpenXml.Flatten.ElementConverters.CommonElement;
 using DocumentFormat.OpenXml.Flatten.Framework.Context;
@@ -7,8 +11,166 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Presentation;
 
 using dotnetCampus.OpenXmlUnitConverter;
+using ShapeProperties = DocumentFormat.OpenXml.Presentation.ShapeProperties;
 
 namespace PptxCore;
+
+/// <summary>
+/// 评估结果
+/// </summary>
+class EvaluationResult
+{
+
+}
+
+readonly record struct EvaluationArgument(OpenXmlElement CurrentElement, OpenXmlAttribute? OpenXmlAttribute)
+{
+    public bool IsElement => OpenXmlAttribute is null;
+
+    public XmlQualifiedName Name =>
+        OpenXmlAttribute is null ? CurrentElement.XmlQualifiedName : OpenXmlAttribute.Value.XmlQualifiedName;
+
+    public void BuildPath(StringBuilder output)
+    {
+        var element = CurrentElement.Parent;
+
+        while (element is not null)
+        {
+            output.Insert(0, $"{element.Prefix}:{element.LocalName}.");
+
+            element = element.Parent;
+        }
+
+        output.Append($"{CurrentElement.Prefix}:{CurrentElement.LocalName}");
+
+        if (OpenXmlAttribute is not null)
+        {
+            output.Append($".{OpenXmlAttribute.Value.Prefix}:{OpenXmlAttribute.Value.LocalName}={OpenXmlAttribute.Value.Value}");
+        }
+    }
+}
+
+class OpenXmlElementEvaluationHandler
+{
+
+}
+
+/// <summary>
+/// 元素评估结果
+/// </summary>
+/// <param name="IsMatch">当前的 <see cref="OpenXmlElementEvaluationHandler"/> 是否能处理</param>
+/// <param name="Success">在 <see cref="IsMatch"/> 的前提下，此属性才有用。表示是否能处理</param>
+/// <param name="ShouldHandleChildrenElement">是否需要处理子元素</param>
+/// <param name="Score">分数</param>
+readonly record struct OpenXmlElementEvaluationResult(bool IsMatch, bool Success,bool ShouldHandleChildrenElement, OpenXmlElementEvaluationScore Score)
+{
+}
+
+/// <summary>
+/// 评估分数
+/// </summary>
+readonly record struct OpenXmlElementEvaluationScore(double Score, double Weight)
+{
+    public static OpenXmlElementEvaluationScore Zero => new OpenXmlElementEvaluationScore(Score: 0, Weight: 1);
+}
+
+class OpenXmlConverterEvaluator
+{
+    public void Evaluate(OpenXmlElement element)
+    {
+        var stack = new Stack<OpenXmlElement>();
+        stack.Push(element);
+
+        var unsupportedAttributeList = new List<OpenXmlAttribute>();
+
+        while (stack.TryPop(out var currentElement))
+        {
+            unsupportedAttributeList.Clear();
+            var evaluationArgument = new EvaluationArgument(currentElement, OpenXmlAttribute: null);
+
+            var evaluationResult = Handle(evaluationArgument);
+
+            // 如果能有处理的类型，那就不需要报告类型不支持
+            var anyHandle = evaluationResult.IsMatch;
+            var isLeafElement = true; // 不能使用 currentElement is OpenXmlLeafElement 判断，因为这里是判断没有包含其他元素
+
+            if (evaluationResult.IsMatch)
+            {
+                // 如果已经匹配，那就不需要遍历元素的属性
+            }
+            else
+            {
+                // 没有匹配到元素，也就是元素不是所有的属性就能支持的，那就遍历元素的属性
+                foreach (OpenXmlAttribute openXmlAttribute in currentElement.GetAttributes())
+                {
+                    var argument = evaluationArgument with
+                    {
+                        OpenXmlAttribute = openXmlAttribute
+                    };
+                    var result = Handle(argument);
+                    if (result.Success)
+                    {
+                        // 证明有一个能支持的，就不需要上报元素级不支持了
+                        anyHandle = true;
+                    }
+                    else
+                    {
+                        unsupportedAttributeList.Add(openXmlAttribute);
+                        // 先不立刻上报，如果是元素级不支持，那就只上报元素好了
+                        //Report(argument);
+                    }
+                }
+            }
+
+            // 如果元素本身不能处理，那就继续处理下一层的元素，直到元素属于叶子。依然没有任何处理，记录没有处理
+
+            if (evaluationResult.ShouldHandleChildrenElement)
+            {
+                foreach (var openXmlElement in currentElement.Elements())
+                {
+                    stack.Push(openXmlElement);
+                    isLeafElement = false;
+                }
+            }
+            else
+            {
+                
+            }
+
+            if (isLeafElement && !anyHandle)
+            {
+                // 没有任何处理
+                Report(evaluationArgument);
+            }
+            else
+            {
+                if (unsupportedAttributeList.Any())
+                {
+                    // 如果不上报元素级，且存在不支持的属性，那就上报属性
+                    foreach (var openXmlAttribute in unsupportedAttributeList)
+                    {
+                        var argument = evaluationArgument with
+                        {
+                            OpenXmlAttribute = openXmlAttribute
+                        };
+                        Report(argument);
+                    }
+                }
+            }
+        }
+    }
+
+    private void Report(in EvaluationArgument argument)
+    {
+        var stringBuilder = new StringBuilder();
+        argument.BuildPath(stringBuilder);
+        var message = stringBuilder.ToString();
+        Debug.WriteLine(message);
+    }
+
+    private OpenXmlElementEvaluationResult Handle(in EvaluationArgument argument) =>
+        new OpenXmlElementEvaluationResult(IsMatch: false, Success: true,ShouldHandleChildrenElement: true, OpenXmlElementEvaluationScore.Zero);
+}
 
 public class ModelReader
 {
@@ -21,6 +183,10 @@ public class ModelReader
     {
         using var presentationDocument = PresentationDocument.Open(file.FullName, false);
         var slide = presentationDocument.PresentationPart!.SlideParts.First().Slide;
+
+        var openXmlConverterEvaluator = new OpenXmlConverterEvaluator();
+
+        openXmlConverterEvaluator.Evaluate(slide);
 
         /*
      <p:cSld>
