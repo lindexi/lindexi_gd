@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -10,6 +11,7 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Presentation;
 
 using dotnetCampus.OpenXmlUnitConverter;
+using ShapeProperties = DocumentFormat.OpenXml.Presentation.ShapeProperties;
 
 namespace PptxCore;
 
@@ -27,6 +29,25 @@ readonly record struct EvaluationArgument(OpenXmlElement CurrentElement, OpenXml
 
     public XmlQualifiedName Name =>
         OpenXmlAttribute is null ? CurrentElement.XmlQualifiedName : OpenXmlAttribute.Value.XmlQualifiedName;
+
+    public void BuildPath(StringBuilder output)
+    {
+        var element = CurrentElement.Parent;
+
+        while (element is not null)
+        {
+            output.Insert(0, $"{element.Prefix}:{element.LocalName}.");
+
+            element = element.Parent;
+        }
+
+        output.Append($"{CurrentElement.Prefix}:{CurrentElement.LocalName}");
+
+        if (OpenXmlAttribute is not null)
+        {
+            output.Append($".{OpenXmlAttribute.Value.Prefix}:{OpenXmlAttribute.Value.LocalName}={OpenXmlAttribute.Value.Value}");
+        }
+    }
 }
 
 class OpenXmlElementEvaluationHandler
@@ -40,23 +61,31 @@ class OpenXmlElementEvaluationHandler
 /// <param name="IsMatch">当前的 <see cref="OpenXmlElementEvaluationHandler"/> 是否能处理</param>
 /// <param name="Success">在 <see cref="IsMatch"/> 的前提下，此属性才有用。表示是否能处理</param>
 /// <param name="ShouldHandleChildrenElement">是否需要处理子元素</param>
-readonly record struct OpenXmlElementEvaluationResult(bool IsMatch, bool Success,bool ShouldHandleChildrenElement)
+/// <param name="Score">分数</param>
+readonly record struct OpenXmlElementEvaluationResult(bool IsMatch, bool Success,bool ShouldHandleChildrenElement, OpenXmlElementEvaluationScore Score)
 {
+}
+
+/// <summary>
+/// 评估分数
+/// </summary>
+readonly record struct OpenXmlElementEvaluationScore(double Score, double Weight)
+{
+    public static OpenXmlElementEvaluationScore Zero => new OpenXmlElementEvaluationScore(Score: 0, Weight: 1);
 }
 
 class OpenXmlConverterEvaluator
 {
-    public void Evaluate(Slide slide)
+    public void Evaluate(OpenXmlElement element)
     {
         var stack = new Stack<OpenXmlElement>();
-        stack.Push(slide);
+        stack.Push(element);
 
         var unsupportedAttributeList = new List<OpenXmlAttribute>();
 
         while (stack.TryPop(out var currentElement))
         {
             unsupportedAttributeList.Clear();
-
             var evaluationArgument = new EvaluationArgument(currentElement, OpenXmlAttribute: null);
 
             var evaluationResult = Handle(evaluationArgument);
@@ -133,66 +162,18 @@ class OpenXmlConverterEvaluator
 
     private void Report(in EvaluationArgument argument)
     {
-
+        var stringBuilder = new StringBuilder();
+        argument.BuildPath(stringBuilder);
+        var message = stringBuilder.ToString();
+        Debug.WriteLine(message);
     }
 
     private OpenXmlElementEvaluationResult Handle(in EvaluationArgument argument) =>
-        new OpenXmlElementEvaluationResult(IsMatch: false, Success: true,ShouldHandleChildrenElement: true);
-
-    private void Evaluate(in EvaluationArgument argument)
-    {
-        var element = argument.CurrentElement;
-
-        // 导航信息
-        var navigateEvaluationArgumentList = new List<EvaluationArgument>();
-
-
-
-
-
-        foreach (var currentElement in element.Elements())
-        {
-            // 深度遍历
-            //argument.PathElementList.Add(currentElement);
-
-            try
-            {
-
-
-                var xmlQualifiedName = currentElement.XmlQualifiedName;
-                foreach (var openXmlAttribute in currentElement.GetAttributes())
-                {
-
-                }
-            }
-            finally
-            {
-                //argument.PathElementList.RemoveAt(argument.PathElementList.Count - 1);
-            }
-
-
-        }
-    }
+        new OpenXmlElementEvaluationResult(IsMatch: false, Success: true,ShouldHandleChildrenElement: true, OpenXmlElementEvaluationScore.Zero);
 }
 
 public class ModelReader
 {
-
-
-    private void ShowElement(OpenXmlElement element)
-    {
-        foreach (var openXmlElement in element.Elements())
-        {
-            var elementXName = element.XName;
-            var xmlQualifiedName = openXmlElement.XmlQualifiedName;
-            foreach (var openXmlAttribute in openXmlElement.GetAttributes())
-            {
-
-            }
-            ShowElement(openXmlElement);
-        }
-    }
-
     /// <summary>
     ///     构建出面积图上下文
     /// </summary>
@@ -202,9 +183,10 @@ public class ModelReader
     {
         using var presentationDocument = PresentationDocument.Open(file.FullName, false);
         var slide = presentationDocument.PresentationPart!.SlideParts.First().Slide;
-        var slideXmlQualifiedName = slide.XmlQualifiedName;
 
-        ShowElement(slide);
+        var openXmlConverterEvaluator = new OpenXmlConverterEvaluator();
+
+        openXmlConverterEvaluator.Evaluate(slide);
 
         /*
      <p:cSld>
