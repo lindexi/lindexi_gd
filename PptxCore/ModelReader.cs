@@ -76,12 +76,65 @@ readonly record struct OpenXmlElementEvaluationScore(double Score, double Weight
 
 class OpenXmlConverterEvaluator
 {
-    public void Evaluate(OpenXmlElement element)
+    public void Evaluate(OpenXmlElement inputElement)
     {
+        OpenXmlElement? element = inputElement;
+        var unsupportedAttributeList = new List<OpenXmlAttribute>();
+
+        {
+            bool isFirst = true;
+            var isLeafElement = false;
+            var finishChild = false;
+
+            while (element is not null)
+            {
+                // 处理元素本身
+                var evaluationArgument = new EvaluationArgument(element, OpenXmlAttribute: null);
+
+                var evaluationResult = Handle(evaluationArgument);
+
+                // 如果元素本身不能处理，那就继续处理下一层的元素，直到元素属于叶子。依然没有任何处理，记录没有处理
+
+                var firstChild = element.FirstChild;
+                isLeafElement = firstChild is not null;
+
+                if (isLeafElement && !finishChild)
+                {
+                    element = firstChild;
+
+                    continue;
+                }
+                else
+                {
+                    finishChild = false;
+
+                    // 这是叶子了
+
+                    // 处理相同的一个元素下的其他元素
+                    var elementAfter = element.ElementsAfter().FirstOrDefault();
+
+                    if (elementAfter is not null)
+                    {
+                        element = elementAfter;
+
+                        continue;
+                    }
+                    else
+                    {
+                        // 这个元素完成了
+                        element = element.Parent;
+
+                        finishChild = true;
+
+                        continue;
+                    }
+                }
+            }
+        }
+
         var stack = new Stack<OpenXmlElement>();
         stack.Push(element);
 
-        var unsupportedAttributeList = new List<OpenXmlAttribute>();
 
         while (stack.TryPop(out var currentElement))
         {
