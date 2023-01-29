@@ -15,59 +15,6 @@ using ShapeProperties = DocumentFormat.OpenXml.Presentation.ShapeProperties;
 
 namespace PptxCore;
 
-class B
-{
-    public void F1()
-    {
-        var ipcShellGexxx = new IpcShellGexxx(GetXx);
-    }
-}
-
-interface IXxxxCrea<T>
-{
-    Task<T> GetTAsync();
-}
-
-interface IBusiIpc
-{
-    Task Fxx();
-}
-
-class IpcShellGexxx : XxBase<IBusiIpc>, IBusiIpc
-{
-    public IpcShellGexxx(IXxxxCrea<IBusiIpc> creator) : base(creator)
-    {
-    }
-
-    public async Task Fxx()
-    {
-       var a =  await base.GetTAsync();
-       await a.Fxx();
-    }
-}
-
-class XxBase<T>
-{
-    public IXxxxCrea<T> Creator { get; }
-
-    public XxBase(IXxxxCrea<T> creator)
-    {
-        Init(creator);
-    }
-
-    public void Init(IXxxxCrea<T> creator)
-    {
-
-    }
-
-    protected async Task<T> GetTAsync()
-    {
-        return await Creator.GetTAsync();
-    }
-
-    private T? A { set; get; }
-}
-
 /// <summary>
 /// 评估结果
 /// </summary>
