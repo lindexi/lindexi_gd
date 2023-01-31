@@ -1,4 +1,8 @@
 using dotnetCampus.UITest.WPF;
+
+using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Document;
+
 using MSTest.Extensions.Contracts;
 
 namespace LightTextEditorPlus.Tests;
@@ -15,7 +19,34 @@ public class FontNameManagerTest
             TextEditor.StaticConfiguration.FontNameManager.RegisterFuzzyFontFallback(GetFuzzyFallback());
             // 没有抛异常就是成功
         });
+
+        "如果字体找不到回滚，将会触发字体回滚失败事件".Test(() =>
+        {
+            const string fontName = "一个不存在的字体xxxxasdasd";
+            var count = 0;
+
+            TextEditor.StaticConfiguration.FontNameManager.FontFallbackFailed += (sender, args) =>
+            {
+                if (args.FontName.Equals(fontName, StringComparison.Ordinal))
+                {
+                    count++;
+                }
+            };
+
+            var (mainWindow, textEditor) = TestFramework.CreateTextEditorInNewWindow();
+            var runPropertyCreator = textEditor.TextEditorPlatformProvider.GetPlatformRunPropertyCreator();
+            var styleRunProperty = runPropertyCreator.BuildNewProperty(config =>
+            {
+                var property = (RunProperty) config;
+                property.FontName = new FontName(fontName);
+            }, runPropertyCreator.GetDefaultRunProperty()).AsRunProperty();
+
+            styleRunProperty.GetGlyphTypeface();
+
+            Assert.AreEqual(true, count > 0);
+        });
     }
+
 
     /// <summary>
     /// 获取常用字体的回退策略。

@@ -101,14 +101,19 @@ public class FontNameManager
         }
     }
 
+    /// <summary>
+    /// 字体回滚失败
+    /// </summary>
+    public event EventHandler<FontFallbackFailedEventArgs>? FontFallbackFailed;
+
     internal string GetFallbackFontName(string desiredFontName)
     {
         return _fallbackCache.GetOrAdd(desiredFontName, k =>
         {
-            var exactFontName1 = ExactSearch(k);
-            if (exactFontName1 is not null)
+            var exactFontName = ExactSearch(k);
+            if (exactFontName is not null)
             {
-                return exactFontName1;
+                return exactFontName;
             }
 
             var fuzzyFontName = FuzzySearch(k);
@@ -116,6 +121,8 @@ public class FontNameManager
             {
                 return fuzzyFontName;
             }
+
+            FontFallbackFailed?.Invoke(this, new FontFallbackFailedEventArgs(k));
 
             return FallbackDefaultFontName;
         });
@@ -274,4 +281,14 @@ public class FontNameManager
     }
 
     #endregion
+}
+
+public class FontFallbackFailedEventArgs : EventArgs
+{
+    public FontFallbackFailedEventArgs(string fontName)
+    {
+        FontName = fontName;
+    }
+
+    public string FontName { get; }
 }
