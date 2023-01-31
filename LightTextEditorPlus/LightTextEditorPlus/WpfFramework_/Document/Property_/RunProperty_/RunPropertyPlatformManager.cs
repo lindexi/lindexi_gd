@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Linq;
 using System.Windows.Media;
+
 using LightTextEditorPlus.TextEditorPlus.Render;
 
 namespace LightTextEditorPlus.Document;
@@ -20,11 +21,10 @@ class RunPropertyPlatformManager
 
     public GlyphTypeface GetGlyphTypeface(RunProperty runProperty)
     {
-        // todo 字体缓存
         FontFamily fontFamily;
         if (runProperty.FontName.IsNotDefineFontName)
         {
-            fontFamily = TextEditor.StaticConfiguration.DefaultNotDefineFontFamily; 
+            fontFamily = TextEditor.StaticConfiguration.DefaultNotDefineFontFamily;
         }
         else
         {
@@ -52,17 +52,29 @@ class RunPropertyPlatformManager
             // 字体回滚：
             // 1. 先使用业务层传入的字体回滚策略。例如将 “方正楷体” 修改为 “楷体”
             // 2. 如果业务层的字体回滚策略不满足，那就采用 WPF 的方式回滚
-
-            
+            if (TryGetFallbackGlyphTypefaceByCustom(runProperty, typeface, out var fallbackGlyph))
+            {
+                glyphTypeface = fallbackGlyph;
+            }
             // 找不到字体，需要进行回滚
             // todo 回滚字体时，需要给定对应的字符，否则回滚将失败
-            if (TryGetFallbackGlyphTypefaceByWpf(typeface,out var fallbackGlyph))
+            else if (TryGetFallbackGlyphTypefaceByWpf(typeface, out fallbackGlyph))
             {
                 glyphTypeface = fallbackGlyph;
             }
         }
 
         return glyphTypeface;
+    }
+
+    private static bool TryGetFallbackGlyphTypefaceByCustom(RunProperty runProperty, Typeface typeface, [NotNullWhen(true)] out GlyphTypeface? glyphTypeface)
+    {
+        var fallbackFontName =
+            TextEditor.StaticConfiguration.FontNameManager.GetFallbackFontName(runProperty.FontName.UserFontName);
+        var fallbackTypeface = new Typeface(new FontFamily(fallbackFontName), typeface.Style, typeface.Weight,
+            typeface.Stretch);
+
+        return fallbackTypeface.TryGetGlyphTypeface(out glyphTypeface);
     }
 
     private bool TryGetFallbackGlyphTypefaceByWpf(Typeface typeface, [NotNullWhen(true)] out GlyphTypeface? glyphTypeface)

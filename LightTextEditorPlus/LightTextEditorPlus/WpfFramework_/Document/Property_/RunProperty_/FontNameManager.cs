@@ -11,6 +11,9 @@ using System.Windows.Media;
 
 namespace LightTextEditorPlus.Document;
 
+/// <summary>
+/// 字体管理器，提供判断已安装字体和回滚机制
+/// </summary>
 public class FontNameManager
 {
     /// <summary>
