@@ -44,7 +44,7 @@
                 <EventTrigger RoutedEvent="Loaded" >
                     <BeginStoryboard>
                         <Storyboard RepeatBehavior="Forever">
-                            <DoubleAnimation Storyboard.TargetName="TextEditorTranslateTransform" Storyboard.TargetProperty="X" Duration="0:0:10" From="0" To="100"
+                            <DoubleAnimation Storyboard.TargetName="TextEditorTranslateTransform" Storyboard.TargetProperty="X" Duration="0:1:0" From="0" To="100"
                                              AutoReverse="True">
                                 <DoubleAnimation.EasingFunction>
                                     <CubicEase EasingMode="EaseIn"></CubicEase>
