@@ -102,7 +102,12 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
     /// </summary>
     private RunProperty? StyleRunProperty { get; }
 
-    public GlyphTypeface GetGlyphTypeface()
+    /// <summary>
+    /// 获取渲染使用的字体
+    /// </summary>
+    /// <param name="unicodeChar">用在找不到字体时，通过将要渲染的字符获取到字体</param>
+    /// <returns></returns>
+    public GlyphTypeface GetGlyphTypeface(char unicodeChar = '1')
     {
         return _glyphTypeface ??= GetGlyphTypefaceInner();
 
@@ -118,7 +123,7 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
                 }
             }
 
-            return RunPropertyPlatformManager.GetGlyphTypeface(this);
+            return RunPropertyPlatformManager.GetGlyphTypeface(this, unicodeChar);
         }
     }
 

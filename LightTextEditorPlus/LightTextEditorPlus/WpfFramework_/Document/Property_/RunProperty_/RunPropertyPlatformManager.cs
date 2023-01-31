@@ -2,7 +2,6 @@
 using System.Globalization;
 using System.Linq;
 using System.Windows.Media;
-
 using LightTextEditorPlus.TextEditorPlus.Render;
 
 namespace LightTextEditorPlus.Document;
@@ -19,7 +18,7 @@ class RunPropertyPlatformManager
 
     private readonly TextEditor _textEditor;
 
-    public GlyphTypeface GetGlyphTypeface(RunProperty runProperty)
+    public GlyphTypeface GetGlyphTypeface(RunProperty runProperty, char unicodeChar)
     {
         FontFamily fontFamily;
         if (runProperty.FontName.IsNotDefineFontName)
@@ -58,7 +57,7 @@ class RunPropertyPlatformManager
             }
             // 找不到字体，需要进行回滚
             // todo 回滚字体时，需要给定对应的字符，否则回滚将失败
-            else if (TryGetFallbackGlyphTypefaceByWpf(typeface, out fallbackGlyph))
+            else if (TryGetFallbackGlyphTypefaceByWpf(typeface, unicodeChar, out fallbackGlyph))
             {
                 glyphTypeface = fallbackGlyph;
             }
@@ -67,7 +66,8 @@ class RunPropertyPlatformManager
         return glyphTypeface;
     }
 
-    private static bool TryGetFallbackGlyphTypefaceByCustom(RunProperty runProperty, Typeface typeface, [NotNullWhen(true)] out GlyphTypeface? glyphTypeface)
+    private static bool TryGetFallbackGlyphTypefaceByCustom(RunProperty runProperty, Typeface typeface,
+        [NotNullWhen(true)] out GlyphTypeface? glyphTypeface)
     {
         var fallbackFontName =
             TextEditor.StaticConfiguration.FontNameManager.GetFallbackFontName(runProperty.FontName.UserFontName);
@@ -77,9 +77,10 @@ class RunPropertyPlatformManager
         return fallbackTypeface.TryGetGlyphTypeface(out glyphTypeface);
     }
 
-    private bool TryGetFallbackGlyphTypefaceByWpf(Typeface typeface, [NotNullWhen(true)] out GlyphTypeface? glyphTypeface)
+    private bool TryGetFallbackGlyphTypefaceByWpf(Typeface typeface, char unicodeChar,
+        [NotNullWhen(true)] out GlyphTypeface? glyphTypeface)
     {
-        if (FallBackFontFamily.TryGetFallBackFontFamily('1', out var familyName))
+        if (FallBackFontFamily.TryGetFallBackFontFamily(unicodeChar, out var familyName))
         {
             var fallbackTypeface = new Typeface(new FontFamily(familyName), typeface.Style, typeface.Weight,
                 typeface.Stretch);

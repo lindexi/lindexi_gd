@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Media;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Rendering;
@@ -67,17 +68,26 @@ class HorizontalTextRender : TextRenderBase
 
         foreach (var charList in splitList)
         {
-            var runProperty = charList[0].RunProperty;
+            var firstCharData = charList[0];
+            var runProperty = firstCharData.RunProperty;
             // 获取到字体信息
             var currentRunProperty = runProperty.AsRunProperty();
-            var glyphTypeface = currentRunProperty.GetGlyphTypeface();
+
+            // 获取一个字符，用来进行回滚。即使获取不到，也可以用
+            var firstChar = TextContext.DefaultChar;
+            var firstText = firstCharData.CharObject.ToText();
+            if (firstText.Length > 0)
+            {
+                firstChar = firstText[0];
+            }
+            var glyphTypeface = currentRunProperty.GetGlyphTypeface(firstChar);
             var fontSize = runProperty.FontSize;
 
             var glyphIndices = new List<ushort>(charList.Count);
             var advanceWidths = new List<double>(charList.Count);
             var characters = new List<char>(charList.Count);
 
-            var startPoint = charList[0].GetStartPoint();
+            var startPoint = firstCharData.GetStartPoint();
             // 为了尽可能的进行复用，尝试减去行的偏移，如此行绘制信息可以重复使用。只需要上层使用重新设置行的偏移量
             startPoint = startPoint with { Y = startPoint.Y - argument.StartPoint.Y };
 
