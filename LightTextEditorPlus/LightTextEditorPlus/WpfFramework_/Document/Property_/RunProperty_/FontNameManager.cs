@@ -1,4 +1,8 @@
-﻿using System;
+﻿using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Utils;
+
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing.Text; // todo 后续干掉 WinForms 的获取字体
 using System.Globalization;
@@ -9,6 +13,143 @@ namespace LightTextEditorPlus.Document;
 
 public class FontNameManager
 {
+    /// <summary>
+    /// 默认渲染字体Arial，用于缺失字体的渲染恢复，与微软机制一致
+    /// WPF 强依赖此字体，如果不存在，任何 WPF 程序都无法启动。
+    /// 所以文本模块可假设此字体一定存在，毕竟代码已经能跑到这里了。
+    /// </summary>
+    private const string FallbackDefaultFontName = "Arial";
+    //private FontFamily? _defaultFontFamily;
+
+    private readonly ConcurrentDictionary<string, string> _fallbackMapping = new();
+    private readonly ConcurrentDictionary<string, string> _fuzzyFallbackMapping = new();
+    private readonly ConcurrentDictionary<string, string> _fallbackCache = new();
+
+    ///// <summary>
+    ///// 获取默认的字体名。
+    ///// </summary>
+    ///// <remarks>
+    ///// 请注意，默认的字体名不包含用户设置的字体。
+    ///// </remarks>
+    //public FontName DefaultFontName => new FontName(DefaultFontFamily.Source);
+
+    ///// <summary>
+    ///// 默认字体 微软雅黑
+    ///// </summary>
+    ///// <remarks>
+    ///// 此值可被 <see cref="_fuzzyFallbackMapping"/> 覆盖。
+    ///// 方法是调用 <see cref="RegisterFuzzyFontFallback(IDictionary{string, string})"/> 时指定一个空字符串作为 Key。
+    ///// </remarks>
+    //internal FontFamily DefaultFontFamily => _defaultFontFamily ??= new("Microsoft YaHei");
+
+    /// <summary>
+    /// 注册一条字体回退策略。
+    /// 当 <paramref name="fontName"/> 字体未安装时，将使用 <paramref name="fallbackFontName"/> 字体。
+    /// 如果后者也未安装，将继续根据相同规则查找。
+    /// 最后均未找到时，将使用默认字体。
+    /// </summary>
+    /// <param name="fontName"></param>
+    /// <param name="fallbackFontName"></param>
+    public void RegisterFontFallback(string fontName, string fallbackFontName)
+    {
+        _fallbackMapping.AddOrUpdate(fontName, fallbackFontName, (k, v) => fallbackFontName);
+    }
+
+    /// <summary>
+    /// 注册一条字体回退策略。
+    /// 对于字典中的每一项当 Key 字体未安装时，将使用 Value 字体。
+    /// 如果后者也未安装，将继续根据相同规则查找。
+    /// 最后均未找到时，将使用默认字体。
+    /// </summary>
+    /// <param name="mapping"></param>
+    public void RegisterFontFallback(IDictionary<string, string> mapping)
+    {
+        foreach (var (fontName, fallbackFontName) in mapping)
+        {
+            _fallbackMapping.AddOrUpdate(fontName, fallbackFontName, (k, v) => fallbackFontName);
+        }
+    }
+
+    /// <summary>
+    /// 注册一条模糊字体回退策略。
+    /// 当某字体未安装但能与 <paramref name="fuzzyFontName"/> 模糊匹配时，将使用 <paramref name="fallbackFontName"/> 字体。
+    /// 如果后者也未安装，将继续使用精确匹配方式回退。
+    /// 最后均未找到时，将使用默认字体。
+    /// </summary>
+    /// <param name="fuzzyFontName"></param>
+    /// <param name="fallbackFontName"></param>
+    public void RegisterFuzzyFontFallback(string fuzzyFontName, string fallbackFontName)
+    {
+        _fuzzyFallbackMapping.AddOrUpdate(fuzzyFontName, fallbackFontName, (k, v) => fallbackFontName);
+    }
+
+    /// <summary>
+    /// 注册一条字体回退策略。
+    /// 对于字典中的每一项，当某字体未安装但能与 Key 模糊匹配时，将使用 Value 字体。
+    /// 如果后者也未安装，将继续使用精确匹配方式回退。
+    /// 最后均未找到时，将使用默认字体。
+    /// </summary>
+    /// <param name="mapping"></param>
+    public void RegisterFuzzyFontFallback(IDictionary<string, string> mapping)
+    {
+        foreach (var (fontName, fallbackFontName) in mapping)
+        {
+            _fuzzyFallbackMapping.AddOrUpdate(fontName, fallbackFontName, (k, v) => fallbackFontName);
+        }
+    }
+
+    internal string GetFallbackFontName(string desiredFontName)
+    {
+        return _fallbackCache.GetOrAdd(desiredFontName, k =>
+        {
+            var exactFontName1 = ExactSearch(k);
+            if (exactFontName1 is not null)
+            {
+                return exactFontName1;
+            }
+
+            var fuzzyFontName = FuzzySearch(k);
+            if (fuzzyFontName is not null)
+            {
+                return fuzzyFontName;
+            }
+
+            return FallbackDefaultFontName;
+        });
+    }
+
+    internal string? ExactSearch(string desiredFontName)
+    {
+        var fontName = desiredFontName;
+        while (!CheckFontFamilyInstalled(fontName))
+        {
+            if (_fallbackMapping.TryGetValue(fontName, out var fallback))
+            {
+                // 如果发现回退策略，则继续检查回退字体是否可用。
+                fontName = fallback;
+            }
+            else
+            {
+                // 如果未发现回退策略，则返回默认字体。
+                return null;
+            }
+        }
+        return fontName;
+    }
+
+    internal string? FuzzySearch(string desiredFontName)
+    {
+        foreach (var (key, value) in _fuzzyFallbackMapping)
+        {
+            if (desiredFontName.Contains(key))
+            {
+                return ExactSearch(value);
+            }
+        }
+        return null;
+    }
+
+
     public static List<string> InstalledFontFamiliesEx =>
         _installedFontFamiliesEx ??= GetInstalledFamiliesEx();
 
