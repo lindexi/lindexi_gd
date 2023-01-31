@@ -9,9 +9,14 @@ namespace LightTextEditorPlus.Document;
 
 class RunPropertyCreator : PlatformRunPropertyCreatorBase<RunProperty>
 {
-    public RunPropertyCreator()
+
+    public RunPropertyCreator(TextEditor textEditor)
     {
+        TextEditor = textEditor;
+        _runPropertyPlatformManager = new RunPropertyPlatformManager(textEditor);
     }
+
+    public TextEditor TextEditor { get; }
 
     protected override RunProperty OnBuildNewProperty(Action<IReadOnlyRunProperty> config, RunProperty baseRunProperty)
     {
@@ -25,5 +30,5 @@ class RunPropertyCreator : PlatformRunPropertyCreatorBase<RunProperty>
         return new RunProperty(_runPropertyPlatformManager);
     }
 
-    private readonly RunPropertyPlatformManager _runPropertyPlatformManager = new RunPropertyPlatformManager();
+    private readonly RunPropertyPlatformManager _runPropertyPlatformManager;
 }

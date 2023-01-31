@@ -131,7 +131,7 @@ internal class TextEditorPlatformProvider : PlatformProvider
 
         _textLayoutDispatcherRequiring = new DispatcherRequiring(UpdateLayout, DispatcherPriority.Render);
         _charInfoMeasurer = new CharInfoMeasurer(textEditor);
-        _runPropertyCreator = new RunPropertyCreator();
+        _runPropertyCreator = new RunPropertyCreator(textEditor);
     }
 
     private void UpdateLayout()
