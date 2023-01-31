@@ -213,12 +213,12 @@ class CharInfoMeasurer : ICharInfoMeasurer
                 width = GlyphExtension.RefineValue(width);
                 var height = glyphTypeface.AdvanceHeights[glyphIndex] * fontSize;
 
-                var pixelsPerDip = (float) VisualTreeHelper.GetDpi(_textEditor).PixelsPerDip;
-                var glyphIndices = new[] { glyphIndex };
-                var advanceWidths = new[] { width };
-                var characters = new[] { c };
+                //var pixelsPerDip = (float) VisualTreeHelper.GetDpi(_textEditor).PixelsPerDip;
+                //var glyphIndices = new[] { glyphIndex };
+                //var advanceWidths = new[] { width };
+                //var characters = new[] { c };
 
-                var location = new System.Windows.Point(0, 0);
+                //var location = new System.Windows.Point(0, 0);
                 //var glyphRun = new GlyphRun
                 //(
                 //    glyphTypeface,
@@ -250,7 +250,7 @@ class CharInfoMeasurer : ICharInfoMeasurer
                 //var bounds = computeInkBoundingBox;
                 // 此方法计算的尺寸远远大于视觉效果
 
-                //// 根据 EN 行高算法 height = fontSize * fontFamily.LineSpacing
+                //// 根据 WPF 行高算法 height = fontSize * fontFamily.LineSpacing
                 //// 不等于 glyphTypeface.AdvanceHeights[glyphIndex] * fontSize 的值
                 //var fontFamily = new FontFamily("微软雅黑"); // 这里强行使用微软雅黑，只是为了测试
                 //height = fontSize * fontFamily.LineSpacing;
@@ -269,8 +269,7 @@ class CharInfoMeasurer : ICharInfoMeasurer
                 const double b = 0.0034;
                 const int lineSpacing = 1;
 
-                height = (pptFontLineSpacing * lineSpacing + b) * fontSize;
-
+                height = (pptFontLineSpacing * lineSpacing + b) * height;
 
                 //return (bounds.Width, bounds.Height);
                 return (width, height);
