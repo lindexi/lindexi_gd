@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows;
 using System.Windows.Media;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.TextEditorPlus.Render;
+using LightTextEditorPlus.Utils;
 
 namespace LightTextEditorPlus.Rendering;
 
@@ -112,6 +114,10 @@ class HorizontalTextRender : TextRenderBase
 
                     characters.Add(c);
                 }
+
+#if DEBUG
+                drawingContext.DrawRectangle(null, new Pen(Brushes.DarkGoldenrod, 1), new Rect(charData.GetStartPoint().ToWpfPoint(), charData.Size!.Value.ToWpfSize()));
+#endif
             }
 
             var location = new System.Windows.Point(startPoint.X, startPoint.Y + height);
