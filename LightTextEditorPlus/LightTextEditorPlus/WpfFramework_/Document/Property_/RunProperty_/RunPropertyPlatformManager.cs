@@ -56,10 +56,17 @@ class RunPropertyPlatformManager
                 glyphTypeface = fallbackGlyph;
             }
             // 找不到字体，需要进行回滚
-            // todo 回滚字体时，需要给定对应的字符，否则回滚将失败
             else if (TryGetFallbackGlyphTypefaceByWpf(typeface, unicodeChar, out fallbackGlyph))
             {
                 glyphTypeface = fallbackGlyph;
+            }
+            // 理论上还失败，只能使用最终回滚字体了
+            else
+            {
+                var fallbackTypeface = new Typeface(new FontFamily(FontNameManager.FallbackDefaultFontName), typeface.Style, typeface.Weight,
+                    typeface.Stretch);
+                // 理论上不会失败
+                fallbackTypeface.TryGetGlyphTypeface(out glyphTypeface);
             }
         }
 
