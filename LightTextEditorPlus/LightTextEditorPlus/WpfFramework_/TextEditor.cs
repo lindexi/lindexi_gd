@@ -219,24 +219,33 @@ class CharInfoMeasurer : ICharInfoMeasurer
                 var characters = new[] { c };
 
                 var location = new System.Windows.Point(0, 0);
-                //var glyphRun = new GlyphRun
-                //(
-                //    glyphTypeface,
-                //    bidiLevel: 0,
-                //    isSideways: false,
-                //    renderingEmSize: fontSize,
-                //    pixelsPerDip: pixelsPerDip,
-                //    glyphIndices: glyphIndices,
-                //    baselineOrigin: location, // 设置文本的偏移量
-                //    advanceWidths: advanceWidths, // 设置每个字符的字宽，也就是字号
-                //    glyphOffsets: null, // 设置每个字符的偏移量，可以为空
-                //    characters: characters,
-                //    deviceFontName: null,
-                //    clusterMap: null,
-                //    caretStops: null,
-                //    language: DefaultXmlLanguage
-                //);
-                //var computeInkBoundingBox = glyphRun.ComputeInkBoundingBox();
+                var glyphRun = new GlyphRun
+                (
+                    glyphTypeface,
+                    bidiLevel: 0,
+                    isSideways: false,
+                    renderingEmSize: fontSize,
+                    pixelsPerDip: pixelsPerDip,
+                    glyphIndices: glyphIndices,
+                    baselineOrigin: location, // 设置文本的偏移量
+                    advanceWidths: advanceWidths, // 设置每个字符的字宽，也就是字号
+                    glyphOffsets: null, // 设置每个字符的偏移量，可以为空
+                    characters: characters,
+                    deviceFontName: null,
+                    clusterMap: null,
+                    caretStops: null,
+                    language: DefaultXmlLanguage
+                );
+                var computeInkBoundingBox = glyphRun.ComputeInkBoundingBox();
+                if (computeInkBoundingBox.Width >= 2 && computeInkBoundingBox.Height >= 2)
+                {
+                    computeInkBoundingBox.Inflate(-1, -1);
+                }
+
+                var bounds = computeInkBoundingBox;
+                // 这是完全错误的计算
+                return (bounds.Width, bounds.Height- bounds.Top);
+
 
                 //var matrix = new Matrix();
                 //matrix.Translate(location.X, location.Y);
@@ -250,14 +259,13 @@ class CharInfoMeasurer : ICharInfoMeasurer
                 //var bounds = computeInkBoundingBox;
                 // 此方法计算的尺寸远远大于视觉效果
 
-                // 根据 EN 行高算法 height = fontSize * fontFamily.LineSpacing
-                // 不等于 glyphTypeface.AdvanceHeights[glyphIndex] * fontSize 的值
-                var fontFamily = new FontFamily("微软雅黑"); // 这里强行使用微软雅黑，只是为了测试
-                height = fontSize * fontFamily.LineSpacing;
+                //// 根据 EN 行高算法 height = fontSize * fontFamily.LineSpacing
+                //// 不等于 glyphTypeface.AdvanceHeights[glyphIndex] * fontSize 的值
+                //var fontFamily = new FontFamily("微软雅黑"); // 这里强行使用微软雅黑，只是为了测试
+                //height = fontSize * fontFamily.LineSpacing;
 
-               
 
-                //return (bounds.Width, bounds.Height);
+
                 return (width, height);
             }
         }
