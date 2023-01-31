@@ -59,7 +59,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager
         TextEditorCore = new TextEditorCore(textEditorPlatformProvider);
         SetDefaultTextRunProperty(property =>
         {
-            property.FontSize = 30;
+            property.FontSize = 40;
         });
 
         TextEditorPlatformProvider = textEditorPlatformProvider;
@@ -213,6 +213,51 @@ class CharInfoMeasurer : ICharInfoMeasurer
                 width = GlyphExtension.RefineValue(width);
                 var height = glyphTypeface.AdvanceHeights[glyphIndex] * fontSize;
 
+                var pixelsPerDip = (float) VisualTreeHelper.GetDpi(_textEditor).PixelsPerDip;
+                var glyphIndices = new[] { glyphIndex };
+                var advanceWidths = new[] { width };
+                var characters = new[] { c };
+
+                var location = new System.Windows.Point(0, 0);
+                //var glyphRun = new GlyphRun
+                //(
+                //    glyphTypeface,
+                //    bidiLevel: 0,
+                //    isSideways: false,
+                //    renderingEmSize: fontSize,
+                //    pixelsPerDip: pixelsPerDip,
+                //    glyphIndices: glyphIndices,
+                //    baselineOrigin: location, // 设置文本的偏移量
+                //    advanceWidths: advanceWidths, // 设置每个字符的字宽，也就是字号
+                //    glyphOffsets: null, // 设置每个字符的偏移量，可以为空
+                //    characters: characters,
+                //    deviceFontName: null,
+                //    clusterMap: null,
+                //    caretStops: null,
+                //    language: DefaultXmlLanguage
+                //);
+                //var computeInkBoundingBox = glyphRun.ComputeInkBoundingBox();
+
+                //var matrix = new Matrix();
+                //matrix.Translate(location.X, location.Y);
+                //computeInkBoundingBox.Transform(matrix);
+                ////相对于run.BuildGeometry().Bounds方法，run.ComputeInkBoundingBox()会多出一个厚度为1的框框，所以要减去
+                //if (computeInkBoundingBox.Width >= 2 && computeInkBoundingBox.Height >= 2)
+                //{
+                //    computeInkBoundingBox.Inflate(-1, -1);
+                //}
+
+                //var bounds = computeInkBoundingBox;
+                // 此方法计算的尺寸远远大于视觉效果
+
+                // 根据 EN 行高算法 height = fontSize * fontFamily.LineSpacing
+                // 不等于 glyphTypeface.AdvanceHeights[glyphIndex] * fontSize 的值
+                var fontFamily = new FontFamily("微软雅黑"); // 这里强行使用微软雅黑，只是为了测试
+                height = fontSize * fontFamily.LineSpacing;
+
+               
+
+                //return (bounds.Width, bounds.Height);
                 return (width, height);
             }
         }
@@ -223,4 +268,7 @@ class CharInfoMeasurer : ICharInfoMeasurer
 
         return new CharInfoMeasureResult(new Rect(new Point(), size));
     }
+
+    protected static XmlLanguage DefaultXmlLanguage { get; } =
+        XmlLanguage.GetLanguage(CultureInfo.CurrentUICulture.IetfLanguageTag);
 }
