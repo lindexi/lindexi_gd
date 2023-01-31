@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Media;
@@ -18,16 +19,16 @@ namespace LightTextEditorPlus.TextEditorPlus.Render
         }
 #else
         private const string FallBackFontFamilyName = "#GLOBAL USER INTERFACE";
-        private FontFamily FallBack { get; } = new FontFamily(FallBackFontFamilyName);
+        public FontFamily FallBack { get; } = new FontFamily(FallBackFontFamilyName);
 
-        private FallBackFontFamily(CultureInfo culture)
+        public FallBackFontFamily(CultureInfo culture)
         {
             FontFamilyItems = FallBack.FamilyMaps
                 .Where(map => map.Language == null || XmlLanguageExtension.MatchCulture(map.Language, culture))
                 .Select(map => new FontFamilyMapItem(map)).ToList();
         }
 
-        private IEnumerable<FontFamilyMapItem> FontFamilyItems { get; }
+        private IReadOnlyList<FontFamilyMapItem> FontFamilyItems { get; }
 #endif
 
         /// <summary>
@@ -44,13 +45,14 @@ namespace LightTextEditorPlus.TextEditorPlus.Render
         /// <param name="unicodeChar"></param>
         /// <param name="familyName"></param>
         /// <returns></returns>
-        public bool TryGetFallBackFontFamily(char unicodeChar, out string familyName)
+      
+        public bool TryGetFallBackFontFamily(char unicodeChar,[NotNullWhen(true)] out string? familyName)
         {
 #if LayoutOnly
             familyName = TextContext.DefaultFontFamily.Source;
             return true;
 #else
-            var mapItem = FontFamilyItems.FirstOrDefault(item => item.InRange(unicodeChar));
+            var mapItem = GetFontFamilyMapItem(unicodeChar);
             familyName = null;
 
             if (mapItem != null)
@@ -61,6 +63,12 @@ namespace LightTextEditorPlus.TextEditorPlus.Render
 
             return false;
 #endif
+        }
+
+        public FontFamilyMapItem? GetFontFamilyMapItem(char unicodeChar)
+        {
+            var mapItem = FontFamilyItems.FirstOrDefault(item => item.InRange(unicodeChar));
+            return mapItem;
         }
     }
 }
