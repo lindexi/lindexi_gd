@@ -20,7 +20,11 @@
             <Border Margin="10,10,10,10" BorderBrush="Blue" BorderThickness="1">
                 <textEditorPlus:TextEditor x:Name="TextEditor" x:FieldModifier="public" Width="600"
                                            HorizontalAlignment="Left"
-                                           VerticalAlignment="Stretch" />
+                                           VerticalAlignment="Stretch">
+                    <textEditorPlus:TextEditor.RenderTransform>
+                        <TranslateTransform x:Name="TextEditorTranslateTransform"></TranslateTransform>
+                    </textEditorPlus:TextEditor.RenderTransform>
+                </textEditorPlus:TextEditor>
 
             </Border>
             <Grid Grid.Row="1" Margin="10,0,10,10">
@@ -36,7 +40,22 @@
         </Grid>
 
         <Grid Grid.Column="1">
-            <local:TextEditorSettingsControl TextEditor="{x:Reference TextEditor}"></local:TextEditorSettingsControl>
+            <Grid.Triggers>
+                <EventTrigger RoutedEvent="Loaded" >
+                    <BeginStoryboard>
+                        <Storyboard RepeatBehavior="Forever">
+                            <DoubleAnimation Storyboard.TargetName="TextEditorTranslateTransform" Storyboard.TargetProperty="X" Duration="0:0:10" From="0" To="100"
+                                             AutoReverse="True">
+                                <DoubleAnimation.EasingFunction>
+                                    <CubicEase EasingMode="EaseIn"></CubicEase>
+                                </DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+            </Grid.Triggers>
+            <local:TextEditorSettingsControl TextEditor="{x:Reference TextEditor}">
+            </local:TextEditorSettingsControl>
         </Grid>
 
         <!--<textEditorPlus:TextEditor HorizontalAlignment="Left" VerticalAlignment="Top" />-->
