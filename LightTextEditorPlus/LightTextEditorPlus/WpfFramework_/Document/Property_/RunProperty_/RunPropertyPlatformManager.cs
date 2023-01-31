@@ -71,6 +71,12 @@ class RunPropertyPlatformManager
     {
         var fallbackFontName =
             TextEditor.StaticConfiguration.FontNameManager.GetFallbackFontName(runProperty.FontName.UserFontName);
+        if (string.IsNullOrEmpty(fallbackFontName))
+        {
+            glyphTypeface = null;
+            return false;
+        }
+
         var fallbackTypeface = new Typeface(new FontFamily(fallbackFontName), typeface.Style, typeface.Weight,
             typeface.Stretch);
 

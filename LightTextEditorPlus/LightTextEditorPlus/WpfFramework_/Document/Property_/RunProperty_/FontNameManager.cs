@@ -16,17 +16,17 @@ namespace LightTextEditorPlus.Document;
 /// </summary>
 public class FontNameManager
 {
-    /// <summary>
-    /// 默认渲染字体Arial，用于缺失字体的渲染恢复，与微软机制一致
-    /// WPF 强依赖此字体，如果不存在，任何 WPF 程序都无法启动。
-    /// 所以文本模块可假设此字体一定存在，毕竟代码已经能跑到这里了。
-    /// </summary>
-    private const string FallbackDefaultFontName = "Arial";
+    ///// <summary>
+    ///// 默认渲染字体Arial，用于缺失字体的渲染恢复，与微软机制一致
+    ///// WPF 强依赖此字体，如果不存在，任何 WPF 程序都无法启动。
+    ///// 所以文本模块可假设此字体一定存在，毕竟代码已经能跑到这里了。
+    ///// </summary>
+    //private const string FallbackDefaultFontName = "Arial";
     //private FontFamily? _defaultFontFamily;
 
     private readonly ConcurrentDictionary<string, string> _fallbackMapping = new();
     private readonly ConcurrentDictionary<string, string> _fuzzyFallbackMapping = new();
-    private readonly ConcurrentDictionary<string, string> _fallbackCache = new();
+    private readonly ConcurrentDictionary<string, string?> _fallbackCache = new();
 
     ///// <summary>
     ///// 获取默认的字体名。
@@ -106,7 +106,7 @@ public class FontNameManager
     /// </summary>
     public event EventHandler<FontFallbackFailedEventArgs>? FontFallbackFailed;
 
-    internal string GetFallbackFontName(string desiredFontName)
+    internal string? GetFallbackFontName(string desiredFontName)
     {
         return _fallbackCache.GetOrAdd(desiredFontName, k =>
         {
@@ -124,7 +124,8 @@ public class FontNameManager
 
             FontFallbackFailed?.Invoke(this, new FontFallbackFailedEventArgs(k));
 
-            return FallbackDefaultFontName;
+            // 返回找不到字体
+            return null;
         });
     }
 
@@ -158,7 +159,6 @@ public class FontNameManager
         }
         return null;
     }
-
 
     public static List<string> InstalledFontFamiliesEx =>
         _installedFontFamiliesEx ??= GetInstalledFamiliesEx();
