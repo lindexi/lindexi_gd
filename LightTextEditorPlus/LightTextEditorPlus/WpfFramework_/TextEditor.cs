@@ -250,12 +250,27 @@ class CharInfoMeasurer : ICharInfoMeasurer
                 //var bounds = computeInkBoundingBox;
                 // 此方法计算的尺寸远远大于视觉效果
 
-                // 根据 EN 行高算法 height = fontSize * fontFamily.LineSpacing
-                // 不等于 glyphTypeface.AdvanceHeights[glyphIndex] * fontSize 的值
-                var fontFamily = new FontFamily("微软雅黑"); // 这里强行使用微软雅黑，只是为了测试
-                height = fontSize * fontFamily.LineSpacing;
+                //// 根据 EN 行高算法 height = fontSize * fontFamily.LineSpacing
+                //// 不等于 glyphTypeface.AdvanceHeights[glyphIndex] * fontSize 的值
+                //var fontFamily = new FontFamily("微软雅黑"); // 这里强行使用微软雅黑，只是为了测试
+                //height = fontSize * fontFamily.LineSpacing;
 
-               
+                // 根据 PPT 行高算法
+                // PPTPixelLineSpacing = (a * PPTFL * OriginLineSpacing + b) * FontSize
+                // 其中 PPT 的行距计算的 a 和 b 为一次线性函数的方法，而 PPTFL 是 PPT Font Line Spacing 的意思，在 PPT 所有文字的行距都是这个值
+                // 可以将 a 和 PPTFL 合并为 PPTFL 然后使用 a 代替，此时 a 和 b 是常量
+                // PPTPixelLineSpacing = (a * OriginLineSpacing + b) * FontSize
+                // 常量 a 和 b 的值如下
+                // a = 1.2018;
+                // b = 0.0034;
+                // PPTFontLineSpacing = a;
+
+                const double pptFontLineSpacing = 1.2018;
+                const double b = 0.0034;
+                const int lineSpacing = 1;
+
+                height = (pptFontLineSpacing * lineSpacing + b) * fontSize;
+
 
                 //return (bounds.Width, bounds.Height);
                 return (width, height);
