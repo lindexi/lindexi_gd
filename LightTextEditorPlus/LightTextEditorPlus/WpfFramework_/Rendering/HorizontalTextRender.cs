@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
+
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils;
@@ -116,7 +117,7 @@ class HorizontalTextRender : TextRenderBase
                 }
 
 #if DEBUG
-                drawingContext.DrawRectangle(null, new Pen(Brushes.DarkGoldenrod, 1), new Rect(charData.GetStartPoint().ToWpfPoint(), charData.Size!.Value.ToWpfSize()));
+                drawingContext.DrawRectangle(null, new Pen(Brushes.DarkGoldenrod, 1), new Rect(new Point(charData.GetStartPoint().X, startPoint.Y), charData.Size!.Value.ToWpfSize()));
 #endif
             }
 
