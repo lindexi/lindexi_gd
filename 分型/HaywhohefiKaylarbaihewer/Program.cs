@@ -125,6 +125,14 @@ class Manager : IKeyManager
     public List<Element> ElementList { get; } = new List<Element>();
 }
 
+
+interface ICalculator
+{
+    int Calculate(IKeyManager keyManager, IList<int> indexList);
+}
+
+
+
 interface IKeyManager
 {
     Key GetKey(int n);
