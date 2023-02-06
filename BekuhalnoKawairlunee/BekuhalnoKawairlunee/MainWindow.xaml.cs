@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -18,7 +20,7 @@ namespace BekuhalnoKawairlunee;
 /// <summary>
 /// Interaction logic for MainWindow.xaml
 /// </summary>
-public partial class MainWindow : Window
+public partial class MainWindow : Window, INotifyPropertyChanged
 {
     public MainWindow()
     {
@@ -57,6 +59,23 @@ public partial class MainWindow : Window
     }
 
     public ObservableCollection<Model> List { get; } = new ObservableCollection<Model>();
+
+    private void Button_OnClick(object sender, RoutedEventArgs e)
+    {
+        //List.Add(new Model()
+        //{
+        //    Name = "Button"
+        //});
+        ListBox.ItemsSource = null;
+        ListBox.ItemsSource = List;
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
 }
 
 public class Model

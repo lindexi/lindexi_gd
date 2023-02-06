@@ -8,12 +8,14 @@
         x:Name="Root"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <ListBox ItemsSource="{Binding ElementName=Root,Path=List}">
+        <ListBox x:Name="ListBox" ItemsSource="{Binding ElementName=Root,Path=List}">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding Name}"></TextBlock>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
+
+        <Button Margin="10,10,10,10" HorizontalAlignment="Left" VerticalAlignment="Center" Click="Button_OnClick">Click</Button>
     </Grid>
 </Window>
