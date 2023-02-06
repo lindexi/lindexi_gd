@@ -41,18 +41,13 @@ public partial class MainWindow : Window
 
     private void List_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
-        if (!_changed)
+        List.CollectionChanged -= List_CollectionChanged;
+
+        List.Add(new Model()
         {
-            _changed = true;
-
-            List.Add(new Model()
-            {
-                Name = "xx"
-            });
-        }
+            Name = "xx"
+        });
     }
-
-    private bool _changed;
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
