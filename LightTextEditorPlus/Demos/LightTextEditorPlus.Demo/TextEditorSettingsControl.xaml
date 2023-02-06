@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:LightTextEditorPlus.Demo"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="360">
-    <Grid d:Background="White">
+    <Grid d:Background="White" IsEnabled="False">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
