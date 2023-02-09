@@ -409,10 +409,29 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
     protected override Point GetNextParagraphLineStartPoint(ParagraphData paragraphData)
     {
-        var lineVisualData = paragraphData.LineVisualDataList.Last();
         const double x = 0;
-        var y = lineVisualData.StartPoint.Y + lineVisualData.Size.Height;
+        var layoutData = paragraphData.ParagraphLayoutData;
+        var y = layoutData.StartPoint.Y + layoutData.Size.Height;
         return new Point(x, y);
+
+        // 以下是通过最后一行的值进行计算的。不足的是需要判断空段，因此不如使用段落偏移加上段落高度进行计算
+        //if (paragraphData.LineVisualDataList.Count == 0)
+        //{
+        //    // 这一段没有包含任何的行。这一段里面可能没有任何文本，只是一个 \r\n 的空段
+        //    Debug.Assert(paragraphData.CharCount == 0,"只有空段才没有包含行");
+
+        //    const double x = 0;
+        //    var layoutData = paragraphData.ParagraphLayoutData;
+        //    var y = layoutData.StartPoint.Y + layoutData.Size.Height;
+        //    return new Point(x, y);
+        //}
+        //else
+        //{
+        //    var lineVisualData = paragraphData.LineVisualDataList.Last();
+        //    const double x = 0;
+        //    var y = lineVisualData.StartPoint.Y + lineVisualData.Size.Height;
+        //    return new Point(x, y);
+        //}
     }
 }
 

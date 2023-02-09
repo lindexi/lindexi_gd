@@ -1,5 +1,7 @@
 ﻿using LightTextEditorPlus.Core.Platform;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.TestsFramework;
+
 using MSTest.Extensions.Contracts;
 
 namespace LightTextEditorPlus.Core.Tests;
@@ -202,6 +204,68 @@ public class TextEditorCoreTest
     [ContractTestCase]
     public void AppendBreakParagraph()
     {
+        "对空段的文本追加字符串，如对 \\r\\n 追加 a 字符，不会抛出异常".Test(() =>
+        {
+            // Arrange
+            /*
+                System.InvalidOperationException:“Sequence contains no elements”
+                	System.Linq.dll!System.Linq.ThrowHelper.ThrowNoElementsException()
+                	System.Linq.dll!System.Linq.Enumerable.Last<LightTextEditorPlus.Core.Document.LineLayoutData> (System.Collections.Generic.IEnumerable<LightTextEditorPlus.Core.Document.LineLayoutData> source)	未知
+                	LightTextEditorPlus.Core.dll! LightTextEditorPlus.Core.Layout.HorizontalArrangingLayoutProvider.GetNextParagraphLineStartPoint (LightTextEditorPlus.Core.Document.ParagraphData paragraphData) 行 412	C#
+                	LightTextEditorPlus.Core.dll!LightTextEditorPlus.Core.Layout.ArrangingLayoutProvider.UpdateLayout() 行 468	C#
+                	LightTextEditorPlus.Core.dll!LightTextEditorPlus.Core.Layout.LayoutManager.UpdateLayout() 行 46	C#
+                	LightTextEditorPlus.Core.dll!LightTextEditorPlus.Core.TextEditorCore.UpdateLayout() 行 144	C#
+                	LightTextEditorPlus.Core.dll!LightTextEditorPlus.Core.Platform.PlatformProvider.RequireDispatchUpdateLayout (System.Action textLayout) 行 24	C#
+                	LightTextEditorPlus.Core.dll!LightTextEditorPlus.Core.TextEditorCore.DocumentManager_DocumentChanged(object sender,  System.EventArgs e) 行 132	C#
+                	LightTextEditorPlus.Core.dll!LightTextEditorPlus.Core.Document.DocumentManager.AppendText(string text) 行 250	C#
+                	LightTextEditorPlus.Core.dll!LightTextEditorPlus.Core.TextEditorCore.AppendText(string text) 行 14	C#
+             */
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+
+            // Action
+            textEditorCore.AppendText("\r\n");
+            textEditorCore.AppendText("a");
+            // 没有抛出异常就是符合预期
+
+            // 文本的样子是：
+            //  -
+            // | |
+            // |a|
+            //  -
+            // 高度 = 一行 15 高度 + 一行 15 高度 = 30 高度
+            // 宽度 = 字符 a 宽度 = 15 宽度
+            Assert.AreEqual(new Rect(0, 0, 15, 30), textEditorCore.GetDocumentLayoutBounds());
+        });
+        "在包含空段的文本追加字符串，如 a\\r\\n\\r\\nb 再追加 c 字符，文本可以布局多段".Test(() =>
+        {
+            // Arrange
+            /*
+                System.InvalidOperationException:“Sequence contains no elements”
+                	System.Linq.dll!System.Linq.ThrowHelper.ThrowNoElementsException()
+                	System.Linq.dll!System.Linq.Enumerable.Last<LightTextEditorPlus.Core.Document.LineLayoutData> (System.Collections.Generic.IEnumerable<LightTextEditorPlus.Core.Document.LineLayoutData> source)	未知
+                	LightTextEditorPlus.Core.dll! LightTextEditorPlus.Core.Layout.HorizontalArrangingLayoutProvider.GetNextParagraphLineStartPoint (LightTextEditorPlus.Core.Document.ParagraphData paragraphData) 行 412	C#
+                	LightTextEditorPlus.Core.dll!LightTextEditorPlus.Core.Layout.ArrangingLayoutProvider.UpdateLayout() 行 468	C#
+                	LightTextEditorPlus.Core.dll!LightTextEditorPlus.Core.Layout.LayoutManager.UpdateLayout() 行 46	C#
+                	LightTextEditorPlus.Core.dll!LightTextEditorPlus.Core.TextEditorCore.UpdateLayout() 行 144	C#
+                	LightTextEditorPlus.Core.dll!LightTextEditorPlus.Core.Platform.PlatformProvider.RequireDispatchUpdateLayout (System.Action textLayout) 行 24	C#
+                	LightTextEditorPlus.Core.dll!LightTextEditorPlus.Core.TextEditorCore.DocumentManager_DocumentChanged(object sender,  System.EventArgs e) 行 132	C#
+                	LightTextEditorPlus.Core.dll!LightTextEditorPlus.Core.Document.DocumentManager.AppendText(string text) 行 250	C#
+                	LightTextEditorPlus.Core.dll!LightTextEditorPlus.Core.TextEditorCore.AppendText(string text) 行 14	C#
+             */
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+
+            // Action
+            textEditorCore.AppendText("a\r\n\r\nb");
+            textEditorCore.AppendText("c");
+
+            // 没有抛出异常就是符合预期
+
+            // 根据 FixCharSizePlatformProvider 提供的参数，空行高度 15 和每个字符都是 15 的宽度和高度
+            // 一共三行，也就是高度是 15 * 3 = 45 的高度
+            // 最大宽度为第二行的内容，也就是 bc 两个字符，一共是 15 * 2 = 30 的宽度
+            Assert.AreEqual(new Rect(0, 0, 15 * 2, 15 * 3), textEditorCore.GetDocumentLayoutBounds());
+        });
+
         "给文本追加一个 \\r\\n 字符串，文本可以分两段".Test(() =>
         {
             // Arrange
