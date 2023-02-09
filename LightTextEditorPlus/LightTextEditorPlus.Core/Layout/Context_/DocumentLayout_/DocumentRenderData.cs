@@ -2,6 +2,9 @@
 
 namespace LightTextEditorPlus.Core.Layout;
 
+/// <summary>
+/// 文档渲染信息
+/// </summary>
 class DocumentRenderData
 {
     //public bool IsDirty { set; get; }
