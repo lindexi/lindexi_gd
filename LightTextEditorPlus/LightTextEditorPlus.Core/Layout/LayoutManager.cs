@@ -553,11 +553,21 @@ abstract class ArrangingLayoutProvider
         if (lastIndex == 0)
         {
             // 一段的首行是脏的，将后续全部删掉
+            foreach (var lineLayoutData in paragraph.LineVisualDataList)
+            {
+                lineLayoutData.Dispose();
+            }
+
             paragraph.LineVisualDataList.Clear();
         }
         else if (lastIndex > 0)
         {
-            // todo 考虑行信息的复用，或者调用释放方法
+            for (var i = lastIndex; i < paragraph.LineVisualDataList.Count; i++)
+            {
+                var lineVisualData = paragraph.LineVisualDataList[i];
+                lineVisualData.Dispose();
+            }
+
             paragraph.LineVisualDataList.RemoveRange(lastIndex, paragraph.LineVisualDataList.Count - lastIndex);
         }
         else

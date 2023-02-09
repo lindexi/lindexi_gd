@@ -1,7 +1,10 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
+
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
+
 // ReSharper disable All
 
 namespace LightTextEditorPlus.Core.Document;
@@ -9,7 +12,7 @@ namespace LightTextEditorPlus.Core.Document;
 /// <summary>
 /// 行渲染信息
 /// </summary>
-class LineLayoutData : IParagraphCache
+class LineLayoutData : IParagraphCache, IDisposable
 {
     /// <summary>
     /// 行渲染信息
@@ -123,6 +126,7 @@ class LineLayoutData : IParagraphCache
 
         LineAssociatedRenderData = result.LineAssociatedRenderData;
     }
+
     public LineDrawingArgument GetLineDrawingArgument()
     {
         return new LineDrawingArgument(IsDrawn, IsLineStartPointUpdated, LineAssociatedRenderData, StartPoint, Size,
@@ -161,5 +165,14 @@ class LineLayoutData : IParagraphCache
         }
 
         return stringBuilder.ToString();
+    }
+
+    public void Dispose()
+    {
+        // 如果关联的是需要释放的资源，那就调用释放
+        if (LineAssociatedRenderData is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
     }
 }

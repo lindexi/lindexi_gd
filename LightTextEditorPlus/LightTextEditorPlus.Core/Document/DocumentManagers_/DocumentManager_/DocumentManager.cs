@@ -29,13 +29,13 @@ namespace LightTextEditorPlus.Core.Document
         /// <summary>
         /// 文档的宽度
         /// </summary>
-        /// 文档的宽度不等于渲染宽度
+        /// 文档的宽度不等于渲染宽度。布局尺寸请参阅 <see cref="TextEditorCore.GetDocumentLayoutBounds"/> 方法
         internal double DocumentWidth { set; get; } = double.PositiveInfinity;
 
         /// <summary>
         /// 文档的高度
         /// </summary>
-        /// 文档的高度不等于渲染高度
+        /// 文档的高度不等于渲染高度。布局尺寸请参阅 <see cref="TextEditorCore.GetDocumentLayoutBounds"/> 方法
         internal double DocumentHeight { set; get; } = double.PositiveInfinity;
 
         /// <summary>
@@ -45,6 +45,9 @@ namespace LightTextEditorPlus.Core.Document
 
         internal ParagraphManager ParagraphManager { get; }
 
+        /// <summary>
+        /// 管理光标
+        /// </summary>
         private CaretManager CaretManager => TextEditor.CaretManager;
 
         #region 事件
