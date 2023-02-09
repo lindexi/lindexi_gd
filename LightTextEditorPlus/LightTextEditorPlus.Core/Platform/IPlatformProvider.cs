@@ -10,8 +10,6 @@ namespace LightTextEditorPlus.Core.Platform;
 /// </summary>
 public interface IPlatformProvider
 {
-    // 获取默认字体
-
     /// <summary>
     /// 获取平台相关的字符属性创建器
     /// </summary>
