@@ -78,6 +78,8 @@ public partial class TextEditorCore
     {
         PlatformProvider = platformProvider;
 
+        UndoRedoProvider = platformProvider.BuildTextEditorUndoRedoProvider();
+
         DocumentManager = new DocumentManager(this);
         CaretManager = new CaretManager(this);
         DocumentManager.InternalDocumentChanging += DocumentManager_InternalDocumentChanging;
@@ -334,6 +336,8 @@ public partial class TextEditorCore
     #endregion
 
     #region UndoRedo
+
+    public ITextEditorUndoRedoProvider UndoRedoProvider { get; }
 
     /// <summary>
     /// 进入撤销恢复模式

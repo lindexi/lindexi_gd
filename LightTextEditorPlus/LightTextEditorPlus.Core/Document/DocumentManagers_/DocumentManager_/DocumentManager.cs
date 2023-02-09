@@ -76,8 +76,10 @@ namespace LightTextEditorPlus.Core.Document
 
                 if (!TextEditor.IsUndoRedoMode)
                 {
-                    var changeTextEditorDefaultTextRunPropertyValueOperation =
+                    // 如果不在撤销恢复模式，那就记录一条
+                    var operation =
                         new ChangeTextEditorDefaultTextRunPropertyValueOperation(TextEditor, value, oldValue);
+                    TextEditor.UndoRedoProvider.Insert(operation);
                 }
             }
             get => _currentRunProperty;

@@ -11,6 +11,12 @@ namespace LightTextEditorPlus.Core.Platform;
 public interface IPlatformProvider
 {
     /// <summary>
+    /// 获取文本的撤销恢复提供，仅构造调用一次
+    /// </summary>
+    /// <returns></returns>
+    ITextEditorUndoRedoProvider BuildTextEditorUndoRedoProvider();
+
+    /// <summary>
     /// 获取平台相关的字符属性创建器
     /// </summary>
     /// <returns></returns>

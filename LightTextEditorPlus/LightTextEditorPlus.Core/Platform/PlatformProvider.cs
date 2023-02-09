@@ -10,6 +10,11 @@ namespace LightTextEditorPlus.Core.Platform;
 /// </summary>
 public abstract class PlatformProvider : IPlatformProvider
 {
+    public ITextEditorUndoRedoProvider BuildTextEditorUndoRedoProvider()
+    {
+        return new EmptyTextEditorUndoRedoProvider();
+    }
+
     private DefaultRunParagraphSplitter? _defaultRunParagraphSplitter;
 
     public virtual IPlatformRunPropertyCreator GetPlatformRunPropertyCreator()
