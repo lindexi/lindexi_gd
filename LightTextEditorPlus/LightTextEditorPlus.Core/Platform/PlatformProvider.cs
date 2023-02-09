@@ -10,7 +10,7 @@ namespace LightTextEditorPlus.Core.Platform;
 /// </summary>
 public abstract class PlatformProvider : IPlatformProvider
 {
-    public ITextEditorUndoRedoProvider BuildTextEditorUndoRedoProvider()
+    public virtual ITextEditorUndoRedoProvider BuildTextEditorUndoRedoProvider()
     {
         return new EmptyTextEditorUndoRedoProvider();
     }
