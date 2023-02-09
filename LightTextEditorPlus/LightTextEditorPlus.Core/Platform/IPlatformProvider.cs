@@ -1,5 +1,6 @@
 ﻿using System;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Document.Utils;
 using LightTextEditorPlus.Core.Primitive;
 

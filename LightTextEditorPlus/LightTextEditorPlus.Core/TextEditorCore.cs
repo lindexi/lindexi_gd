@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Layout;

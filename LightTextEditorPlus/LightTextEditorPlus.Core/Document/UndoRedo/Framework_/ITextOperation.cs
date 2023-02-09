@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace LightTextEditorPlus.Core.Document;
+﻿namespace LightTextEditorPlus.Core.Document.UndoRedo;
 
 public interface ITextOperation
 {

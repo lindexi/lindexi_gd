@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Core.Document;
+﻿namespace LightTextEditorPlus.Core.Document.UndoRedo;
 
 /// <summary>
 /// 默认的空白文本撤销恢复提供

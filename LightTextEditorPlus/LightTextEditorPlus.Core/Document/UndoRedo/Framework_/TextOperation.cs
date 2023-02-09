@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Core.Document;
+﻿namespace LightTextEditorPlus.Core.Document.UndoRedo;
 
 public abstract class TextOperation : ITextOperation
 {
