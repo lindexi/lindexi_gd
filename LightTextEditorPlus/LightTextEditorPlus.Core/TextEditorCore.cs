@@ -8,6 +8,7 @@ using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Events;
+using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
@@ -329,6 +330,41 @@ public partial class TextEditorCore
     private LayoutUpdateReasonManager? _layoutUpdateReasonManager;
 
     #endregion
+
+    #endregion
+
+    #region UndoRedo
+
+    /// <summary>
+    /// 进入撤销恢复模式
+    /// </summary>
+    /// 由于撤销恢复需要一些绕过安全的步骤，因此需要先设置开关才能调用。同时撤销重做需要处理在撤销或恢复过程产生动作
+    public void EnterUndoRedoMode()
+    {
+        IsUndoRedoMode = true;
+    }
+
+    /// <summary>
+    /// 退出撤销恢复模式
+    /// </summary>
+    public void QuitUndoRedoMode()
+    {
+        IsUndoRedoMode = false;
+    }
+
+    public bool IsUndoRedoMode { private set; get; }
+
+    /// <summary>
+    /// 判断当前是否进入撤销恢复模式，如果没有，抛出 <see cref="TextEditorNotInUndoRedoModeException"/> 异常
+    /// </summary>
+    /// <exception cref="TextEditorNotInUndoRedoModeException"></exception>
+    public void VerifyInUndoRedoMode()
+    {
+        if (!IsUndoRedoMode)
+        {
+            throw new TextEditorNotInUndoRedoModeException();
+        }
+    }
 
     #endregion
 }

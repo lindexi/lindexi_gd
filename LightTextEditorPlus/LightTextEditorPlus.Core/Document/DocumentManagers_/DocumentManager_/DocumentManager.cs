@@ -14,7 +14,7 @@ namespace LightTextEditorPlus.Core.Document
         {
             TextEditor = textEditor;
             CurrentParagraphProperty = new ParagraphProperty();
-            CurrentRunProperty = textEditor.PlatformRunPropertyCreator.GetDefaultRunProperty();
+            _currentRunProperty = textEditor.PlatformRunPropertyCreator.GetDefaultRunProperty();
 
             ParagraphManager = new ParagraphManager(textEditor);
             DocumentRunEditProvider = new DocumentRunEditProvider(textEditor);
@@ -67,7 +67,23 @@ namespace LightTextEditorPlus.Core.Document
         /// <summary>
         /// 获取当前文本的默认字符属性
         /// </summary>
-        public IReadOnlyRunProperty CurrentRunProperty { private set; get; }
+        public IReadOnlyRunProperty CurrentRunProperty
+        {
+            private set
+            {
+                var oldValue = _currentRunProperty;
+                _currentRunProperty = value;
+
+                if (!TextEditor.IsUndoRedoMode)
+                {
+                    var changeTextEditorDefaultTextRunPropertyValueOperation =
+                        new ChangeTextEditorDefaultTextRunPropertyValueOperation(TextEditor, value, oldValue);
+                }
+            }
+            get => _currentRunProperty;
+        }
+
+        private IReadOnlyRunProperty _currentRunProperty;
 
         /// <inheritdoc cref="P:LightTextEditorPlus.Core.Carets.CaretManager.CurrentCaretRunProperty"/>
         public IReadOnlyRunProperty CurrentCaretRunProperty
@@ -266,6 +282,17 @@ namespace LightTextEditorPlus.Core.Document
             CaretManager.CurrentCaretOffset = caretOffset;
 
             InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        #endregion
+
+        #region UndoRedo
+        // 这里的方法只允许撤销恢复调用
+
+        internal void SetDefaultTextRunPropertyByUndoRedo(IReadOnlyRunProperty runProperty)
+        {
+            TextEditor.VerifyInUndoRedoMode();
+            CurrentRunProperty = runProperty;
         }
 
         #endregion

@@ -1,4 +1,6 @@
-﻿namespace LightTextEditorPlus.Core.Document;
+﻿using System;
+
+namespace LightTextEditorPlus.Core.Document;
 
 public interface ITextOperation
 {
@@ -11,4 +13,9 @@ public interface ITextOperation
     /// 恢复
     /// </summary>
     void Redo();
+
+    /// <summary>
+    /// 文本动作影响类型
+    /// </summary>
+    TextOperationType TextOperationType { get; }
 }
