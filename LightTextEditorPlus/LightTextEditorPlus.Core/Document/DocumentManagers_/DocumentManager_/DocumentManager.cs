@@ -2,6 +2,7 @@
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Document.UndoRedo;
+using LightTextEditorPlus.Core.Utils;
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Document
@@ -80,7 +81,7 @@ namespace LightTextEditorPlus.Core.Document
                     // 如果不在撤销恢复模式，那就记录一条
                     var operation =
                         new ChangeTextEditorDefaultTextRunPropertyValueOperation(TextEditor, value, oldValue);
-                    TextEditor.UndoRedoProvider.Insert(operation);
+                    TextEditor.InsertUndoRedoOperation(operation);
                 }
             }
             get => _currentRunProperty;
