@@ -27,6 +27,15 @@
                 <Button x:Name="ApplyFontSizeButton" Grid.Column="1" Margin="5,0,0,0" Click="ApplyFontSizeButton_OnClick">应用</Button>
             </Grid>
 
+            <StackPanel Orientation="Horizontal">
+                    <Button x:Name="ToggleBoldButton" Margin="1,1,1,1">加粗</Button>
+                    <Button x:Name="ToggleItalicButton" Margin="1,1,1,1">斜体</Button>
+                    <Button x:Name="ToggleStrikeThroughButton" Margin="1,1,1,1">删除线</Button>
+                    <Button x:Name="ToggleUnderlineButton" Margin="1,1,1,1">下划线</Button>
+                    <Button x:Name="ToggleFontSuperscriptButton" Margin="1,1,1,1">上标</Button>
+                    <Button x:Name="ToggleFontSubscriptButton" Margin="1,1,1,1">下标</Button>
+            </StackPanel>
+
             <TextBlock Margin="0,5,0,0" FontWeight="Bold">水平对齐</TextBlock>
             <Grid>
                 <Grid.ColumnDefinitions>
