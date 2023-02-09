@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LightTextEditorPlus.Demo"
-        xmlns:textEditorPlus="clr-namespace:LightTextEditorPlus;assembly=LightTextEditorPlus"
+        xmlns:textEditorPlus="clr-namespace:LightTextEditorPlus;assembly=LightTextEditorPlus.Wpf"
         mc:Ignorable="d"
         Title="文本" Height="600" Width="1000">
     <Grid>

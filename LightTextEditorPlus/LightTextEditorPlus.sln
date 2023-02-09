@@ -5,8 +5,6 @@ VisualStudioVersion = 17.3.32901.215
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Demos", "Demos", "{5F8FEFD7-226B-4821-8087-5EF1086A6164}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightTextEditorPlus", "LightTextEditorPlus\LightTextEditorPlus.csproj", "{8B1FEA31-8BCB-412A-B879-01377375BC23}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightTextEditorPlus.Demo", "Demos\LightTextEditorPlus.Demo\LightTextEditorPlus.Demo.csproj", "{1B809253-48C8-4B5B-BD14-48BDA5AA08B9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightTextEditorPlus.Core", "LightTextEditorPlus.Core\LightTextEditorPlus.Core.csproj", "{DE7945D5-DB3B-419C-8EEA-9AE02E03E1FF}"
@@ -27,16 +25,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Docs", "Docs\Docs.csproj", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightTextEditorPlus.MauiGraphics", "LightTextEditorPlus.MauiGraphics\LightTextEditorPlus.MauiGraphics.csproj", "{7B14EBAF-9869-4493-89B8-F9DE09594550}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LightTextEditorPlus.Wpf", "LightTextEditorPlus.Wpf\LightTextEditorPlus.Wpf.csproj", "{0B919FE3-0D8A-4600-B375-870D5ED65232}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8B1FEA31-8BCB-412A-B879-01377375BC23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8B1FEA31-8BCB-412A-B879-01377375BC23}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8B1FEA31-8BCB-412A-B879-01377375BC23}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8B1FEA31-8BCB-412A-B879-01377375BC23}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1B809253-48C8-4B5B-BD14-48BDA5AA08B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1B809253-48C8-4B5B-BD14-48BDA5AA08B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B809253-48C8-4B5B-BD14-48BDA5AA08B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -69,6 +65,10 @@ Global
 		{7B14EBAF-9869-4493-89B8-F9DE09594550}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7B14EBAF-9869-4493-89B8-F9DE09594550}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7B14EBAF-9869-4493-89B8-F9DE09594550}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B919FE3-0D8A-4600-B375-870D5ED65232}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B919FE3-0D8A-4600-B375-870D5ED65232}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B919FE3-0D8A-4600-B375-870D5ED65232}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B919FE3-0D8A-4600-B375-870D5ED65232}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
