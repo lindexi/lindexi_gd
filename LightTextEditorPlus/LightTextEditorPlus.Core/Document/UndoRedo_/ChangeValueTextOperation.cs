@@ -1,5 +1,9 @@
 ﻿namespace LightTextEditorPlus.Core.Document;
 
+/// <summary>
+/// 修改值的动作
+/// </summary>
+/// <typeparam name="T"></typeparam>
 public abstract class ChangeValueTextOperation<T> : TextOperation, ITextOperation
 {
     protected ChangeValueTextOperation(TextEditorCore textEditor, T newValue, T oldValue) : base(textEditor)
