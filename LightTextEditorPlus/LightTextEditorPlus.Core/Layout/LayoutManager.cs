@@ -234,14 +234,14 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             {
                 currentSize = currentSize.HorizontalUnion(result.TotalSize);
 
-                if (result.TaskCount == 1)
+                if (result.TakeCount == 1)
                 {
                     var charData = charDataList[currentIndex];
                     charData.Size ??= result.TotalSize;
                 }
                 else
                 {
-                    for (int i = currentIndex; i < currentIndex + result.TaskCount; i++)
+                    for (int i = currentIndex; i < currentIndex + result.TakeCount; i++)
                     {
                         var charData = charDataList[i];
                         //charData.CharRenderData ??=
@@ -250,7 +250,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                     }
                 }
 
-                currentIndex += result.TaskCount;
+                currentIndex += result.TakeCount;
 
                 // 计算此行剩余的宽度
                 lineRemainingWidth -= result.TotalSize.Width;
@@ -323,12 +323,12 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         if (argument.LineRemainingWidth > size.Width)
         {
-            return new SingleCharInLineLayoutResult(taskCount: 1, size, charSizeList: default);
+            return new SingleCharInLineLayoutResult(takeCount: 1, size, charSizeList: default);
         }
         else
         {
             // 如果尺寸不足，也就是一个都拿不到
-            return new SingleCharInLineLayoutResult(taskCount: 0, default, charSizeList: default);
+            return new SingleCharInLineLayoutResult(takeCount: 0, default, charSizeList: default);
         }
     }
 
