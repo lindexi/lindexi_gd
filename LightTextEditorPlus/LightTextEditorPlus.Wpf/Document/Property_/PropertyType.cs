@@ -114,7 +114,7 @@ public enum PropertyType
     /// </summary>
     [Obsolete("请使用 TextAlignment 代替")]
     [EditorBrowsable(EditorBrowsableState.Never)]
-    TextHoriztontalAlignment,
+    TextHorizontalAlignment,
 
     /// <summary>
     /// 下划线
