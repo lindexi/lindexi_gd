@@ -1,5 +1,8 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
+
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Document;
 
 namespace LightTextEditorPlus;
 
@@ -8,6 +11,8 @@ namespace LightTextEditorPlus;
 public partial class TextEditor
 {
     #region Style
+
+    #region RunProperty
 
     /// <summary>
     /// 开启或关闭文本加粗
@@ -23,10 +28,24 @@ public partial class TextEditor
     /// </summary>
     /// <param name="fontWeight"></param>
     /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
-    public void SetFontWeight(FontWeight fontWeight, Selection? selection=null)
+    public void SetFontWeight(FontWeight fontWeight, Selection? selection = null)
     {
-        
+        SetRunProperty(p => p.Weight = fontWeight, PropertyType.FontWeight, selection);
     }
+
+    internal void SetRunProperty(Action<RunProperty> action, PropertyType property, Selection? selection)
+    {
+        if (selection is null)
+        {
+            // 获取当前选择，文本未选择则设置当前光标属性
+        }
+
+
+    }
+
+    #endregion
+
+
 
     #endregion
 }
