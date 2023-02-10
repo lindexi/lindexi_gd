@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:LightTextEditorPlus.Demo"
+             xmlns:collections="clr-namespace:System.Collections;assembly=System.Runtime"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="360">
     <Grid d:Background="White">
@@ -26,6 +27,47 @@
                     <TextBox x:Name="FontSizeTextBox"></TextBox>
                     <Button x:Name="ApplyFontSizeButton" Grid.Column="1" Margin="5,0,0,0" Click="ApplyFontSizeButton_OnClick">应用</Button>
                 </Grid>
+
+                <TextBlock Margin="0,5,0,0" FontWeight="Bold">前景色</TextBlock>
+                <!-- 文本颜色 -->
+                <ListView>
+                    <ListView.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal"></StackPanel>
+                        </ItemsPanelTemplate>
+                    </ListView.ItemsPanel>
+                    <ListView.ItemsSource>
+                        <collections:ArrayList>
+                            <SolidColorBrush Color="#FF1000" />
+                            <SolidColorBrush Color="#000000" />
+                            <SolidColorBrush Color="#FFC510" />
+                            <SolidColorBrush Color="#321EB5" />
+                            <SolidColorBrush Color="#306C00" />
+                            <SolidColorBrush Color="#66D552" />
+                            <SolidColorBrush Color="#8B7E6E" />
+                            <SolidColorBrush Color="#FFFFFF" />
+                        </collections:ArrayList>
+                    </ListView.ItemsSource>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Button Foreground="{Binding}" Click="ForegroundButton_OnClick">
+                                <Button.Style>
+                                    <Style TargetType="{x:Type Button}">
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="{x:Type Button}">
+                                                    <Ellipse x:Name="indeterminateMark"
+                                                             Width="10" Height="10"
+                                                             Fill="{TemplateBinding Foreground}" />
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
 
                 <StackPanel Orientation="Horizontal">
                     <Button x:Name="ToggleBoldButton" Margin="1,1,1,1" Click="ToggleBoldButton_OnClick">加粗</Button>

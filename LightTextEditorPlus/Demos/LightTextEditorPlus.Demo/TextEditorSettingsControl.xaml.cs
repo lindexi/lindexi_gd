@@ -15,6 +15,8 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Document;
+using Brush = System.Windows.Media.Brush;
 
 namespace LightTextEditorPlus.Demo;
 /// <summary>
@@ -73,5 +75,12 @@ public partial class TextEditorSettingsControl : UserControl
     private void ToggleItalicButton_OnClick(object sender, RoutedEventArgs e)
     {
         TextEditor.ToggleItalic();
+    }
+
+    private void ForegroundButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        Button button = (Button) sender;
+        var brush = (Brush) button.Content;
+        TextEditor.SetForeground(new ImmutableBrush(brush));
     }
 }

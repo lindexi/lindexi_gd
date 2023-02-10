@@ -14,6 +14,16 @@ public partial class TextEditor
     #region RunProperty
 
     /// <summary>
+    /// 设置前景色
+    /// </summary>
+    /// <param name="foreground"></param>
+    /// <param name="selection"></param>
+    public void SetForeground(ImmutableBrush foreground, Selection? selection = null)
+    {
+        SetRunProperty(p => p.Foreground = foreground, PropertyType.Foreground, selection);
+    }
+
+    /// <summary>
     /// 开启或关闭文本斜体
     /// </summary>
     public void ToggleItalic()
