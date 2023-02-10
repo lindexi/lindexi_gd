@@ -15,29 +15,58 @@ public partial class TextEditor
     #region RunProperty
 
     /// <summary>
+    /// 开启或关闭文本斜体
+    /// </summary>
+    public void ToggleItalic()
+    {
+        FontStyle fontStyle;
+
+        if (IsAnyRunProperty(property => property.FontStyle == FontStyles.Normal))
+        {
+            fontStyle = FontStyles.Italic;
+        }
+        else
+        {
+            fontStyle = FontStyles.Normal;
+        }
+
+        SetFontStyle(fontStyle);
+    }
+
+    public void SetFontStyle(FontStyle fontStyle, Selection? selection = null)
+    {
+        SetRunProperty(p => p.FontStyle = fontStyle, PropertyType.FontWeight, selection);
+    }
+
+    /// <summary>
     /// 开启或关闭文本加粗
     /// </summary>
     public void ToggleBold()
     {
         FontWeight fontWeight;
+        if (IsAnyRunProperty(property => property.FontWeight == FontWeights.Normal))
+        {
+            fontWeight = FontWeights.Bold;
+        }
+        else
+        {
+            fontWeight = FontWeights.Normal;
+        }
+
+        SetFontWeight(fontWeight);
+    }
+
+    private bool IsAnyRunProperty(Predicate<IRunProperty> predicate)
+    {
         if (CurrentSelection.IsEmpty)
         {
             // 获取当前光标的属性即可
-            if (CurrentCaretRunProperty.FontWeight == FontWeights.Normal)
-            {
-                fontWeight = FontWeights.Bold;
-            }
-            else
-            {
-                fontWeight = FontWeights.Normal;
-            }
+            return predicate(CurrentCaretRunProperty);
         }
         else
         {
             throw new NotImplementedException($"获取范围属性");
         }
-
-        SetFontWeight(fontWeight);
     }
 
     /// <summary>

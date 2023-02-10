@@ -69,4 +69,9 @@ public partial class TextEditorSettingsControl : UserControl
     {
         TextEditor.ToggleBold();
     }
+
+    private void ToggleItalicButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.ToggleItalic();
+    }
 }
