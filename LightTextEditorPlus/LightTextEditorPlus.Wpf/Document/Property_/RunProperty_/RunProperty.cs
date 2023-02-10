@@ -7,7 +7,7 @@ using LightTextEditorPlus.Core.Document;
 
 namespace LightTextEditorPlus.Document;
 
-public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
+public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunProperty
 {
     internal RunProperty(RunPropertyPlatformManager runPropertyPlatformManager, RunProperty? styleRunProperty = null) : base(styleRunProperty)
     {
