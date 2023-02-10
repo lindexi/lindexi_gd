@@ -56,9 +56,12 @@
                                         <Setter Property="Template">
                                             <Setter.Value>
                                                 <ControlTemplate TargetType="{x:Type Button}">
-                                                    <Ellipse x:Name="indeterminateMark"
-                                                             Width="10" Height="10"
-                                                             Fill="{TemplateBinding Foreground}" />
+                                                    <!-- 放一个 Border 用来吃掉交互，否则将会被穿到 ItemsControl 的选择 -->
+                                                    <Border Background="Transparent">
+                                                        <Ellipse x:Name="indeterminateMark"
+                                                                 Width="16" Height="16"
+                                                                 Fill="{TemplateBinding Foreground}" />
+                                                    </Border>
                                                 </ControlTemplate>
                                             </Setter.Value>
                                         </Setter>

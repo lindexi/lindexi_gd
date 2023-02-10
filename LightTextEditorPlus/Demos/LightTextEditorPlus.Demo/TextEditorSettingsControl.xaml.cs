@@ -80,7 +80,7 @@ public partial class TextEditorSettingsControl : UserControl
     private void ForegroundButton_OnClick(object sender, RoutedEventArgs e)
     {
         Button button = (Button) sender;
-        var brush = (Brush) button.Content;
+        var brush = (Brush) button.DataContext;
         TextEditor.SetForeground(new ImmutableBrush(brush));
     }
 }
