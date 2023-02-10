@@ -183,17 +183,8 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
         {
             return false;
         }
-        if (!Equals(Background, other.Background))
-        {
-            return false;
-        }
 
         if (!Equals(Opacity, other.Opacity))
-        {
-            return false;
-        }
-
-        if (!Equals(Stretch, other.Stretch))
         {
             return false;
         }
@@ -204,6 +195,16 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
         }
 
         if (!Equals(FontStyle, other.FontStyle))
+        {
+            return false;
+        }
+
+        if (!Equals(Stretch, other.Stretch))
+        {
+            return false;
+        }
+
+        if (!Equals(Background, other.Background))
         {
             return false;
         }
