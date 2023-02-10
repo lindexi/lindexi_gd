@@ -94,6 +94,22 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
 
     #endregion
 
+    #region FontStyle
+
+    /// <summary>
+    /// 斜体表示，默认值为Normal
+    /// </summary>
+    public FontStyle FontStyle
+    {
+        set => _fontStyle = value;
+        get=> _fontStyle ?? StyleRunProperty?.FontStyle ?? DefaultFontStyle;
+    }
+
+    private FontStyle? _fontStyle;
+    public static FontStyle DefaultFontStyle => FontStyles.Normal;
+
+    #endregion
+
     #endregion
 
     #region 框架
