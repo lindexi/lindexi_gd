@@ -7,7 +7,6 @@ using LightTextEditorPlus.Document;
 namespace LightTextEditorPlus;
 
 // 此文件存放编辑相关的方法
-
 public partial class TextEditor
 {
     #region Style
