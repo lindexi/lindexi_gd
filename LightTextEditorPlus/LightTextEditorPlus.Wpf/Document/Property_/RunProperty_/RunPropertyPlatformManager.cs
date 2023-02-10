@@ -31,19 +31,7 @@ class RunPropertyPlatformManager
         }
 
         // 获取字体，获取方式：
-        // 先拿首个，然后再尝试获取字体样式接近的
-        var collection = fontFamily.GetTypefaces();
-        Typeface typeface = collection.First();
-
-        foreach (var t in collection)
-        {
-            if (t.Stretch == runProperty.Stretch && t.Weight == runProperty.FontWeight &&
-                t.Style == runProperty.FontStyle)
-            {
-                typeface = t;
-                break;
-            }
-        }
+        var typeface = new Typeface(fontFamily, runProperty.FontStyle, runProperty.FontWeight, runProperty.Stretch);
 
         bool success = typeface.TryGetGlyphTypeface(out var glyphTypeface);
 
