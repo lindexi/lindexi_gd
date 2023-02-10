@@ -23,7 +23,7 @@ public partial class TextEditor
 
         if (IsAnyRunProperty(property => property.FontStyle == FontStyles.Normal))
         {
-            fontStyle = FontStyles.Italic;
+            fontStyle = FontStyles.Oblique;
         }
         else
         {

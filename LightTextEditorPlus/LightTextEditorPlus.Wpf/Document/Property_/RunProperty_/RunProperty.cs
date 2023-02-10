@@ -135,7 +135,7 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
             // 先判断是否配置了文本的字体等属性，如果没有就从 StyleRunProperty 里面获取。如此可以尽可能复用 StyleRunProperty 的字体
             if (StyleRunProperty is not null)
             {
-                if (_stretch is null && _fontWeight is null && FontName.Equals(StyleRunProperty.FontName))
+                if (_stretch is null && _fontWeight is null && _fontStyle is null && FontName.Equals(StyleRunProperty.FontName))
                 {
                     // 如果当前的字符属性啥字体相关的都没有设置，那就使用 StyleRunProperty 的，如此可以尽可能复用字体
                     return StyleRunProperty.GetGlyphTypeface();
@@ -199,6 +199,11 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
         }
 
         if (!Equals(FontWeight, other.FontWeight))
+        {
+            return false;
+        }
+
+        if (!Equals(FontStyle, other.FontStyle))
         {
             return false;
         }
