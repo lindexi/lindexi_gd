@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Windows;
-
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Events;
@@ -23,7 +22,12 @@ public partial class TextEditor
 
         if (IsAnyRunProperty(property => property.FontStyle == FontStyles.Normal))
         {
-            fontStyle = FontStyles.Oblique;
+            // 字体倾斜 Italic 和 Oblique 的差别
+            // 使用 Italic 是字体提供的斜体，可以和正常字体有不同的界面
+            // 使用 Oblique 只是将正常的字体进行倾斜
+            // 如果一个字体没有斜体，那 Italic 和 Oblique 视觉效果相同
+            // 详细请看 https://wpf.2000things.com/tag/oblique/
+            fontStyle = FontStyles.Italic;
         }
         else
         {
@@ -35,7 +39,7 @@ public partial class TextEditor
 
     public void SetFontStyle(FontStyle fontStyle, Selection? selection = null)
     {
-        SetRunProperty(p => p.FontStyle = fontStyle, PropertyType.FontWeight, selection);
+        SetRunProperty(p => p.FontStyle = fontStyle, PropertyType.FontStyle, selection);
     }
 
     /// <summary>
