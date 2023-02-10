@@ -1,10 +1,13 @@
 ﻿using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Document;
 
 namespace LightTextEditorPlus;
 
 // 此文件存放状态获取相关的方法
 public partial class TextEditor
 {
+    public IRunProperty CurrentCaretRunProperty => (IRunProperty)TextEditorCore.DocumentManager.CurrentCaretRunProperty;
+
     #region 光标和选择
 
     /// <summary>

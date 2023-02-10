@@ -19,8 +19,25 @@ public partial class TextEditor
     /// </summary>
     public void ToggleBold()
     {
-        // todo 实现开启或关闭文本加粗
-        SetFontWeight(FontWeights.Bold);
+        FontWeight fontWeight;
+        if (CurrentSelection.IsEmpty)
+        {
+            // 获取当前光标的属性即可
+            if (CurrentCaretRunProperty.FontWeight == FontWeights.Normal)
+            {
+                fontWeight = FontWeights.Bold;
+            }
+            else
+            {
+                fontWeight = FontWeights.Normal;
+            }
+        }
+        else
+        {
+            throw new NotImplementedException($"获取范围属性");
+        }
+
+        SetFontWeight(fontWeight);
     }
 
     /// <summary>
@@ -38,13 +55,13 @@ public partial class TextEditor
         selection ??= CurrentSelection;
         OnStyleChanging(new StyleChangeEventArgs(selection.Value, property, TextEditorCore.IsUndoRedoMode));
 
+        // 设置当前的属性，如果没有选择内容，则设置当前光标的属性。设置光标属性，在输入之后，将会修改光标，从而干掉光标属性。干掉了光标属性，将会获取当前光标对应的字符的属性
         TextEditorCore.DocumentManager.SetRunProperty<RunProperty>(action, selection);
 
         OnStyleChanged(new StyleChangeEventArgs(selection.Value, property, TextEditorCore.IsUndoRedoMode));
     }
 
     #endregion
-
 
     #endregion
 

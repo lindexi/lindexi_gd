@@ -231,7 +231,7 @@ namespace LightTextEditorPlus.Core.Document
             selection ??= CaretManager.CurrentSelection;
 
             // 如当前也没有选择内容，则仅修改当前光标的字符属性
-            if (selection.Value.Length==0)
+            if (selection.Value.IsEmpty)
             {
                 SetCurrentCaretRunProperty(config);
             }
