@@ -12,65 +12,65 @@
             <RowDefinition Height="Auto"></RowDefinition>
         </Grid.RowDefinitions>
         <ScrollViewer Margin="10,10,10,10" VerticalScrollBarVisibility="Auto">
-        <StackPanel Orientation="Vertical">
-            <TextBlock FontWeight="Bold">字体</TextBlock>
+            <StackPanel Orientation="Vertical">
+                <TextBlock FontWeight="Bold">字体</TextBlock>
 
-            <ComboBox x:Name="FontNameComboBox" SelectionChanged="FontNameComboBox_OnSelectionChanged"></ComboBox>
+                <ComboBox x:Name="FontNameComboBox" SelectionChanged="FontNameComboBox_OnSelectionChanged"></ComboBox>
 
-            <TextBlock Margin="0,5,0,0" FontWeight="Bold">字号</TextBlock>
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"></ColumnDefinition>
-                    <ColumnDefinition Width="Auto"></ColumnDefinition>
-                </Grid.ColumnDefinitions>
-                <TextBox x:Name="FontSizeTextBox"></TextBox>
-                <Button x:Name="ApplyFontSizeButton" Grid.Column="1" Margin="5,0,0,0" Click="ApplyFontSizeButton_OnClick">应用</Button>
-            </Grid>
+                <TextBlock Margin="0,5,0,0" FontWeight="Bold">字号</TextBlock>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                        <ColumnDefinition Width="Auto"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="FontSizeTextBox"></TextBox>
+                    <Button x:Name="ApplyFontSizeButton" Grid.Column="1" Margin="5,0,0,0" Click="ApplyFontSizeButton_OnClick">应用</Button>
+                </Grid>
 
-            <StackPanel Orientation="Horizontal">
+                <StackPanel Orientation="Horizontal">
                     <Button x:Name="ToggleBoldButton" Margin="1,1,1,1">加粗</Button>
                     <Button x:Name="ToggleItalicButton" Margin="1,1,1,1">斜体</Button>
                     <Button x:Name="ToggleStrikeThroughButton" Margin="1,1,1,1">删除线</Button>
                     <Button x:Name="ToggleUnderlineButton" Margin="1,1,1,1">下划线</Button>
                     <Button x:Name="ToggleFontSuperscriptButton" Margin="1,1,1,1">上标</Button>
                     <Button x:Name="ToggleFontSubscriptButton" Margin="1,1,1,1">下标</Button>
+                </StackPanel>
+
+                <TextBlock Margin="0,5,0,0" FontWeight="Bold">水平对齐</TextBlock>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <Button Margin="0,2,10,0">居左</Button>
+                    <Button Grid.Column="1" Margin="10,2,10,0">居中</Button>
+                    <Button Grid.Column="2" Margin="10,2,0,0">居右</Button>
+                </Grid>
+
+                <TextBlock Margin="0,5,0,0" FontWeight="Bold">垂直对齐</TextBlock>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <Button Margin="0,2,10,0">居上</Button>
+                    <Button Grid.Column="1" Margin="10,2,10,0">居中</Button>
+                    <Button Grid.Column="2" Margin="10,2,0,0">居下</Button>
+                </Grid>
+
+                <TextBlock Margin="0,5,0,0" FontWeight="Bold">缩进</TextBlock>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <Button Margin="0,2,10,0">向左缩进</Button>
+                    <Button Grid.Column="1" Margin="10,2,0,0">向右缩进</Button>
+                </Grid>
+
             </StackPanel>
-
-            <TextBlock Margin="0,5,0,0" FontWeight="Bold">水平对齐</TextBlock>
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition></ColumnDefinition>
-                    <ColumnDefinition></ColumnDefinition>
-                    <ColumnDefinition></ColumnDefinition>
-                </Grid.ColumnDefinitions>
-                <Button Margin="0,2,10,0">居左</Button>
-                <Button Grid.Column="1" Margin="10,2,10,0">居中</Button>
-                <Button Grid.Column="2" Margin="10,2,0,0">居右</Button>
-            </Grid>
-
-            <TextBlock Margin="0,5,0,0" FontWeight="Bold">垂直对齐</TextBlock>
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition></ColumnDefinition>
-                    <ColumnDefinition></ColumnDefinition>
-                    <ColumnDefinition></ColumnDefinition>
-                </Grid.ColumnDefinitions>
-                <Button Margin="0,2,10,0">居上</Button>
-                <Button Grid.Column="1" Margin="10,2,10,0">居中</Button>
-                <Button Grid.Column="2" Margin="10,2,0,0">居下</Button>
-            </Grid>
-
-            <TextBlock Margin="0,5,0,0" FontWeight="Bold">缩进</TextBlock>
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition></ColumnDefinition>
-                    <ColumnDefinition></ColumnDefinition>
-                </Grid.ColumnDefinitions>
-                <Button Margin="0,2,10,0">向左缩进</Button>
-                <Button Grid.Column="1" Margin="10,2,0,0">向右缩进</Button>
-            </Grid>
-
-        </StackPanel>
         </ScrollViewer>
         <Button Grid.Row="1" Margin="10,10,10,10">应用</Button>
     </Grid>
