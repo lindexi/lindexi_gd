@@ -6,6 +6,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
+    <RootNamespace>LightTextEditorPlus</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
