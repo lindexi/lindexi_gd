@@ -37,7 +37,7 @@ class RunPropertyPlatformManager
 
         foreach (var t in collection)
         {
-            if (t.Stretch == runProperty.Stretch && t.Weight == runProperty.Weight)
+            if (t.Stretch == runProperty.Stretch && t.Weight == runProperty.FontWeight)
             {
                 typeface = t;
                 break;

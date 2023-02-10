@@ -80,14 +80,17 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
 
     #region FontWeight
 
-    public FontWeight Weight
+    /// <summary>
+    /// 字的粗细度，默认值为Normal
+    /// </summary>
+    public FontWeight FontWeight
     {
-        set => _weight = value;
-        get => _weight ?? StyleRunProperty?.Weight ?? DefaultWeight;
+        set => _fontWeight = value;
+        get => _fontWeight ?? StyleRunProperty?.FontWeight ?? DefaultFontWeight;
     }
 
-    private FontWeight? _weight;
-    public static FontWeight DefaultWeight => FontWeights.Normal;
+    private FontWeight? _fontWeight;
+    public static FontWeight DefaultFontWeight => FontWeights.Normal;
 
     #endregion
 
@@ -116,7 +119,7 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
             // 先判断是否配置了文本的字体等属性，如果没有就从 StyleRunProperty 里面获取。如此可以尽可能复用 StyleRunProperty 的字体
             if (StyleRunProperty is not null)
             {
-                if (_stretch is null && _weight is null && FontName.Equals(StyleRunProperty.FontName))
+                if (_stretch is null && _fontWeight is null && FontName.Equals(StyleRunProperty.FontName))
                 {
                     // 如果当前的字符属性啥字体相关的都没有设置，那就使用 StyleRunProperty 的，如此可以尽可能复用字体
                     return StyleRunProperty.GetGlyphTypeface();
@@ -179,7 +182,7 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>
             return false;
         }
 
-        if (!Equals(Weight, other.Weight))
+        if (!Equals(FontWeight, other.FontWeight))
         {
             return false;
         }

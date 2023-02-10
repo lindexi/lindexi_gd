@@ -30,7 +30,7 @@ public partial class TextEditor
     /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
     public void SetFontWeight(FontWeight fontWeight, Selection? selection = null)
     {
-        SetRunProperty(p => p.Weight = fontWeight, PropertyType.FontWeight, selection);
+        SetRunProperty(p => p.FontWeight = fontWeight, PropertyType.FontWeight, selection);
     }
 
     internal void SetRunProperty(Action<RunProperty> action, PropertyType property, Selection? selection)
