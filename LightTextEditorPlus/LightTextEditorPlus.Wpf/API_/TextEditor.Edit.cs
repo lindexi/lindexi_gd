@@ -3,6 +3,7 @@ using System.Windows;
 
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Document;
+using LightTextEditorPlus.Events;
 
 namespace LightTextEditorPlus;
 
@@ -34,17 +35,40 @@ public partial class TextEditor
 
     internal void SetRunProperty(Action<RunProperty> action, PropertyType property, Selection? selection)
     {
-        if (selection is null)
-        {
-            // 获取当前选择，文本未选择则设置当前光标属性
-        }
+        selection ??= CurrentSelection;
+        OnStyleChanging(new StyleChangeEventArgs(selection.Value, property, TextEditorCore.IsUndoRedoMode));
 
+        TextEditorCore.DocumentManager.SetRunProperty<RunProperty>(action, selection);
 
+        OnStyleChanged(new StyleChangeEventArgs(selection.Value, property, TextEditorCore.IsUndoRedoMode));
     }
 
     #endregion
 
 
+    #endregion
+
+    #region 事件
+
+    /// <summary>
+    /// 当设置样式时触发
+    /// </summary>
+    public event EventHandler<StyleChangeEventArgs>? StyleChanging;
+
+    /// <summary>
+    /// 当设置样式后触发
+    /// </summary>
+    public event EventHandler<StyleChangeEventArgs>? StyleChanged;
+
+    internal void OnStyleChanging(StyleChangeEventArgs styleChangeEventArgs)
+    {
+        StyleChanging?.Invoke(this, styleChangeEventArgs);
+    }
+
+    internal void OnStyleChanged(StyleChangeEventArgs styleChangeEventArgs)
+    {
+        StyleChanged?.Invoke(this, styleChangeEventArgs);
+    }
 
     #endregion
 }
