@@ -64,4 +64,9 @@ public partial class TextEditorSettingsControl : UserControl
             // 别逗
         }
     }
+
+    private void ToggleBoldButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.ToggleBold();
+    }
 }

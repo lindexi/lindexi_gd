@@ -28,7 +28,7 @@
                 </Grid>
 
                 <StackPanel Orientation="Horizontal">
-                    <Button x:Name="ToggleBoldButton" Margin="1,1,1,1">加粗</Button>
+                    <Button x:Name="ToggleBoldButton" Margin="1,1,1,1" Click="ToggleBoldButton_OnClick">加粗</Button>
                     <Button x:Name="ToggleItalicButton" Margin="1,1,1,1">斜体</Button>
                     <Button x:Name="ToggleStrikeThroughButton" Margin="1,1,1,1">删除线</Button>
                     <Button x:Name="ToggleUnderlineButton" Margin="1,1,1,1">下划线</Button>
