@@ -81,6 +81,20 @@
                     <Button x:Name="ToggleFontSubscriptButton" Margin="1,1,1,1">下标</Button>
                 </StackPanel>
 
+                <TextBlock Margin="0,5,0,0" FontWeight="Bold">自适应</TextBlock>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="ManualSizeToContentButton" Margin="0,2,10,0">手动</Button>
+                    <Button x:Name="WidthSizeToContentButton" Grid.Column="1" Margin="10,2,10,0">高度自适应</Button>
+                    <Button x:Name="HeightSizeToContentButton" Grid.Column="2" Margin="10,2,0,0">宽度自适应</Button>
+                    <Button x:Name="WidthAndHeightSizeToContentButton" Grid.Column="3" Margin="10,2,0,0">宽度高度自适应</Button>
+                </Grid>
+
                 <TextBlock Margin="0,5,0,0" FontWeight="Bold">水平对齐</TextBlock>
                 <Grid>
                     <Grid.ColumnDefinitions>

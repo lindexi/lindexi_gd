@@ -135,16 +135,6 @@ public partial class TextEditor : FrameworkElement, IRenderManager
     protected override int VisualChildrenCount => 1; // 当前只有视觉呈现容器一个而已
     protected override Visual GetVisualChild(int index) => TextView;
 
-    internal TextEditorPlatformProvider TextEditorPlatformProvider { get; }
-
-    void IRenderManager.Render(RenderInfoProvider renderInfoProvider)
-    {
-        TextView.Render(renderInfoProvider);
-        _renderCompletionSource.TrySetResult();
-    }
-
-    private TaskCompletionSource _renderCompletionSource = new TaskCompletionSource();
-
     protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
     {
         if (e.Property == TextElement.ForegroundProperty)
@@ -172,6 +162,22 @@ public partial class TextEditor : FrameworkElement, IRenderManager
             TextEditorCore.DocumentManager.DocumentHeight = (double) e.NewValue;
         }
     }
+
+    #region 对接文本库
+
+    internal TextEditorPlatformProvider TextEditorPlatformProvider { get; }
+
+    void IRenderManager.Render(RenderInfoProvider renderInfoProvider)
+    {
+        TextView.Render(renderInfoProvider);
+        _renderCompletionSource.TrySetResult();
+    }
+
+    private TaskCompletionSource _renderCompletionSource = new TaskCompletionSource();
+
+    public ITextLogger Logger => TextEditorCore.Logger;
+
+    #endregion
 
     #endregion
 }

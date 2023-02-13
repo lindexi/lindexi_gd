@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Windows;
+
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Events;
@@ -10,6 +12,31 @@ namespace LightTextEditorPlus;
 // 此文件存放编辑相关的方法
 public partial class TextEditor
 {
+    #region 编辑模式
+
+    /// <summary>
+    /// 是否进入用户编辑模式。进入用户编辑模式将闪烁光标，支持输入法输入
+    /// </summary>
+    public bool IsInEditingInputMode
+    {
+        set
+        {
+            if (_isInEditingInputMode == value)
+            {
+                return;
+            }
+
+            Logger.LogDebug(value ? "进入用户编辑模式" : "退出用户编辑模式");
+
+            _isInEditingInputMode = value;
+        }
+        get => _isInEditingInputMode;
+    }
+
+    private bool _isInEditingInputMode = true;
+
+    #endregion
+
     #region Style
 
     #region RunProperty
@@ -131,8 +158,23 @@ public partial class TextEditor
     internal void SetRunProperty(Action<RunProperty> action, PropertyType property, Selection? selection)
     {
         selection ??= CurrentSelection;
+
+        // 如果是在编辑模式，那就使用当前选择。如果非编辑模式，且当前没有选择任何内容，那就是对整个文本
+        if (IsInEditingInputMode)
+        {
+            // 如果是在编辑模式，那就使用当前选择
+        }
+        else
+        {
+            // 如果非编辑模式，且当前没有选择任何内容，那就是对整个文本
+            if (selection.Value.IsEmpty)
+            {
+                selection = TextEditorCore.DocumentManager.GetAllDocumentSelection();
+            }
+        }
+
         OnStyleChanging(new StyleChangeEventArgs(selection.Value, property, TextEditorCore.IsUndoRedoMode));
-        
+
         TextEditorCore.DocumentManager.SetRunProperty<RunProperty>(action, selection);
 
         OnStyleChanged(new StyleChangeEventArgs(selection.Value, property, TextEditorCore.IsUndoRedoMode));
