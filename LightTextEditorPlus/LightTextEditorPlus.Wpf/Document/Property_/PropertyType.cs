@@ -102,7 +102,7 @@ public enum PropertyType
     /// <summary>
     /// 文本水平对齐
     /// </summary>
-    TextAlignment,
+    TextHorizontalAlignment,
 
     /// <summary>
     /// 文本垂直对齐
@@ -112,9 +112,9 @@ public enum PropertyType
     /// <summary>
     /// 文本水平对齐
     /// </summary>
-    [Obsolete("请使用 TextAlignment 代替")]
+    [Obsolete("请使用 TextHorizontalAlignment 代替")] 
     [EditorBrowsable(EditorBrowsableState.Never)]
-    TextHorizontalAlignment,
+    TextAlignment = TextHorizontalAlignment,
 
     /// <summary>
     /// 下划线
