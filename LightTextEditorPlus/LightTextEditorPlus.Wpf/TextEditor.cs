@@ -30,6 +30,7 @@ using LightTextEditorPlus.TextEditorPlus.Render;
 using LightTextEditorPlus.Utils.Threading;
 
 using Microsoft.Win32;
+
 using FrameworkElement = System.Windows.FrameworkElement;
 using Point = LightTextEditorPlus.Core.Primitive.Point;
 using Rect = LightTextEditorPlus.Core.Primitive.Rect;
@@ -147,11 +148,11 @@ public partial class TextEditor : FrameworkElement, IRenderManager
         }
         else if (e.Property == FrameworkElement.WidthProperty)
         {
-            TextEditorCore.DocumentManager.
+            TextEditorCore.DocumentManager.DocumentWidth = (double) e.NewValue;
         }
         else if (e.Property == FrameworkElement.HeightProperty)
         {
-
+            TextEditorCore.DocumentManager.DocumentHeight = (double) e.NewValue;
         }
     }
 

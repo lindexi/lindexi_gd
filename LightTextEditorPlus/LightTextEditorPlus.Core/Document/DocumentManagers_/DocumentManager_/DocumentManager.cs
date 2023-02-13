@@ -27,16 +27,16 @@ namespace LightTextEditorPlus.Core.Document
         public TextEditor TextEditor { get; }
 
         /// <summary>
-        /// 文档的宽度
+        /// 文档的宽度。受 <see cref="LightTextEditorPlus.Core.TextEditorCore.SizeToContent"/> 影响
         /// </summary>
         /// 文档的宽度不等于渲染宽度。布局尺寸请参阅 <see cref="TextEditorCore.GetDocumentLayoutBounds"/> 方法
-        internal double DocumentWidth { set; get; } = double.PositiveInfinity;
+        public double DocumentWidth { set; get; } = double.PositiveInfinity;
 
         /// <summary>
-        /// 文档的高度
+        /// 文档的高度。受 <see cref="LightTextEditorPlus.Core.TextEditorCore.SizeToContent"/> 影响
         /// </summary>
         /// 文档的高度不等于渲染高度。布局尺寸请参阅 <see cref="TextEditorCore.GetDocumentLayoutBounds"/> 方法
-        internal double DocumentHeight { set; get; } = double.PositiveInfinity;
+        public double DocumentHeight { set; get; } = double.PositiveInfinity;
 
         /// <summary>
         /// 文档的字符编辑提供器
