@@ -122,6 +122,12 @@ public partial class TextEditor
         SetRunProperty(p => p.FontWeight = fontWeight, PropertyType.FontWeight, selection);
     }
 
+    /// <summary>
+    /// 设置字符属性。如果传入的 <paramref name="selection"/> 是空，将会使用当前选择。当前选择是空将会修改当前光标字符属性。修改当前光标字符属性样式，只触发 StyleChanging 和 StyleChanged 事件，不触发布局变更
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="property"></param>
+    /// <param name="selection"></param>
     internal void SetRunProperty(Action<RunProperty> action, PropertyType property, Selection? selection)
     {
         selection ??= CurrentSelection;
