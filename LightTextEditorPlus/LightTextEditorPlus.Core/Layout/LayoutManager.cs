@@ -467,6 +467,7 @@ abstract class ArrangingLayoutProvider
         Point firstStartPoint = default;
 
         var paragraphList = TextEditor.DocumentManager.DocumentRunEditProvider.ParagraphManager.GetParagraphList();
+
         Debug.Assert(paragraphList.Count > 0);
         for (var index = 0; index < paragraphList.Count; index++)
         {

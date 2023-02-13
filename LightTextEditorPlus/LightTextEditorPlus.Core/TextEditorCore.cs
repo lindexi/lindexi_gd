@@ -135,7 +135,7 @@ public partial class TextEditorCore
         RequireDispatchUpdateLayout("DocumentChanged");
     }
 
-    private void RequireDispatchUpdateLayout(string updateReason)
+    internal void RequireDispatchUpdateLayout(string updateReason)
     {
         _layoutUpdateReasonManager?.AddLayoutReason(updateReason);
         PlatformProvider.RequireDispatchUpdateLayout(UpdateLayout);
