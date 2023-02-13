@@ -19,9 +19,13 @@ class TextView : UIElement, IRenderManager
 
         // 因为此类型永远不可被命中，所以直接重写并不再处理基类的命中测试改变方法。
         IsHitTestVisibleProperty.OverrideMetadata(typeof(TextView), new UIPropertyMetadata(false));
+
+        _visualCollection = new VisualCollection(this);
     }
 
     private readonly TextEditor _textEditor;
+    private readonly VisualCollection _visualCollection;
+
     private TextRenderBase? _textRenderBase;
 
     public void Render(RenderInfoProvider renderInfoProvider)
@@ -31,13 +35,13 @@ class TextView : UIElement, IRenderManager
         var drawingVisual = textRender.Render(renderInfoProvider, _textEditor);
 
         // 需要加入逻辑树，且需要将旧的从逻辑树移除。否则将看不到文本
-        if (_drawingVisual is not null)
+        if (_textDrawingVisual is not null)
         {
-            RemoveVisualChild(_drawingVisual);
+            _visualCollection.Remove(_textDrawingVisual);
         }
 
-        _drawingVisual = drawingVisual;
-        AddVisualChild(drawingVisual);
+        _textDrawingVisual = drawingVisual;
+        _visualCollection.Add(drawingVisual);
 
         InvalidateVisual();
     }
@@ -65,11 +69,11 @@ class TextView : UIElement, IRenderManager
         }
     }
 
-    private DrawingVisual? _drawingVisual;
+    private DrawingVisual? _textDrawingVisual;
 
-    protected override Visual GetVisualChild(int index) => _drawingVisual!;
+    protected override Visual GetVisualChild(int index) => _visualCollection[index];
 
-    protected override int VisualChildrenCount => _drawingVisual is null ? 0 : 1;
+    protected override int VisualChildrenCount => _visualCollection.Count;
 
     #region 禁用命中测试
 
