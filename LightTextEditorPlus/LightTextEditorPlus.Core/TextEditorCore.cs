@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Document;
@@ -137,6 +138,13 @@ public partial class TextEditorCore
 
     internal void RequireDispatchUpdateLayout(string updateReason)
     {
+        // 如果当前还没有任何的字符内容，那就不请求更新布局了
+        if (DocumentManager.CharCount == 0)
+        {
+            Logger.LogDebug($"[TextEditorCore] 请求布局失败 DocumentManager.CharCount == 0");
+            return;
+        }
+
         _layoutUpdateReasonManager?.AddLayoutReason(updateReason);
         PlatformProvider.RequireDispatchUpdateLayout(UpdateLayout);
     }
@@ -173,7 +181,7 @@ public partial class TextEditorCore
         LayoutCompleted?.Invoke(this, new LayoutCompletedEventArgs());
 
         Logger.LogDebug($"[TextEditorCore][Render] 开始调用平台渲染");
- 
+
         // 布局完成，触发渲染
         var renderManager = PlatformProvider.GetRenderManager();
         renderManager?.Render(_renderInfoProvider);

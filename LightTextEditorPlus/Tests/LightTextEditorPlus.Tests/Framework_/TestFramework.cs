@@ -67,6 +67,7 @@ public class TestFramework
 
         var mainWindow = new MainWindow();
         var textEditor = mainWindow.TextEditor;
+        textEditor.Width = 1000;
 
         mainWindow.Show();
         return new TextEditTestContext(mainWindow, textEditor);
