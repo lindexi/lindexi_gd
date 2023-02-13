@@ -147,7 +147,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager
         }
         else if (e.Property == FrameworkElement.WidthProperty)
         {
-
+            TextEditorCore.DocumentManager.
         }
         else if (e.Property == FrameworkElement.HeightProperty)
         {
