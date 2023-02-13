@@ -205,7 +205,7 @@ namespace LightTextEditorPlus.Core.Document
         }
 
         /// <summary>
-        /// 设置当前光标的字符属性。在光标切走之后，自动失效
+        /// 设置当前光标的字符属性。在光标切走之后，自动失效。修改当前光标字符属性样式，只触发 StyleChanging 和 StyleChanged 事件，不触发布局变更
         /// </summary>
         /// <typeparam name="T">实际业务端使用的字符属性类型</typeparam>
         /// <param name="config"></param>

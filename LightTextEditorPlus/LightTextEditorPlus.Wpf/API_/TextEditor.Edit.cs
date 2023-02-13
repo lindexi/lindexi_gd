@@ -97,8 +97,7 @@ public partial class TextEditor
     {
         selection ??= CurrentSelection;
         OnStyleChanging(new StyleChangeEventArgs(selection.Value, property, TextEditorCore.IsUndoRedoMode));
-
-        // 设置当前的属性，如果没有选择内容，则设置当前光标的属性。设置光标属性，在输入之后，将会修改光标，从而干掉光标属性。干掉了光标属性，将会获取当前光标对应的字符的属性
+        
         TextEditorCore.DocumentManager.SetRunProperty<RunProperty>(action, selection);
 
         OnStyleChanged(new StyleChangeEventArgs(selection.Value, property, TextEditorCore.IsUndoRedoMode));

@@ -100,8 +100,14 @@ public partial class TextEditor : FrameworkElement, IRenderManager
     public void SetCurrentCaretRunProperty(Action<RunProperty> config)
         => TextEditorCore.DocumentManager.SetCurrentCaretRunProperty<RunProperty>(config);
 
+    /// <summary>
+    /// 设置当前的属性，如果没有选择内容，则设置当前光标的属性。设置光标属性，在输入之后，将会修改光标，从而干掉光标属性。干掉了光标属性，将会获取当前光标对应的字符的属性
+    /// </summary>
+    /// <param name="config"></param>
+    /// <param name="selection"></param>
+    /// <remarks>这是给业务层调用的，非框架内调用</remarks>
     public void SetRunProperty(Action<RunProperty> config, Selection? selection = null)
-        => TextEditorCore.DocumentManager.SetRunProperty(config, selection);
+        => SetRunProperty(config, PropertyType.All, selection);
 
     #endregion
 
