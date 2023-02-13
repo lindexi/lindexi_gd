@@ -9,6 +9,7 @@ using System.Net.Security;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Documents;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
@@ -29,7 +30,7 @@ using LightTextEditorPlus.TextEditorPlus.Render;
 using LightTextEditorPlus.Utils.Threading;
 
 using Microsoft.Win32;
-
+using FrameworkElement = System.Windows.FrameworkElement;
 using Point = LightTextEditorPlus.Core.Primitive.Point;
 using Rect = LightTextEditorPlus.Core.Primitive.Rect;
 using Size = LightTextEditorPlus.Core.Primitive.Size;
@@ -124,6 +125,34 @@ public partial class TextEditor : FrameworkElement, IRenderManager
     void IRenderManager.Render(RenderInfoProvider renderInfoProvider)
     {
         TextView.Render(renderInfoProvider);
+    }
+
+    protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+    {
+        if (e.Property == TextElement.ForegroundProperty)
+        {
+            // 被设置文本前景色
+            var brush = e.NewValue as Brush;
+            if (brush is null)
+            {
+                return;
+            }
+
+            if (!brush.IsFrozen)
+            {
+                brush = brush.Clone();
+                brush.Freeze();
+            }
+            SetForeground(new ImmutableBrush(brush));
+        }
+        else if (e.Property == FrameworkElement.WidthProperty)
+        {
+
+        }
+        else if (e.Property == FrameworkElement.HeightProperty)
+        {
+
+        }
     }
 
     #endregion
