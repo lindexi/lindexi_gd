@@ -46,10 +46,7 @@ public partial class TextEditorSettingsControl : UserControl
     {
         var fontFamily = (string) e.AddedItems[0]!;
 
-        TextEditor.SetRunProperty(runProperty =>
-        {
-            runProperty.FontName = new FontName(fontFamily);
-        });
+        TextEditor.SetFontName(fontFamily);
     }
 
     private void ApplyFontSizeButton_OnClick(object sender, RoutedEventArgs e)

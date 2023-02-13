@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows;
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Events;
 
@@ -12,6 +13,24 @@ public partial class TextEditor
     #region Style
 
     #region RunProperty
+
+    /// <summary>
+    /// 设置字体名
+    /// </summary>
+    /// <param name="fontName">如果字体不存在，将会自动回滚</param>
+    /// <param name="selection"></param>
+    public void SetFontName(string fontName, Selection? selection = null)
+        => SetFontName(new FontName(fontName), selection);
+
+    /// <summary>
+    /// 设置字体名
+    /// </summary>
+    /// <param name="fontName">如果字体不存在，将会自动回滚</param>
+    /// <param name="selection"></param>
+    public void SetFontName(FontName fontName, Selection? selection = null)
+    {
+        SetRunProperty(p => p.FontName = fontName, PropertyType.FontSize, selection);
+    }
 
     /// <summary>
     /// 设置字体大小
