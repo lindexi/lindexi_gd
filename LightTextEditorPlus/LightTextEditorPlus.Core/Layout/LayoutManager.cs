@@ -107,7 +107,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         {
             SizeToContent.Manual => TextEditor.DocumentManager.DocumentWidth,
             SizeToContent.Width => double.PositiveInfinity,
-            SizeToContent.Height => TextEditor.DocumentManager.DocumentHeight,
+            SizeToContent.Height => TextEditor.DocumentManager.DocumentWidth,
             SizeToContent.WidthAndHeight => double.PositiveInfinity,
             _ => throw new ArgumentOutOfRangeException()
         };
