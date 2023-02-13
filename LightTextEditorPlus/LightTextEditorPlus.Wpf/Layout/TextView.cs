@@ -16,6 +16,9 @@ class TextView : UIElement, IRenderManager
     public TextView(TextEditor textEditor)
     {
         _textEditor = textEditor;
+
+        // 因为此类型永远不可被命中，所以直接重写并不再处理基类的命中测试改变方法。
+        IsHitTestVisibleProperty.OverrideMetadata(typeof(TextView), new UIPropertyMetadata(false));
     }
 
     private readonly TextEditor _textEditor;

@@ -6,6 +6,9 @@ using LightTextEditorPlus.Core.Utils.Maths;
 
 namespace LightTextEditorPlus.Core.Document
 {
+    /// <summary>
+    /// 只读的文本字符属性
+    /// </summary>
     public interface IReadOnlyRunProperty : IEquatable<IReadOnlyRunProperty>
     {
         /// <summary>
