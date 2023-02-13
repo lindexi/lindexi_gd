@@ -30,13 +30,35 @@ namespace LightTextEditorPlus.Core.Document
         /// 文档的宽度。受 <see cref="LightTextEditorPlus.Core.TextEditorCore.SizeToContent"/> 影响
         /// </summary>
         /// 文档的宽度不等于渲染宽度。布局尺寸请参阅 <see cref="TextEditorCore.GetDocumentLayoutBounds"/> 方法
-        public double DocumentWidth { set; get; } = double.PositiveInfinity;
+        public double DocumentWidth
+        {
+            set
+            {
+                _documentWidth = value;
+
+                TextEditor.RequireDispatchUpdateLayout("DocumentWidthChanged");
+            }
+            get => _documentWidth;
+        }
+
+        private double _documentWidth = double.PositiveInfinity;
 
         /// <summary>
         /// 文档的高度。受 <see cref="LightTextEditorPlus.Core.TextEditorCore.SizeToContent"/> 影响
         /// </summary>
         /// 文档的高度不等于渲染高度。布局尺寸请参阅 <see cref="TextEditorCore.GetDocumentLayoutBounds"/> 方法
-        public double DocumentHeight { set; get; } = double.PositiveInfinity;
+        public double DocumentHeight
+        {
+            set
+            {
+                _documentHeight = value;
+
+                TextEditor.RequireDispatchUpdateLayout("DocumentWidthChanged");
+            }
+            get => _documentHeight;
+        }
+
+        private double _documentHeight = double.PositiveInfinity;
 
         /// <summary>
         /// 文档的字符编辑提供器
@@ -51,6 +73,11 @@ namespace LightTextEditorPlus.Core.Document
         private CaretManager CaretManager => TextEditor.CaretManager;
 
         #region 事件
+
+        ///// <summary>
+        ///// 给内部提供的文档尺寸变更事件
+        ///// </summary>
+        //internal event EventHandler? InternalDocumentSizeChanged; 
 
         /// <summary>
         /// 给内部提供的文档开始变更事件

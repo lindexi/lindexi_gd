@@ -468,6 +468,13 @@ abstract class ArrangingLayoutProvider
 
         var paragraphList = TextEditor.DocumentManager.DocumentRunEditProvider.ParagraphManager.GetParagraphList();
 
+        if (paragraphList.Count == 0)
+        {
+            // 文档连一段都没有，那就是空白的文档了，啥也不用干
+            TextEditor.Logger.LogDebug($"文档一段都没有，文档是空。不需要继续布局，返回空的宽度高度");
+            return new DocumentLayoutResult(new Rect(0, 0, 0, 0));
+        }
+
         Debug.Assert(paragraphList.Count > 0);
         for (var index = 0; index < paragraphList.Count; index++)
         {
