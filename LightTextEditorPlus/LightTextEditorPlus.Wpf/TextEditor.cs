@@ -111,6 +111,20 @@ public partial class TextEditor : FrameworkElement, IRenderManager
     public void SetRunProperty(Action<RunProperty> config, Selection? selection = null)
         => SetRunProperty(config, PropertyType.RunProperty, selection);
 
+    /// <summary>
+    /// 等待渲染完成
+    /// </summary>
+    /// <returns></returns>
+    public Task WaitForRenderCompletedAsync()
+    {
+        if (_renderCompletionSource.Task.IsCompleted && TextEditorCore.IsDirty)
+        {
+            // 已经完成渲染，但是当前的文档又是脏的。那就是需要重新等待渲染
+            _renderCompletionSource = new TaskCompletionSource();
+        }
+        return _renderCompletionSource.Task;
+    }
+
     #endregion
 
     #region 框架
@@ -126,7 +140,10 @@ public partial class TextEditor : FrameworkElement, IRenderManager
     void IRenderManager.Render(RenderInfoProvider renderInfoProvider)
     {
         TextView.Render(renderInfoProvider);
+        _renderCompletionSource.TrySetResult();
     }
+
+    private TaskCompletionSource _renderCompletionSource = new TaskCompletionSource();
 
     protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
     {
