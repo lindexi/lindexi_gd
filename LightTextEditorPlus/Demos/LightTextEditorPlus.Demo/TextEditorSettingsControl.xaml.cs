@@ -56,10 +56,7 @@ public partial class TextEditorSettingsControl : UserControl
     {
         if (double.TryParse(FontSizeTextBox.Text, out var fontSize))
         {
-            TextEditor.SetRunProperty(runProperty =>
-            {
-                runProperty.FontSize = fontSize;
-            });
+            TextEditor.SetFontSize(fontSize);
         }
         else
         {

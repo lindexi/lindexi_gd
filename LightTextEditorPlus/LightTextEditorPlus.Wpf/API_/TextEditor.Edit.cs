@@ -14,6 +14,16 @@ public partial class TextEditor
     #region RunProperty
 
     /// <summary>
+    /// 设置字体大小
+    /// </summary>
+    /// <param name="fontSize">使用WPF单位</param>
+    /// <param name="selection"></param>
+    public void SetFontSize(double fontSize, Selection? selection = null)
+    {
+        SetRunProperty(p => p.FontSize = fontSize, PropertyType.FontSize, selection);
+    }
+
+    /// <summary>
     /// 设置前景色
     /// </summary>
     /// <param name="foreground"></param>
