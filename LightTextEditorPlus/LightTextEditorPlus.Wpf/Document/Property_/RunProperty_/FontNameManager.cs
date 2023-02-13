@@ -229,7 +229,7 @@ public class FontNameManager
                     familyNamesWithAllCulture.Add(familyName);
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // 获取当前机器上的字体名称失败
             }
@@ -261,7 +261,7 @@ public class FontNameManager
             return familiesNames.ToList();
         }
         //Fonts.SystemFontFamilies可能会抛出异常
-        catch (Exception e)
+        catch (Exception)
         {
             return new List<string>(0);
         }
@@ -274,7 +274,7 @@ public class FontNameManager
             var fc = new InstalledFontCollection();
             return fc.Families.ToList();
         }
-        catch (Exception e)
+        catch (Exception)
         {
             return new List<System.Drawing.FontFamily>(0);
         }

@@ -20,7 +20,7 @@ namespace LightTextEditorPlus.TextEditorPlus.Render
         /// <param name="unicodeChar"></param>
         /// <param name="info"></param>
         /// <returns></returns>
-        public static bool TryGetGlyphInfo( Typeface typeface, char unicodeChar, out GlyphInfo info)
+        public static bool TryGetGlyphInfo( Typeface typeface, char unicodeChar, out GlyphInfo? info)
         {
             if (typeface is null)
             {
@@ -43,7 +43,6 @@ namespace LightTextEditorPlus.TextEditorPlus.Render
             {
                 var fallbackTypeface = new Typeface(new FontFamily(familyName), typeface.Style, typeface.Weight,
                     typeface.Stretch);
-
 
                 if (fallbackTypeface.TryGetGlyphTypeface(out var fallbackGlyph))
                 {
@@ -69,7 +68,6 @@ namespace LightTextEditorPlus.TextEditorPlus.Render
         {
             return BuildSingleGlyphRun(info, fontSize, new Point());
         }
-
 
         /// <summary>
         /// 获取指定大小,位置的单个<see cref="GlyphRun"/>
