@@ -107,7 +107,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager
     /// <param name="selection"></param>
     /// <remarks>这是给业务层调用的，非框架内调用</remarks>
     public void SetRunProperty(Action<RunProperty> config, Selection? selection = null)
-        => SetRunProperty(config, PropertyType.All, selection);
+        => SetRunProperty(config, PropertyType.RunProperty, selection);
 
     #endregion
 
