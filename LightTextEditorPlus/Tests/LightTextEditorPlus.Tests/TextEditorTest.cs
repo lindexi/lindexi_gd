@@ -1,5 +1,7 @@
 using System.Windows;
+
 using dotnetCampus.UITest.WPF;
+
 using MSTest.Extensions.Contracts;
 
 namespace LightTextEditorPlus.Tests;
@@ -17,8 +19,8 @@ public class TextEditorTest
             var textEditor = context.TextEditor;
 
             // Action
-            // 设置 TextEditor 的宽度，设置为 35 宽度，字体选用微软雅黑 30 字体，那就放不下两个字符
-            textEditor.Width = 35;
+            // 设置 TextEditor 的宽度，设置为 50 宽度，字体选用微软雅黑 30 字体，那就放不下两个字符
+            textEditor.Width = 50;
             textEditor.SetFontName("微软雅黑");
             textEditor.SetFontSize(30);
 
@@ -33,7 +35,8 @@ public class TextEditorTest
             // 布局渲染一段两行
             var paragraphRenderInfo = renderInfoProvider.GetParagraphRenderInfoList().First();
             var lineRenderInfoList = paragraphRenderInfo.GetLineRenderInfoList().ToList();
-            Assert.AreEqual(2,lineRenderInfoList.Count);
+
+            Assert.AreEqual(2, lineRenderInfoList.Count, "设置 TextEditor 的宽度，设置为 50 宽度，字体选用微软雅黑 30 字体，将布局两行");
         });
     }
 
