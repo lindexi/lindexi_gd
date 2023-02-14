@@ -37,9 +37,9 @@ public class CaretRenderInfo
             {
                 LineIndex = lineIndex;
                 HitLineOffset = HitOffset.Offset - lineLayoutData.CharStartParagraphIndex;
-                //var charData = lineLayoutData.GetCharList()[HitLineOffset];
-
-                break;
+                var charData = lineLayoutData.GetCharList()[HitLineOffset];
+                CharData = charData;
+                return;
             }
         }
     }
@@ -54,7 +54,7 @@ public class CaretRenderInfo
     /// </summary>
     public int HitLineOffset { get; }
 
-    public CharData GetCharData() => ParagraphData.LineLayoutDataList[LineIndex].GetCharList()[HitLineOffset];
+    public CharData CharData { get; }
 
     internal ParagraphData ParagraphData { get; }
     internal ParagraphCaretOffset HitOffset { get; }

@@ -214,7 +214,7 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
 
                 // 获取光标的坐标
                 var caretRenderInfo = _renderInfoProvider.GetCaretRenderInfo(currentSelection.FrontOffset);
-                var charData = caretRenderInfo.GetCharData();
+                var charData = caretRenderInfo.CharData;
                 
                 switch (_textEditor.TextEditorCore.ArrangingType)
                 {
