@@ -242,9 +242,9 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
                         // 可以获取到起始点，那肯定存在尺寸
                         x += charData.Size!.Value.Width;
                         var width = _textEditor.CaretConfiguration.CaretWidth;
-                        var height = charData.Size!.Value.Height;
+                        var height = _textEditor.CurrentCaretRunProperty.FontSize;
                         var foreground = _textEditor.CaretConfiguration.CaretBrush ??
-                                         charData.RunProperty.AsRunProperty().Foreground.Value;
+                                         _textEditor.CurrentCaretRunProperty.Foreground.Value;
 
                         var rectangle = new Rect(x, y, width, height);
                         var drawingContext = RenderOpen();
