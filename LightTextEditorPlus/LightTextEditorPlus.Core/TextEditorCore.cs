@@ -87,12 +87,12 @@ public partial class TextEditorCore
 
         CaretManager = new CaretManager(this);
         CaretManager.InternalCurrentCaretOffsetChanging +=
-            (sender, args) => CurrentCaretOffsetChanging?.Invoke(sender, args);
+            CaretManager_InternalCurrentCaretOffsetChanging;
         CaretManager.InternalCurrentCaretOffsetChanged +=
-            (sender, args) => CurrentCaretOffsetChanged?.Invoke(sender, args);
+            CaretManager_InternalCurrentCaretOffsetChanged;
         CaretManager.InternalCurrentSelectionChanging +=
-            (sender, args) => CurrentSelectionChanging?.Invoke(sender, args);
-        CaretManager.InternalCurrentSelectionChanged += (sender, args) => CurrentSelectionChanged?.Invoke(sender, args);
+            CaretManager_InternalCurrentSelectionChanging;
+        CaretManager.InternalCurrentSelectionChanged += CaretManager_InternalCurrentSelectionChanged;
 
         _layoutManager = new LayoutManager(this);
         _layoutManager.InternalLayoutCompleted += LayoutManager_InternalLayoutCompleted;
@@ -117,6 +117,29 @@ public partial class TextEditorCore
 
     internal IPlatformRunPropertyCreator PlatformRunPropertyCreator => PlatformProvider.GetPlatformRunPropertyCreator();
 
+    #endregion
+
+    #region 光标
+
+    private void CaretManager_InternalCurrentCaretOffsetChanging(object? sender, TextEditorValueChangeEventArgs<CaretOffset> args)
+    {
+        CurrentCaretOffsetChanging?.Invoke(sender, args);
+    }
+
+    private void CaretManager_InternalCurrentCaretOffsetChanged(object? sender, TextEditorValueChangeEventArgs<CaretOffset> args)
+    {
+        CurrentCaretOffsetChanged?.Invoke(sender, args);
+    }
+
+    private void CaretManager_InternalCurrentSelectionChanging(object? sender, TextEditorValueChangeEventArgs<Selection> args)
+    {
+        CurrentSelectionChanging?.Invoke(sender, args);
+    }
+
+    private void CaretManager_InternalCurrentSelectionChanged(object? sender, TextEditorValueChangeEventArgs<Selection> args)
+    {
+        CurrentSelectionChanged?.Invoke(sender, args);
+    }
     #endregion
 
     private void DocumentManager_InternalDocumentChanging(object? sender, EventArgs e)
