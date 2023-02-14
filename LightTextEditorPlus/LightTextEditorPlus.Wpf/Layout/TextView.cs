@@ -158,6 +158,7 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
             var caretBlinkTime = Win32Interop.GetCaretBlinkTime();
             // 要求闪烁至少是16毫秒。因为可能拿到 0 的值
             caretBlinkTime = Math.Max(16, caretBlinkTime);
+            caretBlinkTime = Math.Min(1000, caretBlinkTime);
             return TimeSpan.FromMilliseconds(caretBlinkTime);
         }
     }
@@ -181,6 +182,13 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
         _caretBlinkTimer ??= new CaretBlinkDispatcherTimer(this);
         _caretBlinkTimer.Interval = CaretBlinkTime;
         _caretBlinkTimer.Start();
+
+        if (_caretBlinkTimer.Interval > TimeSpan.FromMilliseconds(16))
+        {
+            // 如果超过 16 毫秒才开始闪烁，那先调用显示光标，否则可能需要等待一会
+            ICaretManager caretManager = this;
+            caretManager.OnTick();
+        }
     }
 
     /// <summary>
