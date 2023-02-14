@@ -19,8 +19,9 @@ public readonly struct CaretOffset : IEquatable<CaretOffset>
     /// 创建文本光标偏移量
     /// </summary>
     /// <param name="offset"></param>
+    /// <param name="isAtLineStart">设置当前Offset是否处于当前行的起始位置</param>
     [DebuggerStepThrough]
-    public CaretOffset(int offset)
+    public CaretOffset(int offset, bool isAtLineStart=false)
     {
         if (offset < 0)
         {
@@ -28,12 +29,18 @@ public readonly struct CaretOffset : IEquatable<CaretOffset>
         }
 
         Offset = offset;
+        IsAtLineStart = isAtLineStart;
     }
 
     /// <summary>
     /// 光标偏移量
     /// </summary>
     public int Offset { get; }
+
+    /// <summary>
+    /// 获取或设置当前 <see cref="Offset"/> 是否处于当前行的起始位置（在段落起始位置时也属于在行首）
+    /// </summary>
+    public bool IsAtLineStart { get; }
 
     public bool Equals(CaretOffset other)
     {
