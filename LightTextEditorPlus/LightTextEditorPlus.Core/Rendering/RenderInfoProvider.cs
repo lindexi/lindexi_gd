@@ -29,9 +29,9 @@ public class CaretRenderInfo
         ParagraphData = hitParagraphDataResult.ParagraphData;
         HitOffset = hitParagraphDataResult.HitOffset;
 
-        for (var lineIndex = 0; lineIndex < ParagraphData.LineVisualDataList.Count; lineIndex++)
+        for (var lineIndex = 0; lineIndex < ParagraphData.LineLayoutDataList.Count; lineIndex++)
         {
-            var lineLayoutData = ParagraphData.LineVisualDataList[lineIndex];
+            var lineLayoutData = ParagraphData.LineLayoutDataList[lineIndex];
 
             if (lineLayoutData.CharEndParagraphIndex > HitOffset.Offset)
             {
@@ -54,7 +54,7 @@ public class CaretRenderInfo
     /// </summary>
     public int HitLineOffset { get; }
 
-    public CharData GetCharData() => ParagraphData.LineVisualDataList[LineIndex].GetCharList()[HitLineOffset];
+    public CharData GetCharData() => ParagraphData.LineLayoutDataList[LineIndex].GetCharList()[HitLineOffset];
 
     internal ParagraphData ParagraphData { get; }
     internal ParagraphCaretOffset HitOffset { get; }
@@ -126,9 +126,9 @@ public readonly struct ParagraphRenderInfo
 
     public IEnumerable<ParagraphLineRenderInfo> GetLineRenderInfoList()
     {
-        for (var i = 0; i < _paragraphData.LineVisualDataList.Count; i++)
+        for (var i = 0; i < _paragraphData.LineLayoutDataList.Count; i++)
         {
-            LineLayoutData lineLayoutData = _paragraphData.LineVisualDataList[i];
+            LineLayoutData lineLayoutData = _paragraphData.LineLayoutDataList[i];
 
             var argument = lineLayoutData.GetLineDrawingArgument();
 

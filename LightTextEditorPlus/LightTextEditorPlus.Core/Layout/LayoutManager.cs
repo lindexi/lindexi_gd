@@ -92,7 +92,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         var currentStartPoint = argument.CurrentStartPoint;
         ParagraphData paragraph = argument.ParagraphData;
 
-        foreach (LineLayoutData lineVisualData in argument.ParagraphData.LineVisualDataList)
+        foreach (LineLayoutData lineVisualData in argument.ParagraphData.LineLayoutDataList)
         {
             UpdateLineVisualDataStartPoint(lineVisualData, currentStartPoint);
 
@@ -170,7 +170,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 charData.CharLayoutData.UpdateVersion();
             }
 
-            paragraph.LineVisualDataList.Add(currentLineLayoutData);
+            paragraph.LineLayoutDataList.Add(currentLineLayoutData);
 
             i += result.CharCount;
 
@@ -193,7 +193,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // todo 考虑行复用，例如刚好添加的内容是一行。或者在一行内做文本替换等
         // 这个没有啥优先级。测试了 SublimeText 和 NotePad 工具，都没有做此复用，预计有坑
 
-        argument.ParagraphData.ParagraphLayoutData.StartPoint = argument.ParagraphData.LineVisualDataList[0].StartPoint;
+        argument.ParagraphData.ParagraphLayoutData.StartPoint = argument.ParagraphData.LineLayoutDataList[0].StartPoint;
         argument.ParagraphData.ParagraphLayoutData.Size = BuildParagraphSize(argument);
 
         // 设置当前段落已经布局完成
@@ -380,7 +380,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     private static Size BuildParagraphSize(in ParagraphLayoutArgument argument)
     {
         var paragraphSize = new Size(0, 0);
-        foreach (var lineVisualData in argument.ParagraphData.LineVisualDataList)
+        foreach (var lineVisualData in argument.ParagraphData.LineLayoutDataList)
         {
             var width = Math.Max(paragraphSize.Width, lineVisualData.Size.Width);
             var height = paragraphSize.Height + lineVisualData.Size.Height;
@@ -542,9 +542,9 @@ abstract class ArrangingLayoutProvider
         // 首个是脏的行的序号
         var lastIndex = -1;
         var paragraph = argument.ParagraphData;
-        for (var index = 0; index < paragraph.LineVisualDataList.Count; index++)
+        for (var index = 0; index < paragraph.LineLayoutDataList.Count; index++)
         {
-            LineLayoutData lineLayoutData = paragraph.LineVisualDataList[index];
+            LineLayoutData lineLayoutData = paragraph.LineLayoutDataList[index];
             if (lineLayoutData.IsDirty == false)
             {
                 dirtyParagraphOffset += lineLayoutData.CharCount;
@@ -562,27 +562,27 @@ abstract class ArrangingLayoutProvider
         if (lastIndex == 0)
         {
             // 一段的首行是脏的，将后续全部删掉
-            foreach (var lineLayoutData in paragraph.LineVisualDataList)
+            foreach (var lineLayoutData in paragraph.LineLayoutDataList)
             {
                 lineLayoutData.Dispose();
             }
 
-            paragraph.LineVisualDataList.Clear();
+            paragraph.LineLayoutDataList.Clear();
         }
         else if (lastIndex > 0)
         {
-            for (var i = lastIndex; i < paragraph.LineVisualDataList.Count; i++)
+            for (var i = lastIndex; i < paragraph.LineLayoutDataList.Count; i++)
             {
-                var lineVisualData = paragraph.LineVisualDataList[i];
+                var lineVisualData = paragraph.LineLayoutDataList[i];
                 lineVisualData.Dispose();
             }
 
-            paragraph.LineVisualDataList.RemoveRange(lastIndex, paragraph.LineVisualDataList.Count - lastIndex);
+            paragraph.LineLayoutDataList.RemoveRange(lastIndex, paragraph.LineLayoutDataList.Count - lastIndex);
         }
         else
         {
             // 这一段一个脏的行都没有。那可能是直接在空段追加，或者是首次布局
-            Debug.Assert(paragraph.LineVisualDataList.Count == 0);
+            Debug.Assert(paragraph.LineLayoutDataList.Count == 0);
         }
 
         // 不需要通过如此复杂的逻辑获取有哪些，因为存在的坑在于后续分拆 IImmutableRun 逻辑将会复杂
@@ -628,7 +628,7 @@ abstract class ArrangingLayoutProvider
 
 #if DEBUG
             // 排版的结果如何？通过段落里面的每一行的信息，可以了解
-            var lineVisualDataList = paragraph.LineVisualDataList;
+            var lineVisualDataList = paragraph.LineLayoutDataList;
             foreach (var lineLayoutData in lineVisualDataList)
             {
                 // 每一行有多少个字符，字符的坐标

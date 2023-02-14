@@ -84,7 +84,7 @@ class LineLayoutData : IParagraphCache, IDisposable
                 throw new TextEditorDirtyException();
             }
 
-            return CurrentParagraph.LineVisualDataList.FindIndex(t => ReferenceEquals(t, this));
+            return CurrentParagraph.LineLayoutDataList.FindIndex(t => ReferenceEquals(t, this));
         }
     }
 
