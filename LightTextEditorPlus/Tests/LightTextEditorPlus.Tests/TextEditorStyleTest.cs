@@ -1,4 +1,4 @@
-using System.Windows;
+ï»¿using System.Windows;
 using dotnetCampus.UITest.WPF;
 using MSTest.Extensions.Contracts;
 
@@ -10,16 +10,16 @@ public class TextEditorStyleTest
     [UIContractTestCase]
     public void ChangeStyle()
     {
-        "Î´Ñ¡ÔñÊ±£¬ĞŞ¸Äµ±Ç°¹â±ê×Ö·ûÊôĞÔÑùÊ½£¬Ö»´¥·¢ StyleChanging ºÍ StyleChanged ÊÂ¼ş£¬²»´¥·¢²¼¾Ö±ä¸ü".Test(() =>
+        "æœªé€‰æ‹©æ—¶ï¼Œä¿®æ”¹å½“å‰å…‰æ ‡å­—ç¬¦å±æ€§æ ·å¼ï¼Œåªè§¦å‘ StyleChanging å’Œ StyleChanged äº‹ä»¶ï¼Œä¸è§¦å‘å¸ƒå±€å˜æ›´".Test(() =>
         {
             // Arrange
             using var context = TestFramework.CreateTextEditorInNewWindow();
             var textEditor = context.TextEditor;
-            // Ö»´¥·¢ StyleChanging ºÍ StyleChanged ÊÂ¼ş¡£²»ÓÃ²âÊÔÁË£¬½»¸øÆäËûµ¥Ôª²âÊÔ
+            // åªè§¦å‘ StyleChanging å’Œ StyleChanged äº‹ä»¶ã€‚ä¸ç”¨æµ‹è¯•äº†ï¼Œäº¤ç»™å…¶ä»–å•å…ƒæµ‹è¯•
             textEditor.TextEditorCore.LayoutCompleted += (sender, args) =>
             {
                 // Assert
-                // Î´Ñ¡ÔñÊ±£¬ĞŞ¸Äµ±Ç°¹â±ê×Ö·ûÊôĞÔÑùÊ½£¬Ö»´¥·¢ StyleChanging ºÍ StyleChanged ÊÂ¼ş£¬²»´¥·¢²¼¾Ö±ä¸ü
+                // æœªé€‰æ‹©æ—¶ï¼Œä¿®æ”¹å½“å‰å…‰æ ‡å­—ç¬¦å±æ€§æ ·å¼ï¼Œåªè§¦å‘ StyleChanging å’Œ StyleChanged äº‹ä»¶ï¼Œä¸è§¦å‘å¸ƒå±€å˜æ›´
                 Assert.Fail();
             };
 
@@ -27,7 +27,7 @@ public class TextEditorStyleTest
             textEditor.ToggleBold();
         });
 
-        "ĞŞ¸ÄÑùÊ½Ê±£¬ÏÈ´¥·¢ StyleChanging ÊÂ¼ş£¬ÔÙ´¥·¢ StyleChanged ÊÂ¼ş£¬ÇÒÖ»´¥·¢Ò»´Î".Test(() =>
+        "ä¿®æ”¹æ ·å¼æ—¶ï¼Œå…ˆè§¦å‘ StyleChanging äº‹ä»¶ï¼Œå†è§¦å‘ StyleChanged äº‹ä»¶ï¼Œä¸”åªè§¦å‘ä¸€æ¬¡".Test(() =>
         {
             // Arrange
             using var context = TestFramework.CreateTextEditorInNewWindow();
@@ -49,7 +49,7 @@ public class TextEditorStyleTest
             textEditor.ToggleBold();
 
             // Assert
-            // Ö»´¥·¢Ò»´Î£¬Ò»¹²Á½¸öÊÂ¼ş
+            // åªè§¦å‘ä¸€æ¬¡ï¼Œä¸€å…±ä¸¤ä¸ªäº‹ä»¶
             Assert.AreEqual(2, count);
         });
     }
@@ -57,41 +57,41 @@ public class TextEditorStyleTest
     [UIContractTestCase]
     public void ToggleBold()
     {
-        "Î´Ñ¡ÔñÊ±£¬µ÷ÓÃ ToggleBold ¸øÎÄ±¾µ±Ç°¹â±êÉèÖÃ¼Ó´Ö£¬×·¼ÓÎÄ±¾Ö®ºó£¬µ±Ç°¹â±êµÄ×Ö·ûÊôĞÔÊÇ¼Ó´Ö".Test(async () =>
+        "æœªé€‰æ‹©æ—¶ï¼Œè°ƒç”¨ ToggleBold ç»™æ–‡æœ¬å½“å‰å…‰æ ‡è®¾ç½®åŠ ç²—ï¼Œè¿½åŠ æ–‡æœ¬ä¹‹åï¼Œå½“å‰å…‰æ ‡çš„å­—ç¬¦å±æ€§æ˜¯åŠ ç²—".Test(async () =>
         {
             // Arrange
             using var context = TestFramework.CreateTextEditorInNewWindow();
             var textEditor = context.TextEditor;
 
             // Action
-            // ÕâÀï»ñÈ¡µ½µÄÊÇÎ´Ñ¡ÔñµÄ
-            // Ö±½Óµ÷ÓÃ ToggleBold ¼´¿É
+            // è¿™é‡Œè·å–åˆ°çš„æ˜¯æœªé€‰æ‹©çš„
+            // ç›´æ¥è°ƒç”¨ ToggleBold å³å¯
             textEditor.ToggleBold();
 
-            // ×·¼ÓÎÄ±¾£¬Ô¤ÆÚ×·¼ÓÎÄ±¾²»»áµ¼ÖÂµ±Ç°¹â±êµÄ×Ö·ûÊôĞÔ²»¼Ó´Ö
+            // è¿½åŠ æ–‡æœ¬ï¼Œé¢„æœŸè¿½åŠ æ–‡æœ¬ä¸ä¼šå¯¼è‡´å½“å‰å…‰æ ‡çš„å­—ç¬¦å±æ€§ä¸åŠ ç²—
             textEditor.TextEditorCore.AppendText("a");
 
             // Assert
-            // µ±Ç°¹â±êµÄ×Ö·ûÊôĞÔÊÇ¼Ó´Ö
+            // å½“å‰å…‰æ ‡çš„å­—ç¬¦å±æ€§æ˜¯åŠ ç²—
             Assert.AreEqual(FontWeights.Bold, textEditor.CurrentCaretRunProperty.FontWeight);
             await TestFramework.FreezeTestToDebug();
         });
 
-        "Î´Ñ¡ÔñÊ±£¬¿ÉÒÔµ÷ÓÃ ToggleBold ¸øÎÄ±¾µ±Ç°¹â±êÉèÖÃ¼Ó´Ö".Test(async () =>
+        "æœªé€‰æ‹©æ—¶ï¼Œå¯ä»¥è°ƒç”¨ ToggleBold ç»™æ–‡æœ¬å½“å‰å…‰æ ‡è®¾ç½®åŠ ç²—".Test(async () =>
         {
             // Arrange
             using var context = TestFramework.CreateTextEditorInNewWindow();
             var textEditor = context.TextEditor;
 
             // Action
-            // ÕâÀï»ñÈ¡µ½µÄÊÇÎ´Ñ¡ÔñµÄ
-            // Ö±½Óµ÷ÓÃ ToggleBold ¼´¿É
+            // è¿™é‡Œè·å–åˆ°çš„æ˜¯æœªé€‰æ‹©çš„
+            // ç›´æ¥è°ƒç”¨ ToggleBold å³å¯
             textEditor.ToggleBold();
 
             // Assert
             Assert.AreEqual(FontWeights.Bold, textEditor.CurrentCaretRunProperty.FontWeight);
 
-            // ÖØĞÂµ÷ÓÃ ToggleBold ¿ÉÒÔÈ¥µô¼Ó´Ö
+            // é‡æ–°è°ƒç”¨ ToggleBold å¯ä»¥å»æ‰åŠ ç²—
             textEditor.ToggleBold();
             Assert.AreEqual(FontWeights.Normal, textEditor.CurrentCaretRunProperty.FontWeight);
 

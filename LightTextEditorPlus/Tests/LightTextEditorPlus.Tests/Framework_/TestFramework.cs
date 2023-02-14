@@ -1,4 +1,4 @@
-using System.Diagnostics;
+ï»¿using System.Diagnostics;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -74,7 +74,7 @@ public class TestFramework
     }
 
     /// <summary>
-    /// ÓÃÓÚµ÷ÊÔÏÂ¸¨ÖúÁË½âµ½µ±Ç°ÊÇ·ñ·ûºÏÔ¤ÆÚ£¬½«ÔİÍ£²âÊÔÂß¼­£¬¿ÉÒÔÖØĞÂ½øÈë´Ë·½·¨ÍË³ö¡£½ö Debug ÏÂÓĞĞ§
+    /// ç”¨äºè°ƒè¯•ä¸‹è¾…åŠ©äº†è§£åˆ°å½“å‰æ˜¯å¦ç¬¦åˆé¢„æœŸï¼Œå°†æš‚åœæµ‹è¯•é€»è¾‘ï¼Œå¯ä»¥é‡æ–°è¿›å…¥æ­¤æ–¹æ³•é€€å‡ºã€‚ä»… Debug ä¸‹æœ‰æ•ˆ
     /// </summary>
     /// <returns></returns>
     public static async Task FreezeTestToDebug()
@@ -83,7 +83,7 @@ public class TestFramework
         {
             for (int i = 0; i < int.MaxValue; i++)
             {
-                // ¿ÉÒÔÔÚÕâÀï´ò¶Ïµã½øĞĞÍË³öÂß¼­
+                // å¯ä»¥åœ¨è¿™é‡Œæ‰“æ–­ç‚¹è¿›è¡Œé€€å‡ºé€»è¾‘
                 await Task.Delay(TimeSpan.FromSeconds(1));
             }
         }

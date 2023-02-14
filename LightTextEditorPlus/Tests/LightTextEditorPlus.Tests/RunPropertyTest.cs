@@ -1,4 +1,4 @@
-using dotnetCampus.UITest.WPF;
+ï»¿using dotnetCampus.UITest.WPF;
 
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
@@ -14,7 +14,7 @@ public class RunPropertyTest
     [UIContractTestCase]
     public void GetGlyphTypeface()
     {
-        "Ã»ÓĞĞŞ¸Ä RunProperty µÄ×ÖÌåÏà¹ØÊôĞÔ£¬¿ÉÒÔ»ñÈ¡ºÍÑùÊ½ÏàÍ¬µÄ GlyphTypeface ¶ÔÏó".Test(() =>
+        "æ²¡æœ‰ä¿®æ”¹ RunProperty çš„å­—ä½“ç›¸å…³å±æ€§ï¼Œå¯ä»¥è·å–å’Œæ ·å¼ç›¸åŒçš„ GlyphTypeface å¯¹è±¡".Test(() =>
         {
             var (mainWindow, textEditor) = TestFramework.CreateTextEditorInNewWindow();
             var runPropertyCreator = textEditor.TextEditorPlatformProvider.GetPlatformRunPropertyCreator();
@@ -29,7 +29,7 @@ public class RunPropertyTest
 
             var runProperty = runPropertyCreator.BuildNewProperty(config =>
             {
-                // Ã»ÓĞĞŞ¸Ä RunProperty µÄ×ÖÌåÏà¹ØÊôĞÔ
+                // æ²¡æœ‰ä¿®æ”¹ RunProperty çš„å­—ä½“ç›¸å…³å±æ€§
             },styleRunProperty).AsRunProperty();
 
             var glyphTypeface2 = runProperty.GetGlyphTypeface();
@@ -37,7 +37,7 @@ public class RunPropertyTest
             Assert.AreSame(glyphTypeface1, glyphTypeface2);
         });
 
-        "ĞŞ¸Ä RunProperty ¶ÔÏó×ÖÌåÃû£¬¿ÉÒÔ»ñÈ¡µ½×ÖÌåµÄ GlyphTypeface ¶ÔÏó".Test(() =>
+        "ä¿®æ”¹ RunProperty å¯¹è±¡å­—ä½“åï¼Œå¯ä»¥è·å–åˆ°å­—ä½“çš„ GlyphTypeface å¯¹è±¡".Test(() =>
         {
             var (mainWindow, textEditor) = TestFramework.CreateTextEditorInNewWindow();
             var runPropertyCreator = textEditor.TextEditorPlatformProvider.GetPlatformRunPropertyCreator();
@@ -50,11 +50,11 @@ public class RunPropertyTest
 
             var glyphTypeface = runProperty.GetGlyphTypeface();
 
-            // Õâ¸ö×ÖÌå£¬ÀíÂÛÉÏÊÇ²»»á´æÔÚ±ğÃûµÄ
+            // è¿™ä¸ªå­—ä½“ï¼Œç†è®ºä¸Šæ˜¯ä¸ä¼šå­˜åœ¨åˆ«åçš„
             Assert.AreEqual("Arial", glyphTypeface.FamilyNames.Values.First());
         });
 
-        "¸ø¶¨ RunProperty ¶ÔÏó£¬¿ÉÒÔ»ñÈ¡µ½×ÖÌåµÄ GlyphTypeface ¶ÔÏó".Test(() =>
+        "ç»™å®š RunProperty å¯¹è±¡ï¼Œå¯ä»¥è·å–åˆ°å­—ä½“çš„ GlyphTypeface å¯¹è±¡".Test(() =>
         {
             var (mainWindow, textEditor) = TestFramework.CreateTextEditorInNewWindow();
             var runPropertyCreator = textEditor.TextEditorPlatformProvider.GetPlatformRunPropertyCreator();
@@ -69,16 +69,16 @@ public class RunPropertyTest
     [UIContractTestCase]
     public void Equals()
     {
-        "»ñÈ¡µÄÁ½¸öÄ¬ÈÏµÄ RunProperty ¶ÔÏó£¬ÅĞ¶ÏÏàµÈ£¬·µ»ØÏàµÈ".Test(() =>
+        "è·å–çš„ä¸¤ä¸ªé»˜è®¤çš„ RunProperty å¯¹è±¡ï¼Œåˆ¤æ–­ç›¸ç­‰ï¼Œè¿”å›ç›¸ç­‰".Test(() =>
         {
             var (mainWindow, textEditor) = TestFramework.CreateTextEditorInNewWindow();
             var runPropertyCreator = textEditor.TextEditorPlatformProvider.GetPlatformRunPropertyCreator();
 
-            // »ñÈ¡µÄÁ½¸öÄ¬ÈÏµÄ RunProperty ¶ÔÏó
+            // è·å–çš„ä¸¤ä¸ªé»˜è®¤çš„ RunProperty å¯¹è±¡
             var runProperty1 = runPropertyCreator.GetDefaultRunProperty();
             var runProperty2 = runPropertyCreator.GetDefaultRunProperty();
 
-            // ÅĞ¶ÏÏàµÈ£¬·µ»ØÏàµÈ
+            // åˆ¤æ–­ç›¸ç­‰ï¼Œè¿”å›ç›¸ç­‰
             var equals = runProperty1.Equals(runProperty2);
             Assert.AreEqual(true, equals);
         });
