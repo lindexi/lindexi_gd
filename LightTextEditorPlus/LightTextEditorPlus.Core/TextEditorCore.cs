@@ -82,9 +82,17 @@ public partial class TextEditorCore
         UndoRedoProvider = platformProvider.BuildTextEditorUndoRedoProvider();
 
         DocumentManager = new DocumentManager(this);
-        CaretManager = new CaretManager(this);
         DocumentManager.InternalDocumentChanging += DocumentManager_InternalDocumentChanging;
         DocumentManager.InternalDocumentChanged += DocumentManager_DocumentChanged;
+
+        CaretManager = new CaretManager(this);
+        CaretManager.InternalCurrentCaretOffsetChanging +=
+            (sender, args) => CurrentCaretOffsetChanging?.Invoke(sender, args);
+        CaretManager.InternalCurrentCaretOffsetChanged +=
+            (sender, args) => CurrentCaretOffsetChanged?.Invoke(sender, args);
+        CaretManager.InternalCurrentSelectionChanging +=
+            (sender, args) => CurrentSelectionChanging?.Invoke(sender, args);
+        CaretManager.InternalCurrentSelectionChanged += (sender, args) => CurrentSelectionChanged?.Invoke(sender, args);
 
         _layoutManager = new LayoutManager(this);
         _layoutManager.InternalLayoutCompleted += LayoutManager_InternalLayoutCompleted;
@@ -318,6 +326,32 @@ public partial class TextEditorCore
     public event EventHandler<LayoutCompletedEventArgs>? LayoutCompleted;
 
     // todo 考虑 DocumentLayoutBoundsChanged 事件
+
+    #region 光标
+
+    /// <summary>
+    /// 当前光标开始变更事件
+    /// </summary>
+    public event EventHandler<TextEditorValueChangeEventArgs<CaretOffset>>?
+        CurrentCaretOffsetChanging;
+
+    /// <summary>
+    /// 当前光标已变更事件
+    /// </summary>
+    public event EventHandler<TextEditorValueChangeEventArgs<CaretOffset>>?
+       CurrentCaretOffsetChanged;
+
+    /// <summary>
+    /// 当前选择范围开始变更事件
+    /// </summary>
+    public event EventHandler<TextEditorValueChangeEventArgs<Selection>>? CurrentSelectionChanging;
+
+    /// <summary>
+    /// 当前选择范围已变更事件
+    /// </summary>
+    public event EventHandler<TextEditorValueChangeEventArgs<Selection>>? CurrentSelectionChanged;
+
+    #endregion
 
     #endregion
 
