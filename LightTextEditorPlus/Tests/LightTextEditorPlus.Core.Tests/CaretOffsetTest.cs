@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using LightTextEditorPlus.Core.TestsFramework;
+﻿using LightTextEditorPlus.Core.TestsFramework;
 using MSTest.Extensions.Contracts;
 
 namespace LightTextEditorPlus.Core.Tests;
@@ -7,31 +6,6 @@ namespace LightTextEditorPlus.Core.Tests;
 [TestClass]
 public class CaretOffsetTest
 {
-    [ContractTestCase]
-    public void Foo()
-    {
-        "Foo".Test(() =>
-        {
-            EnumerationOptions enumOption = new EnumerationOptions
-            {
-                IgnoreInaccessible = true,
-                ReturnSpecialDirectories = false,
-                RecurseSubdirectories = false,
-                AttributesToSkip = FileAttributes.Hidden | FileAttributes.System
-            };
-
-            foreach (string path in Directory.EnumerateFileSystemEntries("C:", "*", enumOption))
-            {
-                Debug.WriteLine(path);
-            }
-            Debug.WriteLine("=======");
-            foreach (string path in Directory.EnumerateFileSystemEntries("C:\\", "*", enumOption))
-            {
-                Debug.WriteLine(path);
-            }
-        });
-    }
-
     [ContractTestCase]
     public void TestCaretOffset()
     {
