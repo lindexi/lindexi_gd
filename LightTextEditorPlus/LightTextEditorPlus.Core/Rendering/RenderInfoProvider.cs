@@ -29,19 +29,29 @@ public class CaretRenderInfo
         ParagraphData = hitParagraphDataResult.ParagraphData;
         HitOffset = hitParagraphDataResult.HitOffset;
 
+        if (!caretOffset.IsAtLineStart)
+        {
+            // 非行首情况下，一律取前一个字符
+            HitOffset = new ParagraphCaretOffset(HitOffset.Offset - 1);
+        }
+
         for (var lineIndex = 0; lineIndex < ParagraphData.LineLayoutDataList.Count; lineIndex++)
         {
             var lineLayoutData = ParagraphData.LineLayoutDataList[lineIndex];
 
-            if (lineLayoutData.CharEndParagraphIndex > HitOffset.Offset)
+            if (lineLayoutData.CharEndParagraphIndex >= HitOffset.Offset)
             {
                 LineIndex = lineIndex;
                 HitLineOffset = HitOffset.Offset - lineLayoutData.CharStartParagraphIndex;
                 var charData = lineLayoutData.GetCharList()[HitLineOffset];
                 CharData = charData;
+
+                // 预期是能找到的，如果找不到，那就是炸
                 return;
             }
         }
+
+        throw new ArgumentException("无法命中光标对应的字符");
     }
 
     /// <summary>
