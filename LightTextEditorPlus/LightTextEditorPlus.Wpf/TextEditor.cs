@@ -42,11 +42,6 @@ public partial class TextEditor : FrameworkElement, IRenderManager
 {
     public TextEditor()
     {
-        TextView = new TextView(this);
-        // 加入视觉树，方便调试和方便触发视觉变更
-        AddVisualChild(TextView);
-        AddLogicalChild(TextView);
-
         #region 清晰文本
 
         SnapsToDevicePixels = true;
@@ -69,6 +64,11 @@ public partial class TextEditor : FrameworkElement, IRenderManager
         #endregion
 
         Loaded += TextEditor_Loaded;
+
+        TextView = new TextView(this);
+        // 加入视觉树，方便调试和方便触发视觉变更
+        AddVisualChild(TextView);
+        AddLogicalChild(TextView);
     }
 
     private void TextEditor_Loaded(object sender, RoutedEventArgs e)

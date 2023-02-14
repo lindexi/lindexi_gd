@@ -110,6 +110,21 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
     public SelectionAndCaretLayer(TextEditor textEditor)
     {
         _textEditor = textEditor;
+        textEditor.TextEditorCore.CurrentCaretOffsetChanged += (sender, args) =>
+        {
+            if (_isBlinkShown)
+            {
+                HideBlink();
+                _isBlinkShown = false;
+            }
+
+            if (!_textEditor.IsInEditingInputMode)
+            {
+                return;
+            }
+
+            StartBlink();
+        };
     }
 
     private readonly TextEditor _textEditor;
