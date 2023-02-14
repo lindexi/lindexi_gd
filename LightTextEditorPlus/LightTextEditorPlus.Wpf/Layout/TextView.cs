@@ -104,12 +104,6 @@ class TextView : UIElement, IRenderManager
     #endregion
 }
 
-
-interface ILayer
-{
-
-}
-
 /// <summary>
 /// 选择和光标的一层
 /// </summary>
