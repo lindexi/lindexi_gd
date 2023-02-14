@@ -4,11 +4,13 @@ using System.Linq;
 using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
+
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
+
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Rendering;
@@ -16,42 +18,16 @@ namespace LightTextEditorPlus.Core.Rendering;
 /// <summary>
 /// 光标下的渲染信息
 /// </summary>
-public class CaretRenderInfo
+public readonly struct CaretRenderInfo
 {
-    internal CaretRenderInfo(RenderInfoProvider renderInfoProvider, CaretOffset caretOffset)
+    internal CaretRenderInfo(int lineIndex, int hitLineOffset, CharData charData, ParagraphData paragraphData, ParagraphCaretOffset hitOffset, CaretOffset caretOffset)
     {
-        RenderInfoProvider = renderInfoProvider;
+        LineIndex = lineIndex;
+        HitLineOffset = hitLineOffset;
+        CharData = charData;
+        ParagraphData = paragraphData;
+        HitOffset = hitOffset;
         CaretOffset = caretOffset;
-
-        var textEditor = renderInfoProvider.TextEditor;
-        var paragraphManager = textEditor.DocumentManager.DocumentRunEditProvider.ParagraphManager;
-        var hitParagraphDataResult = paragraphManager.GetHitParagraphData(caretOffset);
-        ParagraphData = hitParagraphDataResult.ParagraphData;
-        HitOffset = hitParagraphDataResult.HitOffset;
-
-        if (!caretOffset.IsAtLineStart)
-        {
-            // 非行首情况下，一律取前一个字符
-            HitOffset = new ParagraphCaretOffset(HitOffset.Offset - 1);
-        }
-
-        for (var lineIndex = 0; lineIndex < ParagraphData.LineLayoutDataList.Count; lineIndex++)
-        {
-            var lineLayoutData = ParagraphData.LineLayoutDataList[lineIndex];
-
-            if (lineLayoutData.CharEndParagraphIndex >= HitOffset.Offset)
-            {
-                LineIndex = lineIndex;
-                HitLineOffset = HitOffset.Offset - lineLayoutData.CharStartParagraphIndex;
-                var charData = lineLayoutData.GetCharList()[HitLineOffset];
-                CharData = charData;
-
-                // 预期是能找到的，如果找不到，那就是炸
-                return;
-            }
-        }
-
-        throw new ArgumentException("无法命中光标对应的字符");
     }
 
     /// <summary>
@@ -69,7 +45,6 @@ public class CaretRenderInfo
     internal ParagraphData ParagraphData { get; }
     internal ParagraphCaretOffset HitOffset { get; }
 
-    public RenderInfoProvider RenderInfoProvider { get; }
     public CaretOffset CaretOffset { get; }
 }
 
@@ -86,7 +61,41 @@ public class RenderInfoProvider
 
     public CaretRenderInfo GetCaretRenderInfo(CaretOffset caretOffset)
     {
-        return new CaretRenderInfo(this, caretOffset);
+        var textEditor = TextEditor;
+        if (caretOffset.Offset > textEditor.DocumentManager.CharCount)
+        {
+            // 超过文档的字符数量
+            throw new ArgumentOutOfRangeException(paramName: nameof(caretOffset),
+                $"DocumentManagerCharCount={textEditor.DocumentManager.CharCount};CaretOffset={caretOffset.Offset}");
+        }
+
+        var paragraphManager = textEditor.DocumentManager.DocumentRunEditProvider.ParagraphManager;
+        var hitParagraphDataResult = paragraphManager.GetHitParagraphData(caretOffset);
+        var paragraphData = hitParagraphDataResult.ParagraphData;
+        var hitOffset = hitParagraphDataResult.HitOffset;
+
+        if (!caretOffset.IsAtLineStart)
+        {
+            // 非行首情况下，一律取前一个字符
+            hitOffset = new ParagraphCaretOffset(hitOffset.Offset - 1);
+        }
+
+        for (var lineIndex = 0; lineIndex < paragraphData.LineLayoutDataList.Count; lineIndex++)
+        {
+            var lineLayoutData = paragraphData.LineLayoutDataList[lineIndex];
+
+            if (lineLayoutData.CharEndParagraphIndex >= hitOffset.Offset)
+            {
+                var hitLineOffset = hitOffset.Offset - lineLayoutData.CharStartParagraphIndex;
+                var charData = lineLayoutData.GetCharList()[hitLineOffset];
+
+                // 预期是能找到的，如果找不到，那就是炸
+                return new CaretRenderInfo(lineIndex, hitLineOffset, charData, paragraphData, hitOffset, caretOffset);
+            }
+        }
+
+        // 理论上不可能进入此分支
+        throw new ArgumentException("无法命中光标对应的字符");
     }
 
     //public Rect GetCharLayoutInfo(DocumentOffset documentOffset)
