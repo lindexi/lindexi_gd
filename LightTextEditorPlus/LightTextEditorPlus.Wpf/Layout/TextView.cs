@@ -149,21 +149,6 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
     #region Caret
 
     /// <summary>
-    /// 光标闪烁的时间
-    /// </summary>
-    private TimeSpan CaretBlinkTime
-    {
-        get
-        {
-            var caretBlinkTime = Win32Interop.GetCaretBlinkTime();
-            // 要求闪烁至少是16毫秒。因为可能拿到 0 的值
-            caretBlinkTime = Math.Max(16, caretBlinkTime);
-            caretBlinkTime = Math.Min(1000, caretBlinkTime);
-            return TimeSpan.FromMilliseconds(caretBlinkTime);
-        }
-    }
-
-    /// <summary>
     /// 用来控制光标的 <see cref="DispatcherTimer"/> 类型
     /// </summary>
     private CaretBlinkDispatcherTimer? _caretBlinkTimer;
@@ -178,9 +163,18 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
         // 一旦调用 开始闪烁光标 就需要第一次显示光标
         _isBlinkShown = false;
 
-        _caretBlinkTimer?.Stop();
-        _caretBlinkTimer ??= new CaretBlinkDispatcherTimer(this);
-        _caretBlinkTimer.Interval = CaretBlinkTime;
+        if (_caretBlinkTimer is null)
+        {
+            _caretBlinkTimer = new CaretBlinkDispatcherTimer(this)
+            {
+                Interval = _textEditor.CaretConfiguration.CaretBlinkTime
+            };
+        }
+        else
+        {
+            _caretBlinkTimer.Stop();
+        }
+
         _caretBlinkTimer.Start();
 
         if (_caretBlinkTimer.Interval > TimeSpan.FromMilliseconds(16))
@@ -218,7 +212,7 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
             if (_isBlinkShown)
             {
                 HideBlink();
-               _isBlinkShown = false;
+                _isBlinkShown = false;
             }
 
             return;
@@ -240,22 +234,23 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
                 // 获取光标的坐标
                 var caretRenderInfo = _renderInfoProvider.GetCaretRenderInfo(currentSelection.FrontOffset);
                 var charData = caretRenderInfo.CharData;
-                
+
                 switch (_textEditor.TextEditorCore.ArrangingType)
                 {
                     case ArrangingType.Horizontal:
                         var (x, y) = charData.GetStartPoint();
                         // 可以获取到起始点，那肯定存在尺寸
                         x += charData.Size!.Value.Width;
-                        var width = 2;
+                        var width = _textEditor.CaretConfiguration.CaretWidth;
                         var height = charData.Size!.Value.Height;
-                        var foreground = charData.RunProperty.AsRunProperty().Foreground.Value;
+                        var foreground = _textEditor.CaretConfiguration.CaretBrush ??
+                                         charData.RunProperty.AsRunProperty().Foreground.Value;
 
-                        var rectangle = new Rect(x,y,width,height);
+                        var rectangle = new Rect(x, y, width, height);
                         var drawingContext = RenderOpen();
                         using (drawingContext)
                         {
-                            drawingContext.DrawRectangle(foreground,null,rectangle);
+                            drawingContext.DrawRectangle(foreground, null, rectangle);
                         }
 
                         break;
