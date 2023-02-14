@@ -42,6 +42,8 @@ public readonly struct CaretOffset : IEquatable<CaretOffset>
     /// </summary>
     public bool IsAtLineStart { get; }
 
+    public override string ToString() => Offset.ToString();
+
     public bool Equals(CaretOffset other)
     {
         return Offset == other.Offset;
