@@ -135,6 +135,9 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
 
     #region Caret
 
+    /// <summary>
+    /// 光标闪烁的时间
+    /// </summary>
     private TimeSpan CaretBlinkTime
     {
         get
@@ -145,6 +148,10 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
             return TimeSpan.FromMilliseconds(caretBlinkTime);
         }
     }
+
+    /// <summary>
+    /// 用来控制光标的 <see cref="DispatcherTimer"/> 类型
+    /// </summary>
     private CaretBlinkDispatcherTimer? _caretBlinkTimer;
 
     /// <summary>
