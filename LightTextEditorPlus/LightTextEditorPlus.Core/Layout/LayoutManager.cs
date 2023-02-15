@@ -304,9 +304,12 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         {
             var lineSpacing = paragraphProperty.LineSpacing;
 
-            if (TextEditor.LineSpacingStrategy == LineSpacingStrategy.FirstLineShrink)
+            if (TextEditor.LineSpacingStrategy == LineSpacingStrategy.FirstLineShrink 
+                && paragraphIndex == 0 
+                && lineIndex == 0)
             {
-                // todo 处理首行不展开
+                // 处理首行不展开
+                // 也就是不需要处理 lineHeight 的值
             }
             else if (TextEditor.LineSpacingStrategy == LineSpacingStrategy.FullExpand)
             {
