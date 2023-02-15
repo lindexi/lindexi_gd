@@ -267,9 +267,25 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // todo 这里可以支持两端对齐
         // 整行的字符布局
         // CorrectCharBounds AdaptBaseLine
+
+        // 整个行所使用的字符数量
         var wholeCharCount = currentIndex;
+        if (wholeCharCount == 0)
+        {
+            // 这一行一个字符都不能拿
+            Debug.Assert(currentSize == Size.Zero);
+            return new WholeLineLayoutResult(currentSize, wholeCharCount);
+        }
+
+        // 遍历一次，用来取出其中 FontSize 最大的字符，此字符的对应字符属性就是所期望的参与后续计算的字符属性
+        IReadOnlyRunProperty maxFontSizeCharRunProperty;
+        // 遍历这一行的所有字符
+        for (var i = 0; i < wholeCharCount; i++)
+        {
+        }
+
         // todo 这里需要处理行距和段距
-        var lineTop = currentStartPoint.Y;
+            var lineTop = currentStartPoint.Y;
         var currentX = 0d;
         var lineHeight = currentSize.Height;
         for (var i = 0; i < wholeCharCount; i++)
@@ -676,6 +692,7 @@ abstract class ArrangingLayoutProvider
         CharInfoMeasureResult charInfoMeasureResult;
         if (charInfoMeasurer != null)
         {
+            // 测量空行高度
             charInfoMeasureResult = charInfoMeasurer.MeasureCharInfo(charInfo);
         }
         else
