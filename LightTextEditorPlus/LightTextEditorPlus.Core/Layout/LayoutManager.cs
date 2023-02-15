@@ -667,7 +667,8 @@ abstract class ArrangingLayoutProvider
 
         var runProperty = paragraphProperty.ParagraphStartRunProperty;
         runProperty ??= TextEditor.DocumentManager.CurrentRunProperty;
-        var singleCharObject = new SingleCharObject(TextContext.DefaultChar);
+        _emptyParagraphLineHeightMeasureCharObject ??= new SingleCharObject(TextContext.DefaultChar);
+        var singleCharObject = _emptyParagraphLineHeightMeasureCharObject;
 
         var charInfo = new CharInfo(singleCharObject, runProperty);
         var charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
@@ -684,6 +685,12 @@ abstract class ArrangingLayoutProvider
 
         return MeasureEmptyParagraphLineHeightCore(charInfoMeasureResult);
     }
+
+    /// <summary>
+    /// 用来做空行高度测量的字符
+    /// </summary>
+    /// 这个字符不需要每次都创建，可以缓存起来
+    private SingleCharObject? _emptyParagraphLineHeightMeasureCharObject;
 
     /// <summary>
     /// 测量空段的行高
