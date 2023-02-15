@@ -236,8 +236,12 @@ public partial class TextEditorCore
     /// <summary>
     /// 设置当前多倍行距呈现策略
     /// </summary>
-    /// todo 实现当前多倍行距呈现策略
-    public LineSpacingStrategy LineSpacingStrategy { set; get; }
+    public LineSpacingStrategy LineSpacingStrategy { set; get; } = LineSpacingStrategy.FullExpand;
+
+    /// <summary>
+    /// 行距算法
+    /// </summary>
+    public LineSpacingAlgorithm LineSpacingAlgorithm { set; get; } = LineSpacingAlgorithm.PPT;
 
     /// <summary>
     /// 布局方式

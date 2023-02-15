@@ -213,6 +213,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         var singleRunLineLayouter = TextEditor.PlatformProvider.GetSingleRunLineLayouter();
 
+        // todo 方法过长
         // RunLineMeasurer
         // 行还剩余的空闲宽度
         double lineRemainingWidth = lineMaxWidth;
@@ -275,6 +276,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         // 整个行所使用的字符数量
         var wholeCharCount = currentIndex;
+
         if (wholeCharCount == 0)
         {
             // 这一行一个字符都不能拿
@@ -283,16 +285,68 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         }
 
         // 遍历一次，用来取出其中 FontSize 最大的字符，此字符的对应字符属性就是所期望的参与后续计算的字符属性
-        IReadOnlyRunProperty maxFontSizeCharRunProperty;
-        // 遍历这一行的所有字符
-        for (var i = 0; i < wholeCharCount; i++)
+        var firstCharData = charDataList[0];
+        IReadOnlyRunProperty maxFontSizeCharRunProperty = firstCharData.RunProperty;
+        // 遍历这一行的所有字符，找到最大字符的字符属性
+        for (var i = 1; i < wholeCharCount; i++)
         {
+            var charData = charDataList[i];
+            if (charData.RunProperty.FontSize > maxFontSizeCharRunProperty.FontSize)
+            {
+                maxFontSizeCharRunProperty = charData.RunProperty;
+            }
         }
 
-        // todo 这里需要处理行距和段距
-            var lineTop = currentStartPoint.Y;
+        // 处理行距
+        double lineHeight = currentSize.Height;
+        if (double.IsNaN(paragraphProperty.FixedLineSpacing))
+        {
+            var lineSpacing = paragraphProperty.LineSpacing;
+
+            if (TextEditor.LineSpacingStrategy == LineSpacingStrategy.FirstLineShrink)
+            {
+                // todo 处理首行不展开
+            }
+            else if (TextEditor.LineSpacingStrategy == LineSpacingStrategy.FullExpand)
+            {
+                // 算法请参阅 LineSpacingAlgorithm 类型注释
+                    var fontSize = maxFontSizeCharRunProperty.FontSize;
+                if (TextEditor.LineSpacingAlgorithm == LineSpacingAlgorithm.WPF)
+                {
+                    var fontLineSpacing = TextEditor.PlatformProvider.FontLineSpacing(maxFontSizeCharRunProperty);
+                    // 以下是算法
+                    lineHeight = fontSize * fontLineSpacing * (lineSpacing - 1) / 10 
+                                 + fontSize * fontLineSpacing;
+                }
+                else if (TextEditor.LineSpacingAlgorithm == LineSpacingAlgorithm.PPT)
+                {
+                    // ReSharper disable once InconsistentNaming
+                    // ReSharper disable once IdentifierTypo
+                    // 以下是算法
+                    const double PPTFL = 1.2018;
+                    lineHeight = (PPTFL * lineSpacing + 0.0034) * fontSize;
+                }
+                else
+                {
+                    // 理论上不会进入此分支
+                    throw new NotSupportedException();
+                }
+            }
+            else
+            {
+                // 理论上不会进入此分支
+                throw new NotSupportedException();
+            }
+        }
+        else
+        {
+            // 如果定义了固定行距，那就使用固定行距
+            lineHeight = paragraphProperty.FixedLineSpacing;
+        }
+
+        // todo 这里需要处理段距
+        var lineTop = currentStartPoint.Y;
         var currentX = 0d;
-        var lineHeight = currentSize.Height;
         for (var i = 0; i < wholeCharCount; i++)
         {
             // 简单版本的 AdaptBaseLine 方法，正确的做法是：
