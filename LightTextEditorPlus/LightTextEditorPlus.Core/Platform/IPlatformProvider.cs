@@ -80,4 +80,11 @@ public interface IPlatformProvider
     /// </summary>
     /// <returns></returns>
     IRenderManager? GetRenderManager();
+
+    /// <summary>
+    /// 根据传入的字符属性获取字符行距
+    /// </summary>
+    /// <param name="runProperty"></param>
+    /// <returns></returns>
+    double FontLineSpacing(IReadOnlyRunProperty runProperty);
 }
