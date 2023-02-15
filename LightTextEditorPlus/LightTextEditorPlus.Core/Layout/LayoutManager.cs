@@ -205,6 +205,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     private WholeLineLayoutResult LayoutWholeLine(WholeLineLayoutArgument argument)
     {
         var (paragraphProperty, charDataList, lineMaxWidth, currentStartPoint) = argument;
+        if (charDataList.Count == 0)
+        {
+            // 理论上不会进入这里，如果没有任何的字符，那就不需要进行行布局
+            return new WholeLineLayoutResult(Size.Zero, 0);
+        }
 
         var singleRunLineLayouter = TextEditor.PlatformProvider.GetSingleRunLineLayouter();
 
