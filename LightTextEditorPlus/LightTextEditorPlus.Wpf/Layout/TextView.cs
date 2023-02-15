@@ -7,10 +7,8 @@ using System.Windows.Threading;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
-using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Rendering;
 
-using Math = System.Math;
 using Rect = System.Windows.Rect;
 
 namespace LightTextEditorPlus.Layout;
@@ -243,6 +241,7 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
                         x += charData.Size!.Value.Width;
                         var width = _textEditor.CaretConfiguration.CaretWidth;
                         var height = _textEditor.CurrentCaretRunProperty.FontSize;
+                        y += charData.Size!.Value.Height - height;
                         var foreground = _textEditor.CaretConfiguration.CaretBrush ??
                                          _textEditor.CurrentCaretRunProperty.Foreground.Value;
 
