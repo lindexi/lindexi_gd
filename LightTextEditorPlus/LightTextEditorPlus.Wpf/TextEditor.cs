@@ -324,11 +324,11 @@ class CharInfoMeasurer : ICharInfoMeasurer
                 // b = 0.0034;
                 // PPTFontLineSpacing = a;
 
-                const double pptFontLineSpacing = 1.2018;
-                const double b = 0.0034;
-                const int lineSpacing = 1;
+                //const double pptFontLineSpacing = 1.2018;
+                //const double b = 0.0034;
+                //const int lineSpacing = 1;
 
-                height = (pptFontLineSpacing * lineSpacing + b) * height;
+                //height = (pptFontLineSpacing * lineSpacing + b) * height;
 
                 //return (bounds.Width, bounds.Height);
                 return (width, height);
