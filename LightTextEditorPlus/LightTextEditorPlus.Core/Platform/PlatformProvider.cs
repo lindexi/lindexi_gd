@@ -76,7 +76,7 @@ public abstract class PlatformProvider : IPlatformProvider
         return null;
     }
 
-    public virtual double FontLineSpacing(IReadOnlyRunProperty runProperty)
+    public virtual double GetFontLineSpacing(IReadOnlyRunProperty runProperty)
     {
         // 默认是 1 行距。各个平台可以自行计算
         return 1;

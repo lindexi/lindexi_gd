@@ -25,7 +25,7 @@ public static class LineSpacingCalculator
 
         if (textEditor.LineSpacingAlgorithm == LineSpacingAlgorithm.WPF)
         {
-            var fontLineSpacing = textEditor.PlatformProvider.FontLineSpacing(runProperty);
+            var fontLineSpacing = textEditor.PlatformProvider.GetFontLineSpacing(runProperty);
             // 以下是算法
             var lineHeight = fontSize * fontLineSpacing * (lineSpacing - 1) / 10
                          + fontSize * fontLineSpacing;

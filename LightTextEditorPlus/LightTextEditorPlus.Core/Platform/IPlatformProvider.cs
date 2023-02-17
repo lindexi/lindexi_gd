@@ -86,5 +86,7 @@ public interface IPlatformProvider
     /// </summary>
     /// <param name="runProperty"></param>
     /// <returns></returns>
-    double FontLineSpacing(IReadOnlyRunProperty runProperty);
+    double GetFontLineSpacing(IReadOnlyRunProperty runProperty);
+
+
 }
