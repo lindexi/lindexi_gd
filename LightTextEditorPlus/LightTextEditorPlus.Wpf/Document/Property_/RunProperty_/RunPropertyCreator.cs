@@ -9,7 +9,6 @@ namespace LightTextEditorPlus.Document;
 
 class RunPropertyCreator : PlatformRunPropertyCreatorBase<RunProperty>
 {
-
     public RunPropertyCreator(TextEditor textEditor)
     {
         TextEditor = textEditor;
