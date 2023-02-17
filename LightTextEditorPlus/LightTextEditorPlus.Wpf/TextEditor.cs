@@ -333,7 +333,7 @@ class CharInfoMeasurer : ICharInfoMeasurer
                 switch (_textEditor.TextEditorCore.LineSpacingAlgorithm)
                 {
                     case LineSpacingAlgorithm.WPF:
-                        var fontLineSpacing = new FontFamily(runProperty.FontName.UserFontName).LineSpacing;
+                        var fontLineSpacing = runProperty.GetRenderingFontFamily(c).LineSpacing;
                         height = LineSpacingCalculator.CalculateLineHeightWithWPFLineSpacingAlgorithm(1, height,
                             fontLineSpacing);
                         break;
