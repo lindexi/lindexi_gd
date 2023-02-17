@@ -17,7 +17,7 @@ namespace LightTextEditorPlus.Document
         /// <param name="language"></param>
         /// <param name="culture"></param>
         /// <returns></returns>
-        public static bool MatchCulture(this XmlLanguage language, CultureInfo culture)
+        public static bool MatchCulture(this XmlLanguage? language, CultureInfo? culture)
         {
             // If there is no family map language, the family map applies to any language.
             if (language == null)
@@ -95,7 +95,7 @@ namespace LightTextEditorPlus.Document
                     return true;
                 }
 
-                CultureInfo parentCulture = culture.Parent;
+                CultureInfo? parentCulture = culture.Parent;
 
                 if (parentCulture == null
                     || parentCulture.Equals(CultureInfo.InvariantCulture)
