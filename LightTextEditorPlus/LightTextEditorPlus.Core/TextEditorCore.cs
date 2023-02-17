@@ -72,7 +72,6 @@ namespace LightTextEditorPlus.Core;
 /// todo 支持上加音标
 /// todo 支持下加注释
 /// todo 支持文档获取 SaveInfo 序列化存储
-/// todo 支持设置当前的文本需要等待布局之后才能获取布局信息的属性
 public partial class TextEditorCore
 {
     public TextEditorCore(IPlatformProvider platformProvider)
