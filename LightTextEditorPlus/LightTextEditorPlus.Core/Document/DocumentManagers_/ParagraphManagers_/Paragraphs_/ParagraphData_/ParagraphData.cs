@@ -69,8 +69,25 @@ class ParagraphData
     /// </summary>
     /// <param name="start">相对于段落</param>
     /// <returns></returns>
+    public ReadOnlyListSpan<CharData> ToReadOnlyListSpan(ParagraphCharOffset start) =>
+        CharDataManager.ToReadOnlyListSpan(start.Offset);
+
+    /// <summary>
+    /// 获取此段落的字符列表
+    /// </summary>
+    /// <param name="start">相对于段落</param>
+    /// <returns></returns>
     public ReadOnlyListSpan<CharData> ToReadOnlyListSpan(int start) =>
         CharDataManager.ToReadOnlyListSpan(start);
+
+    /// <summary>
+    /// 获取此段落的字符列表
+    /// </summary>
+    /// <param name="start"></param>
+    /// <param name="length"></param>
+    /// <returns></returns>
+    public ReadOnlyListSpan<CharData> ToReadOnlyListSpan(ParagraphCharOffset start, int length) =>
+        CharDataManager.ToReadOnlyListSpan(start.Offset, length);
 
     /// <summary>
     /// 获取此段落的字符列表
