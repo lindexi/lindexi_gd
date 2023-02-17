@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.Runtime.CompilerServices;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 
@@ -26,25 +26,51 @@ public static class LineSpacingCalculator
         if (textEditor.LineSpacingAlgorithm == LineSpacingAlgorithm.WPF)
         {
             var fontLineSpacing = textEditor.PlatformProvider.GetFontLineSpacing(runProperty);
-            // 以下是算法
-            var lineHeight = fontSize * fontLineSpacing * (lineSpacing - 1) / 10
-                         + fontSize * fontLineSpacing;
-
-            return lineHeight;
+            return CalculateLineHeightWithWPFLineSpacingAlgorithm(lineSpacing, fontSize, fontLineSpacing);
         }
         else if (textEditor.LineSpacingAlgorithm == LineSpacingAlgorithm.PPT)
         {
-            // ReSharper disable once InconsistentNaming
-            // ReSharper disable once IdentifierTypo
-            // 以下是算法
-            const double PPTFL = 1.2018;
-            var lineHeight = (PPTFL * lineSpacing + 0.0034) * fontSize;
-            return lineHeight;
+            return CalculateLineHeightWithPPTLineSpacingAlgorithm(lineSpacing, fontSize);
         }
         else
         {
             // 理论上不会进入此分支
             throw new NotSupportedException();
         }
+    }
+
+    /// <summary>
+    /// 采用 PPT 行距算法计算行高
+    /// </summary>
+    /// <param name="lineSpacing"></param>
+    /// <param name="fontSize"></param>
+    /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static double CalculateLineHeightWithPPTLineSpacingAlgorithm(double lineSpacing, double fontSize)
+    {
+        // ReSharper disable once InconsistentNaming
+        // ReSharper disable once IdentifierTypo
+        // 以下是算法
+        const double PPTFL = 1.2018;
+        var lineHeight = (PPTFL * lineSpacing + 0.0034) * fontSize;
+        return lineHeight;
+    }
+
+    /// <summary>
+    /// 采用 WPF 行距算法计算行高
+    /// </summary>
+    /// <param name="lineSpacing"></param>
+    /// <param name="fontSize"></param>
+    /// <param name="fontLineSpacing"></param>
+    /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static double CalculateLineHeightWithWPFLineSpacingAlgorithm(double lineSpacing, double fontSize,
+        double fontLineSpacing)
+    {
+        // 以下是算法
+        var lineHeight = fontSize * fontLineSpacing * (lineSpacing - 1) / 10
+                         + fontSize * fontLineSpacing;
+
+        return lineHeight;
     }
 }

@@ -236,7 +236,8 @@ class CharInfoMeasurer : ICharInfoMeasurer
 
     public CharInfoMeasureResult MeasureCharInfo(in CharInfo charInfo)
     {
-        GlyphTypeface glyphTypeface = charInfo.RunProperty.AsRunProperty().GetGlyphTypeface();
+        var runProperty = charInfo.RunProperty.AsRunProperty();
+        GlyphTypeface glyphTypeface = runProperty.GetGlyphTypeface();
         var fontSize = charInfo.RunProperty.FontSize;
 
         Size size;
@@ -323,12 +324,25 @@ class CharInfoMeasurer : ICharInfoMeasurer
                 // a = 1.2018;
                 // b = 0.0034;
                 // PPTFontLineSpacing = a;
+                //const double pptFontLineSpacing = 1.2018;
+                //const double b = 0.0034;
+                //const int lineSpacing = 1;
 
-                const double pptFontLineSpacing = 1.2018;
-                const double b = 0.0034;
-                const int lineSpacing = 1;
+                //height = (pptFontLineSpacing * lineSpacing + b) * height;
 
-                height = (pptFontLineSpacing * lineSpacing + b) * height;
+                switch (_textEditor.TextEditorCore.LineSpacingAlgorithm)
+                {
+                    case LineSpacingAlgorithm.WPF:
+                        var fontLineSpacing = new FontFamily(runProperty.FontName.UserFontName).LineSpacing;
+                        height = LineSpacingCalculator.CalculateLineHeightWithWPFLineSpacingAlgorithm(1, height,
+                            fontLineSpacing);
+                        break;
+                    case LineSpacingAlgorithm.PPT:
+                        height = LineSpacingCalculator.CalculateLineHeightWithPPTLineSpacingAlgorithm(1, height);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
 
                 //return (bounds.Width, bounds.Height);
                 return (width, height);
