@@ -224,6 +224,11 @@ internal class TextEditorPlatformProvider : PlatformProvider
     public override IPlatformRunPropertyCreator GetPlatformRunPropertyCreator() => _runPropertyCreator;
 
     private readonly RunPropertyCreator _runPropertyCreator; //= new RunPropertyCreator();
+
+    public override double GetFontLineSpacing(IReadOnlyRunProperty runProperty)
+    {
+        return runProperty.AsRunProperty().GetRenderingFontFamily().LineSpacing;
+    }
 }
 
 class CharInfoMeasurer : ICharInfoMeasurer
