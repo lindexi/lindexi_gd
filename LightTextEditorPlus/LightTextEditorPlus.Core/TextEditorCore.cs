@@ -225,8 +225,6 @@ public partial class TextEditorCore
 
     #region 文本属性
 
-    // todo FontSize
-
     /// <summary>
     /// 获取或设置文本框的尺寸自适应模式
     /// </summary>
