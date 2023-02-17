@@ -54,10 +54,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager
 
         var textEditorPlatformProvider = new TextEditorPlatformProvider(this);
         TextEditorCore = new TextEditorCore(textEditorPlatformProvider);
-        SetDefaultTextRunProperty(property =>
-        {
-            property.FontSize = 40;
-        });
+        SetDefaultTextRunProperty(property => { property.FontSize = 40; });
 
         TextEditorPlatformProvider = textEditorPlatformProvider;
 
@@ -122,16 +119,19 @@ public partial class TextEditor : FrameworkElement, IRenderManager
             // 已经完成渲染，但是当前的文档又是脏的。那就是需要重新等待渲染
             _renderCompletionSource = new TaskCompletionSource();
         }
+
         return _renderCompletionSource.Task;
     }
 
     #endregion
 
     #region 框架
+
     /// <summary>
     /// 视觉呈现容器
     /// </summary>
     private TextView TextView { get; }
+
     protected override int VisualChildrenCount => 1; // 当前只有视觉呈现容器一个而已
     protected override Visual GetVisualChild(int index) => TextView;
 
@@ -151,6 +151,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager
                 brush = brush.Clone();
                 brush.Freeze();
             }
+
             SetForeground(new ImmutableBrush(brush));
         }
         else if (e.Property == FrameworkElement.WidthProperty)
@@ -237,6 +238,7 @@ class CharInfoMeasurer : ICharInfoMeasurer
     {
         _textEditor = textEditor;
     }
+
     private readonly TextEditor _textEditor;
 
     public CharInfoMeasureResult MeasureCharInfo(in CharInfo charInfo)
