@@ -67,7 +67,7 @@ namespace LightTextEditorPlus.Document
         ///      "sr-latn-sp" is in the range covered by "sr-latn".  (Note that "sr-latn" does
         ///      does not have a registered CultureInfo.)
         /// </remarks>
-        internal static bool RangeIncludes(this XmlLanguage language, CultureInfo culture)
+        internal static bool RangeIncludes(this XmlLanguage language, CultureInfo? culture)
         {
             if (culture == null)
             {

@@ -56,7 +56,7 @@ public partial class TextEditor
     /// <param name="selection"></param>
     public void SetFontName(FontName fontName, Selection? selection = null)
     {
-        SetRunProperty(p => p.FontName = fontName, PropertyType.FontSize, selection);
+        SetRunProperty(p => p.FontName = fontName, PropertyType.FontName, selection);
     }
 
     /// <summary>
