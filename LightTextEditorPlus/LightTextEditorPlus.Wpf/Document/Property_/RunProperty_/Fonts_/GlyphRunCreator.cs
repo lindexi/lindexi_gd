@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Text;
 using System.Windows;
 using System.Windows.Markup;
 using System.Windows.Media;
 
-namespace LightTextEditorPlus.TextEditorPlus.Render
+namespace LightTextEditorPlus.Document
 {
     /// <summary>
     /// 用于创建<see cref="GlyphRun"/>的辅助类

@@ -2,7 +2,6 @@
 using System.Globalization;
 using System.Linq;
 using System.Windows.Media;
-using LightTextEditorPlus.TextEditorPlus.Render;
 
 namespace LightTextEditorPlus.Document;
 

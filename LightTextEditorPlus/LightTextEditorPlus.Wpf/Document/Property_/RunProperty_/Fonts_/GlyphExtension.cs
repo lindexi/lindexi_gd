@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Media;
 
-namespace LightTextEditorPlus.TextEditorPlus.Render
+namespace LightTextEditorPlus.Document
 {
     internal static class GlyphExtension
     {

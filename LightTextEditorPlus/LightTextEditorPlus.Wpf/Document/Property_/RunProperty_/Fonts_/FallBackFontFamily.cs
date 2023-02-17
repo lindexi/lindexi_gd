@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Media;
 
-namespace LightTextEditorPlus.TextEditorPlus.Render
+namespace LightTextEditorPlus.Document
 {
     /// <summary>
     /// 用于回滚的字体对象<see cref="FontFamily"/>

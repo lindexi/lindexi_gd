@@ -1,6 +1,6 @@
 ﻿using System.Windows.Media;
 
-namespace LightTextEditorPlus.TextEditorPlus.Render
+namespace LightTextEditorPlus.Document
 {
     /// <summary>
     /// 存储Glyph相关状态信息的对象

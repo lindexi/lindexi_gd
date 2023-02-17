@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Windows.Markup;
 
-namespace LightTextEditorPlus.TextEditorPlus.Render
+namespace LightTextEditorPlus.Document
 {
     /// <summary>
     /// 提供<see cref="XmlLanguage"/>比较的扩展方法

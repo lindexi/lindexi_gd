@@ -8,7 +8,6 @@ using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Document;
-using LightTextEditorPlus.TextEditorPlus.Render;
 using LightTextEditorPlus.Utils;
 
 namespace LightTextEditorPlus.Rendering;

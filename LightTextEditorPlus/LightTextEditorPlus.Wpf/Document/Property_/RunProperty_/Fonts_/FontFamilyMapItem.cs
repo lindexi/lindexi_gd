@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Windows.Markup;
 using System.Windows.Media;
 
-namespace LightTextEditorPlus.TextEditorPlus.Render
+namespace LightTextEditorPlus.Document
 {
     /// <summary>
     /// 对<see cref="FontFamilyMap"/>的封装，提供了字符映射查找等功能
