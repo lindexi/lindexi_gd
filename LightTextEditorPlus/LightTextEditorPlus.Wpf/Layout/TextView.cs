@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
-
+using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
@@ -240,7 +240,9 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
                         // 可以获取到起始点，那肯定存在尺寸
                         x += charData.Size!.Value.Width;
                         var width = _textEditor.CaretConfiguration.CaretWidth;
-                        var height = _textEditor.CurrentCaretRunProperty.FontSize;
+                        var height =
+                            LineSpacingCalculator.CalculateLineHeightWithLineSpacing(_textEditor.TextEditorCore,
+                                _textEditor.CurrentCaretRunProperty, 1);
                         y += charData.Size!.Value.Height - height;
                         var foreground = _textEditor.CaretConfiguration.CaretBrush ??
                                          _textEditor.CurrentCaretRunProperty.Foreground.Value;
