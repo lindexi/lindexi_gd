@@ -142,6 +142,29 @@ public partial class TextEditorCore
     }
     #endregion
 
+    /// <summary>
+    /// 准备重新布局整个文档
+    /// </summary>
+    /// <param name="reason"></param>
+    private void RequireDispatchReLayoutAllDocument(string reason)
+    {
+        if (DocumentManager.CharCount == 0)
+        {
+            return;
+        }
+
+        // 整个文档设置都是脏的
+        foreach (var paragraphData in DocumentManager.ParagraphManager.GetParagraphList())
+        {
+            paragraphData.SetDirty();
+            //foreach (var lineLayoutData in paragraphData.LineLayoutDataList)
+            //{
+            //}
+        }
+
+        RequireDispatchUpdateLayoutInner(reason);
+    }
+
     private void DocumentManager_InternalDocumentChanging(object? sender, EventArgs e)
     {
         IsDirty = true;
@@ -176,6 +199,11 @@ public partial class TextEditorCore
             return;
         }
 
+        RequireDispatchUpdateLayoutInner(updateReason);
+    }
+
+    private void RequireDispatchUpdateLayoutInner(string updateReason)
+    {
         _layoutUpdateReasonManager?.AddLayoutReason(updateReason);
         PlatformProvider.RequireDispatchUpdateLayout(UpdateLayout);
     }
