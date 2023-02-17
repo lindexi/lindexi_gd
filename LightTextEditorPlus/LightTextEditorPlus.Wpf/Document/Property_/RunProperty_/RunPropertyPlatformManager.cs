@@ -42,14 +42,14 @@ class RunPropertyPlatformManager
             // 字体回滚：
             // 1. 先使用业务层传入的字体回滚策略。例如将 “方正楷体” 修改为 “楷体”
             // 2. 如果业务层的字体回滚策略不满足，那就采用 WPF 的方式回滚
-            if (TryGetFallbackGlyphTypefaceByCustom(runProperty, typeface, out var fallbackGlyph,
+            if (TryGetFallbackFontInfoByCustom(runProperty, typeface, out var fallbackGlyph,
                     out var fallbackFontFamily))
             {
                 glyphTypeface = fallbackGlyph;
                 renderingFontFamily = fallbackFontFamily;
             }
             // 找不到字体，需要进行回滚
-            else if (TryGetFallbackGlyphTypefaceByWpf(typeface, unicodeChar, out fallbackGlyph, out fallbackFontFamily))
+            else if (TryGetFallbackFontInfoByWpf(typeface, unicodeChar, out fallbackGlyph, out fallbackFontFamily))
             {
                 glyphTypeface = fallbackGlyph;
                 renderingFontFamily = fallbackFontFamily;
@@ -68,7 +68,7 @@ class RunPropertyPlatformManager
         return new RenderingFontInfo(glyphTypeface, renderingFontFamily);
     }
 
-    private static bool TryGetFallbackGlyphTypefaceByCustom(RunProperty runProperty, Typeface typeface,
+    private static bool TryGetFallbackFontInfoByCustom(RunProperty runProperty, Typeface typeface,
         [NotNullWhen(true)] out GlyphTypeface? glyphTypeface, [NotNullWhen(true)] out FontFamily? fallbackFontFamily)
     {
         var fallbackFontName =
@@ -87,7 +87,7 @@ class RunPropertyPlatformManager
         return fallbackTypeface.TryGetGlyphTypeface(out glyphTypeface);
     }
 
-    private bool TryGetFallbackGlyphTypefaceByWpf(Typeface typeface, char unicodeChar,
+    private bool TryGetFallbackFontInfoByWpf(Typeface typeface, char unicodeChar,
         [NotNullWhen(true)] out GlyphTypeface? glyphTypeface, [NotNullWhen(true)] out FontFamily? fallbackFontFamily)
     {
         if (FallBackFontFamily.TryGetFallBackFontFamily(unicodeChar, out var familyName))
