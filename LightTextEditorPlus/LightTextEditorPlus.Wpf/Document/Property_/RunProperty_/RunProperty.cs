@@ -128,9 +128,8 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
     /// <returns></returns>
     public FontFamily GetRenderingFontFamily(char unicodeChar = '1')
     {
-        return GetGlyphTypefaceAndRenderingFontFamily(unicodeChar).renderingFontFamily;
+        return GetGlyphTypefaceAndRenderingFontFamily(unicodeChar).RenderingFontFamily;
     }
-    private FontFamily? _renderingFontFamily;
 
     /// <summary>
     /// 获取渲染使用的字体
@@ -139,14 +138,14 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
     /// <returns></returns>
     public GlyphTypeface GetGlyphTypeface(char unicodeChar = '1')
     {
-        return GetGlyphTypefaceAndRenderingFontFamily(unicodeChar).glyphTypeface;
+        return GetGlyphTypefaceAndRenderingFontFamily(unicodeChar).GlyphTypeface;
     }
 
-    private (GlyphTypeface glyphTypeface, FontFamily renderingFontFamily) GetGlyphTypefaceAndRenderingFontFamily(char unicodeChar = '1')
+    private RenderingFontInfo GetGlyphTypefaceAndRenderingFontFamily(char unicodeChar = '1')
     {
-        if (_glyphTypeface is not null && _renderingFontFamily is not null)
+        if (_renderingFontInfo is not null)
         {
-            return (_glyphTypeface, _renderingFontFamily);
+            return _renderingFontInfo.Value;
         }
 
         // 先判断是否配置了文本的字体等属性，如果没有就从 StyleRunProperty 里面获取。如此可以尽可能复用 StyleRunProperty 的字体
@@ -155,17 +154,17 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
             if (_stretch is null && _fontWeight is null && _fontStyle is null && FontName.Equals(StyleRunProperty.FontName))
             {
                 // 如果当前的字符属性啥字体相关的都没有设置，那就使用 StyleRunProperty 的，如此可以尽可能复用字体
-                (_glyphTypeface, _renderingFontFamily) = StyleRunProperty.GetGlyphTypefaceAndRenderingFontFamily(unicodeChar);
-                return (_glyphTypeface, _renderingFontFamily);
+                _renderingFontInfo = StyleRunProperty.GetGlyphTypefaceAndRenderingFontFamily(unicodeChar);
+                return _renderingFontInfo.Value;
             }
         }
 
-        (_glyphTypeface, _renderingFontFamily) =
+        _renderingFontInfo =
             RunPropertyPlatformManager.GetGlyphTypefaceAndRenderingFontFamily(this, unicodeChar);
-        return (_glyphTypeface, _renderingFontFamily);
+        return _renderingFontInfo.Value;
     }
 
-    private GlyphTypeface? _glyphTypeface;
+    private RenderingFontInfo? _renderingFontInfo;
 
     #endregion
 

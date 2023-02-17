@@ -18,7 +18,7 @@ class RunPropertyPlatformManager
 
     private readonly TextEditor _textEditor;
 
-    public (GlyphTypeface glyphTypeface, FontFamily renderingFontFamily) GetGlyphTypefaceAndRenderingFontFamily(RunProperty runProperty, char unicodeChar)
+    public RenderingFontInfo GetGlyphTypefaceAndRenderingFontFamily(RunProperty runProperty, char unicodeChar)
     {
         FontFamily fontFamily;
         if (runProperty.FontName.IsNotDefineFontName)
@@ -65,7 +65,7 @@ class RunPropertyPlatformManager
             }
         }
 
-        return (glyphTypeface, renderingFontFamily);
+        return new RenderingFontInfo(glyphTypeface, renderingFontFamily);
     }
 
     private static bool TryGetFallbackGlyphTypefaceByCustom(RunProperty runProperty, Typeface typeface,
