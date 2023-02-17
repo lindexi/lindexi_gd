@@ -355,7 +355,4 @@ class CharInfoMeasurer : ICharInfoMeasurer
 
         return new CharInfoMeasureResult(new Rect(new Point(), size));
     }
-
-    protected static XmlLanguage DefaultXmlLanguage { get; } =
-        XmlLanguage.GetLanguage(CultureInfo.CurrentUICulture.IetfLanguageTag);
 }
