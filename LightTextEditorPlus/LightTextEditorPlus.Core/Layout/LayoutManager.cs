@@ -313,28 +313,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             }
             else if (TextEditor.LineSpacingStrategy == LineSpacingStrategy.FullExpand)
             {
-                // 算法请参阅 LineSpacingAlgorithm 类型注释
-                    var fontSize = maxFontSizeCharRunProperty.FontSize;
-                if (TextEditor.LineSpacingAlgorithm == LineSpacingAlgorithm.WPF)
-                {
-                    var fontLineSpacing = TextEditor.PlatformProvider.FontLineSpacing(maxFontSizeCharRunProperty);
-                    // 以下是算法
-                    lineHeight = fontSize * fontLineSpacing * (lineSpacing - 1) / 10 
-                                 + fontSize * fontLineSpacing;
-                }
-                else if (TextEditor.LineSpacingAlgorithm == LineSpacingAlgorithm.PPT)
-                {
-                    // ReSharper disable once InconsistentNaming
-                    // ReSharper disable once IdentifierTypo
-                    // 以下是算法
-                    const double PPTFL = 1.2018;
-                    lineHeight = (PPTFL * lineSpacing + 0.0034) * fontSize;
-                }
-                else
-                {
-                    // 理论上不会进入此分支
-                    throw new NotSupportedException();
-                }
+                lineHeight =
+                    LineSpacingCalculator.CalculateLineHeightWithLineSpacing(TextEditor, maxFontSizeCharRunProperty,
+                        lineSpacing);
             }
             else
             {
