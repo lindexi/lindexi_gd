@@ -178,6 +178,7 @@ namespace LightTextEditorPlus.Core.Document
                         currentCaretRunProperty = charData.RunProperty;
                     }
                 }
+
                 return currentCaretRunProperty;
             }
         }
@@ -284,9 +285,10 @@ namespace LightTextEditorPlus.Core.Document
             var takeCount = Math.Min(result.ParagraphData.CharCount, remainingLength);
 
             // todo 考虑命中到段落末尾情况
-            var charDataList = result.ParagraphData.ToReadOnlyListSpan(new ParagraphCharOffset(result.HitOffset.Offset + 1),
-                    takeCount);
-                remainingLength -= takeCount;
+            var charDataList = result.ParagraphData.ToReadOnlyListSpan(
+                new ParagraphCharOffset(result.HitOffset.Offset + 1),
+                takeCount);
+            remainingLength -= takeCount;
             IEnumerable<CharData> charDataListResult = charDataList;
 
             var list = ParagraphManager.GetParagraphList();
@@ -294,7 +296,9 @@ namespace LightTextEditorPlus.Core.Document
             {
                 var currentParagraphData = list[i];
                 takeCount = Math.Min(currentParagraphData.CharCount, remainingLength);
-                charDataListResult = charDataListResult.Concat(currentParagraphData.ToReadOnlyListSpan(new ParagraphCharOffset(0), takeCount));
+                charDataListResult =
+                    charDataListResult.Concat(
+                        currentParagraphData.ToReadOnlyListSpan(new ParagraphCharOffset(0), takeCount));
                 remainingLength -= takeCount;
             }
 
@@ -352,6 +356,7 @@ namespace LightTextEditorPlus.Core.Document
         #endregion
 
         #region UndoRedo
+
         // 这里的方法只允许撤销恢复调用
 
         internal void SetDefaultTextRunPropertyByUndoRedo(IReadOnlyRunProperty runProperty)
