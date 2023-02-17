@@ -92,7 +92,7 @@ public partial class TextEditor
             // 使用 Italic 是字体提供的斜体，可以和正常字体有不同的界面
             // 使用 Oblique 只是将正常的字体进行倾斜
             // 如果一个字体没有斜体，那 Italic 和 Oblique 视觉效果相同
-            // 详细请看 https://wpf.2000things.com/tag/oblique/
+            // 详细请看 [WPF 字体 FontStyle 的 Italic 和 Oblique 的区别](https://blog.lindexi.com/post/WPF-%E5%AD%97%E4%BD%93-FontStyle-%E7%9A%84-Italic-%E5%92%8C-Oblique-%E7%9A%84%E5%8C%BA%E5%88%AB.html )
             fontStyle = FontStyles.Italic;
         }
         else
