@@ -18,7 +18,7 @@ class RunPropertyPlatformManager
 
     private readonly TextEditor _textEditor;
 
-    public GlyphTypeface GetGlyphTypeface(RunProperty runProperty, char unicodeChar)
+    public (GlyphTypeface glyphTypeface, FontFamily renderingFontFamily) GetGlyphTypefaceAndRenderingFontFamily(RunProperty runProperty, char unicodeChar)
     {
         FontFamily fontFamily;
         if (runProperty.FontName.IsNotDefineFontName)
@@ -30,6 +30,8 @@ class RunPropertyPlatformManager
             fontFamily = new FontFamily(runProperty.FontName.UserFontName);
         }
 
+        var renderingFontFamily = fontFamily;
+
         // 获取字体，获取方式：
         var typeface = new Typeface(fontFamily, runProperty.FontStyle, runProperty.FontWeight, runProperty.Stretch);
 
@@ -40,57 +42,65 @@ class RunPropertyPlatformManager
             // 字体回滚：
             // 1. 先使用业务层传入的字体回滚策略。例如将 “方正楷体” 修改为 “楷体”
             // 2. 如果业务层的字体回滚策略不满足，那就采用 WPF 的方式回滚
-            if (TryGetFallbackGlyphTypefaceByCustom(runProperty, typeface, out var fallbackGlyph))
+            if (TryGetFallbackGlyphTypefaceByCustom(runProperty, typeface, out var fallbackGlyph,
+                    out var fallbackFontFamily))
             {
                 glyphTypeface = fallbackGlyph;
+                renderingFontFamily = fallbackFontFamily;
             }
             // 找不到字体，需要进行回滚
-            else if (TryGetFallbackGlyphTypefaceByWpf(typeface, unicodeChar, out fallbackGlyph))
+            else if (TryGetFallbackGlyphTypefaceByWpf(typeface, unicodeChar, out fallbackGlyph, out fallbackFontFamily))
             {
                 glyphTypeface = fallbackGlyph;
+                renderingFontFamily = fallbackFontFamily;
             }
             // 理论上还失败，只能使用最终回滚字体了
             else
             {
-                var fallbackTypeface = new Typeface(new FontFamily(FontNameManager.FallbackDefaultFontName), typeface.Style, typeface.Weight,
+                renderingFontFamily = new FontFamily(FontNameManager.FallbackDefaultFontName);
+                var fallbackTypeface = new Typeface(renderingFontFamily, typeface.Style, typeface.Weight,
                     typeface.Stretch);
                 // 理论上不会失败
                 fallbackTypeface.TryGetGlyphTypeface(out glyphTypeface);
             }
         }
 
-        return glyphTypeface;
+        return (glyphTypeface, renderingFontFamily);
     }
 
     private static bool TryGetFallbackGlyphTypefaceByCustom(RunProperty runProperty, Typeface typeface,
-        [NotNullWhen(true)] out GlyphTypeface? glyphTypeface)
+        [NotNullWhen(true)] out GlyphTypeface? glyphTypeface, [NotNullWhen(true)] out FontFamily? fallbackFontFamily)
     {
         var fallbackFontName =
             TextEditor.StaticConfiguration.FontNameManager.GetFallbackFontName(runProperty.FontName.UserFontName);
         if (string.IsNullOrEmpty(fallbackFontName))
         {
             glyphTypeface = null;
+            fallbackFontFamily = null;
             return false;
         }
 
-        var fallbackTypeface = new Typeface(new FontFamily(fallbackFontName), typeface.Style, typeface.Weight,
+        fallbackFontFamily = new FontFamily(fallbackFontName);
+        var fallbackTypeface = new Typeface(fallbackFontFamily, typeface.Style, typeface.Weight,
             typeface.Stretch);
 
         return fallbackTypeface.TryGetGlyphTypeface(out glyphTypeface);
     }
 
     private bool TryGetFallbackGlyphTypefaceByWpf(Typeface typeface, char unicodeChar,
-        [NotNullWhen(true)] out GlyphTypeface? glyphTypeface)
+        [NotNullWhen(true)] out GlyphTypeface? glyphTypeface, [NotNullWhen(true)] out FontFamily? fallbackFontFamily)
     {
         if (FallBackFontFamily.TryGetFallBackFontFamily(unicodeChar, out var familyName))
         {
-            var fallbackTypeface = new Typeface(new FontFamily(familyName), typeface.Style, typeface.Weight,
+            fallbackFontFamily = new FontFamily(familyName);
+            var fallbackTypeface = new Typeface(fallbackFontFamily, typeface.Style, typeface.Weight,
                 typeface.Stretch);
 
             return fallbackTypeface.TryGetGlyphTypeface(out glyphTypeface);
         }
 
         glyphTypeface = null;
+        fallbackFontFamily = null;
         return false;
     }
 

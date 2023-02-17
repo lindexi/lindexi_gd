@@ -22,6 +22,10 @@ public readonly struct ParagraphRenderInfo
     private readonly ParagraphData _paragraphData;
     private readonly RenderInfoProvider _renderInfoProvider;
 
+    /// <summary>
+    /// 获取此段落内的行的渲染信息
+    /// </summary>
+    /// <returns></returns>
     public IEnumerable<ParagraphLineRenderInfo> GetLineRenderInfoList()
     {
         for (var i = 0; i < _paragraphData.LineLayoutDataList.Count; i++)

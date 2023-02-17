@@ -124,26 +124,45 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
     /// <summary>
     /// 获取渲染使用的字体
     /// </summary>
+    /// <param name="unicodeChar"></param>
+    /// <returns></returns>
+    public FontFamily GetRenderingFontFamily(char unicodeChar = '1')
+    {
+        return GetGlyphTypefaceAndRenderingFontFamily(unicodeChar).renderingFontFamily;
+    }
+    private FontFamily? _renderingFontFamily;
+
+    /// <summary>
+    /// 获取渲染使用的字体
+    /// </summary>
     /// <param name="unicodeChar">用在找不到字体时，通过将要渲染的字符获取到字体</param>
     /// <returns></returns>
     public GlyphTypeface GetGlyphTypeface(char unicodeChar = '1')
     {
-        return _glyphTypeface ??= GetGlyphTypefaceInner();
+        return GetGlyphTypefaceAndRenderingFontFamily(unicodeChar).glyphTypeface;
+    }
 
-        GlyphTypeface GetGlyphTypefaceInner()
+    private (GlyphTypeface glyphTypeface, FontFamily renderingFontFamily) GetGlyphTypefaceAndRenderingFontFamily(char unicodeChar = '1')
+    {
+        if (_glyphTypeface is not null && _renderingFontFamily is not null)
         {
-            // 先判断是否配置了文本的字体等属性，如果没有就从 StyleRunProperty 里面获取。如此可以尽可能复用 StyleRunProperty 的字体
-            if (StyleRunProperty is not null)
-            {
-                if (_stretch is null && _fontWeight is null && _fontStyle is null && FontName.Equals(StyleRunProperty.FontName))
-                {
-                    // 如果当前的字符属性啥字体相关的都没有设置，那就使用 StyleRunProperty 的，如此可以尽可能复用字体
-                    return StyleRunProperty.GetGlyphTypeface();
-                }
-            }
-
-            return RunPropertyPlatformManager.GetGlyphTypeface(this, unicodeChar);
+            return (_glyphTypeface, _renderingFontFamily);
         }
+
+        // 先判断是否配置了文本的字体等属性，如果没有就从 StyleRunProperty 里面获取。如此可以尽可能复用 StyleRunProperty 的字体
+        if (StyleRunProperty is not null)
+        {
+            if (_stretch is null && _fontWeight is null && _fontStyle is null && FontName.Equals(StyleRunProperty.FontName))
+            {
+                // 如果当前的字符属性啥字体相关的都没有设置，那就使用 StyleRunProperty 的，如此可以尽可能复用字体
+                (_glyphTypeface, _renderingFontFamily) = StyleRunProperty.GetGlyphTypefaceAndRenderingFontFamily(unicodeChar);
+                return (_glyphTypeface, _renderingFontFamily);
+            }
+        }
+
+        (_glyphTypeface, _renderingFontFamily) =
+            RunPropertyPlatformManager.GetGlyphTypefaceAndRenderingFontFamily(this, unicodeChar);
+        return (_glyphTypeface, _renderingFontFamily);
     }
 
     private GlyphTypeface? _glyphTypeface;
