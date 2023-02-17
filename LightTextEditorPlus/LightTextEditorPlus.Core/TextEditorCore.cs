@@ -256,24 +256,62 @@ public partial class TextEditorCore
     /// <summary>
     /// 获取或设置文本框的尺寸自适应模式
     /// </summary>
-    /// todo 处理自适应变更的重新更新
-    public SizeToContent SizeToContent { set; get; }
+    public SizeToContent SizeToContent
+    {
+        set
+        {
+            _sizeToContent = value;
+            RequireDispatchReLayoutAllDocument("SizeToContent Changed");
+        }
+        get => _sizeToContent;
+    }
+
+    private SizeToContent _sizeToContent = SizeToContent.Manual;
 
     /// <summary>
     /// 设置当前多倍行距呈现策略
     /// </summary>
-    public LineSpacingStrategy LineSpacingStrategy { set; get; } = LineSpacingStrategy.FullExpand;
+    public LineSpacingStrategy LineSpacingStrategy
+    {
+        set
+        {
+            _lineSpacingStrategy = value;
+            RequireDispatchReLayoutAllDocument("LineSpacingStrategy Changed");
+        }
+        get => _lineSpacingStrategy;
+    }
+
+    private LineSpacingStrategy _lineSpacingStrategy = LineSpacingStrategy.FullExpand;
 
     /// <summary>
     /// 行距算法
     /// </summary>
-    public LineSpacingAlgorithm LineSpacingAlgorithm { set; get; } = LineSpacingAlgorithm.PPT;
+    public LineSpacingAlgorithm LineSpacingAlgorithm
+    {
+        set
+        {
+            _lineSpacingAlgorithm = value;
+            RequireDispatchReLayoutAllDocument("LineSpacingAlgorithm Changed");
+        }
+        get => _lineSpacingAlgorithm;
+    }
+
+    private LineSpacingAlgorithm _lineSpacingAlgorithm = LineSpacingAlgorithm.PPT;
 
     /// <summary>
     /// 布局方式
     /// </summary>
-    /// todo 实现布局方式
-    public ArrangingType ArrangingType { set; get; }
+    public ArrangingType ArrangingType
+    {
+        set
+        {
+            _arrangingType = value;
+            RequireDispatchReLayoutAllDocument("ArrangingType Changed");
+        }
+        get => _arrangingType;
+    }
+
+    private ArrangingType _arrangingType;
 
     /// <summary>
     /// 日志
