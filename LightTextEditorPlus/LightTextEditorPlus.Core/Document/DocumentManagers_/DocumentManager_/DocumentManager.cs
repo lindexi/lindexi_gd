@@ -294,7 +294,7 @@ namespace LightTextEditorPlus.Core.Document
             {
                 var currentParagraphData = list[i];
                 takeCount = Math.Min(currentParagraphData.CharCount, remainingLength);
-                charDataListResult = charDataListResult.Concat(currentParagraphData.ToReadOnlyListSpan(0, takeCount));
+                charDataListResult = charDataListResult.Concat(currentParagraphData.ToReadOnlyListSpan(new ParagraphCharOffset(0), takeCount));
                 remainingLength -= takeCount;
             }
 

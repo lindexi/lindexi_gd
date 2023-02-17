@@ -118,7 +118,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         {
             // 开始行布局
             // 第一个 Run 就是行的开始
-            ReadOnlyListSpan<CharData> charDataList = paragraph.ToReadOnlyListSpan(i);
+            ReadOnlyListSpan<CharData> charDataList = paragraph.ToReadOnlyListSpan(new ParagraphCharOffset(i));
 
             if (TextEditor.IsInDebugMode)
             {

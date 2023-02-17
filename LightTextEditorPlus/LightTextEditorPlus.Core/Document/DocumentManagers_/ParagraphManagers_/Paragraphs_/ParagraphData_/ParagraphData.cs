@@ -62,7 +62,7 @@ class ParagraphData
     /// <returns></returns>
     [Obsolete("这个方法存在的作用只是告诉你可以使用 ToReadOnlyListSpan 代替")]
     public ReadOnlyListSpan<CharData> GetCharDataList(ParagraphCharOffset start, int length) =>
-        ToReadOnlyListSpan(start.Offset, length);
+        ToReadOnlyListSpan(start, length);
 
     /// <summary>
     /// 获取此段落的字符列表
@@ -75,28 +75,11 @@ class ParagraphData
     /// <summary>
     /// 获取此段落的字符列表
     /// </summary>
-    /// <param name="start">相对于段落</param>
-    /// <returns></returns>
-    public ReadOnlyListSpan<CharData> ToReadOnlyListSpan(int start) =>
-        CharDataManager.ToReadOnlyListSpan(start);
-
-    /// <summary>
-    /// 获取此段落的字符列表
-    /// </summary>
     /// <param name="start"></param>
     /// <param name="length"></param>
     /// <returns></returns>
     public ReadOnlyListSpan<CharData> ToReadOnlyListSpan(ParagraphCharOffset start, int length) =>
         CharDataManager.ToReadOnlyListSpan(start.Offset, length);
-
-    /// <summary>
-    /// 获取此段落的字符列表
-    /// </summary>
-    /// <param name="start">相对于段落</param>
-    /// <param name="length"></param>
-    /// <returns></returns>
-    public ReadOnlyListSpan<CharData> ToReadOnlyListSpan(int start, int length) =>
-        CharDataManager.ToReadOnlyListSpan(start, length);
 
     /// <summary>
     /// 这一段的字符长度

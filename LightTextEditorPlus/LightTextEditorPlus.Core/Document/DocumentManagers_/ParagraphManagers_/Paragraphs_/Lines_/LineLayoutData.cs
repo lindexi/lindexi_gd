@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Text;
-
+using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
@@ -89,7 +89,7 @@ class LineLayoutData : IParagraphCache, IDisposable
     }
 
     public ReadOnlyListSpan<CharData> GetCharList() =>
-        CurrentParagraph.ToReadOnlyListSpan(CharStartParagraphIndex, CharEndParagraphIndex - CharStartParagraphIndex);
+        CurrentParagraph.ToReadOnlyListSpan(new ParagraphCharOffset(CharStartParagraphIndex), CharEndParagraphIndex - CharStartParagraphIndex);
 
     #region 绘制渲染
 
