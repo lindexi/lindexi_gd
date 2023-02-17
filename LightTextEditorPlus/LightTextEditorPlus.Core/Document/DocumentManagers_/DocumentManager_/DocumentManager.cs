@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Document.UndoRedo;
@@ -269,6 +271,35 @@ namespace LightTextEditorPlus.Core.Document
         }
 
         #endregion
+
+        /// <summary>
+        /// 给定选择范围内的所有字符属性
+        /// </summary>
+        /// <param name="selection"></param>
+        /// <returns></returns>
+        public IEnumerable<CharData> GetCharDataRange(Selection selection)
+        {
+            var result = ParagraphManager.GetHitParagraphData(selection.FrontOffset);
+            var remainingLength = selection.Length;
+            var takeCount = Math.Min(result.ParagraphData.CharCount, remainingLength);
+
+            // todo 考虑命中到段落末尾情况
+            var charDataList = result.ParagraphData.ToReadOnlyListSpan(new ParagraphCharOffset(result.HitOffset.Offset + 1),
+                    takeCount);
+                remainingLength -= takeCount;
+            IEnumerable<CharData> charDataListResult = charDataList;
+
+            var list = ParagraphManager.GetParagraphList();
+            for (int i = result.ParagraphData.Index + 1; i < list.Count && remainingLength > 0; i++)
+            {
+                var currentParagraphData = list[i];
+                takeCount = Math.Min(currentParagraphData.CharCount, remainingLength);
+                charDataListResult = charDataListResult.Concat(currentParagraphData.ToReadOnlyListSpan(0, takeCount));
+                remainingLength -= takeCount;
+            }
+
+            return charDataListResult;
+        }
 
         /// <summary>
         /// 追加一段文本
