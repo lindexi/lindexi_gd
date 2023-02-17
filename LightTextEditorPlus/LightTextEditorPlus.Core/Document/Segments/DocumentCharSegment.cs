@@ -1,10 +1,13 @@
-﻿namespace LightTextEditorPlus.Core.Document.Segments;
+﻿using System.Diagnostics;
+
+namespace LightTextEditorPlus.Core.Document.Segments;
 
 /// <summary>
 /// 文档的按照字符定位的一段
 /// </summary>
 public readonly struct DocumentCharSegment
 {
+    [DebuggerStepThrough]
     public DocumentCharSegment(DocumentOffset startOffset, int length)
     {
         StartOffset = startOffset;
