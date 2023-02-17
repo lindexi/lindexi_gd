@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 
 using LightTextEditorPlus.Core.Carets;
-using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
 
@@ -62,7 +61,6 @@ public class RenderInfoProvider
 
     //public Rect GetCharLayoutInfo(DocumentOffset documentOffset)
     //{
-
     //}
 
     public IEnumerable<ParagraphRenderInfo> GetParagraphRenderInfoList()
@@ -83,61 +81,5 @@ public class RenderInfoProvider
         {
             throw new TextEditorRenderInfoDirtyException();
         }
-    }
-}
-
-/// <summary>
-/// 段落渲染信息
-/// </summary>
-public readonly struct ParagraphRenderInfo
-{
-    internal ParagraphRenderInfo(int index, ParagraphData paragraphData, RenderInfoProvider renderInfoProvider)
-    {
-        Index = index;
-        _paragraphData = paragraphData;
-        _renderInfoProvider = renderInfoProvider;
-    }
-
-    /// <summary>
-    /// 段落序号，这是文档里的第几段，从0开始
-    /// </summary>
-    public int Index { get; }
-    private readonly ParagraphData _paragraphData;
-    private readonly RenderInfoProvider _renderInfoProvider;
-
-    public IEnumerable<ParagraphLineRenderInfo> GetLineRenderInfoList()
-    {
-        for (var i = 0; i < _paragraphData.LineLayoutDataList.Count; i++)
-        {
-            LineLayoutData lineLayoutData = _paragraphData.LineLayoutDataList[i];
-
-            var argument = lineLayoutData.GetLineDrawingArgument();
-
-            _renderInfoProvider.VerifyNotDirty();
-
-            yield return new ParagraphLineRenderInfo(i, argument)
-            {
-                LineLayoutData = lineLayoutData
-            };
-        }
-    }
-}
-
-/// <summary>
-/// 段落的行渲染信息
-/// </summary>
-/// <param name="LineIndex">这一行是段落的第几行，从0开始</param>
-/// <param name="Argument">行渲染参数</param>
-public readonly record struct ParagraphLineRenderInfo(int LineIndex, LineDrawingArgument Argument)
-{
-    /// <summary>
-    /// 内部使用的行信息
-    /// </summary>
-    /// 由于需要修改访问权限，修改为属性
-    internal LineLayoutData LineLayoutData { init; get; } = null!;
-
-    public void SetDrawnResult(in LineDrawnResult lineDrawnResult)
-    {
-        LineLayoutData.SetDrawn(lineDrawnResult);
     }
 }
