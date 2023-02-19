@@ -19,7 +19,7 @@ if (args.Length == 0)
     var handle = PInvoke.CreateMutex(securityAttributes, true, null);
 
     // 关闭对象的可继承功能，启动的子进程无法拿到锁
-    PInvoke.SetHandleInformation(handle, (uint)HANDLE_FLAGS.HANDLE_FLAG_INHERIT, 0);
+    PInvoke.SetHandleInformation(handle, (uint) HANDLE_FLAGS.HANDLE_FLAG_INHERIT, 0);
 
     // 启动子进程，将句柄传给子进程
     var mainModuleFileName = Process.GetCurrentProcess().MainModule!.FileName!;
@@ -43,6 +43,14 @@ if (args.Length == 0)
     // 调用 CloseHandle 是减少句柄的引用计数，表示当前进程不再使用此句柄的对象，调用之后的此句柄不再可用
     // 和调用 handle.DangerousRelease(); 是等价的。在 Microsoft.Win32.SafeHandles.SafeFileHandle 的 DangerousRelease 方法里面也是调用 Kernal32 的 CloseHandle 方法
     PInvoke.CloseHandle(new HANDLE(handle.DangerousGetHandle()));
+
+    foreach (var process in Process.GetProcessesByName("LairreedalcecherWeelearwaicaw"))
+    {
+        if (process.Id != Environment.ProcessId)
+        {
+            PInvoke.WaitForSingleObject(new HANDLE(process.Handle), unchecked((uint) Timeout.Infinite));
+        }
+    }
 }
 else
 {
@@ -53,7 +61,7 @@ else
     Console.WriteLine($"被启动的进程，开始等待锁释放 {args[0]}");
 
     var handle = new HANDLE(new IntPtr(long.Parse(args[0])));
-    PInvoke.WaitForSingleObject(handle, unchecked((uint)Timeout.Infinite));
+    PInvoke.WaitForSingleObject(handle, unchecked((uint) Timeout.Infinite));
 
     Console.WriteLine($"锁被释放 {Marshal.GetLastPInvokeError()} {Marshal.GetLastPInvokeErrorMessage()}");
     Console.Read();
