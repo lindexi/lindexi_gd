@@ -18,6 +18,9 @@ if (args.Length == 0)
     // 创建一个匿名对象的锁
     var handle = PInvoke.CreateMutex(securityAttributes, true, null);
 
+    // 关闭对象的可继承功能，启动的子进程无法拿到锁
+    PInvoke.SetHandleInformation(handle, (uint)HANDLE_FLAGS.HANDLE_FLAG_INHERIT, 0);
+
     // 启动子进程，将句柄传给子进程
     var mainModuleFileName = Process.GetCurrentProcess().MainModule!.FileName!;
 
@@ -52,7 +55,7 @@ else
     var handle = new HANDLE(new IntPtr(long.Parse(args[0])));
     PInvoke.WaitForSingleObject(handle, unchecked((uint)Timeout.Infinite));
 
-    Console.WriteLine($"锁被释放");
+    Console.WriteLine($"锁被释放 {Marshal.GetLastPInvokeError()} {Marshal.GetLastPInvokeErrorMessage()}");
     Console.Read();
 }
 
