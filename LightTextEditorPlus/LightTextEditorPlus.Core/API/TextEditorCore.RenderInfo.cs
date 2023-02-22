@@ -29,6 +29,12 @@ public partial class TextEditorCore
     {
         VerifyNotDirty();
 
+        if (_renderInfoProvider is null && DocumentManager.CharCount == 0)
+        {
+            // 如果是空文本，也就是还在所有布局之前的情况下
+            _renderInfoProvider = new RenderInfoProvider(this);
+        }
+
         Debug.Assert(_renderInfoProvider != null, nameof(_renderInfoProvider) + " != null");
         return _renderInfoProvider!;
     }
