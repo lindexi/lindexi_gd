@@ -29,7 +29,7 @@ public class EmptyTextEditorTest
             Assert.AreEqual(1, textEditorCore.DocumentManager.ParagraphManager.GetParagraphList().Count);
 
             // 命中到 0 的光标
-            Assert.AreEqual(new CaretOffset(0), result.Offset);
+            Assert.AreEqual(new CaretOffset(0), result.InputCaretOffset);
             Assert.AreEqual(new ParagraphCaretOffset(0), result.HitOffset);
 
             // 文本字符数量依然是 0 个
