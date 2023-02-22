@@ -30,6 +30,11 @@ public readonly struct CaretOffset : IEquatable<CaretOffset>
 
         Offset = offset;
         IsAtLineStart = isAtLineStart;
+
+        if (offset == 0)
+        {
+            IsAtLineStart = true;
+        }
     }
 
     /// <summary>
