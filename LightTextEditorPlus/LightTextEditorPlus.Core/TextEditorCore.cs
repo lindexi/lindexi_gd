@@ -360,7 +360,7 @@ public partial class TextEditorCore
     /// <summary>
     /// 文本是不是脏的，需要等待布局完成。可选使用 <see cref="WaitLayoutCompletedAsync"/> 等待布局完成
     /// </summary>
-    public bool IsDirty { get; private set; } = true;
+    public bool IsDirty { get; private set; } = false; // 默认情况下是非脏的，使用预设的值
 
     #endregion
 
