@@ -31,7 +31,6 @@ class ParagraphManager
         if (ParagraphList.Count == 0)
         {
             var paragraphData = CreateParagraphAndInsertAfter(relativeParagraph: null);
-            ParagraphList.Add(paragraphData);
             return GetResult(paragraphData);
         }
         else
