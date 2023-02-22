@@ -32,7 +32,10 @@ public partial class TextEditorCore
         if (_renderInfoProvider is null && DocumentManager.CharCount == 0)
         {
             // 如果是空文本，也就是还在所有布局之前的情况下
-            _renderInfoProvider = new RenderInfoProvider(this);
+            // 那就启动空文本布局，将会在布局完成之后，通过事件赋值 _renderInfoProvider 内容
+            LayoutEmptyTextEditor();
+            // 如果布局能完成，那就一定不是空
+            Debug.Assert(_renderInfoProvider != null, nameof(_renderInfoProvider) + " != null");
         }
 
         Debug.Assert(_renderInfoProvider != null, nameof(_renderInfoProvider) + " != null");

@@ -212,6 +212,16 @@ public partial class TextEditorCore
         PlatformProvider.RequireDispatchUpdateLayout(UpdateLayout);
     }
 
+    /// <summary>
+    /// 空文本布局。在文本没有更改的时候，有逻辑需要获取渲染信息
+    /// </summary>
+    /// 特别加一个方法，用来方便调试是哪个业务调用
+    private void LayoutEmptyTextEditor()
+    {
+        _layoutUpdateReasonManager?.AddLayoutReason(nameof(LayoutEmptyTextEditor));
+        UpdateLayout();
+    }
+
     private void UpdateLayout()
     {
         IsUpdatingLayout = true;
