@@ -147,18 +147,23 @@ public partial class TextEditorCore
     /// <param name="reason"></param>
     private void RequireDispatchReLayoutAllDocument(string reason)
     {
-        if (DocumentManager.CharCount == 0)
-        {
-            return;
-        }
+        //if (DocumentManager.CharCount == 0)
+        //{
+        //    return;
+        //}
 
-        // 整个文档设置都是脏的
-        foreach (var paragraphData in DocumentManager.ParagraphManager.GetParagraphList())
+        IsDirty = false;
+
+        if (DocumentManager.CharCount != 0)
         {
-            paragraphData.SetDirty();
-            //foreach (var lineLayoutData in paragraphData.LineLayoutDataList)
-            //{
-            //}
+            // 整个文档设置都是脏的
+            foreach (var paragraphData in DocumentManager.ParagraphManager.GetParagraphList())
+            {
+                paragraphData.SetDirty();
+                //foreach (var lineLayoutData in paragraphData.LineLayoutDataList)
+                //{
+                //}
+            }
         }
 
         RequireDispatchUpdateLayoutInner(reason);
