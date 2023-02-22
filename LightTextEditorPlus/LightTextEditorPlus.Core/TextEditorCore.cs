@@ -152,7 +152,7 @@ public partial class TextEditorCore
         //    return;
         //}
 
-        IsDirty = false;
+        IsDirty = true;
 
         if (DocumentManager.CharCount != 0)
         {
