@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Text;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
+using LightTextEditorPlus.Core.Exceptions;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -30,6 +31,11 @@ class ParagraphManager
     {
         if (ParagraphList.Count == 0)
         {
+            if (offset.Offset != 0)
+            {
+                throw GetHitCaretOffsetOutOfRangeException();
+            }
+
             var paragraphData = CreateParagraphAndInsertAfter(relativeParagraph: null);
             return GetResult(paragraphData);
         }
@@ -62,14 +68,18 @@ class ParagraphManager
                 }
             }
 
-            // 没有落到哪个段落？
-            //todo 还没实现落在段落外的逻辑
-            throw new NotImplementedException();
+            // 没有落到哪个段落？那就抛个异常
+            throw GetHitCaretOffsetOutOfRangeException();
         }
 
         HitParagraphDataResult GetResult(ParagraphData paragraphData, ParagraphCaretOffset? hitOffset = null)
         {
             return new HitParagraphDataResult(offset, paragraphData, hitOffset ?? new ParagraphCaretOffset(0), this);
+        }
+
+        HitCaretOffsetOutOfRangeException GetHitCaretOffsetOutOfRangeException()
+        {
+            return new HitCaretOffsetOutOfRangeException(TextEditor, offset, TextEditor.DocumentManager.CharCount);
         }
     }
 
