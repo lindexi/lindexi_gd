@@ -658,19 +658,7 @@ abstract class ArrangingLayoutProvider
             var emptyParagraphLineHeightMeasureArgument =
                 new EmptyParagraphLineHeightMeasureArgument(argument.ParagraphData.ParagraphProperty);
 
-            EmptyParagraphLineHeightMeasureResult result;
-
-            var emptyParagraphLineHeightMeasurer = TextEditor.PlatformProvider.GetEmptyParagraphLineHeightMeasurer();
-            if (emptyParagraphLineHeightMeasurer != null)
-            {
-                // 有具体平台的测量，那就采用具体平台的测量
-                result = emptyParagraphLineHeightMeasurer.MeasureEmptyParagraphLineHeight(
-                    emptyParagraphLineHeightMeasureArgument);
-            }
-            else
-            {
-                result = MeasureEmptyParagraphLineHeight(emptyParagraphLineHeightMeasureArgument);
-            }
+            var result = MeasureEmptyParagraphLineHeight(emptyParagraphLineHeightMeasureArgument);
 
             argument.ParagraphData.ParagraphLayoutData.StartPoint = argument.CurrentStartPoint;
             argument.ParagraphData.ParagraphLayoutData.Size = result.ParagraphBounds.Size;
@@ -720,8 +708,36 @@ abstract class ArrangingLayoutProvider
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
-    private EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeight(
-        in EmptyParagraphLineHeightMeasureArgument argument)
+    /// 这是允许对外调用的方法
+    public EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeight(in
+        EmptyParagraphLineHeightMeasureArgument argument)
+    {
+        EmptyParagraphLineHeightMeasureResult result;
+
+        var emptyParagraphLineHeightMeasurer = TextEditor.PlatformProvider.GetEmptyParagraphLineHeightMeasurer();
+        if (emptyParagraphLineHeightMeasurer != null)
+        {
+            // 有具体平台的测量，那就采用具体平台的测量
+            result = emptyParagraphLineHeightMeasurer.MeasureEmptyParagraphLineHeight(
+                argument);
+        }
+        else
+        {
+            result = MeasureEmptyParagraphLineHeightInner(argument);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 测量空段的行高
+    /// </summary>
+    /// <param name="argument"></param>
+    /// <returns></returns>
+    /// 由于空段也和文本横排竖排相关，这里先包含公共代码，再调用具体逻辑
+    /// 空段高度测量算法就是给定一个专门用来测量空段高度的 <see cref="_emptyParagraphLineHeightMeasureCharObject"/> 也就是 <see cref="TextContext.DefaultChar"/> 字符进行测量字符信息
+    /// 根据测量的字符信息获取到空段高度
+    private EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeightInner(in EmptyParagraphLineHeightMeasureArgument argument)
     {
         var paragraphProperty = argument.ParagraphProperty;
 
