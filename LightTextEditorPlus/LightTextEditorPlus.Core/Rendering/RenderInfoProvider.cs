@@ -9,9 +9,12 @@ using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Rendering;
 
+/// <summary>
+/// 提供用于渲染时用到的信息
+/// </summary>
 public class RenderInfoProvider
 {
-    public RenderInfoProvider(TextEditor textEditor)
+    internal RenderInfoProvider(TextEditor textEditor)
     {
         TextEditor = textEditor;
     }

@@ -22,7 +22,7 @@ public partial class TextEditorCore
     }
 
     /// <summary>
-    /// 获取文本的渲染信息，必须要在布局完成之后才能获取。可选使用 <see cref="WaitLayoutCompletedAsync"/> 等待布局完成
+    /// 获取文本的用于渲染信息，必须要在布局完成之后才能获取。可选使用 <see cref="WaitLayoutCompletedAsync"/> 等待布局完成
     /// </summary>
     /// <returns></returns>
     public RenderInfoProvider GetRenderInfo()
