@@ -71,6 +71,11 @@ class LineLayoutData : IParagraphCache, IDisposable
     public Size Size { get; init; }
 
     /// <summary>
+    /// 这一行的范围
+    /// </summary>
+    public Rect GetLineBounds() => new Rect(_startPoint, Size);
+
+    /// <summary>
     /// 这一行是当前段落的第几行
     /// </summary>
     public int LineInParagraphIndex
