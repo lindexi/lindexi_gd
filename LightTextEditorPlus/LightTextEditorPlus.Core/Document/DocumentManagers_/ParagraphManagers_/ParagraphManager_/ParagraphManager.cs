@@ -29,38 +29,48 @@ class ParagraphManager
     /// <returns></returns>
     public HitParagraphDataResult GetHitParagraphData(CaretOffset offset)
     {
-        EnsureFirstParagraphExists();
-        Debug.Assert(ParagraphList.Count != 0, "在确保首个段落存在之后，一定存在一段");
-
-        if (offset.Offset == 0)
+        if (ParagraphList.Count == 0)
         {
-            return GetResult(ParagraphList[0]);
+            if (offset.Offset != 0)
+            {
+                throw GetHitCaretOffsetOutOfRangeException();
+            }
+
+            var paragraphData = CreateParagraphAndInsertAfter(relativeParagraph: null);
+            return GetResult(paragraphData);
         }
         else
         {
-            // 判断落在哪个段落里
-            // 判断方法就是判断字符范围是否在段落内
-            var currentDocumentOffset = 0;
-            foreach (var paragraphData in ParagraphList)
+            if (offset.Offset == 0)
             {
-                var endOffset =
-                    currentDocumentOffset + paragraphData.CharCount +
-                    ParagraphData.DelimiterLength; // todo 这里是否遇到 -1 问题
-                if (offset.Offset < endOffset)
+                return GetResult(ParagraphList[0]);
+            }
+            else
+            {
+                // 判断落在哪个段落里
+                // 判断方法就是判断字符范围是否在段落内
+                var currentDocumentOffset = 0;
+                foreach (var paragraphData in ParagraphList)
                 {
-                    var hitParagraphOffset = offset.Offset - currentDocumentOffset;
+                    var endOffset =
+                        currentDocumentOffset + paragraphData.CharCount +
+                        ParagraphData.DelimiterLength; // todo 这里是否遇到 -1 问题
+                    if (offset.Offset < endOffset)
+                    {
+                        var hitParagraphOffset = offset.Offset - currentDocumentOffset;
 
-                    return GetResult(paragraphData, new ParagraphCaretOffset(hitParagraphOffset));
-                }
-                else
-                {
-                    currentDocumentOffset = endOffset;
+                        return GetResult(paragraphData, new ParagraphCaretOffset(hitParagraphOffset));
+                    }
+                    else
+                    {
+                        currentDocumentOffset = endOffset;
+                    }
                 }
             }
-        }
 
-        // 没有落到哪个段落？那就抛个异常
-        throw GetHitCaretOffsetOutOfRangeException();
+            // 没有落到哪个段落？那就抛个异常
+            throw GetHitCaretOffsetOutOfRangeException();
+        }
 
         HitParagraphDataResult GetResult(ParagraphData paragraphData, ParagraphCaretOffset? hitOffset = null)
         {
@@ -186,14 +196,5 @@ class ParagraphManager
     {
         var index = ParagraphList.IndexOf(paragraphData);
         return index;
-    }
-
-    /// <summary>
-    /// 确保首个段落存在
-    /// </summary>
-    /// 即使是一个空文本，设计上也是存在一个空段落的
-    private void EnsureFirstParagraphExists()
-    {
-        CreateParagraphAndInsertAfter(relativeParagraph: null);
     }
 }
