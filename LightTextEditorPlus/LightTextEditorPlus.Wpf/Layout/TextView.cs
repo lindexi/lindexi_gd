@@ -34,6 +34,19 @@ class TextView : UIElement, IRenderManager
         {
             _selectionAndCaretLayer
         };
+
+        textEditor.Loaded += TextEditor_Loaded;
+    }
+
+    private void TextEditor_Loaded(object sender, RoutedEventArgs e)
+    {
+        _textEditor.Loaded -= TextEditor_Loaded;
+
+        if (!_textEditor.TextEditorCore.IsDirty)
+        {
+            var renderInfoProvider = _textEditor.TextEditorCore.GetRenderInfo();
+            _selectionAndCaretLayer.UpdateSelectionAndCaret(renderInfoProvider);
+        }
     }
 
     private readonly TextEditor _textEditor;
