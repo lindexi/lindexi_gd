@@ -74,7 +74,13 @@ class ParagraphManager
 
         HitParagraphDataResult GetResult(ParagraphData paragraphData, ParagraphCaretOffset? hitOffset = null)
         {
-            return new HitParagraphDataResult(offset, paragraphData, hitOffset ?? new ParagraphCaretOffset(0), this);
+            if (offset.Offset == 0)
+            {
+                offset = new CaretOffset(offset.Offset, isAtLineStart: true);
+            }
+
+            return new HitParagraphDataResult(offset, paragraphData,
+                hitOffset ?? new ParagraphCaretOffset(0), this);
         }
 
         HitCaretOffsetOutOfRangeException GetHitCaretOffsetOutOfRangeException()

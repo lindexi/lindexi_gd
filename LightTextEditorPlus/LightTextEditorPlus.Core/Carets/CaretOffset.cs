@@ -21,7 +21,7 @@ public readonly struct CaretOffset : IEquatable<CaretOffset>
     /// <param name="offset"></param>
     /// <param name="isAtLineStart">设置当前Offset是否处于当前行的起始位置</param>
     [DebuggerStepThrough]
-    public CaretOffset(int offset, bool isAtLineStart=false)
+    public CaretOffset(int offset, bool isAtLineStart = false)
     {
         if (offset < 0)
         {
