@@ -31,6 +31,11 @@ public readonly struct CaretRenderInfo
 
     public CharData CharData { get; }
 
+    /// <summary>
+    /// 是否一个空段
+    /// </summary>
+    public bool IsEmptyParagraph => ParagraphData.CharCount == 0;
+
     internal ParagraphData ParagraphData { get; }
     internal ParagraphCaretOffset HitOffset { get; }
 
