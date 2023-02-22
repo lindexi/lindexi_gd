@@ -29,8 +29,7 @@ public class RenderInfoProvider
         if (caretOffset.Offset > textEditor.DocumentManager.CharCount)
         {
             // 超过文档的字符数量
-            throw new ArgumentOutOfRangeException(paramName: nameof(caretOffset),
-                $"DocumentManagerCharCount={textEditor.DocumentManager.CharCount};CaretOffset={caretOffset.Offset}");
+            throw new HitCaretOffsetOutOfRangeException(textEditor, caretOffset, textEditor.DocumentManager.CharCount,nameof(caretOffset));
         }
 
         var paragraphManager = textEditor.DocumentManager.DocumentRunEditProvider.ParagraphManager;

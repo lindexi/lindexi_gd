@@ -79,7 +79,7 @@ class ParagraphManager
 
         HitCaretOffsetOutOfRangeException GetHitCaretOffsetOutOfRangeException()
         {
-            return new HitCaretOffsetOutOfRangeException(TextEditor, offset, TextEditor.DocumentManager.CharCount);
+            return new HitCaretOffsetOutOfRangeException(TextEditor, offset, TextEditor.DocumentManager.CharCount,nameof(offset));
         }
     }
 
