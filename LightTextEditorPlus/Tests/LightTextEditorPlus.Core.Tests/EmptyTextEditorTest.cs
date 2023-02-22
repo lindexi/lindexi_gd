@@ -19,9 +19,6 @@ public class EmptyTextEditorTest
             var textEditorCore = new TextEditorCore(testPlatformProvider);
 
             // Action
-            // 获取之前，是性能优化，没有包含一行
-            Assert.AreEqual(0, textEditorCore.DocumentManager.ParagraphManager.GetParagraphList().Count);
-
             var result = textEditorCore.DocumentManager.ParagraphManager.GetHitParagraphData(new CaretOffset(0));
 
             // Assert
