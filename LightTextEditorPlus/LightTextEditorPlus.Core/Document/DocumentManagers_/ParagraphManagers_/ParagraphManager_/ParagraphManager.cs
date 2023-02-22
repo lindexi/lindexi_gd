@@ -131,7 +131,12 @@ class ParagraphManager
         return paragraphData;
     }
 
-    public IReadOnlyList<ParagraphData> GetParagraphList() => ParagraphList;
+    public IReadOnlyList<ParagraphData> GetParagraphList()
+    {
+        EnsureFirstParagraphExists();
+
+        return ParagraphList;
+    }
 
     private List<ParagraphData> ParagraphList { get; } = new List<ParagraphData>();
 
@@ -194,6 +199,9 @@ class ParagraphManager
     /// 即使是一个空文本，设计上也是存在一个空段落的
     private void EnsureFirstParagraphExists()
     {
-        CreateParagraphAndInsertAfter(relativeParagraph: null);
+        if (ParagraphList.Count == 0)
+        {
+            CreateParagraphAndInsertAfter(relativeParagraph: null);
+        }
     }
 }
