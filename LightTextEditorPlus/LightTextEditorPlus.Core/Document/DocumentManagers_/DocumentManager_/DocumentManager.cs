@@ -390,23 +390,8 @@ namespace LightTextEditorPlus.Core.Document
         {
             TextEditor.VerifyInUndoRedoMode();
             CurrentRunProperty = runProperty;
-
-            A a = new B();
         }
 
         #endregion
-    }
-
-    class A
-    {
-        public static implicit operator A(B b)
-        {
-            return new A();
-        }
-    }
-
-    class B
-    {
-
     }
 }
