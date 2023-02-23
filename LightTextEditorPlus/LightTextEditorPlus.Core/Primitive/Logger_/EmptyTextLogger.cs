@@ -18,7 +18,7 @@ internal class EmptyTextLogger : ITextLogger
     {
         if (_textEditor.IsInDebugMode)
         {
-            Debugger.Log(0, "TextEditorCore", $"[Debug] {message}");
+            Debug.WriteLine($"[Debug] {message}");
         }
     }
 
@@ -26,7 +26,7 @@ internal class EmptyTextLogger : ITextLogger
     {
         if (_textEditor.IsInDebugMode)
         {
-            Debugger.Log(1, "TextEditorCore",$"[Warn] {message} 异常:{exception}");
+            Debug.WriteLine($"[Warn] {message} 异常:{exception}");
         }
     }
 
@@ -34,7 +34,7 @@ internal class EmptyTextLogger : ITextLogger
     {
         if (_textEditor.IsInDebugMode)
         {
-            Debugger.Log(0, "TextEditorCore", $"[Info] {message}");
+            Debug.WriteLine($"[Info] {message}");
         }
     }
 
@@ -42,7 +42,7 @@ internal class EmptyTextLogger : ITextLogger
     {
         if (_textEditor.IsInDebugMode)
         {
-            Debugger.Log(1, "TextEditorCore", $"[Warn] {message}");
+            Debug.WriteLine($"[Warn] {message}");
         }
     }
 }

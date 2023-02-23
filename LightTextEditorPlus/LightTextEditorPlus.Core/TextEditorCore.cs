@@ -477,7 +477,7 @@ public partial class TextEditorCore
         {
             _layoutUpdateReasonManager ??= new LayoutUpdateReasonManager(this);
             _layoutUpdateReasonManager.AddLayoutReason(reason);
-            Logger.LogDebug($"[TextEditorCore][AddLayoutReason] {reason}");
+            Logger.LogDebug($"[TextEditorCore][AddLayoutReason] 添加布局理由 {reason}");
         }
     }
 
