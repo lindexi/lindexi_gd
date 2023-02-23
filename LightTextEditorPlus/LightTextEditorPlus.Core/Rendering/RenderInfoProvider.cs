@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Diagnostics;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
@@ -26,10 +26,12 @@ public class RenderInfoProvider
     public CaretRenderInfo GetCaretRenderInfo(CaretOffset caretOffset)
     {
         var textEditor = TextEditor;
-        if (caretOffset.Offset > textEditor.DocumentManager.CharCount)
+        var documentCharCount = textEditor.DocumentManager.CharCount;
+        if (caretOffset.Offset > documentCharCount)
         {
             // 超过文档的字符数量
-            throw new HitCaretOffsetOutOfRangeException(textEditor, caretOffset, textEditor.DocumentManager.CharCount,nameof(caretOffset));
+            throw new HitCaretOffsetOutOfRangeException(textEditor, caretOffset, documentCharCount,
+                nameof(caretOffset));
         }
 
         var paragraphManager = textEditor.DocumentManager.DocumentRunEditProvider.ParagraphManager;
@@ -50,10 +52,23 @@ public class RenderInfoProvider
             if (lineLayoutData.CharEndParagraphIndex >= hitOffset.Offset)
             {
                 var hitLineOffset = hitOffset.Offset - lineLayoutData.CharStartParagraphIndex;
-                var charData = lineLayoutData.GetCharList()[hitLineOffset];
 
-                // 预期是能找到的，如果找不到，那就是炸
-                return new CaretRenderInfo(lineIndex, hitLineOffset, charData, paragraphData, hitOffset, caretOffset);
+                if (lineLayoutData.CharCount == 0)
+                {
+                    // 这是一个空行
+                    // 如果遇到空行，那应该只有是空段才能创建空行
+                    Debug.Assert(paragraphData.CharCount==0, "只有空段才能创建空行");
+                    Debug.Assert(hitLineOffset == 0, "对于一个空行，难道还能计算出多个字符");
+                    return new CaretRenderInfo(lineIndex, hitLineOffset, null, paragraphData, hitOffset, caretOffset,
+                        lineLayoutData.GetLineBounds());
+                }
+                else
+                {
+                    var charData = lineLayoutData.GetCharList()[hitLineOffset];
+
+                    // 预期是能找到的，如果找不到，那就是炸
+                    return new CaretRenderInfo(lineIndex, hitLineOffset, charData, paragraphData, hitOffset, caretOffset, lineLayoutData.GetLineBounds());
+                }
             }
         }
 
