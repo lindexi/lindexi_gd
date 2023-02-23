@@ -196,13 +196,6 @@ public partial class TextEditorCore
 
     internal void RequireDispatchUpdateLayout(string updateReason)
     {
-        //// 如果当前还没有任何的字符内容，那就不请求更新布局了
-        //if (DocumentManager.CharCount == 0)
-        //{
-        //    Logger.LogDebug($"[TextEditorCore] 请求布局失败 DocumentManager.CharCount == 0");
-        //    return;
-        //}
-
         RequireDispatchUpdateLayoutInner(updateReason);
     }
 
