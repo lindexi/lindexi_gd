@@ -54,10 +54,7 @@ class LayoutManager
 
     private ArrangingLayoutProvider? ArrangingLayoutProvider { set; get; }
 
-    public DocumentRenderData DocumentRenderData { get; } = new DocumentRenderData()
-    {
-        //IsDirty = true,
-    };
+    public DocumentRenderData DocumentRenderData { get; } = new DocumentRenderData();
 }
 
 /// <summary>

@@ -7,7 +7,5 @@ namespace LightTextEditorPlus.Core.Layout;
 /// </summary>
 class DocumentRenderData
 {
-    //public bool IsDirty { set; get; }
-
     public Rect DocumentBounds { set; get; }
 }
