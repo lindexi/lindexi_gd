@@ -183,11 +183,6 @@ namespace LightTextEditorPlus.Core.Document
             }
         }
 
-        //private IReadOnlyRunProperty GetCurrentCaretRunProperty()
-        //{
-
-        //}
-
         #endregion
 
         #region 公开属性
