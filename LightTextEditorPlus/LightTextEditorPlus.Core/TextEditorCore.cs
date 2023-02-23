@@ -145,7 +145,7 @@ public partial class TextEditorCore
     /// 准备重新布局整个文档
     /// </summary>
     /// <param name="reason"></param>
-    private void RequireDispatchReLayoutAllDocument(string reason)
+    internal void RequireDispatchReLayoutAllDocument(string reason)
     {
         //if (DocumentManager.CharCount == 0)
         //{

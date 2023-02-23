@@ -38,7 +38,7 @@ namespace LightTextEditorPlus.Core.Document
             {
                 _documentWidth = value;
 
-                TextEditor.RequireDispatchUpdateLayout("DocumentWidthChanged");
+                TextEditor.RequireDispatchReLayoutAllDocument("DocumentWidthChanged");
             }
             get => _documentWidth;
         }
@@ -55,7 +55,7 @@ namespace LightTextEditorPlus.Core.Document
             {
                 _documentHeight = value;
 
-                TextEditor.RequireDispatchUpdateLayout("DocumentHeightChanged");
+                TextEditor.RequireDispatchReLayoutAllDocument("DocumentHeightChanged");
             }
             get => _documentHeight;
         }
