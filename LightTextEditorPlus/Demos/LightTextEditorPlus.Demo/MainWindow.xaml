@@ -31,11 +31,13 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"></ColumnDefinition>
                     <ColumnDefinition Width="Auto"></ColumnDefinition>
-                    <ColumnDefinition Width="Auto"></ColumnDefinition>
                 </Grid.ColumnDefinitions>
                 <TextBox x:Name="TextBox" AcceptsReturn="True"></TextBox>
-                <Button Grid.Column="1" Click="InputButton_OnClick">输入</Button>
-                <Button Grid.Column="2" Margin="5,0,0,0" Click="DebugButton_OnClick">调试</Button>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Click="InputButton_OnClick">输入</Button>
+                    <Button Margin="5,0,0,0" Click="BackspaceButton_OnClick">退格</Button>
+                    <Button Margin="5,0,0,0" Click="DebugButton_OnClick">调试</Button>
+                </StackPanel>
             </Grid>
         </Grid>
 

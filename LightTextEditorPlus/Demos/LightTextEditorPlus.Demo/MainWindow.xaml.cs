@@ -61,5 +61,12 @@ namespace LightTextEditorPlus.Demo
             }
 #pragma warning restore CS0618
         }
+
+        private void BackspaceButton_OnClick(object sender, RoutedEventArgs e)
+        {
+#pragma warning disable CS0618
+            TextEditor.TextEditorCore.Backspace();
+#pragma warning restore CS0618
+        }
     }
 }

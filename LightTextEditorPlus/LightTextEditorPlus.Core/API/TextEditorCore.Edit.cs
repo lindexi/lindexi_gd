@@ -49,6 +49,15 @@ public partial class TextEditorCore
     }
 
     /// <summary>
+    /// 退格，还没设计好，仅调试下使用
+    /// </summary>
+    [Obsolete("仅调试使用")]
+    public void Backspace()
+    {
+
+    }
+
+    /// <summary>
     /// 在当前光标后面加入纯文本
     /// </summary>
     /// <param name="text"></param>
