@@ -73,7 +73,7 @@ public class RenderInfoProvider
         }
 
         // 理论上不可能进入此分支
-        throw new ArgumentException("无法命中光标对应的字符");
+        throw new TextEditorInnerException("无法命中光标对应的字符");
     }
 
     //public Rect GetCharLayoutInfo(DocumentOffset documentOffset)
