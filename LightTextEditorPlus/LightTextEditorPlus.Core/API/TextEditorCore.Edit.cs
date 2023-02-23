@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using LightTextEditorPlus.Core.Carets;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace LightTextEditorPlus.Core;
 
