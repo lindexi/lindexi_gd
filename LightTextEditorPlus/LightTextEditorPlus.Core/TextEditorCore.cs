@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Document;
@@ -120,25 +119,30 @@ public partial class TextEditorCore
 
     #region 光标
 
-    private void CaretManager_InternalCurrentCaretOffsetChanging(object? sender, TextEditorValueChangeEventArgs<CaretOffset> args)
+    private void CaretManager_InternalCurrentCaretOffsetChanging(object? sender,
+        TextEditorValueChangeEventArgs<CaretOffset> args)
     {
         CurrentCaretOffsetChanging?.Invoke(sender, args);
     }
 
-    private void CaretManager_InternalCurrentCaretOffsetChanged(object? sender, TextEditorValueChangeEventArgs<CaretOffset> args)
+    private void CaretManager_InternalCurrentCaretOffsetChanged(object? sender,
+        TextEditorValueChangeEventArgs<CaretOffset> args)
     {
         CurrentCaretOffsetChanged?.Invoke(sender, args);
     }
 
-    private void CaretManager_InternalCurrentSelectionChanging(object? sender, TextEditorValueChangeEventArgs<Selection> args)
+    private void CaretManager_InternalCurrentSelectionChanging(object? sender,
+        TextEditorValueChangeEventArgs<Selection> args)
     {
         CurrentSelectionChanging?.Invoke(sender, args);
     }
 
-    private void CaretManager_InternalCurrentSelectionChanged(object? sender, TextEditorValueChangeEventArgs<Selection> args)
+    private void CaretManager_InternalCurrentSelectionChanged(object? sender,
+        TextEditorValueChangeEventArgs<Selection> args)
     {
         CurrentSelectionChanged?.Invoke(sender, args);
     }
+
     #endregion
 
     /// <summary>
@@ -221,9 +225,10 @@ public partial class TextEditorCore
 
         // 更新布局完成之后，更新渲染信息
         Logger.LogDebug($"[TextEditorCore][UpdateLayout] 开始更新布局");
-        if (_layoutUpdateReasonManager is {} layoutUpdateReasonManager)
+        if (_layoutUpdateReasonManager is { } layoutUpdateReasonManager)
         {
-            Logger.LogDebug($"[TextEditorCore][UpdateLayout][UpdateReason] 布局原因：{layoutUpdateReasonManager.ReasonText}");
+            Logger.LogDebug(
+                $"[TextEditorCore][UpdateLayout][UpdateReason] 布局原因：{layoutUpdateReasonManager.ReasonText}");
         }
 
         try
@@ -357,7 +362,7 @@ public partial class TextEditorCore
 
     #endregion
 
-    #region 状态属性 
+    #region 状态属性
 
     // 存放文本当前的状态
 
@@ -384,6 +389,7 @@ public partial class TextEditorCore
         private set => _isInDebugMode = value;
         get => _isInDebugMode || IsAllInDebugMode;
     }
+
     private bool _isInDebugMode;
 
     /// <summary>
@@ -443,7 +449,7 @@ public partial class TextEditorCore
     /// 当前光标已变更事件
     /// </summary>
     public event EventHandler<TextEditorValueChangeEventArgs<CaretOffset>>?
-       CurrentCaretOffsetChanged;
+        CurrentCaretOffsetChanged;
 
     /// <summary>
     /// 当前选择范围开始变更事件

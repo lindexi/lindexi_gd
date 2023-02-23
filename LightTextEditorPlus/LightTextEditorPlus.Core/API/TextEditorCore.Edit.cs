@@ -96,7 +96,8 @@ public partial class TextEditorCore
     public void Clear()
     {
         // 调试代码，就这么强行转换
-        var paragraphDataList = (List<ParagraphData>) DocumentManager.DocumentRunEditProvider.ParagraphManager.GetParagraphList();
+        var paragraphDataList =
+            (List<ParagraphData>)DocumentManager.DocumentRunEditProvider.ParagraphManager.GetParagraphList();
         paragraphDataList.Clear();
     }
 

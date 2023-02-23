@@ -76,8 +76,6 @@ public partial class TextEditorCore
 
     #endregion
 
-    
-
     #region 辅助方法
 
     internal void VerifyNotDirty()
@@ -93,8 +91,7 @@ public partial class TextEditorCore
     /// </summary>
     /// 拆分一个方法是为了减少 JIT 过程需要生成异常的代码，提升 JIT 性能。同时让 <see cref="VerifyNotDirty"/> 被内联
     /// <exception cref="TextEditorDirtyException"></exception>
-    private static void ThrowTextEditorDirtyException()=> throw new TextEditorDirtyException();
+    private static void ThrowTextEditorDirtyException() => throw new TextEditorDirtyException();
 
     #endregion
 }
-
