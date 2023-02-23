@@ -304,6 +304,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         double lineHeight = currentSize.Height;
         if (double.IsNaN(paragraphProperty.FixedLineSpacing))
         {
+            // todo 考虑空段的行距计算
             var lineSpacing = paragraphProperty.LineSpacing;
 
             if (TextEditor.LineSpacingStrategy == LineSpacingStrategy.FirstLineShrink

@@ -7,7 +7,7 @@ namespace LightTextEditorPlus.Core.Primitive;
 /// <summary>
 /// 文本库使用的坐标和尺寸
 /// </summary>
-/// Copy From https://github.com/dotnet/Microsoft.Maui.Graphics
+/// Copy From https://github.com/dotnet/Microsoft.Maui.Graphics 但是修改了一些代码
 [DebuggerDisplay("X={X}, Y={Y}, Width={Width}, Height={Height}")]
 public struct Rect
 {
