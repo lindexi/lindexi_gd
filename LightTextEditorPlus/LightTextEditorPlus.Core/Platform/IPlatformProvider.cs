@@ -31,6 +31,12 @@ public interface IPlatformProvider
     void RequireDispatchUpdateLayout(Action textLayout);
 
     /// <summary>
+    /// 立刻执行更新布局。如果之前有调用 <see cref="RequireDispatchUpdateLayout"/> 请求布局，在此执行之后，将忽略
+    /// </summary>
+    /// <param name="updateLayoutAction"></param>
+    void InvokeDispatchUpdateLayout(Action updateLayoutAction);
+
+    /// <summary>
     ///     创建文本日志
     /// </summary>
     /// <returns>可为空，为空采用空白日志</returns>

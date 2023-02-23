@@ -225,7 +225,7 @@ public partial class TextEditorCore
     private void LayoutEmptyTextEditor()
     {
         AddLayoutReason(nameof(LayoutEmptyTextEditor) + "空文本布局");
-        UpdateLayout();
+        PlatformProvider.InvokeDispatchUpdateLayout(UpdateLayout);
     }
 
     private void UpdateLayout()
