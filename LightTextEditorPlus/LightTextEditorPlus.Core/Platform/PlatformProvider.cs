@@ -25,9 +25,9 @@ public abstract class PlatformProvider : IPlatformProvider
     }
 
     /// <inheritdoc />
-    public virtual void RequireDispatchUpdateLayout(Action textLayout)
+    public virtual void RequireDispatchUpdateLayout(Action updateLayoutAction)
     {
-        textLayout();
+        updateLayoutAction();
     }
 
     /// <inheritdoc />

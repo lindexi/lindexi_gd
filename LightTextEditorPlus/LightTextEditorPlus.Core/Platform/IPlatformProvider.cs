@@ -27,8 +27,8 @@ public interface IPlatformProvider
     ///     加入调度更新布局请求
     /// </summary>
     /// 推荐处理：快速多次触发时，只触发一次，以及调度到合适的时机去执行
-    /// <param name="textLayout"></param>
-    void RequireDispatchUpdateLayout(Action textLayout);
+    /// <param name="updateLayoutAction"></param>
+    void RequireDispatchUpdateLayout(Action updateLayoutAction);
 
     /// <summary>
     /// 立刻执行更新布局。如果之前有调用 <see cref="RequireDispatchUpdateLayout"/> 请求布局，在此执行之后，将忽略

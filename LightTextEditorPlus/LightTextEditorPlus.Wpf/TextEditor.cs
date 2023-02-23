@@ -203,9 +203,9 @@ internal class TextEditorPlatformProvider : PlatformProvider
     private readonly DispatcherRequiring _textLayoutDispatcherRequiring;
     private Action? _lastTextLayout;
 
-    public override void RequireDispatchUpdateLayout(Action textLayout)
+    public override void RequireDispatchUpdateLayout(Action updateLayoutAction)
     {
-        _lastTextLayout = textLayout;
+        _lastTextLayout = updateLayoutAction;
         _textLayoutDispatcherRequiring.Require();
     }
 
