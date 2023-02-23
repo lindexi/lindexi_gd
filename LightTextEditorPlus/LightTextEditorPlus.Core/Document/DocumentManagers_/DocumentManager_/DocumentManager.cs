@@ -353,22 +353,31 @@ namespace LightTextEditorPlus.Core.Document
             InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        internal void Backspace()
+        /// <summary>
+        /// 退格删除
+        /// </summary>
+        /// <param name="count"></param>
+        internal void Backspace(int count = 1)
         {
-            TextEditor.AddLayoutReason(nameof(Backspace));
-            InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
-
-            DocumentRunEditProvider.RemoveLast();
-            if (CaretManager.CurrentSelection.IsEmpty)
+            // 退格键时，有选择就删除选择内容。没选择就删除给定内容
+            var caretManager = CaretManager;
+            var currentSelection = caretManager.CurrentSelection;
+            if (currentSelection.IsEmpty)
             {
-                CaretManager.CurrentCaretOffset = new CaretOffset(CaretManager.CurrentCaretOffset.Offset - 1);
-            }
-            else
-            {
-                CaretManager.CurrentCaretOffset = CaretManager.CurrentSelection.FrontOffset;
+                var currentCaretOffset = caretManager.CurrentCaretOffset;
+                if (currentCaretOffset.Offset == 0)
+                {
+                    // 放在文档最前，不能退格
+                    return;
+                }
+
+                var offset = currentCaretOffset.Offset - count;
+                offset = Math.Max(0, offset);
+                var length = currentCaretOffset.Offset - offset;
+                currentSelection=new Selection(new CaretOffset(offset), length);
             }
 
-            InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
+            EditAndReplaceRun(currentSelection, null);
         }
 
         #endregion

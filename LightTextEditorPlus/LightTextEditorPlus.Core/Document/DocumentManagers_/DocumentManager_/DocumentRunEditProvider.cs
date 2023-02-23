@@ -230,29 +230,4 @@ internal class DocumentRunEditProvider
             paragraphData.AppendCharData(lastCharDataList);
         }
     }
-
-    public void RemoveLast(int count = 1)
-    {
-        // 退格键时，有选择就删除选择内容。没选择就删除给定内容
-        var caretManager = CaretManager;
-        var currentSelection = caretManager.CurrentSelection;
-        if (currentSelection.IsEmpty)
-        {
-            var currentCaretOffset = caretManager.CurrentCaretOffset;
-            if (currentCaretOffset.Offset == 0)
-            {
-                // 放在文档最前，不能退格
-                return;
-            }
-
-            var offset = currentCaretOffset.Offset - count;
-            offset = Math.Max(0, offset);
-            var length = currentCaretOffset.Offset - offset;
-            RemoveInner(new Selection(new CaretOffset(offset), length));
-        }
-        else
-        {
-            RemoveInner(currentSelection);
-        }
-    }
 }
