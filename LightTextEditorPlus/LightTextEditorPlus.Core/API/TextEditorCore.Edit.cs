@@ -1,6 +1,7 @@
 ﻿using LightTextEditorPlus.Core.Document;
 using System;
 using System.Collections.Generic;
+using LightTextEditorPlus.Core.Carets;
 
 namespace LightTextEditorPlus.Core;
 
@@ -38,6 +39,14 @@ public partial class TextEditorCore
     }
 
     /// <summary>
+    /// 在当前光标后面加入纯文本
+    /// </summary>
+    /// <param name="text"></param>
+    [Obsolete("请使用" + nameof(EditAndReplace) + "代替。此方法只是用来告诉你正确的用法是调用" + nameof(EditAndReplace) + "方法", true)]
+    public void InsertTextAfterCurrentCaretOffset(string text) =>
+        EditAndReplace(text);
+
+    /// <summary>
     /// 清空文本，现在仅调试下使用
     /// </summary>
     [Obsolete("仅调试使用")]
@@ -49,19 +58,30 @@ public partial class TextEditorCore
     }
 
     /// <summary>
-    /// 退格，还没设计好，仅调试下使用
+    /// 退格删除，如果没有选择，则删除光标前一个字符。如果有选择，则删除选择内容
     /// </summary>
-    [Obsolete("仅调试使用")]
     public void Backspace()
     {
         DocumentManager.Backspace();
     }
 
     /// <summary>
-    /// 在当前光标后面加入纯文本
+    /// 删除给定范围内的文本
     /// </summary>
-    /// <param name="text"></param>
-    [Obsolete("请使用" + nameof(EditAndReplace) + "代替。此方法只是用来告诉你正确的用法是调用" + nameof(EditAndReplace) + "方法", true)]
-    public void InsertTextAfterCurrentCaretOffset(string text) =>
-        EditAndReplace(text);
+    /// <param name="selection"></param>
+    public void Delete(Selection selection)
+    {
+        if (selection.IsEmpty)
+        {
+            return;
+        }
+
+        // 删除范围内的文本，等价于将范围内的文本替换为空
+        DocumentManager.EditAndReplaceRun(selection, null);
+    }
+
+    [Obsolete("只是用来告诉你，应该调用" + nameof(Delete) + "删除文本", true)]
+    public void Remove()
+    {
+    }
 }
