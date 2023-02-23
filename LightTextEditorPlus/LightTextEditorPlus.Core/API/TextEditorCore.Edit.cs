@@ -105,6 +105,7 @@ public partial class TextEditorCore
     /// </summary>
     public void Backspace()
     {
+        AddLayoutReason("Backspace退格删除");
         DocumentManager.Backspace();
     }
 

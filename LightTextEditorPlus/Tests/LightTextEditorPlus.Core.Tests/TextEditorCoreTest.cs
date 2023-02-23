@@ -291,7 +291,7 @@ public class TextEditorCoreTest
             textEditorCore.AppendText("1");
 
             // Action
-            textEditorCore.DocumentManager.Backspace();
+            textEditorCore.Backspace();
 
             // Assert
             // 可以删除所有文本，等于文本字符数量是空

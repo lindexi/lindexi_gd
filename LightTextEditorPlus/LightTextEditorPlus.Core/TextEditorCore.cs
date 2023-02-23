@@ -96,7 +96,7 @@ public partial class TextEditorCore
         _layoutManager = new LayoutManager(this);
         _layoutManager.InternalLayoutCompleted += LayoutManager_InternalLayoutCompleted;
 
-        Logger = platformProvider.BuildTextLogger() ?? new EmptyTextLogger();
+        Logger = platformProvider.BuildTextLogger() ?? new EmptyTextLogger(this);
 
 #if DEBUG
         IsInDebugMode = true;
@@ -201,7 +201,7 @@ public partial class TextEditorCore
 
     private void RequireDispatchUpdateLayoutInner(string updateReason)
     {
-        _layoutUpdateReasonManager?.AddLayoutReason(updateReason);
+        AddLayoutReason(updateReason);
         PlatformProvider.RequireDispatchUpdateLayout(UpdateLayout);
     }
 
@@ -211,7 +211,7 @@ public partial class TextEditorCore
     /// 特别加一个方法，用来方便调试是哪个业务调用
     private void LayoutEmptyTextEditor()
     {
-        _layoutUpdateReasonManager?.AddLayoutReason(nameof(LayoutEmptyTextEditor));
+        AddLayoutReason(nameof(LayoutEmptyTextEditor) + "空文本布局");
         UpdateLayout();
     }
 
@@ -221,6 +221,10 @@ public partial class TextEditorCore
 
         // 更新布局完成之后，更新渲染信息
         Logger.LogDebug($"[TextEditorCore][UpdateLayout] 开始更新布局");
+        if (_layoutUpdateReasonManager is {} layoutUpdateReasonManager)
+        {
+            Logger.LogDebug($"[TextEditorCore][UpdateLayout][UpdateReason] 布局原因：{layoutUpdateReasonManager.ReasonText}");
+        }
 
         try
         {
