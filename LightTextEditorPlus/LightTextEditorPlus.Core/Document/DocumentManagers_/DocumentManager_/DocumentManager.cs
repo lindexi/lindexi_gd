@@ -308,27 +308,17 @@ namespace LightTextEditorPlus.Core.Document
         /// <summary>
         /// 追加一段文本
         /// </summary>
-        /// 其实这个方法不应该放在这里
-        internal void AppendText(string text)
+        /// 由于追加属于性能优化的高级用法，默认不开放给业务层调用
+        internal void AppendText(IImmutableRun run)
         {
-            if (string.IsNullOrEmpty(text))
-            {
-                // 空白内容
-                return;
-            }
-
             TextEditor.AddLayoutReason(nameof(AppendText));
-
-            //// 追加在字符数量，也就是最末
-            //EditAndReplaceRun(this.GetDocumentEndSelection(), new TextRun(text));
 
             InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
 
             // 设置光标到文档最后，再进行追加。设置光标到文档最后之后，可以自动获取当前光标下的文本字符属性
             CaretManager.CurrentCaretOffset = new CaretOffset(CharCount);
 
-            var textRun = new TextRun(text, CurrentCaretRunProperty);
-            DocumentRunEditProvider.Append(textRun);
+            DocumentRunEditProvider.Append(run);
 
             CaretManager.CurrentCaretOffset = new CaretOffset(CharCount);
 
@@ -340,7 +330,7 @@ namespace LightTextEditorPlus.Core.Document
         /// </summary>
         /// <param name="selection"></param>
         /// <param name="run"></param>
-        public void EditAndReplaceRun(Selection selection, IImmutableRun? run)
+        public void EditAndReplaceRun(in Selection selection, IImmutableRun? run)
         {
             InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
             // 这里只处理数据变更，后续渲染需要通过 InternalDocumentChanged 事件触发

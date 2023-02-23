@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using LightTextEditorPlus.Core.Carets;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace LightTextEditorPlus.Core;
 
@@ -10,15 +11,32 @@ public partial class TextEditorCore
     /// <summary>
     /// 追加一段文本，追加的文本按照段末的样式
     /// </summary>
+    /// 给上层业务方调用
     public void AppendText(string text)
     {
-        DocumentManager.AppendText(text);
+        if (string.IsNullOrEmpty(text))
+        {
+            return;
+        }
+
+        DocumentManager.AppendText(new TextRun(text));
+    }
+
+    /// <summary>
+    /// 追加一段文本
+    /// </summary>
+    /// <param name="run"></param>
+    /// 给上层业务方调用
+    public void AppendRun(IImmutableRun run)
+    {
+        DocumentManager.AppendText(run);
     }
 
     /// <summary>
     /// 在当前的文本上编辑且替换。文本没有选择时，将在当前光标后面加入文本。文本有选择时，替换选择内容为输入内容
     /// </summary>
     /// <param name="text"></param>
+    /// 给上层业务方调用
     public void EditAndReplace(string text)
     {
         TextEditorCore textEditor = this;
@@ -26,16 +44,42 @@ public partial class TextEditorCore
         // 判断光标是否在文档末尾，且没有选择内容
         var currentSelection = CaretManager.CurrentSelection;
         var caretOffset = CaretManager.CurrentCaretOffset;
+        var isEmptyText = string.IsNullOrEmpty(text);
         if (currentSelection.IsEmpty && caretOffset.Offset == documentManager.CharCount)
         {
-            // 在末尾，调用追加，性能更好
-            documentManager.AppendText(text);
+            if (!isEmptyText)
+            {
+                // 在末尾，调用追加，性能更好
+                documentManager.AppendText(new TextRun(text));
+            }
         }
         else
         {
-            var textRun = new TextRun(text);
-            documentManager.EditAndReplaceRun(currentSelection, textRun);
+            if (isEmptyText)
+            {
+                documentManager.EditAndReplaceRun(currentSelection, null);
+            }
+            else
+            {
+                var textRun = new TextRun(text);
+                documentManager.EditAndReplaceRun(currentSelection, textRun);
+            }
         }
+    }
+
+    /// <summary>
+    /// 编辑和替换文本
+    /// </summary>
+    /// <param name="selection">为空将使用当前选择内容，当前无选择则在光标之后插入</param>
+    /// <param name="run"></param>
+    public void EditAndReplaceRun(IImmutableRun? run, Selection? selection = null)
+    {
+        DocumentManager.EditAndReplaceRun(selection ?? CaretManager.CurrentSelection, run);
+    }
+
+    [Obsolete("请使用" + nameof(EditAndReplace) + "代替。此方法只是用来告诉你正确的用法是调用" + nameof(EditAndReplace) + "方法", true)]
+    public void AddText()
+    {
     }
 
     /// <summary>

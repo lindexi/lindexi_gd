@@ -48,7 +48,7 @@ internal class DocumentRunEditProvider
         AppendRunToParagraph(run, lastParagraph, styleRunProperty);
     }
 
-    public void Replace(Selection selection, IImmutableRun? run)
+    public void Replace(in Selection selection, IImmutableRun? run)
     {
         // 替换的时候，需要处理文本的字符属性样式
         IReadOnlyRunProperty? styleRunProperty = null;
