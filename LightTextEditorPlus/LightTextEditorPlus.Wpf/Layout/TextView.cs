@@ -10,6 +10,7 @@ using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Rendering;
 
 using Rect = System.Windows.Rect;
+using Size = LightTextEditorPlus.Core.Primitive.Size;
 
 namespace LightTextEditorPlus.Layout;
 
@@ -245,18 +246,28 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
                 // 获取光标的坐标
                 var caretRenderInfo = _renderInfoProvider.GetCaretRenderInfo(currentSelection.FrontOffset);
                 var charData = caretRenderInfo.CharData;
+                var startPoint = charData?.GetStartPoint() ?? caretRenderInfo.LineBounds.LeftTop;
+                Size size;
+                if (charData?.Size is not null)
+                {
+                    size = charData.Size.Value;
+                }
+                else
+                {
+                    size = caretRenderInfo.LineBounds.Size;
+                }
 
                 switch (_textEditor.TextEditorCore.ArrangingType)
                 {
                     case ArrangingType.Horizontal:
-                        var (x, y) = charData.GetStartPoint();
+                        var (x, y) = startPoint;
                         // 可以获取到起始点，那肯定存在尺寸
-                        x += charData.Size!.Value.Width;
+                        x += size.Width;
                         var width = _textEditor.CaretConfiguration.CaretWidth;
                         var height =
                             LineSpacingCalculator.CalculateLineHeightWithLineSpacing(_textEditor.TextEditorCore,
                                 _textEditor.CurrentCaretRunProperty, 1);
-                        y += charData.Size!.Value.Height - height;
+                        y += size.Height - height;
                         var foreground = _textEditor.CaretConfiguration.CaretBrush ??
                                          _textEditor.CurrentCaretRunProperty.Foreground.Value;
 

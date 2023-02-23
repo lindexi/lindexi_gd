@@ -150,6 +150,12 @@ public struct Rect
         set => X = value;
     }
 
+    /// <summary>
+    /// 左上角的点，和 <see cref="Location"/> 相同
+    /// </summary>
+    public Point LeftTop => Location; //new Point(Left, Top);
+    public Point RightBottom => new Point(Right, Bottom);
+
     public bool IsEmpty => (Width <= 0) || (Height <= 0);
 
     public Size Size
