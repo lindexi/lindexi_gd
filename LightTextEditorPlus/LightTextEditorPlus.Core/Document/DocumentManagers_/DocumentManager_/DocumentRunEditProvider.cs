@@ -28,21 +28,32 @@ internal class DocumentRunEditProvider
         var lastParagraph = ParagraphManager.GetLastParagraph();
 
         // 追加的样式继承规则：
-        // 1. 如果当前段落是空，那么追加时，继承当前段落的字符属性样式
-        // 2. 如果当前段落已有文本，那么追加时，使用此段落最后一个字符的字符属性作为字符属性样式
+        // 1. 当前光标样式存在，则采用当前光标样式，否则执行以下判断
+        // 2. 如果当前段落是空，那么追加时，继承当前段落的字符属性样式
+        // 3. 如果当前段落已有文本，那么追加时，使用此段落最后一个字符的字符属性作为字符属性样式
         IReadOnlyRunProperty styleRunProperty;
-        var index = lastParagraph.CharCount - 1;
-        if (index < 0)
+
+        if (TextEditor.CaretManager.CurrentCaretRunProperty is { } currentCaretRunProperty)
         {
-            // 如果当前段落是空，那么追加时，继承当前段落的字符属性样式
-            styleRunProperty = lastParagraph.ParagraphProperty.ParagraphStartRunProperty ??
-                               TextEditor.DocumentManager.CurrentRunProperty;
+            // 当前光标样式存在，则采用当前光标样式
+            styleRunProperty = currentCaretRunProperty;
         }
         else
         {
-            // 如果当前段落已有文本，那么追加时，使用此段落最后一个字符的字符属性作为字符属性样式
-            var charData = lastParagraph.GetCharData(new ParagraphCharOffset(index));
-            styleRunProperty = charData.RunProperty;
+            var index = lastParagraph.CharCount - 1;
+            if (index < 0)
+            {
+                // 优先顺序是当前的光标属性，再是段落属性
+                // 如果当前段落是空，那么追加时，继承当前段落的字符属性样式
+                styleRunProperty = lastParagraph.ParagraphProperty.ParagraphStartRunProperty ??
+                                   TextEditor.DocumentManager.CurrentRunProperty;
+            }
+            else
+            {
+                // 如果当前段落已有文本，那么追加时，使用此段落最后一个字符的字符属性作为字符属性样式
+                var charData = lastParagraph.GetCharData(new ParagraphCharOffset(index));
+                styleRunProperty = charData.RunProperty;
+            }
         }
 
         AppendRunToParagraph(run, lastParagraph, styleRunProperty);
