@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
@@ -11,6 +12,7 @@ using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Utils;
+
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Layout;
@@ -304,8 +306,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         {
             var lineSpacing = paragraphProperty.LineSpacing;
 
-            if (TextEditor.LineSpacingStrategy == LineSpacingStrategy.FirstLineShrink 
-                && paragraphIndex == 0 
+            if (TextEditor.LineSpacingStrategy == LineSpacingStrategy.FirstLineShrink
+                && paragraphIndex == 0
                 && lineIndex == 0)
             {
                 // 处理首行不展开
@@ -662,8 +664,20 @@ abstract class ArrangingLayoutProvider
 
             var result = MeasureEmptyParagraphLineHeight(emptyParagraphLineHeightMeasureArgument);
 
-            argument.ParagraphData.ParagraphLayoutData.StartPoint = argument.CurrentStartPoint;
-            argument.ParagraphData.ParagraphLayoutData.Size = result.ParagraphBounds.Size;
+            // 加上空行
+            Debug.Assert(paragraph.LineLayoutDataList.Count == 0, "空段布局时，一定不存在任何一行");
+            var lineLayoutData = new LineLayoutData(paragraph)
+            {
+                CharStartParagraphIndex = 0,
+                CharEndParagraphIndex = 0,
+                StartPoint = argument.CurrentStartPoint,
+                Size = result.ParagraphBounds.Size
+            };
+            paragraph.LineLayoutDataList.Add(lineLayoutData);
+
+            // 只有一行，那就不遍历了
+            argument.ParagraphData.ParagraphLayoutData.StartPoint = lineLayoutData.StartPoint;
+            argument.ParagraphData.ParagraphLayoutData.Size = lineLayoutData.Size;
 
             // 设置当前段落已经布局完成
             paragraph.SetFinishLayout();
