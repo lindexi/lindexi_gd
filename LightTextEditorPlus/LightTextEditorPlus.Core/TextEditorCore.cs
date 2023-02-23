@@ -151,10 +151,14 @@ public partial class TextEditorCore
     /// <param name="reason"></param>
     internal void RequireDispatchReLayoutAllDocument(string reason)
     {
-        //if (DocumentManager.CharCount == 0)
-        //{
-        //    return;
-        //}
+        // 是否在文本初始化时进入，如果是文本初始化进入，那就不需要重新布局整个文档，可以等待有具体数据传入再执行，提升性能
+        // 如果立刻获取光标信息，此时是可以通过调用布局获取到的
+        var isInit = !_isAnyLayoutUpdate;
+
+        if (isInit)
+        {
+            return;
+        }
 
         IsDirty = true;
 
@@ -172,6 +176,11 @@ public partial class TextEditorCore
 
         RequireDispatchUpdateLayoutInner(reason);
     }
+
+    /// <summary>
+    /// 是否发生过一次布局更新
+    /// </summary>
+    private bool _isAnyLayoutUpdate = false;
 
     private void DocumentManager_InternalDocumentChanging(object? sender, EventArgs e)
     {
@@ -221,6 +230,9 @@ public partial class TextEditorCore
 
     private void UpdateLayout()
     {
+        // 设置更新过布局
+        _isAnyLayoutUpdate = true;
+
         IsUpdatingLayout = true;
 
         // 更新布局完成之后，更新渲染信息
