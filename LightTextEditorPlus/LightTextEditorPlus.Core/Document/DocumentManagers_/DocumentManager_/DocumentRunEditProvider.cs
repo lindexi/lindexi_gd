@@ -48,7 +48,7 @@ internal class DocumentRunEditProvider
         AppendRunToParagraph(run, lastParagraph, styleRunProperty);
     }
 
-    public void Replace(Selection selection, IImmutableRun run)
+    public void Replace(Selection selection, IImmutableRun? run)
     {
         // 替换的时候，需要处理文本的字符属性样式
         IReadOnlyRunProperty? styleRunProperty = null;
@@ -79,7 +79,14 @@ internal class DocumentRunEditProvider
             // 没有替换的长度，加入即可
         }
 
-        InsertInner(selection.StartOffset, run, styleRunProperty);
+        if (run is not null)
+        {
+            InsertInner(selection.StartOffset, run, styleRunProperty);
+        }
+        else
+        {
+            // 没有任何需要加入的内容，那也就是删除
+        }
     }
 
     /// <summary>

@@ -340,14 +340,14 @@ namespace LightTextEditorPlus.Core.Document
         /// </summary>
         /// <param name="selection"></param>
         /// <param name="run"></param>
-        public void EditAndReplaceRun(Selection selection, IImmutableRun run)
+        public void EditAndReplaceRun(Selection selection, IImmutableRun? run)
         {
             InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
             // 这里只处理数据变更，后续渲染需要通过 InternalDocumentChanged 事件触发
 
             DocumentRunEditProvider.Replace(selection, run);
 
-            var caretOffset = new CaretOffset(selection.BehindOffset.Offset - selection.Length + run.Count);
+            var caretOffset = new CaretOffset(selection.FrontOffset.Offset + run?.Count ?? 0);
             CaretManager.CurrentCaretOffset = caretOffset;
 
             InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
