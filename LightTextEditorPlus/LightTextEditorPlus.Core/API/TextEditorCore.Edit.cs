@@ -54,7 +54,7 @@ public partial class TextEditorCore
     [Obsolete("仅调试使用")]
     public void Backspace()
     {
-        DocumentManager.DocumentRunEditProvider.RemoveLast();
+        DocumentManager.Backspace();
     }
 
     /// <summary>

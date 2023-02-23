@@ -353,6 +353,24 @@ namespace LightTextEditorPlus.Core.Document
             InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
         }
 
+        internal void Backspace()
+        {
+            TextEditor.AddLayoutReason(nameof(Backspace));
+            InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
+
+            DocumentRunEditProvider.RemoveLast();
+            if (CaretManager.CurrentSelection.IsEmpty)
+            {
+                CaretManager.CurrentCaretOffset = new CaretOffset(CaretManager.CurrentCaretOffset.Offset - 1);
+            }
+            else
+            {
+                CaretManager.CurrentCaretOffset = CaretManager.CurrentSelection.FrontOffset;
+            }
+
+            InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
+        }
+
         #endregion
 
         #region UndoRedo

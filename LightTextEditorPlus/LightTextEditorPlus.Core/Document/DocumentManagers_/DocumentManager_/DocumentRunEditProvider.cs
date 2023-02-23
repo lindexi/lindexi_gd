@@ -183,6 +183,12 @@ internal class DocumentRunEditProvider
 
     private void RemoveInner(Selection selection)
     {
+        if (selection.IsEmpty)
+        {
+            // 没有删除内容，那就啥都不做
+            return;
+        }
+
         // 先找到插入点是哪一段
         var frontOffset = selection.FrontOffset;
         var paragraphDataResult = ParagraphManager.GetHitParagraphData(frontOffset);
