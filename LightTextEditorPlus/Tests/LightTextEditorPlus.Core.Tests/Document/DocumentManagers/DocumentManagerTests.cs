@@ -53,9 +53,11 @@ public class DocumentManagerTests
 
             // Action
             var fontSize = 0d;
+            var oldFontSize = 0d;
             // 对当前的光标设置文本字符属性
             textEditorCore.DocumentManager.SetCurrentCaretRunProperty<LayoutOnlyRunProperty>(runProperty =>
             {
+                oldFontSize = runProperty.FontSize;
                 fontSize = runProperty.FontSize + 10;
                 runProperty.FontSize = fontSize;
             });
@@ -67,7 +69,8 @@ public class DocumentManagerTests
             textEditorCore.CurrentCaretOffset = new CaretOffset(0);
 
             // Assert
-            Assert.AreNotEqual(fontSize, textEditorCore.DocumentManager.CurrentCaretRunProperty.FontSize);
+            // 清空就是返回原来的字号
+            Assert.AreEqual(oldFontSize, textEditorCore.DocumentManager.CurrentCaretRunProperty.FontSize);
         });
 
         "对当前的光标设置文本字符属性，可以获取当前的光标的字符属性获取到设置的属性".Test(() =>
