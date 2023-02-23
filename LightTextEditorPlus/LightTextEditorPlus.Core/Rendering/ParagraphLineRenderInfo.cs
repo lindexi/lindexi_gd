@@ -15,6 +15,10 @@ public readonly record struct ParagraphLineRenderInfo(int LineIndex, LineDrawing
     /// 由于需要修改访问权限，修改为属性
     internal LineLayoutData LineLayoutData { init; get; } = null!;
 
+    /// <summary>
+    /// 设置渲染结果
+    /// </summary>
+    /// <param name="lineDrawnResult"></param>
     public void SetDrawnResult(in LineDrawnResult lineDrawnResult)
     {
         LineLayoutData.SetDrawn(lineDrawnResult);

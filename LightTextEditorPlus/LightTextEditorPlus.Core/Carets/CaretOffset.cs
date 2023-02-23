@@ -47,28 +47,44 @@ public readonly struct CaretOffset : IEquatable<CaretOffset>
     /// </summary>
     public bool IsAtLineStart { get; }
 
+    /// <inheritdoc />
     public override string ToString() => Offset.ToString();
 
+    /// <inheritdoc />
     public bool Equals(CaretOffset other)
     {
         return Offset == other.Offset;
     }
 
+    /// <inheritdoc />
     public override bool Equals(object? obj)
     {
         return obj is CaretOffset other && Equals(other);
     }
 
+    /// <inheritdoc />
     public override int GetHashCode()
     {
         return Offset;
     }
 
+    /// <summary>
+    /// 判断相等
+    /// </summary>
+    /// <param name="left"></param>
+    /// <param name="right"></param>
+    /// <returns></returns>
     public static bool operator ==(CaretOffset left, CaretOffset right)
     {
         return left.Equals(right);
     }
 
+    /// <summary>
+    /// 判断不相等
+    /// </summary>
+    /// <param name="left"></param>
+    /// <param name="right"></param>
+    /// <returns></returns>
     public static bool operator !=(CaretOffset left, CaretOffset right)
     {
         return !left.Equals(right);

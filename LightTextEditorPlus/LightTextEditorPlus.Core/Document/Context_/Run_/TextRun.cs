@@ -2,14 +2,25 @@
 
 namespace LightTextEditorPlus.Core.Document;
 
+/// <summary>
+/// 字符串文本片段
+/// </summary>
 public class TextRun : IImmutableTextRun
 {
+    /// <summary>
+    /// 创建字符串文本片段
+    /// </summary>
+    /// <param name="text"></param>
+    /// <param name="runProperty"></param>
     public TextRun(string text, IReadOnlyRunProperty? runProperty = null)
     {
         Text = text;
         RunProperty = runProperty;
     }
 
+    /// <summary>
+    /// 文本字符串
+    /// </summary>
     public string Text { get; }
 
     /// <inheritdoc />
@@ -47,5 +58,6 @@ public class TextRun : IImmutableTextRun
             new SpanTextRun(Text, secondStart, secondLength));
     }
 
+    /// <inheritdoc />
     public override string ToString() => Text;
 }

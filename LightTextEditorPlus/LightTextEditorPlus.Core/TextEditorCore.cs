@@ -73,6 +73,10 @@ namespace LightTextEditorPlus.Core;
 /// todo 支持文档获取 SaveInfo 序列化存储
 public partial class TextEditorCore
 {
+    /// <summary>
+    /// 创建文本编辑控件
+    /// </summary>
+    /// <param name="platformProvider"></param>
     public TextEditorCore(IPlatformProvider platformProvider)
     {
         PlatformProvider = platformProvider;
@@ -107,10 +111,13 @@ public partial class TextEditorCore
     private readonly LayoutManager _layoutManager;
     private RenderInfoProvider? _renderInfoProvider;
     internal CaretManager CaretManager { get; }
+
+    /// <inheritdoc cref="T:LightTextEditorPlus.Core.Document.DocumentManager"/>
     public DocumentManager DocumentManager { get; }
 
     #region 平台相关
 
+    /// <inheritdoc cref="T:LightTextEditorPlus.Core.Platform.IPlatformProvider"/>
     public IPlatformProvider PlatformProvider { get; }
 
     internal IPlatformRunPropertyCreator PlatformRunPropertyCreator => PlatformProvider.GetPlatformRunPropertyCreator();
@@ -507,6 +514,7 @@ public partial class TextEditorCore
 
     #region UndoRedo
 
+    /// <inheritdoc cref="T:LightTextEditorPlus.Core.Document.UndoRedo.ITextEditorUndoRedoProvider"/>
     public ITextEditorUndoRedoProvider UndoRedoProvider { get; }
 
     /// <summary>

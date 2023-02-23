@@ -6,6 +6,9 @@ using LightTextEditorPlus.Core.Primitive.Collections;
 
 namespace LightTextEditorPlus.Core.Utils;
 
+/// <summary>
+/// 只读的字符列表扩展方法
+/// </summary>
 public static class ReadOnlyCharDataListExtension
 {
     /// <summary>

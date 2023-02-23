@@ -5,21 +5,32 @@ using LightTextEditorPlus.Core.Primitive;
 namespace LightTextEditorPlus.Core.Document;
 
 /// <summary>
-/// 表示一个 人类语言文化 的字符
+/// 表示一个 人类语言文化 的字符信息
 /// <para>
 /// 有一些字符，如表情，是需要使用两个 char 表示。这里当成一个处理
 /// </para>
 /// </summary>
 public class CharData
 {
+    /// <summary>
+    /// 创建字符信息
+    /// </summary>
+    /// <param name="charObject"></param>
+    /// <param name="runProperty"></param>
     public CharData(ICharObject charObject, IReadOnlyRunProperty runProperty)
     {
         CharObject = charObject;
         RunProperty = runProperty;
     }
 
+    /// <summary>
+    /// 字符对象
+    /// </summary>
     public ICharObject CharObject { get; }
 
+    /// <summary>
+    /// 文本字符属性
+    /// </summary>
     public IReadOnlyRunProperty RunProperty { get; }
 
     internal CharLayoutData? CharLayoutData { set; get; }
@@ -96,7 +107,8 @@ public class CharData
         }
     }
 
-    public override string ToString()
+    /// <inheritdoc />
+    public override string ToString()   
     {
         DebugVerify();
 

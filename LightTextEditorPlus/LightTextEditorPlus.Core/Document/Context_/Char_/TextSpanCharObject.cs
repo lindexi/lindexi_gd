@@ -25,6 +25,7 @@ public sealed class TextSpanCharObject : ICharObject, IEquatable<string>
     private readonly int _charIndex;
     private readonly int _charCount;
 
+    /// <inheritdoc />
     public bool Equals(string? other)
     {
         if (other is null) return false;
@@ -41,12 +42,14 @@ public sealed class TextSpanCharObject : ICharObject, IEquatable<string>
         }
     }
 
+    /// <inheritdoc />
     public ICharObject DeepClone()
     {
         // 由于毫无可变，因此深拷贝等于自身
         return this;
     }
 
+    /// <inheritdoc />
     public string ToText()
     {
         if (_charCount == 1)
@@ -59,6 +62,10 @@ public sealed class TextSpanCharObject : ICharObject, IEquatable<string>
         }
     }
 
+    /// <summary>
+    /// 获取原本字符串
+    /// </summary>
+    /// <returns></returns>
     public string GetOriginText() => _originText;
 
     /// <summary>

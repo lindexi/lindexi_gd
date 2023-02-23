@@ -53,11 +53,23 @@ public readonly struct FontName : IEquatable<FontName>
         return UserFontName.GetHashCode();
     }
 
+    /// <summary>
+    /// 判断相等
+    /// </summary>
+    /// <param name="left"></param>
+    /// <param name="right"></param>
+    /// <returns></returns>
     public static bool operator ==(FontName left, FontName right)
     {
         return left.Equals(right);
     }
 
+    /// <summary>
+    /// 判断不相等
+    /// </summary>
+    /// <param name="left"></param>
+    /// <param name="right"></param>
+    /// <returns></returns>
     public static bool operator !=(FontName left, FontName right)
     {
         return !left.Equals(right);

@@ -76,6 +76,9 @@ public partial class TextEditorCore
         DocumentManager.EditAndReplaceRun(selection ?? CaretManager.CurrentSelection, run);
     }
 
+    /// <summary>
+    /// 添加文本
+    /// </summary>
     [Obsolete("请使用" + nameof(EditAndReplace) + "代替。此方法只是用来告诉你正确的用法是调用" + nameof(EditAndReplace) + "方法", true)]
     public void AddText()
     {
@@ -125,6 +128,9 @@ public partial class TextEditorCore
         DocumentManager.EditAndReplaceRun(selection, null);
     }
 
+    /// <summary>
+    /// 删除文本
+    /// </summary>
     [Obsolete("只是用来告诉你，应该调用" + nameof(Delete) + "删除文本", true)]
     public void Remove()
     {

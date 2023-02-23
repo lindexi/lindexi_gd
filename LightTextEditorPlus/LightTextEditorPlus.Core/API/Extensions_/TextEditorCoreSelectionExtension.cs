@@ -3,6 +3,9 @@ using LightTextEditorPlus.Core.Document;
 
 namespace LightTextEditorPlus.Core;
 
+/// <summary>
+/// 文本选择扩展方法
+/// </summary>
 public static class TextEditorCoreSelectionExtension
 {
     /// <summary>

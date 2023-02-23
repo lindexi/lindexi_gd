@@ -19,10 +19,20 @@ public class RenderInfoProvider
         TextEditor = textEditor;
     }
 
-    public TextEditor TextEditor { get; }
+    internal TextEditor TextEditor { get; }
 
+    /// <summary>
+    /// 当前渲染信息是否脏的。如果是脏的就不能使用
+    /// </summary>
     public bool IsDirty { internal set; get; }
 
+    /// <summary>
+    /// 获取给定光标坐标的光标渲染信息
+    /// </summary>
+    /// <param name="caretOffset"></param>
+    /// <returns></returns>
+    /// <exception cref="HitCaretOffsetOutOfRangeException"></exception>
+    /// <exception cref="TextEditorInnerException"></exception>
     public CaretRenderInfo GetCaretRenderInfo(CaretOffset caretOffset)
     {
         var textEditor = TextEditor;
@@ -82,6 +92,10 @@ public class RenderInfoProvider
     //{
     //}
 
+    /// <summary>
+    /// 获取段落的渲染信息
+    /// </summary>
+    /// <returns></returns>
     public IEnumerable<ParagraphRenderInfo> GetParagraphRenderInfoList()
     {
         var paragraphManager = TextEditor.DocumentManager.DocumentRunEditProvider.ParagraphManager;

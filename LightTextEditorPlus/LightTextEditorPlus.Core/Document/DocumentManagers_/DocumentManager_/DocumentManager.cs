@@ -14,6 +14,7 @@ namespace LightTextEditorPlus.Core.Document
     /// </summary>
     public class DocumentManager
     {
+        /// <inheritdoc cref="T:LightTextEditorPlus.Core.Document.DocumentManager"/>
         public DocumentManager(TextEditor textEditor)
         {
             TextEditor = textEditor;
@@ -26,7 +27,7 @@ namespace LightTextEditorPlus.Core.Document
 
         #region 框架
 
-        public TextEditor TextEditor { get; }
+        internal TextEditor TextEditor { get; }
 
         /// <summary>
         /// 文档的宽度。受 <see cref="LightTextEditorPlus.Core.TextEditorCore.SizeToContent"/> 影响

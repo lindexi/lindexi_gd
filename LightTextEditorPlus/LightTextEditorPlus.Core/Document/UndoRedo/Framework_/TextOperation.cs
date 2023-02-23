@@ -1,15 +1,25 @@
 ﻿namespace LightTextEditorPlus.Core.Document.UndoRedo;
 
+/// <inheritdoc cref="T:LightTextEditorPlus.Core.Document.UndoRedo.ITextOperation"/>
 public abstract class TextOperation : ITextOperation
 {
+    /// <inheritdoc cref="T:LightTextEditorPlus.Core.Document.UndoRedo.ITextOperation"/>
     protected TextOperation(TextEditorCore textEditor)
     {
         TextEditor = textEditor;
     }
 
+    /// <summary>
+    /// 作用的文本对象
+    /// </summary>
     public TextEditorCore TextEditor { get; }
+
+    /// <summary>
+    /// 动作类型
+    /// </summary>
     public abstract TextOperationType TextOperationType { get; }
 
+    /// <inheritdoc />
     public void Undo()
     {
         TextEditor.EnterUndoRedoMode();
@@ -22,8 +32,11 @@ public abstract class TextOperation : ITextOperation
             TextEditor.QuitUndoRedoMode();
         }
     }
+
+    /// <inheritdoc cref="Undo"/>
     protected abstract void OnUndo();
 
+    /// <inheritdoc/>
     public void Redo()
     {
         TextEditor.EnterUndoRedoMode();
@@ -36,6 +49,7 @@ public abstract class TextOperation : ITextOperation
             TextEditor.QuitUndoRedoMode();
         }
     }
-    protected abstract void OnRedo();
 
+    /// <inheritdoc cref="Redo"/>
+    protected abstract void OnRedo();
 }

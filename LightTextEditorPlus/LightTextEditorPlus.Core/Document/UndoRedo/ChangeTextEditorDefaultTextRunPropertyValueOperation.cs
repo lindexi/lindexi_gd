@@ -10,12 +10,14 @@ public class ChangeTextEditorDefaultTextRunPropertyValueOperation : ChangeValueT
     {
     }
 
-    public DocumentManager DocumentManager => TextEditor.DocumentManager;
+    private DocumentManager DocumentManager => TextEditor.DocumentManager;
 
+    /// <inheritdoc />
     protected override void ApplyValue(IReadOnlyRunProperty value)
     {
         DocumentManager.SetDefaultTextRunPropertyByUndoRedo(value);
     }
 
+    /// <inheritdoc />
     public override TextOperationType TextOperationType => TextOperationType.ChangeState;
 }

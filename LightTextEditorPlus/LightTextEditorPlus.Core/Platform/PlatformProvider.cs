@@ -11,6 +11,7 @@ namespace LightTextEditorPlus.Core.Platform;
 /// </summary>
 public abstract class PlatformProvider : IPlatformProvider
 {
+    /// <inheritdoc />
     public virtual ITextEditorUndoRedoProvider BuildTextEditorUndoRedoProvider()
     {
         return new EmptyTextEditorUndoRedoProvider();
@@ -18,6 +19,7 @@ public abstract class PlatformProvider : IPlatformProvider
 
     private DefaultRunParagraphSplitter? _defaultRunParagraphSplitter;
 
+    /// <inheritdoc />
     public virtual IPlatformRunPropertyCreator GetPlatformRunPropertyCreator()
     {
         // 尽管有默认的实现，但是推荐还是有具体的平台实现逻辑
@@ -83,6 +85,7 @@ public abstract class PlatformProvider : IPlatformProvider
         return null;
     }
 
+    /// <inheritdoc />
     public virtual double GetFontLineSpacing(IReadOnlyRunProperty runProperty)
     {
         // 默认是 1 行距。各个平台可以自行计算

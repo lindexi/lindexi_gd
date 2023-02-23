@@ -1,5 +1,8 @@
 ﻿namespace LightTextEditorPlus.Core.Document.UndoRedo;
 
+/// <summary>
+/// 表示一个文本动作
+/// </summary>
 public interface ITextOperation
 {
     /// <summary>

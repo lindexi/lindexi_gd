@@ -8,18 +8,22 @@ namespace LightTextEditorPlus.Core.Exceptions;
 /// </summary>
 public class TextEditorInnerException : TextEditorException
 {
+    /// <inheritdoc cref="TextEditorInnerException"/>
     public TextEditorInnerException()
     {
     }
 
+    /// <inheritdoc cref="TextEditorInnerException"/>
     public TextEditorInnerException(SerializationInfo info, StreamingContext context) : base(info, context)
     {
     }
 
+    /// <inheritdoc cref="TextEditorInnerException"/>
     public TextEditorInnerException(string? message) : base(message)
     {
     }
 
+    /// <inheritdoc cref="TextEditorInnerException"/>
     public TextEditorInnerException(string? message, Exception? innerException) : base(message, innerException)
     {
     }

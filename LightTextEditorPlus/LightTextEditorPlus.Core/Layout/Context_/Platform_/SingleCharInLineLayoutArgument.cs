@@ -13,5 +13,8 @@ namespace LightTextEditorPlus.Core.Layout;
 public readonly record struct SingleCharInLineLayoutArgument(ReadOnlyListSpan<CharData> RunList, int CurrentIndex,
     double LineRemainingWidth, ParagraphProperty ParagraphProperty)
 {
+    /// <summary>
+    /// 当前的字符信息
+    /// </summary>
     public CharData CurrentCharData => RunList[CurrentIndex];
 }

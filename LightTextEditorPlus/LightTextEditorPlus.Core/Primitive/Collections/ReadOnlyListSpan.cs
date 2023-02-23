@@ -12,6 +12,7 @@ namespace LightTextEditorPlus.Core.Primitive.Collections;
 /// <remarks>无法处理传入的 source 实际源被更改问题。在 source 不变更情况下，读取是线程安全。 使用结构体能够减少 GC 压力</remarks>
 public readonly struct ReadOnlyListSpan<T> : IReadOnlyList<T>
 {
+    /// <inheritdoc cref="ReadOnlyListSpan{T}"/>
     public ReadOnlyListSpan(IReadOnlyList<T> source, int start, int length)
     {
         _source = source;
@@ -23,6 +24,7 @@ public readonly struct ReadOnlyListSpan<T> : IReadOnlyList<T>
     private readonly int _start;
     private readonly int _length;
 
+    /// <inheritdoc />
     public IEnumerator<T> GetEnumerator()
     {
         return _source.Skip(_start).Take(_length).GetEnumerator();
@@ -33,16 +35,24 @@ public readonly struct ReadOnlyListSpan<T> : IReadOnlyList<T>
         return GetEnumerator();
     }
 
+    /// <inheritdoc />
     public int Count => _length;
 
+    /// <inheritdoc />
     public T this[int index] => _source[index + _start];
 
+    /// <summary>
+    /// 分出给定范围的新列表
+    /// </summary>
+    /// <param name="start"></param>
+    /// <returns></returns>
     public ReadOnlyListSpan<T> Slice(int start)
     {
         var length = _length-start;
         return Slice(start, length);
     }
 
+    /// <inheritdoc cref="Slice(int)"/>
     public ReadOnlyListSpan<T> Slice(int start, int length)
     {
         if (length + start > _length)

@@ -3,6 +3,8 @@ using System.Globalization;
 
 namespace LightTextEditorPlus.Core.Primitive;
 
+#pragma warning disable CS1591
+
 /// <summary>
 /// 文本库使用的尺寸
 /// </summary>

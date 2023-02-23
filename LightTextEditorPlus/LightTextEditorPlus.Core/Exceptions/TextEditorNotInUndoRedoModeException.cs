@@ -7,5 +7,6 @@ namespace LightTextEditorPlus.Core.Exceptions;
 /// </summary>
 public class TextEditorNotInUndoRedoModeException : TextEditorException
 {
+    /// <inheritdoc />
     public override string ToString() => $"调用文本库的撤销恢复专用方法时，文本库没有进入撤销恢复模式";
 }

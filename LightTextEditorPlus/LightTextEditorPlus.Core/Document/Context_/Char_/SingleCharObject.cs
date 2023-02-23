@@ -18,10 +18,13 @@ public sealed class SingleCharObject : ISingleCharObject, ICharObject, IEquatabl
 
     private readonly char _currentChar;
 
+    /// <inheritdoc />
     public ICharObject DeepClone() => this;
 
+    /// <inheritdoc />
     public string ToText() => _currentChar.ToString();
 
+    /// <inheritdoc />
     public char GetChar() => _currentChar;
 
     private bool Equals(SingleCharObject other)
@@ -29,6 +32,7 @@ public sealed class SingleCharObject : ISingleCharObject, ICharObject, IEquatabl
         return _currentChar == other._currentChar;
     }
 
+    /// <inheritdoc />
     public bool Equals(string? other)
     {
         if (other is not null && other.Length == 1 && other[0] == _currentChar)
@@ -42,15 +46,18 @@ public sealed class SingleCharObject : ISingleCharObject, ICharObject, IEquatabl
         }
     }
 
+    /// <inheritdoc />
     public override bool Equals(object? obj)
     {
         return ReferenceEquals(this, obj) || obj is SingleCharObject other && Equals(other);
     }
 
+    /// <inheritdoc />
     public override int GetHashCode()
     {
         return _currentChar.GetHashCode();
     }
 
+    /// <inheritdoc />
     public override string ToString() => _currentChar.ToString();
 }

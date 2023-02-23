@@ -39,6 +39,12 @@ namespace LightTextEditorPlus.Core.Document
         ///// </summary>
         //FontWeight FontWeight { get; }
 
+        /// <summary>
+        /// 尝试获取属性
+        /// </summary>
+        /// <param name="propertyName"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         bool TryGetProperty(string propertyName, [NotNullWhen(true)] out IImmutableRunPropertyValue? value);
     }
 
@@ -58,18 +64,29 @@ namespace LightTextEditorPlus.Core.Document
     {
     }
 
+    /// <summary>
+    /// 仅布局支持的文本字符属性
+    /// </summary>
     // todo 考虑属性系统支持设置是否影响布局，不影响布局的，例如改个颜色，可以不重新布局
     public class LayoutOnlyRunProperty : IReadOnlyRunProperty
     {
+        /// <summary>
+        /// 创建仅布局支持的文本字符属性
+        /// </summary>
         public LayoutOnlyRunProperty()
         {
         }
 
+        /// <summary>
+        /// 创建仅布局支持的文本字符属性
+        /// </summary>
+        /// <param name="styleRunProperty"></param>
         public LayoutOnlyRunProperty(LayoutOnlyRunProperty? styleRunProperty)
         {
             StyleRunProperty = styleRunProperty;
         }
 
+        /// <inheritdoc />
         public double FontSize
         {
             set
@@ -85,6 +102,7 @@ namespace LightTextEditorPlus.Core.Document
 
         private const double DefaultFontSize = 15;
 
+        /// <inheritdoc />
         public FontName FontName
         {
             set
@@ -141,6 +159,7 @@ namespace LightTextEditorPlus.Core.Document
             AdditionalPropertyDictionary[propertyName] = value;
         }
 
+        /// <inheritdoc />
         public bool TryGetProperty(string propertyName, [NotNullWhen(true)] out IImmutableRunPropertyValue? value)
         {
             if (AdditionalPropertyDictionary?.TryGetValue(propertyName, out value!) is true)
@@ -200,6 +219,7 @@ namespace LightTextEditorPlus.Core.Document
             }
         }
 
+        /// <inheritdoc />
         public bool Equals(LayoutOnlyRunProperty other)
         {
             // 先判断一定存在的属性，再判断业务端注入的属性
@@ -248,6 +268,7 @@ namespace LightTextEditorPlus.Core.Document
             return false;
         }
 
+        /// <inheritdoc />
         public virtual bool Equals(IReadOnlyRunProperty? other)
         {
             if (other is null) return false;

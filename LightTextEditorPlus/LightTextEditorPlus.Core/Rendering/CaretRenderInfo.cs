@@ -26,6 +26,9 @@ public readonly struct CaretRenderInfo
     /// </summary>
     public int LineIndex { get; }
 
+    /// <summary>
+    /// 行的范围
+    /// </summary>
     public Rect LineBounds { get; }
 
     /// <summary>
@@ -46,5 +49,8 @@ public readonly struct CaretRenderInfo
     internal ParagraphData ParagraphData { get; }
     internal ParagraphCaretOffset HitOffset { get; }
 
+    /// <summary>
+    /// 光标偏移量
+    /// </summary>
     public CaretOffset CaretOffset { get; }
 }
