@@ -4,7 +4,7 @@ namespace LightTextEditorPlus.Core.Document;
 
 public class TextRun : IImmutableTextRun
 {
-    public TextRun(string text, IReadOnlyRunProperty? runProperty=null)
+    public TextRun(string text, IReadOnlyRunProperty? runProperty = null)
     {
         Text = text;
         RunProperty = runProperty;

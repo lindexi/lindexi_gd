@@ -38,8 +38,10 @@ public class RenderInfoProvider
         var hitParagraphDataResult = paragraphManager.GetHitParagraphData(caretOffset);
         var paragraphData = hitParagraphDataResult.ParagraphData;
         var hitOffset = hitParagraphDataResult.HitOffset;
+        // 是否段首，如果是段首，那一定就是行首
+        var isParagraphStart = hitOffset.Offset == 0;
 
-        if (!caretOffset.IsAtLineStart)
+        if (!caretOffset.IsAtLineStart && !isParagraphStart)
         {
             // 非行首情况下，一律取前一个字符
             hitOffset = new ParagraphCaretOffset(hitOffset.Offset - 1);
