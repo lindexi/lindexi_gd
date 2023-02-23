@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 
@@ -181,7 +183,39 @@ internal class DocumentRunEditProvider
 
     private void RemoveInner(Selection selection)
     {
-        // todo 实现删除逻辑
+        // 先找到插入点是哪一段
+        var frontOffset = selection.FrontOffset;
+        var paragraphDataResult = ParagraphManager.GetHitParagraphData(frontOffset);
+
+        // 如果删除的内容小于段落长度，那就在当前段落内完成
+        var paragraphData = paragraphDataResult.ParagraphData;
+        ParagraphCaretOffset hitOffset = paragraphDataResult.HitOffset; // 这里可是段落内坐标哦
+        var remainLength = selection.Length;
+        var paragraphStartOffset = hitOffset;
+
+        // 这一段可以删除的长度
+        var removeLength = Math.Min(remainLength, paragraphData.CharCount - paragraphStartOffset.Offset);
+
+        // 如果是在一段的中间删除，那就删除段落中间，需要先拿到段落删除中间之后的后面字符
+        var paragraphEndOffset = new ParagraphCaretOffset(paragraphStartOffset.Offset + removeLength);
+        IList<CharData>? lastCharDataList = null;
+        if (paragraphData.CharCount > paragraphEndOffset.Offset)
+        {
+            // 如果不是删除到全段
+            lastCharDataList = paragraphData.SplitRemoveByParagraphOffset(paragraphEndOffset);
+        }
+        // 然后再从段落开始删除时开始删除
+        var deletedCharDataList = paragraphData.SplitRemoveByParagraphOffset(paragraphStartOffset);
+
+        // 这个 deletedCharDataList 就是被删除的字符
+        // 下面这个代码只是让 VS 了解到这个变量是用来调试的
+        _ = deletedCharDataList;
+
+        // 如果删除不全段，那就将段落之后的加回
+        if (lastCharDataList is not null)
+        {
+            paragraphData.AppendCharData(lastCharDataList);
+        }
     }
 
     public void RemoveLast(int count = 1)
@@ -199,7 +233,7 @@ internal class DocumentRunEditProvider
             }
 
             var offset = currentCaretOffset.Offset - count;
-            offset = Math.Max(1, offset);
+            offset = Math.Max(0, offset);
             var length = currentCaretOffset.Offset - offset;
             RemoveInner(new Selection(new CaretOffset(offset), length));
         }
