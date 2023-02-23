@@ -31,7 +31,7 @@ public abstract class PlatformProvider : IPlatformProvider
     }
 
     /// <inheritdoc />
-    public void InvokeDispatchUpdateLayout(Action updateLayoutAction)
+    public virtual void InvokeDispatchUpdateLayout(Action updateLayoutAction)
     {
         // 由于默认实现在 RequireDispatchUpdateLayout 是立刻执行，因此可以忽略清理
         updateLayoutAction();

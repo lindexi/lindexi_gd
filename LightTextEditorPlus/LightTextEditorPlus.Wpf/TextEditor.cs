@@ -209,6 +209,12 @@ internal class TextEditorPlatformProvider : PlatformProvider
         _textLayoutDispatcherRequiring.Require();
     }
 
+    public override void InvokeDispatchUpdateLayout(Action updateLayoutAction)
+    {
+        _lastTextLayout = updateLayoutAction;
+        _textLayoutDispatcherRequiring.Invoke(withRequire: true);
+    }
+
     public override ICharInfoMeasurer? GetCharInfoMeasurer()
     {
         return _charInfoMeasurer;
