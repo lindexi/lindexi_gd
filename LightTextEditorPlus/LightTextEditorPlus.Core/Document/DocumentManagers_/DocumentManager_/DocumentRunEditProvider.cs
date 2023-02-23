@@ -1,4 +1,5 @@
-﻿using LightTextEditorPlus.Core.Carets;
+﻿using System;
+using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 
 namespace LightTextEditorPlus.Core.Document;
@@ -17,6 +18,7 @@ internal class DocumentRunEditProvider
 
     public ParagraphManager ParagraphManager => TextEditor.DocumentManager.ParagraphManager;
     public TextEditorCore TextEditor { get; }
+    private CaretManager CaretManager => TextEditor.CaretManager;
 
     public void Append(IImmutableRun run)
     {
@@ -180,5 +182,30 @@ internal class DocumentRunEditProvider
     private void RemoveInner(Selection selection)
     {
         // todo 实现删除逻辑
+    }
+
+    public void RemoveLast(int count = 1)
+    {
+        // 退格键时，有选择就删除选择内容。没选择就删除给定内容
+        var caretManager = CaretManager;
+        var currentSelection = caretManager.CurrentSelection;
+        if (currentSelection.IsEmpty)
+        {
+            var currentCaretOffset = caretManager.CurrentCaretOffset;
+            if (currentCaretOffset.Offset == 0)
+            {
+                // 放在文档最前，不能退格
+                return;
+            }
+
+            var offset = currentCaretOffset.Offset - count;
+            offset = Math.Max(1, offset);
+            var length = currentCaretOffset.Offset - offset;
+            RemoveInner(new Selection(new CaretOffset(offset), length));
+        }
+        else
+        {
+            RemoveInner(currentSelection);
+        }
     }
 }

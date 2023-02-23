@@ -339,8 +339,9 @@ public partial class TextEditorCore
     #region 光标和选择
 
     /// <summary>
-    /// 获取或设置当前光标位置
+    /// 获取或设置当前光标位置。这是对外调用的，非框架内使用
     /// </summary>
+    /// todo 修复框架内调用了此属性
     public CaretOffset CurrentCaretOffset
     {
         set => CaretManager.CurrentCaretOffset = value;
@@ -350,6 +351,7 @@ public partial class TextEditorCore
     /// <summary>
     /// 获取或设置当前的选择范围
     /// </summary>
+    /// todo 修复框架内调用了此属性
     public Selection CurrentSelection
     {
         set => CaretManager.SetSelection(value);
