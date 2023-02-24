@@ -93,6 +93,10 @@ public class TextEditorEditTest
             // Action
             // 对空段执行 Backspace 退格
             textEditorCore.Backspace();
+
+            // Assert
+            // 删除之后，就只剩下一个字符
+            Assert.AreEqual("1", textEditorCore.GetText());
         });
 
         "对只有一个字符的文本执行 Backspace 退格，可以删除所有文本".Test(() =>
