@@ -8,6 +8,31 @@ namespace LightTextEditorPlus.Core.Tests;
 public class TextEditorEditTest
 {
     [ContractTestCase]
+    public void Remove()
+    {
+        "对文本调用 Remove 传入空选择，啥都不会发生".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+            // 随便传入一点文本，然后调用删除空白选择
+            textEditorCore.AppendText("12");
+
+            // 预期啥都不会发生，也就是不会触发布局等变更事件
+            textEditorCore.DocumentChanging += (sender, args) =>
+            {
+                Assert.Fail("对文本调用 Remove 传入空选择，啥都不会发生");
+            };
+
+            // Action
+            textEditorCore.Remove(new Selection(new CaretOffset(0), 0));
+
+            // Assert
+            // 不会删除字符
+            Assert.AreEqual(2, textEditorCore.DocumentManager.CharCount);
+        });
+    }
+
+    [ContractTestCase]
     public void Delete()
     {
         "对文本调用 Delete 删除，可以删除光标之后一个字符".Test(() =>
