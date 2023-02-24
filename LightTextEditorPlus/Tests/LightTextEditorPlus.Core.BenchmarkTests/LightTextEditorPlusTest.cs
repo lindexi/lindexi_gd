@@ -35,7 +35,7 @@ public class LightTextEditorPlusTest
     [Arguments(TestHelper.PlainNumberText, 10)]
     [Arguments(TestHelper.PlainNumberText, 100)]
     [Arguments(TestHelper.PlainNumberText, 1000)]
-    public void AppTextMultiLine(string text, int time)
+    public void AppendTextMultiLine(string text, int time)
     {
         text = text + "\r\n";
         var textEditor = TestHelper.GetTextEditorCore();
