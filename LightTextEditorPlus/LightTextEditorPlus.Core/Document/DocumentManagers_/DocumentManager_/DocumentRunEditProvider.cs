@@ -47,7 +47,9 @@ internal class DocumentRunEditProvider
         // 先执行删除，再执行插入
         if (selection.Length != 0)
         {
-            var paragraphDataResult = ParagraphManager.GetHitParagraphData(selection.StartOffset);
+            var frontOffset = selection.FrontOffset;
+
+            var paragraphDataResult = ParagraphManager.GetHitParagraphData(frontOffset);
 
             /*
              * 替换文本时，采用靠近文档的光标的后续一个字符的字符属性
@@ -60,7 +62,7 @@ internal class DocumentRunEditProvider
             var charData = paragraphDataResult.ParagraphData.GetCharData(paragraphCharOffset);
             styleRunProperty = charData.RunProperty;
 
-            RemoveInner(selection);
+            RemoveInner(selection, paragraphDataResult);
         }
         else
         {
@@ -176,7 +178,12 @@ internal class DocumentRunEditProvider
         return currentParagraph;
     }
 
-    private void RemoveInner(Selection selection)
+    /// <summary>
+    /// 删除一段文本
+    /// </summary>
+    /// <param name="selection"></param>
+    /// <param name="paragraphDataResult"></param>
+    private void RemoveInner(in Selection selection, in HitParagraphDataResult paragraphDataResult)
     {
         if (selection.IsEmpty)
         {
@@ -184,12 +191,9 @@ internal class DocumentRunEditProvider
             return;
         }
 
-        // 先找到插入点是哪一段
-        var frontOffset = selection.FrontOffset;
-        var paragraphDataResult = ParagraphManager.GetHitParagraphData(frontOffset);
-
         // 如果删除的内容小于段落长度，那就在当前段落内完成
         var paragraphData = paragraphDataResult.ParagraphData;
+        // 先找到插入点是哪一段
         ParagraphCaretOffset hitOffset = paragraphDataResult.HitOffset; // 这里可是段落内坐标哦
         var remainLength = selection.Length;
         var paragraphStartOffset = hitOffset;
