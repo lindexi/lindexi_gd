@@ -20,7 +20,6 @@ internal class DocumentRunEditProvider
 
     public ParagraphManager ParagraphManager => TextEditor.DocumentManager.ParagraphManager;
     public TextEditorCore TextEditor { get; }
-    private CaretManager CaretManager => TextEditor.CaretManager;
 
     public void Append(IImmutableRun run)
     {
