@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Core.Exceptions;
 
@@ -38,16 +39,5 @@ public class GetCharDataOutOfRangeException : TextEditorException
     public int Count { get; }
 
     /// <inheritdoc />
-    public override string Message => $"Count={Count};InputOffset={InputOffset};ParagraphIndex={Paragraph.Index};CharDataList={CharDataListToString()}";
-
-    private string CharDataListToString()
-    {
-        var str = new StringBuilder();
-        foreach (var charData in CharDataList)
-        {
-            str.Append(charData.CharObject.ToText());
-        }
-
-        return str.ToString();
-    }
+    public override string Message => $"Count={Count};InputOffset={InputOffset};ParagraphIndex={Paragraph.Index};CharDataList={Paragraph.GetText().LimitTrim(20)}";
 }
