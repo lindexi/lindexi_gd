@@ -10,6 +10,7 @@ public class TextEditorEditTest
     [ContractTestCase]
     public void Remove()
     {
+        // todo 删除超过文本字符数量
         "对文本调用 Remove 传入空选择，啥都不会发生".Test(() =>
         {
             // Arrange
