@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LightTextEditorPlus.Core.Attributes;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Document;
@@ -363,6 +364,7 @@ public partial class TextEditorCore
     /// 获取或设置当前光标位置
     /// </summary>
     /// 这是对外调用的，非框架内使用
+    [TextEditorPublicAPI]
     public CaretOffset CurrentCaretOffset
     {
         set => CaretManager.CurrentCaretOffset = value;
@@ -373,6 +375,7 @@ public partial class TextEditorCore
     /// 获取或设置当前的选择范围
     /// </summary>
     /// 这是对外调用的，非框架内使用
+    [TextEditorPublicAPI]
     public Selection CurrentSelection
     {
         set => CaretManager.SetSelection(value);
