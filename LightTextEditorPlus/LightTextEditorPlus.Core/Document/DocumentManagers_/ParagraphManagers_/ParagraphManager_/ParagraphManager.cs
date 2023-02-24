@@ -140,10 +140,13 @@ class ParagraphManager
         return paragraphData;
     }
 
+    public void RemoveParagraph(ParagraphData paragraphData) => ParagraphList.Remove(paragraphData);
+    public void RemoveRange(int index, int count) => ParagraphList.RemoveRange(index, count);
+
     public IReadOnlyList<ParagraphData> GetParagraphList()
     {
         EnsureFirstParagraphExists();
-
+        
         return ParagraphList;
     }
 

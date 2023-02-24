@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
@@ -206,34 +207,129 @@ internal class DocumentRunEditProvider
         }
 
         // 如果删除的内容小于段落长度，那就在当前段落内完成
-        var paragraphData = paragraphDataResult.ParagraphData;
+        var firstParagraph = paragraphDataResult.ParagraphData;
         // 先找到插入点是哪一段
         ParagraphCaretOffset hitOffset = paragraphDataResult.HitOffset; // 这里可是段落内坐标哦
+        // 剩余可以删除的长度
         var remainLength = selection.Length;
+        // 段落开始删除的点
         var paragraphStartOffset = hitOffset;
+        var paragraphData = firstParagraph;
+        var paragraphManager = paragraphDataResult.ParagraphManager;
+        var paragraphList = paragraphManager.GetParagraphList();
 
-        // 这一段可以删除的长度
-        var removeLength = Math.Min(remainLength, paragraphData.CharCount - paragraphStartOffset.Offset);
-
-        // 如果是在一段的中间删除，那就删除段落中间，需要先拿到段落删除中间之后的后面字符
-        var paragraphEndOffset = new ParagraphCaretOffset(paragraphStartOffset.Offset + removeLength);
-        IList<CharData>? lastCharDataList = null;
-        if (paragraphData.CharCount > paragraphEndOffset.Offset)
+        while (remainLength > 0)
         {
-            // 如果不是删除到全段
-            lastCharDataList = paragraphData.SplitRemoveByParagraphOffset(paragraphEndOffset);
+            // 这一段可以删除的长度
+            var removeLength = Math.Min(remainLength, paragraphData.CharCount - paragraphStartOffset.Offset);
+
+            if (removeLength == 0)
+            {
+                // 这一段没有什么可以删除的，且依然存在需要删除的长度，那就是换行了
+                if (paragraphData.CharCount == paragraphStartOffset.Offset)
+                {
+                    // 进入下一段，继续删除
+                    ToNextParagraph();
+                    continue;
+
+                    //// 刚好就是从段末开始
+                    //var paragraphManager = paragraphDataResult.ParagraphManager;
+                    //// 取下一段的内容，加入到当前段落里面
+                    //var paragraphList = paragraphManager.GetParagraphList();
+                    //if (paragraphData.Index == paragraphList.Count - 1)
+                    //{
+                    //    // 最后一段，理论上不会存在
+                    //}
+                    //else
+                    //{
+                    //    // 取下一段
+                    //    var nextParagraphDataIndex = paragraphData.Index + 1;
+                    //    var nextParagraphData = paragraphList[nextParagraphDataIndex];
+                    //    var nextParagraphCharDataList = nextParagraphData.ToReadOnlyListSpan(new ParagraphCharOffset(0));
+
+                    //    paragraphData.AppendCharData(nextParagraphCharDataList);
+                    //    paragraphManager.RemoveParagraph(nextParagraphDataIndex);
+                    //}
+                }
+                else
+                {
+                    // 不知道是啥情况，理论上不会存在
+                }
+            }
+
+            // 如果是在一段的中间删除，那就删除段落中间，需要先拿到段落删除中间之后的后面字符
+            var paragraphEndOffset = new ParagraphCaretOffset(paragraphStartOffset.Offset + removeLength);
+            IList<CharData>? lastCharDataList = null;
+            if (paragraphData.CharCount > paragraphEndOffset.Offset)
+            {
+                // 如果不是删除到全段
+                lastCharDataList = paragraphData.SplitRemoveByParagraphOffset(paragraphEndOffset);
+
+                Debug.Assert(remainLength == removeLength, "如果一段删除之后还有剩余的，那就是完全删除，删除的长度就和需要删除的长度相同");
+            }
+            // 然后再从段落开始删除时开始删除
+            var deletedCharDataList = paragraphData.SplitRemoveByParagraphOffset(paragraphStartOffset);
+
+            // 这个 deletedCharDataList 就是被删除的字符
+            // 下面这个代码只是让 VS 了解到这个变量是用来调试的
+            _ = deletedCharDataList;
+
+            // 如果删除不全段，那就将段落之后的加回
+            if (lastCharDataList is not null)
+            {
+                paragraphData.AppendCharData(lastCharDataList);
+            }
+
+            remainLength -= removeLength;
+
+            if (remainLength > 0)
+            {
+                // 如果这一段没有足够减去的，那就继续减去下一段的
+                ToNextParagraph();
+            }
+
+            void ToNextParagraph()
+            {
+                // 这一段不够删除了，下到下一段
+                if (paragraphData.Index == paragraphList.Count - 1)
+                {
+                    // 最后一段，理论上不会存在
+                }
+                else
+                {
+                    // 取下一段
+                    var nextParagraphDataIndex = paragraphData.Index + 1;
+                    var nextParagraphData = paragraphList[nextParagraphDataIndex];
+
+                    paragraphData = nextParagraphData;
+                    // 取下一段就是从头开始删除了
+                    paragraphStartOffset = new ParagraphCaretOffset(0);
+                    // 减去换行符
+                    remainLength -= ParagraphData.DelimiterLength;
+                }
+            }
         }
-        // 然后再从段落开始删除时开始删除
-        var deletedCharDataList = paragraphData.SplitRemoveByParagraphOffset(paragraphStartOffset);
 
-        // 这个 deletedCharDataList 就是被删除的字符
-        // 下面这个代码只是让 VS 了解到这个变量是用来调试的
-        _ = deletedCharDataList;
-
-        // 如果删除不全段，那就将段落之后的加回
-        if (lastCharDataList is not null)
+        if (ReferenceEquals(firstParagraph, paragraphData))
         {
-            paragraphData.AppendCharData(lastCharDataList);
+            // 如果当前段落和首个开始删除的段落相同，那就证明没有删除任何一段
+            // 否则就需要执行合并
+        }
+        else
+        {
+            var start = firstParagraph.Index;
+            var end = paragraphData.Index;
+
+            // 只需要加上最后一段的即可，中间的都是被全部删除的
+            var lastParagraphCharDataList = paragraphData.ToReadOnlyListSpan(new ParagraphCharOffset(0));
+            foreach (var charData in lastParagraphCharDataList)
+            {
+                charData.CharLayoutData = null;
+                firstParagraph.AppendCharData(charData);
+            }
+            firstParagraph.SetDirty();
+
+            paragraphManager.RemoveRange(start + 1, end - start);
         }
     }
 }

@@ -227,6 +227,11 @@ class ParagraphData
     //    SetDirty();
     //}
 
+    /// <summary>
+    /// 将 <paramref name="charData"/> 加入到段落。记得调用完成，自己调用 <see cref="SetDirty"/> 方法
+    /// </summary>
+    /// <param name="charData"></param>
+    /// <exception cref="ArgumentException"></exception>
     internal void AppendCharData(CharData charData)
     {
         // 谨慎 CharData 的加入开放给框架之外，原因在于 CharData 不能被加入到文本多次
