@@ -51,16 +51,31 @@ internal class DocumentRunEditProvider
 
             var paragraphDataResult = ParagraphManager.GetHitParagraphData(frontOffset);
 
-            /*
-             * 替换文本时，采用靠近文档的光标的后续一个字符的字符属性
-             * 0 1 2 3 ------ 光标偏移量
-               | | | |
-                A B C  ------ 字符 
-             * 假设光标是 1 的值，那将取 B 字符，因此换算方法就是获取当前光标的偏移转换
-             */
-            var paragraphCharOffset = new ParagraphCharOffset(paragraphDataResult.HitOffset.Offset);
-            var charData = paragraphDataResult.ParagraphData.GetCharData(paragraphCharOffset);
-            styleRunProperty = charData.RunProperty;
+            if (run is not null)
+            {
+                /*
+                 * 替换文本时，采用靠近文档的光标的后续一个字符的字符属性
+                 * 0 1 2 3 ------ 光标偏移量
+                   | | | |
+                    A B C  ------ 字符 
+                 * 假设光标是 1 的值，那将取 B 字符，因此换算方法就是获取当前光标的偏移转换
+                 */
+                if (paragraphDataResult.ParagraphData.CharCount == 0)
+                {
+                    // 这是一个空段，那就采用段落属性
+                    styleRunProperty = paragraphDataResult.ParagraphData.ParagraphProperty.ParagraphStartRunProperty;
+                }
+                else
+                {
+                    var paragraphCharOffset = new ParagraphCharOffset(paragraphDataResult.HitOffset.Offset);
+                    var charData = paragraphDataResult.ParagraphData.GetCharData(paragraphCharOffset);
+                    styleRunProperty = charData.RunProperty;
+                }
+            }
+            else
+            {
+                // 没有任何需要加入的内容，也就不需要 styleRunProperty 的值
+            }
 
             RemoveInner(selection, paragraphDataResult);
         }

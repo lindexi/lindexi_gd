@@ -78,6 +78,21 @@ public class TextEditorEditTest
     [ContractTestCase]
     public void Backspace()
     {
+        // 在段首执行 Backspace 退格，可以删除段，和前面一段合成一段
+
+        "对空段执行 Backspace 退格，可以删除空段".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+            // 先追加一个字符加一段，用于后续删除
+            textEditorCore.AppendText("1\r\n");
+            // 追加之后，光标在文档最后，也就是在空段
+            // 此时不需要修改光标了
+            // Action
+            // 对空段执行 Backspace 退格
+            textEditorCore.Backspace();
+        });
+
         "对只有一个字符的文本执行 Backspace 退格，可以删除所有文本".Test(() =>
         {
             // Arrange
