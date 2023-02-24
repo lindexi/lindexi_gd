@@ -109,30 +109,22 @@ public partial class TextEditorCore
     /// </summary>
     public void Backspace()
     {
-        AddLayoutReason("Backspace退格删除");
         DocumentManager.Backspace();
     }
 
     /// <summary>
-    /// 删除给定范围内的文本
+    /// 删除文本 Delete 删除光标后一个字符
     /// </summary>
-    /// <param name="selection"></param>
-    public void Delete(Selection selection)
+    public void Delete()
     {
-        if (selection.IsEmpty)
-        {
-            return;
-        }
-
-        // 删除范围内的文本，等价于将范围内的文本替换为空
-        DocumentManager.EditAndReplaceRun(selection, null);
+        DocumentManager.Delete();
     }
 
     /// <summary>
-    /// 删除文本
+    /// 删除文本，删除给定范围内的文本
     /// </summary>
-    [Obsolete("只是用来告诉你，应该调用" + nameof(Delete) + "删除文本", true)]
-    public void Remove()
+    public void Remove(in Selection selection)
     {
+        DocumentManager.Remove(selection);
     }
 }

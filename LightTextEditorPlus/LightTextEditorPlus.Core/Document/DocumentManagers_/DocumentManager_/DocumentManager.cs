@@ -339,6 +339,8 @@ namespace LightTextEditorPlus.Core.Document
             InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
         }
 
+        #region 删除
+
         /// <summary>
         /// 退格删除
         /// </summary>
@@ -360,11 +362,58 @@ namespace LightTextEditorPlus.Core.Document
                 var offset = currentCaretOffset.Offset - count;
                 offset = Math.Max(0, offset);
                 var length = currentCaretOffset.Offset - offset;
-                currentSelection=new Selection(new CaretOffset(offset), length);
+                currentSelection = new Selection(new CaretOffset(offset), length);
             }
 
-            EditAndReplaceRun(currentSelection, null);
+            TextEditor.AddLayoutReason(nameof(Backspace) + "退格删除");
+            RemoveInner(currentSelection);
         }
+
+        /// <summary>
+        /// 帝利特删除
+        /// </summary>
+        /// <param name="count"></param>
+        internal void Delete(int count = 1)
+        {
+            // 有选择就删除选择内容。没选择就删除光标之后的内容
+            var caretManager = CaretManager;
+            var currentSelection = caretManager.CurrentSelection;
+            if (currentSelection.IsEmpty)
+            {
+                var currentCaretOffset = caretManager.CurrentCaretOffset;
+                var charCount = CharCount;
+                if (currentCaretOffset.Offset == charCount)
+                {
+                    // 光标在文档最后，不能使用帝利特删除
+                    return;
+                }
+
+                // 获取可以删除的字符数量
+                var remainCount = charCount - currentCaretOffset.Offset;
+                var deleteCount = Math.Min(count, remainCount);
+                currentSelection = new Selection(currentCaretOffset, deleteCount);
+            }
+
+            TextEditor.AddLayoutReason(nameof(Delete) + "帝利特删除");
+            RemoveInner(currentSelection);
+        }
+
+        internal void Remove(in Selection selection)
+        {
+            if (selection.IsEmpty)
+            {
+                return;
+            }
+
+            TextEditor.AddLayoutReason(nameof(Remove) + "删除范围文本");
+            RemoveInner(selection);
+        }
+
+        private void RemoveInner(in Selection selection) =>
+            // 删除范围内的文本，等价于将范围内的文本替换为空
+            EditAndReplaceRun(selection, null);
+
+        #endregion
 
         #endregion
 
