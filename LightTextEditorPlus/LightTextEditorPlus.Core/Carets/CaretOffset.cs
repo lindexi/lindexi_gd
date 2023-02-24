@@ -19,7 +19,7 @@ public readonly struct CaretOffset : IEquatable<CaretOffset>
     /// 创建文本光标偏移量
     /// </summary>
     /// <param name="offset"></param>
-    /// <param name="isAtLineStart">设置当前Offset是否处于当前行的起始位置</param>
+    /// <param name="isAtLineStart">设置当前Offset是否处于当前行的起始位置。只对于一段多行时，光标是在上一行的行末还是这一行的行首用到</param>
     [DebuggerStepThrough]
     public CaretOffset(int offset, bool isAtLineStart = false)
     {

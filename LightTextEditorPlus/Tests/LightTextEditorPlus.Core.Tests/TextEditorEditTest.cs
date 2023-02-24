@@ -1,4 +1,5 @@
-﻿using LightTextEditorPlus.Core.TestsFramework;
+﻿using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.TestsFramework;
 using MSTest.Extensions.Contracts;
 
 namespace LightTextEditorPlus.Core.Tests;
@@ -6,6 +7,49 @@ namespace LightTextEditorPlus.Core.Tests;
 [TestClass]
 public class TextEditorEditTest
 {
+    [ContractTestCase]
+    public void Delete()
+    {
+        "对文本调用 Delete 删除，可以删除光标之后一个字符".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+            // 输入两个字符，用来调用 Delete 删除
+            textEditorCore.AppendText("12");
+            // 然后将光标移动到第零个字符后面，用于按下 Delete 删除
+            // 第零个字符后面的光标坐标是 1 的值
+            textEditorCore.CurrentCaretOffset = new CaretOffset(1);
+
+            // Action
+            textEditorCore.Delete();
+
+            // Assert
+            Assert.AreEqual(1, textEditorCore.DocumentManager.CharCount);
+            var paragraphLineRenderInfo = textEditorCore.GetRenderInfo().GetParagraphRenderInfoList().First().GetLineRenderInfoList().First();
+            var text = paragraphLineRenderInfo.LineLayoutData.GetCharList()[0].CharObject.ToText();
+            // 在第零个字符后面，删除 "2" 这个字符
+            Assert.AreEqual("1", text);
+        });
+
+        "对空文本调用 Delete 删除，啥都不会发生".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+
+            // 啥都不做，这就是一个空文本
+            textEditorCore.DocumentChanging += (sender, args) =>
+            {
+                Assert.Fail("对空文本调用 Delete 删除，啥都不会发生");
+            };
+
+            // Action
+            textEditorCore.Delete();
+
+            // Assert
+            Assert.AreEqual(0, textEditorCore.DocumentManager.CharCount);
+        });
+    }
+
     [ContractTestCase]
     public void Backspace()
     {
