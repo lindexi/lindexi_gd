@@ -89,6 +89,7 @@ public class TextEditorEditTest
             textEditorCore.AppendText("1\r\n");
             // 追加之后，光标在文档最后，也就是在空段
             // 此时不需要修改光标了
+
             // Action
             // 对空段执行 Backspace 退格
             textEditorCore.Backspace();

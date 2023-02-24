@@ -45,10 +45,19 @@ class ParagraphManager
             {
                 var endOffset =
                     currentDocumentOffset + paragraphData.CharCount +
-                    ParagraphData.DelimiterLength; // todo 这里是否遇到 -1 问题
+                    ParagraphData.DelimiterLength;
                 if (offset.Offset < endOffset)
                 {
                     var hitParagraphOffset = offset.Offset - currentDocumentOffset;
+                    if (hitParagraphOffset == paragraphData.CharCount + 1)
+                    {
+                        // 命中到段末，自动修正
+                        // 这里有加一问题
+                        // 例如这一段是 12\r\n
+                        // 在传入命中 3 光标坐标时，命中到的是 \r 字符。而 paragraphData.CharCount 是不计入 \r\n 两个字符的
+                        // 因此判断命中是否到 \r 字符，就需要使用 paragraphData.CharCount + 1 来判断
+                        hitParagraphOffset = paragraphData.CharCount;
+                    }
 
                     return GetResult(paragraphData, new ParagraphCaretOffset(hitParagraphOffset));
                 }

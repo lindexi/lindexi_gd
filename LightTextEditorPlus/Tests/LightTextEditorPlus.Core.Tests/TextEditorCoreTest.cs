@@ -1,4 +1,6 @@
-﻿using LightTextEditorPlus.Core.Platform;
+﻿using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document.Segments;
+using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.TestsFramework;
 
@@ -18,6 +20,30 @@ public class TextEditorCoreTest
 
             // 没有异常，那就是符合预期
             Assert.IsNotNull(textEditorCore);
+        });
+    }
+
+    [ContractTestCase]
+    public void GetHitParagraphData()
+    {
+        "命中到文本的段落的换车符，可以自动修改为命中段末".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            // 加上一个测试信息，用来有两个段落，这样才能命中
+            textEditorCore.AppendText("12\r\n");
+
+            // Action
+            var caretOffset = new CaretOffset(textEditorCore.CurrentCaretOffset.Offset - 1);
+            var paragraphManager = textEditorCore.DocumentManager.ParagraphManager;
+            var result = paragraphManager.GetHitParagraphData(caretOffset);
+
+            var hitCharData = result.ParagraphData.GetCharData(new ParagraphCharOffset(result.HitOffset.Offset - 1));
+
+            // Assert
+            Assert.AreEqual(2, result.HitOffset.Offset);
+            // 命中到 '2' 字符
+            Assert.AreEqual("2", hitCharData.CharObject.ToText());
         });
     }
 
