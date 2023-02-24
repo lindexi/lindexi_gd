@@ -42,6 +42,8 @@ public partial class TextEditorCore
     [TextEditorPublicAPI]
     public void EditAndReplace(string text)
     {
+        AddLayoutReason("TextEditorCore.EditAndReplace(string text)");
+
         TextEditorCore textEditor = this;
         DocumentManager documentManager = textEditor.DocumentManager;
         // 判断光标是否在文档末尾，且没有选择内容
@@ -79,6 +81,7 @@ public partial class TextEditorCore
     [TextEditorPublicAPI]
     public void EditAndReplaceRun(IImmutableRun? run, Selection? selection = null)
     {
+        AddLayoutReason("TextEditorCore.EditAndReplace(IImmutableRun, Selection)");
         DocumentManager.EditAndReplaceRun(selection ?? CaretManager.CurrentSelection, run);
     }
 

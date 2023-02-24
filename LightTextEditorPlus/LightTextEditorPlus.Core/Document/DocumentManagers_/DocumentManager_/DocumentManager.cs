@@ -326,7 +326,17 @@ namespace LightTextEditorPlus.Core.Document
         /// </summary>
         /// <param name="selection"></param>
         /// <param name="run"></param>
-        public void EditAndReplaceRun(in Selection selection, IImmutableRun? run)
+        internal void EditAndReplaceRun(in Selection selection, IImmutableRun? run)
+        {
+            TextEditor.AddLayoutReason("DocumentManager.EditAndReplaceRun");
+
+            EditAndReplaceRunInner(selection, run);
+        }
+
+        /// <summary>
+        /// 编辑和替换文本
+        /// </summary>
+        private void EditAndReplaceRunInner(in Selection selection, IImmutableRun? run)
         {
             InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
             // 这里只处理数据变更，后续渲染需要通过 InternalDocumentChanged 事件触发
@@ -411,7 +421,7 @@ namespace LightTextEditorPlus.Core.Document
 
         private void RemoveInner(in Selection selection) =>
             // 删除范围内的文本，等价于将范围内的文本替换为空
-            EditAndReplaceRun(selection, null);
+            EditAndReplaceRunInner(selection, null);
 
         #endregion
 
