@@ -413,7 +413,7 @@ public partial class TextEditorCore
         {
             if (_debugName is null)
             {
-                return DocumentManager.ParagraphManager.GetText().LimitTrim(15);
+                return "\"" + DocumentManager.ParagraphManager.GetText().LimitTrim(15) + "\"";
             }
 
             return _debugName;
