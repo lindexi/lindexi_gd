@@ -38,7 +38,8 @@ public class TextEditorCoreTest
             var paragraphManager = textEditorCore.DocumentManager.ParagraphManager;
             var result = paragraphManager.GetHitParagraphData(caretOffset);
 
-            var hitCharData = result.ParagraphData.GetCharData(new ParagraphCharOffset(result.HitOffset.Offset - 1));
+            var hitCharData = result.GetHitCharData();
+            Assert.IsNotNull(hitCharData);
 
             // Assert
             Assert.AreEqual(2, result.HitOffset.Offset);

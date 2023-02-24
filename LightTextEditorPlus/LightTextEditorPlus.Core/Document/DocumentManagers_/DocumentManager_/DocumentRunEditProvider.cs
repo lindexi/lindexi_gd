@@ -125,9 +125,8 @@ internal class DocumentRunEditProvider
             }
             else
             {
-                var paragraphCharOffset = new ParagraphCharOffset(paragraphDataResult.HitOffset.Offset - 1);
-                var charData = paragraphData.GetCharData(paragraphCharOffset);
-                styleRunProperty = charData.RunProperty;
+                var charData = paragraphDataResult.GetHitCharData();
+                styleRunProperty = charData!.RunProperty;
             }
         }
 

@@ -13,4 +13,29 @@ namespace LightTextEditorPlus.Core.Document;
 /// 此类型用来减少重复计算
 readonly record struct HitParagraphDataResult(CaretOffset InputCaretOffset, ParagraphData ParagraphData, ParagraphCaretOffset HitOffset, ParagraphManager ParagraphManager)
 {
+    /// <summary>
+    /// 获取命中的字符。如果命中到段落首，那将取首个字符，否则取命中到的前一个字符
+    /// </summary>
+    /// <returns>对于空段落，返回 null 值</returns>
+    public CharData? GetHitCharData()
+    {
+        if (ParagraphData.CharCount == 0)
+        {
+            return null;
+        }
+
+        ParagraphCharOffset paragraphCharOffset;
+        if (HitOffset.Offset == 0)
+        {
+            // 如果命中到段落首，那将取首个字符
+            paragraphCharOffset = new ParagraphCharOffset(HitOffset.Offset);
+        }
+        else
+        {
+            paragraphCharOffset = new ParagraphCharOffset(HitOffset.Offset - 1);
+        }
+
+        var charData = ParagraphData.GetCharData(paragraphCharOffset);
+        return charData;
+    }
 }
