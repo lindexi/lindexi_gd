@@ -27,7 +27,7 @@ class ParagraphManager
     /// </summary>
     /// <param name="offset"></param>
     /// <returns></returns>
-    public HitParagraphDataResult GetHitParagraphData(CaretOffset offset)
+    public HitParagraphDataResult GetHitParagraphData(in CaretOffset offset)
     {
         EnsureFirstParagraphExists();
         Debug.Assert(ParagraphList.Count != 0, "在确保首个段落存在之后，一定存在一段");
