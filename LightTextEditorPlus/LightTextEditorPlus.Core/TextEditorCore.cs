@@ -422,6 +422,9 @@ public partial class TextEditorCore
 
     private string? _debugName;
 
+    /// <inheritdoc />
+    public override string ToString() => $"[{nameof(TextEditorCore)}] {DebugName}";
+
     /// <summary>
     /// 是否正在调试模式
     /// </summary>
