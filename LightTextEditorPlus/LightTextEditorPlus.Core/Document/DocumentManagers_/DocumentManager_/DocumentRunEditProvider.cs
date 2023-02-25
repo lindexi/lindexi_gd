@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
@@ -174,7 +173,8 @@ internal class DocumentRunEditProvider
                 var paragraphStartRunProperty = runProperty;
 
                 // 如果这是一个分段，那直接插入新的段落
-                var newParagraph = ParagraphManager.CreateParagraphAndInsertAfter(currentParagraph, paragraphStartRunProperty);
+                var newParagraph =
+                    ParagraphManager.CreateParagraphAndInsertAfter(currentParagraph, paragraphStartRunProperty);
 
                 currentParagraph = newParagraph;
 
@@ -226,7 +226,7 @@ internal class DocumentRunEditProvider
 
             if (removeLength == 0)
             {
-                // 这一段没有什么可以删除的，且依然存在需要删除的长度，那就是换行了
+                // 这一段没有什么可以删除的，且依然存在需要删除的长度，那就是删除空段了
                 if (paragraphData.CharCount == paragraphStartOffset.Offset)
                 {
                     // 进入下一段，继续删除
@@ -316,6 +316,7 @@ internal class DocumentRunEditProvider
                 charData.CharLayoutData = null;
                 firstParagraph.AppendCharData(charData);
             }
+
             firstParagraph.SetDirty();
 
             paragraphManager.RemoveRange(start + 1, end - start);
