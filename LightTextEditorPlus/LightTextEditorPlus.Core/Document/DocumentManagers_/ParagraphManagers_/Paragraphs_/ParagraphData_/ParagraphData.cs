@@ -128,6 +128,10 @@ class ParagraphData
     //    return runList;
     //}
 
+    public void RemoveRange(ParagraphCaretOffset start) => RemoveRange(start, CharCount - start.Offset);
+
+    public void RemoveRange(ParagraphCaretOffset start, int count) => CharDataManager.RemoveRange(start.Offset, count);
+
     /// <summary>
     /// 在段落中间插入的时候，需要将段落在插入后面的内容分割删除
     /// </summary>

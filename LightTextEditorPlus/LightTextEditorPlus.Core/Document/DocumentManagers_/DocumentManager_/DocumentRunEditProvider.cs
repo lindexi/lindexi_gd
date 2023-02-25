@@ -218,14 +218,9 @@ internal class DocumentRunEditProvider
         var paragraphData = firstParagraph;
         var paragraphManager = paragraphDataResult.ParagraphManager;
         var paragraphList = paragraphManager.GetParagraphList();
-        // 最后一段是否所有字符被完全删除，如果被完全删除了，那就不需要再将最后一段的字符加入到删除的首段了
-        bool isLastParagraphWholeDelete = false;
 
         while (remainLength > 0)
         {
-            // 每次进来时，还原变量初始。默认假定一段是没有被完全删除的
-            isLastParagraphWholeDelete = false;
-
             // 这一段可以删除的长度
             var removeLength = Math.Min(remainLength, paragraphData.CharCount - paragraphStartOffset.Offset);
 
@@ -245,40 +240,26 @@ internal class DocumentRunEditProvider
                 }
             }
 
-            // 删除时，分为整段删除和非整段删除的情况
-            // 对于整段删除，就直接标记删除段落，然后继续判断是否还需要删除下一段即可
-            var deleteWholeParagraph = paragraphStartOffset.Offset == 0 && removeLength == paragraphData.CharCount;
-            if (deleteWholeParagraph)
+            // 如果是在一段的中间删除，那就删除段落中间，需要先拿到段落删除中间之后的后面字符
+            var paragraphEndOffset = new ParagraphCaretOffset(paragraphStartOffset.Offset + removeLength);
+            IList<CharData>? lastCharDataList = null;
+            if (paragraphData.CharCount > paragraphEndOffset.Offset)
             {
-                isLastParagraphWholeDelete = true;
+                // 如果不是删除到全段，那就需要将段落删除之后剩下的部分重新加入
+                lastCharDataList = paragraphData.SplitRemoveByParagraphOffset(paragraphEndOffset);
+
+                Debug.Assert(remainLength == removeLength, "如果一段删除之后还有剩余的，那就是完全删除，删除的长度就和需要删除的长度相同");
             }
-            else
+
+            // 然后再从段落开始删除时开始删除
+            paragraphData.RemoveRange(paragraphStartOffset);
+
+            // 如果删除不全段，那就将段落之后的加回，尽管最后段落可能还会被删除，存在重复的加入情况
+            // 例如 1 和 2 两个段落，删除是从 1 段删除到 2 段，且 2 段没有完全删除
+            // 以下逻辑就是将 2 段的剩余部分，先加入到 2 段里面。最后再删除 2 段，将 2 段所有内容加入回 1 段里面。也就是 lastCharDataList 最差情况下，需要被加入到 2 段再从 2 段取出加入到 1 段里面
+            if (lastCharDataList is not null)
             {
-                // 如果是在一段的中间删除，那就删除段落中间，需要先拿到段落删除中间之后的后面字符
-                var paragraphEndOffset = new ParagraphCaretOffset(paragraphStartOffset.Offset + removeLength);
-                IList<CharData>? lastCharDataList = null;
-                if (paragraphData.CharCount > paragraphEndOffset.Offset)
-                {
-                    // 如果不是删除到全段，那就需要将段落删除之后剩下的部分重新加入
-                    lastCharDataList = paragraphData.SplitRemoveByParagraphOffset(paragraphEndOffset);
-
-                    Debug.Assert(remainLength == removeLength, "如果一段删除之后还有剩余的，那就是完全删除，删除的长度就和需要删除的长度相同");
-                }
-
-                // 然后再从段落开始删除时开始删除
-                var deletedCharDataList = paragraphData.SplitRemoveByParagraphOffset(paragraphStartOffset);
-
-                // 这个 deletedCharDataList 就是被删除的字符
-                // 下面这个代码只是让 VS 了解到这个变量是用来调试的
-                _ = deletedCharDataList;
-
-                // 如果删除不全段，那就将段落之后的加回，尽管最后段落可能还会被删除，存在重复的加入情况
-                // 例如 1 和 2 两个段落，删除是从 1 段删除到 2 段，且 2 段没有完全删除
-                // 以下逻辑就是将 2 段的剩余部分，先加入到 2 段里面。最后再删除 2 段，将 2 段所有内容加入回 1 段里面。也就是 lastCharDataList 最差情况下，需要被加入到 2 段再从 2 段取出加入到 1 段里面
-                if (lastCharDataList is not null)
-                {
-                    paragraphData.AppendCharData(lastCharDataList);
-                }
+                paragraphData.AppendCharData(lastCharDataList);
             }
 
             ToNextParagraph();
@@ -326,18 +307,15 @@ internal class DocumentRunEditProvider
             var start = firstParagraph.Index;
             var end = paragraphData.Index;
 
-            if (!isLastParagraphWholeDelete)
+            // 如果最后一段不是完全删除的
+            // 只需要加上最后一段的即可，中间的都是被全部删除的
+            var lastParagraphCharDataList = paragraphData.ToReadOnlyListSpan(new ParagraphCharOffset(0));
+            foreach (var charData in lastParagraphCharDataList)
             {
-                // 如果最后一段不是完全删除的
-                // 只需要加上最后一段的即可，中间的都是被全部删除的
-                var lastParagraphCharDataList = paragraphData.ToReadOnlyListSpan(new ParagraphCharOffset(0));
-                foreach (var charData in lastParagraphCharDataList)
-                {
-                    charData.CharLayoutData = null;
-                    firstParagraph.AppendCharData(charData);
-                }
-                firstParagraph.SetDirty();
+                charData.CharLayoutData = null;
+                firstParagraph.AppendCharData(charData);
             }
+            firstParagraph.SetDirty();
 
             paragraphManager.RemoveRange(start + 1, end - start);
         }
