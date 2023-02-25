@@ -4,6 +4,7 @@ using System.Diagnostics;
 
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
+using LightTextEditorPlus.Core.Exceptions;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -231,25 +232,6 @@ internal class DocumentRunEditProvider
                     // 进入下一段，继续删除
                     ToNextParagraph();
                     continue;
-
-                    //// 刚好就是从段末开始
-                    //var paragraphManager = paragraphDataResult.ParagraphManager;
-                    //// 取下一段的内容，加入到当前段落里面
-                    //var paragraphList = paragraphManager.GetParagraphList();
-                    //if (paragraphData.Index == paragraphList.Count - 1)
-                    //{
-                    //    // 最后一段，理论上不会存在
-                    //}
-                    //else
-                    //{
-                    //    // 取下一段
-                    //    var nextParagraphDataIndex = paragraphData.Index + 1;
-                    //    var nextParagraphData = paragraphList[nextParagraphDataIndex];
-                    //    var nextParagraphCharDataList = nextParagraphData.ToReadOnlyListSpan(new ParagraphCharOffset(0));
-
-                    //    paragraphData.AppendCharData(nextParagraphCharDataList);
-                    //    paragraphManager.RemoveParagraph(nextParagraphDataIndex);
-                    //}
                 }
                 else
                 {
@@ -280,20 +262,23 @@ internal class DocumentRunEditProvider
                 paragraphData.AppendCharData(lastCharDataList);
             }
 
-            remainLength -= removeLength;
-
-            if (remainLength > 0)
-            {
-                // 如果这一段没有足够减去的，那就继续减去下一段的
-                ToNextParagraph();
-            }
-
             void ToNextParagraph()
             {
+                remainLength -= removeLength;
+
+                if (remainLength <= 0)
+                {
+                    // 如果减去当前段落之后，完成删除，那就不需要减去下一段了
+                    return;
+                }
+
+                // 如果这一段没有足够减去的，那就继续减去下一段的
+
                 // 这一段不够删除了，下到下一段
                 if (paragraphData.Index == paragraphList.Count - 1)
                 {
                     // 最后一段，理论上不会存在
+                    throw new TextEditorInnerException($"删除文本时，超过文本框所能提供的字符范围");
                 }
                 else
                 {
