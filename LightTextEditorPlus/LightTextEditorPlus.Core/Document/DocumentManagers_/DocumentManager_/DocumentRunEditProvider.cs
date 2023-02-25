@@ -301,6 +301,7 @@ internal class DocumentRunEditProvider
         {
             // 如果当前段落和首个开始删除的段落相同，那就证明没有删除任何一段
             // 否则就需要执行合并
+            firstParagraph.SetDirty();
         }
         else
         {
