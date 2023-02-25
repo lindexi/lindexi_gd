@@ -236,6 +236,7 @@ internal class DocumentRunEditProvider
                 else
                 {
                     // 不知道是啥情况，理论上不会存在
+                    throw new TextEditorInnerException($"一段里面没有任何可删除的字符，但是光标不在段末");
                 }
             }
 
