@@ -31,7 +31,7 @@ public partial class MainWindow : Window
         Loaded += MainWindow_Loaded;
     }
 
-    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
         var windowMessage = PInvoke.RegisterWindowMessage("HwndWrapper.GetGCMemMessage");
 
@@ -40,9 +40,11 @@ public partial class MainWindow : Window
         //var hwndWrapper = fieldInfo.GetValue(hwndSource);
 
         var windowInteropHelper = new WindowInteropHelper(this);
-        PInvoke.SendMessage(new HWND(windowInteropHelper.Handle), windowMessage, new WPARAM(0), new LPARAM(0));
+        for (int i = 0; i < 100; i++)
+        {
+            PInvoke.SendMessage(new HWND(windowInteropHelper.Handle), windowMessage, new WPARAM(1), new LPARAM(0));
 
-        var totalMemory = GC.GetTotalMemory(false);
-         totalMemory = GC.GetTotalMemory(true);
+            await Task.Delay(100);
+        }
     }
 }
