@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="通用">
+      <UniqueIdentifier>d2a3f58b-ff25-4329-a9c9-fc377071b05a</UniqueIdentifier>
+    </Filter>
+    <Filter Include="资产">
+      <UniqueIdentifier>62e2b021-f4bd-40ae-a001-4f079d911400</UniqueIdentifier>
+      <Extensions>bmp;fbx;gif;jpg;jpeg;tga;tiff;tif;png</Extensions>
+    </Filter>
+	<Filter Include="内容">
+      <UniqueIdentifier>99f7a6b0-7d05-44e9-9f4a-cc1b5733719c</UniqueIdentifier>
+    </Filter>
+    <ClInclude Include="Common\DirectXHelper.h">
+      <Filter>通用</Filter>
+    </ClInclude>
+	<ClInclude Include="Common\StepTimer.h">
+      <Filter>通用</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\DeviceResources.h">
+      <Filter>通用</Filter>
+    </ClInclude>
+    <ClCompile Include="Common\DeviceResources.cpp">
+      <Filter>通用</Filter>
+    </ClCompile>
+	<ClInclude Include="Content\Sample3DSceneRenderer.h">
+      <Filter>内容</Filter>
+    </ClInclude>
+    <ClInclude Include="Content\SampleFpsTextRenderer.h">
+      <Filter>内容</Filter>
+    </ClInclude>
+    <ClInclude Include="Content\ShaderStructures.h">
+      <Filter>内容</Filter>
+    </ClInclude>
+	<ClCompile Include="Content\Sample3DSceneRenderer.cpp">
+      <Filter>内容</Filter>
+    </ClCompile>
+    <ClCompile Include="Content\SampleFpsTextRenderer.cpp">
+      <Filter>内容</Filter>
+    </ClCompile>
+	<FxCompile Include="Content\SamplePixelShader.hlsl">
+      <Filter>内容</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\SampleVertexShader.hlsl">
+      <Filter>内容</Filter>
+    </FxCompile>
+    <Image Include="Assets\LockScreenLogo.scale-200.png">
+      <Filter>资产</Filter>
+    </Image>
+    <Image Include="Assets\SplashScreen.scale-200.png">
+      <Filter>资产</Filter>
+    </Image>
+    <Image Include="Assets\Square150x150Logo.scale-200.png">
+      <Filter>资产</Filter>
+    </Image>
+    <Image Include="Assets\Square44x44Logo.scale-200.png">
+      <Filter>资产</Filter>
+    </Image>
+    <Image Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png">
+      <Filter>资产</Filter>
+    </Image>
+    <Image Include="Assets\Wide310x150Logo.scale-200.png">
+      <Filter>资产</Filter>
+    </Image>
+  </ItemGroup>
+</Project>
