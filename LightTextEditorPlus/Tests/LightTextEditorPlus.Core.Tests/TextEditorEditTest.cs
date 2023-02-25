@@ -1,5 +1,6 @@
 ﻿using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.TestsFramework;
+
 using MSTest.Extensions.Contracts;
 
 namespace LightTextEditorPlus.Core.Tests;
@@ -79,7 +80,23 @@ public class TextEditorEditTest
     [ContractTestCase]
     public void Backspace()
     {
-        // 在段首执行 Backspace 退格，可以删除段，和前面一段合成一段
+        "在段首执行 Backspace 退格，可以删除段，和前面一段合成一段".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+            // 先追加两段，用于后续删除
+            textEditorCore.AppendText("1\r\n2");
+            // 移动光标在段首
+            textEditorCore.CurrentCaretOffset = new CaretOffset(3);
+
+            // Action
+            // 在段首执行 Backspace 退格
+            textEditorCore.Backspace();
+
+            // Assert
+            // 可以删除段，和前面一段合成一段
+            Assert.AreEqual("12", textEditorCore.GetText());
+        });
 
         "对空段执行 Backspace 退格，可以删除空段".Test(() =>
         {
