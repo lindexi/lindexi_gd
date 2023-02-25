@@ -86,11 +86,13 @@ class ParagraphData
     /// </summary>
     public int CharCount => CharDataManager.CharCount;
 
+#if DEBUG
     /// <summary>
     /// 获取这个文本行是否已经从文档中删除
     /// </summary>
     /// 这个属性更多是给调试
     public bool IsDeleted { set; get; }
+#endif
 
     /// <summary>
     /// 获取行分隔符的长度

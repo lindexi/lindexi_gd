@@ -140,8 +140,26 @@ class ParagraphManager
         return paragraphData;
     }
 
-    public void RemoveParagraph(ParagraphData paragraphData) => ParagraphList.Remove(paragraphData);
-    public void RemoveRange(int index, int count) => ParagraphList.RemoveRange(index, count);
+    public void RemoveParagraph(ParagraphData paragraphData)
+    {
+#if DEBUG
+        paragraphData.IsDeleted = true;
+#endif
+
+        ParagraphList.Remove(paragraphData);
+    }
+
+    public void RemoveRange(int index, int count)
+    {
+#if DEBUG
+        for (int i = index; i < count; i++)
+        {
+            ParagraphList[i].IsDeleted = true;
+        }
+#endif
+
+        ParagraphList.RemoveRange(index, count);
+    }
 
     public IReadOnlyList<ParagraphData> GetParagraphList()
     {
