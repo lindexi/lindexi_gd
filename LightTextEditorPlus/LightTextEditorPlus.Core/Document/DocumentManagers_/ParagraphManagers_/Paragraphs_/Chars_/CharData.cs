@@ -24,6 +24,11 @@ public class CharData
     }
 
     /// <summary>
+    /// 是否一个表示换行的字符
+    /// </summary>
+    public bool IsLineBreakCharData => ReferenceEquals(CharObject, LineBreakCharObject.Instance);
+
+    /// <summary>
     /// 字符对象
     /// </summary>
     public ICharObject CharObject { get; }
