@@ -1,39 +1,4 @@
-﻿using LightTextEditorPlus.Core.Exceptions;
-
-namespace LightTextEditorPlus.Core.Document;
-
-/// <summary>
-/// 表示一个 <see cref="IImmutableRun"/> 列表
-/// </summary>
-internal interface IImmutableRunList
-{
-    int RunCount { get; }
-    IImmutableRun GetRun(int index);
-}
-
-/// <summary>
-/// 只包含一个元素的列表
-/// </summary>
-class SingleImmutableRunList : IImmutableRunList
-{
-    public SingleImmutableRunList(IImmutableRun run)
-    {
-        Run = run;
-    }
-
-    public IImmutableRun Run { get; }
-
-    public int RunCount => 1;
-    public IImmutableRun GetRun(int index)
-    {
-        if (index != 0)
-        {
-            throw new TextEditorInnerException($"获取只有单个 Run 的 {nameof(SingleImmutableRunList)} 时，传入的 {nameof(index)} 参数是 {index} 而不是 0 的值");
-        }
-
-        return Run;
-    }
-}
+﻿namespace LightTextEditorPlus.Core.Document;
 
 /// <summary>
 /// 表示一段不可变字符，具有相同的属性定义。表示共享单个属性集的字符序列
