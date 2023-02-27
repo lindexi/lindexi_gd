@@ -15,14 +15,14 @@ public static class DocumentManagerSelectionExtension
     public static CaretOffset GetDocumentStartCaretOffset(this DocumentManager documentManager) => new CaretOffset(0);
 
     /// <summary>
-    /// 获取文档结尾的光标
+    /// 获取文档结尾的光标，等于 CharCount 值
     /// </summary>
     /// <param name="documentManager"></param>
     /// <returns></returns>
     public static CaretOffset GetDocumentEndCaretOffset(this DocumentManager documentManager) => new CaretOffset(documentManager.CharCount);
 
     /// <summary>
-    /// 获取选择到文档的起始
+    /// 获取选择到文档的起始，也就是 0,0 选择范围
     /// </summary>
     /// <param name="documentManager"></param>
     /// <returns></returns>
@@ -30,7 +30,7 @@ public static class DocumentManagerSelectionExtension
         new Selection(documentManager.GetDocumentStartCaretOffset(), 0);
 
     /// <summary>
-    /// 获取选择到文档的末尾
+    /// 获取选择到文档的末尾，也就是 CharCount,0 选择范围
     /// </summary>
     /// <param name="documentManager"></param>
     /// <returns></returns>

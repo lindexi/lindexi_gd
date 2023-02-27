@@ -32,6 +32,8 @@ namespace LightTextEditorPlus.Core.Document
 
         internal TextEditor TextEditor { get; }
 
+        #region DocumentWidth DocumentHeight
+
         /// <summary>
         /// 文档的宽度。受 <see cref="LightTextEditorPlus.Core.TextEditorCore.SizeToContent"/> 影响
         /// </summary>
@@ -65,6 +67,7 @@ namespace LightTextEditorPlus.Core.Document
         }
 
         private double _documentHeight = double.PositiveInfinity;
+        #endregion
 
         /// <summary>
         /// 文档的字符编辑提供器
