@@ -301,6 +301,8 @@ namespace LightTextEditorPlus.Core.Document
             return charDataListResult;
         }
 
+        #region 编辑
+
         /// <summary>
         /// 追加一段文本
         /// </summary>
@@ -348,6 +350,8 @@ namespace LightTextEditorPlus.Core.Document
 
             InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
         }
+
+        #endregion
 
         #region 删除
 
