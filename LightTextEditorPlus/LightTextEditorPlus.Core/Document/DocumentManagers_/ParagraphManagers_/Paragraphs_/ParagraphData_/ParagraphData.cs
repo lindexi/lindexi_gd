@@ -55,6 +55,29 @@ class ParagraphData
     }
 
     /// <summary>
+    /// 获取这一段的换段符号
+    /// </summary>
+    /// <returns></returns>
+    public CharData GetLineBreakCharData()
+    {
+        IReadOnlyRunProperty runProperty;
+        if (CharCount == 0)
+        {
+            // 如果这是一个空段，那就采用段落属性的字符属性
+            runProperty = ParagraphProperty.ParagraphStartRunProperty ?? TextEditor.DocumentManager.CurrentRunProperty;
+        }
+        else
+        {
+            // 如果有内容，那就获取最后一个字符的字符样式
+            runProperty = CharDataManager.GetCharData(CharCount - 1).RunProperty;
+        }
+
+        var charData = new CharData(LineBreakCharObject.Instance, runProperty);
+        charData.CharLayoutData = new CharLayoutData(charData, this);
+        return charData;
+    }
+
+    /// <summary>
     /// 获取字符列表
     /// </summary>
     /// <param name="start"></param>
@@ -246,6 +269,11 @@ class ParagraphData
         if (charData.CharLayoutData is not null)
         {
             throw new ArgumentException($"此 CharData 已经被加入到某个段落，不能重复加入");
+        }
+
+        if (charData.IsLineBreakCharData)
+        {
+            throw new ArgumentException($"禁止将 {nameof(LineBreakCharObject)} 加入到段落");
         }
 
         CharDataManager.Add(charData);
