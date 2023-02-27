@@ -164,7 +164,7 @@ internal class DocumentRunEditProvider
     {
         var runProperty = run.RunProperty ?? styleRunProperty;
 
-        // 当前的段落，如果插入的分行的内容，那自然需要自动分段
+        // 当前的段落，如果插入的分段的内容，那自然需要自动分段
         var currentParagraph = paragraphData;
         // 看起来不需要中间插入逻辑，只需要插入到最后
         //var insertOffset = offset;
@@ -176,7 +176,7 @@ internal class DocumentRunEditProvider
         {
             if (subRun is LineBreakRun || !isFirstSubRun)
             {
-                // 如果有明确的分行，那就给定一个段落的字符属性
+                // 如果有明确的分段，那就给定一个段落的字符属性
                 var paragraphStartRunProperty = runProperty;
 
                 // 如果这是一个分段，那直接插入新的段落
