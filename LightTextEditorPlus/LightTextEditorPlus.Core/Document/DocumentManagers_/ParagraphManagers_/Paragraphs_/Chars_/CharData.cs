@@ -117,6 +117,8 @@ public class CharData
     {
         DebugVerify();
 
+        if (IsLineBreakCharData) return "\\r\\n";
+
         return $"'{CharObject}' {(CharLayoutData != null?$"X:{CharLayoutData.StartPoint.X:0.00} Y:{CharLayoutData.StartPoint.Y:0.00}":"")} {(Size!=null?$"W:{Size.Value.Width:0.00} H:{Size.Value.Height:0.00}":"")}";
     }
 }

@@ -405,17 +405,21 @@ namespace LightTextEditorPlus.Core.Document
         /// <returns></returns>
         public IEnumerable<CharData> GetCharDataRange(in Selection selection)
         {
+            // 获取方法：
+            // 1. 先获取命中到的首段，取首段的字符
+            // 2. 如果首段不够，则获取后续段落，每个段落获取之前，都添加用来表示换行的字符
+
             var result = ParagraphManager.GetHitParagraphData(selection.FrontOffset);
             var remainingLength = selection.Length;
 
             var takeCount = Math.Min(result.ParagraphData.CharCount - result.HitOffset.Offset, remainingLength);
 
-            // todo 考虑命中到段落末尾情况
             var charDataList = result.ParagraphData.ToReadOnlyListSpan(new ParagraphCharOffset(result.HitOffset.Offset),
                 takeCount);
             remainingLength -= takeCount;
             IEnumerable<CharData> charDataListResult = charDataList;
 
+            // 继续获取后续段落，如果首段不够的话
             var lastParagraphData = result.ParagraphData;
             var list = ParagraphManager.GetParagraphList();
             for (int i = result.ParagraphData.Index + 1; i < list.Count && remainingLength > 0; i++)
@@ -428,10 +432,9 @@ namespace LightTextEditorPlus.Core.Document
                 var currentParagraphData = list[i];
                 takeCount = Math.Min(currentParagraphData.CharCount, remainingLength);
                 charDataListResult =
-                    charDataListResult.Concat(
-                        currentParagraphData.ToReadOnlyListSpan(new ParagraphCharOffset(0), takeCount));
+                    charDataListResult.Concat(currentParagraphData.ToReadOnlyListSpan(new ParagraphCharOffset(0), takeCount));
                 remainingLength -= takeCount;
-                lastParagraphData=currentParagraphData;
+                lastParagraphData = currentParagraphData;
             }
 
             return charDataListResult;

@@ -12,6 +12,19 @@ public class DocumentManagerTests
     [ContractTestCase]
     public void GetCharDataRange()
     {
+        "调用 DocumentManager.GetCharDataRange 跨一段选择，从段末开始选择，可以获取到包含换行字符的列表".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            // 追加一些文本，包含两段，用来测试跨一段选择
+            textEditorCore.AppendText("abc\r\nef");
+
+            // Action
+            var selection = new Selection(new CaretOffset(3), 3);// 选择范围是 \r\ne
+            var charDataRange = textEditorCore.DocumentManager.GetCharDataRange(selection).ToList();
+            Assert.AreEqual("\r\ne", charDataRange.ConvertToString());
+        });
+
         "调用 DocumentManager.GetCharDataRange 跨一段选择，可以获取到跨段的列表".Test(() =>
         {
             // Arrange
