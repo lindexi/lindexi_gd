@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Net.NetworkInformation;
+
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Utils;
+
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Document
@@ -227,7 +229,7 @@ namespace LightTextEditorPlus.Core.Document
         public void SetDefaultTextRunProperty<T>(Action<T> config) where T : IReadOnlyRunProperty
         {
             CurrentRunProperty =
-                TextEditor.PlatformRunPropertyCreator.BuildNewProperty(property => config((T)property),
+                TextEditor.PlatformRunPropertyCreator.BuildNewProperty(property => config((T) property),
                     CurrentRunProperty);
         }
 
@@ -242,7 +244,7 @@ namespace LightTextEditorPlus.Core.Document
             IReadOnlyRunProperty currentCaretRunProperty = CurrentCaretRunProperty;
 
             CaretManager.CurrentCaretRunProperty = TextEditor.PlatformRunPropertyCreator.BuildNewProperty(
-                property => config((T)property),
+                property => config((T) property),
                 currentCaretRunProperty);
         }
 
@@ -260,11 +262,63 @@ namespace LightTextEditorPlus.Core.Document
             // 如当前也没有选择内容，则仅修改当前光标的字符属性
             if (selection.Value.IsEmpty)
             {
+                // 设置当前的光标样式，没有修改文档内容，不需要触发文档变更事件
+
                 SetCurrentCaretRunProperty(config);
             }
             else
             {
-                throw new NotImplementedException("设置范围内的文本的字符属性");
+                // 修改属性，需要触发样式变更，也就是文档变更
+                InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
+                IReadOnlyRunProperty? lastRunProperty = null;
+                ParagraphData? lastParagraphData = null;
+                CharData? lastCharData = null;
+
+                var runList = new ImmutableRunList();
+
+                foreach (var charData in GetCharDataRange(selection.Value))
+                {
+                    Debug.Assert(charData.CharLayoutData != null, "能够从段落里获取到的，一定是存在在段落里面，因此此属性一定不为空");
+                    var currentParagraphData = charData.CharLayoutData!.Paragraph;
+                    if (lastParagraphData is null || ReferenceEquals(lastParagraphData, currentParagraphData))
+                    {
+                        // 如果最后一段和当前的字符的是相同的一段，那就证明没有换段
+                    }
+                    else
+                    {
+                        // 如果最后一段和当前的字符所在的段落不同，证明是换段了，插入换段
+                        // todo 考虑分段的情况
+                        runList.Add(new LineBreakRun(lastRunProperty));
+                    }
+
+                    IReadOnlyRunProperty currentRunProperty;
+
+                    if (ReferenceEquals(charData.RunProperty, lastCharData?.RunProperty))
+                    {
+                        // 如果相邻两个 CharData 采用相同的字符属性，那就不需要再创建了，稍微提升一点性能和减少内存占用
+                        Debug.Assert(lastRunProperty != null, "当前字符和上一个字符的字符属性相同，证明存在上一个字符，证明存在上一个字符属性");
+                        // ReSharper disable once RedundantSuppressNullableWarningExpression
+                        currentRunProperty = lastRunProperty!;
+                    }
+                    else
+                    {
+                        currentRunProperty = charData.RunProperty;
+
+                        currentRunProperty = TextEditor.PlatformRunPropertyCreator.BuildNewProperty(property => config((T) property), currentRunProperty);
+                    }
+
+                    runList.Add(new SingleCharImmutableRun(charData.CharObject, currentRunProperty));
+
+                    lastParagraphData = currentParagraphData;
+                    lastRunProperty = currentRunProperty;
+                    lastCharData = charData;
+                }
+
+                EditAndReplaceRunListInner(selection.Value, runList);
+
+                // 只触发文档变更，不需要修改光标
+
+                InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -276,7 +330,7 @@ namespace LightTextEditorPlus.Core.Document
         /// <param name="selection"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public bool IsAnyRunProperty<T>(Predicate<T> predicate, Selection? selection=null) where T : IReadOnlyRunProperty
+        public bool IsAnyRunProperty<T>(Predicate<T> predicate, Selection? selection = null) where T : IReadOnlyRunProperty
         {
             selection ??= CaretManager.CurrentSelection;
             if (selection.Value.IsEmpty)
@@ -288,7 +342,7 @@ namespace LightTextEditorPlus.Core.Document
             {
                 foreach (var runProperty in GetDifferentRunPropertyRange(selection.Value))
                 {
-                    if (predicate((T)runProperty))
+                    if (predicate((T) runProperty))
                     {
                         // 如果满足条件，那就继续判断下一个
                     }
@@ -412,12 +466,32 @@ namespace LightTextEditorPlus.Core.Document
         /// </summary>
         private void EditAndReplaceRunInner(in Selection selection, IImmutableRun? run)
         {
+            if (run is TextRun textRun)
+            {
+                // 特别处理 TextRun 情况，仅仅只是为了提升几乎可以忽略的性能
+                EditAndReplaceRunListInner(selection, textRun);
+            }
+            else if (run is null)
+            {
+                EditAndReplaceRunListInner(selection, null);
+            }
+            else
+            {
+                EditAndReplaceRunListInner(selection, new SingleImmutableRunList(run));
+            }
+        }
+
+        /// <summary>
+        /// 编辑和替换文本
+        /// </summary>
+        private void EditAndReplaceRunListInner(in Selection selection, IImmutableRunList? run)
+        {
             InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
             // 这里只处理数据变更，后续渲染需要通过 InternalDocumentChanged 事件触发
 
             DocumentRunEditProvider.Replace(selection, run);
 
-            var caretOffset = new CaretOffset(selection.FrontOffset.Offset + run?.Count ?? 0);
+            var caretOffset = new CaretOffset(selection.FrontOffset.Offset + run?.CharCount ?? 0);
             CaretManager.CurrentCaretOffset = caretOffset;
 
             InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
