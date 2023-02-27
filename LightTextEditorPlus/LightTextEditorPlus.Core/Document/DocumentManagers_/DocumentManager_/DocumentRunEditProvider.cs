@@ -199,6 +199,7 @@ internal class DocumentRunEditProvider
     /// </summary>
     /// <param name="selection"></param>
     /// <param name="paragraphDataResult"></param>
+    /// 这里属于核心实现方法，暂时不优化方法代码长度。因为拆分多个方法之后，反而不方便调试，且我也没有找到拆分之后更加清晰的写法
     private void RemoveInner(in Selection selection, in HitParagraphDataResult paragraphDataResult)
     {
         if (selection.IsEmpty)
