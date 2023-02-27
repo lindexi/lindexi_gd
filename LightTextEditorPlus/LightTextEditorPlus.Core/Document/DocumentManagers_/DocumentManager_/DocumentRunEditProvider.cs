@@ -37,7 +37,7 @@ internal class DocumentRunEditProvider
         AppendRunToParagraph(run, lastParagraph, styleRunProperty);
     }
 
-    public void Replace(in Selection selection, IImmutableRun? run)
+    public void Replace(in Selection selection, IImmutableRunList? runList)
     {
         // 替换的时候，需要处理文本的字符属性样式
         IReadOnlyRunProperty? styleRunProperty = null;
@@ -52,7 +52,7 @@ internal class DocumentRunEditProvider
 
             var paragraphDataResult = ParagraphManager.GetHitParagraphData(frontOffset);
 
-            if (run is not null)
+            if (runList is not null)
             {
                 /*
                  * 替换文本时，采用靠近文档的光标的后续一个字符的字符属性
@@ -85,9 +85,9 @@ internal class DocumentRunEditProvider
             // 没有替换的长度，加入即可
         }
 
-        if (run is not null)
+        if (runList is not null)
         {
-            InsertInner(selection.StartOffset, run, styleRunProperty);
+            InsertInner(selection.StartOffset, runList, styleRunProperty);
         }
         else
         {
@@ -99,9 +99,9 @@ internal class DocumentRunEditProvider
     /// 在文档指定位移<paramref name="offset"/>处插入一段文本
     /// </summary>
     /// <param name="offset"></param>
-    /// <param name="run"></param>
+    /// <param name="runList"></param>
     /// <param name="styleRunProperty">继承的样式，如果非替换，仅加入，那这是空</param>
-    private void InsertInner(CaretOffset offset, IImmutableRun run, IReadOnlyRunProperty? styleRunProperty)
+    private void InsertInner(CaretOffset offset, IImmutableRunList runList, IReadOnlyRunProperty? styleRunProperty)
     {
         // 插入的逻辑，找到插入变更的行
         var paragraphDataResult = ParagraphManager.GetHitParagraphData(offset);
@@ -135,8 +135,15 @@ internal class DocumentRunEditProvider
         // 在插入完成之后，重新加入
         var lastParagraphRunList = paragraphData.SplitRemoveByParagraphOffset(paragraphDataResult.HitOffset);
 
-        // 追加文本，获取追加之后的当前段落
-        var currentParagraph = AppendRunToParagraph(run, paragraphData, styleRunProperty);
+        // 追加文本，获取追加需要加入的当前段落
+        var currentParagraph = paragraphData;
+
+        var runCount = runList.RunCount;
+        for (int i = 0; i < runCount; i++)
+        {
+            var run = runList.GetRun(i);
+            currentParagraph = AppendRunToParagraph(run, currentParagraph, styleRunProperty);
+        }
 
         if (lastParagraphRunList != null)
         {

@@ -1,6 +1,15 @@
 ﻿namespace LightTextEditorPlus.Core.Document;
 
 /// <summary>
+/// 表示一个 <see cref="IImmutableRun"/> 列表
+/// </summary>
+internal interface IImmutableRunList
+{
+    int RunCount { get; }
+    IImmutableRun GetRun(int index);
+}
+
+/// <summary>
 /// 表示一段不可变字符，具有相同的属性定义。表示共享单个属性集的字符序列
 /// </summary>
 /// 如果有人继承此接口，然而修改了此对象的字符数量或者包含的字符内容，那框架层也不会处理
