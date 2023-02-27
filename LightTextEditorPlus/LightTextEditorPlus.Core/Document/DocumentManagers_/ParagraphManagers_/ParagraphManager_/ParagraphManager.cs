@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
@@ -79,7 +80,7 @@ class ParagraphManager
 
         HitCaretOffsetOutOfRangeException GetHitCaretOffsetOutOfRangeException()
         {
-            return new HitCaretOffsetOutOfRangeException(TextEditor, offset, TextEditor.DocumentManager.CharCount,nameof(offset));
+            return new HitCaretOffsetOutOfRangeException(TextEditor, offset, TextEditor.DocumentManager.CharCount, nameof(offset));
         }
     }
 
@@ -164,7 +165,7 @@ class ParagraphManager
     public IReadOnlyList<ParagraphData> GetParagraphList()
     {
         EnsureFirstParagraphExists();
-        
+
         return ParagraphList;
     }
 
