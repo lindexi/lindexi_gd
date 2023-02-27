@@ -60,7 +60,7 @@ public class CharData
     /// </summary>
     /// <param name="point"></param>
     /// <exception cref="InvalidOperationException"></exception>
-    public void SetStartPoint(Point point)
+    internal void SetStartPoint(Point point)
     {
         if (CharLayoutData is null)
         {
