@@ -46,7 +46,6 @@ public abstract class PlatformRunPropertyCreatorBase<T> : IPlatformRunPropertyCr
         return OnGetDefaultRunProperty();
     }
 
-
     /// <inheritdoc cref="GetDefaultRunProperty"/>
     protected abstract T OnGetDefaultRunProperty();
 }
