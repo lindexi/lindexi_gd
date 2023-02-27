@@ -286,11 +286,50 @@ namespace LightTextEditorPlus.Core.Document
             }
             else
             {
-                throw new NotImplementedException($"获取范围属性");
+                foreach (var runProperty in GetDifferentRunPropertyRange(selection.Value))
+                {
+                    if (predicate((T)runProperty))
+                    {
+                        // 如果满足条件，那就继续判断下一个
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
             }
         }
 
         #endregion
+
+        /// <summary>
+        /// 获取给定的 <paramref name="selection"/> 范围有多少不连续相同的字符属性
+        /// </summary>
+        /// <param name="selection"></param>
+        /// <returns></returns>
+        internal IEnumerable<IReadOnlyRunProperty> GetDifferentRunPropertyRange(in Selection selection)
+        {
+            var runPropertyRange = GetRunPropertyRange(selection);
+
+            return GetDifferentRunPropertyRangeInner(runPropertyRange);
+
+            static IEnumerable<IReadOnlyRunProperty> GetDifferentRunPropertyRangeInner(
+                IEnumerable<IReadOnlyRunProperty> runPropertyRange)
+            {
+                IReadOnlyRunProperty? lastRunProperty = null;
+
+                foreach (var readOnlyRunProperty in runPropertyRange)
+                {
+                    if (!ReferenceEquals(lastRunProperty, readOnlyRunProperty))
+                    {
+                        lastRunProperty = readOnlyRunProperty;
+                        yield return readOnlyRunProperty;
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// 获取给定范围的字符属性
