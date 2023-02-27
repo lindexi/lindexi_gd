@@ -14,6 +14,7 @@ class SingleImmutableRunList : IImmutableRunList
 
     public IImmutableRun Run { get; }
 
+    public int CharCount => Run.Count;
     public int RunCount => 1;
     public IImmutableRun GetRun(int index)
     {

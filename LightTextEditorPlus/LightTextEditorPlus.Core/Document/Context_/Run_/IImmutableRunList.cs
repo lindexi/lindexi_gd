@@ -5,6 +5,7 @@
 /// </summary>
 internal interface IImmutableRunList
 {
+    int CharCount { get; }
     int RunCount { get; }
     IImmutableRun GetRun(int index);
 }

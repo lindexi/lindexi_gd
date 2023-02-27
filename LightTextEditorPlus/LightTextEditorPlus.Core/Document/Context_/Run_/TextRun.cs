@@ -65,6 +65,7 @@ public sealed class TextRun : IImmutableTextRun
     /// <inheritdoc />
     public override string ToString() => Text;
 
+    int IImmutableRunList.CharCount => Count;
     int IImmutableRunList.RunCount => 1;
 
     IImmutableRun IImmutableRunList.GetRun(int index)

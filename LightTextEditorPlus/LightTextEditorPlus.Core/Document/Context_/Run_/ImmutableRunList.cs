@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -16,6 +17,7 @@ class ImmutableRunList : List<IImmutableRun>, IImmutableRunList
     {
     }
 
+    public int CharCount => this.Sum(t => t.Count);
     public int RunCount => Count;
     public IImmutableRun GetRun(int index) => this[index];
 }
