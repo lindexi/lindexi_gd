@@ -83,7 +83,7 @@ public class CharData
     /// 尺寸是可以复用的
     public Size? Size
     {
-        set
+        internal set
         {
             if (_size != null)
             {
