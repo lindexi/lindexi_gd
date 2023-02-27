@@ -526,7 +526,7 @@ abstract class ArrangingLayoutProvider
         // 首个脏段的起始 也就是横排左上角的点。等于非脏段的下一个行起点
         Point firstStartPoint = default;
 
-        var paragraphList = TextEditor.DocumentManager.DocumentRunEditProvider.ParagraphManager.GetParagraphList();
+        var paragraphList = TextEditor.DocumentManager.ParagraphManager.GetParagraphList();
 
         Debug.Assert(paragraphList.Count > 0, "获取到的段落，即使空文本也会存在一段");
         //if (paragraphList.Count == 0)
@@ -587,7 +587,7 @@ abstract class ArrangingLayoutProvider
             documentBounds = documentBounds.Union(bounds);
         }
 
-        Debug.Assert(TextEditor.DocumentManager.DocumentRunEditProvider.ParagraphManager.GetParagraphList()
+        Debug.Assert(TextEditor.DocumentManager.ParagraphManager.GetParagraphList()
             .All(t => t.IsDirty() == false));
 
         return new DocumentLayoutResult(documentBounds);

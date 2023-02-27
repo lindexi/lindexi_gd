@@ -44,7 +44,7 @@ public class RenderInfoProvider
                 nameof(caretOffset));
         }
 
-        var paragraphManager = textEditor.DocumentManager.DocumentRunEditProvider.ParagraphManager;
+        var paragraphManager = textEditor.DocumentManager.ParagraphManager;
         var hitParagraphDataResult = paragraphManager.GetHitParagraphData(caretOffset);
         var paragraphData = hitParagraphDataResult.ParagraphData;
         var hitOffset = hitParagraphDataResult.HitOffset;
@@ -98,7 +98,7 @@ public class RenderInfoProvider
     /// <returns></returns>
     public IEnumerable<ParagraphRenderInfo> GetParagraphRenderInfoList()
     {
-        var paragraphManager = TextEditor.DocumentManager.DocumentRunEditProvider.ParagraphManager;
+        var paragraphManager = TextEditor.DocumentManager.ParagraphManager;
         var list = paragraphManager.GetParagraphList();
         for (var index = 0; index < list.Count; index++)
         {

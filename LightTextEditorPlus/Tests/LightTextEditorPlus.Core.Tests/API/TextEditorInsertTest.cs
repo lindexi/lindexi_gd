@@ -16,7 +16,6 @@ public class TextEditorInsertTest
             // Arrange
             var textEditorCore = TestHelper.GetTextEditorCore();
             textEditorCore.AppendText("123");
-            var textRunManager = textEditorCore.DocumentManager.DocumentRunEditProvider;
 
             // Action
 
@@ -35,7 +34,7 @@ public class TextEditorInsertTest
             // Assert
             // 在 123 文本的中间，在 2 后面插入 456 字符串
             // 预期的字符串就是 12 456 3
-            var text =  textRunManager.ParagraphManager.GetText();
+            var text = textEditorCore.DocumentManager.ParagraphManager.GetText();
             Assert.AreEqual("124563",text);
         });
     }

@@ -69,7 +69,7 @@ namespace LightTextEditorPlus.Core.Document
         /// <summary>
         /// 文档的字符编辑提供器
         /// </summary>
-        internal DocumentRunEditProvider DocumentRunEditProvider { get; }
+        private DocumentRunEditProvider DocumentRunEditProvider { get; }
 
         internal ParagraphManager ParagraphManager { get; }
 
