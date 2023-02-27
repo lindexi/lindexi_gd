@@ -73,7 +73,13 @@ class ParagraphData
         }
 
         var charData = new CharData(LineBreakCharObject.Instance, runProperty);
-        charData.CharLayoutData = new CharLayoutData(charData, this);
+        charData.CharLayoutData = new CharLayoutData(charData, this)
+        {
+            // 由于获取换行符是一个在任意逻辑执行的方法，此时也许是在布局过程中，如果设置或获取了字符尺寸等，那是不靠谱的
+            // 创建 CharLayoutData 对象只是为了让属性不为空，不代表换行字符可获取正确的布局
+            // 因此重新赋值为 0 的值，防止业务端使用字符坐标
+            CurrentParagraphVersion = 0
+        };
         return charData;
     }
 
