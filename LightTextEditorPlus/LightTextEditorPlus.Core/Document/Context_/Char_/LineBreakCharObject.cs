@@ -32,4 +32,7 @@ public class LineBreakCharObject : ICharObject
     }
 
     string ICharObject.ToText() => TextContext.NewLine;
+
+    /// <inheritdoc />
+    public override string ToString() => ((ICharObject)this).ToText();
 }
