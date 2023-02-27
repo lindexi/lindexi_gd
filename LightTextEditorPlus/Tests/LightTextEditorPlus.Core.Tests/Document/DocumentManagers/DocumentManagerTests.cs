@@ -12,6 +12,21 @@ public class DocumentManagerTests
     [ContractTestCase]
     public void GetCharDataRange()
     {
+        "调用 DocumentManager.GetCharDataRange 跨一段选择，可以获取到跨段的列表".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            // 追加一些文本，包含两段，用来测试跨一段选择
+            textEditorCore.AppendText("abc\r\nef");
+
+            // Action
+            var selection = new Selection(new CaretOffset(1), 5);// 选择范围是 bc\r\ne
+            var charDataRange = textEditorCore.DocumentManager.GetCharDataRange(selection).ToList();
+
+            // Assert
+            Assert.AreEqual("bc\r\ne", charDataRange.ConvertToString());
+        });
+
         "对包含 abc 三个字符的文本框，调用 DocumentManager.GetCharDataRange 传入文档全选，可以选择出 abc 三个字符".Test(() =>
         {
             // Arrange

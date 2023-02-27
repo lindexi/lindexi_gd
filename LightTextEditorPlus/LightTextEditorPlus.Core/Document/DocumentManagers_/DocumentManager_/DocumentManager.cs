@@ -420,9 +420,10 @@ namespace LightTextEditorPlus.Core.Document
             var list = ParagraphManager.GetParagraphList();
             for (int i = result.ParagraphData.Index + 1; i < list.Count && remainingLength > 0; i++)
             {
-                
+                // 加上段末换行符
                 remainingLength -= ParagraphData.DelimiterLength;
-
+                charDataListResult =
+                    charDataListResult.Concat(new[] { lastParagraphData.GetLineBreakCharData() });
 
                 var currentParagraphData = list[i];
                 takeCount = Math.Min(currentParagraphData.CharCount, remainingLength);
