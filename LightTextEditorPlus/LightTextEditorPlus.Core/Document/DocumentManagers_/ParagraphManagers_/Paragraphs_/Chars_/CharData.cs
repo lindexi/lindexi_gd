@@ -113,7 +113,7 @@ public class CharData
     }
 
     /// <inheritdoc />
-    public override string ToString()   
+    public override string ToString()
     {
         DebugVerify();
 
