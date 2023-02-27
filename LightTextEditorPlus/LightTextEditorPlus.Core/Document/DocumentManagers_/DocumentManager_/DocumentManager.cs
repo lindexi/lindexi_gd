@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.NetworkInformation;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Document.UndoRedo;
@@ -267,14 +268,46 @@ namespace LightTextEditorPlus.Core.Document
             }
         }
 
+        /// <summary>
+        /// 是否给定范围内的字符属性都满足 <paramref name="predicate"/> 条件。如传入的 <paramref name="selection"/> 为空，且当前也没有选择内容，则仅判断当前光标的字符属性
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="predicate"></param>
+        /// <param name="selection"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public bool IsAnyRunProperty<T>(Predicate<T> predicate, Selection? selection=null) where T : IReadOnlyRunProperty
+        {
+            selection ??= CaretManager.CurrentSelection;
+            if (selection.Value.IsEmpty)
+            {
+                // 获取当前光标的属性即可
+                return predicate((T) CurrentCaretRunProperty);
+            }
+            else
+            {
+                throw new NotImplementedException($"获取范围属性");
+            }
+        }
+
         #endregion
+
+        /// <summary>
+        /// 获取给定范围的字符属性
+        /// </summary>
+        /// <param name="selection"></param>
+        /// <returns></returns>
+        public IEnumerable<IReadOnlyRunProperty> GetRunPropertyRange(in Selection selection)
+        {
+            return GetCharDataRange(selection).Select(t => t.RunProperty);
+        }
 
         /// <summary>
         /// 给定选择范围内的所有字符属性
         /// </summary>
         /// <param name="selection"></param>
         /// <returns></returns>
-        public IEnumerable<CharData> GetCharDataRange(Selection selection)
+        public IEnumerable<CharData> GetCharDataRange(in Selection selection)
         {
             var result = ParagraphManager.GetHitParagraphData(selection.FrontOffset);
             var remainingLength = selection.Length;

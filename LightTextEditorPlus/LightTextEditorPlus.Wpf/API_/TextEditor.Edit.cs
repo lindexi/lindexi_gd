@@ -128,15 +128,7 @@ public partial class TextEditor
 
     private bool IsAnyRunProperty(Predicate<IRunProperty> predicate)
     {
-        if (CurrentSelection.IsEmpty)
-        {
-            // 获取当前光标的属性即可
-            return predicate(CurrentCaretRunProperty);
-        }
-        else
-        {
-            throw new NotImplementedException($"获取范围属性");
-        }
+        return TextEditorCore.DocumentManager.IsAnyRunProperty(predicate);
     }
 
     /// <summary>
