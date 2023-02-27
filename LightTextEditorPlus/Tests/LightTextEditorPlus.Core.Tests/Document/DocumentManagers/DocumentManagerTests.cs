@@ -12,24 +12,24 @@ public class DocumentManagerTests
     [ContractTestCase]
     public void GetCharDataRange()
     {
-        //"对包含 abc 三个字符的文本框，调用 DocumentManager.GetCharDataRange 传入文档全选，可以选择出 abc 三个字符".Test(() =>
-        //{
-        //    // Arrange
-        //    var textEditorCore = TestHelper.GetTextEditorCore();
-        //    // 追加一些文本
-        //    textEditorCore.AppendText("abc");
+        "对包含 abc 三个字符的文本框，调用 DocumentManager.GetCharDataRange 传入文档全选，可以选择出 abc 三个字符".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            // 追加一些文本
+            textEditorCore.AppendText("abc");
 
-        //    // Action
-        //    // 调用 DocumentManager.GetCharDataRange 传入文档全选
-        //    var selection = textEditorCore.DocumentManager.GetAllDocumentSelection();
-        //    var charDataRange = textEditorCore.DocumentManager.GetCharDataRange(selection).ToList();
+            // Action
+            // 调用 DocumentManager.GetCharDataRange 传入文档全选
+            var selection = textEditorCore.DocumentManager.GetAllDocumentSelection();
+            var charDataRange = textEditorCore.DocumentManager.GetCharDataRange(selection).ToList();
 
-        //    // Assert
-        //    Assert.AreEqual(selection.Length, charDataRange.Count);
-        //    Assert.AreEqual("a", charDataRange[0].CharObject.ToText());
-        //    Assert.AreEqual("b", charDataRange[1].CharObject.ToText());
-        //    Assert.AreEqual("c", charDataRange[2].CharObject.ToText());
-        //});
+            // Assert
+            Assert.AreEqual(selection.Length, charDataRange.Count);
+            Assert.AreEqual("a", charDataRange[0].CharObject.ToText());
+            Assert.AreEqual("b", charDataRange[1].CharObject.ToText());
+            Assert.AreEqual("c", charDataRange[2].CharObject.ToText());
+        });
 
         "对包含 abc 三个字符的文本框，调用 DocumentManager.GetCharDataRange 传入从 1 到 2 的选择，可以选择出 b 单个字符".Test(() =>
         {
