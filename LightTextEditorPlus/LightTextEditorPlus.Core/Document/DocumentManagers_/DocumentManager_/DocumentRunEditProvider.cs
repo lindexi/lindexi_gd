@@ -37,6 +37,24 @@ internal class DocumentRunEditProvider
         AppendRunToParagraph(run, lastParagraph, styleRunProperty);
     }
 
+    public void Replace(in Selection selection, TextRun? textRun) => Replace(selection, (IImmutableRunList?)textRun);
+
+    public void Replace(in Selection selection, IImmutableRun? run)
+    {
+        if (run is null)
+        {
+            Replace(selection, (IImmutableRunList?) null);
+        }
+        else if (run is TextRun textRun)
+        {
+            Replace(selection, textRun);
+        }
+        else
+        {
+            Replace(selection,new SingleImmutableRunList(run));
+        }
+    }
+
     public void Replace(in Selection selection, IImmutableRunList? runList)
     {
         // 替换的时候，需要处理文本的字符属性样式
