@@ -31,6 +31,7 @@ class LineLayoutData : IParagraphCache, IDisposable
     /// </summary>
     public bool IsDirty => CurrentParagraph.IsInvalidVersion(this);
 
+    public void SetDirty() => CurrentParagraphVersion = 0;
     public void UpdateVersion() => CurrentParagraph.UpdateVersion(this);
     public uint CurrentParagraphVersion { get; set; }
 
