@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using LightTextEditorPlus.Core.Attributes;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics;
@@ -297,6 +298,7 @@ public partial class TextEditorCore
     {
         set
         {
+            if (_sizeToContent == value) return;
             _sizeToContent = value;
             RequireDispatchReLayoutAllDocument("SizeToContent Changed");
         }
@@ -312,6 +314,8 @@ public partial class TextEditorCore
     {
         set
         {
+            if (_lineSpacingStrategy == value) return;
+
             _lineSpacingStrategy = value;
             RequireDispatchReLayoutAllDocument("LineSpacingStrategy Changed");
         }
@@ -327,6 +331,8 @@ public partial class TextEditorCore
     {
         set
         {
+            if (_lineSpacingAlgorithm == value) return;
+
             _lineSpacingAlgorithm = value;
             RequireDispatchReLayoutAllDocument("LineSpacingAlgorithm Changed");
         }
@@ -342,6 +348,8 @@ public partial class TextEditorCore
     {
         set
         {
+            if (_arrangingType == value) return;
+
             _arrangingType = value;
             RequireDispatchReLayoutAllDocument("ArrangingType Changed");
         }
