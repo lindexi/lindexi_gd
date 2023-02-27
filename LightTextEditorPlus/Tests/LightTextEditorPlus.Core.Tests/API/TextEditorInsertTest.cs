@@ -30,7 +30,7 @@ public class TextEditorInsertTest
             var selection = new Selection(new CaretOffset(2), 0);
             // 插入 456 字符串
             var textRun = new TextRun("456");
-            textRunManager.Replace(selection,textRun);
+            textEditorCore.DocumentManager.EditAndReplaceRun(selection, textRun);
 
             // Assert
             // 在 123 文本的中间，在 2 后面插入 456 字符串
