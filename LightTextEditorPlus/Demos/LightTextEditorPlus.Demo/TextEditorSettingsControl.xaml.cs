@@ -16,6 +16,7 @@ using System.Windows.Shapes;
 
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
+
 using Brush = System.Windows.Media.Brush;
 
 namespace LightTextEditorPlus.Demo;
@@ -76,5 +77,15 @@ public partial class TextEditorSettingsControl : UserControl
         Button button = (Button) sender;
         var brush = (Brush) button.DataContext;
         TextEditor.SetForeground(new ImmutableBrush(brush));
+    }
+
+    private void FullExpandButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.TextEditorCore.LineSpacingStrategy = LineSpacingStrategy.FullExpand;
+    }
+
+    private void FirstLineShrinkButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.TextEditorCore.LineSpacingStrategy = LineSpacingStrategy.FirstLineShrink;
     }
 }

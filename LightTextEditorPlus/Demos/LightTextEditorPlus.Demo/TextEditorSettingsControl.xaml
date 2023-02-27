@@ -129,6 +129,15 @@
                     <Button Grid.Column="1" Margin="10,2,0,0">向右缩进</Button>
                 </Grid>
 
+                <TextBlock Margin="0,5,0,0" FontWeight="Bold">多倍行距呈现策略</TextBlock>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="FullExpandButton" Margin="0,2,10,0" Click="FullExpandButton_OnClick">空间全部展开</Button>
+                    <Button x:Name="FirstLineShrinkButton" Grid.Column="1" Margin="10,2,0,0" Click="FirstLineShrinkButton_OnClick">首段首行空间不展开</Button>
+                </Grid>
             </StackPanel>
         </ScrollViewer>
         <Button Grid.Row="1" Margin="10,10,10,10">应用</Button>
