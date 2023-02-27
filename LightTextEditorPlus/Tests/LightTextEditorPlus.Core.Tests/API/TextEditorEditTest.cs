@@ -7,10 +7,8 @@ using MSTest.Extensions.Contracts;
 namespace LightTextEditorPlus.Core.Tests;
 
 [TestClass]
-public class TextEditorEditTest
+public class TextEditorAppendTest
 {
-
-
     [ContractTestCase]
     public void AppendText()
     {
@@ -193,6 +191,11 @@ public class TextEditorEditTest
             Assert.AreEqual(30, textEditorCore.GetDocumentLayoutBounds().Height);
         });
     }
+}
+
+[TestClass]
+public class TextEditorEditTest
+{
 
     [ContractTestCase]
     public void Remove()
