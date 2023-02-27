@@ -407,7 +407,8 @@ namespace LightTextEditorPlus.Core.Document
         {
             var result = ParagraphManager.GetHitParagraphData(selection.FrontOffset);
             var remainingLength = selection.Length;
-            var takeCount = Math.Min(result.ParagraphData.CharCount, remainingLength);
+
+            var takeCount = Math.Min(result.ParagraphData.CharCount - result.HitOffset.Offset, remainingLength);
 
             // todo 考虑命中到段落末尾情况
             var charDataList = result.ParagraphData.ToReadOnlyListSpan(new ParagraphCharOffset(result.HitOffset.Offset),
@@ -415,15 +416,21 @@ namespace LightTextEditorPlus.Core.Document
             remainingLength -= takeCount;
             IEnumerable<CharData> charDataListResult = charDataList;
 
+            var lastParagraphData = result.ParagraphData;
             var list = ParagraphManager.GetParagraphList();
             for (int i = result.ParagraphData.Index + 1; i < list.Count && remainingLength > 0; i++)
             {
+                
+                remainingLength -= ParagraphData.DelimiterLength;
+
+
                 var currentParagraphData = list[i];
                 takeCount = Math.Min(currentParagraphData.CharCount, remainingLength);
                 charDataListResult =
                     charDataListResult.Concat(
                         currentParagraphData.ToReadOnlyListSpan(new ParagraphCharOffset(0), takeCount));
                 remainingLength -= takeCount;
+                lastParagraphData=currentParagraphData;
             }
 
             return charDataListResult;
