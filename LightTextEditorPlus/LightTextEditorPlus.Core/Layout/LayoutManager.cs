@@ -33,6 +33,11 @@ class LayoutManager
     public TextEditor TextEditor { get; }
     public event EventHandler? InternalLayoutCompleted;
 
+    public TextHitTestResult HitTest(Point point)
+    {
+        throw new NotImplementedException();
+    }
+
     public void UpdateLayout()
     {
         if (ArrangingLayoutProvider?.ArrangingType != TextEditor.ArrangingType)
