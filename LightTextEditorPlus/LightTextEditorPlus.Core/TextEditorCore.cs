@@ -191,6 +191,11 @@ public partial class TextEditorCore
 
     private void DocumentManager_InternalDocumentChanging(object? sender, EventArgs e)
     {
+        if (IsUpdatingLayout)
+        {
+            throw new ChangeDocumentOnUpdatingLayoutException();
+        }
+
         IsDirty = true;
         if (_renderInfoProvider != null)
         {
