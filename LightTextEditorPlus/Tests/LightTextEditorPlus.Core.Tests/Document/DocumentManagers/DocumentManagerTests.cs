@@ -13,6 +13,72 @@ public class DocumentManagerTests
     [ContractTestCase]
     public void SetRunProperty()
     {
+        "调用 DocumentManager.SetRunProperty 设置文本字符属性，传入修改范围没有长度，将啥都不会干".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            // 随便写一些字符
+            textEditorCore.AppendText(TestHelper.PlainNumberText);
+
+            var fontSize = 100;
+            var fontName = "Test";
+
+            // Action
+            Selection? selection = new Selection(new CaretOffset(0), 0);
+            textEditorCore.DocumentManager.SetRunProperty((LayoutOnlyRunProperty runProperty) =>
+            {
+                runProperty.FontSize = fontSize;
+                runProperty.FontName = new FontName(fontName);
+            }, selection);
+
+            // Assert
+
+            // 啥都不会干
+            // 不会修改字符属性，不会修改当前光标字符属性
+            Assert.AreNotEqual(fontSize, textEditorCore.DocumentManager.CurrentCaretRunProperty.FontSize);
+            Assert.AreNotEqual(fontName, textEditorCore.DocumentManager.CurrentCaretRunProperty.FontName.UserFontName);
+
+            // 不会影响到其他的字符
+            var differentRunPropertyRange = textEditorCore.DocumentManager.GetDifferentRunPropertyRange(textEditorCore.DocumentManager.GetAllDocumentSelection()).ToList();
+            foreach (var runProperty in differentRunPropertyRange)
+            {
+                Assert.AreNotEqual(fontSize, runProperty.FontSize);
+                Assert.AreNotEqual(fontName, runProperty.FontName.UserFontName);
+            }
+        });
+
+        "调用 DocumentManager.SetRunProperty 设置文本字符属性，传入修改范围是 null 将只修改当前光标的字符属性".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            // 随便写一些字符
+            textEditorCore.AppendText(TestHelper.PlainNumberText);
+
+            var fontSize = 100;
+            var fontName = "Test";
+
+            // Action
+            Selection? selection = null;
+            textEditorCore.DocumentManager.SetRunProperty((LayoutOnlyRunProperty runProperty) =>
+            {
+                runProperty.FontSize = fontSize;
+                runProperty.FontName = new FontName(fontName);
+            }, selection);
+
+            // Assert
+            // 只修改当前光标的字符属性
+            Assert.AreEqual(fontSize, textEditorCore.DocumentManager.CurrentCaretRunProperty.FontSize);
+            Assert.AreEqual(fontName, textEditorCore.DocumentManager.CurrentCaretRunProperty.FontName.UserFontName);
+
+            // 不会影响到其他的字符
+            var differentRunPropertyRange = textEditorCore.DocumentManager.GetDifferentRunPropertyRange(textEditorCore.DocumentManager.GetAllDocumentSelection()).ToList();
+            foreach (var runProperty in differentRunPropertyRange)
+            {
+                Assert.AreNotEqual(fontSize, runProperty.FontSize);
+                Assert.AreNotEqual(fontName, runProperty.FontName.UserFontName);
+            }
+        });
+
         "调用 DocumentManager.SetRunProperty 跨段设置文本字符属性，可以成功设置字符属性".Test(() =>
         {
             // Arrange

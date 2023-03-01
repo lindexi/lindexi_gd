@@ -266,8 +266,17 @@ namespace LightTextEditorPlus.Core.Document
             if (selection.Value.IsEmpty)
             {
                 // 设置当前的光标样式，没有修改文档内容，不需要触发文档变更事件
-
-                SetCurrentCaretRunProperty(config);
+                if (selection.Value.FrontOffset != CaretManager.CurrentCaretOffset)
+                {
+                    // 这是在搞什么呀？对一个没有选择内容的地方设置文本字符属性
+                    // 这里也不合适抛出异常，可以忽略
+                    // 文本库允许你这么做，但是这么做，文本库啥都不干
+                    TextEditor.Logger.LogDebug($"[DocumentManager][SetRunProperty] selection is empty, but not equals CurrentCaretOffset. 传入 selection 范围的长度是 0 且起点不等于当前光标坐标。将不会修改任何文本字符属性");
+                }
+                else
+                {
+                    SetCurrentCaretRunProperty(config);
+                }
             }
             else
             {
