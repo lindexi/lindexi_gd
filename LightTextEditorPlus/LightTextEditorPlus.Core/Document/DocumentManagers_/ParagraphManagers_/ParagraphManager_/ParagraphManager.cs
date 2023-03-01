@@ -6,6 +6,7 @@ using System.Text;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
+using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -208,7 +209,7 @@ class ParagraphManager
         {
             if (!isFirst)
             {
-                stringBuilder.AppendLine();
+                stringBuilder.Append(TextContext.NewLine);
             }
 
             paragraphData.GetText(stringBuilder);
