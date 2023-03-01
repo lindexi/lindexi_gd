@@ -274,7 +274,6 @@ namespace LightTextEditorPlus.Core.Document
                 // 修改属性，需要触发样式变更，也就是文档变更
                 InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
                 IReadOnlyRunProperty? lastRunProperty = null;
-                ParagraphData? lastParagraphData = null;
                 CharData? lastCharData = null;
 
                 var runList = new ImmutableRunList();
@@ -282,15 +281,8 @@ namespace LightTextEditorPlus.Core.Document
                 foreach (var charData in GetCharDataRange(selection.Value))
                 {
                     Debug.Assert(charData.CharLayoutData != null, "能够从段落里获取到的，一定是存在在段落里面，因此此属性一定不为空");
-                    var currentParagraphData = charData.CharLayoutData!.Paragraph;
-                    if (lastParagraphData is null || ReferenceEquals(lastParagraphData, currentParagraphData))
+                    if (charData.IsLineBreakCharData)
                     {
-                        // 如果最后一段和当前的字符的是相同的一段，那就证明没有换段
-                    }
-                    else
-                    {
-                        // 如果最后一段和当前的字符所在的段落不同，证明是换段了，插入换段
-                        // todo 考虑分段的情况
                         runList.Add(new LineBreakRun(lastRunProperty));
                     }
 
@@ -312,7 +304,6 @@ namespace LightTextEditorPlus.Core.Document
 
                     runList.Add(new SingleCharImmutableRun(charData.CharObject, currentRunProperty));
 
-                    lastParagraphData = currentParagraphData;
                     lastRunProperty = currentRunProperty;
                     lastCharData = charData;
                 }
