@@ -22,10 +22,13 @@ internal class DefaultRunParagraphSplitter : IRunParagraphSplitter
                 return new[] { textRun };
             }
         }
+        else if (run is SingleCharImmutableRun singleCharImmutableRun)
+        {
+            return new[] { singleCharImmutableRun };
+        }
         else
         {
-            // todo 处理非文本的情况
-            throw new NotImplementedException();
+            return new[] { run };
         }
     }
 

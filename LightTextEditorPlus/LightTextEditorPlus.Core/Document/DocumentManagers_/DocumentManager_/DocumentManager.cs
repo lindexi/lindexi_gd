@@ -273,7 +273,9 @@ namespace LightTextEditorPlus.Core.Document
             {
                 // 修改属性，需要触发样式变更，也就是文档变更
                 InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
-                IReadOnlyRunProperty? lastRunProperty = null;
+                // 表示最后一个更改之后的文本字符属性，为了提升性能，不让每个文本字符属性都需要执行 config 函数
+                // 用来判断如果相邻两个字符的字符属性是相同的，就可以直接复用，不需要重新执行 config 函数创建新的字符属性对象
+                IReadOnlyRunProperty? lastChangedRunProperty = null;
                 CharData? lastCharData = null;
 
                 var runList = new ImmutableRunList();
@@ -283,7 +285,9 @@ namespace LightTextEditorPlus.Core.Document
                     Debug.Assert(charData.CharLayoutData != null, "能够从段落里获取到的，一定是存在在段落里面，因此此属性一定不为空");
                     if (charData.IsLineBreakCharData)
                     {
-                        runList.Add(new LineBreakRun(lastRunProperty));
+                        // 是换行的话，需要加上换行的字符
+                        runList.Add(new LineBreakRun(lastChangedRunProperty));
+                        continue;
                     }
 
                     IReadOnlyRunProperty currentRunProperty;
@@ -291,9 +295,9 @@ namespace LightTextEditorPlus.Core.Document
                     if (ReferenceEquals(charData.RunProperty, lastCharData?.RunProperty))
                     {
                         // 如果相邻两个 CharData 采用相同的字符属性，那就不需要再创建了，稍微提升一点性能和减少内存占用
-                        Debug.Assert(lastRunProperty != null, "当前字符和上一个字符的字符属性相同，证明存在上一个字符，证明存在上一个字符属性");
+                        Debug.Assert(lastChangedRunProperty != null, "当前字符和上一个字符的字符属性相同，证明存在上一个字符，证明存在上一个字符属性");
                         // ReSharper disable once RedundantSuppressNullableWarningExpression
-                        currentRunProperty = lastRunProperty!;
+                        currentRunProperty = lastChangedRunProperty!;
                     }
                     else
                     {
@@ -304,11 +308,11 @@ namespace LightTextEditorPlus.Core.Document
 
                     runList.Add(new SingleCharImmutableRun(charData.CharObject, currentRunProperty));
 
-                    lastRunProperty = currentRunProperty;
+                    lastChangedRunProperty = currentRunProperty;
                     lastCharData = charData;
                 }
 
-                EditAndReplaceRunListInner(selection.Value, runList);
+                ReplaceCore(selection.Value, runList);
 
                 // 只触发文档变更，不需要修改光标
 
@@ -493,12 +497,17 @@ namespace LightTextEditorPlus.Core.Document
             InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
             // 这里只处理数据变更，后续渲染需要通过 InternalDocumentChanged 事件触发
 
+            ReplaceCore(selection, run);
+
+            InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void ReplaceCore(in Selection selection, IImmutableRunList? run)
+        {
             DocumentRunEditProvider.Replace(selection, run);
 
             var caretOffset = new CaretOffset(selection.FrontOffset.Offset + run?.CharCount ?? 0);
             CaretManager.CurrentCaretOffset = caretOffset;
-
-            InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
         }
 
         #endregion
