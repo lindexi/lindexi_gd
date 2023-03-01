@@ -1,10 +1,41 @@
-﻿using MSTest.Extensions.Contracts;
+﻿using LightTextEditorPlus.Core.Exceptions;
+using LightTextEditorPlus.Core.TestsFramework;
+using MSTest.Extensions.Contracts;
 
 namespace LightTextEditorPlus.Core.Tests;
 
 [TestClass]
 public class LayoutTest
 {
+    [ContractTestCase]
+    public void ChangeDocumentOnUpdatingLayout()
+    {
+        $"在布局的过程中，修改了文档内容，将会抛出 {nameof(ChangeDocumentOnUpdatingLayoutException)} 错误".Test(() =>
+        {
+            var testWholeLineLayouter = new TestWholeLineLayouter();
+            var testPlatformProvider = new TestPlatformProvider()
+            {
+                WholeLineLayouter = testWholeLineLayouter
+            };
+            var textEditorCore = new TextEditorCore(testPlatformProvider);
+
+            // 配置这个 WholeLineLayouter 将会在布局的时候，修改文档内容
+            testWholeLineLayouter.LayoutWholeLineFunc = _ =>
+            {
+                // 其实在这里就炸了
+                textEditorCore.AppendText(TestHelper.PlainNumberText);
+
+                return default;
+            };
+
+            // 修改文本，触发布局，然后布局过程触发修改文本
+            Assert.ThrowsException<ChangeDocumentOnUpdatingLayoutException>(() =>
+            {
+                textEditorCore.AppendText(TestHelper.PlainNumberText);
+            });
+        });
+    }
+
     [ContractTestCase]
     public void LayoutTwoParagraph()
     {
