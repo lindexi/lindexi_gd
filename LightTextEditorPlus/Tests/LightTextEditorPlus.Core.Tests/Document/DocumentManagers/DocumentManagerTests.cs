@@ -12,6 +12,22 @@ public class DocumentManagerTests
     [ContractTestCase]
     public void GetCharDataRange()
     {
+        "调用 DocumentManager.GetCharDataRange 跨了三段选择，可以获取到三段的内容".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            // 追加一些文本，包含三段，用来测试跨三段选择
+            textEditorCore.AppendText("abc\r\nefg\r\nhij");
+
+            // Action
+            // 从 c 之前到 h 之后的范围进行选择
+            var selection = new Selection(new CaretOffset(2),1/*c*/+ ParagraphData.DelimiterLength + 3/*efg*/+ ParagraphData.DelimiterLength+1/*h*/);// 选择范围是 c\r\nefg\r\nh
+            var charDataRange = textEditorCore.DocumentManager.GetCharDataRange(selection).ToList();
+
+            // Assert
+            Assert.AreEqual("c\r\nefg\r\nh", charDataRange.ConvertToString());
+        });
+
         "调用 DocumentManager.GetCharDataRange 跨一段选择，从段末开始选择，可以获取到包含换行字符的列表".Test(() =>
         {
             // Arrange
@@ -20,8 +36,10 @@ public class DocumentManagerTests
             textEditorCore.AppendText("abc\r\nef");
 
             // Action
-            var selection = new Selection(new CaretOffset(3), 3);// 选择范围是 \r\ne
+            var selection = new Selection(new CaretOffset(3), ParagraphData.DelimiterLength + 1/*e*/);// 选择范围是 \r\ne
             var charDataRange = textEditorCore.DocumentManager.GetCharDataRange(selection).ToList();
+
+            // Assert
             Assert.AreEqual("\r\ne", charDataRange.ConvertToString());
         });
 
@@ -33,7 +51,7 @@ public class DocumentManagerTests
             textEditorCore.AppendText("abc\r\nef");
 
             // Action
-            var selection = new Selection(new CaretOffset(1), 5);// 选择范围是 bc\r\ne
+            var selection = new Selection(new CaretOffset(1), 2/*bc*/ + ParagraphData.DelimiterLength + 1/*e*/);// 选择范围是 bc\r\ne
             var charDataRange = textEditorCore.DocumentManager.GetCharDataRange(selection).ToList();
 
             // Assert
