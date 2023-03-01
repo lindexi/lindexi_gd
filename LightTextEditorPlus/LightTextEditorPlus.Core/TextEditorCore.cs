@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using LightTextEditorPlus.Core.Attributes;
 using LightTextEditorPlus.Core.Carets;
@@ -190,6 +186,7 @@ public partial class TextEditorCore
     /// <summary>
     /// 是否发生过一次布局更新
     /// </summary>
+    // ReSharper disable once RedundantDefaultMemberInitializer
     private bool _isAnyLayoutUpdate = false;
 
     private void DocumentManager_InternalDocumentChanging(object? sender, EventArgs e)
@@ -405,6 +402,7 @@ public partial class TextEditorCore
     /// <summary>
     /// 文本是不是脏的，需要等待布局完成。可选使用 <see cref="WaitLayoutCompletedAsync"/> 等待布局完成
     /// </summary>
+    // ReSharper disable once RedundantDefaultMemberInitializer
     public bool IsDirty { get; private set; } = false; // 默认情况下是非脏的，使用预设的值
 
     #endregion
