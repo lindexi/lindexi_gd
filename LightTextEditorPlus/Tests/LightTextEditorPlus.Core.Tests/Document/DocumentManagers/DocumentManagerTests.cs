@@ -1,5 +1,6 @@
 ﻿using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.TestsFramework;
 
 using MSTest.Extensions.Contracts;
@@ -9,6 +10,50 @@ namespace LightTextEditorPlus.Core.Tests.Document.DocumentManagers;
 [TestClass()]
 public class DocumentManagerTests
 {
+    [ContractTestCase]
+    public void SetRunProperty()
+    {
+        "调用 DocumentManager.SetRunProperty 跨段设置文本字符属性，可以成功设置字符属性".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            // 追加一些文本，包含三段，用来测试跨三段设置字符属性
+            var text = "abc\r\nefg\r\nhij";
+            textEditorCore.AppendText(text);
+
+            var fontSize = 100;
+            var fontName = "Test";
+
+            // Action
+            // 从 c 之前到 h 之后的范围进行设置
+            var selection = new Selection(new CaretOffset(2), 1/*c*/+ ParagraphData.DelimiterLength + 3/*efg*/+ ParagraphData.DelimiterLength + 1/*h*/);// 选择范围是 c\r\nefg\r\nh
+            textEditorCore.DocumentManager.SetRunProperty((LayoutOnlyRunProperty runProperty) =>
+            {
+                runProperty.FontSize = fontSize;
+                runProperty.FontName = new FontName(fontName);
+            }, selection);
+
+            // Assert
+            // 不会影响到其他的字符
+            var differentRunPropertyRange = textEditorCore.DocumentManager.GetDifferentRunPropertyRange(new Selection(new CaretOffset(0), 2)).ToList();
+            foreach (var runProperty in differentRunPropertyRange)
+            {
+                Assert.AreNotEqual(fontSize, runProperty.FontSize);
+                Assert.AreNotEqual(fontName, runProperty.FontName.UserFontName);
+            }
+
+            // 设置的字符修改了属性
+            foreach (var runProperty in textEditorCore.DocumentManager.GetRunPropertyRange(selection))
+            {
+                Assert.AreEqual(fontSize, runProperty.FontSize);
+                Assert.AreEqual(fontName, runProperty.FontName.UserFontName);
+            }
+
+            // 只修改文本属性，没有修改到文本字符
+            Assert.AreEqual(text, textEditorCore.GetText());
+        });
+    }
+
     [ContractTestCase]
     public void GetCharDataRange()
     {
@@ -21,7 +66,7 @@ public class DocumentManagerTests
 
             // Action
             // 从 c 之前到 h 之后的范围进行选择
-            var selection = new Selection(new CaretOffset(2),1/*c*/+ ParagraphData.DelimiterLength + 3/*efg*/+ ParagraphData.DelimiterLength+1/*h*/);// 选择范围是 c\r\nefg\r\nh
+            var selection = new Selection(new CaretOffset(2), 1/*c*/+ ParagraphData.DelimiterLength + 3/*efg*/+ ParagraphData.DelimiterLength + 1/*h*/);// 选择范围是 c\r\nefg\r\nh
             var charDataRange = textEditorCore.DocumentManager.GetCharDataRange(selection).ToList();
 
             // Assert
