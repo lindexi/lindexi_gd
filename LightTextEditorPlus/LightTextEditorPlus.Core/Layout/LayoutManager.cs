@@ -96,16 +96,6 @@ class LayoutManager
 
     public void UpdateLayout()
     {
-        if (ArrangingLayoutProvider?.ArrangingType != TextEditor.ArrangingType)
-        {
-            ArrangingLayoutProvider = TextEditor.ArrangingType switch
-            {
-                ArrangingType.Horizontal => new HorizontalArrangingLayoutProvider(TextEditor),
-                // todo 支持竖排文本
-                _ => throw new NotSupportedException()
-            };
-        }
-
         var result = ArrangingLayoutProvider.UpdateLayout();
         DocumentRenderData.DocumentBounds = result.DocumentBounds;
         //DocumentRenderData.IsDirty = false;
@@ -113,7 +103,25 @@ class LayoutManager
         InternalLayoutCompleted?.Invoke(this, EventArgs.Empty);
     }
 
-    private ArrangingLayoutProvider? ArrangingLayoutProvider { set; get; }
+    private ArrangingLayoutProvider ArrangingLayoutProvider
+    {
+        get
+        {
+            if (_arrangingLayoutProvider?.ArrangingType != TextEditor.ArrangingType)
+            {
+                _arrangingLayoutProvider = TextEditor.ArrangingType switch
+                {
+                    ArrangingType.Horizontal => new HorizontalArrangingLayoutProvider(TextEditor),
+                    // todo 支持竖排文本
+                    _ => throw new NotSupportedException()
+                };
+            }
+            
+            return _arrangingLayoutProvider;
+        }
+    }
+
+    private ArrangingLayoutProvider? _arrangingLayoutProvider;
 
     public DocumentRenderData DocumentRenderData { get; } = new DocumentRenderData();
 }
