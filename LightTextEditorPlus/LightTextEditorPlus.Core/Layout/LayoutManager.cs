@@ -61,7 +61,7 @@ class LayoutManager
                     _ => throw new NotSupportedException()
                 };
             }
-            
+
             return _arrangingLayoutProvider;
         }
     }
@@ -527,9 +527,10 @@ abstract class ArrangingLayoutProvider
 
     public TextHitTestResult HitTest(in Point point)
     {
-        // 先进行段落的命中，再执行(xing)行(hang)命中
         // 不需要通过 GetRenderInfo 方法获取，这是一个比较上层的方法了
         //TextEditor.GetRenderInfo()
+        // 先判断是否命中到文档
+        // 命中到文档，那就继续判断段落命中
         var documentManager = TextEditor.DocumentManager;
         var paragraphManager = documentManager.ParagraphManager;
         var documentBounds = LayoutManager.DocumentRenderData.DocumentBounds;
@@ -571,14 +572,88 @@ abstract class ArrangingLayoutProvider
         }
 
         var list = paragraphManager.GetParagraphList();
-        for (var i = 0; i < list.Count; i++)
+        // 先进行段落的命中，再执行(xing)行(hang)命中
+        var currentCharIndex = 0;
+        for (var paragraphIndex = 0; paragraphIndex < list.Count; paragraphIndex++)
         {
-            var paragraphData = list[i];
-            var bounds = paragraphData.ParagraphLayoutData.GetBounds();
-            if (bounds.Contains(point))
+            var paragraphData = list[paragraphIndex];
+            var paragraphBounds = paragraphData.ParagraphLayoutData.GetBounds();
+            if (paragraphBounds.Contains(point))
             {
+                for (var lineIndex = 0; lineIndex < paragraphData.LineLayoutDataList.Count; lineIndex++)
+                {
+                    LineLayoutData lineLayoutData = paragraphData.LineLayoutDataList[lineIndex];
+                    var lineBounds = lineLayoutData.GetLineBounds();
+                    if (lineBounds.Contains(point))
+                    {
+                        var charList = lineLayoutData.GetCharList();
+                        for (var charIndex = 0; charIndex < charList.Count; charIndex++)
+                        {
+                            var charData = charList[charIndex];
+                            var charBounds = charData.GetBounds();
+                            if (charBounds.Contains(point))
+                            {
+                                // 横排的话，需要判断命中在字符的前后，也就是前半部分还是后半部分
+                                var center = charBounds.Center;
+                                CaretOffset hitCaretOffset;
+                                if (point.X <= center.X)
+                                {
+                                    // 在前面
+                                    hitCaretOffset = new CaretOffset(currentCharIndex, isAtLineStart: charIndex == 0);
+                                }
+                                else
+                                {
+                                    hitCaretOffset = new CaretOffset(currentCharIndex + 1);
+                                }
 
+                                return new TextHitTestResult(false, false, false, hitCaretOffset, charData,
+                                    paragraphIndex)
+                                {
+                                    HitParagraphData = paragraphData
+                                };
+                            }
+
+                            currentCharIndex++;
+                        }
+                        // 行内没有命中到字符，视为命中到最后一个字符
+                        return new TextHitTestResult(false, false, false, new CaretOffset(currentCharIndex), charList.LastOrDefault(),
+                            paragraphIndex)
+                        {
+                            HitParagraphData = paragraphData
+                        };
+                    }
+                    else
+                    {
+                        // 一行里面没有命中，可能是这是一个居中对齐的文本，此时需要根据排版规则，修改一行的尺寸，重新计算是否命中到某行
+                        // 这是横排的算法
+                        var unionLineBounds = new Rect(paragraphBounds.X, lineBounds.Y, paragraphBounds.Width,
+                            lineBounds.Height);
+                        if (unionLineBounds.Contains(point))
+                        {
+                            // 命中到了，需要判断是行首还是行末
+                            var isLineStart = point.X <= lineBounds.X;
+                            CaretOffset hitCaretOffset;
+                            if (isLineStart)
+                            {
+                                hitCaretOffset = new CaretOffset(currentCharIndex, isAtLineStart: true);
+                            }
+                            else
+                            {
+                                hitCaretOffset = new CaretOffset(currentCharIndex + lineLayoutData.CharCount);
+                            }
+
+                            return new TextHitTestResult(false, false, true, hitCaretOffset, null, paragraphIndex)
+                            {
+                                HitParagraphData = paragraphData
+                            };
+                        }
+                    }
+
+                    currentCharIndex += lineLayoutData.CharCount;
+                }
             }
+
+            currentCharIndex += paragraphData.CharCount + ParagraphData.DelimiterLength;
         }
 
         {

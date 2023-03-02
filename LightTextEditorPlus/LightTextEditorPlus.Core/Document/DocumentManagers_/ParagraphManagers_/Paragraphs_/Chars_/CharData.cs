@@ -98,6 +98,12 @@ public class CharData
     private Size? _size;
 
     /// <summary>
+    /// 获取字符的布局范围
+    /// </summary>
+    /// <returns></returns>
+    public Rect GetBounds() => new Rect(GetStartPoint(), Size!.Value);
+
+    /// <summary>
     /// 调试下的判断逻辑
     /// </summary>
     /// <exception cref="TextEditorDebugException"></exception>
