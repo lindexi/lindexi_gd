@@ -36,62 +36,7 @@ class LayoutManager
 
     public TextHitTestResult HitTest(in Point point)
     {
-        // 先进行段落的命中，再执行(xing)行(hang)命中
-        // 不需要通过 GetRenderInfo 方法获取，这是一个比较上层的方法了
-        //TextEditor.GetRenderInfo()
-        var paragraphManager = TextEditor.DocumentManager.ParagraphManager;
-        var documentBounds = DocumentRenderData.DocumentBounds;
-        var contains = documentBounds.Contains(point);
-        // 如果没有点到文档范围内，则处理超过范围逻辑
-        if (!contains)
-        {
-            // 是否超过文本字符范围了
-            const bool isOutOfTextCharacterBounds = true;
-            // 是否在文档末尾
-            const bool isEndOfTextCharacterBounds = false;
-            // 是否在段落最后一行上
-            const bool isInLastLineBounds = false;
-
-            // 对于水平布局，顶端对齐来说，应该是只判断上下
-            var isInTop = point.Y < documentBounds.Top;
-            ParagraphData paragraphData;
-            CaretOffset hitCaretOffset;
-            if (isInTop)
-            {
-                // 在文档的上方，则取首个字符
-                var firstParagraphData = TextEditor.DocumentManager.ParagraphManager.GetParagraphList().First();
-                paragraphData = firstParagraphData;
-                hitCaretOffset = new CaretOffset(0);
-            }
-            else
-            {
-                // 无论是在左边还是在右边，都设置为文档最后
-                var lastParagraphData = TextEditor.DocumentManager.ParagraphManager.GetParagraphList().Last(); 
-                paragraphData = lastParagraphData;
-                hitCaretOffset = new CaretOffset(TextEditor.DocumentManager.CharCount);
-            }
-
-            return new TextHitTestResult(isOutOfTextCharacterBounds, isEndOfTextCharacterBounds, isInLastLineBounds,
-                hitCaretOffset, HitCharData: null, paragraphData.Index)
-            {
-                HitParagraphData = paragraphData
-            };
-
-            // todo 命中测试处理竖排文本
-        }
-
-        var list = paragraphManager.GetParagraphList();
-        for (var i = 0; i < list.Count; i++)
-        {
-            var paragraphData = list[i];
-            var bounds = paragraphData.ParagraphLayoutData.GetBounds();
-            if (bounds.Contains(point))
-            {
-
-            }
-        }
-
-        throw new NotImplementedException();
+        return ArrangingLayoutProvider.HitTest(point);
     }
 
     public void UpdateLayout()
@@ -111,7 +56,7 @@ class LayoutManager
             {
                 _arrangingLayoutProvider = TextEditor.ArrangingType switch
                 {
-                    ArrangingType.Horizontal => new HorizontalArrangingLayoutProvider(TextEditor),
+                    ArrangingType.Horizontal => new HorizontalArrangingLayoutProvider(this),
                     // todo 支持竖排文本
                     _ => throw new NotSupportedException()
                 };
@@ -131,7 +76,7 @@ class LayoutManager
 /// </summary>
 class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 {
-    public HorizontalArrangingLayoutProvider(TextEditor textEditor) : base(textEditor)
+    public HorizontalArrangingLayoutProvider(LayoutManager layoutManager) : base(layoutManager)
     {
     }
 
@@ -569,13 +514,78 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 /// </summary>
 abstract class ArrangingLayoutProvider
 {
-    protected ArrangingLayoutProvider(TextEditor textEditor)
+    protected ArrangingLayoutProvider(LayoutManager layoutManager)
     {
-        TextEditor = textEditor;
+        LayoutManager = layoutManager;
     }
 
     public abstract ArrangingType ArrangingType { get; }
-    public TextEditor TextEditor { get; }
+    public LayoutManager LayoutManager { get; }
+    public TextEditor TextEditor => LayoutManager.TextEditor;
+
+    #region 命中测试
+
+    public TextHitTestResult HitTest(in Point point)
+    {
+        // 先进行段落的命中，再执行(xing)行(hang)命中
+        // 不需要通过 GetRenderInfo 方法获取，这是一个比较上层的方法了
+        //TextEditor.GetRenderInfo()
+        var paragraphManager = TextEditor.DocumentManager.ParagraphManager;
+        var documentBounds = LayoutManager.DocumentRenderData.DocumentBounds;
+        var contains = documentBounds.Contains(point);
+        // 如果没有点到文档范围内，则处理超过范围逻辑
+        if (!contains)
+        {
+            // 是否超过文本字符范围了
+            const bool isOutOfTextCharacterBounds = true;
+            // 是否在文档末尾
+            const bool isEndOfTextCharacterBounds = false;
+            // 是否在段落最后一行上
+            const bool isInLastLineBounds = false;
+
+            // 对于水平布局，顶端对齐来说，应该是只判断上下
+            var isInTop = point.Y < documentBounds.Top;
+            ParagraphData paragraphData;
+            CaretOffset hitCaretOffset;
+            if (isInTop)
+            {
+                // 在文档的上方，则取首个字符
+                var firstParagraphData = TextEditor.DocumentManager.ParagraphManager.GetParagraphList().First();
+                paragraphData = firstParagraphData;
+                hitCaretOffset = new CaretOffset(0);
+            }
+            else
+            {
+                // 无论是在左边还是在右边，都设置为文档最后
+                var lastParagraphData = TextEditor.DocumentManager.ParagraphManager.GetParagraphList().Last();
+                paragraphData = lastParagraphData;
+                hitCaretOffset = new CaretOffset(TextEditor.DocumentManager.CharCount);
+            }
+
+            return new TextHitTestResult(isOutOfTextCharacterBounds, isEndOfTextCharacterBounds, isInLastLineBounds,
+                hitCaretOffset, HitCharData: null, paragraphData.Index)
+            {
+                HitParagraphData = paragraphData
+            };
+
+            // todo 命中测试处理竖排文本
+        }
+
+        var list = paragraphManager.GetParagraphList();
+        for (var i = 0; i < list.Count; i++)
+        {
+            var paragraphData = list[i];
+            var bounds = paragraphData.ParagraphLayoutData.GetBounds();
+            if (bounds.Contains(point))
+            {
+
+            }
+        }
+
+        throw new NotImplementedException();
+    }
+
+    #endregion
 
     public DocumentLayoutResult UpdateLayout()
     {
