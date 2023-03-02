@@ -530,7 +530,8 @@ abstract class ArrangingLayoutProvider
         // 先进行段落的命中，再执行(xing)行(hang)命中
         // 不需要通过 GetRenderInfo 方法获取，这是一个比较上层的方法了
         //TextEditor.GetRenderInfo()
-        var paragraphManager = TextEditor.DocumentManager.ParagraphManager;
+        var documentManager = TextEditor.DocumentManager;
+        var paragraphManager = documentManager.ParagraphManager;
         var documentBounds = LayoutManager.DocumentRenderData.DocumentBounds;
         var contains = documentBounds.Contains(point);
         // 如果没有点到文档范围内，则处理超过范围逻辑
@@ -550,16 +551,16 @@ abstract class ArrangingLayoutProvider
             if (isInTop)
             {
                 // 在文档的上方，则取首个字符
-                var firstParagraphData = TextEditor.DocumentManager.ParagraphManager.GetParagraphList().First();
+                var firstParagraphData = paragraphManager.GetParagraphList().First();
                 paragraphData = firstParagraphData;
-                hitCaretOffset = new CaretOffset(0);
+                hitCaretOffset = documentManager.GetDocumentStartCaretOffset();
             }
             else
             {
                 // 无论是在左边还是在右边，都设置为文档最后
-                var lastParagraphData = TextEditor.DocumentManager.ParagraphManager.GetParagraphList().Last();
+                var lastParagraphData = paragraphManager.GetParagraphList().Last();
                 paragraphData = lastParagraphData;
-                hitCaretOffset = new CaretOffset(TextEditor.DocumentManager.CharCount);
+                hitCaretOffset = documentManager.GetDocumentEndCaretOffset();
             }
 
             return new TextHitTestResult(isOutOfTextCharacterBounds, isEndOfTextCharacterBounds, isInLastLineBounds,
@@ -567,8 +568,6 @@ abstract class ArrangingLayoutProvider
             {
                 HitParagraphData = paragraphData
             };
-
-            // todo 命中测试处理竖排文本
         }
 
         var list = paragraphManager.GetParagraphList();
@@ -582,7 +581,17 @@ abstract class ArrangingLayoutProvider
             }
         }
 
-        throw new NotImplementedException();
+        {
+            var lastParagraphData = list.Last();
+            // 任何一个都没命中，那就返回命中到最后
+            return new TextHitTestResult(false, false, false, documentManager.GetDocumentEndCaretOffset(),
+                null, lastParagraphData.Index)
+            {
+                HitParagraphData = lastParagraphData
+            };
+        }
+
+        // todo 命中测试处理竖排文本
     }
 
     #endregion
