@@ -143,7 +143,7 @@ public struct Rect
     /// </summary>
     /// <param name="point"></param>
     /// <returns></returns>
-    public bool Contains(Point point)
+    public bool Contains(in Point point)
     {
         return Contains(point.X, point.Y);
     }
