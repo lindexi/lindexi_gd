@@ -123,7 +123,7 @@ class LayoutManager
 /// </summary>
 class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 {
-    public HorizontalArrangingLayoutProvider(TextEditorCore textEditor) : base(textEditor)
+    public HorizontalArrangingLayoutProvider(TextEditor textEditor) : base(textEditor)
     {
     }
 
