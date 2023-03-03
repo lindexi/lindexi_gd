@@ -41,6 +41,9 @@ class F1 : FrameworkElement
 
     private F2 F2 { get; }
 
+    protected override int VisualChildrenCount => 1;
+    protected override Visual GetVisualChild(int index) => F2;
+
     protected override Size MeasureOverride(Size availableSize)
     {
         Debug.WriteLine("F1 MeasureOverride");
