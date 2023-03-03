@@ -41,6 +41,9 @@ class F1 : FrameworkElement
 
         AddLogicalChild(F2);
         AddVisualChild(F2);
+
+        F2.Measure(new Size(100,100));
+        F2.Arrange(new Rect(new Point(), new Size(100, 100)));
     }
 
     private F2 F2 { get; }
@@ -48,18 +51,18 @@ class F1 : FrameworkElement
     protected override int VisualChildrenCount => 1;
     protected override Visual GetVisualChild(int index) => F2;
 
-    protected override Size MeasureOverride(Size availableSize)
-    {
-        Debug.WriteLine("F1 MeasureOverride");
-        F2.Measure(availableSize);
-        return base.MeasureOverride(availableSize);
-    }
+    //protected override Size MeasureOverride(Size availableSize)
+    //{
+    //    Debug.WriteLine("F1 MeasureOverride");
+    //    F2.Measure(availableSize);
+    //    return base.MeasureOverride(availableSize);
+    //}
 
-    protected override Size ArrangeOverride(Size finalSize)
-    {
-        F2.Arrange(new Rect(new Point(), finalSize));
-        return base.ArrangeOverride(finalSize);
-    }
+    //protected override Size ArrangeOverride(Size finalSize)
+    //{
+    //    F2.Arrange(new Rect(new Point(), finalSize));
+    //    return base.ArrangeOverride(finalSize);
+    //}
 
     private void F1_Loaded(object sender, RoutedEventArgs e)
     {
