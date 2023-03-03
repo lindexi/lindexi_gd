@@ -9,7 +9,9 @@ using System.Net.Security;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
@@ -36,6 +38,26 @@ using Rect = LightTextEditorPlus.Core.Primitive.Rect;
 using Size = LightTextEditorPlus.Core.Primitive.Size;
 
 namespace LightTextEditorPlus;
+
+class F : FrameworkElement
+{
+    public F()
+    {
+        Width = 500;
+        Height = 500;
+
+        Loaded += F_Loaded;
+    }
+
+    private void F_Loaded(object sender, RoutedEventArgs e)
+    {
+    }
+
+    protected override HitTestResult HitTestCore(PointHitTestParameters hitTestParameters)
+    {
+        return base.HitTestCore(hitTestParameters);
+    }
+}
 
 public partial class TextEditor : FrameworkElement, IRenderManager
 {
@@ -65,11 +87,15 @@ public partial class TextEditor : FrameworkElement, IRenderManager
         // 加入视觉树，方便调试和方便触发视觉变更
         AddVisualChild(TextView);
         AddLogicalChild(TextView);
+
+        var f = new F();
+        AddVisualChild(f);
+        AddLogicalChild(f);
+
+        F = f;
     }
 
-    private void TextEditor_Loaded(object sender, RoutedEventArgs e)
-    {
-    }
+    private F F { get; }
 
     #region 公开属性
 
@@ -126,13 +152,60 @@ public partial class TextEditor : FrameworkElement, IRenderManager
 
     #region 框架
 
+    protected override System.Windows.Size MeasureOverride(System.Windows.Size availableSize)
+    {
+        TextView.Measure(availableSize);
+        return base.MeasureOverride(availableSize);
+    }
+
+    private void TextEditor_Loaded(object sender, RoutedEventArgs e)
+    {
+        EnsureEditInit();
+    }
+
+    protected override void OnGotFocus(RoutedEventArgs e)
+    {
+        IsInEditingInputMode = true;
+        base.OnGotFocus(e);
+    }
+
+    protected override void OnLostFocus(RoutedEventArgs e)
+    {
+        IsInEditingInputMode = false;
+        base.OnLostFocus(e);
+    }
+
+    protected override void OnMouseDown(MouseButtonEventArgs e)
+    {
+        base.OnMouseDown(e);
+    }
+
+    /// <summary>
+    /// 确保编辑功能初始化完成
+    /// </summary>
+    private void EnsureEditInit()
+    {
+        if (_isInitEdit) return;
+        _isInitEdit = true;
+    }
+
+    private bool _isInitEdit;
+
     /// <summary>
     /// 视觉呈现容器
     /// </summary>
     private TextView TextView { get; }
 
-    protected override int VisualChildrenCount => 1; // 当前只有视觉呈现容器一个而已
-    protected override Visual GetVisualChild(int index) => TextView;
+    protected override int VisualChildrenCount => 2; // 当前只有视觉呈现容器一个而已
+    protected override Visual GetVisualChild(int index)
+    {
+        if (index==0)
+        {
+            return TextView;
+        }
+
+        return F;
+    }
 
     protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
     {
@@ -162,6 +235,17 @@ public partial class TextEditor : FrameworkElement, IRenderManager
             TextEditorCore.DocumentManager.DocumentHeight = (double) e.NewValue;
         }
     }
+
+    #region 命中测试
+
+    protected override HitTestResult? HitTestCore(PointHitTestParameters hitTestParameters)
+    {
+        //return new PointHitTestResult(this,hitTestParameters.HitPoint);
+
+        return base.HitTestCore(hitTestParameters);
+    }
+
+    #endregion
 
     #region 对接文本库
 

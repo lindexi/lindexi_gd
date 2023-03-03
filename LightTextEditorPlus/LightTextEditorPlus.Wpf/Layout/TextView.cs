@@ -17,13 +17,13 @@ namespace LightTextEditorPlus.Layout;
 /// <summary>
 /// 视觉呈现容器
 /// </summary>
-class TextView : UIElement, IRenderManager
+class TextView : FrameworkElement, IRenderManager
 {
-    static TextView()
-    {
-        // 因为此类型永远不可被命中，所以直接重写并不再处理基类的命中测试改变方法。
-        IsHitTestVisibleProperty.OverrideMetadata(typeof(TextView), new UIPropertyMetadata(false));
-    }
+    //static TextView()
+    //{
+    //    // 因为此类型永远不可被命中，所以直接重写并不再处理基类的命中测试改变方法。
+    //    IsHitTestVisibleProperty.OverrideMetadata(typeof(TextView), new UIPropertyMetadata(false));
+    //}
 
     public TextView(TextEditor textEditor)
     {
@@ -35,8 +35,14 @@ class TextView : UIElement, IRenderManager
         {
             _selectionAndCaretLayer
         };
-
+        IsHitTestVisible = true;
         textEditor.Loaded += TextEditor_Loaded;
+
+        this.Loaded += TextView_Loaded;
+    }
+
+    private void TextView_Loaded(object sender, RoutedEventArgs e)
+    {
     }
 
     private void TextEditor_Loaded(object sender, RoutedEventArgs e)
@@ -105,6 +111,16 @@ class TextView : UIElement, IRenderManager
     protected override int VisualChildrenCount => _visualCollection.Count;
 
     #region 禁用命中测试
+
+    //protected override System.Windows.Size MeasureCore(System.Windows.Size availableSize)
+    //{
+    //    return new System.Windows.Size(500, 500);
+    //}
+
+    //protected override void ArrangeCore(Rect finalRect)
+    //{
+    //    base.ArrangeCore(finalRect);
+    //}
 
     // 只是用来呈现，不进行交互，关闭命中测试可以提升很多性能
 
