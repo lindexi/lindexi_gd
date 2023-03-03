@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -37,6 +38,9 @@ class F1 : FrameworkElement
         F2 = new F2();
 
         Loaded += F1_Loaded;
+
+        AddLogicalChild(F2);
+        AddVisualChild(F2);
     }
 
     private F2 F2 { get; }
@@ -47,12 +51,24 @@ class F1 : FrameworkElement
     protected override Size MeasureOverride(Size availableSize)
     {
         Debug.WriteLine("F1 MeasureOverride");
+        F2.Measure(availableSize);
         return base.MeasureOverride(availableSize);
+    }
+
+    protected override Size ArrangeOverride(Size finalSize)
+    {
+        F2.Arrange(new Rect(new Point(), finalSize));
+        return base.ArrangeOverride(finalSize);
     }
 
     private void F1_Loaded(object sender, RoutedEventArgs e)
     {
         Debug.WriteLine(nameof(F1_Loaded));
+    }
+
+    protected override HitTestResult HitTestCore(PointHitTestParameters hitTestParameters)
+    {
+        return base.HitTestCore(hitTestParameters);
     }
 }
 
@@ -75,5 +91,10 @@ class F2 : FrameworkElement
     private void F2_Loaded(object sender, RoutedEventArgs e)
     {
         Debug.WriteLine(nameof(F2_Loaded));
+    }
+
+    protected override HitTestResult HitTestCore(PointHitTestParameters hitTestParameters)
+    {
+        return base.HitTestCore(hitTestParameters);
     }
 }
