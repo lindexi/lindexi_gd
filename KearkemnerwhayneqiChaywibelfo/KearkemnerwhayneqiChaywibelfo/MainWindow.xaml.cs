@@ -42,7 +42,6 @@ class F1 : FrameworkElement
         AddLogicalChild(F2);
         AddVisualChild(F2);
 
-        F2.Measure(new Size(100,100));
         F2.Arrange(new Rect(new Point(), new Size(100, 100)));
     }
 
