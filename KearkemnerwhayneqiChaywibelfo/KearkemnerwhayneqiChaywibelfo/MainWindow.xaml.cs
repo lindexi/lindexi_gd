@@ -39,8 +39,8 @@ class F1 : FrameworkElement
 
         Loaded += F1_Loaded;
 
-        AddLogicalChild(F2);
-        //AddVisualChild(F2);
+        //AddLogicalChild(F2);
+        AddVisualChild(F2);
 
         F2.Arrange(new Rect(new Point(), new Size(100, 100)));
     }
@@ -70,7 +70,7 @@ class F1 : FrameworkElement
 
     protected override HitTestResult HitTestCore(PointHitTestParameters hitTestParameters)
     {
-        return base.HitTestCore(hitTestParameters);
+        return new PointHitTestResult(this, hitTestParameters.HitPoint);
     }
 }
 
