@@ -1,0 +1,6 @@
+﻿CreateProcess
+CreateMutex
+OpenMutexW
+ReleaseMutex
+WaitForSingleObject
+SetHandleInformation

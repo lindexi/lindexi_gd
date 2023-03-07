@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -21,7 +22,7 @@ public partial class App : Application
         var logFile = "log.txt";
         // 将相对路径转换为绝对路径，这样要是写错地方了，在这里可以快速调试到
         logFile = Path.GetFullPath(logFile);
-        var logWriter = new LogWriter(logFile)
+        var logWriter = new LogWriter(logFile, Console.Out)
         {
             AutoFlush = true,
         };
@@ -32,8 +33,9 @@ public partial class App : Application
         //{
         //    AutoFlush = true,
         //};
-
         Console.SetOut(logWriter);
+
+
 
         LogWriter = logWriter;
     }
@@ -50,19 +52,95 @@ public partial class App : Application
 
 class LogWriter : StreamWriter
 {
-    public LogWriter(string path) : base(path)
+
+    public LogWriter(string path, TextWriter textWriter) : base(path)
     {
+        _textWriter = textWriter;
     }
 
-    public LogWriter(Stream stream) : base(stream)
-    {
-
-    }
+    private readonly TextWriter _textWriter;
 
     public override void WriteLine(string? value)
     {
         // 可以在这里对输出的字符串进行处理，例如加上时间
         var message = "[" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss,fff") + "] " + value;
         base.WriteLine(message);
+
+        Task.Run(() =>
+        {
+            _textWriter.WriteLine(message);
+        });
+        Debugger.Log(0, null, message + "\r\n");
+    }
+}
+
+
+abstract class 书籍管理基类
+{
+    public void 总工序()
+    {
+        工序0();
+        工序1();
+        工序2();
+        工序3();
+    }
+
+    protected abstract void 工序0();
+
+    private void 工序1()
+    {
+        // ...
+    }
+    protected abstract void 工序2();
+
+    private void 工序3()
+    {
+        // ...
+    }
+}
+
+class 人文书籍管理 : 书籍管理基类
+{
+    protected override void 工序0()
+    {
+        人文_工序0();
+    }
+
+    private void 人文_工序0()
+    {
+        // ...
+    }
+
+    protected override void 工序2()
+    {
+        人文_工序2();
+    }
+
+    private void 人文_工序2()
+    {
+        // ...
+    }
+}
+
+class 哲学书籍管理 : 书籍管理基类
+{
+    protected override void 工序0()
+    {
+        哲学_工序0();
+    }
+
+    private void 哲学_工序0()
+    {
+        // ...
+    }
+
+    protected override void 工序2()
+    {
+        哲学_工序2();
+    }
+
+    private void 哲学_工序2()
+    {
+        // ...
     }
 }
