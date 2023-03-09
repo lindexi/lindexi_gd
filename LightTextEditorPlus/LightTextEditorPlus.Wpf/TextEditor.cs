@@ -130,6 +130,12 @@ public partial class TextEditor : FrameworkElement, IRenderManager
         return base.MeasureOverride(availableSize);
     }
 
+    protected override System.Windows.Size ArrangeOverride(System.Windows.Size finalSize)
+    {
+        TextView.Arrange(new System.Windows.Rect(new System.Windows.Point(), finalSize));
+        return base.ArrangeOverride(finalSize);
+    }
+
     private void TextEditor_Loaded(object sender, RoutedEventArgs e)
     {
         EnsureEditInit();
