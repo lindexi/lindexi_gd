@@ -28,6 +28,7 @@ using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Layout;
+using LightTextEditorPlus.Utils;
 using LightTextEditorPlus.Utils.Threading;
 
 using Microsoft.Win32;
@@ -155,6 +156,12 @@ public partial class TextEditor : FrameworkElement, IRenderManager
 
     protected override void OnMouseDown(MouseButtonEventArgs e)
     {
+        TextEditorPlatformProvider.TryInvokeDispatchUpdateLayout();
+        var position = e.GetPosition(this);
+        if (TextEditorCore.TryHitTest(position.ToPoint(), out var result))
+        {
+            CurrentCaretOffset = result.HitCaretOffset;
+        }
         base.OnMouseDown(e);
     }
 
@@ -210,9 +217,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager
 
     protected override HitTestResult? HitTestCore(PointHitTestParameters hitTestParameters)
     {
-        //return new PointHitTestResult(this,hitTestParameters.HitPoint);
-
-        return base.HitTestCore(hitTestParameters);
+        return new PointHitTestResult(this, hitTestParameters.HitPoint);
     }
 
     #endregion
@@ -234,6 +239,22 @@ public partial class TextEditor : FrameworkElement, IRenderManager
     #endregion
 
     #endregion
+}
+
+/// <summary>
+/// 命中测试方式
+/// </summary>
+public enum TextEditorHitTestMode
+{
+    /// <summary>
+    /// 只有在文本框范围内，都视为命中。行为如 <see cref="TextBox"/> 这些
+    /// </summary>
+    All,
+
+    /// <summary>
+    /// 只有命中到有文字的地方才算命中到。也许没有什么业务会用到
+    /// </summary>
+    HitCharOnly,
 }
 
 internal class TextEditorPlatformProvider : PlatformProvider
@@ -268,6 +289,11 @@ internal class TextEditorPlatformProvider : PlatformProvider
         _lastTextLayout = updateLayoutAction;
         _textLayoutDispatcherRequiring.Invoke(withRequire: true);
     }
+
+    /// <summary>
+    /// 尝试执行布局，如果无需布局，那就啥都不做
+    /// </summary>
+    public void TryInvokeDispatchUpdateLayout() => _textLayoutDispatcherRequiring.Invoke();
 
     public override ICharInfoMeasurer? GetCharInfoMeasurer()
     {
