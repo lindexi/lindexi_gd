@@ -29,7 +29,7 @@ namespace LightTextEditorPlus.Demo
 
         private void InputButton_OnClick(object sender, RoutedEventArgs e)
         {
-            TextEditor.TextEditorCore.AppendText(TextBox.Text);
+            TextEditor.TextEditorCore.EditAndReplace(TextBox.Text);
         }
 
         private async void DebugButton_OnClick(object sender, RoutedEventArgs e)

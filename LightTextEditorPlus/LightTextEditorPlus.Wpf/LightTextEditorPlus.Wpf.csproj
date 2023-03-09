@@ -13,8 +13,4 @@
     <ProjectReference Include="..\LightTextEditorPlus.Core\LightTextEditorPlus.Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Editing\Handlers_\" />
-    <Folder Include="Editing\Ime_\" />
-  </ItemGroup>
 </Project>

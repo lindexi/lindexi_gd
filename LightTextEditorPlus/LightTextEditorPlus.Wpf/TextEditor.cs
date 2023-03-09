@@ -28,6 +28,7 @@ using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Layout;
+using LightTextEditorPlus.Rendering;
 using LightTextEditorPlus.Utils;
 using LightTextEditorPlus.Utils.Threading;
 
@@ -123,6 +124,32 @@ public partial class TextEditor : FrameworkElement, IRenderManager
 
     #endregion
 
+    #region 光标
+
+    /// <summary>
+    /// 文本的光标样式。由于 <see cref="Cursor"/> 属性将会被此类型赋值，导致如果想要定制光标，将会被覆盖
+    /// </summary>
+    public CursorStyles? CursorStyles { set; get; }
+
+    private void RefreshCursor()
+    {
+        if (CursorStyles is not null)
+        {
+            Cursor = CursorStyles.Cursor;
+            return;
+        }
+
+        var cursor = TextEditorCore.ArrangingType switch
+        {
+            ArrangingType.Horizontal => Cursors.IBeam,
+            // todo 竖排文本的光标
+            _ => Cursors.IBeam,
+        };
+        Cursor = cursor;
+    }
+
+    #endregion
+
     #region 框架
 
     protected override System.Windows.Size MeasureOverride(System.Windows.Size availableSize)
@@ -140,6 +167,9 @@ public partial class TextEditor : FrameworkElement, IRenderManager
     private void TextEditor_Loaded(object sender, RoutedEventArgs e)
     {
         EnsureEditInit();
+
+        // 更新光标样式
+        RefreshCursor();
     }
 
     protected override void OnGotFocus(RoutedEventArgs e)
