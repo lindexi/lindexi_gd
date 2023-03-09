@@ -73,7 +73,7 @@ class TextView : FrameworkElement, IRenderManager
             _visualCollection.Remove(_textDrawingVisual);
         }
 
-        //_textDrawingVisual = drawingVisual;
+        _textDrawingVisual = drawingVisual;
         _visualCollection.Insert(0, drawingVisual);
 
         _selectionAndCaretLayer.UpdateSelectionAndCaret(renderInfoProvider);
@@ -103,7 +103,7 @@ class TextView : FrameworkElement, IRenderManager
         }
     }
 
-    private TextRenderLayer? _textDrawingVisual;
+    private DrawingVisual? _textDrawingVisual;
     private readonly SelectionAndCaretLayer _selectionAndCaretLayer;
 
     protected override Visual GetVisualChild(int index) => _visualCollection[index];
@@ -131,11 +131,6 @@ class TextView : FrameworkElement, IRenderManager
     #endregion
 
     #endregion
-}
-
-class TextRenderLayer : DrawingVisual, ILayer
-{
-
 }
 
 /// <summary>
