@@ -110,6 +110,7 @@ internal class DocumentRunEditProvider
         if (styleRunProperty is null)
         {
             // 仅加入 styleRunProperty 是空
+            // 仅加入新文本时，如果是在当前光标下插入的，先获取当前光标样式
             // 仅加入新文本时，采用光标的前一个字符的字符属性
             /*
              * 仅加入新文本时，采用光标的前一个字符的字符属性
@@ -118,16 +119,26 @@ internal class DocumentRunEditProvider
                 A B C  ------ 字符 
              * 假设光标是 1 的值，那将取 A 字符，因此换算方法就是获取当前光标的前面一个字符
              */
-            if (paragraphDataResult.HitOffset.Offset == 0)
+            if (offset == TextEditor.CaretManager.CurrentCaretOffset)
             {
-                // 规定，光标是 0 获取段落的字符属性
-                styleRunProperty = paragraphData.ParagraphProperty.ParagraphStartRunProperty ??
-                                   TextEditor.DocumentManager.CurrentRunProperty;
+                // 由于 TextEditor.DocumentManager.CurrentCaretRunProperty 需要执行一次命中测试，存在重复计算。为了减少重复计算，这里使用更底层的 CaretManager.CurrentCaretRunProperty 属性
+                // 如果用户没有设置当前光标的样式，那依靠后续逻辑找到样式
+                styleRunProperty = TextEditor.CaretManager.CurrentCaretRunProperty;
             }
-            else
+
+            if (styleRunProperty is null)
             {
-                var charData = paragraphDataResult.GetHitCharData();
-                styleRunProperty = charData!.RunProperty;
+                if (paragraphDataResult.HitOffset.Offset == 0)
+                {
+                    // 规定，光标是 0 获取段落的字符属性
+                    styleRunProperty = paragraphData.ParagraphProperty.ParagraphStartRunProperty ??
+                                       TextEditor.DocumentManager.CurrentRunProperty;
+                }
+                else
+                {
+                    var charData = paragraphDataResult.GetHitCharData();
+                    styleRunProperty = charData!.RunProperty;
+                }
             }
         }
 
