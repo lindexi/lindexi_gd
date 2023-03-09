@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Media;
+using LightTextEditorPlus.Utils;
 
 namespace LightTextEditorPlus;
 
@@ -25,7 +26,7 @@ public class CaretConfiguration
         {
             if (_caretBlinkTime is null)
             {
-                var caretBlinkTime = Win32Interop.GetCaretBlinkTime();
+                var caretBlinkTime = Win32.User32.GetCaretBlinkTime();
                 // 要求闪烁至少是16毫秒。因为可能拿到 0 的值
                 caretBlinkTime = Math.Max(16, caretBlinkTime);
                 caretBlinkTime = Math.Min(1000, caretBlinkTime);

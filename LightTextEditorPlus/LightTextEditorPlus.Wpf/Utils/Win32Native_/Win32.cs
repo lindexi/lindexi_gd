@@ -15,6 +15,13 @@ namespace LightTextEditorPlus.Utils
             /// <returns></returns>
             [DllImport(LibraryName, ExactSpelling = true)]
             public static extern IntPtr GetForegroundWindow();
+
+            /// <summary>
+            /// 获取光标闪烁时间
+            /// </summary>
+            /// <returns>毫秒</returns>
+            [DllImport(LibraryName)]
+            public static extern int GetCaretBlinkTime();
         }
     }
 }
