@@ -69,6 +69,8 @@ public partial class TextEditor : FrameworkElement, IRenderManager
         // 加入视觉树，方便调试和方便触发视觉变更
         AddVisualChild(TextView);
         AddLogicalChild(TextView);
+
+        TextEditorCore.ArrangingTypeChanged += TextEditorCore_ArrangingTypeChanged;
     }
 
     #region 公开属性
@@ -129,7 +131,17 @@ public partial class TextEditor : FrameworkElement, IRenderManager
     /// <summary>
     /// 文本的光标样式。由于 <see cref="Cursor"/> 属性将会被此类型赋值，导致如果想要定制光标，将会被覆盖
     /// </summary>
-    public CursorStyles? CursorStyles { set; get; }
+    public CursorStyles? CursorStyles
+    {
+        set
+        {
+            _cursorStyles = value;
+            RefreshCursor();
+        }
+        get => _cursorStyles;
+    }
+
+    private CursorStyles? _cursorStyles;
 
     private void RefreshCursor()
     {
@@ -146,6 +158,12 @@ public partial class TextEditor : FrameworkElement, IRenderManager
             _ => Cursors.IBeam,
         };
         Cursor = cursor;
+    }
+
+    private void TextEditorCore_ArrangingTypeChanged(object? sender, Core.Events.TextEditorValueChangeEventArgs<ArrangingType> e)
+    {
+        // 布局方式变更，修改光标方向
+        RefreshCursor();
     }
 
     #endregion

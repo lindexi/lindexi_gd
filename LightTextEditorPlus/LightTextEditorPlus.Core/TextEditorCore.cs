@@ -351,8 +351,12 @@ public partial class TextEditorCore
         set
         {
             if (_arrangingType == value) return;
-
+            var oldArrangingType = _arrangingType;
             _arrangingType = value;
+
+            ArrangingTypeChanged?.Invoke(this,
+                new TextEditorValueChangeEventArgs<ArrangingType>(oldArrangingType, value));
+
             RequireDispatchReLayoutAllDocument("ArrangingType Changed");
         }
         get => _arrangingType;
@@ -518,6 +522,11 @@ public partial class TextEditorCore
     public event EventHandler<TextEditorValueChangeEventArgs<Selection>>? CurrentSelectionChanged;
 
     #endregion
+
+    /// <summary>
+    /// 布局变更后触发的事件
+    /// </summary>
+    public event EventHandler<TextEditorValueChangeEventArgs<ArrangingType>>? ArrangingTypeChanged;
 
     #endregion
 
