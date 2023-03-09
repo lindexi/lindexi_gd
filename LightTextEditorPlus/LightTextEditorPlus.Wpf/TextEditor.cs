@@ -156,7 +156,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager
 
     protected override void OnMouseDown(MouseButtonEventArgs e)
     {
-        TextEditorPlatformProvider.TryInvokeDispatchUpdateLayout();
+        TextEditorPlatformProvider.EnsureLayoutUpdated();
         var position = e.GetPosition(this);
         if (TextEditorCore.TryHitTest(position.ToPoint(), out var result))
         {
@@ -293,7 +293,7 @@ internal class TextEditorPlatformProvider : PlatformProvider
     /// <summary>
     /// 尝试执行布局，如果无需布局，那就啥都不做
     /// </summary>
-    public void TryInvokeDispatchUpdateLayout() => _textLayoutDispatcherRequiring.Invoke();
+    public void EnsureLayoutUpdated() => _textLayoutDispatcherRequiring.Invoke();
 
     public override ICharInfoMeasurer? GetCharInfoMeasurer()
     {
