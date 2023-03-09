@@ -107,8 +107,8 @@ namespace LightTextEditorPlus.Editing
                 Log($"_currentContext2={_currentContext}");
             }
 
-            // 对 Win32 使用第二套输入法框架的输入法，可以采用 ImmAssociateContext 关联
-            // 但是对实现 TSF 第三套输入法框架的输入法，在应用程序对接第三套输入法框架
+            // 对 Win32 使用第一套输入法框架的输入法，可以采用 ImmAssociateContext 关联
+            // 但是对实现 TSF 第二套输入法框架的输入法，在应用程序对接第二套输入法框架
             // 就需要调用 ITfThreadMgr 的 SetFocus 方法。刚好 WPF 对接了
             _previousContext = IMENative.ImmAssociateContext(_hwndSource.Handle, _currentContext);
             _hwndSource.AddHook(WndProc);
