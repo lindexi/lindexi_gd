@@ -17,7 +17,7 @@ namespace LightTextEditorPlus.Layout;
 /// <summary>
 /// 视觉呈现容器
 /// </summary>
-class TextView : FrameworkElement, IRenderManager
+class TextView : UIElement, IRenderManager
 {
     static TextView()
     {
@@ -37,12 +37,6 @@ class TextView : FrameworkElement, IRenderManager
         };
         IsHitTestVisible = true;
         textEditor.Loaded += TextEditor_Loaded;
-
-        this.Loaded += TextView_Loaded;
-    }
-
-    private void TextView_Loaded(object sender, RoutedEventArgs e)
-    {
     }
 
     private void TextEditor_Loaded(object sender, RoutedEventArgs e)
@@ -112,15 +106,16 @@ class TextView : FrameworkElement, IRenderManager
 
     #region 禁用命中测试
 
-    //protected override System.Windows.Size MeasureCore(System.Windows.Size availableSize)
-    //{
-    //    return new System.Windows.Size(500, 500);
-    //}
+    protected override System.Windows.Size MeasureCore(System.Windows.Size availableSize)
+    {
+        return availableSize;
+    }
 
-    //protected override void ArrangeCore(Rect finalRect)
-    //{
-    //    base.ArrangeCore(finalRect);
-    //}
+    protected override void ArrangeCore(Rect finalRect)
+    {
+        // 走默认布局即可
+        base.ArrangeCore(finalRect);
+    }
 
     #region MyRegion
 
