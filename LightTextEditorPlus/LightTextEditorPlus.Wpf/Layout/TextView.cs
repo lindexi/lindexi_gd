@@ -276,7 +276,14 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
                     case ArrangingType.Horizontal:
                         var (x, y) = startPoint;
                         // 可以获取到起始点，那肯定存在尺寸
-                        x += size.Width;
+                        if (caretRenderInfo.IsLineStart)
+                        {
+                            // 如果命中到行的开始，那就是首个字符之前，不能加上字符的尺寸
+                        }
+                        else
+                        {
+                            x += size.Width;
+                        }
                         var width = _textEditor.CaretConfiguration.CaretWidth;
                         var height =
                             LineSpacingCalculator.CalculateLineHeightWithLineSpacing(_textEditor.TextEditorCore,

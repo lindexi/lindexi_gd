@@ -37,6 +37,11 @@ public readonly struct CaretRenderInfo
     public int HitLineOffset { get; }
 
     /// <summary>
+    /// 是否命中到行的起点
+    /// </summary>
+    public bool IsLineStart => CaretOffset.IsAtLineStart;
+
+    /// <summary>
     /// 命中的字符。如果是空段，那将没有命中哪个字符。对于在行首或段首的，那将命中在字符前面
     /// </summary>
     public CharData? CharData { get; }
