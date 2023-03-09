@@ -19,11 +19,11 @@ namespace LightTextEditorPlus.Layout;
 /// </summary>
 class TextView : FrameworkElement, IRenderManager
 {
-    //static TextView()
-    //{
-    //    // 因为此类型永远不可被命中，所以直接重写并不再处理基类的命中测试改变方法。
-    //    IsHitTestVisibleProperty.OverrideMetadata(typeof(TextView), new UIPropertyMetadata(false));
-    //}
+    static TextView()
+    {
+        // 因为此类型永远不可被命中，所以直接重写并不再处理基类的命中测试改变方法。
+        IsHitTestVisibleProperty.OverrideMetadata(typeof(TextView), new UIPropertyMetadata(false));
+    }
 
     public TextView(TextEditor textEditor)
     {
@@ -122,10 +122,13 @@ class TextView : FrameworkElement, IRenderManager
     //    base.ArrangeCore(finalRect);
     //}
 
+    #region MyRegion
+
     // 只是用来呈现，不进行交互，关闭命中测试可以提升很多性能
 
     protected override HitTestResult? HitTestCore(PointHitTestParameters hitTestParameters) => null;
     protected override GeometryHitTestResult? HitTestCore(GeometryHitTestParameters hitTestParameters) => null;
+    #endregion
 
     #endregion
 }

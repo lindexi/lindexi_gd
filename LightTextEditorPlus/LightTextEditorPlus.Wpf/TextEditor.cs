@@ -39,26 +39,6 @@ using Size = LightTextEditorPlus.Core.Primitive.Size;
 
 namespace LightTextEditorPlus;
 
-class F : FrameworkElement
-{
-    public F()
-    {
-        Width = 500;
-        Height = 500;
-
-        Loaded += F_Loaded;
-    }
-
-    private void F_Loaded(object sender, RoutedEventArgs e)
-    {
-    }
-
-    protected override HitTestResult HitTestCore(PointHitTestParameters hitTestParameters)
-    {
-        return base.HitTestCore(hitTestParameters);
-    }
-}
-
 public partial class TextEditor : FrameworkElement, IRenderManager
 {
     public TextEditor()
@@ -87,15 +67,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager
         // 加入视觉树，方便调试和方便触发视觉变更
         AddVisualChild(TextView);
         AddLogicalChild(TextView);
-
-        var f = new F();
-        AddVisualChild(f);
-        AddLogicalChild(f);
-
-        F = f;
     }
-
-    private F F { get; }
 
     #region 公开属性
 
@@ -196,16 +168,8 @@ public partial class TextEditor : FrameworkElement, IRenderManager
     /// </summary>
     private TextView TextView { get; }
 
-    protected override int VisualChildrenCount => 2; // 当前只有视觉呈现容器一个而已
-    protected override Visual GetVisualChild(int index)
-    {
-        if (index==0)
-        {
-            return TextView;
-        }
-
-        return F;
-    }
+    protected override int VisualChildrenCount => 1; // 当前只有视觉呈现容器一个而已
+    protected override Visual GetVisualChild(int index) => TextView;
 
     protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
     {
