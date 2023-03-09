@@ -4,10 +4,9 @@ using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
+using LightTextEditorPlus.Utils;
 
-using LightTextEditorPlus.TextEditorPlus.Utils;
-
-namespace LightTextEditorPlus.TextEditorPlus.Editing
+namespace LightTextEditorPlus.Editing
 {
     /// <summary>
     /// 为控件提供输入法的支持

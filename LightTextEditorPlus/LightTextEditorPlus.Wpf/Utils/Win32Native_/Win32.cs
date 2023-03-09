@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Text;
 
-namespace LightTextEditorPlus.TextEditorPlus.Utils
+namespace LightTextEditorPlus.Utils
 {
     internal class Win32
     {

@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace LightTextEditorPlus.TextEditorPlus.Editing
+namespace LightTextEditorPlus.Editing
 {
     /// <summary>
     /// 表示控件支持被输入法

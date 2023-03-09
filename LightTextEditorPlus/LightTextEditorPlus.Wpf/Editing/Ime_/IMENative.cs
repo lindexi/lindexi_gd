@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace LightTextEditorPlus.TextEditorPlus.Editing
+namespace LightTextEditorPlus.Editing
 {
     // ReSharper disable InconsistentNaming
     static class IMENative
