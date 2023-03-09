@@ -21,9 +21,6 @@
                 <textEditorPlus:TextEditor x:Name="TextEditor" x:FieldModifier="public" Width="500"
                                            HorizontalAlignment="Left"
                                            VerticalAlignment="Stretch">
-                    <textEditorPlus:TextEditor.RenderTransform>
-                        <TranslateTransform x:Name="TextEditorTranslateTransform"></TranslateTransform>
-                    </textEditorPlus:TextEditor.RenderTransform>
                 </textEditorPlus:TextEditor>
 
             </Border>
@@ -42,20 +39,6 @@
         </Grid>
 
         <Grid Grid.Column="1">
-            <Grid.Triggers>
-                <EventTrigger RoutedEvent="Loaded" >
-                    <BeginStoryboard>
-                        <Storyboard RepeatBehavior="Forever">
-                            <DoubleAnimation Storyboard.TargetName="TextEditorTranslateTransform" Storyboard.TargetProperty="X" Duration="0:1:0" From="0" To="100"
-                                             AutoReverse="True">
-                                <DoubleAnimation.EasingFunction>
-                                    <CubicEase EasingMode="EaseIn"></CubicEase>
-                                </DoubleAnimation.EasingFunction>
-                            </DoubleAnimation>
-                        </Storyboard>
-                    </BeginStoryboard>
-                </EventTrigger>
-            </Grid.Triggers>
             <local:TextEditorSettingsControl TextEditor="{x:Reference TextEditor}">
             </local:TextEditorSettingsControl>
         </Grid>
