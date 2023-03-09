@@ -60,7 +60,6 @@ class CaretManager
             _isCurrentCaretOffsetChanging = true;
 
             // todo 完成光标系统
-            // todo 设置光标的选择范围
             var args = new TextEditorValueChangeEventArgs<CaretOffset>(oldValue, value);
             InternalCurrentCaretOffsetChanging?.Invoke(this, args);
 

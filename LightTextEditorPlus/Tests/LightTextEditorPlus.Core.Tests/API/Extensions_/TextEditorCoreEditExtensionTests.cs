@@ -56,24 +56,23 @@ public class TextEditorCoreEditExtensionTests
             Assert.AreEqual(TestHelper.PlainNumberText.Length * 2, textEditorCore.DocumentManager.CharCount);
         });
 
-        // todo 还没实现替换功能
-        //"全选文本，调用 EditAndReplace 方法插入新文本，可以将选择的文本替换为新文本".Test(() =>
-        //{
-        //    // Arrange
-        //    var textEditorCore = TestHelper.GetTextEditorCore();
-        //    // 先插入一点文本，用来全选
-        //    textEditorCore.AppendText("123123123");
+        "全选文本，调用 EditAndReplace 方法插入新文本，可以将选择的文本替换为新文本".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            // 先插入一点文本，用来全选
+            textEditorCore.AppendText("123123123");
 
-        //    // 全选文本
-        //    textEditorCore.SelectAll();
+            // 全选文本
+            textEditorCore.SelectAll();
 
-        //    // Action
-        //    // 调用 EditAndReplace 方法插入新文本
-        //    textEditorCore.EditAndReplace(TestHelper.PlainNumberText);
+            // Action
+            // 调用 EditAndReplace 方法插入新文本
+            textEditorCore.EditAndReplace(TestHelper.PlainNumberText);
 
-        //    // Assert
-        //    Assert.AreEqual(TestHelper.PlainNumberText.Length, textEditorCore.DocumentManager.CharCount);
-        //});
+            // Assert
+            Assert.AreEqual(TestHelper.PlainNumberText.Length, textEditorCore.DocumentManager.CharCount);
+        });
     }
 
     [ContractTestCase]

@@ -8,7 +8,6 @@ namespace LightTextEditorPlus.Core.Tests;
 [TestClass]
 public class TextEditorEditTest
 {
-
     [ContractTestCase]
     public void Remove()
     {
