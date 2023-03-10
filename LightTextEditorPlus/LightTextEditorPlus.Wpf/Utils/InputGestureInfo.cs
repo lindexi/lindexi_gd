@@ -1,8 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Input;
-using LightTextEditorPlus.Utils;
 
-namespace LightTextEditorPlus.Editing;
+namespace LightTextEditorPlus.Utils;
 
 /// <summary>
 /// 用于处理鼠标点击信息的辅助类
