@@ -52,6 +52,8 @@ internal class MouseHandler
             if (_inputGesture.ClickCount % 2 == 0)
             {
                 // HandleDoubleClick
+                // 默认行为是双击全选，你想选词？那就不好玩了哦
+                TextEditor.TextEditorCore.SelectAll();
             }
             else if (_inputGesture.ClickCount % 2 == 1)
             {
