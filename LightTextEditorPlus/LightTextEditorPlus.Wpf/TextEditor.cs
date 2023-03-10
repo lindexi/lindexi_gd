@@ -27,6 +27,7 @@ using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Document;
+using LightTextEditorPlus.Editing;
 using LightTextEditorPlus.Layout;
 using LightTextEditorPlus.Rendering;
 using LightTextEditorPlus.Utils;
@@ -70,7 +71,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager
         AddVisualChild(TextView);
         AddLogicalChild(TextView);
 
-        TextEditorCore.ArrangingTypeChanged += TextEditorCore_ArrangingTypeChanged;
+        MouseHandler = new MouseHandler(this);
     }
 
     #region 公开属性
@@ -126,48 +127,6 @@ public partial class TextEditor : FrameworkElement, IRenderManager
 
     #endregion
 
-    #region 光标
-
-    /// <summary>
-    /// 文本的光标样式。由于 <see cref="Cursor"/> 属性将会被此类型赋值，导致如果想要定制光标，将会被覆盖
-    /// </summary>
-    public CursorStyles? CursorStyles
-    {
-        set
-        {
-            _cursorStyles = value;
-            RefreshCursor();
-        }
-        get => _cursorStyles;
-    }
-
-    private CursorStyles? _cursorStyles;
-
-    private void RefreshCursor()
-    {
-        if (CursorStyles is not null)
-        {
-            Cursor = CursorStyles.Cursor;
-            return;
-        }
-
-        var cursor = TextEditorCore.ArrangingType switch
-        {
-            ArrangingType.Horizontal => Cursors.IBeam,
-            // todo 竖排文本的光标
-            _ => Cursors.IBeam,
-        };
-        Cursor = cursor;
-    }
-
-    private void TextEditorCore_ArrangingTypeChanged(object? sender, Core.Events.TextEditorValueChangeEventArgs<ArrangingType> e)
-    {
-        // 布局方式变更，修改光标方向
-        RefreshCursor();
-    }
-
-    #endregion
-
     #region 框架
 
     protected override System.Windows.Size MeasureOverride(System.Windows.Size availableSize)
@@ -185,9 +144,6 @@ public partial class TextEditor : FrameworkElement, IRenderManager
     private void TextEditor_Loaded(object sender, RoutedEventArgs e)
     {
         EnsureEditInit();
-
-        // 更新光标样式
-        RefreshCursor();
     }
 
     protected override void OnGotFocus(RoutedEventArgs e)
@@ -200,17 +156,6 @@ public partial class TextEditor : FrameworkElement, IRenderManager
     {
         IsInEditingInputMode = false;
         base.OnLostFocus(e);
-    }
-
-    protected override void OnMouseDown(MouseButtonEventArgs e)
-    {
-        TextEditorPlatformProvider.EnsureLayoutUpdated();
-        var position = e.GetPosition(this);
-        if (TextEditorCore.TryHitTest(position.ToPoint(), out var result))
-        {
-            CurrentCaretOffset = result.HitCaretOffset;
-        }
-        base.OnMouseDown(e);
     }
 
     /// <summary>
@@ -228,6 +173,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager
     /// 视觉呈现容器
     /// </summary>
     private TextView TextView { get; }
+    private MouseHandler MouseHandler { get; }
 
     protected override int VisualChildrenCount => 1; // 当前只有视觉呈现容器一个而已
     protected override Visual GetVisualChild(int index) => TextView;
