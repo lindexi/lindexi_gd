@@ -125,7 +125,7 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
             return;
         }
 
-        var currentSelection = _textEditor.CurrentSelection;
+        var currentSelection = _textEditor.TextEditorCore.CurrentSelection;
         if (currentSelection.IsEmpty)
         {
             // 没有选择的情况，绘制和闪烁光标
