@@ -149,7 +149,7 @@ public partial class TextEditor
     /// <param name="selection"></param>
     internal void SetRunProperty(Action<RunProperty> action, PropertyType property, Selection? selection)
     {
-        selection ??= CurrentSelection;
+        selection ??= TextEditorCore.CurrentSelection;
 
         // 如果是在编辑模式，那就使用当前选择。如果非编辑模式，且当前没有选择任何内容，那就是对整个文本
         if (IsInEditingInputMode)

@@ -1,4 +1,5 @@
-﻿using LightTextEditorPlus.Core.Carets;
+﻿using LightTextEditorPlus.Core.Attributes;
+using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Document;
 
 namespace LightTextEditorPlus;
@@ -13,6 +14,7 @@ public partial class TextEditor
     /// <summary>
     /// 获取或设置当前光标位置
     /// </summary>
+    [TextEditorPublicAPI]
     public CaretOffset CurrentCaretOffset
     {
         set => TextEditorCore.CurrentCaretOffset = value;
@@ -22,6 +24,7 @@ public partial class TextEditor
     /// <summary>
     /// 获取或设置当前的选择范围
     /// </summary>
+    [TextEditorPublicAPI]
     public Selection CurrentSelection
     {
         set => TextEditorCore.CurrentSelection = value;
