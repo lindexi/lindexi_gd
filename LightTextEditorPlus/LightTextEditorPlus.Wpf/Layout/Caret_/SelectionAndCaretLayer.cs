@@ -2,10 +2,12 @@
 using System.Diagnostics;
 using System.Windows.Media;
 using System.Windows.Threading;
+
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Utils;
+
 using Rect = System.Windows.Rect;
 
 namespace LightTextEditorPlus.Layout;
