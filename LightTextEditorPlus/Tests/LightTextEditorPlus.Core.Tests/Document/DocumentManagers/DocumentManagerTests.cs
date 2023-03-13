@@ -13,6 +13,42 @@ public class DocumentManagerTests
     [ContractTestCase]
     public void SetRunProperty()
     {
+        "从后向前选择一段内容，调用 DocumentManager.SetRunProperty 设置文本字符属性，不会影响字符顺序".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            // 随便写一些字符
+            var text = "123123";
+            textEditorCore.AppendText(text);
+
+            var fontSize = 100;
+            var fontName = "Test";
+
+            // Action
+            // 从后向前选择一段内容
+            var selection = new Selection(new CaretOffset(5),new CaretOffset(3));
+            // 调用 DocumentManager.SetRunProperty 设置文本字符属性
+            textEditorCore.DocumentManager.SetRunProperty((LayoutOnlyRunProperty runProperty) =>
+            {
+                runProperty.FontSize = fontSize;
+                runProperty.FontName = new FontName(fontName);
+            }, selection);
+
+            // Assert
+            // 不会影响字符顺序
+            Assert.AreEqual(text, textEditorCore.GetText());
+
+            var runPropertyList = textEditorCore.DocumentManager.GetRunPropertyRange(textEditorCore.DocumentManager.GetAllDocumentSelection()).ToList();
+            Assert.AreNotEqual(fontSize, runPropertyList[0].FontSize);
+            Assert.AreNotEqual(fontSize, runPropertyList[1].FontSize);
+            Assert.AreNotEqual(fontSize, runPropertyList[2].FontSize);
+
+            Assert.AreEqual(fontSize, runPropertyList[3].FontSize);
+            Assert.AreEqual(fontSize, runPropertyList[4].FontSize);
+
+            Assert.AreNotEqual(fontSize, runPropertyList[5].FontSize);
+        });
+
         "调用 DocumentManager.SetRunProperty 设置文本字符属性，传入修改范围没有长度，将啥都不会干".Test(() =>
         {
             // Arrange
