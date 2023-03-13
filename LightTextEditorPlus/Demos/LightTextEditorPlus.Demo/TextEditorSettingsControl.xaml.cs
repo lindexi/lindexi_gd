@@ -88,4 +88,22 @@ public partial class TextEditorSettingsControl : UserControl
     {
         TextEditor.TextEditorCore.LineSpacingStrategy = LineSpacingStrategy.FirstLineShrink;
     }
+
+    #region 布局方式
+
+    private void HorizontalArrangingTypeButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.TextEditorCore.ArrangingType = ArrangingType.Horizontal;
+    }
+
+    private void VerticalArrangingTypeButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.TextEditorCore.ArrangingType = ArrangingType.Vertical;
+    }
+
+    private void MongolianArrangingTypeButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.TextEditorCore.ArrangingType = ArrangingType.Mongolian;
+    }
+    #endregion
 }

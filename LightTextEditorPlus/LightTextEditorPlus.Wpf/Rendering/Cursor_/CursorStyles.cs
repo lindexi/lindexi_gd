@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 
 namespace LightTextEditorPlus.Rendering;
@@ -12,5 +13,9 @@ namespace LightTextEditorPlus.Rendering;
 /// </summary>
 public record CursorStyles(Cursor Cursor)
 {
+    public Cursor? VerticalCursor
+    {
+        init;
+        get;
+    }
 }
-

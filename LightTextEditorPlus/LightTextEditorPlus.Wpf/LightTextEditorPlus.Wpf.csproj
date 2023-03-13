@@ -13,4 +13,8 @@
     <ProjectReference Include="..\LightTextEditorPlus.Core\LightTextEditorPlus.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Resource Include="Resources\Cursors\VerticalText.cur" />
+  </ItemGroup>
+
 </Project>

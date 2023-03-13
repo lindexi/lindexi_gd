@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using LightTextEditorPlus.Utils;
 using Point = System.Windows.Point;
@@ -144,6 +145,23 @@ internal class MouseHandler
 
     private CursorStyles? _cursorStyles;
 
+    private Cursor GetVerticalCursor()
+    {
+        var verticalCursor = CursorStyles?.VerticalCursor;
+        if (verticalCursor is not null)
+        {
+            return verticalCursor;
+        }
+
+        const string url = "pack://application:,,,/LightTextEditorPlus.Wpf;component/Resources/Cursors/";
+        const string verticalTextUrl = url + "VerticalText.cur";
+        verticalCursor = new Cursor(Application
+            .GetResourceStream(new Uri(
+                verticalTextUrl,
+                UriKind.RelativeOrAbsolute))!.Stream);
+        return verticalCursor;
+    }
+
     private void UpdateCursor()
     {
         if (CursorStyles is not null)
@@ -155,7 +173,7 @@ internal class MouseHandler
         var cursor = TextEditor.TextEditorCore.ArrangingType switch
         {
             ArrangingType.Horizontal => Cursors.IBeam,
-            // todo 竖排文本的光标
+            ArrangingType.Mongolian or ArrangingType.Vertical => GetVerticalCursor(),
             _ => Cursors.IBeam,
         };
         TextEditor.Cursor = cursor;
