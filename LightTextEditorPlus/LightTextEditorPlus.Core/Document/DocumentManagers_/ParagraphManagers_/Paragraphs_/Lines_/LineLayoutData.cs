@@ -146,14 +146,6 @@ class LineLayoutData : IParagraphCache, IDisposable
 
     #endregion
 
-    //public List<RunVisualData>? RunVisualDataList { set; get; }
-
-    //public Span<IImmutableRun> GetSpan()
-    //{
-    //    //return CurrentParagraph.AsSpan().Slice(StartParagraphIndex, EndParagraphIndex - StartParagraphIndex);
-    //    return CurrentParagraph.AsSpan()[StartParagraphIndex..EndParagraphIndex];
-    //}
-
 #if DEBUG
     /// <summary>
     /// 调试下，用来了解有那些字符
