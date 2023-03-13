@@ -26,6 +26,12 @@ public class RenderInfoProvider
     /// </summary>
     public bool IsDirty { internal set; get; }
 
+    /// <summary>
+    /// 获取选择对应的范围。一般是一行一个 Rect 对象
+    /// </summary>
+    /// <param name="selection"></param>
+    /// <returns></returns>
+    /// <exception cref="NotSupportedException"></exception>
     public IList<Rect> GetSelectionBoundsList(in Selection selection)
     {
         if (selection.IsEmpty)
@@ -103,22 +109,7 @@ public class RenderInfoProvider
             {
                 var hitLineOffset = hitOffset.Offset - lineLayoutData.CharStartParagraphIndex;
 
-                if (lineLayoutData.CharCount == 0)
-                {
-                    // 这是一个空行
-                    // 如果遇到空行，那应该只有是空段才能创建空行
-                    Debug.Assert(paragraphData.CharCount==0, "只有空段才能创建空行");
-                    Debug.Assert(hitLineOffset == 0, "对于一个空行，难道还能计算出多个字符");
-                    return new CaretRenderInfo(lineIndex, hitLineOffset, null, hitOffset, caretOffset,
-                        lineLayoutData);
-                }
-                else
-                {
-                    var charData = lineLayoutData.GetCharList()[hitLineOffset];
-
-                    // 预期是能找到的，如果找不到，那就是炸
-                    return new CaretRenderInfo(lineIndex, hitLineOffset, charData, hitOffset, caretOffset, lineLayoutData);
-                }
+                return new CaretRenderInfo(lineIndex, hitLineOffset, hitOffset, caretOffset, lineLayoutData);
             }
         }
 

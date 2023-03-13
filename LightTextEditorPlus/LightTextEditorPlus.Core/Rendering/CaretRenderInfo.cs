@@ -11,11 +11,10 @@ namespace LightTextEditorPlus.Core.Rendering;
 /// </summary>
 public readonly struct CaretRenderInfo
 {
-    internal CaretRenderInfo(int lineIndex, int hitLineOffset, CharData? charData, ParagraphCaretOffset hitOffset, CaretOffset caretOffset, LineLayoutData lineLayoutData)
+    internal CaretRenderInfo(int lineIndex, int hitLineOffset, ParagraphCaretOffset hitOffset, CaretOffset caretOffset, LineLayoutData lineLayoutData)
     {
         LineIndex = lineIndex;
         HitLineOffset = hitLineOffset;
-        CharData = charData;
         HitOffset = hitOffset;
         CaretOffset = caretOffset;
         LineLayoutData = lineLayoutData;
@@ -54,7 +53,20 @@ public readonly struct CaretRenderInfo
     /// <summary>
     /// 命中的字符。如果是空段，那将没有命中哪个字符。对于在行首或段首的，那将命中在光标前面的字符
     /// </summary>
-    public CharData? CharData { get; }
+    public CharData? CharData
+    {
+        get
+        {
+            if (LineLayoutData.CharCount == 0)
+            {
+                return null;
+            }
+            else
+            {
+                return LineLayoutData.GetCharList()[HitLineOffset];
+            }
+        }
+    }
 
     /// <summary>
     /// 获取在光标之后的字符。如果是空段，那就空
