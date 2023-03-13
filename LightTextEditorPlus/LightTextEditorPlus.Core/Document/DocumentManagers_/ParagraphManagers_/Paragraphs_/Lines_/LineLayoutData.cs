@@ -94,6 +94,11 @@ class LineLayoutData : IParagraphCache, IDisposable
         }
     }
 
+    /// <summary>
+    /// 获取这一行的字符列表
+    /// </summary>
+    /// <remarks>这个方法调用接近不用钱，随便调用</remarks>
+    /// <returns></returns>
     public ReadOnlyListSpan<CharData> GetCharList() =>
         CurrentParagraph.ToReadOnlyListSpan(new ParagraphCharOffset(CharStartParagraphIndex), CharEndParagraphIndex - CharStartParagraphIndex);
 
