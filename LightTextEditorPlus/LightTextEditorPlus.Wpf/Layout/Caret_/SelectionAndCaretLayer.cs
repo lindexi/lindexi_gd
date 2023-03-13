@@ -5,6 +5,7 @@ using System.Windows.Threading;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
+using LightTextEditorPlus.Utils;
 using Rect = System.Windows.Rect;
 
 namespace LightTextEditorPlus.Layout;
@@ -199,7 +200,7 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
 
             foreach (var rect in _renderInfoProvider.GetSelectionBoundsList(currentSelection))
             {
-                drawingContext.DrawRectangle(_textEditor.CaretConfiguration.SelectionBrush, null, new Rect(rect.X, rect.Y, rect.Width, rect.Height));
+                drawingContext.DrawRectangle(_textEditor.CaretConfiguration.SelectionBrush, null, rect.ToWpfRect());
             }
         }
     }
