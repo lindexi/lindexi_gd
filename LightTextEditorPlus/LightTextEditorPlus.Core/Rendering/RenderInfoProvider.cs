@@ -37,6 +37,11 @@ public class RenderInfoProvider
     /// <returns></returns>
     public IList<Rect> GetSelectionBoundsList(in Selection selection)
     {
+        if (selection.IsEmpty)
+        {
+            return new Rect[0];
+        }
+
         var result = new List<Rect>();
         LineLayoutData? currentLineLayoutData = null;
         Rect currentBounds = default;
@@ -77,126 +82,6 @@ public class RenderInfoProvider
         }
 
         return result;
-
-
-        if (selection.IsEmpty)
-        {
-            return new Rect[0];
-        }
-
-        // 一行内
-        // 相邻行
-        // 跨多行
-        var caretStartRenderInfo = GetCaretRenderInfo(selection.FrontOffset);
-
-        var caretEndRenderInfo = GetCaretRenderInfo(selection.BehindOffset);
-
-        // 是否单行
-        if (ReferenceEquals(caretStartRenderInfo.LineLayoutData, caretEndRenderInfo.LineLayoutData))
-        {
-            Rect startBounds;
-            if (caretStartRenderInfo.CaretOffset.IsAtLineStart)
-            {
-                startBounds = caretStartRenderInfo.CharData!.GetBounds();
-            }
-            else
-            {
-                // 首个是在光标之后
-                var hitCharData = caretStartRenderInfo.GetCharDataAfterCaretOffset()!;
-                startBounds = hitCharData.GetBounds();
-            }
-
-            var endBounds = caretEndRenderInfo.CharData!.GetBounds();
-
-            var bounds = startBounds.Union(endBounds);
-            return new Rect[] { bounds };
-        }
-        else
-        {
-            var remain = selection.Length;
-            bool isFirstLine = true;
-            LineLayoutData startLine = caretStartRenderInfo.LineLayoutData;
-            var currentLine = startLine;
-            var list = new List<Rect>();
-
-            while (remain > 0)
-            {
-                var startHitLineOffset = 0;
-                if (isFirstLine)
-                {
-                    if (caretStartRenderInfo.CaretOffset.IsAtLineStart)
-                    {
-                        startHitLineOffset = caretStartRenderInfo.HitLineOffset;
-                    }
-                    else
-                    {
-                        startHitLineOffset = caretStartRenderInfo.HitLineOffset + 1;
-                    }
-                }
-
-                if (startHitLineOffset >= currentLine.CharCount)
-                {
-                    //// 例如进入段末
-                    //// 先只添加段末
-                    //var isParagraphEnd = currentLine.CharStartParagraphIndex + startHitLineOffset >
-                    //                     currentLine.CurrentParagraph.CharCount;
-                    //if (isParagraphEnd)
-                    //{
-                    //    // 这是段末。段末可选加上一个段末选择内容
-                    //    remain -= ParagraphData.DelimiterLength;
-                    //}
-                }
-                else
-                {
-                    var takeLength = Math.Min(remain, currentLine.CharCount - startHitLineOffset);
-
-                    var charList = currentLine.GetCharList();
-                    var startCharData = charList[startHitLineOffset];
-                    var endCharData = charList[startHitLineOffset + takeLength];
-                    var bounds = startCharData.GetBounds().Union(endCharData.GetBounds());
-                    list.Add(bounds);
-
-                    remain -= takeLength;
-                }
-
-                isFirstLine = false;
-
-                if (remain > 0)
-                {
-                    // 切到下一行
-                    // 如果需要跨段，自动减去换行字符
-                    var lineLayoutDataList = currentLine.CurrentParagraph.LineLayoutDataList;
-                    var nextLineIndex = currentLine.LineInParagraphIndex + 1;
-                    if (nextLineIndex < lineLayoutDataList.Count)
-                    {
-                        currentLine = lineLayoutDataList[nextLineIndex];
-                    }
-                    else
-                    {
-                        // 需要到下一段了
-                        var currentParagraphIndex = currentLine.CurrentParagraph.Index;
-                        var paragraphList = currentLine.CurrentParagraph.ParagraphManager.GetParagraphList();
-
-                        var nextParagraphIndex = currentParagraphIndex + 1;
-                        if (nextParagraphIndex < paragraphList.Count)
-                        {
-                            var paragraphData = paragraphList[nextParagraphIndex];
-                            currentLine = paragraphData.LineLayoutDataList.First();
-                        }
-                        else
-                        {
-                            // 文档结束了
-                            break;
-                        }
-
-                        //自动减去换行字符
-                        remain -= ParagraphData.DelimiterLength;
-                    }
-                }
-            }
-
-            return list;
-        }
     }
 
     /// <summary>
