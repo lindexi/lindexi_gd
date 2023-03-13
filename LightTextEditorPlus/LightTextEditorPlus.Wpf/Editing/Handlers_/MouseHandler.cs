@@ -131,6 +131,18 @@ internal class MouseHandler
 
     private void TextEditor_MouseUp(object sender, MouseButtonEventArgs e)
     {
+        if (_isMouseDown)
+        {
+            if (_isHitSelection)
+            {
+                var position = e.GetPosition(TextEditor);
+                if (TextEditorCore.TryHitTest(position.ToPoint(), out var result))
+                {
+                    TextEditorCore.CurrentCaretOffset = result.HitCaretOffset;
+                }
+            }
+        }
+
         _isMouseDown = false;
         Mouse.Capture(TextEditor, CaptureMode.None);
     }
