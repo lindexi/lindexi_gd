@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
@@ -36,6 +37,48 @@ public class RenderInfoProvider
     /// <returns></returns>
     public IList<Rect> GetSelectionBoundsList(in Selection selection)
     {
+        var result = new List<Rect>();
+        LineLayoutData? currentLineLayoutData = null;
+        Rect currentBounds = default;
+        CharData? lastCharData = null;
+        foreach (var charData in TextEditor.DocumentManager.GetCharDataRange(selection))
+        {
+            if (ReferenceEquals(charData.CharObject, LineBreakCharObject.Instance))
+            {
+                // 这是换段了
+                continue;
+            }
+
+            var sameLine = currentLineLayoutData is not null && ReferenceEquals(charData.CharLayoutData?.CurrentLine, currentLineLayoutData);
+
+            if (sameLine)
+            {
+
+            }
+            else
+            {
+                if (currentLineLayoutData is not null)
+                {
+                    var lastBounds = lastCharData!.GetBounds();
+                    result.Add(currentBounds.Union(lastBounds));
+                }
+
+                currentLineLayoutData = charData.CharLayoutData?.CurrentLine;
+                currentBounds = charData.GetBounds();
+            }
+
+            lastCharData = charData;
+        }
+
+        if (lastCharData is not null)
+        {
+            var lastBounds = lastCharData!.GetBounds();
+            result.Add(currentBounds.Union(lastBounds));
+        }
+
+        return result;
+
+
         if (selection.IsEmpty)
         {
             return new Rect[0];
