@@ -412,6 +412,10 @@ namespace LightTextEditorPlus.Core.Document
             // 获取方法：
             // 1. 先获取命中到的首段，取首段的字符
             // 2. 如果首段不够，则获取后续段落，每个段落获取之前，都添加用来表示换行的字符
+            if (selection.IsEmpty)
+            {
+                return Enumerable.Empty<CharData>();
+            }
 
             var result = ParagraphManager.GetHitParagraphData(selection.FrontOffset);
             var remainingLength = selection.Length;
