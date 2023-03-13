@@ -159,6 +159,8 @@ internal class MouseHandler
         if (_isMouseDown)
         {
             // 被失焦了
+            _isMouseDown = false;
+            Mouse.Capture(TextEditor, CaptureMode.None);
         }
     }
 
