@@ -195,24 +195,12 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
         }
         else
         {
-            var caretStartRenderInfo = _renderInfoProvider.GetCaretRenderInfo(currentSelection.FrontOffset);
-
-            var caretEndRenderInfo = _renderInfoProvider.GetCaretRenderInfo(currentSelection.BehindOffset);
-
             using var drawingContext = RenderOpen();
 
-            // 先假定是 一行内 的选择
-            var startBounds = caretStartRenderInfo.CharData.GetBounds();
-            var endBounds = caretEndRenderInfo.CharData.GetBounds();
-
-            var selectionBounds = startBounds.Union(endBounds);
-
-            drawingContext.DrawRectangle(_textEditor.CaretConfiguration.SelectionBrush,null,new Rect(selectionBounds.X, selectionBounds.Y, selectionBounds.Width, selectionBounds.Height));
-
-            // todo
-            // 一行内
-            // 相邻行
-            // 跨多行
+            foreach (var rect in _renderInfoProvider.GetSelectionBoundsList(currentSelection))
+            {
+                drawingContext.DrawRectangle(_textEditor.CaretConfiguration.SelectionBrush, null, new Rect(rect.X, rect.Y, rect.Width, rect.Height));
+            }
         }
     }
 

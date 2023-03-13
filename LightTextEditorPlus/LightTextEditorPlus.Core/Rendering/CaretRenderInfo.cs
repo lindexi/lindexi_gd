@@ -2,6 +2,7 @@
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Primitive.Collections;
 
 namespace LightTextEditorPlus.Core.Rendering;
 
@@ -10,15 +11,14 @@ namespace LightTextEditorPlus.Core.Rendering;
 /// </summary>
 public readonly struct CaretRenderInfo
 {
-    internal CaretRenderInfo(int lineIndex, int hitLineOffset, CharData? charData, ParagraphData paragraphData, ParagraphCaretOffset hitOffset, CaretOffset caretOffset, Rect lineBounds)
+    internal CaretRenderInfo(int lineIndex, int hitLineOffset, CharData? charData, ParagraphCaretOffset hitOffset, CaretOffset caretOffset, LineLayoutData lineLayoutData)
     {
         LineIndex = lineIndex;
         HitLineOffset = hitLineOffset;
         CharData = charData;
-        ParagraphData = paragraphData;
         HitOffset = hitOffset;
         CaretOffset = caretOffset;
-        LineBounds = lineBounds;
+        LineLayoutData = lineLayoutData;
     }
 
     /// <summary>
@@ -27,9 +27,19 @@ public readonly struct CaretRenderInfo
     public int LineIndex { get; }
 
     /// <summary>
+    /// 段落在文档里属于第几段
+    /// </summary>
+    public int ParagraphIndex => ParagraphData.Index;
+
+    /// <summary>
+    /// 这一行的字符列表
+    /// </summary>
+    public ReadOnlyListSpan<CharData> LineCharDataList => LineLayoutData.GetCharList();
+
+    /// <summary>
     /// 行的范围
     /// </summary>
-    public Rect LineBounds { get; }
+    public Rect LineBounds => LineLayoutData.GetLineBounds();
 
     /// <summary>
     /// 命中到行的哪个字符
@@ -42,17 +52,35 @@ public readonly struct CaretRenderInfo
     public bool IsLineStart => CaretOffset.IsAtLineStart;
 
     /// <summary>
-    /// 命中的字符。如果是空段，那将没有命中哪个字符。对于在行首或段首的，那将命中在字符前面
+    /// 命中的字符。如果是空段，那将没有命中哪个字符。对于在行首或段首的，那将命中在光标前面的字符
     /// </summary>
     public CharData? CharData { get; }
+
+    /// <summary>
+    /// 获取在光标之后的字符。如果是空段，那就空
+    /// </summary>
+    /// <returns></returns>
+    public CharData? GetCharDataAfterCaretOffset()
+    {
+        if (CaretOffset.IsAtLineStart)
+        {
+            return CharData;
+        }
+
+        var hitCharOffset = new ParagraphCharOffset(HitOffset.Offset + 1);
+        var hitCharData = ParagraphData.GetCharData(hitCharOffset);
+        return hitCharData;
+    }
 
     /// <summary>
     /// 是否一个空段
     /// </summary>
     public bool IsEmptyParagraph => ParagraphData.CharCount == 0;
 
-    internal ParagraphData ParagraphData { get; }
+    internal ParagraphData ParagraphData => LineLayoutData.CurrentParagraph;
     internal ParagraphCaretOffset HitOffset { get; }
+
+    internal LineLayoutData LineLayoutData { get; }
 
     /// <summary>
     /// 光标偏移量

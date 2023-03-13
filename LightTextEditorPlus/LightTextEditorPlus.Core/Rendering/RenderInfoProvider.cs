@@ -4,7 +4,7 @@ using System.Diagnostics;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
-
+using LightTextEditorPlus.Core.Primitive;
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Rendering;
@@ -25,6 +25,44 @@ public class RenderInfoProvider
     /// 当前渲染信息是否脏的。如果是脏的就不能使用
     /// </summary>
     public bool IsDirty { internal set; get; }
+
+    public IList<Rect> GetSelectionBoundsList(in Selection selection)
+    {
+        if (selection.IsEmpty)
+        {
+            return new Rect[0];
+        }
+
+        // 一行内
+        // 相邻行
+        // 跨多行
+        var caretStartRenderInfo = GetCaretRenderInfo(selection.FrontOffset);
+
+        var caretEndRenderInfo = GetCaretRenderInfo(selection.BehindOffset);
+
+        // 是否单行
+        if (ReferenceEquals(caretStartRenderInfo.LineLayoutData, caretEndRenderInfo.LineLayoutData))
+        {
+            Rect startBounds;
+            if (caretStartRenderInfo.CaretOffset.IsAtLineStart)
+            {
+                startBounds = caretStartRenderInfo.CharData!.GetBounds();
+            }
+            else
+            {
+                // 首个是在光标之后
+                var hitCharData = caretStartRenderInfo.GetCharDataAfterCaretOffset()!;
+                startBounds = hitCharData.GetBounds();
+            }
+
+            var endBounds = caretEndRenderInfo.CharData!.GetBounds();
+
+            var bounds = startBounds.Union(endBounds);
+            return new Rect[] { bounds };
+        }
+
+        throw new NotSupportedException();
+    }
 
     /// <summary>
     /// 获取给定光标坐标的光标渲染信息
@@ -71,15 +109,15 @@ public class RenderInfoProvider
                     // 如果遇到空行，那应该只有是空段才能创建空行
                     Debug.Assert(paragraphData.CharCount==0, "只有空段才能创建空行");
                     Debug.Assert(hitLineOffset == 0, "对于一个空行，难道还能计算出多个字符");
-                    return new CaretRenderInfo(lineIndex, hitLineOffset, null, paragraphData, hitOffset, caretOffset,
-                        lineLayoutData.GetLineBounds());
+                    return new CaretRenderInfo(lineIndex, hitLineOffset, null, hitOffset, caretOffset,
+                        lineLayoutData);
                 }
                 else
                 {
                     var charData = lineLayoutData.GetCharList()[hitLineOffset];
 
                     // 预期是能找到的，如果找不到，那就是炸
-                    return new CaretRenderInfo(lineIndex, hitLineOffset, charData, paragraphData, hitOffset, caretOffset, lineLayoutData.GetLineBounds());
+                    return new CaretRenderInfo(lineIndex, hitLineOffset, charData, hitOffset, caretOffset, lineLayoutData);
                 }
             }
         }
