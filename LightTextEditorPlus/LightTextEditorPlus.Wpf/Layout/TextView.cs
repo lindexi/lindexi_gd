@@ -13,6 +13,7 @@ namespace LightTextEditorPlus.Layout;
 /// <summary>
 /// 视觉呈现容器
 /// </summary>
+/// 包括了文本本身和叠加的选择和光标等。由于文本字符渲染本身属于重点核心逻辑，就放在这个类型里面，减少 Visual 数量
 class TextView : UIElement, IRenderManager
 {
     static TextView()

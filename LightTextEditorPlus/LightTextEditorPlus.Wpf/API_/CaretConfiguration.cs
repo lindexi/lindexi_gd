@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows;
 using System.Windows.Media;
 using LightTextEditorPlus.Utils;
 
@@ -47,4 +48,25 @@ public class CaretConfiguration
         set;
         get;
     }
+
+    /// <summary>
+    /// 选择的画刷，默认是 SystemColors.HighlightColor 颜色
+    /// </summary>
+    public Brush SelectionBrush
+    {
+        set => _selectionBrush = value;
+        get
+        {
+            if (_selectionBrush is null)
+            {
+                var brush = new SolidColorBrush(SystemColors.HighlightColor) { Opacity = 0.5 };
+                brush.Freeze();
+                _selectionBrush = brush;
+            }
+            
+            return _selectionBrush;
+        }
+    }
+
+    private Brush? _selectionBrush;
 }
