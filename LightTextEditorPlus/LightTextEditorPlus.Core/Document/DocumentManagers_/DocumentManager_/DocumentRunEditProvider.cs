@@ -87,7 +87,7 @@ internal class DocumentRunEditProvider
 
         if (runList is not null)
         {
-            InsertInner(selection.StartOffset, runList, styleRunProperty);
+            InsertInner(selection.FrontOffset, runList, styleRunProperty);
         }
         else
         {
