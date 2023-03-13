@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Utils;
 using Point = System.Windows.Point;
 
@@ -69,7 +70,7 @@ internal class MouseHandler
                 TextEditor.TextEditorPlatformProvider.EnsureLayoutUpdated();
                 if (TextEditorCore.TryHitTest(position.ToPoint(), out var result))
                 {
-                    _isHitSelection = TextEditorCore.CurrentSelection.Contains(result.HitCaretOffset);
+                    _isHitSelection = !TextEditorCore.CurrentSelection.IsEmpty && TextEditorCore.CurrentSelection.Contains(result.HitCaretOffset);
 
                     if (!_isHitSelection)
                     {
@@ -95,7 +96,32 @@ internal class MouseHandler
     {
         if (_isMouseDown)
         {
+            if (_isHitSelection)
+            {
+                // todo HandleDragText(); 拖拽文本支持
+            }
+            else
+            {
+                //拖拽选择
+                // HandleDragSelect
+                if (_inputGesture.ClickCount % 2 == 0)
+                {
+                    // 双击不处理拖动
+                    return;
+                }
 
+                var startOffset = TextEditorCore.CurrentSelection.StartOffset;
+                var position = e.GetPosition(TextEditor);
+                if (TextEditorCore.TryHitTest(position.ToPoint(), out var result))
+                {
+                    var endOffset = result.HitCaretOffset;
+                    TextEditorCore.CurrentSelection = new Selection(startOffset, endOffset);
+                }
+                else
+                {
+                    Debug.Fail("理论上一定能命中成功");
+                }
+            }
         }
         else
         {
