@@ -34,7 +34,6 @@ public class RenderInfoProvider
     /// </summary>
     /// <param name="selection"></param>
     /// <returns></returns>
-    /// <exception cref="NotSupportedException"></exception>
     public IList<Rect> GetSelectionBoundsList(in Selection selection)
     {
         if (selection.IsEmpty)
