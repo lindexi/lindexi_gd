@@ -86,6 +86,10 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         //this.Focusable = true;
     }
 
+    protected override void OnTextInput(TextCompositionEventArgs e)
+    {
+        base.OnTextInput(e);
+    }
     //private void TextEditor_Loaded1(object sender, RoutedEventArgs e)
     //{
     //    Focus();
