@@ -86,6 +86,26 @@ namespace LightTextEditorPlus.Core.Document
             StyleRunProperty = styleRunProperty;
         }
 
+        /// <summary>
+        /// 属性继承的深度
+        /// </summary>
+        public int InheritDeepCount
+        {
+            get
+            {
+                var currentStyle = StyleRunProperty;
+                var count = 0;
+                while (currentStyle is not null)
+                {
+                    currentStyle = currentStyle.StyleRunProperty;
+
+                    count++;
+                }
+
+                return count;
+            }
+        }
+
         /// <inheritdoc />
         public double FontSize
         {
