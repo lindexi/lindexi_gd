@@ -58,7 +58,7 @@ public class RenderInfoProvider
 
             if (sameLine)
             {
-
+                // 在相同的一行里面，先不加入计算
             }
             else
             {
