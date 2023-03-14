@@ -6,7 +6,7 @@ namespace LightTextEditorPlus.Core.Utils.Patterns;
 /// 正则表达式静态管理类
 /// </summary>
 /// todo 改名为 TextPatterns 类
-static class RegexPatterns
+public static class RegexPatterns
 {
     /// <summary>
     /// 藏文
@@ -172,14 +172,14 @@ static class RegexPatterns
     /// </summary>
     public const string Ascii = "[\x00-\xff]";
 
-    public static readonly AsciiPattern AsciiPattern = new AsciiPattern();
+    internal static readonly AsciiPattern AsciiPattern = new AsciiPattern();
 
     /// <summary>
     /// 英文字符
     /// </summary>
     public const string Letters = "[a-zA-Z]";
 
-    public static readonly LetterPattern LetterPattern = new LetterPattern();
+    internal static readonly LetterPattern LetterPattern = new LetterPattern();
 
     /// <summary>
     /// 小写字符

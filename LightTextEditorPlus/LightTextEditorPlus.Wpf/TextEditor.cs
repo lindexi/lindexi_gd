@@ -26,6 +26,7 @@ using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils;
+using LightTextEditorPlus.Core.Utils.Patterns;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Editing;
 using LightTextEditorPlus.Layout;
@@ -46,6 +47,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 {
     static TextEditor()
     {
+        // 设置此控件可获取焦点。只有获取焦点才能收到键盘输入法的输入内容
         FocusableProperty.OverrideMetadata(typeof(TextEditor), new UIPropertyMetadata(true));
     }
 
@@ -80,11 +82,6 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
         // 挂上 IME 输入法的支持
         _ = new IMESupporter<TextEditor>(this);
-    }
-
-    protected override void OnTextInput(TextCompositionEventArgs e)
-    {
-        base.OnTextInput(e);
     }
 
     #region 公开属性
@@ -273,6 +270,59 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         var caretBounds = caretRenderInfo.GetCaretBounds(2);
         return caretBounds.ToWpfRect().TopLeft;
     }
+
+    protected override void OnTextInput(TextCompositionEventArgs e)
+    {
+       base.OnTextInput(e);
+
+       if (e.Handled)
+       {
+           return;
+       }
+
+        //TextInputManager
+        PerformTextInput(e);
+
+       e.Handled = true;
+    }
+
+    private void PerformTextInput(TextCompositionEventArgs e)
+    {
+        if (e.Handled ||
+            string.IsNullOrEmpty(e.Text) ||
+            e.Text == "\x1b" ||
+            e.Text == "\b" ||
+            //emoji包围符
+            e.Text == "\ufe0f")
+            return;
+
+        //如果是由两个Unicode码组成的Emoji的其中一个Unicode码，则等待第二个Unicode码的输入后合并成一个字符串作为一个字符插入
+        if (RegexPatterns.Utf16SurrogatesPattern.ContainInRange(e.Text))
+        {
+            if (string.IsNullOrEmpty(_emojiCache))
+            {
+                _emojiCache += e.Text;
+            }
+            else
+            {
+                _emojiCache += e.Text;
+                TextEditorCore.EditAndReplace(_emojiCache);
+                _emojiCache = string.Empty;
+            }
+        }
+        else
+        {
+            _emojiCache = string.Empty;
+            TextEditorCore.EditAndReplace(e.Text);
+        }
+    }
+
+    /// <summary>
+    /// 如果是由两个Unicode码组成的Emoji的其中一个Unicode码，则等待第二个Unicode码的输入后合并成一个字符串作为一个字符插入
+    /// 用于接收第一个字符
+    /// </summary>
+    // ReSharper disable once IdentifierTypo
+    private string _emojiCache = string.Empty;
     #endregion
 }
 
