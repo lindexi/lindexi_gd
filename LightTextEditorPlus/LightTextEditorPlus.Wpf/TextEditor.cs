@@ -80,21 +80,12 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
         // 挂上 IME 输入法的支持
         _ = new IMESupporter<TextEditor>(this);
-
-        //Loaded += TextEditor_Loaded1;
-
-        //this.Focusable = true;
     }
 
     protected override void OnTextInput(TextCompositionEventArgs e)
     {
         base.OnTextInput(e);
     }
-    //private void TextEditor_Loaded1(object sender, RoutedEventArgs e)
-    //{
-    //    Focus();
-    //    Keyboard.Focus(this);
-    //}
 
     #region 公开属性
 
