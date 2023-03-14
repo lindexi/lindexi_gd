@@ -180,7 +180,7 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
 
         if (other is RunProperty otherRunProperty)
         {
-            return base.Equals(other) && Equals(otherRunProperty);
+            return Equals(otherRunProperty);
         }
         else
         {
@@ -196,7 +196,11 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
         }
 
         // 按照用户可能修改的属性排序，被设置越多的属性放在最前面
-        
+        if (!base.Equals(other))
+        {
+            return false;
+        }
+
         if (!Equals(Foreground, other.Foreground))
         {
             return false;
