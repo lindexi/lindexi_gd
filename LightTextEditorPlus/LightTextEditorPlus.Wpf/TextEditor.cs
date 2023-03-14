@@ -44,6 +44,11 @@ namespace LightTextEditorPlus;
 
 public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEditor
 {
+    static TextEditor()
+    {
+        FocusableProperty.OverrideMetadata(typeof(TextEditor), new UIPropertyMetadata(true));
+    }
+
     public TextEditor()
     {
         #region 清晰文本
@@ -72,7 +77,20 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         AddLogicalChild(TextView);
 
         MouseHandler = new MouseHandler(this);
+
+        // 挂上 IME 输入法的支持
+        _ = new IMESupporter<TextEditor>(this);
+
+        //Loaded += TextEditor_Loaded1;
+
+        //this.Focusable = true;
     }
+
+    //private void TextEditor_Loaded1(object sender, RoutedEventArgs e)
+    //{
+    //    Focus();
+    //    Keyboard.Focus(this);
+    //}
 
     #region 公开属性
 
