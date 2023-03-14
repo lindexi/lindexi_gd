@@ -48,7 +48,7 @@ class RunPropertyPlatformManager
                 renderingFontFamily = fallbackFontFamily;
             }
             // 找不到字体，需要进行回滚
-            else if (TryGetFallbackFontInfoByWpf(typeface, unicodeChar, out fallbackGlyph, out fallbackFontFamily))
+            else if (TryGetFallbackFontInfoByWpf(runProperty, unicodeChar, out fallbackGlyph, out fallbackFontFamily))
             {
                 glyphTypeface = fallbackGlyph;
                 renderingFontFamily = fallbackFontFamily;
@@ -67,7 +67,7 @@ class RunPropertyPlatformManager
         return new RenderingFontInfo(glyphTypeface, renderingFontFamily);
     }
 
-    private static bool TryGetFallbackFontInfoByCustom(RunProperty runProperty, Typeface typeface,
+    public static bool TryGetFallbackFontInfoByCustom(RunProperty runProperty, Typeface typeface,
         [NotNullWhen(true)] out GlyphTypeface? glyphTypeface, [NotNullWhen(true)] out FontFamily? fallbackFontFamily)
     {
         var fallbackFontName =
@@ -86,14 +86,14 @@ class RunPropertyPlatformManager
         return fallbackTypeface.TryGetGlyphTypeface(out glyphTypeface);
     }
 
-    private bool TryGetFallbackFontInfoByWpf(Typeface typeface, char unicodeChar,
+    public bool TryGetFallbackFontInfoByWpf(RunProperty runProperty, char unicodeChar,
         [NotNullWhen(true)] out GlyphTypeface? glyphTypeface, [NotNullWhen(true)] out FontFamily? fallbackFontFamily)
     {
         if (FallBackFontFamily.TryGetFallBackFontFamily(unicodeChar, out var familyName))
         {
             fallbackFontFamily = new FontFamily(familyName);
-            var fallbackTypeface = new Typeface(fallbackFontFamily, typeface.Style, typeface.Weight,
-                typeface.Stretch);
+            var fallbackTypeface = new Typeface(fallbackFontFamily, runProperty.FontStyle, runProperty.FontWeight,
+                runProperty.Stretch);
 
             return fallbackTypeface.TryGetGlyphTypeface(out glyphTypeface);
         }
@@ -103,5 +103,5 @@ class RunPropertyPlatformManager
         return false;
     }
 
-    private FallBackFontFamily FallBackFontFamily { get; } = new FallBackFontFamily(CultureInfo.CurrentUICulture);
+    internal FallBackFontFamily FallBackFontFamily { get; } = new FallBackFontFamily(CultureInfo.CurrentUICulture);
 }

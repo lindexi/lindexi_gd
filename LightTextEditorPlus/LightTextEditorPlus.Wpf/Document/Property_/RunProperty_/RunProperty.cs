@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
@@ -102,7 +103,7 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
     public FontStyle FontStyle
     {
         set => _fontStyle = value;
-        get=> _fontStyle ?? StyleRunProperty?.FontStyle ?? DefaultFontStyle;
+        get => _fontStyle ?? StyleRunProperty?.FontStyle ?? DefaultFontStyle;
     }
 
     private FontStyle? _fontStyle;
@@ -120,6 +121,41 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
     /// 继承样式里的属性
     /// </summary>
     private RunProperty? StyleRunProperty { get; }
+
+    /// <summary>
+    /// 缓存的回滚字体
+    /// </summary>
+    /// 对于一个字体，如果给定的文本不是当前字体能支持的，一般来说都会存在多个文本都有此问题。于是缓存起来，可以重复使用，减少回滚次数
+    private GlyphTypeface? _cacheFallbackGlyphTypeface;
+
+    public bool TryGetFallbackGlyphTypeface(char c,[NotNullWhen(true)] out GlyphTypeface? glyphTypeface,out ushort glyphIndex)
+    {
+        if (_cacheFallbackGlyphTypeface is not null)
+        {
+            if (_cacheFallbackGlyphTypeface.CharacterToGlyphMap.TryGetValue(c, out var index))
+            {
+                // 命中缓存
+                glyphTypeface = _cacheFallbackGlyphTypeface;
+                glyphIndex = index;
+                return true;
+            }
+        }
+
+        if (RunPropertyPlatformManager.TryGetFallbackFontInfoByWpf(this, c, out var result, out _))
+        {
+            if (result.CharacterToGlyphMap.TryGetValue(c,out var index))
+            {
+                glyphTypeface = result;
+                glyphIndex = index;
+                _cacheFallbackGlyphTypeface = glyphTypeface;
+                return true;
+            }
+        }
+
+        glyphTypeface = null;
+        glyphIndex = 0;
+        return false;
+    }
 
     /// <summary>
     /// 获取渲染使用的字体
@@ -172,8 +208,8 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
 
     public override bool Equals(object? obj)
     {
-        if(obj is null) return false;
-        if(ReferenceEquals(this,obj)) return true;
+        if (obj is null) return false;
+        if (ReferenceEquals(this, obj)) return true;
         if (obj is RunProperty runProperty)
         {
             return Equals(runProperty);
@@ -272,7 +308,7 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
         {
             FontName = FontName,
             FontSize = FontSize,
-            Foreground= Foreground,
+            Foreground = Foreground,
             Opacity = Opacity,
             FontWeight = FontWeight,
             FontStyle = FontStyle,

@@ -463,11 +463,22 @@ class CharInfoMeasurer : ICharInfoMeasurer
 
             (double width, double height) MeasureChar(char c)
             {
-                var glyphIndex = glyphTypeface.CharacterToGlyphMap[c];
+                var currentGlyphTypeface = glyphTypeface;
+                if (!currentGlyphTypeface.CharacterToGlyphMap.TryGetValue(c,out var glyphIndex))
+                {
+                    // 居然给定的字体找不到，也就是给定的字符不在当前的字体包含范围里面
+                    if (!runProperty.TryGetFallbackGlyphTypeface(c, out currentGlyphTypeface, out glyphIndex))
+                    {
+                        // 如果连回滚的都没有，那就返回默认方块空格
+                        return (fontSize, fontSize);
+                    }
+                }
 
-                var width = glyphTypeface.AdvanceWidths[glyphIndex] * fontSize;
+                //var glyphIndex = glyphTypeface.CharacterToGlyphMap[c];
+
+                var width = currentGlyphTypeface.AdvanceWidths[glyphIndex] * fontSize;
                 width = GlyphExtension.RefineValue(width);
-                var height = glyphTypeface.AdvanceHeights[glyphIndex] * fontSize;
+                var height = currentGlyphTypeface.AdvanceHeights[glyphIndex] * fontSize;
 
                 //var pixelsPerDip = (float) VisualTreeHelper.GetDpi(_textEditor).PixelsPerDip;
                 //var glyphIndices = new[] { glyphIndex };
