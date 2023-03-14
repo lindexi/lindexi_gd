@@ -16,6 +16,25 @@ namespace LightTextEditorPlus.Tests.Document;
 public class RunPropertyTests
 {
     [UIContractTestCase]
+    public void EqualsBackground()
+    {
+        "两个 RunProperty 的 Background 不相同，则判断相等结果为不相等".Test(() =>
+        {
+            // Arrange
+            // Action
+            var runProperty1 = CreateRunProperty(property => property.Background = new ImmutableBrush(Brushes.AliceBlue));
+            var runProperty2 = CreateRunProperty(property => property.Background = new ImmutableBrush(Brushes.AntiqueWhite));
+
+            // Assert
+            Assert.AreNotEqual(runProperty1, runProperty2);
+
+            var flattenRunProperty = runProperty1.ToFlattenRunProperty();
+            Assert.AreEqual(runProperty1, flattenRunProperty);
+            Assert.AreNotEqual(runProperty2, flattenRunProperty);
+        });
+    }
+
+    [UIContractTestCase]
     public void EqualsStretch()
     {
         "两个 RunProperty 的 Stretch 不相同，则判断相等结果为不相等".Test(() =>

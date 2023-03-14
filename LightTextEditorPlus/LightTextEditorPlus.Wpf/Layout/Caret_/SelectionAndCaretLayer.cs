@@ -143,54 +143,15 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
 
                 // 获取光标的坐标
                 var caretRenderInfo = _renderInfoProvider.GetCaretRenderInfo(currentSelection.FrontOffset);
-                var charData = caretRenderInfo.CharData;
-                var startPoint = charData?.GetStartPoint() ?? caretRenderInfo.LineBounds.LeftTop;
-                Size size;
-                if (charData?.Size is not null)
-                {
-                    size = charData.Size.Value;
-                }
-                else
-                {
-                    size = caretRenderInfo.LineBounds.Size;
-                }
 
-                switch (_textEditor.TextEditorCore.ArrangingType)
+                var foreground = _textEditor.CaretConfiguration.CaretBrush ??
+                                 _textEditor.CurrentCaretRunProperty.Foreground.Value;
+
+                var rectangle = caretRenderInfo.GetCaretBounds(_textEditor.CaretConfiguration.CaretWidth).ToWpfRect();
+                var drawingContext = RenderOpen();
+                using (drawingContext)
                 {
-                    case ArrangingType.Horizontal:
-                        var (x, y) = startPoint;
-                        // 可以获取到起始点，那肯定存在尺寸
-                        if (caretRenderInfo.IsLineStart)
-                        {
-                            // 如果命中到行的开始，那就是首个字符之前，不能加上字符的尺寸
-                        }
-                        else
-                        {
-                            x += size.Width;
-                        }
-                        var width = _textEditor.CaretConfiguration.CaretWidth;
-                        var height =
-                            LineSpacingCalculator.CalculateLineHeightWithLineSpacing(_textEditor.TextEditorCore,
-                                _textEditor.CurrentCaretRunProperty, 1);
-                        y += size.Height - height;
-                        var foreground = _textEditor.CaretConfiguration.CaretBrush ??
-                                         _textEditor.CurrentCaretRunProperty.Foreground.Value;
-
-                        var rectangle = new Rect(x, y, width, height);
-                        var drawingContext = RenderOpen();
-                        using (drawingContext)
-                        {
-                            drawingContext.DrawRectangle(foreground, null, rectangle);
-                        }
-
-                        break;
-                    case ArrangingType.Vertical:
-                        break;
-                    case ArrangingType.Mongolian:
-                        // todo 实现竖排的光标显示
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
+                    drawingContext.DrawRectangle(foreground, null, rectangle);
                 }
             }
 

@@ -1,6 +1,8 @@
-﻿using LightTextEditorPlus.Core.Carets;
+﻿using System;
+using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
+using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 
@@ -11,14 +13,17 @@ namespace LightTextEditorPlus.Core.Rendering;
 /// </summary>
 public readonly struct CaretRenderInfo
 {
-    internal CaretRenderInfo(int lineIndex, int hitLineOffset, ParagraphCaretOffset hitOffset, CaretOffset caretOffset, LineLayoutData lineLayoutData)
+    internal CaretRenderInfo(TextEditorCore textEditor,int lineIndex, int hitLineOffset, ParagraphCaretOffset hitOffset, CaretOffset caretOffset, LineLayoutData lineLayoutData)
     {
+        TextEditor = textEditor;
         LineIndex = lineIndex;
         HitLineOffset = hitLineOffset;
         HitOffset = hitOffset;
         CaretOffset = caretOffset;
         LineLayoutData = lineLayoutData;
     }
+
+    public TextEditorCore TextEditor { get; }
 
     /// <summary>
     /// 行在段落里的序号
@@ -98,4 +103,57 @@ public readonly struct CaretRenderInfo
     /// 光标偏移量
     /// </summary>
     public CaretOffset CaretOffset { get; }
+
+    /// <summary>
+    /// 获取光标的范围
+    /// </summary>
+    /// <param name="caretWidth"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    /// <exception cref="NotImplementedException"></exception>
+    public Rect GetCaretBounds(double caretWidth)
+    {
+        var charData = CharData;
+        var startPoint = charData?.GetStartPoint() ?? LineBounds.LeftTop;
+        Size size;
+        if (charData?.Size is not null)
+        {
+            size = charData.Size.Value;
+        }
+        else
+        {
+            size = LineBounds.Size;
+        }
+
+        switch (TextEditor.ArrangingType)
+        {
+            case ArrangingType.Horizontal:
+                var (x, y) = startPoint;
+                // 可以获取到起始点，那肯定存在尺寸
+                if (IsLineStart)
+                {
+                    // 如果命中到行的开始，那就是首个字符之前，不能加上字符的尺寸
+                }
+                else
+                {
+                    x += size.Width;
+                }
+                var width = caretWidth;
+                var height =
+                    LineSpacingCalculator.CalculateLineHeightWithLineSpacing(TextEditor,
+                        TextEditor.DocumentManager.CurrentCaretRunProperty, 1);
+                y += size.Height - height;
+                var rectangle = new Rect(x, y, width, height);
+                return rectangle;
+                break;
+            case ArrangingType.Vertical:
+                break;
+            case ArrangingType.Mongolian:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+
+        throw new NotImplementedException();
+    }
 }

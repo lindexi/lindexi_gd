@@ -42,7 +42,7 @@ using Size = LightTextEditorPlus.Core.Primitive.Size;
 
 namespace LightTextEditorPlus;
 
-public partial class TextEditor : FrameworkElement, IRenderManager
+public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEditor
 {
     public TextEditor()
     {
@@ -232,6 +232,34 @@ public partial class TextEditor : FrameworkElement, IRenderManager
 
     #endregion
 
+    #endregion
+
+
+    #region IME 支持
+
+    string IIMETextEditor.GetFontFamilyName()
+    {
+        return CurrentCaretRunProperty.FontName.UserFontName;
+    }
+
+    int IIMETextEditor.GetFontSize()
+    {
+        return (int) Math.Round(CurrentCaretRunProperty.FontSize);
+    }
+
+    System.Windows.Point IIMETextEditor.GetTextEditorLeftTop()
+    {
+        return new System.Windows.Point();
+    }
+
+    System.Windows.Point IIMETextEditor.GetCaretLeftTop()
+    {
+        TextEditorPlatformProvider.EnsureLayoutUpdated();
+        var renderInfoProvider = TextEditorCore.GetRenderInfo();
+        var caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(CurrentCaretOffset);
+        var caretBounds = caretRenderInfo.GetCaretBounds(2);
+        return caretBounds.ToWpfRect().TopLeft;
+    }
     #endregion
 }
 
