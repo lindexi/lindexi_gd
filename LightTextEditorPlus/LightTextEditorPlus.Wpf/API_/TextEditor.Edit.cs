@@ -26,14 +26,25 @@ public partial class TextEditor
                 return;
             }
 
+            EnsureEditInit();
+
             Logger.LogDebug(value ? "进入用户编辑模式" : "退出用户编辑模式");
 
             _isInEditingInputMode = value;
+
+            if (value)
+            {
+                Focus();
+            }
+
+            IsInEditingInputModeChanged?.Invoke(this, EventArgs.Empty);
         }
         get => _isInEditingInputMode;
     }
 
-    private bool _isInEditingInputMode = true;
+    private bool _isInEditingInputMode = false;
+
+    public event EventHandler? IsInEditingInputModeChanged;
 
     #endregion
 

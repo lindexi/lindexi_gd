@@ -153,7 +153,10 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
     private void TextEditor_Loaded(object sender, RoutedEventArgs e)
     {
-        EnsureEditInit();
+        if (IsInEditingInputMode)
+        {
+            Focus();
+        }
     }
 
     protected override void OnGotFocus(RoutedEventArgs e)
@@ -246,6 +249,22 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
 
     #region IME 支持
+
+    protected override void OnGotKeyboardFocus(KeyboardFocusChangedEventArgs e)
+    {
+        Logger.LogDebug($"[TextEditor] GotKeyboardFocus 获取键盘焦点");
+        IsInEditingInputMode = true;
+
+        base.OnGotKeyboardFocus(e);
+    }
+
+    protected override void OnLostKeyboardFocus(KeyboardFocusChangedEventArgs e)
+    {
+        Logger.LogDebug($"[TextEditor] LostKeyboardFocus");
+        IsInEditingInputMode = false;
+
+        base.OnLostKeyboardFocus(e);
+    }
 
     string IIMETextEditor.GetFontFamilyName()
     {

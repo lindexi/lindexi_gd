@@ -35,6 +35,14 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
 
             StartBlink();
         };
+
+        textEditor.IsInEditingInputModeChanged += (sender, args) =>
+        {
+            if (_textEditor.IsInEditingInputMode)
+            {
+                StartBlink();
+            }
+        };
     }
 
     private readonly TextEditor _textEditor;
@@ -116,7 +124,7 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
             return;
         }
 
-        if (_textEditor.TextEditorCore.IsDirty || _renderInfoProvider is null)
+        if (_textEditor.TextEditorCore.IsDirty)
         {
             // 如果布局还没完成，那就啥也不用干，直接隐藏光标即可
             if (_isBlinkShown)
@@ -126,6 +134,11 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
             }
 
             return;
+        }
+
+        if (_renderInfoProvider is null)
+        {
+            _renderInfoProvider = _textEditor.TextEditorCore.GetRenderInfo();
         }
 
         var currentSelection = _textEditor.TextEditorCore.CurrentSelection;
