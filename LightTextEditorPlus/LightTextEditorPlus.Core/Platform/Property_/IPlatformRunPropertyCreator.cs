@@ -1,5 +1,4 @@
 ﻿using LightTextEditorPlus.Core.Document;
-
 using System;
 
 namespace LightTextEditorPlus.Core.Platform;
@@ -13,7 +12,7 @@ public interface IPlatformRunPropertyCreator
     /// 基于原有的只读属性创建出新的字符属性
     /// </summary>
     /// <returns></returns>
-    IReadOnlyRunProperty BuildNewProperty(Action<IReadOnlyRunProperty> config,IReadOnlyRunProperty baseRunProperty);
+    IReadOnlyRunProperty BuildNewProperty(Action<IReadOnlyRunProperty> config, IReadOnlyRunProperty baseRunProperty);
 
     /// <summary>
     /// 获取默认的字符属性
@@ -31,13 +30,13 @@ public abstract class PlatformRunPropertyCreatorBase<T> : IPlatformRunPropertyCr
     where T : IReadOnlyRunProperty
 {
     /// <inheritdoc />
-    public IReadOnlyRunProperty BuildNewProperty(Action<IReadOnlyRunProperty> config, IReadOnlyRunProperty baseRunProperty)
+    public IReadOnlyRunProperty BuildNewProperty(Action<IReadOnlyRunProperty> config,
+        IReadOnlyRunProperty baseRunProperty)
     {
-        return OnBuildNewProperty(config, (T) baseRunProperty);
+        return OnBuildNewProperty(config, (T)baseRunProperty);
     }
 
     /// <inheritdoc cref="BuildNewProperty"/>
-
     protected abstract T OnBuildNewProperty(Action<IReadOnlyRunProperty> config, T baseRunProperty);
 
     /// <inheritdoc />
@@ -56,7 +55,8 @@ public abstract class PlatformRunPropertyCreatorBase<T> : IPlatformRunPropertyCr
 public class DefaultPlatformRunPropertyCreator : PlatformRunPropertyCreatorBase<LayoutOnlyRunProperty>
 {
     /// <inheritdoc />
-    protected override LayoutOnlyRunProperty OnBuildNewProperty(Action<IReadOnlyRunProperty> config, LayoutOnlyRunProperty baseRunProperty)
+    protected override LayoutOnlyRunProperty OnBuildNewProperty(Action<IReadOnlyRunProperty> config,
+        LayoutOnlyRunProperty baseRunProperty)
     {
         var runProperty = new LayoutOnlyRunProperty(baseRunProperty);
         config(runProperty);

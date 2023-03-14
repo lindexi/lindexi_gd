@@ -40,7 +40,7 @@ namespace LightTextEditorPlus.Core;
 ///
 /// 支持段落项目符号，支持自定义扩展项目符号属性设置，通过文本属性系统给项目符号进行业务方定义
 ///
-/// 支持光标系统，支持选择模块，支持注入光标渲染实现
+/// 支持光标系统，支持选择模块，支持业务端实现光标渲染
 ///
 /// 支持事件系统，支持日志注入和埋点支持
 ///
@@ -61,9 +61,6 @@ namespace LightTextEditorPlus.Core;
 /// - <see cref="LayoutCompleted"/>
 /// - 触发平台渲染
 /// todo 光标系统
-/// todo 鼠标命中字符
-/// todo 选择模块
-/// todo 选择效果视觉反馈
 /// todo 下划线模块
 /// todo 项目符号
 /// todo 上下标

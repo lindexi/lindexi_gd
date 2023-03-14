@@ -170,6 +170,18 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
 
     #region 相等判断
 
+    public override bool Equals(object? obj)
+    {
+        if(obj is null) return false;
+        if(ReferenceEquals(this,obj)) return true;
+        if (obj is RunProperty runProperty)
+        {
+            return Equals(runProperty);
+        }
+
+        return false;
+    }
+
     public override bool Equals(IReadOnlyRunProperty? other)
     {
         if (ReferenceEquals(other, this))
@@ -186,6 +198,20 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
         {
             return false;
         }
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = new HashCode();
+        hashCode.Add(FontName);
+        hashCode.Add(FontSize);
+        hashCode.Add(Foreground);
+        hashCode.Add(Opacity);
+        hashCode.Add(FontWeight);
+        hashCode.Add(FontStyle);
+        hashCode.Add(Stretch);
+        hashCode.Add(Background);
+        return hashCode.ToHashCode();
     }
 
     public bool Equals(RunProperty? other)
@@ -235,4 +261,25 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
     }
 
     #endregion
+
+    /// <summary>
+    /// 去掉继承的字符属性
+    /// </summary>
+    /// <returns></returns>
+    public RunProperty ToFlattenRunProperty()
+    {
+        var runProperty = new RunProperty(RunPropertyPlatformManager, styleRunProperty: null)
+        {
+            FontName = FontName,
+            FontSize = FontSize,
+            Foreground= Foreground,
+            Opacity = Opacity,
+            FontWeight = FontWeight,
+            FontStyle = FontStyle,
+            Stretch = Stretch,
+            Background = Background,
+        };
+
+        return runProperty;
+    }
 }

@@ -21,6 +21,10 @@ class RunPropertyCreator : PlatformRunPropertyCreatorBase<RunProperty>
     {
         var runProperty = new RunProperty(_runPropertyPlatformManager, baseRunProperty);
         config(runProperty);
+        if (runProperty.InheritDeepCount > 10)
+        {
+            return runProperty.ToFlattenRunProperty();
+        }
         return runProperty;
     }
 
