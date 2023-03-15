@@ -3,12 +3,9 @@ using System.Diagnostics;
 using System.Windows.Media;
 using System.Windows.Threading;
 
-using LightTextEditorPlus.Core.Layout;
-using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Utils;
-
-using Rect = System.Windows.Rect;
 
 namespace LightTextEditorPlus.Layout;
 
@@ -28,12 +25,31 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
                 _isBlinkShown = false;
             }
 
-            if (!_textEditor.IsInEditingInputMode)
+            if (!_textEditor.IsInEditingInputMode || !_textEditor.TextEditorCore.CurrentSelection.IsEmpty)
             {
                 return;
             }
 
             StartBlink();
+        };
+
+        textEditor.TextEditorCore.CurrentSelectionChanged += (sender, args) =>
+        {
+            var currentSelection = _textEditor.TextEditorCore.CurrentSelection;
+
+            if (currentSelection.IsEmpty)
+            {
+                // 回到光标闪烁
+                if (!_textEditor.IsInEditingInputMode)
+                {
+                    StartBlink();
+                }
+            }
+            else
+            {
+                ShowSelection(_textEditor.TextEditorCore.CurrentSelection);
+                _caretBlinkTimer?.Stop();
+            }
         };
 
         textEditor.IsInEditingInputModeChanged += (sender, args) =>
@@ -136,11 +152,6 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
             return;
         }
 
-        if (_renderInfoProvider is null)
-        {
-            _renderInfoProvider = _textEditor.TextEditorCore.GetRenderInfo();
-        }
-
         var currentSelection = _textEditor.TextEditorCore.CurrentSelection;
         if (currentSelection.IsEmpty)
         {
@@ -153,6 +164,11 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
             {
                 // 由于判断了 _textEditor.TextEditorCore.IsDirty 因此不需要再等待布局完成
                 //await _textEditor.TextEditorCore.WaitLayoutCompletedAsync();
+
+                if (_renderInfoProvider is null)
+                {
+                    _renderInfoProvider = _textEditor.TextEditorCore.GetRenderInfo();
+                }
 
                 // 获取光标的坐标
                 var caretRenderInfo = _renderInfoProvider.GetCaretRenderInfo(currentSelection.FrontOffset);
@@ -172,14 +188,24 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
         }
         else
         {
-            using var drawingContext = RenderOpen();
-
-            foreach (var rect in _renderInfoProvider.GetSelectionBoundsList(currentSelection))
-            {
-                drawingContext.DrawRectangle(_textEditor.CaretConfiguration.SelectionBrush, null, rect.ToWpfRect());
-            }
+            ShowSelection(currentSelection);
 
             _caretBlinkTimer?.Stop();
+        }
+    }
+
+    private void ShowSelection(in Selection currentSelection)
+    {
+        if (_renderInfoProvider is null)
+        {
+            _renderInfoProvider = _textEditor.TextEditorCore.GetRenderInfo();
+        }
+
+        using var drawingContext = RenderOpen();
+
+        foreach (var rect in _renderInfoProvider.GetSelectionBoundsList(currentSelection))
+        {
+            drawingContext.DrawRectangle(_textEditor.CaretConfiguration.SelectionBrush, null, rect.ToWpfRect());
         }
     }
 
