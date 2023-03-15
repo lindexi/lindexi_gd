@@ -60,6 +60,8 @@ class HorizontalTextRender : TextRenderBase
         return drawingVisual;
     }
 
+
+
     private DrawingGroup DrawLine(in LineDrawingArgument argument, float pixelsPerDip)
     {
         var drawingGroup = new DrawingGroup();
@@ -82,7 +84,8 @@ class HorizontalTextRender : TextRenderBase
             {
                 firstChar = firstText[0];
             }
-            var glyphTypeface = currentRunProperty.GetGlyphTypeface(firstChar);
+
+            GlyphTypeface glyphTypeface = currentRunProperty.GetGlyphTypeface(firstChar);
             var fontSize = runProperty.FontSize;
 
             var glyphIndices = new List<ushort>(charList.Count);
@@ -94,7 +97,7 @@ class HorizontalTextRender : TextRenderBase
             startPoint = startPoint with { Y = startPoint.Y - argument.StartPoint.Y };
 
             // 行渲染高度
-            var height = 0d;
+            var height = 0d;// argument.Size.Height;
 
             foreach (var charData in charList)
             {
@@ -150,4 +153,6 @@ class HorizontalTextRender : TextRenderBase
 
         return drawingGroup;
     }
+
+
 }
