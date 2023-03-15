@@ -2,7 +2,6 @@
 using System.Globalization;
 using System.Windows.Markup;
 using System.Windows.Media;
-using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 
@@ -18,5 +17,3 @@ abstract class TextRenderBase
     protected static XmlLanguage DefaultXmlLanguage { get; } =
         XmlLanguage.GetLanguage(CultureInfo.CurrentUICulture.IetfLanguageTag);
 }
-
-record CharSpanDrawInfo(ushort GlyphIndex, GlyphTypeface GlyphTypeface,char CurrentChar,CharData CharData);
