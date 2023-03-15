@@ -19,6 +19,4 @@ abstract class TextRenderBase
         XmlLanguage.GetLanguage(CultureInfo.CurrentUICulture.IetfLanguageTag);
 }
 
-record LineDrawCharSpanInfo(List<ushort> glyphIndices, List<double> advanceWidths, List<char> characters,Point startPoint,double maxLineRenderHeight, GlyphTypeface glyphTypeface);
-
 record CharSpanDrawInfo(ushort glyphIndex, GlyphTypeface glyphTypeface,char CurrentChar,CharData charData);
