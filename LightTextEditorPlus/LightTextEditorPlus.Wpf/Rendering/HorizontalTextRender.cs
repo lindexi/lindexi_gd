@@ -69,10 +69,10 @@ class HorizontalTextRender : TextRenderBase
         {
             if (glyphTypeface is null)
             {
-                glyphTypeface = charSpanDrawInfo.glyphTypeface;
+                glyphTypeface = charSpanDrawInfo.GlyphTypeface;
                 list.Add(charSpanDrawInfo);
             }
-            else if (ReferenceEquals(glyphTypeface, charSpanDrawInfo.glyphTypeface))
+            else if (ReferenceEquals(glyphTypeface, charSpanDrawInfo.GlyphTypeface))
             {
                 list.Add(charSpanDrawInfo);
             }
@@ -80,7 +80,7 @@ class HorizontalTextRender : TextRenderBase
             {
                 yield return list;
 
-                glyphTypeface = charSpanDrawInfo.glyphTypeface;
+                glyphTypeface = charSpanDrawInfo.GlyphTypeface;
                 list = new List<CharSpanDrawInfo>();
                 list.Add(charSpanDrawInfo);
             }

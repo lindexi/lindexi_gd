@@ -19,4 +19,4 @@ abstract class TextRenderBase
         XmlLanguage.GetLanguage(CultureInfo.CurrentUICulture.IetfLanguageTag);
 }
 
-record CharSpanDrawInfo(ushort glyphIndex, GlyphTypeface glyphTypeface,char CurrentChar,CharData charData);
+record CharSpanDrawInfo(ushort GlyphIndex, GlyphTypeface GlyphTypeface,char CurrentChar,CharData CharData);
