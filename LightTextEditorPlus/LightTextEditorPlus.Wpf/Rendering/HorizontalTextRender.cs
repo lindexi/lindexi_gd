@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Media;
 
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Document;
@@ -60,7 +61,73 @@ class HorizontalTextRender : TextRenderBase
         return drawingVisual;
     }
 
+    private IEnumerable<List<CharSpanDrawInfo>> GetCharSpanContinuous(ReadOnlyListSpan<CharData> charList)
+    {
+        var list = new List<CharSpanDrawInfo>();
+        GlyphTypeface? glyphTypeface=null;
+        foreach (var charSpanDrawInfo in GetCharSpan(charList))
+        {
+            if (glyphTypeface is null)
+            {
+                glyphTypeface = charSpanDrawInfo.glyphTypeface;
+                list.Add(charSpanDrawInfo);
+            }
+            else if (ReferenceEquals(glyphTypeface, charSpanDrawInfo.glyphTypeface))
+            {
+                list.Add(charSpanDrawInfo);
+            }
+            else
+            {
+                yield return list;
 
+                glyphTypeface = charSpanDrawInfo.glyphTypeface;
+                list = new List<CharSpanDrawInfo>();
+                list.Add(charSpanDrawInfo);
+            }
+        }
+
+        yield return list;
+    }
+
+    private IEnumerable<CharSpanDrawInfo> GetCharSpan(ReadOnlyListSpan<CharData> charList)
+    {
+        var firstCharData = charList[0];
+        var runProperty = firstCharData.RunProperty;
+        // 获取到字体信息
+        var currentRunProperty = runProperty.AsRunProperty();
+        // 获取一个字符，用来进行回滚。即使获取不到，也可以用
+        var firstChar = TextContext.DefaultChar;
+        var firstText = firstCharData.CharObject.ToText();
+        if (firstText.Length > 0)
+        {
+            firstChar = firstText[0];
+        }
+
+        GlyphTypeface glyphTypeface = currentRunProperty.GetGlyphTypeface(firstChar);
+
+        foreach (CharData charData in charList)
+        {
+            var text = charData.CharObject.ToText();
+            for (var i = 0; i < text.Length; i++)
+            {
+                var c = text[i];
+
+                if (glyphTypeface.CharacterToGlyphMap.TryGetValue(c, out var glyphIndex))
+                {
+                    var charSpanDrawInfo = new CharSpanDrawInfo(glyphIndex, glyphTypeface, c, charData);
+                    yield return charSpanDrawInfo;
+                }
+                else
+                {
+                    if (currentRunProperty.TryGetFallbackGlyphTypeface(c,out var fallbackGlyphTypeface,out var fallbackGlyphIndex))
+                    {
+                        var charSpanDrawInfo = new CharSpanDrawInfo(fallbackGlyphIndex, fallbackGlyphTypeface, c, charData);
+                        yield return charSpanDrawInfo;
+                    }
+                }
+            }
+        }
+    }
 
     private DrawingGroup DrawLine(in LineDrawingArgument argument, float pixelsPerDip)
     {
@@ -68,7 +135,7 @@ class HorizontalTextRender : TextRenderBase
 
         using var drawingContext = drawingGroup.Open();
 
-        var splitList = argument.CharList.SplitContinuousCharData((last, current) => last.RunProperty.Equals(current.RunProperty));
+        IEnumerable<ReadOnlyListSpan<CharData>> splitList = argument.CharList.SplitContinuousCharData((last, current) => last.RunProperty.Equals(current.RunProperty));
 
         foreach (var charList in splitList)
         {
@@ -76,41 +143,31 @@ class HorizontalTextRender : TextRenderBase
             var runProperty = firstCharData.RunProperty;
             // 获取到字体信息
             var currentRunProperty = runProperty.AsRunProperty();
-
-            // 获取一个字符，用来进行回滚。即使获取不到，也可以用
-            var firstChar = TextContext.DefaultChar;
-            var firstText = firstCharData.CharObject.ToText();
-            if (firstText.Length > 0)
-            {
-                firstChar = firstText[0];
-            }
-
-            GlyphTypeface glyphTypeface = currentRunProperty.GetGlyphTypeface(firstChar);
-            var fontSize = runProperty.FontSize;
-
-            var glyphIndices = new List<ushort>(charList.Count);
-            var advanceWidths = new List<double>(charList.Count);
-            var characters = new List<char>(charList.Count);
-
-            var startPoint = firstCharData.GetStartPoint();
-            // 为了尽可能的进行复用，尝试减去行的偏移，如此行绘制信息可以重复使用。只需要上层使用重新设置行的偏移量
-            startPoint = startPoint with { Y = startPoint.Y - argument.StartPoint.Y };
-
             // 行渲染高度
-            var height = 0d;// argument.Size.Height;
-
-            foreach (var charData in charList)
+            var fontSize = runProperty.FontSize;
+          
+            foreach (var charSpanDrawInfoList in GetCharSpanContinuous(charList))
             {
-                var text = charData.CharObject.ToText();
+                var glyphIndices = new List<ushort>(charSpanDrawInfoList.Count);
+                var advanceWidths = new List<double>(charSpanDrawInfoList.Count);
+                var characters = new List<char>(charSpanDrawInfoList.Count);
 
-                for (var i = 0; i < text.Length; i++)
+                LightTextEditorPlus.Core.Primitive.Point? startPoint=null;
+                // 行渲染高度
+                var height = 0d;// argument.Size.Height;
+                GlyphTypeface? currentGlyphTypeface=null;
+
+                foreach (var (glyphIndex, glyphTypeface, currentChar, charData) in charSpanDrawInfoList)
                 {
-                    var c = text[i];
-                    if (!glyphTypeface.CharacterToGlyphMap.TryGetValue(c, out var glyphIndex))
+                    if (startPoint is null)
                     {
-                        continue;
+                        startPoint = charData.GetStartPoint();
+                        // 为了尽可能的进行复用，尝试减去行的偏移，如此行绘制信息可以重复使用。只需要上层使用重新设置行的偏移量
+                        startPoint = startPoint.Value with { Y = startPoint.Value.Y - argument.StartPoint.Y };
                     }
-                    //var glyphIndex = glyphTypeface.CharacterToGlyphMap[c];
+
+                    currentGlyphTypeface = glyphTypeface;
+
                     glyphIndices.Add(glyphIndex);
 
                     var width = glyphTypeface.AdvanceWidths[glyphIndex] * fontSize;
@@ -119,40 +176,34 @@ class HorizontalTextRender : TextRenderBase
 
                     height = Math.Max(height, glyphTypeface.AdvanceHeights[glyphIndex] * fontSize);
 
-                    characters.Add(c);
+                    characters.Add(currentChar);
                 }
 
-#if DEBUG
-                drawingContext.DrawRectangle(null, new Pen(Brushes.DarkGoldenrod, 1), new Rect(new Point(charData.GetStartPoint().X, startPoint.Y), charData.Size!.Value.ToWpfSize()));
-#endif
+                var location = new System.Windows.Point(startPoint!.Value.X, startPoint.Value.Y + height);
+
+                var glyphRun = new GlyphRun
+                (
+                    currentGlyphTypeface,
+                    bidiLevel: 0,
+                    isSideways: false,
+                    renderingEmSize: fontSize,
+                    pixelsPerDip: pixelsPerDip,
+                    glyphIndices: glyphIndices,
+                    baselineOrigin: location, // 设置文本的偏移量
+                    advanceWidths: advanceWidths, // 设置每个字符的字宽，也就是字号
+                    glyphOffsets: null, // 设置每个字符的偏移量，可以为空
+                    characters: characters,
+                    deviceFontName: null,
+                    clusterMap: null,
+                    caretStops: null,
+                    language: DefaultXmlLanguage
+                );
+
+                Brush brush = currentRunProperty.Foreground.Value;
+                drawingContext.DrawGlyphRun(brush, glyphRun);
             }
-
-            var location = new System.Windows.Point(startPoint.X, startPoint.Y + height);
-
-            var glyphRun = new GlyphRun
-            (
-                glyphTypeface,
-                bidiLevel: 0,
-                isSideways: false,
-                renderingEmSize: fontSize,
-                pixelsPerDip: pixelsPerDip,
-                glyphIndices: glyphIndices,
-                baselineOrigin: location, // 设置文本的偏移量
-                advanceWidths: advanceWidths, // 设置每个字符的字宽，也就是字号
-                glyphOffsets: null, // 设置每个字符的偏移量，可以为空
-                characters: characters,
-                deviceFontName: null,
-                clusterMap: null,
-                caretStops: null,
-                language: DefaultXmlLanguage
-            );
-
-            Brush brush = currentRunProperty.Foreground.Value;
-            drawingContext.DrawGlyphRun(brush, glyphRun);
         }
 
         return drawingGroup;
     }
-
-
 }
