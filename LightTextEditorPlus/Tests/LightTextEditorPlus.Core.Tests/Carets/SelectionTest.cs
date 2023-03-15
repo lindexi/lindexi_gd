@@ -1,10 +1,4 @@
 ﻿using MSTest.Extensions.Contracts;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using LightTextEditorPlus.Core.Carets;
 
 namespace LightTextEditorPlus.Core.Tests.Carets;
@@ -12,6 +6,51 @@ namespace LightTextEditorPlus.Core.Tests.Carets;
 [TestClass]
 public class SelectionTest
 {
+    [ContractTestCase]
+    public void Contains()
+    {
+        "传入在反向选择范围内的光标坐标，可以返回包含在选择范围内".Test(() =>
+        {
+            // Arrange
+            var selection = new Selection(new CaretOffset(20), new CaretOffset(10));
+
+            // Action
+            // Assert
+            for (int i = 0; i < 10; i++)
+            {
+                Assert.AreEqual(true, selection.Contains(new CaretOffset(10 + i)));
+            }
+        });
+
+        "传入不包含在选择范围内的光标坐标，可以返回没有包含在选择范围内".Test(() =>
+        {
+            // Arrange
+            var start = 10;
+            var length = 10;
+            var selection = new Selection(new CaretOffset(start), length);
+
+            // Action
+            // Assert
+            Assert.AreEqual(false, selection.Contains(new CaretOffset(9)));
+            Assert.AreEqual(false, selection.Contains(new CaretOffset(21)));
+        });
+
+        "传入包含在选择范围内的光标坐标，可以返回包含在选择范围内".Test(() =>
+        {
+            // Arrange
+            var start = 10;
+            var length = 10;
+            var selection = new Selection(new CaretOffset(start), length);
+
+            // Action
+            // Assert
+            for (int i = 0; i < 10; i++)
+            {
+                Assert.AreEqual(true, selection.Contains(new CaretOffset(10 + i)));
+            }
+        });
+    }
+
     [ContractTestCase]
     public void CreateSelection()
     {
