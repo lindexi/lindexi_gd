@@ -103,7 +103,11 @@ class HorizontalTextRender : TextRenderBase
                 for (var i = 0; i < text.Length; i++)
                 {
                     var c = text[i];
-                    var glyphIndex = glyphTypeface.CharacterToGlyphMap[c];
+                    if (!glyphTypeface.CharacterToGlyphMap.TryGetValue(c, out var glyphIndex))
+                    {
+                        continue;
+                    }
+                    //var glyphIndex = glyphTypeface.CharacterToGlyphMap[c];
                     glyphIndices.Add(glyphIndex);
 
                     var width = glyphTypeface.AdvanceWidths[glyphIndex] * fontSize;
