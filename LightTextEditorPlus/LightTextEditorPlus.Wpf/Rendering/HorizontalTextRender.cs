@@ -108,7 +108,7 @@ class HorizontalTextRender : TextRenderBase
             for (var i = 0; i < text.Length; i++)
             {
                 var c = text[i];
-
+                // 这里额外处理的情况是，用户设置的字体实际上无法被应用在此字符上。于是就需要执行回滚逻辑
                 if (glyphTypeface.CharacterToGlyphMap.TryGetValue(c, out var glyphIndex))
                 {
                     var charSpanDrawInfo = new CharSpanDrawInfo(glyphIndex, glyphTypeface, c, charData);
