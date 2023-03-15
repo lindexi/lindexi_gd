@@ -39,6 +39,7 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
 
             if (currentSelection.IsEmpty)
             {
+                _textEditor.Logger.LogDebug($"选择变更为空，回到光标闪烁");
                 // 回到光标闪烁
                 if (!_textEditor.IsInEditingInputMode)
                 {
