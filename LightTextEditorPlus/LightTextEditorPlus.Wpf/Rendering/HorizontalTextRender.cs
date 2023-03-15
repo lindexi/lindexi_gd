@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Windows;
 using System.Windows.Media;
 
 using LightTextEditorPlus.Core.Document;
@@ -9,7 +7,6 @@ using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Document;
-using LightTextEditorPlus.Utils;
 
 namespace LightTextEditorPlus.Rendering;
 
@@ -64,7 +61,7 @@ class HorizontalTextRender : TextRenderBase
     private IEnumerable<List<CharSpanDrawInfo>> GetCharSpanContinuous(ReadOnlyListSpan<CharData> charList)
     {
         var list = new List<CharSpanDrawInfo>();
-        GlyphTypeface? glyphTypeface=null;
+        GlyphTypeface? glyphTypeface = null;
         foreach (var charSpanDrawInfo in GetCharSpan(charList))
         {
             if (glyphTypeface is null)
@@ -119,7 +116,7 @@ class HorizontalTextRender : TextRenderBase
                 }
                 else
                 {
-                    if (currentRunProperty.TryGetFallbackGlyphTypeface(c,out var fallbackGlyphTypeface,out var fallbackGlyphIndex))
+                    if (currentRunProperty.TryGetFallbackGlyphTypeface(c, out var fallbackGlyphTypeface, out var fallbackGlyphIndex))
                     {
                         var charSpanDrawInfo = new CharSpanDrawInfo(fallbackGlyphIndex, fallbackGlyphTypeface, c, charData);
                         yield return charSpanDrawInfo;
@@ -147,7 +144,7 @@ class HorizontalTextRender : TextRenderBase
             var currentRunProperty = runProperty.AsRunProperty();
             // 文本字体大小
             var fontSize = runProperty.FontSize;
-          
+
             // 再拆分为实际渲染可以连续的字符
             foreach (var charSpanDrawInfoList in GetCharSpanContinuous(charList))
             {
@@ -155,10 +152,10 @@ class HorizontalTextRender : TextRenderBase
                 var advanceWidths = new List<double>(charSpanDrawInfoList.Count);
                 var characters = new List<char>(charSpanDrawInfoList.Count);
 
-                LightTextEditorPlus.Core.Primitive.Point? startPoint=null;
+                LightTextEditorPlus.Core.Primitive.Point? startPoint = null;
                 // 行渲染高度
                 var height = 0d;// argument.Size.Height;
-                GlyphTypeface? currentGlyphTypeface=null;
+                GlyphTypeface? currentGlyphTypeface = null;
 
                 foreach (var (glyphIndex, glyphTypeface, currentChar, charData) in charSpanDrawInfoList)
                 {
@@ -208,7 +205,7 @@ class HorizontalTextRender : TextRenderBase
                 drawingContext.DrawGlyphRun(brush, glyphRun);
             }
         }
-        
+
         return drawingGroup;
     }
 }
