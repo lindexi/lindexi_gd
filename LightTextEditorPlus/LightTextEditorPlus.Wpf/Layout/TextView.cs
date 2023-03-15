@@ -58,6 +58,10 @@ class TextView : UIElement, IRenderManager
 
         var drawingVisual = textRender.Render(renderInfoProvider, _textEditor);
 
+        //SnapsToDevicePixels = true;
+        RenderOptions.SetClearTypeHint(drawingVisual, ClearTypeHint.Enabled);
+        RenderOptions.SetEdgeMode(drawingVisual, EdgeMode.Aliased);
+
         // 需要加入逻辑树，且需要将旧的从逻辑树移除。否则将看不到文本
         if (_textDrawingVisual is not null)
         {

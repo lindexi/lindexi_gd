@@ -132,6 +132,7 @@ class HorizontalTextRender : TextRenderBase
     private DrawingGroup DrawLine(in LineDrawingArgument argument, float pixelsPerDip)
     {
         var drawingGroup = new DrawingGroup();
+        drawingGroup.GuidelineSet = new GuidelineSet();
 
         using var drawingContext = drawingGroup.Open();
 
@@ -182,6 +183,8 @@ class HorizontalTextRender : TextRenderBase
                 }
 
                 var location = new System.Windows.Point(startPoint!.Value.X, startPoint.Value.Y + height);
+                drawingGroup.GuidelineSet.GuidelinesX.Add(location.X);
+                drawingGroup.GuidelineSet.GuidelinesY.Add(location.Y);
 
                 var glyphRun = new GlyphRun
                 (
@@ -205,7 +208,7 @@ class HorizontalTextRender : TextRenderBase
                 drawingContext.DrawGlyphRun(brush, glyphRun);
             }
         }
-
+        
         return drawingGroup;
     }
 }

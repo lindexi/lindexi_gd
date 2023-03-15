@@ -29,7 +29,7 @@
                     <ColumnDefinition Width="*"></ColumnDefinition>
                     <ColumnDefinition Width="Auto"></ColumnDefinition>
                 </Grid.ColumnDefinitions>
-                <TextBox x:Name="TextBox" AcceptsReturn="True"/>
+                <TextBox x:Name="TextBox" AcceptsReturn="True" FontSize="40"/>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Button Click="InputButton_OnClick">输入</Button>
                     <Button Margin="5,0,0,0" Click="BackspaceButton_OnClick">退格</Button>
