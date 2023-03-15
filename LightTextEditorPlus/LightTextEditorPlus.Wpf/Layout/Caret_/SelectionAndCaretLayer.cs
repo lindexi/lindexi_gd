@@ -189,18 +189,18 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
     private void HideBlink()
     {
         var currentSelection = _textEditor.TextEditorCore.CurrentSelection;
-        if (currentSelection.IsEmpty)
-        {
-            // 当前光标已经显示，那就是需要隐藏光标即可。啥都不显示
-            var drawingContext = RenderOpen();
-            using (drawingContext)
-            {
-                // 啥都不需要做，这就是清空
-            }
-        }
-        else
+
+        if (!currentSelection.IsEmpty && _textEditor.CaretConfiguration.ShowSelectionWhenNotInEditingInputMode)
         {
             // 选择内容就无需隐藏了
+            return;
+        }
+
+        // 当前光标已经显示，那就是需要隐藏光标即可。啥都不显示
+        var drawingContext = RenderOpen();
+        using (drawingContext)
+        {
+            // 啥都不需要做，这就是清空
         }
     }
 
