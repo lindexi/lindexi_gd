@@ -18,6 +18,7 @@ internal class MouseHandler
         TextEditor = textEditor;
 
         textEditor.TextEditorCore.ArrangingTypeChanged += (_, _) => UpdateCursor();
+        textEditor.CursorStylesChanged += (_, _) => UpdateCursor();
 
         textEditor.MouseDown += TextEditor_MouseDown;
         textEditor.MouseMove += TextEditor_MouseMove;
@@ -167,24 +168,9 @@ internal class MouseHandler
 
     #region 光标
 
-    /// <summary>
-    /// 文本的光标样式。由于 <see cref="Cursor"/> 属性将会被此类型赋值，导致如果想要定制光标，将会被覆盖
-    /// </summary>
-    public CursorStyles? CursorStyles
-    {
-        set
-        {
-            _cursorStyles = value;
-            UpdateCursor();
-        }
-        get => _cursorStyles;
-    }
-
-    private CursorStyles? _cursorStyles;
-
     private Cursor GetVerticalCursor()
     {
-        var verticalCursor = CursorStyles?.VerticalCursor;
+        var verticalCursor = TextEditor.CursorStyles?.VerticalCursor;
         if (verticalCursor is not null)
         {
             return verticalCursor;
@@ -201,9 +187,9 @@ internal class MouseHandler
 
     private void UpdateCursor()
     {
-        if (CursorStyles is not null)
+        if (TextEditor.CursorStyles is not null)
         {
-            TextEditor.Cursor = CursorStyles.Cursor;
+            TextEditor.Cursor = TextEditor.CursorStyles.Cursor;
             return;
         }
 
