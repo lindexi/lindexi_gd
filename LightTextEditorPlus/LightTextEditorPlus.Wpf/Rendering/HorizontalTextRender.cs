@@ -135,6 +135,7 @@ class HorizontalTextRender : TextRenderBase
 
         using var drawingContext = drawingGroup.Open();
 
+        // 获取字符属性相同聚合一起的拆分之后的字符
         IEnumerable<ReadOnlyListSpan<CharData>> splitList = argument.CharList.SplitContinuousCharData((last, current) => last.RunProperty.Equals(current.RunProperty));
 
         foreach (var charList in splitList)
@@ -143,9 +144,10 @@ class HorizontalTextRender : TextRenderBase
             var runProperty = firstCharData.RunProperty;
             // 获取到字体信息
             var currentRunProperty = runProperty.AsRunProperty();
-            // 行渲染高度
+            // 文本字体大小
             var fontSize = runProperty.FontSize;
           
+            // 再拆分为实际渲染可以连续的字符
             foreach (var charSpanDrawInfoList in GetCharSpanContinuous(charList))
             {
                 var glyphIndices = new List<ushort>(charSpanDrawInfoList.Count);
