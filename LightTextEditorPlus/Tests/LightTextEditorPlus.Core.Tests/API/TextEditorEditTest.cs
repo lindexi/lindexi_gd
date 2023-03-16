@@ -1,4 +1,5 @@
 ﻿using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.TestsFramework;
 
 using MSTest.Extensions.Contracts;
@@ -80,6 +81,25 @@ public class TextEditorEditTest
     [ContractTestCase]
     public void Backspace()
     {
+        "对文本字符串为 abc 的文本执行退格，可以删除最后一个字符，且光标在删除后的最后一个字符之后".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+            // 先追加文本，用于后续删除
+            textEditorCore.AppendText("abc");
+
+            textEditorCore.CurrentCaretOffset = textEditorCore.DocumentManager.GetDocumentEndCaretOffset();
+
+            // Action
+            // 执行退格，可以删除最后一个字符
+            textEditorCore.Backspace();
+
+            // Assert
+            // 可以删除最后一个字符，且光标在删除后的最后一个字符之后
+            Assert.AreEqual("ab", textEditorCore.GetText());
+            Assert.AreEqual(2, textEditorCore.CurrentCaretOffset.Offset);
+        });
+
         "在段首执行 Backspace 退格，可以删除段，和前面一段合成一段".Test(() =>
         {
             // Arrange

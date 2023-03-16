@@ -512,7 +512,7 @@ namespace LightTextEditorPlus.Core.Document
 
             ReplaceCore(selection, run);
 
-            var caretOffset = new CaretOffset(selection.FrontOffset.Offset + run?.CharCount ?? 0);
+            var caretOffset = new CaretOffset(selection.FrontOffset.Offset + (run?.CharCount ?? 0));
             CaretManager.CurrentCaretOffset = caretOffset;
 
             InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
