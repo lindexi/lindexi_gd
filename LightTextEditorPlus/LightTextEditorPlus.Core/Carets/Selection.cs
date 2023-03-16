@@ -98,4 +98,7 @@ public readonly struct Selection
     {
         return other.FrontOffset.Equals(FrontOffset) && other.BehindOffset.Equals(BehindOffset);
     }
+
+    /// <inheritdoc />
+    public override string ToString() => $"{FrontOffset.Offset}-{BehindOffset.Offset};Length={Length}";
 }
