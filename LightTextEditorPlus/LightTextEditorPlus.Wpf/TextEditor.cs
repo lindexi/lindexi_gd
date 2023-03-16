@@ -49,6 +49,11 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     {
         // 设置此控件可获取焦点。只有获取焦点才能收到键盘输入法的输入内容
         FocusableProperty.OverrideMetadata(typeof(TextEditor), new UIPropertyMetadata(true));
+
+        KeyboardNavigation.IsTabStopProperty.OverrideMetadata(typeof(TextEditor),
+            new FrameworkPropertyMetadata(true));
+        KeyboardNavigation.TabNavigationProperty.OverrideMetadata(typeof(TextEditor),
+            new FrameworkPropertyMetadata(KeyboardNavigationMode.None));
     }
 
     public TextEditor()
@@ -82,6 +87,8 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
         // 挂上 IME 输入法的支持
         _ = new IMESupporter<TextEditor>(this);
+
+        _keyboardHandler ??= new KeyboardHandler(this);
     }
 
     #region 公开属性
@@ -178,6 +185,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     {
         if (_isInitEdit) return;
         _isInitEdit = true;
+
     }
 
     private bool _isInitEdit;
@@ -187,6 +195,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     /// </summary>
     private TextView TextView { get; }
     private MouseHandler MouseHandler { get; }
+    private KeyboardHandler? _keyboardHandler;
 
     protected override int VisualChildrenCount => 1; // 当前只有视觉呈现容器一个而已
     protected override Visual GetVisualChild(int index) => TextView;
@@ -292,17 +301,17 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
     protected override void OnTextInput(TextCompositionEventArgs e)
     {
-       base.OnTextInput(e);
+        base.OnTextInput(e);
 
-       if (e.Handled)
-       {
-           return;
-       }
+        if (e.Handled)
+        {
+            return;
+        }
 
         //TextInputManager
         PerformTextInput(e);
 
-       e.Handled = true;
+        e.Handled = true;
     }
 
     private void PerformTextInput(TextCompositionEventArgs e)
@@ -310,6 +319,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         if (e.Handled ||
             string.IsNullOrEmpty(e.Text) ||
             e.Text == "\x1b" ||
+            // 退格键 \b 键
             e.Text == "\b" ||
             //emoji包围符
             e.Text == "\ufe0f")
@@ -464,7 +474,7 @@ class CharInfoMeasurer : ICharInfoMeasurer
             (double width, double height) MeasureChar(char c)
             {
                 var currentGlyphTypeface = glyphTypeface;
-                if (!currentGlyphTypeface.CharacterToGlyphMap.TryGetValue(c,out var glyphIndex))
+                if (!currentGlyphTypeface.CharacterToGlyphMap.TryGetValue(c, out var glyphIndex))
                 {
                     // 居然给定的字体找不到，也就是给定的字符不在当前的字体包含范围里面
                     if (!runProperty.TryGetFallbackGlyphTypeface(c, out currentGlyphTypeface, out glyphIndex))
