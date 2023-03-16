@@ -88,7 +88,6 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         // 挂上 IME 输入法的支持
         _ = new IMESupporter<TextEditor>(this);
 
-        _keyboardHandler ??= new KeyboardHandler(this);
     }
 
     #region 公开属性
@@ -186,6 +185,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         if (_isInitEdit) return;
         _isInitEdit = true;
 
+        _keyboardHandler ??= new KeyboardHandler(this);
     }
 
     private bool _isInitEdit;
