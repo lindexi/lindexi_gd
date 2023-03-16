@@ -26,5 +26,5 @@ public partial class TextEditor
     }
 
     private CursorStyles? _cursorStyles;
-    internal event EventHandler CursorStylesChanged;
+    internal event EventHandler? CursorStylesChanged;
 }

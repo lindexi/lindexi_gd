@@ -23,7 +23,7 @@ public readonly struct CaretRenderInfo
         LineLayoutData = lineLayoutData;
     }
 
-    public TextEditorCore TextEditor { get; }
+    internal TextEditorCore TextEditor { get; }
 
     /// <summary>
     /// 行在段落里的序号
