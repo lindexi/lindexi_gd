@@ -30,4 +30,12 @@ public partial class TextEditorCore
         result = _layoutManager.HitTest(point);
         return true;
     }
+
+    /// <summary>
+    /// 返回接近传入点的字符的索引。在文本库内，应该使用 <see cref="TryHitTest"/> 方法进行命中测试
+    /// </summary>
+    [Obsolete("请使用 TryHitTest 执行命中测试，此方法的存在仅仅只是为了告诉你正确的方法应该是 TryHitTest 方法", true)]
+    public void GetCharacterIndexFromPoint()
+    {
+    }
 }
