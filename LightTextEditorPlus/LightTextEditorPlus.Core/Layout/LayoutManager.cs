@@ -437,7 +437,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         foreach (LineLayoutData lineVisualData in paragraph.LineLayoutDataList)
         {
-            UpdateLineVisualDataStartPoint(lineVisualData, currentStartPoint);
+            UpdateLineLayoutDataStartPoint(lineVisualData, currentStartPoint);
 
             currentStartPoint = GetNextLineStartPoint(currentStartPoint, lineVisualData);
         }
@@ -450,7 +450,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// </summary>
     /// <param name="lineLayoutData"></param>
     /// <param name="startPoint"></param>
-    static void UpdateLineVisualDataStartPoint(LineLayoutData lineLayoutData, Point startPoint)
+    static void UpdateLineLayoutDataStartPoint(LineLayoutData lineLayoutData, Point startPoint)
     {
         // 更新包括两个方面：
         // 1. 此行的起点
