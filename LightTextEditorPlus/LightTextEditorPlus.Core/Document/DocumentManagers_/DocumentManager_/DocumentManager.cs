@@ -524,6 +524,11 @@ namespace LightTextEditorPlus.Core.Document
 
         private void ReplaceCore(in Selection selection, IImmutableRunList? run)
         {
+            if (selection.BehindOffset.Offset > CharCount)
+            {
+                throw new SelectionOutOfRangeException(selection, CharCount);
+            }
+
             DocumentRunEditProvider.Replace(selection, run);
         }
 
@@ -601,11 +606,6 @@ namespace LightTextEditorPlus.Core.Document
 
         private void RemoveInner(in Selection selection)
         {
-            if (selection.BehindOffset.Offset > CharCount)
-            {
-                throw new SelectionOutOfRangeException(selection, CharCount);
-            }
-
             // 删除范围内的文本，等价于将范围内的文本替换为空
             EditAndReplaceRunInner(selection, null);
         }
