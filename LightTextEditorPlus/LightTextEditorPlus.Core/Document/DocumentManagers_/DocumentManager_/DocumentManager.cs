@@ -465,11 +465,23 @@ namespace LightTextEditorPlus.Core.Document
             InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
 
             // 设置光标到文档最后，再进行追加。设置光标到文档最后之后，可以自动获取当前光标下的文本字符属性
-            CaretManager.CurrentCaretOffset = new CaretOffset(CharCount);
+            var oldCharCount = CharCount;
+            CaretManager.CurrentCaretOffset = new CaretOffset(oldCharCount);
 
             DocumentRunEditProvider.Append(run);
 
-            CaretManager.CurrentCaretOffset = new CaretOffset(CharCount);
+            var newCharCount = CharCount;
+            CaretManager.CurrentCaretOffset = new CaretOffset(newCharCount);
+
+            if (!TextEditor.IsUndoRedoMode)
+            {
+                var oldSelection = new Selection(new CaretOffset(oldCharCount), length: 0);
+                IImmutableRunList? oldRun = null;
+                var newSelection = new Selection(new CaretOffset(oldCharCount), new CaretOffset(newCharCount));
+                var newRun = new SingleImmutableRunList(run);
+                var textChangeOperation = new TextChangeOperation(TextEditor, oldSelection, oldRun, newSelection, newRun);
+                TextEditor.UndoRedoProvider.Insert(textChangeOperation);
+            }
 
             InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
         }
@@ -509,6 +521,18 @@ namespace LightTextEditorPlus.Core.Document
         /// <summary>
         /// 编辑和替换文本
         /// </summary>
+        /// <param name="selection"></param>
+        /// <param name="run"></param>
+        internal void EditAndReplaceRunList(in Selection selection, IImmutableRunList? run)
+        {
+            TextEditor.AddLayoutReason("DocumentManager.EditAndReplaceRunList");
+
+            EditAndReplaceRunListInner(selection, run);
+        }
+
+        /// <summary>
+        /// 编辑和替换文本
+        /// </summary>
         private void EditAndReplaceRunListInner(in Selection selection, IImmutableRunList? run)
         {
             InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
@@ -527,6 +551,18 @@ namespace LightTextEditorPlus.Core.Document
             if (selection.BehindOffset.Offset > CharCount)
             {
                 throw new SelectionOutOfRangeException(selection, CharCount);
+            }
+
+            if (!TextEditor.IsUndoRedoMode)
+            {
+                var oldSelection = selection;
+                var charDataRange = GetCharDataRange(selection);
+                IImmutableRunList oldList = new ImmutableRunList(charDataRange.Select(t => new SingleCharImmutableRun(t.CharObject, t.RunProperty)));
+                var newSelection = new Selection(selection.FrontOffset, run?.CharCount ?? 0);
+                var newList = run;
+
+                var textChangeOperation = new TextChangeOperation(TextEditor,oldSelection,oldList,newSelection,newList);
+                TextEditor.UndoRedoProvider.Insert(textChangeOperation);
             }
 
             DocumentRunEditProvider.Replace(selection, run);
