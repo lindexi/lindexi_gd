@@ -231,8 +231,9 @@ namespace LightTextEditorPlus.Core.Document
         /// <typeparam name="T">实际业务端使用的字符属性类型</typeparam>
         public void SetDefaultTextRunProperty<T>(Action<T> config) where T : IReadOnlyRunProperty
         {
+            var platformRunPropertyCreator = TextEditor.PlatformProvider.GetPlatformRunPropertyCreator();
             CurrentRunProperty =
-                TextEditor.PlatformProvider.GetPlatformRunPropertyCreator().BuildNewProperty(property => config((T) property),
+                platformRunPropertyCreator.BuildNewProperty(property => config((T) property),
                     CurrentRunProperty);
         }
 
@@ -246,7 +247,8 @@ namespace LightTextEditorPlus.Core.Document
             // 先获取当前光标的字符属性吧
             IReadOnlyRunProperty currentCaretRunProperty = CurrentCaretRunProperty;
 
-            CaretManager.CurrentCaretRunProperty = TextEditor.PlatformProvider.GetPlatformRunPropertyCreator().BuildNewProperty(
+            var platformRunPropertyCreator = TextEditor.PlatformProvider.GetPlatformRunPropertyCreator();
+            CaretManager.CurrentCaretRunProperty = platformRunPropertyCreator.BuildNewProperty(
                 property => config((T) property),
                 currentCaretRunProperty);
         }
@@ -312,7 +314,8 @@ namespace LightTextEditorPlus.Core.Document
                     {
                         currentRunProperty = charData.RunProperty;
 
-                        currentRunProperty = TextEditor.PlatformProvider.GetPlatformRunPropertyCreator().BuildNewProperty(property => config((T) property), currentRunProperty);
+                        var platformRunPropertyCreator = TextEditor.PlatformProvider.GetPlatformRunPropertyCreator();
+                        currentRunProperty = platformRunPropertyCreator.BuildNewProperty(property => config((T) property), currentRunProperty);
                     }
 
                     runList.Add(new SingleCharImmutableRun(charData.CharObject, currentRunProperty));
