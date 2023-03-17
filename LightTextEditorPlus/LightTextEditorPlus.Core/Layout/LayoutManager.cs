@@ -78,6 +78,21 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
     public override ArrangingType ArrangingType => ArrangingType.Horizontal;
 
+    protected override ParagraphLayoutResult UpdateParagraphStartPoint(in ParagraphLayoutArgument argument)
+    {
+        var paragraph = argument.ParagraphData;
+
+        // 先设置是脏的，然后再更新，这样即可更新段落版本号
+        paragraph.SetDirty();
+
+        paragraph.ParagraphLayoutData.StartPoint = paragraph.LineLayoutDataList[0].StartPoint;
+        var currentStartPoint = UpdateParagraphLineLayoutDataStartPoint(argument);
+        // 设置当前段落已经布局完成
+        paragraph.SetFinishLayout();
+
+        return new ParagraphLayoutResult(currentStartPoint);
+    }
+
     /// <summary>
     /// 布局段落的核心逻辑
     /// </summary>
@@ -98,15 +113,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     {
         // 先更新非脏的行的坐标
         // 布局左上角坐标
-        var currentStartPoint = argument.CurrentStartPoint;
-        ParagraphData paragraph = argument.ParagraphData;
-
-        foreach (LineLayoutData lineVisualData in argument.ParagraphData.LineLayoutDataList)
-        {
-            UpdateLineVisualDataStartPoint(lineVisualData, currentStartPoint);
-
-            currentStartPoint = GetNextLineStartPoint(currentStartPoint, lineVisualData);
-        }
+        var currentStartPoint = UpdateParagraphLineLayoutDataStartPoint(argument);
+        var paragraph = argument.ParagraphData;
 
         //// 当前行的 RunList 列表，看起来设计不对，没有加上在段落的坐标
         //var currentLineRunList = new List<IImmutableRun>();
@@ -414,6 +422,26 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     private static Point GetNextLineStartPoint(Point currentStartPoint, LineLayoutData currentLineLayoutData)
     {
         currentStartPoint = new Point(currentStartPoint.X, currentStartPoint.Y + currentLineLayoutData.Size.Height);
+        return currentStartPoint;
+    }
+
+    /// <summary>
+    /// 更新段落里面的所有行的起始点
+    /// </summary>
+    /// <param name="argument"></param>
+    /// <returns></returns>
+    private static Point UpdateParagraphLineLayoutDataStartPoint(in ParagraphLayoutArgument argument)
+    {
+        var currentStartPoint = argument.CurrentStartPoint;
+        var paragraph = argument.ParagraphData;
+
+        foreach (LineLayoutData lineVisualData in paragraph.LineLayoutDataList)
+        {
+            UpdateLineVisualDataStartPoint(lineVisualData, currentStartPoint);
+
+            currentStartPoint = GetNextLineStartPoint(currentStartPoint, lineVisualData);
+        }
+
         return currentStartPoint;
     }
 
@@ -753,10 +781,24 @@ abstract class ArrangingLayoutProvider
     }
 
     /// <summary>
+    /// 更新段落的左上角坐标
+    /// </summary>
+    /// <param name="argument"></param>
+    /// <returns></returns>
+    protected abstract ParagraphLayoutResult UpdateParagraphStartPoint(in ParagraphLayoutArgument argument);
+
+    /// <summary>
     /// 段落内布局
     /// </summary>
-    private ParagraphLayoutResult LayoutParagraph(ParagraphLayoutArgument argument)
+    private ParagraphLayoutResult LayoutParagraph(in ParagraphLayoutArgument argument)
     {
+        // 如果段落本身是没有脏的，可能是当前段落的前面段落变更，导致需要更新段落的左上角坐标点而已
+        // 这里执行快速的短路代码，提升性能
+        if (!argument.ParagraphData.IsDirty())
+        {
+            return UpdateParagraphStartPoint(argument);
+        }
+
         // 先找到首个需要更新的坐标点，这里的坐标是段坐标
         var dirtyParagraphOffset = 0;
         // 首个是脏的行的序号
