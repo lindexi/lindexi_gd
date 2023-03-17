@@ -116,9 +116,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         var currentStartPoint = UpdateParagraphLineLayoutDataStartPoint(argument);
         var paragraph = argument.ParagraphData;
 
-        //// 当前行的 RunList 列表，看起来设计不对，没有加上在段落的坐标
-        //var currentLineRunList = new List<IImmutableRun>();
-
         // 获取最大宽度信息
         double lineMaxWidth = TextEditor.SizeToContent switch
         {
