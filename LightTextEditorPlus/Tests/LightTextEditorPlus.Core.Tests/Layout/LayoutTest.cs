@@ -4,7 +4,7 @@ using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.TestsFramework;
 using MSTest.Extensions.Contracts;
 
-namespace LightTextEditorPlus.Core.Tests;
+namespace LightTextEditorPlus.Core.Tests.Layout;
 
 [TestClass]
 public class LayoutTest
