@@ -116,8 +116,6 @@ public partial class TextEditorCore
     /// <inheritdoc cref="T:LightTextEditorPlus.Core.Platform.IPlatformProvider"/>
     public IPlatformProvider PlatformProvider { get; }
 
-    internal IPlatformRunPropertyCreator PlatformRunPropertyCreator => PlatformProvider.GetPlatformRunPropertyCreator();
-
     #endregion
 
     #region 光标

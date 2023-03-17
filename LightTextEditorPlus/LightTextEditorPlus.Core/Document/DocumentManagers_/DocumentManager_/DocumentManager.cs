@@ -22,7 +22,7 @@ namespace LightTextEditorPlus.Core.Document
         {
             TextEditor = textEditor;
             CurrentParagraphProperty = new ParagraphProperty();
-            _currentRunProperty = textEditor.PlatformRunPropertyCreator.GetDefaultRunProperty();
+            _currentRunProperty = textEditor.PlatformProvider.GetPlatformRunPropertyCreator().GetDefaultRunProperty();
 
             ParagraphManager = new ParagraphManager(textEditor);
             DocumentRunEditProvider = new DocumentRunEditProvider(textEditor);
@@ -232,7 +232,7 @@ namespace LightTextEditorPlus.Core.Document
         public void SetDefaultTextRunProperty<T>(Action<T> config) where T : IReadOnlyRunProperty
         {
             CurrentRunProperty =
-                TextEditor.PlatformRunPropertyCreator.BuildNewProperty(property => config((T) property),
+                TextEditor.PlatformProvider.GetPlatformRunPropertyCreator().BuildNewProperty(property => config((T) property),
                     CurrentRunProperty);
         }
 
@@ -246,7 +246,7 @@ namespace LightTextEditorPlus.Core.Document
             // 先获取当前光标的字符属性吧
             IReadOnlyRunProperty currentCaretRunProperty = CurrentCaretRunProperty;
 
-            CaretManager.CurrentCaretRunProperty = TextEditor.PlatformRunPropertyCreator.BuildNewProperty(
+            CaretManager.CurrentCaretRunProperty = TextEditor.PlatformProvider.GetPlatformRunPropertyCreator().BuildNewProperty(
                 property => config((T) property),
                 currentCaretRunProperty);
         }
@@ -312,7 +312,7 @@ namespace LightTextEditorPlus.Core.Document
                     {
                         currentRunProperty = charData.RunProperty;
 
-                        currentRunProperty = TextEditor.PlatformRunPropertyCreator.BuildNewProperty(property => config((T) property), currentRunProperty);
+                        currentRunProperty = TextEditor.PlatformProvider.GetPlatformRunPropertyCreator().BuildNewProperty(property => config((T) property), currentRunProperty);
                     }
 
                     runList.Add(new SingleCharImmutableRun(charData.CharObject, currentRunProperty));
