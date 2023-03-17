@@ -1,5 +1,6 @@
 ﻿using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.TestsFramework;
 
 using MSTest.Extensions.Contracts;
@@ -12,7 +13,24 @@ public class TextEditorEditTest
     [ContractTestCase]
     public void Remove()
     {
-        // todo 删除超过文本字符数量
+        "删除超过文本字符数量，抛出异常".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+            // 随便传入一点文本，然后调用删除
+            textEditorCore.AppendText("12");
+
+            // 从 1 开始，删除 2 个字符，就刚好超过文本字符数量
+            var selection = new Selection(new CaretOffset(1), length: 2);
+
+            // Assert
+            Assert.ThrowsException<SelectionOutOfRangeException>(() =>
+            {
+                // Action
+                textEditorCore.Remove(selection);
+            });
+        });
+
         "对文本调用 Remove 传入空选择，啥都不会发生".Test(() =>
         {
             // Arrange

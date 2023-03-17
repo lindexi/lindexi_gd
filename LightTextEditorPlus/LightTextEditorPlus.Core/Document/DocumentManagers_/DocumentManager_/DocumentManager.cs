@@ -6,6 +6,7 @@ using System.Linq;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Document.UndoRedo;
+using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Utils;
 
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
@@ -598,9 +599,16 @@ namespace LightTextEditorPlus.Core.Document
             RemoveInner(selection);
         }
 
-        private void RemoveInner(in Selection selection) =>
+        private void RemoveInner(in Selection selection)
+        {
+            if (selection.BehindOffset.Offset > CharCount)
+            {
+                throw new SelectionOutOfRangeException(selection, CharCount);
+            }
+
             // 删除范围内的文本，等价于将范围内的文本替换为空
             EditAndReplaceRunInner(selection, null);
+        }
 
         #endregion
 
