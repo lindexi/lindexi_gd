@@ -91,16 +91,9 @@ class ParagraphManager
     /// <returns></returns>
     public ParagraphData GetLastParagraph()
     {
-        if (ParagraphList.Count == 0)
-        {
-            var paragraphData = CreateParagraphAndInsertAfter(relativeParagraph: null);
-            return paragraphData;
-        }
-        else
-        {
-            // ReSharper disable once UseIndexFromEndExpression
-            return ParagraphList[ParagraphList.Count - 1];
-        }
+        EnsureFirstParagraphExists();
+        // ReSharper disable once UseIndexFromEndExpression
+        return ParagraphList[ParagraphList.Count - 1];
     }
 
     /// <summary>
