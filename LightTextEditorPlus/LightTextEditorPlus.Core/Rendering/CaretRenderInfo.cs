@@ -145,7 +145,6 @@ public readonly struct CaretRenderInfo
                 y += size.Height - height;
                 var rectangle = new Rect(x, y, width, height);
                 return rectangle;
-                break;
             case ArrangingType.Vertical:
                 break;
             case ArrangingType.Mongolian:

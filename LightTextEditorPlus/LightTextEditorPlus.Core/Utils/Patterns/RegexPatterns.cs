@@ -162,9 +162,10 @@ public static class RegexPatterns
             /* {-~ */ (char) 0x7b, (char) 0x7e
         );
 
-    // todo 删除
+    /// <summary>
+    /// todo 删除
+    /// </summary>
     [Obsolete("定义有问题，请使用 Ascii 属性")]
-   
     public const string English = Ascii;
 
     /// <summary>
