@@ -7,7 +7,7 @@ namespace LightTextEditorPlus.Core.Document.UndoRedo;
 /// </summary>
 public class TextChangeOperation : TextOperation
 {
-    internal TextChangeOperation(TextEditorCore textEditor, Selection oldSelection, IImmutableRunList? oldRun, Selection newSelection, IImmutableRunList newRun) : base(textEditor)
+    internal TextChangeOperation(TextEditorCore textEditor, Selection oldSelection, IImmutableRunList? oldRun, Selection newSelection, IImmutableRunList? newRun) : base(textEditor)
     {
         OldSelection = oldSelection;
         OldRun = oldRun;
@@ -18,7 +18,7 @@ public class TextChangeOperation : TextOperation
     private Selection OldSelection { get; }
     private IImmutableRunList? OldRun { get; }
     private Selection NewSelection { get; }
-    private IImmutableRunList NewRun { get; }
+    private IImmutableRunList? NewRun { get; }
 
     /// <inheritdoc />
     public override TextOperationType TextOperationType => TextOperationType.ChangeTextData;
