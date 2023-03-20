@@ -478,11 +478,15 @@ public partial class TextEditorCore
     /// <summary>
     /// 文档开始变更事件
     /// </summary>
+    /// 内部使用 <see cref="LightTextEditorPlus.Core.Document.DocumentManager.InternalDocumentChanging"/> 事件
+    [TextEditorPublicAPI]
     public event EventHandler? DocumentChanging;
 
     /// <summary>
     /// 文档变更完成事件
     /// </summary>
+    /// 内部使用 <see cref="LightTextEditorPlus.Core.Document.DocumentManager.InternalDocumentChanged"/> 事件
+    [TextEditorPublicAPI]
     public event EventHandler? DocumentChanged;
 
     /// <summary>
