@@ -5,7 +5,8 @@ namespace LightTextEditorPlus.Core.Document;
 /// <summary>
 /// 文档的选择扩展
 /// </summary>
-public static class DocumentManagerSelectionExtension
+/// 这是给框架内使用的
+internal static class DocumentManagerSelectionExtension
 {
     /// <summary>
     /// 获取文档开始的光标

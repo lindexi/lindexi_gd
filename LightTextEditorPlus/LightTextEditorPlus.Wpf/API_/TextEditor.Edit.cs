@@ -172,7 +172,7 @@ public partial class TextEditor
             // 如果非编辑模式，且当前没有选择任何内容，那就是对整个文本
             if (selection.Value.IsEmpty)
             {
-                selection = TextEditorCore.DocumentManager.GetAllDocumentSelection();
+                selection = TextEditorCore.GetAllDocumentSelection();
             }
         }
 
