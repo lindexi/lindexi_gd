@@ -452,6 +452,13 @@ namespace LightTextEditorPlus.Core.Document
             return charDataListResult;
         }
 
+        public IImmutableRunList GetImmutableRunList(in Selection selection)
+        {
+            var charDataRange = GetCharDataRange(selection);
+            IImmutableRunList list = new ImmutableRunList(charDataRange.Select(t => new SingleCharImmutableRun(t.CharObject, t.RunProperty)));
+            return list;
+        }
+
         #region 编辑
 
         /// <summary>
@@ -478,7 +485,9 @@ namespace LightTextEditorPlus.Core.Document
                 var oldSelection = new Selection(new CaretOffset(oldCharCount), length: 0);
                 IImmutableRunList? oldRun = null;
                 var newSelection = new Selection(new CaretOffset(oldCharCount), new CaretOffset(newCharCount));
-                var newRun = new SingleImmutableRunList(run);
+
+                // 不能直接使用 run 的内容，因为 run 里可能没有写好使用的样式。因此需要获取实际插入的内容，从而获取到实际的插入带样式文本
+                var newRun = GetImmutableRunList(newSelection);
                 var textChangeOperation = new TextChangeOperation(TextEditor, oldSelection, oldRun, newSelection, newRun);
                 TextEditor.UndoRedoProvider.Insert(textChangeOperation);
             }
@@ -556,10 +565,9 @@ namespace LightTextEditorPlus.Core.Document
             if (!TextEditor.IsUndoRedoMode)
             {
                 var oldSelection = selection;
-                var charDataRange = GetCharDataRange(selection);
-                IImmutableRunList oldList = new ImmutableRunList(charDataRange.Select(t => new SingleCharImmutableRun(t.CharObject, t.RunProperty)));
+                IImmutableRunList oldList = GetImmutableRunList(oldSelection);
                 var newSelection = new Selection(selection.FrontOffset, run?.CharCount ?? 0);
-                var newList = run;
+                var newList = GetImmutableRunList(newSelection);
 
                 var textChangeOperation = new TextChangeOperation(TextEditor,oldSelection,oldList,newSelection,newList);
                 TextEditor.UndoRedoProvider.Insert(textChangeOperation);
