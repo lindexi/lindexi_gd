@@ -116,7 +116,7 @@ namespace LightTextEditorPlus.Core.Document
                 var oldValue = _currentRunProperty;
                 _currentRunProperty = value;
 
-                if (!TextEditor.IsUndoRedoMode)
+                if (TextEditor.ShouldInsertUndoRedo)
                 {
                     // 如果不在撤销恢复模式，那就记录一条
                     var operation =
@@ -485,7 +485,7 @@ namespace LightTextEditorPlus.Core.Document
             var newCharCount = CharCount;
             CaretManager.CurrentCaretOffset = new CaretOffset(newCharCount);
 
-            if (!TextEditor.IsUndoRedoMode)
+            if (TextEditor.ShouldInsertUndoRedo)
             {
                 var oldSelection = new Selection(new CaretOffset(oldCharCount), length: 0);
                 IImmutableRunList? oldRun = null;
@@ -567,7 +567,7 @@ namespace LightTextEditorPlus.Core.Document
                 throw new SelectionOutOfRangeException(selection, CharCount);
             }
 
-            if (!TextEditor.IsUndoRedoMode)
+            if (TextEditor.ShouldInsertUndoRedo)
             {
                 var oldSelection = selection;
                 IImmutableRunList oldList = GetImmutableRunList(oldSelection);

@@ -581,6 +581,28 @@ public partial class TextEditorCore
     public bool IsUndoRedoMode { private set; get; }
 
     /// <summary>
+    /// 撤销恢复是否可用
+    /// </summary>
+    public bool EnableUndoRedo { private set; get; } = true;
+
+    /// <summary>
+    /// 设置撤销恢复是否可用
+    /// </summary>
+    /// <param name="isEnable"></param>
+    /// <param name="debugReason">调试使用的设置撤销恢复的理由</param>
+    /// <returns></returns>
+    public void SetUndoRedoEnable(bool isEnable, string debugReason)
+    {
+        Logger.LogDebug($"[SetUndoRedoEnable] Enable={isEnable};Reason={debugReason}");
+        EnableUndoRedo = isEnable;
+    }
+
+    /// <summary>
+    /// 是否应该插入撤销恢复。等同于不在撤销恢复模式且撤销恢复可用
+    /// </summary>
+    internal bool ShouldInsertUndoRedo => !IsUndoRedoMode && EnableUndoRedo;
+
+    /// <summary>
     /// 判断当前是否进入撤销恢复模式，如果没有，抛出 <see cref="TextEditorNotInUndoRedoModeException"/> 异常
     /// </summary>
     /// <exception cref="TextEditorNotInUndoRedoModeException"></exception>
