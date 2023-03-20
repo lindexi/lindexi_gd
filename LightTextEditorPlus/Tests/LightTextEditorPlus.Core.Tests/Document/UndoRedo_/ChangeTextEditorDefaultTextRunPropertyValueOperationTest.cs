@@ -1,10 +1,5 @@
 ﻿using LightTextEditorPlus.Core.TestsFramework;
 using MSTest.Extensions.Contracts;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using Moq;
@@ -86,9 +81,7 @@ public class ChangeTextEditorDefaultTextRunPropertyValueOperationTest
 
         public override ITextEditorUndoRedoProvider BuildTextEditorUndoRedoProvider()
         {
-            return UndoRedoProvider;
+            return UndoRedoProvider!;
         }
-
-        public ITextEditorUndoRedoProvider UndoRedoProvider { get; }
     }
 }

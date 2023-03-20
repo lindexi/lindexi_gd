@@ -452,6 +452,11 @@ namespace LightTextEditorPlus.Core.Document
             return charDataListResult;
         }
 
+        /// <summary>
+        /// 获取不可变的文本块列表。如考虑性能，请优先选择 <see cref="GetCharDataRange"/> 方法
+        /// </summary>
+        /// <param name="selection"></param>
+        /// <returns></returns>
         public IImmutableRunList GetImmutableRunList(in Selection selection)
         {
             var charDataRange = GetCharDataRange(selection);
