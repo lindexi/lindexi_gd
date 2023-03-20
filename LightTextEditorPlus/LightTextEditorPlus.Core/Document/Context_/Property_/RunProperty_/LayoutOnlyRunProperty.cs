@@ -76,36 +76,6 @@ namespace LightTextEditorPlus.Core.Document
 
         private FontName? _fontFamily;
 
-        ///// <summary>
-        ///// 斜体表示，默认值为Normal
-        ///// </summary>
-        //public FontStyle FontStyle
-        //{
-        //    set
-        //    {
-        //        _fontStyle = value;
-        //        RaiseOnTextRunPropertyChanged();
-        //    }
-        //    get => _fontStyle ?? StyleRunProperty?.FontStyle ?? FontStyle.DefaultNotDefine;
-        //}
-
-        //private FontStyle? _fontStyle;
-
-        ///// <summary>
-        ///// 字的粗细度，默认值为Normal
-        ///// </summary>
-        //public FontWeight FontWeight
-        //{
-        //    set
-        //    {
-        //        _fontWeight = value;
-        //        RaiseOnTextRunPropertyChanged();
-        //    }
-        //    get => _fontWeight ?? StyleRunProperty?.FontWeight ?? FontWeight.DefaultNotDefine;
-        //}
-
-        //private FontWeight? _fontWeight;
-
         #region 附加属性
 
         /// <summary>
