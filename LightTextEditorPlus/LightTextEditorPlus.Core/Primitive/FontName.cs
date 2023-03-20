@@ -74,4 +74,7 @@ public readonly struct FontName : IEquatable<FontName>
     {
         return !left.Equals(right);
     }
+
+    /// <inheritdoc />
+    public override string ToString() => UserFontName;
 }
