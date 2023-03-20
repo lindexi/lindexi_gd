@@ -69,14 +69,26 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
     /// </summary>
     public void UpdateSelectionAndCaret(RenderInfoProvider renderInfoProvider)
     {
-        if (!_textEditor.IsInEditingInputMode)
+        var currentSelection = _textEditor.TextEditorCore.CurrentSelection;
+        if (currentSelection.IsEmpty)
         {
-            return;
+            // 闪烁光标
+            if (!_textEditor.IsInEditingInputMode)
+            {
+                // 如果没有在编辑模式，那就不需要闪烁光标
+                return;
+            }
+
+            _renderInfoProvider = renderInfoProvider;
+
+            StartBlink();
         }
+        else
+        {
+            ShowSelection(currentSelection);
 
-        _renderInfoProvider = renderInfoProvider;
-
-        StartBlink();
+            _caretBlinkTimer?.Stop();
+        }
     }
 
     private RenderInfoProvider? _renderInfoProvider;
