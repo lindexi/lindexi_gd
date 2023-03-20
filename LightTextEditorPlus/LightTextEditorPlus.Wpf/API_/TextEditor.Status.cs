@@ -7,6 +7,9 @@ namespace LightTextEditorPlus;
 // 此文件存放状态获取相关的方法
 public partial class TextEditor
 {
+    /// <summary>
+    /// 当前光标下的文本字符属性
+    /// </summary>
     public IRunProperty CurrentCaretRunProperty => (IRunProperty)TextEditorCore.DocumentManager.CurrentCaretRunProperty;
 
     #region 光标和选择

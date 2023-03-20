@@ -44,6 +44,10 @@ public partial class TextEditor
 
     private bool _isInEditingInputMode = false;
 
+    /// <summary>
+    /// 是否进入编辑的模式变更完成事件
+    /// </summary>
+
     public event EventHandler? IsInEditingInputModeChanged;
 
     #endregion
@@ -114,6 +118,11 @@ public partial class TextEditor
         SetFontStyle(fontStyle);
     }
 
+    /// <summary>
+    /// 设置字体样式
+    /// </summary>
+    /// <param name="fontStyle"></param>
+    /// <param name="selection"></param>
     public void SetFontStyle(FontStyle fontStyle, Selection? selection = null)
     {
         SetRunProperty(p => p.FontStyle = fontStyle, PropertyType.FontStyle, selection);

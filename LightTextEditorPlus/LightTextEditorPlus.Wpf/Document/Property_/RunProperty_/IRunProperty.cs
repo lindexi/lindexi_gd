@@ -26,7 +26,18 @@ public interface IRunProperty : IReadOnlyRunProperty
     /// </summary>
     double Opacity { get; }
 
+    /// <summary>
+    /// 获取描述与某个字体与该字体的正常纵横比相比的拉伸程度
+    /// </summary>
     FontStretch Stretch { get; }
+
+    /// <summary>
+    /// 获取字重
+    /// </summary>
     FontWeight FontWeight { get; }
+
+    /// <summary>
+    /// 获取字体样式
+    /// </summary>
     FontStyle FontStyle { get; }
 }

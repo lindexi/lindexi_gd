@@ -8,6 +8,9 @@ using LightTextEditorPlus.Core.Document;
 
 namespace LightTextEditorPlus.Document;
 
+/// <summary>
+/// 文本字符属性
+/// </summary>
 public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunProperty
 {
     internal RunProperty(RunPropertyPlatformManager runPropertyPlatformManager, RunProperty? styleRunProperty = null) : base(styleRunProperty)
@@ -20,6 +23,7 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
 
     #region Foreground
 
+    /// <inheritdoc />
     public ImmutableBrush Foreground
     {
         set
@@ -32,6 +36,9 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
         }
     }
 
+    /// <summary>
+    /// 默认前景色
+    /// </summary>
     public static readonly ImmutableBrush DefaultForeground = new ImmutableBrush(Brushes.Black);
 
     private ImmutableBrush? _foreground;
@@ -40,12 +47,16 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
 
     #region Background
 
+    /// <inheritdoc />
     public ImmutableBrush? Background
     {
         set => _background = value;
         get => _background ?? StyleRunProperty?.Background ?? DefaultBackground;
     }
 
+    /// <summary>
+    /// 默认背景色
+    /// </summary>
     public static ImmutableBrush? DefaultBackground => null;
 
     private ImmutableBrush? _background;
@@ -54,12 +65,16 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
 
     #region Opacity
 
+    /// <inheritdoc />
     public double Opacity
     {
         set => _opacity = value;
         get => _opacity ?? StyleRunProperty?.Opacity ?? DefaultOpacity;
     }
 
+    /// <summary>
+    /// 默认不透明度
+    /// </summary>
     public const double DefaultOpacity = 1;
 
     private double? _opacity;
@@ -68,6 +83,7 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
 
     #region FontStretch
 
+    /// <inheritdoc />
     public FontStretch Stretch
     {
         set => _stretch = value;
@@ -75,6 +91,9 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
     }
 
     private FontStretch? _stretch;
+    /// <summary>
+    /// 默认字体拉伸
+    /// </summary>
     public static FontStretch DefaultFontStretch => FontStretches.Normal;
 
     #endregion
@@ -91,6 +110,9 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
     }
 
     private FontWeight? _fontWeight;
+    /// <summary>
+    /// 默认字重
+    /// </summary>
     public static FontWeight DefaultFontWeight => FontWeights.Normal;
 
     #endregion
@@ -107,6 +129,9 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
     }
 
     private FontStyle? _fontStyle;
+    /// <summary>
+    /// 默认字体样式
+    /// </summary>
     public static FontStyle DefaultFontStyle => FontStyles.Normal;
 
     #endregion
@@ -128,6 +153,13 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
     /// 对于一个字体，如果给定的文本不是当前字体能支持的，一般来说都会存在多个文本都有此问题。于是缓存起来，可以重复使用，减少回滚次数
     private GlyphTypeface? _cacheFallbackGlyphTypeface;
 
+    /// <summary>
+    /// 尝试获取渲染时的回滚字体
+    /// </summary>
+    /// <param name="c"></param>
+    /// <param name="glyphTypeface"></param>
+    /// <param name="glyphIndex"></param>
+    /// <returns></returns>
     public bool TryGetFallbackGlyphTypeface(char c,[NotNullWhen(true)] out GlyphTypeface? glyphTypeface,out ushort glyphIndex)
     {
         if (_cacheFallbackGlyphTypeface is not null)
@@ -206,6 +238,7 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
 
     #region 相等判断
 
+    /// <inheritdoc />
     public override bool Equals(object? obj)
     {
         if (obj is null) return false;
@@ -218,6 +251,7 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
         return false;
     }
 
+    /// <inheritdoc />
     public override bool Equals(IReadOnlyRunProperty? other)
     {
         if (ReferenceEquals(other, this))
@@ -236,6 +270,7 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
         }
     }
 
+    /// <inheritdoc />
     public override int GetHashCode()
     {
         var hashCode = new HashCode();
@@ -250,6 +285,7 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
         return hashCode.ToHashCode();
     }
 
+    /// <inheritdoc />
     public bool Equals(RunProperty? other)
     {
         if (other == null)

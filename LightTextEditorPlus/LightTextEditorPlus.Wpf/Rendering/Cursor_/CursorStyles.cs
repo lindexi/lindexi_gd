@@ -13,6 +13,9 @@ namespace LightTextEditorPlus.Rendering;
 /// </summary>
 public record CursorStyles(Cursor Cursor)
 {
+    /// <summary>
+    /// 垂直光标，为空将使用文本库自带的垂直光标
+    /// </summary>
     public Cursor? VerticalCursor
     {
         init;

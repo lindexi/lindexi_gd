@@ -43,6 +43,10 @@ using Size = LightTextEditorPlus.Core.Primitive.Size;
 
 namespace LightTextEditorPlus;
 
+/// <summary>
+/// 文本编辑器
+/// </summary>
+/// 这就是整个程序集的入口
 public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEditor
 {
     static TextEditor()
@@ -56,6 +60,9 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
             new FrameworkPropertyMetadata(KeyboardNavigationMode.None));
     }
 
+    /// <summary>
+    /// 创建文本框
+    /// </summary>
     public TextEditor()
     {
         #region 清晰文本
@@ -92,6 +99,9 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
     #region 公开属性
 
+    /// <summary>
+    /// 文本核心
+    /// </summary>
     public TextEditorCore TextEditorCore { get; }
 
     /// <summary>
@@ -145,12 +155,14 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
     #region 框架
 
+    /// <inheritdoc />
     protected override System.Windows.Size MeasureOverride(System.Windows.Size availableSize)
     {
         TextView.Measure(availableSize);
         return base.MeasureOverride(availableSize);
     }
 
+    /// <inheritdoc />
     protected override System.Windows.Size ArrangeOverride(System.Windows.Size finalSize)
     {
         TextView.Arrange(new System.Windows.Rect(new System.Windows.Point(), finalSize));
@@ -165,12 +177,14 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         }
     }
 
+    /// <inheritdoc />
     protected override void OnGotFocus(RoutedEventArgs e)
     {
         IsInEditingInputMode = true;
         base.OnGotFocus(e);
     }
 
+    /// <inheritdoc />
     protected override void OnLostFocus(RoutedEventArgs e)
     {
         IsInEditingInputMode = false;
@@ -197,9 +211,12 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     private MouseHandler MouseHandler { get; }
     private KeyboardHandler? _keyboardHandler;
 
+    /// <inheritdoc />
     protected override int VisualChildrenCount => 1; // 当前只有视觉呈现容器一个而已
+    /// <inheritdoc />
     protected override Visual GetVisualChild(int index) => TextView;
 
+    /// <inheritdoc />
     protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
     {
         if (e.Property == TextElement.ForegroundProperty)
@@ -231,6 +248,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
     #region 命中测试
 
+    /// <inheritdoc />
     protected override HitTestResult? HitTestCore(PointHitTestParameters hitTestParameters)
     {
         return new PointHitTestResult(this, hitTestParameters.HitPoint);
@@ -250,15 +268,18 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
     private TaskCompletionSource _renderCompletionSource = new TaskCompletionSource();
 
+    /// <summary>
+    /// 日志
+    /// </summary>
     public ITextLogger Logger => TextEditorCore.Logger;
 
     #endregion
 
     #endregion
 
-
     #region IME 支持
 
+    /// <inheritdoc />
     protected override void OnGotKeyboardFocus(KeyboardFocusChangedEventArgs e)
     {
         Logger.LogDebug($"[TextEditor] GotKeyboardFocus 获取键盘焦点");
@@ -267,6 +288,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         base.OnGotKeyboardFocus(e);
     }
 
+    /// <inheritdoc />
     protected override void OnLostKeyboardFocus(KeyboardFocusChangedEventArgs e)
     {
         Logger.LogDebug($"[TextEditor] LostKeyboardFocus");
@@ -299,6 +321,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         return caretBounds.ToWpfRect().TopLeft;
     }
 
+    /// <inheritdoc />
     protected override void OnTextInput(TextCompositionEventArgs e)
     {
         base.OnTextInput(e);

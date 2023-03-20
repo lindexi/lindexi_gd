@@ -5,6 +5,9 @@ using LightTextEditorPlus.Utils;
 
 namespace LightTextEditorPlus;
 
+/// <summary>
+/// 光标的配置
+/// </summary>
 public class CaretConfiguration
 {
     /// <summary>
@@ -12,6 +15,9 @@ public class CaretConfiguration
     /// </summary>
     public double CaretWidth { get; set; } = DefaultCaretWidth;
 
+    /// <summary>
+    /// 默认的光标宽度
+    /// </summary>
     public const double DefaultCaretWidth = 2;
 
     /// <summary>

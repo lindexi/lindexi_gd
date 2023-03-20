@@ -37,5 +37,10 @@ internal class KeyboardHandler
     }
 
     private TextEditor TextEditor => _textArea;
+
+    /// <summary>
+    /// 文本交互范围
+    /// </summary>
+    /// 只是为了方便抄代码，后续可以干掉
     private readonly TextEditor _textArea;
 }
