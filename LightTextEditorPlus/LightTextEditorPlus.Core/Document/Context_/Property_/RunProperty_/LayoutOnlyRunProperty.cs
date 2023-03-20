@@ -181,6 +181,28 @@ namespace LightTextEditorPlus.Core.Document
         }
 
         /// <summary>
+        /// 是否存在任何的附加属性
+        /// </summary>
+        /// 这个属性用来提升性能，没有附加属性就不需要执行额外的判断逻辑
+        private bool ExistsAnyAdditionalProperty
+        {
+            get
+            {
+                if (AdditionalPropertyDictionary != null)
+                {
+                    return true;
+                }
+
+                if (StyleRunProperty?.ExistsAnyAdditionalProperty is true)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
+        /// <summary>
         /// 判断相等
         /// </summary>
         /// <param name="other"></param>
@@ -194,6 +216,18 @@ namespace LightTextEditorPlus.Core.Document
                 && FontName.Equals(other.FontName)
             )
             {
+                if (ExistsAnyAdditionalProperty != other.ExistsAnyAdditionalProperty)
+                {
+                    // 如果一个存在附加属性，一个不存在，那就是不相等
+                    return false;
+                }
+
+                if (!ExistsAnyAdditionalProperty)
+                {
+                    // 如果都不存在附加属性，那就不需要判断附加属性
+                    return true;
+                }
+
                 var thisAdditionalPropertyKeyList = GetAdditionalPropertyKeyList();
                 var otherAdditionalPropertyKeyList = other.GetAdditionalPropertyKeyList();
 
