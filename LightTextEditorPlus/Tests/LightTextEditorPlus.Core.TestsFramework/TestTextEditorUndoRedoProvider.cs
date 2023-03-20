@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+
 using LightTextEditorPlus.Core.Document.UndoRedo;
 
 namespace LightTextEditorPlus.Core.TestsFramework;
@@ -29,7 +30,7 @@ public class TestTextEditorUndoRedoProvider : ITextEditorUndoRedoProvider
         if (last != null)
         {
             last.Redo();
-            RedoOperationList.RemoveAt(RedoOperationList.Count);
+            RedoOperationList.RemoveAt(RedoOperationList.Count - 1);
             UndoOperationList.Add(last);
         }
     }
