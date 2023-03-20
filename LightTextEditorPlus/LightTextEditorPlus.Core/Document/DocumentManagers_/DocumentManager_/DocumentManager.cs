@@ -574,7 +574,7 @@ namespace LightTextEditorPlus.Core.Document
                 // 获取旧的数据
                 IImmutableRunList oldList = GetImmutableRunList(oldSelection);
 
-                // 执行替换
+                // 执行替换，需要替换之后才能获取到新的数据
                 DocumentRunEditProvider.Replace(selection, run);
 
                 // 获取新的数据
