@@ -38,7 +38,7 @@ public class DocumentManagerTests
             // 不会影响字符顺序
             Assert.AreEqual(text, textEditorCore.GetText());
 
-            var runPropertyList = textEditorCore.DocumentManager.GetRunPropertyRange(textEditorCore.DocumentManager.GetAllDocumentSelection()).ToList();
+            var runPropertyList = textEditorCore.DocumentManager.GetRunPropertyRange(textEditorCore.GetAllDocumentSelection()).ToList();
             Assert.AreNotEqual(fontSize, runPropertyList[0].FontSize);
             Assert.AreNotEqual(fontSize, runPropertyList[1].FontSize);
             Assert.AreNotEqual(fontSize, runPropertyList[2].FontSize);
@@ -75,7 +75,7 @@ public class DocumentManagerTests
             Assert.AreNotEqual(fontName, textEditorCore.DocumentManager.CurrentCaretRunProperty.FontName.UserFontName);
 
             // 不会影响到其他的字符
-            var differentRunPropertyRange = textEditorCore.DocumentManager.GetDifferentRunPropertyRange(textEditorCore.DocumentManager.GetAllDocumentSelection()).ToList();
+            var differentRunPropertyRange = textEditorCore.DocumentManager.GetDifferentRunPropertyRange(textEditorCore.GetAllDocumentSelection()).ToList();
             foreach (var runProperty in differentRunPropertyRange)
             {
                 Assert.AreNotEqual(fontSize, runProperty.FontSize);
@@ -107,7 +107,7 @@ public class DocumentManagerTests
             Assert.AreEqual(fontName, textEditorCore.DocumentManager.CurrentCaretRunProperty.FontName.UserFontName);
 
             // 不会影响到其他的字符
-            var differentRunPropertyRange = textEditorCore.DocumentManager.GetDifferentRunPropertyRange(textEditorCore.DocumentManager.GetAllDocumentSelection()).ToList();
+            var differentRunPropertyRange = textEditorCore.DocumentManager.GetDifferentRunPropertyRange(textEditorCore.GetAllDocumentSelection()).ToList();
             foreach (var runProperty in differentRunPropertyRange)
             {
                 Assert.AreNotEqual(fontSize, runProperty.FontSize);
@@ -214,7 +214,7 @@ public class DocumentManagerTests
 
             // Action
             // 调用 DocumentManager.GetCharDataRange 传入文档全选
-            var selection = textEditorCore.DocumentManager.GetAllDocumentSelection();
+            var selection = textEditorCore.GetAllDocumentSelection();
             var charDataRange = textEditorCore.DocumentManager.GetCharDataRange(selection).ToList();
 
             // Assert

@@ -106,7 +106,7 @@ public class TextEditorEditTest
             // 先追加文本，用于后续删除
             textEditorCore.AppendText("abc");
 
-            textEditorCore.CurrentCaretOffset = textEditorCore.DocumentManager.GetDocumentEndCaretOffset();
+            textEditorCore.CurrentCaretOffset = textEditorCore.GetDocumentEndCaretOffset();
 
             // Action
             // 执行退格，可以删除最后一个字符
