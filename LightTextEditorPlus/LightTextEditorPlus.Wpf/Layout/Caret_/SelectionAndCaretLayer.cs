@@ -75,13 +75,18 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
             // 闪烁光标
             if (!_textEditor.IsInEditingInputMode)
             {
-                // 如果没有在编辑模式，那就不需要闪烁光标
-                return;
+                // 如果没有在编辑模式，那就不需要闪烁光标，但是需要隐藏光标
+                if (_isBlinkShown || _isShowingSelection)
+                {
+                    StopBlink();
+                }
             }
+            else
+            {
+                _renderInfoProvider = renderInfoProvider;
 
-            _renderInfoProvider = renderInfoProvider;
-
-            StartBlink();
+                StartBlink();
+            }
         }
         else
         {
@@ -168,36 +173,7 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
         var currentSelection = _textEditor.TextEditorCore.CurrentSelection;
         if (currentSelection.IsEmpty)
         {
-            // 没有选择的情况，绘制和闪烁光标
-            if (_isBlinkShown)
-            {
-                HideBlink();
-            }
-            else
-            {
-                // 由于判断了 _textEditor.TextEditorCore.IsDirty 因此不需要再等待布局完成
-                //await _textEditor.TextEditorCore.WaitLayoutCompletedAsync();
-
-                if (_renderInfoProvider is null)
-                {
-                    _renderInfoProvider = _textEditor.TextEditorCore.GetRenderInfo();
-                }
-
-                // 获取光标的坐标
-                var caretRenderInfo = _renderInfoProvider.GetCaretRenderInfo(currentSelection.FrontOffset);
-
-                var foreground = _textEditor.CaretConfiguration.CaretBrush ??
-                                 _textEditor.CurrentCaretRunProperty.Foreground.Value;
-
-                var rectangle = caretRenderInfo.GetCaretBounds(_textEditor.CaretConfiguration.CaretWidth).ToWpfRect();
-                var drawingContext = RenderOpen();
-                using (drawingContext)
-                {
-                    drawingContext.DrawRectangle(foreground, null, rectangle);
-                }
-            }
-
-            _isBlinkShown = !_isBlinkShown;
+            Blinking(currentSelection);
         }
         else
         {
@@ -205,6 +181,45 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
 
             _caretBlinkTimer?.Stop();
         }
+    }
+
+    /// <summary>
+    /// 闪烁光标
+    /// </summary>
+    /// <param name="currentSelection"></param>
+    private void Blinking(Selection currentSelection)
+    {
+        // 没有选择的情况，绘制和闪烁光标
+        if (_isBlinkShown)
+        {
+            HideBlink();
+        }
+        else
+        {
+            // 由于判断了 _textEditor.TextEditorCore.IsDirty 因此不需要再等待布局完成
+            //await _textEditor.TextEditorCore.WaitLayoutCompletedAsync();
+
+            if (_renderInfoProvider is null)
+            {
+                _renderInfoProvider = _textEditor.TextEditorCore.GetRenderInfo();
+            }
+
+            // 获取光标的坐标
+            var caretRenderInfo = _renderInfoProvider.GetCaretRenderInfo(currentSelection.FrontOffset);
+
+            var foreground = _textEditor.CaretConfiguration.CaretBrush ??
+                             _textEditor.CurrentCaretRunProperty.Foreground.Value;
+
+            var rectangle = caretRenderInfo.GetCaretBounds(_textEditor.CaretConfiguration.CaretWidth).ToWpfRect();
+            var drawingContext = RenderOpen();
+            using (drawingContext)
+            {
+                drawingContext.DrawRectangle(foreground, null, rectangle);
+            }
+        }
+
+        _isBlinkShown = !_isBlinkShown;
+        _isShowingSelection = false;
     }
 
     private void ShowSelection(in Selection currentSelection)
@@ -220,6 +235,8 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
         {
             drawingContext.DrawRectangle(_textEditor.CaretConfiguration.SelectionBrush, null, rect.ToWpfRect());
         }
+
+        _isShowingSelection = true;
     }
 
     /// <summary>
@@ -247,6 +264,8 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
     /// 光标闪烁显示
     /// </summary>
     private bool _isBlinkShown;
+
+    private bool _isShowingSelection;
 
     /// <summary>
     /// 隐藏光标
