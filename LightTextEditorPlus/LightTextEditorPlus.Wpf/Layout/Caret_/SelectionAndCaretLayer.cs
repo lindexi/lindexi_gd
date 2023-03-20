@@ -12,6 +12,12 @@ namespace LightTextEditorPlus.Layout;
 /// <summary>
 /// 选择和光标的一层
 /// </summary>
+/// 状态：
+/// 光标模式->选择模式：切换选择范围
+/// 光标模式->非编辑模式：隐藏光标
+/// 选择模式->选择范围变更：更新选择范围
+/// 选择模式->光标模式：不显示选择范围，显示为光标
+/// 选择模式->光标模式->立即进入非编辑模式：删除选择范围
 class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
 {
     public SelectionAndCaretLayer(TextEditor textEditor)
