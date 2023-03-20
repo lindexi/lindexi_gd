@@ -569,16 +569,26 @@ namespace LightTextEditorPlus.Core.Document
 
             if (TextEditor.ShouldInsertUndoRedo)
             {
+                // 需要插入撤销恢复，先获取旧的数据，再替换，再获取新的数据
                 var oldSelection = selection;
+                // 获取旧的数据
                 IImmutableRunList oldList = GetImmutableRunList(oldSelection);
+
+                // 执行替换
+                DocumentRunEditProvider.Replace(selection, run);
+
+                // 获取新的数据
                 var newSelection = new Selection(selection.FrontOffset, run?.CharCount ?? 0);
                 var newList = GetImmutableRunList(newSelection);
 
                 var textChangeOperation = new TextChangeOperation(TextEditor,oldSelection,oldList,newSelection,newList);
                 TextEditor.UndoRedoProvider.Insert(textChangeOperation);
             }
-
-            DocumentRunEditProvider.Replace(selection, run);
+            else
+            {
+                // 不需要插入撤销恢复，那就直接替换
+                DocumentRunEditProvider.Replace(selection, run);
+            }
         }
 
         #endregion

@@ -1,4 +1,6 @@
 ﻿using System.Reflection;
+
+using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.TestsFramework;
@@ -62,6 +64,50 @@ public class TextEditorUndoRedoTest
     [ContractTestCase]
     public void UndoRedo()
     {
+        "替换文本字符串里中间的字符，可以通过撤销撤回更改，再次调用恢复可以回到原本样式的文本".Test(() =>
+        {
+            // Arrange
+            var testTextEditorUndoRedoProvider = new TestTextEditorUndoRedoProvider();
+            var textEditorCore = TestHelper.GetTextEditorCore(new TestPlatformProvider()
+            {
+                UndoRedoProvider = testTextEditorUndoRedoProvider
+            });
+            // 禁用撤销重做，减少干扰
+            textEditorCore.SetUndoRedoEnable(false, "test");
+            // 先追加点文本，用来后续进行替换
+            textEditorCore.AppendText("abc");
+            // 重新开撤销重做
+            textEditorCore.SetUndoRedoEnable(true, "test");
+            // 替换文本字符串里中间的字符
+            var selection = new Selection(new CaretOffset(1), 1);
+            const string fontName = "测试用的字体";
+            var runProperty = new LayoutOnlyRunProperty()
+            {
+                FontName = new FontName(fontName)
+            };
+
+            // Action
+            textEditorCore.EditAndReplaceRun(new TextRun("d", runProperty), selection);
+
+            // Assert
+            // 可以通过撤销撤回更改
+            Assert.AreEqual(1, testTextEditorUndoRedoProvider.UndoOperationList.Count);
+
+            // 撤销一下，返回原先的字符串
+            testTextEditorUndoRedoProvider.Undo();
+            Assert.AreEqual("abc", textEditorCore.GetText());
+
+            // 恢复一下
+            testTextEditorUndoRedoProvider.Redo();
+            Assert.AreEqual("adc", textEditorCore.GetText());
+
+            // 样式也能恢复
+            var runPropertyList = textEditorCore.DocumentManager.GetDifferentRunPropertyRange(textEditorCore.GetAllDocumentSelection()).ToList();
+            // 只有中间一个不同，因此获取不相同的应该是3个，证明前后两个字符和中间的字符的字符属性不同
+            Assert.AreEqual(3, runPropertyList.Count);
+            Assert.AreEqual(fontName, runPropertyList[1].FontName.UserFontName);
+        });
+
         "追加带样式的文本之后，可以通过撤销撤回更改，再次调用恢复可以回到原本样式的文本".Test(() =>
         {
             // Arrange
