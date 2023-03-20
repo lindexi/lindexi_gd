@@ -29,16 +29,6 @@ namespace LightTextEditorPlus.Core.Document
         /// 大部分的中文字体都有带英文字符，那不如就依然是单个字体
         FontName FontName { get; }
 
-        ///// <summary>
-        ///// 斜体表示，默认值为Normal
-        ///// </summary>
-        //FontStyle FontStyle { get; }
-
-        ///// <summary>
-        ///// 字的粗细度，默认值为Normal
-        ///// </summary>
-        //FontWeight FontWeight { get; }
-
         /// <summary>
         /// 尝试获取属性
         /// </summary>
@@ -239,17 +229,18 @@ namespace LightTextEditorPlus.Core.Document
             }
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// 判断相等
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
         public bool Equals(LayoutOnlyRunProperty other)
         {
             // 先判断一定存在的属性，再判断业务端注入的属性
             if 
             (
-                Equals(FontSize, other.FontSize)
-                && Equals(FontName, other.FontName)
-
-                //&& Equals(FontStyle, other.FontStyle) 
-                //&& Equals(FontWeight, other.FontWeight)
+                FontSize.Equals(other.FontSize)
+                && FontName.Equals(other.FontName)
             )
             {
                 var thisAdditionalPropertyKeyList = GetAdditionalPropertyKeyList();
