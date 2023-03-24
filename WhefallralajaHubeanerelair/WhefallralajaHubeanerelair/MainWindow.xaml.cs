@@ -49,7 +49,7 @@ namespace WhefallralajaHubeanerelair
             _nativeIRealTimeStylus.GetWindowInputRect(out var rect);
             TextBlock.Text += $"Enable = {rect.Left} {rect.Top} {rect.Right} {rect.Bottom}\r\n";
 
-            AddRealTimeStylus();
+            //AddRealTimeStylus();
         }
 
         public static TextBlock TextBlock { private set; get; } = null!;
