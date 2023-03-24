@@ -8,7 +8,9 @@ internal static class ComObjectCreator
     {
         object ppvObj = (object) null;
         Guid guid = typeof(UnsafeNativeMethods.IClassFactory2).GUID;
-        UnsafeNativeMethods.CoGetClassObject(ref clsid, 1U, IntPtr.Zero, ref guid).CreateInstanceLic(IntPtr.Zero, IntPtr.Zero, ref iid, licenseKey, out ppvObj);
+        var classFactory2 = UnsafeNativeMethods.CoGetClassObject(ref clsid, 1U, IntPtr.Zero, ref guid);
+
+        classFactory2.CreateInstanceLic(IntPtr.Zero, IntPtr.Zero, ref iid, licenseKey, out ppvObj);
         return ppvObj;
     }
 }
