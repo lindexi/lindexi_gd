@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace WhefallralajaHubeanerelair;
@@ -8,38 +9,45 @@ internal sealed class StylusSyncPluginNativeShim : StylusSyncPluginNative, IStyl
 {
     void IStylusPluginNative.RtpEnabled(IRealTimeStylusNative realTime, uint cTcidCount, uint[] tcidArray)
     {
-
+        LogMethod();
     }
 
     void StylusSyncPluginNative.RtpDisabled(IRealTimeStylusNative realTime, uint cTcidCount, uint[] tcidArray)
     {
+        LogMethod();
     }
 
     void StylusSyncPluginNative.CursorNew(IRealTimeStylusNative realTime, uint tcid, uint cid)
     {
+        LogMethod();
     }
 
     void StylusSyncPluginNative.CursorInRange(IRealTimeStylusNative realTime, uint tcid, uint cid)
     {
+        LogMethod();
     }
 
     void StylusSyncPluginNative.CursorOutOfRange(IRealTimeStylusNative realTime, uint tcid, uint cid)
     {
+        LogMethod();
     }
 
     void StylusSyncPluginNative.CursorDown(IRealTimeStylusNative realTime, StylusInfo stylusInfo, uint propCountPerPkt, int[] pktArray,
         ref nint InOutPkt)
     {
+        LogMethod();
     }
 
     void StylusSyncPluginNative.CursorUp(IRealTimeStylusNative realTime, StylusInfo stylusInfo, uint propCountPerPkt, int[] pktArray,
         ref nint InOutPkt)
     {
+        LogMethod();
     }
 
     void StylusSyncPluginNative.InAirPackets(IRealTimeStylusNative realTime, StylusInfo stylusInfo, uint pktCount, uint cPktBuffLength,
         int[] pktArray, ref uint cInOutPkts, ref nint InOutPkts)
     {
+        LogMethod();
     }
 
     void StylusSyncPluginNative.Packets(IRealTimeStylusNative realTime, StylusInfo stylusInfo, uint pktCount, uint cPktBuffLength, int[] pktArray,
@@ -60,9 +68,19 @@ internal sealed class StylusSyncPluginNativeShim : StylusSyncPluginNative, IStyl
         stringBuilder.AppendLine();
 
         //Debug.WriteLine(stringBuilder.ToString());
+        Log(stringBuilder.ToString());
+    }
+
+    private void LogMethod([CallerMemberName] string name = null!)
+    {
+        Log(name + "\r\n");
+    }
+
+    private void Log(string message)
+    {
         MainWindow.TextBlock.Dispatcher.InvokeAsync(() =>
         {
-            MainWindow.TextBlock.Text += stringBuilder.ToString();
+            MainWindow.TextBlock.Text += message;
 
             if (MainWindow.TextBlock.Text.Length > 10000)
             {
@@ -73,14 +91,17 @@ internal sealed class StylusSyncPluginNativeShim : StylusSyncPluginNative, IStyl
 
     void StylusSyncPluginNative.StylusButtonUp(IRealTimeStylusNative realTime, uint cid, Guid StylusButtonGuid, ref nint pStylusPos)
     {
+        LogMethod();
     }
 
     void StylusSyncPluginNative.StylusButtonDown(IRealTimeStylusNative realTime, uint cid, Guid StylusButtonGuid, ref nint pStylusPos)
     {
+        LogMethod();
     }
 
     void StylusSyncPluginNative.SystemEvent(IRealTimeStylusNative realTime, uint tcid, uint cid, ushort systemEvent, SystemEventData eventdata)
     {
+        LogMethod();
     }
 
     void StylusSyncPluginNative.TabletAdded(IRealTimeStylusNative realTime, IInkTablet tablet)
@@ -138,11 +159,13 @@ internal sealed class StylusSyncPluginNativeShim : StylusSyncPluginNative, IStyl
     void IStylusPluginNative.InAirPackets(IRealTimeStylusNative realTime, StylusInfo stylusInfo, uint pktCount, uint cPktBuffLength,
         int[] pktArray, ref uint cInOutPkts, ref nint InOutPkts)
     {
+        LogMethod();
     }
 
     void IStylusPluginNative.Packets(IRealTimeStylusNative realTime, StylusInfo stylusInfo, uint pktCount, uint cPktBuffLength, int[] pktArray,
         ref uint cInOutPkts, ref nint InOutPkts)
     {
+        LogMethod();
     }
 
     void IStylusPluginNative.StylusButtonUp(IRealTimeStylusNative realTime, uint cid, Guid StylusButtonGuid, ref nint pStylusPos)
