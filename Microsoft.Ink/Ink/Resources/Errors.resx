@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="InvalidScaleFactor" xml:space="preserve">
+    <value>The scale factor cannot be equal to zero.</value>
+  </data>
+  <data name="Strokes" xml:space="preserve">
+    <value>strokes</value>
+  </data>
+  <data name="NotSupported_UnlockableStream" xml:space="preserve">
+    <value>Stream does not support locking.</value>
+  </data>
+  <data name="InvalidDataInterestMask" xml:space="preserve">
+    <value>A plug-in has returned an invalid value for the DataInterest property.</value>
+  </data>
+  <data name="RecognizerNotFreeInput" xml:space="preserve">
+    <value>The requested recognizer does not support free input.</value>
+  </data>
+  <data name="InvalidProperty" xml:space="preserve">
+    <value>The specified property identifier was invalid.</value>
+  </data>
+  <data name="NotRelevant" xml:space="preserve">
+    <value>This call is not relevant for this result.</value>
+  </data>
+  <data name="InvalidStylusQueues" xml:space="preserve">
+    <value>Invalid StylusQueues value.</value>
+  </data>
+  <data name="MismatchedInkObject" xml:space="preserve">
+    <value>The operation cannot be performed with two different ink objects.</value>
+  </data>
+  <data name="InkCollectorEnabled" xml:space="preserve">
+    <value>The operation cannot be performed while the object or control is enabled.</value>
+  </data>
+  <data name="InvalidInputRect" xml:space="preserve">
+    <value>The input rectangle is invalid.</value>
+  </data>
+  <data name="StrokesAlreadySet" xml:space="preserve">
+    <value>Strokes already set.</value>
+  </data>
+  <data name="AsyncPluginCollectionNonEmpty" xml:space="preserve">
+    <value>The AsyncPluginCollection of the parent RealTimeStylus object must be empty before adding a cascading RealTimeStylus object.</value>
+  </data>
+  <data name="OutOfOrderCall" xml:space="preserve">
+    <value>The call is out of order.</value>
+  </data>
+  <data name="NoDefaultTablet" xml:space="preserve">
+    <value>There is no default tablet set on the system.</value>
+  </data>
+  <data name="MultiLevelCascadingNotAllowed" xml:space="preserve">
+    <value>One or more of the RealTimeStylus objects is already participating in a cascading configuration.</value>
+  </data>
+  <data name="RecognizerGuideNotSet" xml:space="preserve">
+    <value>RecognizerGuide is not set on this AnalysisHint</value>
+  </data>
+  <data name="MoreThanOnePacketData" xml:space="preserve">
+    <value>The PacketData element contains more than one packet.</value>
+  </data>
+  <data name="RtsInvalidConfiguration" xml:space="preserve">
+    <value>Plug-in is connected to multiple plug-in collections or multiple instances of RealTimeStylus.</value>
+  </data>
+  <data name="RecognizerContextAlreadySet" xml:space="preserve">
+    <value>RecognizerContext already set.</value>
+  </data>
+  <data name="NoStrokesToRecognize" xml:space="preserve">
+    <value>There are no strokes for the recognizer to process.</value>
+  </data>
+  <data name="Stroke" xml:space="preserve">
+    <value>stroke</value>
+  </data>
+  <data name="RTSInternalError" xml:space="preserve">
+    <value>An internal error has occurred in the RealTimeStylus object.</value>
+  </data>
+  <data name="ValueCannotBeSmallerThanZero" xml:space="preserve">
+    <value>The value cannot be smaller than zero.</value>
+  </data>
+  <data name="InvalidStroke" xml:space="preserve">
+    <value>The stroke is invalid.</value>
+  </data>
+  <data name="OverlappingInputRect" xml:space="preserve">
+    <value>The window input rectangle overlaps with the window input rectangle of an enabled object or control.</value>
+  </data>
+  <data name="InvalidRights" xml:space="preserve">
+    <value>The rights are invalid for this operation.</value>
+  </data>
+  <data name="Arg_ArrayPlusOffTooSmall" xml:space="preserve">
+    <value>Combination of Array index plus size was not large enough.</value>
+  </data>
+  <data name="NotSupported_UnrevertableStream" xml:space="preserve">
+    <value>Stream does not support reverting.</value>
+  </data>
+  <data name="InvalidMode" xml:space="preserve">
+    <value>The operation cannot be performed while using the current object or control mode.</value>
+  </data>
+  <data name="NoPluginsConnected" xml:space="preserve">
+    <value>No plug-ins are connected.</value>
+  </data>
+  <data name="IndexOutOfRange" xml:space="preserve">
+    <value>No item exists for this index.</value>
+  </data>
+  <data name="InitializeFail" xml:space="preserve">
+    <value>Initialization has failed.</value>
+  </data>
+  <data name="RTSInterfaceNotImplemented" xml:space="preserve">
+    <value>This RealTimeStylus interface method is not implemented.</value>
+  </data>
+  <data name="CascadeRTSConstructWithNoArgRts" xml:space="preserve">
+    <value>A cascading RealTimeStylus should be constructed by using the no-argument constructor.</value>
+  </data>
+  <data name="GDIInternalError" xml:space="preserve">
+    <value>A generic error occurred in GDI.</value>
+  </data>
+  <data name="Argument_InvalidOffLen" xml:space="preserve">
+    <value>Offset and length were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.</value>
+  </data>
+  <data name="InvalidDataFromRecognizer" xml:space="preserve">
+    <value>A recognizer returned invalid data.</value>
+  </data>
+  <data name="StylusQueueFull" xml:space="preserve">
+    <value>The Stylus queue is full.</value>
+  </data>
+  <data name="WindowNotSet" xml:space="preserve">
+    <value>The window must be set before ink collection can occur.</value>
+  </data>
+  <data name="RTSMustBeEnabled" xml:space="preserve">
+    <value>The RealTimeStylus is disabled. It must be enabled prior to this operation.</value>
+  </data>
+  <data name="IncompatibleObject" xml:space="preserve">
+    <value>The specified object is not compatible with this assembly.</value>
+  </data>
+  <data name="DuplicateObjectInCollection" xml:space="preserve">
+    <value>The object is already in the collection.</value>
+  </data>
+  <data name="AsyncSinkCollectionContainsCascade" xml:space="preserve">
+    <value>Plug-ins cannot be added to a collection already containing a cascading RealTimeStylus object.</value>
+  </data>
+  <data name="EmptyRecognitionResult" xml:space="preserve">
+    <value>There are no recognition results for this ink.</value>
+  </data>
+  <data name="CustomStrokesRemove" xml:space="preserve">
+    <value>This method only supports strings and numbers.</value>
+  </data>
+  <data name="InvalidDynamicRenderer" xml:space="preserve">
+    <value>The DynamicRenderer parameter is invalid.</value>
+  </data>
+  <data name="Arg_RankMultiDimNotSupported" xml:space="preserve">
+    <value>Only single dimensional arrays are supported for the requested action.</value>
+  </data>
+  <data name="NotSupported_UncloneableStream" xml:space="preserve">
+    <value>Stream does not support cloning.</value>
+  </data>
+  <data name="LoadDLLError" xml:space="preserve">
+    <value>Could not load the "{0}" DLL into memory.</value>
+  </data>
+  <data name="ArgumentOutOfRange_NeedNonNegNum" xml:space="preserve">
+    <value>Non-negative number required.</value>
+  </data>
+  <data name="ValueReserved" xml:space="preserve">
+    <value>The GUID is reserved by RealTimeStylus. Please use another value.</value>
+  </data>
+  <data name="RecognizerNotRegistered" xml:space="preserve">
+    <value>The requested recognizer is not available with the current setup or configuration.</value>
+  </data>
+  <data name="ValueCannotBeZero" xml:space="preserve">
+    <value>The value cannot be zero.</value>
+  </data>
+  <data name="ValueCannotBeNull" xml:space="preserve">
+    <value>Null is an invalid value in this procedure.</value>
+  </data>
+  <data name="InkObject" xml:space="preserve">
+    <value>inkObject</value>
+  </data>
+  <data name="UnknownProperty" xml:space="preserve">
+    <value>This property is not supported.</value>
+  </data>
+  <data name="DynamicRendererNullHandleDisallowed" xml:space="preserve">
+    <value>A DynamicRenderer object must be created with valid a control or handle.</value>
+  </data>
+  <data name="ArgumentNull_Array" xml:space="preserve">
+    <value>Array cannot be null.</value>
+  </data>
+  <data name="CannotSetLineHeightProperty" xml:space="preserve">
+    <value>Cannot set the line height once the Strokes collection is assigned to the Divider.</value>
+  </data>
+  <data name="RecognizerNotLanguageRecognizer" xml:space="preserve">
+    <value>The requested recognizer is not a language recognizer.</value>
+  </data>
+  <data name="InconsistentArguments" xml:space="preserve">
+    <value>Constructor arguments are invalid.</value>
+  </data>
+  <data name="ValueCannotBeEmptyArray" xml:space="preserve">
+    <value>An empty array or collection is an invalid value in this procedure.</value>
+  </data>
+  <data name="CannotSetCascadeRTSProperty" xml:space="preserve">
+    <value>This property cannot be set on a RealTimeStylus object that was instantiated with the no-argument constructor.</value>
+  </data>
+  <data name="InkCollectorBusy" xml:space="preserve">
+    <value>The operation cannot be performed while the object or control collects or recognizes ink.</value>
+  </data>
+  <data name="NoArgRtsCantCascade" xml:space="preserve">
+    <value>When using a cascading RealTimeStylus configuration, the parent RealTimeStylus object must be created with a valid control or handle.</value>
+  </data>
+  <data name="ThreadMustBeSTA" xml:space="preserve">
+    <value>The current thread must be set to Single Thread Apartment (STA) mode before OLE calls can be made.  Ensure that your Main function has STAThreadAttribute marked on it.</value>
+  </data>
+  <data name="DuplicateValueInCollection" xml:space="preserve">
+    <value>The value is already in the collection.</value>
+  </data>
+  <data name="RTSMustBeDisabled" xml:space="preserve">
+    <value>The RealTimeStylus is enabled. It must be disabled prior to this operation.</value>
+  </data>
+  <data name="CircularCascadingNotAllowed" xml:space="preserve">
+    <value>Circular cascading of RealTimeStylus objects is not allowed.</value>
+  </data>
+  <data name="InvalidNotificationObject" xml:space="preserve">
+    <value>The object does not implement the required notification interface.</value>
+  </data>
+  <data name="ObjectCannotBeNull" xml:space="preserve">
+    <value>The object cannot be null.</value>
+  </data>
+</root>
