@@ -14,13 +14,13 @@ internal interface IInkWordList
 {
     [DispId(0)]
     [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-    void AddWord([MarshalAs(UnmanagedType.BStr), In] string NewWord);
+    void AddWord([MarshalAs(UnmanagedType.BStr), In] string newWord);
 
     [DispId(1)]
     [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-    void RemoveWord([MarshalAs(UnmanagedType.BStr), In] string RemoveWord);
+    void RemoveWord([MarshalAs(UnmanagedType.BStr), In] string removeWord);
 
     [DispId(2)]
     [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-    void Merge([MarshalAs(UnmanagedType.Interface), In] InkWordList MergeWordList);
+    void Merge([MarshalAs(UnmanagedType.Interface), In] InkWordList mergeWordList);
 }

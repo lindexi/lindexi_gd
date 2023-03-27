@@ -27,9 +27,9 @@ internal interface IInkRectangle
 
     [DispId(5)]
     [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-    void GetRectangle(out int Top, out int Left, out int Bottom, out int Right);
+    void GetRectangle(out int top, out int left, out int bottom, out int right);
 
     [DispId(6)]
     [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-    void SetRectangle([In] int Top, [In] int Left, [In] int Bottom, [In] int Right);
+    void SetRectangle([In] int top, [In] int left, [In] int bottom, [In] int right);
 }

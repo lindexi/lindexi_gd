@@ -7,7 +7,7 @@ namespace WhefallralajaHubeanerelair;
 [Guid("C6C77F97-545E-4873-85F2-E0FEE550B2E9")]
 [SuppressUnmanagedCodeSecurity]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-internal interface IRealTimeStylusNative
+internal interface IRealTimeStylus
 {
     void Enable([MarshalAs(UnmanagedType.Bool), In] bool fEnable);
 
@@ -21,19 +21,19 @@ internal interface IRealTimeStylusNative
 
     void ReleaseLock([In] RtsLockType lockTarget);
 
-    void AddStylusSyncPlugin([In] uint iIndex, [In] IntPtr RtpSink);
+    void AddStylusSyncPlugin([In] uint iIndex, [In] IntPtr rtpSink);
 
-    void RemoveStylusSyncPlugin([In] uint iIndex, [In, Out] ref IntPtr RtpSink);
+    void RemoveStylusSyncPlugin([In] uint iIndex, [In, Out] ref IntPtr rtpSink);
 
-    void GetStylusSyncPlugin([In] uint iIndex, out IntPtr RtpSink);
+    void GetStylusSyncPlugin([In] uint iIndex, out IntPtr rtpSink);
 
     void GetStylusSyncPluginCount(out uint cSyncSinkCount);
 
-    void AddStylusAsyncPlugin([In] uint iIndex, [In] IntPtr RtpQueueSink);
+    void AddStylusAsyncPlugin([In] uint iIndex, [In] IntPtr rtpQueueSink);
 
-    void RemoveStylusAsyncPlugin([In] uint iIndex, [In, Out] ref IntPtr RtpQueueSink);
+    void RemoveStylusAsyncPlugin([In] uint iIndex, [In, Out] ref IntPtr rtpQueueSink);
 
-    void GetStylusAsyncPlugin([In] uint iIndex, out IntPtr RtpQueueSink);
+    void GetStylusAsyncPlugin([In] uint iIndex, out IntPtr rtpQueueSink);
 
     void GetStylusAsyncPluginCount(out uint cAsycSinkCount);
 

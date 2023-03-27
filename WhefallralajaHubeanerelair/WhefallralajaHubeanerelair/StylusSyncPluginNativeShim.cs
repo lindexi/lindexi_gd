@@ -5,52 +5,52 @@ using System.Text;
 
 namespace WhefallralajaHubeanerelair;
 
-internal sealed class StylusSyncPluginNativeShim : StylusSyncPluginNative, IStylusPluginNative
+internal sealed class StylusSyncPluginNativeShim : IStylusSyncPluginNative2, IStylusPluginNative
 {
-    void IStylusPluginNative.RtpEnabled(IRealTimeStylusNative realTime, uint cTcidCount, uint[] tcidArray)
+    void IStylusPluginNative.RtpEnabled(IRealTimeStylus realTime, uint cTcidCount, uint[] tcidArray)
     {
         LogMethod();
     }
 
-    void StylusSyncPluginNative.RtpDisabled(IRealTimeStylusNative realTime, uint cTcidCount, uint[] tcidArray)
+    void IStylusSyncPluginNative2.RtpDisabled(IRealTimeStylus realTime, uint cTcidCount, uint[] tcidArray)
     {
         LogMethod();
     }
 
-    void StylusSyncPluginNative.CursorNew(IRealTimeStylusNative realTime, uint tcid, uint cid)
+    void IStylusSyncPluginNative2.CursorNew(IRealTimeStylus realTime, uint tcid, uint cid)
     {
         LogMethod();
     }
 
-    void StylusSyncPluginNative.CursorInRange(IRealTimeStylusNative realTime, uint tcid, uint cid)
+    void IStylusSyncPluginNative2.CursorInRange(IRealTimeStylus realTime, uint tcid, uint cid)
     {
         LogMethod();
     }
 
-    void StylusSyncPluginNative.CursorOutOfRange(IRealTimeStylusNative realTime, uint tcid, uint cid)
+    void IStylusSyncPluginNative2.CursorOutOfRange(IRealTimeStylus realTime, uint tcid, uint cid)
     {
         LogMethod();
     }
 
-    void StylusSyncPluginNative.CursorDown(IRealTimeStylusNative realTime, StylusInfo stylusInfo, uint propCountPerPkt, int[] pktArray,
+    void IStylusSyncPluginNative2.CursorDown(IRealTimeStylus realTime, StylusInfo stylusInfo, uint propCountPerPkt, int[] pktArray,
         ref nint InOutPkt)
     {
         LogMethod();
     }
 
-    void StylusSyncPluginNative.CursorUp(IRealTimeStylusNative realTime, StylusInfo stylusInfo, uint propCountPerPkt, int[] pktArray,
+    void IStylusSyncPluginNative2.CursorUp(IRealTimeStylus realTime, StylusInfo stylusInfo, uint propCountPerPkt, int[] pktArray,
         ref nint InOutPkt)
     {
         LogMethod();
     }
 
-    void StylusSyncPluginNative.InAirPackets(IRealTimeStylusNative realTime, StylusInfo stylusInfo, uint pktCount, uint cPktBuffLength,
+    void IStylusSyncPluginNative2.InAirPackets(IRealTimeStylus realTime, StylusInfo stylusInfo, uint pktCount, uint cPktBuffLength,
         int[] pktArray, ref uint cInOutPkts, ref nint InOutPkts)
     {
         LogMethod();
     }
 
-    void StylusSyncPluginNative.Packets(IRealTimeStylusNative realTime, StylusInfo stylusInfo, uint pktCount, uint cPktBuffLength, int[] pktArray,
+    void IStylusSyncPluginNative2.Packets(IRealTimeStylus realTime, StylusInfo stylusInfo, uint pktCount, uint cPktBuffLength, int[] pktArray,
         ref uint cInOutPkts, ref nint InOutPkts)
     {
         // 这里将会进入
@@ -88,110 +88,110 @@ internal sealed class StylusSyncPluginNativeShim : StylusSyncPluginNative, IStyl
         });
     }
 
-    void StylusSyncPluginNative.StylusButtonUp(IRealTimeStylusNative realTime, uint cid, Guid StylusButtonGuid, ref nint pStylusPos)
+    void IStylusSyncPluginNative2.StylusButtonUp(IRealTimeStylus realTime, uint cid, Guid StylusButtonGuid, ref nint pStylusPos)
     {
         LogMethod();
     }
 
-    void StylusSyncPluginNative.StylusButtonDown(IRealTimeStylusNative realTime, uint cid, Guid StylusButtonGuid, ref nint pStylusPos)
+    void IStylusSyncPluginNative2.StylusButtonDown(IRealTimeStylus realTime, uint cid, Guid StylusButtonGuid, ref nint pStylusPos)
     {
         LogMethod();
     }
 
-    void StylusSyncPluginNative.SystemEvent(IRealTimeStylusNative realTime, uint tcid, uint cid, ushort systemEvent, SystemEventData eventdata)
+    void IStylusSyncPluginNative2.SystemEvent(IRealTimeStylus realTime, uint tcid, uint cid, ushort systemEvent, SystemEventData eventdata)
     {
         LogMethod();
     }
 
-    void StylusSyncPluginNative.TabletAdded(IRealTimeStylusNative realTime, IInkTablet tablet)
+    void IStylusSyncPluginNative2.TabletAdded(IRealTimeStylus realTime, IInkTablet tablet)
     {
     }
 
-    void StylusSyncPluginNative.TabletRemoved(IRealTimeStylusNative realTime, int iTabletIndex)
+    void IStylusSyncPluginNative2.TabletRemoved(IRealTimeStylus realTime, int iTabletIndex)
     {
     }
 
-    void StylusSyncPluginNative.CustomData(IRealTimeStylusNative realTime, Guid guidId, uint cbData, nint data)
+    void IStylusSyncPluginNative2.CustomData(IRealTimeStylus realTime, Guid guidId, uint cbData, nint data)
     {
     }
 
-    void StylusSyncPluginNative.Error(IRealTimeStylusNative realTime, nint piEventSink, RealTimeStylusDataInterest rtpei, int hrErrorCode,
+    void IStylusSyncPluginNative2.Error(IRealTimeStylus realTime, nint piEventSink, RealTimeStylusDataInterest rtpei, int hrErrorCode,
         ref nint lptrKey)
     {
     }
 
-    void StylusSyncPluginNative.GetDataInterest(out RealTimeStylusDataInterest dataInterest)
+    void IStylusSyncPluginNative2.GetDataInterest(out RealTimeStylusDataInterest dataInterest)
     {
         dataInterest = RealTimeStylusDataInterest.RTPEI_AllStylusData;
     }
 
-    void StylusSyncPluginNative.RtpEnabled(IRealTimeStylusNative realTime, uint cTcidCount, uint[] tcidArray)
+    void IStylusSyncPluginNative2.RtpEnabled(IRealTimeStylus realTime, uint cTcidCount, uint[] tcidArray)
     {
     }
 
-    void IStylusPluginNative.RtpDisabled(IRealTimeStylusNative realTime, uint cTcidCount, uint[] tcidArray)
+    void IStylusPluginNative.RtpDisabled(IRealTimeStylus realTime, uint cTcidCount, uint[] tcidArray)
     {
     }
 
-    void IStylusPluginNative.CursorNew(IRealTimeStylusNative realTime, uint tcid, uint cid)
+    void IStylusPluginNative.CursorNew(IRealTimeStylus realTime, uint tcid, uint cid)
     {
     }
 
-    void IStylusPluginNative.CursorInRange(IRealTimeStylusNative realTime, uint tcid, uint cid)
+    void IStylusPluginNative.CursorInRange(IRealTimeStylus realTime, uint tcid, uint cid)
     {
     }
 
-    void IStylusPluginNative.CursorOutOfRange(IRealTimeStylusNative realTime, uint tcid, uint cid)
+    void IStylusPluginNative.CursorOutOfRange(IRealTimeStylus realTime, uint tcid, uint cid)
     {
     }
 
-    void IStylusPluginNative.CursorDown(IRealTimeStylusNative realTime, StylusInfo stylusInfo, uint propCountPerPkt, int[] pktArray,
+    void IStylusPluginNative.CursorDown(IRealTimeStylus realTime, StylusInfo stylusInfo, uint propCountPerPkt, int[] pktArray,
         ref nint InOutPkt)
     {
     }
 
-    void IStylusPluginNative.CursorUp(IRealTimeStylusNative realTime, StylusInfo stylusInfo, uint propCountPerPkt, int[] pktArray,
+    void IStylusPluginNative.CursorUp(IRealTimeStylus realTime, StylusInfo stylusInfo, uint propCountPerPkt, int[] pktArray,
         ref nint InOutPkt)
     {
     }
 
-    void IStylusPluginNative.InAirPackets(IRealTimeStylusNative realTime, StylusInfo stylusInfo, uint pktCount, uint cPktBuffLength,
+    void IStylusPluginNative.InAirPackets(IRealTimeStylus realTime, StylusInfo stylusInfo, uint pktCount, uint cPktBuffLength,
         int[] pktArray, ref uint cInOutPkts, ref nint InOutPkts)
     {
         LogMethod();
     }
 
-    void IStylusPluginNative.Packets(IRealTimeStylusNative realTime, StylusInfo stylusInfo, uint pktCount, uint cPktBuffLength, int[] pktArray,
+    void IStylusPluginNative.Packets(IRealTimeStylus realTime, StylusInfo stylusInfo, uint pktCount, uint cPktBuffLength, int[] pktArray,
         ref uint cInOutPkts, ref nint InOutPkts)
     {
         LogMethod();
     }
 
-    void IStylusPluginNative.StylusButtonUp(IRealTimeStylusNative realTime, uint cid, Guid StylusButtonGuid, ref nint pStylusPos)
+    void IStylusPluginNative.StylusButtonUp(IRealTimeStylus realTime, uint cid, Guid StylusButtonGuid, ref nint pStylusPos)
     {
     }
 
-    void IStylusPluginNative.StylusButtonDown(IRealTimeStylusNative realTime, uint cid, Guid StylusButtonGuid, ref nint pStylusPos)
+    void IStylusPluginNative.StylusButtonDown(IRealTimeStylus realTime, uint cid, Guid StylusButtonGuid, ref nint pStylusPos)
     {
     }
 
-    void IStylusPluginNative.SystemEvent(IRealTimeStylusNative realTime, uint tcid, uint cid, ushort systemEvent, SystemEventData eventdata)
+    void IStylusPluginNative.SystemEvent(IRealTimeStylus realTime, uint tcid, uint cid, ushort systemEvent, SystemEventData eventdata)
     {
     }
 
-    void IStylusPluginNative.TabletAdded(IRealTimeStylusNative realTime, IInkTablet tablet)
+    void IStylusPluginNative.TabletAdded(IRealTimeStylus realTime, IInkTablet tablet)
     {
     }
 
-    void IStylusPluginNative.TabletRemoved(IRealTimeStylusNative realTime, int iTabletIndex)
+    void IStylusPluginNative.TabletRemoved(IRealTimeStylus realTime, int iTabletIndex)
     {
     }
 
-    void IStylusPluginNative.CustomData(IRealTimeStylusNative realTime, Guid guidId, uint cbData, nint data)
+    void IStylusPluginNative.CustomData(IRealTimeStylus realTime, Guid guidId, uint cbData, nint data)
     {
     }
 
-    void IStylusPluginNative.Error(IRealTimeStylusNative realTime, nint piEventSink, RealTimeStylusDataInterest rtpei, int hrErrorCode,
+    void IStylusPluginNative.Error(IRealTimeStylus realTime, nint piEventSink, RealTimeStylusDataInterest rtpei, int hrErrorCode,
         ref nint lptrKey)
     {
     }

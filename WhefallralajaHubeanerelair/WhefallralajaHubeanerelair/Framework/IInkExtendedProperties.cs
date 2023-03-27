@@ -25,16 +25,16 @@ internal interface IInkExtendedProperties : IEnumerable
     [DispId(0)]
     [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
     [return: MarshalAs(UnmanagedType.Interface)]
-    IInkExtendedProperty Item([MarshalAs(UnmanagedType.Struct), In] object Identifier);
+    IInkExtendedProperty Item([MarshalAs(UnmanagedType.Struct), In] object identifier);
 
     [DispId(2)]
     [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
     [return: MarshalAs(UnmanagedType.Interface)]
-    IInkExtendedProperty Add([MarshalAs(UnmanagedType.BStr), In] string Guid, [MarshalAs(UnmanagedType.Struct), In] object Data);
+    IInkExtendedProperty Add([MarshalAs(UnmanagedType.BStr), In] string guid, [MarshalAs(UnmanagedType.Struct), In] object data);
 
     [DispId(3)]
     [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-    void Remove([MarshalAs(UnmanagedType.Struct), In] object Identifier);
+    void Remove([MarshalAs(UnmanagedType.Struct), In] object identifier);
 
     [DispId(4)]
     [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
@@ -42,5 +42,5 @@ internal interface IInkExtendedProperties : IEnumerable
 
     [DispId(5)]
     [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-    bool DoesPropertyExist([MarshalAs(UnmanagedType.BStr), In] string Guid);
+    bool DoesPropertyExist([MarshalAs(UnmanagedType.BStr), In] string guid);
 }

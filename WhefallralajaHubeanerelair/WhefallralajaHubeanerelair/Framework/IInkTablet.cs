@@ -32,8 +32,8 @@ internal interface IInkTablet
     [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
     void GetPropertyMetrics(
         [MarshalAs(UnmanagedType.BStr), In] string propertyName,
-        out int Minimum,
-        out int Maximum,
-        out TabletPropertyMetricUnitPrivate Units,
-        out float Resolution);
+        out int minimum,
+        out int maximum,
+        out TabletPropertyMetricUnitPrivate units,
+        out float resolution);
 }

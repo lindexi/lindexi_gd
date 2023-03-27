@@ -25,5 +25,5 @@ internal interface IInkCursorButtons : IEnumerable
     [DispId(0)]
     [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
     [return: MarshalAs(UnmanagedType.Interface)]
-    IInkCursorButton Item([MarshalAs(UnmanagedType.Struct), In] object Identifier);
+    IInkCursorButton Item([MarshalAs(UnmanagedType.Struct), In] object identifier);
 }
