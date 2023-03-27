@@ -83,7 +83,7 @@ namespace WhefallralajaHubeanerelair
 
             _nativeIRealTimeStylus.GetHWND(out var hWnd);
 
-            var useMouseForInput = false;
+            var useMouseForInput = true;
 
             _nativeIRealTimeStylus.SetAllTabletsMode(useMouseForInput);
 
@@ -102,6 +102,7 @@ namespace WhefallralajaHubeanerelair
 
             _nativeIRealTimeStylus.AddStylusSyncPlugin(0U, stylusSyncPluginNativeInterface);
 
+            _nativeIRealTimeStylus.AllTouchEnable(true);
             _nativeIRealTimeStylus.MultiTouchEnable(false);
             _nativeIRealTimeStylus.Enable(true);
 

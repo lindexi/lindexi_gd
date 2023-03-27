@@ -33,25 +33,25 @@ internal sealed class StylusSyncPluginNativeShim : IStylusSyncPluginNative2, ISt
     }
 
     void IStylusSyncPluginNative2.CursorDown(IRealTimeStylus realTime, StylusInfo stylusInfo, uint propCountPerPkt, int[] pktArray,
-        ref nint InOutPkt)
+        ref nint inOutPkt)
     {
         LogMethod();
     }
 
     void IStylusSyncPluginNative2.CursorUp(IRealTimeStylus realTime, StylusInfo stylusInfo, uint propCountPerPkt, int[] pktArray,
-        ref nint InOutPkt)
+        ref nint inOutPkt)
     {
         LogMethod();
     }
 
     void IStylusSyncPluginNative2.InAirPackets(IRealTimeStylus realTime, StylusInfo stylusInfo, uint pktCount, uint cPktBuffLength,
-        int[] pktArray, ref uint cInOutPkts, ref nint InOutPkts)
+        int[] pktArray, ref uint cInOutPkts, ref nint inOutPkts)
     {
         LogMethod();
     }
 
     void IStylusSyncPluginNative2.Packets(IRealTimeStylus realTime, StylusInfo stylusInfo, uint pktCount, uint cPktBuffLength, int[] pktArray,
-        ref uint cInOutPkts, ref nint InOutPkts)
+        ref uint cInOutPkts, ref nint inOutPkts)
     {
         // 这里将会进入
         var packetPropertyCount = (int) (cPktBuffLength / pktCount);
@@ -88,12 +88,12 @@ internal sealed class StylusSyncPluginNativeShim : IStylusSyncPluginNative2, ISt
         });
     }
 
-    void IStylusSyncPluginNative2.StylusButtonUp(IRealTimeStylus realTime, uint cid, Guid StylusButtonGuid, ref nint pStylusPos)
+    void IStylusSyncPluginNative2.StylusButtonUp(IRealTimeStylus realTime, uint cid, Guid stylusButtonGuid, ref nint pStylusPos)
     {
         LogMethod();
     }
 
-    void IStylusSyncPluginNative2.StylusButtonDown(IRealTimeStylus realTime, uint cid, Guid StylusButtonGuid, ref nint pStylusPos)
+    void IStylusSyncPluginNative2.StylusButtonDown(IRealTimeStylus realTime, uint cid, Guid stylusButtonGuid, ref nint pStylusPos)
     {
         LogMethod();
     }
@@ -146,32 +146,32 @@ internal sealed class StylusSyncPluginNativeShim : IStylusSyncPluginNative2, ISt
     }
 
     void IStylusPluginNative.CursorDown(IRealTimeStylus realTime, StylusInfo stylusInfo, uint propCountPerPkt, int[] pktArray,
-        ref nint InOutPkt)
+        ref nint inOutPkt)
     {
     }
 
     void IStylusPluginNative.CursorUp(IRealTimeStylus realTime, StylusInfo stylusInfo, uint propCountPerPkt, int[] pktArray,
-        ref nint InOutPkt)
+        ref nint inOutPkt)
     {
     }
 
     void IStylusPluginNative.InAirPackets(IRealTimeStylus realTime, StylusInfo stylusInfo, uint pktCount, uint cPktBuffLength,
-        int[] pktArray, ref uint cInOutPkts, ref nint InOutPkts)
+        int[] pktArray, ref uint cInOutPkts, ref nint inOutPkts)
     {
         LogMethod();
     }
 
     void IStylusPluginNative.Packets(IRealTimeStylus realTime, StylusInfo stylusInfo, uint pktCount, uint cPktBuffLength, int[] pktArray,
-        ref uint cInOutPkts, ref nint InOutPkts)
+        ref uint cInOutPkts, ref nint inOutPkts)
     {
         LogMethod();
     }
 
-    void IStylusPluginNative.StylusButtonUp(IRealTimeStylus realTime, uint cid, Guid StylusButtonGuid, ref nint pStylusPos)
+    void IStylusPluginNative.StylusButtonUp(IRealTimeStylus realTime, uint cid, Guid stylusButtonGuid, ref nint pStylusPos)
     {
     }
 
-    void IStylusPluginNative.StylusButtonDown(IRealTimeStylus realTime, uint cid, Guid StylusButtonGuid, ref nint pStylusPos)
+    void IStylusPluginNative.StylusButtonDown(IRealTimeStylus realTime, uint cid, Guid stylusButtonGuid, ref nint pStylusPos)
     {
     }
 
