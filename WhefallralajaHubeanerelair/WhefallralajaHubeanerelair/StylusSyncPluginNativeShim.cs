@@ -64,11 +64,15 @@ internal sealed class StylusSyncPluginNativeShim : IStylusSyncPluginNative2, ISt
         {
             stringBuilder.AppendLine($"[{i}]{packetData[i]}");
         }
-        stringBuilder.AppendLine("---------");
+        stringBuilder.AppendLine($"--------- Tick={_stopwatch.ElapsedTicks} ms={_stopwatch.ElapsedMilliseconds}");
+        _stopwatch.Restart();
         stringBuilder.AppendLine();
 
         Log(stringBuilder.ToString());
     }
+
+    private readonly Stopwatch _stopwatch = new Stopwatch();
+
 
     private void LogMethod([CallerMemberName] string name = null!)
     {

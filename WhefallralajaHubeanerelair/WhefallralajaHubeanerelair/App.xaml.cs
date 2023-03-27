@@ -16,7 +16,7 @@ namespace WhefallralajaHubeanerelair
         public App()
         {
             AppContext.SetSwitch("Switch.System.Windows.Input.Stylus.DisableStylusAndTouchSupport", true);
-            AppContext.SetSwitch("Switch.System.Windows.Input.Stylus.EnablePointerSupport", true);
+            //AppContext.SetSwitch("Switch.System.Windows.Input.Stylus.EnablePointerSupport", true);
         }
     }
 }
