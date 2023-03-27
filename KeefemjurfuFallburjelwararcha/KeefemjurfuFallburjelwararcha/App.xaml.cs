@@ -13,5 +13,15 @@ namespace KeefemjurfuFallburjelwararcha
     /// </summary>
     public partial class App : Application
     {
+        public App()
+        {
+            AppContext.SetSwitch("Switch.System.Windows.Input.Stylus.DisableStylusAndTouchSupport", true);
+        }
+
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            var touchWindow = new TouchWindow();
+            touchWindow.Show();
+        }
     }
 }
