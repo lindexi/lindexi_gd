@@ -22,7 +22,7 @@ internal interface IInkTablet
     InkRectangle MaximumInputRectangle { [DispId(4), MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)][return: MarshalAs(UnmanagedType.Interface)] get; }
 
     [DispId(5)]
-    TabletHardwareCapabilitiesPrivate HardwareCapabilities { [DispId(5), MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)] get; }
+    TabletHardwareCapabilities HardwareCapabilities { [DispId(5), MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)] get; }
 
     [DispId(3)]
     [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
@@ -32,8 +32,8 @@ internal interface IInkTablet
     [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
     void GetPropertyMetrics(
         [MarshalAs(UnmanagedType.BStr), In] string propertyName,
-        out int Minimum,
-        out int Maximum,
-        out TabletPropertyMetricUnitPrivate Units,
-        out float Resolution);
+        out int minimum,
+        out int maximum,
+        out TabletPropertyMetricUnitPrivate units,
+        out float resolution);
 }

@@ -28,7 +28,7 @@ internal interface IInkTablets : IEnumerable
     [DispId(0)]
     [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
     [return: MarshalAs(UnmanagedType.Interface)]
-    IInkTablet Item([In] int Index);
+    IInkTablet Item([In] int index);
 
     [DispId(3)]
     [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]

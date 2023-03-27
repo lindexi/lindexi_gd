@@ -26,5 +26,5 @@ internal interface IInkCursors : IEnumerable
     [DispId(0)]
     [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
     [return: MarshalAs(UnmanagedType.Interface)]
-    IInkCursor Item([In] int Index);
+    IInkCursor Item([In] int index);
 }

@@ -67,7 +67,7 @@ namespace WhefallralajaHubeanerelair
             Guid clsid = new Guid("{DECBDC16-E824-436e-872D-14E8C7BF7D8B}");
             Guid iid = new Guid("{C6C77F97-545E-4873-85F2-E0FEE550B2E9}");
             string licenseKey = "{CAAD7274-4004-44e0-8A17-D6F1919C443A}";
-            _nativeIRealTimeStylus = (IRealTimeStylusNative)ComObjectCreator.CreateInstanceLicense(clsid, iid, licenseKey);
+            _nativeIRealTimeStylus = (IRealTimeStylus)ComObjectCreator.CreateInstanceLicense(clsid, iid, licenseKey);
 
             _nativeIRealTimeStylus.SetHWND(handle);
 
@@ -79,7 +79,7 @@ namespace WhefallralajaHubeanerelair
 
             _stylusSyncPluginNativeShim = new StylusSyncPluginNativeShim();
             IntPtr stylusSyncPluginNativeInterface =
-                Marshal.GetComInterfaceForObject((object)_stylusSyncPluginNativeShim, typeof(StylusSyncPluginNative));
+                Marshal.GetComInterfaceForObject((object)_stylusSyncPluginNativeShim, typeof(IStylusSyncPluginNative2));
 
             var penImcRect = new PenImcRect()
             {
@@ -98,7 +98,7 @@ namespace WhefallralajaHubeanerelair
             Marshal.Release(stylusSyncPluginNativeInterface);
         }
 
-        private IRealTimeStylusNative? _nativeIRealTimeStylus;
+        private IRealTimeStylus? _nativeIRealTimeStylus;
         private StylusSyncPluginNativeShim? _stylusSyncPluginNativeShim;
     }
 }

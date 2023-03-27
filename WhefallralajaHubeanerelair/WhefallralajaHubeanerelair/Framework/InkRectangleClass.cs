@@ -32,12 +32,12 @@ internal class InkRectangleClass : IInkRectangle, InkRectangle
     [DispId(5)]
     [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
     public virtual extern void GetRectangle(
-        out int Top,
-        out int Left,
-        out int Bottom,
-        out int Right);
+        out int top,
+        out int left,
+        out int bottom,
+        out int right);
 
     [DispId(6)]
     [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-    public virtual extern void SetRectangle([In] int Top, [In] int Left, [In] int Bottom, [In] int Right);
+    public virtual extern void SetRectangle([In] int top, [In] int left, [In] int bottom, [In] int right);
 }

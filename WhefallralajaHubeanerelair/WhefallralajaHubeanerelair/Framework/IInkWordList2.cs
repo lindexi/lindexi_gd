@@ -12,5 +12,5 @@ internal interface IInkWordList2
 {
     [DispId(3)]
     [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-    void AddWords([MarshalAs(UnmanagedType.BStr), In] string NewWords);
+    void AddWords([MarshalAs(UnmanagedType.BStr), In] string newWords);
 }
