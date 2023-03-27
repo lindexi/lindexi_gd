@@ -18,13 +18,13 @@ internal class InkWordListClass : IInkWordList, InkWordList
 
     [DispId(0)]
     [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-    public virtual extern void AddWord([MarshalAs(UnmanagedType.BStr), In] string NewWord);
+    public virtual extern void AddWord([MarshalAs(UnmanagedType.BStr), In] string newWord);
 
     [DispId(1)]
     [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-    public virtual extern void RemoveWord([MarshalAs(UnmanagedType.BStr), In] string RemoveWord);
+    public virtual extern void RemoveWord([MarshalAs(UnmanagedType.BStr), In] string removeWord);
 
     [DispId(2)]
     [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-    public virtual extern void Merge([MarshalAs(UnmanagedType.Interface), In] InkWordList MergeWordList);
+    public virtual extern void Merge([MarshalAs(UnmanagedType.Interface), In] InkWordList mergeWordList);
 }

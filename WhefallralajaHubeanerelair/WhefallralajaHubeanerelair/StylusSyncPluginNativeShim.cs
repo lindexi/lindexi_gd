@@ -98,7 +98,7 @@ internal sealed class StylusSyncPluginNativeShim : IStylusSyncPluginNative2, ISt
         LogMethod();
     }
 
-    void IStylusSyncPluginNative2.SystemEvent(IRealTimeStylus realTime, uint tcid, uint cid, ushort systemEvent, SystemEventData eventdata)
+    void IStylusSyncPluginNative2.SystemEvent(IRealTimeStylus realTime, uint tcid, uint cid, ushort systemEvent, SystemEventData eventData)
     {
         LogMethod();
     }
@@ -122,7 +122,7 @@ internal sealed class StylusSyncPluginNativeShim : IStylusSyncPluginNative2, ISt
 
     void IStylusSyncPluginNative2.GetDataInterest(out RealTimeStylusDataInterest dataInterest)
     {
-        dataInterest = RealTimeStylusDataInterest.RTPEI_AllStylusData;
+        dataInterest = RealTimeStylusDataInterest.AllStylusData;
     }
 
     void IStylusSyncPluginNative2.RtpEnabled(IRealTimeStylus realTime, uint cTcidCount, uint[] tcidArray)
@@ -175,7 +175,7 @@ internal sealed class StylusSyncPluginNativeShim : IStylusSyncPluginNative2, ISt
     {
     }
 
-    void IStylusPluginNative.SystemEvent(IRealTimeStylus realTime, uint tcid, uint cid, ushort systemEvent, SystemEventData eventdata)
+    void IStylusPluginNative.SystemEvent(IRealTimeStylus realTime, uint tcid, uint cid, ushort systemEvent, SystemEventData eventData)
     {
     }
 
@@ -198,6 +198,6 @@ internal sealed class StylusSyncPluginNativeShim : IStylusSyncPluginNative2, ISt
 
     void IStylusPluginNative.GetDataInterest(out RealTimeStylusDataInterest dataInterest)
     {
-        dataInterest = RealTimeStylusDataInterest.RTPEI_AllStylusData;
+        dataInterest = RealTimeStylusDataInterest.AllStylusData;
     }
 }

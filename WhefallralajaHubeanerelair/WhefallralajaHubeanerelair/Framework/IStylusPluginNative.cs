@@ -25,14 +25,14 @@ internal interface IStylusPluginNative
         [MarshalAs(UnmanagedType.LPStruct), In] StylusInfo stylusInfo,
         [In] uint propCountPerPkt,
         [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2), In] int[] pktArray,
-        [In, Out] ref IntPtr InOutPkt);
+        [In, Out] ref IntPtr inOutPkt);
 
     void CursorUp(
         [MarshalAs(UnmanagedType.Interface), In] IRealTimeStylus realTime,
         [MarshalAs(UnmanagedType.LPStruct), In] StylusInfo stylusInfo,
         [In] uint propCountPerPkt,
         [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 2), In] int[] pktArray,
-        [In, Out] ref IntPtr InOutPkt);
+        [In, Out] ref IntPtr inOutPkt);
 
     void InAirPackets(
         [MarshalAs(UnmanagedType.Interface), In] IRealTimeStylus realTime,
@@ -41,7 +41,7 @@ internal interface IStylusPluginNative
         [In] uint cPktBuffLength,
         [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3), In] int[] pktArray,
         [In, Out] ref uint cInOutPkts,
-        [In, Out] ref IntPtr InOutPkts);
+        [In, Out] ref IntPtr inOutPkts);
 
     void Packets(
         [MarshalAs(UnmanagedType.Interface), In] IRealTimeStylus realTime,
@@ -50,18 +50,18 @@ internal interface IStylusPluginNative
         [In] uint cPktBuffLength,
         [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3), In] int[] pktArray,
         [In, Out] ref uint cInOutPkts,
-        [In, Out] ref IntPtr InOutPkts);
+        [In, Out] ref IntPtr inOutPkts);
 
     void StylusButtonUp(
         [MarshalAs(UnmanagedType.Interface), In] IRealTimeStylus realTime,
         [In] uint cid,
-        [MarshalAs(UnmanagedType.LPStruct), In] Guid StylusButtonGuid,
+        [MarshalAs(UnmanagedType.LPStruct), In] Guid stylusButtonGuid,
         [In, Out] ref IntPtr pStylusPos);
 
     void StylusButtonDown(
         [MarshalAs(UnmanagedType.Interface), In] IRealTimeStylus realTime,
         [In] uint cid,
-        [MarshalAs(UnmanagedType.LPStruct), In] Guid StylusButtonGuid,
+        [MarshalAs(UnmanagedType.LPStruct), In] Guid stylusButtonGuid,
         [In, Out] ref IntPtr pStylusPos);
 
     void SystemEvent(
@@ -69,7 +69,7 @@ internal interface IStylusPluginNative
         [In] uint tcid,
         [In] uint cid,
         [In] ushort systemEvent,
-        [MarshalAs(UnmanagedType.Struct), In] SystemEventData eventdata);
+        [MarshalAs(UnmanagedType.Struct), In] SystemEventData eventData);
 
     void TabletAdded([MarshalAs(UnmanagedType.Interface), In] IRealTimeStylus realTime, [MarshalAs(UnmanagedType.Interface), In] IInkTablet tablet);
 
