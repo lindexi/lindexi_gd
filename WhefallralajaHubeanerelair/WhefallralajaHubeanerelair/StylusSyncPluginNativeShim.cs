@@ -67,7 +67,6 @@ internal sealed class StylusSyncPluginNativeShim : StylusSyncPluginNative, IStyl
         stringBuilder.AppendLine("---------");
         stringBuilder.AppendLine();
 
-        //Debug.WriteLine(stringBuilder.ToString());
         Log(stringBuilder.ToString());
     }
 

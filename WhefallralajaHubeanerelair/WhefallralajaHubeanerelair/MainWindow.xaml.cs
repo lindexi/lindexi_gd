@@ -24,33 +24,33 @@ namespace WhefallralajaHubeanerelair
 
             ((Grid) Content).Children.Add(TextBlock);
 
-            Activated += MainWindow_Activated;
+            //Activated += MainWindow_Activated;
 
-            TouchMove += MainWindow_TouchMove;
+            //TouchMove += MainWindow_TouchMove;
         }
 
-        private void MainWindow_TouchMove(object? sender, System.Windows.Input.TouchEventArgs e)
-        {
-            TextBlock.Text += $"MainWindow_TouchMove\r\n";
-        }
+        //private void MainWindow_TouchMove(object? sender, System.Windows.Input.TouchEventArgs e)
+        //{
+        //    TextBlock.Text += $"MainWindow_TouchMove\r\n";
+        //}
 
-        private void MainWindow_Activated(object? sender, EventArgs e)
-        {
-            //var windowInteropHelper = new WindowInteropHelper(this);
-            //var handle = windowInteropHelper.Handle;
+        //private void MainWindow_Activated(object? sender, EventArgs e)
+        //{
+        //    //var windowInteropHelper = new WindowInteropHelper(this);
+        //    //var handle = windowInteropHelper.Handle;
 
-            //_nativeIRealTimeStylus!.Enable(false);
-            //_nativeIRealTimeStylus.SetHWND(handle);
-            //_nativeIRealTimeStylus.Enable(true);
+        //    //_nativeIRealTimeStylus!.Enable(false);
+        //    //_nativeIRealTimeStylus.SetHWND(handle);
+        //    //_nativeIRealTimeStylus.Enable(true);
 
-            _nativeIRealTimeStylus.IsEnabled(out var value);
-            TextBlock.Text += $"Enable = {value}\r\n";
+        //    _nativeIRealTimeStylus.IsEnabled(out var value);
+        //    TextBlock.Text += $"Enable = {value}\r\n";
 
-            _nativeIRealTimeStylus.GetWindowInputRect(out var rect);
-            TextBlock.Text += $"Enable = {rect.Left} {rect.Top} {rect.Right} {rect.Bottom}\r\n";
+        //    _nativeIRealTimeStylus.GetWindowInputRect(out var rect);
+        //    TextBlock.Text += $"Enable = {rect.Left} {rect.Top} {rect.Right} {rect.Bottom}\r\n";
 
-            //AddRealTimeStylus();
-        }
+        //    //AddRealTimeStylus();
+        //}
 
         public static TextBlock TextBlock { private set; get; } = null!;
 
@@ -78,7 +78,7 @@ namespace WhefallralajaHubeanerelair
             _nativeIRealTimeStylus.SetAllTabletsMode(useMouseForInput);
 
             _stylusSyncPluginNativeShim = new StylusSyncPluginNativeShim();
-            IntPtr interfaceForObject1 =
+            IntPtr stylusSyncPluginNativeInterface =
                 Marshal.GetComInterfaceForObject((object)_stylusSyncPluginNativeShim, typeof(StylusSyncPluginNative));
 
             var penImcRect = new PenImcRect()
@@ -90,10 +90,12 @@ namespace WhefallralajaHubeanerelair
             };
             _nativeIRealTimeStylus.SetWindowInputRect(ref penImcRect);
 
-            _nativeIRealTimeStylus.AddStylusSyncPlugin(0U, interfaceForObject1);
+            _nativeIRealTimeStylus.AddStylusSyncPlugin(0U, stylusSyncPluginNativeInterface);
 
-            //_nativeIRealTimeStylus.MultiTouchEnable(true);
+            _nativeIRealTimeStylus.MultiTouchEnable(true);
             _nativeIRealTimeStylus.Enable(true);
+
+            Marshal.Release(stylusSyncPluginNativeInterface);
         }
 
         private IRealTimeStylusNative? _nativeIRealTimeStylus;
