@@ -31,12 +31,12 @@ internal class DefaultWordDivider
         // 单个字符直接布局，无视语言文化。快，但是诡异
         if (argument.LineRemainingWidth > size.Width)
         {
-            return new SingleCharInLineLayoutResult(takeCount: 1, size, charSizeList: default);
+            return new SingleCharInLineLayoutResult(takeCount: 1, size);
         }
         else
         {
             // 如果尺寸不足，也就是一个都拿不到
-            return new SingleCharInLineLayoutResult(takeCount: 0, default, charSizeList: default);
+            return new SingleCharInLineLayoutResult(takeCount: 0, default);
         }
     }
 

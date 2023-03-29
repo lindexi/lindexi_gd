@@ -15,18 +15,17 @@ public readonly struct SingleCharInLineLayoutResult
     /// </summary>
     /// <param name="totalSize">这一行的布局尺寸</param>
     /// <param name="takeCount">使用了多少个字符元素，有一些是需要连带字符后面的标点符号字符一起，于是就需要获取到多个</param>
-    /// <param name="charSizeList"></param>
-    public SingleCharInLineLayoutResult(int takeCount, Size totalSize, IReadOnlyList<Size>? charSizeList = null)
+    public SingleCharInLineLayoutResult(int takeCount, Size totalSize)
     {
         TakeCount = takeCount;
         TotalSize = totalSize;
 
-        if (takeCount > 1 && (charSizeList == null || charSizeList.Count != takeCount))
-        {
-            throw new ArgumentException($"当获取超过一个字符时，需要给 {nameof(charSizeList)} 赋值，且要求 {nameof(charSizeList)} 的元素数量等于所获取的字符数量");
-        }
+        //if (takeCount > 1 && (charSizeList == null || charSizeList.Count != takeCount))
+        //{
+        //    throw new ArgumentException($"当获取超过一个字符时，需要给 {nameof(charSizeList)} 赋值，且要求 {nameof(charSizeList)} 的元素数量等于所获取的字符数量");
+        //}
 
-        CharSizeList = charSizeList;
+        //CharSizeList = charSizeList;
     }
 
     /// <summary>
@@ -45,8 +44,8 @@ public readonly struct SingleCharInLineLayoutResult
     /// <summary>所有的字符合起来的布局尺寸</summary>
     public Size TotalSize { get; init; }
 
-    /// <summary>当 <see cref="TakeCount"/> 大于一个时，将存放每个字符的尺寸</summary>
-    public IReadOnlyList<Size>? CharSizeList { get; init; }
+    ///// <summary>当 <see cref="TakeCount"/> 大于一个时，将存放每个字符的尺寸</summary>
+    //public IReadOnlyList<Size>? CharSizeList { get; init; }
 
     //public void Deconstruct(out int TaskCount, out Size TotalSize, out IReadOnlyList<Size>? CharSizeList)
     //{
