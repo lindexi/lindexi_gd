@@ -393,7 +393,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// <returns></returns>
     private Size GetCharSize(CharData charData)
     {
-        var charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
         // 字符可能自己缓存有了自己的尺寸，如果有缓存，那是可以重复使用
         var cacheSize = charData.Size;
 
@@ -402,6 +401,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         {
             var charInfo = new CharInfo(charData.CharObject, charData.RunProperty);
             CharInfoMeasureResult charInfoMeasureResult;
+            var charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
             if (charInfoMeasurer != null)
             {
                 charInfoMeasureResult = charInfoMeasurer.MeasureCharInfo(charInfo);
