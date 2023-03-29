@@ -17,4 +17,10 @@ public readonly record struct SingleCharInLineLayoutArgument(ReadOnlyListSpan<Ch
     /// 当前的字符信息
     /// </summary>
     public CharData CurrentCharData => RunList[CurrentIndex];
+
+    /// <summary>
+    /// 是否这一行啥都没有获取到，这一行还没布局到一个字符
+    /// 对于这个情况下，尽管这一行放不下一个字符，但是依然还是要强行放入。否则可能下一行依然也不够空间放下
+    /// </summary>
+    public bool IsTakeEmpty => CurrentIndex == 0;
 }

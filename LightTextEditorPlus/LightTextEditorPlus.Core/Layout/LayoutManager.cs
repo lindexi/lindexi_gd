@@ -71,7 +71,7 @@ class LayoutManager
 /// <summary>
 /// 水平方向布局的提供器
 /// </summary>
-class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
+class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalCharDataSizeMeasurer
 {
     public HorizontalArrangingLayoutProvider(LayoutManager layoutManager) : base(layoutManager)
     {
@@ -372,24 +372,50 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
-    private SingleCharInLineLayoutResult LayoutSingleCharInLine(SingleCharInLineLayoutArgument argument)
+    private SingleCharInLineLayoutResult LayoutSingleCharInLine(in SingleCharInLineLayoutArgument argument)
     {
         var charData = argument.CurrentCharData;
 
         Size size = GetCharSize(charData);
 
-        if (argument.LineRemainingWidth > size.Width)
+        // LayoutRule 布局规则
+        // 可选无规则-直接字符布局，预计没有人使用
+        // 调用分词规则-支持注入分词规则
+
+        // 使用分词规则进行布局
+        bool useWordDividerLayout = true;
+
+        if (useWordDividerLayout)
         {
-            return new SingleCharInLineLayoutResult(takeCount: 1, size, charSizeList: default);
-        }
-        else
-        {
+            // 先在这里写入简单的分词规则，后续再考虑放入到 DefaultWordDivider 里。这里面最重要的就是缓存判断，以及如何判断分词
+
+
             // 如果尺寸不足，也就是一个都拿不到
             return new SingleCharInLineLayoutResult(takeCount: 0, default, charSizeList: default);
         }
+        else
+        {
+            // 单个字符直接布局，无视语言文化。快，但是诡异
+            if (argument.LineRemainingWidth > size.Width)
+            {
+                return new SingleCharInLineLayoutResult(takeCount: 1, size, charSizeList: default);
+            }
+            else
+            {
+                // 如果尺寸不足，也就是一个都拿不到
+                return new SingleCharInLineLayoutResult(takeCount: 0, default, charSizeList: default);
+            }
+        }
     }
 
+    /// <summary>
+    /// 分词器
+    /// </summary>
+    private readonly DefaultWordDivider _divider = new DefaultWordDivider();
+
     #region 辅助方法
+
+    Size IInternalCharDataSizeMeasurer.GetCharSize(CharData charData) => GetCharSize(charData);
 
     /// <summary>
     /// 获取给定字符的尺寸
