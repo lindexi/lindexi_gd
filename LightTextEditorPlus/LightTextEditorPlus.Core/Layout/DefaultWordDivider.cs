@@ -50,6 +50,14 @@ internal class DefaultWordDivider
             }
         }
 
+        if (argument.IsTakeEmpty)
+        {
+            // todo 空行强行换行
+            // 测试 aa about 布局
+        }
+
+        // 中文考虑支持 GB/T 15834 规范
+
         // 单个字符直接布局，无视语言文化。快，但是诡异
         if (argument.LineRemainingWidth > size.Width)
         {
