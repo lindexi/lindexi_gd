@@ -6,6 +6,7 @@ using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
+using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Utils;
@@ -372,6 +373,23 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         var charData = argument.CurrentCharData;
 
+        Size size = GetCharSize(charData, charInfoMeasurer);
+
+        if (argument.LineRemainingWidth > size.Width)
+        {
+            return new SingleCharInLineLayoutResult(takeCount: 1, size, charSizeList: default);
+        }
+        else
+        {
+            // 如果尺寸不足，也就是一个都拿不到
+            return new SingleCharInLineLayoutResult(takeCount: 0, default, charSizeList: default);
+        }
+    }
+
+    #region 辅助方法
+
+    private Size GetCharSize(CharData charData, ICharInfoMeasurer? charInfoMeasurer)
+    {
         // 字符可能自己缓存有了自己的尺寸，如果有缓存，那是可以重复使用
         var cacheSize = charData.Size;
 
@@ -396,18 +414,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             size = cacheSize.Value;
         }
 
-        if (argument.LineRemainingWidth > size.Width)
-        {
-            return new SingleCharInLineLayoutResult(takeCount: 1, size, charSizeList: default);
-        }
-        else
-        {
-            // 如果尺寸不足，也就是一个都拿不到
-            return new SingleCharInLineLayoutResult(takeCount: 0, default, charSizeList: default);
-        }
+        return size;
     }
-
-    #region 辅助方法
 
     /// <summary>
     /// 获取下一行的起始点
