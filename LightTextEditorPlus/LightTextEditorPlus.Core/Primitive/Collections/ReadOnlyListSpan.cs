@@ -10,7 +10,7 @@ namespace LightTextEditorPlus.Core.Primitive.Collections;
 /// </summary>
 /// <typeparam name="T"></typeparam>
 /// <remarks>无法处理传入的 source 实际源被更改问题。在 source 不变更情况下，读取是线程安全。 使用结构体能够减少 GC 压力</remarks>
-public readonly struct ReadOnlyListSpan<T> : IReadOnlyList<T>
+public readonly struct ReadOnlyListSpan<T> : IReadOnlyList<T>, IEquatable<ReadOnlyListSpan<T>>
 {
     /// <inheritdoc cref="ReadOnlyListSpan{T}"/>
     public ReadOnlyListSpan(IReadOnlyList<T> source, int start, int length)
@@ -48,7 +48,7 @@ public readonly struct ReadOnlyListSpan<T> : IReadOnlyList<T>
     /// <returns></returns>
     public ReadOnlyListSpan<T> Slice(int start)
     {
-        var length = _length-start;
+        var length = _length - start;
         return Slice(start, length);
     }
 
@@ -58,8 +58,26 @@ public readonly struct ReadOnlyListSpan<T> : IReadOnlyList<T>
         if (length + start > _length)
         {
             throw new ArgumentOutOfRangeException(nameof(length));
-        } 
+        }
 
         return new ReadOnlyListSpan<T>(_source, _start + start, length);
+    }
+
+    /// <inheritdoc />
+    public bool Equals(ReadOnlyListSpan<T> other)
+    {
+        return ReferenceEquals(_source, other._source) && _start == other._start && _length == other._length;
+    }
+
+    /// <inheritdoc />
+    public override bool Equals(object? obj)
+    {
+        return obj is ReadOnlyListSpan<T> other && Equals(other);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(_source, _start, _length);
     }
 }
