@@ -367,6 +367,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         return new WholeLineLayoutResult(currentSize, wholeCharCount);
     }
 
+    /// <summary>
+    /// 布局一行里面的单个字符
+    /// </summary>
+    /// <param name="argument"></param>
+    /// <returns></returns>
     private SingleCharInLineLayoutResult LayoutSingleCharInLine(SingleCharInLineLayoutArgument argument)
     {
         var charData = argument.CurrentCharData;
