@@ -216,4 +216,9 @@ public static class RegexPatterns
     /// 空格 @" "
     /// </summary>
     public const string BlankSpace = @" ";
+
+    /// <summary>
+    /// 空格字符 ' '
+    /// </summary>
+    public const char BlankSpaceChar = ' ';
 }

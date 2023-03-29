@@ -75,7 +75,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 {
     public HorizontalArrangingLayoutProvider(LayoutManager layoutManager) : base(layoutManager)
     {
-        _divider = new DefaultWordDivider(this);
+        _divider = new DefaultWordDivider(layoutManager.TextEditor, this);
     }
 
     public override ArrangingType ArrangingType => ArrangingType.Horizontal;
