@@ -677,6 +677,10 @@ namespace LightTextEditorPlus.Core.Document
 
         // 这里的方法只允许撤销恢复调用
 
+        /// <summary>
+        /// 从撤销重做里面设置回默认的文本字符属性
+        /// </summary>
+        /// <param name="runProperty"></param>
         internal void SetDefaultTextRunPropertyByUndoRedo(IReadOnlyRunProperty runProperty)
         {
             TextEditor.VerifyInUndoRedoMode();
