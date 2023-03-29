@@ -257,21 +257,21 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             {
                 currentSize = currentSize.HorizontalUnion(result.TotalSize);
 
-                if (result.TakeCount == 1)
-                {
-                    var charData = charDataList[currentIndex];
-                    charData.Size ??= result.TotalSize;
-                }
-                else
-                {
-                    for (int i = currentIndex; i < currentIndex + result.TakeCount; i++)
-                    {
-                        var charData = charDataList[i];
-                        //charData.CharRenderData ??=
-                        //    new CharRenderData(charData, paragraph);
-                        charData.Size ??= result.CharSizeList![i - currentIndex];
-                    }
-                }
+                //if (result.TakeCount == 1)
+                //{
+                //    var charData = charDataList[currentIndex];
+                //    charData.Size ??= result.TotalSize;
+                //}
+                //else
+                //{
+                //    for (int i = currentIndex; i < currentIndex + result.TakeCount; i++)
+                //    {
+                //        var charData = charDataList[i];
+                //        //charData.CharRenderData ??=
+                //        //    new CharRenderData(charData, paragraph);
+                //        charData.Size ??= result.CharSizeList![i - currentIndex];
+                //    }
+                //}
 
                 currentIndex += result.TakeCount;
 
@@ -447,6 +447,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             size = cacheSize.Value;
         }
 
+        charData.Size = size;
         return size;
     }
 
