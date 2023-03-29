@@ -5,6 +5,7 @@ namespace LightTextEditorPlus;
 /// <summary>
 /// 命中测试方式
 /// </summary>
+/// todo 考虑是否需要此类型
 enum TextEditorHitTestMode
 {
     /// <summary>
