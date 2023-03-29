@@ -369,11 +369,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
     private SingleCharInLineLayoutResult LayoutSingleCharInLine(SingleCharInLineLayoutArgument argument)
     {
-        var charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
-
         var charData = argument.CurrentCharData;
 
-        Size size = GetCharSize(charData, charInfoMeasurer);
+        Size size = GetCharSize(charData);
 
         if (argument.LineRemainingWidth > size.Width)
         {
@@ -388,8 +386,14 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
     #region 辅助方法
 
-    private Size GetCharSize(CharData charData, ICharInfoMeasurer? charInfoMeasurer)
+    /// <summary>
+    /// 获取给定字符的尺寸
+    /// </summary>
+    /// <param name="charData"></param>
+    /// <returns></returns>
+    private Size GetCharSize(CharData charData)
     {
+        var charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
         // 字符可能自己缓存有了自己的尺寸，如果有缓存，那是可以重复使用
         var cacheSize = charData.Size;
 
