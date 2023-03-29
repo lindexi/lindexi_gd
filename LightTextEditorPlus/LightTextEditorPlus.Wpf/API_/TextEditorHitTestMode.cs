@@ -5,7 +5,7 @@ namespace LightTextEditorPlus;
 /// <summary>
 /// 命中测试方式
 /// </summary>
-public enum TextEditorHitTestMode
+enum TextEditorHitTestMode
 {
     /// <summary>
     /// 只有在文本框范围内，都视为命中。行为如 <see cref="TextBox"/> 这些
