@@ -11,6 +11,60 @@ namespace LightTextEditorPlus.Core.Tests;
 public class TextEditorUndoRedoTest
 {
     [ContractTestCase]
+    public void SetRunProperty()
+    {
+        "设置文本的字符属性，可以加入撤销重做，撤销后回到原来的文本字符样式".Test(() =>
+        {
+            // Arrange
+            var testTextEditorUndoRedoProvider = new TestTextEditorUndoRedoProvider();
+            var textEditorCore = TestHelper.GetTextEditorCore(new TestPlatformProvider()
+            {
+                UndoRedoProvider = testTextEditorUndoRedoProvider
+            });
+
+            var defaultFontName = "DefaultFontName_Test";
+            textEditorCore.DocumentManager.SetCurrentCaretRunProperty<LayoutOnlyRunProperty>(runProperty =>
+            {
+                runProperty.FontName = new FontName(defaultFontName);
+            });
+            // 设置文本禁用撤销重做，这样可以先准备一些测试数据，不会干扰
+            textEditorCore.SetUndoRedoEnable(false, "Test");
+            // 文本追加等将不会加入撤销恢复
+            textEditorCore.AppendText(TestHelper.PlainNumberText);
+            // 重新开启撤销重做
+            textEditorCore.SetUndoRedoEnable(true, "Test");
+            Assert.AreEqual(0, testTextEditorUndoRedoProvider.UndoOperationList.Count);
+
+            // Action
+            // 设置文本的字符属性
+            var newFontName = "Test1";
+            var selection = new Selection(new CaretOffset(1), 1);
+            textEditorCore.DocumentManager.SetRunProperty<LayoutOnlyRunProperty>(runProperty =>
+            {
+                runProperty.FontName = new FontName(newFontName);
+            }, selection);
+
+            // Assert
+            // 可以加入撤销重做
+            Assert.AreEqual(1, testTextEditorUndoRedoProvider.UndoOperationList.Count);
+
+            // 撤销一下
+            testTextEditorUndoRedoProvider.Undo();
+            // 撤销后回到原来的文本字符样式
+            IReadOnlyRunProperty readOnlyRunProperty = textEditorCore.DocumentManager.GetRunPropertyRange(selection).ToList()[0];
+            Assert.AreEqual(defaultFontName,readOnlyRunProperty.FontName.UserFontName);
+
+            // 重做一下
+            testTextEditorUndoRedoProvider.Redo();
+            var runPropertyList = textEditorCore.DocumentManager.GetRunPropertyRange(textEditorCore.GetAllDocumentSelection()).ToList();
+            Assert.AreEqual(newFontName, runPropertyList[1].FontName.UserFontName);
+
+            // 不影响其他字符
+            Assert.AreEqual(defaultFontName, runPropertyList[0].FontName.UserFontName);
+        });
+    }
+
+    [ContractTestCase]
     public void SetUndoRedoEnable()
     {
         "设置文本禁用撤销重做，后又开启撤销重做，开启后文本追加可以加入撤销恢复".Test(() =>
@@ -21,15 +75,14 @@ public class TextEditorUndoRedoTest
             {
                 UndoRedoProvider = testTextEditorUndoRedoProvider
             });
-
-            // Action
-            // 设置文本禁用撤销重做
+            // 设置文本禁用撤销重做，这样可以先准备一些测试数据，不会干扰
             textEditorCore.SetUndoRedoEnable(false, "Test");
             // 文本追加等将不会加入撤销恢复
             textEditorCore.AppendText(TestHelper.PlainNumberText);
-
             // 重新开启撤销重做
             textEditorCore.SetUndoRedoEnable(true, "Test");
+
+            // Action
             // 再次追加内容，预期追加的内容加入到撤销重做
             textEditorCore.AppendText(TestHelper.PlainNumberText);
 
