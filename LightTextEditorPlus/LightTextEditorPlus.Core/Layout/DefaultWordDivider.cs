@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Primitive.Collections;
 
 namespace LightTextEditorPlus.Core.Layout;
 
@@ -21,9 +22,12 @@ internal class DefaultWordDivider
     }
 
     private IInternalCharDataSizeMeasurer _charDataSizeMeasurer;
+    private WordRange _currentWord;
 
     public SingleCharInLineLayoutResult LayoutSingleCharInLine(in SingleCharInLineLayoutArgument argument)
     {
+        // 判断是否在单词内
+
         var charData = argument.CurrentCharData;
 
         Size size = GetCharSize(charData);
@@ -42,8 +46,9 @@ internal class DefaultWordDivider
 
     [DebuggerStepThrough]
     private Size GetCharSize(CharData charData) => _charDataSizeMeasurer.GetCharSize(charData);
-}
 
+    readonly record struct WordRange(ReadOnlyListSpan<CharData> RunList, int StartIndex, int EndIndex);
+}
 
 internal interface IInternalCharDataSizeMeasurer
 {
