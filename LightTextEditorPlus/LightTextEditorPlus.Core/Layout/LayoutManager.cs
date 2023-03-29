@@ -75,6 +75,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 {
     public HorizontalArrangingLayoutProvider(LayoutManager layoutManager) : base(layoutManager)
     {
+        _divider = new DefaultWordDivider(this);
     }
 
     public override ArrangingType ArrangingType => ArrangingType.Horizontal;
@@ -374,10 +375,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// <returns></returns>
     private SingleCharInLineLayoutResult LayoutSingleCharInLine(in SingleCharInLineLayoutArgument argument)
     {
-        var charData = argument.CurrentCharData;
-
-        Size size = GetCharSize(charData);
-
         // LayoutRule 布局规则
         // 可选无规则-直接字符布局，预计没有人使用
         // 调用分词规则-支持注入分词规则
@@ -387,14 +384,14 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
         if (useWordDividerLayout)
         {
-            // 先在这里写入简单的分词规则，后续再考虑放入到 DefaultWordDivider 里。这里面最重要的就是缓存判断，以及如何判断分词
-
-
-            // 如果尺寸不足，也就是一个都拿不到
-            return new SingleCharInLineLayoutResult(takeCount: 0, default, charSizeList: default);
+            return _divider.LayoutSingleCharInLine(argument);
         }
         else
         {
+            var charData = argument.CurrentCharData;
+
+            Size size = GetCharSize(charData);
+
             // 单个字符直接布局，无视语言文化。快，但是诡异
             if (argument.LineRemainingWidth > size.Width)
             {
@@ -411,10 +408,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// <summary>
     /// 分词器
     /// </summary>
-    private readonly DefaultWordDivider _divider = new DefaultWordDivider();
+    private readonly DefaultWordDivider _divider;
 
     #region 辅助方法
 
+    [DebuggerStepThrough] // 别跳太多层
     Size IInternalCharDataSizeMeasurer.GetCharSize(CharData charData) => GetCharSize(charData);
 
     /// <summary>
