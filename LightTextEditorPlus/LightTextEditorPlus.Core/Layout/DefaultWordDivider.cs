@@ -37,16 +37,22 @@ internal class DefaultWordDivider
         if (currentCharText == RegexPatterns.BlankSpace)
         {
             // 如果当前是空格的话，那就判断是否可以返回啦，需要额外判断空格是否允许溢出行
-            // todo 是否需要支持空格溢出行
             // 以下是无视此规则
-            if (argument.LineRemainingWidth > size.Width)
+            if (argument.ParagraphProperty.AllowHangingSpace)
             {
-                return new SingleCharInLineLayoutResult(takeCount: 1, size);
+                // todo 需要支持空格溢出行
             }
             else
             {
-                // 如果尺寸不足，也就是一个都拿不到
-                return new SingleCharInLineLayoutResult(takeCount: 0, default);
+                if (argument.LineRemainingWidth > size.Width)
+                {
+                    return new SingleCharInLineLayoutResult(takeCount: 1, size);
+                }
+                else
+                {
+                    // 如果尺寸不足，也就是一个都拿不到
+                    return new SingleCharInLineLayoutResult(takeCount: 0, default);
+                }
             }
         }
 

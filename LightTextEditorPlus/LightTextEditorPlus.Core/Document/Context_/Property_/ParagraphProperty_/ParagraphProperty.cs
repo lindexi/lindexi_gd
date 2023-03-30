@@ -45,6 +45,11 @@ public record ParagraphProperty
     public bool AllowHangingPunctuation { get; init; } = false;
 
     /// <summary>
+    /// 是否允许空格溢出边界
+    /// </summary>
+    public bool AllowHangingSpace { get; init; } = false;
+
+    /// <summary>
     /// 行间距倍数，默认值为1，范围0~1000
     /// </summary>
     public double LineSpacing
