@@ -4,5 +4,8 @@ namespace LightTextEditorPlus.Core.TestsFramework;
 
 public class FixCharSizePlatformProvider : TestPlatformProvider
 {
-    public override ICharInfoMeasurer? GetCharInfoMeasurer() => new FixedCharSizeCharInfoMeasurer();
+    public FixCharSizePlatformProvider()
+    {
+        CharInfoMeasurer = new FixedCharSizeCharInfoMeasurer();
+    }
 }
