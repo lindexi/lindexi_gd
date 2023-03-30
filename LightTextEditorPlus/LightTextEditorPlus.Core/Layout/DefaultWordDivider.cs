@@ -40,7 +40,7 @@ internal class DefaultWordDivider
             // 以下是无视此规则
             if (argument.ParagraphProperty.AllowHangingSpace)
             {
-                // todo 需要支持空格溢出行
+                throw new NotImplementedException("需要支持空格溢出行");
             }
             else
             {
