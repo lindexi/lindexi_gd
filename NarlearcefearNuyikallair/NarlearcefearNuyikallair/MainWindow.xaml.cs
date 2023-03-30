@@ -51,7 +51,7 @@ public class F : FrameworkElement
         IsHitTestVisible = false;
     }
 
-    private int _count;
+    private static int _count;
 
     protected override void OnRender(DrawingContext drawingContext)
     {
