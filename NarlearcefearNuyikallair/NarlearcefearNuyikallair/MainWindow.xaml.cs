@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace NarlearcefearNuyikallair;
 
@@ -35,11 +36,18 @@ public partial class MainWindow : Window
         UpdateElement();
     }
 
-    private void UpdateElement()
+    private async void UpdateElement()
     {
         var grid = (Grid) Content;
         grid.Children.Clear();
-        grid.Children.Add(new F());
+        var f = new F();
+        grid.Children.Add(f);
+
+        while (true)
+        {
+            f.InvalidateVisual();
+            await Dispatcher.Yield(DispatcherPriority.Background);
+        }
     }
 }
 
@@ -55,11 +63,16 @@ public class F : FrameworkElement
 
     protected override void OnRender(DrawingContext drawingContext)
     {
+        var max = 5 - 1;
+
         for (int i = 0; i < 100000; i++)
         {
             Brush brush = _count switch
             {
                 0 => Brushes.Black,
+                1 => Brushes.AntiqueWhite,
+                2 => Brushes.Aqua,
+                3 => Brushes.Beige,
                 _ => Brushes.Red,
             };
 
@@ -68,7 +81,7 @@ public class F : FrameworkElement
             drawingContext.DrawRectangle(brush, null, new Rect(i % canvasWidth * 3, i / canvasWidth * 3, 2, 2));
 
             _count++;
-            if (_count > 1)
+            if (_count > max)
             {
                 _count = 0;
             }
@@ -76,7 +89,7 @@ public class F : FrameworkElement
 
         // 让下次变更颜色
         _count++;
-        if (_count > 1)
+        if (_count > max)
         {
             _count = 0;
         }
