@@ -5,6 +5,9 @@ namespace LightTextEditorPlus.Core.TestsFramework;
 
 public class TestPlatformProvider : PlatformProvider
 {
+    public override ICharInfoMeasurer? GetCharInfoMeasurer() => CharInfoMeasurer ?? base.GetCharInfoMeasurer();
+    public ICharInfoMeasurer? CharInfoMeasurer { set; get; }
+
     public override IRenderManager? GetRenderManager() => RenderManager ?? base.GetRenderManager();
 
     public IRenderManager? RenderManager { set; get; }
