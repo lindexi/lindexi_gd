@@ -431,7 +431,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             size = cacheSize.Value;
         }
 
-        charData.Size = size;
+        charData.Size ??= size;
         return size;
     }
 
