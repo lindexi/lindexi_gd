@@ -1,5 +1,6 @@
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Platform;
+using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.TestsFramework;
 
@@ -25,4 +26,11 @@ public class TestPlatformProvider : PlatformProvider
     }
 
     public ITextEditorUndoRedoProvider? UndoRedoProvider { set; get; }
+
+    public override ITextLogger? BuildTextLogger()
+    {
+        return TextLogger ?? base.BuildTextLogger();
+    }
+
+    public ITextLogger? TextLogger { set; get; }
 }

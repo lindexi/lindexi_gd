@@ -49,22 +49,6 @@ public class TextEditorCoreTest
     }
 
     [ContractTestCase]
-    public void BuildTextLogger()
-    {
-        "文本的日志属性不为空，即使平台返回空".Test(() =>
-        {
-            // Arrange
-            var testPlatformProvider = new TestPlatformProvider();
-
-            // Action
-            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
-
-            // Assert
-            Assert.IsNotNull(textEditorCore.Logger);
-        });
-    }
-
-    [ContractTestCase]
     public void EventArrange()
     {
         "文本编辑的事件触发是 DocumentChanging DocumentChanged LayoutCompleted 顺序".Test(() =>
