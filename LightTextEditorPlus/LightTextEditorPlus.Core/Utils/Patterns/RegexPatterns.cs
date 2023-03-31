@@ -180,7 +180,10 @@ public static class RegexPatterns
     /// </summary>
     public const string Letters = "[a-zA-Z]";
 
-    internal static readonly LetterPattern LetterPattern = new LetterPattern();
+    /// <summary>
+    /// 匹配英文字符
+    /// </summary>
+    public static readonly IPattern LetterPattern = new LetterPattern();
 
     /// <summary>
     /// 小写字符
