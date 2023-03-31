@@ -27,6 +27,12 @@ internal class DefaultWordDivider
     private IInternalCharDataSizeMeasurer _charDataSizeMeasurer;
     private WordRange _currentWord;
 
+    /// <summary>
+    /// 根据语言文化的简单分词算法，将字符排版在一行内
+    /// </summary>
+    /// <param name="argument"></param>
+    /// <returns></returns>
+    /// <remarks>不使用 Knuth-Plass 断行算法，详细请参阅 `行为定义.md` 文档</remarks>
     public SingleCharInLineLayoutResult LayoutSingleCharInLine(in SingleCharInLineLayoutArgument argument)
     {
         // todo 考虑拆分为多个文件，每个语言文化独立文件
@@ -160,7 +166,8 @@ internal class DefaultWordDivider
         {
             if (argument.IsTakeEmpty)
             {
-                // todo 空行强行换行
+                // 空行强行换行，否则下一行说不定也不够放
+                return LayoutCharWithoutCulture(argument);
             }
             else
             {
@@ -170,21 +177,47 @@ internal class DefaultWordDivider
         }
 
         // todo 数字也需要考虑小数点
-
+        // todo 合写字的测量
         // todo 中文考虑支持 GB/T 15834 规范
         // 额外考虑 《 和 （ 不能出现在行末
         // 5.1.4 破折号不能中间断开分为两行
 
-        // 单个字符直接布局，无视语言文化。快，但是诡异
-        if (argument.LineRemainingWidth > size.Width)
+        //// 单个字符直接布局，无视语言文化。快，但是诡异
+        //if (argument.LineRemainingWidth > size.Width)
+        //{
+        //    return new SingleCharInLineLayoutResult(takeCount: 1, size);
+        //}
+        //else
+        //{
+        //    // 如果尺寸不足，也就是一个都拿不到
+        //    return new SingleCharInLineLayoutResult(takeCount: 0, default);
+        //}
+    }
+
+    /// <summary>
+    /// 无视语言文化的获取字符
+    /// </summary>
+    /// <param name="argument"></param>
+    /// <returns></returns>
+    private SingleCharInLineLayoutResult LayoutCharWithoutCulture(in SingleCharInLineLayoutArgument argument)
+    { 
+        var totalWidth = Size.Zero;
+        var i = argument.CurrentIndex;
+        for (; i < argument.RunList.Count; i++)
         {
-            return new SingleCharInLineLayoutResult(takeCount: 1, size);
+            CharData charData = argument.RunList[i];
+            Size size = GetCharSize(charData);
+            totalWidth = totalWidth.HorizontalUnion(size);
+            if (totalWidth.Width > argument.LineRemainingWidth)
+            {
+                // 超过了，那就不能获取了
+                break;
+            }
         }
-        else
-        {
-            // 如果尺寸不足，也就是一个都拿不到
-            return new SingleCharInLineLayoutResult(takeCount: 0, default);
-        }
+
+        // 因为数量和序号，刚好是差 1 的值。因此刚刚好减去即可
+        var takeCount = i - argument.CurrentIndex;
+        return new SingleCharInLineLayoutResult(takeCount, totalWidth);
     }
 
     /// <summary>
