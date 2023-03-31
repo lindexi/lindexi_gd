@@ -170,8 +170,3 @@ internal class DefaultWordDivider
 
     readonly record struct WordRange(ReadOnlyListSpan<CharData> RunList, int StartIndex, int EndIndex);
 }
-
-internal interface IInternalCharDataSizeMeasurer
-{
-    Size GetCharSize(CharData charData);
-}
