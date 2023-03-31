@@ -16,7 +16,7 @@ public class LayoutTest
         "文本包含两段，布局过一次，在第一段进行追加，第二段只需修改坐标不需要重新布局".Test(() =>
         {
             var renderManagerTestPlatformProvider = new RenderManagerTestPlatformProvider();
-            var textEditorCore = new TextEditorCore(renderManagerTestPlatformProvider);
+            var textEditorCore = TestHelper.GetTextEditorCore(renderManagerTestPlatformProvider);
 
             // 加入两段文本，用于测试
             textEditorCore.AppendText("abc\r\ndef");
@@ -51,7 +51,7 @@ public class LayoutTest
             {
                 WholeLineLayouter = testWholeLineLayouter
             };
-            var textEditorCore = new TextEditorCore(testPlatformProvider);
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
 
             // 配置这个 WholeLineLayouter 将会在布局的时候，修改文档内容
             testWholeLineLayouter.LayoutWholeLineFunc = _ =>
@@ -78,7 +78,7 @@ public class LayoutTest
             var testPlatformProvider = new RenderManagerTestPlatformProvider();
             var testRenderManager = testPlatformProvider.TestRenderManager;
 
-            var textEditorCore = new TextEditorCore(testPlatformProvider);
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
 
             textEditorCore.AppendText("a\r\n");
 

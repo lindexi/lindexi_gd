@@ -281,7 +281,7 @@ public class DocumentManagerTests
             // Arrange
             var testPlatformProvider = new RenderManagerTestPlatformProvider();
             var testRenderManager = testPlatformProvider.TestRenderManager;
-            var textEditorCore = new TextEditorCore(testPlatformProvider);
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
 
             // 对当前的光标设置文本字符属性
             var fontSize = 0d;

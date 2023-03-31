@@ -15,8 +15,7 @@ public class EmptyTextEditorTest
         "对空文本获取 GetHitParagraphData 方法，获取之后，将会创建默认的一行文本".Test(() =>
         {
             // Arrange
-            var testPlatformProvider = new TestPlatformProvider();
-            var textEditorCore = new TextEditorCore(testPlatformProvider);
+            var textEditorCore = TestHelper.GetTextEditorCore();
 
             // Action
             var result = textEditorCore.DocumentManager.ParagraphManager.GetHitParagraphData(new CaretOffset(0));

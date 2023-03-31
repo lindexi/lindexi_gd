@@ -16,7 +16,7 @@ public class TextEditorCoreTest
     {
         "测试文本的创建".Test(() =>
         {
-            var textEditorCore = new TextEditorCore(new TestPlatformProvider());
+            var textEditorCore = TestHelper.GetTextEditorCore();
 
             // 没有异常，那就是符合预期
             Assert.IsNotNull(textEditorCore);
@@ -57,7 +57,7 @@ public class TextEditorCoreTest
             var testPlatformProvider = new TestPlatformProvider();
 
             // Action
-            var textEditorCore = new TextEditorCore(testPlatformProvider);
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
 
             // Assert
             Assert.IsNotNull(textEditorCore.Logger);

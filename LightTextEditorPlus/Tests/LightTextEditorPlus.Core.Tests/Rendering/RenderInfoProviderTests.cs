@@ -16,7 +16,8 @@ public class RenderInfoProviderTests
         {
             // Arrange
             // 采用 FixCharSizePlatformProvider 固定数值方便计算
-            var textEditorCore = new TextEditorCore(new FixCharSizePlatformProvider());
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+
             const int charWidth = 15;
             // 一行放 3 个字符
             textEditorCore.DocumentManager.DocumentWidth = charWidth * 3 + 2;
@@ -47,7 +48,7 @@ public class RenderInfoProviderTests
         {
             // Arrange
             // 采用 FixCharSizePlatformProvider 固定数值方便计算
-            var textEditorCore = new TextEditorCore(new FixCharSizePlatformProvider());
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
             const int charWidth = 15;
             // 一行放 3 个字符
             textEditorCore.DocumentManager.DocumentWidth = charWidth * 3 + 2;
@@ -72,7 +73,7 @@ public class RenderInfoProviderTests
         {
             // Arrange
             // 采用 FixCharSizePlatformProvider 固定数值
-            var textEditorCore = new TextEditorCore(new FixCharSizePlatformProvider());
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
             textEditorCore.AppendText("123\r\n");
 
             var renderInfoProvider = textEditorCore.GetRenderInfo();

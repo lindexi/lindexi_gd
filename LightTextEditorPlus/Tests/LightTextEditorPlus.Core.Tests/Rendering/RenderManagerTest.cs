@@ -71,7 +71,7 @@ public class RenderManagerTest
             var testPlatformProvider = new RenderManagerTestPlatformProvider();
             var testRenderManager = testPlatformProvider.TestRenderManager;
 
-            var textEditorCore = new TextEditorCore(testPlatformProvider);
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
 
             textEditorCore.DocumentChanging += delegate
             {

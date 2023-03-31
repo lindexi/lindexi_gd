@@ -33,7 +33,7 @@ public class TextEditorLineTest
                 // 第二行将剩下的 “45” 布局进去
                 Assert.AreEqual(2, paragraphLineRenderInfos[1].Argument.CharList.Count);
             });
-            var textEditor = new TextEditorCore(testPlatformProvider);
+            var textEditor = TestHelper.GetTextEditorCore(testPlatformProvider);
 
             // 给定宽度为50的文本
             textEditor.DocumentManager.DocumentWidth = 50;
