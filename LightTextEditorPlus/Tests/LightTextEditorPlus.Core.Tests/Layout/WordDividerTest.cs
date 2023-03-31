@@ -1,4 +1,5 @@
 ﻿using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.TestsFramework;
 using MSTest.Extensions.Contracts;
 
@@ -28,7 +29,13 @@ public class WordDividerTest
             textEditorCore.AppendText("aa about");
 
             // Assert
+            RenderInfoProvider renderInfoProvider = textEditorCore.GetRenderInfo();
+            ParagraphRenderInfo paragraphRenderInfo = renderInfoProvider.GetParagraphRenderInfoList().First();
+            List<ParagraphLineRenderInfo> paragraphLineRenderInfoList = paragraphRenderInfo.GetLineRenderInfoList().ToList();
+            Assert.AreEqual(2,paragraphLineRenderInfoList.Count);
 
+            Assert.AreEqual("aa ", paragraphLineRenderInfoList[0].LineLayoutData.GetText());
+            Assert.AreEqual("about", paragraphLineRenderInfoList[1].LineLayoutData.GetText());
         });
     }
 }
