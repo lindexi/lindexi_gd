@@ -5,9 +5,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
+using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.Patterns;
 
 namespace LightTextEditorPlus.Core.Layout;
@@ -230,7 +232,7 @@ internal class DefaultWordDivider
     {
         if (text.Length == 1)
         {
-            if (IsPunctuationNotInLineStart(text[0]))
+            if (IsPunctuationNotInLineStart(text))
             {
                 if (allowHangingPunctuation)
                 {
@@ -250,39 +252,50 @@ internal class DefaultWordDivider
         return (isOverflow: false, shouldTakeNextChar: false);
     }
 
-    static bool IsPunctuationNotInLineStart(char charInNextWord)
+    static bool IsPunctuationNotInLineStart(string text)
     {
-        Span<char> punctuationNotInLineStartList = stackalloc char[]
+        // 只是判断标点符号而已
+        // 反向判断，通过正则辅助判断。只要是标点符号，且不是可以在行首的，那就返回 true 值
+        char charInNextWord = text[0];
+        if (RegexPatterns.LeftSurroundInterpunction.Contains(charInNextWord))
         {
-            // 英文系列
-            '.',
-            ',',
-            ':',
-            ';',
-            '?',
-            '!',
-            '\'',
-            '"',
-            ')',
+            // 先判断是否在行首，这个判断数量比较小，速度快
+            return false;
+        }
 
-            // 中文系列 GB/T 15834 规范
-            '。',
-            '，',
-            '、',
-            '；',
-            '：',
-            '？',
-            '！',
-            '”',
-            '）',
-            '》',
-            '·', // 间隔号 5.1.7 间隔号标不能出现在一行之首
-            '/', // 5.1.9 不能在行首也不能在行末
+        return Regex.IsMatch(text, RegexPatterns.Interpunction);
 
-            // 其他语言的，看天
-        };
+        //Span<char> punctuationNotInLineStartList = stackalloc char[]
+        //{
+        //    // 英文系列
+        //    '.',
+        //    ',',
+        //    ':',
+        //    ';',
+        //    '?',
+        //    '!',
+        //    '\'',
+        //    '"',
+        //    ')',
 
-        return punctuationNotInLineStartList.Contains(charInNextWord);
+        //    // 中文系列 GB/T 15834 规范
+        //    '。',
+        //    '，',
+        //    '、',
+        //    '；',
+        //    '：',
+        //    '？',
+        //    '！',
+        //    '”',
+        //    '）',
+        //    '》',
+        //    '·', // 间隔号 5.1.7 间隔号标不能出现在一行之首
+        //    '/', // 5.1.9 不能在行首也不能在行末
+
+        //    // 其他语言的，看天
+        //};
+
+        //return punctuationNotInLineStartList.Contains(charInNextWord);
     }
 
     [DebuggerStepThrough]
