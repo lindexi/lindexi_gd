@@ -29,6 +29,8 @@ internal class DefaultWordDivider
 
     public SingleCharInLineLayoutResult LayoutSingleCharInLine(in SingleCharInLineLayoutArgument argument)
     {
+        // todo 考虑拆分为多个文件，每个语言文化独立文件
+
         // 判断是否在单词内
         var charData = argument.CurrentCharData;
         Size size = GetCharSize(charData);
@@ -95,6 +97,7 @@ internal class DefaultWordDivider
         }
 
         // 如果剩余的宽度大于此当前能够获取的，那还需要判断下一个字符是否标点符号，且标点符号是不能放在下一行行首的
+        bool canTakeCurrentWord;
         if (totalWidth <= argument.LineRemainingWidth)
         {
             // 单词的下一个字符的序号。序号是从 0 开始的，因此加上 charCount 即可表示下一个字符的序号
@@ -111,38 +114,53 @@ internal class DefaultWordDivider
                 if (testWidth <= argument.LineRemainingWidth)
                 {
                     // 证明能放下这个单词后的下一个字符，能放下就无视其他规则
-                    return new SingleCharInLineLayoutResult(takeCount: charCount, new Size(totalWidth, size.Height));
+                    canTakeCurrentWord = true;
                 }
                 else
                 {
                     // 不能放下的话，需要额外考虑一下，判断一下这个单词后的下一个字符是否属于不能放在行首的符号
                     // punctuation
                     // 不能放在行首的符号
-                    Span<char> punctuationNotInLineStartList = stackalloc char[]
-                    {
-                        '.',
-                        ',',
-                        '\'',
-                    };
                     string text = charDataInNextWord.CharObject.ToText();
-                    if (text.Length == 1)
+                    bool allowHangingPunctuation = argument.ParagraphProperty.AllowHangingPunctuation;
+                    (bool isOverflow, bool shouldTakeNextChar) = ShouldTakeNextPunctuationChar(text, allowHangingPunctuation);
+
+                    if (isOverflow)
                     {
-                        // todo 优化符号不能放在最后面，加上允许溢出符号
+                        canTakeCurrentWord = false;
+                    }
+                    else
+                    {
+                        canTakeCurrentWord = true;
+                        if (shouldTakeNextChar)
+                        {
+                            // 获取下一个字符
+                            charCount++;
+                            totalWidth = testWidth;
+                        }
                     }
                 }
             }
             else
             {
                 // 后续没有了，那就返回当前吧
-                return new SingleCharInLineLayoutResult(takeCount: charCount, new Size(totalWidth, size.Height));
+                canTakeCurrentWord = true;
             }
+        }
+        else
+        {
+            canTakeCurrentWord = false;
+        }
+
+        if (canTakeCurrentWord)
+        {
+            return new SingleCharInLineLayoutResult(takeCount: charCount, new Size(totalWidth, size.Height));
         }
         else
         {
             if (argument.IsTakeEmpty)
             {
                 // todo 空行强行换行
-                // 测试 aa about 布局
             }
             else
             {
@@ -151,7 +169,11 @@ internal class DefaultWordDivider
             }
         }
 
-        // 中文考虑支持 GB/T 15834 规范
+        // todo 数字也需要考虑小数点
+
+        // todo 中文考虑支持 GB/T 15834 规范
+        // 额外考虑 《 和 （ 不能出现在行末
+        // 5.1.4 破折号不能中间断开分为两行
 
         // 单个字符直接布局，无视语言文化。快，但是诡异
         if (argument.LineRemainingWidth > size.Width)
@@ -163,6 +185,68 @@ internal class DefaultWordDivider
             // 如果尺寸不足，也就是一个都拿不到
             return new SingleCharInLineLayoutResult(takeCount: 0, default);
         }
+    }
+
+    /// <summary>
+    /// 是否需要获取下一个字符，只有在符号不能存在行末，且允许符号溢出
+    /// </summary>
+    /// <param name="text"></param>
+    /// <param name="allowHangingPunctuation"></param>
+    /// <returns></returns>
+    private static (bool isOverflow, bool shouldTakeNextChar) ShouldTakeNextPunctuationChar(string text, bool allowHangingPunctuation)
+    {
+        if (text.Length == 1)
+        {
+            if (IsPunctuationNotInLineStart(text[0]))
+            {
+                if (allowHangingPunctuation)
+                {
+                    // 允许溢出符号的情况下，再多取一个符号
+                    // todo 判断是否多符号连续
+                    // 例如 !!! 的情况
+                    return (isOverflow: false, shouldTakeNextChar: true);
+                }
+                else
+                {
+                    // 不能作为行末的符号，且不允许溢出，凉凉
+                    return (isOverflow: true, shouldTakeNextChar: false);
+                }
+            }
+        }
+        // 既然不是符号，那就不存在溢出
+        return (isOverflow: false, shouldTakeNextChar: false);
+    }
+
+    static bool IsPunctuationNotInLineStart(char charInNextWord)
+    {
+        Span<char> punctuationNotInLineStartList = stackalloc char[]
+        {
+            // 英文系列
+            '.',
+            ',',
+            '\'',
+            '"',
+            '!',
+            '?',
+
+            // 中文系列 GB/T 15834 规范
+            '。',
+            '，',
+            '、',
+            '；',
+            '：',
+            '？',
+            '！',
+            '”',
+            '）',
+            '》',
+            '·', // 间隔号 5.1.7 间隔号标不能出现在一行之首
+            '/', // 5.1.9 不能在行首也不能在行末
+
+            // 其他语言的，看天
+        };
+
+        return punctuationNotInLineStartList.Contains(charInNextWord);
     }
 
     [DebuggerStepThrough]
