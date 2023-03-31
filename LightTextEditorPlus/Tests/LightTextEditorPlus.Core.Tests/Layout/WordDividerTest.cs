@@ -17,11 +17,8 @@ public class WordDividerTest
             var testPlatformProvider = new TestPlatformProvider().UsingFixedCharSizeCharInfoMeasurer();
             var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
 
-            const int fontSize = 15;
-            textEditorCore.DocumentManager.SetDefaultTextRunProperty<LayoutOnlyRunProperty>(runProperty => runProperty.FontSize = fontSize);
-
             // 一行的宽度刚好就是一个 about 加 1 的宽度，也就是放入 "aa " 之后就不够放入
-            var width = ("about".Length + 1) * fontSize;
+            var width = ("about".Length + 1) * TestHelper.DefaultFixCharWidth;
             textEditorCore.DocumentManager.DocumentWidth = width;
 
             // Action

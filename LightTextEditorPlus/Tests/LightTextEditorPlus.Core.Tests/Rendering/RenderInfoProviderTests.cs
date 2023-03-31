@@ -18,7 +18,7 @@ public class RenderInfoProviderTests
             // 采用 FixCharSizePlatformProvider 固定数值方便计算
             var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
 
-            const int charWidth = 15;
+            const double charWidth = TestHelper.DefaultFixCharWidth;
             // 一行放 3 个字符
             textEditorCore.DocumentManager.DocumentWidth = charWidth * 3 + 2;
             textEditorCore.AppendText("abcde\r\nfgh");
