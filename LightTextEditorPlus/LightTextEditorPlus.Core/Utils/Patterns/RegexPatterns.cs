@@ -181,9 +181,15 @@ public static class RegexPatterns
     public const string Letters = "[a-zA-Z]";
 
     /// <summary>
-    /// 匹配英文字符
+    /// 匹配 Letter 字符，包含中文字符哦
     /// </summary>
     public static readonly IPattern LetterPattern = new LetterPattern();
+
+    /// <summary>
+    /// 匹配英文字符
+    /// </summary>
+    public static readonly IPattern EnglishLetterPattern = new EnglishLetterPattern();
+
 
     /// <summary>
     /// 小写字符
