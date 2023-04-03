@@ -253,12 +253,16 @@ internal class DefaultWordDivider
         return (isOverflow: false, shouldTakeNextChar: false);
     }
 
-    static bool IsPunctuationNotInLineStart(string text)
+    /// <summary>
+    /// 通过语言文化判断当前传入的标点符号是否不能放在行首。语言文化里面只能用来判断符号，是否能放在行首是文本库的判断
+    /// </summary>
+    /// <param name="text">传入参数之前，确保只有一个字符</param>
+    /// <returns></returns>
+    private static bool IsPunctuationNotInLineStart(string text)
     {
         // 只是判断标点符号而已
         // 反向判断，通过正则辅助判断。只要是标点符号，且不是可以在行首的，那就返回 true 值
-        char charInNextWord = text[0];
-        UnicodeCategory unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(charInNextWord);
+        UnicodeCategory unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(text, 0);
         return unicodeCategory is UnicodeCategory.OtherPunctuation
             //or UnicodeCategory.OpenPunctuation 如 （）
             or UnicodeCategory.ClosePunctuation
