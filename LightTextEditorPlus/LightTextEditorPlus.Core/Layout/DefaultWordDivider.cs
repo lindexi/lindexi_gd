@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -257,13 +258,22 @@ internal class DefaultWordDivider
         // 只是判断标点符号而已
         // 反向判断，通过正则辅助判断。只要是标点符号，且不是可以在行首的，那就返回 true 值
         char charInNextWord = text[0];
-        if (RegexPatterns.LeftSurroundInterpunction.Contains(charInNextWord))
-        {
-            // 先判断是否在行首，这个判断数量比较小，速度快
-            return false;
-        }
+        UnicodeCategory unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(charInNextWord);
+        return unicodeCategory is UnicodeCategory.OtherPunctuation
+            //or UnicodeCategory.OpenPunctuation 如 （）
+            or UnicodeCategory.ClosePunctuation
+            or UnicodeCategory.ConnectorPunctuation
+            or UnicodeCategory.DashPunctuation
+            //or UnicodeCategory.InitialQuotePunctuation 如 “
+            or UnicodeCategory.FinalQuotePunctuation;
 
-        return Regex.IsMatch(text, RegexPatterns.Interpunction);
+        //if (RegexPatterns.LeftSurroundInterpunction.Contains(charInNextWord))
+        //{
+        //    // 先判断是否在行首，这个判断数量比较小，速度快
+        //    return false;
+        //}
+
+        //return Regex.IsMatch(text, RegexPatterns.Interpunction);
 
         //Span<char> punctuationNotInLineStartList = stackalloc char[]
         //{
