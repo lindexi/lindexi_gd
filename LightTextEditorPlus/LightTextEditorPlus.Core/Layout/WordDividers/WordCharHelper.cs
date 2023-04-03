@@ -3,7 +3,7 @@ using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Utils.Patterns;
 
-namespace LightTextEditorPlus.Core.Layout;
+namespace LightTextEditorPlus.Core.Layout.WordDividers;
 
 internal static class WordCharHelper
 {

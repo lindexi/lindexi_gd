@@ -1,19 +1,12 @@
-﻿using LightTextEditorPlus.Core.Document;
-
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
-using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.Patterns;
 
-namespace LightTextEditorPlus.Core.Layout;
+namespace LightTextEditorPlus.Core.Layout.WordDividers;
 
 /// <summary>
 /// 默认的分词器
