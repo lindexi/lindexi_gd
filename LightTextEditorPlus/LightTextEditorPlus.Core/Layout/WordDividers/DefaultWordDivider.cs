@@ -37,29 +37,6 @@ internal class DefaultWordDivider
         var charData = argument.CurrentCharData;
         Size size = GetCharSize(charData);
 
-        string currentCharText = charData.CharObject.ToText();
-        if (currentCharText == RegexPatterns.BlankSpace)
-        {
-            // 如果当前是空格的话，那就判断是否可以返回啦，需要额外判断空格是否允许溢出行
-            // 以下是无视此规则
-            if (argument.ParagraphProperty.AllowHangingSpace)
-            {
-                throw new NotImplementedException("需要支持空格溢出行");
-            }
-            else
-            {
-                if (argument.LineRemainingWidth > size.Width)
-                {
-                    return new SingleCharInLineLayoutResult(takeCount: 1, size);
-                }
-                else
-                {
-                    // 如果尺寸不足，也就是一个都拿不到
-                    return new SingleCharInLineLayoutResult(takeCount: 0, default);
-                }
-            }
-        }
-
         // 思路：
         // 先判断字符所在的语言文化，是 Latin 的还是中文的，还是合写字的蒙文或藏文的
         // 接着读取这个单词到结束。再判断其是否能在一行放下。如果不能在一行放下，需要判断 IsTakeEmpty 属性
@@ -67,26 +44,7 @@ internal class DefaultWordDivider
         // 再读取后面一个字符看是不是标点符号，是标点符号的话，看能不能放下。如果能放下，那就此结束。如果不能放下
         // 那么判断是否允许符号溢出边界，或者考虑将当前单词放入到下一行里面。需要考虑 IsTakeEmpty 属性
 
-        var charCount = 1;
-
-        bool isLatin = RegexPatterns.LetterPattern.AreAllInRange(currentCharText);
-        if (isLatin)
-        {
-            // 已知当前字符的类型了，继续读取下一个字符
-            int index = argument.CurrentIndex + 1;
-            for (; index < argument.RunList.Count; index++)
-            {
-                CharData currentCharData = argument.RunList[index];
-                string text = currentCharData.CharObject.ToText();
-                if (!RegexPatterns.LetterPattern.AreAllInRange(text))
-                {
-                    // 读取到不是英文字符的
-                    break;
-                }
-            }
-
-            charCount = index - argument.CurrentIndex;
-        }
+        var charCount = WordCharHelper.ReadWordCharCount(argument.RunList, argument.CurrentIndex);
 
         // 读取一个单词的宽度，看看是否太长了
         Debug.Assert(argument.CurrentIndex + charCount <= argument.RunList.Count, "读取的单词一定在行内");
