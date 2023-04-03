@@ -31,8 +31,6 @@ internal class DefaultWordDivider
     /// <remarks>不使用 Knuth-Plass 断行算法，详细请参阅 `行为定义.md` 文档</remarks>
     public SingleCharInLineLayoutResult LayoutSingleCharInLine(in SingleCharInLineLayoutArgument argument)
     {
-        // todo 考虑拆分为多个文件，每个语言文化独立文件
-
         // 判断是否在单词内
         var charData = argument.CurrentCharData;
         Size size = GetCharSize(charData);
