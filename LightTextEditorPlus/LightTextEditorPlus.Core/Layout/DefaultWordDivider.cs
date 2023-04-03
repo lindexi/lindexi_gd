@@ -203,7 +203,7 @@ internal class DefaultWordDivider
     /// <param name="argument"></param>
     /// <returns></returns>
     private SingleCharInLineLayoutResult LayoutCharWithoutCulture(in SingleCharInLineLayoutArgument argument)
-    { 
+    {
         var totalWidth = Size.Zero;
         var i = argument.CurrentIndex;
         for (; i < argument.RunList.Count; i++)
@@ -316,4 +316,6 @@ internal class DefaultWordDivider
     private Size GetCharSize(CharData charData) => _charDataSizeMeasurer.GetCharSize(charData);
 
     readonly record struct WordRange(ReadOnlyListSpan<CharData> RunList, int StartIndex, int EndIndex);
+
+
 }
