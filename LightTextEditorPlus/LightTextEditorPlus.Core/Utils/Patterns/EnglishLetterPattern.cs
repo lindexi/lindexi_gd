@@ -11,6 +11,7 @@ class EnglishLetterPattern : IPattern
     {
         for (var i = 0; i < text.Length; i++)
         {
+            // .NET 7 char.IsAsciiLetter
             if (char.IsLower(text, i) || char.IsUpper(text, i))
             {
                 return true;
