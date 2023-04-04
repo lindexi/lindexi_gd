@@ -17,6 +17,8 @@ public static class TestHelper
     /// </summary>
     public const double DefaultFixCharWidth = DefaultFixCharFontSize;
 
+    public static char[] PunctuationNotInLineStartCharList => new[] { ',', '.', ';', '!', '£¬', '¡£', '£¡', '£º', '£»', '¡¢', ')', '£©' };
+
     public static TextEditorCore GetTextEditorCore(TestPlatformProvider? testPlatformProvider = null)
     {
         testPlatformProvider ??= new TestPlatformProvider();

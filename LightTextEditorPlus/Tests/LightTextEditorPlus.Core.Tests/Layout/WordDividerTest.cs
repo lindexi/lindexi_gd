@@ -74,7 +74,125 @@ public class WordDividerTest
     [ContractTestCase]
     public void LayoutLine()
     {
-        // todo 加上行末标点符号换行
+        "英文单词字符串行末遇到标点字符，刚好不能排版下，但一行宽度不够放下单词加符号，不允许符号溢出边界下，可以让符号单独成行".Test<char>(c =>
+        {
+            // Arrange
+            var testPlatformProvider = new TestPlatformProvider().UsingFixedCharSizeCharInfoMeasurer();
+            // 默认不允许符号溢出边界
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
+
+            // 设置一行只能放下一个字符，根据行为定义，标点符号单独作为一行
+            var charCount = 2;
+            var width = charCount * TestHelper.DefaultFixCharWidth;
+            textEditorCore.DocumentManager.DocumentWidth = width;
+
+            // Action
+            // 添加文本，在单元测试里面将会立刻布局
+            textEditorCore.AppendText($"aa{c}");
+
+            // Assert
+            // 可以排版为两行
+            var lineList = textEditorCore.GetRenderInfo().GetParagraphRenderInfoList().First().GetLineRenderInfoList()
+                .ToList();
+            Assert.AreEqual(2, lineList.Count);
+            Assert.AreEqual($"aa", lineList[0].Argument.CharList.ToText());
+            Assert.AreEqual($"{c}", lineList[1].Argument.CharList.ToText());
+        }).WithArguments(TestHelper.PunctuationNotInLineStartCharList);
+
+        "中文单词字符串行末遇到标点字符，刚好不能排版下，但一行宽度不够放下单词加符号，不允许符号溢出边界下，可以让符号单独成行".Test<char>(c =>
+        {
+            // Arrange
+            var testPlatformProvider = new TestPlatformProvider().UsingFixedCharSizeCharInfoMeasurer();
+            // 默认不允许符号溢出边界
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
+
+            // 设置一行只能放下一个字符，根据行为定义，标点符号单独作为一行
+            var charCount = 1;
+            var width = charCount * TestHelper.DefaultFixCharWidth;
+            textEditorCore.DocumentManager.DocumentWidth = width;
+
+            // Action
+            // 添加文本，在单元测试里面将会立刻布局
+            textEditorCore.AppendText($"一二{c}");
+
+            // Assert
+            // 可以排版为三行
+            var lineList = textEditorCore.GetRenderInfo().GetParagraphRenderInfoList().First().GetLineRenderInfoList()
+                .ToList();
+            Assert.AreEqual(3, lineList.Count);
+            Assert.AreEqual($"一", lineList[0].Argument.CharList.ToText());
+            Assert.AreEqual($"二", lineList[1].Argument.CharList.ToText());
+            Assert.AreEqual($"{c}", lineList[2].Argument.CharList.ToText());
+        }).WithArguments(TestHelper.PunctuationNotInLineStartCharList);
+
+        "中文单词字符串行末遇到标点字符，刚好不能排版下，可以自动和前面一个单词换行到下一行".Test<char>(c =>
+        {
+            // Arrange
+            var testPlatformProvider = new TestPlatformProvider().UsingFixedCharSizeCharInfoMeasurer();
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
+
+            var charCount = 2;
+            var width = charCount * TestHelper.DefaultFixCharWidth;
+            textEditorCore.DocumentManager.DocumentWidth = width;
+
+            // Action
+            // 添加文本，在单元测试里面将会立刻布局
+            textEditorCore.AppendText($"一二{c}");
+
+            // Assert
+            // 可以排版为两行
+            var lineList = textEditorCore.GetRenderInfo().GetParagraphRenderInfoList().First().GetLineRenderInfoList()
+                .ToList();
+            Assert.AreEqual(2, lineList.Count);
+            Assert.AreEqual($"一", lineList[0].Argument.CharList.ToText());
+            Assert.AreEqual($"二{c}", lineList[1].Argument.CharList.ToText());
+        }).WithArguments(TestHelper.PunctuationNotInLineStartCharList);
+
+        "英文单词字符串行末遇到标点字符，刚好不能排版下，可以自动和前面一个单词换行到下一行".Test<char>(c =>
+        {
+            // Arrange
+            var testPlatformProvider = new TestPlatformProvider().UsingFixedCharSizeCharInfoMeasurer();
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
+
+            var charCount = 4;
+            var width = charCount * TestHelper.DefaultFixCharWidth;
+            textEditorCore.DocumentManager.DocumentWidth = width;
+
+            // Action
+            // 添加文本，在单元测试里面将会立刻布局
+            textEditorCore.AppendText($"a aa{c}");
+
+            // Assert
+            // 可以排版为两行
+            var lineList = textEditorCore.GetRenderInfo().GetParagraphRenderInfoList().First().GetLineRenderInfoList()
+                .ToList();
+            Assert.AreEqual(2, lineList.Count);
+            Assert.AreEqual($"a ", lineList[0].Argument.CharList.ToText());
+            Assert.AreEqual($"aa{c}", lineList[1].Argument.CharList.ToText());
+        }).WithArguments(TestHelper.PunctuationNotInLineStartCharList);
+
+        "英文单词字符串行末遇到标点字符，刚好能够排版下，可以排版为一行文本".Test<char>(c =>
+        {
+            // Arrange
+            var testPlatformProvider = new TestPlatformProvider().UsingFixedCharSizeCharInfoMeasurer();
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
+
+            // 三个字符的宽度
+            var width = 3 * TestHelper.DefaultFixCharWidth;
+            textEditorCore.DocumentManager.DocumentWidth = width;
+
+            // Action
+            // 添加文本，在单元测试里面将会立刻布局
+            textEditorCore.AppendText($"aa{c}");
+
+            // Assert
+            // 可以排版为一行
+            var lineList = textEditorCore.GetRenderInfo().GetParagraphRenderInfoList().First().GetLineRenderInfoList()
+                .ToList();
+            Assert.AreEqual(1, lineList.Count);
+            Assert.AreEqual($"aa{c}", lineList[0].Argument.CharList.ToText());
+        }).WithArguments(TestHelper.PunctuationNotInLineStartCharList);
+
         "测试空行强行换行，传入字符串 about 给定宽度只能布局 1 个字符，可以在布局时强行将一个单词拆分为五行".Test(() =>
          {
              // Arrange
