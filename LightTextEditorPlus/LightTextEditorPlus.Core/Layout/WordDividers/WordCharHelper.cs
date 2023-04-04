@@ -108,8 +108,6 @@ internal static class WordCharHelper
         }
     }
 
-
-
     private static bool CheckEnglish(CharData charData)
     {
         string currentCharText = charData.CharObject.ToText();
