@@ -1,10 +1,7 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Globalization;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
-using LightTextEditorPlus.Core.Primitive.Collections;
-using LightTextEditorPlus.Core.Utils.Patterns;
 
 namespace LightTextEditorPlus.Core.Layout.WordDividers;
 
@@ -260,7 +257,7 @@ internal class DefaultWordDivider
         //return punctuationNotInLineStartList.Contains(charInNextWord);
     }
 
-    [DebuggerStepThrough]
+    [DebuggerStepThrough] // 别跳太多层
     private Size GetCharSize(CharData charData) => _charDataSizeMeasurer.GetCharSize(charData);
 
     //readonly record struct WordRange(ReadOnlyListSpan<CharData> RunList, int StartIndex, int EndIndex);
