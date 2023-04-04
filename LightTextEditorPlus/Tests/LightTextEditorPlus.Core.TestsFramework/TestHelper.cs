@@ -1,23 +1,26 @@
-using LightTextEditorPlus.Core.Document;
+ï»¿using LightTextEditorPlus.Core.Document;
 
 namespace LightTextEditorPlus.Core.TestsFramework;
 
 public static class TestHelper
 {
     public const string PlainNumberText = "123";
-    public const string PlainLongNumberText = "1231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231"; // 200 ¸ö×Ö·û
+    public const string PlainLongNumberText = "1231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231231"; // 200 ä¸ªå­—ç¬¦
 
     /// <summary>
-    /// Ä¬ÈÏµÄ¹Ì¶¨×Ö·û²¼¾ÖµÄ×ÖºÅ
+    /// é»˜è®¤çš„å›ºå®šå­—ç¬¦å¸ƒå±€çš„å­—å·
     /// </summary>
     public const double DefaultFixCharFontSize = 15;
 
     /// <summary>
-    /// Ä¬ÈÏ¹Ì¶¨×Ö·ûµÄÄ¬ÈÏ×ÖºÅµÄ×Ö¿í
+    /// é»˜è®¤å›ºå®šå­—ç¬¦çš„é»˜è®¤å­—å·çš„å­—å®½
     /// </summary>
     public const double DefaultFixCharWidth = DefaultFixCharFontSize;
 
-    public static char[] PunctuationNotInLineStartCharList => new[] { ',', '.', ';', '!', '£¬', '¡£', '£¡', '£º', '£»', '¡¢', ')', '£©' };
+    public static char[] PunctuationNotInLineStartCharList => new[]
+    {
+        ',', '.', ';', '!', 'ï¼Œ', 'ã€‚', 'ï¼', 'ï¼š', 'ï¼›', 'ã€', ')', 'ï¼‰' 
+    };
 
     public static TextEditorCore GetTextEditorCore(TestPlatformProvider? testPlatformProvider = null)
     {
@@ -26,7 +29,7 @@ public static class TestHelper
 
         if (testPlatformProvider.CharInfoMeasurer is FixedCharSizeCharInfoMeasurer)
         {
-            // Èç¹ûÊÇ¹Ì¶¨×Ö·û³ß´ç²âÁ¿µÄ£¬ÄÇ¾ÍÉèÖÃÄ¬ÈÏ×ÖÌå¾ÍÊÇ 15 ºÅ
+            // å¦‚æœæ˜¯å›ºå®šå­—ç¬¦å°ºå¯¸æµ‹é‡çš„ï¼Œé‚£å°±è®¾ç½®é»˜è®¤å­—ä½“å°±æ˜¯ 15 å·
             textEditorCore.DocumentManager.SetDefaultTextRunProperty<LayoutOnlyRunProperty>(runProperty => runProperty.FontSize = DefaultFixCharFontSize);
         }
 

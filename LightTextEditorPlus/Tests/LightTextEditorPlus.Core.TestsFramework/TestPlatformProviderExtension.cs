@@ -1,9 +1,9 @@
-namespace LightTextEditorPlus.Core.TestsFramework;
+ï»¿namespace LightTextEditorPlus.Core.TestsFramework;
 
 public static class TestPlatformProviderExtension
 {
     /// <summary>
-    /// ¹Ì¶¨×Ö·û³ß´ç£¬·½±ãµ÷ÊÔ²¼¾Ö
+    /// å›ºå®šå­—ç¬¦å°ºå¯¸ï¼Œæ–¹ä¾¿è°ƒè¯•å¸ƒå±€
     /// </summary>
     /// <param name="provider"></param>
     /// <returns></returns>
