@@ -119,6 +119,7 @@ internal static class WordCharHelper
 
     private static bool CheckSpace(CharData charData)
     {
+        // todo 后续考虑多空格问题
         string currentCharText = charData.CharObject.ToText();
         return currentCharText == RegexPatterns.BlankSpace;
     }

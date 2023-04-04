@@ -21,7 +21,7 @@ internal class DefaultWordDivider
 
     private readonly TextEditorCore _textEditor;
     private IInternalCharDataSizeMeasurer _charDataSizeMeasurer;
-    private WordRange _currentWord;
+    //private WordRange _currentWord;
 
     /// <summary>
     /// 根据语言文化的简单分词算法，将字符排版在一行内
@@ -128,7 +128,6 @@ internal class DefaultWordDivider
             }
         }
 
-        // todo 数字也需要考虑小数点
         // todo 合写字的测量
         // todo 中文考虑支持 GB/T 15834 规范
         // 额外考虑 《 和 （ 不能出现在行末
@@ -264,7 +263,5 @@ internal class DefaultWordDivider
     [DebuggerStepThrough]
     private Size GetCharSize(CharData charData) => _charDataSizeMeasurer.GetCharSize(charData);
 
-    readonly record struct WordRange(ReadOnlyListSpan<CharData> RunList, int StartIndex, int EndIndex);
-
-
+    //readonly record struct WordRange(ReadOnlyListSpan<CharData> RunList, int StartIndex, int EndIndex);
 }

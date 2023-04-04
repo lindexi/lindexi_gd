@@ -148,19 +148,19 @@ public static class RegexPatterns
     /// </summary>
     public const string AsciiPunctuation = "[\x21-\x2f\x3a-\x40\x5b-\x60\x7b-\x7e]";
 
-    /// <summary>
-    /// ASCII 符号
-    /// https://zh.wikipedia.org/wiki/ASCII
-    /// </summary>
-    /// !-/ :-@ [-` {-~
-    internal static readonly MultiTextRangePattern AsciiPunctuationPattern =
-        new MultiTextRangePattern
-        (
-            /* !-/ */ (char) 0x21, (char) 0x2f,
-            /* :-@ */ (char) 0x3a, (char) 0x40,
-            /* [-` */ (char) 0x5b, (char) 0x60,
-            /* {-~ */ (char) 0x7b, (char) 0x7e
-        );
+    ///// <summary>
+    ///// ASCII 符号
+    ///// https://zh.wikipedia.org/wiki/ASCII
+    ///// </summary>
+    ///// !-/ :-@ [-` {-~
+    //internal static readonly MultiTextRangePattern AsciiPunctuationPattern =
+    //    new MultiTextRangePattern
+    //    (
+    //        /* !-/ */ (char) 0x21, (char) 0x2f,
+    //        /* :-@ */ (char) 0x3a, (char) 0x40,
+    //        /* [-` */ (char) 0x5b, (char) 0x60,
+    //        /* {-~ */ (char) 0x7b, (char) 0x7e
+    //    );
 
     /// <summary>
     /// todo 删除
@@ -189,7 +189,6 @@ public static class RegexPatterns
     /// 匹配英文字符
     /// </summary>
     public static readonly IPattern EnglishLetterPattern = new EnglishLetterPattern();
-
 
     /// <summary>
     /// 小写字符
