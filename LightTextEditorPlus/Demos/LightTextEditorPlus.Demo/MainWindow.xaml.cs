@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -25,6 +27,12 @@ namespace LightTextEditorPlus.Demo
         public MainWindow()
         {
             InitializeComponent();
+
+            var file = @"f:\temp\演示文稿1.pptx";
+            FileInfo fileInfo = new FileInfo(file);
+            FileSecurity fileSecurity = fileInfo.GetAccessControl();
+            fileSecurity.AddAccessRule(new FileSystemAccessRule("EveryOne",FileSystemRights.ReadData,AccessControlType.Deny));
+            fileInfo.SetAccessControl(fileSecurity);
         }
 
         private void InputButton_OnClick(object sender, RoutedEventArgs e)
