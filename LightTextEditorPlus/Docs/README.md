@@ -30,6 +30,14 @@
 
 入口类型：TextEditorCore
 
+### LightTextEditorPlus.Wpf
+
+使用 WPF 框架承载的文本库，平台相关具体实现。底层使用 `LightTextEditorPlus.Core` 进行驱动，渲染层和 IME 输入法等使用 WPF 提供
+
+### LightTextEditorPlus.MauiGraphics
+
+使用 MAUI 框架承载的文本库，使用到 MAUI 的渲染层。仅提供渲染输出功能，不提供编辑功能。支持多平台渲染。底层核心对接是 SKIA 技术
+
 ## 文本状态
 
 ### 文本是脏的
@@ -51,3 +59,8 @@
 ### 布局原因
 
 通过 TextEditorCore 的 `_layoutUpdateReasonManager` 字段即可了解到框架内记录的触发布局的原因
+
+
+## 行为定义
+
+由于文本库在实现的时候，许多功能都需要选择其中某个方式，有些选择是冲突的，而且选择的方向本身将会影响整体的框架和具体的实现。关于文本库所选择的行为，详细请参阅 [行为定义.md](./行为定义.md)
