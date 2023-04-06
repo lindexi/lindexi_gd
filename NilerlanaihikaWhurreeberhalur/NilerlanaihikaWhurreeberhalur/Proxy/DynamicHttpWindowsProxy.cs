@@ -8,8 +8,11 @@ namespace NilerlanaihikaWhurreeberhalur.Proxy;
 /// 自动跟随系统代理的代理
 /// </summary>
 [SupportedOSPlatform("windows")]
-public class DynamicHttpWindowsProxy : IWebProxy,IDisposable
+public class DynamicHttpWindowsProxy : IWebProxy, IDisposable
 {
+    /// <summary>
+    /// 创建自动跟随系统代理的代理
+    /// </summary>
     public DynamicHttpWindowsProxy()
     {
         if (HttpWindowsProxy.TryCreate(out var proxy))
@@ -27,9 +30,9 @@ public class DynamicHttpWindowsProxy : IWebProxy,IDisposable
     /// </summary>
     public void Start()
     {
-        RegistryMonitor = new RegistryMonitor(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings\Connections");
-        RegistryMonitor.RegChanged += RegistryMonitor_RegChanged;
-        RegistryMonitor.Start();
+        _registryMonitor = new RegistryMonitor(@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings\Connections");
+        _registryMonitor.RegChanged += RegistryMonitor_RegChanged;
+        _registryMonitor.Start();
 
         // 启动完成之后，更新一次吧
         UpdateProxy();
@@ -52,7 +55,7 @@ public class DynamicHttpWindowsProxy : IWebProxy,IDisposable
         }
     }
 
-    private RegistryMonitor? RegistryMonitor { set; get; }
+    private RegistryMonitor? _registryMonitor;
 
     private IWebProxy InnerProxy
     {
@@ -73,22 +76,65 @@ public class DynamicHttpWindowsProxy : IWebProxy,IDisposable
         get => _innerProxy;
     }
 
+    /// <inheritdoc />
     public ICredentials? Credentials
     {
         get => InnerProxy.Credentials;
         set => InnerProxy.Credentials = value;
     }
 
+    /// <summary>
+    /// 超过多少次超时之后，就再也不拿代理了
+    /// </summary>
+    public int MaxTimeoutCount { set; get; } = 5;
+
+    /// <summary>
+    /// 获取代理的超时时间，默认 15 秒
+    /// </summary>
+    public TimeSpan TimeoutForGetProxy { set; get; } = TimeSpan.FromSeconds(15);
+
+    /// <inheritdoc />
     public Uri? GetProxy(Uri destination)
     {
-        return InnerProxy.GetProxy(destination);
-    }
+        if (InnerProxy is HttpNoProxy)
+        {
+            // 如果是啥都没的代理，那返回即可
+            return InnerProxy.GetProxy(destination);
+        }
+        else
+        {
+            if (_timeoutCount > MaxTimeoutCount)
+            {
+                // 超过 5 次都超时，那就别拿代理了
+                return null;
+            }
 
+            var task = Task.Run(() => InnerProxy.GetProxy(destination));
+            var delayTask = Task.Delay(TimeoutForGetProxy);
+
+            Task.WaitAny(task, delayTask);
+
+            if (task.IsCompleted)
+            {
+                return task.Result;
+            }
+            else
+            {
+                // 超时
+                _timeoutCount++;
+                return null;
+            }
+        }
+    }
+    private int _timeoutCount;
+
+    /// <inheritdoc />
     public bool IsBypassed(Uri host)
     {
         return InnerProxy.IsBypassed(host);
     }
 
+    /// <inheritdoc />
     public void Dispose()
     {
         if (_innerProxy is IDisposable disposable)
@@ -96,7 +142,7 @@ public class DynamicHttpWindowsProxy : IWebProxy,IDisposable
             disposable.Dispose();
         }
 
-        RegistryMonitor?.Dispose();
+        _registryMonitor?.Dispose();
     }
 
     private IWebProxy _innerProxy;

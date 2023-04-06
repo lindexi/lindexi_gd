@@ -5,6 +5,9 @@ using SafeWinHttpHandle = NilerlanaihikaWhurreeberhalur.Proxy.Interop.WinHttp.Sa
 
 namespace NilerlanaihikaWhurreeberhalur.Proxy;
 
+/// <summary>
+/// Copy From https://github.com/dotnet/runtime/tree/v6.0.5/src/libraries/System.Net.Http
+/// </summary>
 [SupportedOSPlatform("windows")]
 // This class is only used on OS versions where WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY
 // is not supported (i.e. before Win8.1/Win2K12R2) in the WinHttpOpen() function.
@@ -15,6 +18,14 @@ internal sealed class WinInetProxyHelper
     private readonly bool _autoDetect;
     private readonly bool _useProxy;
     private bool _autoDetectionFailed;
+    /// <summary>
+    /// 超时的次数
+    /// </summary>
+    private short _timeoutCount;
+    /// <summary>
+    /// 最大超时次数
+    /// </summary>
+    private const ushort MaxTimeoutCount = 3;
     private int _lastTimeAutoDetectionFailed; // Environment.TickCount units (milliseconds).
 
     public WinInetProxyHelper()
@@ -75,7 +86,7 @@ internal sealed class WinInetProxyHelper
         Environment.TickCount - _lastTimeAutoDetectionFailed <= RecentAutoDetectionInterval;
 
     public bool GetProxyForUrl(
-        SafeWinHttpHandle? sessionHandle,
+        Interop.WinHttp.SafeWinHttpHandle? sessionHandle,
         Uri uri,
         out Interop.WinHttp.WINHTTP_PROXY_INFO proxyInfo)
     {
@@ -88,12 +99,19 @@ internal sealed class WinInetProxyHelper
             return false;
         }
 
+        if (_timeoutCount >= MaxTimeoutCount)
+        {
+            // 代理超时次数太多，就不再设置代理
+            return false;
+        }
+
         bool useProxy = false;
 
         Interop.WinHttp.WINHTTP_AUTOPROXY_OPTIONS autoProxyOptions;
         autoProxyOptions.AutoConfigUrl = AutoConfigUrl;
-        autoProxyOptions.AutoDetectFlags = AutoDetect ?
-            (Interop.WinHttp.WINHTTP_AUTO_DETECT_TYPE_DHCP | Interop.WinHttp.WINHTTP_AUTO_DETECT_TYPE_DNS_A) : 0;
+        autoProxyOptions.AutoDetectFlags = AutoDetect
+            ? (Interop.WinHttp.WINHTTP_AUTO_DETECT_TYPE_DHCP | Interop.WinHttp.WINHTTP_AUTO_DETECT_TYPE_DNS_A)
+            : 0;
         autoProxyOptions.AutoLoginIfChallenged = false;
         autoProxyOptions.Flags =
             (AutoDetect ? Interop.WinHttp.WINHTTP_AUTOPROXY_AUTO_DETECT : 0) |
@@ -134,10 +152,10 @@ internal sealed class WinInetProxyHelper
         {
             _autoDetectionFailed = false;
             if (Interop.WinHttp.WinHttpGetProxyForUrl(
-                sessionHandle!,
-                destination,
-                ref autoProxyOptions,
-                out proxyInfo))
+                    sessionHandle!,
+                    destination,
+                    ref autoProxyOptions,
+                    out proxyInfo))
             {
                 //if (NetEventSource.Log.IsEnabled()) NetEventSource.Info(this, "Using autoconfig proxy settings");
                 useProxy = true;
@@ -162,6 +180,16 @@ internal sealed class WinInetProxyHelper
                         autoProxyOptions.AutoLoginIfChallenged = true;
                     }
                 }
+                else if ((uint) lastError is Interop.WinHttp.WINHTTP_OPTION_CONNECT_TIMEOUT
+                         or Interop.WinHttp.WINHTTP_OPTION_SEND_TIMEOUT
+                         or Interop.WinHttp.WINHTTP_OPTION_RECEIVE_TIMEOUT
+                         or Interop.WinHttp.ERROR_WINHTTP_TIMEOUT)
+                {
+                    // 超时相关错误，就不要重试了，也不走手动的代理设置
+                    // 记录一下，如果连续超过三次超时，那就再也不走代理了
+                    _timeoutCount++;
+                    return false;
+                }
                 else
                 {
                     if (lastError == Interop.WinHttp.ERROR_WINHTTP_AUTODETECTION_FAILED)
@@ -180,8 +208,9 @@ internal sealed class WinInetProxyHelper
         {
             proxyInfo.AccessType = Interop.WinHttp.WINHTTP_ACCESS_TYPE_NAMED_PROXY;
             proxyInfo.Proxy = Marshal.StringToHGlobalUni(Proxy);
-            proxyInfo.ProxyBypass = string.IsNullOrEmpty(ProxyBypass) ?
-                IntPtr.Zero : Marshal.StringToHGlobalUni(ProxyBypass);
+            proxyInfo.ProxyBypass = string.IsNullOrEmpty(ProxyBypass)
+                ? IntPtr.Zero
+                : Marshal.StringToHGlobalUni(ProxyBypass);
 
             //if (NetEventSource.Log.IsEnabled()) NetEventSource.Info(this, $"Fallback to Proxy={Proxy}, ProxyBypass={ProxyBypass}");
             useProxy = true;
@@ -189,7 +218,12 @@ internal sealed class WinInetProxyHelper
 
         //if (NetEventSource.Log.IsEnabled()) NetEventSource.Info(this, $"useProxy={useProxy}");
 
+        if (useProxy)
+        {
+            // 如果有一次获取代理成功，那就设置非连续超时
+            _timeoutCount = 0;
+        }
+
         return useProxy;
     }
 }
-
