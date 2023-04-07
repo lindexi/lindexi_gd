@@ -20,6 +20,11 @@ public readonly record struct TextHitTestResult(bool IsOutOfTextCharacterBounds,
     internal ParagraphData HitParagraphData { init; get; }
 
     /// <summary>
+    /// 命中的段落的段落属性
+    /// </summary>
+    public ParagraphProperty ParagraphProperty => HitParagraphData.ParagraphProperty;
+
+    /// <summary>
     /// 命中到哪一行
     /// </summary>
     internal LineLayoutData? LineLayoutData { init; get; }
