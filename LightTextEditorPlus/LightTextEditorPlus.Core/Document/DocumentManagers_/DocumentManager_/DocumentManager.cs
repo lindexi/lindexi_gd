@@ -101,10 +101,31 @@ namespace LightTextEditorPlus.Core.Document
 
         #endregion
 
+        #region Paragraph段落
+
         /// <summary>
         /// 设置或获取当前文本的默认段落属性。设置之后，只影响新变更的文本，不影响之前的文本
         /// </summary>
         public ParagraphProperty CurrentParagraphProperty { set; get; }
+
+        /// <summary>
+        /// 当前光标下的段落
+        /// </summary>
+        internal ParagraphData CurrentCaretParagraphData
+        {
+            get
+            {
+                var hitParagraphDataResult = ParagraphManager.GetHitParagraphData(CaretManager.CurrentCaretOffset);
+                var paragraphData = hitParagraphDataResult.ParagraphData;
+                return paragraphData;
+            }
+        }
+
+
+
+        #endregion
+
+        #region RunProperty
 
         /// <summary>
         /// 获取当前文本的默认字符属性
@@ -158,6 +179,8 @@ namespace LightTextEditorPlus.Core.Document
                 {
                     var hitParagraphDataResult = ParagraphManager.GetHitParagraphData(CaretManager.CurrentCaretOffset);
                     var paragraphData = hitParagraphDataResult.ParagraphData;
+                    // 为了复用 HitParagraphDataResult 内容，不调用 CurrentCaretParagraphData 属性
+                    //paragraphData = CurrentCaretParagraphData;
 
                     // 当前光标是否在段首
                     if (hitParagraphDataResult.HitOffset.Offset == 0)
@@ -190,6 +213,8 @@ namespace LightTextEditorPlus.Core.Document
                 return currentCaretRunProperty;
             }
         }
+
+        #endregion
 
         #endregion
 
