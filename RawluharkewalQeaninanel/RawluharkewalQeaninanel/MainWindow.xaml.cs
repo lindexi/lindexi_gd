@@ -95,7 +95,7 @@ namespace RawluharkewalQeaninanel
 
             var renderTargetProperties =
             new D2D.RenderTargetProperties(pixelFormat: new D2D.PixelFormat(DXGI.Format.FormatUnknown,
-                D2D.AlphaMode.Premultiplied), type: D2D.RenderTargetType.Default, dpiX: 96, dpiY: 96, usage: D2D.RenderTargetUsage.None, minLevel: D2D.FeatureLevel.LevelDefault);
+                D2D.AlphaMode.Premultiplied), type: D2D.RenderTargetType.Hardware, dpiX: 96, dpiY: 96, usage: D2D.RenderTargetUsage.None, minLevel: D2D.FeatureLevel.LevelDefault);
 
             D2D.ID2D1RenderTarget* pD2D1RenderTarget;
             hr = pD2D1Factory->CreateDxgiSurfaceRenderTarget(pDXGISurface, renderTargetProperties, &pD2D1RenderTarget);
@@ -119,11 +119,10 @@ namespace RawluharkewalQeaninanel
 
             //var rect = new Box2D<float>(0,0,1000,1000);
             //var arg1 = (ulong*) &rect;
-            var hr = _pD2D1RenderTarget->EndDraw((ulong*) IntPtr.Zero, (ulong*) IntPtr.Zero);
+            var hr = _pD2D1RenderTarget->EndDraw((ulong*)IntPtr.Zero, (ulong*)IntPtr.Zero);
             SilkMarshal.ThrowHResult(hr);
 
             _pD3D11DeviceContext->Flush();
-
 
             D3DImage.Lock();
 
