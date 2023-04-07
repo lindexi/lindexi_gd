@@ -163,6 +163,18 @@ class ParagraphManager
         return ParagraphList;
     }
 
+    public ParagraphData GetParagraph(int index)
+    {
+        var list = ParagraphList;
+        if (index >= list.Count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index),
+                $"ParagraphCount:{list.Count} Index={index}");
+        }
+
+        return list[index];
+    }
+
     private List<ParagraphData> ParagraphList { get; } = new List<ParagraphData>();
 
     //public void InsertParagraphAfter(ParagraphData currentParagraph, ParagraphData newParagraph)

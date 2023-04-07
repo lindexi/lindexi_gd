@@ -128,7 +128,8 @@ namespace LightTextEditorPlus.Core.Document
         /// <param name="paragraphProperty"></param>
         public void SetParagraphProperty(int paragraphIndex, ParagraphProperty paragraphProperty)
         {
-
+            ParagraphData paragraphData = ParagraphManager.GetParagraph(paragraphIndex);
+            SetParagraphProperty(paragraphData, paragraphProperty);
         }
 
         /// <summary>
@@ -138,7 +139,13 @@ namespace LightTextEditorPlus.Core.Document
         /// <param name="paragraphProperty"></param>
         public void SetParagraphProperty(in CaretOffset caretOffset, ParagraphProperty paragraphProperty)
         {
+            ParagraphData paragraphData = ParagraphManager.GetHitParagraphData(caretOffset).ParagraphData;
+            SetParagraphProperty(paragraphData, paragraphProperty);
+        }
 
+        private void SetParagraphProperty(ParagraphData paragraphData, ParagraphProperty paragraphProperty)
+        {
+            paragraphData.SetParagraphProperty(paragraphProperty);
         }
 
         /// <summary>
@@ -146,7 +153,7 @@ namespace LightTextEditorPlus.Core.Document
         /// </summary>
         public ParagraphProperty GetParagraphProperty(int paragraphIndex)
         {
-            return ParagraphManager.GetParagraphList()[paragraphIndex].ParagraphProperty;
+            return ParagraphManager.GetParagraph(paragraphIndex).ParagraphProperty;
         }
 
         /// <summary>
@@ -640,7 +647,7 @@ namespace LightTextEditorPlus.Core.Document
                 var newSelection = new Selection(selection.FrontOffset, run?.CharCount ?? 0);
                 var newList = GetImmutableRunList(newSelection);
 
-                var textChangeOperation = new TextChangeOperation(TextEditor,oldSelection,oldList,newSelection,newList);
+                var textChangeOperation = new TextChangeOperation(TextEditor, oldSelection, oldList, newSelection, newList);
                 TextEditor.UndoRedoProvider.Insert(textChangeOperation);
             }
             else

@@ -28,8 +28,12 @@ class ParagraphData
     /// <summary>
     /// 段落属性样式
     /// </summary>
-    // todo 还没开始写段落样式
-    public ParagraphProperty ParagraphProperty { set; get; }
+    public ParagraphProperty ParagraphProperty { private set; get; }
+
+    public void SetParagraphProperty(ParagraphProperty paragraphProperty)
+    {
+        ParagraphProperty = paragraphProperty;
+    }
 
     /// <summary>
     /// 段落管理器
