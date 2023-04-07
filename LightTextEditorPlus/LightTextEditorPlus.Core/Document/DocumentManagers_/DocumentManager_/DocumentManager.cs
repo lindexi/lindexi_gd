@@ -121,7 +121,41 @@ namespace LightTextEditorPlus.Core.Document
             }
         }
 
+        /// <summary>
+        /// 设置段落属性
+        /// </summary>
+        /// <param name="paragraphIndex"></param>
+        /// <param name="paragraphProperty"></param>
+        public void SetParagraphProperty(int paragraphIndex, ParagraphProperty paragraphProperty)
+        {
 
+        }
+
+        /// <summary>
+        /// 设置 <paramref name="caretOffset"/> 光标所在的段落的段落属性
+        /// </summary>
+        /// <param name="caretOffset"></param>
+        /// <param name="paragraphProperty"></param>
+        public void SetParagraphProperty(in CaretOffset caretOffset, ParagraphProperty paragraphProperty)
+        {
+
+        }
+
+        /// <summary>
+        /// 获取段落属性
+        /// </summary>
+        public ParagraphProperty GetParagraphProperty(int paragraphIndex)
+        {
+            return ParagraphManager.GetParagraphList()[paragraphIndex].ParagraphProperty;
+        }
+
+        /// <summary>
+        /// 获取段落属性
+        /// </summary>
+        /// <param name="caretOffset"></param>
+        /// <returns></returns>
+        public ParagraphProperty GetParagraphProperty(in CaretOffset caretOffset)
+            => ParagraphManager.GetHitParagraphData(caretOffset).ParagraphData.ParagraphProperty;
 
         #endregion
 
