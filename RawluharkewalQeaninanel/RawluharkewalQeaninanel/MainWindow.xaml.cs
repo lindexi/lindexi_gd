@@ -1,6 +1,7 @@
 ﻿#nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -152,7 +153,7 @@ namespace RawluharkewalQeaninanel
             var d3Dcolorvalue = new DXGI.D3Dcolorvalue(r: Random.Shared.NextSingle(), g: Random.Shared.NextSingle(), b: 0, a: 1);
             var brushProperties = new BrushProperties()
             {
-                Opacity = 1f,
+                Opacity = 0.5f,
                 Transform = Matrix3X2<float>.Identity,
             };
             ID2D1SolidColorBrush* pSolidColorBrush;
@@ -174,16 +175,23 @@ namespace RawluharkewalQeaninanel
             hr = _pD2D1Factory->CreateStrokeStyle(strokeStyleProperties, pDashes, 0, &pStrokeStyle);
             SilkMarshal.ThrowHResult(hr);
 
-            for (int i = 0; i < 100; i++)
+            foreach (var (x, y) in GetPointList())
             {
-                const int w = 100;
-                var x = _x + Random.Shared.Next(w * 2) - w;
-                var y = _y + Random.Shared.Next(w * 2) - w;
                 var rect = new Box2D<float>(x, y, x + 10, y + 10);
                 var pRect = &rect;
 
                 renderTarget->DrawRectangle(pRect, pBrush, 1, pStrokeStyle);
             }
+            //for (int i = 0; i < 100000; i++)
+            //{
+            //    const int w = 1000;
+            //    var x = _x + Random.Shared.Next(w * 2) - w;
+            //    var y = _y + Random.Shared.Next(w * 2) - w;
+            //    var rect = new Box2D<float>(x, y, x + 10, y + 10);
+            //    var pRect = &rect;
+
+            //    renderTarget->DrawRectangle(pRect, pBrush, 1, pStrokeStyle);
+            //}
 
             pSolidColorBrush->Release();
             pStrokeStyle->Release();
@@ -198,6 +206,20 @@ namespace RawluharkewalQeaninanel
             if (_y >= ActualHeight - 10 || _y <= 0)
             {
                 _dy = -_dy;
+            }
+        }
+
+        private IEnumerable<(int x, int y)> GetPointList()
+        {
+            const int width = 5;
+            for (int i = 0; i < 200; i++)
+            {
+                var x = i* width;
+                for (int j = 0; j < 100; j++)
+                {
+                    var y = j* width;
+                    yield return (x, y);
+                }
             }
         }
 
