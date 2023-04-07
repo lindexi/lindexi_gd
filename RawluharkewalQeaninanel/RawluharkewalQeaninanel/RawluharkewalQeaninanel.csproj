@@ -6,14 +6,14 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <!--<PlatformTarget>x86</PlatformTarget>-->
+    <!-- <PlatformTarget>x86</PlatformTarget> -->
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
-    <PackageReference Include="Silk.NET.Direct3D11" Version="2.11.0" />
-    <PackageReference Include="Silk.NET.Direct3D9" Version="2.11.0" />
-    <PackageReference Include="Silk.NET.DXGI" Version="2.11.0" />
+    <PackageReference Include="Silk.NET.Direct2D" Version="2.17.0" />
+    <PackageReference Include="Silk.NET.Direct3D11" Version="2.17.0" />
+    <PackageReference Include="Silk.NET.Direct3D9" Version="2.17.0" />
+    <PackageReference Include="Silk.NET.DXGI" Version="2.17.0" />
   </ItemGroup>
 
 </Project>
