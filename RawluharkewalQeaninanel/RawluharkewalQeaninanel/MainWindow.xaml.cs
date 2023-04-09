@@ -20,9 +20,45 @@ using D2D = Silk.NET.Direct2D;
 using Silk.NET.Direct2D;
 using Silk.NET.Maths;
 using Silk.NET.Direct3D11;
+using Silk.NET.Core.Contexts;
+using Silk.NET.DXGI;
 
 namespace RawluharkewalQeaninanel
 {
+    class X : INativeWindowSource
+    {
+        public INativeWindow Native => throw new NotImplementedException();
+    }
+
+    class X1 : INativeWindow
+    {
+        public NativeWindowFlags Kind => throw new NotImplementedException();
+
+        public (nint Display, nuint Window)? X11 => throw new NotImplementedException();
+
+        public nint? Cocoa => throw new NotImplementedException();
+
+        public (nint Display, nint Surface)? Wayland => throw new NotImplementedException();
+
+        public nint? WinRT => throw new NotImplementedException();
+
+        public (nint Window, uint Framebuffer, uint Colorbuffer, uint ResolveFramebuffer)? UIKit => throw new NotImplementedException();
+
+        public (nint Hwnd, nint HDC, nint HInstance)? Win32 => throw new NotImplementedException();
+
+        public (nint Display, nint Window)? Vivante => throw new NotImplementedException();
+
+        public (nint Window, nint Surface)? Android => throw new NotImplementedException();
+
+        public nint? Glfw => throw new NotImplementedException();
+
+        public nint? Sdl => throw new NotImplementedException();
+
+        public nint? DXHandle => throw new NotImplementedException();
+
+        public (nint? Display, nint? Surface)? EGL => throw new NotImplementedException();
+    }
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -60,7 +96,7 @@ namespace RawluharkewalQeaninanel
             D3D11.ID3D11Device* pD3D11Device;
             D3D11.ID3D11DeviceContext* pD3D11DeviceContext;
             D3DFeatureLevel pD3DFeatureLevel = default;
-            D3D11.D3D11 d3D11 = D3D11.D3D11.GetApi();
+            D3D11.D3D11 d3D11 = D3D11.D3D11.GetApi(new X());
 
             var hr = d3D11.CreateDevice((DXGI.IDXGIAdapter*) IntPtr.Zero, D3DDriverType.D3DDriverTypeHardware,
                 Software: 0,
@@ -95,9 +131,19 @@ namespace RawluharkewalQeaninanel
             D2D.ID2D1Factory* pD2D1Factory = (D2D.ID2D1Factory*) IntPtr.Zero;
             var d2D = D2D.D2D.GetApi();
             Guid guid = D2D.ID2D1Factory.Guid;
+
             hr = d2D.D2D1CreateFactory(D2D.FactoryType.SingleThreaded, ref guid, new D2D.FactoryOptions(D2D.DebugLevel.Error),
                 ((void**) &pD2D1Factory));
             SilkMarshal.ThrowHResult(hr);
+            _pD2D1Factory = pD2D1Factory;
+
+            // 通过 DXGI 创建
+            IDXGIDevice* pDXGIDevice = pD3D11Device->QueryInterface<IDXGIDevice>().Handle;
+            ID2D1Device* pD2D1Device;
+            var creationProperties = new CreationProperties(ThreadingMode.SingleThreaded, DebugLevel.Error, DeviceContextOptions.None);
+            d2D.D2D1CreateDevice(pDXGIDevice, creationProperties, &pD2D1Device);
+            pD2D1Device->GetFactory(&pD2D1Factory);
+
             _pD2D1Factory = pD2D1Factory;
 
             var renderTargetProperties =
@@ -126,7 +172,7 @@ namespace RawluharkewalQeaninanel
 
             //var rect = new Box2D<float>(0,0,1000,1000);
             //var arg1 = (ulong*) &rect;
-            var hr = _pD2D1RenderTarget->EndDraw((ulong*)IntPtr.Zero, (ulong*)IntPtr.Zero);
+            var hr = _pD2D1RenderTarget->EndDraw((ulong*) IntPtr.Zero, (ulong*) IntPtr.Zero);
             SilkMarshal.ThrowHResult(hr);
 
             _pD3D11DeviceContext->Flush();
@@ -147,7 +193,7 @@ namespace RawluharkewalQeaninanel
 
             _renderCount++;
 
-            if (_stopwatch.Elapsed.TotalSeconds>1)
+            if (_stopwatch.Elapsed.TotalSeconds > 1)
             {
                 Title = $"FPS: {_renderCount / _stopwatch.Elapsed.TotalSeconds}";
                 _renderCount = 0;
