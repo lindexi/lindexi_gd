@@ -36,6 +36,13 @@ public record ParagraphProperty
     public double Indent { get; init; } = 0;
 
     /// <summary>
+    /// 缩进类型
+    /// </summary>
+    public IndentType IndentType { get; init; } = IndentType.FirstLine;
+
+    // 左侧缩进 右侧缩进 悬挂缩进
+
+    /// <summary>
     /// 是否允许标点溢出边界
     /// <para>
     /// 这个功能是在一段文本排版时，在接近末尾，如果再加上标点符号，将会超过文本的约束宽度。如果此属性设置为 true 将会允许加上标点符号之后的文本段超过约束宽度
@@ -47,6 +54,7 @@ public record ParagraphProperty
     /// <summary>
     /// 是否允许空格溢出边界
     /// </summary>
+    /// todo 实现允许空格溢出边界
     public bool AllowHangingSpace { get; init; } = false;
 
     /// <summary>
