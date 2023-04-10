@@ -38,12 +38,7 @@ public class HitCaretOffsetOutOfRangeException : TextEditorException
     /// </summary>
     public string ArgumentName { get; }
 
-    /// <summary>
-    /// 对应的文本对象
-    /// </summary>
-    public TextEditorCore TextEditor { get; }
-
     /// <inheritdoc />
     public override string Message =>
-        $"ArgumentName={ArgumentName};DocumentManagerCharCount={CurrentDocumentCharCount};CaretOffset={InputCaretOffset.Offset};TextEditor={TextEditor.DebugName}";
+        $"ArgumentName={ArgumentName};DocumentManagerCharCount={CurrentDocumentCharCount};CaretOffset={InputCaretOffset.Offset};TextEditor={TextEditor}";
 }

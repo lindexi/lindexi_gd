@@ -7,6 +7,10 @@ namespace LightTextEditorPlus.Core.Exceptions;
 /// </summary>
 public class TextEditorRenderInfoDirtyException : TextEditorException
 {
+    internal TextEditorRenderInfoDirtyException(TextEditorCore textEditor) : base(textEditor)
+    {
+    }
+
     /// <inheritdoc />
-    public override string Message => "文本布局已更新，此渲染信息是脏的。请不要缓存 RenderInfoProvider 对象";
+    public override string Message => $"文本布局已更新，此渲染信息是脏的。请不要缓存 RenderInfoProvider 对象。TextEditor={TextEditor}";
 }

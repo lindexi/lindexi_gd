@@ -650,7 +650,7 @@ namespace LightTextEditorPlus.Core.Document
         {
             if (selection.BehindOffset.Offset > CharCount)
             {
-                throw new SelectionOutOfRangeException(selection, CharCount);
+                throw new SelectionOutOfRangeException(TextEditor, selection, CharCount);
             }
 
             if (TextEditor.ShouldInsertUndoRedo)

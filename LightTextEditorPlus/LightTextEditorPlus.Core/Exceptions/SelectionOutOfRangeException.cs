@@ -10,10 +10,11 @@ public class SelectionOutOfRangeException : TextEditorException
     /// <summary>
     /// 选择范围超过文档异常
     /// </summary>
-    public SelectionOutOfRangeException(in Selection selection, int documentCharCount)
+    public SelectionOutOfRangeException(TextEditorCore textEditor, in Selection selection, int documentCharCount)
     {
         Selection = selection;
         DocumentCharCount = documentCharCount;
+        TextEditor = textEditor;
     }
 
     /// <summary>
@@ -28,5 +29,5 @@ public class SelectionOutOfRangeException : TextEditorException
 
     /// <inheritdoc />
     public override string Message =>
-        $"Selection from {Selection.FrontOffset.Offset} to {Selection.BehindOffset.Offset} Length={Selection.Length} DocumentCharCount={DocumentCharCount}";
+        $"Selection from {Selection.FrontOffset.Offset} to {Selection.BehindOffset.Offset} Length={Selection.Length} DocumentCharCount={DocumentCharCount};TextEditor={TextEditor}";
 }

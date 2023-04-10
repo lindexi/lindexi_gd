@@ -87,7 +87,7 @@ class LineLayoutData : IParagraphCache, IDisposable
             {
                 // 理论上框架内不会进入此分支，于是可以在 get 方法抛出异常
                 // 业务层无法访问到这个属性
-                throw new TextEditorDirtyException();
+                throw new TextEditorDirtyException(CurrentParagraph.ParagraphManager.TextEditor);
             }
 
             return CurrentParagraph.LineLayoutDataList.FindIndex(t => ReferenceEquals(t, this));

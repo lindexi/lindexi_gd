@@ -28,6 +28,6 @@ public class TextEditorDebugException : TextEditorException
     /// <inheritdoc />
     public override string ToString()
     {
-        return $"调试异常，仅调试下抛出。{base.ToString()}";
+        return $"调试异常，仅调试下抛出。{base.ToString()}\r\nTextEditor={TextEditor}";
     }
 }

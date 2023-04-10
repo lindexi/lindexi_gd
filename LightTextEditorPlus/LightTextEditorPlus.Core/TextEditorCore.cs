@@ -188,7 +188,7 @@ public partial class TextEditorCore
     {
         if (IsUpdatingLayout)
         {
-            throw new ChangeDocumentOnUpdatingLayoutException();
+            throw new ChangeDocumentOnUpdatingLayoutException(this);
         }
 
         IsDirty = true;
@@ -414,7 +414,7 @@ public partial class TextEditorCore
     #region 调试属性
 
     /// <summary>
-    /// 这个文本的调试名，用于在各个抛出的异常等，方便记录调试日志或埋点上报了解是哪个文本框抛出的。默认是空将取文本的前10个字符
+    /// 这个文本的调试名，用于在各个抛出的异常等，方便记录调试日志或埋点上报了解是哪个文本框抛出的。默认是空将取文本的前15个字符
     /// </summary>
     public string? DebugName
     {
@@ -614,7 +614,7 @@ public partial class TextEditorCore
     {
         if (!IsUndoRedoMode)
         {
-            throw new TextEditorNotInUndoRedoModeException();
+            throw new TextEditorNotInUndoRedoModeException(this);
         }
     }
 

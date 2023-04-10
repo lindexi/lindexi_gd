@@ -27,4 +27,21 @@ public abstract class TextEditorException : Exception
     protected TextEditorException(string? message, Exception? innerException) : base(message, innerException)
     {
     }
+
+    /// <inheritdoc cref="TextEditorException"/>
+    protected TextEditorException(TextEditorCore textEditor)
+    {
+        TextEditor = textEditor;
+    }
+
+    /// <summary>
+    /// 抛出异常的文本
+    /// </summary>
+    public TextEditorCore? TextEditor { init; get; }
+
+    /// <inheritdoc />
+    public override string ToString()
+    {
+        return $"TextEditor={TextEditor}\r\n{base.ToString()}";
+    }
 }
