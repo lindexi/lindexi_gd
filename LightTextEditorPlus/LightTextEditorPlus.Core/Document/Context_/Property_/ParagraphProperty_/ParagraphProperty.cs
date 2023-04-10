@@ -123,4 +123,15 @@ public record ParagraphProperty
         get;
         init;
     }
+
+    /// <summary>
+    /// 判断传入是否合法
+    /// </summary>
+    internal void Verify()
+    {
+        if (Direction != FlowDirection.LeftToRight)
+        {
+            throw new NotSupportedException($"Not Support {Direction}");
+        }
+    }
 }

@@ -149,6 +149,8 @@ namespace LightTextEditorPlus.Core.Document
 
         private void SetParagraphProperty(ParagraphData paragraphData, ParagraphProperty paragraphProperty)
         {
+            paragraphProperty.Verify();
+
             if (TextEditor.ShouldInsertUndoRedo)
             {
                 // 加入撤销重做
