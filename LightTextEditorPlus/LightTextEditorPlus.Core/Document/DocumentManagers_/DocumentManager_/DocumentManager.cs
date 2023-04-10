@@ -108,18 +108,18 @@ namespace LightTextEditorPlus.Core.Document
         /// </summary>
         public ParagraphProperty CurrentParagraphProperty { set; get; }
 
-        /// <summary>
-        /// 当前光标下的段落
-        /// </summary>
-        internal ParagraphData CurrentCaretParagraphData
-        {
-            get
-            {
-                var hitParagraphDataResult = ParagraphManager.GetHitParagraphData(CaretManager.CurrentCaretOffset);
-                var paragraphData = hitParagraphDataResult.ParagraphData;
-                return paragraphData;
-            }
-        }
+        ///// <summary>
+        ///// 当前光标下的段落
+        ///// </summary>
+        //internal ParagraphData CurrentCaretParagraphData
+        //{
+        //    get
+        //    {
+        //        var hitParagraphDataResult = ParagraphManager.GetHitParagraphData(CaretManager.CurrentCaretOffset);
+        //        var paragraphData = hitParagraphDataResult.ParagraphData;
+        //        return paragraphData;
+        //    }
+        //}
 
         /// <summary>
         /// 设置段落属性
