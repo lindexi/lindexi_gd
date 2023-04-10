@@ -73,8 +73,12 @@ namespace LightTextEditorPlus.Core.Document
         /// <summary>
         /// 文档的字符编辑提供器
         /// </summary>
+        /// 和 <see cref="ParagraphManager"/> 不同的是，此属性用来辅助处理字符编辑。而 <see cref="ParagraphManager"/> 用来修改段落
         private DocumentRunEditProvider DocumentRunEditProvider { get; }
 
+        /// <summary>
+        /// 段落管理。这是存放所有的字符的属性。字符存放在段落里面
+        /// </summary>
         internal ParagraphManager ParagraphManager { get; }
 
         /// <summary>
@@ -149,11 +153,19 @@ namespace LightTextEditorPlus.Core.Document
             {
                 // 加入撤销重做
                 var oldValue = paragraphData.ParagraphProperty;
-                var operation = new ParagraphPropertyChangeOperation(TextEditor, oldValue,paragraphProperty, paragraphData.Index);
+                var operation = new ParagraphPropertyChangeOperation(TextEditor, oldValue, paragraphProperty, paragraphData.Index);
                 TextEditor.UndoRedoProvider.Insert(operation);
             }
-            
+
+            // todo 考虑带项目符号时，需要更多更多的范围
+            // 例如当前文本是如下内容：
+            // 1. 
+            // 2.
+            // 3.
+            // 然后将 2. 的段落修改为其他项目符号，此时需要更新 3. 段落
+            InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
             paragraphData.SetParagraphProperty(paragraphProperty);
+            InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>
