@@ -145,6 +145,14 @@ namespace LightTextEditorPlus.Core.Document
 
         private void SetParagraphProperty(ParagraphData paragraphData, ParagraphProperty paragraphProperty)
         {
+            if (TextEditor.ShouldInsertUndoRedo)
+            {
+                // 加入撤销重做
+                var oldValue = paragraphData.ParagraphProperty;
+                var operation = new ParagraphPropertyChangeOperation(TextEditor, oldValue,paragraphProperty, paragraphData.Index);
+                TextEditor.UndoRedoProvider.Insert(operation);
+            }
+            
             paragraphData.SetParagraphProperty(paragraphProperty);
         }
 
