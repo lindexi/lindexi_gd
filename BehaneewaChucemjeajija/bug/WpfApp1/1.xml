@@ -1,0 +1,340 @@
+﻿<FlowDocument PagePadding="5,0,5,0" AllowDrop="False" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:dbbwsbddbm="clr-namespace:WpfApp1;assembly=WpfApp1" xmlns:dbbwsbddtm="clr-namespace:WpfApp1;assembly=WpfApp1" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+	<Paragraph>
+		<Run xml:space="preserve" />
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="数据元2-关键字1-选项2222" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元2:数据元2-关键字11111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="ee3bf915-6cfe-4b07-9f26-db3cbd7e7085" SelectedId="3080ed90-4738-43a9-98f7-fc1c29506d57" SelectedValue="数据元2-关键字1-选项2222" />
+				</ComboBox.Tag>
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="3080ed90-4738-43a9-98f7-fc1c29506d57" Name="数据元2-关键字1-选项2222" Index="0" Enable="True" CreateTime="2023-04-06T20:19:52.823" />
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="108b7589-de47-439a-ad03-6e409b4fdd4e" Name="数据元2-关键字1-选项1111" Index="1" Enable="True" CreateTime="2023-04-06T20:19:52.833" />
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元2:数据元2-关键字2" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="8679f7eb-51fa-4daf-b6a5-595a6a21948d" SelectedId="{x:Null}" SelectedValue="{x:Null}" />
+				</ComboBox.Tag>
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元2:数据元2-关键字11111---1111111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="f97027c9-f57b-4f40-8f0b-025571162ecf" SelectedId="{x:Null}" SelectedValue="{x:Null}" />
+				</ComboBox.Tag>
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元3:3-2关键字111111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="dacfb84f-d555-4d59-b239-821eaf0e3015" SelectedId="{x:Null}" SelectedValue="{x:Null}" />
+				</ComboBox.Tag>
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="407a2c99-3c0b-4d19-992b-eaea12265fad" Name="3-2关键字111111选共享22222" Index="0" Enable="True" CreateTime="2023-04-07T12:48:18.22" />
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="791728fd-1132-4235-9271-9b881190e442" Name="3-2关键字111111选共享11111" Index="1" Enable="True" CreateTime="2023-04-07T12:48:18.227" />
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="2222222222222222222222222222" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元3:111111111111111111111111111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="a5fa6d3e-6a8e-4c4c-a896-58d67c57461c" SelectedId="5ca01308-c231-4886-a8b7-27adeaa797c2" SelectedValue="2222222222222222222222222222" />
+				</ComboBox.Tag>
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="5ca01308-c231-4886-a8b7-27adeaa797c2" Name="2222222222222222222222222222" Index="0" Enable="True" CreateTime="2023-04-07T12:48:48.493" />
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="c0e5b390-2f72-4a40-a815-f92f22f889da" Name="111111111111111111111111111" Index="1" Enable="True" CreateTime="2023-04-07T12:48:48.51" />
+			</ComboBox>
+		</InlineUIContainer>
+		<Run xml:space="preserve" />
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="数据元2-关键字1-选项2222" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元2:数据元2-关键字11111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="ee3bf915-6cfe-4b07-9f26-db3cbd7e7085" SelectedId="3080ed90-4738-43a9-98f7-fc1c29506d57" SelectedValue="数据元2-关键字1-选项2222" />
+				</ComboBox.Tag>
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="3080ed90-4738-43a9-98f7-fc1c29506d57" Name="数据元2-关键字1-选项2222" Index="0" Enable="True" CreateTime="2023-04-06T20:19:52.823" />
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="108b7589-de47-439a-ad03-6e409b4fdd4e" Name="数据元2-关键字1-选项1111" Index="1" Enable="True" CreateTime="2023-04-06T20:19:52.833" />
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元2:数据元2-关键字2" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="8679f7eb-51fa-4daf-b6a5-595a6a21948d" SelectedId="{x:Null}" SelectedValue="{x:Null}" />
+				</ComboBox.Tag>
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元2:数据元2-关键字11111---1111111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="f97027c9-f57b-4f40-8f0b-025571162ecf" SelectedId="{x:Null}" SelectedValue="{x:Null}" />
+				</ComboBox.Tag>
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元3:3-2关键字111111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="dacfb84f-d555-4d59-b239-821eaf0e3015" SelectedId="{x:Null}" SelectedValue="{x:Null}" />
+				</ComboBox.Tag>
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="407a2c99-3c0b-4d19-992b-eaea12265fad" Name="3-2关键字111111选共享22222" Index="0" Enable="True" CreateTime="2023-04-07T12:48:18.22" />
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="791728fd-1132-4235-9271-9b881190e442" Name="3-2关键字111111选共享11111" Index="1" Enable="True" CreateTime="2023-04-07T12:48:18.227" />
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="2222222222222222222222222222" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元3:111111111111111111111111111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="a5fa6d3e-6a8e-4c4c-a896-58d67c57461c" SelectedId="5ca01308-c231-4886-a8b7-27adeaa797c2" SelectedValue="2222222222222222222222222222" />
+				</ComboBox.Tag>
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="5ca01308-c231-4886-a8b7-27adeaa797c2" Name="2222222222222222222222222222" Index="0" Enable="True" CreateTime="2023-04-07T12:48:48.493" />
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="c0e5b390-2f72-4a40-a815-f92f22f889da" Name="111111111111111111111111111" Index="1" Enable="True" CreateTime="2023-04-07T12:48:48.51" />
+			</ComboBox>
+		</InlineUIContainer>
+		<Run xml:space="preserve" />
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="数据元2-关键字1-选项2222" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元2:数据元2-关键字11111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="ee3bf915-6cfe-4b07-9f26-db3cbd7e7085" SelectedId="3080ed90-4738-43a9-98f7-fc1c29506d57" SelectedValue="数据元2-关键字1-选项2222" />
+				</ComboBox.Tag>
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="3080ed90-4738-43a9-98f7-fc1c29506d57" Name="数据元2-关键字1-选项2222" Index="0" Enable="True" CreateTime="2023-04-06T20:19:52.823" />
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="108b7589-de47-439a-ad03-6e409b4fdd4e" Name="数据元2-关键字1-选项1111" Index="1" Enable="True" CreateTime="2023-04-06T20:19:52.833" />
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元2:数据元2-关键字2" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="8679f7eb-51fa-4daf-b6a5-595a6a21948d" SelectedId="{x:Null}" SelectedValue="{x:Null}" />
+				</ComboBox.Tag>
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元2:数据元2-关键字11111---1111111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="f97027c9-f57b-4f40-8f0b-025571162ecf" SelectedId="{x:Null}" SelectedValue="{x:Null}" />
+				</ComboBox.Tag>
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元3:3-2关键字111111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="dacfb84f-d555-4d59-b239-821eaf0e3015" SelectedId="{x:Null}" SelectedValue="{x:Null}" />
+				</ComboBox.Tag>
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="407a2c99-3c0b-4d19-992b-eaea12265fad" Name="3-2关键字111111选共享22222" Index="0" Enable="True" CreateTime="2023-04-07T12:48:18.22" />
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="791728fd-1132-4235-9271-9b881190e442" Name="3-2关键字111111选共享11111" Index="1" Enable="True" CreateTime="2023-04-07T12:48:18.227" />
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="2222222222222222222222222222" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元3:111111111111111111111111111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="a5fa6d3e-6a8e-4c4c-a896-58d67c57461c" SelectedId="5ca01308-c231-4886-a8b7-27adeaa797c2" SelectedValue="2222222222222222222222222222" />
+				</ComboBox.Tag>
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="5ca01308-c231-4886-a8b7-27adeaa797c2" Name="2222222222222222222222222222" Index="0" Enable="True" CreateTime="2023-04-07T12:48:48.493" />
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="c0e5b390-2f72-4a40-a815-f92f22f889da" Name="111111111111111111111111111" Index="1" Enable="True" CreateTime="2023-04-07T12:48:48.51" />
+			</ComboBox>
+		</InlineUIContainer>
+		<Run xml:space="preserve" />
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="数据元2-关键字1-选项2222" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元2:数据元2-关键字11111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="ee3bf915-6cfe-4b07-9f26-db3cbd7e7085" SelectedId="3080ed90-4738-43a9-98f7-fc1c29506d57" SelectedValue="数据元2-关键字1-选项2222" />
+				</ComboBox.Tag>
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="3080ed90-4738-43a9-98f7-fc1c29506d57" Name="数据元2-关键字1-选项2222" Index="0" Enable="True" CreateTime="2023-04-06T20:19:52.823" />
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="108b7589-de47-439a-ad03-6e409b4fdd4e" Name="数据元2-关键字1-选项1111" Index="1" Enable="True" CreateTime="2023-04-06T20:19:52.833" />
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元2:数据元2-关键字2" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="8679f7eb-51fa-4daf-b6a5-595a6a21948d" SelectedId="{x:Null}" SelectedValue="{x:Null}" />
+				</ComboBox.Tag>
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元2:数据元2-关键字11111---1111111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="f97027c9-f57b-4f40-8f0b-025571162ecf" SelectedId="{x:Null}" SelectedValue="{x:Null}" />
+				</ComboBox.Tag>
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元3:3-2关键字111111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="dacfb84f-d555-4d59-b239-821eaf0e3015" SelectedId="{x:Null}" SelectedValue="{x:Null}" />
+				</ComboBox.Tag>
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="407a2c99-3c0b-4d19-992b-eaea12265fad" Name="3-2关键字111111选共享22222" Index="0" Enable="True" CreateTime="2023-04-07T12:48:18.22" />
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="791728fd-1132-4235-9271-9b881190e442" Name="3-2关键字111111选共享11111" Index="1" Enable="True" CreateTime="2023-04-07T12:48:18.227" />
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="2222222222222222222222222222" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元3:111111111111111111111111111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="a5fa6d3e-6a8e-4c4c-a896-58d67c57461c" SelectedId="5ca01308-c231-4886-a8b7-27adeaa797c2" SelectedValue="2222222222222222222222222222" />
+				</ComboBox.Tag>
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="5ca01308-c231-4886-a8b7-27adeaa797c2" Name="2222222222222222222222222222" Index="0" Enable="True" CreateTime="2023-04-07T12:48:48.493" />
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="c0e5b390-2f72-4a40-a815-f92f22f889da" Name="111111111111111111111111111" Index="1" Enable="True" CreateTime="2023-04-07T12:48:48.51" />
+			</ComboBox>
+		</InlineUIContainer>
+		<Run xml:space="preserve" />
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="数据元2-关键字1-选项2222" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元2:数据元2-关键字11111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="ee3bf915-6cfe-4b07-9f26-db3cbd7e7085" SelectedId="3080ed90-4738-43a9-98f7-fc1c29506d57" SelectedValue="数据元2-关键字1-选项2222" />
+				</ComboBox.Tag>
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="3080ed90-4738-43a9-98f7-fc1c29506d57" Name="数据元2-关键字1-选项2222" Index="0" Enable="True" CreateTime="2023-04-06T20:19:52.823" />
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="108b7589-de47-439a-ad03-6e409b4fdd4e" Name="数据元2-关键字1-选项1111" Index="1" Enable="True" CreateTime="2023-04-06T20:19:52.833" />
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元2:数据元2-关键字2" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="8679f7eb-51fa-4daf-b6a5-595a6a21948d" SelectedId="{x:Null}" SelectedValue="{x:Null}" />
+				</ComboBox.Tag>
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元2:数据元2-关键字11111---1111111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="f97027c9-f57b-4f40-8f0b-025571162ecf" SelectedId="{x:Null}" SelectedValue="{x:Null}" />
+				</ComboBox.Tag>
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元3:3-2关键字111111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="dacfb84f-d555-4d59-b239-821eaf0e3015" SelectedId="{x:Null}" SelectedValue="{x:Null}" />
+				</ComboBox.Tag>
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="407a2c99-3c0b-4d19-992b-eaea12265fad" Name="3-2关键字111111选共享22222" Index="0" Enable="True" CreateTime="2023-04-07T12:48:18.22" />
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="791728fd-1132-4235-9271-9b881190e442" Name="3-2关键字111111选共享11111" Index="1" Enable="True" CreateTime="2023-04-07T12:48:18.227" />
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="2222222222222222222222222222" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元3:111111111111111111111111111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="a5fa6d3e-6a8e-4c4c-a896-58d67c57461c" SelectedId="5ca01308-c231-4886-a8b7-27adeaa797c2" SelectedValue="2222222222222222222222222222" />
+				</ComboBox.Tag>
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="5ca01308-c231-4886-a8b7-27adeaa797c2" Name="2222222222222222222222222222" Index="0" Enable="True" CreateTime="2023-04-07T12:48:48.493" />
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="c0e5b390-2f72-4a40-a815-f92f22f889da" Name="111111111111111111111111111" Index="1" Enable="True" CreateTime="2023-04-07T12:48:48.51" />
+			</ComboBox>
+		</InlineUIContainer>
+		<Run xml:space="preserve" />
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="数据元2-关键字1-选项2222" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元2:数据元2-关键字11111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="ee3bf915-6cfe-4b07-9f26-db3cbd7e7085" SelectedId="3080ed90-4738-43a9-98f7-fc1c29506d57" SelectedValue="数据元2-关键字1-选项2222" />
+				</ComboBox.Tag>
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="3080ed90-4738-43a9-98f7-fc1c29506d57" Name="数据元2-关键字1-选项2222" Index="0" Enable="True" CreateTime="2023-04-06T20:19:52.823" />
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="108b7589-de47-439a-ad03-6e409b4fdd4e" Name="数据元2-关键字1-选项1111" Index="1" Enable="True" CreateTime="2023-04-06T20:19:52.833" />
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元2:数据元2-关键字2" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="8679f7eb-51fa-4daf-b6a5-595a6a21948d" SelectedId="{x:Null}" SelectedValue="{x:Null}" />
+				</ComboBox.Tag>
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元2:数据元2-关键字11111---1111111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="f97027c9-f57b-4f40-8f0b-025571162ecf" SelectedId="{x:Null}" SelectedValue="{x:Null}" />
+				</ComboBox.Tag>
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元3:3-2关键字111111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="dacfb84f-d555-4d59-b239-821eaf0e3015" SelectedId="{x:Null}" SelectedValue="{x:Null}" />
+				</ComboBox.Tag>
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="407a2c99-3c0b-4d19-992b-eaea12265fad" Name="3-2关键字111111选共享22222" Index="0" Enable="True" CreateTime="2023-04-07T12:48:18.22" />
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="791728fd-1132-4235-9271-9b881190e442" Name="3-2关键字111111选共享11111" Index="1" Enable="True" CreateTime="2023-04-07T12:48:18.227" />
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="2222222222222222222222222222" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元3:111111111111111111111111111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="a5fa6d3e-6a8e-4c4c-a896-58d67c57461c" SelectedId="5ca01308-c231-4886-a8b7-27adeaa797c2" SelectedValue="2222222222222222222222222222" />
+				</ComboBox.Tag>
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="5ca01308-c231-4886-a8b7-27adeaa797c2" Name="2222222222222222222222222222" Index="0" Enable="True" CreateTime="2023-04-07T12:48:48.493" />
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="c0e5b390-2f72-4a40-a815-f92f22f889da" Name="111111111111111111111111111" Index="1" Enable="True" CreateTime="2023-04-07T12:48:48.51" />
+			</ComboBox>
+		</InlineUIContainer>
+		<Run xml:space="preserve" />
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="数据元2-关键字1-选项2222" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元2:数据元2-关键字11111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="ee3bf915-6cfe-4b07-9f26-db3cbd7e7085" SelectedId="3080ed90-4738-43a9-98f7-fc1c29506d57" SelectedValue="数据元2-关键字1-选项2222" />
+				</ComboBox.Tag>
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="3080ed90-4738-43a9-98f7-fc1c29506d57" Name="数据元2-关键字1-选项2222" Index="0" Enable="True" CreateTime="2023-04-06T20:19:52.823" />
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="108b7589-de47-439a-ad03-6e409b4fdd4e" Name="数据元2-关键字1-选项1111" Index="1" Enable="True" CreateTime="2023-04-06T20:19:52.833" />
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元2:数据元2-关键字2" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="8679f7eb-51fa-4daf-b6a5-595a6a21948d" SelectedId="{x:Null}" SelectedValue="{x:Null}" />
+				</ComboBox.Tag>
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元2:数据元2-关键字11111---1111111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="f97027c9-f57b-4f40-8f0b-025571162ecf" SelectedId="{x:Null}" SelectedValue="{x:Null}" />
+				</ComboBox.Tag>
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元3:3-2关键字111111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="dacfb84f-d555-4d59-b239-821eaf0e3015" SelectedId="{x:Null}" SelectedValue="{x:Null}" />
+				</ComboBox.Tag>
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="407a2c99-3c0b-4d19-992b-eaea12265fad" Name="3-2关键字111111选共享22222" Index="0" Enable="True" CreateTime="2023-04-07T12:48:18.22" />
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="791728fd-1132-4235-9271-9b881190e442" Name="3-2关键字111111选共享11111" Index="1" Enable="True" CreateTime="2023-04-07T12:48:18.227" />
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="2222222222222222222222222222" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元3:111111111111111111111111111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="a5fa6d3e-6a8e-4c4c-a896-58d67c57461c" SelectedId="5ca01308-c231-4886-a8b7-27adeaa797c2" SelectedValue="2222222222222222222222222222" />
+				</ComboBox.Tag>
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="5ca01308-c231-4886-a8b7-27adeaa797c2" Name="2222222222222222222222222222" Index="0" Enable="True" CreateTime="2023-04-07T12:48:48.493" />
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="c0e5b390-2f72-4a40-a815-f92f22f889da" Name="111111111111111111111111111" Index="1" Enable="True" CreateTime="2023-04-07T12:48:48.51" />
+			</ComboBox>
+		</InlineUIContainer>
+		<Run xml:space="preserve" />
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="数据元2-关键字1-选项2222" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元2:数据元2-关键字11111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="ee3bf915-6cfe-4b07-9f26-db3cbd7e7085" SelectedId="3080ed90-4738-43a9-98f7-fc1c29506d57" SelectedValue="数据元2-关键字1-选项2222" />
+				</ComboBox.Tag>
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="3080ed90-4738-43a9-98f7-fc1c29506d57" Name="数据元2-关键字1-选项2222" Index="0" Enable="True" CreateTime="2023-04-06T20:19:52.823" />
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="108b7589-de47-439a-ad03-6e409b4fdd4e" Name="数据元2-关键字1-选项1111" Index="1" Enable="True" CreateTime="2023-04-06T20:19:52.833" />
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元2:数据元2-关键字2" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="8679f7eb-51fa-4daf-b6a5-595a6a21948d" SelectedId="{x:Null}" SelectedValue="{x:Null}" />
+				</ComboBox.Tag>
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元2:数据元2-关键字11111---1111111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="f97027c9-f57b-4f40-8f0b-025571162ecf" SelectedId="{x:Null}" SelectedValue="{x:Null}" />
+				</ComboBox.Tag>
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元3:3-2关键字111111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="dacfb84f-d555-4d59-b239-821eaf0e3015" SelectedId="{x:Null}" SelectedValue="{x:Null}" />
+				</ComboBox.Tag>
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="407a2c99-3c0b-4d19-992b-eaea12265fad" Name="3-2关键字111111选共享22222" Index="0" Enable="True" CreateTime="2023-04-07T12:48:18.22" />
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="791728fd-1132-4235-9271-9b881190e442" Name="3-2关键字111111选共享11111" Index="1" Enable="True" CreateTime="2023-04-07T12:48:18.227" />
+			</ComboBox>
+		</InlineUIContainer>
+		<InlineUIContainer BaselineAlignment="Center">
+			<ComboBox Text="2222222222222222222222222222" IsReadOnly="False" SelectedValuePath="Id" DisplayMemberPath="Name" MinWidth="50" ToolTip="数据元3:111111111111111111111111111" ToolTipService.InitialShowDelay="1">
+				<ComboBox.Tag>
+					<dbbwsbddtm:KeyWordTag KeyWordId="a5fa6d3e-6a8e-4c4c-a896-58d67c57461c" SelectedId="5ca01308-c231-4886-a8b7-27adeaa797c2" SelectedValue="2222222222222222222222222222" />
+				</ComboBox.Tag>
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="5ca01308-c231-4886-a8b7-27adeaa797c2" Name="2222222222222222222222222222" Index="0" Enable="True" CreateTime="2023-04-07T12:48:48.493" />
+				<dbbwsbddbm:ReportTemplateKeywordOptionDto Id="c0e5b390-2f72-4a40-a815-f92f22f889da" Name="111111111111111111111111111" Index="1" Enable="True" CreateTime="2023-04-07T12:48:48.51" />
+			</ComboBox>
+		</InlineUIContainer>
+	</Paragraph>
+</FlowDocument>
