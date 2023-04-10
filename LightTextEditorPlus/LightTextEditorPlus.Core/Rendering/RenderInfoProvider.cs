@@ -155,7 +155,7 @@ public class RenderInfoProvider
     {
         if (IsDirty)
         {
-            throw new TextEditorRenderInfoDirtyException();
+            throw new TextEditorRenderInfoDirtyException(TextEditor);
         }
     }
 }
