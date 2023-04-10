@@ -33,6 +33,9 @@ class ParagraphData
     public void SetParagraphProperty(ParagraphProperty paragraphProperty)
     {
         ParagraphProperty = paragraphProperty;
+
+        // 段落属性变更，需要设置整段都是脏的
+        SetDirty();
     }
 
     /// <summary>
