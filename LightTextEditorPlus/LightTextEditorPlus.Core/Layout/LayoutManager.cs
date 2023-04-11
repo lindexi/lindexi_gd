@@ -214,24 +214,75 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         return new ParagraphLayoutResult(currentStartPoint);
     }
 
+    #region LayoutWholeLine 布局一行的字符
+
     /// <summary>
     /// 布局一行的字符
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
     /// <exception cref="NotSupportedException"></exception>
-    private WholeLineLayoutResult LayoutWholeLine(WholeLineLayoutArgument argument)
+    private WholeLineLayoutResult LayoutWholeLine(in WholeLineLayoutArgument argument)
     {
-        var (paragraphIndex, lineIndex, paragraphProperty, charDataList, lineMaxWidth, currentStartPoint) = argument;
+        var charDataList = argument.CharDataList;
+        var currentStartPoint = argument.CurrentStartPoint;
+
         if (charDataList.Count == 0)
         {
             // 理论上不会进入这里，如果没有任何的字符，那就不需要进行行布局
             return new WholeLineLayoutResult(Size.Zero, 0);
         }
 
+        var layoutResult = LayoutWholeLineChars(argument);
+        int wholeCharCount = layoutResult.WholeCharCount;
+        Size currentSize = layoutResult.CurrentLineCharSize;
+
+        if (wholeCharCount == 0)
+        {
+            // 这一行一个字符都不能拿
+            Debug.Assert(currentSize == Size.Zero);
+            return new WholeLineLayoutResult(currentSize, wholeCharCount);
+        }
+
+        // 遍历一次，用来取出其中 FontSize 最大的字符，此字符的对应字符属性就是所期望的参与后续计算的字符属性
+        // 遍历这一行的所有字符，找到最大字符的字符属性
+        IReadOnlyRunProperty maxFontSizeCharRunProperty = GetMaxFontSizeCharRunProperty(charDataList.Slice(0, wholeCharCount));
+
+        // 处理行距
+        LineSpacingCalculateResult lineSpacingCalculateResult = CalculateLineSpacing(new LineSpacingCalculateArgument(argument, currentSize, maxFontSizeCharRunProperty));
+        double lineHeight = lineSpacingCalculateResult.TotalLineHeight;
+
+        // todo 这里需要处理段距
+        var lineTop = currentStartPoint.Y;
+        var currentX = 0d;
+        for (var i = 0; i < wholeCharCount; i++)
+        {
+            // 简单版本的 AdaptBaseLine 方法，正确的做法是：
+            // 1. 求出最大字符的 Baseline 出来
+            // 2. 求出当前字符的 Baseline 出来
+            // 3. 求出 最大字符的 Baseline 和 当前字符的 Baseline 的差，此结果叠加 lineTop 就是偏移量了
+            // 这里只使用简单的方法，求尺寸和行高的差，让字符底部对齐
+            var charData = charDataList[i];
+            Debug.Assert(charData.Size != null, "charData.Size != null");
+            var charDataSize = charData.Size!.Value;
+
+            var yOffset = (lineHeight - charDataSize.Height) + lineTop;
+            charData.SetStartPoint(new Point(currentX, yOffset));
+
+            currentX += charDataSize.Width;
+        }
+
+        return new WholeLineLayoutResult(currentSize, wholeCharCount);
+    }
+
+    readonly record struct WholeLineCharsLayoutResult(Size CurrentLineCharSize, int WholeCharCount);
+
+    private WholeLineCharsLayoutResult LayoutWholeLineChars(in WholeLineLayoutArgument argument)
+    {
+        var (paragraphIndex, lineIndex, paragraphProperty, charDataList, lineMaxWidth, currentStartPoint) = argument;
+
         var singleRunLineLayouter = TextEditor.PlatformProvider.GetSingleRunLineLayouter();
 
-        // todo 方法过长
         // RunLineMeasurer
         // 行还剩余的空闲宽度
         double lineRemainingWidth = lineMaxWidth;
@@ -280,19 +331,46 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
         // 整个行所使用的字符数量
         var wholeCharCount = currentIndex;
+        return new WholeLineCharsLayoutResult(currentSize, wholeCharCount);
+    }
 
-        if (wholeCharCount == 0)
+    /// <summary>
+    /// 获取给定行的最大字号的字符属性。这个属性就是这一行的代表属性
+    /// </summary>
+    /// <param name="charDataList"></param>
+    /// <returns></returns>
+    static IReadOnlyRunProperty GetMaxFontSizeCharRunProperty(in ReadOnlyListSpan<CharData> charDataList)
+    {
+        var firstCharData = charDataList[0];
+        IReadOnlyRunProperty maxFontSizeCharRunProperty = firstCharData.RunProperty;
+        // 遍历这一行的所有字符，找到最大字符的字符属性
+        for (var i = 1; i < charDataList.Count; i++)
         {
-            // 这一行一个字符都不能拿
-            Debug.Assert(currentSize == Size.Zero);
-            return new WholeLineLayoutResult(currentSize, wholeCharCount);
+            var charData = charDataList[i];
+            if (charData.RunProperty.FontSize > maxFontSizeCharRunProperty.FontSize)
+            {
+                maxFontSizeCharRunProperty = charData.RunProperty;
+            }
         }
 
-        // 遍历一次，用来取出其中 FontSize 最大的字符，此字符的对应字符属性就是所期望的参与后续计算的字符属性
-        // 遍历这一行的所有字符，找到最大字符的字符属性
-        IReadOnlyRunProperty maxFontSizeCharRunProperty = GetMaxFontSizeCharRunProperty(charDataList.Slice(0, wholeCharCount));
+        return maxFontSizeCharRunProperty;
+    }
 
-        // 处理行距
+    /// <summary>
+    /// 行距计算参数
+    /// </summary>
+    readonly record struct LineSpacingCalculateArgument(WholeLineLayoutArgument WholeLineLayoutArgument, Size CurrentLineCharSize, IReadOnlyRunProperty MaxFontSizeCharRunProperty);
+    /// <summary>
+    /// 行距计算结果
+    /// </summary>
+    readonly record struct LineSpacingCalculateResult(double TotalLineHeight);
+
+    private LineSpacingCalculateResult CalculateLineSpacing(in LineSpacingCalculateArgument argument)
+    {
+        Size currentSize = argument.CurrentLineCharSize;
+        var wholeLineLayoutArgument = argument.WholeLineLayoutArgument;
+        ParagraphProperty paragraphProperty = wholeLineLayoutArgument.ParagraphProperty;
+
         double lineHeight = currentSize.Height;
         if (double.IsNaN(paragraphProperty.FixedLineSpacing))
         {
@@ -300,8 +378,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             var lineSpacing = paragraphProperty.LineSpacing;
 
             if (TextEditor.LineSpacingStrategy == LineSpacingStrategy.FirstLineShrink
-                && paragraphIndex == 0
-                && lineIndex == 0)
+                && wholeLineLayoutArgument.ParagraphIndex == 0
+                && wholeLineLayoutArgument.LineIndex == 0)
             {
                 // 处理首行不展开
                 // 也就是不需要处理 lineHeight 的值
@@ -309,7 +387,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             else if (TextEditor.LineSpacingStrategy == LineSpacingStrategy.FullExpand)
             {
                 lineHeight =
-                    LineSpacingCalculator.CalculateLineHeightWithLineSpacing(TextEditor, maxFontSizeCharRunProperty,
+                    LineSpacingCalculator.CalculateLineHeightWithLineSpacing(TextEditor, argument.MaxFontSizeCharRunProperty,
                         lineSpacing);
             }
             else
@@ -324,46 +402,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             lineHeight = paragraphProperty.FixedLineSpacing;
         }
 
-        // todo 这里需要处理段距
-        var lineTop = currentStartPoint.Y;
-        var currentX = 0d;
-        for (var i = 0; i < wholeCharCount; i++)
-        {
-            // 简单版本的 AdaptBaseLine 方法，正确的做法是：
-            // 1. 求出最大字符的 Baseline 出来
-            // 2. 求出当前字符的 Baseline 出来
-            // 3. 求出 最大字符的 Baseline 和 当前字符的 Baseline 的差，此结果叠加 lineTop 就是偏移量了
-            // 这里只使用简单的方法，求尺寸和行高的差，让字符底部对齐
-            var charData = charDataList[i];
-            Debug.Assert(charData.Size != null, "charData.Size != null");
-            var charDataSize = charData.Size!.Value;
-
-            var yOffset = (lineHeight - charDataSize.Height) + lineTop;
-            charData.SetStartPoint(new Point(currentX, yOffset));
-
-            currentX += charDataSize.Width;
-        }
-
-        return new WholeLineLayoutResult(currentSize, wholeCharCount);
-
-        // 获取给定行的最大字号的字符属性。这个属性就是这一行的代表属性
-        static IReadOnlyRunProperty GetMaxFontSizeCharRunProperty(in ReadOnlyListSpan<CharData> charDataList)
-        {
-            var firstCharData = charDataList[0];
-            IReadOnlyRunProperty maxFontSizeCharRunProperty = firstCharData.RunProperty;
-            // 遍历这一行的所有字符，找到最大字符的字符属性
-            for (var i = 1; i < charDataList.Count; i++)
-            {
-                var charData = charDataList[i];
-                if (charData.RunProperty.FontSize > maxFontSizeCharRunProperty.FontSize)
-                {
-                    maxFontSizeCharRunProperty = charData.RunProperty;
-                }
-            }
-
-            return maxFontSizeCharRunProperty;
-        }
+        return new LineSpacingCalculateResult(lineHeight);
     }
+
+    #endregion  
 
     /// <summary>
     /// 布局一行里面的单个字符
