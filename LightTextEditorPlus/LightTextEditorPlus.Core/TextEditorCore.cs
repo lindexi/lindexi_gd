@@ -162,7 +162,6 @@ public partial class TextEditorCore
         }
 
         IsDirty = true;
-        _renderInfoProvider = null;
 
         if (DocumentManager.CharCount != 0)
         {
@@ -193,11 +192,6 @@ public partial class TextEditorCore
         }
 
         IsDirty = true;
-        if (_renderInfoProvider != null)
-        {
-            _renderInfoProvider.IsDirty = true;
-            _renderInfoProvider = null;
-        }
 
         // 文档开始变更
         DocumentChanging?.Invoke(this, e);
@@ -408,8 +402,26 @@ public partial class TextEditorCore
     /// 文本是不是脏的，需要等待布局完成。可选使用 <see cref="WaitLayoutCompletedAsync"/> 等待布局完成
     /// </summary>
     // ReSharper disable once RedundantDefaultMemberInitializer
-    public bool IsDirty { get; private set; } = false; // 默认情况下是非脏的，使用预设的值
+    public bool IsDirty
+    {
+        get => _isDirty;
+        private set
+        {
+            _isDirty = value;
 
+            if (_renderInfoProvider != null)
+            {
+                _renderInfoProvider.IsDirty = true;
+                _renderInfoProvider = null;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 文本是不是脏的
+    /// </summary>
+    /// 默认情况下是非脏的，使用预设的值
+    private bool _isDirty = false;
     #endregion
 
     #region 调试属性
