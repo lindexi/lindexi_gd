@@ -277,6 +277,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
     readonly record struct WholeLineCharsLayoutResult(Size CurrentLineCharSize, int WholeCharCount);
 
+    /// <summary>
+    /// 布局一行里面有哪些字符
+    /// </summary>
+    /// <param name="argument"></param>
+    /// <returns></returns>
     private WholeLineCharsLayoutResult LayoutWholeLineChars(in WholeLineLayoutArgument argument)
     {
         var (paragraphIndex, lineIndex, paragraphProperty, charDataList, lineMaxWidth, currentStartPoint) = argument;
@@ -360,11 +365,17 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// 行距计算参数
     /// </summary>
     readonly record struct LineSpacingCalculateArgument(WholeLineLayoutArgument WholeLineLayoutArgument, Size CurrentLineCharSize, IReadOnlyRunProperty MaxFontSizeCharRunProperty);
+
     /// <summary>
     /// 行距计算结果
     /// </summary>
     readonly record struct LineSpacingCalculateResult(double TotalLineHeight);
 
+    /// <summary>
+    /// 计算行距
+    /// </summary>
+    /// <param name="argument"></param>
+    /// <returns></returns>
     private LineSpacingCalculateResult CalculateLineSpacing(in LineSpacingCalculateArgument argument)
     {
         Size currentSize = argument.CurrentLineCharSize;
@@ -374,26 +385,27 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         double lineHeight = currentSize.Height;
         if (double.IsNaN(paragraphProperty.FixedLineSpacing))
         {
+            // 倍数行距逻辑
+
             // todo 考虑空段的行距计算
             var lineSpacing = paragraphProperty.LineSpacing;
 
-            if (TextEditor.LineSpacingStrategy == LineSpacingStrategy.FirstLineShrink
-                && wholeLineLayoutArgument.ParagraphIndex == 0
-                && wholeLineLayoutArgument.LineIndex == 0)
-            {
-                // 处理首行不展开
+            var needNotCalculateLineSpacing =
+                // 处理首行不展开，文档的首段首行不加上行距
                 // 也就是不需要处理 lineHeight 的值
+                TextEditor.LineSpacingStrategy == LineSpacingStrategy.FirstLineShrink
+                && wholeLineLayoutArgument.ParagraphIndex == 0
+                && wholeLineLayoutArgument.LineIndex == 0;
+
+            if (needNotCalculateLineSpacing)
+            {
+                // 如果不需要计算行距，那就随意了
             }
-            else if (TextEditor.LineSpacingStrategy == LineSpacingStrategy.FullExpand)
+            else
             {
                 lineHeight =
                     LineSpacingCalculator.CalculateLineHeightWithLineSpacing(TextEditor, argument.MaxFontSizeCharRunProperty,
                         lineSpacing);
-            }
-            else
-            {
-                // 理论上不会进入此分支
-                throw new NotSupportedException();
             }
         }
         else
