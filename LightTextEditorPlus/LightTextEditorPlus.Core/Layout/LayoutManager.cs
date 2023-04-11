@@ -194,11 +194,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
             if (result.CharCount == 0)
             {
-                if (TextEditor.IsInDebugMode)
-                {
-                    throw new TextEditorDebugException($"某一行在布局时，只采用了零个字符");
-                }
-
                 // todo 理论上不可能，表示行布局出错了
                 // 支持文本宽度小于一个字符的宽度的布局
                 throw new TextEditorInnerException($"某一行在布局时，只采用了零个字符");
