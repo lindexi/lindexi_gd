@@ -214,6 +214,12 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         return new ParagraphLayoutResult(currentStartPoint);
     }
 
+    /// <summary>
+    /// 布局一行的字符
+    /// </summary>
+    /// <param name="argument"></param>
+    /// <returns></returns>
+    /// <exception cref="NotSupportedException"></exception>
     private WholeLineLayoutResult LayoutWholeLine(WholeLineLayoutArgument argument)
     {
         var (paragraphIndex, lineIndex, paragraphProperty, charDataList, lineMaxWidth, currentStartPoint) = argument;
@@ -230,7 +236,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         // 行还剩余的空闲宽度
         double lineRemainingWidth = lineMaxWidth;
 
+        // 当前相对于 charDataList 的当前序号
         int currentIndex = 0;
+        // 当前的字符布局尺寸
         var currentSize = Size.Zero;
 
         while (currentIndex < charDataList.Count)
@@ -281,17 +289,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         }
 
         // 遍历一次，用来取出其中 FontSize 最大的字符，此字符的对应字符属性就是所期望的参与后续计算的字符属性
-        var firstCharData = charDataList[0];
-        IReadOnlyRunProperty maxFontSizeCharRunProperty = firstCharData.RunProperty;
         // 遍历这一行的所有字符，找到最大字符的字符属性
-        for (var i = 1; i < wholeCharCount; i++)
-        {
-            var charData = charDataList[i];
-            if (charData.RunProperty.FontSize > maxFontSizeCharRunProperty.FontSize)
-            {
-                maxFontSizeCharRunProperty = charData.RunProperty;
-            }
-        }
+        IReadOnlyRunProperty maxFontSizeCharRunProperty = GetMaxFontSizeCharRunProperty(charDataList.Slice(0, wholeCharCount));
 
         // 处理行距
         double lineHeight = currentSize.Height;
@@ -346,6 +345,24 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         }
 
         return new WholeLineLayoutResult(currentSize, wholeCharCount);
+
+        // 获取给定行的最大字号的字符属性。这个属性就是这一行的代表属性
+        static IReadOnlyRunProperty GetMaxFontSizeCharRunProperty(in ReadOnlyListSpan<CharData> charDataList)
+        {
+            var firstCharData = charDataList[0];
+            IReadOnlyRunProperty maxFontSizeCharRunProperty = firstCharData.RunProperty;
+            // 遍历这一行的所有字符，找到最大字符的字符属性
+            for (var i = 1; i < charDataList.Count; i++)
+            {
+                var charData = charDataList[i];
+                if (charData.RunProperty.FontSize > maxFontSizeCharRunProperty.FontSize)
+                {
+                    maxFontSizeCharRunProperty = charData.RunProperty;
+                }
+            }
+
+            return maxFontSizeCharRunProperty;
+        }
     }
 
     /// <summary>

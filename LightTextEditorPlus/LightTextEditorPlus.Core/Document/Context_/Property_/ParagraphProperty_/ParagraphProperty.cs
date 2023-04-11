@@ -38,9 +38,10 @@ public record ParagraphProperty
     /// <summary>
     /// 缩进类型
     /// </summary>
+    // todo 首行缩进 悬挂缩进
     public IndentType IndentType { get; init; } = IndentType.FirstLine;
 
-    // 左侧缩进 右侧缩进 悬挂缩进
+    // 左侧缩进 右侧缩进 
 
     /// <summary>
     /// 是否允许标点溢出边界
@@ -60,6 +61,8 @@ public record ParagraphProperty
     /// <summary>
     /// 行间距倍数，默认值为1，范围0~1000
     /// </summary>
+    /// 行距的倍数需要根据 <see cref="TextEditor.LineSpacingAlgorithm"/> 进行决定
+    /// 另外是否加上行距计算，需要根据 <see cref="TextEditor.LineSpacingStrategy"/> 进行决定
     public double LineSpacing
     {
         get;
@@ -76,7 +79,6 @@ public record ParagraphProperty
         init;
     } = double.NaN;
 
-    // todo 首行缩进 悬挂缩进
 
     ///// <summary>
     ///// 项目符号
@@ -115,7 +117,7 @@ public record ParagraphProperty
     }
 
     /// <summary>
-    /// 段前间距
+    /// 段前间距（竖方向）
     /// </summary>
     public double ParagraphBefore
     {
@@ -124,7 +126,7 @@ public record ParagraphProperty
     }
 
     /// <summary>
-    /// 段后间距
+    /// 段后间距（竖方向）
     /// </summary>
     public double ParagraphAfter
     {
