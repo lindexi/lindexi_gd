@@ -162,6 +162,7 @@ public partial class TextEditorCore
         }
 
         IsDirty = true;
+        _renderInfoProvider = null;
 
         if (DocumentManager.CharCount != 0)
         {
