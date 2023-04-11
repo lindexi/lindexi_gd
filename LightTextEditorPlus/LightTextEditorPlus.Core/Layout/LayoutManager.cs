@@ -114,10 +114,24 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     protected override ParagraphLayoutResult LayoutParagraphCore(ParagraphLayoutArgument argument,
         ParagraphCharOffset startParagraphOffset)
     {
+        var paragraph = argument.ParagraphData;
         // 先更新非脏的行的坐标
         // 布局左上角坐标
-        var currentStartPoint = UpdateParagraphLineLayoutDataStartPoint(argument);
-        var paragraph = argument.ParagraphData;
+        Point currentStartPoint;
+        if (paragraph.LineLayoutDataList.Count == 0)
+        {
+            // 一行都没有的情况下，需要计算段前距离
+            currentStartPoint = argument.CurrentStartPoint with
+            {
+                Y = argument.CurrentStartPoint.Y + argument.ParagraphData.ParagraphProperty.ParagraphBefore
+            };
+        }
+        else
+        {
+            // 有缓存的行，证明段落属性没有更改，不需要计算段前距离
+            // 只需要更新缓存的行
+            currentStartPoint = UpdateParagraphLineLayoutDataStartPoint(argument);
+        }
 
         // 获取最大宽度信息
         double lineMaxWidth = TextEditor.SizeToContent switch
@@ -211,7 +225,12 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         // 设置当前段落已经布局完成
         paragraph.SetFinishLayout();
 
-        return new ParagraphLayoutResult(currentStartPoint);
+        // 下一段的距离需要加上段后距离
+        var nextLineStartPoint = currentStartPoint with
+        {
+            Y = currentStartPoint.Y + paragraph.ParagraphProperty.ParagraphAfter,
+        };
+        return new ParagraphLayoutResult(nextLineStartPoint);
     }
 
     #region LayoutWholeLine 布局一行的字符
