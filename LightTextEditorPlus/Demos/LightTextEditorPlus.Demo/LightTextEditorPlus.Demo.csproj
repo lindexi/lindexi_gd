@@ -10,4 +10,8 @@
     <ProjectReference Include="..\..\LightTextEditorPlus.Wpf\LightTextEditorPlus.Wpf.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Resource Include="Assets\Text.png" />
+  </ItemGroup>
+
 </Project>

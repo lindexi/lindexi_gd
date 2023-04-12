@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,6 +19,7 @@ using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
 
 using Brush = System.Windows.Media.Brush;
+using Size = System.Windows.Size;
 
 namespace LightTextEditorPlus.Demo;
 /// <summary>
@@ -32,6 +34,21 @@ public partial class TextEditorSettingsControl : UserControl
         FontNameComboBox.ItemsSource = Fonts.SystemFontFamilies
             .Where(t => t.FamilyNames.Values is not null)
             .SelectMany(t => t.FamilyNames.Values!).Distinct();
+
+        Loaded += TextEditorSettingsControl_Loaded;
+    }
+
+    private void TextEditorSettingsControl_Loaded(object sender, RoutedEventArgs e)
+    {
+        Size size = Path.DesiredSize;
+        var renderTargetBitmap = new RenderTargetBitmap((int)size.Width, (int) size.Height,96,96,PixelFormats.Pbgra32);
+        renderTargetBitmap.Render(Path);
+
+        PngBitmapEncoder pngBitmapEncoder = new PngBitmapEncoder();
+        pngBitmapEncoder.Frames.Clear();
+        pngBitmapEncoder.Frames.Add(BitmapFrame.Create(renderTargetBitmap));
+        using  FileStream fileStream = new FileStream("Text.png",FileMode.Create,FileAccess.ReadWrite);
+        pngBitmapEncoder.Save(fileStream);
     }
 
     public static readonly DependencyProperty TextEditorProperty = DependencyProperty.Register(

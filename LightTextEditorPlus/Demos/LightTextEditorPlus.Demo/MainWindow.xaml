@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:LightTextEditorPlus.Demo"
         xmlns:textEditorPlus="clr-namespace:LightTextEditorPlus;assembly=LightTextEditorPlus.Wpf"
         mc:Ignorable="d"
+        Icon="Assets/Text.png"
         Title="文本" Height="600" Width="1000">
     <Grid>
         <Grid.ColumnDefinitions>
