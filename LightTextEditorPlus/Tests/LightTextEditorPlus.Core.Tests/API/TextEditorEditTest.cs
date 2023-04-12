@@ -144,7 +144,7 @@ public class TextEditorEditTest
             // 先追加两段，用于后续删除
             textEditorCore.AppendText("1\r\n2");
             // 移动光标在段首
-            textEditorCore.CurrentCaretOffset = new CaretOffset(3);
+            textEditorCore.CurrentCaretOffset = new CaretOffset(2);
 
             // Action
             // 在段首执行 Backspace 退格

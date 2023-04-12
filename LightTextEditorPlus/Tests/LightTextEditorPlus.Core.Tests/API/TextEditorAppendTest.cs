@@ -131,6 +131,11 @@ public class TextEditorAppendTest
                 	LightTextEditorPlus.Core.dll!LightTextEditorPlus.Core.TextEditorCore.AppendText(string text) 行 14	C#
              */
             var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+            textEditorCore.DocumentManager.CurrentParagraphProperty =
+                textEditorCore.DocumentManager.CurrentParagraphProperty with
+                {
+                    FixedLineSpacing = 15
+                };
 
             // Action
             textEditorCore.AppendText("\r\n");
@@ -163,6 +168,11 @@ public class TextEditorAppendTest
                 	LightTextEditorPlus.Core.dll!LightTextEditorPlus.Core.TextEditorCore.AppendText(string text) 行 14	C#
              */
             var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+            textEditorCore.DocumentManager.CurrentParagraphProperty =
+                textEditorCore.DocumentManager.CurrentParagraphProperty with
+                {
+                    FixedLineSpacing = 15
+                };
 
             // Action
             textEditorCore.AppendText("a\r\n\r\nb");
@@ -180,6 +190,11 @@ public class TextEditorAppendTest
         {
             // Arrange
             var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+            textEditorCore.DocumentManager.CurrentParagraphProperty =
+                textEditorCore.DocumentManager.CurrentParagraphProperty with
+                {
+                    FixedLineSpacing = 15
+                };
 
             // Action
             textEditorCore.AppendText("\r\n");
