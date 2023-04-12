@@ -99,6 +99,25 @@ public class TextEditorEditTest
     [ContractTestCase]
     public void Backspace()
     {
+        "对文本字符串为 abc\r\nd 的文本执行两次退格，可以删除段落，且光标在删除后的最后一个字符之后".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            // 先追加文本，用于后续删除
+            textEditorCore.AppendText("abc\r\nd");
+
+            // Action
+            // 执行两次退格，可以删除段落
+            textEditorCore.Backspace();
+
+            textEditorCore.Backspace();
+
+            // Assert
+            // 只删除段落，没有删除 abc 文本
+            Assert.AreEqual("abc", textEditorCore.GetText());
+            Assert.AreEqual(3, textEditorCore.CurrentCaretOffset.Offset);
+        });
+
         "对文本字符串为 abc 的文本执行退格，可以删除最后一个字符，且光标在删除后的最后一个字符之后".Test(() =>
         {
             // Arrange
