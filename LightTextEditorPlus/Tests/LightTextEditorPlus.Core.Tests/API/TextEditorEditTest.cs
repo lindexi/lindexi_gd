@@ -99,7 +99,28 @@ public class TextEditorEditTest
     [ContractTestCase]
     public void Backspace()
     {
-        "对文本字符串为 abc\r\nd 的文本执行两次退格，可以删除段落，且光标在删除后的最后一个字符之后".Test(() =>
+        "对文本字符串为 1\r\n23 的文本，设置光标在最后一段的行首，执行退格，可以删除段落，删除完成之后光标在字符1之后在字符2之前".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            // 先追加文本，用于后续删除
+            textEditorCore.AppendText("1\r\n23");
+
+            // Action
+            // 设置光标在最后一段的行首
+            textEditorCore.CurrentCaretOffset = new CaretOffset(2, isAtLineStart: true);
+            // 执行退格
+            textEditorCore.Backspace();
+
+            // Assert
+            // 可以删除段落
+            Assert.AreEqual("123", textEditorCore.GetText());
+            // 删除完成之后光标在字符1之后在字符2之前
+            Assert.AreEqual(1, textEditorCore.CurrentCaretOffset.Offset);
+            Assert.AreEqual(false, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+        });
+
+        "对文本字符串为 abc\r\nd 的文本的末尾执行两次退格，可以删除段落，且光标在删除后的最后一个字符之后".Test(() =>
         {
             // Arrange
             var textEditorCore = TestHelper.GetTextEditorCore();

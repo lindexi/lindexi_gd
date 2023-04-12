@@ -644,7 +644,9 @@ namespace LightTextEditorPlus.Core.Document
 
             var addCharCount = run?.CharCount ?? 0;
             var caretOffset = selection.FrontOffset.Offset + addCharCount;
-            if (addCharCount != 0 && CaretManager.CurrentCaretOffset.Offset != caretOffset)
+            // 是否更改了文本内容。也就是有添加或者有删除。有添加则 addCharCount != 0 成立。有删除 selection.Length > 0 成立
+            var isChangedText = addCharCount != 0 || selection.Length > 0;
+            if (isChangedText && CaretManager.CurrentCaretOffset.Offset != caretOffset)
             {
                 // 如果有加上任何内容，则需要判断是否采用换行符结束，如果采用换行符结束，需要设置光标是在行首
                 // 如果仅仅只是替换相等同的内容，如 CaretManager.CurrentCaretOffset.Offset == caretOffset.Offset 的条件，则不应该修改光标。这条规则也许不对，如果后续行为不符合交互设计，则进行修改
