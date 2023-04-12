@@ -198,13 +198,6 @@
                         <Button x:Name="ParagraphAfterButton" Margin="5,0,0,0">应用</Button>
                     </StackPanel>
                 </Grid>
-
-
-                <Grid Grid.Row="0">
-                    <Path x:Name="Path" Stroke="#1afa29" StrokeThickness="2" Data="M5,5L5,0L25,0L25,5M15,0L15,20M10,20L20,20">
-
-                    </Path>
-                </Grid>
             </StackPanel>
         </ScrollViewer>
         <Button Grid.Row="1" Margin="10,10,10,10">应用</Button>
