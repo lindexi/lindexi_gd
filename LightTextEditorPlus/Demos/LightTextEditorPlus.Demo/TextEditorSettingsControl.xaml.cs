@@ -15,6 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
 
@@ -41,13 +42,13 @@ public partial class TextEditorSettingsControl : UserControl
     private void TextEditorSettingsControl_Loaded(object sender, RoutedEventArgs e)
     {
         Size size = Path.DesiredSize;
-        var renderTargetBitmap = new RenderTargetBitmap((int)size.Width, (int) size.Height,96,96,PixelFormats.Pbgra32);
+        var renderTargetBitmap = new RenderTargetBitmap((int) size.Width, (int) size.Height, 96, 96, PixelFormats.Pbgra32);
         renderTargetBitmap.Render(Path);
 
         PngBitmapEncoder pngBitmapEncoder = new PngBitmapEncoder();
         pngBitmapEncoder.Frames.Clear();
         pngBitmapEncoder.Frames.Add(BitmapFrame.Create(renderTargetBitmap));
-        using  FileStream fileStream = new FileStream("Text.png",FileMode.Create,FileAccess.ReadWrite);
+        using FileStream fileStream = new FileStream("Text.png", FileMode.Create, FileAccess.ReadWrite);
         pngBitmapEncoder.Save(fileStream);
     }
 
@@ -123,4 +124,53 @@ public partial class TextEditorSettingsControl : UserControl
         TextEditor.TextEditorCore.ArrangingType = ArrangingType.Mongolian;
     }
     #endregion
+
+    #region 行距
+
+    private void LineSpacingButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (double.TryParse(LineSpacingTextBox.Text, out var lineSpacing))
+        {
+            SetCurrentParagraphProperty(GetCurrentParagraphProperty() with
+            {
+                LineSpacing = lineSpacing
+            });
+        }
+        else
+        {
+            LineSpacingTextBox.Text = 1.ToString();
+        }
+    }
+
+    private void FixedLineSpacingButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (double.TryParse(FixedLineSpacingTextBox.Text, out var fixedLineSpacing))
+        {
+            SetCurrentParagraphProperty(GetCurrentParagraphProperty() with
+            {
+                FixedLineSpacing = fixedLineSpacing
+            });
+        }
+        else
+        {
+            FixedLineSpacingTextBox.Text = null;
+        }
+    }
+
+    private void FixedLineSpacingResetButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        SetCurrentParagraphProperty(GetCurrentParagraphProperty() with
+        {
+            FixedLineSpacing = double.NaN
+        });
+
+        FixedLineSpacingTextBox.Text = null;
+    }
+
+    #endregion
+
+    private ParagraphProperty GetCurrentParagraphProperty()=> TextEditor.TextEditorCore.DocumentManager.GetParagraphProperty(TextEditor.CurrentCaretOffset);
+
+    private void SetCurrentParagraphProperty(ParagraphProperty paragraphParagraph) =>
+        TextEditor.TextEditorCore.DocumentManager.SetParagraphProperty(TextEditor.CurrentCaretOffset, paragraphParagraph);
 }
