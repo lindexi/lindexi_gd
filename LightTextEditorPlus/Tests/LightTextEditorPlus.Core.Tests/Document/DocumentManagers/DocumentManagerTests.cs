@@ -26,7 +26,7 @@ public class DocumentManagerTests
 
             // Action
             // 从后向前选择一段内容
-            var selection = new Selection(new CaretOffset(5),new CaretOffset(3));
+            var selection = new Selection(new CaretOffset(5), new CaretOffset(3));
             // 调用 DocumentManager.SetRunProperty 设置文本字符属性
             textEditorCore.DocumentManager.SetRunProperty((LayoutOnlyRunProperty runProperty) =>
             {
@@ -151,8 +151,7 @@ public class DocumentManagerTests
                 Assert.AreEqual(fontName, runProperty.FontName.UserFontName);
             }
 
-            // 只修改文本属性，没有修改到文本字符
-            Assert.AreEqual(text, textEditorCore.GetText());
+            Assert.AreEqual(text.Replace("\r\n", "\n"), textEditorCore.GetText(), "只修改文本属性，没有修改到文本字符");
         });
     }
 
@@ -172,7 +171,7 @@ public class DocumentManagerTests
             var charDataRange = textEditorCore.DocumentManager.GetCharDataRange(selection).ToList();
 
             // Assert
-            Assert.AreEqual("c\r\nefg\r\nh", charDataRange.ConvertToString());
+            Assert.AreEqual("c\nefg\nh", charDataRange.ConvertToString());
         });
 
         "调用 DocumentManager.GetCharDataRange 跨一段选择，从段末开始选择，可以获取到包含换行字符的列表".Test(() =>
@@ -187,7 +186,7 @@ public class DocumentManagerTests
             var charDataRange = textEditorCore.DocumentManager.GetCharDataRange(selection).ToList();
 
             // Assert
-            Assert.AreEqual("\r\ne", charDataRange.ConvertToString());
+            Assert.AreEqual("\ne", charDataRange.ConvertToString());
         });
 
         "调用 DocumentManager.GetCharDataRange 跨一段选择，可以获取到跨段的列表".Test(() =>
@@ -202,7 +201,7 @@ public class DocumentManagerTests
             var charDataRange = textEditorCore.DocumentManager.GetCharDataRange(selection).ToList();
 
             // Assert
-            Assert.AreEqual("bc\r\ne", charDataRange.ConvertToString());
+            Assert.AreEqual("bc\ne", charDataRange.ConvertToString());
         });
 
         "对包含 abc 三个字符的文本框，调用 DocumentManager.GetCharDataRange 传入文档全选，可以选择出 abc 三个字符".Test(() =>
@@ -367,10 +366,11 @@ public class DocumentManagerTests
             var textEditorCore = TestHelper.GetTextEditorCore();
 
             // Action
-            textEditorCore.AppendText("1\r\n23");
+            textEditorCore.AppendText("1\r\n2");
 
             // Assert
-            Assert.AreEqual(5, textEditorCore.DocumentManager.CharCount);
+            var count = "1".Length + "\n".Length + "2".Length;
+            Assert.AreEqual(count, textEditorCore.DocumentManager.CharCount);
         });
 
         "插入一行123纯文本，获取文档字符数量，可以获取到3个".Test(() =>
