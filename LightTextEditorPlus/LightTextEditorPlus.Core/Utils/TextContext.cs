@@ -38,7 +38,7 @@ public static class TextContext
     /// <summary>
     /// 文本库统一写入的换行符，此换行符和平台无关，所有平台写入相同的值
     /// </summary>
-    public const string NewLine = "\r\n";
+    public const string NewLine = "\n";
 
     /// <summary>
     /// 表示一个无效字符
