@@ -1,4 +1,5 @@
 ﻿using System;
+
 using LightTextEditorPlus.Core.Exceptions;
 
 namespace LightTextEditorPlus.Core.Document;
@@ -18,7 +19,7 @@ public sealed class TextRun : IImmutableTextRun
     /// <param name="runProperty"></param>
     public TextRun(string text, IReadOnlyRunProperty? runProperty = null)
     {
-        Text = text;
+        Text = text.Replace("\r\n", "\n").Replace('\r', '\n');
         RunProperty = runProperty;
     }
 

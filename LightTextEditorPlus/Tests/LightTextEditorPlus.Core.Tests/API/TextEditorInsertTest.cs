@@ -1,6 +1,7 @@
 ﻿using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.TestsFramework;
+
 using MSTest.Extensions.Contracts;
 
 namespace LightTextEditorPlus.Core.Tests;
@@ -8,6 +9,29 @@ namespace LightTextEditorPlus.Core.Tests;
 [TestClass]
 public class TextEditorInsertTest
 {
+    [ContractTestCase]
+    public void BreakLineTest()
+    {
+        "在现有的 123 文本的 12 中间，插入换行符，可以创建两段文本，光标在字符 2 前面".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            // 插入预设的文本
+            textEditorCore.AppendText("123");
+            // 设置光标在文本的 12 中间
+            textEditorCore.CurrentCaretOffset = new CaretOffset(1);
+
+            // Action
+            // 插入换行符
+            textEditorCore.EditAndReplace("\r\n");
+
+            // Assert
+            // 光标在字符 2 前面。也就是光标在 1\n 后面
+            CaretOffset currentCaretOffset = textEditorCore.CurrentCaretOffset;
+            Assert.AreEqual("1\n".Length, currentCaretOffset.Offset);
+        });
+    }
+
     [ContractTestCase]
     public void InsertCenterTest()
     {
@@ -35,7 +59,7 @@ public class TextEditorInsertTest
             // 在 123 文本的中间，在 2 后面插入 456 字符串
             // 预期的字符串就是 12 456 3
             var text = textEditorCore.DocumentManager.ParagraphManager.GetText();
-            Assert.AreEqual("124563",text);
+            Assert.AreEqual("124563", text);
         });
     }
 }
