@@ -29,6 +29,7 @@ public class TextEditorInsertTest
             // 光标在字符 2 前面。也就是光标在 1\n 后面
             CaretOffset currentCaretOffset = textEditorCore.CurrentCaretOffset;
             Assert.AreEqual("1\n".Length, currentCaretOffset.Offset);
+            Assert.AreEqual(true, currentCaretOffset.IsAtLineStart);
         });
     }
 

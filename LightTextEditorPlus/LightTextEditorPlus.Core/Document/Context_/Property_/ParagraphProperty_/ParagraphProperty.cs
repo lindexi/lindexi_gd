@@ -63,7 +63,6 @@ public record ParagraphProperty
     /// </summary>
     /// 行距的倍数需要根据 <see cref="TextEditor.LineSpacingAlgorithm"/> 进行决定
     /// 另外是否加上行距计算，需要根据 <see cref="TextEditor.LineSpacingStrategy"/> 进行决定
-    /// todo 设置行距2倍，换行，光标坐标错误
     public double LineSpacing
     {
         get;

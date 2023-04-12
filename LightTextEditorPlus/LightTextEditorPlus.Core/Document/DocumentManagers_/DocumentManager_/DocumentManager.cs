@@ -642,10 +642,58 @@ namespace LightTextEditorPlus.Core.Document
 
             ReplaceCore(selection, run);
 
-            var caretOffset = new CaretOffset(selection.FrontOffset.Offset + (run?.CharCount ?? 0));
-            CaretManager.CurrentCaretOffset = caretOffset;
+            var addCharCount = run?.CharCount ?? 0;
+            var caretOffset = selection.FrontOffset.Offset + addCharCount;
+            if (addCharCount != 0 && CaretManager.CurrentCaretOffset.Offset != caretOffset)
+            {
+                // 如果有加上任何内容，则需要判断是否采用换行符结束，如果采用换行符结束，需要设置光标是在行首
+                // 如果仅仅只是替换相等同的内容，如 CaretManager.CurrentCaretOffset.Offset == caretOffset.Offset 的条件，则不应该修改光标。这条规则也许不对，如果后续行为不符合交互设计，则进行修改
+                CaretManager.CurrentCaretOffset = new CaretOffset(caretOffset,isAtLineStart: IsEndWithBreakLine(run));
+            }
+            else
+            {
+                // 考虑选中删除的情况，此时不应该修改光标
+            }
 
             InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private bool IsEndWithBreakLine(IImmutableRunList? runList)
+        {
+            if (runList is null || runList.RunCount==0)
+            {
+                return false;
+            }
+
+            IImmutableRun run = runList.GetRun(runList.RunCount-1);
+            if (run is LineBreakRun)
+            {
+                return true;
+            }
+
+            if (run.Count == 0)
+            {
+                return false;
+            }
+
+            if (run is TextRun textRun)
+            {
+                return IsTextEndWithBreakLine(textRun.Text);
+            }
+
+            ICharObject charObject = run.GetChar(run.Count-1);
+            string text = charObject.ToText();
+            return IsTextEndWithBreakLine(text);
+
+            static bool IsTextEndWithBreakLine(string text)
+            {
+                if (string.IsNullOrEmpty(text))
+                {
+                    return false;
+                }
+
+                return text.EndsWith('\r') || text.EndsWith("\n");
+            }
         }
 
         private void ReplaceCore(in Selection selection, IImmutableRunList? run)
