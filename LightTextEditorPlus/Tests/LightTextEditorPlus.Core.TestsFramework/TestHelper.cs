@@ -17,9 +17,13 @@ public static class TestHelper
     /// </summary>
     public const double DefaultFixCharWidth = DefaultFixCharFontSize;
 
+    /// <summary>
+    /// 不能放在行首的字符
+    /// </summary>
+    /// 从 Word 抄
     public static char[] PunctuationNotInLineStartCharList => new[]
     {
-        ',', '.', ';', '!', '，', '。', '！', '：', '；', '、', ')', '）' 
+        ',', '.', ';', '!', '，', '。', '！', '：', '；', '、', ')', '）'
     };
 
     public static TextEditorCore GetTextEditorCore(TestPlatformProvider? testPlatformProvider = null)

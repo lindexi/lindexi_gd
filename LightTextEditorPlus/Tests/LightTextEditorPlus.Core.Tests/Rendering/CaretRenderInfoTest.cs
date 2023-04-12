@@ -21,7 +21,8 @@ public class CaretRenderInfoTest
             // Arrange
             // 这是空文本，没有任何的布局等信息
             // 采用 FixCharSizePlatformProvider 固定数值
-            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider())
+                .UseFixedLineSpacing();
 
             // Action
             // 追加两段文本，其中第二段是空白，这样就可以获取在文本第二段是空段时的光标

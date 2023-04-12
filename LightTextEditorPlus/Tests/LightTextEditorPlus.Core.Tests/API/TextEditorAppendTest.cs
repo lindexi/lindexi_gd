@@ -130,12 +130,8 @@ public class TextEditorAppendTest
                 	LightTextEditorPlus.Core.dll!LightTextEditorPlus.Core.Document.DocumentManager.AppendText(string text) 行 250	C#
                 	LightTextEditorPlus.Core.dll!LightTextEditorPlus.Core.TextEditorCore.AppendText(string text) 行 14	C#
              */
-            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
-            textEditorCore.DocumentManager.CurrentParagraphProperty =
-                textEditorCore.DocumentManager.CurrentParagraphProperty with
-                {
-                    FixedLineSpacing = 15
-                };
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider())
+                .UseFixedLineSpacing();
 
             // Action
             textEditorCore.AppendText("\r\n");
@@ -167,12 +163,7 @@ public class TextEditorAppendTest
                 	LightTextEditorPlus.Core.dll!LightTextEditorPlus.Core.Document.DocumentManager.AppendText(string text) 行 250	C#
                 	LightTextEditorPlus.Core.dll!LightTextEditorPlus.Core.TextEditorCore.AppendText(string text) 行 14	C#
              */
-            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
-            textEditorCore.DocumentManager.CurrentParagraphProperty =
-                textEditorCore.DocumentManager.CurrentParagraphProperty with
-                {
-                    FixedLineSpacing = 15
-                };
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider()).UseFixedLineSpacing();
 
             // Action
             textEditorCore.AppendText("a\r\n\r\nb");
@@ -189,12 +180,7 @@ public class TextEditorAppendTest
         "给文本追加一个 \\r\\n 字符串，文本可以分两段".Test(() =>
         {
             // Arrange
-            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
-            textEditorCore.DocumentManager.CurrentParagraphProperty =
-                textEditorCore.DocumentManager.CurrentParagraphProperty with
-                {
-                    FixedLineSpacing = 15
-                };
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider()).UseFixedLineSpacing();
 
             // Action
             textEditorCore.AppendText("\r\n");

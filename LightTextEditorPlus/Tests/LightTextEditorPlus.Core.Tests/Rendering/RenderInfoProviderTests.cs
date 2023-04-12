@@ -1,7 +1,7 @@
 ﻿using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.TestsFramework;
-
+using LightTextEditorPlus.Core.Utils;
 using MSTest.Extensions.Contracts;
 
 namespace LightTextEditorPlus.Core.Tests.Rendering;
@@ -29,7 +29,8 @@ public class RenderInfoProviderTests
              */
 
             // Action
-            var selection = new Selection(new CaretOffset(3), new CaretOffset(9)); // 从 d 到 g 这几个字符的范围
+            var length = "de".Length + TextContext.NewLine.Length + "f".Length;
+            var selection = new Selection(new CaretOffset(3), length); // 从 d 到 f 这几个字符的范围
             var renderInfoProvider = textEditorCore.GetRenderInfo();
             var selectionBoundsList = renderInfoProvider.GetSelectionBoundsList(selection);
 
@@ -41,7 +42,7 @@ public class RenderInfoProviderTests
             Assert.AreEqual(30, selectionBoundsList[0].Width);
 
             Assert.AreEqual(0, selectionBoundsList[1].X);
-            Assert.AreEqual(30, selectionBoundsList[1].Width);
+            Assert.AreEqual(15, selectionBoundsList[1].Width);
         });
 
         "传入跨行的选择，可以获取到两行的选择范围".Test(() =>
