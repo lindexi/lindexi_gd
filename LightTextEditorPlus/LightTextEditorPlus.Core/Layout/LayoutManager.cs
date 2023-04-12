@@ -291,9 +291,18 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             currentX += charDataSize.Width;
         }
 
-        return new WholeLineLayoutResult(currentSize, wholeCharCount);
+        // 行的尺寸
+        var lineSize = new Size(currentSize.Width, lineHeight);
+
+        return new WholeLineLayoutResult(lineSize, wholeCharCount);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="CurrentLineCharSize"></param>
+    /// <param name="WholeCharCount"></param>
+    /// <param name="LineSize"></param>
     readonly record struct WholeLineCharsLayoutResult(Size CurrentLineCharSize, int WholeCharCount);
 
     /// <summary>
