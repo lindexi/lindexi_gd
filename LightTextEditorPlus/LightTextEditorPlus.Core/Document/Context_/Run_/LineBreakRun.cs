@@ -5,7 +5,7 @@ namespace LightTextEditorPlus.Core.Document;
 /// <summary>
 /// 一个表示换行的文本段，大部分用来表示一个分段内容
 /// </summary>
-public class LineBreakRun : IImmutableRun
+public sealed class LineBreakRun : IImmutableRun
 {
     /// <summary>
     /// 创建一个表示换行的文本段
