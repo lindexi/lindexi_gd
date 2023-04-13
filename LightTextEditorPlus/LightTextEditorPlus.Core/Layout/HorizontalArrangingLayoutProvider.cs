@@ -356,62 +356,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         return maxFontSizeCharRunProperty;
     }
 
-    /// <summary>
-    /// 行距计算参数
-    /// </summary>
-    readonly record struct LineSpacingCalculateArgument(int ParagraphIndex,int LineIndex, ParagraphProperty ParagraphProperty, IReadOnlyRunProperty MaxFontSizeCharRunProperty);
-
-    /// <summary>
-    /// 行距计算结果
-    /// </summary>
-    /// <param name="ShouldUseCharLineHeight">是否应该使用字符的行高</param>
-    /// <param name="TotalLineHeight"></param>
-    readonly record struct LineSpacingCalculateResult(bool ShouldUseCharLineHeight, double TotalLineHeight);
-
-    /// <summary>
-    /// 计算行距
-    /// </summary>
-    /// <param name="argument"></param>
-    /// <returns></returns>
-    private LineSpacingCalculateResult CalculateLineSpacing(in LineSpacingCalculateArgument argument)
-    {
-        ParagraphProperty paragraphProperty = argument.ParagraphProperty;
-
-        double lineHeight;
-        if (double.IsNaN(paragraphProperty.FixedLineSpacing))
-        {
-            // 倍数行距逻辑
-            var lineSpacing = paragraphProperty.LineSpacing;
-
-            var needNotCalculateLineSpacing =
-                // 处理首行不展开，文档的首段首行不加上行距
-                // 也就是不需要处理 lineHeight 的值
-                TextEditor.LineSpacingStrategy == LineSpacingStrategy.FirstLineShrink
-                && argument.ParagraphIndex == 0
-                && argument.LineIndex == 0;
-
-            if (needNotCalculateLineSpacing)
-            {
-                // 如果不需要计算行距，那就随意了
-                return new LineSpacingCalculateResult(true, double.NaN);
-            }
-            else
-            {
-                lineHeight =
-                    LineSpacingCalculator.CalculateLineHeightWithLineSpacing(TextEditor,
-                        argument.MaxFontSizeCharRunProperty,
-                        lineSpacing);
-            }
-        }
-        else
-        {
-            // 如果定义了固定行距，那就使用固定行距
-            lineHeight = paragraphProperty.FixedLineSpacing;
-        }
-
-        return new LineSpacingCalculateResult(ShouldUseCharLineHeight: false, lineHeight);
-    }
-
     #endregion  
 
     /// <summary>
