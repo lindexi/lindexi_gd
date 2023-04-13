@@ -144,7 +144,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         };
 
         var wholeRunLineLayouter = TextEditor.PlatformProvider.GetWholeRunLineLayouter();
-
         for (var i = startParagraphOffset.Offset; i < paragraph.CharCount;)
         {
             // 开始行布局
@@ -216,8 +215,58 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             currentStartPoint = GetNextLineStartPoint(currentStartPoint, currentLineLayoutData);
         }
 
-        // todo 考虑行复用，例如刚好添加的内容是一行。或者在一行内做文本替换等
-        // 这个没有啥优先级。测试了 SublimeText 和 NotePad 工具，都没有做此复用，预计有坑
+        bool isEmptyParagraph = paragraph.CharCount == 0;
+        if (isEmptyParagraph)
+        {
+            // 如果是空段的话，如一段只是一个 \n 而已，那就需要执行空段布局逻辑
+            Debug.Assert(paragraph.LineLayoutDataList.Count == 0, "空段布局时一定是一行都不存在");
+            var runProperty = paragraph.ParagraphProperty.ParagraphStartRunProperty;
+            runProperty ??= TextEditor.DocumentManager.CurrentRunProperty;
+
+            var lineSpacingCalculateArgument = new LineSpacingCalculateArgument(argument.ParagraphIndex,0,paragraph.ParagraphProperty, runProperty);
+            var lineSpacingCalculateResult = CalculateLineSpacing(lineSpacingCalculateArgument);
+            double lineHeight = lineSpacingCalculateResult.TotalLineHeight;
+            if (lineSpacingCalculateResult.ShouldUseCharLineHeight)
+            {
+                // 如果需要使用文本高度，那么进行
+                // 测量空行文本
+                var singleCharObject = new SingleCharObject(TextContext.DefaultChar);
+                var charInfo = new CharInfo(singleCharObject, runProperty);
+
+                var charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
+
+                CharInfoMeasureResult charInfoMeasureResult;
+                if (charInfoMeasurer != null)
+                {
+                    // 测量空行高度
+                    charInfoMeasureResult = charInfoMeasurer.MeasureCharInfo(charInfo);
+                }
+                else
+                {
+                    charInfoMeasureResult = MeasureCharInfo(charInfo);
+                }
+
+                lineHeight = charInfoMeasureResult.Bounds.Height;
+            }
+
+            // 加上空行
+            var lineLayoutData = new LineLayoutData(paragraph)
+            {
+                CharStartParagraphIndex = 0,
+                CharEndParagraphIndex = 0,
+                StartPoint = argument.CurrentStartPoint,
+                Size = new Size(0, lineHeight)
+            };
+            paragraph.LineLayoutDataList.Add(lineLayoutData);
+
+            currentStartPoint = currentStartPoint with
+            {
+                Y = currentStartPoint.Y + lineHeight
+            };
+        }
+
+        //// 考虑行复用，例如刚好添加的内容是一行。或者在一行内做文本替换等
+        //// 这个没有啥优先级。测试了 SublimeText 和 NotePad 工具，都没有做此复用，预计有坑
 
         argument.ParagraphData.ParagraphLayoutData.StartPoint = argument.ParagraphData.LineLayoutDataList[0].StartPoint;
         argument.ParagraphData.ParagraphLayoutData.Size = BuildParagraphSize(argument);
@@ -232,6 +281,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         };
         return new ParagraphLayoutResult(nextLineStartPoint);
     }
+
+    //public override EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeight(
+    //    in EmptyParagraphLineHeightMeasureArgument argument)
+    //{
+    //    var paragraphProperty = argument.ParagraphProperty;
+    //    CalculateLineSpacing(new LineSpacingCalculateArgument())
+    //}
 
     #region LayoutWholeLine 布局一行的字符
 
@@ -268,7 +324,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         IReadOnlyRunProperty maxFontSizeCharRunProperty = GetMaxFontSizeCharRunProperty(charDataList.Slice(0, wholeCharCount));
 
         // 处理行距
-        LineSpacingCalculateResult lineSpacingCalculateResult = CalculateLineSpacing(new LineSpacingCalculateArgument(argument, currentSize, maxFontSizeCharRunProperty));
+        var lineSpacingCalculateArgument = new LineSpacingCalculateArgument(argument.ParagraphIndex,argument.LineIndex,argument.ParagraphProperty,maxFontSizeCharRunProperty);
+        LineSpacingCalculateResult lineSpacingCalculateResult = CalculateLineSpacing(lineSpacingCalculateArgument);
         double lineHeight = lineSpacingCalculateResult.TotalLineHeight;
 
         // todo 这里需要处理段距
@@ -392,12 +449,14 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// <summary>
     /// 行距计算参数
     /// </summary>
-    readonly record struct LineSpacingCalculateArgument(WholeLineLayoutArgument WholeLineLayoutArgument, Size CurrentLineCharSize, IReadOnlyRunProperty MaxFontSizeCharRunProperty);
+    readonly record struct LineSpacingCalculateArgument(int ParagraphIndex,int LineIndex, ParagraphProperty ParagraphProperty, IReadOnlyRunProperty MaxFontSizeCharRunProperty);
 
     /// <summary>
     /// 行距计算结果
     /// </summary>
-    readonly record struct LineSpacingCalculateResult(double TotalLineHeight);
+    /// <param name="ShouldUseCharLineHeight">是否应该使用字符的行高</param>
+    /// <param name="TotalLineHeight"></param>
+    readonly record struct LineSpacingCalculateResult(bool ShouldUseCharLineHeight, double TotalLineHeight);
 
     /// <summary>
     /// 计算行距
@@ -406,33 +465,31 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// <returns></returns>
     private LineSpacingCalculateResult CalculateLineSpacing(in LineSpacingCalculateArgument argument)
     {
-        Size currentSize = argument.CurrentLineCharSize;
-        var wholeLineLayoutArgument = argument.WholeLineLayoutArgument;
-        ParagraphProperty paragraphProperty = wholeLineLayoutArgument.ParagraphProperty;
+        ParagraphProperty paragraphProperty = argument.ParagraphProperty;
 
-        double lineHeight = currentSize.Height;
+        double lineHeight;
         if (double.IsNaN(paragraphProperty.FixedLineSpacing))
         {
             // 倍数行距逻辑
-
-            // todo 考虑空段的行距计算
             var lineSpacing = paragraphProperty.LineSpacing;
 
             var needNotCalculateLineSpacing =
                 // 处理首行不展开，文档的首段首行不加上行距
                 // 也就是不需要处理 lineHeight 的值
                 TextEditor.LineSpacingStrategy == LineSpacingStrategy.FirstLineShrink
-                && wholeLineLayoutArgument.ParagraphIndex == 0
-                && wholeLineLayoutArgument.LineIndex == 0;
+                && argument.ParagraphIndex == 0
+                && argument.LineIndex == 0;
 
             if (needNotCalculateLineSpacing)
             {
                 // 如果不需要计算行距，那就随意了
+                return new LineSpacingCalculateResult(true, double.NaN);
             }
             else
             {
                 lineHeight =
-                    LineSpacingCalculator.CalculateLineHeightWithLineSpacing(TextEditor, argument.MaxFontSizeCharRunProperty,
+                    LineSpacingCalculator.CalculateLineHeightWithLineSpacing(TextEditor,
+                        argument.MaxFontSizeCharRunProperty,
                         lineSpacing);
             }
         }
@@ -442,7 +499,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             lineHeight = paragraphProperty.FixedLineSpacing;
         }
 
-        return new LineSpacingCalculateResult(lineHeight);
+        return new LineSpacingCalculateResult(ShouldUseCharLineHeight: false, lineHeight);
     }
 
     #endregion  
@@ -613,7 +670,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// </summary>
     /// <returns></returns>
     protected override EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeightCore(
-        in CharInfoMeasureResult charInfoMeasureResult)
+    in CharInfoMeasureResult charInfoMeasureResult, in EmptyParagraphLineHeightMeasureArgument argument)
     {
         // 下一行的开始就是这一行的行高
         var height = charInfoMeasureResult.Bounds.Height;
@@ -834,15 +891,7 @@ abstract class ArrangingLayoutProvider
         var paragraphList = TextEditor.DocumentManager.ParagraphManager.GetParagraphList();
 
         Debug.Assert(paragraphList.Count > 0, "获取到的段落，即使空文本也会存在一段");
-        //if (paragraphList.Count == 0)
-        //{
-        //    // 文档连一段都没有，那就是空白的文档了，啥也不用干
-        //    TextEditor.Logger.LogDebug($"文档一段都没有，文档是空。不需要继续布局，返回空的宽度高度");
-        //    // 即使如此，也是需要进行
-        //    return new DocumentLayoutResult(new Rect(0, 0, 0, 0));
-        //}
 
-        Debug.Assert(paragraphList.Count > 0);
         for (var index = 0; index < paragraphList.Count; index++)
         {
             ParagraphData paragraphData = paragraphList[index];
@@ -968,39 +1017,39 @@ abstract class ArrangingLayoutProvider
         // 不需要通过如此复杂的逻辑获取有哪些，因为存在的坑在于后续分拆 IImmutableRun 逻辑将会复杂
         //paragraph.GetRunRange(dirtyParagraphOffset);
 
-        // 段落布局规则：
-        // 1. 先判断是不是空段，空段的意思是这一段里没有任何字符。如果是空段，则进行空段高度测量计算
-        // 2. 非空段情况下，进入具体的排版测量，如横排和竖排文本的段落测量方法进行测量排版
-        if (paragraph.CharCount == 0)
-        {
-            // 考虑 paragraph.TextRunList 数量为空的情况，只有一个换行的情况
-            // 使用空行测量器，测量空行高度
-            var emptyParagraphLineHeightMeasureArgument =
-                new EmptyParagraphLineHeightMeasureArgument(argument.ParagraphData.ParagraphProperty);
+        //// 段落布局规则：
+        //// 1. 先判断是不是空段，空段的意思是这一段里没有任何字符。如果是空段，则进行空段高度测量计算
+        //// 2. 非空段情况下，进入具体的排版测量，如横排和竖排文本的段落测量方法进行测量排版
+        //if (paragraph.CharCount == 0)
+        //{
+        //    // 考虑 paragraph.TextRunList 数量为空的情况，只有一个换行的情况
+        //    // 使用空行测量器，测量空行高度
+        //    var emptyParagraphLineHeightMeasureArgument =
+        //        new EmptyParagraphLineHeightMeasureArgument(argument.ParagraphData.ParagraphProperty);
 
-            var result = MeasureEmptyParagraphLineHeight(emptyParagraphLineHeightMeasureArgument);
+        //    var result = MeasureEmptyParagraphLineHeight(emptyParagraphLineHeightMeasureArgument);
 
-            // 加上空行
-            Debug.Assert(paragraph.LineLayoutDataList.Count == 0, "空段布局时，一定不存在任何一行");
-            var lineLayoutData = new LineLayoutData(paragraph)
-            {
-                CharStartParagraphIndex = 0,
-                CharEndParagraphIndex = 0,
-                StartPoint = argument.CurrentStartPoint,
-                Size = result.ParagraphBounds.Size
-            };
-            paragraph.LineLayoutDataList.Add(lineLayoutData);
+        //    // 加上空行
+        //    Debug.Assert(paragraph.LineLayoutDataList.Count == 0, "空段布局时，一定不存在任何一行");
+        //    var lineLayoutData = new LineLayoutData(paragraph)
+        //    {
+        //        CharStartParagraphIndex = 0,
+        //        CharEndParagraphIndex = 0,
+        //        StartPoint = argument.CurrentStartPoint,
+        //        Size = result.ParagraphBounds.Size
+        //    };
+        //    paragraph.LineLayoutDataList.Add(lineLayoutData);
 
-            // 只有一行，那就不遍历了
-            argument.ParagraphData.ParagraphLayoutData.StartPoint = lineLayoutData.StartPoint;
-            argument.ParagraphData.ParagraphLayoutData.Size = lineLayoutData.Size;
+        //    // 只有一行，那就不遍历了
+        //    argument.ParagraphData.ParagraphLayoutData.StartPoint = lineLayoutData.StartPoint;
+        //    argument.ParagraphData.ParagraphLayoutData.Size = lineLayoutData.Size;
 
-            // 设置当前段落已经布局完成
-            paragraph.SetFinishLayout();
+        //    // 设置当前段落已经布局完成
+        //    paragraph.SetFinishLayout();
 
-            return new ParagraphLayoutResult(result.NextLineStartPoint);
-        }
-        else
+        //    return new ParagraphLayoutResult(result.NextLineStartPoint);
+        //}
+        //else
         {
             var startParagraphOffset = new ParagraphCharOffset(dirtyParagraphOffset);
 
@@ -1037,7 +1086,7 @@ abstract class ArrangingLayoutProvider
         ParagraphCharOffset startParagraphOffset);
 
     /// <summary>
-    /// 测量空段的行高
+    /// 测量空段的行高，包括空行的高度，包括行距，不包含段前和段后距离
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
@@ -1093,7 +1142,7 @@ abstract class ArrangingLayoutProvider
             charInfoMeasureResult = MeasureCharInfo(charInfo);
         }
 
-        return MeasureEmptyParagraphLineHeightCore(charInfoMeasureResult);
+        return MeasureEmptyParagraphLineHeightCore(charInfoMeasureResult, argument);
     }
 
     /// <summary>
@@ -1105,10 +1154,10 @@ abstract class ArrangingLayoutProvider
     /// <summary>
     /// 测量空段的行高
     /// </summary>
+    /// <param name="charInfoMeasureResult"></param>
     /// <param name="argument"></param>
     /// <returns></returns>
-    protected abstract EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeightCore(
-        in CharInfoMeasureResult argument);
+    protected abstract EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeightCore(in CharInfoMeasureResult charInfoMeasureResult, in EmptyParagraphLineHeightMeasureArgument argument);
 
     /// <summary>
     /// 获取下一段的首行起始点

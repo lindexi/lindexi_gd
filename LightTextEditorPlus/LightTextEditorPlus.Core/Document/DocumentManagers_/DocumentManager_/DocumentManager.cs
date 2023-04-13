@@ -640,8 +640,10 @@ namespace LightTextEditorPlus.Core.Document
             InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
             // 这里只处理数据变更，后续渲染需要通过 InternalDocumentChanged 事件触发
 
+            // 替换文本
             ReplaceCore(selection, run);
 
+            // 修改光标
             var addCharCount = run?.CharCount ?? 0;
             var caretOffset = selection.FrontOffset.Offset + addCharCount;
             // 是否更改了文本内容。也就是有添加或者有删除。有添加则 addCharCount != 0 成立。有删除 selection.Length > 0 成立
@@ -657,10 +659,11 @@ namespace LightTextEditorPlus.Core.Document
                 // 考虑选中删除的情况，此时不应该修改光标
             }
 
+            // 触发事件。触发事件将用来执行重新排版
             InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        private bool IsEndWithBreakLine(IImmutableRunList? runList)
+        private static bool IsEndWithBreakLine(IImmutableRunList? runList)
         {
             if (runList is null || runList.RunCount==0)
             {
