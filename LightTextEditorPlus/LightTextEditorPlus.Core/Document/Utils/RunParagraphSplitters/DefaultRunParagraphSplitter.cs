@@ -61,7 +61,11 @@ internal class DefaultRunParagraphSplitter : IRunParagraphSplitter
         for (int i = 0; i < text.Length; i++)
         {
             var currentChar = text[i];
-            if (currentChar is '\r' or '\n')
+            // 是否 \r 字符
+            bool isCr = currentChar == '\r';
+            // 是否 \n 字符
+            bool isLf = !isCr && currentChar == '\n';
+            if (isCr || isLf)
             {
                 if (position == i)
                 {
@@ -75,7 +79,8 @@ internal class DefaultRunParagraphSplitter : IRunParagraphSplitter
                     endWithBreakLine = true;
                 }
 
-                if (i != text.Length - 1)
+                // 如果是 \r 情况下，读取下一个字符，判断是否 \n 字符
+                if (isCr && i != text.Length - 1)
                 {
                     var nextChar = text[i + 1];
                     if (nextChar is '\n')
@@ -98,7 +103,6 @@ internal class DefaultRunParagraphSplitter : IRunParagraphSplitter
 
             var length = text.Length - position;
             yield return new SplitTextResult(position, length);
-            //yield return text.Substring(position, length);
         }
 
         if (endWithBreakLine)

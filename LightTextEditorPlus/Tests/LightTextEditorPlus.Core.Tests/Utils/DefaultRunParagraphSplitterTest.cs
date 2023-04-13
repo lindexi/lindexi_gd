@@ -10,6 +10,20 @@ public class DefaultRunParagraphSplitterTest
     [ContractTestCase]
     public void Split()
     {
+        "传入文本中间包含两个换行符，可以输出为三段".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            var splitter = textEditorCore.PlatformProvider.GetRunParagraphSplitter();
+
+            // Action
+            var textRun = new TextRun("a\r\n\r\nb");
+            var result = splitter.Split(textRun).ToList();
+
+            // Assert
+            Assert.AreEqual(3, result.Count);
+        });
+
         "只传入一个换行符，只会返回一次空段".Test(() =>
         {
             // Arrange
