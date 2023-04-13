@@ -1016,63 +1016,28 @@ abstract class ArrangingLayoutProvider
 
         // 不需要通过如此复杂的逻辑获取有哪些，因为存在的坑在于后续分拆 IImmutableRun 逻辑将会复杂
         //paragraph.GetRunRange(dirtyParagraphOffset);
+        
+        var startParagraphOffset = new ParagraphCharOffset(dirtyParagraphOffset);
 
-        //// 段落布局规则：
-        //// 1. 先判断是不是空段，空段的意思是这一段里没有任何字符。如果是空段，则进行空段高度测量计算
-        //// 2. 非空段情况下，进入具体的排版测量，如横排和竖排文本的段落测量方法进行测量排版
-        //if (paragraph.CharCount == 0)
-        //{
-        //    // 考虑 paragraph.TextRunList 数量为空的情况，只有一个换行的情况
-        //    // 使用空行测量器，测量空行高度
-        //    var emptyParagraphLineHeightMeasureArgument =
-        //        new EmptyParagraphLineHeightMeasureArgument(argument.ParagraphData.ParagraphProperty);
-
-        //    var result = MeasureEmptyParagraphLineHeight(emptyParagraphLineHeightMeasureArgument);
-
-        //    // 加上空行
-        //    Debug.Assert(paragraph.LineLayoutDataList.Count == 0, "空段布局时，一定不存在任何一行");
-        //    var lineLayoutData = new LineLayoutData(paragraph)
-        //    {
-        //        CharStartParagraphIndex = 0,
-        //        CharEndParagraphIndex = 0,
-        //        StartPoint = argument.CurrentStartPoint,
-        //        Size = result.ParagraphBounds.Size
-        //    };
-        //    paragraph.LineLayoutDataList.Add(lineLayoutData);
-
-        //    // 只有一行，那就不遍历了
-        //    argument.ParagraphData.ParagraphLayoutData.StartPoint = lineLayoutData.StartPoint;
-        //    argument.ParagraphData.ParagraphLayoutData.Size = lineLayoutData.Size;
-
-        //    // 设置当前段落已经布局完成
-        //    paragraph.SetFinishLayout();
-
-        //    return new ParagraphLayoutResult(result.NextLineStartPoint);
-        //}
-        //else
-        {
-            var startParagraphOffset = new ParagraphCharOffset(dirtyParagraphOffset);
-
-            var result = LayoutParagraphCore(argument, startParagraphOffset);
+        var result = LayoutParagraphCore(argument, startParagraphOffset);
 
 #if DEBUG
-            // 排版的结果如何？通过段落里面的每一行的信息，可以了解
-            var lineVisualDataList = paragraph.LineLayoutDataList;
-            foreach (var lineLayoutData in lineVisualDataList)
+        // 排版的结果如何？通过段落里面的每一行的信息，可以了解
+        var lineVisualDataList = paragraph.LineLayoutDataList;
+        foreach (var lineLayoutData in lineVisualDataList)
+        {
+            // 每一行有多少个字符，字符的坐标
+            var charList = lineLayoutData.GetCharList();
+            foreach (var charData in charList)
             {
-                // 每一行有多少个字符，字符的坐标
-                var charList = lineLayoutData.GetCharList();
-                foreach (var charData in charList)
-                {
-                    // 字符的坐标是多少
-                    var startPoint = charData.GetStartPoint();
-                    _ = startPoint;
-                }
+                // 字符的坐标是多少
+                var startPoint = charData.GetStartPoint();
+                _ = startPoint;
             }
+        }
 #endif
 
-            return result;
-        }
+        return result;
     }
 
     /// <summary>
