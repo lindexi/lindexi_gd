@@ -406,6 +406,16 @@ abstract class ArrangingLayoutProvider
     }
 
     /// <summary>
+    /// 获取下一段的首行起始点
+    /// </summary>
+    /// <param name="paragraphData"></param>
+    /// <returns></returns>
+    /// 对于横排来说，是往下排。对于竖排来说，也许是往左也许是往右排
+    protected abstract Point GetNextParagraphLineStartPoint(ParagraphData paragraphData);
+
+    #region 行距
+
+    /// <summary>
     /// 行距计算参数
     /// </summary>
     protected readonly record struct LineSpacingCalculateArgument(int ParagraphIndex, int LineIndex, ParagraphProperty ParagraphProperty, IReadOnlyRunProperty MaxFontSizeCharRunProperty);
@@ -461,13 +471,7 @@ abstract class ArrangingLayoutProvider
         return new LineSpacingCalculateResult(ShouldUseCharLineHeight: false, lineHeight);
     }
 
-    /// <summary>
-    /// 获取下一段的首行起始点
-    /// </summary>
-    /// <param name="paragraphData"></param>
-    /// <returns></returns>
-    /// 对于横排来说，是往下排。对于竖排来说，也许是往左也许是往右排
-    protected abstract Point GetNextParagraphLineStartPoint(ParagraphData paragraphData);
+    #endregion
 
     #region 通用辅助方法
 
