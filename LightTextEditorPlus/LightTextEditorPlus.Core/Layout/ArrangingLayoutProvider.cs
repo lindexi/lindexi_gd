@@ -386,8 +386,7 @@ abstract class ArrangingLayoutProvider
     /// <returns></returns>
     private CharInfoMeasureResult MeasureEmptyParagraphLineSize(IReadOnlyRunProperty runProperty)
     {
-        _emptyParagraphLineHeightMeasureCharObject ??= new SingleCharObject(TextContext.DefaultChar);
-        var singleCharObject = _emptyParagraphLineHeightMeasureCharObject;
+        var singleCharObject = new SingleCharObject(TextContext.DefaultChar);
         var charInfo = new CharInfo(singleCharObject, runProperty);
 
         var charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
