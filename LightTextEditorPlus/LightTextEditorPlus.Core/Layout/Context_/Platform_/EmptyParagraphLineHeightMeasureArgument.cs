@@ -6,6 +6,6 @@ namespace LightTextEditorPlus.Core.Layout;
 /// 空段的行高测量参数
 /// </summary>
 /// <param name="ParagraphProperty"></param>
-public readonly record struct EmptyParagraphLineHeightMeasureArgument(ParagraphProperty ParagraphProperty)
+public readonly record struct EmptyParagraphLineHeightMeasureArgument(ParagraphProperty ParagraphProperty,int ParagraphIndex)
 {
 }
