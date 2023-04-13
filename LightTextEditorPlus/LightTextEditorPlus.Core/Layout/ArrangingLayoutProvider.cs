@@ -4,6 +4,7 @@ using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
+using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils;
 
@@ -356,27 +357,35 @@ abstract class ArrangingLayoutProvider
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
-    protected EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeight(EmptyParagraphLineHeightMeasureArgument argument)
+    protected EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeight(in EmptyParagraphLineHeightMeasureArgument argument)
     {
-        var paragraphProperty = argument.ParagraphProperty;
-
-        var runProperty = paragraphProperty.ParagraphStartRunProperty;
-        runProperty ??= TextEditor.DocumentManager.CurrentRunProperty;
-
-        var lineSpacingCalculateArgument =
-            new LineSpacingCalculateArgument(argument.ParagraphIndex, 0, paragraphProperty, runProperty);
-        var lineSpacingCalculateResult = CalculateLineSpacing(lineSpacingCalculateArgument);
-        double lineHeight = lineSpacingCalculateResult.TotalLineHeight;
-        if (lineSpacingCalculateResult.ShouldUseCharLineHeight)
+        var emptyParagraphLineHeightMeasurer = TextEditor.PlatformProvider.GetEmptyParagraphLineHeightMeasurer();
+        if (emptyParagraphLineHeightMeasurer != null)
         {
-            // 如果需要使用文本高度，那么进行
-            // 测量空行文本
-            CharInfoMeasureResult charInfoMeasureResult= MeasureEmptyParagraphLineSize(runProperty);
-
-            lineHeight = charInfoMeasureResult.Bounds.Height;
+            return emptyParagraphLineHeightMeasurer.MeasureEmptyParagraphLineHeight(argument);
         }
+        else
+        {
+            var paragraphProperty = argument.ParagraphProperty;
 
-        return new EmptyParagraphLineHeightMeasureResult(lineHeight);
+            var runProperty = paragraphProperty.ParagraphStartRunProperty;
+            runProperty ??= TextEditor.DocumentManager.CurrentRunProperty;
+
+            var lineSpacingCalculateArgument =
+                new LineSpacingCalculateArgument(argument.ParagraphIndex, 0, paragraphProperty, runProperty);
+            var lineSpacingCalculateResult = CalculateLineSpacing(lineSpacingCalculateArgument);
+            double lineHeight = lineSpacingCalculateResult.TotalLineHeight;
+            if (lineSpacingCalculateResult.ShouldUseCharLineHeight)
+            {
+                // 如果需要使用文本高度，那么进行
+                // 测量空行文本
+                CharInfoMeasureResult charInfoMeasureResult = MeasureEmptyParagraphLineSize(runProperty);
+
+                lineHeight = charInfoMeasureResult.Bounds.Height;
+            }
+
+            return new EmptyParagraphLineHeightMeasureResult(lineHeight);
+        }
     }
 
     /// <summary>
