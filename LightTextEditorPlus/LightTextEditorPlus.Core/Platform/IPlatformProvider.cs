@@ -94,5 +94,9 @@ public interface IPlatformProvider
     /// <returns></returns>
     double GetFontLineSpacing(IReadOnlyRunProperty runProperty);
 
-
+    /// <summary>
+    /// 获取行距计算
+    /// </summary>
+    /// <returns></returns>
+    ILineSpacingCalculator? GetLineSpacingCalculator();
 }

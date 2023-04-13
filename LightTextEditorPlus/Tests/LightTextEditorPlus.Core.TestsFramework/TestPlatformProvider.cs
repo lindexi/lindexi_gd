@@ -33,4 +33,11 @@ public class TestPlatformProvider : PlatformProvider
     }
 
     public ITextLogger? TextLogger { set; get; }
+
+    public override ILineSpacingCalculator? GetLineSpacingCalculator()
+    {
+        return LineSpacingCalculator ?? base.GetLineSpacingCalculator();
+    }
+
+    public ILineSpacingCalculator? LineSpacingCalculator { set; get; }
 }

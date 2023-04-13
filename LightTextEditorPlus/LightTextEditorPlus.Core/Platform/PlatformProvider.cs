@@ -97,4 +97,10 @@ public abstract class PlatformProvider : IPlatformProvider
     {
         return null;
     }
+
+    /// <inheritdoc />
+    public virtual ILineSpacingCalculator? GetLineSpacingCalculator()
+    {
+        return null;
+    }
 }

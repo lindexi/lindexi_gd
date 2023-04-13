@@ -12,4 +12,10 @@ public static class TestPlatformProviderExtension
         provider.CharInfoMeasurer = new FixedCharSizeCharInfoMeasurer();
         return provider;
     }
+
+    public static TestPlatformProvider UseFakeLineSpacingCalculator(this TestPlatformProvider provider)
+    {
+        provider.LineSpacingCalculator = new FakeLineSpacingCalculator();
+        return provider;
+    }
 }

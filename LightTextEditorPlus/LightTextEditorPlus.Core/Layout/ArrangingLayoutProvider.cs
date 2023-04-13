@@ -4,7 +4,6 @@ using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
-using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils;
 
@@ -431,6 +430,15 @@ abstract class ArrangingLayoutProvider
     /// <returns></returns>
     protected LineSpacingCalculateResult CalculateLineSpacing(in LineSpacingCalculateArgument argument)
     {
+        var lineSpacingCalculator = TextEditor.PlatformProvider.GetLineSpacingCalculator();
+
+        if (lineSpacingCalculator != null)
+        {
+            return lineSpacingCalculator.CalculateLineSpacing(argument);
+        }
+
+        // 没有注入平台相关的行距计算器的情况下，以下是默认逻辑
+
         ParagraphProperty paragraphProperty = argument.ParagraphProperty;
 
         double lineHeight;
