@@ -326,11 +326,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     }
 
     /// <summary>
-    /// 
+    /// 布局一行的结果
     /// </summary>
     /// <param name="CurrentLineCharSize"></param>
     /// <param name="WholeCharCount"></param>
-    /// <param name="LineSize"></param>
     readonly record struct WholeLineCharsLayoutResult(Size CurrentLineCharSize, int WholeCharCount);
 
     /// <summary>
