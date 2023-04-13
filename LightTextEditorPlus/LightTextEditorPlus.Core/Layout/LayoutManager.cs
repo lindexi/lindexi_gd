@@ -327,6 +327,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         var lineSpacingCalculateArgument = new LineSpacingCalculateArgument(argument.ParagraphIndex,argument.LineIndex,argument.ParagraphProperty,maxFontSizeCharRunProperty);
         LineSpacingCalculateResult lineSpacingCalculateResult = CalculateLineSpacing(lineSpacingCalculateArgument);
         double lineHeight = lineSpacingCalculateResult.TotalLineHeight;
+        if (lineSpacingCalculateResult.ShouldUseCharLineHeight)
+        {
+            lineHeight = currentSize.Height;
+        }
 
         // todo 这里需要处理段距
         var lineTop = currentStartPoint.Y;
@@ -1049,6 +1053,27 @@ abstract class ArrangingLayoutProvider
     /// <returns></returns>
     protected abstract ParagraphLayoutResult LayoutParagraphCore(ParagraphLayoutArgument paragraph,
         ParagraphCharOffset startParagraphOffset);
+
+    protected CharInfoMeasureResult MeasureEmptyParagraphLineSize(IReadOnlyRunProperty runProperty)
+    {
+        var singleCharObject = new SingleCharObject(TextContext.DefaultChar);
+        var charInfo = new CharInfo(singleCharObject, runProperty);
+
+        var charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
+
+        CharInfoMeasureResult charInfoMeasureResult;
+        if (charInfoMeasurer != null)
+        {
+            // 测量空行高度
+            charInfoMeasureResult = charInfoMeasurer.MeasureCharInfo(charInfo);
+        }
+        else
+        {
+            charInfoMeasureResult = MeasureCharInfo(charInfo);
+        }
+
+        return charInfoMeasureResult;
+    }
 
     /// <summary>
     /// 测量空段的行高，包括空行的高度，包括行距，不包含段前和段后距离
