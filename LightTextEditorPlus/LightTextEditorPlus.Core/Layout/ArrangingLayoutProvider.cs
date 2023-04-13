@@ -462,20 +462,6 @@ abstract class ArrangingLayoutProvider
     }
 
     /// <summary>
-    /// 用来做空行高度测量的字符
-    /// </summary>
-    /// 这个字符不需要每次都创建，可以缓存起来
-    private SingleCharObject? _emptyParagraphLineHeightMeasureCharObject;
-
-    ///// <summary>
-    ///// 测量空段的行高
-    ///// </summary>
-    ///// <param name="charInfoMeasureResult"></param>
-    ///// <param name="argument"></param>
-    ///// <returns></returns>
-    //protected abstract EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeightCore(in CharInfoMeasureResult charInfoMeasureResult, in EmptyParagraphLineHeightMeasureArgument argument);
-
-    /// <summary>
     /// 获取下一段的首行起始点
     /// </summary>
     /// <param name="paragraphData"></param>
