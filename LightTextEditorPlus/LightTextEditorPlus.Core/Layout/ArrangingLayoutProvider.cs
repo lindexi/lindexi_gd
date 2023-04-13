@@ -425,18 +425,6 @@ abstract class ArrangingLayoutProvider
     #region 行距
 
     /// <summary>
-    /// 行距计算参数
-    /// </summary>
-    protected readonly record struct LineSpacingCalculateArgument(int ParagraphIndex, int LineIndex, ParagraphProperty ParagraphProperty, IReadOnlyRunProperty MaxFontSizeCharRunProperty);
-
-    /// <summary>
-    /// 行距计算结果
-    /// </summary>
-    /// <param name="ShouldUseCharLineHeight">是否应该使用字符的行高</param>
-    /// <param name="TotalLineHeight"></param>
-    protected readonly record struct LineSpacingCalculateResult(bool ShouldUseCharLineHeight, double TotalLineHeight);
-
-    /// <summary>
     /// 计算行距
     /// </summary>
     /// <param name="argument"></param>
