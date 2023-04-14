@@ -202,11 +202,10 @@ internal class DocumentRunEditProvider
             {
                 //paragraphData.InsertRun(insertOffset,subRun);
                 //insertOffset += subRun.Count;
+                isFirstSubRun = false;
             }
 
             currentParagraph.AppendRun(subRun, runProperty);
-
-            isFirstSubRun = false;
         }
 
         return currentParagraph;
