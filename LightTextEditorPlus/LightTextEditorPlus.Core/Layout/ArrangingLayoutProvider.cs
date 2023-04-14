@@ -348,8 +348,8 @@ abstract class ArrangingLayoutProvider
     /// <param name="paragraph"></param>
     /// <param name="startParagraphOffset"></param>
     /// <returns></returns>
-    protected abstract ParagraphLayoutResult LayoutParagraphCore(ParagraphLayoutArgument paragraph,
-        ParagraphCharOffset startParagraphOffset);
+    protected abstract ParagraphLayoutResult LayoutParagraphCore(in ParagraphLayoutArgument paragraph,
+        in ParagraphCharOffset startParagraphOffset);
 
     /// <summary>
     /// 测量空段高度。空段的文本行高度包括行距，不包括段前和段后距离

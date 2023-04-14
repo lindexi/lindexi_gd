@@ -37,6 +37,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         return new ParagraphLayoutResult(currentStartPoint);
     }
 
+    #region LayoutParagraphCore
+
     /// <summary>
     /// 布局段落的核心逻辑
     /// </summary>
@@ -52,17 +54,18 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// 每一行里面，需要对每个 Char 字符进行布局 <see cref="LayoutSingleCharInLine"/>
     /// 每个字符需要调用平台的测量 <see cref="ArrangingLayoutProvider.MeasureCharInfo"/>
     /// </remarks>
-    protected override ParagraphLayoutResult LayoutParagraphCore(ParagraphLayoutArgument argument,
-        ParagraphCharOffset startParagraphOffset)
+    protected override ParagraphLayoutResult LayoutParagraphCore(in ParagraphLayoutArgument argument,
+        in ParagraphCharOffset startParagraphOffset)
     {
         var paragraph = argument.ParagraphData;
         // 先更新非脏的行的坐标
         // 布局左上角坐标
         Point currentStartPoint;
+        // 根据是否存在缓存行决定是否需要计算段前距离
         if (paragraph.LineLayoutDataList.Count == 0)
         {
             // 一行都没有的情况下，需要计算段前距离
-            double paragraphBefore = argument.IsFirstParagraph ? 0 /*首段不加段前距离*/  : argument.ParagraphData.ParagraphProperty.ParagraphBefore;
+            double paragraphBefore = argument.IsFirstParagraph ? 0 /*首段不加段前距离*/  : paragraph.ParagraphProperty.ParagraphBefore;
 
             currentStartPoint = argument.CurrentStartPoint with
             {
@@ -76,6 +79,85 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             currentStartPoint = UpdateParagraphLineLayoutDataStartPoint(argument);
         }
 
+        // 如果是空段的话，那就进行空段布局，否则布局段落里面每一行
+        bool isEmptyParagraph = paragraph.CharCount == 0;
+        if (isEmptyParagraph)
+        {
+            // 空段布局
+            currentStartPoint = LayoutEmptyParagraph(argument, currentStartPoint);
+        }
+        else
+        {
+            // 布局段落里面每一行
+            currentStartPoint = LayoutParagraphLines(argument, startParagraphOffset, currentStartPoint);
+        }
+
+        //// 考虑行复用，例如刚好添加的内容是一行。或者在一行内做文本替换等
+        //// 这个没有啥优先级。测试了 SublimeText 和 NotePad 工具，都没有做此复用，预计有坑
+        
+        // 下一段的距离需要加上段后距离
+        double paragraphAfter =
+            argument.IsLastParagraph ? 0 /*最后一段不加段后距离*/ : paragraph.ParagraphProperty.ParagraphAfter;
+        var nextLineStartPoint = currentStartPoint with
+        {
+            Y = currentStartPoint.Y + paragraphAfter,
+        };
+
+        paragraph.ParagraphLayoutData.StartPoint = argument.ParagraphData.LineLayoutDataList[0].StartPoint;
+        paragraph.ParagraphLayoutData.Size = BuildParagraphSize(argument);
+
+        // 设置当前段落已经布局完成
+        paragraph.SetFinishLayout();
+       
+        return new ParagraphLayoutResult(nextLineStartPoint);
+    }
+
+    /// <summary>
+    /// 布局空段
+    /// </summary>
+    /// <param name="argument"></param>
+    /// <param name="currentStartPoint"></param>
+    /// <returns></returns>
+    private Point LayoutEmptyParagraph(in ParagraphLayoutArgument argument, Point currentStartPoint)
+    {
+        var paragraph = argument.ParagraphData;
+        // 如果是空段的话，如一段只是一个 \n 而已，那就需要执行空段布局逻辑
+        Debug.Assert(paragraph.LineLayoutDataList.Count == 0, "空段布局时一定是一行都不存在");
+        var emptyParagraphLineHeightMeasureResult = MeasureEmptyParagraphLineHeight(
+            new EmptyParagraphLineHeightMeasureArgument(paragraph.ParagraphProperty, argument.ParagraphIndex));
+        double lineHeight = emptyParagraphLineHeightMeasureResult.LineHeight;
+
+        // 加上空行
+        var lineLayoutData = new LineLayoutData(paragraph)
+        {
+            CharStartParagraphIndex = 0,
+            CharEndParagraphIndex = 0,
+            StartPoint = currentStartPoint,
+            Size = new Size(0, lineHeight)
+        };
+        paragraph.LineLayoutDataList.Add(lineLayoutData);
+
+        currentStartPoint = currentStartPoint with
+        {
+            Y = currentStartPoint.Y + lineHeight
+        };
+        return currentStartPoint;
+    }
+
+    /// <summary>
+    /// 布局段落里面的每一行
+    /// </summary>
+    /// <param name="argument"></param>
+    /// <param name="startParagraphOffset"></param>
+    /// <param name="currentStartPoint"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    /// <exception cref="TextEditorDebugException"></exception>
+    /// <exception cref="TextEditorInnerException"></exception>
+    private Point LayoutParagraphLines(in ParagraphLayoutArgument argument, in ParagraphCharOffset startParagraphOffset,
+        Point currentStartPoint)
+    {
+        ParagraphData paragraph= argument.ParagraphData;
         // 获取最大宽度信息
         double lineMaxWidth = TextEditor.SizeToContent switch
         {
@@ -104,7 +186,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
             WholeLineLayoutResult result;
             var wholeRunLineLayoutArgument = new WholeLineLayoutArgument(argument.ParagraphIndex,
-                argument.ParagraphData.LineLayoutDataList.Count, paragraph.ParagraphProperty, charDataList,
+                paragraph.LineLayoutDataList.Count, paragraph.ParagraphProperty, charDataList,
                 lineMaxWidth, currentStartPoint);
             if (wholeRunLineLayouter != null)
             {
@@ -158,48 +240,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             currentStartPoint = GetNextLineStartPoint(currentStartPoint, currentLineLayoutData);
         }
 
-        bool isEmptyParagraph = paragraph.CharCount == 0;
-        if (isEmptyParagraph)
-        {
-            // 如果是空段的话，如一段只是一个 \n 而已，那就需要执行空段布局逻辑
-            Debug.Assert(paragraph.LineLayoutDataList.Count == 0, "空段布局时一定是一行都不存在");
-            var emptyParagraphLineHeightMeasureResult = MeasureEmptyParagraphLineHeight(new EmptyParagraphLineHeightMeasureArgument(paragraph.ParagraphProperty, argument.ParagraphIndex));
-            double lineHeight = emptyParagraphLineHeightMeasureResult.LineHeight;
-
-            // 加上空行
-            var lineLayoutData = new LineLayoutData(paragraph)
-            {
-                CharStartParagraphIndex = 0,
-                CharEndParagraphIndex = 0,
-                StartPoint = currentStartPoint,
-                Size = new Size(0, lineHeight)
-            };
-            paragraph.LineLayoutDataList.Add(lineLayoutData);
-
-            currentStartPoint = currentStartPoint with
-            {
-                Y = currentStartPoint.Y + lineHeight
-            };
-        }
-
-        //// 考虑行复用，例如刚好添加的内容是一行。或者在一行内做文本替换等
-        //// 这个没有啥优先级。测试了 SublimeText 和 NotePad 工具，都没有做此复用，预计有坑
-
-        argument.ParagraphData.ParagraphLayoutData.StartPoint = argument.ParagraphData.LineLayoutDataList[0].StartPoint;
-        argument.ParagraphData.ParagraphLayoutData.Size = BuildParagraphSize(argument);
-
-        // 设置当前段落已经布局完成
-        paragraph.SetFinishLayout();
-
-        // 下一段的距离需要加上段后距离
-        double paragraphAfter =
-            argument.IsLastParagraph ? 0 /*最后一段不加段后距离*/ : paragraph.ParagraphProperty.ParagraphAfter;
-        var nextLineStartPoint = currentStartPoint with
-        {
-            Y = currentStartPoint.Y + paragraphAfter,
-        };
-        return new ParagraphLayoutResult(nextLineStartPoint);
+        return currentStartPoint;
     }
+
+    #endregion
 
     #region LayoutWholeLine 布局一行的字符
 
