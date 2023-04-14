@@ -13,4 +13,13 @@ namespace LightTextEditorPlus.Core.Layout;
 /// <param name="ParagraphList">文档的所有段落</param>
 readonly record struct ParagraphLayoutArgument(int ParagraphIndex, Point CurrentStartPoint, ParagraphData ParagraphData, IReadOnlyList<ParagraphData> ParagraphList)
 {
+    /// <summary>
+    /// 是否首段
+    /// </summary>
+    public bool IsFirstParagraph => ParagraphIndex == 0;
+
+    /// <summary>
+    /// 是否末段
+    /// </summary>
+    public bool IsLastParagraph => ParagraphIndex == ParagraphList.Count - 1;
 }

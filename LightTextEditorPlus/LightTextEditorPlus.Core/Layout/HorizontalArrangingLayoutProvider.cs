@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
@@ -61,9 +62,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         if (paragraph.LineLayoutDataList.Count == 0)
         {
             // 一行都没有的情况下，需要计算段前距离
+            double paragraphBefore = argument.IsFirstParagraph ? 0 /*首段不加段前距离*/  : argument.ParagraphData.ParagraphProperty.ParagraphBefore;
+
             currentStartPoint = argument.CurrentStartPoint with
             {
-                Y = argument.CurrentStartPoint.Y + argument.ParagraphData.ParagraphProperty.ParagraphBefore
+                Y = argument.CurrentStartPoint.Y + paragraphBefore
             };
         }
         else
@@ -189,9 +192,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         paragraph.SetFinishLayout();
 
         // 下一段的距离需要加上段后距离
+        double paragraphAfter =
+            argument.IsLastParagraph ? 0 /*最后一段不加段后距离*/ : paragraph.ParagraphProperty.ParagraphAfter;
         var nextLineStartPoint = currentStartPoint with
         {
-            Y = currentStartPoint.Y + paragraph.ParagraphProperty.ParagraphAfter,
+            Y = currentStartPoint.Y + paragraphAfter,
         };
         return new ParagraphLayoutResult(nextLineStartPoint);
     }
@@ -231,7 +236,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         IReadOnlyRunProperty maxFontSizeCharRunProperty = GetMaxFontSizeCharRunProperty(charDataList.Slice(0, wholeCharCount));
 
         // 处理行距
-        var lineSpacingCalculateArgument = new LineSpacingCalculateArgument(argument.ParagraphIndex,argument.LineIndex,argument.ParagraphProperty,maxFontSizeCharRunProperty);
+        var lineSpacingCalculateArgument = new LineSpacingCalculateArgument(argument.ParagraphIndex, argument.LineIndex, argument.ParagraphProperty, maxFontSizeCharRunProperty);
         LineSpacingCalculateResult lineSpacingCalculateResult = CalculateLineSpacing(lineSpacingCalculateArgument);
         double lineHeight = lineSpacingCalculateResult.TotalLineHeight;
         if (lineSpacingCalculateResult.ShouldUseCharLineHeight)
