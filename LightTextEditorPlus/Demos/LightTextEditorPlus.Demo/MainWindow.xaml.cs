@@ -34,14 +34,6 @@ namespace LightTextEditorPlus.Demo
 
         private async void DebugButton_OnClick(object sender, RoutedEventArgs e)
         {
-            string text = "a";
-            for (int i = 0; i < 1000; i++)
-            {
-                text += (char) 0x315;
-            }
-            TextEditor.TextEditorCore.AppendText(text);
-            return;
-
 #pragma warning disable CS0618
             TextEditor.TextEditorCore.Clear();
 
