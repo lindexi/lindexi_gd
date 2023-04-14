@@ -171,7 +171,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             {
                 CharStartParagraphIndex = 0,
                 CharEndParagraphIndex = 0,
-                StartPoint = argument.CurrentStartPoint,
+                StartPoint = currentStartPoint,
                 Size = new Size(0, lineHeight)
             };
             paragraph.LineLayoutDataList.Add(lineLayoutData);

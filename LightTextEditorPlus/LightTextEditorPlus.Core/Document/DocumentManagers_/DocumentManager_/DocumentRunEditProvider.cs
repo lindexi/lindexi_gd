@@ -194,6 +194,10 @@ internal class DocumentRunEditProvider
                 var newParagraph =
                     ParagraphManager.CreateParagraphAndInsertAfter(currentParagraph, paragraphStartRunProperty);
 
+                // todo 设置最后一行是脏的
+                // 当前是设置整个段落是脏的
+                currentParagraph.SetDirty();
+
                 currentParagraph = newParagraph;
 
                 //insertOffset = ParagraphManager.GetParagraphStartDocumentOffset(currentParagraph);
