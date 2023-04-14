@@ -132,7 +132,9 @@ public class TextEditorAppendTest
                 	LightTextEditorPlus.Core.dll!LightTextEditorPlus.Core.Document.DocumentManager.AppendText(string text) 行 250	C#
                 	LightTextEditorPlus.Core.dll!LightTextEditorPlus.Core.TextEditorCore.AppendText(string text) 行 14	C#
              */
-            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider()).UseFixedLineSpacing();
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider())
+                // 固定行距，这样比较好计算
+                .UseFixedLineSpacing();
 
             // Action
             textEditorCore.AppendText("a\r\n\r\nb");

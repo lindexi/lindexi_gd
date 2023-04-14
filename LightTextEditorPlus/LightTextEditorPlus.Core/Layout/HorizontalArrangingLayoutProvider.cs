@@ -244,7 +244,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             lineHeight = currentSize.Height;
         }
 
-        // todo 这里需要处理段距
         var lineTop = currentStartPoint.Y;
         var currentX = 0d;
         for (var i = 0; i < wholeCharCount; i++)

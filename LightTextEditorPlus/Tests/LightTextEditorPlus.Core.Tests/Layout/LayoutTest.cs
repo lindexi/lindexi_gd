@@ -1,6 +1,8 @@
 ﻿using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Exceptions;
+using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.TestsFramework;
 
 using MSTest.Extensions.Contracts;
@@ -100,6 +102,119 @@ public class LayoutTest
             var paragraphLineList2 = nextParagraphRenderInfoList[1].GetLineRenderInfoList().ToList();
             Assert.AreEqual(1, paragraphLineList2.Count);
             Assert.AreEqual("b", paragraphLineList2[0].Argument.CharList[0].CharObject.ToText());
+        });
+    }
+
+    [ContractTestCase]
+    public void TestParagraphBefore()
+    {
+        "文本包含段前段后距离，可以给文本计算入段前段后距离".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider())
+                // 固定行距，用于减少行距影响，只测试段落前后距离
+                .UseFixedLineSpacing();
+
+            // Action
+            var paragraphProperty = textEditorCore.DocumentManager.GetParagraphProperty(0);
+            textEditorCore.DocumentManager.SetParagraphProperty(0, paragraphProperty with
+            {
+                // 随便定义两个距离，又刚好不是整数，方便测试
+                ParagraphBefore = 21,
+                ParagraphAfter = 22
+            });
+
+            textEditorCore.AppendText("a\nb");
+
+            // Assert
+            // 加入有两段，那么总尺寸应该是，根据首段不加段前，末段不加段后
+            // a
+            // \nb
+            // 文档尺寸 = a 字符高度 15 + a 段后 22 + b 段前 21 + b 字符高度 15
+            Rect documentLayoutBounds = textEditorCore.GetDocumentLayoutBounds();
+            Assert.AreEqual(15 + 22 + 21 + 15, documentLayoutBounds.Height);
+        });
+    }
+
+    [ContractTestCase]
+    public void TestEmptyParagraph()
+    {
+        "空段文本包含段前段后距离，可以给空段文本计算入段前段后距离".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider())
+                // 固定行距，用于减少行距影响，只测试段落前后距离
+                .UseFixedLineSpacing();
+
+            // Action
+            var paragraphProperty = textEditorCore.DocumentManager.GetParagraphProperty(0);
+            textEditorCore.DocumentManager.SetParagraphProperty(0, paragraphProperty with
+            {
+                // 随便定义两个距离，又刚好不是整数，方便测试
+                ParagraphBefore = 21,
+                ParagraphAfter = 22
+            });
+
+            textEditorCore.AppendText("a\n\nb");
+
+            // Assert
+            // 加入有两段，那么总尺寸应该是，根据首段不加段前，末段不加段后
+            // a
+            // \n
+            // \nb
+            // 文档尺寸 = a 字符高度 15 + a 段后 21 + 空段段前 21 + 空段高度 15 + 空段段后 22 + b 段前 22 + b 字符高度 15
+            Rect documentLayoutBounds = textEditorCore.GetDocumentLayoutBounds();
+            Assert.AreEqual(15 + 22 + 21 + 15 + 22 + 21 + 15, documentLayoutBounds.Height);
+        });
+
+        "空段文本包含段后距离，可以给空段文本计算入段后距离".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider())
+                // 固定行距，用于减少行距影响，只测试段落前后距离
+                .UseFixedLineSpacing();
+
+            // Action
+            var paragraphProperty = textEditorCore.DocumentManager.GetParagraphProperty(0);
+            textEditorCore.DocumentManager.SetParagraphProperty(0, paragraphProperty with
+            {
+                // 随便定义两个距离，又刚好不是整数，方便测试
+                ParagraphBefore = 5,
+                ParagraphAfter = 22
+            });
+
+            // 空段放在首段，根据首段不计算段前距离，即可让段落只计算段后距离
+            textEditorCore.AppendText("\na");
+
+            // Assert
+            // 文档尺寸 = 空段高度 15 + 空段段后 22 + a段前 5 + a段高度 15
+            Rect documentLayoutBounds = textEditorCore.GetDocumentLayoutBounds();
+            Assert.AreEqual(15 + 22 + 5 + 15, documentLayoutBounds.Height);
+        });
+
+        "空段文本包含段前距离，可以给空段文本计算入段前距离".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider())
+                // 固定行距，用于减少行距影响，只测试段落前后距离
+                .UseFixedLineSpacing();
+
+            // Action
+            var paragraphProperty = textEditorCore.DocumentManager.GetParagraphProperty(0);
+            textEditorCore.DocumentManager.SetParagraphProperty(0, paragraphProperty with
+            {
+                // 随便定义两个距离，又刚好不是整数，方便测试
+                ParagraphBefore = 5,
+                ParagraphAfter = 22
+            });
+
+            // 空段放在末段，根据末段不计算段末距离，即可让段落只计算段前距离
+            textEditorCore.AppendText("a\n");
+
+            // Assert
+            // 文档尺寸 = a段高度 15 + a段段后 22 + 空段前 5 + 空段高度 15
+            Rect documentLayoutBounds = textEditorCore.GetDocumentLayoutBounds();
+            Assert.AreEqual(15 + 22 + 5 + 15, documentLayoutBounds.Height);
         });
     }
 }
