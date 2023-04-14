@@ -116,6 +116,20 @@ public class TextEditorAppendTest
     [ContractTestCase]
     public void AppendBreakParagraph()
     {
+        "给空文本追加 \\n1 字符串，文本创建两段".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider())
+                // 固定行距，这样比较好计算
+                .UseFixedLineSpacing();
+
+            // Action
+            textEditorCore.AppendText("\n1");
+
+            // Assert
+            Assert.AreEqual(2, textEditorCore.DocumentManager.ParagraphManager.GetParagraphList().Count);
+        });
+
         "在包含空段的文本追加字符串，如 a\\r\\n\\r\\nb 再追加 c 字符，文本可以布局多段".Test(() =>
         {
             // Arrange
@@ -141,6 +155,7 @@ public class TextEditorAppendTest
             textEditorCore.AppendText("c");
 
             // 没有抛出异常就是符合预期
+            // Assert
 
             //a
             //\n
@@ -180,6 +195,7 @@ public class TextEditorAppendTest
             textEditorCore.AppendText("a");
             // 没有抛出异常就是符合预期
 
+            // Assert
             // 文本的样子是：
             //  -
             // | |
