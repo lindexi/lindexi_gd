@@ -163,12 +163,6 @@ public static class RegexPatterns
     //    );
 
     /// <summary>
-    /// todo 删除
-    /// </summary>
-    [Obsolete("定义有问题，请使用 Ascii 属性")]
-    public const string English = Ascii;
-
-    /// <summary>
     /// 所有ASCII字符
     /// </summary>
     public const string Ascii = "[\x00-\xff]";
