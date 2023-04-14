@@ -165,6 +165,7 @@ class ParagraphManager
 
     public ParagraphData GetParagraph(int index)
     {
+        EnsureFirstParagraphExists();
         var list = ParagraphList;
         if (index >= list.Count)
         {
