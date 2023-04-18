@@ -45,7 +45,7 @@ public partial class MainWindow : Window
             var value = inkAnalysisInkDrawing?.DrawingKind;
             if (value == InkAnalysisDrawingKind.Triangle)
             {
-
+                MessageBox.Show("xx");
             }
         }
     }
