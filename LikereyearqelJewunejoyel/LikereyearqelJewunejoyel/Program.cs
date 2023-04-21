@@ -63,7 +63,10 @@ internal class Program
         var application = new Application();
         application.Startup += (sender, eventArgs) =>
         {
-            var window = new Window();
+            var window = new Window()
+            {
+                WindowState = WindowState.Maximized
+            };
 
             var textBox = new TextBox()
             {
@@ -79,6 +82,8 @@ internal class Program
                 var point = stylusPoint.First();
 
                 var pointToScreen = window.PointToScreen(point.ToPoint());
+                pointToScreen = point.ToPoint();
+
                 var xStylusPointPropertyInfo = point.Description.GetPropertyInfo(StylusPointProperties.X);
                 var yStylusPointPropertyInfo = point.Description.GetPropertyInfo(StylusPointProperties.Y);
 
@@ -115,17 +120,9 @@ internal class Program
                 }
             };
 
-            window.TouchDown += (o, touchEventArgs) =>
-            {
-                var touchPoint = touchEventArgs.GetTouchPoint(null);
-            };
-
             window.Show();
         };
         application.Run();
-
-
-
     }
 
     private static void ParseProperty(in POINTER_DEVICE_PROPERTY prop, StringBuilder stringBuilder)
