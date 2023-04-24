@@ -23,6 +23,18 @@ internal class KeyboardHandler
             MoveCaret(CaretMoveType.LeftByCharacter)));
         _textArea.InputBindings.Add(new KeyBinding(EditingCommands.MoveLeftByCharacter, Key.Left, ModifierKeys.None));
 
+        _textArea.CommandBindings.Add(new CommandBinding(EditingCommands.MoveRightByCharacter,
+            MoveCaret(CaretMoveType.RightByCharacter)));
+        _textArea.InputBindings.Add(new KeyBinding(EditingCommands.MoveLeftByCharacter, Key.Right, ModifierKeys.None));
+
+        _textArea.CommandBindings.Add(new CommandBinding(EditingCommands.MoveUpByLine,
+            MoveCaret(CaretMoveType.Up)));
+        _textArea.InputBindings.Add(new KeyBinding(EditingCommands.MoveUpByLine, Key.Up, ModifierKeys.None));
+
+        _textArea.CommandBindings.Add(new CommandBinding(EditingCommands.MoveDownByLine,
+            MoveCaret(CaretMoveType.Down)));
+        _textArea.InputBindings.Add(new KeyBinding(EditingCommands.MoveDownByLine, Key.Down, ModifierKeys.None));
+
         //编辑
         _textArea.CommandBindings.Add(new CommandBinding(EditingCommands.Backspace, OnBackspace));
         _textArea.CommandBindings.Add(new CommandBinding(EditingCommands.Delete, OnDelete));
@@ -48,6 +60,7 @@ internal class KeyboardHandler
     {
         return (o, args) =>
         {
+            //var textEditor = (TextEditor)args.Source; // 就是从 TextEditor 订阅的
             MoveCaretInner(moveType);
         };
     }
