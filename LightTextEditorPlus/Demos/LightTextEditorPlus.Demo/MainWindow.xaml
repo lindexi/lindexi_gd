@@ -37,6 +37,7 @@
                     <Button Margin="5,0,0,0" Click="DebugButton_OnClick">调试</Button>
                 </StackPanel>
             </Grid>
+            <MediaElement x:Name="MediaElement"></MediaElement>
         </Grid>
 
         <Grid Grid.Column="1">
