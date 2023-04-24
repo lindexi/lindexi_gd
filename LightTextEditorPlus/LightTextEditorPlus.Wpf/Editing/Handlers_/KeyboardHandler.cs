@@ -28,11 +28,11 @@ internal class KeyboardHandler
         _textArea.InputBindings.Add(new KeyBinding(EditingCommands.MoveRightByCharacter, Key.Right, ModifierKeys.None));
 
         _textArea.CommandBindings.Add(new CommandBinding(EditingCommands.MoveUpByLine,
-            MoveCaret(CaretMoveType.Up)));
+            MoveCaret(CaretMoveType.UpByLine)));
         _textArea.InputBindings.Add(new KeyBinding(EditingCommands.MoveUpByLine, Key.Up, ModifierKeys.None));
 
         _textArea.CommandBindings.Add(new CommandBinding(EditingCommands.MoveDownByLine,
-            MoveCaret(CaretMoveType.Down)));
+            MoveCaret(CaretMoveType.DownByLine)));
         _textArea.InputBindings.Add(new KeyBinding(EditingCommands.MoveDownByLine, Key.Down, ModifierKeys.None));
 
         //编辑
