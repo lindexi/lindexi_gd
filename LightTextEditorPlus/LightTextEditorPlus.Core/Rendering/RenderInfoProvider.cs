@@ -119,7 +119,7 @@ public class RenderInfoProvider
         {
             var lineLayoutData = paragraphData.LineLayoutDataList[lineIndex];
 
-            if (lineLayoutData.CharEndParagraphIndex >= hitOffset.Offset)
+            if (lineLayoutData.CharEndParagraphIndex > hitOffset.Offset)
             {
                 var hitLineOffset = hitOffset.Offset - lineLayoutData.CharStartParagraphIndex;
 
