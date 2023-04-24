@@ -115,7 +115,35 @@ public partial class TextEditorCore
 
     private CaretOffset GetPreviousLineCaretOffset()
     {
-        throw new NotImplementedException();
+        // 先获取当前光标是在这一行的哪里，接着将其对应到上一行
+        var currentCaretOffset = CaretManager.CurrentCaretOffset;
+        var renderInfoProvider = GetRenderInfo();
+        var caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(currentCaretOffset);
+
+        // 如果是首段首行，那就啥都不更新
+        if (caretRenderInfo.LineIndex == 0 && caretRenderInfo.ParagraphIndex == 0)
+        {
+            return currentCaretOffset;
+        }
+
+        if (caretRenderInfo.LineIndex > 0)
+        {
+            // 这是段落里面的一行，且存在上一行
+            var targetLine = caretRenderInfo.ParagraphData.LineLayoutDataList[caretRenderInfo.LineIndex - 1];
+            var offset = targetLine.CharStartParagraphIndex + caretRenderInfo.HitLineOffset;
+            return new CaretOffset(offset, currentCaretOffset.IsAtLineStart);
+        }
+        else
+        {
+            // 需要取上一段的最后一行
+            ParagraphData paragraphData = DocumentManager.ParagraphManager.GetParagraph(caretRenderInfo.ParagraphIndex - 1);
+            var lastLine = paragraphData.LineLayoutDataList.Last();
+            var targetLine = lastLine;
+            var offset = targetLine.CharStartParagraphIndex + caretRenderInfo.HitLineOffset;
+            // 不能超过行的文本数量
+            offset = Math.Max(targetLine.CharEndParagraphIndex, offset);
+            return new CaretOffset(offset, currentCaretOffset.IsAtLineStart);
+        }
     }
 
     private CaretOffset GetPreviousWordCaretOffset()
@@ -224,7 +252,7 @@ public partial class TextEditorCore
     {
         var renderInfoProvider = GetRenderInfo();
         // 先假定是行首，如果行首能够获取到首个字符，证明是行首
-        CaretRenderInfo caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(new CaretOffset(caretOffset,true));
+        CaretRenderInfo caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(new CaretOffset(caretOffset, true));
         if (caretRenderInfo.HitLineOffset == 0)
         {
             return true;
