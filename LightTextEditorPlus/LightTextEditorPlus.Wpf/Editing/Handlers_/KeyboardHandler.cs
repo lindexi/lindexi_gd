@@ -25,7 +25,7 @@ internal class KeyboardHandler
 
         _textArea.CommandBindings.Add(new CommandBinding(EditingCommands.MoveRightByCharacter,
             MoveCaret(CaretMoveType.RightByCharacter)));
-        _textArea.InputBindings.Add(new KeyBinding(EditingCommands.MoveLeftByCharacter, Key.Right, ModifierKeys.None));
+        _textArea.InputBindings.Add(new KeyBinding(EditingCommands.MoveRightByCharacter, Key.Right, ModifierKeys.None));
 
         _textArea.CommandBindings.Add(new CommandBinding(EditingCommands.MoveUpByLine,
             MoveCaret(CaretMoveType.Up)));
