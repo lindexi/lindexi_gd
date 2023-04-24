@@ -60,7 +60,6 @@ namespace LightTextEditorPlus.Core;
 ///   - 可以获取到 <see cref="RenderInfoProvider"/> 内容
 /// - <see cref="LayoutCompleted"/>
 /// - 触发平台渲染
-/// todo 光标系统
 /// todo 下划线模块
 /// todo 项目符号
 /// todo 上下标
