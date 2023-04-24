@@ -284,7 +284,7 @@ namespace LightTextEditorPlus.Core.Document
         #region 公开属性
 
         /// <summary>
-        /// 文档的字符数量。段落之间，使用 `\r\n` 换行符，加入计算为两个字符。包含项目符号
+        /// 文档的字符数量。段落之间，使用换行符，加入计算为换行符字符。不包含项目符号
         /// </summary>
         public int CharCount
         {
