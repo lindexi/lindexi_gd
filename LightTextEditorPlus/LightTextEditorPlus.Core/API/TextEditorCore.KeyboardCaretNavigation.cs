@@ -63,15 +63,15 @@ public partial class TextEditorCore
             case CaretMoveType.ControlDown:
                 return GetCtrlDownCaretOffset();
             case CaretMoveType.LeftByCharacter:
-                return GetPrevCharacterCaretOffset();
+                return GetPreviousCharacterCaretOffset();
             case CaretMoveType.RightByCharacter:
                 return GetNextCharacterCaretOffset();
             case CaretMoveType.LeftByWord:
-                return GetPrevWordCaretOffset();
+                return GetPreviousWordCaretOffset();
             case CaretMoveType.RightByWord:
                 return GetNextCharacterCaretOffset();
             case CaretMoveType.UpByLine:
-                return GetPrevLineCaretOffset();
+                return GetPreviousLineCaretOffset();
             case CaretMoveType.DownByLine:
                 return GetNextLineCaretOffset();
             case CaretMoveType.LineStart:
@@ -113,12 +113,12 @@ public partial class TextEditorCore
         throw new NotImplementedException();
     }
 
-    private CaretOffset GetPrevLineCaretOffset()
+    private CaretOffset GetPreviousLineCaretOffset()
     {
         throw new NotImplementedException();
     }
 
-    private CaretOffset GetPrevWordCaretOffset()
+    private CaretOffset GetPreviousWordCaretOffset()
     {
         throw new NotImplementedException();
     }
@@ -128,7 +128,7 @@ public partial class TextEditorCore
         throw new NotImplementedException();
     }
 
-    private CaretOffset GetPrevCharacterCaretOffset()
+    private CaretOffset GetPreviousCharacterCaretOffset()
     {
         var currentSelection = CaretManager.CurrentSelection;
         //如果当前选择不为空，则直接返回选择的FrontOffset
