@@ -225,8 +225,21 @@ public partial class TextEditorCore
         var renderInfoProvider = GetRenderInfo();
         // 先假定是行首，如果行首能够获取到首个字符，证明是行首
         CaretRenderInfo caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(new CaretOffset(caretOffset,true));
-        // 如果获取到行末也是可以设置为行首，毕竟不知道情况是怎样
-        return caretRenderInfo.HitLineOffset == 0 || caretRenderInfo.LineLayoutData.CharCount == caretRenderInfo.HitLineOffset;
+        if (caretRenderInfo.HitLineOffset == 0)
+        {
+            return true;
+        }
+        // 如果获取到行末，那就需要判断是否存在下一行，如果处于段末了，那就不能指定为行首
+        if (caretRenderInfo.LineLayoutData.CharCount == caretRenderInfo.HitLineOffset)
+        {
+            if (caretRenderInfo.LineIndex < caretRenderInfo.ParagraphData.LineLayoutDataList.Count - 1)
+            {
+                // 证明还有下一行
+                return true;
+            }
+        }
+
+        return false;
     }
 
     #endregion
