@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Rendering;
 
 namespace LightTextEditorPlus.Core;
 
@@ -35,6 +37,13 @@ public partial class TextEditorCore
     /// <returns></returns>
     public CaretOffset GetNewCaretOffset(CaretMoveType caretMoveType)
     {
+        if (IsDirty)
+        {
+            // 理论上不能进来，必须等待文本布局完成才能进入
+            // 不使用 VerifyNotDirty 的原因是为了方便在这里打断点
+            ThrowTextEditorDirtyException();
+        }
+
         switch (caretMoveType)
         {
             case CaretMoveType.Left:
@@ -121,7 +130,35 @@ public partial class TextEditorCore
 
     private CaretOffset GetPrevCharacterCaretOffset()
     {
-        throw new NotImplementedException();
+        var currentSelection = CaretManager.CurrentSelection;
+        //如果当前选择不为空，则直接返回选择的FrontOffset
+        if (!currentSelection.IsEmpty)
+        {
+            return currentSelection.FrontOffset;
+        }
+
+        CaretOffset currentCaretOffset = currentSelection.FrontOffset;
+        if (currentCaretOffset.Offset == 0)
+        {
+            // 特殊值，文档开头，不能继续往前
+            return currentCaretOffset;
+        }
+        else if (currentCaretOffset.Offset == 1)
+        {
+            // 特殊值，只能去到文档开头
+            return new CaretOffset(0);
+        }
+
+        var newOffset = currentCaretOffset.Offset - 1;
+        if (currentCaretOffset.IsAtLineStart)
+        {
+            // 如果当前已经是行首了，那上一个光标一定不是行首，但可能是段首
+            return new CaretOffset(newOffset);
+        }
+
+        //判断是否为行首，在段内向上一个字符移动时，如果在行首，则要添加标记
+        bool atLineStart = IsAtLineStart(newOffset);
+        return new CaretOffset(newOffset, atLineStart);
     }
 
     private CaretOffset GetCtrlDownCaretOffset()
@@ -163,4 +200,17 @@ public partial class TextEditorCore
     {
         throw new NotImplementedException();
     }
+
+    #region 辅助方法
+
+    private bool IsAtLineStart(int caretOffset)
+    {
+        var renderInfoProvider = GetRenderInfo();
+        // 先假定是行首，如果行首能够获取到首个字符，证明是行首
+        CaretRenderInfo caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(new CaretOffset(caretOffset,true));
+        // 如果获取到行末也是可以设置为行首，毕竟不知道情况是怎样
+        return caretRenderInfo.HitLineOffset == 0 || caretRenderInfo.LineLayoutData.CharCount == caretRenderInfo.HitLineOffset;
+    }
+
+    #endregion
 }
