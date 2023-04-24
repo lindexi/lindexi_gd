@@ -125,7 +125,24 @@ public partial class TextEditorCore
 
     private CaretOffset GetNextCharacterCaretOffset()
     {
-        throw new NotImplementedException();
+        //如果有选择，则直接返回选择的BehindOffset
+        var currentSelection = CaretManager.CurrentSelection;
+        //如果当前选择不为空，则直接返回选择的FrontOffset
+        if (!currentSelection.IsEmpty)
+        {
+            return currentSelection.BehindOffset;
+        }
+        CaretOffset currentCaretOffset = currentSelection.FrontOffset;
+
+        var newOffset = currentCaretOffset.Offset + 1;
+        if (newOffset > DocumentManager.CharCount)
+        {
+            // 超过数量了，那就设置为文档数量
+            return new CaretOffset(DocumentManager.CharCount);
+        }
+
+        bool atLineStart = IsAtLineStart(newOffset);
+        return new CaretOffset(newOffset, atLineStart);
     }
 
     private CaretOffset GetPreviousCharacterCaretOffset()
