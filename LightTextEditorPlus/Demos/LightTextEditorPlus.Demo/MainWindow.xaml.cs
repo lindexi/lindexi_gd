@@ -25,7 +25,6 @@ namespace LightTextEditorPlus.Demo
         public MainWindow()
         {
             InitializeComponent();
-            MediaElement.Play();
         }
 
         private void InputButton_OnClick(object sender, RoutedEventArgs e)
