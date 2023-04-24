@@ -37,22 +37,27 @@ internal class KeyboardHandler
 
         //编辑
         _textArea.CommandBindings.Add(new CommandBinding(EditingCommands.Backspace, OnBackspace));
-        _textArea.CommandBindings.Add(new CommandBinding(EditingCommands.Delete, OnDelete));
-
-        // 设置快捷键
         _textArea.InputBindings.Add(new KeyBinding(EditingCommands.Backspace, Key.Back, ModifierKeys.None));
+
+        _textArea.CommandBindings.Add(new CommandBinding(EditingCommands.Delete, OnDelete));
         _textArea.InputBindings.Add(new KeyBinding(EditingCommands.Delete, Key.Delete, ModifierKeys.None));
     }
 
-    private void OnDelete(object sender, ExecutedRoutedEventArgs e)
+    #region 删除
+
+    private static void OnDelete(object sender, ExecutedRoutedEventArgs e)
     {
-        TextEditor.TextEditorCore.Delete();
+        var textEditor = (TextEditor) e.Source;
+        textEditor.TextEditorCore.Delete();
     }
 
-    private void OnBackspace(object sender, ExecutedRoutedEventArgs e)
+    private static void OnBackspace(object sender, ExecutedRoutedEventArgs e)
     {
-        TextEditor.TextEditorCore.Backspace();
+        var textEditor = (TextEditor) e.Source;
+        textEditor.TextEditorCore.Backspace();
     }
+
+    #endregion
 
     #region 方向键
 
