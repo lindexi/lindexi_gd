@@ -110,23 +110,28 @@ public class RenderInfoProvider
         var isParagraphStart = hitParagraphCaretOffset.Offset == 0;
         bool isAtLineStart = caretOffset.IsAtLineStart || isParagraphStart;
 
-        int hitCharOffset;
-        if (isAtLineStart)
+        if (isParagraphStart)
         {
-            // 行首情况下，取后一个字符。从光标转换为字符坐标是根据业务决定
-            hitCharOffset = hitParagraphCaretOffset.Offset;
+            // 段首，短路代码，特殊执行，不需要走循环
+            var lineIndex = 0;
+            var lineLayoutData = paragraphData.LineLayoutDataList[0];
+            // 段落起始下，取段落首个字符，如可能取到 \n 将拿不到 CharData 对象
+            // 如“|abc”的情况，应该取字符 a 作为命中的字符
+            var hitLineCharOffset = new LineCharOffset(0);
+            var hitLineCaretOffset = new LineCaretOffset(0);
+            return new CaretRenderInfo(TextEditor, lineIndex, hitLineCharOffset, hitLineCaretOffset, hitParagraphCaretOffset, caretOffset, lineLayoutData);
         }
-        else
-        {
-            // 非行首情况下，一律取前一个字符
-            hitCharOffset = hitParagraphCaretOffset.Offset - 1;
-        }
-
-        if (hitCharOffset == paragraphData.CharCount)
+        else if (hitParagraphCaretOffset.Offset == paragraphData.CharCount)
         {
             // 短路代码，如果命中到段末。这个逻辑可以快速判断，不需要走循环
             var lineIndex = paragraphData.LineLayoutDataList.Count - 1;
             var lineLayoutData = paragraphData.LineLayoutDataList[lineIndex];
+
+            // 以下代码的 -1 的逻辑是：
+            // 段落起始下，取段落首个字符，如可能取到 \n 将拿不到 CharData 对象
+            // 非段落起始，取光标前一个字符
+            // 如“abc|”的情况，应该取字符 c 作为命中的字符
+            var hitCharOffset = hitParagraphCaretOffset.Offset - 1;
 
             var hitLineCharOffset = new LineCharOffset(hitCharOffset - lineLayoutData.CharStartParagraphIndex);
             var hitLineCaretOffset =
@@ -139,15 +144,69 @@ public class RenderInfoProvider
         {
             var lineLayoutData = paragraphData.LineLayoutDataList[lineIndex];
 
-            if (lineLayoutData.CharEndParagraphIndex > hitCharOffset)
+            if (lineLayoutData.CharEndParagraphIndex == hitParagraphCaretOffset.Offset && !caretOffset.IsAtLineStart)
             {
-                var hitLineCharOffset = new LineCharOffset(hitCharOffset - lineLayoutData.CharStartParagraphIndex);
+                // 命中到行末，但是此时光标设置非行首情况
                 var hitLineCaretOffset =
                     new LineCaretOffset(hitParagraphCaretOffset.Offset - lineLayoutData.CharStartParagraphIndex);
+                Debug.Assert(hitLineCaretOffset.Offset != 0, "不会出现空行命中情况");
+                // 取光标前一个字符
+                // 如“a|bc”的情况，应该取字符 a 作为命中的字符
+                var hitLineCharOffset = new LineCharOffset(Math.Max(0, hitLineCaretOffset.Offset - 1));
+
+                return new CaretRenderInfo(TextEditor, lineIndex, hitLineCharOffset, hitLineCaretOffset, hitParagraphCaretOffset, caretOffset, lineLayoutData);
+            }
+            else if (lineLayoutData.CharEndParagraphIndex > hitParagraphCaretOffset.Offset)
+            {
+                var hitLineCaretOffset =
+                    new LineCaretOffset(hitParagraphCaretOffset.Offset - lineLayoutData.CharStartParagraphIndex);
+                Debug.Assert(hitLineCaretOffset.Offset != 0, "不会出现空行命中情况");
+                // 取光标前一个字符
+                // 如“a|bc”的情况，应该取字符 a 作为命中的字符
+                var hitLineCharOffset = new LineCharOffset(Math.Max(0, hitLineCaretOffset.Offset - 1));
 
                 return new CaretRenderInfo(TextEditor, lineIndex, hitLineCharOffset, hitLineCaretOffset, hitParagraphCaretOffset, caretOffset, lineLayoutData);
             }
         }
+
+        //int hitCharOffset;
+        //if (isAtLineStart)
+        //{
+        //    // 行首情况下，取后一个字符。从光标转换为字符坐标是根据业务决定
+        //    hitCharOffset = hitParagraphCaretOffset.Offset;
+        //}
+        //else
+        //{
+        //    // 非行首情况下，一律取前一个字符
+        //    hitCharOffset = hitParagraphCaretOffset.Offset - 1;
+        //}
+
+        //if (hitCharOffset == paragraphData.CharCount)
+        //{
+        //    // 短路代码，如果命中到段末。这个逻辑可以快速判断，不需要走循环
+        //    var lineIndex = paragraphData.LineLayoutDataList.Count - 1;
+        //    var lineLayoutData = paragraphData.LineLayoutDataList[lineIndex];
+
+        //    var hitLineCharOffset = new LineCharOffset(hitCharOffset - lineLayoutData.CharStartParagraphIndex);
+        //    var hitLineCaretOffset =
+        //        new LineCaretOffset(hitParagraphCaretOffset.Offset - lineLayoutData.CharStartParagraphIndex);
+
+        //    return new CaretRenderInfo(TextEditor, lineIndex, hitLineCharOffset, hitLineCaretOffset, hitParagraphCaretOffset, caretOffset, lineLayoutData);
+        //}
+
+        //for (var lineIndex = 0; lineIndex < paragraphData.LineLayoutDataList.Count; lineIndex++)
+        //{
+        //    var lineLayoutData = paragraphData.LineLayoutDataList[lineIndex];
+
+        //    if (lineLayoutData.CharEndParagraphIndex > hitCharOffset)
+        //    {
+        //        var hitLineCharOffset = new LineCharOffset(hitCharOffset - lineLayoutData.CharStartParagraphIndex);
+        //        var hitLineCaretOffset =
+        //            new LineCaretOffset(hitParagraphCaretOffset.Offset - lineLayoutData.CharStartParagraphIndex);
+
+        //        return new CaretRenderInfo(TextEditor, lineIndex, hitLineCharOffset, hitLineCaretOffset, hitParagraphCaretOffset, caretOffset, lineLayoutData);
+        //    }
+        //}
 
         // 理论上不可能进入此分支
         throw new TextEditorInnerException("无法命中光标对应的字符");
