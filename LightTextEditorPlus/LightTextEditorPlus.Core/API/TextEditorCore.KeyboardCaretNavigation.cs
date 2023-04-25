@@ -134,8 +134,8 @@ public partial class TextEditorCore
             
             var paragraphCaretOffset = new ParagraphCaretOffset(targetLine.CharStartParagraphIndex + caretRenderInfo.HitLineCaretOffset.Offset);
             // 这里拿到的是段落坐标系，需要将其换算为文档光标坐标系
-            var documentCaretOffset = paragraphCaretOffset.Offset + caretRenderInfo.ParagraphData.StartOffset.Offset;
-            return new CaretOffset(documentCaretOffset, currentCaretOffset.IsAtLineStart);
+            var documentCaretOffset = caretRenderInfo.ParagraphData.ToCaretOffset(paragraphCaretOffset);
+            return new CaretOffset(documentCaretOffset.Offset, currentCaretOffset.IsAtLineStart);
         }
         else
         {
@@ -153,8 +153,8 @@ public partial class TextEditorCore
             offset = new ParagraphCaretOffset(Math.Min(targetLine.CharEndParagraphIndex, offset.Offset));
 
             // 这里拿到的是段落坐标系，需要将其换算为文档光标坐标系
-            var documentCaretOffset = offset.Offset + paragraphData.StartOffset.Offset;
-            return new CaretOffset(documentCaretOffset, currentCaretOffset.IsAtLineStart);
+            var documentCaretOffset = caretRenderInfo.ParagraphData.ToCaretOffset(offset);
+            return new CaretOffset(documentCaretOffset.Offset, currentCaretOffset.IsAtLineStart);
         }
     }
 

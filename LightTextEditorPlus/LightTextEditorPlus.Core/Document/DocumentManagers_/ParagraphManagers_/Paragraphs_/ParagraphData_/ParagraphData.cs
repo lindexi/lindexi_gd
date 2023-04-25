@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-
+using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Utils;
@@ -47,11 +47,6 @@ class ParagraphData
     /// 获取当前段落是文档的第几段，从0开始
     /// </summary>
     public int Index => ParagraphManager.GetParagraphIndex(this);
-
-    /// <summary>
-    /// 段落起始的文档坐标
-    /// </summary>
-    public DocumentOffset StartOffset => ParagraphManager.GetStartOffset(this);
 
     private TextEditorCore TextEditor => ParagraphManager.TextEditor;
 
@@ -145,10 +140,26 @@ class ParagraphData
     public static int DelimiterLength => TextContext.NewLine.Length;
 
     /// <summary>
-    /// 获取本文本行的起始位置在文档中的偏移量，此偏移量的计算考虑了换行符，如123/r/n123，那么第二个段落的Offset为5
+    /// 获取本文本行的起始位置在文档中的偏移量，此偏移量的计算考虑了换行符，如“123/r/n123”字符串，那么第二个段落的 Offset 为 "123".Length + DelimiterLength 的长度
     /// </summary>
     /// <exception cref="InvalidOperationException">这个文本行被删除后引发此异常</exception>
     public DocumentOffset GetParagraphStartOffset() => ParagraphManager.GetParagraphStartOffset(this);
+
+    /// <summary>
+    /// 将段落的光标坐标转换为文档光标坐标
+    /// </summary>
+    /// <param name="paragraphCaretOffset"></param>
+    /// <returns></returns>
+    public CaretOffset ToCaretOffset(ParagraphCaretOffset paragraphCaretOffset) =>
+        new CaretOffset(paragraphCaretOffset.Offset + GetParagraphStartOffset());
+
+    /// <summary>
+    /// 将段落字符坐标转换为文档坐标
+    /// </summary>
+    /// <param name="paragraphCharOffset"></param>
+    /// <returns></returns>
+    public DocumentOffset ToDocumentOffset(ParagraphCharOffset paragraphCharOffset) =>
+        new DocumentOffset(paragraphCharOffset.Offset + GetParagraphStartOffset());
 
     // 不合适，将会让段落必须知道文档坐标
     ///// <summary>
