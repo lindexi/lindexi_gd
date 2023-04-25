@@ -36,38 +36,42 @@ public class TestFramework
     [AssemblyCleanup]
     public static void CleanApplication()
     {
-        _application.Dispatcher.InvokeAsync(() =>
-        {
-            _application.Shutdown();
-        });
+        _application.Dispatcher.InvokeAsync(() => { _application.Shutdown(); });
     }
 
     public static TextEditTestContext CreateTextEditorInNewWindow()
     {
-        //var mainWindow = new Window()
-        //{
-        //    Width = 1000,
-        //    Height = 700,
-        //    Content = Border
-        //    (
-        //        BorderThickness: Thickness(1),
-        //        BorderBrush: Brushes.Blue,
-        //        Child: Grid
-        //        (
-        //            new TextEditor()
-        //            {
-        //                Width = 600,
-        //                Height = 600,
-        //                HorizontalAlignment = HorizontalAlignment.Left,
-        //                VerticalAlignment = VerticalAlignment.Stretch,
-        //            }.Out(out var textEditor)
-        //        )
-        //    ).Margin(10).UI
-        //};
+        var mainWindow = new Window()
+        {
+            Title = "文本库 UI 单元测试",
+            Width = 1000,
+            Height = 700,
+            Content = Border
+            (
+                BorderThickness: Thickness(1),
+                BorderBrush: Brushes.Blue,
+                Child: Grid
+                (
+                    Columns(600, "*"),
+                    new TextEditor()
+                    {
+                        Width = 600,
+                        Height = 600,
+                        Margin = Thickness(10,10,10,10),
+                        HorizontalAlignment = HorizontalAlignment.Left,
+                        VerticalAlignment = VerticalAlignment.Stretch,
+                    }
+                        .Column(0)
+                        .Out(out var textEditor),
 
-        var mainWindow = new MainWindow();
-        var textEditor = mainWindow.TextEditor;
-        textEditor.Width = 1000;
+                    new TextEditorSettingsControl()
+                    {
+                        TextEditor = textEditor
+                    }
+                        .Column(1)
+                )
+            ).Margin(10).UI
+        };
 
         mainWindow.Show();
         return new TextEditTestContext(mainWindow, textEditor);

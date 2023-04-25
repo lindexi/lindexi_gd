@@ -18,10 +18,9 @@
                 <RowDefinition></RowDefinition>
                 <RowDefinition Height="Auto"></RowDefinition>
             </Grid.RowDefinitions>
-            <Border Margin="10,10,10,10" BorderBrush="Blue" BorderThickness="1">
-                <textEditorPlus:TextEditor x:Name="TextEditor" x:FieldModifier="public" Width="500"
-                                           HorizontalAlignment="Left"
-                                           VerticalAlignment="Stretch">
+            <Border Margin="10,10,10,10" BorderBrush="Blue" BorderThickness="1" HorizontalAlignment="Left"
+                    VerticalAlignment="Stretch">
+                <textEditorPlus:TextEditor x:Name="TextEditor" x:FieldModifier="public" Width="500">
                 </textEditorPlus:TextEditor>
 
             </Border>
