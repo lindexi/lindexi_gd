@@ -130,7 +130,7 @@ public partial class TextEditorCore
         {
             // 这是段落里面的一行，且存在上一行
             var targetLine = caretRenderInfo.ParagraphData.LineLayoutDataList[caretRenderInfo.LineIndex - 1];
-            var offset = targetLine.CharStartParagraphIndex + caretRenderInfo.HitLineCharOffset.Offset;
+            var offset = targetLine.CharStartParagraphIndex + caretRenderInfo.HitLineCaretOffset.Offset;
             return new CaretOffset(offset, currentCaretOffset.IsAtLineStart);
         }
         else
@@ -139,7 +139,7 @@ public partial class TextEditorCore
             ParagraphData paragraphData = DocumentManager.ParagraphManager.GetParagraph(caretRenderInfo.ParagraphIndex - 1);
             var lastLine = paragraphData.LineLayoutDataList.Last();
             var targetLine = lastLine;
-            var offset = targetLine.CharStartParagraphIndex + caretRenderInfo.HitLineCharOffset.Offset;
+            var offset = targetLine.CharStartParagraphIndex + caretRenderInfo.HitLineCaretOffset.Offset;
             // 不能超过行的文本数量
             offset = Math.Max(targetLine.CharEndParagraphIndex, offset);
             return new CaretOffset(offset, currentCaretOffset.IsAtLineStart);

@@ -148,6 +148,7 @@ public class RenderInfoProvider
                 // 如果行超过命中范围，符合预期，这就是表示命中到行内
                 lineLayoutData.CharEndParagraphIndex > hitParagraphCaretOffset.Offset
                 // 如果行刚好等于光标，那就是需要判断光标是否设置在行首，如果非行首情况下，那就是命中到当前行。是行首的情况下，等下次循环进入时，判断行超过命中范围
+                // 只有在命中到行末情况下，才判断光标是否在行首，如此可以解决传入参数将一个非行首的光标骗在行首
                 || (lineLayoutData.CharEndParagraphIndex == hitParagraphCaretOffset.Offset &&
                     !caretOffset.IsAtLineStart)
             )
@@ -155,13 +156,11 @@ public class RenderInfoProvider
                 // 命中到行末，但是此时光标设置非行首情况
                 var hitLineCaretOffset =
                     new LineCaretOffset(hitParagraphCaretOffset.Offset - lineLayoutData.CharStartParagraphIndex);
-                // 取光标前一个字符
-                // 如“a|bc”的情况，应该取字符 a 作为命中的字符
                 LineCharOffset hitLineCharOffset;
                 if (hitLineCaretOffset.Offset == 0)
                 {
                     // 命中到行首的情况
-                    Debug.Assert(caretOffset.IsAtLineStart,"命中到行首是，应该传入光标才是真的行首");
+                    Debug.Assert(caretOffset.IsAtLineStart,"命中到行首时，应该传入光标才是真的行首");
                     hitLineCharOffset = new LineCharOffset(0);
                 }
                 else
@@ -171,6 +170,10 @@ public class RenderInfoProvider
                         // 光标参数在骗人，毕竟框架能处理，那就记录日志吧
                         TextEditor.Logger.LogDebug("不是命中到行首时，不应该设置光标为行首");
                     }
+
+                    // 以下代码的 -1 的逻辑是：
+                    // 取光标前一个字符
+                    // 如“a|bc”的情况，应该取字符 a 作为命中的字符
                     hitLineCharOffset = new LineCharOffset(hitLineCaretOffset.Offset - 1);
                 }
 

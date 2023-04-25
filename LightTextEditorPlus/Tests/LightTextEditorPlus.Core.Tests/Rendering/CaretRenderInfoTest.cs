@@ -1,13 +1,6 @@
 ﻿using MSTest.Extensions.Contracts;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Primitive;
-using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.TestsFramework;
 using LightTextEditorPlus.Core.Utils;
 
@@ -46,6 +39,9 @@ public class CaretRenderInfoTest
 
             Assert.AreEqual(0, caretRenderInfo.LineIndex);
             Assert.AreEqual(1, caretRenderInfo.ParagraphIndex);
+
+            Assert.AreEqual(1, caretRenderInfo.HitLineCaretOffset.Offset);
+            Assert.AreEqual(0, caretRenderInfo.HitLineCharOffset.Offset);
         });
 
         "光标处于第二段的段末，可以获取到正确的渲染信息".Test(() =>
@@ -79,6 +75,9 @@ public class CaretRenderInfoTest
 
             Assert.AreEqual(0, caretRenderInfo.LineIndex);
             Assert.AreEqual(1, caretRenderInfo.ParagraphIndex);
+
+            Assert.AreEqual(2, caretRenderInfo.HitLineCaretOffset.Offset);
+            Assert.AreEqual(1, caretRenderInfo.HitLineCharOffset.Offset);
         });
 
         "光标处于第二段的段首，可以获取到正确的渲染信息".Test(() =>
@@ -112,6 +111,9 @@ public class CaretRenderInfoTest
 
             Assert.AreEqual(0, caretRenderInfo.LineIndex);
             Assert.AreEqual(1, caretRenderInfo.ParagraphIndex);
+
+            Assert.AreEqual(0, caretRenderInfo.HitLineCaretOffset.Offset);
+            Assert.AreEqual(0, caretRenderInfo.HitLineCharOffset.Offset);
         });
 
         "光标处于非首行的行首，可以获取到正确的行序号".Test(() =>
@@ -140,6 +142,9 @@ public class CaretRenderInfoTest
             // Assert
             Assert.AreEqual(1, caretRenderInfo.LineIndex, "获取到的是首段的末行");
             Assert.AreEqual(0, caretRenderInfo.ParagraphIndex, "获取到的是首段的末行");
+            Assert.AreEqual(0, caretRenderInfo.HitLineCaretOffset.Offset);
+            Assert.AreEqual(0, caretRenderInfo.HitLineCharOffset.Offset);
+
             Assert.IsNotNull(caretRenderInfo.CharData);
             Assert.AreEqual("d", caretRenderInfo.CharData.CharObject.ToText());
         });
@@ -163,6 +168,12 @@ public class CaretRenderInfoTest
             Assert.AreEqual(true, caretRenderInfo.IsEmptyParagraph);
             // 一行的高度是 15 也就是第二行就是 (0,15) 的
             Assert.AreEqual(new Rect(0, 15, 0, 15), caretRenderInfo.LineBounds);
+
+            Assert.AreEqual(0, caretRenderInfo.HitLineCaretOffset.Offset);
+            Assert.AreEqual(0, caretRenderInfo.HitLineCharOffset.Offset);
+
+            Assert.AreEqual(0, caretRenderInfo.LineIndex);
+            Assert.AreEqual(1, caretRenderInfo.ParagraphIndex);
         });
     }
 
