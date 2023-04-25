@@ -108,16 +108,17 @@ public class RenderInfoProvider
         ParagraphCaretOffset hitParagraphCaretOffset = hitParagraphDataResult.HitOffset;
         // 是否段首，如果是段首，那一定就是行首
         var isParagraphStart = hitParagraphCaretOffset.Offset == 0;
+        bool isAtLineStart = caretOffset.IsAtLineStart || isParagraphStart;
 
         int hitCharOffset;
-        if (!caretOffset.IsAtLineStart && !isParagraphStart)
+        if (isAtLineStart)
         {
-            // 非行首情况下，一律取前一个字符
-            hitCharOffset = hitParagraphCaretOffset.Offset - 1;
+            hitCharOffset = hitParagraphCaretOffset.Offset;
         }
         else
         {
-            hitCharOffset = hitParagraphCaretOffset.Offset;
+            // 非行首情况下，一律取前一个字符
+            hitCharOffset = hitParagraphCaretOffset.Offset - 1;
         }
 
         for (var lineIndex = 0; lineIndex < paragraphData.LineLayoutDataList.Count; lineIndex++)
@@ -126,9 +127,11 @@ public class RenderInfoProvider
 
             if (lineLayoutData.CharEndParagraphIndex > hitCharOffset)
             {
-                var hitLineOffset = new LineCharOffset(hitCharOffset - lineLayoutData.CharStartParagraphIndex);
+                var hitLineCharOffset = new LineCharOffset(hitCharOffset - lineLayoutData.CharStartParagraphIndex);
+                var hitLineCaretOffset =
+                    new LineCaretOffset(hitParagraphCaretOffset.Offset - lineLayoutData.CharStartParagraphIndex);
 
-                return new CaretRenderInfo(TextEditor, lineIndex, hitLineOffset, hitParagraphCaretOffset, caretOffset, lineLayoutData);
+                return new CaretRenderInfo(TextEditor, lineIndex, hitLineCharOffset, hitLineCaretOffset, hitParagraphCaretOffset, caretOffset, lineLayoutData);
             }
         }
 
