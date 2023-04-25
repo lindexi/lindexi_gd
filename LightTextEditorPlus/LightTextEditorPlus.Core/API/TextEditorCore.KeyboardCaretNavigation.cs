@@ -111,7 +111,35 @@ public partial class TextEditorCore
 
     private CaretOffset GetNextLineCaretOffset()
     {
-        throw new NotImplementedException();
+        // 先获取当前光标是在这一行的哪里，接着将其对应到下一行
+        var currentCaretOffset = CaretManager.CurrentCaretOffset;
+        var renderInfoProvider = GetRenderInfo();
+        var caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(currentCaretOffset);
+
+        var paragraphManager = DocumentManager.ParagraphManager;
+
+        if (caretRenderInfo.LineIndex < caretRenderInfo.ParagraphData.LineLayoutDataList.Count - 1)
+        {
+            // 判断是否在段落内存在下一行
+            var targetLine = caretRenderInfo.ParagraphData.LineLayoutDataList[caretRenderInfo.LineIndex + 1];
+
+            // 这里拿到的是行坐标系，需要将其换算为文档光标坐标系
+            var documentCaretOffset = targetLine.ToCaretOffset(caretRenderInfo.HitLineCaretOffset);
+            return new CaretOffset(documentCaretOffset.Offset, currentCaretOffset.IsAtLineStart);
+        }
+        else if (caretRenderInfo.ParagraphIndex < paragraphManager.GetParagraphList().Count - 1)
+        {
+            // 取下一段的首行
+            ParagraphData paragraphData = DocumentManager.ParagraphManager.GetParagraph(caretRenderInfo.ParagraphIndex + 1);
+            var targetLine = paragraphData.LineLayoutDataList[0];
+
+            // 这里拿到的是行坐标系，需要将其换算为文档光标坐标系
+            var documentCaretOffset = targetLine.ToCaretOffset(caretRenderInfo.HitLineCaretOffset);
+            return new CaretOffset(documentCaretOffset.Offset, currentCaretOffset.IsAtLineStart);
+        }
+
+        // 如果是最后一段的最后一行，那就啥都不更新
+        return currentCaretOffset;
     }
 
     private CaretOffset GetPreviousLineCaretOffset()
@@ -131,10 +159,9 @@ public partial class TextEditorCore
         {
             // 这是段落里面的一行，且存在上一行
             var targetLine = caretRenderInfo.ParagraphData.LineLayoutDataList[caretRenderInfo.LineIndex - 1];
-            
-            var paragraphCaretOffset = new ParagraphCaretOffset(targetLine.CharStartParagraphIndex + caretRenderInfo.HitLineCaretOffset.Offset);
-            // 这里拿到的是段落坐标系，需要将其换算为文档光标坐标系
-            var documentCaretOffset = caretRenderInfo.ParagraphData.ToCaretOffset(paragraphCaretOffset);
+
+            // 这里拿到的是行坐标系，需要将其换算为文档光标坐标系
+            var documentCaretOffset = targetLine.ToCaretOffset(caretRenderInfo.HitLineCaretOffset);
             return new CaretOffset(documentCaretOffset.Offset, currentCaretOffset.IsAtLineStart);
         }
         else
@@ -143,17 +170,16 @@ public partial class TextEditorCore
             ParagraphData paragraphData = DocumentManager.ParagraphManager.GetParagraph(caretRenderInfo.ParagraphIndex - 1);
             var lastLine = paragraphData.LineLayoutDataList.Last();
             var targetLine = lastLine;
-            var offset = new ParagraphCaretOffset(targetLine.CharStartParagraphIndex + caretRenderInfo.HitLineCaretOffset.Offset);
-            // 不能超过行的文本数量
+
+            // 不能超过行的文本数量（在targetLine.ToCaretOffset里处理的逻辑）
             // 什么情况会发生超过行的文本数量？如以下情况
             // 123123123
             // 123
             // 123123|
             // 此时的光标向上，将会进入首段的末行，这一行的数量是不够末段首行的长度的
-            offset = new ParagraphCaretOffset(Math.Min(targetLine.CharEndParagraphIndex, offset.Offset));
 
-            // 这里拿到的是段落坐标系，需要将其换算为文档光标坐标系
-            var documentCaretOffset = caretRenderInfo.ParagraphData.ToCaretOffset(offset);
+            // 这里拿到的是行落坐标系，需要将其换算为文档光标坐标系
+            var documentCaretOffset = targetLine.ToCaretOffset(caretRenderInfo.HitLineCaretOffset);
             return new CaretOffset(documentCaretOffset.Offset, currentCaretOffset.IsAtLineStart);
         }
     }

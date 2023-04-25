@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Text;
+using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
+using LightTextEditorPlus.Core.Rendering;
 
 // ReSharper disable All
 
@@ -101,6 +103,20 @@ class LineLayoutData : IParagraphCache, IDisposable
     /// <returns></returns>
     public ReadOnlyListSpan<CharData> GetCharList() =>
         CurrentParagraph.ToReadOnlyListSpan(new ParagraphCharOffset(CharStartParagraphIndex), CharEndParagraphIndex - CharStartParagraphIndex);
+
+    public ParagraphCaretOffset ToParagraphCaretOffset(LineCaretOffset lineCaretOffset)
+    {
+        // 需要自动设置为不超过行的坐标
+        var offset = Math.Min(CharCount, lineCaretOffset.Offset);
+
+        return new ParagraphCaretOffset(CharStartParagraphIndex + offset);
+    }
+
+    public CaretOffset ToCaretOffset(LineCaretOffset lineCaretOffset)
+    {
+        var paragraphCaretOffset = ToParagraphCaretOffset(lineCaretOffset);
+        return CurrentParagraph.ToCaretOffset(paragraphCaretOffset);
+    }
 
     #region 绘制渲染
 
