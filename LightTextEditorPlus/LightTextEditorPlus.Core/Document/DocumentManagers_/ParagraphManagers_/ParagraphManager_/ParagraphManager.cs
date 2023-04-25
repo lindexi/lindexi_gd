@@ -231,6 +231,25 @@ class ParagraphManager
         return index;
     }
 
+    public DocumentOffset GetStartOffset(ParagraphData paragraphData)
+    {
+        var offset = 0;
+
+        foreach (ParagraphData data in ParagraphList)
+        {
+            if (ReferenceEquals(paragraphData, data))
+            {
+                break;
+            }
+            else
+            {
+                offset += data.CharCount + TextContext.NewLine.Length;
+            }
+        }
+
+        return offset;
+    }
+
     /// <summary>
     /// 确保首个段落存在
     /// </summary>

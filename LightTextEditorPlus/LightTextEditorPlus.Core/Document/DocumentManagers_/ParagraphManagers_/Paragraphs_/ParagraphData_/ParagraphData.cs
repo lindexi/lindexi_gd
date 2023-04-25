@@ -48,6 +48,11 @@ class ParagraphData
     /// </summary>
     public int Index => ParagraphManager.GetParagraphIndex(this);
 
+    /// <summary>
+    /// 段落起始的文档坐标
+    /// </summary>
+    public DocumentOffset StartOffset => ParagraphManager.GetStartOffset(this);
+
     private TextEditorCore TextEditor => ParagraphManager.TextEditor;
 
     /// <summary>
