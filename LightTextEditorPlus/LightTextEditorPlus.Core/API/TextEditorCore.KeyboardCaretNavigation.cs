@@ -109,6 +109,10 @@ public partial class TextEditorCore
         throw new NotImplementedException();
     }
 
+    /// <summary>
+    /// 方向键：下
+    /// </summary>
+    /// <returns></returns>
     private CaretOffset GetNextLineCaretOffset()
     {
         // 先获取当前光标是在这一行的哪里，接着将其对应到下一行
@@ -142,6 +146,10 @@ public partial class TextEditorCore
         return currentCaretOffset;
     }
 
+    /// <summary>
+    /// 方向键：上
+    /// </summary>
+    /// <returns></returns>
     private CaretOffset GetPreviousLineCaretOffset()
     {
         // 先获取当前光标是在这一行的哪里，接着将其对应到上一行
@@ -189,6 +197,10 @@ public partial class TextEditorCore
         throw new NotImplementedException();
     }
 
+    /// <summary>
+    /// 方向键：右
+    /// </summary>
+    /// <returns></returns>
     private CaretOffset GetNextCharacterCaretOffset()
     {
         //如果有选择，则直接返回选择的BehindOffset
@@ -211,6 +223,10 @@ public partial class TextEditorCore
         return new CaretOffset(newOffset, atLineStart);
     }
 
+    /// <summary>
+    /// 方向键：左
+    /// </summary>
+    /// <returns></returns>
     private CaretOffset GetPreviousCharacterCaretOffset()
     {
         var currentSelection = CaretManager.CurrentSelection;
@@ -290,13 +306,13 @@ public partial class TextEditorCore
     {
         var renderInfoProvider = GetRenderInfo();
         // 先假定是行首，如果行首能够获取到首个字符，证明是行首
-        CaretRenderInfo caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(new CaretOffset(caretOffset, true));
-        if (caretRenderInfo.HitLineCharOffset.Offset == 0)
+        CaretRenderInfo caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(new CaretOffset(caretOffset, true), isTestingLineStart: true);
+        if (caretRenderInfo.HitLineCaretOffset.Offset == 0)
         {
             return true;
         }
         // 如果获取到行末，那就需要判断是否存在下一行，如果处于段末了，那就不能指定为行首
-        if (caretRenderInfo.LineLayoutData.CharCount == caretRenderInfo.HitLineCharOffset.Offset)
+        if (caretRenderInfo.LineLayoutData.CharCount == caretRenderInfo.HitLineCaretOffset.Offset)
         {
             if (caretRenderInfo.LineIndex < caretRenderInfo.ParagraphData.LineLayoutDataList.Count - 1)
             {

@@ -88,10 +88,11 @@ public class RenderInfoProvider
     /// 获取给定光标坐标的光标渲染信息
     /// </summary>
     /// <param name="caretOffset"></param>
+    /// <param name="isTestingLineStart">测试是否属于行的开始光标。不会影响任何行为，只影响调试输出</param>
     /// <returns></returns>
     /// <exception cref="HitCaretOffsetOutOfRangeException"></exception>
     /// <exception cref="TextEditorInnerException"></exception>
-    public CaretRenderInfo GetCaretRenderInfo(CaretOffset caretOffset)
+    public CaretRenderInfo GetCaretRenderInfo(CaretOffset caretOffset, bool isTestingLineStart = false)
     {
         var textEditor = TextEditor;
         var documentCharCount = textEditor.DocumentManager.CharCount;
@@ -160,12 +161,12 @@ public class RenderInfoProvider
                 if (hitLineCaretOffset.Offset == 0)
                 {
                     // 命中到行首的情况
-                    Debug.Assert(caretOffset.IsAtLineStart,"命中到行首时，应该传入光标才是真的行首");
+                    Debug.Assert(caretOffset.IsAtLineStart, "命中到行首时，应该传入光标才是真的行首");
                     hitLineCharOffset = new LineCharOffset(0);
                 }
                 else
                 {
-                    if (caretOffset.IsAtLineStart)
+                    if (caretOffset.IsAtLineStart && !isTestingLineStart)
                     {
                         // 光标参数在骗人，毕竟框架能处理，那就记录日志吧
                         TextEditor.Logger.LogDebug("不是命中到行首时，不应该设置光标为行首");
