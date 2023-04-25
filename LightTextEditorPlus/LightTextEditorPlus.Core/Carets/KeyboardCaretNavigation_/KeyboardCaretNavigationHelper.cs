@@ -130,6 +130,10 @@ internal static class KeyboardCaretNavigationHelper
     /// </summary>
     /// <param name="textEditorCore"></param>
     /// <returns></returns>
+    /// 上下行也许后续需要考虑通过命中测试，因为可能不同的行的文本的字符宽度不相同，例如以下情况
+    /// 123一123
+    /// 1231|23
+    /// 以上光标向上，需要考虑放在字符 一 的左右
     private static CaretOffset GetPreviousLineCaretOffset(TextEditorCore textEditorCore)
     {
         // 先获取当前光标是在这一行的哪里，接着将其对应到上一行
