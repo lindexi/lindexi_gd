@@ -25,6 +25,8 @@ namespace LightTextEditorPlus.Demo
         public MainWindow()
         {
             InitializeComponent();
+
+            TextEditor.TextEditorCore.AppendText("123123123123123123123123123123123123123\r\n1231231231231231231231231231");
         }
 
         private void InputButton_OnClick(object sender, RoutedEventArgs e)

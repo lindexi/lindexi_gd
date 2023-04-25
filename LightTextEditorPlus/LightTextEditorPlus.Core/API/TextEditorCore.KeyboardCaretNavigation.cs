@@ -130,7 +130,7 @@ public partial class TextEditorCore
         {
             // 这是段落里面的一行，且存在上一行
             var targetLine = caretRenderInfo.ParagraphData.LineLayoutDataList[caretRenderInfo.LineIndex - 1];
-            var offset = targetLine.CharStartParagraphIndex + caretRenderInfo.HitLineOffset;
+            var offset = targetLine.CharStartParagraphIndex + caretRenderInfo.HitLineOffset.Offset;
             return new CaretOffset(offset, currentCaretOffset.IsAtLineStart);
         }
         else
@@ -139,7 +139,7 @@ public partial class TextEditorCore
             ParagraphData paragraphData = DocumentManager.ParagraphManager.GetParagraph(caretRenderInfo.ParagraphIndex - 1);
             var lastLine = paragraphData.LineLayoutDataList.Last();
             var targetLine = lastLine;
-            var offset = targetLine.CharStartParagraphIndex + caretRenderInfo.HitLineOffset;
+            var offset = targetLine.CharStartParagraphIndex + caretRenderInfo.HitLineOffset.Offset;
             // 不能超过行的文本数量
             offset = Math.Max(targetLine.CharEndParagraphIndex, offset);
             return new CaretOffset(offset, currentCaretOffset.IsAtLineStart);
@@ -253,12 +253,12 @@ public partial class TextEditorCore
         var renderInfoProvider = GetRenderInfo();
         // 先假定是行首，如果行首能够获取到首个字符，证明是行首
         CaretRenderInfo caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(new CaretOffset(caretOffset, true));
-        if (caretRenderInfo.HitLineOffset == 0)
+        if (caretRenderInfo.HitLineOffset.Offset == 0)
         {
             return true;
         }
         // 如果获取到行末，那就需要判断是否存在下一行，如果处于段末了，那就不能指定为行首
-        if (caretRenderInfo.LineLayoutData.CharCount == caretRenderInfo.HitLineOffset)
+        if (caretRenderInfo.LineLayoutData.CharCount == caretRenderInfo.HitLineOffset.Offset)
         {
             if (caretRenderInfo.LineIndex < caretRenderInfo.ParagraphData.LineLayoutDataList.Count - 1)
             {

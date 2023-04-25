@@ -121,7 +121,7 @@ public class RenderInfoProvider
 
             if (lineLayoutData.CharEndParagraphIndex > hitOffset.Offset)
             {
-                var hitLineOffset = hitOffset.Offset - lineLayoutData.CharStartParagraphIndex;
+                var hitLineOffset = new LineCharOffset(hitOffset.Offset - lineLayoutData.CharStartParagraphIndex);
 
                 return new CaretRenderInfo(TextEditor, lineIndex, hitLineOffset, hitOffset, caretOffset, lineLayoutData);
             }
