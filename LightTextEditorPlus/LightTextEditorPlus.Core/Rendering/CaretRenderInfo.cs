@@ -13,11 +13,11 @@ namespace LightTextEditorPlus.Core.Rendering;
 /// </summary>
 public readonly struct CaretRenderInfo
 {
-    internal CaretRenderInfo(TextEditorCore textEditor,int lineIndex, LineCharOffset hitLineOffset, ParagraphCaretOffset hitOffset, CaretOffset caretOffset, LineLayoutData lineLayoutData)
+    internal CaretRenderInfo(TextEditorCore textEditor,int lineIndex, LineCharOffset hitLineCharOffset, ParagraphCaretOffset hitOffset, CaretOffset caretOffset, LineLayoutData lineLayoutData)
     {
         TextEditor = textEditor;
         LineIndex = lineIndex;
-        HitLineOffset = hitLineOffset;
+        HitLineCharOffset = hitLineCharOffset;
         HitOffset = hitOffset;
         CaretOffset = caretOffset;
         LineLayoutData = lineLayoutData;
@@ -48,7 +48,7 @@ public readonly struct CaretRenderInfo
     /// <summary>
     /// 命中到行的哪个字符
     /// </summary>
-    public LineCharOffset HitLineOffset { get; }
+    public LineCharOffset HitLineCharOffset { get; }
 
     /// <summary>
     /// 是否命中到行的起点
@@ -68,7 +68,7 @@ public readonly struct CaretRenderInfo
             }
             else
             {
-                return LineLayoutData.GetCharList()[HitLineOffset.Offset];
+                return LineLayoutData.GetCharList()[HitLineCharOffset.Offset];
             }
         }
     }
