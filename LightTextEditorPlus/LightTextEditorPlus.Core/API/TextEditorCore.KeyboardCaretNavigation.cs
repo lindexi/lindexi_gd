@@ -141,7 +141,7 @@ public partial class TextEditorCore
             var targetLine = lastLine;
             var offset = targetLine.CharStartParagraphIndex + caretRenderInfo.HitLineCaretOffset.Offset;
             // 不能超过行的文本数量
-            offset = Math.Max(targetLine.CharEndParagraphIndex, offset);
+            offset = Math.Min(targetLine.CharEndParagraphIndex, offset);
             return new CaretOffset(offset, currentCaretOffset.IsAtLineStart);
         }
     }
