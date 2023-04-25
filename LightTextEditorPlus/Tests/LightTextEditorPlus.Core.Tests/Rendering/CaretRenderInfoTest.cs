@@ -19,6 +19,39 @@ public class CaretRenderInfoTest
     [ContractTestCase]
     public void GetCaretRenderInfo()
     {
+        "光标处于第二段的段末，可以获取到正确的渲染信息".Test(() =>
+        {
+            // Arrange
+            // 采用 FixCharSizePlatformProvider 固定数值
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider())
+                .UseFixedLineSpacing();
+            var charWidth = 15;
+            // 设置一行只放下三个字符
+            textEditorCore.DocumentManager.DocumentWidth = charWidth * 3 + 0.1;
+            // 创建两段的文本
+            textEditorCore.AppendText("abcde\r\nfg");
+            // 此时布局出来的效果如下
+            // abc
+            // de[回车]
+            // fg
+
+            // Action
+            // 将光标设置第二段的段末
+            var caretOffset = new CaretOffset("abcde".Length + TextContext.NewLine.Length+"fg".Length);
+            var renderInfoProvider = textEditorCore.GetRenderInfo();
+            Assert.IsNotNull(renderInfoProvider); // 单元测试里是立刻布局，可以立刻获取到渲染信息
+
+            var caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(caretOffset);
+
+            // Assert
+            // 命中到 g 字符
+            Assert.IsNotNull(caretRenderInfo.CharData);
+            Assert.AreEqual("g", caretRenderInfo.CharData.CharObject.ToText());
+
+            Assert.AreEqual(0, caretRenderInfo.LineIndex);
+            Assert.AreEqual(1, caretRenderInfo.ParagraphIndex);
+        });
+
         "光标处于第二段的段首，可以获取到正确的渲染信息".Test(() =>
         {
             // Arrange
@@ -44,6 +77,7 @@ public class CaretRenderInfoTest
             var caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(caretOffset);
 
             // Assert
+            // 命中到 f 字符
             Assert.IsNotNull(caretRenderInfo.CharData);
             Assert.AreEqual("f", caretRenderInfo.CharData.CharObject.ToText());
 

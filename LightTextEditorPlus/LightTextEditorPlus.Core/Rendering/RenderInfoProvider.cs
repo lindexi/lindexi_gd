@@ -113,12 +113,26 @@ public class RenderInfoProvider
         int hitCharOffset;
         if (isAtLineStart)
         {
+            // 行首情况下，取后一个字符。从光标转换为字符坐标是根据业务决定
             hitCharOffset = hitParagraphCaretOffset.Offset;
         }
         else
         {
             // 非行首情况下，一律取前一个字符
             hitCharOffset = hitParagraphCaretOffset.Offset - 1;
+        }
+
+        if (hitCharOffset == paragraphData.CharCount)
+        {
+            // 短路代码，如果命中到段末。这个逻辑可以快速判断，不需要走循环
+            var lineIndex = paragraphData.LineLayoutDataList.Count - 1;
+            var lineLayoutData = paragraphData.LineLayoutDataList[lineIndex];
+
+            var hitLineCharOffset = new LineCharOffset(hitCharOffset - lineLayoutData.CharStartParagraphIndex);
+            var hitLineCaretOffset =
+                new LineCaretOffset(hitParagraphCaretOffset.Offset - lineLayoutData.CharStartParagraphIndex);
+
+            return new CaretRenderInfo(TextEditor, lineIndex, hitLineCharOffset, hitLineCaretOffset, hitParagraphCaretOffset, caretOffset, lineLayoutData);
         }
 
         for (var lineIndex = 0; lineIndex < paragraphData.LineLayoutDataList.Count; lineIndex++)
