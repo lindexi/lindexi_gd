@@ -105,25 +105,30 @@ public class RenderInfoProvider
         var paragraphManager = textEditor.DocumentManager.ParagraphManager;
         var hitParagraphDataResult = paragraphManager.GetHitParagraphData(caretOffset);
         var paragraphData = hitParagraphDataResult.ParagraphData;
-        var hitOffset = hitParagraphDataResult.HitOffset;
+        ParagraphCaretOffset hitParagraphCaretOffset = hitParagraphDataResult.HitOffset;
         // 是否段首，如果是段首，那一定就是行首
-        var isParagraphStart = hitOffset.Offset == 0;
+        var isParagraphStart = hitParagraphCaretOffset.Offset == 0;
 
+        int hitCharOffset;
         if (!caretOffset.IsAtLineStart && !isParagraphStart)
         {
             // 非行首情况下，一律取前一个字符
-            hitOffset = new ParagraphCaretOffset(hitOffset.Offset - 1);
+            hitCharOffset = hitParagraphCaretOffset.Offset - 1;
+        }
+        else
+        {
+            hitCharOffset = hitParagraphCaretOffset.Offset;
         }
 
         for (var lineIndex = 0; lineIndex < paragraphData.LineLayoutDataList.Count; lineIndex++)
         {
             var lineLayoutData = paragraphData.LineLayoutDataList[lineIndex];
 
-            if (lineLayoutData.CharEndParagraphIndex > hitOffset.Offset)
+            if (lineLayoutData.CharEndParagraphIndex > hitCharOffset)
             {
-                var hitLineOffset = new LineCharOffset(hitOffset.Offset - lineLayoutData.CharStartParagraphIndex);
+                var hitLineOffset = new LineCharOffset(hitCharOffset - lineLayoutData.CharStartParagraphIndex);
 
-                return new CaretRenderInfo(TextEditor, lineIndex, hitLineOffset, hitOffset, caretOffset, lineLayoutData);
+                return new CaretRenderInfo(TextEditor, lineIndex, hitLineOffset, hitParagraphCaretOffset, caretOffset, lineLayoutData);
             }
         }
 
