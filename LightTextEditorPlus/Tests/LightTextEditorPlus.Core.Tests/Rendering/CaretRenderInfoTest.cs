@@ -5,8 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.TestsFramework;
+using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Core.Tests.Rendering;
 
@@ -16,10 +19,71 @@ public class CaretRenderInfoTest
     [ContractTestCase]
     public void GetCaretRenderInfo()
     {
+        "光标处于第二段的段首，可以获取到正确的渲染信息".Test(() =>
+        {
+            // Arrange
+            // 采用 FixCharSizePlatformProvider 固定数值
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider())
+                .UseFixedLineSpacing();
+            var charWidth = 15;
+            // 设置一行只放下三个字符
+            textEditorCore.DocumentManager.DocumentWidth = charWidth * 3 + 0.1;
+            // 创建两段的文本
+            textEditorCore.AppendText("abcde\r\nfg");
+            // 此时布局出来的效果如下
+            // abc
+            // de[回车]
+            // fg
+
+            // Action
+            // 将光标设置在 f 字符之前
+            var caretOffset = new CaretOffset("abcde".Length + TextContext.NewLine.Length, isAtLineStart: true);
+            var renderInfoProvider = textEditorCore.GetRenderInfo();
+            Assert.IsNotNull(renderInfoProvider); // 单元测试里是立刻布局，可以立刻获取到渲染信息
+
+            var caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(caretOffset);
+
+            // Assert
+            Assert.IsNotNull(caretRenderInfo.CharData);
+            Assert.AreEqual("f", caretRenderInfo.CharData.CharObject.ToText());
+
+            Assert.AreEqual(0, caretRenderInfo.LineIndex);
+            Assert.AreEqual(1, caretRenderInfo.ParagraphIndex);
+        });
+
+        "光标处于非首行的行首，可以获取到正确的行序号".Test(() =>
+        {
+            // Arrange
+            // 采用 FixCharSizePlatformProvider 固定数值
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider())
+                .UseFixedLineSpacing();
+            var charWidth = 15;
+            // 设置一行只放下三个字符
+            textEditorCore.DocumentManager.DocumentWidth = charWidth * 3 + 0.1;
+            // 创建一段两行的文本
+            textEditorCore.AppendText("abcde");
+            // 此时布局出来的效果如下
+            // abc
+            // de
+
+            // Action
+            // 将光标设置在 d 字符之前，行首
+            var caretOffset = new CaretOffset(3, isAtLineStart: true);
+            var renderInfoProvider = textEditorCore.GetRenderInfo();
+            Assert.IsNotNull(renderInfoProvider); // 单元测试里是立刻布局，可以立刻获取到渲染信息
+
+            var caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(caretOffset);
+
+            // Assert
+            Assert.AreEqual(1, caretRenderInfo.LineIndex, "获取到的是首段的末行");
+            Assert.AreEqual(0, caretRenderInfo.ParagraphIndex, "获取到的是首段的末行");
+            Assert.IsNotNull(caretRenderInfo.CharData);
+            Assert.AreEqual("d", caretRenderInfo.CharData.CharObject.ToText());
+        });
+
         "获取第二段的文本光标信息，在文本第二段是空段时，可以获取到正确的渲染信息".Test(() =>
         {
             // Arrange
-            // 这是空文本，没有任何的布局等信息
             // 采用 FixCharSizePlatformProvider 固定数值
             var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider())
                 .UseFixedLineSpacing();

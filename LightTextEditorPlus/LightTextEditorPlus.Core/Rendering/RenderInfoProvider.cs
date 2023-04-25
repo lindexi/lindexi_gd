@@ -123,7 +123,7 @@ public class RenderInfoProvider
             {
                 var hitLineOffset = hitOffset.Offset - lineLayoutData.CharStartParagraphIndex;
 
-                return new CaretRenderInfo(TextEditor,lineIndex, hitLineOffset, hitOffset, caretOffset, lineLayoutData);
+                return new CaretRenderInfo(TextEditor, lineIndex, hitLineOffset, hitOffset, caretOffset, lineLayoutData);
             }
         }
 
