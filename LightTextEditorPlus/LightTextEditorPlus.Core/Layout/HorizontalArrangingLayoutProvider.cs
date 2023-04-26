@@ -29,12 +29,23 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         // 先设置是脏的，然后再更新，这样即可更新段落版本号
         paragraph.SetDirty();
 
-        paragraph.ParagraphLayoutData.StartPoint = paragraph.LineLayoutDataList[0].StartPoint;
-        var currentStartPoint = UpdateParagraphLineLayoutDataStartPoint(argument);
+        double paragraphBefore = argument.IsFirstParagraph ? 0 /*首段不加段前距离*/  : paragraph.ParagraphProperty.ParagraphBefore;
+        var currentStartPoint = argument.CurrentStartPoint with
+        {
+            Y = argument.CurrentStartPoint.Y + paragraphBefore
+        };
+        paragraph.ParagraphLayoutData.StartPoint = currentStartPoint;
+
+        var layoutArgument = argument with
+        {
+            CurrentStartPoint = currentStartPoint
+        };
+
+        var nextLineStartPoint = UpdateParagraphLineLayoutDataStartPoint(layoutArgument);
         // 设置当前段落已经布局完成
         paragraph.SetFinishLayout();
 
-        return new ParagraphLayoutResult(currentStartPoint);
+        return new ParagraphLayoutResult(nextLineStartPoint);
     }
 
     #region LayoutParagraphCore
