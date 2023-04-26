@@ -114,7 +114,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             Y = currentStartPoint.Y + paragraphAfter,
         };
 
-        paragraph.ParagraphLayoutData.StartPoint = argument.ParagraphData.LineLayoutDataList[0].StartPoint;
+        paragraph.ParagraphLayoutData.StartPoint = argument.ParagraphData.LineLayoutDataList[0].CharStartPoint;
         paragraph.ParagraphLayoutData.Size = BuildParagraphSize(argument);
 
         // 设置当前段落已经布局完成
@@ -143,7 +143,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         {
             CharStartParagraphIndex = 0,
             CharEndParagraphIndex = 0,
-            StartPoint = currentStartPoint,
+            CharStartPoint = currentStartPoint,
             Size = new Size(0, lineHeight)
         };
         paragraph.LineLayoutDataList.Add(lineLayoutData);
@@ -215,7 +215,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
                 CharStartParagraphIndex = i,
                 CharEndParagraphIndex = i + result.CharCount,
                 Size = result.Size,
-                StartPoint = currentStartPoint,
+                CharStartPoint = currentStartPoint,
             };
             // 更新字符信息
             Debug.Assert(result.CharCount <= charDataList.Count, "所获取的行的字符数量不能超过可提供布局的行的字符数量");
@@ -544,7 +544,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         // 1. 此行的起点
         // 2. 此行内的所有字符的起点坐标
         var currentStartPoint = startPoint;
-        lineLayoutData.StartPoint = currentStartPoint;
+        lineLayoutData.CharStartPoint = currentStartPoint;
         // 更新行内所有字符的坐标
         var lineTop = currentStartPoint.Y;
         var list = lineLayoutData.GetCharList();
@@ -593,14 +593,14 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
         //    const double x = 0;
         //    var layoutData = paragraphData.ParagraphLayoutData;
-        //    var y = layoutData.StartPoint.Y + layoutData.Size.Height;
+        //    var y = layoutData.CharStartPoint.Y + layoutData.Size.Height;
         //    return new Point(x, y);
         //}
         //else
         //{
         //    var lineVisualData = paragraphData.LineVisualDataList.Last();
         //    const double x = 0;
-        //    var y = lineVisualData.StartPoint.Y + lineVisualData.Size.Height;
+        //    var y = lineVisualData.CharStartPoint.Y + lineVisualData.Size.Height;
         //    return new Point(x, y);
         //}
     }
