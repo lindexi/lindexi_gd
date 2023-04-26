@@ -288,7 +288,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
         // 遍历一次，用来取出其中 FontSize 最大的字符，此字符的对应字符属性就是所期望的参与后续计算的字符属性
         // 遍历这一行的所有字符，找到最大字符的字符属性
-        IReadOnlyRunProperty maxFontSizeCharRunProperty = GetMaxFontSizeCharRunProperty(charDataList.Slice(0, wholeCharCount));
+        var charDataTakeList = charDataList.Slice(0, wholeCharCount);
+        IReadOnlyRunProperty maxFontSizeCharRunProperty = GetMaxFontSizeCharRunProperty(charDataTakeList);
 
         // 处理行距
         var lineSpacingCalculateArgument = new LineSpacingCalculateArgument(argument.ParagraphIndex, argument.LineIndex, argument.ParagraphProperty, maxFontSizeCharRunProperty);
@@ -298,6 +299,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         {
             lineHeight = currentSize.Height;
         }
+        
+        var fixLineSpacing = lineHeight - currentSize.Height; // 行距值，现在仅调试用途
+        GC.KeepAlive(fixLineSpacing);
 
         var lineTop = currentStartPoint.Y;
         var currentX = 0d;
@@ -312,7 +316,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             Debug.Assert(charData.Size != null, "charData.Size != null");
             var charDataSize = charData.Size!.Value;
 
-            var yOffset = (lineHeight - charDataSize.Height) + lineTop;
+            var yOffset = CalculateCharDataTop(charDataSize.Height, lineHeight,
+                    lineTop); // (lineHeight - charDataSize.Height) + lineTop;
             charData.SetStartPoint(new Point(currentX, yOffset));
 
             currentX += charDataSize.Width;
@@ -322,6 +327,19 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         var lineSize = new Size(currentSize.Width, lineHeight);
 
         return new WholeLineLayoutResult(lineSize, wholeCharCount);
+    }
+
+    /// <summary>
+    /// 更新字符的坐标
+    /// </summary>
+    /// <param name="charHeight">charData.Size.Height</param>
+    /// <param name="lineHeight">当前字符所在行的行高，包括行距在内</param>
+    /// <param name="lineTop">文档布局给到行的距离文本框开头的距离</param>
+    /// 只是封装算法而已
+    private static double CalculateCharDataTop(double charHeight, double lineHeight, double lineTop)
+    {
+        var yOffset = (lineHeight - charHeight) + lineTop;
+        return yOffset;
     }
 
     /// <summary>
@@ -548,14 +566,20 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         // 更新行内所有字符的坐标
         var lineTop = currentStartPoint.Y;
         var list = lineLayoutData.GetCharList();
-
+        var lineHeight = lineLayoutData.Size.Height;
         for (var index = 0; index < list.Count; index++)
         {
             var charData = list[index];
 
             Debug.Assert(charData.CharLayoutData is not null);
 
-            charData.CharLayoutData!.StartPoint = new Point(charData.CharLayoutData.StartPoint.X, lineTop);
+            var charHeight = charData.Size!.Value.Height;
+
+            // 保持 X 不变
+            var xOffset = charData.CharLayoutData.StartPoint.X;
+            // 计算 Y 方向的值
+            var yOffset = CalculateCharDataTop(charHeight, lineHeight, lineTop);
+            charData.CharLayoutData!.StartPoint = new Point(xOffset, yOffset);
             charData.CharLayoutData.UpdateVersion();
         }
 
