@@ -20,22 +20,30 @@
             </Grid.RowDefinitions>
             <Border Margin="10,10,10,10" BorderBrush="Blue" BorderThickness="1" HorizontalAlignment="Left"
                     VerticalAlignment="Stretch">
-                <textEditorPlus:TextEditor x:Name="TextEditor" x:FieldModifier="public" Width="500">
-                </textEditorPlus:TextEditor>
-
+                <Grid>
+                    <textEditorPlus:TextEditor x:Name="TextEditor" x:FieldModifier="public" Width="500">
+                    </textEditorPlus:TextEditor>
+                    <Canvas x:Name="DebugCanvas" IsHitTestVisible="False">
+                        <!-- 用来绘制调试内容 -->
+                    </Canvas>
+                </Grid>
             </Border>
-            <Grid Grid.Row="1" Margin="10,0,10,10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"></ColumnDefinition>
-                    <ColumnDefinition Width="Auto"></ColumnDefinition>
-                </Grid.ColumnDefinitions>
-                <TextBox x:Name="TextBox" AcceptsReturn="True" />
-                <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Click="InputButton_OnClick">输入</Button>
-                    <Button Margin="5,0,0,0" Click="BackspaceButton_OnClick">退格</Button>
-                    <Button Margin="5,0,0,0" Click="DebugButton_OnClick">调试</Button>
-                </StackPanel>
-            </Grid>
+            <StackPanel Grid.Row="1" Margin="10,0,10,10" Orientation="Horizontal">
+                <Button Margin="5,0,0,0" Click="DebugButton_OnClick">调试</Button>
+                <ToggleButton x:Name="ShowDocumentBoundsButton" Margin="5,0,0,0" Click="ShowDocumentBoundsButton_OnClick">显示文档范围</ToggleButton>
+            </StackPanel>
+            <!-- <Grid Grid.Row="1" Margin="10,0,10,10"> -->
+            <!--     <Grid.ColumnDefinitions> -->
+            <!--         <ColumnDefinition Width="*"></ColumnDefinition> -->
+            <!--         <ColumnDefinition Width="Auto"></ColumnDefinition> -->
+            <!--     </Grid.ColumnDefinitions> -->
+            <!--     <TextBox x:Name="TextBox" AcceptsReturn="True" /> -->
+            <!--     <StackPanel Grid.Column="1" Orientation="Horizontal"> -->
+            <!--         <Button Click="InputButton_OnClick">输入</Button> -->
+            <!--         <Button Margin="5,0,0,0" Click="BackspaceButton_OnClick">退格</Button> -->
+            <!--         <Button Margin="5,0,0,0" Click="DebugButton_OnClick">调试</Button> -->
+            <!--     </StackPanel> -->
+            <!-- </Grid> -->
         </Grid>
 
         <Grid Grid.Column="1">

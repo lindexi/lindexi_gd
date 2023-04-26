@@ -13,6 +13,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+using LightTextEditorPlus.Core.Events;
+using LightTextEditorPlus.Utils;
+
 using Microsoft.Win32;
 
 namespace LightTextEditorPlus.Demo
@@ -29,10 +32,10 @@ namespace LightTextEditorPlus.Demo
             TextEditor.TextEditorCore.AppendText("123123123123123123123123123123123123123\r\n1231231231231231231231231231");
         }
 
-        private void InputButton_OnClick(object sender, RoutedEventArgs e)
-        {
-            TextEditor.TextEditorCore.EditAndReplace(TextBox.Text);
-        }
+        //private void InputButton_OnClick(object sender, RoutedEventArgs e)
+        //{
+        //    TextEditor.TextEditorCore.EditAndReplace(TextBox.Text);
+        //}
 
         private async void DebugButton_OnClick(object sender, RoutedEventArgs e)
         {
@@ -64,9 +67,56 @@ namespace LightTextEditorPlus.Demo
 #pragma warning restore CS0618
         }
 
-        private void BackspaceButton_OnClick(object sender, RoutedEventArgs e)
+        //private void BackspaceButton_OnClick(object sender, RoutedEventArgs e)
+        //{
+        //    TextEditor.TextEditorCore.Backspace();
+        //}
+
+        private void ShowDocumentBoundsButton_OnClick(object sender, RoutedEventArgs e)
         {
-            TextEditor.TextEditorCore.Backspace();
+            TextEditor.TextEditorCore.LayoutCompleted -= TextEditorCore_LayoutCompleted;
+            RemoveDocumentBoundsDebugBorder();
+
+            if (ShowDocumentBoundsButton.IsChecked is true)
+            {
+                TextEditor.TextEditorCore.LayoutCompleted += TextEditorCore_LayoutCompleted;
+                ShowDocumentBoundsDebugBorder();
+            }
+
+            // ReSharper disable once InconsistentNaming
+            void TextEditorCore_LayoutCompleted(object? _, LayoutCompletedEventArgs __)
+            {
+                RemoveDocumentBoundsDebugBorder();
+                ShowDocumentBoundsDebugBorder();
+            }
+
+            void ShowDocumentBoundsDebugBorder()
+            {
+                var documentLayoutBounds = TextEditor.TextEditorCore.GetDocumentLayoutBounds();
+                var documentBoundsDebugBorder = new DocumentBoundsDebugBorder()
+                {
+                    Width = documentLayoutBounds.Width,
+                    Height = documentLayoutBounds.Height,
+
+                    BorderThickness = new Thickness(2),
+                    BorderBrush = Brushes.Cyan,
+                };
+
+                DebugCanvas.Children.Add(documentBoundsDebugBorder);
+            }
+
+            void RemoveDocumentBoundsDebugBorder()
+            {
+                var documentBoundsDebugBorder = DebugCanvas.Children.OfType<DocumentBoundsDebugBorder>().FirstOrDefault();
+                if (documentBoundsDebugBorder != null)
+                {
+                    DebugCanvas.Children.Remove(documentBoundsDebugBorder);
+                }
+            }
         }
     }
+}
+
+class DocumentBoundsDebugBorder : Border
+{
 }
