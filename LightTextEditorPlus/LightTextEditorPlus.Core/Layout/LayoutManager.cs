@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
@@ -21,6 +23,7 @@ class LayoutManager
     public TextEditor TextEditor { get; }
     public event EventHandler? InternalLayoutCompleted;
 
+    [DebuggerStepThrough] // 别跳太多层
     public TextHitTestResult HitTest(in Point point)
     {
         return ArrangingLayoutProvider.HitTest(point);

@@ -22,6 +22,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
     public override ArrangingType ArrangingType => ArrangingType.Horizontal;
 
+    #region 更新非脏的段落和行
+
     protected override ParagraphLayoutResult UpdateParagraphStartPoint(in ParagraphLayoutArgument argument)
     {
         var paragraph = argument.ParagraphData;
@@ -47,6 +49,85 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
         return new ParagraphLayoutResult(nextLineStartPoint);
     }
+
+    /// <summary>
+    /// 更新段落里面的所有行的起始点
+    /// </summary>
+    /// <param name="argument"></param>
+    /// <returns></returns>
+    private static Point UpdateParagraphLineLayoutDataStartPoint(in ParagraphLayoutArgument argument)
+    {
+        var currentStartPoint = argument.CurrentStartPoint;
+        var paragraph = argument.ParagraphData;
+
+        foreach (LineLayoutData lineVisualData in paragraph.LineLayoutDataList)
+        {
+            UpdateLineLayoutDataStartPoint(lineVisualData, currentStartPoint);
+
+            currentStartPoint = GetNextLineStartPoint(currentStartPoint, lineVisualData);
+        }
+
+        return currentStartPoint;
+    }
+
+    /// <summary>
+    /// 重新更新每一行的起始点。例如现在第一段的文本加了一行，那第二段的所有文本都需要更新每一行的起始点，而不需要重新布局第二段
+    /// </summary>
+    /// <param name="lineLayoutData"></param>
+    /// <param name="startPoint"></param>
+    static void UpdateLineLayoutDataStartPoint(LineLayoutData lineLayoutData, Point startPoint)
+    {
+        // 更新包括两个方面：
+        // 1. 此行的起点
+        // 2. 此行内的所有字符的起点坐标
+        var currentStartPoint = startPoint;
+        lineLayoutData.CharStartPoint = currentStartPoint;
+        // 更新行内所有字符的坐标
+        var lineTop = currentStartPoint.Y;
+        var list = lineLayoutData.GetCharList();
+        var lineHeight = lineLayoutData.Size.Height;
+        for (var index = 0; index < list.Count; index++)
+        {
+            var charData = list[index];
+
+            Debug.Assert(charData.CharLayoutData is not null);
+
+            var charHeight = charData.Size!.Value.Height;
+
+            // 保持 X 不变
+            var xOffset = charData.CharLayoutData.StartPoint.X;
+            // 计算 Y 方向的值
+            var yOffset = CalculateCharDataTop(charHeight, lineHeight, lineTop);
+            charData.CharLayoutData!.StartPoint = new Point(xOffset, yOffset);
+            charData.CharLayoutData.UpdateVersion();
+        }
+
+        lineLayoutData.UpdateVersion();
+    }
+
+    /// <summary>
+    /// 更新字符的坐标
+    /// </summary>
+    /// <param name="charHeight">charData.Size.Height</param>
+    /// <param name="lineHeight">当前字符所在行的行高，包括行距在内</param>
+    /// <param name="lineTop">文档布局给到行的距离文本框开头的距离</param>
+    /// 只是封装算法而已
+    private static double CalculateCharDataTop(double charHeight, double lineHeight, double lineTop)
+    {
+        // 以下的代码是简单版本的 AdaptBaseLine 方法。而正确的做法是：
+        // 1. 求出最大字符的 Baseline 出来
+        // 2. 求出当前字符的 Baseline 出来
+        // 3. 求出 最大字符的 Baseline 和 当前字符的 Baseline 的差，此结果叠加 lineTop 就是偏移量了
+        // 这里只使用简单的方法，求尺寸和行高的差，让字符底部对齐
+
+        // 先计算出字符相对行的距离
+        var charMarginTop = lineHeight - charHeight;
+        // 再加上文档里面给这一行的 lineTop 距离，即可算出字符相对于文本框的距离
+        var yOffset = charMarginTop + lineTop;
+        return yOffset;
+    }
+
+    #endregion
 
     #region LayoutParagraphCore
 
@@ -305,19 +386,14 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
         var lineTop = currentStartPoint.Y;
         var currentX = 0d;
-        for (var i = 0; i < wholeCharCount; i++)
+        foreach (CharData charData in charDataTakeList)
         {
-            // 简单版本的 AdaptBaseLine 方法，正确的做法是：
-            // 1. 求出最大字符的 Baseline 出来
-            // 2. 求出当前字符的 Baseline 出来
-            // 3. 求出 最大字符的 Baseline 和 当前字符的 Baseline 的差，此结果叠加 lineTop 就是偏移量了
-            // 这里只使用简单的方法，求尺寸和行高的差，让字符底部对齐
-            var charData = charDataList[i];
+            // 计算和更新每个字符的相对文本框的坐标
             Debug.Assert(charData.Size != null, "charData.Size != null");
             var charDataSize = charData.Size!.Value;
 
             var yOffset = CalculateCharDataTop(charDataSize.Height, lineHeight,
-                    lineTop); // (lineHeight - charDataSize.Height) + lineTop;
+                lineTop); // (lineHeight - charDataSize.Height) + lineTop;
             charData.SetStartPoint(new Point(currentX, yOffset));
 
             currentX += charDataSize.Width;
@@ -327,19 +403,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         var lineSize = new Size(currentSize.Width, lineHeight);
 
         return new WholeLineLayoutResult(lineSize, wholeCharCount);
-    }
-
-    /// <summary>
-    /// 更新字符的坐标
-    /// </summary>
-    /// <param name="charHeight">charData.Size.Height</param>
-    /// <param name="lineHeight">当前字符所在行的行高，包括行距在内</param>
-    /// <param name="lineTop">文档布局给到行的距离文本框开头的距离</param>
-    /// 只是封装算法而已
-    private static double CalculateCharDataTop(double charHeight, double lineHeight, double lineTop)
-    {
-        var yOffset = (lineHeight - charHeight) + lineTop;
-        return yOffset;
     }
 
     /// <summary>
@@ -404,7 +467,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
         // todo 这里可以支持两端对齐
         // 整行的字符布局
-        // CorrectCharBounds AdaptBaseLine
 
         // 整个行所使用的字符数量
         var wholeCharCount = currentIndex;
@@ -529,61 +591,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     {
         currentStartPoint = new Point(currentStartPoint.X, currentStartPoint.Y + currentLineLayoutData.Size.Height);
         return currentStartPoint;
-    }
-
-    /// <summary>
-    /// 更新段落里面的所有行的起始点
-    /// </summary>
-    /// <param name="argument"></param>
-    /// <returns></returns>
-    private static Point UpdateParagraphLineLayoutDataStartPoint(in ParagraphLayoutArgument argument)
-    {
-        var currentStartPoint = argument.CurrentStartPoint;
-        var paragraph = argument.ParagraphData;
-
-        foreach (LineLayoutData lineVisualData in paragraph.LineLayoutDataList)
-        {
-            UpdateLineLayoutDataStartPoint(lineVisualData, currentStartPoint);
-
-            currentStartPoint = GetNextLineStartPoint(currentStartPoint, lineVisualData);
-        }
-
-        return currentStartPoint;
-    }
-
-    /// <summary>
-    /// 重新更新每一行的起始点。例如现在第一段的文本加了一行，那第二段的所有文本都需要更新每一行的起始点，而不需要重新布局第二段
-    /// </summary>
-    /// <param name="lineLayoutData"></param>
-    /// <param name="startPoint"></param>
-    static void UpdateLineLayoutDataStartPoint(LineLayoutData lineLayoutData, Point startPoint)
-    {
-        // 更新包括两个方面：
-        // 1. 此行的起点
-        // 2. 此行内的所有字符的起点坐标
-        var currentStartPoint = startPoint;
-        lineLayoutData.CharStartPoint = currentStartPoint;
-        // 更新行内所有字符的坐标
-        var lineTop = currentStartPoint.Y;
-        var list = lineLayoutData.GetCharList();
-        var lineHeight = lineLayoutData.Size.Height;
-        for (var index = 0; index < list.Count; index++)
-        {
-            var charData = list[index];
-
-            Debug.Assert(charData.CharLayoutData is not null);
-
-            var charHeight = charData.Size!.Value.Height;
-
-            // 保持 X 不变
-            var xOffset = charData.CharLayoutData.StartPoint.X;
-            // 计算 Y 方向的值
-            var yOffset = CalculateCharDataTop(charHeight, lineHeight, lineTop);
-            charData.CharLayoutData!.StartPoint = new Point(xOffset, yOffset);
-            charData.CharLayoutData.UpdateVersion();
-        }
-
-        lineLayoutData.UpdateVersion();
     }
 
     private static Size BuildParagraphSize(in ParagraphLayoutArgument argument)
