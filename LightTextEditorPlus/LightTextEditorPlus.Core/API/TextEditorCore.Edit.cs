@@ -38,17 +38,18 @@ public partial class TextEditorCore
     /// 在当前的文本上编辑且替换。文本没有选择时，将在当前光标后面加入文本。文本有选择时，替换选择内容为输入内容
     /// </summary>
     /// <param name="text"></param>
+    /// <param name="selection">传入空时，将采用 <see cref="CurrentSelection"/> 当前选择范围</param>
     /// 这是对外调用的，非框架内使用
     [TextEditorPublicAPI]
-    public void EditAndReplace(string text)
+    public void EditAndReplace(string text, Selection? selection = null)
     {
         AddLayoutReason("TextEditorCore.EditAndReplace(string text)");
 
         TextEditorCore textEditor = this;
         DocumentManager documentManager = textEditor.DocumentManager;
         // 判断光标是否在文档末尾，且没有选择内容
-        var currentSelection = CaretManager.CurrentSelection;
-        var caretOffset = CaretManager.CurrentCaretOffset;
+        var currentSelection = selection ?? CaretManager.CurrentSelection;
+        var caretOffset = currentSelection.FrontOffset;
         var isEmptyText = string.IsNullOrEmpty(text);
         if (currentSelection.IsEmpty && caretOffset.Offset == documentManager.CharCount)
         {

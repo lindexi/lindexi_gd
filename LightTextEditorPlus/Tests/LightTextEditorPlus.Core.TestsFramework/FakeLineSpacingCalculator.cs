@@ -10,6 +10,13 @@ public class FakeLineSpacingCalculator : ILineSpacingCalculator
 {
     public LineSpacingCalculateResult CalculateLineSpacing(in LineSpacingCalculateArgument argument)
     {
-        return new LineSpacingCalculateResult(false, argument.MaxFontSizeCharRunProperty.FontSize);
+        if (double.IsNaN(argument.ParagraphProperty.FixedLineSpacing))
+        {
+            return new LineSpacingCalculateResult(false, argument.MaxFontSizeCharRunProperty.FontSize * argument.ParagraphProperty.LineSpacing);
+        }
+        else
+        {
+            return new LineSpacingCalculateResult(true, argument.ParagraphProperty.FixedLineSpacing);
+        }
     }
 }

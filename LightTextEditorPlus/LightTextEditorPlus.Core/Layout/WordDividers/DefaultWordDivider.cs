@@ -159,11 +159,15 @@ internal class DefaultWordDivider
         {
             CharData charData = argument.RunList[i];
             Size size = GetCharSize(charData);
-            totalWidth = totalWidth.HorizontalUnion(size);
-            if (totalWidth.Width > argument.LineRemainingWidth)
+            var currentSize = totalWidth.HorizontalUnion(size);
+            if (currentSize.Width > argument.LineRemainingWidth)
             {
                 // 超过了，那就不能获取了
                 break;
+            }
+            else
+            {
+                totalWidth = currentSize;
             }
         }
 
