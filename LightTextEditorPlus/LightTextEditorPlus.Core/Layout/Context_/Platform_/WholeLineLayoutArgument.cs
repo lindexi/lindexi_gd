@@ -1,4 +1,5 @@
-﻿using LightTextEditorPlus.Core.Document;
+﻿using System.Linq;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 
@@ -17,4 +18,8 @@ public readonly record struct WholeLineLayoutArgument(int ParagraphIndex, int Li
     ParagraphProperty ParagraphProperty, in ReadOnlyListSpan<CharData> CharDataList, double LineMaxWidth,
     Point CurrentStartPoint)
 {
+    /// <summary>
+    /// 调试使用的这一行的文本
+    /// </summary>
+    public string DebugText =>$"第 {ParagraphIndex} 段，第 {LineIndex} 行。文本：{string.Join("", CharDataList.Select(t => t.CharObject.ToText()))}" ;
 }

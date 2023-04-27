@@ -421,6 +421,12 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     {
         var (paragraphIndex, lineIndex, paragraphProperty, charDataList, lineMaxWidth, currentStartPoint) = argument;
 
+#if DEBUG
+        // 调试下显示当前这一行的文本，方便了解当前在哪一行
+        string currentLineText = argument.DebugText;
+        GC.KeepAlive(currentLineText);
+#endif
+
         var singleRunLineLayouter = TextEditor.PlatformProvider.GetSingleRunLineLayouter();
 
         // RunLineMeasurer
