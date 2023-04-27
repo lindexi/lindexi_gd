@@ -85,7 +85,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         // 更新行内所有字符的坐标
         var lineTop = currentStartPoint.Y;
         var list = lineLayoutData.GetCharList();
-        var lineHeight = lineLayoutData.Size.Height;
+        var lineHeight = lineLayoutData.LineCharSize.Height;
         for (var index = 0; index < list.Count; index++)
         {
             var charData = list[index];
@@ -108,7 +108,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// <summary>
     /// 更新字符的坐标
     /// </summary>
-    /// <param name="charHeight">charData.Size.Height</param>
+    /// <param name="charHeight">charData.LineCharSize.Height</param>
     /// <param name="lineHeight">当前字符所在行的行高，包括行距在内</param>
     /// <param name="lineTop">文档布局给到行的距离文本框开头的距离</param>
     /// 只是封装算法而已
@@ -225,7 +225,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             CharStartParagraphIndex = 0,
             CharEndParagraphIndex = 0,
             CharStartPoint = currentStartPoint,
-            Size = new Size(0, lineHeight)
+            LineCharSize = new Size(0, lineHeight)
         };
         paragraph.LineLayoutDataList.Add(lineLayoutData);
 
@@ -295,7 +295,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             {
                 CharStartParagraphIndex = i,
                 CharEndParagraphIndex = i + result.CharCount,
-                Size = result.Size,
+                LineCharSize = result.Size,
                 CharStartPoint = currentStartPoint,
             };
             // 更新字符信息
@@ -389,7 +389,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         foreach (CharData charData in charDataTakeList)
         {
             // 计算和更新每个字符的相对文本框的坐标
-            Debug.Assert(charData.Size != null, "charData.Size != null");
+            Debug.Assert(charData.Size != null, "charData.LineCharSize != null");
             var charDataSize = charData.Size!.Value;
 
             var yOffset = CalculateCharDataTop(charDataSize.Height, lineHeight,
@@ -589,7 +589,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// <returns></returns>
     private static Point GetNextLineStartPoint(Point currentStartPoint, LineLayoutData currentLineLayoutData)
     {
-        currentStartPoint = new Point(currentStartPoint.X, currentStartPoint.Y + currentLineLayoutData.Size.Height);
+        currentStartPoint = new Point(currentStartPoint.X, currentStartPoint.Y + currentLineLayoutData.LineCharSize.Height);
         return currentStartPoint;
     }
 
@@ -598,8 +598,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         var paragraphSize = new Size(0, 0);
         foreach (var lineVisualData in argument.ParagraphData.LineLayoutDataList)
         {
-            var width = Math.Max(paragraphSize.Width, lineVisualData.Size.Width);
-            var height = paragraphSize.Height + lineVisualData.Size.Height;
+            var width = Math.Max(paragraphSize.Width, lineVisualData.LineCharSize.Width);
+            var height = paragraphSize.Height + lineVisualData.LineCharSize.Height;
 
             paragraphSize = new Size(width, height);
         }
@@ -624,14 +624,14 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
         //    const double x = 0;
         //    var layoutData = paragraphData.ParagraphLayoutData;
-        //    var y = layoutData.CharStartPoint.Y + layoutData.Size.Height;
+        //    var y = layoutData.CharStartPoint.Y + layoutData.LineCharSize.Height;
         //    return new Point(x, y);
         //}
         //else
         //{
         //    var lineVisualData = paragraphData.LineVisualDataList.Last();
         //    const double x = 0;
-        //    var y = lineVisualData.CharStartPoint.Y + lineVisualData.Size.Height;
+        //    var y = lineVisualData.CharStartPoint.Y + lineVisualData.LineCharSize.Height;
         //    return new Point(x, y);
         //}
     }

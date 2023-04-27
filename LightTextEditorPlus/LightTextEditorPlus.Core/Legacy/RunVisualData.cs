@@ -9,10 +9,10 @@
 /////  RunRenderInfo
 //class RunVisualData
 //{
-//    public RunVisualData(IImmutableRun run, Size size, IList<Size>? charSizeList, int charIndexInLine)
+//    public RunVisualData(IImmutableRun run, LineCharSize size, IList<LineCharSize>? charSizeList, int charIndexInLine)
 //    {
 //        Run = run;
-//        Size = size;
+//        LineCharSize = size;
 //        CharSizeList = charSizeList;
 //        CharIndexInLine = charIndexInLine;
 //    }
@@ -31,7 +31,7 @@
 //    /// <summary>
 //    /// 尺寸
 //    /// </summary>
-//    public Size Size { get; }
+//    public LineCharSize LineCharSize { get; }
 
 //    /// <summary>
 //    /// 相对于行的字符序号
@@ -40,5 +40,5 @@
 
 //    public int CharCount => Run.Count;
 
-//    public IList<Size>? CharSizeList { set; get; }
+//    public IList<LineCharSize>? CharSizeList { set; get; }
 //}

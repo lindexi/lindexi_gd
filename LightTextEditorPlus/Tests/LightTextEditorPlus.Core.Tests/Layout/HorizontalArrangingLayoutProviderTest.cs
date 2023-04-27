@@ -37,8 +37,12 @@ public class HorizontalArrangingLayoutProviderTest
             // 一行高度是 CharHeight 的高度
             var size = new Size(CharWidth * 5, CharHeight * 2);
             Assert.AreEqual(size, paragraphLayoutData.Size);
+
+
         });
     }
+
+    // todo 加上段前段后布局测试
 
     /// <summary>
     /// 倍数行距的文本排版
@@ -89,12 +93,11 @@ public class HorizontalArrangingLayoutProviderTest
             // 第一行起始就是首段的末尾，首段的高度是两行的高度，一行高度是 LineSpacing * CharHeight 的高度
             Assert.AreEqual(new Point(0, LineSpacing * CharHeight * 2), lineRenderInfoList[0].LineLayoutData.CharStartPoint);
             // 一行的宽度是 CharWidth * 字符数量
-            Assert.AreEqual(new Size(CharWidth* "ABCDE".Length, LineSpacing * CharHeight), lineRenderInfoList[0].LineLayoutData.Size);
+            Assert.AreEqual(new Size(CharWidth* "ABCDE".Length, LineSpacing * CharHeight), lineRenderInfoList[0].LineLayoutData.LineCharSize);
 
             // 第二行的起始等于首段的末尾加第一行高度
             Assert.AreEqual(new Point(0, LineSpacing * CharHeight * 2 + LineSpacing * CharHeight), lineRenderInfoList[1].LineLayoutData.CharStartPoint);
-            // 第二行的宽度不是 FG 的宽度，而是被拉伸的 ABCDE 的宽度
-            Assert.AreEqual(new Size(CharWidth * "ABCDE".Length, LineSpacing * CharHeight), lineRenderInfoList[0].LineLayoutData.Size);
+            Assert.AreEqual(new Size(CharWidth * "FG".Length, LineSpacing * CharHeight), lineRenderInfoList[1].LineLayoutData.LineCharSize);
         });
 
         "文本包含两段，设置 1.5 倍行距，在首段追加，修改之后不影响文本第二段起始坐标，文本第二段布局正确".Test(() =>
@@ -161,7 +164,7 @@ public class HorizontalArrangingLayoutProviderTest
             var lineRenderInfo = paragraphRenderInfo.GetLineRenderInfoList().First();
             var lineLayoutData = lineRenderInfo.LineLayoutData;
             Assert.AreEqual(new Point(0, 0), lineLayoutData.CharStartPoint);
-            Assert.AreEqual(new Size(CharWidth * text.Length, CharHeight * LineSpacing), lineLayoutData.Size);
+            Assert.AreEqual(new Size(CharWidth * text.Length, CharHeight * LineSpacing), lineLayoutData.LineCharSize);
         });
     }
 

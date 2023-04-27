@@ -225,7 +225,7 @@ public struct Rect
     /// <summary>
     /// 上方
     /// </summary>
-    // Position/Size
+    // Position/LineCharSize
     public double Top
     {
         get => Y;

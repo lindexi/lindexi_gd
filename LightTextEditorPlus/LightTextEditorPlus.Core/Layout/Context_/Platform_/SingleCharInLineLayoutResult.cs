@@ -45,9 +45,9 @@ public readonly struct SingleCharInLineLayoutResult
     public Size TotalSize { get; init; }
 
     ///// <summary>当 <see cref="TakeCount"/> 大于一个时，将存放每个字符的尺寸</summary>
-    //public IReadOnlyList<Size>? CharSizeList { get; init; }
+    //public IReadOnlyList<LineCharSize>? CharSizeList { get; init; }
 
-    //public void Deconstruct(out int TaskCount, out Size TotalSize, out IReadOnlyList<Size>? CharSizeList)
+    //public void Deconstruct(out int TaskCount, out LineCharSize TotalSize, out IReadOnlyList<LineCharSize>? CharSizeList)
     //{
     //    TaskCount = this.TaskCount;
     //    TotalSize = this.TotalSize;

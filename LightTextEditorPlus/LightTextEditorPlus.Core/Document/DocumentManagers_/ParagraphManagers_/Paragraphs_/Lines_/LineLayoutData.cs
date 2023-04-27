@@ -69,14 +69,14 @@ class LineLayoutData : IParagraphCache, IDisposable
     private Point _charStartPoint;
 
     /// <summary>
-    /// 这一行的尺寸
+    /// 这一行的字符尺寸
     /// </summary>
-    public Size Size { get; init; }
+    public Size LineCharSize { get; init; }
 
     /// <summary>
     /// 这一行的范围
     /// </summary>
-    public Rect GetLineBounds() => new Rect(_charStartPoint, Size);
+    public Rect GetLineBounds() => new Rect(_charStartPoint, LineCharSize);
 
     /// <summary>
     /// 这一行是当前段落的第几行
@@ -156,7 +156,7 @@ class LineLayoutData : IParagraphCache, IDisposable
 
     public LineDrawingArgument GetLineDrawingArgument()
     {
-        return new LineDrawingArgument(IsDrawn, IsLineStartPointUpdated, LineAssociatedRenderData, CharStartPoint, Size,
+        return new LineDrawingArgument(IsDrawn, IsLineStartPointUpdated, LineAssociatedRenderData, CharStartPoint, LineCharSize,
             GetCharList());
     }
 
