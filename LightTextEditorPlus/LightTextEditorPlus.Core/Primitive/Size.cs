@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 
 namespace LightTextEditorPlus.Core.Primitive;
@@ -8,6 +9,7 @@ namespace LightTextEditorPlus.Core.Primitive;
 /// <summary>
 /// 文本库使用的尺寸
 /// </summary>
+[DebuggerDisplay("W:{Width} H:{Height}")]
 public readonly struct Size : IEquatable<Size>
 {
     public Size(double width, double height)
