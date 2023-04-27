@@ -23,6 +23,11 @@ public readonly struct ParagraphRenderInfo
     private readonly RenderInfoProvider _renderInfoProvider;
 
     /// <summary>
+    /// 段落的布局数据
+    /// </summary>
+    public IParagraphLayoutData ParagraphLayoutData => _paragraphData.ParagraphLayoutData;
+
+    /// <summary>
     /// 获取此段落内的行的渲染信息
     /// </summary>
     /// <returns></returns>
