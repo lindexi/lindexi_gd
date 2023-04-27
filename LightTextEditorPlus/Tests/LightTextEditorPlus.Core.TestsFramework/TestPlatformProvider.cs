@@ -1,3 +1,4 @@
+using System;
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
@@ -40,4 +41,36 @@ public class TestPlatformProvider : PlatformProvider
     }
 
     public ILineSpacingCalculator? LineSpacingCalculator { set; get; }
+
+
+    public HandleRequireDispatchUpdateLayout? RequireDispatchUpdateLayoutHandler { set; get; }
+
+    public delegate void HandleRequireDispatchUpdateLayout(Action updateLayoutAction);
+
+    public override void RequireDispatchUpdateLayout(Action updateLayoutAction)
+    {
+        if (RequireDispatchUpdateLayoutHandler != null)
+        {
+            RequireDispatchUpdateLayoutHandler(updateLayoutAction);
+            return;
+        }
+
+        base.RequireDispatchUpdateLayout(updateLayoutAction);
+    }
+
+    public HandleInvokeDispatchUpdateLayout? InvokeDispatchUpdateLayoutHandler { set; get; }
+
+    public delegate void HandleInvokeDispatchUpdateLayout(Action updateLayoutAction);
+
+    public override void InvokeDispatchUpdateLayout(Action updateLayoutAction)
+    {
+        if (InvokeDispatchUpdateLayoutHandler != null)
+        {
+            InvokeDispatchUpdateLayoutHandler(updateLayoutAction);
+        }
+        else
+        {
+            base.InvokeDispatchUpdateLayout(updateLayoutAction);
+        }
+    }
 }

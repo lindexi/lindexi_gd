@@ -1,5 +1,6 @@
 ﻿using MSTest.Extensions.Contracts;
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.TestsFramework;
 using LightTextEditorPlus.Core.Utils;
@@ -12,6 +13,38 @@ public class CaretRenderInfoTest
     [ContractTestCase]
     public void GetCaretRenderInfo()
     {
+        "调用 GetCaretRenderInfo 传入超过文档范围的光标，抛出异常".Test(() =>
+        {
+            // Arrange
+            // 采用 FixCharSizePlatformProvider 固定数值
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider())
+                .UseFixedLineSpacing();
+            var text = "abcde";
+            textEditorCore.AppendText(text);
+
+            // Assert
+            Assert.ThrowsException<HitCaretOffsetOutOfRangeException>(() =>
+            {
+                // Action
+                // 传入超过文档范围的光标
+                var caretOffset = new CaretOffset(text.Length + 1);
+
+                var renderInfoProvider = textEditorCore.GetRenderInfo();
+                try
+                {
+                    renderInfoProvider.GetCaretRenderInfo(caretOffset);
+                }
+                catch (HitCaretOffsetOutOfRangeException e)
+                {
+                    Assert.AreEqual(caretOffset, e.InputCaretOffset);
+                    Assert.AreEqual(text.Length, e.CurrentDocumentCharCount);
+                    Assert.IsNotNull(e.ArgumentName);
+                    Assert.IsNotNull(e.Message);
+                    throw;
+                }
+            });
+        });
+
         "传入骗人的光标属于行首，实际光标非行首情况下，可以在框架内自动无视光标属于行首属性".Test(() =>
         {
             // Arrange

@@ -37,8 +37,6 @@ public class HorizontalArrangingLayoutProviderTest
             // 一行高度是 CharHeight 的高度
             var size = new Size(CharWidth * 5, CharHeight * 2);
             Assert.AreEqual(size, paragraphLayoutData.Size);
-
-
         });
     }
 

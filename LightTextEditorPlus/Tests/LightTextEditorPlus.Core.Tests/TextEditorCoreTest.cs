@@ -107,4 +107,225 @@ public class TextEditorCoreTest
             textEditorCore.AppendText(TestHelper.PlainNumberText);
         });
     }
+
+    [ContractTestCase]
+    public void TestDebugName()
+    {
+        "给文本添加字符串内容，可以自动生成文本的调试名".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+
+            // Action
+            textEditorCore.AppendText(TestHelper.PlainNumberText);
+
+            // Assert
+            Assert.IsNotNull(textEditorCore.DebugName);
+        });
+    }
+
+    [ContractTestCase]
+    public void SetInDebugMode()
+    {
+        "调用 SetInDebugMode 可以设置文本进入调试模式".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+
+            // Action
+            textEditorCore.SetInDebugMode();
+
+            // Assert
+            Assert.AreEqual(true, textEditorCore.IsInDebugMode);
+        });
+    }
+
+    [ContractTestCase]
+    public void UpdateLayout()
+    {
+        "布局过的文本设置 自适应模式 属性，将触发布局".Test(() =>
+        {
+            // Arrange
+            var count = 0;
+            var testPlatformProvider = new TestPlatformProvider();
+            testPlatformProvider.RequireDispatchUpdateLayoutHandler = action =>
+            {
+                // 触发布局
+                if (count == 0)
+                {
+                    action();
+                }
+
+                count++;
+            };
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
+            textEditorCore.AppendText(TestHelper.PlainNumberText);
+
+            // Action
+            textEditorCore.SizeToContent = SizeToContent.Height;
+
+            // Assert
+            // 触发布局，一次是初始化时，一次是设置属性
+            Assert.AreEqual(2, count);
+        });
+
+        "布局过的文本设置 多倍行距呈现策略 属性，将触发布局".Test(() =>
+        {
+            // Arrange
+            var count = 0;
+            var testPlatformProvider = new TestPlatformProvider();
+            testPlatformProvider.RequireDispatchUpdateLayoutHandler = action =>
+            {
+                // 触发布局
+                if (count == 0)
+                {
+                    action();
+                }
+                count++;
+            };
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
+            textEditorCore.AppendText(TestHelper.PlainNumberText);
+
+            // Action
+            textEditorCore.LineSpacingStrategy = LineSpacingStrategy.FirstLineShrink;
+
+            // Assert
+            // 触发布局，一次是初始化时，一次是设置属性
+            Assert.AreEqual(2, count);
+        });
+
+        "布局过的文本设置 行距算法 属性，将触发布局".Test(() =>
+        {
+            // Arrange
+            var count = 0;
+            var testPlatformProvider = new TestPlatformProvider();
+            testPlatformProvider.RequireDispatchUpdateLayoutHandler = action =>
+            {
+                // 触发布局
+                if (count == 0)
+                {
+                    action();
+                }
+                count++;
+            };
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
+            textEditorCore.AppendText(TestHelper.PlainNumberText);
+
+            // Action
+            textEditorCore.LineSpacingAlgorithm = LineSpacingAlgorithm.WPF;
+
+            // Assert
+            // 触发布局，一次是初始化时，一次是设置属性
+            Assert.AreEqual(2, count);
+        });
+
+        "布局过的文本设置 ArrangingType 属性，将触发布局".Test(() =>
+        {
+            // Arrange
+            var count = 0;
+            var testPlatformProvider = new TestPlatformProvider();
+            testPlatformProvider.RequireDispatchUpdateLayoutHandler = action =>
+            {
+                // 触发布局
+                if (count == 0)
+                {
+                    action();
+                }
+                count++;
+            };
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
+            textEditorCore.AppendText(TestHelper.PlainNumberText);
+
+            // Action
+            textEditorCore.ArrangingType = ArrangingType.Vertical;
+
+            // Assert
+            // 触发布局，一次是初始化时，一次是设置属性
+            Assert.AreEqual(2, count);
+        });
+
+        "空文本初始化时设置 自适应模式 属性，不会触发布局".Test(() =>
+        {
+            // Arrange
+            var count = 0;
+            var testPlatformProvider = new TestPlatformProvider();
+            testPlatformProvider.RequireDispatchUpdateLayoutHandler = _ =>
+            {
+                // 触发布局
+                count++;
+            };
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
+            Assert.AreEqual(0, count);
+
+            // Action
+            textEditorCore.SizeToContent = SizeToContent.Height;
+
+            // Assert
+            // 不会触发布局
+            Assert.AreEqual(0, count);
+        });
+
+        "空文本初始化时设置 多倍行距呈现策略 属性，不会触发布局".Test(() =>
+        {
+            // Arrange
+            var count = 0;
+            var testPlatformProvider = new TestPlatformProvider();
+            testPlatformProvider.RequireDispatchUpdateLayoutHandler = _ =>
+            {
+                // 触发布局
+                count++;
+            };
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
+            Assert.AreEqual(0, count);
+
+            // Action
+            textEditorCore.LineSpacingStrategy = LineSpacingStrategy.FirstLineShrink;
+
+            // Assert
+            // 不会触发布局
+            Assert.AreEqual(0, count);
+        });
+
+        "空文本初始化时设置 行距算法 属性，不会触发布局".Test(() =>
+        {
+            // Arrange
+            var count = 0;
+            var testPlatformProvider = new TestPlatformProvider();
+            testPlatformProvider.RequireDispatchUpdateLayoutHandler = _ =>
+            {
+                // 触发布局
+                count++;
+            };
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
+            Assert.AreEqual(0, count);
+
+            // Action
+            textEditorCore.LineSpacingAlgorithm = LineSpacingAlgorithm.WPF;
+
+            // Assert
+            // 不会触发布局
+            Assert.AreEqual(0, count);
+        });
+
+        "空文本初始化时设置 ArrangingType 属性，不会触发布局".Test(() =>
+        {
+            // Arrange
+            var count = 0;
+            var testPlatformProvider = new TestPlatformProvider();
+            testPlatformProvider.RequireDispatchUpdateLayoutHandler = _ =>
+            {
+                // 触发布局
+                count++;
+            };
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
+            Assert.AreEqual(0, count);
+
+            // Action
+            textEditorCore.ArrangingType = ArrangingType.Vertical;
+
+            // Assert
+            // 不会触发布局
+            Assert.AreEqual(0, count);
+        });
+    }
 }

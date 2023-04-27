@@ -1,5 +1,5 @@
 ﻿using dotnetCampus.UITest.WPF;
-
+using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
 

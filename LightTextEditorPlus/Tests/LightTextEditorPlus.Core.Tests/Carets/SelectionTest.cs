@@ -7,6 +7,42 @@ namespace LightTextEditorPlus.Core.Tests.Carets;
 public class SelectionTest
 {
     [ContractTestCase]
+    public void EqualRange()
+    {
+        "传入范围相同，但是起点和终点不相同的 Selection 判断EqualRange 返回相同".Test(() =>
+        {
+            // Arrange
+            var selection1 = new Selection(new CaretOffset(5), new CaretOffset(10));
+            var selection2 = new Selection(new CaretOffset(10), new CaretOffset(5));
+
+            // Action
+            // Assert
+            Assert.AreEqual(true, selection1.EqualRange(selection2));
+        });
+
+        "传入长度不相同的 Selection 判断 EqualRange 返回不相同".Test(() =>
+        {
+            // Arrange
+            var selection1 = new Selection(new CaretOffset(10), 0);
+            var selection2 = new Selection(new CaretOffset(10), 1);
+
+            // Action
+            // Assert
+            Assert.AreEqual(false, selection1.EqualRange(selection2));
+        });
+
+        "传入相同的 Selection 判断 EqualRange 返回相同".Test(() =>
+        {
+            // Arrange
+            var selection = new Selection(new CaretOffset(10),0);
+
+            // Action
+            // Assert
+            Assert.AreEqual(true, selection.EqualRange(selection));
+        });
+    }
+
+    [ContractTestCase]
     public void Contains()
     {
         "传入在反向选择范围内的光标坐标，可以返回包含在选择范围内".Test(() =>

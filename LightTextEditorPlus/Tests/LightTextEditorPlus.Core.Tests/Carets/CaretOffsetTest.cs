@@ -1,4 +1,5 @@
-﻿using LightTextEditorPlus.Core.TestsFramework;
+﻿using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.TestsFramework;
 using MSTest.Extensions.Contracts;
 
 namespace LightTextEditorPlus.Core.Tests;
@@ -9,7 +10,15 @@ public class CaretOffsetTest
     [ContractTestCase]
     public void TestCaretOffset()
     {
-        "追加文本时，按照 DocumentChanging CurrentCaretOffsetChanging  CurrentCaretOffsetChanged 顺序触发".Test(() =>
+        "传入负数的光标坐标，抛出异常".Test(() =>
+        {
+            Assert.ThrowsException<ArgumentException>(() =>
+            {
+                _ = new CaretOffset(-1);
+            });
+        });
+
+        "追加文本时，按照 DocumentChanging CurrentCaretOffsetChanging CurrentCaretOffsetChanged 顺序触发".Test(() =>
         {
             // Arrange
             var textEditor = TestHelper.GetTextEditorCore();
