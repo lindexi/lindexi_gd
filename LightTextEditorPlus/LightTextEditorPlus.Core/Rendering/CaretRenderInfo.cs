@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
@@ -62,7 +63,7 @@ public readonly struct CaretRenderInfo
     public bool IsLineStart => CaretOffset.IsAtLineStart;
 
     /// <summary>
-    /// 命中的字符。如果是空段，那将没有命中哪个字符。对于在行首或段首的，那将命中在光标前面的字符
+    /// 命中的字符。如果是空段，那将没有命中哪个字符。对于在行首或段首的，那将命中在光标前面的字符，否则将获取光标之后的字符
     /// </summary>
     public CharData? CharData
     {
@@ -80,14 +81,14 @@ public readonly struct CaretRenderInfo
     }
 
     /// <summary>
-    /// 获取在光标之后的字符。如果是空段，那就空
+    /// 获取这一行在光标之后的字符。如果光标之后没有字符或是空段，那就空
     /// </summary>
     /// <returns></returns>
     public CharData? GetCharDataAfterCaretOffset()
     {
-        if (CaretOffset.IsAtLineStart)
+        if (LineLayoutData.CharCount == 0 || LineLayoutData.CharCount < HitOffset.Offset + 1)
         {
-            return CharData;
+            return null;
         }
 
         var hitCharOffset = new ParagraphCharOffset(HitOffset.Offset + 1);
