@@ -77,6 +77,7 @@ public class TextEditorStatusTest
             // 命中首段
             Assert.AreEqual(0, hitTestResult.HitParagraphIndex);
             Assert.IsNotNull(hitTestResult.ParagraphProperty);
+            Assert.AreEqual(true, hitTestResult.IsHitSpace);
         });
     }
 
