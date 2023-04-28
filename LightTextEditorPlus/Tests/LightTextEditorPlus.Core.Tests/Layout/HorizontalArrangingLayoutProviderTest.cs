@@ -1,7 +1,5 @@
 ﻿using LightTextEditorPlus.Core.Carets;
-using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
-using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.TestsFramework;
 
 using MSTest.Extensions.Contracts;
@@ -11,9 +9,8 @@ namespace LightTextEditorPlus.Core.Tests.Layout;
 [TestClass]
 public class HorizontalArrangingLayoutProviderTest
 {
-    private const double FontSize = 20;
-    private const double CharWidth = FontSize;
-    private const double CharHeight = FontSize;
+    private const double CharWidth = TestHelper.LayoutTestCharWidth;
+    private const double CharHeight = TestHelper.LayoutTestCharHeight;
     private const double LineSpacing = 1.5;
 
     [ContractTestCase]
@@ -66,7 +63,8 @@ public class HorizontalArrangingLayoutProviderTest
             textEditor.AppendText("abcde\r\nABCDEFG");
 
             // 获取第二段的起始坐标，用于后续判断是否改变
-            Point startPoint = textEditor.GetRenderInfo().GetParagraphRenderInfoList().ToList()[1].ParagraphLayoutData.StartPoint;
+            Point startPoint = textEditor.GetRenderInfo().GetParagraphRenderInfoList().ToList()[1].ParagraphLayoutData
+                .StartPoint;
 
             // Action
             // 在首段追加一行
@@ -89,13 +87,17 @@ public class HorizontalArrangingLayoutProviderTest
 
             var lineRenderInfoList = paragraphRenderInfo.GetLineRenderInfoList().ToList();
             // 第一行起始就是首段的末尾，首段的高度是两行的高度，一行高度是 LineSpacing * CharHeight 的高度
-            Assert.AreEqual(new Point(0, LineSpacing * CharHeight * 2), lineRenderInfoList[0].LineLayoutData.CharStartPoint);
+            Assert.AreEqual(new Point(0, LineSpacing * CharHeight * 2),
+                lineRenderInfoList[0].LineLayoutData.CharStartPoint);
             // 一行的宽度是 CharWidth * 字符数量
-            Assert.AreEqual(new Size(CharWidth* "ABCDE".Length, LineSpacing * CharHeight), lineRenderInfoList[0].LineLayoutData.LineCharSize);
+            Assert.AreEqual(new Size(CharWidth * "ABCDE".Length, LineSpacing * CharHeight),
+                lineRenderInfoList[0].LineLayoutData.LineCharSize);
 
             // 第二行的起始等于首段的末尾加第一行高度
-            Assert.AreEqual(new Point(0, LineSpacing * CharHeight * 2 + LineSpacing * CharHeight), lineRenderInfoList[1].LineLayoutData.CharStartPoint);
-            Assert.AreEqual(new Size(CharWidth * "FG".Length, LineSpacing * CharHeight), lineRenderInfoList[1].LineLayoutData.LineCharSize);
+            Assert.AreEqual(new Point(0, LineSpacing * CharHeight * 2 + LineSpacing * CharHeight),
+                lineRenderInfoList[1].LineLayoutData.CharStartPoint);
+            Assert.AreEqual(new Size(CharWidth * "FG".Length, LineSpacing * CharHeight),
+                lineRenderInfoList[1].LineLayoutData.LineCharSize);
         });
 
         "文本包含两段，设置 1.5 倍行距，在首段追加，修改之后不影响文本第二段起始坐标，文本第二段布局正确".Test(() =>
@@ -113,7 +115,8 @@ public class HorizontalArrangingLayoutProviderTest
             textEditor.AppendText("abcdefg\r\nABCDEFG");
 
             // 获取第二段的起始坐标，用于后续判断是否改变
-            Point startPoint = textEditor.GetRenderInfo().GetParagraphRenderInfoList().ToList()[1].ParagraphLayoutData.StartPoint;
+            Point startPoint = textEditor.GetRenderInfo().GetParagraphRenderInfoList().ToList()[1].ParagraphLayoutData
+                .StartPoint;
 
             // Action
             // 在首段追加
@@ -157,7 +160,8 @@ public class HorizontalArrangingLayoutProviderTest
             var paragraphRenderInfo = paragraphRenderInfoList[0];
             Assert.AreEqual(new Point(0, 0), paragraphRenderInfo.ParagraphLayoutData.StartPoint);
 
-            Assert.AreEqual(new Size(CharWidth * text.Length, CharHeight * LineSpacing), paragraphRenderInfo.ParagraphLayoutData.Size);
+            Assert.AreEqual(new Size(CharWidth * text.Length, CharHeight * LineSpacing),
+                paragraphRenderInfo.ParagraphLayoutData.Size);
 
             var lineRenderInfo = paragraphRenderInfo.GetLineRenderInfoList().First();
             var lineLayoutData = lineRenderInfo.LineLayoutData;
@@ -166,18 +170,5 @@ public class HorizontalArrangingLayoutProviderTest
         });
     }
 
-    private static TextEditorCore GetTestTextEditor()
-    {
-        var testPlatformProvider = new TestPlatformProvider();
-        // 使用固定字符尺寸计算，返回字符尺寸等于字号，方便计算
-        testPlatformProvider.UsingFixedCharSizeCharInfoMeasurer();
-        testPlatformProvider.UseFakeLineSpacingCalculator();
-
-        var textEditor = TestHelper.GetTextEditorCore(testPlatformProvider);
-        // 设置 20 字号，方便行距计算
-        textEditor.DocumentManager.SetDefaultTextRunProperty<LayoutOnlyRunProperty>(t => t.FontSize = FontSize);
-        // 设置一行能布局 5 个字
-        textEditor.DocumentManager.DocumentWidth = CharWidth * 5 + 0.1;
-        return textEditor;
-    }
+    private static TextEditorCore GetTestTextEditor() => TestHelper.GetLayoutTestTextEditor();
 }

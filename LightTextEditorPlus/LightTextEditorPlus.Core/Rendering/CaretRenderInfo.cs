@@ -84,7 +84,7 @@ public readonly struct CaretRenderInfo
     /// 获取这一行在光标之后的字符。如果光标之后没有字符或是空段，那就空
     /// </summary>
     /// <returns></returns>
-    public CharData? GetCharDataAfterCaretOffset()
+    public CharData? GetCharDataInLineAfterCaretOffset()
     {
         if (LineLayoutData.CharCount == 0 || LineLayoutData.CharCount < HitOffset.Offset + 1)
         {

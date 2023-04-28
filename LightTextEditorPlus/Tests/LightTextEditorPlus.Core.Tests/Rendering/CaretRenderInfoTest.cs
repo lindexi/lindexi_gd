@@ -111,6 +111,14 @@ public class CaretRenderInfoTest
 
             Assert.AreEqual(2, caretRenderInfo.HitLineCaretOffset.Offset);
             Assert.AreEqual(1, caretRenderInfo.HitLineCharOffset.Offset);
+
+            // 命中到正确的行
+            Assert.AreEqual("fg", caretRenderInfo.LineCharDataList.ToText());
+
+            // 命中到最后一个字符，也就是没有后续字符
+            Assert.IsNull(caretRenderInfo.GetCharDataInLineAfterCaretOffset());
+
+            Assert.AreSame(textEditorCore, caretRenderInfo.TextEditor);
         });
 
         "光标处于第二段的段首，可以获取到正确的渲染信息".Test(() =>
@@ -141,6 +149,9 @@ public class CaretRenderInfoTest
             // 命中到 f 字符
             Assert.IsNotNull(caretRenderInfo.CharData);
             Assert.AreEqual("f", caretRenderInfo.CharData.CharObject.ToText());
+            // 获取下一个字符
+            Assert.AreEqual("g", caretRenderInfo.GetCharDataInLineAfterCaretOffset()!.CharObject.ToText());
+            Assert.AreEqual(true, caretRenderInfo.IsLineStart);
 
             Assert.AreEqual(0, caretRenderInfo.LineIndex);
             Assert.AreEqual(1, caretRenderInfo.ParagraphIndex);

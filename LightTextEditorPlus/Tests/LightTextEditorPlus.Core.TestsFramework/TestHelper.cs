@@ -39,4 +39,23 @@ public static class TestHelper
 
         return textEditorCore;
     }
+
+    public static TextEditorCore GetLayoutTestTextEditor(TestPlatformProvider? testPlatformProvider = null)
+    {
+        testPlatformProvider ??= new TestPlatformProvider();
+        // 使用固定字符尺寸计算，返回字符尺寸等于字号，方便计算
+        testPlatformProvider.UsingFixedCharSizeCharInfoMeasurer();
+        testPlatformProvider.UseFakeLineSpacingCalculator();
+
+        var textEditor = TestHelper.GetTextEditorCore(testPlatformProvider);
+        // 设置 20 字号，方便行距计算
+        textEditor.DocumentManager.SetDefaultTextRunProperty<LayoutOnlyRunProperty>(t => t.FontSize = LayoutTestFontSize);
+        // 设置一行能布局 5 个字
+        textEditor.DocumentManager.DocumentWidth = LayoutTestCharWidth * 5 + 0.1;
+        return textEditor;
+    }
+
+    public const double LayoutTestFontSize = 20;
+    public const double LayoutTestCharWidth = LayoutTestFontSize;
+    public const double LayoutTestCharHeight = LayoutTestFontSize;
 }
