@@ -41,7 +41,16 @@ public record ParagraphProperty
     // todo 首行缩进 悬挂缩进
     public IndentType IndentType { get; init; } = IndentType.FirstLine;
 
-    // 左侧缩进 右侧缩进 
+    /// <summary>
+    /// 左侧缩进
+    /// </summary>
+    /// Word 里 Indentation indentation1 = new Indentation(){ Left = "2835", Right = "1134" };
+    public double LeftIndentation { get; init; }
+
+    /// <summary>
+    /// 右侧缩进
+    /// </summary>
+    public double RightIndentation { get; init; }
 
     /// <summary>
     /// 是否允许标点溢出边界

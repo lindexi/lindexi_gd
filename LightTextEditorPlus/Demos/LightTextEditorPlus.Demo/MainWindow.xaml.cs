@@ -30,6 +30,10 @@ namespace LightTextEditorPlus.Demo
             InitializeComponent();
 
             TextEditor.TextEditorCore.AppendText("123123123123123123123123123123123123123\r\n1231231231231231231231231231");
+            TextEditor.TextEditorCore.DocumentManager.SetParagraphProperty(0, TextEditor.TextEditorCore.DocumentManager.GetParagraphProperty(0) with
+            {
+                LeftIndentation = 5
+            });
         }
 
         //private void InputButton_OnClick(object sender, RoutedEventArgs e)

@@ -171,6 +171,12 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             currentStartPoint = UpdateParagraphLineLayoutDataStartPoint(argument);
         }
 
+        // 更新段左边距
+        currentStartPoint = currentStartPoint with
+        {
+            X = paragraph.ParagraphProperty.LeftIndentation
+        };
+
         // 如果是空段的话，那就进行空段布局，否则布局段落里面每一行
         bool isEmptyParagraph = paragraph.CharCount == 0;
         if (isEmptyParagraph)
@@ -385,7 +391,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         GC.KeepAlive(fixLineSpacing);
 
         var lineTop = currentStartPoint.Y;
-        var currentX = 0d;
+        var currentX = currentStartPoint.X;
         foreach (CharData charData in charDataTakeList)
         {
             // 计算和更新每个字符的相对文本框的坐标
