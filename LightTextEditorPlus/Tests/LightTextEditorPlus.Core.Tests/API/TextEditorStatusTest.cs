@@ -80,6 +80,4 @@ public class TextEditorStatusTest
             Assert.AreEqual(true, hitTestResult.IsHitSpace);
         });
     }
-
-
 }
