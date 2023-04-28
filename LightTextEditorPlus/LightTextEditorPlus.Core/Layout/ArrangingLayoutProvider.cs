@@ -67,7 +67,9 @@ abstract class ArrangingLayoutProvider
             return new TextHitTestResult(isOutOfTextCharacterBounds, isEndOfTextCharacterBounds, isInLastLineBounds,
                 hitCaretOffset, HitCharData: null, paragraphData.Index)
             {
-                HitParagraphData = paragraphData
+                HitParagraphData = paragraphData,
+                // 没在文档内，那一定是命中到空白
+                IsHitSpace = true,
             };
         }
 
@@ -119,7 +121,9 @@ abstract class ArrangingLayoutProvider
                         return new TextHitTestResult(false, false, false, new CaretOffset(currentCharIndex), charList.LastOrDefault(),
                             paragraphIndex)
                         {
-                            HitParagraphData = paragraphData
+                            HitParagraphData = paragraphData,
+                            // 行内没有命中到字符
+                            IsHitSpace = true,
                         };
                     }
                     else
@@ -144,7 +148,9 @@ abstract class ArrangingLayoutProvider
 
                             return new TextHitTestResult(false, false, true, hitCaretOffset, null, paragraphIndex)
                             {
-                                HitParagraphData = paragraphData
+                                HitParagraphData = paragraphData,
+                                // 命中到了字符
+                                IsHitSpace = false,
                             };
                         }
                     }
@@ -162,7 +168,10 @@ abstract class ArrangingLayoutProvider
             return new TextHitTestResult(false, false, false, documentManager.GetDocumentEndCaretOffset(),
                 null, lastParagraphData.Index)
             {
-                HitParagraphData = lastParagraphData
+                HitParagraphData = lastParagraphData,
+
+                // 没有命中到字符
+                IsHitSpace = true,
             };
         }
 

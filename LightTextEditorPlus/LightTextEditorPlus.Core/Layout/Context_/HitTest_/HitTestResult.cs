@@ -15,6 +15,11 @@ namespace LightTextEditorPlus.Core.Layout;
 public readonly record struct TextHitTestResult(bool IsOutOfTextCharacterBounds, bool IsEndOfTextCharacterBounds, bool IsInLineBoundsNotHitChar, CaretOffset HitCaretOffset, CharData? HitCharData, int HitParagraphIndex)
 {
     /// <summary>
+    /// 是否命中到了空白部分，也就是没有直接命中字符
+    /// </summary>
+    public bool IsHitSpace { init; get; } = false;
+
+    /// <summary>
     /// 命中到哪个段落
     /// </summary>
     internal ParagraphData HitParagraphData { init; get; }
