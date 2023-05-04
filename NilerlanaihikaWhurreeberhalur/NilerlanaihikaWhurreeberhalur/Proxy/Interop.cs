@@ -322,6 +322,8 @@ internal static partial class Interop
         public const uint ERROR_WINHTTP_HEADER_NOT_FOUND = 12150;
         public const uint ERROR_WINHTTP_SECURE_FAILURE = 12175;
         public const uint ERROR_WINHTTP_AUTODETECTION_FAILED = 12180;
+        public const uint ERROR_WINHTTP_TIMEOUT = 12002;
+        public const uint ERROR_WINHTTP_AUTO_PROXY_SERVICE_ERROR = 12178;
 
         public const uint WINHTTP_OPTION_PROXY = 38;
         public const uint WINHTTP_ACCESS_TYPE_DEFAULT_PROXY = 0;

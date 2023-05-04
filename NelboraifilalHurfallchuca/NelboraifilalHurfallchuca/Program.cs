@@ -3,9 +3,9 @@ Console.WriteLine("Hello, World!");
 
 var start = new DateTime(2023, 3, 2);
 
-for(int i = 0;i < 20; i++)
+for(int i = 0;i < 60; i++)
 {
-    var end = new DateTime(2023, 5, 1);
+    var end = new DateTime(2023, 4, 5);
     end = end.AddDays(i);
 
     var day = (int) (end - start).TotalDays;
@@ -13,6 +13,8 @@ for(int i = 0;i < 20; i++)
     var n = day % 8;
 
     Console.WriteLine(end);
+
+    Console.WriteLine(end.DayOfWeek);
 
     if (n == 0 || n == 1)
     {
@@ -28,6 +30,13 @@ for(int i = 0;i < 20; i++)
     }
     else if (n == 6 || n == 7)
     {
-        Console.WriteLine("0");
+        if(end.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)
+        {
+            Console.WriteLine("-");
+        }
+        else
+        {
+            Console.WriteLine("0");
+        }
     }
 }

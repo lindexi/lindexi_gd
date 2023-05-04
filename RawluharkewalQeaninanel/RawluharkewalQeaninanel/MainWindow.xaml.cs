@@ -1,6 +1,10 @@
 ﻿#nullable disable
 
 using System;
+<<<<<<< HEAD
+=======
+using System.Collections.Generic;
+>>>>>>> 04a601e7871cb3412cec868346fa9010189e678e
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -12,12 +16,49 @@ using Silk.NET.Core.Native;
 using D3D11 = Silk.NET.Direct3D11;
 using D3D9 = Silk.NET.Direct3D9;
 using DXGI = Silk.NET.DXGI;
-using D2D = SharpDX.Direct2D1;
-using SharpDXDXGI = SharpDX.DXGI;
-using SharpDXMathematics = SharpDX.Mathematics.Interop;
+using D2D = Silk.NET.Direct2D;
+using Silk.NET.Direct2D;
+using Silk.NET.Maths;
+using Silk.NET.Direct3D11;
+using Silk.NET.Core.Contexts;
+using Silk.NET.DXGI;
 
 namespace RawluharkewalQeaninanel
 {
+    class X : INativeWindowSource
+    {
+        public INativeWindow Native => throw new NotImplementedException();
+    }
+
+    class X1 : INativeWindow
+    {
+        public NativeWindowFlags Kind => throw new NotImplementedException();
+
+        public (nint Display, nuint Window)? X11 => throw new NotImplementedException();
+
+        public nint? Cocoa => throw new NotImplementedException();
+
+        public (nint Display, nint Surface)? Wayland => throw new NotImplementedException();
+
+        public nint? WinRT => throw new NotImplementedException();
+
+        public (nint Window, uint Framebuffer, uint Colorbuffer, uint ResolveFramebuffer)? UIKit => throw new NotImplementedException();
+
+        public (nint Hwnd, nint HDC, nint HInstance)? Win32 => throw new NotImplementedException();
+
+        public (nint Display, nint Window)? Vivante => throw new NotImplementedException();
+
+        public (nint Window, nint Surface)? Android => throw new NotImplementedException();
+
+        public nint? Glfw => throw new NotImplementedException();
+
+        public nint? Sdl => throw new NotImplementedException();
+
+        public nint? DXHandle => throw new NotImplementedException();
+
+        public (nint? Display, nint? Surface)? EGL => throw new NotImplementedException();
+    }
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -37,8 +78,6 @@ namespace RawluharkewalQeaninanel
             var width = ImageWidth;
             var height = ImageHeight;
 
-            // 2021.12.23 不能在 x86 下运行，会炸掉。参阅 https://github.com/dotnet/Silk.NET/issues/731
-
             var texture2DDesc = new D3D11.Texture2DDesc()
             {
                 BindFlags = (uint) (D3D11.BindFlag.BindRenderTarget | D3D11.BindFlag.BindShaderResource),
@@ -57,7 +96,7 @@ namespace RawluharkewalQeaninanel
             D3D11.ID3D11Device* pD3D11Device;
             D3D11.ID3D11DeviceContext* pD3D11DeviceContext;
             D3DFeatureLevel pD3DFeatureLevel = default;
-            D3D11.D3D11 d3D11 = D3D11.D3D11.GetApi();
+            D3D11.D3D11 d3D11 = D3D11.D3D11.GetApi(new X());
 
             var hr = d3D11.CreateDevice((DXGI.IDXGIAdapter*) IntPtr.Zero, D3DDriverType.D3DDriverTypeHardware,
                 Software: 0,
@@ -78,7 +117,7 @@ namespace RawluharkewalQeaninanel
             _pD3D11DeviceContext = pD3D11DeviceContext;
 
             D3D11.ID3D11Texture2D* pD3D11Texture2D;
-            hr = pD3D11Device->CreateTexture2D(ref texture2DDesc, (D3D11.SubresourceData*) IntPtr.Zero, &pD3D11Texture2D);
+            hr = pD3D11Device->CreateTexture2D(texture2DDesc, (D3D11.SubresourceData*) IntPtr.Zero, &pD3D11Texture2D);
             SilkMarshal.ThrowHResult(hr);
 
             var renderTarget = pD3D11Texture2D;
@@ -89,28 +128,54 @@ namespace RawluharkewalQeaninanel
             renderTarget->QueryInterface(ref dxgiSurfaceGuid, (void**) &pDXGISurface);
             _pDXGISurface = pDXGISurface;
 
-            var d2DFactory = new D2D.Factory();
+            D2D.ID2D1Factory* pD2D1Factory = (D2D.ID2D1Factory*) IntPtr.Zero;
+            var d2D = D2D.D2D.GetApi();
+            Guid guid = D2D.ID2D1Factory.Guid;
+
+            hr = d2D.D2D1CreateFactory(D2D.FactoryType.SingleThreaded, ref guid, new D2D.FactoryOptions(D2D.DebugLevel.Error),
+                ((void**) &pD2D1Factory));
+            SilkMarshal.ThrowHResult(hr);
+            _pD2D1Factory = pD2D1Factory;
+
+            // 通过 DXGI 创建
+            IDXGIDevice* pDXGIDevice = pD3D11Device->QueryInterface<IDXGIDevice>().Handle;
+            ID2D1Device* pD2D1Device;
+            var creationProperties = new CreationProperties(ThreadingMode.SingleThreaded, DebugLevel.Error, DeviceContextOptions.None);
+            d2D.D2D1CreateDevice(pDXGIDevice, creationProperties, &pD2D1Device);
+            pD2D1Device->GetFactory(&pD2D1Factory);
+
+            _pD2D1Factory = pD2D1Factory;
 
             var renderTargetProperties =
-                new D2D.RenderTargetProperties(new D2D.PixelFormat(SharpDXDXGI.Format.Unknown, D2D.AlphaMode.Premultiplied));
-            var surface = new SharpDXDXGI.Surface(new IntPtr((void*) pDXGISurface));
-            _d2DRenderTarget = new D2D.RenderTarget(d2DFactory, surface, renderTargetProperties);
+            new D2D.RenderTargetProperties(pixelFormat: new D2D.PixelFormat(DXGI.Format.FormatUnknown,
+                D2D.AlphaMode.Premultiplied), type: D2D.RenderTargetType.Hardware, dpiX: 96, dpiY: 96, usage: D2D.RenderTargetUsage.None, minLevel: D2D.FeatureLevel.LevelDefault);
+
+            D2D.ID2D1RenderTarget* pD2D1RenderTarget;
+            hr = pD2D1Factory->CreateDxgiSurfaceRenderTarget(pDXGISurface, renderTargetProperties, &pD2D1RenderTarget);
+            SilkMarshal.ThrowHResult(hr);
+
+            _pD2D1RenderTarget = pD2D1RenderTarget;
 
             SetRenderTarget(renderTarget);
 
             var viewport = new D3D11.Viewport(0, 0, width, height, 0, 1);
-            pD3D11DeviceContext->RSSetViewports(NumViewports: 1, ref viewport);
+            pD3D11DeviceContext->RSSetViewports(NumViewports: 1, viewport);
 
             CompositionTarget.Rendering += CompositionTarget_Rendering;
         }
 
         private void CompositionTarget_Rendering(object? sender, EventArgs e)
         {
-            _d2DRenderTarget.BeginDraw();
+            _pD2D1RenderTarget->BeginDraw();
 
-            OnRender(_d2DRenderTarget);
+            OnRender();
 
-            _d2DRenderTarget.EndDraw();
+            //var rect = new Box2D<float>(0,0,1000,1000);
+            //var arg1 = (ulong*) &rect;
+            var hr = _pD2D1RenderTarget->EndDraw((ulong*) IntPtr.Zero, (ulong*) IntPtr.Zero);
+            SilkMarshal.ThrowHResult(hr);
+
+            _pD3D11DeviceContext->Flush();
 
             D3DImage.Lock();
 
@@ -119,13 +184,69 @@ namespace RawluharkewalQeaninanel
             D3DImage.Unlock();
         }
 
-        private void OnRender(D2D.RenderTarget renderTarget)
+        private int _renderCount = 0;
+
+        private Stopwatch _stopwatch;
+        private void OnRender()
         {
-            var brush = new D2D.SolidColorBrush(_d2DRenderTarget, new SharpDXMathematics.RawColor4(1, 0, 0, 1));
+            _stopwatch ??= Stopwatch.StartNew();
 
-            renderTarget.Clear(null);
+            _renderCount++;
 
-            renderTarget.DrawRectangle(new SharpDXMathematics.RawRectangleF(_x, _y, _x + 10, _y + 10), brush);
+            if (_stopwatch.Elapsed.TotalSeconds > 1)
+            {
+                Title = $"FPS: {_renderCount / _stopwatch.Elapsed.TotalSeconds}";
+                _renderCount = 0;
+                _stopwatch.Restart();
+            }
+
+            ID2D1RenderTarget* renderTarget = _pD2D1RenderTarget;
+
+            var d3Dcolorvalue = new DXGI.D3Dcolorvalue(r: Random.Shared.NextSingle(), g: Random.Shared.NextSingle(), b: 0, a: 1);
+            var brushProperties = new BrushProperties()
+            {
+                Opacity = 0.5f,
+                Transform = Matrix3X2<float>.Identity,
+            };
+            ID2D1SolidColorBrush* pSolidColorBrush;
+            var hr = renderTarget->CreateSolidColorBrush(d3Dcolorvalue, brushProperties, &pSolidColorBrush);
+            SilkMarshal.ThrowHResult(hr);
+            ID2D1Brush* pBrush = (ID2D1Brush*) pSolidColorBrush;
+
+            renderTarget->Clear(null);
+
+            ID2D1StrokeStyle* pStrokeStyle;
+            var strokeStyleProperties = new StrokeStyleProperties()
+            {
+                StartCap = CapStyle.Square,
+                EndCap = CapStyle.Square,
+                LineJoin = LineJoin.Bevel
+            };
+
+            var pDashes = (float*) IntPtr.Zero;
+            hr = _pD2D1Factory->CreateStrokeStyle(strokeStyleProperties, pDashes, 0, &pStrokeStyle);
+            SilkMarshal.ThrowHResult(hr);
+
+            foreach (var (x, y) in GetPointList())
+            {
+                var rect = new Box2D<float>(x, y, x + 10, y + 10);
+                var pRect = &rect;
+
+                renderTarget->DrawRectangle(pRect, pBrush, 1, pStrokeStyle);
+            }
+            //for (int i = 0; i < 100000; i++)
+            //{
+            //    const int w = 1000;
+            //    var x = _x + Random.Shared.Next(w * 2) - w;
+            //    var y = _y + Random.Shared.Next(w * 2) - w;
+            //    var rect = new Box2D<float>(x, y, x + 10, y + 10);
+            //    var pRect = &rect;
+
+            //    renderTarget->DrawRectangle(pRect, pBrush, 1, pStrokeStyle);
+            //}
+
+            pSolidColorBrush->Release();
+            pStrokeStyle->Release();
 
             _x = _x + _dx;
             _y = _y + _dy;
@@ -140,10 +261,24 @@ namespace RawluharkewalQeaninanel
             }
         }
 
+        private IEnumerable<(int x, int y)> GetPointList()
+        {
+            const int width = 5;
+            for (int i = 0; i < 200; i++)
+            {
+                var x = i* width;
+                for (int j = 0; j < 100; j++)
+                {
+                    var y = j* width;
+                    yield return (x, y);
+                }
+            }
+        }
+
         private float _x;
         private float _y;
-        private float _dx = 1;
-        private float _dy = 1;
+        private float _dx = 10;
+        private float _dy = 10;
 
         private void SetRenderTarget(D3D11.ID3D11Texture2D* target)
         {
@@ -168,7 +303,7 @@ namespace RawluharkewalQeaninanel
             var presentParameters = new D3D9.PresentParameters()
             {
                 Windowed = 1,// true
-                SwapEffect = D3D9.Swapeffect.SwapeffectDiscard,
+                SwapEffect = D3D9.Swapeffect.Discard,
                 HDeviceWindow = GetDesktopWindow(),
                 PresentationInterval = D3D9.D3D9.PresentIntervalDefault,
             };
@@ -177,12 +312,12 @@ namespace RawluharkewalQeaninanel
             uint createFlags = D3D9.D3D9.CreateHardwareVertexprocessing | D3D9.D3D9.CreateMultithreaded | D3D9.D3D9.CreateFpuPreserve;
 
             D3D9.IDirect3DDevice9Ex* pDirect3DDevice9Ex;
-            hr = d3DContext->CreateDeviceEx(Adapter: 0, 
-                DeviceType: D3D9.Devtype.DevtypeHal,// 使用硬件渲染
-                hFocusWindow: IntPtr.Zero, 
+            hr = d3DContext->CreateDeviceEx(Adapter: 0,
+                DeviceType: D3D9.Devtype.Hal,// 使用硬件渲染
+                hFocusWindow: IntPtr.Zero,
                 createFlags,
-                ref presentParameters, 
-                pFullscreenDisplayMode: (D3D9.Displaymodeex*) IntPtr.Zero, 
+                ref presentParameters,
+                pFullscreenDisplayMode: (D3D9.Displaymodeex*) IntPtr.Zero,
                 &pDirect3DDevice9Ex);
             SilkMarshal.ThrowHResult(hr);
 
@@ -190,9 +325,9 @@ namespace RawluharkewalQeaninanel
 
             D3D9.IDirect3DTexture9* pDirect3DTexture9;
             hr = d3DDevice->CreateTexture(texture2DDescription.Width, texture2DDescription.Height, Levels: 1,
-                D3D9.D3D9.UsageRendertarget, 
-                D3D9.Format.FmtA8R8G8B8, // 这是必须要求的颜色，不能使用其他颜色
-                D3D9.Pool.PoolDefault, 
+                D3D9.D3D9.UsageRendertarget,
+                D3D9.Format.A8R8G8B8, // 这是必须要求的颜色，不能使用其他颜色
+                D3D9.Pool.Default,
                 &pDirect3DTexture9,
                 &sharedHandle);
             SilkMarshal.ThrowHResult(hr);
@@ -207,8 +342,8 @@ namespace RawluharkewalQeaninanel
             D3DImage.Unlock();
         }
 
-        // 这些字段的另一个作用是防止回收
-        private D2D.RenderTarget _d2DRenderTarget;
+        private D2D.ID2D1RenderTarget* _pD2D1RenderTarget;
+        private D2D.ID2D1Factory* _pD2D1Factory;
 
         private D3D11.ID3D11Device* _pD3D11Device;
         private D3D11.ID3D11DeviceContext* _pD3D11DeviceContext;

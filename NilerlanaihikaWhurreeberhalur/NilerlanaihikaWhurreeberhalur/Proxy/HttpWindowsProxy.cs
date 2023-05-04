@@ -6,14 +6,17 @@ using System.Runtime.Versioning;
 
 namespace NilerlanaihikaWhurreeberhalur.Proxy;
 
+/// <summary>
+/// Copy From https://github.com/dotnet/runtime/tree/v6.0.5/src/libraries/System.Net.Http
+/// </summary>
 [SupportedOSPlatform("windows")]
 internal sealed class HttpWindowsProxy : IWebProxy, IDisposable
 {
-    private readonly MultiProxy _insecureProxy;    // URI of the http system proxy if set
-    private readonly MultiProxy _secureProxy;      // URI of the https system proxy if set
+    private readonly MultiProxy _insecureProxy; // URI of the http system proxy if set
+    private readonly MultiProxy _secureProxy; // URI of the https system proxy if set
     private readonly FailedProxyCache _failedProxies = new FailedProxyCache();
-    private readonly List<string>? _bypass;         // list of domains not to proxy
-    private readonly bool _bypassLocal;    // we should bypass domain considered local
+    private readonly List<string>? _bypass; // list of domains not to proxy
+    private readonly bool _bypassLocal; // we should bypass domain considered local
     private readonly List<IPAddress>? _localIp;
     private ICredentials? _credentials;
     private readonly WinInetProxyHelper _proxyHelper;
@@ -41,7 +44,7 @@ internal sealed class HttpWindowsProxy : IWebProxy, IDisposable
                 Interop.WinHttp.WINHTTP_ACCESS_TYPE_NO_PROXY,
                 Interop.WinHttp.WINHTTP_NO_PROXY_NAME,
                 Interop.WinHttp.WINHTTP_NO_PROXY_BYPASS,
-                (int)Interop.WinHttp.WINHTTP_FLAG_ASYNC
+                (int) Interop.WinHttp.WINHTTP_FLAG_ASYNC
             );
 
             if (sessionHandle.IsInvalid)
@@ -50,6 +53,10 @@ internal sealed class HttpWindowsProxy : IWebProxy, IDisposable
                 //if (NetEventSource.Log.IsEnabled()) NetEventSource.Error(proxyHelper, $"{nameof(Interop.WinHttp.WinHttpOpen)} returned invalid handle");
                 return false;
             }
+
+            // 这是从 Chrome 里面抄的，设置超时时间。这里面单位是毫秒，因此 10 秒就等于 10_000 毫秒
+            // https://chromium.googlesource.com/chromium/chromium/+/3a22d113c52e11e2159e90608cea55b89db0241a/net/proxy/proxy_resolver_winhttp.cc#166
+            Interop.WinHttp.WinHttpSetTimeouts(sessionHandle, resolveTimeout: 10_000, connectTimeout: 10_000, sendTimeout: 5_000, receiveTimeout: 5_000);
         }
 
         proxy = new HttpWindowsProxy(proxyHelper, sessionHandle);
@@ -78,12 +85,19 @@ internal sealed class HttpWindowsProxy : IWebProxy, IDisposable
                 while (idx < proxyHelper.ProxyBypass.Length)
                 {
                     // Strip leading spaces and scheme if any.
-                    while (idx < proxyHelper.ProxyBypass.Length && proxyHelper.ProxyBypass[idx] == ' ') { idx += 1; };
-                    if (string.Compare(proxyHelper.ProxyBypass, idx, "http://", 0, 7, StringComparison.OrdinalIgnoreCase) == 0)
+                    while (idx < proxyHelper.ProxyBypass.Length && proxyHelper.ProxyBypass[idx] == ' ')
+                    {
+                        idx += 1;
+                    }
+
+                    ;
+                    if (string.Compare(proxyHelper.ProxyBypass, idx, "http://", 0, 7,
+                            StringComparison.OrdinalIgnoreCase) == 0)
                     {
                         idx += 7;
                     }
-                    else if (string.Compare(proxyHelper.ProxyBypass, idx, "https://", 0, 8, StringComparison.OrdinalIgnoreCase) == 0)
+                    else if (string.Compare(proxyHelper.ProxyBypass, idx, "https://", 0, 8,
+                                 StringComparison.OrdinalIgnoreCase) == 0)
                     {
                         idx += 8;
                     }
@@ -95,14 +109,21 @@ internal sealed class HttpWindowsProxy : IWebProxy, IDisposable
                     }
 
                     int start = idx;
-                    while (idx < proxyHelper.ProxyBypass.Length && proxyHelper.ProxyBypass[idx] != ' ' && proxyHelper.ProxyBypass[idx] != ';' && proxyHelper.ProxyBypass[idx] != ']') { idx += 1; };
+                    while (idx < proxyHelper.ProxyBypass.Length && proxyHelper.ProxyBypass[idx] != ' ' &&
+                           proxyHelper.ProxyBypass[idx] != ';' && proxyHelper.ProxyBypass[idx] != ']')
+                    {
+                        idx += 1;
+                    }
+
+                    ;
 
                     if (idx == start)
                     {
                         // Empty string.
                         tmp = null;
                     }
-                    else if (string.Compare(proxyHelper.ProxyBypass, start, "<local>", 0, 7, StringComparison.OrdinalIgnoreCase) == 0)
+                    else if (string.Compare(proxyHelper.ProxyBypass, start, "<local>", 0, 7,
+                                 StringComparison.OrdinalIgnoreCase) == 0)
                     {
                         _bypassLocal = true;
                         tmp = null;
@@ -116,12 +137,19 @@ internal sealed class HttpWindowsProxy : IWebProxy, IDisposable
                     if (idx < proxyHelper.ProxyBypass.Length && proxyHelper.ProxyBypass[idx] != ';')
                     {
                         // Got stopped at space or ']'. Strip until next ';' or end.
-                        while (idx < proxyHelper.ProxyBypass.Length && proxyHelper.ProxyBypass[idx] != ';') { idx += 1; };
+                        while (idx < proxyHelper.ProxyBypass.Length && proxyHelper.ProxyBypass[idx] != ';')
+                        {
+                            idx += 1;
+                        }
+
+                        ;
                     }
+
                     if (idx < proxyHelper.ProxyBypass.Length && proxyHelper.ProxyBypass[idx] == ';')
                     {
                         idx++;
                     }
+
                     if (tmp == null)
                     {
                         continue;
@@ -129,6 +157,7 @@ internal sealed class HttpWindowsProxy : IWebProxy, IDisposable
 
                     _bypass.Add(tmp);
                 }
+
                 if (_bypass.Count == 0)
                 {
                     // Bypass string only had garbage we did not parse.
@@ -260,6 +289,7 @@ internal sealed class HttpWindowsProxy : IWebProxy, IDisposable
                         }
                     }
                 }
+
                 if (uri.HostNameType != UriHostNameType.IPv6 && !uri.IdnHost.Contains('.'))
                 {
                     // Not address and does not have a dot.
@@ -309,14 +339,8 @@ internal sealed class HttpWindowsProxy : IWebProxy, IDisposable
 
     public ICredentials? Credentials
     {
-        get
-        {
-            return _credentials;
-        }
-        set
-        {
-            _credentials = value;
-        }
+        get { return _credentials; }
+        set { _credentials = value; }
     }
 
     // Access function for unit tests.
