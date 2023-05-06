@@ -1,4 +1,5 @@
-﻿using System.Runtime.ExceptionServices;
+﻿using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using Windows.Win32;
 
@@ -18,7 +19,7 @@ internal class Program
         {
             try
             {
-                Console.WriteLine(HeederajiYeafalludall());
+                //Console.WriteLine(HeederajiYeafalludall());
             }
             catch (Exception e)
             {
@@ -28,6 +29,13 @@ internal class Program
 
         task.Wait();
 
+        var thread = new Thread(() =>
+        {
+            throw new Exception();
+        });
+        thread.Start();
+        thread.Join();
+
         Console.Read();
 
         GC.KeepAlive(lpTopLevelExceptionFilter);
@@ -35,6 +43,8 @@ internal class Program
 
     private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
+        e.GetType().GetField("_isTerminating", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(e, new object[] { false });
+        //e.GetType().GetMethod("SetIsTerminating", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(e, new object[] { false });
     }
 
     [DllImport("BeyajaydahifallChecheecaifelwarlerenel.dll")]
