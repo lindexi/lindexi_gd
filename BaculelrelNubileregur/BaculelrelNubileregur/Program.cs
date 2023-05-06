@@ -9,7 +9,10 @@ internal class Program
     [HandleProcessCorruptedStateExceptions]
     static void Main(string[] args)
     {
-        SetUnhandledExceptionFilterInner();
+        FilterDelegate lpTopLevelExceptionFilter = MyUnhandledExceptionFilter;
+        SetUnhandledExceptionFilter(lpTopLevelExceptionFilter);
+        AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+        //SetUnhandledExceptionFilterInner();
 
         var task = Task.Run(() =>
         {
@@ -26,6 +29,12 @@ internal class Program
         task.Wait();
 
         Console.Read();
+
+        GC.KeepAlive(lpTopLevelExceptionFilter);
+    }
+
+    private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
     }
 
     [DllImport("BeyajaydahifallChecheecaifelwarlerenel.dll")]
@@ -33,4 +42,16 @@ internal class Program
 
     [DllImport("BeyajaydahifallChecheecaifelwarlerenel.dll")]
     static extern void SetUnhandledExceptionFilterInner();
+
+    [DllImport("kernel32.dll")]
+    static extern IntPtr SetUnhandledExceptionFilter(FilterDelegate lpTopLevelExceptionFilter);
+
+    static IntPtr MyUnhandledExceptionFilter(IntPtr lpExceptionInfo)
+    {
+        // handle the exception here
+        return IntPtr.Zero;
+    }
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    delegate IntPtr FilterDelegate(IntPtr exceptionPointers);
 }
