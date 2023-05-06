@@ -8,7 +8,7 @@ LONG MyUnhandledExceptionFilter(_EXCEPTION_POINTERS* ExceptionInfo)
 {
     std::cout << "MyUnhandledExceptionFilter\n";
 
-    return EXCEPTION_CONTINUE_SEARCH;
+    return EXCEPTION_EXECUTE_HANDLER;
 }
 
 extern "C" __declspec(dllexport) int SetUnhandledExceptionFilterInner()
