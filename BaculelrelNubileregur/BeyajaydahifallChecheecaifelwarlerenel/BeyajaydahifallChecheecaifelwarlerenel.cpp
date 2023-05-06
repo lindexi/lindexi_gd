@@ -24,14 +24,8 @@ extern "C" __declspec(dllexport) int SetUnhandledExceptionFilterInner()
 
 extern "C" __declspec(dllexport) int HeederajiYeafalludall() 
 {
-    int* p = (int*)123;
-    while (true)
-    {
-        *p = 123;
-        p++;
-    }
-
-    return 123;
+    long testfail = *(long*)(-9022);
+    return 1;
 }
 
 
