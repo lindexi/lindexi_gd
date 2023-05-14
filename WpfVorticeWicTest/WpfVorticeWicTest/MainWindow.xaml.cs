@@ -33,7 +33,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        using IWICBitmap wicBitmap = OpenFileAsWICBitmap();
+        using IWICBitmap wicBitmap = OffScreenRenderingWICBitmap();
 
         var unmanagedBitmapWrapper = WICBitmapToBitmapSource(wicBitmap);
 
@@ -65,7 +65,29 @@ public partial class MainWindow : Window
         return (BitmapSource) unmanagedBitmapWrapper;
     }
 
-    private static IWICBitmap OpenFileAsWICBitmap()
+    private static IWICBitmap OffScreenRenderingWICBitmap()
+    {
+        using var wicImagingFactory = new IWICImagingFactory();
+        IWICBitmap wicBitmap =
+            wicImagingFactory.CreateBitmap(1000, 1000, Vortice.WIC.PixelFormat.Format32bppPBGRA);
+
+        using D2D.ID2D1Factory1 d2DFactory = D2D.D2D1.D2D1CreateFactory<D2D.ID2D1Factory1>();
+        var renderTargetProperties = new D2D.RenderTargetProperties(PixelFormat.Premultiplied);
+        D2D.ID2D1RenderTarget d2D1RenderTarget =
+            d2DFactory.CreateWicBitmapRenderTarget(wicBitmap, renderTargetProperties);
+
+        using var renderTarget = d2D1RenderTarget;
+        // 开始绘制逻辑
+        renderTarget.BeginDraw();
+
+        Render(renderTarget);
+
+        renderTarget.EndDraw();
+
+        return wicBitmap;
+    }
+
+    private static void Render(D2D.ID2D1RenderTarget renderTarget)
     {
         using var wicImagingFactory = new IWICImagingFactory();
         var imageFilePath = System.IO.Path.GetFullPath("Image.png");
@@ -75,8 +97,17 @@ public partial class MainWindow : Window
         // 对于静态图片（区别于 gif 等动态图片）只须取首个
         using var imageFrame = decoder.GetFrame(0);
 
-        IWICBitmap wicBitmap = wicImagingFactory.CreateBitmapFromSource(imageFrame, BitmapCreateCacheOption.CacheOnLoad);
+        using IWICBitmap bitmap = wicImagingFactory.CreateBitmapFromSource(imageFrame, BitmapCreateCacheOption.CacheOnLoad);
 
-        return wicBitmap;
+        // 图片的格式不一定是能符合 D2D 预期的，转换一下格式
+        // 否则 CreateBitmapFromWicBitmap 失败 0x88982F80 WINCODEC_ERR_UNSUPPORTEDPIXELFORMAT
+        using IWICFormatConverter converter = wicImagingFactory.CreateFormatConverter();
+        // 这里不是真实的立刻进行转换哦，实际转换执行是隐藏起来的
+        converter.Initialize(imageFrame, Vortice.WIC.PixelFormat.Format32bppPBGRA, BitmapDitherType.None, null, 0, BitmapPaletteType.MedianCut);
+        // 这个 IWICFormatConverter 也继承是 IWICBitmapSource 类型
+
+        var d2DBitmap = renderTarget.CreateBitmapFromWicBitmap(converter);
+
+        renderTarget.DrawBitmap(d2DBitmap);
     }
 }

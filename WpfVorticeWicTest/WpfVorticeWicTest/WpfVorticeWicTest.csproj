@@ -7,8 +7,8 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Vortice.Direct2D1" Version="2.1.32" />
-    <PackageReference Include="Vortice.Win32" Version="1.6.2" />
+    <PackageReference Include="Vortice.Direct2D1" Version="2.4.2" />
+    <PackageReference Include="Vortice.Win32" Version="1.9.24" />
   </ItemGroup>
 <<<<<<< HEAD
 
