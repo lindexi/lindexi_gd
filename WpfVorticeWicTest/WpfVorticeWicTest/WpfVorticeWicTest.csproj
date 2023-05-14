@@ -10,6 +10,7 @@
     <PackageReference Include="Vortice.Direct2D1" Version="2.1.32" />
     <PackageReference Include="Vortice.Win32" Version="1.6.2" />
   </ItemGroup>
+<<<<<<< HEAD
 
   <PropertyGroup>
     <!-- Change this value based on where your local repo is located -->
@@ -26,5 +27,11 @@
     <Reference Include="$(WpfRepoRoot)\artifacts\packaging\$(WpfConfig)\$(WpfOuputFolder)\lib\net6.0\*.dll" />
     <ReferenceCopyLocalPaths Include="$(WpfRepoRoot)\artifacts\packaging\$(WpfConfig)\$(WpfOuputFolder)\lib\$(RuntimeIdentifier)\*.dll" />
     <ReferenceCopyLocalPaths Include="$(WpfRepoRoot)\artifacts\packaging\$(WpfConfig)\$(WpfOuputFolder)\runtimes\$(RuntimeIdentifier)\native\*.dll" />
+=======
+  <ItemGroup>
+    <None Update="Image.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+>>>>>>> 11ede4eb7cb224fe0f561de16d86874a4b71cec2
   </ItemGroup>
 </Project>

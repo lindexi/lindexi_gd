@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -16,6 +17,7 @@ using System.Windows.Shapes;
 
 using Vortice.Mathematics;
 using Vortice.WIC;
+
 using BindingFlags = System.Reflection.BindingFlags;
 using D2D = Vortice.Direct2D1;
 using PixelFormat = Vortice.DCommon.PixelFormat;
@@ -31,24 +33,11 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        Loaded += MainWindow_Loaded;
-    }
+        using IWICBitmap wicBitmap = OpenFileAsWICBitmap();
 
-    private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            using IWICBitmap wicBitmap = await OffScreenRenderingWICBitmapAsync();
+        var unmanagedBitmapWrapper = WICBitmapToBitmapSource(wicBitmap);
 
-            var unmanagedBitmapWrapper = WICBitmapToBitmapSource(wicBitmap);
-
-            Image.Source = unmanagedBitmapWrapper;
-        }
-        catch (Exception)
-        {
-            // 这里是 async void 线程的顶层，如果有任何异常，那应用就炸了
-            // 而采用离屏渲染的 OffScreenRenderingWICBitmapAsync 是预期会有很多奇怪的异常
-        }
+        Image.Source = unmanagedBitmapWrapper;
     }
 
     private static BitmapSource WICBitmapToBitmapSource(IWICBitmap wicBitmap)
@@ -76,48 +65,18 @@ public partial class MainWindow : Window
         return (BitmapSource) unmanagedBitmapWrapper;
     }
 
-    private static Task<IWICBitmap> OffScreenRenderingWICBitmapAsync()
-    {
-        return Task.Run(OffScreenRenderingWICBitmap);
-    }
-    private static IWICBitmap OffScreenRenderingWICBitmap()
+    private static IWICBitmap OpenFileAsWICBitmap()
     {
         using var wicImagingFactory = new IWICImagingFactory();
-        IWICBitmap wicBitmap =
-            wicImagingFactory.CreateBitmap(1000, 1000, Win32.Graphics.Imaging.Apis.GUID_WICPixelFormat32bppPBGRA);
+        var imageFilePath = System.IO.Path.GetFullPath("Image.png");
+        using var wicStream = wicImagingFactory.CreateStream(imageFilePath, FileAccess.Read);
+        using var decoder = wicImagingFactory.CreateDecoderFromStream(wicStream, DecodeOptions.CacheOnLoad/*参数和 WPF 一样*/);
+        // 解码器将可以解码出图片，对于动态图片可以解析出多张图片出来，对于静态图片只能解析出一张
+        // 对于静态图片（区别于 gif 等动态图片）只须取首个
+        using var imageFrame = decoder.GetFrame(0);
 
-        using D2D.ID2D1Factory1 d2DFactory = D2D.D2D1.D2D1CreateFactory<D2D.ID2D1Factory1>();
-        var renderTargetProperties = new D2D.RenderTargetProperties(PixelFormat.Premultiplied);
-        D2D.ID2D1RenderTarget d2D1RenderTarget =
-            d2DFactory.CreateWicBitmapRenderTarget(wicBitmap, renderTargetProperties);
-
-        using var renderTarget = d2D1RenderTarget;
-        // 开始绘制逻辑
-        renderTarget.BeginDraw();
-
-        Render(renderTarget);
-
-        renderTarget.EndDraw();
+        IWICBitmap wicBitmap = wicImagingFactory.CreateBitmapFromSource(imageFrame, BitmapCreateCacheOption.CacheOnLoad);
 
         return wicBitmap;
-    }
-
-    private static void Render(D2D.ID2D1RenderTarget renderTarget)
-    {
-        // 以下是测试代码
-        // 假装是耗时的渲染
-        var color = new Color4((byte)Random.Shared.Next(255), (byte)Random.Shared.Next(255),
-            (byte)Random.Shared.Next(255));
-        renderTarget.Clear(color);
-
-        color = new Color4((byte)Random.Shared.Next(255), (byte)Random.Shared.Next(255),
-            (byte)Random.Shared.Next(255));
-        using var brush = renderTarget.CreateSolidColorBrush(color);
-
-        // 10万个圆，无论是啥都顶不住
-        for (int i = 0; i < 100000; i++)
-        {
-            renderTarget.DrawEllipse(new D2D.Ellipse(new Vector2(Random.Shared.Next(900), Random.Shared.Next(900)),Random.Shared.Next(1,5), Random.Shared.Next(1, 5)),brush,Random.Shared.Next(1,2));
-        }
     }
 }
