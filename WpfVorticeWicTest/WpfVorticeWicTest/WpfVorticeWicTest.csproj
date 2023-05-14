@@ -10,4 +10,9 @@
     <PackageReference Include="Vortice.Direct2D1" Version="2.1.32" />
     <PackageReference Include="Vortice.Win32" Version="1.6.2" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="Image.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>
