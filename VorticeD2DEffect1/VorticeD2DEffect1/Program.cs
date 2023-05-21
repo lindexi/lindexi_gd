@@ -22,6 +22,8 @@ using Vortice.Direct2D1;
 using System.Diagnostics;
 using Vortice.WIC;
 using SharpGen.Runtime;
+using System.Numerics;
+using Vortice.Direct2D1.Effects;
 
 namespace WakolerwhaKanicabirem;
 
@@ -250,10 +252,12 @@ class Program
 
         var stopwatch = Stopwatch.StartNew();
         var count = 0;
-
         // 随意创建颜色
         var color = new Color4((byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255),
             (byte) Random.Shared.Next(255));
+
+        color = new Color4((byte) (count / 30f * 255), (byte) (count / 20f * 255),
+            (byte) (count / 60f * 255));
 
         Task.Factory.StartNew(() =>
         {
@@ -263,20 +267,46 @@ class Program
                 renderTarget.BeginDraw();
 
                 // 清空画布
-                renderTarget.Clear(new Color4(0xFF,0xFF,0xFF));
+                renderTarget.Clear(new Color4(0xFF, 0xFF, 0xFF));
+
+                //using var commandList = renderTarget.CreateCommandList();
 
                 // 随便创建一张图片
                 using var intputBitmap = CreateBitmap();
 
-                var gaussianBlurEffect = d2dDeviceContext.CreateEffect(EffectGuids.GaussianBlur);
-                using ID2D1Effect d2dEffect = new ID2D1Effect(gaussianBlurEffect);
+                var gaussianBlurEffectPtr = d2dDeviceContext.CreateEffect(EffectGuids.GaussianBlur);
+                using ID2D1Effect gaussianBlurEffect = new ID2D1Effect(gaussianBlurEffectPtr);
 
-                d2dEffect.SetInput(0, intputBitmap,new RawBool(true));
+                gaussianBlurEffect.SetInput(0, intputBitmap, new RawBool(true));
                 const int D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION = 0;
-                d2dEffect.SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, count / 60f * 3f);
+                gaussianBlurEffect.SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, count / 60f * 3f);
 
-                //renderTarget.DrawBitmap(intputBitmap);
-                renderTarget.DrawImage(d2dEffect);
+                renderTarget.DrawImage(gaussianBlurEffect, new Vector2(500, 100));
+
+                //var edgeDetectionPtr = d2dDeviceContext.CreateEffect(EffectGuids.EdgeDetection);
+                //using ID2D1Effect edgeDetection = new ID2D1Effect(edgeDetectionPtr);
+                //edgeDetection.SetInputEffect(0, gaussianBlurEffect, new RawBool(false));
+                //renderTarget.DrawImage(edgeDetection);
+
+                var turbulencePtr = d2dDeviceContext.CreateEffect(EffectGuids.Turbulence);
+                using ID2D1Effect turbulenceEffect = new ID2D1Effect(turbulencePtr);
+                turbulenceEffect.SetInputEffect(0, gaussianBlurEffect, false);
+                turbulenceEffect.SetValue(0, new Vector2(count / 60f, count / 60f * 20));
+
+                //turbulenceEffect.SetInput(0, intputBitmap, new RawBool(true));
+                renderTarget.DrawImage(turbulenceEffect.Output, new Vector2(0, 0), imageRectangle: new Vortice.RawRectF(0, 0, count / 60f * 300 + 300, 500), interpolationMode: InterpolationMode.Linear, compositeMode: CompositeMode.SourceOver);
+
+                //IntPtr displacementMapPtr = d2dDeviceContext.CreateEffect(EffectGuids.DisplacementMap);
+                //using ID2D1Effect displacementMapEffect = new ID2D1Effect(displacementMapPtr);
+                //displacementMapEffect.SetInput(0, gaussianBlurEffect.Output, new RawBool(true));
+                //displacementMapEffect.SetValue(0, 2f);
+
+                //renderTarget.DrawImage(displacementMapEffect);
+
+                renderTarget.DrawImage(intputBitmap, new Vector2(100, 100));
+
+                //commandList.Close();
+                //renderTarget.DrawImage(commandList, new Vector2(0, 0), imageRectangle: new Vortice.RawRectF(0, 0, count / 60f * 500, 500), interpolationMode: InterpolationMode.Linear, compositeMode: CompositeMode.SourceOver);
 
                 renderTarget.EndDraw();
 
@@ -311,20 +341,23 @@ class Program
             }
         }
 
-        ID2D1Bitmap CreateBitmap()
+        ID2D1Image CreateBitmap()
         {
-            using var wicImagingFactory = new IWICImagingFactory();
-            using IWICBitmap wicBitmap =
-                wicImagingFactory.CreateBitmap(1000, 1000, Win32.Graphics.Imaging.Apis.GUID_WICPixelFormat32bppPBGRA);
-            var renderTargetProperties = new D2D.RenderTargetProperties(Vortice.DCommon.PixelFormat.Premultiplied);
-            using D2D.ID2D1RenderTarget wicBitmapRenderTarget =
-                d2DFactory.CreateWicBitmapRenderTarget(wicBitmap, renderTargetProperties);
-            wicBitmapRenderTarget.BeginDraw();
-            using var brush = wicBitmapRenderTarget.CreateSolidColorBrush(color);
-            wicBitmapRenderTarget.FillEllipse(new Ellipse(new System.Numerics.Vector2(200, 200), 100, 100), brush);
-            wicBitmapRenderTarget.EndDraw();
+            var commandList = renderTarget.CreateCommandList();
 
-            ID2D1Bitmap1 intputBitmap = renderTarget.CreateBitmapFromWicBitmap(wicBitmap);
+            //using var wicImagingFactory = new IWICImagingFactory();
+            //using IWICBitmap wicBitmap =
+            //    wicImagingFactory.CreateBitmap(1000, 1000, Win32.Graphics.Imaging.Apis.GUID_WICPixelFormat32bppPBGRA);
+            //var renderTargetProperties = new D2D.RenderTargetProperties(Vortice.DCommon.PixelFormat.Premultiplied);
+            //using D2D.ID2D1RenderTarget wicBitmapRenderTarget =
+            //    d2DFactory.CreateWicBitmapRenderTarget(wicBitmap, renderTargetProperties);
+            //wicBitmapRenderTarget.BeginDraw();
+            using var brush = renderTarget.CreateSolidColorBrush(color);
+            renderTarget.FillEllipse(new Ellipse(new System.Numerics.Vector2(200, 200), 100, 100), brush);
+            //wicBitmapRenderTarget.EndDraw();
+            commandList.Close();
+            //ID2D1Bitmap1 intputBitmap = renderTarget.CreateBitmapFromWicBitmap(wicBitmap);
+            var intputBitmap = commandList;
             return intputBitmap;
         }
     }
