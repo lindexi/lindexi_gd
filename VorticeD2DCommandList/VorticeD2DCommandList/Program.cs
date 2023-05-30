@@ -23,6 +23,7 @@ using System.Diagnostics;
 using Vortice.WIC;
 using SharpGen.Runtime;
 using System.Numerics;
+using Vortice;
 using Vortice.Direct2D1.Effects;
 
 namespace VorticeD2DCommandList;
@@ -248,7 +249,7 @@ class Program
         ID2D1Bitmap1 d2dBitmap = d2dDeviceContext.CreateBitmapFromDxgiSurface(dxgiSurface);
         d2dDeviceContext.Target = d2dBitmap;
 
-        var renderTarget = d2dDeviceContext;
+        ID2D1DeviceContext? renderTarget = d2dDeviceContext;
 
         var stopwatch = Stopwatch.StartNew();
         var count = 0;
@@ -266,7 +267,7 @@ class Program
                 using ID2D1CommandList commandList = CreateCommandList();
                 ID2D1Image image = commandList;
 
-                renderTarget.DrawImage(image, new Vector2(500, 300));
+                renderTarget.DrawImage(image, new Vector2(100, 100));
 
                 renderTarget.EndDraw();
 
@@ -304,14 +305,12 @@ class Program
         ID2D1CommandList CreateCommandList()
         {
             // 随意创建颜色
-            var color = new Color4((byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255),
-                (byte) Random.Shared.Next(255));
-
-            color = new Color4((byte) (count / 30f * 255), (byte) (count / 20f * 255),
-                (byte) (count / 60f * 255));
+            var color = new Color4((byte) (count / 30f * 255), (byte) (count / 20f * 255),
+                 (byte) (count / 60f * 255));
             var originTarget = renderTarget.Target;
 
             ID2D1CommandList commandList = renderTarget.CreateCommandList();
+            renderTarget.Target = commandList;
 
             using var brush = renderTarget.CreateSolidColorBrush(color);
 
@@ -323,18 +322,18 @@ class Program
                 Rect = new Vortice.RawRectF(100, 100, 600, 300)
             }, brush, 5);
 
-
-            var brackgroundBrush = renderTarget.CreateSolidColorBrush(new Color4(0x64, 0x95, 0xED));
+            var backgroundBrush = renderTarget.CreateSolidColorBrush(new Color4(0x64, 0x95, 0xED));
 
             renderTarget.FillRoundedRectangle(new RoundedRectangle()
             {
                 RadiusX = 5,
                 RadiusY = 5,
                 Rect = new Vortice.RawRectF(115, 115, 590, 290)
-            }, brackgroundBrush);
+            }, backgroundBrush);
 
-            //renderTarget.FillEllipse(new Ellipse(new System.Numerics.Vector2(200, 200), 100, 100), brush);
             commandList.Close();
+
+            renderTarget.Target = originTarget;
             return commandList;
         }
     }
