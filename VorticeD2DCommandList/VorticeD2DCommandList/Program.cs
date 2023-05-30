@@ -76,22 +76,22 @@ class Program
         x = (screenWidth - windowWidth) / 2;
         y = (screenHeight - windowHeight) / 2;
 
-        var hInstance = GetModuleHandle((string?) null);
+        var hInstance = GetModuleHandle((string?)null);
 
         fixed (char* lpszClassName = windowClassName)
         {
-            PCWSTR szCursorName = new((char*) IDC_ARROW);
+            PCWSTR szCursorName = new((char*)IDC_ARROW);
 
             var wndClassEx = new WNDCLASSEXW
             {
-                cbSize = (uint) Unsafe.SizeOf<WNDCLASSEXW>(),
+                cbSize = (uint)Unsafe.SizeOf<WNDCLASSEXW>(),
                 style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
                 // 核心逻辑，设置消息循环
                 lpfnWndProc = new WNDPROC(WndProc),
-                hInstance = (HINSTANCE) hInstance.DangerousGetHandle(),
-                hCursor = LoadCursor((HINSTANCE) IntPtr.Zero, szCursorName),
-                hbrBackground = (Windows.Win32.Graphics.Gdi.HBRUSH) IntPtr.Zero,
-                hIcon = (HICON) IntPtr.Zero,
+                hInstance = (HINSTANCE)hInstance.DangerousGetHandle(),
+                hCursor = LoadCursor((HINSTANCE)IntPtr.Zero, szCursorName),
+                hbrBackground = (Windows.Win32.Graphics.Gdi.HBRUSH)IntPtr.Zero,
+                hIcon = (HICON)IntPtr.Zero,
                 lpszClassName = lpszClassName
             };
 
@@ -305,8 +305,8 @@ class Program
         ID2D1CommandList CreateCommandList()
         {
             // 随意创建颜色
-            var color = new Color4((byte) (count / 30f * 255), (byte) (count / 20f * 255),
-                 (byte) (count / 60f * 255));
+            var color = new Color4((byte)(count / 30f * 255), (byte)(count / 20f * 255),
+                (byte)(count / 60f * 255));
             var originTarget = renderTarget.Target;
 
             ID2D1CommandList commandList = renderTarget.CreateCommandList();
