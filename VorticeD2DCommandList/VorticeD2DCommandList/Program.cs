@@ -76,22 +76,22 @@ class Program
         x = (screenWidth - windowWidth) / 2;
         y = (screenHeight - windowHeight) / 2;
 
-        var hInstance = GetModuleHandle((string?)null);
+        var hInstance = GetModuleHandle((string?) null);
 
         fixed (char* lpszClassName = windowClassName)
         {
-            PCWSTR szCursorName = new((char*)IDC_ARROW);
+            PCWSTR szCursorName = new((char*) IDC_ARROW);
 
             var wndClassEx = new WNDCLASSEXW
             {
-                cbSize = (uint)Unsafe.SizeOf<WNDCLASSEXW>(),
+                cbSize = (uint) Unsafe.SizeOf<WNDCLASSEXW>(),
                 style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
                 // 核心逻辑，设置消息循环
                 lpfnWndProc = new WNDPROC(WndProc),
-                hInstance = (HINSTANCE)hInstance.DangerousGetHandle(),
-                hCursor = LoadCursor((HINSTANCE)IntPtr.Zero, szCursorName),
-                hbrBackground = (Windows.Win32.Graphics.Gdi.HBRUSH)IntPtr.Zero,
-                hIcon = (HICON)IntPtr.Zero,
+                hInstance = (HINSTANCE) hInstance.DangerousGetHandle(),
+                hCursor = LoadCursor((HINSTANCE) IntPtr.Zero, szCursorName),
+                hbrBackground = (Windows.Win32.Graphics.Gdi.HBRUSH) IntPtr.Zero,
+                hIcon = (HICON) IntPtr.Zero,
                 lpszClassName = lpszClassName
             };
 
@@ -254,6 +254,16 @@ class Program
         var stopwatch = Stopwatch.StartNew();
         var count = 0;
 
+        var list = new List<ID2D1CommandList>();
+
+        renderTarget.BeginDraw();
+        for (int i = 0; i < 100; i++)
+        {
+            ID2D1CommandList commandList = CreateCommandList();
+            list.Add(commandList);
+        }
+        renderTarget.EndDraw();
+
         Task.Factory.StartNew(() =>
         {
             while (true)
@@ -264,10 +274,12 @@ class Program
                 // 清空画布
                 renderTarget.Clear(new Color4(0xFF, 0xFF, 0xFF));
 
-                using ID2D1CommandList commandList = CreateCommandList();
-                ID2D1Image image = commandList;
+                foreach (var commandList in list)
+                {
+                    ID2D1Image image = commandList;
 
-                renderTarget.DrawImage(image, new Vector2(100, 100));
+                    renderTarget.DrawImage(image, new Vector2(Random.Shared.Next(1000), 100));
+                }
 
                 renderTarget.EndDraw();
 
@@ -305,8 +317,9 @@ class Program
         ID2D1CommandList CreateCommandList()
         {
             // 随意创建颜色
-            var color = new Color4((byte)(count / 30f * 255), (byte)(count / 20f * 255),
-                (byte)(count / 60f * 255));
+            var color = new Color4((byte) (count / 30f * 255), (byte) (count / 20f * 255),
+                (byte) (count / 60f * 255));
+            count++;
             var originTarget = renderTarget.Target;
 
             ID2D1CommandList commandList = renderTarget.CreateCommandList();
@@ -314,22 +327,10 @@ class Program
 
             using var brush = renderTarget.CreateSolidColorBrush(color);
 
-            // 此时绘制过去的都是在 ID2D1CommandList 里面
-            renderTarget.DrawRoundedRectangle(new RoundedRectangle()
+            for (int i = 0; i < 1000; i++)
             {
-                RadiusX = 5,
-                RadiusY = 5,
-                Rect = new Vortice.RawRectF(100, 100, 600, 300)
-            }, brush, 5);
-
-            var backgroundBrush = renderTarget.CreateSolidColorBrush(new Color4(0x64, 0x95, 0xED));
-
-            renderTarget.FillRoundedRectangle(new RoundedRectangle()
-            {
-                RadiusX = 5,
-                RadiusY = 5,
-                Rect = new Vortice.RawRectF(115, 115, 590, 290)
-            }, backgroundBrush);
+                renderTarget.DrawEllipse(new Ellipse(new Vector2(Random.Shared.Next(1000), Random.Shared.Next(1000)), 10, 10), brush);
+            }
 
             commandList.Close();
 
