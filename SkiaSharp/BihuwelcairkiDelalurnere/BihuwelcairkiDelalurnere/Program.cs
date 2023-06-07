@@ -2,9 +2,12 @@
 
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Graphics.Skia;
+
 using SkiaSharp;
 
-var skImageInfo = new SKImageInfo(1920, 1080, SKColorType.Bgra8888, SKAlphaType.Opaque, SKColorSpace.CreateSrgb());
+var width = 1920;
+var height = 1080;
+var skImageInfo = new SKImageInfo(width, height, SKColorType.Bgra8888, SKAlphaType.Opaque, SKColorSpace.CreateSrgb());
 
 var fileName = $"xx.png";
 
@@ -13,15 +16,41 @@ using (SKBitmap skBitmap = SKBitmap.FromImage(skImage))
 {
     using (var skCanvas = new SKCanvas(skBitmap))
     {
-        var skiaCanvas = new SkiaCanvas();
-        skiaCanvas.Canvas = skCanvas;
+        skCanvas.Clear(SKColor.Parse("FFF"));
+        
 
-        ICanvas canvas = skiaCanvas;
+        foreach (var defaultFontFamily in SkiaSharp.SKFontManager.Default.FontFamilies)
+        {
+            Console.WriteLine(defaultFontFamily);
+        }
 
-        canvas.StrokeSize = 2;
-        canvas.StrokeColor = Colors.Blue;
+        var skTypeface = SkiaSharp.SKFontManager.Default.CreateTypeface("/usr/share/fonts/simkai.ttf");
+        var skFont = new SKFont(skTypeface, 100);
+        skCanvas.DrawText("汉字", 100, 100, new SKPaint(skFont)
+        {
+            // 反锯齿
+            IsAntialias = true
+        });
 
-        canvas.DrawLine(10, 10, 100, 10);
+        //skCanvas.DrawText();
+
+        //var skiaCanvas = new SkiaCanvas();
+        //skiaCanvas.Canvas = skCanvas;
+
+        //ICanvas canvas = skiaCanvas;
+
+        //canvas.StrokeSize = 2;
+        //canvas.StrokeColor = Colors.Blue;
+
+        //canvas.DrawLine(10, 10, 100, 10);
+
+        //canvas.Font = new Font("KaiTi");
+
+        //canvas.FontSize = 100;
+        //canvas.DrawString("汉字", 100, 100, HorizontalAlignment.Left);
+        //canvas.StrokeColor = Colors.Blue;
+        //canvas.StrokeSize = 2;
+        //canvas.DrawRectangle(100, 100, 500, 500);
 
         skCanvas.Flush();
 
@@ -35,4 +64,9 @@ using (SKBitmap skBitmap = SKBitmap.FromImage(skImage))
             }
         }
     }
+}
+
+class MauiSkiaCanvas : SkiaCanvas
+{
+
 }
