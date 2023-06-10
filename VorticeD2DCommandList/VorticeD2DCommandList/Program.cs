@@ -253,6 +253,12 @@ class Program
         var stopwatch = Stopwatch.StartNew();
         var count = 0;
 
+        const int width = 1000;
+        const int height = 600;
+
+        var list = new List<ID2D1CommandList>();
+        var listCount = 10;
+
         Task.Factory.StartNew(() =>
         {
             while (true)
@@ -263,10 +269,21 @@ class Program
                 // 清空画布
                 renderTarget.Clear(new Color4(0xFF, 0xFF, 0xFF));
 
-                using ID2D1CommandList commandList = CreateCommandList();
-                ID2D1Image image = commandList;
+                if (list.Count < listCount)
+                {
+                    for (int i = 0; i < listCount; i++)
+                    {
+                        ID2D1CommandList commandList = CreateCommandList();
+                        list.Add(commandList);
+                        ID2D1CommandSink sink = new ID2D1CommandSink()
+                        commandList.Stream()
+                    }
+                }
 
-                renderTarget.DrawImage(image, new Vector2(500, 300));
+                foreach (var image in list)
+                {
+                    renderTarget.DrawImage(image, new Vector2(Random.Shared.Next(width / 100), Random.Shared.Next(height / 100)));
+                }
 
                 renderTarget.EndDraw();
 
@@ -307,33 +324,19 @@ class Program
             var color = new Color4((byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255),
                 (byte) Random.Shared.Next(255));
 
-            color = new Color4((byte) (count / 30f * 255), (byte) (count / 20f * 255),
-                (byte) (count / 60f * 255));
+            //color = new Color4((byte) (count / 30f * 255), (byte) (count / 20f * 255),
+            //    (byte) (count / 60f * 255));
             var originTarget = renderTarget.Target;
 
             ID2D1CommandList commandList = renderTarget.CreateCommandList();
 
             using var brush = renderTarget.CreateSolidColorBrush(color);
 
-            // 此时绘制过去的都是在 ID2D1CommandList 里面
-            renderTarget.DrawRoundedRectangle(new RoundedRectangle()
+            for (int i = 0; i < 100; i++)
             {
-                RadiusX = 5,
-                RadiusY = 5,
-                Rect = new Vortice.RawRectF(100, 100, 600, 300)
-            }, brush, 5);
+                renderTarget.FillEllipse(new Ellipse(new System.Numerics.Vector2(Random.Shared.Next(width), Random.Shared.Next(height)), 10, 10), brush);
+            }
 
-
-            var brackgroundBrush = renderTarget.CreateSolidColorBrush(new Color4(0x64, 0x95, 0xED));
-
-            renderTarget.FillRoundedRectangle(new RoundedRectangle()
-            {
-                RadiusX = 5,
-                RadiusY = 5,
-                Rect = new Vortice.RawRectF(115, 115, 590, 290)
-            }, brackgroundBrush);
-
-            //renderTarget.FillEllipse(new Ellipse(new System.Numerics.Vector2(200, 200), 100, 100), brush);
             commandList.Close();
             return commandList;
         }
