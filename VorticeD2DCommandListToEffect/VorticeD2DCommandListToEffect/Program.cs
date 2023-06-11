@@ -254,8 +254,15 @@ class Program
         var count = 0;
 
         // 开始绘制逻辑
+        var imageList = new List<ID2D1Image>();
         renderTarget.BeginDraw();
-        ID2D1CommandList commandList = CreateCommandList(renderTarget);
+        for (int i = 0; i < 1000; i++)
+        {
+            //ID2D1CommandList commandList = CreateCommandList(renderTarget);
+            //imageList.Add(commandList);
+            var bitmap = CreateBitmap();
+            imageList.Add(bitmap);
+        }
         renderTarget.EndDraw();
 
         Task.Factory.StartNew(() =>
@@ -268,15 +275,20 @@ class Program
                 // 清空画布
                 renderTarget.Clear(new Color4(0xFF, 0xFF, 0xFF));
 
-                ID2D1Image image = commandList;
+                //ID2D1Image image = commandList;
 
-                var gaussianBlurEffect = d2dDeviceContext.CreateEffect(EffectGuids.GaussianBlur);
-                using ID2D1Effect d2dEffect = new ID2D1Effect(gaussianBlurEffect);
-                d2dEffect.SetInput(0, image, new RawBool(true));
-                const int D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION = 0;
-                d2dEffect.SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, count / 60f * 3f);
+                //var gaussianBlurEffect = d2dDeviceContext.CreateEffect(EffectGuids.GaussianBlur);
+                //using ID2D1Effect d2dEffect = new ID2D1Effect(gaussianBlurEffect);
+                //d2dEffect.SetInput(0, image, new RawBool(true));
+                //const int D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION = 0;
+                //d2dEffect.SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, count / 60f * 3f);
 
-                renderTarget.DrawImage(d2dEffect, new Vector2(Random.Shared.Next(Width / 100), Random.Shared.Next(Height / 100)));
+                //renderTarget.DrawImage(d2dEffect, new Vector2(Random.Shared.Next(Width / 100), Random.Shared.Next(Height / 100)));
+
+                foreach (var image in imageList)
+                {
+                    renderTarget.DrawImage(image, new Vector2(Random.Shared.Next(Width / 100), Random.Shared.Next(Height / 100)));
+                }
 
                 renderTarget.EndDraw();
 
@@ -293,8 +305,6 @@ class Program
                     count = 0;
                 }
             }
-
-            commandList.Dispose();
         }, TaskCreationOptions.LongRunning);
 
         // 开个消息循环等待
@@ -311,6 +321,28 @@ class Program
                     return;
                 }
             }
+        }
+
+        ID2D1Bitmap CreateBitmap()
+        {
+            // 随意创建颜色
+            var color = new Color4((byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255),
+                (byte) Random.Shared.Next(255));
+
+            using var wicImagingFactory = new IWICImagingFactory();
+            using IWICBitmap wicBitmap =
+                wicImagingFactory.CreateBitmap(1000, 1000, Win32.Graphics.Imaging.Apis.GUID_WICPixelFormat32bppPBGRA);
+            var renderTargetProperties = new D2D.RenderTargetProperties(Vortice.DCommon.PixelFormat.Premultiplied);
+            using D2D.ID2D1RenderTarget wicBitmapRenderTarget =
+                d2DFactory.CreateWicBitmapRenderTarget(wicBitmap, renderTargetProperties);
+            wicBitmapRenderTarget.BeginDraw();
+            using var brush = wicBitmapRenderTarget.CreateSolidColorBrush(color);
+
+            wicBitmapRenderTarget.FillEllipse(new Ellipse(new Vector2(Random.Shared.Next(Width - 100), Random.Shared.Next(Height - 100)), 100, 100), brush);
+            wicBitmapRenderTarget.EndDraw();
+
+            ID2D1Bitmap1 inputBitmap = renderTarget.CreateBitmapFromWicBitmap(wicBitmap);
+            return inputBitmap;
         }
     }
 
