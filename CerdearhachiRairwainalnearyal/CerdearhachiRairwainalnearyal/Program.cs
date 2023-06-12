@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System.Collections.Concurrent;
 using System.Diagnostics;
 
 Console.WriteLine("Hello, World!");
@@ -8,10 +9,10 @@ var list = new List<Foo>();
 
 for (int i = 0; i < int.MaxValue; i++)
 {
-    var dictionary = new Dictionary<Foo, int>();
-    dictionary.Add(new Foo(), i);
-    dictionary.Add(new Foo(), i + 1);
-    dictionary.Add(new Foo(), i + 2);
+    var dictionary = new ConcurrentDictionary<Foo, int>();
+    dictionary.TryAdd(new Foo(), i);
+    dictionary.TryAdd(new Foo(), i + 1);
+    dictionary.TryAdd(new Foo(), i + 2);
 
     var first = dictionary.FirstOrDefault();
     if (first.Value != i)
@@ -20,7 +21,6 @@ for (int i = 0; i < int.MaxValue; i++)
     }
     else
     {
-        dictionary.Remove(first.Key);
         first = dictionary.FirstOrDefault();
 
         if (Random.Shared.Next(10) == 1)
