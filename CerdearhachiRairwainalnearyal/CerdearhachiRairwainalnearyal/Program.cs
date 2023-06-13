@@ -11,8 +11,9 @@ for (int i = 0; i < int.MaxValue; i++)
     var first = dictionary.FirstOrDefault();
     if (first.Value != i)
     {
-        Console.WriteLine(i);
-        i = 0;
+        // 证明首个不是第一个加入的
+        Console.WriteLine($"首个不是第一个加入的");
+        return;
     }
 }
 
