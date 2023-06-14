@@ -7,6 +7,7 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="1000" Width="1600">
     <Grid>
-        <Image x:Name="DisplayImage"></Image>
+        <local:Foo x:Name="Foo"></local:Foo>
+        <TextBlock x:Name="TextBlock" FontSize="100"></TextBlock>
     </Grid>
 </Window>
