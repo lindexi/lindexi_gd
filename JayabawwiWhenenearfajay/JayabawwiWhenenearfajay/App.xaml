@@ -7,6 +7,7 @@
          <ResourceDictionary>
              <ResourceDictionary.MergedDictionaries>
                 <!-- <ResourceDictionary Source="Dictionary1.xaml"></ResourceDictionary> -->
+                <local:FooResourceDictionary/>
                 <ResourceDictionary Source="Dictionary2.xaml"></ResourceDictionary>
              </ResourceDictionary.MergedDictionaries>
          </ResourceDictionary>
