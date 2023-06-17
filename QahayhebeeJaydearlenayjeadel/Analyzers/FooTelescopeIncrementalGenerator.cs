@@ -16,8 +16,7 @@ public class FooTelescopeIncrementalGenerator : IIncrementalGenerator
             // 获取到所有引用程序集
             var referencedAssemblySymbols = compilation.SourceModule.ReferencedAssemblySymbols;
 
-            // 为了方便代码理解，这里只取名为 Lib 程序集的内容…
-            foreach (var referencedAssemblySymbol in referencedAssemblySymbols)
+            foreach (IAssemblySymbol? referencedAssemblySymbol in referencedAssemblySymbols)
             {
                 var name = referencedAssemblySymbol.Name;
 
