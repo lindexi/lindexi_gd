@@ -2,6 +2,13 @@ using NeerecairwarLemwemgallkaga;
 
 var builder = WebApplication.CreateBuilder(args);
 
+IConfigurationBuilder configurationBuilder = builder.Configuration;
+IConfiguration configuration = configurationBuilder.Build();
+foreach (var keyValuePair in configuration.GetSection("Logging").GetSection("LogLevel").AsEnumerable(true))
+{
+    
+}
+
 builder.Services.AddLogging(loggingBuilder =>
 {
     loggingBuilder.ClearProviders();
