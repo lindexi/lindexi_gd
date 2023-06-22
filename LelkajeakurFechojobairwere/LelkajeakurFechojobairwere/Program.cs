@@ -11,7 +11,7 @@ var configuration2 = logLevelConfiguration["Microsoft"];
 
 // 配置文件 1：
 // configuration1 = Warning
-// configuration2 = null
+// configuration2 = Warning
 
 // 配置文件 2：
 // configuration1 = Debug
@@ -30,11 +30,10 @@ logger2.LogWarning($"Logger2 LogWarning");
 
 //app.Run();
 
-// 控制台输出:
+// 在 VisualStudio 调试输出:
 
 // 配置文件 1：
 // Microsoft.AspNetCore.Foo: Warning: Logger1 LogWarning
-// Microsoft.Foo: Information: Logger2 LogInfo
 // Microsoft.Foo: Warning: Logger2 LogWarning
 
 // 配置文件 2：
