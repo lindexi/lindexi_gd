@@ -1,0 +1,15 @@
+﻿<Application x:Class="JayabawwiWhenenearfajay.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:JayabawwiWhenenearfajay"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+         <ResourceDictionary>
+             <ResourceDictionary.MergedDictionaries>
+                <!-- <ResourceDictionary Source="Dictionary1.xaml"></ResourceDictionary> -->
+                <local:FooResourceDictionary/>
+                <ResourceDictionary Source="Dictionary2.xaml"></ResourceDictionary>
+             </ResourceDictionary.MergedDictionaries>
+         </ResourceDictionary>
+    </Application.Resources>
+</Application>

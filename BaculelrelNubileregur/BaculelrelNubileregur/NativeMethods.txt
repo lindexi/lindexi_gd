@@ -1,0 +1,2 @@
+﻿RegisterWaitUntilOOBECompleted
+SetUnhandledExceptionFilter

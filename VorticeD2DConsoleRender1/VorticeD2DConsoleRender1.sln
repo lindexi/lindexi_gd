@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33213.308
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VorticeD2DConsoleRender1", "VorticeD2DConsoleRender1\VorticeD2DConsoleRender1.csproj", "{F092200D-0182-4ADD-9862-DA55480C5D31}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F092200D-0182-4ADD-9862-DA55480C5D31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F092200D-0182-4ADD-9862-DA55480C5D31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F092200D-0182-4ADD-9862-DA55480C5D31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F092200D-0182-4ADD-9862-DA55480C5D31}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0FD7961D-79CB-4F2E-B12F-986103CA9EF4}
+	EndGlobalSection
+EndGlobal
