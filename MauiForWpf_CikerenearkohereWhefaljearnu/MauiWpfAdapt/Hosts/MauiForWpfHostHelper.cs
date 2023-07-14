@@ -53,6 +53,9 @@ public static class MauiForWpfHostHelper
 
         var mauiContext = new FooPanelMauiContext(panel, context);
         var mauiWindow = (Microsoft.Maui.Controls.Window) application.CreateWindow(new ActivationState(mauiContext));
+        mauiWindow.SetWindowHandler(mauiWindow, mauiContext);
+        mauiWindow.Width = panel.Width;
+        mauiWindow.Height = panel.Height;
 
         var mainPage = new MainPage()
         {
@@ -75,5 +78,12 @@ public static class MauiForWpfHostHelper
         //verticalStackLayout.CrossPlatformArrange(new Rect(0, 0, panel.Width, panel.Height));
 
         mauiWindow.Page = mainPage;
+        //var windowManager = mauiContext.Services.GetRequiredService<NavigationRootManager>()
+
+        //mauiWindow.VisualDiagnosticsOverlay.AddWindowElement(new RectangleAdorner(mainPage));
+        var window = (IWindow) mauiWindow;
+        window.FrameChanged(new Rect(0, 0, panel.Width, panel.Height));
+        window.Created();
+        window.Activated();
     }
 }
