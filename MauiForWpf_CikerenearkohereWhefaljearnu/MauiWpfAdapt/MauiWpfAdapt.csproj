@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <!-- <UseMaui>true</UseMaui> -->
   </PropertyGroup>
@@ -17,22 +17,22 @@
       <PrivateAssets>all</PrivateAssets>
     </ProjectReference>
     <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions">
-      <HintPath>..\MauiApp\bin\Debug\net6.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+      <HintPath>..\MauiApp\bin\Debug\net7.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
     </Reference>
 
     <Reference Include="Microsoft.Maui">
-      <HintPath>..\MauiApp\bin\Debug\net6.0\Microsoft.Maui.dll</HintPath>
+      <HintPath>..\MauiApp\bin\Debug\net7.0\Microsoft.Maui.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Maui.Controls">
-      <HintPath>..\MauiApp\bin\Debug\net6.0\Microsoft.Maui.Controls.dll</HintPath>
+      <HintPath>..\MauiApp\bin\Debug\net7.0\Microsoft.Maui.Controls.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Maui.Graphics">
-      <HintPath>..\MauiApp\bin\Debug\net6.0\Microsoft.Maui.Graphics.dll</HintPath>
+      <HintPath>..\MauiApp\bin\Debug\net7.0\Microsoft.Maui.Graphics.dll</HintPath>
     </Reference>
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\MauiApp\bin\Debug\net6.0\**\*" CopyToOutputDirectory="PreserveNewest" Visible="False"></None>
+    <None Include="..\MauiApp\bin\Debug\net7.0\**\*" CopyToOutputDirectory="PreserveNewest" Visible="False"></None>
   </ItemGroup>
 
 </Project>

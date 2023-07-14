@@ -1,19 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net7.0</TargetFrameworks>
-		<RootNamespace>MauiApp</RootNamespace>
+		<TargetFrameworks>net6.0</TargetFrameworks>
+		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
+		<!-- <TargetFrameworks>$(TargetFrameworks);net6.0-tizen</TargetFrameworks> -->
+		<OutputType>Exe</OutputType>
+		<RootNamespace>DawfallbibolaiwaJidunawkefayhaiwere</RootNamespace>
 		<UseMaui>true</UseMaui>
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<!-- 拷贝输出项，用于给 MauiWpfAdapt 项目引用 -->
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 
 		<!-- Display name -->
-		<ApplicationTitle>MauiApp</ApplicationTitle>
+		<ApplicationTitle>DawfallbibolaiwaJidunawkefayhaiwere</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.MauiApp</ApplicationId>
+		<ApplicationId>com.companyname.dawfallbibolaiwajidunawkefayhaiwere</ApplicationId>
 		<ApplicationIdGuid>c95550f0-372c-412c-93f3-02dd01d419c1</ApplicationIdGuid>
 
 		<!-- Versions -->

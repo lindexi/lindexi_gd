@@ -4,6 +4,7 @@ using Microsoft.Maui;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Controls.Internals;
 using Microsoft.Maui.Handlers;
+using Page = Microsoft.Maui.Controls.Page;
 using Rect = Microsoft.Maui.Graphics.Rect;
 using Size = Microsoft.Maui.Graphics.Size;
 
@@ -25,6 +26,26 @@ class FooButtonHandler : ButtonHandler
         {
             fooButtonHandler.Button.Content = text.Text;
         }
+        //button.InvalidateArrange();
+
+        //var mauiButton = (Microsoft.Maui.Controls.Button) button;
+        //mauiButton.PlatformSizeChanged();
+
+        //IElement? current = button;
+        //while (current != null)
+        //{
+        //    if (current is Page page)
+        //    {
+        //        page.Layout(new Rect(0, 0, 100, 100));
+        //    }
+
+        //    current = current.Parent;
+        //}
+
+        //if (button.Parent is Layout  visualElement)
+        //{
+        //    visualElement.InvalidateMeasureNonVirtual(InvalidationTrigger.MarginChanged);
+        //}
     }
 
     protected override void ConnectHandler(object platformView)

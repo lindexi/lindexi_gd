@@ -5,6 +5,12 @@ namespace MauiWpfAdapt.Handlers;
 
 class FooWindowHandler : WindowHandler
 {
+    protected override void ConnectHandler(object platformView)
+    {
+        VirtualView.VisualDiagnosticsOverlay?.Initialize();
+        base.ConnectHandler(platformView);
+    }
+
     protected override object CreatePlatformElement()
     {
         return new object();

@@ -1,10 +1,12 @@
 ﻿using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+
 using Microsoft.Maui;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Handlers;
 using Microsoft.Maui.Platform;
+
 using Color = System.Windows.Media.Color;
 using Rect = Microsoft.Maui.Graphics.Rect;
 using Size = Microsoft.Maui.Graphics.Size;
@@ -65,7 +67,9 @@ class FooLayoutHandler : LayoutHandler
         base.SetVirtualView(view);
 
         var virtualView = (ILayout) VirtualView;
-        var platformView = (Canvas) PlatformView;
+        var platformView = (FooPanel) PlatformView;
+
+        platformView.Layout = virtualView;
 
         platformView.Children.Clear();
 
@@ -77,6 +81,31 @@ class FooLayoutHandler : LayoutHandler
 
     protected override object CreatePlatformView()
     {
-        return new Canvas();
+        return new FooPanel();
+    }
+
+    class FooPanel : Canvas
+    {
+        public ILayout? Layout { get; set; }
+
+        protected override System.Windows.Size ArrangeOverride(System.Windows.Size arrangeSize)
+        {
+            if (Layout != null)
+            {
+                Layout.CrossPlatformArrange(new Rect(0, 0, arrangeSize.Width, arrangeSize.Height));
+            }
+            return base.ArrangeOverride(arrangeSize);
+        }
+
+        protected override System.Windows.Size MeasureOverride(System.Windows.Size constraint)
+        {
+            if (Layout != null)
+            {
+                var result = Layout.CrossPlatformMeasure(constraint.Width, constraint.Height);
+
+                return new System.Windows.Size(result.Width, result.Height);
+            }
+            return base.MeasureOverride(constraint);
+        }
     }
 }
