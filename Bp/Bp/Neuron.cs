@@ -8,11 +8,6 @@ namespace Bp
     public abstract class Neuron
     {
         /// <summary>
-        /// 随机数生成器
-        /// </summary>
-        public static Random Rand { get; set; } = new Random();
-
-        /// <summary>
         /// 随机数范围
         /// </summary>
         public static DoubleRange RandRange { get; set; } = new DoubleRange(0.0f, 1.0f);

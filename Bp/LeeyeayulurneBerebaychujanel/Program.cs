@@ -59,5 +59,11 @@ var layeredLayout = new LayeredLayout(geometryGraph,new SugiyamaLayoutSettings()
 });
 layeredLayout.Run();
 
+var graphNode = graph.Nodes[0];
+
+graph.Nodes[0].Center = new Point(43, 745);
+
+layeredLayout.Run();
+
 
 Console.WriteLine("Hello, World!");
