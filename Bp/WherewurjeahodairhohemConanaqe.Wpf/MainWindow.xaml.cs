@@ -18,6 +18,7 @@ using Microsoft.Msagl.Layout.LargeGraphLayout;
 using Shape = Microsoft.Msagl.Drawing.Shape;
 using Microsoft.Msagl.Layout.Layered;
 using Microsoft.Msagl.Core.Layout;
+using WherewurjeahodairhohemConanaqe.Wpf.Core;
 
 namespace WherewurjeahodairhohemConanaqe.Wpf;
 /// <summary>
@@ -28,6 +29,9 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        var runner = new Runner(new NeuronManager());
+        runner.Run();
 
         Graph graph = new Graph();
 

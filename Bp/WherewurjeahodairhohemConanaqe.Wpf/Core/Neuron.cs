@@ -10,15 +10,57 @@ namespace WherewurjeahodairhohemConanaqe.Wpf.Core;
 
 public class Runner
 {
+    public Runner(NeuronManager neuronManager)
+    {
+        NeuronManager = neuronManager;
+    }
+
+    public NeuronManager NeuronManager { get; }
+
+    public void Run()
+    {
+        RunCount++;
+
+        foreach (var neuron in NeuronManager.NeuronList)
+        {
+            RunNeuron(neuron);
+        }
+    }
+
+    private void RunNeuron(Neuron neuron)
+    {
+        neuron.Run();
+
+        var inputArgument = neuron.OutputArgument.ToInput();
+
+        foreach (var outputNeuron in neuron.GetOutputNeuron())
+        {
+            outputNeuron.InputManager.SetInput(neuron.Id, inputArgument);
+        }
+    }
+
     /// <summary>
     /// 执行次数
     /// </summary>
     public ulong RunCount { get; private set; }
 }
 
-class NeuronManager
+public class NeuronManager
 {
+    public NeuronManager()
+    {
+        var inputNeuron = new InputNeuron();
+        NeuronList.Add(inputNeuron);
+        var neuron1 = CreateNeuron();
+        NeuronList.Add(neuron1);
+        var neuron2 = CreateNeuron();
+        NeuronList.Add(neuron2);
 
+        inputNeuron.AddOutputNeuron(neuron1);
+        neuron1.AddOutputNeuron(neuron2);
+    }
+
+    public List<Neuron> NeuronList { get; } = new List<Neuron>();
 
     public Neuron CreateNeuron()
     {
@@ -26,22 +68,31 @@ class NeuronManager
         return new Neuron(new NeuronId(count));
     }
 
-    private ulong _neuronCount;
+    private ulong _neuronCount = 1;
 }
 
 class InputNeuron : Neuron
 {
-    public InputNeuron(NeuronId id) : base(id)
+    public InputNeuron() : base(new NeuronId(0))
     {
     }
 
-    public override void Run()
+    protected override OutputArgument RunCore(Span<InputArgument> inputList)
     {
-        OutputArgument = new OutputArgument(Random.Shared.NextDouble());
+        // 先使用任意的输入方式
+        return new OutputArgument(Random.Shared.NextDouble());
     }
 }
 
-internal class Neuron
+/// <summary>
+/// 执行状态
+/// </summary>
+public enum RunStatus
+{
+    Running,
+}
+
+public class Neuron
 {
     public Neuron(NeuronId id)
     {
@@ -53,16 +104,53 @@ internal class Neuron
 
     public InputManager InputManager { get; } = new InputManager();
     public OutputArgument OutputArgument { get; protected set; }
+    public bool Running { private set; get; }
+    /// <summary>
+    /// 运行次数
+    /// </summary>
+    public ulong RunCount { get; protected set; }
+
+    private List<Neuron> OutputNeuronList { get; } = new List<Neuron>();
+
+    public void AddOutputNeuron(Neuron outputNeuron)
+    {
+        lock (OutputNeuronList)
+        {
+            OutputNeuronList.Add(outputNeuron);
+        }
+    }
+
+    public List<Neuron> GetOutputNeuron()
+    {
+        lock (OutputNeuronList)
+        {
+            return OutputNeuronList.ToList();
+        }
+    }
+
+    /// <summary>
+    /// 执行
+    /// </summary>
+    public void Run()
+    {
+        Running = true;
+        RunCount++;
+
+        // 实现最简单的方式，可以替换为不同的方式
+        using var input = InputManager.GetInput();
+        Span<InputArgument> inputList = input.AsSpan();
+
+        var outputArgument = RunCore(inputList);
+        OutputArgument = outputArgument;
+
+        Running = false;
+    }
 
     /// <summary>
     /// 执行内容
     /// </summary>
-    public virtual void Run()
+    protected virtual OutputArgument RunCore(Span<InputArgument> inputList)
     {
-        // 实现最简单的方式，可以替换为不同的方式
-        using var input = InputManager.GetInput();
-        var inputList = input.AsSpan();
-
         double sum = 0;
         foreach (var inputArgument in inputList)
         {
@@ -71,7 +159,7 @@ internal class Neuron
 
         var output = sum / inputList.Length;
 
-        OutputArgument = new OutputArgument(output);
+        return new OutputArgument(output);
     }
 }
 
@@ -79,7 +167,7 @@ internal class Neuron
 /// 输入管理
 /// </summary>
 /// 允许接收多个输入，处理多线程执行的问题
-class InputManager
+public class InputManager
 {
     public void SetInput(NeuronId id, InputArgument argument)
     {
@@ -138,7 +226,10 @@ public readonly record struct InputArgument(double Value)
 {
 }
 
-public readonly record struct OutputArgument(double Value);
+public readonly record struct OutputArgument(double Value)
+{
+    public InputArgument ToInput() => new InputArgument(Value);
+}
 
 public readonly record struct NeuronId(ulong Value);
 
