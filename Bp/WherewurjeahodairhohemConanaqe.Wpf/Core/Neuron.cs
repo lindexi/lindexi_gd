@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -54,9 +55,53 @@ internal class Neuron
 /// 允许接收多个输入，处理多线程执行的问题
 class InputManager
 {
+    public void SetInput(NeuronId id, InputArgument argument)
+    {
+        lock (Locker)
+        {
+            InputArgumentList[id] = argument;
+        }
+    }
 
+    public InputWithArrayPool GetInput()
+    {
+        lock (Locker)
+        {
+            var count = InputArgumentList.Count;
+
+            var inputList = ArrayPool<InputArgument>.Shared.Rent(count);
+
+            int i = 0;
+            foreach (var keyValuePair in InputArgumentList)
+            {
+                inputList[i] = keyValuePair.Value;
+
+                i++;
+            }
+
+            return new InputWithArrayPool(inputList, count, ArrayPool<InputArgument>.Shared);
+        }
+    }
 
     private Dictionary<NeuronId, InputArgument> InputArgumentList { get; } = new Dictionary<NeuronId, InputArgument>();
+
+    private object Locker => InputArgumentList;
+}
+
+/// <summary>
+/// 输入的内容，用于归还数组池。实际应该调用 <see cref="AsSpan"/> 方法使用
+/// </summary>
+/// <param name="InputList"></param>
+/// <param name="Length"></param>
+/// <param name="ArrayPool"></param>
+public readonly record struct InputWithArrayPool(InputArgument[] InputList, int Length, ArrayPool<InputArgument> ArrayPool) : IDisposable
+{
+    public Span<InputArgument> AsSpan() => new Span<InputArgument>(InputList, 0, Length);
+
+    public void Dispose()
+    {
+        ArrayPool.Return(InputList);
+    }
 }
 
 /// <summary>
