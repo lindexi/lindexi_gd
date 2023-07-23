@@ -29,6 +29,18 @@ class NeuronManager
     private ulong _neuronCount;
 }
 
+class InputNeuron : Neuron
+{
+    public InputNeuron(NeuronId id) : base(id)
+    {
+    }
+
+    public override void Run()
+    {
+        OutputArgument = new OutputArgument(Random.Shared.NextDouble());
+    }
+}
+
 internal class Neuron
 {
     public Neuron(NeuronId id)
@@ -40,7 +52,7 @@ internal class Neuron
     public NeuronLayerIndex LayerIndex { get; private set; } = new NeuronLayerIndex(0);
 
     public InputManager InputManager { get; } = new InputManager();
-    public OutputArgument OutputArgument { get; private set; }
+    public OutputArgument OutputArgument { get; protected set; }
 
     /// <summary>
     /// 执行内容
