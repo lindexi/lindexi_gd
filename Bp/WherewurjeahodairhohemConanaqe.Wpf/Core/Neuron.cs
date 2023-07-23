@@ -45,7 +45,18 @@ internal class Neuron
     /// </summary>
     public virtual void Run()
     {
+        using var input = InputManager.GetInput();
+        var inputList = input.AsSpan();
 
+        double sum = 0;
+        foreach (var inputArgument in inputList)
+        {
+            sum += inputArgument.Value;
+        }
+
+        var output = sum / inputList.Length;
+
+        OutputArgument = new OutputArgument(output);
     }
 }
 
