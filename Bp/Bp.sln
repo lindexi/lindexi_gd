@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bp", "Bp\Bp.csproj", "{BE6B
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WherewurjeahodairhohemConanaqe.Wpf", "WherewurjeahodairhohemConanaqe.Wpf\WherewurjeahodairhohemConanaqe.Wpf.csproj", "{1C47D82D-2921-46D2-8F87-4CEB5095C8CF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JalowawerenearniQebemwawiyo.Wpf", "JalowawerenearniQebemwawiyo.Wpf\JalowawerenearniQebemwawiyo.Wpf.csproj", "{AF94E5C5-931C-4D58-AFA9-EC2E603BE5F2}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,10 +21,6 @@ Global
 		{1C47D82D-2921-46D2-8F87-4CEB5095C8CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C47D82D-2921-46D2-8F87-4CEB5095C8CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1C47D82D-2921-46D2-8F87-4CEB5095C8CF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AF94E5C5-931C-4D58-AFA9-EC2E603BE5F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AF94E5C5-931C-4D58-AFA9-EC2E603BE5F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AF94E5C5-931C-4D58-AFA9-EC2E603BE5F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AF94E5C5-931C-4D58-AFA9-EC2E603BE5F2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
