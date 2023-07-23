@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bp", "Bp\Bp.csproj", "{BE6B
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WherewurjeahodairhohemConanaqe.Wpf", "WherewurjeahodairhohemConanaqe.Wpf\WherewurjeahodairhohemConanaqe.Wpf.csproj", "{1C47D82D-2921-46D2-8F87-4CEB5095C8CF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeeyeayulurneBerebaychujanel", "LeeyeayulurneBerebaychujanel\LeeyeayulurneBerebaychujanel.csproj", "{0BDFD704-86A7-43B7-A698-B3EE56C60B8F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{1C47D82D-2921-46D2-8F87-4CEB5095C8CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C47D82D-2921-46D2-8F87-4CEB5095C8CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1C47D82D-2921-46D2-8F87-4CEB5095C8CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0BDFD704-86A7-43B7-A698-B3EE56C60B8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0BDFD704-86A7-43B7-A698-B3EE56C60B8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0BDFD704-86A7-43B7-A698-B3EE56C60B8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0BDFD704-86A7-43B7-A698-B3EE56C60B8F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
