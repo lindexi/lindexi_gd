@@ -10,7 +10,7 @@ namespace Bp
         /// <summary>
         /// 随机数范围
         /// </summary>
-        public static DoubleRange RandRange { get; set; } = new DoubleRange(0.0f, 1.0f);
+        public static DoubleRange RandomRange { get; set; } = new DoubleRange(0.0f, 1.0f);
 
         /// <summary>
         /// 多输入
@@ -47,8 +47,8 @@ namespace Bp
         {
             for (int i = 0; i < InputsCount; i++)
             {
-                // 创建在 RandRange.Max 和 RandRange.Min 范围内的随机数
-                Weights[i] = RandRange.GetRan();
+                // 创建在 RandomRange.Max 和 RandomRange.Min 范围内的随机数
+                Weights[i] = RandomRange.GetRan();
             }
         }
 

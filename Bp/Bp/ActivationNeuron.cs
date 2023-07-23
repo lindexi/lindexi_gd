@@ -34,7 +34,7 @@ namespace Bp
         public override void Randomize()
         {
             base.Randomize();
-            Threshold = RandRange.GetRan();
+            Threshold = RandomRange.GetRan();
         }
 
         /// <summary>

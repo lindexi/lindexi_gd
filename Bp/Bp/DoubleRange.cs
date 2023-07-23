@@ -22,12 +22,7 @@ namespace Bp
         /// <returns></returns>
         public double GetRan()
         {
-            return Rand.NextDouble() * Length + Min;
+            return Random.Shared.NextDouble() * Length + Min;
         }
-
-        /// <summary>
-        /// 随机数生成器
-        /// </summary>
-        private static Random Rand { get; set; } = new Random();
     }
 }
