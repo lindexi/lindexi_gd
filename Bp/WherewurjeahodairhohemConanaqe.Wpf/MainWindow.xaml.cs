@@ -38,7 +38,6 @@ public partial class MainWindow : Window
 
             graph.FindNode("Octagon" + i).Attr.FillColor = Microsoft.Msagl.Drawing.Color.Blue;
 
-            graph.FindNode("Octagon" + i).AddInEdge(edge);
         }
 
 
