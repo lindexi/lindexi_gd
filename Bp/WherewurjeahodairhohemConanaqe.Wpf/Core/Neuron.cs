@@ -37,6 +37,8 @@ internal class Neuron
     }
 
     public NeuronId Id { get; }
+    public NeuronLayerIndex LayerIndex { get; private set; } = new NeuronLayerIndex(0);
+
     public InputManager InputManager { get; } = new InputManager();
     public OutputArgument OutputArgument { get; private set; }
 
@@ -45,6 +47,7 @@ internal class Neuron
     /// </summary>
     public virtual void Run()
     {
+        // 实现最简单的方式，可以替换为不同的方式
         using var input = InputManager.GetInput();
         var inputList = input.AsSpan();
 
@@ -126,3 +129,9 @@ public readonly record struct InputArgument(double Value)
 public readonly record struct OutputArgument(double Value);
 
 public readonly record struct NeuronId(ulong Value);
+
+/// <summary>
+/// 表示多少层
+/// </summary>
+/// <param name="Value"></param>
+public readonly record struct NeuronLayerIndex(ulong Value);
