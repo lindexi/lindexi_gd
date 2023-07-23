@@ -54,7 +54,9 @@ internal class Neuron
 /// 允许接收多个输入，处理多线程执行的问题
 class InputManager
 {
-    private List<InputArgument> InputArgumentList { get; } = new List<InputArgument>();
+
+
+    private Dictionary<NeuronId, InputArgument> InputArgumentList { get; } = new Dictionary<NeuronId, InputArgument>();
 }
 
 /// <summary>
