@@ -1,29 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using System.Net.Http.Headers;
-using System.Net.Mime;
-using System.Text;
-
-using Azure.Core;
-
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Connectors.AI.OpenAI.ImageGeneration;
-
-var httpClient = new HttpClient()
-{
-    BaseAddress = new Uri("https://lindexi.openai.azure.com")
-};
-var azureOpenAiImageGeneration = new AzureOpenAIImageGeneration(args[0], httpClient, logger: new Logger());
-
-var generateImageAsync = await azureOpenAiImageGeneration.GenerateImageAsync("一可以豆子", 1024, 1024);
-
-httpClient.DefaultRequestHeaders.Add("api-key", args[0]);
-
-var stringContent = new StringContent("{\r\n\r\n    \"prompt\": \"USER_PROMPT_GOES_HERE\",\r\n\r\n    \"n\": 1,\r\n\r\n    \"size\": \"1024x1024\"\r\n\r\n}", Encoding.UTF8, MediaTypeNames.Application.Json);
-
-var httpResponseMessage = await httpClient.PostAsync("https://lindexi.openai.azure.com/openai/images/generations:submit?api-version=2023-06-01-preview", stringContent);
-var text = await httpResponseMessage.Content.ReadAsStringAsync();
 
 var builder = new KernelBuilder();
 
@@ -75,7 +53,7 @@ class Logger : ILogger, IDisposable
 {
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {
-        var message = formatter(state, exception);
+        var message = formatter(state,exception);
         Console.WriteLine(message);
     }
 
