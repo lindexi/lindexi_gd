@@ -8,6 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
+using WherewurjeahodairhohemConanaqe.Wpf.Core.Serialization;
+
 namespace WherewurjeahodairhohemConanaqe.Wpf.Core;
 
 public class Runner
@@ -47,7 +49,7 @@ public class Runner
     public ulong RunCount { get; private set; }
 }
 
-public class NeuronManager
+public class NeuronManager: INeuronSerialization
 {
     public NeuronManager()
     {
@@ -71,6 +73,14 @@ public class NeuronManager
     }
 
     private ulong _neuronCount = 0;
+
+    public void Serialize(SerializeContext context)
+    {
+    }
+
+    public void Deserialize(DeserializeContext context)
+    {
+    }
 }
 
 class InputNeuron : Neuron

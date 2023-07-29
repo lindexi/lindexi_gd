@@ -2,7 +2,14 @@
 
 public interface INeuronSerialization
 {
-    void Serialize();
-    void Deserialize();
+    void Serialize(SerializeContext context);
+    void Deserialize(DeserializeContext context);
 }
 
+public class SerializeContext
+{
+}
+
+public class DeserializeContext
+{
+}
