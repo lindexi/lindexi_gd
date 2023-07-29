@@ -1,12 +1,12 @@
-﻿using System;
+﻿using Bp;
+
+using Microsoft.Msagl.Core.Geometry.Curves;
+
+using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Xml.Serialization;
 
 using WherewurjeahodairhohemConanaqe.Wpf.Core.Serialization;
 
@@ -27,6 +27,11 @@ public class Runner
 
         foreach (var neuron in NeuronManager.NeuronList)
         {
+            if (neuron == NeuronManager.OutputNeuron)
+            {
+
+            }
+
             RunNeuron(neuron);
         }
     }
@@ -62,7 +67,14 @@ public class NeuronManager : INeuronSerialization
 
         inputNeuron.AddOutputNeuron(neuron1);
         neuron1.AddOutputNeuron(neuron2);
+
+        InputNeuron = inputNeuron;
+        OutputNeuron = neuron2;
     }
+
+    public InputNeuron InputNeuron { get; }
+
+    public Neuron OutputNeuron { get; }
 
     public List<Neuron> NeuronList { get; } = new List<Neuron>();
 
@@ -70,6 +82,14 @@ public class NeuronManager : INeuronSerialization
     {
         var count = Interlocked.Increment(ref _neuronCount);
         return new Neuron(new NeuronId(count), this);
+    }
+
+    public void Learning(double learningRate)
+    {
+        foreach (var neuron in NeuronList)
+        {
+            neuron.Learning(learningRate);
+        }
     }
 
     private ulong _neuronCount = 0;
@@ -83,16 +103,25 @@ public class NeuronManager : INeuronSerialization
     }
 }
 
-class InputNeuron : Neuron
+public class InputNeuron : Neuron
 {
     public InputNeuron(NeuronManager neuronManager) : base(new NeuronId(0), neuronManager)
     {
 
     }
 
+    public void SetInput(InputArgument input)
+    {
+        InputManager.SetInput(Id, input);
+    }
+
     protected override OutputArgument RunCore(Span<InputArgument> inputList)
     {
         // 先使用任意的输入方式
+        if (inputList.Length > 0)
+        {
+            return new OutputArgument(inputList[0].Value);
+        }
         return new OutputArgument(new double[] { Random.Shared.NextDouble() });
     }
 }
@@ -174,6 +203,11 @@ public class Neuron
     /// </summary>
     protected virtual OutputArgument RunCore(Span<InputArgument> inputList)
     {
+        if (IncludeNeuronList.Count == 0)
+        {
+            return Function.RunCore(inputList);
+        }
+
         var outputList = new List<double>();
         foreach (var inputArgument in inputList)
         {
@@ -189,6 +223,66 @@ public class Neuron
 
         return new OutputArgument(outputList);
     }
+
+    public void Learning(double learningRate)
+    {
+        Function.Learning(learningRate);
+    }
+
+    public IFunction Function { get; } = new ThresholdFunction();
+}
+
+/// <summary>
+/// 阈值函数
+/// </summary>
+public class ThresholdFunction : IFunction
+{
+    public OutputArgument RunCore(Span<InputArgument> inputList)
+    {
+        double result = 0d;
+        foreach (var inputArgument in inputList)
+        {
+            MaxInputLength = Math.Max(MaxInputLength, inputArgument.Value.Count);
+            var sum = 0d;
+            for (var i = 0; i < Weights.Count && i < inputArgument.Value.Count; i++)
+            {
+                sum += inputArgument.Value[i] * Weights[i];
+            }
+
+            result += sum;
+        }
+
+        result -= Value;
+
+        result = result > 0 ? 1 : 0;
+        return new OutputArgument(new double[] { result });
+    }
+
+    private int MaxInputLength { set; get; } = 0;
+
+    /// <summary>
+    /// 权重
+    /// </summary>
+    public List<double> Weights { get; } = new List<double>();
+
+    public double Value { set; get; }
+
+    public void Learning(double learningRate)
+    {
+        Weights.Clear();
+        for (int i = 0; i < MaxInputLength; i++)
+        {
+            Weights.Add(Random.Shared.NextDouble() * 2 - 1);
+        }
+
+        Value = Random.Shared.NextDouble() * 2 - 1;
+    }
+}
+
+public interface IFunction
+{
+    OutputArgument RunCore(Span<InputArgument> inputList);
+    void Learning(double learningRate);
 }
 
 /// <summary>

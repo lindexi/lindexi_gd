@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -30,6 +31,9 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
+        var perceptronLearning = new PerceptronLearning();
+        perceptronLearning.Run();
+
         var runner = new Runner(new NeuronManager());
         runner.Run();
 
@@ -48,10 +52,84 @@ public partial class MainWindow : Window
 
         var railGraph = new RailGraph();
 
-        
+
 
         graph.Attr.LayerDirection = LayerDirection.LR;
         GraphControl.Graph = graph;
 
+    }
+}
+
+class PerceptronLearning
+{
+    public NeuronManager NeuronManager { get; } = new NeuronManager();
+
+    public void Run()
+    {
+        var runner = new Runner(NeuronManager);
+
+        double[][] inputs = new double[4][];
+        double[][] outputs = new double[4][];
+
+        //(0,0);(0,1);(1,0)
+        inputs[0] = new double[] { 0, 0 };
+        inputs[1] = new double[] { 0, 1 };
+        inputs[2] = new double[] { 1, 0 };
+
+        outputs[0] = new double[] { 0 };
+        outputs[1] = new double[] { 0 };
+        outputs[2] = new double[] { 0 };
+
+        //(1,1)
+        inputs[3] = new double[] { 1, 1 };
+        outputs[3] = new double[] { 1 };
+
+        int n = 0;
+        while (n < (inputs.Length * 2))
+        {
+            double e = 0d;
+            for (var i = 0; i < inputs.Length; i++)
+            {
+                var input = inputs[i];
+                var output = outputs[i];
+
+                NeuronManager.InputNeuron.SetInput(new InputArgument(input));
+                runner.Run();
+
+                var outputArgument = NeuronManager.OutputNeuron.OutputArgument;
+
+                var currentValue = GetE(output, outputArgument.Value);
+                e += currentValue;
+
+                //Debug.WriteLine($"{input[0]:0} {input[1]:0} {output[0]:0} [{outputArgument.Value[0]:0}]");
+
+                if (currentValue < 0.01)
+                {
+                    n++;
+                }
+                else
+                {
+                    n = 0;
+                }
+            }
+
+            NeuronManager.Learning(e);
+
+            // 计算误差
+            static double GetE(double[] output,IReadOnlyList<double> outputArgument)
+            {
+                if (outputArgument.Count < output.Length)
+                {
+                    return 1;
+                }
+
+                var sum = 0d;
+                for (var i = 0; i < output.Length; i++)
+                {
+                    sum += Math.Abs(outputArgument[i] - output[i]);
+                }
+                return sum;
+            }
+        }
     }
 }
