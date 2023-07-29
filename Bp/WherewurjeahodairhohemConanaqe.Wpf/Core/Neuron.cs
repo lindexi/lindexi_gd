@@ -2,9 +2,11 @@
 using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace WherewurjeahodairhohemConanaqe.Wpf.Core;
 
@@ -49,7 +51,7 @@ public class NeuronManager
 {
     public NeuronManager()
     {
-        var inputNeuron = new InputNeuron();
+        var inputNeuron = new InputNeuron(this);
         NeuronList.Add(inputNeuron);
         var neuron1 = CreateNeuron();
         NeuronList.Add(neuron1);
@@ -65,16 +67,17 @@ public class NeuronManager
     public Neuron CreateNeuron()
     {
         var count = Interlocked.Increment(ref _neuronCount);
-        return new Neuron(new NeuronId(count));
+        return new Neuron(new NeuronId(count), this);
     }
 
-    private ulong _neuronCount = 1;
+    private ulong _neuronCount = 0;
 }
 
 class InputNeuron : Neuron
 {
-    public InputNeuron() : base(new NeuronId(0))
+    public InputNeuron(NeuronManager neuronManager) : base(new NeuronId(0), neuronManager)
     {
+
     }
 
     protected override OutputArgument RunCore(Span<InputArgument> inputList)
@@ -94,12 +97,14 @@ public enum RunStatus
 
 public class Neuron
 {
-    public Neuron(NeuronId id)
+    public Neuron(NeuronId id, NeuronManager manager)
     {
         Id = id;
+        Manager = manager;
     }
 
     public NeuronId Id { get; }
+    public NeuronManager Manager { get; }
     public NeuronLayerIndex LayerIndex { get; private set; } = new NeuronLayerIndex(0);
 
     public InputManager InputManager { get; } = new InputManager();
