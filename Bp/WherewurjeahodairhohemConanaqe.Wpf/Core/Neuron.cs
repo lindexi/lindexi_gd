@@ -72,6 +72,23 @@ public class NeuronManager : INeuronSerialization
         return new Neuron(new NeuronId(count), this);
     }
 
+    public void Replace(Neuron origin, Neuron replaceValue)
+    {
+        lock (NeuronList)
+        {
+
+        }
+    }
+
+    public void ToGroupNeuron(Neuron origin, GroupNeuron groupNeuron)
+    {
+        lock (NeuronList)
+        {
+            NeuronList.Remove(origin);
+            NeuronList.Add(groupNeuron);
+        }
+    }
+
     private ulong _neuronCount = 0;
 
     public void Serialize(SerializeContext context)
@@ -103,6 +120,24 @@ class InputNeuron : Neuron
 public enum RunStatus
 {
     Running,
+}
+
+public class GroupNeuron : Neuron
+{
+    public GroupNeuron(NeuronId id, NeuronManager manager) : base(id, manager)
+    {
+    }
+
+    /// <summary>
+    /// 所实际包含的列表
+    /// </summary>
+    public List<Neuron> NeuronList { get; } = new List<Neuron>();
+
+    protected override OutputArgument RunCore(Span<InputArgument> inputList)
+    {
+
+        return base.RunCore(inputList);
+    }
 }
 
 public class Neuron
@@ -178,7 +213,6 @@ public class Neuron
 
             outputList.Add(output);
         }
-
 
         return new OutputArgument(outputList);
     }
