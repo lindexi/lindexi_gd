@@ -49,7 +49,7 @@ public class Runner
     public ulong RunCount { get; private set; }
 }
 
-public class NeuronManager: INeuronSerialization
+public class NeuronManager : INeuronSerialization
 {
     public NeuronManager()
     {
@@ -93,7 +93,7 @@ class InputNeuron : Neuron
     protected override OutputArgument RunCore(Span<InputArgument> inputList)
     {
         // 先使用任意的输入方式
-        return new OutputArgument(Random.Shared.NextDouble());
+        return new OutputArgument(new double[] { Random.Shared.NextDouble() });
     }
 }
 
@@ -166,15 +166,21 @@ public class Neuron
     /// </summary>
     protected virtual OutputArgument RunCore(Span<InputArgument> inputList)
     {
-        double sum = 0;
+        var outputList = new List<double>();
         foreach (var inputArgument in inputList)
         {
-            sum += inputArgument.Value;
+            double sum = 0;
+            foreach (var value in inputArgument.Value)
+            {
+                sum += value;
+            }
+            var output = sum / inputList.Length;
+
+            outputList.Add(output);
         }
 
-        var output = sum / inputList.Length;
 
-        return new OutputArgument(output);
+        return new OutputArgument(outputList);
     }
 }
 
@@ -237,11 +243,11 @@ public readonly record struct InputWithArrayPool(InputArgument[] InputList, int 
 /// 进行输入的参数
 /// </summary>
 /// <param name="Value"></param>
-public readonly record struct InputArgument(double Value)
+public readonly record struct InputArgument(IReadOnlyList<double> Value)
 {
 }
 
-public readonly record struct OutputArgument(double Value)
+public readonly record struct OutputArgument(IReadOnlyList<double> Value)
 {
     public InputArgument ToInput() => new InputArgument(Value);
 }
