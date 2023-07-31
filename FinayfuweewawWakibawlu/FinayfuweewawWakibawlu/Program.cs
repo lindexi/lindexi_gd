@@ -1,35 +1,52 @@
-﻿
-
-using Windows.ApplicationModel.Core;
-using Windows.System;
-using Windows.UI.ViewManagement;
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 
 namespace FinayfuweewawWakibawlu;
 
-//internal class Program
-//{
-//    [STAThread]
-//    unsafe static void Main(string[] args)
-//    {
-//        var application = new Application();
+public class App : Application
+{
+    public event EventHandler<LaunchActivatedEventArgs>? Launched;
 
+    protected override void OnLaunched(LaunchActivatedEventArgs args)
+    {
+        Launched?.Invoke(this, args);
+    }
+}
 
-//        var mainView = CoreApplication.MainView;
+internal class Program
+{
+    [STAThread]
+    unsafe static void Main(string[] args)
+    {
+        global::WinRT.ComWrappersSupport.InitializeComWrappers();
+        global::Microsoft.UI.Xaml.Application.Start((p) =>
+        {
+            var context = new global::Microsoft.UI.Dispatching.DispatcherQueueSynchronizationContext(global::Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread());
+            // 设置线程同步上下文
+            global::System.Threading.SynchronizationContext.SetSynchronizationContext(context);
+            var app = new App();
+            app.Launched += (sender, e) =>
+            {
+                var window = new Window()
+                {
+                    Title = "控制台创建应用"
+                };
+                window.Content = new Grid()
+                {
+                    Children =
+                    {
+                        new TextBlock()
+                        {
+                            Text = "控制台应用",
+                            HorizontalAlignment = HorizontalAlignment.Center,
+                            VerticalAlignment = VerticalAlignment.Center
+                        }
+                    }
+                };
+                window.Activate();
+            };
+        });
 
-//        var forCurrentThread = DispatcherQueue.GetForCurrentThread();
-
-//        var coreApplicationView = CoreApplication.CreateNewView();
-
-
-//        var applicationView = new ABI.Windows.UI.ViewManagement.ApplicationView();
-//        var p = &applicationView;
-
-//        var fromAbi = ApplicationView.FromAbi(new IntPtr(p));
-
-//        var currentView = ApplicationView.GetForCurrentView();
-
-
-//        Console.WriteLine("Hello, World!");
-//    }
-//}
+        Console.WriteLine("Hello, World!");
+    }
+}
