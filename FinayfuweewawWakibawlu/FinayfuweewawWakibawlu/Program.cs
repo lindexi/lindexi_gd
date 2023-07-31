@@ -46,7 +46,5 @@ internal class Program
                 window.Activate();
             };
         });
-
-        Console.WriteLine("Hello, World!");
     }
 }
