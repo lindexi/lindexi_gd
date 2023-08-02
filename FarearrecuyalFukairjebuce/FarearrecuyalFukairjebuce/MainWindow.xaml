@@ -10,27 +10,33 @@
     <Grid>
         <FrameworkElement.Resources>
             <DataTemplate x:Key="UserChatItemDataTemplate" DataType="{x:Type local:ChatInfo}">
-
+                <StackPanel Margin="2 0 0 5">
+                    <TextBlock HorizontalAlignment="Right" Text="我" FontSize="10"></TextBlock>
+                    <Border Margin="0 1 0 0" HorizontalAlignment="Right"
+                            BorderThickness="1" CornerRadius="5 0 5 5" BorderBrush="#cdcdcd" Background="#FFF4F6F9" 
+                            Padding="5">
+                        <TextBox Background="Transparent" BorderThickness="0" Text="{Binding Text}" 
+                                 IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"></TextBox>
+                    </Border>
+                </StackPanel>
             </DataTemplate>
             <DataTemplate x:Key="AssistantChatItemDataTemplate" DataType="{x:Type local:ChatInfo}">
-
+                <StackPanel Margin="0 0 2 5">
+                    <TextBlock Text="小恩" FontSize="10"></TextBlock>
+                    <Border Margin="0 1 0 0" HorizontalAlignment="Left"
+                            BorderThickness="1" CornerRadius="0 5 5 5" BorderBrush="#cdcdcd" Background="#FFF4F6F9" 
+                            Padding="5">
+                        <TextBox Background="Transparent" BorderThickness="0" Text="{Binding Text}" 
+                                 IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"></TextBox>
+                    </Border>
+                </StackPanel>
             </DataTemplate>
 
-            <DataTemplate x:Key="ChatItemDataTemplate" DataType="{x:Type local:ChatInfo}">
-                <!-- 这是统一的模版，看起来不需要分哪个角色的内容 -->
-
-            </DataTemplate>
-
-            <!-- 原本的设计里，不同的内容采用不同的显示方式。但似乎缺少设计师，于是就使用统一的内容 -->
-            <local:ChatListItemTemplateSelector x:Key="ChatListItemTemplateSelector" AssistantChatItemDataTemplate="{StaticResource ChatItemDataTemplate}" UserChatItemDataTemplate="{StaticResource ChatItemDataTemplate}"/>
+            <local:ChatListItemTemplateSelector x:Key="ChatListItemTemplateSelector" AssistantChatItemDataTemplate="{StaticResource AssistantChatItemDataTemplate}" UserChatItemDataTemplate="{StaticResource UserChatItemDataTemplate}"/>
         </FrameworkElement.Resources>
 
         <ItemsControl Width="260" HorizontalAlignment="Center" ItemsSource="{Binding ChatInfoList}" ItemTemplateSelector="{StaticResource ChatListItemTemplateSelector}">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
+           
         </ItemsControl>
     </Grid>
 </Window>
