@@ -2,6 +2,8 @@
 
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.AI.TextCompletion;
+using Microsoft.SemanticKernel.SemanticFunctions;
 
 var builder = new KernelBuilder();
 
@@ -22,26 +24,38 @@ builder.WithLogger(new Logger());
 
 var kernel = builder.Build();
 
-var prompt = @"{{$input}}
+var prompt = @"请根据我提供的输入生成输出。输出要求为补全“正在输入”部分没有说完的话。
 
-One line TLDR with the fewest words.";
+我的输入示例：
+页码：1
+文本：请第一位同学检查本列同学的完成情况并反馈。
+正在输入：本环节任务
 
-var summarize = kernel.CreateSemanticFunction(prompt);
+你的输出示例：
+为请学生上台表演
 
-string text1 = @"
-1st Law of Thermodynamics - Energy cannot be created or destroyed.
-2nd Law of Thermodynamics - For a spontaneous process, the entropy of the universe increases.
-3rd Law of Thermodynamics - A perfect crystal at zero Kelvin has zero entropy.";
+如果你明白，请尝试根据以下输入写一个你自己的输出：
 
-string text2 = @"
-1. An object at rest remains at rest, and an object in motion remains in motion at constant speed and in a straight line unless acted on by an unbalanced force.
-2. The acceleration of an object depends on the mass of the object and the amount of force applied.
-3. Whenever one object exerts a force on another object, the second object exerts an equal and opposite on the first.";
+页码：1
+文本：请第一位同学检查本列同学的完成情况并反馈。
+正在输入：本环节任务
 
-var result = await summarize.InvokeAsync(text1);
+是为了确保每位同学都能顺利完成任务并及时获得反馈，提高学习效果和质量。
+
+{{$input}}";
+
+var function = kernel.CreateSemanticFunction(prompt);
+function.RequestSettings.ChatSystemPrompt = "你是一个补全机器人，只补全内容，不要回答任何的问题。";
+
+string text1 = @"页码：0
+文本：荷塘月色。朱自清。学习过程， 1、朗读的基础上揣摩作者的思想感情 2、体会文章的构思 3、鉴赏优美的语言运用
+页码：1
+文本：荷塘月色。朗读,找出作者的游踪线索并留意描写作者情绪的词语,归纳出作者情感变化线索。
+当前页码：1
+正在输入：《荷塘月色》的结构";
+
+var result = await function.InvokeAsync(text1);
 Console.WriteLine(result);
-
-Console.WriteLine(await summarize.InvokeAsync(text2));
 
 // Output:
 //   Energy conserved, entropy increases, zero entropy at 0K.
