@@ -24,37 +24,22 @@ builder.WithLogger(new Logger());
 
 var kernel = builder.Build();
 
-var prompt = @"请根据我提供的输入生成输出。输出要求为补全“正在输入”部分没有说完的话。
+var prompt = @"请根据我提供的输入进行分类。请仅在以下分类类型中选取一个最匹配的类型，不同的分类使用；分割。如果没有任何一个类型匹配，请输出`无匹配`。注意，你的输入应该只包含分类的类型名，不包含其他内容。
 
-我的输入示例：
-页码：1
-文本：请第一位同学检查本列同学的完成情况并反馈。
-正在输入：本环节任务
-
-你的输出示例：
-为请学生上台表演
-
-如果你明白，请尝试根据以下输入写一个你自己的输出：
-
-页码：1
-文本：请第一位同学检查本列同学的完成情况并反馈。
-正在输入：本环节任务
-
-是为了确保每位同学都能顺利完成任务并及时获得反馈，提高学习效果和质量。
+生成页面；生成图片；生成形状；填充形状内容；
 
 {{$input}}";
 
 var function = kernel.CreateSemanticFunction(prompt);
-function.RequestSettings.ChatSystemPrompt = "你是一个补全机器人，只补全内容，不要回答任何的问题。";
+function.RequestSettings.ChatSystemPrompt = "你是一个分类器，只分类内容，不要回答任何的问题。";
 
-string text1 = @"页码：0
-文本：荷塘月色。朱自清。学习过程， 1、朗读的基础上揣摩作者的思想感情 2、体会文章的构思 3、鉴赏优美的语言运用
-页码：1
-文本：荷塘月色。朗读,找出作者的游踪线索并留意描写作者情绪的词语,归纳出作者情感变化线索。
-当前页码：1
-正在输入：《荷塘月色》的结构";
+string text1 = @"我想要创建出一页课件";
 
 var result = await function.InvokeAsync(text1);
+Console.WriteLine(result);
+
+string text2 = @"我想要画一个页面背景图";
+result = await function.InvokeAsync(text2);
 Console.WriteLine(result);
 
 // Output:
