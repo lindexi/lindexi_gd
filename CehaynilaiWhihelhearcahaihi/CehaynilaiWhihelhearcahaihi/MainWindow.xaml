@@ -5,10 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CehaynilaiWhihelhearcahaihi"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800"
+        Title="MainWindow" Height="1000" Width="1160" 
         x:Name="Root">
     <Grid>
-        <ListBox ItemsSource="{Binding ElementName=Root,Path=ModelCollection}">
+        <ListBox x:Name="SlideThumbListBox" ItemsSource="{Binding ElementName=Root,Path=ModelCollection}" ScrollViewer.CanContentScroll="False" Loaded="ListBox_OnLoaded">
             <ListBox.ItemContainerStyle>
                 <Style TargetType="{x:Type ListBoxItem}">
                     <Setter Property="Template">
@@ -18,6 +18,7 @@
                                     <Border.Background>
                                         <ImageBrush x:Name="SlideThumbImageBrush" ImageSource="{Binding Image}"  Stretch="Uniform" />
                                     </Border.Background>
+                                    <TextBlock Background="White"  HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10" FontSize="100" Text="{Binding Index}"></TextBlock>
                                 </Border>
                             </ControlTemplate>
                         </Setter.Value>
