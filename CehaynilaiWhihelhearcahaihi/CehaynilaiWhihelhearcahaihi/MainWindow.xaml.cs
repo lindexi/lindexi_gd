@@ -32,7 +32,7 @@ public partial class MainWindow : Window
 
             i++;
         }
-
+        
         InitializeComponent();
     }
 

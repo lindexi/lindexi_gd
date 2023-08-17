@@ -7,6 +7,9 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="1000" Width="1160" 
         x:Name="Root">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"></BooleanToVisibilityConverter>
+    </Window.Resources>
     <Grid>
         <ListBox x:Name="SlideThumbListBox" ItemsSource="{Binding ElementName=Root,Path=ModelCollection}" ScrollViewer.CanContentScroll="False" Loaded="ListBox_OnLoaded">
             <ListBox.ItemContainerStyle>
@@ -18,8 +21,10 @@
                                     <Border.Background>
                                         <ImageBrush x:Name="SlideThumbImageBrush" ImageSource="{Binding Image}"  Stretch="Uniform" />
                                     </Border.Background>
-                                    <TextBlock Background="White"  HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10" FontSize="100" Text="{Binding Index}"></TextBlock>
+                                    <TextBlock Background="White"  HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10" FontSize="100" Text="{Binding Index}" Visibility="{Binding ElementName=Border,Path=IsMouseOver,Converter={StaticResource BooleanToVisibilityConverter}}"></TextBlock>
+                                    
                                 </Border>
+
                             </ControlTemplate>
                         </Setter.Value>
                     </Setter>
