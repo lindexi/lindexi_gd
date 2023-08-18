@@ -32,7 +32,7 @@ public partial class MainWindow : Window
 
             i++;
         }
-        
+
         InitializeComponent();
     }
 
@@ -55,6 +55,12 @@ public partial class MainWindow : Window
     {
         var scrollViewer = GetScrollViewer(SlideThumbListBox);
         scrollViewer.ScrollChanged += ScrollViewer_ScrollChanged;
+        ScrollItemChanged += MainWindow_ScrollItemChanged;
+    }
+
+    private void MainWindow_ScrollItemChanged(object? sender, ScrollItemChangedEventArgs e)
+    {
+        Debug.WriteLine($"滚动到:{e.ItemDataContext}");
     }
 
     public static ScrollViewer? GetScrollViewer(DependencyObject? parent)
@@ -83,12 +89,14 @@ public partial class MainWindow : Window
         var scrollViewer = (ScrollViewer) sender;
         const int limitMaxValue = 20;
 
+        bool outOfScroll = false; // 是否当前命中项已经滚动超过太多了
         if (_lastElement is not null)
         {
             var point = ShowInTop(_lastElement);
             if (point.Y > _lastElement.ActualHeight / 2 || point.Y < (-1 * _lastElement.ActualHeight * 0.7))
             {
                 // 超过一半宽度高度了，那就忽略了吧
+                outOfScroll = true;
             }
             else
             {
@@ -96,6 +104,9 @@ public partial class MainWindow : Window
                 return;
             }
         }
+
+        object? lastDataItem = null;
+        FrameworkElement? lastElement = null;
 
         foreach (var item in SlideThumbListBox.ItemContainerGenerator.Items.Reverse())
         {
@@ -105,16 +116,42 @@ public partial class MainWindow : Window
             {
                 var translatePoint = ShowInTop(element);
 
-                if (translatePoint.Y < limitMaxValue && translatePoint.Y >= 0)
+                if (translatePoint.Y >= 0)
                 {
-                    if (element != _lastElement)
+                    if (translatePoint.Y < limitMaxValue)
                     {
-                        _lastElement = element;
-                        Debug.WriteLine($"滚动到: {item}");
-                        //ScrollItemChanged?.Invoke(this, new ScrollItemChangedEventArgs(item, element));
+                        if (element != _lastElement)
+                        {
+                            _lastElement = element;
+                            //Debug.WriteLine($"滚动到: {item}");
+                            ScrollItemChanged?.Invoke(this, new ScrollItemChangedEventArgs(item, element));
+                        }
+
+                        return;
                     }
-                    return;
                 }
+                else // 当前项小于零的情况
+                {
+                    // 此时证明上一项目是大于零的情况
+                    if (outOfScroll)
+                    {
+                        if (lastDataItem != null && lastElement != null)
+                        {
+                            if (lastElement != _lastElement)
+                            {
+                                // 也就是上一项已经是可见状态，而当前 `_lastElement` 却是被滚动走了
+                                _lastElement = lastElement;
+                                //Debug.WriteLine($"滚动到: {lastDataItem}");
+                                ScrollItemChanged?.Invoke(this, new ScrollItemChangedEventArgs(lastDataItem, lastElement));
+                            }
+
+                            return;
+                        }
+                    }
+                }
+
+                lastDataItem = item;
+                lastElement = element;
             }
         }
 
@@ -127,6 +164,19 @@ public partial class MainWindow : Window
 
     private FrameworkElement? _lastElement;
 
+    public event EventHandler<ScrollItemChangedEventArgs>? ScrollItemChanged;
+}
+
+public class ScrollItemChangedEventArgs : EventArgs
+{
+    public ScrollItemChangedEventArgs(object itemDataContext, UIElement itemElement)
+    {
+        ItemDataContext = itemDataContext;
+        ItemElement = itemElement;
+    }
+
+    public object ItemDataContext { get; }
+    public UIElement ItemElement { get; }
 }
 
 public class Model
