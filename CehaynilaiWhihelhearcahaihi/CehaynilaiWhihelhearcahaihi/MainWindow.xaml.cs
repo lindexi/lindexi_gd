@@ -55,6 +55,12 @@ public partial class MainWindow : Window
     {
         var scrollViewer = GetScrollViewer(SlideThumbListBox);
         scrollViewer.ScrollChanged += ScrollViewer_ScrollChanged;
+        ScrollItemChanged += MainWindow_ScrollItemChanged;
+    }
+
+    private void MainWindow_ScrollItemChanged(object? sender, ScrollItemChangedEventArgs e)
+    {
+        Debug.WriteLine($"滚动到:{e.ItemDataContext}");
     }
 
     public static ScrollViewer? GetScrollViewer(DependencyObject? parent)
@@ -117,8 +123,8 @@ public partial class MainWindow : Window
                         if (element != _lastElement)
                         {
                             _lastElement = element;
-                            Debug.WriteLine($"滚动到: {item}");
-                            //ScrollItemChanged?.Invoke(this, new ScrollItemChangedEventArgs(item, element));
+                            //Debug.WriteLine($"滚动到: {item}");
+                            ScrollItemChanged?.Invoke(this, new ScrollItemChangedEventArgs(item, element));
                         }
 
                         return;
@@ -127,15 +133,16 @@ public partial class MainWindow : Window
                 else // 当前项小于零的情况
                 {
                     // 此时证明上一项目是大于零的情况
-                    // 也就是上一项已经是可见状态，而当前 `_lastElement` 却是被滚动走了
                     if (outOfScroll)
                     {
                         if (lastDataItem != null && lastElement != null)
                         {
                             if (lastElement != _lastElement)
                             {
+                                // 也就是上一项已经是可见状态，而当前 `_lastElement` 却是被滚动走了
                                 _lastElement = lastElement;
-                                Debug.WriteLine($"滚动到: {lastDataItem}");
+                                //Debug.WriteLine($"滚动到: {lastDataItem}");
+                                ScrollItemChanged?.Invoke(this, new ScrollItemChangedEventArgs(lastDataItem, lastElement));
                             }
 
                             return;
@@ -157,6 +164,19 @@ public partial class MainWindow : Window
 
     private FrameworkElement? _lastElement;
 
+    public event EventHandler<ScrollItemChangedEventArgs>? ScrollItemChanged;
+}
+
+public class ScrollItemChangedEventArgs : EventArgs
+{
+    public ScrollItemChangedEventArgs(object itemDataContext, UIElement itemElement)
+    {
+        ItemDataContext = itemDataContext;
+        ItemElement = itemElement;
+    }
+
+    public object ItemDataContext { get; }
+    public UIElement ItemElement { get; }
 }
 
 public class Model
