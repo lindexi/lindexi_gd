@@ -5,10 +5,13 @@
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <Product>测试应用</Product>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Description>的的的的的的的</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="..\..\..\..\..\Image\*.png" >
+    <Content Include="..\..\..\..\..\Image\*.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
