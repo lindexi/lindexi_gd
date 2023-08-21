@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -59,7 +60,7 @@ namespace LainewihereJerejawwerye
     {
         public static void F1()
         {
-            Console.WriteLine(""" + text + @""");
+            Console.WriteLine(""Foo1.F2 方法返回值是" + text + @""");
         }
     }
 }";
