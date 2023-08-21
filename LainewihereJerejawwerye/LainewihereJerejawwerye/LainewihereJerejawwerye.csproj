@@ -5,12 +5,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <RootNamespace>NejohocaLeanolearbur</RootNamespace>
   </PropertyGroup>
-
-  <ItemGroup>
-    <CompilerVisibleProperty Include="RootNamespace" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\LainewihereJerejawwerye.Analyzers\LainewihereJerejawwerye.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
