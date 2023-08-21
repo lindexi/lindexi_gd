@@ -16,7 +16,7 @@ namespace LainewihereJerejawwerye.Analyzers
                     // 通过 csproj 等 PropertyGroup 里面获取
                     // 需要将可见的，放入到 CompilerVisibleProperty 里面
                     // 需要加上 `build_property.` 前缀
-                    if (provider.GlobalOptions.TryGetValue("build_property.MyCustomProperty", out var myCustomProperty))
+                    if (provider.GlobalOptions.TryGetValue("build_property.RootNamespace", out var myCustomProperty))
                     {
                         text += " " + myCustomProperty;
                     }
