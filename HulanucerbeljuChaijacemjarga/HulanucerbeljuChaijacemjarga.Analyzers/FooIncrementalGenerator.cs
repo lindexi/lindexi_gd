@@ -55,7 +55,7 @@ namespace HulanucerbeljuChaijacemjarga.Analyzers
 
                     var list = new List<INamedTypeSymbol>();
 
-                    var visited = new Dictionary<IAssemblySymbol, bool /*是否引用*/>();
+                    var visited = new Dictionary<IAssemblySymbol, bool /*是否引用*/>(SymbolEqualityComparer.Default);
 
                     foreach (var referencedAssemblySymbol in referencedAssemblySymbols)
                     {
