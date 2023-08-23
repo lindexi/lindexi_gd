@@ -23,7 +23,7 @@ namespace HulanucerbeljuChaijacemjarga.Analyzers
                 }, (syntaxContext, _) =>
                 {
                     var symbol = syntaxContext.SemanticModel.GetDeclaredSymbol(syntaxContext.Node);
-                    var methodSymbol = (IMethodSymbol)symbol;
+                    var methodSymbol = (IMethodSymbol) symbol;
 
                     if (methodSymbol.Name == "Fx")
                     {
@@ -55,16 +55,12 @@ namespace HulanucerbeljuChaijacemjarga.Analyzers
 
                     var list = new List<INamedTypeSymbol>();
 
+                    var visited = new Dictionary<IAssemblySymbol, bool /*是否引用*/>();
+
                     foreach (var referencedAssemblySymbol in referencedAssemblySymbols)
                     {
-                        if (SymbolEqualityComparer.Default.Equals(referencedAssemblySymbol, containingAssembly))
-                        {
-                        }
-
                         // 判断程序集的引用关系
-                        if (referencedAssemblySymbol.Modules.Any(t =>
-                                t.ReferencedAssemblySymbols.Any(x =>
-                                    SymbolEqualityComparer.Default.Equals(x, containingAssembly))))
+                        if (IsReference(referencedAssemblySymbol, containingAssembly, visited))
                         {
                             // 这是引用包含的程序集
                             // 获取所有的类型
@@ -108,6 +104,51 @@ namespace HulanucerbeljuChaijacemjarga.Analyzers
                     yield return typeSymbol;
                 }
             }
+        }
+
+        private static bool IsReference(IAssemblySymbol currentAssemblySymbol, IAssemblySymbol requiredAssemblySymbol,
+            Dictionary<IAssemblySymbol, bool /*是否引用*/> visited)
+        {
+            if (SymbolEqualityComparer.Default.Equals(currentAssemblySymbol, requiredAssemblySymbol))
+            {
+                // 这个就看业务了，如果两个程序集是相同的，是否判断为引用关系
+                return true;
+            }
+
+            foreach (var moduleSymbol in currentAssemblySymbol.Modules)
+            {
+                foreach (var referencedAssemblySymbol in moduleSymbol.ReferencedAssemblySymbols)
+                {
+                    if (SymbolEqualityComparer.Default.Equals(referencedAssemblySymbol, requiredAssemblySymbol))
+                    {
+                        // 记录当前程序集存在引用关系
+                        visited[currentAssemblySymbol] = true;
+                        return true;
+                    }
+                    else
+                    {
+                        if (visited.TryGetValue(referencedAssemblySymbol, out var isReference))
+                        {
+                            // 这个是访问过的，那就从字典获取缓存，不需要再访问一次
+                            // 同时也能解决程序集循环引用问题
+                        }
+                        else
+                        {
+                            // 没有访问过的，获取引用的程序集是否存在引用关系
+                            isReference = IsReference(referencedAssemblySymbol, requiredAssemblySymbol, visited);
+                            visited[referencedAssemblySymbol] = isReference;
+                        }
+
+                        if (isReference)
+                        {
+                            // 如果这个程序集有引用，那也算上
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         /// <summary>

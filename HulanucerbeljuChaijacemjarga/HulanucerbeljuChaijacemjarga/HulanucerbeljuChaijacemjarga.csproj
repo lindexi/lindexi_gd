@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HulanucerbeljuChaijacemjarga.Analyzers\HulanucerbeljuChaijacemjarga.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="..\Lib2\Lib2.csproj" />
+    <ProjectReference Include="..\Lib3\Lib3.csproj" />
   </ItemGroup>
 
 </Project>
