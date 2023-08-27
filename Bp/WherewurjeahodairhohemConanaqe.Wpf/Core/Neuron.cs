@@ -103,6 +103,51 @@ public class NeuronManager : INeuronSerialization
     }
 }
 
+public class F1
+{
+    public void Foo()
+    {
+        double x = 1; double xUnit = 1; double xOffset = 1; double y = 1; double yUnit = 1; double yOffset = 1;
+        X = Calculate(x, xUnit, xOffset);
+        Y = Calculate(y, yUnit, yOffset);
+    }
+
+    readonly record struct XxArgument(double OriginValue, double Unit, double Offset);
+
+    private double Foo1(in XxArgument argument)
+    {
+        ...// 忽略代码
+    }
+
+    private double Foo2(in XxArgument argument)
+    {
+        ...// 忽略代码
+    }
+
+    private double Foo3(in XxArgument argument)
+    {
+        ...// 忽略代码
+    }
+
+    {
+        var result = originValue;
+        if (unit > 0)
+        {
+            result *= unit;
+        }
+
+        if (offset > 0)
+        {
+            result += offset;
+        }
+
+        return result;
+    }
+
+    public double X { set; get; }
+public double Y { set; get; }
+}
+
 public class InputNeuron : Neuron
 {
     public InputNeuron(NeuronManager neuronManager) : base(new NeuronId(0), neuronManager)
