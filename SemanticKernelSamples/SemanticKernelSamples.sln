@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example01_NativeFunctions",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example02_Pipeline", "Example02_Pipeline\Example02_Pipeline.csproj", "{B4C1930C-1104-403B-B6E5-ABD577BCD607}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example03_Variables", "Example03_Variables\Example03_Variables.csproj", "{72567B18-47FA-406E-B97E-B9CE2D6A6B6C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,8 +23,15 @@ Global
 		{B4C1930C-1104-403B-B6E5-ABD577BCD607}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B4C1930C-1104-403B-B6E5-ABD577BCD607}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B4C1930C-1104-403B-B6E5-ABD577BCD607}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72567B18-47FA-406E-B97E-B9CE2D6A6B6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72567B18-47FA-406E-B97E-B9CE2D6A6B6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72567B18-47FA-406E-B97E-B9CE2D6A6B6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72567B18-47FA-406E-B97E-B9CE2D6A6B6C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C18FAD69-24D0-437A-A027-00329E6207D9}
 	EndGlobalSection
 EndGlobal
