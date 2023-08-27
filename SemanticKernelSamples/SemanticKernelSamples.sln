@@ -3,20 +3,26 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example01_NativeFunctions", "Example01_NativeFunctions\Example01_NativeFunctions.csproj", "{F7325FD9-216A-4A77-8208-EFADE8A2508C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example01_NativeFunctions", "Example01_NativeFunctions\Example01_NativeFunctions.csproj", "{F7325FD9-216A-4A77-8208-EFADE8A2508C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example02_Pipeline", "Example02_Pipeline\Example02_Pipeline.csproj", "{B4C1930C-1104-403B-B6E5-ABD577BCD607}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{F7325FD9-216A-4A77-8208-EFADE8A2508C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F7325FD9-216A-4A77-8208-EFADE8A2508C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F7325FD9-216A-4A77-8208-EFADE8A2508C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F7325FD9-216A-4A77-8208-EFADE8A2508C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4C1930C-1104-403B-B6E5-ABD577BCD607}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4C1930C-1104-403B-B6E5-ABD577BCD607}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4C1930C-1104-403B-B6E5-ABD577BCD607}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4C1930C-1104-403B-B6E5-ABD577BCD607}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal
