@@ -27,7 +27,7 @@ Console.WriteLine(result);
 class StaticTextSkill
 {
     [SKFunction, Description("将所有的文本字符串修改为大写")]
-    public static string Uppercase([Description("准备修改为大写的文本")] string input) =>
+    public string Uppercase([Description("准备修改为大写的文本")] string input) =>
         input.ToUpperInvariant();
 
     [SKFunction, Description("追加 day 变量到字符串")]
