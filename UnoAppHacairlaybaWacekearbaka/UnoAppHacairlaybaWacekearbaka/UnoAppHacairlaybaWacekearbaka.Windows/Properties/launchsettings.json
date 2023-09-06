@@ -1,0 +1,10 @@
+{
+  "profiles": {
+	"UnoAppHacairlaybaWacekearbaka.Windows (Package)": {
+	  "commandName": "MsixPackage"
+	},
+	"UnoAppHacairlaybaWacekearbaka.Windows (Unpackaged)": {
+	  "commandName": "Project"
+	}
+  }
+}
