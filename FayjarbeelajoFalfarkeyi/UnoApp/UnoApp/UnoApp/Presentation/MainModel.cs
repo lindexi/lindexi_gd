@@ -13,8 +13,6 @@ public partial record MainModel
         Title = "Main";
         Title += $" - {localizer["ApplicationName"]}";
         Title += $" - {appInfo?.Value?.Environment}";
-
-        Title = "MAUI Application base UNO.Skia.GTK";
     }
 
     public string? Title { get; }

@@ -72,7 +72,6 @@ public class App : Application
                 .UseNavigation(ReactiveViewModelMappings.ViewModelMappings, RegisterRoutes)
             );
         MainWindow = builder.Window;
-        MainWindow.Title = "MAUI ”¶”√≤‚ ‘";
 
         Host = await builder.NavigateAsync<Shell>();
     }
