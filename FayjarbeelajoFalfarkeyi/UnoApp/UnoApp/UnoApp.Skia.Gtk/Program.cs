@@ -16,14 +16,6 @@ public class Program
             Console.WriteLine("GLIB UNHANDLED EXCEPTION" + expArgs.ExceptionObject.ToString());
             expArgs.ExitApplication = true;
         };
-        global::Gtk.Application.Init();
-        var window1 = new global::Gtk.Window("Title");
-        window1.Decorated = false;
-        window1.SetDefaultSize(500, 200);
-        window1.ShowAll();
-
-        global::Gtk.Application.Run();
-        return;
 
         var host = new GtkHost(() =>
         {
