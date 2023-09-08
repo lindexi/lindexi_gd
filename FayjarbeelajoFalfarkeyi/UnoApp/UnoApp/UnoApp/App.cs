@@ -1,3 +1,9 @@
+using Windows.ApplicationModel.Core;
+using Windows.Foundation;
+using Windows.UI.ViewManagement;
+using Microsoft.UI;
+using WinRT.Interop;
+
 namespace UnoApp;
 
 public class App : Application
@@ -72,9 +78,26 @@ public class App : Application
                 .UseNavigation(ReactiveViewModelMappings.ViewModelMappings, RegisterRoutes)
             );
         MainWindow = builder.Window;
-
+        MainWindow.Title = "Xxx";
+        MainWindow.Title = string.Empty;
+        MainWindow.Activated += (sender, eventArgs) =>
+        {
+            var hWnd =
+                global::WinRT.Interop.WindowNative.GetWindowHandle(MainWindow);
+        };
+        ApplicationView.PreferredLaunchViewSize = new Size(300, 200);
+        MainWindow.SetTitleBar(new Grid()
+        {
+            Width = 200,
+            Height = 50,
+            Background = new SolidColorBrush(Colors.Black)
+        });
+        //MainWindow.AppWindow.TitleBar.BackgroundColor = Colors.Black;
+        //var coreApplicationView = CoreApplication.GetCurrentView();
+        //coreApplicationView.TitleBar.ExtendViewIntoTitleBar = true;
         Host = await builder.NavigateAsync<Shell>();
     }
+    
 
     private static void RegisterRoutes(IViewRegistry views, IRouteRegistry routes)
     {
