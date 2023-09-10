@@ -1,4 +1,6 @@
+using Windows.ApplicationModel.Core;
 using Windows.UI.ViewManagement;
+using Microsoft.UI;
 
 namespace LawkairgikalQafihearjemli;
 
@@ -15,6 +17,9 @@ public class App : Application
     {
         var currentView = ApplicationView.GetForCurrentView();
         currentView.Title = "Hello";
+        currentView.TitleBar.BackgroundColor = Colors.Black;
+        CoreApplicationView coreApplicationView = CoreApplication.GetCurrentView();
+        coreApplicationView.TitleBar.ExtendViewIntoTitleBar = true;
 
         var builder = this.CreateBuilder(args)
             // Add navigation support for toolkit controls such as TabBar and NavigationView
