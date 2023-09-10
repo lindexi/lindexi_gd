@@ -1,12 +1,21 @@
+using Windows.UI.ViewManagement;
+
 namespace LawkairgikalQafihearjemli;
 
 public class App : Application
 {
+    public App()
+    {
+    }
+
     protected Window? MainWindow { get; private set; }
     protected IHost? Host { get; private set; }
 
     protected async override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        var currentView = ApplicationView.GetForCurrentView();
+        currentView.Title = "Hello";
+
         var builder = this.CreateBuilder(args)
             // Add navigation support for toolkit controls such as TabBar and NavigationView
             .UseToolkitNavigation()

@@ -38,4 +38,10 @@
 		<ProjectReference Include="..\LawkairgikalQafihearjemli.DataContracts\LawkairgikalQafihearjemli.DataContracts.csproj" />
 	</ItemGroup>
 	<Import Project="..\LawkairgikalQafihearjemli.Base\base.props" />
+	<ItemGroup>
+	  <None Remove="C:\lindexi\Code\empty\LawkairgikalQafihearjemli\LawkairgikalQafihearjemli\LawkairgikalQafihearjemli.Base\Splash\splash_screen.svg" />
+	</ItemGroup>
+	<ItemGroup>
+	  <UnoSplashScreen Remove="C:\lindexi\Code\empty\LawkairgikalQafihearjemli\LawkairgikalQafihearjemli\LawkairgikalQafihearjemli.Base\Splash\splash_screen.svg" />
+	</ItemGroup>
 </Project>

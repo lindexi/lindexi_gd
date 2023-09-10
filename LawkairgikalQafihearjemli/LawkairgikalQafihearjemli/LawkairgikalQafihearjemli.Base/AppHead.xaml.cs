@@ -2,6 +2,8 @@ using Microsoft.UI.Xaml;
 
 using Uno.Resizetizer;
 
+using Windows.UI.ViewManagement;
+
 namespace LawkairgikalQafihearjemli;
 public sealed partial class AppHead : App
 {
@@ -11,6 +13,7 @@ public sealed partial class AppHead : App
     /// </summary>
     public AppHead()
     {
+        ApplicationView.PreferredLaunchViewSize = new Windows.Foundation.Size(200, 200);
         this.InitializeComponent();
     }
 
