@@ -6,5 +6,5 @@ public sealed partial class Shell : UserControl, IContentControlProvider
     {
         this.InitializeComponent();
     }
-    public ContentControl ContentControl => Splash;
+    public ContentControl ContentControl => TheContentControl;
 }
