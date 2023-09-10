@@ -1,0 +1,10 @@
+{
+  "profiles": {
+	"LawkairgikalQafihearjemli.Windows (Package)": {
+	  "commandName": "MsixPackage"
+	},
+	"LawkairgikalQafihearjemli.Windows (Unpackaged)": {
+	  "commandName": "Project"
+	}
+  }
+}
