@@ -14,27 +14,6 @@ internal class DebugHttpHandler : DelegatingHandler
         HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
-        var count = 10;
-        using SemaphoreSlim s = new SemaphoreSlim(count, count);
-        var taskList = new List<Task>();
-        for (int i = 0; i < 100; i++)
-        {
-            taskList.Add(Task.Run(async () =>
-            {
-                await s.WaitAsync();
-                try
-                {
-                    DoXxx();
-                }
-                finally
-                {
-                    s.Release();
-                }
-            }));
-        }
-        await Task.WhenAll(taskList);
-
-
         var response = await base.SendAsync(request, cancellationToken);
 #if DEBUG
 		if(!response.IsSuccessStatusCode)
