@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
 using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Framework;
@@ -37,11 +38,11 @@ namespace RalboleaballNeeqaqiku
 
         private static void Build()
         {
-            var projectFile = new FileInfo(@"..\..\..\RalboleaballNeeqaqiku.csproj");
+            var projectFile = new FileInfo(@"..\..\..\..\JahalgalerKeacacucurce\JahalgalerKeacacucurce.csproj");
 
             var projectRootElement = ProjectRootElement.Open(projectFile.FullName);
             var project = new Project(projectRootElement);
-            project.Build(new Logger());
+            project.Build(new[] { "Restore", "Build" }, new[] { new Logger() });
         }
 
         private class Logger : ILogger
