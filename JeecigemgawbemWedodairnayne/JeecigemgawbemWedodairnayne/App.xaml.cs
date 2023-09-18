@@ -44,8 +44,10 @@ namespace JeecigemgawbemWedodairnayne
         {
             CoreApplicationView coreApplicationView = CoreApplication.GetCurrentView();
             coreApplicationView.TitleBar.ExtendViewIntoTitleBar = true;
-            ApplicationViewTitleBar applicationViewTitleBar = ApplicationView.GetForCurrentView().TitleBar;
-            applicationViewTitleBar.ButtonBackgroundColor = Colors.Black;
+            //ApplicationViewTitleBar applicationViewTitleBar = ApplicationView.GetForCurrentView().TitleBar;
+            //applicationViewTitleBar.ButtonBackgroundColor = Colors.Black;
+
+            
 
             Frame rootFrame = Window.Current.Content as Frame;
 
@@ -65,6 +67,8 @@ namespace JeecigemgawbemWedodairnayne
 
                 // 将框架放在当前窗口中
                 Window.Current.Content = rootFrame;
+
+                Window.Current.SetTitleBar(rootFrame);
             }
 
             if (e.PrelaunchActivated == false)
@@ -79,6 +83,13 @@ namespace JeecigemgawbemWedodairnayne
                 // 确保当前窗口处于活动状态
                 Window.Current.Activate();
             }
+
+            //Window.Current.SetTitleBar(new Grid()
+            //{
+            //    Background = new SolidColorBrush(Colors.Red),
+            //    Height = CoreApplication.GetCurrentView().TitleBar.Height,
+            //    Width = 500
+            //});
         }
 
         /// <summary>
