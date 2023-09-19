@@ -10,7 +10,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="0.20.230821.4-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Memory.Sqlite" Version="0.20.230821.4-preview" />
   </ItemGroup>
 
 </Project>
