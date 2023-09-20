@@ -26,5 +26,10 @@ namespace LefernochihairWhemfawqarkemche
         {
             this.InitializeComponent();
         }
+
+        private void Button_OnClick(object sender, RoutedEventArgs e)
+        {
+            
+        }
     }
 }
