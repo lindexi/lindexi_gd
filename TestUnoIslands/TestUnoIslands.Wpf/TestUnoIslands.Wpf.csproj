@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -16,7 +16,7 @@
     <PackageReference Include="Uno.WinUI.XamlHost" Version="4.5.14" />
     <PackageReference Include="Uno.WinUI.XamlHost.Skia.Wpf" Version="4.5.14" />
 
-    <PackageReference Include="SkiaSharp" Version="2.88.3" />
+    <PackageReference Include="SkiaSharp" Version="2.88.6" />
     <PackagReference Include="SkiaSharp.Harfbuzz" Version="2.88.3" />
   </ItemGroup>
   <ItemGroup>
