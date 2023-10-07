@@ -23,7 +23,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        var file = "f:\\temp\\汉仪文黑-85W.ttf";
+        var file = "f:\\temp\\hw.ttf";
 
         PrivateFontCollection collection = new PrivateFontCollection();
         collection.AddFontFile(file);
@@ -33,8 +33,8 @@ public partial class MainWindow : Window
         }
 
         var uri = new Uri(file);
-        FontFamily fontFamily = new FontFamily(uri, "汉仪文黑-85W");
-        //TextBlock.FontFamily = fontFamily;
+        FontFamily fontFamily = new FontFamily(uri, "hw");
+        TextBlock.FontFamily = fontFamily;
         TextBlock.FontWeight = FontWeight.FromOpenTypeWeight(485);
         Loaded += MainWindow_Loaded;
     }
