@@ -38,7 +38,7 @@ public partial class MainWindow : Window
     }
 
     public static readonly DependencyProperty ColorBrushProperty = DependencyProperty.Register(
-        nameof(ColorBrush), typeof(Brush), typeof(MainWindow), new PropertyMetadata(default(Brush)));
+        nameof(ColorBrush), typeof(Brush), typeof(MainWindow), new PropertyMetadata(Brushes.Black));
 
     public Brush ColorBrush
     {
