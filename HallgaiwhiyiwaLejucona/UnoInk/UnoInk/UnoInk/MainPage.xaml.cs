@@ -2,6 +2,7 @@ using Windows.Foundation;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Shapes;
 using Path = Microsoft.UI.Xaml.Shapes.Path;
+using System.Linq;
 
 namespace UnoInk;
 
@@ -73,6 +74,31 @@ public sealed partial class MainPage : Page
         {
             // 小于两个点的无法应用算法
             return;
+        }
+
+        // 模拟笔锋
+
+        // 用于当成笔锋的点的数量
+        var tipCount = 20;
+        if (pointList.Count > tipCount)
+        {
+            for (int i = 0; i < pointList.Count; i++)
+            {
+                if ((pointList.Count - i) < tipCount)
+                {
+                    pointList[i] = pointList[i] with
+                    {
+                        Pressure = (pointList.Count - i) * 1f / tipCount
+                    };
+                }
+                else
+                {
+                    pointList[i] = pointList[i] with
+                    {
+                        Pressure = 1.0f
+                    };
+                }
+            }
         }
 
         // 笔迹大小，笔迹粗细

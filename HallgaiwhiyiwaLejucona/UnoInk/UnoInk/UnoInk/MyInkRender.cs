@@ -22,11 +22,13 @@ public static class MyInkRender
             outlinePointList.Add(new Point());
         }
 
+        // 用来计算笔迹点的两点之间的向量角度
         double angle = 0.0;
         for (var i = 0; i < pointList.Count; i++)
         {
             var currentPoint = pointList[i];
 
+            // 如果不是最后一点，那就可以和笔迹当前轨迹点的下一点进行计算向量角度
             if (i < pointList.Count - 1)
             {
                 var nextPoint = pointList[i + 1];
@@ -34,19 +36,23 @@ public static class MyInkRender
                 var x = nextPoint.Point.X - currentPoint.Point.X;
                 var y = nextPoint.Point.Y - currentPoint.Point.Y;
 
+                // 拿着纸笔自己画一下吧，这个是简单的数学计算
                 angle = Math.Atan2(y, x) - Math.PI / 2;
             }
 
-            var thickness = inkSize * 0.5;
+            // 笔迹粗细的一半，一边用一半，合起来就是笔迹粗细了
+            var halfThickness = inkSize / 2d;
 
-            thickness *= currentPoint.Pressure;
-            thickness = Math.Max(0.01, thickness);
+            // 压感这里是直接乘法而已
+            halfThickness *= currentPoint.Pressure;
+            // 不能让笔迹粗细太小
+            halfThickness = Math.Max(0.01, halfThickness);
 
-            var leftX = currentPoint.Point.X + (Math.Cos(angle) * thickness);
-            var leftY = currentPoint.Point.Y + (Math.Sin(angle) * thickness);
+            var leftX = currentPoint.Point.X + (Math.Cos(angle) * halfThickness);
+            var leftY = currentPoint.Point.Y + (Math.Sin(angle) * halfThickness);
 
-            var rightX = currentPoint.Point.X - (Math.Cos(angle) * thickness);
-            var rightY = currentPoint.Point.Y - (Math.Sin(angle) * thickness);
+            var rightX = currentPoint.Point.X - (Math.Cos(angle) * halfThickness);
+            var rightY = currentPoint.Point.Y - (Math.Sin(angle) * halfThickness);
 
             outlinePointList[i + 1] = new Point(leftX, leftY);
             outlinePointList[pointCount - i - 1] = new Point(rightX, rightY);
