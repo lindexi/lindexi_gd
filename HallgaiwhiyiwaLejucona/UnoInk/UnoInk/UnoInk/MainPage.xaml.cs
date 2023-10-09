@@ -107,16 +107,18 @@ public sealed partial class MainPage : Page
         {
             // µ÷ÊÔÄ£Ê½
             var outlinePointList = MyInkRender.GetOutlinePointList(inkInfo.PointList, inkSize);
-            var pathGeometry = MyInkRender.CreatePathGeometry(outlinePointList);
 
-            var path = new Path();
-            path.Data = pathGeometry;
+            var polygon = new Polygon();
+            foreach (var point in outlinePointList)
+            {
+                polygon.Points.Add(point);
+            }
             //path.Stroke = new SolidColorBrush(Colors.Red);
-            path.Fill = new SolidColorBrush(Colors.Red);
+            polygon.Fill = new SolidColorBrush(Colors.Red);
 
             var canvas = new Canvas()
             {
-                Children = { path }
+                Children = { polygon }
             };
 
             foreach (var point in inkInfo.PointList)
