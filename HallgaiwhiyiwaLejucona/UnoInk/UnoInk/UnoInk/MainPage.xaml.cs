@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Shapes;
 using Path = Microsoft.UI.Xaml.Shapes.Path;
 using System.Linq;
+using Microsoft.UI;
 
 namespace UnoInk;
 
@@ -80,40 +81,92 @@ public sealed partial class MainPage : Page
 
         // 用于当成笔锋的点的数量
         var tipCount = 20;
-        if (pointList.Count > tipCount)
+
+        for (int i = 0; i < pointList.Count; i++)
         {
-            for (int i = 0; i < pointList.Count; i++)
+            if ((pointList.Count - i) < tipCount)
             {
-                if ((pointList.Count - i) < tipCount)
+                pointList[i] = pointList[i] with
                 {
-                    pointList[i] = pointList[i] with
-                    {
-                        Pressure = (pointList.Count - i) * 1f / tipCount
-                    };
-                }
-                else
+                    Pressure = (pointList.Count - i) * 1f / tipCount
+                };
+            }
+            else
+            {
+                pointList[i] = pointList[i] with
                 {
-                    pointList[i] = pointList[i] with
-                    {
-                        Pressure = 1.0f
-                    };
-                }
+                    Pressure = 1.0f
+                };
             }
         }
 
         // 笔迹大小，笔迹粗细
         int inkSize = 16;
-        var inkElement = MyInkRender.CreatePath(inkInfo, inkSize);
 
-        if (inkInfo.InkElement is null)
+        if (DebugModeCheckBox.IsChecked is true)
         {
-            InkCanvas.Children.Add(inkElement);
-        }
-        else if (inkElement != inkInfo.InkElement)
-        {
+            // 调试模式
+            var outlinePointList = MyInkRender.GetOutlinePointList(inkInfo.PointList, inkSize);
+            var pathGeometry = MyInkRender.CreatePathGeometry(outlinePointList);
+
+            var path = new Path();
+            path.Data = pathGeometry;
+            //path.Stroke = new SolidColorBrush(Colors.Red);
+            path.Fill = new SolidColorBrush(Colors.Red);
+
+            var canvas = new Canvas()
+            {
+                Children = { path }
+            };
+
+            foreach (var point in inkInfo.PointList)
+            {
+                var size = 6.0;
+                var ellipse = new Ellipse()
+                {
+                    Width = size,
+                    Height = size,
+                    Fill = new SolidColorBrush(Colors.Blue)
+                };
+                Canvas.SetLeft(ellipse, point.Point.X - size / 2);
+                Canvas.SetTop(ellipse, point.Point.Y - size / 2);
+
+                canvas.Children.Add(ellipse);
+            }
+
+            foreach (var point in outlinePointList)
+            {
+                var size = 4.0;
+                var ellipse = new Ellipse()
+                {
+                    Width = size,
+                    Height = size,
+                    Fill = new SolidColorBrush(Colors.Yellow)
+                };
+                Canvas.SetLeft(ellipse, point.X - size / 2);
+                Canvas.SetTop(ellipse, point.Y - size / 2);
+
+                canvas.Children.Add(ellipse);
+            }
+
             RemoveInkElement(inkInfo.InkElement);
-            InkCanvas.Children.Add(inkElement);
+            InkCanvas.Children.Add(canvas);
+            inkInfo.InkElement = canvas;
         }
-        inkInfo.InkElement = inkElement;
+        else
+        {
+            var inkElement = MyInkRender.CreatePath(inkInfo, inkSize);
+
+            if (inkInfo.InkElement is null)
+            {
+                InkCanvas.Children.Add(inkElement);
+            }
+            else if (inkElement != inkInfo.InkElement)
+            {
+                RemoveInkElement(inkInfo.InkElement);
+                InkCanvas.Children.Add(inkElement);
+            }
+            inkInfo.InkElement = inkElement;
+        }
     }
 }
