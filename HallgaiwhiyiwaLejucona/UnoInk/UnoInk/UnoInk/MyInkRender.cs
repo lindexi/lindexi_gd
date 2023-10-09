@@ -6,17 +6,51 @@ namespace UnoInk;
 
 public static class MyInkRender
 {
-    public static Path? CreatePath(InkInfo inkInfo, int inkSize)
+    public static Path CreatePath(InkInfo inkInfo, int inkSize)
     {
         List<StrokePoint> pointList = inkInfo.PointList;
+        var outlinePointList = GetOutlinePointList(pointList, inkSize);
+
+        var pathGeometry = CreatePathGeometry(outlinePointList);
+        if (inkInfo.InkElement is not Path path)
+        {
+            path = new Path();
+        }
+
+        path.Data = pathGeometry;
+        //path.Stroke = new SolidColorBrush(Colors.Red);
+        path.Fill = new SolidColorBrush(Colors.Red);
+        return path;
+    }
+
+    public static PathGeometry CreatePathGeometry(Point[] outlinePointList)
+    {
+        var polyLineSegment = new PolyLineSegment();
+        foreach (var point in outlinePointList)
+        {
+            polyLineSegment.Points.Add(point);
+        }
+
+        var pathGeometry = new PathGeometry();
+        var pathFigure = new PathFigure()
+        {
+            StartPoint = outlinePointList[0]
+        };
+        pathFigure.Segments.Add(polyLineSegment);
+        pathGeometry.Figures.Add(pathFigure);
+        return pathGeometry;
+    }
+
+    public static Point[] GetOutlinePointList(List<StrokePoint> pointList, int inkSize)
+    {
         if (pointList.Count < 2)
         {
             throw new ArgumentException("小于两个点的无法应用算法");
         }
 
-        var pointCount = pointList.Count * 2/*两边的笔迹轨迹*/  + 1/*首点重复*/+ 1/*末重复*/;
+        var pointCount = pointList.Count * 2 /*两边的笔迹轨迹*/ + 1 /*首点重复*/ + 1 /*末重复*/;
 
-        var outlinePointList = new Point[pointCount];
+       var outlinePointList = new Point[pointCount];
 
         // 用来计算笔迹点的两点之间的向量角度
         double angle = 0.0;
@@ -56,28 +90,6 @@ public static class MyInkRender
 
         outlinePointList[0] = pointList[0].Point;
         outlinePointList[pointList.Count + 1] = pointList[^1].Point;
-
-        var polyLineSegment = new PolyLineSegment();
-        foreach (var allPoint in outlinePointList)
-        {
-            polyLineSegment.Points.Add(allPoint);
-        }
-
-        var pathGeometry = new PathGeometry();
-        var pathFigure = new PathFigure()
-        {
-            StartPoint = pointList[0].Point
-        };
-        pathFigure.Segments.Add(polyLineSegment);
-        pathGeometry.Figures.Add(pathFigure);
-        if (inkInfo.InkElement is not Path path)
-        {
-            path = new Path();
-        }
-
-        path.Data = pathGeometry;
-        //path.Stroke = new SolidColorBrush(Colors.Red);
-        path.Fill = new SolidColorBrush(Colors.Red);
-        return path;
+        return outlinePointList;
     }
 }
