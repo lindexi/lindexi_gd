@@ -7,5 +7,11 @@
 	mc:Ignorable="d"
 	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <Canvas x:Name="InkCanvas" Background="Transparent" PointerPressed="InkCanvas_OnPointerPressed" PointerMoved="InkCanvas_OnPointerMoved" PointerReleased="InkCanvas_OnPointerReleased" PointerCanceled="InkCanvas_OnPointerCanceled"/>
+    <Grid>
+        <Canvas x:Name="InkCanvas" Background="Transparent" PointerPressed="InkCanvas_OnPointerPressed" PointerMoved="InkCanvas_OnPointerMoved" PointerReleased="InkCanvas_OnPointerReleased" PointerCanceled="InkCanvas_OnPointerCanceled"/>
+        <CheckBox x:Name="DebugModeCheckBox" 
+				  HorizontalAlignment="Left" VerticalAlignment="Top"
+				  Margin="10,10,10,10"
+                  Content="DebugMode"/>
+    </Grid>
 </Page>

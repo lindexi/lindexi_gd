@@ -50,7 +50,7 @@ public static class MyInkRender
 
         var pointCount = pointList.Count * 2 /*两边的笔迹轨迹*/ + 1 /*首点重复*/ + 1 /*末重复*/;
 
-       var outlinePointList = new Point[pointCount];
+        var outlinePointList = new Point[pointCount];
 
         // 用来计算笔迹点的两点之间的向量角度
         double angle = 0.0;
