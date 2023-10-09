@@ -136,7 +136,7 @@ public sealed partial class MainPage : Page
 
             foreach (var point in outlinePointList)
             {
-                var size = 4.0;
+                var size = 2.0;
                 var ellipse = new Ellipse()
                 {
                     Width = size,
