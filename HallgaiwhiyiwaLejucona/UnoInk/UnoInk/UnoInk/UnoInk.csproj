@@ -54,7 +54,4 @@
 		<UpToDateCheckInput Include="**\*.xaml" Exclude="bin\**\*.xaml;obj\**\*.xaml" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <SourceGeneratorInput Remove="MyInkCanvas.cs" />
-	</ItemGroup>
 </Project>

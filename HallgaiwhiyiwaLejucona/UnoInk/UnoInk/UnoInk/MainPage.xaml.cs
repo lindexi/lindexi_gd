@@ -1,4 +1,7 @@
+using Windows.Foundation;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Shapes;
+using Path = Microsoft.UI.Xaml.Shapes.Path;
 
 namespace UnoInk;
 
@@ -11,23 +14,80 @@ public sealed partial class MainPage : Page
 
     private void InkCanvas_OnPointerPressed(object sender, PointerRoutedEventArgs e)
     {
+        var pointerPoint = e.GetCurrentPoint(InkCanvas);
+        Point position = pointerPoint.Position;
+
+        var inkInfo = new InkInfo();
+        _inkInfoCache[e.Pointer.PointerId] = inkInfo;
+        inkInfo.PointList.Add(position);
+
+        DrawStroke(inkInfo);
     }
 
 
     private void InkCanvas_OnPointerMoved(object sender, PointerRoutedEventArgs e)
     {
-        
+        if (_inkInfoCache.TryGetValue(e.Pointer.PointerId, out var inkInfo))
+        {
+            var pointerPoint = e.GetCurrentPoint(InkCanvas);
+            Point position = pointerPoint.Position;
+
+            inkInfo.PointList.Add(position);
+            DrawStroke(inkInfo);
+        }
     }
 
     private void InkCanvas_OnPointerReleased(object sender, PointerRoutedEventArgs e)
     {
-        
+        if (_inkInfoCache.Remove(e.Pointer.PointerId, out var inkInfo))
+        {
+            var pointerPoint = e.GetCurrentPoint(InkCanvas);
+            Point position = pointerPoint.Position;
+            inkInfo.PointList.Add(position);
+            DrawStroke(inkInfo);
+        }
     }
 
     private void InkCanvas_OnPointerCanceled(object sender, PointerRoutedEventArgs e)
     {
-        
+        if (_inkInfoCache.Remove(e.Pointer.PointerId, out var inkInfo))
+        {
+            RemoveInkElement(inkInfo.InkElement);
+        }
     }
 
-    
+    private readonly Dictionary<uint /*PointerId*/, InkInfo> _inkInfoCache = new Dictionary<uint, InkInfo>();
+
+    private void RemoveInkElement(FrameworkElement? inkElement)
+    {
+        if (inkElement != null)
+        {
+            InkCanvas.Children.Remove(inkElement);
+        }
+    }
+
+    private void DrawStroke(InkInfo inkInfo)
+    {
+        var pointList = inkInfo.PointList;
+        if (pointList.Count < 2)
+        {
+            // 小于两个点的无法应用算法
+            return;
+        }
+
+        // 笔迹大小，笔迹粗细
+        int inkSize = 16;
+        var inkElement = MyInkRender.CreatePath(inkInfo, inkSize);
+
+        if (inkInfo.InkElement is null)
+        {
+            InkCanvas.Children.Add(inkElement);
+        }
+        else if (inkElement != inkInfo.InkElement)
+        {
+            RemoveInkElement(inkInfo.InkElement);
+            InkCanvas.Children.Add(inkElement);
+        }
+        inkInfo.InkElement = inkElement;
+    }
 }
