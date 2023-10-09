@@ -166,6 +166,7 @@ public sealed partial class MainPage : Page
                 RemoveInkElement(inkInfo.InkElement);
                 InkCanvas.Children.Add(inkElement);
             }
+
             inkInfo.InkElement = inkElement;
         }
     }
