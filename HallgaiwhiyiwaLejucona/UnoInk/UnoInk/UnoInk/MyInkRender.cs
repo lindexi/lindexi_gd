@@ -16,11 +16,7 @@ public static class MyInkRender
 
         var pointCount = pointList.Count * 2/*两边的笔迹轨迹*/  + 1/*首点重复*/+ 1/*末重复*/;
 
-        var outlinePointList = new List<Point>(pointCount);// 待重命名
-        for (int i = 0; i < pointCount; i++)
-        {
-            outlinePointList.Add(new Point());
-        }
+        var outlinePointList = new Point[pointCount];
 
         // 用来计算笔迹点的两点之间的向量角度
         double angle = 0.0;
