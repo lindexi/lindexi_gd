@@ -1,26 +1,29 @@
 using Windows.Foundation;
 using Microsoft.UI;
-using Path = Microsoft.UI.Xaml.Shapes.Path;
+using Microsoft.UI.Xaml.Shapes;
 
 namespace UnoInk;
 
 public static class MyInkRender
 {
-    public static Path CreatePath(InkInfo inkInfo, int inkSize)
+    public static Polygon CreatePath(InkInfo inkInfo, int inkSize)
     {
         List<StrokePoint> pointList = inkInfo.PointList;
         var outlinePointList = GetOutlinePointList(pointList, inkSize);
 
-        var pathGeometry = CreatePathGeometry(outlinePointList);
-        if (inkInfo.InkElement is not Path path)
+        if (inkInfo.InkElement is not Polygon polygon)
         {
-            path = new Path();
+            polygon = new Polygon();
         }
 
-        path.Data = pathGeometry;
-        //path.Stroke = new SolidColorBrush(Colors.Red);
-        path.Fill = new SolidColorBrush(Colors.Red);
-        return path;
+        polygon.Points.Clear();
+
+        foreach (var point in outlinePointList)
+        {
+            polygon.Points.Add(point);
+        }
+        polygon.Fill = new SolidColorBrush(Colors.Red);
+        return polygon;
     }
 
     public static PathGeometry CreatePathGeometry(Point[] outlinePointList)
