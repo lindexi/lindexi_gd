@@ -40,7 +40,7 @@ public static class MyInkRender
             var thickness = inkSize * 0.5;
 
             thickness *= currentPoint.Pressure;
-            thickness = Math.Min(0.01, thickness);
+            thickness = Math.Max(0.01, thickness);
 
             var leftX = currentPoint.Point.X + (Math.Cos(angle) * thickness);
             var leftY = currentPoint.Point.Y + (Math.Sin(angle) * thickness);
