@@ -1,0 +1,10 @@
+{
+  "profiles": {
+	"UnoInk.Windows (Package)": {
+	  "commandName": "MsixPackage"
+	},
+	"UnoInk.Windows (Unpackaged)": {
+	  "commandName": "Project"
+	}
+  }
+}
