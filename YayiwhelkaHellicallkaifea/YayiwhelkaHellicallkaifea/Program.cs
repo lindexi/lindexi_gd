@@ -8,7 +8,7 @@ var s = args[0];
 foreach (var directory in Directory.GetDirectories(s))
 {
     var directoryInfo = new DirectoryInfo(directory);
-    if (directoryInfo.CreationTime > DateTime.Now.AddDays(-2))
+    if (directoryInfo.CreationTime > DateTime.Now.AddDays(-3))
     {
         var folder = new DirectoryInfo(Path.Join(t, directoryInfo.Name));
 
