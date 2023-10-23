@@ -14,6 +14,8 @@ class SkiaDrawLine : SkiaDrawBase
             StrokeWidth = 10,
         };
 
+        canvas.Translate(300,100);
+
         canvas.DrawLine(10, 10, 100, 10, fillPaint);
 
         var strokePaint = new SKPaint
