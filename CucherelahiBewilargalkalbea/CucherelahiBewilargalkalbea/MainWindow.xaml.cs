@@ -42,7 +42,7 @@ public partial class MainWindow : Window
     {
         // 获取原本的消息处理
         var hWnd = new HWND(windowPtr);
-        _oldWndProc = Windows.Win32.PInvoke.GetWindowLong(hWnd, WINDOW_LONG_PTR_INDEX.GWL_WNDPROC);
+        _oldWndProc = (IntPtr) Windows.Win32.PInvoke.GetWindowLong(hWnd, WINDOW_LONG_PTR_INDEX.GWL_WNDPROC);
 
         // 加入新的过滤处理
         WindowProc? hookUIAutomationMessageWndProc = HookUIAutomationMessageWndProc;
