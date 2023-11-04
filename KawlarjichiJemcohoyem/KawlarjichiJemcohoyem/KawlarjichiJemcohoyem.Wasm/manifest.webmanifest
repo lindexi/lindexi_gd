@@ -1,0 +1,10 @@
+{
+  "background_color": "#ffffff",
+  "description": "KawlarjichiJemcohoyem",
+  "display": "standalone",
+  "name": "KawlarjichiJemcohoyem",
+  "short_name": "KawlarjichiJemcohoyem",
+  "start_url": "/index.html",
+  "theme_color": "#ffffff",
+  "scope": "/"
+}

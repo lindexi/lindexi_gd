@@ -1,0 +1,21 @@
+﻿<Window x:Class="WpfApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfApp"
+        mc:Ignorable="d"
+        Title="MainWindow" Width="1000" Height="600">
+    <Grid>
+        <StackPanel>
+            <Canvas x:Name="MauiMainPageCanvas" Width="1000" Height="500"></Canvas>
+            <Button HorizontalAlignment="Center">Wpf Button</Button>
+        </StackPanel>
+        <Border Width="600" Height="50" Background="Blue" HorizontalAlignment="Left">
+            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center">Not Airspace issues</TextBlock>
+            <Border.RenderTransform>
+                <RotateTransform Angle="90" CenterX="300" CenterY="0"></RotateTransform>
+            </Border.RenderTransform>
+        </Border>
+    </Grid>
+</Window>

@@ -1,0 +1,20 @@
+﻿<Window x:Class="NihaidujelriBofuhechai.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NihaidujelriBofuhechai"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800"
+        x:Name="Root">
+    <Grid Background="{Binding ElementName=Root,Path=ColorBrush}">
+        <Grid.Resources>
+            <SolidColorBrush x:Key="DefaultBrush" Color="#565656"/>
+        </Grid.Resources>
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Button x:Name="WhiteButton" Margin="10,10,10,10" Foreground="White" Click="WhiteButton_OnClick">按钮</Button>
+            <Button x:Name="BlackButton" Margin="10,10,10,10"  Foreground="Black" Click="BlackButton_OnClick">按钮</Button>
+            <Button x:Name="DefaultButton" Margin="10,10,10,10" Foreground="{StaticResource DefaultBrush}" Click="DefaultButton_OnClick">按钮</Button>
+        </StackPanel>
+    </Grid>
+</Window>

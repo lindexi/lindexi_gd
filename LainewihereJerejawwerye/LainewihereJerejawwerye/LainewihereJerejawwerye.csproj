@@ -7,14 +7,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <MyCustomProperty>lindexi is doubi</MyCustomProperty>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <CompilerVisibleProperty Include="MyCustomProperty" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\LainewihereJerejawwerye.Analyzers\LainewihereJerejawwerye.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>

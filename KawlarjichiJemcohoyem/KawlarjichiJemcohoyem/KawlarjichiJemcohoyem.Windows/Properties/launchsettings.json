@@ -1,0 +1,10 @@
+{
+  "profiles": {
+	"KawlarjichiJemcohoyem.Windows (Package)": {
+	  "commandName": "MsixPackage"
+	},
+	"KawlarjichiJemcohoyem.Windows (Unpackaged)": {
+	  "commandName": "Project"
+	}
+  }
+}
