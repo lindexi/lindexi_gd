@@ -145,22 +145,23 @@ Begin!
 ");
 
 var goal = "Write a poem about John Doe, then translate it into Chinese.";
-//var relevantFunctionsManual = await kernel.Functions.GetFunctionsManualAsync(new SequentialPlannerConfig(), goal, null);
+var relevantFunctionsManual = await kernel.Functions.GetFunctionsManualAsync(new SequentialPlannerConfig(), goal, null);
 
-//ContextVariables vars = new(goal)
-//{
-//    ["available_functions"] = relevantFunctionsManual
-//};
+ContextVariables vars = new(goal)
+{
+    ["available_functions"] = relevantFunctionsManual
+};
 
-//var planResult = await kernel.RunAsync(semanticFunction, vars);
-//string? planResultString = planResult.GetValue<string>()?.Trim();
-var xmlString = @"<plan>
-    <!-- First, we use the WriterPlugin.ShortPoem function to create a poem about John Doe. -->
-    <function.WriterPlugin.ShortPoem input=""John Doe"" setContextVariable=""POEM""/>
+var planResult = await kernel.RunAsync(semanticFunction, vars);
+string? planResultString = planResult.GetValue<string>()?.Trim();
+//var xmlString = @"<plan>
+//    <!-- First, we use the WriterPlugin.ShortPoem function to create a poem about John Doe. -->
+//    <function.WriterPlugin.ShortPoem input=""John Doe"" setContextVariable=""POEM""/>
 
-    <!-- Then, we use the WriterPlugin.Translate function to translate the poem into Chinese. -->
-    <function.WriterPlugin.Translate input=""$POEM"" language=""Chinese"" appendToResult=""RESULT__FINAL_POEM""/>
-</plan>";
+//    <!-- Then, we use the WriterPlugin.Translate function to translate the poem into Chinese. -->
+//    <function.WriterPlugin.Translate input=""$POEM"" language=""Chinese"" appendToResult=""RESULT__FINAL_POEM""/>
+//</plan>";
+var xmlString = planResultString;
 XmlDocument xmlDoc = new();
 
 try
@@ -169,6 +170,23 @@ try
 }
 catch (XmlException e)
 {
+    // 也许输出的是大概如下的格式，需要进一步处理
+    /*
+    Here is the XML plan to achieve the goal:
+
+    ```xml
+    <plan>
+        <!-- First, we use the WriterPlugin.ShortPoem function to create a poem about John Doe. -->
+        <function.WriterPlugin.ShortPoem input="John Doe" setContextVariable="POEM"/>
+
+        <!-- Then, we use the WriterPlugin.Translate function to translate the poem into Chinese. -->
+        <function.WriterPlugin.Translate input="$POEM" language="Chinese" appendToResult="RESULT__FINAL_POEM"/>
+    </plan>
+    <!-- END -->
+    ```
+
+    This plan first creates a poem about John Doe using the `WriterPlugin.ShortPoem` function and saves the output to a context variable named `POEM`. Then, it translates the poem into Chinese using the `WriterPlugin.Translate` function and appends the output to the result under the key `RESULT__FINAL_POEM`.
+     */
 }
 
 XmlNodeList solution = xmlDoc.GetElementsByTagName("plan");
