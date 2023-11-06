@@ -1,3 +1,2 @@
 ﻿GetModuleHandle
 RegisterWaitUntilOOBECompleted
-GetOpenClipboardWindow
