@@ -144,24 +144,23 @@ Begin!
 <goal>{{$input}}</goal>
 ");
 
-var goal = "Write a poem about John Doe, then translate it into Chinese.";
-var relevantFunctionsManual = await kernel.Functions.GetFunctionsManualAsync(new SequentialPlannerConfig(), goal, null);
+var goal = "帮忙写一首关于水哥的诗, 然后翻译为中文";
+var relevantFunctionsManual = await kernel.Functions.GetFunctionsManualAsync(new SequentialPlannerConfig());
 
 ContextVariables vars = new(goal)
 {
     ["available_functions"] = relevantFunctionsManual
 };
 
-var planResult = await kernel.RunAsync(semanticFunction, vars);
-string? planResultString = planResult.GetValue<string>()?.Trim();
-//var xmlString = @"<plan>
-//    <!-- First, we use the WriterPlugin.ShortPoem function to create a poem about John Doe. -->
-//    <function.WriterPlugin.ShortPoem input=""John Doe"" setContextVariable=""POEM""/>
-
-//    <!-- Then, we use the WriterPlugin.Translate function to translate the poem into Chinese. -->
-//    <function.WriterPlugin.Translate input=""$POEM"" language=""Chinese"" appendToResult=""RESULT__FINAL_POEM""/>
-//</plan>";
-var xmlString = planResultString;
+//var planResult = await kernel.RunAsync(semanticFunction, vars);
+//string? planResultString = planResult.GetValue<string>()?.Trim();
+var xmlString = @"<plan>
+    <!-- First, we create a short poem about ""水哥"" -->
+    <function.WriterPlugin.ShortPoem input=""水哥"" setContextVariable=""POEM""/>
+    <!-- Then, we translate the poem into Chinese -->
+    <function.WriterPlugin.Translate input=""$POEM"" language=""Chinese"" appendToResult=""RESULT__FINAL_ANSWER""/>
+</plan>";
+//var xmlString = planResultString;
 XmlDocument xmlDoc = new();
 
 try
