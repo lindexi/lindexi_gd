@@ -27,8 +27,11 @@ public partial class MainWindow : Window
     private void MainWindow_OnStylusDown(object sender, StylusDownEventArgs e)
     {
         StylusPointCollection stylusPointCollection = e.GetStylusPoints(this);
-        stylusPointCollection = stylusPointCollection.Reformat(new StylusPointDescription());
 
-        stylusPointCollection.Add(new StylusPoint(0, 0));
+        var stylusPoint = stylusPointCollection[0];
+        stylusPoint.X = 1;
+        stylusPoint.Y = 2;
+
+        stylusPointCollection.Add(stylusPoint);
     }
 }
