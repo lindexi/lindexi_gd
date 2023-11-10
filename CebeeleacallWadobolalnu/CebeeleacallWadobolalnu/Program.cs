@@ -74,7 +74,7 @@ public class BenchmarkCopyAdditionalData
     [Benchmark]
     public void CopyAdditionalDataSpanToArray()
     {
-        _additionalValues = _additionalValues.AsSpan().ToArray();
+        _additionalValues = _additionalValues?.AsSpan().ToArray();
     }
 
     [Benchmark]
