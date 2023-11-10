@@ -9,24 +9,24 @@
    
    
    ```
-   | Method                      | _additionalValues | Mean        | Error     | StdDev    | Median      |
-   |---------------------------- |------------------ |------------:|----------:|----------:|------------:|
-   | CopyAdditionalDataOrigin    | null              |   0.0977 ns | 0.0029 ns | 0.0027 ns |   0.0973 ns |
-   | CopyAdditionalDataNew       | null              |   0.1065 ns | 0.0051 ns | 0.0045 ns |   0.1056 ns |
-   | CopyAdditionalDataArrayCopy | null              |   0.1112 ns | 0.0044 ns | 0.0041 ns |   0.1118 ns |
-   | CopyAdditionalDataClone     | null              |   2.0188 ns | 0.0063 ns | 0.0059 ns |   2.0185 ns |
-   | CopyAdditionalDataOrigin    | Int32[16]         |  10.9633 ns | 0.2001 ns | 0.1774 ns |  10.9225 ns |
-   | CopyAdditionalDataNew       | Int32[16]         |   6.8333 ns | 0.1497 ns | 0.3057 ns |   6.7148 ns |
-   | CopyAdditionalDataArrayCopy | Int32[16]         |   7.4344 ns | 0.1148 ns | 0.1018 ns |   7.4218 ns |
-   | CopyAdditionalDataClone     | Int32[16]         | 128.0257 ns | 0.2681 ns | 0.2376 ns | 128.0255 ns |
-   | CopyAdditionalDataOrigin    | Int32[3]          |   5.9837 ns | 0.1535 ns | 0.4429 ns |   5.9883 ns |
-   | CopyAdditionalDataNew       | Int32[3]          |   5.8295 ns | 0.1227 ns | 0.1413 ns |   5.8011 ns |
-   | CopyAdditionalDataArrayCopy | Int32[3]          |   6.7674 ns | 0.1526 ns | 0.2089 ns |   6.7955 ns |
-   | CopyAdditionalDataClone     | Int32[3]          |  36.9665 ns | 0.1484 ns | 0.1388 ns |  36.9879 ns |
-   | CopyAdditionalDataOrigin    | Int32[6]          |   6.9431 ns | 0.1220 ns | 0.1141 ns |   6.9015 ns |
-   | CopyAdditionalDataNew       | Int32[6]          |   5.7180 ns | 0.1062 ns | 0.0994 ns |   5.6906 ns |
-   | CopyAdditionalDataArrayCopy | Int32[6]          |   6.6655 ns | 0.1490 ns | 0.1394 ns |   6.6233 ns |
-   | CopyAdditionalDataClone     | Int32[6]          |  36.6128 ns | 0.2452 ns | 0.2174 ns |  36.5959 ns |
+   | Method                        | _additionalValues | Mean       | Error     | StdDev    | Median     |
+   |------------------------------ |------------------ |-----------:|----------:|----------:|-----------:|
+   | CopyAdditionalDataOrigin      | ?                 |  0.0963 ns | 0.0017 ns | 0.0016 ns |  0.0964 ns |
+   | CopyAdditionalDataNew         | ?                 |  0.1043 ns | 0.0034 ns | 0.0032 ns |  0.1035 ns |
+   | CopyAdditionalDataSpanToArray | ?                 |  1.6303 ns | 0.0032 ns | 0.0025 ns |  1.6300 ns |
+   | CopyAdditionalDataArrayCopy   | ?                 |  0.1085 ns | 0.0012 ns | 0.0011 ns |  0.1086 ns |
+   | CopyAdditionalDataOrigin      | Int32[16]         | 10.7999 ns | 0.0936 ns | 0.0876 ns | 10.7816 ns |
+   | CopyAdditionalDataNew         | Int32[16]         |  6.6402 ns | 0.0698 ns | 0.0653 ns |  6.6059 ns |
+   | CopyAdditionalDataSpanToArray | Int32[16]         |  6.9252 ns | 0.0778 ns | 0.0728 ns |  6.9060 ns |
+   | CopyAdditionalDataArrayCopy   | Int32[16]         |  7.6017 ns | 0.0576 ns | 0.0640 ns |  7.5834 ns |
+   | CopyAdditionalDataOrigin      | Int32[3]          |  5.8107 ns | 0.1385 ns | 0.3599 ns |  5.7610 ns |
+   | CopyAdditionalDataNew         | Int32[3]          |  5.7859 ns | 0.1201 ns | 0.2135 ns |  5.7399 ns |
+   | CopyAdditionalDataSpanToArray | Int32[3]          |  6.3063 ns | 0.0816 ns | 0.0763 ns |  6.2863 ns |
+   | CopyAdditionalDataArrayCopy   | Int32[3]          |  6.8956 ns | 0.1596 ns | 0.2389 ns |  6.8104 ns |
+   | CopyAdditionalDataOrigin      | Int32[6]          |  7.3018 ns | 0.1668 ns | 0.2833 ns |  7.2124 ns |
+   | CopyAdditionalDataNew         | Int32[6]          |  6.6379 ns | 0.2531 ns | 0.7344 ns |  6.4139 ns |
+   | CopyAdditionalDataSpanToArray | Int32[6]          |  6.2877 ns | 0.1469 ns | 0.1961 ns |  6.2389 ns |
+   | CopyAdditionalDataArrayCopy   | Int32[6]          |  6.9187 ns | 0.1461 ns | 0.1740 ns |  6.8639 ns |
    
  */
 
@@ -72,6 +72,12 @@ public class BenchmarkCopyAdditionalData
     }
 
     [Benchmark]
+    public void CopyAdditionalDataSpanToArray()
+    {
+        _additionalValues = _additionalValues.AsSpan().ToArray();
+    }
+
+    [Benchmark]
     public void CopyAdditionalDataArrayCopy()
     {
         if (null != _additionalValues)
@@ -82,11 +88,5 @@ public class BenchmarkCopyAdditionalData
 
             _additionalValues = newData;
         }
-    }
-
-    [Benchmark]
-    public void CopyAdditionalDataClone()
-    {
-        _additionalValues = (int[]?) _additionalValues?.Clone();
     }
 }
