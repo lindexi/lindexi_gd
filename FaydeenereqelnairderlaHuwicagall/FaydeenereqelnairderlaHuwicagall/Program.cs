@@ -21,6 +21,34 @@ public class Program
 
         Console.WriteLine("Hello, World!");
     }
+
+    static bool IsFoo()
+    {
+        if (GetFxx() is var fxx)
+        {
+            if (CheckXx(fxx) is var result)
+            {
+                return DoXxx(result);
+            }
+        }
+
+        return false;
+    }
+
+    private static bool DoXxx(object result)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static object CheckXx(object fxx)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static object GetFxx()
+    {
+        throw new NotImplementedException();
+    }
 }
 
 interface IFoo
