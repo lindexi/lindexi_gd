@@ -42,7 +42,7 @@ public partial class MainWindow : Window
         var logFileStringLoggerWriter = new LogFileStringLoggerWriter(new DirectoryInfo(logFolder));
         var dispatcherStringLoggerWriter = new DispatcherStringLoggerWriter(LogTextBlock);
 
-        var loggerFactory = LoggerFactory.Create(builder =>
+        using var loggerFactory = LoggerFactory.Create(builder =>
         {
             builder.AddSimpleConsole(options =>
             {
