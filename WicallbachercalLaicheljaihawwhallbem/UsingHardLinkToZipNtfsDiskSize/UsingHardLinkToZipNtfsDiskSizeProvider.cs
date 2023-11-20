@@ -28,12 +28,27 @@ public class UsingHardLinkToZipNtfsDiskSizeProvider
 
             try
             {
-                long fileLength;
+                long fileLength = file.Length;
+
+                var fileRecordModel = await fileStorageContext.FileRecordModel.FindAsync(file.FullName);
+                if (fileRecordModel != null)
+                {
+                    if (fileRecordModel.FileLength == fileLength)
+                    {
+                        // 上次压缩过了，不要重复处理
+                        continue;
+                    }
+                }
+
+                fileStorageContext.FileRecordModel.Add(new FileRecordModel()
+                {
+                    FilePath = file.FullName,
+                    FileLength = fileLength
+                });
+
                 string sha1;
                 await using (var fileStream = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    fileLength = fileStream.Length;
-
                     var length = await SHA1.HashDataAsync(fileStream, destination);
                     sha1 = Convert.ToHexString(destination, 0, length);
                 }

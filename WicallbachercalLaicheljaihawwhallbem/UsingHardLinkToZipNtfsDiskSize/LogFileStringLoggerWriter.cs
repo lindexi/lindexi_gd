@@ -26,7 +26,7 @@ public class LogFileStringLoggerWriter : IStringLoggerWriter
 
     public async ValueTask DisposeAsync()
     {
-        await _fileStream.DisposeAsync();
         await _streamWriter.DisposeAsync();
+        await _fileStream.DisposeAsync();
     }
 }

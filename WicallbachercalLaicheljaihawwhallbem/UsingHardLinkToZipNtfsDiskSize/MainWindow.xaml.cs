@@ -41,7 +41,7 @@ public partial class MainWindow : Window
 
         var logFileStringLoggerWriter = new LogFileStringLoggerWriter(new DirectoryInfo(logFolder));
         var dispatcherStringLoggerWriter = new DispatcherStringLoggerWriter(LogTextBlock);
-
+        using var channelLoggerProvider = new ChannelLoggerProvider(logFileStringLoggerWriter, dispatcherStringLoggerWriter);
         using var loggerFactory = LoggerFactory.Create(builder =>
         {
             builder.AddSimpleConsole(options =>
@@ -49,7 +49,8 @@ public partial class MainWindow : Window
                 options.SingleLine = true;
                 options.TimestampFormat = "yyyy.MM.dd HH:mm:ss ";
             });
-            builder.AddProvider(new ChannelLoggerProvider(logFileStringLoggerWriter, dispatcherStringLoggerWriter));
+            // ReSharper disable once AccessToDisposedClosure
+            builder.AddProvider(channelLoggerProvider);
         });
 
         var sqliteFile = Path.Join(hexString, "FileManger.db");

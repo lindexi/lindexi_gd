@@ -23,10 +23,17 @@ public class ChannelLoggerProvider : ILoggerProvider
     {
         while (!_channel.Reader.Completion.IsCompleted)
         {
-            var message = await _channel.Reader.ReadAsync();
-            foreach (var stringLoggerWriter in _stringLoggerWriterList)
+            try
             {
-                await stringLoggerWriter.WriteAsync(message);
+                var message = await _channel.Reader.ReadAsync();
+                foreach (var stringLoggerWriter in _stringLoggerWriterList)
+                {
+                    await stringLoggerWriter.WriteAsync(message);
+                }
+            }
+            catch (ChannelClosedException)
+            {
+                // 结束
             }
         }
 

@@ -18,6 +18,7 @@ public class FileStorageContext : DbContext
     private readonly string _sqliteFile;
 
     public DbSet<FileStorageModel> FileStorageModel { set; get; } = null!;
+    public DbSet<FileRecordModel> FileRecordModel { set; get; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
