@@ -6,7 +6,7 @@ using UsingHardLinkToZipNtfsDiskSize;
 
 #nullable disable
 
-namespace WicallbachercalLaicheljaihawwhallbem.Migrations
+namespace UsingHardLinkToZipNtfsDiskSize.Migrations
 {
     [DbContext(typeof(FileStorageContext))]
     partial class FileStorageContextModelSnapshot : ModelSnapshot
@@ -16,7 +16,7 @@ namespace WicallbachercalLaicheljaihawwhallbem.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.14");
 
-            modelBuilder.Entity("WicallbachercalLaicheljaihawwhallbem.FileRecordModel", b =>
+            modelBuilder.Entity("UsingHardLinkToZipNtfsDiskSize.FileRecordModel", b =>
                 {
                     b.Property<string>("FilePath")
                         .HasColumnType("TEXT");
@@ -24,12 +24,16 @@ namespace WicallbachercalLaicheljaihawwhallbem.Migrations
                     b.Property<long>("FileLength")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("FileSha1Hash")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.HasKey("FilePath");
 
                     b.ToTable("FileRecordModel");
                 });
 
-            modelBuilder.Entity("WicallbachercalLaicheljaihawwhallbem.FileStorageModel", b =>
+            modelBuilder.Entity("UsingHardLinkToZipNtfsDiskSize.FileStorageModel", b =>
                 {
                     b.Property<string>("FileSha1Hash")
                         .HasColumnType("TEXT");

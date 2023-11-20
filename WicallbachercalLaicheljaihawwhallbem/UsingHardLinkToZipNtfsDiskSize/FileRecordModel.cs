@@ -10,4 +10,7 @@ public class FileRecordModel
 
     [Required]
     public long FileLength { set; get; }
+
+    [Required]
+    public string FileSha1Hash { set; get; } = null!;
 }

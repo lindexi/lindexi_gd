@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace WicallbachercalLaicheljaihawwhallbem.Migrations
+namespace UsingHardLinkToZipNtfsDiskSize.Migrations
 {
     /// <inheritdoc />
     public partial class Lindexi : Migration
@@ -15,7 +15,8 @@ namespace WicallbachercalLaicheljaihawwhallbem.Migrations
                 columns: table => new
                 {
                     FilePath = table.Column<string>(type: "TEXT", nullable: false),
-                    FileLength = table.Column<long>(type: "INTEGER", nullable: false)
+                    FileLength = table.Column<long>(type: "INTEGER", nullable: false),
+                    FileSha1Hash = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {

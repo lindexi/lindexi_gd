@@ -21,7 +21,8 @@ public class UsingHardLinkToZipNtfsDiskSizeProvider
         long saveSize = 0;
         foreach (var file in workFolder.EnumerateFiles("*", enumerationOptions: new EnumerationOptions()
                  {
-                     RecurseSubdirectories = true
+                     RecurseSubdirectories = true,
+                     MaxRecursionDepth = 100,
                  }))
         {
             logger.LogInformation($"Start {file}");
@@ -40,18 +41,19 @@ public class UsingHardLinkToZipNtfsDiskSizeProvider
                     }
                 }
 
-                fileStorageContext.FileRecordModel.Add(new FileRecordModel()
-                {
-                    FilePath = file.FullName,
-                    FileLength = fileLength
-                });
-
                 string sha1;
                 await using (var fileStream = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     var length = await SHA1.HashDataAsync(fileStream, destination);
                     sha1 = Convert.ToHexString(destination, 0, length);
                 }
+
+                fileStorageContext.FileRecordModel.Add(new FileRecordModel()
+                {
+                    FilePath = file.FullName,
+                    FileLength = fileLength,
+                    FileSha1Hash = sha1,
+                });
 
                 var fileStorageModel = await fileStorageContext.FileStorageModel.FindAsync(sha1);
                 if (fileStorageModel != null)

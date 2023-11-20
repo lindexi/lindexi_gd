@@ -7,10 +7,10 @@ using UsingHardLinkToZipNtfsDiskSize;
 
 #nullable disable
 
-namespace WicallbachercalLaicheljaihawwhallbem.Migrations
+namespace UsingHardLinkToZipNtfsDiskSize.Migrations
 {
     [DbContext(typeof(FileStorageContext))]
-    [Migration("20231120073853_Lindexi")]
+    [Migration("20231120092807_Lindexi")]
     partial class Lindexi
     {
         /// <inheritdoc />
@@ -19,7 +19,7 @@ namespace WicallbachercalLaicheljaihawwhallbem.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.14");
 
-            modelBuilder.Entity("WicallbachercalLaicheljaihawwhallbem.FileRecordModel", b =>
+            modelBuilder.Entity("UsingHardLinkToZipNtfsDiskSize.FileRecordModel", b =>
                 {
                     b.Property<string>("FilePath")
                         .HasColumnType("TEXT");
@@ -27,12 +27,16 @@ namespace WicallbachercalLaicheljaihawwhallbem.Migrations
                     b.Property<long>("FileLength")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("FileSha1Hash")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.HasKey("FilePath");
 
                     b.ToTable("FileRecordModel");
                 });
 
-            modelBuilder.Entity("WicallbachercalLaicheljaihawwhallbem.FileStorageModel", b =>
+            modelBuilder.Entity("UsingHardLinkToZipNtfsDiskSize.FileStorageModel", b =>
                 {
                     b.Property<string>("FileSha1Hash")
                         .HasColumnType("TEXT");
