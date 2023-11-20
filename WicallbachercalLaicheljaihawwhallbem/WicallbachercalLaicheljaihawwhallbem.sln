@@ -5,6 +5,8 @@ VisualStudioVersion = 17.7.34221.43
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WicallbachercalLaicheljaihawwhallbem", "WicallbachercalLaicheljaihawwhallbem\WicallbachercalLaicheljaihawwhallbem.csproj", "{2CB9E10C-51E3-4F77-9778-D1DFFE2E86D3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UsingHardLinkToZipNtfsDiskSize", "UsingHardLinkToZipNtfsDiskSize\UsingHardLinkToZipNtfsDiskSize.csproj", "{9E4C2924-AC5B-4AC3-86C1-391240BBB462}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{2CB9E10C-51E3-4F77-9778-D1DFFE2E86D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2CB9E10C-51E3-4F77-9778-D1DFFE2E86D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2CB9E10C-51E3-4F77-9778-D1DFFE2E86D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E4C2924-AC5B-4AC3-86C1-391240BBB462}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E4C2924-AC5B-4AC3-86C1-391240BBB462}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E4C2924-AC5B-4AC3-86C1-391240BBB462}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E4C2924-AC5B-4AC3-86C1-391240BBB462}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

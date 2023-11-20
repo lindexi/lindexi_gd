@@ -11,6 +11,18 @@ namespace WicallbachercalLaicheljaihawwhallbem.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "FileRecordModel",
+                columns: table => new
+                {
+                    FilePath = table.Column<string>(type: "TEXT", nullable: false),
+                    FileLength = table.Column<long>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FileRecordModel", x => x.FilePath);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "FileStorageModel",
                 columns: table => new
                 {
@@ -28,6 +40,9 @@ namespace WicallbachercalLaicheljaihawwhallbem.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "FileRecordModel");
+
             migrationBuilder.DropTable(
                 name: "FileStorageModel");
         }
