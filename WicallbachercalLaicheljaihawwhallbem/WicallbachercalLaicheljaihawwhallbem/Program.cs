@@ -106,7 +106,7 @@ using (var fileStorageContext = new FileStorageContext(sqliteFile))
         }
         catch (Exception e)
         {
-            logger.LogWarning($"Hard link fail {file}", e);
+            logger.LogWarning($"Hard link fail {file} {e}");
         }
     }
 }
