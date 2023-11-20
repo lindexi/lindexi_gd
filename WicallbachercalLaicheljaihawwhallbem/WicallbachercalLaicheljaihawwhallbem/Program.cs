@@ -30,7 +30,7 @@ var loggerFactory = LoggerFactory.Create(builder =>
 
 var logger = loggerFactory.CreateLogger("");
 
-logger.LogInformation($"开始处理 {rootPath} 文件夹");
+logger.LogInformation($"Start zip {rootPath} folder. LogFolder={logFolder}");
 
 var sqliteFile = Path.Join(rootPath, "FileManger.db");
 var sqliteFileWithoutExtension = Path.Join(rootPath, Path.GetFileNameWithoutExtension(sqliteFile.AsSpan()));
@@ -60,7 +60,7 @@ using (var fileStorageContext = new FileStorageContext(sqliteFile))
             continue;
         }
 
-        logger.LogInformation($"开始 {file} 文件");
+        logger.LogInformation($"Start {file}");
 
         try
         {
@@ -82,7 +82,7 @@ using (var fileStorageContext = new FileStorageContext(sqliteFile))
                     // 省的空间
                     saveSize += fileLength;
                     logger.LogInformation(
-                        $"文件 {file} 已存在记录 SHA1={sha1} 当前已节省空间：{UnitConverter.ConvertSize(saveSize, separators: " ")}");
+                        $"Exists Record SHA1={sha1} {file} SaveSize：{UnitConverter.ConvertSize(saveSize, separators: " ")}");
 
                     fileStorageModel.ReferenceCount++;
                     fileStorageContext.FileStorageModel.Update(fileStorageModel);
@@ -99,19 +99,19 @@ using (var fileStorageContext = new FileStorageContext(sqliteFile))
                 };
                 fileStorageContext.FileStorageModel.Add(fileStorageModel);
 
-                logger.LogInformation($"文件 {file} 不存在记录 SHA1={sha1}");
+                logger.LogInformation($"Not exists Record {file} SHA1={sha1}");
             }
 
             fileStorageContext.SaveChanges();
         }
         catch (Exception e)
         {
-            logger.LogWarning($"文件 {file} 失败", e);
+            logger.LogWarning($"Hard link fail {file}", e);
         }
     }
 }
 
-Console.WriteLine($"本次运行节省磁盘空间 {UnitConverter.ConvertSize(saveSize, separators: " ")}");
+Console.WriteLine($"Total save disk size: {UnitConverter.ConvertSize(saveSize, separators: " ")}");
 
 static bool CreateHardLink(string file, string originFilePath)
 {
