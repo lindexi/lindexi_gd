@@ -24,17 +24,6 @@ public partial class MainWindow : Window
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        Foo(Grid);
-    }
-
-    private void Foo(Visual element)
-    {
-        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(element); i++)
-        {
-            var c = (Visual) VisualTreeHelper.GetChild(element, i);
-            var rect = VisualTreeHelper.GetDescendantBounds(c);
-
-            Foo(c);
-        }
+        var rect = VisualTreeHelper.GetDescendantBounds(Grid);
     }
 }

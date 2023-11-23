@@ -8,8 +8,11 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <Grid x:Name="Grid">
-            <Border x:Name="CollapsedBorder" Visibility="Collapsed">
+            <Border>
                 <Grid>
+                    <Grid.RenderTransform>
+                        <TranslateTransform X="NaN"></TranslateTransform>
+                    </Grid.RenderTransform>
                     <TextBlock Text="123"></TextBlock>
                 </Grid>
             </Border>
