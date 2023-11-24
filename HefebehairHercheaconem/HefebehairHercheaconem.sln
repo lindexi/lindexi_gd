@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34221.43
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HefebehairHercheaconem", "HefebehairHercheaconem\HefebehairHercheaconem.csproj", "{48F1E782-8EF9-4136-8872-69A1F0815265}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApplication1", "WebApplication1\WebApplication1.csproj", "{04EE6509-A60B-43E5-889A-557F8D621658}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{48F1E782-8EF9-4136-8872-69A1F0815265}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48F1E782-8EF9-4136-8872-69A1F0815265}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48F1E782-8EF9-4136-8872-69A1F0815265}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48F1E782-8EF9-4136-8872-69A1F0815265}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04EE6509-A60B-43E5-889A-557F8D621658}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04EE6509-A60B-43E5-889A-557F8D621658}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04EE6509-A60B-43E5-889A-557F8D621658}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04EE6509-A60B-43E5-889A-557F8D621658}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2D031BEF-F3C2-4376-8FB3-B2519A505AE9}
+	EndGlobalSection
+EndGlobal
