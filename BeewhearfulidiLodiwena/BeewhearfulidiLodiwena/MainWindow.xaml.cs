@@ -25,5 +25,18 @@ public partial class MainWindow : Window
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
         var rect = VisualTreeHelper.GetDescendantBounds(Grid);
+
+        Border.Unloaded += Border_Unloaded;
+        Border.IsVisibleChanged += Border_IsVisibleChanged;
+
+        Grid.Children.Clear();
+    }
+
+    private void Border_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+    }
+
+    private void Border_Unloaded(object sender, RoutedEventArgs e)
+    {
     }
 }
