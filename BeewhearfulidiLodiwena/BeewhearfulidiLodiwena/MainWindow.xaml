@@ -8,7 +8,7 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <Grid x:Name="Grid">
-            <Border x:Name="Border">
+            <Border>
                 <Grid>
                     <Grid.RenderTransform>
                         <TranslateTransform X="NaN"></TranslateTransform>
