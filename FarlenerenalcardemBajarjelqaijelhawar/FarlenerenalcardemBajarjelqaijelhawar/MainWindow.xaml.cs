@@ -65,49 +65,48 @@ public partial class MainWindow : Window
 
         Point[] points = pathGeometry.Figures.SelectMany(f => f.Segments).OfType<LineSegment>().Select(s => s.Point).ToArray();
 
-        points = list.ToArray();
+        //points = list.ToArray();
 
-        Point[] convexHullPoints = GrahamScan(points);
-        convexHullPoints = points;
+        var convexHullPoints = ConvexHull.GrahamScan(list);
+        //convexHullPoints = list;
         PathFigure pathFigure = new PathFigure();
         pathFigure.StartPoint = convexHullPoints[0];
         pathFigure.Segments.Add(new PolyLineSegment(convexHullPoints.Skip(1), true));
         return new PathGeometry(new[] { pathFigure });
     }
+}
 
-    private Point[] GrahamScan(Point[] points)
+public class ConvexHull
+{
+    public static List<Point> GrahamScan(List<Point> points)
     {
-        // Find the point with the lowest y-coordinate.
-        Point lowestPoint = points.OrderBy(p => p.Y).ThenBy(p => p.X).First();
+        if (points == null || points.Count < 3)
+        {
+            throw new ArgumentException("At least 3 points are required to calculate the convex hull");
+        }
 
-        // Sort the points by polar angle with respect to the lowest point.
-        Point[] sortedPoints = points.OrderBy(p => GetPolarAngle(lowestPoint, p)).ToArray();
+        var sortedPoints = points.OrderBy(p => p.X).ThenBy(p => p.Y).ToList();
 
-        // Build the convex hull.
-        Stack<Point> stack = new Stack<Point>();
+        var stack = new Stack<Point>();
         stack.Push(sortedPoints[0]);
         stack.Push(sortedPoints[1]);
-        for (int i = 2; i < sortedPoints.Length; i++)
+
+        for (var i = 2; i < sortedPoints.Count; i++)
         {
-            while (stack.Count >= 2 && IsCounterClockwise(stack.ElementAt(1), stack.Peek(), sortedPoints[i]))
+            var top = stack.Pop();
+            while (stack.Count>0&& Orientation(stack.Peek(), top, sortedPoints[i]) <= 0)
             {
-                stack.Pop();
+                top = stack.Pop();
             }
+            stack.Push(top);
             stack.Push(sortedPoints[i]);
         }
-        return stack.Reverse().ToArray();
+
+        return stack.ToList();
     }
 
-    private double GetPolarAngle(Point origin, Point point)
+    private static double Orientation(Point p1, Point p2, Point p3)
     {
-        double dx = point.X - origin.X;
-        double dy = point.Y - origin.Y;
-        return Math.Atan2(dy, dx);
-    }
-
-    private bool IsCounterClockwise(Point a, Point b, Point c)
-    {
-        double area = (b.X - a.X) * (c.Y - a.Y) - (b.Y - a.Y) * (c.X - a.X);
-        return area > 0;
+        return (p2.Y - p1.Y) * (p3.X - p2.X) - (p2.X - p1.X) * (p3.Y - p2.Y);
     }
 }
