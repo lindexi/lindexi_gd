@@ -42,7 +42,7 @@ public partial class MainWindow : Window
         geometryGroup.Children.Add(geometry1);
         geometryGroup.Children.Add(geometry2);
 
-        var geometry = Geometry.Combine(geometry1,geometry2,GeometryCombineMode.Union,Transform.Identity);
+        var geometry = Geometry.Combine(geometry1, geometry2, GeometryCombineMode.Union, Transform.Identity);
 
         // Compute the convex hull of the combined Geometry objects.
         PathGeometry pathGeometry = geometry.GetFlattenedPathGeometry(); //geometryGroup.GetFlattenedPathGeometry();
@@ -62,12 +62,14 @@ public partial class MainWindow : Window
                 }
             }
         }
+        list.Add(list[list.Count - 1]);
 
-        Point[] points = pathGeometry.Figures.SelectMany(f => f.Segments).OfType<LineSegment>().Select(s => s.Point).ToArray();
+        //Point[] points = pathGeometry.Figures.SelectMany(f => f.Segments).OfType<LineSegment>().Select(s => s.Point).ToArray();
 
         //points = list.ToArray();
 
         var convexHullPoints = ConvexHull.GrahamScan(list);
+        convexHullPoints.Add(convexHullPoints[0]);
         //convexHullPoints = list;
         PathFigure pathFigure = new PathFigure();
         pathFigure.StartPoint = convexHullPoints[0];
@@ -94,7 +96,7 @@ public class ConvexHull
         for (var i = 2; i < sortedPoints.Count; i++)
         {
             var top = stack.Pop();
-            while (stack.Count>0&& Orientation(stack.Peek(), top, sortedPoints[i]) <= 0)
+            while (stack.Count > 0 && Orientation(stack.Peek(), top, sortedPoints[i]) <= 0)
             {
                 top = stack.Pop();
             }
