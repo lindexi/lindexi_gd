@@ -25,11 +25,11 @@ public class BenchmarkTest
             ref JearhelhairrurHiyawharqall x = ref _yejiwarejaiDearceqofedawu.Fxx[i];
             if (x.Index == t)
             {
-                return i;
+                t--;
             }
         }
 
-        return -1;
+        return t;
     }
 
     [Benchmark]
@@ -41,11 +41,11 @@ public class BenchmarkTest
             JearhelhairrurHiyawharqall x = _yejiwarejaiDearceqofedawu.Fxx[i];
             if (x.Index == t)
             {
-                return i;
+                t--;
             }
         }
 
-        return -1;
+        return t;
     }
 
     private static readonly YejiwarejaiDearceqofedawu _yejiwarejaiDearceqofedawu;
