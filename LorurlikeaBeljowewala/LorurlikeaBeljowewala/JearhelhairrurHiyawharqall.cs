@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LorurlikeaBeljowewala;
 
-internal struct JearhelhairrurHiyawharqall
+public struct JearhelhairrurHiyawharqall
 {
     public int Index;
     public object Obj;

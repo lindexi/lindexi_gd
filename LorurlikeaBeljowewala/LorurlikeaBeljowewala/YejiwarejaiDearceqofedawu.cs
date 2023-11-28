@@ -1,6 +1,6 @@
 ﻿namespace LorurlikeaBeljowewala;
 
-class YejiwarejaiDearceqofedawu
+public class YejiwarejaiDearceqofedawu
 {
     public JearhelhairrurHiyawharqall[] Fxx { get; } = new JearhelhairrurHiyawharqall[100];
 }
