@@ -11,10 +11,10 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using static CheabeloleYiharjelke.几何数学计算辅助类;
-
 using dotnetCampus.Mathematics.SpatialGeometry;
 
 namespace CheabeloleYiharjelke;
+
 /// <summary>
 /// Interaction logic for MainWindow.xaml
 /// </summary>
@@ -32,7 +32,26 @@ public class ArtInkCanvas : FrameworkElement
     {
         MouseDown += Canvas_MouseDown;
         MouseMove += Canvas_MouseMove;
+        MouseWheel += ArtInkCanvas_MouseWheel;
     }
+
+    private void ArtInkCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if ((Keyboard.Modifiers & ModifierKeys.Control) != 0)
+        {
+            _scale += e.Delta / 1000.0;
+
+            _scale = Math.Max(0.1, _scale);
+        }
+        else
+        {
+            MouseWheelValue += e.Delta;
+        }
+    }
+
+    private double MouseWheelValue { set; get; }
+
+    private double _scale = 1;
 
     private void Canvas_MouseMove(object sender, MouseEventArgs e)
     {
@@ -64,8 +83,19 @@ public class ArtInkCanvas : FrameworkElement
 
         var currentGeometry = new RectangleGeometry(new Rect(new Size(50, 50)));
         var bounds = currentGeometry.Bounds;
+
+        var centerX = bounds.Width / 2;
+        var centerY = bounds.Height / 2;
         currentGeometry.Transform =
-            new TranslateTransform(position.X - bounds.Width / 2, position.Y - bounds.Height / 2);
+            new TransformGroup()
+            {
+                Children =
+                {
+                    new RotateTransform(MouseWheelValue / 10, centerX, centerY),
+                    new ScaleTransform(_scale, _scale, centerX, centerY),
+                    new TranslateTransform(position.X - centerX, position.Y - centerY),
+                }
+            };
 
         // 不要太接近
         if (_lastGeometry.FillContainsWithDetail(currentGeometry) != IntersectionDetail.Empty)
@@ -78,6 +108,7 @@ public class ArtInkCanvas : FrameworkElement
         Vector 运动方向 = position - lastPoint;
 
         var segment2D = new Segment2D(lastPoint.ToPoint2D(), position.ToPoint2D());
+        //Vector 运动方向 = segment2D.Vector;
 
         // 先计算两两在线的左侧的点
         var lastGeometryPoint = GetPointFromGeometry(_lastGeometry);
@@ -170,7 +201,7 @@ public class ArtInkCanvas : FrameworkElement
             {
                 if (currentGeometryLeftTopPoint is null)
                 {
-                    currentGeometryLeftTopPoint  = point;
+                    currentGeometryLeftTopPoint = point;
                     currentGeometryLeftTopPointDistance = relation.Distance;
                 }
                 else
@@ -228,31 +259,37 @@ public class ArtInkCanvas : FrameworkElement
             }
         }
 
-        if (lastGeometryLeftTopPoint is null || lastGeometryRightBottomPoint is null ||
-            currentGeometryLeftTopPoint is null || currentGeometryRightBottomPoint is null)
-        {
-            return;
-        }
 
         _drawingGroup = new DrawingGroup();
         using (var drawingContext = _drawingGroup.Open())
         {
-            drawingContext.DrawGeometry(null,new Pen(Brushes.Black,1),_lastGeometry);
+            drawingContext.DrawGeometry(null, new Pen(Brushes.Black, 1), _lastGeometry);
             drawingContext.DrawGeometry(null, new Pen(Brushes.Black, 1), currentGeometry);
 
-            var streamGeometry = new StreamGeometry();
-            using (var streamGeometryContext = streamGeometry.Open())
+            if (lastGeometryLeftTopPoint is null || lastGeometryRightBottomPoint is null ||
+                currentGeometryLeftTopPoint is null || currentGeometryRightBottomPoint is null)
             {
-                streamGeometryContext.BeginFigure(lastGeometryLeftTopPoint.Value,false,true);
-                streamGeometryContext.PolyLineTo(new[]
+                foreach (var point in currentGeometryPoint)
                 {
-                    currentGeometryLeftTopPoint.Value,
-                    currentGeometryRightBottomPoint.Value,
-                    lastGeometryRightBottomPoint.Value,
-                }, true,false);
+                    drawingContext.DrawEllipse(Brushes.Red, null, point, 2, 2);
+                }
             }
+            else
+            {
+                var streamGeometry = new StreamGeometry();
+                using (var streamGeometryContext = streamGeometry.Open())
+                {
+                    streamGeometryContext.BeginFigure(lastGeometryLeftTopPoint.Value, false, true);
+                    streamGeometryContext.PolyLineTo(new[]
+                    {
+                        currentGeometryLeftTopPoint.Value,
+                        currentGeometryRightBottomPoint.Value,
+                        lastGeometryRightBottomPoint.Value,
+                    }, true, false);
+                }
 
-            drawingContext.DrawGeometry(null, new Pen(Brushes.Black, 1), streamGeometry);
+                drawingContext.DrawGeometry(null, new Pen(Brushes.Black, 1), streamGeometry);
+            }
         }
 
         // 如果是完全靠近的，取裁剪之后的一半的值
@@ -319,7 +356,7 @@ public static class 几何数学计算辅助类
 {
     public static 两点与向量方向关系 判断两点在已知向量方向上的前后关系(Vector vector, Point a, Point b)
     {
-        var abVector = b - a;// 向量AB
+        var abVector = b - a; // 向量AB
         // 计算两个向量的夹角，从而了解哪个点在前
         // 由于只是需要判断正负关系，不需要求夹角，只需要算点积判断正负即可
         var result = vector * abVector;
@@ -344,6 +381,7 @@ public enum 两点与向量方向关系
 {
     A点在前,
     B点在前,
+
     /// <summary>
     /// 即没有前后关系，如 A 和 B 两点坐标相同
     /// </summary>
