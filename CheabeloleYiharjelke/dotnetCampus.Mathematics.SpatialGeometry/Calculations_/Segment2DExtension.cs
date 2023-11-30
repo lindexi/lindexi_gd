@@ -15,7 +15,7 @@ public static class Segment2DExtension
     }
 
     /// <summary>
-    /// 获取点在线段上的比例。
+    /// 获取点在线段上的投影比例。
     /// </summary>
     /// <param name="point"></param>
     /// <returns></returns>
