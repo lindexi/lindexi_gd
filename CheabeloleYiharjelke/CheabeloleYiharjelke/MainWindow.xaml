@@ -6,7 +6,5 @@
         xmlns:local="clr-namespace:CheabeloleYiharjelke"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
-
-    </Grid>
+    <local:ArtInkCanvas x:Name="Canvas"></local:ArtInkCanvas>
 </Window>
