@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34221.43
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CheabeloleYiharjelke", "CheabeloleYiharjelke\CheabeloleYiharjelke.csproj", "{C7C46C2B-9DC6-4100-A15B-62099758590D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotnetCampus.Mathematics.SpatialGeometry", "dotnetCampus.Mathematics.SpatialGeometry\dotnetCampus.Mathematics.SpatialGeometry.csproj", "{0FFE6D68-9382-48CC-8F14-00F2D77E04C3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C7C46C2B-9DC6-4100-A15B-62099758590D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7C46C2B-9DC6-4100-A15B-62099758590D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7C46C2B-9DC6-4100-A15B-62099758590D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7C46C2B-9DC6-4100-A15B-62099758590D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0FFE6D68-9382-48CC-8F14-00F2D77E04C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0FFE6D68-9382-48CC-8F14-00F2D77E04C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0FFE6D68-9382-48CC-8F14-00F2D77E04C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0FFE6D68-9382-48CC-8F14-00F2D77E04C3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D9DA2989-09D3-45FC-8BDD-C3842B3C7077}
+	EndGlobalSection
+EndGlobal
