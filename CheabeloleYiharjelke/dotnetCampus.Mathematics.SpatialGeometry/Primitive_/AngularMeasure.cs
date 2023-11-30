@@ -9,6 +9,8 @@ namespace dotnetCampus.Mathematics.SpatialGeometry;
 [DebuggerDisplay("Radian = {Radian}, Degree = {Degree}")]
 public readonly record struct AngularMeasure(Radian Radian)
 {
+    public Degree Degree => Radian.ToDegree();
+
     /// <summary>
     /// 2π。
     /// </summary>
