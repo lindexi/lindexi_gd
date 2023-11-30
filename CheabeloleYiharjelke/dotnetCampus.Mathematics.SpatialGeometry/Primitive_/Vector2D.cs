@@ -94,9 +94,25 @@ public readonly record struct Vector2D(double X, double Y)
         return new Vector2D(v.X * d, v.Y * d);
     }
 
+    /// <summary>
+    /// 求点积 也称为标量积或内积
+    /// </summary>
+    /// <param name="vector"></param>
+    /// <returns></returns>
+    public double DotProduct(Vector2D vector) => this * vector;
+
+    /// <summary>
+    /// 求点积 也称为标量积或内积
+    /// </summary>
+    /// <param name="v1"></param>
+    /// <param name="v2"></param>
+    /// <returns></returns>
+    public static double DotProduct(Vector2D v1, Vector2D v2) => (v1.X * v2.X) + (v1.Y * v2.Y);
+
+    /// <inheritdoc cref="DotProduct(Vector2D, Vector2D)"/>
     public static double operator *(Vector2D v1, Vector2D v2)
     {
-        return (v1.X * v2.X) + (v1.Y * v2.Y);
+        return DotProduct(v1,v2);
     }
 
     public static Vector2D operator /(Vector2D v, double d)
