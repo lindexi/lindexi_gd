@@ -45,6 +45,18 @@ public readonly record struct Vector2D(double X, double Y)
         return (X * other.Y) - (Y * other.X);
     }
 
+    [Obsolete("和 Det 完全相同，请使用 Det 代替", true)]
+    public double CrossProduct(Vector2D other) => Det(other);
+
+    /// <summary>
+    /// Calculates the cross product of two vectors
+    /// 计算两向量叉积
+    /// </summary>
+    /// <param name="vector1"></param>
+    /// <param name="vector2"></param>
+    /// <returns></returns>
+    public static double CrossProduct(Vector2D vector1, Vector2D vector2) => vector1.Det(vector2);
+
     /// <summary>
     /// 通过角大小创建单位向量。
     /// </summary>
