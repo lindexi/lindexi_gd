@@ -50,6 +50,8 @@ public partial class MainWindow : Window
         var list = new List<Point>();
         foreach (var figure in pathGeometry.Figures)
         {
+            list.Add(figure.StartPoint);
+           
             foreach (var segment in figure.Segments)
             {
                 if (segment is LineSegment lineSegment)
