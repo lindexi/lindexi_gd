@@ -8,6 +8,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Media.Media3D;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using static CheabeloleYiharjelke.几何数学计算辅助类;
@@ -23,6 +24,13 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        var v1 = new Vector(1, 2);
+        var v2 = new Vector(2,1);
+        var r1 = Vector.CrossProduct(v1,v2);
+
+        var v3 = new Vector3D(1,2,0);
+        var v4 = new Vector3D(2,1,0);
+        var r2 = Vector3D.CrossProduct(v3,v4);
     }
 }
 
