@@ -26,6 +26,32 @@ public partial class MainWindow : Window
     }
 }
 
+
+public class NawbewijagelaiGarukairjirelearke : Panel
+{
+    public NawbewijagelaiGarukairjirelearke()
+    {
+        Children.Add(TextBlock = new TextBlock()
+        {
+            Text = "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?"
+        });
+    }
+
+    private TextBlock TextBlock { get; }
+
+    protected override Size MeasureOverride(Size availableSize)
+    {
+        TextBlock.Measure(availableSize);
+        return new Size(100, 100);
+    }
+
+    protected override Size ArrangeOverride(Size finalSize)
+    {
+        TextBlock.Arrange(new Rect(10, 10, 200, 100));
+        return base.ArrangeOverride(finalSize);
+    }
+}
+
 public class ArtInkCanvas : FrameworkElement
 {
     public ArtInkCanvas()
@@ -84,7 +110,7 @@ public class ArtInkCanvas : FrameworkElement
 
         var currentGeometry = PathGeometry.CreateFromGeometry(Geometry.Parse(
             "M2.6399687469006494,-1.1920974429813214E-08L2.2400134327867818,0.24997633695602417Q-3.3600001953013816,11.449993121624459 5.039970278460487,29.599998462200233C13.039985438108488,48.79998015165296 17.040001988695053,59.199980151653335 33.84000198869501,71.1999839663506C50.64000198869496,83.19998778104787 61.740001988694985,89.74998396635056 74.63996874690065,90.39999998807906C87.53993550510631,91.05001600980756 97.98997528581413,68.74997633695602 98.48999817399772,57.749976336956024C98.99002106218131,46.749976336956024 100.49000198869498,26.749976336956024 69.03996874690051,23.19999998807907C37.58993550510604,19.650023639202118 9.039968746900627,6.39999998807906 2.6399687469006494,-1.1920974429813214E-08z"));
-            //new RectangleGeometry(new Rect(new Size(50, 50)));
+        //new RectangleGeometry(new Rect(new Size(50, 50)));
         var bounds = currentGeometry.Bounds;
 
         var centerX = bounds.Width / 2;
@@ -284,7 +310,7 @@ public class ArtInkCanvas : FrameworkElement
             if (lastGeometryLeftTopPoint is null || lastGeometryRightBottomPoint is null ||
                 currentGeometryLeftTopPoint is null || currentGeometryRightBottomPoint is null)
             {
-                
+
             }
             else
             {
