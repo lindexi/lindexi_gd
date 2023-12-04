@@ -9,9 +9,11 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition Width="Auto" MaxWidth="1000"></ColumnDefinition>
             <ColumnDefinition Width="Auto"></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <local:ArtInkCanvas x:Name="Canvas"></local:ArtInkCanvas>
         <local:NawbewijagelaiGarukairjirelearke Grid.Column="1"/>
+        <TextBlock Grid.Column="2" Text="123"></TextBlock>
     </Grid>
 </Window>
