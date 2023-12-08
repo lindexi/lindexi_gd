@@ -1,4 +1,7 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,6 +13,12 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+using Windows.AI.MachineLearning;
+using Windows.Graphics.Imaging;
+using Windows.Media;
+
+using BitmapDecoder = Windows.Graphics.Imaging.BitmapDecoder;
+
 namespace BenukalliwayaChayjanehall;
 /// <summary>
 /// Interaction logic for MainWindow.xaml
@@ -20,39 +29,43 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        //TouchMove += MainWindow_TouchMove;
-        StylusMove += MainWindow_StylusMove;
+        Loaded += MainWindow_Loaded;
     }
 
-    private void MainWindow_StylusMove(object sender, StylusEventArgs e)
+    private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        foreach (var point in e.GetStylusPoints(this))
+        LearningModel learningModel = LearningModel.LoadFromFilePath(@"F:\temp\classifier.onnx");
+        var deviceToRunOn = new LearningModelDevice(LearningModelDeviceKind.DirectXHighPerformance);
+        var learningModelSession = new LearningModelSession(learningModel, deviceToRunOn);
+        var learningModelBinding = new LearningModelBinding(learningModelSession);
+
+        for (int i = 0; i < 3; i++)
         {
-            var position = point.ToPoint();
-            Debug.WriteLine(position);
-            double size = 10;
-            var ellipse = new Ellipse()
+            await using var fileStream = File.OpenRead($@"F:\temp\Image\{i}.jpg");
+
+            var randomAccessStream = fileStream.AsRandomAccessStream();
+            var decoder = await BitmapDecoder.CreateAsync(randomAccessStream);
+            var softwareBitmap = await decoder.GetSoftwareBitmapAsync();
+            VideoFrame inputImage = VideoFrame.CreateWithSoftwareBitmap(softwareBitmap);
+
+            var imageFeatureValue = ImageFeatureValue.CreateFromVideoFrame(inputImage);
+
+            learningModelBinding.Bind("data", imageFeatureValue);
+
+            var result = await learningModelSession.EvaluateAsync(learningModelBinding, "0");
+            var classLabel = result.Outputs["classLabel"] as TensorString;
+            var loss = result.Outputs["loss"] as IList<IDictionary<string, float>>;
+
+            Debug.WriteLine(classLabel);
+
+            if (loss == null) return;
+            foreach (var dictionary in loss)
             {
-                Width = size,
-                Height = size,
-                Fill = Brushes.Black,
-                RenderTransform = new TranslateTransform(position.X - size / 2, position.Y - size / 2),
-            };
-            Canvas.Children.Add(ellipse);
+                foreach (var (key, value) in dictionary)
+                {
+                    Debug.WriteLine($"{key} {value}");
+                }
+            }
         }
-    }
-
-    private void MainWindow_TouchMove(object? sender, TouchEventArgs e)
-    {
-        var touchPoint = e.GetTouchPoint(this);
-        double size = 10;
-        var ellipse = new Ellipse()
-        {
-            Width = size,
-            Height = size,
-            Fill = Brushes.Black,
-            RenderTransform = new TranslateTransform(touchPoint.Position.X- size/2, touchPoint.Position.Y - size / 2),
-        };
-        Canvas.Children.Add(ellipse);
     }
 }
