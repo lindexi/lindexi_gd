@@ -8,5 +8,13 @@
     <UseWPF>true</UseWPF>
     <Platforms>x86</Platforms>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="dotnetCampus.WPF.Resource" Version="6.0.4-alpha07-test06" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="$(CustomWpfAssetsFolder)lib\net6.0\*.dll" />
+    <ReferenceCopyLocalPaths Include="$(CustomWpfAssetsFolder)lib\net6.0\*.dll" />
+  </ItemGroup>
 
 </Project>

@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:BenukalliwayaChayjanehall"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Canvas x:Name="Canvas">
-    </Canvas>
+    <Grid>
+        <InkCanvas></InkCanvas>
+    </Grid>
 </Window>
