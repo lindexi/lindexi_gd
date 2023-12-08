@@ -18,20 +18,21 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        //TouchMove += MainWindow_TouchMove;
+
+        TouchMove += MainWindow_TouchMove;
     }
 
-    //private void MainWindow_TouchMove(object? sender, TouchEventArgs e)
-    //{
-    //    var touchPoint = e.GetTouchPoint(this);
-    //    double size = 10;
-    //    var ellipse = new Ellipse()
-    //    {
-    //        Width = size,
-    //        Height = size,
-    //        Fill = Brushes.Black,
-    //        RenderTransform = new TranslateTransform(touchPoint.Position.X- size/2, touchPoint.Position.Y - size / 2),
-    //    };
-    //    Canvas.Children.Add(ellipse);
-    //}
+    private void MainWindow_TouchMove(object? sender, TouchEventArgs e)
+    {
+        var touchPoint = e.GetTouchPoint(this);
+        double size = 10;
+        var ellipse = new Ellipse()
+        {
+            Width = size,
+            Height = size,
+            Fill = Brushes.Black,
+            RenderTransform = new TranslateTransform(touchPoint.Position.X- size/2, touchPoint.Position.Y - size / 2),
+        };
+        Canvas.Children.Add(ellipse);
+    }
 }
