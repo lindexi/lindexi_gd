@@ -6,6 +6,21 @@
         xmlns:local="clr-namespace:BenukalliwayaChayjanehall"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Canvas x:Name="Canvas">
-    </Canvas>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+        </Grid.RowDefinitions>
+        <InkCanvas x:Name="InkCanvas">
+            <InkCanvas.DefaultDrawingAttributes>
+                <DrawingAttributes Width="22" Height="22"></DrawingAttributes>
+            </InkCanvas.DefaultDrawingAttributes>
+        </InkCanvas>
+        <Grid Grid.Row="1">
+            <Button x:Name="RecognizeButton" Margin="10,10,10,10" HorizontalAlignment="Left" Click="RecognizeButton_OnClick">识别</Button>
+            <Button x:Name="ClearButton" Margin="10,10,10,10" HorizontalAlignment="Right" Click="ClearButton_OnClick">清空</Button>
+        </Grid>
+        <TextBlock x:Name="TextBlock" Grid.Row="2" Margin="10,10,10,10"></TextBlock>
+    </Grid>
 </Window>
