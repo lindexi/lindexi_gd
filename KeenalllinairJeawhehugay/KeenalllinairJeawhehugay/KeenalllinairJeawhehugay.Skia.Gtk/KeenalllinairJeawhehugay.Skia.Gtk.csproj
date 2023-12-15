@@ -11,7 +11,11 @@
     <EmbeddedResource Include="Package.appxmanifest" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
-
+<ItemGroup>
+   <TrimmerRootAssembly Include="KeenalllinairJeawhehugay.Skia.Gtk" />
+   <TrimmerRootAssembly Include="GtkSharp" />
+   <TrimmerRootAssembly Include="GdkSharp" />
+</ItemGroup>
   <ItemGroup>
     <PackageReference Include="Uno.WinUI.Skia.Gtk" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
