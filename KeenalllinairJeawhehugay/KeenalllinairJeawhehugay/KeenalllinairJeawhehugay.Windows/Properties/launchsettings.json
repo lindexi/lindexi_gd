@@ -1,0 +1,10 @@
+{
+	"profiles": {
+		"KeenalllinairJeawhehugay.Windows (Unpackaged)": {
+			"commandName": "Project"
+		},
+		"KeenalllinairJeawhehugay.Windows (Package)": {
+			"commandName": "MsixPackage"
+		}
+	}
+}
