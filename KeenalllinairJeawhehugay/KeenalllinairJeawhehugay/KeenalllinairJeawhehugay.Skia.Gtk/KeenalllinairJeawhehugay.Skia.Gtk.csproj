@@ -6,6 +6,8 @@
     <IsAotCompatible>true</IsAotCompatible>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <PublishAot>true</PublishAot>
+    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="Package.appxmanifest" />
@@ -17,6 +19,7 @@
    <TrimmerRootAssembly Include="GdkSharp" />
 </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.ProjectReunion.DWrite" />
     <PackageReference Include="Uno.WinUI.Skia.Gtk" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="Uno.Material.WinUI" />
