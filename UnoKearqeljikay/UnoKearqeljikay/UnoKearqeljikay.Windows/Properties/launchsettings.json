@@ -1,0 +1,10 @@
+{
+	"profiles": {
+		"UnoKearqeljikay.Windows (Unpackaged)": {
+			"commandName": "Project"
+		},
+		"UnoKearqeljikay.Windows (Package)": {
+			"commandName": "MsixPackage"
+		}
+	}
+}
