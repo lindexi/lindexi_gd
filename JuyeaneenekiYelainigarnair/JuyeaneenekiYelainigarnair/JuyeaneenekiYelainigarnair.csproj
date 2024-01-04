@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <Version>1.0.9</Version>
+
+    <AutoCreateDebUOSAfterPublish>true</AutoCreateDebUOSAfterPublish>
+    
+    <!-- 必要的属性配置 -->
+    <!-- 用来配置 AppId 值 -->
+    <UOSAppId>com.xxx.foo</UOSAppId>
+
+    <!-- 可选的属性配置 -->
+    <!-- 打包输出路径 -->
+    <DebUOSOutputFilePath>C:\lindexi\Code\foo.deb</DebUOSOutputFilePath>
+
+    <!-- 用来控制 .desktop 文件的内容 -->
+    <!-- 配置使用控制台启动 -->
+    <DesktopTerminal>true</DesktopTerminal>
+
+    <!-- 矢量图和非矢量图二选一 -->
+    <Png128x128IconFile>icon.png</Png128x128IconFile>
+    <Png32x32IconFile>icon32.png</Png32x32IconFile>
+
+    <SvgIconFile>icon.svg</SvgIconFile>
+
+    <!-- 描述内容，可以在安装包双击看到 -->
+    <Description>Test demo 也可以写中文</Description>
+    <!-- 可以显示到开始菜单 -->
+    <AppNameZhCN>测试中文名</AppNameZhCN>
+    <DesktopKeywords>foo;icon</DesktopKeywords>
+    <DesktopKeywordsZhCN>中文测试;foo</DesktopKeywordsZhCN>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Packaging.DebUOS" Version="1.2.1-alpha25">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>
