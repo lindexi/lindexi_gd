@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
@@ -13,10 +15,17 @@ if (string.IsNullOrEmpty(apiKey))
 }
 
 var builder = Kernel.CreateBuilder();
-builder.AddAzureOpenAIChatCompletion("GPT4", endpoint, apiKey);
+builder.Services.AddLogging(c => c.AddSimpleConsole());
+builder.Services.AddSingleton<HttpClient>(c => new FooHttpClient());
 builder.Plugins.AddFromType<LightPlugin>();
+builder.AddAzureOpenAIChatCompletion("GPT4", endpoint, "Key");
 
 var kernel = builder.Build();
+var logger = kernel.LoggerFactory.CreateLogger("Foo");
+logger.LogInformation($"Hello Test");
+
+var requiredService = kernel.GetRequiredService<HttpClient>();
+
 // Create chat history
 ChatHistory history = new ChatHistory();
 
@@ -49,7 +58,22 @@ while (true)
     history.AddMessage(result.Role, result.Content);
 }
 
+
+
 Console.Read();
+
+public class FooHttpClient:HttpClient
+{
+    public override HttpResponseMessage Send(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        return base.Send(request, cancellationToken);
+    }
+
+    public override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        return base.SendAsync(request, cancellationToken);
+    }
+}
 
 public class LightPlugin
 {
