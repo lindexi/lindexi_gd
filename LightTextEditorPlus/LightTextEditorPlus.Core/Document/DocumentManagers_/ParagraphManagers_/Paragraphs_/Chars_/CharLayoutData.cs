@@ -34,8 +34,12 @@ class CharLayoutData : IParagraphCache
     /// <summary>
     /// 字符是当前段落 <see cref="Paragraph"/> 的第几个字符
     /// </summary>
+    /// 调试作用
     public ParagraphCharOffset CharIndex { set; get; }
 
+    /// <summary>
+    /// 字符是当前行的第几个字
+    /// </summary>
     public int CharIndexInLine
     {
         get

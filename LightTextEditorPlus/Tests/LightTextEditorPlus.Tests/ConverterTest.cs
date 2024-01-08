@@ -1,4 +1,4 @@
-using System.Windows.Media;
+ï»¿using System.Windows.Media;
 using dotnetCampus.UITest.WPF;
 using LightTextEditorPlus.Utils;
 using MSTest.Extensions.Contracts;
@@ -11,7 +11,7 @@ public class ConverterTest
     [UIContractTestCase]
     public void Equals()
     {
-        "¸ø¶¨Á½¸öÑÕÉ«ÖµÏàÍ¬µÄ´¿É«»­Ë¢£¬·µ»ØÏàµÈ".Test(() =>
+        "ç»™å®šä¸¤ä¸ªé¢œè‰²å€¼ç›¸åŒçš„çº¯è‰²ç”»åˆ·ï¼Œè¿”å›žç›¸ç­‰".Test(() =>
         {
             var brush1 = new SolidColorBrush(Color.FromRgb(0x02, 0x03, 0x00));
             var brush2 = new SolidColorBrush(Color.FromRgb(0x02, 0x03, 0x00));
@@ -20,7 +20,7 @@ public class ConverterTest
             Assert.AreEqual(true, result);
         });
 
-        "¸ø¶¨Á½¸ö²»ÏàÍ¬µÄÔ¤Éè´¿É«»­Ë¢£¬·µ»Ø²»ÏàµÈ".Test(() =>
+        "ç»™å®šä¸¤ä¸ªä¸ç›¸åŒçš„é¢„è®¾çº¯è‰²ç”»åˆ·ï¼Œè¿”å›žä¸ç›¸ç­‰".Test(() =>
         {
             var brush1 = Brushes.White;
             var brush2 = Brushes.Black;
@@ -29,7 +29,7 @@ public class ConverterTest
             Assert.AreEqual(false, result);
         });
 
-        "¸ø¶¨ºÍÁ½¸ö Null µÄ»­Ë¢£¬·µ»ØÏàµÈ".Test(() =>
+        "ç»™å®šå’Œä¸¤ä¸ª Null çš„ç”»åˆ·ï¼Œè¿”å›žç›¸ç­‰".Test(() =>
         {
             Brush brush1 = null;
             Brush brush2 = null;
@@ -37,7 +37,7 @@ public class ConverterTest
             var result = Converter.AreEquals(brush1, brush2);
             Assert.AreEqual(true, result);
         });
-        "¸ø¶¨ºÍÒ»¸ö Null µÄ»­Ë¢£¬Ò»¸öÔ¤ÉèµÄ´¿É«£¬·µ»Ø²»ÏàµÈ".Test(() =>
+        "ç»™å®šå’Œä¸€ä¸ª Null çš„ç”»åˆ·ï¼Œä¸€ä¸ªé¢„è®¾çš„çº¯è‰²ï¼Œè¿”å›žä¸ç›¸ç­‰".Test(() =>
         {
             Brush brush1 = null;
             var brush2 = Brushes.Black;
@@ -46,7 +46,7 @@ public class ConverterTest
             Assert.AreEqual(false, result);
         });
 
-        "¸ø¶¨Ò»¸öÔ¤ÉèµÄ´¿É«£¬ºÍÒ»¸ö Null µÄ»­Ë¢£¬·µ»Ø²»ÏàµÈ".Test(() =>
+        "ç»™å®šä¸€ä¸ªé¢„è®¾çš„çº¯è‰²ï¼Œå’Œä¸€ä¸ª Null çš„ç”»åˆ·ï¼Œè¿”å›žä¸ç›¸ç­‰".Test(() =>
         {
             var brush1 = Brushes.Black;
             Brush brush2 = null;
@@ -55,7 +55,7 @@ public class ConverterTest
             Assert.AreEqual(false, result);
         });
 
-        "¸ø¶¨Á½¸öÔ¤ÉèµÄ´¿É«£¬¿ÉÒÔÅÐ¶ÏÏàµÈ".Test(() =>
+        "ç»™å®šä¸¤ä¸ªé¢„è®¾çš„çº¯è‰²ï¼Œå¯ä»¥åˆ¤æ–­ç›¸ç­‰".Test(() =>
         {
             var brush1 = Brushes.Black;
             var brush2 = Brushes.Black;

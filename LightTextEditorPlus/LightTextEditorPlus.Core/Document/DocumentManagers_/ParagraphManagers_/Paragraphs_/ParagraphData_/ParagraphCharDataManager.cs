@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+
+using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive.Collections;
 
 namespace LightTextEditorPlus.Core.Document;
@@ -51,6 +54,13 @@ class ParagraphCharDataManager
 
     public CharData GetCharData(int offset)
     {
-        return CharDataList[offset];
+        try
+        {
+            return CharDataList[offset];
+        }
+        catch (ArgumentOutOfRangeException e)
+        {
+            throw new GetCharDataOutOfRangeException(_paragraph, CharDataList, offset, e);
+        }
     }
 }

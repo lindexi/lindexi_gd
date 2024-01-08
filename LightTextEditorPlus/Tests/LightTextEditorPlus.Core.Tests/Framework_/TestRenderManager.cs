@@ -19,7 +19,10 @@ class TestRenderManager : IRenderManager
         RenderCount++;
     }
 
-    public int RenderCount { set; get; }
-    public RenderInfoProvider? CurrentRenderInfoProvider { set; get; }
+    /// <summary>
+    /// 渲染次数，方便用来调试
+    /// </summary>
+    public int RenderCount { private set; get; }
+    public RenderInfoProvider? CurrentRenderInfoProvider { private set; get; }
     private readonly Action<RenderInfoProvider>? _renderAction;
 }

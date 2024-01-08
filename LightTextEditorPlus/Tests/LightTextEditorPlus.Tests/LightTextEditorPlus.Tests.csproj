@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Demos\LightTextEditorPlus.Demo\LightTextEditorPlus.Demo.csproj" />
-    <ProjectReference Include="..\..\LightTextEditorPlus\LightTextEditorPlus.csproj" />
+    <ProjectReference Include="..\..\LightTextEditorPlus.Wpf\LightTextEditorPlus.Wpf.csproj" />
   </ItemGroup>
 
 </Project>

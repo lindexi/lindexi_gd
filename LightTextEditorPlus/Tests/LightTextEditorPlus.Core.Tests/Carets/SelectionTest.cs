@@ -1,10 +1,4 @@
 ﻿using MSTest.Extensions.Contracts;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using LightTextEditorPlus.Core.Carets;
 
 namespace LightTextEditorPlus.Core.Tests.Carets;
@@ -12,6 +6,87 @@ namespace LightTextEditorPlus.Core.Tests.Carets;
 [TestClass]
 public class SelectionTest
 {
+    [ContractTestCase]
+    public void EqualRange()
+    {
+        "传入范围相同，但是起点和终点不相同的 Selection 判断EqualRange 返回相同".Test(() =>
+        {
+            // Arrange
+            var selection1 = new Selection(new CaretOffset(5), new CaretOffset(10));
+            var selection2 = new Selection(new CaretOffset(10), new CaretOffset(5));
+
+            // Action
+            // Assert
+            Assert.AreEqual(true, selection1.EqualRange(selection2));
+        });
+
+        "传入长度不相同的 Selection 判断 EqualRange 返回不相同".Test(() =>
+        {
+            // Arrange
+            var selection1 = new Selection(new CaretOffset(10), 0);
+            var selection2 = new Selection(new CaretOffset(10), 1);
+
+            // Action
+            // Assert
+            Assert.AreEqual(false, selection1.EqualRange(selection2));
+        });
+
+        "传入相同的 Selection 判断 EqualRange 返回相同".Test(() =>
+        {
+            // Arrange
+            var selection = new Selection(new CaretOffset(10),0);
+
+            // Action
+            // Assert
+            Assert.AreEqual(true, selection.EqualRange(selection));
+        });
+    }
+
+    [ContractTestCase]
+    public void Contains()
+    {
+        "传入在反向选择范围内的光标坐标，可以返回包含在选择范围内".Test(() =>
+        {
+            // Arrange
+            var selection = new Selection(new CaretOffset(20), new CaretOffset(10));
+
+            // Action
+            // Assert
+            for (int i = 0; i < 10; i++)
+            {
+                Assert.AreEqual(true, selection.Contains(new CaretOffset(10 + i)));
+            }
+        });
+
+        "传入不包含在选择范围内的光标坐标，可以返回没有包含在选择范围内".Test(() =>
+        {
+            // Arrange
+            var start = 10;
+            var length = 10;
+            var selection = new Selection(new CaretOffset(start), length);
+
+            // Action
+            // Assert
+            Assert.AreEqual(false, selection.Contains(new CaretOffset(9)));
+            Assert.AreEqual(false, selection.Contains(new CaretOffset(21)));
+        });
+
+        "传入包含在选择范围内的光标坐标，可以返回包含在选择范围内".Test(() =>
+        {
+            // Arrange
+            var start = 10;
+            var length = 10;
+            var selection = new Selection(new CaretOffset(start), length);
+
+            // Action
+            // Assert
+            for (int i = 0; i < 10; i++)
+            {
+                Assert.AreEqual(true, selection.Contains(new CaretOffset(10 + i)));
+            }
+        });
+    }
+
     [ContractTestCase]
     public void CreateSelection()
     {

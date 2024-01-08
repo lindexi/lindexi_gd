@@ -1,6 +1,9 @@
 ﻿namespace LightTextEditorPlus.Core.Utils.Patterns;
 
-internal interface IPattern
+/// <summary>
+/// 表示匹配的接口
+/// </summary>
+public interface IPattern
 {
     /// <summary>
     /// 是否输入的字符在范围内

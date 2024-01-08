@@ -51,7 +51,10 @@ class CaretManager
     {
         set
         {
-            if (_currentCaretOffset == value)
+            if ((_currentCaretOffset.Offset == value.Offset && _currentCaretOffset.IsAtLineStart == value.IsAtLineStart)
+                // 如果在选择下修改了光标，那就需要执行后续步骤，用来清理选择
+                // 因此只有在无选择的情况下，如果光标未变更，才啥都不执行
+                && CurrentSelection.IsEmpty)
             {
                 return;
             }
@@ -60,7 +63,6 @@ class CaretManager
             _isCurrentCaretOffsetChanging = true;
 
             // todo 完成光标系统
-            // todo 设置光标的选择范围
             var args = new TextEditorValueChangeEventArgs<CaretOffset>(oldValue, value);
             InternalCurrentCaretOffsetChanging?.Invoke(this, args);
 

@@ -1,72 +1,53 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils.Maths;
 
 namespace LightTextEditorPlus.Core.Document
 {
-    public interface IReadOnlyRunProperty : IEquatable<IReadOnlyRunProperty>
-    {
-        /// <summary>
-        /// 字体大小
-        /// </summary>
-        /// 没有明确的属性，交给文本业务层。有些使用像素、有些使用磅
-        double FontSize { get; }
-
-        /// <summary>
-        /// 用户设置的字体名
-        /// </summary>
-        /// 非底层找不到字体而进行回滚的字体
-        /// 
-        /// 在 Word 里面，可以同时设置一个文本 Run 的中文使用一个字体，西文使用一个字体
-        /// 虽然 Word 这么做看起来不错，但是也存在设计无解的问题，例如西文字体的行高比中文字体的高
-        /// 此时用户在输入中文，输入法先输入的是拼音，使用西文字体，此时行高变更，接着用户完成打字
-        /// 输入法修改输入为中文，使用中文字体，于是行高再次变更，可以看到行高就在跳动
-        /// 大部分的中文字体都有带英文字符，那不如就依然是单个字体
-        FontName FontName { get; }
-
-        ///// <summary>
-        ///// 斜体表示，默认值为Normal
-        ///// </summary>
-        //FontStyle FontStyle { get; }
-
-        ///// <summary>
-        ///// 字的粗细度，默认值为Normal
-        ///// </summary>
-        //FontWeight FontWeight { get; }
-
-        bool TryGetProperty(string propertyName, [NotNullWhen(true)] out IImmutableRunPropertyValue? value);
-    }
-
     /// <summary>
-    /// 平台相关的字符属性，用于给各个平台继承，实现其特定属性。要求此属性是不可变的
+    /// 仅布局支持的文本字符属性
     /// </summary>
-    public class PlatformImmutableRunProperty<T> : LayoutOnlyRunProperty
-        where T : PlatformImmutableRunProperty<T>
-    {
-    }
-
-    /// <summary>
-    /// 用来限制某个类型不能被其他程序集继承
-    /// </summary>
-    /// [C# 如何写出一个不能被其他程序集继承的抽象类](https://blog.lindexi.com/post/C-%E5%A6%82%E4%BD%95%E5%86%99%E5%87%BA%E4%B8%80%E4%B8%AA%E4%B8%8D%E8%83%BD%E8%A2%AB%E5%85%B6%E4%BB%96%E7%A8%8B%E5%BA%8F%E9%9B%86%E7%BB%A7%E6%89%BF%E7%9A%84%E6%8A%BD%E8%B1%A1%E7%B1%BB.html )
-    internal interface ICanNotInheritance
-    {
-    }
-
     // todo 考虑属性系统支持设置是否影响布局，不影响布局的，例如改个颜色，可以不重新布局
     public class LayoutOnlyRunProperty : IReadOnlyRunProperty
     {
+        /// <summary>
+        /// 创建仅布局支持的文本字符属性
+        /// </summary>
         public LayoutOnlyRunProperty()
         {
         }
 
+        /// <summary>
+        /// 创建仅布局支持的文本字符属性
+        /// </summary>
+        /// <param name="styleRunProperty"></param>
         public LayoutOnlyRunProperty(LayoutOnlyRunProperty? styleRunProperty)
         {
             StyleRunProperty = styleRunProperty;
         }
 
+        /// <summary>
+        /// 属性继承的深度
+        /// </summary>
+        public int InheritDeepCount
+        {
+            get
+            {
+                var currentStyle = StyleRunProperty;
+                var count = 0;
+                while (currentStyle is not null)
+                {
+                    currentStyle = currentStyle.StyleRunProperty;
+
+                    count++;
+                }
+
+                return count;
+            }
+        }
+
+        /// <inheritdoc />
         public double FontSize
         {
             set
@@ -82,6 +63,7 @@ namespace LightTextEditorPlus.Core.Document
 
         private const double DefaultFontSize = 15;
 
+        /// <inheritdoc />
         public FontName FontName
         {
             set
@@ -93,36 +75,6 @@ namespace LightTextEditorPlus.Core.Document
         }
 
         private FontName? _fontFamily;
-
-        ///// <summary>
-        ///// 斜体表示，默认值为Normal
-        ///// </summary>
-        //public FontStyle FontStyle
-        //{
-        //    set
-        //    {
-        //        _fontStyle = value;
-        //        RaiseOnTextRunPropertyChanged();
-        //    }
-        //    get => _fontStyle ?? StyleRunProperty?.FontStyle ?? FontStyle.DefaultNotDefine;
-        //}
-
-        //private FontStyle? _fontStyle;
-
-        ///// <summary>
-        ///// 字的粗细度，默认值为Normal
-        ///// </summary>
-        //public FontWeight FontWeight
-        //{
-        //    set
-        //    {
-        //        _fontWeight = value;
-        //        RaiseOnTextRunPropertyChanged();
-        //    }
-        //    get => _fontWeight ?? StyleRunProperty?.FontWeight ?? FontWeight.DefaultNotDefine;
-        //}
-
-        //private FontWeight? _fontWeight;
 
         #region 附加属性
 
@@ -138,6 +90,7 @@ namespace LightTextEditorPlus.Core.Document
             AdditionalPropertyDictionary[propertyName] = value;
         }
 
+        /// <inheritdoc />
         public bool TryGetProperty(string propertyName, [NotNullWhen(true)] out IImmutableRunPropertyValue? value)
         {
             if (AdditionalPropertyDictionary?.TryGetValue(propertyName, out value!) is true)
@@ -197,18 +150,54 @@ namespace LightTextEditorPlus.Core.Document
             }
         }
 
+        /// <summary>
+        /// 是否存在任何的附加属性
+        /// </summary>
+        /// 这个属性用来提升性能，没有附加属性就不需要执行额外的判断逻辑
+        private bool ExistsAnyAdditionalProperty
+        {
+            get
+            {
+                if (AdditionalPropertyDictionary != null)
+                {
+                    return true;
+                }
+
+                if (StyleRunProperty?.ExistsAnyAdditionalProperty is true)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 判断相等
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
         public bool Equals(LayoutOnlyRunProperty other)
         {
             // 先判断一定存在的属性，再判断业务端注入的属性
             if 
             (
-                Equals(FontSize, other.FontSize)
-                && Equals(FontName, other.FontName)
-
-                //&& Equals(FontStyle, other.FontStyle) 
-                //&& Equals(FontWeight, other.FontWeight)
+                FontSize.Equals(other.FontSize)
+                && FontName.Equals(other.FontName)
             )
             {
+                if (ExistsAnyAdditionalProperty != other.ExistsAnyAdditionalProperty)
+                {
+                    // 如果一个存在附加属性，一个不存在，那就是不相等
+                    return false;
+                }
+
+                if (!ExistsAnyAdditionalProperty)
+                {
+                    // 如果都不存在附加属性，那就不需要判断附加属性
+                    return true;
+                }
+
                 var thisAdditionalPropertyKeyList = GetAdditionalPropertyKeyList();
                 var otherAdditionalPropertyKeyList = other.GetAdditionalPropertyKeyList();
 
@@ -245,6 +234,7 @@ namespace LightTextEditorPlus.Core.Document
             return false;
         }
 
+        /// <inheritdoc />
         public virtual bool Equals(IReadOnlyRunProperty? other)
         {
             if (other is null) return false;

@@ -3,9 +3,24 @@
 namespace LightTextEditorPlus.Core.Document;
 
 /// <summary>
-/// 段落的渲染数据
+/// 段落的布局数据
 /// </summary>
-class ParagraphLayoutData
+public interface IParagraphLayoutData
+{
+    /// <summary>
+    /// 段落的起始点
+    /// </summary>
+    Point StartPoint { get; }
+    /// <summary>
+    /// 段落尺寸
+    /// </summary>
+    Size Size { get; }
+}
+
+/// <summary>
+/// 段落的布局数据
+/// </summary>
+class ParagraphLayoutData : IParagraphLayoutData
 {
     /// <summary>
     /// 段落的起始点

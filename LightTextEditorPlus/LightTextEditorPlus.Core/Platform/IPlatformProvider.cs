@@ -1,5 +1,6 @@
 ﻿using System;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Document.Utils;
 using LightTextEditorPlus.Core.Primitive;
 
@@ -10,7 +11,11 @@ namespace LightTextEditorPlus.Core.Platform;
 /// </summary>
 public interface IPlatformProvider
 {
-    // 获取默认字体
+    /// <summary>
+    /// 获取文本的撤销恢复提供，仅构造调用一次
+    /// </summary>
+    /// <returns></returns>
+    ITextEditorUndoRedoProvider BuildTextEditorUndoRedoProvider();
 
     /// <summary>
     /// 获取平台相关的字符属性创建器
@@ -22,8 +27,14 @@ public interface IPlatformProvider
     ///     加入调度更新布局请求
     /// </summary>
     /// 推荐处理：快速多次触发时，只触发一次，以及调度到合适的时机去执行
-    /// <param name="textLayout"></param>
-    void RequireDispatchUpdateLayout(Action textLayout);
+    /// <param name="updateLayoutAction"></param>
+    void RequireDispatchUpdateLayout(Action updateLayoutAction);
+
+    /// <summary>
+    /// 立刻执行更新布局。如果之前有调用 <see cref="RequireDispatchUpdateLayout"/> 请求布局，在此执行之后，将忽略
+    /// </summary>
+    /// <param name="updateLayoutAction"></param>
+    void InvokeDispatchUpdateLayout(Action updateLayoutAction);
 
     /// <summary>
     ///     创建文本日志
@@ -75,4 +86,17 @@ public interface IPlatformProvider
     /// </summary>
     /// <returns></returns>
     IRenderManager? GetRenderManager();
+
+    /// <summary>
+    /// 根据传入的字符属性获取字符行距
+    /// </summary>
+    /// <param name="runProperty"></param>
+    /// <returns></returns>
+    double GetFontLineSpacing(IReadOnlyRunProperty runProperty);
+
+    /// <summary>
+    /// 获取行距计算
+    /// </summary>
+    /// <returns></returns>
+    ILineSpacingCalculator? GetLineSpacingCalculator();
 }

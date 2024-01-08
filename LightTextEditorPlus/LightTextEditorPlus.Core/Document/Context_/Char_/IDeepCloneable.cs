@@ -6,5 +6,9 @@
 /// <typeparam name="T"></typeparam>
 public interface IDeepCloneable<out T>
 {
+    /// <summary>
+    /// 深拷贝
+    /// </summary>
+    /// <returns></returns>
     T DeepClone();
 }

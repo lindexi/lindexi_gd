@@ -6,7 +6,7 @@ namespace LightTextEditorPlus.Core.Utils.Patterns;
 /// 正则表达式静态管理类
 /// </summary>
 /// todo 改名为 TextPatterns 类
-static class RegexPatterns
+public static class RegexPatterns
 {
     /// <summary>
     /// 藏文
@@ -148,38 +148,41 @@ static class RegexPatterns
     /// </summary>
     public const string AsciiPunctuation = "[\x21-\x2f\x3a-\x40\x5b-\x60\x7b-\x7e]";
 
-    /// <summary>
-    /// ASCII 符号
-    /// https://zh.wikipedia.org/wiki/ASCII
-    /// </summary>
-    /// !-/ :-@ [-` {-~
-    internal static readonly MultiTextRangePattern AsciiPunctuationPattern =
-        new MultiTextRangePattern
-        (
-            /* !-/ */ (char) 0x21, (char) 0x2f,
-            /* :-@ */ (char) 0x3a, (char) 0x40,
-            /* [-` */ (char) 0x5b, (char) 0x60,
-            /* {-~ */ (char) 0x7b, (char) 0x7e
-        );
-
-    // todo 删除
-    [Obsolete("定义有问题，请使用 Ascii 属性")]
-   
-    public const string English = Ascii;
+    ///// <summary>
+    ///// ASCII 符号
+    ///// https://zh.wikipedia.org/wiki/ASCII
+    ///// </summary>
+    ///// !-/ :-@ [-` {-~
+    //internal static readonly MultiTextRangePattern AsciiPunctuationPattern =
+    //    new MultiTextRangePattern
+    //    (
+    //        /* !-/ */ (char) 0x21, (char) 0x2f,
+    //        /* :-@ */ (char) 0x3a, (char) 0x40,
+    //        /* [-` */ (char) 0x5b, (char) 0x60,
+    //        /* {-~ */ (char) 0x7b, (char) 0x7e
+    //    );
 
     /// <summary>
     /// 所有ASCII字符
     /// </summary>
     public const string Ascii = "[\x00-\xff]";
 
-    public static readonly AsciiPattern AsciiPattern = new AsciiPattern();
+    internal static readonly AsciiPattern AsciiPattern = new AsciiPattern();
 
     /// <summary>
     /// 英文字符
     /// </summary>
     public const string Letters = "[a-zA-Z]";
 
-    public static readonly LetterPattern LetterPattern = new LetterPattern();
+    /// <summary>
+    /// 匹配 Letter 字符，包含中文字符哦
+    /// </summary>
+    public static readonly IPattern LetterPattern = new LetterPattern();
+
+    /// <summary>
+    /// 匹配英文字符
+    /// </summary>
+    public static readonly IPattern EnglishLetterPattern = new EnglishLetterPattern();
 
     /// <summary>
     /// 小写字符
@@ -215,4 +218,9 @@ static class RegexPatterns
     /// 空格 @" "
     /// </summary>
     public const string BlankSpace = @" ";
+
+    /// <summary>
+    /// 空格字符 ' '
+    /// </summary>
+    public const char BlankSpaceChar = ' ';
 }

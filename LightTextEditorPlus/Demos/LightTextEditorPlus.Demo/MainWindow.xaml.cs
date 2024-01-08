@@ -12,6 +12,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+
+using LightTextEditorPlus.Core.Events;
+using LightTextEditorPlus.Utils;
+
 using Microsoft.Win32;
 
 namespace LightTextEditorPlus.Demo
@@ -24,11 +28,99 @@ namespace LightTextEditorPlus.Demo
         public MainWindow()
         {
             InitializeComponent();
+
+            TextEditor.TextEditorCore.AppendText("123123123123123123123123123123123123123\r\n1231231231231231231231231231");
+            TextEditor.TextEditorCore.DocumentManager.SetParagraphProperty(0, TextEditor.TextEditorCore.DocumentManager.GetParagraphProperty(0) with
+            {
+                LeftIndentation = 5
+            });
         }
 
-        private void InputButton_OnClick(object sender, RoutedEventArgs e)
+        //private void InputButton_OnClick(object sender, RoutedEventArgs e)
+        //{
+        //    TextEditor.TextEditorCore.EditAndReplace(TextBox.Text);
+        //}
+
+        private async void DebugButton_OnClick(object sender, RoutedEventArgs e)
         {
-            TextEditor.TextEditorCore.AppendText(TextBox.Text);
+#pragma warning disable CS0618
+            TextEditor.TextEditorCore.Clear();
+
+            // 给调试使用的按钮，可以在这里编写调试代码
+            var count = 0;
+            while (count >= 0)
+            {
+                for (int i = 0; i < 100; i++)
+                {
+                    TextEditor.TextEditorCore.AppendText(((char) Random.Shared.Next('a', 'z')).ToString());
+                    await Task.Delay(10);
+                }
+
+                TextEditor.TextEditorCore.AppendText("\r\n");
+                await Task.Delay(10);
+
+                count++;
+
+                if (count == 10)
+                {
+                    TextEditor.TextEditorCore.Clear();
+
+                    count = 0;
+                }
+            }
+#pragma warning restore CS0618
+        }
+
+        //private void BackspaceButton_OnClick(object sender, RoutedEventArgs e)
+        //{
+        //    TextEditor.TextEditorCore.Backspace();
+        //}
+
+        private void ShowDocumentBoundsButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            TextEditor.TextEditorCore.LayoutCompleted -= TextEditorCore_LayoutCompleted;
+            RemoveDocumentBoundsDebugBorder();
+
+            if (ShowDocumentBoundsButton.IsChecked is true)
+            {
+                TextEditor.TextEditorCore.LayoutCompleted += TextEditorCore_LayoutCompleted;
+                ShowDocumentBoundsDebugBorder();
+            }
+
+            // ReSharper disable once InconsistentNaming
+            void TextEditorCore_LayoutCompleted(object? _, LayoutCompletedEventArgs __)
+            {
+                RemoveDocumentBoundsDebugBorder();
+                ShowDocumentBoundsDebugBorder();
+            }
+
+            void ShowDocumentBoundsDebugBorder()
+            {
+                var documentLayoutBounds = TextEditor.TextEditorCore.GetDocumentLayoutBounds();
+                var documentBoundsDebugBorder = new DocumentBoundsDebugBorder()
+                {
+                    Width = documentLayoutBounds.Width,
+                    Height = documentLayoutBounds.Height,
+
+                    BorderThickness = new Thickness(2),
+                    BorderBrush = Brushes.Cyan,
+                };
+
+                DebugCanvas.Children.Add(documentBoundsDebugBorder);
+            }
+
+            void RemoveDocumentBoundsDebugBorder()
+            {
+                var documentBoundsDebugBorder = DebugCanvas.Children.OfType<DocumentBoundsDebugBorder>().FirstOrDefault();
+                if (documentBoundsDebugBorder != null)
+                {
+                    DebugCanvas.Children.Remove(documentBoundsDebugBorder);
+                }
+            }
         }
     }
+}
+
+class DocumentBoundsDebugBorder : Border
+{
 }
