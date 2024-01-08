@@ -18,13 +18,11 @@ var builder = Kernel.CreateBuilder();
 builder.Services.AddLogging(c => c.AddSimpleConsole());
 builder.Services.AddSingleton<HttpClient>(c => new FooHttpClient());
 builder.Plugins.AddFromType<LightPlugin>();
-builder.AddAzureOpenAIChatCompletion("GPT4", endpoint, "Key");
+builder.AddAzureOpenAIChatCompletion("GPT4", endpoint, apiKey);
 
 var kernel = builder.Build();
 var logger = kernel.LoggerFactory.CreateLogger("Foo");
 logger.LogInformation($"Hello Test");
-
-var requiredService = kernel.GetRequiredService<HttpClient>();
 
 // Create chat history
 ChatHistory history = new ChatHistory();
@@ -66,11 +64,13 @@ public class FooHttpClient:HttpClient
 {
     public override HttpResponseMessage Send(HttpRequestMessage request, CancellationToken cancellationToken)
     {
+        Console.WriteLine($"xxx");
         return base.Send(request, cancellationToken);
     }
 
     public override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
+        Console.WriteLine($"xxx");
         return base.SendAsync(request, cancellationToken);
     }
 }
