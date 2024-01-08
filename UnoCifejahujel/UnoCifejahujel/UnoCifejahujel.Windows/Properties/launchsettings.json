@@ -1,0 +1,10 @@
+{
+	"profiles": {
+		"UnoCifejahujel.Windows (Unpackaged)": {
+			"commandName": "Project"
+		},
+		"UnoCifejahujel.Windows (Package)": {
+			"commandName": "MsixPackage"
+		}
+	}
+}
