@@ -14,5 +14,6 @@
         </TransformGroup>
       </TextBlock.RenderTransform>
     </TextBlock>
+    <Button Canvas.Top="100" Canvas.Left="100" Click="Button_OnClick">X</Button>
   </Canvas>
 </Page>
