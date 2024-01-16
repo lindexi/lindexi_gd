@@ -3,11 +3,13 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:LacebayjeejiBehebilawla"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-  <StackPanel
-        HorizontalAlignment="Center"
-        VerticalAlignment="Center">
+  <Canvas Background="Transparent" PointerMoved="Canvas_OnPointerMoved">
     <TextBlock AutomationProperties.AutomationId="HelloTextBlock"
           Text="Hello Uno Platform"
-          HorizontalAlignment="Center" />
-  </StackPanel>
+          HorizontalAlignment="Center">
+      <TextBlock.RenderTransform>
+        <TranslateTransform x:Name="HelloTextBlockTransform" />
+      </TextBlock.RenderTransform>
+    </TextBlock>
+  </Canvas>
 </Page>
