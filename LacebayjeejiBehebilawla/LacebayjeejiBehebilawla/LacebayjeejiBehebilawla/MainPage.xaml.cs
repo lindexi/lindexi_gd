@@ -15,4 +15,11 @@ public sealed partial class MainPage : Page
         HelloTextBlockTransform.X = currentPoint.Position.X;
         HelloTextBlockTransform.Y = currentPoint.Position.Y;
     }
+
+    private void Canvas_OnPointerWheelChanged(object sender, PointerRoutedEventArgs e)
+    {
+        var mouseWheelDelta = e.GetCurrentPoint(this).Properties.MouseWheelDelta;
+        HelloTextBlockScale.ScaleX += mouseWheelDelta / 100.0;
+        HelloTextBlockScale.ScaleY += mouseWheelDelta / 100.0;
+    }
 }
