@@ -28,10 +28,12 @@ if (args.Length == 0 || args[0] == "Merge" || args[0] == "Checkout")
     RunCommand($"git merge {currentCommit}", workingDirectory);
     RunCommand($"git push", workingDirectory);
 
-    if (args[0] == "Checkout")
+    if (args.Length > 0 && args[0] == "Checkout")
     {
         git.Checkout("origin/empty");
     }
+
+    Thread.Sleep(1000);
 }
 else
 {
