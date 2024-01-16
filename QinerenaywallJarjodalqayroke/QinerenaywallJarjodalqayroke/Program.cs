@@ -1,8 +1,9 @@
 ﻿using System.Diagnostics;
 using System.Text;
+
 using Lindexi.Src.GitCommand;
 
-if (args.Length == 0 || args[0] == "Merge")
+if (args.Length == 0 || args[0] == "Merge" || args[0] == "Checkout")
 {
     var slnFolder = FindSlnFolder(AppContext.BaseDirectory);
 
@@ -16,15 +17,37 @@ if (args.Length == 0 || args[0] == "Merge")
 
     var git = new Git(rootFolder);
 
+    RunCommand($"git add .", git.Repo.FullName);
+    RunCommand($"git commit -m \"{DateTime.Now}\"", git.Repo.FullName);
+
     // 找到当前的 commit 号
     var currentCommit = git.GetCurrentCommit();
 
+    var workingDirectory = Path.Join(rootFolder.Parent!.FullName, "lindexi");
+
+    RunCommand($"git merge {currentCommit}", workingDirectory);
+    RunCommand($"git push", workingDirectory);
+
+    if (args[0] == "Checkout")
+    {
+        git.Checkout("origin/empty");
+    }
+}
+else
+{
+
+}
+
+return;
+
+static void RunCommand(string cmdCommand, string workingDirectory)
+{
     using Process p = new Process
     {
         StartInfo =
         {
             FileName = "cmd.exe",
-            WorkingDirectory = Path.Join(rootFolder.Parent!.FullName, "lindexi"),
+            WorkingDirectory = workingDirectory,
             UseShellExecute = false, //是否使用操作系统shell启动
             RedirectStandardInput = true, //接受来自调用程序的输入信息
             RedirectStandardOutput = true, //由调用程序获取输出信息
@@ -38,7 +61,7 @@ if (args.Length == 0 || args[0] == "Merge")
     p.Start(); //启动程序
 
     //向cmd窗口发送输入信息
-    p.StandardInput.WriteLine($"git merge {currentCommit}" + "&exit");
+    p.StandardInput.WriteLine(cmdCommand + "&exit");
 
     p.StandardInput.AutoFlush = true;
 
@@ -46,14 +69,11 @@ if (args.Length == 0 || args[0] == "Merge")
     string output = p.StandardOutput.ReadToEnd();
     output += p.StandardError.ReadToEnd();
     p.WaitForExit(); //等待程序执行完退出进程
+
     Console.WriteLine(output);
 }
-else
-{
 
-}
-
-DirectoryInfo? FindSlnFolder(string folder)
+static DirectoryInfo? FindSlnFolder(string folder)
 {
     DirectoryInfo? currentFolder = new DirectoryInfo(folder);
     while (currentFolder != null)
