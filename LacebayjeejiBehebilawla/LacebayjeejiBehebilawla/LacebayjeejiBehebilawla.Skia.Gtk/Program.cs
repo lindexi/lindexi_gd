@@ -14,7 +14,7 @@ public class Program
             Console.WriteLine("GLIB UNHANDLED EXCEPTION" + expArgs.ExceptionObject.ToString());
             expArgs.ExitApplication = true;
         };
-
+        
         var host = new GtkHost(() => new AppHead());
 
         host.Run();

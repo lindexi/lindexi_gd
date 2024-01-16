@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>$(DotNetVersion)</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Uno.WinUI.Skia.Gtk" />
+    <PackageReference Include="SkiaSharp.Views.Uno.WinUI" />
+    <PackageReference Include="SkiaSharp.Skottie" />
+
+    <PackageReference Include="Uno.WinUI" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+  </ItemGroup>
+</Project>
