@@ -57,7 +57,7 @@ public class App : Application
 
 public interface IWindowActivator
 {
-    void Resize(Window window, Size size);
+    void ResizeMainWindow(Size size);
 }
 
 public static class WindowHelper

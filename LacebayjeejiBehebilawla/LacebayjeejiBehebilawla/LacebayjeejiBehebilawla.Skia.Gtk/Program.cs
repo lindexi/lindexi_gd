@@ -16,18 +16,26 @@ public class Program
             expArgs.ExitApplication = true;
         };
 
-        WindowHelper.WindowActivator = new WindowActivator();
+        var windowActivator = new WindowActivator();
+        WindowHelper.WindowActivator = windowActivator;
 
-        var host = new GtkHost(() => new AppHead());
-
+        var host = new GtkHost(() =>
+        {
+            var app = new AppHead();
+            return app;
+        });
+        windowActivator.GtkHost = host;
         host.Run();
     }
 
     class WindowActivator : IWindowActivator
     {
-        public void Resize(Window window, Size size)
+        public GtkHost GtkHost { get; set; } = null!;
+
+        public void ResizeMainWindow(Size size)
         {
-            var nativeWindow = (global::Gtk.Window) window.GetNativeWindow();
+            var nativeWindow = GtkHost.Window;
+
             nativeWindow.Resize((int) size.Width, (int) size.Height);
         }
     }
