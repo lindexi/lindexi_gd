@@ -8,9 +8,10 @@ using Microsoft.UI.Xaml;
 
 namespace SamplesApp;
 
-internal class Foo
+public static class UnoHelper
 {
-    public void Fx(Window window)
+    public static object GetNativeWindow(this Window window)
     {
+        return window.NativeWindow;
     }
 }
