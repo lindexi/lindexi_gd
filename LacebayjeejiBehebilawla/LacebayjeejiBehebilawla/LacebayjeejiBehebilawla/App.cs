@@ -1,3 +1,5 @@
+using Windows.Foundation;
+
 namespace LacebayjeejiBehebilawla;
 
 public class App : Application
@@ -51,4 +53,14 @@ public class App : Application
     {
         throw new InvalidOperationException($"Failed to load {e.SourcePageType.FullName}: {e.Exception}");
     }
+}
+
+public interface IWindowActivator
+{
+    void Resize(Window window, Size size);
+}
+
+public static class WindowHelper
+{
+    public static IWindowActivator WindowActivator { get; set; } = null!;
 }

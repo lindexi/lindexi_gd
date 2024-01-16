@@ -32,6 +32,7 @@ public sealed partial class MainPage : Page
         currentView.Title = Random.Shared.Next().ToString();
 
         // 此方法重新设置窗口的大小是无效的
-        currentView.SetPreferredMinSize(new Size(Random.Shared.Next(1000), Random.Shared.Next(1000)));
+        var size = new Size(Random.Shared.Next(1000), Random.Shared.Next(1000));
+        WindowHelper.WindowActivator.Resize(Window.Current, size);
     }
 }
