@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>UnoLibrary2</RootNamespace>
+    <AssemblyName>UnoLibrary2</AssemblyName>
+    <UnoRuntimeIdentifier>skia</UnoRuntimeIdentifier>
+    <DefineConstants>$(DefineConstants);WINUI;__SKIA__</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Uno.WinUI" Version="5.0.48" />
+  </ItemGroup>
+</Project>
