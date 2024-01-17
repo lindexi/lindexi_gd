@@ -57,6 +57,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Lib\SamplesApp\SamplesApp.csproj" />
+    <ProjectReference Include="..\..\UnoLibrary1\UnoLibrary1.csproj" />
   </ItemGroup>
 </Project>
