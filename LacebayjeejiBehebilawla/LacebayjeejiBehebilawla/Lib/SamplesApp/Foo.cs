@@ -12,6 +12,10 @@ public static class UnoHelper
 {
     public static object GetNativeWindow(this Window window)
     {
+#if WINDOWS10_0_19041_0_OR_GREATER
+        return window;
+#else
         return window.NativeWindow;
+#endif
     }
 }
