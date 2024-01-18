@@ -1,0 +1,10 @@
+{
+	"profiles": {
+		"KefalurcilaybelJallbuderenajel.Windows (Unpackaged)": {
+			"commandName": "Project"
+		},
+		"KefalurcilaybelJallbuderenajel.Windows (Package)": {
+			"commandName": "MsixPackage"
+		}
+	}
+}
