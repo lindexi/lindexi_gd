@@ -33,7 +33,15 @@ if (args.Length == 0 || args[0] == "Merge" || args[0] == "Checkout")
         git.Checkout("origin/empty");
     }
 
-    Thread.Sleep(1000);
+    Console.WriteLine();
+    Console.WriteLine($"当前 Commit：{currentCommit}");
+
+    Task.Run(async () =>
+    {
+        await Task.Delay(TimeSpan.FromMinutes(1));
+        Environment.Exit(0);
+    });
+    Console.Read();
 }
 else
 {
