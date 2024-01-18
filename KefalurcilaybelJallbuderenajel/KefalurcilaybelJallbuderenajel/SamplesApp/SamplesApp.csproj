@@ -2,6 +2,10 @@
   <PropertyGroup>
     <TargetFrameworks>net8.0</TargetFrameworks>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Graphics" />
+    <PackageReference Include="Microsoft.Maui.Graphics.Skia" />
+  </ItemGroup>
   
   <ItemGroup>
     <Reference Include="SkiaSharp">

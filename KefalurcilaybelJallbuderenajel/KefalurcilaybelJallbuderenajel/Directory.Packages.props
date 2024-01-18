@@ -1,6 +1,8 @@
 ﻿<Project ToolsVersion="15.0">
   <ItemGroup>
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Maui.Graphics" Version="8.0.6" />
+    <PackageVersion Include="Microsoft.Maui.Graphics.Skia" Version="8.0.6" />
     <PackageVersion Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22621.756" />
     <PackageVersion Include="Microsoft.WindowsAppSDK" Version="1.4.231008000" />
     <PackageVersion Include="SkiaSharp.Skottie" Version="2.88.7" />

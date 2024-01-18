@@ -17,6 +17,7 @@
     <PackageReference Include="SkiaSharp.Skottie" />
     <PackageReference Include="Uno.WinUI.DevServer" Condition="'$(Configuration)'=='Debug'" />
     <PackageReference Include="Uno.UI.Adapter.Microsoft.Extensions.Logging" />
+    <PackageReference Include="Microsoft.Maui.Graphics.Skia" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\KefalurcilaybelJallbuderenajel\KefalurcilaybelJallbuderenajel.csproj" />

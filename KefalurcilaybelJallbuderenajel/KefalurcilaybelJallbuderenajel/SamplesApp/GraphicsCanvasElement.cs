@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Windows.Foundation;
+using Microsoft.Maui.Graphics.Skia;
 using Microsoft.UI;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Input;
 using SkiaSharp;
 using Uno.UI.Composition;
+using Microsoft.Maui.Graphics;
 
 namespace SamplesApp;
 
@@ -17,6 +19,13 @@ public class GraphicsCanvasElement : FrameworkElement
     public GraphicsCanvasElement()
     {
         Visual.Children.InsertAtBottom(new GraphicsCanvasVisual(Visual.Compositor, this));
+    }
+
+    public event EventHandler<ICanvas>? Draw;
+
+    internal void InvokeDraw(ICanvas canvas)
+    {
+        Draw?.Invoke(this, canvas);
     }
 
     class GraphicsCanvasVisual : Visual
@@ -32,13 +41,9 @@ public class GraphicsCanvasElement : FrameworkElement
         {
             if (_owner.TryGetTarget(out var graphicsCanvasElement))
             {
-                var canvas = session.Surface.Canvas;
-                canvas.DrawRect(0, 0, 100, 100, new SKPaint()
-                {
-                    Color = new SKColor(0xF1, 0x56, 0x56, 0xFF),
-                    IsStroke = true,
-                    StrokeWidth = 1,
-                });
+                using var skiaCanvas = new SkiaCanvas();
+                skiaCanvas.Canvas = session.Surface.Canvas;
+                graphicsCanvasElement.InvokeDraw(skiaCanvas);
             }
         }
     }

@@ -28,6 +28,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SamplesApp", "KefalurcilaybelJallbuderenajel\SamplesApp\SamplesApp.csproj", "{F48FF10C-BA84-40C2-9405-254DF90E962C}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Maui.Graphics.UnoAbstract", "KefalurcilaybelJallbuderenajel\Microsoft.Maui.Graphics.UnoAbstract\Microsoft.Maui.Graphics.UnoAbstract.csproj", "{E10D2E6D-7157-49D5-85DD-D7D55E08852F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -144,6 +146,22 @@ Global
 		{F48FF10C-BA84-40C2-9405-254DF90E962C}.Release|x64.Build.0 = Release|Any CPU
 		{F48FF10C-BA84-40C2-9405-254DF90E962C}.Release|x86.ActiveCfg = Release|Any CPU
 		{F48FF10C-BA84-40C2-9405-254DF90E962C}.Release|x86.Build.0 = Release|Any CPU
+		{E10D2E6D-7157-49D5-85DD-D7D55E08852F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E10D2E6D-7157-49D5-85DD-D7D55E08852F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E10D2E6D-7157-49D5-85DD-D7D55E08852F}.Debug|arm64.ActiveCfg = Debug|Any CPU
+		{E10D2E6D-7157-49D5-85DD-D7D55E08852F}.Debug|arm64.Build.0 = Debug|Any CPU
+		{E10D2E6D-7157-49D5-85DD-D7D55E08852F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E10D2E6D-7157-49D5-85DD-D7D55E08852F}.Debug|x64.Build.0 = Debug|Any CPU
+		{E10D2E6D-7157-49D5-85DD-D7D55E08852F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E10D2E6D-7157-49D5-85DD-D7D55E08852F}.Debug|x86.Build.0 = Debug|Any CPU
+		{E10D2E6D-7157-49D5-85DD-D7D55E08852F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E10D2E6D-7157-49D5-85DD-D7D55E08852F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E10D2E6D-7157-49D5-85DD-D7D55E08852F}.Release|arm64.ActiveCfg = Release|Any CPU
+		{E10D2E6D-7157-49D5-85DD-D7D55E08852F}.Release|arm64.Build.0 = Release|Any CPU
+		{E10D2E6D-7157-49D5-85DD-D7D55E08852F}.Release|x64.ActiveCfg = Release|Any CPU
+		{E10D2E6D-7157-49D5-85DD-D7D55E08852F}.Release|x64.Build.0 = Release|Any CPU
+		{E10D2E6D-7157-49D5-85DD-D7D55E08852F}.Release|x86.ActiveCfg = Release|Any CPU
+		{E10D2E6D-7157-49D5-85DD-D7D55E08852F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -156,6 +174,7 @@ Global
 		{925EC5D6-48F5-4478-AC0B-F0480EA42146} = {9FA3C93B-E0D0-475D-B65E-CD65987B81A1}
 		{515FCB6A-C5FE-40AE-90EE-235ED45D8B51} = {9FA3C93B-E0D0-475D-B65E-CD65987B81A1}
 		{F48FF10C-BA84-40C2-9405-254DF90E962C} = {EC5677AD-1FE3-4096-9237-5891B9F18FA9}
+		{E10D2E6D-7157-49D5-85DD-D7D55E08852F} = {EC5677AD-1FE3-4096-9237-5891B9F18FA9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B410F6AC-862B-47CE-B1F2-FC30B7CAD6F2}

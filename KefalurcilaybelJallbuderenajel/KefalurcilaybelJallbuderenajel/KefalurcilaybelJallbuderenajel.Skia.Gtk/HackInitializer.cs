@@ -1,3 +1,5 @@
+using Microsoft.Maui.Graphics.UnoAbstract;
+
 namespace KefalurcilaybelJallbuderenajel.Skia.Gtk;
 
 static class HackInitializer
