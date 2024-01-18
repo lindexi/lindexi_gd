@@ -34,7 +34,7 @@ if (args.Length == 0 || args[0] == "Merge" || args[0] == "Checkout")
     }
 
     Console.WriteLine();
-    Console.WriteLine($"当前 Commit：{currentCommit}");
+    Console.WriteLine($"当前 Commit： {currentCommit}");
 
     Task.Run(async () =>
     {
