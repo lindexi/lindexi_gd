@@ -1,5 +1,7 @@
 using System;
 
+using KefalurcilaybelJallbuderenajel.Hacking;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 
@@ -17,6 +19,8 @@ public sealed partial class AppHead : App
     /// </summary>
     public AppHead()
     {
+        HackInitializer.Init();
+
         this.InitializeComponent();
     }
 
