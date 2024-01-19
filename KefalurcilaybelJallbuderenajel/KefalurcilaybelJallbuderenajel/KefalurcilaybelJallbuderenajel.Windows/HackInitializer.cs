@@ -1,4 +1,3 @@
-using KefalurcilaybelJallbuderenajel.Skia.Gtk;
 using Microsoft.Maui.Graphics.UnoAbstract;
 
 namespace KefalurcilaybelJallbuderenajel.Hacking;

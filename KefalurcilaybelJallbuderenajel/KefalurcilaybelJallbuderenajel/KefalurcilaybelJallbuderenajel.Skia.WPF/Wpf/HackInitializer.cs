@@ -1,6 +1,7 @@
+using KefalurcilaybelJallbuderenajel.WPF;
 using Microsoft.Maui.Graphics.UnoAbstract;
 
-namespace KefalurcilaybelJallbuderenajel.WPF;
+namespace KefalurcilaybelJallbuderenajel.Hacking;
 
 static class HackInitializer
 {
