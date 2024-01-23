@@ -6,7 +6,7 @@ var filePath = "../../Documents";
 
 Console.WriteLine($"文件夹存在 {Directory.Exists(filePath)}");
 
-Process.Start(new ProcessStartInfo(filePath)
+Process.Start(new ProcessStartInfo("xdg-open", new []{ filePath })
 {
-    UseShellExecute = true
+    UseShellExecute = false
 });
