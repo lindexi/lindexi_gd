@@ -2,11 +2,7 @@
 
 using System.Diagnostics;
 
-var filePath = "../Test.txt";
-
-Console.WriteLine($"文件夹存在 {Directory.Exists(filePath)}");
-
-Process.Start(new ProcessStartInfo("xdg-open", new []{ filePath })
+Process.Start(new ProcessStartInfo("http://www.baidu.com")
 {
-    UseShellExecute = false
+    UseShellExecute = true
 });
