@@ -2,7 +2,7 @@
 
 using System.Diagnostics;
 
-Process.Start(new ProcessStartInfo("http://www.baidu.com")
+Process.Start(new ProcessStartInfo("xdg-open", new[] { "http://blog.lindexi.com" })
 {
-    UseShellExecute = true
+    UseShellExecute = false
 });
