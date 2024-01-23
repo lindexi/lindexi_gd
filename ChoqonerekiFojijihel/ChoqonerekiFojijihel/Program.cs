@@ -2,9 +2,9 @@
 
 using System.Diagnostics;
 
-var filePath = "../Test.txt";
+var filePath = "../../Documents";
 
-Console.WriteLine($"文件存在 {File.Exists(filePath)}");
+Console.WriteLine($"文件夹存在 {Directory.Exists(filePath)}");
 
 Process.Start(new ProcessStartInfo(filePath)
 {
