@@ -2,7 +2,7 @@
 
 using System.Diagnostics;
 
-var filePath = "../../Documents";
+var filePath = "../Test.txt";
 
 Console.WriteLine($"文件夹存在 {Directory.Exists(filePath)}");
 
