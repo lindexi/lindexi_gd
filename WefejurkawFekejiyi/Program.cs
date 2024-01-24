@@ -10,6 +10,7 @@ using Thm15 = DocumentFormat.OpenXml.Office2013.Theme;
 using System.Diagnostics;
 using System.Drawing;
 using System;
+using System.Xml;
 using TagList = DocumentFormat.OpenXml.Presentation.TagList;
 
 namespace GeneratedCode
@@ -37,6 +38,11 @@ namespace GeneratedCode
             if (document.CoreFilePropertiesPart is null)
             {
                 document.AddCoreFilePropertiesPart();
+                using (XmlTextWriter writer = new XmlTextWriter(document.CoreFilePropertiesPart.GetStream(FileMode.Create), System.Text.Encoding.UTF8))
+                {
+                    writer.WriteRaw("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<cp:coreProperties xmlns:cp=\"https://schemas.openxmlformats.org/package/2006/metadata/core-properties\"></cp:coreProperties>");
+                    writer.Flush();
+                }
             }
 
             CreateParts(package);
