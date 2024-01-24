@@ -37,17 +37,13 @@ namespace GeneratedCode
 
             if (document.CoreFilePropertiesPart is null)
             {
+                document.PackageProperties.Creator = "xxxxx"; // 随意
                 document.AddCoreFilePropertiesPart();
-                using (XmlTextWriter writer = new XmlTextWriter(document.CoreFilePropertiesPart.GetStream(FileMode.Create), System.Text.Encoding.UTF8))
-                {
-                    writer.WriteRaw("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<cp:coreProperties xmlns:cp=\"https://schemas.openxmlformats.org/package/2006/metadata/core-properties\"></cp:coreProperties>");
-                    writer.Flush();
-                }
             }
 
             CreateParts(package);
 
-        
+
 
             var coreFilePropertiesPart = document.CoreFilePropertiesPart;
         }
@@ -8089,7 +8085,7 @@ namespace GeneratedCode
 
         private void SetPackageProperties(OpenXmlPackage document)
         {
-           
+
             document.PackageProperties.Creator = "ASUS";
             document.PackageProperties.Title = "第一单元  从中华文明起源到秦汉大一统封建国家的建立与巩固 ";
             document.PackageProperties.Revision = "2556";
