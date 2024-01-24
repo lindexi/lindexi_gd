@@ -1,0 +1,10 @@
+{
+	"profiles": {
+		"WifaberfearnairWherneyeaquqaki.Windows (Unpackaged)": {
+			"commandName": "Project"
+		},
+		"WifaberfearnairWherneyeaquqaki.Windows (Package)": {
+			"commandName": "MsixPackage"
+		}
+	}
+}

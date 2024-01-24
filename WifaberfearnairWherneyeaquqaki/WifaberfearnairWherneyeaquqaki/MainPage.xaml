@@ -1,0 +1,29 @@
+﻿<Page x:Class="WifaberfearnairWherneyeaquqaki.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:WifaberfearnairWherneyeaquqaki"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:maui="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:not_maui="http://notmaui"
+      mc:Ignorable="d not_maui"
+      xmlns:controls="using:WifaberfearnairWherneyeaquqaki.MauiControls"
+      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+  <StackPanel
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center">
+    <TextBlock AutomationProperties.AutomationId="HelloTextBlock"
+          Text="Hello Uno Platform"
+          HorizontalAlignment="Center" />
+    <maui:Grid>
+      <embed:MauiHost x:Name="MauiHostElement"
+              xmlns:embed="using:Uno.Extensions.Maui"
+              Source="controls:EmbeddedControl" />
+    </maui:Grid>
+    <not_maui:Grid>
+      <TextBlock AutomationProperties.AutomationId="NotMauiTextBlock"
+           Text="Alternative content for Non-Maui targets"
+           HorizontalAlignment="Center" />
+    </not_maui:Grid>
+  </StackPanel>
+</Page>
