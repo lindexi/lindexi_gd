@@ -1,0 +1,10 @@
+{
+	"profiles": {
+		"Laicairqechear.Windows (Unpackaged)": {
+			"commandName": "Project"
+		},
+		"Laicairqechear.Windows (Package)": {
+			"commandName": "MsixPackage"
+		}
+	}
+}
