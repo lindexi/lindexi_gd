@@ -5,7 +5,7 @@
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
   <Grid>
-    <Border Canvas.ZIndex="2" Background="Red" Width="100" Height="100" HorizontalAlignment="Center" VerticalAlignment="Center"></Border>
+    <Border x:Name="Border" Background="Red" Width="100" Height="100" HorizontalAlignment="Center" VerticalAlignment="Center"></Border>
     <Border Background="Black"></Border>
   </Grid>
 </Page>
