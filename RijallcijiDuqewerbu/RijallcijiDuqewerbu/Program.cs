@@ -2,9 +2,11 @@
 Console.WriteLine("Hello, World!");
 
 var taskList = new List<Task>();
-var mutex = new Mutex(false);
 var locker = new object();
-mutex.WaitOne();
+
+ThreadPool.SetMinThreads(100, 100);
+ThreadPool.SetMaxThreads(100,100);
+var semaphore = new SemaphoreSlim(0, 1);
 
 var autoResetEvent = new AutoResetEvent(false);
 
@@ -15,18 +17,19 @@ for (int i = 0; i < 100; i++)
     {
         autoResetEvent.Set();
 
-        mutex.WaitOne();
+        semaphore.Wait();
 
         lock (locker)
         {
             Console.WriteLine(n);
         }
 
-        mutex.ReleaseMutex();
+        semaphore.Release();
     }));
 
     autoResetEvent.WaitOne();
 }
 
-mutex.ReleaseMutex();
+semaphore.Release();
+
 Task.WaitAll(taskList.ToArray());
