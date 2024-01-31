@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType Condition="'$(Configuration)'=='Release'">WinExe</OutputType>
+    <OutputType Condition="'$(Configuration)'=='Debug'">Exe</OutputType>
+    <TargetFramework>$(DotNetVersion)</TargetFramework>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Package.appxmanifest" />
+    <Manifest Include="$(ApplicationManifest)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Uno.Resizetizer" Version="1.2.1" />
+    <PackageReference Include="Uno.WinUI.Skia.Gtk" Version="5.1.31" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
+    <PackageReference Include="SkiaSharp.Views.Uno.WinUI" Version="2.88.7" />
+    <PackageReference Include="SkiaSharp.Skottie" Version="2.88.7" />
+    <PackageReference Include="Uno.WinUI.DevServer" Version="5.1.31" Condition="'$(Configuration)'=='Debug'" />
+    <PackageReference Include="Uno.UI.Adapter.Microsoft.Extensions.Logging" Version="5.1.31" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\JawwhurbujaJawcucalnawhoni\JawwhurbujaJawcucalnawhoni.csproj" />
+  </ItemGroup>
+  <Import Project="..\JawwhurbujaJawcucalnawhoni.Shared\base.props" />
+
+  <Target Name="ValidateOverrides" BeforeTargets="Restore;_CheckForUnsupportedTargetFramework" Condition="'$(OverrideTargetFramework)' != ''">
+    <Error
+        Text="OverrideTargetFramework set to '$(OverrideTargetFramework)' is invalid. Set OverrideTargetFramework to $([MSBuild]::Escape('$'))(DotNetVersion) or skip building this project (eg unload the project in Visual Studio)"
+        Condition="'$(OverrideTargetFramework)'!='$(DotNetVersion)'" />
+  </Target>
+</Project>
