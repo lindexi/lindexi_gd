@@ -1,0 +1,10 @@
+{
+	"profiles": {
+		"JawwhurbujaJawcucalnawhoni.Windows (Unpackaged)": {
+			"commandName": "Project"
+		},
+		"JawwhurbujaJawcucalnawhoni.Windows (Package)": {
+			"commandName": "MsixPackage"
+		}
+	}
+}
