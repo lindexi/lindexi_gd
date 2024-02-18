@@ -250,7 +250,7 @@ unsafe
         Task.Factory.StartNew(() =>
         {
             var ellipseInfoList = new List<DrawingInfo>();
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 3000; i++)
             {
                 // 随意创建颜色
                 var color = new Color4((byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255));
