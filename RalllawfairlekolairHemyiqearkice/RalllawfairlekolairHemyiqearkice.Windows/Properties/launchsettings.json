@@ -1,0 +1,10 @@
+{
+	"profiles": {
+		"RalllawfairlekolairHemyiqearkice.Windows (Unpackaged)": {
+			"commandName": "Project"
+		},
+		"RalllawfairlekolairHemyiqearkice.Windows (Package)": {
+			"commandName": "MsixPackage"
+		}
+	}
+}
