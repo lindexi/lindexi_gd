@@ -1,4 +1,6 @@
 using System;
+using System.Runtime.InteropServices;
+using System.Runtime.Loader;
 
 using GLib;
 
@@ -9,6 +11,18 @@ public class Program
 {
     public static void Main(string[] args)
     {
+        AssemblyLoadContext.Default.ResolvingUnmanagedDll += (assembly, s) =>
+        {
+            if (s is "libSkiaSharp" or "libHarfBuzzSharp.dll")
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+
+                }
+            }
+            return IntPtr.Zero;
+        };
+
         ExceptionManager.UnhandledException += delegate (UnhandledExceptionArgs expArgs)
         {
             Console.WriteLine("GLIB UNHANDLED EXCEPTION" + expArgs.ExceptionObject.ToString());
@@ -19,4 +33,6 @@ public class Program
 
         host.Run();
     }
+
+
 }
