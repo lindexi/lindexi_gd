@@ -28,10 +28,4 @@
         Text="OverrideTargetFramework set to '$(OverrideTargetFramework)' is invalid. Set OverrideTargetFramework to $([MSBuild]::Escape('$'))(DotNetVersion) or skip building this project (eg unload the project in Visual Studio)"
         Condition="'$(OverrideTargetFramework)'!='$(DotNetVersion)'" />
   </Target>
-
-  <ItemGroup>
-    <TrimmerRootAssembly Include="RalllawfairlekolairHemyiqearkice.Skia.Gtk" />
-    <TrimmerRootAssembly Include="GtkSharp" />
-    <TrimmerRootAssembly Include="GdkSharp" />
-  </ItemGroup>
 </Project>
