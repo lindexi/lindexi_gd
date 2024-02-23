@@ -4,8 +4,9 @@
       xmlns:local="using:RalllawfairlekolairHemyiqearkice"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-  <Canvas Background="White" PointerMoved="Canvas_OnPointerMoved">
-    <Rectangle x:Name="Rectangle" Margin="100" Width="500" Height="500" Fill="Red" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+  <Grid Background="White" PointerMoved="Canvas_OnPointerMoved">
+    <Rectangle x:Name="Rectangle" Margin="100" Width="500" Height="500" Fill="Red" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
     <!--<local:CornerRadiusRectangleEraserView x:Name="CornerRadiusRectangleEraserView" />-->
-  </Canvas>
+    <ToggleButton x:Name="FullScreenButton" HorizontalAlignment="Center" VerticalAlignment="Center" Click="FullScreenButton_OnClick">全屏</ToggleButton>
+  </Grid>
 </Page>
