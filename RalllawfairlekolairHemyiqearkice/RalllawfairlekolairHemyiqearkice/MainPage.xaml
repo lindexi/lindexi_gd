@@ -5,6 +5,7 @@
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
   <Canvas Background="White" PointerMoved="Canvas_OnPointerMoved">
-    <local:CornerRadiusRectangleEraserView x:Name="CornerRadiusRectangleEraserView"/>
+    <Rectangle x:Name="Rectangle" Margin="100" Width="500" Height="500" Fill="Red" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    <!--<local:CornerRadiusRectangleEraserView x:Name="CornerRadiusRectangleEraserView" />-->
   </Canvas>
 </Page>
