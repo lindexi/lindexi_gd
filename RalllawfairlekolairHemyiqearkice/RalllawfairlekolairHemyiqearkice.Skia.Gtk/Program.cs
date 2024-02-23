@@ -16,7 +16,22 @@ public class Program
         };
 
         var host = new GtkHost(() => new AppHead());
-
+        PlatformHelper.PlatformProvider = new GtkPlatformProvider(host);
         host.Run();
+    }
+}
+
+public class GtkPlatformProvider : IPlatformProvider
+{
+    public GtkPlatformProvider(GtkHost gtkHost)
+    {
+        _gtkHost = gtkHost;
+    }
+
+    private readonly GtkHost _gtkHost;
+
+    public void EnterFullScreen()
+    {
+        _gtkHost.Window?.Fullscreen();
     }
 }
