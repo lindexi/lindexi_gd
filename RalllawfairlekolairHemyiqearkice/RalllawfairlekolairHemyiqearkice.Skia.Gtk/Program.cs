@@ -34,4 +34,9 @@ public class GtkPlatformProvider : IPlatformProvider
     {
         _gtkHost.Window?.Fullscreen();
     }
+
+    public void ExitFullScreen()
+    {
+        _gtkHost.Window?.Unfullscreen();
+    }
 }

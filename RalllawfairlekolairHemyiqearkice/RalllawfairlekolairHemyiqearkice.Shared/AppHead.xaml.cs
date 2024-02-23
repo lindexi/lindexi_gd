@@ -28,7 +28,7 @@ public sealed partial class AppHead : App
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         base.OnLaunched(args);
-
+        PlatformHelper.PlatformProvider = new PlatformProvider(MainWindow!);
         MainWindow.SetWindowIcon();
     }
 
