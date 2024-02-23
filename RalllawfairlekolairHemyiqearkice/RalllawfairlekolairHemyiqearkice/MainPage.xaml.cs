@@ -1,5 +1,6 @@
 using Windows.Foundation;
 using Windows.UI.Input;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 
 using Path = Microsoft.UI.Xaml.Shapes.Path;
@@ -22,10 +23,16 @@ public sealed partial class MainPage : Page
         //CornerRadiusRectangleEraserViewManager.MoveEraserVisual(new EraserTouchEventArgs(point.Position.X, point.Position.Y));
     }
 
-    private CornerRadiusRectangleEraserViewManager CornerRadiusRectangleEraserViewManager { get; }
-
     private void FullScreenButton_OnClick(object sender, RoutedEventArgs e)
     {
-        PlatformHelper.PlatformProvider?.EnterFullScreen();
+        var toggleButton = (ToggleButton) sender;
+        if (toggleButton.IsChecked is true)
+        {
+            PlatformHelper.PlatformProvider?.EnterFullScreen();
+        }
+        else
+        {
+            PlatformHelper.PlatformProvider?.ExitFullScreen();
+        }
     }
 }

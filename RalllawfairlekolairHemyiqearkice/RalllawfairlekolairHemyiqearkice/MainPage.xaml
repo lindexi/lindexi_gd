@@ -7,6 +7,6 @@
   <Grid Background="White" PointerMoved="Canvas_OnPointerMoved">
     <Rectangle x:Name="Rectangle" Margin="100" Width="500" Height="500" Fill="Red" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
     <!--<local:CornerRadiusRectangleEraserView x:Name="CornerRadiusRectangleEraserView" />-->
-    <Button x:Name="FullScreenButton" HorizontalAlignment="Center" VerticalAlignment="Center" Click="FullScreenButton_OnClick">全屏</Button>
+    <ToggleButton x:Name="FullScreenButton" HorizontalAlignment="Center" VerticalAlignment="Center" Click="FullScreenButton_OnClick">全屏</ToggleButton>
   </Grid>
 </Page>
