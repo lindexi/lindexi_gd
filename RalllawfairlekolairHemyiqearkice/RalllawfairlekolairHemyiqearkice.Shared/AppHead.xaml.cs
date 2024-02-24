@@ -28,7 +28,13 @@ public sealed partial class AppHead : App
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         base.OnLaunched(args);
+<<<<<<< HEAD
         PlatformHelper.PlatformProvider = new PlatformProvider(MainWindow!);
+=======
+#if !HAS_UNO_SKIA_GTK
+        PlatformHelper.PlatformProvider = new PlatformProvider(MainWindow!);
+#endif
+>>>>>>> ac8c87e52106e2274ead0832128c7a6196771424
         MainWindow.SetWindowIcon();
     }
 
