@@ -8,7 +8,7 @@ public partial class App : WpfApp
     public App()
     {
         var host = new WpfHost(Dispatcher, () => new AppHead());
-        
         host.Run();
+        PlatformHelper.PlatformProvider = new PlatformProvider(MainWindow!);
     }
 }

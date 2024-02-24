@@ -29,9 +29,13 @@ public sealed partial class AppHead : App
     {
         base.OnLaunched(args);
 <<<<<<< HEAD
+<<<<<<< HEAD
         PlatformHelper.PlatformProvider = new PlatformProvider(MainWindow!);
 =======
 #if !HAS_UNO_SKIA_GTK
+=======
+#if WINDOWS10_0_17763_0_OR_GREATER
+>>>>>>> 0b1371317210b0a5e000484d57ee3ae7fc844e24
         PlatformHelper.PlatformProvider = new PlatformProvider(MainWindow!);
 #endif
 >>>>>>> ac8c87e52106e2274ead0832128c7a6196771424
