@@ -30,7 +30,7 @@ if (args.Length == 0 || args[0] == "Merge" || args[0] == "Checkout")
 
     if (args.Length > 0 && args[0] == "Checkout")
     {
-        git.Checkout("origin/empty");
+        RunCommand($"git checkout origin/empty", git.Repo.FullName, showOutput: false);
     }
 
     Console.WriteLine();
@@ -50,7 +50,7 @@ else
 
 return;
 
-static void RunCommand(string cmdCommand, string workingDirectory)
+static void RunCommand(string cmdCommand, string workingDirectory, bool showOutput = true)
 {
     using Process p = new Process
     {
@@ -80,7 +80,10 @@ static void RunCommand(string cmdCommand, string workingDirectory)
     output += p.StandardError.ReadToEnd();
     p.WaitForExit(); //等待程序执行完退出进程
 
-    Console.WriteLine(output);
+    if (showOutput)
+    {
+        Console.WriteLine(output);
+    }
 }
 
 static DirectoryInfo? FindSlnFolder(string folder)
