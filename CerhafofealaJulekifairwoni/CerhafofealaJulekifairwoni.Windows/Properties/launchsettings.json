@@ -1,0 +1,10 @@
+{
+	"profiles": {
+		"CerhafofealaJulekifairwoni.Windows (Unpackaged)": {
+			"commandName": "Project"
+		},
+		"CerhafofealaJulekifairwoni.Windows (Package)": {
+			"commandName": "MsixPackage"
+		}
+	}
+}
