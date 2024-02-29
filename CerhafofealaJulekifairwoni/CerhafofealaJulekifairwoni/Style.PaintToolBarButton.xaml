@@ -1,9 +1,8 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:toolBars="using:Sia.Easi.PhotoShows.Paint.ToolBars"
-        xmlns:ui="using:Windows.UI">
+        xmlns:toolBars="using:Sia.Easi.PhotoShows.Paint.ToolBars">
 
-    <ui:Color x:Key="PaintToolBarButton.Color.Background">Red</ui:Color>
+    <Color x:Key="PaintToolBarButton.Color.Background">Red</Color>
 
     <SolidColorBrush x:Key="PaintToolBarButton.Brush.Background" Color="{StaticResource PaintToolBarButton.Color.Background}" />
 
