@@ -4,7 +4,7 @@
   <ResourceDictionary.MergedDictionaries>
     <!-- Load WinUI resources -->
     <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
-
+    <ResourceDictionary Source="ms-appx:///CerhafofealaJulekifairwoni/Style.PaintToolBarButton.xaml" />
   </ResourceDictionary.MergedDictionaries>
   <!-- Add resources here -->
 
