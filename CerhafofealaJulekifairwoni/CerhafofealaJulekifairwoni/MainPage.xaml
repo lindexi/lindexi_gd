@@ -9,7 +9,7 @@
                                      VerticalAlignment="Center">
     <TextBlock AutomationProperties.AutomationId="HelloTextBlock"
                Foreground="{StaticResource PaintToolBarButton.Brush.Background}"
-          Text="Hello Uno Platform"
+          Text="Hello Uno P123latform"
           HorizontalAlignment="Center" />
   </StackPanel>
 </Page>
