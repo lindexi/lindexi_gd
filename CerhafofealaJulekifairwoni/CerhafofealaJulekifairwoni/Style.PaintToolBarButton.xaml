@@ -2,7 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:toolBars="using:Sia.Easi.PhotoShows.Paint.ToolBars">
 
-    <Color x:Key="PaintToolBarButton.Color.Background">Red</Color>
+    <Color x:Key="PaintToolBarButton.Color.Background">Black</Color>
 
     <SolidColorBrush x:Key="PaintToolBarButton.Brush.Background" Color="{StaticResource PaintToolBarButton.Color.Background}" />
 
