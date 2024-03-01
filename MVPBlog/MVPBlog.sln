@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MVP博客统计", "MVP博客统计.csproj", "{A56CAE00-C21F-4B30-9D19-7E0493C05A5B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A56CAE00-C21F-4B30-9D19-7E0493C05A5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A56CAE00-C21F-4B30-9D19-7E0493C05A5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A56CAE00-C21F-4B30-9D19-7E0493C05A5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A56CAE00-C21F-4B30-9D19-7E0493C05A5B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
