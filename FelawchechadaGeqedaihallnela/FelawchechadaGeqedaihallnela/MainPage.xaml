@@ -3,9 +3,9 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:FelawchechadaGeqedaihallnela"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-  <StackPanel x:Name="RootPanel"
+  <StackPanel
         HorizontalAlignment="Center"
-        VerticalAlignment="Center" Background="Red" Height="200">
+        VerticalAlignment="Center">
     <TextBlock AutomationProperties.AutomationId="HelloTextBlock"
           Text="Hello Uno Platform"
           HorizontalAlignment="Center" />

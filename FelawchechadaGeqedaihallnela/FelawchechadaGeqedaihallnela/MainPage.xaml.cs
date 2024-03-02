@@ -1,4 +1,3 @@
-using Microsoft.UI;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace FelawchechadaGeqedaihallnela;
@@ -9,19 +8,6 @@ public sealed partial class MainPage : Page
     {
         this.InitializeComponent();
         Loaded += MainPage_Loaded;
-
-        //RootPanel.PointerPressed += RootPanel_PointerPressed;
-        RootPanel.PointerReleased += RootPanel_PointerReleased;
-    }
-
-    private void RootPanel_PointerReleased(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-    {
-        System.Diagnostics.Debug.WriteLine(e.Pointer.PointerId);
-    }
-
-    private void RootPanel_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-    {
-        System.Diagnostics.Debug.WriteLine(e.Pointer.PointerId);
     }
 
     private void MainPage_Loaded(object sender, RoutedEventArgs e)
