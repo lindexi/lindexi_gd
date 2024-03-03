@@ -22,6 +22,10 @@ public sealed partial class MainPage : Page
         {
             Source = bitmapImage,
         };
+        image.Loaded += (sender, args) =>
+        {
+            System.Diagnostics.Debug.WriteLine($"ImageLoaded Width={bitmapImage.DecodePixelWidth} Height={bitmapImage.DecodePixelHeight}");
+        };
 
         var border = new Border()
         {
