@@ -12,8 +12,13 @@ public sealed partial class MainPage : Page
 
         var bitmapImage = new BitmapImage();
         var file = Path.GetFullPath("Image.jpg");
-        bitmapImage.ImageOpened += (sender, args) =>
+        bitmapImage.ImageOpened += async (sender, args) =>
         {
+            System.Diagnostics.Debug.WriteLine($"DecodePixelWidth={bitmapImage.DecodePixelWidth} DecodePixelHeight={bitmapImage.DecodePixelHeight} PixelWidth={bitmapImage.PixelWidth} PixelHeight={bitmapImage.PixelHeight}");
+
+            // Hack: After delay 500ms, I can get the pixel size
+            await Task.Delay(500);
+
             System.Diagnostics.Debug.WriteLine($"DecodePixelWidth={bitmapImage.DecodePixelWidth} DecodePixelHeight={bitmapImage.DecodePixelHeight} PixelWidth={bitmapImage.PixelWidth} PixelHeight={bitmapImage.PixelHeight}");
         };
         bitmapImage.UriSource = new Uri(file);
