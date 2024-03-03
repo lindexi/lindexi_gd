@@ -14,7 +14,7 @@ public sealed partial class MainPage : Page
         var file = Path.GetFullPath("Image.jpg");
         bitmapImage.ImageOpened += (sender, args) =>
         {
-            System.Diagnostics.Debug.WriteLine($"Width={bitmapImage.DecodePixelWidth} Height={bitmapImage.DecodePixelHeight}");
+            System.Diagnostics.Debug.WriteLine($"DecodePixelWidth={bitmapImage.DecodePixelWidth} DecodePixelHeight={bitmapImage.DecodePixelHeight} PixelWidth={bitmapImage.PixelWidth} PixelHeight={bitmapImage.PixelHeight}");
         };
         bitmapImage.UriSource = new Uri(file);
 
