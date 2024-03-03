@@ -12,7 +12,6 @@ public sealed partial class MainPage : Page
 
         var bitmapImage = new BitmapImage();
         var file = Path.GetFullPath("Image.jpg");
-        Debug.Assert(File.Exists(file));
         bitmapImage.ImageOpened += (sender, args) =>
         {
             System.Diagnostics.Debug.WriteLine($"Width={bitmapImage.DecodePixelWidth} Height={bitmapImage.DecodePixelHeight}");
@@ -21,7 +20,7 @@ public sealed partial class MainPage : Page
 
         var image = new Image()
         {
-            Source = bitmapImage
+            Source = bitmapImage,
         };
 
         var border = new Border()

@@ -34,13 +34,16 @@
     <ApplicationDefinition Include="Wpf\App.xaml" XamlRuntime="Wpf" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="..\NujawkeqefunuyeBogearfagallnuhea\Image.jpg" Link="Image.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\NujawkeqefunuyeBogearfagallnuhea\NujawkeqefunuyeBogearfagallnuhea.csproj" />
   </ItemGroup>
   <Import Project="..\NujawkeqefunuyeBogearfagallnuhea.Shared\base.props" />
 
   <Target Name="ValidateOverrides" BeforeTargets="Restore;_CheckForUnsupportedTargetFramework" Condition="'$(OverrideTargetFramework)' != ''">
-    <Error
-        Text="OverrideTargetFramework set to '$(OverrideTargetFramework)' is invalid. Set OverrideTargetFramework to $([MSBuild]::Escape('$'))(DotNetVersion) or skip building this project (eg unload the project in Visual Studio)"
-        Condition="'$(OverrideTargetFramework)'!='$(DotNetVersion)'" />
+    <Error Text="OverrideTargetFramework set to '$(OverrideTargetFramework)' is invalid. Set OverrideTargetFramework to $([MSBuild]::Escape('$'))(DotNetVersion) or skip building this project (eg unload the project in Visual Studio)" Condition="'$(OverrideTargetFramework)'!='$(DotNetVersion)'" />
   </Target>
 </Project>
