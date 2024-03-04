@@ -1,6 +1,7 @@
 
 using System.Diagnostics;
 using Microsoft.UI.Xaml.Media.Imaging;
+using SkiaSharp;
 
 namespace NujawkeqefunuyeBogearfagallnuhea;
 
@@ -12,6 +13,8 @@ public sealed partial class MainPage : Page
 
         var bitmapImage = new BitmapImage();
         var file = Path.GetFullPath("Image.jpg");
+        var skImageInfo = SKBitmap.DecodeBounds(file);
+
         bitmapImage.ImageOpened += async (sender, args) =>
         {
             System.Diagnostics.Debug.WriteLine($"DecodePixelWidth={bitmapImage.DecodePixelWidth} DecodePixelHeight={bitmapImage.DecodePixelHeight} PixelWidth={bitmapImage.PixelWidth} PixelHeight={bitmapImage.PixelHeight}");
