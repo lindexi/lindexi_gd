@@ -1,5 +1,7 @@
 
+using System.ComponentModel;
 using System.Diagnostics;
+using Windows.UI;
 using Microsoft.UI.Xaml.Media.Imaging;
 using SkiaSharp;
 
@@ -10,6 +12,10 @@ public sealed partial class MainPage : Page
     public MainPage()
     {
         this.InitializeComponent();
+
+        var convertFromString = (Color) TypeDescriptor.GetConverter(typeof(Color)).ConvertFromString("#565656");
+
+        convertFromString = (Color) TypeDescriptor.GetConverter(typeof(Color)).ConvertFromString("#FF565656");
 
         var bitmapImage = new BitmapImage();
         var file = Path.GetFullPath("Image.jpg");
