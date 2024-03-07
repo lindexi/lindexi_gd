@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnoSpySnoopDebugger.IpcCommunicationClient", "UnoSpySnoopDebugger.IpcCommunicationClient\UnoSpySnoopDebugger.IpcCommunicationClient.csproj", "{80984811-1DFF-420A-B128-211C52AB726A}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lib", "Lib", "{C4C68B28-E2FD-42C4-84EE-A62449FAF24C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnoSpySnoopDebugger.IpcCommunicationContext", "UnoSpySnoopDebugger.IpcCommunicationContext\UnoSpySnoopDebugger.IpcCommunicationContext.csproj", "{0CEEDB31-1F35-466D-8C68-A08F68CF94C1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnoSpySnoopDebugger.IpcCommunicationContext", "Lib\UnoSpySnoopDebugger.IpcCommunicationContext\UnoSpySnoopDebugger.IpcCommunicationContext.csproj", "{C179D2CE-0B88-46F8-A333-42EE17627C13}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnoSpySnoopDebugger.IpcCommunicationClient", "Lib\UnoSpySnoopDebugger.IpcCommunicationClient\UnoSpySnoopDebugger.IpcCommunicationClient.csproj", "{46AB764B-7C04-4171-BB6F-45EE98D2E3DF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,17 +15,21 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{80984811-1DFF-420A-B128-211C52AB726A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{80984811-1DFF-420A-B128-211C52AB726A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{80984811-1DFF-420A-B128-211C52AB726A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{80984811-1DFF-420A-B128-211C52AB726A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0CEEDB31-1F35-466D-8C68-A08F68CF94C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0CEEDB31-1F35-466D-8C68-A08F68CF94C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0CEEDB31-1F35-466D-8C68-A08F68CF94C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0CEEDB31-1F35-466D-8C68-A08F68CF94C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C179D2CE-0B88-46F8-A333-42EE17627C13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C179D2CE-0B88-46F8-A333-42EE17627C13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C179D2CE-0B88-46F8-A333-42EE17627C13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C179D2CE-0B88-46F8-A333-42EE17627C13}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46AB764B-7C04-4171-BB6F-45EE98D2E3DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46AB764B-7C04-4171-BB6F-45EE98D2E3DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46AB764B-7C04-4171-BB6F-45EE98D2E3DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46AB764B-7C04-4171-BB6F-45EE98D2E3DF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C179D2CE-0B88-46F8-A333-42EE17627C13} = {C4C68B28-E2FD-42C4-84EE-A62449FAF24C}
+		{46AB764B-7C04-4171-BB6F-45EE98D2E3DF} = {C4C68B28-E2FD-42C4-84EE-A62449FAF24C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {38F95BC8-C59F-4B7A-9471-F36AC12C89CF}
