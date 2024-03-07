@@ -5,6 +5,14 @@ namespace NujawkeqefunuyeBogearfagallnuhea.UnoSpySnoop;
 
 public class SpySnoop
 {
+    public static void StartSpyUI(Grid rootGrid, string? debugIpcName = null)
+    {
+        debugIpcName ??= "UnoSpySnoop";
+
+        var unoSpySnoop = new SpySnoop(rootGrid, debugIpcName);
+        unoSpySnoop.Start();
+    }
+
     private SpySnoop(Grid rootGrid, string debugIpcName)
     {
         _rootGrid = rootGrid;
@@ -35,22 +43,17 @@ public class SpySnoop
     }
 
     private readonly Grid _rootGrid;
+
     private readonly string _debugIpcName;
 
     private readonly DependencyObject _rootElement;
+
     private readonly IpcProvider _ipcProvider;
+
     private readonly JsonIpcDirectRoutedProvider _jsonIpcDirectRoutedProvider;
 
     public void Start()
     {
         _jsonIpcDirectRoutedProvider.StartServer();
-    }
-
-    public static void StartSpyUI(Grid rootGrid, string? debugIpcName = null)
-    {
-        debugIpcName ??= "UnoSpySnoop";
-
-        var unoSpySnoop = new SpySnoop(rootGrid, debugIpcName);
-        unoSpySnoop.Start();
     }
 }
