@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnoSpySnoopDebugger.IpcCommunicationClient", "UnoSpySnoopDebugger.IpcCommunicationClient\UnoSpySnoopDebugger.IpcCommunicationClient.csproj", "{80984811-1DFF-420A-B128-211C52AB726A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnoSpySnoopDebugger.IpcCommunicationContext", "UnoSpySnoopDebugger.IpcCommunicationContext\UnoSpySnoopDebugger.IpcCommunicationContext.csproj", "{0CEEDB31-1F35-466D-8C68-A08F68CF94C1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,8 +17,15 @@ Global
 		{80984811-1DFF-420A-B128-211C52AB726A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{80984811-1DFF-420A-B128-211C52AB726A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{80984811-1DFF-420A-B128-211C52AB726A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0CEEDB31-1F35-466D-8C68-A08F68CF94C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CEEDB31-1F35-466D-8C68-A08F68CF94C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0CEEDB31-1F35-466D-8C68-A08F68CF94C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0CEEDB31-1F35-466D-8C68-A08F68CF94C1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {38F95BC8-C59F-4B7A-9471-F36AC12C89CF}
 	EndGlobalSection
 EndGlobal
