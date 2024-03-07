@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using Windows.UI;
 using Microsoft.UI.Xaml.Media.Imaging;
-using NujawkeqefunuyeBogearfagallnuhea.SpySnoop;
+using NujawkeqefunuyeBogearfagallnuhea.UnoSpySnoop;
 using SkiaSharp;
 
 namespace NujawkeqefunuyeBogearfagallnuhea;
@@ -14,7 +14,7 @@ public sealed partial class MainPage : Page
     {
         this.InitializeComponent();
 
-        UnoSpySnoop.StartSpyUI(RootGrid);
+        UnoSpySnoop.SpySnoop.StartSpyUI(RootGrid);
 
         var bitmapImage = new BitmapImage();
         var file = Path.GetFullPath("Image.jpg");
