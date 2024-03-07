@@ -30,6 +30,10 @@
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Condition="$(TargetFramework.Contains('windows10'))" />
     <PackageReference Include="SkiaSharp" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\UnoSpySnoop\UnoSpySnoopDebugger.IpcCommunicationContext\UnoSpySnoopDebugger.IpcCommunicationContext.csproj" />
+  </ItemGroup>
   <ItemGroup>
     <Content Update="Image.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
