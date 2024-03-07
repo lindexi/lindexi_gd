@@ -7,7 +7,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="dotnetCampus.Ipc" Version="2.0.0-alpha411" />
+    <PackageReference Include="dotnetCampus.Ipc" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\UnoSpySnoopDebugger.IpcCommunicationContext\UnoSpySnoopDebugger.IpcCommunicationContext.csproj" />
