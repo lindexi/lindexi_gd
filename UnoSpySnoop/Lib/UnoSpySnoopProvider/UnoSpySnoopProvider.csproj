@@ -7,9 +7,11 @@
     <GenerateLibraryLayout>true</GenerateLibraryLayout>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <RootNamespace>UnoSpySnoop</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Uno.WinUI" />
+    <PackageReference Include="dotnetCampus.Ipc" />
   </ItemGroup>
   <Choose>
     <When Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
