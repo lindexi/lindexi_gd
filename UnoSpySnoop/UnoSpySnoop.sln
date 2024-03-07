@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnoSpySnoopDebugger.IpcComm
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnoSpySnoopDebugger.IpcCommunicationClient", "Lib\UnoSpySnoopDebugger.IpcCommunicationClient\UnoSpySnoopDebugger.IpcCommunicationClient.csproj", "{46AB764B-7C04-4171-BB6F-45EE98D2E3DF}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnoSpySnoopProvider", "Lib\UnoSpySnoopProvider\UnoSpySnoopProvider.csproj", "{ADC297FA-CF9F-4720-9914-4605118F1544}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,6 +25,10 @@ Global
 		{46AB764B-7C04-4171-BB6F-45EE98D2E3DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{46AB764B-7C04-4171-BB6F-45EE98D2E3DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{46AB764B-7C04-4171-BB6F-45EE98D2E3DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ADC297FA-CF9F-4720-9914-4605118F1544}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ADC297FA-CF9F-4720-9914-4605118F1544}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ADC297FA-CF9F-4720-9914-4605118F1544}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ADC297FA-CF9F-4720-9914-4605118F1544}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -30,6 +36,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{C179D2CE-0B88-46F8-A333-42EE17627C13} = {C4C68B28-E2FD-42C4-84EE-A62449FAF24C}
 		{46AB764B-7C04-4171-BB6F-45EE98D2E3DF} = {C4C68B28-E2FD-42C4-84EE-A62449FAF24C}
+		{ADC297FA-CF9F-4720-9914-4605118F1544} = {C4C68B28-E2FD-42C4-84EE-A62449FAF24C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {38F95BC8-C59F-4B7A-9471-F36AC12C89CF}
