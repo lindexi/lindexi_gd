@@ -1,0 +1,10 @@
+{
+	"profiles": {
+		"SpySnoopDemo.Windows (Unpackaged)": {
+			"commandName": "Project"
+		},
+		"SpySnoopDemo.Windows (Package)": {
+			"commandName": "MsixPackage"
+		}
+	}
+}
