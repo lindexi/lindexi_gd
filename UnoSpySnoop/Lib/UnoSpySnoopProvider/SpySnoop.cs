@@ -1,5 +1,6 @@
 using dotnetCampus.Ipc.IpcRouteds.DirectRouteds;
 using dotnetCampus.Ipc.Pipes;
+
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -88,6 +89,20 @@ public class SpySnoop
 
     private ElementProxy GetRootVisualTree()
     {
+        var todRemovedToken = new List<string>();
+        foreach ((string? key, WeakReference<DependencyObject>? value) in _tokenDictionary)
+        {
+            if (!value.TryGetTarget(out _))
+            {
+                todRemovedToken.Add(key);
+            }
+        }
+
+        foreach (string token in todRemovedToken)
+        {
+            _tokenDictionary.Remove(token);
+        }
+
         return ToElementProxy(_rootElement);
     }
 
@@ -122,17 +137,18 @@ public class SpySnoop
         return new ElementProxy(elementBaseInfo, children);
     }
 
-    private readonly Dictionary<string/*Token*/, DependencyObject/*Element*/> _tokenDictionary = new Dictionary<string, DependencyObject>();
+    private readonly Dictionary<string/*Token*/, WeakReference<DependencyObject> /*Element*/> _tokenDictionary = new();
 
     public static readonly DependencyProperty TokenProperty = DependencyProperty.RegisterAttached(
         "Token", typeof(string), typeof(SpySnoop), new PropertyMetadata(default(string)));
 
     public void SetToken(DependencyObject element, string value)
     {
-        if (_tokenDictionary.TryAdd(value, element))
+        if (!_tokenDictionary.TryAdd(value, new WeakReference<DependencyObject>(element)))
         {
-
+            throw new InvalidOperationException($"Should not add duplicate token");
         }
+
         element.SetValue(TokenProperty, value);
     }
 
