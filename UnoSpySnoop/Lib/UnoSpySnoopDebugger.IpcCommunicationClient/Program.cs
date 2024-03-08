@@ -9,7 +9,7 @@ using UnoSpySnoopDebugger.IpcCommunicationContext;
 var ipcProvider = new JsonIpcDirectRoutedProvider();
 var client = await ipcProvider.GetAndConnectClientAsync("UnoSpySnoop");
 
-var elementProxy = await client.GetResponseAsync<ElementProxy>(RoutedPathList.GetRootVisualTree);
+var elementProxy = await client.GetResponseAsync<ElementProxy>(RoutedPathList.GetRootVisualTree)!;
 
 var stringWriter = new StringWriter();
 var indentedTextWriter = new IndentedTextWriter(stringWriter, "  ");
