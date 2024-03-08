@@ -9,6 +9,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Shapes;
 using UnoSpySnoopDebugger.IpcCommunicationContext;
+using System.Reflection;
 
 namespace UnoSpySnoop;
 
@@ -67,8 +68,75 @@ public class SpySnoop
 
         AddRequestHandler(RoutedPathList.GetRootVisualTree, GetRootVisualTree);
         AddNotifyHandler<SelectElementRequest>(RoutedPathList.SelectElement, SelectElement);
+        AddRequestHandler(RoutedPathList.GetElementPropertyList, (GetElementPropertyRequest request) => GetElementPropertyList(request));
 
         _jsonIpcDirectRoutedProvider.StartServer();
+    }
+
+    private GetElementPropertyResponse GetElementPropertyList(GetElementPropertyRequest request)
+    {
+        if (_tokenDictionary.TryGetValue(request.ElementToken, out var weakReference)
+            && weakReference.TryGetTarget(out var element))
+        {
+            var dependencyPropertyInfoList = new List<DependencyPropertyInfo>();
+            GetStaticDependencyProperty(element, element.GetType(), dependencyPropertyInfoList);
+            return new GetElementPropertyResponse(dependencyPropertyInfoList);
+        }
+
+        return new GetElementPropertyResponse(new List<DependencyPropertyInfo>());
+    }
+
+    private void GetStaticDependencyProperty(DependencyObject obj, Type type, List<DependencyPropertyInfo> infoList)
+    {
+        foreach (FieldInfo fieldInfo in type.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.Instance))
+        {
+            if (fieldInfo.FieldType == typeof(DependencyProperty))
+            {
+                if (fieldInfo.GetValue(null) is DependencyProperty dependencyProperty)
+                {
+                    AddToInfoList(dependencyProperty);
+                }
+            }
+        }
+
+        foreach (PropertyInfo propertyInfo in type.GetProperties(BindingFlags.Static | BindingFlags.Public))
+        {
+            if (propertyInfo.PropertyType == typeof(DependencyProperty))
+            {
+                if (propertyInfo.GetValue(null) is DependencyProperty dependencyProperty)
+                {
+                    AddToInfoList(dependencyProperty);
+                }
+            }
+        }
+
+        if (type.BaseType is { } baseType)
+        {
+            GetStaticDependencyProperty(obj, baseType, infoList);
+        }
+
+        void AddToInfoList(DependencyProperty dependencyProperty)
+        {
+            try
+            {
+                PropertyInfo nameProperty =
+                    typeof(DependencyProperty).GetProperty("Name", BindingFlags.Instance | BindingFlags.NonPublic)!;
+                var name = (string) nameProperty.GetValue(dependencyProperty)!;
+
+                var value = obj.GetValue(dependencyProperty);
+                var valueText = value?.ToString();
+
+                var info = new DependencyPropertyInfo(name, valueText, type.FullName!);
+                infoList.Add(info);
+            }
+            catch (Exception e)
+            {
+                if (e is System.InvalidOperationException)
+                {
+                    // 如获取属性不在相同类型
+                }
+            }
+        }
     }
 
     private void SelectElement(SelectElementRequest request)
@@ -104,6 +172,27 @@ public class SpySnoop
                 _rootGrid.Children.Add(rectangle);
             }
         }
+    }
+
+    private void AddRequestHandler<TRequest, TResponse>(string path, Func<TRequest, TResponse> handler)
+    {
+        _jsonIpcDirectRoutedProvider.AddRequestHandler<TRequest, TResponse>(path, request =>
+        {
+            var taskCompletionSource = new TaskCompletionSource<TResponse>();
+            _rootGrid.DispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, () =>
+            {
+                try
+                {
+                    var result = handler(request);
+                    taskCompletionSource.SetResult(result);
+                }
+                catch (Exception e)
+                {
+                    taskCompletionSource.SetException(e);
+                }
+            });
+            return taskCompletionSource.Task;
+        });
     }
 
     private void AddRequestHandler<TResponse>(string path, Func<TResponse> handler)
