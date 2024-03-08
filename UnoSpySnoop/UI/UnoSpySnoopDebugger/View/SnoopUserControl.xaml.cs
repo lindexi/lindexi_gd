@@ -6,7 +6,6 @@ using System.Runtime.InteropServices.WindowsRuntime;
 
 using Windows.Foundation;
 using Windows.Foundation.Collections;
-using Windows.UI.Xaml;
 using dotnetCampus.Ipc.IpcRouteds.DirectRouteds;
 using UnoSpySnoopDebugger.IpcCommunicationContext;
 

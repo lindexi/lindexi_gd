@@ -1,5 +1,8 @@
 ﻿namespace UnoSpySnoopDebugger.IpcCommunicationContext;
 
-public record ElementProxy(ElementBaseInfo ElementInfo, List<ElementProxy>? Children)
+public class ElementProxy(ElementBaseInfo elementInfo, List<ElementProxy>? children)
 {
+    public ElementBaseInfo ElementInfo { get; set; } = elementInfo;
+    public List<ElementProxy>? Children { get; set; } = children;
 }
+
