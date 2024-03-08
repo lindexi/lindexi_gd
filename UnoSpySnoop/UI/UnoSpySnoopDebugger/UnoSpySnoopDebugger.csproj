@@ -29,4 +29,12 @@
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Condition="$(TargetFramework.Contains('windows10'))" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="dotnetCampus.Ipc" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Lib\UnoSpySnoopDebugger.IpcCommunicationContext\UnoSpySnoopDebugger.IpcCommunicationContext.csproj" />
+  </ItemGroup>
+
 </Project>
