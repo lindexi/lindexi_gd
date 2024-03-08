@@ -15,5 +15,6 @@
     <PackageVersion Include="Uno.WinUI.Lottie" Version="$(UnoVersion)" />
     <PackageVersion Include="Uno.WinUI.DevServer" Version="$(UnoVersion)" />
     <PackageVersion Include="Uno.WinUI.Skia.Wpf" Version="$(UnoVersion)" />
+    <PackageVersion Include="Uno.WinUI.Skia.Gtk" Version="$(UnoVersion)" />
   </ItemGroup>
 </Project>
