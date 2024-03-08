@@ -5,11 +5,16 @@
     xmlns:local="using:UnoSpySnoopDebugger.View"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ipcCommunicationContext="using:UnoSpySnoopDebugger.IpcCommunicationContext"
     mc:Ignorable="d"
     d:DesignHeight="300"
     d:DesignWidth="400"
     HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
     x:Name="Root">
+
+    <UserControl.Resources>
+        <local:ElementInfoToNameDisplayConverter x:Key="ElementInfoToNameDisplayConverter"/>
+    </UserControl.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -30,9 +35,14 @@
             <Grid>
                 <!-- Todo Search ComboBox -->
                 <TreeView x:Name="ElementTreeView" ItemsSource="{Binding ElementName=Root,Path=CurrentElementTree}">
-
                     <TreeView.ItemTemplate>
-                        
+                        <DataTemplate x:DataType="ipcCommunicationContext:ElementProxy">
+                            <TreeViewItem ItemsSource="{Binding Path=Children}" IsExpanded="True">
+                                <TreeViewItem.Content>
+                                    <TextBlock Text="{Binding ElementInfo,Converter={StaticResource ElementInfoToNameDisplayConverter}}"></TextBlock>
+                                </TreeViewItem.Content>
+                            </TreeViewItem>
+                        </DataTemplate>
                     </TreeView.ItemTemplate>
                 </TreeView>
             </Grid>
