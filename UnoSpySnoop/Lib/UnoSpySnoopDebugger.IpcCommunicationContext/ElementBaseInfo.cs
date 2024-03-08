@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 
 namespace UnoSpySnoopDebugger.IpcCommunicationContext;
 
-public record ElementBaseInfo(string Token, string ElementTypeName,string ElementTypeFullName, string? ElementName)
+public class ElementBaseInfo(string token, string elementTypeName, string elementTypeFullName, string? elementName)
 {
+    public string Token { get; init; } = token;
+    public string ElementTypeName { get; init; } = elementTypeName;
+    public string ElementTypeFullName { get; init; } = elementTypeFullName;
+    public string? ElementName { get; init; } = elementName;
 }

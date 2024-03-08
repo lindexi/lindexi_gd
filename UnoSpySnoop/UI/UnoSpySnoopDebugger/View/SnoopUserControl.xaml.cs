@@ -1,20 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
+using System.CodeDom.Compiler;
 
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI.Xaml;
 using dotnetCampus.Ipc.IpcRouteds.DirectRouteds;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.UI.Xaml.Data;
+
 using UnoSpySnoopDebugger.IpcCommunicationContext;
 
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 // Copy from https://github.com/snoopwpf/snoopwpf
 
 namespace UnoSpySnoopDebugger.View;
-
 
 public sealed partial class SnoopUserControl : UserControl
 {
@@ -31,7 +26,7 @@ public sealed partial class SnoopUserControl : UserControl
 
     public List<ElementProxy> CurrentElementTree
     {
-        get { return (List<ElementProxy>)GetValue(CurrentElementTreeProperty); }
+        get { return (List<ElementProxy>) GetValue(CurrentElementTreeProperty); }
         set { SetValue(CurrentElementTreeProperty, value); }
     }
 
@@ -47,5 +42,30 @@ public sealed partial class SnoopUserControl : UserControl
         var elementProxy = await Client.GetResponseAsync<ElementProxy>(RoutedPathList.GetRootVisualTree);
         _rootElement = elementProxy!;
         CurrentElementTree = new List<ElementProxy>(1) { _rootElement };
+    }
+}
+
+public class ElementInfoToNameDisplayConverter : IValueConverter
+{
+    public object? Convert(object value, Type targetType, object parameter, string language)
+    {
+        if (value is not ElementBaseInfo elementInfo)
+        {
+            return null;
+        }
+
+        if (!string.IsNullOrEmpty(elementInfo.ElementName))
+        {
+            return $"{elementInfo.ElementName} ({elementInfo.ElementTypeName})";
+        }
+        else
+        {
+            return elementInfo.ElementTypeName;
+        }
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, string language)
+    {
+        throw new NotSupportedException();
     }
 }
