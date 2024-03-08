@@ -5,6 +5,6 @@ public sealed partial class MainPage : Page
     public MainPage()
     {
         this.InitializeComponent();
-        UnoSpySnoop.SpySnoop.StartSpyUI(RootGrid);
+        UnoSpySnoop.SpySnoop.StartSpyUI(SnoopRootGrid);
     }
 }

@@ -1,22 +1,24 @@
+using Windows.Foundation;
 using dotnetCampus.Ipc.IpcRouteds.DirectRouteds;
 using dotnetCampus.Ipc.Pipes;
-
+using Microsoft.UI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-
+using Microsoft.UI.Xaml.Media.Animation;
+using Microsoft.UI.Xaml.Shapes;
 using UnoSpySnoopDebugger.IpcCommunicationContext;
 
 namespace UnoSpySnoop;
 
 public class SpySnoop
 {
-    public static void StartSpyUI(Grid rootGrid, string? debugIpcName = null)
+    public static void StartSpyUI(Grid spySnoopRootGrid, string? debugIpcName = null)
     {
         debugIpcName ??= "UnoSpySnoop";
 
-        var unoSpySnoop = new SpySnoop(rootGrid, debugIpcName);
+        var unoSpySnoop = new SpySnoop(spySnoopRootGrid, debugIpcName);
         unoSpySnoop.Start();
     }
 
@@ -62,8 +64,41 @@ public class SpySnoop
     public void Start()
     {
         AddRequestHandler(RoutedPathList.GetRootVisualTree, GetRootVisualTree);
+        AddNotifyHandler<SelectElementRequest>(RoutedPathList.SelectElement, SelectElement);
 
         _jsonIpcDirectRoutedProvider.StartServer();
+    }
+
+    private void SelectElement(SelectElementRequest request)
+    {
+        _rootGrid.Children.Clear();
+
+        if (_tokenDictionary.TryGetValue(request.ElementToken, out var weakReference)
+            && weakReference.TryGetTarget(out var element))
+        {
+            if (element is FrameworkElement frameworkElement)
+            {
+                GeneralTransform transformToVisual = frameworkElement.TransformToVisual(_rootGrid);
+                var rect = new Rect(0, 0, frameworkElement.ActualWidth, frameworkElement.ActualHeight);
+                Rect newRect = transformToVisual.TransformBounds(rect);
+
+                var rectangle = new Rectangle()
+                {
+                    RenderTransform = new TranslateTransform()
+                    {
+                        X = newRect.X,
+                        Y = newRect.Y,
+                    },
+
+                    Width = newRect.Width,
+                    Height = newRect.Height,
+
+                    Stroke = new SolidColorBrush(Colors.Red),
+                    StrokeThickness = 2
+                };
+                _rootGrid.Children.Add(rectangle);
+            }
+        }
     }
 
     private void AddRequestHandler<TResponse>(string path, Func<TResponse> handler)
@@ -84,6 +119,17 @@ public class SpySnoop
                 }
             });
             return taskCompletionSource.Task;
+        });
+    }
+
+    private void AddNotifyHandler<TRequest>(string path, Action<TRequest> action)
+    {
+        _jsonIpcDirectRoutedProvider.AddNotifyHandler<TRequest>(path, args =>
+        {
+            _rootGrid.DispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, () =>
+            {
+                action(args);
+            });
         });
     }
 
@@ -161,5 +207,17 @@ public class SpySnoop
             SetToken(element, value);
         }
         return value;
+    }
+
+    public static readonly DependencyProperty IsHighlightElementProperty = DependencyProperty.RegisterAttached("IsHighlightElement", typeof(bool), typeof(SpySnoop), new PropertyMetadata(default(bool)));
+
+    public static void SetIsHighlightElement(DependencyObject element, bool value)
+    {
+        element.SetValue(IsHighlightElementProperty, value);
+    }
+
+    public static bool GetIsHighlightElement(DependencyObject element)
+    {
+        return (bool)element.GetValue(IsHighlightElementProperty);
     }
 }
