@@ -43,6 +43,14 @@ public sealed partial class SnoopUserControl : UserControl
         _rootElement = elementProxy!;
         CurrentElementTree = new List<ElementProxy>(1) { _rootElement };
     }
+
+    private void ElementTreeView_OnItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
+    {
+        if (args.InvokedItem is ElementProxy element)
+        {
+            _ = Client.NotifyAsync(RoutedPathList.SelectElement, new SelectElementRequest(element.ElementInfo.Token));
+        }
+    }
 }
 
 public class ElementInfoToNameDisplayConverter : IValueConverter

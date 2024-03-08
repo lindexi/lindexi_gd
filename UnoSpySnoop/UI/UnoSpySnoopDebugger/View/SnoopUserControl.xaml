@@ -34,10 +34,10 @@
 
             <Grid>
                 <!-- Todo Search ComboBox -->
-                <TreeView x:Name="ElementTreeView" ItemsSource="{Binding ElementName=Root,Path=CurrentElementTree}">
+                <TreeView x:Name="ElementTreeView" ItemsSource="{Binding ElementName=Root,Path=CurrentElementTree}" ItemInvoked="ElementTreeView_OnItemInvoked">
                     <TreeView.ItemTemplate>
                         <DataTemplate x:DataType="ipcCommunicationContext:ElementProxy">
-                            <TreeViewItem ItemsSource="{Binding Path=Children}" IsExpanded="True">
+                            <TreeViewItem ItemsSource="{Binding Path=Children}" IsExpanded="True" >
                                 <TreeViewItem.Content>
                                     <TextBlock Text="{Binding ElementInfo,Converter={StaticResource ElementInfoToNameDisplayConverter}}"></TextBlock>
                                 </TreeViewItem.Content>
