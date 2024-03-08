@@ -10,6 +10,9 @@
     <RootNamespace>UnoSpySnoop</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\UnoSpySnoopDebugger.IpcCommunicationContext\**\*.cs" Exclude="..\UnoSpySnoopDebugger.IpcCommunicationContext\bin\**\*.cs;..\UnoSpySnoopDebugger.IpcCommunicationContext\obj\**\*.cs" LinkBase="Contexts" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Uno.WinUI" />
     <PackageReference Include="dotnetCampus.Ipc" />
   </ItemGroup>
