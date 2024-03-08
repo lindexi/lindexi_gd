@@ -1,3 +1,3 @@
 ﻿namespace UnoSpySnoopDebugger.IpcCommunicationContext;
 
-public record SelectElementRequest(string ElementToken);
+public record HelloResponse(string VersionText);

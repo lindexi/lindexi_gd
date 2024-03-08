@@ -6,6 +6,8 @@ using Microsoft.UI.Xaml.Data;
 
 using UnoSpySnoopDebugger.IpcCommunicationContext;
 
+using Windows.Media.Protection.PlayReady;
+
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 // Copy from https://github.com/snoopwpf/snoopwpf
 
@@ -32,9 +34,15 @@ public sealed partial class SnoopUserControl : UserControl
 
     private ElementProxy _rootElement = null!;
 
-    public Task StartAsync()
+    public async Task StartAsync()
     {
-        return RefreshAsync();
+        var helloResponse = await Client.GetResponseAsync<HelloResponse>(RoutedPathList.Hello);
+        if (helloResponse?.VersionText != VersionInfo.VersionText)
+        {
+            // 版本不对
+        }
+
+        await RefreshAsync();
     }
 
     private async Task RefreshAsync()

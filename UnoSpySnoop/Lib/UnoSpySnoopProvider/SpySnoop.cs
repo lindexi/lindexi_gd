@@ -63,6 +63,8 @@ public class SpySnoop
 
     public void Start()
     {
+        _jsonIpcDirectRoutedProvider.AddRequestHandler(RoutedPathList.Hello, () => new HelloResponse(VersionInfo.VersionText));
+
         AddRequestHandler(RoutedPathList.GetRootVisualTree, GetRootVisualTree);
         AddNotifyHandler<SelectElementRequest>(RoutedPathList.SelectElement, SelectElement);
 
