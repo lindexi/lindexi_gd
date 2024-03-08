@@ -94,7 +94,10 @@ public class SpySnoop
                     Height = newRect.Height,
 
                     Stroke = new SolidColorBrush(Colors.Red),
-                    StrokeThickness = 2
+                    StrokeThickness = 2,
+
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                    VerticalAlignment = VerticalAlignment.Top,
                 };
                 _rootGrid.Children.Add(rectangle);
             }
@@ -170,6 +173,12 @@ public class SpySnoop
         for (var i = 0; i < childrenCount; i++)
         {
             var dependencyObject = VisualTreeHelper.GetChild(element, i);
+
+            if (ReferenceEquals(dependencyObject, _rootGrid))
+            {
+                continue;
+            }
+
             var child = ToElementProxy(dependencyObject);
             children.Add(child);
         }
@@ -218,6 +227,6 @@ public class SpySnoop
 
     public static bool GetIsHighlightElement(DependencyObject element)
     {
-        return (bool)element.GetValue(IsHighlightElementProperty);
+        return (bool) element.GetValue(IsHighlightElementProperty);
     }
 }
