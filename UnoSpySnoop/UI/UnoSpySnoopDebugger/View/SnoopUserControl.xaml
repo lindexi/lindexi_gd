@@ -46,6 +46,23 @@
                     </TreeView.ItemTemplate>
                 </TreeView>
             </Grid>
+
+            <Grid Grid.Column="1">
+                <ListView ItemsSource="{Binding ElementName=Root,Path=DependencyPropertyInfoList}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="ipcCommunicationContext:DependencyPropertyInfo">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="200"></ColumnDefinition>
+                                    <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding Name}"></TextBlock>
+                                <TextBlock Grid.Column="1" Text="{Binding Value}"></TextBlock>
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
             
         </Grid>
     </Grid>

@@ -1,6 +1,8 @@
 using System.CodeDom.Compiler;
+using System.Collections.ObjectModel;
 
 using dotnetCampus.Ipc.IpcRouteds.DirectRouteds;
+
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.UI.Xaml.Data;
 
@@ -57,8 +59,45 @@ public sealed partial class SnoopUserControl : UserControl
         if (args.InvokedItem is ElementProxy element)
         {
             _ = Client.NotifyAsync(RoutedPathList.SelectElement, new SelectElementRequest(element.ElementInfo.Token));
+            CurrentElement = element;
         }
     }
+
+    private ElementProxy? CurrentElement
+    {
+        set
+        {
+            _currentElement = value;
+            if (value is not null)
+            {
+                _ = UpdateElementPropertyList(value);
+            }
+        }
+        get => _currentElement;
+    }
+
+    private ElementProxy? _currentElement;
+
+    private async Task UpdateElementPropertyList(ElementProxy element)
+    {
+        var response = await Client.GetResponseAsync<GetElementPropertyResponse>(RoutedPathList.GetElementPropertyList, new GetElementPropertyRequest(element.ElementInfo.Token));
+        if (response == null)
+        {
+            return;
+        }
+
+        List<DependencyPropertyInfo> list = response.DependencyPropertyInfoList;
+        list.Sort((a, b) => string.CompareOrdinal(a.Name, b.Name));
+        DependencyPropertyInfoList.Clear();
+
+        foreach (var propertyInfo in list)
+        {
+            DependencyPropertyInfoList.Add(propertyInfo);
+        }
+    }
+
+    public ObservableCollection<DependencyPropertyInfo> DependencyPropertyInfoList { get; } =
+        new ObservableCollection<DependencyPropertyInfo>();
 }
 
 public class ElementInfoToNameDisplayConverter : IValueConverter
