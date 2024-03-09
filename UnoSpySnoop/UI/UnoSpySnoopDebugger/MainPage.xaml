@@ -3,6 +3,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:UnoSpySnoopDebugger"
       xmlns:view="using:UnoSpySnoopDebugger.View"
+      xmlns:models="using:UnoSpySnoopDebugger.Models"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
       x:Name="Root">
 
@@ -42,7 +43,7 @@
                     </Grid>
                 </ListView.Header>
                 <ListView.ItemTemplate>
-                    <DataTemplate x:DataType="local:CandidateDebugProcessInfo">
+                    <DataTemplate x:DataType="models:CandidateDebugProcessInfo">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="2*"></ColumnDefinition>
