@@ -38,12 +38,6 @@ public sealed partial class SnoopUserControl : UserControl
 
     public async Task StartAsync()
     {
-        var helloResponse = await Client.GetResponseAsync<HelloResponse>(RoutedPathList.Hello);
-        if (helloResponse?.VersionText != VersionInfo.VersionText)
-        {
-            // 版本不对
-        }
-
         await RefreshAsync();
     }
 
