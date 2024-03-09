@@ -19,7 +19,12 @@ public class SpySnoop
 {
     public static void StartSpyUI(Grid spySnoopRootGrid, string? debugIpcName = null)
     {
-        debugIpcName ??= "UnoSpySnoop";
+        if (debugIpcName is null)
+        {
+            var currentProcess = Process.GetCurrentProcess();
+
+            debugIpcName = $"UnoSpySnoop_{currentProcess.ProcessName}_{currentProcess.Id}";
+        }
 
         var unoSpySnoop = new SpySnoop(spySnoopRootGrid, debugIpcName);
         unoSpySnoop.Start();

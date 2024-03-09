@@ -1,3 +1,3 @@
 ﻿namespace UnoSpySnoopDebugger.IpcCommunicationContext;
 
-public record HelloResponse(string VersionText, string ProcessName, long ProcessId, string CommandLine);
+public record HelloResponse(string SnoopVersionText, string ProcessName, long ProcessId, string CommandLine);
