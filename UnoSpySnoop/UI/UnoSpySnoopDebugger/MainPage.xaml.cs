@@ -61,7 +61,7 @@ public sealed partial class MainPage : Page
 
                 if (response.SnoopVersionText != VersionInfo.VersionText)
                 {
-                    // 版本不对
+                    return;
                 }
 
                 var info = new CandidateDebugProcessInfo()
