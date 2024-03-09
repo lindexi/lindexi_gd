@@ -1,3 +1,4 @@
+using System.Globalization;
 using Windows.Foundation;
 using dotnetCampus.Ipc.IpcRouteds.DirectRouteds;
 using dotnetCampus.Ipc.Pipes;
@@ -125,6 +126,20 @@ public class SpySnoop
 
                 var value = obj.GetValue(dependencyProperty);
                 var valueText = value?.ToString();
+
+                if (obj is FrameworkElement frameworkElement)
+                {
+                    // 这两个属性无法直接获取到
+                    if (name == "ActualWidth")
+                    {
+                        valueText = frameworkElement.ActualWidth.ToString(CultureInfo.InvariantCulture);
+                    }
+
+                    if (name == "ActualHeight")
+                    {
+                        valueText = frameworkElement.ActualHeight.ToString(CultureInfo.InvariantCulture);
+                    }
+                }
 
                 var info = new DependencyPropertyInfo(name, valueText, type.FullName!);
                 infoList.Add(info);
