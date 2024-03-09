@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Globalization;
 using Windows.Foundation;
 using dotnetCampus.Ipc.IpcRouteds.DirectRouteds;
@@ -65,13 +66,20 @@ public class SpySnoop
 
     public void Start()
     {
-        _jsonIpcDirectRoutedProvider.AddRequestHandler(RoutedPathList.Hello, () => new HelloResponse(VersionInfo.VersionText));
+        _jsonIpcDirectRoutedProvider.AddRequestHandler(RoutedPathList.Hello, HandleHello);
 
         AddRequestHandler(RoutedPathList.GetRootVisualTree, GetRootVisualTree);
         AddNotifyHandler<SelectElementRequest>(RoutedPathList.SelectElement, SelectElement);
         AddRequestHandler(RoutedPathList.GetElementPropertyList, (GetElementPropertyRequest request) => GetElementPropertyList(request));
 
         _jsonIpcDirectRoutedProvider.StartServer();
+    }
+
+    private HelloResponse HandleHello()
+    {
+        var currentProcess = Process.GetCurrentProcess();
+        
+        return new HelloResponse(VersionInfo.VersionText, currentProcess.ProcessName, currentProcess.Id, Environment.CommandLine);
     }
 
     private GetElementPropertyResponse GetElementPropertyList(GetElementPropertyRequest request)
