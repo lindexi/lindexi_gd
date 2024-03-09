@@ -1,6 +1,6 @@
 using dotnetCampus.Ipc.Pipes.PipeConnectors;
 
-namespace UnoSpySnoopDebugger;
+namespace UnoSpySnoopDebugger.Communications;
 
 class UnoSpySnoopDebuggerIpcClientPipeConnector : IIpcClientPipeConnector
 {

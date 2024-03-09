@@ -1,6 +1,6 @@
 using dotnetCampus.Ipc.IpcRouteds.DirectRouteds;
 
-namespace UnoSpySnoopDebugger;
+namespace UnoSpySnoopDebugger.Models;
 
 public class CandidateDebugProcessInfo
 {
