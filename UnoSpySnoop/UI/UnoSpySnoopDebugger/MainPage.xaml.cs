@@ -6,7 +6,6 @@ using dotnetCampus.Ipc.Context;
 using dotnetCampus.Ipc.Exceptions;
 using dotnetCampus.Ipc.IpcRouteds.DirectRouteds;
 using dotnetCampus.Ipc.Pipes;
-using dotnetCampus.Ipc.Pipes.PipeConnectors;
 using dotnetCampus.Ipc.Threading;
 using dotnetCampus.Ipc.Utils.Logging;
 
@@ -123,32 +122,5 @@ public class NotNullToIsEnableConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, string language)
     {
         throw new NotSupportedException();
-    }
-}
-
-public class CandidateDebugProcessInfo
-{
-    public string? ProcessName { get; set; }
-    public string? ProcessId { get; set; }
-    public string? CommandLine { get; set; }
-    public JsonIpcDirectRoutedClientProxy? Client { get; set; }
-}
-
-class UnoSpySnoopDebuggerIpcClientPipeConnector : IIpcClientPipeConnector
-{
-    public async Task<IpcClientNamedPipeConnectResult> ConnectNamedPipeAsync(IpcClientPipeConnectionContext ipcClientPipeConnectionContext)
-    {
-        try
-        {
-            // With special timeout
-            await ipcClientPipeConnectionContext.NamedPipeClientStream.ConnectAsync(TimeSpan.FromSeconds(1),
-                ipcClientPipeConnectionContext.CancellationToken);
-        }
-        catch (TimeoutException e)
-        {
-            return new IpcClientNamedPipeConnectResult(false, e.Message);
-        }
-
-        return new IpcClientNamedPipeConnectResult(true);
     }
 }
