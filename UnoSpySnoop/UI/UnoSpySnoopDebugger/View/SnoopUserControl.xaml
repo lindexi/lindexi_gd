@@ -48,22 +48,30 @@
             </Grid>
 
             <Grid Grid.Column="1">
-                <ListView ItemsSource="{Binding ElementName=Root,Path=DependencyPropertyInfoList}">
+                <ListView ItemsSource="{Binding ElementName=Root,Path=DependencyPropertyInfoList}" HorizontalContentAlignment="Stretch">
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="ipcCommunicationContext:DependencyPropertyInfo">
                             <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"></RowDefinition>
+                                    <RowDefinition Height="Auto"></RowDefinition>
+                                </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="200"></ColumnDefinition>
-                                    <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                    <ColumnDefinition Width="300"></ColumnDefinition>
+                                    <ColumnDefinition Width="*"></ColumnDefinition>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="{Binding Name}"></TextBlock>
                                 <TextBlock Grid.Column="1" Text="{Binding Value}"></TextBlock>
+
+                                <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                        Margin="2 0 0 -5"
+                                        Height="2" Background="Gray"></Border>
                             </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
             </Grid>
-            
+
         </Grid>
     </Grid>
 </UserControl>
