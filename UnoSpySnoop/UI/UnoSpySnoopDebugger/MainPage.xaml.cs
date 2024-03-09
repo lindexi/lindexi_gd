@@ -101,9 +101,14 @@ public sealed partial class MainPage : Page
                 return;
             }
 
+#if !MACCATALYST
+            Window.Current.Title = $"UnoSpySnoopDebugger - Debugging {info.ProcessName} PID:{info.ProcessId}";
+#endif
+
             var snoopUserControl = new SnoopUserControl(info.Client);
             await snoopUserControl.StartAsync();
 
+            RootGrid.Children.Clear();
             RootGrid.Children.Add(snoopUserControl);
         }
     }
