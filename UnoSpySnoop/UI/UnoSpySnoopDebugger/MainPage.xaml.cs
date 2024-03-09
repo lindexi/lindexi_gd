@@ -45,8 +45,6 @@ public sealed partial class MainPage : Page
 
         var processes = Process.GetProcesses().ToList();
 
-        var list = new CandidateDebugProcessInfo?[processes.Count];
-
         await Parallel.ForEachAsync(processes, async (process, _) =>
         {
             var peerName = $"UnoSpySnoop_{process.ProcessName}_{process.Id}";
@@ -63,31 +61,27 @@ public sealed partial class MainPage : Page
 
                 if (response.SnoopVersionText != VersionInfo.VersionText)
                 {
-                    // 版本不对
+                    return;
                 }
 
-                var index = processes.IndexOf(process);
-                list[index] = new CandidateDebugProcessInfo()
+                var info = new CandidateDebugProcessInfo()
                 {
                     Client = client,
                     CommandLine = response.CommandLine,
                     ProcessId = response.ProcessId.ToString(),
                     ProcessName = response.ProcessName,
                 };
+
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    ProcessInfoList.Add(info);
+                });
             }
             catch (IpcClientPipeConnectionException e)
             {
                 // Connection Fail
             }
         });
-
-        foreach (var info in list)
-        {
-            if (info?.Client != null)
-            {
-                ProcessInfoList.Add(info);
-            }
-        }
     }
 
     public JsonIpcDirectRoutedProvider IpcProvider { get; set; }
