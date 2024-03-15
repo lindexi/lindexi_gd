@@ -21,7 +21,7 @@ public partial class MainWindow : Window
 
         var file = @"C:\lindexi\Font\手书体.ttf";
         //var fontFamily = new FontFamily(new Uri(@"C:\lindexi\Font\"), "手书体");
-        var fontFamily = new FontFamily(@"file:///C:\lindexi\Font\#手书体");
+        var fontFamily = new FontFamily(@"C:\lindexi\Font\#手书体");
         TextBlock.FontFamily = fontFamily;
     }
 }
