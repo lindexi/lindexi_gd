@@ -123,22 +123,6 @@ class MainWindow : Window
     private void MainWindow_TouchEvent(object o, TouchEventArgs args)
     {
     }
-
-    protected override bool OnDrawn(Context cr)
-    {
-        //Console.WriteLine(cr.Status);
-        //if (cr.GetSource() is SurfacePattern surfacePattern)
-        //{
-        //}
-        cr.SetSourceRGB(0.9, 0, 0);
-        cr.LineWidth = 10;
-        cr.MoveTo(10, 10);
-        cr.LineTo(100, 10);
-        cr.Stroke();
-
-        var result = base.OnDrawn(cr);
-        return true;
-    }
 }
 
 class F : DrawingArea
