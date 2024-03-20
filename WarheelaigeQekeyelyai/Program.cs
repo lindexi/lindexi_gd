@@ -22,7 +22,7 @@ internal class Program
         Win = new MainWindow("Demo Window");
         App.AddWindow(Win);
 
-        Win.ShowAll();
+        Win.Show();
         Application.Run();
     }
 
