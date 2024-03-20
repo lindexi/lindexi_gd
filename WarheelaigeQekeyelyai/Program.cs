@@ -88,16 +88,6 @@ class MainWindow : Window
         scroll1.Child = vpanned;
         _notebook.AppendPage(scroll1, new Label { Text = "Data", Expand = true });
 
-        var scroll2 = new ScrolledWindow();
-
-        //_textViewCode = new SourceView();
-        //_textViewCode.ShowLineNumbers = true;
-        //_textViewCode.Buffer.Language = new LanguageManager().GetLanguage("c-sharp");
-
-        //_textViewCode.Margin = 3;
-        //scroll2.Child = _textViewCode;
-        _notebook.AppendPage(scroll2, new Label { Text = "Code", Expand = true });
-
         _notebook.AppendPage(new F(), new Label() { Text = "Code2", Expand = true });
 
         hpanned.Pack2(_notebook, true, true);
