@@ -88,16 +88,6 @@ class MainWindow : Window
         scroll1.Child = vpanned;
         _notebook.AppendPage(scroll1, new Label { Text = "Data", Expand = true });
 
-        var scroll2 = new ScrolledWindow();
-
-        //_textViewCode = new SourceView();
-        //_textViewCode.ShowLineNumbers = true;
-        //_textViewCode.Buffer.Language = new LanguageManager().GetLanguage("c-sharp");
-
-        //_textViewCode.Margin = 3;
-        //scroll2.Child = _textViewCode;
-        _notebook.AppendPage(scroll2, new Label { Text = "Code", Expand = true });
-
         _notebook.AppendPage(new F(), new Label() { Text = "Code2", Expand = true });
 
         hpanned.Pack2(_notebook, true, true);
@@ -122,22 +112,6 @@ class MainWindow : Window
 
     private void MainWindow_TouchEvent(object o, TouchEventArgs args)
     {
-    }
-
-    protected override bool OnDrawn(Context cr)
-    {
-        //Console.WriteLine(cr.Status);
-        //if (cr.GetSource() is SurfacePattern surfacePattern)
-        //{
-        //}
-        cr.SetSourceRGB(0.9, 0, 0);
-        cr.LineWidth = 10;
-        cr.MoveTo(10, 10);
-        cr.LineTo(100, 10);
-        cr.Stroke();
-
-        var result = base.OnDrawn(cr);
-        return true;
     }
 }
 
