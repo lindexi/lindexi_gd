@@ -58,41 +58,41 @@ class MainWindow : Window
         DefaultSize = new Size(600, 600);
 
 
-        _headerBar = new HeaderBar();
-        _headerBar.ShowCloseButton = true;
-        _headerBar.Title = "GtkSharp Sample Application";
+        //_headerBar = new HeaderBar();
+        //_headerBar.ShowCloseButton = true;
+        //_headerBar.Title = "GtkSharp Sample Application";
 
-        var btnClickMe = new Button();
-        btnClickMe.AlwaysShowImage = true;
-        btnClickMe.Image = Image.NewFromIconName("document-new-symbolic", IconSize.Button);
-        _headerBar.PackStart(btnClickMe);
+        //var btnClickMe = new Button();
+        //btnClickMe.AlwaysShowImage = true;
+        //btnClickMe.Image = Image.NewFromIconName("document-new-symbolic", IconSize.Button);
+        //_headerBar.PackStart(btnClickMe);
 
-        //Titlebar = _headerBar;
+        ////Titlebar = _headerBar;
 
-        var hpanned = new HPaned();
-        hpanned.Position = 200;
+        //var hpanned = new HPaned();
+        //hpanned.Position = 200;
 
-        _treeView = new TreeView();
-        _treeView.HeadersVisible = false;
-        hpanned.Pack1(_treeView, false, true);
+        //_treeView = new TreeView();
+        //_treeView.HeadersVisible = false;
+        //hpanned.Pack1(_treeView, false, true);
 
-        _notebook = new Notebook();
+        //_notebook = new Notebook();
 
-        var scroll1 = new ScrolledWindow();
-        var vpanned = new VPaned();
-        vpanned.Position = 300;
-        _boxContent = new Box(Orientation.Vertical, 0);
-        _boxContent.Margin = 8;
-        vpanned.Pack1(_boxContent, true, true);
-        //vpanned.Pack2(ApplicationOutput.Widget, false, true);
-        scroll1.Child = vpanned;
-        _notebook.AppendPage(scroll1, new Label { Text = "Data", Expand = true });
+        //var scroll1 = new ScrolledWindow();
+        //var vpanned = new VPaned();
+        //vpanned.Position = 300;
+        //_boxContent = new Box(Orientation.Vertical, 0);
+        //_boxContent.Margin = 8;
+        //vpanned.Pack1(_boxContent, true, true);
+        ////vpanned.Pack2(ApplicationOutput.Widget, false, true);
+        //scroll1.Child = vpanned;
+        //_notebook.AppendPage(scroll1, new Label { Text = "Data", Expand = true });
 
-        _notebook.AppendPage(new F(), new Label() { Text = "Code2", Expand = true });
+        //_notebook.AppendPage(new F(), new Label() { Text = "Code2", Expand = true });
 
-        hpanned.Pack2(_notebook, true, true);
+        //hpanned.Pack2(_notebook, true, true);
 
-        Child = hpanned;
+        //Child = hpanned;
 
         //Widget widget = this;
         //this.TouchEvent += MainWindow_TouchEvent;
@@ -108,6 +108,8 @@ class MainWindow : Window
         //hpanned.Pack2(button,false,true);
 
         //Child = hpanned;
+
+        Child = new F();
     }
 
     private void MainWindow_TouchEvent(object o, TouchEventArgs args)
