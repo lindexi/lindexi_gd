@@ -52,7 +52,6 @@ class F : DrawingArea
     {
         WidthRequest = 300;
         HeightRequest = 300;
-        Show();
     }
 
     protected override bool OnDrawn(Context cr)
