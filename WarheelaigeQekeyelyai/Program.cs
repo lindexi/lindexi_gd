@@ -57,9 +57,9 @@ class F : DrawingArea
         HeightRequest = 300;
 
         AddEvents((int) RequestedEvents);
-        EnterNotifyEvent += F_EnterNotifyEvent;
-        ButtonPressEvent += F_ButtonPressEvent;
-        MotionNotifyEvent += F_MotionNotifyEvent;
+        //EnterNotifyEvent += F_EnterNotifyEvent;
+        //ButtonPressEvent += F_ButtonPressEvent;
+        //MotionNotifyEvent += F_MotionNotifyEvent;
         TouchEvent += F_TouchEvent;
     }
 
