@@ -20,18 +20,18 @@ internal class Program
     {
         Application.Init();
 
-        App = new Application("org.Samples.Samples", GLib.ApplicationFlags.None);
-        App.Register(GLib.Cancellable.Current);
+        _app = new Application("org.Samples.Samples", GLib.ApplicationFlags.None);
+        _app.Register(GLib.Cancellable.Current);
 
-        Win = new MainWindow("Demo Window");
-        App.AddWindow(Win);
+        _win = new MainWindow("Demo Window");
+        _app.AddWindow(_win);
 
-        Win.ShowAll();
+        _win.ShowAll();
         Application.Run();
     }
 
-    public static Application App;
-    public static Window Win;
+    private static Application? _app;
+    private static Window? _win;
 }
 
 class MainWindow : Window
@@ -40,7 +40,6 @@ class MainWindow : Window
     {
         WindowPosition = WindowPosition.Center;
         DefaultSize = new Size(600, 600);
-
 
         Child = new F();
     }
@@ -129,15 +128,6 @@ class F : DrawingArea
             {
                 
             }
-
-            /*
-               Xtilt,
-               Ytilt,
-               Wheel,
-               Distance,
-               Rotation,
-               Slider,
-             */
         }
 
         QueueDraw();
