@@ -58,8 +58,11 @@ class F : DrawingArea
 
         AddEvents((int) RequestedEvents);
         EnterNotifyEvent += F_EnterNotifyEvent;
+        ButtonPressEvent += F_ButtonPressEvent;
+        MotionNotifyEvent += F_MotionNotifyEvent;
         TouchEvent += F_TouchEvent;
     }
+
 
     private unsafe void F_TouchEvent(object o, TouchEventArgs args)
     {
@@ -156,6 +159,22 @@ class F : DrawingArea
 
     private void F_EnterNotifyEvent(object o, EnterNotifyEventArgs args)
     {
+        PointList.Clear();
+        PointList.Add(new Point2D(args.Event.X, args.Event.Y));
+        QueueDraw();
+    }
+
+    private void F_ButtonPressEvent(object o, ButtonPressEventArgs args)
+    {
+        PointList.Clear();
+        PointList.Add(new Point2D(args.Event.X, args.Event.Y));
+        QueueDraw();
+    }
+
+    private void F_MotionNotifyEvent(object o, MotionNotifyEventArgs args)
+    {
+        PointList.Add(new Point2D(args.Event.X, args.Event.Y));
+        QueueDraw();
     }
 
     protected override bool OnDrawn(Context cr)
