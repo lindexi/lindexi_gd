@@ -66,10 +66,7 @@ class F : DrawingArea
 
     private unsafe void F_TouchEvent(object o, TouchEventArgs args)
     {
-        //Console.WriteLine($"{args.Event.Type} {args.Event.Handle}");
-
         var eventTouch = EventTouch.New(args.Event.Handle);
-        //Console.WriteLine($"EventTouch {eventTouch.X} {eventTouch.Y}");
 
         //if (eventTouch.Type == EventType.TouchBegin)
         {
