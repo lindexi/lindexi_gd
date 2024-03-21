@@ -75,8 +75,8 @@ class F : DrawingArea
 
             Console.WriteLine($"NumAxes={numAxes} Id={eventTouch.Sequence?.Handle ?? -1}");
 
-            var span = new Span<double>((void*) eventTouch.Axes, numAxes);
-            var axes = span.ToArray();
+            var axes = new Span<double>((void*) eventTouch.Axes, numAxes);
+            //var axes = span.ToArray();
 
             // 删除没有用的代码，这些代码无法获取值
             //if (device.GetAxis(axes, AxisUse.X, out var value))
