@@ -71,7 +71,7 @@ class F : DrawingArea
         var eventTouch = EventTouch.New(args.Event.Handle);
         //Console.WriteLine($"EventTouch {eventTouch.X} {eventTouch.Y}");
 
-        if (eventTouch.Type == EventType.TouchBegin)
+        //if (eventTouch.Type == EventType.TouchBegin)
         {
             var device = eventTouch.Device;
             var numAxes = device.NumAxes;
@@ -126,10 +126,13 @@ class F : DrawingArea
                 Console.WriteLine($"Slider={value}");
             }
 
-            for (int i = 10; i < numAxes; i++)
+            Console.WriteLine("=================");
+            for (int i = 0; i < numAxes; i++)
             {
-
+                Console.WriteLine($"[{i}] {axes[i]}");
             }
+            Console.WriteLine("=================");
+            Console.WriteLine();
         }
 
         if (eventTouch.Type == EventType.TouchBegin)
