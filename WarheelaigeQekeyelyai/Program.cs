@@ -57,19 +57,16 @@ class F : DrawingArea
         HeightRequest = 300;
 
         AddEvents((int) RequestedEvents);
-        //EnterNotifyEvent += F_EnterNotifyEvent;
-        //ButtonPressEvent += F_ButtonPressEvent;
-        //MotionNotifyEvent += F_MotionNotifyEvent;
+        EnterNotifyEvent += F_EnterNotifyEvent;
+        ButtonPressEvent += F_ButtonPressEvent;
+        MotionNotifyEvent += F_MotionNotifyEvent;
         TouchEvent += F_TouchEvent;
     }
 
 
     private unsafe void F_TouchEvent(object o, TouchEventArgs args)
     {
-        //Console.WriteLine($"{args.Event.Type} {args.Event.Handle}");
-
         var eventTouch = EventTouch.New(args.Event.Handle);
-        //Console.WriteLine($"EventTouch {eventTouch.X} {eventTouch.Y}");
 
         //if (eventTouch.Type == EventType.TouchBegin)
         {
@@ -131,6 +128,21 @@ class F : DrawingArea
             {
                 Console.WriteLine($"[{i}] {axes[i]}");
             }
+
+            if (numAxes > 5)
+            {
+                var radioX = eventTouch.XRoot / axes[0];
+                var radioY = eventTouch.YRoot / axes[1];
+
+                var rawWidth = axes[3];
+                var rawHeight = axes[4];
+
+                var width = rawWidth * radioX;
+                var height = rawHeight * radioY;
+
+                Console.WriteLine($"Width={width} Height={height}");
+            }
+
             Console.WriteLine("=================");
             Console.WriteLine();
         }
