@@ -41,7 +41,6 @@ class MainWindow : Window
         WindowPosition = WindowPosition.Center;
         DefaultSize = new Size(600, 600);
 
-
         Child = new F();
     }
 
@@ -129,15 +128,6 @@ class F : DrawingArea
             {
                 
             }
-
-            /*
-               Xtilt,
-               Ytilt,
-               Wheel,
-               Distance,
-               Rotation,
-               Slider,
-             */
         }
 
         QueueDraw();
