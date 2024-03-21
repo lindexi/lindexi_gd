@@ -71,7 +71,7 @@ class F : DrawingArea
         var eventTouch = EventTouch.New(args.Event.Handle);
         //Console.WriteLine($"EventTouch {eventTouch.X} {eventTouch.Y}");
 
-        if (eventTouch.Type == EventType.TouchBegin)
+        //if (eventTouch.Type == EventType.TouchBegin)
         {
             var device = eventTouch.Device;
             var numAxes = device.NumAxes;
