@@ -74,7 +74,7 @@ class F : DrawingArea
             var device = eventTouch.Device;
             var numAxes = device.NumAxes;
 
-            Console.WriteLine($"NumAxes={numAxes}");
+            Console.WriteLine($"NumAxes={numAxes} Id={eventTouch.Sequence?.Handle ?? -1}");
 
             var span = new Span<double>((void*) eventTouch.Axes, numAxes);
             var axes = span.ToArray();
@@ -126,7 +126,7 @@ class F : DrawingArea
 
             for (int i = 10; i < numAxes; i++)
             {
-                
+
             }
         }
 
@@ -160,6 +160,7 @@ class F : DrawingArea
         //cr.LineTo(_point.X, _point.Y);
         var size = 10d;
         cr.Rectangle(_point.X - size / 2, _point.Y - size / 2, size, size);
+
         cr.Stroke();
         return base.OnDrawn(cr);
     }
@@ -188,7 +189,7 @@ public partial struct EventTouch
     public IntPtr Axes;
     public uint State;
     private IntPtr _sequence;
-    public Gdk.EventSequence Sequence
+    public Gdk.EventSequence? Sequence
     {
         get
         {
