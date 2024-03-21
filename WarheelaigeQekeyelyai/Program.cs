@@ -73,8 +73,6 @@ class F : DrawingArea
             var device = eventTouch.Device;
             var numAxes = device.NumAxes;
 
-            
-
             Console.WriteLine($"NumAxes={numAxes} Id={eventTouch.Sequence?.Handle ?? -1}");
 
             var axes = new Span<double>((void*) eventTouch.Axes, numAxes);
@@ -144,8 +142,6 @@ class F : DrawingArea
                 var height = rawHeight * radioY;
 
                 Console.WriteLine($"Width={width} Height={height}");
-                Console.WriteLine($"PrimaryMonitor={eventTouch.Window.Display.PrimaryMonitor.WidthMm},{eventTouch.Window.Display.PrimaryMonitor.HeightMm}");
-                Console.WriteLine($"物理 Width={rawWidth * eventTouch.Window.Display.PrimaryMonitor.WidthMm} Height={rawHeight * eventTouch.Window.Display.PrimaryMonitor.HeightMm}");
             }
 
             Console.WriteLine("=================");
