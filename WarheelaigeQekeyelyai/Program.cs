@@ -126,10 +126,13 @@ class F : DrawingArea
                 Console.WriteLine($"Slider={value}");
             }
 
-            for (int i = 10; i < numAxes; i++)
+            Console.WriteLine("=================");
+            for (int i = 0; i < numAxes; i++)
             {
-
+                Console.WriteLine($"[{i}] {axes[i]}");
             }
+            Console.WriteLine("=================");
+            Console.WriteLine();
         }
 
         if (eventTouch.Type == EventType.TouchBegin)
