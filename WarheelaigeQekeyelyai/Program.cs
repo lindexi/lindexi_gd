@@ -67,7 +67,6 @@ class F : DrawingArea
 
         var eventTouch = EventTouch.New(args.Event.Handle);
         //Console.WriteLine($"EventTouch {eventTouch.X} {eventTouch.Y}");
-        _point = (eventTouch.X, eventTouch.Y);
 
         if (eventTouch.Type == EventType.TouchBegin)
         {
@@ -130,10 +129,17 @@ class F : DrawingArea
             }
         }
 
+        if (eventTouch.Type == EventType.TouchBegin)
+        {
+            PointList.Clear();
+        }
+
+        PointList.Add(new(eventTouch.X, eventTouch.Y));
+
         QueueDraw();
     }
 
-    private (double X, double Y) _point = (100, 100);
+    private List<Point2D> PointList { get; } = new List<Point2D>();
 
     internal const Gdk.EventMask RequestedEvents =
         Gdk.EventMask.EnterNotifyMask
@@ -155,16 +161,29 @@ class F : DrawingArea
     protected override bool OnDrawn(Context cr)
     {
         cr.SetSourceRGB(0.9, 0, 0);
-        cr.LineWidth = 10;
+        cr.LineWidth = 5;
         //cr.MoveTo(10, 10);
         //cr.LineTo(_point.X, _point.Y);
-        var size = 10d;
-        cr.Rectangle(_point.X - size / 2, _point.Y - size / 2, size, size);
+        //var size = 10d;
+        //cr.Rectangle(_point.X - size / 2, _point.Y - size / 2, size, size);
+        if (PointList.Count > 0)
+        {
+            var (x, y) = PointList[0];
+            cr.MoveTo(x, y);
+        }
+
+        for (int i = 1; i < PointList.Count; i++)
+        {
+            var (x, y) = PointList[i];
+            cr.LineTo(x, y);
+        }
 
         cr.Stroke();
         return base.OnDrawn(cr);
     }
 }
+
+readonly record struct Point2D(double X, double Y);
 
 [StructLayout(LayoutKind.Sequential)]
 public partial struct EventTouch
