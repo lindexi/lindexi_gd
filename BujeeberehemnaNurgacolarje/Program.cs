@@ -162,10 +162,10 @@ class App
         while (true)
         {
             var result = XSync(Display, false);
-            Console.WriteLine($"XSync={result}");
+            //Console.WriteLine($"XSync={result}");
 
             var xNextEvent = XNextEvent(Display, out @event);
-            Console.WriteLine($"NextEvent={xNextEvent} {@event}");
+            //Console.WriteLine($"NextEvent={xNextEvent} {@event}");
 
             if (@event.type == XEventName.Expose)
             {
@@ -173,7 +173,21 @@ class App
             }
             else if (@event.type == XEventName.ButtonPress)
             {
-                XDrawRectangle(Display, Window, GC, @event.ButtonEvent.x, @event.ButtonEvent.y, 2, 2);
+                //XDrawRectangle(Display, Window, GC, @event.ButtonEvent.x, @event.ButtonEvent.y, 2, 2);
+                _lastPoint = (@event.ButtonEvent.x, @event.ButtonEvent.y);
+                _isDown = true;
+            }
+            else if (@event.type == XEventName.MotionNotify)
+            {
+                if (_isDown)
+                {
+                    XDrawLine(Display, Window, GC, _lastPoint.X, _lastPoint.Y, @event.MotionEvent.x, @event.MotionEvent.y);
+                    _lastPoint = (@event.MotionEvent.x, @event.MotionEvent.y);
+                }
+            }
+            else if (@event.type == XEventName.ButtonRelease)
+            {
+                _isDown = false;
             }
 
             if (xNextEvent != 0)
@@ -183,7 +197,8 @@ class App
         }
     }
 
-    
+    private (int X, int Y) _lastPoint;
+    private bool _isDown;
 
     private void Redraw()
     {
@@ -202,9 +217,9 @@ class App
 
         var white = XWhitePixel(Display, Screen);
         var foreground = XSetForeground(Display, GC, white);
-        Console.WriteLine($"Foreground={foreground}");
+        //Console.WriteLine($"Foreground={foreground}");
 
-        XDrawRectangle(Display, Window, GC, 10, 10, 100, 100);
+        //XDrawRectangle(Display, Window, GC, 10, 10, 100, 100);
     }
 
     private IntPtr GC { get; }
