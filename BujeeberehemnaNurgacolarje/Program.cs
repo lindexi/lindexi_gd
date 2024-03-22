@@ -17,6 +17,7 @@ using System;
 using ColorFlags = CPF.Linux.ColorFlags;
 using EventMask = CPF.Linux.EventMask;
 using XColor = CPF.Linux.XColor;
+using XEventMask = CPF.Linux.XEventMask;
 using XEventName = CPF.Linux.XEventName;
 using XSetWindowAttributes = CPF.Linux.XSetWindowAttributes;
 
@@ -138,7 +139,9 @@ class App
         //    Info.Atoms.WM_DELETE_WINDOW
         //};
         //XSetWMProtocols(Display, Window, protocols, protocols.Length);
-        XSelectInput(Display, Window, (nint)(EventMask.ExposureMask | EventMask.ButtonPressMask | EventMask.KeyPressMask));
+        XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask | XEventMask.PointerMotionHintMask;
+        var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
+        XSelectInput(Display, Window, mask);
 
         XClearWindow(Display, Window);
         XMapWindow(Display,Window);
