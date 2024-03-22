@@ -195,7 +195,7 @@ class App
         var foreground = XSetForeground(Display, GC, white);
         Console.WriteLine($"Foreground={foreground}");
 
-        XFillRectangle(Display, Window, GC, 10, 10, 100, 100);
+        XDrawRectangle(Display, Window, GC, 10, 10, 100, 100);
     }
 
     private IntPtr GC { get; }
