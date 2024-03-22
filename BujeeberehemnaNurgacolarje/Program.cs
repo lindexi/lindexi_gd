@@ -17,6 +17,10 @@ internal class Program
     {
         AssemblyLoadContext.Default.Resolving += Default_Resolving;
 
+        StartX11App();
+
+        return;
+
         var x11ApplicationHost = new X11ApplicationHost(() =>
         {
             var application = new App();
@@ -90,6 +94,10 @@ internal class Program
         }
 
         return null;
+    }
+
+    private static void StartX11App()
+    {
     }
 }
 
