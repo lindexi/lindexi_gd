@@ -14,6 +14,7 @@ using XKeySym = CPF.Linux.XKeySym;
 using System.Reflection.Metadata;
 using System.Net;
 using System;
+using EventMask = CPF.Linux.EventMask;
 using XSetWindowAttributes = CPF.Linux.XSetWindowAttributes;
 
 namespace BujeeberehemnaNurgacolarje;
@@ -133,7 +134,7 @@ class App
         //    Info.Atoms.WM_DELETE_WINDOW
         //};
         //XSetWMProtocols(Display, Window, protocols, protocols.Length);
-
+        XSelectInput(Display, Window, (nint)(EventMask.ExposureMask | EventMask.ButtonPressMask | EventMask.KeyPressMask));
 
         XClearWindow(Display, Window);
         XMapWindow(Display,Window);
