@@ -171,6 +171,10 @@ class App
             {
                 Redraw();
             }
+            else if (@event.type == XEventName.ButtonPress)
+            {
+                XDrawRectangle(Display, Window, GC, @event.ButtonEvent.x, @event.ButtonEvent.y, 2, 2);
+            }
 
             if (xNextEvent != 0)
             {
@@ -178,6 +182,8 @@ class App
             }
         }
     }
+
+    
 
     private void Redraw()
     {
