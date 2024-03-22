@@ -14,7 +14,10 @@ using XKeySym = CPF.Linux.XKeySym;
 using System.Reflection.Metadata;
 using System.Net;
 using System;
+using ColorFlags = CPF.Linux.ColorFlags;
 using EventMask = CPF.Linux.EventMask;
+using XColor = CPF.Linux.XColor;
+using XEventName = CPF.Linux.XEventName;
 using XSetWindowAttributes = CPF.Linux.XSetWindowAttributes;
 
 namespace BujeeberehemnaNurgacolarje;
@@ -123,6 +126,7 @@ class App
         Console.WriteLine("XInputVersion=" + Info.XInputVersion);
         var screen = XDefaultScreen(Display);
         Console.WriteLine($"Screen = {screen}");
+        Screen = screen;
         var white = XWhitePixel(Display, screen);
         var black = XBlackPixel(Display, screen);
         Window = XCreateSimpleWindow(Display, XDefaultRootWindow(Display), 0, 0, 300, 300, 5, white, black);
@@ -160,11 +164,38 @@ class App
             var xNextEvent = XNextEvent(Display, out @event);
             Console.WriteLine($"NextEvent={xNextEvent} {@event}");
 
+            if (@event.type == XEventName.Expose)
+            {
+                Redraw();
+            }
+
             if (xNextEvent != 0)
             {
                 break;
             }
         }
+    }
+
+    private void Redraw()
+    {
+        //var colormap = XCreateColormap(Display,Window,XDefaultVisual(Display,Screen),1);
+        //Console.WriteLine($"Colormap={colormap}");
+
+        //var color = new XColor()
+        //{
+        //    red = 32000,
+        //    flags = (byte) (ColorFlags.DoRed | ColorFlags.DoBlue | ColorFlags.DoGreen)
+        //};
+        //XAllocColor(Display, colormap, ref color);
+        //Console.WriteLine($"Pixel={color.pixel}");
+        //var foreground = XSetForeground(Display, GC, color.pixel);
+        //Console.WriteLine($"Foreground={foreground}");
+
+        var white = XWhitePixel(Display, Screen);
+        var foreground = XSetForeground(Display, GC, white);
+        Console.WriteLine($"Foreground={foreground}");
+
+        XFillRectangle(Display, Window, GC, 10, 10, 100, 100);
     }
 
     private IntPtr GC { get; }
@@ -175,4 +206,5 @@ class App
     //public XI2Manager XI2;
     public X11Info Info { get; private set; }
     public IntPtr Window { get; set; }
+    public int Screen { get; set; }
 }
