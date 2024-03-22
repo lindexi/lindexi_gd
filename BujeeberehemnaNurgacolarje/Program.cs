@@ -128,19 +128,19 @@ class App
         
         Console.WriteLine($"Window={Window}");
         //XSetStandardProperties(dis, win, "My Window", "HI!", None, NULL, 0, NULL);
-        var protocols = new[]
-        {
-            Info.Atoms.WM_DELETE_WINDOW
-        };
-        XSetWMProtocols(Display, Window, protocols, protocols.Length);
+        //var protocols = new[]
+        //{
+        //    Info.Atoms.WM_DELETE_WINDOW
+        //};
+        //XSetWMProtocols(Display, Window, protocols, protocols.Length);
 
-        XFlush(Info.Display);
-
-
-        GC = XCreateGC(Display, Window, 0, 0);
 
         XClearWindow(Display, Window);
         XMapWindow(Display,Window);
+
+
+        XFlush(Info.Display);
+        GC = XCreateGC(Display, Window, 0, 0);
     }
 
     public void Run()
@@ -153,12 +153,16 @@ class App
         XKeySym key;
         while (true)
         {
-            Console.WriteLine("Do");
             var result = XSync(Display, false);
             Console.WriteLine($"XSync={result}");
 
             var xNextEvent = XNextEvent(Display, out @event);
-            Console.WriteLine($"NextEvent={xNextEvent}");
+            Console.WriteLine($"NextEvent={xNextEvent} {@event}");
+
+            if (xNextEvent != 0)
+            {
+                break;
+            }
         }
     }
 
