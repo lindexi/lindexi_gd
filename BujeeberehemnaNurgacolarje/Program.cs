@@ -14,6 +14,7 @@ using XKeySym = CPF.Linux.XKeySym;
 using System.Reflection.Metadata;
 using System.Net;
 using System;
+using XSetWindowAttributes = CPF.Linux.XSetWindowAttributes;
 
 namespace BujeeberehemnaNurgacolarje;
 
@@ -124,6 +125,7 @@ class App
         var white = XWhitePixel(Display, screen);
         var black = XBlackPixel(Display, screen);
         Window = XCreateSimpleWindow(Display, XDefaultRootWindow(Display), 0, 0, 300, 300, 5, white, black);
+        
         Console.WriteLine($"Window={Window}");
         //XSetStandardProperties(dis, win, "My Window", "HI!", None, NULL, 0, NULL);
         var protocols = new[]
@@ -137,7 +139,8 @@ class App
 
         GC = XCreateGC(Display, Window, 0, 0);
 
-        //XClearWindow(Display, Window);
+        XClearWindow(Display, Window);
+        XMapWindow(Display,Window);
     }
 
     public void Run()
