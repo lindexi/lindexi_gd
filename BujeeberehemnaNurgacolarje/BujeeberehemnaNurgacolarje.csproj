@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Uno">
+      <HintPath>..\..\..\..\Library\Uno.dll</HintPath>
+    </Reference>
+    <Reference Include="Uno.Foundation">
+      <HintPath>..\..\..\..\Library\Uno.Foundation.dll</HintPath>
+    </Reference>
+    <Reference Include="Uno.Foundation.Logging">
+      <HintPath>..\..\..\..\Library\Uno.Foundation.Logging.dll</HintPath>
+    </Reference>
+    <Reference Include="Uno.UI">
+      <HintPath>..\..\..\..\Library\Uno.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="Uno.UI.Composition">
+      <HintPath>..\..\..\..\Library\Uno.UI.Composition.dll</HintPath>
+    </Reference>
+    <Reference Include="Uno.UI.Dispatching">
+      <HintPath>..\..\..\..\Library\Uno.UI.Dispatching.dll</HintPath>
+    </Reference>
+    <Reference Include="Uno.UI.Runtime.Skia">
+      <HintPath>..\..\..\..\Library\Uno.UI.Runtime.Skia.dll</HintPath>
+    </Reference>
+    <Reference Include="Uno.UI.Runtime.Skia.X11">
+      <HintPath>..\..\..\..\Library\Uno.UI.Runtime.Skia.X11.dll</HintPath>
+    </Reference>
+    <Reference Include="Uno.Xaml">
+      <HintPath>..\..\..\..\Library\Uno.Xaml.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
