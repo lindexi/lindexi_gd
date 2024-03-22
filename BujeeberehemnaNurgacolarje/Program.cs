@@ -7,6 +7,13 @@ using Sia;
 using Uno.Foundation.Logging;
 using Uno.WinUI.Runtime.Skia.X11;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
+using static CPF.Linux.XLib;
+using CPF.Linux;
+using XEvent = CPF.Linux.XEvent;
+using XKeySym = CPF.Linux.XKeySym;
+using System.Reflection.Metadata;
+using System.Net;
+using System;
 
 namespace BujeeberehemnaNurgacolarje;
 
@@ -23,7 +30,7 @@ internal class Program
 
         var x11ApplicationHost = new X11ApplicationHost(() =>
         {
-            var application = new App();
+            var application = new Sia.App();
 
             var factory = LoggerFactory.Create(builder =>
             {
@@ -98,6 +105,66 @@ internal class Program
 
     private static void StartX11App()
     {
+        var app = new App();
+        app.Run();
     }
 }
 
+class App
+{
+    public App()
+    {
+        XInitThreads();
+        Display = XOpenDisplay(IntPtr.Zero);
+        XError.Init();
+        Info = new X11Info(Display, DeferredDisplay);
+        Console.WriteLine("XInputVersion=" + Info.XInputVersion);
+        var screen = XDefaultScreen(Display);
+        Console.WriteLine($"Screen = {screen}");
+        var white = XWhitePixel(Display, screen);
+        var black = XBlackPixel(Display, screen);
+        Window = XCreateSimpleWindow(Display, XDefaultRootWindow(Display), 0, 0, 300, 300, 5, white, black);
+        Console.WriteLine($"Window={Window}");
+        //XSetStandardProperties(dis, win, "My Window", "HI!", None, NULL, 0, NULL);
+        var protocols = new[]
+        {
+            Info.Atoms.WM_DELETE_WINDOW
+        };
+        XSetWMProtocols(Display, Window, protocols, protocols.Length);
+
+        XFlush(Info.Display);
+
+
+        GC = XCreateGC(Display, Window, 0, 0);
+
+        //XClearWindow(Display, Window);
+    }
+
+    public void Run()
+    {
+        Console.WriteLine("Run");
+        XRaiseWindow(Display, Window);
+        XSetInputFocus(Display, Window, 0, IntPtr.Zero);
+
+        XEvent @event;
+        XKeySym key;
+        while (true)
+        {
+            Console.WriteLine("Do");
+            var result = XSync(Display, false);
+            Console.WriteLine($"XSync={result}");
+
+            var xNextEvent = XNextEvent(Display, out @event);
+            Console.WriteLine($"NextEvent={xNextEvent}");
+        }
+    }
+
+    private IntPtr GC { get; }
+
+    public IntPtr DeferredDisplay { get; set; }
+    public IntPtr Display { get; set; }
+
+    //public XI2Manager XI2;
+    public X11Info Info { get; private set; }
+    public IntPtr Window { get; set; }
+}
