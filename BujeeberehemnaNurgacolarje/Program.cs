@@ -102,23 +102,13 @@ class App
 
         Console.WriteLine($"App");
 
-        for (int i = 0; i < 100; i++)
-        {
-            var bitmapData = new byte[50 * 50 * 4];
-            Random.Shared.NextBytes(bitmapData);
-            _bitmapData = bitmapData;
-            _list.Add(_bitmapData);
-        }
-
         XImage img = CreateImage();
         _image = img;
     }
 
     private XImage _image;
 
-    private List<byte[]> _list = new List<byte[]>();
-
-    public unsafe void Run()
+    public void Run()
     {
         XSetInputFocus(Display, Window, 0, IntPtr.Zero);
 
@@ -158,11 +148,6 @@ class App
                             _bitmapData[i + 2] = b;
                             _bitmapData[i + 3] = a;
                         }
-
-                        System.GC.Collect();
-
-                        _list.Clear();
-                        _list.TrimExcess();
                     }
 
                     XPutImage(Display, Window, GC, ref _image, 0, 0, cx,
@@ -187,41 +172,8 @@ class App
     private (int X, int Y) _lastPoint;
     private bool _isDown;
 
-    private unsafe void Redraw()
+    private void Redraw()
     {
-        //var bitmapWidth = 50;
-        //var bitmapHeight = 50;
-        //var skBitmap = new SKBitmap(bitmapWidth, bitmapHeight);
-        //var skCanvas = new SKCanvas(skBitmap);
-        //skCanvas.Clear(SKColors.Red);
-
-        //skCanvas.Flush();
-        //var pixels = skBitmap.GetPixels();
-
-        //int bitsPerPixel = 32;
-        //var img = new XImage
-        //{
-        //    width = bitmapWidth,
-        //    height = bitmapHeight,
-        //    format = 2, //ZPixmap;
-        //    data = pixels,
-        //    byte_order = 0, // LSBFirst;
-        //    bitmap_unit = bitsPerPixel,
-        //    bitmap_bit_order = 0, // LSBFirst;
-        //    bitmap_pad = bitsPerPixel,
-        //    depth = 32,
-        //    bytes_per_line = bitmapWidth * 4,
-        //    bits_per_pixel = bitsPerPixel,
-        //    red_mask = 0xFF,
-        //    green_mask = 0x11,
-        //    blue_mask = 0xF0,
-        //};
-
-        //var result = XInitImage(ref img);
-        //Console.WriteLine($"XInitImage={result}");
-        //result = XPutImage(Display, Window, GC, ref img, 0, 0, 0, 0, (uint) bitmapWidth, (uint) bitmapHeight);
-        //Console.WriteLine($"XPutImage={result}");
-
         var img = _image;
 
         XPutImage(Display, Window, GC, ref img, 0, 0, 0, 0, (uint) img.width, (uint) img.height);
@@ -258,7 +210,9 @@ class App
         img.bits_per_pixel = bitsPerPixel;
         XInitImage(ref img);
 
-        pinnedArray.Free();
+        // 除非 XImage 不再使用了，否则此时释放，将会导致 GC 之后 data 指针对应的内存不是可用的
+        // 调用 XPutImage 将访问不可用内存，导致段错误，闪退
+        //pinnedArray.Free();
 
         return img;
     }
@@ -273,3 +227,4 @@ class App
     public IntPtr Window { get; set; }
     public int Screen { get; set; }
 }
+
