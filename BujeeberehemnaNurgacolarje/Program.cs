@@ -102,11 +102,21 @@ class App
 
         Console.WriteLine($"App");
 
+        for (int i = 0; i < 100; i++)
+        {
+            var bitmapData = new byte[50 * 50 * 4];
+            Random.Shared.NextBytes(bitmapData);
+            _bitmapData = bitmapData;
+            _list.Add(_bitmapData);
+        }
+
         XImage img = CreateImage();
         _image = img;
     }
 
     private XImage _image;
+
+    private List<byte[]> _list = new List<byte[]>();
 
     public unsafe void Run()
     {
@@ -136,14 +146,27 @@ class App
                     var cy = @event.MotionEvent.y - _image.height / 2;
                     if (_bitmapData != null)
                     {
-                        for (var i = 0; i < _bitmapData.Length; i++)
+                        var r = (byte) (cx ^ cy + Random.Shared.Next(byte.MaxValue));
+                        var g = (byte) (cx ^ cy + Random.Shared.Next(byte.MaxValue));
+                        var b = (byte) (cx ^ cy + Random.Shared.Next(byte.MaxValue));
+                        var a = (byte) (cx ^ cy + Random.Shared.Next(byte.MaxValue));
+
+                        for (var i = 0; i < _bitmapData.Length; i += 4)
                         {
-                            _bitmapData[i] = (byte) (cx ^ cy);
+                            _bitmapData[i] = r;
+                            _bitmapData[i + 1] = g;
+                            _bitmapData[i + 2] = b;
+                            _bitmapData[i + 3] = a;
                         }
+
+                        System.GC.Collect();
+
+                        _list.Clear();
+                        _list.TrimExcess();
                     }
-                    
+
                     XPutImage(Display, Window, GC, ref _image, 0, 0, cx,
-                        cy, (uint)_image.width, (uint)_image.height);
+                        cy, (uint) _image.width, (uint) _image.height);
                     //XDrawLine(Display, Window, GC, _lastPoint.X, _lastPoint.Y, @event.MotionEvent.x,
                     //    @event.MotionEvent.y);
                     _lastPoint = (@event.MotionEvent.x, @event.MotionEvent.y);
