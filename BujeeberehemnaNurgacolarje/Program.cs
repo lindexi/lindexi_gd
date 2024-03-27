@@ -132,28 +132,8 @@ class App
             {
                 if (_isDown)
                 {
-                    var cx = @event.MotionEvent.x - _image.width / 2;
-                    var cy = @event.MotionEvent.y - _image.height / 2;
-                    if (_bitmapData != null)
-                    {
-                        var r = (byte) (cx ^ cy + Random.Shared.Next(byte.MaxValue));
-                        var g = (byte) (cx ^ cy + Random.Shared.Next(byte.MaxValue));
-                        var b = (byte) (cx ^ cy + Random.Shared.Next(byte.MaxValue));
-                        var a = (byte) (cx ^ cy + Random.Shared.Next(byte.MaxValue));
-
-                        for (var i = 0; i < _bitmapData.Length; i += 4)
-                        {
-                            _bitmapData[i] = r;
-                            _bitmapData[i + 1] = g;
-                            _bitmapData[i + 2] = b;
-                            _bitmapData[i + 3] = a;
-                        }
-                    }
-
-                    XPutImage(Display, Window, GC, ref _image, 0, 0, cx,
-                        cy, (uint) _image.width, (uint) _image.height);
-                    //XDrawLine(Display, Window, GC, _lastPoint.X, _lastPoint.Y, @event.MotionEvent.x,
-                    //    @event.MotionEvent.y);
+                    XDrawLine(Display, Window, GC, _lastPoint.X, _lastPoint.Y, @event.MotionEvent.x,
+                        @event.MotionEvent.y);
                     _lastPoint = (@event.MotionEvent.x, @event.MotionEvent.y);
                 }
             }
@@ -176,27 +156,33 @@ class App
     {
         var img = _image;
 
-        XPutImage(Display, Window, GC, ref img, 0, 0, 0, 0, (uint) img.width, (uint) img.height);
+        XPutImage(Display, Window, GC, ref img, 0, 0, Random.Shared.Next(100), Random.Shared.Next(100), (uint) img.width, (uint) img.height);
     }
 
-    private byte[]? _bitmapData;
-
-    private XImage CreateImage()
+    private unsafe XImage CreateImage()
     {
         var bitmapWidth = 50;
         var bitmapHeight = 50;
 
-        var perPixelByteCount = 4;
+        const int bytePerPixelCount = 4; // RGBA 一共4个 byte 长度
+        var bitPerByte = 8;
 
-        var bitmapData = new byte[bitmapWidth * bitmapHeight * perPixelByteCount];
-        _bitmapData = bitmapData;
+        var bitmapData = new byte[bitmapWidth * bitmapHeight * bytePerPixelCount];
 
-        Random.Shared.NextBytes(bitmapData);
+        fixed (byte* p = bitmapData)
+        {
+            int* pInt = (int*) p;
+            var color = Random.Shared.Next();
+            for (var i = 0; i < bitmapData.Length / (sizeof(int) / sizeof(byte)); i++)
+            {
+                *(pInt + i) = color;
+            }
+        }
 
         GCHandle pinnedArray = GCHandle.Alloc(bitmapData, GCHandleType.Pinned);
 
         var img = new XImage();
-        int bitsPerPixel = 32;
+        int bitsPerPixel = bytePerPixelCount * bitPerByte;
         img.width = bitmapWidth;
         img.height = bitmapHeight;
         img.format = 2; //ZPixmap;
@@ -205,8 +191,8 @@ class App
         img.bitmap_unit = bitsPerPixel;
         img.bitmap_bit_order = 0;// LSBFirst;
         img.bitmap_pad = bitsPerPixel;
-        img.depth = 32;
-        img.bytes_per_line = bitmapWidth * 4;
+        img.depth = bitsPerPixel;
+        img.bytes_per_line = bitmapWidth * bytePerPixelCount;
         img.bits_per_pixel = bitsPerPixel;
         XInitImage(ref img);
 
