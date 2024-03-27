@@ -63,7 +63,7 @@ class App
 
         XMapWindow(Display, Window);
 
-        //XFlush(Info.Display);
+        XFlush(Info.Display);
         GC = XCreateGC(Display, Window, 0, 0);
 
         XSetForeground(Display, GC, white);
@@ -125,19 +125,25 @@ class App
         skCanvas.Flush();
         var pixels = skBitmap.GetPixels();
 
-        var img = new XImage();
         int bitsPerPixel = 32;
-        img.width = bitmapWidth;
-        img.height = bitmapHeight;
-        img.format = 2; //ZPixmap;
-        img.data = pixels;
-        img.byte_order = 0;// LSBFirst;
-        img.bitmap_unit = bitsPerPixel;
-        img.bitmap_bit_order = 0;// LSBFirst;
-        img.bitmap_pad = bitsPerPixel;
-        img.depth = 32;
-        img.bytes_per_line = bitmapWidth * 4;
-        img.bits_per_pixel = bitsPerPixel;
+        var img = new XImage
+        {
+            width = bitmapWidth,
+            height = bitmapHeight,
+            format = 2, //ZPixmap;
+            data = pixels,
+            byte_order = 0, // LSBFirst;
+            bitmap_unit = bitsPerPixel,
+            bitmap_bit_order = 0, // LSBFirst;
+            bitmap_pad = bitsPerPixel,
+            depth = 32,
+            bytes_per_line = bitmapWidth * 4,
+            bits_per_pixel = bitsPerPixel,
+            red_mask = 0xFF,
+            green_mask = 0x11,
+            blue_mask = 0xF0,
+        };
+
 
         var result = XInitImage(ref img);
         Console.WriteLine($"XInitImage={result}");
