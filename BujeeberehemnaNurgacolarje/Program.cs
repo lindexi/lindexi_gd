@@ -136,9 +136,12 @@ class App
                     var cy = @event.MotionEvent.y - _image.height / 2;
                     if (_bitmapData != null)
                     {
-                        Random.Shared.NextBytes(_bitmapData);
+                        for (var i = 0; i < _bitmapData.Length; i++)
+                        {
+                            _bitmapData[i] = (byte) (cx ^ cy);
+                        }
                     }
-
+                    
                     XPutImage(Display, Window, GC, ref _image, 0, 0, cx,
                         cy, (uint)_image.width, (uint)_image.height);
                     //XDrawLine(Display, Window, GC, _lastPoint.X, _lastPoint.Y, @event.MotionEvent.x,
