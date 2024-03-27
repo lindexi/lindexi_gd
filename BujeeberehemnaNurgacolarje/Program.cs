@@ -56,10 +56,8 @@ class App
 
         var rootWindow = XDefaultRootWindow(Display);
 
-        var visual = IntPtr.Zero;
-
         XMatchVisualInfo(Display, screen, 32, 4, out var info);
-        visual = info.visual;
+        var visual = info.visual;
 
         var valueMask =
             //SetWindowValuemask.BackPixmap
@@ -136,6 +134,11 @@ class App
                 {
                     var cx = @event.MotionEvent.x - _image.width / 2;
                     var cy = @event.MotionEvent.y - _image.height / 2;
+                    if (_bitmapData != null)
+                    {
+                        Random.Shared.NextBytes(_bitmapData);
+                    }
+
                     XPutImage(Display, Window, GC, ref _image, 0, 0, cx,
                         cy, (uint)_image.width, (uint)_image.height);
                     //XDrawLine(Display, Window, GC, _lastPoint.X, _lastPoint.Y, @event.MotionEvent.x,
@@ -198,18 +201,19 @@ class App
         XPutImage(Display, Window, GC, ref img, 0, 0, 0, 0, (uint) img.width, (uint) img.height);
     }
 
-    private static XImage CreateImage()
+    private byte[]? _bitmapData;
+
+    private XImage CreateImage()
     {
         var bitmapWidth = 50;
         var bitmapHeight = 50;
 
         var perPixelByteCount = 4;
 
-        var bitmapData = new byte[bitmapWidth * bitmapHeight * perPixelByteCount * 100];
-        for (var i = 0; i < bitmapData.Length; i++)
-        {
-            bitmapData[i] = 100;
-        }
+        var bitmapData = new byte[bitmapWidth * bitmapHeight * perPixelByteCount];
+        _bitmapData = bitmapData;
+
+        Random.Shared.NextBytes(bitmapData);
 
         GCHandle pinnedArray = GCHandle.Alloc(bitmapData, GCHandleType.Pinned);
 
@@ -227,6 +231,9 @@ class App
         img.bytes_per_line = bitmapWidth * 4;
         img.bits_per_pixel = bitsPerPixel;
         XInitImage(ref img);
+
+        pinnedArray.Free();
+
         return img;
     }
 
