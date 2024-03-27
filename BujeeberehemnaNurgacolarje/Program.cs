@@ -68,7 +68,6 @@ class App
 
     public void Run()
     {
-        XRaiseWindow(Display, Window);
         XSetInputFocus(Display, Window, 0, IntPtr.Zero);
 
         while (true)
