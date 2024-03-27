@@ -1,6 +1,8 @@
 ﻿using System.Runtime.Loader;
 using static CPF.Linux.XLib;
 using CPF.Linux;
+using System.Collections;
+using System.Runtime.InteropServices;
 
 namespace BujeeberehemnaNurgacolarje;
 
@@ -114,14 +116,16 @@ class App
     private unsafe void Redraw()
     {
         var perPixelByteCount = 4;
-        var bitmapWidth = 10;
-        var bitmapHeight = 10;
+        var bitmapWidth = 50;
+        var bitmapHeight = 50;
 
-        var bitmapData = new byte[bitmapWidth * bitmapHeight * perPixelByteCount * 10];
+        var bitmapData = new byte[bitmapWidth * bitmapHeight * perPixelByteCount * 100];
         for (var i = 0; i < bitmapData.Length; i++)
         {
             bitmapData[i] = 100;
         }
+
+        GCHandle pinnedArray = GCHandle.Alloc(bitmapData, GCHandleType.Pinned);
 
         fixed (byte* p = bitmapData)
         {
@@ -130,19 +134,18 @@ class App
             img.width = bitmapWidth;
             img.height = bitmapHeight;
             img.format = 2; //ZPixmap;
-
+            img.data = pinnedArray.AddrOfPinnedObject();
             img.byte_order = 0;// LSBFirst;
             img.bitmap_unit = bitsPerPixel;
             img.bitmap_bit_order = 0;// LSBFirst;
             img.bitmap_pad = bitsPerPixel;
-            img.depth = bitsPerPixel;
-            img.bytes_per_line = bitmapWidth * perPixelByteCount;
+            img.depth = 32;
+            img.bytes_per_line = bitmapWidth * 4;
             img.bits_per_pixel = bitsPerPixel;
-            img.data = new IntPtr(p);
 
             var result = XInitImage(ref img);
             Console.WriteLine($"XInitImage={result}");
-            result = XPutImage(Display, Window, GC, ref img, 0, 0, 10, 10, (uint) bitmapWidth, (uint) bitmapHeight);
+            result = XPutImage(Display, Window, GC, ref img, 0, 0, 0, 0, (uint) bitmapWidth, (uint) bitmapHeight);
             Console.WriteLine($"XPutImage={result}");
         }
     }
