@@ -3,148 +3,97 @@ using static CPF.Linux.XLib;
 using CPF.Linux;
 using System.Runtime.InteropServices;
 
-namespace BujeeberehemnaNurgacolarje;
+XInitThreads();
+var display = XOpenDisplay(IntPtr.Zero);
+XError.Init();
 
-internal class Program
+var screen = XDefaultScreen(display);
+
+var rootWindow = XDefaultRootWindow(display);
+
+XMatchVisualInfo(display, screen, 32, 4, out var info);
+var visual = info.visual;
+
+var valueMask = SetWindowValuemask.BackPixmap
+                | SetWindowValuemask.BackPixel
+                | SetWindowValuemask.BorderPixel
+                | SetWindowValuemask.BitGravity
+                | SetWindowValuemask.WinGravity
+                | SetWindowValuemask.BackingStore
+                | SetWindowValuemask.ColorMap;
+var attr = new XSetWindowAttributes
 {
-    [STAThread]
-    static void Main(string[] args)
+    backing_store = 1,
+    bit_gravity = Gravity.NorthWestGravity,
+    win_gravity = Gravity.NorthWestGravity,
+    override_redirect = false,  // 参数：_overrideRedirect
+    colormap = XCreateColormap(display, rootWindow, visual, 0),
+};
+
+var handle = XCreateWindow(display, rootWindow, 100, 100, 500, 500, 5,
+    32,
+    (int) CreateWindowArgs.InputOutput,
+    visual,
+    (nuint) valueMask, ref attr);
+
+var window = handle;
+
+XSelectInput(display, window, new IntPtr((int) XEventMask.ExposureMask));
+
+XMapWindow(display, window);
+XFlush(display);
+
+var gc = XCreateGC(display, window, 0, 0);
+
+while (XNextEvent(display, out var xEvent) == default)
+{
+    if (xEvent.type == XEventName.Expose)
     {
-        AssemblyLoadContext.Default.Resolving += Default_Resolving;
-
-        StartX11App();
-    }
-
-    private static System.Reflection.Assembly? Default_Resolving(AssemblyLoadContext context,
-        System.Reflection.AssemblyName assemblyName)
-    {
-        var file = $"{assemblyName.Name}.dll";
-        file = Path.Join(AppContext.BaseDirectory, file);
-
-        if (File.Exists(file))
-        {
-            return context.LoadFromAssemblyPath(file);
-        }
-
-        return null;
-    }
-
-    private static void StartX11App()
-    {
-        var app = new App();
-        app.Run();
+        XImage img = CreateImage();
+        XPutImage(display, window, gc, ref img, 0, 0, Random.Shared.Next(100), Random.Shared.Next(100), (uint) img.width, (uint) img.height);
     }
 }
 
-class App
+unsafe XImage CreateImage()
 {
-    public App()
+    var bitmapWidth = 50;
+    var bitmapHeight = 50;
+
+    const int bytePerPixelCount = 4; // RGBA 一共4个 byte 长度
+    var bitPerByte = 8;
+
+    var bitmapData = new byte[bitmapWidth * bitmapHeight * bytePerPixelCount];
+
+    fixed (byte* p = bitmapData)
     {
-        XInitThreads();
-        Display = XOpenDisplay(IntPtr.Zero);
-        XError.Init();
-
-        var screen = XDefaultScreen(Display);
-        Screen = screen;
-
-        var rootWindow = XDefaultRootWindow(Display);
-
-        XMatchVisualInfo(Display, screen, 32, 4, out var info);
-        var visual = info.visual;
-
-        var valueMask = SetWindowValuemask.BackPixmap
-                        | SetWindowValuemask.BackPixel
-                        | SetWindowValuemask.BorderPixel
-                        | SetWindowValuemask.BitGravity
-                        | SetWindowValuemask.WinGravity
-                        | SetWindowValuemask.BackingStore
-                        | SetWindowValuemask.ColorMap;
-        var attr = new XSetWindowAttributes
+        int* pInt = (int*) p;
+        var color = Random.Shared.Next();
+        for (var i = 0; i < bitmapData.Length / (sizeof(int) / sizeof(byte)); i++)
         {
-            backing_store = 1,
-            bit_gravity = Gravity.NorthWestGravity,
-            win_gravity = Gravity.NorthWestGravity,
-            override_redirect = false,  // 参数：_overrideRedirect
-            colormap = XCreateColormap(Display, rootWindow, visual, 0),
-        };
-
-        var handle = XCreateWindow(Display, rootWindow, 100, 100, 500, 500, 5,
-            32,
-            (int) CreateWindowArgs.InputOutput,
-            visual,
-            (nuint) valueMask, ref attr);
-
-        Window = handle;
-
-        XSelectInput(Display, Window, new IntPtr((int) XEventMask.ExposureMask));
-
-        XMapWindow(Display, Window);
-        XFlush(Display);
-
-        GC = XCreateGC(Display, Window, 0, 0);
-    }
-
-    public void Run()
-    {
-        while (XNextEvent(Display, out var xEvent) == default)
-        {
-            if (xEvent.type == XEventName.Expose)
-            {
-                XImage img = CreateImage();
-                XPutImage(Display, Window, GC, ref img, 0, 0, Random.Shared.Next(100), Random.Shared.Next(100), (uint) img.width, (uint) img.height);
-            }
+            *(pInt + i) = color;
         }
     }
 
-    private unsafe XImage CreateImage()
-    {
-        var bitmapWidth = 50;
-        var bitmapHeight = 50;
+    GCHandle pinnedArray = GCHandle.Alloc(bitmapData, GCHandleType.Pinned);
 
-        const int bytePerPixelCount = 4; // RGBA 一共4个 byte 长度
-        var bitPerByte = 8;
+    var img = new XImage();
+    int bitsPerPixel = bytePerPixelCount * bitPerByte;
+    img.width = bitmapWidth;
+    img.height = bitmapHeight;
+    img.format = 2; //ZPixmap;
+    img.data = pinnedArray.AddrOfPinnedObject();
+    img.byte_order = 0;// LSBFirst;
+    img.bitmap_unit = bitsPerPixel;
+    img.bitmap_bit_order = 0;// LSBFirst;
+    img.bitmap_pad = bitsPerPixel;
+    img.depth = bitsPerPixel;
+    img.bytes_per_line = bitmapWidth * bytePerPixelCount;
+    img.bits_per_pixel = bitsPerPixel;
+    XInitImage(ref img);
 
-        var bitmapData = new byte[bitmapWidth * bitmapHeight * bytePerPixelCount];
+    // 除非 XImage 不再使用了，否则此时释放，将会导致 GC 之后 data 指针对应的内存不是可用的
+    // 调用 XPutImage 将访问不可用内存，导致段错误，闪退
+    //pinnedArray.Free();
 
-        fixed (byte* p = bitmapData)
-        {
-            int* pInt = (int*) p;
-            var color = Random.Shared.Next();
-            for (var i = 0; i < bitmapData.Length / (sizeof(int) / sizeof(byte)); i++)
-            {
-                *(pInt + i) = color;
-            }
-        }
-
-        GCHandle pinnedArray = GCHandle.Alloc(bitmapData, GCHandleType.Pinned);
-
-        var img = new XImage();
-        int bitsPerPixel = bytePerPixelCount * bitPerByte;
-        img.width = bitmapWidth;
-        img.height = bitmapHeight;
-        img.format = 2; //ZPixmap;
-        img.data = pinnedArray.AddrOfPinnedObject();
-        img.byte_order = 0;// LSBFirst;
-        img.bitmap_unit = bitsPerPixel;
-        img.bitmap_bit_order = 0;// LSBFirst;
-        img.bitmap_pad = bitsPerPixel;
-        img.depth = bitsPerPixel;
-        img.bytes_per_line = bitmapWidth * bytePerPixelCount;
-        img.bits_per_pixel = bitsPerPixel;
-        XInitImage(ref img);
-
-        // 除非 XImage 不再使用了，否则此时释放，将会导致 GC 之后 data 指针对应的内存不是可用的
-        // 调用 XPutImage 将访问不可用内存，导致段错误，闪退
-        //pinnedArray.Free();
-
-        return img;
-    }
-
-    private IntPtr GC { get; }
-
-    public IntPtr Display { get; set; }
-
-    public IntPtr Window { get; set; }
-    public int Screen { get; set; }
+    return img;
 }
-
