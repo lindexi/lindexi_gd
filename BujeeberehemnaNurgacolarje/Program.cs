@@ -59,9 +59,7 @@ class App
         XMatchVisualInfo(Display, screen, 32, 4, out var info);
         var visual = info.visual;
 
-        var valueMask =
-            //SetWindowValuemask.BackPixmap
-            0
+        var valueMask = SetWindowValuemask.BackPixmap
                         | SetWindowValuemask.BackPixel
                         | SetWindowValuemask.BorderPixel
                         | SetWindowValuemask.BitGravity
@@ -104,6 +102,7 @@ class App
 
         XImage img = CreateImage();
         _image = img;
+        XPutImage(Display, Window, GC, ref img, 0, 0, Random.Shared.Next(100), Random.Shared.Next(100), (uint) img.width, (uint) img.height);
     }
 
     private XImage _image;
@@ -156,7 +155,7 @@ class App
     {
         var img = _image;
 
-        XPutImage(Display, Window, GC, ref img, 0, 0, Random.Shared.Next(100), Random.Shared.Next(100), (uint) img.width, (uint) img.height);
+       
     }
 
     private unsafe XImage CreateImage()
