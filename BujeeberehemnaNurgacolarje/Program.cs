@@ -55,7 +55,7 @@ class App
 
         XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
                                  XEventMask.PointerMotionHintMask;
-        var mask = new IntPtr(0xffffff ^ (int)ignoredMask);
+        var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
         XSelectInput(Display, Window, mask);
 
         XMapWindow(Display, Window);
@@ -66,7 +66,7 @@ class App
         XSetForeground(Display, GC, white);
     }
 
-    public void Run()
+    public unsafe void Run()
     {
         XSetInputFocus(Display, Window, 0, IntPtr.Zero);
 
@@ -90,6 +90,7 @@ class App
             {
                 if (_isDown)
                 {
+
                     XDrawLine(Display, Window, GC, _lastPoint.X, _lastPoint.Y, @event.MotionEvent.x,
                         @event.MotionEvent.y);
                     _lastPoint = (@event.MotionEvent.x, @event.MotionEvent.y);
@@ -110,8 +111,40 @@ class App
     private (int X, int Y) _lastPoint;
     private bool _isDown;
 
-    private void Redraw()
+    private unsafe void Redraw()
     {
+        var perPixelByteCount = 4;
+        var bitmapWidth = 10;
+        var bitmapHeight = 10;
+
+        var bitmapData = new byte[bitmapWidth * bitmapHeight * perPixelByteCount * 10];
+        for (var i = 0; i < bitmapData.Length; i++)
+        {
+            bitmapData[i] = 100;
+        }
+
+        fixed (byte* p = bitmapData)
+        {
+            var img = new XImage();
+            int bitsPerPixel = 32;
+            img.width = bitmapWidth;
+            img.height = bitmapHeight;
+            img.format = 2; //ZPixmap;
+
+            img.byte_order = 0;// LSBFirst;
+            img.bitmap_unit = bitsPerPixel;
+            img.bitmap_bit_order = 0;// LSBFirst;
+            img.bitmap_pad = bitsPerPixel;
+            img.depth = bitsPerPixel;
+            img.bytes_per_line = bitmapWidth * perPixelByteCount;
+            img.bits_per_pixel = bitsPerPixel;
+            img.data = new IntPtr(p);
+
+            var result = XInitImage(ref img);
+            Console.WriteLine($"XInitImage={result}");
+            result = XPutImage(Display, Window, GC, ref img, 0, 0, 10, 10, (uint) bitmapWidth, (uint) bitmapHeight);
+            Console.WriteLine($"XPutImage={result}");
+        }
     }
 
     private IntPtr GC { get; }
