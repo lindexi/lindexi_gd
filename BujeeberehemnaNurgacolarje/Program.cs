@@ -206,10 +206,8 @@ class App
         var perPixelByteCount = 4;
 
         var bitmapData = new byte[bitmapWidth * bitmapHeight * perPixelByteCount * 100];
-        for (var i = 0; i < bitmapData.Length; i++)
-        {
-            bitmapData[i] = 100;
-        }
+
+        Random.Shared.NextBytes(bitmapData);
 
         GCHandle pinnedArray = GCHandle.Alloc(bitmapData, GCHandleType.Pinned);
 
