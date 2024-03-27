@@ -3,6 +3,7 @@ using static CPF.Linux.XLib;
 using CPF.Linux;
 using System.Collections;
 using System.Runtime.InteropServices;
+using SkiaSharp;
 
 namespace BujeeberehemnaNurgacolarje;
 
@@ -62,7 +63,7 @@ class App
 
         XMapWindow(Display, Window);
 
-        //XFlush(Info.Display);
+        XFlush(Info.Display);
         GC = XCreateGC(Display, Window, 0, 0);
 
         XSetForeground(Display, GC, white);
@@ -115,39 +116,73 @@ class App
 
     private unsafe void Redraw()
     {
-        var perPixelByteCount = 4;
         var bitmapWidth = 50;
         var bitmapHeight = 50;
+        var skBitmap = new SKBitmap(bitmapWidth, bitmapHeight);
+        var skCanvas = new SKCanvas(skBitmap);
+        skCanvas.Clear(SKColors.Red);
 
-        var bitmapData = new byte[bitmapWidth * bitmapHeight * perPixelByteCount * 100];
-        for (var i = 0; i < bitmapData.Length; i++)
+        skCanvas.Flush();
+        var pixels = skBitmap.GetPixels();
+
+        int bitsPerPixel = 32;
+        var img = new XImage
         {
-            bitmapData[i] = 100;
-        }
+            width = bitmapWidth,
+            height = bitmapHeight,
+            format = 2, //ZPixmap;
+            data = pixels,
+            byte_order = 0, // LSBFirst;
+            bitmap_unit = bitsPerPixel,
+            bitmap_bit_order = 0, // LSBFirst;
+            bitmap_pad = bitsPerPixel,
+            depth = 32,
+            bytes_per_line = bitmapWidth * 4,
+            bits_per_pixel = bitsPerPixel,
+            red_mask = 0xFF,
+            green_mask = 0x11,
+            blue_mask = 0xF0,
+        };
 
-        GCHandle pinnedArray = GCHandle.Alloc(bitmapData, GCHandleType.Pinned);
 
-        fixed (byte* p = bitmapData)
-        {
-            var img = new XImage();
-            int bitsPerPixel = 32;
-            img.width = bitmapWidth;
-            img.height = bitmapHeight;
-            img.format = 2; //ZPixmap;
-            img.data = pinnedArray.AddrOfPinnedObject();
-            img.byte_order = 0;// LSBFirst;
-            img.bitmap_unit = bitsPerPixel;
-            img.bitmap_bit_order = 0;// LSBFirst;
-            img.bitmap_pad = bitsPerPixel;
-            img.depth = 32;
-            img.bytes_per_line = bitmapWidth * 4;
-            img.bits_per_pixel = bitsPerPixel;
+        var result = XInitImage(ref img);
+        Console.WriteLine($"XInitImage={result}");
+        result = XPutImage(Display, Window, GC, ref img, 0, 0, 0, 0, (uint) bitmapWidth, (uint) bitmapHeight);
+        Console.WriteLine($"XPutImage={result}");
 
-            var result = XInitImage(ref img);
-            Console.WriteLine($"XInitImage={result}");
-            result = XPutImage(Display, Window, GC, ref img, 0, 0, 0, 0, (uint) bitmapWidth, (uint) bitmapHeight);
-            Console.WriteLine($"XPutImage={result}");
-        }
+        //var perPixelByteCount = 4;
+        //var bitmapWidth = 50;
+        //var bitmapHeight = 50;
+
+        //var bitmapData = new byte[bitmapWidth * bitmapHeight * perPixelByteCount * 100];
+        //for (var i = 0; i < bitmapData.Length; i++)
+        //{
+        //    bitmapData[i] = 100;
+        //}
+
+        //GCHandle pinnedArray = GCHandle.Alloc(bitmapData, GCHandleType.Pinned);
+
+        //fixed (byte* p = bitmapData)
+        //{
+        //    var img = new XImage();
+        //    int bitsPerPixel = 32;
+        //    img.width = bitmapWidth;
+        //    img.height = bitmapHeight;
+        //    img.format = 2; //ZPixmap;
+        //    img.data = pinnedArray.AddrOfPinnedObject();
+        //    img.byte_order = 0;// LSBFirst;
+        //    img.bitmap_unit = bitsPerPixel;
+        //    img.bitmap_bit_order = 0;// LSBFirst;
+        //    img.bitmap_pad = bitsPerPixel;
+        //    img.depth = 32;
+        //    img.bytes_per_line = bitmapWidth * 4;
+        //    img.bits_per_pixel = bitsPerPixel;
+
+        //    var result = XInitImage(ref img);
+        //    Console.WriteLine($"XInitImage={result}");
+        //    result = XPutImage(Display, Window, GC, ref img, 0, 0, 0, 0, (uint) bitmapWidth, (uint) bitmapHeight);
+        //    Console.WriteLine($"XPutImage={result}");
+        //}
     }
 
     private IntPtr GC { get; }
