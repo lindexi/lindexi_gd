@@ -18,12 +18,7 @@ using System.Diagnostics;
 var display = XOpenDisplay(0);
 var defaultScreen = XDefaultScreen(display);
 var rootWindow = XRootWindow(display, defaultScreen);
-//var visual = GetVisual(XOpenDisplay(0), defaultScreen);
-var visual = IntPtr.Zero;
-
-XMatchVisualInfo(display, defaultScreen, 32, 4, out var info);
-visual = info.visual;
-
+var visual = GetVisual(XOpenDisplay(0), defaultScreen);
 var valueMask = SetWindowValuemask.BackPixmap
     | SetWindowValuemask.BackPixel
     | SetWindowValuemask.BorderPixel
@@ -54,3 +49,51 @@ while (XNextEvent(display, out var xEvent) == default)
 
 XUnmapWindow(display, handle);
 XDestroyWindow(display, handle);
+
+static unsafe nint GetVisual(nint deferredDisplay, int defaultScreen)
+{
+    var glx = new GlxInterface();
+    nint fbconfig = 0;
+    XVisualInfo* visual = null;
+    int[] baseAttribs =
+        [
+            GLX_X_RENDERABLE, 1,
+            GLX_RENDER_TYPE, GLX_RGBA_BIT,
+            GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT | GLX_PBUFFER_BIT,
+            GLX_DOUBLEBUFFER, 1,
+            GLX_RED_SIZE, 8,
+            GLX_GREEN_SIZE, 8,
+            GLX_BLUE_SIZE, 8,
+            GLX_ALPHA_SIZE, 8,
+            GLX_DEPTH_SIZE, 1,
+            GLX_STENCIL_SIZE, 8,
+        ];
+
+    foreach (var attribs in new[] { baseAttribs })
+    {
+        var ptr = glx.ChooseFBConfig(deferredDisplay, defaultScreen,
+            attribs, out var count);
+        for (var c = 0; c < count; c++)
+        {
+
+            var v = glx.GetVisualFromFBConfig(deferredDisplay, ptr[c]);
+            // We prefer 32 bit visuals
+            if (fbconfig == default || v->depth == 32)
+            {
+                fbconfig = ptr[c];
+                visual = v;
+                if (v->depth == 32)
+                {
+                    break;
+                }
+            }
+        }
+
+        if (fbconfig != default)
+        {
+            break;
+        }
+    }
+
+    return visual->visual;
+}
