@@ -138,6 +138,7 @@ class App
                     {
                         Random.Shared.NextBytes(_bitmapData);
                     }
+                    XInitImage(ref _image);
 
                     XPutImage(Display, Window, GC, ref _image, 0, 0, cx,
                         cy, (uint)_image.width, (uint)_image.height);
