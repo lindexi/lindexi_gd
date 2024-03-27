@@ -45,6 +45,7 @@ class App
         XInitThreads();
         Display = XOpenDisplay(IntPtr.Zero);
         XError.Init();
+
         Info = new X11Info(Display, DeferredDisplay);
         Console.WriteLine("XInputVersion=" + Info.XInputVersion);
         var screen = XDefaultScreen(Display);
@@ -56,6 +57,10 @@ class App
         var rootWindow = XDefaultRootWindow(Display);
 
         var visual = IntPtr.Zero;
+
+        XMatchVisualInfo(Display, screen, 32, 4, out var info);
+        visual = info.visual;
+
         var valueMask = 
             //SetWindowValuemask.BackPixmap
             0
