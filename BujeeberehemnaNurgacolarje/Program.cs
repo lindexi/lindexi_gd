@@ -61,7 +61,7 @@ class App
         XMatchVisualInfo(Display, screen, 32, 4, out var info);
         visual = info.visual;
 
-        var valueMask = 
+        var valueMask =
             //SetWindowValuemask.BackPixmap
             0
                         | SetWindowValuemask.BackPixel
@@ -103,7 +103,12 @@ class App
         XSetForeground(Display, GC, white);
 
         Console.WriteLine($"App");
+
+        XImage img = CreateImage();
+        _image = img;
     }
+
+    private XImage _image;
 
     public unsafe void Run()
     {
@@ -129,9 +134,12 @@ class App
             {
                 if (_isDown)
                 {
-
-                    XDrawLine(Display, Window, GC, _lastPoint.X, _lastPoint.Y, @event.MotionEvent.x,
-                        @event.MotionEvent.y);
+                    var cx = @event.MotionEvent.x - _image.width / 2;
+                    var cy = @event.MotionEvent.y - _image.height / 2;
+                    XPutImage(Display, Window, GC, ref _image, 0, 0, cx,
+                        cy, (uint)_image.width, (uint)_image.height);
+                    //XDrawLine(Display, Window, GC, _lastPoint.X, _lastPoint.Y, @event.MotionEvent.x,
+                    //    @event.MotionEvent.y);
                     _lastPoint = (@event.MotionEvent.x, @event.MotionEvent.y);
                 }
             }
@@ -185,9 +193,17 @@ class App
         //result = XPutImage(Display, Window, GC, ref img, 0, 0, 0, 0, (uint) bitmapWidth, (uint) bitmapHeight);
         //Console.WriteLine($"XPutImage={result}");
 
-        var perPixelByteCount = 4;
+        var img = _image;
+
+        XPutImage(Display, Window, GC, ref img, 0, 0, 0, 0, (uint) img.width, (uint) img.height);
+    }
+
+    private static XImage CreateImage()
+    {
         var bitmapWidth = 50;
         var bitmapHeight = 50;
+
+        var perPixelByteCount = 4;
 
         var bitmapData = new byte[bitmapWidth * bitmapHeight * perPixelByteCount * 100];
         for (var i = 0; i < bitmapData.Length; i++)
@@ -210,11 +226,8 @@ class App
         img.depth = 32;
         img.bytes_per_line = bitmapWidth * 4;
         img.bits_per_pixel = bitsPerPixel;
-
-        var result = XInitImage(ref img);
-        Console.WriteLine($"XInitImage={result}");
-        result = XPutImage(Display, Window, GC, ref img, 0, 0, 0, 0, (uint) bitmapWidth, (uint) bitmapHeight);
-        Console.WriteLine($"XPutImage={result}");
+        XInitImage(ref img);
+        return img;
     }
 
     private IntPtr GC { get; }
