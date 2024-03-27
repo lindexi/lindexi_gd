@@ -59,9 +59,7 @@ class App
         XMatchVisualInfo(Display, screen, 32, 4, out var info);
         var visual = info.visual;
 
-        var valueMask =
-            //SetWindowValuemask.BackPixmap
-            0
+        var valueMask = SetWindowValuemask.BackPixmap
                         | SetWindowValuemask.BackPixel
                         | SetWindowValuemask.BorderPixel
                         | SetWindowValuemask.BitGravity
