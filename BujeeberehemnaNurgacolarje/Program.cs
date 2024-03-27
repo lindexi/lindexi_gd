@@ -49,7 +49,7 @@ class App
         Screen = screen;
         var white = XWhitePixel(Display, screen);
         var black = XBlackPixel(Display, screen);
-        Window = XCreateSimpleWindow(Display, XDefaultRootWindow(Display), 0, 0, 300, 300, 5, white, black);
+        Window = XCreateSimpleWindow(Display, XDefaultRootWindow(Display), 0, 0, 500, 300, 5, white, black);
 
         Console.WriteLine($"Window={Window}");
 
@@ -60,7 +60,7 @@ class App
 
         XMapWindow(Display, Window);
 
-        XFlush(Info.Display);
+        //XFlush(Info.Display);
         GC = XCreateGC(Display, Window, 0, 0);
 
         XSetForeground(Display, GC, white);
