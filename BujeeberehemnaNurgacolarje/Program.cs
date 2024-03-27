@@ -20,8 +20,7 @@ var valueMask = SetWindowValuemask.BackPixmap
                 | SetWindowValuemask.BitGravity
                 | SetWindowValuemask.WinGravity
                 | SetWindowValuemask.BackingStore
-                //| SetWindowValuemask.ColorMap
-                ;
+                | SetWindowValuemask.ColorMap;
 var attr = new XSetWindowAttributes
 {
     backing_store = 1,
@@ -52,7 +51,6 @@ while (XNextEvent(display, out var xEvent) == default)
     {
         XImage img = CreateImage();
         XPutImage(display, window, gc, ref img, 0, 0, Random.Shared.Next(100), Random.Shared.Next(100), (uint) img.width, (uint) img.height);
-        XClearArea(display, window, 0, 0, 500, 500, true);
     }
 }
 
