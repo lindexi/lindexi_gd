@@ -52,7 +52,37 @@ class App
         Screen = screen;
         var white = XWhitePixel(Display, screen);
         var black = XBlackPixel(Display, screen);
-        Window = XCreateSimpleWindow(Display, XDefaultRootWindow(Display), 0, 0, 500, 300, 5, white, black);
+
+        var rootWindow = XDefaultRootWindow(Display);
+
+        var visual = IntPtr.Zero;
+        var valueMask = 
+            //SetWindowValuemask.BackPixmap
+            0
+                        | SetWindowValuemask.BackPixel
+                        | SetWindowValuemask.BorderPixel
+                        | SetWindowValuemask.BitGravity
+                        | SetWindowValuemask.WinGravity
+                        | SetWindowValuemask.BackingStore
+                        | SetWindowValuemask.ColorMap;
+        var attr = new XSetWindowAttributes
+        {
+            backing_store = 1,
+            bit_gravity = Gravity.NorthWestGravity,
+            win_gravity = Gravity.NorthWestGravity,
+            override_redirect = false,  // 参数：_overrideRedirect
+            colormap = XCreateColormap(Display, rootWindow, visual, 0),
+        };
+
+        var handle = XCreateWindow(Display, rootWindow, 100, 100, 320, 240, 5,
+            32,
+            (int) CreateWindowArgs.InputOutput,
+            visual,
+            (nuint) valueMask, ref attr);
+
+        Window = handle;
+
+        //Window = XCreateSimpleWindow(Display, rootWindow, 0, 0, 500, 300, 5, white, black);
 
         Console.WriteLine($"Window={Window}");
 
@@ -62,11 +92,12 @@ class App
         XSelectInput(Display, Window, mask);
 
         XMapWindow(Display, Window);
-
         XFlush(Info.Display);
-        GC = XCreateGC(Display, Window, 0, 0);
 
+        GC = XCreateGC(Display, Window, 0, 0);
         XSetForeground(Display, GC, white);
+
+        Console.WriteLine($"App");
     }
 
     public unsafe void Run()
