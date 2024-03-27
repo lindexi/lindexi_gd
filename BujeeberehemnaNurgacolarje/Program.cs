@@ -51,6 +51,17 @@ while (XNextEvent(display, out var xEvent) == default)
     {
         XImage img = CreateImage();
         XPutImage(display, window, gc, ref img, 0, 0, Random.Shared.Next(100), Random.Shared.Next(100), (uint) img.width, (uint) img.height);
+
+        var rectangles = new XRectangle[1]
+        {
+            new XRectangle()
+            {
+                width = 50,
+                height = 50,
+            }
+        };
+        XShapeCombineRectangles(display, window, XShapeKind.ShapeClip, 0, 0, rectangles, 1, XShapeOperation.ShapeSet, XOrdering.YXBanded);
+        Console.WriteLine("Expose");
     }
 }
 
