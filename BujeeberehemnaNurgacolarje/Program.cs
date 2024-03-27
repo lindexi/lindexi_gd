@@ -61,7 +61,7 @@ class App
         XMatchVisualInfo(Display, screen, 32, 4, out var info);
         visual = info.visual;
 
-        var valueMask = 
+        var valueMask =
             //SetWindowValuemask.BackPixmap
             0
                         | SetWindowValuemask.BackPixel
@@ -211,10 +211,8 @@ class App
         img.bytes_per_line = bitmapWidth * 4;
         img.bits_per_pixel = bitsPerPixel;
 
-        var result = XInitImage(ref img);
-        Console.WriteLine($"XInitImage={result}");
-        result = XPutImage(Display, Window, GC, ref img, 0, 0, 0, 0, (uint) bitmapWidth, (uint) bitmapHeight);
-        Console.WriteLine($"XPutImage={result}");
+        XInitImage(ref img);
+        XPutImage(Display, Window, GC, ref img, 0, 0, 0, 0, (uint) bitmapWidth, (uint) bitmapHeight);
     }
 
     private IntPtr GC { get; }
