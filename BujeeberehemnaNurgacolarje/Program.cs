@@ -45,6 +45,7 @@ class App
         XInitThreads();
         Display = XOpenDisplay(IntPtr.Zero);
         XError.Init();
+
         Info = new X11Info(Display, DeferredDisplay);
         Console.WriteLine("XInputVersion=" + Info.XInputVersion);
         var screen = XDefaultScreen(Display);
@@ -56,6 +57,10 @@ class App
         var rootWindow = XDefaultRootWindow(Display);
 
         var visual = IntPtr.Zero;
+
+        XMatchVisualInfo(Display, screen, 32, 4, out var info);
+        visual = info.visual;
+
         var valueMask = 
             //SetWindowValuemask.BackPixmap
             0
@@ -74,7 +79,7 @@ class App
             colormap = XCreateColormap(Display, rootWindow, visual, 0),
         };
 
-        var handle = XCreateWindow(Display, rootWindow, 100, 100, 320, 240, 5,
+        var handle = XCreateWindow(Display, rootWindow, 100, 100, 500, 500, 5,
             32,
             (int) CreateWindowArgs.InputOutput,
             visual,
@@ -147,73 +152,69 @@ class App
 
     private unsafe void Redraw()
     {
+        //var bitmapWidth = 50;
+        //var bitmapHeight = 50;
+        //var skBitmap = new SKBitmap(bitmapWidth, bitmapHeight);
+        //var skCanvas = new SKCanvas(skBitmap);
+        //skCanvas.Clear(SKColors.Red);
+
+        //skCanvas.Flush();
+        //var pixels = skBitmap.GetPixels();
+
+        //int bitsPerPixel = 32;
+        //var img = new XImage
+        //{
+        //    width = bitmapWidth,
+        //    height = bitmapHeight,
+        //    format = 2, //ZPixmap;
+        //    data = pixels,
+        //    byte_order = 0, // LSBFirst;
+        //    bitmap_unit = bitsPerPixel,
+        //    bitmap_bit_order = 0, // LSBFirst;
+        //    bitmap_pad = bitsPerPixel,
+        //    depth = 32,
+        //    bytes_per_line = bitmapWidth * 4,
+        //    bits_per_pixel = bitsPerPixel,
+        //    red_mask = 0xFF,
+        //    green_mask = 0x11,
+        //    blue_mask = 0xF0,
+        //};
+
+        //var result = XInitImage(ref img);
+        //Console.WriteLine($"XInitImage={result}");
+        //result = XPutImage(Display, Window, GC, ref img, 0, 0, 0, 0, (uint) bitmapWidth, (uint) bitmapHeight);
+        //Console.WriteLine($"XPutImage={result}");
+
+        var perPixelByteCount = 4;
         var bitmapWidth = 50;
         var bitmapHeight = 50;
-        var skBitmap = new SKBitmap(bitmapWidth, bitmapHeight);
-        var skCanvas = new SKCanvas(skBitmap);
-        skCanvas.Clear(SKColors.Red);
 
-        skCanvas.Flush();
-        var pixels = skBitmap.GetPixels();
-
-        int bitsPerPixel = 32;
-        var img = new XImage
+        var bitmapData = new byte[bitmapWidth * bitmapHeight * perPixelByteCount * 100];
+        for (var i = 0; i < bitmapData.Length; i++)
         {
-            width = bitmapWidth,
-            height = bitmapHeight,
-            format = 2, //ZPixmap;
-            data = pixels,
-            byte_order = 0, // LSBFirst;
-            bitmap_unit = bitsPerPixel,
-            bitmap_bit_order = 0, // LSBFirst;
-            bitmap_pad = bitsPerPixel,
-            depth = 32,
-            bytes_per_line = bitmapWidth * 4,
-            bits_per_pixel = bitsPerPixel,
-            red_mask = 0xFF,
-            green_mask = 0x11,
-            blue_mask = 0xF0,
-        };
+            bitmapData[i] = 100;
+        }
 
+        GCHandle pinnedArray = GCHandle.Alloc(bitmapData, GCHandleType.Pinned);
+
+        var img = new XImage();
+        int bitsPerPixel = 32;
+        img.width = bitmapWidth;
+        img.height = bitmapHeight;
+        img.format = 2; //ZPixmap;
+        img.data = pinnedArray.AddrOfPinnedObject();
+        img.byte_order = 0;// LSBFirst;
+        img.bitmap_unit = bitsPerPixel;
+        img.bitmap_bit_order = 0;// LSBFirst;
+        img.bitmap_pad = bitsPerPixel;
+        img.depth = 32;
+        img.bytes_per_line = bitmapWidth * 4;
+        img.bits_per_pixel = bitsPerPixel;
 
         var result = XInitImage(ref img);
         Console.WriteLine($"XInitImage={result}");
         result = XPutImage(Display, Window, GC, ref img, 0, 0, 0, 0, (uint) bitmapWidth, (uint) bitmapHeight);
         Console.WriteLine($"XPutImage={result}");
-
-        //var perPixelByteCount = 4;
-        //var bitmapWidth = 50;
-        //var bitmapHeight = 50;
-
-        //var bitmapData = new byte[bitmapWidth * bitmapHeight * perPixelByteCount * 100];
-        //for (var i = 0; i < bitmapData.Length; i++)
-        //{
-        //    bitmapData[i] = 100;
-        //}
-
-        //GCHandle pinnedArray = GCHandle.Alloc(bitmapData, GCHandleType.Pinned);
-
-        //fixed (byte* p = bitmapData)
-        //{
-        //    var img = new XImage();
-        //    int bitsPerPixel = 32;
-        //    img.width = bitmapWidth;
-        //    img.height = bitmapHeight;
-        //    img.format = 2; //ZPixmap;
-        //    img.data = pinnedArray.AddrOfPinnedObject();
-        //    img.byte_order = 0;// LSBFirst;
-        //    img.bitmap_unit = bitsPerPixel;
-        //    img.bitmap_bit_order = 0;// LSBFirst;
-        //    img.bitmap_pad = bitsPerPixel;
-        //    img.depth = 32;
-        //    img.bytes_per_line = bitmapWidth * 4;
-        //    img.bits_per_pixel = bitsPerPixel;
-
-        //    var result = XInitImage(ref img);
-        //    Console.WriteLine($"XInitImage={result}");
-        //    result = XPutImage(Display, Window, GC, ref img, 0, 0, 0, 0, (uint) bitmapWidth, (uint) bitmapHeight);
-        //    Console.WriteLine($"XPutImage={result}");
-        //}
     }
 
     private IntPtr GC { get; }
