@@ -56,7 +56,9 @@ class App
         var rootWindow = XDefaultRootWindow(Display);
 
         var visual = IntPtr.Zero;
-        var valueMask = SetWindowValuemask.BackPixmap
+        var valueMask = 
+            //SetWindowValuemask.BackPixmap
+            0
                         | SetWindowValuemask.BackPixel
                         | SetWindowValuemask.BorderPixel
                         | SetWindowValuemask.BitGravity
