@@ -36,4 +36,7 @@ internal static class XLib
 
     [DllImport(libX11)]
     public static extern nint XNextEvent(nint display, out XEvent xevent);
+
+    [DllImport(libX11)]
+    public static extern void XMatchVisualInfo(IntPtr display, int screen, int depth, int klass, out XVisualInfo info);
 }
