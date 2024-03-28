@@ -12,9 +12,6 @@ internal class Program
     [STAThread]
     static void Main(string[] args)
     {
-        var skRect = new SKRect(10, 10, 1, 1);
-
-
         AssemblyLoadContext.Default.Resolving += Default_Resolving;
 
         StartX11App();
@@ -142,6 +139,10 @@ class App
                     var x = @event.MotionEvent.x;
                     var y = @event.MotionEvent.y;
 
+                    var minX = Math.Min(x, _lastPoint.X);
+                    var minY = Math.Min(y, _lastPoint.Y);
+                    var width = Math.Abs(x - _lastPoint.X) + 1;
+                    var height = Math.Abs(y - _lastPoint.Y) + 1;
 
                     // 测试在按下时配置曝光尺寸
                     var xev = new XEvent
@@ -153,10 +154,10 @@ class App
                             window = Window,
                             count = 1,
                             display = Display,
-                            height = 10,
-                            width = 10,
-                            x = x,
-                            y = y
+                            height = height,
+                            width = width,
+                            x = minX,
+                            y = minY
                         }
                     };
                     // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
