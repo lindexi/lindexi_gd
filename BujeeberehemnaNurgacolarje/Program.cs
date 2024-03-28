@@ -1,7 +1,9 @@
 ﻿using System.Runtime.Loader;
 using static CPF.Linux.XLib;
 using CPF.Linux;
+using System.Collections;
 using System.Runtime.InteropServices;
+using SkiaSharp;
 
 namespace BujeeberehemnaNurgacolarje;
 
@@ -44,15 +46,22 @@ class App
         Display = XOpenDisplay(IntPtr.Zero);
         XError.Init();
 
+        Info = new X11Info(Display, DeferredDisplay);
+        Console.WriteLine("XInputVersion=" + Info.XInputVersion);
         var screen = XDefaultScreen(Display);
+        Console.WriteLine($"Screen = {screen}");
         Screen = screen;
+        var white = XWhitePixel(Display, screen);
+        var black = XBlackPixel(Display, screen);
 
         var rootWindow = XDefaultRootWindow(Display);
 
         XMatchVisualInfo(Display, screen, 32, 4, out var info);
         var visual = info.visual;
 
-        var valueMask = SetWindowValuemask.BackPixmap
+        var valueMask =
+            //SetWindowValuemask.BackPixmap
+            0
                         | SetWindowValuemask.BackPixel
                         | SetWindowValuemask.BorderPixel
                         | SetWindowValuemask.BitGravity
@@ -76,24 +85,78 @@ class App
 
         Window = handle;
 
-        XSelectInput(Display, Window, new IntPtr((int) XEventMask.ExposureMask));
+        //Window = XCreateSimpleWindow(Display, rootWindow, 0, 0, 500, 300, 5, white, black);
+
+        Console.WriteLine($"Window={Window}");
+
+        XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
+                                 XEventMask.PointerMotionHintMask;
+        var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
+        XSelectInput(Display, Window, mask);
 
         XMapWindow(Display, Window);
-        XFlush(Display);
+        XFlush(Info.Display);
 
         GC = XCreateGC(Display, Window, 0, 0);
+        XSetForeground(Display, GC, white);
+
+        Console.WriteLine($"App");
+
+        XImage img = CreateImage();
+        _image = img;
     }
+
+    private XImage _image;
 
     public void Run()
     {
-        while (XNextEvent(Display, out var xEvent) == default)
+        XSetInputFocus(Display, Window, 0, IntPtr.Zero);
+
+        while (true)
         {
-            if (xEvent.type == XEventName.Expose)
+            XSync(Display, false);
+
+            var xNextEvent = XNextEvent(Display, out var @event);
+            //Console.WriteLine($"NextEvent={xNextEvent} {@event}");
+
+            if (@event.type == XEventName.Expose)
             {
-                XImage img = CreateImage();
-                XPutImage(Display, Window, GC, ref img, 0, 0, Random.Shared.Next(100), Random.Shared.Next(100), (uint) img.width, (uint) img.height);
+                Redraw();
+            }
+            else if (@event.type == XEventName.ButtonPress)
+            {
+                _lastPoint = (@event.ButtonEvent.x, @event.ButtonEvent.y);
+                _isDown = true;
+            }
+            else if (@event.type == XEventName.MotionNotify)
+            {
+                if (_isDown)
+                {
+                    XDrawLine(Display, Window, GC, _lastPoint.X, _lastPoint.Y, @event.MotionEvent.x,
+                        @event.MotionEvent.y);
+                    _lastPoint = (@event.MotionEvent.x, @event.MotionEvent.y);
+                }
+            }
+            else if (@event.type == XEventName.ButtonRelease)
+            {
+                _isDown = false;
+            }
+
+            if (xNextEvent != 0)
+            {
+                break;
             }
         }
+    }
+
+    private (int X, int Y) _lastPoint;
+    private bool _isDown;
+
+    private void Redraw()
+    {
+        var img = _image;
+
+        XPutImage(Display, Window, GC, ref img, 0, 0, Random.Shared.Next(100), Random.Shared.Next(100), (uint) img.width, (uint) img.height);
     }
 
     private unsafe XImage CreateImage()
@@ -142,8 +205,11 @@ class App
 
     private IntPtr GC { get; }
 
+    public IntPtr DeferredDisplay { get; set; }
     public IntPtr Display { get; set; }
 
+    //public XI2Manager XI2;
+    public X11Info Info { get; private set; }
     public IntPtr Window { get; set; }
     public int Screen { get; set; }
 }
