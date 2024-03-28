@@ -62,26 +62,26 @@ class App
         var valueMask =
             //SetWindowValuemask.BackPixmap
             0
-                        | SetWindowValuemask.BackPixel
-                        | SetWindowValuemask.BorderPixel
-                        | SetWindowValuemask.BitGravity
-                        | SetWindowValuemask.WinGravity
-                        | SetWindowValuemask.BackingStore
-                        | SetWindowValuemask.ColorMap;
+            | SetWindowValuemask.BackPixel
+            | SetWindowValuemask.BorderPixel
+            | SetWindowValuemask.BitGravity
+            | SetWindowValuemask.WinGravity
+            | SetWindowValuemask.BackingStore
+            | SetWindowValuemask.ColorMap;
         var attr = new XSetWindowAttributes
         {
             backing_store = 1,
             bit_gravity = Gravity.NorthWestGravity,
             win_gravity = Gravity.NorthWestGravity,
-            override_redirect = false,  // 参数：_overrideRedirect
+            override_redirect = false, // 参数：_overrideRedirect
             colormap = XCreateColormap(Display, rootWindow, visual, 0),
         };
 
         var handle = XCreateWindow(Display, rootWindow, 100, 100, 500, 500, 5,
             32,
-            (int) CreateWindowArgs.InputOutput,
+            (int)CreateWindowArgs.InputOutput,
             visual,
-            (nuint) valueMask, ref attr);
+            (nuint)valueMask, ref attr);
 
         Window = handle;
 
@@ -91,7 +91,7 @@ class App
 
         XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
                                  XEventMask.PointerMotionHintMask;
-        var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
+        var mask = new IntPtr(0xffffff ^ (int)ignoredMask);
         XSelectInput(Display, Window, mask);
 
         XMapWindow(Display, Window);
@@ -121,6 +121,10 @@ class App
 
             if (@event.type == XEventName.Expose)
             {
+                // 曝光时，可以收到需要重新绘制的范围
+                Console.WriteLine(
+                    $"Expose X={@event.ExposeEvent.x} Y={@event.ExposeEvent.y} W={@event.ExposeEvent.width} H={@event.ExposeEvent.height} CurrentWindow={@event.ExposeEvent.window == Window}");
+
                 Redraw();
             }
             else if (@event.type == XEventName.ButtonPress)
@@ -132,9 +136,31 @@ class App
             {
                 if (_isDown)
                 {
-                    XDrawLine(Display, Window, GC, _lastPoint.X, _lastPoint.Y, @event.MotionEvent.x,
-                        @event.MotionEvent.y);
-                    _lastPoint = (@event.MotionEvent.x, @event.MotionEvent.y);
+                    var x = @event.MotionEvent.x;
+                    var y = @event.MotionEvent.y;
+
+                    // 测试在按下时配置曝光尺寸
+                    var xev = new XEvent
+                    {
+                        ExposeEvent =
+                        {
+                            type = XEventName.Expose,
+                            send_event = true,
+                            window = Window,
+                            count = 1,
+                            display = Display,
+                            height = 10,
+                            width = 10,
+                            x = x,
+                            y = y
+                        }
+                    };
+                    // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
+                    XSendEvent(Display, Window, propagate: false, new IntPtr((int)(EventMask.ExposureMask)), ref xev);
+
+                    XDrawLine(Display, Window, GC, _lastPoint.X, _lastPoint.Y, x,
+                        y);
+                    _lastPoint = (x, y);
                 }
             }
             else if (@event.type == XEventName.ButtonRelease)
@@ -156,7 +182,8 @@ class App
     {
         var img = _image;
 
-        XPutImage(Display, Window, GC, ref img, 0, 0, Random.Shared.Next(100), Random.Shared.Next(100), (uint) img.width, (uint) img.height);
+        XPutImage(Display, Window, GC, ref img, 0, 0, Random.Shared.Next(100), Random.Shared.Next(100), (uint)img.width,
+            (uint)img.height);
     }
 
     private unsafe XImage CreateImage()
@@ -171,7 +198,7 @@ class App
 
         fixed (byte* p = bitmapData)
         {
-            int* pInt = (int*) p;
+            int* pInt = (int*)p;
             var color = Random.Shared.Next();
             for (var i = 0; i < bitmapData.Length / (sizeof(int) / sizeof(byte)); i++)
             {
@@ -187,9 +214,9 @@ class App
         img.height = bitmapHeight;
         img.format = 2; //ZPixmap;
         img.data = pinnedArray.AddrOfPinnedObject();
-        img.byte_order = 0;// LSBFirst;
+        img.byte_order = 0; // LSBFirst;
         img.bitmap_unit = bitsPerPixel;
-        img.bitmap_bit_order = 0;// LSBFirst;
+        img.bitmap_bit_order = 0; // LSBFirst;
         img.bitmap_pad = bitsPerPixel;
         img.depth = bitsPerPixel;
         img.bytes_per_line = bitmapWidth * bytePerPixelCount;
@@ -213,4 +240,3 @@ class App
     public IntPtr Window { get; set; }
     public int Screen { get; set; }
 }
-
