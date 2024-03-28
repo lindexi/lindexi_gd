@@ -1,0 +1,77 @@
+﻿<UserControl
+    x:Class="UnoSpySnoopDebugger.View.SnoopUserControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:UnoSpySnoopDebugger.View"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ipcCommunicationContext="using:UnoSpySnoopDebugger.IpcCommunicationContext"
+    mc:Ignorable="d"
+    d:DesignHeight="300"
+    d:DesignWidth="400"
+    HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+    x:Name="Root">
+
+    <UserControl.Resources>
+        <local:ElementInfoToNameDisplayConverter x:Key="ElementInfoToNameDisplayConverter"/>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <!--Title Menu-->
+            <RowDefinition Height="Auto"/>
+            <!-- Main -->
+            <RowDefinition Height="*"/>
+            <!-- Bottom Info -->
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid x:Name="MainGrid" Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+
+            <Grid>
+                <!-- Todo Search ComboBox -->
+                <TreeView x:Name="ElementTreeView" ItemsSource="{Binding ElementName=Root,Path=CurrentElementTree}" ItemInvoked="ElementTreeView_OnItemInvoked">
+                    <TreeView.ItemTemplate>
+                        <DataTemplate x:DataType="ipcCommunicationContext:ElementProxy">
+                            <TreeViewItem ItemsSource="{Binding Path=Children}" IsExpanded="True" >
+                                <TreeViewItem.Content>
+                                    <TextBlock Text="{Binding ElementInfo,Converter={StaticResource ElementInfoToNameDisplayConverter}}"></TextBlock>
+                                </TreeViewItem.Content>
+                            </TreeViewItem>
+                        </DataTemplate>
+                    </TreeView.ItemTemplate>
+                </TreeView>
+            </Grid>
+
+            <Grid Grid.Column="1">
+                <ListView ItemsSource="{Binding ElementName=Root,Path=DependencyPropertyInfoList}" HorizontalContentAlignment="Stretch">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="ipcCommunicationContext:DependencyPropertyInfo">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"></RowDefinition>
+                                    <RowDefinition Height="Auto"></RowDefinition>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="300"></ColumnDefinition>
+                                    <ColumnDefinition Width="*"></ColumnDefinition>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding Name}"></TextBlock>
+                                <TextBlock Grid.Column="1" Text="{Binding Value}"></TextBlock>
+
+                                <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                        Margin="2 0 0 -5"
+                                        Height="2" Background="Gray"></Border>
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+
+        </Grid>
+    </Grid>
+</UserControl>

@@ -1,0 +1,10 @@
+{
+	"profiles": {
+		"LacebayjeejiBehebilawla.Windows (Unpackaged)": {
+			"commandName": "Project"
+		},
+		"LacebayjeejiBehebilawla.Windows (Package)": {
+			"commandName": "MsixPackage"
+		}
+	}
+}

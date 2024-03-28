@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <Platforms>x86</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+<!-- The dotnetCampus.WPF.Resource 6.0.4-alpha07-test04 is the debug version. You can repro with any debug version -->
+    <PackageReference Include="dotnetCampus.WPF.Resource" Version="6.0.4-alpha07-test04" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="$(CustomWpfAssetsFolder)lib\net6.0\*.dll" />
+    <ReferenceCopyLocalPaths Include="$(CustomWpfAssetsFolder)lib\net6.0\*.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Lib\Lib.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,11 @@
+﻿<Page x:Class="HojebeneeneNewhaywurwharla.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:HojebeneeneNewhaywurwharla"
+      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+  <StackPanel
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center">
+    <local:FooButton HorizontalAlignment="Center" VerticalAlignment="Center" Width="100" Height="100" />
+  </StackPanel>
+</Page>

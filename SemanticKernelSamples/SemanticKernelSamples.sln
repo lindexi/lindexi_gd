@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example03_Variables", "Exam
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example05_InlineFunctionDefinition", "Example05_InlineFunctionDefinition\Example05_InlineFunctionDefinition.csproj", "{B2A54D33-F0C5-4C3F-8B4C-B5D4637592CC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example12_SequentialPlanner", "Example12_SequentialPlanner\Example12_SequentialPlanner.csproj", "{19E0660F-F659-4AA0-9163-B7204CA63647}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example12_Planner", "Example12_Planner\Example12_Planner.csproj", "{3E6ED69E-1A39-47BD-BD21-0972DFEC1A84}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +35,10 @@ Global
 		{B2A54D33-F0C5-4C3F-8B4C-B5D4637592CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B2A54D33-F0C5-4C3F-8B4C-B5D4637592CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B2A54D33-F0C5-4C3F-8B4C-B5D4637592CC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{19E0660F-F659-4AA0-9163-B7204CA63647}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{19E0660F-F659-4AA0-9163-B7204CA63647}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{19E0660F-F659-4AA0-9163-B7204CA63647}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{19E0660F-F659-4AA0-9163-B7204CA63647}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E6ED69E-1A39-47BD-BD21-0972DFEC1A84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E6ED69E-1A39-47BD-BD21-0972DFEC1A84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E6ED69E-1A39-47BD-BD21-0972DFEC1A84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E6ED69E-1A39-47BD-BD21-0972DFEC1A84}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

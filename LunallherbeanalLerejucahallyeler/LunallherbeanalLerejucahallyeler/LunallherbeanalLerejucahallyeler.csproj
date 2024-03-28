@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net7.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\KeeheekairbiQahairnairdacem\bin\Debug\net7.0\MainWindow.cs" Link="MainWindow.cs" />
+  </ItemGroup>
+<<<<<<< HEAD
+
+=======
+  
+>>>>>>> 5c8a31243b7f2e1ad87f49b319dbab39d5d18f0e
+</Project>

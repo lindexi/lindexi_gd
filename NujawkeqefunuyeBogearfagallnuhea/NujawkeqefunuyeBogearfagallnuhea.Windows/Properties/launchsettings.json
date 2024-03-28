@@ -1,0 +1,10 @@
+{
+	"profiles": {
+		"NujawkeqefunuyeBogearfagallnuhea.Windows (Unpackaged)": {
+			"commandName": "Project"
+		},
+		"NujawkeqefunuyeBogearfagallnuhea.Windows (Package)": {
+			"commandName": "MsixPackage"
+		}
+	}
+}
