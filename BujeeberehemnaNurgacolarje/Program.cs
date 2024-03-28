@@ -175,7 +175,14 @@ class App
                     _skBitmap.NotifyPixelsChanged();
 
                     using var skCanvas = new SKCanvas(_skBitmap);
-                    skCanvas.Clear(SKColors.Red);
+                    skCanvas.Clear(SKColors.Transparent);
+                    skCanvas.Translate(-minX,-minY);
+                    using var skPaint = new SKPaint();
+                    skPaint.StrokeWidth = 5;
+                    skPaint.Color = SKColors.Red;
+                    skPaint.IsAntialias = true;
+                    skPaint.Style = SKPaintStyle.Fill;
+                    skCanvas.DrawLine(_lastPoint.X, _lastPoint.Y, x, y, skPaint);
                     skCanvas.Flush();
 
                     var bitmapWidth = _skBitmap.Width;
