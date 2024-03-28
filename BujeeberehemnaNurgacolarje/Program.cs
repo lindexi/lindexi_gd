@@ -12,6 +12,9 @@ internal class Program
     [STAThread]
     static void Main(string[] args)
     {
+        var skRect = new SKRect(10, 10, 1, 1);
+
+
         AssemblyLoadContext.Default.Resolving += Default_Resolving;
 
         StartX11App();
@@ -79,9 +82,9 @@ class App
 
         var handle = XCreateWindow(Display, rootWindow, 100, 100, 500, 500, 5,
             32,
-            (int)CreateWindowArgs.InputOutput,
+            (int) CreateWindowArgs.InputOutput,
             visual,
-            (nuint)valueMask, ref attr);
+            (nuint) valueMask, ref attr);
 
         Window = handle;
 
@@ -91,7 +94,7 @@ class App
 
         XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
                                  XEventMask.PointerMotionHintMask;
-        var mask = new IntPtr(0xffffff ^ (int)ignoredMask);
+        var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
         XSelectInput(Display, Window, mask);
 
         XMapWindow(Display, Window);
@@ -139,6 +142,7 @@ class App
                     var x = @event.MotionEvent.x;
                     var y = @event.MotionEvent.y;
 
+
                     // 测试在按下时配置曝光尺寸
                     var xev = new XEvent
                     {
@@ -156,7 +160,7 @@ class App
                         }
                     };
                     // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
-                    XSendEvent(Display, Window, propagate: false, new IntPtr((int)(EventMask.ExposureMask)), ref xev);
+                    XSendEvent(Display, Window, propagate: false, new IntPtr((int) (EventMask.ExposureMask)), ref xev);
 
                     XDrawLine(Display, Window, GC, _lastPoint.X, _lastPoint.Y, x,
                         y);
@@ -180,10 +184,10 @@ class App
 
     private void Redraw()
     {
-        var img = _image;
+        //var img = _image;
 
-        XPutImage(Display, Window, GC, ref img, 0, 0, Random.Shared.Next(100), Random.Shared.Next(100), (uint)img.width,
-            (uint)img.height);
+        //XPutImage(Display, Window, GC, ref img, 0, 0, Random.Shared.Next(100), Random.Shared.Next(100), (uint)img.width,
+        //    (uint)img.height);
     }
 
     private unsafe XImage CreateImage()
@@ -198,7 +202,7 @@ class App
 
         fixed (byte* p = bitmapData)
         {
-            int* pInt = (int*)p;
+            int* pInt = (int*) p;
             var color = Random.Shared.Next();
             for (var i = 0; i < bitmapData.Length / (sizeof(int) / sizeof(byte)); i++)
             {
