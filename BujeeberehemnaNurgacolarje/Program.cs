@@ -121,6 +121,8 @@ class App
 
             if (@event.type == XEventName.Expose)
             {
+                Console.WriteLine($"Expose X={@event.ExposeEvent.x} Y={@event.ExposeEvent.y} W={@event.ExposeEvent.width} H={@event.ExposeEvent.height} CurrentWindow={@event.ExposeEvent.window == Window}");
+
                 Redraw();
             }
             else if (@event.type == XEventName.ButtonPress)
