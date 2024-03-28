@@ -12,6 +12,13 @@ internal class Program
     [STAThread]
     static void Main(string[] args)
     {
+        var skBitmap = new SKBitmap(50, 50)
+        {
+            
+        };
+        Console.WriteLine(skBitmap.ColorType); // BGRA 格式
+        //var skImageInfo = new SKImageInfo(SKColorType.);
+
         AssemblyLoadContext.Default.Resolving += Default_Resolving;
 
         StartX11App();
@@ -104,6 +111,8 @@ class App
 
         XImage img = CreateImage();
         _image = img;
+
+        var skBitmap = new SKBitmap(50,50);
     }
 
     private XImage _image;
