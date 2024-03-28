@@ -12,6 +12,12 @@ internal class Program
     [STAThread]
     static void Main(string[] args)
     {
+        //var skBitmap = new SKBitmap(50, 50)
+        //{
+
+        //};
+        //Console.WriteLine(skBitmap.ColorType); // BGRA 格式
+
         AssemblyLoadContext.Default.Resolving += Default_Resolving;
 
         StartX11App();
@@ -102,6 +108,9 @@ class App
 
         Console.WriteLine($"App");
 
+        var skBitmap = new SKBitmap(50, 50);
+        _skBitmap = skBitmap;
+
         XImage img = CreateImage();
         _image = img;
     }
@@ -163,8 +172,21 @@ class App
                     // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
                     XSendEvent(Display, Window, propagate: false, new IntPtr((int) (EventMask.ExposureMask)), ref xev);
 
-                    XDrawLine(Display, Window, GC, _lastPoint.X, _lastPoint.Y, x,
-                        y);
+                    _skBitmap.NotifyPixelsChanged();
+
+                    using var skCanvas = new SKCanvas(_skBitmap);
+                    skCanvas.Clear(SKColors.Red);
+                    skCanvas.Flush();
+
+                    var bitmapWidth = _skBitmap.Width;
+                    var bitmapHeight = _skBitmap.Height;
+
+                    var centerX = x - bitmapWidth / 2;
+                    var centerY = y - bitmapHeight / 2;
+
+                    XPutImage(Display, Window, GC, ref _image, 0, 0, centerX, centerY, (uint) bitmapWidth,
+                        (uint) bitmapHeight);
+                    //XDrawLine(Display, Window, GC, _lastPoint.X, _lastPoint.Y, x, y);
                     _lastPoint = (x, y);
                 }
             }
@@ -182,6 +204,7 @@ class App
 
     private (int X, int Y) _lastPoint;
     private bool _isDown;
+    private SKBitmap _skBitmap;
 
     private void Redraw()
     {
@@ -199,26 +222,26 @@ class App
         const int bytePerPixelCount = 4; // RGBA 一共4个 byte 长度
         var bitPerByte = 8;
 
-        var bitmapData = new byte[bitmapWidth * bitmapHeight * bytePerPixelCount];
+        //var bitmapData = new byte[bitmapWidth * bitmapHeight * bytePerPixelCount];
 
-        fixed (byte* p = bitmapData)
-        {
-            int* pInt = (int*) p;
-            var color = Random.Shared.Next();
-            for (var i = 0; i < bitmapData.Length / (sizeof(int) / sizeof(byte)); i++)
-            {
-                *(pInt + i) = color;
-            }
-        }
-
-        GCHandle pinnedArray = GCHandle.Alloc(bitmapData, GCHandleType.Pinned);
+        //fixed (byte* p = bitmapData)
+        //{
+        //    int* pInt = (int*) p;
+        //    var color = Random.Shared.Next();
+        //    for (var i = 0; i < bitmapData.Length / (sizeof(int) / sizeof(byte)); i++)
+        //    {
+        //        *(pInt + i) = color;
+        //    }
+        //}
+        //GCHandle pinnedArray = GCHandle.Alloc(bitmapData, GCHandleType.Pinned);
 
         var img = new XImage();
         int bitsPerPixel = bytePerPixelCount * bitPerByte;
         img.width = bitmapWidth;
         img.height = bitmapHeight;
         img.format = 2; //ZPixmap;
-        img.data = pinnedArray.AddrOfPinnedObject();
+        //img.data = pinnedArray.AddrOfPinnedObject();
+        img.data = _skBitmap.GetPixels();
         img.byte_order = 0; // LSBFirst;
         img.bitmap_unit = bitsPerPixel;
         img.bitmap_bit_order = 0; // LSBFirst;
