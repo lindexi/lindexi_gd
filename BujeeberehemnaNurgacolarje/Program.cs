@@ -108,7 +108,7 @@ class App
 
         Console.WriteLine($"App");
 
-        var skBitmap = new SKBitmap(50, 50);
+        var skBitmap = new SKBitmap(500, 500);
         _skBitmap = skBitmap;
 
         XImage img = CreateImage();
@@ -175,8 +175,8 @@ class App
                     _skBitmap.NotifyPixelsChanged();
 
                     using var skCanvas = new SKCanvas(_skBitmap);
-                    skCanvas.Clear(SKColors.Transparent);
-                    skCanvas.Translate(-minX,-minY);
+                    //skCanvas.Clear(SKColors.Transparent);
+                    //skCanvas.Translate(-minX,-minY);
                     using var skPaint = new SKPaint();
                     skPaint.StrokeWidth = 5;
                     skPaint.Color = SKColors.Red;
@@ -187,11 +187,13 @@ class App
 
                     var bitmapWidth = _skBitmap.Width;
                     var bitmapHeight = _skBitmap.Height;
+                    //var bitmapWidth = 50;
+                    //var bitmapHeight = 50;
 
                     var centerX = x - bitmapWidth / 2;
                     var centerY = y - bitmapHeight / 2;
 
-                    XPutImage(Display, Window, GC, ref _image, 0, 0, centerX, centerY, (uint) bitmapWidth,
+                    XPutImage(Display, Window, GC, ref _image, 0, 0, 0, 0, (uint) bitmapWidth,
                         (uint) bitmapHeight);
                     //XDrawLine(Display, Window, GC, _lastPoint.X, _lastPoint.Y, x, y);
                     _lastPoint = (x, y);
@@ -223,8 +225,8 @@ class App
 
     private unsafe XImage CreateImage()
     {
-        var bitmapWidth = 50;
-        var bitmapHeight = 50;
+        //var bitmapWidth = 50;
+        //var bitmapHeight = 50;
 
         const int bytePerPixelCount = 4; // RGBA 一共4个 byte 长度
         var bitPerByte = 8;
@@ -241,6 +243,9 @@ class App
         //    }
         //}
         //GCHandle pinnedArray = GCHandle.Alloc(bitmapData, GCHandleType.Pinned);
+
+        var bitmapWidth = _skBitmap.Width;
+        var bitmapHeight = _skBitmap.Height;
 
         var img = new XImage();
         int bitsPerPixel = bytePerPixelCount * bitPerByte;
