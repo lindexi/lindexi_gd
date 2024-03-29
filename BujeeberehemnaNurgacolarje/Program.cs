@@ -296,13 +296,9 @@ class App
 
         var lastPoint = pointList[^1];
 
-        if (Math.Pow(lastPoint.Point.X - currentStylusPoint.Point.X,2) + Math.Pow(lastPoint.Point.Y - currentStylusPoint.Point.Y, 2) < 10000)
+        if (Math.Pow(lastPoint.Point.X - currentStylusPoint.Point.X,2) + Math.Pow(lastPoint.Point.Y - currentStylusPoint.Point.Y, 2) < 100)
         {
             return true;
-        }
-        else
-        {
-            Console.WriteLine($"Last={lastPoint} Current={currentStylusPoint}");
         }
 
         return false;
@@ -326,6 +322,8 @@ class App
             return false;
         }
 
+        DropPointCount = 0;
+
         var lastPoint = _cache[_stylusPoints.Count - 1];
         if (currentStylusPoint == lastPoint)
         {
@@ -339,24 +337,24 @@ class App
         var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, 10);
 
         var skPath = new SKPath();
-        //skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
+        skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
         //skPath.AddPoly(pointList.ToArray().Select(t => new SKPoint((float) t.Point.X, (float) t.Point.Y)).ToArray());
-        bool first = true;
-        foreach (var stylusPoint in pointList)
-        {
-            var x = (float) stylusPoint.Point.X;
-            var y = (float) stylusPoint.Point.Y;
-            if (first)
-            {
-                first = false;
-                skPath.MoveTo(x, y);
-            }
-            else
-            {
-                skPath.LineTo(x, y);
-            }
-        }
-        //skPath.Close();
+        //bool first = true;
+        //foreach (var stylusPoint in pointList)
+        //{
+        //    var x = (float) stylusPoint.Point.X;
+        //    var y = (float) stylusPoint.Point.Y;
+        //    if (first)
+        //    {
+        //        first = false;
+        //        skPath.MoveTo(x, y);
+        //    }
+        //    else
+        //    {
+        //        skPath.LineTo(x, y);
+        //    }
+        //}
+        skPath.Close();
 
         var skPathBounds = skPath.Bounds;
 
@@ -368,7 +366,7 @@ class App
         //skCanvas.Translate(-minX,-minY);
         using var skPaint = new SKPaint();
         skPaint.StrokeWidth = 5;
-        skPaint.Color = SKColors.Bisque;
+        skPaint.Color = SKColors.Red;
         skPaint.IsAntialias = true;
         skPaint.Style = SKPaintStyle.Stroke;
         skCanvas.DrawPath(skPath, skPaint);
