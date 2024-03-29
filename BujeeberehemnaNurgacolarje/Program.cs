@@ -296,13 +296,9 @@ class App
 
         var lastPoint = pointList[^1];
 
-        if (Math.Pow(lastPoint.Point.X - currentStylusPoint.Point.X,2) + Math.Pow(lastPoint.Point.Y - currentStylusPoint.Point.Y, 2) < 10000)
+        if (Math.Pow(lastPoint.Point.X - currentStylusPoint.Point.X,2) + Math.Pow(lastPoint.Point.Y - currentStylusPoint.Point.Y, 2) < 100)
         {
             return true;
-        }
-        else
-        {
-            Console.WriteLine($"Last={lastPoint} Current={currentStylusPoint}");
         }
 
         return false;
@@ -325,6 +321,8 @@ class App
             Console.WriteLine("Drop");
             return false;
         }
+
+        DropPointCount = 0;
 
         var lastPoint = _cache[_stylusPoints.Count - 1];
         if (currentStylusPoint == lastPoint)
