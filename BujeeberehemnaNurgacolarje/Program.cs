@@ -130,9 +130,12 @@ class App
 
             if (@event.type == XEventName.Expose)
             {
-                // 曝光时，可以收到需要重新绘制的范围
-                Console.WriteLine(
-                    $"Expose X={@event.ExposeEvent.x} Y={@event.ExposeEvent.y} W={@event.ExposeEvent.width} H={@event.ExposeEvent.height} CurrentWindow={@event.ExposeEvent.window == Window}");
+                //// 曝光时，可以收到需要重新绘制的范围
+                //Console.WriteLine(
+                //    $"Expose X={@event.ExposeEvent.x} Y={@event.ExposeEvent.y} W={@event.ExposeEvent.width} H={@event.ExposeEvent.height} CurrentWindow={@event.ExposeEvent.window == Window}");
+
+                XPutImage(Display, Window, GC, ref _image, @event.ExposeEvent.x, @event.ExposeEvent.y, @event.ExposeEvent.x, @event.ExposeEvent.y, (uint) @event.ExposeEvent.width,
+                    (uint) @event.ExposeEvent.height);
 
                 Redraw();
             }
@@ -150,10 +153,24 @@ class App
 
                     if (x < 500)
                     {
-                        var minX = Math.Min(x, _lastPoint.X) - 10;
-                        var minY = Math.Min(y, _lastPoint.Y) - 10;
-                        var width = Math.Abs(x - _lastPoint.X) + 20;
-                        var height = Math.Abs(y - _lastPoint.Y) + 20;
+                        var additionSize = 10;
+                        var minX = Math.Min(x, _lastPoint.X) - additionSize;
+                        var minY = Math.Min(y, _lastPoint.Y) - additionSize;
+                        var width = Math.Abs(x - _lastPoint.X) + additionSize * 2;
+                        var height = Math.Abs(y - _lastPoint.Y) + additionSize * 2;
+
+                        minX = Math.Max(0, minX);
+                        minY = Math.Max(0, minY);
+
+                        if (minX + width > _image.width)
+                        {
+                            width = _image.width - minX;
+                        }
+
+                        if (minY + height > _image.height)
+                        {
+                            height = _image.height - minY;
+                        }
 
                         // 测试在按下时配置曝光尺寸
                         var xev = new XEvent
@@ -195,8 +212,8 @@ class App
                         var centerX = x - bitmapWidth / 2;
                         var centerY = y - bitmapHeight / 2;
 
-                        XPutImage(Display, Window, GC, ref _image, minX, minY, minX, minY, (uint) width,
-                            (uint) height);
+                        //XPutImage(Display, Window, GC, ref _image, minX, minY, minX, minY, (uint) width,
+                        //    (uint) height);
                     }
                     else
                     {
