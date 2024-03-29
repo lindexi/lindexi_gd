@@ -193,8 +193,8 @@ class App
                     var centerX = x - bitmapWidth / 2;
                     var centerY = y - bitmapHeight / 2;
 
-                    XPutImage(Display, Window, GC, ref _image, 0, 0, 0, 0, (uint) bitmapWidth,
-                        (uint) bitmapHeight);
+                    XPutImage(Display, Window, GC, ref _image, minX, minY, minX, minY, (uint) width,
+                        (uint) height);
                     //XDrawLine(Display, Window, GC, _lastPoint.X, _lastPoint.Y, x, y);
                     _lastPoint = (x, y);
                 }
