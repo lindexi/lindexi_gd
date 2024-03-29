@@ -194,75 +194,7 @@ class App
                             };
                             // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
                             XSendEvent(Display, Window, propagate: false, new IntPtr((int) (EventMask.ExposureMask)), ref xEvent);
-
-                            continue;
                         }
-                        else
-                        {
-                            continue;
-                        }
-
-                        var additionSize = 10;
-                        var minX = Math.Min(x, _lastPoint.X) - additionSize;
-                        var minY = Math.Min(y, _lastPoint.Y) - additionSize;
-                        var width = Math.Abs(x - _lastPoint.X) + additionSize * 2;
-                        var height = Math.Abs(y - _lastPoint.Y) + additionSize * 2;
-
-                        minX = Math.Max(0, minX);
-                        minY = Math.Max(0, minY);
-
-                        if (minX + width > _image.width)
-                        {
-                            width = _image.width - minX;
-                        }
-
-                        if (minY + height > _image.height)
-                        {
-                            height = _image.height - minY;
-                        }
-
-                        // 测试在按下时配置曝光尺寸
-                        var xev = new XEvent
-                        {
-                            ExposeEvent =
-                            {
-                                type = XEventName.Expose,
-                                send_event = true,
-                                window = Window,
-                                count = 1,
-                                display = Display,
-                                height = height,
-                                width = width,
-                                x = minX,
-                                y = minY
-                            }
-                        };
-                        // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
-                        XSendEvent(Display, Window, propagate: false, new IntPtr((int) (EventMask.ExposureMask)), ref xev);
-
-                        _skBitmap.NotifyPixelsChanged();
-
-                        using var skCanvas = new SKCanvas(_skBitmap);
-                        //skCanvas.Clear(SKColors.Transparent);
-                        //skCanvas.Translate(-minX,-minY);
-                        using var skPaint = new SKPaint();
-                        skPaint.StrokeWidth = 5;
-                        skPaint.Color = SKColors.Red;
-                        skPaint.IsAntialias = true;
-                        skPaint.Style = SKPaintStyle.Fill;
-                        skCanvas.DrawLine(_lastPoint.X, _lastPoint.Y, x, y, skPaint);
-                        skCanvas.Flush();
-
-                        var bitmapWidth = _skBitmap.Width;
-                        var bitmapHeight = _skBitmap.Height;
-                        //var bitmapWidth = 50;
-                        //var bitmapHeight = 50;
-
-                        var centerX = x - bitmapWidth / 2;
-                        var centerY = y - bitmapHeight / 2;
-
-                        //XPutImage(Display, Window, GC, ref _image, minX, minY, minX, minY, (uint) width,
-                        //    (uint) height);
                     }
                     else
                     {
