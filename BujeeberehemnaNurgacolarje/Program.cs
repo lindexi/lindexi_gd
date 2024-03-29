@@ -148,10 +148,10 @@ class App
                     var x = @event.MotionEvent.x;
                     var y = @event.MotionEvent.y;
 
-                    var minX = Math.Min(x, _lastPoint.X);
-                    var minY = Math.Min(y, _lastPoint.Y);
-                    var width = Math.Abs(x - _lastPoint.X) + 1;
-                    var height = Math.Abs(y - _lastPoint.Y) + 1;
+                    var minX = Math.Min(x, _lastPoint.X) - 10;
+                    var minY = Math.Min(y, _lastPoint.Y) - 10;
+                    var width = Math.Abs(x - _lastPoint.X) + 20;
+                    var height = Math.Abs(y - _lastPoint.Y) + 20;
 
                     // 测试在按下时配置曝光尺寸
                     var xev = new XEvent
@@ -193,7 +193,7 @@ class App
                     var centerX = x - bitmapWidth / 2;
                     var centerY = y - bitmapHeight / 2;
 
-                    XPutImage(Display, Window, GC, ref _image, -10, -10, -10, -10, (uint) width,
+                    XPutImage(Display, Window, GC, ref _image, minX, minY, minX, minY, (uint) width,
                         (uint) height);
                     //XDrawLine(Display, Window, GC, _lastPoint.X, _lastPoint.Y, x, y);
                     _lastPoint = (x, y);
