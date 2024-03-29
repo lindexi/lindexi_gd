@@ -334,7 +334,7 @@ class App
         _stylusPoints.Enqueue(currentStylusPoint);
 
         var pointList = _cache.AsSpan(0, _stylusPoints.Count);
-        var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, 10);
+        var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, 5);
 
         var skPath = new SKPath();
         skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
