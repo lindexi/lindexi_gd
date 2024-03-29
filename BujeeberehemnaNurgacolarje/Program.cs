@@ -115,6 +115,15 @@ class App
         //skCanvas.Flush();
         _skCanvas = skCanvas;
 
+        using var skPaint = new SKPaint()
+        {
+            Color = SKColors.Red,
+            StrokeWidth = 5,
+            IsAntialias = true,
+        };
+        skCanvas.DrawLine(0, 0, 500, 500, skPaint);
+        skCanvas.DrawLine(0, 500, 500, 0, skPaint);
+
         XImage img = CreateImage();
         _image = img;
     }
@@ -319,7 +328,7 @@ class App
         skPaint.Color = SKColors.Black;
         foreach (var stylusPoint in pointList)
         {
-            skCanvas.DrawCircle((float)stylusPoint.Point.X,(float)stylusPoint.Point.Y,1, skPaint);
+            skCanvas.DrawCircle((float) stylusPoint.Point.X, (float) stylusPoint.Point.Y, 1, skPaint);
         }
 
         //skCanvas.Flush();
