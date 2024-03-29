@@ -1,11 +1,9 @@
-﻿using System.Diagnostics;
-using System.Runtime.Loader;
+﻿using System.Runtime.Loader;
 using static CPF.Linux.XLib;
 using CPF.Linux;
 using System.Runtime.InteropServices;
 using Microsoft.Maui.Graphics;
 using SkiaSharp;
-using System.IO;
 
 namespace BujeeberehemnaNurgacolarje;
 
@@ -14,32 +12,10 @@ internal class Program
     [STAThread]
     static void Main(string[] args)
     {
-        var skBitmap = new SKBitmap(500, 500)
-        {
+        //var skBitmap = new SKBitmap(50, 50)
+        //{
 
-        };
-        using var skCanvas = new SKCanvas(skBitmap);
-        using var skPaint = new SKPaint();
-        skPaint.StrokeWidth = 1;
-        skPaint.Color = SKColors.Red;
-        skPaint.IsAntialias = true;
-        skPaint.Style = SKPaintStyle.Fill;
-
-        var stopwatch = new Stopwatch();
-        while (true)
-        {
-            stopwatch.Restart();
-            for (int i = 0; i < 10000; i++)
-            {
-                var x = Random.Shared.Next(500);
-                var y = Random.Shared.Next(500);
-                skCanvas.DrawCircle((float) x, (float) y, 1, skPaint);
-            }
-            skCanvas.Flush();
-            stopwatch.Stop();
-            Console.WriteLine($"耗时 {stopwatch.Elapsed}");
-        }
-
+        //};
         //Console.WriteLine(skBitmap.ColorType); // BGRA 格式
 
         AssemblyLoadContext.Default.Resolving += Default_Resolving;
@@ -342,7 +318,7 @@ class App
         skPaint.Color = SKColors.Black;
         foreach (var stylusPoint in pointList)
         {
-            skCanvas.DrawCircle((float) stylusPoint.Point.X, (float) stylusPoint.Point.Y, 1, skPaint);
+            skCanvas.DrawCircle((float)stylusPoint.Point.X,(float)stylusPoint.Point.Y,1, skPaint);
         }
 
         skCanvas.Flush();
