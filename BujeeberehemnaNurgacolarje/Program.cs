@@ -133,9 +133,9 @@ class App
 
     private XImage _image;
 
-    private const int _maxStylusCount = 100;
-    private readonly FixedQueue<StylusPoint> _stylusPoints = new FixedQueue<StylusPoint>(_maxStylusCount);
-    private readonly StylusPoint[] _cache = new StylusPoint[_maxStylusCount + 1];
+    private const int MaxStylusCount = 100;
+    private readonly FixedQueue<StylusPoint> _stylusPoints = new FixedQueue<StylusPoint>(MaxStylusCount);
+    private readonly StylusPoint[] _cache = new StylusPoint[MaxStylusCount + 1];
 
     public void Run()
     {
@@ -285,6 +285,29 @@ class App
         }
     }
 
+    private int DropPointCount { set; get; }
+
+    private bool CanDropLastPoint(Span<StylusPoint> pointList, StylusPoint currentStylusPoint)
+    {
+        if (pointList.Length < 2)
+        {
+            return false;
+        }
+
+        var lastPoint = pointList[^1];
+
+        if (Math.Pow(lastPoint.Point.X - currentStylusPoint.Point.X,2) + Math.Pow(lastPoint.Point.Y - currentStylusPoint.Point.Y, 2) < 10000)
+        {
+            return true;
+        }
+        else
+        {
+            Console.WriteLine($"Last={lastPoint} Current={currentStylusPoint}");
+        }
+
+        return false;
+    }
+
     private bool DrawStroke(StylusPoint currentStylusPoint, out Rect drawRect)
     {
         drawRect = Rect.Zero;
@@ -296,6 +319,12 @@ class App
         }
 
         _stylusPoints.CopyTo(_cache, 0);
+        if (CanDropLastPoint(_cache.AsSpan(0, _stylusPoints.Count), currentStylusPoint) && DropPointCount < 3)
+        {
+            DropPointCount++;
+            Console.WriteLine("Drop");
+            return false;
+        }
 
         var lastPoint = _cache[_stylusPoints.Count - 1];
         if (currentStylusPoint == lastPoint)
@@ -339,7 +368,7 @@ class App
         //skCanvas.Translate(-minX,-minY);
         using var skPaint = new SKPaint();
         skPaint.StrokeWidth = 5;
-        skPaint.Color = SKColors.Red;
+        skPaint.Color = SKColors.Bisque;
         skPaint.IsAntialias = true;
         skPaint.Style = SKPaintStyle.Stroke;
         skCanvas.DrawPath(skPath, skPaint);
