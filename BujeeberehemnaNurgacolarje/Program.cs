@@ -311,8 +311,23 @@ class App
 
         var skPath = new SKPath();
         //skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
-        skPath.AddPoly(pointList.ToArray().Select(t => new SKPoint((float) t.Point.X, (float) t.Point.Y)).ToArray());
-        skPath.Close();
+        //skPath.AddPoly(pointList.ToArray().Select(t => new SKPoint((float) t.Point.X, (float) t.Point.Y)).ToArray());
+        bool first = true;
+        foreach (var stylusPoint in pointList)
+        {
+            var x = (float) stylusPoint.Point.X;
+            var y = (float) stylusPoint.Point.Y;
+            if (first)
+            {
+                first = false;
+                skPath.MoveTo(x, y);
+            }
+            else
+            {
+                skPath.LineTo(x, y);
+            }
+        }
+        //skPath.Close();
 
         var skPathBounds = skPath.Bounds;
 
@@ -323,11 +338,30 @@ class App
         //skCanvas.Clear(SKColors.Black);
         //skCanvas.Translate(-minX,-minY);
         using var skPaint = new SKPaint();
-        skPaint.StrokeWidth = 1;
+        skPaint.StrokeWidth = 2;
         skPaint.Color = SKColors.Red;
         skPaint.IsAntialias = true;
         skPaint.Style = SKPaintStyle.Stroke;
-        skCanvas.DrawPath(skPath, skPaint);
+        //skCanvas.DrawPath(skPath, skPaint);
+        first = true;
+        float lastX = 0;
+        float lastY = 0;
+        foreach (var stylusPoint in pointList)
+        {
+            var x = (float) stylusPoint.Point.X;
+            var y = (float) stylusPoint.Point.Y;
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                skCanvas.DrawLine(lastX, lastY, x, y, skPaint);
+            }
+
+            lastX = x;
+            lastY = y;
+        }
 
         skPaint.Color = SKColors.Black;
         //foreach (var stylusPoint in pointList)
