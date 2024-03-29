@@ -112,7 +112,7 @@ class App
         _skBitmap = skBitmap;
         var skCanvas = new SKCanvas(_skBitmap);
         skCanvas.Clear(SKColors.Black);
-        skCanvas.Flush();
+        //skCanvas.Flush();
         _skCanvas = skCanvas;
 
         XImage img = CreateImage();
@@ -322,7 +322,7 @@ class App
             skCanvas.DrawCircle((float)stylusPoint.Point.X,(float)stylusPoint.Point.Y,1, skPaint);
         }
 
-        skCanvas.Flush();
+        //skCanvas.Flush();
 
         return true;
     }
