@@ -338,12 +338,30 @@ class App
         //skCanvas.Clear(SKColors.Black);
         //skCanvas.Translate(-minX,-minY);
         using var skPaint = new SKPaint();
-        skPaint.StrokeWidth = 1;
+        skPaint.StrokeWidth = 2;
         skPaint.Color = SKColors.Red;
         skPaint.IsAntialias = true;
         skPaint.Style = SKPaintStyle.Stroke;
-        skCanvas.DrawPath(skPath, skPaint);
-        
+        //skCanvas.DrawPath(skPath, skPaint);
+        first = true;
+        float lastX = 0;
+        float lastY = 0;
+        foreach (var stylusPoint in pointList)
+        {
+            var x = (float) stylusPoint.Point.X;
+            var y = (float) stylusPoint.Point.Y;
+            if (first)
+            {
+                first = false;
+            }
+            else
+            {
+                skCanvas.DrawLine(lastX, lastY, x, y, skPaint);
+            }
+
+            lastX = x;
+            lastY = y;
+        }
 
         skPaint.Color = SKColors.Black;
         //foreach (var stylusPoint in pointList)
