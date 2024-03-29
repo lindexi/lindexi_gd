@@ -318,7 +318,6 @@ class App
         if (CanDropLastPoint(_cache.AsSpan(0, _stylusPoints.Count), currentStylusPoint) && DropPointCount < 3)
         {
             DropPointCount++;
-            Console.WriteLine("Drop");
             return false;
         }
 
