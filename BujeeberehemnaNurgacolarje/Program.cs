@@ -83,7 +83,7 @@ class App
             colormap = XCreateColormap(Display, rootWindow, visual, 0),
         };
 
-        var handle = XCreateWindow(Display, rootWindow, 100, 100, 500, 500, 5,
+        var handle = XCreateWindow(Display, rootWindow, 100, 100, 1000, 500, 5,
             32,
             (int) CreateWindowArgs.InputOutput,
             visual,
@@ -148,54 +148,61 @@ class App
                     var x = @event.MotionEvent.x;
                     var y = @event.MotionEvent.y;
 
-                    var minX = Math.Min(x, _lastPoint.X) - 10;
-                    var minY = Math.Min(y, _lastPoint.Y) - 10;
-                    var width = Math.Abs(x - _lastPoint.X) + 20;
-                    var height = Math.Abs(y - _lastPoint.Y) + 20;
-
-                    // 测试在按下时配置曝光尺寸
-                    var xev = new XEvent
+                    if (x < 500)
                     {
-                        ExposeEvent =
+                        var minX = Math.Min(x, _lastPoint.X) - 10;
+                        var minY = Math.Min(y, _lastPoint.Y) - 10;
+                        var width = Math.Abs(x - _lastPoint.X) + 20;
+                        var height = Math.Abs(y - _lastPoint.Y) + 20;
+
+                        // 测试在按下时配置曝光尺寸
+                        var xev = new XEvent
                         {
-                            type = XEventName.Expose,
-                            send_event = true,
-                            window = Window,
-                            count = 1,
-                            display = Display,
-                            height = height,
-                            width = width,
-                            x = minX,
-                            y = minY
-                        }
-                    };
-                    // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
-                    XSendEvent(Display, Window, propagate: false, new IntPtr((int) (EventMask.ExposureMask)), ref xev);
+                            ExposeEvent =
+                            {
+                                type = XEventName.Expose,
+                                send_event = true,
+                                window = Window,
+                                count = 1,
+                                display = Display,
+                                height = height,
+                                width = width,
+                                x = minX,
+                                y = minY
+                            }
+                        };
+                        // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
+                        XSendEvent(Display, Window, propagate: false, new IntPtr((int) (EventMask.ExposureMask)), ref xev);
 
-                    _skBitmap.NotifyPixelsChanged();
+                        _skBitmap.NotifyPixelsChanged();
 
-                    using var skCanvas = new SKCanvas(_skBitmap);
-                    //skCanvas.Clear(SKColors.Transparent);
-                    //skCanvas.Translate(-minX,-minY);
-                    using var skPaint = new SKPaint();
-                    skPaint.StrokeWidth = 5;
-                    skPaint.Color = SKColors.Red;
-                    skPaint.IsAntialias = true;
-                    skPaint.Style = SKPaintStyle.Fill;
-                    skCanvas.DrawLine(_lastPoint.X, _lastPoint.Y, x, y, skPaint);
-                    skCanvas.Flush();
+                        using var skCanvas = new SKCanvas(_skBitmap);
+                        //skCanvas.Clear(SKColors.Transparent);
+                        //skCanvas.Translate(-minX,-minY);
+                        using var skPaint = new SKPaint();
+                        skPaint.StrokeWidth = 5;
+                        skPaint.Color = SKColors.Red;
+                        skPaint.IsAntialias = true;
+                        skPaint.Style = SKPaintStyle.Fill;
+                        skCanvas.DrawLine(_lastPoint.X, _lastPoint.Y, x, y, skPaint);
+                        skCanvas.Flush();
 
-                    var bitmapWidth = _skBitmap.Width;
-                    var bitmapHeight = _skBitmap.Height;
-                    //var bitmapWidth = 50;
-                    //var bitmapHeight = 50;
+                        var bitmapWidth = _skBitmap.Width;
+                        var bitmapHeight = _skBitmap.Height;
+                        //var bitmapWidth = 50;
+                        //var bitmapHeight = 50;
 
-                    var centerX = x - bitmapWidth / 2;
-                    var centerY = y - bitmapHeight / 2;
+                        var centerX = x - bitmapWidth / 2;
+                        var centerY = y - bitmapHeight / 2;
 
-                    XPutImage(Display, Window, GC, ref _image, minX, minY, minX, minY, (uint) width,
-                        (uint) height);
-                    //XDrawLine(Display, Window, GC, _lastPoint.X, _lastPoint.Y, x, y);
+                        XPutImage(Display, Window, GC, ref _image, minX, minY, minX, minY, (uint) width,
+                            (uint) height);
+                    }
+                    else
+                    {
+                        XDrawLine(Display, Window, GC, _lastPoint.X, _lastPoint.Y, x, y);
+                    }
+
                     _lastPoint = (x, y);
                 }
             }
