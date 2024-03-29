@@ -18,6 +18,8 @@ internal class Program
         //};
         //Console.WriteLine(skBitmap.ColorType); // BGRA 格式
 
+
+
         AssemblyLoadContext.Default.Resolving += Default_Resolving;
 
         StartX11App();
@@ -48,6 +50,33 @@ class App
 {
     public App()
     {
+        for (int i = 0; i < 20; i++)
+        {
+            StylusPoint currentStylusPoint = new StylusPoint(i, i);
+            if (_stylusPoints.Count == 0)
+            {
+                _stylusPoints.Enqueue(currentStylusPoint);
+
+                continue;
+            }
+
+            _stylusPoints.CopyTo(_cache, 0);
+
+            var lastPoint = _cache[_stylusPoints.Count - 1];
+            if (currentStylusPoint == lastPoint)
+            {
+                continue;
+            }
+
+            _cache[_stylusPoints.Count] = currentStylusPoint;
+            _stylusPoints.Enqueue(currentStylusPoint);
+
+            var pointList = _cache.AsSpan(0, _stylusPoints.Count);
+        }
+
+
+
+        ;
         XInitThreads();
         Display = XOpenDisplay(IntPtr.Zero);
         XError.Init();
@@ -133,7 +162,7 @@ class App
 
     private XImage _image;
 
-    private const int _maxStylusCount = 100;
+    private const int _maxStylusCount = 10;
     private readonly FixedQueue<StylusPoint> _stylusPoints = new FixedQueue<StylusPoint>(_maxStylusCount);
     private readonly StylusPoint[] _cache = new StylusPoint[_maxStylusCount + 1];
 
