@@ -311,8 +311,23 @@ class App
 
         var skPath = new SKPath();
         //skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
-        skPath.AddPoly(pointList.ToArray().Select(t => new SKPoint((float) t.Point.X, (float) t.Point.Y)).ToArray());
-        skPath.Close();
+        //skPath.AddPoly(pointList.ToArray().Select(t => new SKPoint((float) t.Point.X, (float) t.Point.Y)).ToArray());
+        bool first = true;
+        foreach (var stylusPoint in pointList)
+        {
+            var x = (float) stylusPoint.Point.X;
+            var y = (float) stylusPoint.Point.Y;
+            if (first)
+            {
+                first = false;
+                skPath.MoveTo(x, y);
+            }
+            else
+            {
+                skPath.LineTo(x, y);
+            }
+        }
+        //skPath.Close();
 
         var skPathBounds = skPath.Bounds;
 
@@ -328,6 +343,7 @@ class App
         skPaint.IsAntialias = true;
         skPaint.Style = SKPaintStyle.Stroke;
         skCanvas.DrawPath(skPath, skPaint);
+        
 
         skPaint.Color = SKColors.Black;
         //foreach (var stylusPoint in pointList)
