@@ -115,6 +115,18 @@ class App
         //skCanvas.Flush();
         _skCanvas = skCanvas;
 
+        using var skPaint = new SKPaint()
+        {
+            Color = SKColors.Red,
+            StrokeWidth = 5,
+            IsAntialias = false,
+        };
+        skCanvas.DrawLine(0, 0, 500, 500, skPaint);
+        skCanvas.DrawLine(0, 500, 500, 0, skPaint);
+
+        skPaint.Color = new SKColor((uint)Random.Shared.Next());
+
+
         XImage img = CreateImage();
         _image = img;
     }
@@ -295,7 +307,7 @@ class App
         _stylusPoints.Enqueue(currentStylusPoint);
 
         var pointList = _cache.AsSpan(0, _stylusPoints.Count);
-        var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, 15);
+        var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, 10);
 
         var skPath = new SKPath();
         skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
@@ -310,7 +322,7 @@ class App
         //skCanvas.Clear(SKColors.Black);
         //skCanvas.Translate(-minX,-minY);
         using var skPaint = new SKPaint();
-        skPaint.StrokeWidth = 1;
+        //skPaint.StrokeWidth = 1;
         skPaint.Color = SKColors.Red;
         skPaint.IsAntialias = true;
         skPaint.Style = SKPaintStyle.Fill;
@@ -319,7 +331,7 @@ class App
         skPaint.Color = SKColors.Black;
         foreach (var stylusPoint in pointList)
         {
-            skCanvas.DrawCircle((float)stylusPoint.Point.X,(float)stylusPoint.Point.Y,1, skPaint);
+            skCanvas.DrawCircle((float) stylusPoint.Point.X, (float) stylusPoint.Point.Y, 1, skPaint);
         }
 
         //skCanvas.Flush();
