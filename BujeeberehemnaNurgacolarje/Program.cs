@@ -110,9 +110,10 @@ class App
 
         var skBitmap = new SKBitmap(500, 500);
         _skBitmap = skBitmap;
-        using var skCanvas = new SKCanvas(_skBitmap);
+        var skCanvas = new SKCanvas(_skBitmap);
         skCanvas.Clear(SKColors.Black);
         skCanvas.Flush();
+        _skCanvas = skCanvas;
 
         XImage img = CreateImage();
         _image = img;
@@ -305,8 +306,8 @@ class App
         var additionSize = 10;
         drawRect = new Rect(skPathBounds.Left - additionSize, skPathBounds.Top - additionSize, skPathBounds.Width + additionSize * 2, skPathBounds.Height + additionSize * 2);
 
-        using var skCanvas = new SKCanvas(_skBitmap);
-        skCanvas.Clear(SKColors.Black);
+        var skCanvas = _skCanvas;
+        //skCanvas.Clear(SKColors.Black);
         //skCanvas.Translate(-minX,-minY);
         using var skPaint = new SKPaint();
         skPaint.StrokeWidth = 1;
@@ -328,7 +329,8 @@ class App
 
     private (int X, int Y) _lastPoint;
     private bool _isDown;
-    private SKBitmap _skBitmap;
+    private readonly SKBitmap _skBitmap;
+    private readonly SKCanvas _skCanvas;
 
     private void Redraw()
     {
