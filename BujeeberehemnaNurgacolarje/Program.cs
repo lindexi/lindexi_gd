@@ -1,8 +1,8 @@
 ﻿using System.Runtime.Loader;
 using static CPF.Linux.XLib;
 using CPF.Linux;
-using System.Collections;
 using System.Runtime.InteropServices;
+using Microsoft.Maui.Graphics;
 using SkiaSharp;
 
 namespace BujeeberehemnaNurgacolarje;
@@ -117,6 +117,10 @@ class App
 
     private XImage _image;
 
+    private const int _maxStylusCount = 100;
+    private readonly FixedQueue<StylusPoint> _stylusPoints = new FixedQueue<StylusPoint>(_maxStylusCount);
+    private readonly StylusPoint[] _cache = new StylusPoint[_maxStylusCount + 1];
+
     public void Run()
     {
         XSetInputFocus(Display, Window, 0, IntPtr.Zero);
@@ -153,6 +157,35 @@ class App
 
                     if (x < 500)
                     {
+                        var currentStylusPoint = new StylusPoint(x, y);
+
+                        if (DrawStroke(currentStylusPoint, out var rect))
+                        {
+                            var xEvent = new XEvent
+                            {
+                                ExposeEvent =
+                                {
+                                    type = XEventName.Expose,
+                                    send_event = true,
+                                    window = Window,
+                                    count = 1,
+                                    display = Display,
+                                    height = (int)rect.Height,
+                                    width = (int)rect.Width,
+                                    x = (int)rect.X,
+                                    y = (int)rect.Y
+                                }
+                            };
+                            // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
+                            XSendEvent(Display, Window, propagate: false, new IntPtr((int) (EventMask.ExposureMask)), ref xEvent);
+
+                            continue;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+
                         var additionSize = 10;
                         var minX = Math.Min(x, _lastPoint.X) - additionSize;
                         var minY = Math.Min(y, _lastPoint.Y) - additionSize;
@@ -226,6 +259,7 @@ class App
             else if (@event.type == XEventName.ButtonRelease)
             {
                 _isDown = false;
+                _stylusPoints.Clear();
             }
 
             if (xNextEvent != 0)
@@ -233,6 +267,52 @@ class App
                 break;
             }
         }
+    }
+
+    private bool DrawStroke(StylusPoint currentStylusPoint, out Rect drawRect)
+    {
+        drawRect = Rect.Zero;
+        if (_stylusPoints.Count == 0)
+        {
+            _stylusPoints.Enqueue(currentStylusPoint);
+
+            return false;
+        }
+
+        _stylusPoints.CopyTo(_cache, 0);
+
+        var lastPoint = _cache[_stylusPoints.Count - 1];
+        if (currentStylusPoint == lastPoint)
+        {
+            return false;
+        }
+
+        _cache[_stylusPoints.Count] = currentStylusPoint;
+        _stylusPoints.Enqueue(currentStylusPoint);
+
+        var outlinePointList = SimpleInkRender.GetOutlinePointList(_cache.AsSpan(0, _stylusPoints.Count), 10);
+
+        var skPath = new SKPath();
+        skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
+        skPath.Close();
+
+        var skPathBounds = skPath.Bounds;
+
+        var additionSize = 10;
+        drawRect = new Rect(skPathBounds.Left - additionSize, skPathBounds.Top - additionSize, skPathBounds.Width + additionSize * 2, skPathBounds.Height + additionSize * 2);
+
+        using var skCanvas = new SKCanvas(_skBitmap);
+        //skCanvas.Clear(SKColors.Transparent);
+        //skCanvas.Translate(-minX,-minY);
+        using var skPaint = new SKPaint();
+        skPaint.StrokeWidth = 5;
+        skPaint.Color = SKColors.Red;
+        skPaint.IsAntialias = true;
+        skPaint.Style = SKPaintStyle.Fill;
+        skCanvas.DrawPath(skPath, skPaint);
+        skCanvas.Flush();
+
+        return true;
     }
 
     private (int X, int Y) _lastPoint;
