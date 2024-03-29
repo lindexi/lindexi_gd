@@ -329,10 +329,10 @@ class App
         skCanvas.DrawPath(skPath, skPaint);
 
         skPaint.Color = SKColors.Black;
-        foreach (var stylusPoint in pointList)
-        {
-            skCanvas.DrawCircle((float) stylusPoint.Point.X, (float) stylusPoint.Point.Y, 1, skPaint);
-        }
+        //foreach (var stylusPoint in pointList)
+        //{
+        //    skCanvas.DrawCircle((float) stylusPoint.Point.X, (float) stylusPoint.Point.Y, 1, skPaint);
+        //}
 
         //skCanvas.Flush();
 
