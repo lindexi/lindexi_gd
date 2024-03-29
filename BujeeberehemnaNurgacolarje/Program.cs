@@ -296,7 +296,7 @@ class App
 
         var lastPoint = pointList[^1];
 
-        if (Math.Pow(lastPoint.Point.X - currentStylusPoint.Point.X,2) + Math.Pow(lastPoint.Point.Y - currentStylusPoint.Point.Y, 2) < 100)
+        if (Math.Pow(lastPoint.Point.X - currentStylusPoint.Point.X, 2) + Math.Pow(lastPoint.Point.Y - currentStylusPoint.Point.Y, 2) < 100)
         {
             return true;
         }
@@ -317,6 +317,7 @@ class App
         _stylusPoints.CopyTo(_cache, 0);
         if (CanDropLastPoint(_cache.AsSpan(0, _stylusPoints.Count), currentStylusPoint) && DropPointCount < 3)
         {
+            // 丢点是为了让 SimpleInkRender 可以绘制更加平滑的折线。但是不能丢太多的点，否则将导致看起来断线
             DropPointCount++;
             return false;
         }
@@ -332,8 +333,22 @@ class App
         _cache[_stylusPoints.Count] = currentStylusPoint;
         _stylusPoints.Enqueue(currentStylusPoint);
 
+        for (int i = 0; i < 10; i++)
+        {
+            if (_stylusPoints.Count - i - 1 < 0)
+            {
+                break;
+            }
+
+            _cache[_stylusPoints.Count - i - 1] = _cache[_stylusPoints.Count - i - 1] with
+            {
+                Pressure = Math.Max(Math.Min(0.05f * i, 0.5f), 0.01f)
+            };
+        }
+
         var pointList = _cache.AsSpan(0, _stylusPoints.Count);
-        var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, 5);
+
+        var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, 3);
 
         var skPath = new SKPath();
         skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
@@ -354,14 +369,12 @@ class App
         skPaint.Style = SKPaintStyle.Stroke;
         skCanvas.DrawPath(skPath, skPaint);
 
-        skPaint.Style = SKPaintStyle.Fill;
-        skPaint.Color = SKColors.Black;
-        foreach (var stylusPoint in pointList)
-        {
-            skCanvas.DrawCircle((float) stylusPoint.Point.X, (float) stylusPoint.Point.Y, 1, skPaint);
-        }
-
-        //skCanvas.Flush();
+        //skPaint.Style = SKPaintStyle.Fill;
+        //skPaint.Color = SKColors.Black;
+        //foreach (var stylusPoint in pointList)
+        //{
+        //    skCanvas.DrawCircle((float) stylusPoint.Point.X, (float) stylusPoint.Point.Y, 1, skPaint);
+        //}
 
         return true;
     }
