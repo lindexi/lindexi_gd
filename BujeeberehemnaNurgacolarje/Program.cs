@@ -268,7 +268,7 @@ public class App
         //skCanvas.Translate(-minX,-minY);
         using var skPaint = new SKPaint();
         skPaint.StrokeWidth = 0.1f;
-        skPaint.Color = SKColors.Red;
+        skPaint.Color = Color;
         skPaint.IsAntialias = false;
         skPaint.Style = SKPaintStyle.Stroke;
         skCanvas.DrawPath(skPath, skPaint);
@@ -282,6 +282,8 @@ public class App
 
         return true;
     }
+
+    public SKColor Color { get; set; } = SKColors.Red;
 
     private (int X, int Y) _lastPoint;
     private bool _isDown;
