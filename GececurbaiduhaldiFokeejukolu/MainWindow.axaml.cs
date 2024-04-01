@@ -16,8 +16,15 @@ public partial class MainWindow : Window
     {
         if (OperatingSystem.IsLinux())
         {
-            var app = new BujeeberehemnaNurgacolarje.App();
-            Task.Run(() => app.Run());
+            if (TryGetPlatformHandle()?.Handle is {} handle)
+            {
+                // 此 handle 就是 X11 窗口的
+                // 通过 xdotool set_window --name "Foo" {handle} 可以设置窗口标题
+                Console.WriteLine(handle);
+
+                var app = new BujeeberehemnaNurgacolarje.App();
+                Task.Run(() => app.Run(handle));
+            }
         }
     }
 }

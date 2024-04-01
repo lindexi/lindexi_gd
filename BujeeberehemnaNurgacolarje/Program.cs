@@ -7,43 +7,6 @@ using SkiaSharp;
 
 namespace BujeeberehemnaNurgacolarje;
 
-internal class Program
-{
-    [STAThread]
-    static void Main(string[] args)
-    {
-        //var skBitmap = new SKBitmap(50, 50)
-        //{
-
-        //};
-        //Console.WriteLine(skBitmap.ColorType); // BGRA 格式
-
-        AssemblyLoadContext.Default.Resolving += Default_Resolving;
-
-        StartX11App();
-    }
-
-    private static System.Reflection.Assembly? Default_Resolving(AssemblyLoadContext context,
-        System.Reflection.AssemblyName assemblyName)
-    {
-        var file = $"{assemblyName.Name}.dll";
-        file = Path.Join(AppContext.BaseDirectory, file);
-
-        if (File.Exists(file))
-        {
-            return context.LoadFromAssemblyPath(file);
-        }
-
-        return null;
-    }
-
-    private static void StartX11App()
-    {
-        var app = new App();
-        app.Run();
-    }
-}
-
 public class App
 {
     public App()
@@ -137,9 +100,13 @@ public class App
     private readonly FixedQueue<StylusPoint> _stylusPoints = new FixedQueue<StylusPoint>(MaxStylusCount);
     private readonly StylusPoint[] _cache = new StylusPoint[MaxStylusCount + 1];
 
-    public void Run()
+    public void Run(nint ownerWindowIntPtr)
     {
         XSetInputFocus(Display, Window, 0, IntPtr.Zero);
+        // bing 如何设置X11里面两个窗口之间的层级关系
+        // bing 如何编写代码设置X11里面两个窗口之间的层级关系，比如有 a 和 b 两个窗口，如何设置 a 窗口一定在 b 窗口上方？
+        // 我们使用XSetTransientForHint函数将窗口a设置为窗口b的子窗口。这将确保窗口a始终在窗口b的上方
+        XSetTransientForHint(Display, ownerWindowIntPtr, Window);
 
         while (true)
         {
