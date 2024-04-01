@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 
 namespace GececurbaiduhaldiFokeejukolu;
 public partial class MainWindow : Window
@@ -10,6 +11,13 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        TransparencyLevelHint = new[]
+        {
+            WindowTransparencyLevel.Transparent,
+            WindowTransparencyLevel.AcrylicBlur, 
+            WindowTransparencyLevel.Blur, 
+        };
+        TransparencyBackgroundFallback = Brushes.Transparent;
     }
 
     private void Button_OnClick(object? sender, RoutedEventArgs e)
