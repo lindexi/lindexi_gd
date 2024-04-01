@@ -79,7 +79,7 @@ public class App
         var skBitmap = new SKBitmap(size, size);
         _skBitmap = skBitmap;
         var skCanvas = new SKCanvas(_skBitmap);
-        skCanvas.Clear(SKColors.Black);
+        skCanvas.Clear(SKColors.Transparent);
         //skCanvas.Flush();
         _skCanvas = skCanvas;
 
