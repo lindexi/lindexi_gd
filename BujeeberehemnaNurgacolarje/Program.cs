@@ -103,6 +103,10 @@ public class App
     public void Run(nint ownerWindowIntPtr)
     {
         XSetInputFocus(Display, Window, 0, IntPtr.Zero);
+        // bing 如何设置X11里面两个窗口之间的层级关系
+        // bing 如何编写代码设置X11里面两个窗口之间的层级关系，比如有 a 和 b 两个窗口，如何设置 a 窗口一定在 b 窗口上方？
+        // 我们使用XSetTransientForHint函数将窗口a设置为窗口b的子窗口。这将确保窗口a始终在窗口b的上方
+        XSetTransientForHint(Display, ownerWindowIntPtr, Window);
 
         while (true)
         {
