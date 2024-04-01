@@ -252,11 +252,11 @@ public class App
 
         var pointList = _cache.AsSpan(0, _stylusPoints.Count);
 
-        var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, 3);
+        var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, 10);
 
-        var skPath = new SKPath();
+        using var skPath = new SKPath();
         skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
-        skPath.Close();
+        //skPath.Close();
 
         var skPathBounds = skPath.Bounds;
 
@@ -267,12 +267,11 @@ public class App
         //skCanvas.Clear(SKColors.Black);
         //skCanvas.Translate(-minX,-minY);
         using var skPaint = new SKPaint();
-        skPaint.StrokeWidth = 2;
-        skPaint.Color = SKColors.Red;
+        skPaint.StrokeWidth = 0.1f;
+        skPaint.Color = SKColors.White;
         skPaint.IsAntialias = true;
-        skPaint.Style = SKPaintStyle.Fill;
+        skPaint.Style = SKPaintStyle.Stroke;
         skCanvas.DrawPath(skPath, skPaint);
-
         //skPaint.Style = SKPaintStyle.Fill;
         //skPaint.Color = SKColors.Black;
         //foreach (var stylusPoint in pointList)

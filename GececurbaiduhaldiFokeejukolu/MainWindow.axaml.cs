@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using SkiaSharp;
 
 namespace GececurbaiduhaldiFokeejukolu;
 public partial class MainWindow : Window
