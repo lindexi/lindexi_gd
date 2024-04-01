@@ -37,19 +37,20 @@ public class App
             | SetWindowValuemask.WinGravity
             | SetWindowValuemask.BackingStore
             | SetWindowValuemask.ColorMap
-            | SetWindowValuemask.OverrideRedirect;
+            //| SetWindowValuemask.OverrideRedirect
+            ;
         var xSetWindowAttributes = new XSetWindowAttributes
         {
             backing_store = 1,
             bit_gravity = Gravity.NorthWestGravity,
             win_gravity = Gravity.NorthWestGravity,
-            override_redirect = true, // 设置窗口的override_redirect属性为True，以避免窗口管理器的干预
+            //override_redirect = true, // 设置窗口的override_redirect属性为True，以避免窗口管理器的干预
             colormap = XCreateColormap(Display, rootWindow, visual, 0),
             border_pixel = 0,
             background_pixel = 0,
         };
-
-        var handle = XCreateWindow(Display, rootWindow, 100, 100, 1000, 500, 5,
+        
+        var handle = XCreateWindow(Display, rootWindow, 0, 0, XDisplayWidth(Display, screen), XDisplayHeight(Display, screen), 5,
             32,
             (int) CreateWindowArgs.InputOutput,
             visual,
@@ -74,7 +75,8 @@ public class App
 
         Console.WriteLine($"App");
 
-        var skBitmap = new SKBitmap(500, 500);
+        var size = 600;
+        var skBitmap = new SKBitmap(size, size);
         _skBitmap = skBitmap;
         var skCanvas = new SKCanvas(_skBitmap);
         skCanvas.Clear(SKColors.Black);
@@ -87,8 +89,8 @@ public class App
             StrokeWidth = 5,
             IsAntialias = false,
         };
-        skCanvas.DrawLine(0, 0, 500, 500, skPaint);
-        skCanvas.DrawLine(0, 500, 500, 0, skPaint);
+        skCanvas.DrawLine(0, 0, size, size, skPaint);
+        skCanvas.DrawLine(0, size, size, 0, skPaint);
 
         skPaint.Color = new SKColor((uint) Random.Shared.Next());
 
