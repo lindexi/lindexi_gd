@@ -16,6 +16,11 @@ namespace CPF.Linux
         public static extern IntPtr XOpenDisplay(IntPtr display);
 
         [DllImport(libX11)]
+        public static extern int XDisplayWidth(IntPtr display, int screen_number);
+        [DllImport(libX11)]
+        public static extern int XDisplayHeight(IntPtr display, int screen_number);
+
+        [DllImport(libX11)]
         public static extern int XCloseDisplay(IntPtr display);
 
         [DllImport(libX11)]
