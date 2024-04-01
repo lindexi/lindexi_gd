@@ -105,13 +105,31 @@ public class App
     private readonly FixedQueue<StylusPoint> _stylusPoints = new FixedQueue<StylusPoint>(MaxStylusCount);
     private readonly StylusPoint[] _cache = new StylusPoint[MaxStylusCount + 1];
 
-    public void Run(nint ownerWindowIntPtr)
+    const int XI_TouchBegin = 16; // Touch begin event type
+    const int XI_TouchUpdate = 17; // Touch update event type
+    const int XI_TouchEnd = 18; // Touch end event type
+
+    public unsafe void Run(nint ownerWindowIntPtr)
     {
         XSetInputFocus(Display, Window, 0, IntPtr.Zero);
         // bing 如何设置X11里面两个窗口之间的层级关系
         // bing 如何编写代码设置X11里面两个窗口之间的层级关系，比如有 a 和 b 两个窗口，如何设置 a 窗口一定在 b 窗口上方？
         // 我们使用XSetTransientForHint函数将窗口a设置为窗口b的子窗口。这将确保窗口a始终在窗口b的上方
         XSetTransientForHint(Display, ownerWindowIntPtr, Window);
+
+        // Set up XI2 touch event mask
+        var touchMask = new XIEventMask
+        {
+            Deviceid = 2, // Device ID for touch events (adjust as needed)
+            MaskLen = 3,
+            Mask = Marshal.AllocHGlobal(3 * sizeof(int))
+        };
+        Marshal.WriteInt32(touchMask.Mask, 0, XI_TouchBegin);
+        Marshal.WriteInt32(touchMask.Mask, sizeof(int), XI_TouchUpdate);
+        Marshal.WriteInt32(touchMask.Mask, 2 * sizeof(int), XI_TouchEnd);
+
+        XIEventMask[] masks = { touchMask };
+        XISelectEvents(Display, Window, masks, 1);
 
         while (true)
         {
@@ -180,6 +198,18 @@ public class App
             {
                 _isDown = false;
                 _stylusPoints.Clear();
+            }
+            else if ((int)@event.type == XI_TouchBegin)
+            {
+                Console.WriteLine("XI_TouchBegin");
+            }
+            else if ((int) @event.type == XI_TouchEnd)
+            {
+                Console.WriteLine("XI_TouchEnd");
+            }
+            else
+            {
+                Console.WriteLine($"[Event] {(int) @event.type} {@event}");
             }
 
             if (xNextEvent != 0)

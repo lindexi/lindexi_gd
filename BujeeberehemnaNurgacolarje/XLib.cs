@@ -645,32 +645,32 @@ namespace CPF.Linux
         public static extern Status XISelectEvents(
             IntPtr dpy,
             IntPtr win,
-            XIEventMask* masks,
+            XIEventMask[] masks,
             int num_masks
         );
 
-        public static Status XiSelectEvents(IntPtr display, IntPtr window, Dictionary<int, List<XiEventType>> devices)
-        {
-            var masks = stackalloc int[devices.Count];
-            var emasks = stackalloc XIEventMask[devices.Count];
-            int c = 0;
-            foreach (var d in devices)
-            {
-                foreach (var ev in d.Value)
-                    XISetMask(ref masks[c], ev);
-                emasks[c] = new XIEventMask
-                {
-                    Mask = &masks[c],
-                    Deviceid = d.Key,
-                    MaskLen = XiEventMaskLen
-                };
-                c++;
-            }
+        //public static Status XiSelectEvents(IntPtr display, IntPtr window, Dictionary<int, List<XiEventType>> devices)
+        //{
+        //    var masks = stackalloc int[devices.Count];
+        //    var emasks = stackalloc XIEventMask[devices.Count];
+        //    int c = 0;
+        //    foreach (var d in devices)
+        //    {
+        //        foreach (var ev in d.Value)
+        //            XISetMask(ref masks[c], ev);
+        //        emasks[c] = new XIEventMask
+        //        {
+        //            Mask = &masks[c],
+        //            Deviceid = d.Key,
+        //            MaskLen = XiEventMaskLen
+        //        };
+        //        c++;
+        //    }
 
 
-            return XISelectEvents(display, window, emasks, devices.Count);
+        //    return XISelectEvents(display, window, emasks, devices.Count);
 
-        }
+        //}
 
         public struct XGeometry
         {
