@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -9,12 +10,14 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        //this.AttachDevTools();
     }
 
     private void Button_OnClick(object? sender, RoutedEventArgs e)
     {
-        var app = new BujeeberehemnaNurgacolarje.App();
-        Task.Run(() => app.Run());
+        if (OperatingSystem.IsLinux())
+        {
+            var app = new BujeeberehemnaNurgacolarje.App();
+            Task.Run(() => app.Run());
+        }
     }
 }

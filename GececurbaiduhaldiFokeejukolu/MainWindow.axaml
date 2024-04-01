@@ -6,6 +6,8 @@
         x:Class="GececurbaiduhaldiFokeejukolu.MainWindow"
         Title="GececurbaiduhaldiFokeejukolu">
     <Grid>
-        <Button Margin="10,10,10,10" Content="笔模式" Click="Button_OnClick"></Button>
-    </Grid> 
+        <StackPanel Orientation="Horizontal">
+            <Button Margin="10,10,10,10" Content="笔模式" Click="Button_OnClick"></Button>
+        </StackPanel>
+      </Grid> 
 </Window>
