@@ -143,7 +143,7 @@ public class App
                     var x = @event.MotionEvent.x;
                     var y = @event.MotionEvent.y;
 
-                    if (x < 500)
+                    if (x < (XDisplayWidth(Display, Screen) / 2))
                     {
                         var currentStylusPoint = new StylusPoint(x, y);
 
@@ -267,10 +267,10 @@ public class App
         //skCanvas.Clear(SKColors.Black);
         //skCanvas.Translate(-minX,-minY);
         using var skPaint = new SKPaint();
-        skPaint.StrokeWidth = 5;
+        skPaint.StrokeWidth = 2;
         skPaint.Color = SKColors.Red;
         skPaint.IsAntialias = true;
-        skPaint.Style = SKPaintStyle.Stroke;
+        skPaint.Style = SKPaintStyle.Fill;
         skCanvas.DrawPath(skPath, skPaint);
 
         //skPaint.Style = SKPaintStyle.Fill;
