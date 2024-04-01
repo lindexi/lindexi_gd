@@ -32,7 +32,15 @@ public partial class MainWindow : Window
 
                 var app = new BujeeberehemnaNurgacolarje.App();
                 Task.Run(() => app.Run(handle));
+
+                var button = (Button)sender!;
+                button.IsEnabled = false;
             }
         }
+    }
+
+    private void CloseButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        Environment.Exit(0);
     }
 }

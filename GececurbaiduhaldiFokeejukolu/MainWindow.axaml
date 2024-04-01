@@ -7,8 +7,11 @@
         Height="100"
         Title="GececurbaiduhaldiFokeejukolu">
     <Grid>
-        <StackPanel Orientation="Horizontal">
-            <Button Margin="10,10,10,10" Content="笔模式" Click="Button_OnClick"></Button>
+        <StackPanel Orientation="Vertical">
+            <StackPanel Orientation="Horizontal">
+                <Button Margin="10,10,10,10" Content="笔模式" Click="Button_OnClick"></Button>
+                <Button x:Name="CloseButton" Margin="10,10,10,10" Content="退出" Click="CloseButton_OnClick"></Button>
+            </StackPanel>
         </StackPanel>
       </Grid> 
 </Window>
