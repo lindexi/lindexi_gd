@@ -94,7 +94,7 @@ namespace CPF.Linux
     {
         public int Deviceid;
         public int MaskLen;
-        public IntPtr Mask;
+        public int* Mask;
     };
 
     [StructLayout(LayoutKind.Sequential)]
