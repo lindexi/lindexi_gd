@@ -44,7 +44,7 @@ internal class Program
     }
 }
 
-class App
+public class App
 {
     public App()
     {
