@@ -8,10 +8,15 @@
         Title="GececurbaiduhaldiFokeejukolu">
     <Grid>
         <StackPanel Orientation="Vertical">
+            <StackPanel Margin="10,0,10,10" Orientation="Horizontal">
+                <Button x:Name="RedButton" Margin="10,10,10,0" Content="红色" Click="RedButton_OnClick"></Button>
+                <Button x:Name="BlackButton" Margin="10,10,10,0" Content="黑色" Click="BlackButton_OnClick"></Button>
+                <Button x:Name="WhiteButton" Margin="10,10,10,0" Content="白色" Click="WhiteButton_OnClick"></Button>
+            </StackPanel>
             <StackPanel Orientation="Horizontal">
                 <Button Margin="10,10,10,10" Content="笔模式" Click="Button_OnClick"></Button>
                 <Button x:Name="CloseButton" Margin="10,10,10,10" Content="退出" Click="CloseButton_OnClick"></Button>
             </StackPanel>
         </StackPanel>
-      </Grid> 
+    </Grid>
 </Window>
