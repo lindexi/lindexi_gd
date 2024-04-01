@@ -36,14 +36,17 @@ public class App
             | SetWindowValuemask.BitGravity
             | SetWindowValuemask.WinGravity
             | SetWindowValuemask.BackingStore
-            | SetWindowValuemask.ColorMap;
+            | SetWindowValuemask.ColorMap
+            | SetWindowValuemask.OverrideRedirect;
         var attr = new XSetWindowAttributes
         {
             backing_store = 1,
             bit_gravity = Gravity.NorthWestGravity,
             win_gravity = Gravity.NorthWestGravity,
-            override_redirect = false, // 参数：_overrideRedirect
+            override_redirect = true, // 设置窗口的override_redirect属性为True，以避免窗口管理器的干预
             colormap = XCreateColormap(Display, rootWindow, visual, 0),
+            border_pixel = 0,
+            background_pixel = 0,
         };
 
         var handle = XCreateWindow(Display, rootWindow, 100, 100, 1000, 500, 5,
