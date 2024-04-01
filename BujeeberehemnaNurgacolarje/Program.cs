@@ -38,7 +38,7 @@ public class App
             | SetWindowValuemask.BackingStore
             | SetWindowValuemask.ColorMap
             | SetWindowValuemask.OverrideRedirect;
-        var attr = new XSetWindowAttributes
+        var xSetWindowAttributes = new XSetWindowAttributes
         {
             backing_store = 1,
             bit_gravity = Gravity.NorthWestGravity,
@@ -53,7 +53,7 @@ public class App
             32,
             (int) CreateWindowArgs.InputOutput,
             visual,
-            (nuint) valueMask, ref attr);
+            (nuint) valueMask, ref xSetWindowAttributes);
 
         Window = handle;
 
