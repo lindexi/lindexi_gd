@@ -487,12 +487,19 @@ public class App
         else
         {
             var skCanvas = _skCanvas;
-            skCanvas.Clear(SKColors.Transparent);
+            //skCanvas.Clear(SKColors.Transparent);
+            var skRect = new SKRect((float) drawRect.Left, (float) drawRect.Top, (float) drawRect.Right, (float) drawRect.Bottom);
+
             using var skPaint = new SKPaint();
             skPaint.StrokeWidth = 0.1f;
-            skPaint.Color = Color;
+            
             skPaint.IsAntialias = true;
             skPaint.Style = SKPaintStyle.Fill;
+
+            skPaint.Color = SKColors.Black;
+            skCanvas.DrawRect(skRect, skPaint);
+
+            skPaint.Color = Color;
             skCanvas.DrawPath(skPath, skPaint);
         }
 
