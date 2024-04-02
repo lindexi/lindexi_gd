@@ -114,15 +114,27 @@ namespace ReewheaberekaiNayweelehe
         {
             Draw(canvas =>
             {
-                using var skPaint = new SKPaint() { Color = new SKColor(0, 0, 0), TextSize = 100 };
-                canvas.DrawLine(10, 10, 100, 100, skPaint);
+                //using var skPaint = new SKPaint() { Color = new SKColor(0, 0, 0), TextSize = 100 };
+                //canvas.DrawLine(10, 10, 100, 100, skPaint);
+
+                _canvas.SkBitmap = Image.SkBitmap;
+
+                _canvas.SetCanvas(canvas);
+
+                using var skPaint = new SKPaint();
+                skPaint.StrokeWidth = 10f;
+                skPaint.Color = SKColors.Red;
+                skPaint.IsAntialias = true;
+                skPaint.FilterQuality = SKFilterQuality.High;
+                skPaint.Style = SKPaintStyle.Stroke;
+
+                canvas.DrawCircle(300, 300, 100, skPaint);
             });
         }
 
         private void UIElement_OnMouseMove(object sender, MouseEventArgs e)
         {
             var position = e.GetPosition(this);
-
             Draw(canvas =>
             {
                 //_canvas.SkSurface = Image.SkSurface;
@@ -299,8 +311,8 @@ namespace ReewheaberekaiNayweelehe
             //skPaint.Color = new SKColor(0x12, 0x56, 0x22, 0xF1);
             //skCanvas.DrawRect(skRect, skPaint);
 
-            // 似乎没有锯齿
-            skCanvas.DrawBitmap(background, new SKRect(0, 0, skRect.Width, skRect.Height), new SKRect(0, 0, skRect.Width, skRect.Height));
+            //// 似乎没有锯齿
+            //skCanvas.DrawBitmap(background, new SKRect(0, 0, skRect.Width, skRect.Height), new SKRect(0, 0, skRect.Width, skRect.Height));
             //using var skImage = SKImage.FromBitmap(background);
             ////// 为何 Skia 在 DrawBitmap 之后进行 DrawPath 出现锯齿，即使配置了 IsAntialias 属性
             //skCanvas.DrawImage(skImage, new SKRect(0, 0, skRect.Width, skRect.Height), skRect);
@@ -311,10 +323,12 @@ namespace ReewheaberekaiNayweelehe
             skPaint.Color = Color;
             //skCanvas.DrawPath(skPath, skPaint);
 
-            var x = (float) currentStylusPoint.Point.X;
-            var y = (float) currentStylusPoint.Point.Y;
+            //var x = (float) currentStylusPoint.Point.X;
+            //var y = (float) currentStylusPoint.Point.Y;
+            //skPaint.StrokeWidth = 2f;
+            //skCanvas.DrawLine(x, y, x + 200, y + 200, skPaint);
             skPaint.StrokeWidth = 2f;
-            skCanvas.DrawLine(x, y, x + 200, y + 200, skPaint);
+            skCanvas.DrawCircle(300, 300, 100, skPaint);
 
             skCanvas.Flush();
 
