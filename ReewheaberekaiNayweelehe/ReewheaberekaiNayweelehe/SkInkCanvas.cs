@@ -141,17 +141,17 @@ class SkInkCanvas
         //    backgroundCanvas.Flush();
         //}
 
-        using var background = new SKBitmap(new SKImageInfo((int) skRect.Width, (int) skRect.Height));
-        using (var backgroundCanvas = new SKCanvas(background))
-        {
-            skPaint.Color = new SKColor(0x12, 0x56, 0x22, 0xF1);
+        //using var background = new SKBitmap(new SKImageInfo((int) skRect.Width, (int) skRect.Height));
+        //using (var backgroundCanvas = new SKCanvas(background))
+        //{
+        //    skPaint.Color = new SKColor(0x12, 0x56, 0x22, 0xF1);
 
-            backgroundCanvas.DrawRect(new SKRect(0, 0, skRect.Width, skRect.Height), skPaint);
+        //    backgroundCanvas.DrawRect(new SKRect(0, 0, skRect.Width, skRect.Height), skPaint);
 
-            backgroundCanvas.DrawBitmap(SkBitmap, skRect, new SKRect(0, 0, skRect.Width, skRect.Height));
+        //    backgroundCanvas.DrawBitmap(SkBitmap, skRect, new SKRect(0, 0, skRect.Width, skRect.Height));
 
-            backgroundCanvas.Flush();
-        }
+        //    backgroundCanvas.Flush();
+        //}
 
         //skCanvas.Clear(SKColors.RosyBrown);
 
@@ -165,24 +165,12 @@ class SkInkCanvas
         //skCanvas.DrawImage(skImage, new SKRect(0, 0, skRect.Width, skRect.Height), skRect);
 
         //// 只有纯色才能无锯齿
-
-
-        skPaint.Color = Color;
-        //skCanvas.DrawPath(skPath, skPaint);
-
-        //var x = (float) currentStylusPoint.Point.X;
-        //var y = (float) currentStylusPoint.Point.Y;
-        //skPaint.StrokeWidth = 2f;
-        //skCanvas.DrawLine(x, y, x + 200, y + 200, skPaint);
-        skPaint.StrokeWidth = 2f;
-        skCanvas.DrawCircle(300, 300, 100, skPaint);
-
-        skCanvas.Flush();
+        // 是因为在相同的地方多次绘制采样
 
         //skPaint.Color = SKColors.GhostWhite;
         //skPaint.Style = SKPaintStyle.Stroke;
         //skPaint.StrokeWidth = 1f;
-        //skCanvas.DrawPath(skPath, skPaint);
+        skCanvas.DrawPath(skPath, skPaint);
 
         //skPaint.Style = SKPaintStyle.Fill;
         //skPaint.Color = SKColors.White;
