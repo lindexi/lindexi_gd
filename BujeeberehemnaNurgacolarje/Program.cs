@@ -319,10 +319,11 @@ public class App
         // 经过测试，似乎只有纯色画在下面才能没有锯齿，否则都会存在锯齿
 
         // 以下代码经过测试，没有真的做拷贝，依然还是随着变更而变更
-        using var background = new SKBitmap(new SKImageInfo((int) skRect.Width, (int) skRect.Height, _skBitmap.ColorType, _skBitmap.AlphaType));
+        var background = new SKBitmap(new SKImageInfo((int) skRect.Width, (int) skRect.Height, _skBitmap.ColorType, _skBitmap.AlphaType));
         using (var backgroundCanvas = new SKCanvas(background))
         {
             backgroundCanvas.DrawBitmap(_skBitmap, skRect, new SKRect(0, 0, skRect.Width, skRect.Height));
+            backgroundCanvas.Flush();
         }
 
         //skCanvas.Clear(SKColors.RosyBrown);
