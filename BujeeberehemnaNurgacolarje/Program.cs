@@ -4,6 +4,7 @@ using CPF.Linux;
 using System.Runtime.InteropServices;
 using Microsoft.Maui.Graphics;
 using SkiaSharp;
+using System.Reflection.Metadata;
 
 namespace BujeeberehemnaNurgacolarje;
 
@@ -49,7 +50,7 @@ public class App
             border_pixel = 0,
             background_pixel = 0,
         };
-        
+
         var handle = XCreateWindow(Display, rootWindow, 0, 0, XDisplayWidth(Display, screen), XDisplayHeight(Display, screen), 5,
             32,
             (int) CreateWindowArgs.InputOutput,
@@ -105,10 +106,6 @@ public class App
     private readonly FixedQueue<StylusPoint> _stylusPoints = new FixedQueue<StylusPoint>(MaxStylusCount);
     private readonly StylusPoint[] _cache = new StylusPoint[MaxStylusCount + 1];
 
-    const int XI_TouchBegin = 16; // Touch begin event type
-    const int XI_TouchUpdate = 17; // Touch update event type
-    const int XI_TouchEnd = 18; // Touch end event type
-
     public unsafe void Run(nint ownerWindowIntPtr)
     {
         XSetInputFocus(Display, Window, 0, IntPtr.Zero);
@@ -117,19 +114,29 @@ public class App
         // 我们使用XSetTransientForHint函数将窗口a设置为窗口b的子窗口。这将确保窗口a始终在窗口b的上方
         XSetTransientForHint(Display, ownerWindowIntPtr, Window);
 
-        // Set up XI2 touch event mask
-        var touchMask = new XIEventMask
+        var devices = (XIDeviceInfo*) XIQueryDevice(Display,
+            (int) XiPredefinedDeviceId.XIAllMasterDevices, out int num);
+        XIDeviceInfo? pointerDevice = default;
+        for (var c = 0; c < num; c++)
         {
-            Deviceid = 2, // Device ID for touch events (adjust as needed)
-            MaskLen = 3,
-            Mask = Marshal.AllocHGlobal(3 * sizeof(int))
-        };
-        Marshal.WriteInt32(touchMask.Mask, 0, XI_TouchBegin);
-        Marshal.WriteInt32(touchMask.Mask, sizeof(int), XI_TouchUpdate);
-        Marshal.WriteInt32(touchMask.Mask, 2 * sizeof(int), XI_TouchEnd);
+            if (devices[c].Use == XiDeviceType.XIMasterPointer)
+            {
+                pointerDevice = devices[c];
+                break;
+            }
+        }
 
-        XIEventMask[] masks = { touchMask };
-        XISelectEvents(Display, Window, masks, 1);
+        if (pointerDevice != null)
+        {
+            var multiTouchEventTypes = new List<XiEventType>
+            {
+                XiEventType.XI_TouchBegin,
+                XiEventType.XI_TouchUpdate,
+                XiEventType.XI_TouchEnd
+            };
+
+            XiSelectEvents(Display, Window, new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = multiTouchEventTypes });
+        }
 
         while (true)
         {
@@ -137,6 +144,7 @@ public class App
 
             var xNextEvent = XNextEvent(Display, out var @event);
             //Console.WriteLine($"NextEvent={xNextEvent} {@event}");
+            int type = (int) @event.type;
 
             if (@event.type == XEventName.Expose)
             {
@@ -199,17 +207,11 @@ public class App
                 _isDown = false;
                 _stylusPoints.Clear();
             }
-            else if ((int)@event.type == XI_TouchBegin)
+            else if(type is (int) XiEventType.XI_TouchBegin
+                    or (int) XiEventType.XI_TouchUpdate
+                    or (int) XiEventType.XI_TouchEnd)
             {
-                Console.WriteLine("XI_TouchBegin");
-            }
-            else if ((int) @event.type == XI_TouchEnd)
-            {
-                Console.WriteLine("XI_TouchEnd");
-            }
-            else
-            {
-                Console.WriteLine($"[Event] {(int) @event.type} {@event}");
+                Console.WriteLine($"Touch");
             }
 
             if (xNextEvent != 0)
@@ -267,6 +269,8 @@ public class App
         _cache[_stylusPoints.Count] = currentStylusPoint;
         _stylusPoints.Enqueue(currentStylusPoint);
 
+        Console.WriteLine($"Count={_stylusPoints.Count}");
+
         for (int i = 0; i < 10; i++)
         {
             if (_stylusPoints.Count - i - 1 < 0)
@@ -276,7 +280,8 @@ public class App
 
             _cache[_stylusPoints.Count - i - 1] = _cache[_stylusPoints.Count - i - 1] with
             {
-                Pressure = Math.Max(Math.Min(0.05f * i, 0.5f), 0.01f)
+                //Pressure = Math.Max(Math.Min(0.05f * i, 0.5f), 0.01f)
+                Pressure = 0.3f,
             };
         }
 
@@ -299,16 +304,29 @@ public class App
         using var skPaint = new SKPaint();
         skPaint.StrokeWidth = 0.1f;
         skPaint.Color = Color;
-        skPaint.IsAntialias = false;
+        skPaint.IsAntialias = true;
+        skPaint.Style = SKPaintStyle.Fill;
+        skCanvas.DrawPath(skPath, skPaint);
+
+        skPaint.Color = SKColors.GhostWhite;
         skPaint.Style = SKPaintStyle.Stroke;
+        skPaint.StrokeWidth = 1f;
         skCanvas.DrawPath(skPath, skPaint);
 
         //skPaint.Style = SKPaintStyle.Fill;
-        //skPaint.Color = SKColors.Black;
+        //skPaint.Color = SKColors.White;
         //foreach (var stylusPoint in pointList)
         //{
         //    skCanvas.DrawCircle((float) stylusPoint.Point.X, (float) stylusPoint.Point.Y, 1, skPaint);
         //}
+
+        skPaint.Style = SKPaintStyle.Fill;
+        skPaint.Color = SKColors.Coral;
+        foreach (var point in outlinePointList)
+        {
+            skCanvas.DrawCircle((float) point.X, (float) point.Y, 2, skPaint);
+
+        }
 
         return true;
     }
@@ -384,4 +402,9 @@ public class App
     public X11Info Info { get; private set; }
     public IntPtr Window { get; set; }
     public int Screen { get; set; }
+
+    public void Clear()
+    {
+        _skCanvas.Clear(SKColors.Transparent);
+    }
 }

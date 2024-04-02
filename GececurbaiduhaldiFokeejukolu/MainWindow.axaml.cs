@@ -79,4 +79,9 @@ public partial class MainWindow : Window
         }
         _app.Color = SKColors.White;
     }
+
+    private void ClearButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        _app.Clear();
+    }
 }
