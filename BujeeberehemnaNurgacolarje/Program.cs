@@ -216,7 +216,7 @@ public class App
                     or (int) XiEventType.XI_TouchUpdate
                     or (int) XiEventType.XI_TouchEnd)
             {
-                Console.WriteLine($"Touch");
+                Console.WriteLine($"Touch {@event.MotionEvent.x} {@event.MotionEvent.y}");
             }
 
             if (xNextEvent != 0)
