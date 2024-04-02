@@ -207,7 +207,7 @@ public class App
                 _isDown = false;
                 _stylusPoints.Clear();
             }
-            else if(type is (int) XiEventType.XI_TouchBegin
+            else if (type is (int) XiEventType.XI_TouchBegin
                     or (int) XiEventType.XI_TouchUpdate
                     or (int) XiEventType.XI_TouchEnd)
             {
@@ -300,7 +300,7 @@ public class App
         drawRect = new Rect(skPathBounds.Left - additionSize, skPathBounds.Top - additionSize, skPathBounds.Width + additionSize * 2, skPathBounds.Height + additionSize * 2);
 
         var skCanvas = _skCanvas;
-        //skCanvas.Clear(SKColors.Black);
+        skCanvas.Clear(SKColors.Black);
         //skCanvas.Translate(-minX,-minY);
         using var skPaint = new SKPaint();
         skPaint.StrokeWidth = 0.1f;
@@ -309,10 +309,10 @@ public class App
         skPaint.Style = SKPaintStyle.Fill;
         skCanvas.DrawPath(skPath, skPaint);
 
-        skPaint.Color = SKColors.GhostWhite;
-        skPaint.Style = SKPaintStyle.Stroke;
-        skPaint.StrokeWidth = 1f;
-        skCanvas.DrawPath(skPath, skPaint);
+        //skPaint.Color = SKColors.GhostWhite;
+        //skPaint.Style = SKPaintStyle.Stroke;
+        //skPaint.StrokeWidth = 1f;
+        //skCanvas.DrawPath(skPath, skPaint);
 
         //skPaint.Style = SKPaintStyle.Fill;
         //skPaint.Color = SKColors.White;
@@ -410,6 +410,10 @@ public class App
     {
         _skCanvas.Clear(SKColors.Transparent);
 
+        // 立刻推送，否则将不会立刻更新，只有鼠标移动到 X11 窗口上才能看到更新界面
+        XPutImage(Display, Window, GC, ref _image, 0, 0, 0, 0, (uint) _skBitmap.Width,
+            (uint) _skBitmap.Height);
+
         var xEvent = new XEvent
         {
             ExposeEvent =
@@ -423,6 +427,85 @@ public class App
                 width = (int)_skBitmap.Width,
                 x = (int)0,
                 y = (int)0
+            }
+        };
+        // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
+        XSendEvent(Display, Window, propagate: false, new IntPtr((int) (EventMask.ExposureMask)), ref xEvent);
+    }
+
+    public void SwitchDebugMode(bool enterDebugMode)
+    {
+        if (_outlinePointList is null)
+        {
+            return;
+        }
+
+        var outlinePointList = _outlinePointList;
+        using var skPath = new SKPath();
+        skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
+        //skPath.Close();
+
+        var skPathBounds = skPath.Bounds;
+
+        var additionSize = 10;
+        var drawRect = new Rect(skPathBounds.Left - additionSize, skPathBounds.Top - additionSize, skPathBounds.Width + additionSize * 2, skPathBounds.Height + additionSize * 2);
+
+        if (enterDebugMode)
+        {
+            var skCanvas = _skCanvas;
+            //skCanvas.Clear(SKColors.Black);
+            //skCanvas.Translate(-minX,-minY);
+            using var skPaint = new SKPaint();
+            skPaint.StrokeWidth = 0.1f;
+            skPaint.Color = Color;
+            skPaint.IsAntialias = true;
+            skPaint.Style = SKPaintStyle.Fill;
+            skCanvas.DrawPath(skPath, skPaint);
+
+            skPaint.Color = SKColors.GhostWhite;
+            skPaint.Style = SKPaintStyle.Stroke;
+            skPaint.StrokeWidth = 1f;
+            skCanvas.DrawPath(skPath, skPaint);
+
+            //skPaint.Style = SKPaintStyle.Fill;
+            //skPaint.Color = SKColors.White;
+            //foreach (var stylusPoint in pointList)
+            //{
+            //    skCanvas.DrawCircle((float) stylusPoint.Point.X, (float) stylusPoint.Point.Y, 1, skPaint);
+            //}
+
+            skPaint.Style = SKPaintStyle.Fill;
+            skPaint.Color = SKColors.Coral;
+            foreach (var point in outlinePointList)
+            {
+                skCanvas.DrawCircle((float) point.X, (float) point.Y, 2, skPaint);
+            }
+        }
+        else
+        {
+            var skCanvas = _skCanvas;
+            skCanvas.Clear(SKColors.Transparent);
+            using var skPaint = new SKPaint();
+            skPaint.StrokeWidth = 0.1f;
+            skPaint.Color = Color;
+            skPaint.IsAntialias = true;
+            skPaint.Style = SKPaintStyle.Fill;
+            skCanvas.DrawPath(skPath, skPaint);
+        }
+
+        var xEvent = new XEvent
+        {
+            ExposeEvent =
+            {
+                type = XEventName.Expose,
+                send_event = true,
+                window = Window,
+                count = 1,
+                display = Display,
+                height = (int)drawRect.Height,
+                width = (int)drawRect.Width,
+                x = (int)drawRect.X,
+                y = (int)drawRect.Y
             }
         };
         // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )

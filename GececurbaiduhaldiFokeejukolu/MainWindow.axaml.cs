@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 
@@ -82,6 +83,21 @@ public partial class MainWindow : Window
 
     private void ClearButton_OnClick(object? sender, RoutedEventArgs e)
     {
+        if (_app == null)
+        {
+            return;
+        }
         _app.Clear();
+    }
+
+    private void DebugModeToggleButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        var toggleButton = (ToggleButton) sender!;
+        if (_app == null)
+        {
+            return;
+        }
+
+        _app.SwitchDebugMode(toggleButton.IsChecked is true);
     }
 }
