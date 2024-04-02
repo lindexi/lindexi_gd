@@ -318,7 +318,7 @@ public class App
         }
 
         // 为何 Skia 在 DrawBitmap 之后进行 DrawPath 出现锯齿，即使配置了 IsAntialias 属性
-        skCanvas.DrawBitmap(background, new SKRect(0, 0, skRect.Width, skRect.Height), skRect);
+        skCanvas.DrawBitmap(background, new SKRect(0, 0, skRect.Width, skRect.Height), skRect, skPaint);
      
         skPaint.Color = SKColors.Transparent;
         skCanvas.DrawRect(skRect, skPaint);
