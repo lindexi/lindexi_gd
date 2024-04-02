@@ -319,7 +319,7 @@ public class App
         skPaint.Color = SKColors.Black;
         skCanvas.DrawRect(skRect, skPaint);
 
-        skCanvas.DrawBitmap(background, skRect, skRect);
+        skCanvas.DrawBitmap(background, new SKRect(0, 0, skRect.Width, skRect.Height), skRect);
 
         skPaint.Color = Color;
         skCanvas.DrawPath(skPath, skPaint);
