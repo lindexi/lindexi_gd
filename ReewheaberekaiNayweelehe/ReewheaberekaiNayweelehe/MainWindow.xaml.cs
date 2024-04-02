@@ -285,9 +285,9 @@ namespace ReewheaberekaiNayweelehe
             using var background = new SKBitmap(new SKImageInfo((int) skRect.Width, (int) skRect.Height));
             using (var backgroundCanvas = new SKCanvas(background))
             {
-                //skPaint.Color = new SKColor(0x12, 0x56, 0x22, 0xF1);
+                skPaint.Color = new SKColor(0x12, 0x56, 0x22, 0xF1);
 
-                //backgroundCanvas.DrawRect(new SKRect(0, 0, skRect.Width, skRect.Height), skPaint);
+                backgroundCanvas.DrawRect(new SKRect(0, 0, skRect.Width, skRect.Height), skPaint);
 
                 backgroundCanvas.DrawBitmap(SkBitmap, skRect, new SKRect(0, 0, skRect.Width, skRect.Height));
 
