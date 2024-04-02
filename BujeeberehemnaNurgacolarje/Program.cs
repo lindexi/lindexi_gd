@@ -304,6 +304,8 @@ public class App
         var additionSize = 10;
         drawRect = new Rect(skPathBounds.Left - additionSize, skPathBounds.Top - additionSize, skPathBounds.Width + additionSize * 2, skPathBounds.Height + additionSize * 2);
 
+        drawRect = new Rect(0, 0, 600, 600);
+
         var skCanvas = _skCanvas;
         //skCanvas.Clear(SKColors.Transparent);
         //skCanvas.Translate(-minX,-minY);
@@ -317,20 +319,26 @@ public class App
         var skRect = new SKRect((float) drawRect.Left, (float) drawRect.Top, (float) drawRect.Right, (float) drawRect.Bottom);
 
         // 经过测试，似乎只有纯色画在下面才能没有锯齿，否则都会存在锯齿
+
+        // 以下代码经过测试，没有真的做拷贝，依然还是随着变更而变更
         using var background = new SKBitmap(new SKImageInfo((int) skRect.Width, (int) skRect.Height, _skBitmap.ColorType, _skBitmap.AlphaType));
         using (var backgroundCanvas = new SKCanvas(background))
         {
             backgroundCanvas.DrawBitmap(_skBitmap, skRect, new SKRect(0, 0, skRect.Width, skRect.Height));
         }
 
-        skCanvas.DrawBitmap(background, new SKRect(0, 0, skRect.Width, skRect.Height), skRect);
+        //skCanvas.Clear(SKColors.RosyBrown);
+
+        skPaint.Color = new SKColor(0x12, 0x56, 0x22, 0xF1);
+        skCanvas.DrawRect(skRect, skPaint);
+
+        skCanvas.DrawBitmap(background, new SKRect(0, 0, skRect.Width, skRect.Height), new SKRect(0, 0, skRect.Width, skRect.Height));
         //using var skImage = SKImage.FromBitmap(background);
         ////// 为何 Skia 在 DrawBitmap 之后进行 DrawPath 出现锯齿，即使配置了 IsAntialias 属性
         //skCanvas.DrawImage(skImage, new SKRect(0, 0, skRect.Width, skRect.Height), skRect);
 
         //// 只有纯色才能无锯齿
-        //skPaint.Color = new SKColor(0x12, 0x56, 0x22, 0x01);
-        //skCanvas.DrawRect(skRect, skPaint);
+
 
         skPaint.Color = Color;
         skCanvas.DrawPath(skPath, skPaint);
