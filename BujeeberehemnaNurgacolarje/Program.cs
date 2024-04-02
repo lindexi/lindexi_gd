@@ -323,7 +323,7 @@ public class App
         skCanvas.DrawImage(skImage, new SKRect(0, 0, skRect.Width, skRect.Height), skRect);
 
         // 只有纯色才能无锯齿
-        skPaint.Color = new SKColor(0x12, 0x56, 0x22, 0x10);
+        skPaint.Color = new SKColor(0x12, 0x56, 0x22, 0x01);
         skCanvas.DrawRect(skRect, skPaint);
 
         skPaint.Color = Color;
