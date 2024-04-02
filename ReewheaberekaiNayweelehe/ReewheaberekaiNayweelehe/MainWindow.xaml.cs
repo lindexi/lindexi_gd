@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -24,7 +23,7 @@ namespace ReewheaberekaiNayweelehe
             Loaded += SkiaCanvas_Loaded;
         }
 
-        private async void SkiaCanvas_Loaded(object sender, RoutedEventArgs e)
+        private void SkiaCanvas_Loaded(object sender, RoutedEventArgs e)
         {
             var writeableBitmap = new WriteableBitmap(PixelWidth, PixelHeight, 96, 96, PixelFormats.Bgra32,
                 BitmapPalettes.Halftone256Transparent);
@@ -44,12 +43,6 @@ namespace ReewheaberekaiNayweelehe
             _skSurface = surface;
 
             Source = writeableBitmap;
-
-            while (true)
-            {
-                //await Task.Yield();
-                Thread.Sleep(0);
-            }
         }
 
         public void Draw(Action<SKCanvas> action)
