@@ -81,7 +81,7 @@ public class App
         _skBitmap = skBitmap;
         var skCanvas = new SKCanvas(_skBitmap);
         skCanvas.Clear(SKColors.Transparent);
-        //skCanvas.Flush();
+        skCanvas.Flush();
         _skCanvas = skCanvas;
 
         using var skPaint = new SKPaint()
@@ -300,13 +300,16 @@ public class App
         drawRect = new Rect(skPathBounds.Left - additionSize, skPathBounds.Top - additionSize, skPathBounds.Width + additionSize * 2, skPathBounds.Height + additionSize * 2);
 
         var skCanvas = _skCanvas;
-        skCanvas.Clear(SKColors.Transparent);
+        //skCanvas.Clear(SKColors.Transparent);
         //skCanvas.Translate(-minX,-minY);
         using var skPaint = new SKPaint();
         skPaint.StrokeWidth = 0.1f;
         skPaint.Color = Color;
         skPaint.IsAntialias = true;
         skPaint.Style = SKPaintStyle.Fill;
+
+        var skRect = new SKRect((float) drawRect.Left, (float) drawRect.Top, (float) drawRect.Right, (float) drawRect.Bottom);
+        skCanvas.DrawBitmap(_skBitmap, skRect, skRect);
         skCanvas.DrawPath(skPath, skPaint);
 
         //skPaint.Color = SKColors.GhostWhite;
