@@ -48,8 +48,14 @@ namespace ReewheaberekaiNayweelehe
                 ColorSpace = SKColorSpace.CreateSrgb()
             };
 
-            SKSurface surface = SKSurface.Create(skImageInfo, writeableBitmap.BackBuffer);
-            SkSurface = surface;
+            SkBitmap = new SKBitmap(skImageInfo);
+
+            //SKSurface surface = SKSurface.Create(skImageInfo, writeableBitmap.BackBuffer);
+            //SkSurface = surface;
+            //SkCanvas = surface.Canvas;
+            SkCanvas = new SKCanvas(SkBitmap);
+            SkCanvas.Clear();
+            SkCanvas.Flush();
 
             Source = writeableBitmap;
         }
@@ -68,18 +74,22 @@ namespace ReewheaberekaiNayweelehe
             var writeableBitmap = _writeableBitmap;
             writeableBitmap.Lock();
 
-            var canvas = SkSurface.Canvas;
+            var canvas = SkCanvas;
             var dirtyRect = draw(canvas);
             canvas.Flush();
 
             dirtyRect ??= new Int32Rect(0, 0, PixelWidth, PixelHeight);
-
+            var pixels = SkBitmap.GetPixels(out var length);
+            var stride = 4 * PixelWidth;
+            writeableBitmap.WritePixels(dirtyRect.Value, pixels, (int) PixelWidth * PixelHeight * 4, stride);
             writeableBitmap.AddDirtyRect(dirtyRect.Value);
             writeableBitmap.Unlock();
         }
 
         private WriteableBitmap _writeableBitmap = null!; // 这里的 null! 是 C# 的新语法，是给智能分析用的，表示这个字段在使用的时候不会为空
-        public SKSurface SkSurface { get; private set; } = null!; // 实际上 null! 的含义是我明确给他一个空值，也就是说如果是空也是预期的
+        //public SKSurface SkSurface { get; private set; } = null!; // 实际上 null! 的含义是我明确给他一个空值，也就是说如果是空也是预期的
+        public SKBitmap SkBitmap { get; private set; } = null!; // 实际上 null! 的含义是我明确给他一个空值，也就是说如果是空也是预期的
+        public SKCanvas SkCanvas { get; private set; } = null!; // 实际上 null! 的含义是我明确给他一个空值，也就是说如果是空也是预期的
 
         public int PixelWidth => (int) Width;
         public int PixelHeight => (int) Height;
@@ -115,7 +125,8 @@ namespace ReewheaberekaiNayweelehe
 
             Draw(canvas =>
             {
-                _canvas.SkSurface = Image.SkSurface;
+                //_canvas.SkSurface = Image.SkSurface;
+                _canvas.SkBitmap = Image.SkBitmap;
 
                 _canvas.SetCanvas(canvas);
                 _canvas.Move(new Point(position.X, position.Y));
@@ -142,7 +153,9 @@ namespace ReewheaberekaiNayweelehe
 #nullable enable
         private SKCanvas? _skCanvas;
 
-        public SKSurface? SkSurface { set; get; }
+        public SKBitmap? SkBitmap { set; get; }
+
+        //public SKSurface? SkSurface { set; get; }
 
         public void Move(Point point)
         {
@@ -184,6 +197,16 @@ namespace ReewheaberekaiNayweelehe
             }
 
             if (_skCanvas is null)
+            {
+                return false;
+            }
+
+            //if (SkSurface is null)
+            //{
+            //    return false;
+            //}
+
+            if (SkBitmap is null)
             {
                 return false;
             }
@@ -262,9 +285,12 @@ namespace ReewheaberekaiNayweelehe
             using var background = new SKBitmap(new SKImageInfo((int) skRect.Width, (int) skRect.Height));
             using (var backgroundCanvas = new SKCanvas(background))
             {
-                skPaint.Color = new SKColor(0x12, 0x56, 0x22, 0xF1);
+                //skPaint.Color = new SKColor(0x12, 0x56, 0x22, 0xF1);
 
-                backgroundCanvas.DrawRect(new SKRect(0, 0, skRect.Width, skRect.Height), skPaint);
+                //backgroundCanvas.DrawRect(new SKRect(0, 0, skRect.Width, skRect.Height), skPaint);
+
+                backgroundCanvas.DrawBitmap(SkBitmap, skRect, new SKRect(0, 0, skRect.Width, skRect.Height));
+
                 backgroundCanvas.Flush();
             }
 
@@ -273,6 +299,7 @@ namespace ReewheaberekaiNayweelehe
             //skPaint.Color = new SKColor(0x12, 0x56, 0x22, 0xF1);
             //skCanvas.DrawRect(skRect, skPaint);
 
+            // 似乎没有锯齿
             skCanvas.DrawBitmap(background, new SKRect(0, 0, skRect.Width, skRect.Height), skRect);
             //using var skImage = SKImage.FromBitmap(background);
             ////// 为何 Skia 在 DrawBitmap 之后进行 DrawPath 出现锯齿，即使配置了 IsAntialias 属性
