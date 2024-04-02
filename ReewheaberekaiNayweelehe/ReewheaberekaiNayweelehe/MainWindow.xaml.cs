@@ -309,7 +309,13 @@ namespace ReewheaberekaiNayweelehe
 
 
             skPaint.Color = Color;
-            skCanvas.DrawPath(skPath, skPaint);
+            //skCanvas.DrawPath(skPath, skPaint);
+
+            var x = (float) currentStylusPoint.Point.X;
+            var y = (float) currentStylusPoint.Point.Y;
+            skPaint.StrokeWidth = 2f;
+            skCanvas.DrawLine(x, y, x + 200, y + 200, skPaint);
+
             skCanvas.Flush();
 
             //skPaint.Color = SKColors.GhostWhite;
