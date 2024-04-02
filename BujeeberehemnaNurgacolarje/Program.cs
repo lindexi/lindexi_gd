@@ -77,7 +77,7 @@ public class App
         Console.WriteLine($"App");
 
         var size = 600;
-        var skBitmap = new SKBitmap(size, size);
+        var skBitmap = new SKBitmap(size, size, SKColorType.Bgra8888, SKAlphaType.Premul);
         _skBitmap = skBitmap;
         var skCanvas = new SKCanvas(_skBitmap);
         skCanvas.Clear(SKColors.Transparent);
