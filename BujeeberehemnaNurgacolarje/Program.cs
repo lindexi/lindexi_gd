@@ -304,8 +304,6 @@ public class App
         var additionSize = 10;
         drawRect = new Rect(skPathBounds.Left - additionSize, skPathBounds.Top - additionSize, skPathBounds.Width + additionSize * 2, skPathBounds.Height + additionSize * 2);
 
-        drawRect = new Rect(0, 0, 600, 600);
-
         var skCanvas = _skCanvas;
         //skCanvas.Clear(SKColors.Transparent);
         //skCanvas.Translate(-minX,-minY);
@@ -363,6 +361,7 @@ public class App
         //    skCanvas.DrawCircle((float) point.X, (float) point.Y, 2, skPaint);
 
         //}
+        drawRect = new Rect(0, 0, 600, 600);
 
         return true;
     }
