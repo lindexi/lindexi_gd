@@ -126,6 +126,7 @@ namespace ReewheaberekaiNayweelehe
             Draw(canvas =>
             {
                 //_canvas.SkSurface = Image.SkSurface;
+                _canvas.SkBitmap = Image.SkBitmap;
 
                 _canvas.SetCanvas(canvas);
                 _canvas.Move(new Point(position.X, position.Y));
@@ -151,6 +152,8 @@ namespace ReewheaberekaiNayweelehe
         }
 #nullable enable
         private SKCanvas? _skCanvas;
+
+        public SKBitmap? SkBitmap { set; get; }
 
         //public SKSurface? SkSurface { set; get; }
 
@@ -202,6 +205,11 @@ namespace ReewheaberekaiNayweelehe
             //{
             //    return false;
             //}
+
+            if (SkBitmap is null)
+            {
+                return false;
+            }
 
             _stylusPoints.CopyTo(_cache, 0);
             if (CanDropLastPoint(_cache.AsSpan(0, _stylusPoints.Count), currentStylusPoint) && DropPointCount < 3)
@@ -277,9 +285,12 @@ namespace ReewheaberekaiNayweelehe
             using var background = new SKBitmap(new SKImageInfo((int) skRect.Width, (int) skRect.Height));
             using (var backgroundCanvas = new SKCanvas(background))
             {
-                skPaint.Color = new SKColor(0x12, 0x56, 0x22, 0xF1);
+                //skPaint.Color = new SKColor(0x12, 0x56, 0x22, 0xF1);
 
-                backgroundCanvas.DrawRect(new SKRect(0, 0, skRect.Width, skRect.Height), skPaint);
+                //backgroundCanvas.DrawRect(new SKRect(0, 0, skRect.Width, skRect.Height), skPaint);
+
+                backgroundCanvas.DrawBitmap(SkBitmap, skRect, new SKRect(0, 0, skRect.Width, skRect.Height));
+
                 backgroundCanvas.Flush();
             }
 
