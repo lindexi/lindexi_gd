@@ -280,14 +280,15 @@ public class App
 
             _cache[_stylusPoints.Count - i - 1] = _cache[_stylusPoints.Count - i - 1] with
             {
-                //Pressure = Math.Max(Math.Min(0.05f * i, 0.5f), 0.01f)
-                Pressure = 0.3f,
+                Pressure = Math.Max(Math.Min(0.1f * i, 0.5f), 0.01f)
+                //Pressure = 0.3f,
             };
         }
 
         var pointList = _cache.AsSpan(0, _stylusPoints.Count);
 
-        var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, 20);
+        Point[] outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, 20);
+        _outlinePointList = outlinePointList;
 
         using var skPath = new SKPath();
         skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
@@ -320,16 +321,18 @@ public class App
         //    skCanvas.DrawCircle((float) stylusPoint.Point.X, (float) stylusPoint.Point.Y, 1, skPaint);
         //}
 
-        skPaint.Style = SKPaintStyle.Fill;
-        skPaint.Color = SKColors.Coral;
-        foreach (var point in outlinePointList)
-        {
-            skCanvas.DrawCircle((float) point.X, (float) point.Y, 2, skPaint);
+        //skPaint.Style = SKPaintStyle.Fill;
+        //skPaint.Color = SKColors.Coral;
+        //foreach (var point in outlinePointList)
+        //{
+        //    skCanvas.DrawCircle((float) point.X, (float) point.Y, 2, skPaint);
 
-        }
+        //}
 
         return true;
     }
+
+    private Point[]? _outlinePointList;
 
     public SKColor Color { get; set; } = SKColors.Red;
 
@@ -406,5 +409,23 @@ public class App
     public void Clear()
     {
         _skCanvas.Clear(SKColors.Transparent);
+
+        var xEvent = new XEvent
+        {
+            ExposeEvent =
+            {
+                type = XEventName.Expose,
+                send_event = true,
+                window = Window,
+                count = 1,
+                display = Display,
+                height = (int)_skBitmap.Height,
+                width = (int)_skBitmap.Width,
+                x = (int)0,
+                y = (int)0
+            }
+        };
+        // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
+        XSendEvent(Display, Window, propagate: false, new IntPtr((int) (EventMask.ExposureMask)), ref xEvent);
     }
 }
