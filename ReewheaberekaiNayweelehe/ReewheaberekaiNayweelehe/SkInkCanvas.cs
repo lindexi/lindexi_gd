@@ -195,7 +195,7 @@ class SkInkCanvas
 
     public SKColor Color { get; set; } = SKColors.Red;
 
-    private const int MaxStylusCount = 100;
+    private const int MaxStylusCount = 7;
     private readonly FixedQueue<StylusPoint> _stylusPoints = new FixedQueue<StylusPoint>(MaxStylusCount);
     private readonly StylusPoint[] _cache = new StylusPoint[MaxStylusCount + 1];
 }
