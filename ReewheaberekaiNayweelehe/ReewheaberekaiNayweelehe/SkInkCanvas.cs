@@ -1,4 +1,6 @@
-﻿using BujeeberehemnaNurgacolarje;
+﻿#nullable enable
+using BujeeberehemnaNurgacolarje;
+
 using Microsoft.Maui.Graphics;
 using SkiaSharp;
 
@@ -10,7 +12,6 @@ class SkInkCanvas
     {
         _skCanvas = canvas;
     }
-#nullable enable
     private SKCanvas? _skCanvas;
 
     public SKBitmap? SkBitmap { set; get; }
