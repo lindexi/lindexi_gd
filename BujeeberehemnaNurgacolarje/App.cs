@@ -136,14 +136,14 @@ public class App
 
         if (pointerDevice != null)
         {
-            var multiTouchEventTypes = new List<XiEventType>
-            {
-                XiEventType.XI_TouchBegin,
-                XiEventType.XI_TouchUpdate,
-                XiEventType.XI_TouchEnd
-            };
+            //var multiTouchEventTypes = new List<XiEventType>
+            //{
+            //    XiEventType.XI_TouchBegin,
+            //    XiEventType.XI_TouchUpdate,
+            //    XiEventType.XI_TouchEnd
+            //};
 
-            XiSelectEvents(Display, Window, new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = multiTouchEventTypes });
+            //XiSelectEvents(Display, Window, new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = multiTouchEventTypes });
         }
 
         while (true)
@@ -259,7 +259,22 @@ public class App
                 XGetEventData(Display, data);
                 try
                 {
+                    var xiEvent = (XIEvent*) @event.GenericEventCookie.data;
+                    if (xiEvent->evtype == XiEventType.XI_DeviceChanged)
+                    {
+                    }
 
+                    if (xiEvent->evtype is
+                        XiEventType.XI_ButtonRelease
+                        or XiEventType.XI_ButtonRelease
+                        or XiEventType.XI_Motion
+                        or XiEventType.XI_TouchBegin
+                        or XiEventType.XI_TouchUpdate
+                        or XiEventType.XI_TouchEnd)
+                    {
+                        var xiDeviceEvent = (XIDeviceEvent*) xiEvent;
+                        Console.WriteLine(xiDeviceEvent->evtype);
+                    }
                 }
                 finally
                 {
