@@ -137,15 +137,11 @@ public class App
 
         // ABS_MT_TOUCH_MAJOR ABS_MT_TOUCH_MINOR
         // https://www.kernel.org/doc/html/latest/input/multi-touch-protocol.html
-        var touchMajorAtom = XInternAtom(Display, "ABS_MT_TOUCH_MAJOR", false);
-        var touchMinorAtom = XInternAtom(Display, "ABS_MT_TOUCH_MINOR", false);
+        var touchMajorAtom = XInternAtom(Display, "Abs MT Touch Major", false);
+        var touchMinorAtom = XInternAtom(Display, "Abs MT Touch Minor", false);
+        var pressureAtom = XInternAtom(Display, "Abs MT Pressure", false);
 
-        Console.WriteLine($"ABS_MT_TOUCH_MAJOR={touchMajorAtom} Name={XGetAtomName(Display, touchMajorAtom)} ABS_MT_TOUCH_MINOR={touchMinorAtom} Name={XGetAtomName(Display, touchMinorAtom)}");
-
-        var touchMajorAtom2 = XInternAtom(Display, "ABS MT TOUCH MAJOR", false);
-        var touchMinorAtom2 = XInternAtom(Display, "Abs MT Touch Minor", false);
-
-        Console.WriteLine($"ABS MT TOUCH MAJOR={touchMajorAtom2} Name={XGetAtomName(Display, touchMajorAtom2)} ABS MT TOUCH MINOR={touchMinorAtom2} Name={XGetAtomName(Display, touchMinorAtom2)}");
+        Console.WriteLine($"ABS_MT_TOUCH_MAJOR={touchMajorAtom} Name={XGetAtomName(Display, touchMajorAtom)} ABS_MT_TOUCH_MINOR={touchMinorAtom} Name={XGetAtomName(Display, touchMinorAtom)} Abs_MT_Pressure={pressureAtom} Name={XGetAtomName(Display, pressureAtom)}");
 
         var valuators = new List<XIValuatorClassInfo>();
         var scrollers = new List<XIScrollClassInfo>();
@@ -350,6 +346,10 @@ public class App
                             else if (xiValuatorClassInfo.Label == touchMinorAtom)
                             {
                                 label = "TouchMinor";
+                            }
+                            else if (xiValuatorClassInfo.Label == pressureAtom)
+                            {
+                                label = "Pressure";
                             }
 
                             Console.WriteLine($"[Valuator] [{label}] Label={xiValuatorClassInfo.Label} Type={xiValuatorClassInfo.Type} Sourceid={xiValuatorClassInfo.Sourceid} Number={xiValuatorClassInfo.Number} Min={xiValuatorClassInfo.Min} Max={xiValuatorClassInfo.Max} Value={xiValuatorClassInfo.Value} Resolution={xiValuatorClassInfo.Resolution} Mode={xiValuatorClassInfo.Mode} Value={value}");
