@@ -155,17 +155,25 @@ public class App
                 var xiAnyClassInfo = pointerDevice.Value.Classes[i];
                 if (xiAnyClassInfo->Type == XiDeviceClass.XIValuatorClass)
                 {
-                    valuators.Add(*((XIValuatorClassInfo**) xiAnyClassInfo)[i]);
+                    valuators.Add(*((XIValuatorClassInfo**) pointerDevice.Value.Classes)[i]);
                 }
                 else if (xiAnyClassInfo->Type == XiDeviceClass.XIScrollClass)
                 {
-                    scrollers.Add(*((XIScrollClassInfo**) xiAnyClassInfo)[i]);
+                    scrollers.Add(*((XIScrollClassInfo**) pointerDevice.Value.Classes)[i]);
                 }
             }
 
             foreach (var xiValuatorClassInfo in valuators)
             {
                 var label = xiValuatorClassInfo.Label; //Marshal.PtrToStringAnsi(xiValuatorClassInfo.Label);
+                try
+                {
+                    Console.WriteLine($"[Label] {Marshal.PtrToStringAnsi(xiValuatorClassInfo.Label)}");
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
                 Console.WriteLine($"[Valuator] {label} Type={xiValuatorClassInfo.Type} Sourceid={xiValuatorClassInfo.Sourceid} Number={xiValuatorClassInfo.Number} Min={xiValuatorClassInfo.Min} Max={xiValuatorClassInfo.Max} Value={xiValuatorClassInfo.Value} Resolution={xiValuatorClassInfo.Resolution} Mode={xiValuatorClassInfo.Mode}");
             }
         }
