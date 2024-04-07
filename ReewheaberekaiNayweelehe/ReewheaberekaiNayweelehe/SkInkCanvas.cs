@@ -2,6 +2,7 @@
 using BujeeberehemnaNurgacolarje;
 
 using Microsoft.Maui.Graphics;
+
 using SkiaSharp;
 
 namespace ReewheaberekaiNayweelehe;
@@ -18,13 +19,23 @@ class SkInkCanvas
 
     //public SKSurface? SkSurface { set; get; }
 
+    public event EventHandler<Rect>? RenderBoundsChanged;
+
     public void Move(Point point)
     {
         var x = point.X;
         var y = point.Y;
         var currentStylusPoint = new StylusPoint(x, y);
 
-        DrawStroke(currentStylusPoint, out _);
+        Move(currentStylusPoint);
+    }
+
+    public void Move(StylusPoint point)
+    {
+        if (DrawStroke(point, out var rect))
+        {
+            RenderBoundsChanged?.Invoke(this, rect);
+        }
     }
 
     private bool CanDropLastPoint(Span<StylusPoint> pointList, StylusPoint currentStylusPoint)

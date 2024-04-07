@@ -193,6 +193,26 @@ public class App
             AutoSoftPen = false,
         };
         skInkCanvas.SetCanvas(_skCanvas);
+        skInkCanvas.RenderBoundsChanged += (sender, rect) =>
+        {
+            var xEvent = new XEvent
+            {
+                ExposeEvent =
+                {
+                    type = XEventName.Expose,
+                    send_event = true,
+                    window = Window,
+                    count = 1,
+                    display = Display,
+                    height = (int)rect.Height,
+                    width = (int)rect.Width,
+                    x = (int)rect.X,
+                    y = (int)rect.Y
+                }
+            };
+            // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
+            XSendEvent(Display, Window, propagate: false, new IntPtr((int)(EventMask.ExposureMask)), ref xEvent);
+        };
 
         while (true)
         {
@@ -365,34 +385,11 @@ public class App
                             Console.WriteLine($"[Valuator] [{label}] Label={xiValuatorClassInfo.Label} Type={xiValuatorClassInfo.Type} Sourceid={xiValuatorClassInfo.Sourceid} Number={xiValuatorClassInfo.Number} Min={xiValuatorClassInfo.Min} Max={xiValuatorClassInfo.Max} Value={xiValuatorClassInfo.Value} Resolution={xiValuatorClassInfo.Resolution} Mode={xiValuatorClassInfo.Mode} Value={value}");
                         }
 
-                        if (skInkCanvas.DrawStroke(new StylusPoint(xiDeviceEvent->event_x, xiDeviceEvent->event_y, pressure ?? 0.5f)
-                            {
-                                IsPressureEnable = pressure != null
-                            }, out Rect rectExpose))
+                        var stylusPoint = new StylusPoint(xiDeviceEvent->event_x, xiDeviceEvent->event_y, pressure ?? 0.5f)
                         {
-                            SendExpose(rectExpose);
-                        }
-
-                        void SendExpose(Rect rect)
-                        {
-                            var xEvent = new XEvent
-                            {
-                                ExposeEvent =
-                                {
-                                    type = XEventName.Expose,
-                                    send_event = true,
-                                    window = Window,
-                                    count = 1,
-                                    display = Display,
-                                    height = (int)rect.Height,
-                                    width = (int)rect.Width,
-                                    x = (int)rect.X,
-                                    y = (int)rect.Y
-                                }
-                            };
-                            // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
-                            XSendEvent(Display, Window, propagate: false, new IntPtr((int) (EventMask.ExposureMask)), ref xEvent);
-                        }
+                            IsPressureEnable = pressure != null
+                        };
+                        skInkCanvas.Move(stylusPoint);
 
                         Console.WriteLine("=================");
                     }
