@@ -155,11 +155,11 @@ public class App
                 var xiAnyClassInfo = pointerDevice.Value.Classes[i];
                 if (xiAnyClassInfo->Type == XiDeviceClass.XIValuatorClass)
                 {
-                    valuators.Add(*((XIValuatorClassInfo**) xiAnyClassInfo)[i]);
+                    valuators.Add(*((XIValuatorClassInfo**) pointerDevice.Value.Classes)[i]);
                 }
                 else if (xiAnyClassInfo->Type == XiDeviceClass.XIScrollClass)
                 {
-                    scrollers.Add(*((XIScrollClassInfo**) xiAnyClassInfo)[i]);
+                    scrollers.Add(*((XIScrollClassInfo**) pointerDevice.Value.Classes)[i]);
                 }
             }
 
