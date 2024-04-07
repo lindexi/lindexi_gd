@@ -6,6 +6,7 @@ using Microsoft.Maui.Graphics;
 using SkiaSharp;
 using System.Reflection.Metadata;
 using System.Reflection.Emit;
+using ReewheaberekaiNayweelehe;
 
 namespace BujeeberehemnaNurgacolarje;
 
@@ -186,6 +187,12 @@ public class App
             }
         }
 
+        var skInkCanvas = new SkInkCanvas()
+        {
+            SkBitmap = _skBitmap,
+        };
+        skInkCanvas.SetCanvas(_skCanvas);
+
         while (true)
         {
             XSync(Display, false);
@@ -339,6 +346,8 @@ public class App
                             //xiValuatorClassInfo.Label == touchMajorAtom
                             var label = GetAtomName(Display, xiValuatorClassInfo.Label);
 
+                            float pressure = 0.5f;
+
                             if (xiValuatorClassInfo.Label == touchMajorAtom)
                             {
                                 label = "TouchMajor";
@@ -350,9 +359,32 @@ public class App
                             else if (xiValuatorClassInfo.Label == pressureAtom)
                             {
                                 label = "Pressure";
+
+                                pressure = (float)(value / xiValuatorClassInfo.Max);
                             }
 
                             Console.WriteLine($"[Valuator] [{label}] Label={xiValuatorClassInfo.Label} Type={xiValuatorClassInfo.Type} Sourceid={xiValuatorClassInfo.Sourceid} Number={xiValuatorClassInfo.Number} Min={xiValuatorClassInfo.Min} Max={xiValuatorClassInfo.Max} Value={xiValuatorClassInfo.Value} Resolution={xiValuatorClassInfo.Resolution} Mode={xiValuatorClassInfo.Mode} Value={value}");
+
+                            if (skInkCanvas.DrawStroke(new StylusPoint(xiDeviceEvent->event_x, xiDeviceEvent->event_y, pressure), out var rect))
+                            {
+                                var xEvent = new XEvent
+                                {
+                                    ExposeEvent =
+                                    {
+                                        type = XEventName.Expose,
+                                        send_event = true,
+                                        window = Window,
+                                        count = 1,
+                                        display = Display,
+                                        height = (int)rect.Height,
+                                        width = (int)rect.Width,
+                                        x = (int)rect.X,
+                                        y = (int)rect.Y
+                                    }
+                                };
+                                // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
+                                XSendEvent(Display, Window, propagate: false, new IntPtr((int) (EventMask.ExposureMask)), ref xEvent);
+                            }
                         }
 
                         Console.WriteLine("=================");
