@@ -163,13 +163,21 @@ public class App
                 }
             }
 
+            /*
+               absXAtom = XInternAtom(display, "Abs X", false);
+               absYAtom = XInternAtom(display, "Abs Y", false);
+               absXAtomMT = XInternAtom(display, "Abs MT Position X", false);
+               absYAtomMT = XInternAtom(display, "Abs MT Position Y", false);
+             */
+
             foreach (var xiValuatorClassInfo in valuators)
             {
                 var label = xiValuatorClassInfo.Label;
                 // 不能通过 Marshal.PtrToStringAnsi 读取 Label 的值 读取不到
-                // 需要使用 XInternAtom 读取
                 //Marshal.PtrToStringAnsi(xiValuatorClassInfo.Label);
-                Console.WriteLine($"[Valuator] {label} Type={xiValuatorClassInfo.Type} Sourceid={xiValuatorClassInfo.Sourceid} Number={xiValuatorClassInfo.Number} Min={xiValuatorClassInfo.Min} Max={xiValuatorClassInfo.Max} Value={xiValuatorClassInfo.Value} Resolution={xiValuatorClassInfo.Resolution} Mode={xiValuatorClassInfo.Mode}");
+                Console.WriteLine();
+
+                Console.WriteLine($"[Valuator] {GetAtomName(Display, label)} Type={xiValuatorClassInfo.Type} Sourceid={xiValuatorClassInfo.Sourceid} Number={xiValuatorClassInfo.Number} Min={xiValuatorClassInfo.Min} Max={xiValuatorClassInfo.Max} Value={xiValuatorClassInfo.Value} Resolution={xiValuatorClassInfo.Resolution} Mode={xiValuatorClassInfo.Mode}");
             }
         }
 

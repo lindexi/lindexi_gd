@@ -153,7 +153,7 @@ namespace CPF.Linux
         [DllImport(libX11)]
         public static extern IntPtr XGetAtomName(IntPtr display, IntPtr atom);
 
-        public static string GetAtomName(IntPtr display, IntPtr atom)
+        public static string? GetAtomName(IntPtr display, IntPtr atom)
         {
             var ptr = XGetAtomName(display, atom);
             if (ptr == IntPtr.Zero)
