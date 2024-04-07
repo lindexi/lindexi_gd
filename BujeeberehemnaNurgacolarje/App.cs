@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using Microsoft.Maui.Graphics;
 using SkiaSharp;
 using System.Reflection.Metadata;
+using System.Reflection.Emit;
 
 namespace BujeeberehemnaNurgacolarje;
 
@@ -163,21 +164,17 @@ public class App
                 }
             }
 
-            /*
-               absXAtom = XInternAtom(display, "Abs X", false);
-               absYAtom = XInternAtom(display, "Abs Y", false);
-               absXAtomMT = XInternAtom(display, "Abs MT Position X", false);
-               absYAtomMT = XInternAtom(display, "Abs MT Position Y", false);
-             */
-
             foreach (var xiValuatorClassInfo in valuators)
             {
                 var label = xiValuatorClassInfo.Label;
                 // 不能通过 Marshal.PtrToStringAnsi 读取 Label 的值 读取不到
                 //Marshal.PtrToStringAnsi(xiValuatorClassInfo.Label);
-                Console.WriteLine();
-
                 Console.WriteLine($"[Valuator] {GetAtomName(Display, label)} Type={xiValuatorClassInfo.Type} Sourceid={xiValuatorClassInfo.Sourceid} Number={xiValuatorClassInfo.Number} Min={xiValuatorClassInfo.Min} Max={xiValuatorClassInfo.Max} Value={xiValuatorClassInfo.Value} Resolution={xiValuatorClassInfo.Resolution} Mode={xiValuatorClassInfo.Mode}");
+            }
+
+            foreach (var xiScrollClassInfo in scrollers)
+            {
+                
             }
         }
 
@@ -312,7 +309,29 @@ public class App
                         var state = (XModifierMask) xiDeviceEvent->mods.Effective;
 
                         // 对应 WPF 的 TouchId 是 xiDeviceEvent->detail 字段
-                        Console.WriteLine($"[{xiEvent->evtype}][{xiDeviceEvent->deviceid}][{xiDeviceEvent->sourceid}] detail={xiDeviceEvent->detail} timestamp={timestamp} {state} X={xiDeviceEvent->event_x} Y={xiDeviceEvent->event_y}");
+                        Console.WriteLine($"[{xiEvent->evtype}][{xiDeviceEvent->deviceid}][{xiDeviceEvent->sourceid}] detail={xiDeviceEvent->detail} timestamp={timestamp} {state} X={xiDeviceEvent->event_x} Y={xiDeviceEvent->event_y} valuators.MaskLen={xiDeviceEvent->valuators.MaskLen}");
+
+                        var valuatorDictionary = new Dictionary<int, double>();
+                        var values = xiDeviceEvent->valuators.Values;
+                        for (var c = 0; c < xiDeviceEvent->valuators.MaskLen * 8; c++)
+                        {
+                            if (XIMaskIsSet(xiDeviceEvent->valuators.Mask, c))
+                            {
+                                valuatorDictionary[c] = *values;
+                                values++;
+                            }
+                        }
+
+                        Console.WriteLine($"valuatorDictionary.Count={valuatorDictionary.Count}");
+
+                        foreach (var (key, value) in valuatorDictionary)
+                        {
+                            var xiValuatorClassInfo = valuators.FirstOrDefault(t => t.Number == key);
+
+                            Console.WriteLine($"[Valuator] {GetAtomName(Display, xiValuatorClassInfo.Label)} Type={xiValuatorClassInfo.Type} Sourceid={xiValuatorClassInfo.Sourceid} Number={xiValuatorClassInfo.Number} Min={xiValuatorClassInfo.Min} Max={xiValuatorClassInfo.Max} Value={xiValuatorClassInfo.Value} Resolution={xiValuatorClassInfo.Resolution} Mode={xiValuatorClassInfo.Mode} Value={value}");
+                        }
+
+                        Console.WriteLine("=================");
                     }
                 }
                 finally
