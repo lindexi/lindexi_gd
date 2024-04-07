@@ -303,6 +303,7 @@ public class App
                         var timestamp = (ulong) xiDeviceEvent->time.ToInt64();
                         var state = (XModifierMask) xiDeviceEvent->mods.Effective;
 
+                        // 对应 WPF 的 TouchId 是 xiDeviceEvent->detail 字段
                         Console.WriteLine($"[{xiEvent->evtype}][{xiDeviceEvent->deviceid}][{xiDeviceEvent->sourceid}] detail={xiDeviceEvent->detail} timestamp={timestamp} {state} X={xiDeviceEvent->event_x} Y={xiDeviceEvent->event_y}");
                     }
                 }
