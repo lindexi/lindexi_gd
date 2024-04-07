@@ -136,14 +136,14 @@ public class App
 
         if (pointerDevice != null)
         {
-            var multiTouchEventTypes = new List<XiEventType>
-            {
-                XiEventType.XI_TouchBegin,
-                XiEventType.XI_TouchUpdate,
-                XiEventType.XI_TouchEnd
-            };
+            //var multiTouchEventTypes = new List<XiEventType>
+            //{
+            //    XiEventType.XI_TouchBegin,
+            //    XiEventType.XI_TouchUpdate,
+            //    XiEventType.XI_TouchEnd
+            //};
 
-            XiSelectEvents(Display, Window, new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = multiTouchEventTypes });
+            //XiSelectEvents(Display, Window, new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = multiTouchEventTypes });
         }
 
         while (true)
