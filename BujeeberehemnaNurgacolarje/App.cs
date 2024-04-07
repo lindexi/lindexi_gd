@@ -143,9 +143,9 @@ public class App
         Console.WriteLine($"ABS_MT_TOUCH_MAJOR={touchMajorAtom} Name={XGetAtomName(Display, touchMajorAtom)} ABS_MT_TOUCH_MINOR={touchMinorAtom} Name={XGetAtomName(Display, touchMinorAtom)}");
 
         var touchMajorAtom2 = XInternAtom(Display, "ABS MT TOUCH MAJOR", false);
-        var touchMinorAtom2 = XInternAtom(Display, "ABS MT TOUCH MINOR", false);
+        var touchMinorAtom2 = XInternAtom(Display, "Abs MT Touch Minor", false);
 
-        Console.WriteLine($"ABS_MT_TOUCH_MAJOR2={touchMajorAtom2} Name={XGetAtomName(Display, touchMajorAtom2)} ABS_MT_TOUCH_MINOR2={touchMinorAtom2} Name={XGetAtomName(Display, touchMinorAtom2)}");
+        Console.WriteLine($"ABS MT TOUCH MAJOR={touchMajorAtom2} Name={XGetAtomName(Display, touchMajorAtom2)} ABS MT TOUCH MINOR={touchMinorAtom2} Name={XGetAtomName(Display, touchMinorAtom2)}");
 
         var valuators = new List<XIValuatorClassInfo>();
         var scrollers = new List<XIScrollClassInfo>();
@@ -181,7 +181,7 @@ public class App
                 var label = xiValuatorClassInfo.Label;
                 // 不能通过 Marshal.PtrToStringAnsi 读取 Label 的值 读取不到
                 //Marshal.PtrToStringAnsi(xiValuatorClassInfo.Label);
-                Console.WriteLine($"[Valuator] {GetAtomName(Display, label)} Type={xiValuatorClassInfo.Type} Sourceid={xiValuatorClassInfo.Sourceid} Number={xiValuatorClassInfo.Number} Min={xiValuatorClassInfo.Min} Max={xiValuatorClassInfo.Max} Value={xiValuatorClassInfo.Value} Resolution={xiValuatorClassInfo.Resolution} Mode={xiValuatorClassInfo.Mode}");
+                Console.WriteLine($"[Valuator] [{GetAtomName(Display, label)}] Label={label} Type={xiValuatorClassInfo.Type} Sourceid={xiValuatorClassInfo.Sourceid} Number={xiValuatorClassInfo.Number} Min={xiValuatorClassInfo.Min} Max={xiValuatorClassInfo.Max} Value={xiValuatorClassInfo.Value} Resolution={xiValuatorClassInfo.Resolution} Mode={xiValuatorClassInfo.Mode}");
             }
 
             foreach (var xiScrollClassInfo in scrollers)
