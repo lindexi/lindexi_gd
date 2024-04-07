@@ -54,7 +54,17 @@ public partial class MainWindow : Window
 
                 var app = new BujeeberehemnaNurgacolarje.App();
                 _app = app;
-                Task.Run(() => app.Run(handle));
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        app.Run(handle);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
+                });
             }
         }
     }

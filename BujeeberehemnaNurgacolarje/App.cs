@@ -134,16 +134,40 @@ public class App
             }
         }
 
+        var valuators = new List<XIValuatorClassInfo>();
+        var scrollers = new List<XIScrollClassInfo>();
+
         if (pointerDevice != null)
         {
-            //var multiTouchEventTypes = new List<XiEventType>
-            //{
-            //    XiEventType.XI_TouchBegin,
-            //    XiEventType.XI_TouchUpdate,
-            //    XiEventType.XI_TouchEnd
-            //};
+            var multiTouchEventTypes = new List<XiEventType>
+            {
+                XiEventType.XI_TouchBegin,
+                XiEventType.XI_TouchUpdate,
+                XiEventType.XI_TouchEnd
+            };
 
-            //XiSelectEvents(Display, Window, new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = multiTouchEventTypes });
+            XiSelectEvents(Display, Window, new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = multiTouchEventTypes });
+
+            Console.WriteLine($"pointerDevice.Value.NumClasses={pointerDevice.Value.NumClasses}");
+
+            for (int i = 0; i < pointerDevice.Value.NumClasses; i++)
+            {
+                var xiAnyClassInfo = pointerDevice.Value.Classes[i];
+                if (xiAnyClassInfo->Type == XiDeviceClass.XIValuatorClass)
+                {
+                    valuators.Add(*((XIValuatorClassInfo**) xiAnyClassInfo)[i]);
+                }
+                else if (xiAnyClassInfo->Type == XiDeviceClass.XIScrollClass)
+                {
+                    scrollers.Add(*((XIScrollClassInfo**) xiAnyClassInfo)[i]);
+                }
+            }
+
+            foreach (var xiValuatorClassInfo in valuators)
+            {
+                var label = xiValuatorClassInfo.Label; //Marshal.PtrToStringAnsi(xiValuatorClassInfo.Label);
+                Console.WriteLine($"[Valuator] {label} Type={xiValuatorClassInfo.Type} Sourceid={xiValuatorClassInfo.Sourceid} Number={xiValuatorClassInfo.Number} Min={xiValuatorClassInfo.Min} Max={xiValuatorClassInfo.Max} Value={xiValuatorClassInfo.Value} Resolution={xiValuatorClassInfo.Resolution} Mode={xiValuatorClassInfo.Mode}");
+            }
         }
 
         while (true)
@@ -272,9 +296,11 @@ public class App
                         or XiEventType.XI_TouchEnd)
                     {
                         var xiDeviceEvent = (XIDeviceEvent*) xiEvent;
-                        Console.WriteLine(xiDeviceEvent->evtype);
 
+                        var timestamp = (ulong) xiDeviceEvent->time.ToInt64();
+                        var state = (XModifierMask) xiDeviceEvent->mods.Effective;
 
+                        Console.WriteLine($"[{xiEvent->evtype}][{xiDeviceEvent->deviceid}][{xiDeviceEvent->sourceid}] detail={xiDeviceEvent->detail} timestamp={timestamp} {state} X={xiDeviceEvent->event_x} Y={xiDeviceEvent->event_y}");
                     }
                 }
                 finally
