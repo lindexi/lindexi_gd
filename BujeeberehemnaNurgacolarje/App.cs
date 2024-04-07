@@ -309,7 +309,7 @@ public class App
                         var state = (XModifierMask) xiDeviceEvent->mods.Effective;
 
                         // 对应 WPF 的 TouchId 是 xiDeviceEvent->detail 字段
-                        Console.WriteLine($"[{xiEvent->evtype}][{xiDeviceEvent->deviceid}][{xiDeviceEvent->sourceid}] detail={xiDeviceEvent->detail} timestamp={timestamp} {state} X={xiDeviceEvent->event_x} Y={xiDeviceEvent->event_y} valuators.MaskLen={xiDeviceEvent->valuators.MaskLen}");
+                        Console.WriteLine($"[{xiEvent->evtype}][{xiDeviceEvent->deviceid}][{xiDeviceEvent->sourceid}] detail={xiDeviceEvent->detail} timestamp={timestamp} {state} X={xiDeviceEvent->event_x} Y={xiDeviceEvent->event_y} root_x={xiDeviceEvent->root_x} root_y={xiDeviceEvent->root_y}");
 
                         var valuatorDictionary = new Dictionary<int, double>();
                         var values = xiDeviceEvent->valuators.Values;
