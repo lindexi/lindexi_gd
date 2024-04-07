@@ -121,9 +121,12 @@ public class App
 
         var devices = (XIDeviceInfo*) XIQueryDevice(Display,
             (int) XiPredefinedDeviceId.XIAllMasterDevices, out int num);
+        Console.WriteLine($"DeviceNumber={num}");
         XIDeviceInfo? pointerDevice = default;
         for (var c = 0; c < num; c++)
         {
+            Console.WriteLine($"XIDeviceInfo [{c}] {devices[c].Deviceid} {devices[c].Use}");
+
             if (devices[c].Use == XiDeviceType.XIMasterPointer)
             {
                 pointerDevice = devices[c];
@@ -216,7 +219,11 @@ public class App
                     or (int) XiEventType.XI_TouchUpdate
                     or (int) XiEventType.XI_TouchEnd)
             {
-                Console.WriteLine($"Touch");
+                Console.WriteLine($"Touch {(XiEventType) type} {@event.MotionEvent.x} {@event.MotionEvent.y}");
+            }
+            else if (@event.type == XEventName.GenericEvent)
+            {
+                Console.WriteLine($"XEventName.GenericEvent");
             }
 
             if (xNextEvent != 0)
