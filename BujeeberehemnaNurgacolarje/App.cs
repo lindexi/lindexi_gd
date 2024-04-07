@@ -389,7 +389,15 @@ public class App
                         {
                             IsPressureEnable = pressure != null
                         };
-                        skInkCanvas.Move(stylusPoint);
+
+                        if (xiEvent->evtype == XiEventType.XI_TouchEnd)
+                        {
+                            skInkCanvas.Up(stylusPoint);
+                        }
+                        else
+                        {
+                            skInkCanvas.Move(stylusPoint);
+                        }
 
                         Console.WriteLine("=================");
                     }

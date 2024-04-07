@@ -38,6 +38,16 @@ class SkInkCanvas
         }
     }
 
+    public void Up(StylusPoint point)
+    {
+        if (DrawStroke(point, out var rect))
+        {
+            RenderBoundsChanged?.Invoke(this, rect);
+        }
+
+        _stylusPoints.Clear();
+    }
+
     private bool CanDropLastPoint(Span<StylusPoint> pointList, StylusPoint currentStylusPoint)
     {
         if (pointList.Length < 2)
