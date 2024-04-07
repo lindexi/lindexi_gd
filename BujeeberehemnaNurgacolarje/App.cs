@@ -137,11 +137,11 @@ public class App
 
         // ABS_MT_TOUCH_MAJOR ABS_MT_TOUCH_MINOR
         // https://www.kernel.org/doc/html/latest/input/multi-touch-protocol.html
-        var touchMajorAtom = XInternAtom(Display, "Abs MT Touch Major", false);
+        var touchMajorAtom = XInternAtom(Display, "ABS_MT_TOUCH_MAJOR", false);
         var touchMinorAtom = XInternAtom(Display, "Abs MT Touch Minor", false);
         var pressureAtom = XInternAtom(Display, "Abs MT Pressure", false);
 
-        Console.WriteLine($"ABS_MT_TOUCH_MAJOR={touchMajorAtom} Name={XGetAtomName(Display, touchMajorAtom)} ABS_MT_TOUCH_MINOR={touchMinorAtom} Name={XGetAtomName(Display, touchMinorAtom)} Abs_MT_Pressure={pressureAtom} Name={XGetAtomName(Display, pressureAtom)}");
+        Console.WriteLine($"ABS_MT_TOUCH_MAJOR={touchMajorAtom} Name={GetAtomName(Display, touchMajorAtom)} ABS_MT_TOUCH_MINOR={touchMinorAtom} Name={GetAtomName(Display, touchMinorAtom)} Abs_MT_Pressure={pressureAtom} Name={GetAtomName(Display, pressureAtom)}");
 
         var valuators = new List<XIValuatorClassInfo>();
         var scrollers = new List<XIScrollClassInfo>();
