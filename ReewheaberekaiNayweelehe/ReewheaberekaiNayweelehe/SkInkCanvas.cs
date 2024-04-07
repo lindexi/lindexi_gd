@@ -46,7 +46,7 @@ class SkInkCanvas
 
     private int DropPointCount { set; get; }
 
-    private bool DrawStroke(StylusPoint currentStylusPoint, out Rect drawRect)
+    public bool DrawStroke(StylusPoint currentStylusPoint, out Rect drawRect)
     {
         drawRect = Rect.Zero;
         if (_stylusPoints.Count == 0)
