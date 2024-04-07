@@ -135,6 +135,18 @@ public class App
             }
         }
 
+        // ABS_MT_TOUCH_MAJOR ABS_MT_TOUCH_MINOR
+        // https://www.kernel.org/doc/html/latest/input/multi-touch-protocol.html
+        var touchMajorAtom = XInternAtom(Display, "ABS_MT_TOUCH_MAJOR", false);
+        var touchMinorAtom = XInternAtom(Display, "ABS_MT_TOUCH_MINOR", false);
+
+        Console.WriteLine($"ABS_MT_TOUCH_MAJOR={touchMajorAtom} Name={XGetAtomName(Display, touchMajorAtom)} ABS_MT_TOUCH_MINOR={touchMinorAtom} Name={XGetAtomName(Display, touchMinorAtom)}");
+
+        var touchMajorAtom2 = XInternAtom(Display, "ABS MT TOUCH MAJOR", false);
+        var touchMinorAtom2 = XInternAtom(Display, "ABS MT TOUCH MINOR", false);
+
+        Console.WriteLine($"ABS_MT_TOUCH_MAJOR2={touchMajorAtom2} Name={XGetAtomName(Display, touchMajorAtom2)} ABS_MT_TOUCH_MINOR2={touchMinorAtom2} Name={XGetAtomName(Display, touchMinorAtom2)}");
+
         var valuators = new List<XIValuatorClassInfo>();
         var scrollers = new List<XIScrollClassInfo>();
 
@@ -174,7 +186,7 @@ public class App
 
             foreach (var xiScrollClassInfo in scrollers)
             {
-                
+
             }
         }
 
@@ -309,7 +321,7 @@ public class App
                         var state = (XModifierMask) xiDeviceEvent->mods.Effective;
 
                         // 对应 WPF 的 TouchId 是 xiDeviceEvent->detail 字段
-                        Console.WriteLine($"[{xiEvent->evtype}][{xiDeviceEvent->deviceid}][{xiDeviceEvent->sourceid}] detail={xiDeviceEvent->detail} timestamp={timestamp} {state} X={xiDeviceEvent->event_x} Y={xiDeviceEvent->event_y} valuators.MaskLen={xiDeviceEvent->valuators.MaskLen}");
+                        Console.WriteLine($"[{xiEvent->evtype}][{xiDeviceEvent->deviceid}][{xiDeviceEvent->sourceid}] detail={xiDeviceEvent->detail} timestamp={timestamp} {state} X={xiDeviceEvent->event_x} Y={xiDeviceEvent->event_y} root_x={xiDeviceEvent->root_x} root_y={xiDeviceEvent->root_y}");
 
                         var valuatorDictionary = new Dictionary<int, double>();
                         var values = xiDeviceEvent->valuators.Values;
@@ -328,7 +340,19 @@ public class App
                         {
                             var xiValuatorClassInfo = valuators.FirstOrDefault(t => t.Number == key);
 
-                            Console.WriteLine($"[Valuator] {GetAtomName(Display, xiValuatorClassInfo.Label)} Type={xiValuatorClassInfo.Type} Sourceid={xiValuatorClassInfo.Sourceid} Number={xiValuatorClassInfo.Number} Min={xiValuatorClassInfo.Min} Max={xiValuatorClassInfo.Max} Value={xiValuatorClassInfo.Value} Resolution={xiValuatorClassInfo.Resolution} Mode={xiValuatorClassInfo.Mode} Value={value}");
+                            //xiValuatorClassInfo.Label == touchMajorAtom
+                            var label = GetAtomName(Display, xiValuatorClassInfo.Label);
+
+                            if (xiValuatorClassInfo.Label == touchMajorAtom)
+                            {
+                                label = "TouchMajor";
+                            }
+                            else if (xiValuatorClassInfo.Label == touchMinorAtom)
+                            {
+                                label = "TouchMinor";
+                            }
+
+                            Console.WriteLine($"[Valuator] [{label}] Label={xiValuatorClassInfo.Label} Type={xiValuatorClassInfo.Type} Sourceid={xiValuatorClassInfo.Sourceid} Number={xiValuatorClassInfo.Number} Min={xiValuatorClassInfo.Min} Max={xiValuatorClassInfo.Max} Value={xiValuatorClassInfo.Value} Resolution={xiValuatorClassInfo.Resolution} Mode={xiValuatorClassInfo.Mode} Value={value}");
                         }
 
                         Console.WriteLine("=================");
