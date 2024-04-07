@@ -165,15 +165,10 @@ public class App
 
             foreach (var xiValuatorClassInfo in valuators)
             {
-                var label = xiValuatorClassInfo.Label; //Marshal.PtrToStringAnsi(xiValuatorClassInfo.Label);
-                try
-                {
-                    Console.WriteLine($"[Label] {Marshal.PtrToStringAnsi(xiValuatorClassInfo.Label)}");
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
+                var label = xiValuatorClassInfo.Label;
+                // 不能通过 Marshal.PtrToStringAnsi 读取 Label 的值 读取不到
+                // 需要使用 XInternAtom 读取
+                //Marshal.PtrToStringAnsi(xiValuatorClassInfo.Label);
                 Console.WriteLine($"[Valuator] {label} Type={xiValuatorClassInfo.Type} Sourceid={xiValuatorClassInfo.Sourceid} Number={xiValuatorClassInfo.Number} Min={xiValuatorClassInfo.Min} Max={xiValuatorClassInfo.Max} Value={xiValuatorClassInfo.Value} Resolution={xiValuatorClassInfo.Resolution} Mode={xiValuatorClassInfo.Mode}");
             }
         }
@@ -308,6 +303,7 @@ public class App
                         var timestamp = (ulong) xiDeviceEvent->time.ToInt64();
                         var state = (XModifierMask) xiDeviceEvent->mods.Effective;
 
+                        // 对应 WPF 的 TouchId 是 xiDeviceEvent->detail 字段
                         Console.WriteLine($"[{xiEvent->evtype}][{xiDeviceEvent->deviceid}][{xiDeviceEvent->sourceid}] detail={xiDeviceEvent->detail} timestamp={timestamp} {state} X={xiDeviceEvent->event_x} Y={xiDeviceEvent->event_y}");
                     }
                 }
