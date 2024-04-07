@@ -215,16 +215,15 @@ public class App
                 _isDown = false;
                 _stylusPoints.Clear();
             }
-            else if (type is (int) XiEventType.XI_TouchBegin
-                    or (int) XiEventType.XI_TouchUpdate
-                    or (int) XiEventType.XI_TouchEnd)
-            {
-                Console.WriteLine($"Touch {(XiEventType) type} {@event.MotionEvent.x} {@event.MotionEvent.y}");
-            }
+            // 对于 X12 触摸，这里的 type 是 GenericEvent 类型，需要通过 GenericEventCookie 的 evtype 才能判断
+            //else if (type is (int) XiEventType.XI_TouchBegin
+            //        or (int) XiEventType.XI_TouchUpdate
+            //        or (int) XiEventType.XI_TouchEnd)
+            //{
+            //    Console.WriteLine($"Touch {(XiEventType) type} {@event.MotionEvent.x} {@event.MotionEvent.y}");
+            //}
             else if (@event.type == XEventName.GenericEvent)
             {
-                Console.WriteLine($"XEventName.GenericEvent");
-
                 void* data = &@event.GenericEventCookie;
                 /*
                  bing:
@@ -274,6 +273,8 @@ public class App
                     {
                         var xiDeviceEvent = (XIDeviceEvent*) xiEvent;
                         Console.WriteLine(xiDeviceEvent->evtype);
+
+
                     }
                 }
                 finally
