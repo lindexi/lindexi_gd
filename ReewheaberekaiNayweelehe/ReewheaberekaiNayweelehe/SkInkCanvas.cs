@@ -46,6 +46,8 @@ class SkInkCanvas
 
     private int DropPointCount { set; get; }
 
+    public bool AutoSoftPen { set; get; } = true;
+
     public bool DrawStroke(StylusPoint currentStylusPoint, out Rect drawRect)
     {
         drawRect = Rect.Zero;
@@ -66,10 +68,10 @@ class SkInkCanvas
         //    return false;
         //}
 
-        if (SkBitmap is null)
-        {
-            return false;
-        }
+        //if (SkBitmap is null)
+        //{
+        //    return false;
+        //}
 
         _stylusPoints.CopyTo(_cache, 0);
         if (CanDropLastPoint(_cache.AsSpan(0, _stylusPoints.Count), currentStylusPoint) && DropPointCount < 3)
@@ -90,20 +92,21 @@ class SkInkCanvas
         _cache[_stylusPoints.Count] = currentStylusPoint;
         _stylusPoints.Enqueue(currentStylusPoint);
 
-        Console.WriteLine($"Count={_stylusPoints.Count}");
-
-        for (int i = 0; i < 10; i++)
+        if (AutoSoftPen)
         {
-            if (_stylusPoints.Count - i - 1 < 0)
+            for (int i = 0; i < 10; i++)
             {
-                break;
-            }
+                if (_stylusPoints.Count - i - 1 < 0)
+                {
+                    break;
+                }
 
-            _cache[_stylusPoints.Count - i - 1] = _cache[_stylusPoints.Count - i - 1] with
-            {
-                Pressure = Math.Max(Math.Min(0.1f * i, 0.5f), 0.01f)
-                //Pressure = 0.3f,
-            };
+                _cache[_stylusPoints.Count - i - 1] = _cache[_stylusPoints.Count - i - 1] with
+                {
+                    Pressure = Math.Max(Math.Min(0.1f * i, 0.5f), 0.01f)
+                    //Pressure = 0.3f,
+                };
+            }
         }
 
         var pointList = _cache.AsSpan(0, _stylusPoints.Count);

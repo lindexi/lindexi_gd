@@ -190,6 +190,7 @@ public class App
         var skInkCanvas = new SkInkCanvas()
         {
             SkBitmap = _skBitmap,
+            AutoSoftPen = false,
         };
         skInkCanvas.SetCanvas(_skCanvas);
 
