@@ -9,6 +9,8 @@ public readonly record struct StylusPoint(Point Point, float Pressure = 0.5f)
     }
 
     public static implicit operator StylusPoint(Point point) => new StylusPoint(point);
+
+    public bool IsPressureEnable { init; get; }
     //public static implicit operator StylusPoint(Windows.Foundation.Point point) => new StylusPoint(point.ToPoint());
 
     //public static implicit operator Windows.Foundation.Point(StylusPoint point) => point.Point.ToFoundationPoint();

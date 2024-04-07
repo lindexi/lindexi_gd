@@ -324,8 +324,8 @@ public class App
                         var timestamp = (ulong) xiDeviceEvent->time.ToInt64();
                         var state = (XModifierMask) xiDeviceEvent->mods.Effective;
 
-                        // 对应 WPF 的 TouchId 是 xiDeviceEvent->detail 字段
-                        Console.WriteLine($"[{xiEvent->evtype}][{xiDeviceEvent->deviceid}][{xiDeviceEvent->sourceid}] detail={xiDeviceEvent->detail} timestamp={timestamp} {state} X={xiDeviceEvent->event_x} Y={xiDeviceEvent->event_y} root_x={xiDeviceEvent->root_x} root_y={xiDeviceEvent->root_y}");
+                        //// 对应 WPF 的 TouchId 是 xiDeviceEvent->detail 字段
+                        //Console.WriteLine($"[{xiEvent->evtype}][{xiDeviceEvent->deviceid}][{xiDeviceEvent->sourceid}] detail={xiDeviceEvent->detail} timestamp={timestamp} {state} X={xiDeviceEvent->event_x} Y={xiDeviceEvent->event_y} root_x={xiDeviceEvent->root_x} root_y={xiDeviceEvent->root_y}");
 
                         var valuatorDictionary = new Dictionary<int, double>();
                         var values = xiDeviceEvent->valuators.Values;
@@ -338,16 +338,14 @@ public class App
                             }
                         }
 
-                        Console.WriteLine($"valuatorDictionary.Count={valuatorDictionary.Count}");
+                        //Console.WriteLine($"valuatorDictionary.Count={valuatorDictionary.Count}");
+                        float? pressure = null;
 
                         foreach (var (key, value) in valuatorDictionary)
                         {
                             var xiValuatorClassInfo = valuators.FirstOrDefault(t => t.Number == key);
 
-                            //xiValuatorClassInfo.Label == touchMajorAtom
                             var label = GetAtomName(Display, xiValuatorClassInfo.Label);
-
-                            float pressure = 0.5f;
 
                             if (xiValuatorClassInfo.Label == touchMajorAtom)
                             {
@@ -361,31 +359,39 @@ public class App
                             {
                                 label = "Pressure";
 
-                                pressure = (float)(value / xiValuatorClassInfo.Max);
+                                pressure = (float) (value / xiValuatorClassInfo.Max);
                             }
 
                             Console.WriteLine($"[Valuator] [{label}] Label={xiValuatorClassInfo.Label} Type={xiValuatorClassInfo.Type} Sourceid={xiValuatorClassInfo.Sourceid} Number={xiValuatorClassInfo.Number} Min={xiValuatorClassInfo.Min} Max={xiValuatorClassInfo.Max} Value={xiValuatorClassInfo.Value} Resolution={xiValuatorClassInfo.Resolution} Mode={xiValuatorClassInfo.Mode} Value={value}");
+                        }
 
-                            if (skInkCanvas.DrawStroke(new StylusPoint(xiDeviceEvent->event_x, xiDeviceEvent->event_y, pressure), out var rect))
+                        if (skInkCanvas.DrawStroke(new StylusPoint(xiDeviceEvent->event_x, xiDeviceEvent->event_y, pressure ?? 0.5f)
                             {
-                                var xEvent = new XEvent
+                                IsPressureEnable = pressure != null
+                            }, out Rect rectExpose))
+                        {
+                            SendExpose(rectExpose);
+                        }
+
+                        void SendExpose(Rect rect)
+                        {
+                            var xEvent = new XEvent
+                            {
+                                ExposeEvent =
                                 {
-                                    ExposeEvent =
-                                    {
-                                        type = XEventName.Expose,
-                                        send_event = true,
-                                        window = Window,
-                                        count = 1,
-                                        display = Display,
-                                        height = (int)rect.Height,
-                                        width = (int)rect.Width,
-                                        x = (int)rect.X,
-                                        y = (int)rect.Y
-                                    }
-                                };
-                                // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
-                                XSendEvent(Display, Window, propagate: false, new IntPtr((int) (EventMask.ExposureMask)), ref xEvent);
-                            }
+                                    type = XEventName.Expose,
+                                    send_event = true,
+                                    window = Window,
+                                    count = 1,
+                                    display = Display,
+                                    height = (int)rect.Height,
+                                    width = (int)rect.Width,
+                                    x = (int)rect.X,
+                                    y = (int)rect.Y
+                                }
+                            };
+                            // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
+                            XSendEvent(Display, Window, propagate: false, new IntPtr((int) (EventMask.ExposureMask)), ref xEvent);
                         }
 
                         Console.WriteLine("=================");
