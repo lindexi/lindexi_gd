@@ -66,10 +66,10 @@ class SkInkCanvas
         //    return false;
         //}
 
-        if (SkBitmap is null)
-        {
-            return false;
-        }
+        //if (SkBitmap is null)
+        //{
+        //    return false;
+        //}
 
         _stylusPoints.CopyTo(_cache, 0);
         if (CanDropLastPoint(_cache.AsSpan(0, _stylusPoints.Count), currentStylusPoint) && DropPointCount < 3)
