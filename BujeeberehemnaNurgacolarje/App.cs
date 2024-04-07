@@ -137,7 +137,7 @@ public class App
 
         // ABS_MT_TOUCH_MAJOR ABS_MT_TOUCH_MINOR
         // https://www.kernel.org/doc/html/latest/input/multi-touch-protocol.html
-        var touchMajorAtom = XInternAtom(Display, "ABS_MT_TOUCH_MAJOR", false);
+        var touchMajorAtom = XInternAtom(Display, "Abs MT Touch Major", false);
         var touchMinorAtom = XInternAtom(Display, "Abs MT Touch Minor", false);
         var pressureAtom = XInternAtom(Display, "Abs MT Pressure", false);
 
