@@ -144,7 +144,7 @@ namespace CPF.Linux
         }
 
         [DllImport(libX11)]
-        public static extern IntPtr XInternAtom(IntPtr display, string atom_name, bool only_if_exists);
+        public static extern IntPtr XInternAtom(IntPtr display,[MarshalAs(UnmanagedType.LPStr)] string atom_name, bool only_if_exists);
 
         [DllImport(libX11)]
         public static extern int XInternAtoms(IntPtr display, string[] atom_names, int atom_count, bool only_if_exists,
