@@ -403,10 +403,10 @@ public class App
 
         //skCanvas.Clear(SKColors.RosyBrown);
 
-        skPaint.Color = new SKColor(0x12, 0x56, 0x22, 0xF1);
-        skCanvas.DrawRect(skRect, skPaint);
+        //skPaint.Color = new SKColor(0x12, 0x56, 0x22, 0xF1);
+        //skCanvas.DrawRect(skRect, skPaint);
 
-        skCanvas.DrawBitmap(background, new SKRect(0, 0, skRect.Width, skRect.Height), new SKRect(0, 0, skRect.Width, skRect.Height));
+        //skCanvas.DrawBitmap(background, new SKRect(0, 0, skRect.Width, skRect.Height), new SKRect(0, 0, skRect.Width, skRect.Height));
         //using var skImage = SKImage.FromBitmap(background);
         ////// 为何 Skia 在 DrawBitmap 之后进行 DrawPath 出现锯齿，即使配置了 IsAntialias 属性
         //skCanvas.DrawImage(skImage, new SKRect(0, 0, skRect.Width, skRect.Height), skRect);
