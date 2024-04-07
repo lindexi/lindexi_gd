@@ -215,16 +215,15 @@ public class App
                 _isDown = false;
                 _stylusPoints.Clear();
             }
-            else if (type is (int) XiEventType.XI_TouchBegin
-                    or (int) XiEventType.XI_TouchUpdate
-                    or (int) XiEventType.XI_TouchEnd)
-            {
-                Console.WriteLine($"Touch {(XiEventType) type} {@event.MotionEvent.x} {@event.MotionEvent.y}");
-            }
+            // 对于 X12 触摸，这里的 type 是 GenericEvent 类型，需要通过 GenericEventCookie 的 evtype 才能判断
+            //else if (type is (int) XiEventType.XI_TouchBegin
+            //        or (int) XiEventType.XI_TouchUpdate
+            //        or (int) XiEventType.XI_TouchEnd)
+            //{
+            //    Console.WriteLine($"Touch {(XiEventType) type} {@event.MotionEvent.x} {@event.MotionEvent.y}");
+            //}
             else if (@event.type == XEventName.GenericEvent)
             {
-                Console.WriteLine($"XEventName.GenericEvent");
-
                 void* data = &@event.GenericEventCookie;
                 /*
                  bing:
@@ -274,6 +273,8 @@ public class App
                     {
                         var xiDeviceEvent = (XIDeviceEvent*) xiEvent;
                         Console.WriteLine(xiDeviceEvent->evtype);
+
+
                     }
                 }
                 finally
@@ -403,10 +404,10 @@ public class App
 
         //skCanvas.Clear(SKColors.RosyBrown);
 
-        skPaint.Color = new SKColor(0x12, 0x56, 0x22, 0xF1);
-        skCanvas.DrawRect(skRect, skPaint);
+        //skPaint.Color = new SKColor(0x12, 0x56, 0x22, 0xF1);
+        //skCanvas.DrawRect(skRect, skPaint);
 
-        skCanvas.DrawBitmap(background, new SKRect(0, 0, skRect.Width, skRect.Height), new SKRect(0, 0, skRect.Width, skRect.Height));
+        //skCanvas.DrawBitmap(background, new SKRect(0, 0, skRect.Width, skRect.Height), new SKRect(0, 0, skRect.Width, skRect.Height));
         //using var skImage = SKImage.FromBitmap(background);
         ////// 为何 Skia 在 DrawBitmap 之后进行 DrawPath 出现锯齿，即使配置了 IsAntialias 属性
         //skCanvas.DrawImage(skImage, new SKRect(0, 0, skRect.Width, skRect.Height), skRect);
