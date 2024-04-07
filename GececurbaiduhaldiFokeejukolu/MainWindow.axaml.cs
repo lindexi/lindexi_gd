@@ -24,9 +24,25 @@ public partial class MainWindow : Window
             WindowTransparencyLevel.Blur,
         };
         TransparencyBackgroundFallback = Brushes.Transparent;
+
+        Loaded += MainWindow_Loaded;
+    }
+
+    private void MainWindow_Loaded(object? sender, RoutedEventArgs e)
+    {
+        // ·½±ãµ÷ÊÔ
+        StartInkMode();
     }
 
     private void Button_OnClick(object? sender, RoutedEventArgs e)
+    {
+        StartInkMode();
+
+        var button = (Button) sender!;
+        button.IsEnabled = false;
+    }
+
+    private void StartInkMode()
     {
         if (OperatingSystem.IsLinux())
         {
@@ -39,9 +55,6 @@ public partial class MainWindow : Window
                 var app = new BujeeberehemnaNurgacolarje.App();
                 _app = app;
                 Task.Run(() => app.Run(handle));
-
-                var button = (Button) sender!;
-                button.IsEnabled = false;
             }
         }
     }
