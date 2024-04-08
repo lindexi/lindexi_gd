@@ -9,37 +9,37 @@ namespace BingAccess
     class Program
     {
         // PInvoke declaration for OpenSSL functions
-        [DllImport("libeay32.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void ERR_load_crypto_strings();
+        [DllImport("libcrypto-3.dll", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void ERR_load_CRYPTO_strings();
 
-        [DllImport("libeay32.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libssl-3.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern void EVP_cleanup();
 
-        [DllImport("ssleay32.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libssl-3.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern int SSL_library_init();
 
-        [DllImport("ssleay32.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libssl-3.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr SSLv23_client_method();
 
-        [DllImport("ssleay32.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libssl-3.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr SSL_CTX_new(IntPtr method);
 
-        [DllImport("ssleay32.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libssl-3.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern void SSL_CTX_free(IntPtr ctx);
 
-        [DllImport("ssleay32.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libssl-3.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr BIO_new_ssl_connect(IntPtr ctx);
 
         [DllImport("libeay32.dll",EntryPoint = "BIO_s_connect", CallingConvention = CallingConvention.Cdecl)]
         private static extern int BIO_do_connect(IntPtr bio);
 
-        [DllImport("libeay32.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libcrypto-3.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern int BIO_puts(IntPtr bio, string data);
 
-        [DllImport("libeay32.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libcrypto-3.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern int BIO_read(IntPtr bio, byte[] buffer, int len);
 
-        [DllImport("libeay32.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libcrypto-3.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern int BIO_free_all(IntPtr bio);
 
         static void Main(string[] args)
@@ -47,7 +47,7 @@ namespace BingAccess
             try
             {
                 // Initialize OpenSSL
-                ERR_load_crypto_strings();
+                ERR_load_CRYPTO_strings();
                 SSL_library_init();
 
                 // Create SSL context
