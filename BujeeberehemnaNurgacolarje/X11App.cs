@@ -201,7 +201,7 @@ public class X11App
                 }
             };
             // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
-            XSendEvent(Display, Window, propagate: false, new IntPtr((int)(EventMask.ExposureMask)), ref xEvent);
+            XSendEvent(Display, Window, propagate: false, new IntPtr((int) (EventMask.ExposureMask)), ref xEvent);
         };
 
         while (true)
@@ -350,6 +350,8 @@ public class X11App
 
                         //Console.WriteLine($"valuatorDictionary.Count={valuatorDictionary.Count}");
                         float? pressure = null;
+                        double? width = null;
+                        double? height = null;
 
                         foreach (var (key, value) in valuatorDictionary)
                         {
@@ -360,10 +362,12 @@ public class X11App
                             if (xiValuatorClassInfo.Label == touchMajorAtom)
                             {
                                 label = "TouchMajor";
+                                width = value;
                             }
                             else if (xiValuatorClassInfo.Label == touchMinorAtom)
                             {
                                 label = "TouchMinor";
+                                height = value;
                             }
                             else if (xiValuatorClassInfo.Label == pressureAtom)
                             {
@@ -377,16 +381,24 @@ public class X11App
 
                         var stylusPoint = new StylusPoint(xiDeviceEvent->event_x, xiDeviceEvent->event_y, pressure ?? 0.5f)
                         {
-                            IsPressureEnable = pressure != null
+                            IsPressureEnable = pressure != null,
+                            Width = width,
+                            Height = height,
                         };
 
-                        if (xiEvent->evtype == XiEventType.XI_TouchEnd)
+                        var inkingInputInfo = new InkingInputInfo(xiDeviceEvent->detail, stylusPoint, timestamp);
+
+                        if (xiEvent->evtype == XiEventType.XI_TouchBegin)
                         {
-                            skInkCanvas.Up(stylusPoint);
+                            skInkCanvas.Down(inkingInputInfo);
                         }
-                        else
+                        else if (xiEvent->evtype == XiEventType.XI_TouchUpdate)
                         {
-                            skInkCanvas.Move(stylusPoint);
+                            skInkCanvas.Move(inkingInputInfo);
+                        }
+                        else if (xiEvent->evtype == XiEventType.XI_TouchEnd)
+                        {
+                            skInkCanvas.Up(inkingInputInfo);
                         }
 
                         Console.WriteLine("=================");
