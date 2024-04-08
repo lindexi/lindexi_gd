@@ -276,7 +276,7 @@ class SkInkCanvas
         //    skCanvas.DrawCircle((float) point.X, (float) point.Y, 2, skPaint);
 
         //}
-        drawRect = new Rect(0, 0, 600, 600);
+        //drawRect = new Rect(0, 0, 600, 600);
 
         return true;
     }
