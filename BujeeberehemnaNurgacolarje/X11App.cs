@@ -98,8 +98,6 @@ public class X11App
         skCanvas.DrawLine(0, 0, size, size, skPaint);
         skCanvas.DrawLine(0, size, size, 0, skPaint);
 
-        skPaint.Color = new SKColor((uint) Random.Shared.Next());
-
         XImage image = CreateImage();
         _image = image;
     }
@@ -176,11 +174,6 @@ public class X11App
                 // 不能通过 Marshal.PtrToStringAnsi 读取 Label 的值 读取不到
                 //Marshal.PtrToStringAnsi(xiValuatorClassInfo.Label);
                 Console.WriteLine($"[Valuator] [{GetAtomName(Display, label)}] Label={label} Type={xiValuatorClassInfo.Type} Sourceid={xiValuatorClassInfo.Sourceid} Number={xiValuatorClassInfo.Number} Min={xiValuatorClassInfo.Min} Max={xiValuatorClassInfo.Max} Value={xiValuatorClassInfo.Value} Resolution={xiValuatorClassInfo.Resolution} Mode={xiValuatorClassInfo.Mode}");
-            }
-
-            foreach (var xiScrollClassInfo in scrollers)
-            {
-
             }
         }
 
