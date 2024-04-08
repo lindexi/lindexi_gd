@@ -168,7 +168,7 @@ public class X11App
                 }
             }
 
-            foreach (XIValuatorClassInfo xiValuatorClassInfo in valuators)
+            foreach (var xiValuatorClassInfo in valuators)
             {
                 var label = xiValuatorClassInfo.Label;
                 // 不能通过 Marshal.PtrToStringAnsi 读取 Label 的值 读取不到
@@ -208,7 +208,7 @@ public class X11App
         {
             XSync(Display, false);
 
-            var xNextEvent = XNextEvent(Display, out XEvent @event);
+            var xNextEvent = XNextEvent(Display, out var @event);
             //Console.WriteLine($"NextEvent={xNextEvent} {@event}");
             int type = (int) @event.type;
 
@@ -333,12 +333,13 @@ public class X11App
 
                         var timestamp = (ulong) xiDeviceEvent->time.ToInt64();
                         var state = (XModifierMask) xiDeviceEvent->mods.Effective;
+
                         //// 对应 WPF 的 TouchId 是 xiDeviceEvent->detail 字段
                         //Console.WriteLine($"[{xiEvent->evtype}][{xiDeviceEvent->deviceid}][{xiDeviceEvent->sourceid}] detail={xiDeviceEvent->detail} timestamp={timestamp} {state} X={xiDeviceEvent->event_x} Y={xiDeviceEvent->event_y} root_x={xiDeviceEvent->root_x} root_y={xiDeviceEvent->root_y}");
 
                         var valuatorDictionary = new Dictionary<int, double>();
                         var values = xiDeviceEvent->valuators.Values;
-                        for (var c = 0; c < xiDeviceEvent->valuators.MaskLen * 8/*一个 Byte 有 8 个 bit，以下 XIMaskIsSet 是按照 bit 进行判断的*/; c++)
+                        for (var c = 0; c < xiDeviceEvent->valuators.MaskLen * 8; c++)
                         {
                             if (XIMaskIsSet(xiDeviceEvent->valuators.Mask, c))
                             {
