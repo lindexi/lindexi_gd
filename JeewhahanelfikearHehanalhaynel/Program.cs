@@ -10,6 +10,29 @@ namespace BingAccess
     {
         // 下载 https://kb.firedaemon.com/support/solutions/articles/4000121705
 
+        // #   define OpenSSL_add_all_algorithms() OPENSSL_add_all_algorithms_conf()
+        //#  define OPENSSL_add_all_algorithms_conf() \
+        // OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS \
+        //                     | OPENSSL_INIT_ADD_ALL_DIGESTS \
+        //                     | OPENSSL_INIT_LOAD_CONFIG, NULL)
+        // int OPENSSL_init_crypto(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings);
+        [DllImport("libcrypto-3.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int OPENSSL_init_crypto(long opts, IntPtr settings);
+
+// # define OPENSSL_INIT_LOAD_CONFIG            0x00000040L
+// # define OPENSSL_INIT_ADD_ALL_DIGESTS        0x00000008L
+// # define OPENSSL_INIT_ADD_ALL_CIPHERS        0x00000004L
+
+        public static void OpenSSL_add_all_algorithms()
+        {
+            OPENSSL_add_all_algorithms_conf();
+        }
+
+        public static void OPENSSL_add_all_algorithms_conf()
+        {
+            OPENSSL_init_crypto(0x00000040L | 0x00000008L | 0x00000004L, IntPtr.Zero);
+        }
+
         // PInvoke declaration for OpenSSL functions
         [DllImport("libcrypto-3.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern void ERR_load_CRYPTO_strings();
@@ -20,7 +43,7 @@ namespace BingAccess
         [DllImport("libssl-3.dll", EntryPoint = "OPENSSL_init_ssl", CallingConvention = CallingConvention.Cdecl)]
         private static extern int OPENSSL_init_ssl(ulong opts, IntPtr settings); // 对应 SSL_library_init
 
-        [DllImport("libssl-3.dll",EntryPoint = "TLS_client_method", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libssl-3.dll", EntryPoint = "TLS_client_method", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr SSLv23_client_method();
 
         [DllImport("libssl-3.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -55,6 +78,8 @@ namespace BingAccess
                 // Initialize OpenSSL
                 ERR_load_CRYPTO_strings();
                 OPENSSL_init_ssl(0, IntPtr.Zero);
+
+                OpenSSL_add_all_algorithms();
 
                 // Create SSL context
                 var ssLv23ClientMethod = SSLv23_client_method();
