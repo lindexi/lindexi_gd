@@ -57,7 +57,7 @@ class SkInkCanvas
     {
         if (CurrentInputDictionary.Remove(info.Id, out var context))
         {
-            DropPointCount = 0;
+            context.DropPointCount = 0;
             context.StylusPoints.Clear();
         }
         else
@@ -130,8 +130,6 @@ class SkInkCanvas
         return false;
     }
 
-    private int DropPointCount { set; get; }
-
     public bool AutoSoftPen { set; get; } = true;
 
     private bool DrawStroke(DrawStrokeContext context, out Rect drawRect)
@@ -162,14 +160,14 @@ class SkInkCanvas
         //}
 
         context.StylusPoints.CopyTo(_cache, 0);
-        if (CanDropLastPoint(_cache.AsSpan(0, context.StylusPoints.Count), currentStylusPoint) && DropPointCount < 3)
+        if (CanDropLastPoint(_cache.AsSpan(0, context.StylusPoints.Count), currentStylusPoint) && context.DropPointCount < 3)
         {
             // 丢点是为了让 SimpleInkRender 可以绘制更加平滑的折线。但是不能丢太多的点，否则将导致看起来断线
-            DropPointCount++;
+            context.DropPointCount++;
             return false;
         }
 
-        DropPointCount = 0;
+        context.DropPointCount = 0;
 
         var lastPoint = _cache[context.StylusPoints.Count - 1];
         if (currentStylusPoint == lastPoint)
