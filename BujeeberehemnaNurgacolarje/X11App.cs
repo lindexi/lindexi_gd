@@ -76,8 +76,6 @@ public class X11App
         GC = XCreateGC(Display, Window, 0, 0);
         XSetForeground(Display, GC, white);
 
-        Console.WriteLine($"App");
-
         var size = 600;
         var skBitmap = new SKBitmap(size, size, SKColorType.Bgra8888, SKAlphaType.Premul);
         _skBitmap = skBitmap;
@@ -102,9 +100,8 @@ public class X11App
 
         skPaint.Color = new SKColor((uint) Random.Shared.Next());
 
-
-        XImage img = CreateImage();
-        _image = img;
+        XImage image = CreateImage();
+        _image = image;
     }
 
     private XImage _image;
