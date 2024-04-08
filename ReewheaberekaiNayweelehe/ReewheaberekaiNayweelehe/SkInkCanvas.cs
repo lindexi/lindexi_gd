@@ -7,6 +7,8 @@ using SkiaSharp;
 
 namespace ReewheaberekaiNayweelehe;
 
+record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp);
+
 class SkInkCanvas
 {
     public void SetCanvas(SKCanvas canvas)
