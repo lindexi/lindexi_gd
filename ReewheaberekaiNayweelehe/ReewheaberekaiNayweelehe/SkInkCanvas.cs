@@ -23,6 +23,20 @@ class SkInkCanvas
 
     public event EventHandler<Rect>? RenderBoundsChanged;
 
+    public void Down(InkingInputInfo info)
+    {
+
+    }
+
+    public void Move(InkingInputInfo info)
+    {
+
+    }
+
+    public void Up(InkingInputInfo info)
+    {
+    }
+
     public void Move(Point point)
     {
         var x = point.X;
