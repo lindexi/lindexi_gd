@@ -98,8 +98,6 @@ public class X11App
         skCanvas.DrawLine(0, 0, size, size, skPaint);
         skCanvas.DrawLine(0, size, size, 0, skPaint);
 
-        skPaint.Color = new SKColor((uint) Random.Shared.Next());
-
         XImage image = CreateImage();
         _image = image;
     }
