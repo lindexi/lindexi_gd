@@ -10,9 +10,9 @@ using ReewheaberekaiNayweelehe;
 
 namespace BujeeberehemnaNurgacolarje;
 
-public class App
+public class X11App
 {
-    public App()
+    public X11App()
     {
         XInitThreads();
         Display = XOpenDisplay(IntPtr.Zero);

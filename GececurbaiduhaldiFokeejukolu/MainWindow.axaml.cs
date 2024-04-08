@@ -52,7 +52,7 @@ public partial class MainWindow : Window
                 // 通过 xdotool set_window --name "Foo" {handle} 可以设置窗口标题
                 Console.WriteLine(handle);
 
-                var app = new BujeeberehemnaNurgacolarje.App();
+                var app = new BujeeberehemnaNurgacolarje.X11App();
                 _app = app;
                 Task.Run(() =>
                 {
@@ -69,7 +69,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private BujeeberehemnaNurgacolarje.App? _app;
+    private BujeeberehemnaNurgacolarje.X11App? _app;
 
     private void CloseButton_OnClick(object? sender, RoutedEventArgs e)
     {
