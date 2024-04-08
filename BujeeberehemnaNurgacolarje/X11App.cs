@@ -177,11 +177,6 @@ public class X11App
                 //Marshal.PtrToStringAnsi(xiValuatorClassInfo.Label);
                 Console.WriteLine($"[Valuator] [{GetAtomName(Display, label)}] Label={label} Type={xiValuatorClassInfo.Type} Sourceid={xiValuatorClassInfo.Sourceid} Number={xiValuatorClassInfo.Number} Min={xiValuatorClassInfo.Min} Max={xiValuatorClassInfo.Max} Value={xiValuatorClassInfo.Value} Resolution={xiValuatorClassInfo.Resolution} Mode={xiValuatorClassInfo.Mode}");
             }
-
-            foreach (var xiScrollClassInfo in scrollers)
-            {
-
-            }
         }
 
         var skInkCanvas = new SkInkCanvas()
