@@ -34,7 +34,7 @@ class SkInkCanvas
     {
         public InkingInputInfo InputInfo { set; get; } = inputInfo;
         public int DropPointCount { set; get; }
-        public readonly FixedQueue<StylusPoint> _stylusPoints = new FixedQueue<StylusPoint>(MaxStylusCount);
+        public readonly FixedQueue<StylusPoint> StylusPoints = new FixedQueue<StylusPoint>(MaxStylusCount);
     }
     private readonly StylusPoint[] _cache = new StylusPoint[MaxStylusCount + 1];
 
@@ -58,7 +58,7 @@ class SkInkCanvas
         if (CurrentInputDictionary.Remove(info.Id, out var context))
         {
             DropPointCount = 0;
-            context._stylusPoints.Clear();
+            context.StylusPoints.Clear();
         }
         else
         {
@@ -139,9 +139,9 @@ class SkInkCanvas
         StylusPoint currentStylusPoint = context.InputInfo.StylusPoint;
 
         drawRect = Rect.Zero;
-        if (context._stylusPoints.Count == 0)
+        if (context.StylusPoints.Count == 0)
         {
-            context._stylusPoints.Enqueue(currentStylusPoint);
+            context.StylusPoints.Enqueue(currentStylusPoint);
 
             return false;
         }
@@ -161,8 +161,8 @@ class SkInkCanvas
         //    return false;
         //}
 
-        context._stylusPoints.CopyTo(_cache, 0);
-        if (CanDropLastPoint(_cache.AsSpan(0, context._stylusPoints.Count), currentStylusPoint) && DropPointCount < 3)
+        context.StylusPoints.CopyTo(_cache, 0);
+        if (CanDropLastPoint(_cache.AsSpan(0, context.StylusPoints.Count), currentStylusPoint) && DropPointCount < 3)
         {
             // 丢点是为了让 SimpleInkRender 可以绘制更加平滑的折线。但是不能丢太多的点，否则将导致看起来断线
             DropPointCount++;
@@ -171,25 +171,25 @@ class SkInkCanvas
 
         DropPointCount = 0;
 
-        var lastPoint = _cache[context._stylusPoints.Count - 1];
+        var lastPoint = _cache[context.StylusPoints.Count - 1];
         if (currentStylusPoint == lastPoint)
         {
             return false;
         }
 
-        _cache[context._stylusPoints.Count] = currentStylusPoint;
-        context._stylusPoints.Enqueue(currentStylusPoint);
+        _cache[context.StylusPoints.Count] = currentStylusPoint;
+        context.StylusPoints.Enqueue(currentStylusPoint);
 
         if (AutoSoftPen)
         {
             for (int i = 0; i < 10; i++)
             {
-                if (context._stylusPoints.Count - i - 1 < 0)
+                if (context.StylusPoints.Count - i - 1 < 0)
                 {
                     break;
                 }
 
-                _cache[context._stylusPoints.Count - i - 1] = _cache[context._stylusPoints.Count - i - 1] with
+                _cache[context.StylusPoints.Count - i - 1] = _cache[context.StylusPoints.Count - i - 1] with
                 {
                     Pressure = Math.Max(Math.Min(0.1f * i, 0.5f), 0.01f)
                     //Pressure = 0.3f,
@@ -197,7 +197,7 @@ class SkInkCanvas
             }
         }
 
-        var pointList = _cache.AsSpan(0, context._stylusPoints.Count);
+        var pointList = _cache.AsSpan(0, context.StylusPoints.Count);
 
         var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, 20);
         _outlinePointList = outlinePointList;
