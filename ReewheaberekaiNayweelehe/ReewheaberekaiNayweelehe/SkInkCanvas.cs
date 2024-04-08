@@ -23,18 +23,31 @@ class SkInkCanvas
 
     public event EventHandler<Rect>? RenderBoundsChanged;
 
-    private Dictionary<int, InkingInputInfo> CurrentInputDictionary { get; } = new Dictionary<int, InkingInputInfo>();
+    private Dictionary<int, DrawStrokeContext> CurrentInputDictionary { get; } = new Dictionary<int, DrawStrokeContext>();
+
+    private const int MaxStylusCount = 7;
+    /// <summary>
+    /// 绘制使用的上下文信息
+    /// </summary>
+    /// <param name="inputInfo"></param>
+    class DrawStrokeContext(InkingInputInfo inputInfo)
+    {
+        public InkingInputInfo InputInfo { set; get; } = inputInfo;
+        public int DropPointCount { set; get; }
+        public readonly FixedQueue<StylusPoint> _stylusPoints = new FixedQueue<StylusPoint>(MaxStylusCount);
+    }
+    private readonly StylusPoint[] _cache = new StylusPoint[MaxStylusCount + 1];
 
     public void Down(InkingInputInfo info)
     {
-        CurrentInputDictionary.Add(info.Id, info);
+        CurrentInputDictionary.Add(info.Id, new DrawStrokeContext(info));
     }
 
     public void Move(InkingInputInfo info)
     {
-        info = UpdateInkingStylusPoint(info);
+        var context = UpdateInkingStylusPoint(info);
 
-        if (DrawStroke(info.StylusPoint, out var rect))
+        if (DrawStroke(context, out var rect))
         {
             RenderBoundsChanged?.Invoke(this, rect);
         }
@@ -42,10 +55,10 @@ class SkInkCanvas
 
     public void Up(InkingInputInfo info)
     {
-        if (CurrentInputDictionary.Remove(info.Id))
+        if (CurrentInputDictionary.Remove(info.Id, out var context))
         {
             DropPointCount = 0;
-            _stylusPoints.Clear();
+            context._stylusPoints.Clear();
         }
         else
         {
@@ -53,10 +66,11 @@ class SkInkCanvas
         }
     }
 
-    private InkingInputInfo UpdateInkingStylusPoint(InkingInputInfo info)
+    private DrawStrokeContext UpdateInkingStylusPoint(InkingInputInfo info)
     {
-        if (CurrentInputDictionary.TryGetValue(info.Id, out var lastInfo))
+        if (CurrentInputDictionary.TryGetValue(info.Id, out var context))
         {
+            var lastInfo = context.InputInfo;
             var stylusPoint = info.StylusPoint;
             var lastStylusPoint = lastInfo.StylusPoint;
             stylusPoint = stylusPoint with
@@ -70,12 +84,16 @@ class SkInkCanvas
             {
                 StylusPoint = stylusPoint
             };
-            CurrentInputDictionary[info.Id] = info;
 
-            return info;
+            context.InputInfo = info;
+            return context;
         }
-
-        return info;
+        else
+        {
+            context = new DrawStrokeContext(info);
+            CurrentInputDictionary.Add(info.Id, context);
+            return context;
+        }
     }
 
     public void Move(Point point)
@@ -89,20 +107,10 @@ class SkInkCanvas
 
     public void Move(StylusPoint point)
     {
-        if (DrawStroke(point, out var rect))
-        {
-            RenderBoundsChanged?.Invoke(this, rect);
-        }
-    }
-
-    public void Up(StylusPoint point)
-    {
-        if (DrawStroke(point, out var rect))
-        {
-            RenderBoundsChanged?.Invoke(this, rect);
-        }
-
-        _stylusPoints.Clear();
+        //if (DrawStroke(point, out var rect))
+        //{
+        //    RenderBoundsChanged?.Invoke(this, rect);
+        //}
     }
 
     private bool CanDropLastPoint(Span<StylusPoint> pointList, StylusPoint currentStylusPoint)
@@ -126,12 +134,14 @@ class SkInkCanvas
 
     public bool AutoSoftPen { set; get; } = true;
 
-    public bool DrawStroke(StylusPoint currentStylusPoint, out Rect drawRect)
+    private bool DrawStroke(DrawStrokeContext context, out Rect drawRect)
     {
+        StylusPoint currentStylusPoint = context.InputInfo.StylusPoint;
+
         drawRect = Rect.Zero;
-        if (_stylusPoints.Count == 0)
+        if (context._stylusPoints.Count == 0)
         {
-            _stylusPoints.Enqueue(currentStylusPoint);
+            context._stylusPoints.Enqueue(currentStylusPoint);
 
             return false;
         }
@@ -151,8 +161,8 @@ class SkInkCanvas
         //    return false;
         //}
 
-        _stylusPoints.CopyTo(_cache, 0);
-        if (CanDropLastPoint(_cache.AsSpan(0, _stylusPoints.Count), currentStylusPoint) && DropPointCount < 3)
+        context._stylusPoints.CopyTo(_cache, 0);
+        if (CanDropLastPoint(_cache.AsSpan(0, context._stylusPoints.Count), currentStylusPoint) && DropPointCount < 3)
         {
             // 丢点是为了让 SimpleInkRender 可以绘制更加平滑的折线。但是不能丢太多的点，否则将导致看起来断线
             DropPointCount++;
@@ -161,25 +171,25 @@ class SkInkCanvas
 
         DropPointCount = 0;
 
-        var lastPoint = _cache[_stylusPoints.Count - 1];
+        var lastPoint = _cache[context._stylusPoints.Count - 1];
         if (currentStylusPoint == lastPoint)
         {
             return false;
         }
 
-        _cache[_stylusPoints.Count] = currentStylusPoint;
-        _stylusPoints.Enqueue(currentStylusPoint);
+        _cache[context._stylusPoints.Count] = currentStylusPoint;
+        context._stylusPoints.Enqueue(currentStylusPoint);
 
         if (AutoSoftPen)
         {
             for (int i = 0; i < 10; i++)
             {
-                if (_stylusPoints.Count - i - 1 < 0)
+                if (context._stylusPoints.Count - i - 1 < 0)
                 {
                     break;
                 }
 
-                _cache[_stylusPoints.Count - i - 1] = _cache[_stylusPoints.Count - i - 1] with
+                _cache[context._stylusPoints.Count - i - 1] = _cache[context._stylusPoints.Count - i - 1] with
                 {
                     Pressure = Math.Max(Math.Min(0.1f * i, 0.5f), 0.01f)
                     //Pressure = 0.3f,
@@ -187,7 +197,7 @@ class SkInkCanvas
             }
         }
 
-        var pointList = _cache.AsSpan(0, _stylusPoints.Count);
+        var pointList = _cache.AsSpan(0, context._stylusPoints.Count);
 
         var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, 20);
         _outlinePointList = outlinePointList;
@@ -277,7 +287,5 @@ class SkInkCanvas
 
     public SKColor Color { get; set; } = SKColors.Red;
 
-    private const int MaxStylusCount = 7;
-    private readonly FixedQueue<StylusPoint> _stylusPoints = new FixedQueue<StylusPoint>(MaxStylusCount);
-    private readonly StylusPoint[] _cache = new StylusPoint[MaxStylusCount + 1];
+
 }
