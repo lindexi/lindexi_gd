@@ -9,10 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\..\..\Library\libeay32.dll" Link="libeay32.dll">
+    <None Include="..\..\..\..\Library\libssl-3.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="..\..\..\..\Library\ssleay32.dll" Link="ssleay32.dll">
+    <None Include="..\..\..\..\Library\libcrypto-3.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\..\..\Library\legacy.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

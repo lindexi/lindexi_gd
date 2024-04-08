@@ -8,38 +8,44 @@ namespace BingAccess
 {
     class Program
     {
-        // PInvoke declaration for OpenSSL functions
-        [DllImport("libeay32.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void ERR_load_crypto_strings();
+        // 下载 https://kb.firedaemon.com/support/solutions/articles/4000121705
 
-        [DllImport("libeay32.dll", CallingConvention = CallingConvention.Cdecl)]
+        // PInvoke declaration for OpenSSL functions
+        [DllImport("libcrypto-3.dll", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void ERR_load_CRYPTO_strings();
+
+        [DllImport("libssl-3.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern void EVP_cleanup();
 
-        [DllImport("ssleay32.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int SSL_library_init();
+        [DllImport("libssl-3.dll", EntryPoint = "OPENSSL_init_ssl", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int OPENSSL_init_ssl(ulong opts, IntPtr settings); // 对应 SSL_library_init
 
-        [DllImport("ssleay32.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libssl-3.dll",EntryPoint = "TLS_client_method", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr SSLv23_client_method();
 
-        [DllImport("ssleay32.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libssl-3.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr SSL_CTX_new(IntPtr method);
 
-        [DllImport("ssleay32.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libssl-3.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern void SSL_CTX_free(IntPtr ctx);
 
-        [DllImport("ssleay32.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libssl-3.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr BIO_new_ssl_connect(IntPtr ctx);
 
-        [DllImport("libeay32.dll",EntryPoint = "BIO_s_connect", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int BIO_do_connect(IntPtr bio);
+        //[DllImport("libssl-3.dll", EntryPoint = "BIO_do_handshake", CallingConvention = CallingConvention.Cdecl)]
+        //private static extern int BIO_do_connect(IntPtr bio);
+        // long BIO_ctrl(BIO *bp, int cmd, long larg, void *parg);
+        // # define BIO_do_handshake(b)     BIO_ctrl(b,BIO_C_DO_STATE_MACHINE,0,NULL)
+        [DllImport("libcrypto-3.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int BIO_ctrl(IntPtr bio, int cmd, long larg, IntPtr parg);
 
-        [DllImport("libeay32.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libcrypto-3.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern int BIO_puts(IntPtr bio, string data);
 
-        [DllImport("libeay32.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libcrypto-3.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern int BIO_read(IntPtr bio, byte[] buffer, int len);
 
-        [DllImport("libeay32.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libcrypto-3.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern int BIO_free_all(IntPtr bio);
 
         static void Main(string[] args)
@@ -47,8 +53,8 @@ namespace BingAccess
             try
             {
                 // Initialize OpenSSL
-                ERR_load_crypto_strings();
-                SSL_library_init();
+                ERR_load_CRYPTO_strings();
+                OPENSSL_init_ssl(0, IntPtr.Zero);
 
                 // Create SSL context
                 var ssLv23ClientMethod = SSLv23_client_method();
@@ -68,11 +74,14 @@ namespace BingAccess
                 }
 
                 // Set hostname and port
-                BIO_puts(bio, "www.bing.com:443");
+                BIO_puts(bio, "www.baidu.com:443");
 
                 // 找不到 BIO_do_connect 方法
                 // Perform SSL handshake
-                var bioDoConnect = BIO_do_connect(bio);
+                //var bioDoConnect = BIO_do_connect(bio);
+                // # define BIO_do_handshake(b)     BIO_ctrl(b,BIO_C_DO_STATE_MACHINE,0,NULL)
+                //  # define BIO_C_DO_STATE_MACHINE                  101
+                var bioDoConnect = BIO_ctrl(bio, 101, 0, IntPtr.Zero);
                 if (bioDoConnect <= 0)
                 {
                     Console.WriteLine("建立 SSL 连接失败");
