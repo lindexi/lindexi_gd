@@ -23,6 +23,61 @@ class SkInkCanvas
 
     public event EventHandler<Rect>? RenderBoundsChanged;
 
+    private Dictionary<int, InkingInputInfo> CurrentInputDictionary { get; } = new Dictionary<int, InkingInputInfo>();
+
+    public void Down(InkingInputInfo info)
+    {
+        CurrentInputDictionary.Add(info.Id, info);
+    }
+
+    public void Move(InkingInputInfo info)
+    {
+        info = UpdateInkingStylusPoint(info);
+
+        if (DrawStroke(info.StylusPoint, out var rect))
+        {
+            RenderBoundsChanged?.Invoke(this, rect);
+        }
+    }
+
+    public void Up(InkingInputInfo info)
+    {
+        if (CurrentInputDictionary.Remove(info.Id))
+        {
+            DropPointCount = 0;
+            _stylusPoints.Clear();
+        }
+        else
+        {
+            // 诡异的输出内容
+        }
+    }
+
+    private InkingInputInfo UpdateInkingStylusPoint(InkingInputInfo info)
+    {
+        if (CurrentInputDictionary.TryGetValue(info.Id, out var lastInfo))
+        {
+            var stylusPoint = info.StylusPoint;
+            var lastStylusPoint = lastInfo.StylusPoint;
+            stylusPoint = stylusPoint with
+            {
+                Pressure = stylusPoint.IsPressureEnable ? stylusPoint.Pressure : lastStylusPoint.Pressure,
+                Width = stylusPoint.Width ?? lastStylusPoint.Width,
+                Height = stylusPoint.Height ?? lastStylusPoint.Height,
+            };
+
+            info = info with
+            {
+                StylusPoint = stylusPoint
+            };
+            CurrentInputDictionary[info.Id] = info;
+
+            return info;
+        }
+
+        return info;
+    }
+
     public void Move(Point point)
     {
         var x = point.X;
