@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
+using System.Xml.Linq;
 
 namespace BingAccess
 {
@@ -19,6 +20,14 @@ namespace BingAccess
         // int OPENSSL_init_crypto(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings);
         [DllImport("libcrypto-3.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int OPENSSL_init_crypto(long opts, IntPtr settings);
+
+        //unsigned long ERR_get_error(void);
+        [DllImport("libcrypto-3.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int ERR_get_error();
+
+        //const char* ERR_reason_error_string(unsigned long e);
+        [DllImport("libcrypto-3.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr ERR_reason_error_string(int e);
 
         // # define OPENSSL_INIT_LOAD_CONFIG            0x00000040L
         // # define OPENSSL_INIT_ADD_ALL_DIGESTS        0x00000008L
@@ -84,8 +93,14 @@ namespace BingAccess
         [DllImport("libssl-3.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern int SSL_ctrl(IntPtr ssl, int cmd, long larg, IntPtr parg);
 
+        /*__owur int SSL_CTX_load_verify_locations(SSL_CTX *ctx,
+           const char *CAfile,
+           const char *CApath);*/
 
-       [DllImport("libssl-3.dll", EntryPoint = "OPENSSL_init_ssl", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("libssl-3.dll", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int SSL_CTX_load_verify_locations(IntPtr ctx, IntPtr CAFile, IntPtr CAFolderPath);
+
+        [DllImport("libssl-3.dll", EntryPoint = "OPENSSL_init_ssl", CallingConvention = CallingConvention.Cdecl)]
         private static extern int OPENSSL_init_ssl(ulong opts, IntPtr settings); // 对应 SSL_library_init
 
         [DllImport("libssl-3.dll", EntryPoint = "TLS_client_method", CallingConvention = CallingConvention.Cdecl)]
@@ -163,6 +178,29 @@ namespace BingAccess
                     return;
                 }
 
+                var errGetError = ERR_get_error();
+                var errReasonErrorString = ERR_reason_error_string(errGetError);
+
+                var ptrToStringAnsi = Marshal.PtrToStringAnsi(errReasonErrorString);
+
+                var CAFolderPath = "C:\\lindexi\\CA";
+                var byteCount = Encoding.ASCII.GetByteCount(CAFolderPath);
+                var folderBuffer = new byte[byteCount + 1];
+                Encoding.ASCII.GetBytes(CAFolderPath.AsSpan(), folderBuffer.AsSpan());
+                var gcHandle = GCHandle.Alloc(folderBuffer,GCHandleType.Pinned);
+
+                var result = SSL_CTX_load_verify_locations(ctx, IntPtr.Zero, gcHandle.AddrOfPinnedObject());
+
+                if (result != 0)
+                {
+                    errGetError = ERR_get_error();
+                    errReasonErrorString = ERR_reason_error_string(errGetError);
+
+                    ptrToStringAnsi = Marshal.PtrToStringAnsi(errReasonErrorString);
+
+                    Console.WriteLine("Error: {0}\n", ptrToStringAnsi);
+                }
+
                 // Create SSL connection
                 IntPtr bio = BIO_new_ssl_connect(ctx);
                 if (bio == IntPtr.Zero)
@@ -171,6 +209,8 @@ namespace BingAccess
                     SSL_CTX_free(ctx);
                     return;
                 }
+
+              
 
                 IntPtr ssl = IntPtr.Zero;
                 BIO_get_ssl(bio, &ssl);
@@ -188,6 +228,13 @@ namespace BingAccess
                 var bioDoConnect = BIO_ctrl(bio, 101, 0, IntPtr.Zero);
                 if (bioDoConnect <= 0)
                 {
+                    errGetError = ERR_get_error();
+                    errReasonErrorString = ERR_reason_error_string(errGetError);
+
+                    ptrToStringAnsi = Marshal.PtrToStringAnsi(errReasonErrorString);
+
+                    Console.WriteLine("Error: {0}\n", ptrToStringAnsi);
+
                     Console.WriteLine("建立 SSL 连接失败");
                     return;
                 }
