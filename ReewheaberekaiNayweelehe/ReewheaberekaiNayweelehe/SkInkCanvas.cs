@@ -260,7 +260,7 @@ class SkInkCanvas
 
         var skPathBounds = skPath.Bounds;
 
-        var additionSize = 10;
+        var additionSize = 30;
         drawRect = new Rect(skPathBounds.Left - additionSize, skPathBounds.Top - additionSize,
             skPathBounds.Width + additionSize * 2, skPathBounds.Height + additionSize * 2);
 

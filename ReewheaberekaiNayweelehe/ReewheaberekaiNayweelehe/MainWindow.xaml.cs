@@ -18,6 +18,7 @@ using Microsoft.Maui.Graphics;
 using SkiaSharp;
 
 using Point = Microsoft.Maui.Graphics.Point;
+using Rect = Microsoft.Maui.Graphics.Rect;
 using StylusPoint = BujeeberehemnaNurgacolarje.StylusPoint;
 
 namespace ReewheaberekaiNayweelehe
@@ -90,6 +91,22 @@ namespace ReewheaberekaiNayweelehe
 
         public int PixelWidth => (int) Width;
         public int PixelHeight => (int) Height;
+
+        public void Update(Rect rect)
+        {
+            var writeableBitmap = _writeableBitmap;
+            writeableBitmap.Lock();
+
+            var dirtyRect = new Int32Rect((int)rect.X, (int)rect.Y, (int) rect.Width, (int) rect.Height);
+            dirtyRect = new Int32Rect(100, 100, 600, 600);
+            dirtyRect = new Int32Rect(0, 0, PixelWidth, PixelHeight);
+
+            var pixels = SkBitmap.GetPixels(out var length);
+            var stride = 4 * PixelWidth;
+            writeableBitmap.WritePixels(dirtyRect, pixels, (int) PixelWidth * PixelHeight * 4, stride);
+            writeableBitmap.AddDirtyRect(dirtyRect);
+            writeableBitmap.Unlock();
+        }
     }
 
     /// <summary>
@@ -104,37 +121,33 @@ namespace ReewheaberekaiNayweelehe
             TouchDown += MainWindow_TouchDown;
             TouchMove += MainWindow_TouchMove;
             TouchUp += MainWindow_TouchUp;
+
+            _canvas.RenderBoundsChanged += (o, rect) =>
+            {
+                Image.Update(rect);
+            };
         }
 
         private void MainWindow_TouchDown(object sender, TouchEventArgs e)
         {
-            Draw(canvas =>
-            {
-                _canvas.SkBitmap = Image.SkBitmap;
+            _canvas.SkBitmap = Image.SkBitmap;
 
-                _canvas.SetCanvas(canvas);
+            _canvas.SetCanvas(Image.SkCanvas);
 
-                var touchPoint = e.GetTouchPoint(this);
-                _canvas.Down(new InkingInputInfo(e.TouchDevice.Id, new StylusPoint(touchPoint.Position.X, touchPoint.Position.Y), (ulong) e.Timestamp));
-            });
+            var touchPoint = e.GetTouchPoint(this);
+            _canvas.Down(new InkingInputInfo(e.TouchDevice.Id, new StylusPoint(touchPoint.Position.X, touchPoint.Position.Y), (ulong) e.Timestamp));
         }
 
         private void MainWindow_TouchMove(object sender, TouchEventArgs e)
         {
-            Draw(canvas =>
-            {
-                var touchPoint = e.GetTouchPoint(this);
-                _canvas.Move(new InkingInputInfo(e.TouchDevice.Id, new StylusPoint(touchPoint.Position.X, touchPoint.Position.Y), (ulong) e.Timestamp));
-            });
+            var touchPoint = e.GetTouchPoint(this);
+            _canvas.Move(new InkingInputInfo(e.TouchDevice.Id, new StylusPoint(touchPoint.Position.X, touchPoint.Position.Y), (ulong) e.Timestamp));
         }
 
         private void MainWindow_TouchUp(object sender, TouchEventArgs e)
         {
-            Draw(canvas =>
-            {
-                var touchPoint = e.GetTouchPoint(this);
-                _canvas.Up(new InkingInputInfo(e.TouchDevice.Id, new StylusPoint(touchPoint.Position.X, touchPoint.Position.Y), (ulong) e.Timestamp));
-            });
+            var touchPoint = e.GetTouchPoint(this);
+            _canvas.Up(new InkingInputInfo(e.TouchDevice.Id, new StylusPoint(touchPoint.Position.X, touchPoint.Position.Y), (ulong) e.Timestamp));
         }
 
         private void Draw(Action<SKCanvas> action)
