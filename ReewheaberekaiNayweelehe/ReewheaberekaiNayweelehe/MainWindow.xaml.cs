@@ -14,12 +14,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-using Microsoft.Maui.Graphics;
-
 using SkiaSharp;
 
-using Point = Microsoft.Maui.Graphics.Point;
-using Rect = Microsoft.Maui.Graphics.Rect;
 using StylusPoint = BujeeberehemnaNurgacolarje.StylusPoint;
 
 namespace ReewheaberekaiNayweelehe
@@ -129,11 +125,9 @@ namespace ReewheaberekaiNayweelehe
                 Image.Update();
             };
 
-            Button.Click += Button_OnClick;
-
             Popup.Closed += (sender, args) =>
             {
-                Button.Click += Button_OnClick;
+                Button.IsEnabled = true;
             };
         }
 
@@ -187,7 +181,8 @@ namespace ReewheaberekaiNayweelehe
 
             Popup.IsOpen = true;
 
-            Button.Click -= Button_OnClick;
+            var button = (Button) sender;
+            button.IsEnabled = false;
         }
 
         private readonly SkInkCanvas _canvas = new SkInkCanvas();
