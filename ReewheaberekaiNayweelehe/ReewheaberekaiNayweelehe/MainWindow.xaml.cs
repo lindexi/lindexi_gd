@@ -129,9 +129,11 @@ namespace ReewheaberekaiNayweelehe
                 Image.Update();
             };
 
+            Button.Click += Button_OnClick;
+
             Popup.Closed += (sender, args) =>
             {
-                Button.IsEnabled = true;
+                Button.Click += Button_OnClick;
             };
         }
 
@@ -185,8 +187,7 @@ namespace ReewheaberekaiNayweelehe
 
             Popup.IsOpen = true;
 
-            var button = (Button) sender;
-            button.IsEnabled = false;
+            Button.Click -= Button_OnClick;
         }
 
         private readonly SkInkCanvas _canvas = new SkInkCanvas();
