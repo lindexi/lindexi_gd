@@ -175,5 +175,10 @@ namespace ReewheaberekaiNayweelehe
         }
 
         private readonly SkInkCanvas _canvas = new SkInkCanvas();
+
+        private void UIElement_OnMouseDown(object sender, MouseButtonEventArgs e)
+        {
+
+        }
     }
 }
