@@ -35,7 +35,7 @@ class SkInkCanvas
     /// <summary>
     /// 取多少个点做笔尖
     /// </summary>
-    private const int MaxTipStylusCount = 100;
+    private const int MaxTipStylusCount = 7;
 
     /// <summary>
     /// 绘制使用的上下文信息
@@ -255,6 +255,9 @@ class SkInkCanvas
         skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
         //skPath.Close();
 
+        context.InkStrokePath ??= new SKPath();
+        context.InkStrokePath.AddPath(skPath);
+
         var skPathBounds = skPath.Bounds;
 
         var additionSize = 10;
@@ -316,7 +319,7 @@ class SkInkCanvas
         skCanvas.DrawBitmap(_originBackground, 0, 0);
 
         skPaint.Color = Color;
-        skCanvas.DrawPath(skPath, skPaint);
+        skCanvas.DrawPath(context.InkStrokePath, skPaint);
 
         //skPaint.Style = SKPaintStyle.Fill;
         //skPaint.Color = SKColors.White;
