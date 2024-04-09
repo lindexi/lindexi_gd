@@ -20,6 +20,14 @@ namespace BingAccess
         [DllImport("libcrypto-3.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int OPENSSL_init_crypto(long opts, IntPtr settings);
 
+        //unsigned long ERR_get_error(void);
+        [DllImport("libcrypto-3.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int ERR_get_error();
+
+        //const char* ERR_reason_error_string(unsigned long e);
+        [DllImport("libcrypto-3.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr ERR_reason_error_string(int e);
+
         // # define OPENSSL_INIT_LOAD_CONFIG            0x00000040L
         // # define OPENSSL_INIT_ADD_ALL_DIGESTS        0x00000008L
         // # define OPENSSL_INIT_ADD_ALL_CIPHERS        0x00000004L
@@ -172,6 +180,11 @@ namespace BingAccess
                     return;
                 }
 
+                var errGetError = ERR_get_error();
+                var errReasonErrorString = ERR_reason_error_string(errGetError);
+
+                var ptrToStringAnsi = Marshal.PtrToStringAnsi(errReasonErrorString);
+
                 IntPtr ssl = IntPtr.Zero;
                 BIO_get_ssl(bio, &ssl);
                 // # define SSL_MODE_AUTO_RETRY 0x00000004U
@@ -188,6 +201,13 @@ namespace BingAccess
                 var bioDoConnect = BIO_ctrl(bio, 101, 0, IntPtr.Zero);
                 if (bioDoConnect <= 0)
                 {
+                     errGetError = ERR_get_error();
+                     errReasonErrorString = ERR_reason_error_string(errGetError);
+
+                     ptrToStringAnsi = Marshal.PtrToStringAnsi(errReasonErrorString);
+
+                    Console.WriteLine("Error: {0}\n", ptrToStringAnsi);
+
                     Console.WriteLine("建立 SSL 连接失败");
                     return;
                 }
