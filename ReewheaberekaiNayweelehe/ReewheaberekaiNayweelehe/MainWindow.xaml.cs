@@ -92,14 +92,15 @@ namespace ReewheaberekaiNayweelehe
         public int PixelWidth => (int) Width;
         public int PixelHeight => (int) Height;
 
-        public void Update(Rect rect)
+        public void Update()
         {
             var writeableBitmap = _writeableBitmap;
             writeableBitmap.Lock();
 
-            var dirtyRect = new Int32Rect((int)rect.X, (int)rect.Y, (int) rect.Width, (int) rect.Height);
-            dirtyRect = new Int32Rect(100, 100, 600, 600);
-            dirtyRect = new Int32Rect(0, 0, PixelWidth, PixelHeight);
+            //var dirtyRect = new Int32Rect((int)rect.X, (int)rect.Y, (int) rect.Width, (int) rect.Height);
+            //dirtyRect = new Int32Rect(100, 100, 600, 600);
+            // 由于 Skia 不支持范围读取，因此这里需要全部刷新
+            var dirtyRect = new Int32Rect(0, 0, PixelWidth, PixelHeight);
 
             var pixels = SkBitmap.GetPixels(out var length);
             var stride = 4 * PixelWidth;
@@ -124,7 +125,7 @@ namespace ReewheaberekaiNayweelehe
 
             _canvas.RenderBoundsChanged += (o, rect) =>
             {
-                Image.Update(rect);
+                Image.Update();
             };
         }
 
