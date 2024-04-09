@@ -332,9 +332,6 @@ class SkInkCanvas
         //skPaint.Style = SKPaintStyle.Stroke;
         //skPaint.StrokeWidth = 1f;
 
-        // 清理为背景，尝试修复锯齿
-        skPaint.Color = SKColors.Transparent;
-        skCanvas.DrawRect(skRect, skPaint);
         skCanvas.DrawBitmap(_originBackground, 0, 0);
 
         skPaint.Color = Color;
