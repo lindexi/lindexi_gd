@@ -1,4 +1,6 @@
 ﻿#nullable enable
+using System.Numerics;
+
 using BujeeberehemnaNurgacolarje;
 
 using Microsoft.Maui.Graphics;
@@ -20,6 +22,11 @@ class SkInkCanvas
 
     public SKBitmap? SkBitmap { set; get; }
 
+    /// <summary>
+    /// 原来的背景
+    /// </summary>
+    private SKBitmap? _originBackground;
+
     //public SKSurface? SkSurface { set; get; }
 
     public event EventHandler<Rect>? RenderBoundsChanged;
@@ -27,6 +34,9 @@ class SkInkCanvas
     private Dictionary<int, DrawStrokeContext> CurrentInputDictionary { get; } =
         new Dictionary<int, DrawStrokeContext>();
 
+    /// <summary>
+    /// 取多少个点做笔尖
+    /// </summary>
     private const int MaxTipStylusCount = 7;
 
     /// <summary>
@@ -57,6 +67,19 @@ class SkInkCanvas
 
     private void InputStart()
     {
+        // 这是浅拷贝
+        //_originBackground = SkBitmap?.Copy();
+
+        if (SkBitmap is null)
+        {
+            return;
+        }
+
+        _originBackground = new SKBitmap(new SKImageInfo(SkBitmap.Width, SkBitmap.Height, SkBitmap.ColorType, SkBitmap.AlphaType,
+                    SkBitmap.ColorSpace), SKBitmapAllocFlags.None);
+
+        using var skCanvas = new SKCanvas(_originBackground);
+        skCanvas.DrawBitmap(SkBitmap, 0, 0);
     }
 
     public void Down(InkingInputInfo info)
@@ -100,6 +123,9 @@ class SkInkCanvas
 
     private void InputComplete()
     {
+        // 不加这句话，将会在 foreach 里炸掉，不知道是不是 CLR 的坑
+        var enumerator = CurrentInputDictionary.GetEnumerator();
+
         foreach (var drawStrokeContext in CurrentInputDictionary)
         {
             drawStrokeContext.Value.Dispose();
@@ -291,8 +317,7 @@ class SkInkCanvas
 
         //skCanvas.Clear(SKColors.RosyBrown);
 
-        //skPaint.Color = new SKColor(0x12, 0x56, 0x22, 0xF1);
-        //skCanvas.DrawRect(skRect, skPaint);
+
 
         //// 似乎没有锯齿
         //skCanvas.DrawBitmap(background, new SKRect(0, 0, skRect.Width, skRect.Height), new SKRect(0, 0, skRect.Width, skRect.Height));
@@ -306,6 +331,13 @@ class SkInkCanvas
         //skPaint.Color = SKColors.GhostWhite;
         //skPaint.Style = SKPaintStyle.Stroke;
         //skPaint.StrokeWidth = 1f;
+
+        // 清理为背景，尝试修复锯齿
+        skPaint.Color = SKColors.Transparent;
+        skCanvas.DrawRect(skRect, skPaint);
+        skCanvas.DrawBitmap(_originBackground, 0, 0);
+
+        skPaint.Color = Color;
         skCanvas.DrawPath(skPath, skPaint);
 
         //skPaint.Style = SKPaintStyle.Fill;
