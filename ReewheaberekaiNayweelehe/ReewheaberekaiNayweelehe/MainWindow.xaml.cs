@@ -194,6 +194,7 @@ namespace ReewheaberekaiNayweelehe
             });
         }
 
+<<<<<<< HEAD
         private void UIElement_OnMouseMove(object sender, MouseEventArgs e)
         {
             var position = e.GetPosition(this);
@@ -229,6 +230,8 @@ namespace ReewheaberekaiNayweelehe
 
         //private Point _lastPosition = new Point(0, 0);
 
+=======
+>>>>>>> cfa8dc1ea27e122ee5861edb432763fb1c4c176f
         private readonly SkInkCanvas _canvas = new SkInkCanvas();
 >>>>>>> 63c1f1c86eea8a8ce69b2f3ea01a87f653cd50ac
     }

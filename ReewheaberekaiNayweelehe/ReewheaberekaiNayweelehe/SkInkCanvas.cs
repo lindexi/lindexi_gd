@@ -1,6 +1,4 @@
 ﻿#nullable enable
-using System.Numerics;
-
 using BujeeberehemnaNurgacolarje;
 
 using Microsoft.Maui.Graphics;
@@ -37,7 +35,7 @@ class SkInkCanvas
     /// <summary>
     /// 取多少个点做笔尖
     /// </summary>
-    private const int MaxTipStylusCount = 7;
+    private const int MaxTipStylusCount = 100;
 
     /// <summary>
     /// 绘制使用的上下文信息
@@ -162,23 +160,6 @@ class SkInkCanvas
             CurrentInputDictionary.Add(info.Id, context);
             return context;
         }
-    }
-
-    public void Move(Point point)
-    {
-        var x = point.X;
-        var y = point.Y;
-        var currentStylusPoint = new StylusPoint(x, y);
-
-        Move(currentStylusPoint);
-    }
-
-    public void Move(StylusPoint point)
-    {
-        //if (DrawStroke(point, out var rect))
-        //{
-        //    RenderBoundsChanged?.Invoke(this, rect);
-        //}
     }
 
     private bool CanDropLastPoint(Span<StylusPoint> pointList, StylusPoint currentStylusPoint)
