@@ -12,11 +12,13 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+
 using Microsoft.Maui.Graphics;
 
 using SkiaSharp;
 
 using Point = Microsoft.Maui.Graphics.Point;
+using StylusPoint = BujeeberehemnaNurgacolarje.StylusPoint;
 
 namespace ReewheaberekaiNayweelehe
 {
@@ -98,6 +100,41 @@ namespace ReewheaberekaiNayweelehe
         public MainWindow()
         {
             InitializeComponent();
+
+            TouchDown += MainWindow_TouchDown;
+            TouchMove += MainWindow_TouchMove;
+            TouchUp += MainWindow_TouchUp;
+        }
+
+        private void MainWindow_TouchDown(object sender, TouchEventArgs e)
+        {
+            Draw(canvas =>
+            {
+                _canvas.SkBitmap = Image.SkBitmap;
+
+                _canvas.SetCanvas(canvas);
+
+                var touchPoint = e.GetTouchPoint(this);
+                _canvas.Down(new InkingInputInfo(e.TouchDevice.Id, new StylusPoint(touchPoint.Position.X, touchPoint.Position.Y), (ulong) e.Timestamp));
+            });
+        }
+
+        private void MainWindow_TouchMove(object sender, TouchEventArgs e)
+        {
+            Draw(canvas =>
+            {
+                var touchPoint = e.GetTouchPoint(this);
+                _canvas.Move(new InkingInputInfo(e.TouchDevice.Id, new StylusPoint(touchPoint.Position.X, touchPoint.Position.Y), (ulong) e.Timestamp));
+            });
+        }
+
+        private void MainWindow_TouchUp(object sender, TouchEventArgs e)
+        {
+            Draw(canvas =>
+            {
+                var touchPoint = e.GetTouchPoint(this);
+                _canvas.Up(new InkingInputInfo(e.TouchDevice.Id, new StylusPoint(touchPoint.Position.X, touchPoint.Position.Y), (ulong) e.Timestamp));
+            });
         }
 
         private void Draw(Action<SKCanvas> action)
