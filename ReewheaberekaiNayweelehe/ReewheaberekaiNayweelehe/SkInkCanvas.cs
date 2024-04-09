@@ -25,7 +25,7 @@ class SkInkCanvas
 
     private Dictionary<int, DrawStrokeContext> CurrentInputDictionary { get; } = new Dictionary<int, DrawStrokeContext>();
 
-    private const int MaxStylusCount = 7;
+    private const int MaxTipStylusCount = 7;
     /// <summary>
     /// 绘制使用的上下文信息
     /// </summary>
@@ -34,9 +34,12 @@ class SkInkCanvas
     {
         public InkingInputInfo InputInfo { set; get; } = inputInfo;
         public int DropPointCount { set; get; }
-        public readonly FixedQueue<StylusPoint> StylusPoints = new FixedQueue<StylusPoint>(MaxStylusCount);
+        /// <summary>
+        /// 笔尖的点
+        /// </summary>
+        public readonly FixedQueue<StylusPoint> TipStylusPoints = new FixedQueue<StylusPoint>(MaxTipStylusCount);
     }
-    private readonly StylusPoint[] _cache = new StylusPoint[MaxStylusCount + 1];
+    private readonly StylusPoint[] _cache = new StylusPoint[MaxTipStylusCount + 1];
 
     public void Down(InkingInputInfo info)
     {
@@ -64,7 +67,7 @@ class SkInkCanvas
             }
 
             context.DropPointCount = 0;
-            context.StylusPoints.Clear();
+            context.TipStylusPoints.Clear();
         }
         else
         {
@@ -143,9 +146,9 @@ class SkInkCanvas
         StylusPoint currentStylusPoint = context.InputInfo.StylusPoint;
 
         drawRect = Rect.Zero;
-        if (context.StylusPoints.Count == 0)
+        if (context.TipStylusPoints.Count == 0)
         {
-            context.StylusPoints.Enqueue(currentStylusPoint);
+            context.TipStylusPoints.Enqueue(currentStylusPoint);
 
             return false;
         }
@@ -165,8 +168,8 @@ class SkInkCanvas
         //    return false;
         //}
 
-        context.StylusPoints.CopyTo(_cache, 0);
-        if (CanDropLastPoint(_cache.AsSpan(0, context.StylusPoints.Count), currentStylusPoint) && context.DropPointCount < 3)
+        context.TipStylusPoints.CopyTo(_cache, 0);
+        if (CanDropLastPoint(_cache.AsSpan(0, context.TipStylusPoints.Count), currentStylusPoint) && context.DropPointCount < 3)
         {
             // 丢点是为了让 SimpleInkRender 可以绘制更加平滑的折线。但是不能丢太多的点，否则将导致看起来断线
             context.DropPointCount++;
@@ -175,25 +178,25 @@ class SkInkCanvas
 
         context.DropPointCount = 0;
 
-        var lastPoint = _cache[context.StylusPoints.Count - 1];
+        var lastPoint = _cache[context.TipStylusPoints.Count - 1];
         if (currentStylusPoint == lastPoint)
         {
             return false;
         }
 
-        _cache[context.StylusPoints.Count] = currentStylusPoint;
-        context.StylusPoints.Enqueue(currentStylusPoint);
+        _cache[context.TipStylusPoints.Count] = currentStylusPoint;
+        context.TipStylusPoints.Enqueue(currentStylusPoint);
 
         if (AutoSoftPen)
         {
             for (int i = 0; i < 10; i++)
             {
-                if (context.StylusPoints.Count - i - 1 < 0)
+                if (context.TipStylusPoints.Count - i - 1 < 0)
                 {
                     break;
                 }
 
-                _cache[context.StylusPoints.Count - i - 1] = _cache[context.StylusPoints.Count - i - 1] with
+                _cache[context.TipStylusPoints.Count - i - 1] = _cache[context.TipStylusPoints.Count - i - 1] with
                 {
                     Pressure = Math.Max(Math.Min(0.1f * i, 0.5f), 0.01f)
                     //Pressure = 0.3f,
@@ -201,7 +204,7 @@ class SkInkCanvas
             }
         }
 
-        var pointList = _cache.AsSpan(0, context.StylusPoints.Count);
+        var pointList = _cache.AsSpan(0, context.TipStylusPoints.Count);
 
         var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, 20);
         _outlinePointList = outlinePointList;
