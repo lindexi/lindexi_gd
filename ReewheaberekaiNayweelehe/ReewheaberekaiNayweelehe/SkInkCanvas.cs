@@ -27,6 +27,9 @@ class SkInkCanvas
     private Dictionary<int, DrawStrokeContext> CurrentInputDictionary { get; } =
         new Dictionary<int, DrawStrokeContext>();
 
+    /// <summary>
+    /// 取多少个点做笔尖
+    /// </summary>
     private const int MaxTipStylusCount = 7;
 
     /// <summary>
