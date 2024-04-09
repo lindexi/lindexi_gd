@@ -281,7 +281,7 @@ class SkInkCanvas
             skPathBounds.Width + additionSize * 2, skPathBounds.Height + additionSize * 2);
 
         var skCanvas = _skCanvas;
-        //skCanvas.Clear(SKColors.Transparent);
+        skCanvas.Clear(SKColors.Transparent);
         //skCanvas.Translate(-minX,-minY);
         using var skPaint = new SKPaint();
         skPaint.StrokeWidth = 0.1f;
