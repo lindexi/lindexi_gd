@@ -164,27 +164,6 @@ namespace ReewheaberekaiNayweelehe
             });
         }
 
-        private void UIElement_OnMouseMove(object sender, MouseEventArgs e)
-        {
-            var position = e.GetPosition(this);
-            Draw(canvas =>
-            {
-                //_canvas.SkSurface = Image.SkSurface;
-                _canvas.SkBitmap = Image.SkBitmap;
-
-                _canvas.SetCanvas(canvas);
-                _canvas.Move(new Point(position.X, position.Y));
-
-                //using var skPaint = new SKPaint() { Color = new SKColor(0, 0, 0), TextSize = 100 };
-                //canvas.DrawLine(new SKPoint((float) _lastPosition.X, (float) _lastPosition.Y),
-                //    new SKPoint((float) position.X, (float) position.Y), skPaint);
-            });
-
-            //_lastPosition = position;
-        }
-
-        //private Point _lastPosition = new Point(0, 0);
-
         private readonly SkInkCanvas _canvas = new SkInkCanvas();
     }
 }
