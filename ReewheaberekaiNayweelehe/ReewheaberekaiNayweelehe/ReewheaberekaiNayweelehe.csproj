@@ -2,19 +2,12 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-<<<<<<< HEAD
-    <TargetFramework>net5.0</TargetFramework>
-=======
     <TargetFramework>net8.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
->>>>>>> 63c1f1c86eea8a8ce69b2f3ea01a87f653cd50ac
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
   <ItemGroup>
-<<<<<<< HEAD
-    <PackageReference Include="SkiaSharp" Version="2.80.1" />
-=======
     <Compile Include="..\..\BujeeberehemnaNurgacolarje\FixedQueue.cs" Link="FixedQueue.cs" />
     <Compile Include="..\..\BujeeberehemnaNurgacolarje\SimpleInkRender.cs" Link="SimpleInkRender.cs" />
     <Compile Include="..\..\BujeeberehemnaNurgacolarje\StylusPoint.cs" Link="StylusPoint.cs" />
@@ -23,7 +16,6 @@
   <ItemGroup>
     <PackageReference Include="SkiaSharp" Version="2.88.7" />
     <PackageReference Include="Microsoft.Maui.Graphics" Version="6.0.300" />
->>>>>>> 63c1f1c86eea8a8ce69b2f3ea01a87f653cd50ac
   </ItemGroup>
 
 </Project>
