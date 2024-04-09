@@ -14,12 +14,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-using Microsoft.Maui.Graphics;
-
 using SkiaSharp;
 
-using Point = Microsoft.Maui.Graphics.Point;
-using Rect = Microsoft.Maui.Graphics.Rect;
 using StylusPoint = BujeeberehemnaNurgacolarje.StylusPoint;
 
 namespace ReewheaberekaiNayweelehe
