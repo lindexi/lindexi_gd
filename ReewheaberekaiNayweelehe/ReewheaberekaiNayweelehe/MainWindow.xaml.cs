@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -124,11 +123,6 @@ namespace ReewheaberekaiNayweelehe
             {
                 Image.Update();
             };
-
-            Popup.Closed += (sender, args) =>
-            {
-                Button.IsEnabled = true;
-            };
         }
 
         private void MainWindow_TouchDown(object sender, TouchEventArgs e)
@@ -160,31 +154,31 @@ namespace ReewheaberekaiNayweelehe
 
         private void Button_OnClick(object sender, RoutedEventArgs e)
         {
-            //Draw(canvas =>
-            //{
-            //    //using var skPaint = new SKPaint() { Color = new SKColor(0, 0, 0), TextSize = 100 };
-            //    //canvas.DrawLine(10, 10, 100, 100, skPaint);
+            Draw(canvas =>
+            {
+                //using var skPaint = new SKPaint() { Color = new SKColor(0, 0, 0), TextSize = 100 };
+                //canvas.DrawLine(10, 10, 100, 100, skPaint);
 
-            //    _canvas.SkBitmap = Image.SkBitmap;
+                _canvas.SkBitmap = Image.SkBitmap;
 
-            //    _canvas.SetCanvas(canvas);
+                _canvas.SetCanvas(canvas);
 
-            //    using var skPaint = new SKPaint();
-            //    skPaint.StrokeWidth = 10f;
-            //    skPaint.Color = SKColors.Red;
-            //    skPaint.IsAntialias = true;
-            //    skPaint.FilterQuality = SKFilterQuality.High;
-            //    skPaint.Style = SKPaintStyle.Stroke;
+                using var skPaint = new SKPaint();
+                skPaint.StrokeWidth = 10f;
+                skPaint.Color = SKColors.Red;
+                skPaint.IsAntialias = true;
+                skPaint.FilterQuality = SKFilterQuality.High;
+                skPaint.Style = SKPaintStyle.Stroke;
 
-            //    canvas.DrawCircle(300, 300, 100, skPaint);
-            //});
-
-            Popup.IsOpen = true;
-
-            var button = (Button) sender;
-            button.IsEnabled = false;
+                canvas.DrawCircle(300, 300, 100, skPaint);
+            });
         }
 
         private readonly SkInkCanvas _canvas = new SkInkCanvas();
+
+        private void UIElement_OnMouseDown(object sender, MouseButtonEventArgs e)
+        {
+
+        }
     }
 }

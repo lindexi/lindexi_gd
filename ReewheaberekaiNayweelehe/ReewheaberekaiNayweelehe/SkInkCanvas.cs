@@ -249,7 +249,6 @@ class SkInkCanvas
         var pointList = _cache.AsSpan(0, context.TipStylusPoints.Count);
 
         var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, 20);
-        _outlinePointList = outlinePointList;
 
         using var skPath = new SKPath();
         skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
@@ -274,8 +273,8 @@ class SkInkCanvas
         skPaint.FilterQuality = SKFilterQuality.High;
         skPaint.Style = SKPaintStyle.Fill;
 
-        var skRect = new SKRect((float) drawRect.Left, (float) drawRect.Top, (float) drawRect.Right,
-            (float) drawRect.Bottom);
+        //var skRect = new SKRect((float) drawRect.Left, (float) drawRect.Top, (float) drawRect.Right,
+        //    (float) drawRect.Bottom);
 
         // 经过测试，似乎只有纯色画在下面才能没有锯齿，否则都会存在锯齿
 
@@ -319,28 +318,19 @@ class SkInkCanvas
         skCanvas.DrawBitmap(_originBackground, 0, 0);
 
         skPaint.Color = Color;
-        skCanvas.DrawPath(context.InkStrokePath, skPaint);
+        //skCanvas.DrawPath(context.InkStrokePath, skPaint);
+        var enumerator = CurrentInputDictionary.GetEnumerator();
 
-        //skPaint.Style = SKPaintStyle.Fill;
-        //skPaint.Color = SKColors.White;
-        //foreach (var stylusPoint in pointList)
-        //{
-        //    skCanvas.DrawCircle((float) stylusPoint.Point.X, (float) stylusPoint.Point.Y, 1, skPaint);
-        //}
-
-        //skPaint.Style = SKPaintStyle.Fill;
-        //skPaint.Color = SKColors.Coral;
-        //foreach (var point in outlinePointList)
-        //{
-        //    skCanvas.DrawCircle((float) point.X, (float) point.Y, 2, skPaint);
-
-        //}
-        //drawRect = new Rect(0, 0, 600, 600);
+        foreach (var drawStrokeContext in CurrentInputDictionary)
+        {
+            if (drawStrokeContext.Value.InkStrokePath is {} path)
+            {
+                skCanvas.DrawPath(path, skPaint);
+            }
+        }
 
         return true;
     }
-
-    private Point[]? _outlinePointList;
 
     public SKColor Color { get; set; } = SKColors.Red;
 }
