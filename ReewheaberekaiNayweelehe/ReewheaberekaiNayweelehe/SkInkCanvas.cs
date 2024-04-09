@@ -55,8 +55,14 @@ class SkInkCanvas
 
     public void Up(InkingInputInfo info)
     {
-        if (CurrentInputDictionary.Remove(info.Id, out var context))
+        var context = UpdateInkingStylusPoint(info);
+        if (CurrentInputDictionary.Remove(info.Id))
         {
+            if (DrawStroke(context, out var rect))
+            {
+                RenderBoundsChanged?.Invoke(this, rect);
+            }
+
             context.DropPointCount = 0;
             context.StylusPoints.Clear();
         }
