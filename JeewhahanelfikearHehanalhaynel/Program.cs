@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net.Sockets;
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
@@ -187,19 +188,22 @@ namespace BingAccess
                 var byteCount = Encoding.ASCII.GetByteCount(CAFolderPath);
                 var folderBuffer = new byte[byteCount + 1];
                 Encoding.ASCII.GetBytes(CAFolderPath.AsSpan(), folderBuffer.AsSpan());
-                var gcHandle = GCHandle.Alloc(folderBuffer,GCHandleType.Pinned);
 
-                var result = SSL_CTX_load_verify_locations(ctx, IntPtr.Zero, gcHandle.AddrOfPinnedObject());
-
-                if (result != 0)
+                fixed (byte* folderPtr = folderBuffer)
                 {
-                    errGetError = ERR_get_error();
-                    errReasonErrorString = ERR_reason_error_string(errGetError);
+                    var result = SSL_CTX_load_verify_locations(ctx, IntPtr.Zero, new IntPtr(folderPtr));
+                    if (result != 0)
+                    {
+                        errGetError = ERR_get_error();
+                        errReasonErrorString = ERR_reason_error_string(errGetError);
 
-                    ptrToStringAnsi = Marshal.PtrToStringAnsi(errReasonErrorString);
+                        ptrToStringAnsi = Marshal.PtrToStringAnsi(errReasonErrorString);
 
-                    Console.WriteLine("Error: {0}\n", ptrToStringAnsi);
+                        Console.WriteLine("Error: {0}\n", ptrToStringAnsi);
+                    }
                 }
+
+
 
                 // Create SSL connection
                 IntPtr bio = BIO_new_ssl_connect(ctx);
@@ -210,7 +214,7 @@ namespace BingAccess
                     return;
                 }
 
-              
+
 
                 IntPtr ssl = IntPtr.Zero;
                 BIO_get_ssl(bio, &ssl);
