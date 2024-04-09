@@ -40,11 +40,7 @@ namespace BingAccess
         public static void BIO_set_conn_hostname(IntPtr bio, string name)
         {
             const int BIO_C_SET_CONNECT = 100;
-            var buffer = Encoding.Unicode.GetBytes(name+"\0");
-            var gcHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-
-            BIO_ctrl(bio, BIO_C_SET_CONNECT, 0, gcHandle.AddrOfPinnedObject());
-            gcHandle.Free();
+            BIO_ctrl(bio, BIO_C_SET_CONNECT, 0, name);
         }
 
         // PInvoke declaration for OpenSSL functions
@@ -75,6 +71,9 @@ namespace BingAccess
         // # define BIO_do_handshake(b)     BIO_ctrl(b,BIO_C_DO_STATE_MACHINE,0,NULL)
         [DllImport("libcrypto-3.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int BIO_ctrl(IntPtr bio, int cmd, long larg, IntPtr parg);
+
+        [DllImport("libcrypto-3.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int BIO_ctrl(IntPtr bio, int cmd, long larg, string parg);
 
         [DllImport("libcrypto-3.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern nint BIO_new_connect(string host_port);
