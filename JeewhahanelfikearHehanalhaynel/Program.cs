@@ -40,7 +40,7 @@ namespace BingAccess
         public static void BIO_set_conn_hostname(IntPtr bio, string name)
         {
             const int BIO_C_SET_CONNECT = 100;
-            var buffer = Encoding.ASCII.GetBytes(name);
+            var buffer = Encoding.Unicode.GetBytes(name+"\0");
             var gcHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
 
             BIO_ctrl(bio, BIO_C_SET_CONNECT, 0, gcHandle.AddrOfPinnedObject());
@@ -105,40 +105,7 @@ namespace BingAccess
                 ERR_load_CRYPTO_strings();
                 OpenSSL_add_all_algorithms();
 
-                var bio = BIO_new_connect("www.baidu.com:443");
-                // 找不到 BIO_do_connect 方法
-                // Perform SSL handshake
-                //var bioDoConnect = BIO_do_connect(bio);
-                // # define BIO_do_handshake(b)     BIO_ctrl(b,BIO_C_DO_STATE_MACHINE,0,NULL)
-                //  # define BIO_C_DO_STATE_MACHINE                  101
-                var bioDoConnect = BIO_ctrl(bio, 101, 0, IntPtr.Zero);
-                if (bioDoConnect <= 0)
-                {
-                    Console.WriteLine("建立 SSL 连接失败");
-                    return;
-                }
-
-                //// Create SSL context
-                //var ssLv23ClientMethod = SSLv23_client_method();
-                //IntPtr ctx = SSL_CTX_new(ssLv23ClientMethod);
-                //if (ctx == IntPtr.Zero)
-                //{
-                //    Console.WriteLine("创建 SSL 上下文失败");
-                //    return;
-                //}
-
-                //// Create SSL connection
-                //IntPtr bio = BIO_new_ssl_connect(ctx);
-                //if (bio == IntPtr.Zero)
-                //{
-                //    Console.WriteLine("创建 SSL 连接失败");
-                //    SSL_CTX_free(ctx);
-                //    return;
-                //}
-
-                //// Set the target host and port
-                //BIO_set_conn_hostname(bio, "www.bing.com:443");
-
+                //var bio = BIO_new_connect("www.baidu.com:443");
                 //// 找不到 BIO_do_connect 方法
                 //// Perform SSL handshake
                 ////var bioDoConnect = BIO_do_connect(bio);
@@ -150,6 +117,39 @@ namespace BingAccess
                 //    Console.WriteLine("建立 SSL 连接失败");
                 //    return;
                 //}
+
+                // Create SSL context
+                var ssLv23ClientMethod = SSLv23_client_method();
+                IntPtr ctx = SSL_CTX_new(ssLv23ClientMethod);
+                if (ctx == IntPtr.Zero)
+                {
+                    Console.WriteLine("创建 SSL 上下文失败");
+                    return;
+                }
+
+                // Create SSL connection
+                IntPtr bio = BIO_new_ssl_connect(ctx);
+                if (bio == IntPtr.Zero)
+                {
+                    Console.WriteLine("创建 SSL 连接失败");
+                    SSL_CTX_free(ctx);
+                    return;
+                }
+
+                // Set the target host and port
+                BIO_set_conn_hostname(bio, "www.bing.com:443");
+
+                // 找不到 BIO_do_connect 方法
+                // Perform SSL handshake
+                //var bioDoConnect = BIO_do_connect(bio);
+                // # define BIO_do_handshake(b)     BIO_ctrl(b,BIO_C_DO_STATE_MACHINE,0,NULL)
+                //  # define BIO_C_DO_STATE_MACHINE                  101
+                var bioDoConnect = BIO_ctrl(bio, 101, 0, IntPtr.Zero);
+                if (bioDoConnect <= 0)
+                {
+                    Console.WriteLine("建立 SSL 连接失败");
+                    return;
+                }
 
                 // Send HTTP GET request
                 string request = "GET / HTTP/1.1\r\nHost: www.baidu.com\r\n\r\n";
