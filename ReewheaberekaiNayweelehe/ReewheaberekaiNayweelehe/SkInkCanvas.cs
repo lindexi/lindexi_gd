@@ -35,7 +35,7 @@ class SkInkCanvas
     /// <summary>
     /// 取多少个点做笔尖
     /// </summary>
-    private const int MaxTipStylusCount = 7;
+    private const int MaxTipStylusCount = 100;
 
     /// <summary>
     /// 绘制使用的上下文信息
