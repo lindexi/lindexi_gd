@@ -15,6 +15,7 @@ class SkInkCanvas
     {
         _skCanvas = canvas;
     }
+
     private SKCanvas? _skCanvas;
 
     public SKBitmap? SkBitmap { set; get; }
@@ -23,27 +24,49 @@ class SkInkCanvas
 
     public event EventHandler<Rect>? RenderBoundsChanged;
 
-    private Dictionary<int, DrawStrokeContext> CurrentInputDictionary { get; } = new Dictionary<int, DrawStrokeContext>();
+    private Dictionary<int, DrawStrokeContext> CurrentInputDictionary { get; } =
+        new Dictionary<int, DrawStrokeContext>();
 
     private const int MaxTipStylusCount = 7;
+
     /// <summary>
     /// 绘制使用的上下文信息
     /// </summary>
     /// <param name="inputInfo"></param>
-    class DrawStrokeContext(InkingInputInfo inputInfo)
+    class DrawStrokeContext(InkingInputInfo inputInfo) : IDisposable
     {
         public InkingInputInfo InputInfo { set; get; } = inputInfo;
         public int DropPointCount { set; get; }
+
         /// <summary>
         /// 笔尖的点
         /// </summary>
         public readonly FixedQueue<StylusPoint> TipStylusPoints = new FixedQueue<StylusPoint>(MaxTipStylusCount);
+
+        public SKPath? InkStrokePath { set; get; }
+
+        public bool IsUp { set; get; }
+
+        public void Dispose()
+        {
+            InkStrokePath?.Dispose();
+        }
     }
+
     private readonly StylusPoint[] _cache = new StylusPoint[MaxTipStylusCount + 1];
+
+    private void InputStart()
+    {
+    }
 
     public void Down(InkingInputInfo info)
     {
         CurrentInputDictionary.Add(info.Id, new DrawStrokeContext(info));
+
+        if (CurrentInputDictionary.Count == 1)
+        {
+            InputStart();
+        }
     }
 
     public void Move(InkingInputInfo info)
@@ -59,20 +82,30 @@ class SkInkCanvas
     public void Up(InkingInputInfo info)
     {
         var context = UpdateInkingStylusPoint(info);
-        if (CurrentInputDictionary.Remove(info.Id))
+        if (DrawStroke(context, out var rect))
         {
-            if (DrawStroke(context, out var rect))
-            {
-                RenderBoundsChanged?.Invoke(this, rect);
-            }
+            RenderBoundsChanged?.Invoke(this, rect);
+        }
 
-            context.DropPointCount = 0;
-            context.TipStylusPoints.Clear();
-        }
-        else
+        context.DropPointCount = 0;
+        context.TipStylusPoints.Clear();
+
+        context.IsUp = true;
+
+        if (CurrentInputDictionary.All(t => t.Value.IsUp))
         {
-            // 诡异的输出内容
+            InputComplete();
         }
+    }
+
+    private void InputComplete()
+    {
+        foreach (var drawStrokeContext in CurrentInputDictionary)
+        {
+            drawStrokeContext.Value.Dispose();
+        }
+
+        CurrentInputDictionary.Clear();
     }
 
     private DrawStrokeContext UpdateInkingStylusPoint(InkingInputInfo info)
@@ -131,7 +164,8 @@ class SkInkCanvas
 
         var lastPoint = pointList[^1];
 
-        if (Math.Pow(lastPoint.Point.X - currentStylusPoint.Point.X, 2) + Math.Pow(lastPoint.Point.Y - currentStylusPoint.Point.Y, 2) < 100)
+        if (Math.Pow(lastPoint.Point.X - currentStylusPoint.Point.X, 2) +
+            Math.Pow(lastPoint.Point.Y - currentStylusPoint.Point.Y, 2) < 100)
         {
             return true;
         }
@@ -169,7 +203,8 @@ class SkInkCanvas
         //}
 
         context.TipStylusPoints.CopyTo(_cache, 0);
-        if (CanDropLastPoint(_cache.AsSpan(0, context.TipStylusPoints.Count), currentStylusPoint) && context.DropPointCount < 3)
+        if (CanDropLastPoint(_cache.AsSpan(0, context.TipStylusPoints.Count), currentStylusPoint) &&
+            context.DropPointCount < 3)
         {
             // 丢点是为了让 SimpleInkRender 可以绘制更加平滑的折线。但是不能丢太多的点，否则将导致看起来断线
             context.DropPointCount++;
@@ -216,7 +251,8 @@ class SkInkCanvas
         var skPathBounds = skPath.Bounds;
 
         var additionSize = 10;
-        drawRect = new Rect(skPathBounds.Left - additionSize, skPathBounds.Top - additionSize, skPathBounds.Width + additionSize * 2, skPathBounds.Height + additionSize * 2);
+        drawRect = new Rect(skPathBounds.Left - additionSize, skPathBounds.Top - additionSize,
+            skPathBounds.Width + additionSize * 2, skPathBounds.Height + additionSize * 2);
 
         var skCanvas = _skCanvas;
         //skCanvas.Clear(SKColors.Transparent);
@@ -228,7 +264,8 @@ class SkInkCanvas
         skPaint.FilterQuality = SKFilterQuality.High;
         skPaint.Style = SKPaintStyle.Fill;
 
-        var skRect = new SKRect((float) drawRect.Left, (float) drawRect.Top, (float) drawRect.Right, (float) drawRect.Bottom);
+        var skRect = new SKRect((float) drawRect.Left, (float) drawRect.Top, (float) drawRect.Right,
+            (float) drawRect.Bottom);
 
         // 经过测试，似乎只有纯色画在下面才能没有锯齿，否则都会存在锯齿
 
@@ -293,6 +330,4 @@ class SkInkCanvas
     private Point[]? _outlinePointList;
 
     public SKColor Color { get; set; } = SKColors.Red;
-
-
 }
