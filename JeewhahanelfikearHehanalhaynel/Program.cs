@@ -40,8 +40,8 @@ namespace BingAccess
         public static void BIO_set_conn_hostname(IntPtr bio, string name)
         {
             const int BIO_C_SET_CONNECT = 100;
-            var buffer = Encoding.ASCII.GetBytes(name);
-            var gcHandle = GCHandle.Alloc(buffer,GCHandleType.Pinned);
+            var buffer = Encoding.Unicode.GetBytes(name+"\0");
+            var gcHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
 
             BIO_ctrl(bio, BIO_C_SET_CONNECT, 0, gcHandle.AddrOfPinnedObject());
             gcHandle.Free();
@@ -77,6 +77,9 @@ namespace BingAccess
         public static extern int BIO_ctrl(IntPtr bio, int cmd, long larg, IntPtr parg);
 
         [DllImport("libcrypto-3.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern nint BIO_new_connect(string host_port);
+
+        [DllImport("libcrypto-3.dll", CallingConvention = CallingConvention.Cdecl)]
         private static extern int BIO_puts(IntPtr bio, string data);
 
         [DllImport("libcrypto-3.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -90,10 +93,30 @@ namespace BingAccess
             try
             {
                 // Initialize OpenSSL
+                //#  define SSL_load_error_strings() \
+                //  OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS \
+                //                 | OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL)
+                // # define OPENSSL_INIT_LOAD_SSL_STRINGS       0x00200000L
+                // # define OPENSSL_INIT_LOAD_CRYPTO_STRINGS    0x00000002L
+                const ulong OPENSSL_INIT_LOAD_SSL_STRINGS = 0x00200000L;
+                const ulong OPENSSL_INIT_LOAD_CRYPTO_STRINGS = 0x00000002L;
+                OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS | OPENSSL_INIT_LOAD_CRYPTO_STRINGS, IntPtr.Zero);
+                //ERR_load_BIO_strings();
                 ERR_load_CRYPTO_strings();
-                OPENSSL_init_ssl(0, IntPtr.Zero);
-
                 OpenSSL_add_all_algorithms();
+
+                //var bio = BIO_new_connect("www.baidu.com:443");
+                //// 找不到 BIO_do_connect 方法
+                //// Perform SSL handshake
+                ////var bioDoConnect = BIO_do_connect(bio);
+                //// # define BIO_do_handshake(b)     BIO_ctrl(b,BIO_C_DO_STATE_MACHINE,0,NULL)
+                ////  # define BIO_C_DO_STATE_MACHINE                  101
+                //var bioDoConnect = BIO_ctrl(bio, 101, 0, IntPtr.Zero);
+                //if (bioDoConnect <= 0)
+                //{
+                //    Console.WriteLine("建立 SSL 连接失败");
+                //    return;
+                //}
 
                 // Create SSL context
                 var ssLv23ClientMethod = SSLv23_client_method();
@@ -142,7 +165,7 @@ namespace BingAccess
 
                 // Clean up resources
                 BIO_free_all(bio);
-                SSL_CTX_free(ctx);
+                //SSL_CTX_free(ctx);
             }
             catch (Exception ex)
             {
