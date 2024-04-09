@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:ReewheaberekaiNayweelehe"
         mc:Ignorable="d"
         Title="MainWindow" Height="1080" Width="1920">
-    <Grid MouseMove="UIElement_OnMouseMove">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
