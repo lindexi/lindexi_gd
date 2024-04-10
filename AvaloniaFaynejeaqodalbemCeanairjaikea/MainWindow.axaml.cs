@@ -13,6 +13,6 @@ public partial class MainWindow : Window
     private void MainWindow_PointerMoved(object? sender, Avalonia.Input.PointerEventArgs e)
     {
         var currentPoint = e.GetCurrentPoint(this);
-        TextBlock.Text = $"X={currentPoint.Position.X} Y={currentPoint.Position.Y} Pressure={currentPoint.Properties.Pressure}";
+        TextBlock.Text = $"{TextBlock.Text}\r\nX={currentPoint.Position.X} Y={currentPoint.Position.Y} Pressure={currentPoint.Properties.Pressure}";
     }
 }
