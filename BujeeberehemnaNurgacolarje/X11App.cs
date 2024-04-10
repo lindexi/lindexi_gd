@@ -95,7 +95,7 @@ public class X11App
         {
             Color = SKColors.Red,
             StrokeWidth = 5,
-            IsAntialias = false,
+            IsAntialias = true,
         };
         skCanvas.DrawLine(0, 0, xDisplayWidth, xDisplayHeight, skPaint);
         skCanvas.DrawLine(0, xDisplayWidth, xDisplayHeight, 0, skPaint);
@@ -427,6 +427,10 @@ public class X11App
                         }
 
                         //Console.WriteLine("=================");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"xiEvent->evtype={xiEvent->evtype}");
                     }
                 }
                 finally
