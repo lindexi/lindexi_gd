@@ -53,7 +53,9 @@ public class X11App
             background_pixel = 0,
         };
 
-        var handle = XCreateWindow(Display, rootWindow, 0, 0, XDisplayWidth(Display, screen), XDisplayHeight(Display, screen), 5,
+        var xDisplayWidth = XDisplayWidth(Display, screen);
+        var xDisplayHeight = XDisplayHeight(Display, screen);
+        var handle = XCreateWindow(Display, rootWindow, 0, 0, xDisplayWidth, xDisplayHeight, 5,
             32,
             (int) CreateWindowArgs.InputOutput,
             visual,
@@ -76,13 +78,13 @@ public class X11App
         GC = XCreateGC(Display, Window, 0, 0);
         XSetForeground(Display, GC, white);
 
-        var size = 600;
-        var skBitmap = new SKBitmap(size, size, SKColorType.Bgra8888, SKAlphaType.Premul);
+        var skBitmap = new SKBitmap(xDisplayWidth, xDisplayHeight, SKColorType.Bgra8888, SKAlphaType.Premul);
         _skBitmap = skBitmap;
 
-        _skSurface = SKSurface.Create(new SKImageInfo(size, size, SKImageInfo.PlatformColorType, SKAlphaType.Premul));
+        //_skSurface = SKSurface.Create(new SKImageInfo(size, size, SKImageInfo.PlatformColorType, SKAlphaType.Premul));
 
-        var skCanvas = _skSurface.Canvas;
+        //var skCanvas = _skSurface.Canvas;
+        var skCanvas = new SKCanvas(skBitmap);
         skCanvas.Clear(SKColors.Transparent);
         skCanvas.Flush();
         _skCanvas = skCanvas;
@@ -95,8 +97,8 @@ public class X11App
             StrokeWidth = 5,
             IsAntialias = false,
         };
-        skCanvas.DrawLine(0, 0, size, size, skPaint);
-        skCanvas.DrawLine(0, size, size, 0, skPaint);
+        skCanvas.DrawLine(0, 0, xDisplayWidth, xDisplayHeight, skPaint);
+        skCanvas.DrawLine(0, xDisplayWidth, xDisplayHeight, 0, skPaint);
 
         XImage image = CreateImage();
         _image = image;
@@ -210,7 +212,7 @@ public class X11App
 
             var xNextEvent = XNextEvent(Display, out var @event);
             //Console.WriteLine($"NextEvent={xNextEvent} {@event}");
-            int type = (int) @event.type;
+            //int type = (int) @event.type;
 
             if (@event.type == XEventName.Expose)
             {
@@ -376,7 +378,7 @@ public class X11App
                                 pressure = (float) (value / xiValuatorClassInfo.Max);
                             }
 
-                            Console.WriteLine($"[Valuator] [{label}] Label={xiValuatorClassInfo.Label} Type={xiValuatorClassInfo.Type} Sourceid={xiValuatorClassInfo.Sourceid} Number={xiValuatorClassInfo.Number} Min={xiValuatorClassInfo.Min} Max={xiValuatorClassInfo.Max} Value={xiValuatorClassInfo.Value} Resolution={xiValuatorClassInfo.Resolution} Mode={xiValuatorClassInfo.Mode} Value={value}");
+                            //Console.WriteLine($"[Valuator] [{label}] Label={xiValuatorClassInfo.Label} Type={xiValuatorClassInfo.Type} Sourceid={xiValuatorClassInfo.Sourceid} Number={xiValuatorClassInfo.Number} Min={xiValuatorClassInfo.Min} Max={xiValuatorClassInfo.Max} Value={xiValuatorClassInfo.Value} Resolution={xiValuatorClassInfo.Resolution} Mode={xiValuatorClassInfo.Mode} Value={value}");
                         }
 
                         var stylusPoint = new StylusPoint(xiDeviceEvent->event_x, xiDeviceEvent->event_y, pressure ?? 0.5f)
@@ -401,7 +403,7 @@ public class X11App
                             skInkCanvas.Up(inkingInputInfo);
                         }
 
-                        Console.WriteLine("=================");
+                        //Console.WriteLine("=================");
                     }
                 }
                 finally
@@ -477,7 +479,7 @@ public class X11App
         _cache[_stylusPoints.Count] = currentStylusPoint;
         _stylusPoints.Enqueue(currentStylusPoint);
 
-        Console.WriteLine($"Count={_stylusPoints.Count}");
+        //Console.WriteLine($"Count={_stylusPoints.Count}");
 
         for (int i = 0; i < 10; i++)
         {
@@ -578,7 +580,7 @@ public class X11App
     private bool _isDown;
     private readonly SKBitmap _skBitmap;
     private readonly SKCanvas _skCanvas;
-    private readonly SKSurface _skSurface;
+    //private readonly SKSurface _skSurface;
 
     private void Redraw()
     {
@@ -618,8 +620,8 @@ public class X11App
         img.height = bitmapHeight;
         img.format = 2; //ZPixmap;
         //img.data = pinnedArray.AddrOfPinnedObject();
-        //img.data = _skBitmap.GetPixels();
-        img.data = _skSurface.PeekPixels().GetPixels();
+        img.data = _skBitmap.GetPixels();
+        //img.data = _skSurface.PeekPixels().GetPixels();
         img.byte_order = 0; // LSBFirst;
         img.bitmap_unit = bitsPerPixel;
         img.bitmap_bit_order = 0; // LSBFirst;
