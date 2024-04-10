@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -153,6 +154,13 @@ namespace ReewheaberekaiNayweelehe
 
         private void MainWindow_TouchLeave(object sender, TouchEventArgs e)
         {
+            var touchAction = e.GetTouchPoint(this).Action;
+            if (touchAction == TouchAction.Up)
+            {
+                // 由于抬起的原因，那就不能算进离开窗口
+                return;
+            }
+
             _canvas.Leave();
         }
 
