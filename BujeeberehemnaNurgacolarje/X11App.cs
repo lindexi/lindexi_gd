@@ -448,8 +448,7 @@ public class X11App
                         var enterLeaveEvent = (XIEnterLeaveEvent*) xiEvent;
                         Console.WriteLine($"XI_Leave deviceid={enterLeaveEvent->deviceid} sourceid={enterLeaveEvent->sourceid} {enterLeaveEvent->detail} root_x={enterLeaveEvent->root_x} root_y={enterLeaveEvent->root_y} mode={enterLeaveEvent->mode} focus={enterLeaveEvent->focus} same_screen={enterLeaveEvent->same_screen}");
 
-                        Console.WriteLine();
-                        //skInkCanvas.Leave();
+                        skInkCanvas.Leave();
                     }
                     else
                     {
