@@ -105,9 +105,21 @@ public class X11App
         _image = image;
 
         // 下面是进入全屏
+
+        var hintsPropertyAtom = XInternAtom(Display, "_MOTIF_WM_HINTS", true);
+        XChangeProperty(Display, Window, hintsPropertyAtom, hintsPropertyAtom, 32, PropertyMode.Replace,new uint[5]
+        {
+            2, // flags : Specify that we're changing the window decorations.
+            0, // functions
+            0, // decorations : 0 (false) means that window decorations should go bye-bye.
+            0, // inputMode
+            0, // status
+        } ,5);
+
         var xaAtom = XInternAtom(Display, "XA_ATOM", true);
         var wmFullScreen = XInternAtom(Display, "_NET_WM_STATE_HIDDEN", true);
         var wmState = XInternAtom(Display, "_NET_WM_STATE", true);
+
         XChangeProperty(Display, Window, wmState, xaAtom, 32, PropertyMode.Replace, ref wmFullScreen, 1);
 
         //ChangeWMAtoms(false, XInternAtom(Display, "_NET_WM_STATE_HIDDEN", true));
