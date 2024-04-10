@@ -119,6 +119,8 @@ namespace ReewheaberekaiNayweelehe
             TouchMove += MainWindow_TouchMove;
             TouchUp += MainWindow_TouchUp;
 
+            TouchLeave += MainWindow_TouchLeave;
+
             _canvas.RenderBoundsChanged += (o, rect) =>
             {
                 Image.Update();
@@ -147,6 +149,11 @@ namespace ReewheaberekaiNayweelehe
         {
             var touchPoint = e.GetTouchPoint(this);
             _canvas.Up(new InkingInputInfo(e.TouchDevice.Id, new StylusPoint(touchPoint.Position.X, touchPoint.Position.Y), (ulong) e.Timestamp));
+        }
+
+        private void MainWindow_TouchLeave(object sender, TouchEventArgs e)
+        {
+            _canvas.LostCapture();
         }
 
         private void Draw(Action<SKCanvas> action)
