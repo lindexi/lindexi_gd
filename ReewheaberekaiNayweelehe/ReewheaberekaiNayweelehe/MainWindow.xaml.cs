@@ -133,6 +133,8 @@ namespace ReewheaberekaiNayweelehe
 
             var touchPoint = e.GetTouchPoint(this);
             _canvas.Down(new InkingInputInfo(e.TouchDevice.Id, new StylusPoint(touchPoint.Position.X, touchPoint.Position.Y), (ulong) e.Timestamp));
+
+            _canvas.Color = new SKColor((uint) Random.Shared.Next() | unchecked((uint) (0xFF << 24)));
         }
 
         private void MainWindow_TouchMove(object sender, TouchEventArgs e)

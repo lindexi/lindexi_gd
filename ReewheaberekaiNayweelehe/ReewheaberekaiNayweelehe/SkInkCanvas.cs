@@ -264,7 +264,7 @@ class SkInkCanvas
         var skPathBounds = skPath.Bounds;
 
         // 计算脏范围，用于渲染更新
-        var additionSize = 30;
+        var additionSize = 10; // 用于设置比简单计算的范围更大一点的范围，解决重采样之后的模糊
         drawRect = new Rect(skPathBounds.Left - additionSize, skPathBounds.Top - additionSize,
             skPathBounds.Width + additionSize * 2, skPathBounds.Height + additionSize * 2);
 
