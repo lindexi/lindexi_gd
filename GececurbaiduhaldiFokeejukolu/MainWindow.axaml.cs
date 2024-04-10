@@ -25,7 +25,10 @@ public partial class MainWindow : Window
         };
         TransparencyBackgroundFallback = Brushes.Transparent;
 
-        Loaded += MainWindow_Loaded;
+        //Loaded += MainWindow_Loaded;
+
+        WindowState = WindowState.FullScreen;
+        Topmost = true;
     }
 
     private void MainWindow_Loaded(object? sender, RoutedEventArgs e)
