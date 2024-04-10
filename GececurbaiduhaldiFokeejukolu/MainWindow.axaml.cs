@@ -123,4 +123,14 @@ public partial class MainWindow : Window
 
         _app.SwitchDebugMode(toggleButton.IsChecked is true);
     }
+
+    private void DrawLineButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (_app == null)
+        {
+            return;
+        }
+
+        _app.IsDrawLineMode = !_app.IsDrawLineMode;
+    }
 }

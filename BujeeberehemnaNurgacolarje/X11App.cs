@@ -110,6 +110,11 @@ public class X11App
     private readonly FixedQueue<StylusPoint> _stylusPoints = new FixedQueue<StylusPoint>(MaxStylusCount);
     private readonly StylusPoint[] _cache = new StylusPoint[MaxStylusCount + 1];
 
+    /// <summary>
+    /// 最简单的画线模式
+    /// </summary>
+    public bool IsDrawLineMode { set; get; }
+
     public unsafe void Run(nint ownerWindowIntPtr)
     {
         XSetInputFocus(Display, Window, 0, IntPtr.Zero);
@@ -332,6 +337,24 @@ public class X11App
                         or XiEventType.XI_TouchEnd)
                     {
                         var xiDeviceEvent = (XIDeviceEvent*) xiEvent;
+
+                        if (IsDrawLineMode)
+                        {
+                            var x = (int) xiDeviceEvent->event_x;
+                            var y = (int) xiDeviceEvent->event_y;
+
+                            if (xiEvent->evtype == XiEventType.XI_TouchBegin)
+                            {
+                            }
+                            else
+                            {
+                                XDrawLine(Display, Window, GC, _lastPoint.X, _lastPoint.Y, x, y);
+                            }
+
+                            _lastPoint = (x, y);
+
+                            continue;
+                        }
 
                         var timestamp = (ulong) xiDeviceEvent->time.ToInt64();
                         var state = (XModifierMask) xiDeviceEvent->mods.Effective;
