@@ -133,6 +133,14 @@ class SkInkCanvas
         CurrentInputDictionary.Clear();
     }
 
+    /// <summary>
+    /// 这是 WPF 的概念，那就继续用这个概念
+    /// </summary>
+    public void LostCapture()
+    {
+        InputComplete();
+    }
+
     private DrawStrokeContext UpdateInkingStylusPoint(InkingInputInfo info)
     {
         if (CurrentInputDictionary.TryGetValue(info.Id, out var context))
@@ -296,9 +304,4 @@ class SkInkCanvas
     }
 
     public SKColor Color { get; set; } = SKColors.Red;
-
-    public void LostCapture()
-    {
-        
-    }
 }
