@@ -99,7 +99,7 @@ public class X11App
             IsAntialias = true,
         };
         skCanvas.DrawLine(0, 0, xDisplayWidth, xDisplayHeight, skPaint);
-        skCanvas.DrawLine(0, xDisplayWidth, xDisplayHeight, 0, skPaint);
+        skCanvas.DrawLine(0, xDisplayHeight, xDisplayWidth, 0, skPaint);
 
         XImage image = CreateImage();
         _image = image;
@@ -107,20 +107,20 @@ public class X11App
         // 下面是进入全屏
 
         var hintsPropertyAtom = XInternAtom(Display, "_MOTIF_WM_HINTS", true);
-        XChangeProperty(Display, Window, hintsPropertyAtom, hintsPropertyAtom, 32, PropertyMode.Replace,new uint[5]
+        XChangeProperty(Display, Window, hintsPropertyAtom, hintsPropertyAtom, 32, PropertyMode.Replace, new uint[5]
         {
             2, // flags : Specify that we're changing the window decorations.
             0, // functions
             0, // decorations : 0 (false) means that window decorations should go bye-bye.
             0, // inputMode
             0, // status
-        } ,5);
+        }, 5);
 
         var xaAtom = XInternAtom(Display, "XA_ATOM", true);
         var wmFullScreen = XInternAtom(Display, "_NET_WM_STATE_HIDDEN", true);
         var wmState = XInternAtom(Display, "_NET_WM_STATE", true);
 
-        XChangeProperty(Display, Window, wmState, xaAtom, 32, PropertyMode.Replace, ref wmFullScreen, 1);
+        SendNetWMMessage(wmState, wmFullScreen);
 
         //ChangeWMAtoms(false, XInternAtom(Display, "_NET_WM_STATE_HIDDEN", true));
         //ChangeWMAtoms(true, _x11.Atoms._NET_WM_STATE_FULLSCREEN);
@@ -334,6 +334,10 @@ public class X11App
                     (uint) @event.ExposeEvent.height);
 
                 Redraw();
+            }
+            else if (@event.type == XEventName.ClientMessage)
+            {
+                Console.WriteLine($"XEventName.ClientMessage ===============");
             }
             else if (@event.type == XEventName.ButtonPress)
             {
