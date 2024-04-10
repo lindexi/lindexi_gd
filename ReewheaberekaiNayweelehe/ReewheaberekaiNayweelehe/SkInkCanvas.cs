@@ -41,8 +41,9 @@ class SkInkCanvas
     /// 绘制使用的上下文信息
     /// </summary>
     /// <param name="inputInfo"></param>
-    class DrawStrokeContext(InkingInputInfo inputInfo) : IDisposable
+    class DrawStrokeContext(InkingInputInfo inputInfo, SKColor strokeColor) : IDisposable
     {
+        public SKColor StrokeColor { get; } = strokeColor;
         public InkingInputInfo InputInfo { set; get; } = inputInfo;
         public int DropPointCount { set; get; }
 
@@ -82,7 +83,7 @@ class SkInkCanvas
 
     public void Down(InkingInputInfo info)
     {
-        CurrentInputDictionary.Add(info.Id, new DrawStrokeContext(info));
+        CurrentInputDictionary.Add(info.Id, new DrawStrokeContext(info, Color));
 
         if (CurrentInputDictionary.Count == 1)
         {
@@ -156,12 +157,18 @@ class SkInkCanvas
         }
         else
         {
-            context = new DrawStrokeContext(info);
+            context = new DrawStrokeContext(info, Color);
             CurrentInputDictionary.Add(info.Id, context);
             return context;
         }
     }
 
+    /// <summary>
+    /// 按照德熙的玄幻算法，决定传入的点是否能丢掉
+    /// </summary>
+    /// <param name="pointList"></param>
+    /// <param name="currentStylusPoint"></param>
+    /// <returns></returns>
     private bool CanDropLastPoint(Span<StylusPoint> pointList, StylusPoint currentStylusPoint)
     {
         if (pointList.Length < 2)
@@ -171,6 +178,8 @@ class SkInkCanvas
 
         var lastPoint = pointList[^1];
 
+        // 后续可以优化算法参考 Sia 的
+        // 简单判断点的距离
         if (Math.Pow(lastPoint.Point.X - currentStylusPoint.Point.X, 2) +
             Math.Pow(lastPoint.Point.Y - currentStylusPoint.Point.Y, 2) < 100)
         {
@@ -196,20 +205,13 @@ class SkInkCanvas
 
         if (_skCanvas is null)
         {
+            // 理论上不可能进入这里
             return false;
         }
 
-        //if (SkSurface is null)
-        //{
-        //    return false;
-        //}
-
-        //if (SkBitmap is null)
-        //{
-        //    return false;
-        //}
-
+        // 拷贝笔尖到缓存范围，方便计算。后续可以考虑不要缓存，减少拷贝，提升几乎可以忽略的性能
         context.TipStylusPoints.CopyTo(_cache, 0);
+
         if (CanDropLastPoint(_cache.AsSpan(0, context.TipStylusPoints.Count), currentStylusPoint) &&
             context.DropPointCount < 3)
         {
@@ -229,6 +231,7 @@ class SkInkCanvas
         _cache[context.TipStylusPoints.Count] = currentStylusPoint;
         context.TipStylusPoints.Enqueue(currentStylusPoint);
 
+        // 是否开启自动模拟软笔效果
         if (AutoSoftPen)
         {
             for (int i = 0; i < 10; i++)
@@ -237,7 +240,7 @@ class SkInkCanvas
                 {
                     break;
                 }
-
+                // 简单的算法…就是越靠近笔尖的点的压感越小
                 _cache[context.TipStylusPoints.Count - i - 1] = _cache[context.TipStylusPoints.Count - i - 1] with
                 {
                     Pressure = Math.Max(Math.Min(0.1f * i, 0.5f), 0.01f)
@@ -254,76 +257,36 @@ class SkInkCanvas
         skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
         //skPath.Close();
 
+        // 将计算出来的笔尖部分叠加回去原先的笔身，这个方式对画长线性能不好
         context.InkStrokePath ??= new SKPath();
         context.InkStrokePath.AddPath(skPath);
 
         var skPathBounds = skPath.Bounds;
 
+        // 计算脏范围，用于渲染更新
         var additionSize = 30;
         drawRect = new Rect(skPathBounds.Left - additionSize, skPathBounds.Top - additionSize,
             skPathBounds.Width + additionSize * 2, skPathBounds.Height + additionSize * 2);
 
         var skCanvas = _skCanvas;
+        // 以下代码用于解决绘制的笔迹边缘锐利的问题。原因是笔迹执行了重采样，但是边缘如果没有被覆盖，则重采样的将会重复叠加，导致锐利
+        // 根据 Skia 的官方文档，建议是走清空重新绘制。在不清屏的情况下，除非能够获取到原始的像素点。尽管这是能够计算的，但是先走清空开发速度比较快
         skCanvas.Clear(SKColors.Transparent);
-        //skCanvas.Translate(-minX,-minY);
+        skCanvas.DrawBitmap(_originBackground, 0, 0);
+
+        // 将所有的笔迹绘制出来，作为动态笔迹层。后续抬手的笔迹需要重新写入到静态笔迹层
         using var skPaint = new SKPaint();
         skPaint.StrokeWidth = 0.1f;
-        skPaint.Color = Color;
         skPaint.IsAntialias = true;
         skPaint.FilterQuality = SKFilterQuality.High;
         skPaint.Style = SKPaintStyle.Fill;
-
-        //var skRect = new SKRect((float) drawRect.Left, (float) drawRect.Top, (float) drawRect.Right,
-        //    (float) drawRect.Bottom);
-
-        // 经过测试，似乎只有纯色画在下面才能没有锯齿，否则都会存在锯齿
-
-        //// 以下代码经过测试，没有真的做拷贝，依然还是随着变更而变更
-        //var background = new SKBitmap(new SKImageInfo((int) skRect.Width, (int) skRect.Height, _skBitmap.ColorType, _skBitmap.AlphaType));
-        //using (var backgroundCanvas = new SKCanvas(background))
-        //{
-        //    backgroundCanvas.DrawBitmap(_skBitmap, skRect, new SKRect(0, 0, skRect.Width, skRect.Height));
-        //    backgroundCanvas.Flush();
-        //}
-
-        //using var background = new SKBitmap(new SKImageInfo((int) skRect.Width, (int) skRect.Height));
-        //using (var backgroundCanvas = new SKCanvas(background))
-        //{
-        //    skPaint.Color = new SKColor(0x12, 0x56, 0x22, 0xF1);
-
-        //    backgroundCanvas.DrawRect(new SKRect(0, 0, skRect.Width, skRect.Height), skPaint);
-
-        //    backgroundCanvas.DrawBitmap(SkBitmap, skRect, new SKRect(0, 0, skRect.Width, skRect.Height));
-
-        //    backgroundCanvas.Flush();
-        //}
-
-        //skCanvas.Clear(SKColors.RosyBrown);
-
-
-
-        //// 似乎没有锯齿
-        //skCanvas.DrawBitmap(background, new SKRect(0, 0, skRect.Width, skRect.Height), new SKRect(0, 0, skRect.Width, skRect.Height));
-        //using var skImage = SKImage.FromBitmap(background);
-        ////// 为何 Skia 在 DrawBitmap 之后进行 DrawPath 出现锯齿，即使配置了 IsAntialias 属性
-        //skCanvas.DrawImage(skImage, new SKRect(0, 0, skRect.Width, skRect.Height), skRect);
-
-        //// 只有纯色才能无锯齿
-        // 是因为在相同的地方多次绘制采样
-
-        //skPaint.Color = SKColors.GhostWhite;
-        //skPaint.Style = SKPaintStyle.Stroke;
-        //skPaint.StrokeWidth = 1f;
-
-        skCanvas.DrawBitmap(_originBackground, 0, 0);
-
-        skPaint.Color = Color;
-        //skCanvas.DrawPath(context.InkStrokePath, skPaint);
         var enumerator = CurrentInputDictionary.GetEnumerator();
 
         foreach (var drawStrokeContext in CurrentInputDictionary)
         {
-            if (drawStrokeContext.Value.InkStrokePath is {} path)
+            skPaint.Color = drawStrokeContext.Value.StrokeColor;
+
+            if (drawStrokeContext.Value.InkStrokePath is { } path)
             {
                 skCanvas.DrawPath(path, skPaint);
             }
