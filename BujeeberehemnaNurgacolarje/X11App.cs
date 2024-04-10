@@ -151,14 +151,25 @@ public class X11App
 
         if (pointerDevice != null)
         {
-            var multiTouchEventTypes = new List<XiEventType>
-            {
+            XiEventType[] multiTouchEventTypes =
+            [
                 XiEventType.XI_TouchBegin,
                 XiEventType.XI_TouchUpdate,
                 XiEventType.XI_TouchEnd
-            };
+            ];
 
-            XiSelectEvents(Display, Window, new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = multiTouchEventTypes });
+            XiEventType[] defaultEventTypes = 
+            [
+                XiEventType.XI_Motion,
+                XiEventType.XI_ButtonPress,
+                XiEventType.XI_ButtonRelease,
+                XiEventType.XI_Leave,
+                XiEventType.XI_Enter,
+            ];
+
+            List<XiEventType> eventTypes = [..multiTouchEventTypes, ..defaultEventTypes];
+
+            XiSelectEvents(Display, Window, new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = eventTypes });
 
             Console.WriteLine($"pointerDevice.Value.NumClasses={pointerDevice.Value.NumClasses}");
 
@@ -216,7 +227,7 @@ public class X11App
             XSync(Display, false);
 
             var xNextEvent = XNextEvent(Display, out var @event);
-            //Console.WriteLine($"NextEvent={xNextEvent} {@event}");
+            Console.WriteLine($"NextEvent={xNextEvent} {@event}");
             //int type = (int) @event.type;
 
             if (@event.type == XEventName.Expose)
