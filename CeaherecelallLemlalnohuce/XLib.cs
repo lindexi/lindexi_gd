@@ -128,9 +128,6 @@ namespace CPF.Linux
         public static extern uint XConfigureWindow(IntPtr display, IntPtr window, ChangeWindowFlags value_mask,
             ref XWindowChanges values);
 
-        public static uint XConfigureResizeWindow(IntPtr display, IntPtr window, PixelSize size)
-            => XConfigureResizeWindow(display, window, size.Width, size.Height);
-
         public static uint XConfigureResizeWindow(IntPtr display, IntPtr window, int width, int height)
         {
             var changes = new XWindowChanges
