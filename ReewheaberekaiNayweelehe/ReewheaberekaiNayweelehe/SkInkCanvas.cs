@@ -136,7 +136,7 @@ class SkInkCanvas
     /// <summary>
     /// 这是 WPF 的概念，那就继续用这个概念
     /// </summary>
-    public void LostCapture()
+    public void Leave(int leaveId)
     {
         InputComplete();
     }

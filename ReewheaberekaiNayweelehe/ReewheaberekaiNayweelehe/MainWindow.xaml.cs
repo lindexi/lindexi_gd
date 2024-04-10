@@ -153,7 +153,7 @@ namespace ReewheaberekaiNayweelehe
 
         private void MainWindow_TouchLeave(object sender, TouchEventArgs e)
         {
-            _canvas.LostCapture();
+            _canvas.Leave(e.TouchDevice.Id);
         }
 
         private void Draw(Action<SKCanvas> action)
