@@ -425,6 +425,7 @@ public class X11App
 
                         if (xiEvent->evtype == XiEventType.XI_TouchBegin)
                         {
+                            Console.WriteLine($"TouchId={xiDeviceEvent->detail}");
                             skInkCanvas.Down(inkingInputInfo);
                         }
                         else if (xiEvent->evtype == XiEventType.XI_TouchUpdate)
@@ -444,7 +445,11 @@ public class X11App
                     }
                     else if (xiEvent->evtype == XiEventType.XI_Leave)
                     {
-                        skInkCanvas.LostCapture();
+                        var enterLeaveEvent = (XIEnterLeaveEvent*) xiEvent;
+                        Console.WriteLine($"XI_Leave deviceid={enterLeaveEvent->deviceid} sourceid={enterLeaveEvent->sourceid} {enterLeaveEvent->detail} root_x={enterLeaveEvent->root_x} root_y={enterLeaveEvent->root_y} mode={enterLeaveEvent->mode} focus={enterLeaveEvent->focus} same_screen={enterLeaveEvent->same_screen}");
+
+                        Console.WriteLine();
+                        //skInkCanvas.Leave();
                     }
                     else
                     {
