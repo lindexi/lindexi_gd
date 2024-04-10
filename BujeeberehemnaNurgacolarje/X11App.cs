@@ -122,6 +122,9 @@ public class X11App
 
         SendNetWMMessage(wmState, wmFullScreen);
 
+        var topmostAtom = XInternAtom(Display, "_NET_WM_STATE_ABOVE", true);
+        SendNetWMMessage(wmState, topmostAtom);
+
         //ChangeWMAtoms(false, XInternAtom(Display, "_NET_WM_STATE_HIDDEN", true));
         //ChangeWMAtoms(true, _x11.Atoms._NET_WM_STATE_FULLSCREEN);
         //ChangeWMAtoms(false, _x11.Atoms._NET_WM_STATE_MAXIMIZED_VERT,
@@ -212,10 +215,31 @@ public class X11App
     public unsafe void Run(nint ownerWindowIntPtr)
     {
         XSetInputFocus(Display, Window, 0, IntPtr.Zero);
-        // bing 如何设置X11里面两个窗口之间的层级关系
-        // bing 如何编写代码设置X11里面两个窗口之间的层级关系，比如有 a 和 b 两个窗口，如何设置 a 窗口一定在 b 窗口上方？
-        // 我们使用XSetTransientForHint函数将窗口a设置为窗口b的子窗口。这将确保窗口a始终在窗口b的上方
-        XSetTransientForHint(Display, ownerWindowIntPtr, Window);
+        {
+            // bing 如何设置X11里面两个窗口之间的层级关系
+            // bing 如何编写代码设置X11里面两个窗口之间的层级关系，比如有 a 和 b 两个窗口，如何设置 a 窗口一定在 b 窗口上方？
+            // 我们使用XSetTransientForHint函数将窗口a设置为窗口b的子窗口。这将确保窗口a始终在窗口b的上方
+            XSetTransientForHint(Display, ownerWindowIntPtr, Window);
+
+            var wmState = XInternAtom(Display, "_NET_WM_STATE", true);
+            var xev = new XEvent
+            {
+                ClientMessageEvent =
+                {
+                    type = XEventName.ClientMessage,
+                    send_event = true,
+                    window = ownerWindowIntPtr,
+                    message_type = wmState,
+                    format = 32,
+                    ptr1 = IntPtr.Zero,
+                    ptr2 = IntPtr.Zero,
+                    ptr3 = IntPtr.Zero,
+                    ptr4 = IntPtr.Zero
+                }
+            };
+            XSendEvent(Display, RootWindow, false,
+                new IntPtr((int) (EventMask.SubstructureRedirectMask | EventMask.SubstructureNotifyMask)), ref xev);
+        }
 
         var devices = (XIDeviceInfo*) XIQueryDevice(Display,
             (int) XiPredefinedDeviceId.XIAllMasterDevices, out int num);
