@@ -74,7 +74,7 @@ class SkInkCanvas
             return;
         }
 
-        _originBackground = new SKBitmap(new SKImageInfo(SkBitmap.Width, SkBitmap.Height, SkBitmap.ColorType, SkBitmap.AlphaType,
+        _originBackground ??= new SKBitmap(new SKImageInfo(SkBitmap.Width, SkBitmap.Height, SkBitmap.ColorType, SkBitmap.AlphaType,
                     SkBitmap.ColorSpace), SKBitmapAllocFlags.None);
 
         using var skCanvas = new SKCanvas(_originBackground);
