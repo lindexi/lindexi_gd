@@ -298,13 +298,13 @@ public class X11App
                 }
             }
 
-            foreach (var xiValuatorClassInfo in valuators)
-            {
-                var label = xiValuatorClassInfo.Label;
-                // 不能通过 Marshal.PtrToStringAnsi 读取 Label 的值 读取不到
-                //Marshal.PtrToStringAnsi(xiValuatorClassInfo.Label);
-                Console.WriteLine($"[Valuator] [{GetAtomName(Display, label)}] Label={label} Type={xiValuatorClassInfo.Type} Sourceid={xiValuatorClassInfo.Sourceid} Number={xiValuatorClassInfo.Number} Min={xiValuatorClassInfo.Min} Max={xiValuatorClassInfo.Max} Value={xiValuatorClassInfo.Value} Resolution={xiValuatorClassInfo.Resolution} Mode={xiValuatorClassInfo.Mode}");
-            }
+            //foreach (var xiValuatorClassInfo in valuators)
+            //{
+            //    var label = xiValuatorClassInfo.Label;
+            //    // 不能通过 Marshal.PtrToStringAnsi 读取 Label 的值 读取不到
+            //    //Marshal.PtrToStringAnsi(xiValuatorClassInfo.Label);
+            //    Console.WriteLine($"[Valuator] [{GetAtomName(Display, label)}] Label={label} Type={xiValuatorClassInfo.Type} Sourceid={xiValuatorClassInfo.Sourceid} Number={xiValuatorClassInfo.Number} Min={xiValuatorClassInfo.Min} Max={xiValuatorClassInfo.Max} Value={xiValuatorClassInfo.Value} Resolution={xiValuatorClassInfo.Resolution} Mode={xiValuatorClassInfo.Mode}");
+            //}
         }
 
         var skInkCanvas = new SkInkCanvas()
