@@ -296,4 +296,9 @@ class SkInkCanvas
     }
 
     public SKColor Color { get; set; } = SKColors.Red;
+
+    public void LostCapture()
+    {
+        
+    }
 }

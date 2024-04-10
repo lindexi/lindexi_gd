@@ -158,7 +158,7 @@ public class X11App
                 XiEventType.XI_TouchEnd
             ];
 
-            XiEventType[] defaultEventTypes = 
+            XiEventType[] defaultEventTypes =
             [
                 XiEventType.XI_Motion,
                 XiEventType.XI_ButtonPress,
@@ -167,7 +167,7 @@ public class X11App
                 XiEventType.XI_Enter,
             ];
 
-            List<XiEventType> eventTypes = [..multiTouchEventTypes, ..defaultEventTypes];
+            List<XiEventType> eventTypes = [.. multiTouchEventTypes, .. defaultEventTypes];
 
             XiSelectEvents(Display, Window, new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = eventTypes });
 
@@ -338,14 +338,13 @@ public class X11App
                     if (xiEvent->evtype == XiEventType.XI_DeviceChanged)
                     {
                     }
-
-                    if (xiEvent->evtype is
-                        XiEventType.XI_ButtonRelease
-                        or XiEventType.XI_ButtonRelease
-                        or XiEventType.XI_Motion
-                        or XiEventType.XI_TouchBegin
-                        or XiEventType.XI_TouchUpdate
-                        or XiEventType.XI_TouchEnd)
+                    else if (xiEvent->evtype is
+                         XiEventType.XI_ButtonRelease
+                         or XiEventType.XI_ButtonRelease
+                         or XiEventType.XI_Motion
+                         or XiEventType.XI_TouchBegin
+                         or XiEventType.XI_TouchUpdate
+                         or XiEventType.XI_TouchEnd)
                     {
                         var xiDeviceEvent = (XIDeviceEvent*) xiEvent;
 
@@ -438,6 +437,14 @@ public class X11App
                         }
 
                         //Console.WriteLine("=================");
+                    }
+                    else if (xiEvent->evtype == XiEventType.XI_Enter)
+                    {
+                        // 似乎啥都不需要做
+                    }
+                    else if (xiEvent->evtype == XiEventType.XI_Leave)
+                    {
+                        skInkCanvas.LostCapture();
                     }
                     else
                     {
