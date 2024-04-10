@@ -230,10 +230,10 @@ public class X11App
             var xaAtom = XInternAtom(Display, "XA_ATOM", true);
             var wmFullScreen = XInternAtom(Display, "_NET_WM_STATE_HIDDEN", true);
 
-            SendNetWMMessage(wmState, wmFullScreen);
+            SendNetWMMessage(wmState, new IntPtr(1), wmFullScreen);
 
             var topmostAtom = XInternAtom(Display, "_NET_WM_STATE_ABOVE", true);
-            SendNetWMMessage(wmState, topmostAtom);
+            SendNetWMMessage(wmState, new IntPtr(1), topmostAtom);
 
             //ChangeWMAtoms(false, XInternAtom(Display, "_NET_WM_STATE_HIDDEN", true));
             //ChangeWMAtoms(true, _x11.Atoms._NET_WM_STATE_FULLSCREEN);
