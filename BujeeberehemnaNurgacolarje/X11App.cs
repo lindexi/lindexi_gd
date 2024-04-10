@@ -343,7 +343,14 @@ public class X11App
                             var x = (int) xiDeviceEvent->event_x;
                             var y = (int) xiDeviceEvent->event_y;
 
-                            XDrawLine(Display, Window, GC, _lastPoint.X, _lastPoint.Y, x, y);
+                            if (xiEvent->evtype == XiEventType.XI_TouchBegin)
+                            {
+                            }
+                            else
+                            {
+                                XDrawLine(Display, Window, GC, _lastPoint.X, _lastPoint.Y, x, y);
+                            }
+
                             _lastPoint = (x, y);
 
                             continue;
