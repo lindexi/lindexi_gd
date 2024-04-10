@@ -227,7 +227,7 @@ public class X11App
             XSync(Display, false);
 
             var xNextEvent = XNextEvent(Display, out var @event);
-            Console.WriteLine($"NextEvent={xNextEvent} {@event}");
+            //Console.WriteLine($"NextEvent={xNextEvent} {@event}");
             //int type = (int) @event.type;
 
             if (@event.type == XEventName.Expose)
