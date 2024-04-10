@@ -93,6 +93,13 @@ class SkInkCanvas
 
     public void Move(InkingInputInfo info)
     {
+        if (!CurrentInputDictionary.ContainsKey(info.Id))
+        {
+            // 如果丢失按下，那就不能画
+            // 解决鼠标在其他窗口按下，然后移动到当前窗口
+            return;
+        }
+
         var context = UpdateInkingStylusPoint(info);
 
         if (DrawStroke(context, out var rect))
@@ -139,6 +146,17 @@ class SkInkCanvas
     public void Leave()
     {
         InputComplete();
+
+        if (_skCanvas is null || _originBackground is null)
+        {
+            return;
+        }
+
+        var skCanvas = _skCanvas;
+        skCanvas.Clear(SKColors.Transparent);
+        skCanvas.DrawBitmap(_originBackground, 0, 0);
+        // 完全重绘，丢掉画出来的笔迹
+        RenderBoundsChanged?.Invoke(this, new Rect(0, 0, _originBackground.Width, _originBackground.Height));
     }
 
     private DrawStrokeContext UpdateInkingStylusPoint(InkingInputInfo info)
