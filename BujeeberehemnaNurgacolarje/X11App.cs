@@ -140,14 +140,15 @@ public class X11App
         //    XChangeProperty(_x11.Display, _handle, _x11.Atoms._NET_WM_STATE, (IntPtr) Atom.XA_ATOM, 32,
         //        PropertyMode.Replace, newAtoms.ToArray(), newAtoms.Count);
         //}
+        var wmState = XInternAtom(Display, "_NET_WM_STATE", true);
 
-        //SendNetWMMessage(_x11.Atoms._NET_WM_STATE,
-        //    (IntPtr) (enable ? 1 : 0),
-        //    atoms[0],
-        //    atoms.Length > 1 ? atoms[1] : IntPtr.Zero,
-        //    atoms.Length > 2 ? atoms[2] : IntPtr.Zero,
-        //    atoms.Length > 3 ? atoms[3] : IntPtr.Zero
-        // );
+        SendNetWMMessage(wmState,
+            (IntPtr) (enable ? 1 : 0),
+            atoms[0],
+            atoms.Length > 1 ? atoms[1] : IntPtr.Zero,
+            atoms.Length > 2 ? atoms[2] : IntPtr.Zero,
+            atoms.Length > 3 ? atoms[3] : IntPtr.Zero
+         );
     }
 
     private void SendNetWMMessage(IntPtr message_type, IntPtr l0,
@@ -216,7 +217,6 @@ public class X11App
 
 
             // 下面是进入全屏
-
             var hintsPropertyAtom = XInternAtom(Display, "_MOTIF_WM_HINTS", true);
             XChangeProperty(Display, Window, hintsPropertyAtom, hintsPropertyAtom, 32, PropertyMode.Replace, new uint[5]
             {
@@ -227,18 +227,12 @@ public class X11App
                 0, // status
             }, 5);
 
-            var xaAtom = XInternAtom(Display, "XA_ATOM", true);
-            var wmFullScreen = XInternAtom(Display, "_NET_WM_STATE_HIDDEN", true);
-
-            SendNetWMMessage(wmState, new IntPtr(1), wmFullScreen);
+            ChangeWMAtoms(false, XInternAtom(Display, "_NET_WM_STATE_HIDDEN", true));
+            ChangeWMAtoms(true, XInternAtom(Display, "_NET_WM_STATE_FULLSCREEN", true));
+            ChangeWMAtoms(false, XInternAtom(Display, "_NET_WM_STATE_MAXIMIZED_VERT", true), XInternAtom(Display, "_NET_WM_STATE_MAXIMIZED_HORZ", true));
 
             var topmostAtom = XInternAtom(Display, "_NET_WM_STATE_ABOVE", true);
             SendNetWMMessage(wmState, new IntPtr(1), topmostAtom);
-
-            //ChangeWMAtoms(false, XInternAtom(Display, "_NET_WM_STATE_HIDDEN", true));
-            //ChangeWMAtoms(true, _x11.Atoms._NET_WM_STATE_FULLSCREEN);
-            //ChangeWMAtoms(false, _x11.Atoms._NET_WM_STATE_MAXIMIZED_VERT,
-            //    _x11.Atoms._NET_WM_STATE_MAXIMIZED_HORZ);
         }
 
         var devices = (XIDeviceInfo*) XIQueryDevice(Display,
