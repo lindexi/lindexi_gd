@@ -428,6 +428,10 @@ public class X11App
 
                         //Console.WriteLine("=================");
                     }
+                    else
+                    {
+                        Console.WriteLine($"xiEvent->evtype={xiEvent->evtype}");
+                    }
                 }
                 finally
                 {
