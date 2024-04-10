@@ -78,6 +78,7 @@ class SkInkCanvas
                     SkBitmap.ColorSpace), SKBitmapAllocFlags.None);
 
         using var skCanvas = new SKCanvas(_originBackground);
+        skCanvas.Clear();
         skCanvas.DrawBitmap(SkBitmap, 0, 0);
     }
 
