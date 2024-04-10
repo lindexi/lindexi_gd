@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.InteropServices;
 
-namespace CPF.Linux
+namespace CeaherecelallLemlalnohuce
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct XIMValuesList

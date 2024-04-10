@@ -1,10 +1,6 @@
-﻿using System;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using static CPF.Linux.XLib;
+﻿using static CeaherecelallLemlalnohuce.XLib;
 
-namespace CPF.Linux
+namespace CeaherecelallLemlalnohuce
 {
     public unsafe class X11Info
     {
