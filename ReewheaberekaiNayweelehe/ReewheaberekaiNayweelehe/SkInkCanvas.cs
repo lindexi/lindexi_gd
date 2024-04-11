@@ -403,6 +403,11 @@ class SkInkCanvas
             EraserPath = new SKPath();
             EraserPath.AddRect(new SKRect(0, 0, _originBackground.Width, _originBackground.Height));
         }
+        else
+        {
+            EraserPath.Reset();
+            EraserPath.AddRect(new SKRect(0, 0, _originBackground.Width, _originBackground.Height));
+        }
 
         var point = info.StylusPoint.Point;
         var x = (float) point.X;
