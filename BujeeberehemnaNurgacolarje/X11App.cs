@@ -310,6 +310,9 @@ public class X11App
         var skInkCanvas = new SkInkCanvas()
         {
             ApplicationDrawingSkBitmap = _skBitmap,
+        };
+        skInkCanvas.Settings = skInkCanvas.Settings with
+        {
             AutoSoftPen = false,
         };
         skInkCanvas.SetCanvas(_skCanvas);
