@@ -496,7 +496,16 @@ public class X11App
                             {
                                 if (firstDebugDrawLine)
                                 {
-                                    Console.WriteLine($"DrawLine {xiEvent->evtype} {_lastPoint.X},{_lastPoint.Y} -> {x},{y}");
+                                    Console.WriteLine($"DrawLine First {xiEvent->evtype} {_lastPoint.X},{_lastPoint.Y} -> {x},{y}");
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"DrawLine Non {xiEvent->evtype} {_lastPoint.X},{_lastPoint.Y} -> {x},{y}");
+                                }
+
+                                if (_lastPoint.X == 0 && _lastPoint.Y == 0)
+                                {
+                                    Console.WriteLine($"DrawLine Non _lastPoint.X == 0 && _lastPoint.Y == 0");
                                 }
 
                                 firstDebugDrawLine = false;
