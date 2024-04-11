@@ -202,7 +202,7 @@ class SkInkCanvas
 
         if (_skCanvas is null || _originBackground is null)
         {
-            Console.WriteLine($"_skCanvas is null = {_skCanvas is null} _originBackground is null={_originBackground is null}");
+            Console.WriteLine($"Leave-------- 进入非预期分支，除非是初始化 _skCanvas is null = {_skCanvas is null} _originBackground is null={_originBackground is null}");
             return;
         }
 
