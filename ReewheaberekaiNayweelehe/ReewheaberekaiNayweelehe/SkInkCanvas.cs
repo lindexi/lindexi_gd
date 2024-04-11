@@ -92,6 +92,8 @@ class SkInkCanvas
         // 这是浅拷贝
         //_originBackground = SkBitmap?.Copy();
 
+        Console.WriteLine("==========InputStart============");
+
         if (ApplicationDrawingSkBitmap is null)
         {
             return;
