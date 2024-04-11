@@ -15,7 +15,8 @@ record InkInfo(int Id);
 /// 画板的配置
 /// </summary>
 /// <param name="EnableClippingEraser">是否允许使用裁剪方式的橡皮擦，而不是走静态笔迹层</param>
-record SkInkCanvasSettings(bool EnableClippingEraser = true);
+/// <param name="AutoSoftPen">是否开启自动软笔模式</param>
+record SkInkCanvasSettings(bool EnableClippingEraser = true, bool AutoSoftPen = true);
 
 class SkInkCanvas
 {
@@ -241,8 +242,6 @@ class SkInkCanvas
         return false;
     }
 
-    public bool AutoSoftPen { set; get; } = true;
-
     private bool DrawStroke(DrawStrokeContext context, out Rect drawRect)
     {
         StylusPoint currentStylusPoint = context.InputInfo.StylusPoint;
@@ -284,7 +283,7 @@ class SkInkCanvas
         context.TipStylusPoints.Enqueue(currentStylusPoint);
 
         // 是否开启自动模拟软笔效果
-        if (AutoSoftPen)
+        if (Settings.AutoSoftPen)
         {
             for (int i = 0; i < 10; i++)
             {
