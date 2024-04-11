@@ -189,8 +189,6 @@ class SkInkCanvas
         CurrentInputDictionary.Clear();
 
         InputCompleted?.Invoke(this, EventArgs.Empty);
-
-        _originBackground = null;
     }
 
     public event EventHandler? InputCompleted;
