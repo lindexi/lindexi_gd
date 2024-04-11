@@ -92,6 +92,8 @@ class SkInkCanvas
         // 这是浅拷贝
         //_originBackground = SkBitmap?.Copy();
 
+        Console.WriteLine("==========InputStart============");
+
         if (ApplicationDrawingSkBitmap is null)
         {
             return;
@@ -464,10 +466,13 @@ class SkInkCanvas
             //skPaint.Color = SKColors.White;
 
             canvas.Clear();
+            stopwatch.Restart();
             canvas.Save();
+            stopwatch.Stop();
+            Console.WriteLine($"EraserPath canvas.Save() time={stopwatch.ElapsedMilliseconds}ms");
             stopwatch.Restart();
             canvas.ClipPath(EraserPath);
-            canvas.DrawBitmap(_originBackground, skRect, skRect);
+            canvas.DrawBitmap(_originBackground, 0, 0);
             stopwatch.Stop();
             canvas.Restore();
 
@@ -497,7 +502,7 @@ class SkInkCanvas
 
         EraserPath?.Dispose();
         EraserPath = null;
- 
+
         // 完全重绘，修复可能存在的丢失裁剪
         RenderBoundsChanged?.Invoke(this, new Rect(0, 0, _originBackground.Width, _originBackground.Height));
     }
