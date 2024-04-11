@@ -459,13 +459,13 @@ class SkInkCanvas
             //using var skPaint = new SKPaint();
             //skPaint.Color = SKColors.White;
 
-            stopwatch.Restart();
             canvas.Clear();
             canvas.Save();
+            stopwatch.Restart();
             canvas.ClipPath(EraserPath);
             canvas.DrawBitmap(_originBackground, skRect, skRect);
-            canvas.Restore();
             stopwatch.Stop();
+            canvas.Restore();
 
             var addition = 20;
             var rect = new Rect(skRect.Left - addition, skRect.Top - addition, skRect.Width + addition * 2, skRect.Height + addition * 2);
