@@ -9,6 +9,8 @@ namespace ReewheaberekaiNayweelehe;
 
 record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp);
 
+record InkInfo(int Id);
+
 class SkInkCanvas
 {
     public void SetCanvas(SKCanvas canvas)
@@ -58,7 +60,7 @@ class SkInkCanvas
 
         public void Dispose()
         {
-            InkStrokePath?.Dispose();
+            //InkStrokePath?.Dispose();
         }
     }
 
@@ -189,6 +191,13 @@ class SkInkCanvas
             return context;
         }
     }
+
+
+    /// <summary>
+    /// 静态笔迹层
+    /// </summary>
+    public List<InkInfo> StaticInkInfoList { get; } = new List<InkInfo>();
+
 
     /// <summary>
     /// 按照德熙的玄幻算法，决定传入的点是否能丢掉
