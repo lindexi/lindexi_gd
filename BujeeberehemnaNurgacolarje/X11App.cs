@@ -567,16 +567,31 @@ public class X11App
                             Height = height,
                         };
 
-                        var inkingInputInfo = new InkingInputInfo(xiDeviceEvent->detail, stylusPoint, timestamp);
+                        bool isMouse = false;
+                        var id = xiDeviceEvent->detail;
+                        if (xiEvent->evtype is
+                            XiEventType.XI_ButtonPress
+                            or XiEventType.XI_ButtonRelease
+                            or XiEventType.XI_Motion)
+                        {
+                            // 由于在 XI_ButtonPress 时的 id 是 1 而 XI_Motion 是 0 导致无法画出线
+                            id = 0;
+                            isMouse = true;
+                        }
+
+                        var inkingInputInfo = new InkingInputInfo(id, stylusPoint, timestamp)
+                        {
+                            IsMouse = isMouse
+                        };
 
                         if (xiEvent->evtype is XiEventType.XI_TouchBegin or XiEventType.XI_ButtonPress)
                         {
-                            Console.WriteLine($"TouchId={xiDeviceEvent->detail}");
+                            Console.WriteLine($"TouchId={id}");
                             skInkCanvas.Down(inkingInputInfo);
                         }
                         else if (xiEvent->evtype is XiEventType.XI_TouchUpdate or XiEventType.XI_Motion)
                         {
-                            Console.WriteLine($"Move={xiDeviceEvent->detail} {stylusPoint.Point.X},{stylusPoint.Point.Y}");
+                            //Console.WriteLine($"Move={id} {stylusPoint.Point.X},{stylusPoint.Point.Y}");
 
                             skInkCanvas.Move(inkingInputInfo);
                         }

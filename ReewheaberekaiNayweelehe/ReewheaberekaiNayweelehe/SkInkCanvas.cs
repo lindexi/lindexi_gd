@@ -9,7 +9,10 @@ using SkiaSharp;
 
 namespace ReewheaberekaiNayweelehe;
 
-record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp);
+record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp)
+{
+    public bool IsMouse { init; get; }
+};
 
 record InkInfo(int Id);
 
@@ -40,6 +43,7 @@ class SkInkCanvas
     /// 原来的背景
     /// </summary>
     private SKBitmap? _originBackground;
+    private bool _isOriginBackgroundDisable = false;
 
     //public SKSurface? SkSurface { set; get; }
 
@@ -101,6 +105,7 @@ class SkInkCanvas
 
         _originBackground ??= new SKBitmap(new SKImageInfo(ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height, ApplicationDrawingSkBitmap.ColorType, ApplicationDrawingSkBitmap.AlphaType,
                     ApplicationDrawingSkBitmap.ColorSpace), SKBitmapAllocFlags.None);
+        _isOriginBackgroundDisable = false;
 
         using var skCanvas = new SKCanvas(_originBackground);
         skCanvas.Clear();
@@ -188,6 +193,8 @@ class SkInkCanvas
 
         CurrentInputDictionary.Clear();
 
+        _isOriginBackgroundDisable = true;
+
         InputCompleted?.Invoke(this, EventArgs.Empty);
     }
 
@@ -199,6 +206,11 @@ class SkInkCanvas
     public void Leave()
     {
         InputComplete();
+
+        if (_isOriginBackgroundDisable)
+        {
+            return;
+        }
 
         if (_skCanvas is null || _originBackground is null)
         {
