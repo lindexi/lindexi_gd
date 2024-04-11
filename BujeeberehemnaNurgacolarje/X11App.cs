@@ -351,8 +351,6 @@ public class X11App
             XSendEvent(Display, Window, propagate: false, new IntPtr((int) (EventMask.ExposureMask)), ref xEvent);
         };
 
-        bool firstDebugDrawLine = false;
-
         while (true)
         {
             XSync(Display, false);
@@ -502,36 +500,13 @@ public class X11App
 
                             if (xiEvent->evtype == XiEventType.XI_TouchBegin)
                             {
-                                Console.WriteLine($"XI_TouchBegin {x},{y}");
-                                firstDebugDrawLine = true;
                             }
                             else
                             {
-                                if (firstDebugDrawLine)
-                                {
-                                    Console.WriteLine($"DrawLine First {xiEvent->evtype} {_lastPoint.X},{_lastPoint.Y} -> {x},{y}");
-                                }
-                                else
-                                {
-                                    Console.WriteLine($"DrawLine Non {xiEvent->evtype} {_lastPoint.X},{_lastPoint.Y} -> {x},{y}");
-                                }
-
-                                if (_lastPoint.X == 0 && _lastPoint.Y == 0)
-                                {
-                                    Console.WriteLine($"DrawLine Non _lastPoint.X == 0 && _lastPoint.Y == 0");
-                                }
-
-                                firstDebugDrawLine = false;
-
                                 XDrawLine(Display, Window, GC, _lastPoint.X, _lastPoint.Y, x, y);
                             }
 
                             _lastPoint = (x, y);
-
-                            if (xiEvent->evtype == XiEventType.XI_TouchEnd)
-                            {
-                                _lastPoint = (0, 0);
-                            }
 
                             continue;
                         }
