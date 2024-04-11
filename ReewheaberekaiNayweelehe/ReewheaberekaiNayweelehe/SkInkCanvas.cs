@@ -83,6 +83,8 @@ class SkInkCanvas
 
     private readonly StylusPoint[] _cache = new StylusPoint[MaxTipStylusCount + 1];
 
+    private int MainInputId { set; get; }
+
     private void InputStart()
     {
         // 这是浅拷贝
@@ -108,6 +110,7 @@ class SkInkCanvas
         if (CurrentInputDictionary.Count == 1)
         {
             InputStart();
+            MainInputId = info.Id;
         }
     }
 
@@ -120,32 +123,43 @@ class SkInkCanvas
             return;
         }
 
-        if (IsInEraserMode)
-        {
-            MoveEraser(info);
-            return;
-        }
-
         var context = UpdateInkingStylusPoint(info);
 
-        if (DrawStroke(context, out var rect))
+        if (IsInEraserMode)
         {
-            RenderBoundsChanged?.Invoke(this, rect);
+            if (info.Id == MainInputId)
+            {
+                MoveEraser(info);
+            }
+        }
+        else
+        {
+            if (DrawStroke(context, out var rect))
+            {
+                RenderBoundsChanged?.Invoke(this, rect);
+            }
         }
     }
 
     public void Up(InkingInputInfo info)
     {
+        var context = UpdateInkingStylusPoint(info);
+
         if (IsInEraserMode)
         {
-            UpEraser(info);
+            if (info.Id == MainInputId)
+            {
+                UpEraser(info);
+            }
+        }
+        else
+        {
+            if (DrawStroke(context, out var rect))
+            {
+                RenderBoundsChanged?.Invoke(this, rect);
+            }
         }
 
-        var context = UpdateInkingStylusPoint(info);
-        if (DrawStroke(context, out var rect))
-        {
-            RenderBoundsChanged?.Invoke(this, rect);
-        }
 
         context.DropPointCount = 0;
         context.TipStylusPoints.Clear();
@@ -379,12 +393,16 @@ class SkInkCanvas
 
     private void MoveEraser(InkingInputInfo info)
     {
-        if (_skCanvas is not {} canvas)
+        if (_skCanvas is not { } canvas || _originBackground is null)
         {
             return;
         }
 
-        EraserPath ??= new SKPath();
+        if (EraserPath is null)
+        {
+            EraserPath = new SKPath();
+            EraserPath.AddRect(new SKRect(0, 0, _originBackground.Width, _originBackground.Height));
+        }
 
         var point = info.StylusPoint.Point;
         var x = (float) point.X;
@@ -393,12 +411,23 @@ class SkInkCanvas
         var width = 20;
         var height = 30;
         var skRect = new SKRect(x, y, x + width, y + height);
-        EraserPath.AddRoundRect(skRect, 5, 5);
+
+        using var skRoundRect = new SKPath();
+        skRoundRect.AddRoundRect(skRect, 5, 5);
+        //EraserPath.AddPath(skRoundRect, SKPathAddMode.Extend);
+        EraserPath.Op(skRoundRect, SKPathOp.Difference, EraserPath);
 
         using var skPaint = new SKPaint();
         skPaint.Color = SKColors.White;
 
-        canvas.DrawPath(EraserPath, skPaint);
+        canvas.Clear();
+
+        canvas.Save();
+        canvas.ClipPath(EraserPath);
+
+        canvas.DrawBitmap(_originBackground, 0, 0);
+
+        canvas.Restore();
 
         RenderBoundsChanged?.Invoke(this, new Rect(skRect.Left, skRect.Top, skRect.Width, skRect.Height));
     }
