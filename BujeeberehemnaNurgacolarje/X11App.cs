@@ -580,7 +580,18 @@ public class X11App
                         var enterLeaveEvent = (XIEnterLeaveEvent*) xiEvent;
                         Console.WriteLine($"XI_Leave deviceid={enterLeaveEvent->deviceid} sourceid={enterLeaveEvent->sourceid} {enterLeaveEvent->detail} root_x={enterLeaveEvent->root_x} root_y={enterLeaveEvent->root_y} mode={enterLeaveEvent->mode} focus={enterLeaveEvent->focus} same_screen={enterLeaveEvent->same_screen}");
 
-                        skInkCanvas.Leave();
+                        if
+                        (
+                            enterLeaveEvent->detail is
+                            // 如果来源于上层，则忽略
+                            XiEnterLeaveDetail.XINotifyAncestor
+                        )
+                        {
+                        }
+                        else
+                        {
+                            skInkCanvas.Leave();
+                        }
                     }
                     else
                     {
