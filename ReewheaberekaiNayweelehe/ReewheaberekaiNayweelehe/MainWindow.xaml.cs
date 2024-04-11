@@ -195,11 +195,14 @@ namespace ReewheaberekaiNayweelehe
 
                 canvas.DrawRect(10, 10, 1000, 1000, skPaint);
 
-                canvas.ClipRect(new SKRect(100, 100, 150, 150));
-
-                skPaint.IsAntialias = false;
                 skPaint.Color = SKColors.White;
-                canvas.DrawCircle(100, 100, 100, skPaint);
+                canvas.DrawOval(new SKRect(100, 100, 150, 150), skPaint);
+
+                //canvas.ClipRect(new SKRect(100, 100, 150, 150));
+
+                //skPaint.IsAntialias = false;
+                //skPaint.Color = SKColors.White;
+                //canvas.DrawCircle(100, 100, 100, skPaint);
                 // 以下代码可以裁剪给定矩形范围，相当于 SKCanvas 的 Clear 矩形范围的功能
                 //Image.SkBitmap.Erase(SKColors.Transparent, new SKRectI(100, 100, 200, 200));
 
