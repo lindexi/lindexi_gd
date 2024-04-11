@@ -398,39 +398,46 @@ class SkInkCanvas
             return;
         }
 
-        if (EraserPath is null)
+        if (Settings.EnableClippingEraser)
         {
-            EraserPath = new SKPath();
-            EraserPath.AddRect(new SKRect(0, 0, _originBackground.Width, _originBackground.Height));
+            if (EraserPath is null)
+            {
+                EraserPath = new SKPath();
+                EraserPath.AddRect(new SKRect(0, 0, _originBackground.Width, _originBackground.Height));
+            }
+            else
+            {
+                EraserPath.Reset();
+                EraserPath.AddRect(new SKRect(0, 0, _originBackground.Width, _originBackground.Height));
+            }
+
+            var point = info.StylusPoint.Point;
+            var x = (float) point.X;
+            var y = (float) point.Y;
+
+            var width = 20;
+            var height = 30;
+            var skRect = new SKRect(x, y, x + width, y + height);
+
+            using var skRoundRect = new SKPath();
+            skRoundRect.AddRoundRect(skRect, 5, 5);
+            //EraserPath.AddPath(skRoundRect, SKPathAddMode.Extend);
+            EraserPath.Op(skRoundRect, SKPathOp.Difference, EraserPath);
+
+            //using var skPaint = new SKPaint();
+            //skPaint.Color = SKColors.White;
+
+            canvas.Clear();
+            canvas.Save();
+            canvas.ClipPath(EraserPath);
+            canvas.DrawBitmap(_originBackground, 0, 0);
+            canvas.Restore();
+
+            var addition = 20;
+            RenderBoundsChanged?.Invoke(this, new Rect(skRect.Left - addition, skRect.Top - addition, skRect.Width + addition * 2, skRect.Height + addition * 2));
         }
 
-        var point = info.StylusPoint.Point;
-        var x = (float) point.X;
-        var y = (float) point.Y;
-
-        var width = 20;
-        var height = 30;
-        var skRect = new SKRect(x, y, x + width, y + height);
-
-        using var skRoundRect = new SKPath();
-        skRoundRect.AddRoundRect(skRect, 5, 5);
-        //EraserPath.AddPath(skRoundRect, SKPathAddMode.Extend);
-        EraserPath.Op(skRoundRect, SKPathOp.Difference, EraserPath);
-
-        using var skPaint = new SKPaint();
-        skPaint.Color = SKColors.White;
-
-        canvas.Clear();
-
-        canvas.Save();
-        canvas.ClipPath(EraserPath);
-
-        canvas.DrawBitmap(_originBackground, 0, 0);
-
-        canvas.Restore();
-
-        var addition = 20;
-        RenderBoundsChanged?.Invoke(this, new Rect(skRect.Left - addition, skRect.Top - addition, skRect.Width + addition * 2, skRect.Height + addition * 2));
+       
     }
 
     private SKPath? EraserPath { set; get; }
