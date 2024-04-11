@@ -393,6 +393,9 @@ class SkInkCanvas
 
     private bool IsInEraserMode { set; get; }
 
+    /// <summary>
+    /// 移动橡皮擦的计时器，用于丢点
+    /// </summary>
     private Stopwatch MoveEraserStopwatch { get; } = new Stopwatch();
 
     private void MoveEraser(InkingInputInfo info)
@@ -411,6 +414,7 @@ class SkInkCanvas
             else if (MoveEraserStopwatch.Elapsed < TimeSpan.FromMilliseconds(10))
             {
                 // 如果时间距离过近，则忽略
+                // 由于触摸屏大量触摸点输入，而 DrawBitmap 需要 10 毫秒，导致性能过于差
                 return;
             }
             else
@@ -457,25 +461,38 @@ class SkInkCanvas
 
             stopwatch.Restart();
             canvas.Clear();
-            canvas.Save();
-            canvas.ClipPath(EraserPath);
-            canvas.DrawBitmap(_originBackground, skRect, skRect);
-            canvas.Restore();
+            //canvas.Save();
+            //canvas.ClipPath(EraserPath);
+            //canvas.DrawBitmap(_originBackground, skRect, skRect);
+            //canvas.Restore();
             stopwatch.Stop();
             Console.WriteLine($"EraserPath DrawBitmap time={stopwatch.ElapsedMilliseconds}ms");
 
             var addition = 20;
             RenderBoundsChanged?.Invoke(this, new Rect(skRect.Left - addition, skRect.Top - addition, skRect.Width + addition * 2, skRect.Height + addition * 2));
         }
-
-
     }
 
     private SKPath? EraserPath { set; get; }
 
     private void UpEraser(InkingInputInfo info)
     {
+        if (_skCanvas is not { } canvas || _originBackground is null || EraserPath is null)
+        {
+            return;
+        }
+
+        //canvas.Clear();
+
+        //canvas.Save();
+        //canvas.ClipPath(EraserPath);
+        canvas.DrawBitmap(_originBackground, 0, 0);
+        //canvas.Restore();
+
         EraserPath?.Dispose();
         EraserPath = null;
+ 
+        // 完全重绘，修复可能存在的丢失裁剪
+        RenderBoundsChanged?.Invoke(this, new Rect(0, 0, _originBackground.Width, _originBackground.Height));
     }
 }
