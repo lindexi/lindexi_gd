@@ -126,6 +126,8 @@ namespace ReewheaberekaiNayweelehe
             {
                 Image.Update();
             };
+
+            Background = Brushes.Black;
         }
 
         private void MainWindow_TouchDown(object sender, TouchEventArgs e)
@@ -193,16 +195,19 @@ namespace ReewheaberekaiNayweelehe
 
                 canvas.DrawRect(10, 10, 1000, 1000, skPaint);
 
-                skPaint.Color = SKColors.White;
+                skPaint.IsAntialias = false;
+                skPaint.Color = SKColors.Transparent;
                 canvas.DrawCircle(100, 100, 100, skPaint);
+
+                Image.SkBitmap.Erase(SKColors.Transparent, new SKRectI(100, 100, 200, 200));
 
                 //canvas.ClipRect(new SKRect(100,100,200,200));
             });
 
             SKBitmap GetCopy(SKBitmap skBitmap)
             {
-                 var originBackground = new SKBitmap(new SKImageInfo(skBitmap.Width, skBitmap.Height, skBitmap.ColorType, skBitmap.AlphaType,
-                     skBitmap.ColorSpace), SKBitmapAllocFlags.None);
+                var originBackground = new SKBitmap(new SKImageInfo(skBitmap.Width, skBitmap.Height, skBitmap.ColorType, skBitmap.AlphaType,
+                    skBitmap.ColorSpace), SKBitmapAllocFlags.None);
 
                 using var skCanvas = new SKCanvas(originBackground);
                 skCanvas.Clear();
