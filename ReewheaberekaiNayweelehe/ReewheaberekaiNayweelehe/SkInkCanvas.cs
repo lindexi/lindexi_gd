@@ -413,8 +413,9 @@ class SkInkCanvas
                 EraserPath.AddRect(new SKRect(0, 0, _originBackground.Width, _originBackground.Height));
             }
 
-            stopwatch.Stop();
-            Console.WriteLine($"EraserPath create time={stopwatch.ElapsedMilliseconds}ms");
+            // 不耗时
+            //stopwatch.Stop();
+            //Console.WriteLine($"EraserPath create time={stopwatch.ElapsedMilliseconds}ms");
 
             var point = info.StylusPoint.Point;
             var x = (float) point.X;
@@ -424,13 +425,15 @@ class SkInkCanvas
             var height = 30;
             var skRect = new SKRect(x, y, x + width, y + height);
 
-            stopwatch.Restart();
+            //stopwatch.Restart();
             using var skRoundRect = new SKPath();
             skRoundRect.AddRoundRect(skRect, 5, 5);
             //EraserPath.AddPath(skRoundRect, SKPathAddMode.Extend);
             EraserPath.Op(skRoundRect, SKPathOp.Difference, EraserPath);
-            stopwatch.Stop();
-            Console.WriteLine($"EraserPath do op time={stopwatch.ElapsedMilliseconds}ms");
+
+            // 不耗时
+            //stopwatch.Stop();
+            //Console.WriteLine($"EraserPath do op time={stopwatch.ElapsedMilliseconds}ms");
 
             //using var skPaint = new SKPaint();
             //skPaint.Color = SKColors.White;
