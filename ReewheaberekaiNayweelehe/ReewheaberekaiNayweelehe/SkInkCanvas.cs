@@ -461,10 +461,10 @@ class SkInkCanvas
 
             stopwatch.Restart();
             canvas.Clear();
-            //canvas.Save();
-            //canvas.ClipPath(EraserPath);
-            //canvas.DrawBitmap(_originBackground, skRect, skRect);
-            //canvas.Restore();
+            canvas.Save();
+            canvas.ClipPath(EraserPath);
+            canvas.DrawBitmap(_originBackground, skRect, skRect);
+            canvas.Restore();
             stopwatch.Stop();
             Console.WriteLine($"EraserPath DrawBitmap time={stopwatch.ElapsedMilliseconds}ms");
 
@@ -482,12 +482,12 @@ class SkInkCanvas
             return;
         }
 
-        //canvas.Clear();
+        canvas.Clear();
 
-        //canvas.Save();
-        //canvas.ClipPath(EraserPath);
+        canvas.Save();
+        canvas.ClipPath(EraserPath);
         canvas.DrawBitmap(_originBackground, 0, 0);
-        //canvas.Restore();
+        canvas.Restore();
 
         EraserPath?.Dispose();
         EraserPath = null;
