@@ -185,10 +185,30 @@ namespace ReewheaberekaiNayweelehe
                 skPaint.Color = SKColors.Red;
                 skPaint.IsAntialias = true;
                 skPaint.FilterQuality = SKFilterQuality.High;
-                skPaint.Style = SKPaintStyle.Stroke;
 
-                canvas.DrawCircle(300, 300, 100, skPaint);
+
+                //var background = GetCopy(Image.SkBitmap);
+                //var skImage = SKImage.FromBitmap(background);
+                //skPaint.ImageFilter = SKImageFilter.CreateImage(skImage);
+
+                canvas.DrawRect(10, 10, 1000, 1000, skPaint);
+
+                skPaint.Color = SKColors.White;
+                canvas.DrawCircle(100, 100, 100, skPaint);
+
+                //canvas.ClipRect(new SKRect(100,100,200,200));
             });
+
+            SKBitmap GetCopy(SKBitmap skBitmap)
+            {
+                 var originBackground = new SKBitmap(new SKImageInfo(skBitmap.Width, skBitmap.Height, skBitmap.ColorType, skBitmap.AlphaType,
+                     skBitmap.ColorSpace), SKBitmapAllocFlags.None);
+
+                using var skCanvas = new SKCanvas(originBackground);
+                skCanvas.Clear();
+                skCanvas.DrawBitmap(skBitmap, 0, 0);
+                return originBackground;
+            }
         }
 
         private readonly SkInkCanvas _canvas = new SkInkCanvas();
