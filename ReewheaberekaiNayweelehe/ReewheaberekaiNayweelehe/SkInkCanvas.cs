@@ -11,8 +11,12 @@ record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp);
 
 record InkInfo(int Id);
 
+record SkInkCanvasSettings();
+
 class SkInkCanvas
 {
+    public SkInkCanvasSettings Settings { get; set; } = new SkInkCanvasSettings();
+
     public void SetCanvas(SKCanvas canvas)
     {
         _skCanvas = canvas;
