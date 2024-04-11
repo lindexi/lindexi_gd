@@ -430,14 +430,14 @@ class SkInkCanvas
             canvas.Clear();
             canvas.Save();
             canvas.ClipPath(EraserPath);
-            canvas.DrawBitmap(_originBackground, 0, 0);
+            canvas.DrawBitmap(_originBackground, skRect, skRect);
             canvas.Restore();
 
             var addition = 20;
             RenderBoundsChanged?.Invoke(this, new Rect(skRect.Left - addition, skRect.Top - addition, skRect.Width + addition * 2, skRect.Height + addition * 2));
         }
 
-       
+
     }
 
     private SKPath? EraserPath { set; get; }
