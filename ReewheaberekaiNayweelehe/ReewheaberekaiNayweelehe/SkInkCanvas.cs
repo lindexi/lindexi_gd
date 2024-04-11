@@ -9,7 +9,10 @@ using SkiaSharp;
 
 namespace ReewheaberekaiNayweelehe;
 
-record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp);
+record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp)
+{
+    public bool IsMouse { init; get; }
+};
 
 record InkInfo(int Id);
 
