@@ -193,10 +193,16 @@ namespace ReewheaberekaiNayweelehe
                 //var skImage = SKImage.FromBitmap(background);
                 //skPaint.ImageFilter = SKImageFilter.CreateImage(skImage);
 
-                canvas.DrawRect(10, 10, 1000, 1000, skPaint);
 
-                skPaint.Color = SKColors.White;
-                canvas.DrawOval(new SKRect(100, 100, 150, 150), skPaint);
+                using var skPath = new SKPath();
+                skPath.AddCircle(100, 100, 100);
+                canvas.Save();
+                canvas.ClipPath(skPath, antialias: true);
+                canvas.DrawRect(10, 10, 1000, 1000, skPaint);
+                canvas.Restore();
+
+                //skPaint.Color = SKColors.White;
+                //canvas.DrawOval(new SKRect(100, 100, 150, 150), skPaint);
 
                 //canvas.ClipRect(new SKRect(100, 100, 150, 150));
 
