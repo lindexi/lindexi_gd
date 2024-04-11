@@ -11,8 +11,16 @@ record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp);
 
 record InkInfo(int Id);
 
+/// <summary>
+/// 画板的配置
+/// </summary>
+/// <param name="EnableClippingEraser">是否允许使用裁剪方式的橡皮擦，而不是走静态笔迹层</param>
+record SkInkCanvasSettings(bool EnableClippingEraser = true);
+
 class SkInkCanvas
 {
+    public SkInkCanvasSettings Settings { get; set; } = new SkInkCanvasSettings();
+
     public void SetCanvas(SKCanvas canvas)
     {
         _skCanvas = canvas;
