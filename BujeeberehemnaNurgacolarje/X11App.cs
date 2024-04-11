@@ -491,6 +491,7 @@ public class X11App
                                 XiDeviceEventFlags.XIPointerEmulated)
                             {
                                 // 多指触摸下是模拟的，则忽略
+                                continue;
                             }
                         }
 
