@@ -120,6 +120,12 @@ class SkInkCanvas
             return;
         }
 
+        if (IsInEraserMode)
+        {
+            MoveEraser(info);
+            return;
+        }
+
         var context = UpdateInkingStylusPoint(info);
 
         if (DrawStroke(context, out var rect))
@@ -130,6 +136,11 @@ class SkInkCanvas
 
     public void Up(InkingInputInfo info)
     {
+        if (IsInEraserMode)
+        {
+            UpEraser(info);
+        }
+
         var context = UpdateInkingStylusPoint(info);
         if (DrawStroke(context, out var rect))
         {
@@ -158,7 +169,11 @@ class SkInkCanvas
         }
 
         CurrentInputDictionary.Clear();
+
+        InputCompleted?.Invoke(this, EventArgs.Empty);
     }
+
+    public event EventHandler? InputCompleted;
 
     /// <summary>
     /// 这是 WPF 的概念，那就继续用这个概念
@@ -209,11 +224,12 @@ class SkInkCanvas
         }
     }
 
+    // 静态笔迹层还没实现
+    ///// <summary>
+    ///// 静态笔迹层
+    ///// </summary>
+    //public List<InkInfo> StaticInkInfoList { get; } = new List<InkInfo>();
 
-    /// <summary>
-    /// 静态笔迹层
-    /// </summary>
-    public List<InkInfo> StaticInkInfoList { get; } = new List<InkInfo>();
 
 
     /// <summary>
@@ -347,4 +363,51 @@ class SkInkCanvas
     }
 
     public SKColor Color { get; set; } = SKColors.Red;
+
+
+
+
+    /// <summary>
+    /// 进入橡皮擦模式
+    /// </summary>
+    public void EnterEraserMode()
+    {
+        IsInEraserMode = true;
+    }
+
+    private bool IsInEraserMode { set; get; }
+
+    private void MoveEraser(InkingInputInfo info)
+    {
+        if (_skCanvas is not {} canvas)
+        {
+            return;
+        }
+
+        EraserPath ??= new SKPath();
+
+        var point = info.StylusPoint.Point;
+        var x = (float) point.X;
+        var y = (float) point.Y;
+
+        var width = 20;
+        var height = 30;
+        var skRect = new SKRect(x, y, x + width, y + height);
+        EraserPath.AddRoundRect(skRect, 5, 5);
+
+        using var skPaint = new SKPaint();
+        skPaint.Color = SKColors.White;
+
+        canvas.DrawPath(EraserPath, skPaint);
+
+        RenderBoundsChanged?.Invoke(this, new Rect(skRect.Left, skRect.Top, skRect.Width, skRect.Height));
+    }
+
+    private SKPath? EraserPath { set; get; }
+
+    private void UpEraser(InkingInputInfo info)
+    {
+        EraserPath?.Dispose();
+        EraserPath = null;
+    }
 }

@@ -14,6 +14,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+using Microsoft.Maui.Graphics;
+
 using SkiaSharp;
 
 using StylusPoint = BujeeberehemnaNurgacolarje.StylusPoint;
@@ -127,6 +129,8 @@ namespace ReewheaberekaiNayweelehe
                 Image.Update();
             };
 
+            _canvas.EnterEraserMode();
+
             Background = Brushes.Black;
         }
 
@@ -193,9 +197,13 @@ namespace ReewheaberekaiNayweelehe
                 //var skImage = SKImage.FromBitmap(background);
                 //skPaint.ImageFilter = SKImageFilter.CreateImage(skImage);
 
+                canvas.DrawRect(10, 10, 1000, 1000, skPaint);
 
                 using var skPath = new SKPath();
                 skPath.AddCircle(100, 100, 100);
+
+                skPaint.Color = SKColors.White;
+
                 canvas.Save();
                 canvas.ClipPath(skPath, antialias: true);
                 canvas.DrawRect(10, 10, 1000, 1000, skPaint);
@@ -207,7 +215,6 @@ namespace ReewheaberekaiNayweelehe
                 //canvas.ClipRect(new SKRect(100, 100, 150, 150));
 
                 //skPaint.IsAntialias = false;
-                //skPaint.Color = SKColors.White;
                 //canvas.DrawCircle(100, 100, 100, skPaint);
                 // 以下代码可以裁剪给定矩形范围，相当于 SKCanvas 的 Clear 矩形范围的功能
                 //Image.SkBitmap.Erase(SKColors.Transparent, new SKRectI(100, 100, 200, 200));
