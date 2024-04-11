@@ -203,6 +203,8 @@ class SkInkCanvas
             return;
         }
 
+        Console.WriteLine("Leave--------");
+
         var skCanvas = _skCanvas;
         skCanvas.Clear(SKColors.Transparent);
         skCanvas.DrawBitmap(_originBackground, 0, 0);
@@ -276,6 +278,8 @@ class SkInkCanvas
 
     private bool DrawStroke(DrawStrokeContext context, out Rect drawRect)
     {
+        Console.WriteLine("DrawStroke--------------");
+
         StylusPoint currentStylusPoint = context.InputInfo.StylusPoint;
 
         drawRect = Rect.Zero;
@@ -459,13 +463,13 @@ class SkInkCanvas
             //using var skPaint = new SKPaint();
             //skPaint.Color = SKColors.White;
 
-            stopwatch.Restart();
             canvas.Clear();
             canvas.Save();
+            stopwatch.Restart();
             canvas.ClipPath(EraserPath);
             canvas.DrawBitmap(_originBackground, skRect, skRect);
-            canvas.Restore();
             stopwatch.Stop();
+            canvas.Restore();
 
             var addition = 20;
             var rect = new Rect(skRect.Left - addition, skRect.Top - addition, skRect.Width + addition * 2, skRect.Height + addition * 2);
