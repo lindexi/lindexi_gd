@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using System.Diagnostics;
+
 using BujeeberehemnaNurgacolarje;
 
 using Microsoft.Maui.Graphics;
@@ -392,6 +393,8 @@ class SkInkCanvas
 
     private bool IsInEraserMode { set; get; }
 
+    private Stopwatch MoveEraserStopwatch { get; } = new Stopwatch();
+
     private void MoveEraser(InkingInputInfo info)
     {
         if (_skCanvas is not { } canvas || _originBackground is null)
@@ -401,6 +404,20 @@ class SkInkCanvas
 
         if (Settings.EnableClippingEraser)
         {
+            if (!MoveEraserStopwatch.IsRunning)
+            {
+                MoveEraserStopwatch.Restart();
+            }
+            else if (MoveEraserStopwatch.Elapsed < TimeSpan.FromMilliseconds(10))
+            {
+                // 如果时间距离过近，则忽略
+                return;
+            }
+            else
+            {
+                MoveEraserStopwatch.Restart();
+            }
+
             Stopwatch stopwatch = Stopwatch.StartNew();
             if (EraserPath is null)
             {
