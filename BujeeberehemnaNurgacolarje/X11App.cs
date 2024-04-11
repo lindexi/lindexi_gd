@@ -482,6 +482,18 @@ public class X11App
                     {
                         var xiDeviceEvent = (XIDeviceEvent*) xiEvent;
 
+                        if (xiEvent->evtype is
+                            XiEventType.XI_ButtonRelease
+                            or XiEventType.XI_ButtonRelease
+                            or XiEventType.XI_Motion)
+                        {
+                            if ((xiDeviceEvent->flags & XiDeviceEventFlags.XIPointerEmulated) ==
+                                XiDeviceEventFlags.XIPointerEmulated)
+                            {
+                                // 多指触摸下是模拟的，则忽略
+                            }
+                        }
+
                         if (IsDrawLineMode)
                         {
                             var x = (int) xiDeviceEvent->event_x;
