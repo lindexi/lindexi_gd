@@ -580,19 +580,24 @@ public class X11App
                         var enterLeaveEvent = (XIEnterLeaveEvent*) xiEvent;
                         Console.WriteLine($"XI_Leave deviceid={enterLeaveEvent->deviceid} sourceid={enterLeaveEvent->sourceid} {enterLeaveEvent->detail} root_x={enterLeaveEvent->root_x} root_y={enterLeaveEvent->root_y} mode={enterLeaveEvent->mode} focus={enterLeaveEvent->focus} same_screen={enterLeaveEvent->same_screen}");
 
-                        //if
-                        //(
-                        //    enterLeaveEvent->detail is
-                        //    // 如果来源于上层，则忽略
-                        //    XiEnterLeaveDetail.XINotifyAncestor
-                        //)
-                        //{
-                        //}
-                        //else
-                        //{
-                        //    skInkCanvas.Leave();
-                        //}
-                        skInkCanvas.Leave();
+                        // 问题：点击一次 Avalonia 工具条，然后写一笔，再写一笔。原先的一笔将会消失
+                        // 原因：原因是触发了 XI_Leave 事件，此时触发原因是 Avalonia 工具条失去焦点，此时的 enterLeaveEvent->detail 是 XiEnterLeaveDetail.XINotifyAncestor 表示 XSetTransientForHint 设置的上级窗口失去焦点
+                        // 从而在 Down 之前进入了 Leave 方法
+                        // 而 Leave 方法将会重新绘制 _originBackground 导致清屏。由于 _originBackground 只有在 InputStart 时才会更新为当前显示画布内容，导致在 Down 之前进入了 Leave 方法使用的 _originBackground 是上一笔开始绘制之前的画布状态
+                        // 于是在 Leave 方法将会重新绘制 _originBackground 为上一笔开始绘制之前的画布状态，不包含上一笔的内容，从而导致上一笔的内容被清空。这就是为什么写一笔，再写一笔。原先的一笔将会消失
+                        // 解决方法：判断 enterLeaveEvent->detail 是来源上层 XiEnterLeaveDetail.XINotifyAncestor 就忽略
+                        if
+                        (
+                            enterLeaveEvent->detail is
+                            // 如果来源于上层，则忽略
+                            XiEnterLeaveDetail.XINotifyAncestor
+                        )
+                        {
+                        }
+                        else
+                        {
+                            skInkCanvas.Leave();
+                        }
                     }
                     else
                     {
