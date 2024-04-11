@@ -466,10 +466,12 @@ class SkInkCanvas
             canvas.DrawBitmap(_originBackground, skRect, skRect);
             canvas.Restore();
             stopwatch.Stop();
-            Console.WriteLine($"EraserPath DrawBitmap time={stopwatch.ElapsedMilliseconds}ms");
 
             var addition = 20;
-            RenderBoundsChanged?.Invoke(this, new Rect(skRect.Left - addition, skRect.Top - addition, skRect.Width + addition * 2, skRect.Height + addition * 2));
+            var rect = new Rect(skRect.Left - addition, skRect.Top - addition, skRect.Width + addition * 2, skRect.Height + addition * 2);
+            RenderBoundsChanged?.Invoke(this, rect);
+
+            Console.WriteLine($"EraserPath DrawBitmap time={stopwatch.ElapsedMilliseconds}ms RenderBounds={rect.X} {rect.Y} {rect.Width} {rect.Height}");
         }
     }
 
