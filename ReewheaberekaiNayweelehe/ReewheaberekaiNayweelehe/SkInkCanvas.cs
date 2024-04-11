@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using System.Diagnostics;
 using BujeeberehemnaNurgacolarje;
 
 using Microsoft.Maui.Graphics;
@@ -400,6 +401,7 @@ class SkInkCanvas
 
         if (Settings.EnableClippingEraser)
         {
+            Stopwatch stopwatch = Stopwatch.StartNew();
             if (EraserPath is null)
             {
                 EraserPath = new SKPath();
@@ -411,6 +413,9 @@ class SkInkCanvas
                 EraserPath.AddRect(new SKRect(0, 0, _originBackground.Width, _originBackground.Height));
             }
 
+            stopwatch.Stop();
+            Console.WriteLine($"EraserPath create time={stopwatch.ElapsedMilliseconds}ms");
+
             var point = info.StylusPoint.Point;
             var x = (float) point.X;
             var y = (float) point.Y;
@@ -419,25 +424,31 @@ class SkInkCanvas
             var height = 30;
             var skRect = new SKRect(x, y, x + width, y + height);
 
+            stopwatch.Restart();
             using var skRoundRect = new SKPath();
             skRoundRect.AddRoundRect(skRect, 5, 5);
             //EraserPath.AddPath(skRoundRect, SKPathAddMode.Extend);
             EraserPath.Op(skRoundRect, SKPathOp.Difference, EraserPath);
+            stopwatch.Stop();
+            Console.WriteLine($"EraserPath do op time={stopwatch.ElapsedMilliseconds}ms");
 
             //using var skPaint = new SKPaint();
             //skPaint.Color = SKColors.White;
 
+            stopwatch.Restart();
             canvas.Clear();
             canvas.Save();
             canvas.ClipPath(EraserPath);
-            canvas.DrawBitmap(_originBackground, 0, 0);
+            canvas.DrawBitmap(_originBackground, skRect, skRect);
             canvas.Restore();
+            stopwatch.Stop();
+            Console.WriteLine($"EraserPath DrawBitmap time={stopwatch.ElapsedMilliseconds}ms");
 
             var addition = 20;
             RenderBoundsChanged?.Invoke(this, new Rect(skRect.Left - addition, skRect.Top - addition, skRect.Width + addition * 2, skRect.Height + addition * 2));
         }
 
-       
+
     }
 
     private SKPath? EraserPath { set; get; }
