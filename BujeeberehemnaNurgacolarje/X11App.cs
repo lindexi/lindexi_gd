@@ -361,8 +361,8 @@ public class X11App
 
             if (@event.type == XEventName.Expose)
             {
-                // 曝光时，可以收到需要重新绘制的范围
-                Console.WriteLine($"Expose X={@event.ExposeEvent.x} Y={@event.ExposeEvent.y} W={@event.ExposeEvent.width} H={@event.ExposeEvent.height} CurrentWindow={@event.ExposeEvent.window == Window}");
+                //// 曝光时，可以收到需要重新绘制的范围
+                //Console.WriteLine($"Expose X={@event.ExposeEvent.x} Y={@event.ExposeEvent.y} W={@event.ExposeEvent.width} H={@event.ExposeEvent.height} CurrentWindow={@event.ExposeEvent.window == Window}");
 
                 XPutImage(Display, Window, GC, ref _image, @event.ExposeEvent.x, @event.ExposeEvent.y, @event.ExposeEvent.x, @event.ExposeEvent.y, (uint) @event.ExposeEvent.width,
                     (uint) @event.ExposeEvent.height);

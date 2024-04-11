@@ -281,8 +281,6 @@ class SkInkCanvas
 
     private bool DrawStroke(DrawStrokeContext context, out Rect drawRect)
     {
-        Console.WriteLine("DrawStroke--------------");
-
         StylusPoint currentStylusPoint = context.InputInfo.StylusPoint;
 
         drawRect = Rect.Zero;
