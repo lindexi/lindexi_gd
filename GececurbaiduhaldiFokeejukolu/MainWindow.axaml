@@ -16,6 +16,7 @@
             <StackPanel Orientation="Horizontal">
                 <Button Margin="10,10,10,10" Content="笔模式" Click="Button_OnClick"></Button>
                 <Button x:Name="DrawLineButton" Margin="10,10,10,10" Content="画线模式" Click="DrawLineButton_OnClick"></Button>
+                <Button x:Name="EraserButton" Margin="10,10,10,10" Content="橡皮擦" Click="EraserButton_OnClick"></Button>
                 <ToggleButton x:Name="DebugModeToggleButton" Margin="10,10,10,10" Content="调试模式" Click="DebugModeToggleButton_OnClick"></ToggleButton>
                 <Button x:Name="ClearButton" Margin="10,10,10,10" Content="清屏" Click="ClearButton_OnClick"></Button>
                 <Button x:Name="CloseButton" Margin="10,10,10,10" Content="退出" Click="CloseButton_OnClick"></Button>

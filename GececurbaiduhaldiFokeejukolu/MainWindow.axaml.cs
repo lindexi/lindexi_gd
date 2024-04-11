@@ -133,4 +133,9 @@ public partial class MainWindow : Window
 
         _app.IsDrawLineMode = !_app.IsDrawLineMode;
     }
+
+    private void EraserButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        _app?.EnterEraserMode();
+    }
 }

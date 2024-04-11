@@ -103,6 +103,12 @@ public class X11App
 
         XImage image = CreateImage();
         _image = image;
+
+        var skInkCanvas = new SkInkCanvas()
+        {
+            ApplicationDrawingSkBitmap = _skBitmap,
+        };
+        _skInkCanvas = skInkCanvas;
     }
 
     #region 窗口管理
@@ -186,6 +192,14 @@ public class X11App
     /// 最简单的画线模式
     /// </summary>
     public bool IsDrawLineMode { set; get; }
+
+    /// <summary>
+    /// 进入橡皮擦模式
+    /// </summary>
+    public void EnterEraserMode()
+    {
+        _skInkCanvas.EnterEraserMode();
+    }
 
     public unsafe void Run(nint ownerWindowIntPtr)
     {
@@ -307,10 +321,7 @@ public class X11App
             //}
         }
 
-        var skInkCanvas = new SkInkCanvas()
-        {
-            ApplicationDrawingSkBitmap = _skBitmap,
-        };
+        var skInkCanvas = _skInkCanvas;
         skInkCanvas.Settings = skInkCanvas.Settings with
         {
             AutoSoftPen = false,
@@ -748,6 +759,9 @@ public class X11App
     private bool _isDown;
     private readonly SKBitmap _skBitmap;
     private readonly SKCanvas _skCanvas;
+
+    private SkInkCanvas _skInkCanvas;
+
     //private readonly SKSurface _skSurface;
 
     private void Redraw()
