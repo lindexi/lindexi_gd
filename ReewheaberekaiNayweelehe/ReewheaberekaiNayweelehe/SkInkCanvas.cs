@@ -203,6 +203,8 @@ class SkInkCanvas
             return;
         }
 
+        Console.WriteLine("Leave--------");
+
         var skCanvas = _skCanvas;
         skCanvas.Clear(SKColors.Transparent);
         skCanvas.DrawBitmap(_originBackground, 0, 0);
@@ -276,6 +278,8 @@ class SkInkCanvas
 
     private bool DrawStroke(DrawStrokeContext context, out Rect drawRect)
     {
+        Console.WriteLine("DrawStroke--------------");
+
         StylusPoint currentStylusPoint = context.InputInfo.StylusPoint;
 
         drawRect = Rect.Zero;
