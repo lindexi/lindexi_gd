@@ -416,10 +416,10 @@ class SkInkCanvas
             {
                 MoveEraserStopwatch.Restart();
             }
-            else if (MoveEraserStopwatch.Elapsed < TimeSpan.FromMilliseconds(10))
+            else if (MoveEraserStopwatch.Elapsed < TimeSpan.FromMilliseconds(20))
             {
                 // 如果时间距离过近，则忽略
-                // 由于触摸屏大量触摸点输入，而 DrawBitmap 需要 10 毫秒，导致性能过于差
+                // 由于触摸屏大量触摸点输入，而 DrawBitmap 需要 20 毫秒，导致性能过于差
                 return;
             }
             else
