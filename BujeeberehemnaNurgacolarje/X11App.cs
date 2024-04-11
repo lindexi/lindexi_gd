@@ -576,6 +576,8 @@ public class X11App
                         }
                         else if (xiEvent->evtype is XiEventType.XI_TouchUpdate or XiEventType.XI_Motion)
                         {
+                            Console.WriteLine($"Move={xiDeviceEvent->detail} {stylusPoint.Point.X},{stylusPoint.Point.Y}");
+
                             skInkCanvas.Move(inkingInputInfo);
                         }
                         else if (xiEvent->evtype is XiEventType.XI_TouchEnd or XiEventType.XI_ButtonRelease)
