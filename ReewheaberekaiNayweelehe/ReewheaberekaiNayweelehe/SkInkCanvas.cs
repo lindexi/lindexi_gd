@@ -429,7 +429,8 @@ class SkInkCanvas
 
         canvas.Restore();
 
-        RenderBoundsChanged?.Invoke(this, new Rect(skRect.Left, skRect.Top, skRect.Width, skRect.Height));
+        var addition = 20;
+        RenderBoundsChanged?.Invoke(this, new Rect(skRect.Left - addition, skRect.Top - addition, skRect.Width + addition * 2, skRect.Height + addition * 2));
     }
 
     private SKPath? EraserPath { set; get; }
