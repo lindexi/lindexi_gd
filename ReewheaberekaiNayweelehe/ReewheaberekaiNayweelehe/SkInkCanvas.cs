@@ -466,10 +466,7 @@ class SkInkCanvas
             //skPaint.Color = SKColors.White;
 
             canvas.Clear();
-            stopwatch.Restart();
             canvas.Save();
-            stopwatch.Stop();
-            Console.WriteLine($"EraserPath canvas.Save() time={stopwatch.ElapsedMilliseconds}ms");
             stopwatch.Restart();
             canvas.ClipPath(EraserPath);
             canvas.DrawBitmap(_originBackground, 0, 0);
