@@ -86,11 +86,11 @@ public class X11App
 
         //var skCanvas = _skSurface.Canvas;
         var skCanvas = new SKCanvas(skBitmap);
-        skCanvas.Clear(SKColors.Transparent);
+        skCanvas.Clear();
         skCanvas.Flush();
         _skCanvas = skCanvas;
 
-        skCanvas.DrawBitmap(_skBitmap, 0, 0);
+        //skCanvas.DrawBitmap(_skBitmap, 0, 0);
 
         using var skPaint = new SKPaint()
         {
@@ -100,6 +100,9 @@ public class X11App
         };
         skCanvas.DrawLine(0, 0, xDisplayWidth, xDisplayHeight, skPaint);
         skCanvas.DrawLine(0, xDisplayHeight, xDisplayWidth, 0, skPaint);
+
+        skPaint.Color = SKColors.White.WithAlpha(0x6F);
+        skCanvas.DrawRect(0, 0, skBitmap.Width, skBitmap.Height, skPaint);
 
         XImage image = CreateImage();
         _image = image;
