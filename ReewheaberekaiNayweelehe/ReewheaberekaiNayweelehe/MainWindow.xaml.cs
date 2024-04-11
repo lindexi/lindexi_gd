@@ -132,7 +132,7 @@ namespace ReewheaberekaiNayweelehe
 
         private void MainWindow_TouchDown(object sender, TouchEventArgs e)
         {
-            _canvas.SkBitmap = Image.SkBitmap;
+            _canvas.ApplicationDrawingSkBitmap = Image.SkBitmap;
 
             _canvas.SetCanvas(Image.SkCanvas);
 
@@ -178,7 +178,7 @@ namespace ReewheaberekaiNayweelehe
                 //using var skPaint = new SKPaint() { Color = new SKColor(0, 0, 0), TextSize = 100 };
                 //canvas.DrawLine(10, 10, 100, 100, skPaint);
 
-                _canvas.SkBitmap = Image.SkBitmap;
+                _canvas.ApplicationDrawingSkBitmap = Image.SkBitmap;
 
                 _canvas.SetCanvas(canvas);
 

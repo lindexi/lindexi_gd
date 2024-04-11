@@ -20,7 +20,10 @@ class SkInkCanvas
 
     private SKCanvas? _skCanvas;
 
-    public SKBitmap? SkBitmap { set; get; }
+    /// <summary>
+    /// 原应用输出的内容
+    /// </summary>
+    public SKBitmap? ApplicationDrawingSkBitmap { set; get; }
 
     /// <summary>
     /// 原来的背景
@@ -76,17 +79,17 @@ class SkInkCanvas
         // 这是浅拷贝
         //_originBackground = SkBitmap?.Copy();
 
-        if (SkBitmap is null)
+        if (ApplicationDrawingSkBitmap is null)
         {
             return;
         }
 
-        _originBackground ??= new SKBitmap(new SKImageInfo(SkBitmap.Width, SkBitmap.Height, SkBitmap.ColorType, SkBitmap.AlphaType,
-                    SkBitmap.ColorSpace), SKBitmapAllocFlags.None);
+        _originBackground ??= new SKBitmap(new SKImageInfo(ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height, ApplicationDrawingSkBitmap.ColorType, ApplicationDrawingSkBitmap.AlphaType,
+                    ApplicationDrawingSkBitmap.ColorSpace), SKBitmapAllocFlags.None);
 
         using var skCanvas = new SKCanvas(_originBackground);
         skCanvas.Clear();
-        skCanvas.DrawBitmap(SkBitmap, 0, 0);
+        skCanvas.DrawBitmap(ApplicationDrawingSkBitmap, 0, 0);
     }
 
     public void Down(InkingInputInfo info)
