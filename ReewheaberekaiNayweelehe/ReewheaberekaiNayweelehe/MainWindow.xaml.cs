@@ -186,13 +186,15 @@ namespace ReewheaberekaiNayweelehe
                 skPaint.IsAntialias = true;
                 skPaint.FilterQuality = SKFilterQuality.High;
 
-                canvas.DrawCircle(100, 100, 100, skPaint);
 
-                var background = GetCopy(Image.SkBitmap);
-                var skImage = SKImage.FromBitmap(background);
-                skPaint.ImageFilter = SKImageFilter.CreateImage(skImage);
+                //var background = GetCopy(Image.SkBitmap);
+                //var skImage = SKImage.FromBitmap(background);
+                //skPaint.ImageFilter = SKImageFilter.CreateImage(skImage);
 
                 canvas.DrawRect(10, 10, 1000, 1000, skPaint);
+
+                skPaint.Color = SKColors.White;
+                canvas.DrawCircle(100, 100, 100, skPaint);
 
                 //canvas.ClipRect(new SKRect(100,100,200,200));
             });
