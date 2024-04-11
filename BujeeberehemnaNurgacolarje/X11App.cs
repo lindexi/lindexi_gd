@@ -471,7 +471,7 @@ public class X11App
                     {
                     }
                     else if (xiEvent->evtype is
-                         XiEventType.XI_ButtonRelease
+                         XiEventType.XI_ButtonPress
                          or XiEventType.XI_ButtonRelease
                          or XiEventType.XI_Motion
                          or XiEventType.XI_TouchBegin
@@ -481,7 +481,7 @@ public class X11App
                         var xiDeviceEvent = (XIDeviceEvent*) xiEvent;
 
                         if (xiEvent->evtype is
-                            XiEventType.XI_ButtonRelease
+                            XiEventType.XI_ButtonPress
                             or XiEventType.XI_ButtonRelease
                             or XiEventType.XI_Motion)
                         {
@@ -489,6 +489,7 @@ public class X11App
                                 XiDeviceEventFlags.XIPointerEmulated)
                             {
                                 // 多指触摸下是模拟的，则忽略
+                                Console.WriteLine("多指触摸下是模拟的");
                                 continue;
                             }
                         }
@@ -568,16 +569,18 @@ public class X11App
 
                         var inkingInputInfo = new InkingInputInfo(xiDeviceEvent->detail, stylusPoint, timestamp);
 
-                        if (xiEvent->evtype == XiEventType.XI_TouchBegin)
+                        if (xiEvent->evtype is XiEventType.XI_TouchBegin or XiEventType.XI_ButtonPress)
                         {
                             Console.WriteLine($"TouchId={xiDeviceEvent->detail}");
                             skInkCanvas.Down(inkingInputInfo);
                         }
-                        else if (xiEvent->evtype == XiEventType.XI_TouchUpdate)
+                        else if (xiEvent->evtype is XiEventType.XI_TouchUpdate or XiEventType.XI_Motion)
                         {
+                            Console.WriteLine($"Move={xiDeviceEvent->detail} {stylusPoint.Point.X},{stylusPoint.Point.Y}");
+
                             skInkCanvas.Move(inkingInputInfo);
                         }
-                        else if (xiEvent->evtype == XiEventType.XI_TouchEnd)
+                        else if (xiEvent->evtype is XiEventType.XI_TouchEnd or XiEventType.XI_ButtonRelease)
                         {
                             skInkCanvas.Up(inkingInputInfo);
                         }
