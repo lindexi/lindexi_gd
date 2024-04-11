@@ -491,5 +491,8 @@ class SkInkCanvas
 
         EraserPath?.Dispose();
         EraserPath = null;
+ 
+        // 完全重绘，修复可能存在的丢失裁剪
+        RenderBoundsChanged?.Invoke(this, new Rect(0, 0, _originBackground.Width, _originBackground.Height));
     }
 }
