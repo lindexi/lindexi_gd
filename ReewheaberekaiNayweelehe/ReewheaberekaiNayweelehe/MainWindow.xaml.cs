@@ -193,7 +193,8 @@ namespace ReewheaberekaiNayweelehe
 
                 canvas.DrawRect(10, 10, 1000, 1000, skPaint);
 
-                skPaint.Color = SKColors.White;
+                skPaint.IsAntialias = false;
+                skPaint.Color = SKColors.Transparent;
                 canvas.DrawCircle(100, 100, 100, skPaint);
 
                 //canvas.ClipRect(new SKRect(100,100,200,200));
