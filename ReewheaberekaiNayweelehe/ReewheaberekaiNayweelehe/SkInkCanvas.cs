@@ -54,6 +54,11 @@ class SkInkCanvas
         /// </summary>
         public readonly FixedQueue<StylusPoint> TipStylusPoints = new FixedQueue<StylusPoint>(MaxTipStylusCount);
 
+        ///// <summary>
+        ///// 整个笔迹的点，包括笔尖的点
+        ///// </summary>
+        //public List<StylusPoint> AllStylusPoints { get; } = new List<StylusPoint>();
+
         public SKPath? InkStrokePath { set; get; }
 
         public bool IsUp { set; get; }
