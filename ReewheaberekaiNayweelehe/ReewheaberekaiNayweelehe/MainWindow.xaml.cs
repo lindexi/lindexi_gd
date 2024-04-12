@@ -15,7 +15,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Xml;
-using System.Xml.Linq;
 using Microsoft.Maui.Graphics;
 
 using SkiaSharp;
@@ -143,8 +142,7 @@ namespace ReewheaberekaiNayweelehe
             Background = Brushes.Black;
 
             var streamReader = File.OpenText(@"e:\download\下载器\2bdee3df56e2484c9364155d852f529a\Slides\Slide_0.xml");
-            var xDocument = XDocument.Load(streamReader);
-            var root = xDocument.Root;
+            var xmlReader = XmlReader.Create(streamReader);
         }
 
         private void MainWindow_TouchDown(object sender, TouchEventArgs e)
