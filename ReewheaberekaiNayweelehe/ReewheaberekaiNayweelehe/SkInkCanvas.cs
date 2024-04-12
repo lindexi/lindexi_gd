@@ -455,9 +455,13 @@ class SkInkCanvas
             var x = (float)point.X;
             var y = (float)point.Y;
 
-            var width = 30;
-            var height = 45;
-            var skRect = new SKRect(x, y, x + width, y + height);
+            double width = 30;
+            double height = 45;
+
+            x -= (float) width / 2;
+            y -= (float) height / 2;
+
+            var skRect = new SKRect(x, y, (float) (x + width), (float) (y + height));
 
             using var skRoundRect = new SKPath();
             skRoundRect.AddRoundRect(skRect, 5, 5);
