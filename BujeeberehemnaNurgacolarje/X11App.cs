@@ -196,6 +196,8 @@ public class X11App
     /// </summary>
     public bool IsDrawLineMode { set; get; }
 
+    public bool IsFullScreen { set; get; } = true;
+
     /// <summary>
     /// 进入橡皮擦模式
     /// </summary>
@@ -207,13 +209,15 @@ public class X11App
     public unsafe void Run(nint ownerWindowIntPtr)
     {
         XSetInputFocus(Display, Window, 0, IntPtr.Zero);
+
+        var wmState = XInternAtom(Display, "_NET_WM_STATE", true);
+        if (ownerWindowIntPtr != IntPtr.Zero)
         {
             // bing 如何设置X11里面两个窗口之间的层级关系
             // bing 如何编写代码设置X11里面两个窗口之间的层级关系，比如有 a 和 b 两个窗口，如何设置 a 窗口一定在 b 窗口上方？
             // 我们使用XSetTransientForHint函数将窗口a设置为窗口b的子窗口。这将确保窗口a始终在窗口b的上方
             XSetTransientForHint(Display, ownerWindowIntPtr, Window);
 
-            var wmState = XInternAtom(Display, "_NET_WM_STATE", true);
             var xev = new XEvent
             {
                 ClientMessageEvent =
@@ -231,8 +235,10 @@ public class X11App
             };
             XSendEvent(Display, RootWindow, false,
                 new IntPtr((int) (EventMask.SubstructureRedirectMask | EventMask.SubstructureNotifyMask)), ref xev);
+        }
 
-
+        if (IsFullScreen)
+        {
             // 下面是进入全屏
             var hintsPropertyAtom = XInternAtom(Display, "_MOTIF_WM_HINTS", true);
             XChangeProperty(Display, Window, hintsPropertyAtom, hintsPropertyAtom, 32, PropertyMode.Replace, new uint[5]
