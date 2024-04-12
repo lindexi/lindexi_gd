@@ -36,10 +36,14 @@ public partial class MainWindow : Window
 
     private void Button_OnClick(object? sender, RoutedEventArgs e)
     {
-        StartInkMode();
-
-        var button = (Button) sender!;
-        button.IsEnabled = false;
+        if (_app is null)
+        {
+            StartInkMode();
+        }
+        else
+        {
+            _app.EnterPenMode();
+        }
     }
 
     private void StartInkMode()
