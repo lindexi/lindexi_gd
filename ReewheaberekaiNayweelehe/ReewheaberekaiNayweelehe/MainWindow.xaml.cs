@@ -140,9 +140,6 @@ namespace ReewheaberekaiNayweelehe
             //_canvas.EnterEraserMode();
 
             Background = Brushes.Black;
-
-            var streamReader = File.OpenText(@"e:\download\下载器\2bdee3df56e2484c9364155d852f529a\Slides\Slide_0.xml");
-            var xmlReader = XmlReader.Create(streamReader);
         }
 
         private void MainWindow_TouchDown(object sender, TouchEventArgs e)
