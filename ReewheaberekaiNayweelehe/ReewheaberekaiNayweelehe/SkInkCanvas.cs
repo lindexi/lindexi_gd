@@ -439,7 +439,6 @@ class SkInkCanvas
                 MoveEraserStopwatch.Restart();
             }
 
-            Stopwatch stopwatch = Stopwatch.StartNew();
             if (EraserPath is null)
             {
                 EraserPath = new SKPath();
@@ -447,8 +446,9 @@ class SkInkCanvas
             }
             else
             {
-                EraserPath.Reset();
-                EraserPath.AddRect(new SKRect(0, 0, _originBackground.Width, _originBackground.Height));
+                // 似乎不耗时
+                //EraserPath.Reset();
+                //EraserPath.AddRect(new SKRect(0, 0, _originBackground.Width, _originBackground.Height));
             }
 
             // 不耗时
@@ -478,17 +478,17 @@ class SkInkCanvas
 
             canvas.Clear();
             canvas.Save();
-            stopwatch.Restart();
             canvas.ClipPath(EraserPath);
             canvas.DrawBitmap(_originBackground, 0, 0);
-            stopwatch.Stop();
             canvas.Restore();
 
             var addition = 20;
             var rect = new Rect(skRect.Left - addition, skRect.Top - addition, skRect.Width + addition * 2, skRect.Height + addition * 2);
             RenderBoundsChanged?.Invoke(this, rect);
 
-            Console.WriteLine($"EraserPath DrawBitmap time={stopwatch.ElapsedMilliseconds}ms RenderBounds={rect.X} {rect.Y} {rect.Width} {rect.Height}");
+            MoveEraserStopwatch.Stop();
+            Console.WriteLine($"EraserPath DrawBitmap time={MoveEraserStopwatch.ElapsedMilliseconds}ms RenderBounds={rect.X} {rect.Y} {rect.Width} {rect.Height}");
+            MoveEraserStopwatch.Restart();
         }
     }
 
