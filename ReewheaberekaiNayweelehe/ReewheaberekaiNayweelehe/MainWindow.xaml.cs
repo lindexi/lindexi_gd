@@ -55,6 +55,13 @@ namespace ReewheaberekaiNayweelehe
             SkCanvas.Flush();
 
             Source = writeableBitmap;
+
+            Draw(canvas =>
+            {
+                var eraserView = new EraserView();
+                using var skBitmap = eraserView.GetEraserView(30, 45);
+                canvas.DrawBitmap(skBitmap, 100, 100);
+            });
         }
 
         public void Draw(Action<SKCanvas> action)

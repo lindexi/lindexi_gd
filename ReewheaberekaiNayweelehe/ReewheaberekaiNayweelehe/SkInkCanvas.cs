@@ -398,7 +398,7 @@ class SkInkCanvas
     public SKColor Color { get; set; } = SKColors.Red;
 
 
-
+    // 橡皮擦根据给定尺寸缩放
 
     /// <summary>
     /// 进入橡皮擦模式
@@ -459,8 +459,8 @@ class SkInkCanvas
             var x = (float) point.X;
             var y = (float) point.Y;
 
-            var width = 20;
-            var height = 30;
+            var width = 30;
+            var height = 45;
             var skRect = new SKRect(x, y, x + width, y + height);
 
             //stopwatch.Restart();
@@ -481,6 +481,8 @@ class SkInkCanvas
             canvas.ClipPath(EraserPath);
             canvas.DrawBitmap(_originBackground, 0, 0);
             canvas.Restore();
+
+
 
             var addition = 20;
             var rect = new Rect(skRect.Left - addition, skRect.Top - addition, skRect.Width + addition * 2, skRect.Height + addition * 2);
@@ -513,5 +515,19 @@ class SkInkCanvas
 
         // 完全重绘，修复可能存在的丢失裁剪
         RenderBoundsChanged?.Invoke(this, new Rect(0, 0, _originBackground.Width, _originBackground.Height));
+    }
+}
+
+class EraserView
+{
+    public SKBitmap GetEraserView(int width, int height)
+    {
+        var skBitmap = new SKBitmap(new SKImageInfo(width, height, SKColorType.Bgra8888, SKAlphaType.Premul));
+
+        using var skCanvas = new SKCanvas(skBitmap);
+        var skPath = new SKPath();
+        
+
+        return skBitmap;
     }
 }
