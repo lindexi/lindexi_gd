@@ -447,8 +447,9 @@ class SkInkCanvas
             }
             else
             {
-                EraserPath.Reset();
-                EraserPath.AddRect(new SKRect(0, 0, _originBackground.Width, _originBackground.Height));
+                // 似乎不耗时
+                //EraserPath.Reset();
+                //EraserPath.AddRect(new SKRect(0, 0, _originBackground.Width, _originBackground.Height));
             }
 
             // 不耗时
