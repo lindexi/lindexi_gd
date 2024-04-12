@@ -408,6 +408,11 @@ class SkInkCanvas
         IsInEraserMode = true;
     }
 
+    public void EnterPenMode()
+    {
+        IsInEraserMode = false;
+    }
+
     private bool IsInEraserMode { set; get; }
 
     /// <summary>

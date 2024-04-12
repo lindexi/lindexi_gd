@@ -206,6 +206,11 @@ public class X11App
         _skInkCanvas.EnterEraserMode();
     }
 
+    public void EnterPenMode()
+    {
+        _skInkCanvas.EnterPenMode();
+    }
+
     public unsafe void Run(nint ownerWindowIntPtr)
     {
         XSetInputFocus(Display, Window, 0, IntPtr.Zero);
