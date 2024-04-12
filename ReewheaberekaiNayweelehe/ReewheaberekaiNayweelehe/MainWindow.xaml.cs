@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,7 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-
+using System.Xml;
 using Microsoft.Maui.Graphics;
 
 using SkiaSharp;
@@ -55,6 +56,13 @@ namespace ReewheaberekaiNayweelehe
             SkCanvas.Flush();
 
             Source = writeableBitmap;
+
+            Draw(canvas =>
+            {
+                var eraserView = new EraserView();
+                using var skBitmap = eraserView.GetEraserView(30, 45);
+                canvas.DrawBitmap(skBitmap, 100, 100);
+            });
         }
 
         public void Draw(Action<SKCanvas> action)
@@ -132,6 +140,9 @@ namespace ReewheaberekaiNayweelehe
             //_canvas.EnterEraserMode();
 
             Background = Brushes.Black;
+
+            var streamReader = File.OpenText(@"e:\download\下载器\2bdee3df56e2484c9364155d852f529a\Slides\Slide_0.xml");
+            var xmlReader = XmlReader.Create(streamReader);
         }
 
         private void MainWindow_TouchDown(object sender, TouchEventArgs e)
