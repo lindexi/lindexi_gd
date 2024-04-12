@@ -1,10 +1,7 @@
 ﻿#nullable enable
 using System.Diagnostics;
-
 using BujeeberehemnaNurgacolarje;
-
 using Microsoft.Maui.Graphics;
-
 using SkiaSharp;
 
 namespace ReewheaberekaiNayweelehe;
@@ -43,6 +40,7 @@ class SkInkCanvas
     /// 原来的背景
     /// </summary>
     private SKBitmap? _originBackground;
+
     private bool _isOriginBackgroundDisable = false;
 
     //public SKSurface? SkSurface { set; get; }
@@ -103,8 +101,10 @@ class SkInkCanvas
             return;
         }
 
-        _originBackground ??= new SKBitmap(new SKImageInfo(ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height, ApplicationDrawingSkBitmap.ColorType, ApplicationDrawingSkBitmap.AlphaType,
-                    ApplicationDrawingSkBitmap.ColorSpace), SKBitmapAllocFlags.None);
+        _originBackground ??= new SKBitmap(new SKImageInfo(ApplicationDrawingSkBitmap.Width,
+            ApplicationDrawingSkBitmap.Height, ApplicationDrawingSkBitmap.ColorType,
+            ApplicationDrawingSkBitmap.AlphaType,
+            ApplicationDrawingSkBitmap.ColorSpace), SKBitmapAllocFlags.None);
         _isOriginBackgroundDisable = false;
 
         using var skCanvas = new SKCanvas(_originBackground);
@@ -214,7 +214,8 @@ class SkInkCanvas
 
         if (_skCanvas is null || _originBackground is null)
         {
-            Console.WriteLine($"Leave-------- 进入非预期分支，除非是初始化 _skCanvas is null = {_skCanvas is null} _originBackground is null={_originBackground is null}");
+            Console.WriteLine(
+                $"Leave-------- 进入非预期分支，除非是初始化 _skCanvas is null = {_skCanvas is null} _originBackground is null={_originBackground is null}");
             return;
         }
 
@@ -262,7 +263,6 @@ class SkInkCanvas
     ///// 静态笔迹层
     ///// </summary>
     //public List<InkInfo> StaticInkInfoList { get; } = new List<InkInfo>();
-
 
 
     /// <summary>
@@ -340,6 +340,7 @@ class SkInkCanvas
                 {
                     break;
                 }
+
                 // 简单的算法…就是越靠近笔尖的点的压感越小
                 _cache[context.TipStylusPoints.Count - i - 1] = _cache[context.TipStylusPoints.Count - i - 1] with
                 {
@@ -354,7 +355,7 @@ class SkInkCanvas
         var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, 20);
 
         using var skPath = new SKPath();
-        skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
+        skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float)t.X, (float)t.Y)).ToArray());
         //skPath.Close();
 
         // 将计算出来的笔尖部分叠加回去原先的笔身，这个方式对画长线性能不好
@@ -449,37 +450,22 @@ class SkInkCanvas
                 EraserPath = new SKPath();
                 EraserPath.AddRect(new SKRect(0, 0, _originBackground.Width, _originBackground.Height));
             }
-            else
-            {
-                // 似乎不耗时
-                //EraserPath.Reset();
-                //EraserPath.AddRect(new SKRect(0, 0, _originBackground.Width, _originBackground.Height));
-            }
-
-            // 不耗时
-            //stopwatch.Stop();
-            //Console.WriteLine($"EraserPath create time={stopwatch.ElapsedMilliseconds}ms");
 
             var point = info.StylusPoint.Point;
-            var x = (float) point.X;
-            var y = (float) point.Y;
+            var x = (float)point.X;
+            var y = (float)point.Y;
 
-            var width = 30;
-            var height = 45;
-            var skRect = new SKRect(x, y, x + width, y + height);
+            double width = 30;
+            double height = 45;
 
-            //stopwatch.Restart();
+            x -= (float) width / 2;
+            y -= (float) height / 2;
+
+            var skRect = new SKRect(x, y, (float) (x + width), (float) (y + height));
+
             using var skRoundRect = new SKPath();
             skRoundRect.AddRoundRect(skRect, 5, 5);
-            //EraserPath.AddPath(skRoundRect, SKPathAddMode.Extend);
             EraserPath.Op(skRoundRect, SKPathOp.Difference, EraserPath);
-
-            // 不耗时
-            //stopwatch.Stop();
-            //Console.WriteLine($"EraserPath do op time={stopwatch.ElapsedMilliseconds}ms");
-
-            //using var skPaint = new SKPaint();
-            //skPaint.Color = SKColors.White;
 
             canvas.Clear();
             canvas.Save();
@@ -487,13 +473,16 @@ class SkInkCanvas
             canvas.DrawBitmap(_originBackground, 0, 0);
             canvas.Restore();
 
+            // 画出橡皮擦
             canvas.Save();
             canvas.Translate(x, y);
             EraserView.DrawEraserView(canvas, 30, 45);
             canvas.Restore();
 
+            // 更新范围
             var addition = 20;
-            var rect = new Rect(skRect.Left - addition, skRect.Top - addition, skRect.Width + addition * 2, skRect.Height + addition * 2);
+            var rect = new Rect(skRect.Left - addition, skRect.Top - addition, skRect.Width + addition * 2,
+                skRect.Height + addition * 2);
             RenderBoundsChanged?.Invoke(this, rect);
 
             MoveEraserStopwatch.Stop();
@@ -544,7 +533,8 @@ class EraserView
         var pathWidth = 30;
         var pathHeight = 45;
 
-        using var path1 = SKPath.ParseSvgPathData("M0,5.0093855C0,2.24277828,2.2303666,0,5.00443555,0L24.9955644,0C27.7594379,0,30,2.23861485,30,4.99982044L30,17.9121669C30,20.6734914,30,25.1514578,30,27.9102984L30,40.0016889C30,42.7621799,27.7696334,45,24.9955644,45L5.00443555,45C2.24056212,45,0,42.768443,0,39.9906145L0,5.0093855z");
+        using var path1 = SKPath.ParseSvgPathData(
+            "M0,5.0093855C0,2.24277828,2.2303666,0,5.00443555,0L24.9955644,0C27.7594379,0,30,2.23861485,30,4.99982044L30,17.9121669C30,20.6734914,30,25.1514578,30,27.9102984L30,40.0016889C30,42.7621799,27.7696334,45,24.9955644,45L5.00443555,45C2.24056212,45,0,42.768443,0,39.9906145L0,5.0093855z");
         using var skPaint = new SKPaint();
         skPaint.IsAntialias = true;
         skPaint.Style = SKPaintStyle.Fill;
