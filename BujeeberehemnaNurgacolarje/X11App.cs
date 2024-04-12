@@ -814,7 +814,11 @@ public class X11App
 
     private Point[]? _outlinePointList;
 
-    public SKColor Color { get; set; } = SKColors.Red;
+    public SKColor Color
+    {
+        set => _skInkCanvas.Color = value;
+        get => _skInkCanvas.Color;
+    }
 
     private (int X, int Y) _lastPoint;
     private bool _isDown;
