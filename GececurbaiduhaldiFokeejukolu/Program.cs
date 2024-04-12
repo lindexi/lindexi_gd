@@ -2,6 +2,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Avalonia.Media;
 
 namespace GececurbaiduhaldiFokeejukolu;
 
@@ -13,14 +14,6 @@ internal class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        if (RuntimeInformation.OSArchitecture == Architecture.Arm64)
-        {
-            // 可能跑在麒麟系统上
-            var app = new BujeeberehemnaNurgacolarje.X11App();
-            app.EnterEraserMode();
-            app.Run(IntPtr.Zero);
-        }
-
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
     }
@@ -30,5 +23,15 @@ internal class Program
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .WithInterFont()
-            .LogToTrace();
+            .LogToTrace()
+            // 修复麒麟丢失字体
+            .With(new FontManagerOptions()
+            {
+                DefaultFamilyName = "Noto Sans CJK SC",
+                FontFallbacks =
+                [
+                    new FontFallback { FontFamily = "文泉驿正黑" },
+                    new FontFallback { FontFamily = "DejaVu Sans" },
+                ],
+            });
 }
