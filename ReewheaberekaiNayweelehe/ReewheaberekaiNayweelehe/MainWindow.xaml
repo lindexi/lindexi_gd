@@ -11,7 +11,7 @@
             <RowDefinition></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
         </Grid.RowDefinitions>
-        <local:SkiaCanvas x:Name="Image" Width="1920" Height="1080" Margin="10,10,10,10"></local:SkiaCanvas>
+        <!--<local:SkiaCanvas x:Name="Image" Width="1920" Height="1080" Margin="10,10,10,10"></local:SkiaCanvas>-->
         <Button x:Name="Button" Margin="10,10,10,10" Grid.Row="1" Content="使用Skia绘制" Click="Button_OnClick"></Button>
     </Grid>
 </Window>
