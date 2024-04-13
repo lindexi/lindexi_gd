@@ -19,8 +19,6 @@ using Microsoft.Maui.Graphics;
 
 using SkiaSharp;
 
-using static System.Environment;
-
 using StylusPoint = BujeeberehemnaNurgacolarje.StylusPoint;
 
 namespace ReewheaberekaiNayweelehe
