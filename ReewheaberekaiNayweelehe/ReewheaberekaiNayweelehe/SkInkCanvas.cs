@@ -26,12 +26,13 @@ record SkInkCanvasSettings(bool EnableClippingEraser = true, bool AutoSoftPen = 
     /// <summary>
     /// 修改笔尖渲染部分配置 动态笔迹层
     /// </summary>
-    public InkCanvasDynamicRenderTipStrokeType DynamicRenderType { init; get; }
+    public InkCanvasDynamicRenderTipStrokeType DynamicRenderType { init; get; } =
+        InkCanvasDynamicRenderTipStrokeType.RenderAllTouchingStrokeWithoutTipStroke;
 
     /// <summary>
-    /// 是否应该在橡皮擦丢点进行收集，进行一次性处理。现在橡皮擦速度慢在画图 DrawBitmap 里，而对于几何组装来说，似乎不耗时
+    /// 是否应该在橡皮擦丢点进行收集，进行一次性处理。现在橡皮擦速度慢在画图 DrawBitmap 里，而对于几何组装来说，似乎不耗时。此属性可能会降低性能
     /// </summary>
-    public bool ShouldCollectDropErasePoint { init; get; }
+    public bool ShouldCollectDropErasePoint { init; get; } = true;
 }
 
 /// <summary>
@@ -469,6 +470,12 @@ class SkInkCanvas
             {
                 // 如果时间距离过近，则忽略
                 // 由于触摸屏大量触摸点输入，而 DrawBitmap 需要 20 毫秒，导致性能过于差
+                if (Settings.ShouldCollectDropErasePoint)
+                {
+                    _eraserDropPointList ??= new List<StylusPoint>();
+                    _eraserDropPointList.Add(info.StylusPoint);
+                }
+
                 return;
             }
             else
@@ -498,6 +505,29 @@ class SkInkCanvas
             skRoundRect.AddRoundRect(skRect, 5, 5);
             EraserPath.Op(skRoundRect, SKPathOp.Difference, EraserPath);
 
+            if (Settings.ShouldCollectDropErasePoint && _eraserDropPointList != null)
+            {
+                // 如果有收集丢点的点，则加入计算
+                foreach (var stylusPoint in _eraserDropPointList)
+                {
+                    point = stylusPoint.Point;
+                    x = (float) point.X;
+                    y = (float) point.Y;
+
+                    x -= (float) width / 2;
+                    y -= (float) height / 2;
+
+                    skRect = new SKRect(x, y, (float) (x + width), (float) (y + height));
+
+                    skRoundRect.Reset();
+                    skRoundRect.AddRoundRect(skRect, 5, 5);
+
+                    EraserPath.Op(skRoundRect, SKPathOp.Difference, EraserPath);
+                }
+
+                _eraserDropPointList.Clear();
+            }
+
             canvas.Clear();
             canvas.Save();
             canvas.ClipPath(EraserPath, antialias: true);
@@ -512,8 +542,18 @@ class SkInkCanvas
 
             // 更新范围
             var addition = 20;
-            var rect = new Rect(skRect.Left - addition, skRect.Top - addition, skRect.Width + addition * 2,
+            var currentEraserRenderBounds = new Rect(skRect.Left - addition, skRect.Top - addition, skRect.Width + addition * 2,
                 skRect.Height + addition * 2);
+
+            var rect = currentEraserRenderBounds;
+
+            if (_lastEraserRenderBounds != null)
+            {
+                // 如果将上次的绘制范围进行重新绘制，防止出现橡皮擦图标
+                rect = rect.Union(_lastEraserRenderBounds.Value);
+            }
+
+            _lastEraserRenderBounds = currentEraserRenderBounds;
             RenderBoundsChanged?.Invoke(this, rect);
 
             MoveEraserStopwatch.Stop();
@@ -523,7 +563,18 @@ class SkInkCanvas
     }
 
     private SKPath? EraserPath { set; get; }
+
     private EraserView EraserView { get; } = new EraserView();
+
+    /// <summary>
+    /// 在橡皮擦丢点进行收集，进行一次性处理
+    /// </summary>
+    private List<StylusPoint>? _eraserDropPointList;
+
+    /// <summary>
+    /// 上一次的橡皮擦渲染范围
+    /// </summary>
+    private Rect? _lastEraserRenderBounds;
 
     private void UpEraser(InkingInputInfo info)
     {
@@ -541,6 +592,8 @@ class SkInkCanvas
 
         EraserPath?.Dispose();
         EraserPath = null;
+
+        _lastEraserRenderBounds = null;
 
         // 完全重绘，修复可能存在的丢失裁剪
         RenderBoundsChanged?.Invoke(this, new Rect(0, 0, _originBackground.Width, _originBackground.Height));
