@@ -17,6 +17,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Xml;
+
 using Microsoft.Maui.Graphics;
 
 using SkiaSharp;
@@ -61,9 +62,10 @@ namespace ReewheaberekaiNayweelehe
 
             Draw(canvas =>
             {
-                var eraserView = new EraserView();
-                using var skBitmap = eraserView.GetEraserView(30, 45);
-                canvas.DrawBitmap(skBitmap, 100, 100);
+                //var eraserView = new EraserView();
+                //using var skBitmap = eraserView.GetEraserView(30, 45);
+                //canvas.DrawBitmap(skBitmap, 100, 100);
+                canvas.Clear(SKColors.White);
             });
         }
 
@@ -134,6 +136,10 @@ namespace ReewheaberekaiNayweelehe
 
             TouchLeave += MainWindow_TouchLeave;
 
+            MouseDown += MainWindow_MouseDown;
+            MouseMove += MainWindow_MouseMove;
+            MouseUp += MainWindow_MouseUp;
+
             _canvas.RenderBoundsChanged += (o, rect) =>
             {
                 Image.Update();
@@ -152,6 +158,7 @@ namespace ReewheaberekaiNayweelehe
                 int result = DwmSetWindowAttribute(hwnd, DwmWindowAttribute.DWMWA_NCRENDERING_POLICY, ref value, sizeof(int));
             };
         }
+
 
         private void MainWindow_TouchDown(object sender, TouchEventArgs e)
         {
@@ -189,6 +196,54 @@ namespace ReewheaberekaiNayweelehe
             _canvas.Leave();
         }
 
+
+        private void MainWindow_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.StylusDevice != null)
+            {
+                return;
+            }
+
+            _canvas.ApplicationDrawingSkBitmap = Image.SkBitmap;
+
+            _canvas.SetCanvas(Image.SkCanvas);
+
+            _isMouseDown = true;
+
+            var position = e.GetPosition(this);
+
+            _canvas.Down(new InkingInputInfo(0, new StylusPoint(position.X, position.Y), (ulong) e.Timestamp));
+        }
+
+        private void MainWindow_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.StylusDevice != null)
+            {
+                return;
+            }
+
+            if (_isMouseDown)
+            {
+                var position = e.GetPosition(this);
+                _canvas.Move(new InkingInputInfo(0, new StylusPoint(position.X, position.Y), (ulong) e.Timestamp));
+            }
+        }
+
+        private void MainWindow_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (e.StylusDevice != null)
+            {
+                return;
+            }
+
+            _isMouseDown = false;
+
+            var position = e.GetPosition(this);
+            _canvas.Up(new InkingInputInfo(0, new StylusPoint(position.X, position.Y), (ulong) e.Timestamp));
+        }
+
+        private bool _isMouseDown = false;
+
         private void Draw(Action<SKCanvas> action)
         {
             Image.Draw(action);
@@ -218,15 +273,15 @@ namespace ReewheaberekaiNayweelehe
 
                 canvas.DrawRect(10, 10, 1000, 1000, skPaint);
 
-                using var skPath = new SKPath();
-                skPath.AddCircle(100, 100, 100);
+                //using var skPath = new SKPath();
+                //skPath.AddCircle(100, 100, 100);
 
-                skPaint.Color = SKColors.White;
+                //skPaint.Color = SKColors.White;
 
-                canvas.Save();
-                canvas.ClipPath(skPath, antialias: true);
-                canvas.DrawRect(10, 10, 1000, 1000, skPaint);
-                canvas.Restore();
+                //canvas.Save();
+                //canvas.ClipPath(skPath, antialias: true);
+                //canvas.DrawRect(10, 10, 1000, 1000, skPaint);
+                //canvas.Restore();
 
                 //skPaint.Color = SKColors.White;
                 //canvas.DrawOval(new SKRect(100, 100, 150, 150), skPaint);
