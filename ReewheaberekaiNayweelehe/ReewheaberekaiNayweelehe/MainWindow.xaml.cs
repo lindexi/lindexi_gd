@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -10,6 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
@@ -140,6 +142,15 @@ namespace ReewheaberekaiNayweelehe
             //_canvas.EnterEraserMode();
 
             Background = Brushes.Black;
+
+            Loaded += (sender, args) =>
+            {
+                var windowInteropHelper = new WindowInteropHelper(this);
+                var hwnd = windowInteropHelper.Handle;
+
+                int value = (int) DwmWindowCornerPreference.DWMWCP_DONOTROUND;
+                int result = DwmSetWindowAttribute(hwnd, DwmWindowAttribute.DWMWA_NCRENDERING_POLICY, ref value, sizeof(int));
+            };
         }
 
         private void MainWindow_TouchDown(object sender, TouchEventArgs e)
@@ -249,7 +260,27 @@ namespace ReewheaberekaiNayweelehe
         {
 
         }
+
+        // Import the DwmSetWindowAttribute function from dwmapi.dll
+        [DllImport("dwmapi.dll")]
+        public static extern int DwmSetWindowAttribute(IntPtr hwnd, DwmWindowAttribute dwAttribute, ref int pvAttribute, int cbAttribute);
+
+        // Define the DWM window attributes enumeration
+        public enum DwmWindowAttribute : uint
+        {
+            // Add other attributes here if needed
+            DWMWA_NCRENDERING_POLICY = 2,
+            DWMWA_CLOAK = 14,
+            // ...
+        }
+
+        // Define the DWM corner preference enumeration
+        public enum DwmWindowCornerPreference : uint
+        {
+            DWMWCP_DEFAULT = 0,
+            DWMWCP_DONOTROUND = 1,
+            DWMWCP_ROUND = 2,
+            DWMWCP_ROUNDSMALL = 3
+        }
     }
-
-
 }
