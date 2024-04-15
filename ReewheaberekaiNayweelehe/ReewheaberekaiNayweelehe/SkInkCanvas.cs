@@ -512,7 +512,7 @@ class SkInkCanvas
             RenderBoundsChanged?.Invoke(this, rect);
 
             MoveEraserStopwatch.Stop();
-            Console.WriteLine($"EraserPath DrawBitmap time={MoveEraserStopwatch.ElapsedMilliseconds}ms RenderBounds={rect.X} {rect.Y} {rect.Width} {rect.Height}");
+            Console.WriteLine($"EraserPath time={MoveEraserStopwatch.ElapsedMilliseconds}ms RenderBounds={rect.X} {rect.Y} {rect.Width} {rect.Height}");
             MoveEraserStopwatch.Restart();
         }
     }
