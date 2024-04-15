@@ -21,15 +21,15 @@ record InkInfo(int Id);
 record SkInkCanvasSettings(bool EnableClippingEraser = true, bool AutoSoftPen = true)
 {
     /// <summary>
-    /// 修改笔尖渲染部分配置
+    /// 修改笔尖渲染部分配置 动态笔迹层
     /// </summary>
-    public InkCanvasRenderDynamicTipStrokeType DynamicRenderType { init; get; }
+    public InkCanvasDynamicRenderTipStrokeType DynamicRenderType { init; get; }
 }
 
 /// <summary>
 /// 笔尖渲染模式
 /// </summary>
-enum InkCanvasRenderDynamicTipStrokeType
+enum InkCanvasDynamicRenderTipStrokeType
 {
 
 }
