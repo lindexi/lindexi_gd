@@ -512,16 +512,16 @@ class SkInkCanvas
                 foreach (var stylusPoint in _eraserDropPointList)
                 {
                     point = stylusPoint.Point;
-                    x = (float) point.X;
-                    y = (float) point.Y;
+                    var xDropPoint = (float) point.X;
+                    var yDropPoint = (float) point.Y;
 
-                    x -= (float) width / 2;
-                    y -= (float) height / 2;
+                    xDropPoint -= (float) width / 2;
+                    yDropPoint -= (float) height / 2;
 
-                    skRect = new SKRect(x, y, (float) (x + width), (float) (y + height));
+                    var skRectDropPoint = new SKRect(xDropPoint, yDropPoint, (float) (xDropPoint + width), (float) (yDropPoint + height));
 
                     skRoundRect.Reset();
-                    skRoundRect.AddRoundRect(skRect, 5, 5);
+                    skRoundRect.AddRoundRect(skRectDropPoint, 5, 5);
 
                     EraserPath.Op(skRoundRect, SKPathOp.Difference, EraserPath);
                 }
