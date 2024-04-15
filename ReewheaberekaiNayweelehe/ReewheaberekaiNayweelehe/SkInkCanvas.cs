@@ -424,7 +424,7 @@ class SkInkCanvas
 
     public SKColor Color { get; set; } = SKColors.Red;
 
-
+    // 以下是橡皮擦系列逻辑
     // 橡皮擦根据给定尺寸缩放
 
     /// <summary>
@@ -512,7 +512,7 @@ class SkInkCanvas
             RenderBoundsChanged?.Invoke(this, rect);
 
             MoveEraserStopwatch.Stop();
-            Console.WriteLine($"EraserPath DrawBitmap time={MoveEraserStopwatch.ElapsedMilliseconds}ms RenderBounds={rect.X} {rect.Y} {rect.Width} {rect.Height}");
+            Console.WriteLine($"EraserPath time={MoveEraserStopwatch.ElapsedMilliseconds}ms RenderBounds={rect.X} {rect.Y} {rect.Width} {rect.Height}");
             MoveEraserStopwatch.Restart();
         }
     }
