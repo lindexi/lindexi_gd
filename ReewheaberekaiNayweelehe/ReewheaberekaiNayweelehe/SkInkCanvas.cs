@@ -495,7 +495,7 @@ class SkInkCanvas
 
             canvas.Clear();
             canvas.Save();
-            canvas.ClipPath(EraserPath);
+            canvas.ClipPath(EraserPath, antialias: true);
             canvas.DrawBitmap(_originBackground, 0, 0);
             canvas.Restore();
 
