@@ -512,8 +512,18 @@ class SkInkCanvas
 
             // 更新范围
             var addition = 20;
-            var rect = new Rect(skRect.Left - addition, skRect.Top - addition, skRect.Width + addition * 2,
+            var currentEraserRenderBounds = new Rect(skRect.Left - addition, skRect.Top - addition, skRect.Width + addition * 2,
                 skRect.Height + addition * 2);
+
+            var rect = currentEraserRenderBounds;
+
+            if(_lastEraserRenderBounds!=null)
+            {
+                // 如果将上次的绘制范围进行重新绘制，防止出现橡皮擦图标
+                rect = rect.Union(_lastEraserRenderBounds.Value);
+            }
+
+            _lastEraserRenderBounds = currentEraserRenderBounds;
             RenderBoundsChanged?.Invoke(this, rect);
 
             MoveEraserStopwatch.Stop();
@@ -524,6 +534,11 @@ class SkInkCanvas
 
     private SKPath? EraserPath { set; get; }
     private EraserView EraserView { get; } = new EraserView();
+
+    /// <summary>
+    /// 上一次的橡皮擦渲染范围
+    /// </summary>
+    private Rect? _lastEraserRenderBounds;
 
     private void UpEraser(InkingInputInfo info)
     {
@@ -541,6 +556,8 @@ class SkInkCanvas
 
         EraserPath?.Dispose();
         EraserPath = null;
+
+        _lastEraserRenderBounds = null;
 
         // 完全重绘，修复可能存在的丢失裁剪
         RenderBoundsChanged?.Invoke(this, new Rect(0, 0, _originBackground.Width, _originBackground.Height));
