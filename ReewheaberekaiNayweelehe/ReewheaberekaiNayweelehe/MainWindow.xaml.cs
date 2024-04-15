@@ -139,7 +139,7 @@ namespace ReewheaberekaiNayweelehe
                 Image.Update();
             };
 
-            //_canvas.EnterEraserMode();
+            _canvas.EnterEraserMode();
 
             Background = Brushes.Black;
 
