@@ -32,7 +32,8 @@ record SkInkCanvasSettings(bool EnableClippingEraser = true, bool AutoSoftPen = 
     /// <summary>
     /// 是否应该在橡皮擦丢点进行收集，进行一次性处理。现在橡皮擦速度慢在画图 DrawBitmap 里，而对于几何组装来说，似乎不耗时。此属性可能会降低性能
     /// </summary>
-    public bool ShouldCollectDropErasePoint { init; get; } = true;
+    /// 在触摸屏测试，使用兆芯机器，开启之后性能大幅降低
+    public bool ShouldCollectDropErasePoint { init; get; } = false;
 }
 
 /// <summary>
@@ -586,7 +587,7 @@ class SkInkCanvas
         canvas.Clear();
 
         canvas.Save();
-        canvas.ClipPath(EraserPath);
+        canvas.ClipPath(EraserPath, antialias: true);
         canvas.DrawBitmap(_originBackground, 0, 0);
         canvas.Restore();
 
