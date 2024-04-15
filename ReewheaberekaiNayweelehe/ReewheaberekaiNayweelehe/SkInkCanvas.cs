@@ -490,30 +490,19 @@ class SkInkCanvas
                 EraserPath.AddRect(new SKRect(0, 0, _originBackground.Width, _originBackground.Height));
             }
 
-            var point = info.StylusPoint.Point;
-            var x = (float) point.X;
-            var y = (float) point.Y;
-
             double width = 30;
             double height = 45;
 
-            x -= (float) width / 2;
-            y -= (float) height / 2;
-
-            var skRect = new SKRect(x, y, (float) (x + width), (float) (y + height));
-
             using var skRoundRect = new SKPath();
-            skRoundRect.AddRoundRect(skRect, 5, 5);
-            EraserPath.Op(skRoundRect, SKPathOp.Difference, EraserPath);
 
             if (Settings.ShouldCollectDropErasePoint && _eraserDropPointList != null)
             {
                 // 如果有收集丢点的点，则加入计算
                 foreach (var stylusPoint in _eraserDropPointList)
                 {
-                    point = stylusPoint.Point;
-                    var xDropPoint = (float) point.X;
-                    var yDropPoint = (float) point.Y;
+                    var dropPoint = stylusPoint.Point;
+                    var xDropPoint = (float) dropPoint.X;
+                    var yDropPoint = (float) dropPoint.Y;
 
                     xDropPoint -= (float) width / 2;
                     yDropPoint -= (float) height / 2;
@@ -528,6 +517,18 @@ class SkInkCanvas
 
                 _eraserDropPointList.Clear();
             }
+
+            var point = info.StylusPoint.Point;
+            var x = (float) point.X;
+            var y = (float) point.Y;
+
+            x -= (float) width / 2;
+            y -= (float) height / 2;
+
+            var skRect = new SKRect(x, y, (float) (x + width), (float) (y + height));
+
+            skRoundRect.AddRoundRect(skRect, 5, 5);
+            EraserPath.Op(skRoundRect, SKPathOp.Difference, EraserPath);
 
             canvas.Clear();
             canvas.Save();
