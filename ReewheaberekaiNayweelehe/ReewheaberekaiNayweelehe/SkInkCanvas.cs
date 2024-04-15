@@ -27,6 +27,11 @@ record SkInkCanvasSettings(bool EnableClippingEraser = true, bool AutoSoftPen = 
     /// 修改笔尖渲染部分配置 动态笔迹层
     /// </summary>
     public InkCanvasDynamicRenderTipStrokeType DynamicRenderType { init; get; }
+
+    /// <summary>
+    /// 是否应该在橡皮擦丢点进行收集，进行一次性处理。现在橡皮擦速度慢在画图 DrawBitmap 里，而对于几何组装来说，似乎不耗时
+    /// </summary>
+    public bool ShouldCollectDropErasePoint { init; get; }
 }
 
 /// <summary>
