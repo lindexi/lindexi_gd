@@ -33,7 +33,7 @@ record SkInkCanvasSettings(bool EnableClippingEraser = true, bool AutoSoftPen = 
     /// 是否应该在橡皮擦丢点进行收集，进行一次性处理。现在橡皮擦速度慢在画图 DrawBitmap 里，而对于几何组装来说，似乎不耗时。此属性可能会降低性能
     /// </summary>
     /// 在触摸屏测试，使用兆芯机器，开启之后性能大幅降低
-    public bool ShouldCollectDropErasePoint { init; get; } = false;
+    public bool ShouldCollectDropErasePoint { init; get; } = true;
 }
 
 /// <summary>
@@ -490,30 +490,19 @@ class SkInkCanvas
                 EraserPath.AddRect(new SKRect(0, 0, _originBackground.Width, _originBackground.Height));
             }
 
-            var point = info.StylusPoint.Point;
-            var x = (float) point.X;
-            var y = (float) point.Y;
-
             double width = 30;
             double height = 45;
 
-            x -= (float) width / 2;
-            y -= (float) height / 2;
-
-            var skRect = new SKRect(x, y, (float) (x + width), (float) (y + height));
-
             using var skRoundRect = new SKPath();
-            skRoundRect.AddRoundRect(skRect, 5, 5);
-            EraserPath.Op(skRoundRect, SKPathOp.Difference, EraserPath);
 
             if (Settings.ShouldCollectDropErasePoint && _eraserDropPointList != null)
             {
                 // 如果有收集丢点的点，则加入计算
                 foreach (var stylusPoint in _eraserDropPointList)
                 {
-                    point = stylusPoint.Point;
-                    var xDropPoint = (float) point.X;
-                    var yDropPoint = (float) point.Y;
+                    var dropPoint = stylusPoint.Point;
+                    var xDropPoint = (float) dropPoint.X;
+                    var yDropPoint = (float) dropPoint.Y;
 
                     xDropPoint -= (float) width / 2;
                     yDropPoint -= (float) height / 2;
@@ -528,6 +517,18 @@ class SkInkCanvas
 
                 _eraserDropPointList.Clear();
             }
+
+            var point = info.StylusPoint.Point;
+            var x = (float) point.X;
+            var y = (float) point.Y;
+
+            x -= (float) width / 2;
+            y -= (float) height / 2;
+
+            var skRect = new SKRect(x, y, (float) (x + width), (float) (y + height));
+
+            skRoundRect.AddRoundRect(skRect, 5, 5);
+            EraserPath.Op(skRoundRect, SKPathOp.Difference, EraserPath);
 
             canvas.Clear();
             canvas.Save();
@@ -558,7 +559,7 @@ class SkInkCanvas
             RenderBoundsChanged?.Invoke(this, rect);
 
             MoveEraserStopwatch.Stop();
-            Console.WriteLine($"EraserPath time={MoveEraserStopwatch.ElapsedMilliseconds}ms RenderBounds={rect.X} {rect.Y} {rect.Width} {rect.Height}");
+            Console.WriteLine($"EraserPath time={MoveEraserStopwatch.ElapsedMilliseconds}ms RenderBounds={rect.X} {rect.Y} {rect.Width} {rect.Height} EraserPathPointCount={EraserPath.PointCount}");
             MoveEraserStopwatch.Restart();
         }
     }
