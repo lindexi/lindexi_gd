@@ -5,7 +5,6 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ReewheaberekaiNayweelehe"
         x:Class="ReewheaberekaiNayweelehe.MainWindow"
-        WindowStyle="None"
         ResizeMode="NoResize"
         mc:Ignorable="d"
         Title="MainWindow" Height="600" Width="600">
