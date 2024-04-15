@@ -18,7 +18,21 @@ record InkInfo(int Id);
 /// </summary>
 /// <param name="EnableClippingEraser">是否允许使用裁剪方式的橡皮擦，而不是走静态笔迹层</param>
 /// <param name="AutoSoftPen">是否开启自动软笔模式</param>
-record SkInkCanvasSettings(bool EnableClippingEraser = true, bool AutoSoftPen = true);
+record SkInkCanvasSettings(bool EnableClippingEraser = true, bool AutoSoftPen = true)
+{
+    /// <summary>
+    /// 修改笔尖渲染部分配置
+    /// </summary>
+    public InkCanvasRenderDynamicTipStrokeType DynamicRenderType { init; get; }
+}
+
+/// <summary>
+/// 笔尖渲染模式
+/// </summary>
+enum InkCanvasRenderDynamicTipStrokeType
+{
+
+}
 
 class SkInkCanvas
 {
