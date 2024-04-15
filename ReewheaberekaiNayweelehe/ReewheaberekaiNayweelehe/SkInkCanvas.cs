@@ -1,7 +1,10 @@
 ﻿#nullable enable
 using System.Diagnostics;
+
 using BujeeberehemnaNurgacolarje;
+
 using Microsoft.Maui.Graphics;
+
 using SkiaSharp;
 
 namespace ReewheaberekaiNayweelehe;
@@ -21,17 +24,21 @@ record InkInfo(int Id);
 record SkInkCanvasSettings(bool EnableClippingEraser = true, bool AutoSoftPen = true)
 {
     /// <summary>
-    /// 修改笔尖渲染部分配置
+    /// 修改笔尖渲染部分配置 动态笔迹层
     /// </summary>
-    public InkCanvasRenderDynamicTipStrokeType DynamicRenderType { init; get; }
+    public InkCanvasDynamicRenderTipStrokeType DynamicRenderType { init; get; }
 }
 
 /// <summary>
 /// 笔尖渲染模式
 /// </summary>
-enum InkCanvasRenderDynamicTipStrokeType
+enum InkCanvasDynamicRenderTipStrokeType
 {
-
+    /// <summary>
+    /// 所有触摸按下的笔迹都每次重新绘制，不区分笔尖和笔身
+    /// 此方式可以实现比较好的平滑效果
+    /// </summary>
+    RenderAllTouchingStrokeWithoutTipStroke,
 }
 
 class SkInkCanvas
@@ -369,45 +376,50 @@ class SkInkCanvas
         var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, 20);
 
         using var skPath = new SKPath();
-        skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float)t.X, (float)t.Y)).ToArray());
+        skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
         //skPath.Close();
 
-        // 将计算出来的笔尖部分叠加回去原先的笔身，这个方式对画长线性能不好
-        context.InkStrokePath ??= new SKPath();
-        context.InkStrokePath.AddPath(skPath);
-
-        var skPathBounds = skPath.Bounds;
-
-        // 计算脏范围，用于渲染更新
-        var additionSize = 10; // 用于设置比简单计算的范围更大一点的范围，解决重采样之后的模糊
-        drawRect = new Rect(skPathBounds.Left - additionSize, skPathBounds.Top - additionSize,
-            skPathBounds.Width + additionSize * 2, skPathBounds.Height + additionSize * 2);
-
-        var skCanvas = _skCanvas;
-        // 以下代码用于解决绘制的笔迹边缘锐利的问题。原因是笔迹执行了重采样，但是边缘如果没有被覆盖，则重采样的将会重复叠加，导致锐利
-        // 根据 Skia 的官方文档，建议是走清空重新绘制。在不清屏的情况下，除非能够获取到原始的像素点。尽管这是能够计算的，但是先走清空开发速度比较快
-        skCanvas.Clear(SKColors.Transparent);
-        skCanvas.DrawBitmap(_originBackground, 0, 0);
-
-        // 将所有的笔迹绘制出来，作为动态笔迹层。后续抬手的笔迹需要重新写入到静态笔迹层
-        using var skPaint = new SKPaint();
-        skPaint.StrokeWidth = 0.1f;
-        skPaint.IsAntialias = true;
-        skPaint.FilterQuality = SKFilterQuality.High;
-        skPaint.Style = SKPaintStyle.Fill;
-        var enumerator = CurrentInputDictionary.GetEnumerator();
-
-        foreach (var drawStrokeContext in CurrentInputDictionary)
+        if (Settings.DynamicRenderType == InkCanvasDynamicRenderTipStrokeType.RenderAllTouchingStrokeWithoutTipStroke)
         {
-            skPaint.Color = drawStrokeContext.Value.StrokeColor;
+            // 将计算出来的笔尖部分叠加回去原先的笔身，这个方式对画长线性能不好
+            context.InkStrokePath ??= new SKPath();
+            context.InkStrokePath.AddPath(skPath);
 
-            if (drawStrokeContext.Value.InkStrokePath is { } path)
+            var skPathBounds = skPath.Bounds;
+
+            // 计算脏范围，用于渲染更新
+            var additionSize = 10; // 用于设置比简单计算的范围更大一点的范围，解决重采样之后的模糊
+            drawRect = new Rect(skPathBounds.Left - additionSize, skPathBounds.Top - additionSize,
+                skPathBounds.Width + additionSize * 2, skPathBounds.Height + additionSize * 2);
+
+            var skCanvas = _skCanvas;
+            // 以下代码用于解决绘制的笔迹边缘锐利的问题。原因是笔迹执行了重采样，但是边缘如果没有被覆盖，则重采样的将会重复叠加，导致锐利
+            // 根据 Skia 的官方文档，建议是走清空重新绘制。在不清屏的情况下，除非能够获取到原始的像素点。尽管这是能够计算的，但是先走清空开发速度比较快
+            skCanvas.Clear(SKColors.Transparent);
+            skCanvas.DrawBitmap(_originBackground, 0, 0);
+
+            // 将所有的笔迹绘制出来，作为动态笔迹层。后续抬手的笔迹需要重新写入到静态笔迹层
+            using var skPaint = new SKPaint();
+            skPaint.StrokeWidth = 0.1f;
+            skPaint.IsAntialias = true;
+            skPaint.FilterQuality = SKFilterQuality.High;
+            skPaint.Style = SKPaintStyle.Fill;
+            var enumerator = CurrentInputDictionary.GetEnumerator();
+
+            foreach (var drawStrokeContext in CurrentInputDictionary)
             {
-                skCanvas.DrawPath(path, skPaint);
+                skPaint.Color = drawStrokeContext.Value.StrokeColor;
+
+                if (drawStrokeContext.Value.InkStrokePath is { } path)
+                {
+                    skCanvas.DrawPath(path, skPaint);
+                }
             }
+
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     public SKColor Color { get; set; } = SKColors.Red;
@@ -466,8 +478,8 @@ class SkInkCanvas
             }
 
             var point = info.StylusPoint.Point;
-            var x = (float)point.X;
-            var y = (float)point.Y;
+            var x = (float) point.X;
+            var y = (float) point.Y;
 
             double width = 30;
             double height = 45;
