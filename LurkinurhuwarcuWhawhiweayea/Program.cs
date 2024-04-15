@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using DocumentFormat.OpenXml.Drawing;
+using DocumentFormat.OpenXml.Validation;
 using Shape = DocumentFormat.OpenXml.Presentation.Shape;
 
 namespace LurkinurhuwarcuWhawhiweayea
@@ -12,6 +13,11 @@ namespace LurkinurhuwarcuWhawhiweayea
             using (var presentationDocument =
                 DocumentFormat.OpenXml.Packaging.PresentationDocument.Open("测试.pptx", false))
             {
+                var openXmlValidator = new OpenXmlValidator();
+                foreach (var validationErrorInfo in openXmlValidator.Validate(presentationDocument))
+                {
+                }
+
                 var presentationPart = presentationDocument.PresentationPart;
                 var slidePart = presentationPart.SlideParts.First();
                 var shape = slidePart.Slide.Descendants<Shape>().First();
