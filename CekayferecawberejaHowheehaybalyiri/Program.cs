@@ -2,6 +2,7 @@
 
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Text;
 using Renci.SshNet;
 using Renci.SshNet.Security.Cryptography;
 using Renci.SshNet.Security.Cryptography.Ciphers;
@@ -134,6 +135,24 @@ class F: NetworkStream
 
     public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
     {
-        return await base.ReadAsync(buffer, cancellationToken);
+        var result = await base.ReadAsync(buffer, cancellationToken);
+
+        var s = Encoding.UTF8.GetString(buffer.Span[..result]);
+
+        if (result > 0)
+        {
+            var memoryStream = new MemoryStream(buffer.Span[..result].ToArray());
+            using var sslStream = new SslStream(memoryStream,true, (sender, certificate, chain, errors) =>
+            {
+                return true;
+            });
+            var streamReader = new StreamReader(sslStream);
+            s = streamReader.ReadToEnd();
+        }
+    
+        
+        return result;
     }
+
+    private Task? _task;
 }
