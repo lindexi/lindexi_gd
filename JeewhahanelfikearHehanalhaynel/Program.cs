@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
@@ -140,6 +141,35 @@ namespace BingAccess
 
         static void Main(string[] args)
         {
+            try
+            {
+                var tcpClient = new TcpClient();
+                tcpClient.Connect("baidu.com",443);
+                var sslStream = new SslStream(tcpClient.GetStream());
+                sslStream.AuthenticateAsClient("baidu.com");
+
+                // 构建 HTTP 请求
+                var request = "GET /api/data HTTP/1.1\r\n" +
+                              "Host: " + "baidu.com" + "\r\n" +
+                              "User-Agent: MyHttpClient\r\n" +
+                              "\r\n";
+
+                // 将请求发送到服务器
+                var requestBytes = Encoding.UTF8.GetBytes(request);
+                sslStream.Write(requestBytes);
+
+                // 接收响应
+                var responseBytes = new byte[1024];
+                var bytesRead = sslStream.Read(responseBytes, 0, responseBytes.Length);
+                var response = Encoding.UTF8.GetString(responseBytes, 0, bytesRead);
+
+                Console.WriteLine("Response:\n" + response);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+
             try
             {
                 // Initialize OpenSSL

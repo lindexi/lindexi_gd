@@ -10,6 +10,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\..\..\..\Library\ManagedOpenSsl\ssleay32.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\..\..\Library\ManagedOpenSsl\libeay32.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="ManagedOpenSsl">
+      <HintPath>..\..\..\..\Library\ManagedOpenSsl\ManagedOpenSsl.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <!--  <ItemGroup>
     <None Include="..\..\..\..\Library\libssl-3.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -19,6 +34,6 @@
     <None Include="..\..\..\..\Library\legacy.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
+  </ItemGroup>-->
 
 </Project>
