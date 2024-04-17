@@ -1,9 +1,11 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System.IO;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
 using Renci.SshNet;
+using Renci.SshNet.Common;
 using Renci.SshNet.Security.Cryptography;
 using Renci.SshNet.Security.Cryptography.Ciphers;
 
@@ -139,20 +141,36 @@ class F: NetworkStream
 
         var s = Encoding.UTF8.GetString(buffer.Span[..result]);
 
-        if (result > 0)
+        if (_pipeStream is null)
         {
-            var memoryStream = new MemoryStream(buffer.Span[..result].ToArray());
-            using var sslStream = new SslStream(memoryStream,true, (sender, certificate, chain, errors) =>
+            _pipeStream = new PipeStream();
+            _task = Task.Run(async () =>
             {
-                return true;
+                using var sslStream = new SslStream(_pipeStream, true, (sender, certificate, chain, errors) =>
+                {
+                    return true;
+                });
+
+                sslStream.AuthenticateAsClient("www.baidu.com");
+
+                while (!_start)
+                {
+                    await Task.Delay(100);
+                }
+
+                var streamReader = new StreamReader(sslStream);
+                s = streamReader.ReadToEnd();
             });
-            var streamReader = new StreamReader(sslStream);
-            s = streamReader.ReadToEnd();
         }
-    
-        
+        else
+        {
+            _pipeStream.Write(buffer.Span[..result]);
+        }
+
         return result;
     }
 
+    private PipeStream? _pipeStream;
     private Task? _task;
+    private bool _start = false;
 }
