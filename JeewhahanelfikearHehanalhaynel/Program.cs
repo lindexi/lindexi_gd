@@ -8,6 +8,9 @@ using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Xml.Linq;
 
+using OpenSSL.SSL;
+using OpenSSL.X509;
+
 namespace BingAccess
 {
     unsafe class Program
@@ -144,9 +147,9 @@ namespace BingAccess
             try
             {
                 var tcpClient = new TcpClient();
-                tcpClient.Connect("baidu.com",443);
-                var sslStream = new SslStream(tcpClient.GetStream());
-                sslStream.AuthenticateAsClient("baidu.com");
+                tcpClient.Connect("baidu.com", 443);
+                var sslStream = new OpenSSL.SSL.SslStream(tcpClient.GetStream());
+                sslStream.AuthenticateAsClient("baidu.com", new X509List(), new X509Chain(), SslProtocols.Default, SslStrength.Low, true);
 
                 // 构建 HTTP 请求
                 var request = "GET /api/data HTTP/1.1\r\n" +
