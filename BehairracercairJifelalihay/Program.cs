@@ -1,5 +1,5 @@
 ﻿// See https://aka.ms/new-console-template for more information
-#define DebugAllocated
+//#define DebugAllocated
 
 using System.Diagnostics;
 using System.Drawing;
@@ -8,7 +8,9 @@ using System.Runtime.InteropServices;
 
 using EDIDParser;
 
-var file = "edid";
+using Microsoft.Win32.SafeHandles;
+
+//ReadEdid("edid");
 
 var drmFolder = "/sys/class/drm/";
 
@@ -23,55 +25,86 @@ foreach (var subFolder in Directory.EnumerateDirectories(drmFolder))
         // 也许里面存放的是 enabled\n 字符
         if (enabledText.StartsWith("enabled"))
         {
+            var edid = Path.Join(subFolder, "edid");
+            if (File.Exists(edid))
+            {
+                var data = File.ReadAllBytes(edid);
+                Console.WriteLine($"Data={data.Length}");
 
+                ReadEdid(data);
+
+                //Console.WriteLine($"Read edid {edid}");
+                //ReadEdidFromFile(edid);
+            }
         }
 
-        Console.WriteLine($"{enabledText.Replace("\n","\\n")}");
+        Console.WriteLine($"{enabledText.Replace("\n", "\\n")}");
     }
 }
 // “/sys/class/drm/”文件夹的 这里的 drm 是什么的缩写或什么含义？
 
 Console.Read();
 
-unsafe
+
+Console.Read();
+
+unsafe void ReadEdidFromFile(string edidFile)
 {
+    unsafe
+    {
 #if DebugAllocated
-    var currentAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
-    long deltaAllocatedBytes = 0;
-    var lastAllocatedBytes = currentAllocatedBytes;
+        var currentAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
+        long deltaAllocatedBytes = 0;
+        var lastAllocatedBytes = currentAllocatedBytes;
 #endif
 
-    Span<byte> edidSpan;
-    // https://glenwing.github.io/docs/VESA-EEDID-A1.pdf
-    // This document describes the basic 128-byte data structure "EDID 1.3", as well as the overall layout of the
-    // data blocks that make up Enhanced EDID. 
-    const int minLength = 128;
-    using (var fileStream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read, minLength))
-    {
-        LogMemoryAllocated();
+        Span<byte> edidSpan;
+        // https://glenwing.github.io/docs/VESA-EEDID-A1.pdf
+        // This document describes the basic 128-byte data structure "EDID 1.3", as well as the overall layout of the
+        // data blocks that make up Enhanced EDID. 
+        const int minLength = 128;
 
-        if (fileStream.Length <= minLength * 2)
+        using (var fileStream = new FileStream(edidFile, FileMode.Open, FileAccess.Read, FileShare.Read, minLength, false))
         {
-            edidSpan = stackalloc byte[(int) fileStream.Length];
-        }
-        else
-        {
-            edidSpan = new byte[(int) fileStream.Length];
+            Console.WriteLine($"FileLength={fileStream.Length}");
+
+            //LogMemoryAllocated();
+
+            if (fileStream.Length <= minLength * 2 && false)
+            {
+                edidSpan = stackalloc byte[(int) fileStream.Length];
+            }
+            else
+            {
+                edidSpan = new byte[(int) fileStream.Length];
+            }
+
+            var readLength = fileStream.Read(edidSpan);
+            Debug.Assert(fileStream.Length == readLength);
         }
 
-        var readLength = fileStream.Read(edidSpan);
-        Debug.Assert(fileStream.Length == readLength);
+        //LogMemoryAllocated();
+
+        Console.WriteLine($"Start read Header");
+
+        ReadEdid(edidSpan);
     }
+}
 
-    LogMemoryAllocated();
+void ReadEdid(Span<byte> span)
+{
+    const int minLength = 128;
 
     // Header
-    var edidHeader = edidSpan[..8];
-    if (edidHeader is not [0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00])
-    {
-        // 这不是一份有效的 edid 文件
-        throw new ArgumentException("这不是一份有效的 edid 文件，校验 Header 失败");
-    }
+    var edidHeader = span[..8];
+    // 似乎遇到 Linux 平台的问题，出现越界，暂时忽略
+    //if (edidHeader is not [0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00])
+    //{
+    //    // 这不是一份有效的 edid 文件
+    //    throw new ArgumentException("这不是一份有效的 edid 文件，校验 Header 失败");
+    //}
+
+    Console.WriteLine($"Start read checksum");
 
     // checksum
     // 3.11 Extension Flag and Checksum
@@ -79,7 +112,7 @@ unsafe
     byte checksumValue = 0;
     for (int i = 0; i < minLength; i++)
     {
-        checksumValue += edidSpan[i];
+        checksumValue += span[i];
     }
 
     if (checksumValue != 0)
@@ -89,31 +122,34 @@ unsafe
 
     LogMemoryAllocated();
 
+    Console.WriteLine($"Start read name");
+
     // 3.4 Vendor/Product ID: 10 bytes
     // 看起来有些离谱
     // ID Manufacturer Name
     // EISA manufacturer IDs are issued by Microsoft. Contact by: E-mail: pnpid@microsoft.com
-    var nameShort = (int) MemoryMarshal.Cast<byte, short>(edidSpan.Slice(0x08, 2))[0];
+    var nameShort = (int) MemoryMarshal.Cast<byte, short>(span.Slice(0x08, 2))[0];
     nameShort = ((nameShort & 0xff00) >> 8) | ((nameShort & 0x00ff) << 8);
     // 这里面是包含三个字符也是诡异的设计
     var nameChar2 = (char) ('A' + ((nameShort >> 0) & 0x1f) - 1);
     var nameChar1 = (char) ('A' + ((nameShort >> 5) & 0x1f) - 1);
     var nameChar0 = (char) ('A' + ((nameShort >> 10) & 0x1f) - 1);
     //// 转换一下大概32个长度
-    //string manufacturerName = new string([nameChar0, nameChar1, nameChar2]);
+    string manufacturerName = new string([nameChar0, nameChar1, nameChar2]);
+    Console.WriteLine($"Name={manufacturerName}");
     //LogMemoryAllocated();
 
 
-    var week = edidSpan[0x10];
+    var week = span[0x10];
     // The Year of Manufacture field is used to represent the year of the monitor’s manufacture. The value that is stored is
     // an offset from the year 1990 as derived from the following equation:
     // Value stored = (Year of manufacture - 1990)
     // Example: For a monitor manufactured in 1997 the value stored in this field would be 7.
-    var manufactureYear = edidSpan[0x11] + 1990;
+    var manufactureYear = span[0x11] + 1990;
 
     // Section 3.5 EDID Structure Version / Revision 2 bytes
-    var version = edidSpan[0x12];
-    var revision = edidSpan[0x13]; // 如 1.3 版本，那么 version == 1 且 revision == 3 的值
+    var version = span[0x12];
+    var revision = span[0x13]; // 如 1.3 版本，那么 version == 1 且 revision == 3 的值
     // EDID structure 1.3 is introduced for the first time in this document and adds definitions for secondary GTF curve
     // coefficients. EDID 1.3 is based on the same core as all other EDID 1.x structures. EDID 1.3 is intended to be the
     // new baseline for EDID data structures. EDID 1.3 is recommended for all new monitor designs.
@@ -121,9 +157,9 @@ unsafe
 
     // Section 3.6 Basic Display Parameters / Features 5 bytes
     // Video Input Definition
-    var videoInputDefinition = edidSpan[0x14];
-    var maxHorizontalImageSize = edidSpan[0x15];
-    var maxVerticalImageSize = edidSpan[0x16];
+    var videoInputDefinition = span[0x14];
+    var maxHorizontalImageSize = span[0x15];
+    var maxVerticalImageSize = span[0x16];
 
     // 这里的 ImageSize 其实就是屏幕的物理尺寸
     // 单位是厘米
@@ -133,8 +169,8 @@ unsafe
     LogMemoryAllocated();
     Console.WriteLine($"屏幕尺寸 {monitorPhysicalWidth} x {monitorPhysicalHeight}");
 
-    var displayTransferCharacteristicGamma = edidSpan[0x17];
-    var featureSupport = edidSpan[0x18];
+    var displayTransferCharacteristicGamma = span[0x17];
+    var featureSupport = span[0x18];
 
     int[] n = [1, 2, 3];
 
@@ -178,18 +214,13 @@ unsafe
     void LogMemoryAllocated()
     {
 #if DebugAllocated
-        currentAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
-        deltaAllocatedBytes = currentAllocatedBytes - lastAllocatedBytes;
-        Console.WriteLine($"内存申请量 {deltaAllocatedBytes}");
-        lastAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
+        l = GC.GetAllocatedBytesForCurrentThread();
+        deltaAllocatedBytes1 = l - lastAllocatedBytes1;
+        Console.WriteLine($"内存申请量 {deltaAllocatedBytes1}");
+        lastAllocatedBytes1 = GC.GetAllocatedBytesForCurrentThread();
 #endif // DebugAllocated
     }
 }
-// 内容很小，全部读取出来也不怕
-var data = File.ReadAllBytes(file);
-var edid = new EDID(data);
-
-Console.WriteLine("Hello, World!");
 
 readonly record struct Cm(uint Value)
 {
