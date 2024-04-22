@@ -4,16 +4,17 @@ using EDIDParser;
 
 var file = "edid";
 
-var data = File.ReadAllBytes(file);
 unsafe
 {
     int[] n = [1, 2, 3];
 
-    if (n is [1, 2, 3])
+    if (n.AsSpan() is [1, 2, 3])
     {
 
     }
 }
+
+var data = File.ReadAllBytes(file);
 var edid = new EDID(data);
 
 Console.WriteLine("Hello, World!");
