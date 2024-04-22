@@ -4,6 +4,7 @@ using EDIDParser;
 
 var file = "edid";
 
+
 unsafe
 {
     int[] n = [1, 2, 3];
@@ -46,7 +47,7 @@ unsafe
 
     }
 }
-
+// 内容很小，全部读取出来也不怕
 var data = File.ReadAllBytes(file);
 var edid = new EDID(data);
 
