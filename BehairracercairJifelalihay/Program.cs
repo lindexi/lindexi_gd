@@ -4,7 +4,6 @@ using EDIDParser;
 
 var file = "edid";
 
-var data = File.ReadAllBytes(file);
 unsafe
 {
     int[] n = [1, 2, 3];
@@ -14,6 +13,8 @@ unsafe
 
     }
 }
+
+var data = File.ReadAllBytes(file);
 var edid = new EDID(data);
 
 Console.WriteLine("Hello, World!");
