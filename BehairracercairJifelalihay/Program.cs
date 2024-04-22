@@ -51,6 +51,8 @@ EdidInfo ReadEdidFromFile(string edidFile)
     var edidInfo = ReadEdid(edidSpan);
     var result = GC.GetAllocatedBytesForCurrentThread() - allocatedBytesForCurrentThread;
     Console.WriteLine($"{result}分配");
+    Console.WriteLine($"屏幕尺寸 {edidInfo.BasicDisplayParameters.MonitorPhysicalWidth} x {edidInfo.BasicDisplayParameters.MonitorPhysicalHeight}");
+
     return edidInfo;
 }
 
