@@ -9,9 +9,13 @@ var file = "edid";
 unsafe
 {
     Span<byte> edidSpan;
-    using (var fileStream = new FileStream(file, FileMode.Open))
+    // https://glenwing.github.io/docs/VESA-EEDID-A1.pdf
+    // This document describes the basic 128-byte data structure "EDID 1.3", as well as the overall layout of the
+    // data blocks that make up Enhanced EDID. 
+    const int minLength = 128;
+    using (var fileStream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read, minLength))
     {
-        if (fileStream.Length <= 256)
+        if (fileStream.Length <= minLength * 2)
         {
             edidSpan = stackalloc byte[(int) fileStream.Length];
         }
@@ -24,7 +28,6 @@ unsafe
         Debug.Assert(fileStream.Length == readLength);
     }
 
-    // https://glenwing.github.io/docs/VESA-EEDID-A1.pdf
 
     int[] n = [1, 2, 3];
 
