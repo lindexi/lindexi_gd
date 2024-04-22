@@ -8,6 +8,10 @@ var file = "edid";
 
 unsafe
 {
+    var currentAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
+    long detalAllocatedBytes = 0;
+    var lastAllocatedBytes = currentAllocatedBytes;
+
     Span<byte> edidSpan;
     // https://glenwing.github.io/docs/VESA-EEDID-A1.pdf
     // This document describes the basic 128-byte data structure "EDID 1.3", as well as the overall layout of the
@@ -27,6 +31,10 @@ unsafe
         var readLength = fileStream.Read(edidSpan);
         Debug.Assert(fileStream.Length == readLength);
     }
+
+    currentAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
+    detalAllocatedBytes = currentAllocatedBytes - lastAllocatedBytes;
+    lastAllocatedBytes = currentAllocatedBytes;
 
     // Header
     var edidHeader = edidSpan[..8];
@@ -49,6 +57,10 @@ unsafe
     {
         throw new ArgumentException("这不是一份有效的 edid 文件，校验 checksum 失败");
     }
+
+    currentAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
+    detalAllocatedBytes = currentAllocatedBytes - lastAllocatedBytes;
+    lastAllocatedBytes = currentAllocatedBytes;
 
     int[] n = [1, 2, 3];
 
