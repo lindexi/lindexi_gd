@@ -2,10 +2,16 @@
 #define DebugAllocated
 
 using System.Diagnostics;
+using System.Drawing;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 using EDIDParser;
 
 var file = "edid";
+
+
+Console.WriteLine(22.ToString("X2"));
 
 unsafe
 {
@@ -39,7 +45,6 @@ unsafe
 
     LogMemoryAllocated();
 
-
     // Header
     var edidHeader = edidSpan[..8];
     if (edidHeader is not [0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00])
@@ -63,6 +68,53 @@ unsafe
     }
 
     LogMemoryAllocated();
+
+    // 3.4 Vendor/Product ID: 10 bytes
+    // 看起来有些离谱
+    // ID Manufacturer Name
+    // EISA manufacturer IDs are issued by Microsoft. Contact by: E-mail: pnpid@microsoft.com
+    var nameShort = (int) MemoryMarshal.Cast<byte, short>(edidSpan.Slice(0x08, 2))[0];
+    nameShort = ((nameShort & 0xff00) >> 8) | ((nameShort & 0x00ff) << 8);
+    // 这里面是包含三个字符也是诡异的设计
+    var nameChar2 = (char) ('A' + ((nameShort >> 0) & 0x1f) - 1);
+    var nameChar1 = (char) ('A' + ((nameShort >> 5) & 0x1f) - 1);
+    var nameChar0 = (char) ('A' + ((nameShort >> 10) & 0x1f) - 1);
+    //// 转换一下大概32个长度
+    //string manufacturerName = new string([nameChar0, nameChar1, nameChar2]);
+    //LogMemoryAllocated();
+
+
+    var week = edidSpan[0x10];
+    // The Year of Manufacture field is used to represent the year of the monitor’s manufacture. The value that is stored is
+    // an offset from the year 1990 as derived from the following equation:
+    // Value stored = (Year of manufacture - 1990)
+    // Example: For a monitor manufactured in 1997 the value stored in this field would be 7.
+    var manufactureYear = edidSpan[0x11] + 1990;
+
+    // Section 3.5 EDID Structure Version / Revision 2 bytes
+    var version = edidSpan[0x12];
+    var revision = edidSpan[0x13]; // 如 1.3 版本，那么 version == 1 且 revision == 3 的值
+    // EDID structure 1.3 is introduced for the first time in this document and adds definitions for secondary GTF curve
+    // coefficients. EDID 1.3 is based on the same core as all other EDID 1.x structures. EDID 1.3 is intended to be the
+    // new baseline for EDID data structures. EDID 1.3 is recommended for all new monitor designs.
+    //new Version(version, revision)
+
+    // Section 3.6 Basic Display Parameters / Features 5 bytes
+    // Video Input Definition
+    var videoInputDefinition = edidSpan[0x14];
+    var maxHorizontalImageSize = edidSpan[0x15];
+    var maxVerticalImageSize = edidSpan[0x16];
+
+    // 这里的 ImageSize 其实就是屏幕的物理尺寸
+    // 单位是厘米
+    var monitorPhysicalWidth = new Cm(maxHorizontalImageSize);
+    var monitorPhysicalHeight = new Cm(maxVerticalImageSize);
+
+    LogMemoryAllocated();
+    Console.WriteLine($"屏幕尺寸 {monitorPhysicalWidth} x {monitorPhysicalHeight}");
+
+    var displayTransferCharacteristicGamma = edidSpan[0x17];
+    var featureSupport = edidSpan[0x18];
 
     int[] n = [1, 2, 3];
 
@@ -118,3 +170,8 @@ var data = File.ReadAllBytes(file);
 var edid = new EDID(data);
 
 Console.WriteLine("Hello, World!");
+
+readonly record struct Cm(uint Value)
+{
+    public override string ToString() => $"{Value} cm";
+}
