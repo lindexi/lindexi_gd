@@ -10,14 +10,34 @@ using EDIDParser;
 
 var file = "edid";
 
+var drmFolder = "/sys/class/drm/";
 
-Console.WriteLine(22.ToString("X2"));
+Console.WriteLine($"/sys/class/drm/ 存在 {Directory.Exists(drmFolder)}");
+
+foreach (var subFolder in Directory.EnumerateDirectories(drmFolder))
+{
+    var enableFile = Path.Join(subFolder, "enabled");
+    if (File.Exists(enableFile))
+    {
+        var enabledText = File.ReadAllText(enableFile);
+        // 也许里面存放的是 enabled\n 字符
+        if (enabledText.StartsWith("enabled"))
+        {
+
+        }
+
+        Console.WriteLine($"{enabledText.Replace("\n","\\n")}");
+    }
+}
+// “/sys/class/drm/”文件夹的 这里的 drm 是什么的缩写或什么含义？
+
+Console.Read();
 
 unsafe
 {
 #if DebugAllocated
     var currentAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
-    long detalAllocatedBytes = 0;
+    long deltaAllocatedBytes = 0;
     var lastAllocatedBytes = currentAllocatedBytes;
 #endif
 
@@ -159,8 +179,8 @@ unsafe
     {
 #if DebugAllocated
         currentAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
-        detalAllocatedBytes = currentAllocatedBytes - lastAllocatedBytes;
-        Console.WriteLine($"内存申请量 {detalAllocatedBytes}");
+        deltaAllocatedBytes = currentAllocatedBytes - lastAllocatedBytes;
+        Console.WriteLine($"内存申请量 {deltaAllocatedBytes}");
         lastAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
 #endif // DebugAllocated
     }
