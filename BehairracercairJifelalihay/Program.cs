@@ -9,7 +9,7 @@ unsafe
 {
     int[] n = [1, 2, 3];
 
-    if (n is [1, 2, 3])
+    if (n.AsSpan() is [1, 2, 3])
     {
 
     }
