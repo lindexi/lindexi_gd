@@ -97,12 +97,11 @@ void ReadEdid(Span<byte> span)
 
     // Header
     var edidHeader = span[..8];
-    // 似乎遇到 Linux 平台的问题，出现越界，暂时忽略
-    //if (edidHeader is not [0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00])
-    //{
-    //    // 这不是一份有效的 edid 文件
-    //    throw new ArgumentException("这不是一份有效的 edid 文件，校验 Header 失败");
-    //}
+    if (edidHeader is not [0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00])
+    {
+        // 这不是一份有效的 edid 文件
+        throw new ArgumentException("这不是一份有效的 edid 文件，校验 Header 失败");
+    }
 
     Console.WriteLine($"Start read checksum");
 
