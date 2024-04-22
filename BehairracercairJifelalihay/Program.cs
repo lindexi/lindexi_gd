@@ -28,6 +28,13 @@ unsafe
         Debug.Assert(fileStream.Length == readLength);
     }
 
+    // Header
+    var edidHeader = edidSpan[..8];
+    if (edidHeader is not [0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00])
+    {
+        // 这不是一份有效的 edid 文件
+        throw new ArgumentException("这不是一份有效的 edid 文件");
+    }
 
     int[] n = [1, 2, 3];
 
