@@ -14,6 +14,21 @@ using Microsoft.Win32.SafeHandles;
 
 var drmFolder = "/sys/class/drm/";
 
+var file = "/sys/class/drm/card0-DP-1/enabled";
+if (File.ReadAllText(file).Length > 0)
+{
+    Console.WriteLine($"读取成功");
+}
+
+{
+    if (File.OpenRead(file).Length > 0)
+    {
+        Console.WriteLine($"File.OpenRead 成功 {File.OpenRead(file).Length}");
+    }
+}
+
+Console.Read();
+
 Console.WriteLine($"/sys/class/drm/ 存在 {Directory.Exists(drmFolder)}");
 
 foreach (var subFolder in Directory.EnumerateDirectories(drmFolder))
