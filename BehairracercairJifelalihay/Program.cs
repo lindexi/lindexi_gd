@@ -34,38 +34,27 @@ while (true)
 }
 
 
-unsafe void ReadEdidFromFile(string edidFile)
+void ReadEdidFromFile(string edidFile)
 {
+    const int minLength = 128;
+    Span<byte> edidSpan = stackalloc byte[minLength * 2];
+    // https://glenwing.github.io/docs/VESA-EEDID-A1.pdf
+    // This document describes the basic 128-byte data structure "EDID 1.3", as well as the overall layout of the
+    // data blocks that make up Enhanced EDID. 
+
+    using (var fileStream = new FileStream(edidFile, FileMode.Open, FileAccess.Read, FileShare.Read, minLength, false))
     {
-#if DebugAllocated
-        var currentAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
-        long deltaAllocatedBytes = 0;
-        var lastAllocatedBytes = currentAllocatedBytes;
-#endif
+        Console.WriteLine($"FileLength={fileStream.Length}");
 
-        Span<byte> edidSpan;
-        // https://glenwing.github.io/docs/VESA-EEDID-A1.pdf
-        // This document describes the basic 128-byte data structure "EDID 1.3", as well as the overall layout of the
-        // data blocks that make up Enhanced EDID. 
-        const int minLength = 128;
+        var readLength = fileStream.Read(edidSpan);
 
-        using (var fileStream = new FileStream(edidFile, FileMode.Open, FileAccess.Read, FileShare.Read, minLength, false))
-        {
-            Console.WriteLine($"FileLength={fileStream.Length}");
-
-            //LogMemoryAllocated();
-            edidSpan = stackalloc byte[minLength * 2];
-
-            var readLength = fileStream.Read(edidSpan);
-
-            Debug.Assert(readLength >= minLength);
-            //Debug.Assert(fileStream.Length == readLength);
-        }
-
-        //LogMemoryAllocated();
-
-        ReadEdid(edidSpan);
+        Debug.Assert(readLength >= minLength);
+        //Debug.Assert(fileStream.Length == readLength);
     }
+
+    //LogMemoryAllocated();
+
+    ReadEdid(edidSpan);
 }
 
 void ReadEdid(Span<byte> span)
@@ -112,7 +101,6 @@ void ReadEdid(Span<byte> span)
     string manufacturerName = new string([nameChar0, nameChar1, nameChar2]);
     Console.WriteLine($"Name={manufacturerName}");
     //LogMemoryAllocated();
-
 
     var week = span[0x10];
     // The Year of Manufacture field is used to represent the year of the monitor’s manufacture. The value that is stored is
