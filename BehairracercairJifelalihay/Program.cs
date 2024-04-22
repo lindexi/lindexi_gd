@@ -21,10 +21,15 @@ if (File.ReadAllText(file).Length > 0)
 }
 
 {
-    if (File.OpenRead(file).Length > 0)
+    var fileStream = File.OpenRead(file);
+    if (fileStream.Length > 0)
     {
-        Console.WriteLine($"File.OpenRead 成功 {File.OpenRead(file).Length}");
+        Console.WriteLine($"File.OpenRead 成功 {fileStream.Length}");
     }
+    fileStream.Dispose();
+
+    fileStream = new FileStream(file, FileMode.Open, FileAccess.Read);
+    Console.WriteLine($"new FileStream Length = {fileStream.Length}");
 }
 
 Console.Read();
