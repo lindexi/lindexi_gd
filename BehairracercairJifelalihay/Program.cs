@@ -14,22 +14,37 @@ using Microsoft.Win32.SafeHandles;
 
 var drmFolder = "/sys/class/drm/";
 
-var file = "/sys/class/drm/card0-DP-1/enabled";
-if (File.ReadAllText(file).Length > 0)
+var file = "/sys/class/drm/card0-DP-2/edid";
+if (File.ReadAllBytes(file).Length > 0)
 {
     Console.WriteLine($"读取成功");
 }
 
+// 经过测试，可以在 UOS 里面用 File.ReadAllBytes 读取到
+
 {
+    // 用 File.OpenRead 读取不到
     var fileStream = File.OpenRead(file);
-    if (fileStream.Length > 0)
-    {
-        Console.WriteLine($"File.OpenRead 成功 {fileStream.Length}");
-    }
+    Console.WriteLine($"File.OpenRead {fileStream.Length}");
     fileStream.Dispose();
 
+    // 用 new FileStream 读取不到
     fileStream = new FileStream(file, FileMode.Open, FileAccess.Read);
     Console.WriteLine($"new FileStream Length = {fileStream.Length}");
+    fileStream.Dispose();
+
+    /*
+       lrwxrwxrwx 1 root root    0 4月  22 09:58 device -> ../../card0
+       -r--r--r-- 1 root root 4.0K 4月  22 09:58 dpms
+       -r--r--r-- 1 root root    0 4月  22 09:58 edid
+       -r--r--r-- 1 root root 4.0K 4月  22 09:58 enabled
+       -r--r--r-- 1 root root 4.0K 4月  22 09:58 modes
+       drwxr-xr-x 2 root root    0 4月  22 09:58 power
+       -rw-r--r-- 1 root root 4.0K 4月  22 09:58 status
+       lrwxrwxrwx 1 root root    0 4月  22 09:58 subsystem -> ../../../../../../class/drm
+       -rw-r--r-- 1 root root 4.0K 4月  22 09:58 uevent
+     */
+    // 可以看到文件挂载里面显示的就是没有文件长度
 }
 
 Console.Read();
