@@ -10,14 +10,17 @@ using EDIDParser;
 
 var file = "edid";
 
+var drmFolder = "/sys/class/drm/";
 
-Console.WriteLine(22.ToString("X2"));
+Console.WriteLine($"/sys/class/drm/ 存在 {Directory.Exists(drmFolder)}");
+
+Console.Read();
 
 unsafe
 {
 #if DebugAllocated
     var currentAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
-    long detalAllocatedBytes = 0;
+    long deltaAllocatedBytes = 0;
     var lastAllocatedBytes = currentAllocatedBytes;
 #endif
 
@@ -159,8 +162,8 @@ unsafe
     {
 #if DebugAllocated
         currentAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
-        detalAllocatedBytes = currentAllocatedBytes - lastAllocatedBytes;
-        Console.WriteLine($"内存申请量 {detalAllocatedBytes}");
+        deltaAllocatedBytes = currentAllocatedBytes - lastAllocatedBytes;
+        Console.WriteLine($"内存申请量 {deltaAllocatedBytes}");
         lastAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
 #endif // DebugAllocated
     }
