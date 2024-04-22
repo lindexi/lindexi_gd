@@ -2,10 +2,15 @@
 #define DebugAllocated
 
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 using EDIDParser;
 
 var file = "edid";
+
+
+Console.WriteLine(21.ToString("X2"));
 
 unsafe
 {
@@ -39,7 +44,6 @@ unsafe
 
     LogMemoryAllocated();
 
-
     // Header
     var edidHeader = edidSpan[..8];
     if (edidHeader is not [0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00])
@@ -63,6 +67,28 @@ unsafe
     }
 
     LogMemoryAllocated();
+
+    // 3.4 Vendor/Product ID: 10 bytes
+    // 看起来有些离谱
+    // ID Manufacturer Name
+    // EISA manufacturer IDs are issued by Microsoft. Contact by: E-mail: pnpid@microsoft.com
+    var nameShort = (int) MemoryMarshal.Cast<byte, short>(edidSpan.Slice(8, 2))[0];
+    nameShort = ((nameShort & 0xff00) >> 8) | ((nameShort & 0x00ff) << 8);
+    // 这里面是包含三个字符也是诡异的设计
+    var nameChar2 = (char) ('A' + ((nameShort >> 0) & 0x1f) - 1);
+    var nameChar1 = (char) ('A' + ((nameShort >> 5) & 0x1f) - 1);
+    var nameChar0 = (char) ('A' + ((nameShort >> 10) & 0x1f) - 1);
+    //// 转换一下大概32个长度
+    //string manufacturerName = new string([nameChar0, nameChar1, nameChar2]);
+    //LogMemoryAllocated();
+
+
+    var week = edidSpan[16];
+    // The Year of Manufacture field is used to represent the year of the monitor’s manufacture. The value that is stored is
+    // an offset from the year 1990 as derived from the following equation:
+    // Value stored = (Year of manufacture - 1990)
+    // Example: For a monitor manufactured in 1997 the value stored in this field would be 7.
+    var productYear = edidSpan[17] + 1990;
 
     int[] n = [1, 2, 3];
 
