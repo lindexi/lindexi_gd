@@ -33,7 +33,21 @@ unsafe
     if (edidHeader is not [0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00])
     {
         // 这不是一份有效的 edid 文件
-        throw new ArgumentException("这不是一份有效的 edid 文件");
+        throw new ArgumentException("这不是一份有效的 edid 文件，校验 Header 失败");
+    }
+
+    // checksum
+    // 3.11 Extension Flag and Checksum
+    // This byte should be programmed such that a one-byte checksum of the entire 128-byte EDID equals 00h.
+    byte checksumValue = 0;
+    for (int i = 0; i < minLength; i++)
+    {
+        checksumValue += edidSpan[i];
+    }
+
+    if (checksumValue != 0)
+    {
+        throw new ArgumentException("这不是一份有效的 edid 文件，校验 checksum 失败");
     }
 
     int[] n = [1, 2, 3];
