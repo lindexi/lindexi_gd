@@ -34,24 +34,27 @@ while (true)
 }
 
 
-unsafe void ReadEdidFromFile(string edidFile)
+void ReadEdidFromFile(string edidFile)
 {
-    #if DebugAllocated
-        var currentAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
-        long deltaAllocatedBytes = 0;
-        var lastAllocatedBytes = currentAllocatedBytes;
-#endif
-
-   
+    const int minLength = 128;
+    Span<byte> edidSpan = stackalloc byte[minLength * 2];
     // https://glenwing.github.io/docs/VESA-EEDID-A1.pdf
     // This document describes the basic 128-byte data structure "EDID 1.3", as well as the overall layout of the
     // data blocks that make up Enhanced EDID. 
-    const int minLength = 128;
 
-    using var fileStream = new FileStream(edidFile, FileMode.Open, FileAccess.Read, FileShare.Read, minLength, false);
-    ReadEdidFromStream(minLength, fileStream);
+    using (var fileStream = new FileStream(edidFile, FileMode.Open, FileAccess.Read, FileShare.Read, minLength, false))
+    {
+        Console.WriteLine($"FileLength={fileStream.Length}");
 
-    //ReadEdid(edidSpan);
+        var readLength = fileStream.Read(edidSpan);
+
+        Debug.Assert(readLength >= minLength);
+        //Debug.Assert(fileStream.Length == readLength);
+    }
+
+    //LogMemoryAllocated();
+
+    ReadEdid(edidSpan);
 }
 
 void ReadEdid(Span<byte> span)
@@ -99,7 +102,6 @@ void ReadEdid(Span<byte> span)
     Console.WriteLine($"Name={manufacturerName}");
     //LogMemoryAllocated();
 
-
     var week = span[0x10];
     // The Year of Manufacture field is used to represent the year of the monitor’s manufacture. The value that is stored is
     // an offset from the year 1990 as derived from the following equation:
@@ -131,16 +133,6 @@ void ReadEdid(Span<byte> span)
     var displayTransferCharacteristicGamma = span[0x17];
     var featureSupport = span[0x18];
 
-}
-
-void ReadEdidFromStream(int i, FileStream fileStream1)
-{
-    Span<byte> edidSpan;
-    edidSpan = stackalloc byte[i * 2];
-
-    //var readLength = fileStream1.Read(edidSpan);
-
-    Debug.Assert(readLength >= i);
 }
 
 readonly record struct Cm(uint Value)
