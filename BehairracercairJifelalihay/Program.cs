@@ -1,31 +1,9 @@
 ﻿// See https://aka.ms/new-console-template for more information
-//#define DebugAllocated
 
-using System.Buffers;
-using System.Diagnostics;
-using System.Drawing;
-using System.Runtime.CompilerServices;
+
 using System.Runtime.InteropServices;
 
-var drmFolder = "/sys/class/drm/";
-
-foreach (var subFolder in Directory.EnumerateDirectories(drmFolder))
-{
-    var enableFile = Path.Join(subFolder, "enabled");
-    if (File.Exists(enableFile))
-    {
-        var enabledText = File.ReadAllText(enableFile);
-        // 也许里面存放的是 enabled\n 字符
-        if (enabledText.StartsWith("enabled"))
-        {
-            var edid = Path.Join(subFolder, "edid");
-            if (File.Exists(edid))
-            {
-                EdidInfo.ReadEdidFromFile(edid);
-            }
-        }
-    }
-}
+var readEdidInfoResult = EdidInfo.ReadFormLinux();
 
 while (true)
 {
@@ -34,11 +12,10 @@ while (true)
 
 public readonly record struct EdidInfo
 {
-    public string ManufacturerName => new string([ManufacturerNameChar0, ManufacturerNameChar1, ManufacturerNameChar2]);
-
     public char ManufacturerNameChar0 { get; init; }
     public char ManufacturerNameChar1 { get; init; }
     public char ManufacturerNameChar2 { get; init; }
+    public string ManufacturerName => new string([ManufacturerNameChar0, ManufacturerNameChar1, ManufacturerNameChar2]);
 
     public byte ManufactureWeek { get; init; }
 
@@ -59,25 +36,55 @@ public readonly record struct EdidInfo
 
     private const int MinEdidDataLength = 128;
 
-    public static EdidInfo ReadEdidFromFile(string edidFile)
+    public static ReadEdidInfoResult ReadFormLinux()
     {
-        using var fileStream = new FileStream(edidFile, FileMode.Open, FileAccess.Read, FileShare.Read, MinEdidDataLength, false);
+        var drmFolder = "/sys/class/drm/";
+
+        foreach (var subFolder in Directory.EnumerateDirectories(drmFolder))
+        {
+            var enableFile = Path.Join(subFolder, "enabled");
+            if (File.Exists(enableFile))
+            {
+                var enabledText = File.ReadAllText(enableFile);
+                // 也许里面存放的是 enabled\n 字符
+                if (enabledText.StartsWith("enabled"))
+                {
+                    var edid = Path.Join(subFolder, "edid");
+                    if (File.Exists(edid))
+                    {
+                        return ReadEdidFromFile(edid);
+                    }
+                }
+            }
+        }
+
+        return ReadEdidInfoResult.Fail("找不到可用的 EDID 文件");
+    }
+
+    public static ReadEdidInfoResult ReadEdidFromFile(string edidFile)
+    {
+        using var fileStream = new FileStream(edidFile, FileMode.Open, FileAccess.Read, FileShare.Read,
+            MinEdidDataLength, false);
         return ReadEdidFromStream(fileStream);
     }
 
-    public static EdidInfo ReadEdidFromStream(Stream stream)
+    public static ReadEdidInfoResult ReadEdidFromStream(Stream stream)
     {
         // This document describes the basic 128-byte data structure "EDID 1.3", as well as the overall layout of the
         // data blocks that make up Enhanced EDID. 
         Span<byte> edidSpan = stackalloc byte[MinEdidDataLength * 2];
         // https://glenwing.github.io/docs/VESA-EEDID-A1.pdf
         var readLength = stream.Read(edidSpan);
-        Debug.Assert(readLength >= MinEdidDataLength);
+        if (readLength < MinEdidDataLength)
+        {
+            return ReadEdidInfoResult.Fail("文件长度小于 EDID 要求最短长度");
+        }
+
         var edidInfo = ReadEdid(edidSpan);
         return edidInfo;
     }
 
-    public static EdidInfo ReadEdid(Span<byte> edid)
+    public static ReadEdidInfoResult ReadEdid(Span<byte> edid)
     {
         const int minLength = 128;
 
@@ -86,7 +93,7 @@ public readonly record struct EdidInfo
         if (edidHeader is not [0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00])
         {
             // 这不是一份有效的 edid 文件
-            throw new ArgumentException("这不是一份有效的 edid 文件，校验 Header 失败");
+            return ReadEdidInfoResult.Fail("这不是一份有效的 EDID 文件，校验 Header 失败");
         }
 
         // 3.11 Extension Flag and Checksum
@@ -99,7 +106,7 @@ public readonly record struct EdidInfo
 
         if (checksumValue != 0)
         {
-            throw new ArgumentException("这不是一份有效的 edid 文件，校验 checksum 失败");
+            return ReadEdidInfoResult.Fail("这不是一份有效的 EDID 文件，校验 checksum 失败");
         }
 
         // 3.4 Vendor/Product ID: 10 bytes
@@ -123,10 +130,10 @@ public readonly record struct EdidInfo
         // Section 3.5 EDID Structure Version / Revision 2 bytes
         var version = edid[0x12];
         var revision = edid[0x13]; // 如 1.3 版本，那么 version == 1 且 revision == 3 的值
-                                   // EDID structure 1.3 is introduced for the first time in this document and adds definitions for secondary GTF curve
-                                   // coefficients. EDID 1.3 is based on the same core as all other EDID 1.x structures. EDID 1.3 is intended to be the
-                                   // new baseline for EDID data structures. EDID 1.3 is recommended for all new monitor designs.
-                                   //new Version(version, revision)
+        // EDID structure 1.3 is introduced for the first time in this document and adds definitions for secondary GTF curve
+        // coefficients. EDID 1.3 is based on the same core as all other EDID 1.x structures. EDID 1.3 is intended to be the
+        // new baseline for EDID data structures. EDID 1.3 is recommended for all new monitor designs.
+        //new Version(version, revision)
 
         // Section 3.6 Basic Display Parameters / Features 5 bytes
         // Video Input Definition
@@ -136,10 +143,8 @@ public readonly record struct EdidInfo
 
         // 这里的 ImageSize 其实就是屏幕的物理尺寸
         // 单位是厘米
-        var monitorPhysicalWidth = new EdidInfo.Cm(maxHorizontalImageSize);
-        var monitorPhysicalHeight = new EdidInfo.Cm(maxVerticalImageSize);
-
-        //Console.WriteLine($"屏幕尺寸 {monitorPhysicalWidth} x {monitorPhysicalHeight}");
+        var monitorPhysicalWidth = new Cm(maxHorizontalImageSize);
+        var monitorPhysicalHeight = new Cm(maxVerticalImageSize);
 
         var displayTransferCharacteristicGamma = edid[0x17];
         var featureSupport = edid[0x18];
@@ -153,7 +158,7 @@ public readonly record struct EdidInfo
             FeatureSupport = featureSupport,
         };
 
-        return new EdidInfo()
+        return ReadEdidInfoResult.Success(new EdidInfo()
         {
             ManufacturerNameChar0 = nameChar0,
             ManufacturerNameChar1 = nameChar1,
@@ -166,14 +171,19 @@ public readonly record struct EdidInfo
             Revision = revision,
 
             BasicDisplayParameters = edidBasicDisplayParameters,
-        };
+        });
     }
-
 
     public readonly record struct Cm(uint Value)
     {
         public override string ToString() => $"{Value} cm";
     }
+}
+
+public readonly record struct ReadEdidInfoResult(bool IsSuccess, string ErrorMessage, EdidInfo EdidInfo)
+{
+    public static ReadEdidInfoResult Success(EdidInfo edidInfo) => new ReadEdidInfoResult(true, "Success", edidInfo);
+    public static ReadEdidInfoResult Fail(string errorMessage) => new ReadEdidInfoResult(false, errorMessage, default);
 }
 
 public readonly struct EdidBasicDisplayParameters
@@ -187,6 +197,7 @@ public readonly struct EdidBasicDisplayParameters
     /// 物理屏幕宽度
     /// </summary>
     public EdidInfo.Cm MonitorPhysicalWidth { get; init; }
+
     /// <summary>
     /// 物理屏幕高度
     /// </summary>
