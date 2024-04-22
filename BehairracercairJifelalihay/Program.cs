@@ -11,6 +11,10 @@ using EDIDParser;
 
 using Microsoft.Win32.SafeHandles;
 
+var tempSubdirectory = Directory.CreateTempSubdirectory("Foo");
+Console.WriteLine($"垃圾文件夹 {tempSubdirectory}");
+Console.Read();
+
 //ReadEdid("edid");
 
 var drmFolder = "/sys/class/drm/";
@@ -76,6 +80,7 @@ if (File.ReadAllBytes(file).Length > 0)
     using var safeFileHandle = File.OpenHandle(file);
     fileStream = new FileStream(safeFileHandle, FileAccess.Read);
     Console.WriteLine($"File.OpenHandle Length = {fileStream.Length}");
+
 }
 
 Console.Read();
