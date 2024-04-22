@@ -11,12 +11,6 @@ using EDIDParser;
 
 using Microsoft.Win32.SafeHandles;
 
-var tempSubdirectory = Directory.CreateTempSubdirectory("Foo");
-Console.WriteLine($"垃圾文件夹 {tempSubdirectory}");
-Console.Read();
-
-//ReadEdid("edid");
-
 var drmFolder = "/sys/class/drm/";
 
 var file = "/sys/class/drm/card0-DP-2/edid";
