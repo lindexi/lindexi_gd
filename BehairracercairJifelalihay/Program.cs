@@ -1,4 +1,5 @@
 ﻿// See https://aka.ms/new-console-template for more information
+#define DebugAllocated
 
 using System.Diagnostics;
 
@@ -8,9 +9,11 @@ var file = "edid";
 
 unsafe
 {
+#if DebugAllocated
     var currentAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
     long detalAllocatedBytes = 0;
     var lastAllocatedBytes = currentAllocatedBytes;
+#endif
 
     Span<byte> edidSpan;
     // https://glenwing.github.io/docs/VESA-EEDID-A1.pdf
@@ -19,6 +22,8 @@ unsafe
     const int minLength = 128;
     using (var fileStream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read, minLength))
     {
+        LogMemoryAllocated();
+
         if (fileStream.Length <= minLength * 2)
         {
             edidSpan = stackalloc byte[(int) fileStream.Length];
@@ -32,9 +37,8 @@ unsafe
         Debug.Assert(fileStream.Length == readLength);
     }
 
-    currentAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
-    detalAllocatedBytes = currentAllocatedBytes - lastAllocatedBytes;
-    lastAllocatedBytes = currentAllocatedBytes;
+    LogMemoryAllocated();
+
 
     // Header
     var edidHeader = edidSpan[..8];
@@ -58,9 +62,7 @@ unsafe
         throw new ArgumentException("这不是一份有效的 edid 文件，校验 checksum 失败");
     }
 
-    currentAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
-    detalAllocatedBytes = currentAllocatedBytes - lastAllocatedBytes;
-    lastAllocatedBytes = currentAllocatedBytes;
+    LogMemoryAllocated();
 
     int[] n = [1, 2, 3];
 
@@ -99,6 +101,16 @@ unsafe
         /*
          if (value.Length != 3 || value[0] != 2 || value[1] != 2 || value[2] != 3)
      */
+    }
+
+    void LogMemoryAllocated()
+    {
+#if DebugAllocated
+        currentAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
+        detalAllocatedBytes = currentAllocatedBytes - lastAllocatedBytes;
+        Console.WriteLine($"内存申请量 {detalAllocatedBytes}");
+        lastAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
+#endif // DebugAllocated
     }
 }
 // 内容很小，全部读取出来也不怕
