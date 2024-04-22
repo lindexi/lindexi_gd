@@ -7,79 +7,7 @@ using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-using EDIDParser;
-
-using Microsoft.Win32.SafeHandles;
-
 var drmFolder = "/sys/class/drm/";
-
-var file = "/sys/class/drm/card0-DP-2/edid";
-if (File.ReadAllBytes(file).Length > 0)
-{
-    Console.WriteLine($"读取成功");
-}
-
-// 经过测试，可以在 UOS 里面用 File.ReadAllBytes 读取到
-
-{
-    // 用 File.OpenRead 读取不到
-    var fileStream = File.OpenRead(file);
-    Console.WriteLine($"File.OpenRead {fileStream.Length}");
-
-    // 似乎还可以强行读取试试看？
-    // 那就读取试试
-    var buffer = ArrayPool<byte>.Shared.Rent(256);
-    try
-    {
-        var readLength = fileStream.Read(buffer.AsSpan());
-        Console.WriteLine($"ReadLength={readLength}");
-    }
-    finally
-    {
-        ArrayPool<byte>.Shared.Return(buffer);
-    }
-
-    fileStream.Dispose();
-
-    // 用 new FileStream 读取不到
-    // 其实读取到没有长度不代表没有内容
-    // Some file systems (e.g. procfs on Linux) return 0 for length even when there's content; also there are non-seekable files.
-    fileStream = new FileStream(file, FileMode.Open, FileAccess.Read);
-    Console.WriteLine($"new FileStream Length = {fileStream.Length}");
-    buffer = ArrayPool<byte>.Shared.Rent(256);
-    try
-    {
-        var readLength = fileStream.Read(buffer.AsSpan());
-        Console.WriteLine($"ReadLength={readLength}");
-    }
-    finally
-    {
-        ArrayPool<byte>.Shared.Return(buffer);
-    }
-    fileStream.Dispose();
-
-    /*
-       lrwxrwxrwx 1 root root    0 4月  22 09:58 device -> ../../card0
-       -r--r--r-- 1 root root 4.0K 4月  22 09:58 dpms
-       -r--r--r-- 1 root root    0 4月  22 09:58 edid
-       -r--r--r-- 1 root root 4.0K 4月  22 09:58 enabled
-       -r--r--r-- 1 root root 4.0K 4月  22 09:58 modes
-       drwxr-xr-x 2 root root    0 4月  22 09:58 power
-       -rw-r--r-- 1 root root 4.0K 4月  22 09:58 status
-       lrwxrwxrwx 1 root root    0 4月  22 09:58 subsystem -> ../../../../../../class/drm
-       -rw-r--r-- 1 root root 4.0K 4月  22 09:58 uevent
-     */
-    // 可以看到文件挂载里面显示的就是没有文件长度
-
-    using var safeFileHandle = File.OpenHandle(file);
-    fileStream = new FileStream(safeFileHandle, FileAccess.Read);
-    Console.WriteLine($"File.OpenHandle Length = {fileStream.Length}");
-
-}
-
-Console.Read();
-
-Console.WriteLine($"/sys/class/drm/ 存在 {Directory.Exists(drmFolder)}");
 
 foreach (var subFolder in Directory.EnumerateDirectories(drmFolder))
 {
@@ -93,29 +21,21 @@ foreach (var subFolder in Directory.EnumerateDirectories(drmFolder))
             var edid = Path.Join(subFolder, "edid");
             if (File.Exists(edid))
             {
-                var data = File.ReadAllBytes(edid);
-                Console.WriteLine($"Data={data.Length}");
-
-                ReadEdid(data);
-
-                //Console.WriteLine($"Read edid {edid}");
-                //ReadEdidFromFile(edid);
+                ReadEdidFromFile(edid);
             }
         }
-
-        Console.WriteLine($"{enabledText.Replace("\n", "\\n")}");
     }
 }
 // “/sys/class/drm/”文件夹的 这里的 drm 是什么的缩写或什么含义？
 
-Console.Read();
+while (true)
+{
+    Console.Read();
+}
 
-
-Console.Read();
 
 unsafe void ReadEdidFromFile(string edidFile)
 {
-    unsafe
     {
 #if DebugAllocated
         var currentAllocatedBytes = GC.GetAllocatedBytesForCurrentThread();
@@ -134,23 +54,15 @@ unsafe void ReadEdidFromFile(string edidFile)
             Console.WriteLine($"FileLength={fileStream.Length}");
 
             //LogMemoryAllocated();
-
-            if (fileStream.Length <= minLength * 2 && false)
-            {
-                edidSpan = stackalloc byte[(int) fileStream.Length];
-            }
-            else
-            {
-                edidSpan = new byte[(int) fileStream.Length];
-            }
+            edidSpan = stackalloc byte[minLength * 2];
 
             var readLength = fileStream.Read(edidSpan);
-            Debug.Assert(fileStream.Length == readLength);
+
+            Debug.Assert(readLength >= minLength);
+            //Debug.Assert(fileStream.Length == readLength);
         }
 
         //LogMemoryAllocated();
-
-        Console.WriteLine($"Start read Header");
 
         ReadEdid(edidSpan);
     }
@@ -183,8 +95,6 @@ void ReadEdid(Span<byte> span)
     {
         throw new ArgumentException("这不是一份有效的 edid 文件，校验 checksum 失败");
     }
-
-    LogMemoryAllocated();
 
     Console.WriteLine($"Start read name");
 
@@ -230,60 +140,11 @@ void ReadEdid(Span<byte> span)
     var monitorPhysicalWidth = new Cm(maxHorizontalImageSize);
     var monitorPhysicalHeight = new Cm(maxVerticalImageSize);
 
-    LogMemoryAllocated();
     Console.WriteLine($"屏幕尺寸 {monitorPhysicalWidth} x {monitorPhysicalHeight}");
 
     var displayTransferCharacteristicGamma = span[0x17];
     var featureSupport = span[0x18];
 
-    int[] n = [1, 2, 3];
-
-    var value = n.AsSpan();
-    if (value is [2, 2, 3])
-    {
-        // 底层
-        /*
-       IL_0021: ldloca.s     'value'
-       IL_0023: call         instance int32 valuetype [System.Runtime]System.Span`1<int32>::get_Length()
-       IL_0028: ldc.i4.3
-       IL_0029: bne.un.s     IL_0051
-       IL_002b: ldloca.s     'value'
-       IL_002d: ldc.i4.0
-       IL_002e: call         instance !0/*int32* /& valuetype [System.Runtime]System.Span`1<int32>::get_Item(int32)
-       IL_0033: ldind.i4
-       IL_0034: ldc.i4.2
-       IL_0035: bne.un.s     IL_0051
-       IL_0037: ldloca.s     'value'
-       IL_0039: ldc.i4.1
-       IL_003a: call         instance !0/*int32* /& valuetype [System.Runtime]System.Span`1<int32>::get_Item(int32)
-       IL_003f: ldind.i4
-       IL_0040: ldc.i4.2
-       IL_0041: bne.un.s     IL_0051
-       IL_0043: ldloca.s     'value'
-       IL_0045: ldc.i4.2
-       IL_0046: call         instance !0/*int32* /& valuetype [System.Runtime]System.Span`1<int32>::get_Item(int32)
-       IL_004b: ldind.i4
-       IL_004c: ldc.i4.3
-       IL_004d: ceq
-       IL_004f: br.s         IL_0052
-       IL_0051: ldc.i4.0
-       IL_0052: stloc.s      V_5
-     */
-        // 重新转换为低级 C# 代码
-        /*
-         if (value.Length != 3 || value[0] != 2 || value[1] != 2 || value[2] != 3)
-     */
-    }
-
-    void LogMemoryAllocated()
-    {
-#if DebugAllocated
-        l = GC.GetAllocatedBytesForCurrentThread();
-        deltaAllocatedBytes1 = l - lastAllocatedBytes1;
-        Console.WriteLine($"内存申请量 {deltaAllocatedBytes1}");
-        lastAllocatedBytes1 = GC.GetAllocatedBytesForCurrentThread();
-#endif // DebugAllocated
-    }
 }
 
 readonly record struct Cm(uint Value)
