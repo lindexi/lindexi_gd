@@ -11,8 +11,6 @@ using EDIDParser;
 
 using Microsoft.Win32.SafeHandles;
 
-//ReadEdid("edid");
-
 var drmFolder = "/sys/class/drm/";
 
 var file = "/sys/class/drm/card0-DP-2/edid";
@@ -76,6 +74,7 @@ if (File.ReadAllBytes(file).Length > 0)
     using var safeFileHandle = File.OpenHandle(file);
     fileStream = new FileStream(safeFileHandle, FileAccess.Read);
     Console.WriteLine($"File.OpenHandle Length = {fileStream.Length}");
+
 }
 
 Console.Read();
