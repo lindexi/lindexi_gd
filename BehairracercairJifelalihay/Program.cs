@@ -14,22 +14,20 @@ using Microsoft.Win32.SafeHandles;
 
 var drmFolder = "/sys/class/drm/";
 
-var file = "/sys/class/drm/card0-DP-1/enabled";
-if (File.ReadAllText(file).Length > 0)
+var file = "/sys/class/drm/card0-DP-2/edid";
+if (File.ReadAllBytes(file).Length > 0)
 {
     Console.WriteLine($"读取成功");
 }
 
 {
     var fileStream = File.OpenRead(file);
-    if (fileStream.Length > 0)
-    {
-        Console.WriteLine($"File.OpenRead 成功 {fileStream.Length}");
-    }
+    Console.WriteLine($"File.OpenRead {fileStream.Length}");
     fileStream.Dispose();
 
     fileStream = new FileStream(file, FileMode.Open, FileAccess.Read);
     Console.WriteLine($"new FileStream Length = {fileStream.Length}");
+    fileStream.Dispose();
 }
 
 Console.Read();
