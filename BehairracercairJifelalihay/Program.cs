@@ -5,6 +5,15 @@ using EDIDParser;
 var file = "edid";
 
 var data = File.ReadAllBytes(file);
+unsafe
+{
+    int[] n = [1, 2, 3];
+
+    if (n is [1, 2, 3])
+    {
+
+    }
+}
 var edid = new EDID(data);
 
 Console.WriteLine("Hello, World!");
