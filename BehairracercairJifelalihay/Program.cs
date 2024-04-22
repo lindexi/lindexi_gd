@@ -44,15 +44,9 @@ void ReadEdidFromFile(string edidFile)
 
     using (var fileStream = new FileStream(edidFile, FileMode.Open, FileAccess.Read, FileShare.Read, minLength, false))
     {
-        Console.WriteLine($"FileLength={fileStream.Length}");
-
         var readLength = fileStream.Read(edidSpan);
-
         Debug.Assert(readLength >= minLength);
-        //Debug.Assert(fileStream.Length == readLength);
     }
-
-    //LogMemoryAllocated();
 
     ReadEdid(edidSpan);
 }
@@ -69,9 +63,6 @@ void ReadEdid(Span<byte> span)
         throw new ArgumentException("这不是一份有效的 edid 文件，校验 Header 失败");
     }
 
-    Console.WriteLine($"Start read checksum");
-
-    // checksum
     // 3.11 Extension Flag and Checksum
     // This byte should be programmed such that a one-byte checksum of the entire 128-byte EDID equals 00h.
     byte checksumValue = 0;
@@ -85,10 +76,8 @@ void ReadEdid(Span<byte> span)
         throw new ArgumentException("这不是一份有效的 edid 文件，校验 checksum 失败");
     }
 
-    Console.WriteLine($"Start read name");
-
     // 3.4 Vendor/Product ID: 10 bytes
-    // 看起来有些离谱
+    // 看起来有些离谱的格式，用两个 byte 表示三个字符
     // ID Manufacturer Name
     // EISA manufacturer IDs are issued by Microsoft. Contact by: E-mail: pnpid@microsoft.com
     var nameShort = (int) MemoryMarshal.Cast<byte, short>(span.Slice(0x08, 2))[0];
@@ -98,9 +87,8 @@ void ReadEdid(Span<byte> span)
     var nameChar1 = (char) ('A' + ((nameShort >> 5) & 0x1f) - 1);
     var nameChar0 = (char) ('A' + ((nameShort >> 10) & 0x1f) - 1);
     //// 转换一下大概32个长度
-    string manufacturerName = new string([nameChar0, nameChar1, nameChar2]);
-    Console.WriteLine($"Name={manufacturerName}");
-    //LogMemoryAllocated();
+    //string manufacturerName = new string([nameChar0, nameChar1, nameChar2]);
+    //Console.WriteLine($"Name={manufacturerName}");
 
     var week = span[0x10];
     // The Year of Manufacture field is used to represent the year of the monitor’s manufacture. The value that is stored is
