@@ -44,8 +44,20 @@ if (File.ReadAllBytes(file).Length > 0)
     fileStream.Dispose();
 
     // 用 new FileStream 读取不到
+    // 其实读取到没有长度不代表没有内容
+    // Some file systems (e.g. procfs on Linux) return 0 for length even when there's content; also there are non-seekable files.
     fileStream = new FileStream(file, FileMode.Open, FileAccess.Read);
     Console.WriteLine($"new FileStream Length = {fileStream.Length}");
+    buffer = ArrayPool<byte>.Shared.Rent(256);
+    try
+    {
+        var readLength = fileStream.Read(buffer.AsSpan());
+        Console.WriteLine($"ReadLength={readLength}");
+    }
+    finally
+    {
+        ArrayPool<byte>.Shared.Return(buffer);
+    }
     fileStream.Dispose();
 
     /*
