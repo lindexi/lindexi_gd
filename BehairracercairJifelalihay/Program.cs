@@ -1,6 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 //#define DebugAllocated
 
+using System.Buffers;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.CompilerServices;
@@ -26,11 +27,37 @@ if (File.ReadAllBytes(file).Length > 0)
     // 用 File.OpenRead 读取不到
     var fileStream = File.OpenRead(file);
     Console.WriteLine($"File.OpenRead {fileStream.Length}");
+
+    // 似乎还可以强行读取试试看？
+    // 那就读取试试
+    var buffer = ArrayPool<byte>.Shared.Rent(256);
+    try
+    {
+        var readLength = fileStream.Read(buffer.AsSpan());
+        Console.WriteLine($"ReadLength={readLength}");
+    }
+    finally
+    {
+        ArrayPool<byte>.Shared.Return(buffer);
+    }
+
     fileStream.Dispose();
 
     // 用 new FileStream 读取不到
+    // 其实读取到没有长度不代表没有内容
+    // Some file systems (e.g. procfs on Linux) return 0 for length even when there's content; also there are non-seekable files.
     fileStream = new FileStream(file, FileMode.Open, FileAccess.Read);
     Console.WriteLine($"new FileStream Length = {fileStream.Length}");
+    buffer = ArrayPool<byte>.Shared.Rent(256);
+    try
+    {
+        var readLength = fileStream.Read(buffer.AsSpan());
+        Console.WriteLine($"ReadLength={readLength}");
+    }
+    finally
+    {
+        ArrayPool<byte>.Shared.Return(buffer);
+    }
     fileStream.Dispose();
 
     /*
@@ -45,6 +72,10 @@ if (File.ReadAllBytes(file).Length > 0)
        -rw-r--r-- 1 root root 4.0K 4月  22 09:58 uevent
      */
     // 可以看到文件挂载里面显示的就是没有文件长度
+
+    using var safeFileHandle = File.OpenHandle(file);
+    fileStream = new FileStream(safeFileHandle, FileAccess.Read);
+    Console.WriteLine($"File.OpenHandle Length = {fileStream.Length}");
 }
 
 Console.Read();
