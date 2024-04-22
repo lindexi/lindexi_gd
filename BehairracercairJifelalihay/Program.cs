@@ -26,7 +26,6 @@ foreach (var subFolder in Directory.EnumerateDirectories(drmFolder))
         }
     }
 }
-// “/sys/class/drm/”文件夹的 这里的 drm 是什么的缩写或什么含义？
 
 while (true)
 {
@@ -34,30 +33,28 @@ while (true)
 }
 
 
-void ReadEdidFromFile(string edidFile)
+EdidInfo ReadEdidFromFile(string edidFile)
 {
+    // This document describes the basic 128-byte data structure "EDID 1.3", as well as the overall layout of the
+    // data blocks that make up Enhanced EDID. 
     const int minLength = 128;
     Span<byte> edidSpan = stackalloc byte[minLength * 2];
     // https://glenwing.github.io/docs/VESA-EEDID-A1.pdf
-    // This document describes the basic 128-byte data structure "EDID 1.3", as well as the overall layout of the
-    // data blocks that make up Enhanced EDID. 
 
     using (var fileStream = new FileStream(edidFile, FileMode.Open, FileAccess.Read, FileShare.Read, minLength, false))
     {
-        Console.WriteLine($"FileLength={fileStream.Length}");
-
         var readLength = fileStream.Read(edidSpan);
-
         Debug.Assert(readLength >= minLength);
-        //Debug.Assert(fileStream.Length == readLength);
     }
 
-    //LogMemoryAllocated();
-
-    ReadEdid(edidSpan);
+    var allocatedBytesForCurrentThread = GC.GetAllocatedBytesForCurrentThread();
+    var edidInfo = ReadEdid(edidSpan);
+    var result = GC.GetAllocatedBytesForCurrentThread() - allocatedBytesForCurrentThread;
+    Console.WriteLine($"{result}分配");
+    return edidInfo;
 }
 
-void ReadEdid(Span<byte> span)
+EdidInfo ReadEdid(Span<byte> span)
 {
     const int minLength = 128;
 
@@ -69,9 +66,6 @@ void ReadEdid(Span<byte> span)
         throw new ArgumentException("这不是一份有效的 edid 文件，校验 Header 失败");
     }
 
-    Console.WriteLine($"Start read checksum");
-
-    // checksum
     // 3.11 Extension Flag and Checksum
     // This byte should be programmed such that a one-byte checksum of the entire 128-byte EDID equals 00h.
     byte checksumValue = 0;
@@ -85,10 +79,8 @@ void ReadEdid(Span<byte> span)
         throw new ArgumentException("这不是一份有效的 edid 文件，校验 checksum 失败");
     }
 
-    Console.WriteLine($"Start read name");
-
     // 3.4 Vendor/Product ID: 10 bytes
-    // 看起来有些离谱
+    // 看起来有些离谱的格式，用两个 byte 表示三个字符
     // ID Manufacturer Name
     // EISA manufacturer IDs are issued by Microsoft. Contact by: E-mail: pnpid@microsoft.com
     var nameShort = (int) MemoryMarshal.Cast<byte, short>(span.Slice(0x08, 2))[0];
@@ -98,9 +90,8 @@ void ReadEdid(Span<byte> span)
     var nameChar1 = (char) ('A' + ((nameShort >> 5) & 0x1f) - 1);
     var nameChar0 = (char) ('A' + ((nameShort >> 10) & 0x1f) - 1);
     //// 转换一下大概32个长度
-    string manufacturerName = new string([nameChar0, nameChar1, nameChar2]);
-    Console.WriteLine($"Name={manufacturerName}");
-    //LogMemoryAllocated();
+    //string manufacturerName = new string([nameChar0, nameChar1, nameChar2]);
+    //Console.WriteLine($"Name={manufacturerName}");
 
     var week = span[0x10];
     // The Year of Manufacture field is used to represent the year of the monitor’s manufacture. The value that is stored is
@@ -128,14 +119,83 @@ void ReadEdid(Span<byte> span)
     var monitorPhysicalWidth = new Cm(maxHorizontalImageSize);
     var monitorPhysicalHeight = new Cm(maxVerticalImageSize);
 
-    Console.WriteLine($"屏幕尺寸 {monitorPhysicalWidth} x {monitorPhysicalHeight}");
+    //Console.WriteLine($"屏幕尺寸 {monitorPhysicalWidth} x {monitorPhysicalHeight}");
 
     var displayTransferCharacteristicGamma = span[0x17];
     var featureSupport = span[0x18];
 
+    var edidBasicDisplayParameters = new EdidBasicDisplayParameters()
+    {
+        VideoInputDefinition = videoInputDefinition,
+        MonitorPhysicalWidth = monitorPhysicalWidth,
+        MonitorPhysicalHeight = monitorPhysicalHeight,
+        DisplayTransferCharacteristicGamma = displayTransferCharacteristicGamma,
+        FeatureSupport = featureSupport,
+    };
+
+    return new EdidInfo()
+    {
+        ManufacturerNameChar0 = nameChar0,
+        ManufacturerNameChar1 = nameChar1,
+        ManufacturerNameChar2 = nameChar2,
+
+        ManufactureWeek = week,
+        ManufactureYear = manufactureYear,
+
+        Version = version,
+        Revision = revision,
+
+        BasicDisplayParameters = edidBasicDisplayParameters,
+    };
 }
 
-readonly record struct Cm(uint Value)
+public readonly record struct Cm(uint Value)
 {
     public override string ToString() => $"{Value} cm";
+}
+
+public readonly record struct EdidInfo
+{
+    public string ManufacturerName => new string([ManufacturerNameChar0, ManufacturerNameChar1, ManufacturerNameChar2]);
+
+    public char ManufacturerNameChar0 { get; init; }
+    public char ManufacturerNameChar1 { get; init; }
+    public char ManufacturerNameChar2 { get; init; }
+
+    public byte ManufactureWeek { get; init; }
+    
+    /// <summary>
+    /// 已加上 1990 的年份
+    /// </summary>
+    public int ManufactureYear { get; init; }
+
+    public byte Version { get; init; }
+    public byte Revision { get; init; }
+
+    public Version EdidVersion => new Version(Version, Revision);
+
+    /// <summary>
+    /// See Section 3.6
+    /// </summary>
+    public EdidBasicDisplayParameters BasicDisplayParameters { get; init; }
+}
+
+public readonly struct EdidBasicDisplayParameters
+{
+    /// <summary>
+    /// See Table 3.9 - Video Input Definition
+    /// </summary>
+    public byte VideoInputDefinition { get; init; }
+
+    /// <summary>
+    /// 物理屏幕宽度
+    /// </summary>
+    public Cm MonitorPhysicalWidth { get; init; }
+    /// <summary>
+    /// 物理屏幕高度
+    /// </summary>
+    public Cm MonitorPhysicalHeight { get; init; }
+
+    public byte DisplayTransferCharacteristicGamma { get; init; }
+    public byte FeatureSupport { get; init; }
 }
