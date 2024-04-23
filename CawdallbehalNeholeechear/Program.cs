@@ -4,18 +4,33 @@ using OllamaSharp.Models.Chat;
 
 using System.Text.Json;
 using System.Text;
+using OllamaSharp.Models;
 
 var uri = new Uri("http://localhost:11434");
 var ollama = new OllamaApiClient(uri);
 
 var models = await ollama.ListLocalModels();
 
-ollama.SelectedModel = models.First().Name;
+var model = models.FirstOrDefault();
+if (model == null)
+{
+    await ollama.PullModel("llama3:8b", status =>
+    {
+        Console.WriteLine(status.Status);
+    });
+}
+else
+{
+    models = await ollama.ListLocalModels();
+    model = models.First();
+}
+
+ollama.SelectedModel = model.Name;
 
 while (true)
 {
-
-    var input = "Hello";
+    Console.Write("请输入你的对话内容：");
+    var input = Console.ReadLine();
     var chatRequest = new ChatRequest()
     {
         Messages = new List<Message>()
@@ -26,23 +41,9 @@ while (true)
         Stream = false,
     };
 
-    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "api/chat")
-    {
-        Content = new StringContent(JsonSerializer.Serialize(chatRequest), Encoding.UTF8, "application/json")
-    };
-    var httpClient = new HttpClient()
-    {
-        BaseAddress = uri
-    };
-    var response = await httpClient.SendAsync(request);
-    var content = await response.Content.ReadAsStringAsync();
-
     var messages = await ollama.SendChat(chatRequest, stream =>
     {
-        if (!stream.Done)
-        {
-            Console.WriteLine(stream.Message.Content);
-        }
+        Console.WriteLine(stream.Message.Content);
     });
 }
 
