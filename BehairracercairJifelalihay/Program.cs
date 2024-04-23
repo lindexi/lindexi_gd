@@ -3,7 +3,17 @@
 
 using System.Runtime.InteropServices;
 
-var readEdidInfoResult = EdidInfo.ReadFormLinux();
+var file = "edid";
+var result = EdidInfo.ReadEdidFromFile(file);
+
+if (OperatingSystem.IsLinux())
+{
+    var readEdidInfoResult = EdidInfo.ReadFormLinux();
+}
+else if (OperatingSystem.IsWindows())
+{
+    // 通过 GetDeviceCaps 方法获取
+}
 
 while (true)
 {
