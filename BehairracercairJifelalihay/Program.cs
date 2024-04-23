@@ -1,10 +1,21 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 
+using System.IO;
 using System.Runtime.InteropServices;
 
 var file = "edid";
 var result = EdidInfo.ReadEdidFromFile(file);
+
+if (Uri.TryCreate(new Uri("http://127.0.0.1/foo/storage"),"path/f123", out var uri))
+{
+    // uri = http://127.0.0.1/foo/path/f123
+}
+
+if (Uri.TryCreate(new Uri("http://127.0.0.1"), "path/f123", out uri))
+{
+    // uri = http://127.0.0.1/path/f123
+}
 
 if (OperatingSystem.IsLinux())
 {
