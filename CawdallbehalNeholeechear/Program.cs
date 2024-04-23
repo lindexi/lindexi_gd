@@ -2,6 +2,9 @@
 using OllamaSharp;
 using OllamaSharp.Models.Chat;
 
+using System.Text.Json;
+using System.Text;
+
 var uri = new Uri("http://localhost:11434");
 var ollama = new OllamaApiClient(uri);
 
@@ -11,15 +14,29 @@ ollama.SelectedModel = models.First().Name;
 
 while (true)
 {
-    var input = Console.ReadLine();
+
+    var input = "Hello";
     var chatRequest = new ChatRequest()
     {
         Messages = new List<Message>()
         {
             new Message(ChatRole.User, input)
         },
+        Model = ollama.SelectedModel,
         Stream = false,
     };
+
+    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "api/chat")
+    {
+        Content = new StringContent(JsonSerializer.Serialize(chatRequest), Encoding.UTF8, "application/json")
+    };
+    var httpClient = new HttpClient()
+    {
+        BaseAddress = uri
+    };
+    var response = await httpClient.SendAsync(request);
+    var content = await response.Content.ReadAsStringAsync();
+
     var messages = await ollama.SendChat(chatRequest, stream =>
     {
         if (!stream.Done)
