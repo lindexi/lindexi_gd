@@ -27,6 +27,13 @@ else
 
 ollama.SelectedModel = model.Name;
 
+// [本地部署Llama3-8B/70B 并进行逻辑推理测试 - 张善友 - 博客园](https://www.cnblogs.com/shanyou/p/18148423 )
+// [llama3:8b](https://ollama.com/library/llama3:8b )
+// [Introducing Meta Llama 3: The most capable openly available LLM to date](https://ai.meta.com/blog/meta-llama-3/ )
+
+
+//ollama.GenerateEmbeddings()
+
 while (true)
 {
     Console.Write("请输入你的对话内容：");
@@ -40,7 +47,6 @@ while (true)
         Model = ollama.SelectedModel,
         Stream = false,
     };
-
     var messages = await ollama.SendChat(chatRequest, stream =>
     {
         Console.WriteLine(stream.Message.Content);
@@ -48,9 +54,3 @@ while (true)
 }
 
 
-//foreach (var message in messages)
-//{
-//    Console.WriteLine(message.Content);
-//}
-
-Console.WriteLine("Hello, World!");
