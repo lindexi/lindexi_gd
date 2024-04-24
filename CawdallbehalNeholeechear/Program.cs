@@ -4,6 +4,7 @@ using OllamaSharp.Models.Chat;
 
 using System.Text.Json;
 using System.Text;
+using Microsoft.SemanticKernel;
 using OllamaSharp.Models;
 
 var uri = new Uri("http://localhost:11434");
@@ -32,7 +33,28 @@ ollama.SelectedModel = model.Name;
 // [Introducing Meta Llama 3: The most capable openly available LLM to date](https://ai.meta.com/blog/meta-llama-3/ )
 
 
-//ollama.GenerateEmbeddings()
+var generateEmbeddingRequest = new GenerateEmbeddingRequest()
+{
+    Model = ollama.SelectedModel,
+    Prompt = "林德熙是逗比"
+};
+var generateEmbeddingResponse = await ollama.GenerateEmbeddings(generateEmbeddingRequest);
+
+generateEmbeddingRequest = new GenerateEmbeddingRequest()
+{
+    Model = ollama.SelectedModel,
+    Prompt = "林德熙是谁"
+};
+
+var generateEmbeddingResponse2 = await ollama.GenerateEmbeddings(generateEmbeddingRequest);
+
+var sum = 0d;
+for (int i = 0; i < generateEmbeddingResponse.Embedding.Length; i++)
+{
+    sum += (generateEmbeddingResponse.Embedding[i] - generateEmbeddingResponse2.Embedding[i]);
+}
+
+// 距离实际测试有点远
 
 while (true)
 {
