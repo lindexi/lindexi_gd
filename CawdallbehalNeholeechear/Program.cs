@@ -36,14 +36,14 @@ ollama.SelectedModel = model.Name;
 var generateEmbeddingRequest = new GenerateEmbeddingRequest()
 {
     Model = ollama.SelectedModel,
-    Prompt = "林德熙是逗比"
+    Prompt = "Windows 10 is the operating system"
 };
 var generateEmbeddingResponse = await ollama.GenerateEmbeddings(generateEmbeddingRequest);
 
 generateEmbeddingRequest = new GenerateEmbeddingRequest()
 {
     Model = ollama.SelectedModel,
-    Prompt = "林德熙是谁"
+    Prompt = "What is the Windows 10"
 };
 
 var generateEmbeddingResponse2 = await ollama.GenerateEmbeddings(generateEmbeddingRequest);
