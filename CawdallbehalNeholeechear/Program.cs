@@ -4,18 +4,40 @@ using OllamaSharp.Models.Chat;
 
 using System.Text.Json;
 using System.Text;
+using OllamaSharp.Models;
 
 var uri = new Uri("http://localhost:11434");
 var ollama = new OllamaApiClient(uri);
 
 var models = await ollama.ListLocalModels();
 
-ollama.SelectedModel = models.First().Name;
+var model = models.FirstOrDefault();
+if (model == null)
+{
+    await ollama.PullModel("llama3:8b", status =>
+    {
+        Console.WriteLine(status.Status);
+    });
+}
+else
+{
+    models = await ollama.ListLocalModels();
+    model = models.First();
+}
+
+ollama.SelectedModel = model.Name;
+
+// [本地部署Llama3-8B/70B 并进行逻辑推理测试 - 张善友 - 博客园](https://www.cnblogs.com/shanyou/p/18148423 )
+// [llama3:8b](https://ollama.com/library/llama3:8b )
+// [Introducing Meta Llama 3: The most capable openly available LLM to date](https://ai.meta.com/blog/meta-llama-3/ )
+
+
+//ollama.GenerateEmbeddings()
 
 while (true)
 {
-
-    var input = "Hello";
+    Console.Write("请输入你的对话内容：");
+    var input = Console.ReadLine();
     var chatRequest = new ChatRequest()
     {
         Messages = new List<Message>()
@@ -25,31 +47,10 @@ while (true)
         Model = ollama.SelectedModel,
         Stream = false,
     };
-
-    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "api/chat")
-    {
-        Content = new StringContent(JsonSerializer.Serialize(chatRequest), Encoding.UTF8, "application/json")
-    };
-    var httpClient = new HttpClient()
-    {
-        BaseAddress = uri
-    };
-    var response = await httpClient.SendAsync(request);
-    var content = await response.Content.ReadAsStringAsync();
-
     var messages = await ollama.SendChat(chatRequest, stream =>
     {
-        if (!stream.Done)
-        {
-            Console.WriteLine(stream.Message.Content);
-        }
+        Console.WriteLine(stream.Message.Content);
     });
 }
 
 
-//foreach (var message in messages)
-//{
-//    Console.WriteLine(message.Content);
-//}
-
-Console.WriteLine("Hello, World!");
