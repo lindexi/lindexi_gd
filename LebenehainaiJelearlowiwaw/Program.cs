@@ -1,23 +1,24 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using System.IO.Compression;
+using System.Text;
 
 // 测试两个部分
 // 加入某个文件夹
 // 加入某个文件夹但是不要某个文件
 
-
+var zipFile = "1.zip";
+using (var fileStream = new FileStream(zipFile, FileMode.Create, FileAccess.Write))
+{
+    using var zipArchive = new ZipArchive(fileStream, ZipArchiveMode.Create, leaveOpen: true/*自己释放 FileStream 对象*/, Encoding.UTF8);
+    Foo.AppendDirectoryToZipArchive(zipArchive, @"C:\lindexi\Library\", "Lib");
+    Foo.AppendDirectoryToZipArchive(zipArchive, @"C:\lindexi\CA\", "Pem", fileCanAddedPredicate: filePath =>
+    {
+        var fileName = Path.GetFileName(filePath);
+        return fileName != "foo.ignore.file";
+    });
+}
 
 Console.WriteLine("Hello, World!");
-
-void Log(Func<string> logger)
-{
-    var message = logger();
-}
-
-void Log<TStatus>(TStatus status, Exception? exception, Func<TStatus, Exception?, string> formatter)
-{
-    var message = formatter(status, exception);
-}
 
 class Foo
 {
@@ -46,7 +47,7 @@ class Foo
                     continue;
                 }
 
-                archive.CreateEntryFromFile(item, Path.GetRelativePath(sourceDirectoryName, item), compressionLevel);
+                archive.CreateEntryFromFile(item, Path.Join(zipRelativePath, Path.GetRelativePath(sourceDirectoryName, item)), compressionLevel);
             }
 
             foreach (var item in Directory.EnumerateDirectories(currentFolder))
