@@ -17,15 +17,16 @@ var classDeclarationSyntax = namespaceDeclarationSyntax.ChildNodes().OfType<Clas
 
 var memberDeclarationSyntaxes = classDeclarationSyntax.Members;
 
-foreach (var memberDeclarationSyntax in memberDeclarationSyntaxes.OfType<PropertyDeclarationSyntax>())
+foreach (var propertyDeclarationSyntax in memberDeclarationSyntaxes.OfType<PropertyDeclarationSyntax>())
 {
-    var syntaxToken = memberDeclarationSyntax.ChildTokens().First();
+    var syntaxToken = propertyDeclarationSyntax.ChildTokens().First();
     if (!syntaxToken.IsKind(SyntaxKind.PublicKeyword))
     {
         continue;
     }
 
     string? summary = null;
+    string? example = null;
     foreach (var syntaxTrivia in syntaxToken.GetAllTrivia())
     {
         if (syntaxTrivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
@@ -47,10 +48,21 @@ foreach (var memberDeclarationSyntax in memberDeclarationSyntaxes.OfType<Propert
 
                         summary = ReadXmlElementSyntaxText(xmlElementSyntax).Trim();
                     }
+                    else if (xmlElementSyntax.StartTag.Name.LocalName.Text == "example")
+                    {
+                        example = ReadXmlElementSyntaxText(xmlElementSyntax).Trim();
+                    }
                 }
             }
         }
     }
+
+    if (summary is null || example is null)
+    {
+        continue;
+    }
+
+    var propertyName = propertyDeclarationSyntax.Identifier.Text;
 }
 
 while (true)
@@ -61,8 +73,15 @@ while (true)
 string ReadXmlElementSyntaxText(XmlElementSyntax xmlElementSyntax)
 {
     var stringBuilder = new StringBuilder();
+    bool first = true;
     foreach (var xmlTextSyntax in xmlElementSyntax.Content.OfType<XmlTextSyntax>())
     {
+        if (first)
+        {
+            stringBuilder.AppendLine();
+            first = false;
+        }
+
         foreach (var textToken in xmlTextSyntax.TextTokens)
         {
             stringBuilder.Append(textToken.Text);
