@@ -12,6 +12,7 @@ SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
 SyntaxNode root = tree.GetRoot();
 
 var namespaceDeclarationSyntax = root.ChildNodes().OfType<BaseNamespaceDeclarationSyntax>().First();
+var classDeclarationSyntax = namespaceDeclarationSyntax.ChildNodes().OfType<ClassDeclarationSyntax>().First();
 
 foreach (var descendantNode in root.DescendantNodes(node => node is PropertyDeclarationSyntax, descendIntoTrivia: true))
 {
