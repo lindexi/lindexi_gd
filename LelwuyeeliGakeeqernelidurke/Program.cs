@@ -74,9 +74,9 @@ foreach (var propertyInfo in propertyInfoList)
     codeText.AppendLine
     (
         $"""
-        <!-- {propertyInfo.Summary} -->
-        <{propertyInfo.PropertyName}>{propertyInfo.Example}</{propertyInfo.PropertyName}>
-        """
+         <!-- {propertyInfo.Summary} -->
+         <{propertyInfo.PropertyName}>{propertyInfo.Example}</{propertyInfo.PropertyName}>
+         """
     );
     codeText.AppendLine();
 }
@@ -106,6 +106,7 @@ string ReadXmlElementSyntaxText(XmlElementSyntax xmlElementSyntax)
             {
                 stringBuilder.Append(textToken.Text);
             }
+
             needAppendLine = true;
         }
         else
@@ -117,7 +118,8 @@ string ReadXmlElementSyntaxText(XmlElementSyntax xmlElementSyntax)
                 // <see cref="AppId"/>
                 if (xmlEmptyElementSyntax.Name.LocalName.Text == "see")
                 {
-                    var xmlCrefAttributeSyntax = xmlEmptyElementSyntax.Attributes.OfType<XmlCrefAttributeSyntax>().FirstOrDefault();
+                    var xmlCrefAttributeSyntax = xmlEmptyElementSyntax.Attributes.OfType<XmlCrefAttributeSyntax>()
+                        .FirstOrDefault();
                     if (xmlCrefAttributeSyntax != null)
                     {
                         stringBuilder.Append($"{xmlCrefAttributeSyntax.Cref}");
