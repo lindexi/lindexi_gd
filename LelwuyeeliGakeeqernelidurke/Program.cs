@@ -38,15 +38,6 @@ foreach (var propertyDeclarationSyntax in memberDeclarationSyntaxes.OfType<Prope
                 {
                     if (xmlElementSyntax.StartTag.Name.LocalName.Text == "summary")
                     {
-                        //summary = xmlElementSyntax.GetText().ToString()
-                        //foreach (var xmlTextSyntax in xmlElementSyntax.Content.OfType<XmlTextSyntax>())
-                        //{
-                        //    foreach (var textToken in xmlTextSyntax.TextTokens)
-                        //    {
-                        //        summary += textToken.Text;
-                        //    }
-                        //}
-
                         summary = ReadXmlElementSyntaxText(xmlElementSyntax).Trim();
                     }
                     else if (xmlElementSyntax.StartTag.Name.LocalName.Text == "example")
