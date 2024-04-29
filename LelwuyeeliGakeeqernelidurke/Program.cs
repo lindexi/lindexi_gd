@@ -16,6 +16,7 @@ var namespaceDeclarationSyntax = root.ChildNodes().OfType<BaseNamespaceDeclarati
 var classDeclarationSyntax = namespaceDeclarationSyntax.ChildNodes().OfType<ClassDeclarationSyntax>().First();
 
 var memberDeclarationSyntaxes = classDeclarationSyntax.Members;
+var propertyInfoList = new List<PropertyInfo>();
 
 foreach (var propertyDeclarationSyntax in memberDeclarationSyntaxes.OfType<PropertyDeclarationSyntax>())
 {
@@ -63,7 +64,25 @@ foreach (var propertyDeclarationSyntax in memberDeclarationSyntaxes.OfType<Prope
     }
 
     var propertyName = propertyDeclarationSyntax.Identifier.Text;
+
+    propertyInfoList.Add(new PropertyInfo(propertyName, summary, example));
 }
+
+var codeText = new StringBuilder();
+foreach (var propertyInfo in propertyInfoList)
+{
+    codeText.AppendLine
+    (
+        $"""
+        <!-- {propertyInfo.Summary} -->
+        <{propertyInfo.PropertyName}>{propertyInfo.Example}</{propertyInfo.PropertyName}>
+        """
+    );
+    codeText.AppendLine();
+}
+
+code = codeText.ToString();
+Console.WriteLine(code);
 
 while (true)
 {
@@ -73,20 +92,59 @@ while (true)
 string ReadXmlElementSyntaxText(XmlElementSyntax xmlElementSyntax)
 {
     var stringBuilder = new StringBuilder();
-    bool first = true;
-    foreach (var xmlTextSyntax in xmlElementSyntax.Content.OfType<XmlTextSyntax>())
+    bool needAppendLine = false;
+    foreach (var xmlNodeSyntax in xmlElementSyntax.Content)
     {
-        if (first)
+        if (xmlNodeSyntax is XmlTextSyntax xmlTextSyntax)
         {
-            stringBuilder.AppendLine();
-            first = false;
-        }
+            if (needAppendLine)
+            {
+                stringBuilder.AppendLine();
+            }
 
-        foreach (var textToken in xmlTextSyntax.TextTokens)
+            foreach (var textToken in xmlTextSyntax.TextTokens)
+            {
+                stringBuilder.Append(textToken.Text);
+            }
+            needAppendLine = true;
+        }
+        else
         {
-            stringBuilder.Append(textToken.Text);
+            needAppendLine = false;
+
+            if (xmlNodeSyntax is XmlEmptyElementSyntax xmlEmptyElementSyntax)
+            {
+                // <see cref="AppId"/>
+                if (xmlEmptyElementSyntax.Name.LocalName.Text == "see")
+                {
+                    var xmlCrefAttributeSyntax = xmlEmptyElementSyntax.Attributes.OfType<XmlCrefAttributeSyntax>().FirstOrDefault();
+                    if (xmlCrefAttributeSyntax != null)
+                    {
+                        stringBuilder.Append($"{xmlCrefAttributeSyntax.Cref}");
+                    }
+                }
+            }
+            else if (xmlNodeSyntax is XmlElementSyntax subXmlElementSyntax)
+            {
+                // <see cref="AppId"></see>
+                var startTag = subXmlElementSyntax.StartTag;
+                if (startTag.Name.LocalName.Text == "see")
+                {
+                    var xmlCrefAttributeSyntax = startTag.Attributes.OfType<XmlCrefAttributeSyntax>().FirstOrDefault();
+                    if (xmlCrefAttributeSyntax != null)
+                    {
+                        stringBuilder.Append($"{xmlCrefAttributeSyntax.Cref}");
+                    }
+                }
+                else if (startTag.Name.LocalName.Text == "para")
+                {
+                    needAppendLine = true;
+                }
+            }
         }
     }
 
     return stringBuilder.ToString();
 }
+
+record PropertyInfo(string PropertyName, string Summary, string Example);
