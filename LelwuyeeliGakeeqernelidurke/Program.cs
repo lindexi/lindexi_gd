@@ -11,6 +11,9 @@ SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
 
 SyntaxNode root = tree.GetRoot();
 
+var syntaxTrivias = root.DescendantTrivia(node=> node is PropertyDeclarationSyntax).ToList();
+var syntaxNodes = root.ChildNodes().ToList();
+
 foreach (var descendantNode in root.DescendantNodes(node => node is PropertyDeclarationSyntax, descendIntoTrivia: true))
 {
 
