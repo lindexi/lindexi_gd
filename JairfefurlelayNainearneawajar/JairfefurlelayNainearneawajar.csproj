@@ -8,4 +8,8 @@
     <UseWpf>true</UseWpf>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\AvaloniaWukeaqalbairceLarheherebi\AvaloniaWukeaqalbairceLarheherebi.csproj" />
+  </ItemGroup>
+
 </Project>
