@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using Avalonia;
+using AvaloniaWukeaqalbairceLarheherebi;
+using Application = System.Windows.Application;
 
 namespace JairfefurlelayNainearneawajar;
 internal class Program
@@ -16,6 +19,12 @@ internal class Program
         {
             var window = new Window();
             window.Show();
+
+            var appBuilder = AppBuilder.Configure<App>()
+                .UsePlatformDetect()
+                .WithInterFont()
+                .LogToTrace();
+            appBuilder.StartWithClassicDesktopLifetime(args);
         };
         application.Run();
     }
