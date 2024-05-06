@@ -1,0 +1,26 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="AvaloniaWukeaqalbairceLarheherebi.MainWindow"
+        Title="AvaloniaWukeaqalbairceLarheherebi">
+
+  <Window.Styles>
+    <Styles>
+      <Style Selector="ToggleButton">
+        <Style Selector="^.left">
+            <Setter Property="Background" Value="#FF0F90FB"></Setter>
+        </Style>
+          <Style Selector="^.right">
+              <Setter Property="Background" Value="#FF9F909B"></Setter>
+          </Style>
+      </Style>
+    </Styles>
+  </Window.Styles>
+
+  <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+    <ToggleButton Classes="left"></ToggleButton>
+    <ToggleButton Classes="right"></ToggleButton>
+  </StackPanel>
+</Window>
