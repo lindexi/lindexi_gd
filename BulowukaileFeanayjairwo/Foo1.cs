@@ -36,3 +36,40 @@ public class Foo2
 
     }
 }
+
+public class LinearCongruentialGenerator
+{
+    private long _seed;
+    private const long a = 48271;
+    private const long m = 2147483647;
+    private const long q = m / a;
+    private const long r = m % a;
+
+    public LinearCongruentialGenerator(int seed)
+    {
+        if (seed <= 0 || seed == int.MaxValue)
+        {
+            throw new Exception("Seed must be a positive integer less than int.MaxValue");
+        }
+
+        _seed = seed;
+    }
+
+    public double NextDouble()
+    {
+        long hi = _seed / q;
+        long lo = _seed % q;
+        long test = a * lo - r * hi;
+
+        if (test > 0)
+        {
+            _seed = test;
+        }
+        else
+        {
+            _seed = test + m;
+        }
+
+        return (double) _seed / m;
+    }
+}
