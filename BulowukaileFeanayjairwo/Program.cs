@@ -2,6 +2,7 @@
 
 using System.Reflection;
 using System.Threading.Channels;
+
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Order;
 using BenchmarkDotNet.Reports;
@@ -16,4 +17,4 @@ var manualConfig = new ManualConfig()
 };
 manualConfig.Add(DefaultConfig.Instance);
 
-BenchmarkRunner.Run(Assembly.GetExecutingAssembly(), manualConfig);
+BenchmarkRunner.Run(Assembly.GetExecutingAssembly(), manualConfig, args);
