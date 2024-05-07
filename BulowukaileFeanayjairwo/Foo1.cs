@@ -10,7 +10,7 @@ using BenchmarkDotNet.Order;
 namespace BulowukaileFeanayjairwo;
 
 [SimpleJob(BenchmarkDotNet.Engines.RunStrategy.Throughput)]
-public class ArrayBenchmark
+public class IntArrayBenchmark
 {
     [Params(10, 100, 1_000, 10_000, 100_000, 1_000_000)]
     public int ArraySize { get; set; }
@@ -24,39 +24,51 @@ public class ArrayBenchmark
     [Benchmark]
     public int[] GCZeroUninitialized() => GC.AllocateUninitializedArray<int>(ArraySize);
 
-
-}
-
-[SimpleJob(BenchmarkDotNet.Engines.RunStrategy.Throughput)]
-public class Foo2
-{
     [Benchmark]
-    public void Foo()
+    public int[] NewArrayWithRandomVisit()
     {
-
-    }
-}
-
-public class LinearCongruentialGenerator
-{
-    private long _seed;
-    private const long a = 48271;
-    private const long m = 2147483647;
-    private const long q = m / a;
-    private const long r = m % a;
-
-    public LinearCongruentialGenerator(int seed)
-    {
-        if (seed <= 0 || seed == int.MaxValue)
+        // 测试随机访问性能
+        var buffer = new int[ArraySize];
+        var count = (int) Math.Sqrt(ArraySize);
+        for (int i = 0; i < count; i++)
         {
-            throw new Exception("Seed must be a positive integer less than int.MaxValue");
+            var index = (int) GenerateLinearCongruential() % buffer.Length;
+            buffer[index] = i;
         }
 
-        _seed = seed;
+        return buffer;
     }
 
-    public double NextDouble()
+    [Benchmark]
+    public long NewArrayWithOrdinalVisit()
     {
+        // 测试随机访问性能
+        var buffer = new int[ArraySize];
+        for (int i = 0; i < ArraySize; i++)
+        {
+            buffer[i] = i;
+        }
+
+        long sum = 0;
+        for (int i = 0; i < ArraySize; i++)
+        {
+            sum += buffer[i];
+        }
+
+        return sum;
+    }
+
+    #region 线性同余法 
+    // 提供固定的且相同的简单的值
+
+    private long _seed = 1596779460; // 随便写的数
+
+    public double GenerateLinearCongruential()
+    {
+        const long a = 48271;
+        const long m = int.MaxValue;
+        const long q = m / a;
+        const long r = m % a;
         long hi = _seed / q;
         long lo = _seed % q;
         long test = a * lo - r * hi;
@@ -64,6 +76,7 @@ public class LinearCongruentialGenerator
         if (test > 0)
         {
             _seed = test;
+
         }
         else
         {
@@ -72,4 +85,6 @@ public class LinearCongruentialGenerator
 
         return (double) _seed / m;
     }
+
+    #endregion
 }
