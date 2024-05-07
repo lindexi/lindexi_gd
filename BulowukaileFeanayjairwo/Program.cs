@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Threading.Channels;
 
 using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Order;
 using BenchmarkDotNet.Reports;
 using BenchmarkDotNet.Running;
