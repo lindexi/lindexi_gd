@@ -1,11 +1,13 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using System.Reflection;
-
+using System.Threading.Channels;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Order;
 using BenchmarkDotNet.Reports;
 using BenchmarkDotNet.Running;
+
+Console.WriteLine(Environment.CommandLine);
 
 var manualConfig = new ManualConfig()
 {
