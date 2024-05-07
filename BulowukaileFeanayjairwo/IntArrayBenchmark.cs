@@ -12,7 +12,7 @@ namespace BulowukaileFeanayjairwo;
 [SimpleJob(BenchmarkDotNet.Engines.RunStrategy.Throughput)]
 public class IntArrayBenchmark
 {
-    [Params(10, 100, 1_000, 10_000, 100_000, 1_000_000)]
+    [Params(10, 100, 1_000, 10_000, 100_000, 1_000_000, 1_000_000_000)]
     public int ArraySize { get; set; }
 
     [Benchmark(Baseline = true)]
