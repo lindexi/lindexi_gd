@@ -13,32 +13,32 @@ using BulowukaileFeanayjairwo;
 
 Console.WriteLine(Environment.CommandLine);
 
-//[DllImport("libc.so.6", EntryPoint = "memcpy")]
-//static extern void Memcpy(IntPtr a, IntPtr b, IntPtr count);
+[DllImport("msvcrt.dll", EntryPoint = "memcpy")]
+static extern void MemcpyByMsvcrt(IntPtr a, IntPtr b, IntPtr count);
 
-//unsafe
-//{
-//    var a = new int[100];
-//    for (int i = 0; i < a.Length; i++)
-//    {
-//        a[i] = i;
-//    }
+unsafe
+{
+    var a = new int[100];
+    for (int i = 0; i < a.Length; i++)
+    {
+        a[i] = i;
+    }
 
-//    var b = new int[a.Length];
+    var b = new int[a.Length];
 
-//    fixed (int* ap = a)
-//    fixed (int* bp = b)
-//    {
-//        Memcpy(new IntPtr(bp), new IntPtr(ap), a.Length * sizeof(int));
-//    }
+    fixed (int* ap = a)
+    fixed (int* bp = b)
+    {
+        MemcpyByMsvcrt(new IntPtr(bp), new IntPtr(ap), a.Length * sizeof(int));
+    }
 
-//    for (var i = 0; i < b.Length; i++)
-//    {
-//        Console.WriteLine(b[i]);
-//    }
-//}
+    for (var i = 0; i < b.Length; i++)
+    {
+        Console.WriteLine(b[i]);
+    }
+}
 
-//return;
+return;
 
 var manualConfig = new ManualConfig()
 {
