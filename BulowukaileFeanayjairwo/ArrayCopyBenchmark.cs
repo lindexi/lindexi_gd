@@ -20,24 +20,31 @@ public unsafe class ArrayCopyBenchmark
 
     [Benchmark()]
     [ArgumentsSource(nameof(GetArgument))]
-    public void MemcpyLibc(int[] source, int[] dest)
+    public void Memcpy(int[] source, int[] dest)
     {
-        if (!IsLinux)
-        {
-            return;
-        }
-
         fixed (int* sourcePtr = source)
         fixed (int* destinationPtr = dest)
         {
-            Memcpy(new IntPtr(destinationPtr), new IntPtr(sourcePtr), source.Length * sizeof(int));
+            if (IsLinux)
+            {
+                MemcpyByLibc(new IntPtr(destinationPtr), new IntPtr(sourcePtr), source.Length * sizeof(int));
+            }
+
+            if (IsWindows)
+            {
+                MemcpyByMsvcrt(new IntPtr(destinationPtr), new IntPtr(sourcePtr), source.Length * sizeof(int));
+            }
         }
     }
 
     [DllImport("libc.so.6", EntryPoint = "memcpy")]
-    static extern void Memcpy(IntPtr dest, IntPtr src, IntPtr count);
+    static extern void MemcpyByLibc(IntPtr dest, IntPtr src, IntPtr count);
+
+    [DllImport("msvcrt.dll", EntryPoint = "memcpy")]
+    static extern void MemcpyByMsvcrt(IntPtr dest, IntPtr src, IntPtr count);
 
     private static readonly bool IsLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+    private static readonly bool IsWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
     [Benchmark]
     [ArgumentsSource(nameof(GetArgument))]
@@ -52,7 +59,7 @@ public unsafe class ArrayCopyBenchmark
 
     public IEnumerable<object[]> GetArgument()
     {
-        foreach (var length in new int[] { 10, 20, 100 })
+        foreach (var length in new int[] { 1000, 10000 })
         {
             yield return CreateArrayInner(length);
         }
