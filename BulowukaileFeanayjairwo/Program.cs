@@ -13,8 +13,8 @@ using BulowukaileFeanayjairwo;
 
 Console.WriteLine(Environment.CommandLine);
 
-//[DllImport("libc.so.6", EntryPoint = "memcpy")]
-//static extern void Memcpy(IntPtr a, IntPtr b, IntPtr count);
+//[DllImport("msvcrt.dll", EntryPoint = "memcpy")]
+//static extern void MemcpyByMsvcrt(IntPtr a, IntPtr b, IntPtr count);
 
 //unsafe
 //{
@@ -29,7 +29,7 @@ Console.WriteLine(Environment.CommandLine);
 //    fixed (int* ap = a)
 //    fixed (int* bp = b)
 //    {
-//        Memcpy(new IntPtr(bp), new IntPtr(ap), a.Length * sizeof(int));
+//        MemcpyByMsvcrt(new IntPtr(bp), new IntPtr(ap), a.Length * sizeof(int));
 //    }
 
 //    for (var i = 0; i < b.Length; i++)
