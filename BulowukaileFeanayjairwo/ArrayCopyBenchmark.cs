@@ -59,7 +59,7 @@ public unsafe class ArrayCopyBenchmark
 
     public IEnumerable<object[]> GetArgument()
     {
-        foreach (var length in new int[] { 1000, 10000 })
+        foreach (var length in new int[] { 1000, 10000, 1000000, 10000000, 100000000 })
         {
             yield return CreateArrayInner(length);
         }
