@@ -94,6 +94,8 @@ namespace KenafearcuweYemjecahee
                     Win32.User32.SetWindowPos(hwnd, (IntPtr) HwndZOrder.HWND_TOP, rect.Left, rect.Top, rect.Width,
                         rect.Height, (int) WindowPositionFlags.SWP_NOZORDER);
                 }
+
+                MarkFullscreenWindowTaskbarList(hwnd, true);
             }
         }
 
@@ -180,6 +182,7 @@ namespace KenafearcuweYemjecahee
                 //删除保存的状态
                 window.ClearValue(BeforeFullScreenWindowPlacementProperty);
                 window.ClearValue(BeforeFullScreenWindowStyleProperty);
+                MarkFullscreenWindowTaskbarList(hwnd, false);
             }
         }
 

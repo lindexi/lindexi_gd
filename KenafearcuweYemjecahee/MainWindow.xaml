@@ -8,6 +8,5 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <ToggleButton HorizontalAlignment="Center" VerticalAlignment="Center" Click="Button_OnClick">全屏</ToggleButton>
-        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" Margin="0,100,0,0">拖动空白处拖动窗口</TextBlock>
     </Grid>
 </Window>
