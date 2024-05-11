@@ -4,15 +4,11 @@ using System.CommandLine.IO;
 using System.CommandLine.Rendering;
 using System.CommandLine.Rendering.Views;
 
-var systemConsoleTerminal = new SystemConsoleTerminal(new SystemConsole()
+var gridView = new GridView()
 {
-
-})
-{
-
+    new ContentView("123")
 };
-systemConsoleTerminal.Render(new ContentSpan("123"), new Region(10, 10, 100, 100));
-
-
+var consoleRenderer = new ConsoleRenderer(new SystemConsole());
+gridView.Render(consoleRenderer, null);
 
 Console.Read();
