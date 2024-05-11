@@ -13,6 +13,20 @@ namespace KenafearcuweYemjecahee
     /// </summary>
     public static partial class FullScreenHelper
     {
+        public static void MarkFullscreenWindowTaskbarList(IntPtr hwnd, bool isFullscreen)
+        {
+            try
+            {
+                var CLSID_TaskbarList = new Guid("56FDF344-FD6D-11D0-958A-006097C9A090");
+                var obj = Activator.CreateInstance(Type.GetTypeFromCLSID(CLSID_TaskbarList));
+                (obj as ITaskbarList2)?.MarkFullscreenWindow(hwnd, isFullscreen);
+            }
+            catch
+            {
+                //应该不会挂
+            }
+        }
+
         /// <summary>
         /// 用于记录窗口全屏前位置的附加属性
         /// </summary>

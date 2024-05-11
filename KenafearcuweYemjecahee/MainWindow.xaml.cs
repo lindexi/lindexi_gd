@@ -9,6 +9,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
@@ -26,18 +27,26 @@ namespace KenafearcuweYemjecahee
             InitializeComponent();
         }
 
+        protected override void OnMouseDown(MouseButtonEventArgs e)
+        {
+            DragMove();
+        }
+
         private void Button_OnClick(object sender, RoutedEventArgs e)
         {
-            var toggleButton = (ToggleButton)sender;
+            var toggleButton = (ToggleButton) sender;
 
-            if (toggleButton.IsChecked is true)
-            {
-                FullScreenHelper.StartFullScreen(this);
-            }
-            else
-            {
-                FullScreenHelper.EndFullScreen(this);
-            }
+            FullScreenHelper.MarkFullscreenWindowTaskbarList(new WindowInteropHelper(this).Handle, toggleButton.IsChecked is true);
+
+            //if (toggleButton.IsChecked is true)
+            //{
+            //    FullScreenHelper.StartFullScreen(this);
+            //}
+            //else
+            //{
+            //    FullScreenHelper.EndFullScreen(this);
+            //}
         }
+
     }
 }
