@@ -7,6 +7,7 @@ var repository = new Repository(path);
 var commit = repository.Commits.First();
 Console.WriteLine(commit.Sha); // 第一个就是最后一个
 
+Console.WriteLine(repository.Head.FriendlyName);
 var commitCount = repository.Commits.Count();
 
 
