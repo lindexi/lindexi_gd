@@ -27,26 +27,18 @@ namespace KenafearcuweYemjecahee
             InitializeComponent();
         }
 
-        protected override void OnMouseDown(MouseButtonEventArgs e)
-        {
-            DragMove();
-        }
-
         private void Button_OnClick(object sender, RoutedEventArgs e)
         {
             var toggleButton = (ToggleButton) sender;
 
-            FullScreenHelper.MarkFullscreenWindowTaskbarList(new WindowInteropHelper(this).Handle, toggleButton.IsChecked is true);
-
-            //if (toggleButton.IsChecked is true)
-            //{
-            //    FullScreenHelper.StartFullScreen(this);
-            //}
-            //else
-            //{
-            //    FullScreenHelper.EndFullScreen(this);
-            //}
+            if (toggleButton.IsChecked is true)
+            {
+                FullScreenHelper.StartFullScreen(this);
+            }
+            else
+            {
+                FullScreenHelper.EndFullScreen(this);
+            }
         }
-
     }
 }
