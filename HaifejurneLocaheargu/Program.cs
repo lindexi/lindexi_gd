@@ -1,14 +1,11 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-var folder = @"C:\Program Files\dotnet\";
+Directory.CreateDirectory("Foo1");
+Directory.CreateDirectory(@"Foo1\Foo2");
+Directory.CreateDirectory(@"Foo1\Foo2\Foo3");
 
-foreach (var directory in Directory.EnumerateDirectories(folder,"*",SearchOption.AllDirectories))
+foreach (var directory in Directory.EnumerateDirectories("Foo1", "*",SearchOption.AllDirectories))
 {
-    if (directory == @"C:\Program Files\dotnet\sdk")
-    {
-
-    }
-
     Console.WriteLine(directory);
 }
 
