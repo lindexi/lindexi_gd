@@ -3,17 +3,15 @@
 using CPF.Linux;
 using static CPF.Linux.XLib;
 
-var Display = XOpenDisplay(IntPtr.Zero);
-var screen = XDefaultScreen(Display);
-var Screen = screen;
+var display = XOpenDisplay(IntPtr.Zero);
+var screen = XDefaultScreen(display);
 
-var white = XWhitePixel(Display, screen);
-var black = XBlackPixel(Display, screen);
+var white = XWhitePixel(display, screen);
+var black = XBlackPixel(display, screen);
 
-var rootWindow = XDefaultRootWindow(Display);
-var RootWindow = rootWindow;
+var rootWindow = XDefaultRootWindow(display);
 
-XMatchVisualInfo(Display, screen, 32, 4, out var info);
+XMatchVisualInfo(display, screen, 32, 4, out var info);
 var visual = info.visual;
 
 var valueMask =
@@ -33,35 +31,35 @@ var xSetWindowAttributes = new XSetWindowAttributes
     bit_gravity = Gravity.NorthWestGravity,
     win_gravity = Gravity.NorthWestGravity,
     //override_redirect = true, // 设置窗口的override_redirect属性为True，以避免窗口管理器的干预
-    colormap = XCreateColormap(Display, rootWindow, visual, 0),
+    colormap = XCreateColormap(display, rootWindow, visual, 0),
     border_pixel = 0,
     background_pixel = 0,
 };
 
-var xDisplayWidth = XDisplayWidth(Display, screen);
-var xDisplayHeight = XDisplayHeight(Display, screen);
-var handle = XCreateWindow(Display, rootWindow, 0, 0, xDisplayWidth, xDisplayHeight, 5,
+var xDisplayWidth = XDisplayWidth(display, screen);
+var xDisplayHeight = XDisplayHeight(display, screen);
+var handle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, xDisplayHeight, 5,
     32,
     (int) CreateWindowArgs.InputOutput,
     visual,
     (nuint) valueMask, ref xSetWindowAttributes);
 
-var Window = handle;
+var window = handle;
 
 XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
                          XEventMask.PointerMotionHintMask;
 var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
-XSelectInput(Display, Window, mask);
+XSelectInput(display, window, mask);
 
-XMapWindow(Display, Window);
-XFlush(Display);
+XMapWindow(display, window);
+XFlush(display);
 
-var GC = XCreateGC(Display, Window, 0, 0);
-XSetForeground(Display, GC, white);
+var gc = XCreateGC(display, window, 0, 0);
+XSetForeground(display, gc, white);
 
 //XSetInputFocus(Display, Window, 0, IntPtr.Zero);
 
-XSync(Display, false);
+XSync(display, false);
 
 Task.Run(() =>
 {
@@ -70,7 +68,7 @@ Task.Run(() =>
 
 while (true)
 {
-    var xNextEvent = XNextEvent(Display, out var @event);
+    var xNextEvent = XNextEvent(display, out var @event);
     if (xNextEvent != 0)
     {
         break;
@@ -81,10 +79,10 @@ while (true)
         var x = @event.MotionEvent.x;
         var y = @event.MotionEvent.y;
 
-        XDrawLine(Display, @event.MotionEvent.window, GC, x, y, x + 100, y);
+        XDrawLine(display, @event.MotionEvent.window, gc, x, y, x + 100, y);
     }
 
-    var count = XEventsQueued(Display, 0 /*QueuedAlready*/);
+    var count = XEventsQueued(display, 0 /*QueuedAlready*/);
     if (count == 0)
     {
         for (int i = 0; i < 100; i++)
@@ -95,13 +93,13 @@ while (true)
                 {
                     type = XEventName.MotionNotify,
                     send_event = true,
-                    window = Window,
-                    display = Display,
+                    window = window,
+                    display = display,
                     x = i,
                     y = i
                 }
             };
-            XSendEvent(Display, Window, propagate: false, new IntPtr((int) (EventMask.ButtonMotionMask)), ref xEvent);
+            XSendEvent(display, window, propagate: false, new IntPtr((int) (EventMask.ButtonMotionMask)), ref xEvent);
         }
     }
 }
