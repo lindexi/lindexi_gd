@@ -71,7 +71,11 @@ Task.Run(() =>
 while (true)
 {
     var xNextEvent = XNextEvent(Display, out var @event);
-    Console.WriteLine($"xNextEvent={xNextEvent}");
+    if (xNextEvent != 0)
+    {
+        break;
+    }
+
     if (@event.type == XEventName.MotionNotify)
     {
         var x = @event.MotionEvent.x;
