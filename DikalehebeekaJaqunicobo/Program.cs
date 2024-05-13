@@ -71,12 +71,17 @@ Task.Run(() =>
 while (true)
 {
     var xNextEvent = XNextEvent(Display, out var @event);
+    if (xNextEvent != 0)
+    {
+        break;
+    }
+
     if (@event.type == XEventName.MotionNotify)
     {
         var x = @event.MotionEvent.x;
         var y = @event.MotionEvent.y;
 
-        XDrawLine(Display, Window, GC, x, y, x + 100, y);
+        XDrawLine(Display, @event.MotionEvent.window, GC, x, y, x + 100, y);
     }
 
     var count = XEventsQueued(Display, 0 /*QueuedAlready*/);
