@@ -68,10 +68,13 @@ else if (args.Length == 2)
         window2Handle = new IntPtr(otherProcessWindowHandle);
     }
 
-    if (long.TryParse(args[1], out var otherProcessGCHandle))
-    {
-        window2GCHandle = new IntPtr(otherProcessGCHandle);
-    }
+    //if (long.TryParse(args[1], out var otherProcessGCHandle))
+    //{
+    //    window2GCHandle = new IntPtr(otherProcessGCHandle);
+    //}
+    // 不用别人传的，从窗口进行创建
+    window2GCHandle = XCreateGC(display, window2Handle, 0, 0);
+    Console.WriteLine($"XCreateGC Window2 {window2GCHandle}");
 }
 
 while (true)
@@ -79,6 +82,7 @@ while (true)
     var xNextEvent = XNextEvent(display, out var @event);
     if (xNextEvent != 0)
     {
+        Console.WriteLine($"xNextEvent {xNextEvent}");
         break;
     }
 
