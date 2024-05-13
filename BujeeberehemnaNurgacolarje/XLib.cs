@@ -70,6 +70,9 @@ namespace CPF.Linux
         public static extern int XPending(IntPtr diplay);
 
         [DllImport(libX11)]
+        public static extern int XEventsQueued(IntPtr display, int mode);
+
+        [DllImport(libX11)]
         public static extern IntPtr XSelectInput(IntPtr display, IntPtr window, IntPtr mask);
 
         [DllImport(libX11)]
