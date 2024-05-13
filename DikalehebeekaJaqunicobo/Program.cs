@@ -1,11 +1,9 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using CPF.Linux;
-
 using System;
 using System.Diagnostics;
 using System.Runtime;
-
 using static CPF.Linux.XLib;
 
 var display = XOpenDisplay(IntPtr.Zero);
@@ -44,9 +42,9 @@ var xDisplayWidth = XDisplayWidth(display, screen) / 2;
 var xDisplayHeight = XDisplayHeight(display, screen) / 2;
 var handle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, xDisplayHeight, 5,
     32,
-    (int) CreateWindowArgs.InputOutput,
+    (int)CreateWindowArgs.InputOutput,
     visual,
-    (nuint) valueMask, ref xSetWindowAttributes);
+    (nuint)valueMask, ref xSetWindowAttributes);
 
 
 var window1 = new FooWindow(handle, display);
@@ -100,7 +98,27 @@ while (true)
 
         if (window2Handle != 0 && window2GCHandle != 0)
         {
-            XDrawLine(display, window2Handle, window2GCHandle, x, y, x + 100, y);
+            // 绘制是无效的
+            //XDrawLine(display, window2Handle, window2GCHandle, x, y, x + 100, y);
+
+            var xEvent = new XEvent
+            {
+                MotionEvent =
+                {
+                    type = XEventName.MotionNotify,
+                    send_event = true,
+                    window = window2Handle,
+                    display = display,
+                    x = x,
+                    y = y
+                }
+            };
+            XSendEvent(display, window2Handle, propagate: false, new IntPtr((int)(EventMask.ButtonMotionMask)),
+                ref xEvent);
+        }
+        else
+        {
+            XDrawLine(display, window1.Window, window1.GC, x, y, x + 100, y);
         }
 
         //if (@event.MotionEvent.window == window1.Window)
@@ -137,7 +155,7 @@ class FooWindow
 
         XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
                                  XEventMask.PointerMotionHintMask;
-        var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
+        var mask = new IntPtr(0xffffff ^ (int)ignoredMask);
         XSelectInput(display, windowHandle, mask);
 
         XMapWindow(display, windowHandle);
