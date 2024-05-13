@@ -1,9 +1,11 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using CPF.Linux;
+
 using System;
 using System.Diagnostics;
 using System.Runtime;
+
 using static CPF.Linux.XLib;
 
 var display = XOpenDisplay(IntPtr.Zero);
@@ -42,9 +44,9 @@ var xDisplayWidth = XDisplayWidth(display, screen) / 2;
 var xDisplayHeight = XDisplayHeight(display, screen) / 2;
 var handle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, xDisplayHeight, 5,
     32,
-    (int)CreateWindowArgs.InputOutput,
+    (int) CreateWindowArgs.InputOutput,
     visual,
-    (nuint)valueMask, ref xSetWindowAttributes);
+    (nuint) valueMask, ref xSetWindowAttributes);
 
 
 var window1 = new FooWindow(handle, display);
@@ -72,7 +74,45 @@ else if (args.Length == 2)
     //}
     // 不用别人传的，从窗口进行创建
     window2GCHandle = XCreateGC(display, window2Handle, 0, 0);
-    Console.WriteLine($"XCreateGC Window2 {window2GCHandle}");
+}
+
+XIDeviceInfo? pointerDevice = default;
+unsafe
+{
+    var devices = (XIDeviceInfo*) XLib.XIQueryDevice(display,
+        (int) XiPredefinedDeviceId.XIAllMasterDevices, out int num);
+
+    for (var c = 0; c < num; c++)
+    {
+        if (devices[c].Use == XiDeviceType.XIMasterPointer)
+        {
+            pointerDevice = devices[c];
+            break;
+        }
+    }
+}
+
+if (pointerDevice != null)
+{
+    XiEventType[] multiTouchEventTypes =
+    [
+        XiEventType.XI_TouchBegin,
+        XiEventType.XI_TouchUpdate,
+        XiEventType.XI_TouchEnd
+    ];
+
+    XiEventType[] defaultEventTypes =
+    [
+        XiEventType.XI_Motion,
+        XiEventType.XI_ButtonPress,
+        XiEventType.XI_ButtonRelease,
+        XiEventType.XI_Leave,
+        XiEventType.XI_Enter,
+    ];
+
+    List<XiEventType> eventTypes = [.. multiTouchEventTypes, .. defaultEventTypes];
+
+    XiSelectEvents(display, window1.Window, new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = eventTypes });
 }
 
 while (true)
@@ -113,7 +153,7 @@ while (true)
                     y = y
                 }
             };
-            XSendEvent(display, window2Handle, propagate: false, new IntPtr((int)(EventMask.ButtonMotionMask)),
+            XSendEvent(display, window2Handle, propagate: false, new IntPtr((int) (EventMask.ButtonMotionMask)),
                 ref xEvent);
         }
         else
@@ -143,6 +183,55 @@ while (true)
         //        ref xEvent);
         //}
     }
+    else if (@event.type == XEventName.GenericEvent)
+    {
+        unsafe
+        {
+            void* data = &@event.GenericEventCookie;
+            XGetEventData(display, data);
+            try
+            {
+                var xiEvent = (XIEvent*) @event.GenericEventCookie.data;
+
+                if (xiEvent->evtype is
+                     XiEventType.XI_Motion
+                    or XiEventType.XI_TouchUpdate)
+                {
+
+                    var xiDeviceEvent = (XIDeviceEvent*) xiEvent;
+                    
+                    var x = (int) xiDeviceEvent->event_x;
+                    var y = (int) xiDeviceEvent->event_y;
+
+                    if (window2Handle != 0 && window2GCHandle != 0)
+                    {
+                        XIDeviceEvent copyXIDeviceEvent = *xiDeviceEvent;
+
+                        var xEvent = new XEvent
+                        {
+                            GenericEventCookie =
+                            {
+                                type = (int) XEventName.GenericEvent,
+                                send_event = true,
+                                display = display,
+                                data = &copyXIDeviceEvent
+                            }
+                        };
+                        XSendEvent(display, window2Handle, propagate: false, new IntPtr(0),
+                            ref xEvent);
+                    }
+                    else
+                    {
+                        XDrawLine(display, window1.Window, window1.GC, x, y, x + 100, y);
+                    }
+                }
+            }
+            finally
+            {
+                XFreeEventData(display, data);
+            }
+        }
+    }
 }
 
 Console.WriteLine("Hello, World!");
@@ -155,7 +244,7 @@ class FooWindow
 
         XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
                                  XEventMask.PointerMotionHintMask;
-        var mask = new IntPtr(0xffffff ^ (int)ignoredMask);
+        var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
         XSelectInput(display, windowHandle, mask);
 
         XMapWindow(display, windowHandle);
