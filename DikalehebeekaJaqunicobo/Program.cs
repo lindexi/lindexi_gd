@@ -1,12 +1,16 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using CPF.Linux;
+
+using System;
+using System.Diagnostics;
+using System.Runtime;
+
 using static CPF.Linux.XLib;
 
 var display = XOpenDisplay(IntPtr.Zero);
 var screen = XDefaultScreen(display);
 
-var white = XWhitePixel(display, screen);
 var black = XBlackPixel(display, screen);
 
 var rootWindow = XDefaultRootWindow(display);
@@ -36,35 +40,39 @@ var xSetWindowAttributes = new XSetWindowAttributes
     background_pixel = 0,
 };
 
-var xDisplayWidth = XDisplayWidth(display, screen);
-var xDisplayHeight = XDisplayHeight(display, screen);
+var xDisplayWidth = XDisplayWidth(display, screen) / 2;
+var xDisplayHeight = XDisplayHeight(display, screen) / 2;
 var handle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, xDisplayHeight, 5,
     32,
     (int) CreateWindowArgs.InputOutput,
     visual,
     (nuint) valueMask, ref xSetWindowAttributes);
 
-var window = handle;
 
-XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
-                         XEventMask.PointerMotionHintMask;
-var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
-XSelectInput(display, window, mask);
-
-XMapWindow(display, window);
-XFlush(display);
-
-var gc = XCreateGC(display, window, 0, 0);
-XSetForeground(display, gc, white);
-
-//XSetInputFocus(Display, Window, 0, IntPtr.Zero);
-
+var window1 = new FooWindow(handle, display);
 XSync(display, false);
 
-Task.Run(() =>
-{
+IntPtr window2Handle = IntPtr.Zero;
+IntPtr window2GCHandle = IntPtr.Zero;
 
-});
+if (args.Length == 0)
+{
+    var currentProcess = Process.GetCurrentProcess();
+    var mainModuleFileName = currentProcess.MainModule!.FileName;
+    Process.Start(mainModuleFileName, [window1.Window.ToString(), window1.GC.ToString()]);
+}
+else if (args.Length == 2)
+{
+    if (long.TryParse(args[0], out var otherProcessWindowHandle))
+    {
+        window2Handle = new IntPtr(otherProcessWindowHandle);
+    }
+
+    if (long.TryParse(args[1], out var otherProcessGCHandle))
+    {
+        window2GCHandle = new IntPtr(otherProcessGCHandle);
+    }
+}
 
 while (true)
 {
@@ -74,34 +82,72 @@ while (true)
         break;
     }
 
-    if (@event.type == XEventName.MotionNotify)
+    if (@event.type == XEventName.Expose)
+    {
+        if (args.Length == 0)
+        {
+            XDrawLine(display, window1.Window, window1.GC, 0, 0, 100, 100);
+        }
+    }
+    else if (@event.type == XEventName.MotionNotify)
     {
         var x = @event.MotionEvent.x;
         var y = @event.MotionEvent.y;
 
-        XDrawLine(display, @event.MotionEvent.window, gc, x, y, x + 100, y);
-    }
-
-    var count = XEventsQueued(display, 0 /*QueuedAlready*/);
-    if (count == 0)
-    {
-        for (int i = 0; i < 100; i++)
+        if (window2Handle != 0 && window2GCHandle != 0)
         {
-            var xEvent = new XEvent
-            {
-                MotionEvent =
-                {
-                    type = XEventName.MotionNotify,
-                    send_event = true,
-                    window = window,
-                    display = display,
-                    x = i,
-                    y = i
-                }
-            };
-            XSendEvent(display, window, propagate: false, new IntPtr((int) (EventMask.ButtonMotionMask)), ref xEvent);
+            XDrawLine(display, window2Handle, window2GCHandle, x, y, x + 100, y);
         }
+
+        //if (@event.MotionEvent.window == window1.Window)
+        //{
+        //    XDrawLine(display, window1.Window, window1.GC, x, y, x + 100, y);
+        //}
+        //else
+        //{
+        //    var xEvent = new XEvent
+        //    {
+        //        MotionEvent =
+        //        {
+        //            type = XEventName.MotionNotify,
+        //            send_event = true,
+        //            window = window1.Window,
+        //            display = display,
+        //            x = x,
+        //            y = y
+        //        }
+        //    };
+        //    XSendEvent(display, window1.Window, propagate: false, new IntPtr((int)(EventMask.ButtonMotionMask)),
+        //        ref xEvent);
+        //}
     }
 }
 
 Console.WriteLine("Hello, World!");
+
+class FooWindow
+{
+    public FooWindow(nint windowHandle, nint display)
+    {
+        Window = windowHandle;
+
+        XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
+                                 XEventMask.PointerMotionHintMask;
+        var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
+        XSelectInput(display, windowHandle, mask);
+
+        XMapWindow(display, windowHandle);
+        XFlush(display);
+
+        var screen = XDefaultScreen(display);
+        var white = XWhitePixel(display, screen);
+
+        var gc = XCreateGC(display, windowHandle, 0, 0);
+        XSetForeground(display, gc, white);
+
+        GC = gc;
+    }
+
+    public nint Window { get; }
+    public IntPtr GC { get; }
+}
