@@ -60,6 +60,17 @@ if (args.Length == 0)
     var currentProcess = Process.GetCurrentProcess();
     var mainModuleFileName = currentProcess.MainModule!.FileName;
     Process.Start(mainModuleFileName, [window1.Window.ToString(), window1.GC.ToString()]);
+
+    _ = Task.Run(async () =>
+    {
+        while (true)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(1));
+            XIconifyWindow(display, window1.Window, screen);
+            await Task.Delay(TimeSpan.FromSeconds(1));
+            XMapWindow(display, window1.Window);
+        }
+    });
 }
 else if (args.Length == 2)
 {
