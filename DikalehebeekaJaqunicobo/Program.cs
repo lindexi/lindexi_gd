@@ -59,7 +59,7 @@ if (args.Length == 0)
 {
     var currentProcess = Process.GetCurrentProcess();
     var mainModuleFileName = currentProcess.MainModule!.FileName;
-    Process.Start(mainModuleFileName, [window1.Window.ToString(), window1.GC.ToString()]);
+    //Process.Start(mainModuleFileName, [window1.Window.ToString(), window1.GC.ToString()]);
 
     //_ = Task.Run(async () =>
     //{
@@ -89,6 +89,7 @@ else if (args.Length == 2)
 }
 
 
+
 while (true)
 {
     var xNextEvent = XNextEvent(display, out var @event);
@@ -107,33 +108,43 @@ while (true)
     }
     else if (@event.type == XEventName.MotionNotify)
     {
-        //var x = @event.MotionEvent.x;
-        //var y = @event.MotionEvent.y;
+        var x = @event.MotionEvent.x;
+        var y = @event.MotionEvent.y;
 
         if (window2Handle != 0 && window2GCHandle != 0)
         {
-            var xEvent = new XEvent
-            {
-                MotionEvent =
-                {
-                    type = (XEventName)100,
-                }
-            };
-            XSendEvent(display, window2Handle, propagate: false, event_mask: 0, ref xEvent);
+            XDrawLine(display, window2Handle, window2GCHandle, x, y, x + 100, y);
         }
+
+        //if (@event.MotionEvent.window == window1.Window)
+        //{
+        //    XDrawLine(display, window1.Window, window1.GC, x, y, x + 100, y);
+        //}
+        //else
+        //{
+        //    var xEvent = new XEvent
+        //    {
+        //        MotionEvent =
+        //        {
+        //            type = XEventName.MotionNotify,
+        //            send_event = true,
+        //            window = window1.Window,
+        //            display = display,
+        //            x = x,
+        //            y = y
+        //        }
+        //    };
+        //    XSendEvent(display, window1.Window, propagate: false, new IntPtr((int)(EventMask.ButtonMotionMask)),
+        //        ref xEvent);
+        //}
     }
 
-    if (args.Length == 0)
+    var count = XEventsQueued(display, 0 /*QueuedAlready*/);
+    if (count == 0)
     {
-        Console.WriteLine(@event.type);
+        var result = XIconifyWindow(display, window1.Window, screen);
+        Console.WriteLine($"XIconifyWindow {result}");
     }
-
-    //var count = XEventsQueued(display, 0 /*QueuedAlready*/);
-    //if (count == 0)
-    //{
-    //    var result = XIconifyWindow(display, window1.Window, screen);
-    //    Console.WriteLine($"XIconifyWindow {result}");
-    //}
 }
 
 Console.WriteLine("Hello, World!");
