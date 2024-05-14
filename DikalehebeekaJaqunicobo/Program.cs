@@ -1,11 +1,9 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using CPF.Linux;
-
 using System;
 using System.Diagnostics;
 using System.Runtime;
-
 using static CPF.Linux.XLib;
 
 var display = XOpenDisplay(IntPtr.Zero);
@@ -44,9 +42,9 @@ var xDisplayWidth = XDisplayWidth(display, screen) / 2;
 var xDisplayHeight = XDisplayHeight(display, screen) / 2;
 var handle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, xDisplayHeight, 5,
     32,
-    (int) CreateWindowArgs.InputOutput,
+    (int)CreateWindowArgs.InputOutput,
     visual,
-    (nuint) valueMask, ref xSetWindowAttributes);
+    (nuint)valueMask, ref xSetWindowAttributes);
 
 
 var window1 = new FooWindow(handle, display);
@@ -63,18 +61,15 @@ if (args.Length == 0)
 
     _ = Task.Run(async () =>
     {
-        var display1 = XOpenDisplay(IntPtr.Zero);
-        var screen1 = XDefaultScreen(display1);
         while (true)
         {
+            var display1 = XOpenDisplay(IntPtr.Zero);
+            var screen1 = XDefaultScreen(display1);
             try
             {
-                Console.WriteLine($"开始配置");
                 await Task.Delay(TimeSpan.FromSeconds(1));
                 var result = XIconifyWindow(display1, window1.Window, screen1);
                 Console.WriteLine($"XIconifyWindow {result}");
-                await Task.Delay(TimeSpan.FromSeconds(1));
-                XMapWindow(display1, window1.Window);
             }
             catch (Exception e)
             {
@@ -83,6 +78,23 @@ if (args.Length == 0)
             }
             finally
             {
+                XCloseDisplay(display1);
+            }
+
+            var display2 = XOpenDisplay(IntPtr.Zero);
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(1));
+                XMapWindow(display2, window1.Window);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+            finally
+            {
+                XCloseDisplay(display2);
             }
         }
     });
@@ -102,7 +114,6 @@ else if (args.Length == 2)
     window2GCHandle = XCreateGC(display, window2Handle, 0, 0);
     Console.WriteLine($"XCreateGC Window2 {window2GCHandle}");
 }
-
 
 
 while (true)
@@ -173,7 +184,7 @@ class FooWindow
 
         XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
                                  XEventMask.PointerMotionHintMask;
-        var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
+        var mask = new IntPtr(0xffffff ^ (int)ignoredMask);
         XSelectInput(display, windowHandle, mask);
 
         XMapWindow(display, windowHandle);
