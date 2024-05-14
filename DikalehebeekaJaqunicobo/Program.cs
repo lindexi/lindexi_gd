@@ -87,7 +87,7 @@ if (args.Length == 0)
             try
             {
                 await Task.Delay(TimeSpan.FromSeconds(1));
-                XMapWindow(display2, window1.Window);
+                XMapWindow(display, window1.Window);
                 XFlush(display2);
                 XSync(display2, false);
             }
