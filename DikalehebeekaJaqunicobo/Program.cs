@@ -59,7 +59,18 @@ if (args.Length == 0)
 {
     var currentProcess = Process.GetCurrentProcess();
     var mainModuleFileName = currentProcess.MainModule!.FileName;
-    Process.Start(mainModuleFileName, [window1.Window.ToString(), window1.GC.ToString()]);
+    //Process.Start(mainModuleFileName, [window1.Window.ToString(), window1.GC.ToString()]);
+
+    //_ = Task.Run(async () =>
+    //{
+    //    while (true)
+    //    {
+    //        await Task.Delay(TimeSpan.FromSeconds(1));
+    //        XIconifyWindow(display, window1.Window, screen);
+    //        await Task.Delay(TimeSpan.FromSeconds(1));
+    //        XMapWindow(display, window1.Window);
+    //    }
+    //});
 }
 else if (args.Length == 2)
 {
@@ -114,6 +125,8 @@ if (pointerDevice != null)
 
     XiSelectEvents(display, window1.Window, new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = eventTypes });
 }
+
+
 
 while (true)
 {
@@ -188,6 +201,7 @@ while (true)
         //        ref xEvent);
         //}
     }
+<<<<<<< HEAD
     else if (@event.type == XEventName.GenericEvent)
     {
         unsafe
@@ -248,6 +262,14 @@ while (true)
                 XFreeEventData(display, data);
             }
         }
+=======
+
+    var count = XEventsQueued(display, 0 /*QueuedAlready*/);
+    if (count == 0)
+    {
+        var result = XIconifyWindow(display, window1.Window, screen);
+        Console.WriteLine($"XIconifyWindow {result}");
+>>>>>>> 86cbdc30df6681d1a8da8a287f2cdcc44f9e8e8f
     }
 }
 
