@@ -67,6 +67,7 @@ _ = Task.Run(async () =>
     {
         await Task.Delay(TimeSpan.FromSeconds(1));
 
+        // The X server places no interpretation on the values in the window, message_type, or data members.
         var @event = new XEvent
         {
             ClientMessageEvent =
