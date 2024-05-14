@@ -52,13 +52,22 @@ class MainWindow : Window
             return;
         }
 
-        var x11 = gdk_x11_window_get_xid(gdkWindow.Handle);
+        var x11 = GdkX11Helper.GetXId(gdkWindow);
         Console.WriteLine($"X11 窗口 0x{x11:x2}");
+    }
+}
+
+[SupportedOSPlatform("Linux")]
+static class GdkX11Helper
+{
+    public static nint GetXId(Gdk.Window gdkWindow)
+    {
+        var x11 = gdk_x11_window_get_xid(gdkWindow.Handle);
+        return x11;
     }
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     delegate IntPtr d_gdk_x11_window_get_xid(IntPtr gdkWindow);
-
     private static d_gdk_x11_window_get_xid gdk_x11_window_get_xid =
         LoadFunction<d_gdk_x11_window_get_xid>("libgdk-3.so.0", "gdk_x11_window_get_xid");
 
