@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\BujeeberehemnaNurgacolarje\FixedQueue.cs" Link="FixedQueue.cs" />
+    <Compile Include="..\..\BujeeberehemnaNurgacolarje\SimpleInkRender.cs" Link="SimpleInkRender.cs" />
+    <Compile Include="..\..\BujeeberehemnaNurgacolarje\StylusPoint.cs" Link="StylusPoint.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp" Version="2.88.7" />
+    <PackageReference Include="Microsoft.Maui.Graphics" Version="6.0.300" />
+  </ItemGroup>
+
+</Project>
