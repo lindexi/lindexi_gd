@@ -67,22 +67,7 @@ _ = Task.Run(async () =>
     {
         await Task.Delay(TimeSpan.FromSeconds(1));
 
-        var @event = new XEvent
-        {
-            ClientMessageEvent =
-            {
-                type = XEventName.ClientMessage,
-                send_event = true,
-                window = handle,
-                message_type = 0,
-                format = 32,
-                ptr1 = 0,
-                ptr2 = 0,
-                ptr3 = 0,
-                ptr4 = 0,
-            }
-        };
-        XSendEvent(display, handle, false, 0, ref @event);
+        var result = XIconifyWindow(display, handle, screen);
 
         XFlush(display);
     }
