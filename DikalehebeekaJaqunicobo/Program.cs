@@ -38,7 +38,7 @@ var xSetWindowAttributes = new XSetWindowAttributes
 
 var xDisplayWidth = XDisplayWidth(display, screen) / 2;
 var xDisplayHeight = XDisplayHeight(display, screen) / 2;
-var windowHandle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, xDisplayHeight, 5,
+var handle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, xDisplayHeight, 5,
     32,
     (int)CreateWindowArgs.InputOutput,
     visual,
@@ -48,15 +48,15 @@ var windowHandle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, xDisp
 XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
                          XEventMask.PointerMotionHintMask;
 var mask = new IntPtr(0xffffff ^ (int)ignoredMask);
-XSelectInput(display, windowHandle, mask);
+XSelectInput(display, handle, mask);
 
-XMapWindow(display, windowHandle);
+XMapWindow(display, handle);
 XFlush(display);
 
 var white = XWhitePixel(display, screen);
 var black = XBlackPixel(display, screen);
 
-var gc = XCreateGC(display, windowHandle, 0, 0);
+var gc = XCreateGC(display, handle, 0, 0);
 XSetForeground(display, gc, white);
 XSync(display, false);
 
@@ -64,23 +64,24 @@ _ = Task.Run(async () =>
 {
     while (true)
     {
-        var display1 = XOpenDisplay(IntPtr.Zero);
-        var screen1 = XDefaultScreen(display1);
-        try
+        await Task.Delay(TimeSpan.FromSeconds(1));
+
+        var @event = new XEvent
         {
-            await Task.Delay(TimeSpan.FromSeconds(1));
-            var result = XIconifyWindow(display1, windowHandle, screen1);
-            Console.WriteLine($"XIconifyWindow {result}");
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
-        finally
-        {
-            XCloseDisplay(display1);
-        }
+            ClientMessageEvent =
+            {
+                type = XEventName.ClientMessage,
+                send_event = true,
+                window = handle,
+                message_type = 0,
+                format = 32,
+                ptr1 = 0,
+                ptr2 = 0,
+                ptr3 = 0,
+                ptr4 = 0,
+            }
+        };
+        XSendEvent(display, handle, false, 0, ref @event);
     }
 });
 
@@ -95,8 +96,10 @@ while (true)
 
     if (@event.type == XEventName.Expose)
     {
-        XDrawLine(display, windowHandle, gc, 0, 0, 100, 100);
+        XDrawLine(display, handle, gc, 0, 0, 100, 100);
     }
+
+    Console.WriteLine(@event.type);
 }
 
 Console.WriteLine("Hello, World!");
