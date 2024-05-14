@@ -63,13 +63,22 @@ if (args.Length == 0)
 
     _ = Task.Run(async () =>
     {
+        Console.WriteLine($"开始配置");
         while (true)
         {
-            await Task.Delay(TimeSpan.FromSeconds(1));
-            var result = XIconifyWindow(display, window1.Window, screen);
-            Console.WriteLine($"XIconifyWindow {result}");
-            await Task.Delay(TimeSpan.FromSeconds(1));
-            XMapWindow(display, window1.Window);
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(1));
+                var result = XIconifyWindow(display, window1.Window, screen);
+                Console.WriteLine($"XIconifyWindow {result}");
+                await Task.Delay(TimeSpan.FromSeconds(1));
+                XMapWindow(display, window1.Window);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
     });
 }
