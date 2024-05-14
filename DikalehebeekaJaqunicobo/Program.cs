@@ -1,17 +1,13 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using CPF.Linux;
-
 using System;
 using System.Diagnostics;
 using System.Runtime;
-
 using static CPF.Linux.XLib;
 
 var display = XOpenDisplay(IntPtr.Zero);
 var screen = XDefaultScreen(display);
-
-var black = XBlackPixel(display, screen);
 
 var rootWindow = XDefaultRootWindow(display);
 
@@ -42,73 +38,51 @@ var xSetWindowAttributes = new XSetWindowAttributes
 
 var xDisplayWidth = XDisplayWidth(display, screen) / 2;
 var xDisplayHeight = XDisplayHeight(display, screen) / 2;
-var handle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, xDisplayHeight, 5,
+var windowHandle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, xDisplayHeight, 5,
     32,
-    (int) CreateWindowArgs.InputOutput,
+    (int)CreateWindowArgs.InputOutput,
     visual,
-    (nuint) valueMask, ref xSetWindowAttributes);
+    (nuint)valueMask, ref xSetWindowAttributes);
 
 
-var window1 = new FooWindow(handle, display);
+XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
+                         XEventMask.PointerMotionHintMask;
+var mask = new IntPtr(0xffffff ^ (int)ignoredMask);
+XSelectInput(display, windowHandle, mask);
+
+XMapWindow(display, windowHandle);
+XFlush(display);
+
+var white = XWhitePixel(display, screen);
+var black = XBlackPixel(display, screen);
+
+var gc = XCreateGC(display, windowHandle, 0, 0);
+XSetForeground(display, gc, white);
 XSync(display, false);
 
-IntPtr window2Handle = IntPtr.Zero;
-IntPtr window2GCHandle = IntPtr.Zero;
-
-if (args.Length == 0)
+_ = Task.Run(async () =>
 {
-    var currentProcess = Process.GetCurrentProcess();
-    var mainModuleFileName = currentProcess.MainModule!.FileName;
-    //Process.Start(mainModuleFileName, [window1.Window.ToString(), window1.GC.ToString()]);
-
-    _ = Task.Run(async () =>
+    while (true)
     {
-        while (true)
+        var display1 = XOpenDisplay(IntPtr.Zero);
+        var screen1 = XDefaultScreen(display1);
+        try
         {
-            var display1 = XOpenDisplay(IntPtr.Zero);
-            var screen1 = XDefaultScreen(display1);
-            try
-            {
-                await Task.Delay(TimeSpan.FromSeconds(1));
-                var result = XIconifyWindow(display1, window1.Window, screen1);
-                Console.WriteLine($"XIconifyWindow {result}");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-            finally
-            {
-                XCloseDisplay(display1);
-            }
-
-            var display2 = XOpenDisplay(IntPtr.Zero);
-            try
-            {
-                await Task.Delay(TimeSpan.FromSeconds(1));
-                XMapWindow(display2, window1.Window);
-                XFlush(display2);
-                XSync(display2, false);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-            finally
-            {
-                XCloseDisplay(display2);
-            }
+            await Task.Delay(TimeSpan.FromSeconds(1));
+            var result = XIconifyWindow(display1, windowHandle, screen1);
+            Console.WriteLine($"XIconifyWindow {result}");
         }
-    });
-}
-else if (args.Length == 2)
-{
-    if (long.TryParse(args[0], out var otherProcessWindowHandle))
-    {
-        window2Handle = new IntPtr(otherProcessWindowHandle);
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+        finally
+        {
+            XCloseDisplay(display1);
+        }
     }
+<<<<<<< HEAD
 
     //if (long.TryParse(args[1], out var otherProcessGCHandle))
     //{
@@ -157,6 +131,9 @@ if (pointerDevice != null)
     XiSelectEvents(display, window1.Window, new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = eventTypes });
 }
 
+=======
+});
+>>>>>>> 33dbc36c47d6f1e68265c0f0f389a566823425fd
 
 while (true)
 {
@@ -174,11 +151,9 @@ while (true)
 
     if (@event.type == XEventName.Expose)
     {
-        if (args.Length == 0)
-        {
-            XDrawLine(display, window1.Window, window1.GC, 0, 0, 100, 100);
-        }
+        XDrawLine(display, windowHandle, gc, 0, 0, 100, 100);
     }
+<<<<<<< HEAD
     else if (@event.type == XEventName.MotionNotify)
     {
         var x = @event.MotionEvent.x;
@@ -311,33 +286,8 @@ while (true)
     //    Console.WriteLine($"XIconifyWindow {result}");
     //}
 >>>>>>> 4824a4bc1e13ba0da4e7d4a67b93a75e12ee99a5
+=======
+>>>>>>> 33dbc36c47d6f1e68265c0f0f389a566823425fd
 }
 
 Console.WriteLine("Hello, World!");
-
-class FooWindow
-{
-    public FooWindow(nint windowHandle, nint display)
-    {
-        Window = windowHandle;
-
-        XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
-                                 XEventMask.PointerMotionHintMask;
-        var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
-        XSelectInput(display, windowHandle, mask);
-
-        XMapWindow(display, windowHandle);
-        XFlush(display);
-
-        var screen = XDefaultScreen(display);
-        var white = XWhitePixel(display, screen);
-
-        var gc = XCreateGC(display, windowHandle, 0, 0);
-        XSetForeground(display, gc, white);
-
-        GC = gc;
-    }
-
-    public nint Window { get; }
-    public IntPtr GC { get; }
-}
