@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Runtime;
 using static CPF.Linux.XLib;
 
+XInitThreads();
 var display = XOpenDisplay(IntPtr.Zero);
 var screen = XDefaultScreen(display);
 
@@ -66,6 +67,8 @@ _ = Task.Run(async () =>
     {
         await Task.Delay(TimeSpan.FromSeconds(1));
 
+        //var display = XOpenDisplay(IntPtr.Zero);
+
         var @event = new XEvent
         {
             ClientMessageEvent =
@@ -82,6 +85,11 @@ _ = Task.Run(async () =>
             }
         };
         XSendEvent(display, handle, false, 0, ref @event);
+
+        // 调用 XFlush 或 XSync 都可以，不用使用 XClose 都可以
+        //XFlush(display);
+        XSync(display, false);
+        //XCloseDisplay(display);
     }
 });
 
