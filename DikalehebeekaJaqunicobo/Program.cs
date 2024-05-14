@@ -1,9 +1,11 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using CPF.Linux;
+
 using System;
 using System.Diagnostics;
 using System.Runtime;
+
 using static CPF.Linux.XLib;
 
 var display = XOpenDisplay(IntPtr.Zero);
@@ -42,9 +44,9 @@ var xDisplayWidth = XDisplayWidth(display, screen) / 2;
 var xDisplayHeight = XDisplayHeight(display, screen) / 2;
 var handle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, xDisplayHeight, 5,
     32,
-    (int)CreateWindowArgs.InputOutput,
+    (int) CreateWindowArgs.InputOutput,
     visual,
-    (nuint)valueMask, ref xSetWindowAttributes);
+    (nuint) valueMask, ref xSetWindowAttributes);
 
 
 var window1 = new FooWindow(handle, display);
@@ -86,6 +88,8 @@ if (args.Length == 0)
             {
                 await Task.Delay(TimeSpan.FromSeconds(1));
                 XMapWindow(display2, window1.Window);
+                XFlush(display2);
+                XSync(display2, false);
             }
             catch (Exception e)
             {
@@ -184,7 +188,7 @@ class FooWindow
 
         XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
                                  XEventMask.PointerMotionHintMask;
-        var mask = new IntPtr(0xffffff ^ (int)ignoredMask);
+        var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
         XSelectInput(display, windowHandle, mask);
 
         XMapWindow(display, windowHandle);
