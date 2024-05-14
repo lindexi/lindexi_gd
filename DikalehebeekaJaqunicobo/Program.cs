@@ -67,31 +67,24 @@ _ = Task.Run(async () =>
     {
         await Task.Delay(TimeSpan.FromSeconds(1));
 
-        var display1 = XOpenDisplay(IntPtr.Zero);
-
-        try
+        var @event = new XEvent
         {
-            var @event = new XEvent
+            ClientMessageEvent =
             {
-                ClientMessageEvent =
-                {
-                    type = XEventName.ClientMessage,
-                    send_event = true,
-                    window = handle,
-                    message_type = 0,
-                    format = 32,
-                    ptr1 = 0,
-                    ptr2 = 0,
-                    ptr3 = 0,
-                    ptr4 = 0,
-                }
-            };
-            XSendEvent(display1, handle, false, 0, ref @event);
-        }
-        finally
-        {
-            XCloseDisplay(display1);
-        }
+                type = XEventName.ClientMessage,
+                send_event = true,
+                window = handle,
+                message_type = 0,
+                format = 32,
+                ptr1 = 0,
+                ptr2 = 0,
+                ptr3 = 0,
+                ptr4 = 0,
+            }
+        };
+        XSendEvent(display, handle, false, 0, ref @event);
+
+        XFlush(display);
     }
 });
 
