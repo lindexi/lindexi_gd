@@ -61,16 +61,17 @@ if (args.Length == 0)
     var mainModuleFileName = currentProcess.MainModule!.FileName;
     //Process.Start(mainModuleFileName, [window1.Window.ToString(), window1.GC.ToString()]);
 
-    //_ = Task.Run(async () =>
-    //{
-    //    while (true)
-    //    {
-    //        await Task.Delay(TimeSpan.FromSeconds(1));
-    //        XIconifyWindow(display, window1.Window, screen);
-    //        await Task.Delay(TimeSpan.FromSeconds(1));
-    //        XMapWindow(display, window1.Window);
-    //    }
-    //});
+    _ = Task.Run(async () =>
+    {
+        while (true)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(1));
+            var result = XIconifyWindow(display, window1.Window, screen);
+            Console.WriteLine($"XIconifyWindow {result}");
+            await Task.Delay(TimeSpan.FromSeconds(1));
+            XMapWindow(display, window1.Window);
+        }
+    });
 }
 else if (args.Length == 2)
 {
@@ -139,12 +140,13 @@ while (true)
         //}
     }
 
-    var count = XEventsQueued(display, 0 /*QueuedAlready*/);
-    if (count == 0)
-    {
-        var result = XIconifyWindow(display, window1.Window, screen);
-        Console.WriteLine($"XIconifyWindow {result}");
-    }
+    // 这是有用的
+    //var count = XEventsQueued(display, 0 /*QueuedAlready*/);
+    //if (count == 0)
+    //{
+    //    var result = XIconifyWindow(display, window1.Window, screen);
+    //    Console.WriteLine($"XIconifyWindow {result}");
+    //}
 }
 
 Console.WriteLine("Hello, World!");
