@@ -124,6 +124,11 @@ while (true)
         break;
     }
 
+    if (args.Length == 0)
+    {
+        Console.WriteLine(@event.type);
+    }
+
     if (@event.type == XEventName.Expose)
     {
         if (args.Length == 0)
@@ -187,11 +192,12 @@ while (true)
     {
         unsafe
         {
-            void* data = &@event.GenericEventCookie;
+            var eventCookie = @event.GenericEventCookie;
+            void* data = &eventCookie;
             XGetEventData(display, data);
             try
             {
-                var xiEvent = (XIEvent*) @event.GenericEventCookie.data;
+                var xiEvent = (XIEvent*) eventCookie.data;
 
                 if (xiEvent->evtype is
                      XiEventType.XI_Motion
@@ -199,13 +205,18 @@ while (true)
                 {
 
                     var xiDeviceEvent = (XIDeviceEvent*) xiEvent;
-                    
+
                     var x = (int) xiDeviceEvent->event_x;
                     var y = (int) xiDeviceEvent->event_y;
+
+                    //Console.WriteLine($"copyXIDeviceEvent.RootWindow={xiDeviceEvent->RootWindow} rootWindow={rootWindow}"); // 两个进程是相同的
 
                     if (window2Handle != 0 && window2GCHandle != 0)
                     {
                         XIDeviceEvent copyXIDeviceEvent = *xiDeviceEvent;
+                        copyXIDeviceEvent.EventWindow = window2Handle;
+
+                        //Console.WriteLine($"extension={eventCookie.extension}");
 
                         var xEvent = new XEvent
                         {
@@ -214,11 +225,17 @@ while (true)
                                 type = (int) XEventName.GenericEvent,
                                 send_event = true,
                                 display = display,
-                                data = &copyXIDeviceEvent
+                                cookie = eventCookie.cookie,
+                                evtype = eventCookie.evtype,
+                                //extension = eventCookie.extension, // 设置了会炸掉
+                                serial = eventCookie.serial, // Serial number of failed request
+                                data = &copyXIDeviceEvent,
+                                //data = (void*) 0
                             }
                         };
-                        XSendEvent(display, window2Handle, propagate: false, new IntPtr(0),
-                            ref xEvent);
+                        var status = XSendEvent(display, window2Handle, propagate: false, new IntPtr(0),
+                             ref xEvent);
+                        Console.WriteLine($"SendEvent {status}");
                     }
                     else
                     {
