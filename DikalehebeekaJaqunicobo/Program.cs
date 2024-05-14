@@ -83,7 +83,6 @@ if (args.Length == 0)
             }
             finally
             {
-                XCloseDisplay(display1);
             }
         }
     });
