@@ -63,11 +63,11 @@ if (args.Length == 0)
 
     _ = Task.Run(async () =>
     {
-        Console.WriteLine($"开始配置");
         while (true)
         {
             try
             {
+                Console.WriteLine($"开始配置");
                 await Task.Delay(TimeSpan.FromSeconds(1));
                 var result = XIconifyWindow(display, window1.Window, screen);
                 Console.WriteLine($"XIconifyWindow {result}");
