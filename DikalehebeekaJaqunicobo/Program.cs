@@ -59,18 +59,18 @@ if (args.Length == 0)
 {
     var currentProcess = Process.GetCurrentProcess();
     var mainModuleFileName = currentProcess.MainModule!.FileName;
-    Process.Start(mainModuleFileName, [window1.Window.ToString(), window1.GC.ToString()]);
+    //Process.Start(mainModuleFileName, [window1.Window.ToString(), window1.GC.ToString()]);
 
-    _ = Task.Run(async () =>
-    {
-        while (true)
-        {
-            await Task.Delay(TimeSpan.FromSeconds(1));
-            XIconifyWindow(display, window1.Window, screen);
-            await Task.Delay(TimeSpan.FromSeconds(1));
-            XMapWindow(display, window1.Window);
-        }
-    });
+    //_ = Task.Run(async () =>
+    //{
+    //    while (true)
+    //    {
+    //        await Task.Delay(TimeSpan.FromSeconds(1));
+    //        XIconifyWindow(display, window1.Window, screen);
+    //        await Task.Delay(TimeSpan.FromSeconds(1));
+    //        XMapWindow(display, window1.Window);
+    //    }
+    //});
 }
 else if (args.Length == 2)
 {
@@ -87,6 +87,8 @@ else if (args.Length == 2)
     window2GCHandle = XCreateGC(display, window2Handle, 0, 0);
     Console.WriteLine($"XCreateGC Window2 {window2GCHandle}");
 }
+
+
 
 while (true)
 {
@@ -135,6 +137,13 @@ while (true)
         //    XSendEvent(display, window1.Window, propagate: false, new IntPtr((int)(EventMask.ButtonMotionMask)),
         //        ref xEvent);
         //}
+    }
+
+    var count = XEventsQueued(display, 0 /*QueuedAlready*/);
+    if (count == 0)
+    {
+        var result = XIconifyWindow(display, window1.Window, screen);
+        Console.WriteLine($"XIconifyWindow {result}");
     }
 }
 
