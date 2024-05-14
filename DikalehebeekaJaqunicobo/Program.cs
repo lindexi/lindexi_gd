@@ -61,16 +61,26 @@ if (args.Length == 0)
     var mainModuleFileName = currentProcess.MainModule!.FileName;
     //Process.Start(mainModuleFileName, [window1.Window.ToString(), window1.GC.ToString()]);
 
-    //_ = Task.Run(async () =>
-    //{
-    //    while (true)
-    //    {
-    //        await Task.Delay(TimeSpan.FromSeconds(1));
-    //        XIconifyWindow(display, window1.Window, screen);
-    //        await Task.Delay(TimeSpan.FromSeconds(1));
-    //        XMapWindow(display, window1.Window);
-    //    }
-    //});
+    _ = Task.Run(async () =>
+    {
+        Console.WriteLine($"开始配置");
+        while (true)
+        {
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(1));
+                var result = XIconifyWindow(display, window1.Window, screen);
+                Console.WriteLine($"XIconifyWindow {result}");
+                await Task.Delay(TimeSpan.FromSeconds(1));
+                XMapWindow(display, window1.Window);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+    });
 }
 else if (args.Length == 2)
 {
@@ -264,6 +274,7 @@ while (true)
         }
 =======
 
+<<<<<<< HEAD
     var count = XEventsQueued(display, 0 /*QueuedAlready*/);
     if (count == 0)
     {
@@ -271,6 +282,15 @@ while (true)
         Console.WriteLine($"XIconifyWindow {result}");
 >>>>>>> 86cbdc30df6681d1a8da8a287f2cdcc44f9e8e8f
     }
+=======
+    // 这是有用的
+    //var count = XEventsQueued(display, 0 /*QueuedAlready*/);
+    //if (count == 0)
+    //{
+    //    var result = XIconifyWindow(display, window1.Window, screen);
+    //    Console.WriteLine($"XIconifyWindow {result}");
+    //}
+>>>>>>> 4824a4bc1e13ba0da4e7d4a67b93a75e12ee99a5
 }
 
 Console.WriteLine("Hello, World!");
