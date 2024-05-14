@@ -11,5 +11,14 @@
   <ItemGroup>
     <PackageReference Include="GtkSharp" Version="3.24.24.95" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\BujeeberehemnaNurgacolarje\*.cs" />
+  </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="..\BujeeberehemnaNurgacolarje\FixedQueue.cs" />
+    <Compile Remove="..\BujeeberehemnaNurgacolarje\SimpleInkRender.cs" />
+    <Compile Remove="..\BujeeberehemnaNurgacolarje\StylusPoint.cs" />
+    <Compile Remove="..\BujeeberehemnaNurgacolarje\X11App.cs" />
+  </ItemGroup>
 </Project>
