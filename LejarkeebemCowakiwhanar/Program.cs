@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using Window = Gtk.Window;
 using WindowType = Gtk.WindowType;
+using static CPF.Linux.XLib;
 
 namespace LejarkeebemCowakiwhanar;
 
@@ -38,7 +39,7 @@ class MainWindow : Window
         Title = title;
     }
 
-    protected override void OnShown()
+    protected override async void OnShown()
     {
         base.OnShown(); // 在这句话调用之前 window.Window 是空
 
@@ -54,6 +55,26 @@ class MainWindow : Window
 
         var x11 = GdkX11Helper.GetXId(gdkWindow);
         Console.WriteLine($"X11 窗口 0x{x11:x2}");
+
+        var display = XOpenDisplay(IntPtr.Zero);
+        var screen = XDefaultScreen(display);
+
+        try
+        {
+            while (true)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(1));
+                var result = XIconifyWindow(display, x11, screen);
+                Console.WriteLine($"XIconifyWindow {result}");
+                await Task.Delay(TimeSpan.FromSeconds(1));
+                XMapWindow(display, x11);
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 }
 
