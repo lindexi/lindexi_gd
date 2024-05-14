@@ -67,29 +67,31 @@ _ = Task.Run(async () =>
     {
         await Task.Delay(TimeSpan.FromSeconds(1));
 
-        //var display = XOpenDisplay(IntPtr.Zero);
+        var display1 = XOpenDisplay(IntPtr.Zero);
 
-        var @event = new XEvent
+        try
         {
-            ClientMessageEvent =
+            var @event = new XEvent
             {
-                type = XEventName.ClientMessage,
-                send_event = true,
-                window = handle,
-                message_type = 0,
-                format = 32,
-                ptr1 = 0,
-                ptr2 = 0,
-                ptr3 = 0,
-                ptr4 = 0,
-            }
-        };
-        XSendEvent(display, handle, false, 0, ref @event);
-
-        // 调用 XFlush 或 XSync 都可以，不用使用 XClose 都可以
-        //XFlush(display);
-        XSync(display, false);
-        //XCloseDisplay(display);
+                ClientMessageEvent =
+                {
+                    type = XEventName.ClientMessage,
+                    send_event = true,
+                    window = handle,
+                    message_type = 0,
+                    format = 32,
+                    ptr1 = 0,
+                    ptr2 = 0,
+                    ptr3 = 0,
+                    ptr4 = 0,
+                }
+            };
+            XSendEvent(display1, handle, false, 0, ref @event);
+        }
+        finally
+        {
+            XCloseDisplay(display1);
+        }
     }
 });
 
