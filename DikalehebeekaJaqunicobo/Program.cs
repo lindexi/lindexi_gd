@@ -63,11 +63,10 @@ if (args.Length == 0)
 
     _ = Task.Run(async () =>
     {
+        var display1 = XOpenDisplay(IntPtr.Zero);
+        var screen1 = XDefaultScreen(display1);
         while (true)
         {
-            var display1 = XOpenDisplay(IntPtr.Zero);
-            var screen1 = XDefaultScreen(display1);
-
             try
             {
                 Console.WriteLine($"开始配置");
