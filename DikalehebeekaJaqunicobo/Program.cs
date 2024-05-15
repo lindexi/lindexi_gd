@@ -174,9 +174,16 @@ while (true)
             }
         }
     }
-    else
+    else if(@event.type == XEventName.MotionNotify)
     {
-        Console.WriteLine(@event.type);
+        if (@event.MotionEvent.window == handle)
+        {
+            Console.WriteLine($"Window1 {DateTime.Now:HH:mm:ss}");
+        }
+        else
+        {
+            Console.WriteLine($"Window2 {DateTime.Now:HH:mm:ss}");
+        }
     }
 }
 
