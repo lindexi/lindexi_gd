@@ -123,7 +123,8 @@ _ = Task.Run(async () =>
         XMapWindow(display, childWindowHandle);
 
         // 设置父子关系
-        XReparentWindow(display, childWindowHandle, mainWindowHandle, 50, 50);
+        XReparentWindow(display, childWindowHandle, mainWindowHandle, 0, 0);
+        XFlush(display);
     });
 
     //while (true)
