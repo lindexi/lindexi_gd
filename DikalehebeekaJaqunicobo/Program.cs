@@ -80,6 +80,16 @@ async Task InvokeAsync(Action action)
         });
     }
 
+    // 在 Avalonia 里面，是通过循环读取的方式，通过 XPending 判断是否有消息
+    // 如果没有消息就进入自旋判断是否有业务消息和判断是否有 XPending 消息
+    // 核心使用 epoll_wait 进行等待
+    // 整个逻辑比较复杂
+    // 这里简单处理，只通过发送 ClientMessage 的方式，告诉消息循环需要处理业务逻辑
+    // 发送 ClientMessage 是一个合理的方式，根据官方文档说明，可以看到这是没有明确定义的
+    // https://www.x.org/releases/X11R7.5/doc/man/man3/XClientMessageEvent.3.html
+    // The X server places no interpretation on the values in the window, message_type, or data members.
+    // 在 cpf 里面，和 Avalonia 实现差不多，也是在判断 XPending 是否有消息，没消息则判断是否有业务逻辑
+    // 最后再进入等待逻辑。似乎 CPF 这样的方式会导致 CPU 占用略微提升
     var @event = new XEvent
     {
         ClientMessageEvent =
@@ -108,10 +118,9 @@ _ = Task.Run(async () =>
     {
         await Task.Delay(TimeSpan.FromSeconds(1));
 
-        Console.WriteLine($"压入发送消息");
         await InvokeAsync(() =>
         {
-            Console.WriteLine($"在主线程执行");
+            Console.WriteLine($"在主线程执行 {Thread.CurrentThread.Name}");
         });
     }
 <<<<<<< HEAD
@@ -166,6 +175,8 @@ if (pointerDevice != null)
 =======
 });
 >>>>>>> 33dbc36c47d6f1e68265c0f0f389a566823425fd
+
+Thread.CurrentThread.Name = "主线程";
 
 while (true)
 {
@@ -329,11 +340,9 @@ while (true)
 =======
     else if (@event.type == XEventName.ClientMessage)
     {
-        Console.WriteLine(@event);
         var clientMessageEvent = @event.ClientMessageEvent;
         if (clientMessageEvent.message_type == 0 && clientMessageEvent.ptr1 == invokeMessageId)
         {
-            Console.WriteLine($"收到业务消息");
             List<Action> tempList;
             lock (invokeList)
             {
