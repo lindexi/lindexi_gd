@@ -122,17 +122,8 @@ _ = Task.Run(async () =>
         var childWindowHandle = XCreateSimpleWindow(display, rootWindow, 0, 0, 300, 300, 5, white, black);
         XMapWindow(display, childWindowHandle);
 
-        // 设置拥有关系
-        XSetTransientForHint(display, childWindowHandle, mainWindowHandle);
-        // 此时 ChildWindow 将在 MainWindow 上方
-        /*
-           - 在这种关系中，一个窗口可以被另一个窗口拥有（owner）。
-           - 被拥有的窗口永远显示在拥有它的那个窗口的前面。
-           - 当所有者窗口最小化时，它所拥有的窗口也会被隐藏。
-           - 当所有者窗口被销毁时，它所拥有的窗口也会被销毁。
-           - 当子窗口最小化时，不会影响到所有者窗口
-           - 子窗口可以超过所有者窗口的范围
-         */
+        // 设置父子关系
+        XReparentWindow(display, childWindowHandle, mainWindowHandle, 50, 50);
     });
 
     //while (true)
