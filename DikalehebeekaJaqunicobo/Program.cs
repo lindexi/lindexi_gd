@@ -122,7 +122,7 @@ _ = Task.Run(async () =>
         var childWindowHandle = XCreateSimpleWindow(display, rootWindow, 0, 0, 300, 300, 5, white, black);
 
         // 设置父子关系
-        XReparentWindow(display, childWindowHandle, mainWindowHandle, 0, 0);
+        XReparentWindow(display, childWindowHandle, mainWindowHandle, 50,50);
         XMapWindow(display, childWindowHandle);
     });
 
