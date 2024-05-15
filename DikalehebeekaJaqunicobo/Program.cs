@@ -64,7 +64,9 @@ XSetForeground(display, gc, white);
 XSync(display, false);
 
 var invokeList = new List<Action>();
-var invokeMessageId = new IntPtr(123123123123123);
+var invokeMessageId = new IntPtr(123123123);
+
+var n = -704351309; // 3590615987
 
 async Task InvokeAsync(Action action)
 {
@@ -106,6 +108,7 @@ _ = Task.Run(async () =>
     {
         await Task.Delay(TimeSpan.FromSeconds(1));
 
+        Console.WriteLine($"压入发送消息");
         await InvokeAsync(() =>
         {
             Console.WriteLine($"在主线程执行");
@@ -128,9 +131,11 @@ while (true)
     }
     else if (@event.type == XEventName.ClientMessage)
     {
+        Console.WriteLine(@event);
         var clientMessageEvent = @event.ClientMessageEvent;
         if (clientMessageEvent.message_type == 0 && clientMessageEvent.ptr1 == invokeMessageId)
         {
+            Console.WriteLine($"收到业务消息");
             List<Action> tempList;
             lock (invokeList)
             {
@@ -144,8 +149,10 @@ while (true)
             }
         }
     }
-
-    Console.WriteLine(@event.type);
+    else
+    {
+        Console.WriteLine(@event.type);
+    }
 }
 
 Console.WriteLine("Hello, World!");
