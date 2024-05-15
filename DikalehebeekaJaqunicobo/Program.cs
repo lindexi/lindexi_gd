@@ -126,8 +126,8 @@ _ = Task.Run(async () =>
             (nuint) valueMask, ref xSetWindowAttributes);
         XMapWindow(display, childWindowHandle);
 
-        //// 设置拥有关系
-        //XSetTransientForHint(display, childWindowHandle, mainWindowHandle);
+        // 设置拥有关系
+        XSetTransientForHint(display, childWindowHandle, mainWindowHandle);
         // 此时 ChildWindow 将在 MainWindow 上方
         /*
            - 在这种关系中，一个窗口可以被另一个窗口拥有（owner）。
