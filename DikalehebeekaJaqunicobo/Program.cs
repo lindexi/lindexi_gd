@@ -1,9 +1,11 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using CPF.Linux;
+
 using System;
 using System.Diagnostics;
 using System.Runtime;
+
 using static CPF.Linux.XLib;
 
 XInitThreads();
@@ -41,14 +43,14 @@ var xDisplayWidth = XDisplayWidth(display, screen) / 2;
 var xDisplayHeight = XDisplayHeight(display, screen) / 2;
 var handle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, xDisplayHeight, 5,
     32,
-    (int)CreateWindowArgs.InputOutput,
+    (int) CreateWindowArgs.InputOutput,
     visual,
-    (nuint)valueMask, ref xSetWindowAttributes);
+    (nuint) valueMask, ref xSetWindowAttributes);
 
 
 XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
                          XEventMask.PointerMotionHintMask;
-var mask = new IntPtr(0xffffff ^ (int)ignoredMask);
+var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
 XSelectInput(display, handle, mask);
 
 XMapWindow(display, handle);
@@ -61,31 +63,56 @@ var gc = XCreateGC(display, handle, 0, 0);
 XSetForeground(display, gc, white);
 XSync(display, false);
 
+var invokeList = new List<Action>();
+var invokeMessageId = new IntPtr(123123123);
+
+var n = -704351309; // 3590615987
+
+async Task InvokeAsync(Action action)
+{
+    var taskCompletionSource = new TaskCompletionSource();
+    lock (invokeList)
+    {
+        invokeList.Add(() =>
+        {
+            action();
+            taskCompletionSource.SetResult();
+        });
+    }
+
+    var @event = new XEvent
+    {
+        ClientMessageEvent =
+        {
+            type = XEventName.ClientMessage,
+            send_event = true,
+            window = handle,
+            message_type = 0,
+            format = 32,
+            ptr1 = invokeMessageId,
+            ptr2 = 0,
+            ptr3 = 0,
+            ptr4 = 0,
+        }
+    };
+    XSendEvent(display, handle, false, 0, ref @event);
+
+    XFlush(display);
+
+    await taskCompletionSource.Task;
+}
+
 _ = Task.Run(async () =>
 {
     while (true)
     {
         await Task.Delay(TimeSpan.FromSeconds(1));
 
-        // The X server places no interpretation on the values in the window, message_type, or data members.
-        var @event = new XEvent
+        Console.WriteLine($"压入发送消息");
+        await InvokeAsync(() =>
         {
-            ClientMessageEvent =
-            {
-                type = XEventName.ClientMessage,
-                send_event = true,
-                window = handle,
-                message_type = 0,
-                format = 32,
-                ptr1 = 0,
-                ptr2 = 0,
-                ptr3 = 0,
-                ptr4 = 0,
-            }
-        };
-        XSendEvent(display, handle, false, 0, ref @event);
-
-        XFlush(display);
+            Console.WriteLine($"在主线程执行");
+        });
     }
 <<<<<<< HEAD
 
@@ -158,6 +185,7 @@ while (true)
     {
         XDrawLine(display, handle, gc, 0, 0, 100, 100);
     }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     else if (@event.type == XEventName.MotionNotify)
@@ -298,6 +326,32 @@ while (true)
 
     Console.WriteLine(@event.type);
 >>>>>>> 442250a21eb41b8fb07dc30c14d07e629fbc452f
+=======
+    else if (@event.type == XEventName.ClientMessage)
+    {
+        Console.WriteLine(@event);
+        var clientMessageEvent = @event.ClientMessageEvent;
+        if (clientMessageEvent.message_type == 0 && clientMessageEvent.ptr1 == invokeMessageId)
+        {
+            Console.WriteLine($"收到业务消息");
+            List<Action> tempList;
+            lock (invokeList)
+            {
+                tempList = invokeList.ToList();
+                invokeList.Clear();
+            }
+
+            foreach (var action in tempList)
+            {
+                action();
+            }
+        }
+    }
+    else
+    {
+        Console.WriteLine(@event.type);
+    }
+>>>>>>> c934a9562639e47095686ccf0137f58130e87835
 }
 
 Console.WriteLine("Hello, World!");
