@@ -121,6 +121,8 @@ _ = Task.Run(async () =>
         // 再创建另一个窗口设置 Owner-Owned 关系
         var childWindowHandle = XCreateSimpleWindow(display, rootWindow, 0, 0, 300, 300, 5, white, black);
 
+        XSelectInput(display, childWindowHandle, mask);
+
         // 设置父子关系
         XReparentWindow(display, childWindowHandle, mainWindowHandle, 50,50);
         XMapWindow(display, childWindowHandle);
