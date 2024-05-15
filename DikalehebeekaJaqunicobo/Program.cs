@@ -114,15 +114,40 @@ async Task InvokeAsync(Action action)
 
 _ = Task.Run(async () =>
 {
-    while (true)
+    await InvokeAsync(() =>
     {
-        await Task.Delay(TimeSpan.FromSeconds(1));
+        var mainWindowHandle = handle;
 
-        await InvokeAsync(() =>
-        {
-            Console.WriteLine($"在主线程执行 {Thread.CurrentThread.Name}");
-        });
-    }
+        // 再创建另一个窗口设置 Owner-Owned 关系
+        var childWindowHandle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, xDisplayHeight, 5,
+            32,
+            (int) CreateWindowArgs.InputOutput,
+            visual,
+            (nuint) valueMask, ref xSetWindowAttributes);
+        XMapWindow(display, childWindowHandle);
+
+        // 设置拥有关系
+        XSetTransientForHint(display, childWindowHandle, mainWindowHandle);
+        // 此时 ChildWindow 将在 MainWindow 上方
+        /*
+           - 在这种关系中，一个窗口可以被另一个窗口拥有（owner）。
+           - 被拥有的窗口永远显示在拥有它的那个窗口的前面。
+           - 当所有者窗口最小化时，它所拥有的窗口也会被隐藏。
+           - 当所有者窗口被销毁时，它所拥有的窗口也会被销毁。
+           - 当子窗口最小化时，不会影响到所有者窗口
+           - 子窗口可以超过所有者窗口的范围
+         */
+    });
+
+    //while (true)
+    //{
+    //    await Task.Delay(TimeSpan.FromSeconds(1));
+
+    //    await InvokeAsync(() =>
+    //    {
+    //        Console.WriteLine($"在主线程执行 {Thread.CurrentThread.Name}");
+    //    });
+    //}
 });
 
 Thread.CurrentThread.Name = "主线程";
