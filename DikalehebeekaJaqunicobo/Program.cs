@@ -122,6 +122,8 @@ _ = Task.Run(async () =>
         var childWindowHandle = XCreateSimpleWindow(display, rootWindow, 0, 0, 300, 300, 5, white, black);
         XMapWindow(display, childWindowHandle);
 
+        XSelectInput(display, childWindowHandle, mask);
+
         // 设置拥有关系
         XSetTransientForHint(display, childWindowHandle, mainWindowHandle);
         // 此时 ChildWindow 将在 MainWindow 上方
