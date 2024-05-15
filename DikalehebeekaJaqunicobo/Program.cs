@@ -119,15 +119,11 @@ _ = Task.Run(async () =>
         var mainWindowHandle = handle;
 
         // 再创建另一个窗口设置 Owner-Owned 关系
-        var childWindowHandle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, xDisplayHeight, 5,
-            32,
-            (int) CreateWindowArgs.InputOutput,
-            visual,
-            (nuint) valueMask, ref xSetWindowAttributes);
+        var childWindowHandle = XCreateSimpleWindow(display, rootWindow, 0, 0, 300, 300, 5, white, black);
         XMapWindow(display, childWindowHandle);
 
-        //// 设置拥有关系
-        //XSetTransientForHint(display, childWindowHandle, mainWindowHandle);
+        // 设置拥有关系
+        XSetTransientForHint(display, childWindowHandle, mainWindowHandle);
         // 此时 ChildWindow 将在 MainWindow 上方
         /*
            - 在这种关系中，一个窗口可以被另一个窗口拥有（owner）。
