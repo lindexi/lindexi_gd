@@ -178,11 +178,11 @@ while (true)
     {
         if (@event.MotionEvent.window == handle)
         {
-            Console.WriteLine($"Window1");
+            Console.WriteLine($"Window1 {DateTime.Now:HH:mm:ss}");
         }
         else
         {
-            Console.WriteLine($"Window2");
+            Console.WriteLine($"Window2 {DateTime.Now:HH:mm:ss}");
         }
     }
 }
