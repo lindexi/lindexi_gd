@@ -119,7 +119,11 @@ _ = Task.Run(async () =>
         var mainWindowHandle = handle;
 
         // 再创建另一个窗口设置 Owner-Owned 关系
-        var childWindowHandle = XCreateSimpleWindow(display, rootWindow, 0, 0, 300, 300, 5, white, black);
+        var childWindowHandle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, xDisplayHeight, 5,
+            32,
+            (int) CreateWindowArgs.InputOutput,
+            visual,
+            (nuint) valueMask, ref xSetWindowAttributes);
         XMapWindow(display, childWindowHandle);
 
         // 设置拥有关系
