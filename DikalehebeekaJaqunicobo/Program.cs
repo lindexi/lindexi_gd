@@ -149,22 +149,22 @@ _ = Task.Run(async () =>
             visual,
             (nuint) valueMask, ref xSetWindowAttributes);
 
-        XSelectInput(display, childWindowHandle, mask);
+        //XSelectInput(display, childWindowHandle, mask);
 
         // 设置父子关系
         XReparentWindow(display, childWindowHandle, mainWindowHandle, 300, 50);
         XMapWindow(display, childWindowHandle);
     });
 
-    while (true)
-    {
-        await Task.Delay(TimeSpan.FromSeconds(1));
+    //while (true)
+    //{
+    //    await Task.Delay(TimeSpan.FromSeconds(1));
 
-        await InvokeAsync(() =>
-        {
-            XMoveWindow(display, childWindowHandle, Random.Shared.Next(200), Random.Shared.Next(100));
-        });
-    }
+    //    await InvokeAsync(() =>
+    //    {
+    //        XMoveWindow(display, childWindowHandle, Random.Shared.Next(200), Random.Shared.Next(100));
+    //    });
+    //}
 });
 
 Thread.CurrentThread.Name = "主线程";
