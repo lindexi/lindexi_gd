@@ -312,7 +312,8 @@ while (true)
         unsafe
         {
             void* data = &@event.GenericEventCookie;
-            //XGetEventData(display, data);
+            XGetEventData(display, data);
+            bool isFree = false;
 
             try
             {
@@ -336,14 +337,25 @@ while (true)
                     {
                         Console.WriteLine($"Window2 {DateTime.Now:HH:mm:ss}");
 
-                        // 尝试转发
+                        isFree = true;
+                        XFreeEventData(display, data);
+
+                        // 尝试转发 但是失败
+                        // X Error of failed request: BadValue (integer parameter out of range for operation)
+                        // Major opcode of failed request: 25 ( x_sendEvent)
+                        // Value in failed request: 0x0
+                        // serial number of failed request: 28
+                        // current serial number in output stream: 30
                         XSendEvent(display, mainWindowHandle, false, 0, ref @event);
                     }
                 }
             }
             finally
             {
-                //XFreeEventData(display, data);
+                if (!isFree)
+                {
+                    XFreeEventData(display, data);
+                }
             }
         }
     }
