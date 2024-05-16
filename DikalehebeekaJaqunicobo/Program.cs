@@ -158,7 +158,7 @@ _ = Task.Run(async () =>
             visual,
             (nuint) valueMask, ref xSetWindowAttributes);
 
-        XSelectInput(display, childWindowHandle, mask);
+        //XSelectInput(display, childWindowHandle, mask);
 
         //XReparentWindow(display, childWindowHandle, mainWindowHandle, 300, 50);
         XMapWindow(display, childWindowHandle);
