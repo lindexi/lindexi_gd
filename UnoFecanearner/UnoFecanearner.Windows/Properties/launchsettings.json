@@ -1,0 +1,10 @@
+{
+	"profiles": {
+		"UnoFecanearner.Windows (Unpackaged)": {
+			"commandName": "Project"
+		},
+		"UnoFecanearner.Windows (Package)": {
+			"commandName": "MsixPackage"
+		}
+	}
+}
