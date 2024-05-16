@@ -119,7 +119,34 @@ _ = Task.Run(async () =>
         var mainWindowHandle = handle;
 
         // 再创建另一个窗口设置 Owner-Owned 关系
-        var childWindowHandle = XCreateSimpleWindow(display, rootWindow, 0, 0, 300, 300, 5, white, black);
+        // 创建无边框窗口
+        valueMask =
+            //SetWindowValuemask.BackPixmap
+            0
+            | SetWindowValuemask.BackPixel
+            | SetWindowValuemask.BorderPixel
+            | SetWindowValuemask.BitGravity
+            | SetWindowValuemask.WinGravity
+            | SetWindowValuemask.BackingStore
+            | SetWindowValuemask.ColorMap
+            | SetWindowValuemask.OverrideRedirect // [dotnet C# X11 开发笔记](https://blog.lindexi.com/post/dotnet-C-X11-%E5%BC%80%E5%8F%91%E7%AC%94%E8%AE%B0.html )
+            ;
+        xSetWindowAttributes = new XSetWindowAttributes
+        {
+            backing_store = 1,
+            bit_gravity = Gravity.NorthWestGravity,
+            win_gravity = Gravity.NorthWestGravity,
+            override_redirect = true,
+            colormap = XCreateColormap(display, rootWindow, visual, 0),
+            border_pixel = 0,
+            background_pixel = 0,
+        };
+
+        var childWindowHandle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, xDisplayHeight, 5,
+            32,
+            (int) CreateWindowArgs.InputOutput,
+            visual,
+            (nuint) valueMask, ref xSetWindowAttributes);
 
         XSelectInput(display, childWindowHandle, mask);
 
