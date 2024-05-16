@@ -112,13 +112,22 @@ async Task InvokeAsync(Action action)
 
 _ = Task.Run(async () =>
 {
-    //var x11Window = new X11Window(handle, display, rootWindow);
+    var x11Window = new X11Window(handle, display, rootWindow);
 
     while (true)
     {
+        await Task.Delay(TimeSpan.FromSeconds(3));
+
         await InvokeAsync(() =>
         {
-            XMoveWindow(display, handle,Random.Shared.Next(500), Random.Shared.Next(200));
+            var result = XIconifyWindow(display, handle, screen);
+        });
+
+        await Task.Delay(TimeSpan.FromSeconds(2));
+
+        await InvokeAsync(() =>
+        {
+            x11Window.SetNormal();
         });
     }
 });
@@ -136,7 +145,7 @@ while (true)
 
     if (@event.type == XEventName.Expose)
     {
-        XDrawLine(display, handle, gc, 10, 10, 100, 100);
+        XDrawLine(display, handle, gc, 0, 0, 100, 100);
     }
     else if (@event.type == XEventName.ClientMessage)
     {
