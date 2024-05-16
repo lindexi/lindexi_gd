@@ -152,7 +152,7 @@ _ = Task.Run(async () =>
         //    background_pixel = 0,
         //};
 
-        childWindowHandle = XCreateWindow(display, mainWindowHandle, 0, 0, xDisplayWidth / 2, xDisplayHeight / 2, 5,
+        childWindowHandle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth / 2, xDisplayHeight / 2, 5,
             32,
             (int) CreateWindowArgs.InputOutput,
             visual,
