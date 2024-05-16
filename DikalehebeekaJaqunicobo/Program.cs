@@ -46,27 +46,32 @@ var handle = XCreateWindow(Display, rootWindow, 0, 0, xDisplayWidth, xDisplayHei
     visual,
     (nuint) valueMask, ref xSetWindowAttributes);
 
-var Window = handle;
+var window1 = handle;
 
 XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
                          XEventMask.PointerMotionHintMask;
 var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
-XSelectInput(Display, Window, mask);
+XSelectInput(Display, window1, mask);
 
-XMapWindow(Display, Window);
+XMapWindow(Display, window1);
 XFlush(Display);
 
-var GC = XCreateGC(Display, Window, 0, 0);
+var GC = XCreateGC(Display, window1, 0, 0);
 XSetForeground(Display, GC, white);
 
 //XSetInputFocus(Display, Window, 0, IntPtr.Zero);
 
 XSync(Display, false);
 
-Task.Run(() =>
-{
+var window2 = XCreateWindow(Display, rootWindow, 0, 0, xDisplayWidth, xDisplayHeight, 5,
+    32,
+    (int) CreateWindowArgs.InputOutput,
+    visual,
+    (nuint) valueMask, ref xSetWindowAttributes);
+XMapWindow(Display, window2);
+XFlush(Display);
+XSync(Display, false);
 
-});
 
 while (true)
 {
@@ -76,7 +81,7 @@ while (true)
         var x = @event.MotionEvent.x;
         var y = @event.MotionEvent.y;
 
-        XDrawLine(Display, Window, GC, x, y, x + 100, y);
+        XDrawLine(Display, window1, GC, x, y, x + 100, y);
     }
 
     var count = XEventsQueued(Display, 0 /*QueuedAlready*/);
@@ -90,13 +95,13 @@ while (true)
                 {
                     type = XEventName.MotionNotify,
                     send_event = true,
-                    window = Window,
+                    window = window1,
                     display = Display,
                     x = i,
                     y = i
                 }
             };
-            XSendEvent(Display, Window, propagate: false, new IntPtr((int) (EventMask.ButtonMotionMask)), ref xEvent);
+            XSendEvent(Display, window1, propagate: false, new IntPtr((int) (EventMask.ButtonMotionMask)), ref xEvent);
         }
     }
 }
