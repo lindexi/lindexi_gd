@@ -66,8 +66,6 @@ XSync(display, false);
 var invokeList = new List<Action>();
 var invokeMessageId = new IntPtr(123123123);
 
-var n = -704351309; // 3590615987
-
 async Task InvokeAsync(Action action)
 {
     var taskCompletionSource = new TaskCompletionSource();
@@ -87,6 +85,7 @@ async Task InvokeAsync(Action action)
     // 这里简单处理，只通过发送 ClientMessage 的方式，告诉消息循环需要处理业务逻辑
     // 发送 ClientMessage 是一个合理的方式，根据官方文档说明，可以看到这是没有明确定义的
     // https://www.x.org/releases/X11R7.5/doc/man/man3/XClientMessageEvent.3.html
+    // https://tronche.com/gui/x/xlib/events/client-communication/client-message.html
     // The X server places no interpretation on the values in the window, message_type, or data members.
     // 在 cpf 里面，和 Avalonia 实现差不多，也是在判断 XPending 是否有消息，没消息则判断是否有业务逻辑
     // 最后再进入等待逻辑。似乎 CPF 这样的方式会导致 CPU 占用略微提升
@@ -111,6 +110,8 @@ async Task InvokeAsync(Action action)
 
     await taskCompletionSource.Task;
 }
+
+IntPtr childWindowHandle = 0;
 
 _ = Task.Run(async () =>
 {
@@ -142,7 +143,7 @@ _ = Task.Run(async () =>
             background_pixel = 0,
         };
 
-        var childWindowHandle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, xDisplayHeight, 5,
+        childWindowHandle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, xDisplayHeight, 5,
             32,
             (int) CreateWindowArgs.InputOutput,
             visual,
@@ -151,19 +152,19 @@ _ = Task.Run(async () =>
         XSelectInput(display, childWindowHandle, mask);
 
         // 设置父子关系
-        XReparentWindow(display, childWindowHandle, mainWindowHandle, 300,50);
+        XReparentWindow(display, childWindowHandle, mainWindowHandle, 300, 50);
         XMapWindow(display, childWindowHandle);
     });
 
-    //while (true)
-    //{
-    //    await Task.Delay(TimeSpan.FromSeconds(1));
+    while (true)
+    {
+        await Task.Delay(TimeSpan.FromSeconds(1));
 
-    //    await InvokeAsync(() =>
-    //    {
-    //        Console.WriteLine($"在主线程执行 {Thread.CurrentThread.Name}");
-    //    });
-    //}
+        await InvokeAsync(() =>
+        {
+            XMoveWindow(display, childWindowHandle, Random.Shared.Next(200), Random.Shared.Next(100));
+        });
+    }
 });
 
 Thread.CurrentThread.Name = "主线程";
@@ -179,7 +180,18 @@ while (true)
 
     if (@event.type == XEventName.Expose)
     {
-        XDrawLine(display, handle, gc, 0, 0, 100, 100);
+        if (@event.ExposeEvent.window == handle)
+        {
+            XDrawLine(display, handle, gc, 2, 2, xDisplayWidth - 2, xDisplayHeight - 2);
+            XDrawLine(display, handle, gc, 2, xDisplayHeight - 2, xDisplayWidth - 2, 2);
+        }
+        else if (childWindowHandle != 0 && @event.ExposeEvent.window == childWindowHandle)
+        {
+            XDrawLine(display, childWindowHandle, gc, 1, 1, xDisplayWidth - 2, 1);
+            XDrawLine(display, childWindowHandle, gc, 1, xDisplayHeight - 2, xDisplayWidth - 2, xDisplayHeight - 2);
+            XDrawLine(display, childWindowHandle, gc, 1, 1, 1, xDisplayHeight - 2);
+            XDrawLine(display, childWindowHandle, gc, xDisplayWidth - 2, xDisplayHeight - 2, xDisplayWidth - 2, xDisplayHeight - 2);
+        }
     }
     else if (@event.type == XEventName.ClientMessage)
     {
@@ -199,7 +211,7 @@ while (true)
             }
         }
     }
-    else if(@event.type == XEventName.MotionNotify)
+    else if (@event.type == XEventName.MotionNotify)
     {
         if (@event.MotionEvent.window == handle)
         {
