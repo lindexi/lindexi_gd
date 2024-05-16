@@ -15,7 +15,15 @@ void Application_Startup(object sender, StartupEventArgs e)
     var drawingVisual = new DrawingVisual();
     using (var drawingContext = drawingVisual.RenderOpen())
     {
-        drawingContext.DrawRectangle(Brushes.Black, pen: null, new Rect(0, 0, 1024, 768));
+        drawingContext.DrawRectangle(Brushes.Gray, pen: null, new Rect(0, 0, 1024, 768));
+
+        drawingContext.PushClip(new RectangleGeometry(new Rect(0, 0, 1024, 768)));
+        for (int i = 0; i < 300; i++)
+        {
+            var offset = i * 10;
+            drawingContext.DrawLine(new Pen(Brushes.Black, 2), new Point(-1024 + offset, 0), new Point(2 + offset, 768));
+        }
+        drawingContext.Pop();
     }
 
     // 画布大小
