@@ -66,8 +66,6 @@ XSync(display, false);
 var invokeList = new List<Action>();
 var invokeMessageId = new IntPtr(123123123);
 
-var n = -704351309; // 3590615987
-
 async Task InvokeAsync(Action action)
 {
     var taskCompletionSource = new TaskCompletionSource();
@@ -114,29 +112,24 @@ async Task InvokeAsync(Action action)
 
 _ = Task.Run(async () =>
 {
-    await InvokeAsync(() =>
+    var x11Window = new X11Window(handle, display, rootWindow);
+
+    while (true)
     {
-        var mainWindowHandle = handle;
+        await Task.Delay(TimeSpan.FromSeconds(3));
 
-        // 再创建另一个窗口设置 Owner-Owned 关系
-        var childWindowHandle = XCreateSimpleWindow(display, rootWindow, 0, 0, 300, 300, 5, white, black);
+        await InvokeAsync(() =>
+        {
+            var result = XIconifyWindow(display, handle, screen);
+        });
 
-        XSelectInput(display, childWindowHandle, mask);
+        await Task.Delay(TimeSpan.FromSeconds(2));
 
-        // 设置父子关系
-        XReparentWindow(display, childWindowHandle, mainWindowHandle, 300,50);
-        XMapWindow(display, childWindowHandle);
-    });
-
-    //while (true)
-    //{
-    //    await Task.Delay(TimeSpan.FromSeconds(1));
-
-    //    await InvokeAsync(() =>
-    //    {
-    //        Console.WriteLine($"在主线程执行 {Thread.CurrentThread.Name}");
-    //    });
-    //}
+        await InvokeAsync(() =>
+        {
+            x11Window.SetNormal();
+        });
+    }
 });
 
 Thread.CurrentThread.Name = "主线程";
@@ -172,7 +165,7 @@ while (true)
             }
         }
     }
-    else if(@event.type == XEventName.MotionNotify)
+    else if (@event.type == XEventName.MotionNotify)
     {
         if (@event.MotionEvent.window == handle)
         {
@@ -186,3 +179,105 @@ while (true)
 }
 
 Console.WriteLine("Hello, World!");
+
+/// <summary>
+/// 代码从 Avalonia 抄的 https://github.com/AvaloniaUI/Avalonia/blob/5e323b8fb1e2ca36550ca6fe678e487ff936d8bf/src/Avalonia.X11/X11Window.cs#L692
+/// </summary>
+unsafe class X11Window
+{
+    public X11Window(IntPtr windowHandle, IntPtr display, IntPtr rootWindow)
+    {
+        Display = display;
+        RootWindow = rootWindow;
+        _handle = windowHandle;
+    }
+
+    private readonly IntPtr _handle;
+
+    public IntPtr Display { get; }
+    public IntPtr RootWindow { get; }
+
+    //private bool _mapped;
+
+    private IntPtr _NET_WM_STATE => XInternAtom(Display, "_NET_WM_STATE", true);
+
+    public void SetNormal()
+    {
+        ChangeWMAtoms(false, GetAtom("_NET_WM_STATE_HIDDEN"));
+        ChangeWMAtoms(false, GetAtom("_NET_WM_STATE_FULLSCREEN"));
+        ChangeWMAtoms(false, GetAtom("_NET_WM_STATE_MAXIMIZED_VERT"),
+            GetAtom("_NET_WM_STATE_MAXIMIZED_HORZ"));
+        SendNetWMMessage(GetAtom("_NET_ACTIVE_WINDOW"), (IntPtr) 1, 0,
+            IntPtr.Zero);
+
+        IntPtr GetAtom(string name) => XInternAtom(Display, name, true);
+    }
+
+    private void ChangeWMAtoms(bool enable, params IntPtr[] atoms)
+    {
+        if (atoms.Length != 1 && atoms.Length != 2)
+        {
+            throw new ArgumentException();
+        }
+
+        //if (!_mapped)
+        //{
+        //    XGetWindowProperty(Display, _handle, _NET_WM_STATE, IntPtr.Zero, new IntPtr(256),
+        //        false, (IntPtr) Atom.XA_ATOM, out _, out _, out var nitems, out _,
+        //        out var prop);
+        //    var ptr = (IntPtr*) prop.ToPointer();
+        //    var newAtoms = new HashSet<IntPtr>();
+        //    for (var c = 0; c < nitems.ToInt64(); c++)
+        //    {
+        //        newAtoms.Add(*ptr);
+        //    }
+
+        //    XFree(prop);
+        //    foreach (var atom in atoms)
+        //    {
+        //        if (enable)
+        //        {
+        //            newAtoms.Add(atom);
+        //        }
+        //        else
+        //        {
+        //            newAtoms.Remove(atom);
+        //        }
+        //    }
+
+        //    XChangeProperty(Display, _handle, _NET_WM_STATE, (IntPtr) Atom.XA_ATOM, 32,
+        //        PropertyMode.Replace, newAtoms.ToArray(), newAtoms.Count);
+        //}
+
+        SendNetWMMessage(_NET_WM_STATE,
+            (IntPtr) (enable ? 1 : 0),
+            atoms[0],
+            atoms.Length > 1 ? atoms[1] : IntPtr.Zero,
+            atoms.Length > 2 ? atoms[2] : IntPtr.Zero,
+            atoms.Length > 3 ? atoms[3] : IntPtr.Zero
+        );
+    }
+
+    private void SendNetWMMessage(IntPtr message_type, IntPtr l0,
+        IntPtr? l1 = null, IntPtr? l2 = null, IntPtr? l3 = null, IntPtr? l4 = null)
+    {
+        var xev = new XEvent
+        {
+            ClientMessageEvent =
+            {
+                type = XEventName.ClientMessage,
+                send_event = true,
+                window = _handle,
+                message_type = message_type,
+                format = 32,
+                ptr1 = l0,
+                ptr2 = l1 ?? IntPtr.Zero,
+                ptr3 = l2 ?? IntPtr.Zero,
+                ptr4 = l3 ?? IntPtr.Zero
+            }
+        };
+        xev.ClientMessageEvent.ptr4 = l4 ?? IntPtr.Zero;
+        XSendEvent(Display, RootWindow, false,
+            new IntPtr((int) (EventMask.SubstructureRedirectMask | EventMask.SubstructureNotifyMask)), ref xev);
+    }
+}
