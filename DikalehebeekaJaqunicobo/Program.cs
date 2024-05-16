@@ -124,7 +124,7 @@ _ = Task.Run(async () =>
         XSelectInput(display, childWindowHandle, mask);
 
         // 设置父子关系
-        XReparentWindow(display, childWindowHandle, mainWindowHandle, 300,50);
+        XReparentWindow(display, childWindowHandle, mainWindowHandle, 300, 50);
         XMapWindow(display, childWindowHandle);
     });
 
@@ -172,7 +172,7 @@ while (true)
             }
         }
     }
-    else if(@event.type == XEventName.MotionNotify)
+    else if (@event.type == XEventName.MotionNotify)
     {
         if (@event.MotionEvent.window == handle)
         {
