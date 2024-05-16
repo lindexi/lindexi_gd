@@ -240,6 +240,7 @@ unsafe
 }
 
 
+
 while (true)
 {
     var xNextEvent = XNextEvent(display, out var @event);
@@ -299,7 +300,7 @@ while (true)
         unsafe
         {
             void* data = &@event.GenericEventCookie;
-            XGetEventData(display, data);
+            //XGetEventData(display, data);
 
             try
             {
@@ -330,7 +331,7 @@ while (true)
             }
             finally
             {
-                XFreeEventData(display, data);
+                //XFreeEventData(display, data);
             }
         }
     }
