@@ -137,7 +137,8 @@ _ = Task.Run(async () =>
             backing_store = 1,
             bit_gravity = Gravity.NorthWestGravity,
             win_gravity = Gravity.NorthWestGravity,
-            override_redirect = true,
+            // [c# - Cannot get window to permanently reparent using XReparentWindow - Stack Overflow](https://stackoverflow.com/questions/75826888/cannot-get-window-to-permanently-reparent-using-xreparentwindow )
+            override_redirect = false,
             colormap = XCreateColormap(display, rootWindow, visual, 0),
             border_pixel = 0,
             background_pixel = 0,
@@ -149,22 +150,22 @@ _ = Task.Run(async () =>
             visual,
             (nuint) valueMask, ref xSetWindowAttributes);
 
-        XSelectInput(display, childWindowHandle, mask);
+        //XSelectInput(display, childWindowHandle, mask);
 
         // 设置父子关系
         XReparentWindow(display, childWindowHandle, mainWindowHandle, 300, 50);
         XMapWindow(display, childWindowHandle);
     });
 
-    while (true)
-    {
-        await Task.Delay(TimeSpan.FromSeconds(1));
+    //while (true)
+    //{
+    //    await Task.Delay(TimeSpan.FromSeconds(1));
 
-        await InvokeAsync(() =>
-        {
-            XMoveWindow(display, childWindowHandle, Random.Shared.Next(200), Random.Shared.Next(100));
-        });
-    }
+    //    await InvokeAsync(() =>
+    //    {
+    //        XMoveWindow(display, childWindowHandle, Random.Shared.Next(200), Random.Shared.Next(100));
+    //    });
+    //}
 });
 
 Thread.CurrentThread.Name = "主线程";
