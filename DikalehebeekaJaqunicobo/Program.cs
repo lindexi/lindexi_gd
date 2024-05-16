@@ -119,39 +119,38 @@ _ = Task.Run(async () =>
     {
         var mainWindowHandle = handle;
 
-        // 再创建另一个窗口设置 Owner-Owned 关系
-        // 创建无边框窗口
-        valueMask =
-            //SetWindowValuemask.BackPixmap
-            0
-            | SetWindowValuemask.BackPixel
-            | SetWindowValuemask.BorderPixel
-            | SetWindowValuemask.BitGravity
-            | SetWindowValuemask.WinGravity
-            | SetWindowValuemask.BackingStore
-            | SetWindowValuemask.ColorMap
-            | SetWindowValuemask
-                .OverrideRedirect // [dotnet C# X11 开发笔记](https://blog.lindexi.com/post/dotnet-C-X11-%E5%BC%80%E5%8F%91%E7%AC%94%E8%AE%B0.html )
-            ;
-        xSetWindowAttributes = new XSetWindowAttributes
-        {
-            backing_store = 1,
-            bit_gravity = Gravity.NorthWestGravity,
-            win_gravity = Gravity.NorthWestGravity,
-            // [c# - Cannot get window to permanently reparent using XReparentWindow - Stack Overflow](https://stackoverflow.com/questions/75826888/cannot-get-window-to-permanently-reparent-using-xreparentwindow )
-            // The override_redirect attribute, if set to true, indicates that a window should not be managed by window managers. From the Xlib Programming Manual:
-            /*
-               To control window placement or to add decoration, a window manager often needs to intercept (redirect) any map or configure request. Pop-up windows, however, often need to be mapped without a window manager getting in the way. […]
+        //// 创建无边框窗口
+        //valueMask =
+        //    //SetWindowValuemask.BackPixmap
+        //    0
+        //    | SetWindowValuemask.BackPixel
+        //    | SetWindowValuemask.BorderPixel
+        //    | SetWindowValuemask.BitGravity
+        //    | SetWindowValuemask.WinGravity
+        //    | SetWindowValuemask.BackingStore
+        //    | SetWindowValuemask.ColorMap
+        //    | SetWindowValuemask
+        //        .OverrideRedirect // [dotnet C# X11 开发笔记](https://blog.lindexi.com/post/dotnet-C-X11-%E5%BC%80%E5%8F%91%E7%AC%94%E8%AE%B0.html )
+        //    ;
+        //xSetWindowAttributes = new XSetWindowAttributes
+        //{
+        //    backing_store = 1,
+        //    bit_gravity = Gravity.NorthWestGravity,
+        //    win_gravity = Gravity.NorthWestGravity,
+        //    // [c# - Cannot get window to permanently reparent using XReparentWindow - Stack Overflow](https://stackoverflow.com/questions/75826888/cannot-get-window-to-permanently-reparent-using-xreparentwindow )
+        //    // The override_redirect attribute, if set to true, indicates that a window should not be managed by window managers. From the Xlib Programming Manual:
+        //    /*
+        //       To control window placement or to add decoration, a window manager often needs to intercept (redirect) any map or configure request. Pop-up windows, however, often need to be mapped without a window manager getting in the way. […]
 
-               The override-redirect flag specifies whether map and configure requests on this window should override a SubstructureRedirectMask on the parent. You can set the override-redirect flag to True or False (default). Window managers use this information to avoid tampering with pop-up windows […].
+        //       The override-redirect flag specifies whether map and configure requests on this window should override a SubstructureRedirectMask on the parent. You can set the override-redirect flag to True or False (default). Window managers use this information to avoid tampering with pop-up windows […].
 
-               — Xlib Programming Manual §3.2.8
-             */
-            override_redirect = false,
-            colormap = XCreateColormap(display, rootWindow, visual, 0),
-            border_pixel = 0,
-            background_pixel = 0,
-        };
+        //       — Xlib Programming Manual §3.2.8
+        //     */
+        //    override_redirect = false,
+        //    colormap = XCreateColormap(display, rootWindow, visual, 0),
+        //    border_pixel = 0,
+        //    background_pixel = 0,
+        //};
 
         childWindowHandle = XCreateWindow(display, mainWindowHandle, 0, 0, xDisplayWidth / 2, xDisplayHeight / 2, 5,
             32,
