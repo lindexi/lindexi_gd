@@ -80,6 +80,9 @@ async Task InvokeAsync(Action action)
         });
     }
 
+    var manualResetEventSlim = new ManualResetEventSlim();
+    var wait = manualResetEventSlim.Wait(TimeSpan.FromSeconds(1));
+
     // 在 Avalonia 里面，是通过循环读取的方式，通过 XPending 判断是否有消息
     // 如果没有消息就进入自旋判断是否有业务消息和判断是否有 XPending 消息
     // 核心使用 epoll_wait 进行等待
