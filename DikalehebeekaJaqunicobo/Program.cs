@@ -168,7 +168,7 @@ _ = Task.Run(async () =>
         {
             new XRectangle()
             {
-                x = 0,y = 0, width = (ushort) 10, height = (ushort) 10,
+                x = 0,y = 0, width = (ushort) 100, height = (ushort) 100,
             }
         }, 1, XShapeOperation.ShapeSet, XOrdering.Unsorted);
 
