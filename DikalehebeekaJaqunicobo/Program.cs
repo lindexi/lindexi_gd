@@ -300,7 +300,8 @@ while (true)
         unsafe
         {
             void* data = &@event.GenericEventCookie;
-            //XGetEventData(display, data);
+            XGetEventData(display, data);
+            bool isFree = false;
 
             try
             {
@@ -331,7 +332,10 @@ while (true)
             }
             finally
             {
-                //XFreeEventData(display, data);
+                if(!isFree)
+                {
+                    XFreeEventData(display, data);
+                }
             }
         }
     }
