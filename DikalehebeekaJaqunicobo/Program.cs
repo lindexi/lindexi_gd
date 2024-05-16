@@ -163,6 +163,7 @@ _ = Task.Run(async () =>
             (nuint) valueMask, ref xSetWindowAttributes);
 
         XSelectInput(display, childWindowHandle, mask);
+        XMapWindow(display, childWindowHandle);
         XShapeCombineRectangles(display, childWindowHandle, XShapeKind.ShapeClip, 0, 0, new XRectangle[]
         {
             new XRectangle()
@@ -172,7 +173,6 @@ _ = Task.Run(async () =>
         }, 1, XShapeOperation.ShapeSet, XOrdering.YXBanded);
 
         //XReparentWindow(display, childWindowHandle, mainWindowHandle, 300, 50);
-        XMapWindow(display, childWindowHandle);
     });
 
     //while (true)
