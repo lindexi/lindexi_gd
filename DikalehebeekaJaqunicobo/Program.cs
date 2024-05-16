@@ -152,13 +152,13 @@ _ = Task.Run(async () =>
         //    background_pixel = 0,
         //};
 
-        childWindowHandle = XCreateWindow(display, mainWindowHandle, 0, 0, xDisplayWidth / 2, xDisplayHeight / 2, 5,
+        childWindowHandle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth / 2, xDisplayHeight / 2, 5,
             32,
             (int) CreateWindowArgs.InputOutput,
             visual,
             (nuint) valueMask, ref xSetWindowAttributes);
 
-        //XSelectInput(display, childWindowHandle, mask);
+        XSelectInput(display, childWindowHandle, mask);
 
         //XReparentWindow(display, childWindowHandle, mainWindowHandle, 300, 50);
         XMapWindow(display, childWindowHandle);
