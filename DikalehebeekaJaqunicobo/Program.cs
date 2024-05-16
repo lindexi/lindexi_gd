@@ -114,12 +114,14 @@ _ = Task.Run(async () =>
 {
     //var x11Window = new X11Window(handle, display, rootWindow);
 
-    while (true)
+    for (int i = 0; i < 1000; i++)
     {
         await InvokeAsync(() =>
         {
             XMoveWindow(display, handle,Random.Shared.Next(500), Random.Shared.Next(200));
         });
+
+        await Task.Delay(TimeSpan.FromSeconds(0.1));
     }
 });
 
