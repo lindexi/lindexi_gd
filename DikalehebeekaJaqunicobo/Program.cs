@@ -169,7 +169,7 @@ _ = Task.Run(async () =>
             {
                 x = 0,y = 0, width = (ushort) width, height = (ushort) height,
             }
-        }, 1, XShapeOperation.ShapeSet, XOrdering.Unsorted);
+        }, 1, XShapeOperation.ShapeSet, XOrdering.YXBanded);
 
         //XReparentWindow(display, childWindowHandle, mainWindowHandle, 300, 50);
         XMapWindow(display, childWindowHandle);
