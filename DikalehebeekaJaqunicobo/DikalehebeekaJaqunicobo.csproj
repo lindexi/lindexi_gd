@@ -19,4 +19,8 @@
     <Compile Remove="..\BujeeberehemnaNurgacolarje\X11App.cs" />
   </ItemGroup>
 
+<!--  <Target Name="Fxxx" AfterTargets="Build">
+      <Error Text="$(AppxMSBuildToolsPath)"/>
+  </Target>-->
+
 </Project>
