@@ -182,11 +182,15 @@ while (true)
     {
         if (@event.ExposeEvent.window == handle)
         {
-            XDrawLine(display, handle, gc, 0, 0, 100, 100);
+            XDrawLine(display, handle, gc, 2, 2, xDisplayWidth - 2, xDisplayHeight - 2);
+            XDrawLine(display, handle, gc, 2, xDisplayHeight - 2, xDisplayWidth - 2, 2);
         }
         else if (childWindowHandle != 0 && @event.ExposeEvent.window == childWindowHandle)
         {
-            XDrawLine(display, childWindowHandle, gc, 10, 100, 100, 100);
+            XDrawLine(display, childWindowHandle, gc, 1, 1, xDisplayWidth - 2, 1);
+            XDrawLine(display, childWindowHandle, gc, 1, xDisplayHeight - 2, xDisplayWidth - 2, xDisplayHeight - 2);
+            XDrawLine(display, childWindowHandle, gc, 1, 1, 1, xDisplayHeight - 2);
+            XDrawLine(display, childWindowHandle, gc, xDisplayWidth - 2, xDisplayHeight - 2, xDisplayWidth - 2, xDisplayHeight - 2);
         }
     }
     else if (@event.type == XEventName.ClientMessage)
