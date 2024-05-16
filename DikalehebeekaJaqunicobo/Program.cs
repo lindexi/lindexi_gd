@@ -153,7 +153,7 @@ _ = Task.Run(async () =>
             background_pixel = 0,
         };
 
-        childWindowHandle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, xDisplayHeight, 5,
+        childWindowHandle = XCreateWindow(display, mainWindowHandle, 0, 0, xDisplayWidth / 2, xDisplayHeight / 2, 5,
             32,
             (int) CreateWindowArgs.InputOutput,
             visual,
@@ -161,8 +161,7 @@ _ = Task.Run(async () =>
 
         //XSelectInput(display, childWindowHandle, mask);
 
-        // 设置父子关系
-        XReparentWindow(display, childWindowHandle, mainWindowHandle, 300, 50);
+        //XReparentWindow(display, childWindowHandle, mainWindowHandle, 300, 50);
         XMapWindow(display, childWindowHandle);
     });
 
