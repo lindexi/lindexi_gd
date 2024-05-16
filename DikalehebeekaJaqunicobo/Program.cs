@@ -137,7 +137,8 @@ _ = Task.Run(async () =>
             backing_store = 1,
             bit_gravity = Gravity.NorthWestGravity,
             win_gravity = Gravity.NorthWestGravity,
-            override_redirect = true,
+            // [c# - Cannot get window to permanently reparent using XReparentWindow - Stack Overflow](https://stackoverflow.com/questions/75826888/cannot-get-window-to-permanently-reparent-using-xreparentwindow )
+            override_redirect = false,
             colormap = XCreateColormap(display, rootWindow, visual, 0),
             border_pixel = 0,
             background_pixel = 0,
