@@ -146,7 +146,10 @@ XSelectInput(display, childWindowHandle, mask);
 var region = XCreateRegion();
 XShapeCombineRegion(display, childWindowHandle, ShapeInput, 0, 0, region, ShapeSet);
 
+XSetTransientForHint(display, childWindowHandle, mainWindowHandle);
+
 XMapWindow(display, childWindowHandle);
+
 
 //_ = Task.Run(async () =>
 //{
