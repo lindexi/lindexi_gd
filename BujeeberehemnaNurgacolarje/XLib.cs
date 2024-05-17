@@ -15,6 +15,8 @@ namespace CPF.Linux
 
         [DllImport("libXcomposite.so.1", EntryPoint = "XCompositeQueryExtension")]
         public static extern int XCompositeQueryExtension(IntPtr display, out int eventBase, out int errorBase);
+        [DllImport("libXcomposite.so.1", EntryPoint = "XCompositeRedirectSubwindows")]
+        public static extern void XCompositeRedirectSubwindows(IntPtr display, IntPtr overlayWindow, int update);
 
         [DllImport(libX11)]
         public static extern IntPtr XOpenDisplay(IntPtr display);
