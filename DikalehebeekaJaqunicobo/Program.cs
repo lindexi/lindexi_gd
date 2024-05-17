@@ -50,7 +50,7 @@ var xSetWindowAttributes = new XSetWindowAttributes
     //override_redirect = true, // 设置窗口的override_redirect属性为True，以避免窗口管理器的干预
     colormap = XCreateColormap(display, rootWindow, visual, 0),
     border_pixel = 0,
-    background_pixel = new IntPtr(0xF5565656),
+    background_pixel = new IntPtr(0x65565656),
 };
 
 var xDisplayWidth = XDisplayWidth(display, screen) / 2;
@@ -134,7 +134,7 @@ var childWindowHandle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, 
 
 XSelectInput(display, childWindowHandle, mask);
 
-//var overlayWindow = childWindowHandle;
+//var y = childWindowHandle;
 //XCompositeRedirectSubwindows(display, overlayWindow, 1/*CompositeRedirectAutomatic*/);
 
 // 根据 /usr/include/X11/extensions/shapeconst.h
