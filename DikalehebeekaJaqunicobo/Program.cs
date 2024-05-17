@@ -21,7 +21,7 @@ if (XCompositeQueryExtension(display, out eventBase, out errorBase) == 0)
 }
 else
 {
-    Console.WriteLine("XCompositeQueryExtension");
+    //Console.WriteLine("XCompositeQueryExtension");
 }
 
 var rootWindow = XDefaultRootWindow(display);
@@ -132,6 +132,9 @@ var childWindowHandle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, 
 
 XSelectInput(display, childWindowHandle, mask);
 XMapWindow(display, childWindowHandle);
+
+var overlayWindow = childWindowHandle;
+XCompositeRedirectSubwindows(display, overlayWindow, 1/*CompositeRedirectAutomatic*/);
 
 //_ = Task.Run(async () =>
 //{
@@ -349,16 +352,16 @@ while (true)
                     {
                         Console.WriteLine($"Window2 {DateTime.Now:HH:mm:ss}");
 
-                        isFree = true;
-                        XFreeEventData(display, data);
+                        //isFree = true;
+                        //XFreeEventData(display, data);
 
-                        // 尝试转发 但是失败
-                        // X Error of failed request: BadValue (integer parameter out of range for operation)
-                        // Major opcode of failed request: 25 ( x_sendEvent)
-                        // Value in failed request: 0x0
-                        // serial number of failed request: 28
-                        // current serial number in output stream: 30
-                        XSendEvent(display, mainWindowHandle, false, 0, ref @event);
+                        //// 尝试转发 但是失败
+                        //// X Error of failed request: BadValue (integer parameter out of range for operation)
+                        //// Major opcode of failed request: 25 ( x_sendEvent)
+                        //// Value in failed request: 0x0
+                        //// serial number of failed request: 28
+                        //// current serial number in output stream: 30
+                        //XSendEvent(display, mainWindowHandle, false, 0, ref @event);
                     }
                 }
             }
