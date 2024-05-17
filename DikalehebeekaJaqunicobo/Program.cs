@@ -12,6 +12,18 @@ XInitThreads();
 var display = XOpenDisplay(IntPtr.Zero);
 var screen = XDefaultScreen(display);
 
+int eventBase, errorBase;
+if (XCompositeQueryExtension(display, out eventBase, out errorBase) == 0)
+{
+    Console.WriteLine("Error: Composite extension is not supported");
+    XCloseDisplay(display);
+    return;
+}
+else
+{
+    Console.WriteLine("XCompositeQueryExtension");
+}
+
 var rootWindow = XDefaultRootWindow(display);
 
 XMatchVisualInfo(display, screen, 32, 4, out var info);

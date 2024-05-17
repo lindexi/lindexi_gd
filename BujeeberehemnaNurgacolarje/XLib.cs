@@ -11,6 +11,10 @@ namespace CPF.Linux
         const string libX11Randr = "libXrandr.so.2";
         const string libX11Ext = "libXext.so.6";
         const string libXInput = "libXi.so.6";
+        const string libXcomposite = "libXcomposite.so.1";
+
+        [DllImport("libXcomposite.so.1", EntryPoint = "XCompositeQueryExtension")]
+        public static extern int XCompositeQueryExtension(IntPtr display, out int eventBase, out int errorBase);
 
         [DllImport(libX11)]
         public static extern IntPtr XOpenDisplay(IntPtr display);
