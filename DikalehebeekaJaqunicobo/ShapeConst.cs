@@ -1,9 +1,8 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace CPF.Linux;
+﻿namespace CPF.Linux;
 
 public static class ShapeConst
 {
+    // 根据 /usr/include/X11/extensions/shapeconst.h
     /*
        #define SHAPENAME "SHAPE"
 

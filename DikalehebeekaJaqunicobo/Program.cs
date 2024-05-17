@@ -9,6 +9,7 @@ using System.Runtime;
 using static CPF.Linux.XFixes;
 using static CPF.Linux.XLib;
 using static CPF.Linux.ShapeConst;
+using System.Runtime.InteropServices;
 
 XInitThreads();
 var display = XOpenDisplay(IntPtr.Zero);
@@ -137,57 +138,13 @@ XSelectInput(display, childWindowHandle, mask);
 //var y = childWindowHandle;
 //XCompositeRedirectSubwindows(display, overlayWindow, 1/*CompositeRedirectAutomatic*/);
 
-// 根据 /usr/include/X11/extensions/shapeconst.h
-/*
-   #ifndef _SHAPECONST_H_
-   #define _SHAPECONST_H_
-   
-   /*
-    * Protocol requests constants and alignment values
-    * These would really be in SHAPE's X.h and Xproto.h equivalents
-    * /
-   
-   #define SHAPENAME "SHAPE"
-   
-   #define SHAPE_MAJOR_VERSION     1       /* current version numbers * /
-   #define SHAPE_MINOR_VERSION     1
-   
-   #define ShapeSet                        0
-   #define ShapeUnion                      1
-   #define ShapeIntersect                  2
-   #define ShapeSubtract                   3
-   #define ShapeInvert                     4
-   
-   #define ShapeBounding                   0
-   #define ShapeClip                       1
-   #define ShapeInput                      2
-   
-   #define ShapeNotifyMask                 (1L << 0)
-   #define ShapeNotify                     0
-   
-   #define ShapeNumberEvents               (ShapeNotify + 1)
-   
-   #endif /* _SHAPECONST_H_ * /
- */
+//var region = XFixesCreateRegion(display, 0, 0);
+//XFixesSetWindowShapeRegion(display, childWindowHandle, ShapeInput, 0, 0, region);
 
-/*
-   void
-   allow_input_passthrough (Window w)
-   {
-       XserverRegion region = XFixesCreateRegion (d, NULL, 0);
-   
-       XFixesSetWindowShapeRegion (d, w, ShapeBounding, 0, 0, 0);
-       XFixesSetWindowShapeRegion (d, w, ShapeInput, 0, 0, region);
-   
-       XFixesDestroyRegion (d, region);
-   }
- */
-// XserverRegion region = XFixesCreateRegion (d, NULL, 0);
-var region = XFixesCreateRegion(display, 0, 0);
-XFixesSetWindowShapeRegion(display, childWindowHandle, ShapeInput, 0, 0, region);
+//https://www.x.org/releases/X11R7.6/doc/man/man3/XShape.3.xhtml
 
-// ShapeInput
-//XShapeCombineRegion
+var region = XCreateRegion();
+XShapeCombineRegion(display, childWindowHandle, ShapeInput, 0, 0, region, ShapeSet);
 
 XMapWindow(display, childWindowHandle);
 
