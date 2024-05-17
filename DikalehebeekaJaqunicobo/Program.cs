@@ -134,8 +134,58 @@ var childWindowHandle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, 
 
 XSelectInput(display, childWindowHandle, mask);
 
-var overlayWindow = childWindowHandle;
-XCompositeRedirectSubwindows(display, overlayWindow, 1/*CompositeRedirectAutomatic*/);
+//var overlayWindow = childWindowHandle;
+//XCompositeRedirectSubwindows(display, overlayWindow, 1/*CompositeRedirectAutomatic*/);
+
+// 根据 /usr/include/X11/extensions/shapeconst.h
+/*
+   #ifndef _SHAPECONST_H_
+   #define _SHAPECONST_H_
+   
+   /*
+    * Protocol requests constants and alignment values
+    * These would really be in SHAPE's X.h and Xproto.h equivalents
+    * /
+   
+   #define SHAPENAME "SHAPE"
+   
+   #define SHAPE_MAJOR_VERSION     1       /* current version numbers * /
+   #define SHAPE_MINOR_VERSION     1
+   
+   #define ShapeSet                        0
+   #define ShapeUnion                      1
+   #define ShapeIntersect                  2
+   #define ShapeSubtract                   3
+   #define ShapeInvert                     4
+   
+   #define ShapeBounding                   0
+   #define ShapeClip                       1
+   #define ShapeInput                      2
+   
+   #define ShapeNotifyMask                 (1L << 0)
+   #define ShapeNotify                     0
+   
+   #define ShapeNumberEvents               (ShapeNotify + 1)
+   
+   #endif /* _SHAPECONST_H_ * /
+ */
+
+/*
+   void
+   allow_input_passthrough (Window w)
+   {
+       XserverRegion region = XFixesCreateRegion (d, NULL, 0);
+   
+       XFixesSetWindowShapeRegion (d, w, ShapeBounding, 0, 0, 0);
+       XFixesSetWindowShapeRegion (d, w, ShapeInput, 0, 0, region);
+   
+       XFixesDestroyRegion (d, region);
+   }
+ */
+// XserverRegion region = XFixesCreateRegion (d, NULL, 0);
+var region = XFixesCreateRegion(display, 0, 0);
+XFixesSetWindowShapeRegion(display, childWindowHandle, 2 /*ShapeInput*/, 0, 0, region);
+
 XMapWindow(display, childWindowHandle);
 
 //_ = Task.Run(async () =>
