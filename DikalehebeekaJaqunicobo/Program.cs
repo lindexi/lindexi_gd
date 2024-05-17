@@ -7,8 +7,8 @@ using System.Diagnostics;
 using System.Runtime;
 
 using static CPF.Linux.XFixes;
-
 using static CPF.Linux.XLib;
+using static CPF.Linux.ShapeConst;
 
 XInitThreads();
 var display = XOpenDisplay(IntPtr.Zero);
@@ -50,7 +50,7 @@ var xSetWindowAttributes = new XSetWindowAttributes
     //override_redirect = true, // 设置窗口的override_redirect属性为True，以避免窗口管理器的干预
     colormap = XCreateColormap(display, rootWindow, visual, 0),
     border_pixel = 0,
-    background_pixel = new IntPtr(0xF5565656),
+    background_pixel = new IntPtr(0x65565656),
 };
 
 var xDisplayWidth = XDisplayWidth(display, screen) / 2;
@@ -134,7 +134,7 @@ var childWindowHandle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, 
 
 XSelectInput(display, childWindowHandle, mask);
 
-//var overlayWindow = childWindowHandle;
+//var y = childWindowHandle;
 //XCompositeRedirectSubwindows(display, overlayWindow, 1/*CompositeRedirectAutomatic*/);
 
 // 根据 /usr/include/X11/extensions/shapeconst.h
@@ -184,7 +184,10 @@ XSelectInput(display, childWindowHandle, mask);
  */
 // XserverRegion region = XFixesCreateRegion (d, NULL, 0);
 var region = XFixesCreateRegion(display, 0, 0);
-XFixesSetWindowShapeRegion(display, childWindowHandle, 2 /*ShapeInput*/, 0, 0, region);
+XFixesSetWindowShapeRegion(display, childWindowHandle, ShapeInput, 0, 0, region);
+
+// ShapeInput
+//XShapeCombineRegion
 
 XMapWindow(display, childWindowHandle);
 
