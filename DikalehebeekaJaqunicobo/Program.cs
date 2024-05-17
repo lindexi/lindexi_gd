@@ -48,7 +48,7 @@ var xSetWindowAttributes = new XSetWindowAttributes
     //override_redirect = true, // 设置窗口的override_redirect属性为True，以避免窗口管理器的干预
     colormap = XCreateColormap(display, rootWindow, visual, 0),
     border_pixel = 0,
-    background_pixel = 0,
+    background_pixel = new IntPtr(0xF5565656),
 };
 
 var xDisplayWidth = XDisplayWidth(display, screen) / 2;
@@ -123,6 +123,17 @@ async Task InvokeAsync(Action action)
     await taskCompletionSource.Task;
 }
 
+xSetWindowAttributes = new XSetWindowAttributes
+{
+    backing_store = 1,
+    bit_gravity = Gravity.NorthWestGravity,
+    win_gravity = Gravity.NorthWestGravity,
+    //override_redirect = true, // 设置窗口的override_redirect属性为True，以避免窗口管理器的干预
+    colormap = XCreateColormap(display, rootWindow, visual, 0),
+    border_pixel = 0,
+    background_pixel = new IntPtr(0xF5565656),
+};
+
 var mainWindowHandle = handle;
 var childWindowHandle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, xDisplayHeight, 5,
     32,
@@ -131,10 +142,10 @@ var childWindowHandle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, 
     (nuint) valueMask, ref xSetWindowAttributes);
 
 XSelectInput(display, childWindowHandle, mask);
-XMapWindow(display, childWindowHandle);
 
-var overlayWindow = childWindowHandle;
-XCompositeRedirectSubwindows(display, overlayWindow, 1/*CompositeRedirectAutomatic*/);
+//var overlayWindow = childWindowHandle;
+//XCompositeRedirectSubwindows(display, overlayWindow, 1/*CompositeRedirectAutomatic*/);
+XMapWindow(display, childWindowHandle);
 
 //_ = Task.Run(async () =>
 //{
