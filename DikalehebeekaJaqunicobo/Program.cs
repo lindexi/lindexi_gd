@@ -7,8 +7,8 @@ using System.Diagnostics;
 using System.Runtime;
 
 using static CPF.Linux.XFixes;
-
 using static CPF.Linux.XLib;
+using static CPF.Linux.ShapeConst;
 
 XInitThreads();
 var display = XOpenDisplay(IntPtr.Zero);
@@ -184,7 +184,10 @@ XSelectInput(display, childWindowHandle, mask);
  */
 // XserverRegion region = XFixesCreateRegion (d, NULL, 0);
 var region = XFixesCreateRegion(display, 0, 0);
-XFixesSetWindowShapeRegion(display, childWindowHandle, 2 /*ShapeInput*/, 0, 0, region);
+XFixesSetWindowShapeRegion(display, childWindowHandle, ShapeInput, 0, 0, region);
+
+// ShapeInput
+//XShapeCombineRegion
 
 XMapWindow(display, childWindowHandle);
 
