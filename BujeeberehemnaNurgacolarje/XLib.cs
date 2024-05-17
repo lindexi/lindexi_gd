@@ -19,6 +19,11 @@ namespace CPF.Linux
         public static extern void XCompositeRedirectSubwindows(IntPtr display, IntPtr overlayWindow, int update);
 
         [DllImport(libX11)]
+        public static extern IntPtr XCreateRegion();
+        [DllImport("libXext.so")]
+        public static extern void XShapeCombineRegion(IntPtr display, IntPtr dest, int destKind, int xOff, int yOff, IntPtr region, int op);
+
+        [DllImport(libX11)]
         public static extern IntPtr XOpenDisplay(IntPtr display);
 
         [DllImport(libX11)]
