@@ -132,8 +132,8 @@ var childWindowHandle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, 
 
 XSelectInput(display, childWindowHandle, mask);
 
-//var overlayWindow = childWindowHandle;
-//XCompositeRedirectSubwindows(display, overlayWindow, 1/*CompositeRedirectAutomatic*/);
+var overlayWindow = childWindowHandle;
+XCompositeRedirectSubwindows(display, overlayWindow, 1/*CompositeRedirectAutomatic*/);
 XMapWindow(display, childWindowHandle);
 
 //_ = Task.Run(async () =>
