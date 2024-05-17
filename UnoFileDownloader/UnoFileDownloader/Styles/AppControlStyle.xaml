@@ -1,0 +1,16 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- 使用微软雅黑解决中文乱码方块问题 -->
+  <Style x:Key="PrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource FilledButtonStyle}">
+    <Setter Property="FontFamily" Value="Microsoft YaHei UI"></Setter>
+  </Style>
+  <Style TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}"/>
+
+  <Style x:Key="PrimaryTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BodyMedium}">
+    <Setter Property="FontFamily" Value="Microsoft YaHei UI"></Setter>
+  </Style>
+
+  <Style TargetType="TextBlock" BasedOn="{StaticResource PrimaryTextBlockStyle}"/>
+
+</ResourceDictionary>

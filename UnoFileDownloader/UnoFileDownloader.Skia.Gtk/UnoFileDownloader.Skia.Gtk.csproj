@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType Condition="'$(Configuration)'=='Release'">WinExe</OutputType>
+    <OutputType Condition="'$(Configuration)'=='Debug'">Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+
+    <!-- 打出来的 UOS 包的 AppId 和版本号 -->
+    <!-- 其中 AppId 是应用的唯一标识。按照 UOS 的规范，请务必使用厂商的倒置域名+产品名作为应用包名，如 `com.example.demo` 格式，前半部分为厂商域名倒置，后半部分为产品名，只允许小写字母 -->
+    <AppId>com.dotnetcampus.unofiledownloader</AppId>
+    <UOSDebVersion>1.0.1</UOSDebVersion>
+    <!-- 应用名，英文名 -->
+    <AppName>UnoFileDownloader</AppName>
+    <!-- 应用名，中文名，可不写。将在开始菜单中显示 -->
+    <AppNameZhCN>下载器</AppNameZhCN>
+    <Png32x32IconFile>Download32x32Icon.png</Png32x32IconFile>
+    <DesktopComment>The file downloader.</DesktopComment>
+    <DesktopCommentZhCN>文件下载器，代码完全开源</DesktopCommentZhCN>
+    <DebControlDescription>The UNO file downloader.</DebControlDescription>
+    <DebControlHomepage>https://github.com/dotnet-campus/dotnetCampus.FileDownloader</DebControlHomepage>
+    <DebControlMaintainer>dotnet-campus</DebControlMaintainer>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Package.appxmanifest" />
+    <Manifest Include="$(ApplicationManifest)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Uno.WinUI.Skia.Gtk" />
+    <PackageReference Include="Uno.Extensions.Configuration" />
+    <PackageReference Include="Uno.Extensions.Http" />
+    <PackageReference Include="Uno.Extensions.Http.Refit" />
+    <PackageReference Include="Uno.Extensions.Logging.WinUI" />
+    <PackageReference Include="Uno.Extensions.Serialization.Http" />
+    <PackageReference Include="Uno.Extensions.Serialization.Refit" />
+    <PackageReference Include="Uno.Material.WinUI" />
+    <PackageReference Include="Uno.Toolkit.WinUI.Material" />
+    <PackageReference Include="Uno.Toolkit.WinUI" />
+    <PackageReference Include="Uno.Extensions.Hosting.WinUI" />
+    <PackageReference Include="Uno.Extensions.Localization.WinUI" />
+    <PackageReference Include="Uno.Extensions.Navigation.Toolkit.WinUI" />
+    <PackageReference Include="Uno.Extensions.Navigation.WinUI" />
+    <PackageReference Include="Uno.Extensions.Reactive.WinUI" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+    <PackageReference Include="SkiaSharp.Views.Uno.WinUI" />
+    <PackageReference Include="SkiaSharp.Skottie" />
+    <PackageReference Include="Uno.WinUI.DevServer" Condition="'$(Configuration)'=='Debug'" />
+    <PackageReference Include="Uno.UI.Adapter.Microsoft.Extensions.Logging" />
+
+    <!-- 打包用的 -->
+    <PackageReference Include="Packaging.DebUOS" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\UnoFileDownloader\UnoFileDownloader.csproj" />
+  </ItemGroup>
+  <Import Project="..\UnoFileDownloader.Base\base.props" />
+</Project>

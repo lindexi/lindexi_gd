@@ -399,5 +399,5 @@ FodyWeavers.xsd
 
 # Single Target Config
 solution-config.props
-# Publish Profiles
-!**/Properties/PublishProfiles/*.pubxml
+# Windows Publish Profiles
+!**/*.Windows/Properties/PublishProfiles/*.pubxml
