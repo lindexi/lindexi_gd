@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -10,11 +11,13 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Xml;
+
 using Microsoft.Maui.Graphics;
 
 using SkiaSharp;
@@ -59,9 +62,10 @@ namespace ReewheaberekaiNayweelehe
 
             Draw(canvas =>
             {
-                var eraserView = new EraserView();
-                using var skBitmap = eraserView.GetEraserView(30, 45);
-                canvas.DrawBitmap(skBitmap, 100, 100);
+                //var eraserView = new EraserView();
+                //using var skBitmap = eraserView.GetEraserView(30, 45);
+                //canvas.DrawBitmap(skBitmap, 100, 100);
+                canvas.Clear(SKColors.White);
             });
         }
 
@@ -132,15 +136,29 @@ namespace ReewheaberekaiNayweelehe
 
             TouchLeave += MainWindow_TouchLeave;
 
+            MouseDown += MainWindow_MouseDown;
+            MouseMove += MainWindow_MouseMove;
+            MouseUp += MainWindow_MouseUp;
+
             _canvas.RenderBoundsChanged += (o, rect) =>
             {
                 Image.Update();
             };
 
-            //_canvas.EnterEraserMode();
+            _canvas.EnterEraserMode();
 
             Background = Brushes.Black;
+
+            Loaded += (sender, args) =>
+            {
+                var windowInteropHelper = new WindowInteropHelper(this);
+                var hwnd = windowInteropHelper.Handle;
+
+                int value = (int) DwmWindowCornerPreference.DWMWCP_DONOTROUND;
+                int result = DwmSetWindowAttribute(hwnd, DwmWindowAttribute.DWMWA_NCRENDERING_POLICY, ref value, sizeof(int));
+            };
         }
+
 
         private void MainWindow_TouchDown(object sender, TouchEventArgs e)
         {
@@ -178,6 +196,54 @@ namespace ReewheaberekaiNayweelehe
             _canvas.Leave();
         }
 
+
+        private void MainWindow_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.StylusDevice != null)
+            {
+                return;
+            }
+
+            _canvas.ApplicationDrawingSkBitmap = Image.SkBitmap;
+
+            _canvas.SetCanvas(Image.SkCanvas);
+
+            _isMouseDown = true;
+
+            var position = e.GetPosition(this);
+
+            _canvas.Down(new InkingInputInfo(0, new StylusPoint(position.X, position.Y), (ulong) e.Timestamp));
+        }
+
+        private void MainWindow_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.StylusDevice != null)
+            {
+                return;
+            }
+
+            if (_isMouseDown)
+            {
+                var position = e.GetPosition(this);
+                _canvas.Move(new InkingInputInfo(0, new StylusPoint(position.X, position.Y), (ulong) e.Timestamp));
+            }
+        }
+
+        private void MainWindow_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (e.StylusDevice != null)
+            {
+                return;
+            }
+
+            _isMouseDown = false;
+
+            var position = e.GetPosition(this);
+            _canvas.Up(new InkingInputInfo(0, new StylusPoint(position.X, position.Y), (ulong) e.Timestamp));
+        }
+
+        private bool _isMouseDown = false;
+
         private void Draw(Action<SKCanvas> action)
         {
             Image.Draw(action);
@@ -207,15 +273,15 @@ namespace ReewheaberekaiNayweelehe
 
                 canvas.DrawRect(10, 10, 1000, 1000, skPaint);
 
-                using var skPath = new SKPath();
-                skPath.AddCircle(100, 100, 100);
+                //using var skPath = new SKPath();
+                //skPath.AddCircle(100, 100, 100);
 
-                skPaint.Color = SKColors.White;
+                //skPaint.Color = SKColors.White;
 
-                canvas.Save();
-                canvas.ClipPath(skPath, antialias: true);
-                canvas.DrawRect(10, 10, 1000, 1000, skPaint);
-                canvas.Restore();
+                //canvas.Save();
+                //canvas.ClipPath(skPath, antialias: true);
+                //canvas.DrawRect(10, 10, 1000, 1000, skPaint);
+                //canvas.Restore();
 
                 //skPaint.Color = SKColors.White;
                 //canvas.DrawOval(new SKRect(100, 100, 150, 150), skPaint);
@@ -248,6 +314,28 @@ namespace ReewheaberekaiNayweelehe
         private void UIElement_OnMouseDown(object sender, MouseButtonEventArgs e)
         {
 
+        }
+
+        // Import the DwmSetWindowAttribute function from dwmapi.dll
+        [DllImport("dwmapi.dll")]
+        public static extern int DwmSetWindowAttribute(IntPtr hwnd, DwmWindowAttribute dwAttribute, ref int pvAttribute, int cbAttribute);
+
+        // Define the DWM window attributes enumeration
+        public enum DwmWindowAttribute : uint
+        {
+            // Add other attributes here if needed
+            DWMWA_NCRENDERING_POLICY = 2,
+            DWMWA_CLOAK = 14,
+            // ...
+        }
+
+        // Define the DWM corner preference enumeration
+        public enum DwmWindowCornerPreference : uint
+        {
+            DWMWCP_DEFAULT = 0,
+            DWMWCP_DONOTROUND = 1,
+            DWMWCP_ROUND = 2,
+            DWMWCP_ROUNDSMALL = 3
         }
     }
 }
