@@ -6,6 +6,8 @@ using System;
 using System.Diagnostics;
 using System.Runtime;
 
+using static CPF.Linux.XFixes;
+
 using static CPF.Linux.XLib;
 
 XInitThreads();
