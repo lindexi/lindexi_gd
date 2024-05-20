@@ -1,5 +1,6 @@
 using Windows.Foundation;
 using Microsoft.UI.Xaml.Input;
+using UnoInk.X11Ink;
 
 namespace UnoInk;
 
@@ -9,31 +10,32 @@ public sealed partial class MainPage : Page
     {
         this.InitializeComponent();
     }
-    
+
     private void InkCanvas_OnPointerPressed(object sender, PointerRoutedEventArgs e)
     {
         var pointerPoint = e.GetCurrentPoint(InkCanvas);
         Point position = pointerPoint.Position;
-        
+
         var inkInfo = new InkInfo();
         _inkInfoCache[e.Pointer.PointerId] = inkInfo;
         inkInfo.PointList.Add(position);
-        
-        DrawStroke(inkInfo);
+        //DrawStroke(inkInfo);
+        DrawInNative(position);
     }
-
+    
     private void InkCanvas_OnPointerMoved(object sender, PointerRoutedEventArgs e)
     {
         if (_inkInfoCache.TryGetValue(e.Pointer.PointerId, out var inkInfo))
         {
             var pointerPoint = e.GetCurrentPoint(InkCanvas);
             Point position = pointerPoint.Position;
-            
+
             inkInfo.PointList.Add(position);
-            DrawStroke(inkInfo);
+            //DrawStroke(inkInfo);
+            DrawInNative(position);
         }
     }
-    
+
     private void InkCanvas_OnPointerReleased(object sender, PointerRoutedEventArgs e)
     {
         if (_inkInfoCache.Remove(e.Pointer.PointerId, out var inkInfo))
@@ -44,9 +46,9 @@ public sealed partial class MainPage : Page
             DrawStroke(inkInfo);
         }
     }
-    
+
     private readonly Dictionary<uint /*PointerId*/, InkInfo> _inkInfoCache = new Dictionary<uint, InkInfo>();
-    
+
     private void DrawStroke(InkInfo inkInfo)
     {
         var pointList = inkInfo.PointList;
@@ -59,7 +61,7 @@ public sealed partial class MainPage : Page
         int inkSize = 16;
 
         var inkElement = MyInkRender.CreatePath(inkInfo, inkSize);
-        
+
         if (inkInfo.InkElement is null)
         {
             InkCanvas.Children.Add(inkElement);
@@ -69,15 +71,31 @@ public sealed partial class MainPage : Page
             RemoveInkElement(inkInfo.InkElement);
             InkCanvas.Children.Add(inkElement);
         }
-        
+
         inkInfo.InkElement = inkElement;
     }
-    
+
     private void RemoveInkElement(FrameworkElement? inkElement)
     {
         if (inkElement != null)
         {
             InkCanvas.Children.Remove(inkElement);
+        }
+    }
+
+    private X11InkProvider? _x11InkProvider;
+    
+    private void DrawInNative(Point position)
+    {
+        if (OperatingSystem.IsLinux())
+        {
+            if (_x11InkProvider == null)
+            {
+                _x11InkProvider = new X11InkProvider();
+                _x11InkProvider.Start();
+            }
+
+
         }
     }
 }
