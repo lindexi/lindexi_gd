@@ -4,11 +4,8 @@
       xmlns:local="using:UnoInk"
       xmlns:um="using:Uno.Material"
       Background="{ThemeResource BackgroundBrush}">
-  <StackPanel
-        HorizontalAlignment="Center"
-        VerticalAlignment="Center">
-    <TextBlock AutomationProperties.AutomationId="HelloTextBlock"
-          Text="Hello Uno Platform"
-          HorizontalAlignment="Center" />
-  </StackPanel>
+
+  <Grid>
+    <Canvas x:Name="InkCanvas" Background="Transparent" PointerPressed="InkCanvas_OnPointerPressed" PointerMoved="InkCanvas_OnPointerMoved" PointerReleased="InkCanvas_OnPointerReleased"></Canvas>
+  </Grid>
 </Page>

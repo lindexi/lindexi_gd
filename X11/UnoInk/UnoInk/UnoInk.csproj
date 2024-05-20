@@ -38,5 +38,10 @@
       ThemeService;
     </UnoFeatures>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\HallgaiwhiyiwaLejucona\UnoInk\UnoInk\UnoInk\InkInfo.cs" Link="InkInfo.cs" />
+    <Compile Include="..\..\HallgaiwhiyiwaLejucona\UnoInk\UnoInk\UnoInk\MyInkRender.cs" Link="MyInkRender.cs" />
+    <Compile Include="..\..\HallgaiwhiyiwaLejucona\UnoInk\UnoInk\UnoInk\StrokePoint.cs" Link="StrokePoint.cs" />
+  </ItemGroup>
 
 </Project>
