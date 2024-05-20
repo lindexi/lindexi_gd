@@ -269,8 +269,6 @@ unsafe
     }
 }
 
-
-
 while (true)
 {
     var xNextEvent = XNextEvent(display, out var @event);
