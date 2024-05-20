@@ -6,6 +6,6 @@
       Background="{ThemeResource BackgroundBrush}">
 
   <Grid>
-
+    <Canvas x:Name="InkCanvas" Background="Transparent" PointerPressed="InkCanvas_OnPointerPressed" PointerMoved="InkCanvas_OnPointerMoved" PointerReleased="InkCanvas_OnPointerReleased"></Canvas>
   </Grid>
 </Page>
