@@ -354,3 +354,4 @@ healthchecksdb
 *.pidb.meta
 *.apk
 *.unitypackage
+/X11/UnoInk/UnoInk/Properties/PublishProfiles
