@@ -1,4 +1,5 @@
 using Windows.Foundation;
+using Microsoft.UI;
 using Microsoft.UI.Xaml.Input;
 using UnoInk.X11Ink;
 
@@ -9,6 +10,8 @@ public sealed partial class MainPage : Page
     public MainPage()
     {
         this.InitializeComponent();
+        
+        var window = Window.Current;
     }
 
     private void InkCanvas_OnPointerPressed(object sender, PointerRoutedEventArgs e)
@@ -92,10 +95,9 @@ public sealed partial class MainPage : Page
             if (_x11InkProvider == null)
             {
                 _x11InkProvider = new X11InkProvider();
-                _x11InkProvider.Start();
+                
+                _x11InkProvider.Start(Window.Current);
             }
-
-
         }
     }
 }
