@@ -1,7 +1,7 @@
 using System;
 
 using Microsoft.Extensions.Logging;
-
+using Microsoft.UI.Windowing;
 using Uno.Resizetizer;
 
 namespace UnoInk;
@@ -21,6 +21,7 @@ public partial class App : Application
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         MainWindow = new Window();
+       //var a = (OverlappedPresenter) MainWindow.AppWindow.Presenter;
 #if DEBUG
         MainWindow.EnableHotReload();
 #endif
