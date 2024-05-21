@@ -55,10 +55,18 @@ internal class X11InkProvider
         var x11WindowType = x11Window.GetType();
 
         var x11WindowIntPtr = (IntPtr) x11WindowType.GetProperty("Window", BindingFlags.Instance | BindingFlags.Public)!.GetMethod!.Invoke(x11Window, null)!;
-
-        var x11InkWindow = new X11InkWindow(X11Info, x11WindowIntPtr);
-        Console.WriteLine($"创建 X11Ink 窗口成功 : {x11InkWindow.X11InkWindowIntPtr}");
-        _x11InkWindow = x11InkWindow;
+        
+        try
+        {
+            var x11InkWindow = new X11InkWindow(X11Info, x11WindowIntPtr);
+            Console.WriteLine($"创建 X11Ink 窗口成功 : {x11InkWindow.X11InkWindowIntPtr}");
+            _x11InkWindow = x11InkWindow;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
         
         if (X11PlatformThreading == null)
         {
