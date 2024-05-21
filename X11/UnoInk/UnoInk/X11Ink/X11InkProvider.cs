@@ -16,6 +16,8 @@ internal class X11InkProvider
     {
         // 这句话不能调用多次
         XInitThreads();
+        XInitThreads();
+        XInitThreads();
         var display = XOpenDisplay(IntPtr.Zero);
         var screen = XDefaultScreen(display);
 
@@ -49,6 +51,7 @@ internal class X11InkProvider
 
         var x11WindowIntPtr = (IntPtr) x11WindowType.GetProperty("Window", BindingFlags.Instance | BindingFlags.Public)!.GetMethod!.Invoke(x11Window, null)!;
 
+
     }
 
     public void Draw()
@@ -58,3 +61,8 @@ internal class X11InkProvider
 }
 
 record X11Info(IntPtr Display, int Screen, IntPtr RootWindow);
+
+class X11InkWindow(X11Info x11Info, IntPtr mainWindowHandle)
+{
+
+}
