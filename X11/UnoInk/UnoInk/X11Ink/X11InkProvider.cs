@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Runtime.Versioning;
 
 using CPF.Linux;
@@ -31,16 +32,23 @@ internal class X11InkProvider
         }
 
         var rootWindow = XDefaultRootWindow(display);
-        
+
         var x11Info = new X11Info(display, screen, rootWindow);
         X11Info = x11Info;
     }
-    
+
     public X11Info X11Info { get; }
-    
+
     public void Start(Window unoWindow)
     {
-        
+        var type = unoWindow.GetType();
+        var nativeWindowPropertyInfo = type.GetProperty("NativeWindow", BindingFlags.Instance | BindingFlags.NonPublic);
+        var x11WindowWrapper = nativeWindowPropertyInfo!.GetMethod!.Invoke(unoWindow, null)!;
+
+        var x11WindowWrapperType = x11WindowWrapper.GetType();
+
+        var x11WindowIntPtr = (IntPtr) x11WindowWrapperType.GetProperty("Window", BindingFlags.Instance | BindingFlags.Public)!.GetMethod!.Invoke(x11WindowWrapper, null)!;
+
     }
 
     public void Draw()
