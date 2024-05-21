@@ -46,7 +46,7 @@ internal class X11InkProvider
 
     public X11Info X11Info { get; }
 
-    [MemberNotNull(nameof(_x11InkWindow))]
+    [MemberNotNull(nameof(_x11InkWindow), nameof(_eventsThread))]
     public void Start(Window unoWindow)
     {
         var type = unoWindow.GetType();
@@ -60,15 +60,18 @@ internal class X11InkProvider
         var x11InkWindow = new X11InkWindow(X11Info, x11WindowIntPtr);
         Console.WriteLine($"创建 X11Ink 窗口成功 : {x11InkWindow.X11InkWindowIntPtr}");
         _x11InkWindow = x11InkWindow;
-
-        // 启动消息
-        _eventsThread = new Thread(RunInner)
+        
+        if (_eventsThread is null)
         {
-            Name = $"X11InkWindow XEvents {Interlocked.Increment(ref _threadCount) - 1}",
-            IsBackground = true
-        };
-
-        _eventsThread.Start();
+            // 启动消息
+            _eventsThread = new Thread(RunInner)
+            {
+                Name = $"X11InkWindow XEvents {Interlocked.Increment(ref _threadCount) - 1}",
+                IsBackground = true
+            };
+            
+            _eventsThread.Start();
+        }
     }
 
     public void Draw()
