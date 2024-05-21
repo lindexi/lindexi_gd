@@ -14,8 +14,12 @@ internal class X11InkProvider
 {
     public X11InkProvider()
     {
-        // 这句话不能调用多次
+        // 这句话不能调用多次 虽然调用多次不会炸
+        // https://tronche.com/gui/x/xlib/display/XInitThreads.html
+        // It is only necessary to call this function if multiple threads might use Xlib concurrently. If all calls to Xlib functions are protected by some other access mechanism (for example, a mutual exclusion lock in a toolkit or through explicit client programming), Xlib thread initialization is not required. It is recommended that single-threaded programs not call this function.
         XInitThreads();
+        //XInitThreads();
+        //XInitThreads();
         var display = XOpenDisplay(IntPtr.Zero);
         var screen = XDefaultScreen(display);
 
@@ -49,6 +53,7 @@ internal class X11InkProvider
 
         var x11WindowIntPtr = (IntPtr) x11WindowType.GetProperty("Window", BindingFlags.Instance | BindingFlags.Public)!.GetMethod!.Invoke(x11Window, null)!;
 
+
     }
 
     public void Draw()
@@ -58,3 +63,8 @@ internal class X11InkProvider
 }
 
 record X11Info(IntPtr Display, int Screen, IntPtr RootWindow);
+
+class X11InkWindow(X11Info x11Info, IntPtr mainWindowHandle)
+{
+
+}
