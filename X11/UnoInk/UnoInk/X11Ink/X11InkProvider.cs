@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.Versioning;
-
+using Windows.Foundation;
 using CPF.Linux;
 
 using static CPF.Linux.XFixes;
@@ -56,31 +56,23 @@ internal class X11InkProvider
 
         var x11WindowIntPtr = (IntPtr) x11WindowType.GetProperty("Window", BindingFlags.Instance | BindingFlags.Public)!.GetMethod!.Invoke(x11Window, null)!;
         
-        try
-        {
-            var x11InkWindow = new X11InkWindow(X11Info, x11WindowIntPtr);
-            Console.WriteLine($"创建 X11Ink 窗口成功 : {x11InkWindow.X11InkWindowIntPtr}");
-            _x11InkWindow = x11InkWindow;
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
-        
         if (X11PlatformThreading == null)
         {
             X11PlatformThreading = new X11PlatformThreading(X11Info);
             X11PlatformThreading.Run();
         }
+
+        var x11InkWindow = new X11InkWindow(X11Info, x11WindowIntPtr, X11PlatformThreading);
+        _x11InkWindow = x11InkWindow;
     }
 
-    public void Draw()
+    public void Draw(Point position)
     {
-
+        EnsureStart();
+        _x11InkWindow.Draw(position);
     }
 
-    public X11PlatformThreading? X11PlatformThreading { get; private set; }
+    private X11PlatformThreading? X11PlatformThreading { get; set; }
 
     private X11InkWindow? _x11InkWindow;
 
@@ -105,8 +97,9 @@ internal class X11InkProvider
 
 class X11InkWindow
 {
-    public X11InkWindow(X11Info x11Info, IntPtr mainWindowHandle)
+    public X11InkWindow(X11Info x11Info, IntPtr mainWindowHandle, X11PlatformThreading x11PlatformThreading)
     {
+        X11PlatformThreading = x11PlatformThreading;
         _x11Info = x11Info;
         _mainWindowHandle = mainWindowHandle;
         var display = x11Info.Display;
@@ -162,9 +155,21 @@ class X11InkWindow
 
         X11InkWindowIntPtr = childWindowHandle;
     }
-
+    
+    private X11PlatformThreading X11PlatformThreading { get; }
+    
     private readonly X11Info _x11Info;
     private readonly IntPtr _mainWindowHandle;
 
     public IntPtr X11InkWindowIntPtr { get; }
+    
+    public void Draw(Point position)
+    {
+        
+    }
+    
+    private Task InvokeAsync(Action action)
+    {
+       return X11PlatformThreading.InvokeAsync(action, X11InkWindowIntPtr);
+    }
 }

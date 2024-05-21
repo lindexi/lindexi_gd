@@ -102,6 +102,8 @@ public sealed partial class MainPage : Page
 
                 _x11InkProvider.Start(Window.Current);
             }
+            
+            _x11InkProvider.Draw(position);
         }
     }
 }
