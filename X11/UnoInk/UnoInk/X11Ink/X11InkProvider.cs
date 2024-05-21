@@ -43,11 +43,11 @@ internal class X11InkProvider
     {
         var type = unoWindow.GetType();
         var nativeWindowPropertyInfo = type.GetProperty("NativeWindow", BindingFlags.Instance | BindingFlags.NonPublic);
-        var x11WindowWrapper = nativeWindowPropertyInfo!.GetMethod!.Invoke(unoWindow, null)!;
+        var x11Window = nativeWindowPropertyInfo!.GetMethod!.Invoke(unoWindow, null)!;
+        // Uno.WinUI.Runtime.Skia.X11.X11Window
+        var x11WindowType = x11Window.GetType();
 
-        var x11WindowWrapperType = x11WindowWrapper.GetType();
-
-        var x11WindowIntPtr = (IntPtr) x11WindowWrapperType.GetProperty("Window", BindingFlags.Instance | BindingFlags.Public)!.GetMethod!.Invoke(x11WindowWrapper, null)!;
+        var x11WindowIntPtr = (IntPtr) x11WindowType.GetProperty("Window", BindingFlags.Instance | BindingFlags.Public)!.GetMethod!.Invoke(x11Window, null)!;
 
     }
 
