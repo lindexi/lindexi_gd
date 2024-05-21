@@ -6,6 +6,7 @@
       Background="{ThemeResource BackgroundBrush}">
 
   <Grid>
+    <TextBlock x:Name="LogTextBlock" TextWrapping="Wrap"/>
     <Canvas x:Name="InkCanvas" Background="Transparent" PointerPressed="InkCanvas_OnPointerPressed" PointerMoved="InkCanvas_OnPointerMoved" PointerReleased="InkCanvas_OnPointerReleased"></Canvas>
   </Grid>
 </Page>

@@ -1,4 +1,5 @@
 using Windows.Foundation;
+using Microsoft.UI;
 using Microsoft.UI.Xaml.Input;
 using UnoInk.X11Ink;
 
@@ -21,8 +22,11 @@ public sealed partial class MainPage : Page
         inkInfo.PointList.Add(position);
         //DrawStroke(inkInfo);
         DrawInNative(position);
+
+        LogTextBlock.Text += $"按下： {e.Pointer.PointerId}\r\n";
+        LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
     }
-    
+
     private void InkCanvas_OnPointerMoved(object sender, PointerRoutedEventArgs e)
     {
         if (_inkInfoCache.TryGetValue(e.Pointer.PointerId, out var inkInfo))
@@ -45,6 +49,9 @@ public sealed partial class MainPage : Page
             inkInfo.PointList.Add(position);
             DrawStroke(inkInfo);
         }
+        
+        LogTextBlock.Text += $"抬起： {e.Pointer.PointerId}\r\n";
+        LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
     }
 
     private readonly Dictionary<uint /*PointerId*/, InkInfo> _inkInfoCache = new Dictionary<uint, InkInfo>();
@@ -84,7 +91,7 @@ public sealed partial class MainPage : Page
     }
 
     private X11InkProvider? _x11InkProvider;
-    
+
     private void DrawInNative(Point position)
     {
         if (OperatingSystem.IsLinux())
@@ -92,10 +99,9 @@ public sealed partial class MainPage : Page
             if (_x11InkProvider == null)
             {
                 _x11InkProvider = new X11InkProvider();
-                _x11InkProvider.Start();
+
+                _x11InkProvider.Start(Window.Current);
             }
-
-
         }
     }
 }
