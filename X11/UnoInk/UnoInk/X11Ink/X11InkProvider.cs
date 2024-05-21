@@ -7,7 +7,6 @@ using CPF.Linux;
 using static CPF.Linux.XFixes;
 using static CPF.Linux.XLib;
 using static CPF.Linux.ShapeConst;
-using Microsoft.UI;
 
 namespace UnoInk.X11Ink;
 
@@ -46,7 +45,7 @@ internal class X11InkProvider
 
     public X11Info X11Info { get; }
 
-    [MemberNotNull(nameof(_x11InkWindow), nameof(_eventsThread))]
+    [MemberNotNull(nameof(_x11InkWindow))]
     public void Start(Window unoWindow)
     {
         var type = unoWindow.GetType();
@@ -61,16 +60,10 @@ internal class X11InkProvider
         Console.WriteLine($"创建 X11Ink 窗口成功 : {x11InkWindow.X11InkWindowIntPtr}");
         _x11InkWindow = x11InkWindow;
         
-        if (_eventsThread is null)
+        if (X11PlatformThreading == null)
         {
-            // 启动消息
-            _eventsThread = new Thread(RunInner)
-            {
-                Name = $"X11InkWindow XEvents {Interlocked.Increment(ref _threadCount) - 1}",
-                IsBackground = true
-            };
-            
-            _eventsThread.Start();
+            X11PlatformThreading = new X11PlatformThreading(X11Info);
+            X11PlatformThreading.Run();
         }
     }
 
@@ -79,6 +72,52 @@ internal class X11InkProvider
 
     }
 
+    public X11PlatformThreading? X11PlatformThreading { get; private set; }
+
+    private X11InkWindow? _x11InkWindow;
+
+    private IntPtr X11InkWindowIntPtr
+    {
+        get
+        {
+            EnsureStart();
+            return _x11InkWindow.X11InkWindowIntPtr;
+        }
+    }
+
+    [MemberNotNull(nameof(_x11InkWindow))]
+    private void EnsureStart()
+    {
+        if (_x11InkWindow is null)
+        {
+            throw new InvalidOperationException();
+        }
+    }
+}
+
+/// <summary>
+/// 命名是从 Avalonia 抄的
+/// </summary>
+class X11PlatformThreading
+{
+    public X11PlatformThreading(X11Info x11Info)
+    {
+        X11Info = x11Info;
+    }
+    
+    public void Run()
+    {
+        // 启动消息
+        _eventsThread = new Thread(RunInner)
+        {
+            Name = $"X11InkWindow XEvents {Interlocked.Increment(ref _threadCount) - 1}",
+            IsBackground = true
+        };
+        
+        _eventsThread.Start();
+    }
+
+    private X11Info X11Info { get; }
     private void RunInner()
     {
         var display = X11Info.Display;
@@ -114,9 +153,8 @@ internal class X11InkProvider
     private readonly List<Action> _invokeList = new List<Action>();
     private readonly IntPtr _invokeMessageId = new IntPtr(123123123);
 
-    public async Task InvokeAsync(Action action)
+    public async Task InvokeAsync(Action action, IntPtr x11WindowIntPtr)
     {
-        EnsureStart();
         var taskCompletionSource = new TaskCompletionSource();
         lock (_invokeList)
         {
@@ -147,7 +185,7 @@ internal class X11InkProvider
             {
                 type = XEventName.ClientMessage,
                 send_event = true,
-                window = X11InkWindowIntPtr,
+                window = x11WindowIntPtr,
                 message_type = 0,
                 format = 32,
                 ptr1 = _invokeMessageId,
@@ -156,7 +194,7 @@ internal class X11InkProvider
                 ptr4 = 0,
             }
         };
-        XSendEvent(X11Info.Display, X11InkWindowIntPtr, false, 0, ref @event);
+        XSendEvent(X11Info.Display, x11WindowIntPtr, false, 0, ref @event);
 
         XFlush(X11Info.Display);
 
@@ -165,26 +203,6 @@ internal class X11InkProvider
 
     private Thread? _eventsThread;
     private static int _threadCount;
-
-    private X11InkWindow? _x11InkWindow;
-
-    private IntPtr X11InkWindowIntPtr
-    {
-        get
-        {
-            EnsureStart();
-            return _x11InkWindow.X11InkWindowIntPtr;
-        }
-    }
-
-    [MemberNotNull(nameof(_x11InkWindow))]
-    private void EnsureStart()
-    {
-        if (_x11InkWindow is null)
-        {
-            throw new InvalidOperationException();
-        }
-    }
 }
 
 record X11Info(IntPtr Display, int Screen, IntPtr RootWindow)
