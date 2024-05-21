@@ -56,6 +56,8 @@ internal class X11InkProvider
         var x11WindowIntPtr = (IntPtr) x11WindowType.GetProperty("Window", BindingFlags.Instance | BindingFlags.Public)!.GetMethod!.Invoke(x11Window, null)!;
 
         var x11InkWindow = new X11InkWindow(X11Info, x11WindowIntPtr);
+        Console.WriteLine($"创建 X11Ink 窗口成功 : {x11InkWindow.X11InkWindowIntPtr}");
+        x11InkWindow.Run();
     }
 
     public void Draw()
@@ -115,14 +117,14 @@ class X11InkWindow
         
         XMapWindow(display, childWindowHandle);
 
-        _x11InkWindowIntPtr = childWindowHandle;
+        X11InkWindowIntPtr = childWindowHandle;
     }
 
     private readonly X11Info _x11Info;
     private readonly IntPtr _mainWindowHandle;
-
-    private readonly IntPtr _x11InkWindowIntPtr;
-
+    
+    public IntPtr X11InkWindowIntPtr { get; }
+    
     public void Run()
     {
         _eventsThread = new Thread(RunInner)
@@ -201,7 +203,7 @@ class X11InkWindow
             {
                 type = XEventName.ClientMessage,
                 send_event = true,
-                window = _x11InkWindowIntPtr,
+                window = X11InkWindowIntPtr,
                 message_type = 0,
                 format = 32,
                 ptr1 = _invokeMessageId,
@@ -210,7 +212,7 @@ class X11InkWindow
                 ptr4 = 0,
             }
         };
-        XSendEvent(_x11Info.Display, _x11InkWindowIntPtr, false, 0, ref @event);
+        XSendEvent(_x11Info.Display, X11InkWindowIntPtr, false, 0, ref @event);
 
         XFlush(_x11Info.Display);
 
