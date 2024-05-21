@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <DataGrid x:Name="dataGrid">
+        <DataGrid x:Name="dataGrid" IsReadOnly="True">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="A" Binding="{Binding Path=A}"/>
                 <DataGridTextColumn Header="B" Binding="{Binding Path=B}"/>
