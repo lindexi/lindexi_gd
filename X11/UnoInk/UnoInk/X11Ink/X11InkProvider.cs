@@ -138,6 +138,17 @@ class X11InkWindow
             (int) CreateWindowArgs.InputOutput,
             visual,
             (nuint) valueMask, ref xSetWindowAttributes);
+        
+        XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
+                                 XEventMask.PointerMotionHintMask;
+        var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
+        XSelectInput(display, childWindowHandle, mask);
+
+        // 设置不接受输入
+        var region = XCreateRegion();
+        XShapeCombineRegion(display, childWindowHandle, ShapeInput, 0, 0, region, ShapeSet);
+        
+        XSetTransientForHint(display, childWindowHandle, mainWindowHandle);
 
         XMapWindow(display, childWindowHandle);
 
@@ -148,5 +159,4 @@ class X11InkWindow
     private readonly IntPtr _mainWindowHandle;
 
     public IntPtr X11InkWindowIntPtr { get; }
-
 }
