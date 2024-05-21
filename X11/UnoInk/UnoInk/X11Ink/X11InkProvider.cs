@@ -56,22 +56,14 @@ internal class X11InkProvider
 
         var x11WindowIntPtr = (IntPtr) x11WindowType.GetProperty("Window", BindingFlags.Instance | BindingFlags.Public)!.GetMethod!.Invoke(x11Window, null)!;
         
-        try
+        if (X11PlatformThreading == null)
         {
-            if (X11PlatformThreading == null)
-            {
-                X11PlatformThreading = new X11PlatformThreading(X11Info);
-                X11PlatformThreading.Run();
-            }
-            
-            var x11InkWindow = new X11InkWindow(X11Info, x11WindowIntPtr, X11PlatformThreading);
-            _x11InkWindow = x11InkWindow;
+            X11PlatformThreading = new X11PlatformThreading(X11Info);
+            X11PlatformThreading.Run();
         }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
+
+        var x11InkWindow = new X11InkWindow(X11Info, x11WindowIntPtr, X11PlatformThreading);
+        _x11InkWindow = x11InkWindow;
     }
 
     public void Draw(Point position)

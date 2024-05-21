@@ -100,7 +100,7 @@ public sealed partial class MainPage : Page
             {
                 _x11InkProvider = new X11InkProvider();
 
-                _x11InkProvider.Start(Window.Current!);
+                _x11InkProvider.Start(Window.Current);
             }
             
             _x11InkProvider.Draw(position);
