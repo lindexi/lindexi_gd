@@ -185,7 +185,7 @@ public sealed partial class MainPage : Page
         skPaint.IsAntialias = true;
         skPaint.FilterQuality = SKFilterQuality.High;
         skPaint.Style = SKPaintStyle.Fill;
-        skPaint.Color = new SKColor(0xF2, 0x00, 0x00);
+        skPaint.Color = new SKColor(0xC5, 0x20, 0x00);
 
         foreach (var skPath in _skPathList)
         {
