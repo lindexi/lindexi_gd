@@ -10,6 +10,8 @@ using static CPF.Linux.ShapeConst;
 
 namespace UnoInk.X11Ink;
 
+//interface IX11WindowManager
+
 [SupportedOSPlatform("Linux")]
 internal class X11InkProvider
 {
@@ -60,7 +62,7 @@ internal class X11InkProvider
         
         if (X11PlatformThreading == null)
         {
-            X11PlatformThreading = new X11PlatformThreading(X11Info);
+            X11PlatformThreading = new X11PlatformThreading(this);
             X11PlatformThreading.Run();
         }
 
@@ -78,7 +80,7 @@ internal class X11InkProvider
 
     private X11InkWindow? _x11InkWindow;
 
-    private IntPtr X11InkWindowIntPtr
+    public IntPtr X11InkWindowIntPtr
     {
         get
         {
