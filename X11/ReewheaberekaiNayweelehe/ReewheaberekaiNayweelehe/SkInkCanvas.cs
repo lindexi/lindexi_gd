@@ -52,18 +52,9 @@ class SkInkCanvas
 {
     public SkInkCanvasSettings Settings { get; set; } = new SkInkCanvasSettings();
 
-    /// <summary>
-    /// 创建画板
-    /// </summary>
-    /// <param name="canvas">用于绘制输出的 SKCanvas 对象</param>
-    /// <param name="applicationDrawingSkBitmap">被 <paramref name="canvas"/> 绘制输出的位图</param>
-    public SkInkCanvas(SKCanvas canvas, SKBitmap applicationDrawingSkBitmap)
+    public void SetCanvas(SKCanvas canvas)
     {
-        // 这里有一个限制是走 CPU 时，能够取得更快的性能，原因是有大量利用 ApplicationDrawingSkBitmap 的存在
-        // 进行二进制修改渲染图
-        // 如果后续使用平面绘制方法则需要重新设计
         _skCanvas = canvas;
-        ApplicationDrawingSkBitmap = applicationDrawingSkBitmap;
     }
 
     private SKCanvas? _skCanvas;
