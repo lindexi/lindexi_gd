@@ -77,17 +77,17 @@ internal class X11InkProvider
     }
 
     private X11PlatformThreading? X11PlatformThreading { get; set; }
-
-    private X11InkWindow? _x11InkWindow;
-
-    public IntPtr X11InkWindowIntPtr
+    
+    public X11InkWindow InkWindow
     {
         get
         {
             EnsureStart();
-            return _x11InkWindow.X11InkWindowIntPtr;
+            return _x11InkWindow;
         }
     }
+    
+    private X11InkWindow? _x11InkWindow;
 
     [MemberNotNull(nameof(_x11InkWindow))]
     private void EnsureStart()
