@@ -47,7 +47,7 @@ internal class X11InkProvider
 
     public X11Info X11Info { get; }
 
-    [MemberNotNull(nameof(InkWindow))]
+    [MemberNotNull(nameof(_x11InkWindow))]
     public void Start(Window unoWindow)
     {
         var type = unoWindow.GetType();
@@ -67,32 +67,32 @@ internal class X11InkProvider
         }
 
         var x11InkWindow = new X11InkWindow(X11Info, x11WindowIntPtr, X11PlatformThreading);
-        InkWindow = x11InkWindow;
+        _x11InkWindow = x11InkWindow;
     }
 
     public void Draw(Point position)
     {
         EnsureStart();
-        InkWindow.Draw(position);
+        _x11InkWindow.Draw(position);
     }
 
     private X11PlatformThreading? X11PlatformThreading { get; set; }
-    
-    public X11InkWindow? InkWindow { get; private set; }
-    
+
+    private X11InkWindow? _x11InkWindow;
+
     public IntPtr X11InkWindowIntPtr
     {
         get
         {
             EnsureStart();
-            return InkWindow.X11InkWindowIntPtr;
+            return _x11InkWindow.X11InkWindowIntPtr;
         }
     }
 
-    [MemberNotNull(nameof(InkWindow))]
+    [MemberNotNull(nameof(_x11InkWindow))]
     private void EnsureStart()
     {
-        if (InkWindow is null)
+        if (_x11InkWindow is null)
         {
             throw new InvalidOperationException();
         }
