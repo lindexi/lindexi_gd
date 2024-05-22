@@ -1,15 +1,18 @@
-﻿using CPF.Linux;
+using System.Runtime.Versioning;
+using CPF.Linux;
 
 namespace UnoInk.X11Ink;
 
 /// <summary>
 /// 命名是从 Avalonia 抄的
 /// </summary>
+[SupportedOSPlatform("Linux")]
 class X11PlatformThreading
 {
-    public X11PlatformThreading(X11Info x11Info)
+    public X11PlatformThreading(X11InkProvider x11InkProvider)
     {
-        X11Info = x11Info;
+        X11Info = x11InkProvider.X11Info;
+        X11InkProvider = x11InkProvider;
     }
     
     public void Run()
@@ -25,6 +28,8 @@ class X11PlatformThreading
     }
     
     private X11Info X11Info { get; }
+    public X11InkProvider X11InkProvider { get; }
+    
     private void RunInner()
     {
         var display = X11Info.Display;
@@ -33,7 +38,10 @@ class X11PlatformThreading
             var xNextEvent = XLib.XNextEvent(display, out var @event);
             if (@event.type == XEventName.Expose)
             {
-                
+                if (@event.ExposeEvent.window == X11InkProvider.X11InkWindowIntPtr)
+                {
+                    
+                }
             }
             else if (@event.type == XEventName.ClientMessage)
             {
