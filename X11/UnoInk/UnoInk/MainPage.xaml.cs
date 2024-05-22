@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Windows.Foundation;
 using BujeeberehemnaNurgacolarje;
 using Microsoft.UI;
@@ -122,21 +123,27 @@ public sealed partial class MainPage : Page
 
     private X11InkProvider? _x11InkProvider;
 
-    private void DrawInNative(Point position)
-    {
-        if (OperatingSystem.IsLinux())
-        {
-            //_x11InkProvider!.Draw(position);
-        }
-    }
-    
+    //private void DrawInNative(Point position)
+    //{
+    //    if (OperatingSystem.IsLinux())
+    //    {
+    //        //_x11InkProvider!.Draw(position);
+    //    }
+    //}
+
     private Task InvokeAsync(Action<SkInkCanvas> action)
     {
         if (OperatingSystem.IsLinux())
         {
-           return _x11InkProvider!.InkWindow.InvokeAsync(action);
+            var stopwatch = Stopwatch.StartNew();
+            return _x11InkProvider!.InkWindow.InvokeAsync(canvas =>
+            {
+                stopwatch.Stop();
+                Console.WriteLine($"线程调度耗时 {stopwatch.ElapsedMilliseconds}ms");
+                action(canvas);
+            });
         }
-
+        
         return Task.CompletedTask;
     }
 }
