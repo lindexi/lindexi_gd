@@ -57,6 +57,7 @@ class SkInkCanvas
         _skCanvas = canvas;
     }
 
+    public SKCanvas? SkCanvas => _skCanvas;
     private SKCanvas? _skCanvas;
 
     /// <summary>
@@ -74,6 +75,7 @@ class SkInkCanvas
     //public SKSurface? SkSurface { set; get; }
 
     public event EventHandler<Rect>? RenderBoundsChanged;
+    public void RaiseRenderBoundsChanged(Rect rect) => RenderBoundsChanged?.Invoke(this, rect);
 
     private Dictionary<int, DrawStrokeContext> CurrentInputDictionary { get; } =
         new Dictionary<int, DrawStrokeContext>();

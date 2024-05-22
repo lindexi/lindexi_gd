@@ -4,7 +4,9 @@ using BujeeberehemnaNurgacolarje;
 using Microsoft.UI;
 using Microsoft.UI.Xaml.Input;
 using ReewheaberekaiNayweelehe;
+using UnoInk.InkCore;
 using UnoInk.X11Ink;
+using Rect = Microsoft.Maui.Graphics.Rect;
 
 namespace UnoInk;
 
@@ -95,7 +97,13 @@ public sealed partial class MainPage : Page
 
         //LogTextBlock.Text += $"抬起： {e.Pointer.PointerId}\r\n";
         //LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
-        InvokeAsync(canvas => canvas.Up(ToInkingInputInfo(e)));
+        InvokeAsync(canvas =>
+        {
+            canvas.Up(ToInkingInputInfo(e));
+            // 清空笔迹，换成在 UNO 层绘制
+            canvas.SkCanvas!.Clear();
+            canvas.RaiseRenderBoundsChanged(new Rect(0, 0, canvas.ApplicationDrawingSkBitmap!.Width, canvas.ApplicationDrawingSkBitmap.Height));
+        });
     }
 
     //private readonly Dictionary<uint /*PointerId*/, InkInfo> _inkInfoCache = new Dictionary<uint, InkInfo>();

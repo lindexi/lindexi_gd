@@ -51,8 +51,5 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Maui.Graphics" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="InkCore\" />
-  </ItemGroup>
 
 </Project>
