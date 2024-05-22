@@ -6,10 +6,8 @@ public class Program
     [STAThread]
     public static void Main(string[] args)
     {
-#if (!useDependencyInjection && useLoggingFallback)
         App.InitializeLogging();
-
-#endif
+        
         var host = SkiaHostBuilder.Create()
             .App(() => new App())
             .UseX11()
@@ -17,7 +15,7 @@ public class Program
             .UseMacOS()
             .UseWindows()
             .Build();
-
+        
         host.Run();
     }
 }
