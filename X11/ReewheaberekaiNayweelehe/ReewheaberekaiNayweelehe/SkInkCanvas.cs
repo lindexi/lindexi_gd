@@ -9,12 +9,12 @@ using SkiaSharp;
 
 namespace ReewheaberekaiNayweelehe;
 
-record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp)
+partial record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp)
 {
     public bool IsMouse { init; get; }
 };
 
-record InkInfo(int Id);
+partial record InkInfo(int Id);
 
 /// <summary>
 /// 画板的配置
