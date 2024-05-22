@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Runtime.Versioning;
 using Windows.Foundation;
 using CPF.Linux;
+using ReewheaberekaiNayweelehe;
 using SkiaSharp;
 using static CPF.Linux.XFixes;
 using static CPF.Linux.XLib;
@@ -70,12 +71,6 @@ internal class X11InkProvider
         _x11InkWindow = x11InkWindow;
     }
 
-    public void Draw(Point position)
-    {
-        EnsureStart();
-        _x11InkWindow.Draw(position);
-    }
-
     private X11PlatformThreading? X11PlatformThreading { get; set; }
     
     public X11InkWindow InkWindow
@@ -99,6 +94,7 @@ internal class X11InkProvider
     }
 }
 
+[SupportedOSPlatform("Linux")]
 class X11InkWindow
 {
     public X11InkWindow(X11Info x11Info, IntPtr mainWindowHandle, X11PlatformThreading x11PlatformThreading)
@@ -157,6 +153,8 @@ class X11InkWindow
         XSetTransientForHint(display, childWindowHandle, mainWindowHandle);
 
         XMapWindow(display, childWindowHandle);
+        
+        GC = XCreateGC(display, childWindowHandle, 0, 0);
 
         X11InkWindowIntPtr = childWindowHandle;
         
@@ -167,6 +165,54 @@ class X11InkWindow
         
         XImage image = CreateImage();
         _image = image;
+
+        // 读取屏幕物理尺寸，用于实现橡皮擦功能
+        //UpdateScreenPhysicalSize();
+        
+        var skInkCanvas = // new SkInkCanvas(_skCanvas, _skBitmap);
+            new SkInkCanvas();
+        skInkCanvas.ApplicationDrawingSkBitmap = _skBitmap;
+        skInkCanvas.SetCanvas(_skCanvas);
+        
+        skInkCanvas.Settings = skInkCanvas.Settings with
+        {
+            AutoSoftPen = false,
+            //EnableEraserGesture = false,
+        };
+        
+        skInkCanvas.RenderBoundsChanged += (sender, rect) =>
+        {
+            //if (PutImageBeforeExposeOnRenderBoundsChanged)
+            //{
+            //    var x = (int) rect.X;
+            //    var y = (int) rect.Y;
+            //    var width = (int) rect.Width;
+            //    var height = (int) rect.Height;
+                
+            //    // 曝光之前推送图片
+            //    XPutImage(Display, Window, GC, ref _image, x, y, x, y, (uint) width,
+            //        (uint) height);
+            //}
+            
+            var xEvent = new XEvent
+            {
+                ExposeEvent =
+                {
+                    type = XEventName.Expose,
+                    send_event = true,
+                    window = X11InkWindowIntPtr,
+                    count = 1,
+                    display = x11Info.Display,
+                    height = (int)rect.Height,
+                    width = (int)rect.Width,
+                    x = (int)rect.X,
+                    y = (int)rect.Y
+                }
+            };
+            // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
+            XSendEvent(x11Info.Display, X11InkWindowIntPtr, propagate: false, new IntPtr((int) (EventMask.ExposureMask)), ref xEvent);
+        };
+        _skInkCanvas = skInkCanvas;
     }
 
     private X11PlatformThreading X11PlatformThreading { get; }
@@ -176,6 +222,8 @@ class X11InkWindow
     private readonly SKBitmap _skBitmap;
     private readonly SKCanvas _skCanvas;
     private XImage _image;
+    private SkInkCanvas _skInkCanvas;
+    private IntPtr GC { get; }
     
     private unsafe XImage CreateImage()
     {
@@ -205,13 +253,17 @@ class X11InkWindow
 
     public IntPtr X11InkWindowIntPtr { get; }
     
-    public void Draw(Point position)
+    public Task InvokeAsync(Action<SkInkCanvas> action)
     {
-        
+       return X11PlatformThreading.InvokeAsync(() =>
+       {
+           action(_skInkCanvas);
+       }, X11InkWindowIntPtr);
     }
     
-    private Task InvokeAsync(Action action)
+    public void Expose(XExposeEvent exposeEvent)
     {
-       return X11PlatformThreading.InvokeAsync(action, X11InkWindowIntPtr);
+        XPutImage(_x11Info.Display, X11InkWindowIntPtr, GC, ref _image, exposeEvent.x, exposeEvent.y, exposeEvent.x, exposeEvent.y, (uint) exposeEvent.width,
+            (uint) exposeEvent.height);
     }
 }

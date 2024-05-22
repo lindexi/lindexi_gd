@@ -40,7 +40,7 @@ class X11PlatformThreading
             {
                 if (@event.ExposeEvent.window == X11InkProvider.InkWindow.X11InkWindowIntPtr)
                 {
-                    
+                    X11InkProvider.InkWindow.Expose(@event.ExposeEvent);
                 }
             }
             else if (@event.type == XEventName.ClientMessage)
