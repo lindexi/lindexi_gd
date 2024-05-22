@@ -4,7 +4,9 @@ using BujeeberehemnaNurgacolarje;
 using Microsoft.UI;
 using Microsoft.UI.Xaml.Input;
 using ReewheaberekaiNayweelehe;
+using UnoInk.InkCore;
 using UnoInk.X11Ink;
+using Rect = Microsoft.Maui.Graphics.Rect;
 
 namespace UnoInk;
 
@@ -24,7 +26,7 @@ public sealed partial class MainPage : Page
             if (_x11InkProvider == null)
             {
                 _x11InkProvider = new X11InkProvider();
-                
+
                 _x11InkProvider.Start(Window.Current!);
             }
         }
@@ -43,20 +45,33 @@ public sealed partial class MainPage : Page
 
         //LogTextBlock.Text += $"按下： {e.Pointer.PointerId}\r\n";
         //LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
-        
+
         InvokeAsync(canvas => canvas.Down(ToInkingInputInfo(e)));
     }
-    
+
     private InkingInputInfo ToInkingInputInfo(PointerRoutedEventArgs args)
     {
         var currentPoint = args.GetCurrentPoint(this);
-        
-        var stylusPoint = new StylusPoint(currentPoint.Position.X,currentPoint.Position.Y,currentPoint.Properties.Pressure);
-        return new InkingInputInfo((int)args.Pointer.PointerId, stylusPoint, currentPoint.Timestamp);
+
+        var stylusPoint = new StylusPoint(currentPoint.Position.X, currentPoint.Position.Y, currentPoint.Properties.Pressure);
+        return new InkingInputInfo((int) args.Pointer.PointerId, stylusPoint, currentPoint.Timestamp);
     }
+
+    private Point _lastPoint;
 
     private void InkCanvas_OnPointerMoved(object sender, PointerRoutedEventArgs e)
     {
+        var currentPoint = e.GetCurrentPoint(this);
+        Point position = currentPoint.Position;
+
+        var length = Math.Pow(position.X - _lastPoint.X, 2) + Math.Pow(position.Y - _lastPoint.Y, 2);
+        if (length < 10)
+        {
+            // 简单的丢点
+            return;
+        }
+
+        _lastPoint = position;
         //if (_inkInfoCache.TryGetValue(e.Pointer.PointerId, out var inkInfo))
         //{
         //    var pointerPoint = e.GetCurrentPoint(InkCanvas);
@@ -66,7 +81,7 @@ public sealed partial class MainPage : Page
         //    //DrawStroke(inkInfo);
         //    DrawInNative(position);
         //}
-        
+
         InvokeAsync(canvas => canvas.Move(ToInkingInputInfo(e)));
     }
 
@@ -79,10 +94,16 @@ public sealed partial class MainPage : Page
         //    inkInfo.PointList.Add(position);
         //    DrawStroke(inkInfo);
         //}
-        
+
         //LogTextBlock.Text += $"抬起： {e.Pointer.PointerId}\r\n";
         //LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
-        InvokeAsync(canvas => canvas.Up(ToInkingInputInfo(e)));
+        InvokeAsync(canvas =>
+        {
+            canvas.Up(ToInkingInputInfo(e));
+            // 清空笔迹，换成在 UNO 层绘制
+            canvas.SkCanvas!.Clear();
+            canvas.RaiseRenderBoundsChanged(new Rect(0, 0, canvas.ApplicationDrawingSkBitmap!.Width, canvas.ApplicationDrawingSkBitmap.Height));
+        });
     }
 
     //private readonly Dictionary<uint /*PointerId*/, InkInfo> _inkInfoCache = new Dictionary<uint, InkInfo>();
@@ -135,15 +156,16 @@ public sealed partial class MainPage : Page
     {
         if (OperatingSystem.IsLinux())
         {
-            var stopwatch = Stopwatch.StartNew();
+            // 线程调度不慢，但是线程跑满了
+            //var stopwatch = Stopwatch.StartNew();
             return _x11InkProvider!.InkWindow.InvokeAsync(canvas =>
             {
-                stopwatch.Stop();
-                Console.WriteLine($"线程调度耗时 {stopwatch.ElapsedMilliseconds}ms");
+                //stopwatch.Stop();
+                //Console.WriteLine($"线程调度耗时 {stopwatch.ElapsedMilliseconds}ms");
                 action(canvas);
             });
         }
-        
+
         return Task.CompletedTask;
     }
 }
