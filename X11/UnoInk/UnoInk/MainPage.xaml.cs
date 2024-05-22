@@ -4,9 +4,12 @@ using BujeeberehemnaNurgacolarje;
 using Microsoft.UI;
 using Microsoft.UI.Xaml.Input;
 using ReewheaberekaiNayweelehe;
+using SkiaSharp;
 using UnoInk.InkCore;
 using UnoInk.X11Ink;
 using Rect = Microsoft.Maui.Graphics.Rect;
+using SkiaSharp.Views.Windows;
+using Microsoft.UI.Xaml.Controls;
 
 namespace UnoInk;
 
@@ -99,12 +102,16 @@ public sealed partial class MainPage : Page
         //LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
         InvokeAsync(canvas =>
         {
+            _skPathList.AddRange(canvas.CurrentInkStrokePathEnumerable);
+
             canvas.Up(ToInkingInputInfo(e));
-            // 清空笔迹，换成在 UNO 层绘制
-            canvas.SkCanvas!.Clear();
-            canvas.RaiseRenderBoundsChanged(new Rect(0, 0, canvas.ApplicationDrawingSkBitmap!.Width, canvas.ApplicationDrawingSkBitmap.Height));
+
+            SkXamlCanvas.Invalidate();
+
         });
     }
+
+    private readonly List<SKPath> _skPathList = [];
 
     //private readonly Dictionary<uint /*PointerId*/, InkInfo> _inkInfoCache = new Dictionary<uint, InkInfo>();
 
@@ -167,5 +174,30 @@ public sealed partial class MainPage : Page
         }
 
         return Task.CompletedTask;
+    }
+
+    private void SkXamlCanvas_OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
+    {
+        using var skPaint = new SKPaint();
+        skPaint.StrokeWidth = 0.1f;
+        skPaint.IsAntialias = true;
+        skPaint.FilterQuality = SKFilterQuality.High;
+        skPaint.Style = SKPaintStyle.Fill;
+        skPaint.Color = SKColors.Red;
+
+        foreach (var skPath in _skPathList)
+        {
+            e.Surface.Canvas.DrawPath(skPath, skPaint);
+        }
+        
+        _skPathList.Clear();
+
+        // 清空笔迹，换成在 UNO 层绘制
+        InvokeAsync(canvas =>
+        {
+            canvas.SkCanvas!.Clear();
+            canvas.RaiseRenderBoundsChanged(new Rect(0, 0, canvas.ApplicationDrawingSkBitmap!.Width,
+                canvas.ApplicationDrawingSkBitmap.Height));
+        });
     }
 }
