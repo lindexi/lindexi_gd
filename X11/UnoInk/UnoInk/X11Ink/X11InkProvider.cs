@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Runtime.Versioning;
 using Windows.Foundation;
 using CPF.Linux;
-
+using SkiaSharp;
 using static CPF.Linux.XFixes;
 using static CPF.Linux.XLib;
 using static CPF.Linux.ShapeConst;
@@ -149,19 +149,57 @@ class X11InkWindow
 
         // 设置不接受输入
         var region = XCreateRegion();
-        XShapeCombineRegion(display, childWindowHandle, ShapeInput, 0, 0, region, ShapeSet);
-        
+        XShapeCombineRegion(display, childWindowHandle, ShapeInput, 0, 0, region, ShapeSet); 
+
+
         XSetTransientForHint(display, childWindowHandle, mainWindowHandle);
 
         XMapWindow(display, childWindowHandle);
 
         X11InkWindowIntPtr = childWindowHandle;
+        
+        var skBitmap = new SKBitmap(xDisplayWidth, xDisplayHeight, SKColorType.Bgra8888, SKAlphaType.Premul);
+        _skBitmap = skBitmap;
+        var skCanvas = new SKCanvas(skBitmap);
+        _skCanvas = skCanvas;
+        
+        XImage image = CreateImage();
+        _image = image;
     }
-    
+
     private X11PlatformThreading X11PlatformThreading { get; }
     
     private readonly X11Info _x11Info;
     private readonly IntPtr _mainWindowHandle;
+    private readonly SKBitmap _skBitmap;
+    private readonly SKCanvas _skCanvas;
+    private XImage _image;
+    
+    private unsafe XImage CreateImage()
+    {
+        const int bytePerPixelCount = 4; // RGBA 一共4个 byte 长度
+        var bitPerByte = 8;
+        
+        var bitmapWidth = _skBitmap.Width;
+        var bitmapHeight = _skBitmap.Height;
+        
+        var img = new XImage();
+        int bitsPerPixel = bytePerPixelCount * bitPerByte;
+        img.width = bitmapWidth;
+        img.height = bitmapHeight;
+        img.format = 2; //ZPixmap;
+        img.data = _skBitmap.GetPixels();
+        img.byte_order = 0; // LSBFirst;
+        img.bitmap_unit = bitsPerPixel;
+        img.bitmap_bit_order = 0; // LSBFirst;
+        img.bitmap_pad = bitsPerPixel;
+        img.depth = bitsPerPixel;
+        img.bytes_per_line = bitmapWidth * bytePerPixelCount;
+        img.bits_per_pixel = bitsPerPixel;
+        XInitImage(ref img);
+        
+        return img;
+    }
 
     public IntPtr X11InkWindowIntPtr { get; }
     
