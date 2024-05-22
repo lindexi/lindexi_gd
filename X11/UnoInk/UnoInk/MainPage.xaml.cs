@@ -178,18 +178,20 @@ public sealed partial class MainPage : Page
 
     private void SkXamlCanvas_OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
+        Console.WriteLine($"执行绘制");
+
         using var skPaint = new SKPaint();
         skPaint.StrokeWidth = 0.1f;
         skPaint.IsAntialias = true;
         skPaint.FilterQuality = SKFilterQuality.High;
         skPaint.Style = SKPaintStyle.Fill;
-        skPaint.Color = SKColors.Red;
+        skPaint.Color = new SKColor(0xF2, 0x00, 0x00);
 
         foreach (var skPath in _skPathList)
         {
             e.Surface.Canvas.DrawPath(skPath, skPaint);
         }
-        
+
         _skPathList.Clear();
 
         // 清空笔迹，换成在 UNO 层绘制
