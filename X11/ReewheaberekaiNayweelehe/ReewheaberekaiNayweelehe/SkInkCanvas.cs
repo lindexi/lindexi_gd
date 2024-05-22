@@ -80,6 +80,9 @@ class SkInkCanvas
     private Dictionary<int, DrawStrokeContext> CurrentInputDictionary { get; } =
         new Dictionary<int, DrawStrokeContext>();
 
+    public IEnumerable<SKPath> CurrentInkStrokePathEnumerable => CurrentInputDictionary.Values.Select(t => t.InkStrokePath)
+        .Where(t => t != null)!;
+
     /// <summary>
     /// 取多少个点做笔尖
     /// </summary>
