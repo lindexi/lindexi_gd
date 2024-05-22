@@ -20,6 +20,11 @@ namespace CPF.Linux
 
         [DllImport(libX11)]
         public static extern IntPtr XCreateRegion();
+
+        // int XUnionRectWithRegion(XRectangle *rectangle, Region src_region, Region dest_region_return);
+        [DllImport(libX11)]
+        public static extern int XUnionRectWithRegion(XRectangle* rectangle, IntPtr srcRegion, IntPtr destRegion);
+
         [DllImport("libXext.so.6")]
         public static extern void XShapeCombineRegion(IntPtr display, IntPtr dest, int destKind, int xOff, int yOff, IntPtr region, int op);
 
@@ -158,7 +163,7 @@ namespace CPF.Linux
         }
 
         [DllImport(libX11)]
-        public static extern IntPtr XInternAtom(IntPtr display,[MarshalAs(UnmanagedType.LPStr)] string atom_name, bool only_if_exists);
+        public static extern IntPtr XInternAtom(IntPtr display, [MarshalAs(UnmanagedType.LPStr)] string atom_name, bool only_if_exists);
 
         [DllImport(libX11)]
         public static extern int XInternAtoms(IntPtr display, string[] atom_names, int atom_count, bool only_if_exists,
@@ -647,13 +652,13 @@ namespace CPF.Linux
 
         public static void XISetMask(ref int mask, XiEventType ev)
         {
-            mask |= (1 << (int)ev);
+            mask |= (1 << (int) ev);
         }
 
         public static int XiEventMaskLen { get; } = 4;
 
         public static bool XIMaskIsSet(void* ptr, int shift) =>
-            (((byte*)(ptr))[(shift) >> 3] & (1 << (shift & 7))) != 0;
+            (((byte*) (ptr))[(shift) >> 3] & (1 << (shift & 7))) != 0;
 
         [DllImport(libXInput)]
         public static extern Status XISelectEvents(
@@ -814,7 +819,7 @@ namespace CPF.Linux
             {
                 if (obj == null || obj.GetType() != GetType())
                     return false;
-                Pollfd value = (Pollfd)obj;
+                Pollfd value = (Pollfd) obj;
                 return value.events == events && value.revents == revents;
             }
 
@@ -852,14 +857,14 @@ namespace CPF.Linux
             for (int i = 0; i < send.Length; i++)
             {
                 send[i].fd = fds[i].fd;
-                send[i].events = (short)fds[i].events;
+                send[i].events = (short) fds[i].events;
             }
 
             int r = sys_poll(send, nfds, timeout);
 
             for (int i = 0; i < send.Length; i++)
             {
-                fds[i].revents = (PollEvents)(send[i].revents);
+                fds[i].revents = (PollEvents) (send[i].revents);
             }
 
             return r;
