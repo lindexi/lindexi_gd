@@ -123,13 +123,13 @@ public sealed partial class MainPage : Page
 
     private X11InkProvider? _x11InkProvider;
 
-    private void DrawInNative(Point position)
-    {
-        if (OperatingSystem.IsLinux())
-        {
-            //_x11InkProvider!.Draw(position);
-        }
-    }
+    //private void DrawInNative(Point position)
+    //{
+    //    if (OperatingSystem.IsLinux())
+    //    {
+    //        //_x11InkProvider!.Draw(position);
+    //    }
+    //}
 
     private Task InvokeAsync(Action<SkInkCanvas> action)
     {
