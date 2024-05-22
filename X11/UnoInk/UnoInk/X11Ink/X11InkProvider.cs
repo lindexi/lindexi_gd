@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Runtime.Versioning;
 using Windows.Foundation;
 using CPF.Linux;
+using ReewheaberekaiNayweelehe;
 using SkiaSharp;
 using static CPF.Linux.XFixes;
 using static CPF.Linux.XLib;
@@ -99,6 +100,7 @@ internal class X11InkProvider
     }
 }
 
+[SupportedOSPlatform("Linux")]
 class X11InkWindow
 {
     public X11InkWindow(X11Info x11Info, IntPtr mainWindowHandle, X11PlatformThreading x11PlatformThreading)
@@ -167,6 +169,54 @@ class X11InkWindow
         
         XImage image = CreateImage();
         _image = image;
+
+        // 读取屏幕物理尺寸，用于实现橡皮擦功能
+        //UpdateScreenPhysicalSize();
+        
+        var skInkCanvas = // new SkInkCanvas(_skCanvas, _skBitmap);
+            new SkInkCanvas();
+        skInkCanvas.ApplicationDrawingSkBitmap = _skBitmap;
+        skInkCanvas.SetCanvas(_skCanvas);
+        
+        skInkCanvas.Settings = skInkCanvas.Settings with
+        {
+            AutoSoftPen = false,
+            //EnableEraserGesture = false,
+        };
+        
+        skInkCanvas.RenderBoundsChanged += (sender, rect) =>
+        {
+            //if (PutImageBeforeExposeOnRenderBoundsChanged)
+            //{
+            //    var x = (int) rect.X;
+            //    var y = (int) rect.Y;
+            //    var width = (int) rect.Width;
+            //    var height = (int) rect.Height;
+                
+            //    // 曝光之前推送图片
+            //    XPutImage(Display, Window, GC, ref _image, x, y, x, y, (uint) width,
+            //        (uint) height);
+            //}
+            
+            var xEvent = new XEvent
+            {
+                ExposeEvent =
+                {
+                    type = XEventName.Expose,
+                    send_event = true,
+                    window = X11InkWindowIntPtr,
+                    count = 1,
+                    display = x11Info.Display,
+                    height = (int)rect.Height,
+                    width = (int)rect.Width,
+                    x = (int)rect.X,
+                    y = (int)rect.Y
+                }
+            };
+            // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
+            XSendEvent(x11Info.Display, X11InkWindowIntPtr, propagate: false, new IntPtr((int) (EventMask.ExposureMask)), ref xEvent);
+        };
+        _skInkCanvas = skInkCanvas;
     }
 
     private X11PlatformThreading X11PlatformThreading { get; }
@@ -176,6 +226,7 @@ class X11InkWindow
     private readonly SKBitmap _skBitmap;
     private readonly SKCanvas _skCanvas;
     private XImage _image;
+    private SkInkCanvas _skInkCanvas;
     
     private unsafe XImage CreateImage()
     {
@@ -207,7 +258,6 @@ class X11InkWindow
     
     public void Draw(Point position)
     {
-        
     }
     
     private Task InvokeAsync(Action action)
