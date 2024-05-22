@@ -10,6 +10,21 @@ public sealed partial class MainPage : Page
     public MainPage()
     {
         this.InitializeComponent();
+
+        Loaded += MainPage_Loaded;
+    }
+
+    private void MainPage_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (OperatingSystem.IsLinux())
+        {
+            if (_x11InkProvider == null)
+            {
+                _x11InkProvider = new X11InkProvider();
+                
+                _x11InkProvider.Start(Window.Current!);
+            }
+        }
     }
 
     private void InkCanvas_OnPointerPressed(object sender, PointerRoutedEventArgs e)
@@ -96,14 +111,7 @@ public sealed partial class MainPage : Page
     {
         if (OperatingSystem.IsLinux())
         {
-            if (_x11InkProvider == null)
-            {
-                _x11InkProvider = new X11InkProvider();
-
-                _x11InkProvider.Start(Window.Current);
-            }
-            
-            _x11InkProvider.Draw(position);
+            _x11InkProvider!.Draw(position);
         }
     }
 }
