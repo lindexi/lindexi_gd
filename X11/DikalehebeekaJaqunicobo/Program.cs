@@ -348,6 +348,17 @@ while (true)
                     if (xiDeviceEvent->EventWindow == mainWindowHandle)
                     {
                         Console.WriteLine($"Window1 {DateTime.Now:HH:mm:ss}");
+
+                        var xRectangle = new XRectangle()
+                        {
+                            x = 0,
+                            y = 0, 
+                            width = 1000,
+                            height = 1000,
+                        };
+                        XRectangle* p = &xRectangle;
+                        XUnionRectWithRegion(p, region, region);
+                        XShapeCombineRegion(display, childWindowHandle, ShapeInput, 0, 0, region, ShapeSet);
                     }
                     else
                     {
