@@ -56,6 +56,8 @@ internal class X11InkProvider
 
         var x11WindowIntPtr = (IntPtr) x11WindowType.GetProperty("Window", BindingFlags.Instance | BindingFlags.Public)!.GetMethod!.Invoke(x11Window, null)!;
         
+        Console.WriteLine($"Uno 窗口句柄 {x11WindowIntPtr}");
+        
         if (X11PlatformThreading == null)
         {
             X11PlatformThreading = new X11PlatformThreading(X11Info);
