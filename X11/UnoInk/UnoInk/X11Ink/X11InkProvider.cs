@@ -71,12 +71,6 @@ internal class X11InkProvider
         _x11InkWindow = x11InkWindow;
     }
 
-    public void Draw(Point position)
-    {
-        EnsureStart();
-        _x11InkWindow.Draw(position);
-    }
-
     private X11PlatformThreading? X11PlatformThreading { get; set; }
     
     public X11InkWindow InkWindow
@@ -159,6 +153,8 @@ class X11InkWindow
         XSetTransientForHint(display, childWindowHandle, mainWindowHandle);
 
         XMapWindow(display, childWindowHandle);
+        
+        GC = XCreateGC(display, childWindowHandle, 0, 0);
 
         X11InkWindowIntPtr = childWindowHandle;
         
@@ -227,6 +223,7 @@ class X11InkWindow
     private readonly SKCanvas _skCanvas;
     private XImage _image;
     private SkInkCanvas _skInkCanvas;
+    private IntPtr GC { get; }
     
     private unsafe XImage CreateImage()
     {
@@ -256,12 +253,17 @@ class X11InkWindow
 
     public IntPtr X11InkWindowIntPtr { get; }
     
-    public void Draw(Point position)
+    public Task InvokeAsync(Action<SkInkCanvas> action)
     {
+       return X11PlatformThreading.InvokeAsync(() =>
+       {
+           action(_skInkCanvas);
+       }, X11InkWindowIntPtr);
     }
     
-    private Task InvokeAsync(Action action)
+    public void Expose(XExposeEvent exposeEvent)
     {
-       return X11PlatformThreading.InvokeAsync(action, X11InkWindowIntPtr);
+        XPutImage(_x11Info.Display, X11InkWindowIntPtr, GC, ref _image, exposeEvent.x, exposeEvent.y, exposeEvent.x, exposeEvent.y, (uint) exposeEvent.width,
+            (uint) exposeEvent.height);
     }
 }
