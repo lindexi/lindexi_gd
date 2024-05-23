@@ -160,7 +160,7 @@ _ = Task.Run(async () =>
         await InvokeAsync(() =>
         {
             stopwatch.Stop();
-            Console.WriteLine($"跨线程调度性能 : {stopwatch.ElapsedMilliseconds}ms");
+            Console.WriteLine($"跨线程调度性能 : {stopwatch.ElapsedMilliseconds}ms {stopwatch.ElapsedTicks}Tick");
             //XMoveWindow(display, childWindowHandle, Random.Shared.Next(200), Random.Shared.Next(100));
         });
     }
