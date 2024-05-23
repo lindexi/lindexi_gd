@@ -18,7 +18,7 @@
     <PropertyGroup>
       <TargetPlatformIdentifier></TargetPlatformIdentifier>
     </PropertyGroup>
-    <Error Text="TargetFrameworkMoniker=$(TargetFrameworkMoniker)"/>
+    <Error Text="TargetPlatformMoniker=$(TargetPlatformMoniker)"/>
   </Target>
 
   <Target Name="HackAfterPackToolValidation" AfterTargets="_PackToolValidation" BeforeTargets="PackTool">
