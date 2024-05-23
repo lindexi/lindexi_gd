@@ -4,6 +4,23 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>lindexi</ToolCommandName>
   </PropertyGroup>
 
+  <Target Name="HackBeforePackToolValidation" BeforeTargets="_PackToolValidation">
+    <PropertyGroup>
+      <TargetPlatformIdentifier></TargetPlatformIdentifier>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="HackAfterPackToolValidation" AfterTargets="_PackToolValidation">
+    <PropertyGroup>
+      <TargetPlatformIdentifier>Windows</TargetPlatformIdentifier>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="xxxx" AfterTargets="PackTool">
+    <Error Text="xxx $(_NuGetShortFolderName)"/>
+  </Target>
 </Project>
