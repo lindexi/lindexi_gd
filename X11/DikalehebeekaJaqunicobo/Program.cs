@@ -150,136 +150,66 @@ XSetTransientForHint(display, childWindowHandle, mainWindowHandle);
 
 XMapWindow(display, childWindowHandle);
 
+_ = Task.Run(async () =>
+{
+    while (true)
+    {
+        await Task.Delay(TimeSpan.FromSeconds(1));
 
-//_ = Task.Run(async () =>
-//{
-//    await InvokeAsync(() =>
-//    {
-//        var mainWindowHandle = handle;
-
-//        //// 创建无边框窗口
-//        //valueMask =
-//        //    //SetWindowValuemask.BackPixmap
-//        //    0
-//        //    | SetWindowValuemask.BackPixel
-//        //    | SetWindowValuemask.BorderPixel
-//        //    | SetWindowValuemask.BitGravity
-//        //    | SetWindowValuemask.WinGravity
-//        //    | SetWindowValuemask.BackingStore
-//        //    | SetWindowValuemask.ColorMap
-//        //    | SetWindowValuemask
-//        //        .OverrideRedirect // [dotnet C# X11 开发笔记](https://blog.lindexi.com/post/dotnet-C-X11-%E5%BC%80%E5%8F%91%E7%AC%94%E8%AE%B0.html )
-//        //    ;
-//        //xSetWindowAttributes = new XSetWindowAttributes
-//        //{
-//        //    backing_store = 1,
-//        //    bit_gravity = Gravity.NorthWestGravity,
-//        //    win_gravity = Gravity.NorthWestGravity,
-//        //    // [c# - Cannot get window to permanently reparent using XReparentWindow - Stack Overflow](https://stackoverflow.com/questions/75826888/cannot-get-window-to-permanently-reparent-using-xreparentwindow )
-//        //    // The override_redirect attribute, if set to true, indicates that a window should not be managed by window managers. From the Xlib Programming Manual:
-//        //    /*
-//        //       To control window placement or to add decoration, a window manager often needs to intercept (redirect) any map or configure request. Pop-up windows, however, often need to be mapped without a window manager getting in the way. […]
-
-//        //       The override-redirect flag specifies whether map and configure requests on this window should override a SubstructureRedirectMask on the parent. You can set the override-redirect flag to True or False (default). Window managers use this information to avoid tampering with pop-up windows […].
-
-//        //       — Xlib Programming Manual §3.2.8
-//        //     */
-//        //    override_redirect = false,
-//        //    colormap = XCreateColormap(display, rootWindow, visual, 0),
-//        //    border_pixel = 0,
-//        //    background_pixel = 0,
-//        //};
-
-
-//        var width = xDisplayWidth / 2;
-//        var height = xDisplayHeight / 2;
-
-//        childWindowHandle = XCreateWindow(display, rootWindow, 0, 0, width, height, 5,
-//            32,
-//            (int) CreateWindowArgs.InputOutput,
-//            visual,
-//            (nuint) valueMask, ref xSetWindowAttributes);
-
-<<<<<<< HEAD
-        XSelectInput(display, childWindowHandle, mask);
-        XMapWindow(display, childWindowHandle);
-        XShapeCombineRectangles(display, childWindowHandle, XShapeKind.ShapeBounding, 0, 0, new XRectangle[]
+        var stopwatch = Stopwatch.StartNew();
+        await InvokeAsync(() =>
         {
-            new XRectangle()
-            {
-                x = 0,y = 0, width = (ushort) 100, height = (ushort) 100,
-            }
-        }, 1, XShapeOperation.ShapeSet, XOrdering.Unsorted);
-=======
-//        XSelectInput(display, childWindowHandle, mask);
-//        XMapWindow(display, childWindowHandle);
-//        //XShapeCombineRectangles(display, childWindowHandle, XShapeKind.ShapeBounding, 0, 0, new XRectangle[]
-//        //{
-//        //    new XRectangle()
-//        //    {
-//        //        x = 0,y = 0, width = (ushort) 0, height = (ushort) 0,
-//        //    }
-//        //}, 1, XShapeOperation.ShapeSet, XOrdering.Unsorted);
->>>>>>> d223a4066e4a8b3fce760e0fdfe82b2f73eb200a
-
-//        //XReparentWindow(display, childWindowHandle, mainWindowHandle, 300, 50);
-//    });
-
-//    //while (true)
-//    //{
-//    //    await Task.Delay(TimeSpan.FromSeconds(1));
-
-//    //    await InvokeAsync(() =>
-//    //    {
-//    //        XMoveWindow(display, childWindowHandle, Random.Shared.Next(200), Random.Shared.Next(100));
-//    //    });
-//    //}
-//});
+            stopwatch.Stop();
+            Console.WriteLine($"跨线程调度性能 : {stopwatch.ElapsedMilliseconds}ms {stopwatch.ElapsedTicks}Tick");
+            //XMoveWindow(display, childWindowHandle, Random.Shared.Next(200), Random.Shared.Next(100));
+        });
+    }
+});
 
 Thread.CurrentThread.Name = "主线程";
 
-unsafe
-{
-    var devices = (XIDeviceInfo*) XIQueryDevice(display,
-        (int) XiPredefinedDeviceId.XIAllMasterDevices, out int num);
+//unsafe
+//{
+//    var devices = (XIDeviceInfo*) XIQueryDevice(display,
+//        (int) XiPredefinedDeviceId.XIAllMasterDevices, out int num);
 
-    XIDeviceInfo? pointerDevice = default;
-    for (var c = 0; c < num; c++)
-    {
-        if (devices[c].Use == XiDeviceType.XIMasterPointer)
-        {
-            pointerDevice = devices[c];
-            break;
-        }
-    }
+//    XIDeviceInfo? pointerDevice = default;
+//    for (var c = 0; c < num; c++)
+//    {
+//        if (devices[c].Use == XiDeviceType.XIMasterPointer)
+//        {
+//            pointerDevice = devices[c];
+//            break;
+//        }
+//    }
 
-    if (pointerDevice != null)
-    {
-        XiEventType[] multiTouchEventTypes =
-        [
-            XiEventType.XI_TouchBegin,
-            XiEventType.XI_TouchUpdate,
-            XiEventType.XI_TouchEnd
-        ];
+//    if (pointerDevice != null)
+//    {
+//        XiEventType[] multiTouchEventTypes =
+//        [
+//            XiEventType.XI_TouchBegin,
+//            XiEventType.XI_TouchUpdate,
+//            XiEventType.XI_TouchEnd
+//        ];
 
-        XiEventType[] defaultEventTypes =
-        [
-            XiEventType.XI_Motion,
-            XiEventType.XI_ButtonPress,
-            XiEventType.XI_ButtonRelease,
-            XiEventType.XI_Leave,
-            XiEventType.XI_Enter,
-        ];
+//        XiEventType[] defaultEventTypes =
+//        [
+//            XiEventType.XI_Motion,
+//            XiEventType.XI_ButtonPress,
+//            XiEventType.XI_ButtonRelease,
+//            XiEventType.XI_Leave,
+//            XiEventType.XI_Enter,
+//        ];
 
-        List<XiEventType> eventTypes = [.. multiTouchEventTypes, .. defaultEventTypes];
+//        List<XiEventType> eventTypes = [.. multiTouchEventTypes, .. defaultEventTypes];
 
-        XiSelectEvents(display, mainWindowHandle,
-            new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = eventTypes });
+//        XiSelectEvents(display, mainWindowHandle,
+//            new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = eventTypes });
 
-        XiSelectEvents(display, childWindowHandle,
-            new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = eventTypes });
-    }
-}
+//        XiSelectEvents(display, childWindowHandle,
+//            new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = eventTypes });
+//    }
+//}
 
 while (true)
 {
@@ -335,69 +265,69 @@ while (true)
             Console.WriteLine($"Window2 {DateTime.Now:HH:mm:ss}");
         }
     }
-    else if (@event.type == XEventName.GenericEvent)
-    {
-        unsafe
-        {
-            void* data = &@event.GenericEventCookie;
-            XGetEventData(display, data);
-            bool isFree = false;
+    //else if (@event.type == XEventName.GenericEvent)
+    //{
+    //    unsafe
+    //    {
+    //        void* data = &@event.GenericEventCookie;
+    //        XGetEventData(display, data);
+    //        bool isFree = false;
 
-            try
-            {
-                var xiEvent = (XIEvent*) @event.GenericEventCookie.data;
+    //        try
+    //        {
+    //            var xiEvent = (XIEvent*) @event.GenericEventCookie.data;
 
-                if (xiEvent->evtype is
-                    XiEventType.XI_ButtonPress
-                    or XiEventType.XI_ButtonRelease
-                    or XiEventType.XI_Motion
-                    or XiEventType.XI_TouchBegin
-                    or XiEventType.XI_TouchUpdate
-                    or XiEventType.XI_TouchEnd)
-                {
-                    var xiDeviceEvent = (XIDeviceEvent*) xiEvent;
+    //            if (xiEvent->evtype is
+    //                XiEventType.XI_ButtonPress
+    //                or XiEventType.XI_ButtonRelease
+    //                or XiEventType.XI_Motion
+    //                or XiEventType.XI_TouchBegin
+    //                or XiEventType.XI_TouchUpdate
+    //                or XiEventType.XI_TouchEnd)
+    //            {
+    //                var xiDeviceEvent = (XIDeviceEvent*) xiEvent;
 
-                    if (xiDeviceEvent->EventWindow == mainWindowHandle)
-                    {
-                        Console.WriteLine($"Window1 {DateTime.Now:HH:mm:ss}");
+    //                if (xiDeviceEvent->EventWindow == mainWindowHandle)
+    //                {
+    //                    Console.WriteLine($"Window1 {DateTime.Now:HH:mm:ss}");
 
-                        var xRectangle = new XRectangle()
-                        {
-                            x = 0,
-                            y = 0, 
-                            width = 1000,
-                            height = 1000,
-                        };
-                        XRectangle* p = &xRectangle;
-                        XUnionRectWithRegion(p, region, region);
-                        XShapeCombineRegion(display, childWindowHandle, ShapeInput, 0, 0, region, ShapeSet);
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Window2 {DateTime.Now:HH:mm:ss}");
+    //                    var xRectangle = new XRectangle()
+    //                    {
+    //                        x = 0,
+    //                        y = 0, 
+    //                        width = 1000,
+    //                        height = 1000,
+    //                    };
+    //                    XRectangle* p = &xRectangle;
+    //                    XUnionRectWithRegion(p, region, region);
+    //                    XShapeCombineRegion(display, childWindowHandle, ShapeInput, 0, 0, region, ShapeSet);
+    //                }
+    //                else
+    //                {
+    //                    Console.WriteLine($"Window2 {DateTime.Now:HH:mm:ss}");
 
-                        //isFree = true;
-                        //XFreeEventData(display, data);
+    //                    //isFree = true;
+    //                    //XFreeEventData(display, data);
 
-                        //// 尝试转发 但是失败
-                        //// X Error of failed request: BadValue (integer parameter out of range for operation)
-                        //// Major opcode of failed request: 25 ( x_sendEvent)
-                        //// Value in failed request: 0x0
-                        //// serial number of failed request: 28
-                        //// current serial number in output stream: 30
-                        //XSendEvent(display, mainWindowHandle, false, 0, ref @event);
-                    }
-                }
-            }
-            finally
-            {
-                if (!isFree)
-                {
-                    XFreeEventData(display, data);
-                }
-            }
-        }
-    }
+    //                    //// 尝试转发 但是失败
+    //                    //// X Error of failed request: BadValue (integer parameter out of range for operation)
+    //                    //// Major opcode of failed request: 25 ( x_sendEvent)
+    //                    //// Value in failed request: 0x0
+    //                    //// serial number of failed request: 28
+    //                    //// current serial number in output stream: 30
+    //                    //XSendEvent(display, mainWindowHandle, false, 0, ref @event);
+    //                }
+    //            }
+    //        }
+    //        finally
+    //        {
+    //            if (!isFree)
+    //            {
+    //                XFreeEventData(display, data);
+    //            }
+    //        }
+    //    }
+    //}
 }
 
 Console.WriteLine("Hello, World!");
