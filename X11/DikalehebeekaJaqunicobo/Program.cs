@@ -167,7 +167,7 @@ _ = Task.Run(async () =>
             if (n == 1000)
             {
                 i = 0;
-                await Task.Delay(TimeSpan.FromSeconds(1));
+                //await Task.Delay(TimeSpan.FromSeconds(1));
             }
 
             var stopwatch = Stopwatch.StartNew();
