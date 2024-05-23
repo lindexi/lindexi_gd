@@ -8,19 +8,24 @@
     <ToolCommandName>lindexi</ToolCommandName>
   </PropertyGroup>
 
+<!--  <Target Name="Fxx" BeforeTargets="_GenerateToolsSettingsFileInputCache">
+    <PropertyGroup>
+      <ToolEntryPoint>..\..\net8.0-windows7.0\any\$(AssemblyName).dll</ToolEntryPoint>
+    </PropertyGroup>
+  </Target>-->
+
   <Target Name="HackBeforePackToolValidation" BeforeTargets="_PackToolValidation">
     <PropertyGroup>
       <TargetPlatformIdentifier></TargetPlatformIdentifier>
     </PropertyGroup>
+    <Error Text="TargetFrameworkMoniker=$(TargetFrameworkMoniker)"/>
   </Target>
 
-  <Target Name="HackAfterPackToolValidation" AfterTargets="_PackToolValidation">
+  <Target Name="HackAfterPackToolValidation" AfterTargets="_PackToolValidation" BeforeTargets="PackTool">
     <PropertyGroup>
       <TargetPlatformIdentifier>Windows</TargetPlatformIdentifier>
+      <_NuGetShortFolderName>net8.0</_NuGetShortFolderName>
     </PropertyGroup>
   </Target>
 
-  <Target Name="xxxx" AfterTargets="PackTool">
-    <Error Text="xxx $(_NuGetShortFolderName)"/>
-  </Target>
 </Project>
