@@ -167,7 +167,6 @@ _ = Task.Run(async () =>
             if (n == 1000)
             {
                 i = 0;
-                Console.WriteLine($"[{currentCount}]");
             }
 
             var stopwatch = Stopwatch.StartNew();
@@ -237,6 +236,13 @@ Thread.CurrentThread.Name = "主线程";
 
 while (true)
 {
+    var count = XEventsQueued(display, 0 /*QueuedAlready*/);
+    if (count > 1)
+    {
+        // 这个 count 越大证明越慢
+        Console.WriteLine($"卡顿度 XEventsQueued={count}");
+    }
+
     var xNextEvent = XNextEvent(display, out var @event);
     if (xNextEvent != 0)
     {
