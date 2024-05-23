@@ -154,16 +154,34 @@ _ = Task.Run(async () =>
 {
     while (true)
     {
-        await Task.Delay(TimeSpan.FromSeconds(1));
+        //await Task.Delay(TimeSpan.FromSeconds(1));
+        long sumTick = 0;
 
-        var stopwatch = Stopwatch.StartNew();
-        await InvokeAsync(() =>
+        for (int i = 0; i < 2000; i++)
         {
-            stopwatch.Stop();
-            // 0.1 - 0.5 ms 毫秒性能差
-            Console.WriteLine($"跨线程调度性能 : {stopwatch.ElapsedMilliseconds}ms {stopwatch.ElapsedTicks}Tick");
-            //XMoveWindow(display, childWindowHandle, Random.Shared.Next(200), Random.Shared.Next(100));
-        });
+            var n = i;
+            if (n == 1000)
+            {
+                i = 0;
+            }
+
+            var stopwatch = Stopwatch.StartNew();
+            await InvokeAsync(() =>
+            {
+                stopwatch.Stop();
+                // 0.1 - 0.5 ms 毫秒性能差
+                sumTick += stopwatch.ElapsedTicks;
+
+                if (n == 1000)
+                {
+                    var tick = sumTick / 1000.0;
+
+                    Console.WriteLine($"跨线程调度性能 : {tick / Stopwatch.Frequency * 1000}ms {tick}Tick");
+                }
+
+                //XMoveWindow(display, childWindowHandle, Random.Shared.Next(200), Random.Shared.Next(100));
+            });
+        }
     }
 });
 
