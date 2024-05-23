@@ -161,14 +161,14 @@ _ = Task.Run(async () =>
         for (int i = 0; i < 2000; i++)
         {
             count++;
+            var currentCount = count;
 
             var n = i;
             if (n == 1000)
             {
                 i = 0;
+                Console.WriteLine($"[{currentCount}]");
             }
-
-            var currentCount = count;
 
             var stopwatch = Stopwatch.StartNew();
             await InvokeAsync(() =>
