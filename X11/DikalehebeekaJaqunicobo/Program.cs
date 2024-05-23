@@ -157,13 +157,18 @@ _ = Task.Run(async () =>
         //await Task.Delay(TimeSpan.FromSeconds(1));
         long sumTick = 0;
 
+        var count = 0;
         for (int i = 0; i < 2000; i++)
         {
+            count++;
+
             var n = i;
             if (n == 1000)
             {
                 i = 0;
             }
+
+            var currentCount = count;
 
             var stopwatch = Stopwatch.StartNew();
             await InvokeAsync(() =>
@@ -176,7 +181,7 @@ _ = Task.Run(async () =>
                 {
                     var tick = sumTick / 1000.0;
 
-                    Console.WriteLine($"跨线程调度性能 : {tick / Stopwatch.Frequency * 1000}ms {tick}Tick");
+                    Console.WriteLine($"[{currentCount}] 跨线程调度性能 : {tick / Stopwatch.Frequency * 1000:0.00}ms {tick:0.00}Tick");
                 }
 
                 //XMoveWindow(display, childWindowHandle, Random.Shared.Next(200), Random.Shared.Next(100));
