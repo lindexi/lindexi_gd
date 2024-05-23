@@ -236,6 +236,7 @@ Thread.CurrentThread.Name = "主线程";
 //            new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = eventTypes });
 //    }
 //}
+List<Action> tempList = new List<Action>();
 
 while (true)
 {
@@ -274,10 +275,9 @@ while (true)
         var clientMessageEvent = @event.ClientMessageEvent;
         if (clientMessageEvent.message_type == 0 && clientMessageEvent.ptr1 == invokeMessageId)
         {
-            List<Action> tempList;
             lock (invokeList)
             {
-                tempList = invokeList.ToList();
+                tempList.AddRange(invokeList);
                 invokeList.Clear();
             }
 
@@ -285,6 +285,7 @@ while (true)
             {
                 action();
             }
+            tempList.Clear();
         }
     }
     else if (@event.type == XEventName.MotionNotify)
