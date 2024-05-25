@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization.Metadata;
 using System.Web;
 
 var inputText = "我是一名教师";
@@ -57,7 +58,11 @@ if (result.Success)
         invalids.Add(invalid);
     }
 
-    var jsonString = root.ToJsonString();
+    var jsonString = root.ToJsonString(new JsonSerializerOptions()
+    {
+        WriteIndented = true,
+        TypeInfoResolver = new DefaultJsonTypeInfoResolver()
+    });
 }
 
 Console.WriteLine("Hello, World!");
