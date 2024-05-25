@@ -5,103 +5,108 @@ using System.Text;
 using System.Text.Json.Nodes;
 using System.Web;
 
-var httpClient = new HttpClient();
+var inputText = "我是一名教师";
 
-var youDaoOfficialApiService = new YouDaoOfficialApiService(httpClient);
-
-var result = await youDaoOfficialApiService.TranslateAsync("我是一名教师");
-
-var word = "example";
-var url =
-    $"https://dict.youdao.com/jsonapi?xmlVersion=5.1&client=mobile&q={word}&dicts=&keyfrom=&model=&mid=&imei=&vendor=&screen=&ssid=&network=5g&abtest=&jsonversion=2";
-
-//var text = await httpClient.GetStringAsync(url);
-var text = File.ReadAllText("YouDao.txt");
-var jsonNode = JsonObject.Parse(text);
-
-var synoList = GetSynoList(jsonNode);
-var discriminateList = GetDiscriminateList(jsonNode);
-
+var gapFillingActivityTranslationProvider = new GapFillingActivityTranslationProvider();
+var result = await gapFillingActivityTranslationProvider.Build(inputText);
 
 Console.WriteLine("Hello, World!");
 
-
-
-
-List<string> GetDiscriminateList(JsonNode? jsonNode)
+/// <summary>
+/// 选词填空出题的提供器
+/// </summary>
+/// 输入中文，给出选词填空，辅助干扰项
+public class GapFillingActivityTranslationProvider
 {
-    var discriminateList = new List<string>();
-
-    var discriminate = jsonNode?["discriminate"];
-
-    var data = discriminate?["data"] as JsonArray;
-
-    if (data is null)
+    public async Task<GapFillingActivityTranslationResult> Build(string inputText)
     {
-        return discriminateList;
-    }
-
-    foreach (var source in data)
-    {
-        var usages = source?["usages"] as JsonArray;
-        if (usages is null)
+        if (inputText.Length > 20)
         {
-            continue;
+            return GapFillingActivityTranslationResult.Fail("输入长度过长");
         }
 
-        foreach (var usage in usages)
-        {
-            var headword = usage?["headword"];
-            if (headword is null)
-            {
-                continue;
-            }
+        using var httpClient = new HttpClient();
 
-            discriminateList.Add(headword.ToString());
+        var youDaoOfficialApiService = new YouDaoOfficialApiService(httpClient);
+
+        var result = await youDaoOfficialApiService.TranslateAsync(inputText);
+
+        if (result == null)
+        {
+            return GapFillingActivityTranslationResult.Fail("翻译失败");
         }
-    }
 
-    return discriminateList;
-}
-
-List<string> GetSynoList(JsonNode? jsonNode)
-{
-    var synoList = new List<string>();
-
-    var synoRoot = jsonNode?["syno"];
-    if (synoRoot == null)
-    {
-        return synoList;
-    }
-
-    var synos = synoRoot["synos"];
-    if (synos is JsonArray synoJsonArray)
-    {
-        foreach (var synoNode in synoJsonArray)
+        // 分词
+        var fillingList = result.Split(' ').ToList();
+        if (fillingList.Count > 10)
         {
-            var subSyno = synoNode?["syno"];
-            var words = subSyno?["ws"] as JsonArray;
+            return GapFillingActivityTranslationResult.Fail("翻译的英语单词过多");
+        }
 
-            if (words == null)
+        //// 干扰项数量
+        //var invalidsCount = fillingList.Count / 3;
+        var invalidList = new List<string>();
+        foreach (var word in fillingList)
+        {
+            if (DefaultInvalidsDictionary.TryGetValue(word, out var invalid))
             {
-                continue;
+                var invalidWord = invalid[Random.Shared.Next(invalid.Length)];
+                invalidList.Add(invalidWord);
             }
-
-            foreach (var wordValue in words)
+            else
             {
-                var value = wordValue?["w"];
-                if (value == null)
+                var (synoList, discriminateList) = await youDaoOfficialApiService.GetSynoDiscriminateList(word);
+
+                var list = synoList.Concat(discriminateList).Distinct().ToList();
+
+                if (list.Count > 0)
                 {
-                    continue;
+                    var invalidWord = list[Random.Shared.Next(list.Count)];
+                    invalidList.Add(invalidWord);
                 }
-
-                synoList.Add(value.ToString());
             }
         }
+
+        return new GapFillingActivityTranslationResult(inputText, fillingList, invalidList);
     }
 
-    return synoList;
+    /// <summary>
+    /// 默认干扰项字典
+    /// </summary>
+    private Dictionary<string, string[]> DefaultInvalidsDictionary { get; }
+        = new Dictionary<string, string[]>()
+        {
+            { "I", ["you", "me", "my"] },
+            { "you", ["I", "me", "my"] },
+            { "he", ["I", "me", "she"] },
+            { "she", ["I", "me", "he", "you"] },
+            { "a", ["an"] },
+            { "an", ["a"] },
+            { "is", ["was","are"] },
+            { "was", ["is", "are"] },
+            { "are", ["is", "was"] },
+        };
 }
+
+public readonly record struct GapFillingActivityTranslationResult(
+    string InputText,
+    List<string> Filling,
+    List<string> Invalids)
+{
+    public bool Success => Filling != null!;
+
+    public string? ErrorMessage { get; init; }
+
+    public static GapFillingActivityTranslationResult Fail(string errorMessage)
+    {
+        GapFillingActivityTranslationResult result = default;
+
+        return result with
+        {
+            ErrorMessage = errorMessage
+        };
+    }
+};
 
 /// <summary>
 /// 有道官方API
@@ -114,6 +119,98 @@ public class YouDaoOfficialApiService
     }
 
     private readonly HttpClient _httpClient;
+
+    public async Task<(List<string> synoList, List<string> discriminateList)> GetSynoDiscriminateList(string word)
+    {
+        var url =
+            $"https://dict.youdao.com/jsonapi?xmlVersion=5.1&client=mobile&q={word}&dicts=&keyfrom=&model=&mid=&imei=&vendor=&screen=&ssid=&network=5g&abtest=&jsonversion=2";
+
+        var httpClient = _httpClient;
+
+        var text = await httpClient.GetStringAsync(url);
+        //var text = File.ReadAllText("YouDao.txt");
+        var jsonNode = JsonObject.Parse(text);
+
+        var synoList = GetSynoList(jsonNode);
+        var discriminateList = GetDiscriminateList(jsonNode);
+
+        return (synoList, discriminateList);
+    }
+
+    private List<string> GetDiscriminateList(JsonNode? jsonNode)
+    {
+        var discriminateList = new List<string>();
+
+        var discriminate = jsonNode?["discriminate"];
+
+        var data = discriminate?["data"] as JsonArray;
+
+        if (data is null)
+        {
+            return discriminateList;
+        }
+
+        foreach (var source in data)
+        {
+            var usages = source?["usages"] as JsonArray;
+            if (usages is null)
+            {
+                continue;
+            }
+
+            foreach (var usage in usages)
+            {
+                var headword = usage?["headword"];
+                if (headword is null)
+                {
+                    continue;
+                }
+
+                discriminateList.Add(headword.ToString());
+            }
+        }
+
+        return discriminateList;
+    }
+
+    private List<string> GetSynoList(JsonNode? jsonNode)
+    {
+        var synoList = new List<string>();
+
+        var synoRoot = jsonNode?["syno"];
+        if (synoRoot == null)
+        {
+            return synoList;
+        }
+
+        var synos = synoRoot["synos"];
+        if (synos is JsonArray synoJsonArray)
+        {
+            foreach (var synoNode in synoJsonArray)
+            {
+                var subSyno = synoNode?["syno"];
+                var words = subSyno?["ws"] as JsonArray;
+
+                if (words == null)
+                {
+                    continue;
+                }
+
+                foreach (var wordValue in words)
+                {
+                    var value = wordValue?["w"];
+                    if (value == null)
+                    {
+                        continue;
+                    }
+
+                    synoList.Add(value.ToString());
+                }
+            }
+        }
+
+        return synoList;
+    }
 
     public async Task<string?> TranslateAsync(string text)
     {
