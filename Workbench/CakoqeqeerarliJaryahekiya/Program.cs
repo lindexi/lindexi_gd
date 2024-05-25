@@ -48,20 +48,26 @@ public class GapFillingActivityTranslationProvider
         var invalidList = new List<string>();
         foreach (var word in fillingList)
         {
-            if (DefaultInvalidsDictionary.TryGetValue(word, out var invalid))
-            {
-                var invalidWord = invalid[Random.Shared.Next(invalid.Length)];
-                invalidList.Add(invalidWord);
-            }
-            else
+            var invalid = TryGetInvalids(word)?.ToList();
+
+            if (invalid is null)
             {
                 var (synoList, discriminateList) = await youDaoOfficialApiService.GetSynoDiscriminateList(word);
 
-                var list = synoList.Concat(discriminateList).Distinct().ToList();
+                invalid = synoList.Concat(discriminateList).Distinct().ToList();
+            }
 
-                if (list.Count > 0)
+            if (invalid.Count>0)
+            {
+                foreach (var fill in fillingList)
                 {
-                    var invalidWord = list[Random.Shared.Next(list.Count)];
+                    // 不能和答案相同
+                    invalid.Remove(fill);
+                }
+
+                if (invalid.Count > 0)
+                {
+                    var invalidWord = invalid[Random.Shared.Next(invalid.Count)];
                     invalidList.Add(invalidWord);
                 }
             }
@@ -73,19 +79,26 @@ public class GapFillingActivityTranslationProvider
     /// <summary>
     /// 默认干扰项字典
     /// </summary>
-    private Dictionary<string, string[]> DefaultInvalidsDictionary { get; }
-        = new Dictionary<string, string[]>()
+    private string[][] DefaultInvalids { get; }
+        =
+        [
+            ["you", "me", "my","I","he","she","it"],
+            ["a", "an",],
+            ["was","are","am","is"]
+        ];
+
+    private string[]? TryGetInvalids(string word)
+    {
+        foreach (var invalidList in DefaultInvalids)
         {
-            { "I", ["you", "me", "my"] },
-            { "you", ["I", "me", "my"] },
-            { "he", ["I", "me", "she"] },
-            { "she", ["I", "me", "he", "you"] },
-            { "a", ["an"] },
-            { "an", ["a"] },
-            { "is", ["was","are"] },
-            { "was", ["is", "are"] },
-            { "are", ["is", "was"] },
-        };
+            if (invalidList.Contains(word))
+            {
+                return invalidList;
+            }
+        }
+
+        return null;
+    }
 }
 
 public readonly record struct GapFillingActivityTranslationResult(
