@@ -2,6 +2,7 @@
 
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Web;
 
@@ -9,6 +10,55 @@ var inputText = "我是一名教师";
 
 var gapFillingActivityTranslationProvider = new GapFillingActivityTranslationProvider();
 var result = await gapFillingActivityTranslationProvider.Build(inputText);
+
+if (result.Success)
+{
+    var root = new JsonObject();
+    root["activityType"] = "GapFilling";
+
+    var activityData = new JsonObject();
+    root["activityData"] = activityData;
+
+    var paragraphs = new JsonArray();
+    var invalids = new JsonArray();
+
+    activityData["paragraphs"] = paragraphs;
+    activityData["invalids"] = invalids;
+
+    // 第一段，原文
+    var paragraph1 = JsonObject.Parse($$"""
+                                      {
+                                                     "stemContents": 
+                                                     [{
+                                                         "text": "{{result.InputText}}",
+                                                         "filling": false
+                                                     }]
+                                      }
+                                      """);
+    paragraphs.Add(paragraph1);
+
+    var paragraph2 = new JsonObject();
+    paragraphs.Add(paragraph2);
+
+    var stemContents = new JsonArray();
+    paragraph2["stemContents"] = stemContents;
+    foreach (var fill in result.Filling)
+    {
+        stemContents.Add(JsonNode.Parse($$"""
+                                        {
+                                                           "text": "{{fill}}",
+                                                           "filling": true
+                                        }
+                                        """));
+    }
+
+    foreach (var invalid in result.Invalids)
+    {
+        invalids.Add(invalid);
+    }
+
+    var jsonString = root.ToJsonString();
+}
 
 Console.WriteLine("Hello, World!");
 
@@ -57,7 +107,7 @@ public class GapFillingActivityTranslationProvider
                 invalid = synoList.Concat(discriminateList).Distinct().ToList();
             }
 
-            if (invalid.Count>0)
+            if (invalid.Count > 0)
             {
                 foreach (var fill in fillingList)
                 {
