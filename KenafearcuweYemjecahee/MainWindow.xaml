@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:KenafearcuweYemjecahee"
         mc:Ignorable="d" WindowStyle="None"
         Title="MainWindow" Height="450" Width="800">
-  <Grid>
-    <ToggleButton HorizontalAlignment="Center" VerticalAlignment="Center" Click="Button_OnClick">全屏</ToggleButton>
-  </Grid>
+    <Grid>
+        <ToggleButton HorizontalAlignment="Center" VerticalAlignment="Center" Click="Button_OnClick">全屏</ToggleButton>
+    </Grid>
 </Window>
