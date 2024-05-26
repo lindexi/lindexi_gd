@@ -15,7 +15,6 @@ void Application_Startup(object sender, StartupEventArgs e)
     var drawingVisual = new DrawingVisual();
     using (var drawingContext = drawingVisual.RenderOpen())
     {
-<<<<<<< HEAD
         drawingContext.DrawRectangle(Brushes.Gray, pen: null, new Rect(0, 0, 1024, 768));
 
         drawingContext.PushClip(new RectangleGeometry(new Rect(0, 0, 1024, 768)));
@@ -25,9 +24,6 @@ void Application_Startup(object sender, StartupEventArgs e)
             drawingContext.DrawLine(new Pen(Brushes.Black, 2), new Point(-1024 + offset, 0), new Point(2 + offset, 768));
         }
         drawingContext.Pop();
-=======
-        drawingContext.DrawRectangle(Brushes.Black, pen: null, new Rect(0, 0, 1024, 768));
->>>>>>> 8661602b6a4ace211bf585caf2712df00cf50670
     }
 
     // 画布大小
