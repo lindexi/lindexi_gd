@@ -1,7 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
+<<<<<<< HEAD:X11/ReewheaberekaiNayweelehe/ReewheaberekaiNayweelehe/ReewheaberekaiNayweelehe.csproj
     <OutputType>Exe</OutputType>
+=======
+    <OutputType>WinExe</OutputType>
+>>>>>>> 8661602b6a4ace211bf585caf2712df00cf50670:ReewheaberekaiNayweelehe/ReewheaberekaiNayweelehe/ReewheaberekaiNayweelehe.csproj
     <TargetFramework>net8.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>

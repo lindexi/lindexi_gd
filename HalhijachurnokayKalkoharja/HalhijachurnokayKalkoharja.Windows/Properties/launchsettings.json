@@ -1,0 +1,10 @@
+{
+	"profiles": {
+		"HalhijachurnokayKalkoharja.Windows (Unpackaged)": {
+			"commandName": "Project"
+		},
+		"HalhijachurnokayKalkoharja.Windows (Package)": {
+			"commandName": "MsixPackage"
+		}
+	}
+}

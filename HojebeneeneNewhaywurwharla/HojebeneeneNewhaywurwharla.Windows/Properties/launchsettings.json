@@ -1,0 +1,10 @@
+{
+	"profiles": {
+		"HojebeneeneNewhaywurwharla.Windows (Unpackaged)": {
+			"commandName": "Project"
+		},
+		"HojebeneeneNewhaywurwharla.Windows (Package)": {
+			"commandName": "MsixPackage"
+		}
+	}
+}

@@ -1,0 +1,10 @@
+{
+	"profiles": {
+		"HelalwheejeeBawnohelebi.Windows (Unpackaged)": {
+			"commandName": "Project"
+		},
+		"HelalwheejeeBawnohelebi.Windows (Package)": {
+			"commandName": "MsixPackage"
+		}
+	}
+}

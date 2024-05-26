@@ -1,0 +1,34 @@
+﻿<Page x:Class="SkiaSharpTest.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:not_win="http://uno.ui/not_win"
+      xmlns:local="using:SkiaSharpTest"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:sk="using:SkiaSharp.Views.Windows"
+      mc:Ignorable="d not_win"
+      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <StackPanel>
+            <CheckBox Content="Hardware Accelerated"
+                      x:Name="hwAcceleration" />
+            <TextBlock x:Name="currentPositionText" />
+        </StackPanel>
+        <Grid x:Name="panelGrid"
+              Grid.Row="1">
+            <TextBlock x:Name="notSupported"
+                       Visibility="Collapsed"
+                       Text="SKSwapChainPanel is not supported on this platform" />
+            <sk:SKXamlCanvas x:Name="canvas"
+                             PaintSurface="OnPaintSurface"
+                             PointerMoved="{x:Bind OnSurfacePointerMoved}"
+                             not_win:Background="Transparent"
+                             Visibility="{x:Bind Not(hwAcceleration.IsChecked), Mode=OneWay}" />
+        </Grid>
+    </Grid>
+</Page>

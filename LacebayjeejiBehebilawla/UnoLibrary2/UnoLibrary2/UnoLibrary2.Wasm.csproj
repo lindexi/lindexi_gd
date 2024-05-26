@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>UnoLibrary2</RootNamespace>
+    <AssemblyName>UnoLibrary2</AssemblyName>
+    <DefineConstants>$(DefineConstants);WINUI</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Uno.WinUI.Runtime.WebAssembly" Version="5.0.48" />
+  </ItemGroup>
+</Project>
