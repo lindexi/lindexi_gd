@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using Windows.Graphics;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
@@ -29,10 +30,9 @@ public partial class App : Application
 #if DEBUG
         MainWindow.EnableHotReload();
 #endif
-        
         MainWindow.Content = new Grid()
         {
-            Background = new SolidColorBrush(Colors.Transparent)
+            Background = new SolidColorBrush(Colors.White)
         };
 
         //// Do not repeat app initialization when the Window already has content,
@@ -63,6 +63,25 @@ public partial class App : Application
         //// 此时 x11 窗口已创建
         //var unoX11Window = GetUnoX11Window(MainWindow);
         //Console.WriteLine($"After Activate X11:{unoX11Window}");
+        
+        ShowSecondWindow();
+    }
+    
+    private void ShowSecondWindow()
+    {
+        var window = new Window()
+        {
+            Content = new Grid()
+            {
+                Background = new SolidColorBrush(Colors.Red)
+            }
+        };
+        window.AppWindow.Move(new PointInt32()
+        {
+            X = 500,
+            Y = 0,
+        });
+        window.Activate();
     }
     
     IntPtr GetUnoX11Window(Window unoWindow)
