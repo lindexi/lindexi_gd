@@ -1,5 +1,5 @@
 using System;
-
+using System.Reflection;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
@@ -29,6 +29,7 @@ public partial class App : Application
 #if DEBUG
         MainWindow.EnableHotReload();
 #endif
+        
         MainWindow.Content = new Grid()
         {
             Background = new SolidColorBrush(Colors.Transparent)
@@ -59,7 +60,21 @@ public partial class App : Application
         Console.WriteLine($"Before Activate");
         // Ensure the current window is active
         MainWindow.Activate();
-        Console.WriteLine($"After Activate");
+        // 此时 x11 窗口已创建
+        var unoX11Window = GetUnoX11Window(MainWindow);
+        Console.WriteLine($"After Activate X11:{unoX11Window}");
+    }
+    
+    IntPtr GetUnoX11Window(Window unoWindow)
+    {
+        var type = unoWindow.GetType();
+        var nativeWindowPropertyInfo = type.GetProperty("NativeWindow", BindingFlags.Instance | BindingFlags.NonPublic);
+        var x11Window = nativeWindowPropertyInfo!.GetMethod!.Invoke(unoWindow, null)!;
+        // Uno.WinUI.Runtime.Skia.X11.X11Window
+        var x11WindowType = x11Window.GetType();
+        
+        var x11WindowIntPtr = (IntPtr) x11WindowType.GetProperty("Window", BindingFlags.Instance | BindingFlags.Public)!.GetMethod!.Invoke(x11Window, null)!;
+        return x11WindowIntPtr;
     }
 
     /// <summary>
