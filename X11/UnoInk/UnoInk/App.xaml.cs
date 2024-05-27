@@ -14,15 +14,18 @@ public partial class App : Application
     /// </summary>
     public App()
     {
+        Console.WriteLine($"Before InitializeComponent");
         this.InitializeComponent();
+        Console.WriteLine($"After InitializeComponent");
     }
 
     protected Window? MainWindow { get; private set; }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        Console.WriteLine($"Before new Window");
         MainWindow = new Window();
-       //var a = (OverlappedPresenter) MainWindow.AppWindow.Presenter;
+        Console.WriteLine($"After new Window");
 #if DEBUG
         MainWindow.EnableHotReload();
 #endif
@@ -53,8 +56,10 @@ public partial class App : Application
         //}
 
         MainWindow.SetWindowIcon();
+        Console.WriteLine($"Before Activate");
         // Ensure the current window is active
         MainWindow.Activate();
+        Console.WriteLine($"After Activate");
     }
 
     /// <summary>
