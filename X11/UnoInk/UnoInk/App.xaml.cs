@@ -69,6 +69,7 @@ public partial class App : Application
     
     private void ShowSecondWindow()
     {
+        // 第二个窗口也是会闪烁，也就是只要是窗口就会闪烁
         var window = new Window()
         {
             Content = new Grid()
@@ -76,11 +77,11 @@ public partial class App : Application
                 Background = new SolidColorBrush(Colors.Red)
             }
         };
-        window.AppWindow.Move(new PointInt32()
-        {
-            X = 500,
-            Y = 0,
-        });
+        //window.AppWindow.Move(new PointInt32()
+        //{
+        //    X = 500,
+        //    Y = 0,
+        //});
         window.Activate();
     }
     
