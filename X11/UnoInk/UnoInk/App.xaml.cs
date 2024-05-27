@@ -6,6 +6,10 @@ using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Uno.Resizetizer;
 
+#if HAS_UNO
+using Uno.UI.Xaml;
+#endif
+
 namespace UnoInk;
 public partial class App : Application
 {
@@ -15,9 +19,7 @@ public partial class App : Application
     /// </summary>
     public App()
     {
-        Console.WriteLine($"Before InitializeComponent");
         this.InitializeComponent();
-        Console.WriteLine($"After InitializeComponent");
     }
 
     protected Window? MainWindow { get; private set; }
@@ -71,7 +73,17 @@ public partial class App : Application
     private void ShowSecondWindow()
     {
         // 第二个窗口也是会闪烁，也就是只要是窗口就会闪烁
-        var window = new InnerBoardWindow();
+        var window = new InnerBoardWindow()
+        {
+            Content = new Grid()
+            {
+                Background = new SolidColorBrush(Colors.Red)
+            }
+        };
+#if HAS_UNO
+        // Do nothing in Skia.Gtk
+        window.SetBackground(new SolidColorBrush(Colors.Green));
+#endif
         //window.AppWindow.Move(new PointInt32()
         //{
         //    X = 500,
