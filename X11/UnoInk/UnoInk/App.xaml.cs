@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Uno.Resizetizer;
+using UnoHacker;
 
 #if HAS_UNO
 using Uno.UI.Xaml;
@@ -96,6 +97,8 @@ public partial class App : Application
         var nativeWindow = window.GetNativeWindow();
         Console.WriteLine($"GetNativeWindow={nativeWindow}");
 #endif
+        
+        Hacker.Do();
     }
 
     IntPtr GetUnoX11Window(Window unoWindow)
