@@ -1,4 +1,4 @@
-using Windows.Foundation;
+ï»¿using Windows.Foundation;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Shapes;
 using Path = Microsoft.UI.Xaml.Shapes.Path;
@@ -73,13 +73,13 @@ public sealed partial class MainPage : Page
         var pointList = inkInfo.PointList;
         if (pointList.Count < 2)
         {
-            // Ð¡ÓÚÁ½¸öµãµÄÎÞ·¨Ó¦ÓÃËã·¨
+            // å°äºŽä¸¤ä¸ªç‚¹çš„æ— æ³•åº”ç”¨ç®—æ³•
             return;
         }
 
-        // Ä£Äâ±Ê·æ
+        // æ¨¡æ‹Ÿç¬”é”‹
 
-        // ÓÃÓÚµ±³É±Ê·æµÄµãµÄÊýÁ¿
+        // ç”¨äºŽå½“æˆç¬”é”‹çš„ç‚¹çš„æ•°é‡
         var tipCount = 20;
 
         for (int i = 0; i < pointList.Count; i++)
@@ -100,12 +100,12 @@ public sealed partial class MainPage : Page
             }
         }
 
-        // ±Ê¼£´óÐ¡£¬±Ê¼£´ÖÏ¸
+        // ç¬”è¿¹å¤§å°ï¼Œç¬”è¿¹ç²—ç»†
         int inkSize = 16;
 
         if (DebugModeCheckBox.IsChecked is true)
         {
-            // µ÷ÊÔÄ£Ê½
+            // è°ƒè¯•æ¨¡å¼
             var outlinePointList = MyInkRender.GetOutlinePointList(inkInfo.PointList, inkSize);
 
             var polygon = new Polygon();
