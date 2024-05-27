@@ -16,7 +16,7 @@ public static class Hacker
         {
             if (contentRoot.VisualTree.RootElement is IRootElement rootElement)
             {
-                rootElement.SetBackgroundColor(Colors.Red);
+                rootElement.SetBackgroundColor(Colors.Transparent);
             }
         }
 #endif
