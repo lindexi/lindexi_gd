@@ -70,13 +70,7 @@ public partial class App : Application
     private void ShowSecondWindow()
     {
         // 第二个窗口也是会闪烁，也就是只要是窗口就会闪烁
-        var window = new Window()
-        {
-            Content = new Grid()
-            {
-                Background = new SolidColorBrush(Colors.Red)
-            }
-        };
+        var window = new InnerBoardWindow();
         //window.AppWindow.Move(new PointInt32()
         //{
         //    X = 500,
@@ -172,5 +166,17 @@ public partial class App : Application
         global::Uno.UI.Adapter.Microsoft.Extensions.Logging.LoggingAdapter.Initialize();
 #endif
 #endif
+    }
+}
+
+
+partial class InnerBoardWindow : Window
+{
+    public InnerBoardWindow()
+    {
+        Content = new Grid()
+        {
+            Background = new SolidColorBrush(Colors.White)
+        };
     }
 }
