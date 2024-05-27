@@ -77,12 +77,12 @@ public partial class App : Application
         {
             Content = new Grid()
             {
-                Background = new SolidColorBrush(Colors.Red)
+                Background = new SolidColorBrush(Colors.Transparent)
             }
         };
 #if HAS_UNO
         // Do nothing in Skia.Gtk
-        window.SetBackground(new SolidColorBrush(Colors.Green));
+        window.SetBackground(new SolidColorBrush(Colors.Transparent));
 #endif
         //window.AppWindow.Move(new PointInt32()
         //{
