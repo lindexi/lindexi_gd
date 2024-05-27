@@ -24,15 +24,15 @@ public sealed partial class MainPage : Page
 
     private void MainPage_Loaded(object sender, RoutedEventArgs e)
     {
-        if (OperatingSystem.IsLinux())
-        {
-            if (_x11InkProvider == null)
-            {
-                _x11InkProvider = new X11InkProvider();
+        //if (OperatingSystem.IsLinux())
+        //{
+        //    if (_x11InkProvider == null)
+        //    {
+        //        _x11InkProvider = new X11InkProvider();
 
-                //_x11InkProvider.Start(Window.Current!);
-            }
-        }
+        //        _x11InkProvider.Start(Window.Current!);
+        //    }
+        //}
     }
 
     private void InkCanvas_OnPointerPressed(object sender, PointerRoutedEventArgs e)
@@ -161,6 +161,7 @@ public sealed partial class MainPage : Page
 
     private Task InvokeAsync(Action<SkInkCanvas> action)
     {
+        return Task.CompletedTask;
         if (OperatingSystem.IsLinux())
         {
             // 线程调度不慢，但是线程跑满了
