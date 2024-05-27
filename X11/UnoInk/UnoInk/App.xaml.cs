@@ -60,9 +60,9 @@ public partial class App : Application
         Console.WriteLine($"Before Activate");
         // Ensure the current window is active
         MainWindow.Activate();
-        // 此时 x11 窗口已创建
-        var unoX11Window = GetUnoX11Window(MainWindow);
-        Console.WriteLine($"After Activate X11:{unoX11Window}");
+        //// 此时 x11 窗口已创建
+        //var unoX11Window = GetUnoX11Window(MainWindow);
+        //Console.WriteLine($"After Activate X11:{unoX11Window}");
     }
     
     IntPtr GetUnoX11Window(Window unoWindow)
