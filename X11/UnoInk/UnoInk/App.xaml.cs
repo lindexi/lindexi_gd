@@ -24,59 +24,54 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
-        Console.WriteLine($"Before new Window");
-        MainWindow = new Window();
-        Console.WriteLine($"After new Window");
-#if DEBUG
-        MainWindow.EnableHotReload();
-#endif
-        MainWindow.Content = new Grid()
-        {
-            Background = new SolidColorBrush(Colors.White)
-        };
-
-        //// Do not repeat app initialization when the Window already has content,
-        //// just ensure that the window is active
-        //if (MainWindow.Content is not Frame rootFrame)
-        //{
-        //    // Create a Frame to act as the navigation context and navigate to the first page
-        //    rootFrame = new Frame();
-
-        //    // Place the frame in the current Window
-        //    MainWindow.Content = rootFrame;
-
-        //    rootFrame.NavigationFailed += OnNavigationFailed;
-        //}
-
-        //if (rootFrame.Content == null)
-        //{
-        //    // When the navigation stack isn't restored navigate to the first page,
-        //    // configuring the new page by passing required information as a navigation
-        //    // parameter
-        //    rootFrame.Navigate(typeof(MainPage), args.Arguments);
-        //}
-
-        MainWindow.SetWindowIcon();
-        Console.WriteLine($"Before Activate");
-        // Ensure the current window is active
-        MainWindow.Activate();
-        //// 此时 x11 窗口已创建
-        //var unoX11Window = GetUnoX11Window(MainWindow);
-        //Console.WriteLine($"After Activate X11:{unoX11Window}");
-        
         ShowSecondWindow();
+
+//        Console.WriteLine($"Before new Window");
+//        MainWindow = new Window();
+//        Console.WriteLine($"After new Window");
+//#if DEBUG
+//        MainWindow.EnableHotReload();
+//#endif
+//        MainWindow.Content = new Grid()
+//        {
+//            Background = new SolidColorBrush(Colors.White)
+//        };
+
+//        //// Do not repeat app initialization when the Window already has content,
+//        //// just ensure that the window is active
+//        //if (MainWindow.Content is not Frame rootFrame)
+//        //{
+//        //    // Create a Frame to act as the navigation context and navigate to the first page
+//        //    rootFrame = new Frame();
+
+//        //    // Place the frame in the current Window
+//        //    MainWindow.Content = rootFrame;
+
+//        //    rootFrame.NavigationFailed += OnNavigationFailed;
+//        //}
+
+//        //if (rootFrame.Content == null)
+//        //{
+//        //    // When the navigation stack isn't restored navigate to the first page,
+//        //    // configuring the new page by passing required information as a navigation
+//        //    // parameter
+//        //    rootFrame.Navigate(typeof(MainPage), args.Arguments);
+//        //}
+
+//        MainWindow.SetWindowIcon();
+//        Console.WriteLine($"Before Activate");
+//        // Ensure the current window is active
+//        MainWindow.Activate();
+//        //// 此时 x11 窗口已创建
+//        //var unoX11Window = GetUnoX11Window(MainWindow);
+//        //Console.WriteLine($"After Activate X11:{unoX11Window}");
+        
     }
     
     private void ShowSecondWindow()
     {
         // 第二个窗口也是会闪烁，也就是只要是窗口就会闪烁
-        var window = new Window()
-        {
-            Content = new Grid()
-            {
-                Background = new SolidColorBrush(Colors.Red)
-            }
-        };
+        var window = new InnerBoardWindow();
         //window.AppWindow.Move(new PointInt32()
         //{
         //    X = 500,
@@ -172,5 +167,17 @@ public partial class App : Application
         global::Uno.UI.Adapter.Microsoft.Extensions.Logging.LoggingAdapter.Initialize();
 #endif
 #endif
+    }
+}
+
+
+partial class InnerBoardWindow : Window
+{
+    public InnerBoardWindow()
+    {
+        Content = new Grid()
+        {
+            Background = new SolidColorBrush(Colors.White)
+        };
     }
 }
