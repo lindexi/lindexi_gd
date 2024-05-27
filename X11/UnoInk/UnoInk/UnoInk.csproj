@@ -51,5 +51,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Maui.Graphics" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\UnoHacker\UnoHacker.csproj" />
+  </ItemGroup>
 
 </Project>
