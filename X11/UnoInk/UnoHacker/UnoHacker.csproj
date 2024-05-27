@@ -4,6 +4,7 @@
       net8.0-windows10.0.19041;
       net8.0-desktop;
     </TargetFrameworks>
+    <AssemblyName>SamplesApp</AssemblyName>
     <UnoSingleProject>true</UnoSingleProject>
     <OutputType>Library</OutputType>
     <!-- Ensures the .xr.xml files are generated in a proper layout folder -->

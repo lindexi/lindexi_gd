@@ -1,6 +1,16 @@
-﻿namespace UnoHacker;
+#if HAS_UNO
+using Uno.UI.Xaml.Core;
+#endif
 
-public class Class1
+namespace UnoHacker;
+
+public static class Hacker
 {
+    public static void Do()
+    {
+#if HAS_UNO
+        Console.WriteLine($"ContentRoots Count={Uno.UI.Xaml.Core.CoreServices.Instance.ContentRootCoordinator.ContentRoots.Count}");
+#endif
+    }
 }
 
