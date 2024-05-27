@@ -90,8 +90,14 @@ public partial class App : Application
         //    Y = 0,
         //});
         window.Activate();
+
+#if HAS_UNO
+        // GetNativeWindow=X11Window { Display = 139734279120656, Window = 111149057, glXInfo =  }
+        var nativeWindow = window.GetNativeWindow();
+        Console.WriteLine($"GetNativeWindow={nativeWindow}");
+#endif
     }
-    
+
     IntPtr GetUnoX11Window(Window unoWindow)
     {
         var type = unoWindow.GetType();
