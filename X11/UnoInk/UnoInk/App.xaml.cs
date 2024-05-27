@@ -31,7 +31,7 @@ public partial class App : Application
 #endif
         MainWindow.Content = new Grid()
         {
-            Background = new SolidColorBrush(Colors.GhostWhite)
+            Background = new SolidColorBrush(Colors.Transparent)
         };
 
         //// Do not repeat app initialization when the Window already has content,
