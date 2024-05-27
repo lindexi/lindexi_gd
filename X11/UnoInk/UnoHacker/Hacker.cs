@@ -1,4 +1,5 @@
 #if HAS_UNO
+using Windows.UI;
 using Uno.UI.Xaml.Core;
 #endif
 
@@ -13,7 +14,10 @@ public static class Hacker
         
         foreach (var contentRoot in Uno.UI.Xaml.Core.CoreServices.Instance.ContentRootCoordinator.ContentRoots)
         {
-            Console.WriteLine($"{contentRoot}");
+            if (contentRoot.VisualTree.RootElement is IRootElement rootElement)
+            {
+                rootElement.SetBackgroundColor(Colors.Red);
+            }
         }
 #endif
     }
