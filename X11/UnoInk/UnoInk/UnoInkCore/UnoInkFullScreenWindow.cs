@@ -31,14 +31,6 @@ public partial class UnoInkFullScreenWindow : Window
         // 这句话似乎才是关键，设置窗口背景透明。通过 MainWindow.SetBackground 配置是无效的
         Hacker.Do();
 
-        var rootFrame = new Frame();
-        Content = rootFrame;
-        
-        rootFrame.Background = new SolidColorBrush(Colors.Transparent);
-        
-        // When the navigation stack isn't restored navigate to the first page,
-        // configuring the new page by passing required information as a navigation
-        // parameter
-        rootFrame.Navigate(typeof(MainPage));
+        Content = new UnoInkCanvasUserControl();
     }
 }
