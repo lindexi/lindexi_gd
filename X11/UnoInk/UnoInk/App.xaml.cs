@@ -7,6 +7,8 @@ using Microsoft.UI.Windowing;
 using Uno.Resizetizer;
 using UnoHacker;
 using Windows.UI.ViewManagement;
+using Microsoft.UI.Xaml;
+
 
 
 #if HAS_UNO
@@ -44,9 +46,9 @@ public partial class App : Application
         };
 
 #if HAS_UNO
-
         // 这句话似乎也是无效的
         MainWindow.SetBackground(new SolidColorBrush(Colors.Transparent));
+        MainWindow.AppWindow.GetApplicationView().TryEnterFullScreenMode();
 #endif
         // 这句话似乎才是关键
         Hacker.Do();
