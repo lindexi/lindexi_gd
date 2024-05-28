@@ -8,7 +8,7 @@ using Uno.Resizetizer;
 using UnoHacker;
 using Windows.UI.ViewManagement;
 using Microsoft.UI.Xaml;
-
+using UnoInk.UnoInkCore;
 
 
 #if HAS_UNO
@@ -32,7 +32,11 @@ public partial class App : Application
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         //ShowSecondWindow();
-
+        
+        var unoInkWindow = new UnoInkFullScreenWindow();
+        unoInkWindow.Activate();
+        return;
+        
         Console.WriteLine($"Before new Window");
         MainWindow = new Window();
         Console.WriteLine($"After new Window");
@@ -90,40 +94,6 @@ public partial class App : Application
 
     }
 
-    private void ShowSecondWindow()
-    {
-        // 第二个窗口也是会闪烁，也就是只要是窗口就会闪烁
-        var window = new InnerBoardWindow()
-        {
-            Content = new Grid()
-            {
-                Background = new SolidColorBrush(Colors.Transparent)
-            }
-        };
-
-
-        //ApplicationView.GetForCurrentView().TryEnterFullScreenMode();
-#if HAS_UNO
-        window.AppWindow.GetApplicationView().TryEnterFullScreenMode();
-
-        // Do nothing in Skia.Gtk
-        window.SetBackground(new SolidColorBrush(Colors.Transparent));
-#endif
-        //window.AppWindow.Move(new PointInt32()
-        //{
-        //    X = 500,
-        //    Y = 0,
-        //});
-        window.Activate();
-
-#if HAS_UNO
-        // GetNativeWindow=X11Window { Display = 139734279120656, Window = 111149057, glXInfo =  }
-        var nativeWindow = window.GetNativeWindow();
-        Console.WriteLine($"GetNativeWindow={nativeWindow}");
-#endif
-
-        Hacker.Do();
-    }
 
     IntPtr GetUnoX11Window(Window unoWindow)
     {
@@ -212,17 +182,5 @@ public partial class App : Application
         global::Uno.UI.Adapter.Microsoft.Extensions.Logging.LoggingAdapter.Initialize();
 #endif
 #endif
-    }
-}
-
-
-partial class InnerBoardWindow : Window
-{
-    public InnerBoardWindow()
-    {
-        Content = new Grid()
-        {
-            Background = new SolidColorBrush(Colors.White)
-        };
     }
 }
