@@ -30,7 +30,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     public UnoInkCanvasUserControl()
     {
         this.InitializeComponent();
-        
+
         Loaded += MainPage_Loaded;
     }
 
@@ -43,9 +43,58 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
                 _x11InkProvider = new X11InkProvider();
 
                 _x11InkProvider.Start(Window.Current!);
+
+                _dispatcherRequiring = new DispatcherRequiring(InvokeInk, _x11InkProvider.InkWindow.GetDispatcher());
             }
         }
     }
+
+    private void InvokeInk()
+    {
+        if (!OperatingSystem.IsLinux())
+        {
+            return;
+        }
+
+        if (_lastInkingInputInfo is null)
+        {
+            return;
+        }
+
+        if (_x11InkProvider is null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        var inputInfo = _lastInkingInputInfo;
+
+        var canvas = _x11InkProvider.InkWindow.SkInkCanvas;
+
+        if (_isDown)
+        {
+            _isDown = false;
+            canvas.Down(_lastInkingInputInfo);
+        }
+        else if (_isUp)
+        {
+            _isUp = false;
+
+            _skPathList.AddRange(canvas.CurrentInkStrokePathEnumerable);
+
+            canvas.Up(inputInfo);
+
+            SkXamlCanvas.Invalidate();
+        }
+        else
+        {
+            canvas.Move(_lastInkingInputInfo);
+        }
+    }
+
+    private InkingInputInfo? _lastInkingInputInfo;
+    private bool _isDown;
+    private bool _isUp;
+    private DispatcherRequiring? _dispatcherRequiring;
 
     private void InkCanvas_OnPointerPressed(object sender, PointerRoutedEventArgs e)
     {
@@ -62,7 +111,12 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
         Console.WriteLine($"按下： {e.Pointer.PointerId}");
 
-        InvokeAsync(canvas => canvas.Down(ToInkingInputInfo(e)));
+        _isDown = true;
+        _lastInkingInputInfo = ToInkingInputInfo(e);
+
+        //InvokeAsync(canvas => canvas.Down(ToInkingInputInfo(e)));
+
+        _dispatcherRequiring?.Require();
     }
 
     private InkingInputInfo ToInkingInputInfo(PointerRoutedEventArgs args)
@@ -73,21 +127,21 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         return new InkingInputInfo((int) args.Pointer.PointerId, stylusPoint, currentPoint.Timestamp);
     }
 
-    private Point _lastPoint;
+    //private Point _lastPoint;
 
     private void InkCanvas_OnPointerMoved(object sender, PointerRoutedEventArgs e)
     {
         var currentPoint = e.GetCurrentPoint(this);
         Point position = currentPoint.Position;
 
-        var length = Math.Pow(position.X - _lastPoint.X, 2) + Math.Pow(position.Y - _lastPoint.Y, 2);
-        if (length < 10)
-        {
-            // 简单的丢点
-            return;
-        }
+        //var length = Math.Pow(position.X - _lastPoint.X, 2) + Math.Pow(position.Y - _lastPoint.Y, 2);
+        //if (length < 10)
+        //{
+        //    // 简单的丢点
+        //    return;
+        //}
 
-        _lastPoint = position;
+        //_lastPoint = position;
         //if (_inkInfoCache.TryGetValue(e.Pointer.PointerId, out var inkInfo))
         //{
         //    var pointerPoint = e.GetCurrentPoint(InkCanvas);
@@ -98,7 +152,9 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //    DrawInNative(position);
         //}
 
-        InvokeAsync(canvas => canvas.Move(ToInkingInputInfo(e)));
+        _lastInkingInputInfo = ToInkingInputInfo(e);
+        _dispatcherRequiring?.Require();
+        //InvokeAsync(canvas => canvas.Move(ToInkingInputInfo(e)));
     }
 
     private void InkCanvas_OnPointerReleased(object sender, PointerRoutedEventArgs e)
@@ -113,15 +169,19 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
         //LogTextBlock.Text += $"抬起： {e.Pointer.PointerId}\r\n";
         //LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
-        InvokeAsync(canvas =>
-        {
-            _skPathList.AddRange(canvas.CurrentInkStrokePathEnumerable);
+        //InvokeAsync(canvas =>
+        //{
+        //    _skPathList.AddRange(canvas.CurrentInkStrokePathEnumerable);
 
-            canvas.Up(ToInkingInputInfo(e));
+        //    canvas.Up(ToInkingInputInfo(e));
 
-            SkXamlCanvas.Invalidate();
+        //    SkXamlCanvas.Invalidate();
 
-        });
+        //});
+
+        _lastInkingInputInfo = ToInkingInputInfo(e);
+        _isUp = true;
+        _dispatcherRequiring?.Require();
     }
 
     private readonly List<SKPath> _skPathList = [];

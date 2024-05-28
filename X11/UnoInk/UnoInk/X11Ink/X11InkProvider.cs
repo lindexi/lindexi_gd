@@ -9,6 +9,7 @@ using Uno.UI.Xaml;
 using static CPF.Linux.XFixes;
 using static CPF.Linux.XLib;
 using static CPF.Linux.ShapeConst;
+using Uno.Extensions;
 
 namespace UnoInk.X11Ink;
 
@@ -221,13 +222,14 @@ class X11InkWindow
         _skInkCanvas = skInkCanvas;
     }
 
-    private X11PlatformThreading X11PlatformThreading { get; }
+    public X11PlatformThreading X11PlatformThreading { get; }
     
     private readonly X11Info _x11Info;
     private readonly IntPtr _mainWindowHandle;
     private readonly SKBitmap _skBitmap;
     private readonly SKCanvas _skCanvas;
     private XImage _image;
+    public SkInkCanvas SkInkCanvas => _skInkCanvas;
     private SkInkCanvas _skInkCanvas;
     private IntPtr GC { get; }
     
@@ -272,4 +274,49 @@ class X11InkWindow
         XPutImage(_x11Info.Display, X11InkWindowIntPtr, GC, ref _image, exposeEvent.x, exposeEvent.y, exposeEvent.x, exposeEvent.y, (uint) exposeEvent.width,
             (uint) exposeEvent.height);
     }
+    
+    public IDispatcher GetDispatcher()
+        => new X11InkWindowDispatcher(this);
+}
+
+[SupportedOSPlatform("Linux")]
+file class X11InkWindowDispatcher : IDispatcher
+{
+    public X11InkWindowDispatcher(X11InkWindow x11InkWindow)
+    {
+        _x11InkWindow = x11InkWindow;
+    }
+    
+    private readonly X11InkWindow _x11InkWindow;
+    
+    public bool TryEnqueue(Action action)
+    {
+        _ = _x11InkWindow.X11PlatformThreading.InvokeAsync(action, _x11InkWindow.X11InkWindowIntPtr);
+
+        return true;
+    }
+    
+    public async ValueTask<TResult> ExecuteAsync<TResult>(AsyncFunc<TResult> action, CancellationToken cancellation)
+    {
+        var taskCompletionSource = new TaskCompletionSource<TResult>();
+        
+        // 以下是兼容实现
+        _ = _x11InkWindow.X11PlatformThreading.InvokeAsync(async () =>
+        {
+            try
+            {
+                var result = await action(cancellation);
+                // 其实不支持同步上下文返回
+                taskCompletionSource.SetResult(result);
+            }
+            catch(Exception e)
+            {
+                taskCompletionSource.SetException(e);
+            }
+        }, _x11InkWindow.X11InkWindowIntPtr);
+        
+        return await taskCompletionSource.Task;
+    }
+    
+    public bool HasThreadAccess => _x11InkWindow.X11PlatformThreading.HasThreadAccess;
 }
