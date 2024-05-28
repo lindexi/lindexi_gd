@@ -6,7 +6,7 @@
       xmlns:windows="using:SkiaSharp.Views.Windows"
       Background="{ThemeResource BackgroundBrush}">
 
-  <Grid>
+  <Grid Background="Transparent">
     <TextBlock x:Name="LogTextBlock" TextWrapping="Wrap"/>
     <windows:SKXamlCanvas x:Name="SkXamlCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" PaintSurface="SkXamlCanvas_OnPaintSurface"></windows:SKXamlCanvas>
     <Canvas x:Name="InkCanvas" Background="Transparent" PointerPressed="InkCanvas_OnPointerPressed" PointerMoved="InkCanvas_OnPointerMoved" PointerReleased="InkCanvas_OnPointerReleased">
