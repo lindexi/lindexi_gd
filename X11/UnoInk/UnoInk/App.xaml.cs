@@ -43,6 +43,12 @@ public partial class App : Application
             Background = new SolidColorBrush(Colors.Transparent)
         };
 
+#if HAS_UNO
+
+        // 这句话似乎也是无效的
+        MainWindow.SetBackground(new SolidColorBrush(Colors.Transparent));
+#endif
+
         //// Do not repeat app initialization when the Window already has content,
         //// just ensure that the window is active
         //if (MainWindow.Content is not Frame rootFrame)
