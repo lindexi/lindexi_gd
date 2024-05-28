@@ -46,7 +46,7 @@ public sealed partial class MainPage : Page
         //DrawStroke(inkInfo);
         //DrawInNative(position);
 
-        LogTextBlock.Text += $"按下： {e.Pointer.PointerId}\r\n";
+        //LogTextBlock.Text += $"按下： {e.Pointer.PointerId}\r\n";
         //LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
         Console.WriteLine($"按下： {e.Pointer.PointerId}");
 
@@ -99,7 +99,7 @@ public sealed partial class MainPage : Page
         //    DrawStroke(inkInfo);
         //}
 
-        LogTextBlock.Text += $"抬起： {e.Pointer.PointerId}\r\n";
+        //LogTextBlock.Text += $"抬起： {e.Pointer.PointerId}\r\n";
         //LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
         InvokeAsync(canvas =>
         {
