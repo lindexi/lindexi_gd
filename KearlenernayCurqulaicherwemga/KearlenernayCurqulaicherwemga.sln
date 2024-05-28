@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34221.43
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KearlenernayCurqulaicherwemga", "KearlenernayCurqulaicherwemga\KearlenernayCurqulaicherwemga.csproj", "{42C353BD-6DB9-4F62-B35A-D75616AFB3F9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FaryubawkaJebelchako", "FaryubawkaJebelchako\FaryubawkaJebelchako.csproj", "{67CACD51-CDE4-455C-A94D-2BA503ED1E1E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{42C353BD-6DB9-4F62-B35A-D75616AFB3F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42C353BD-6DB9-4F62-B35A-D75616AFB3F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42C353BD-6DB9-4F62-B35A-D75616AFB3F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42C353BD-6DB9-4F62-B35A-D75616AFB3F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{67CACD51-CDE4-455C-A94D-2BA503ED1E1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67CACD51-CDE4-455C-A94D-2BA503ED1E1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67CACD51-CDE4-455C-A94D-2BA503ED1E1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67CACD51-CDE4-455C-A94D-2BA503ED1E1E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2771D003-6721-43EA-97DF-0C7C0A7E4796}
+	EndGlobalSection
+EndGlobal
