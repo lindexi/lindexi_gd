@@ -229,6 +229,7 @@ class X11InkWindow
     private readonly SKBitmap _skBitmap;
     private readonly SKCanvas _skCanvas;
     private XImage _image;
+    public SkInkCanvas SkInkCanvas => _skInkCanvas;
     private SkInkCanvas _skInkCanvas;
     private IntPtr GC { get; }
     
@@ -273,6 +274,9 @@ class X11InkWindow
         XPutImage(_x11Info.Display, X11InkWindowIntPtr, GC, ref _image, exposeEvent.x, exposeEvent.y, exposeEvent.x, exposeEvent.y, (uint) exposeEvent.width,
             (uint) exposeEvent.height);
     }
+    
+    public IDispatcher GetDispatcher()
+        => new X11InkWindowDispatcher(this);
 }
 
 [SupportedOSPlatform("Linux")]
