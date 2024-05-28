@@ -9,12 +9,12 @@ public class Program
     {
         App.InitializeLogging();
 
-        //FeatureConfiguration.Rendering.UseOpenGLOnX11 = false;
-        //var x11ApplicationHost = new X11ApplicationHost(() => new App());
+        FeatureConfiguration.Rendering.UseOpenGLOnX11 = false;
+        var x11ApplicationHost = new X11ApplicationHost(() => new App());
         
-        //x11ApplicationHost.Run();
+        x11ApplicationHost.Run();
 
-        //Console.WriteLine($"X11ApplicationHost 退出");
+        Console.WriteLine($"X11ApplicationHost 退出");
 
         var host = SkiaHostBuilder.Create()
             .App(() => new App())
