@@ -1,0 +1,20 @@
+{
+	"input": "学生",
+	"meta": {
+		"input": "学生",
+		"guessLanguage": "zh",
+		"isHasSimpleDict": "1",
+		"le": "en",
+		"lang": "eng",
+		"dicts": ["meta", "simple"]
+	},
+	"le": "en",
+	"simple": {
+		"query": "学生",
+		"word": [{
+			"phone": "xué shēng",
+			"return-phrase": "学生"
+		}]
+	},
+	"lang": "eng"
+}

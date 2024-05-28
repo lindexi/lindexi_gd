@@ -1,0 +1,29 @@
+{
+	"activityType": "GapFilling",
+	"activityData": 
+	{
+		"paragraphs": [
+			{
+			"stemContents": [{
+				"text": "\u6211\u662F\u4E00\u540D\u6559\u5E08",
+				"filling": false
+			}]
+		     }, 
+		    {
+			"stemContents": [{
+				"text": "I",
+				"filling": true
+			}, {
+				"text": "am",
+				"filling": true
+			}, {
+				"text": "a",
+				"filling": true
+			}, {
+				"text": "teacher",
+				"filling": true
+			}]
+		}],
+		"invalids": ["my", "was", "an", "master"]
+	}
+}

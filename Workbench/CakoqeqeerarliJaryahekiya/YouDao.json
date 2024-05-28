@@ -1,0 +1,1429 @@
+{
+	"web_trans": {
+		"web-translation": [{
+			"@same": "true",
+			"key": "Student",
+			"key-speech": "Student",
+			"trans": [{
+				"summary": {
+					"line": ["全盘竞争就像是中学生(Students)的选拔赛，大家都在死拼展示己方的小我工夫，有时候我们要冷静问问自已，我们在追求什么？我们活着为了什么？"]
+				},
+				"cls": {
+					"cl": ["社科"]
+				},
+				"value": "学生",
+				"support": 3661,
+				"url": ""
+			}, {
+				"summary": {
+					"line": ["<b>大学生</b>膳食营养状况分析_医学杂志_健康小常识K210.com 关键词】  <b>大学生</b>；膳食结构；营养状况 [gap=1353]key wordsuniversity <b>student</b>；food structure；nutritional status"]
+				},
+				"value": "大学生",
+				"support": 856,
+				"url": ""
+			}, {
+				"summary": {
+					"line": ["... <b>职业</b>: <b>student</b> 最爱音乐: arabian 最爱电影: romance ..."]
+				},
+				"value": "职业",
+				"support": 796,
+				"url": ""
+			}, {
+				"summary": {
+					"line": ["大学成绩管理系统20100724(JSP) 关键词：成绩管理；<b>在校学生</b>；数据库； 计算机；Web站点 [gap=1347]Key word: Performance management School <b>student</b>s Database"]
+				},
+				"value": "在校学生",
+				"support": 759,
+				"url": ""
+			}]
+		}, {
+			"key": "student council",
+			"key-speech": "student+council",
+			"trans": [{
+				"value": "学生会"
+			}, {
+				"value": "门生会"
+			}]
+		}, {
+			"key": "day-student",
+			"key-speech": "day-student",
+			"trans": [{
+				"value": "走读生"
+			}, {
+				"value": "锟竭讹拷锟斤拷"
+			}]
+		}, {
+			"key": "guest student",
+			"key-speech": "guest+student",
+			"trans": [{
+				"value": "旁听生"
+			}, {
+				"value": "旁听生英"
+			}, {
+				"value": "使开业"
+			}]
+		}, {
+			"key": "graduate student",
+			"key-speech": "graduate+student",
+			"trans": [{
+				"value": "研究生"
+			}, {
+				"value": "研讨生"
+			}, {
+				"value": "毕业生"
+			}]
+		}, {
+			"key": "abroad student",
+			"key-speech": "abroad+student",
+			"trans": [{
+				"value": "留学生"
+			}, {
+				"value": "留门生"
+			}, {
+				"value": "留学"
+			}, {
+				"value": "留"
+			}]
+		}, {
+			"key": "returned student",
+			"key-speech": "returned+student",
+			"trans": [{
+				"value": "回国留学生"
+			}, {
+				"value": "归国留学生"
+			}, {
+				"value": "回国留"
+			}, {
+				"value": "返国留门生"
+			}]
+		}, {
+			"key": "merit student",
+			"key-speech": "merit+student",
+			"trans": [{
+				"value": "三好学生"
+			}, {
+				"value": "三好门生"
+			}, {
+				"value": "三好"
+			}, {
+				"value": "校级奖项"
+			}]
+		}, {
+			"key": "high school student",
+			"key-speech": "high+school+student",
+			"trans": [{
+				"value": "高中生"
+			}, {
+				"value": "中学生"
+			}, {
+				"value": "高校生"
+			}, {
+				"value": "高中学生"
+			}]
+		}, {
+			"key": "Student ID",
+			"key-speech": "Student+ID",
+			"trans": [{
+				"value": "学号"
+			}, {
+				"value": "主键"
+			}]
+		}]
+	},
+	"oxfordAdvanceHtml": {
+		"encryptedData": "Oi7q_uLf41Op8q1BEZge7AaqKJM17DSt_ReKlwt7eUPcHao9OEimvTR627q0N81SsydpbY1P0TOlhDmX-07uY4gx2zV8aa6BsoqgvlGktiemluCGMAhGcLGMfP8Loan11PqlffFHwCTWfTParmVTqhqdd7iZQjxzbcTGKVQtDYhn2qOP_0vLB0nfZj63Trv5GJgQR1qV3gRz2gVqghpBqPqCA8kIXU5Me8goZmWxY4NlRQscAN5XtOc62zrWexw7Qb0w3zJnq-TwHgn8XyOae643cFY-S7iRKyZcZu7FzTt8pjd2ABGiff8vKHI_IIyOSPObWJM_jTzyyFZL2qpUs5JSH3yGvazVj2Vn8qM29jKF0Ksi9UEWyA-ZL2B5Gi6qOEZu_TUmXB--A-xHt8l3QHP-IhOJSj2Lx9-kSuZnq3aGZaY6lq3caoDyj01omCaxBKg2FNZGDHvVAe7oNPO3xiiV00d-stF9-lFiuB67NVjz7-40Xj-qGiLSSHVHHdDxfwCsRcsF6AJuiqUfstv_uIJNMX0M4xM9zNHNBn8ftHfmuzwBcOjIxhj8fHEEnME2GmlU3sbo3Pq5elXuV_qPQuG5bogWawAlcRHsAWlCgmuVahEwLn3kIZF0eE_VFgu6evTvtZu00KpbyrY6SaUV6Tvbw7X66j9oURuvU5fWeKCrW9RyEYW7tJJl8MHcDSNF-KLmJ52pWhqxZWaZ0gDzjnx_6xPRW-2OxXjjs7-glheIC_MLAX9myTaWfkw_CgHeqbXEne9TOZ9veuuUyVjM2oGJB_9eRjiOCaydbJE75vSkkInVRVqAj6V8FsTVd9P4deNlAGOX6AGvrsgNV0uIbMyAh08B1ryg5d4ZHiAJmTek7guWNE4CM0ltzOBlVpB-S7ObaAoAaAs5KKusRTLRsfATwp6BxDpq11Nq-0gt-xA2RUK8xKKahyCu8UC2f6PA5FRnBNyBpkCCVeE1BUYqyysJU79tyjkR0Yqb3whVE-LVePLZG-UHgVb5BegZrKcxxouFTZABkui4IW2VS0jnNbQM3VEsu8HEBziMSsFEb7CuOBMRAPTk2fyMLLkBfpUW3_PoMV018r45v7vxXQf1gHAl3vibphy4djz4cp-KRuJsxfLApBQI0dLdYpUlj3gAyKp9IFDh9-ysPoFs3-ABq3l3rHju7ZF_MTmfMbZXOvsRDOual95CyoM1eFnREX5t8xRIZTu5kjy3Kyc1S_a2CWRWQCdvukcaloSwQYitFyO7rIVIm0UbvEOFSHQgdkK91T_WQSAWzfPY0T9-9Potm_rBKG7MieMFPG7mY_v1evuaRjnHPGxHczdhfzCIxsWHMiroC3QtnfyfP2ZLAYs0uKWXXjV5XRKmDegG61SjG2fd2drXujxwaq35iRgYaqku6xmn46bGlp0a_enZSx4dckeViyoYekvaVp9ixizDwQJrwM67C48Rda7kUzS7nE17cW2IbS0pOvVMZ_uqQImRUIuDywa2HyL3T1mYWhYbB-RbU2eZ7_9oyvSrE4zfk5M4vqiZ52rwmVfGbdcC5Kyd1XzrHcdkNgR1_IMK40xve-iXGbb1vwvay6WR0PfPqbiOZsjiAtP2soHZc8TikLCMupo7DpvZm_hjohT16UjYkGad0CkmC_4KYmaaR6wPGy05C4BCsUBA3E9SkwdY7sL-h41ANs0qmGLUgIizKl8-JKpfdA5qY_JwNrw0Sfl7dPiKLkYk7cvuY85UKZNpXDR-_b8BHon3JNKTKpD9MD7v7IOGYhRVpukUasON__rs9AYRmRBUPt1s8CRszgSxzmo7Gw61GI7bsDikVSk4778kw0tlY9x0vhf6Exaku4GkMvPVoKzso8glxYmclPmADYMwztK1Y2Y2J88dGx__SWNH0OmkUn76WRcBlADHvB8-CKgQIykUdm8RixyNi9b1ywWKCaO61nm8XJlOM6NrFZE2xbrcjxSlrLf6PpYK0ls7rneXZqHOek9UlwmK6LNXDJK5Hzs8Jx_0eT1u4ObCpEFgFL0cwRmY3ApwDLdwdGnMu1N7184YiOjyH6BWVbtFZArsAKV1B4XL_Azl3r6EUBlnGg2BrokzhLz2tDqS55QTfe0pLxfPzrS6d0sM6cDHgjuW5WeWS-BrWvnWEwQa7gDZTecwXpsK69q9mXiCmrGkZZdM78cXQOxKHjiE1TNOxS2sDgYtgN3qWNyAiGFnJlwpQyoukP8tP4rgnLpeyLqDcKSVr1ryimK3wxr7l382wjwvUGytVFeiCPTVO_IFj-QysKfw6sNK12ngjqGDvYn5lognOJYTMrcRhbCuAxN-sBfAMpaIng_39_uKgBKgMzWjlHRdSFo8xyLJhUWrp_num5EoVp0i8JxzJTquwktReQvshySE1R5N8vbSdXJUUaz2Im-dkIk1EOsG5365UKa84MJ6n7H-xGq3DpOO9rl5KJx83WrHKVcoPYesbJdZ2wputqAyjwEg4wVjCEC4nhmeJOIBZ2T3i67zbvQV7PDiIEaxbO3IFa0FI5W0xkH14LlNneQY3QKUvkyAqCiH7aKNIjErTgZcCtqfJKcRS0QT7jlANnGutdLrlYYosr5_Y4beO31cYOpjxbPaKk8GDMcYdlQLdHAbqx_ql4VTRkALCx8riW6IRGSXn10L59FalQOy6vMW3iMgkzu2_iSIJzMI425hIVKMjLK6uHqDQRHDQ1BUf8vue5tnGqFBVAl1ytpV2fLNV619ephgOGbOxsif1L2-HeBUqhiYNdKrPJq16SDg_w9fJlXLDz6_s2xbFKdezQVYwxtEGBd0HEI_T7GqiOjnvEz8eQ29OASCVaVFvQOogWI0Ilx9a4-DgEqBNce4z3Wj5QexhcMMxo3HDuVcAifpV5cb_jpqazoJBuafx87lXR9J0kEuTK0y6fSzf7u5j9aoKqc5VmSacsEIoGf-DRRs56tB-7CQY8Ns4Pvn1dgOf5WLWMCneBYwZfemT6Cx1LVnSFeti49M-Qwhmy8C9K26TTVfX-cqajIAcZCS2IRiYjHmHMAV2_k7wVFoIy2HL21aoLS0Z0-S6Y8uns3-xo_BnNCl1g9YfuxhvsFYG-xi-Dq29xgrKgPb74NJf74uSAV2tz5tFUxiDz1iYHSPDUusBsY8xpYnXoIq60hMSh95LveHPyJi3SxlZX3QZeSqOHXFmzgsqnWG5VesR4xzfNHSHuaX1JTJWhYwwzJWUATssWTAl_R6Kculz47929jybs6JPwqWk7GNU6EYm3P-6Bc7Ts3NP_lJCS5Ss3YHEYYzLxprS8Tu-txmT9ekvgjaDPR9DG4yMfV4U7B_6xup1cmNsqeSKsIRQAOu5x6ff4O8xnHTqE47UsMdF-HBF4Nr1DktxdDwAsMYkcA3pUKbNiCim2Jlg1KXgsUdeQ7PSPBYC2J3l6HXZbUUCTOmxsroqjP2472fq1eM7xkqeygSf7zJ5fHhqAw2U0p8QW5A5bc-NmSDmNvXJuJrW1iomidSF1of4Ztv66b7oQcJ_M1GucgwdA9x6087Xg65LB7cexc9SXkkIMyEupp6eLUHXqY1UyiBsgVHIWtYiv4eUjNmOJuzCuJE-YUO4mCbVc0VWVrhYkTsIBSQhfQZd3i4-02JCpO4ox8uxEhQaEXlw4sIatToHwN-PrslPz7nzf68lyITqwS8qUS65Anyi8yZxbani1IW2NuaJXLWfdIAGug2k4Q7nj4YQI75R6GsJkO1fZFt0mfoIR1cJ56CAiqGoVentybz7pPgaaGariX434J0WAR1kLjhcJE-kiYW8GYplO8RfWutoLNc9pLEdbJ-cDabva91FhlmaRFh9jQn-bwj0NNU278onhuE51DxqST_o0tGjmsjB5Tvpe7JGy1vMDLzx0F9Y8xY84NJTGqDvzpihyvaKMqPcqrc_5rbR2-ekqfucFdk-iYHm2YyJQQHoV-1ZkJ8IrplYkUAc73IDuEB11GJFE_Mmz-PvzrzS9AoqK4zYoiRxSvA4tgRJv_G4Wb8sxEIrINZY0eAziVheQCXVj65iQxL3mKkUx754BwvGa9LrQigKZ6GORiGcanHLmB7qJQK9tcEDsIXE7MdkPC-r1nVwoLhMOLC-ouDTeBQz5XlMRMNf61U0oCvg0i77a7WsXV3ma4Wiren23u9e2HhtOcvz69FnRIIFLSBezWiOH6KDwxq4sDKgQGNXUtig_x20bEBV_4KnKNk6IO-W17h5pqeB2-VU1A5Y1RCbTc1Tp26TmCzC-C1Sg2N2B6LoMQoa-HU273TkwUWraUKyKHEFK1gieXVXSA6kGPQ78iE-LwyXpGJ8zy4qfmZSDYaG4v2m1Umfci2qMVuxZXtKtC26I0IbtvrIl5_iXzeduR_mY6q7-bB2GPO03jbTWcFQ7PBc5Snph5gdOHPO6pjnrBjRJ6VXCebqLUtlZDg_52Ls-1NVCo_TE2t0aRHwAky-1opV93gHJpbB8bB2RxeX1w6xHGNI_xGuXh4j4PVMJDx--jmi0lG-zMI28-EGInRK2lO45zUigACpcUATRdaVQNi-qhzohbROfsJTb5UrtMdOHKf6NGj0prgMaVRZiHp-oT5W0yXKGFFQ1MfdsDHhhZ3rxmF-Vbv9MEl7A25jk02jtNtGvzygGB7TtTu90EJiuqtDmfCHmrFsW-frzSYJ2DtRHOlFn3gJirbRbyNkiV5aP68wyMXJp0StVe2gHHFDbWWx3qyWZva26pH0pTz6L_x0K6JgSRBT2PnBGlWL345n2hFtFNcbIz_y0ayvnjpmYi228ShWs0ME6VF19bFj3ruV6oYblZVrBWpMFn2Qu5J6LPVgek2uTuMp1Dypcs-_LfKQj53c7wyXeZnOlcyr3NTeB3l14k5TwwvnfDmFYVFvIRYFfajnJyQg3kXWfhT4gjt19syf5KYv52ugU-udOOf_mQNySmyG8Fn6vPD5o6JMPEoY4mfwGPPv1VoN-D5aMMRYraYRdJowmWPN7mHxfJS36In03eo-wXS7CO_F1kdJTnkEZqsyLH0LpFXnNd19qP36llpHLi42s5sGh0w3lozMjIOS0ik9o8Gc74fiPDa4ryOQit5CwvKF15IC2fJyIypW5JN6p1NOUFU6f4U3zSDSrnLSCRtN3RTDSiNe9PLV5DNoXrKOeuZ-KfMqv3dFB2ivbzNzPMjn3bF7jLD0XSyRTiXTczkfxPgSPzobzL2so-CyVXKT_Fpoqb1-UBgUbauwKDekrQuxqrJAMQl90YB1QtPbU8XqLEMFflmAT5379V5YFbIJxrGRpEDkggflMj0fuMaRVJ57YCo8NqbZI4iv17wHi40AQ-OsEiD9jk2Xeh-7eG-K3h8XmvFJgq2WXJEIlvxKfNq15XVrC3b0Sr7b8RvbGsAxgZJvwHU7OOraI5ZyMEaJI1yL10MbfD8JL5ZhcSszDx3582MMI0zDz20GH_nfWGcSTH3nheyvKJ3T3Bzzs3CoXu49PgAyzTMA31c7XMlQFeuTV8xbZauItdnPAXRNjb61qiWEVF-l483mkqUnqISoTgtpoVKKQLo-5HzvpF6klCONB-9nQLqH7XygrWCsSEc6q7OvmDIQJwGWDKzmHRuHiA7qJWi9atcM8IO48dgSE8EXjk9RZyzKeEbiwNOt_xmm0LgwdsT1f0ziCzQCBrkFTsPVdwUjw8KvRNMeeFlrqxgbri_cse9ozKCHMibX7ucePvelv05ffmD6kNwAsPiQ9DtysEGJmgvZKG8_CyH8IOLRbMgq5zfwtS1tHqAao-9n5p9ddQNYiAiMnnkMB9kxwTufpZYYGc9Gj4skO2naEkIp-wGCYOpScae9gXpNsW49kfgHmKhxZ3rdSZmLYo0xQxBOJ9gDhcp5o6BDWlj5Ia6uD5Xl_xdIV61oB6ZJvQ138DZrCG7_7QJrkHSxjskwBUnzmYINtQeBF-MbWJgI-1hJQk-kLnaVZ9_zfw8i2mccQvZ8zeqLgpUrnN_b4WE9opF_TDNvHSjrM40sD-J2aDloAWa7wqSaIUZLE0U2YsZwlY9mxZyufwjL2ka08wRprHtGommMf_oI7EUHCXseG2MoahlLLY7_ID2PAc4HODGRWGhtXUZoPxpEUGEKkAq-Xr0Deq5Ahahlq0vWIO4UfwNJlQcI63AFbc5D1kwc9WwkzZbuoTw0HwLGw2WCD9ydZuOgXQ6Kfi9zPGHMfqzBFWi6BkgMCo7zyJF0SieLdw0rpc6Yp7OjEtLBDdD_Za8cE9bhIr29V8rjGi2UGM2zeQe2MJXLo6P-ZPgVg-taad24WpCFK0msfVEH26UjyDrjaMH-M9CzQ4wZ71NHA0Cali-U8DRvyAWdTaVtzWnj2tdQ8jDOwaZL5lbXojgefgjrweFLVWE12PfLa2uMDmZs3FiMOct7BsAZjyj_f8YiH_wYYWsIJPOx4c2C8Xe6uh1lVmAiwVzpxqKGEOQRx7w1yfLZixCjS6mLUPaxu4zzUAjpeABzG9aREJcSZbAOxX2xanbwOX0mypszLHAtggVJk2lPP435oaed0qFgPa1M0T4rbckRIocf-XpgmtIikT3xG1R5bJa417AOhtjF1w03_uzhV3sMoiPo66iXSkc_ryaCR-GBHndZO6miWnPL2eFC-zlVcSY3O_ABT10dlN8epBJNWJoyxhbGvlEXxiZjZfjGG-g-4eusAiY1MW6EumFHw9szLWUtn6WTDbizlt5XeFs4YVrLjNFJQKINtV1gpHaNTgvEyvRRyGPdL7f3QlKW2U3hvjF-a4n2LhG_A9Uzi9rn44IayOYZjFLdHsAWsPD7SBwG2q_QLvP5mER0JtSMOtfmlXl3PEwdtHfUGISXLAYYsnYC46TmHYyBtOAU7N4-VhcMR1rsSnCuJ1Axb-jTrCvtupCzIcUL0FBQXTc_SRIe16PO0pQO6usba4iHoGODu1pmOm8WoiAHc7v9HxiFb6G23x6haCEuLI0JDNSBB_E-iguUKhFMqqDzo4kiecEe5HOblQLdMaoczgk5hDNRTDgdOmKtmY8LTkm80Ng2wMHkGlY0c28uh4aoamUHk7uzYTssnZBBUh7gfefoM2hzff1czw8ttfChZw3R843lQzyNDf5Ht5-YxPU3pfi9iFVOfTZVskvsJPEYdYUjHIHV6TGOFmQaMagYXcnaIh2x3lg2xJVZiTu00VllJlIHM6H9-Dd7SU7NptHwzqm7eQrsshYLSdW8YZZGABZYiHyenjxQHHzPqNa4AF-cxb9thZkpkAMz8JZLbRyRN05zvSX-Bd75j7CDf1P8EcWV57WU1xkGolBj9xoYxN2hUuTnR9IdzcK4zF2oa9fLZhM5pIo-MsJliK9wX8bU7toMOktwJeg7uIuym52QDrM1cWhxqBJhhulLv5goTwhKHvjpqsPUM39WQZzsn_phs-mEYZLPy53XvQg_9Rvuzryr-LNZv3hqyWh4kRY0CcwuYXyVz8QkFALFCTFRungyow0A9DR75Zd-iTq-IpzSO3dBFXJDaikMN74dWPYcilm8Qnv8fuRrGjSbPWP8Pep5ubYEORmO05DybYcbgH8c1x2Y3AU2iW8PdY9kwTpANS_gqSNRYnpVAt29G4WDgFvdzQYa13XmP5GteLGsT720OKY7r4R6QaN04tU37yq-_q8bc-JQVx04SMiNwAhS-cXNekbPlwYpWpH_WVRw1vwJ1Vqpgv2z4clRMoXBq9uI28iwNLMzpNkI1Q5qiaUZ0x_eu1wj9WBRbunQzWXtAVWYOEee_B6xUpSSK_XTHOtUS2JHCLF6ufhFO2cEh3a90qpj7wVWdu01vwi557ydFc8-5EKflul2YwDAgMH5nL_Hr42VILy_2uvLmogn0lKRvD60pdSSmAeQBKO4vdXP0BD82m0obT3XDlXwa1Xe_L5pS2IEXsizyMKoi1lgxGxtTrAkcdveCRgjnHM0Jta9O0T1AR8vTJNrQKhNHTKocrMFvlDUSpdqhfyGDb8JHS1CLjAhRS2hhzVhrw6h-QERjis4h7VyR-gtgWO9ecOV4HH1r3YwYVUw6STEbnygNMVCLT9G_ucP0VIxMd9AV8Fqm_32OklQ5qR2DqsKxNPgy5fzs6Qrw7dG_ar48fBw2CinbLiA2lDRLIg7aYiisBzHFJWJ7i3r5cA0cIEIeJEPLM6yMd59GcjRyDF7pTPqw4T3w45BP3G5Lw85s0eJ-KLZAg8YJuwlBvcOSOjsq_-vYwj41uiGrMmip6c-vpeqvd1NTJOpWhd5WLvoZeNCCUdlyntKYoJ2WNXFR8js3q1f7oKnIqUMH6nvzgcf0x31B9JQJXja9rKCENOD9w-XXb_8cjlVkFcU3XLUtJjBcixIhxT5eGBkSMtAdkwF2dvQgcdPAt_gu-qAn5yOpGhRMraIQV3F8RuufMSqHLNcooRKnnL3mM_JheUa3j1fwCqkdHPrIRfTZEN4T7KToOi1bsbBJVEbceSvoO3G8TL8kG8beu4Mp3ze2Mym-Mrc44ibz-32uAIJRwhCFi5zKYykuJpM78mYDIxtYlABoVsQEGot5faY6AgWCF-DCenluWe-qneU_UESenFodBqcQI25wV3pFozOa7Q3JWVbjzJJ0uxvdqsszFbmPF71rehIFWRyHYOuANC1MO-7QQ_-2VLuszU5LHKuvS2mm_EIYKapoJW9EK-C3VMsXq_pHsWvq1DTQGpxKGobF18EFq0GYQEY1Hdn8IltcGKGVFYMKGcwMA8lpsr2XGutfjr04flh0ST9WJxOZv29k2xsnA34QLA5Tu0EGQ2P21izglzVTPB0ZtXlADDP8LUtO9LEA8kwxsMjvflc0eUr4aXvVmoEX5vJbf384XalagHWO7WqlC8RL09b-hJZr09k8EoHQPxyOYkJzOt_vZ5QwvIXgIEP0ZWnTZkLFnMehOO1hIuUt0MEohjyZhB-zUszBxLjRjLUfl_kMV_N_7d4DZJyQiywI4Vl0kJV7hVN61zjUMDAgEg0GLujgL5bd2NX-eMplrF1EuDqp0IqFv3e5uZEF9vvMcID45G2RbukM736KMXlApihxLHK8fcqdfcZST7EjUc403rRs65An_WasgDTzWE5F5lDn3S6m1mwF4Cfn5gxrWF8KBTaGu_uZTzy6q2H605Ha9RMfq0You-lOqbO5SG0-QKrKLjMJgIqZtchhRunitgB9U4C6vKtOL1AWA0QC9PUC_Vv_Jcd9F0lfKMZYlykfrTls-XOBVRkXQmcj98OCxECD67H0NIhczYXpEBItVN1jSMPBhuwP1CDfiaISBcx8RI6qkPvCUtfErlWCWgrNW_j5ebSRPYhRtQUF5sYsP9hmi9XPpMouq09zNqtuDH_J5XP8ahBpjHbI_fx_kzkzLjOhwXrKGMrZxMxkBccK4ElqzRLDdTC-BnV7Ed4qoODgS7vucigScC4YWPgIFz5rnKFsAwCJRB0IxhKnSA-lTZ5xij0wdtiMqPte4ZLH8d5feFD2Izl1PprnIZOKxyGrD7MkOLj_cTaYVLWBXxd22TNaV_-hfsyf-Qsu6nxx7RcQd0nOw3pv7_ubjFrJfJAk34HzTkzvBPI5fxkV5H5dtb8s1UiwlyDE2hD15ZSV_rKvWjd7XYW9imTzP7gSUqYoZR_aNpMN3AtFkItUXQjxwVSdW59HauNS4JkbpHoLtHuFFXmtToUwoJ3AsnqE2vymD4OdmIfKGd75qhFw2xugEkMrMKNDpBQEIj439dlwOyFOYyw4VbSAEIxACavkoNLbFYYobWb0NwUJdhS_JvUC-0olzGtLQtlC-tZJ0F8YctskypRLIXlxI9v591Q4lVJhVPWoUPzAMMKgbm5wejQtFoBn2O48uN7wx6hikGUeSBq0WnTYy5jKvjrr0j9-KBWd6RnRFSay1Xete3dwh5x5oS6Rg2KGfrQ7Dqx4dUQcGE_pFHsvmMWtwwb9GxWeV4lO1FHALoJDIqFGBLGv8XhhSrpTiu4P3F9xeYdGxU95qpciBXy6FIJV9sUBfaqRkBeuux01yO4yxkJlbZ13eRe9XhTulZ2CFFp7GN9ZjDXvn5md1yGxaFVbVwybVQhwkmqcNGmYIns-Xeu-xYITEnKrJ1uK1gfQvQYLw8TZYzzzrLHFOvREeawLEUmdRZv6FOQTsB5-mCPQYNJqH4tqpcNz4gj1jZ13dNw3lMj4WWkBXN3dpvgo690YapHjWBZ_Gwg4eP5wUslGw5iuWwo5k-6VCfQOMAcLTzfittvVmUJANLXdkqYRfx3_h6xf6Zkowe7VGSBPVgeLox2QnFWOXe-HiDbhJcYgBBpfueRmfmvDuWbT3p0435EW5F7_Pcw2VZ8npofrbP3FuZbu97JYX3IUjcmWP5UIdGPQYtjswD2n2pqqj3tC0UDH_AtU19GY6x7kqjuZpGNyaRR0kVUihYnjhNYXd01xqL1HM4ucCHdcKfenN0KNJ4OhoWhU1AnEpAh6CLpYKlnVnq0hzR1HbLz3rIbHzcom2uOC1cBdNytVZEl9usxOkKJTpjZwvW2Oli4GfXfjvuMttPiYF1NsEPZIm5o6KrNKaqvHW3QkQljBoFg7WBFXR07KSo8uSzncTbEnWl4vQ6EQ2dJN95znigDTwZCMdadCDbUDSQGzyNiEoOVPJdhs34kRndCOp7uoNhIYFa6t6gXACkbKWLnmq7KeYLAXSO4vl0X44Q8zXCXlZ0KJyek9Nh7KWGocv1iDqa1pfyBlJQ5L5POQ_6IpIC5H8KBku0FYUmRVUnHo3jD182oljkFf1I0xYeRiVAeJtecJr1qQ9xjIonKANt0KsZz9SpB-MpfxKKCQUJ-BM01UM_2aBINypt4NY7NBkbofGgiHf8W-31aoFB7cBYOupYg8HQngfCyhc_eh__ieISdnl4uoH_1wIixDqkAQjX9RCDanE5HJqm2nt7AeS5xSUXXCGVwiX6j625qPc7Ni5z8dTS0no0xizm6kArRKbIufZyIqY-quDp466U-DJtyQ9EP_pSx2s14nWfACp_mGIIsUNG7x1GU26y_b-7-cYUcVZAq74wMLZLAgMF8CSYRA6S93VEwmNXGZ1JxHiNi-B8KN5Ms9gH3oRb5bnPETuhcqV6PA1z5c-oyX_8EzFX5WdFJja9w0R7n_g-ArRsOoF33_1iGBmZ6PyoTDNhi0WAKPiFbM0wfdyNE-ANQuGZbl30U6YyvDNXT9x9-Y-cnMaOzJcIbNMhacJQKF4aNrvq2o-zmOa1VPvu94On_S6ecMxWkaWyrger2cLu8JPBselaRIjOgXFOmuTkMADI0AIRirAY3PCzVquupvtmi-PVdShqsALb2QMSDVC7ffhJHn1Y3aJm1DQNEndrJkIDeKFSx4-qhY5LP_jObHSC0UgoWoevbFONgX7hPblnty5nnnmiv1L1eG15Ngssdi-2ph7j3WI8mx6RMfM-0NDvjEFhYphJ5Czk6wHHaYCslJNy3PZlSZmG9s2DD5JBUlxrD2kAamUIP12cDvyKYI4eO2Qss9o_Bf2AeINtkeuxaVWJSm5t94vIO-2YpisOw7vHuDa6HTwEqxGnvdEBl0luL5e-MRqGN5iO8JZsxeLZ4JWh3sGjjzVTEvZUkr5FqmYMfxErTySNBZuc5xtTLX4juU80vqMPTmgp-fXDCJZpZG-VkFk0Qk1JBNtt5MT0Qqpb68eoS6w0qb7Y2m01HhlKNgsdiIbGLNys85UJzMdlimNWP4vFFyZGpwFdeQ7FFbcrlcbiRCxovECWOUk3djHaKZp-ILauiCL5MxgFy8daD8_uy3C4vG__z2kFJy_b25jQgHmN86u_7eF7tgaH-GvlIrmdZCWbtx0fot2YxjkO8rPFT0apINWwEcnAHmsCIRRZdK26GStuAi5LVGFibuDNzFW06QUzMzo4tQKTQS4DICss6uu-W8rDay3_K15IRN20XjYtz7M3SxHFzyb3qaUmqpJMnSZJuHoSe8jGPijPR6eUDlQDE3lzilpGgyVWSS-V4mAeZYI7lJcxrWfpqe5_0UKJFoCEzICHjrPx1rRZXkoxOAQCBg1d4BX4y24wCWLF9W0JuLoWNYJwzCT-S--yU6tbPGiN4Ze7tYzx94XTlhs_3x24N_8GJVW1kB3DHkpVyWIFpaxH4cyUGaH08onckvW-BAcuR-RxAYuGtPAnHUPvT_Q1FiS7MkYzOeF6DADptfK1eSNPhP341wl83sfiSKVnWoWNAlEtEE2S1G3_10b0QI9ZXl1ASp8R9NCZ8TVoHLIkwoVX4Y9zhOgKXF2lYYPi41W-lmK1TnoB4DEVzWk2mw2ATt-WAR1uttEMC7hgERcI9h2ZvrOQVXQz61AfldXOLuXfVfkr4BMp9mLBxz0KOA3Cye9VTCChcezcBZqXS7bmhtITHkx4V65iSVMyvKTQB2nun0OeQ0VmODOZy48U_JBYH_P9RY9nTFpBRF6dn7b1uxIFiTXlJaxr95u-hJincaIjRhIAT8ho5SAZ4WiARk8Pe4JmPLt_P6MpC04KyqbGy3NnZUzrWGc41tmb6w29yy1udOuWKpnIr5ylpWPimVmxOBtEnOwzBRBHDKiabj2hhUtabjNgD2gpNNYWtMSfQ12ADw=="
+	},
+	"video_sents": {
+		"sents_data": [{
+			"video_cover": "https://ydschool-video.nosdn.127.net/91d46b9a-8d48-461a-a2b8-48531907818b.jpg",
+			"contributor": "Sociology Live!",
+			"subtitle_srt": "﻿1\n00:00:00,060 --> 00:00:03,540\nLet's see a <font color=#FF3D48>student</font> in poverty who has difficulty finding time to study\n\n2\n00:00:03,570 --> 00:00:06,600\nbecause he works evenings to help support his low-income family.\n\n",
+			"id": 7056,
+			"video": "https://ydschool-video.nosdn.127.net/cc592c3b-a308-4f30-ae43-528e9a566ed7.mp4"
+		}, {
+			"video_cover": "https://ydschool-video.nosdn.127.net/a4f9003e-c9c9-4d06-b757-4181d91be219.jpg",
+			"contributor": "Sociology Live!",
+			"subtitle_srt": "1\n00:00:00,000 --> 00:00:05,180\nIn the United States, if you are in a lower social class such as the <font color=#FF3D48>student</font> in our example,\n\n2\n00:00:05,330 --> 00:00:07,130\nyou tend to have less cultural capital.\n\n",
+			"id": 7058,
+			"video": "https://ydschool-video.nosdn.127.net/65500f33-dc75-47a9-9800-a17207f8e0d6.mp4"
+		}, {
+			"video_cover": "https://ydschool-video.nosdn.127.net/734366de-1310-4a72-93bd-cbb910bebe2e.jpg",
+			"contributor": "Cambridge Law Faculty",
+			"subtitle_srt": "﻿1\n00:00:00,060 --> 00:00:03,150\nWe have also, included some reflections from some of our current students\n\n2\n00:00:03,360 --> 00:00:05,130\nabout their experiences at the interview,\n\n3\n00:00:05,370 --> 00:00:07,680\nincluding a <font color=#FF3D48>student</font> who was interviewed overseas.\n\n",
+			"id": 14149,
+			"video": "https://ydschool-video.nosdn.127.net/1e2248c7-479d-45a6-833e-3d97211acfd8.mp4"
+		}, {
+			"video_cover": "https://ydschool-video.nosdn.127.net/4d08acd4-6bac-4b6f-9004-c55182f9a1a9.jpg",
+			"contributor": "Sociology Live!",
+			"subtitle_srt": "﻿1\n00:00:00,030 --> 00:00:03,330\nA <font color=#FF3D48>student</font> who can read and write and who is also respectful\n\n2\n00:00:03,420 --> 00:00:05,250\nmay earn opportunities such as \n\n3\n00:00:05,280 --> 00:00:08,700\nbeing placed in advanced classes or receive higher grades.\n\n",
+			"id": 7080,
+			"video": "https://ydschool-video.nosdn.127.net/c3d9ff87-2341-46e9-a55d-609b0d18130d.mp4"
+		}],
+		"word_info": {
+			"return-phrase": "student",
+			"sense": ["n. 学生；学者", "n. （Student）人名；（德）施图登特"]
+		}
+	},
+	"simple": {
+		"query": "student",
+		"word": [{
+			"usphone": "ˈstuːd(ə)nt",
+			"ukphone": "ˈstjuːd(ə)nt",
+			"ukspeech": "student&type=1",
+			"return-phrase": "student",
+			"usspeech": "student&type=2"
+		}]
+	},
+	"phrs": {
+		"word": "student",
+		"phrs": [{
+			"phr": {
+				"headword": {
+					"l": {
+						"i": "college student"
+					}
+				},
+				"trs": [{
+					"tr": {
+						"l": {
+							"i": "大学生"
+						}
+					}
+				}],
+				"source": ""
+			}
+		}, {
+			"phr": {
+				"headword": {
+					"l": {
+						"i": "university student"
+					}
+				},
+				"trs": [{
+					"tr": {
+						"l": {
+							"i": "大学生"
+						}
+					}
+				}],
+				"source": ""
+			}
+		}, {
+			"phr": {
+				"headword": {
+					"l": {
+						"i": "graduate student"
+					}
+				},
+				"trs": [{
+					"tr": {
+						"l": {
+							"i": "n. 研究生；毕业生"
+						}
+					}
+				}],
+				"source": ""
+			}
+		}, {
+			"phr": {
+				"headword": {
+					"l": {
+						"i": "good student"
+					}
+				},
+				"trs": [{
+					"tr": {
+						"l": {
+							"i": "好学生"
+						}
+					}
+				}],
+				"source": ""
+			}
+		}, {
+			"phr": {
+				"headword": {
+					"l": {
+						"i": "foreign student"
+					}
+				},
+				"trs": [{
+					"tr": {
+						"l": {
+							"i": "外国学生，外籍学生；留学生"
+						}
+					}
+				}],
+				"source": ""
+			}
+		}, {
+			"phr": {
+				"headword": {
+					"l": {
+						"i": "high school student"
+					}
+				},
+				"trs": [{
+					"tr": {
+						"l": {
+							"i": "高中生"
+						}
+					}
+				}],
+				"source": ""
+			}
+		}, {
+			"phr": {
+				"headword": {
+					"l": {
+						"i": "international student"
+					}
+				},
+				"trs": [{
+					"tr": {
+						"l": {
+							"i": "国际学生；留学生"
+						}
+					}
+				}],
+				"source": ""
+			}
+		}, {
+			"phr": {
+				"headword": {
+					"l": {
+						"i": "middle school student"
+					}
+				},
+				"trs": [{
+					"tr": {
+						"l": {
+							"i": "中学生"
+						}
+					}
+				}],
+				"source": ""
+			}
+		}, {
+			"phr": {
+				"headword": {
+					"l": {
+						"i": "student loan"
+					}
+				},
+				"trs": [{
+					"tr": {
+						"l": {
+							"i": "助学贷款"
+						}
+					}
+				}],
+				"source": ""
+			}
+		}, {
+			"phr": {
+				"headword": {
+					"l": {
+						"i": "student visa"
+					}
+				},
+				"trs": [{
+					"tr": {
+						"l": {
+							"i": "学生签证"
+						}
+					}
+				}],
+				"source": ""
+			}
+		}, {
+			"phr": {
+				"headword": {
+					"l": {
+						"i": "student life"
+					}
+				},
+				"trs": [{
+					"tr": {
+						"l": {
+							"i": "学生生活；学习生活"
+						}
+					}
+				}],
+				"source": ""
+			}
+		}, {
+			"phr": {
+				"headword": {
+					"l": {
+						"i": "doctoral student"
+					}
+				},
+				"trs": [{
+					"tr": {
+						"l": {
+							"i": "博士生"
+						}
+					}
+				}],
+				"source": ""
+			}
+		}, {
+			"phr": {
+				"headword": {
+					"l": {
+						"i": "excellent student"
+					}
+				},
+				"trs": [{
+					"tr": {
+						"l": {
+							"i": "优秀学生；优等生"
+						}
+					}
+				}],
+				"source": ""
+			}
+		}, {
+			"phr": {
+				"headword": {
+					"l": {
+						"i": "girl student"
+					}
+				},
+				"trs": [{
+					"tr": {
+						"l": {
+							"i": "女学生"
+						}
+					}
+				}],
+				"source": ""
+			}
+		}, {
+			"phr": {
+				"headword": {
+					"l": {
+						"i": "student id"
+					}
+				},
+				"trs": [{
+					"tr": {
+						"l": {
+							"i": "学生证；学号"
+						}
+					}
+				}],
+				"source": ""
+			}
+		}, {
+			"phr": {
+				"headword": {
+					"l": {
+						"i": "outstanding student"
+					}
+				},
+				"trs": [{
+					"tr": {
+						"l": {
+							"i": "优秀学生，杰出学生"
+						}
+					}
+				}],
+				"source": ""
+			}
+		}, {
+			"phr": {
+				"headword": {
+					"l": {
+						"i": "postgraduate student"
+					}
+				},
+				"trs": [{
+					"tr": {
+						"l": {
+							"i": "硕士研究生"
+						}
+					}
+				}],
+				"source": ""
+			}
+		}, {
+			"phr": {
+				"headword": {
+					"l": {
+						"i": "poor student"
+					}
+				},
+				"trs": [{
+					"tr": {
+						"l": {
+							"i": "贫困生；学困生"
+						}
+					}
+				}],
+				"source": ""
+			}
+		}, {
+			"phr": {
+				"headword": {
+					"l": {
+						"i": "student body"
+					}
+				},
+				"trs": [{
+					"tr": {
+						"l": {
+							"i": "全体学生；学生的总称"
+						}
+					}
+				}],
+				"source": ""
+			}
+		}, {
+			"phr": {
+				"headword": {
+					"l": {
+						"i": "undergraduate student"
+					}
+				},
+				"trs": [{
+					"tr": {
+						"l": {
+							"i": "本科生"
+						}
+					}
+				}],
+				"source": ""
+			}
+		}]
+	},
+	"oxford": {
+		"encryptedData": "TNvL5RvzrtPgEpLHE_NgTvMMps7y4fRHaUEzdolM_-WBHuFB8Sgrf1hzjIJ3c5growu1-B4Z3VdilAVpWx8asPn3xU6WNYSofHyYnn4V6BYaSyZMPfZmHmNh960yoMzyHUr1OyEsyFpUh5Ovzd4I5RiXfATWAXLC90HtJxh49cIoxfB2FBZp1AmVMy-1TM_jU792awXw34IqSNzi4xfMQDIN1q9LnL1v15IdG5omwrvYQOIL5QL2WgbdDwKFqbp75iv7L88wOflgWUu0DUy3Pq89h5uU0DtP3VrVh7bjYhT7Y0IN8d6m52jwKKiMQFB0T3hSluytonc2jXbg2gvZMLag1rJPhZ_ZBUJWttw4DcRwVJhOfQZ_9rGERd26OC55Qmt-WAzowOKxX_UDzXcScRsbXYhIrTX-qvqhU4a2zSK01IdqJbXnmynn6hRPgsTgEgUz0nQsFMI4_h65tNF5ZvLgscoC_zYrJkVbzmzh6XeryttfjAkjTJnfB5Sb5jzgFQ9iHnl57fv2IqRSNTfiiB0knRdSfMpL7hYTOafOkl7xpgKWj98ZOmXtSB-mifUeTPJZJo1iuXmEW8XItab4xaHtugOgGHKVN_5d1r7Yq_3NYUZcW6rfGzHAzK5_QrbwyCogvZfsBFE66IED_gkQUW16gGvJSFFj96uY92xyA1L8hCIBXmB3fssRaR_7ivLByhQxcQATeO_E_xh8s-BdLffozXIEINjdsI4H6SVsZJmb5Wcm9jHKW3ZdBWqCJ2gEq2VuggeF7biH9AqIJvlR28bzs9cd7gURGQNih3Q6lqDtDB5_AovAETkNpCd2GlPkuXdQyZn6Su9apU7Xzc4gNVfDphpsp5TD_esWTTmuFN4Sz7eNtW1BnswQ0TBKe_KF0HjInR0tP0J4uKQseGJnQskJG6SChJNW4bUSUUiLX0IrFJhRAeOZJGFqeWJ8hhUaYLF1w_mEu3fJVhWAjeZ03PjKN8WYav02a8g-oOnyUlc6C9t0ig5SWXFCIk47kuF-Ee6mYcJfgHEaW5Ijsh4Oq8R9Qr6JcSXZscZyVZ23t39w0uQpda2nMVPRwVfw_OKJkNi6wtPN9Zodi6VHcBM7h361vZTjrPbQ-7dQE_oIXl35vgSK2hrVIBcAGhzmJNYwA3j69nxOIhVcKeQIlyJSD9ouBKNVws1io-jRCEITb6yDjkyQLesBaYMhoFeSZ1KECuqggBA-YthCEmAuU60WS5_049Bxe20pduSBkrsgEBL6Oa6mBS-6K-j3si0l9QTeJ3-pgbw-_wplk68VR_2qyf6uDRisIt4iCbEK-iuvizILBZzUpJdHQ4DFiWssA9rlsPgwTrZg2Je09PTEzwJtyBqAdHMiacjbXDjSyyPfPGADcOOlvc6CNlkdISs8vi0irNqh3yQoC0XNWtbv7U0RNjBBvqQmVdr7WV7vRlZ9A9YZqy4o61roUHsr7TUKN_31ntph_Vh-od7JwOlB6JvcwtPMGTe_uIGsWyppambdci1tOPv5LMdEmDMV7RbVxd6-2cjDlbEO9b9oezqpx2xGwArBRpEmLQ8P4Exr3r3sib0hIzm1U7dCWZwQv0a1CJ-UgkqoHQ24ROHJBPyyKVF7g0vwNVXdI4fXsko1WSgNHEmthph6SVYXjcARzLs1Nx-bIMQ-iQBYCvLyBE7GaY1idWlwFSC678ZSOLLmH9mkfUM="
+	},
+	"wordElaboration": {
+		"encryptedData": "beGALoEcIOl0nd25FWxKlHQbQKVQ_lUHVVVSyuZ9tzssu6i-8WiOGP55Rme7wT7nTQO5x1j0xNx2ceTNHthHYvier0qxZkXo8ZnK06R51JJsbYqYYuDVWl6Hbd00qdXZkJlL3OEvYaksr7Hac2NalONIdiQ1-MpDjICatOVbdXzxAxm94QWQ1bEZ85cr_kbyvYAsY6fc-aeL6gxXNjXneXBrbybsberEd1mzP-t2tKAbGqH6khYb-40vZPwsFCaofoNXtqpyJNafgqVKn9w4Lb77qR6IJgzTuhgZjTBiWei7738tyU_nHesAHLU0Yxtw4UeCCgEH4zy4TuhKG8i9Rghb27cyWXd7riuRgkAc9v-KP9yB8Uz6QmFok194QmWPnhQoKnrYGIjTqG_RWawcOOfl_GLE9jFm6bXQMCOv_NRkv3DGLyMFMowbZHUNfGKGxhmxgFty_SYSX7lNIFxQBDNaaANwYCCLTuyRvjTg9pkW5rLKKiNHlWM7BjNaJ4OMJlrCswb01hxyiFsX6lw4k90VIjbnQGqGRI8PmUw8blmw-fTmTPpX1Or5dalDBPGz2NYNAM91OSrOQ91QloaDfKSLuzniBvsMK6pSkFW705W15-IHadChJLdmX5UFT9wesDJQHjnJPG86eWJ4Ph04kIpY_PwH9rDELri5t5GVvyxuk8sSqsX0jYYAEx2fW2Ph23LOuPNzywa3hsqnqopwzP00_0RzfAhYM5ct4VAVhpJgzmuZJJZTm87g5TXqCg8xVOmbPOs-QVIx9nM2L1utoFGudPvqvfJtyW8Tj5nfJ9kPuUekHf1G5LemrKEAwKsy"
+	},
+	"syno": {
+		"synos": [{
+			"syno": {
+				"pos": "n.",
+				"ws": [{
+					"w": "scholar"
+				}, {
+					"w": "academic"
+				}, {
+					"w": "pupil"
+				}],
+				"tran": "学生；学者"
+			}
+		}],
+		"word": "student"
+	},
+	"collins": {
+		"collins_entries": [{
+			"entries": {
+				"entry": [{
+					"tran_entry": [{
+						"pos_entry": {
+							"pos": "N-COUNT",
+							"pos_tips": "可数名词"
+						},
+						"exam_sents": {
+							"sent": [{
+								"chn_sent": "沃伦的长子是一名学艺术的学生。",
+								"eng_sent": "Warren's eldest son is an art student."
+							}]
+						},
+						"tran": "A <b>student</b> is a person who is studying at an elementary school, secondary school, college, or university. 学生"
+					}]
+				}, {
+					"tran_entry": [{
+						"seeAlsos": {
+							"seealso": "see also",
+							"seeAlso": [{
+								"seeword": "graduate student"
+							}]
+						}
+					}]
+				}, {
+					"tran_entry": [{
+						"pos_entry": {
+							"pos": "N-COUNT",
+							"pos_tips": "可数名词"
+						},
+						"exam_sents": {
+							"sent": [{
+								"chn_sent": "…一位热衷历史的学者和一个研究19世纪首相们的专家。",
+								"eng_sent": "...a passionate student of history and an expert on nineteenth century prime ministers."
+							}]
+						},
+						"tran": "Someone who is a <b>student of</b> a particular subject is interested in the subject and spends time learning about it. 学者"
+					}]
+				}]
+			},
+			"phonetic": "ˈstjuːdənt",
+			"basic_entries": {
+				"basic_entry": [{
+					"cet": "CET4 TEM4",
+					"headword": "student"
+				}]
+			},
+			"headword": "student",
+			"star": "5"
+		}]
+	},
+	"word_video": {
+		"word_videos": [{
+			"video": {
+				"cover": "https://ydlunacommon-cdn.nosdn.127.net/7bd5e7d37fad974cb1c71fd0993ec148c.jpeg",
+				"image": "https://ydlunacommon-cdn.nosdn.127.net/4e0953fdb521b355641f2b59c2dc2a51f.jpg",
+				"title": "杨亮讲英文 | 亮解单词  student",
+				"url": "https://luna-dict-community.nosdn.127.net/hE0V4Exu_4733467181_shd.mp4"
+			}
+		}]
+	},
+	"webster": {
+		"encryptedData": "cIUbJDMFJ-sQnHQaxcn688OZkV4sdkAphgcdRj2UCG9yFB6T-iRAESGgCa27GAqkcYDwLammm7epCkdR6_CLPQlCAO6xTl3WpwOoiSlsWV2BuO9bn82qEbNY5cW5OGaX2sO8k5JMjtC0TQ6K0g9SLDV-ldgpolCROsUM7xmaPzMJWOt8pfH21i6TcFMv9jA0a1dF0Zw5xEiGZE7z7_7pU00F-639-h76i-qBvJ4kmfLgBaOIEVt4yBsP-qqyIM5c-O7P_TmlN-V4h32njoTYN3ODNzRQee6Btdx3caFuJCcWtP9uLgr9wumTTruhrvx8i_5c0VfifFRjJ0N4qL3_ucby7MGtKbe544ylzkgplMa4NKNXURW1VVUDreWAWNcK0YBgF-d8MQO8poonnlc2rp9dux-qTXlPP02dRv3EAgB0AChcSV6PHDCAfSpkD7BIFCx3FLffX6f04VKFbtoRtfQLIV9lazwxJt7Fe8kpOEkLCHwlWglhvqQiiPJay6LiNrpAHl2yKbl4y6OMTYy0fTV-G1hcBuDA4tMrY7n-6jCnqIHL4a5OxlL2195fvCcdNnzv7Cz-tJqJG-kLSIt_Zg9k0L2WKN2mXXbvY7UBo3whUgSmzkX_SGVjTmGW88zzVb8_9ZdXycnyAjx7wFliCfuAXcUgz0-ucshLU5AXnN0v2YMPRpQ4fwvIcv72_yI4WrHIpF_gE2zayLd8RUiGLa5jZXFGT2TQH2BfHPeQ1l4vkiUR8eJeo9__jJEpsYhZSPOm57CUpJYMGQwORv-7FnTDQmlH7ieghtlhcEmCdcQGT7HUYGqp0v-4OC21Mhi1lIqYsR0CnBuosWcG9Nf-AQ=="
+	},
+	"discriminate": {
+		"data": [{
+			"source": "http://wenku.baidu.com/view/40c2bfec81c758f5f61f671b.html",
+			"usages": [{
+				"headword": "student",
+				"usage": "普通用词，可指中学生，但主要指高等学校或专科学校的学生。"
+			}, {
+				"headword": "learner",
+				"usage": "通俗用词，指某一门学问上的初学者，尤指成年的初学者。"
+			}, {
+				"headword": "pupil",
+				"usage": "特指中小学生，尤其是小学生。"
+			}, {
+				"headword": "scholar",
+				"usage": "可指一切学生，尤指学识渊博的某一学科的学者。"
+			}],
+			"headwords": ["student", "learner", "pupil", "scholar"],
+			"tran": "学生"
+		}],
+		"return-phrase": "student"
+	},
+	"wikipedia_digest": {
+		"summarys": [{
+			"summary": "A student (also pupil) is a learner, or someone who attends an educational institution. In some nations, the English term (or its cognate in another language) is reserved for those who attend university, while a schoolchild under the age of eighteen is called a pupil in English (or an equivalent in other languages), although in the United States and in Australia a person enrolled in grades K–12 is often called a student. In its widest use, student is used for anyone who is learning, including mid-career adults who are taking vocational education or returning to university, or younger researchers or artists learning from a more experienced (and usually older) colleague and mentor.",
+			"key": "Student"
+		}],
+		"source": {
+			"name": "维基百科",
+			"url": "http://en.wikipedia.org/wiki/Student"
+		}
+	},
+	"lang": "eng",
+	"ec": {
+		"exam_type": ["初中", "高中", "CET4", "CET6", "考研"],
+		"source": {
+			"name": "有道词典",
+			"url": "https://dict.youdao.com"
+		},
+		"word": [{
+			"usphone": "ˈstuːd(ə)nt",
+			"ukphone": "ˈstjuːd(ə)nt",
+			"ukspeech": "student&type=1",
+			"trs": [{
+				"tr": [{
+					"l": {
+						"i": ["n. 学生；学者"]
+					}
+				}]
+			}, {
+				"tr": [{
+					"l": {
+						"i": ["n. （Student）人名；（德）施图登特"]
+					}
+				}]
+			}],
+			"wfs": [{
+				"wf": {
+					"name": "复数",
+					"value": "students"
+				}
+			}],
+			"return-phrase": {
+				"l": {
+					"i": "student"
+				}
+			},
+			"usspeech": "student&type=2"
+		}]
+	},
+	"ee": {
+		"source": {
+			"name": "WordNet",
+			"url": "https://wordnet.princeton.edu"
+		},
+		"word": {
+			"trs": [{
+				"pos": "n.",
+				"tr": [{
+					"l": {
+						"i": "a learner who is enrolled in an educational institution"
+					},
+					"similar-words": [{
+						"similar": "pupil"
+					}, {
+						"similar": "educatee"
+					}]
+				}, {
+					"l": {
+						"i": "a learned person (especially in the humanities); someone who by long study has gained mastery in one or more disciplines"
+					},
+					"similar-words": [{
+						"similar": "scholar"
+					}, {
+						"similar": "scholarly person"
+					}, {
+						"similar": "bookman"
+					}]
+				}]
+			}],
+			"phone": "'stju:dənt, 'stu:-",
+			"speech": "student",
+			"return-phrase": {
+				"l": {
+					"i": "student"
+				}
+			}
+		}
+	},
+	"blng_sents_part": {
+		"sentence-count": 5,
+		"sentence-pair": [{
+			"sentence": "No student is to leave the room.",
+			"sentence-eng": "No <b>student</b> is to leave the room.",
+			"sentence-translation": "学生一律不许离开这房间。",
+			"speech-size": "9kb",
+			"aligned-words": {
+				"src": {
+					"chars": [{
+						"@s": "4",
+						"@e": "11",
+						"aligns": {
+							"sc": [{
+								"@id": "0"
+							}],
+							"tc": [{
+								"@id": "0"
+							}]
+						},
+						"@id": "0"
+					}, {
+						"@s": "18",
+						"@e": "23",
+						"aligns": {
+							"sc": [{
+								"@id": "1"
+							}],
+							"tc": [{
+								"@id": "1"
+							}]
+						},
+						"@id": "1"
+					}, {
+						"@s": "24",
+						"@e": "27",
+						"aligns": {
+							"sc": [{
+								"@id": "2"
+							}],
+							"tc": [{
+								"@id": "2"
+							}]
+						},
+						"@id": "2"
+					}, {
+						"@s": "28",
+						"@e": "32",
+						"aligns": {
+							"sc": [{
+								"@id": "3"
+							}],
+							"tc": [{
+								"@id": "3"
+							}]
+						},
+						"@id": "3"
+					}]
+				},
+				"tran": {
+					"chars": [{
+						"@s": "1",
+						"@e": "5",
+						"aligns": {
+							"sc": [{
+								"@id": "0"
+							}],
+							"tc": [{
+								"@id": "0"
+							}]
+						},
+						"@id": "0"
+					}, {
+						"@s": "5",
+						"@e": "9",
+						"aligns": {
+							"sc": [{
+								"@id": "1"
+							}],
+							"tc": [{
+								"@id": "1"
+							}]
+						},
+						"@id": "1"
+					}, {
+						"@s": "9",
+						"@e": "10",
+						"aligns": {
+							"sc": [{
+								"@id": "2"
+							}],
+							"tc": [{
+								"@id": "2"
+							}]
+						},
+						"@id": "2"
+					}, {
+						"@s": "10",
+						"@e": "12",
+						"aligns": {
+							"sc": [{
+								"@id": "3"
+							}],
+							"tc": [{
+								"@id": "3"
+							}]
+						},
+						"@id": "3"
+					}]
+				}
+			},
+			"source": "《牛津词典》",
+			"url": "https://《牛津词典》/",
+			"sentence-speech": "No+student+is+to+leave+the+room.&le=eng"
+		}, {
+			"sentence": "She's a student at Sussex University.",
+			"sentence-eng": "She's a <b>student</b> at Sussex University.",
+			"sentence-translation": "她是萨塞克斯大学的学生。",
+			"speech-size": "10kb",
+			"aligned-words": {
+				"src": {
+					"chars": [{
+						"@s": "1",
+						"@e": "4",
+						"aligns": {
+							"sc": [{
+								"@id": "0"
+							}],
+							"tc": [{
+								"@id": "0"
+							}]
+						},
+						"@id": "0"
+					}, {
+						"@s": "4",
+						"@e": "6",
+						"aligns": {
+							"sc": [{
+								"@id": "1"
+							}],
+							"tc": [{
+								"@id": "1"
+							}]
+						},
+						"@id": "1"
+					}, {
+						"@s": "9",
+						"@e": "16",
+						"aligns": {
+							"sc": [{
+								"@id": "2"
+							}],
+							"tc": [{
+								"@id": "4"
+							}]
+						},
+						"@id": "2"
+					}, {
+						"@s": "17",
+						"@e": "26",
+						"aligns": {
+							"sc": [{
+								"@id": "3"
+							}],
+							"tc": [{
+								"@id": "2"
+							}]
+						},
+						"@id": "3"
+					}, {
+						"@s": "27",
+						"@e": "37",
+						"aligns": {
+							"sc": [{
+								"@id": "5"
+							}],
+							"tc": [{
+								"@id": "0"
+							}]
+						},
+						"@id": "5"
+					}]
+				},
+				"tran": {
+					"chars": [{
+						"@s": "1",
+						"@e": "2",
+						"aligns": {
+							"sc": [{
+								"@id": "0"
+							}],
+							"tc": [{
+								"@id": "0"
+							}]
+						},
+						"@id": "0"
+					}, {
+						"@s": "2",
+						"@e": "3",
+						"aligns": {
+							"sc": [{
+								"@id": "1"
+							}],
+							"tc": [{
+								"@id": "1"
+							}]
+						},
+						"@id": "1"
+					}, {
+						"@s": "3",
+						"@e": "4",
+						"aligns": {
+							"sc": [{
+								"@id": "3"
+							}],
+							"tc": [{
+								"@id": "2"
+							}]
+						},
+						"@id": "2"
+					}, {
+						"@s": "7",
+						"@e": "9",
+						"aligns": {
+							"sc": [{
+								"@id": "5"
+							}],
+							"tc": [{
+								"@id": "3"
+							}]
+						},
+						"@id": "3"
+					}, {
+						"@s": "10",
+						"@e": "12",
+						"aligns": {
+							"sc": [{
+								"@id": "2"
+							}],
+							"tc": [{
+								"@id": "4"
+							}]
+						},
+						"@id": "4"
+					}]
+				}
+			},
+			"source": "《牛津词典》",
+			"url": "https://《牛津词典》/",
+			"sentence-speech": "She%27s+a+student+at+Sussex+University.&le=eng"
+		}, {
+			"sentence": "Student numbers are expanding rapidly.",
+			"sentence-eng": "<b>Student</b> numbers are expanding rapidly.",
+			"sentence-translation": "学生人数在迅速增加。",
+			"speech-size": "11kb",
+			"aligned-words": {
+				"src": {
+					"chars": [{
+						"@s": "1",
+						"@e": "8",
+						"aligns": {
+							"sc": [{
+								"@id": "0"
+							}],
+							"tc": [{
+								"@id": "0"
+							}]
+						},
+						"@id": "0"
+					}, {
+						"@s": "9",
+						"@e": "16",
+						"aligns": {
+							"sc": [{
+								"@id": "1"
+							}],
+							"tc": [{
+								"@id": "1"
+							}]
+						},
+						"@id": "1"
+					}, {
+						"@s": "17",
+						"@e": "30",
+						"aligns": {
+							"sc": [{
+								"@id": "2"
+							}],
+							"tc": [{
+								"@id": "2"
+							}]
+						},
+						"@id": "2"
+					}]
+				},
+				"tran": {
+					"chars": [{
+						"@s": "1",
+						"@e": "3",
+						"aligns": {
+							"sc": [{
+								"@id": "0"
+							}],
+							"tc": [{
+								"@id": "0"
+							}]
+						},
+						"@id": "0"
+					}, {
+						"@s": "3",
+						"@e": "5",
+						"aligns": {
+							"sc": [{
+								"@id": "1"
+							}],
+							"tc": [{
+								"@id": "1"
+							}]
+						},
+						"@id": "1"
+					}, {
+						"@s": "5",
+						"@e": "6",
+						"aligns": {
+							"sc": [{
+								"@id": "2"
+							}],
+							"tc": [{
+								"@id": "2"
+							}]
+						},
+						"@id": "2"
+					}]
+				}
+			},
+			"source": "《牛津词典》",
+			"url": "https://《牛津词典》/",
+			"sentence-speech": "Student+numbers+are+expanding+rapidly.&le=eng"
+		}],
+		"more": "blng_sents",
+		"trs-classify": [{
+			"proportion": "100%",
+			"tr": "全部"
+		}, {
+			"proportion": "98.5%",
+			"tr": "学生"
+		}, {
+			"proportion": "1.2%",
+			"tr": "学员"
+		}, {
+			"proportion": "0.1%",
+			"tr": "学习者"
+		}, {
+			"proportion": "0.1%",
+			"tr": "在校学生"
+		}]
+	},
+	"individual": {
+		"trs": [{
+			"pos": "n.",
+			"tran": "学生，学者"
+		}],
+		"idiomatic": [{
+			"colloc": {
+				"en": "foreign student",
+				"zh": "外国学生"
+			}
+		}, {
+			"colloc": {
+				"en": "international student",
+				"zh": "国际学生；留学生"
+			}
+		}, {
+			"colloc": {
+				"en": "girl / boy student",
+				"zh": "女 / 男学生"
+			}
+		}],
+		"level": "中考",
+		"examInfo": {
+			"year": 5,
+			"questionTypeInfo": [{
+				"time": 1747,
+				"type": "阅读"
+			}, {
+				"time": 160,
+				"type": "短文填空"
+			}, {
+				"time": 237,
+				"type": "听力"
+			}, {
+				"time": 40,
+				"type": "翻译"
+			}, {
+				"time": 30,
+				"type": "情景对话"
+			}, {
+				"time": 104,
+				"type": "写作"
+			}, {
+				"time": 259,
+				"type": "完形填空"
+			}, {
+				"time": 182,
+				"type": "单项选择"
+			}, {
+				"time": 92,
+				"type": "句子填空"
+			}],
+			"recommendationRate": 5,
+			"frequency": 2851
+		},
+		"return-phrase": "student",
+		"pastExamSents": [{
+			"en": "I'm Kevin, a student of Grade 9.",
+			"source": "2021·天津·阅读",
+			"zh": "我叫凯文，是一名九年级的学生。"
+		}, {
+			"en": "One afternoon a student was taking a walk with his teacher.",
+			"source": "2021·湖南-娄底·阅读",
+			"zh": "一天下午，一个学生和他的老师一起散步。"
+		}, {
+			"en": "He led a student team to join in a competition for the \"empty plate\" campaign.",
+			"source": "2021·辽宁-鞍山·阅读",
+			"zh": "他带领了一个学生团队参加“光盘“行动比赛。"
+		}, {
+			"en": "In the school, the girl is the only student living with her grandmother in a mountain village.",
+			"source": "2021·黑龙江-牡丹江、鸡西地区·阅读",
+			"zh": "在学校里，这个女孩是唯一一个和她奶奶住在山村里的学生。"
+		}, {
+			"en": "We've got a Chinese exchange student at our school, and he joined us in the band practice.",
+			"source": "2021·江苏-徐州·短文填空",
+			"zh": "我们学校有一个中国交换生，他加入了我们的乐队练习。"
+		}, {
+			"en": "Wang Xiangjun is the first blind student to take gaokao in Anhui.",
+			"source": "2021·广西-河池·阅读",
+			"zh": "王香君是安徽第一位参加高考的盲人学生。"
+		}, {
+			"en": "My parents want me to be the top student in class, so they send me to all kinds of after-school classes at weekends.",
+			"source": "2021·四川-宜宾·完形填空",
+			"zh": "我的父母想让我成为班里的尖子生，所以他们在周末送我去各种课外班。"
+		}, {
+			"en": "I think she is the best student in my class.",
+			"source": "2021·山东-济南·单项选择",
+			"zh": "我认为她是我们班上最好的学生。"
+		}, {
+			"en": "I am Lucy, a 20-year-old student from City College.",
+			"source": "2021·浙江-金华·阅读",
+			"zh": "我叫露西，20岁，来自城市学院。"
+		}, {
+			"en": "Its views attract many hikers. Henry Grant, a college student at Ithaca College, was one of them.",
+			"source": "2021·江苏-扬州·阅读",
+			"zh": "其风光吸引了众多徒步者。伊萨卡学院的学生亨利·格兰特就是其中之一。"
+		}, {
+			"en": "If the student breaks the rule and uses his or her phone during class, the student will be warned.",
+			"source": "2021·广西-贺州·阅读",
+			"zh": "如果学生违反规定，在课堂上使用手机，将受到警告。"
+		}, {
+			"en": "For example, a student may have to find more time to study.",
+			"source": "2021·贵州-黔南，贵州-六盘水·完形填空",
+			"zh": "例如，一个学生可能得找出更多时间学习。"
+		}, {
+			"en": "Duan Jiayang, a 12-year-old student of a primary school in Yinchuan, Ningxia, learns the skills required to take care of vegetable fields.",
+			"source": "2021·湖北-恩施·阅读",
+			"zh": "段嘉扬是宁夏银川一所小学的12岁学生，他在学习打理菜地所需的技能。"
+		}, {
+			"en": "He was not a very hard-working student when he was young.",
+			"source": "2021·贵州-安顺，贵州-六盘水·阅读",
+			"zh": "他年轻时不是一个很用功的学生。"
+		}, {
+			"en": "Wang Hao is an 18-year-old student from Shenzhen.",
+			"source": "2021·黑龙江-绥化·阅读",
+			"zh": "王浩是一名来自深圳的18岁学生。"
+		}, {
+			"en": "Every student should behave well and keep away from violence.",
+			"source": "2021·四川-德阳·短文填空",
+			"zh": "每个学生都应该端正行为，远离暴力。"
+		}, {
+			"en": "How time flies! It is two years since I began to study abroad on my student exchange program in America.",
+			"source": "2021·黑龙江-哈尔滨·阅读",
+			"zh": "时间过得多快！我参加美国交换生项目已经有两年的时间了。"
+		}, {
+			"en": "I spent a year in Beijing as a student in the late 1990s and I recently went back there on holiday.",
+			"source": "2021·甘肃-兰州·阅读",
+			"zh": "上世纪90年代末，我曾在北京学习了一年，最近我又回到那里度假。"
+		}, {
+			"en": "I'm a Chinese student in America.",
+			"source": "2021·甘肃-兰州·阅读",
+			"zh": "我是一名在美国的中国留学生。"
+		}, {
+			"en": "A student recently said, \"I thought mind mapping would take a lot of time to do but in fact it saves me time.",
+			"source": "2021·河南·阅读",
+			"zh": "一个学生最近说：“我以为思维导图会花很多时间，但实际上它节省了我的时间。”"
+		}],
+		"mnemonic": {
+			"method": "stud（结构，建设）+ ent（表示某人）→ 知识的建构者 → 学生",
+			"word": "student"
+		}
+	},
+	"collins_primary": {
+		"words": {
+			"indexforms": ["student", "students", "students'", "student's"],
+			"word": "student"
+		},
+		"gramcat": [{
+			"audiourl": "https://ydlunacommon-cdn.nosdn.127.net/7630d25213f6caede4db50a3d31f5726.mp3",
+			"pronunciation": "ˈstjuːdənt",
+			"senses": [{
+				"examples": [{
+					"sense": {
+						"lang": "ZH-CN",
+						"word": "沃伦的长子是一名学艺术的学生。"
+					},
+					"example": "Warren's eldest son is an art student."
+				}],
+				"definition": "a person who is studying at a university or a college",
+				"lang": "ZH-CN",
+				"word": "（高校）学生"
+			}],
+			"partofspeech": "noun",
+			"audio": "54269",
+			"forms": [{
+				"form": "students"
+			}]
+		}]
+	},
+	"rel_word": {
+		"word": "student",
+		"stem": "student",
+		"rels": [{
+			"rel": {
+				"pos": "n.",
+				"words": [{
+					"word": "studentship",
+					"tran": " 学生身分；（英）奖学金"
+				}]
+			}
+		}]
+	},
+	"auth_sents_part": {
+		"sentence-count": 6,
+		"more": "auth_sents",
+		"sent": [{
+			"score": 0.983125627040863,
+			"speech": "Birkbeck+says+it+has+seen+falls+in+its+own+student+numbers+of+a+similar+magnitude.+",
+			"speech-size": "24kb",
+			"source": "BBC: <i>Joan Bakewell urges action on part-time students</i>",
+			"url": "youdao",
+			"foreign": "Birkbeck says it has seen falls in its own <b>student</b> numbers of a similar magnitude. "
+		}, {
+			"score": 0.9681432247161865,
+			"speech": "The+21-year-old+singer-songwriter%2C+has+enjoyed+widespread+success+since+being+spotted+as+a+student+in+a+Brits+School+showcase.+",
+			"speech-size": "36kb",
+			"source": "BBC: <i>NEWS | Entertainment | James Blunt album sales pass 5m</i>",
+			"url": "youdao",
+			"foreign": "The 21-year-old singer-songwriter, has enjoyed widespread success since being spotted as a <b>student</b> in a Brits School showcase. "
+		}, {
+			"score": 0.963805079460144,
+			"speech": "Neuroscience+student+David+Cox+blogged+on+the+Guardian+website+about+the+science+behind+revision.+",
+			"speech-size": "28kb",
+			"source": "BBC: <i>Tips on how to survive the exam season</i>",
+			"url": "youdao",
+			"foreign": "Neuroscience <b>student</b> David Cox blogged on the Guardian website about the science behind revision. "
+		}]
+	},
+	"media_sents_part": {
+		"sentence-count": 6,
+		"more": "media_sents",
+		"query": "student",
+		"sent": [{
+			"@mediatype": "audio",
+			"snippets": {
+				"snippet": [{
+					"streamUrl": "https://dict.youdao.com/pureaudio?docid=-1487087847289510114",
+					"duration": "10900",
+					"swf": "",
+					"name": "special.2010.01.09",
+					"source": "VOA",
+					"win8": "https://dict.youdao.com/pureaudio?docid=-1487087847289510114&dist=win8"
+				}]
+			},
+			"speech-size": "36kb",
+			"eng": "But the deputy prime minister said al-Qaida first recruited the young man in Britain when he was a <b>student</b> in London."
+		}, {
+			"@mediatype": "audio",
+			"snippets": {
+				"snippet": [{
+					"streamUrl": "https://dict.youdao.com/pureaudio?docid=-870838518892575454",
+					"duration": "10600",
+					"swf": "",
+					"name": "special.2009.03.19",
+					"source": "VOA",
+					"win8": "https://dict.youdao.com/pureaudio?docid=-870838518892575454&dist=win8"
+				}]
+			},
+			"speech-size": "37kb",
+			"eng": "This week in our Foreign <b>Student</b> Series, we talk about support services for international students in the United States."
+		}, {
+			"@mediatype": "audio",
+			"snippets": {
+				"snippet": [{
+					"streamUrl": "https://dict.youdao.com/pureaudio?docid=-392347646448178936",
+					"duration": "11800",
+					"swf": "",
+					"name": "special.2010.07.30",
+					"source": "VOA",
+					"win8": "https://dict.youdao.com/pureaudio?docid=-392347646448178936&dist=win8"
+				}]
+			},
+			"speech-size": "39kb",
+			"eng": "The team includes Muslims and Christians,mothers,a librarian, a business <b>student</b> and a woman who competed in a beauty pageant."
+		}]
+	},
+	"special": {
+		"summary": {
+			"sources": {
+				"source": {
+					"site": "NoteExpress",
+					"url": "https://dict.youdao.com"
+				}
+			},
+			"text": "以上统计来源于2,447,534篇论文数据，部分数据来源于"
+		},
+		"co-add": "https://dict.youdao.com",
+		"total": "2,447,543",
+		"entries": [{
+			"entry": {
+				"major": "管理学",
+				"trs": [{
+					"tr": {
+						"nat": "学生",
+						"chnSent": "教师和<b>学生</b>是教学过程的主体性因素。",
+						"cite": "1953",
+						"docTitle": "“引导”中“生成” ",
+						"engSent": "The teacher and <b>student</b> are the subjects of the teaching process.",
+						"url": "youdao"
+					}
+				}],
+				"num": 1
+			}
+		}, {
+			"entry": {
+				"major": "体育",
+				"trs": [{
+					"tr": {
+						"nat": "学生",
+						"chnSent": "对于高中<b>学生</b>来说，他们已经有了普通的价值观和行为准则。",
+						"cite": "1402",
+						"docTitle": "读《论语》，学做人—《当代教育之窗》—2009年第7期—龙源期刊网",
+						"engSent": "For Gao high school <b>student</b> to say, they have already had common of value and behavior standard.",
+						"url": "youdao"
+					}
+				}],
+				"num": 1
+			}
+		}, {
+			"entry": {
+				"major": "计算机科学技术",
+				"trs": [{
+					"tr": {
+						"nat": "考生",
+						"chnSent": "任何授权的<b>考生</b>可以随时随地考试并迅速获得成绩,系统给出其详细的成绩分析与试卷评估。",
+						"cite": "23",
+						"docTitle": "基于J2EE技术的在线考试系统 ",
+						"engSent": "Any authenticated <b>student</b> is able to test himself at any time and in any place, and the system will then show him the evaluation of accomplishment.",
+						"url": "youdao"
+					}
+				}],
+				"num": 1
+			}
+		}, {
+			"entry": {
+				"major": "法学",
+				"trs": [{
+					"tr": {
+						"nat": "受教育者",
+						"cite": "5",
+						"docTitle": "民法视野下的高等教育合同研究",
+						"url": "youdao"
+					}
+				}],
+				"num": 1
+			}
+		}, {
+			"entry": {
+				"major": "文学",
+				"trs": [{
+					"tr": {
+						"nat": "书生",
+						"cite": "4",
+						"docTitle": "冯伟林历史散文的文体特征",
+						"url": "youdao"
+					}
+				}],
+				"num": 1
+			}
+		}, {
+			"entry": {
+				"major": "军事学",
+				"trs": [{
+					"tr": {
+						"nat": "学员",
+						"chnSent": "结论应加强卫生士官<b>学员</b>专业思想教育,提高其学习兴趣;改进教学方法,提高教学效果;实施学习策略教学,培养<b>学员</b>的自主学习能力。",
+						"cite": "29",
+						"docTitle": "卫生士官学员学习状况的调查与分析 ",
+						"engSent": "Conclusion Further efforts should be done in order to enhance the medical NCO professional indoctrination,improve their learning interests,develop teaching methods and improve its effectiveness,cultivate <b>student</b>’s self-learning ability.",
+						"url": "youdao"
+					}
+				}],
+				"num": 1
+			}
+		}]
+	},
+	"senior": {
+		"encryptedData": "8-thTRqhB85u2ic9OPciNPWYZDXxCjdf6cGd76_BFRLxNwqiHnYXrurHjznwemnPtKDnbBD6QQMLMfTx1I_XRbdZkw0BaCZQfj37-Kc_RdfSYJnanujnCEZ09o_gma4WBsdvyQmIvp5KHZtptkOi7iHDWtKaHlsOyxMNMdIe6ApNLixfDmIBaH8KkS1XM_l0yep4xrKRC4kxIMqVGQQexIdt3azPC1RMTG_30exvqguCD2MWpc0I1xiCrDG312kfOUn2S6Pgmwg3z13iMFDN7YV9I8wYpDrlbxXyaOnV9n2puexolPRIaQOP-94alKpn72BscOt0lz3e1liqb-5uN_pX-b3IjrN937u9Q_LOSAxDBlUOkLvCQg7Gr3Of7KJBY2M_E_3f-DjFZypBGh_HVgrgTBukpMD91EPb7crHhfOj--PEBTKDnuT9-i5FT0DuAuN_8ZL_SLxYnVhRAio8oNtkndoIo0x5Am_B8vFpAQt1YVT60LugCRPYGUmE4veWgFlmBMk5oanJ2dnveAEr0_IT7yzfAHwmiRN7rJ7-Y_j5ZYLR5rT7w1qF2l8VgdkQn0F57GfbvR8v3A7WU5RLsrYYOHxi2M8cB0ZDuJh7PeWNwJwl_EI55qf3Fvk4LD4QlAw4pMFv3BIVeP28SkZ5yF2T4yzh0S7k6eXUi-957suTYzEdMlREKIsZSDs5VOCDTDoITcvGknRzVLIuu3BtBg==",
+		"source": {
+			"name": "《有道高中词典》"
+		}
+	},
+	"input": "student",
+	"meta": {
+		"input": "student",
+		"guessLanguage": "eng",
+		"isHasSimpleDict": "1",
+		"le": "en",
+		"lang": "eng",
+		"dicts": ["web_trans", "oxfordAdvanceHtml", "video_sents", "simple", "phrs", "oxford", "wordElaboration", "syno", "collins", "word_video", "webster", "discriminate", "wikipedia_digest", "ec", "ee", "blng_sents_part", "individual", "collins_primary", "rel_word", "auth_sents_part", "media_sents_part", "special", "senior", "meta", "oxfordAdvance"]
+	},
+	"le": "en",
+	"oxfordAdvance": {
+		"encryptedData": "oGaanzGEv4TFGNkgbPQfjud8s3YxqQChkIEIrFbM1cDOqe6yC20b_EHw26zWH7ELPX3Bejye53HmO9P-KTu-I0S-jtgDt98i0biusMkWV-_QNuUrKVv5tYs32iciz2guXVKydou1vwuv13nuiYQbQbD6XPcWnshAeXvGml-OsZPEL4AGPZ6RTsn9OVHAJJPu7ENfm8S1Rz1LWDLjvfwWmm4bq705iCWjsG1t6LpGdMdbeatHVMpvLscBBBjHUJIC_RiVP7m-hEKnwaNvuKddjfxqzUBL90e_i9Jp3PNTYJJK9nROCsVREsP8tFbGfEkVdD8I58mBVZdWNAw1int2aueG1Ves9YmmY8XqNd4pLJfsz6giXbNzoDpaB1XURTETGWLZsmg7S4KdZFE0uzzPEj8Eod6k-Ffl7gT4_FmTwpJrkAb8qG84YnZ1SBgldSS-r1gECRXWsFeAWfROTIwO_yYvGAqbAVoN2C91rpUl9OW-64Yq3ZYQY5ezWzPF7Tw1m7hPWUoapeGcuq7saweLpWUPbKYcuwqFsPWSyWVfEox3Aqw13qEreZIS9ljNPYiNVMXVokhMCFHz4r383yzBsPjFEGdxdMmThxCgwAV0fJ_XylKlqUWk0eLoZklLDFZezM1-6gaXlP6zP9uS3FyrprWU_jK09m-ICxc0D-mgNYoZ_kcGklYqpJ93MqhM9FUPhP3rBR3aXQvu0IITKg2bg7IFCfFS28JWQi0kmShqBGx1anE-LZMFqnVidiEeqJu7z36O64Qozh-LTjsqplqAfpM4zfj_EVprYnILZYw-GpdUePFykj1c3WAnUu_zrxmnXwdYf-QbfwENt1bHJ6JVESrXkMMARjVHhcrFlZ1eS3wPJXfJjLg8u7kLCBKRFv-h_B2s85F-T2sfQuyov5nUSvEvVlN8IECGedKgUidzEMWnKomQA5bnmRsSS-1HCAnM_U1YrMmsjsVpcAdsSN2_fs9tXoiRO1qdTScbzZzl4lWhkqSsWs9WWIiF5ogcJA5v5Y8M-q_JB1THrghFq5vIX3UHuyTekGOc3rSnMn6G2dKMpA0WQCxsfXH8wdr0dI9pnhay9uQ7LvbiJPIdbJZwX9y1LTgQ4AcXn01Xrf_91ETHmwrpFbJoOoHwcuIkjwwNL5efJQhHHe80dTGNkDOmeWSsEwPrWgocuZ3q3G1dJvmwEZ9E_lodVj71HMYd-nUPD2zkVTq63OIaoU_QqCsV0-NQQ97WcuaQjnb1zov_TF8Pt7SWdr2EzuwuWUbyNG2Fk9GABzyh6yrdCOFz9Qp300nXkKQERpS4m1FTephI9_Y-6Dx_EKYYG8XrfGHCQx7s42x5dJM7WlQ4LIHiqU6wK3IMXc9Bscx4Z5Khwlvu0cqiG9k57NFuvroez63JDIjp9xFSPx91fv9BRITxeY1lzvDoGF4-UoWNLUmZbMvLJ-T656Ow_d9QeAauXEuQ2rLYrPvrNnj6OABxqE_vQeZXt_jfwUtjpbfLMHeDiIHF2Mk0NridxvwEG7OyX_NB5gIwPat4OcyYCKsDqSBobzeFRYw9Hbext13Sw1at-ZYgUVRCAqRj_MdaV2HzKiki2VSosSaGvNjpPu8FR_0IhpA8Uwb1Oot0V2O7PSdi4ERo_KuVh8AvwdLtDL0w2OXSlWIp5fz9BhLnjsglvidJ34bpUbxam--C76o-cx_UlPR-8pimPfRowY5WZpu6TSx-kQRpHCpIs_hoifO3STGjHbhiXdQG77K3X5AHqU4ZD-AxPBlJXT9SxcVh_yB4BHmx6YUL_FUfPWFsS6m4dcT28xgrSKn0P3QZbg9oIPMhQp2kiRDNImeVxWt7zASvheDcF7AsBLYvCUB19ZfhiJ3IEPGQ8pjzuOb5zJw9xUbTWIizvh_zAiAADnPWL6FNgmMc0zBjqEFH_xqzb63GMFlgHSe-WCIaekOfu_IxumfwgXb8maZS9YhogFVWTSDkZjYe5eVptejGzEmL-x4OjCZaIfifzi_BsyWBUW22vggD-P9XoQUR8KWCLQRCQ6Gcz4x6c9_Cakbh9ZGfxSEXY07c4Tgl9HX3LTr9iVSGY4B67zwnwwyTlyQbaKeOGBbpTSGejX2VQD5shvvItpvtpg32E4HLOKvRAQatBwwwyV_XzFMiDOr5xjXM4L8qo9rfTVAkjyNiPFAW4C9npq0EIoGcpNrV0LdXeSR39uiN7D5OCRZoSHxt6pY_P_bMle_OH8Ya3ZOCvBU2haZ-sKjd6lusCajZxSfbxEfLuH7d8As-u60_nspOnIobvCNtWI6tfJj7kf9ofSq_Oc0N0qXz3XwIJxHgwt5f_Y5CZc9gfoz5Galm-sQLJFUXsJBVarfPZxsZpGUWfeq4VpqaArR3ehlj4DYxKf1nOEDcsih4ZOdjN0N7lAUCQt3CZhMyZAWlDEfjlDVIZDVOSyoKv50PSWPuDnKbRVY1bzeUA7LGl4qd3cF-R5-lBwMOKvYqVJ8tKTmQi9K-yJkgBINW_0ZuEiR60clWqXETr5J-oRtct0f_vwS2Ndd86JVs3IQcleNGQc4c9RxC6WDE_7cUIbgzn9PSwm8bYyNPWWIy6YLXI4RcKlZYQYIewrzy_nuFWry_a3WPZbrEbIz2iRkA16Nke2ywMGKBt10F5Tmnxq7LRuC0AFU1EpX9CBHUcJippaBRFExN45VsZKOJVOVG82VgsKIO-qXvINWvR7cL4SZcth60pt9FQI1YMuGp0az6OLlnRHuo7iqapFf0nQo1zBsxJdVwjidB2BGwRYAY4w7EXdxLYtuoKo7q6DJqiFsnIagVbLyt6msdlytKcDRf06kxdPt3UctBio577OLFiuv3LCGTzO3jkRCquDdtZmqwP-QdgObvXED-vlw0M_i8VzaYz-TxxQc6t0onzuI-L_A_KZoXT2-BdoVUNWOL7_1U5jrk43KyinA6ZJhtOPPnJgB7b6WA5Nn_Bloe2kx1dsqnKff3mnJVkMlTtcWdOiwBAV1KQgduUnUQ1XS3O0xR6yS4ZwPG2JKNX0qQcqMPDkaczG1orE2utkLYFFBI-zgdb6zUvwaLo-CLjsM5RilDDTAz2CKtHEiOh2v-7hpghnr1t50pN80XRkxNlG2pDw_yffTwRFFqhxHPNTc9hi0vQ6T2sjabAz4uf4f8CTdg_oqv43DvDeoQfzWn-AIC3yfbz-VYOFJV_PwAquKrE82ZvjPehRIi4rELwWSSzMDNJJZ_IpQhDuv0yAIOq-HlIOf-xXx3Uq7VW50sr51WhZFPWCfNp5hL-eGSxh4uyWcH-s8Z4X8FpcIXSkSyXYvD-6zskUbTJtMGUPWvc_908v6Kodf6BltsKpndLTnpvTMU58fe3cZ7GAal1IS6-mXSpe0zxrQjhYT-cfmNrOouStdrLJOSzybcOGtj4UJztTBsnZ7wAxnQFdyeEfPw8VTd4YYudPwWuChMmGltbTxs9ewgkDaxbAPXXRBHmas1B2yXrbq9ydyOQg8OvnlfO4rr1KdYjiYLxg7vfg9jzB6P6kSa4c3zZkfUsuHBXEk9-FSwfndeBhGT68vuV2O7Wp9BUX1j5Mr-rpQ6-wy7qXGxZrfavkUzGtLNcCIz8OeWhcZNzVb2uKmtMQiWnK1TlXNUYl70ctArx7_QXt9b9rwMdhNaEC-O2InAFAjarcp1ZLH0s3rg6P4hBylECnJ6AhfsxUrDfANnWk2MBkiKwdaeT_pOoucUtX0etwea_ChAcGzx27YaQhCFHWbX3ZBbMjKyXWogXGy3HfKdXFmfJQoFWWkzZUp3FkfCv_Z_CSHI6OMFox7UfJKU4EMcaKVaK2E8Y9VRhi-m-efekAbPd19M6G2iPAyKDp9VbBKcAXAJr03cEZ55a5XhuHniUKblU4vR7OXKr2k-eDiUE5vpa5LSL_GZO5Ehcj6ZEawGucta6nFLpaUDf9ydfKDeWWuG49ZkpGBmsl21kCJZuA19YbreFAwFCK-7ZoclW_nwujly-JbpSoyd5n252oLl-72i5IYloJqwyxb0skG6g4ID-3RVJitPceylLYFJ5FrlNbzM2Dh6Jk7942I0BXhKzvgiUWHQo68rnCdApViWXEGPg2q7aj8rEKeywkQJ_RkGJffZyA7nzNmivo1vpOb5zObJA0Rz21PliH9Va2_v98wGxjUqzvifSY9ZuYIuhSoiSU8spgJ_vkLzdVm7O7odL6P4bSj1s5ElCvHW48mtprbgM6jMHMBtyvPl7TxJYaTy6mBtStRmUyUiPYgh_IipvJLSNQQGIYUVYvpT5HPjrKbceMkMql2rA4io23usLQ4L9hnjiTy6mhdOvj-7irTtNbb_ArZJwUcEDYe_THvcXnVk1GAX5BazIvVUNEiKtIZM2mpKM1ahNsQQdnRQk9XvtYV94jcvyUp4NSEWBIir9cKhab8rkP4H84ggcIeEbOCOhwbkuUG_fJb4ps5O4vn6TdA82oYhO3T4tHkm_-6hD-ppTQBWXBzc1P8gDsSEDyZOgG5t53nPUAolTm6oESLTjpyoxNvd57A50JEh_oupYXO7Vv6uDaAGMM-EGZpZt6DweOJRBG6W7PzD02xQ4ZNtb6dxGHqvQ1iZJxZ3lbbbA75zdKwEBjaMYi7HbQnWQ_mvhXFdluX895QkXyVpI1xK8NnjTuqQvpyva9-S0WMVydaURxWBBwdfqIRpsK_XBIb-ukzoT2o7tb0u_86qbu2Uodv9gbUaLMyfVvGrGN6hNYWArencbu1sLidEWWT84iIwZsXLjy2cJYEzoLJgliDqPJzY7y5H45cYaJVDGVysMMqvHt6WtlV80Br4VY0UUzxUXlxcdqzQkQZ-uK5NWIR6Iv2dWIAytxPkNWLciuDzDqanyN8ALG6JQAxB7TPZOD3Cq2_sxkPZ-QwVdRYonV2hZ-P3c5BiQWhgOkLFI7_LmObHVQEgcx7c5vuifk65bMNf26E_tcgQ586pBCeXMV8yuv1Bhgix96rSnEu2IbuK6cCO47gr96hS-fQAzGalWMfnXnimitFi-rkdY2S5NPf0BhH8TkU30PJUZauQSyIBi6Qh3wdiKA3Nb-wT8Y3E_GkorLM7tbmoFG4Rto7C4VeiPL6zw2ANDO6Z8TlU7WTj166_84bgo8K1OwUL_yC508t97_dfO8TrSTDhPa7SPmw6rWV_21y2Qqc8kQ4y19BYQnVChsYb20vp17idKyvICZjzXY58HW4UNjBcLiOejGp6fdaPh0Jzw2UkxwqKPDrSrCB9YoZZdc8zhJgbtkKM3wTyHJGq7otMkUu87QF0gSEbMNoRPYIlBllRa4_U8r3JDM_WlV4a7VXEfqdGicm1y3cckv-wjo7xXkTWoJRdeG7GKPQecFPTyuGAfGuDeWvCYMIOQnbfxIxUiUjHXjENJF4fqdlQU7vTIMh_Lln2dMW-mVMT9gnHyENPX5rpfg5z7AHKlWMnutdFG4oh49CjqNlWjoK9D-bux1KEQ08s2FOG4mQfI9aWLp2nAxznz5uKMRigg6ih01d5qMpDhvTNLLeYIASTg_a4HB9vr740LulKvEBeEQbAf9xNoBnKS3_JCVp7G6ZPB38rcXuJhn-Zu84dqkTOAp5wZEm9fpE6D-JBBGYyoOZwVu7tOz1gJMW3CKOf3097h0rzsnc39dWdGXA9lsDfGxtZA0MqafNRY8-MGQUioHcJWm9PSc59Ow27OLZa_dE0EReKt4NPjqk3ZhMSWPkeCEZhjb4ijA6KvH5oW61aMcaBDtGyWtBa7xbdscr1mR9XFi7c2p1HE2_ue2fwdabvEXHwfWSVbwtzS7hGhoU6xSvWzzTpEGdsWdgjlFyQszJRhgPlxVOQraCMCyigT56FR4eKait7Adi-NRSCQvMnRbpW_DHh8srCulkYFEwc4qGCXZ-INUmkOEEixielEnUCUQrN0HIVxiihaEG3x8rW81K-PgSCwPdTuvN9jp_qZ0tWk-sgYd8VGwwAcT4XjfW7_Dl7_Wcx60Rc0XyM6GZ1ccU6Oj17T0ipekZBXvFbUGJ93ThkaZDHfPl7W9yLHOO9q1Nr7QnLBLABGBqhtMuTg2eo57MhTHnjs-4og09WG_VYc-Dek20g45BNo3-IkppFe8KPK7h1ydFmo7oxS4nllJkmDL1kbnIIXRT41JQdJ8gzktkdHlu6Dxq1k60u9D0PR_OLSmq0bVAV8_rVwClwPdFfSAYRPxvSgF071UisQTbCJ30_nY7wf6AT7_lCH8Q7hs9LM5jDyTiakPE4RwNrz66ocHWTrkMrQdt8tKl7m2dxDN09eTPa_cBp46aGKDNKIkBfl9PF9tAAhjHBMBhvAugKxz48YU3c9ZFLCoWhn5M7zvVFCQZoKGqqQ-R2QYboLmzbUyWe5cqJ2qb9WdUqXTwQgG7jSzs220Agwx-7yTY3DbRWgvrseBHpwVpMS8cqzJXJZ-hdGZUNbi3rqw79iWERT8u2UK_Acr96Fp9TyiOSxqfeQFmiDqWKXGhpIL6SdKeUgAPHThwQ8YMXjfsU8B7jVgjmvMLroiF6MiC-QTvgKwIC_lZZNLhEjQKbGZhQo1oH76hf_mnxndxpVtlM1WQ9rAUu2jldrjaLMbgoV5J3Ja9xVz8TASlBfYbtzk0H0SxDt5RsSorgI4hsUCjZdxK-Jw5UIOSxwh4HD0D5Is1IoE7Q7FNh_KZRCCHLj3jo2GTKNw5gCawef8SUylCRQmeTQ8I3JcPyJFrQCY4tGGp93wpc2c7O8h9QvXs6eGvBqKql2J26yvjPaZM9xE-DX8er_Y7fArmSszNJhdIkgzciLCQzOY1ITkbnnALi2tK40wujYs1CPLZRUO7cTScX4huYsjIPntNBAsNAY9cyNT6_32l76nI9WPVJljwce_c1kU4_o1yeDc-i4f0Xq9IOUyrLlWmwA8ZysGnJ8U2DtJ-srPPaCqNdY5QXndXrI94HcH06Pksuq5RoOPgmsyF-kX4gKvTM4GfPjpyZ6GZxBIBPktJ0XZ13WcXz-0QNTX6OSb1RD6Qf0Ui2m-mOAlv3vT26iajj4_xXUGHM8NJhAEMFe792ZCrS7bdiA16_Pf9ijbiR5qxAzEiYD-UdA2vuLBiN-iMaGMmDNbFOlv-s0y4RV7JcaH4GnUQQBwGF3idjuRVI5OK7cc6rbZ1FHoQmJ-T6ZkyJsIsAGI_pKdl33IA7_qnJwK2Qih9dx_SOG-JHcosjS6cmz5T0djciMPSVYizocBNcaFrfWzU4LVY5xv6DOUGsmnwT3I37jHHQGhIaYlA50a5c5tSCD1DWOS31OxRIXU35qCdwCW9n-RnHLNglXNYDf9p4_JfTqx0b1M7QRvgO4zMQ7NGiMYC0pnxA2c13V8hgbNjYUSEBAuGiBHpTIW2Alhlewjffha7bKqmgDFSq85NGsqQ6t1GiA_3fjUBA6xjTnwHUUC4Llnyjtkr2Q55qOeyIFmvbyyEUea8qXz6O3heGEIw-o3BUIfrbb8O-JBpBJTzMhrtwMrG1NNy_OvToP25DRh_-ci2y-eaNr7ELDG6qC9uxkHwNd8eOEzVZyn4vgdEWVWjWLTmUDfNZaRGf7VytHh-K5PUHTQOA-nWq8VHehgUcc9LDyVH2MZMFshRF2tM5fcZb2PwB2rDSpGbiaR-01oxbLcaj6dsOG1Iy1rmEgOzieESVL4DMXAvWoHytmKug_xs14bsITvdgQyVL4HtLoFiO82ppiTEiKDODbi3cTgVly5odyMTrsc_JSyrPqgjDhdyNT7WIAoq5-ckJaVux61uc61eRQlSIptZJ59F7JLPNdww_gk278j3DLnANZdTqSpf9Q5feqjYQXZOZOoB2R0dgE4jNGJ6Mv9ch72opBfZ877A-acuxS0MxIJPMndbBrJSs2NSZ0mjQH2ssoVCFk7tWGIY_0JLG73BNKwcvhj4pk7-vg4-2n45dyOzoBuo1RfElOunTwQ2tJrBWveGgyuZMybTUmaUFDCpv58TRv4Q5uh8uF3pRTLD9F-mkKLPKYU80usorEFSIIOfP6kTsKUQzPfVjTW_qI2l0noHe666Ao0rd6rOrjx2lgMAMMcyVPPtNoApOY9K2VQWP_PCYAMUEF5qdNoArydkC7T2C403D189r0ueko2XUg_7CN00wLN91y5qiDo6clURL7cSNZ9LJj3uNTubPzJPjpB6sDqoCHJ9iSYy9CknOjFQqTrBnAd3SSPDQVhA8C1N7WhNFUVSLbe7E9_3jkz4b0IMY_RfC_oyPIGRRNcNVMNVwhehevX9IOYkUy3pz6evBtSpdYbx2sDbFDqGQ4Lrr__PnIxOthhG06xRgACL2mOIDvaX_hBcbAzItinje48Abh32VGrK3ZtT7Lq8YHsUm8RVzn0jm9w9bJz5XhBimzyD88QFQRu_QTX01O_ILy1qOZBBieJpIVQToJf-J_GH4VLj-Y6rIfp3aNfMrGkOHiEq-ZGMvM5Dlmk6gtx9RGeEgsAb2-00PZcogGm2WiaNNIwYWkcvYHJlUHH2clAz1J9hOe4lZl_KS1UGdwXVfpOG9zNAqnnlWgyNE-Urd2djqf8g0z7_uNzRmadBXilUrx5eBRcs927HgvCNulSx9qves-iMV1S2X1QU2l7DRtWdJ_BHJYETpMFOP9MCwct2pyvwf7z_zMJaS65_dEe0z6ww4aQgww7-xSyF7uj5gBVHT0fRzDa6Rbnvy9-5YZXhmmz35Mc6i3mGQ4_8wh2e-ZZOAtaNMjGguBOiHYeTBBKLQMHtuWpq70cyl0gHmGrTX_L_peqOSYMe9EcqdmvyJHHfkXErcMAI3kKy7QSDcRa52201Gk1aVAX-M6dHZWP18vYs5-rlbl1kWDCfeeWJzU5JmiMlMhrzZJSLuk0Jve27dvvTAp_D4ajZfRZW1pjLg99uzArPZf3DU_0ElB5y6QyxBhjh6pUlIjEPopjjcxOJXrOXWTZfD0Hm7MSVeLljjj-f5UqKf6PB5QoD2X8iIPgLVlzPyXe_C2ZR2Kq2CvZuQAzEjbjT_GA_FaJ9Uw065fwkcyd7l4d6ahTwcYwpkGTAFhddsg87cxaK8KXzdxPGhZg37xgUj-vZsVbZd_b1F6r1gpGnCKl1boqcpMMnkuwghn1s9awY5Qtsaz4YFAZLjhN2IKKCrI00tcrj1L46FfhAiaALL-r7VknFov4RtdfKsZBu6VgMw1Ayr_y77675D8E1coI9FDm1A9eDUBBGTz-4htJqoKkt-CEi3SOajzu1OYWAaGrbvv8DtEExJlTA6X6Neq6SW9qLDQh6CTeVq6AUyb27FoDIHX-ZIsosTSbzZxFU8PV6ESsRG121zB9g8g8sSdxjvJQIPJu8VzGuDaj5_UlmQ6txthK7fMvT8E4pmQLvmq9QwdvqohMaZNF3-BCI_g90ThwQO_wa6GzLdRhRtWxnRy6fyVGEeFybZcUqsWyC5tEPF_ZWhJ_IoCjRO1_Qxzfzg-pJNFZd9NhpDAedIQqveqMXiXS9eySHbxqL69axpjvZrNO2amSMSRrprzB9T91ceo4TV5rKDa9xWQkIDxGmufLJK2_hn44ZLYvBfglZbSR3SatPSa1F6s-npNo1dKDcFkMGNw2UDFVp114_shdqquV7zgedCHuWwSOc7eT4oBpJWfwp6bRHbafrxMA2EDUR9KFORSIECDFoNrMu38D8-nDhFOktE"
+	}
+}
