@@ -1,0 +1,10 @@
+{
+	"profiles": {
+		"UnoFileDownloader.Windows (Unpackaged)": {
+			"commandName": "Project"
+		},
+		"UnoFileDownloader.Windows (Package)": {
+			"commandName": "MsixPackage"
+		}
+	}
+}

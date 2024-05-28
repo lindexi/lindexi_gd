@@ -1,0 +1,229 @@
+﻿<Page x:Class="UnoFileDownloader.Presentation.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:UnoFileDownloader.Presentation"
+      xmlns:uen="using:Uno.Extensions.Navigation.UI"
+      xmlns:utu="using:Uno.Toolkit.UI"
+      xmlns:um="using:Uno.Material"
+      NavigationCacheMode="Required"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:models="using:UnoFileDownloader.Business.Models"
+      xmlns:converters="using:UnoFileDownloader.Presentation.Converters"
+      mc:Ignorable="d"
+      Background="{ThemeResource BackgroundBrush}" d:DataContext="{d:DesignInstance local:BindableMainModel}">
+
+  <Page.Resources>
+    <Style x:Key="TitleBarButtonStyle" BasedOn="{StaticResource PrimaryButtonStyle}" TargetType="Button">
+      <Setter Property="Padding" Value="0,0,0,0"></Setter>
+      <Setter Property="Width" Value="44" />
+      <Setter Property="Height" Value="44"></Setter>
+      <Setter Property="VerticalAlignment" Value="Stretch"></Setter>
+      <Setter Property="HorizontalAlignment" Value="Stretch"></Setter>
+    </Style>
+    <converters:VisibilityConverter x:Key="CollapsedWhenFalse" Visible="True" Collapsed="False"/>
+  </Page.Resources>
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="auto" />
+    </Grid.RowDefinitions>
+    <Grid Grid.Row="0" Height="44">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+      <AutoSuggestBox
+        x:Uid="MainPage_SearchBox"
+        Grid.Column="0"
+        Margin="4,0"
+        HorizontalAlignment="Stretch"
+        VerticalAlignment="Center"
+        PlaceholderText="[Search Downloads]"
+        FontFamily="Microsoft YaHei UI"
+        IsEnabled="False"/>
+      <Button
+        x:Uid="MainPage_NewTaskButton"
+        Grid.Column="1"
+        Style="{StaticResource TitleBarButtonStyle}"
+        AutomationProperties.Name="[New Task Button]"
+        ToolTipService.ToolTip="[New Task]"
+        Command="{Binding GotToNewTask}">
+        <Button.Content>
+          <SymbolIcon Symbol="Add" />
+        </Button.Content>
+      </Button>
+      <Button
+        x:Uid="MainPage_StartAllButton"
+        Grid.Column="2"
+        Style="{StaticResource TitleBarButtonStyle}"
+        AutomationProperties.Name="[Start All Button]"
+        IsEnabled="False"
+        ToolTipService.ToolTip="[Start All]">
+        <Button.Content>
+          <SymbolIcon Symbol="Play" />
+        </Button.Content>
+      </Button>
+      <Button
+        x:Uid="MainPage_PauseAllButton"
+        Grid.Column="3"
+        Style="{StaticResource TitleBarButtonStyle}"
+        AutomationProperties.Name="[Pause All Button]"
+        IsEnabled="False"
+        ToolTipService.ToolTip="[Pause All]">
+        <Button.Content>
+          <SymbolIcon Symbol="Pause" />
+        </Button.Content>
+      </Button>
+      <Button
+        x:Uid="MainPage_ClearListButton"
+        Grid.Column="4"
+        Style="{StaticResource TitleBarButtonStyle}"
+        AutomationProperties.Name="[Clear List Button]"
+        ToolTipService.ToolTip="[Clear List]"
+        Command="{Binding CleanDownloadList}">
+        <Button.Content>
+          <SymbolIcon Symbol="Delete" />
+        </Button.Content>
+      </Button>
+      <Button
+        x:Uid="MainPage_MoreButton"
+        Grid.Column="5"
+        Style="{StaticResource TitleBarButtonStyle}"
+        AutomationProperties.Name="[More Button]"
+        ToolTipService.ToolTip="[More]">
+        <Button.Content>
+          <SymbolIcon Symbol="More" />
+        </Button.Content>
+        <Button.Flyout>
+          <MenuFlyout Placement="BottomEdgeAlignedRight">
+            <MenuFlyoutItem Visibility="Collapsed"
+                            x:Uid="MainPage_OpenDownloadsFolderButton"
+                            Icon="Folder"
+                            Text="[Open Downloads Folder]" />
+            <MenuFlyoutItem Visibility="Collapsed"
+              x:Uid="MainPage_SettingsButton"
+              Icon="Setting"
+              Text="[Settings]" />
+            <MenuFlyoutItem
+              x:Uid="MainPage_AboutButton"
+              Icon="Help"
+              Text="[About]"
+              Command="{Binding GoToAbout}"/>
+          </MenuFlyout>
+        </Button.Flyout>
+      </Button>
+    </Grid>
+    <ListView
+      x:Name="TaskList"
+      Grid.Row="1"
+      ItemsSource="{Binding DownloadFileInfoViewList}"
+      >
+      <ListView.ItemContainerStyle>
+        <Style TargetType="ListViewItem">
+          <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+          <Setter Property="VerticalContentAlignment" Value="Stretch" />
+          <Setter Property="Padding" Value="1,0" />
+          <Setter Property="Margin" Value="-1,0,-1,-1" />
+          <Setter Property="BorderBrush" Value="Gray" />
+          <Setter Property="BorderThickness" Value="0 0 0 1" />
+        </Style>
+      </ListView.ItemContainerStyle>
+      <ListView.ItemTemplate>
+        <DataTemplate x:DataType="models:DownloadFileInfo">
+          <Grid Height="50">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+            <Grid
+              Grid.Column="0"
+              HorizontalAlignment="Stretch"
+              VerticalAlignment="Stretch">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="4*" />
+                <ColumnDefinition Width="100" />
+                <ColumnDefinition Width="300" />
+                <ColumnDefinition Width="100" />
+                <ColumnDefinition Width="200" />
+                <ColumnDefinition Width="50" />
+                <ColumnDefinition Width="50" />
+              </Grid.ColumnDefinitions>
+              <TextBlock
+                Grid.Column="0"
+                Margin="12,0"
+                VerticalAlignment="Center"
+                Text="{x:Bind FileName, Mode=OneTime}"
+                FontFamily="Microsoft YaHei UI"
+                TextTrimming="CharacterEllipsis" />
+              <TextBlock Grid.Column="1" VerticalAlignment="Center"
+                         Text="{Binding FileSize,Mode=OneWay}"/>
+              <TextBlock Grid.Column="2" VerticalAlignment="Center"
+                         Text="{Binding DownloadProcess,Mode=OneWay}"></TextBlock>
+              <TextBlock Grid.Column="3" VerticalAlignment="Center"
+                         Text="{Binding DownloadSpeed,Mode=OneWay}"></TextBlock>
+              <TextBlock Grid.Column="4" VerticalAlignment="Center"
+                         Text="{Binding AddedTime,Mode=OneWay}"></TextBlock>
+
+              <Button x:Name="DownloadItemOpenFileButton"
+                x:Uid="MainPage_DownloadItemOpenFileButton"
+                Grid.Column="5"
+                Style="{StaticResource TitleBarButtonStyle}"
+                AutomationProperties.Name="[Open Download Item File]"
+                Visibility="{Binding IsFinished,Converter={StaticResource CollapsedWhenFalse},Mode=OneWay}"
+                Click="DownloadItemOpenFileButton_OnClick">
+                <Button.Content>
+                  <SymbolIcon Symbol="OpenFile" />
+                </Button.Content>
+              </Button>
+              <Button x:Name="DownloadItemOpenContainFolderButton"
+                x:Uid="MainPage_DownloadItemOpenContainFolderButton"
+                Grid.Column="6"
+                Style="{StaticResource TitleBarButtonStyle}"
+                AutomationProperties.Name="[Open Contain Folder]"
+                Visibility="{Binding IsFinished,Converter={StaticResource CollapsedWhenFalse},Mode=OneWay}"
+                Click="DownloadItemOpenContainFolderButton_OnClick">
+                <Button.Content>
+                  <SymbolIcon Symbol="Folder" />
+                </Button.Content>
+              </Button>
+              <!--<Button
+                x:Uid="MainPage_More"
+                Grid.Column="7"
+                Style="{StaticResource TitleBarButtonStyle}"
+                AutomationProperties.Name="[More]">
+                <Button.Content>
+                  <SymbolIcon Symbol="More" />
+                </Button.Content>
+              </Button>-->
+             
+            </Grid>
+          </Grid>
+        </DataTemplate>
+      </ListView.ItemTemplate>
+    </ListView>
+    <TextBlock
+      x:Name="TaskListNoItemsTextBlock"
+      x:Uid="MainPage_TaskListNoItemsTextBlock"
+      Grid.Row="1"
+      Margin="16"
+      Text="[No Downloads]"
+      TextAlignment="Center"/>
+    <TextBlock
+      x:Name="GlobalStatusTextBlock"
+      Grid.Row="2"
+      Height="32"
+      Padding="4"
+      VerticalAlignment="Bottom"
+      FontSize="15"
+      Visibility="Collapsed"
+      Text="&#x2193; 0 Byte/s &#x2191; 0 Byte/s" />
+    <TextBlock Grid.Row="2" Margin="5 0 0 0" FontSize="10" 
+               Text="Powered By UNO Platform with C# dotnet"></TextBlock>
+  </Grid>
+</Page>

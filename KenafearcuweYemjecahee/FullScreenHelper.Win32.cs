@@ -343,5 +343,29 @@ namespace KenafearcuweYemjecahee
             /// </summary>
             WS_THICKFRAME = 0x00040000,
         }
+
+        [ComImport]
+        [Guid("602D4995-B13A-429b-A66E-1935E44F4317")]
+        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        private interface ITaskbarList2
+        {
+            [PreserveSig]
+            int HrInit();
+
+            [PreserveSig]
+            int AddTab(IntPtr hwnd);
+
+            [PreserveSig]
+            int DeleteTab(IntPtr hwnd);
+
+            [PreserveSig]
+            int ActivateTab(IntPtr hwnd);
+
+            [PreserveSig]
+            int SetActiveAlt(IntPtr hwnd);
+
+            [PreserveSig]
+            int MarkFullscreenWindow(IntPtr hwnd, [MarshalAs(UnmanagedType.Bool)] bool fFullscreen);
+        }
     }
 }

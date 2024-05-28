@@ -13,6 +13,20 @@ namespace KenafearcuweYemjecahee
     /// </summary>
     public static partial class FullScreenHelper
     {
+        public static void MarkFullscreenWindowTaskbarList(IntPtr hwnd, bool isFullscreen)
+        {
+            try
+            {
+                var CLSID_TaskbarList = new Guid("56FDF344-FD6D-11D0-958A-006097C9A090");
+                var obj = Activator.CreateInstance(Type.GetTypeFromCLSID(CLSID_TaskbarList));
+                (obj as ITaskbarList2)?.MarkFullscreenWindow(hwnd, isFullscreen);
+            }
+            catch
+            {
+                //应该不会挂
+            }
+        }
+
         /// <summary>
         /// 用于记录窗口全屏前位置的附加属性
         /// </summary>
@@ -80,6 +94,8 @@ namespace KenafearcuweYemjecahee
                     Win32.User32.SetWindowPos(hwnd, (IntPtr) HwndZOrder.HWND_TOP, rect.Left, rect.Top, rect.Width,
                         rect.Height, (int) WindowPositionFlags.SWP_NOZORDER);
                 }
+
+                MarkFullscreenWindowTaskbarList(hwnd, true);
             }
         }
 
@@ -166,6 +182,7 @@ namespace KenafearcuweYemjecahee
                 //删除保存的状态
                 window.ClearValue(BeforeFullScreenWindowPlacementProperty);
                 window.ClearValue(BeforeFullScreenWindowStyleProperty);
+                MarkFullscreenWindowTaskbarList(hwnd, false);
             }
         }
 

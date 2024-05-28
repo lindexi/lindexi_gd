@@ -9,6 +9,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
@@ -28,7 +29,7 @@ namespace KenafearcuweYemjecahee
 
         private void Button_OnClick(object sender, RoutedEventArgs e)
         {
-            var toggleButton = (ToggleButton)sender;
+            var toggleButton = (ToggleButton) sender;
 
             if (toggleButton.IsChecked is true)
             {
