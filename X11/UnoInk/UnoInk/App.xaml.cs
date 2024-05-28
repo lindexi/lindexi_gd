@@ -48,7 +48,8 @@ public partial class App : Application
 #if HAS_UNO
         // 这句话似乎也是无效的
         MainWindow.SetBackground(new SolidColorBrush(Colors.Transparent));
-        MainWindow.AppWindow.GetApplicationView().TryEnterFullScreenMode();
+        // 去掉全屏测试是否能够收到触摸
+        //MainWindow.AppWindow.GetApplicationView().TryEnterFullScreenMode();
 #endif
         // 这句话似乎才是关键
         Hacker.Do();
