@@ -1,6 +1,13 @@
+<<<<<<<< HEAD:WeefemwidaWawjiwewhe/App.xaml
+﻿<Application x:Class="WeefemwidaWawjiwewhe.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:WeefemwidaWawjiwewhe"
+========
 ﻿<Application x:Class="Laicairqechear.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+>>>>>>>> 6d7aae9cafeaffc475cdd5b151ec630f0d9f8ee8:Laicairqechear/Laicairqechear/Laicairqechear.WPF/App.xaml
              StartupUri="MainWindow.xaml">
     <Application.Resources>
          

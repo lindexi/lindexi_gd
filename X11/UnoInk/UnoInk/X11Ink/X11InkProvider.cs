@@ -131,7 +131,7 @@ class X11InkWindow
             //override_redirect = true, // 设置窗口的override_redirect属性为True，以避免窗口管理器的干预
             colormap = XCreateColormap(display, rootWindow, visual, 0),
             border_pixel = 0,
-            background_pixel = new IntPtr(0x65565656),
+            background_pixel = IntPtr.Zero,
         };
 
         var childWindowHandle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, xDisplayHeight, 5,
@@ -146,6 +146,7 @@ class X11InkWindow
         XSelectInput(display, childWindowHandle, mask);
 
         // 设置不接受输入
+        // 这样输入穿透到后面一层里，由后面一层将内容上报上来
         var region = XCreateRegion();
         XShapeCombineRegion(display, childWindowHandle, ShapeInput, 0, 0, region, ShapeSet); 
 

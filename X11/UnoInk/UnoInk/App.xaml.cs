@@ -1,8 +1,19 @@
 using System;
-
+using System.Reflection;
+using Windows.Graphics;
 using Microsoft.Extensions.Logging;
+using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Uno.Resizetizer;
+using UnoHacker;
+using Windows.UI.ViewManagement;
+using Microsoft.UI.Xaml;
+using UnoInk.UnoInkCore;
+
+
+#if HAS_UNO
+using Uno.UI.Xaml;
+#endif
 
 namespace UnoInk;
 public partial class App : Application
@@ -20,12 +31,31 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        //ShowSecondWindow();
+        
+        var unoInkWindow = new UnoInkFullScreenWindow();
+        unoInkWindow.Activate();
+        return;
+        
+        Console.WriteLine($"Before new Window");
         MainWindow = new Window();
-       //var a = (OverlappedPresenter) MainWindow.AppWindow.Presenter;
+        Console.WriteLine($"After new Window");
 #if DEBUG
         MainWindow.EnableHotReload();
 #endif
+        // 这里导致没有触摸，因为没有使用控件
+        //MainWindow.Content = new Grid()
+        //{
+        //    // 只靠这里是不够
+        //    Background = new SolidColorBrush(Colors.Transparent)
+        //};
 
+#if HAS_UNO
+        // 这句话似乎也是无效的
+        MainWindow.SetBackground(new SolidColorBrush(Colors.Transparent));
+        MainWindow.AppWindow.GetApplicationView().TryEnterFullScreenMode();
+#endif
+     
 
         // Do not repeat app initialization when the Window already has content,
         // just ensure that the window is active
@@ -33,6 +63,7 @@ public partial class App : Application
         {
             // Create a Frame to act as the navigation context and navigate to the first page
             rootFrame = new Frame();
+            rootFrame.Background = new SolidColorBrush(Colors.Transparent);
 
             // Place the frame in the current Window
             MainWindow.Content = rootFrame;
@@ -48,9 +79,32 @@ public partial class App : Application
             rootFrame.Navigate(typeof(MainPage), args.Arguments);
         }
 
+        // 背景透明需要 UNO 还没发布的版本
+        // https://github.com/lindexi/uno/tree/7b282851a8ec3ed7eb42a53af8b50ea7fe045d56
+        // 这句话似乎才是关键，设置窗口背景透明。通过 MainWindow.SetBackground 配置是无效的
+        Hacker.Do();
+
         MainWindow.SetWindowIcon();
+        //Console.WriteLine($"Before Activate");
         // Ensure the current window is active
         MainWindow.Activate();
+        //// 此时 x11 窗口已创建
+        //var unoX11Window = GetUnoX11Window(MainWindow);
+        //Console.WriteLine($"After Activate X11:{unoX11Window}");
+
+    }
+
+
+    IntPtr GetUnoX11Window(Window unoWindow)
+    {
+        var type = unoWindow.GetType();
+        var nativeWindowPropertyInfo = type.GetProperty("NativeWindow", BindingFlags.Instance | BindingFlags.NonPublic);
+        var x11Window = nativeWindowPropertyInfo!.GetMethod!.Invoke(unoWindow, null)!;
+        // Uno.WinUI.Runtime.Skia.X11.X11Window
+        var x11WindowType = x11Window.GetType();
+
+        var x11WindowIntPtr = (IntPtr) x11WindowType.GetProperty("Window", BindingFlags.Instance | BindingFlags.Public)!.GetMethod!.Invoke(x11Window, null)!;
+        return x11WindowIntPtr;
     }
 
     /// <summary>

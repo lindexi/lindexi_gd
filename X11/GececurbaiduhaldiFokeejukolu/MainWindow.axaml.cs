@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Threading.Tasks;
 
 using Avalonia;
@@ -30,7 +30,7 @@ public partial class MainWindow : Window
 
     private void MainWindow_Loaded(object? sender, RoutedEventArgs e)
     {
-        // ·½±ãµ÷ÊÔ
+        // æ–¹ä¾¿è°ƒè¯•
         StartInkMode();
     }
 
@@ -52,8 +52,8 @@ public partial class MainWindow : Window
         {
             if (TryGetPlatformHandle()?.Handle is { } handle)
             {
-                // ´Ë handle ¾ÍÊÇ X11 ´°¿ÚµÄ
-                // Í¨¹ı xdotool set_window --name "Foo" {handle} ¿ÉÒÔÉèÖÃ´°¿Ú±êÌâ
+                // æ­¤ handle å°±æ˜¯ X11 çª—å£çš„
+                // é€šè¿‡ xdotool set_window --name "Foo" {handle} å¯ä»¥è®¾ç½®çª—å£æ ‡é¢˜
                 Console.WriteLine(handle);
 
                 var app = new BujeeberehemnaNurgacolarje.X11App();

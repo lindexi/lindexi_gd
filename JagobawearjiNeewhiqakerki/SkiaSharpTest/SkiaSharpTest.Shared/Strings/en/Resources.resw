@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -117,7 +117,12 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+<<<<<<<< HEAD:UnoDemo/UnoFileDownloader/UnoFileDownloader.Windows/Resources.lang-en-us.resw
+  <data name="Placeholder" xml:space="preserve">
+    <value>Hello World!</value>
+========
   <data name="ApplicationName" xml:space="preserve">
     <value>SkiaSharpTest</value>
+>>>>>>>> 6d7aae9cafeaffc475cdd5b151ec630f0d9f8ee8:JagobawearjiNeewhiqakerki/SkiaSharpTest/SkiaSharpTest.Shared/Strings/en/Resources.resw
   </data>
 </root>

@@ -1,24 +1,36 @@
-using System.Diagnostics;
-using Windows.Foundation;
-using BujeeberehemnaNurgacolarje;
-using Microsoft.UI;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
+
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Navigation;
+
+using Windows.Foundation;
+using Windows.Foundation.Collections;
+using BujeeberehemnaNurgacolarje;
 using ReewheaberekaiNayweelehe;
 using SkiaSharp;
-using UnoInk.InkCore;
+using SkiaSharp.Views.Windows;
 using UnoInk.X11Ink;
 using Rect = Microsoft.Maui.Graphics.Rect;
-using SkiaSharp.Views.Windows;
-using Microsoft.UI.Xaml.Controls;
 
-namespace UnoInk;
+// The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
-public sealed partial class MainPage : Page
+namespace UnoInk.UnoInkCore;
+
+public sealed partial class UnoInkCanvasUserControl : UserControl
 {
-    public MainPage()
+    public UnoInkCanvasUserControl()
     {
         this.InitializeComponent();
-
+        
         Loaded += MainPage_Loaded;
     }
 
@@ -203,4 +215,5 @@ public sealed partial class MainPage : Page
                 canvas.ApplicationDrawingSkBitmap.Height));
         });
     }
+
 }

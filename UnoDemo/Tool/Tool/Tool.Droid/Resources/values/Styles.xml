@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <resources>
 	<style name="AppTheme" parent="Theme.AppCompat.Light">
 
@@ -9,4 +9,9 @@
 		<item name="android:windowNoTitle">true</item>
 
 	</style>
+	<style name="Theme.AppCompat.Translucent">
+		<item name="android:windowIsTranslucent">true</item>
+		<item name="android:windowAnimationStyle">@android:style/Animation</item>
+	</style>
+
 </resources>
