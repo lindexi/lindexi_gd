@@ -5,6 +5,7 @@ using Windows.Foundation;
 using CPF.Linux;
 using ReewheaberekaiNayweelehe;
 using SkiaSharp;
+using Uno.UI.Xaml;
 using static CPF.Linux.XFixes;
 using static CPF.Linux.XLib;
 using static CPF.Linux.ShapeConst;
@@ -51,9 +52,13 @@ internal class X11InkProvider
     [MemberNotNull(nameof(_x11InkWindow))]
     public void Start(Window unoWindow)
     {
+#if HAS_UNO
+        var x11Window = unoWindow.GetNativeWindow()!;
+#else
         var type = unoWindow.GetType();
         var nativeWindowPropertyInfo = type.GetProperty("NativeWindow", BindingFlags.Instance | BindingFlags.NonPublic);
         var x11Window = nativeWindowPropertyInfo!.GetMethod!.Invoke(unoWindow, null)!;
+#endif
         // Uno.WinUI.Runtime.Skia.X11.X11Window
         var x11WindowType = x11Window.GetType();
 
