@@ -179,7 +179,7 @@ public sealed partial class MainPage : Page
 
     private void SkXamlCanvas_OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
-        Console.WriteLine($"执行绘制");
+        //Console.WriteLine($"执行绘制");
 
         using var skPaint = new SKPaint();
         skPaint.StrokeWidth = 0.1f;
