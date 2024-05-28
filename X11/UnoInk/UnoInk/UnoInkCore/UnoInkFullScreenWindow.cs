@@ -4,8 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.UI;
-using Uno.UI.Xaml;
 using UnoHacker;
+
+#if HAS_UNO
+using Uno.UI.Xaml;
+#endif
 
 namespace UnoInk.UnoInkCore;
 
