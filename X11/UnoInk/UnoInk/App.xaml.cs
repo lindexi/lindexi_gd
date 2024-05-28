@@ -48,6 +48,9 @@ public partial class App : Application
         // 这句话似乎也是无效的
         MainWindow.SetBackground(new SolidColorBrush(Colors.Transparent));
 #endif
+        // 这句话似乎才是关键
+        Hacker.Do();
+
 
         //// Do not repeat app initialization when the Window already has content,
         //// just ensure that the window is active
