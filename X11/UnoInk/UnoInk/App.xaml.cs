@@ -45,7 +45,7 @@ public partial class App : Application
 
 #if HAS_UNO
 
-        // Do nothing in Skia.Gtk
+        // 这句话似乎也是无效的
         MainWindow.SetBackground(new SolidColorBrush(Colors.Transparent));
 #endif
 
