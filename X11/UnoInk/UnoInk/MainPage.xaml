@@ -4,7 +4,7 @@
       xmlns:local="using:UnoInk"
       xmlns:um="using:Uno.Material"
       xmlns:windows="using:SkiaSharp.Views.Windows"
-      Background="{ThemeResource BackgroundBrush}">
+      Background="Transparent">
 
   <Grid>
     <TextBlock x:Name="LogTextBlock" TextWrapping="Wrap"/>
