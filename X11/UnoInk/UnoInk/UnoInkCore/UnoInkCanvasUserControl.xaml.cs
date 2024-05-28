@@ -86,7 +86,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             // 简单的丢点
             return;
         }
-
+        
         _lastPoint = position;
         //if (_inkInfoCache.TryGetValue(e.Pointer.PointerId, out var inkInfo))
         //{

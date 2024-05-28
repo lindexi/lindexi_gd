@@ -30,6 +30,8 @@ class X11PlatformThreading
     private X11Info X11Info { get; }
     public X11InkProvider X11InkProvider { get; }
     
+    public bool HasThreadAccess => ReferenceEquals(Thread.CurrentThread, _eventsThread);
+
     private void RunInner()
     {
         var display = X11Info.Display;
