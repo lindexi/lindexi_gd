@@ -10,8 +10,10 @@ namespace UnoHacker;
 
 public static class ApplicationViewExtension
 {
+#if HAS_UNO
     public static ApplicationView GetApplicationView(this AppWindow appWindow) =>
         ApplicationView.GetForWindowId(appWindow.Id);
+#endif
 }
 
 public static class Hacker

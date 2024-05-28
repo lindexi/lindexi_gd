@@ -84,10 +84,11 @@ public partial class App : Application
             }
         };
 
-        window.AppWindow.GetApplicationView().TryEnterFullScreenMode();
 
         //ApplicationView.GetForCurrentView().TryEnterFullScreenMode();
 #if HAS_UNO
+        window.AppWindow.GetApplicationView().TryEnterFullScreenMode();
+
         // Do nothing in Skia.Gtk
         window.SetBackground(new SolidColorBrush(Colors.Transparent));
 #endif
