@@ -6,6 +6,8 @@ using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Uno.Resizetizer;
 using UnoHacker;
+using Windows.UI.ViewManagement;
+
 
 #if HAS_UNO
 using Uno.UI.Xaml;
@@ -29,48 +31,48 @@ public partial class App : Application
     {
         ShowSecondWindow();
 
-//        Console.WriteLine($"Before new Window");
-//        MainWindow = new Window();
-//        Console.WriteLine($"After new Window");
-//#if DEBUG
-//        MainWindow.EnableHotReload();
-//#endif
-//        MainWindow.Content = new Grid()
-//        {
-//            Background = new SolidColorBrush(Colors.White)
-//        };
+        //        Console.WriteLine($"Before new Window");
+        //        MainWindow = new Window();
+        //        Console.WriteLine($"After new Window");
+        //#if DEBUG
+        //        MainWindow.EnableHotReload();
+        //#endif
+        //        MainWindow.Content = new Grid()
+        //        {
+        //            Background = new SolidColorBrush(Colors.White)
+        //        };
 
-//        //// Do not repeat app initialization when the Window already has content,
-//        //// just ensure that the window is active
-//        //if (MainWindow.Content is not Frame rootFrame)
-//        //{
-//        //    // Create a Frame to act as the navigation context and navigate to the first page
-//        //    rootFrame = new Frame();
+        //        //// Do not repeat app initialization when the Window already has content,
+        //        //// just ensure that the window is active
+        //        //if (MainWindow.Content is not Frame rootFrame)
+        //        //{
+        //        //    // Create a Frame to act as the navigation context and navigate to the first page
+        //        //    rootFrame = new Frame();
 
-//        //    // Place the frame in the current Window
-//        //    MainWindow.Content = rootFrame;
+        //        //    // Place the frame in the current Window
+        //        //    MainWindow.Content = rootFrame;
 
-//        //    rootFrame.NavigationFailed += OnNavigationFailed;
-//        //}
+        //        //    rootFrame.NavigationFailed += OnNavigationFailed;
+        //        //}
 
-//        //if (rootFrame.Content == null)
-//        //{
-//        //    // When the navigation stack isn't restored navigate to the first page,
-//        //    // configuring the new page by passing required information as a navigation
-//        //    // parameter
-//        //    rootFrame.Navigate(typeof(MainPage), args.Arguments);
-//        //}
+        //        //if (rootFrame.Content == null)
+        //        //{
+        //        //    // When the navigation stack isn't restored navigate to the first page,
+        //        //    // configuring the new page by passing required information as a navigation
+        //        //    // parameter
+        //        //    rootFrame.Navigate(typeof(MainPage), args.Arguments);
+        //        //}
 
-//        MainWindow.SetWindowIcon();
-//        Console.WriteLine($"Before Activate");
-//        // Ensure the current window is active
-//        MainWindow.Activate();
-//        //// 此时 x11 窗口已创建
-//        //var unoX11Window = GetUnoX11Window(MainWindow);
-//        //Console.WriteLine($"After Activate X11:{unoX11Window}");
-        
+        //        MainWindow.SetWindowIcon();
+        //        Console.WriteLine($"Before Activate");
+        //        // Ensure the current window is active
+        //        MainWindow.Activate();
+        //        //// 此时 x11 窗口已创建
+        //        //var unoX11Window = GetUnoX11Window(MainWindow);
+        //        //Console.WriteLine($"After Activate X11:{unoX11Window}");
+
     }
-    
+
     private void ShowSecondWindow()
     {
         // 第二个窗口也是会闪烁，也就是只要是窗口就会闪烁
@@ -81,7 +83,12 @@ public partial class App : Application
                 Background = new SolidColorBrush(Colors.Transparent)
             }
         };
+
+
+        //ApplicationView.GetForCurrentView().TryEnterFullScreenMode();
 #if HAS_UNO
+        window.AppWindow.GetApplicationView().TryEnterFullScreenMode();
+
         // Do nothing in Skia.Gtk
         window.SetBackground(new SolidColorBrush(Colors.Transparent));
 #endif
@@ -97,7 +104,7 @@ public partial class App : Application
         var nativeWindow = window.GetNativeWindow();
         Console.WriteLine($"GetNativeWindow={nativeWindow}");
 #endif
-        
+
         Hacker.Do();
     }
 
@@ -108,7 +115,7 @@ public partial class App : Application
         var x11Window = nativeWindowPropertyInfo!.GetMethod!.Invoke(unoWindow, null)!;
         // Uno.WinUI.Runtime.Skia.X11.X11Window
         var x11WindowType = x11Window.GetType();
-        
+
         var x11WindowIntPtr = (IntPtr) x11WindowType.GetProperty("Window", BindingFlags.Instance | BindingFlags.Public)!.GetMethod!.Invoke(x11Window, null)!;
         return x11WindowIntPtr;
     }
