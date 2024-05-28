@@ -48,6 +48,7 @@ public sealed partial class MainPage : Page
 
         LogTextBlock.Text += $"按下： {e.Pointer.PointerId}\r\n";
         //LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
+        Console.WriteLine($"按下： {e.Pointer.PointerId}");
 
         InvokeAsync(canvas => canvas.Down(ToInkingInputInfo(e)));
     }
