@@ -9,9 +9,9 @@ using UnoHacker;
 
 namespace UnoInk.UnoInkCore;
 
-public partial class UnoInkWindow : Window
+public partial class UnoInkFullScreenWindow : Window
 {
-    public UnoInkWindow()
+    public UnoInkFullScreenWindow()
     {
 #if DEBUG
         this.EnableHotReload();
