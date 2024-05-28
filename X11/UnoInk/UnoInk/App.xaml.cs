@@ -8,7 +8,7 @@ using Uno.Resizetizer;
 using UnoHacker;
 using Windows.UI.ViewManagement;
 using Microsoft.UI.Xaml;
-
+using UnoInk.UnoInkCore;
 
 
 #if HAS_UNO
@@ -32,7 +32,11 @@ public partial class App : Application
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         //ShowSecondWindow();
-
+        
+        var unoInkWindow = new UnoInkWindow();
+        unoInkWindow.Activate();
+        return;
+        
         Console.WriteLine($"Before new Window");
         MainWindow = new Window();
         Console.WriteLine($"After new Window");
