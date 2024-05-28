@@ -1,9 +1,18 @@
+
+using Windows.UI.ViewManagement;
+using Microsoft.UI.Windowing;
 #if HAS_UNO
 using Windows.UI;
 using Uno.UI.Xaml.Core;
 #endif
 
 namespace UnoHacker;
+
+public static class ApplicationViewExtension
+{
+    public static ApplicationView GetApplicationView(this AppWindow appWindow) =>
+        ApplicationView.GetForWindowId(appWindow.Id);
+}
 
 public static class Hacker
 {
