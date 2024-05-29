@@ -35,9 +35,6 @@ public partial class App : Application
         //ShowSecondWindow();
         
         var unoInkWindow = new UnoInkFullScreenWindow();
-        
-        unoInkWindow.AppWindow.Move();
-
         unoInkWindow.Activate();
         return;
         
