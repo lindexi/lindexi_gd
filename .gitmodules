@@ -32,5 +32,5 @@
 	path = MediaWPF
 	url = https://github.com/qian-o/MediaWPF.git
 [submodule "StevenGieselBlog"]
-	path = StevenGieselBlog
+	path = Blog/StevenGieselBlog
 	url = https://github.com/linkdotnet/Blog.git
