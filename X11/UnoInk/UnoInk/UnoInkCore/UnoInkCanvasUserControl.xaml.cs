@@ -89,7 +89,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
         LogTextBlock.Text += $"按下： {e.Pointer.PointerId}\r\n";
         //LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
-        Console.WriteLine($"按下： {e.Pointer.PointerId}");
+        //Console.WriteLine($"按下： {e.Pointer.PointerId}");
 
         InvokeAsync(canvas => canvas.Down(ToInkingInputInfo(e)));
     }
@@ -228,7 +228,8 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         skPaint.IsAntialias = true;
         skPaint.FilterQuality = SKFilterQuality.High;
         skPaint.Style = SKPaintStyle.Fill;
-        skPaint.Color = new SKColor(0xC5, 0x20, 0x00);
+        skPaint.Color = _x11InkProvider?.InkWindow.SkInkCanvas.Color ?? new SKColor(0xC5, 0x20, 0x00);
+     
 
         foreach (var skPath in _skPathList)
         {

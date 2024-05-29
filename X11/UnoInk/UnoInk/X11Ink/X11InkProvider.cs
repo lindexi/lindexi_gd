@@ -126,7 +126,7 @@ class X11InkWindow : X11Window
         ShowActive();
 
         // 进入全屏
-        EnterFullScreen(topmost: false);
+        EnterFullScreen(topmost: false/*这里必须设置为false否则UNO窗口将不会渲染*/);
 
         var skBitmap = new SKBitmap(xDisplayWidth, xDisplayHeight, SKColorType.Bgra8888, SKAlphaType.Premul);
         _skBitmap = skBitmap;
