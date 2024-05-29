@@ -1,20 +1,16 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.Versioning;
-using Windows.Foundation;
 using CPF.Linux;
 using ReewheaberekaiNayweelehe;
 using SkiaSharp;
 using Uno.UI.Xaml;
-using static CPF.Linux.XFixes;
+using UnoInk.Inking.X11Platforms;
+using UnoInk.Inking.X11Platforms.Threading;
 using static CPF.Linux.XLib;
-using static CPF.Linux.ShapeConst;
-using Uno.Extensions;
-using UnoInk.X11Platforms;
-using UnoInk.X11Platforms.Threading;
-using X11Info = UnoInk.X11Platforms.X11Info;
+using X11Info = UnoInk.Inking.X11Platforms.X11Info;
 
-namespace UnoInk.X11Ink;
+namespace UnoInk.Inking.X11Ink;
 
 //interface IX11WindowManager
 
