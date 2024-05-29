@@ -31,3 +31,6 @@
 [submodule "MediaWPF"]
 	path = MediaWPF
 	url = https://github.com/qian-o/MediaWPF.git
+[submodule "StevenGieselBlog"]
+	path = StevenGieselBlog
+	url = https://github.com/linkdotnet/Blog.git
