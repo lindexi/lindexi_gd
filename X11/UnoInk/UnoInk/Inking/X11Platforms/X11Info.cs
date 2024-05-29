@@ -1,7 +1,7 @@
 using static CPF.Linux.XLib;
 namespace UnoInk.Inking.X11Platforms;
 
-public record X11Info(IntPtr Display, int Screen, IntPtr RootWindow)
+public record X11InfoManager(IntPtr Display, int Screen, IntPtr RootWindow)
 {
     public int XDisplayWidth => _xDisplayWidth ??= XDisplayWidth(Display, Screen);
     private int? _xDisplayWidth;

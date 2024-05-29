@@ -28,7 +28,7 @@ public class X11PlatformThreading
         _eventsThread.Start();
     }
     
-    private X11Info X11Info => _x11Application.X11Info;
+    private X11InfoManager X11Info => _x11Application.X11Info;
 
     public bool HasThreadAccess => ReferenceEquals(Thread.CurrentThread, _eventsThread);
 

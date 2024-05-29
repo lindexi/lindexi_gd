@@ -28,11 +28,11 @@ public class X11Application
         
         var rootWindow = XDefaultRootWindow(display);
         
-        var x11Info = new X11Info(display, screen, rootWindow);
+        var x11Info = new X11InfoManager(display, screen, rootWindow);
         X11Info = x11Info;
     }
 
-    public X11Info X11Info { get; }
+    public X11InfoManager X11Info { get; }
 
     [MemberNotNull(nameof(X11PlatformThreading))]
     public void Start()
