@@ -37,7 +37,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Packaging.DebUOS" Version="1.2.1-alpha25">
+    <None Include="Test.sh">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Packaging.DebUOS" Version="3.16.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
