@@ -95,19 +95,6 @@ public partial class App : Application
 
     }
 
-
-    IntPtr GetUnoX11Window(Window unoWindow)
-    {
-        var type = unoWindow.GetType();
-        var nativeWindowPropertyInfo = type.GetProperty("NativeWindow", BindingFlags.Instance | BindingFlags.NonPublic);
-        var x11Window = nativeWindowPropertyInfo!.GetMethod!.Invoke(unoWindow, null)!;
-        // Uno.WinUI.Runtime.Skia.X11.X11Window
-        var x11WindowType = x11Window.GetType();
-
-        var x11WindowIntPtr = (IntPtr) x11WindowType.GetProperty("Window", BindingFlags.Instance | BindingFlags.Public)!.GetMethod!.Invoke(x11Window, null)!;
-        return x11WindowIntPtr;
-    }
-
     /// <summary>
     /// Invoked when Navigation to a certain page fails
     /// </summary>
