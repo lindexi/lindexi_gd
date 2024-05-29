@@ -175,7 +175,7 @@ public class X11Window
             new IntPtr((int) (EventMask.SubstructureRedirectMask | EventMask.SubstructureNotifyMask)), ref xev);
     }
 
-    public void EnterFullScreen()
+    public void EnterFullScreen(bool topmost)
     {
         // 下面是进入全屏
         var display = X11Info.Display;
@@ -193,8 +193,12 @@ public class X11Window
         ChangeWMAtoms(true, XInternAtom(display, "_NET_WM_STATE_FULLSCREEN", true));
         ChangeWMAtoms(false, XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_VERT", true), XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_HORZ", true));
         
-        //var topmostAtom = XInternAtom(display, "_NET_WM_STATE_ABOVE", true);
-        //SendNetWMMessage(X11Info.WMStateAtom, new IntPtr(1), topmostAtom);
+        if (topmost)
+        {
+            // 在 UNO 下，将会导致停止渲染
+            var topmostAtom = XInternAtom(display, "_NET_WM_STATE_ABOVE", true);
+            SendNetWMMessage(X11Info.WMStateAtom, new IntPtr(1), topmostAtom);
+        }
     }
 }
 
