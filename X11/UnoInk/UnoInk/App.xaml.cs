@@ -10,11 +10,7 @@ using Windows.UI.ViewManagement;
 using Microsoft.UI.Xaml;
 using UnoInk.Inking.UnoInkCore;
 using UnoInk.UnoInkCore;
-
-
-#if HAS_UNO
 using Uno.UI.Xaml;
-#endif
 
 namespace UnoInk;
 public partial class App : Application
