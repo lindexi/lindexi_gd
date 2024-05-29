@@ -84,7 +84,7 @@ internal class X11InkProvider : X11Application
             // 这里可能是创建窗口内部进来的，比如全屏
             return;
         }
-        
+
         if (@event.type == XEventName.Expose)
         {
             if (@event.ExposeEvent.window == InkWindow.X11InkWindowIntPtr)
@@ -126,7 +126,7 @@ class X11InkWindow : X11Window
         ShowActive();
 
         // 进入全屏
-        EnterFullScreen();
+        EnterFullScreen(topmost: false);
 
         var skBitmap = new SKBitmap(xDisplayWidth, xDisplayHeight, SKColorType.Bgra8888, SKAlphaType.Premul);
         _skBitmap = skBitmap;
