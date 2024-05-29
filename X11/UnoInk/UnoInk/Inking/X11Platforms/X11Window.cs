@@ -20,7 +20,7 @@ public class X11Window
 
     public X11Application Application { get; }
     public IntPtr X11WindowIntPtr { get; }
-    private X11Info X11Info => Application.X11Info;
+    private X11InfoManager X11Info => Application.X11Info;
 
     public IntPtr GC => _gc ??= XCreateGC(X11Info.Display, X11WindowIntPtr, 0, 0);
 

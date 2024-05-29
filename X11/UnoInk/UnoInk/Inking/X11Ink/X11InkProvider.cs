@@ -8,7 +8,6 @@ using Uno.UI.Xaml;
 using UnoInk.Inking.X11Platforms;
 using UnoInk.Inking.X11Platforms.Threading;
 using static CPF.Linux.XLib;
-using X11Info = UnoInk.Inking.X11Platforms.X11Info;
 
 namespace UnoInk.Inking.X11Ink;
 
@@ -184,7 +183,7 @@ class X11InkWindow : X11Window
 
     public X11PlatformThreading X11PlatformThreading { get; }
 
-    private readonly X11Info _x11Info;
+    private readonly X11InfoManager _x11Info;
     private readonly IntPtr _mainWindowHandle;
     private readonly SKBitmap _skBitmap;
     private readonly SKCanvas _skCanvas;
