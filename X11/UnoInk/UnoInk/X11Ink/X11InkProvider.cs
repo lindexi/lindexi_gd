@@ -117,8 +117,8 @@ class X11InkWindow : X11Window
         // 设置一定放在输入的窗口上方
         SetOwner(mainWindowHandle);
 
-        // 进入全屏
-        EnterFullScreen(); 
+        //// 进入全屏
+        //EnterFullScreen();
 
         ShowActive();
 
