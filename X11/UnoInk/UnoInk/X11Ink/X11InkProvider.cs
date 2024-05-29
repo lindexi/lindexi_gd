@@ -51,7 +51,7 @@ internal class X11InkProvider : X11Application
             (IntPtr) x11WindowType.GetProperty("Window", BindingFlags.Instance | BindingFlags.Public)!.GetMethod!.Invoke(
                 x11Window, null)!;
 
-        Console.WriteLine($"Uno 窗口句柄 {x11WindowIntPtr}");
+        //Console.WriteLine($"Uno 窗口句柄 {x11WindowIntPtr}");
 
         var x11InkWindow = new X11InkWindow(this, x11WindowIntPtr);
         _x11InkWindow = x11InkWindow;
@@ -79,6 +79,12 @@ internal class X11InkProvider : X11Application
 
     internal override void DispatchEvent(XEvent @event)
     {
+        if (_x11InkWindow is null)
+        {
+            // 这里可能是创建窗口内部进来的，比如全屏
+            return;
+        }
+        
         if (@event.type == XEventName.Expose)
         {
             if (@event.ExposeEvent.window == InkWindow.X11InkWindowIntPtr)
@@ -117,10 +123,10 @@ class X11InkWindow : X11Window
         // 设置一定放在输入的窗口上方
         SetOwner(mainWindowHandle);
 
-        // 进入全屏
-        EnterFullScreen(); 
-
         ShowActive();
+
+        // 进入全屏
+        EnterFullScreen();
 
         var skBitmap = new SKBitmap(xDisplayWidth, xDisplayHeight, SKColorType.Bgra8888, SKAlphaType.Premul);
         _skBitmap = skBitmap;
