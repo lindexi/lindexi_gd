@@ -59,7 +59,7 @@ internal class X11InkProvider: X11Application
     {
         get
         {
-            EnsureStart();
+            EnsureX11Start();
             return _x11InkWindow;
         }
     }
@@ -67,7 +67,7 @@ internal class X11InkProvider: X11Application
     private X11InkWindow? _x11InkWindow;
 
     [MemberNotNull(nameof(_x11InkWindow))]
-    private void EnsureStart()
+    private void EnsureX11Start()
     {
         if (_x11InkWindow is null)
         {
