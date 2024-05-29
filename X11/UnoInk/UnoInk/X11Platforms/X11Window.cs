@@ -106,11 +106,97 @@ public class X11Window
         return x11Window;
     }
     
-    
     public IDispatcher GetDispatcher()
         => new X11InkWindowDispatcher(this);
-}
 
+    public void ShowTaskbarIcon(bool value)
+    {
+        var _NET_WM_STATE_SKIP_TASKBAR = XInternAtom(X11Info.Display, "_NET_WM_STATE_SKIP_TASKBAR", false);
+        ChangeWMAtoms(!value, _NET_WM_STATE_SKIP_TASKBAR);
+    }
+
+    private void ChangeWMAtoms(bool enable, params IntPtr[] atoms)
+    {
+        if (atoms.Length != 1 && atoms.Length != 2)
+        {
+            throw new ArgumentException();
+        }
+
+        //if (!_mapped)
+        //{
+        //    XGetWindowProperty(_x11.Display, _handle, _x11.Atoms._NET_WM_STATE, IntPtr.Zero, new IntPtr(256),
+        //        false, (IntPtr) Atom.XA_ATOM, out _, out _, out var nitems, out _,
+        //        out var prop);
+        //    var ptr = (IntPtr*) prop.ToPointer();
+        //    var newAtoms = new HashSet<IntPtr>();
+        //    for (var c = 0; c < nitems.ToInt64(); c++)
+        //        newAtoms.Add(*ptr);
+        //    XFree(prop);
+        //    foreach (var atom in atoms)
+        //        if (enable)
+        //            newAtoms.Add(atom);
+        //        else
+        //            newAtoms.Remove(atom);
+
+        //    XChangeProperty(_x11.Display, _handle, _x11.Atoms._NET_WM_STATE, (IntPtr) Atom.XA_ATOM, 32,
+        //        PropertyMode.Replace, newAtoms.ToArray(), newAtoms.Count);
+        //}
+        var wmState = XInternAtom(X11Info.Display, "_NET_WM_STATE", true);
+
+        SendNetWMMessage(wmState,
+            (IntPtr) (enable ? 1 : 0),
+            atoms[0],
+            atoms.Length > 1 ? atoms[1] : IntPtr.Zero,
+            atoms.Length > 2 ? atoms[2] : IntPtr.Zero,
+            atoms.Length > 3 ? atoms[3] : IntPtr.Zero
+         );
+    }
+
+    public void SendNetWMMessage(IntPtr message_type, IntPtr l0,
+        IntPtr? l1 = null, IntPtr? l2 = null, IntPtr? l3 = null, IntPtr? l4 = null)
+    {
+        var xev = new XEvent
+        {
+            ClientMessageEvent =
+            {
+                type = XEventName.ClientMessage,
+                send_event = true,
+                window = X11WindowIntPtr,
+                message_type = message_type,
+                format = 32,
+                ptr1 = l0,
+                ptr2 = l1 ?? IntPtr.Zero,
+                ptr3 = l2 ?? IntPtr.Zero,
+                ptr4 = l3 ?? IntPtr.Zero
+            }
+        };
+        xev.ClientMessageEvent.ptr4 = l4 ?? IntPtr.Zero;
+        XSendEvent(X11Info.Display, X11Info.RootWindow, false,
+            new IntPtr((int) (EventMask.SubstructureRedirectMask | EventMask.SubstructureNotifyMask)), ref xev);
+    }
+
+    public void EnterFullScreen()
+    {
+        // 下面是进入全屏
+        var display = X11Info.Display;
+        var hintsPropertyAtom = X11Info.HintsPropertyAtom;
+        XChangeProperty(display, X11WindowIntPtr, hintsPropertyAtom, hintsPropertyAtom, 32, PropertyMode.Replace, new uint[5]
+        {
+            2, // flags : Specify that we're changing the window decorations.
+            0, // functions
+            0, // decorations : 0 (false) means that window decorations should go bye-bye.
+            0, // inputMode
+            0, // status
+        }, 5);
+        
+        ChangeWMAtoms(false, XInternAtom(display, "_NET_WM_STATE_HIDDEN", true));
+        ChangeWMAtoms(true, XInternAtom(display, "_NET_WM_STATE_FULLSCREEN", true));
+        ChangeWMAtoms(false, XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_VERT", true), XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_HORZ", true));
+        
+        var topmostAtom = XInternAtom(display, "_NET_WM_STATE_ABOVE", true);
+        SendNetWMMessage(X11Info.WMStateAtom, new IntPtr(1), topmostAtom);
+    }
+}
 
 [SupportedOSPlatform("Linux")]
 file class X11InkWindowDispatcher : IDispatcher
