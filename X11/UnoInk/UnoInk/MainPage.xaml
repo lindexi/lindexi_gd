@@ -7,11 +7,6 @@
       Background="Transparent">
 
   <Grid>
-    <TextBlock x:Name="LogTextBlock" TextWrapping="Wrap"/>
-    <windows:SKXamlCanvas x:Name="SkXamlCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" PaintSurface="SkXamlCanvas_OnPaintSurface"></windows:SKXamlCanvas>
-    <Canvas x:Name="InkCanvas" Background="Transparent" PointerPressed="InkCanvas_OnPointerPressed" PointerMoved="InkCanvas_OnPointerMoved" PointerReleased="InkCanvas_OnPointerReleased">
-    </Canvas>
-
-    <!--<local:PointerEventArgsTests HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent"></local:PointerEventArgsTests>-->
+    <local:PointerEventArgsTests HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent"></local:PointerEventArgsTests>
   </Grid>
 </Page>
