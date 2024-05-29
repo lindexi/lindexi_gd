@@ -6,7 +6,7 @@ namespace UnoInk.Inking.X11Platforms.Input;
 
 unsafe class X11DeviceInputManager
 {
-    public X11DeviceInputManager(UnoInk.Inking.X11Platforms.X11InfoManager infoManager)
+    public X11DeviceInputManager(X11InfoManager infoManager)
     {
         _infoManager = infoManager;
 
@@ -76,7 +76,7 @@ unsafe class X11DeviceInputManager
         }
     }
 
-    private readonly UnoInk.Inking.X11Platforms.X11InfoManager _infoManager;
+    private readonly X11InfoManager _infoManager;
     private IntPtr Display => _infoManager.Display;
 
     public XIDeviceInfo? PointerDevice { get; }
