@@ -1,5 +1,6 @@
 using System.Runtime.Versioning;
 using CPF.Linux;
+using UnoInk.X11Platforms;
 
 namespace UnoInk.X11Ink;
 
@@ -7,13 +8,14 @@ namespace UnoInk.X11Ink;
 /// 命名是从 Avalonia 抄的
 /// </summary>
 [SupportedOSPlatform("Linux")]
-class X11PlatformThreading
+public class X11PlatformThreading
 {
-    public X11PlatformThreading(X11InkProvider x11InkProvider)
+    public X11PlatformThreading(X11Application x11Application)
     {
-        X11Info = x11InkProvider.X11Info;
-        X11InkProvider = x11InkProvider;
+        _x11Application = x11Application;
     }
+    
+    private readonly X11Application _x11Application;
     
     public void Run()
     {
@@ -27,9 +29,8 @@ class X11PlatformThreading
         _eventsThread.Start();
     }
     
-    private X11Info X11Info { get; }
-    public X11InkProvider X11InkProvider { get; }
-    
+    private X11Info X11Info => _x11Application.X11Info;
+
     public bool HasThreadAccess => ReferenceEquals(Thread.CurrentThread, _eventsThread);
 
     private void RunInner()
@@ -38,14 +39,15 @@ class X11PlatformThreading
         while (true)
         {
             var xNextEvent = XLib.XNextEvent(display, out var @event);
-            if (@event.type == XEventName.Expose)
-            {
-                if (@event.ExposeEvent.window == X11InkProvider.InkWindow.X11InkWindowIntPtr)
-                {
-                    X11InkProvider.InkWindow.Expose(@event.ExposeEvent);
-                }
-            }
-            else if (@event.type == XEventName.ClientMessage)
+            //if (@event.type == XEventName.Expose)
+            //{
+            //    if (@event.ExposeEvent.window == X11InkProvider.InkWindow.X11InkWindowIntPtr)
+            //    {
+            //        X11InkProvider.InkWindow.Expose(@event.ExposeEvent);
+            //    }
+            //}
+            //else 
+            if (@event.type == XEventName.ClientMessage)
             {
                 var clientMessageEvent = @event.ClientMessageEvent;
                 if (clientMessageEvent.message_type == 0 && clientMessageEvent.ptr1 == _invokeMessageId)
@@ -61,8 +63,12 @@ class X11PlatformThreading
                     {
                         action();
                     }
+
+                    continue;
                 }
             }
+            
+            _x11Application.DispatchEvent(@event);
         }
         // ReSharper disable once FunctionNeverReturns
     }
