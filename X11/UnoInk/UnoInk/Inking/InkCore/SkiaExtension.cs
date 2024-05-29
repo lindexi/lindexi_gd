@@ -1,7 +1,7 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using SkiaSharp;
 
-namespace UnoInk.InkCore;
+namespace UnoInk.Inking.InkCore;
 
 static class SkiaExtension
 {

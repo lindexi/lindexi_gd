@@ -2,9 +2,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.Versioning;
 using CPF.Linux;
-using ReewheaberekaiNayweelehe;
 using SkiaSharp;
 using Uno.UI.Xaml;
+using UnoInk.Inking.InkCore;
 using UnoInk.Inking.X11Platforms;
 using UnoInk.Inking.X11Platforms.Threading;
 using static CPF.Linux.XLib;
@@ -135,9 +135,9 @@ class X11InkWindow : X11Window
         //UpdateScreenPhysicalSize();
 
         var skInkCanvas = // new SkInkCanvas(_skCanvas, _skBitmap);
-            new SkInkCanvas();
-        skInkCanvas.ApplicationDrawingSkBitmap = _skBitmap;
-        skInkCanvas.SetCanvas(_skCanvas);
+            new SkInkCanvas(_skCanvas, _skBitmap);
+        //skInkCanvas.ApplicationDrawingSkBitmap = _skBitmap;
+        //skInkCanvas.SetCanvas(_skCanvas);
 
         skInkCanvas.Settings = skInkCanvas.Settings with
         {
