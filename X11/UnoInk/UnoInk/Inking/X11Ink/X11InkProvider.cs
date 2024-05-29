@@ -1,12 +1,19 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.Versioning;
+
 using CPF.Linux;
+
 using SkiaSharp;
+
 using Uno.UI.Xaml;
+
 using UnoInk.Inking.InkCore;
+using UnoInk.Inking.InkCore.Interactives;
 using UnoInk.Inking.X11Platforms;
+using UnoInk.Inking.X11Platforms.Input;
 using UnoInk.Inking.X11Platforms.Threading;
+
 using static CPF.Linux.XLib;
 
 namespace UnoInk.Inking.X11Ink;
@@ -25,6 +32,8 @@ internal class X11InkProvider : X11Application
         //XInitThreads();
         //XInitThreads();
         //XInitThreads();
+
+        _x11DeviceInputManager = new X11DeviceInputManager(X11Info);
     }
 
     [MemberNotNull(nameof(_x11InkWindow))]
@@ -72,7 +81,7 @@ internal class X11InkProvider : X11Application
         }
     }
 
-    internal override void DispatchEvent(XEvent @event)
+    internal override unsafe void DispatchEvent(XEvent @event)
     {
         if (_x11InkWindow is null)
         {
@@ -88,9 +97,82 @@ internal class X11InkProvider : X11Application
                 return;
             }
         }
+        else if (@event.type == XEventName.GenericEvent)
+        {
+            void* data = &@event.GenericEventCookie;
+            /*
+             bing:
+            `XGetEventData` 是一个用于 **X Window System** 的函数，其主要目的是通过 **cookie** 来检索和释放附加的事件数据。让我们来详细了解一下：
+            
+               - **函数名称**：`XGetEventData`
+               - **功能**：检索通过 **cookie** 存储的附加事件数据。
+               - **参数**：
+                   - `display`：指定与 X 服务器的连接。
+                   - `cookie`：指定要释放或检索数据的 **cookie**。
+               - **结构体**：`XGenericEventCookie`
+                   - `type`：事件类型。
+                   - `serial`：事件序列号。
+                   - `send_event`：是否为发送事件。
+                   - `display`：指向 X 服务器的指针。
+                   - `extension`：扩展信息。
+                   - `evtype`：事件类型。
+                   - `cookie`：唯一标识此事件的 **cookie**。
+                   - `data`：事件数据的指针，在调用 `XGetEventData` 之前未定义。
+               - **描述**：某些扩展的 `XGenericEvents` 需要额外的内存来存储信息。对于这些事件，库会返回一个具有唯一标识此事件的 **cookie** 的 `XGenericEventCookie`。直到调用 `XGetEventData`，`XGenericEventCookie` 的数据指针是未定义的。`XGetEventData` 函数检索给定 **cookie** 的附加数据。不需要与服务器进行往返通信。如果 **cookie** 无效或事件不是由 **cookie** 处理程序处理的事件，则返回 `False`。如果 `XGetEventData` 返回 `True`，则 **cookie** 的数据指针指向包含事件信息的内存。客户端必须调用 `XFreeEventData` 来释放此内存。对于同一事件 **cookie** 的多次调用，`XGetEventData` 返回 `False`。`XFreeEventData` 函数释放与 **cookie** 关联的数据。客户端必须对使用 `XGetEventData` 获得的每个 **cookie** 调用 `XFreeEventData`。
+               - **注意事项**：
+                   - 如果 **cookie** 已通过 `XNextEvent` 返回给客户端，但其数据尚未通过 `XGetEventData` 检索，则该 **cookie** 被定义为未声明。后续对 `XNextEvent` 的调用可能会释放与未声明 **cookie** 关联的内存。
+                   - 多线程的 X 客户端必须确保在下一次调用 `XNextEvent` 之前调用 `XGetEventData`。
+            
+               更多信息，请参阅 [XGetEventData 文档](https://www.x.org/releases/X11R7.6/doc/man/man3/XGetEventData.3.xhtml)。¹²
+            
+               源: 与必应的对话， 2024/4/7
+               (1) XGetEventData - X Window System. https://www.x.org/releases/X11R7.6/doc/man/man3/XGetEventData.3.xhtml.
+               (2) XGetEventData(3) — libX11-devel. https://man.docs.euro-linux.com/EL%209/libX11-devel/XGetEventData.3.en.html.
+               (3) X11R7.7 Manual Pages: Section 3: Library Functions - X Window System. https://www.x.org/releases/X11R7.7/doc/man/man3/.
+             */
+            XGetEventData(X11Info.Display, data);
+
+            try
+            {
+                var xiEvent = (XIEvent*) @event.GenericEventCookie.data;
+                if (xiEvent->evtype == XiEventType.XI_DeviceChanged)
+                {
+                }
+                else if (xiEvent->evtype is
+                         XiEventType.XI_ButtonPress
+                         or XiEventType.XI_ButtonRelease
+                         or XiEventType.XI_Motion
+                         or XiEventType.XI_TouchBegin
+                         or XiEventType.XI_TouchUpdate
+                         or XiEventType.XI_TouchEnd)
+                {
+                    var xiDeviceEvent = (XIDeviceEvent*) xiEvent;
+                    
+                    _x11DeviceInputManager.DispatchMessage(xiDeviceEvent);
+                }
+            }
+            finally
+            {
+                /*
+                 bing:
+                   如果不调用 `XFreeEventData`，会导致一些潜在问题和资源泄漏。让我详细解释一下：
+                
+                   - **资源泄漏**：`XGetEventData` 函数会分配内存来存储事件数据。如果不调用 `XFreeEventData` 来释放这些内存，会导致内存泄漏。这可能会在长时间运行的应用程序中累积，最终导致内存耗尽或应用程序崩溃。
+                
+                   - **未定义行为**：如果不调用 `XFreeEventData`，则 `XGenericEventCookie` 的数据指针将保持未定义状态。这意味着您无法访问事件数据，从而可能导致应用程序中的错误或不一致性。
+                
+                   - **性能问题**：如果不释放事件数据，系统可能会在内部维护大量未释放的内存块，从而影响性能。
+                
+                   因此，为了避免这些问题，务必在使用 `XGetEventData` 获取事件数据后调用 `XFreeEventData` 来释放内存。这是良好的编程实践，有助于确保应用程序的稳定性和性能。
+                 */
+                XFreeEventData(X11Info.Display, data);
+            }
+        }
 
         base.DispatchEvent(@event);
     }
+
+    private readonly X11DeviceInputManager _x11DeviceInputManager;
 }
 
 [SupportedOSPlatform("Linux")]
@@ -179,6 +261,10 @@ class X11InkWindow : X11Window
                 ref xEvent);
         };
         SkInkCanvas = skInkCanvas;
+
+        var modeInputDispatcher = new ModeInputDispatcher();
+        modeInputDispatcher.AddInputProcessor(skInkCanvas);
+        ModeInputDispatcher = modeInputDispatcher;
     }
 
     public X11PlatformThreading X11PlatformThreading { get; }
@@ -217,6 +303,7 @@ class X11InkWindow : X11Window
     }
 
     public IntPtr X11InkWindowIntPtr => X11WindowIntPtr;
+    public ModeInputDispatcher ModeInputDispatcher { get; }
 
     public Task InvokeAsync(Action<SkInkCanvas> action)
     {
