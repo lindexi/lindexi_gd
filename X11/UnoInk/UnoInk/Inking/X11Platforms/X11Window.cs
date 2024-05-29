@@ -1,13 +1,9 @@
 using System.Runtime.Versioning;
-
 using CPF.Linux;
 using static CPF.Linux.XLib;
 using static CPF.Linux.ShapeConst;
 
-using X11Info = UnoInk.X11Platforms.X11Info;
-using Microsoft.UI;
-
-namespace UnoInk.X11Platforms;
+namespace UnoInk.Inking.X11Platforms;
 
 [SupportedOSPlatform("Linux")]
 public class X11Window

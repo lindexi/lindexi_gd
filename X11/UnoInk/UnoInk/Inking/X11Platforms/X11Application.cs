@@ -1,17 +1,10 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Runtime.Versioning;
-using System.Text;
-using System.Threading.Tasks;
 using CPF.Linux;
-using UnoInk.X11Ink;
-using UnoInk.X11Platforms.Threading;
+using UnoInk.Inking.X11Platforms.Threading;
 using static CPF.Linux.XLib;
-using static CPF.Linux.ShapeConst;
 
-namespace UnoInk.X11Platforms;
+namespace UnoInk.Inking.X11Platforms;
 
 [SupportedOSPlatform("Linux")]
 public class X11Application

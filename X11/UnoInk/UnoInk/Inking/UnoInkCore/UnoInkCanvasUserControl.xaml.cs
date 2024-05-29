@@ -18,8 +18,8 @@ using BujeeberehemnaNurgacolarje;
 using ReewheaberekaiNayweelehe;
 using SkiaSharp;
 using SkiaSharp.Views.Windows;
-using UnoInk.X11Ink;
-using UnoInk.X11Platforms.Threading;
+using UnoInk.Inking.X11Ink;
+using UnoInk.Inking.X11Platforms.Threading;
 using Rect = Microsoft.Maui.Graphics.Rect;
 
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236

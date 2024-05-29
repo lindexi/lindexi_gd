@@ -1,4 +1,4 @@
-﻿namespace UnoInk.X11Platforms;
+namespace UnoInk.Inking.X11Platforms;
 
 public struct X11WindowCreateInfo
 {

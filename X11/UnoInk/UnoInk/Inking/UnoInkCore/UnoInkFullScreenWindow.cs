@@ -1,16 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.UI;
 using UnoHacker;
-
-#if HAS_UNO
+using UnoInk.UnoInkCore;
 using Uno.UI.Xaml;
-#endif
 
-namespace UnoInk.UnoInkCore;
+namespace UnoInk.Inking.UnoInkCore;
 
 public partial class UnoInkFullScreenWindow : Window
 {
