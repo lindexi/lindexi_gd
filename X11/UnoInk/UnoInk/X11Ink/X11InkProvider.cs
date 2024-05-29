@@ -219,7 +219,7 @@ class X11InkWindow
             // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
             XSendEvent(x11Info.Display, X11InkWindowIntPtr, propagate: false, new IntPtr((int) (EventMask.ExposureMask)), ref xEvent);
         };
-        _skInkCanvas = skInkCanvas;
+        SkInkCanvas = skInkCanvas;
     }
 
     public X11PlatformThreading X11PlatformThreading { get; }
@@ -229,8 +229,8 @@ class X11InkWindow
     private readonly SKBitmap _skBitmap;
     private readonly SKCanvas _skCanvas;
     private XImage _image;
-    public SkInkCanvas SkInkCanvas => _skInkCanvas;
-    private SkInkCanvas _skInkCanvas;
+    public SkInkCanvas SkInkCanvas { get; }
+    
     private IntPtr GC { get; }
     
     private unsafe XImage CreateImage()
@@ -265,7 +265,7 @@ class X11InkWindow
     {
        return X11PlatformThreading.InvokeAsync(() =>
        {
-           action(_skInkCanvas);
+           action(SkInkCanvas);
        }, X11InkWindowIntPtr);
     }
     
