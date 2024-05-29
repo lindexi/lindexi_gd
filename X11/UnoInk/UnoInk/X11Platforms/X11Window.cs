@@ -191,7 +191,7 @@ public class X11Window
         
         ChangeWMAtoms(false, XInternAtom(display, "_NET_WM_STATE_HIDDEN", true));
         ChangeWMAtoms(true, XInternAtom(display, "_NET_WM_STATE_FULLSCREEN", true));
-        //ChangeWMAtoms(false, XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_VERT", true), XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_HORZ", true));
+        ChangeWMAtoms(false, XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_VERT", true), XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_HORZ", true));
         
         //var topmostAtom = XInternAtom(display, "_NET_WM_STATE_ABOVE", true);
         //SendNetWMMessage(X11Info.WMStateAtom, new IntPtr(1), topmostAtom);
