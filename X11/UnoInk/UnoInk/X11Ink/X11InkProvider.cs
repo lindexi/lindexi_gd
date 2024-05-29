@@ -12,6 +12,7 @@ using static CPF.Linux.ShapeConst;
 using Uno.Extensions;
 using UnoInk.X11Platforms;
 using UnoInk.X11Platforms.Threading;
+using X11Info = UnoInk.X11Platforms.X11Info;
 
 namespace UnoInk.X11Ink;
 
@@ -34,6 +35,8 @@ internal class X11InkProvider: X11Application
     [MemberNotNull(nameof(_x11InkWindow))]
     public void Start(Window unoWindow)
     {
+        base.Start();
+
 #if HAS_UNO
         var x11Window = unoWindow.GetNativeWindow()!;
 #else
@@ -47,10 +50,8 @@ internal class X11InkProvider: X11Application
         var x11WindowIntPtr = (IntPtr) x11WindowType.GetProperty("Window", BindingFlags.Instance | BindingFlags.Public)!.GetMethod!.Invoke(x11Window, null)!;
         
         Console.WriteLine($"Uno 窗口句柄 {x11WindowIntPtr}");
-        
-        base.Start();
 
-        var x11InkWindow = new X11InkWindow(X11Info, x11WindowIntPtr, X11PlatformThreading);
+        var x11InkWindow = new X11InkWindow(this, x11WindowIntPtr);
         _x11InkWindow = x11InkWindow;
     }
 
@@ -90,69 +91,35 @@ internal class X11InkProvider: X11Application
 }
 
 [SupportedOSPlatform("Linux")]
-class X11InkWindow
+class X11InkWindow : X11Window
 {
-    public X11InkWindow(X11Info x11Info, IntPtr mainWindowHandle, X11PlatformThreading x11PlatformThreading)
+    public X11InkWindow(X11Application application, IntPtr mainWindowHandle):base(application, new X11WindowCreateInfo()
     {
-        X11PlatformThreading = x11PlatformThreading;
+        IsFullScreen = true
+    })
+    {
+        application.EnsureStart();
+        X11PlatformThreading = application.X11PlatformThreading;
+        var x11Info = application.X11Info;
         _x11Info = x11Info;
         _mainWindowHandle = mainWindowHandle;
         var display = x11Info.Display;
         var rootWindow = x11Info.RootWindow;
         var screen = x11Info.Screen;
 
-        var xDisplayWidth = XDisplayWidth(display, screen);
-        var xDisplayHeight = XDisplayHeight(display, screen);
+        var xDisplayWidth = x11Info.XDisplayWidth;
+        var xDisplayHeight = x11Info.XDisplayHeight;
 
-        XMatchVisualInfo(display, screen, 32, 4, out var info);
-        var visual = info.visual;
-
-        var valueMask =
-                //SetWindowValuemask.BackPixmap
-                0
-                | SetWindowValuemask.BackPixel
-                | SetWindowValuemask.BorderPixel
-                | SetWindowValuemask.BitGravity
-                | SetWindowValuemask.WinGravity
-                | SetWindowValuemask.BackingStore
-                | SetWindowValuemask.ColorMap
-            //| SetWindowValuemask.OverrideRedirect
-            ;
-        var xSetWindowAttributes = new XSetWindowAttributes
-        {
-            backing_store = 1,
-            bit_gravity = Gravity.NorthWestGravity,
-            win_gravity = Gravity.NorthWestGravity,
-            //override_redirect = true, // 设置窗口的override_redirect属性为True，以避免窗口管理器的干预
-            colormap = XCreateColormap(display, rootWindow, visual, 0),
-            border_pixel = 0,
-            background_pixel = IntPtr.Zero,
-        };
-
-        var childWindowHandle = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, xDisplayHeight, 5,
-            32,
-            (int) CreateWindowArgs.InputOutput,
-            visual,
-            (nuint) valueMask, ref xSetWindowAttributes);
-        
-        XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
-                                 XEventMask.PointerMotionHintMask;
-        var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
-        XSelectInput(display, childWindowHandle, mask);
-
+       
         // 设置不接受输入
         // 这样输入穿透到后面一层里，由后面一层将内容上报上来
-        var region = XCreateRegion();
-        XShapeCombineRegion(display, childWindowHandle, ShapeInput, 0, 0, region, ShapeSet); 
-
-        // 设置一定放在输入的窗口上方
-        XSetTransientForHint(display, childWindowHandle, mainWindowHandle);
-
-        XMapWindow(display, childWindowHandle);
+        SetClickThrough();
         
-        GC = XCreateGC(display, childWindowHandle, 0, 0);
+        
+        // 设置一定放在输入的窗口上方
+        SetOwner(mainWindowHandle);
 
-        X11InkWindowIntPtr = childWindowHandle;
+        ShowActive();
         
         var skBitmap = new SKBitmap(xDisplayWidth, xDisplayHeight, SKColorType.Bgra8888, SKAlphaType.Premul);
         _skBitmap = skBitmap;
@@ -220,8 +187,6 @@ class X11InkWindow
     private XImage _image;
     public SkInkCanvas SkInkCanvas { get; }
     
-    private IntPtr GC { get; }
-    
     private unsafe XImage CreateImage()
     {
         const int bytePerPixelCount = 4; // RGBA 一共4个 byte 长度
@@ -247,8 +212,8 @@ class X11InkWindow
         
         return img;
     }
-
-    public IntPtr X11InkWindowIntPtr { get; }
+    
+    public IntPtr X11InkWindowIntPtr => X11WindowIntPtr;
     
     public Task InvokeAsync(Action<SkInkCanvas> action)
     {
@@ -264,48 +229,6 @@ class X11InkWindow
             (uint) exposeEvent.height);
     }
     
-    public IDispatcher GetDispatcher()
-        => new X11InkWindowDispatcher(this);
 }
 
-[SupportedOSPlatform("Linux")]
-file class X11InkWindowDispatcher : IDispatcher
-{
-    public X11InkWindowDispatcher(X11InkWindow x11InkWindow)
-    {
-        _x11InkWindow = x11InkWindow;
-    }
-    
-    private readonly X11InkWindow _x11InkWindow;
-    
-    public bool TryEnqueue(Action action)
-    {
-        _ = _x11InkWindow.X11PlatformThreading.InvokeAsync(action, _x11InkWindow.X11InkWindowIntPtr);
 
-        return true;
-    }
-    
-    public async ValueTask<TResult> ExecuteAsync<TResult>(AsyncFunc<TResult> action, CancellationToken cancellation)
-    {
-        var taskCompletionSource = new TaskCompletionSource<TResult>();
-        
-        // 以下是兼容实现
-        _ = _x11InkWindow.X11PlatformThreading.InvokeAsync(async () =>
-        {
-            try
-            {
-                var result = await action(cancellation);
-                // 其实不支持同步上下文返回
-                taskCompletionSource.SetResult(result);
-            }
-            catch(Exception e)
-            {
-                taskCompletionSource.SetException(e);
-            }
-        }, _x11InkWindow.X11InkWindowIntPtr);
-        
-        return await taskCompletionSource.Task;
-    }
-    
-    public bool HasThreadAccess => _x11InkWindow.X11PlatformThreading.HasThreadAccess;
-}

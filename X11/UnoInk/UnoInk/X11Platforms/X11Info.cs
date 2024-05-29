@@ -1,7 +1,5 @@
-using Microsoft.UI;
-
 using static CPF.Linux.XLib;
-namespace UnoInk.X11Ink;
+namespace UnoInk.X11Platforms;
 
 public record X11Info(IntPtr Display, int Screen, IntPtr RootWindow)
 {

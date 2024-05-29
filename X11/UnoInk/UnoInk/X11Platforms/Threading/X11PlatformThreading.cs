@@ -1,6 +1,6 @@
 using System.Runtime.Versioning;
 using CPF.Linux;
-using X11Info = UnoInk.X11Ink.X11Info;
+using X11Info = UnoInk.X11Platforms.X11Info;
 
 namespace UnoInk.X11Platforms.Threading;
 

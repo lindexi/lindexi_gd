@@ -10,7 +10,6 @@ using UnoInk.X11Ink;
 using UnoInk.X11Platforms.Threading;
 using static CPF.Linux.XLib;
 using static CPF.Linux.ShapeConst;
-using X11Info = UnoInk.X11Ink.X11Info;
 
 namespace UnoInk.X11Platforms;
 
@@ -49,6 +48,15 @@ public class X11Application
         X11PlatformThreading.Run();
     }
     
+    [MemberNotNull(nameof(X11PlatformThreading))]
+    public void EnsureStart()
+    {
+        if (X11PlatformThreading is null)
+        {
+            throw new InvalidOperationException();
+        }
+    }
+
     public X11PlatformThreading? X11PlatformThreading { get; set; }
     
     internal virtual void DispatchEvent(XEvent @event)
