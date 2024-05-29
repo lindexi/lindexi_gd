@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CPF.Linux;
 using UnoInk.X11Ink;
+using UnoInk.X11Platforms.Threading;
 using static CPF.Linux.XLib;
 using static CPF.Linux.ShapeConst;
 using X11Info = UnoInk.X11Ink.X11Info;

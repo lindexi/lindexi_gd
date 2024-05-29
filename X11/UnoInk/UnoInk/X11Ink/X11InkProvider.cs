@@ -11,6 +11,7 @@ using static CPF.Linux.XLib;
 using static CPF.Linux.ShapeConst;
 using Uno.Extensions;
 using UnoInk.X11Platforms;
+using UnoInk.X11Platforms.Threading;
 
 namespace UnoInk.X11Ink;
 

@@ -1,8 +1,8 @@
 using System.Runtime.Versioning;
 using CPF.Linux;
-using UnoInk.X11Platforms;
+using X11Info = UnoInk.X11Ink.X11Info;
 
-namespace UnoInk.X11Ink;
+namespace UnoInk.X11Platforms.Threading;
 
 /// <summary>
 /// 命名是从 Avalonia 抄的
