@@ -10,13 +10,14 @@ using static CPF.Linux.XFixes;
 using static CPF.Linux.XLib;
 using static CPF.Linux.ShapeConst;
 using Uno.Extensions;
+using UnoInk.X11Platforms;
 
 namespace UnoInk.X11Ink;
 
 //interface IX11WindowManager
 
 [SupportedOSPlatform("Linux")]
-internal class X11InkProvider
+internal class X11InkProvider: X11Application
 {
     public X11InkProvider()
     {
@@ -27,28 +28,7 @@ internal class X11InkProvider
         //XInitThreads();
         //XInitThreads();
         //XInitThreads();
-        var display = XOpenDisplay(IntPtr.Zero);
-        var screen = XDefaultScreen(display);
-
-        if (XCompositeQueryExtension(display, out var eventBase, out var errorBase) == 0)
-        {
-            Console.WriteLine("Error: Composite extension is not supported");
-            XCloseDisplay(display);
-            throw new NotSupportedException("Error: Composite extension is not supported");
-            return;
-        }
-        else
-        {
-            //Console.WriteLine("XCompositeQueryExtension");
-        }
-
-        var rootWindow = XDefaultRootWindow(display);
-
-        var x11Info = new X11Info(display, screen, rootWindow);
-        X11Info = x11Info;
     }
-
-    public X11Info X11Info { get; }
 
     [MemberNotNull(nameof(_x11InkWindow))]
     public void Start(Window unoWindow)
@@ -67,18 +47,12 @@ internal class X11InkProvider
         
         Console.WriteLine($"Uno 窗口句柄 {x11WindowIntPtr}");
         
-        if (X11PlatformThreading == null)
-        {
-            X11PlatformThreading = new X11PlatformThreading(this);
-            X11PlatformThreading.Run();
-        }
+        base.Start();
 
         var x11InkWindow = new X11InkWindow(X11Info, x11WindowIntPtr, X11PlatformThreading);
         _x11InkWindow = x11InkWindow;
     }
 
-    private X11PlatformThreading? X11PlatformThreading { get; set; }
-    
     public X11InkWindow InkWindow
     {
         get
@@ -97,6 +71,20 @@ internal class X11InkProvider
         {
             throw new InvalidOperationException();
         }
+    }
+    
+    internal override void DispatchEvent(XEvent @event)
+    {
+        if (@event.type == XEventName.Expose)
+        {
+            if (@event.ExposeEvent.window == InkWindow.X11InkWindowIntPtr)
+            {
+                InkWindow.Expose(@event.ExposeEvent);
+                return;
+            }
+        }
+
+        base.DispatchEvent(@event);
     }
 }
 
@@ -156,7 +144,7 @@ class X11InkWindow
         var region = XCreateRegion();
         XShapeCombineRegion(display, childWindowHandle, ShapeInput, 0, 0, region, ShapeSet); 
 
-
+        // 设置一定放在输入的窗口上方
         XSetTransientForHint(display, childWindowHandle, mainWindowHandle);
 
         XMapWindow(display, childWindowHandle);

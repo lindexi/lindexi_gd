@@ -1,4 +1,4 @@
-namespace UnoInk.X11Ink;
+namespace UnoInk.X11Platforms.Threading;
 
 public class DispatcherRequiring
 {
