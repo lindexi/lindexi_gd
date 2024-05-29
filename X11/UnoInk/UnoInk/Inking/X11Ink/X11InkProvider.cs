@@ -32,8 +32,6 @@ internal class X11InkProvider : X11Application
         //XInitThreads();
         //XInitThreads();
         //XInitThreads();
-
-        _x11DeviceInputManager = new X11DeviceInputManager(X11Info);
     }
 
     [MemberNotNull(nameof(_x11InkWindow))]
@@ -148,7 +146,10 @@ internal class X11InkProvider : X11Application
                 {
                     var xiDeviceEvent = (XIDeviceEvent*) xiEvent;
                     
-                    _x11DeviceInputManager.DispatchMessage(xiDeviceEvent);
+                    if (@event.ExposeEvent.window == InkWindow.X11InkWindowIntPtr)
+                    {
+                        InkWindow.X11DeviceInputManager.DispatchMessage(xiDeviceEvent);
+                    }
                 }
             }
             finally
@@ -172,7 +173,6 @@ internal class X11InkProvider : X11Application
         base.DispatchEvent(@event);
     }
 
-    private readonly X11DeviceInputManager _x11DeviceInputManager;
 }
 
 [SupportedOSPlatform("Linux")]
@@ -265,8 +265,11 @@ class X11InkWindow : X11Window
         var modeInputDispatcher = new ModeInputDispatcher();
         modeInputDispatcher.AddInputProcessor(skInkCanvas);
         ModeInputDispatcher = modeInputDispatcher;
+        X11DeviceInputManager = new X11DeviceInputManager(_x11Info);
     }
-
+    
+    public X11DeviceInputManager X11DeviceInputManager { get; }
+    
     public X11PlatformThreading X11PlatformThreading { get; }
 
     private readonly X11InfoManager _x11Info;
