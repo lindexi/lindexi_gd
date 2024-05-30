@@ -200,6 +200,9 @@ class X11InkWindow : X11Window
         // 设置一定放在输入的窗口上方
         SetOwner(mainWindowHandle);
 
+        // 尝试在 ShowActive 之前，否则 XIQueryDevice 可能卡住
+        X11DeviceInputManager = new X11DeviceInputManager(_x11Info);
+
         ShowActive();
 
         // 进入全屏
@@ -265,7 +268,6 @@ class X11InkWindow : X11Window
         var modeInputDispatcher = new ModeInputDispatcher();
         modeInputDispatcher.AddInputProcessor(skInkCanvas);
         ModeInputDispatcher = modeInputDispatcher;
-        X11DeviceInputManager = new X11DeviceInputManager(_x11Info);
     }
     
     public X11DeviceInputManager X11DeviceInputManager { get; }
