@@ -441,7 +441,7 @@ namespace CPF.Linux
         public static extern void XPeekEvent(IntPtr display, out XEvent xevent);
 
         [DllImport(libX11)]
-        public static extern void XMatchVisualInfo(IntPtr display, int screen, int depth, int klass, out XVisualInfo info);
+        public static extern int XMatchVisualInfo(IntPtr display, int screen, int depth, int klass, out XVisualInfo info);
 
         [DllImport(libX11)]
         public static extern IntPtr XLockDisplay(IntPtr display);
