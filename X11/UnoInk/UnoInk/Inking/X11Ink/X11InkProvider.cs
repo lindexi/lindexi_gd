@@ -142,6 +142,9 @@ internal class X11InkProvider : X11Application
                     {
                         //Console.WriteLine($"调度消息");
                         InkWindow.X11DeviceInputManager.DispatchMessage(xiDeviceEvent);
+
+                        // 这里调用 X11DeviceInputManager 是不合理的，因为没有处理多窗口问题，只是刚好这里只有一个窗口，先这么写
+                        InkWindow.X11DeviceInputManager.TryReadEvents();
                     }
                 }
             }
