@@ -92,6 +92,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     {
         var currentPoint = e.GetCurrentPoint(this);
         Point position = currentPoint.Position;
+        LogTextBlock.Text += $"移动： {e.Pointer.PointerId} {position}\r\n";
 
         //var length = Math.Pow(position.X - _lastPoint.X, 2) + Math.Pow(position.Y - _lastPoint.Y, 2);
         //if (length < 10)
