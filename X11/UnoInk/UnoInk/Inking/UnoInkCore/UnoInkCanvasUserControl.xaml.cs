@@ -254,11 +254,14 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         {
             skPaint.Color = new SKColor(0xC5, 0x20, 0x00);
         }
+        
 
         foreach (var skPath in _skPathList)
         {
+        Console.WriteLine($"准备到 UNO 绘制");
             e.Surface.Canvas.DrawPath(skPath, skPaint);
         }
+        Console.WriteLine($"完成 UNO 绘制");
 
         _skPathList.Clear();
 
