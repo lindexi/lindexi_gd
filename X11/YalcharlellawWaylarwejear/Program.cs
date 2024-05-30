@@ -7,8 +7,8 @@ var screen = XDefaultScreen(display);
 
 var rootWindow = XDefaultRootWindow(display);
 
-XMatchVisualInfo(display, screen, 24, 4, out var info);
-Console.WriteLine($"info.depth={info.depth}");
+var result = XMatchVisualInfo(display, screen, 24, 4, out var info);
+Console.WriteLine($"Result={result} info.depth={info.depth}");
 
 var visual = info.visual;
 
