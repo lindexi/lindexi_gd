@@ -1,6 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using CPF.Linux;
 
+using System.Drawing;
 using System.Runtime.InteropServices;
 
 using static CPF.Linux.XLib;
@@ -67,13 +68,29 @@ var valueMask =
         | SetWindowValuemask.ColorMap
     //| SetWindowValuemask.OverrideRedirect
     ;
+
+
+var colormap = XCreateColormap(display, rootWindow, visual, 0);
+
+XColor color = new XColor()
+{
+    red = 0x56,
+    green = 0x56,
+    blue = 0x56,
+    flags = (byte)(ColorFlags.DoRed | ColorFlags.DoGreen | ColorFlags.DoBlue),
+};
+
+XAllocColor(display, colormap, ref color);
+
+Console.WriteLine(color.pixel.ToString("X"));
+
 var xSetWindowAttributes = new XSetWindowAttributes
 {
     backing_store = 1,
     bit_gravity = Gravity.NorthWestGravity,
     win_gravity = Gravity.NorthWestGravity,
     //override_redirect = true, // 设置窗口的override_redirect属性为True，以避免窗口管理器的干预
-    colormap = XCreateColormap(display, rootWindow, visual, 0),
+    colormap = colormap,
     border_pixel = 0,
     background_pixel = new IntPtr(0x65565656),
 };
