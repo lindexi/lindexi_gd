@@ -1,13 +1,18 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using CPF.Linux;
 
+using System.Runtime.InteropServices;
+
 using static CPF.Linux.XLib;
 var display = XOpenDisplay(IntPtr.Zero);
 var screen = XDefaultScreen(display);
 
 var rootWindow = XDefaultRootWindow(display);
 
-var result = XMatchVisualInfo(display, screen, 10, 4, out var info);
+// 这个方法是找不到的
+//Console.WriteLine(DefaultDepth(display, screen));
+
+var result = XMatchVisualInfo(display, screen, 8, 4, out var info);
 Console.WriteLine($"Result={result} info.depth={info.depth}");
 
 var visual = info.visual;
@@ -55,3 +60,8 @@ while (true)
 }
 
 Console.WriteLine("Hello, World!");
+
+const string libX11 = "libX11.so.6";
+
+[DllImport(libX11)]
+static extern int DefaultDepth(IntPtr display, int screen);
