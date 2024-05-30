@@ -204,11 +204,16 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
     private Task InvokeAsync(Action<SkInkCanvas> action)
     {
+        if (_x11InkProvider is null)
+        {
+            return Task.CompletedTask;
+        }
+
         if (OperatingSystem.IsLinux())
         {
             // 线程调度不慢，但是线程跑满了
             //var stopwatch = Stopwatch.StartNew();
-            return _x11InkProvider!.InkWindow.InvokeAsync(canvas =>
+            return _x11InkProvider.InkWindow.InvokeAsync(canvas =>
             {
                 //stopwatch.Stop();
                 //Console.WriteLine($"线程调度耗时 {stopwatch.ElapsedMilliseconds}ms");
