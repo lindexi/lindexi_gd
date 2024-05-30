@@ -159,7 +159,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
         InvokeAsync(canvas =>
         {
-            //_skPathList.AddRange(canvas.CurrentInkStrokePathEnumerable);
+            _skPathList.AddRange(canvas.CurrentInkStrokePathEnumerable);
             //if (_x11InkProvider is null)
             //{
             //    return;
