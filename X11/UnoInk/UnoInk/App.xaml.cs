@@ -11,6 +11,7 @@ using Microsoft.UI.Xaml;
 using UnoInk.Inking.UnoInkCore;
 using UnoInk.UnoInkCore;
 using Uno.UI.Xaml;
+using SkiaSharp;
 
 namespace UnoInk;
 public partial class App : Application
@@ -29,7 +30,7 @@ public partial class App : Application
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         //ShowSecondWindow();
-        
+
         var unoInkWindow = new UnoInkFullScreenWindow();
         unoInkWindow.Activate();
         return;

@@ -1,10 +1,14 @@
 using System.Diagnostics;
 using System.Numerics;
+
 using Microsoft.Maui.Graphics;
+
 using SkiaSharp;
+
 using UnoInk.Inking.InkCore.Diagnostics;
 using UnoInk.Inking.InkCore.Interactives;
 using UnoInk.Inking.InkCore.Settings;
+
 using static UnoInk.Inking.InkCore.RectExtension;
 
 namespace UnoInk.Inking.InkCore;
@@ -61,9 +65,9 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
 
     private Dictionary<int, DrawStrokeContext> CurrentInputDictionary { get; } =
         new Dictionary<int, DrawStrokeContext>();
-    
-    public IEnumerable<SKPath> CurrentInkStrokePathEnumerable =>
-        CurrentInputDictionary.Values.Select(t => t.InkStrokePath).Where(t => t != null)!;
+
+    public IEnumerable<string> CurrentInkStrokePathEnumerable =>
+        CurrentInputDictionary.Values.Select(t => t.InkStrokePath).Where(t => t != null).Select(t => t!.ToSvgPathData());
 
     /// <summary>
     /// 取多少个点做笔尖
@@ -395,8 +399,8 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
         var lastPoint = pointList[^2].Point;
         var currentPoint = currentStylusPoint.Point;
 
-        var lastPointVector = new Vector2((float)lastPoint.X, (float)lastPoint.Y);
-        var currentPointVector = new Vector2((float)currentPoint.X, (float)currentPoint.Y);
+        var lastPointVector = new Vector2((float) lastPoint.X, (float) lastPoint.Y);
+        var currentPointVector = new Vector2((float) currentPoint.X, (float) currentPoint.Y);
 
         var lineVector = currentPointVector - lastPointVector;
         var lineLength = lineVector.Length();
@@ -408,7 +412,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
         }
 
         var last2Point = pointList[^3].Point;
-        var line2Vector = lastPointVector - new Vector2((float)last2Point.X, (float)last2Point.Y);
+        var line2Vector = lastPointVector - new Vector2((float) last2Point.X, (float) last2Point.Y);
         var line2Length = line2Vector.Length();
         var vector2 = currentPointVector - lastPointVector;
         var distance2 = MathF.Abs(line2Vector.X * vector2.Y - line2Vector.Y * vector2.X) / line2Length;
@@ -490,7 +494,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
         var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, context.InkThickness);
 
         using var skPath = new SKPath() { FillType = SKPathFillType.Winding };
-        skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float)t.X, (float)t.Y)).ToArray());
+        skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
         //skPath.Close();
 
         // 用于设置比简单计算的范围更大一点的范围，解决重采样之后的模糊
@@ -589,8 +593,8 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
 
             // 以下代码用于解决绘制的笔迹边缘锐利的问题。原因是笔迹执行了重采样，但是边缘如果没有被覆盖，则重采样的将会重复叠加，导致锐利
             // 使用裁剪画布代替 Clear 方法，优化其性能
-            var skRectI = SKRectI.Create((int)Math.Floor(drawRect.X), (int)Math.Floor(drawRect.Y),
-                (int)Math.Ceiling(drawRect.Width), (int)Math.Ceiling(drawRect.Height));
+            var skRectI = SKRectI.Create((int) Math.Floor(drawRect.X), (int) Math.Floor(drawRect.Y),
+                (int) Math.Ceiling(drawRect.Width), (int) Math.Ceiling(drawRect.Height));
 
             skRectI = LimitRect(skRectI,
                 SKRectI.Create(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
@@ -871,13 +875,13 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
             skPaint.Style = SKPaintStyle.Fill;
 
             var point = info.StylusPoint.Point;
-            var x = (float)point.X;
-            var y = (float)point.Y;
+            var x = (float) point.X;
+            var y = (float) point.Y;
 
-            x -= (float)width / 2;
-            y -= (float)height / 2;
+            x -= (float) width / 2;
+            y -= (float) height / 2;
 
-            var skRect = new SKRect(x, y, (float)(x + width), (float)(y + height));
+            var skRect = new SKRect(x, y, (float) (x + width), (float) (y + height));
 
             using var skRoundRect = new SKPath();
             skRoundRect.AddRoundRect(skRect, 5, 5);
@@ -957,9 +961,9 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
             if (_lastEraserRenderBounds != null)
             {
                 // 将上次的绘制范围进行重新绘制，防止出现橡皮擦图标
-                skRect.Union(new SKRect((float)_lastEraserRenderBounds.Value.Left,
-                    (float)_lastEraserRenderBounds.Value.Top, (float)_lastEraserRenderBounds.Value.Right,
-                    (float)_lastEraserRenderBounds.Value.Bottom));
+                skRect.Union(new SKRect((float) _lastEraserRenderBounds.Value.Left,
+                    (float) _lastEraserRenderBounds.Value.Top, (float) _lastEraserRenderBounds.Value.Right,
+                    (float) _lastEraserRenderBounds.Value.Bottom));
             }
 
             // 清理的范围应该比更新范围更小
@@ -996,7 +1000,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
             // 画出橡皮擦
             canvas.Save();
             canvas.Translate(x, y);
-            EraserView.DrawEraserView(canvas, (int)width, (int)height);
+            EraserView.DrawEraserView(canvas, (int) width, (int) height);
             canvas.Restore();
 
             if (_lastEraserRenderBounds != null)
@@ -1066,13 +1070,13 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
             using var skRoundRect = new SKPath();
 
             var point = info.StylusPoint.Point;
-            var x = (float)point.X;
-            var y = (float)point.Y;
+            var x = (float) point.X;
+            var y = (float) point.Y;
 
-            x -= (float)width / 2;
-            y -= (float)height / 2;
+            x -= (float) width / 2;
+            y -= (float) height / 2;
 
-            var skRect = new SKRect(x, y, (float)(x + width), (float)(y + height));
+            var skRect = new SKRect(x, y, (float) (x + width), (float) (y + height));
 
             skRoundRect.AddRoundRect(skRect, 5, 5);
             EraserPath.Op(skRoundRect, SKPathOp.Difference, EraserPath);
@@ -1086,8 +1090,8 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
                 foreach (var stylusPoint in _eraserDropPointList)
                 {
                     var dropPoint = stylusPoint.Point;
-                    var xDropPoint = (float)dropPoint.X;
-                    var yDropPoint = (float)dropPoint.Y;
+                    var xDropPoint = (float) dropPoint.X;
+                    var yDropPoint = (float) dropPoint.Y;
 
                     if (!disableResizeByTouch && Settings.EnableStylusSizeAsEraserSize && IsInEraserGestureMode)
                     {
@@ -1101,11 +1105,11 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
                         }
                     }
 
-                    xDropPoint -= (float)collectedEraserWidth / 2;
-                    yDropPoint -= (float)collectedEraserHeight / 2;
+                    xDropPoint -= (float) collectedEraserWidth / 2;
+                    yDropPoint -= (float) collectedEraserHeight / 2;
 
-                    var skRectDropPoint = new SKRect(xDropPoint, yDropPoint, (float)(xDropPoint + collectedEraserWidth),
-                        (float)(yDropPoint + collectedEraserHeight));
+                    var skRectDropPoint = new SKRect(xDropPoint, yDropPoint, (float) (xDropPoint + collectedEraserWidth),
+                        (float) (yDropPoint + collectedEraserHeight));
 
                     skRect.Union(skRectDropPoint);
 
@@ -1134,7 +1138,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
             // 画出橡皮擦
             canvas.Save();
             canvas.Translate(x, y);
-            EraserView.DrawEraserView(canvas, (int)width, (int)height);
+            EraserView.DrawEraserView(canvas, (int) width, (int) height);
             canvas.Restore();
 
             // 更新范围
@@ -1193,13 +1197,13 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
             using var skRoundRect = new SKPath();
 
             var point = info.StylusPoint.Point;
-            var x = (float)point.X;
-            var y = (float)point.Y;
+            var x = (float) point.X;
+            var y = (float) point.Y;
 
-            x -= (float)width / 2;
-            y -= (float)height / 2;
+            x -= (float) width / 2;
+            y -= (float) height / 2;
 
-            var skRect = new SKRect(x, y, (float)(x + width), (float)(y + height));
+            var skRect = new SKRect(x, y, (float) (x + width), (float) (y + height));
             skRoundRect.AddRoundRect(skRect, 5, 5);
             EraserPath.Op(skRoundRect, SKPathOp.Difference, EraserPath);
 
@@ -1213,8 +1217,8 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
                 foreach (var stylusPoint in _eraserDropPointList)
                 {
                     var dropPoint = stylusPoint.Point;
-                    var xDropPoint = (float)dropPoint.X;
-                    var yDropPoint = (float)dropPoint.Y;
+                    var xDropPoint = (float) dropPoint.X;
+                    var yDropPoint = (float) dropPoint.Y;
 
                     if (!disableResizeByTouch && Settings.EnableStylusSizeAsEraserSize && IsInEraserGestureMode)
                     {
@@ -1229,11 +1233,11 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
                         }
                     }
 
-                    xDropPoint -= (float)collectedEraserWidth / 2;
-                    yDropPoint -= (float)collectedEraserHeight / 2;
+                    xDropPoint -= (float) collectedEraserWidth / 2;
+                    yDropPoint -= (float) collectedEraserHeight / 2;
 
-                    var skRectDropPoint = new SKRect(xDropPoint, yDropPoint, (float)(xDropPoint + collectedEraserWidth),
-                        (float)(yDropPoint + collectedEraserHeight));
+                    var skRectDropPoint = new SKRect(xDropPoint, yDropPoint, (float) (xDropPoint + collectedEraserWidth),
+                        (float) (yDropPoint + collectedEraserHeight));
                     skRect.Union(skRectDropPoint);
 
                     skRoundRect.Reset();
@@ -1254,7 +1258,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
             // 画出橡皮擦
             canvas.Save();
             canvas.Translate(x, y);
-            EraserView.DrawEraserView(canvas, (int)width, (int)height);
+            EraserView.DrawEraserView(canvas, (int) width, (int) height);
             canvas.Restore();
 
             // 更新范围
