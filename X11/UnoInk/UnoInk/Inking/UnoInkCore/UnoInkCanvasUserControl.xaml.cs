@@ -19,10 +19,12 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         Loaded += MainPage_Loaded;
     }
 
-    private void MainPage_Loaded(object sender, RoutedEventArgs e)
+    private async void MainPage_Loaded(object sender, RoutedEventArgs e)
     {
         if (OperatingSystem.IsLinux())
         {
+            // 尝试修复 UNO 窗口不显示出来，之前在 Avalonia 也能复现
+            await Task.Delay(TimeSpan.FromSeconds(1));
             if (_x11InkProvider == null)
             {
                 _x11InkProvider = new X11InkProvider();
