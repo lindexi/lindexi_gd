@@ -72,6 +72,7 @@ internal class X11InkProvider : X11Application
 
     internal override unsafe void DispatchEvent(XEvent @event)
     {
+        //Console.WriteLine($"[DispatchEvent] {@event.type}");
         if (_x11InkWindow is null)
         {
             // 这里可能是创建窗口内部进来的，比如全屏
@@ -137,9 +138,10 @@ internal class X11InkProvider : X11Application
                 {
                     var xiDeviceEvent = (XIDeviceEvent*) xiEvent;
                     
-                    if (@event.ExposeEvent.window == InkWindow.X11InkWindowIntPtr)
+                    if (xiDeviceEvent->EventWindow == InkWindow.X11InkWindowIntPtr)
                     {
-                        //InkWindow.X11DeviceInputManager.DispatchMessage(xiDeviceEvent);
+                        //Console.WriteLine($"调度消息");
+                        InkWindow.X11DeviceInputManager.DispatchMessage(xiDeviceEvent);
                     }
                 }
             }

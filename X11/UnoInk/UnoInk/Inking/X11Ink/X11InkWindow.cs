@@ -3,6 +3,7 @@ using CPF.Linux;
 using SkiaSharp;
 using UnoInk.Inking.InkCore;
 using UnoInk.Inking.InkCore.Interactives;
+using UnoInk.Inking.InkCore.Settings;
 using UnoInk.Inking.X11Platforms;
 using UnoInk.Inking.X11Platforms.Input;
 using UnoInk.Inking.X11Platforms.Threading;
@@ -27,18 +28,20 @@ class X11InkWindow : X11Window
         var xDisplayWidth = x11Info.XDisplayWidth;
         var xDisplayHeight = x11Info.XDisplayHeight;
         
-        // 设置不接受输入
-        // 这样输入穿透到后面一层里，由后面一层将内容上报上来
-        SetClickThrough();
+        //// 设置不接受输入
+        //// 这样输入穿透到后面一层里，由后面一层将内容上报上来
+        //SetClickThrough();
         
         // 设置一定放在输入的窗口上方
         SetOwner(mainWindowHandle);
         
-        // 尝试在 ShowActive 之前，否则 XIQueryDevice 可能卡住
-        X11DeviceInputManager = new X11DeviceInputManager(_x11Info);
-        
         ShowActive();
-        
+
+        // 尝试 Break 掉，测试是否还卡住，因为在 Avalonia 还是 UNO 都可以在 Map 之后调用
+        //// 尝试在 ShowActive 之前，否则 XIQueryDevice 可能卡住
+        // 只是不同之处在于 Map 前 SetOwner 而已
+        X11DeviceInputManager = new X11DeviceInputManager(_x11Info);
+
         // 进入全屏
         EnterFullScreen(topmost: false/*这里必须设置为false否则UNO窗口将不会渲染*/);
         
@@ -102,6 +105,66 @@ class X11InkWindow : X11Window
         var modeInputDispatcher = new ModeInputDispatcher();
         modeInputDispatcher.AddInputProcessor(skInkCanvas);
         ModeInputDispatcher = modeInputDispatcher;
+        HandleInput(X11DeviceInputManager);
+        
+        var pointerDevice = X11DeviceInputManager.PointerDevice;
+        if (pointerDevice != null)
+        {
+            Console.WriteLine($"注册触摸");
+            RegisterMultiTouch(pointerDevice);
+        }
+    }
+
+    private SkInkCanvasSettings Settings => SkInkCanvas.Settings;
+
+    private void HandleInput(X11DeviceInputManager touchInputManager)
+    {
+        var modeInputDispatcher = ModeInputDispatcher;
+        touchInputManager.DevicePressed += (sender, args) =>
+        {
+            //if (IsDrawLineMode)
+            //{
+            //    _lastPoint = ((int) args.Position.X, (int) args.Position.Y);
+            //}
+            //else
+            {
+                TryEnterEraserGestureMode(in args, isDown: true);
+                modeInputDispatcher.Down(args.ToModeInputArgs(Settings.IgnorePressure));
+            }
+        };
+        
+        touchInputManager.DeviceMoved += (sender, args) =>
+        {
+            //StaticDebugLogger.WriteLine($"DeviceMoved Id={args.Id} {args.Position.X:0.00},{args.Position.Y:0.00} WH:{args.Point.PixelWidth:0.00},{args.Point.PixelHeight:0.00}");
+            //if (IsDrawLineMode)
+            //{
+            //    var (x, y) = ((int) args.Position.X, (int) args.Position.Y);
+            //    XDrawLine(Display, Window, GC, _lastPoint.X, _lastPoint.Y, x, y);
+            //    _lastPoint = (x, y);
+            //}
+            //else
+            {
+                TryEnterEraserGestureMode(in args, isDown: false);
+                modeInputDispatcher.Move(args.ToModeInputArgs(Settings.IgnorePressure));
+            }
+        };
+        
+        touchInputManager.DeviceReleased += (sender, args) =>
+        {
+            //if (IsDrawLineMode)
+            //{
+                
+            //}
+            //else
+            {
+                modeInputDispatcher.Up(args.ToModeInputArgs(Settings.IgnorePressure));
+            }
+        };
+        
+        void TryEnterEraserGestureMode(in DeviceInputArgs args, bool isDown)
+        {
+
+        }
     }
     
     public X11DeviceInputManager X11DeviceInputManager { get; }
