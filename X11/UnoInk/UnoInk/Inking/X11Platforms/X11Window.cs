@@ -3,7 +3,6 @@ using System.Runtime.Versioning;
 using CPF.Linux;
 using static CPF.Linux.XLib;
 using static CPF.Linux.ShapeConst;
-using Microsoft.UI;
 
 namespace UnoInk.Inking.X11Platforms;
 
@@ -30,7 +29,7 @@ public class X11Window
 
     public void ShowActive()
     {
-        XLib.XMapWindow(X11Info.Display, X11WindowIntPtr);
+        XMapWindow(X11Info.Display, X11WindowIntPtr);
         XFlush(X11Info.Display);
     }
 
