@@ -23,6 +23,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     {
         if (OperatingSystem.IsLinux())
         {
+<<<<<<< HEAD
             //// 尝试修复 UNO 窗口不显示出来，之前在 Avalonia 也能复现
             //await Task.Delay(TimeSpan.FromSeconds(1));
             //if (_x11InkProvider == null)
@@ -33,6 +34,16 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
             //    _dispatcherRequiring = new DispatcherRequiring(InvokeInk, _x11InkProvider.InkWindow.GetDispatcher());
             //}
+=======
+            if (_x11InkProvider == null)
+            {
+                //_x11InkProvider = new X11InkProvider();
+
+                //_x11InkProvider.Start(Window.Current!);
+
+                //_dispatcherRequiring = new DispatcherRequiring(InvokeInk, _x11InkProvider.InkWindow.GetDispatcher());
+            }
+>>>>>>> f6762ea045de9b52e29ce7949a1c9be4211deaf5
         }
     }
 
@@ -191,11 +202,16 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
     private Task InvokeAsync(Action<SkInkCanvas> action)
     {
+        if (_x11InkProvider is null)
+        {
+            return Task.CompletedTask;
+        }
+
         if (OperatingSystem.IsLinux())
         {
             // 线程调度不慢，但是线程跑满了
             //var stopwatch = Stopwatch.StartNew();
-            return _x11InkProvider!.InkWindow.InvokeAsync(canvas =>
+            return _x11InkProvider.InkWindow.InvokeAsync(canvas =>
             {
                 //stopwatch.Stop();
                 //Console.WriteLine($"线程调度耗时 {stopwatch.ElapsedMilliseconds}ms");
