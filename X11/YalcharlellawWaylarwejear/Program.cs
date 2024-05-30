@@ -50,6 +50,7 @@ typedef struct
    	Bool save_unders;
    	long root_input_mask;	/* initial root input mask * /
    } Screen;
+也就是实际 XDefaultDepth 获取的是 Screen 结构体的 root_depth 的值
  */
 
 var result = XMatchVisualInfo(display, screen, 32, 4, out var info);
@@ -92,15 +93,15 @@ var xSetWindowAttributes = new XSetWindowAttributes
     //override_redirect = true, // 设置窗口的override_redirect属性为True，以避免窗口管理器的干预
     colormap = colormap,
     border_pixel = 0,
-    background_pixel = color.pixel,
+    background_pixel = IntPtr.Zero,
 };
 
 var width = 500;
 var height = 500;
 var handle = XCreateWindow(display, rootWindow, 0, 0, width, height, 5,
-    (int) info.depth,
+    (int) 24,
     (int) CreateWindowArgs.InputOutput,
-    visual,
+    IntPtr.Zero, 
     (nuint) valueMask, ref xSetWindowAttributes);
 
 XMapWindow(display, handle);
