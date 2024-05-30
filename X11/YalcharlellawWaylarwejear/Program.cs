@@ -51,7 +51,7 @@ typedef struct
    } Screen;
  */
 
-var result = XMatchVisualInfo(display, screen, 8, 4, out var info);
+var result = XMatchVisualInfo(display, screen, 32, 4, out var info);
 Console.WriteLine($"Result={result} info.depth={info.depth}");
 
 var visual = info.visual;
