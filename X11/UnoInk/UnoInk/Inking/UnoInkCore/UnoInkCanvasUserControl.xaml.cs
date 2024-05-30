@@ -20,7 +20,6 @@ using UnoInk.Inking.InkCore;
 using UnoInk.Inking.InkCore.Interactives;
 using UnoInk.Inking.X11Ink;
 using UnoInk.Inking.X11Platforms.Threading;
-using Rect = Microsoft.Maui.Graphics.Rect;
 
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -69,7 +68,6 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         }
 
         var inputInfo = _lastInkingInputInfo;
-        var canvas = _x11InkProvider.InkWindow.SkInkCanvas;
         _x11InkProvider.InkWindow.ModeInputDispatcher.Move(inputInfo);
 
         //canvas.Move(inputInfo);
