@@ -9,7 +9,6 @@ using UnoHacker;
 using Windows.UI.ViewManagement;
 using Microsoft.UI.Xaml;
 using UnoInk.Inking.UnoInkCore;
-using UnoInk.UnoInkCore;
 using Uno.UI.Xaml;
 
 namespace UnoInk;

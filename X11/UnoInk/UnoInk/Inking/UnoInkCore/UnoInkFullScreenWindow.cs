@@ -1,6 +1,5 @@
 using Microsoft.UI;
 using UnoHacker;
-using UnoInk.UnoInkCore;
 using Uno.UI.Xaml;
 
 namespace UnoInk.Inking.UnoInkCore;
