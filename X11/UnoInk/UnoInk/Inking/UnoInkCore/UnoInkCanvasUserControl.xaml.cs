@@ -42,10 +42,13 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 =======
             if (_x11InkProvider == null)
             {
+                // 尝试修复 UNO 停止渲染，但也可能是 UNO 自己的坑，就是界面不显示
+                // 原先在 Avalonia 也有这样的问题
+                await Task.Delay(TimeSpan.FromSeconds(1));
                 _x11InkProvider = new X11InkProvider();
-                
+
                 _x11InkProvider.Start(Window.Current!);
-                
+
                 _dispatcherRequiring =
                     new DispatcherRequiring(InvokeInk, _x11InkProvider.InkWindow.GetDispatcher());
             }
@@ -171,7 +174,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         });
     }
 
-    private readonly List<SKPath> _skPathList = [];
+    private readonly List<string> _skPathList = [];
 
     //private readonly Dictionary<uint /*PointerId*/, InkInfo> _inkInfoCache = new Dictionary<uint, InkInfo>();
 
@@ -258,12 +261,16 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         {
             skPaint.Color = new SKColor(0xC5, 0x20, 0x00);
         }
-        
+
 
         foreach (var skPath in _skPathList)
         {
-        Console.WriteLine($"准备到 UNO 绘制");
-            e.Surface.Canvas.DrawPath(skPath, skPaint);
+            Console.WriteLine($"准备到 UNO 绘制");
+            // 需要进行序列化和反序列化是为了解决跨线程访问 SKPath 导致爆的问题
+            // 可以切到 c82dcaf20da0948aede539b699f47926635b94a3 进行测试
+            // 写一笔就能复现
+            var path = SKPath.ParseSvgPathData(skPath);
+            e.Surface.Canvas.DrawPath(path, skPaint);
         }
         Console.WriteLine($"完成 UNO 绘制");
 
