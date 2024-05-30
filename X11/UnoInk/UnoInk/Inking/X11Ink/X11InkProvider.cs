@@ -148,7 +148,7 @@ internal class X11InkProvider : X11Application
                     
                     if (@event.ExposeEvent.window == InkWindow.X11InkWindowIntPtr)
                     {
-                        InkWindow.X11DeviceInputManager.DispatchMessage(xiDeviceEvent);
+                        //InkWindow.X11DeviceInputManager.DispatchMessage(xiDeviceEvent);
                     }
                 }
             }
@@ -265,7 +265,7 @@ class X11InkWindow : X11Window
         var modeInputDispatcher = new ModeInputDispatcher();
         modeInputDispatcher.AddInputProcessor(skInkCanvas);
         ModeInputDispatcher = modeInputDispatcher;
-        X11DeviceInputManager = new X11DeviceInputManager(_x11Info);
+        //X11DeviceInputManager = new X11DeviceInputManager(_x11Info);
     }
     
     public X11DeviceInputManager X11DeviceInputManager { get; }

@@ -41,11 +41,20 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         {
             if (_x11InkProvider == null)
             {
-                _x11InkProvider = new X11InkProvider();
-
-                _x11InkProvider.Start(Window.Current!);
-
-                _dispatcherRequiring = new DispatcherRequiring(InvokeInk, _x11InkProvider.InkWindow.GetDispatcher());
+                try
+                {
+                    _x11InkProvider = new X11InkProvider();
+                    
+                    _x11InkProvider.Start(Window.Current!);
+                    
+                    _dispatcherRequiring =
+                        new DispatcherRequiring(InvokeInk, _x11InkProvider.InkWindow.GetDispatcher());
+                }
+                catch (Exception exception)
+                {
+                    Console.WriteLine(exception);
+                    throw;
+                }
             }
         }
     }
