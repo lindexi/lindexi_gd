@@ -7,7 +7,9 @@ var screen = XDefaultScreen(display);
 
 var rootWindow = XDefaultRootWindow(display);
 
-XMatchVisualInfo(display, screen, 32, 4, out var info);
+XMatchVisualInfo(display, screen, 24, 4, out var info);
+Console.WriteLine($"info.depth={info.depth}");
+
 var visual = info.visual;
 
 var valueMask =
@@ -35,7 +37,7 @@ var xSetWindowAttributes = new XSetWindowAttributes
 var width = 500;
 var height = 500;
 var handle = XCreateWindow(display, rootWindow, 0, 0, width, height, 5,
-    32,
+    (int) info.depth,
     (int) CreateWindowArgs.InputOutput,
     visual,
     (nuint) valueMask, ref xSetWindowAttributes);
