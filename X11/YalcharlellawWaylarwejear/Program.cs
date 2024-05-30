@@ -74,9 +74,9 @@ var colormap = XCreateColormap(display, rootWindow, visual, 0);
 
 XColor color = new XColor()
 {
-    red = 0x56,
-    green = 0x56,
-    blue = 0x56,
+    red = 0xF556, // value is 0-65535
+    green = 0xF156,
+    blue = 0xF156,
     flags = (byte)(ColorFlags.DoRed | ColorFlags.DoGreen | ColorFlags.DoBlue),
 };
 
@@ -92,7 +92,7 @@ var xSetWindowAttributes = new XSetWindowAttributes
     //override_redirect = true, // 设置窗口的override_redirect属性为True，以避免窗口管理器的干预
     colormap = colormap,
     border_pixel = 0,
-    background_pixel = new IntPtr(0x65565656),
+    background_pixel = color.pixel,
 };
 
 var width = 500;
