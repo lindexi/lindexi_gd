@@ -9,8 +9,47 @@ var screen = XDefaultScreen(display);
 
 var rootWindow = XDefaultRootWindow(display);
 
-// 这个方法是找不到的
-//Console.WriteLine(DefaultDepth(display, screen));
+Console.WriteLine(XDefaultDepth(display, screen)); // 默认是 24 的值
+/*
+   int XDefaultDepth(Display *dpy, int scr)
+   {
+       return(DefaultDepth(dpy, scr));
+   }
+
+// Xlib.h
+#define DefaultDepth(dpy, scr) 	(ScreenOfDisplay(dpy,scr)->root_depth)
+
+// libx11\src\Macros.c
+/* screen oriented macros (toolkit) * /
+   Screen *XScreenOfDisplay(Display *dpy, int scr)
+   {
+       return (ScreenOfDisplay(dpy, scr));
+   }
+
+// libx11\include\X11\Xlib.h
+#define ScreenOfDisplay(dpy, scr)(&((_XPrivDisplay)(dpy))->screens[scr])
+
+typedef struct 
+{
+   	XExtData *ext_data;	/* hook for extension to hang data * /
+   	struct _XDisplay *display;/* back pointer to display structure * /
+   	Window root;		/* Root window id. * /
+   	int width, height;	/* width and height of screen * /
+   	int mwidth, mheight;	/* width and height of  in millimeters * /
+   	int ndepths;		/* number of depths possible * /
+   	Depth *depths;		/* list of allowable depths on the screen * /
+   	int root_depth;		/* bits per pixel * /
+   	Visual *root_visual;	/* root visual * /
+   	GC default_gc;		/* GC for the root root visual * /
+   	Colormap cmap;		/* default color map * /
+   	unsigned long white_pixel;
+   	unsigned long black_pixel;	/* White and Black pixel values * /
+   	int max_maps, min_maps;	/* max and min color maps * /
+   	int backing_store;	/* Never, WhenMapped, Always * /
+   	Bool save_unders;
+   	long root_input_mask;	/* initial root input mask * /
+   } Screen;
+ */
 
 var result = XMatchVisualInfo(display, screen, 8, 4, out var info);
 Console.WriteLine($"Result={result} info.depth={info.depth}");
@@ -64,4 +103,4 @@ Console.WriteLine("Hello, World!");
 const string libX11 = "libX11.so.6";
 
 [DllImport(libX11)]
-static extern int DefaultDepth(IntPtr display, int screen);
+static extern int XDefaultDepth(IntPtr display, int screen);
