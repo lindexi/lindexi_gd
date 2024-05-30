@@ -307,6 +307,9 @@ unsafe class X11DeviceInputManager
                            )
                         {
                             var xiDeviceEvent = (XIDeviceEvent*) xiEvent;
+
+                            //if(xiDeviceEvent->EventWindow!=)
+
                             var (shouldIgnore, args) = ParseDeviceInputArgs(xiDeviceEvent);
                             if (!shouldIgnore)
                             {

@@ -30,6 +30,7 @@ class X11InkWindow : X11Window
         
         var xDisplayWidth = x11Info.XDisplayWidth;
         var xDisplayHeight = x11Info.XDisplayHeight;
+<<<<<<< HEAD
         
 <<<<<<< HEAD
         // 设置不接受输入
@@ -41,6 +42,13 @@ class X11InkWindow : X11Window
         //SetClickThrough();
 >>>>>>> 6d730f8610e43cc7f558e1adce895e3dcf366c3f
         
+=======
+
+        // 设置不接受输入
+        // 这样输入穿透到后面一层里，由后面一层将内容上报上来
+        SetClickThrough();
+
+>>>>>>> ddad66981bd175e1ef84bd3bd547dc329964981c
         // 设置一定放在输入的窗口上方
         SetOwner(mainWindowHandle);
         
