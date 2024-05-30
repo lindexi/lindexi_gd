@@ -46,7 +46,6 @@
     <Compile Include="..\..\DikalehebeekaJaqunicobo\ShapeConst.cs" Link="Inking\X11Ink\Core\ShapeConst.cs" />
     <Compile Include="..\..\DikalehebeekaJaqunicobo\XFixes.cs" Link="Inking\X11Ink\Core\XFixes.cs" />
     <Compile Include="..\..\HallgaiwhiyiwaLejucona\UnoInk\UnoInk\UnoInk\StrokePoint.cs" Link="Inking\InkCore\StrokePoint.cs" />
-    <Compile Include="..\..\ReewheaberekaiNayweelehe\ReewheaberekaiNayweelehe\SkInkCanvas.cs" Link="Inking\InkCore\SkInkCanvas.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Maui.Graphics" />
