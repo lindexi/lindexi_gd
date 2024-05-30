@@ -15,9 +15,9 @@ using Microsoft.UI.Xaml.Navigation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using BujeeberehemnaNurgacolarje;
-using ReewheaberekaiNayweelehe;
 using SkiaSharp;
 using SkiaSharp.Views.Windows;
+using UnoInk.Inking.InkCore;
 using UnoInk.Inking.X11Ink;
 using UnoInk.Inking.X11Platforms.Threading;
 using Rect = Microsoft.Maui.Graphics.Rect;
@@ -57,23 +57,23 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             return;
         }
 
-        if (_lastInkingInputInfo is null)
-        {
-            return;
-        }
+        //if (_lastInkingInputInfo is null)
+        //{
+        //    return;
+        //}
 
-        if (_x11InkProvider is null)
-        {
-            throw new InvalidOperationException();
-        }
+        //if (_x11InkProvider is null)
+        //{
+        //    throw new InvalidOperationException();
+        //}
 
-        var inputInfo = _lastInkingInputInfo;
-        var canvas = _x11InkProvider.InkWindow.SkInkCanvas;
+        //var inputInfo = _lastInkingInputInfo;
+        //var canvas = _x11InkProvider.InkWindow.SkInkCanvas;
 
-        canvas.Move(inputInfo);
+        //canvas.Move(inputInfo);
     }
 
-    private InkingInputInfo? _lastInkingInputInfo;
+    //private InkingInputInfo? _lastInkingInputInfo;
     private DispatcherRequiring? _dispatcherRequiring;
 
     private void InkCanvas_OnPointerPressed(object sender, PointerRoutedEventArgs e)
@@ -91,16 +91,16 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
         //Console.WriteLine($"按下： {e.Pointer.PointerId}");
 
-        InvokeAsync(canvas => canvas.Down(ToInkingInputInfo(e)));
+        //InvokeAsync(canvas => canvas.Down(ToInkingInputInfo(e)));
     }
 
-    private InkingInputInfo ToInkingInputInfo(PointerRoutedEventArgs args)
-    {
-        var currentPoint = args.GetCurrentPoint(this);
+    //private InkingInputInfo ToInkingInputInfo(PointerRoutedEventArgs args)
+    //{
+    //    var currentPoint = args.GetCurrentPoint(this);
 
-        var stylusPoint = new StylusPoint(currentPoint.Position.X, currentPoint.Position.Y, currentPoint.Properties.Pressure);
-        return new InkingInputInfo((int) args.Pointer.PointerId, stylusPoint, currentPoint.Timestamp);
-    }
+    //    var stylusPoint = new StylusPoint(currentPoint.Position.X, currentPoint.Position.Y, currentPoint.Properties.Pressure);
+    //    return new InkingInputInfo((int) args.Pointer.PointerId, stylusPoint, currentPoint.Timestamp);
+    //}
 
     //private Point _lastPoint;
 
@@ -127,7 +127,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //    DrawInNative(position);
         //}
 
-        _lastInkingInputInfo = ToInkingInputInfo(e);
+        //_lastInkingInputInfo = ToInkingInputInfo(e);
         _dispatcherRequiring?.Require();
         //InvokeAsync(canvas => canvas.Move(ToInkingInputInfo(e)));
     }
@@ -146,9 +146,9 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
         InvokeAsync(canvas =>
         {
-            _skPathList.AddRange(canvas.CurrentInkStrokePathEnumerable);
+            //_skPathList.AddRange(canvas.CurrentInkStrokePathEnumerable);
 
-            canvas.Up(ToInkingInputInfo(e));
+            //canvas.Up(ToInkingInputInfo(e));
 
             SkXamlCanvas.Invalidate();
         });
@@ -228,7 +228,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         skPaint.IsAntialias = true;
         skPaint.FilterQuality = SKFilterQuality.High;
         skPaint.Style = SKPaintStyle.Fill;
-        if (OperatingSystem.IsLinux() && _x11InkProvider?.InkWindow.SkInkCanvas.Color is { } color)
+        if (OperatingSystem.IsLinux() && _x11InkProvider?.InkWindow.SkInkCanvas.Settings.Color is { } color)
         {
             skPaint.Color = color;
         }
@@ -247,10 +247,9 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         // 清空笔迹，换成在 UNO 层绘制
         InvokeAsync(canvas =>
         {
-            canvas.SkCanvas!.Clear();
-            canvas.RaiseRenderBoundsChanged(new Rect(0, 0, canvas.ApplicationDrawingSkBitmap!.Width,
-                canvas.ApplicationDrawingSkBitmap.Height));
+            //canvas.SkCanvas!.Clear();
+            //canvas.RaiseRenderBoundsChanged(new Rect(0, 0, canvas.ApplicationDrawingSkBitmap!.Width,
+            //    canvas.ApplicationDrawingSkBitmap.Height));
         });
     }
-
 }
