@@ -1,11 +1,24 @@
 ﻿#nullable enable
 using System.Diagnostics;
+<<<<<<< HEAD
 
 using BujeeberehemnaNurgacolarje;
+=======
+using System.Numerics;
+>>>>>>> b1618a865a21321eec61d1eb4fa7ac3eb9ddfcc5
 
 using Microsoft.Maui.Graphics;
 
 using SkiaSharp;
+<<<<<<< HEAD
+=======
+
+using UnoInk.Inking.InkCore.Diagnostics;
+using UnoInk.Inking.InkCore.Interactives;
+using UnoInk.Inking.InkCore.Settings;
+
+using static UnoInk.Inking.InkCore.RectExtension;
+>>>>>>> b1618a865a21321eec61d1eb4fa7ac3eb9ddfcc5
 
 namespace ReewheaberekaiNayweelehe;
 
@@ -79,9 +92,9 @@ class SkInkCanvas
 
     private Dictionary<int, DrawStrokeContext> CurrentInputDictionary { get; } =
         new Dictionary<int, DrawStrokeContext>();
-    
-    public IEnumerable<SKPath> CurrentInkStrokePathEnumerable =>
-        CurrentInputDictionary.Values.Select(t => t.InkStrokePath).Where(t => t != null)!;
+
+    public IEnumerable<string> CurrentInkStrokePathEnumerable =>
+        CurrentInputDictionary.Values.Select(t => t.InkStrokePath).Where(t => t != null).Select(t => t!.ToSvgPathData());
 
     public IEnumerable<SKPath> CurrentInkStrokePathEnumerable => CurrentInputDictionary.Values.Select(t => t.InkStrokePath)
         .Where(t => t != null)!;
@@ -324,7 +337,37 @@ class SkInkCanvas
             return true;
         }
 
+<<<<<<< HEAD
         return false;
+=======
+        // 假定要丢掉倒数第一个点，所以上一个点是倒数第二个点
+        var lastPoint = pointList[^2].Point;
+        var currentPoint = currentStylusPoint.Point;
+
+        var lastPointVector = new Vector2((float) lastPoint.X, (float) lastPoint.Y);
+        var currentPointVector = new Vector2((float) currentPoint.X, (float) currentPoint.Y);
+
+        var lineVector = currentPointVector - lastPointVector;
+        var lineLength = lineVector.Length();
+
+        // 如果移动距离比较长，则不丢点
+        if (lineLength > 10)
+        {
+            return false;
+        }
+
+        var last2Point = pointList[^3].Point;
+        var line2Vector = lastPointVector - new Vector2((float) last2Point.X, (float) last2Point.Y);
+        var line2Length = line2Vector.Length();
+        var vector2 = currentPointVector - lastPointVector;
+        var distance2 = MathF.Abs(line2Vector.X * vector2.Y - line2Vector.Y * vector2.X) / line2Length;
+        if (distance2 > 2)
+        {
+            return false;
+        }
+
+        return true;
+>>>>>>> b1618a865a21321eec61d1eb4fa7ac3eb9ddfcc5
     }
 
     private bool DrawStroke(DrawStrokeContext context, out Rect drawRect)
@@ -390,7 +433,11 @@ class SkInkCanvas
 
         var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, 20);
 
+<<<<<<< HEAD
         using var skPath = new SKPath();
+=======
+        using var skPath = new SKPath() { FillType = SKPathFillType.Winding };
+>>>>>>> b1618a865a21321eec61d1eb4fa7ac3eb9ddfcc5
         skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
         //skPath.Close();
 
@@ -409,9 +456,54 @@ class SkInkCanvas
 
             var skCanvas = _skCanvas;
             // 以下代码用于解决绘制的笔迹边缘锐利的问题。原因是笔迹执行了重采样，但是边缘如果没有被覆盖，则重采样的将会重复叠加，导致锐利
+<<<<<<< HEAD
             // 根据 Skia 的官方文档，建议是走清空重新绘制。在不清屏的情况下，除非能够获取到原始的像素点。尽管这是能够计算的，但是先走清空开发速度比较快
             skCanvas.Clear(SKColors.Transparent);
             skCanvas.DrawBitmap(_originBackground, 0, 0);
+=======
+            // 使用裁剪画布代替 Clear 方法，优化其性能
+            var skRectI = SKRectI.Create((int) Math.Floor(drawRect.X), (int) Math.Floor(drawRect.Y),
+                (int) Math.Ceiling(drawRect.Width), (int) Math.Ceiling(drawRect.Height));
+
+            skRectI = LimitRect(skRectI,
+                SKRectI.Create(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
+
+            if (_originBackground is null)
+            {
+                return false;
+            }
+
+            //ApplicationDrawingSkBitmap.ClearBounds(skRectI);
+            var success = ApplicationDrawingSkBitmap.ReplacePixels(_originBackground, skRectI);
+            if (!success)
+            {
+                StaticDebugLogger.WriteLine(
+                    $"ReplacePixels Fail Rect={skRectI.Left},{skRectI.Top},{skRectI.Right},{skRectI.Bottom} wh={skRectI.Width},{skRectI.Height} BitmapWH={ApplicationDrawingSkBitmap.Width},{ApplicationDrawingSkBitmap.Height} D={ApplicationDrawingSkBitmap.RowBytes == (ApplicationDrawingSkBitmap.Width * sizeof(uint))}");
+            }
+
+            stepCounter.Record("ReplacePixels");
+
+            //ApplicationDrawingSkBitmap.ClearBounds(new SKRectI(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
+            //skCanvas.Clear();
+            //ApplicationDrawingSkBitmap.NotifyPixelsChanged();
+            // 调用 Discard 没有任何的优化
+            //skCanvas.Discard();
+            SKRect skRect = skRectI;
+
+            //stepCounter.Record("ClearBounds");
+
+            //skCanvas.DrawBitmap(_originBackground, skRect, skRect);
+
+            //stepCounter.Record("DrawBitmap");
+
+            // 需要裁剪的原因是解决画完一笔之后，再画第二笔会看到第一笔不平滑
+            // 效果上和第一笔所在的图片被多次绘制导致采样不平滑
+            // 实际原因是在以下代码里面不断绘制整个笔迹，导致在当前画布里面就是不平滑的 但是此时渲染范围不包括整个笔迹
+            // 就看不到已经不平滑的笔迹部分内容
+            // 第二笔开始画的时候 更新了背景 此时的背景就包含了之前看不到的不平滑的笔迹部分内容 导致第二笔更新渲染范围将不平滑的笔迹在背景画出来 从而看到第一笔不平滑
+            skCanvas.Save();
+            skCanvas.ClipRect(skRect, antialias: true);
+>>>>>>> b1618a865a21321eec61d1eb4fa7ac3eb9ddfcc5
 
             // 将所有的笔迹绘制出来，作为动态笔迹层。后续抬手的笔迹需要重新写入到静态笔迹层
             using var skPaint = new SKPaint();
@@ -469,7 +561,407 @@ class SkInkCanvas
             return;
         }
 
+<<<<<<< HEAD
         if (Settings.EnableClippingEraser)
+=======
+        if (!_eraserStartTime.IsRunning
+            // 如果一直跟随触摸尺寸，则一直不要启动 Stopwatch 即可
+            && !Settings.CanEraserAlwaysFollowsTouchSize
+            && Settings.EnableStylusSizeAsEraserSize)
+        {
+            _eraserStartTime.Start();
+        }
+
+        double width = Settings.EraserSize.Width;
+        double height = Settings.EraserSize.Height;
+
+        // 禁止根据触摸尺寸修改橡皮擦尺寸
+        var disableResizeByTouch = !Settings.CanEraserAlwaysFollowsTouchSize
+                                   && _lastEraserTouchSize is not null
+                                   && _eraserStartTime.Elapsed > Settings.EraserCanResizeDuringTimeSpan;
+
+        if (disableResizeByTouch)
+        {
+            //StaticDebugLogger.WriteLine($"_eraserStartTime.Elapsed > Settings.EraserCanResizeDuringTimeSpan {_eraserStartTime.Elapsed}");
+            // 如果不是能够一直跟随橡皮擦，且超过指定时间，则固定橡皮擦尺寸
+            (width, height) = _lastEraserTouchSize!.Value;
+        }
+        else if (Settings.EnableStylusSizeAsEraserSize && IsInEraserGestureMode)
+        {
+            //StaticDebugLogger.WriteLine($"Settings.EnableStylusSizeAsEraserSizeInEraserGestureMode && IsInEraserGestureMode");
+            // 由于前置保证了如果当前点没有宽度高度则使用前一个点的宽度高度
+            // 所以这里判断宽度存在则设置即可，不需要处理不存在的情况
+            if (info.StylusPoint.Width is not null)
+            {
+                width = info.StylusPoint.Width.Value;
+                // 规约高度，让橡皮擦保持比例
+                height = width / SkInkCanvasSettings.DefaultEraserSize.Width *
+                         SkInkCanvasSettings.DefaultEraserSize.Height;
+            }
+            else
+            {
+                // 理论上进入手势橡皮擦模式，是不会有宽高是 0 的情况
+            }
+        }
+
+        if (Settings.LockMinEraserSize)
+        {
+            // 锁定最小橡皮擦
+            // 有人嫌弃小咯，那就改大点咯
+            width = Math.Max(width, Settings.MinEraserSize.Width);
+            height = Math.Max(height, Settings.MinEraserSize.Height);
+        }
+
+        //StaticDebugLogger.WriteLine($"MoveEraser {width},{height}");
+
+        _lastEraserTouchSize = (width, height);
+
+        if (Settings.EraserMode == InkCanvasEraserAlgorithmMode.EnableClippingEraserWithBinaryWithoutEraserPathCombine)
+        {
+            // 算法原理：
+            // 走蒙层裁剪的方式
+            // 首次先拍摄当前的界面作为背景图
+            // 接着再通过 SKPath 镂空 Clip 的方式，填充背景图
+            // 在填充和镂空之前，不执行 Clear 而是代替为二进制处理删除界面内容，减少填充范围
+            // 完成这一步之后调用 Flush 刷新到界面
+            // 再次拍摄当前的界面作为背景图，用于给下一次使用
+            // 以上的首次和下一次，指的是橡皮擦的 MoveEraser 方法的首次和下一次调用
+            // 接着再画上橡皮擦的图标
+            // 如此即可实现较快速度的橡皮擦，原因是每次只需要做当前的 SKPath 镂空 Clip 的方式，填充背景图
+            // 不需要计算之前的点，不会存在越擦就越慢的问题
+            // 但是会带来非常多的位图拷贝逻辑，如果这套算法放在 Win 下，肯定是不行的。但是在兆芯机器上还行
+
+            // 这个橡皮擦还没完成，存在问题
+            // 1. 擦的时候，会出现部分范围被多余的擦掉，即黑边情况
+            // 2. 抬手之后如何擦掉橡皮擦图标
+
+            if (!MoveEraserStopwatch.IsRunning)
+            {
+                MoveEraserStopwatch.Restart();
+            }
+            else if (MoveEraserStopwatch.Elapsed < Settings.EraserDropPointTimeSpan)
+            {
+                // 如果时间距离过近，则忽略
+                // 由于触摸屏大量触摸点输入，而 DrawBitmap 需要 20 毫秒，导致性能过于差
+                if (Settings.ShouldCollectDropErasePoint)
+                {
+                    _eraserDropPointList ??= new List<StylusPoint>();
+                    _eraserDropPointList.Add(info.StylusPoint);
+                }
+
+                return;
+            }
+            else
+            {
+                MoveEraserStopwatch.Restart();
+            }
+
+            if (EraserPath is null)
+            {
+                EraserPath = new SKPath();
+            }
+            else
+            {
+                EraserPath.Reset();
+            }
+
+            using var skPaint = new SKPaint();
+            skPaint.Color = SKColors.Red;
+            skPaint.Style = SKPaintStyle.Fill;
+
+            var point = info.StylusPoint.Point;
+            var x = (float) point.X;
+            var y = (float) point.Y;
+
+            x -= (float) width / 2;
+            y -= (float) height / 2;
+
+            var skRect = new SKRect(x, y, (float) (x + width), (float) (y + height));
+
+            using var skRoundRect = new SKPath();
+            skRoundRect.AddRoundRect(skRect, 5, 5);
+
+            // 比擦掉的范围更大的范围，用于持续更新
+            var expandRect = ExpandSKRect(skRect, 10);
+            if (_lastEraserRenderBounds is not null)
+            {
+                // 理论上此时需要从原先的拷贝覆盖，否则将不能清掉上次的橡皮擦内容
+                // 重新绘制 _origin 的，用于修复清理的问题
+                // 为什么其他的模式不需要？原因是其他的模式的裁剪是全部的
+                // 用于修复橡皮擦图标没有删除
+                expandRect.Union(_lastEraserRenderBounds.Value.ToSkRect());
+            }
+
+            expandRect = LimitRectInAppBitmapRect(expandRect);
+            // 先修改其为更大的尺寸，再执行 Round 可以完全确保更新在范围之内
+            // 使用 SKRectI 确保像素相同
+            var redrawRect = SKRectI.Round(expandRect);
+
+            // 裁剪范围能够更小一些
+            EraserPath.AddRect(redrawRect);
+            EraserPath.Op(skRoundRect, SKPathOp.Difference, EraserPath);
+
+            //// 几何裁剪本身无视顺序，因此先处理当前点再处理之前的点也是正确的
+            //if (Settings.ShouldCollectDropErasePoint && _eraserDropPointList != null)
+            //{
+            //    double collectedEraserWidth = width;
+            //    double collectedEraserHeight = height;
+
+            //    // 如果有收集丢点的点，则加入计算
+            //    foreach (var stylusPoint in _eraserDropPointList)
+            //    {
+            //        var dropPoint = stylusPoint.Point;
+            //        var xDropPoint = (float) dropPoint.X;
+            //        var yDropPoint = (float) dropPoint.Y;
+
+            //        if (!disableResizeByTouch && Settings.EnableStylusSizeAsEraserSizeInEraserGestureMode && IsInEraserGestureMode)
+            //        {
+            //            if (stylusPoint.Width is not null)
+            //            {
+            //                collectedEraserWidth = stylusPoint.Width.Value;
+
+            //                // 规约高度，让橡皮擦保持比例
+            //                collectedEraserHeight = collectedEraserWidth / SkInkCanvasSettings.DefaultEraserSize.Width *
+            //                                        SkInkCanvasSettings.DefaultEraserSize.Height;
+            //            }
+            //        }
+
+            //        xDropPoint -= (float) collectedEraserWidth / 2;
+            //        yDropPoint -= (float) collectedEraserHeight / 2;
+
+            //        var skRectDropPoint = new SKRect(xDropPoint, yDropPoint, (float) (xDropPoint + collectedEraserWidth),
+            //            (float) (yDropPoint + collectedEraserHeight));
+
+            //        skRect.Union(skRectDropPoint);
+
+            //        skRoundRect.Reset();
+            //        skRoundRect.AddRoundRect(skRectDropPoint, 5, 5);
+
+            //        EraserPath.Op(skRoundRect, SKPathOp.Difference, EraserPath);
+            //    }
+
+            //    _eraserDropPointList.Clear();
+            //}
+
+            // 更新范围
+            var addition = 20;
+
+            // 更新渲染范围为更大的范围
+            var currentEraserRenderBounds = new Rect(skRect.Left - addition, skRect.Top - addition,
+                skRect.Width + addition * 2,
+                skRect.Height + addition * 2);
+            currentEraserRenderBounds = LimitRectInAppBitmapRect(currentEraserRenderBounds);
+            var rect = currentEraserRenderBounds;
+
+            if (_lastEraserRenderBounds != null)
+            {
+                // 将上次的绘制范围进行重新绘制，防止出现橡皮擦图标
+                skRect.Union(new SKRect((float) _lastEraserRenderBounds.Value.Left,
+                    (float) _lastEraserRenderBounds.Value.Top, (float) _lastEraserRenderBounds.Value.Right,
+                    (float) _lastEraserRenderBounds.Value.Bottom));
+            }
+
+            // 清理的范围应该比更新范围更小
+            ApplicationDrawingSkBitmap.ClearBounds(redrawRect);
+
+            // 可选拷贝外面一圈，用来修复黑边问题
+            //ApplicationDrawingSkBitmap.ReplacePixels
+
+
+            //// 裁剪范围应该和绘制范围一样大
+            //skRect = ExpandSKRect(skRect, addition / 2f);
+
+            ////// 减少裁剪范围和绘制范围，用于提升性能
+            //skRoundRect.Reset();
+            //skRoundRect.AddRect(skRect);
+            //// 只有 skRect 范围内的才能被裁剪，而不是一开始的全画面
+            //EraserPath.Op(skRoundRect, SKPathOp.Intersect, EraserPath);
+
+            //canvas.Clear();
+            canvas.Save();
+            canvas.ClipPath(EraserPath, antialias: true);
+
+            //canvas.DrawPath(EraserPath, skPaint);
+            canvas.DrawBitmap(_originBackground, skRect, skRect);
+            canvas.Restore();
+
+            canvas.Flush();
+
+            //重新更新 _originBackground 的内容，需要在画出橡皮擦之前
+            using var skCanvas = new SKCanvas(_originBackground);
+            skCanvas.Clear();
+            skCanvas.DrawBitmap(ApplicationDrawingSkBitmap, 0, 0);
+
+            // 画出橡皮擦
+            canvas.Save();
+            canvas.Translate(x, y);
+            EraserView.DrawEraserView(canvas, (int) width, (int) height);
+            canvas.Restore();
+
+            if (_lastEraserRenderBounds != null)
+            {
+                // 将上次的绘制范围进行重新绘制，防止出现橡皮擦图标
+                rect = rect.Union(_lastEraserRenderBounds.Value);
+            }
+
+            rect = LimitRectInAppBitmapRect(rect);
+            _lastEraserRenderBounds = currentEraserRenderBounds;
+
+            //// 调试下，尝试绘制整个界面
+            //rect = new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height);
+            RenderBoundsChanged?.Invoke(this, rect);
+
+            MoveEraserStopwatch.Stop();
+            //Console.WriteLine($"EraserPath time={MoveEraserStopwatch.ElapsedMilliseconds}ms RenderBounds={rect.X} {rect.Y} {rect.Width} {rect.Height} EraserPathPointCount={EraserPath.PointCount}");
+            MoveEraserStopwatch.Restart();
+        }
+        else if (Settings.EraserMode == InkCanvasEraserAlgorithmMode.EnableClippingEraserWithoutEraserPathCombine)
+        {
+            // 算法原理：
+            // 走蒙层裁剪的方式
+            // 首次先拍摄当前的界面作为背景图
+            // 接着再通过 SKPath 镂空 Clip 的方式，填充背景图
+            // 完成这一步之后调用 Flush 刷新到界面
+            // 再次拍摄当前的界面作为背景图，用于给下一次使用
+            // 以上的首次和下一次，指的是橡皮擦的 MoveEraser 方法的首次和下一次调用
+            // 接着再画上橡皮擦的图标
+            // 如此即可实现较快速度的橡皮擦，原因是每次只需要做当前的 SKPath 镂空 Clip 的方式，填充背景图
+            // 不需要计算之前的点，不会存在越擦就越慢的问题
+            // 但是会带来非常多的位图拷贝逻辑，如果这套算法放在 Win 下，肯定是不行的。但是在兆芯机器上还行
+
+            if (!MoveEraserStopwatch.IsRunning)
+            {
+                MoveEraserStopwatch.Restart();
+            }
+            else if (MoveEraserStopwatch.Elapsed < Settings.EraserDropPointTimeSpan)
+            {
+                // 如果时间距离过近，则忽略
+                // 由于触摸屏大量触摸点输入，而 DrawBitmap 需要 20 毫秒，导致性能过于差
+                if (Settings.ShouldCollectDropErasePoint)
+                {
+                    _eraserDropPointList ??= new List<StylusPoint>();
+                    _eraserDropPointList.Add(info.StylusPoint);
+                }
+
+                return;
+            }
+            else
+            {
+                MoveEraserStopwatch.Restart();
+            }
+
+            if (EraserPath is null)
+            {
+                EraserPath = new SKPath();
+            }
+            else
+            {
+                EraserPath.Reset();
+            }
+
+            EraserPath.AddRect(new SKRect(0, 0, _originBackground.Width, _originBackground.Height));
+
+            // 几何裁剪本身无视顺序，因此先处理当前点再处理之前的点也是正确的
+            using var skRoundRect = new SKPath();
+
+            var point = info.StylusPoint.Point;
+            var x = (float) point.X;
+            var y = (float) point.Y;
+
+            x -= (float) width / 2;
+            y -= (float) height / 2;
+
+            var skRect = new SKRect(x, y, (float) (x + width), (float) (y + height));
+
+            skRoundRect.AddRoundRect(skRect, 5, 5);
+            EraserPath.Op(skRoundRect, SKPathOp.Difference, EraserPath);
+
+            if (Settings.ShouldCollectDropErasePoint && _eraserDropPointList != null)
+            {
+                double collectedEraserWidth = width;
+                double collectedEraserHeight = height;
+
+                // 如果有收集丢点的点，则加入计算
+                foreach (var stylusPoint in _eraserDropPointList)
+                {
+                    var dropPoint = stylusPoint.Point;
+                    var xDropPoint = (float) dropPoint.X;
+                    var yDropPoint = (float) dropPoint.Y;
+
+                    if (!disableResizeByTouch && Settings.EnableStylusSizeAsEraserSize && IsInEraserGestureMode)
+                    {
+                        if (stylusPoint.Width is not null)
+                        {
+                            collectedEraserWidth = stylusPoint.Width.Value;
+
+                            // 规约高度，让橡皮擦保持比例
+                            collectedEraserHeight = collectedEraserWidth / SkInkCanvasSettings.DefaultEraserSize.Width *
+                                                    SkInkCanvasSettings.DefaultEraserSize.Height;
+                        }
+                    }
+
+                    xDropPoint -= (float) collectedEraserWidth / 2;
+                    yDropPoint -= (float) collectedEraserHeight / 2;
+
+                    var skRectDropPoint = new SKRect(xDropPoint, yDropPoint, (float) (xDropPoint + collectedEraserWidth),
+                        (float) (yDropPoint + collectedEraserHeight));
+
+                    skRect.Union(skRectDropPoint);
+
+                    skRoundRect.Reset();
+                    skRoundRect.AddRoundRect(skRectDropPoint, 5, 5);
+
+                    EraserPath.Op(skRoundRect, SKPathOp.Difference, EraserPath);
+                }
+
+                _eraserDropPointList.Clear();
+            }
+
+            canvas.Clear();
+            canvas.Save();
+            canvas.ClipPath(EraserPath, antialias: true);
+            canvas.DrawBitmap(_originBackground, 0, 0);
+            canvas.Restore();
+
+            canvas.Flush();
+            // 重新更新 _originBackground 的内容，需要在画出橡皮擦之前
+            //using var skCanvas = new SKCanvas(_originBackground);
+            //skCanvas.Clear();
+            //skCanvas.DrawBitmap(ApplicationDrawingSkBitmap, 0, 0);
+            _originBackground.ReplacePixels(ApplicationDrawingSkBitmap);
+
+            // 画出橡皮擦
+            canvas.Save();
+            canvas.Translate(x, y);
+            EraserView.DrawEraserView(canvas, (int) width, (int) height);
+            canvas.Restore();
+
+            // 更新范围
+            var addition = 20;
+            var currentEraserRenderBounds = new Rect(skRect.Left - addition, skRect.Top - addition,
+                skRect.Width + addition * 2,
+                skRect.Height + addition * 2);
+            currentEraserRenderBounds = LimitRectInAppBitmapRect(currentEraserRenderBounds);
+
+            var rect = currentEraserRenderBounds;
+
+            if (_lastEraserRenderBounds != null)
+            {
+                // 将上次的绘制范围进行重新绘制，防止出现橡皮擦图标
+                rect = rect.Union(_lastEraserRenderBounds.Value);
+            }
+
+            rect = LimitRectInAppBitmapRect(rect);
+
+            _lastEraserRenderBounds = currentEraserRenderBounds;
+            RenderBoundsChanged?.Invoke(this, rect);
+
+            MoveEraserStopwatch.Stop();
+            //Console.WriteLine($"EraserPath time={MoveEraserStopwatch.ElapsedMilliseconds}ms RenderBounds={rect.X} {rect.Y} {rect.Width} {rect.Height} EraserPathPointCount={EraserPath.PointCount}");
+            MoveEraserStopwatch.Restart();
+        }
+        else if (Settings.EraserMode == InkCanvasEraserAlgorithmMode.EnableClippingEraser)
+>>>>>>> b1618a865a21321eec61d1eb4fa7ac3eb9ddfcc5
         {
             if (!MoveEraserStopwatch.IsRunning)
             {
@@ -503,6 +995,21 @@ class SkInkCanvas
 
             using var skRoundRect = new SKPath();
 
+<<<<<<< HEAD
+=======
+            var point = info.StylusPoint.Point;
+            var x = (float) point.X;
+            var y = (float) point.Y;
+
+            x -= (float) width / 2;
+            y -= (float) height / 2;
+
+            var skRect = new SKRect(x, y, (float) (x + width), (float) (y + height));
+            skRoundRect.AddRoundRect(skRect, 5, 5);
+            EraserPath.Op(skRoundRect, SKPathOp.Difference, EraserPath);
+
+            // 几何裁剪本身无视顺序，因此先处理当前点再处理之前的点也是正确的
+>>>>>>> b1618a865a21321eec61d1eb4fa7ac3eb9ddfcc5
             if (Settings.ShouldCollectDropErasePoint && _eraserDropPointList != null)
             {
                 // 如果有收集丢点的点，则加入计算
@@ -515,7 +1022,16 @@ class SkInkCanvas
                     xDropPoint -= (float) width / 2;
                     yDropPoint -= (float) height / 2;
 
+<<<<<<< HEAD
                     var skRectDropPoint = new SKRect(xDropPoint, yDropPoint, (float) (xDropPoint + width), (float) (yDropPoint + height));
+=======
+                    xDropPoint -= (float) collectedEraserWidth / 2;
+                    yDropPoint -= (float) collectedEraserHeight / 2;
+
+                    var skRectDropPoint = new SKRect(xDropPoint, yDropPoint, (float) (xDropPoint + collectedEraserWidth),
+                        (float) (yDropPoint + collectedEraserHeight));
+                    skRect.Union(skRectDropPoint);
+>>>>>>> b1618a865a21321eec61d1eb4fa7ac3eb9ddfcc5
 
                     skRoundRect.Reset();
                     skRoundRect.AddRoundRect(skRectDropPoint, 5, 5);
@@ -547,7 +1063,11 @@ class SkInkCanvas
             // 画出橡皮擦
             canvas.Save();
             canvas.Translate(x, y);
+<<<<<<< HEAD
             EraserView.DrawEraserView(canvas, 30, 45);
+=======
+            EraserView.DrawEraserView(canvas, (int) width, (int) height);
+>>>>>>> b1618a865a21321eec61d1eb4fa7ac3eb9ddfcc5
             canvas.Restore();
 
             // 更新范围
