@@ -42,6 +42,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\BujeeberehemnaNurgacolarje\*.cs" LinkBase="Inking\X11Ink\Core" />
+    <Compile Remove="..\..\BujeeberehemnaNurgacolarje\SimpleInkRender.cs" />
+    <Compile Remove="..\..\BujeeberehemnaNurgacolarje\StylusPoint.cs" />
     <Compile Remove="..\..\BujeeberehemnaNurgacolarje\X11App.cs" />
     <Compile Include="..\..\DikalehebeekaJaqunicobo\ShapeConst.cs" Link="Inking\X11Ink\Core\ShapeConst.cs" />
     <Compile Include="..\..\DikalehebeekaJaqunicobo\XFixes.cs" Link="Inking\X11Ink\Core\XFixes.cs" />
