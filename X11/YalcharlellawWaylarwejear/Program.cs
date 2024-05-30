@@ -37,7 +37,7 @@ var xSetWindowAttributes = new XSetWindowAttributes
 var width = 500;
 var height = 500;
 var handle = XCreateWindow(display, rootWindow, 0, 0, width, height, 5,
-    32,
+    (int) info.depth,
     (int) CreateWindowArgs.InputOutput,
     visual,
     (nuint) valueMask, ref xSetWindowAttributes);
