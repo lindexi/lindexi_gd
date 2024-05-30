@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Versioning;
 using CPF.Linux;
 using static CPF.Linux.XLib;
 using static CPF.Linux.ShapeConst;
+using Microsoft.UI;
 
 namespace UnoInk.Inking.X11Platforms;
 
@@ -29,6 +31,7 @@ public class X11Window
     public void ShowActive()
     {
         XLib.XMapWindow(X11Info.Display, X11WindowIntPtr);
+        XFlush(X11Info.Display);
     }
 
     /// <summary>
@@ -45,6 +48,29 @@ public class X11Window
     public void SetOwner(IntPtr ownerX11WindowIntPtr)
     {
         XSetTransientForHint(X11Info.Display, X11WindowIntPtr, ownerX11WindowIntPtr);
+    }
+    
+    public void RegisterMultiTouch([DisallowNull] XIDeviceInfo? pointerDevice)
+    {
+        XiEventType[] multiTouchEventTypes =
+        [
+            XiEventType.XI_TouchBegin,
+            XiEventType.XI_TouchUpdate,
+            XiEventType.XI_TouchEnd
+        ];
+        
+        XiEventType[] defaultEventTypes =
+        [
+            XiEventType.XI_Motion,
+            XiEventType.XI_ButtonPress,
+            XiEventType.XI_ButtonRelease,
+            XiEventType.XI_Leave,
+            XiEventType.XI_Enter,
+        ];
+        
+        List<XiEventType> eventTypes = [.. multiTouchEventTypes, .. defaultEventTypes];
+        
+        XiSelectEvents(X11Info.Display, X11WindowIntPtr, new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = eventTypes });
     }
 
     private static IntPtr CreateX11Window(X11Application application, X11WindowCreateInfo createInfo)

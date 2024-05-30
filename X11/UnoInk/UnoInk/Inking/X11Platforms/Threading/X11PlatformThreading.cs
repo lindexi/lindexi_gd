@@ -38,6 +38,7 @@ public class X11PlatformThreading
         while (true)
         {
             var xNextEvent = XLib.XNextEvent(display, out var @event);
+            //Console.WriteLine($"XNextEvent [{Thread.CurrentThread.Name}] {@event.type}");
             //if (@event.type == XEventName.Expose)
             //{
             //    if (@event.ExposeEvent.window == X11InkProvider.InkWindow.X11InkWindowIntPtr)
