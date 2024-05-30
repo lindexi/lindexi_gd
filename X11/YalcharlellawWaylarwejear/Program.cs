@@ -75,8 +75,8 @@ var colormap = XCreateColormap(display, rootWindow, visual, 0);
 XColor color = new XColor()
 {
     red = 0xF556, // value is 0-65535
-    green = 0xF156,
-    blue = 0xF156,
+    green = 0xC156,
+    blue = 0x2156,
     flags = (byte)(ColorFlags.DoRed | ColorFlags.DoGreen | ColorFlags.DoBlue),
 };
 
