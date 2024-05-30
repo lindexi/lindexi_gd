@@ -186,12 +186,15 @@ class X11InkWindow : X11Window
         var xDisplayWidth = x11Info.XDisplayWidth;
         var xDisplayHeight = x11Info.XDisplayHeight;
 
-        // 设置不接受输入
-        // 这样输入穿透到后面一层里，由后面一层将内容上报上来
-        SetClickThrough();
+        //// 设置不接受输入
+        //// 这样输入穿透到后面一层里，由后面一层将内容上报上来
+        //SetClickThrough();
 
         // 设置一定放在输入的窗口上方
         SetOwner(mainWindowHandle);
+
+        // 尝试在 ShowActive 之前，否则 XIQueryDevice 可能卡住
+        X11DeviceInputManager = new X11DeviceInputManager(_x11Info);
 
         ShowActive();
 
@@ -258,7 +261,6 @@ class X11InkWindow : X11Window
         var modeInputDispatcher = new ModeInputDispatcher();
         modeInputDispatcher.AddInputProcessor(skInkCanvas);
         ModeInputDispatcher = modeInputDispatcher;
-        X11DeviceInputManager = new X11DeviceInputManager(_x11Info);
     }
     
     public X11DeviceInputManager X11DeviceInputManager { get; }
