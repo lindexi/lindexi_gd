@@ -51,6 +51,13 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
                     new DispatcherRequiring(InvokeInk, _x11InkProvider.InkWindow.GetDispatcher());
             }
         }
+        
+        while (true)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(1));
+            
+            LogTextBlock.Text = "刷新" + Random.Shared.Next();
+        }
     }
 
     private void InvokeInk()

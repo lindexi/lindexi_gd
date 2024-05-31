@@ -1,3 +1,4 @@
+using Windows.UI;
 using Microsoft.UI;
 using UnoHacker;
 using UnoInk.UnoInkCore;
@@ -25,5 +26,28 @@ public partial class UnoInkFullScreenWindow : Window
         Hacker.Do();
 
         Content = new UnoInkCanvasUserControl();
+        
+        ChangeBackground();
+    }
+    
+    private async void ChangeBackground()
+    {
+        while (true)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(1));
+            
+#if HAS_UNO
+            // 这句话似乎也是无效的
+            this.SetBackground(new SolidColorBrush(new Color()
+            {
+                A = (byte) Random.Shared.Next(255),
+                R = (byte) Random.Shared.Next(255),
+                G = (byte) Random.Shared.Next(255),
+                B = (byte) Random.Shared.Next(255),
+            }));
+
+            this.Content?.InvalidateArrange();
+#endif
+        }
     }
 }
