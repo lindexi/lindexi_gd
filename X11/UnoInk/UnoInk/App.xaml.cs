@@ -33,6 +33,11 @@ public partial class App : Application
 
         var unoInkWindow = new UnoInkFullScreenWindow();
         unoInkWindow.Activate();
+        unoInkWindow.AppWindow.Move(new PointInt32()
+        {
+            X = 100,
+            Y = 100
+        });
         return;
         
         Console.WriteLine($"Before new Window");
