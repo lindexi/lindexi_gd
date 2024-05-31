@@ -78,16 +78,12 @@ XColor color = new XColor()
     red = 0xF556, // value is 0-65535
     green = 0xC156,
     blue = 0x2156,
-    flags = (byte) (ColorFlags.DoRed | ColorFlags.DoGreen | ColorFlags.DoBlue),
+    flags = (byte)(ColorFlags.DoRed | ColorFlags.DoGreen | ColorFlags.DoBlue),
 };
 
 XAllocColor(display, colormap, ref color);
 
 Console.WriteLine(color.pixel.ToString("X"));
-
-XColor color2 = new XColor();
-XParseColor(display, colormap, "#FF7F00", ref color2);
-Console.WriteLine(color2.pixel.ToString("X"));
 
 var xSetWindowAttributes = new XSetWindowAttributes
 {
@@ -126,6 +122,3 @@ const string libX11 = "libX11.so.6";
 
 [DllImport(libX11)]
 static extern int XDefaultDepth(IntPtr display, int screen);
-
-[DllImport(libX11)]
-static extern int XParseColor(IntPtr display, IntPtr colormap, string spec, ref XColor exact_def_return);
