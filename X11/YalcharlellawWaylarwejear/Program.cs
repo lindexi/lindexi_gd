@@ -87,8 +87,22 @@ foreach (var depth in (int[]) [1, 2, 4, 8, 12, 16, 24, 32])
 
 var visual = info.visual;
 
+<<<<<<< HEAD
 XSetWindowAttributes attr = new XSetWindowAttributes();
 var valueMask = default(SetWindowValuemask);
+=======
+var valueMask =
+        //SetWindowValuemask.BackPixmap
+        0
+        | SetWindowValuemask.BackPixel
+        | SetWindowValuemask.BorderPixel
+        | SetWindowValuemask.BitGravity
+        | SetWindowValuemask.WinGravity
+        | SetWindowValuemask.BackingStore
+        | SetWindowValuemask.ColorMap
+    | SetWindowValuemask.OverrideRedirect
+    ;
+>>>>>>> 683370edc89f19b46c3ba42b809618d897b0eef2
 
 attr.backing_store = 1;
 attr.bit_gravity = Gravity.NorthWestGravity;
@@ -106,7 +120,26 @@ defaultWidth = Math.Max(defaultWidth, 300);
 defaultHeight = Math.Max(defaultHeight, 200);
 
 
+<<<<<<< HEAD
 var handle = XCreateWindow(display, rootWindow, 10, 10, defaultWidth, defaultHeight, 0,
+=======
+Console.WriteLine(color.pixel.ToString("X"));
+
+var xSetWindowAttributes = new XSetWindowAttributes
+{
+    backing_store = 1,
+    bit_gravity = Gravity.NorthWestGravity,
+    win_gravity = Gravity.NorthWestGravity,
+    override_redirect = true, // 设置窗口的override_redirect属性为True，以避免窗口管理器的干预
+    colormap = colormap,
+    border_pixel = 0,
+    background_pixel = color.pixel,
+};
+
+var width = 500;
+var height = 500;
+var handle = XCreateWindow(display, rootWindow, 0, 0, width, height, 5,
+>>>>>>> 683370edc89f19b46c3ba42b809618d897b0eef2
     (int) info.depth,
     (int) CreateWindowArgs.InputOutput,
     visual,
