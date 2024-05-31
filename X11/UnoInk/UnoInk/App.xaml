@@ -1,17 +1,22 @@
 <Application x:Class="UnoInk.App"
        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 <<<<<<< HEAD
+<<<<<<< HEAD
        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
        xmlns:um="using:Uno.Material">
 =======
        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 >>>>>>> 5adb265d4a50b5cb5c3d83f6d1bef1cd2ada93c0
+=======
+       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+>>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
 
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <!-- Load WinUI resources -->
         <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+<<<<<<< HEAD
 <<<<<<< HEAD
         <um:MaterialTheme
           ColorOverrideSource="ms-appx:///Styles/ColorPaletteOverride.xaml">
@@ -26,6 +31,8 @@
         </um:MaterialTheme>
 =======
 >>>>>>> 5adb265d4a50b5cb5c3d83f6d1bef1cd2ada93c0
+=======
+>>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>

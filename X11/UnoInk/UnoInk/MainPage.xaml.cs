@@ -1,12 +1,18 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Graphics.Display;
 using Windows.Graphics.Imaging;
 using Windows.Storage.Streams;
 using Microsoft.UI.Xaml.Media.Imaging;
 
+<<<<<<< HEAD
 >>>>>>> 5adb265d4a50b5cb5c3d83f6d1bef1cd2ada93c0
+=======
+>>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
 namespace UnoInk;
 
 public sealed partial class MainPage : Page
@@ -14,6 +20,7 @@ public sealed partial class MainPage : Page
     public MainPage()
     {
         this.InitializeComponent();
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 =======
@@ -42,5 +49,7 @@ public sealed partial class MainPage : Page
         );
         await bitmapEncoder.FlushAsync();
 >>>>>>> 5adb265d4a50b5cb5c3d83f6d1bef1cd2ada93c0
+=======
+>>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
     }
 }

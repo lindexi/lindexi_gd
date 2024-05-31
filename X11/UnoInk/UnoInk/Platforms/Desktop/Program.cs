@@ -1,8 +1,11 @@
 using Uno.UI.Runtime.Skia;
 <<<<<<< HEAD
+<<<<<<< HEAD
 using Uno.WinUI.Runtime.Skia.X11;
 =======
 >>>>>>> 5adb265d4a50b5cb5c3d83f6d1bef1cd2ada93c0
+=======
+>>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
 
 namespace UnoInk;
 public class Program
@@ -10,6 +13,7 @@ public class Program
     [STAThread]
     public static void Main(string[] args)
     {
+<<<<<<< HEAD
 <<<<<<< HEAD
         App.InitializeLogging();
 
@@ -21,11 +25,18 @@ public class Program
         //Console.WriteLine($"X11ApplicationHost 退出");
 
 =======
+=======
+        Console.WriteLine("启动");
+        FeatureConfiguration.Rendering.UseOpenGLOnX11 = false;
+>>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
 #if (!useDependencyInjection && useLoggingFallback)
         App.InitializeLogging();
 
 #endif
+<<<<<<< HEAD
 >>>>>>> 5adb265d4a50b5cb5c3d83f6d1bef1cd2ada93c0
+=======
+>>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
         var host = SkiaHostBuilder.Create()
             .App(() => new App())
             .UseX11()
@@ -34,9 +45,13 @@ public class Program
             .UseWindows()
             .Build();
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> 5adb265d4a50b5cb5c3d83f6d1bef1cd2ada93c0
+=======
+
+>>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
         host.Run();
     }
 }

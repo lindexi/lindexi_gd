@@ -3,6 +3,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:UnoInk"
 <<<<<<< HEAD
+<<<<<<< HEAD
       xmlns:um="using:Uno.Material"
       xmlns:windows="using:SkiaSharp.Views.Windows"
       Background="Transparent">
@@ -11,14 +12,25 @@
     <local:PointerEventArgsTests HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent"></local:PointerEventArgsTests>
   </Grid>
 =======
+=======
+>>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
   <StackPanel
         HorizontalAlignment="Center"
         VerticalAlignment="Center">
+<<<<<<< HEAD
     <TextBlock AutomationProperties.AutomationId="HelloTextBlock"
           Text="Hello Uno Platform"
           HorizontalAlignment="Center" />
     <Button x:Name="ScreenshotButton" Content="截图" Click="ScreenshotButton_OnClick"/>
   </StackPanel>
 >>>>>>> 5adb265d4a50b5cb5c3d83f6d1bef1cd2ada93c0
+=======
+    <Border Background="Red" Width="300" Height="100">
+      <TextBlock AutomationProperties.AutomationId="HelloTextBlock"
+               Text="Hello Uno Platform"
+               HorizontalAlignment="Center" />
+    </Border>
+  </StackPanel>
+>>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
 </Page>

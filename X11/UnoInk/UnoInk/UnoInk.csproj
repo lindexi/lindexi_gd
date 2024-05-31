@@ -33,6 +33,7 @@
     -->
     <UnoFeatures>
 <<<<<<< HEAD
+<<<<<<< HEAD
       Material;
       Dsp;
       MVUX;
@@ -59,5 +60,9 @@
     </UnoFeatures>
   </PropertyGroup>
 >>>>>>> 5adb265d4a50b5cb5c3d83f6d1bef1cd2ada93c0
+=======
+    </UnoFeatures>
+  </PropertyGroup>
+>>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
 
 </Project>

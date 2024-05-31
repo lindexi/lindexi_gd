@@ -1,5 +1,6 @@
 using System;
 <<<<<<< HEAD
+<<<<<<< HEAD
 using System.Reflection;
 using Windows.Graphics;
 using Microsoft.Extensions.Logging;
@@ -18,6 +19,15 @@ using Microsoft.Extensions.Logging;
 
 using Uno.Resizetizer;
 >>>>>>> 5adb265d4a50b5cb5c3d83f6d1bef1cd2ada93c0
+=======
+
+using Microsoft.Extensions.Logging;
+
+using Uno.Resizetizer;
+#if HAS_UNO
+using Uno.UI.Xaml;
+#endif
+>>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
 
 namespace UnoInk;
 public partial class App : Application
@@ -35,6 +45,7 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+<<<<<<< HEAD
 <<<<<<< HEAD
         //ShowSecondWindow();
 
@@ -68,6 +79,16 @@ public partial class App : Application
 #endif
 
 >>>>>>> 5adb265d4a50b5cb5c3d83f6d1bef1cd2ada93c0
+=======
+        MainWindow = new Window();
+#if DEBUG
+        MainWindow.EnableHotReload();
+#endif
+#if HAS_UNO
+        var nativeWindow = MainWindow.GetNativeWindow();
+        Console.WriteLine($"NativeWindow={nativeWindow}");
+#endif
+>>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
 
         // Do not repeat app initialization when the Window already has content,
         // just ensure that the window is active
@@ -76,9 +97,12 @@ public partial class App : Application
             // Create a Frame to act as the navigation context and navigate to the first page
             rootFrame = new Frame();
 <<<<<<< HEAD
+<<<<<<< HEAD
             rootFrame.Background = new SolidColorBrush(Colors.Transparent);
 =======
 >>>>>>> 5adb265d4a50b5cb5c3d83f6d1bef1cd2ada93c0
+=======
+>>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
 
             // Place the frame in the current Window
             MainWindow.Content = rootFrame;
@@ -94,6 +118,7 @@ public partial class App : Application
             rootFrame.Navigate(typeof(MainPage), args.Arguments);
         }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
         // 背景透明需要 UNO 还没发布的版本
         // https://github.com/lindexi/uno/tree/7b282851a8ec3ed7eb42a53af8b50ea7fe045d56
@@ -113,6 +138,15 @@ public partial class App : Application
         // Ensure the current window is active
         MainWindow.Activate();
 >>>>>>> 5adb265d4a50b5cb5c3d83f6d1bef1cd2ada93c0
+=======
+        MainWindow.SetWindowIcon();
+        rootFrame.Loaded += (sender, eventArgs) =>
+        {
+            Console.WriteLine($"Activate");
+            // Ensure the current window is active
+            MainWindow.Activate();
+        };
+>>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
     }
 
     /// <summary>
