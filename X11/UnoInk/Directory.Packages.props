@@ -6,7 +6,11 @@
   -->
   <ItemGroup>
   </ItemGroup>
+<<<<<<< HEAD
   <ItemGroup>
     <PackageVersion Include="Microsoft.Maui.Graphics" Version="8.0.40" />
   </ItemGroup>
 </Project>
+=======
+</Project>
+>>>>>>> 5adb265d4a50b5cb5c3d83f6d1bef1cd2ada93c0

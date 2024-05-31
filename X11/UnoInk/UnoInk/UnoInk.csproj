@@ -32,6 +32,7 @@
       https://aka.platform.uno/singleproject-features
     -->
     <UnoFeatures>
+<<<<<<< HEAD
       Material;
       Dsp;
       MVUX;
@@ -54,5 +55,9 @@
   <ItemGroup>
     <ProjectReference Include="..\UnoHacker\UnoHacker.csproj" />
   </ItemGroup>
+=======
+    </UnoFeatures>
+  </PropertyGroup>
+>>>>>>> 5adb265d4a50b5cb5c3d83f6d1bef1cd2ada93c0
 
 </Project>

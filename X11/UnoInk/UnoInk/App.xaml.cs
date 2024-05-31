@@ -1,4 +1,5 @@
 using System;
+<<<<<<< HEAD
 using System.Reflection;
 using Windows.Graphics;
 using Microsoft.Extensions.Logging;
@@ -11,6 +12,12 @@ using Microsoft.UI.Xaml;
 using UnoInk.Inking.UnoInkCore;
 using Uno.UI.Xaml;
 using SkiaSharp;
+=======
+
+using Microsoft.Extensions.Logging;
+
+using Uno.Resizetizer;
+>>>>>>> 5adb265d4a50b5cb5c3d83f6d1bef1cd2ada93c0
 
 namespace UnoInk;
 public partial class App : Application
@@ -28,6 +35,7 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+<<<<<<< HEAD
         //ShowSecondWindow();
 
         var unoInkWindow = new UnoInkFullScreenWindow();
@@ -53,6 +61,13 @@ public partial class App : Application
         MainWindow.AppWindow.GetApplicationView().TryEnterFullScreenMode();
 #endif
      
+=======
+        MainWindow = new Window();
+#if DEBUG
+        MainWindow.EnableHotReload();
+#endif
+
+>>>>>>> 5adb265d4a50b5cb5c3d83f6d1bef1cd2ada93c0
 
         // Do not repeat app initialization when the Window already has content,
         // just ensure that the window is active
@@ -60,7 +75,10 @@ public partial class App : Application
         {
             // Create a Frame to act as the navigation context and navigate to the first page
             rootFrame = new Frame();
+<<<<<<< HEAD
             rootFrame.Background = new SolidColorBrush(Colors.Transparent);
+=======
+>>>>>>> 5adb265d4a50b5cb5c3d83f6d1bef1cd2ada93c0
 
             // Place the frame in the current Window
             MainWindow.Content = rootFrame;
@@ -76,6 +94,7 @@ public partial class App : Application
             rootFrame.Navigate(typeof(MainPage), args.Arguments);
         }
 
+<<<<<<< HEAD
         // 背景透明需要 UNO 还没发布的版本
         // https://github.com/lindexi/uno/tree/7b282851a8ec3ed7eb42a53af8b50ea7fe045d56
         // 这句话似乎才是关键，设置窗口背景透明。通过 MainWindow.SetBackground 配置是无效的
@@ -89,6 +108,11 @@ public partial class App : Application
         //var unoX11Window = GetUnoX11Window(MainWindow);
         //Console.WriteLine($"After Activate X11:{unoX11Window}");
 
+=======
+        MainWindow.SetWindowIcon();
+        // Ensure the current window is active
+        MainWindow.Activate();
+>>>>>>> 5adb265d4a50b5cb5c3d83f6d1bef1cd2ada93c0
     }
 
     /// <summary>
