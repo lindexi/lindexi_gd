@@ -134,7 +134,6 @@ class X11InkWindow : X11Window
         var pointerDevice = X11DeviceInputManager.PointerDevice;
         if (pointerDevice != null)
         {
-            Console.WriteLine($"注册触摸");
             RegisterMultiTouch(pointerDevice);
         }
     }
