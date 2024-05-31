@@ -8,9 +8,25 @@ using static CPF.Linux.XLib;
 var display = XOpenDisplay(IntPtr.Zero);
 var screen = XDefaultScreen(display);
 
+var depths = XListDepths(display,screen,out var countReturn);
+unsafe
+{
+    int* depthPtr = (int*)depths;
+
+    for (int i = 0; i < countReturn; i++)
+    {
+        var depthValue = *depthPtr;
+        depthPtr++;
+        Console.WriteLine($"Depth:{depthValue}");
+    }
+}
+
+XFree(depths);
+
 var rootWindow = XDefaultRootWindow(display);
 
-Console.WriteLine(XDefaultDepth(display, screen)); // 默认是 24 的值
+var defaultDepth = XDefaultDepth(display, screen);
+Console.WriteLine(defaultDepth); // 默认是 24 的值
 /*
    int XDefaultDepth(Display *dpy, int scr)
    {
@@ -53,8 +69,21 @@ typedef struct
 也就是实际 XDefaultDepth 获取的是 Screen 结构体的 root_depth 的值
  */
 
-var result = XMatchVisualInfo(display, screen, 32, 4, out var info);
+var result = XMatchVisualInfo(display, screen, 128, 4, out var info);
+var success = result != 0;
 Console.WriteLine($"Result={result} info.depth={info.depth}");
+if (!success)
+{
+    result = XMatchVisualInfo(display, screen, 32, 4, out info);
+}
+
+Console.WriteLine($"Result={result} info.depth={info.depth}");
+
+foreach (var depth in (int[]) [1, 2, 4, 8, 12, 16, 24, 32])
+{
+    result = XMatchVisualInfo(display, screen, depth, 4, out info);
+    Console.WriteLine($"Depth:{depth} Result:{result}");
+}
 
 var visual = info.visual;
 
@@ -68,8 +97,6 @@ valueMask |= SetWindowValuemask.BackPixel | SetWindowValuemask.BorderPixel
                                           | SetWindowValuemask.BackPixmap | SetWindowValuemask.BackingStore
                                           | SetWindowValuemask.BitGravity | SetWindowValuemask.WinGravity;
 
-var depth = (int) info.depth;
-
 var colormap = XCreateColormap(display, rootWindow, visual, 0);
 attr.colormap = colormap;
 valueMask |= SetWindowValuemask.ColorMap;
@@ -80,7 +107,7 @@ defaultHeight = Math.Max(defaultHeight, 200);
 
 
 var handle = XCreateWindow(display, rootWindow, 10, 10, defaultWidth, defaultHeight, 0,
-    depth,
+    (int) info.depth,
     (int) CreateWindowArgs.InputOutput,
     visual,
     new UIntPtr((uint) valueMask), ref attr);
@@ -103,3 +130,14 @@ const string libX11 = "libX11.so.6";
 
 [DllImport(libX11)]
 static extern int XDefaultDepth(IntPtr display, int screen);
+
+
+/*
+int *XListDepths(display, screen_number, count_return)
+   Display *display;
+   int screen_number;
+   int *count_return;
+ */
+
+[DllImport(libX11)]
+static extern IntPtr XListDepths(IntPtr display, int screen, out int count_return);
