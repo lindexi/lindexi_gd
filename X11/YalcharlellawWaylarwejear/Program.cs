@@ -147,7 +147,7 @@ using System.Threading;
 var display = XOpenDisplay(IntPtr.Zero);
 var screen = XDefaultScreen(display);
 
-var rootWindow = XDefaultRootWindow(display);
+var rootWindow = XRootWindow(display, screen);
 var rootWindowWindowAttributes = new XWindowAttributes();
 XGetWindowAttributes(display, rootWindow, ref rootWindowWindowAttributes);
 Console.WriteLine($"RootWindowDepth={rootWindowWindowAttributes.depth}");
