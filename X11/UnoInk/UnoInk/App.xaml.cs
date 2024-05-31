@@ -3,6 +3,9 @@ using System;
 using Microsoft.Extensions.Logging;
 
 using Uno.Resizetizer;
+#if HAS_UNO
+using Uno.UI.Xaml;
+#endif
 
 namespace UnoInk;
 public partial class App : Application
@@ -24,7 +27,10 @@ public partial class App : Application
 #if DEBUG
         MainWindow.EnableHotReload();
 #endif
-
+#if HAS_UNO
+        var nativeWindow = MainWindow.GetNativeWindow();
+        Console.WriteLine($"NativeWindow={nativeWindow}");
+#endif
 
         // Do not repeat app initialization when the Window already has content,
         // just ensure that the window is active
@@ -50,6 +56,7 @@ public partial class App : Application
         MainWindow.SetWindowIcon();
         rootFrame.Loaded += (sender, eventArgs) =>
         {
+            Console.WriteLine($"Activate");
             // Ensure the current window is active
             MainWindow.Activate();
         };
