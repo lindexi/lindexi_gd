@@ -99,9 +99,9 @@ var xSetWindowAttributes = new XSetWindowAttributes
 var width = 500;
 var height = 500;
 var handle = XCreateWindow(display, rootWindow, 0, 0, width, height, 5,
-    (int) 24,
+    (int) info.depth,
     (int) CreateWindowArgs.InputOutput,
-    IntPtr.Zero, 
+    visual,
     (nuint) valueMask, ref xSetWindowAttributes);
 
 XMapWindow(display, handle);
