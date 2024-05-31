@@ -1,7 +1,10 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using CPF.Linux;
+using System.Runtime.InteropServices;
+
 using static CPF.Linux.XLib;
+using static CPF.Linux.ShapeConst;
 
 var manualResetEvent = new ManualResetEvent(false);
 IntPtr window1 = IntPtr.Zero;
@@ -93,7 +96,7 @@ var thread2 = new Thread(() =>
         //override_redirect = true, // 设置窗口的override_redirect属性为True，以避免窗口管理器的干预
         colormap = XCreateColormap(display, rootWindow, visual, 0),
         border_pixel = 0,
-        background_pixel = new IntPtr(0x65565656),
+        background_pixel = new IntPtr(0xAFA6A656),
     };
 
     var width = 500;
@@ -103,6 +106,9 @@ var thread2 = new Thread(() =>
         (int)CreateWindowArgs.InputOutput,
         visual,
         (nuint)valueMask, ref xSetWindowAttributes);
+
+    // 设置不接受输入
+    SetClickThrough();
 
     XSetTransientForHint(display, handle, window1);
 
@@ -125,5 +131,25 @@ var thread2 = new Thread(() =>
             break;
         }
     }
+
+    // 点击命中穿透
+    void SetClickThrough()
+    {
+        // 设置不接受输入
+        // 这样输入穿透到后面一层里，由后面一层将内容上报上来
+        var region = XCreateRegion();
+        XShapeCombineRegion(display, handle, ShapeInput, 0, 0, region, ShapeSet);
+    }
 });
 thread2.Start();
+
+
+
+
+const string libX11 = "libX11.so.6";
+
+[DllImport(libX11)]
+static extern IntPtr XCreateRegion();
+
+[DllImport("libXext.so.6")]
+static extern void XShapeCombineRegion(IntPtr display, IntPtr dest, int destKind, int xOff, int yOff, IntPtr region, int op);
