@@ -41,6 +41,14 @@ var handle = XCreateWindow(display, rootWindow, 0, 0, width, height, 5,
     (nuint) valueMask, ref xSetWindowAttributes);
 
 XMapWindow(display, handle);
+
+unsafe
+{
+    var devices = (XIDeviceInfo*) XLib.XIQueryDevice(display,
+        (int) XiPredefinedDeviceId.XIAllMasterDevices, out int num);
+    Console.WriteLine($"不会卡住");
+}
+
 XFlush(display);
 
 while (true)
