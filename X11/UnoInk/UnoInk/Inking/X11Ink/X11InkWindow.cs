@@ -19,7 +19,6 @@ class X11InkWindow : X11Window
             IsFullScreen = true
         })
     {
-        Console.WriteLine("new X11InkWindow");
         application.EnsureStart();
         X11PlatformThreading = application.X11PlatformThreading;
         var x11Info = application.X11Info;
@@ -111,12 +110,7 @@ class X11InkWindow : X11Window
         var pointerDevice = X11DeviceInputManager.PointerDevice;
         if (pointerDevice != null)
         {
-            Console.WriteLine($"注册触摸");
             RegisterMultiTouch(pointerDevice);
-        }
-        else
-        {
-            Console.WriteLine($"pointerDevice is null");
         }
     }
 

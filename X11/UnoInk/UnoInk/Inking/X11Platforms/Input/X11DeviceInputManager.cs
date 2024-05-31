@@ -9,7 +9,6 @@ unsafe class X11DeviceInputManager
     public X11DeviceInputManager(X11InfoManager infoManager)
     {
         _infoManager = infoManager;
-        StaticDebugLogger.WriteLine($"new X11DeviceInputManager");
 
         var devices = (XIDeviceInfo*) XLib.XIQueryDevice(Display,
             (int) XiPredefinedDeviceId.XIAllMasterDevices, out int num);
