@@ -5,6 +5,7 @@ VisualStudioVersion = 17.9.34607.119
 MinimumVisualStudioVersion = 10.0.40219.1
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnoInk", "UnoInk\UnoInk.csproj", "{A9C9F94F-C1BE-4251-B512-8E54350E7A43}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C9003DEF-89A7-440C-8FD7-A14B111DA617}"
@@ -18,6 +19,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnoInk", "UnoInk\UnoInk.csp
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B816F277-2BCE-4DF5-8F9E-8620BAEDF82E}"
 >>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
+=======
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnoInk", "UnoInk\UnoInk.csproj", "{F5C1F1A3-9956-4DEE-8673-20FF2451DA0F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B816F277-2BCE-4DF5-8F9E-8620BAEDF82E}"
+>>>>>>> bb3ca7ae7043b68590131278b336efd0445ad5c3
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
 		Directory.Build.props = Directory.Build.props
@@ -28,18 +34,22 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnoHacker", "UnoHacker\UnoHacker.csproj", "{8C4F393C-8EAE-4FB5-A892-DC46EF89317C}"
 EndProject
 =======
 >>>>>>> 5adb265d4a50b5cb5c3d83f6d1bef1cd2ada93c0
 =======
 >>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
+=======
+>>>>>>> bb3ca7ae7043b68590131278b336efd0445ad5c3
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 		{A9C9F94F-C1BE-4251-B512-8E54350E7A43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -55,6 +65,8 @@ Global
 =======
 =======
 >>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
+=======
+>>>>>>> bb3ca7ae7043b68590131278b336efd0445ad5c3
 		{F5C1F1A3-9956-4DEE-8673-20FF2451DA0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F5C1F1A3-9956-4DEE-8673-20FF2451DA0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F5C1F1A3-9956-4DEE-8673-20FF2451DA0F}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
@@ -62,14 +74,18 @@ Global
 		{F5C1F1A3-9956-4DEE-8673-20FF2451DA0F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F5C1F1A3-9956-4DEE-8673-20FF2451DA0F}.Release|Any CPU.Deploy.0 = Release|Any CPU
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 5adb265d4a50b5cb5c3d83f6d1bef1cd2ada93c0
 =======
 >>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
+=======
+>>>>>>> bb3ca7ae7043b68590131278b336efd0445ad5c3
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 		SolutionGuid = {EF5923D0-5C1D-4FB9-8CE2-1853C1A174DC}
@@ -79,5 +95,8 @@ Global
 =======
 		SolutionGuid = {755CEFE2-4FF8-4B43-8392-D1467ACE7458}
 >>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
+=======
+		SolutionGuid = {755CEFE2-4FF8-4B43-8392-D1467ACE7458}
+>>>>>>> bb3ca7ae7043b68590131278b336efd0445ad5c3
 	EndGlobalSection
 EndGlobal

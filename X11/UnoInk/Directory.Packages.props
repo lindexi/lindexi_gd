@@ -8,6 +8,7 @@
   </ItemGroup>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   <ItemGroup>
     <PackageVersion Include="Microsoft.Maui.Graphics" Version="8.0.40" />
   </ItemGroup>
@@ -18,3 +19,6 @@
 =======
 </Project>
 >>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
+=======
+</Project>
+>>>>>>> bb3ca7ae7043b68590131278b336efd0445ad5c3

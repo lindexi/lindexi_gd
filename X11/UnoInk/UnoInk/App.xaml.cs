@@ -1,6 +1,7 @@
 using System;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 using System.Reflection;
 using Windows.Graphics;
 using Microsoft.Extensions.Logging;
@@ -23,11 +24,19 @@ using Uno.Resizetizer;
 
 using Microsoft.Extensions.Logging;
 
+=======
+
+using Microsoft.Extensions.Logging;
+using Microsoft.UI;
+>>>>>>> bb3ca7ae7043b68590131278b336efd0445ad5c3
 using Uno.Resizetizer;
 #if HAS_UNO
 using Uno.UI.Xaml;
 #endif
+<<<<<<< HEAD
 >>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
+=======
+>>>>>>> bb3ca7ae7043b68590131278b336efd0445ad5c3
 
 namespace UnoInk;
 public partial class App : Application
@@ -45,6 +54,7 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
         //ShowSecondWindow();
@@ -94,12 +104,23 @@ public partial class App : Application
         Console.WriteLine($"NativeWindow={nativeWindow}");
 #endif
 >>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
+=======
+        MainWindow = new Window();
+#if DEBUG
+        MainWindow.EnableHotReload();
+#endif
+
+#if HAS_UNO
+        MainWindow.SetBackground(new SolidColorBrush(Colors.Red));
+#endif
+>>>>>>> bb3ca7ae7043b68590131278b336efd0445ad5c3
 
         // Do not repeat app initialization when the Window already has content,
         // just ensure that the window is active
         if (MainWindow.Content is not Frame rootFrame)
         {
             // Create a Frame to act as the navigation context and navigate to the first page
+<<<<<<< HEAD
             rootFrame = new Frame();
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -108,6 +129,12 @@ public partial class App : Application
 >>>>>>> 5adb265d4a50b5cb5c3d83f6d1bef1cd2ada93c0
 =======
 >>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
+=======
+            rootFrame = new Frame()
+            {
+                Background = new SolidColorBrush(Colors.Transparent)
+            };
+>>>>>>> bb3ca7ae7043b68590131278b336efd0445ad5c3
 
             // Place the frame in the current Window
             MainWindow.Content = rootFrame;
@@ -123,6 +150,7 @@ public partial class App : Application
             rootFrame.Navigate(typeof(MainPage), args.Arguments);
         }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
         // 背景透明需要 UNO 还没发布的版本
@@ -152,6 +180,11 @@ public partial class App : Application
             MainWindow.Activate();
         };
 >>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
+=======
+        MainWindow.SetWindowIcon();
+        // Ensure the current window is active
+        MainWindow.Activate();
+>>>>>>> bb3ca7ae7043b68590131278b336efd0445ad5c3
     }
 
     /// <summary>

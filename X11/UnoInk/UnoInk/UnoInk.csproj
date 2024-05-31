@@ -34,6 +34,7 @@
     <UnoFeatures>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       Material;
       Dsp;
       MVUX;
@@ -64,5 +65,12 @@
     </UnoFeatures>
   </PropertyGroup>
 >>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
+=======
+    </UnoFeatures>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="Properties\PublishProfiles\FolderProfile.pubxml.user" />
+  </ItemGroup>
+>>>>>>> bb3ca7ae7043b68590131278b336efd0445ad5c3
 
 </Project>

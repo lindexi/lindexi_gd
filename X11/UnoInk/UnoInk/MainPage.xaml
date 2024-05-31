@@ -4,6 +4,7 @@
       xmlns:local="using:UnoInk"
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       xmlns:um="using:Uno.Material"
       xmlns:windows="using:SkiaSharp.Views.Windows"
       Background="Transparent">
@@ -33,4 +34,14 @@
     </Border>
   </StackPanel>
 >>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
+=======
+      Background="Transparent">
+  <StackPanel
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center">
+    <TextBlock AutomationProperties.AutomationId="HelloTextBlock"
+          Text="Hello Uno Platform"
+          HorizontalAlignment="Center" />
+  </StackPanel>
+>>>>>>> bb3ca7ae7043b68590131278b336efd0445ad5c3
 </Page>
