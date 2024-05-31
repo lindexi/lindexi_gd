@@ -58,51 +58,32 @@ Console.WriteLine($"Result={result} info.depth={info.depth}");
 
 var visual = info.visual;
 
-var valueMask =
-        //SetWindowValuemask.BackPixmap
-        0
-        | SetWindowValuemask.BackPixel
-        | SetWindowValuemask.BorderPixel
-        | SetWindowValuemask.BitGravity
-        | SetWindowValuemask.WinGravity
-        | SetWindowValuemask.BackingStore
-        | SetWindowValuemask.ColorMap
-    //| SetWindowValuemask.OverrideRedirect
-    ;
+XSetWindowAttributes attr = new XSetWindowAttributes();
+var valueMask = default(SetWindowValuemask);
 
+attr.backing_store = 1;
+attr.bit_gravity = Gravity.NorthWestGravity;
+attr.win_gravity = Gravity.NorthWestGravity;
+valueMask |= SetWindowValuemask.BackPixel | SetWindowValuemask.BorderPixel
+                                          | SetWindowValuemask.BackPixmap | SetWindowValuemask.BackingStore
+                                          | SetWindowValuemask.BitGravity | SetWindowValuemask.WinGravity;
+
+var depth = (int) info.depth;
 
 var colormap = XCreateColormap(display, rootWindow, visual, 0);
+attr.colormap = colormap;
+valueMask |= SetWindowValuemask.ColorMap;
 
-XColor color = new XColor()
-{
-    red = 0xF556, // value is 0-65535
-    green = 0xC156,
-    blue = 0x2156,
-    flags = (byte)(ColorFlags.DoRed | ColorFlags.DoGreen | ColorFlags.DoBlue),
-};
+int defaultWidth = 0, defaultHeight = 0;
+defaultWidth = Math.Max(defaultWidth, 300);
+defaultHeight = Math.Max(defaultHeight, 200);
 
-XAllocColor(display, colormap, ref color);
 
-Console.WriteLine(color.pixel.ToString("X"));
-
-var xSetWindowAttributes = new XSetWindowAttributes
-{
-    backing_store = 1,
-    bit_gravity = Gravity.NorthWestGravity,
-    win_gravity = Gravity.NorthWestGravity,
-    //override_redirect = true, // 设置窗口的override_redirect属性为True，以避免窗口管理器的干预
-    colormap = colormap,
-    border_pixel = 0,
-    background_pixel = IntPtr.Zero,
-};
-
-var width = 500;
-var height = 500;
-var handle = XCreateWindow(display, rootWindow, 0, 0, width, height, 5,
-    (int) info.depth,
+var handle = XCreateWindow(display, rootWindow, 10, 10, defaultWidth, defaultHeight, 0,
+    depth,
     (int) CreateWindowArgs.InputOutput,
     visual,
-    (nuint) valueMask, ref xSetWindowAttributes);
+    new UIntPtr((uint) valueMask), ref attr);
 
 XMapWindow(display, handle);
 XFlush(display);
