@@ -110,7 +110,7 @@ class X11InkWindow : X11Window
         var pointerDevice = X11DeviceInputManager.PointerDevice;
         if (pointerDevice != null)
         {
-            //RegisterMultiTouch(pointerDevice);
+            RegisterMultiTouch(pointerDevice);
         }
     }
 
