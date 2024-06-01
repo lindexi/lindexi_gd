@@ -28,6 +28,16 @@ class X11InkWindow : X11Window
         var xDisplayWidth = x11Info.XDisplayWidth;
         var xDisplayHeight = x11Info.XDisplayHeight;
 
+        // 放在显示窗口之前进行 XIQueryDevice 不会让窗口停止渲染
+        X11DeviceInputManager = new X11DeviceInputManager(_x11Info);
+
+        // 在 SetClickThrough 之前注册触摸，这样也不会让下层窗口收不到触摸
+        var pointerDevice = X11DeviceInputManager.PointerDevice;
+        if (pointerDevice != null)
+        {
+            RegisterMultiTouch(pointerDevice);
+        }
+
         // 设置不接受输入
         // 这样输入穿透到后面一层里，由后面一层将内容上报上来
         SetClickThrough();
@@ -36,11 +46,6 @@ class X11InkWindow : X11Window
         SetOwner(mainWindowHandle);
         
         ShowActive();
-
-        // 尝试 Break 掉，测试是否还卡住，因为在 Avalonia 还是 UNO 都可以在 Map 之后调用
-        //// 尝试在 ShowActive 之前，否则 XIQueryDevice 可能卡住
-        // 只是不同之处在于 Map 前 SetOwner 而已
-        X11DeviceInputManager = new X11DeviceInputManager(_x11Info);
 
         // 进入全屏
         EnterFullScreen(topmost: false/*这里必须设置为false否则UNO窗口将不会渲染*/);
@@ -107,12 +112,7 @@ class X11InkWindow : X11Window
         ModeInputDispatcher = modeInputDispatcher;
         HandleInput(X11DeviceInputManager);
         
-        var pointerDevice = X11DeviceInputManager.PointerDevice;
-        if (pointerDevice != null)
-        {
-            // 注册触摸的话，让穿透无效
-            //RegisterMultiTouch(pointerDevice);
-        }
+      
     }
 
     private SkInkCanvasSettings Settings => SkInkCanvas.Settings;
