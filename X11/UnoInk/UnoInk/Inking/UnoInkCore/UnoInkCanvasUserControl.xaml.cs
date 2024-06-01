@@ -26,6 +26,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
     private async void MainPage_Loaded(object sender, RoutedEventArgs e)
     {
+        return;
         if (OperatingSystem.IsLinux())
         {
 <<<<<<< HEAD
@@ -95,7 +96,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
         LogTextBlock.Text += $"按下： {e.Pointer.PointerId}\r\n";
         //LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
-        //Console.WriteLine($"按下： {e.Pointer.PointerId}");
+        Console.WriteLine($"按下： {e.Pointer.PointerId}");
         _lastInkingInputInfo = ToModeInputArgs(e);
         //_dispatcherRequiring?.Require();
         InvokeAsync(canvas => canvas.ModeInputDispatcher.Down(ToModeInputArgs(e)));
