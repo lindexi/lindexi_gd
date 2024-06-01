@@ -18,5 +18,9 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        Window window = this;
+        window.WindowStyle = WindowStyle.None;
+        window.WindowState = WindowState.Maximized;
     }
 }
