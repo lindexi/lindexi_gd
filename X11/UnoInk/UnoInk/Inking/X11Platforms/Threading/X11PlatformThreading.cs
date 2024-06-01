@@ -75,14 +75,17 @@ public class X11PlatformThreading
     
     private readonly List<Action> _invokeList = new List<Action>();
     private readonly IntPtr _invokeMessageId = new IntPtr(123123123);
+    private ulong _invokeIndex;
     
     public async Task InvokeAsync(Action action, IntPtr x11WindowIntPtr)
     {
+        var index = Interlocked.Increment(ref _invokeIndex);
         var taskCompletionSource = new TaskCompletionSource();
         lock (_invokeList)
         {
             _invokeList.Add(() =>
             {
+                Console.WriteLine($"Invoke Index={index}");
                 action();
                 taskCompletionSource.SetResult();
             });
