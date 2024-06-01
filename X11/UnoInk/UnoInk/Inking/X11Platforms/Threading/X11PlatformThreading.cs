@@ -85,7 +85,8 @@ public class X11PlatformThreading
         {
             _invokeList.Add(() =>
             {
-                Console.WriteLine($"Invoke Index={index}");
+                // 测试顺序调用通过
+                //Console.WriteLine($"Invoke Index={index}");
                 action();
                 taskCompletionSource.SetResult();
             });
