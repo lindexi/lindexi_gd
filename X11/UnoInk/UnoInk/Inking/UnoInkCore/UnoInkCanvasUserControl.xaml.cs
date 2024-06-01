@@ -36,7 +36,6 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
     private async void MainPage_Loaded(object sender, RoutedEventArgs e)
     {
-        return;
         if (OperatingSystem.IsLinux())
         {
             if (_x11InkProvider == null)
