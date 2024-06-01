@@ -28,13 +28,14 @@ class X11InkWindow : X11Window
         var xDisplayWidth = x11Info.XDisplayWidth;
         var xDisplayHeight = x11Info.XDisplayHeight;
 
-        // 放在显示窗口之前进行 XIQueryDevice 不会让窗口停止渲染
+        // 放在显示窗口之前进行 XIQueryDevice 不会让窗口停止渲染，否则将会在 XIQueryDevice 方法卡住
         X11DeviceInputManager = new X11DeviceInputManager(_x11Info);
 
         // 在 SetClickThrough 之前注册触摸，这样也不会让下层窗口收不到触摸
         var pointerDevice = X11DeviceInputManager.PointerDevice;
         if (pointerDevice != null)
         {
+            // 如果在 SetClickThrough 之后注册触摸，将会让当前窗口收不到触摸，且下层窗口也收不到触摸，估计是 X11 的坑
             RegisterMultiTouch(pointerDevice);
         }
 
