@@ -74,6 +74,8 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
                 var skInkCanvas = _x11InkProvider.InkWindow.SkInkCanvas;
                 skInkCanvas.StrokesCollected += SkInkCanvas_StrokesCollected;
+                
+                Console.WriteLine($"完成初始化");
             }
 >>>>>>> f6762ea045de9b52e29ce7949a1c9be4211deaf5
         }
