@@ -255,11 +255,11 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
         return Task.CompletedTask;
     }
-
+    
     private void SkXamlCanvas_OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
         //Console.WriteLine($"执行绘制");
-
+        
         using var skPaint = new SKPaint();
         skPaint.StrokeWidth = 0.1f;
         skPaint.IsAntialias = true;
@@ -273,8 +273,21 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         {
             skPaint.Color = new SKColor(0xC5, 0x20, 0x00);
         }
-
-
+        
+        lock (StrokeInfoList)
+        {
+            foreach (var strokesCollectionInfo in StrokeInfoList)
+            {
+                skPaint.Color = strokesCollectionInfo.StrokeColor;
+                var path = strokesCollectionInfo.InkStrokePath;
+                System.Diagnostics.Debug.Assert(path != null);
+                
+                e.Surface.Canvas.DrawPath(path, skPaint);
+            }
+            
+            StrokeInfoList.Clear();
+        }
+        
         //foreach (var skPath in _skPathList)
         //{
         //    Console.WriteLine($"准备到 UNO 绘制");
@@ -284,10 +297,10 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //    var path = SKPath.ParseSvgPathData(skPath);
         //    e.Surface.Canvas.DrawPath(path, skPaint);
         //}
-        Console.WriteLine($"完成 UNO 绘制");
-
+        //Console.WriteLine($"完成 UNO 绘制");
+        
         //_skPathList.Clear();
-
+        
         // 清空笔迹，换成在 UNO 层绘制
         InvokeAsync(canvas =>
         {
