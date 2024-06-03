@@ -305,6 +305,17 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     
     private void SkXamlCanvas_OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
+        // 也是卡住 XShapeCombineRegion 方法
+/*
+   DeviceNumber=2
+   XIDeviceInfo [0] 2 XIMasterPointer
+   ABS_MT_TOUCH_MAJOR=281 Name=Abs MT Touch Major ABS_MT_TOUCH_MINOR=282 Name=Abs MT Touch Minor Abs_MT_Pressure=286 Name=Abs MT Pressure
+   pointerDevice.Value.NumClasses=8
+   注册RegisterMultiTouch
+   StartSetClickThrough
+   Start XShapeCombineRegion
+ */
+        return;
         //Console.WriteLine($"执行绘制");
         
         using var skPaint = new SKPaint();
