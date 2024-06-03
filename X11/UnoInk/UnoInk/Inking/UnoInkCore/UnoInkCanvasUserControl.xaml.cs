@@ -21,6 +21,7 @@ using UnoInk.Inking.InkCore;
 using UnoInk.Inking.InkCore.Interactives;
 using UnoInk.Inking.X11Ink;
 using UnoInk.Inking.X11Platforms.Threading;
+using HarfBuzzSharp;
 
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -259,7 +260,8 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
         foreach (var skPath in _skPathList)
         {
-            Console.WriteLine($"准备到 UNO 绘制 IsDispose={IsDisposed(skPath)}");
+            SKNativeObject skNativeObject = skPath;
+            Console.WriteLine($"准备到 UNO 绘制 IsDispose={IsDisposed(skNativeObject)}");
             e.Surface.Canvas.DrawPath(skPath, skPaint);
         }
         Console.WriteLine($"完成 UNO 绘制");
@@ -276,5 +278,5 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     }
 
     [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "isDisposed")]
-    private static extern int IsDisposed(SKPath skPath);
+    private static extern int IsDisposed(SKNativeObject skPath);
 }
