@@ -28,6 +28,7 @@ using UnoInk.Inking.InkCore;
 using UnoInk.Inking.InkCore.Interactives;
 using UnoInk.Inking.X11Ink;
 using UnoInk.Inking.X11Platforms.Threading;
+using HarfBuzzSharp;
 
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -285,6 +286,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             Console.WriteLine($"准备到 UNO 绘制");
             // 需要进行序列化和反序列化是为了解决跨线程访问 SKPath 导致爆的问题
             // 可以切到 c82dcaf20da0948aede539b699f47926635b94a3 进行测试
@@ -296,6 +298,10 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 =======
             Console.WriteLine($"准备到 UNO 绘制");
 >>>>>>> f7b502dbab06a8dbb1a5f6b5d98bc5459bdad98f
+=======
+            SKNativeObject skNativeObject = skPath;
+            Console.WriteLine($"准备到 UNO 绘制 IsDispose={IsDisposed(skNativeObject)}");
+>>>>>>> 625f32779848b4b1576269436c7a2a82db33449d
             e.Surface.Canvas.DrawPath(skPath, skPaint);
 >>>>>>> f682a1d5e3b6d0cb0b99903c22a9dcd7e23eb4ae
         }
@@ -312,5 +318,5 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     }
 
     [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "isDisposed")]
-    private static extern int IsDisposed(SKPath skPath);
+    private static extern int IsDisposed(SKNativeObject skPath);
 }
