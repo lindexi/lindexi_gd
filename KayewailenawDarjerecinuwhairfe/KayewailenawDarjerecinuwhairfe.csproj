@@ -7,8 +7,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-
-
   <Target Name="_BuildVersionInfoTarget" BeforeTargets="Build">
     <PropertyGroup>
       <BuildVersionInfoFile>$([System.IO.Path]::Combine($(BaseIntermediateOutputPath),$(IntermediateOutputPath),"Version.txt"))</BuildVersionInfoFile>
@@ -20,7 +18,6 @@
       <BuildVersionInfoWriteArgLine Include="$(GitCommit)"/>
       <BuildVersionInfoWriteArgLine Include=">"/>
 
-      <BuildVersionInfoWriteArgLine Include=">"/>
       <BuildVersionInfoWriteArgLine Include="BuildTime"/>
       <BuildVersionInfoWriteArgLine Include="$(BuildTimeInfo)"/>
       <BuildVersionInfoWriteArgLine Include=">"/>
@@ -32,19 +29,7 @@
   <Target Name="_GitCommit" Returns="$(GitCommit)"
           BeforeTargets="_BuildVersionInfoTarget"
           Condition="'$(GitCommit)' == ''">
-    <!-- Under Unix, we don't double %% the format. That only works on Windows. 
-         From https://github.com/devlooped/GitInfo/blob/d8b50792cf8b8664338dbc4ff638a6eb3583381b/src/GitInfo/build/GitInfo.targets#L191
-    -->
-
-    <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
-      <_ShortShaFormat>%%h</_ShortShaFormat>
-      <_LongShaFormat>%%H</_LongShaFormat>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
-      <_ShortShaFormat>%h</_ShortShaFormat>
-      <_LongShaFormat>%H</_LongShaFormat>
-    </PropertyGroup>
-    <Exec Command="git -c log.showSignature=false log --format=format:&#x0025;H -n 1"
+    <Exec Command="git rev-parse HEAD"
           EchoOff='true'
           StandardErrorImportance="low"
           StandardOutputImportance="low"
