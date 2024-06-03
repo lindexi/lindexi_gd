@@ -8,6 +8,8 @@ using UnoInk.Inking.X11Platforms;
 using UnoInk.Inking.X11Platforms.Input;
 using UnoInk.Inking.X11Platforms.Threading;
 
+using static CPF.Linux.XLib;
+
 namespace UnoInk.Inking.X11Ink;
 
 [SupportedOSPlatform("Linux")]
@@ -39,6 +41,8 @@ class X11InkWindow : X11Window
             RegisterMultiTouch(pointerDevice);
             Console.WriteLine($"注册RegisterMultiTouch");
         }
+        
+        XFlush(x11Info.Display);
 
         // 设置不接受输入
         // 这样输入穿透到后面一层里，由后面一层将内容上报上来
