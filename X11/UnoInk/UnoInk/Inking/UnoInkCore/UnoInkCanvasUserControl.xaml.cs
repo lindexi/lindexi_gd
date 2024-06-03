@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 
 using Microsoft.UI.Xaml;
@@ -41,9 +42,9 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             if (_x11InkProvider == null)
             {
                 _x11InkProvider = new X11InkProvider();
-                
+
                 _x11InkProvider.Start(Window.Current!);
-                
+
                 _dispatcherRequiring =
                     new DispatcherRequiring(InvokeInk, _x11InkProvider.InkWindow.GetDispatcher());
             }
@@ -254,11 +255,11 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         {
             skPaint.Color = new SKColor(0xC5, 0x20, 0x00);
         }
-        
+
 
         foreach (var skPath in _skPathList)
         {
-        Console.WriteLine($"准备到 UNO 绘制");
+            Console.WriteLine($"准备到 UNO 绘制 IsDispose={IsDisposed(skPath)}");
             e.Surface.Canvas.DrawPath(skPath, skPaint);
         }
         Console.WriteLine($"完成 UNO 绘制");
@@ -273,4 +274,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             //    canvas.ApplicationDrawingSkBitmap.Height));
         });
     }
+
+    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "isDisposed")]
+    private extern bool IsDisposed(SKPath skPath);
 }
