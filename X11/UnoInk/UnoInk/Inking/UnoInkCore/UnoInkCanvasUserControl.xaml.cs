@@ -47,6 +47,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
                 _dispatcherRequiring =
                     new DispatcherRequiring(InvokeInk, _x11InkProvider.InkWindow.GetDispatcher());
+                Console.WriteLine("完成初始化");
             }
         }
     }
