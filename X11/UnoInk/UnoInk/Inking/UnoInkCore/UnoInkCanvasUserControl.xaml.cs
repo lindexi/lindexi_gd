@@ -34,6 +34,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         this.InitializeComponent();
 
         Loaded += MainPage_Loaded;
+        Console.WriteLine($"主线程随便输出");
     }
 
     private async void MainPage_Loaded(object sender, RoutedEventArgs e)
