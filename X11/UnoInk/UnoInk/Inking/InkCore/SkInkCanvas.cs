@@ -66,10 +66,8 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
     private Dictionary<int, DrawStrokeContext> CurrentInputDictionary { get; } =
         new Dictionary<int, DrawStrokeContext>();
 
-    public event EventHandler<StrokesCollectionInfo>? StrokesCollected;
-
-    //public IEnumerable<string> CurrentInkStrokePathEnumerable =>
-    //    CurrentInputDictionary.Values.Select(t => t.InkStrokePath).Where(t => t != null).Select(t => t!.ToSvgPathData());
+    public IEnumerable<string> CurrentInkStrokePathEnumerable =>
+        CurrentInputDictionary.Values.Select(t => t.InkStrokePath).Where(t => t != null).Select(t => t!.ToSvgPathData());
 
     /// <summary>
     /// 取多少个点做笔尖
@@ -260,9 +258,6 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
         context.TipStylusPoints.Clear();
 
         context.IsUp = true;
-
-        var strokesCollectionInfo = new StrokesCollectionInfo(info.Id, context.StrokeColor, context.InkStrokePath);
-        StrokesCollected?.Invoke(this, strokesCollectionInfo);
 
         if (CurrentInputDictionary.All(t => t.Value.IsUp))
         {
