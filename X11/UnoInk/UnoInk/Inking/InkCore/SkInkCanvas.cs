@@ -34,11 +34,15 @@ partial record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp)
 /// </summary>
 /// <param name="Id"></param>
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> de59e0fe8f7b5f8d759b6eb7df1d774ed1c0452c
 partial record InkInfo(int Id);
 =======
 public partial record InkInfo(int Id, SKColor StrokeColor, SKPath? InkStrokePath);
 >>>>>>> 01fd5aebad41efef3ec9afaaaefcd30a0d674cb0
+=======
+public partial record StrokesCollectionInfo(int Id, SKColor StrokeColor, SKPath? InkStrokePath);
+>>>>>>> 258a60849bcee8adab16c45b2303bb5f8e096058
 
 /// <summary>
 /// 画板的配置
@@ -104,8 +108,10 @@ class SkInkCanvas
     private Dictionary<int, DrawStrokeContext> CurrentInputDictionary { get; } =
         new Dictionary<int, DrawStrokeContext>();
 
-    public IEnumerable<string> CurrentInkStrokePathEnumerable =>
-        CurrentInputDictionary.Values.Select(t => t.InkStrokePath).Where(t => t != null).Select(t => t!.ToSvgPathData());
+    public event EventHandler<StrokesCollectionInfo>? StrokesCollected;
+
+    //public IEnumerable<string> CurrentInkStrokePathEnumerable =>
+    //    CurrentInputDictionary.Values.Select(t => t.InkStrokePath).Where(t => t != null).Select(t => t!.ToSvgPathData());
 
     public IEnumerable<SKPath> CurrentInkStrokePathEnumerable => CurrentInputDictionary.Values.Select(t => t.InkStrokePath)
         .Where(t => t != null)!;
@@ -239,6 +245,9 @@ class SkInkCanvas
         context.TipStylusPoints.Clear();
 
         context.IsUp = true;
+
+        var strokesCollectionInfo = new StrokesCollectionInfo(info.Id, context.StrokeColor, context.InkStrokePath);
+        StrokesCollected?.Invoke(this, strokesCollectionInfo);
 
         if (CurrentInputDictionary.All(t => t.Value.IsUp))
         {
