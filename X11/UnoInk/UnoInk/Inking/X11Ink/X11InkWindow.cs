@@ -53,15 +53,18 @@ class X11InkWindow : X11Window
         {
             // 如果在 SetClickThrough 之后注册触摸，将会让当前窗口收不到触摸，且下层窗口也收不到触摸，估计是 X11 的坑
             RegisterMultiTouch(pointerDevice);
+            Console.WriteLine($"注册RegisterMultiTouch");
         }
 
         // 设置不接受输入
         // 这样输入穿透到后面一层里，由后面一层将内容上报上来
         SetClickThrough();
+        Console.WriteLine($"SetClickThrough");
 
 >>>>>>> ddad66981bd175e1ef84bd3bd547dc329964981c
         // 设置一定放在输入的窗口上方
         SetOwner(mainWindowHandle);
+        Console.WriteLine($"SetOwner");
         
         ShowActive();
 <<<<<<< HEAD

@@ -48,6 +48,8 @@ internal class X11InkProvider : X11Application
 
         var x11InkWindow = new X11InkWindow(this, x11WindowIntPtr);
         _x11InkWindow = x11InkWindow;
+        
+        Console.WriteLine("创建X11InkWindow完成");
     }
 
     public X11InkWindow InkWindow
