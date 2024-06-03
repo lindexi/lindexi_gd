@@ -7,51 +7,32 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-
-
   <Target Name="_BuildVersionInfoTarget" BeforeTargets="Build">
     <PropertyGroup>
       <BuildVersionInfoFile>$([System.IO.Path]::Combine($(BaseIntermediateOutputPath),$(IntermediateOutputPath),"Version.txt"))</BuildVersionInfoFile>
       <BuildTimeInfo>$([System.DateTimeOffset]::get_Now().ToString())</BuildTimeInfo>
     </PropertyGroup>
     <ItemGroup>
-      <BuildVersionInfoWriteArgLine Include=">"/>
-      <BuildVersionInfoWriteArgLine Include="GitCommit"/>
-      <BuildVersionInfoWriteArgLine Include="$(GitCommit)"/>
-      <BuildVersionInfoWriteArgLine Include=">"/>
+      <BuildVersionInfoWriteArgLine Include="&gt;" />
+      <BuildVersionInfoWriteArgLine Include="GitCommit" />
+      <BuildVersionInfoWriteArgLine Include="$(GitCommit)" />
+      <BuildVersionInfoWriteArgLine Include="&gt;" />
 
-      <BuildVersionInfoWriteArgLine Include=">"/>
-      <BuildVersionInfoWriteArgLine Include="BuildTime"/>
-      <BuildVersionInfoWriteArgLine Include="$(BuildTimeInfo)"/>
-      <BuildVersionInfoWriteArgLine Include=">"/>
+      <BuildVersionInfoWriteArgLine Include="BuildTime" />
+      <BuildVersionInfoWriteArgLine Include="$(BuildTimeInfo)" />
+      <BuildVersionInfoWriteArgLine Include="&gt;" />
     </ItemGroup>
 
-    <WriteLinesToFile File="$(BuildVersionInfoFile)" Lines="@(BuildVersionInfoWriteArgLine)" Overwrite="true"/>
+    <WriteLinesToFile File="$(BuildVersionInfoFile)" Lines="@(BuildVersionInfoWriteArgLine)" Overwrite="true" />
+
+    <ItemGroup>
+      <None Include="$(BuildVersionInfoFile)" CopyToOutputDirectory="PreserveNewest"/>
+    </ItemGroup>
   </Target>
 
-  <Target Name="_GitCommit" Returns="$(GitCommit)"
-          BeforeTargets="_BuildVersionInfoTarget"
-          Condition="'$(GitCommit)' == ''">
-    <!-- Under Unix, we don't double %% the format. That only works on Windows. 
-         From https://github.com/devlooped/GitInfo/blob/d8b50792cf8b8664338dbc4ff638a6eb3583381b/src/GitInfo/build/GitInfo.targets#L191
-    -->
-
-    <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
-      <_ShortShaFormat>%%h</_ShortShaFormat>
-      <_LongShaFormat>%%H</_LongShaFormat>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
-      <_ShortShaFormat>%h</_ShortShaFormat>
-      <_LongShaFormat>%H</_LongShaFormat>
-    </PropertyGroup>
-    <Exec Command="git -c log.showSignature=false log --format=format:&#x0025;H -n 1"
-          EchoOff='true'
-          StandardErrorImportance="low"
-          StandardOutputImportance="low"
-          ConsoleToMSBuild="true"
-          ContinueOnError="true"
-          StdOutEncoding='utf-8'>
-      <Output TaskParameter="ConsoleOutput" PropertyName="GitCommit"/>
+  <Target Name="_GitCommit" Returns="$(GitCommit)" BeforeTargets="_BuildVersionInfoTarget" Condition="'$(GitCommit)' == ''">
+    <Exec Command="git rev-parse HEAD" EchoOff="true" StandardErrorImportance="low" StandardOutputImportance="low" ConsoleToMSBuild="true" ContinueOnError="true" StdOutEncoding="utf-8">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitCommit" />
       <Output TaskParameter="ExitCode" PropertyName="MSBuildLastExitCode" />
     </Exec>
   </Target>
