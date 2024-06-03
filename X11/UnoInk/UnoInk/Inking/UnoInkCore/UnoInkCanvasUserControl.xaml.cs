@@ -307,8 +307,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //    var path = SKPath.ParseSvgPathData(skPath);
         //    e.Surface.Canvas.DrawPath(path, skPaint);
         //}
-        // 如果注释掉这句话，将不能正常完成 X11 的 XShapeCombineRegion 的返回
-        Console.WriteLine($"完成 UNO 绘制");
+        //Console.WriteLine($"完成 UNO 绘制");
 
         //_skPathList.Clear();
 
