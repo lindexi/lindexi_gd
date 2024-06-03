@@ -421,6 +421,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //    var path = SKPath.ParseSvgPathData(skPath);
         //    e.Surface.Canvas.DrawPath(path, skPaint);
         //}
+<<<<<<< HEAD
         Console.WriteLine($"完成 UNO 绘制");
         
         //_skPathList.Clear();
@@ -431,5 +432,18 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             //canvas.RaiseRenderBoundsChanged(new Rect(0, 0, canvas.ApplicationDrawingSkBitmap!.Width,
             //    canvas.ApplicationDrawingSkBitmap.Height));
         });
+=======
+        // 如果注释掉这句话，将不能正常完成 X11 的 XShapeCombineRegion 的返回
+        Console.WriteLine($"完成 UNO 绘制");
+
+        //_skPathList.Clear();
+
+        //// 清空笔迹，换成在 UNO 层绘制
+        //InvokeAsync(canvas =>
+        //{
+        //    //canvas.RaiseRenderBoundsChanged(new Rect(0, 0, canvas.ApplicationDrawingSkBitmap!.Width,
+        //    //    canvas.ApplicationDrawingSkBitmap.Height));
+        //});
+>>>>>>> cc7dd05a09e2e5e1b7a125125e1a3bffbf4fed7c
     }
 }
