@@ -13,11 +13,11 @@ using static UnoInk.Inking.InkCore.RectExtension;
 
 namespace UnoInk.Inking.InkCore;
 
-///// <summary>
-///// 笔迹信息 用于静态笔迹层
-///// </summary>
-///// <param name="Id"></param>
-//record InkInfo(int Id);
+/// <summary>
+/// 笔迹信息 用于静态笔迹层
+/// </summary>
+/// <param name="Id"></param>
+record InkInfo(int Id);
 
 /// <summary>
 /// 使用 Skia 的 Ink 笔迹画板
