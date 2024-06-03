@@ -1,3 +1,21 @@
+<<<<<<< HEAD
+=======
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices.WindowsRuntime;
+
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Navigation;
+
+>>>>>>> f682a1d5e3b6d0cb0b99903c22a9dcd7e23eb4ae
 using Windows.Foundation;
 <<<<<<< HEAD
 using Microsoft.UI.Xaml.Input;
@@ -265,12 +283,17 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
         foreach (var skPath in _skPathList)
         {
+<<<<<<< HEAD
             Console.WriteLine($"准备到 UNO 绘制");
             // 需要进行序列化和反序列化是为了解决跨线程访问 SKPath 导致爆的问题
             // 可以切到 c82dcaf20da0948aede539b699f47926635b94a3 进行测试
             // 写一笔就能复现
             var path = SKPath.ParseSvgPathData(skPath);
             e.Surface.Canvas.DrawPath(path, skPaint);
+=======
+            Console.WriteLine($"准备到 UNO 绘制 IsDispose={IsDisposed(skPath)}");
+            e.Surface.Canvas.DrawPath(skPath, skPaint);
+>>>>>>> f682a1d5e3b6d0cb0b99903c22a9dcd7e23eb4ae
         }
         Console.WriteLine($"完成 UNO 绘制");
 
@@ -283,4 +306,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             //    canvas.ApplicationDrawingSkBitmap.Height));
         });
     }
+
+    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "isDisposed")]
+    private extern bool IsDisposed(SKPath skPath);
 }
