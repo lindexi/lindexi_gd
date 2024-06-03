@@ -53,6 +53,8 @@ public partial class App : Application
 
     private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
     {
+        Console.WriteLine(e.Exception);
+
         var appUnhandledExceptionLogger =
             global::Uno.Extensions.LogExtensionPoint.AmbientLoggerFactory.CreateLogger("AppUnhandledException");
         appUnhandledExceptionLogger.LogWarning(e.Message, e.Exception);
@@ -278,6 +280,8 @@ public partial class App : Application
 
         TaskScheduler.UnobservedTaskException += (sender, args) =>
         {
+            Console.WriteLine(args.Exception);
+
             taskExceptionLogger.LogWarning($"[TaskException] {args.Exception}");
         };
 #endif
