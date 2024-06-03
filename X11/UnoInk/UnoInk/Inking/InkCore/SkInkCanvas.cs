@@ -105,7 +105,9 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
 
         public void Dispose()
         {
-            InkStrokePath?.Dispose();
+            // 不释放，否则另一个线程使用可能炸掉
+            // 如 cee6070566964a8143b235e10f90dda9907e6e22 的测试
+            //InkStrokePath?.Dispose();
         }
     }
 
