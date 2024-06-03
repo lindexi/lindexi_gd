@@ -45,17 +45,25 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
                 // 尝试修复 UNO 停止渲染，但也可能是 UNO 自己的坑，就是界面不显示
                 // 原先在 Avalonia 也有这样的问题
                 await Task.Delay(TimeSpan.FromSeconds(1));
-                _x11InkProvider = new X11InkProvider();
-
-                _x11InkProvider.Start(Window.Current!);
-
-                _dispatcherRequiring =
-                    new DispatcherRequiring(InvokeInk, _x11InkProvider.InkWindow.GetDispatcher());
-
-                var skInkCanvas = _x11InkProvider.InkWindow.SkInkCanvas;
-                skInkCanvas.StrokesCollected += SkInkCanvas_StrokesCollected;
-                
-                Console.WriteLine($"完成初始化");
+                try
+                {
+                    _x11InkProvider = new X11InkProvider();
+                    
+                    _x11InkProvider.Start(Window.Current!);
+                    
+                    _dispatcherRequiring =
+                        new DispatcherRequiring(InvokeInk, _x11InkProvider.InkWindow.GetDispatcher());
+                    
+                    var skInkCanvas = _x11InkProvider.InkWindow.SkInkCanvas;
+                    skInkCanvas.StrokesCollected += SkInkCanvas_StrokesCollected;
+                    
+                    Console.WriteLine($"完成初始化");
+                }
+                catch (Exception exception)
+                {
+                    Console.WriteLine(exception);
+                    throw;
+                }
             }
         }
     }
