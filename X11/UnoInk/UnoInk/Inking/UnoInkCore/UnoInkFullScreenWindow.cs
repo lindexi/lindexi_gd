@@ -16,8 +16,7 @@ public partial class UnoInkFullScreenWindow : Window
 #if HAS_UNO
         // 这句话似乎也是无效的
         this.SetBackground(new SolidColorBrush(Colors.Transparent));
-        Window window = this;
-        window.AppWindow.GetApplicationView().TryEnterFullScreenMode();
+        this.AppWindow.GetApplicationView().TryEnterFullScreenMode();
 #endif
         
         // 背景透明需要 UNO 还没发布的版本
