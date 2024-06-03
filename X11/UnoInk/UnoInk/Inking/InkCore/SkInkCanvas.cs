@@ -22,11 +22,18 @@ using static UnoInk.Inking.InkCore.RectExtension;
 
 namespace ReewheaberekaiNayweelehe;
 
+<<<<<<< HEAD
 partial record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp)
 {
     public bool IsMouse { init; get; }
 };
 
+=======
+/// <summary>
+/// 笔迹信息 用于静态笔迹层
+/// </summary>
+/// <param name="Id"></param>
+>>>>>>> de59e0fe8f7b5f8d759b6eb7df1d774ed1c0452c
 partial record InkInfo(int Id);
 
 /// <summary>

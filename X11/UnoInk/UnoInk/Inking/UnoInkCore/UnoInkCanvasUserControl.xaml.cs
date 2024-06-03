@@ -162,12 +162,12 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
         InvokeAsync(canvas =>
         {
-            _skPathList.AddRange(canvas.CurrentInkStrokePathEnumerable);
             //if (_x11InkProvider is null)
             //{
             //    return;
             //}
             canvas.ModeInputDispatcher.Up(ToModeInputArgs(e));
+            _skPathList.AddRange(canvas.CurrentInkStrokePathEnumerable);
             //canvas.Up(ToInkingInputInfo(e));
 
             SkXamlCanvas.Invalidate();
@@ -279,7 +279,6 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         // 清空笔迹，换成在 UNO 层绘制
         InvokeAsync(canvas =>
         {
-            //canvas.SkCanvas!.Clear();
             //canvas.RaiseRenderBoundsChanged(new Rect(0, 0, canvas.ApplicationDrawingSkBitmap!.Width,
             //    canvas.ApplicationDrawingSkBitmap.Height));
         });
