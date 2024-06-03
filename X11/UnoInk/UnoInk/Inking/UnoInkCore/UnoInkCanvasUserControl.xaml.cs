@@ -297,7 +297,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //    var path = SKPath.ParseSvgPathData(skPath);
         //    e.Surface.Canvas.DrawPath(path, skPaint);
         //}
-        //Console.WriteLine($"完成 UNO 绘制");
+        Console.WriteLine($"完成 UNO 绘制");
         
         //_skPathList.Clear();
         
