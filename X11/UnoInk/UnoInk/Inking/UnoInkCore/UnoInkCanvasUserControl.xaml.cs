@@ -21,7 +21,6 @@ using UnoInk.Inking.InkCore;
 using UnoInk.Inking.InkCore.Interactives;
 using UnoInk.Inking.X11Ink;
 using UnoInk.Inking.X11Platforms.Threading;
-using HarfBuzzSharp;
 
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
