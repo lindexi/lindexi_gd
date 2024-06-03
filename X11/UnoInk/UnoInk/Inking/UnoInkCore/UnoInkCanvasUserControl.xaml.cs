@@ -268,6 +268,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
     private void SkXamlCanvas_OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
+        return;
         //Console.WriteLine($"执行绘制");
 
         using var skPaint = new SKPaint();
