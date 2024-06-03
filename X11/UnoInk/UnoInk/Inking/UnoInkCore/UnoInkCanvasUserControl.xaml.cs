@@ -423,8 +423,14 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //    e.Surface.Canvas.DrawPath(path, skPaint);
         //}
 <<<<<<< HEAD
+<<<<<<< HEAD
         Console.WriteLine($"完成 UNO 绘制");
         
+=======
+        // 如果注释掉这句话，将不能正常完成 X11 的 XShapeCombineRegion 的返回
+        //Console.WriteLine($"完成 UNO 绘制");
+
+>>>>>>> b5ff0f64dd3b49411632511c743bd13e2e991f37
         //_skPathList.Clear();
         
         // 清空笔迹，换成在 UNO 层绘制
