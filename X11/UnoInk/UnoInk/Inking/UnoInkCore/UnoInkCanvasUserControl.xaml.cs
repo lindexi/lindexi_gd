@@ -320,6 +320,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         {
             skPaint.Color = new SKColor(0xC5, 0x20, 0x00);
         }
+<<<<<<< HEAD
         
 <<<<<<< HEAD
         lock (StrokeInfoList)
@@ -359,11 +360,17 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 =======
 =======
 >>>>>>> 369f36d6523bf1789b43b82d3c39e43d0b68ba96
+=======
+
+        lock (StrokeInfoList)
+        {
+>>>>>>> e7a4336a067f599aa6ece29c2d17b393427d2a97
             foreach (var strokesCollectionInfo in StrokeInfoList)
             {
                 skPaint.Color = strokesCollectionInfo.StrokeColor;
                 var path = strokesCollectionInfo.InkStrokePath;
                 System.Diagnostics.Debug.Assert(path != null);
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 258a60849bcee8adab16c45b2303bb5f8e096058
 
@@ -396,6 +403,15 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //}
 >>>>>>> 4649ce1a8be6a740ada345e8734a35759751b884
         
+=======
+
+                e.Surface.Canvas.DrawPath(path, skPaint);
+            }
+
+            StrokeInfoList.Clear();
+        }
+
+>>>>>>> e7a4336a067f599aa6ece29c2d17b393427d2a97
         //foreach (var skPath in _skPathList)
         //{
         //    Console.WriteLine($"准备到 UNO 绘制");
