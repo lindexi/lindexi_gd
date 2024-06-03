@@ -284,6 +284,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         foreach (var skPath in _skPathList)
         {
 <<<<<<< HEAD
+<<<<<<< HEAD
             Console.WriteLine($"准备到 UNO 绘制");
             // 需要进行序列化和反序列化是为了解决跨线程访问 SKPath 导致爆的问题
             // 可以切到 c82dcaf20da0948aede539b699f47926635b94a3 进行测试
@@ -292,6 +293,9 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             e.Surface.Canvas.DrawPath(path, skPaint);
 =======
             Console.WriteLine($"准备到 UNO 绘制 IsDispose={IsDisposed(skPath)}");
+=======
+            Console.WriteLine($"准备到 UNO 绘制");
+>>>>>>> f7b502dbab06a8dbb1a5f6b5d98bc5459bdad98f
             e.Surface.Canvas.DrawPath(skPath, skPaint);
 >>>>>>> f682a1d5e3b6d0cb0b99903c22a9dcd7e23eb4ae
         }
@@ -308,5 +312,5 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     }
 
     [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "isDisposed")]
-    private extern int IsDisposed(SKPath skPath);
+    private static extern int IsDisposed(SKPath skPath);
 }
