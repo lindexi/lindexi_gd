@@ -172,6 +172,12 @@ public partial class App : Application
 #if HAS_UNO
         global::Uno.UI.Adapter.Microsoft.Extensions.Logging.LoggingAdapter.Initialize();
 #endif
+        var taskExceptionLogger = factory.CreateLogger("TaskException");
+        
+        TaskScheduler.UnobservedTaskException += (sender, args) =>
+        {
+            taskExceptionLogger.LogWarning($"[TaskException] {args.Exception}");
+        };
 #endif
     }
 }
