@@ -259,8 +259,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
         foreach (var skPath in _skPathList)
         {
-            SKNativeObject skNativeObject = skPath;
-            Console.WriteLine($"准备到 UNO 绘制 IsDispose={IsDisposed(skNativeObject)}");
+            Console.WriteLine($"准备到 UNO 绘制");
             e.Surface.Canvas.DrawPath(skPath, skPaint);
         }
         Console.WriteLine($"完成 UNO 绘制");
@@ -275,7 +274,4 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             //    canvas.ApplicationDrawingSkBitmap.Height));
         });
     }
-
-    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "isDisposed")]
-    private static extern int IsDisposed(SKNativeObject skPath);
 }
