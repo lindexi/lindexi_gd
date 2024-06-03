@@ -137,7 +137,7 @@ class SkInkCanvas
 
         public void Dispose()
         {
-            //InkStrokePath?.Dispose();
+            InkStrokePath?.Dispose();
         }
     }
 
