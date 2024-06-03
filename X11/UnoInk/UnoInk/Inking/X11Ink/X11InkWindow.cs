@@ -42,6 +42,7 @@ class X11InkWindow : X11Window
 
         // 设置不接受输入
         // 这样输入穿透到后面一层里，由后面一层将内容上报上来
+        Console.WriteLine($"StartSetClickThrough");
         SetClickThrough();
         Console.WriteLine($"SetClickThrough");
 

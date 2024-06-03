@@ -41,7 +41,9 @@ public class X11Window
         // 设置不接受输入
         // 这样输入穿透到后面一层里，由后面一层将内容上报上来
         var region = XCreateRegion();
+        Console.WriteLine("Start XShapeCombineRegion");
         XShapeCombineRegion(X11Info.Display, X11WindowIntPtr, ShapeInput, 0, 0, region, ShapeSet);
+        Console.WriteLine("End XShapeCombineRegion");
     }
 
     public void SetOwner(IntPtr ownerX11WindowIntPtr)
