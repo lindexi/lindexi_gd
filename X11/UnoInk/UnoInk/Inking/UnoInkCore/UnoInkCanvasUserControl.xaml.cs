@@ -90,6 +90,10 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
                 _dispatcherRequiring =
                     new DispatcherRequiring(InvokeInk, _x11InkProvider.InkWindow.GetDispatcher());
+                
+                var skInkCanvas = _x11InkProvider.InkWindow.SkInkCanvas;
+                skInkCanvas.StrokesCollected += SkInkCanvas_StrokesCollected;
+
                 Console.WriteLine("完成初始化");
 <<<<<<< HEAD
 >>>>>>> a7ac643ae6800579fece2640604146dc923e2650
@@ -98,6 +102,11 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             }
 >>>>>>> f6762ea045de9b52e29ce7949a1c9be4211deaf5
         }
+    }
+    
+    private void SkInkCanvas_StrokesCollected(object? sender, StrokesCollectionInfo e)
+    {
+        // 这是 X11 线程进入的
     }
 
     private void InvokeInk()
