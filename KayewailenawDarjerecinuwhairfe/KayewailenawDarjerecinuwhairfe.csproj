@@ -26,7 +26,6 @@
       <BuildVersionInfoWriteArgLine Include=">"/>
     </ItemGroup>
 
-    <Warning Text="aa &#x0025;"/>
     <WriteLinesToFile File="$(BuildVersionInfoFile)" Lines="@(BuildVersionInfoWriteArgLine)" Overwrite="true"/>
   </Target>
 
@@ -45,7 +44,7 @@
       <_ShortShaFormat>%h</_ShortShaFormat>
       <_LongShaFormat>%H</_LongShaFormat>
     </PropertyGroup>
-    <Exec Command="git -c log.showSignature=false log --format=format:$(_ShortShaFormat) -n 1"
+    <Exec Command="git -c log.showSignature=false log --format=format:&#x0025;H -n 1"
           EchoOff='true'
           StandardErrorImportance="low"
           StandardOutputImportance="low"
