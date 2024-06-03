@@ -259,7 +259,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
         foreach (var skPath in _skPathList)
         {
-            Console.WriteLine($"准备到 UNO 绘制");
+            Console.WriteLine($"准备到 UNO 绘制 IsDispose={IsDisposed(skPath)}");
             e.Surface.Canvas.DrawPath(skPath, skPaint);
         }
         Console.WriteLine($"完成 UNO 绘制");
