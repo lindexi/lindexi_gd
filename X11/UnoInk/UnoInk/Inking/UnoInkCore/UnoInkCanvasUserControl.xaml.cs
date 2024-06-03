@@ -107,7 +107,13 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     private void SkInkCanvas_StrokesCollected(object? sender, StrokesCollectionInfo e)
     {
         // 这是 X11 线程进入的
+        lock (StrokeInfoList)
+        {
+            StrokeInfoList.Add(e);
+        }
     }
+    
+    private List<StrokesCollectionInfo> StrokeInfoList { get; } = new List<StrokesCollectionInfo>();
 
     private void InvokeInk()
     {
@@ -220,14 +226,14 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             //    return;
             //}
             canvas.ModeInputDispatcher.Up(ToModeInputArgs(e));
-            _skPathList.AddRange(canvas.CurrentInkStrokePathEnumerable);
+            //_skPathList.AddRange(canvas.CurrentInkStrokePathEnumerable);
             //canvas.Up(ToInkingInputInfo(e));
 
             SkXamlCanvas.Invalidate();
         });
     }
 
-    private readonly List<string> _skPathList = [];
+    //private readonly List<string> _skPathList = [];
 
     //private readonly Dictionary<uint /*PointerId*/, InkInfo> _inkInfoCache = new Dictionary<uint, InkInfo>();
 
@@ -296,11 +302,11 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
         return Task.CompletedTask;
     }
-
+    
     private void SkXamlCanvas_OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
         //Console.WriteLine($"执行绘制");
-
+        
         using var skPaint = new SKPaint();
         skPaint.StrokeWidth = 0.1f;
         skPaint.IsAntialias = true;
@@ -314,10 +320,10 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         {
             skPaint.Color = new SKColor(0xC5, 0x20, 0x00);
         }
-
-
-        foreach (var skPath in _skPathList)
+        
+        lock (StrokeInfoList)
         {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -350,24 +356,43 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         }
         Console.WriteLine($"完成 UNO 绘制");
 =======
+=======
+>>>>>>> 369f36d6523bf1789b43b82d3c39e43d0b68ba96
             foreach (var strokesCollectionInfo in StrokeInfoList)
             {
                 skPaint.Color = strokesCollectionInfo.StrokeColor;
                 var path = strokesCollectionInfo.InkStrokePath;
                 System.Diagnostics.Debug.Assert(path != null);
+<<<<<<< HEAD
 >>>>>>> 258a60849bcee8adab16c45b2303bb5f8e096058
 
+=======
+                
+>>>>>>> 369f36d6523bf1789b43b82d3c39e43d0b68ba96
                 e.Surface.Canvas.DrawPath(path, skPaint);
             }
             
             StrokeInfoList.Clear();
+<<<<<<< HEAD
 =======
 >>>>>>> 58eb8d0baabb7bfca5d1312dbf007537a5a1c7c0
+=======
+>>>>>>> 369f36d6523bf1789b43b82d3c39e43d0b68ba96
         }
-        Console.WriteLine($"完成 UNO 绘制");
-
-        _skPathList.Clear();
-
+        
+        //foreach (var skPath in _skPathList)
+        //{
+        //    Console.WriteLine($"准备到 UNO 绘制");
+        //    // 需要进行序列化和反序列化是为了解决跨线程访问 SKPath 导致爆的问题
+        //    // 可以切到 c82dcaf20da0948aede539b699f47926635b94a3 进行测试
+        //    // 写一笔就能复现
+        //    var path = SKPath.ParseSvgPathData(skPath);
+        //    e.Surface.Canvas.DrawPath(path, skPaint);
+        //}
+        //Console.WriteLine($"完成 UNO 绘制");
+        
+        //_skPathList.Clear();
+        
         // 清空笔迹，换成在 UNO 层绘制
         InvokeAsync(canvas =>
         {
