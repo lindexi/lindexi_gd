@@ -273,21 +273,21 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         {
             skPaint.Color = new SKColor(0xC5, 0x20, 0x00);
         }
-        
-        //lock (StrokeInfoList)
-        //{
-        //    foreach (var strokesCollectionInfo in StrokeInfoList)
-        //    {
-        //        skPaint.Color = strokesCollectionInfo.StrokeColor;
-        //        var path = strokesCollectionInfo.InkStrokePath;
-        //        System.Diagnostics.Debug.Assert(path != null);
-                
-        //        e.Surface.Canvas.DrawPath(path, skPaint);
-        //    }
-            
-        //    StrokeInfoList.Clear();
-        //}
-        
+
+        lock (StrokeInfoList)
+        {
+            foreach (var strokesCollectionInfo in StrokeInfoList)
+            {
+                skPaint.Color = strokesCollectionInfo.StrokeColor;
+                var path = strokesCollectionInfo.InkStrokePath;
+                System.Diagnostics.Debug.Assert(path != null);
+
+                e.Surface.Canvas.DrawPath(path, skPaint);
+            }
+
+            StrokeInfoList.Clear();
+        }
+
         //foreach (var skPath in _skPathList)
         //{
         //    Console.WriteLine($"准备到 UNO 绘制");
