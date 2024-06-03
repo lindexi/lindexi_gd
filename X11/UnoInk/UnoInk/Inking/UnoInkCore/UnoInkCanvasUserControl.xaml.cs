@@ -276,5 +276,5 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     }
 
     [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "isDisposed")]
-    private extern bool IsDisposed(SKPath skPath);
+    private extern int IsDisposed(SKPath skPath);
 }
