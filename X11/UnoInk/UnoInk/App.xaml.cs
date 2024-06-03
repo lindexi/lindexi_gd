@@ -23,6 +23,14 @@ public partial class App : Application
     public App()
     {
         this.InitializeComponent();
+        UnhandledException += App_UnhandledException;
+    }
+
+    private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+    {
+        var appUnhandledExceptionLogger =
+            global::Uno.Extensions.LogExtensionPoint.AmbientLoggerFactory.CreateLogger("AppUnhandledException");
+        appUnhandledExceptionLogger.LogWarning(e.Message, e.Exception);
     }
 
     protected Window? MainWindow { get; private set; }
@@ -40,7 +48,7 @@ public partial class App : Application
         //    Y = 100
         //});
         return;
-        
+
         Console.WriteLine($"Before new Window");
         MainWindow = new Window();
         Console.WriteLine($"After new Window");
@@ -59,7 +67,7 @@ public partial class App : Application
         MainWindow.SetBackground(new SolidColorBrush(Colors.Transparent));
         MainWindow.AppWindow.GetApplicationView().TryEnterFullScreenMode();
 #endif
-     
+
 
         // Do not repeat app initialization when the Window already has content,
         // just ensure that the window is active
@@ -173,7 +181,7 @@ public partial class App : Application
         global::Uno.UI.Adapter.Microsoft.Extensions.Logging.LoggingAdapter.Initialize();
 #endif
         var taskExceptionLogger = factory.CreateLogger("TaskException");
-        
+
         TaskScheduler.UnobservedTaskException += (sender, args) =>
         {
             taskExceptionLogger.LogWarning($"[TaskException] {args.Exception}");
