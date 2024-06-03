@@ -101,7 +101,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
 
         public void Dispose()
         {
-            //InkStrokePath?.Dispose();
+            InkStrokePath?.Dispose();
         }
     }
 
