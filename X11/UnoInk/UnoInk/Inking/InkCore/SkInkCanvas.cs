@@ -17,7 +17,7 @@ namespace UnoInk.Inking.InkCore;
 /// 笔迹信息 用于静态笔迹层
 /// </summary>
 /// <param name="Id"></param>
-record InkInfo(int Id);
+partial record InkInfo(int Id);
 
 /// <summary>
 /// 使用 Skia 的 Ink 笔迹画板
