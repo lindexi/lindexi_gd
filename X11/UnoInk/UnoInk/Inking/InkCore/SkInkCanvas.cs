@@ -33,8 +33,12 @@ partial record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp)
 /// 笔迹信息 用于静态笔迹层
 /// </summary>
 /// <param name="Id"></param>
+<<<<<<< HEAD
 >>>>>>> de59e0fe8f7b5f8d759b6eb7df1d774ed1c0452c
 partial record InkInfo(int Id);
+=======
+public partial record InkInfo(int Id, SKColor StrokeColor, SKPath? InkStrokePath);
+>>>>>>> 01fd5aebad41efef3ec9afaaaefcd30a0d674cb0
 
 /// <summary>
 /// 画板的配置
@@ -137,6 +141,11 @@ class SkInkCanvas
 
         public void Dispose()
         {
+<<<<<<< HEAD
+=======
+            // 不释放，否则另一个线程使用可能炸掉
+            // 如 cee6070566964a8143b235e10f90dda9907e6e22 的测试
+>>>>>>> 01fd5aebad41efef3ec9afaaaefcd30a0d674cb0
             //InkStrokePath?.Dispose();
         }
     }
