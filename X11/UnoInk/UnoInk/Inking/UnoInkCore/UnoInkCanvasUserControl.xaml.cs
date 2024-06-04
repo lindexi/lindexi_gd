@@ -304,11 +304,11 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
         //_skPathList.Clear();
 
-        // 清空笔迹，换成在 UNO 层绘制
-        InvokeAsync(canvas =>
-        {
-            //canvas.RaiseRenderBoundsChanged(new Rect(0, 0, canvas.ApplicationDrawingSkBitmap!.Width,
-            //    canvas.ApplicationDrawingSkBitmap.Height));
-        });
+        //// 清空笔迹，换成在 UNO 层绘制
+        //InvokeAsync(canvas =>
+        //{
+        //    //canvas.RaiseRenderBoundsChanged(new Rect(0, 0, canvas.ApplicationDrawingSkBitmap!.Width,
+        //    //    canvas.ApplicationDrawingSkBitmap.Height));
+        //});
     }
 }
