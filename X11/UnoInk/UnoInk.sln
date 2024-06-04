@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34607.119
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnoInk", "UnoInk\UnoInk.csproj", "{8BE98FFE-BCB4-4EA3-B37E-22702B72B7BE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D7F86753-ED43-4B36-BE45-839CB53B9B5B}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
+		Directory.Packages.props = Directory.Packages.props
+		global.json = global.json
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8BE98FFE-BCB4-4EA3-B37E-22702B72B7BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BE98FFE-BCB4-4EA3-B37E-22702B72B7BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BE98FFE-BCB4-4EA3-B37E-22702B72B7BE}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{8BE98FFE-BCB4-4EA3-B37E-22702B72B7BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BE98FFE-BCB4-4EA3-B37E-22702B72B7BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BE98FFE-BCB4-4EA3-B37E-22702B72B7BE}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {668B6DB3-46DE-49B3-B38E-EA614EB5CCB0}
+	EndGlobalSection
+EndGlobal
