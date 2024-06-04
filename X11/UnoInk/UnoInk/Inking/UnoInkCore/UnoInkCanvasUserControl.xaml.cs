@@ -290,6 +290,8 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             Console.WriteLine($"DrawPath");
         }
 
+        this.InvalidateViewport();
+
         //foreach (var skPath in _skPathList)
         //{
         //    Console.WriteLine($"准备到 UNO 绘制");
