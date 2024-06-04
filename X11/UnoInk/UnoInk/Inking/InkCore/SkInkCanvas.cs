@@ -719,6 +719,9 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
         var skCanvas = _skCanvas;
         
         skCanvas.Clear();
+
+        RenderBoundsChanged?.Invoke(this, drawRect.ToMauiRect());
+
         return;
         skCanvas.DrawBitmap(_originBackground, 0, 0);
 
