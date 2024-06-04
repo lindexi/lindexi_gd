@@ -441,15 +441,19 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             e.Surface.Canvas.DrawPath(path, skPaint);
         }
 
+<<<<<<< HEAD
 
 
 >>>>>>> e7a4336a067f599aa6ece29c2d17b393427d2a97
+=======
+>>>>>>> f31f1bbc1cef90203aaa4c47f99c85c279ce2c1c
         //foreach (var skPath in _skPathList)
         //{
         //    Console.WriteLine($"准备到 UNO 绘制");
         //    // 需要进行序列化和反序列化是为了解决跨线程访问 SKPath 导致爆的问题
         //    // 可以切到 c82dcaf20da0948aede539b699f47926635b94a3 进行测试
         //    // 写一笔就能复现
+        //    // 实际原因是 SkInkCanvas 的 InkStrokePath 在 DrawStrokeContext 的 Dispose 被释放。加上 01fd5aebad41efef3ec9afaaaefcd30a0d674cb0 即可解决，不需要序列化
         //    var path = SKPath.ParseSvgPathData(skPath);
         //    e.Surface.Canvas.DrawPath(path, skPaint);
         //}
@@ -487,6 +491,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //_skPathList.Clear();
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> b1d8bf3076dc424b7970c9c49a028e95e126d8b0
@@ -499,14 +504,21 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 <<<<<<< HEAD
 >>>>>>> cc7dd05a09e2e5e1b7a125125e1a3bffbf4fed7c
 =======
+=======
+>>>>>>> f31f1bbc1cef90203aaa4c47f99c85c279ce2c1c
         // 清空笔迹，换成在 UNO 层绘制
         InvokeAsync(canvas =>
         {
             //canvas.RaiseRenderBoundsChanged(new Rect(0, 0, canvas.ApplicationDrawingSkBitmap!.Width,
             //    canvas.ApplicationDrawingSkBitmap.Height));
+<<<<<<< HEAD
         });
 >>>>>>> 4d8052bd6f176eda3d572c8b9c96f1ce0fbd0218
 =======
 >>>>>>> b1d8bf3076dc424b7970c9c49a028e95e126d8b0
+=======
+            canvas.CleanStroke(strokeCollectionInfoList);
+        });
+>>>>>>> f31f1bbc1cef90203aaa4c47f99c85c279ce2c1c
     }
 }
