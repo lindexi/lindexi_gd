@@ -1,4 +1,3 @@
-using Uno.Foundation.Extensibility;
 using Uno.Resizetizer;
 
 namespace UnoInk;
@@ -13,8 +12,7 @@ public partial class App : Application
         this.InitializeComponent();
         
 #if HAS_UNO
-        ApiExtensibility
-            .Register(typeof(IDisplayInformationExtension), );
+   
 #endif
     }
 
