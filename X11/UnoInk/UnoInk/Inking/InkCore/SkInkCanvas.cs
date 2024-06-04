@@ -691,6 +691,58 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
 
         return false;
     }
+    
+    public void CleanStroke(IReadOnlyList<StrokeCollectionInfo> cleanList)
+    {
+        SKRect drawRect = default;
+        bool isFirst = true;
+        foreach (var strokeCollectionInfo in cleanList)
+        {
+            if (strokeCollectionInfo.InkStrokePath == null)
+            {
+                continue;
+            }
+            
+            if (isFirst)
+            {
+                drawRect = strokeCollectionInfo.InkStrokePath.Bounds;
+            }
+            else
+            {
+                drawRect.Union(strokeCollectionInfo.InkStrokePath.Bounds);
+            }
+            
+            isFirst = false;
+        }
+
+        // 这里逻辑比较渣，因为可能存在 CurrentInputDictionary 被删除内容
+        var skCanvas = _skCanvas;
+
+        using var skPaint = new SKPaint();
+        skPaint.StrokeWidth = 0.1f;
+        skPaint.IsAntialias = true;
+        skPaint.FilterQuality = SKFilterQuality.High;
+        skPaint.Style = SKPaintStyle.Fill;
+        
+        //Console.WriteLine($"CurrentInputDictionary Count={CurrentInputDictionary.Count}");
+        // 有个奇怪的炸掉情况，先忽略
+        using var enumerator = CurrentInputDictionary.GetEnumerator();
+        
+        foreach (var drawStrokeContext in CurrentInputDictionary)
+        {
+            if (cleanList.Any(t=>t.Id == drawStrokeContext.Key))
+            {
+                continue;
+            }
+
+            skPaint.Color = drawStrokeContext.Value.StrokeColor;
+            
+            if (drawStrokeContext.Value.InkStrokePath is { } path)
+            {
+                skCanvas.DrawPath(path, skPaint);
+            }
+        }
+    }
 
     // 以下是橡皮擦系列逻辑
 
