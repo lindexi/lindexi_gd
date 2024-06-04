@@ -454,14 +454,20 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             System.Diagnostics.Debug.Assert(path != null);
             
             e.Surface.Canvas.DrawPath(path, skPaint);
+            Console.WriteLine($"DrawPath");
         }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 
 >>>>>>> e7a4336a067f599aa6ece29c2d17b393427d2a97
 =======
 >>>>>>> f31f1bbc1cef90203aaa4c47f99c85c279ce2c1c
+=======
+        this.InvalidateViewport();
+
+>>>>>>> 0e6169f6fcc713e25c15126369a22b6b75e4e8fe
         //foreach (var skPath in _skPathList)
         //{
         //    Console.WriteLine($"准备到 UNO 绘制");
