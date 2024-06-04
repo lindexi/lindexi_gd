@@ -7,6 +7,7 @@ MinimumVisualStudioVersion = 10.0.40219.1
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnoInk", "UnoInk\UnoInk.csproj", "{A9C9F94F-C1BE-4251-B512-8E54350E7A43}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C9003DEF-89A7-440C-8FD7-A14B111DA617}"
@@ -27,6 +28,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 >>>>>>> bb3ca7ae7043b68590131278b336efd0445ad5c3
 =======
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnoInk", "UnoInk\UnoInk.csproj", "{8BE98FFE-BCB4-4EA3-B37E-22702B72B7BE}"
+=======
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnoInk", "UnoInk\UnoInk.csproj", "{8BE98FFE-BCB4-4EA3-B37E-22702B72B7BE}"
+>>>>>>> 4ec6912f490aa37fd6364ea0b3d5917c82d22e75
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D7F86753-ED43-4B36-BE45-839CB53B9B5B}"
 >>>>>>> 86984cb5eab3fd16df49ab173ec129b7bdf7ec0e
@@ -42,6 +46,7 @@ EndProject
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnoHacker", "UnoHacker\UnoHacker.csproj", "{8C4F393C-8EAE-4FB5-A892-DC46EF89317C}"
 EndProject
 =======
@@ -52,6 +57,10 @@ EndProject
 >>>>>>> bb3ca7ae7043b68590131278b336efd0445ad5c3
 =======
 >>>>>>> 86984cb5eab3fd16df49ab173ec129b7bdf7ec0e
+=======
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnoHacker", "UnoHacker\UnoHacker.csproj", "{88CEEAD1-E31F-4DCB-A5B8-359ED73A55E7}"
+EndProject
+>>>>>>> 4ec6912f490aa37fd6364ea0b3d5917c82d22e75
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -97,7 +106,14 @@ Global
 		{8BE98FFE-BCB4-4EA3-B37E-22702B72B7BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8BE98FFE-BCB4-4EA3-B37E-22702B72B7BE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8BE98FFE-BCB4-4EA3-B37E-22702B72B7BE}.Release|Any CPU.Deploy.0 = Release|Any CPU
+<<<<<<< HEAD
 >>>>>>> 86984cb5eab3fd16df49ab173ec129b7bdf7ec0e
+=======
+		{88CEEAD1-E31F-4DCB-A5B8-359ED73A55E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88CEEAD1-E31F-4DCB-A5B8-359ED73A55E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88CEEAD1-E31F-4DCB-A5B8-359ED73A55E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88CEEAD1-E31F-4DCB-A5B8-359ED73A55E7}.Release|Any CPU.Build.0 = Release|Any CPU
+>>>>>>> 4ec6912f490aa37fd6364ea0b3d5917c82d22e75
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
