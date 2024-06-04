@@ -323,8 +323,13 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
         return Task.CompletedTask;
     }
+<<<<<<< HEAD
     
     private void SkXamlCanvas_OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
+=======
+
+    private async void SkXamlCanvas_OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
+>>>>>>> 634d1cb4563ff0ed67ece034dc0b98adf6f10e6d
     {
 <<<<<<< HEAD
         //Console.WriteLine($"执行绘制");
@@ -459,6 +464,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 
 >>>>>>> e7a4336a067f599aa6ece29c2d17b393427d2a97
@@ -466,6 +472,10 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 >>>>>>> f31f1bbc1cef90203aaa4c47f99c85c279ce2c1c
 =======
         this.InvalidateViewport();
+=======
+        // 界面不会自动刷新，需要等下一次才能刷新
+        this.InvalidateArrange();
+>>>>>>> 634d1cb4563ff0ed67ece034dc0b98adf6f10e6d
 
 >>>>>>> 0e6169f6fcc713e25c15126369a22b6b75e4e8fe
         //foreach (var skPath in _skPathList)
@@ -495,7 +505,13 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 >>>>>>> b5ff0f64dd3b49411632511c743bd13e2e991f37
         //_skPathList.Clear();
 <<<<<<< HEAD
+<<<<<<< HEAD
         
+=======
+
+        // 延迟一下，减少闪烁
+        await Task.Delay(100);
+>>>>>>> 634d1cb4563ff0ed67ece034dc0b98adf6f10e6d
         // 清空笔迹，换成在 UNO 层绘制
         InvokeAsync(canvas =>
         {
