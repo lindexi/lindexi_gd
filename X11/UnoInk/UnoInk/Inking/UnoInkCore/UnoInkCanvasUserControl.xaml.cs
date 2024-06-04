@@ -263,10 +263,12 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //Console.WriteLine($"执行绘制");
 
         using var skPaint = new SKPaint();
-        skPaint.StrokeWidth = 0.1f;
+        skPaint.StrokeWidth = 0f;
         skPaint.IsAntialias = true;
+        skPaint.IsStroke = false;
         skPaint.FilterQuality = SKFilterQuality.High;
         skPaint.Style = SKPaintStyle.Fill;
+
         if (OperatingSystem.IsLinux() && _x11InkProvider?.InkWindow.SkInkCanvas.Settings.Color is { } color)
         {
             skPaint.Color = color;
