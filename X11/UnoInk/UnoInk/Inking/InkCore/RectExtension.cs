@@ -1,4 +1,4 @@
-﻿using Microsoft.Maui.Graphics;
+using Microsoft.Maui.Graphics;
 using SkiaSharp;
 
 namespace UnoInk.Inking.InkCore;
@@ -84,6 +84,11 @@ static class RectExtension
     {
         return new SKRect(rect.Left - addition, rect.Top - addition,
             rect.Width + addition * 2, rect.Height + addition * 2);
+    }
+    
+    public static Rect ToMauiRect(this SKRect rect)
+    {
+        return new Rect(rect.Left, rect.Top, rect.Width, rect.Height);
     }
 
     public static SKRect ToSkRect(this Rect rect)
