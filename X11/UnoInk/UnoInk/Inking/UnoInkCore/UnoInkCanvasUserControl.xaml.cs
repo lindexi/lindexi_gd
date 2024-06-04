@@ -287,6 +287,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             System.Diagnostics.Debug.Assert(path != null);
             
             e.Surface.Canvas.DrawPath(path, skPaint);
+            Console.WriteLine($"DrawPath");
         }
 
         //foreach (var skPath in _skPathList)
