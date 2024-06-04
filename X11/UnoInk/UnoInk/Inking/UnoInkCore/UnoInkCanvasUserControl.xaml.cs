@@ -309,4 +309,9 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             canvas.CleanStroke(strokeCollectionInfoList);
         });
     }
+    
+    private void ExitProcessButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        Application.Current.Exit();
+    }
 }
