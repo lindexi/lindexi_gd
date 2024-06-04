@@ -60,7 +60,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         }
     }
 
-    private void SkInkCanvas_StrokesCollected(object? sender, StrokesCollectionInfo e)
+    private void SkInkCanvas_StrokesCollected(object? sender, StrokeCollectionInfo e)
     {
         // 这是 X11 线程进入的
         lock (StrokeInfoList)
@@ -69,7 +69,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         }
     }
 
-    private List<StrokesCollectionInfo> StrokeInfoList { get; } = new List<StrokesCollectionInfo>();
+    private List<StrokeCollectionInfo> StrokeInfoList { get; } = new List<StrokeCollectionInfo>();
 
     private void InvokeInk()
     {

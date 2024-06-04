@@ -17,7 +17,7 @@ namespace UnoInk.Inking.InkCore;
 /// 笔迹信息 用于静态笔迹层
 /// </summary>
 /// <param name="Id"></param>
-public partial record StrokesCollectionInfo(int Id, SKColor StrokeColor, SKPath? InkStrokePath);
+public partial record StrokeCollectionInfo(int Id, SKColor StrokeColor, SKPath? InkStrokePath);
 
 /// <summary>
 /// 使用 Skia 的 Ink 笔迹画板
@@ -66,7 +66,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
     private Dictionary<int, DrawStrokeContext> CurrentInputDictionary { get; } =
         new Dictionary<int, DrawStrokeContext>();
 
-    public event EventHandler<StrokesCollectionInfo>? StrokesCollected;
+    public event EventHandler<StrokeCollectionInfo>? StrokesCollected;
 
     //public IEnumerable<string> CurrentInkStrokePathEnumerable =>
     //    CurrentInputDictionary.Values.Select(t => t.InkStrokePath).Where(t => t != null).Select(t => t!.ToSvgPathData());
@@ -261,7 +261,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
 
         context.IsUp = true;
 
-        var strokesCollectionInfo = new StrokesCollectionInfo(info.Id, context.StrokeColor, context.InkStrokePath);
+        var strokesCollectionInfo = new StrokeCollectionInfo(info.Id, context.StrokeColor, context.InkStrokePath);
         StrokesCollected?.Invoke(this, strokesCollectionInfo);
 
         if (CurrentInputDictionary.All(t => t.Value.IsUp))
