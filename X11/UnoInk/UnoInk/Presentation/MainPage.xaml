@@ -24,6 +24,7 @@
       <Button Content="Go to Second Page"
           AutomationProperties.AutomationId="SecondPageButton"
           Command="{Binding GoToSecond}" />
+      <Button x:Name="SnapButton" Content="截图" Click="SnapButton_OnClick"></Button>
     </StackPanel>
   </Grid>
 </Page>
