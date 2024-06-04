@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 using System;
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -40,6 +41,8 @@ using Uno.UI.Xaml;
 >>>>>>> bb3ca7ae7043b68590131278b336efd0445ad5c3
 =======
 using Uno.Foundation.Extensibility;
+=======
+>>>>>>> 6e8b447b0a87c7b2e270193e467236399f292aed
 using Uno.Resizetizer;
 >>>>>>> 86984cb5eab3fd16df49ab173ec129b7bdf7ec0e
 
@@ -294,8 +297,7 @@ public partial class App : Application
 =======
         
 #if HAS_UNO
-        ApiExtensibility
-            .Register(typeof(IDisplayInformationExtension), );
+   
 #endif
     }
 

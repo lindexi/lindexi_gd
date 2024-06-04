@@ -6,6 +6,6 @@ using System.Threading.Tasks;
 
 namespace UnoHacker;
 
-public class FakeDisplayInformationExtension : IDisplayInformationExtension
-{
-}
+//public class FakeDisplayInformationExtension : IDisplayInformationExtension
+//{
+//}
