@@ -262,7 +262,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         return Task.CompletedTask;
     }
 
-    private void SkXamlCanvas_OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
+    private async void SkXamlCanvas_OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
         Console.WriteLine($"SkXamlCanvas_OnPaintSurface");
 
@@ -290,6 +290,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             Console.WriteLine($"DrawPath");
         }
 
+        // 界面不会自动刷新，需要等下一次才能刷新
         this.InvalidateArrange();
 
         //foreach (var skPath in _skPathList)
@@ -308,6 +309,8 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
         //_skPathList.Clear();
 
+        // 延迟一下，减少闪烁
+        await Task.Delay(100);
         // 清空笔迹，换成在 UNO 层绘制
         InvokeAsync(canvas =>
         {
