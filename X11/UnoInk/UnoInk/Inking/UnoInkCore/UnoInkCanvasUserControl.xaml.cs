@@ -227,7 +227,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
     private void InkCanvas_OnPointerReleased(object sender, PointerRoutedEventArgs e)
     {
-        Console.WriteLine($"InkCanvas_OnPointerReleased");
+        //Console.WriteLine($"InkCanvas_OnPointerReleased");
         //if (_inkInfoCache.Remove(e.Pointer.PointerId, out var inkInfo))
         //{
         //    var pointerPoint = e.GetCurrentPoint(InkCanvas);
@@ -248,7 +248,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             //_skPathList.AddRange(canvas.CurrentInkStrokePathEnumerable);
             //canvas.Up(ToInkingInputInfo(e));
 
-            Console.WriteLine($"InkCanvas_OnPointerReleased InvokeAsync odeInputDispatcher.Up");
+            //Console.WriteLine($"InkCanvas_OnPointerReleased InvokeAsync ModeInputDispatcher.Up");
 
             SkXamlCanvas.Invalidate();
         });
@@ -332,10 +332,14 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 >>>>>>> 634d1cb4563ff0ed67ece034dc0b98adf6f10e6d
     {
 <<<<<<< HEAD
+<<<<<<< HEAD
         //Console.WriteLine($"执行绘制");
         
 =======
         Console.WriteLine($"SkXamlCanvas_OnPaintSurface");
+=======
+        //Console.WriteLine($"SkXamlCanvas_OnPaintSurface");
+>>>>>>> b35874b160fd7c7597604af5567f6759edd632e4
 
 >>>>>>> 0cc6a7740e41d01c0c33f9cb3960e0b79c892083
         using var skPaint = new SKPaint();

@@ -29,6 +29,7 @@ if (args.Length == 0 || args[0] == "Merge" || args[0] == "Checkout")
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     RunCommand($"git add .", git.Repo.FullName);
 =======
     RunCommand($"git add .", workingDirectory);
@@ -42,6 +43,10 @@ if (args.Length == 0 || args[0] == "Merge" || args[0] == "Checkout")
     RunCommand($"git add .", workingDirectory);
     RunCommand($"git -c core.editor=true merge --continue", workingDirectory);
 >>>>>>> 0095603556be0a0fbb9ac940b3adc0625d44863c
+=======
+    RunCommand($"git add .", workingDirectory);
+    RunCommand($"git -c core.editor=true merge --continue", workingDirectory);
+>>>>>>> b35874b160fd7c7597604af5567f6759edd632e4
     RunCommand($"git push", workingDirectory);
 
     if (args.Length > 0 && args[0] == "Checkout")
