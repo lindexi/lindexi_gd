@@ -21,7 +21,6 @@ using UnoInk.Inking.InkCore;
 using UnoInk.Inking.InkCore.Interactives;
 using UnoInk.Inking.X11Ink;
 using UnoInk.Inking.X11Platforms.Threading;
-using Microsoft.UI.Xaml.Shapes;
 
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -138,8 +137,8 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
     private void InkCanvas_OnPointerMoved(object sender, PointerRoutedEventArgs e)
     {
-        var currentPoint = e.GetCurrentPoint(this);
-        Point position = currentPoint.Position;
+        //var currentPoint = e.GetCurrentPoint(this);
+        //Point position = currentPoint.Position;
 
         //var length = Math.Pow(position.X - _lastPoint.X, 2) + Math.Pow(position.Y - _lastPoint.Y, 2);
         //if (length < 10)
