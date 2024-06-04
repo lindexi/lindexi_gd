@@ -324,6 +324,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         skPaint.IsStroke = false;
         skPaint.FilterQuality = SKFilterQuality.High;
         skPaint.Style = SKPaintStyle.Fill;
+<<<<<<< HEAD
 
         if (OperatingSystem.IsLinux() && _x11InkProvider?.InkWindow.SkInkCanvas.Settings.Color is { } color)
         {
@@ -393,6 +394,13 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
                 e.Surface.Canvas.DrawPath(path, skPaint);
             }
             
+=======
+        
+        var strokeCollectionInfoList = new List<StrokeCollectionInfo>();
+        lock (StrokeInfoList)
+        {
+            strokeCollectionInfoList.AddRange(StrokeInfoList);
+>>>>>>> 37635096c14feec86bf6452194a3eb27faa0ece5
             StrokeInfoList.Clear();
 <<<<<<< HEAD
 =======
@@ -423,6 +431,17 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
             StrokeInfoList.Clear();
         }
+        
+        foreach (var strokesCollectionInfo in strokeCollectionInfoList)
+        {
+            skPaint.Color = strokesCollectionInfo.StrokeColor;
+            var path = strokesCollectionInfo.InkStrokePath;
+            System.Diagnostics.Debug.Assert(path != null);
+            
+            e.Surface.Canvas.DrawPath(path, skPaint);
+        }
+
+
 
 >>>>>>> e7a4336a067f599aa6ece29c2d17b393427d2a97
         //foreach (var skPath in _skPathList)
@@ -434,6 +453,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //    var path = SKPath.ParseSvgPathData(skPath);
         //    e.Surface.Canvas.DrawPath(path, skPaint);
         //}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -458,6 +478,9 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             //    canvas.ApplicationDrawingSkBitmap.Height));
         });
 =======
+=======
+        // 如果在主线程其他也输出控制台，也能解决  X11 的 XShapeCombineRegion 的返回 fa08b6854bd9d43445fa3d9e93cb2ebc1d4a9cca 这里的更改就是在主线程随便输出
+>>>>>>> 37635096c14feec86bf6452194a3eb27faa0ece5
         // 如果注释掉这句话，将不能正常完成 X11 的 XShapeCombineRegion 的返回
         Console.WriteLine($"完成 UNO 绘制");
 
