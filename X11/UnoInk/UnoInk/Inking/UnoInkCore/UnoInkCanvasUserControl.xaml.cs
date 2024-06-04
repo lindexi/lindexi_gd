@@ -312,7 +312,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         // 延迟一下，减少闪烁
         await Task.Delay(100);
         // 清空笔迹，换成在 UNO 层绘制
-        InvokeAsync(canvas =>
+        await InvokeAsync(canvas =>
         {
             //canvas.RaiseRenderBoundsChanged(new Rect(0, 0, canvas.ApplicationDrawingSkBitmap!.Width,
             //    canvas.ApplicationDrawingSkBitmap.Height));
