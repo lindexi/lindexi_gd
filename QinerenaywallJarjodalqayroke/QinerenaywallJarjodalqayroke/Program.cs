@@ -26,7 +26,11 @@ if (args.Length == 0 || args[0] == "Merge" || args[0] == "Checkout")
     var workingDirectory = Path.Join(rootFolder.Parent!.FullName, "lindexi");
 
     RunCommand($"git merge {currentCommit}", workingDirectory);
+<<<<<<< HEAD
     RunCommand($"git add .", git.Repo.FullName);
+=======
+    RunCommand($"git add .", workingDirectory);
+>>>>>>> 52afcbe3fc2d566530b7c457f59d83ea5932f123
     RunCommand($"git merge --continue", workingDirectory);
     RunCommand($"git push", workingDirectory);
 
