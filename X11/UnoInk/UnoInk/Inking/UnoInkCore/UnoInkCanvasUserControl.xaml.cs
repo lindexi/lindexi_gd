@@ -112,6 +112,8 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     private void SkInkCanvas_StrokesCollected(object? sender, StrokeCollectionInfo e)
 >>>>>>> 7e4dbbe7523d0540236fc7e1b7f8fb183179b7d8
     {
+        Console.WriteLine($"SkInkCanvas_StrokesCollected");
+
         // 这是 X11 线程进入的
         lock (StrokeInfoList)
         {
@@ -191,9 +193,14 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
     private void InkCanvas_OnPointerMoved(object sender, PointerRoutedEventArgs e)
     {
+<<<<<<< HEAD
         var currentPoint = e.GetCurrentPoint(this);
         Point position = currentPoint.Position;
         LogTextBlock.Text += $"移动： {e.Pointer.PointerId} {position}\r\n";
+=======
+        //var currentPoint = e.GetCurrentPoint(this);
+        //Point position = currentPoint.Position;
+>>>>>>> 0cc6a7740e41d01c0c33f9cb3960e0b79c892083
 
         //var length = Math.Pow(position.X - _lastPoint.X, 2) + Math.Pow(position.Y - _lastPoint.Y, 2);
         //if (length < 10)
@@ -220,6 +227,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
     private void InkCanvas_OnPointerReleased(object sender, PointerRoutedEventArgs e)
     {
+        Console.WriteLine($"InkCanvas_OnPointerReleased");
         //if (_inkInfoCache.Remove(e.Pointer.PointerId, out var inkInfo))
         //{
         //    var pointerPoint = e.GetCurrentPoint(InkCanvas);
@@ -239,6 +247,8 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             canvas.ModeInputDispatcher.Up(ToModeInputArgs(e));
             //_skPathList.AddRange(canvas.CurrentInkStrokePathEnumerable);
             //canvas.Up(ToInkingInputInfo(e));
+
+            Console.WriteLine($"InkCanvas_OnPointerReleased InvokeAsync odeInputDispatcher.Up");
 
             SkXamlCanvas.Invalidate();
         });
@@ -316,8 +326,13 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     
     private void SkXamlCanvas_OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
+<<<<<<< HEAD
         //Console.WriteLine($"执行绘制");
         
+=======
+        Console.WriteLine($"SkXamlCanvas_OnPaintSurface");
+
+>>>>>>> 0cc6a7740e41d01c0c33f9cb3960e0b79c892083
         using var skPaint = new SKPaint();
         skPaint.StrokeWidth = 0f;
         skPaint.IsAntialias = true;

@@ -590,10 +590,7 @@ class SkInkCanvas
             
             isFirst = false;
         }
-        
-       
 
-        // 这里逻辑比较渣，因为可能存在 CurrentInputDictionary 被删除内容
         var skCanvas = _skCanvas;
         
         skCanvas.Clear();
@@ -612,7 +609,8 @@ class SkInkCanvas
         //Console.WriteLine($"CurrentInputDictionary Count={CurrentInputDictionary.Count}");
         // 有个奇怪的炸掉情况，先忽略
         using var enumerator = CurrentInputDictionary.GetEnumerator();
-        
+
+        // 这里逻辑比较渣，因为可能存在 CurrentInputDictionary 被删除内容
         foreach (var drawStrokeContext in CurrentInputDictionary)
         {
             if (cleanList.Any(t=>t.Id == drawStrokeContext.Key))
