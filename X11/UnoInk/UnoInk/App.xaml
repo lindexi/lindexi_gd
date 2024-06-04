@@ -3,6 +3,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
        xmlns:um="using:Uno.Material">
 =======
@@ -14,6 +15,10 @@
 =======
        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 >>>>>>> bb3ca7ae7043b68590131278b336efd0445ad5c3
+=======
+       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+       xmlns:utum="using:Uno.Toolkit.UI.Material">
+>>>>>>> 86984cb5eab3fd16df49ab173ec129b7bdf7ec0e
 
   <Application.Resources>
     <ResourceDictionary>
@@ -23,15 +28,23 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <um:MaterialTheme
           ColorOverrideSource="ms-appx:///Styles/ColorPaletteOverride.xaml">
           <!-- NOTE: You can override the default Roboto font by providing your font assets here. -->
           <!-- <um:MaterialTheme.FontOverrideDictionary>
+=======
+        <utum:MaterialToolkitTheme
+          ColorOverrideSource="ms-appx:///Styles/ColorPaletteOverride.xaml">
+          <!-- NOTE: You can override the default Roboto font by providing your font assets here. -->
+          <!-- <utum:MaterialToolkitTheme.FontOverrideDictionary>
+>>>>>>> 86984cb5eab3fd16df49ab173ec129b7bdf7ec0e
             <ResourceDictionary>
               <FontFamily x:Key="MaterialLightFontFamily">ms-appx:///Uno.Fonts.Roboto/Fonts/Roboto-Light.ttf#Roboto</FontFamily>
               <FontFamily x:Key="MaterialMediumFontFamily">ms-appx:///Uno.Fonts.Roboto/Fonts/Roboto-Medium.ttf#Roboto</FontFamily>
               <FontFamily x:Key="MaterialRegularFontFamily">ms-appx:///Uno.Fonts.Roboto/Fonts/Roboto-Regular.ttf#Roboto</FontFamily>
             </ResourceDictionary>
+<<<<<<< HEAD
           </um:MaterialTheme.FontOverrideDictionary> -->
         </um:MaterialTheme>
 =======
@@ -40,6 +53,10 @@
 >>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
 =======
 >>>>>>> bb3ca7ae7043b68590131278b336efd0445ad5c3
+=======
+          </utum:MaterialToolkitTheme.FontOverrideDictionary> -->
+        </utum:MaterialToolkitTheme>
+>>>>>>> 86984cb5eab3fd16df49ab173ec129b7bdf7ec0e
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>

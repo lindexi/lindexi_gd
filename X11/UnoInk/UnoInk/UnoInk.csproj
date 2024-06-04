@@ -35,6 +35,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       Material;
       Dsp;
       MVUX;
@@ -72,5 +73,20 @@
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml.user" />
   </ItemGroup>
 >>>>>>> bb3ca7ae7043b68590131278b336efd0445ad5c3
+=======
+      Material;
+      Dsp;
+      MediaElement;
+      Hosting;
+      Toolkit;
+      Logging;
+      MVUX;
+      Configuration;
+      Localization;
+      Navigation;
+      ThemeService;
+    </UnoFeatures>
+  </PropertyGroup>
+>>>>>>> 86984cb5eab3fd16df49ab173ec129b7bdf7ec0e
 
 </Project>
