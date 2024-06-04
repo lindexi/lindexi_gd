@@ -269,15 +269,6 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         skPaint.FilterQuality = SKFilterQuality.High;
         skPaint.Style = SKPaintStyle.Fill;
 
-        if (OperatingSystem.IsLinux() && _x11InkProvider?.InkWindow.SkInkCanvas.Settings.Color is { } color)
-        {
-            skPaint.Color = color;
-        }
-        else
-        {
-            skPaint.Color = new SKColor(0xC5, 0x20, 0x00);
-        }
-
         lock (StrokeInfoList)
         {
             foreach (var strokesCollectionInfo in StrokeInfoList)
