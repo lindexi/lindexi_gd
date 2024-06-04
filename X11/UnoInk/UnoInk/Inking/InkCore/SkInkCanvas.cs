@@ -717,6 +717,10 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
 
         // 这里逻辑比较渣，因为可能存在 CurrentInputDictionary 被删除内容
         var skCanvas = _skCanvas;
+        
+        skCanvas.Clear();
+        return;
+        skCanvas.DrawBitmap(_originBackground, 0, 0);
 
         using var skPaint = new SKPaint();
         skPaint.StrokeWidth = 0.1f;
