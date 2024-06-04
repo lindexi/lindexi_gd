@@ -424,14 +424,20 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //}
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         Console.WriteLine($"完成 UNO 绘制");
         
 =======
         // 如果注释掉这句话，将不能正常完成 X11 的 XShapeCombineRegion 的返回
         //Console.WriteLine($"完成 UNO 绘制");
+=======
+        // 如果注释掉这句话，将不能正常完成 X11 的 XShapeCombineRegion 的返回
+        Console.WriteLine($"完成 UNO 绘制");
+>>>>>>> b1d8bf3076dc424b7970c9c49a028e95e126d8b0
 
 >>>>>>> b5ff0f64dd3b49411632511c743bd13e2e991f37
         //_skPathList.Clear();
+<<<<<<< HEAD
         
         // 清空笔迹，换成在 UNO 层绘制
         InvokeAsync(canvas =>
@@ -446,12 +452,16 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //_skPathList.Clear();
 
 <<<<<<< HEAD
+=======
+
+>>>>>>> b1d8bf3076dc424b7970c9c49a028e95e126d8b0
         //// 清空笔迹，换成在 UNO 层绘制
         //InvokeAsync(canvas =>
         //{
         //    //canvas.RaiseRenderBoundsChanged(new Rect(0, 0, canvas.ApplicationDrawingSkBitmap!.Width,
         //    //    canvas.ApplicationDrawingSkBitmap.Height));
         //});
+<<<<<<< HEAD
 >>>>>>> cc7dd05a09e2e5e1b7a125125e1a3bffbf4fed7c
 =======
         // 清空笔迹，换成在 UNO 层绘制
@@ -461,5 +471,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             //    canvas.ApplicationDrawingSkBitmap.Height));
         });
 >>>>>>> 4d8052bd6f176eda3d572c8b9c96f1ce0fbd0218
+=======
+>>>>>>> b1d8bf3076dc424b7970c9c49a028e95e126d8b0
     }
 }
