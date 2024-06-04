@@ -104,8 +104,13 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 >>>>>>> f6762ea045de9b52e29ce7949a1c9be4211deaf5
         }
     }
+<<<<<<< HEAD
     
     private void SkInkCanvas_StrokesCollected(object? sender, StrokesCollectionInfo e)
+=======
+
+    private void SkInkCanvas_StrokesCollected(object? sender, StrokeCollectionInfo e)
+>>>>>>> 7e4dbbe7523d0540236fc7e1b7f8fb183179b7d8
     {
         // 这是 X11 线程进入的
         lock (StrokeInfoList)
@@ -113,8 +118,13 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             StrokeInfoList.Add(e);
         }
     }
+<<<<<<< HEAD
     
     private List<StrokesCollectionInfo> StrokeInfoList { get; } = new List<StrokesCollectionInfo>();
+=======
+
+    private List<StrokeCollectionInfo> StrokeInfoList { get; } = new List<StrokeCollectionInfo>();
+>>>>>>> 7e4dbbe7523d0540236fc7e1b7f8fb183179b7d8
 
     private void InvokeInk()
     {
@@ -309,10 +319,12 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //Console.WriteLine($"执行绘制");
         
         using var skPaint = new SKPaint();
-        skPaint.StrokeWidth = 0.1f;
+        skPaint.StrokeWidth = 0f;
         skPaint.IsAntialias = true;
+        skPaint.IsStroke = false;
         skPaint.FilterQuality = SKFilterQuality.High;
         skPaint.Style = SKPaintStyle.Fill;
+
         if (OperatingSystem.IsLinux() && _x11InkProvider?.InkWindow.SkInkCanvas.Settings.Color is { } color)
         {
             skPaint.Color = color;
