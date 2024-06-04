@@ -293,6 +293,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //    // 需要进行序列化和反序列化是为了解决跨线程访问 SKPath 导致爆的问题
         //    // 可以切到 c82dcaf20da0948aede539b699f47926635b94a3 进行测试
         //    // 写一笔就能复现
+        //    // 实际原因是 SkInkCanvas 的 InkStrokePath 在 DrawStrokeContext 的 Dispose 被释放。加上 01fd5aebad41efef3ec9afaaaefcd30a0d674cb0 即可解决，不需要序列化
         //    var path = SKPath.ParseSvgPathData(skPath);
         //    e.Surface.Canvas.DrawPath(path, skPaint);
         //}
