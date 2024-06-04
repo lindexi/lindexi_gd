@@ -62,6 +62,8 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
     private void SkInkCanvas_StrokesCollected(object? sender, StrokeCollectionInfo e)
     {
+        Console.WriteLine($"SkInkCanvas_StrokesCollected");
+
         // 这是 X11 线程进入的
         lock (StrokeInfoList)
         {
@@ -164,6 +166,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
     private void InkCanvas_OnPointerReleased(object sender, PointerRoutedEventArgs e)
     {
+        Console.WriteLine($"InkCanvas_OnPointerReleased");
         //if (_inkInfoCache.Remove(e.Pointer.PointerId, out var inkInfo))
         //{
         //    var pointerPoint = e.GetCurrentPoint(InkCanvas);
@@ -183,6 +186,8 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             canvas.ModeInputDispatcher.Up(ToModeInputArgs(e));
             //_skPathList.AddRange(canvas.CurrentInkStrokePathEnumerable);
             //canvas.Up(ToInkingInputInfo(e));
+
+            Console.WriteLine($"InkCanvas_OnPointerReleased InvokeAsync odeInputDispatcher.Up");
 
             SkXamlCanvas.Invalidate();
         });
@@ -260,7 +265,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
     private void SkXamlCanvas_OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
-        //Console.WriteLine($"执行绘制");
+        Console.WriteLine($"SkXamlCanvas_OnPaintSurface");
 
         using var skPaint = new SKPaint();
         skPaint.StrokeWidth = 0f;
