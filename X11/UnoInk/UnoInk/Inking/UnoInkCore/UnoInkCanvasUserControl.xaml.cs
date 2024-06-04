@@ -521,4 +521,9 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         });
 >>>>>>> f31f1bbc1cef90203aaa4c47f99c85c279ce2c1c
     }
+    
+    private void ExitProcessButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        Application.Current.Exit();
+    }
 }

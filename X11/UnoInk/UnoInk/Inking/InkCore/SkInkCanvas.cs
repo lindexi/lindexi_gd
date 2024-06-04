@@ -566,6 +566,8 @@ class SkInkCanvas
         return false;
     }
     
+    private const int DefaultAdditionSize = 4;
+
     public void CleanStroke(IReadOnlyList<StrokeCollectionInfo> cleanList)
     {
         SKRect drawRect = default;
@@ -588,13 +590,15 @@ class SkInkCanvas
             
             isFirst = false;
         }
+        
+       
 
         // 这里逻辑比较渣，因为可能存在 CurrentInputDictionary 被删除内容
         var skCanvas = _skCanvas;
         
         skCanvas.Clear();
 
-        RenderBoundsChanged?.Invoke(this, drawRect.ToMauiRect());
+        RenderBoundsChanged?.Invoke(this, Expand(drawRect, DefaultAdditionSize));
 
         return;
         skCanvas.DrawBitmap(_originBackground, 0, 0);
