@@ -4,11 +4,6 @@
 
 
 1. 从 UNO 接收输入，在 X11 绘制
-   - 更新笔迹算法，降低延迟
-   - 多线程同步和调度
-   - 窗口层级关系
-   - 停止渲染问题
-   - 窗口穿透
    - 开发 01781d31ae7c06e094dabfb6f80d81a0877bd8ef t/lindexi/Ink 可以切分支
 2. 从 UNO 接收输入，在 UNO 绘制，在 X11 显示
    - 可基于 42cfb47f083c60c0ec37f30be10d2ed945ae1123 重新开发
@@ -16,8 +11,11 @@
    - 去掉 ddad66981bd175e1ef84bd3bd547dc329964981c 即可使用，效果很好
 
 - [ ] 落笔时闪烁
+- [ ] 启动时会闪烁窗口
+- [ ] 动态笔迹重新命名为 DynamicRenderer 类型，保持和 WPF 相同
 - [ ] 优化抬笔闪烁
   - 核心原因是渲染同步
+  - 尝试使用还没合入的方法
 - [x] 下一笔落下才能更新上一笔
   - 似乎是 UNO 的坑，经过了 8128f2e57cd68cfd283dd0a809fd6af34f956922 的输出测试，可以看到确实有绘制了笔迹内容
   - 使用 352158d626769f20240523d3350fa0db3f4caeba 可以修复，证明是 Uno 的问题，在 OnPaintSurface 不会自动刷新界面
@@ -31,3 +29,6 @@
 - [x] 跨线程使用 skPath 将会炸掉应用
   - 最简复现 c82dcaf20da0948aede539b699f47926635b94a3
   - 实际原因是 SkInkCanvas 的 InkStrokePath 在 DrawStrokeContext 的 Dispose 被释放。加上 01fd5aebad41efef3ec9afaaaefcd30a0d674cb0 即可解决
+- [x] 是否需要调用 XInitThreads 方法
+  - 不需要
+- [x] 获取本地窗口方法

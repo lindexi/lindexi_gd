@@ -117,7 +117,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
 
     void IInputProcessor.InputStart()
     {
-        //Console.WriteLine("==========InputStart============");
+        Console.WriteLine("==========InputStart============");
 
         // 这是浅拷贝
         //_originBackground = SkBitmap?.Copy();
@@ -138,7 +138,8 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
     {
         CurrentInputDictionary.Add(info.Id, new DrawStrokeContext(info, Settings.Color, Settings.InkThickness));
 
-        //Console.WriteLine($"Down CurrentInputDictionaryCount={CurrentInputDictionary.Count}");
+        Console.WriteLine($"Down {info.Position.X:0.00},{info.Position.Y:0.00} CurrentInputDictionaryCount={CurrentInputDictionary.Count}");
+        _outputMove = false;
 
         // 以下逻辑由框架层处理
         //if (CurrentInputDictionary.Count == 1)
@@ -152,6 +153,8 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
             DownEraser(in info);
         }
     }
+    
+    private bool _outputMove;
 
     void IInputProcessor.Move(ModeInputArgs info)
     {
@@ -162,6 +165,13 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
             StaticDebugLogger.WriteLine($"Lost Input Id={info.Id}");
             return;
         }
+        
+        if (!_outputMove)
+        {
+            StaticDebugLogger.WriteLine($"IInputProcessor.Move {info.Position.X:0.00},{info.Position.Y:0.00}");
+        }
+
+        _outputMove = true;
 
         var context = UpdateInkingStylusPoint(info);
         // 重新赋值 info 值，因此旧的这个值没有处理宽度高度是空的情况，使用上一个点的宽度高度而让橡皮擦闪烁
