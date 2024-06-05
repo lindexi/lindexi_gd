@@ -36,7 +36,7 @@ using (var skImage = SKImage.Create(skImageInfo))
            DrawStroke (360,426),
            DrawStroke (360,426),
          */
-        using var skPath = new SKPath() { FillType = SKPathFillType.EvenOdd };
+        using var skPath = new SKPath() { FillType = SKPathFillType.Winding };
         skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
         skPath.Close();
 
