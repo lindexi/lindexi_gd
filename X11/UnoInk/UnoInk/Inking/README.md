@@ -10,6 +10,7 @@
 3. 从 X11 接收输入，在 X11 绘制，判断 UNO 命中
    - 去掉 ddad66981bd175e1ef84bd3bd547dc329964981c 即可使用，效果很好
 
+<<<<<<< HEAD
 - [ ] 落笔时闪烁
   - 尝试解决 df33f57b3c74a331e6651cb44dfdb4ee351f496c
   - 尝试将上层发送的点和底层接收到的点记录起来
@@ -29,12 +30,16 @@
 - [x] 测试不开启另一个窗口是否命中
   - b2881a8307d73f42906da9ab18dfc03cc93ebd0c
   - 可以命中
+=======
+- [x] 支持 SkiaVisual 功能
+>>>>>>> 67fd7c3106472b8f0a84d3c4f67387aec391e03a
 - [x] 跨线程使用 skPath 将会炸掉应用
   - 最简复现 c82dcaf20da0948aede539b699f47926635b94a3
   - 实际原因是 SkInkCanvas 的 InkStrokePath 在 DrawStrokeContext 的 Dispose 被释放。加上 01fd5aebad41efef3ec9afaaaefcd30a0d674cb0 即可解决
 - [x] 是否需要调用 XInitThreads 方法
   - 不需要
 - [x] 获取本地窗口方法
+<<<<<<< HEAD
 
 
 ```
@@ -75,3 +80,5 @@ InputComplete
 DrawPath
 完成 UNO 绘制
 ```
+=======
+>>>>>>> 67fd7c3106472b8f0a84d3c4f67387aec391e03a
