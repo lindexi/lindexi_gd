@@ -19,13 +19,13 @@ using (var skImage = SKImage.Create(skImageInfo))
         (360,426),];
 
         outlinePointList = [(100, 100), (100, 200), (200,200), (50, 150)];
+        outlinePointList = [(100, 100), (100, 200), (200,200), (50, 150),(30,160),(160,190),(110,190),(110,100)];
 
         using var skPaint = new SKPaint();
         skPaint.StrokeWidth = 5f;
         skPaint.IsAntialias = true;
-        skPaint.IsStroke = true;
         skPaint.FilterQuality = SKFilterQuality.High;
-        skPaint.Style = SKPaintStyle.Stroke;
+        skPaint.Style = SKPaintStyle.Fill;
 
         skPaint.Color = SKColors.Red;
 
@@ -38,9 +38,9 @@ using (var skImage = SKImage.Create(skImageInfo))
          */
         using var skPath = new SKPath() { FillType = SKPathFillType.EvenOdd };
         skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
-        //skPath.Close();
+        skPath.Close();
 
-        skCanvas.DrawPath(skPath, skPaint);
+        skCanvas.DrawPath(skPath, skPaint);  
     }
 
     using (var skData = skBitmap.Encode(SKEncodedImageFormat.Png, 100))
