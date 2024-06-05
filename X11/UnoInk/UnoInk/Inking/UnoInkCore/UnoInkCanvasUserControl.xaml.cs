@@ -214,6 +214,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         if (!_isDown)
         {
             StaticDebugLogger.WriteLine($"没有按下就移动！！！InkCanvas_OnPointerMoved");
+            return;
         }
 
 >>>>>>> 90aea2d8a09e98c84ea421518827089fc2298930
