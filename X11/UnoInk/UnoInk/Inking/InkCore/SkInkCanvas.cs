@@ -443,7 +443,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
 
     private bool DrawStroke(DrawStrokeContext context, out Rect drawRect)
     {
-        StaticDebugLogger.WriteLine($"DrawStroke {context.InputInfo.StylusPoint.Point}");
+        //StaticDebugLogger.WriteLine($"DrawStroke {context.InputInfo.StylusPoint.Point}");
 
         StylusPoint currentStylusPoint = context.InputInfo.StylusPoint;
 
