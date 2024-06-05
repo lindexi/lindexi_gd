@@ -169,6 +169,11 @@ class SkInkCanvas
 
     private void InputStart()
     {
+<<<<<<< HEAD
+=======
+        Console.WriteLine("==========InputStart============");
+
+>>>>>>> ed5ef0e4ae3f39594e4f6a4108dc1cd46903a551
         // 这是浅拷贝
         //_originBackground = SkBitmap?.Copy();
 
@@ -194,12 +199,27 @@ class SkInkCanvas
     {
         CurrentInputDictionary.Add(info.Id, new DrawStrokeContext(info, Color));
 
+<<<<<<< HEAD
         if (CurrentInputDictionary.Count == 1)
+=======
+        Console.WriteLine($"Down {info.Position.X:0.00},{info.Position.Y:0.00} CurrentInputDictionaryCount={CurrentInputDictionary.Count}");
+        _outputMove = false;
+
+        // 以下逻辑由框架层处理
+        //if (CurrentInputDictionary.Count == 1)
+        //{
+        //    MainInputId = info.Id;
+        //}
+
+        if ((IsInEraserMode || IsInEraserGestureMode) && !_isErasing)
+>>>>>>> ed5ef0e4ae3f39594e4f6a4108dc1cd46903a551
         {
             InputStart();
             MainInputId = info.Id;
         }
     }
+    
+    private bool _outputMove;
 
     public void Move(InkingInputInfo info)
     {
@@ -209,6 +229,13 @@ class SkInkCanvas
             // 解决鼠标在其他窗口按下，然后移动到当前窗口
             return;
         }
+        
+        if (!_outputMove)
+        {
+            StaticDebugLogger.WriteLine($"IInputProcessor.Move {info.Position.X:0.00},{info.Position.Y:0.00}");
+        }
+
+        _outputMove = true;
 
         var context = UpdateInkingStylusPoint(info);
 
