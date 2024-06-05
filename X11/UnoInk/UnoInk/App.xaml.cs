@@ -24,6 +24,13 @@ public partial class App : Application
     {
         this.InitializeComponent();
         UnhandledException += App_UnhandledException;
+        this.DispatcherShutdownMode = DispatcherShutdownMode.OnExplicitShutdown;
+#if HAS_UNO
+        this.Suspending += (sender, args) =>
+        {
+            // 这里好像就是退出事件了
+        };
+#endif
     }
 
     private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
