@@ -116,7 +116,8 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
         Console.WriteLine($"按下： {e.Pointer.PointerId}");
         var inputInfo = ToModeInputArgs(e);
-        _lastInkingInputInfo = inputInfo;
+        // 输入时不再立刻记录，防止记录到不正确的值
+        //_lastInkingInputInfo = inputInfo;
         //_dispatcherRequiring?.Require();
         InvokeAsync(canvas =>
         {
