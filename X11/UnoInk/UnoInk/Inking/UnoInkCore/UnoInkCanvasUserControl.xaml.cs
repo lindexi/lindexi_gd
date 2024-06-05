@@ -164,13 +164,14 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //inkInfo.PointList.Add(position);
         //DrawStroke(inkInfo);
         //DrawInNative(position);
-
+        _firstMove = true;
         LogTextBlock.Text += $"按下： {e.Pointer.PointerId}\r\n";
         //LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
         Console.WriteLine($"按下： {e.Pointer.PointerId}");
-        _lastInkingInputInfo = ToModeInputArgs(e);
+        var inputInfo = ToModeInputArgs(e);
+        _lastInkingInputInfo = inputInfo;
         //_dispatcherRequiring?.Require();
-        InvokeAsync(canvas => canvas.ModeInputDispatcher.Down(ToModeInputArgs(e)));
+        InvokeAsync(canvas => canvas.ModeInputDispatcher.Down(inputInfo));
     }
 
     private ModeInputArgs ToModeInputArgs(PointerRoutedEventArgs args)
@@ -190,14 +191,24 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     //}
 
     //private Point _lastPoint;
-
+    private bool _firstMove;
     private void InkCanvas_OnPointerMoved(object sender, PointerRoutedEventArgs e)
     {
+<<<<<<< HEAD
 <<<<<<< HEAD
         var currentPoint = e.GetCurrentPoint(this);
         Point position = currentPoint.Position;
         LogTextBlock.Text += $"移动： {e.Pointer.PointerId} {position}\r\n";
 =======
+=======
+        if (_firstMove)
+        {
+            StaticDebugLogger.WriteLine($"InkCanvas_OnPointerMoved");
+        }
+        
+        _firstMove = false;
+
+>>>>>>> df33f57b3c74a331e6651cb44dfdb4ee351f496c
         //var currentPoint = e.GetCurrentPoint(this);
         //Point position = currentPoint.Position;
 >>>>>>> 0cc6a7740e41d01c0c33f9cb3960e0b79c892083
