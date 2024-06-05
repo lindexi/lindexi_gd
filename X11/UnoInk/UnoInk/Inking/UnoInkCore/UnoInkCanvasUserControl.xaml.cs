@@ -90,6 +90,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         }
 
         var inputInfo = _lastInkingInputInfo;
+        StaticDebugLogger.WriteLine($"执行移动 {inputInfo.Position}");
         _x11InkProvider.InkWindow.ModeInputDispatcher.Move(inputInfo);
 
         //canvas.Move(inputInfo);
@@ -115,7 +116,11 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         var inputInfo = ToModeInputArgs(e);
         _lastInkingInputInfo = inputInfo;
         //_dispatcherRequiring?.Require();
-        InvokeAsync(canvas => canvas.ModeInputDispatcher.Down(inputInfo));
+        InvokeAsync(canvas =>
+        {
+            StaticDebugLogger.WriteLine($"执行按下 {inputInfo.Position}");
+            canvas.ModeInputDispatcher.Down(inputInfo);
+        });
     }
 
     private ModeInputArgs ToModeInputArgs(PointerRoutedEventArgs args)
