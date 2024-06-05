@@ -153,7 +153,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
             DownEraser(in info);
         }
     }
-    
+
     private bool _outputMove;
 
     void IInputProcessor.Move(ModeInputArgs info)
@@ -165,7 +165,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
             StaticDebugLogger.WriteLine($"Lost Input Id={info.Id}");
             return;
         }
-        
+
         if (!_outputMove)
         {
             StaticDebugLogger.WriteLine($"IInputProcessor.Move {info.Position.X:0.00},{info.Position.Y:0.00}");
@@ -233,9 +233,42 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
                 return;
             }
 
-            if (DrawStroke(context, out var rect))
+            var stylusPointList = context.InputInfo.StylusPointList;
+            if (stylusPointList != null)
             {
-                RenderBoundsChanged?.Invoke(this, rect);
+                Rect currentRect = new Rect();
+                bool isFirst = true;
+
+                foreach (var point in stylusPointList)
+                {
+                    context.InputInfo = context.InputInfo with
+                    {
+                        StylusPoint = point
+                    };
+
+                    if (DrawStroke(context, out var rect))
+                    {
+                        if (isFirst)
+                        {
+                            currentRect = rect;
+                        }
+                        else
+                        {
+                            currentRect = currentRect.Union(rect);
+                        }
+                    }
+
+                    isFirst = false;
+                }
+                
+                RenderBoundsChanged?.Invoke(this, currentRect);
+            }
+            else
+            {
+                if (DrawStroke(context, out var rect))
+                {
+                    RenderBoundsChanged?.Invoke(this, rect);
+                }
             }
         }
     }
@@ -444,7 +477,6 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
     private bool DrawStroke(DrawStrokeContext context, out Rect drawRect)
     {
         //StaticDebugLogger.WriteLine($"DrawStroke {context.InputInfo.StylusPoint.Point}");
-
         StylusPoint currentStylusPoint = context.InputInfo.StylusPoint;
 
         drawRect = Rect.Zero;
@@ -703,7 +735,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
 
         return false;
     }
-    
+
     private const int DefaultAdditionSize = 4;
 
     public void CleanStroke(IReadOnlyList<StrokeCollectionInfo> cleanList)
@@ -716,7 +748,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
             {
                 continue;
             }
-            
+
             if (isFirst)
             {
                 drawRect = strokeCollectionInfo.InkStrokePath.Bounds;
@@ -725,12 +757,12 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
             {
                 drawRect.Union(strokeCollectionInfo.InkStrokePath.Bounds);
             }
-            
+
             isFirst = false;
         }
 
         var skCanvas = _skCanvas;
-        
+
         skCanvas.Clear();
 
         RenderBoundsChanged?.Invoke(this, Expand(drawRect, DefaultAdditionSize));
@@ -743,7 +775,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
         skPaint.IsAntialias = true;
         skPaint.FilterQuality = SKFilterQuality.High;
         skPaint.Style = SKPaintStyle.Fill;
-        
+
         //Console.WriteLine($"CurrentInputDictionary Count={CurrentInputDictionary.Count}");
         // 有个奇怪的炸掉情况，先忽略
         using var enumerator = CurrentInputDictionary.GetEnumerator();
@@ -751,13 +783,13 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
         // 这里逻辑比较渣，因为可能存在 CurrentInputDictionary 被删除内容
         foreach (var drawStrokeContext in CurrentInputDictionary)
         {
-            if (cleanList.Any(t=>t.Id == drawStrokeContext.Key))
+            if (cleanList.Any(t => t.Id == drawStrokeContext.Key))
             {
                 continue;
             }
 
             skPaint.Color = drawStrokeContext.Value.StrokeColor;
-            
+
             if (drawStrokeContext.Value.InkStrokePath is { } path)
             {
                 skCanvas.DrawPath(path, skPaint);
