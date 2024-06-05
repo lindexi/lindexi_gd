@@ -154,7 +154,8 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
     private ModeInputArgs _lastInkingInputInfo;
     private DispatcherRequiring? _dispatcherRequiring;
-
+    
+    private bool _isDown = false;
     private void InkCanvas_OnPointerPressed(object sender, PointerRoutedEventArgs e)
     {
         //var pointerPoint = e.GetCurrentPoint(InkCanvas);
@@ -165,6 +166,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //inkInfo.PointList.Add(position);
         //DrawStroke(inkInfo);
         //DrawInNative(position);
+        _isDown = true;
         _firstMove = true;
         LogTextBlock.Text += $"按下： {e.Pointer.PointerId}\r\n";
         //LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
@@ -196,9 +198,10 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     //}
 
     //private Point _lastPoint;
-    private bool _firstMove;
+    private bool _firstMove = true;
     private void InkCanvas_OnPointerMoved(object sender, PointerRoutedEventArgs e)
     {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
         var currentPoint = e.GetCurrentPoint(this);
@@ -206,6 +209,13 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         LogTextBlock.Text += $"移动： {e.Pointer.PointerId} {position}\r\n";
 =======
 =======
+=======
+        if (!_isDown)
+        {
+            StaticDebugLogger.WriteLine($"没有按下就移动！！！InkCanvas_OnPointerMoved");
+        }
+
+>>>>>>> 90aea2d8a09e98c84ea421518827089fc2298930
         if (_firstMove)
         {
             StaticDebugLogger.WriteLine($"InkCanvas_OnPointerMoved");
