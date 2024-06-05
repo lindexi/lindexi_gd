@@ -35,4 +35,13 @@
     <!-- <FrameworkReference Update="Microsoft.Windows.SDK.NET.Ref" RuntimeFrameworkVersion="10.0.22621.28" />
     <FrameworkReference Update="Microsoft.Windows.SDK.NET.Ref" TargetingPackVersion="10.0.22621.28" /> -->
   </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Uno.UI.Composition">
+      <HintPath>C:\lindexi\Library\Uno.UI.Composition.dll</HintPath>
+    </Reference>
+    <Reference Include="Uno.UI.Runtime.Skia">
+      <HintPath>C:\lindexi\Library\Uno.UI.Runtime.Skia.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>
