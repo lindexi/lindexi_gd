@@ -34,3 +34,43 @@
 - [x] 是否需要调用 XInitThreads 方法
   - 不需要
 - [x] 获取本地窗口方法
+
+
+```
+完成 UNO 绘制
+DeviceNumber=2
+XIDeviceInfo [0] 2 XIMasterPointer
+ABS_MT_TOUCH_MAJOR=281 Name=Abs MT Touch Major ABS_MT_TOUCH_MINOR=282 Name=Abs MT Touch Minor Abs_MT_Pressure=286 Name=Abs MT Pressure
+pointerDevice.Value.NumClasses=8
+完成初始化
+没有按下就移动！！！InkCanvas_OnPointerMoved
+InkCanvas_OnPointerMoved
+没有按下就移动！！！InkCanvas_OnPointerMoved
+执行移动 {X=811 Y=417}
+[ModeInputDispatcher] Lost Move IsInputStart=False Id=0
+按下： 0
+InkCanvas_OnPointerMoved
+执行按下 {X=811 Y=417}
+==========InputStart============
+Down 811.00,417.00 CurrentInputDictionaryCount=1
+执行移动 {X=811 Y=419}
+IInputProcessor.Move 811.00,419.00
+执行移动 {X=811 Y=420}
+执行移动 {X=810 Y=442}
+执行移动 {X=807 Y=453}
+执行移动 {X=807 Y=453}
+执行移动 {X=807 Y=453}
+执行移动 {X=807 Y=453}
+执行移动 {X=807 Y=453}
+执行移动 {X=807 Y=453}
+执行移动 {X=807 Y=453}
+执行移动 {X=807 Y=453}
+执行移动 {X=807 Y=453}
+[ModeInputDispatcher] MainIdUp MainId=0
+SkInkCanvas_StrokesCollected
+InputComplete
+==========
+
+DrawPath
+完成 UNO 绘制
+```
