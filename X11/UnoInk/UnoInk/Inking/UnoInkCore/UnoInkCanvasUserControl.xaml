@@ -34,7 +34,12 @@
 
     <Border Width="100" Height="100" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#FF565656"></Border>
 
-    <Button x:Name="ExitProcessButton" Width="600" Height="200" Margin="10,10,10,10" HorizontalAlignment="Right"
-            VerticalAlignment="Top" Content="退出应用" Click="ExitProcessButton_OnClick"/>
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                VerticalAlignment="Top">
+      <Button x:Name="DebugButton" Margin="10,10,10,10" Content="调试" Click="DebugButton_OnClick"/>
+
+      <Button x:Name="ExitProcessButton" Width="600" Height="200" Margin="10,10,10,10" Content="退出应用" Click="ExitProcessButton_OnClick"/>
+    </StackPanel>
+
   </Grid>
 </UserControl>

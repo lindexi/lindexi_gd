@@ -396,7 +396,7 @@ class SkInkCanvas
         _stepCounter.Record($"EndMove{_moveCount}");
         
         _stepCounter.OutputToConsole();
-        _stepCounter.Restart();
+        //_stepCounter.Restart();
     }
 
     public void Up(InkingInputInfo info)
@@ -809,6 +809,7 @@ class SkInkCanvas
 
         // 先清掉静态笔迹层
         StaticInkInfoList.Remove(t => cleanList.Any(c => c.InkId == t.InkId));
+        StaticDebugLogger.WriteLine($"剩余静态笔迹点 {StaticInkInfoList.Count} 清理{cleanList.Count} 剩余动态笔迹 {CurrentInputDictionary.Count}");
         // 先画静态再画动态，解决层级
         foreach (var strokeCollectionInfo in StaticInkInfoList)
         {
@@ -1444,6 +1445,46 @@ class SkInkCanvas
         // 完全重绘，修复可能存在的丢失裁剪
         RenderBoundsChanged?.Invoke(this, new Rect(0, 0, _originBackground.Width, _originBackground.Height));
     }
+<<<<<<< HEAD
+=======
+
+    private bool _isDebug = false;
+
+    public void Debug()
+    {
+        _isDebug = !_isDebug;
+        
+        Console.WriteLine($"重新绘制画布 {ApplicationDrawingSkBitmap.Width}, {ApplicationDrawingSkBitmap.Height}");
+        RenderBoundsChanged?.Invoke(this,
+            new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
+
+        //// 经过测试更换画布是没有用的
+        ////_skCanvas = new SKCanvas(ApplicationDrawingSkBitmap);
+
+        //// 这句也没有用，由于重新更换画布都没有用，因此可以大概理解为 ApplicationDrawingSkBitmap 的问题
+        //_skCanvas.Flush();
+
+        //// 看起来也是没有用的，速度依然很慢
+        //_originBackground?.Dispose();
+        //_originBackground = null;
+    }
+
+    private Rect LimitRectInAppBitmapRect(Rect inputRect)
+    {
+        return LimitRect(inputRect,
+            new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
+    }
+
+    private SKRect LimitRectInAppBitmapRect(SKRect inputRect)
+    {
+        return LimitRect(inputRect,
+            new SKRect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
+    }
+
+    public ModeInputDispatcher ModeInputDispatcher { set; get; }
+    // 框架层赋值
+        = null!;
+>>>>>>> 39d04b77e06e363367cdf8cd19518d9f2e904b9d
 }
 
 class EraserView
