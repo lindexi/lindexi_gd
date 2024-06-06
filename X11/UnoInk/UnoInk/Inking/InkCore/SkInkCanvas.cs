@@ -32,6 +32,7 @@ partial record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp)
 /// <summary>
 /// 笔迹信息 用于静态笔迹层
 /// </summary>
+<<<<<<< HEAD
 /// <param name="Id"></param>
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -47,6 +48,11 @@ public partial record StrokesCollectionInfo(int Id, SKColor StrokeColor, SKPath?
 =======
 public partial record StrokeCollectionInfo(int Id, SKColor StrokeColor, SKPath? InkStrokePath);
 >>>>>>> 7e4dbbe7523d0540236fc7e1b7f8fb183179b7d8
+=======
+public record StrokeCollectionInfo(InkId InkId, SKColor StrokeColor, SKPath? InkStrokePath);
+
+public readonly partial record struct InkId(int Id);
+>>>>>>> a313c7d1fa7ffb81c04c5af29dbd36289f0f1a6d
 
 /// <summary>
 /// 画板的配置
@@ -131,9 +137,21 @@ class SkInkCanvas
     /// <summary>
     /// 绘制使用的上下文信息
     /// </summary>
+<<<<<<< HEAD
     /// <param name="inputInfo"></param>
     class DrawStrokeContext(InkingInputInfo inputInfo, SKColor strokeColor) : IDisposable
     {
+=======
+    class DrawStrokeContext(InkId inkId, ModeInputArgs inputInfo, SKColor strokeColor, double inkThickness) : IDisposable
+    {
+        /// <summary>
+        /// 笔迹的 Id 号，基本上每个笔迹都是不相同的。和输入的 Id 是不相同的，这是给每个 Stroke 一个的，不同的 Stroke 是不同的。除非有人能够一秒一条笔迹，写 60 多年才能重复
+        /// </summary>
+        public InkId InkId { get; } = inkId;
+
+        public double InkThickness { get; } = inkThickness;
+
+>>>>>>> a313c7d1fa7ffb81c04c5af29dbd36289f0f1a6d
         public SKColor StrokeColor { get; } = strokeColor;
         public InkingInputInfo InputInfo { set; get; } = inputInfo;
         public int DropPointCount { set; get; }
@@ -198,6 +216,7 @@ class SkInkCanvas
     public void Down(InkingInputInfo info)
     {
 <<<<<<< HEAD
+<<<<<<< HEAD
         CurrentInputDictionary.Add(info.Id, new DrawStrokeContext(info, Color));
 
 <<<<<<< HEAD
@@ -207,6 +226,10 @@ class SkInkCanvas
         _outputMove = false;
 =======
         CurrentInputDictionary.Add(info.Id, new DrawStrokeContext(info, Settings.Color, Settings.InkThickness));
+=======
+        var inkId = CreateInkId();
+        CurrentInputDictionary.Add(info.Id, new DrawStrokeContext(inkId, info, Settings.Color, Settings.InkThickness));
+>>>>>>> a313c7d1fa7ffb81c04c5af29dbd36289f0f1a6d
         
         StaticDebugLogger.WriteLine($"Down {info.Position.X:0.00},{info.Position.Y:0.00} CurrentInputDictionaryCount={CurrentInputDictionary.Count}");
         //_outputMove = false;
@@ -397,8 +420,12 @@ class SkInkCanvas
         var strokesCollectionInfo = new StrokesCollectionInfo(info.Id, context.StrokeColor, context.InkStrokePath);
 =======
 
+<<<<<<< HEAD
         var strokesCollectionInfo = new StrokeCollectionInfo(info.Id, context.StrokeColor, context.InkStrokePath);
 >>>>>>> 7e4dbbe7523d0540236fc7e1b7f8fb183179b7d8
+=======
+        var strokesCollectionInfo = new StrokeCollectionInfo(context.InkId, context.StrokeColor, context.InkStrokePath);
+>>>>>>> a313c7d1fa7ffb81c04c5af29dbd36289f0f1a6d
         StrokesCollected?.Invoke(this, strokesCollectionInfo);
 
         if (CurrentInputDictionary.All(t => t.Value.IsUp))
@@ -478,10 +505,26 @@ class SkInkCanvas
         }
         else
         {
+<<<<<<< HEAD
             context = new DrawStrokeContext(info, Color);
+=======
+            // 理论上不会进入此分支
+            StaticDebugLogger.WriteLine($"UpdateInkingStylusPoint 找不到笔迹点");
+            var inkId = CreateInkId();
+            context = new DrawStrokeContext(inkId, info, Settings.Color, Settings.InkThickness);
+>>>>>>> a313c7d1fa7ffb81c04c5af29dbd36289f0f1a6d
             CurrentInputDictionary.Add(info.Id, context);
             return context;
         }
+    }
+    
+    private int _currentInkId;
+    
+    private InkId CreateInkId()
+    {
+        var currentInkId = _currentInkId;
+        _currentInkId++;
+        return new InkId(currentInkId); // return _currentInkId++ 的意思，只是这个可读性太垃圾了
     }
 
     // 静态笔迹层还没实现
@@ -750,10 +793,12 @@ class SkInkCanvas
         // 这里逻辑比较渣，因为可能存在 CurrentInputDictionary 被删除内容
         foreach (var drawStrokeContext in CurrentInputDictionary)
         {
-            if (cleanList.Any(t => t.Id == drawStrokeContext.Key))
+            if (cleanList.Any(t => t.InkId == drawStrokeContext.Value.InkId))
             {
                 continue;
             }
+
+            StaticDebugLogger.WriteLine($"Clean Draw {drawStrokeContext.Value.InkId.Id}");
 
             skPaint.Color = drawStrokeContext.Value.StrokeColor;
 

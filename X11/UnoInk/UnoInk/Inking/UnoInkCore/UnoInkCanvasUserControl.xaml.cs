@@ -629,6 +629,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         
 =======
 
@@ -636,6 +637,9 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         return;
 >>>>>>> f3f4a61b6636dd72d83e1ee713b54042d13a1eec
         // 延迟一下，减少闪烁
+=======
+        // 延迟一下，减少闪烁，确保 UNO 这一层绘制完成
+>>>>>>> a313c7d1fa7ffb81c04c5af29dbd36289f0f1a6d
         await Task.Delay(100);
 >>>>>>> 634d1cb4563ff0ed67ece034dc0b98adf6f10e6d
         // 清空笔迹，换成在 UNO 层绘制
