@@ -820,10 +820,6 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
         var skCanvas = _skCanvas;
 
         skCanvas.Clear();
-
-        RenderBoundsChanged?.Invoke(this, Expand(drawRect, DefaultAdditionSize));
-
-        return;
         skCanvas.DrawBitmap(_originBackground, 0, 0);
 
         using var skPaint = new SKPaint();
@@ -851,6 +847,8 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
                 skCanvas.DrawPath(path, skPaint);
             }
         }
+
+        RenderBoundsChanged?.Invoke(this, Expand(drawRect, DefaultAdditionSize));
     }
 
     // 以下是橡皮擦系列逻辑
