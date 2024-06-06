@@ -421,4 +421,12 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     {
         Application.Current.Exit();
     }
+    
+    private async void DebugButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        await InvokeAsync(canvas =>
+        {
+            canvas.Debug();
+        });
+    }
 }

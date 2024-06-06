@@ -845,7 +845,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
 
         // 先清掉静态笔迹层
         StaticInkInfoList.Remove(t => cleanList.Any(c => c.InkId == t.InkId));
-        StaticDebugLogger.WriteLine($"剩余静态笔迹点 {StaticInkInfoList.Count} 清理{cleanList.Count}");
+        StaticDebugLogger.WriteLine($"剩余静态笔迹点 {StaticInkInfoList.Count} 清理{cleanList.Count} 剩余动态笔迹 {CurrentInputDictionary.Count}");
         // 先画静态再画动态，解决层级
         foreach (var strokeCollectionInfo in StaticInkInfoList)
         {
@@ -1573,19 +1573,20 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
     public void Debug()
     {
         _isDebug = !_isDebug;
-
+        
+        Console.WriteLine($"重新绘制画布 {ApplicationDrawingSkBitmap.Width}, {ApplicationDrawingSkBitmap.Height}");
         RenderBoundsChanged?.Invoke(this,
             new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
 
-        // 经过测试更换画布是没有用的
-        //_skCanvas = new SKCanvas(ApplicationDrawingSkBitmap);
+        //// 经过测试更换画布是没有用的
+        ////_skCanvas = new SKCanvas(ApplicationDrawingSkBitmap);
 
-        // 这句也没有用，由于重新更换画布都没有用，因此可以大概理解为 ApplicationDrawingSkBitmap 的问题
-        _skCanvas.Flush();
+        //// 这句也没有用，由于重新更换画布都没有用，因此可以大概理解为 ApplicationDrawingSkBitmap 的问题
+        //_skCanvas.Flush();
 
-        // 看起来也是没有用的，速度依然很慢
-        _originBackground?.Dispose();
-        _originBackground = null;
+        //// 看起来也是没有用的，速度依然很慢
+        //_originBackground?.Dispose();
+        //_originBackground = null;
     }
 
     private Rect LimitRectInAppBitmapRect(Rect inputRect)
