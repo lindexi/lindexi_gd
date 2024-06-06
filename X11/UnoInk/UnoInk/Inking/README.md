@@ -146,3 +146,135 @@ EndMove0 0.055511ms
 执行移动 {X=383 Y=531} Count=48
 丢点数量： 24 实际参与绘制点数：24
 ```
+
+```
+StartMove0 1.01732ms
+完成丢点 2.234721ms
+完成绘制 62.223819ms
+EndMove0 0.591907ms
+
+StartMove0 0.026032ms
+完成丢点 0.023687ms
+完成绘制 79.96279ms
+EndMove0 0.066013ms
+
+StartMove0 0.028237ms
+完成丢点 0.023427ms
+完成绘制 81.682518ms
+EndMove0 0.064329ms
+
+StartMove0 0.016734ms
+完成丢点 0.027576ms
+完成绘制 102.057216ms
+EndMove0 0.05978ms
+
+StartMove0 0.013667ms
+完成丢点 0.026113ms
+完成绘制 56.91415ms
+EndMove0 0.076975ms
+
+StartMove0 0.007555ms
+完成丢点 0.022305ms
+完成绘制 60.47936ms
+EndMove0 0.070501ms
+
+StartMove0 0.005512ms
+完成丢点 0.047134ms
+完成绘制 53.710545ms
+EndMove0 0.058578ms
+
+StartMove0 0.011724ms
+完成丢点 0.016473ms
+完成绘制 43.462836ms
+EndMove0 0.060321ms
+
+StartMove0 0.010781ms
+完成丢点 0.017896ms
+完成绘制 32.417868ms
+EndMove0 0.080822ms
+
+StartMove0 0.009299ms
+完成丢点 0.020642ms
+完成绘制 31.7754ms
+EndMove0 0.066955ms
+
+StartMove0 0.009839ms
+完成丢点 0.017114ms
+完成绘制 33.118934ms
+EndMove0 0.067155ms
+
+StartMove0 0.007776ms
+完成丢点 0.016994ms
+完成绘制 22.544749ms
+EndMove0 0.121804ms
+
+StartMove0 0.009299ms
+完成丢点 0.015311ms
+完成绘制 34.547638ms
+EndMove0 0.059238ms
+
+StartMove0 0.008497ms
+完成丢点 0.013668ms
+完成绘制 35.455759ms
+EndMove0 0.059419ms
+
+StartMove0 0.010902ms
+完成丢点 0.021563ms
+完成绘制 34.963833ms
+EndMove0 0.074088ms
+
+StartMove0 0.010461ms
+完成丢点 0.014529ms
+完成绘制 32.985766ms
+EndMove0 0.067816ms
+
+StartMove0 0.008177ms
+完成丢点 0.011684ms
+完成绘制 21.947751ms
+EndMove0 0.073307ms
+
+StartMove0 0.007595ms
+完成丢点 0.027575ms
+完成绘制 33.105206ms
+EndMove0 0.058016ms
+
+StartMove0 0.008938ms
+完成丢点 0.011723ms
+完成绘制 47.611877ms
+EndMove0 0.063768ms
+
+StartMove0 0.008778ms
+完成丢点 0.016132ms
+完成绘制 63.770398ms
+EndMove0 0.226354ms
+
+StartMove0 0.086072ms
+完成丢点 0.016072ms
+完成绘制 70.794826ms
+EndMove0 0.056954ms
+
+StartMove0 0.010821ms
+完成丢点 0.018357ms
+完成绘制 66.856989ms
+EndMove0 0.068217ms
+
+StartMove0 0.008437ms
+完成丢点 0.01469ms
+完成绘制 79.062285ms
+EndMove0 0.058377ms
+
+StartMove0 0.003387ms
+完成丢点 0.017114ms
+完成绘制 80.751992ms
+EndMove0 0.057415ms
+
+StartMove0 0.004689ms
+完成丢点 0.020921ms
+完成绘制 80.268783ms
+EndMove0 0.062946ms
+
+StartMove0 0.010421ms
+完成丢点 0.023347ms
+完成绘制 79.869182ms
+EndMove0 0.065211ms
+```
