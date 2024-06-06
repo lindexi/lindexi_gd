@@ -318,7 +318,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             _inputInfo = null;
         }
 
-        StaticDebugLogger.WriteLine($"执行移动 {inputInfo.InputArgs.Position} Count={inputInfo.StylusPointList?.Count}");
+        //StaticDebugLogger.WriteLine($"执行移动 {inputInfo.InputArgs.Position} Count={inputInfo.StylusPointList?.Count}");
         _x11InkProvider.InkWindow.ModeInputDispatcher.Move(inputInfo.InputArgs);
 
         //canvas.Move(inputInfo);
