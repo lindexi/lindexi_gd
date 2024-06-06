@@ -14,13 +14,6 @@ using static UnoInk.Inking.InkCore.RectExtension;
 namespace UnoInk.Inking.InkCore;
 
 /// <summary>
-/// 笔迹信息 用于静态笔迹层
-/// </summary>
-public record StrokeCollectionInfo(InkId InkId, SKColor StrokeColor, SKPath? InkStrokePath);
-
-public readonly partial record struct InkId(int Value);
-
-/// <summary>
 /// 使用 Skia 的 Ink 笔迹画板
 /// </summary>
 class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
