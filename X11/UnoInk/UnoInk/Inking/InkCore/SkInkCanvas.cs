@@ -285,6 +285,12 @@ class SkInkCanvas
             if (stylusPointList != null)
 >>>>>>> 080502de69f9bab8f86ecd0932896fcc15f939f4
             {
+                // 这里是一个补丁的实现，因为现在底层没有处理多点计算的功能
+                // 如果底层能够在 DrawStroke 处理多点，预计性能比当前好非常多
+                // 至少可以减少重复清空和拼接创建路径
+
+                // 大部分情况下都不会进入此分支，除非是卡了
+
                 // 先执行丢点算法，避免进入太多的点
                 var result = new List<StylusPoint>();
                 result.Add(stylusPointList[0]);
