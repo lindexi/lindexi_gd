@@ -16,7 +16,9 @@ namespace UnoInk.Inking.InkCore;
 /// <summary>
 /// 笔迹信息 用于静态笔迹层
 /// </summary>
-public partial record StrokeCollectionInfo(int InkId, SKColor StrokeColor, SKPath? InkStrokePath);
+public record StrokeCollectionInfo(InkId InkId, SKColor StrokeColor, SKPath? InkStrokePath);
+
+public readonly partial record struct InkId(int Id);
 
 /// <summary>
 /// 使用 Skia 的 Ink 笔迹画板
@@ -79,12 +81,12 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
     /// <summary>
     /// 绘制使用的上下文信息
     /// </summary>
-    class DrawStrokeContext(int inkId, ModeInputArgs inputInfo, SKColor strokeColor, double inkThickness) : IDisposable
+    class DrawStrokeContext(InkId inkId, ModeInputArgs inputInfo, SKColor strokeColor, double inkThickness) : IDisposable
     {
         /// <summary>
         /// 笔迹的 Id 号，基本上每个笔迹都是不相同的。和输入的 Id 是不相同的，这是给每个 Stroke 一个的，不同的 Stroke 是不同的。除非有人能够一秒一条笔迹，写 60 多年才能重复
         /// </summary>
-        public int InkId { get; } = inkId;
+        public InkId InkId { get; } = inkId;
 
         public double InkThickness { get; } = inkThickness;
 
@@ -483,11 +485,11 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
     
     private int _currentInkId;
     
-    private int CreateInkId()
+    private InkId CreateInkId()
     {
         var currentInkId = _currentInkId;
         _currentInkId++;
-        return currentInkId; // return _currentInkId++ 的意思，只是这个可读性太垃圾了
+        return new InkId(currentInkId); // return _currentInkId++ 的意思，只是这个可读性太垃圾了
     }
 
     // 静态笔迹层还没实现
@@ -855,6 +857,8 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
             {
                 continue;
             }
+
+            StaticDebugLogger.WriteLine($"Clean Draw {drawStrokeContext.Value.InkId.Id}");
 
             skPaint.Color = drawStrokeContext.Value.StrokeColor;
 
