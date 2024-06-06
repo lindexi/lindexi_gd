@@ -360,12 +360,13 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
         context.IsUp = true;
 
         var strokesCollectionInfo = new StrokeCollectionInfo(context.InkId, context.StrokeColor, context.InkStrokePath);
+        StaticInkInfoList.Add(strokesCollectionInfo);
         StrokesCollected?.Invoke(this, strokesCollectionInfo);
 
-        if (CurrentInputDictionary.All(t => t.Value.IsUp))
-        {
-            //完成等待清理
-        }
+        //if (CurrentInputDictionary.All(t => t.Value.IsUp))
+        //{
+        //    //完成等待清理
+        //}
     }
 
     void IInputProcessor.InputComplete()
@@ -485,11 +486,10 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
         return new InkId(currentInkId); // return _currentInkId++ 的意思，只是这个可读性太垃圾了
     }
 
-    // 静态笔迹层还没实现
-    ///// <summary>
-    ///// 静态笔迹层
-    ///// </summary>
-    //public List<InkInfo> StaticInkInfoList { get; } = new List<InkInfo>();
+    /// <summary>
+    /// 静态笔迹层
+    /// </summary>
+    public List<StrokeCollectionInfo> StaticInkInfoList { get; } = new List<StrokeCollectionInfo>();
 
     /// <summary>
     /// 按照德熙的玄幻算法，决定传入的点是否能丢掉
