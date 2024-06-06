@@ -246,6 +246,10 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
             var stylusPointList = context.InputInfo.StylusPointList;
             if (stylusPointList != null)
             {
+                // 这里是一个补丁的实现，因为现在底层没有处理多点计算的功能
+                // 如果底层能够在 DrawStroke 处理多点，预计性能比当前好非常多
+                // 至少可以减少重复清空和拼接创建路径
+
                 // 先执行丢点算法，避免进入太多的点
                 var result = new List<StylusPoint>();
                 result.Add(stylusPointList[0]);
