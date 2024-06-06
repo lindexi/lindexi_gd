@@ -63,6 +63,7 @@ class X11InkWindow : X11Window
         Console.WriteLine($"SetClickThrough");
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> ddad66981bd175e1ef84bd3bd547dc329964981c
         // 设置一定放在输入的窗口上方
         SetOwner(mainWindowHandle);
@@ -73,6 +74,11 @@ class X11InkWindow : X11Window
         //SetOwner(mainWindowHandle);
 >>>>>>> 5a64ee83e4f56d5f8f84cb51a54d032f6e18dffa
         
+=======
+        // 设置一定放在输入的窗口上方
+        SetOwner(mainWindowHandle);
+
+>>>>>>> f3f4a61b6636dd72d83e1ee713b54042d13a1eec
         ShowActive();
 <<<<<<< HEAD
         

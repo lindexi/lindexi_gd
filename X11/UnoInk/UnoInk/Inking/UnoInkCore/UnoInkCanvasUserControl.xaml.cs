@@ -628,9 +628,13 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //_skPathList.Clear();
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         
 =======
 
+=======
+        return;
+>>>>>>> f3f4a61b6636dd72d83e1ee713b54042d13a1eec
         // 延迟一下，减少闪烁
         await Task.Delay(100);
 >>>>>>> 634d1cb4563ff0ed67ece034dc0b98adf6f10e6d
