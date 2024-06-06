@@ -62,10 +62,16 @@ class X11InkWindow : X11Window
         SetClickThrough();
         Console.WriteLine($"SetClickThrough");
 
+<<<<<<< HEAD
 >>>>>>> ddad66981bd175e1ef84bd3bd547dc329964981c
         // 设置一定放在输入的窗口上方
         SetOwner(mainWindowHandle);
         Console.WriteLine($"SetOwner");
+=======
+        // 去掉 SetOwner 关系，尝试断开两个窗口关系测试是否快速写时闪烁
+        //// 设置一定放在输入的窗口上方
+        //SetOwner(mainWindowHandle);
+>>>>>>> 5a64ee83e4f56d5f8f84cb51a54d032f6e18dffa
         
         ShowActive();
 <<<<<<< HEAD

@@ -735,10 +735,6 @@ class SkInkCanvas
         var skCanvas = _skCanvas;
 
         skCanvas.Clear();
-
-        RenderBoundsChanged?.Invoke(this, Expand(drawRect, DefaultAdditionSize));
-
-        return;
         skCanvas.DrawBitmap(_originBackground, 0, 0);
 
         using var skPaint = new SKPaint();
@@ -766,6 +762,8 @@ class SkInkCanvas
                 skCanvas.DrawPath(path, skPaint);
             }
         }
+
+        RenderBoundsChanged?.Invoke(this, Expand(drawRect, DefaultAdditionSize));
     }
 
     public SKColor Color { get; set; } = SKColors.Red;
