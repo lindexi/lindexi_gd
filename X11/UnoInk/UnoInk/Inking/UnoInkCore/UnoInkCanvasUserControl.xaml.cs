@@ -46,11 +46,19 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         Loaded += MainPage_Loaded;
         Console.WriteLine($"主线程随便输出");
     }
-
+    
+    public UnoInkCanvasUserControl(Window currentWindow) : this()
+    {
+        _currentWindow = currentWindow;
+    }
+    
+    private readonly Window? _currentWindow;
+    
     private async void MainPage_Loaded(object sender, RoutedEventArgs e)
     {
         if (OperatingSystem.IsLinux())
         {
+<<<<<<< HEAD
 <<<<<<< HEAD
             //// 尝试修复 UNO 窗口不显示出来，之前在 Avalonia 也能复现
             //await Task.Delay(TimeSpan.FromSeconds(1));
@@ -63,6 +71,13 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             //    _dispatcherRequiring = new DispatcherRequiring(InvokeInk, _x11InkProvider.InkWindow.GetDispatcher());
             //}
 =======
+=======
+            if (_currentWindow is null)
+            {
+                throw new InvalidOperationException($"只有传入窗口时，才能使用覆盖窗口的 X11 动态笔迹方式");
+            }
+
+>>>>>>> 19d042ae4a4903bf0cc19752f263559130eda8c6
             if (_x11InkProvider == null)
             {
 <<<<<<< HEAD
@@ -91,7 +106,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 =======
                 _x11InkProvider = new X11InkProvider();
 
-                _x11InkProvider.Start(Window.Current!);
+                _x11InkProvider.Start(_currentWindow);
 
                 _dispatcherRequiring =
                     new DispatcherRequiring(InvokeInk, _x11InkProvider.InkWindow.GetDispatcher());
