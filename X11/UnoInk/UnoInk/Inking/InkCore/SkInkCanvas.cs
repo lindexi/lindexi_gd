@@ -807,19 +807,36 @@ class SkInkCanvas
         // 有个奇怪的炸掉情况，先忽略
         using var enumerator = CurrentInputDictionary.GetEnumerator();
 
+        // 先清掉静态笔迹层
+        StaticInkInfoList.Remove(t => cleanList.Any(c => c.InkId == t.InkId));
+        // 先画静态再画动态，解决层级
+        foreach (var strokeCollectionInfo in StaticInkInfoList)
+        {
+            skPaint.Color = strokeCollectionInfo.StrokeColor;
+            
+            if (strokeCollectionInfo.InkStrokePath is { } path)
+            {
+                skCanvas.DrawPath(path, skPaint);
+            }
+        }
+
         // 这里逻辑比较渣，因为可能存在 CurrentInputDictionary 被删除内容
         foreach (var drawStrokeContext in CurrentInputDictionary)
         {
-            if (cleanList.Any(t => t.InkId == drawStrokeContext.Value.InkId))
+            var strokeCollectionInfo = drawStrokeContext.Value;
+            if (cleanList.Any(t => t.InkId == strokeCollectionInfo.InkId))
             {
+                // 理论上不会进入这里
+                StaticDebugLogger.WriteLine($"清空笔迹进入跳过");
+
                 continue;
             }
 
-            StaticDebugLogger.WriteLine($"Clean Draw {drawStrokeContext.Value.InkId.Value}");
+            StaticDebugLogger.WriteLine($"Clean Draw {strokeCollectionInfo.InkId.Value}");
 
-            skPaint.Color = drawStrokeContext.Value.StrokeColor;
+            skPaint.Color = strokeCollectionInfo.StrokeColor;
 
-            if (drawStrokeContext.Value.InkStrokePath is { } path)
+            if (strokeCollectionInfo.InkStrokePath is { } path)
             {
                 skCanvas.DrawPath(path, skPaint);
             }

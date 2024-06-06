@@ -574,9 +574,12 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             StrokeInfoList.Clear();
         }
 
+        StaticDebugLogger.WriteLine($"收集笔迹数量 {strokeCollectionInfoList.Count}");
+
         foreach (var strokesCollectionInfo in strokeCollectionInfoList)
         {
             skPaint.Color = strokesCollectionInfo.StrokeColor;
+            skPaint.Color = SKColors.Black;
             var path = strokesCollectionInfo.InkStrokePath;
             System.Diagnostics.Debug.Assert(path != null);
 
