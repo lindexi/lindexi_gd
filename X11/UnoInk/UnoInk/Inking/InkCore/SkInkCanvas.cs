@@ -16,8 +16,7 @@ namespace UnoInk.Inking.InkCore;
 /// <summary>
 /// 笔迹信息 用于静态笔迹层
 /// </summary>
-/// <param name="Id"></param>
-public partial record StrokeCollectionInfo(int Id, SKColor StrokeColor, SKPath? InkStrokePath);
+public partial record StrokeCollectionInfo(int InkId, SKColor StrokeColor, SKPath? InkStrokePath);
 
 /// <summary>
 /// 使用 Skia 的 Ink 笔迹画板
@@ -80,9 +79,13 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
     /// <summary>
     /// 绘制使用的上下文信息
     /// </summary>
-    /// <param name="inputInfo"></param>
-    class DrawStrokeContext(ModeInputArgs inputInfo, SKColor strokeColor, double inkThickness) : IDisposable
+    class DrawStrokeContext(int inkId, ModeInputArgs inputInfo, SKColor strokeColor, double inkThickness) : IDisposable
     {
+        /// <summary>
+        /// 笔迹的 Id 号，基本上每个笔迹都是不相同的。和输入的 Id 是不相同的，这是给每个 Stroke 一个的，不同的 Stroke 是不同的。除非有人能够一秒一条笔迹，写 60 多年才能重复
+        /// </summary>
+        public int InkId { get; } = inkId;
+
         public double InkThickness { get; } = inkThickness;
 
         public SKColor StrokeColor { get; } = strokeColor;
@@ -136,7 +139,8 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
 
     void IInputProcessor.Down(ModeInputArgs info)
     {
-        CurrentInputDictionary.Add(info.Id, new DrawStrokeContext(info, Settings.Color, Settings.InkThickness));
+        var inkId = CreateInkId();
+        CurrentInputDictionary.Add(info.Id, new DrawStrokeContext(inkId, info, Settings.Color, Settings.InkThickness));
         
         StaticDebugLogger.WriteLine($"Down {info.Position.X:0.00},{info.Position.Y:0.00} CurrentInputDictionaryCount={CurrentInputDictionary.Count}");
         //_outputMove = false;
@@ -360,7 +364,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
 
         context.IsUp = true;
 
-        var strokesCollectionInfo = new StrokeCollectionInfo(info.Id, context.StrokeColor, context.InkStrokePath);
+        var strokesCollectionInfo = new StrokeCollectionInfo(context.InkId, context.StrokeColor, context.InkStrokePath);
         StrokesCollected?.Invoke(this, strokesCollectionInfo);
 
         if (CurrentInputDictionary.All(t => t.Value.IsUp))
@@ -468,10 +472,22 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
         }
         else
         {
-            context = new DrawStrokeContext(info, Settings.Color, Settings.InkThickness);
+            // 理论上不会进入此分支
+            StaticDebugLogger.WriteLine($"UpdateInkingStylusPoint 找不到笔迹点");
+            var inkId = CreateInkId();
+            context = new DrawStrokeContext(inkId, info, Settings.Color, Settings.InkThickness);
             CurrentInputDictionary.Add(info.Id, context);
             return context;
         }
+    }
+    
+    private int _currentInkId;
+    
+    private int CreateInkId()
+    {
+        var currentInkId = _currentInkId;
+        _currentInkId++;
+        return currentInkId; // return _currentInkId++ 的意思，只是这个可读性太垃圾了
     }
 
     // 静态笔迹层还没实现
@@ -835,7 +851,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
         // 这里逻辑比较渣，因为可能存在 CurrentInputDictionary 被删除内容
         foreach (var drawStrokeContext in CurrentInputDictionary)
         {
-            if (cleanList.Any(t => t.Id == drawStrokeContext.Key))
+            if (cleanList.Any(t => t.InkId == drawStrokeContext.Value.InkId))
             {
                 continue;
             }

@@ -403,8 +403,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         Console.WriteLine($"完成 UNO 绘制");
 
         //_skPathList.Clear();
-        return;
-        // 延迟一下，减少闪烁
+        // 延迟一下，减少闪烁，确保 UNO 这一层绘制完成
         await Task.Delay(100);
         // 清空笔迹，换成在 UNO 层绘制
         await InvokeAsync(canvas =>
