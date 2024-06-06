@@ -197,6 +197,7 @@ class SkInkCanvas
 
     public void Down(InkingInputInfo info)
     {
+<<<<<<< HEAD
         CurrentInputDictionary.Add(info.Id, new DrawStrokeContext(info, Color));
 
 <<<<<<< HEAD
@@ -204,6 +205,13 @@ class SkInkCanvas
 =======
         Console.WriteLine($"Down {info.Position.X:0.00},{info.Position.Y:0.00} CurrentInputDictionaryCount={CurrentInputDictionary.Count}");
         _outputMove = false;
+=======
+        CurrentInputDictionary.Add(info.Id, new DrawStrokeContext(info, Settings.Color, Settings.InkThickness));
+        
+        StaticDebugLogger.WriteLine($"Down {info.Position.X:0.00},{info.Position.Y:0.00} CurrentInputDictionaryCount={CurrentInputDictionary.Count}");
+        //_outputMove = false;
+        _moveCount = 0;
+>>>>>>> fcee30538edbd0e63d73fe22a2535ab3dc4dafef
 
         // 以下逻辑由框架层处理
         //if (CurrentInputDictionary.Count == 1)
@@ -219,7 +227,10 @@ class SkInkCanvas
         }
     }
 
-    private bool _outputMove;
+    //private bool _outputMove;
+
+    private StepCounter _stepCounter = new StepCounter();
+    private int _moveCount = 0;
 
     public void Move(InkingInputInfo info)
     {
@@ -229,13 +240,19 @@ class SkInkCanvas
             // 解决鼠标在其他窗口按下，然后移动到当前窗口
             return;
         }
-
-        if (!_outputMove)
+        
+        if(_moveCount == 0)
         {
-            StaticDebugLogger.WriteLine($"IInputProcessor.Move {info.Position.X:0.00},{info.Position.Y:0.00}");
+            _stepCounter.Start();
         }
+        _stepCounter.Record($"StartMove{_moveCount}");
 
-        _outputMove = true;
+        //if (!_outputMove)
+        //{
+        //    StaticDebugLogger.WriteLine($"IInputProcessor.Move {info.Position.X:0.00},{info.Position.Y:0.00}");
+        //}
+
+        //_outputMove = true;
 
         var context = UpdateInkingStylusPoint(info);
 
@@ -297,6 +314,8 @@ class SkInkCanvas
                     
                     result.Add(currentPoint);
                 }
+                
+                _stepCounter.Record("完成丢点");
 
                 StaticDebugLogger.WriteLine($"丢点数量： {stylusPointList.Count-result.Count} 实际参与绘制点数：{result.Count}");
 
@@ -324,6 +343,7 @@ class SkInkCanvas
 
                     isFirst = false;
                 }
+                _stepCounter.Record("完成绘制");
                 
                 RenderBoundsChanged?.Invoke(this, currentRect);
             }
@@ -335,6 +355,11 @@ class SkInkCanvas
                 }
             }
         }
+        
+        _stepCounter.Record($"EndMove{_moveCount}");
+        
+        _stepCounter.OutputToConsole();
+        _stepCounter.Restart();
     }
 
     public void Up(InkingInputInfo info)
