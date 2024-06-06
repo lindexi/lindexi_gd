@@ -43,8 +43,9 @@ class X11InkWindow : X11Window
         // 这样输入穿透到后面一层里，由后面一层将内容上报上来
         SetClickThrough();
 
-        // 设置一定放在输入的窗口上方
-        SetOwner(mainWindowHandle);
+        // 去掉 SetOwner 关系，尝试断开两个窗口关系测试是否快速写时闪烁
+        //// 设置一定放在输入的窗口上方
+        //SetOwner(mainWindowHandle);
         
         ShowActive();
 
