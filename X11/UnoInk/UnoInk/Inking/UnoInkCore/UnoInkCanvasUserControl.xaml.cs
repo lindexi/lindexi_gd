@@ -15,6 +15,7 @@ using Microsoft.UI.Xaml.Navigation;
 
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Microsoft.UI.Input;
 using SkiaSharp;
 using SkiaSharp.Views.Windows;
 using UnoInk.Inking.InkCore;
@@ -53,7 +54,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
                 var skInkCanvas = _x11InkProvider.InkWindow.SkInkCanvas;
                 skInkCanvas.StrokesCollected += SkInkCanvas_StrokesCollected;
-                
+
                 Console.WriteLine($"完成初始化");
             }
         }
@@ -71,35 +72,13 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     }
 
     private List<StrokeCollectionInfo> StrokeInfoList { get; } = new List<StrokeCollectionInfo>();
+    private readonly object _locker = new object();
 
-    private void InvokeInk()
-    {
-        if (!OperatingSystem.IsLinux())
-        {
-            return;
-        }
 
-        //if (_lastInkingInputInfo is null)
-        //{
-        //    return;
-        //}
-
-        if (_x11InkProvider is null)
-        {
-            throw new InvalidOperationException();
-        }
-
-        var inputInfo = _lastInkingInputInfo;
-        StaticDebugLogger.WriteLine($"执行移动 {inputInfo.Position}");
-        _x11InkProvider.InkWindow.ModeInputDispatcher.Move(inputInfo);
-
-        //canvas.Move(inputInfo);
-    }
-
-    private ModeInputArgs _lastInkingInputInfo;
     private DispatcherRequiring? _dispatcherRequiring;
-    
+
     private bool _isDown = false;
+
     private void InkCanvas_OnPointerPressed(object sender, PointerRoutedEventArgs e)
     {
         //var pointerPoint = e.GetCurrentPoint(InkCanvas);
@@ -129,10 +108,17 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     private ModeInputArgs ToModeInputArgs(PointerRoutedEventArgs args)
     {
         var currentPoint = args.GetCurrentPoint(this);
-        var stylusPoint = new StylusPoint(currentPoint.Position.X, currentPoint.Position.Y, currentPoint.Properties.Pressure);
+        var stylusPoint = ToStylusPoint(currentPoint);
         var modeInputArgs = new ModeInputArgs((int) args.Pointer.PointerId, stylusPoint, currentPoint.Timestamp);
         return modeInputArgs;
     }
+
+    private static StylusPoint ToStylusPoint(PointerPoint currentPoint)
+    {
+        var stylusPoint = new StylusPoint(currentPoint.Position.X, currentPoint.Position.Y, currentPoint.Properties.Pressure);
+        return stylusPoint;
+    }
+
 
     //private InkingInputInfo ToInkingInputInfo(PointerRoutedEventArgs args)
     //{
@@ -143,7 +129,16 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     //}
 
     //private Point _lastPoint;
+
     private bool _firstMove = true;
+
+    class MoveInputInfo
+    {
+        public ModeInputArgs InputArgs { set; get; }
+        public List<StylusPoint>? StylusPointList { get; set; }
+    }
+    private MoveInputInfo? _inputInfo;
+
     private void InkCanvas_OnPointerMoved(object sender, PointerRoutedEventArgs e)
     {
         if (!_isDown)
@@ -156,7 +151,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         {
             StaticDebugLogger.WriteLine($"InkCanvas_OnPointerMoved");
         }
-        
+
         _firstMove = false;
 
         //var currentPoint = e.GetCurrentPoint(this);
@@ -180,9 +175,75 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //    DrawInNative(position);
         //}
 
-        _lastInkingInputInfo = ToModeInputArgs(e);
+        lock (_locker)
+        {
+            if (_inputInfo is null)
+            {
+                var modeInputArgs = ToModeInputArgs(e);
+                _inputInfo = new MoveInputInfo
+                {
+                    InputArgs = modeInputArgs
+                };
+            }
+            else
+            {
+                if (_inputInfo.StylusPointList is null)
+                {
+                    _inputInfo.StylusPointList = new List<StylusPoint>(2)
+                    {
+                        _inputInfo.InputArgs.StylusPoint
+                    };
+                    _inputInfo.InputArgs = _inputInfo.InputArgs with
+                    {
+                        StylusPointList = _inputInfo.StylusPointList
+                    };
+                }
+
+                var currentPoint = e.GetCurrentPoint(this);
+                var stylusPoint = ToStylusPoint(currentPoint);
+                _inputInfo.StylusPointList.Add(stylusPoint);
+            }
+        }
+
         _dispatcherRequiring?.Require();
         //InvokeAsync(canvas => canvas.Move(ToInkingInputInfo(e)));
+    }
+
+    private void InvokeInk()
+    {
+        if (!OperatingSystem.IsLinux())
+        {
+            return;
+        }
+
+        //if (_lastInkingInputInfo is null)
+        //{
+        //    return;
+        //}
+
+        if (_x11InkProvider is null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        MoveInputInfo inputInfo;
+
+        lock (_locker)
+        {
+            if (_inputInfo is null)
+            {
+                Debug.Fail("进入这里时，一定存在当前的输入");
+                return;
+            }
+
+            inputInfo = _inputInfo;
+            _inputInfo = null;
+        }
+
+        StaticDebugLogger.WriteLine($"执行移动 {inputInfo.InputArgs.Position} Count={inputInfo.StylusPointList?.Count}");
+        _x11InkProvider.InkWindow.ModeInputDispatcher.Move(inputInfo.InputArgs);
+
+        //canvas.Move(inputInfo);
     }
 
     private void InkCanvas_OnPointerReleased(object sender, PointerRoutedEventArgs e)
@@ -294,20 +355,20 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         skPaint.IsStroke = false;
         skPaint.FilterQuality = SKFilterQuality.High;
         skPaint.Style = SKPaintStyle.Fill;
-        
+
         var strokeCollectionInfoList = new List<StrokeCollectionInfo>();
         lock (StrokeInfoList)
         {
             strokeCollectionInfoList.AddRange(StrokeInfoList);
             StrokeInfoList.Clear();
         }
-        
+
         foreach (var strokesCollectionInfo in strokeCollectionInfoList)
         {
             skPaint.Color = strokesCollectionInfo.StrokeColor;
             var path = strokesCollectionInfo.InkStrokePath;
             System.Diagnostics.Debug.Assert(path != null);
-            
+
             e.Surface.Canvas.DrawPath(path, skPaint);
             Console.WriteLine($"DrawPath");
         }
@@ -341,7 +402,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             canvas.CleanStroke(strokeCollectionInfoList);
         });
     }
-    
+
     private void ExitProcessButton_OnClick(object sender, RoutedEventArgs e)
     {
         Application.Current.Exit();
