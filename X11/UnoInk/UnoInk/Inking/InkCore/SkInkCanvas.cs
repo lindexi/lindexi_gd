@@ -30,6 +30,7 @@ partial record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp)
 
 =======
 /// <summary>
+<<<<<<< HEAD
 /// 笔迹信息 用于静态笔迹层
 /// </summary>
 <<<<<<< HEAD
@@ -60,6 +61,9 @@ public readonly partial record struct InkId(int Value);
 
 /// <summary>
 /// 画板的配置
+=======
+/// 使用 Skia 的 Ink 笔迹画板
+>>>>>>> 922abd94b6eacfc8662c7dbc2186ea112c57f342
 /// </summary>
 /// <param name="EnableClippingEraser">是否允许使用裁剪方式的橡皮擦，而不是走静态笔迹层</param>
 /// <param name="AutoSoftPen">是否开启自动软笔模式</param>
@@ -429,6 +433,7 @@ class SkInkCanvas
 >>>>>>> 7e4dbbe7523d0540236fc7e1b7f8fb183179b7d8
 =======
         var strokesCollectionInfo = new StrokeCollectionInfo(context.InkId, context.StrokeColor, context.InkStrokePath);
+<<<<<<< HEAD
 >>>>>>> a313c7d1fa7ffb81c04c5af29dbd36289f0f1a6d
         StrokesCollected?.Invoke(this, strokesCollectionInfo);
 
@@ -436,6 +441,15 @@ class SkInkCanvas
         {
             InputComplete();
         }
+=======
+        StaticInkInfoList.Add(strokesCollectionInfo);
+        StrokesCollected?.Invoke(this, strokesCollectionInfo);
+
+        //if (CurrentInputDictionary.All(t => t.Value.IsUp))
+        //{
+        //    //完成等待清理
+        //}
+>>>>>>> 922abd94b6eacfc8662c7dbc2186ea112c57f342
     }
 
     private void InputComplete()
@@ -531,11 +545,10 @@ class SkInkCanvas
         return new InkId(currentInkId); // return _currentInkId++ 的意思，只是这个可读性太垃圾了
     }
 
-    // 静态笔迹层还没实现
-    ///// <summary>
-    ///// 静态笔迹层
-    ///// </summary>
-    //public List<InkInfo> StaticInkInfoList { get; } = new List<InkInfo>();
+    /// <summary>
+    /// 静态笔迹层
+    /// </summary>
+    public List<StrokeCollectionInfo> StaticInkInfoList { get; } = new List<StrokeCollectionInfo>();
 
 
     /// <summary>
