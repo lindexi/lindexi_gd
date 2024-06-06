@@ -71,6 +71,7 @@ class X11InkWindow : X11Window
         {
             AutoSoftPen = false,
             //EnableEraserGesture = false,
+            DynamicRenderType = InkCanvasDynamicRenderTipStrokeType.RenderAllTouchingStrokeWithClip,
         };
         
         skInkCanvas.RenderBoundsChanged += (sender, rect) =>
