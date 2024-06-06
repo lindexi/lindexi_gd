@@ -74,7 +74,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
     private void SkInkCanvas_StrokesCollected(object? sender, StrokeCollectionInfo e)
     {
-        Console.WriteLine($"SkInkCanvas_StrokesCollected");
+        Console.WriteLine($"SkInkCanvas_StrokesCollected InkId={e.InkId.Value}");
 
         // 这是 X11 线程进入的
         lock (StrokeInfoList)
@@ -375,7 +375,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             StrokeInfoList.Clear();
         }
 
-        StaticDebugLogger.WriteLine($"收集笔迹数量 {strokeCollectionInfoList.Count}");
+        StaticDebugLogger.WriteLine($"收集笔迹数量 {strokeCollectionInfoList.Count} ");
 
         foreach (var strokesCollectionInfo in strokeCollectionInfoList)
         {
