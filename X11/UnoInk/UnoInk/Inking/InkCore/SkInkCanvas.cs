@@ -51,8 +51,12 @@ public partial record StrokeCollectionInfo(int Id, SKColor StrokeColor, SKPath? 
 =======
 public record StrokeCollectionInfo(InkId InkId, SKColor StrokeColor, SKPath? InkStrokePath);
 
+<<<<<<< HEAD
 public readonly partial record struct InkId(int Id);
 >>>>>>> a313c7d1fa7ffb81c04c5af29dbd36289f0f1a6d
+=======
+public readonly partial record struct InkId(int Value);
+>>>>>>> 35e1f7c418acd3236b01c6b72eb04b90955f2d78
 
 /// <summary>
 /// 画板的配置
@@ -266,7 +270,7 @@ class SkInkCanvas
         
         if(_moveCount == 0)
         {
-            _stepCounter.Start();
+            //_stepCounter.Start();
         }
         _stepCounter.Record($"StartMove{_moveCount}");
 
@@ -798,7 +802,7 @@ class SkInkCanvas
                 continue;
             }
 
-            StaticDebugLogger.WriteLine($"Clean Draw {drawStrokeContext.Value.InkId.Id}");
+            StaticDebugLogger.WriteLine($"Clean Draw {drawStrokeContext.Value.InkId.Value}");
 
             skPaint.Color = drawStrokeContext.Value.StrokeColor;
 
