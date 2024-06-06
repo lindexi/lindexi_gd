@@ -137,9 +137,10 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
     void IInputProcessor.Down(ModeInputArgs info)
     {
         CurrentInputDictionary.Add(info.Id, new DrawStrokeContext(info, Settings.Color, Settings.InkThickness));
-
-        Console.WriteLine($"Down {info.Position.X:0.00},{info.Position.Y:0.00} CurrentInputDictionaryCount={CurrentInputDictionary.Count}");
-        _outputMove = false;
+        
+        StaticDebugLogger.WriteLine($"Down {info.Position.X:0.00},{info.Position.Y:0.00} CurrentInputDictionaryCount={CurrentInputDictionary.Count}");
+        //_outputMove = false;
+        _moveCount = 0;
 
         // 以下逻辑由框架层处理
         //if (CurrentInputDictionary.Count == 1)
@@ -154,7 +155,10 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
         }
     }
 
-    private bool _outputMove;
+    //private bool _outputMove;
+
+    private StepCounter _stepCounter = new StepCounter();
+    private int _moveCount = 0;
 
     void IInputProcessor.Move(ModeInputArgs info)
     {
@@ -165,13 +169,19 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
             StaticDebugLogger.WriteLine($"Lost Input Id={info.Id}");
             return;
         }
-
-        if (!_outputMove)
+        
+        if(_moveCount == 0)
         {
-            StaticDebugLogger.WriteLine($"IInputProcessor.Move {info.Position.X:0.00},{info.Position.Y:0.00}");
+            _stepCounter.Start();
         }
+        _stepCounter.Record($"StartMove{_moveCount}");
 
-        _outputMove = true;
+        //if (!_outputMove)
+        //{
+        //    StaticDebugLogger.WriteLine($"IInputProcessor.Move {info.Position.X:0.00},{info.Position.Y:0.00}");
+        //}
+
+        //_outputMove = true;
 
         var context = UpdateInkingStylusPoint(info);
         // 重新赋值 info 值，因此旧的这个值没有处理宽度高度是空的情况，使用上一个点的宽度高度而让橡皮擦闪烁
@@ -265,6 +275,8 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
                     
                     result.Add(currentPoint);
                 }
+                
+                _stepCounter.Record("完成丢点");
 
                 StaticDebugLogger.WriteLine($"丢点数量： {stylusPointList.Count-result.Count} 实际参与绘制点数：{result.Count}");
 
@@ -292,6 +304,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
 
                     isFirst = false;
                 }
+                _stepCounter.Record("完成绘制");
                 
                 RenderBoundsChanged?.Invoke(this, currentRect);
             }
@@ -303,6 +316,8 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
                 }
             }
         }
+        
+        _stepCounter.Record($"EndMove{_moveCount}");
     }
 
     void IInputProcessor.Hover(ModeInputArgs args)
@@ -312,6 +327,8 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
 
     void IInputProcessor.Up(ModeInputArgs info)
     {
+        _stepCounter.OutputToConsole();
+
         var context = UpdateInkingStylusPoint(info);
         info = context.InputInfo;
 
