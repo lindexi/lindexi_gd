@@ -178,7 +178,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
         
         if(_moveCount == 0)
         {
-            _stepCounter.Start();
+            //_stepCounter.Start();
         }
         _stepCounter.Record($"StartMove{_moveCount}");
 
