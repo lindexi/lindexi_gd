@@ -20,6 +20,7 @@ public partial class UnoInkFullScreenWindow : Window
         }
 
 #if HAS_UNO
+
         // 这句话似乎也是无效的
         this.SetBackground(new SolidColorBrush(Colors.Transparent));
         this.AppWindow.GetApplicationView().TryEnterFullScreenMode();
@@ -30,6 +31,6 @@ public partial class UnoInkFullScreenWindow : Window
         // 这句话似乎才是关键，设置窗口背景透明。通过 MainWindow.SetBackground 配置是无效的
         Hacker.Do();
 
-        Content = new UnoInkCanvasUserControl();
+        Content = new UnoInkCanvasUserControl(this);
     }
 }

@@ -35,11 +35,23 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
         Loaded += MainPage_Loaded;
     }
-
+    
+    public UnoInkCanvasUserControl(Window currentWindow) : this()
+    {
+        _currentWindow = currentWindow;
+    }
+    
+    private readonly Window? _currentWindow;
+    
     private async void MainPage_Loaded(object sender, RoutedEventArgs e)
     {
         if (OperatingSystem.IsLinux())
         {
+            if (_currentWindow is null)
+            {
+                throw new InvalidOperationException($"只有传入窗口时，才能使用覆盖窗口的 X11 动态笔迹方式");
+            }
+
             if (_x11InkProvider == null)
             {
                 // 尝试修复 UNO 停止渲染，但也可能是 UNO 自己的坑，就是界面不显示
@@ -47,7 +59,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
                 await Task.Delay(TimeSpan.FromSeconds(1));
                 _x11InkProvider = new X11InkProvider();
 
-                _x11InkProvider.Start(Window.Current!);
+                _x11InkProvider.Start(_currentWindow);
 
                 _dispatcherRequiring =
                     new DispatcherRequiring(InvokeInk, _x11InkProvider.InkWindow.GetDispatcher());
