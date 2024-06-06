@@ -268,10 +268,42 @@ class SkInkCanvas
             if (stylusPointList != null)
 >>>>>>> 080502de69f9bab8f86ecd0932896fcc15f939f4
             {
+                // 先执行丢点算法，避免进入太多的点
+                var result = new List<StylusPoint>();
+                result.Add(stylusPointList[0]);
+                // 这里使用新的丢点的算法
+                // 可以丢掉更多的点
+                for (var i = 1; i < stylusPointList.Count; i++)
+                {
+                    var lastPoint = result[^1];
+                    var currentPoint = stylusPointList[i];
+                    var length = Math.Pow((lastPoint.Point.X - currentPoint.Point.X), 2) 
+                                 + Math.Pow((lastPoint.Point.Y - currentPoint.Point.Y), 2);
+                    if (length < 4)
+                    {
+                        // 太近了
+                        continue;
+                    }
+                    
+                    if (length < 10)
+                    {
+                        // 太近了
+                        continue;
+                    }
+                    if (result.Count < 2)
+                    {
+
+                    }
+                    
+                    result.Add(currentPoint);
+                }
+
+                StaticDebugLogger.WriteLine($"丢点数量： {stylusPointList.Count-result.Count} 实际参与绘制点数：{result.Count}");
+
                 Rect currentRect = new Rect();
                 bool isFirst = true;
 
-                foreach (var point in stylusPointList)
+                foreach (var point in result)
                 {
                     context.InputInfo = context.InputInfo with
                     {
