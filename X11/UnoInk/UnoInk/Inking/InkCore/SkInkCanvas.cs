@@ -318,6 +318,9 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
         }
         
         _stepCounter.Record($"EndMove{_moveCount}");
+        
+        _stepCounter.OutputToConsole();
+        _stepCounter.Restart();
     }
 
     void IInputProcessor.Hover(ModeInputArgs args)
@@ -327,8 +330,6 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
 
     void IInputProcessor.Up(ModeInputArgs info)
     {
-        _stepCounter.OutputToConsole();
-
         var context = UpdateInkingStylusPoint(info);
         info = context.InputInfo;
 
