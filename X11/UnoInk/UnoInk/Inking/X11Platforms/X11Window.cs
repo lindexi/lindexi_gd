@@ -88,7 +88,7 @@ public class X11Window
             height = x11Info.XDisplayHeight;
         }
 
-        StaticDebugLogger.WriteLine($"创建窗口 {width},{height}");
+        //StaticDebugLogger.WriteLine($"创建窗口 {width},{height}");
 
         XLib.XMatchVisualInfo(display, screen, 32, 4, out var info);
         var visual = info.visual;
