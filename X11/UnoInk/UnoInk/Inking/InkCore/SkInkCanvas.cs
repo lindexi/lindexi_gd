@@ -266,7 +266,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
                     result.Add(currentPoint);
                 }
 
-                StaticDebugLogger.WriteLine($"丢点数量： {stylusPointList.Count-result.Count}");
+                StaticDebugLogger.WriteLine($"丢点数量： {stylusPointList.Count-result.Count} 实际参与绘制点数：{result.Count}");
 
                 Rect currentRect = new Rect();
                 bool isFirst = true;
