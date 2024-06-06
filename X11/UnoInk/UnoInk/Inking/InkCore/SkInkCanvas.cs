@@ -18,7 +18,7 @@ namespace UnoInk.Inking.InkCore;
 /// </summary>
 public record StrokeCollectionInfo(InkId InkId, SKColor StrokeColor, SKPath? InkStrokePath);
 
-public readonly partial record struct InkId(int Id);
+public readonly partial record struct InkId(int Value);
 
 /// <summary>
 /// 使用 Skia 的 Ink 笔迹画板
@@ -858,7 +858,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
                 continue;
             }
 
-            StaticDebugLogger.WriteLine($"Clean Draw {drawStrokeContext.Value.InkId.Id}");
+            StaticDebugLogger.WriteLine($"Clean Draw {drawStrokeContext.Value.InkId.Value}");
 
             skPaint.Color = drawStrokeContext.Value.StrokeColor;
 

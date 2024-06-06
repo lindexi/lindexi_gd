@@ -39,6 +39,10 @@
       Skia;
     </UnoFeatures>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- 将 Source Generator 生成的源代码保存到本地文件 -->
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\BujeeberehemnaNurgacolarje\*.cs" LinkBase="Inking\X11Ink\Core" />
