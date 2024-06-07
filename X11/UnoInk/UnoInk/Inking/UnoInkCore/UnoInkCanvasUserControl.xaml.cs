@@ -35,14 +35,14 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
         Loaded += MainPage_Loaded;
     }
-    
+
     public UnoInkCanvasUserControl(Window currentWindow) : this()
     {
         _currentWindow = currentWindow;
     }
-    
+
     private readonly Window? _currentWindow;
-    
+
     private async void MainPage_Loaded(object sender, RoutedEventArgs e)
     {
         if (OperatingSystem.IsLinux())
@@ -368,14 +368,14 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         skPaint.FilterQuality = SKFilterQuality.High;
         skPaint.Style = SKPaintStyle.Fill;
 
-        var strokeCollectionInfoList = new List<StrokeCollectionInfo>();
+        List<StrokeCollectionInfo> strokeCollectionInfoList;
         lock (StrokeInfoList)
         {
-            strokeCollectionInfoList.AddRange(StrokeInfoList);
+            strokeCollectionInfoList = [.. StrokeInfoList];
             StrokeInfoList.Clear();
         }
 
-        StaticDebugLogger.WriteLine($"收集笔迹数量 {strokeCollectionInfoList.Count} ");
+        //StaticDebugLogger.WriteLine($"收集笔迹数量 {strokeCollectionInfoList.Count} ");
 
         foreach (var strokesCollectionInfo in strokeCollectionInfoList)
         {
@@ -421,7 +421,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     {
         Application.Current.Exit();
     }
-    
+
     private async void DebugButton_OnClick(object sender, RoutedEventArgs e)
     {
         await InvokeAsync(canvas =>
