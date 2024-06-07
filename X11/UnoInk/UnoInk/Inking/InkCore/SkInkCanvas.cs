@@ -830,7 +830,7 @@ class SkInkCanvas
 
         // 先清掉静态笔迹层
         StaticInkInfoList.Remove(t => cleanList.Any(c => c.InkId == t.InkId));
-        StaticDebugLogger.WriteLine($"剩余静态笔迹点 {StaticInkInfoList.Count} 清理{cleanList.Count} 剩余动态笔迹 {CurrentInputDictionary.Count}");
+        //StaticDebugLogger.WriteLine($"剩余静态笔迹点 {StaticInkInfoList.Count} 清理{cleanList.Count} 剩余动态笔迹 {CurrentInputDictionary.Count}");
         // 先画静态再画动态，解决层级
         foreach (var strokeCollectionInfo in StaticInkInfoList)
         {
