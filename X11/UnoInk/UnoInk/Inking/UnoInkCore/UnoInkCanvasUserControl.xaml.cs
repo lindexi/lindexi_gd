@@ -371,6 +371,11 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         List<StrokeCollectionInfo> strokeCollectionInfoList;
         lock (StrokeInfoList)
         {
+            if (StrokeInfoList.Count == 0)
+            {
+                return;
+            }
+
             strokeCollectionInfoList = [.. StrokeInfoList];
             StrokeInfoList.Clear();
         }
