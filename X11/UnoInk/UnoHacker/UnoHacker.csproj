@@ -28,10 +28,16 @@
       <HintPath>C:\lindexi\Library\Uno.UI.dll</HintPath>
     </Reference>
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     <Reference Include="Uno">
       <HintPath>C:\lindexi\Library\Uno.dll</HintPath>
     </Reference>
 >>>>>>> f6dd3c7f81d2c1ebb7fc06ba69fde8a8d9c59584
+=======
+    <Reference Include="Uno">
+      <HintPath>C:\lindexi\Library\Uno.dll</HintPath>
+    </Reference>
+>>>>>>> 28dbfe3c20c4a1655590d70884afa45dcfe23e63
   </ItemGroup>
 </Project>
