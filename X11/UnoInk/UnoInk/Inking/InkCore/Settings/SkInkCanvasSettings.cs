@@ -104,4 +104,12 @@ public record SkInkCanvasSettings(bool AutoSoftPen = true)
     /// 是否忽略压感。
     /// </summary>
     public bool IgnorePressure { get; init; } = true;
+    
+    public CleanStrokeSettings CleanStrokeSettings { get; init; } = new CleanStrokeSettings();
+}
+
+public record CleanStrokeSettings
+{
+    public bool ShouldDrawBackground { get; init; } = false;
+    public bool ShouldUpdateBackground { get; init; } = true;
 }

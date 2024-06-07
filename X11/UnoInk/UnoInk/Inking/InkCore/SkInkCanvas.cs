@@ -119,14 +119,19 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
 
         // 这是浅拷贝
         //_originBackground = SkBitmap?.Copy();
-
+        
+        UpdateOriginBackground();
+    }
+    
+    private void UpdateOriginBackground()
+    {
         // 需要使用 SKCanvas 才能实现拷贝
         _originBackground ??= new SKBitmap(new SKImageInfo(ApplicationDrawingSkBitmap.Width,
             ApplicationDrawingSkBitmap.Height, ApplicationDrawingSkBitmap.ColorType,
             ApplicationDrawingSkBitmap.AlphaType,
             ApplicationDrawingSkBitmap.ColorSpace), SKBitmapAllocFlags.None);
         _isOriginBackgroundDisable = false;
-
+        
         using var skCanvas = new SKCanvas(_originBackground);
         skCanvas.Clear();
         skCanvas.DrawBitmap(ApplicationDrawingSkBitmap, 0, 0);
@@ -136,7 +141,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
     {
         var inkId = CreateInkId();
         CurrentInputDictionary.Add(info.Id, new DrawStrokeContext(inkId, info, Settings.Color, Settings.InkThickness));
-        
+
         StaticDebugLogger.WriteLine($"Down {info.Position.X:0.00},{info.Position.Y:0.00} CurrentInputDictionaryCount={CurrentInputDictionary.Count}");
         //_outputMove = false;
         _moveCount = 0;
@@ -168,8 +173,8 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
             StaticDebugLogger.WriteLine($"Lost Input Id={info.Id}");
             return;
         }
-        
-        if(_moveCount == 0)
+
+        if (_moveCount == 0)
         {
             //_stepCounter.Start();
         }
@@ -260,14 +265,14 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
                 {
                     var lastPoint = result[^1];
                     var currentPoint = stylusPointList[i];
-                    var length = Math.Pow((lastPoint.Point.X - currentPoint.Point.X), 2) 
+                    var length = Math.Pow((lastPoint.Point.X - currentPoint.Point.X), 2)
                                  + Math.Pow((lastPoint.Point.Y - currentPoint.Point.Y), 2);
                     if (length < 4)
                     {
                         // 太近了
                         continue;
                     }
-                    
+
                     if (length < 10)
                     {
                         // 太近了
@@ -277,13 +282,13 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
                     {
 
                     }
-                    
+
                     result.Add(currentPoint);
                 }
-                
+
                 _stepCounter.Record("完成丢点");
 
-                StaticDebugLogger.WriteLine($"丢点数量： {stylusPointList.Count-result.Count} 实际参与绘制点数：{result.Count}");
+                StaticDebugLogger.WriteLine($"丢点数量： {stylusPointList.Count - result.Count} 实际参与绘制点数：{result.Count}");
 
                 Rect currentRect = new Rect();
                 bool isFirst = true;
@@ -310,7 +315,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
                     isFirst = false;
                 }
                 _stepCounter.Record("完成绘制");
-                
+
                 RenderBoundsChanged?.Invoke(this, currentRect);
             }
             else
@@ -321,9 +326,9 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
                 }
             }
         }
-        
+
         _stepCounter.Record($"EndMove{_moveCount}");
-        
+
         _stepCounter.OutputToConsole();
         //_stepCounter.Restart();
     }
@@ -476,9 +481,9 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
             return context;
         }
     }
-    
+
     private int _currentInkId;
-    
+
     private InkId CreateInkId()
     {
         var currentInkId = _currentInkId;
@@ -807,6 +812,10 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
 
     public void CleanStroke(IReadOnlyList<StrokeCollectionInfo> cleanList)
     {
+        var cleanStrokeSettings = Settings.CleanStrokeSettings;
+        bool shouldDrawBackground = cleanStrokeSettings.ShouldDrawBackground;
+        bool shouldUpdateBackground = cleanStrokeSettings.ShouldUpdateBackground;
+
         SKRect drawRect = default;
         bool isFirst = true;
         foreach (var strokeCollectionInfo in cleanList)
@@ -831,7 +840,10 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
         var skCanvas = _skCanvas;
 
         skCanvas.Clear();
-        skCanvas.DrawBitmap(_originBackground, 0, 0);
+        if (shouldDrawBackground)
+        {
+            skCanvas.DrawBitmap(_originBackground, 0, 0);
+        }
 
         using var skPaint = new SKPaint();
         skPaint.StrokeWidth = 0.1f;
@@ -850,7 +862,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
         foreach (var strokeCollectionInfo in StaticInkInfoList)
         {
             skPaint.Color = strokeCollectionInfo.StrokeColor;
-            
+
             if (strokeCollectionInfo.InkStrokePath is { } path)
             {
                 skCanvas.DrawPath(path, skPaint);
@@ -877,6 +889,11 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
             {
                 skCanvas.DrawPath(path, skPaint);
             }
+        }
+        
+        if (shouldUpdateBackground)
+        {
+            UpdateOriginBackground();
         }
 
         RenderBoundsChanged?.Invoke(this, Expand(drawRect, DefaultAdditionSize));
@@ -1573,7 +1590,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
     public void Debug()
     {
         _isDebug = !_isDebug;
-        
+
         Console.WriteLine($"重新绘制画布 {ApplicationDrawingSkBitmap.Width}, {ApplicationDrawingSkBitmap.Height}");
         RenderBoundsChanged?.Invoke(this,
             new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
