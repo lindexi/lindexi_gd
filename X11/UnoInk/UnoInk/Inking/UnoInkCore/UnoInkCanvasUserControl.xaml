@@ -11,6 +11,7 @@
   d:DesignWidth="400">
 
   <Grid>
+    <Border Margin="100,100,100,100" Background="White"></Border>
     <TextBlock x:Name="LogTextBlock" TextWrapping="Wrap" />
     <windows:SKXamlCanvas x:Name="SkXamlCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                           PaintSurface="SkXamlCanvas_OnPaintSurface">
