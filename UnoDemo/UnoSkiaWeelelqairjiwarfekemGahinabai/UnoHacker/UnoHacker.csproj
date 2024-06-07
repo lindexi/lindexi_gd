@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <DefineConstants>$(DefineConstants);HAS_UNO</DefineConstants>
+
+    <!--
+      UnoFeatures let's you quickly add and manage implicit package references based on the features you want to use.
+      https://aka.platform.uno/singleproject-features
+    -->
+    <!--
+    <UnoFeatures></UnoFeatures>
+    -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp" />
+  </ItemGroup>
+
+  <!-- ================ !!! UNO HACKER !!! ================ -->
+
+  <!-- 程序集使用特殊名称，这样才能访问到 internal API。 -->
+  <PropertyGroup>
+    <AssemblyName>SamplesApp</AssemblyName>
+  </PropertyGroup>
+
+  <!-- 仅为获取到 NuGet 目录，不使用任何内容（包括 compile;runtime;build 等） -->
+  <ItemGroup>
+    <PackageReference Include="Uno.WinUI" GeneratePathProperty="true" PrivateAssets="all" ExcludeAssets="all" />
+  </ItemGroup>
+
+  <!-- 引用 net8.0-desktop 真正生效的程序集，而不是专供引用的程序集。 -->
+  <ItemGroup>
+    <Reference Include="Uno" Private="False">
+      <HintPath>$(PKGUno_WinUI)\uno-runtime\net8.0\skia\Uno.dll</HintPath>
+    </Reference>
+    <Reference Include="Uno.UI" Private="False">
+      <HintPath>$(PKGUno_WinUI)\uno-runtime\net8.0\skia\Uno.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="Uno.UI.Composition" Private="False">
+      <HintPath>$(PKGUno_WinUI)\uno-runtime\net8.0\skia\Uno.UI.Composition.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <!-- ================ !!! UNO HACKER !!! ================ -->
+</Project>
