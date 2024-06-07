@@ -107,9 +107,3 @@ public record SkInkCanvasSettings(bool AutoSoftPen = true)
     
     public CleanStrokeSettings CleanStrokeSettings { get; init; } = new CleanStrokeSettings();
 }
-
-public record CleanStrokeSettings
-{
-    public bool ShouldDrawBackground { get; init; } = false;
-    public bool ShouldUpdateBackground { get; init; } = true;
-}
