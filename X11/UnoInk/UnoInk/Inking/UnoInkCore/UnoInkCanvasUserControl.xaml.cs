@@ -46,14 +46,14 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         Loaded += MainPage_Loaded;
         Console.WriteLine($"主线程随便输出");
     }
-    
+
     public UnoInkCanvasUserControl(Window currentWindow) : this()
     {
         _currentWindow = currentWindow;
     }
-    
+
     private readonly Window? _currentWindow;
-    
+
     private async void MainPage_Loaded(object sender, RoutedEventArgs e)
     {
         if (OperatingSystem.IsLinux())
@@ -465,6 +465,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 <<<<<<< HEAD
 <<<<<<< HEAD
 
+<<<<<<< HEAD
         if (OperatingSystem.IsLinux() && _x11InkProvider?.InkWindow.SkInkCanvas.Settings.Color is { } color)
         {
             skPaint.Color = color;
@@ -571,10 +572,16 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
                 e.Surface.Canvas.DrawPath(path, skPaint);
             }
 
+=======
+        List<StrokeCollectionInfo> strokeCollectionInfoList;
+        lock (StrokeInfoList)
+        {
+            strokeCollectionInfoList = [.. StrokeInfoList];
+>>>>>>> ae411cdcde0e691c1346c7570f584b2776464af1
             StrokeInfoList.Clear();
         }
 
-        StaticDebugLogger.WriteLine($"收集笔迹数量 {strokeCollectionInfoList.Count} ");
+        //StaticDebugLogger.WriteLine($"收集笔迹数量 {strokeCollectionInfoList.Count} ");
 
         foreach (var strokesCollectionInfo in strokeCollectionInfoList)
         {
@@ -696,7 +703,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     {
         Application.Current.Exit();
     }
-    
+
     private async void DebugButton_OnClick(object sender, RoutedEventArgs e)
     {
         await InvokeAsync(canvas =>

@@ -24,6 +24,7 @@
 >>>>>>> 4e4e346b35f530b319b76e0a603133b3af75ae8f
 
   <Grid>
+    <Border Margin="100,100,100,100" Background="White"></Border>
     <TextBlock x:Name="LogTextBlock" TextWrapping="Wrap" />
     <windows:SKXamlCanvas x:Name="SkXamlCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                           PaintSurface="SkXamlCanvas_OnPaintSurface">
