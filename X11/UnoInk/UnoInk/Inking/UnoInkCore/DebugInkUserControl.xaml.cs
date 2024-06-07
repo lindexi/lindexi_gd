@@ -29,7 +29,7 @@ public sealed partial class DebugInkUserControl : UserControl
 
     }
 
-    private async void SkXamlCanvas_OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
+    private void SkXamlCanvas_OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
 
     }
