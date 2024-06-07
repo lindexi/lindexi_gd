@@ -23,6 +23,8 @@ public partial class UnoInkFullScreenWindow : Window
 
         // 这句话似乎也是无效的
         this.SetBackground(new SolidColorBrush(Colors.Transparent));
+        this.SetBackground(new SolidColorBrush(Colors.White));
+
         this.AppWindow.GetApplicationView().TryEnterFullScreenMode();
 #endif
 
