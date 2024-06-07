@@ -1,8 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <AssemblyName>SamplesApp</AssemblyName>
-    <UnoSingleProject>true</UnoSingleProject>
     <OutputType>Library</OutputType>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -18,12 +16,30 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="Uno.UI.Composition">
-      <HintPath>C:\lindexi\Library\Uno.UI.Composition.dll</HintPath>
+    <PackageReference Include="SkiaSharp" />
+  </ItemGroup>
+
+  <!-- ================ !!! UNO HACKER !!! ================ -->
+
+  <!-- 程序集使用特殊名称，这样才能访问到 internal API。 -->
+  <PropertyGroup>
+    <AssemblyName>SamplesApp</AssemblyName>
+  </PropertyGroup>
+
+  <!-- 仅为获取到 NuGet 目录，不使用任何内容（包括 compile;runtime;build 等） -->
+  <ItemGroup>
+    <PackageReference Include="Uno.WinUI" GeneratePathProperty="true" PrivateAssets="all" ExcludeAssets="all" />
+  </ItemGroup>
+
+  <!-- 引用 net8.0-desktop 真正生效的程序集，而不是专供引用的程序集。 -->
+  <ItemGroup>
+    <Reference Include="Uno" Private="False">
+      <HintPath>$(PKGUno_WinUI)\uno-runtime\net8.0\skia\Uno.dll</HintPath>
     </Reference>
-    <Reference Include="Uno.UI.Runtime.Skia">
-      <HintPath>C:\lindexi\Library\Uno.UI.Runtime.Skia.dll</HintPath>
+    <Reference Include="Uno.UI" Private="False">
+      <HintPath>$(PKGUno_WinUI)\uno-runtime\net8.0\skia\Uno.UI.dll</HintPath>
     </Reference>
+<<<<<<< HEAD
     <Reference Include="Uno.UI">
       <HintPath>C:\lindexi\Library\Uno.UI.dll</HintPath>
     </Reference>
@@ -32,6 +48,10 @@
 =======
     <Reference Include="Uno">
       <HintPath>C:\lindexi\Library\Uno.dll</HintPath>
+=======
+    <Reference Include="Uno.UI.Composition" Private="False">
+      <HintPath>$(PKGUno_WinUI)\uno-runtime\net8.0\skia\Uno.UI.Composition.dll</HintPath>
+>>>>>>> 6c8b1749dc58618fd02b909eddca39074aeff038
     </Reference>
 >>>>>>> f6dd3c7f81d2c1ebb7fc06ba69fde8a8d9c59584
 =======
@@ -40,4 +60,6 @@
     </Reference>
 >>>>>>> 28dbfe3c20c4a1655590d70884afa45dcfe23e63
   </ItemGroup>
+
+  <!-- ================ !!! UNO HACKER !!! ================ -->
 </Project>

@@ -5,6 +5,7 @@
     See https://aka.platform.uno/using-uno-sdk for more information.
   -->
   <ItemGroup>
+<<<<<<< HEAD
   </ItemGroup>
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -26,3 +27,11 @@
 =======
 </Project>
 >>>>>>> 86984cb5eab3fd16df49ab173ec129b7bdf7ec0e
+=======
+    <PackageVersion Include="SkiaSharp" Version="2.88.8" />
+    <PackageVersion Include="Uno.WinUI" Version="5.2.139" />
+    <PackageVersion Include="Uno.WinUI.DevServer" Version="5.2.139" />
+    <PackageVersion Include="Microsoft.Maui.Graphics" Version="8.0.40" />
+  </ItemGroup>
+</Project>
+>>>>>>> 6c8b1749dc58618fd02b909eddca39074aeff038
