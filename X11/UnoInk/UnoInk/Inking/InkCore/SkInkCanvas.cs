@@ -196,8 +196,12 @@ class SkInkCanvas
     private void InputStart()
     {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         Console.WriteLine("==========InputStart============");
+=======
+        StaticDebugLogger.WriteLine("==========InputStart============");
+>>>>>>> ae674a4fc7ff79a7fcdf9d1c45d46594dfbc1ac6
 
 >>>>>>> ed5ef0e4ae3f39594e4f6a4108dc1cd46903a551
         // 这是浅拷贝
@@ -1498,8 +1502,8 @@ class SkInkCanvas
     public void Debug()
     {
         _isDebug = !_isDebug;
-
-        Console.WriteLine($"重新绘制画布 {ApplicationDrawingSkBitmap.Width}, {ApplicationDrawingSkBitmap.Height}");
+        
+        StaticDebugLogger.WriteLine($"重新绘制画布 {ApplicationDrawingSkBitmap.Width}, {ApplicationDrawingSkBitmap.Height}");
         RenderBoundsChanged?.Invoke(this,
             new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
 

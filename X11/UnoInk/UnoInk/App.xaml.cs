@@ -84,6 +84,7 @@ public partial class App : Application
 <<<<<<< HEAD
 <<<<<<< HEAD
         //ShowSecondWindow();
+        Console.WriteLine($"OnLaunched 时间 ");
 
         var unoInkWindow = new UnoInkFullScreenWindow();
         unoInkWindow.Activate();
