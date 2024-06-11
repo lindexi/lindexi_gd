@@ -496,7 +496,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         foreach (var strokesCollectionInfo in _currentStaticStrokeList)
         {
             skPaint.Color = strokesCollectionInfo.StrokeColor;
-            skPaint.Color = SKColors.Black;
+            //skPaint.Color = SKColors.Black;
             var path = strokesCollectionInfo.InkStrokePath;
             System.Diagnostics.Debug.Assert(path != null);
             
