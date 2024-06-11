@@ -32,6 +32,10 @@
       https://aka.platform.uno/singleproject-features
     -->
     <UnoFeatures>
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
       Material;
       Dsp;
       MVUX;
@@ -39,14 +43,18 @@
       Skia;
     </UnoFeatures>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- 将 Source Generator 生成的源代码保存到本地文件 -->
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\BujeeberehemnaNurgacolarje\*.cs" LinkBase="X11Ink\Core" />
+    <Compile Include="..\..\BujeeberehemnaNurgacolarje\*.cs" LinkBase="Inking\X11Ink\Core" />
+    <Compile Remove="..\..\BujeeberehemnaNurgacolarje\SimpleInkRender.cs" />
+    <Compile Remove="..\..\BujeeberehemnaNurgacolarje\StylusPoint.cs" />
     <Compile Remove="..\..\BujeeberehemnaNurgacolarje\X11App.cs" />
-    <Compile Include="..\..\DikalehebeekaJaqunicobo\ShapeConst.cs" Link="X11Ink\Core\ShapeConst.cs" />
-    <Compile Include="..\..\DikalehebeekaJaqunicobo\XFixes.cs" Link="X11Ink\Core\XFixes.cs" />
-    <Compile Include="..\..\HallgaiwhiyiwaLejucona\UnoInk\UnoInk\UnoInk\StrokePoint.cs" Link="InkCore\StrokePoint.cs" />
-    <Compile Include="..\..\ReewheaberekaiNayweelehe\ReewheaberekaiNayweelehe\SkInkCanvas.cs" Link="InkCore\SkInkCanvas.cs" />
+    <Compile Include="..\..\DikalehebeekaJaqunicobo\ShapeConst.cs" Link="Inking\X11Ink\Core\ShapeConst.cs" />
+    <Compile Include="..\..\DikalehebeekaJaqunicobo\XFixes.cs" Link="Inking\X11Ink\Core\XFixes.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Maui.Graphics" />
@@ -54,5 +62,35 @@
   <ItemGroup>
     <ProjectReference Include="..\UnoHacker\UnoHacker.csproj" />
   </ItemGroup>
+=======
+    </UnoFeatures>
+  </PropertyGroup>
+>>>>>>> 5adb265d4a50b5cb5c3d83f6d1bef1cd2ada93c0
+=======
+    </UnoFeatures>
+  </PropertyGroup>
+>>>>>>> dbc7fdb4f998d39ec1f48b0046d8f88914f6b50b
+=======
+    </UnoFeatures>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="Properties\PublishProfiles\FolderProfile.pubxml.user" />
+  </ItemGroup>
+>>>>>>> bb3ca7ae7043b68590131278b336efd0445ad5c3
+=======
+      Material;
+      Dsp;
+      MediaElement;
+      Hosting;
+      Toolkit;
+      Logging;
+      MVUX;
+      Configuration;
+      Localization;
+      Navigation;
+      ThemeService;
+    </UnoFeatures>
+  </PropertyGroup>
+>>>>>>> 86984cb5eab3fd16df49ab173ec129b7bdf7ec0e
 
 </Project>

@@ -1,16 +1,10 @@
-<Project Sdk="Uno.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>
-      net8.0-windows10.0.19041;
-      net8.0-desktop;
-    </TargetFrameworks>
-    <AssemblyName>SamplesApp</AssemblyName>
-    <UnoSingleProject>true</UnoSingleProject>
+    <TargetFramework>net8.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <!-- Ensures the .xr.xml files are generated in a proper layout folder -->
-    <GenerateLibraryLayout>true</GenerateLibraryLayout>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <DefineConstants>$(DefineConstants);HAS_UNO</DefineConstants>
 
     <!--
       UnoFeatures let's you quickly add and manage implicit package references based on the features you want to use.
@@ -21,18 +15,51 @@
     -->
   </PropertyGroup>
 
-  <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
-    <!--
-    If you encounter this error message:
-
-      error NETSDK1148: A referenced assembly was compiled using a newer version of Microsoft.Windows.SDK.NET.dll.
-      Please update to a newer .NET SDK in order to reference this assembly.
-
-    This means that the two packages below must be aligned with the "build" version number of
-    the "Microsoft.Windows.SDK.BuildTools" package above, and the "revision" version number
-    must be the highest found in https://www.nuget.org/packages/Microsoft.Windows.SDK.NET.Ref.
-    -->
-    <!-- <FrameworkReference Update="Microsoft.Windows.SDK.NET.Ref" RuntimeFrameworkVersion="10.0.22621.28" />
-    <FrameworkReference Update="Microsoft.Windows.SDK.NET.Ref" TargetingPackVersion="10.0.22621.28" /> -->
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp" />
   </ItemGroup>
+
+  <!-- ================ !!! UNO HACKER !!! ================ -->
+
+  <!-- 程序集使用特殊名称，这样才能访问到 internal API。 -->
+  <PropertyGroup>
+    <AssemblyName>SamplesApp</AssemblyName>
+  </PropertyGroup>
+
+  <!-- 仅为获取到 NuGet 目录，不使用任何内容（包括 compile;runtime;build 等） -->
+  <ItemGroup>
+    <PackageReference Include="Uno.WinUI" GeneratePathProperty="true" PrivateAssets="all" ExcludeAssets="all" />
+  </ItemGroup>
+
+  <!-- 引用 net8.0-desktop 真正生效的程序集，而不是专供引用的程序集。 -->
+  <ItemGroup>
+    <Reference Include="Uno" Private="False">
+      <HintPath>$(PKGUno_WinUI)\uno-runtime\net8.0\skia\Uno.dll</HintPath>
+    </Reference>
+    <Reference Include="Uno.UI" Private="False">
+      <HintPath>$(PKGUno_WinUI)\uno-runtime\net8.0\skia\Uno.UI.dll</HintPath>
+    </Reference>
+<<<<<<< HEAD
+    <Reference Include="Uno.UI">
+      <HintPath>C:\lindexi\Library\Uno.UI.dll</HintPath>
+    </Reference>
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    <Reference Include="Uno">
+      <HintPath>C:\lindexi\Library\Uno.dll</HintPath>
+=======
+    <Reference Include="Uno.UI.Composition" Private="False">
+      <HintPath>$(PKGUno_WinUI)\uno-runtime\net8.0\skia\Uno.UI.Composition.dll</HintPath>
+>>>>>>> 6c8b1749dc58618fd02b909eddca39074aeff038
+    </Reference>
+>>>>>>> f6dd3c7f81d2c1ebb7fc06ba69fde8a8d9c59584
+=======
+    <Reference Include="Uno">
+      <HintPath>C:\lindexi\Library\Uno.dll</HintPath>
+    </Reference>
+>>>>>>> 28dbfe3c20c4a1655590d70884afa45dcfe23e63
+  </ItemGroup>
+
+  <!-- ================ !!! UNO HACKER !!! ================ -->
 </Project>
