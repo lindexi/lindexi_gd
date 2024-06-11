@@ -22,7 +22,7 @@ using UnoInk.Inking.InkCore;
 using UnoInk.Inking.InkCore.Interactives;
 using UnoInk.Inking.X11Ink;
 using UnoInk.Inking.X11Platforms.Threading;
-using Uno.Skia;
+//using Uno.Skia;
 
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -115,16 +115,16 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //DrawInNative(position);
         _isDown = true;
         _firstMove = true;
-        LogTextBlock.Text += $"按下： {e.Pointer.PointerId}\r\n";
+        //LogTextBlock.Text += $"按下： {e.Pointer.PointerId}\r\n";
         //LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
-        Console.WriteLine($"按下： {e.Pointer.PointerId}");
+        //Console.WriteLine($"按下： {e.Pointer.PointerId}");
         var inputInfo = ToModeInputArgs(e);
         // 输入时不再立刻记录，防止记录到不正确的值
         //_lastInkingInputInfo = inputInfo;
         //_dispatcherRequiring?.Require();
         InvokeAsync(canvas =>
         {
-            StaticDebugLogger.WriteLine($"执行按下 {inputInfo.Position}");
+            //StaticDebugLogger.WriteLine($"执行按下 {inputInfo.Position}");
             canvas.ModeInputDispatcher.Down(inputInfo);
         });
     }
@@ -377,10 +377,10 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// 静态笔迹层
-    /// </summary>
-    private readonly List<StrokeCollectionInfo> _currentStaticStrokeList = new List<StrokeCollectionInfo>();
+    ///// <summary>
+    ///// 静态笔迹层
+    ///// </summary>
+    //private readonly List<StrokeCollectionInfo> _currentStaticStrokeList = new List<StrokeCollectionInfo>();
 
     //private async void SkiaVisual_OnDraw(object? sender, SKSurface e)
     //{
