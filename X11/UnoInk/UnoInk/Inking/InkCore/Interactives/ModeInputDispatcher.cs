@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Microsoft.Maui.Graphics;
+using UnoInk.Inking.X11Platforms;
 using UnoInk.Inking.X11Platforms.Input;
 
 namespace UnoInk.Inking.InkCore.Interactives;

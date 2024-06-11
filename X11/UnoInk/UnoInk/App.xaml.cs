@@ -16,6 +16,7 @@ using Microsoft.UI.Xaml;
 using UnoInk.Inking.UnoInkCore;
 using Uno.UI.Xaml;
 using SkiaSharp;
+<<<<<<< HEAD
 =======
 
 using Microsoft.Extensions.Logging;
@@ -45,6 +46,9 @@ using Uno.Foundation.Extensibility;
 >>>>>>> 6e8b447b0a87c7b2e270193e467236399f292aed
 using Uno.Resizetizer;
 >>>>>>> 86984cb5eab3fd16df49ab173ec129b7bdf7ec0e
+=======
+using UnoInk.Inking.X11Platforms;
+>>>>>>> a029facbd13933169b27eaffb91248a8f81db5f5
 
 namespace UnoInk;
 public partial class App : Application
@@ -84,7 +88,7 @@ public partial class App : Application
 <<<<<<< HEAD
 <<<<<<< HEAD
         //ShowSecondWindow();
-        Console.WriteLine($"OnLaunched 时间 ");
+        StaticDebugLogger.WriteLine($"OnLaunched 时间 ");
 
         var unoInkWindow = new UnoInkFullScreenWindow();
         unoInkWindow.Activate();

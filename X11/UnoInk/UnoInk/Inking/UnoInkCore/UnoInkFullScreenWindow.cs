@@ -3,6 +3,7 @@ using Microsoft.UI.Windowing;
 using UnoHacker;
 using Uno.UI.Xaml;
 using UnoInk.Inking.InkCore;
+using UnoInk.Inking.X11Platforms;
 
 namespace UnoInk.Inking.UnoInkCore;
 
