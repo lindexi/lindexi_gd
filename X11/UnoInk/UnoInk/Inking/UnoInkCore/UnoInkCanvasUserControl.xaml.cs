@@ -84,7 +84,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         Console.WriteLine($"SkInkCanvas_StrokesCollected InkId={e.InkId.Value}");
 
         // 这是 X11 线程进入的
-        lock (StrokeInfoList)
+        lock (_locker)
         {
             StrokeInfoList.Add(e);
         }
@@ -387,7 +387,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         skPaint.Style = SKPaintStyle.Fill;
         
         List<StrokeCollectionInfo> strokeCollectionInfoList;
-        lock (StrokeInfoList)
+        lock (_locker)
         {
             if (StrokeInfoList.Count == 0)
             {
@@ -436,7 +436,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         skPaint.Style = SKPaintStyle.Fill;
 
         List<StrokeCollectionInfo> strokeCollectionInfoList;
-        lock (StrokeInfoList)
+        lock (_locker)
         {
             if (StrokeInfoList.Count == 0)
             {
