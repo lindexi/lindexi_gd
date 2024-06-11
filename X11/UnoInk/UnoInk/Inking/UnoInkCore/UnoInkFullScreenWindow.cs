@@ -28,9 +28,8 @@ public partial class UnoInkFullScreenWindow : Window
         // 设置背景透明
         // 这句话似乎也是无效的
         this.SetBackground(new SolidColorBrush(Colors.Transparent));
-        this.AppWindow.GetApplicationView().TryEnterFullScreenMode();
 #endif
-        this.AppWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
+        //this.AppWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
 
         StaticDebugLogger.WriteLine($"全屏时间 {Environment.TickCount64} Thread={Environment.CurrentManagedThreadId}");
 
