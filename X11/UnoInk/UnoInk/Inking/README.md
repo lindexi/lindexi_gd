@@ -29,11 +29,13 @@
 - [x] 快速写笔迹会闪烁
   - 大量压入导致曝光没有处理
   - 修复笔迹转换动态
-- [ ] 启动时会闪烁窗口
+- [x] 启动时会闪烁窗口
   - 去掉 SetOwner 关系，尝试断开两个窗口关系测试是否快速写时闪烁。依然闪烁 013a257942a6e840a9d09547aaf955f0382ce83d
   - 测试是否动态笔迹层转换静态笔迹层的问题
   - 调用时间到全屏时间十分短，因此不是 XMapWindow 到 TryEnterFullScreenMode 的耗时
   - 测试窗口启动时间
+  - 经过测试窗口启动时间是设置窗口图标耗时在 UNO 的 X11XamlRootHost.UpdateWindowPropertiesFromPackage 的耗时
+    - 在 9f92656ee64eb5fc0701848931fd3d914a31b233 设置图标是空跳过
 - [ ] 动态笔迹重新命名为 DynamicRenderer 类型，保持和 WPF 相同
 - [ ] 考虑笔迹在所有元素之上
 - [ ] 优化抬笔闪烁
@@ -203,4 +205,16 @@ EndUpdateWindow     521364848 Thread=5 521364848-521364756=92
 X11XamlRootHost 完成 521364860 Thread=5
 窗口构造函数 521364892 Thread=5
 全屏时间 521364896 Thread=5
+```
+
+```
+9f92656ee64eb5fc0701848931fd3d914a31b233
+
+OnLaunched 时间 521763938 Thread=5
+Show Window 521764070 Thread=5
+StartUpdateWindow 521764098 Thread=5
+EndUpdateWindow   521764102 Thread=5 521764102-521764098=4
+X11XamlRootHost 完成 521764106 Thread=5 521764106-521764070=36
+窗口构造函数 521764150 Thread=5
+全屏时间 521764154 Thread=5  521764154-521764070=84
 ```
