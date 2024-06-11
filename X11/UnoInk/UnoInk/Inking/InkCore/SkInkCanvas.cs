@@ -115,7 +115,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
 
     void IInputProcessor.InputStart()
     {
-        Console.WriteLine("==========InputStart============");
+        StaticDebugLogger.WriteLine("==========InputStart============");
 
         // 这是浅拷贝
         //_originBackground = SkBitmap?.Copy();
@@ -1601,8 +1601,8 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
     public void Debug()
     {
         _isDebug = !_isDebug;
-
-        Console.WriteLine($"重新绘制画布 {ApplicationDrawingSkBitmap.Width}, {ApplicationDrawingSkBitmap.Height}");
+        
+        StaticDebugLogger.WriteLine($"重新绘制画布 {ApplicationDrawingSkBitmap.Width}, {ApplicationDrawingSkBitmap.Height}");
         RenderBoundsChanged?.Invoke(this,
             new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
 

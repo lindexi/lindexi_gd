@@ -45,6 +45,7 @@ public partial class App : Application
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         //ShowSecondWindow();
+        Console.WriteLine($"OnLaunched 时间 ");
 
         var unoInkWindow = new UnoInkFullScreenWindow();
         unoInkWindow.Activate();
