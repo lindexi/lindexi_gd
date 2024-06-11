@@ -58,7 +58,7 @@ public partial class App : Application
         this.InitializeComponent();
 <<<<<<< HEAD
         UnhandledException += App_UnhandledException;
-        this.DispatcherShutdownMode = DispatcherShutdownMode.OnExplicitShutdown;
+        //this.DispatcherShutdownMode = DispatcherShutdownMode.OnExplicitShutdown;
 #if HAS_UNO
         this.Suspending += (sender, args) =>
         {
