@@ -296,13 +296,14 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
             //Console.WriteLine($"InkCanvas_OnPointerReleased InvokeAsync ModeInputDispatcher.Up");
 
-            InvalidateRedraw();
+            InvalidateToRedraw();
         });
     }
 
-    private void InvalidateRedraw()
+    private void InvalidateToRedraw()
     {
         SkXamlCanvas.Invalidate();
+        // 对于 SkiaVisual 需要使用以下方式
         //this.InvalidateArrange();
     }
 
