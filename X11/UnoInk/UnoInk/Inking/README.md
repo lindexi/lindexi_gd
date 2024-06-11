@@ -29,8 +29,9 @@
   - 也许是界面输出的原因 8f2c35724079e00adf2b1a216392dd4f1bb70f0b
   - 也是因为控制台输出
 - [ ] 多指的支持
+  - 使用 https://github.com/unoplatform/uno/pull/15799 代码
 - [ ] 窗口背景透明
-  - https://github.com/unoplatform/uno/pull/16956
+  - 使用 https://github.com/unoplatform/uno/pull/16956 合入等发布
 - [x] 快速写笔迹会闪烁
   - 大量压入导致曝光没有处理
   - 修复笔迹转换动态
