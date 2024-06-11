@@ -253,7 +253,8 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         {
             if (_inputInfo is null)
             {
-                Debug.Fail("进入这里时，一定存在当前的输入");
+                // 可能连续进入两次
+                //Debug.Fail("进入这里时，一定存在当前的输入");
                 return;
             }
 
