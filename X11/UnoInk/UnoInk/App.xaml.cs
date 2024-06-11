@@ -31,6 +31,7 @@ public partial class App : Application
         {
             // 这里好像就是退出事件了
         };
+        Windows.ApplicationModel.Package.Current.Logo = null;
 #endif
     }
 

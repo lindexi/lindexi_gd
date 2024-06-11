@@ -169,3 +169,38 @@ EndMove0 0.055511ms
 执行移动 {X=383 Y=531} Count=48
 丢点数量： 24 实际参与绘制点数：24
 ```
+
+## 窗口启动闪烁测试
+
+```
+OnLaunched 时间 520568078 Thread=5
+Show Window     520568238 Thread=5  520568238-520568078=160
+窗口构造函数    520568406 Thread=5  520568406-520568238=168
+全屏时间        520568410 Thread=5  520568410-520568406=4
+```
+
+测试代码:
+
+- 仓库： https://github.com/lindexi/uno/
+- 代码： 3c850a1c4ad7e56e572c10b4242f94c450fbe430
+
+```
+OnLaunched 时间      520860590 Thread=5
+Show Window          520860738 Thread=5
+UpdateWindow         520860870 Thread=5 520860870-520860738=132 性能核心
+X11XamlRootHost 完成 520860874 Thread=5 520860874-520860870=4
+窗口构造函数         520860918 Thread=5 窗口构造函数-UpdateWindow=520860918-520860870=48
+全屏时间 520860922 Thread=5
+```
+
+- 代码： 59c036f79186c3634955d70a424c0b9b5ef9fb34
+
+```
+OnLaunched 时间     521364592 Thread=5
+Show Window         521364724 Thread=5
+StartUpdateWindow   521364756 Thread=5 521364756-521364724=32
+EndUpdateWindow     521364848 Thread=5 521364848-521364756=92
+X11XamlRootHost 完成 521364860 Thread=5
+窗口构造函数 521364892 Thread=5
+全屏时间 521364896 Thread=5
+```
