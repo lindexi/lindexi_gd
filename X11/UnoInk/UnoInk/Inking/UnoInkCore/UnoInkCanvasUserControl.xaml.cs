@@ -377,7 +377,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     /// </summary>
     private readonly List<StrokeCollectionInfo> _currentStaticStrokeList = new List<StrokeCollectionInfo>();
 
-    private void SkiaVisual_OnDraw(object? sender, SKSurface e)
+    private async void SkiaVisual_OnDraw(object? sender, SKSurface e)
     {
         using var skPaint = new SKPaint();
         skPaint.StrokeWidth = 0f;
@@ -421,8 +421,10 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         
         if (strokeCollectionInfoList != null)
         {
+            // 延迟一下，减少闪烁，确保 UNO 这一层绘制完成
+            await Task.Delay(100);
             // 清空笔迹，换成在 UNO 层绘制
-            _ = InvokeAsync(canvas =>
+            await InvokeAsync(canvas =>
             {
                 //canvas.RaiseRenderBoundsChanged(new Rect(0, 0, canvas.ApplicationDrawingSkBitmap!.Width,
                 //    canvas.ApplicationDrawingSkBitmap.Height));
