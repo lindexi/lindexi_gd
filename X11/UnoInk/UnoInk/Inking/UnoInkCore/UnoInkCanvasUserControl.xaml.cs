@@ -21,6 +21,7 @@ using SkiaSharp.Views.Windows;
 using UnoInk.Inking.InkCore;
 using UnoInk.Inking.InkCore.Interactives;
 using UnoInk.Inking.X11Ink;
+using UnoInk.Inking.X11Platforms;
 using UnoInk.Inking.X11Platforms.Threading;
 //using Uno.Skia;
 
