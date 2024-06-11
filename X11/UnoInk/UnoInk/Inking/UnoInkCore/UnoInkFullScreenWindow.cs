@@ -25,6 +25,7 @@ public partial class UnoInkFullScreenWindow : Window
         this.SetBackground(new SolidColorBrush(Colors.Transparent));
         this.AppWindow.GetApplicationView().TryEnterFullScreenMode();
 #endif
+        Console.WriteLine($"全屏时间 {Environment.TickCount64} Thread={{System.Threading.Thread.CurrentThread.ManagedThreadId}}");
 
         // 背景透明需要 UNO 还没发布的版本
         // https://github.com/lindexi/uno/tree/7b282851a8ec3ed7eb42a53af8b50ea7fe045d56
