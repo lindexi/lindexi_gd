@@ -49,11 +49,21 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         Console.WriteLine($"主线程随便输出");
 =======
 
+<<<<<<< HEAD
 #if HAS_UNO
         var skiaVisual = SkiaVisual.CreateAndInsertTo(this);
         skiaVisual.OnDraw += SkiaVisual_OnDraw;
 #endif
 >>>>>>> a3193333714925764bbd3a5e7c362b2bbc5332b6
+=======
+        // 由于 SkiaVisual 没有明确的优势，不能解决同步渲染闪烁问题
+        // 也会导致每次都渲染所有静态笔迹，笔迹数量多了会卡
+        // 因此这里不使用 SkiaVisual 绘制，后续可以考虑笔迹元素再这么使用
+        //#if HAS_UNO
+        //        var skiaVisual = SkiaVisual.CreateAndInsertTo(this);
+        //        skiaVisual.OnDraw += SkiaVisual_OnDraw;
+        //#endif
+>>>>>>> 0bc7beabe01f40b068e7b3802f1c8ef57713f050
     }
 
 
@@ -337,7 +347,8 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         {
             if (_inputInfo is null)
             {
-                Debug.Fail("进入这里时，一定存在当前的输入");
+                // 可能连续进入两次
+                //Debug.Fail("进入这里时，一定存在当前的输入");
                 return;
             }
 
@@ -382,8 +393,8 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
     private void InvalidateRedraw()
     {
-        //SkXamlCanvas.Invalidate();
-        this.InvalidateArrange();
+        SkXamlCanvas.Invalidate();
+        //this.InvalidateArrange();
     }
 
     //private readonly List<string> _skPathList = [];
@@ -471,48 +482,49 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     /// </summary>
     private readonly List<StrokeCollectionInfo> _currentStaticStrokeList = new List<StrokeCollectionInfo>();
 
-    private async void SkiaVisual_OnDraw(object? sender, SKSurface e)
-    {
-        using var skPaint = new SKPaint();
-        skPaint.StrokeWidth = 0f;
-        skPaint.IsAntialias = true;
-        skPaint.IsStroke = false;
-        skPaint.FilterQuality = SKFilterQuality.High;
-        skPaint.Style = SKPaintStyle.Fill;
+    //private async void SkiaVisual_OnDraw(object? sender, SKSurface e)
+    //{
+    //    using var skPaint = new SKPaint();
+    //    skPaint.StrokeWidth = 0f;
+    //    skPaint.IsAntialias = true;
+    //    skPaint.IsStroke = false;
+    //    skPaint.FilterQuality = SKFilterQuality.High;
+    //    skPaint.Style = SKPaintStyle.Fill;
 
-        List<StrokeCollectionInfo>? strokeCollectionInfoList;
-        lock (_locker)
-        {
-            if (StrokeInfoList.Count == 0)
-            {
-                strokeCollectionInfoList = null;
-            }
-            else
-            {
-                strokeCollectionInfoList = [.. StrokeInfoList];
-                StrokeInfoList.Clear();
-            }
-        }
+    //    List<StrokeCollectionInfo>? strokeCollectionInfoList;
+    //    lock (_locker)
+    //    {
+    //        if (StrokeInfoList.Count == 0)
+    //        {
+    //            strokeCollectionInfoList = null;
+    //        }
+    //        else
+    //        {
+    //            strokeCollectionInfoList = [.. StrokeInfoList];
+    //            StrokeInfoList.Clear();
+    //        }
+    //    }
 
-        if (strokeCollectionInfoList != null)
-        {
-            _currentStaticStrokeList.AddRange(strokeCollectionInfoList);
-        }
+    //    if (strokeCollectionInfoList != null)
+    //    {
+    //        _currentStaticStrokeList.AddRange(strokeCollectionInfoList);
+    //    }
 
-        // 由于 SkiaVisual 是清空画布渲染的，因此需要每个笔迹每次都重新渲染
-        // 这就意味着如果笔迹数量多了，那就会卡渲染
-        // 可选后续换成一个静态画布层优化性能
-        foreach (var strokesCollectionInfo in _currentStaticStrokeList)
-        {
-            skPaint.Color = strokesCollectionInfo.StrokeColor;
-            //skPaint.Color = SKColors.Black;
-            var path = strokesCollectionInfo.InkStrokePath;
-            System.Diagnostics.Debug.Assert(path != null);
+    //    // 由于 SkiaVisual 是清空画布渲染的，因此需要每个笔迹每次都重新渲染
+    //    // 这就意味着如果笔迹数量多了，那就会卡渲染
+    //    // 可选后续换成一个静态画布层优化性能
+    //    foreach (var strokesCollectionInfo in _currentStaticStrokeList)
+    //    {
+    //        skPaint.Color = strokesCollectionInfo.StrokeColor;
+    //        //skPaint.Color = SKColors.Black;
+    //        var path = strokesCollectionInfo.InkStrokePath;
+    //        System.Diagnostics.Debug.Assert(path != null);
 
-            e.Canvas.DrawPath(path, skPaint);
-            Console.WriteLine($"DrawPath");
-        }
+    //        e.Canvas.DrawPath(path, skPaint);
+    //        Console.WriteLine($"DrawPath");
+    //    }
         
+<<<<<<< HEAD
         if (strokeCollectionInfoList != null)
         {
             // 延迟一下，减少闪烁，确保 UNO 这一层绘制完成
@@ -527,6 +539,21 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         }
     }
 >>>>>>> a3193333714925764bbd3a5e7c362b2bbc5332b6
+=======
+    //    if (strokeCollectionInfoList != null)
+    //    {
+    //        // 延迟一下，减少闪烁，确保 UNO 这一层绘制完成
+    //        await Task.Delay(100);
+    //        // 清空笔迹，换成在 UNO 层绘制
+    //        await InvokeAsync(canvas =>
+    //        {
+    //            //canvas.RaiseRenderBoundsChanged(new Rect(0, 0, canvas.ApplicationDrawingSkBitmap!.Width,
+    //            //    canvas.ApplicationDrawingSkBitmap.Height));
+    //            canvas.CleanStroke(strokeCollectionInfoList);
+    //        });
+    //    }
+    //}
+>>>>>>> 0bc7beabe01f40b068e7b3802f1c8ef57713f050
 
     private async void SkXamlCanvas_OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
 >>>>>>> 634d1cb4563ff0ed67ece034dc0b98adf6f10e6d
@@ -540,10 +567,14 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 =======
         //Console.WriteLine($"SkXamlCanvas_OnPaintSurface");
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b35874b160fd7c7597604af5567f6759edd632e4
 =======
         return;
 >>>>>>> 91e63f03e6ffe69c0159e46f4d07ffcac39b2e18
+=======
+        //return;
+>>>>>>> 0bc7beabe01f40b068e7b3802f1c8ef57713f050
 
 >>>>>>> 0cc6a7740e41d01c0c33f9cb3960e0b79c892083
         using var skPaint = new SKPaint();
@@ -681,7 +712,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         foreach (var strokesCollectionInfo in strokeCollectionInfoList)
         {
             skPaint.Color = strokesCollectionInfo.StrokeColor;
-            skPaint.Color = SKColors.Black;
+            //skPaint.Color = SKColors.Black;
             var path = strokesCollectionInfo.InkStrokePath;
             System.Diagnostics.Debug.Assert(path != null);
 
