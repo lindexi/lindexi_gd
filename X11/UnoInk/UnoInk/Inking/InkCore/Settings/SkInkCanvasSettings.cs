@@ -104,6 +104,14 @@ public record SkInkCanvasSettings(bool AutoSoftPen = true)
     /// 是否忽略压感。
     /// </summary>
     public bool IgnorePressure { get; init; } = true;
-    
+
+    /// <summary>
+    /// 是否在按下时需要调用 DrawStroke 方法，用于解决丢失按下的点
+    /// </summary>
+    public bool ShouldDrawStrokeOnDown { get; init; } = false;
+
+    /// <summary>
+    /// 清空笔迹的配置
+    /// </summary>
     public CleanStrokeSettings CleanStrokeSettings { get; init; } = new CleanStrokeSettings();
 }

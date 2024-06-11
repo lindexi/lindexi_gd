@@ -73,6 +73,9 @@ class X11InkWindow : X11Window
             //EnableEraserGesture = false,
             DynamicRenderType = InkCanvasDynamicRenderTipStrokeType.RenderAllTouchingStrokeWithClip,
 
+            // 尝试修复丢失按下的点
+            ShouldDrawStrokeOnDown = true,
+
             CleanStrokeSettings = new CleanStrokeSettings()
             {
                 ShouldDrawBackground = false,

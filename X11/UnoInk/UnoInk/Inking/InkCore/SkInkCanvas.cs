@@ -119,10 +119,10 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
 
         // 这是浅拷贝
         //_originBackground = SkBitmap?.Copy();
-        
+
         UpdateOriginBackground();
     }
-    
+
     private void UpdateOriginBackground()
     {
         // 需要使用 SKCanvas 才能实现拷贝
@@ -131,7 +131,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
             ApplicationDrawingSkBitmap.AlphaType,
             ApplicationDrawingSkBitmap.ColorSpace), SKBitmapAllocFlags.None);
         _isOriginBackgroundDisable = false;
-        
+
         using var skCanvas = new SKCanvas(_originBackground);
         skCanvas.Clear();
         skCanvas.DrawBitmap(ApplicationDrawingSkBitmap, 0, 0);
@@ -140,7 +140,8 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
     void IInputProcessor.Down(ModeInputArgs info)
     {
         var inkId = CreateInkId();
-        CurrentInputDictionary.Add(info.Id, new DrawStrokeContext(inkId, info, Settings.Color, Settings.InkThickness));
+        var drawStrokeContext = new DrawStrokeContext(inkId, info, Settings.Color, Settings.InkThickness);
+        CurrentInputDictionary.Add(info.Id, drawStrokeContext);
 
         StaticDebugLogger.WriteLine($"Down {info.Position.X:0.00},{info.Position.Y:0.00} CurrentInputDictionaryCount={CurrentInputDictionary.Count}");
         //_outputMove = false;
@@ -156,6 +157,16 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
         {
             // 首次就进入橡皮擦
             DownEraser(in info);
+        }
+        else
+        {
+            // 笔模式
+            if (Settings.ShouldDrawStrokeOnDown)
+            {
+                var result = DrawStroke(drawStrokeContext, out _);
+                // 必定不会成功，但是将点进行收集
+                System.Diagnostics.Debug.Assert(!result);
+            }
         }
     }
 
@@ -890,7 +901,7 @@ class SkInkCanvas : IInputProcessor, IModeInputDispatcherSensitive
                 skCanvas.DrawPath(path, skPaint);
             }
         }
-        
+
         if (shouldUpdateBackground)
         {
             UpdateOriginBackground();
