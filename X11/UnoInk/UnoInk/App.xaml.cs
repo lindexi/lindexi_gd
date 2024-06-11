@@ -46,7 +46,7 @@ public partial class App : Application
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         //ShowSecondWindow();
-        StaticDebugLogger.WriteLine($"OnLaunched 时间 ");
+        StaticDebugLogger.WriteLine($"OnLaunched 时间 {Environment.TickCount64} Thread={Environment.CurrentManagedThreadId}");
 
         var unoInkWindow = new UnoInkFullScreenWindow();
         unoInkWindow.Activate();
