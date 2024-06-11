@@ -11,7 +11,7 @@
   d:DesignWidth="400">
 
   <Grid>
-    <Border Margin="100,100,100,100" Background="White"></Border>
+    <Border Margin="100,100,100,100" Background="#56FFFFFF"></Border>
     <TextBlock x:Name="LogTextBlock" TextWrapping="Wrap" />
     <windows:SKXamlCanvas x:Name="SkXamlCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                           PaintSurface="SkXamlCanvas_OnPaintSurface">
@@ -20,7 +20,7 @@
             PointerMoved="InkCanvas_OnPointerMoved" PointerReleased="InkCanvas_OnPointerReleased">
     </Canvas>
 
-    <Border Width="100" Height="100" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#FF565656"></Border>
+    <Border Width="100" Height="100" HorizontalAlignment="Center" VerticalAlignment="Center" Background="#FF5656C6"></Border>
 
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
                 VerticalAlignment="Top">
