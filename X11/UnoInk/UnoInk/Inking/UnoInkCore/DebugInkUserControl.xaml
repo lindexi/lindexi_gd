@@ -10,7 +10,7 @@
   d:DesignHeight="300"
   d:DesignWidth="400">
 
-  <Grid>
+  <Grid Background="Transparent" PointerPressed="UIElement_OnPointerPressed" PointerMoved="UIElement_OnPointerMoved">
     <windows:SKXamlCanvas x:Name="SkXamlCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                           PaintSurface="SkXamlCanvas_OnPaintSurface">
     </windows:SKXamlCanvas>

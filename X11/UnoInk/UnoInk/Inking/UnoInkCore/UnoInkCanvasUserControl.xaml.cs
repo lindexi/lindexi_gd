@@ -22,6 +22,7 @@ using UnoInk.Inking.InkCore;
 using UnoInk.Inking.InkCore.Interactives;
 using UnoInk.Inking.X11Ink;
 using UnoInk.Inking.X11Platforms.Threading;
+using Uno.Skia;
 
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -34,7 +35,13 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         this.InitializeComponent();
 
         Loaded += MainPage_Loaded;
+
+#if HAS_UNO
+        var skiaVisual = SkiaVisual.CreateAndInsertTo(this);
+        skiaVisual.OnDraw += SkiaVisual_OnDraw;
+#endif
     }
+
 
     public UnoInkCanvasUserControl(Window currentWindow) : this()
     {
@@ -355,6 +362,10 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         }
 
         return Task.CompletedTask;
+    }
+    
+    private void SkiaVisual_OnDraw(object? sender, SKSurface e)
+    {
     }
 
     private async void SkXamlCanvas_OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
