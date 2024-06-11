@@ -32,8 +32,8 @@ public partial class App : Application
             // 这里好像就是退出事件了
         };
 
-        // 设置图标的时间太长，设置为空即可跳过这部分的耗时，解决启动窗口闪烁
-        global::Windows.ApplicationModel.Package.Current.Logo = null;
+        //// 设置图标的时间太长，设置为空即可跳过这部分的耗时，解决启动窗口闪烁
+        //global::Windows.ApplicationModel.Package.Current.Logo = null;
 #endif
     }
 
