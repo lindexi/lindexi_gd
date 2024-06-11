@@ -203,6 +203,7 @@ class SkInkCanvas
         // 这是浅拷贝
         //_originBackground = SkBitmap?.Copy();
 <<<<<<< HEAD
+<<<<<<< HEAD
 
         Console.WriteLine("==========InputStart============");
 
@@ -213,9 +214,12 @@ class SkInkCanvas
 
 =======
         
+=======
+
+>>>>>>> 599147e32a66789ac8b2b5e73cfd7fb341f7686a
         UpdateOriginBackground();
     }
-    
+
     private void UpdateOriginBackground()
     {
         // 需要使用 SKCanvas 才能实现拷贝
@@ -225,7 +229,7 @@ class SkInkCanvas
             ApplicationDrawingSkBitmap.AlphaType,
             ApplicationDrawingSkBitmap.ColorSpace), SKBitmapAllocFlags.None);
         _isOriginBackgroundDisable = false;
-        
+
         using var skCanvas = new SKCanvas(_originBackground);
         skCanvas.Clear();
         skCanvas.DrawBitmap(ApplicationDrawingSkBitmap, 0, 0);
@@ -246,11 +250,16 @@ class SkInkCanvas
         CurrentInputDictionary.Add(info.Id, new DrawStrokeContext(info, Settings.Color, Settings.InkThickness));
 =======
         var inkId = CreateInkId();
+<<<<<<< HEAD
         CurrentInputDictionary.Add(info.Id, new DrawStrokeContext(inkId, info, Settings.Color, Settings.InkThickness));
 <<<<<<< HEAD
 >>>>>>> a313c7d1fa7ffb81c04c5af29dbd36289f0f1a6d
         
 =======
+=======
+        var drawStrokeContext = new DrawStrokeContext(inkId, info, Settings.Color, Settings.InkThickness);
+        CurrentInputDictionary.Add(info.Id, drawStrokeContext);
+>>>>>>> 599147e32a66789ac8b2b5e73cfd7fb341f7686a
 
 >>>>>>> 827edf5ed42e71bb71ae76bd967e43953fbc3611
         StaticDebugLogger.WriteLine($"Down {info.Position.X:0.00},{info.Position.Y:0.00} CurrentInputDictionaryCount={CurrentInputDictionary.Count}");
@@ -269,6 +278,16 @@ class SkInkCanvas
         {
             InputStart();
             MainInputId = info.Id;
+        }
+        else
+        {
+            // 笔模式
+            if (Settings.ShouldDrawStrokeOnDown)
+            {
+                var result = DrawStroke(drawStrokeContext, out _);
+                // 必定不会成功，但是将点进行收集
+                System.Diagnostics.Debug.Assert(!result);
+            }
         }
     }
 
@@ -863,7 +882,7 @@ class SkInkCanvas
                 skCanvas.DrawPath(path, skPaint);
             }
         }
-        
+
         if (shouldUpdateBackground)
         {
             UpdateOriginBackground();
