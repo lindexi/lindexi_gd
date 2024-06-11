@@ -148,11 +148,11 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         Console.WriteLine($"SkInkCanvas_StrokesCollected InkId={e.InkId.Value}");
 
         // 这是 X11 线程进入的
-        lock (StrokeInfoList)
+        lock (_locker)
         {
             StrokeInfoList.Add(e);
         }
-        
+
         //InvalidateRedraw();
     }
 <<<<<<< HEAD
@@ -375,11 +375,11 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             //canvas.Up(ToInkingInputInfo(e));
 
             //Console.WriteLine($"InkCanvas_OnPointerReleased InvokeAsync ModeInputDispatcher.Up");
-            
+
             InvalidateRedraw();
         });
     }
-    
+
     private void InvalidateRedraw()
     {
         //SkXamlCanvas.Invalidate();
@@ -457,11 +457,15 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     
     private void SkXamlCanvas_OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
 =======
 =======
     
+=======
+
+>>>>>>> 6edccad04df6123684203fe12254a28938f5954d
     /// <summary>
     /// 静态笔迹层
     /// </summary>
@@ -475,20 +479,25 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         skPaint.IsStroke = false;
         skPaint.FilterQuality = SKFilterQuality.High;
         skPaint.Style = SKPaintStyle.Fill;
-        
-        List<StrokeCollectionInfo> strokeCollectionInfoList;
-        lock (StrokeInfoList)
+
+        List<StrokeCollectionInfo>? strokeCollectionInfoList;
+        lock (_locker)
         {
             if (StrokeInfoList.Count == 0)
             {
-                return;
+                strokeCollectionInfoList = null;
             }
-            
-            strokeCollectionInfoList = [.. StrokeInfoList];
-            StrokeInfoList.Clear();
+            else
+            {
+                strokeCollectionInfoList = [.. StrokeInfoList];
+                StrokeInfoList.Clear();
+            }
         }
-        
-        _currentStaticStrokeList.AddRange(strokeCollectionInfoList);
+
+        if (strokeCollectionInfoList != null)
+        {
+            _currentStaticStrokeList.AddRange(strokeCollectionInfoList);
+        }
 
         // 由于 SkiaVisual 是清空画布渲染的，因此需要每个笔迹每次都重新渲染
         // 这就意味着如果笔迹数量多了，那就会卡渲染
@@ -499,18 +508,21 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             //skPaint.Color = SKColors.Black;
             var path = strokesCollectionInfo.InkStrokePath;
             System.Diagnostics.Debug.Assert(path != null);
-            
+
             e.Canvas.DrawPath(path, skPaint);
             Console.WriteLine($"DrawPath");
         }
         
-        // 清空笔迹，换成在 UNO 层绘制
-        _ = InvokeAsync(canvas =>
+        if (strokeCollectionInfoList != null)
         {
-            //canvas.RaiseRenderBoundsChanged(new Rect(0, 0, canvas.ApplicationDrawingSkBitmap!.Width,
-            //    canvas.ApplicationDrawingSkBitmap.Height));
-            canvas.CleanStroke(strokeCollectionInfoList);
-        });
+            // 清空笔迹，换成在 UNO 层绘制
+            _ = InvokeAsync(canvas =>
+            {
+                //canvas.RaiseRenderBoundsChanged(new Rect(0, 0, canvas.ApplicationDrawingSkBitmap!.Width,
+                //    canvas.ApplicationDrawingSkBitmap.Height));
+                canvas.CleanStroke(strokeCollectionInfoList);
+            });
+        }
     }
 >>>>>>> a3193333714925764bbd3a5e7c362b2bbc5332b6
 
@@ -650,7 +662,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
 =======
         List<StrokeCollectionInfo> strokeCollectionInfoList;
-        lock (StrokeInfoList)
+        lock (_locker)
         {
             if (StrokeInfoList.Count == 0)
             {
