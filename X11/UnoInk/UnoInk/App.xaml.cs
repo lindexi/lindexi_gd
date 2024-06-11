@@ -33,6 +33,8 @@ public partial class App : Application
         };
 
         // 设置图标的时间太长，设置为空即可跳过这部分的耗时，解决启动窗口闪烁
+        // 设置图标只影响任务栏图标
+        Console.WriteLine(global::Windows.ApplicationModel.Package.Current.Logo);
         global::Windows.ApplicationModel.Package.Current.Logo = null;
 #endif
     }
