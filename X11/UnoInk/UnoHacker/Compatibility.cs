@@ -9,3 +9,7 @@ namespace Uno.UI.Xaml
     file class UnUse;
 }
 
+namespace Uno.Skia
+{
+    file class UnUse;
+}

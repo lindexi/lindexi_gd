@@ -32,6 +32,7 @@ using UnoInk.Inking.InkCore;
 using UnoInk.Inking.InkCore.Interactives;
 using UnoInk.Inking.X11Ink;
 using UnoInk.Inking.X11Platforms.Threading;
+using Uno.Skia;
 
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -44,8 +45,17 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         this.InitializeComponent();
 
         Loaded += MainPage_Loaded;
+<<<<<<< HEAD
         Console.WriteLine($"主线程随便输出");
+=======
+
+#if HAS_UNO
+        var skiaVisual = SkiaVisual.CreateAndInsertTo(this);
+        skiaVisual.OnDraw += SkiaVisual_OnDraw;
+#endif
+>>>>>>> a3193333714925764bbd3a5e7c362b2bbc5332b6
     }
+
 
     public UnoInkCanvasUserControl(Window currentWindow) : this()
     {
@@ -438,9 +448,16 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         return Task.CompletedTask;
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
     
     private void SkXamlCanvas_OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
 =======
+=======
+    
+    private void SkiaVisual_OnDraw(object? sender, SKSurface e)
+    {
+    }
+>>>>>>> a3193333714925764bbd3a5e7c362b2bbc5332b6
 
     private async void SkXamlCanvas_OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
 >>>>>>> 634d1cb4563ff0ed67ece034dc0b98adf6f10e6d
@@ -576,6 +593,11 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         List<StrokeCollectionInfo> strokeCollectionInfoList;
         lock (StrokeInfoList)
         {
+            if (StrokeInfoList.Count == 0)
+            {
+                return;
+            }
+
             strokeCollectionInfoList = [.. StrokeInfoList];
 >>>>>>> ae411cdcde0e691c1346c7570f584b2776464af1
             StrokeInfoList.Clear();
