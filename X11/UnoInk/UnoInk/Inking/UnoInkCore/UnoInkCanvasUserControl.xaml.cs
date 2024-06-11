@@ -152,6 +152,8 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         {
             StrokeInfoList.Add(e);
         }
+        
+        //InvalidateRedraw();
     }
 <<<<<<< HEAD
     
@@ -373,9 +375,15 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             //canvas.Up(ToInkingInputInfo(e));
 
             //Console.WriteLine($"InkCanvas_OnPointerReleased InvokeAsync ModeInputDispatcher.Up");
-
-            SkXamlCanvas.Invalidate();
+            
+            InvalidateRedraw();
         });
+    }
+    
+    private void InvalidateRedraw()
+    {
+        //SkXamlCanvas.Invalidate();
+        this.InvalidateArrange();
     }
 
     //private readonly List<string> _skPathList = [];
@@ -454,8 +462,55 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 =======
 =======
     
+    /// <summary>
+    /// 静态笔迹层
+    /// </summary>
+    private readonly List<StrokeCollectionInfo> _currentStaticStrokeList = new List<StrokeCollectionInfo>();
+
     private void SkiaVisual_OnDraw(object? sender, SKSurface e)
     {
+        using var skPaint = new SKPaint();
+        skPaint.StrokeWidth = 0f;
+        skPaint.IsAntialias = true;
+        skPaint.IsStroke = false;
+        skPaint.FilterQuality = SKFilterQuality.High;
+        skPaint.Style = SKPaintStyle.Fill;
+        
+        List<StrokeCollectionInfo> strokeCollectionInfoList;
+        lock (StrokeInfoList)
+        {
+            if (StrokeInfoList.Count == 0)
+            {
+                return;
+            }
+            
+            strokeCollectionInfoList = [.. StrokeInfoList];
+            StrokeInfoList.Clear();
+        }
+        
+        _currentStaticStrokeList.AddRange(strokeCollectionInfoList);
+
+        // 由于 SkiaVisual 是清空画布渲染的，因此需要每个笔迹每次都重新渲染
+        // 这就意味着如果笔迹数量多了，那就会卡渲染
+        // 可选后续换成一个静态画布层优化性能
+        foreach (var strokesCollectionInfo in _currentStaticStrokeList)
+        {
+            skPaint.Color = strokesCollectionInfo.StrokeColor;
+            skPaint.Color = SKColors.Black;
+            var path = strokesCollectionInfo.InkStrokePath;
+            System.Diagnostics.Debug.Assert(path != null);
+            
+            e.Canvas.DrawPath(path, skPaint);
+            Console.WriteLine($"DrawPath");
+        }
+        
+        // 清空笔迹，换成在 UNO 层绘制
+        _ = InvokeAsync(canvas =>
+        {
+            //canvas.RaiseRenderBoundsChanged(new Rect(0, 0, canvas.ApplicationDrawingSkBitmap!.Width,
+            //    canvas.ApplicationDrawingSkBitmap.Height));
+            canvas.CleanStroke(strokeCollectionInfoList);
+        });
     }
 >>>>>>> a3193333714925764bbd3a5e7c362b2bbc5332b6
 
@@ -470,7 +525,11 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         Console.WriteLine($"SkXamlCanvas_OnPaintSurface");
 =======
         //Console.WriteLine($"SkXamlCanvas_OnPaintSurface");
+<<<<<<< HEAD
 >>>>>>> b35874b160fd7c7597604af5567f6759edd632e4
+=======
+        return;
+>>>>>>> 91e63f03e6ffe69c0159e46f4d07ffcac39b2e18
 
 >>>>>>> 0cc6a7740e41d01c0c33f9cb3960e0b79c892083
         using var skPaint = new SKPaint();
