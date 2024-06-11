@@ -11,6 +11,8 @@ public partial class UnoInkFullScreenWindow : Window
 {
     public UnoInkFullScreenWindow()
     {
+        StaticDebugLogger.WriteLine($"窗口构造函数 {Environment.TickCount64} Thread={Environment.CurrentManagedThreadId}");
+
 #if DEBUG
         this.EnableHotReload();
 #endif

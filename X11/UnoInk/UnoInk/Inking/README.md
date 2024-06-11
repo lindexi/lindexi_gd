@@ -25,7 +25,7 @@
     - 依然落笔卡顿和闪烁
   - 使用其他的笔的实现
 - [x] 落笔的点被丢失没有参与渲染
-- [ ] 第一笔落笔慢
+- [x] 第一笔落笔慢
   - 也许是界面输出的原因 8f2c35724079e00adf2b1a216392dd4f1bb70f0b
   - 也是因为控制台输出
 - [ ] 多指的支持
@@ -38,11 +38,12 @@
   - 去掉 SetOwner 关系，尝试断开两个窗口关系测试是否快速写时闪烁。依然闪烁 013a257942a6e840a9d09547aaf955f0382ce83d
   - 测试是否动态笔迹层转换静态笔迹层的问题
   - 调用时间到全屏时间十分短，因此不是 XMapWindow 到 TryEnterFullScreenMode 的耗时
+  - 测试窗口启动时间
 - [ ] 动态笔迹重新命名为 DynamicRenderer 类型，保持和 WPF 相同
 - [ ] 考虑笔迹在所有元素之上
 - [ ] 优化抬笔闪烁
   - 核心原因是渲染同步
-  - 尝试使用还没合入的方法
+  - 尝试使用还没合入的方法 没有用
   - 加上项目引用 67fd7c3106472b8f0a84d3c4f67387aec391e03a
   - 测试 SkiaVisual 是否每一笔都是重新绘制
     - 经过测试每一次都是重新绘制清空画布重新绘制 a3193333714925764bbd3a5e7c362b2bbc5332b6
@@ -191,6 +192,7 @@ EndMove0 0.055511ms
 >>>>>>> e9efe11f06ed4f57f403efd847cdc813072e6582
 =======
 
+<<<<<<< HEAD
 ```
 重新输出绘制的点的数量，用于测试点的性能
 丢点数量： 4 实际参与绘制点数：3
@@ -300,288 +302,40 @@ EndMove0 0.055411ms
 =======
 
 使用裁剪笔迹的性能
+=======
+## 窗口启动闪烁测试
+>>>>>>> 9f92656ee64eb5fc0701848931fd3d914a31b233
 
 ```
-丢点数量： 5 实际参与绘制点数：1
-StartMove0 0.905957ms
-完成丢点 2.393861ms
-完成绘制 7.398419ms
-EndMove0 0.583831ms
-
-丢点数量： 2 实际参与绘制点数：1
-StartMove0 0.01517ms
-完成丢点 0.016773ms
-完成绘制 37.937629ms
-EndMove0 0.084369ms
-
-丢点数量： 11 实际参与绘制点数：2
-StartMove0 0.012304ms
-完成丢点 0.016172ms
-完成绘制 5.191191ms
-EndMove0 0.252567ms
-
-丢点数量： 16 实际参与绘制点数：4
-StartMove0 0.021984ms
-完成丢点 0.026894ms
-完成绘制 1.021749ms
-EndMove0 0.050401ms
-
-丢点数量： 7 实际参与绘制点数：2
-StartMove0 0.002505ms
-完成丢点 0.008677ms
-完成绘制 0.439221ms
-EndMove0 0.028257ms
-
-丢点数量： 3 实际参与绘制点数：2
-StartMove0 0.002465ms
-完成丢点 0.005231ms
-完成绘制 0.535514ms
-EndMove0 0.032084ms
-
-StartMove0 0.006473ms
-EndMove0 0.365874ms
-
-StartMove0 0.011744ms
-EndMove0 0.431345ms
-
-StartMove0 0.008457ms
-EndMove0 0.442788ms
-
-StartMove0 0.012284ms
-EndMove0 0.577458ms
-
-StartMove0 0.008777ms
-EndMove0 0.462207ms
-
-StartMove0 0.004429ms
-EndMove0 0.401665ms
-
-StartMove0 0.010161ms
-EndMove0 0.465113ms
-
-StartMove0 0.006453ms
-EndMove0 0.401405ms
-
-StartMove0 0.006934ms
-EndMove0 0.489562ms
-
-StartMove0 0.005271ms
-EndMove0 0.45401ms
-
-StartMove0 0.009639ms
-EndMove0 0.585735ms
-
-StartMove0 0.007535ms
-EndMove0 0.450563ms
-
-StartMove0 0.013527ms
-EndMove0 0.749584ms
-
-StartMove0 0.008738ms
-EndMove0 0.562428ms
-
-StartMove0 0.00511ms
-EndMove0 0.44401ms
-
-StartMove0 0.01032ms
-EndMove0 0.746658ms
-
-StartMove0 0.009138ms
-EndMove0 0.632649ms
-
-StartMove0 0.005611ms
-EndMove0 0.594111ms
-
-StartMove0 0.009099ms
-EndMove0 0.574232ms
-
-StartMove0 0.009399ms
-EndMove0 0.549883ms
-
-StartMove0 0.007234ms
-EndMove0 0.661487ms
-
-StartMove0 0.007776ms
-EndMove0 0.576656ms
-
-StartMove0 0.029018ms
-EndMove0 1.398846ms
-
-StartMove0 0.005832ms
-EndMove0 0.631667ms
-
-StartMove0 0.018758ms
-EndMove0 0.725756ms
-
-StartMove0 0.008898ms
-EndMove0 0.672188ms
-
-StartMove0 0.007815ms
-EndMove0 0.936238ms
-
-StartMove0 0.022345ms
-EndMove0 1.014896ms
-
-StartMove0 0.017315ms
-EndMove0 0.781768ms
-
-StartMove0 0.005311ms
-EndMove0 0.679583ms
-
-StartMove0 0.015371ms
-EndMove0 1.033273ms
-
-StartMove0 0.015411ms
-EndMove0 0.84311ms
-
-StartMove0 0.007976ms
-EndMove0 0.730204ms
-
-StartMove0 0.018336ms
-EndMove0 0.915236ms
-
-StartMove0 0.018237ms
-EndMove0 0.901688ms
-
-StartMove0 0.015711ms
-EndMove0 0.844353ms
-
-StartMove0 0.003728ms
-EndMove0 0.68279ms
-
-StartMove0 0.017956ms
-EndMove0 0.924614ms
-
-StartMove0 0.021343ms
-EndMove0 0.939244ms
-
-StartMove0 0.007856ms
-EndMove0 0.91269ms
-
-StartMove0 0.023287ms
-EndMove0 1.053493ms
-
-StartMove0 0.021443ms
-EndMove0 0.998402ms
-
-StartMove0 0.00501ms
-EndMove0 0.954093ms
-
-StartMove0 0.031763ms
-EndMove0 1.330248ms
-
-丢点数量： 3 实际参与绘制点数：1
-StartMove0 0.00501ms
-完成丢点 0.011843ms
-完成绘制 0.794814ms
-EndMove0 0.030462ms
-
-丢点数量： 1 实际参与绘制点数：1
-StartMove0 0.003608ms
-完成丢点 0.007114ms
-完成绘制 0.826177ms
-EndMove0 0.030962ms
-
-StartMove0 0.014389ms
-EndMove0 1.313595ms
-
-StartMove0 0.007535ms
-EndMove0 0.946799ms
-
-StartMove0 0.005972ms
-EndMove0 0.949844ms
-
-StartMove0 0.018077ms
-EndMove0 1.197061ms
-
-StartMove0 0.004188ms
-EndMove0 0.968582ms
-
-StartMove0 0.0099ms
-EndMove0 1.183233ms
-
-StartMove0 0.02004ms
-EndMove0 1.126359ms
-
-StartMove0 0.006312ms
-EndMove0 0.919664ms
-
-StartMove0 0.003748ms
-EndMove0 0.852911ms
-
-StartMove0 0.005211ms
-EndMove0 0.933692ms
-
-StartMove0 0.01042ms
-EndMove0 1.025196ms
-
-StartMove0 0.003247ms
-EndMove0 0.986899ms
-
-StartMove0 0.012625ms
-EndMove0 1.055798ms
-
-StartMove0 0.023608ms
-EndMove0 1.293173ms
-
-StartMove0 0.003567ms
-EndMove0 0.929324ms
-
-StartMove0 0.024609ms
-EndMove0 1.129305ms
-
-StartMove0 0.016493ms
-EndMove0 1.123032ms
-
-StartMove0 0.012745ms
-EndMove0 0.966338ms
-
-StartMove0 0.005611ms
-EndMove0 0.948342ms
-
-StartMove0 0.006092ms
-EndMove0 1.013012ms
-
-StartMove0 0.00467ms
-EndMove0 0.909965ms
-
-StartMove0 0.006934ms
-EndMove0 1.001108ms
-
-StartMove0 0.007355ms
-EndMove0 1.269085ms
-
-StartMove0 0.008837ms
-EndMove0 1.054415ms
-
-StartMove0 0.003748ms
-EndMove0 0.952711ms
-
-StartMove0 0.008397ms
-EndMove0 1.055798ms
-
-StartMove0 0.023787ms
-EndMove0 1.050106ms
-
-StartMove0 0.004369ms
-EndMove0 0.86762ms
-
-StartMove0 0.006573ms
-EndMove0 0.853051ms
-
-StartMove0 0.00495ms
-EndMove0 0.940346ms
-
-StartMove0 0.004669ms
-EndMove0 0.918482ms
-
-StartMove0 0.007775ms
-EndMove0 2.045222ms
-
-StartMove0 0.007395ms
-EndMove0 1.090908ms
-
-StartMove0 0.017175ms
-EndMove0 1.321591ms
+OnLaunched 时间 520568078 Thread=5
+Show Window     520568238 Thread=5  520568238-520568078=160
+窗口构造函数    520568406 Thread=5  520568406-520568238=168
+全屏时间        520568410 Thread=5  520568410-520568406=4
+```
+
+测试代码:
+
+- 仓库： https://github.com/lindexi/uno/
+- 代码： 3c850a1c4ad7e56e572c10b4242f94c450fbe430
+
+```
+OnLaunched 时间      520860590 Thread=5
+Show Window          520860738 Thread=5
+UpdateWindow         520860870 Thread=5 520860870-520860738=132 性能核心
+X11XamlRootHost 完成 520860874 Thread=5 520860874-520860870=4
+窗口构造函数         520860918 Thread=5 窗口构造函数-UpdateWindow=520860918-520860870=48
+全屏时间 520860922 Thread=5
+```
+
+- 代码： 59c036f79186c3634955d70a424c0b9b5ef9fb34
+
+```
+OnLaunched 时间     521364592 Thread=5
+Show Window         521364724 Thread=5
+StartUpdateWindow   521364756 Thread=5 521364756-521364724=32
+EndUpdateWindow     521364848 Thread=5 521364848-521364756=92
+X11XamlRootHost 完成 521364860 Thread=5
+窗口构造函数 521364892 Thread=5
+全屏时间 521364896 Thread=5
 ```
 >>>>>>> efd0fee8bbe928b9fda934ed5ac67b3a02e23c10

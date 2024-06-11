@@ -68,6 +68,7 @@ public partial class App : Application
         {
             // 这里好像就是退出事件了
         };
+        Windows.ApplicationModel.Package.Current.Logo = null;
 #endif
     }
 
@@ -88,7 +89,7 @@ public partial class App : Application
 <<<<<<< HEAD
 <<<<<<< HEAD
         //ShowSecondWindow();
-        StaticDebugLogger.WriteLine($"OnLaunched 时间 ");
+        StaticDebugLogger.WriteLine($"OnLaunched 时间 {Environment.TickCount64} Thread={Environment.CurrentManagedThreadId}");
 
         var unoInkWindow = new UnoInkFullScreenWindow();
         unoInkWindow.Activate();
