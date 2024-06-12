@@ -5,6 +5,10 @@ using Microsoft.ML.OnnxRuntimeGenAI;
 using System.Text;
 
 var folder = @"C:\lindexi\Phi3\directml-int4-awq-block-128\";
+if (!Directory.Exists(folder))
+{
+    folder = Path.GetFullPath(".");
+}
 
 using var model = new Model(folder);
 using var tokenizer = new Tokenizer(model);
