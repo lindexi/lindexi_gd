@@ -19,5 +19,10 @@
             IsHitTestVisible="False">
       <TextBlock x:Name="LogTextBlock" Foreground="White" TextWrapping="Wrap"/>
     </Border>
+
+    <Border Background="Blue" Width="100" Height="100"
+            Margin="10" HorizontalAlignment="Left" VerticalAlignment="Center">
+      <TextBlock>不可命中</TextBlock>
+    </Border>
   </Grid>
 </UserControl>
