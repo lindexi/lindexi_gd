@@ -49,12 +49,15 @@ public sealed partial class DebugInkUserControl : UserControl
     {
 
     }
+    
+    private string _additionText = "";
 
     private void UIElement_OnPointerPressed(object sender, PointerRoutedEventArgs e)
     {
         _start = true;
 
         var currentPoint = e.GetCurrentPoint(this);
+        _additionText = "按下" + currentPoint.PointerId;
         _inputDictionary[currentPoint.PointerId] = (currentPoint.Position, false);
         Output();
     }
@@ -73,6 +76,7 @@ public sealed partial class DebugInkUserControl : UserControl
     private void UIElement_OnPointerReleased(object sender, PointerRoutedEventArgs e)
     {
         var currentPoint = e.GetCurrentPoint(this);
+        _additionText = "抬起" + currentPoint.PointerId;
         _inputDictionary[currentPoint.PointerId] = (currentPoint.Position, true);
 
         Output();
@@ -81,6 +85,7 @@ public sealed partial class DebugInkUserControl : UserControl
     private void Output()
     {
         var stringBuilder = new StringBuilder();
+        stringBuilder.AppendLine(_additionText);
         
         foreach (var keyValuePair in _inputDictionary)
         {
@@ -110,4 +115,20 @@ public sealed partial class DebugInkUserControl : UserControl
     private bool _start;
 
     private Point _currentPosition;
+    
+    private void UIElement_OnPointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        var currentPoint = e.GetCurrentPoint(this);
+        _additionText = "进入" + currentPoint.PointerId;
+
+        Output();
+    }
+    
+    private void UIElement_OnPointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        var currentPoint = e.GetCurrentPoint(this);
+        _additionText = "离开" + currentPoint.PointerId;
+
+        Output();
+    }
 }
