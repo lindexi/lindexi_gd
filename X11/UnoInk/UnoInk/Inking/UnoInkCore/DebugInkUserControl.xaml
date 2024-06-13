@@ -10,16 +10,18 @@
   d:DesignHeight="300"
   d:DesignWidth="400">
 
-  <Grid Background="Transparent" PointerPressed="UIElement_OnPointerPressed" PointerMoved="UIElement_OnPointerMoved" PointerReleased="UIElement_OnPointerReleased">
-    <windows:SKXamlCanvas x:Name="SkXamlCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+  <Grid>
+
+    <Grid Background="Transparent" PointerPressed="UIElement_OnPointerPressed" PointerMoved="UIElement_OnPointerMoved" PointerReleased="UIElement_OnPointerReleased">
+      <windows:SKXamlCanvas x:Name="SkXamlCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                           PaintSurface="SkXamlCanvas_OnPaintSurface">
-    </windows:SKXamlCanvas>
-    <Border Background="Blue" Width="500" Height="300"
+      </windows:SKXamlCanvas>
+      <Border Background="Blue" Width="500" Height="300"
             HorizontalAlignment="Center" VerticalAlignment="Center"
             IsHitTestVisible="False">
-      <TextBlock x:Name="LogTextBlock" Foreground="White" TextWrapping="Wrap"/>
-    </Border>
-
+        <TextBlock x:Name="LogTextBlock" Foreground="White" TextWrapping="Wrap"/>
+      </Border>
+    </Grid>
     <Border Background="Blue" Width="100" Height="100"
             Margin="10" HorizontalAlignment="Left" VerticalAlignment="Center">
       <TextBlock>不可命中</TextBlock>
