@@ -28,8 +28,9 @@
 - [x] 第一笔落笔慢
   - 也许是界面输出的原因 8f2c35724079e00adf2b1a216392dd4f1bb70f0b
   - 也是因为控制台输出
-- [ ] 多指的支持
+- [x] 多指的支持
   - 使用 https://github.com/unoplatform/uno/pull/15799 代码
+  - 使用没合入主分支的 https://github.com/lindexi/uno/ 579d4d502786ac9344e20f07f1800a4672c880df 代码
 - [ ] 窗口背景透明
   - 使用 https://github.com/unoplatform/uno/pull/16956 合入等发布
 - [x] 快速写笔迹会闪烁
@@ -74,7 +75,11 @@
   - 不需要
 - [x] 获取本地窗口方法
 <<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+- [ ] 如何从 XIEnterLeaveEvent 获取 Id 号
+>>>>>>> e9f81f99824ab208218a2ff85e182175bda43558
 
 ```
 完成 UNO 绘制

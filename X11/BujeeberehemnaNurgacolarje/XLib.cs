@@ -5,7 +5,11 @@ using System.Text;
 
 namespace CPF.Linux
 {
+<<<<<<< HEAD
     // 从 https://gitee.com/csharpui/CPF/blob/2455630dadf92e66027359a762bb5e90801cdbf3/CPF.Linux/XLib.cs 拷贝
+=======
+    // Copy from https://gitee.com/csharpui/CPF/blob/master/CPF.Linux/XLib.cs
+>>>>>>> e9f81f99824ab208218a2ff85e182175bda43558
     public unsafe static class XLib
     {
         const string libX11 = "libX11.so.6";
