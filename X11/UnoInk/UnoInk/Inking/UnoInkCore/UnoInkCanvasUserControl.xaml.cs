@@ -424,7 +424,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     //        e.Canvas.DrawPath(path, skPaint);
     //        Console.WriteLine($"DrawPath");
     //    }
-        
+
     //    if (strokeCollectionInfoList != null)
     //    {
     //        // 延迟一下，减少闪烁，确保 UNO 这一层绘制完成
@@ -470,7 +470,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             skPaint.Color = strokesCollectionInfo.StrokeColor;
             //skPaint.Color = SKColors.Black;
             var path = strokesCollectionInfo.InkStrokePath;
-            System.Diagnostics.Debug.Assert(path != null);
+            System.Diagnostics.Debug.Assert(path != null, "能被收集到的笔迹点一定不是空");
 
             e.Surface.Canvas.DrawPath(path, skPaint);
             Console.WriteLine($"DrawPath");
