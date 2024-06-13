@@ -13,13 +13,17 @@ if (!Directory.Exists(folder))
 using var model = new Model(folder);
 using var tokenizer = new Tokenizer(model);
 
+var systemPrompt = "You are a helpfull assistant";
+
 for(var i = 0; i < int.MaxValue; i++)
 {
     Console.WriteLine("请输入聊天内容");
 
     var text = Console.ReadLine();
 
-    var prompt = text;
+    var userPrompt = text;
+
+    var prompt = $@"<|system|>{systemPrompt}<|end|><|user|>{userPrompt}<|end|><|assistant|>";
 
     var generatorParams = new GeneratorParams(model);
 
