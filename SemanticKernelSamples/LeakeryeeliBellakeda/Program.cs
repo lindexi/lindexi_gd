@@ -9,9 +9,19 @@ var kernel = Kernel.CreateBuilder()
     .AddAzureOpenAIChatCompletion("gpt-4o", endpoint: "https://lindexi.openai.azure.com/", apiKey: key)
     .Build();
 
-await foreach (var streamingKernelContent in kernel.InvokePromptStreamingAsync("Hello"))
+while (true)
 {
-    Console.Write(streamingKernelContent.ToString());
+    var text  = Console.ReadLine();
+
+    if (string.IsNullOrEmpty(text))
+    {
+        break;
+    }
+
+    await foreach (var streamingKernelContent in kernel.InvokePromptStreamingAsync(text))
+    {
+        Console.Write(streamingKernelContent.ToString());
+    }
 }
 
 Console.Read();
