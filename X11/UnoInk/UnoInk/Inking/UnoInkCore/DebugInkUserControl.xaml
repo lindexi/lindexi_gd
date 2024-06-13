@@ -12,7 +12,8 @@
 
   <Grid>
 
-    <Grid Background="Transparent" PointerPressed="UIElement_OnPointerPressed" PointerMoved="UIElement_OnPointerMoved" PointerReleased="UIElement_OnPointerReleased">
+    <Grid Background="Transparent" PointerPressed="UIElement_OnPointerPressed" PointerMoved="UIElement_OnPointerMoved" PointerReleased="UIElement_OnPointerReleased"
+          PointerEntered="UIElement_OnPointerEntered" PointerExited="UIElement_OnPointerExited">
       <windows:SKXamlCanvas x:Name="SkXamlCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                           PaintSurface="SkXamlCanvas_OnPaintSurface">
       </windows:SKXamlCanvas>

@@ -17,7 +17,7 @@ public partial class UnoInkFullScreenWindow : Window
         this.EnableHotReload();
 #endif
 
-        //if (OperatingSystem.IsWindows())
+        if (OperatingSystem.IsWindows())
         {
             Content = new DebugInkUserControl();
             return;
