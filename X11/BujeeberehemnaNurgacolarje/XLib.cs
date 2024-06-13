@@ -5,6 +5,7 @@ using System.Text;
 
 namespace CPF.Linux
 {
+    // Copy from https://gitee.com/csharpui/CPF/blob/master/CPF.Linux/XLib.cs
     public unsafe static class XLib
     {
         const string libX11 = "libX11.so.6";

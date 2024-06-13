@@ -18,7 +18,7 @@ public partial class UnoInkFullScreenWindow : Window
         this.EnableHotReload();
 #endif
 
-        if (OperatingSystem.IsWindows())
+        //if (OperatingSystem.IsWindows())
         {
             Content = new DebugInkUserControl();
             return;
@@ -29,7 +29,8 @@ public partial class UnoInkFullScreenWindow : Window
         // 这句话似乎也是无效的
         this.SetBackground(new SolidColorBrush(Colors.Transparent));
 #endif
-        this.AppWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
+        AppWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
+        AppWindow.MoveAndResize(default);
 
         StaticDebugLogger.WriteLine($"全屏时间 {Environment.TickCount64} Thread={Environment.CurrentManagedThreadId}");
 
