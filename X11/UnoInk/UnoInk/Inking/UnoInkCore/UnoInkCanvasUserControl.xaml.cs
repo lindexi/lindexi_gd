@@ -41,6 +41,11 @@ namespace UnoInk.Inking.UnoInkCore;
 
 public sealed partial class UnoInkCanvasUserControl : UserControl
 {
+    public UnoInkCanvasUserControl(Window currentWindow) : this()
+    {
+        _currentWindow = currentWindow;
+    }
+    
     public UnoInkCanvasUserControl()
     {
         this.InitializeComponent();
@@ -70,13 +75,8 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //#endif
 >>>>>>> 0bc7beabe01f40b068e7b3802f1c8ef57713f050
     }
-
-
-    public UnoInkCanvasUserControl(Window currentWindow) : this()
-    {
-        _currentWindow = currentWindow;
-    }
-
+    
+    
     private readonly Window? _currentWindow;
 
     private async void MainPage_Loaded(object sender, RoutedEventArgs e)
@@ -160,7 +160,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     private void SkInkCanvas_StrokesCollected(object? sender, StrokeCollectionInfo e)
 >>>>>>> 7e4dbbe7523d0540236fc7e1b7f8fb183179b7d8
     {
-        Console.WriteLine($"SkInkCanvas_StrokesCollected InkId={e.InkId.Value}");
+        StaticDebugLogger.WriteLine($"SkInkCanvas_StrokesCollected InkId={e.InkId.Value}");
 
         // 这是 X11 线程进入的
         lock (_locker)
@@ -734,7 +734,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             System.Diagnostics.Debug.Assert(path != null, "能被收集到的笔迹点一定不是空");
 
             e.Surface.Canvas.DrawPath(path, skPaint);
-            Console.WriteLine($"DrawPath");
+            StaticDebugLogger.WriteLine($"DrawPath");
         }
 
 <<<<<<< HEAD
@@ -774,8 +774,12 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //Console.WriteLine($"完成 UNO 绘制");
 =======
         // 如果注释掉这句话，将不能正常完成 X11 的 XShapeCombineRegion 的返回
+<<<<<<< HEAD
         Console.WriteLine($"完成 UNO 绘制");
 >>>>>>> b1d8bf3076dc424b7970c9c49a028e95e126d8b0
+=======
+        StaticDebugLogger.WriteLine($"完成 UNO 绘制");
+>>>>>>> ea602a954aaa6e8347d1e5ab57d9ecec5956e723
 
 >>>>>>> b5ff0f64dd3b49411632511c743bd13e2e991f37
         //_skPathList.Clear();
