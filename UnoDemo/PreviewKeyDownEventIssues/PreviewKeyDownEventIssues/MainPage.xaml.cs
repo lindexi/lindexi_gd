@@ -7,6 +7,8 @@ public sealed partial class MainPage : Page
         this.InitializeComponent();
         PreviewKeyDown += MainPage_PreviewKeyDown;
         KeyDown += MainPage_KeyDown;
+        
+        Focus(FocusState.Keyboard);
     }
     
     private void MainPage_PreviewKeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
