@@ -80,6 +80,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
                 skInkCanvas.StrokesCollected += SkInkCanvas_StrokesCollected;
 
                 Console.WriteLine($"完成初始化");
+                InitTextBlock.Text = "完成初始化";
             }
         }
     }
@@ -469,7 +470,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         foreach (var strokesCollectionInfo in strokeCollectionInfoList)
         {
             skPaint.Color = strokesCollectionInfo.StrokeColor;
-            skPaint.Color = SKColors.Black;
+            //skPaint.Color = SKColors.Black;
             var path = strokesCollectionInfo.InkStrokePath;
             System.Diagnostics.Debug.Assert(path != null, "能被收集到的笔迹点一定不是空");
 
@@ -495,7 +496,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         StaticDebugLogger.WriteLine($"完成 UNO 绘制");
 
         //_skPathList.Clear();
-        // 延迟一下，减少闪烁，确保 UNO 这一层绘制完成
+        // 延迟一下，减少闪烁，确保 UNO 这一层绘制完成。没有找到 X11 同步渲染方法
         await Task.Delay(100);
         // 清空笔迹，换成在 UNO 层绘制
         await InvokeAsync(canvas =>
