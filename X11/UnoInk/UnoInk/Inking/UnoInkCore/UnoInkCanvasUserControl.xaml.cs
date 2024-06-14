@@ -52,7 +52,11 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //        skiaVisual.OnDraw += SkiaVisual_OnDraw;
         //#endif
 
-        var channel = Channel.CreateUnbounded<PointerInputInfo>();
+        var channel = Channel.CreateUnbounded<PointerInputInfo>(new UnboundedChannelOptions()
+        {
+            SingleReader = true,
+            SingleWriter = true,
+        });
         _channel = channel;
     }
 
@@ -86,6 +90,26 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
                 InitTextBlock.Text = "完成初始化";
 
                 // 进入调度器
+                while (true)
+                {
+                    var waitToRead = await _channel.Reader.WaitToReadAsync().ConfigureAwait(false);
+                    if (!waitToRead)
+                    {
+                        break;
+                    }
+                    
+                    await InvokeAsync(canvas =>
+                    {
+                        while (true)
+                        {
+                            if (!_channel.Reader.TryRead(out var info))
+                            {
+                                break;
+                            }
+                        }
+                       
+                    });
+                }
             }
         }
     }
@@ -133,6 +157,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
         var result = _channel.Writer.TryWrite(new PointerInputInfo(PointerInputType.Down, inputInfo));
         Debug.Assert(result);
+        return;
 
         // 输入时不再立刻记录，防止记录到不正确的值
         //_lastInkingInputInfo = inputInfo;
@@ -180,6 +205,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             var modeInputArgs = ToModeInputArgs(e);
             var result = _channel.Writer.TryWrite(new PointerInputInfo(PointerInputType.Move, modeInputArgs));
             Debug.Assert(result);
+        return;
         }
 
         if (!_isDown)
@@ -293,6 +319,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         var modeInputArgs = ToModeInputArgs(e);
         var result = _channel.Writer.TryWrite(new PointerInputInfo(PointerInputType.Down, modeInputArgs));
         Debug.Assert(result);
+        return;
 
         //Console.WriteLine($"InkCanvas_OnPointerReleased");
         //if (_inkInfoCache.Remove(e.Pointer.PointerId, out var inkInfo))
