@@ -4,7 +4,7 @@ namespace UnoInk.Inking.X11Platforms;
 
 static class StaticDebugLogger
 {
-    [Conditional("DEBUG")]
+    [Conditional("False")]
     public static void WriteLine(string message)
     {
         Console.WriteLine(message);
