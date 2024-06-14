@@ -52,11 +52,6 @@ class PointerToModeInputDispatcher
                         break;
                     }
                     
-                    if (Reader.Count > 0)
-                    {
-                        StaticDebugLogger.WriteLine($"卡顿率 {Reader.Count}");
-                    }
-
                     if (info.Type == PointerInputType.Down)
                     {
                         ModeInputDispatcher.Down(info.InputArgs);
