@@ -52,9 +52,9 @@ class PointerToModeInputDispatcher
                         break;
                     }
                     
-                    if (Reader.Count > 0)
+                    if (Reader.TryPeek(out _))
                     {
-                        StaticDebugLogger.WriteLine($"卡顿率 {Reader.Count}");
+                        StaticDebugLogger.WriteLine($"卡顿");
                     }
 
                     if (info.Type == PointerInputType.Down)
