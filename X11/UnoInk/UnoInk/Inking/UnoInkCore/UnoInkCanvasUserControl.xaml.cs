@@ -147,7 +147,11 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 >>>>>>> 58eb8d0baabb7bfca5d1312dbf007537a5a1c7c0
 =======
                 Console.WriteLine($"完成初始化");
+<<<<<<< HEAD
 >>>>>>> 2b488acf5567399adc4d1d22efeb2d8e9d41829e
+=======
+                InitTextBlock.Text = "完成初始化";
+>>>>>>> ea408be2c3ed50104c44bd377b59ba2b1e196afc
             }
 >>>>>>> f6762ea045de9b52e29ce7949a1c9be4211deaf5
         }
@@ -787,6 +791,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         
 =======
 
@@ -797,6 +802,9 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 =======
         // 延迟一下，减少闪烁，确保 UNO 这一层绘制完成
 >>>>>>> a313c7d1fa7ffb81c04c5af29dbd36289f0f1a6d
+=======
+        // 延迟一下，减少闪烁，确保 UNO 这一层绘制完成。没有找到 X11 同步渲染方法
+>>>>>>> ea408be2c3ed50104c44bd377b59ba2b1e196afc
         await Task.Delay(100);
 >>>>>>> 634d1cb4563ff0ed67ece034dc0b98adf6f10e6d
         // 清空笔迹，换成在 UNO 层绘制
