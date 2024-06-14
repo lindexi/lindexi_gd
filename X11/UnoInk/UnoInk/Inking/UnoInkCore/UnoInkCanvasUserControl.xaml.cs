@@ -317,7 +317,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     private void InkCanvas_OnPointerReleased(object sender, PointerRoutedEventArgs e)
     {
         var modeInputArgs = ToModeInputArgs(e);
-        var result = _channel.Writer.TryWrite(new PointerInputInfo(PointerInputType.Down, modeInputArgs));
+        var result = _channel.Writer.TryWrite(new PointerInputInfo(PointerInputType.Up, modeInputArgs));
         Debug.Assert(result);
         return;
 
