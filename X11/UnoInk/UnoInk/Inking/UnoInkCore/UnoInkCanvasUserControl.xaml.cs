@@ -202,7 +202,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //DrawStroke(inkInfo);
         //DrawInNative(position);
         _isDown = true;
-        _firstMove = true;
+        //_firstMove = true;
         //LogTextBlock.Text += $"按下： {e.Pointer.PointerId}\r\n";
         //LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
         //Console.WriteLine($"按下： {e.Pointer.PointerId}");
@@ -242,14 +242,14 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
     //private Point _lastPoint;
 
-    private bool _firstMove = true;
+    //private bool _firstMove = true;
 
-    class MoveInputInfo
+    class PointerMoveInputInfo
     {
         public ModeInputArgs InputArgs { set; get; }
         public List<StylusPoint>? StylusPointList { get; set; }
     }
-    private MoveInputInfo? _inputInfo;
+    private PointerMoveInputInfo? _inputInfo;
 
     private void InkCanvas_OnPointerMoved(object sender, PointerRoutedEventArgs e)
     {
@@ -268,13 +268,20 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             return;
         }
 
+<<<<<<< HEAD
 >>>>>>> 90aea2d8a09e98c84ea421518827089fc2298930
         if (_firstMove)
         {
             StaticDebugLogger.WriteLine($"InkCanvas_OnPointerMoved");
         }
+=======
+        //if (_firstMove)
+        //{
+        //    StaticDebugLogger.WriteLine($"InkCanvas_OnPointerMoved");
+        //}
+>>>>>>> e17362c8f4d399edc864088a99bf80f70c9a1cd7
 
-        _firstMove = false;
+        //_firstMove = false;
 
 >>>>>>> df33f57b3c74a331e6651cb44dfdb4ee351f496c
         //var currentPoint = e.GetCurrentPoint(this);
@@ -304,7 +311,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             if (_inputInfo is null)
             {
                 var modeInputArgs = ToModeInputArgs(e);
-                _inputInfo = new MoveInputInfo
+                _inputInfo = new PointerMoveInputInfo
                 {
                     InputArgs = modeInputArgs
                 };
@@ -350,7 +357,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             throw new InvalidOperationException();
         }
 
-        MoveInputInfo inputInfo;
+        PointerMoveInputInfo inputInfo;
 
         lock (_locker)
         {
@@ -867,3 +874,5 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         });
     }
 }
+
+
