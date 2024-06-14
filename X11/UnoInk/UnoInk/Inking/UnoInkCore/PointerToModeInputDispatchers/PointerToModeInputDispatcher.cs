@@ -16,4 +16,9 @@ class PointerToModeInputDispatcher
     
     private ChannelReader<PointerInputInfo> Reader { get; }
     private ModeInputDispatcher ModeInputDispatcher { get; }
+    
+    public async Task RunAsync()
+    {
+
+    }
 }
