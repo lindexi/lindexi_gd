@@ -104,8 +104,8 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         {
             CollectedStrokeInfoList.Add(e);
         }
-
-        //InvalidateRedraw();
+        
+        InvalidateToRedraw();
     }
 
     /// <summary>
