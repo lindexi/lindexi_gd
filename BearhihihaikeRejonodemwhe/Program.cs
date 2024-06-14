@@ -8,6 +8,10 @@ namespace BearhihihaikeRejonodemwhe;
 
 internal class Program
 {
+    static void Main(string[] args)
+    {
+
+    }
 }
 
 
