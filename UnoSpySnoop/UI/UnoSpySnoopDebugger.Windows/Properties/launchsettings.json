@@ -1,0 +1,10 @@
+{
+	"profiles": {
+		"UnoSpySnoopDebugger.Windows (Unpackaged)": {
+			"commandName": "Project"
+		},
+		"UnoSpySnoopDebugger.Windows (Package)": {
+			"commandName": "MsixPackage"
+		}
+	}
+}

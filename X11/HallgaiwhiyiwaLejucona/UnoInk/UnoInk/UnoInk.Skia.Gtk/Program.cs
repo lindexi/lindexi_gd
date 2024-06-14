@@ -16,7 +16,7 @@ public class Program
         };
 
         var host = new GtkHost(() => new AppHead());
-
+        host.RenderSurfaceType = RenderSurfaceType.Software;
         host.Run();
     }
 }

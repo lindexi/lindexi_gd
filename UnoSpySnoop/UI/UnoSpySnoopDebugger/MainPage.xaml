@@ -1,0 +1,68 @@
+﻿<Page x:Class="UnoSpySnoopDebugger.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:UnoSpySnoopDebugger"
+      xmlns:view="using:UnoSpySnoopDebugger.View"
+      xmlns:models="using:UnoSpySnoopDebugger.Models"
+      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+      x:Name="Root">
+
+    <Page.Resources>
+        <local:NotNullToIsEnableConverter x:Key="NotNullToIsEnableConverter"/>
+    </Page.Resources>
+    <Grid x:Name="RootGrid">
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid>
+            <Button x:Name="RefreshProcessInfoListButton" Margin="10,10,10,10" Content="Refresh" Click="RefreshProcessInfoListButton_OnClick"></Button>
+        </Grid>
+
+        <Grid Grid.Row="1">
+            <ListView x:Name="ProcessInfoListView" Margin="10,10,10,10" ItemsSource="{Binding ElementName=Root,Path=ProcessInfoList}" HorizontalContentAlignment="Stretch">
+                <ListView.Header>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3*"></ColumnDefinition>
+                            <ColumnDefinition Width="*"></ColumnDefinition>
+                            <ColumnDefinition Width="6*"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="1" HorizontalAlignment="Left" VerticalAlignment="Stretch" Background="Gray"></Border>
+                        <TextBlock Grid.Column="0" Margin="5 0 0 0">ProcessName</TextBlock>
+
+                        <Border Grid.Column="1" Width="1" HorizontalAlignment="Left" VerticalAlignment="Stretch" Background="Gray"></Border>
+                        <TextBlock Grid.Column="1" Margin="5 0 0 0">ProcessId</TextBlock>
+
+                        <Border Grid.Column="1" Width="1" HorizontalAlignment="Left" VerticalAlignment="Stretch" Background="Gray"></Border>
+                        <TextBlock Grid.Column="2" Margin="5 0 0 0">CommandLine</TextBlock>
+                        <Border Grid.Column="1" Width="1" Margin="0 0 5 0" HorizontalAlignment="Right" VerticalAlignment="Stretch" Background="Gray"></Border>
+                    </Grid>
+                </ListView.Header>
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="models:CandidateDebugProcessInfo">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*"></ColumnDefinition>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                                <ColumnDefinition Width="7*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding ProcessName}"></TextBlock>
+                            <TextBlock Grid.Column="1" Text="{Binding ProcessId}"></TextBlock>
+                            <TextBlock Grid.Column="2" Text="{Binding CommandLine}"></TextBlock>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <Button x:Name="StartDebugButton" Margin="10,10,10,10"
+                    IsEnabled="{Binding ElementName=ProcessInfoListView,Path=SelectedItem,Converter={StaticResource NotNullToIsEnableConverter}}"
+                    Content="Start UI Spy" Click="StartDebugButton_OnClick"></Button>
+        </Grid>
+    </Grid>
+</Page>

@@ -1,0 +1,10 @@
+{
+	"profiles": {
+		"KernarjeheeboLawbeeferedai.Windows (Unpackaged)": {
+			"commandName": "Project"
+		},
+		"KernarjeheeboLawbeeferedai.Windows (Package)": {
+			"commandName": "MsixPackage"
+		}
+	}
+}
