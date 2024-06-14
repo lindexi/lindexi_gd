@@ -52,11 +52,6 @@ class PointerToModeInputDispatcher
                         break;
                     }
                     
-                    if (Reader.TryPeek(out _))
-                    {
-                        StaticDebugLogger.WriteLine($"卡顿");
-                    }
-
                     if (info.Type == PointerInputType.Down)
                     {
                         ModeInputDispatcher.Down(info.InputArgs);
