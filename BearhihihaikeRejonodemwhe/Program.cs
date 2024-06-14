@@ -15,13 +15,14 @@ class Point
 {
     public virtual void SetInput(InputInfo inputInfo)
     {
-
     }
 
     public virtual async Task<OutputInfo> RunAsync()
     {
         return default;
     }
+
+    public List<Point> NextPointList { get; } = new List<Point>();
 }
 
 record InputInfo();
