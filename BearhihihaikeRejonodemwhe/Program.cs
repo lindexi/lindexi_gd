@@ -8,6 +8,14 @@ namespace BearhihihaikeRejonodemwhe;
 
 internal class Program
 {
+    static void Main(string[] args)
+    {
+        var point1 = new Point();
+        var point2 = new Point();
+        var point3 = new Point();
+
+
+    }
 }
 
 
