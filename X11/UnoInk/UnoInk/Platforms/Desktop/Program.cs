@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 using Uno.UI.Runtime.Skia;
 using Uno.WinUI.Runtime.Skia.X11;
 
@@ -7,6 +9,12 @@ public class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        while (!Debugger.IsAttached)
+        {
+            Task.Delay(100).Wait();
+        }
+        Debugger.Break();
+
         App.InitializeLogging();
 
         FeatureConfiguration.Rendering.UseOpenGLOnX11 = false;
