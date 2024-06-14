@@ -548,17 +548,6 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     }
 }
 
-readonly record struct PointerInputInfo(PointerInputType Type, ModeInputArgs InputArgs)
-{
-}
-
-enum PointerInputType
-{
-    Down,
-    Move,
-    Up,
-}
-
 class PointerMoveInputInfo
 {
     public bool IsDown { set; get; }
