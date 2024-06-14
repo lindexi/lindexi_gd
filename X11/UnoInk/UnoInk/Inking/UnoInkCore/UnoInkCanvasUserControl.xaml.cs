@@ -31,6 +31,11 @@ namespace UnoInk.UnoInkCore;
 
 public sealed partial class UnoInkCanvasUserControl : UserControl
 {
+    public UnoInkCanvasUserControl(Window currentWindow) : this()
+    {
+        _currentWindow = currentWindow;
+    }
+    
     public UnoInkCanvasUserControl()
     {
         this.InitializeComponent();
@@ -46,13 +51,8 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //        skiaVisual.OnDraw += SkiaVisual_OnDraw;
         //#endif
     }
-
-
-    public UnoInkCanvasUserControl(Window currentWindow) : this()
-    {
-        _currentWindow = currentWindow;
-    }
-
+    
+    
     private readonly Window? _currentWindow;
 
     private async void MainPage_Loaded(object sender, RoutedEventArgs e)
