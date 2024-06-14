@@ -86,7 +86,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
     private void SkInkCanvas_StrokesCollected(object? sender, StrokeCollectionInfo e)
     {
-        Console.WriteLine($"SkInkCanvas_StrokesCollected InkId={e.InkId.Value}");
+        StaticDebugLogger.WriteLine($"SkInkCanvas_StrokesCollected InkId={e.InkId.Value}");
 
         // 这是 X11 线程进入的
         lock (_locker)
@@ -474,7 +474,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             System.Diagnostics.Debug.Assert(path != null, "能被收集到的笔迹点一定不是空");
 
             e.Surface.Canvas.DrawPath(path, skPaint);
-            Console.WriteLine($"DrawPath");
+            StaticDebugLogger.WriteLine($"DrawPath");
         }
 
         // 界面不会自动刷新，需要等下一次才能刷新
@@ -492,7 +492,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //}
         // 如果在主线程其他也输出控制台，也能解决  X11 的 XShapeCombineRegion 的返回 fa08b6854bd9d43445fa3d9e93cb2ebc1d4a9cca 这里的更改就是在主线程随便输出
         // 如果注释掉这句话，将不能正常完成 X11 的 XShapeCombineRegion 的返回
-        Console.WriteLine($"完成 UNO 绘制");
+        StaticDebugLogger.WriteLine($"完成 UNO 绘制");
 
         //_skPathList.Clear();
         // 延迟一下，减少闪烁，确保 UNO 这一层绘制完成
