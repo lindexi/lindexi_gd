@@ -51,12 +51,16 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 =======
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #if HAS_UNO
         var skiaVisual = SkiaVisual.CreateAndInsertTo(this);
         skiaVisual.OnDraw += SkiaVisual_OnDraw;
 #endif
 >>>>>>> a3193333714925764bbd3a5e7c362b2bbc5332b6
 =======
+=======
+        
+>>>>>>> 3009c43cdc404cb9ea75587e10f22bc6491fcd64
         // 由于 SkiaVisual 没有明确的优势，不能解决同步渲染闪烁问题
         // 也会导致每次都渲染所有静态笔迹，笔迹数量多了会卡
         // 因此这里不使用 SkiaVisual 绘制，后续可以考虑笔迹元素再这么使用
@@ -532,6 +536,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     //        e.Canvas.DrawPath(path, skPaint);
     //        Console.WriteLine($"DrawPath");
     //    }
+<<<<<<< HEAD
         
 <<<<<<< HEAD
         if (strokeCollectionInfoList != null)
@@ -549,6 +554,9 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     }
 >>>>>>> a3193333714925764bbd3a5e7c362b2bbc5332b6
 =======
+=======
+
+>>>>>>> 3009c43cdc404cb9ea75587e10f22bc6491fcd64
     //    if (strokeCollectionInfoList != null)
     //    {
     //        // 延迟一下，减少闪烁，确保 UNO 这一层绘制完成
@@ -723,7 +731,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             skPaint.Color = strokesCollectionInfo.StrokeColor;
             //skPaint.Color = SKColors.Black;
             var path = strokesCollectionInfo.InkStrokePath;
-            System.Diagnostics.Debug.Assert(path != null);
+            System.Diagnostics.Debug.Assert(path != null, "能被收集到的笔迹点一定不是空");
 
             e.Surface.Canvas.DrawPath(path, skPaint);
             Console.WriteLine($"DrawPath");
