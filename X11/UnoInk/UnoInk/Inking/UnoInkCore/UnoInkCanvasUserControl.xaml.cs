@@ -19,6 +19,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 
+<<<<<<< HEAD
 >>>>>>> f682a1d5e3b6d0cb0b99903c22a9dcd7e23eb4ae
 using Windows.Foundation;
 <<<<<<< HEAD
@@ -28,6 +29,10 @@ using Windows.Foundation.Collections;
 <<<<<<< HEAD
 >>>>>>> d0a62b7dccda3eea79dfcc7566c8045f2f557abf
 =======
+=======
+//using Windows.Foundation;
+//using Windows.Foundation.Collections;
+>>>>>>> f984f970358f06592f90a124c19c8316d1a747ae
 using Microsoft.UI.Input;
 >>>>>>> 2b488acf5567399adc4d1d22efeb2d8e9d41829e
 using SkiaSharp;
@@ -149,9 +154,15 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
                 _x11InkProvider.Start(_currentWindow);
 
+<<<<<<< HEAD
                 _dispatcherRequiring =
                     new DispatcherRequiring(InvokeInk, _x11InkProvider.InkWindow.GetDispatcher());
                 
+=======
+                //_dispatcherRequiring =
+                //    new DispatcherRequiring(InvokeInk, _x11InkProvider.InkWindow.GetDispatcher());
+
+>>>>>>> f984f970358f06592f90a124c19c8316d1a747ae
                 var skInkCanvas = _x11InkProvider.InkWindow.SkInkCanvas;
                 skInkCanvas.StrokesCollected += SkInkCanvas_StrokesCollected;
 
@@ -219,7 +230,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         {
             CollectedStrokeInfoList.Add(e);
         }
-        
+
         InvalidateToRedraw();
     }
 <<<<<<< HEAD
@@ -242,9 +253,9 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 >>>>>>> 2b488acf5567399adc4d1d22efeb2d8e9d41829e
 
 
-    private DispatcherRequiring? _dispatcherRequiring;
+    //private DispatcherRequiring? _dispatcherRequiring;
 
-    private bool _isDown = false;
+    //private bool _isDown = false;
 
     private void InkCanvas_OnPointerPressed(object sender, PointerRoutedEventArgs e)
     {
@@ -256,7 +267,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //inkInfo.PointList.Add(position);
         //DrawStroke(inkInfo);
         //DrawInNative(position);
-        _isDown = true;
+        //_isDown = true;
         //_firstMove = true;
         //LogTextBlock.Text += $"按下： {e.Pointer.PointerId}\r\n";
         //LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
@@ -265,16 +276,16 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
         var result = _channel.Writer.TryWrite(new PointerInputInfo(PointerInputType.Down, inputInfo));
         Debug.Assert(result);
-        return;
+        //return;
 
-        // 输入时不再立刻记录，防止记录到不正确的值
-        //_lastInkingInputInfo = inputInfo;
-        //_dispatcherRequiring?.Require();
-        InvokeAsync(canvas =>
-        {
-            //StaticDebugLogger.WriteLine($"执行按下 {inputInfo.Position}");
-            canvas.ModeInputDispatcher.Down(inputInfo);
-        });
+        //// 输入时不再立刻记录，防止记录到不正确的值
+        ////_lastInkingInputInfo = inputInfo;
+        ////_dispatcherRequiring?.Require();
+        //InvokeAsync(canvas =>
+        //{
+        //    //StaticDebugLogger.WriteLine($"执行按下 {inputInfo.Position}");
+        //    canvas.ModeInputDispatcher.Down(inputInfo);
+        //});
     }
 
     private ModeInputArgs ToModeInputArgs(PointerRoutedEventArgs args)
@@ -305,10 +316,11 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     //private bool _firstMove = true;
 
 
-    private PointerMoveInputInfo? _inputInfo;
+    //private PointerMoveInputInfo? _inputInfo;
 
     private void InkCanvas_OnPointerMoved(object sender, PointerRoutedEventArgs e)
     {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -333,6 +345,20 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             StaticDebugLogger.WriteLine($"没有按下就移动！！！InkCanvas_OnPointerMoved");
             return;
         }
+=======
+        //{
+        var modeInputArgs = ToModeInputArgs(e);
+        var result = _channel.Writer.TryWrite(new PointerInputInfo(PointerInputType.Move, modeInputArgs));
+        Debug.Assert(result);
+        //return;
+        //}
+
+        //if (!_isDown)
+        //{
+        //    StaticDebugLogger.WriteLine($"没有按下就移动！！！InkCanvas_OnPointerMoved");
+        //    return;
+        //}
+>>>>>>> f984f970358f06592f90a124c19c8316d1a747ae
 
 <<<<<<< HEAD
 >>>>>>> 90aea2d8a09e98c84ea421518827089fc2298930
@@ -372,110 +398,110 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //    DrawInNative(position);
         //}
 
-        lock (_locker)
-        {
-            if (_inputInfo is null)
-            {
-                var modeInputArgs = ToModeInputArgs(e);
-                _inputInfo = new PointerMoveInputInfo
-                {
-                    InputArgs = modeInputArgs
-                };
-            }
-            else
-            {
-                if (_inputInfo.StylusPointList is null)
-                {
-                    _inputInfo.StylusPointList = new List<StylusPoint>(2)
-                    {
-                        _inputInfo.InputArgs.StylusPoint
-                    };
-                    _inputInfo.InputArgs = _inputInfo.InputArgs with
-                    {
-                        StylusPointList = _inputInfo.StylusPointList
-                    };
-                }
+        //lock (_locker)
+        //{
+        //    if (_inputInfo is null)
+        //    {
+        //        var modeInputArgs = ToModeInputArgs(e);
+        //        _inputInfo = new PointerMoveInputInfo
+        //        {
+        //            InputArgs = modeInputArgs
+        //        };
+        //    }
+        //    else
+        //    {
+        //        if (_inputInfo.StylusPointList is null)
+        //        {
+        //            _inputInfo.StylusPointList = new List<StylusPoint>(2)
+        //            {
+        //                _inputInfo.InputArgs.StylusPoint
+        //            };
+        //            _inputInfo.InputArgs = _inputInfo.InputArgs with
+        //            {
+        //                StylusPointList = _inputInfo.StylusPointList
+        //            };
+        //        }
 
-                var currentPoint = e.GetCurrentPoint(this);
-                var stylusPoint = ToStylusPoint(currentPoint);
-                _inputInfo.StylusPointList.Add(stylusPoint);
-            }
-        }
+        //        var currentPoint = e.GetCurrentPoint(this);
+        //        var stylusPoint = ToStylusPoint(currentPoint);
+        //        _inputInfo.StylusPointList.Add(stylusPoint);
+        //    }
+        //}
 
-        _dispatcherRequiring?.Require();
+        //_dispatcherRequiring?.Require();
         //InvokeAsync(canvas => canvas.Move(ToInkingInputInfo(e)));
     }
 
-    private void InvokeInk()
-    {
-        if (!OperatingSystem.IsLinux())
-        {
-            return;
-        }
+    //private void InvokeInk()
+    //{
+    //    if (!OperatingSystem.IsLinux())
+    //    {
+    //        return;
+    //    }
 
-        //if (_lastInkingInputInfo is null)
-        //{
-        //    return;
-        //}
+    //    //if (_lastInkingInputInfo is null)
+    //    //{
+    //    //    return;
+    //    //}
 
-        if (_x11InkProvider is null)
-        {
-            throw new InvalidOperationException();
-        }
+    //    if (_x11InkProvider is null)
+    //    {
+    //        throw new InvalidOperationException();
+    //    }
 
-        PointerMoveInputInfo inputInfo;
+    //    PointerMoveInputInfo inputInfo;
 
-        lock (_locker)
-        {
-            if (_inputInfo is null)
-            {
-                // 可能连续进入两次
-                //Debug.Fail("进入这里时，一定存在当前的输入");
-                return;
-            }
+    //    lock (_locker)
+    //    {
+    //        if (_inputInfo is null)
+    //        {
+    //            // 可能连续进入两次
+    //            //Debug.Fail("进入这里时，一定存在当前的输入");
+    //            return;
+    //        }
 
-            inputInfo = _inputInfo;
-            _inputInfo = null;
-        }
+    //        inputInfo = _inputInfo;
+    //        _inputInfo = null;
+    //    }
 
-        //StaticDebugLogger.WriteLine($"执行移动 {inputInfo.InputArgs.Position} Count={inputInfo.StylusPointList?.Count}");
-        _x11InkProvider.InkWindow.ModeInputDispatcher.Move(inputInfo.InputArgs);
+    //    //StaticDebugLogger.WriteLine($"执行移动 {inputInfo.InputArgs.Position} Count={inputInfo.StylusPointList?.Count}");
+    //    _x11InkProvider.InkWindow.ModeInputDispatcher.Move(inputInfo.InputArgs);
 
-        //canvas.Move(inputInfo);
-    }
+    //    //canvas.Move(inputInfo);
+    //}
 
     private void InkCanvas_OnPointerReleased(object sender, PointerRoutedEventArgs e)
     {
         var modeInputArgs = ToModeInputArgs(e);
         var result = _channel.Writer.TryWrite(new PointerInputInfo(PointerInputType.Up, modeInputArgs));
         Debug.Assert(result);
-        return;
+        //return;
 
-        //Console.WriteLine($"InkCanvas_OnPointerReleased");
-        //if (_inkInfoCache.Remove(e.Pointer.PointerId, out var inkInfo))
+        ////Console.WriteLine($"InkCanvas_OnPointerReleased");
+        ////if (_inkInfoCache.Remove(e.Pointer.PointerId, out var inkInfo))
+        ////{
+        ////    var pointerPoint = e.GetCurrentPoint(InkCanvas);
+        ////    Point position = pointerPoint.Position;
+        ////    inkInfo.PointList.Add(position);
+        ////    DrawStroke(inkInfo);
+        ////}
+
+        ////LogTextBlock.Text += $"抬起： {e.Pointer.PointerId}\r\n";
+        ////LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
+        //InvokeAsync(canvas =>
         //{
-        //    var pointerPoint = e.GetCurrentPoint(InkCanvas);
-        //    Point position = pointerPoint.Position;
-        //    inkInfo.PointList.Add(position);
-        //    DrawStroke(inkInfo);
-        //}
+        //    //if (_x11InkProvider is null)
+        //    //{
+        //    //    return;
+        //    //}
+        //    canvas.ModeInputDispatcher.Up(ToModeInputArgs(e));
+        //    //_skPathList.AddRange(canvas.CurrentInkStrokePathEnumerable);
+        //    //canvas.Up(ToInkingInputInfo(e));
 
-        //LogTextBlock.Text += $"抬起： {e.Pointer.PointerId}\r\n";
-        //LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
-        InvokeAsync(canvas =>
-        {
-            //if (_x11InkProvider is null)
-            //{
-            //    return;
-            //}
-            canvas.ModeInputDispatcher.Up(ToModeInputArgs(e));
-            //_skPathList.AddRange(canvas.CurrentInkStrokePathEnumerable);
-            //canvas.Up(ToInkingInputInfo(e));
+        //    //Console.WriteLine($"InkCanvas_OnPointerReleased InvokeAsync ModeInputDispatcher.Up");
 
-            //Console.WriteLine($"InkCanvas_OnPointerReleased InvokeAsync ModeInputDispatcher.Up");
-
-            InvalidateToRedraw();
-        });
+        //    InvalidateToRedraw();
+        //});
     }
 
     private void InvalidateToRedraw()
@@ -952,27 +978,16 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     }
 }
 
-readonly record struct PointerInputInfo(PointerInputType Type, ModeInputArgs InputArgs)
-{
-}
+//class PointerMoveInputInfo
+//{
+//    public bool IsDown { set; get; }
 
-enum PointerInputType
-{
-    Down,
-    Move,
-    Up,
-}
+//    public bool IsUp { set; get; }
 
-class PointerMoveInputInfo
-{
-    public bool IsDown { set; get; }
+//    public ModeInputArgs InputArgs { set; get; }
 
-    public bool IsUp { set; get; }
-
-    public ModeInputArgs InputArgs { set; get; }
-
-    /// <summary>
-    /// 由于 <see cref="ModeInputArgs"/> 的 StylusPointList 是只读的，需要这里进行更新
-    /// </summary>
-    public List<StylusPoint>? StylusPointList { get; set; }
-}
+//    /// <summary>
+//    /// 由于 <see cref="ModeInputArgs"/> 的 StylusPointList 是只读的，需要这里进行更新
+//    /// </summary>
+//    public List<StylusPoint>? StylusPointList { get; set; }
+//}
