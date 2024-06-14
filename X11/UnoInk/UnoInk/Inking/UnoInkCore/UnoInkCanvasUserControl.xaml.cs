@@ -4,7 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+<<<<<<< HEAD
 using System.Runtime.CompilerServices;
+=======
+using System.Runtime.InteropServices;
+>>>>>>> fe268a6081d33d1045f2f6c345b437803e521b51
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Channels;
 using Microsoft.UI.Xaml;
@@ -33,6 +37,7 @@ using UnoInk.Inking.InkCore.Interactives;
 using UnoInk.Inking.X11Ink;
 using UnoInk.Inking.X11Platforms;
 using UnoInk.Inking.X11Platforms.Threading;
+using static SkiaSharp.HarfBuzz.SKShaper;
 //using Uno.Skia;
 
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
@@ -45,7 +50,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     {
         _currentWindow = currentWindow;
     }
-    
+
     public UnoInkCanvasUserControl()
     {
         this.InitializeComponent();
@@ -76,10 +81,19 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //        var skiaVisual = SkiaVisual.CreateAndInsertTo(this);
         //        skiaVisual.OnDraw += SkiaVisual_OnDraw;
         //#endif
+<<<<<<< HEAD
 >>>>>>> 0bc7beabe01f40b068e7b3802f1c8ef57713f050
+=======
+
+        var channel = Channel.CreateUnbounded<PointerInputInfo>(new UnboundedChannelOptions()
+        {
+            SingleReader = true,
+            SingleWriter = true,
+        });
+        _channel = channel;
+>>>>>>> fe268a6081d33d1045f2f6c345b437803e521b51
     }
-    
-    
+
     private readonly Window? _currentWindow;
 
     private async void MainPage_Loaded(object sender, RoutedEventArgs e)
@@ -154,7 +168,32 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 >>>>>>> 2b488acf5567399adc4d1d22efeb2d8e9d41829e
 =======
                 InitTextBlock.Text = "完成初始化";
+<<<<<<< HEAD
 >>>>>>> ea408be2c3ed50104c44bd377b59ba2b1e196afc
+=======
+
+                // 进入调度器
+                while (true)
+                {
+                    var waitToRead = await _channel.Reader.WaitToReadAsync().ConfigureAwait(false);
+                    if (!waitToRead)
+                    {
+                        break;
+                    }
+                    
+                    await InvokeAsync(canvas =>
+                    {
+                        while (true)
+                        {
+                            if (!_channel.Reader.TryRead(out var info))
+                            {
+                                break;
+                            }
+                        }
+                       
+                    });
+                }
+>>>>>>> fe268a6081d33d1045f2f6c345b437803e521b51
             }
 >>>>>>> f6762ea045de9b52e29ce7949a1c9be4211deaf5
         }
@@ -217,6 +256,11 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
         //Console.WriteLine($"按下： {e.Pointer.PointerId}");
         var inputInfo = ToModeInputArgs(e);
+
+        var result = _channel.Writer.TryWrite(new PointerInputInfo(PointerInputType.Down, inputInfo));
+        Debug.Assert(result);
+        return;
+
         // 输入时不再立刻记录，防止记录到不正确的值
         //_lastInkingInputInfo = inputInfo;
         //_dispatcherRequiring?.Require();
@@ -262,12 +306,22 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         var currentPoint = e.GetCurrentPoint(this);
         Point position = currentPoint.Position;
         LogTextBlock.Text += $"移动： {e.Pointer.PointerId} {position}\r\n";
 =======
 =======
 =======
+=======
+        {
+            var modeInputArgs = ToModeInputArgs(e);
+            var result = _channel.Writer.TryWrite(new PointerInputInfo(PointerInputType.Move, modeInputArgs));
+            Debug.Assert(result);
+        return;
+        }
+
+>>>>>>> fe268a6081d33d1045f2f6c345b437803e521b51
         if (!_isDown)
         {
             StaticDebugLogger.WriteLine($"没有按下就移动！！！InkCanvas_OnPointerMoved");
@@ -386,6 +440,11 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
     private void InkCanvas_OnPointerReleased(object sender, PointerRoutedEventArgs e)
     {
+        var modeInputArgs = ToModeInputArgs(e);
+        var result = _channel.Writer.TryWrite(new PointerInputInfo(PointerInputType.Down, modeInputArgs));
+        Debug.Assert(result);
+        return;
+
         //Console.WriteLine($"InkCanvas_OnPointerReleased");
         //if (_inkInfoCache.Remove(e.Pointer.PointerId, out var inkInfo))
         //{
@@ -459,6 +518,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     }
 
     private X11InkProvider? _x11InkProvider;
+    private Channel<PointerInputInfo> _channel;
 
     //private void DrawInNative(Point position)
     //{
