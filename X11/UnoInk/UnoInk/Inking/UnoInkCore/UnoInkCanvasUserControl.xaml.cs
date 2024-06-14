@@ -375,7 +375,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     }
 
     private X11InkProvider? _x11InkProvider;
-    private Channel<PointerInputInfo> _channel;
+    private readonly Channel<PointerInputInfo> _channel;
 
     //private void DrawInNative(Point position)
     //{
