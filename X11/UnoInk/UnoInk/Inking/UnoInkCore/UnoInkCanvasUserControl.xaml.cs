@@ -117,7 +117,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         //DrawStroke(inkInfo);
         //DrawInNative(position);
         _isDown = true;
-        _firstMove = true;
+        //_firstMove = true;
         //LogTextBlock.Text += $"按下： {e.Pointer.PointerId}\r\n";
         //LogTextBlock.Text += $"当前按下点数： {_inkInfoCache.Count} [{string.Join(',', _inkInfoCache.Keys)}]";
         //Console.WriteLine($"按下： {e.Pointer.PointerId}");
@@ -157,7 +157,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
     //private Point _lastPoint;
 
-    private bool _firstMove = true;
+    //private bool _firstMove = true;
 
     class MoveInputInfo
     {
@@ -174,12 +174,12 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             return;
         }
 
-        if (_firstMove)
-        {
-            StaticDebugLogger.WriteLine($"InkCanvas_OnPointerMoved");
-        }
+        //if (_firstMove)
+        //{
+        //    StaticDebugLogger.WriteLine($"InkCanvas_OnPointerMoved");
+        //}
 
-        _firstMove = false;
+        //_firstMove = false;
 
         //var currentPoint = e.GetCurrentPoint(this);
         //Point position = currentPoint.Position;
