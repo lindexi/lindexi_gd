@@ -159,12 +159,12 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
     //private bool _firstMove = true;
 
-    class MoveInputInfo
+    class PointerMoveInputInfo
     {
         public ModeInputArgs InputArgs { set; get; }
         public List<StylusPoint>? StylusPointList { get; set; }
     }
-    private MoveInputInfo? _inputInfo;
+    private PointerMoveInputInfo? _inputInfo;
 
     private void InkCanvas_OnPointerMoved(object sender, PointerRoutedEventArgs e)
     {
@@ -207,7 +207,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             if (_inputInfo is null)
             {
                 var modeInputArgs = ToModeInputArgs(e);
-                _inputInfo = new MoveInputInfo
+                _inputInfo = new PointerMoveInputInfo
                 {
                     InputArgs = modeInputArgs
                 };
@@ -253,7 +253,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             throw new InvalidOperationException();
         }
 
-        MoveInputInfo inputInfo;
+        PointerMoveInputInfo inputInfo;
 
         lock (_locker)
         {
@@ -520,3 +520,5 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         });
     }
 }
+
+
