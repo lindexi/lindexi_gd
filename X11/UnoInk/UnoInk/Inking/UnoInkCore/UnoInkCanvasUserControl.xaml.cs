@@ -37,6 +37,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
         Loaded += MainPage_Loaded;
 
+        
         // 由于 SkiaVisual 没有明确的优势，不能解决同步渲染闪烁问题
         // 也会导致每次都渲染所有静态笔迹，笔迹数量多了会卡
         // 因此这里不使用 SkiaVisual 绘制，后续可以考虑笔迹元素再这么使用
