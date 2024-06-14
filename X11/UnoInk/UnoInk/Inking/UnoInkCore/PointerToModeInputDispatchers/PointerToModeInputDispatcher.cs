@@ -1,5 +1,6 @@
 using System.Threading.Channels;
 using UnoInk.Inking.InkCore.Interactives;
+using UnoInk.Inking.X11Ink;
 
 namespace UnoInk.UnoInkCore;
 
@@ -8,15 +9,16 @@ namespace UnoInk.UnoInkCore;
 /// </summary>
 class PointerToModeInputDispatcher
 {
-    public PointerToModeInputDispatcher(ChannelReader<PointerInputInfo> reader, ModeInputDispatcher modeInputDispatcher)
+    public PointerToModeInputDispatcher(ChannelReader<PointerInputInfo> reader, X11InkWindow x11InkWindow)
     {
         Reader = reader;
-        ModeInputDispatcher = modeInputDispatcher;
+        X11InkWindow = x11InkWindow;
     }
     
     private ChannelReader<PointerInputInfo> Reader { get; }
-    private ModeInputDispatcher ModeInputDispatcher { get; }
-    
+    public X11InkWindow X11InkWindow { get; }
+    private ModeInputDispatcher ModeInputDispatcher => X11InkWindow.ModeInputDispatcher;
+
     public async Task RunAsync()
     {
 

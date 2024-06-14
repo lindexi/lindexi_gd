@@ -89,7 +89,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
                 InitTextBlock.Text = "完成初始化";
 
                 // 进入调度器
-                var pointerToModeInputDispatcher = new PointerToModeInputDispatcher(_channel.Reader, skInkCanvas.ModeInputDispatcher);
+                var pointerToModeInputDispatcher = new PointerToModeInputDispatcher(_channel.Reader, _x11InkProvider.InkWindow);
                 _ = pointerToModeInputDispatcher.RunAsync();
 
                 while (true)
