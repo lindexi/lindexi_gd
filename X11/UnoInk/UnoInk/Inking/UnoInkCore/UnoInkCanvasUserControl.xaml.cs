@@ -159,11 +159,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
     //private bool _firstMove = true;
 
-    class PointerMoveInputInfo
-    {
-        public ModeInputArgs InputArgs { set; get; }
-        public List<StylusPoint>? StylusPointList { get; set; }
-    }
+
     private PointerMoveInputInfo? _inputInfo;
 
     private void InkCanvas_OnPointerMoved(object sender, PointerRoutedEventArgs e)
@@ -522,3 +518,8 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 }
 
 
+class PointerMoveInputInfo
+{
+    public ModeInputArgs InputArgs { set; get; }
+    public List<StylusPoint>? StylusPointList { get; set; }
+}
