@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
-
+using System.Threading.Channels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -42,7 +42,6 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 
         Loaded += MainPage_Loaded;
 
-        
         // 由于 SkiaVisual 没有明确的优势，不能解决同步渲染闪烁问题
         // 也会导致每次都渲染所有静态笔迹，笔迹数量多了会卡
         // 因此这里不使用 SkiaVisual 绘制，后续可以考虑笔迹元素再这么使用
@@ -92,13 +91,16 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         // 这是 X11 线程进入的
         lock (_locker)
         {
-            StrokeInfoList.Add(e);
+            CollectedStrokeInfoList.Add(e);
         }
 
         //InvalidateRedraw();
     }
 
-    private List<StrokeCollectionInfo> StrokeInfoList { get; } = new List<StrokeCollectionInfo>();
+    /// <summary>
+    /// 收集到的笔迹信息列表
+    /// </summary>
+    private List<StrokeCollectionInfo> CollectedStrokeInfoList { get; } = new List<StrokeCollectionInfo>();
     private readonly object _locker = new object();
 
 
@@ -452,13 +454,13 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         List<StrokeCollectionInfo> strokeCollectionInfoList;
         lock (_locker)
         {
-            if (StrokeInfoList.Count == 0)
+            if (CollectedStrokeInfoList.Count == 0)
             {
                 return;
             }
 
-            strokeCollectionInfoList = [.. StrokeInfoList];
-            StrokeInfoList.Clear();
+            strokeCollectionInfoList = [.. CollectedStrokeInfoList];
+            CollectedStrokeInfoList.Clear();
         }
 
         //StaticDebugLogger.WriteLine($"收集笔迹数量 {strokeCollectionInfoList.Count} ");
@@ -518,8 +520,27 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
 }
 
 
+readonly record struct PointerInputInfo(PointerInputType Type, ModeInputArgs InputArgs)
+{
+}
+
+enum PointerInputType
+{
+    Down,
+    Move,
+    Up,
+}
+
 class PointerMoveInputInfo
 {
+    public bool IsDown { set; get; }
+
+    public bool IsUp { set; get; }
+
     public ModeInputArgs InputArgs { set; get; }
+
+    /// <summary>
+    /// 由于 <see cref="ModeInputArgs"/> 的 StylusPointList 是只读的，需要这里进行更新
+    /// </summary>
     public List<StylusPoint>? StylusPointList { get; set; }
 }
