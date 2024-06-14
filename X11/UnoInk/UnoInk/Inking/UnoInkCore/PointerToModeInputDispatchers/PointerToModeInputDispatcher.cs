@@ -51,6 +51,11 @@ class PointerToModeInputDispatcher
                     {
                         break;
                     }
+                    
+                    if (Reader.Count > 0)
+                    {
+                        StaticDebugLogger.WriteLine($"卡顿率 {Reader.Count}");
+                    }
 
                     if (info.Type == PointerInputType.Down)
                     {
@@ -66,7 +71,8 @@ class PointerToModeInputDispatcher
                         if (count >= 100)
                         {
                             StaticDebugLogger.WriteLine($"平均移动耗时 {time * 1.0 / count / Stopwatch.Frequency * 1000}");
-
+                            
+                            time = 0;
                             count = 0;
                         }
                     }
