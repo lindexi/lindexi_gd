@@ -37,7 +37,6 @@ using UnoInk.Inking.InkCore.Interactives;
 using UnoInk.Inking.X11Ink;
 using UnoInk.Inking.X11Platforms;
 using UnoInk.Inking.X11Platforms.Threading;
-using static SkiaSharp.HarfBuzz.SKShaper;
 //using Uno.Skia;
 
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
@@ -945,21 +944,6 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
             canvas.Debug();
         });
     }
-}
-
-/// <summary>
-/// 从 <see cref="PointerInputInfo"/> 调度到模式输入层
-/// </summary>
-class PointerToModeInputDispatcher
-{
-    public PointerToModeInputDispatcher(ChannelReader<PointerInputInfo> reader, ModeInputDispatcher modeInputDispatcher)
-    {
-        Reader = reader;
-        ModeInputDispatcher = modeInputDispatcher;
-    }
-    
-    private ChannelReader<PointerInputInfo> Reader { get; }
-    private ModeInputDispatcher ModeInputDispatcher { get; }
 }
 
 readonly record struct PointerInputInfo(PointerInputType Type, ModeInputArgs InputArgs)
