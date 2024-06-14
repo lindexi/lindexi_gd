@@ -174,6 +174,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
                 // 进入调度器
                 var pointerToModeInputDispatcher = new PointerToModeInputDispatcher(_channel.Reader, _x11InkProvider.InkWindow);
                 _ = pointerToModeInputDispatcher.RunAsync();
+<<<<<<< HEAD
 
                 while (true)
                 {
@@ -197,6 +198,8 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
                     });
                 }
 >>>>>>> fe268a6081d33d1045f2f6c345b437803e521b51
+=======
+>>>>>>> b8865c4f7788a416ad4f90246ac2f7f6f873237c
             }
 >>>>>>> f6762ea045de9b52e29ce7949a1c9be4211deaf5
         }

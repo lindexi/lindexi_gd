@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Runtime.Versioning;
 using System.Threading.Channels;
 using UnoInk.Inking.InkCore.Interactives;
 using UnoInk.Inking.X11Ink;
@@ -7,6 +9,7 @@ namespace UnoInk.UnoInkCore;
 /// <summary>
 /// 从 <see cref="PointerInputInfo"/> 调度到模式输入层
 /// </summary>
+[SupportedOSPlatform("Linux")]
 class PointerToModeInputDispatcher
 {
     public PointerToModeInputDispatcher(ChannelReader<PointerInputInfo> reader, X11InkWindow x11InkWindow)
@@ -21,6 +24,55 @@ class PointerToModeInputDispatcher
 
     public async Task RunAsync()
     {
+        while (true)
+        {
+            var waitToRead = await Reader.WaitToReadAsync()
+                // 防止回到主线程
+                // 这里随意的后台线程就能处理
+                .ConfigureAwait(false);
+            if (!waitToRead)
+            {
+                break;
+            }
 
+            await X11InkWindow.InvokeAsync(canvas =>
+            {
+                bool isFirst = true;
+                PointerInputInfo lastInputInfo = default;
+                while (true)
+                {
+                    if (!Reader.TryRead(out PointerInputInfo info))
+                    {
+                        break;
+                    }
+
+                    if (info.Type == PointerInputType.Down)
+                    {
+                        ModeInputDispatcher.Down(info.InputArgs);
+                    }
+                    else if (info.Type == PointerInputType.Move)
+                    {
+                        ModeInputDispatcher.Move(info.InputArgs);
+                    }
+                    else if (info.Type == PointerInputType.Up)
+                    {
+                        ModeInputDispatcher.Up(info.InputArgs);
+                    }
+                    else
+                    {
+                        Debug.Fail("没有考虑过的逻辑");
+                    }
+                    
+                    if (!isFirst)
+                    {
+                        
+                    }
+                    
+                    isFirst = false;
+                    lastInputInfo = info;
+                }
+
+            }).ConfigureAwait(false);
+        }
     }
 }
