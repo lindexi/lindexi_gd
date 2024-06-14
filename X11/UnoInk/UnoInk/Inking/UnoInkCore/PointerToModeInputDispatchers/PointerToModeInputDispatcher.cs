@@ -21,6 +21,25 @@ class PointerToModeInputDispatcher
 
     public async Task RunAsync()
     {
-
+        while (true)
+        {
+            var waitToRead = await Reader.WaitToReadAsync().ConfigureAwait(false);
+            if (!waitToRead)
+            {
+                break;
+            }
+            
+            //await InvokeAsync(canvas =>
+            //{
+            //    while (true)
+            //    {
+            //        if (!_channel.Reader.TryRead(out var info))
+            //        {
+            //            break;
+            //        }
+            //    }
+                
+            //});
+        }
     }
 }

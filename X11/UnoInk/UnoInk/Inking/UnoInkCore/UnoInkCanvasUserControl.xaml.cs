@@ -91,28 +91,6 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
                 // 进入调度器
                 var pointerToModeInputDispatcher = new PointerToModeInputDispatcher(_channel.Reader, _x11InkProvider.InkWindow);
                 _ = pointerToModeInputDispatcher.RunAsync();
-
-                while (true)
-                {
-                    ChannelReader<PointerInputInfo> reader = _channel.Reader;
-                    var waitToRead = await _channel.Reader.WaitToReadAsync().ConfigureAwait(false);
-                    if (!waitToRead)
-                    {
-                        break;
-                    }
-                    
-                    await InvokeAsync(canvas =>
-                    {
-                        while (true)
-                        {
-                            if (!_channel.Reader.TryRead(out var info))
-                            {
-                                break;
-                            }
-                        }
-                       
-                    });
-                }
             }
         }
     }
