@@ -175,6 +175,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
                 // 进入调度器
                 while (true)
                 {
+                    ChannelReader<PointerInputInfo> reader = _channel.Reader;
                     var waitToRead = await _channel.Reader.WaitToReadAsync().ConfigureAwait(false);
                     if (!waitToRead)
                     {
@@ -441,7 +442,7 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     private void InkCanvas_OnPointerReleased(object sender, PointerRoutedEventArgs e)
     {
         var modeInputArgs = ToModeInputArgs(e);
-        var result = _channel.Writer.TryWrite(new PointerInputInfo(PointerInputType.Down, modeInputArgs));
+        var result = _channel.Writer.TryWrite(new PointerInputInfo(PointerInputType.Up, modeInputArgs));
         Debug.Assert(result);
         return;
 
@@ -946,6 +947,20 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
     }
 }
 
+/// <summary>
+/// 从 <see cref="PointerInputInfo"/> 调度到模式输入层
+/// </summary>
+class PointerToModeInputDispatcher
+{
+    public PointerToModeInputDispatcher(ChannelReader<PointerInputInfo> reader, ModeInputDispatcher modeInputDispatcher)
+    {
+        Reader = reader;
+        ModeInputDispatcher = modeInputDispatcher;
+    }
+    
+    private ChannelReader<PointerInputInfo> Reader { get; }
+    private ModeInputDispatcher ModeInputDispatcher { get; }
+}
 
 readonly record struct PointerInputInfo(PointerInputType Type, ModeInputArgs InputArgs)
 {
