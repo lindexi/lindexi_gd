@@ -25,7 +25,24 @@ await kernel.ImportTextAsync("在 dotnet 6 时，官方为了适配好 Source Ge
 
 await kernel.ImportTextAsync("默认情况下的 WPF 项目都是带 -windows 的 TargetFramework 方式，但有一些项目是不期望加上 -windows 做平台限制的，本文将介绍如何实现不添加 -windows 而引用 WPF 框架 对于一些特殊的项目来说，也许只是在某些模块下期望引用 WPF 的某些类型，而不想自己的项目限定平台。这时候可以去掉 `-windows` 换成 FrameworkReference 的方式 通过 `<FrameworkReference Include=\"Microsoft.WindowsDesktop.App.WPF\" />` 即可设置对 WPF 程序集的引用，也就是仅仅只是将 WPF 的程序集取出来当成引用，而不是加上 WPF 的负载");
 
-var searchResult = await kernel.SearchAsync("为什么分析器和源代码冲突");
+await kernel.ImportTextAsync("dotnet 如何访问到 UNO 框架里面的 internal 不公开成员? 核心原理是基于 UNO 框架里面的 InternalsVisibleToAttribute 程序集特性，指定给到 SamplesApp 等程序集可见。因此只需要新建一个程序集，设置 AssemblyName 为 SamplesApp 即可");
+
+var searchResult = await kernel.SearchAsync("如何访问 UNO 不公开成员");
+
+if (searchResult.NoResult)
+{
+    Console.WriteLine("没有找到相关项");
+    return;
+}
+
+foreach (var citation in searchResult.Results)
+{
+    // 大部分情况下，只取第一项
+    foreach (var partition in citation.Partitions)
+    {
+        Console.WriteLine($"关联性： {partition.Relevance:0.00} 内容： {partition.Text}");
+    }
+}
 
 // 提问会提炼答案，由于没有配置，将会失败
 var answer = await kernel.AskAsync("为什么分析器和源代码冲突");
