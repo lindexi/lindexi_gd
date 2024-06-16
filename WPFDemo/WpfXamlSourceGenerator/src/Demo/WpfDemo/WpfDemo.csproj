@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <AdditionalFiles Include="*.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\WpfXamlSourceGenerator\WpfXamlSourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
   </ItemGroup>
 
