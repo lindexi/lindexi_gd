@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net8.0</TargetFrameworks>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Graphics" />
+    <PackageReference Include="Microsoft.Maui.Graphics.Skia" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Reference Include="SkiaSharp">
+      <HintPath>..\Reference\SkiaSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Uno">
+      <HintPath>..\Reference\Uno.dll</HintPath>
+    </Reference>
+    <Reference Include="Uno.Foundation">
+      <HintPath>..\Reference\Uno.Foundation.dll</HintPath>
+    </Reference>
+    <Reference Include="Uno.UI">
+      <HintPath>..\Reference\Uno.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="Uno.UI.Composition">
+      <HintPath>..\Reference\Uno.UI.Composition.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

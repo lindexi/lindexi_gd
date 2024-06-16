@@ -18,6 +18,7 @@ using Windows.Foundation.Collections;
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
 namespace UnoInk;
+// 用于测试 https://github.com/unoplatform/uno/pull/16517
 public sealed partial class PointerEventArgsTests : UserControl
 {
     public PointerEventArgsTests()

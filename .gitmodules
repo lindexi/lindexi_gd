@@ -31,3 +31,12 @@
 [submodule "MediaWPF"]
 	path = MediaWPF
 	url = https://github.com/qian-o/MediaWPF.git
+[submodule "StevenGieselBlog"]
+	path = Blog/StevenGieselBlog
+	url = https://github.com/linkdotnet/Blog.git
+[submodule "CloudFileUriTool"]
+	path = CloudFileUriTool
+	url = https://github.com/Kybs0/CloudFileUriTool.git
+[submodule "wizard-cinema"]
+	path = wizard-cinema
+	url = https://github.com/ElderJames/wizard-cinema.git

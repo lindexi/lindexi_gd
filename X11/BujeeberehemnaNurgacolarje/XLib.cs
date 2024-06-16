@@ -5,6 +5,11 @@ using System.Text;
 
 namespace CPF.Linux
 {
+<<<<<<< HEAD
+    // 从 https://gitee.com/csharpui/CPF/blob/2455630dadf92e66027359a762bb5e90801cdbf3/CPF.Linux/XLib.cs 拷贝
+=======
+    // Copy from https://gitee.com/csharpui/CPF/blob/master/CPF.Linux/XLib.cs
+>>>>>>> e9f81f99824ab208218a2ff85e182175bda43558
     public unsafe static class XLib
     {
         const string libX11 = "libX11.so.6";
@@ -440,7 +445,7 @@ namespace CPF.Linux
         public static extern void XPeekEvent(IntPtr display, out XEvent xevent);
 
         [DllImport(libX11)]
-        public static extern void XMatchVisualInfo(IntPtr display, int screen, int depth, int klass, out XVisualInfo info);
+        public static extern int XMatchVisualInfo(IntPtr display, int screen, int depth, int klass, out XVisualInfo info);
 
         [DllImport(libX11)]
         public static extern IntPtr XLockDisplay(IntPtr display);
@@ -739,31 +744,31 @@ namespace CPF.Linux
             child = child_last;
         }
 
-        public static (int x, int y) GetCursorPos(X11Info x11, IntPtr? handle = null)
-        {
-            IntPtr root;
-            IntPtr child;
-            int root_x;
-            int root_y;
-            int win_x;
-            int win_y;
-            int keys_buttons;
+        //public static (int x, int y) GetCursorPos(X11Info x11, IntPtr? handle = null)
+        //{
+        //    IntPtr root;
+        //    IntPtr child;
+        //    int root_x;
+        //    int root_y;
+        //    int win_x;
+        //    int win_y;
+        //    int keys_buttons;
 
 
 
-            QueryPointer(x11.Display, handle ?? x11.RootWindow, out root, out child, out root_x, out root_y, out win_x, out win_y,
-                out keys_buttons);
+        //    QueryPointer(x11.Display, handle ?? x11.RootWindow, out root, out child, out root_x, out root_y, out win_x, out win_y,
+        //        out keys_buttons);
 
 
-            if (handle != null)
-            {
-                return (win_x, win_y);
-            }
-            else
-            {
-                return (root_x, root_y);
-            }
-        }
+        //    if (handle != null)
+        //    {
+        //        return (win_x, win_y);
+        //    }
+        //    else
+        //    {
+        //        return (root_x, root_y);
+        //    }
+        //}
 
         [DllImport("libXext.so.6")]
         public extern static void XShapeCombineRectangles(IntPtr display, IntPtr window, XShapeKind dest_kind, int x_off, int y_off, XRectangle[] rectangles, int n_rects, XShapeOperation op, XOrdering ordering);

@@ -145,16 +145,22 @@ Begin!
 ");
 
 var goal = "Write a poem about John Doe, then translate it into Chinese.";
-var relevantFunctionsManual = await kernel.Functions.GetFunctionsManualAsync(new SequentialPlannerConfig(), goal, null);
+//var relevantFunctionsManual = await kernel.Functions.GetFunctionsManualAsync(new SequentialPlannerConfig(), goal, null);
 
-ContextVariables vars = new(goal)
-{
-    ["available_functions"] = relevantFunctionsManual
-};
+//ContextVariables vars = new(goal)
+//{
+//    ["available_functions"] = relevantFunctionsManual
+//};
 
-var planResult = await kernel.RunAsync(semanticFunction, vars);
-string? planResultString = planResult.GetValue<string>()?.Trim();
-var xmlString = planResultString;
+//var planResult = await kernel.RunAsync(semanticFunction, vars);
+//string? planResultString = planResult.GetValue<string>()?.Trim();
+var xmlString = @"<plan>
+    <!-- First, we use the WriterPlugin.ShortPoem function to create a poem about John Doe. -->
+    <function.WriterPlugin.ShortPoem input=""John Doe"" setContextVariable=""POEM""/>
+
+    <!-- Then, we use the WriterPlugin.Translate function to translate the poem into Chinese. -->
+    <function.WriterPlugin.Translate input=""$POEM"" language=""Chinese"" appendToResult=""RESULT__FINAL_POEM""/>
+</plan>";
 XmlDocument xmlDoc = new();
 
 try
@@ -169,4 +175,85 @@ XmlNodeList solution = xmlDoc.GetElementsByTagName("plan");
 
 var plan = new Plan(goal);
 
+foreach (XmlNode solutionNode in solution)
+{
+    foreach (XmlNode childNode in solutionNode.ChildNodes)
+    {
+        if (childNode.Name == "#text" || childNode.Name == "#comment")
+        {
+            // Do not add text or comments as steps.
+            // TODO - this could be a way to get Reasoning for a plan step.
+            continue;
+        }
+
+        if (childNode.Name.StartsWith("function.", StringComparison.OrdinalIgnoreCase))
+        {
+            var pluginFunctionName = childNode.Name.Split(new string[] { "function." }, StringSplitOptions.None)?[1] ?? string.Empty;
+            SplitPluginFunctionName(pluginFunctionName, out var pluginName, out var functionName);
+
+            if (!string.IsNullOrEmpty(functionName))
+            {
+                var function = kernel.Functions.GetFunction(pluginName,functionName);
+                if (function != null)
+                {
+                    var planStep = new Plan(function);
+
+                    var functionVariables = new ContextVariables();
+                    var functionOutputs = new List<string>();
+                    var functionResults = new List<string>();
+
+                    var view = function.Describe();
+                    foreach (var p in view.Parameters)
+                    {
+                        functionVariables.Set(p.Name, p.DefaultValue);
+                    }
+
+                    if (childNode.Attributes is not null)
+                    {
+                        foreach (XmlAttribute attr in childNode.Attributes)
+                        {
+                            if (attr.Name.Equals("setContextVariable", StringComparison.OrdinalIgnoreCase))
+                            {
+                                functionOutputs.Add(attr.InnerText);
+                            }
+                            else if (attr.Name.Equals("appendToResult", StringComparison.OrdinalIgnoreCase))
+                            {
+                                functionOutputs.Add(attr.InnerText);
+                                functionResults.Add(attr.InnerText);
+                            }
+                            else
+                            {
+                                functionVariables.Set(attr.Name, attr.InnerText);
+                            }
+                        }
+                    }
+
+                    planStep.Outputs = functionOutputs;
+                    planStep.Parameters = functionVariables;
+                    foreach (var result in functionResults)
+                    {
+                        plan.Outputs.Add(result);
+                    }
+
+                    foreach (var result in functionResults)
+                    {
+                        plan.Outputs.Add(result);
+                    }
+
+                    plan.AddSteps(planStep);
+                }
+            }
+        }
+    }
+}
+
+Console.WriteLine(await kernel.RunAsync(plan));
+
 Console.Read();
+
+static void SplitPluginFunctionName(string pluginFunctionName, out string pluginName, out string functionName)
+{
+    var pluginFunctionNameParts = pluginFunctionName.Split('.');
+    pluginName = pluginFunctionNameParts?.Length > 1 ? pluginFunctionNameParts[0] : string.Empty;
+    functionName = pluginFunctionNameParts?.Length > 1 ? pluginFunctionNameParts[1] : pluginFunctionName;
+}

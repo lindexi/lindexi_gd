@@ -1,0 +1,10 @@
+{
+	"profiles": {
+		"FelawchechadaGeqedaihallnela.Windows (Unpackaged)": {
+			"commandName": "Project"
+		},
+		"FelawchechadaGeqedaihallnela.Windows (Package)": {
+			"commandName": "MsixPackage"
+		}
+	}
+}

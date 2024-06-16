@@ -1,4 +1,4 @@
-using Windows.Foundation;
+ï»¿using Windows.Foundation;
 using Microsoft.UI;
 using Microsoft.UI.Xaml.Shapes;
 
@@ -48,20 +48,20 @@ public static class MyInkRender
     {
         if (pointList.Count < 2)
         {
-            throw new ArgumentException("Ð¡ÓÚÁ½¸öµãµÄÎÞ·¨Ó¦ÓÃËã·¨");
+            throw new ArgumentException("å°äºŽä¸¤ä¸ªç‚¹çš„æ— æ³•åº”ç”¨ç®—æ³•");
         }
 
-        var pointCount = pointList.Count * 2 /*Á½±ßµÄ±Ê¼£¹ì¼£*/ + 1 /*Ê×µãÖØ¸´*/ + 1 /*Ä©ÖØ¸´*/;
+        var pointCount = pointList.Count * 2 /*ä¸¤è¾¹çš„ç¬”è¿¹è½¨è¿¹*/ + 1 /*é¦–ç‚¹é‡å¤*/ + 1 /*æœ«é‡å¤*/;
 
         var outlinePointList = new Point[pointCount];
 
-        // ÓÃÀ´¼ÆËã±Ê¼£µãµÄÁ½µãÖ®¼äµÄÏòÁ¿½Ç¶È
+        // ç”¨æ¥è®¡ç®—ç¬”è¿¹ç‚¹çš„ä¸¤ç‚¹ä¹‹é—´çš„å‘é‡è§’åº¦
         double angle = 0.0;
         for (var i = 0; i < pointList.Count; i++)
         {
             var currentPoint = pointList[i];
 
-            // Èç¹û²»ÊÇ×îºóÒ»µã£¬ÄÇ¾Í¿ÉÒÔºÍ±Ê¼£µ±Ç°¹ì¼£µãµÄÏÂÒ»µã½øÐÐ¼ÆËãÏòÁ¿½Ç¶È
+            // å¦‚æžœä¸æ˜¯æœ€åŽä¸€ç‚¹ï¼Œé‚£å°±å¯ä»¥å’Œç¬”è¿¹å½“å‰è½¨è¿¹ç‚¹çš„ä¸‹ä¸€ç‚¹è¿›è¡Œè®¡ç®—å‘é‡è§’åº¦
             if (i < pointList.Count - 1)
             {
                 var nextPoint = pointList[i + 1];
@@ -69,16 +69,16 @@ public static class MyInkRender
                 var x = nextPoint.Point.X - currentPoint.Point.X;
                 var y = nextPoint.Point.Y - currentPoint.Point.Y;
 
-                // ÄÃ×ÅÖ½±Ê×Ô¼º»­Ò»ÏÂ°É£¬Õâ¸öÊÇ¼òµ¥µÄÊýÑ§¼ÆËã
+                // æ‹¿ç€çº¸ç¬”è‡ªå·±ç”»ä¸€ä¸‹å§ï¼Œè¿™ä¸ªæ˜¯ç®€å•çš„æ•°å­¦è®¡ç®—
                 angle = Math.Atan2(y, x) - Math.PI / 2;
             }
 
-            // ±Ê¼£´ÖÏ¸µÄÒ»°ë£¬Ò»±ßÓÃÒ»°ë£¬ºÏÆðÀ´¾ÍÊÇ±Ê¼£´ÖÏ¸ÁË
+            // ç¬”è¿¹ç²—ç»†çš„ä¸€åŠï¼Œä¸€è¾¹ç”¨ä¸€åŠï¼Œåˆèµ·æ¥å°±æ˜¯ç¬”è¿¹ç²—ç»†äº†
             var halfThickness = inkSize / 2d;
 
-            // Ñ¹¸ÐÕâÀïÊÇÖ±½Ó³Ë·¨¶øÒÑ
+            // åŽ‹æ„Ÿè¿™é‡Œæ˜¯ç›´æŽ¥ä¹˜æ³•è€Œå·²
             halfThickness *= currentPoint.Pressure;
-            // ²»ÄÜÈÃ±Ê¼£´ÖÏ¸Ì«Ð¡
+            // ä¸èƒ½è®©ç¬”è¿¹ç²—ç»†å¤ªå°
             halfThickness = Math.Max(0.01, halfThickness);
 
             var leftX = currentPoint.Point.X + (Math.Cos(angle) * halfThickness);
