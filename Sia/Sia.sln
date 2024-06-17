@@ -1,0 +1,66 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34607.119
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sia", "Sia\Sia.csproj", "{70B3AE38-98EE-4D8C-A075-279F454E0898}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sia.MauiControls", "Sia.MauiControls\Sia.MauiControls.csproj", "{8A6EE7CF-2744-4903-A72B-33A649D4A141}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{2564F5E0-CDED-4FD6-BB99-08AB1E7F740B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sia.UITests", "Sia.UITests\Sia.UITests.csproj", "{30E09148-2007-47B4-9C4B-B8BF4F05D198}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sia.Tests", "Sia.Tests\Sia.Tests.csproj", "{84B3A5F9-F464-4387-9DC6-4A11F7ADB768}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B278C660-ECB7-4241-BB40-1D036652CB1D}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
+		Directory.Packages.props = Directory.Packages.props
+		global.json = global.json
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{70B3AE38-98EE-4D8C-A075-279F454E0898}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70B3AE38-98EE-4D8C-A075-279F454E0898}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70B3AE38-98EE-4D8C-A075-279F454E0898}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{70B3AE38-98EE-4D8C-A075-279F454E0898}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70B3AE38-98EE-4D8C-A075-279F454E0898}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70B3AE38-98EE-4D8C-A075-279F454E0898}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{8A6EE7CF-2744-4903-A72B-33A649D4A141}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A6EE7CF-2744-4903-A72B-33A649D4A141}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A6EE7CF-2744-4903-A72B-33A649D4A141}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{8A6EE7CF-2744-4903-A72B-33A649D4A141}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A6EE7CF-2744-4903-A72B-33A649D4A141}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A6EE7CF-2744-4903-A72B-33A649D4A141}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{30E09148-2007-47B4-9C4B-B8BF4F05D198}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30E09148-2007-47B4-9C4B-B8BF4F05D198}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30E09148-2007-47B4-9C4B-B8BF4F05D198}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{30E09148-2007-47B4-9C4B-B8BF4F05D198}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30E09148-2007-47B4-9C4B-B8BF4F05D198}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30E09148-2007-47B4-9C4B-B8BF4F05D198}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{84B3A5F9-F464-4387-9DC6-4A11F7ADB768}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84B3A5F9-F464-4387-9DC6-4A11F7ADB768}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84B3A5F9-F464-4387-9DC6-4A11F7ADB768}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{84B3A5F9-F464-4387-9DC6-4A11F7ADB768}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84B3A5F9-F464-4387-9DC6-4A11F7ADB768}.Release|Any CPU.Build.0 = Release|Any CPU
+		{84B3A5F9-F464-4387-9DC6-4A11F7ADB768}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{30E09148-2007-47B4-9C4B-B8BF4F05D198} = {2564F5E0-CDED-4FD6-BB99-08AB1E7F740B}
+		{84B3A5F9-F464-4387-9DC6-4A11F7ADB768} = {2564F5E0-CDED-4FD6-BB99-08AB1E7F740B}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C04ACDFD-AB23-4939-B26E-26D828839905}
+	EndGlobalSection
+EndGlobal
