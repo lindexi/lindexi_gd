@@ -10,9 +10,6 @@
 [submodule "dotnet-imgup"]
 	path = dotnet-imgup
 	url = https://github.com/rohith/dotnet-imgup.git
-[submodule "Imageshack"]
-	path = Imageshack
-	url = git@github.com:lindexi/Imageshack.git
 [submodule "Blazui"]
 	path = Blazui
 	url = https://github.com/wzxinchen/Blazui.git
