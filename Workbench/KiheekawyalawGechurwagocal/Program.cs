@@ -4,6 +4,6 @@ using KiheekawyalawGechurwagocal;
 
 using var disposableStruct = new DisposableStruct();
 
-IDisposable disposable = disposableStruct;
+//IDisposable disposable = disposableStruct;
 
 Console.WriteLine("Hello, World!");
