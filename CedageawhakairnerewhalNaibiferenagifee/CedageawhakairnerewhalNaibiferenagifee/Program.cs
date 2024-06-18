@@ -243,7 +243,7 @@ unsafe
         var renderTarget = d2dDeviceContext;
 
         var id3D11Device5 = d3D11Device1.QueryInterface<D3D11.ID3D11Device5>();
-        var id3D11Fence = id3D11Device5.CreateFence(0,D3D11.FenceFlags.None);
+        var id3D11Fence = id3D11Device5.CreateFence(1,D3D11.FenceFlags.None);
 
         var d3D11DeviceContext4 = d3D11DeviceContext1.QueryInterface<D3D11.ID3D11DeviceContext4>();
 
@@ -299,7 +299,7 @@ unsafe
                 //// SharpGen.Runtime.SharpGenException:“HRESULT: [0x88990001], Module: [Vortice.Direct2D1], ApiCode: [D2DERR_WRONG_STATE/WrongState], Message: [对象未处于正确的状态来处理此方法。
                 //renderTarget.Flush(out _ ,out _);
 
-                var presentResult = swapChain.Present(0, DXGI.PresentFlags.None);
+                var presentResult = swapChain.Present(0, DXGI.PresentFlags.Restart);
                 presentResult.CheckError();
 
                 // 等待刷新
