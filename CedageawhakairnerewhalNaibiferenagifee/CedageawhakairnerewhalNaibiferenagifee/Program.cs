@@ -207,7 +207,7 @@ unsafe
         };
 
         // 给创建出来的窗口挂上交换链
-        DXGI.IDXGISwapChain1 swapChain = 
+        DXGI.IDXGISwapChain1 swapChain =
             dxgiFactory2.CreateSwapChainForHwnd(d3D11Device1, hWnd, swapChainDescription, fullscreenDescription);
 
         // 不要被按下 alt+enter 进入全屏
@@ -290,9 +290,13 @@ unsafe
 
                 renderTarget.EndDraw();
 
-                swapChain.Present(0, DXGI.PresentFlags.None);
+                var presentResult = swapChain.Present(0, DXGI.PresentFlags.None);
+                presentResult.CheckError();
+
                 // 等待刷新
                 d3D11DeviceContext1.Flush();
+                // SharpGen.Runtime.SharpGenException:“HRESULT: [0x88990001], Module: [Vortice.Direct2D1], ApiCode: [D2DERR_WRONG_STATE/WrongState], Message: [对象未处于正确的状态来处理此方法。
+                d2dDeviceContext.Flush(out _, out _);
 
                 // 统计刷新率
                 count++;
