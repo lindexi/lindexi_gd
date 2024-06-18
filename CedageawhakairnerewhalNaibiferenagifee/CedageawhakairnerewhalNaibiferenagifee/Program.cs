@@ -222,25 +222,25 @@ unsafe
         D2D.ID2D1Factory1 d2DFactory = D2D.D2D1.D2D1CreateFactory<D2D.ID2D1Factory1>();
 
         // 方法1：
-        //var renderTargetProperties = new D2D.RenderTargetProperties(PixelFormat.Premultiplied);
+        var renderTargetProperties = new D2D.RenderTargetProperties(PixelFormat.Premultiplied);
 
-        //// 在窗口的 dxgi 的平面上创建 D2D 的画布，如此即可让 D2D 绘制到窗口上
-        //D2D.ID2D1RenderTarget d2D1RenderTarget =
-        //    d2DFactory.CreateDxgiSurfaceRenderTarget(dxgiSurface, renderTargetProperties);
-        //var renderTarget = d2D1RenderTarget;
+        // 在窗口的 dxgi 的平面上创建 D2D 的画布，如此即可让 D2D 绘制到窗口上
+        D2D.ID2D1RenderTarget d2D1RenderTarget =
+            d2DFactory.CreateDxgiSurfaceRenderTarget(dxgiSurface, renderTargetProperties);
+        var renderTarget = d2D1RenderTarget;
 
-        // 方法2：
-        // 创建 D2D 设备，通过设置 ID2D1DeviceContext 的 Target 输出为 dxgiSurface 从而让 ID2D1DeviceContext 渲染内容渲染到窗口上
-        // 如 https://learn.microsoft.com/en-us/windows/win32/direct2d/images/devicecontextdiagram.png 图
-        // 获取 DXGI 设备，用来创建 D2D 设备
-        DXGI.IDXGIDevice dxgiDevice = d3D11Device1.QueryInterface<DXGI.IDXGIDevice>();
-        D2D.ID2D1Device d2dDevice = d2DFactory.CreateDevice(dxgiDevice);
-        D2D.ID2D1DeviceContext d2dDeviceContext = d2dDevice.CreateDeviceContext();
+        //// 方法2：
+        //// 创建 D2D 设备，通过设置 ID2D1DeviceContext 的 Target 输出为 dxgiSurface 从而让 ID2D1DeviceContext 渲染内容渲染到窗口上
+        //// 如 https://learn.microsoft.com/en-us/windows/win32/direct2d/images/devicecontextdiagram.png 图
+        //// 获取 DXGI 设备，用来创建 D2D 设备
+        //DXGI.IDXGIDevice dxgiDevice = d3D11Device1.QueryInterface<DXGI.IDXGIDevice>();
+        //D2D.ID2D1Device d2dDevice = d2DFactory.CreateDevice(dxgiDevice);
+        //D2D.ID2D1DeviceContext d2dDeviceContext = d2dDevice.CreateDeviceContext();
 
-        D2D.ID2D1Bitmap1 d2dBitmap = d2dDeviceContext.CreateBitmapFromDxgiSurface(dxgiSurface);
-        d2dDeviceContext.Target = d2dBitmap;
+        //D2D.ID2D1Bitmap1 d2dBitmap = d2dDeviceContext.CreateBitmapFromDxgiSurface(dxgiSurface);
+        //d2dDeviceContext.Target = d2dBitmap;
 
-        var renderTarget = d2dDeviceContext;
+        //var renderTarget = d2dDeviceContext;
 
         // 开启后台渲染线程，无限刷新
 
@@ -250,7 +250,7 @@ unsafe
         Task.Factory.StartNew(() =>
         {
             var ellipseInfoList = new List<DrawingInfo>();
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 1; i++)
             {
                 // 随意创建颜色
                 var color = new Color4((byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255));
@@ -271,8 +271,8 @@ unsafe
                 {
                     var drawingInfo = ellipseInfoList[i];
                     var vector2 = drawingInfo.Offset;
-                    vector2.X += Random.Shared.Next(200) - 100;
-                    vector2.Y += Random.Shared.Next(200) - 100;
+                    vector2.X += 10;// Random.Shared.Next(200) - 100;
+                    vector2.Y += 10;// Random.Shared.Next(200) - 100;
 
                     while (vector2.X < 100 || vector2.X > clientSize.Width - 100)
                     {
@@ -302,6 +302,8 @@ unsafe
                     stopwatch.Restart();
                     count = 0;
                 }
+
+                Console.Read();
             }
         }, TaskCreationOptions.LongRunning);
     }
