@@ -293,7 +293,8 @@ unsafe
                     renderTarget.FillEllipse(new D2D.Ellipse(vector2, drawingInfo.Size.Width, drawingInfo.Size.Height), drawingInfo.Brush);
                 }
 
-                renderTarget.EndDraw();
+                renderTarget.EndDraw(out var t1,out var t2);
+                d3D11DeviceContext4.Wait(id3D11Fence, 0);
 
                 //// SharpGen.Runtime.SharpGenException:“HRESULT: [0x88990001], Module: [Vortice.Direct2D1], ApiCode: [D2DERR_WRONG_STATE/WrongState], Message: [对象未处于正确的状态来处理此方法。
                 //renderTarget.Flush(out _ ,out _);
@@ -303,7 +304,6 @@ unsafe
 
                 // 等待刷新
                 d3D11DeviceContext1.Flush();
-                d3D11DeviceContext4.Wait(id3D11Fence, 0);
                 // SharpGen.Runtime.SharpGenException:“HRESULT: [0x88990001], Module: [Vortice.Direct2D1], ApiCode: [D2DERR_WRONG_STATE/WrongState], Message: [对象未处于正确的状态来处理此方法。
                 //d2dDeviceContext.Flush(out _, out _);
 
