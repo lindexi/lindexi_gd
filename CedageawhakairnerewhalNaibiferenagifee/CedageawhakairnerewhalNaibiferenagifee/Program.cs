@@ -250,7 +250,7 @@ unsafe
         Task.Factory.StartNew(() =>
         {
             var ellipseInfoList = new List<DrawingInfo>();
-            for (int i = 0; i < 1; i++)
+            for (int i = 0; i < 10; i++)
             {
                 // 随意创建颜色
                 var color = new Color4((byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255));
@@ -290,7 +290,7 @@ unsafe
 
                 renderTarget.EndDraw();
 
-                swapChain.Present(1, DXGI.PresentFlags.None);
+                swapChain.Present(0, DXGI.PresentFlags.None);
                 // 等待刷新
                 d3D11DeviceContext1.Flush();
 
