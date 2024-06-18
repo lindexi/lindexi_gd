@@ -250,7 +250,7 @@ unsafe
         Task.Factory.StartNew(() =>
         {
             var ellipseInfoList = new List<DrawingInfo>();
-            for (int i = 0; i < 3000; i++)
+            for (int i = 0; i < 1; i++)
             {
                 // 随意创建颜色
                 var color = new Color4((byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255));
@@ -263,7 +263,7 @@ unsafe
                 renderTarget.BeginDraw();
 
                 // 清空画布
-                renderTarget.Clear(new Color4(0xFF, 0xFF, 0xFF));
+                //renderTarget.Clear(new Color4(0xFF, 0xFF, 0xFF));
 
                 // 在下面绘制漂亮的界面
 
@@ -302,6 +302,8 @@ unsafe
                     stopwatch.Restart();
                     count = 0;
                 }
+
+                Console.Read();
             }
         }, TaskCreationOptions.LongRunning);
     }
