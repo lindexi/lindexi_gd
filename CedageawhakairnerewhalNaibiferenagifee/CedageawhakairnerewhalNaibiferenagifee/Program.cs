@@ -271,8 +271,8 @@ unsafe
                 {
                     var drawingInfo = ellipseInfoList[i];
                     var vector2 = drawingInfo.Offset;
-                    vector2.X += 10;// Random.Shared.Next(200) - 100;
-                    vector2.Y += 10;// Random.Shared.Next(200) - 100;
+                    vector2.X +=  Random.Shared.Next(200) - 100;
+                    vector2.Y +=  Random.Shared.Next(200) - 100;
 
                     while (vector2.X < 100 || vector2.X > clientSize.Width - 100)
                     {
