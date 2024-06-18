@@ -242,11 +242,6 @@ unsafe
 
         var renderTarget = d2dDeviceContext;
 
-        var id3D11Device5 = d3D11Device1.QueryInterface<D3D11.ID3D11Device5>();
-        var id3D11Fence = id3D11Device5.CreateFence(1,D3D11.FenceFlags.None);
-
-        var d3D11DeviceContext4 = d3D11DeviceContext1.QueryInterface<D3D11.ID3D11DeviceContext4>();
-
         // 开启后台渲染线程，无限刷新
 
         var stopwatch = Stopwatch.StartNew();
@@ -255,7 +250,7 @@ unsafe
         Task.Factory.StartNew(() =>
         {
             var ellipseInfoList = new List<DrawingInfo>();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 100; i++)
             {
                 // 随意创建颜色
                 var color = new Color4((byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255));
@@ -268,7 +263,7 @@ unsafe
                 renderTarget.BeginDraw();
 
                 // 清空画布
-                //renderTarget.Clear(new Color4(0xFF, 0xFF, 0xFF));
+                renderTarget.Clear(new Color4(0xFF, 0xFF, 0xFF));
 
                 // 在下面绘制漂亮的界面
 
@@ -293,19 +288,11 @@ unsafe
                     renderTarget.FillEllipse(new D2D.Ellipse(vector2, drawingInfo.Size.Width, drawingInfo.Size.Height), drawingInfo.Brush);
                 }
 
-                renderTarget.EndDraw(out var t1,out var t2);
-                d3D11DeviceContext4.Wait(id3D11Fence, 0);
+                renderTarget.EndDraw();
 
-                //// SharpGen.Runtime.SharpGenException:“HRESULT: [0x88990001], Module: [Vortice.Direct2D1], ApiCode: [D2DERR_WRONG_STATE/WrongState], Message: [对象未处于正确的状态来处理此方法。
-                //renderTarget.Flush(out _ ,out _);
-
-                var presentResult = swapChain.Present(0, DXGI.PresentFlags.UseDuration);
-                presentResult.CheckError();
-
+                swapChain.Present(1, DXGI.PresentFlags.None);
                 // 等待刷新
                 d3D11DeviceContext1.Flush();
-                // SharpGen.Runtime.SharpGenException:“HRESULT: [0x88990001], Module: [Vortice.Direct2D1], ApiCode: [D2DERR_WRONG_STATE/WrongState], Message: [对象未处于正确的状态来处理此方法。
-                //d2dDeviceContext.Flush(out _, out _);
 
                 // 统计刷新率
                 count++;
@@ -315,8 +302,6 @@ unsafe
                     stopwatch.Restart();
                     count = 0;
                 }
-
-                Console.Read();
             }
         }, TaskCreationOptions.LongRunning);
     }
