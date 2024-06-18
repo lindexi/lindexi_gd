@@ -299,7 +299,7 @@ unsafe
                 //// SharpGen.Runtime.SharpGenException:“HRESULT: [0x88990001], Module: [Vortice.Direct2D1], ApiCode: [D2DERR_WRONG_STATE/WrongState], Message: [对象未处于正确的状态来处理此方法。
                 //renderTarget.Flush(out _ ,out _);
 
-                var presentResult = swapChain.Present(0, DXGI.PresentFlags.Test);
+                var presentResult = swapChain.Present(0, DXGI.PresentFlags.UseDuration);
                 presentResult.CheckError();
 
                 // 等待刷新
