@@ -1,4 +1,5 @@
-﻿using Microsoft.UI.Xaml.Controls;
+﻿using Windows.UI.ViewManagement;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml;
 
 namespace NocejefiWeyufilareewe;
@@ -45,9 +46,12 @@ internal class Program
                             VerticalAlignment = VerticalAlignment.Center,
                         }.Do(button => button.Click += (s, _) =>
                         {
+                            Application.Current.DebugSettings.EnableFrameRateCounter = true;
+                            //ApplicationView.TryUnsnapToFullscreen();
+
                             // System.InvalidCastException:“Specified cast is not valid.”
                             // https://stackoverflow.com/questions/73936140/how-to-get-the-window-hosting-a-uielement-instance
-                            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(s);
+                            //var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(s);
                         })
                     }
                 };
