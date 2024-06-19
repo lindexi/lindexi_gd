@@ -21,7 +21,7 @@ internal class Program
         global::Microsoft.UI.Xaml.Application.Start((p) =>
         {
             var app = new App();
-            app.Launched += (sender, e) =>
+            app.Launched += (_, e) =>
             {
                 var window = new Window()
                 {
@@ -36,11 +36,33 @@ internal class Program
                             Text = "控制台应用",
                             HorizontalAlignment = HorizontalAlignment.Center,
                             VerticalAlignment = VerticalAlignment.Center
-                        }
+                        },
+                        new Button()
+                        {
+                            Content = "点击",
+                            Margin = new Thickness(0, 100, 0, 0),
+                            HorizontalAlignment = HorizontalAlignment.Center,
+                            VerticalAlignment = VerticalAlignment.Center,
+                        }.Do(button => button.Click += (s, _) =>
+                        {
+                            // System.InvalidCastException:“Specified cast is not valid.”
+                            // https://stackoverflow.com/questions/73936140/how-to-get-the-window-hosting-a-uielement-instance
+                            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(s);
+                        })
                     }
                 };
                 window.Activate();
             };
         });
+    }
+}
+
+static class CsharpMarkup
+{
+    public static T Do<T>(this T element, Action<T> action) where T : UIElement
+    {
+        action(element);
+
+        return element;
     }
 }
