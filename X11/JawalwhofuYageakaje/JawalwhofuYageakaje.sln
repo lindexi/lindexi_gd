@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34607.119
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JawalwhofuYageakaje", "JawalwhofuYageakaje.csproj", "{7567A50B-6325-4FC1-8218-52FFB6E808AE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BujeeberehemnaNurgacolarje", "..\BujeeberehemnaNurgacolarje\BujeeberehemnaNurgacolarje.csproj", "{1C316C4B-24F2-49AC-9A36-9ED5A398AA6A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7567A50B-6325-4FC1-8218-52FFB6E808AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7567A50B-6325-4FC1-8218-52FFB6E808AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7567A50B-6325-4FC1-8218-52FFB6E808AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7567A50B-6325-4FC1-8218-52FFB6E808AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C316C4B-24F2-49AC-9A36-9ED5A398AA6A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C316C4B-24F2-49AC-9A36-9ED5A398AA6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C316C4B-24F2-49AC-9A36-9ED5A398AA6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C316C4B-24F2-49AC-9A36-9ED5A398AA6A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C165FBDD-30FC-4E62-A6F1-2351FA42A763}
+	EndGlobalSection
+EndGlobal
