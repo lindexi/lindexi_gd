@@ -3,6 +3,10 @@ using static CPF.Linux.XLib;
 using Avalonia.OpenGL.Egl;
 using CPF.Linux;
 using System.ComponentModel;
+using Avalonia.OpenGL;
+using Avalonia.X11.Glx;
+using XLib = Avalonia.X11.XLib;
+using static Avalonia.X11.Glx.GlxConsts;
 
 XInitThreads();
 var display = XOpenDisplay(IntPtr.Zero);
@@ -10,7 +14,7 @@ var screen = XDefaultScreen(display);
 var rootWindow = XDefaultRootWindow(display);
 
 XMatchVisualInfo(display, screen, 32, 4, out var info);
-var visual = info.visual;
+//var visual = info.visual;
 
 var valueMask =
         //SetWindowValuemask.BackPixmap
@@ -47,20 +51,78 @@ XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.Resize
 var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
 XSelectInput(display, handle, mask);
 
-XMapWindow(display, handle);
-XFlush(display);
-
-
-var white = XWhitePixel(display, screen);
-var black = XBlackPixel(display, screen);
-
-var gc = XCreateGC(display, handle, 0, 0);
-XSetForeground(display, gc, white);
-XSync(display, false);
-
-Console.WriteLine("Hello, World!");
-
-while (true)
+GlVersion[] GlProfiles = new[]
 {
-    var xNextEvent = XNextEvent(display, out var @event);
+    new GlVersion(GlProfileType.OpenGL, 4, 0),
+    new GlVersion(GlProfileType.OpenGL, 3, 2),
+    new GlVersion(GlProfileType.OpenGL, 3, 0),
+    new GlVersion(GlProfileType.OpenGLES, 3, 2),
+    new GlVersion(GlProfileType.OpenGLES, 3, 0),
+    new GlVersion(GlProfileType.OpenGLES, 2, 0)
+};
+GlxInterface Glx = new GlxInterface();
+var _probeProfiles = GlProfiles;
+var _displayExtensions = Glx.GetExtensions(display);
+var baseAttribs = new[]
+{
+    GLX_X_RENDERABLE, 1,
+    GLX_RENDER_TYPE, GLX_RGBA_BIT,
+    GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT | GLX_PBUFFER_BIT,
+    GLX_DOUBLEBUFFER, 1,
+    GLX_RED_SIZE, 8,
+    GLX_GREEN_SIZE, 8,
+    GLX_BLUE_SIZE, 8,
+    GLX_ALPHA_SIZE, 8,
+    GLX_DEPTH_SIZE, 1,
+    GLX_STENCIL_SIZE, 8,
+};
+
+unsafe
+{
+    int sampleCount = 0;
+    int stencilSize = 0;
+    foreach (var attribs in new[]
+         {
+             //baseAttribs.Concat(multiattribs),
+             baseAttribs,
+         })
+    {
+        var ptr = Glx.ChooseFBConfig(_x11.DeferredDisplay, x11.DefaultScreen,
+            attribs, out var count);
+        for (var c = 0; c < count; c++)
+        {
+            var visual = Glx.GetVisualFromFBConfig(_x11.DeferredDisplay, ptr[c]);
+            // We prefer 32 bit visuals
+            if (_fbconfig == IntPtr.Zero || visual->depth == 32)
+            {
+                _fbconfig = ptr[c];
+                _visual = visual;
+                if (visual->depth == 32)
+                    break;
+            }
+        }
+
+        if (_fbconfig != IntPtr.Zero)
+            break;
+    }
+
+
+
+    XMapWindow(display, handle);
+    XFlush(display);
+
+
+    var white = XWhitePixel(display, screen);
+    var black = XBlackPixel(display, screen);
+
+    var gc = XCreateGC(display, handle, 0, 0);
+    XSetForeground(display, gc, white);
+    XSync(display, false);
+
+    Console.WriteLine("Hello, World!");
+
+    while (true)
+    {
+        var xNextEvent = XNextEvent(display, out var @event);
+    }
 }

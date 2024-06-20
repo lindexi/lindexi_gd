@@ -6,10 +6,18 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>AvaloniaDemo</AssemblyName>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>avalonia.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.0.11" />
+    <Reference Include="Avalonia.OpenGL">
+      <HintPath>C:\lindexi\Library\Avalonia\Avalonia.OpenGL.dll</HintPath>
+    </Reference>
+    <Reference Include="Avalonia.X11">
+      <HintPath>C:\lindexi\Library\Avalonia\Avalonia.X11.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
