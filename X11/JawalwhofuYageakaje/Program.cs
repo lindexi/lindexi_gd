@@ -17,7 +17,7 @@ XMapWindow(display, win2.Window);
 XMapWindow(display, win3.Window);
 
 XSetTransientForHint(display, win1.Window, win2.Window);
-XSetTransientForHint(display, win1.Window, win3.Window);
+XSetTransientForHint(display, win2.Window, win3.Window);
 
 XFlush(display);
 
