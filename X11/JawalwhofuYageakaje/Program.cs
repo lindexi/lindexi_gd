@@ -13,11 +13,10 @@ var screen = XDefaultScreen(display);
 var win1 = new X11Window(display);
 var win2 = new X11Window(display);
 
-XSetTransientForHint(display, win1.Window, win2.Window);
-
 XMapWindow(display, win1.Window);
 XMapWindow(display, win2.Window);
 
+XSetTransientForHint(display, win1.Window, win2.Window);
 
 XFlush(display);
 
@@ -61,7 +60,7 @@ class X11Window
             //override_redirect = true, // 设置窗口的override_redirect属性为True，以避免窗口管理器的干预
             colormap = XCreateColormap(display, rootWindow, visual, 0),
             border_pixel = 0,
-            background_pixel = 0,
+            background_pixel = new IntPtr(Random.Shared.Next() | 0xFF << 24),
         };
 
         var xDisplayWidth = XDisplayWidth(display, screen) / 2;
