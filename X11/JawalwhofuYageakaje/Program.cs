@@ -1,9 +1,7 @@
 ﻿using CPF.Linux;
-
 using System;
 using System.Diagnostics;
 using System.Runtime;
-
 using static CPF.Linux.XLib;
 
 XInitThreads();
@@ -12,11 +10,14 @@ var screen = XDefaultScreen(display);
 
 var win1 = new X11Window(display);
 var win2 = new X11Window(display);
+var win3 = new X11Window(display);
 
 XMapWindow(display, win1.Window);
 XMapWindow(display, win2.Window);
+XMapWindow(display, win3.Window);
 
 XSetTransientForHint(display, win1.Window, win2.Window);
+XSetTransientForHint(display, win1.Window, win3.Window);
 
 XFlush(display);
 
@@ -60,20 +61,22 @@ class X11Window
             //override_redirect = true, // 设置窗口的override_redirect属性为True，以避免窗口管理器的干预
             colormap = XCreateColormap(display, rootWindow, visual, 0),
             border_pixel = 0,
-            background_pixel = new IntPtr(Random.Shared.Next() | 0xFF << 24),
+            background_pixel = BackgroundColorIntPtr[_index] //new IntPtr(Random.Shared.Next() | 0xFF << 24),
         };
+
+        _index++;
 
         var xDisplayWidth = XDisplayWidth(display, screen) / 2;
         var xDisplayHeight = XDisplayHeight(display, screen) / 2;
         var window = XCreateWindow(display, rootWindow, 0, 0, xDisplayWidth, xDisplayHeight, 5,
             32,
-            (int) CreateWindowArgs.InputOutput,
+            (int)CreateWindowArgs.InputOutput,
             visual,
-            (nuint) valueMask, ref xSetWindowAttributes);
+            (nuint)valueMask, ref xSetWindowAttributes);
 
         XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
                                  XEventMask.PointerMotionHintMask;
-        var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
+        var mask = new IntPtr(0xffffff ^ (int)ignoredMask);
         XSelectInput(display, window, mask);
 
         var white = XWhitePixel(display, screen);
@@ -90,5 +93,12 @@ class X11Window
     public IntPtr Window { get; set; }
     public IntPtr GC { get; set; }
 
+    private static IntPtr[] BackgroundColorIntPtr { get; } =
+    [
+        new IntPtr(0xFFFF0000),
+        new IntPtr(0xFF00FF00),
+        new IntPtr(0xFF0000FF),
+    ];
 
+    private static int _index;
 }
