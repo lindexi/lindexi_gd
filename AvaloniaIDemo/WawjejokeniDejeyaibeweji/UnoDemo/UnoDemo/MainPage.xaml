@@ -9,5 +9,6 @@
     <TextBlock AutomationProperties.AutomationId="HelloTextBlock"
           Text="Hello Uno Platform"
           HorizontalAlignment="Center" />
+    <Button x:Name="RunAvaloniaButton" HorizontalAlignment="Center" Content="Run Avalonia" Click="RunAvaloniaButton_OnClick"/>
   </StackPanel>
 </Page>

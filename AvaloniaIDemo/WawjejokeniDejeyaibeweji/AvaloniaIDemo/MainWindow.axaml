@@ -7,6 +7,6 @@
         x:Class="AvaloniaIDemo.MainWindow"
         Title="AvaloniaIDemo">
     <Grid>
-
+      <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="Hello Avalonia"/>
     </Grid>
 </Window>
