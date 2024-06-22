@@ -1,5 +1,3 @@
-using  Avalonia;
-
 namespace UnoDemo;
 
 public sealed partial class MainPage : Page
@@ -12,7 +10,7 @@ public sealed partial class MainPage : Page
     private void RunAvaloniaButton_OnClick(object sender, RoutedEventArgs e)
     {
         // Create the new Thread to run the Avalonia 
-        Thickness t;
+        
         var thread = new Thread(() =>
         {
             AvaloniaIDemo.Program.Main([]);
