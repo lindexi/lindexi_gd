@@ -1,6 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
@@ -20,6 +19,6 @@
 
 
   <ItemGroup>
-    <ProjectReference Include="..\UnoDemo\UnoDemo\UnoDemo.csproj" />
+    <ProjectReference Include="..\LibDemo\LibDemo.csproj" />
   </ItemGroup>
 </Project>
