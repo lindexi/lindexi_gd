@@ -1,0 +1,16 @@
+﻿<Project Sdk="Uno.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-desktop</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UnoSingleProject>true</UnoSingleProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AvaloniaIDemo\AvaloniaIDemo.csproj" />
+    <ProjectReference Include="..\UnoDemo\UnoDemo\UnoDemo.csproj" />
+  </ItemGroup>
+
+</Project>

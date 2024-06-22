@@ -7,6 +7,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvaloniaIDemo", "AvaloniaID
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnoDemo", "UnoDemo\UnoDemo\UnoDemo.csproj", "{872051FD-06AD-4FA7-80AA-44FD8C63E0B2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppDemo", "AppDemo\AppDemo.csproj", "{63AFC455-0A83-4CEF-BAF2-1AA5998C28DB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibDemo", "LibDemo\LibDemo.csproj", "{0C4F55A4-A6EC-4CF8-B2B8-61673EB326DD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,6 +27,14 @@ Global
 		{872051FD-06AD-4FA7-80AA-44FD8C63E0B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{872051FD-06AD-4FA7-80AA-44FD8C63E0B2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{872051FD-06AD-4FA7-80AA-44FD8C63E0B2}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{63AFC455-0A83-4CEF-BAF2-1AA5998C28DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63AFC455-0A83-4CEF-BAF2-1AA5998C28DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63AFC455-0A83-4CEF-BAF2-1AA5998C28DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63AFC455-0A83-4CEF-BAF2-1AA5998C28DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C4F55A4-A6EC-4CF8-B2B8-61673EB326DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C4F55A4-A6EC-4CF8-B2B8-61673EB326DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C4F55A4-A6EC-4CF8-B2B8-61673EB326DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C4F55A4-A6EC-4CF8-B2B8-61673EB326DD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
