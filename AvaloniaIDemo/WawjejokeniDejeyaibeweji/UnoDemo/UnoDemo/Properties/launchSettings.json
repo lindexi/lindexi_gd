@@ -1,0 +1,30 @@
+{
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:8080",
+      "sslPort": 0
+    }
+  },
+  "profiles": {
+    "UnoDemo (WinAppSDK Unpackaged)": {
+      "commandName": "Project",
+      "compatibleTargetFramework": "windows"
+    },
+    "UnoDemo (WinAppSDK Packaged)": {
+      "commandName": "MsixPackage",
+      "compatibleTargetFramework": "windows"
+    },
+    "UnoDemo (Desktop)": {
+      "commandName": "Project",
+      "compatibleTargetFramework": "desktop"
+    },
+    "UnoDemo (Desktop WSL2)": {
+      "commandName": "WSL2",
+      "commandLineArgs": "{ProjectDir}/bin/Debug/net8.0-desktop/UnoDemo.dll",
+      "distributionName": "",
+      "compatibleTargetFramework": "desktop"
+    }
+  }
+}
