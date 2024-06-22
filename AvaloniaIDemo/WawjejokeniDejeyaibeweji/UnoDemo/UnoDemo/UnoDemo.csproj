@@ -34,5 +34,8 @@
     <UnoFeatures>
     </UnoFeatures>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\AvaloniaIDemo\AvaloniaIDemo.csproj" />
+  </ItemGroup>
 
 </Project>
