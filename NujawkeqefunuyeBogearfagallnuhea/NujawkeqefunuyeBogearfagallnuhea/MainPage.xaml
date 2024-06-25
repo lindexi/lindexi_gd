@@ -4,8 +4,8 @@
       xmlns:local="using:NujawkeqefunuyeBogearfagallnuhea"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
   <StackPanel x:Name="RootPanel"
-        HorizontalAlignment="Center"
-        VerticalAlignment="Center">
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center">
     <TextBlock AutomationProperties.AutomationId="HelloTextBlock"
           Text="Hello Uno Platform"
           HorizontalAlignment="Center" />

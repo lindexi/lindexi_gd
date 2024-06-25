@@ -1,41 +1,70 @@
 using System;
-
 using Microsoft.Extensions.Logging;
-using Microsoft.UI.Xaml;
-
 using Uno.Resizetizer;
 
 namespace NujawkeqefunuyeBogearfagallnuhea;
-public sealed partial class AppHead : App
-{
-    static AppHead() =>
-        InitializeLogging();
 
+public partial class App : Application
+{
     /// <summary>
     /// Initializes the singleton application object. This is the first line of authored code
     /// executed, and as such is the logical equivalent of main() or WinMain().
     /// </summary>
-    public AppHead()
+    public App()
     {
         this.InitializeComponent();
     }
 
-    /// <summary>
-    /// Invoked when the application is launched normally by the end user.  Other entry points
-    /// will be used such as when the application is launched to open a specific file.
-    /// </summary>
-    /// <param name="args">Details about the launch request and process.</param>
+    protected Window? MainWindow { get; private set; }
+
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
-        base.OnLaunched(args);
+        MainWindow = new Window();
+#if DEBUG
+        MainWindow.EnableHotReload();
+#endif
+
+
+        // Do not repeat app initialization when the Window already has content,
+        // just ensure that the window is active
+        if (MainWindow.Content is not Frame rootFrame)
+        {
+            // Create a Frame to act as the navigation context and navigate to the first page
+            rootFrame = new Frame();
+
+            // Place the frame in the current Window
+            MainWindow.Content = rootFrame;
+
+            rootFrame.NavigationFailed += OnNavigationFailed;
+        }
+
+        if (rootFrame.Content == null)
+        {
+            // When the navigation stack isn't restored navigate to the first page,
+            // configuring the new page by passing required information as a navigation
+            // parameter
+            rootFrame.Navigate(typeof(MainPage), args.Arguments);
+        }
 
         MainWindow.SetWindowIcon();
+        // Ensure the current window is active
+        MainWindow.Activate();
+    }
+
+    /// <summary>
+    /// Invoked when Navigation to a certain page fails
+    /// </summary>
+    /// <param name="sender">The Frame which failed navigation</param>
+    /// <param name="e">Details about the navigation failure</param>
+    void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
+    {
+        throw new InvalidOperationException($"Failed to load {e.SourcePageType.FullName}: {e.Exception}");
     }
 
     /// <summary>
     /// Configures global Uno Platform logging
     /// </summary>
-    private static void InitializeLogging()
+    public static void InitializeLogging()
     {
 #if DEBUG
         // Logging is disabled by default for release builds, as it incurs a significant
