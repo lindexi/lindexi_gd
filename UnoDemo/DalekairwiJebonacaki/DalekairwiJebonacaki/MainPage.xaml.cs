@@ -14,5 +14,6 @@ public sealed partial class MainPage : Page
     private void MainPage_Loaded(object sender, RoutedEventArgs e)
     {
         Debug.WriteLine($"Width={ActualWidth} Height={ActualHeight}");
+        Console.WriteLine($"Width={ActualWidth} Height={ActualHeight}");
     }
 }
