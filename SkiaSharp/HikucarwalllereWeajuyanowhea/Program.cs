@@ -2,14 +2,9 @@
 
 using SkiaSharp;
 
-var skTypeFace = SKTypeface.FromFamilyName(null, SKFontStyleWeight.Normal, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright);
-Console.WriteLine($"fromFamilyName={skTypeFace} FamilyName={skTypeFace?.FamilyName} GlyphCount={skTypeFace?.GlyphCount}");
+var skTypeFace = SKTypeface.FromFamilyName(null, SKFontStyleWeight.ExtraBold, SKFontStyleWidth.Normal, SKFontStyleSlant.Italic);
 
-var fontSize = 20;
-var skFont = new SKFont(skTypeFace, fontSize);
-skFont.Edging = SKFontEdging.SubpixelAntialias;
-skFont.Subpixel = true;
-
-
-
-Console.WriteLine($"SKFont={skFont.Size}, {skFont.ScaleX}, {skFont.Metrics}");
+if (skTypeFace is null)
+{
+    Console.WriteLine($"skTypeFace is null");
+}
