@@ -17,6 +17,13 @@ public class TextEditorValueChangeEventArgs<T> : EventArgs
         NewValue = newValue;
     }
 
+    /// <summary>
+    /// 旧值
+    /// </summary>
     public T OldValue { get; }
+
+    /// <summary>
+    /// 新值
+    /// </summary>
     public T NewValue { get; }
 }

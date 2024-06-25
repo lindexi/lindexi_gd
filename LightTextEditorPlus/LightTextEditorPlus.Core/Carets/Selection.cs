@@ -78,6 +78,18 @@ public readonly struct Selection
     public CaretOffset EndOffset { get; }
 
     /// <summary>
+    /// 传入给定的 <paramref name="caretOffset"/> 判断是否落在选择范围内
+    /// </summary>
+    /// <param name="caretOffset"></param>
+    /// <returns></returns>
+    /// 也许这个命名不对
+    public bool Contains(in CaretOffset caretOffset)
+    {
+        return FrontOffset.Offset <= caretOffset.Offset &&
+               BehindOffset.Offset >= caretOffset.Offset;
+    }
+
+    /// <summary>
     /// 选择范围是否相同，无视起始点和结束点是否相反
     /// </summary>
     /// <param name="other"></param>
@@ -86,4 +98,7 @@ public readonly struct Selection
     {
         return other.FrontOffset.Equals(FrontOffset) && other.BehindOffset.Equals(BehindOffset);
     }
+
+    /// <inheritdoc />
+    public override string ToString() => $"{FrontOffset.Offset}-{BehindOffset.Offset};Length={Length}";
 }

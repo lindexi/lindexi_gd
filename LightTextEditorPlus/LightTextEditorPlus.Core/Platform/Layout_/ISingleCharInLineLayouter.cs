@@ -7,5 +7,10 @@ namespace LightTextEditorPlus.Core.Platform;
 /// </summary>
 public interface ISingleCharInLineLayouter
 {
+    /// <summary>
+    /// 布局行内的单个字符
+    /// </summary>
+    /// <param name="argument"></param>
+    /// <returns></returns>
     SingleCharInLineLayoutResult LayoutSingleCharInLine(in SingleCharInLineLayoutArgument argument);
 }
