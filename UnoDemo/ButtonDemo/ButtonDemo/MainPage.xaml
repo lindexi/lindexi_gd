@@ -4,7 +4,16 @@
       xmlns:local="using:ButtonDemo"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
   <Page.Resources>
-   
+    <Style x:Key="Style.Button.PathButtonStyle" TargetType="Button">
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Grid Width="100" Height="100" Background="Black">
+            </Grid>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
   </Page.Resources>
   <StackPanel
     HorizontalAlignment="Center"
