@@ -9,23 +9,22 @@
         <Setter.Value>
           <ControlTemplate TargetType="Button">
             <Grid>
-
               <VisualStateManager.VisualStateGroups>
                 <VisualStateGroup x:Name="CommonStates">
-                  <VisualState x:Name="Normal">
-
-                  </VisualState>
+                  <!-- <VisualState x:Name="Normal"> -->
+                  <!-- 如果没有这一条，则不会清除状态 -->
+                  <!-- </VisualState> -->
                   <VisualState x:Name="PointerOver">
                     <!-- Hover 效果 -->
                     <Storyboard>
-                      <DoubleAnimation Duration="0:0:1.2" To="10" Storyboard.TargetName="ButtonContentPath"
-                                       Storyboard.TargetProperty="StrokeThickness">
-                      </DoubleAnimation>
-                      <!--<ObjectAnimationUsingKeyFrames EnableDependentAnimation="True" Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="StrokeThickness">
+                      <!-- <DoubleAnimation Duration="0:0:1.2" To="10" Storyboard.TargetName="ButtonContentPath" -->
+                      <!--                  Storyboard.TargetProperty="StrokeThickness"> -->
+                      <!-- </DoubleAnimation> -->
+                      <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="StrokeThickness">
            <ObjectAnimationUsingKeyFrames.KeyFrames>
-             <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="0.0" ></DiscreteObjectKeyFrame>
+             <DiscreteObjectKeyFrame KeyTime="0:0:1" Value="0.0" ></DiscreteObjectKeyFrame>
            </ObjectAnimationUsingKeyFrames.KeyFrames>
-         </ObjectAnimationUsingKeyFrames>-->
+         </ObjectAnimationUsingKeyFrames>
                     </Storyboard>
                   </VisualState>
                 </VisualStateGroup>
