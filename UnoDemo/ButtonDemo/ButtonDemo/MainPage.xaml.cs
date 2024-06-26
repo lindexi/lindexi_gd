@@ -5,6 +5,8 @@ public sealed partial class MainPage : Page
     public MainPage()
     {
         this.InitializeComponent();
+        
+        //Microsoft.UI.Xaml.Shapes.Path.StrokeThicknessProperty
     }
 }
 

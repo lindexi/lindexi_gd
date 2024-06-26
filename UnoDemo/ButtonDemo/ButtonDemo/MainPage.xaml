@@ -11,27 +11,31 @@
             <Grid>
               <VisualStateManager.VisualStateGroups>
                 <VisualStateGroup x:Name="CommonStates">
-                  <!-- <VisualState x:Name="Normal"> -->
-                  <!-- 如果没有这一条，则不会清除状态 -->
-                  <!-- </VisualState> -->
+                   <VisualState x:Name="Normal"> 
+                   </VisualState> 
                   <VisualState x:Name="PointerOver">
                     <!-- Hover 效果 -->
                     <Storyboard>
-                      <DoubleAnimation Duration="0:0:1" Storyboard.TargetName="ButtonContentPath"
-                                       Storyboard.TargetProperty="StrokeThickness"
-                                       To="10"/>
+                      <!-- <DoubleAnimation Duration="0:0:1" Storyboard.TargetName="ButtonContentPath" -->
+                      <!--                  Storyboard.TargetProperty="StrokeThickness" -->
+                      <!--                  To="10"/> -->
 
                       <DoubleAnimation Storyboard.TargetName="ButtonContentPath"
-                                       Storyboard.TargetProperty="Opacity"
+                                       Storyboard.TargetProperty="StrokeThickness"
                                        Duration="0:0:1"
                                        To="0" />
 
-                      <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath"
+                      <DoubleAnimation Storyboard.TargetName="ButtonContentPath"
+                                       Storyboard.TargetProperty="Opacity"
+                                       Duration="0:0:3"
+                                       To="0.6" />
+
+                      <!--<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath"
                                Storyboard.TargetProperty="Fill">
   <ObjectAnimationUsingKeyFrames.KeyFrames>
     <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="Blue"></DiscreteObjectKeyFrame>
   </ObjectAnimationUsingKeyFrames.KeyFrames>
-</ObjectAnimationUsingKeyFrames>
+</ObjectAnimationUsingKeyFrames>-->
                       <!--<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath"
                                                      Storyboard.TargetProperty="StrokeThickness">
                         <ObjectAnimationUsingKeyFrames.KeyFrames>
@@ -43,7 +47,7 @@
                 </VisualStateGroup>
               </VisualStateManager.VisualStateGroups>
 
-              <Path x:Name="ButtonContentPath" StrokeThickness="2" Stroke="#FF666666"
+              <Path x:Name="ButtonContentPath" StrokeThickness="5" Stroke="#FF666666"
                     Data="M7,15C6.85289858,15.5677816,6.85289858,16.4322348,7,17L22,29C22.7348015,29.3762198,24,28.8227297,24,28L24,4C24,3.1772867,22.7348015,2.62379657,22,3L7,15z">
               </Path>
             </Grid>
