@@ -7,3 +7,8 @@ public sealed partial class MainPage : Page
         this.InitializeComponent();
     }
 }
+
+public static class ButtonHelper
+{
+
+}

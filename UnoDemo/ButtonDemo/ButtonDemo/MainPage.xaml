@@ -3,11 +3,13 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:ButtonDemo"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+  <Page.Resources>
+   
+  </Page.Resources>
   <StackPanel
-        HorizontalAlignment="Center"
-        VerticalAlignment="Center">
-    <TextBlock AutomationProperties.AutomationId="HelloTextBlock"
-          Text="Hello Uno Platform"
-          HorizontalAlignment="Center" />
+    HorizontalAlignment="Center"
+    VerticalAlignment="Center">
+
+    <Button Style="{StaticResource Style.Button.PathButtonStyle}"></Button>
   </StackPanel>
 </Page>
