@@ -18,7 +18,7 @@
                     <!-- Hover 效果 -->
                     <Storyboard>
                       <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="Stroke" >
-                        <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource PathButtonHoverSolidColorBrush}"/>
+                        <DiscreteObjectKeyFrame KeyTime="0" Value="Transparent"/>
                       </ObjectAnimationUsingKeyFrames>
 
                       <DoubleAnimation Duration="0:0:1.2" To="10" Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="StrokeThickness"></DoubleAnimation>
