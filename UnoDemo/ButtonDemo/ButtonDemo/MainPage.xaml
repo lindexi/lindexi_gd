@@ -8,17 +8,19 @@
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="Button">
-            <Grid Width="100" Height="100" Background="Black">
-            </Grid>
+            <ContentPresenter x:Name="ContentPresenter" AutomationProperties.AccessibilityView="Raw" Background="{TemplateBinding Background}" BackgroundSizing="{TemplateBinding BackgroundSizing}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBindingExtension BorderThickness}" />
           </ControlTemplate>
         </Setter.Value>
       </Setter>
     </Style>
+
   </Page.Resources>
   <StackPanel
     HorizontalAlignment="Center"
     VerticalAlignment="Center">
 
-    <Button Style="{StaticResource Style.Button.PathButtonStyle}"></Button>
+    <Button Style="{StaticResource Style.Button.PathButtonStyle}">
+
+    </Button>
   </StackPanel>
 </Page>
