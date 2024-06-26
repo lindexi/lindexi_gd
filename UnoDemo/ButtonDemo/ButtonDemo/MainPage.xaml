@@ -25,7 +25,12 @@
                                        Storyboard.TargetProperty="Opacity"
                                        Duration="0:0:3"
                                        To="0.6" />
-
+                      <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath"
+                                                     Storyboard.TargetProperty="StrokeThickness">
+                        <ObjectAnimationUsingKeyFrames.KeyFrames>
+                          <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="0.0"></DiscreteObjectKeyFrame>
+                        </ObjectAnimationUsingKeyFrames.KeyFrames>
+                      </ObjectAnimationUsingKeyFrames>
 
                     </Storyboard>
                   </VisualState>
@@ -39,12 +44,7 @@
                         </ObjectAnimationUsingKeyFrames.KeyFrames>
                       </ObjectAnimationUsingKeyFrames>
 
-                      <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath"
-                                                     Storyboard.TargetProperty="StrokeThickness">
-                        <ObjectAnimationUsingKeyFrames.KeyFrames>
-                          <DiscreteObjectKeyFrame KeyTime="0:0:1" Value="0.0"></DiscreteObjectKeyFrame>
-                        </ObjectAnimationUsingKeyFrames.KeyFrames>
-                      </ObjectAnimationUsingKeyFrames>
+                     
                     </Storyboard>
                   </VisualState>
                 </VisualStateGroup>
