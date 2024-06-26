@@ -9,6 +9,7 @@
         <Setter.Value>
           <ControlTemplate TargetType="Button">
             <Grid x:Name="RootGrid" Background="{TemplateBinding Background}">
+              <!-- 由于 VisualStateManager 必须放在容器里面，因此这里必须需要有一个容器 -->
               <VisualStateManager.VisualStateGroups>
                 <VisualStateGroup x:Name="CommonStates">
                   <VisualState x:Name="Normal">
