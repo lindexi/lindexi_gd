@@ -16,15 +16,24 @@
                   <VisualState x:Name="PointerOver">
                     <!-- Hover 效果 -->
                     <Storyboard>
-                      <!--<DoubleAnimation Storyboard.TargetName="ButtonContentPath"
+                      <DoubleAnimation Storyboard.TargetName="ButtonContentPath"
                                        Storyboard.TargetProperty="StrokeThickness"
+                                       EnableDependentAnimation="True"
                                        Duration="0:0:1"
-                                       To="0" />-->
+                                       To="0" />
 
                       <DoubleAnimation Storyboard.TargetName="ButtonContentPath"
                                        Storyboard.TargetProperty="Opacity"
                                        Duration="0:0:3"
                                        To="0.6" />
+                   
+
+                    </Storyboard>
+                  </VisualState>
+
+                  <VisualState x:Name="Pressed">
+                    <Storyboard>
+
                       <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath"
                                                      Storyboard.TargetProperty="StrokeThickness">
                         <ObjectAnimationUsingKeyFrames.KeyFrames>
@@ -32,11 +41,6 @@
                         </ObjectAnimationUsingKeyFrames.KeyFrames>
                       </ObjectAnimationUsingKeyFrames>
 
-                    </Storyboard>
-                  </VisualState>
-
-                  <VisualState x:Name="Pressed">
-                    <Storyboard>
                       <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath"
                                                      Storyboard.TargetProperty="Fill">
                         <ObjectAnimationUsingKeyFrames.KeyFrames>
