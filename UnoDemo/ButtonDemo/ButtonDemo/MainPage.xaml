@@ -4,9 +4,6 @@
       xmlns:local="using:ButtonDemo"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
   <Page.Resources>
-
-    <SolidColorBrush x:Key="PathButtonHoverSolidColorBrush" Color="#FF0000FF"></SolidColorBrush>
-
     <Style x:Key="Style.Button.EmptyButtonStyle" TargetType="Button">
       <Setter Property="Template">
         <Setter.Value>
@@ -22,13 +19,6 @@
                   <VisualState x:Name="PointerOver">
                     <!-- Hover 效果 -->
                     <Storyboard>
-                      <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="Stroke" >
-                        <DiscreteObjectKeyFrame KeyTime="0" Value="Transparent"/>
-                      </ObjectAnimationUsingKeyFrames>
-
-                      <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="Fill" >
-                        <DiscreteObjectKeyFrame KeyTime="0" Value="#FF666666"/>
-                      </ObjectAnimationUsingKeyFrames>
 
                       <!-- 设置粗细是无效的 -->
                       <!--<DoubleAnimation Duration="0:0:1.2" To="10" Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="StrokeThickness"></DoubleAnimation>-->
@@ -47,7 +37,7 @@
                       </ObjectAnimationUsingKeyFrames>
 
                       <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="Fill" >
-                        <DiscreteObjectKeyFrame KeyTime="0" Value="Blue"/>
+                        <DiscreteObjectKeyFrame KeyTime="0" Value="#FF666666"/>
                       </ObjectAnimationUsingKeyFrames>
                     </Storyboard>
                   </VisualState>
