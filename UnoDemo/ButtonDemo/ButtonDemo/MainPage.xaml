@@ -73,8 +73,8 @@
                   <VisualState x:Name="Pressed">
                     <!-- 按下状态 -->
                     <VisualState.Setters>
-                      <Setter Target="ButtonContentPath" Property="Stroke" Value="Transparent"></Setter>
-                      <Setter Target="ButtonContentPath" Property="Fill" Value="#FF666666"></Setter>
+                      <Setter Target="ButtonContentPath.Stroke" Value="Transparent"></Setter>
+                      <Setter Target="ButtonContentPath.Fill" Value="#FF666666"></Setter>
                     </VisualState.Setters>
                   </VisualState>
                   <VisualState x:Name="Disabled">
