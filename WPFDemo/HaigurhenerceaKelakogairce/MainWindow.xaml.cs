@@ -28,7 +28,7 @@ public partial class MainWindow : Window
         geometry = Geometry.Combine(geometry, Geometry.Empty, GeometryCombineMode.Union, Transform.Identity);
         var geometryBounds = geometry.Bounds;
 
-        geometry.Transform = new TranslateTransform(-geometryBounds.Left,-geometryBounds.Top);
+        geometry.Transform = new TranslateTransform(-geometryBounds.Left,-geometryBounds.Top+3);
         geometry = Geometry.Combine(geometry, Geometry.Empty, GeometryCombineMode.Union, Transform.Identity);
 
         InkPath.Data = geometry;
