@@ -15,9 +15,19 @@
                   
                   </VisualState>
                   <VisualState x:Name="PointerOver">
-                    <VisualState.Setters>
+                    <!--<VisualState.Setters>
                       <Setter Target="ButtonContentPath.StrokeThickness" Value="10"></Setter>
-                    </VisualState.Setters>
+                    </VisualState.Setters>-->
+                    <Storyboard>
+                      <!--<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="StrokeThickness" >
+                        <DiscreteObjectKeyFrame KeyTime="0" Value="10"/>
+                      </ObjectAnimationUsingKeyFrames>-->
+                      <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="StrokeThickness">
+                        <ObjectAnimationUsingKeyFrames.KeyFrames>
+                          <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="0.0" ></DiscreteObjectKeyFrame>
+                        </ObjectAnimationUsingKeyFrames.KeyFrames>
+                      </ObjectAnimationUsingKeyFrames>
+                    </Storyboard>
                   </VisualState>
                   <VisualState x:Name="Pressed">
                    
