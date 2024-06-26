@@ -8,23 +8,33 @@
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="Button">
-            <Path x:Name="ButtonContentPath" StrokeThickness="2" Stroke="#FF666666" Data="M7,15C6.85289858,15.5677816,6.85289858,16.4322348,7,17L22,29C22.7348015,29.3762198,24,28.8227297,24,28L24,4C24,3.1772867,22.7348015,2.62379657,22,3L7,15z"></Path>
+            <Grid>
 
-            <VisualStateManager.VisualStateGroups>
-              <VisualStateGroup x:Name="CommonStates">
-                <VisualState x:Name="PointerOver">
-                  <!-- Hover 效果 -->
-                  <Storyboard>
-                    <DoubleAnimation Duration="0:0:1.2" To="10" Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="StrokeThickness"></DoubleAnimation>
-                    <!--<ObjectAnimationUsingKeyFrames EnableDependentAnimation="True" Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="StrokeThickness">
+              <VisualStateManager.VisualStateGroups>
+                <VisualStateGroup x:Name="CommonStates">
+                  <VisualState x:Name="Normal">
+
+                  </VisualState>
+                  <VisualState x:Name="PointerOver">
+                    <!-- Hover 效果 -->
+                    <Storyboard>
+                      <DoubleAnimation Duration="0:0:1.2" To="10" Storyboard.TargetName="ButtonContentPath"
+                                       Storyboard.TargetProperty="StrokeThickness">
+                      </DoubleAnimation>
+                      <!--<ObjectAnimationUsingKeyFrames EnableDependentAnimation="True" Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="StrokeThickness">
            <ObjectAnimationUsingKeyFrames.KeyFrames>
              <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="0.0" ></DiscreteObjectKeyFrame>
            </ObjectAnimationUsingKeyFrames.KeyFrames>
          </ObjectAnimationUsingKeyFrames>-->
-                  </Storyboard>
-                </VisualState>
-              </VisualStateGroup>
-            </VisualStateManager.VisualStateGroups>
+                    </Storyboard>
+                  </VisualState>
+                </VisualStateGroup>
+              </VisualStateManager.VisualStateGroups>
+
+              <Path x:Name="ButtonContentPath" StrokeThickness="2" Stroke="#FF666666"
+                    Data="M7,15C6.85289858,15.5677816,6.85289858,16.4322348,7,17L22,29C22.7348015,29.3762198,24,28.8227297,24,28L24,4C24,3.1772867,22.7348015,2.62379657,22,3L7,15z">
+              </Path>
+            </Grid>
           </ControlTemplate>
         </Setter.Value>
       </Setter>
@@ -36,8 +46,8 @@
     VerticalAlignment="Center">
     <Border BorderBrush="Black" BorderThickness="0">
       <Button Style="{StaticResource Style.Button.EmptyButtonStyle}"
-            Background="Transparent" Padding="0">
-       
+              Background="Transparent" Padding="0">
+
       </Button>
     </Border>
   </StackPanel>
