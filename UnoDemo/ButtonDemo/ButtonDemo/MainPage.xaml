@@ -14,6 +14,11 @@
             <Grid x:Name="RootGrid" Background="{TemplateBinding Background}">
               <VisualStateManager.VisualStateGroups>
                 <VisualStateGroup x:Name="CommonStates">
+                  <VisualState x:Name="Normal">
+                    <Storyboard>
+                      <!--啥都不用做，清空状态即可-->
+                    </Storyboard>
+                  </VisualState>
                   <VisualState x:Name="PointerOver">
                     <!-- Hover 效果 -->
                     <Storyboard>
@@ -21,13 +26,21 @@
                         <DiscreteObjectKeyFrame KeyTime="0" Value="Transparent"/>
                       </ObjectAnimationUsingKeyFrames>
 
-                      <DoubleAnimation Duration="0:0:1.2" To="10" Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="StrokeThickness"></DoubleAnimation>
+                      <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="Fill" >
+                        <DiscreteObjectKeyFrame KeyTime="0" Value="#FF666666"/>
+                      </ObjectAnimationUsingKeyFrames>
+
+                      <!-- 设置粗细是无效的 -->
+                      <!--<DoubleAnimation Duration="0:0:1.2" To="10" Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="StrokeThickness"></DoubleAnimation>-->
                       <!--<ObjectAnimationUsingKeyFrames EnableDependentAnimation="True" Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="StrokeThickness">
            <ObjectAnimationUsingKeyFrames.KeyFrames>
              <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="0.0" ></DiscreteObjectKeyFrame>
            </ObjectAnimationUsingKeyFrames.KeyFrames>
          </ObjectAnimationUsingKeyFrames>-->
                     </Storyboard>
+                  </VisualState>
+                  <VisualState x:Name="Pressed">
+                    <!-- 按下状态 -->
                   </VisualState>
                 </VisualStateGroup>
               </VisualStateManager.VisualStateGroups>
