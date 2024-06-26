@@ -41,6 +41,18 @@
                   </VisualState>
                   <VisualState x:Name="Pressed">
                     <!-- 按下状态 -->
+                    <Storyboard>
+                      <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="Stroke" >
+                        <DiscreteObjectKeyFrame KeyTime="0" Value="Transparent"/>
+                      </ObjectAnimationUsingKeyFrames>
+
+                      <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="Fill" >
+                        <DiscreteObjectKeyFrame KeyTime="0" Value="Blue"/>
+                      </ObjectAnimationUsingKeyFrames>
+                    </Storyboard>
+                  </VisualState>
+                  <VisualState x:Name="Disabled">
+                    <!-- 不可用的状态 -->
                   </VisualState>
                 </VisualStateGroup>
               </VisualStateManager.VisualStateGroups>
