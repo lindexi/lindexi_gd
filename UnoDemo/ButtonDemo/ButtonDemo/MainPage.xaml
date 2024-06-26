@@ -55,12 +55,46 @@
       </Setter>
     </Style>
 
+    <!-- 加页按钮样式 -->
+    <Style x:Key="Style.Button.AddSlideButtonStyle" TargetType="Button">
+      <Setter Property="Background" Value="Transparent"></Setter>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border Background="{TemplateBinding Background}">
+              <VisualStateManager.VisualStateGroups>
+                <VisualStateGroup x:Name="CommonStates">
+                  <VisualState x:Name="Normal">
+                    <!--啥都不用做，清空状态即可-->
+                  </VisualState>
+                  <VisualState x:Name="PointerOver">
+                    <!-- Hover 效果 -->
+                  </VisualState>
+                  <VisualState x:Name="Pressed">
+                    <!-- 按下状态 -->
+                    <VisualState.Setters>
+                      <Setter Target="ButtonContentPath" Property="Stroke" Value="Transparent"></Setter>
+                      <Setter Target="ButtonContentPath" Property="Fill" Value="#FF666666"></Setter>
+                    </VisualState.Setters>
+                  </VisualState>
+                  <VisualState x:Name="Disabled">
+                    <!-- 不可用的状态 -->
+                  </VisualState>
+                </VisualStateGroup>
+              </VisualStateManager.VisualStateGroups>
+
+              <Path x:Name="ButtonContentPath" StrokeThickness="2" Stroke="#FF666666" Data="M1.9999998807907104,3.1203362941741943L17,15.120336532592773C17.14710235595703,15.688117980957031,17.14710235595703,16.55257225036621,17,17.120336532592773L1.9999998807907104,29.120336532592773C1.26519775390625,29.496557235717773,0,28.943065643310547,1.5669644426452578E-07,28.120336532592773L1.5669644426452578E-07,4.120336532592773C0,3.2976229190826416,1.26519775390625,2.7441327571868896,1.9999998807907104,3.1203362941741943z"></Path>
+            </Border>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
   </Page.Resources>
   <StackPanel
     HorizontalAlignment="Center"
     VerticalAlignment="Center">
     <Border BorderBrush="Black" BorderThickness="0">
-      <Button Style="{StaticResource Style.Button.EmptyButtonStyle}"
+      <Button Style="{StaticResource Style.Button.AddSlideButtonStyle}"
             Background="Transparent" Padding="0">
 
       </Button>
