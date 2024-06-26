@@ -4,7 +4,7 @@
       xmlns:local="using:ButtonDemo"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
   <Page.Resources>
-    <Style x:Key="Style.Button.PathButtonStyle" TargetType="Button">
+    <Style x:Key="Style.Button.EmptyButtonStyle" TargetType="Button">
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="Button">
@@ -18,9 +18,11 @@
   <StackPanel
     HorizontalAlignment="Center"
     VerticalAlignment="Center">
-
-    <Button Style="{StaticResource Style.Button.PathButtonStyle}">
-
-    </Button>
+    <Border BorderBrush="Black" BorderThickness="0">
+      <Button Style="{StaticResource Style.Button.EmptyButtonStyle}"
+            Background="Transparent" Padding="0">
+        <Path x:Name="ButtonPath" StrokeThickness="2" Stroke="#FF666666" Data="M7,15C6.85289858,15.5677816,6.85289858,16.4322348,7,17L22,29C22.7348015,29.3762198,24,28.8227297,24,28L24,4C24,3.1772867,22.7348015,2.62379657,22,3L7,15z"></Path>
+      </Button>
+    </Border>
   </StackPanel>
 </Page>
