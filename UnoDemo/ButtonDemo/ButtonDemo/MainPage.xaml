@@ -9,6 +9,7 @@
         <Setter.Value>
           <ControlTemplate TargetType="Button">
 <<<<<<< HEAD
+<<<<<<< HEAD
             <Grid x:Name="RootGrid" Background="{TemplateBinding Background}">
               <VisualStateManager.VisualStateGroups>
                 <VisualStateGroup x:Name="CommonStates">
@@ -91,6 +92,9 @@
               </Path>
 >>>>>>> e6461467e5436f54b6c03044ec5b7738aed5738b
             </Grid>
+=======
+            <ContentPresenter x:Name="ContentPresenter" AutomationProperties.AccessibilityView="Raw" Background="{TemplateBinding Background}" BackgroundSizing="{TemplateBinding BackgroundSizing}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" />
+>>>>>>> 4995a177f7d5090bad82b235e4f734c94c93e6d2
           </ControlTemplate>
         </Setter.Value>
       </Setter>
