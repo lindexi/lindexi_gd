@@ -17,14 +17,27 @@
                   <VisualState x:Name="PointerOver">
                     <!-- Hover 效果 -->
                     <Storyboard>
-                      <!-- <DoubleAnimation Duration="0:0:1.2" To="10" Storyboard.TargetName="ButtonContentPath" -->
-                      <!--                  Storyboard.TargetProperty="StrokeThickness"> -->
-                      <!-- </DoubleAnimation> -->
-                      <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="StrokeThickness">
-           <ObjectAnimationUsingKeyFrames.KeyFrames>
-             <DiscreteObjectKeyFrame KeyTime="0:0:1" Value="0.0" ></DiscreteObjectKeyFrame>
-           </ObjectAnimationUsingKeyFrames.KeyFrames>
-         </ObjectAnimationUsingKeyFrames>
+                      <DoubleAnimation Duration="0:0:1" Storyboard.TargetName="ButtonContentPath"
+                                       Storyboard.TargetProperty="StrokeThickness"
+                                       To="10"/>
+
+                      <DoubleAnimation Storyboard.TargetName="ButtonContentPath"
+                                       Storyboard.TargetProperty="Opacity"
+                                       Duration="0:0:1"
+                                       To="0" />
+
+                      <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath"
+                               Storyboard.TargetProperty="Fill">
+  <ObjectAnimationUsingKeyFrames.KeyFrames>
+    <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="Blue"></DiscreteObjectKeyFrame>
+  </ObjectAnimationUsingKeyFrames.KeyFrames>
+</ObjectAnimationUsingKeyFrames>
+                      <!--<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath"
+                                                     Storyboard.TargetProperty="StrokeThickness">
+                        <ObjectAnimationUsingKeyFrames.KeyFrames>
+                          <DiscreteObjectKeyFrame KeyTime="0:0:1" Value="0.0"></DiscreteObjectKeyFrame>
+                        </ObjectAnimationUsingKeyFrames.KeyFrames>
+                      </ObjectAnimationUsingKeyFrames>-->
                     </Storyboard>
                   </VisualState>
                 </VisualStateGroup>
