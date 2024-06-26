@@ -4,12 +4,23 @@
       xmlns:local="using:ButtonDemo"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
   <Page.Resources>
-   
+    <Style x:Key="Style.Button.PathButtonStyle" TargetType="Button">
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <ContentPresenter x:Name="ContentPresenter" AutomationProperties.AccessibilityView="Raw" Background="{TemplateBinding Background}" BackgroundSizing="{TemplateBinding BackgroundSizing}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBindingExtension BorderThickness}" />
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
   </Page.Resources>
   <StackPanel
     HorizontalAlignment="Center"
     VerticalAlignment="Center">
 
-    <Button Style="{StaticResource Style.Button.PathButtonStyle}"></Button>
+    <Button Style="{StaticResource Style.Button.PathButtonStyle}">
+
+    </Button>
   </StackPanel>
 </Page>
