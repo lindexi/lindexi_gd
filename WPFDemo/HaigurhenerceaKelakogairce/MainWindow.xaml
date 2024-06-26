@@ -7,6 +7,6 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-
+        <Path x:Name="InkPath" Margin="100,0" Stroke="Black" StrokeThickness="2"/>
     </Grid>
 </Window>
