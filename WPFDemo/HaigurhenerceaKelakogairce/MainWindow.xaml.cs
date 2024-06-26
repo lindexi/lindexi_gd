@@ -20,18 +20,23 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        var geometry = Geometry.Parse("M8,15C7.85289858,15.5677816,7.85289858,16.4322348,8,17L23,29C23.7348015,29.3762198,25,28.8227297,25,28L25,4C25,3.1772867,23.7348015,2.62379657,23,3L8,15z");
+        var geometry = InkPath.Data;
         geometry = Geometry.Combine(geometry, Geometry.Empty, GeometryCombineMode.Union, Transform.Identity);
-        
-        geometry.Transform = new ScaleTransform(-1, 1,centerX: 0, centerY:0);
-
-        geometry = Geometry.Combine(geometry, Geometry.Empty, GeometryCombineMode.Union, Transform.Identity);
-        var geometryBounds = geometry.Bounds;
-
-        geometry.Transform = new TranslateTransform(-geometryBounds.Left,-geometryBounds.Top+3);
+        geometry.Transform = new TranslateTransform(0, -2);
         geometry = Geometry.Combine(geometry, Geometry.Empty, GeometryCombineMode.Union, Transform.Identity);
 
-        InkPath.Data = geometry;
+        //var geometry = Geometry.Parse("M8,15C7.85289858,15.5677816,7.85289858,16.4322348,8,17L23,29C23.7348015,29.3762198,25,28.8227297,25,28L25,4C25,3.1772867,23.7348015,2.62379657,23,3L8,15z");
+        //geometry = Geometry.Combine(geometry, Geometry.Empty, GeometryCombineMode.Union, Transform.Identity);
+
+        //geometry.Transform = new ScaleTransform(-1, 1,centerX: 0, centerY:0);
+
+        //geometry = Geometry.Combine(geometry, Geometry.Empty, GeometryCombineMode.Union, Transform.Identity);
+        //var geometryBounds = geometry.Bounds;
+
+        //geometry.Transform = new TranslateTransform(-geometryBounds.Left,-geometryBounds.Top+3);
+        //geometry = Geometry.Combine(geometry, Geometry.Empty, GeometryCombineMode.Union, Transform.Identity);
+
+        //InkPath.Data = geometry;
 
 
         var s = geometry.ToString();
