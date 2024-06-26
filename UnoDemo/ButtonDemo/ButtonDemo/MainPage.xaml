@@ -9,38 +9,30 @@
         <Setter.Value>
           <ControlTemplate TargetType="Button">
             <Grid x:Name="RootGrid" Background="{TemplateBinding Background}">
-              <!-- 由于 VisualStateManager 必须放在容器里面，因此这里必须需要有一个容器 想省一点的话，可以用 Border 代替 Grid 做容器-->
               <VisualStateManager.VisualStateGroups>
                 <VisualStateGroup x:Name="CommonStates">
                   <VisualState x:Name="Normal">
-                    <Storyboard>
-                      <!--啥都不用做，清空状态即可-->
-                      <!-- 正常状态需要放在第一个 -->
-                    </Storyboard>
+                  
                   </VisualState>
                   <VisualState x:Name="PointerOver">
-                    <!-- Hover 效果 -->
-                    <VisualState.Setters>
-                      <Setter Target="ButtonContentPath.Stroke" Value="Transparent"></Setter>
-                      <Setter Target="ButtonContentPath.Fill" Value="Blue"></Setter>
-                    </VisualState.Setters>
-                  </VisualState>
-                  <VisualState x:Name="Pressed">
-                    <!-- 按下状态 -->
+                    <!--<VisualState.Setters>
+                      <Setter Target="ButtonContentPath.StrokeThickness" Value="10"></Setter>
+                    </VisualState.Setters>-->
                     <Storyboard>
-                      <!-- 颜色用 ColorAnimation 也可以 -->
-                      <!-- <ColorAnimation To=""></ColorAnimation> -->
-                      <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="Stroke" >
-                        <DiscreteObjectKeyFrame KeyTime="0" Value="Transparent"/>
-                      </ObjectAnimationUsingKeyFrames>
-
-                      <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="Fill" >
-                        <DiscreteObjectKeyFrame KeyTime="0" Value="#FF666666"/>
+                      <!--<ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="StrokeThickness" >
+                        <DiscreteObjectKeyFrame KeyTime="0" Value="10"/>
+                      </ObjectAnimationUsingKeyFrames>-->
+                      <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="StrokeThickness">
+                        <ObjectAnimationUsingKeyFrames.KeyFrames>
+                          <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="0.0" ></DiscreteObjectKeyFrame>
+                        </ObjectAnimationUsingKeyFrames.KeyFrames>
                       </ObjectAnimationUsingKeyFrames>
                     </Storyboard>
                   </VisualState>
+                  <VisualState x:Name="Pressed">
+                   
+                  </VisualState>
                   <VisualState x:Name="Disabled">
-                    <!-- 不可用的状态 -->
                   </VisualState>
                 </VisualStateGroup>
               </VisualStateManager.VisualStateGroups>
