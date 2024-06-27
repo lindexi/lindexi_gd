@@ -26,6 +26,12 @@ var black = XBlackPixel(display, screen);
 
 XSync(display, false);
 
+Task.Run(() =>
+{
+    Console.ReadLine();
+    XUnmapWindow(display, win2.Window);
+});
+
 while (true)
 {
     var xNextEvent = XNextEvent(display, out var @event);
