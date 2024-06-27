@@ -8,15 +8,15 @@ XInitThreads();
 var display = XOpenDisplay(IntPtr.Zero);
 var screen = XDefaultScreen(display);
 
-var win1 = new X11Window(display);
+//var win1 = new X11Window(display);
 var win2 = new X11Window(display);
 var win3 = new X11Window(display);
 
-XMapWindow(display, win1.Window);
+//XMapWindow(display, win1.Window);
 XMapWindow(display, win2.Window);
 XMapWindow(display, win3.Window);
 
-XSetTransientForHint(display, win1.Window, win2.Window);
+//XSetTransientForHint(display, win1.Window, win2.Window);
 XSetTransientForHint(display, win2.Window, win3.Window);
 
 XFlush(display);
@@ -25,6 +25,12 @@ var white = XWhitePixel(display, screen);
 var black = XBlackPixel(display, screen);
 
 XSync(display, false);
+
+Task.Run(() =>
+{
+    Console.ReadLine();
+    XUnmapWindow(display, win2.Window);
+});
 
 while (true)
 {
