@@ -17,6 +17,7 @@
                   
                   </VisualState>
                   <VisualState x:Name="PointerOver">
+<<<<<<< HEAD
                     <!--<VisualState.Setters>
                       <Setter Target="ButtonContentPath.StrokeThickness" Value="10"></Setter>
                     </VisualState.Setters>-->
@@ -36,6 +37,32 @@
                   </VisualState>
                   <VisualState x:Name="Disabled">
                   </VisualState>
+=======
+                    <!-- Hover 效果 -->
+                  </VisualState>
+                  <VisualState x:Name="Pressed">
+                    <!-- 按下状态 -->
+                  </VisualState>
+                  <VisualState x:Name="Disabled">
+                    <!-- 不可用的状态 -->
+                  </VisualState>
+                  <VisualState>
+                    <VisualState.StateTriggers>
+                      <StateTrigger IsActive="True"></StateTrigger>
+                    </VisualState.StateTriggers>
+                    <Storyboard>
+                      <!-- 颜色用 ColorAnimation 也可以 -->
+                      <!-- <ColorAnimation To=""></ColorAnimation> -->
+                      <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="Stroke" >
+                        <DiscreteObjectKeyFrame KeyTime="0" Value="Transparent"/>
+                      </ObjectAnimationUsingKeyFrames>
+
+                      <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonContentPath" Storyboard.TargetProperty="Fill" >
+                        <DiscreteObjectKeyFrame KeyTime="0" Value="Blue"/>
+                      </ObjectAnimationUsingKeyFrames>
+                    </Storyboard>
+                  </VisualState>
+>>>>>>> 4a3ed434a02f50722c43758895de3b5fbc7584b7
                 </VisualStateGroup>
               </VisualStateManager.VisualStateGroups>
 
