@@ -8,16 +8,13 @@ XInitThreads();
 var display = XOpenDisplay(IntPtr.Zero);
 var screen = XDefaultScreen(display);
 
-//var win1 = new X11Window(display);
+var win1 = new X11Window(display);
 var win2 = new X11Window(display);
-var win3 = new X11Window(display);
 
-//XMapWindow(display, win1.Window);
+XMapWindow(display, win1.Window);
 XMapWindow(display, win2.Window);
-XMapWindow(display, win3.Window);
 
-//XSetTransientForHint(display, win1.Window, win2.Window);
-XSetTransientForHint(display, win2.Window, win3.Window);
+XSetTransientForHint(display, win1.Window, win2.Window);
 
 XFlush(display);
 
@@ -29,9 +26,18 @@ XSync(display, false);
 Task.Run(() =>
 {
     Console.ReadLine();
-    XUnmapWindow(display, win3.Window);
+    Console.WriteLine("unmap win1");
+    XUnmapWindow(display, win1.Window);
     Console.ReadLine();
-    XMapWindow(display, win3.Window);
+    Console.WriteLine("map win1");
+    XMapWindow(display, win1.Window);
+
+    Console.ReadLine();
+    Console.WriteLine("unmap win2");
+    XUnmapWindow(display, win2.Window);
+    Console.ReadLine();
+    Console.WriteLine("map win2");
+    XMapWindow(display, win2.Window);
 });
 
 while (true)
