@@ -29,7 +29,9 @@ XSync(display, false);
 Task.Run(() =>
 {
     Console.ReadLine();
-    XUnmapWindow(display, win2.Window);
+    XUnmapWindow(display, win3.Window);
+    Console.ReadLine();
+    XMapWindow(display, win3.Window);
 });
 
 while (true)
