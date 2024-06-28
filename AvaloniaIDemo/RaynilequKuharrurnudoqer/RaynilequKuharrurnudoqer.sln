@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34607.119
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RaynilequKuharrurnudoqer", "RaynilequKuharrurnudoqer.csproj", "{497E544E-9F6A-4063-AFEC-51FDF592D14A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BujeeberehemnaNurgacolarje", "..\..\X11\BujeeberehemnaNurgacolarje\BujeeberehemnaNurgacolarje.csproj", "{932DEECB-D8EE-46A3-AAE0-101D8151060B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{497E544E-9F6A-4063-AFEC-51FDF592D14A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{497E544E-9F6A-4063-AFEC-51FDF592D14A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{497E544E-9F6A-4063-AFEC-51FDF592D14A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{497E544E-9F6A-4063-AFEC-51FDF592D14A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{932DEECB-D8EE-46A3-AAE0-101D8151060B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{932DEECB-D8EE-46A3-AAE0-101D8151060B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{932DEECB-D8EE-46A3-AAE0-101D8151060B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{932DEECB-D8EE-46A3-AAE0-101D8151060B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {13C57D35-BB1D-4FC2-BD29-5CA266CBE061}
+	EndGlobalSection
+EndGlobal
