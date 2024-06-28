@@ -50,6 +50,7 @@ Task.Run(() =>
     Console.WriteLine("Re set owner");
     IntPtr XA_WM_TRANSIENT_FOR = (IntPtr) 68;
     XDeleteProperty(display, win1.Window, XA_WM_TRANSIENT_FOR);
+    XFlush(display);
     XSetTransientForHint(display, win1.Window, win2.Window);
     XFlush(display);
 });
