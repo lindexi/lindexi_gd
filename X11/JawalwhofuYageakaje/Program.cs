@@ -47,7 +47,7 @@ Task.Run(() =>
 
     Console.ReadLine();
     Console.WriteLine("Re set owner");
-    XSetTransientForHint(display, win2.Window, win1.Window);
+    XSetTransientForHint(display, win1.Window, win2.Window);
     XFlush(display);
 });
 
