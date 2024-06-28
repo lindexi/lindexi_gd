@@ -43,6 +43,9 @@ Task.Run(() =>
     Console.ReadLine();
     Console.WriteLine("map win2");
     XMapWindow(display, win2.Window);
+    Console.WriteLine("map win1");
+    XMapWindow(display, win1.Window);
+
     XFlush(display);
 
     Console.ReadLine();
