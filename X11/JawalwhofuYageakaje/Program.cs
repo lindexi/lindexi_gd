@@ -23,7 +23,7 @@ var black = XBlackPixel(display, screen);
 
 XSync(display, false);
 
-Task.Run(() =>
+Task.Run(async () =>
 {
     //Console.ReadLine();
     //Console.WriteLine("unmap win1");
@@ -51,6 +51,7 @@ Task.Run(() =>
     IntPtr XA_WM_TRANSIENT_FOR = (IntPtr) 68;
     XDeleteProperty(display, win1.Window, XA_WM_TRANSIENT_FOR);
     XFlush(display);
+    await Task.Delay(100);
     XSetTransientForHint(display, win1.Window, win2.Window);
     XFlush(display);
 });
