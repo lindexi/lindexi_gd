@@ -28,16 +28,27 @@ Task.Run(() =>
     Console.ReadLine();
     Console.WriteLine("unmap win1");
     XUnmapWindow(display, win1.Window);
+    XFlush(display);
+
     Console.ReadLine();
     Console.WriteLine("map win1");
     XMapWindow(display, win1.Window);
+    XFlush(display);
 
     Console.ReadLine();
     Console.WriteLine("unmap win2");
     XUnmapWindow(display, win2.Window);
+    XFlush(display);
+
     Console.ReadLine();
     Console.WriteLine("map win2");
     XMapWindow(display, win2.Window);
+    XFlush(display);
+
+    Console.ReadLine();
+    Console.WriteLine("Re set owner");
+    XSetTransientForHint(display, win1.Window, win2.Window);
+    XFlush(display);
 });
 
 while (true)
