@@ -43,13 +43,14 @@ Task.Run(() =>
     Console.ReadLine();
     Console.WriteLine("map win2");
     XMapWindow(display, win2.Window);
-    Console.WriteLine("map win1");
-    XMapWindow(display, win1.Window);
-
+    //Console.WriteLine("map win1");
+    //XMapWindow(display, win1.Window);
     XFlush(display);
 
-    Console.ReadLine();
     Console.WriteLine("Re set owner");
+    IntPtr XA_WM_TRANSIENT_FOR = (IntPtr) 68;
+    XDeleteProperty(display, win1.Window, XA_WM_TRANSIENT_FOR);
+    XFlush(display);
     XSetTransientForHint(display, win1.Window, win2.Window);
     XFlush(display);
 });
