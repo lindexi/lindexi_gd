@@ -2,28 +2,25 @@
 
 using static CPF.Linux.XLib;
 
-unsafe
-{
-    Console.WriteLine($"{sizeof(IntPtr)}");
-}
-
 var display = XOpenDisplay(IntPtr.Zero);
 var screen = XDefaultScreen(display);
 
 var rootWindow = XDefaultRootWindow(display);
 var xRootWindow = XRootWindow(display, screen);
 
-var screenHandler = XScreenOfDisplay(display, screen);
-Console.WriteLine($"screenHandler={screenHandler}");
+//var screenHandler = XScreenOfDisplay(display, screen);
+//Console.WriteLine($"screenHandler={screenHandler}");
 
 unsafe
 {
     var pDisplay = (Display*)display;
-    Console.WriteLine($"nscreens={pDisplay->nscreens} Screens={pDisplay->Screens} screenHandler={screenHandler}");
+    //Console.WriteLine($"nscreens={pDisplay->nscreens} Screens={pDisplay->Screens} screenHandler={screenHandler}");
 
-    Screen* pScreen = (Screen*) screenHandler;
+    var firstScreen = pDisplay->Screens;
 
-    Console.WriteLine($"XDisplay={pScreen->_XDisplay} display={display}");
+    Screen* pScreen = (Screen*) firstScreen;
+
+    //Console.WriteLine($"XDisplay={pScreen->_XDisplay} display={display}");
 
     var rootWindowFromPScreen = pScreen->RootWindow;
 
@@ -140,9 +137,9 @@ struct Screen
     [FieldOffset(8 + 8)]
     public int RootWindow;
 
-    [FieldOffset(8 + 8 + 4)]
+    [FieldOffset(8 + 8 + 8)]
     public int Width;
-    [FieldOffset(8 + 8 + 4 + 4)]
+    [FieldOffset(8 + 8 + 8 + 4)]
     public int Height;
 }
 
