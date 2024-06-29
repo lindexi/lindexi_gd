@@ -356,3 +356,4 @@ healthchecksdb
 *.unitypackage
 /unity/SteamDemo
 /WpfRepacker/dotnetCampus.WPF/Lib
+launchSettings.json
