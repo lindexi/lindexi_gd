@@ -354,3 +354,6 @@ healthchecksdb
 *.pidb.meta
 *.apk
 *.unitypackage
+/unity/SteamDemo
+/WpfRepacker/dotnetCampus.WPF/Lib
+launchSettings.json
