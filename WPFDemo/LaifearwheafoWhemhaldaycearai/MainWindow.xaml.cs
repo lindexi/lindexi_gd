@@ -28,11 +28,14 @@ public partial class MainWindow : Window
         {
             
         });
-        var adaptiveCard = new AdaptiveCard(new AdaptiveSchemaVersion(1,0));
+        var adaptiveCard = new AdaptiveCard(new AdaptiveSchemaVersion(1,0))
+        {
+            InternalID = new AdaptiveInternalID()
+        };
         adaptiveCard.Body.Add(new AdaptiveTextBlock()
         {
             Text = "Hello",
-            Size = AdaptiveTextSize.ExtraLarge
+            Size = AdaptiveTextSize.ExtraLarge,
         });
         var json = adaptiveCard.ToJson();
 

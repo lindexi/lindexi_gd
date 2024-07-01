@@ -9,7 +9,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AdaptiveCards.Rendering.Wpf" Version="2.8.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="AdaptiveCards">
+      <HintPath>C:\lindexi\Library\AdaptiveCards\AdaptiveCards.dll</HintPath>
+    </Reference>
+    <Reference Include="AdaptiveCards.Rendering.Wpf.Net6">
+      <HintPath>C:\lindexi\Library\AdaptiveCards\AdaptiveCards.Rendering.Wpf.Net6.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
