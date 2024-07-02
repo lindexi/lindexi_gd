@@ -12,11 +12,15 @@ var presentationPartParts = presentationDocument.PresentationPart.Parts;
 
 foreach (var presentationPartPart in presentationPartParts)
 {
-    if (presentationPartPart.OpenXmlPart.GetType().Name== "CommentAuthorsPart")
+    if (presentationPartPart.OpenXmlPart.GetType().Name == "CommentAuthorsPart")
     {
         presentationDocument.PresentationPart.DeletePart(presentationPartPart.RelationshipId);
     }
 
+    if (presentationPartPart.OpenXmlPart.GetType().Name == "SlidePart")
+    {
+        presentationDocument.PresentationPart.DeletePart(presentationPartPart.RelationshipId);
+    }
     Console.WriteLine(presentationPartPart.OpenXmlPart.GetType());
 }
 
