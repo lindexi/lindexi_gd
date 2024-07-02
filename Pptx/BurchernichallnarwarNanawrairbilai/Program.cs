@@ -4,10 +4,23 @@ using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
 
-var file = @"C:\lindexi\PPT\5.1 合成高分子的基本方法-1.pptx";
+var file = @"C:\lindexi\Document\第二章分子的结构和性质.pptx";
 
-var presentationDocument = PresentationDocument.Open(file, false);
-var openXmlValidator = new OpenXmlValidator(FileFormatVersions.Microsoft365);
+using var presentationDocument = PresentationDocument.Open(file, true);
+
+var presentationPartParts = presentationDocument.PresentationPart.Parts;
+
+foreach (var presentationPartPart in presentationPartParts)
+{
+    if (presentationPartPart.OpenXmlPart.GetType().Name== "CommentAuthorsPart")
+    {
+        presentationDocument.PresentationPart.DeletePart(presentationPartPart.RelationshipId);
+    }
+
+    Console.WriteLine(presentationPartPart.OpenXmlPart.GetType());
+}
+
+var openXmlValidator = new OpenXmlValidator(FileFormatVersions.Office2010);
 var validationErrorInfos = openXmlValidator.Validate(presentationDocument);
 
 var index = 0;
