@@ -19,7 +19,7 @@
                   </VisualState>
                   <VisualState x:Name="PointerOver">
                     <VisualState.Setters>
-                      <Setter Target="ButtonContentPath.Stroke" Value="{Binding RelativeSource={RelativeSource TemplatedParent},Path=(local:ButtonHelper.PointerOverBrush)}"></Setter>
+                      <Setter Target="ButtonContentPath.Stroke" Value="{Binding RelativeSource={RelativeSource TemplatedParent},Path=(local:ButtonHelper.PointerOverStrokeBrush)}"></Setter>
                     </VisualState.Setters>
                   </VisualState>
                   <VisualState x:Name="Pressed">
@@ -36,8 +36,10 @@
   </Page.Resources>
 
   <Grid>
-    <Button Style="{StaticResource Style.Button.PathButtonStyle}" local:ButtonHelper.ButtonPath="M7,15C6.85289858,15.5677816,6.85289858,16.4322348,7,17L22,29C22.7348015,29.3762198,24,28.8227297,24,28L24,4C24,3.1772867,22.7348015,2.62379657,22,3L7,15z"
-            local:ButtonHelper.PointerOverBrush="Blue">
+    <Button Style="{StaticResource Style.Button.PathButtonStyle}"
+
+local:ButtonHelper.ButtonPath="M7,15C6.85289858,15.5677816,6.85289858,16.4322348,7,17L22,29C22.7348015,29.3762198,24,28.8227297,24,28L24,4C24,3.1772867,22.7348015,2.62379657,22,3L7,15z"
+            local:ButtonHelper.PointerOverStrokeBrush="Blue">
 
     </Button>
   </Grid>
