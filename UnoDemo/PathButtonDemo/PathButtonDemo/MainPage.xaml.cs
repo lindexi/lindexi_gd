@@ -22,4 +22,17 @@ public class ButtonHelper
     {
         return (string)element.GetValue(ButtonPathProperty);
     }
+    
+    public static readonly DependencyProperty PointerOverBrushProperty = DependencyProperty.RegisterAttached(
+        "PointerOverBrush", typeof(Brush), typeof(ButtonHelper), new PropertyMetadata(default(Brush)));
+    
+    public static void SetPointerOverBrush(DependencyObject element, Brush value)
+    {
+        element.SetValue(PointerOverBrushProperty, value);
+    }
+    
+    public static Brush GetPointerOverBrush(DependencyObject element)
+    {
+        return (Brush)element.GetValue(PointerOverBrushProperty);
+    }
 }
