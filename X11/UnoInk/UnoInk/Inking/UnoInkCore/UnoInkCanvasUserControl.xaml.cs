@@ -24,6 +24,8 @@ using UnoInk.Inking.InkCore.Interactives;
 using UnoInk.Inking.X11Ink;
 using UnoInk.Inking.X11Platforms;
 using UnoInk.Inking.X11Platforms.Threading;
+using WinRT;
+
 //using Uno.Skia;
 
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
@@ -545,6 +547,16 @@ public sealed partial class UnoInkCanvasUserControl : UserControl
         {
             canvas.Debug();
         });
+    }
+}
+
+/// <summary>
+/// 静态图片层，不会清空画布
+/// </summary>
+class SkiaStaticBitmapCanvas : Canvas
+{
+    public SkiaStaticBitmapCanvas()
+    {
     }
 }
 
