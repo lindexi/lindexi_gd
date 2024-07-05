@@ -65,4 +65,8 @@ using var httpClient = new HttpClient();
 var response = await httpClient.GetStringAsync(url);
 // {"ret":200,"msg":"ok","trace":"12d5df80-df7f-4acf-8f67-68fd2f096426","data":{"tick_list":[{"code":"000651.SZ","seq":"1836409","tick_time":"1720162800891","price":"37.700000","volume":"2567","turnover":"96775.900000","trade_direction":1}]}}
 
+// 一天只 50 次查询
+// [最新最全的免费股票数据接口--沪深A股实时交易数据API接口（一）_股票数据接口api-CSDN博客](https://blog.csdn.net/u012940698/article/details/126777239)
+response = await httpClient.GetStringAsync("http://api.mairui.club/hsrl/zbjy/000651/3579ff677319c83cc6");
+
 Console.WriteLine("Hello, World!");
