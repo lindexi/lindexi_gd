@@ -1,0 +1,12 @@
+﻿<Page x:Class="LerkufufelchelDearrarfuguji.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:LerkufufelchelDearrarfuguji"
+      xmlns:windows="clr-namespace:SkiaSharp.Views.Windows;assembly=SkiaSharp.Views.Windows"
+      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+  <StackPanel
+        HorizontalAlignment="Center"
+        VerticalAlignment="Center">
+    <windows:SKXamlCanvas x:Name="SkXamlCanvas" PaintSurface="SkXamlCanvas_OnPaintSurface"/>
+  </StackPanel>
+</Page>

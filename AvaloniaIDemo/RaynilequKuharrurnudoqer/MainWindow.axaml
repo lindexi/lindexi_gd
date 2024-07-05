@@ -1,0 +1,563 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="RaynilequKuharrurnudoqer.MainWindow"
+        Title="RaynilequKuharrurnudoqer"
+        Width="640" Height="418"
+        TransparencyLevelHint="Transparent" CanResize="False"
+        ExtendClientAreaToDecorationsHint="True" ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="48" Background="#EFEFF2"
+        UseLayoutRounding="True"
+        ShowInTaskbar="True" Topmost="False" WindowStartupLocation="CenterScreen">
+  <Window.Resources>
+    <StreamGeometry x:Key="Geometry.About1">
+      M12,2.5 C17.2467051,3.5 21.5,6.75329488 21.5,12 C21.5,17.2467051 17.2467051,21.5 12,21.5 C6.75329488,21.5 2.5,17.2467051 2.5,12 C2.5,6.75329488 6.75329488,2.5 12,2.5 Z M12,4 C7.581722,4 4,7.581722 4,12 C4,16.418278 7.581722,20 12,20 C16.418278,20 20,16.418278 20,12 C20,7.581722 16.418278,4 12,4 Z M13,10 L13,14 L14,14 L14,16 L10,16 L10,14 L11,14 L11,12 L10,12 L10,10 L13,10 Z M13,7 L13,9 L11,9 L11,7 L13,7 Z
+    </StreamGeometry>
+    <StreamGeometry x:Key="Geometry.About2">
+      M12,2.5 C17.2467051,5.5 21.5,6.75329488 21.5,12 C21.5,17.2467051 17.2467051,21.5 12,21.5 C6.75329488,21.5 2.5,17.2467051 2.5,12 C2.5,6.75329488 6.75329488,2.5 12,2.5 Z M12,4 C7.581722,4 4,7.581722 4,12 C4,16.418278 7.581722,20 12,20 C16.418278,20 20,16.418278 20,12 C20,7.581722 16.418278,4 12,4 Z M13,10 L13,14 L14,14 L14,16 L10,16 L10,14 L11,14 L11,12 L10,12 L10,10 L13,10 Z M13,7 L13,9 L11,9 L11,7 L13,7 Z
+    </StreamGeometry>
+    <StreamGeometry x:Key="Geometry.About3">
+      M12,2.5 C17.2467051,5.1 21.5,6.75329488 21.5,12 C21.5,17.2467051 17.2467051,21.5 12,21.5 C6.75329488,21.5 2.5,17.2467051 2.5,12 C2.5,6.75329488 6.75329488,2.5 12,2.5 Z M12,4 C7.581722,4 4,7.581722 4,12 C4,16.418278 7.581722,20 12,20 C16.418278,20 20,16.418278 20,12 C20,7.581722 16.418278,4 12,4 Z M13,10 L13,14 L14,14 L14,16 L10,16 L10,14 L11,14 L11,12 L10,12 L10,10 L13,10 Z M13,7 L13,9 L11,9 L11,7 L13,7 Z
+    </StreamGeometry>
+    <StreamGeometry x:Key="Geometry.About4">
+      M12,2.5 C17.2467051,5.2 21.5,6.75329488 21.5,12 C21.5,17.2467051 17.2467051,21.5 12,21.5 C6.75329488,21.5 2.5,17.2467051 2.5,12 C2.5,6.75329488 6.75329488,2.5 12,2.5 Z M12,4 C7.581722,4 4,7.581722 4,12 C4,16.418278 7.581722,20 12,20 C16.418278,20 20,16.418278 20,12 C20,7.581722 16.418278,4 12,4 Z M13,10 L13,14 L14,14 L14,16 L10,16 L10,14 L11,14 L11,12 L10,12 L10,10 L13,10 Z M13,7 L13,9 L11,9 L11,7 L13,7 Z
+    </StreamGeometry>
+    <StreamGeometry x:Key="Geometry.About5">
+      M12,2.5 C17.2467051,5.2 21.5,6.75329488 21.5,12 C21.5,17.2467051 17.2467051,21.5 12,21.5 C6.75329488,21.5 2.5,17.2467051 2.5,12 C2.5,6.75329488 6.75329488,2.5 12,2.5 Z M12,4 C7.581722,4 4,7.581722 4,12 C4,16.418278 7.581722,20 12,20 C16.418278,20 20,16.418278 20,12 C20,7.581722 16.418278,4 12,4 Z M13,10 L13,14 L14,14 L14,16 L10,16 L10,14 L11,14 L11,12 L10,12 L10,10 L13,10 Z M13,7 L13,9 L11,9 L11,7 L13,7 Z
+    </StreamGeometry>
+
+  </Window.Resources>
+  <StackPanel Orientation="Horizontal">
+
+    <StackPanel>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+    </StackPanel>
+    <StackPanel>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+    </StackPanel>
+    <StackPanel>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+    </StackPanel>
+    <StackPanel>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+    </StackPanel>
+    <StackPanel>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+    </StackPanel>
+    <StackPanel>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+    </StackPanel>
+    <StackPanel>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+    </StackPanel>
+    <StackPanel>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+    </StackPanel>
+    <StackPanel>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+    </StackPanel>
+    <StackPanel>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+    </StackPanel>
+    <StackPanel>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+    </StackPanel>
+    <StackPanel>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+    </StackPanel>
+    <StackPanel>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+    </StackPanel>
+    <StackPanel>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+    </StackPanel>
+    <StackPanel>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+    </StackPanel>
+    <StackPanel>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+    </StackPanel>
+    <StackPanel>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+    </StackPanel>
+    <StackPanel>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+    </StackPanel>
+    <StackPanel>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+    </StackPanel>
+    <StackPanel>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+    </StackPanel>
+    <StackPanel>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+    </StackPanel>
+    <StackPanel>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+    </StackPanel>
+    <StackPanel>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+    </StackPanel>
+    <StackPanel>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About1}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About2}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About3}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About4}"></Button>
+      <Button Classes="TitleBar" Content="{StaticResource Geometry.About5}"></Button>
+    </StackPanel>
+  </StackPanel>
+</Window>

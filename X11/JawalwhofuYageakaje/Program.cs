@@ -10,14 +10,11 @@ var screen = XDefaultScreen(display);
 
 var win1 = new X11Window(display);
 var win2 = new X11Window(display);
-var win3 = new X11Window(display);
 
 XMapWindow(display, win1.Window);
 XMapWindow(display, win2.Window);
-XMapWindow(display, win3.Window);
 
 XSetTransientForHint(display, win1.Window, win2.Window);
-XSetTransientForHint(display, win2.Window, win3.Window);
 
 XFlush(display);
 
@@ -25,6 +22,39 @@ var white = XWhitePixel(display, screen);
 var black = XBlackPixel(display, screen);
 
 XSync(display, false);
+
+Task.Run(async () =>
+{
+    //Console.ReadLine();
+    //Console.WriteLine("unmap win1");
+    //XUnmapWindow(display, win1.Window);
+    //XFlush(display);
+
+    //Console.ReadLine();
+    //Console.WriteLine("map win1");
+    //XMapWindow(display, win1.Window);
+    //XFlush(display);
+
+    Console.ReadLine();
+    Console.WriteLine("unmap win2");
+    XUnmapWindow(display, win2.Window);
+    XFlush(display);
+
+    Console.ReadLine();
+    Console.WriteLine("map win2");
+    XMapWindow(display, win2.Window);
+    //Console.WriteLine("map win1");
+    //XMapWindow(display, win1.Window);
+    XFlush(display);
+
+    Console.WriteLine("Re set owner");
+    IntPtr XA_WM_TRANSIENT_FOR = (IntPtr) 68;
+    XDeleteProperty(display, win1.Window, XA_WM_TRANSIENT_FOR);
+    XFlush(display);
+    await Task.Delay(100);
+    XSetTransientForHint(display, win1.Window, win2.Window);
+    XFlush(display);
+});
 
 while (true)
 {
