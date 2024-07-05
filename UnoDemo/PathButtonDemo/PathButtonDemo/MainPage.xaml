@@ -36,8 +36,11 @@
   </Page.Resources>
 
   <Grid>
-    <Button HorizontalAlignment="Center" VerticalAlignment="Center">
-      <Path Stroke="Black" StrokeThickness="1" Data="M5,5L15,15L5,25"></Path>
+    <Button Style="{StaticResource Style.Button.PathButtonStyle}"
+
+local:ButtonHelper.ButtonPath="M7,15C6.85289858,15.5677816,6.85289858,16.4322348,7,17L22,29C22.7348015,29.3762198,24,28.8227297,24,28L24,4C24,3.1772867,22.7348015,2.62379657,22,3L7,15z"
+            local:ButtonHelper.PointerOverStrokeBrush="Blue">
+
     </Button>
   </Grid>
 </Page>
