@@ -65,9 +65,18 @@ public sealed partial class MainWindow : Window
 
             var transform2DEffect = new Transform2DEffect();
             transform2DEffect.Source = canvasBitmap;
-            var matrix3X2 = Matrix3x2.CreateScale(-1, 1, new Vector2(centerX, centerY));
+
+            var flip = _shouldFlip ? -1 : 1;
+            var matrix3X2 = Matrix3x2.CreateScale(flip, 1, new Vector2(centerX, centerY));
             transform2DEffect.TransformMatrix = matrix3X2;
-            args.DrawingSession.DrawImage(transform2DEffect);
+
+            var transform2DEffect2 = new Transform2DEffect()
+            {
+                Source = transform2DEffect,
+                TransformMatrix = Matrix3x2.CreateScale((float) (sender.ActualWidth / canvasBitmap.Bounds.Width), (float) (sender.ActualHeight / canvasBitmap.Bounds.Height))
+            };
+
+            args.DrawingSession.DrawImage(transform2DEffect2);
         }
     }
 
@@ -76,5 +85,13 @@ public sealed partial class MainWindow : Window
     private void MainWindow_OnClosed(object sender, WindowEventArgs args)
     {
         Canvas.RemoveFromVisualTree();
+    }
+
+    private bool _shouldFlip = false;
+
+    private void Button_OnClick(object sender, RoutedEventArgs e)
+    {
+        _shouldFlip = (sender as ToggleButton)?.IsChecked is true;
+        Canvas.Invalidate();
     }
 }

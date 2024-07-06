@@ -11,5 +11,7 @@
 
     <Grid>
         <canvas:CanvasControl x:Name="Canvas" ClearColor="Black" CreateResources="Canvas_OnCreateResources" Draw="Canvas_OnDraw"/>
+
+        <ToggleButton HorizontalAlignment="Center" VerticalAlignment="Center" Content="是否翻转" Click="Button_OnClick"/>
     </Grid>
 </Window>
