@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "ChaigelyojeeBifakeljair (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "ChaigelyojeeBifakeljair (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
