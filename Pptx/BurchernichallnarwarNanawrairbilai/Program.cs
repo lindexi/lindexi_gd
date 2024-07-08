@@ -4,27 +4,27 @@ using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
 
-var file = @"C:\lindexi\Document\第二章分子的结构和性质.pptx";
+var file = @"E:\download\E盘下载器\url1036088627241172992.pptx.docx";
 
-using var presentationDocument = PresentationDocument.Open(file, true);
+using var presentationDocument = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(file, true);
 
-var presentationPartParts = presentationDocument.PresentationPart.Parts;
+//var presentationPartParts = presentationDocument.PresentationPart.Parts;
 
-foreach (var presentationPartPart in presentationPartParts)
-{
-    if (presentationPartPart.OpenXmlPart.GetType().Name == "CommentAuthorsPart")
-    {
-        presentationDocument.PresentationPart.DeletePart(presentationPartPart.RelationshipId);
-    }
+//foreach (var presentationPartPart in presentationPartParts)
+//{
+//    if (presentationPartPart.OpenXmlPart.GetType().Name == "CommentAuthorsPart")
+//    {
+//        presentationDocument.PresentationPart.DeletePart(presentationPartPart.RelationshipId);
+//    }
 
-    if (presentationPartPart.OpenXmlPart.GetType().Name == "SlidePart")
-    {
-        presentationDocument.PresentationPart.DeletePart(presentationPartPart.RelationshipId);
-    }
-    Console.WriteLine(presentationPartPart.OpenXmlPart.GetType());
-}
+//    if (presentationPartPart.OpenXmlPart.GetType().Name == "SlidePart")
+//    {
+//        presentationDocument.PresentationPart.DeletePart(presentationPartPart.RelationshipId);
+//    }
+//    Console.WriteLine(presentationPartPart.OpenXmlPart.GetType());
+//}
 
-var openXmlValidator = new OpenXmlValidator(FileFormatVersions.Office2010);
+var openXmlValidator = new OpenXmlValidator(FileFormatVersions.Microsoft365);
 var validationErrorInfos = openXmlValidator.Validate(presentationDocument);
 
 var index = 0;
