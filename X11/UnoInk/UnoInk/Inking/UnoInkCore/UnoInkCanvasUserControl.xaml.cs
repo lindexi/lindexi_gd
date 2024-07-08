@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Channels;
+using Microsoft.Graphics.Display;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -557,6 +558,7 @@ class SkiaStaticBitmapCanvas : Canvas
 {
     public SkiaStaticBitmapCanvas()
     {
+        var displayInformation = Windows.Graphics.Display. DisplayInformation.GetForCurrentView();
     }
 }
 
