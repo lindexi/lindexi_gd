@@ -367,18 +367,12 @@ public class X11App
             XSync(Display, false);
 
             var xNextEvent = XNextEvent(Display, out var @event);
-            //Console.WriteLine($"NextEvent={xNextEvent} {@event}");
-            //int type = (int) @event.type;
 
             if (@event.type == XEventName.Expose)
             {
-                //// 曝光时，可以收到需要重新绘制的范围
-                //Console.WriteLine($"Expose X={@event.ExposeEvent.x} Y={@event.ExposeEvent.y} W={@event.ExposeEvent.width} H={@event.ExposeEvent.height} CurrentWindow={@event.ExposeEvent.window == Window}");
-
+                // 曝光时，可以收到需要重新绘制的范围
                 XPutImage(Display, Window, GC, ref _image, @event.ExposeEvent.x, @event.ExposeEvent.y, @event.ExposeEvent.x, @event.ExposeEvent.y, (uint) @event.ExposeEvent.width,
                     (uint) @event.ExposeEvent.height);
-
-                Redraw();
             }
             else if (@event.type == XEventName.ClientMessage)
             {
@@ -845,36 +839,18 @@ public class X11App
         const int bytePerPixelCount = 4; // RGBA 一共4个 byte 长度
         var bitPerByte = 8;
 
-        //var bitmapData = new byte[bitmapWidth * bitmapHeight * bytePerPixelCount];
-
-        //fixed (byte* p = bitmapData)
-        //{
-        //    int* pInt = (int*) p;
-        //    var color = Random.Shared.Next();
-        //    for (var i = 0; i < bitmapData.Length / (sizeof(int) / sizeof(byte)); i++)
-        //    {
-        //        *(pInt + i) = color;
-        //    }
-        //}
-        //GCHandle pinnedArray = GCHandle.Alloc(bitmapData, GCHandleType.Pinned);
-
-        var bitmapWidth = _skBitmap.Width;
-        var bitmapHeight = _skBitmap.Height;
-
         var img = new XImage();
         int bitsPerPixel = bytePerPixelCount * bitPerByte;
-        img.width = bitmapWidth;
-        img.height = bitmapHeight;
+        img.width = _skBitmap.Width;
+        img.height = _skBitmap.Height;
         img.format = 2; //ZPixmap;
-        //img.data = pinnedArray.AddrOfPinnedObject();
         img.data = _skBitmap.GetPixels();
-        //img.data = _skSurface.PeekPixels().GetPixels();
         img.byte_order = 0; // LSBFirst;
         img.bitmap_unit = bitsPerPixel;
         img.bitmap_bit_order = 0; // LSBFirst;
         img.bitmap_pad = bitsPerPixel;
         img.depth = bitsPerPixel;
-        img.bytes_per_line = bitmapWidth * bytePerPixelCount;
+        img.bytes_per_line = _skBitmap.Width * bytePerPixelCount;
         img.bits_per_pixel = bitsPerPixel;
         XInitImage(ref img);
 
