@@ -23,6 +23,7 @@ public class Program
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         App.InitializeLogging();
 
         FeatureConfiguration.Rendering.UseOpenGLOnX11 = false;
@@ -55,6 +56,8 @@ public class Program
 >>>>>>> bb3ca7ae7043b68590131278b336efd0445ad5c3
 =======
 >>>>>>> 86984cb5eab3fd16df49ab173ec129b7bdf7ec0e
+=======
+>>>>>>> d6bb68021b42736140108464a22ce1582f2fd1e6
         var host = SkiaHostBuilder.Create()
             .App(() => new App())
             .UseX11()
@@ -79,6 +82,5 @@ public class Program
 
 >>>>>>> 86984cb5eab3fd16df49ab173ec129b7bdf7ec0e
         host.Run();
-        // 退出
     }
 }
