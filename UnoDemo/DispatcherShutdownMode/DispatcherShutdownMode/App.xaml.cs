@@ -32,11 +32,12 @@ public partial class App : Application
         _ = Task.Run(() =>
         {
             Console.ReadLine();
-            Console.WriteLine($"关闭窗口");
-            MainWindow.DispatcherQueue.TryEnqueue(() =>
-            {
-                MainWindow.Close();
-            });
+            Console.WriteLine($"关闭应用");
+            Exit();
+            //MainWindow.DispatcherQueue.TryEnqueue(() =>
+            //{
+            //    MainWindow.Close();
+            //});
         });
 
         //        MainWindow = new Window();
