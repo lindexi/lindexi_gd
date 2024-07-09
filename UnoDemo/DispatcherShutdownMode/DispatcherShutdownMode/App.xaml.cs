@@ -17,9 +17,17 @@ public partial class App : Application
 
     protected Window? MainWindow { get; private set; }
 
-    protected override void OnLaunched(LaunchActivatedEventArgs args)
+    protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
-//        MainWindow = new Window();
+        MainWindow = new Window();
+
+        await Task.Delay(2000);
+        var window = new Window();
+        window.Activate();
+        await Task.Delay(1000);
+        window.Close();
+
+        //        MainWindow = new Window();
 //#if DEBUG
 //        MainWindow.EnableHotReload();
 //#endif
