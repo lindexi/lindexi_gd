@@ -19,6 +19,8 @@ public partial class App : Application
 
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
+        MainWindow = new Window();
+
         await Task.Delay(2000);
         var window = new Window();
         window.Activate();
