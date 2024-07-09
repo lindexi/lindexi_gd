@@ -19,36 +19,36 @@ public partial class App : Application
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
-        MainWindow = new Window();
-#if DEBUG
-        MainWindow.EnableHotReload();
-#endif
+//        MainWindow = new Window();
+//#if DEBUG
+//        MainWindow.EnableHotReload();
+//#endif
 
 
-        // Do not repeat app initialization when the Window already has content,
-        // just ensure that the window is active
-        if (MainWindow.Content is not Frame rootFrame)
-        {
-            // Create a Frame to act as the navigation context and navigate to the first page
-            rootFrame = new Frame();
+//        // Do not repeat app initialization when the Window already has content,
+//        // just ensure that the window is active
+//        if (MainWindow.Content is not Frame rootFrame)
+//        {
+//            // Create a Frame to act as the navigation context and navigate to the first page
+//            rootFrame = new Frame();
 
-            // Place the frame in the current Window
-            MainWindow.Content = rootFrame;
+//            // Place the frame in the current Window
+//            MainWindow.Content = rootFrame;
 
-            rootFrame.NavigationFailed += OnNavigationFailed;
-        }
+//            rootFrame.NavigationFailed += OnNavigationFailed;
+//        }
 
-        if (rootFrame.Content == null)
-        {
-            // When the navigation stack isn't restored navigate to the first page,
-            // configuring the new page by passing required information as a navigation
-            // parameter
-            rootFrame.Navigate(typeof(MainPage), args.Arguments);
-        }
+//        if (rootFrame.Content == null)
+//        {
+//            // When the navigation stack isn't restored navigate to the first page,
+//            // configuring the new page by passing required information as a navigation
+//            // parameter
+//            rootFrame.Navigate(typeof(MainPage), args.Arguments);
+//        }
 
-        MainWindow.SetWindowIcon();
-        // Ensure the current window is active
-        MainWindow.Activate();
+//        MainWindow.SetWindowIcon();
+//        // Ensure the current window is active
+//        MainWindow.Activate();
     }
 
     /// <summary>
