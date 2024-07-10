@@ -1,8 +1,15 @@
 using System;
+using System.Diagnostics;
+using System.Reflection;
+using System.Runtime.InteropServices;
 
 using Microsoft.Extensions.Logging;
+using Microsoft.UI;
 
 using Uno.Resizetizer;
+#if HAS_UNO
+using Uno.UI.Xaml;
+#endif
 
 namespace DispatcherShutdownMode;
 
@@ -15,6 +22,12 @@ public partial class App : Application
     public App()
     {
         this.InitializeComponent();
+
+#if HAS_UNO
+        // 设置图标的时间太长，设置为空即可跳过这部分的耗时，解决启动窗口闪烁
+        // 设置图标只影响任务栏图标
+        global::Windows.ApplicationModel.Package.Current.Logo = null;
+#endif
     }
 
     protected Window? MainWindow { get; private set; }
@@ -22,6 +35,7 @@ public partial class App : Application
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         MainWindow = new Window();
+        WindowInteropHelper.HideX11Window(MainWindow);
 
         _ = Task.Run(() =>
         {
@@ -147,5 +161,70 @@ public partial class App : Application
         global::Uno.UI.Adapter.Microsoft.Extensions.Logging.LoggingAdapter.Initialize();
 #endif
 #endif
+    }
+}
+
+public static class WindowInteropHelper
+{
+    public static void HideX11Window(Window window)
+    {
+        IntPtr x11WindowIntPtr = GetX11NativeWindow(window);
+        IntPtr display = XLib.XOpenDisplay(IntPtr.Zero);
+        try
+        {
+            XLib.XUnmapWindow(display, x11WindowIntPtr);
+            XLib.XFlush(display);
+
+        }
+        finally
+        {
+            XLib.XCloseDisplay(display);
+        }
+    }
+
+    public static IntPtr GetX11NativeWindow(Window unoWindow)
+    {
+        // [[X11] Add support for get the Uno's X11 window IntPtr · Issue #17194 · unoplatform/uno](https://github.com/unoplatform/uno/issues/17194 )
+#if HAS_UNO
+        var x11Window = unoWindow.GetNativeWindow()!;
+#else
+        var type = unoWindow.GetType();
+        var nativeWindowPropertyInfo = type.GetProperty("NativeWindow", BindingFlags.Instance | BindingFlags.NonPublic);
+        var x11Window = nativeWindowPropertyInfo!.GetMethod!.Invoke(unoWindow, null)!;
+#endif
+        // Uno.WinUI.Runtime.Skia.X11.X11Window
+        var x11WindowType = x11Window.GetType();
+        //Console.WriteLine($"x11WindowType={x11WindowType.FullName}");
+        Debug.Assert(string.Equals(x11WindowType.FullName, "Uno.WinUI.Runtime.Skia.X11.X11Window"));
+
+        // (internal record struct X11Window(IntPtr Display, IntPtr Window, (int stencilBits, int sampleCount, IntPtr context)? glXInfo))
+
+        var x11WindowIntPtr =
+            (IntPtr) x11WindowType.GetProperty("Window", BindingFlags.Instance | BindingFlags.Public)!.GetMethod!.Invoke(
+                x11Window, null)!;
+        //Console.WriteLine($"Uno 窗口句柄 {x11WindowIntPtr}");
+
+        return x11WindowIntPtr;
+    }
+
+    static unsafe class XLib
+    {
+        const string libX11 = "libX11.so.6";
+        const string libX11Randr = "libXrandr.so.2";
+        const string libX11Ext = "libXext.so.6";
+        const string libXInput = "libXi.so.6";
+        const string libXcomposite = "libXcomposite.so.1";
+
+        [DllImport(libX11)]
+        public static extern IntPtr XOpenDisplay(IntPtr display);
+
+        [DllImport(libX11)]
+        public static extern int XCloseDisplay(IntPtr display);
+
+        [DllImport(libX11)]
+        public static extern int XUnmapWindow(IntPtr display, IntPtr window);
+
+        [DllImport(libX11)]
+        public static extern int XFlush(IntPtr display);
     }
 }
