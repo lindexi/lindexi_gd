@@ -17,14 +17,21 @@ public class Program
 
                 app.Launched += (sender, eventArgs) =>
                 {
-                    Console.ReadLine();
-                    Console.WriteLine("尝试启动窗口");
-                    var window = new Window();
-                    window.Content = new Grid()
+                    Task.Run(() =>
                     {
-                        Background = new SolidColorBrush(Colors.Blue),
-                    };
-                    window.Activate();
+                        Console.ReadLine();
+                        Console.WriteLine("尝试启动窗口");
+
+                        app.DispatcherQueue.TryEnqueue(() =>
+                        {
+                            var window = new Window();
+                            window.Content = new Grid()
+                            {
+                                Background = new SolidColorBrush(Colors.Blue),
+                            };
+                            window.Activate();
+                        });
+                    });
                 };
 
                 return app;
