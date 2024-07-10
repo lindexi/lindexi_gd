@@ -22,7 +22,7 @@ public class Program
         Console.WriteLine($"应用退出，预期此时消息循环还没退出");
 
         var app = (App)Application.Current;
-        app.MainWindow?.DispatcherQueue.TryEnqueue(() =>
+        app.DispatcherQueue.TryEnqueue(() =>
         {
             Console.WriteLine($"进入消息循环");
 

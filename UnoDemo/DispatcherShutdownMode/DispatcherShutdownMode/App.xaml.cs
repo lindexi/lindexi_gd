@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.UI;
-
+using Microsoft.UI.Dispatching;
 using Uno.Resizetizer;
 #if HAS_UNO
 using Uno.UI.Xaml;
@@ -30,14 +30,17 @@ public partial class App : Application
 #endif
     }
 
-    public Window? MainWindow { get; private set; }
+    //public Window? MainWindow { get; private set; }
+    public DispatcherQueue DispatcherQueue { get; private set; }
 
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
-        MainWindow = new Window();
-        //WindowInteropHelper.HideX11Window(MainWindow);
-        await Task.Delay(2000);
-        MainWindow.Close();
+        //MainWindow = new Window();
+        ////WindowInteropHelper.HideX11Window(MainWindow);
+        //await Task.Delay(2000);
+        //MainWindow.Close();
+
+        DispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
         //_ = Task.Run(() =>
         //{
