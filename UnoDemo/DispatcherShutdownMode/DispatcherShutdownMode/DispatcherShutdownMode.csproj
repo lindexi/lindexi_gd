@@ -33,6 +33,7 @@
     -->
     <UnoFeatures>
     </UnoFeatures>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
 </Project>
