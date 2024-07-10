@@ -6,9 +6,9 @@
   <StackPanel
         HorizontalAlignment="Center"
         VerticalAlignment="Center">
-    <TextBlock AutomationProperties.AutomationId="HelloTextBlock"
+    <!--<TextBlock AutomationProperties.AutomationId="HelloTextBlock"
           Text="Hello Uno Platform"
-          HorizontalAlignment="Center" />
+          HorizontalAlignment="Center" />-->
     <Border Width="100" Height="100" Background="Blue"></Border>
   </StackPanel>
 </Page>
