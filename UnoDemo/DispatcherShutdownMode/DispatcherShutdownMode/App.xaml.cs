@@ -43,6 +43,12 @@ public partial class App : Application
         //await Task.Delay(2000);
         //MainWindow.Close();
 
+        var window = new Window();
+        var frame = new Frame();
+        window.Content = frame;
+        frame.Navigate(typeof(MainPage));
+        window.Activate();
+
         DispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
         Launched?.Invoke(this, EventArgs.Empty);
