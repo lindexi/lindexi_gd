@@ -18,5 +18,21 @@ public class Program
             .Build();
 
         host.Run();
+
+        Console.WriteLine($"应用退出，预期此时消息循环还没退出");
+
+        var app = (App)Application.Current;
+        app.MainWindow?.DispatcherQueue.TryEnqueue(() =>
+        {
+            Console.WriteLine($"进入消息循环");
+
+            var window = new Window();
+            var frame = new Frame();
+            window.Content = frame;
+            frame.Navigate(typeof(MainPage));
+        });
+
+        // 防止进程退出
+        Console.Read();
     }
 }
