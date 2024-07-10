@@ -17,7 +17,7 @@ public class Program
                 var app = (App) Application.Current;
                 app.DispatcherQueue.TryEnqueue(() =>
                 {
-                    Console.WriteLine($"进入消息循环");
+                    Console.WriteLine($"进入消息循环 线程 {Thread.CurrentThread.ManagedThreadId} {Thread.CurrentThread.Name}");
 
                     var window = new Window();
                     var frame = new Frame();
@@ -31,10 +31,15 @@ public class Program
 
         App.InitializeLogging();
 
+        Thread.CurrentThread.Name = "Main";
+        Console.WriteLine($"线程 {Thread.CurrentThread.ManagedThreadId}");
+
         var host = SkiaHostBuilder.Create()
             .App(() =>
             {
                 var app = new App();
+
+                Console.WriteLine($"App Thread={Thread.CurrentThread.ManagedThreadId} {Thread.CurrentThread.Name}");
 
                 //app.Launched += (sender, eventArgs) =>
                 //{
