@@ -1,5 +1,4 @@
 using Microsoft.UI;
-
 using Uno.UI.Runtime.Skia;
 
 namespace DispatcherShutdownMode;
@@ -9,8 +8,6 @@ public class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        SpinWait.SpinUntil(() => true);
-
         var thread = new Thread(() =>
         {
             while (true)
