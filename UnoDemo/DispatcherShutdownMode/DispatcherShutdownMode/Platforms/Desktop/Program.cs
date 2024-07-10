@@ -8,6 +8,26 @@ public class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        var thread = new Thread(() =>
+        {
+            while (true)
+            {
+                Console.ReadLine();
+
+                var app = (App) Application.Current;
+                app.DispatcherQueue.TryEnqueue(() =>
+                {
+                    Console.WriteLine($"进入消息循环");
+
+                    var window = new Window();
+                    var frame = new Frame();
+                    window.Content = frame;
+                    frame.Navigate(typeof(MainPage));
+                });
+            }
+        });
+        thread.Start();
+
         App.InitializeLogging();
 
         var host = SkiaHostBuilder.Create()
@@ -15,24 +35,24 @@ public class Program
             {
                 var app = new App();
 
-                app.Launched += (sender, eventArgs) =>
-                {
-                    Task.Run(() =>
-                    {
-                        Console.ReadLine();
-                        Console.WriteLine("尝试启动窗口");
+                //app.Launched += (sender, eventArgs) =>
+                //{
+                //    Task.Run(() =>
+                //    {
+                //        Console.ReadLine();
+                //        Console.WriteLine("尝试启动窗口");
 
-                        app.DispatcherQueue.TryEnqueue(() =>
-                        {
-                            var window = new Window();
-                            window.Content = new Grid()
-                            {
-                                Background = new SolidColorBrush(Colors.Blue),
-                            };
-                            window.Activate();
-                        });
-                    });
-                };
+                //        app.DispatcherQueue.TryEnqueue(() =>
+                //        {
+                //            var window = new Window();
+                //            window.Content = new Grid()
+                //            {
+                //                Background = new SolidColorBrush(Colors.Blue),
+                //            };
+                //            window.Activate();
+                //        });
+                //    });
+                //};
 
                 return app;
             })
@@ -45,19 +65,5 @@ public class Program
         host.Run();
 
         Console.WriteLine($"应用退出，预期此时消息循环还没退出");
-
-        var app = (App)Application.Current;
-        app.DispatcherQueue.TryEnqueue(() =>
-        {
-            Console.WriteLine($"进入消息循环");
-
-            var window = new Window();
-            var frame = new Frame();
-            window.Content = frame;
-            frame.Navigate(typeof(MainPage));
-        });
-
-        // 防止进程退出
-        Thread.Sleep(TimeSpan.FromHours(1));
     }
 }
