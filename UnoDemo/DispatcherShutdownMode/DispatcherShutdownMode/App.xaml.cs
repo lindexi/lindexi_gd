@@ -19,25 +19,25 @@ public partial class App : Application
 
     protected Window? MainWindow { get; private set; }
 
-    protected override async void OnLaunched(LaunchActivatedEventArgs args)
+    protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         MainWindow = new Window();
-
-        await Task.Delay(2000);
-        var window = new Window();
-        window.Activate();
-        await Task.Delay(1000);
-        window.Close();
 
         _ = Task.Run(() =>
         {
             Console.ReadLine();
-            Console.WriteLine($"关闭应用");
-            Exit();
-            //MainWindow.DispatcherQueue.TryEnqueue(() =>
-            //{
-            //    MainWindow.Close();
-            //});
+            Console.WriteLine($"打开窗口");
+
+            MainWindow.DispatcherQueue.TryEnqueue(() =>
+            {
+                var frame = new Frame();
+                var window = new Window()
+                {
+                    Content = frame
+                };
+                frame.Navigate(typeof(MainPage));
+                window.Activate();
+            });
         });
 
         //        MainWindow = new Window();
