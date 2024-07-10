@@ -35,6 +35,7 @@ public partial class App : Application
     public DispatcherQueue DispatcherQueue { get; private set; } = null!;
 
     public event EventHandler? Launched;
+    private Window? _emptyWindow;
 
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
@@ -42,6 +43,12 @@ public partial class App : Application
         ////WindowInteropHelper.HideX11Window(MainWindow);
         //await Task.Delay(2000);
         //MainWindow.Close();
+
+        if (OperatingSystem.IsWindows())
+        {
+            // 在 Windows 下，放一个空窗口即可
+            _emptyWindow = new Window();
+        }
 
         var window = new Window();
         var frame = new Frame();
