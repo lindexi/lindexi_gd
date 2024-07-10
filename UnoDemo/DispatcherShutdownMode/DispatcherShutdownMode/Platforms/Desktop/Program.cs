@@ -1,3 +1,4 @@
+using Microsoft.UI;
 using Uno.UI.Runtime.Skia;
 
 namespace DispatcherShutdownMode;
@@ -10,7 +11,31 @@ public class Program
         App.InitializeLogging();
 
         var host = SkiaHostBuilder.Create()
-            .App(() => new App())
+            .App(() =>
+            {
+                var app = new App();
+
+                app.Launched += (sender, eventArgs) =>
+                {
+                    Task.Run(() =>
+                    {
+                        Console.ReadLine();
+                        Console.WriteLine("尝试启动窗口");
+
+                        app.DispatcherQueue.TryEnqueue(() =>
+                        {
+                            var window = new Window();
+                            window.Content = new Grid()
+                            {
+                                Background = new SolidColorBrush(Colors.Blue),
+                            };
+                            window.Activate();
+                        });
+                    });
+                };
+
+                return app;
+            })
             .UseX11()
             .UseLinuxFrameBuffer()
             .UseMacOS()
@@ -33,6 +58,6 @@ public class Program
         });
 
         // 防止进程退出
-        Console.Read();
+        Thread.Sleep(TimeSpan.FromHours(1));
     }
 }

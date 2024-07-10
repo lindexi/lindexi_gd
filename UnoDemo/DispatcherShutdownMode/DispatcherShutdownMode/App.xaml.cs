@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI;
 using Microsoft.UI.Dispatching;
+
 using Uno.Resizetizer;
 #if HAS_UNO
 using Uno.UI.Xaml;
@@ -31,7 +32,9 @@ public partial class App : Application
     }
 
     //public Window? MainWindow { get; private set; }
-    public DispatcherQueue DispatcherQueue { get; private set; }
+    public DispatcherQueue DispatcherQueue { get; private set; } = null!;
+
+    public event EventHandler? Launched;
 
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
@@ -41,6 +44,8 @@ public partial class App : Application
         //MainWindow.Close();
 
         DispatcherQueue = DispatcherQueue.GetForCurrentThread();
+
+        Launched?.Invoke(this, EventArgs.Empty);
 
         //_ = Task.Run(() =>
         //{
