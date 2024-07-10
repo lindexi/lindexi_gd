@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.UI;
-
+using Microsoft.UI.Dispatching;
 using Uno.Resizetizer;
 #if HAS_UNO
 using Uno.UI.Xaml;
@@ -30,29 +30,34 @@ public partial class App : Application
 #endif
     }
 
-    protected Window? MainWindow { get; private set; }
+    //public Window? MainWindow { get; private set; }
+    public DispatcherQueue DispatcherQueue { get; private set; }
 
-    protected override void OnLaunched(LaunchActivatedEventArgs args)
+    protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
-        MainWindow = new Window();
-        WindowInteropHelper.HideX11Window(MainWindow);
+        //MainWindow = new Window();
+        ////WindowInteropHelper.HideX11Window(MainWindow);
+        //await Task.Delay(2000);
+        //MainWindow.Close();
 
-        _ = Task.Run(() =>
-        {
-            Console.ReadLine();
-            Console.WriteLine($"打开窗口");
+        DispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
-            MainWindow.DispatcherQueue.TryEnqueue(() =>
-            {
-                var frame = new Frame();
-                var window = new Window()
-                {
-                    Content = frame
-                };
-                frame.Navigate(typeof(MainPage));
-                window.Activate();
-            });
-        });
+        //_ = Task.Run(() =>
+        //{
+        //    Console.ReadLine();
+        //    Console.WriteLine($"打开窗口");
+
+        //    MainWindow.DispatcherQueue.TryEnqueue(() =>
+        //    {
+        //        var frame = new Frame();
+        //        var window = new Window()
+        //        {
+        //            Content = frame
+        //        };
+        //        frame.Navigate(typeof(MainPage));
+        //        window.Activate();
+        //    });
+        //});
 
         //        MainWindow = new Window();
         //#if DEBUG
