@@ -23,6 +23,7 @@ public class Program
                     var frame = new Frame();
                     window.Content = frame;
                     frame.Navigate(typeof(MainPage));
+                    window.Activate();
                 });
             }
         });
