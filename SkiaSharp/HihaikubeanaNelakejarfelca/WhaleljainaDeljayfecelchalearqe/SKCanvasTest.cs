@@ -18,7 +18,7 @@ public class SKCanvasTest
         };
         for (int i = 0; i < 100; i++)
         {
-            skCanvas2.DrawLine(i * 5, 500, (i + 1) * 5, 500, skPaint);
+            skCanvas2.DrawLine(i * 5, 0, i * 5, 500, skPaint);
         }
         skCanvas2.Flush();
         skCanvas2.Dispose();
