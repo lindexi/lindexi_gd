@@ -54,11 +54,10 @@ XFlush(display);
 
 _ = Task.Run(async () =>
 {
-    await Task.Delay(2000);
     Console.WriteLine("开启另一个线程");
 
     var display2 = XOpenDisplay(IntPtr.Zero);
-    XSelectInput(display2, handle, mask);
+    XSelectInput(display2, handle, new IntPtr((int) (XEventMask.ExposureMask | XEventMask.ButtonMotionMask | XEventMask.ButtonPressMask | XEventMask.ButtonReleaseMask | XEventMask.PropertyChangeMask) ));
     while (true)
     {
         var xNextEvent = XNextEvent(display2, out var @event);
