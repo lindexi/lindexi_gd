@@ -23,10 +23,9 @@ public class SKCanvasTest
         skCanvas2.Flush();
         skCanvas2.Dispose();
 
-        //skCanvas.Scale(2);
+        skCanvas.Scale(2);
 
-        //skCanvas.Scale(0.5f);
+        skCanvas.Scale(0.5f);
         skCanvas.DrawBitmap(skBitmap, 0, 0);
-
     }
 }
