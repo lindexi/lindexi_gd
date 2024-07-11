@@ -7,6 +7,6 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-
+        <local:SkiaCanvas x:Name="Image" Width="1920" Height="1080" Margin="10,10,10,10"/>
     </Grid>
 </Window>

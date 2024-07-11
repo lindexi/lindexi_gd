@@ -21,6 +21,17 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        Loaded += MainWindow_Loaded;
+    }
+
+    private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        await Task.Delay(100);
+        Image.Draw(canvas =>
+        {
+            canvas.Clear(SKColors.Red);
+        });
     }
 }
 
