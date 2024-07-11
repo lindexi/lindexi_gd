@@ -30,7 +30,9 @@ public partial class MainWindow : Window
         await Task.Delay(100);
         Image.Draw(canvas =>
         {
-            canvas.Clear(SKColors.Red);
+            //canvas.Clear(SKColors.Red);
+            var skCanvasTest = new SKCanvasTest();
+            skCanvasTest.Test(canvas);
         });
     }
 }
