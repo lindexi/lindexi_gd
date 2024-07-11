@@ -2,11 +2,16 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:QakurkocuGifurnerjaynifeki"
+      xmlns:windows="clr-namespace:SkiaSharp.Views.Windows;assembly=SkiaSharp.Views.Windows"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
   <Grid>
     <Grid>
-      <Image x:Name="FooImage"></Image>
+      <windows:SKXamlCanvas x:Name="SkXamlCanvas" Width="600" Height="600" PaintSurface="SkXamlCanvas_OnPaintSurface">
+        <windows:SKXamlCanvas.RenderTransform>
+          <ScaleTransform ScaleX="0.5" ScaleY="0.5"></ScaleTransform>
+        </windows:SKXamlCanvas.RenderTransform>
+      </windows:SKXamlCanvas>
 
       <Grid.RenderTransform>
         <ScaleTransform ScaleX="2" ScaleY="2"></ScaleTransform>
