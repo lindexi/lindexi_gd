@@ -3,11 +3,14 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:QakurkocuGifurnerjaynifeki"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-  <StackPanel
-        HorizontalAlignment="Center"
-        VerticalAlignment="Center">
-    <TextBlock AutomationProperties.AutomationId="HelloTextBlock"
-          Text="Hello Uno Platform"
-          HorizontalAlignment="Center" />
-  </StackPanel>
+
+  <Grid>
+    <Grid>
+      <Image x:Name="FooImage"></Image>
+
+      <Grid.RenderTransform>
+        <ScaleTransform ScaleX="2" ScaleY="2"></ScaleTransform>
+      </Grid.RenderTransform>
+    </Grid>
+  </Grid>
 </Page>

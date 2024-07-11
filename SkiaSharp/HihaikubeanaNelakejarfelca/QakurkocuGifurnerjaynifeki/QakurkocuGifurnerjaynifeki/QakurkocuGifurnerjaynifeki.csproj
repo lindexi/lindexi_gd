@@ -1,7 +1,6 @@
 <Project Sdk="Uno.Sdk">
   <PropertyGroup>
     <TargetFrameworks>
-      net8.0-windows10.0.19041;
       net8.0-desktop;
     </TargetFrameworks>
 
@@ -32,7 +31,11 @@
       https://aka.platform.uno/singleproject-features
     -->
     <UnoFeatures>
+      Skia;
     </UnoFeatures>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\WhaleljainaDeljayfecelchalearqe\SKCanvasTest.cs" Link="SKCanvasTest.cs" />
+  </ItemGroup>
 
 </Project>
