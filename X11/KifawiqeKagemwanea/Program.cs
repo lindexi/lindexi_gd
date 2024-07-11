@@ -57,7 +57,7 @@ _ = Task.Run(async () =>
     Console.WriteLine("开启另一个线程");
 
     var display2 = XOpenDisplay(IntPtr.Zero);
-    XSelectInput(display2, handle, new IntPtr((int) (XEventMask.ExposureMask | XEventMask.ButtonMotionMask)));
+    //XSelectInput(display2, handle, new IntPtr((int) (XEventMask.ExposureMask | XEventMask.ButtonMotionMask)));
     while (true)
     {
         var xNextEvent = XNextEvent(display2, out var @event);
