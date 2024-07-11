@@ -52,6 +52,26 @@ XSelectInput(display, handle, mask);
 XMapWindow(display, handle);
 XFlush(display);
 
+_ = Task.Run(async () =>
+{
+    await Task.Delay(2000);
+    Console.WriteLine("开启另一个线程");
+
+    var display2 = XOpenDisplay(IntPtr.Zero);
+    XSelectInput(display2, handle, mask);
+    while (true)
+    {
+        var xNextEvent = XNextEvent(display2, out var @event);
+
+        if (xNextEvent != 0)
+        {
+            break;
+        }
+
+        Console.WriteLine($"[{Thread.CurrentThread.ManagedThreadId}] {@event.type}");
+    }
+});
+
 while (true)
 {
     var xNextEvent = XNextEvent(display, out var @event);
@@ -60,4 +80,6 @@ while (true)
     {
         break;
     }
+
+    Console.WriteLine($"[{Thread.CurrentThread.ManagedThreadId}] {@event.type}");
 }
