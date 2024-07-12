@@ -6,7 +6,7 @@ var display = XOpenDisplay(IntPtr.Zero);
 var screen = XDefaultScreen(display);
 var rootWindow = XDefaultRootWindow(display);
 
-XMatchVisualInfo(display, screen, 32, 4, out var info);
+XMatchVisualInfo(display, screen, depth: 32, klass: 4, out var info);
 var visual = info.visual;
 
 var valueMask =
@@ -37,8 +37,8 @@ var xDisplayHeight = XDisplayHeight(display, screen);
 var width = xDisplayWidth / 2;
 var height = xDisplayHeight / 2;
 
-var handle = XCreateWindow(display, rootWindow, 0, 0, width, height, 5,
-    32,
+var handle = XCreateWindow(display, rootWindow, x: 0, y: 0, width, height, border_width: 5,
+    depth: 32,
     (int) CreateWindowArgs.InputOutput,
     visual,
     (nuint) valueMask, ref xSetWindowAttributes);
