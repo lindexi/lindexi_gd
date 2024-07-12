@@ -835,30 +835,27 @@ public class X11App
     {
         //var bitmapWidth = 50;
         //var bitmapHeight = 50;
+        var skBitmap = _skBitmap;
 
         const int bytePerPixelCount = 4; // RGBA 一共4个 byte 长度
         var bitPerByte = 8;
 
-        var img = new XImage();
+        var xImage = new XImage();
         int bitsPerPixel = bytePerPixelCount * bitPerByte;
-        img.width = _skBitmap.Width;
-        img.height = _skBitmap.Height;
-        img.format = 2; //ZPixmap;
-        img.data = _skBitmap.GetPixels();
-        img.byte_order = 0; // LSBFirst;
-        img.bitmap_unit = bitsPerPixel;
-        img.bitmap_bit_order = 0; // LSBFirst;
-        img.bitmap_pad = bitsPerPixel;
-        img.depth = bitsPerPixel;
-        img.bytes_per_line = _skBitmap.Width * bytePerPixelCount;
-        img.bits_per_pixel = bitsPerPixel;
-        XInitImage(ref img);
+        xImage.width = skBitmap.Width;
+        xImage.height = skBitmap.Height;
+        xImage.format = 2; //ZPixmap;
+        xImage.data = skBitmap.GetPixels();
+        xImage.byte_order = 0; // LSBFirst;
+        xImage.bitmap_unit = bitsPerPixel;
+        xImage.bitmap_bit_order = 0; // LSBFirst;
+        xImage.bitmap_pad = bitsPerPixel;
+        xImage.depth = bitsPerPixel;
+        xImage.bytes_per_line = skBitmap.Width * bytePerPixelCount;
+        xImage.bits_per_pixel = bitsPerPixel;
+        XInitImage(ref xImage);
 
-        // 除非 XImage 不再使用了，否则此时释放，将会导致 GC 之后 data 指针对应的内存不是可用的
-        // 调用 XPutImage 将访问不可用内存，导致段错误，闪退
-        //pinnedArray.Free();
-
-        return img;
+        return xImage;
     }
 
     private IntPtr GC { get; }
