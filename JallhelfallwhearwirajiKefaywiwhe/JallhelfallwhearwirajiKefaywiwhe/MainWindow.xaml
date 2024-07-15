@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="JallhelfallwhearwirajiKefaywiwhe.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:JallhelfallwhearwirajiKefaywiwhe"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="Transparent" PointerPressed="UIElement_OnPointerPressed" PointerMoved="UIElement_OnPointerMoved" PointerReleased="UIElement_OnPointerReleased">
+        <TextBlock x:Name="LogTextBlock" Margin="10,10,10,10" HorizontalAlignment="Left" VerticalAlignment="Center" TextWrapping="Wrap"/>
+    </Grid>
+</Window>
