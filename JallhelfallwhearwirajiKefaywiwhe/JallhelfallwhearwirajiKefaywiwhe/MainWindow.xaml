@@ -8,7 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <Button x:Name="myButton" Click="myButton_Click">Click Me</Button>
-    </StackPanel>
+    <Grid Background="Transparent" PointerPressed="UIElement_OnPointerPressed" PointerMoved="UIElement_OnPointerMoved" PointerReleased="UIElement_OnPointerReleased">
+        <TextBlock x:Name="LogTextBlock" Margin="10,10,10,10" HorizontalAlignment="Left" VerticalAlignment="Center" TextWrapping="Wrap"/>
+    </Grid>
 </Window>
