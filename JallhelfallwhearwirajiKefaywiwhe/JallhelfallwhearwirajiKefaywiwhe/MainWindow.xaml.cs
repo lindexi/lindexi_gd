@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading;
 
 using Windows.Foundation;
 using Windows.Foundation.Collections;
@@ -44,7 +45,10 @@ public sealed partial class MainWindow : Window
         {
             touchInfo.Update(e);
             Output();
-            LogTextBlock.Text += $"报点 : {e.GetIntermediatePoints(null).Count}";
+            LogTextBlock.Text += $"报点 : {e.GetIntermediatePoints(null).Count}\r\n";
+            LogTextBlock.Text += $"是否包含不同点 : {e.GetIntermediatePoints(null).Any(t => t.PointerId != e.Pointer.PointerId)}\r\n";
+
+            Thread.Sleep(100);
         }
     }
 
