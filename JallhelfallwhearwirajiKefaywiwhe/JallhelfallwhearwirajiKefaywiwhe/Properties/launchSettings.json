@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "JallhelfallwhearwirajiKefaywiwhe (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "JallhelfallwhearwirajiKefaywiwhe (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
