@@ -45,8 +45,8 @@ public sealed partial class MainWindow : Window
         {
             touchInfo.Update(e);
             Output();
-            LogTextBlock.Text += $"报点 : {e.GetIntermediatePoints(null).Count}\r\n";
-            LogTextBlock.Text += $"是否包含不同点 : {e.GetIntermediatePoints(null).Any(t => t.PointerId != e.Pointer.PointerId)}\r\n";
+            LogTextBlock.Text += $"Count of IntermediatePoint = {e.GetIntermediatePoints(null).Count}\r\n";
+            //LogTextBlock.Text += $"是否包含不同点 : {e.GetIntermediatePoints(null).Any(t => t.PointerId != e.Pointer.PointerId)}\r\n";
 
             Thread.Sleep(100);
         }
