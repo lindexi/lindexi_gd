@@ -26,6 +26,7 @@ public sealed partial class MainPage : Page
         {
             touchInfo.Update(e);
             Output();
+            LogTextBlock.Text += $"历史点： {e.GetIntermediatePoints(null).Count}";
         }
     }
 
