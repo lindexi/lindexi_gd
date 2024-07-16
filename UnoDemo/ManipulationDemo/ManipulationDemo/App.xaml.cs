@@ -14,6 +14,12 @@ public partial class App : Application
     public App()
     {
         this.InitializeComponent();
+
+#if HAS_UNO
+        // Fix run fail in Kylin system.
+        // https://github.com/unoplatform/uno/issues/17287
+        FeatureConfiguration.Font.DefaultTextFontFamily = "Noto Sans CJK SC";
+#endif
     }
 
     protected Window? MainWindow { get; private set; }
