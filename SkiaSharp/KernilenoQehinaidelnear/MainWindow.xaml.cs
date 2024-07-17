@@ -21,3 +21,12 @@ public partial class MainWindow : Window
         InitializeComponent();
     }
 }
+
+class Foo : FrameworkElement
+{
+    protected override void OnRender(DrawingContext drawingContext)
+    {
+
+        base.OnRender(drawingContext);
+    }
+}
