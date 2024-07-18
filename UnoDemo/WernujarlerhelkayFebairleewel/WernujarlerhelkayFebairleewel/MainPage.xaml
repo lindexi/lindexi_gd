@@ -6,7 +6,11 @@
 
   <Page.Resources>
     <Storyboard x:Key="FooBorderStoryboard">
-      <DoubleAnimation Storyboard.TargetName="(FooBorder.RenderTransform).(TranslateTransform.X)" To="1000"></DoubleAnimation>
+      <DoubleAnimation
+        Storyboard.TargetName="FooBorder"
+        Storyboard.TargetProperty="(FrameworkElement.RenderTransform).(TranslateTransform.X)"
+        To="1000"
+        Duration="0:0:3"/>
     </Storyboard>
   </Page.Resources>
   <Grid>
