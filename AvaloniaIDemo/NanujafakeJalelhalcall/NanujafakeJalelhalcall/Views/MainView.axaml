@@ -6,11 +6,36 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="NanujafakeJalelhalcall.Views.MainView"
              x:DataType="vm:MainViewModel">
+  <UserControl.Resources>
+
+  </UserControl.Resources>
   <Design.DataContext>
-    <!-- This only sets the DataContext for the previewer in an IDE,
-         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
     <vm:MainViewModel />
   </Design.DataContext>
 
-  <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+  <Grid Background="Transparent" PointerPressed="Grid_OnPointerPressed">
+    <Border x:Name="FooBorder" Background="Blue" Width="100" Height="100" HorizontalAlignment="Left" VerticalAlignment="Top" >
+      <Border.Styles>
+        <Style Selector="Border[IsVisible=True]">
+          <Style.Animations>
+            <Animation Duration="0:0:3">
+              <KeyFrame Cue="0%">
+                <KeyFrame.Setters>
+                  <Setter Property="TranslateTransform.X" Value="0"></Setter>
+                </KeyFrame.Setters>
+              </KeyFrame>
+              <KeyFrame Cue="100%">
+                <KeyFrame.Setters>
+                  <Setter Property="TranslateTransform.X" Value="1000"></Setter>
+                </KeyFrame.Setters>
+              </KeyFrame>
+            </Animation>
+          </Style.Animations>
+        </Style>
+      </Border.Styles>
+      <Border.RenderTransform>
+        <TranslateTransform X="0" Y="0"></TranslateTransform>
+      </Border.RenderTransform>
+    </Border>
+  </Grid>
 </UserControl>

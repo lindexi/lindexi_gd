@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Avalonia;
+using Avalonia.Media;
 using Avalonia.ReactiveUI;
 
 namespace NanujafakeJalelhalcall.Desktop;
@@ -20,5 +21,15 @@ class Program
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace()
+            // 修复麒麟丢失字体
+            .With(new FontManagerOptions()
+            {
+                DefaultFamilyName = "Noto Sans CJK SC",
+                FontFallbacks =
+                [
+                    new FontFallback { FontFamily = "文泉驿正黑" },
+                    new FontFallback { FontFamily = "DejaVu Sans" },
+                ],
+            })
             .UseReactiveUI();
 }
