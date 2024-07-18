@@ -18,8 +18,8 @@
       <Border.Styles>
         <Style Selector="Border[IsVisible=True]">
           <Style.Animations>
-            <Animation Duration="0:0:3">
-              <KeyFrame Cue="0%">
+            <Animation Duration="0:0:3" IterationCount="Infinite">
+                <KeyFrame Cue="0%">
                 <KeyFrame.Setters>
                   <Setter Property="TranslateTransform.X" Value="0"></Setter>
                 </KeyFrame.Setters>
