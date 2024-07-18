@@ -13,6 +13,13 @@ public partial class App : Application
     public App()
     {
         this.InitializeComponent();
+
+#if HAS_UNO
+        // Fix run fail in Kylin system.
+        // https://github.com/unoplatform/uno/issues/17287
+        // [dotnet 解决 UNO 在 OpenKylin 麒麟系统运行找不到默认字体启动失败](https://blog.lindexi.com/post/dotnet-%E8%A7%A3%E5%86%B3-UNO-%E5%9C%A8-OpenKylin-%E9%BA%92%E9%BA%9F%E7%B3%BB%E7%BB%9F%E8%BF%90%E8%A1%8C%E6%89%BE%E4%B8%8D%E5%88%B0%E9%BB%98%E8%AE%A4%E5%AD%97%E4%BD%93%E5%90%AF%E5%8A%A8%E5%A4%B1%E8%B4%A5.html )
+        FeatureConfiguration.Font.DefaultTextFontFamily = "Noto Sans CJK SC";
+#endif
     }
 
     protected Window? MainWindow { get; private set; }
