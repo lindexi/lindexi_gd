@@ -10,7 +10,7 @@
         Storyboard.TargetName="FooBorder"
         Storyboard.TargetProperty="(FrameworkElement.RenderTransform).(TranslateTransform.X)"
         To="1000"
-        Duration="0:0:3" />
+        Duration="0:0:3"/>
     </Storyboard>
   </Page.Resources>
   <Grid>
