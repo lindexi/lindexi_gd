@@ -400,4 +400,3 @@ FodyWeavers.xsd
 # Single Target Config
 solution-config.props
 # Publish Profiles
-!**/Properties/PublishProfiles/*.pubxml
