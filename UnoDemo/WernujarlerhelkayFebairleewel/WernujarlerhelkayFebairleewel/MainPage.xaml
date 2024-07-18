@@ -1,0 +1,19 @@
+﻿<Page x:Class="WernujarlerhelkayFebairleewel.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:WernujarlerhelkayFebairleewel"
+      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+  <Page.Resources>
+    <Storyboard x:Key="FooBorderStoryboard">
+      <DoubleAnimation Storyboard.TargetName="(FooBorder.RenderTransform).(TranslateTransform.X)" To="1000"></DoubleAnimation>
+    </Storyboard>
+  </Page.Resources>
+  <Grid>
+    <Border x:Name="FooBorder" Background="Blue" Width="100" Height="100" HorizontalAlignment="Left" VerticalAlignment="Top">
+      <Border.RenderTransform>
+        <TranslateTransform X="0" Y="0"></TranslateTransform>
+      </Border.RenderTransform>
+    </Border>
+  </Grid>
+</Page>
