@@ -50,6 +50,19 @@ public partial class MainWindow : Window
                 context.SKCanvas.DrawLine(x, 0, x, context.SKBitmap.Height, skPaint);
             }
         });
+
+        KeyDown += MainWindow_KeyDown;
+    }
+
+    private unsafe void MainWindow_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Up)
+        {
+            SkiaCanvas.RequireDraw(context =>
+            {
+               
+            });
+        }
     }
 }
 
