@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using Avalonia;
 using Avalonia.Media;
@@ -30,6 +31,13 @@ class Program
                     new FontFallback { FontFamily = "文泉驿正黑" },
                     new FontFallback { FontFamily = "DejaVu Sans" },
                 ],
+            })
+            .With(new X11PlatformOptions()
+            {
+                RenderingMode = new List<X11RenderingMode>()
+                {
+                    X11RenderingMode.Software
+                }
             })
             .UseReactiveUI();
 }

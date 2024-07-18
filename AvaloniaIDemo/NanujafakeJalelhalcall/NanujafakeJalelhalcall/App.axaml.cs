@@ -1,7 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-
+using Avalonia.Platform;
 using NanujafakeJalelhalcall.ViewModels;
 using NanujafakeJalelhalcall.Views;
 
