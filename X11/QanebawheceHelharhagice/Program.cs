@@ -63,6 +63,24 @@ var skCanvas = new SKCanvas(skBitmap);
 var xImage = CreateImage(skBitmap);
 
 skCanvas.Clear(SKColors.Blue);
+
+using var skPaint = new SKPaint();
+skPaint.Color = SKColors.Black;
+skPaint.StrokeWidth = 2;
+skPaint.Style = SKPaintStyle.Stroke;
+
+for (int y = 0; y < skBitmap.Height; y += 25)
+{
+    skPaint.Color = new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF);
+    skCanvas.DrawLine(0, y, skBitmap.Width, y, skPaint);
+}
+
+for (int x = 0; x < skBitmap.Width; x += 25)
+{
+    skPaint.Color = new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF);
+    skCanvas.DrawLine(x, 0, x, skBitmap.Height, skPaint);
+}
+
 skCanvas.Flush();
 
 while (true)
