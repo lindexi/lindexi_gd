@@ -1,4 +1,5 @@
-﻿using CPF.Linux;
+﻿using System.Diagnostics;
+using CPF.Linux;
 
 using SkiaSharp;
 
@@ -40,8 +41,8 @@ var xSetWindowAttributes = new XSetWindowAttributes
 var xDisplayWidth = XDisplayWidth(display, screen);
 var xDisplayHeight = XDisplayHeight(display, screen);
 
-var width = xDisplayWidth / 2;
-var height = xDisplayHeight / 2;
+var width = xDisplayWidth;
+var height = xDisplayHeight;
 
 var handle = XCreateWindow(display, rootWindow, 0, 0, width, height, 5,
     32,
@@ -64,6 +65,8 @@ var xImage = CreateImage(skBitmap);
 skCanvas.Clear(SKColors.Blue);
 skCanvas.Flush();
 
+var stopwatch = new Stopwatch();
+
 while (true)
 {
     var xNextEvent = XNextEvent(display, out var @event);
@@ -77,6 +80,21 @@ while (true)
     {
         XPutImage(display, handle, gc, ref xImage, @event.ExposeEvent.x, @event.ExposeEvent.y, @event.ExposeEvent.x, @event.ExposeEvent.y, (uint) @event.ExposeEvent.width,
             (uint) @event.ExposeEvent.height);
+
+        stopwatch.Stop();
+        Console.WriteLine($"耗时： {stopwatch.ElapsedMilliseconds}");
+    }
+    else if (@event.type == XEventName.MotionNotify)
+    {
+        var x = @event.MotionEvent.x;
+        var y = @event.MotionEvent.y;
+
+        stopwatch.Restart();
+
+        skCanvas.Clear(new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF));
+        skCanvas.Flush();
+
+        SendExposeEvent(display, handle, 0, 0, width, height);
     }
 }
 
@@ -104,4 +122,27 @@ static XImage CreateImage(SKBitmap skBitmap)
     XInitImage(ref img);
 
     return img;
+}
+
+static void SendExposeEvent(IntPtr display, IntPtr window, int x, int y, int width, int height)
+{
+    var exposeEvent = new XExposeEvent
+    {
+        type = XEventName.Expose,
+        display = display,
+        window = window,
+        x = x,
+        y = y,
+        width = width,
+        height = height,
+        count = 1,
+    };
+
+    var xEvent = new XEvent
+    {
+        ExposeEvent = exposeEvent
+    };
+
+    XSendEvent(display, window, false, new IntPtr((int) (EventMask.ExposureMask)), ref xEvent);
+    XFlush(display);
 }

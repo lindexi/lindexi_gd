@@ -6,6 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="Properties\PublishProfiles\FolderProfile.pubxml.user" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BujeeberehemnaNurgacolarje\BujeeberehemnaNurgacolarje.csproj" />
   </ItemGroup>
