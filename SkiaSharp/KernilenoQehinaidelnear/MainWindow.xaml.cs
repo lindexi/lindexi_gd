@@ -29,6 +29,7 @@ public partial class MainWindow : Window
         // 如图片向下平移，则上方出现空白，而整体像素从二维层面上向下移动
         // 现在已知图片的宽度和高度分别为 width 和 height ，以及图片的像素数组 pixels
         // 使用 C# 代码的方法定义如下 void MoveDown(int width, int height, byte[] pixels)
+        return;
         SkiaCanvas.RequireDraw(context =>
         {
             context.SKCanvas.Clear(SKColors.White);
@@ -53,11 +54,19 @@ public partial class MainWindow : Window
     }
 }
 
+public class LayoutClipBorder : Border
+{
+    protected override Geometry GetLayoutClip(Size layoutSlotSize)
+    {
+        return null;
+    }
+}
+
 public class SkiaCanvas : FrameworkElement
 {
     public SkiaCanvas()
     {
-        Loaded += SkiaCanvas_Loaded;
+        //Loaded += SkiaCanvas_Loaded;
     }
 
     public event EventHandler<SkiaCanvasContext>? Draw;

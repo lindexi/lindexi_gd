@@ -6,7 +6,12 @@
         xmlns:local="clr-namespace:KernilenoQehinaidelnear"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        <local:SkiaCanvas x:Name="SkiaCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+    <Grid Background="Black" ClipToBounds="False">
+        <local:SkiaCanvas x:Name="SkiaCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="Collapsed"/>
+
+        <Grid Margin="100,100,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Height="200"
+              Background="White" ClipToBounds="False" SnapsToDevicePixels="False" UseLayoutRounding="False" >
+            <Border Width="200" Height="300" Background="Blue"/>
+        </Grid>
     </Grid>
 </Window>
