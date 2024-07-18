@@ -98,6 +98,9 @@ public partial class App : Application
             builder.AddFilter("Windows", LogLevel.Information);
             builder.AddFilter("Microsoft", LogLevel.Information);
 
+            builder.AddFilter("Windows.UI.Xaml.Media.Animation", LogLevel.Debug);
+            builder.AddFilter("Microsoft.UI.Xaml.Media.Animation", LogLevel.Debug);
+
             // Generic Xaml events
             // builder.AddFilter("Microsoft.UI.Xaml", LogLevel.Debug );
             // builder.AddFilter("Microsoft.UI.Xaml.VisualStateGroup", LogLevel.Debug );
