@@ -9,6 +9,23 @@ public sealed partial class MainPage : Page
         this.InitializeComponent();
 
         Loaded += MainPage_Loaded;
+
+        PointerPressed += MainPage_PointerPressed;
+    }
+
+    private void MainPage_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        var properties = e.GetCurrentPoint(null).Properties;
+        if (properties.IsLeftButtonPressed)
+        {
+            FooBorder.Width += 100;
+            FooBorder.Height += 100;
+        }
+        else
+        {
+            FooBorder.Width -= 100;
+            FooBorder.Height -= 100;
+        }
     }
 
     private async void MainPage_Loaded(object sender, RoutedEventArgs e)

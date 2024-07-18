@@ -10,11 +10,11 @@
         Storyboard.TargetName="FooBorder"
         Storyboard.TargetProperty="(FrameworkElement.RenderTransform).(TranslateTransform.X)"
         To="1000"
-        Duration="0:0:3" />
+        Duration="0:0:3"/>
     </Storyboard>
   </Page.Resources>
   <Grid>
-    <Border x:Name="FooBorder" Background="Blue" Width="100" Height="100" HorizontalAlignment="Left" VerticalAlignment="Top">
+    <Border x:Name="FooBorder" Background="Blue" Width="500" Height="500" HorizontalAlignment="Left" VerticalAlignment="Top">
       <Border.RenderTransform>
         <TranslateTransform X="0" Y="0"></TranslateTransform>
       </Border.RenderTransform>
