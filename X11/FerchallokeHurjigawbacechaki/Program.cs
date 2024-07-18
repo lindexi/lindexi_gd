@@ -1,5 +1,7 @@
 ﻿using CPF.Linux;
 
+using SkiaSharp;
+
 using static CPF.Linux.XLib;
 
 XInitThreads();
@@ -52,6 +54,14 @@ XSelectInput(display, handle, mask);
 XMapWindow(display, handle);
 XFlush(display);
 
+var gc = XCreateGC(display, handle, 0, 0);
+var skBitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
+var skCanvas = new SKCanvas(skBitmap);
+var xImage = CreateImage(skBitmap);
+
+skCanvas.Clear(SKColors.Blue);
+skCanvas.Flush();
+
 while (true)
 {
     var xNextEvent = XNextEvent(display, out var @event);
@@ -60,4 +70,36 @@ while (true)
     {
         break;
     }
+
+    if (@event.type == XEventName.Expose)
+    {
+        XPutImage(display, handle, gc, ref xImage, @event.ExposeEvent.x, @event.ExposeEvent.y, @event.ExposeEvent.x, @event.ExposeEvent.y, (uint) @event.ExposeEvent.width,
+            (uint) @event.ExposeEvent.height);
+    }
+}
+
+static XImage CreateImage(SKBitmap skBitmap)
+{
+    const int bytePerPixelCount = 4; // RGBA 一共4个 byte 长度
+    var bitPerByte = 8;
+
+    var bitmapWidth = skBitmap.Width;
+    var bitmapHeight = skBitmap.Height;
+
+    var img = new XImage();
+    int bitsPerPixel = bytePerPixelCount * bitPerByte;
+    img.width = bitmapWidth;
+    img.height = bitmapHeight;
+    img.format = 2; //ZPixmap;
+    img.data = skBitmap.GetPixels();
+    img.byte_order = 0; // LSBFirst;
+    img.bitmap_unit = bitsPerPixel;
+    img.bitmap_bit_order = 0; // LSBFirst;
+    img.bitmap_pad = bitsPerPixel;
+    img.depth = bitsPerPixel;
+    img.bytes_per_line = bitmapWidth * bytePerPixelCount;
+    img.bits_per_pixel = bitsPerPixel;
+    XInitImage(ref img);
+
+    return img;
 }
