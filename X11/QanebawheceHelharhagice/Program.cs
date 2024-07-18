@@ -65,8 +65,6 @@ var xImage = CreateImage(skBitmap);
 skCanvas.Clear(SKColors.Blue);
 skCanvas.Flush();
 
-var stopwatch = new Stopwatch();
-
 while (true)
 {
     var xNextEvent = XNextEvent(display, out var @event);
@@ -80,16 +78,11 @@ while (true)
     {
         XPutImage(display, handle, gc, ref xImage, @event.ExposeEvent.x, @event.ExposeEvent.y, @event.ExposeEvent.x, @event.ExposeEvent.y, (uint) @event.ExposeEvent.width,
             (uint) @event.ExposeEvent.height);
-
-        stopwatch.Stop();
-        Console.WriteLine($"耗时： {stopwatch.ElapsedMilliseconds}");
     }
     else if (@event.type == XEventName.MotionNotify)
     {
         var x = @event.MotionEvent.x;
         var y = @event.MotionEvent.y;
-
-        stopwatch.Restart();
 
         skCanvas.Clear(new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF));
         skCanvas.Flush();
