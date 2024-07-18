@@ -1,0 +1,18 @@
+﻿<Page x:Class="LairhalawcarchemKacallligekay.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:LairhalawcarchemKacallligekay"
+      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+  <Page.Resources>
+    <Storyboard x:Key="FooBorderStoryboard">
+      <DoubleAnimation
+        Storyboard.TargetName="FooBorder"
+        Storyboard.TargetProperty="Width"
+        To="1000"
+        Duration="0:0:3"/>
+    </Storyboard>
+  </Page.Resources>
+  <Grid>
+    <Border x:Name="FooBorder" Background="Blue" Width="500" Height="500" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+  </Grid>
+</Page>
