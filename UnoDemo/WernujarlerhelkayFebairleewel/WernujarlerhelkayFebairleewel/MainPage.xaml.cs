@@ -11,8 +11,9 @@ public sealed partial class MainPage : Page
         Loaded += MainPage_Loaded;
     }
 
-    private void MainPage_Loaded(object sender, RoutedEventArgs e)
+    private async void MainPage_Loaded(object sender, RoutedEventArgs e)
     {
+        await Task.Delay(2000);
         var storyboard = (Storyboard) Resources["FooBorderStoryboard"];
         storyboard.Begin();
     }
