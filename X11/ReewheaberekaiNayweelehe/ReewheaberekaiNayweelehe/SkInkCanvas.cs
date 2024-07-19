@@ -61,6 +61,12 @@ partial class SkInkCanvas
 
     public event EventHandler<Rect>? RenderBoundsChanged;
 
+    private SKCanvas? _skCanvas;
+
+    /// <summary>
+    /// 原应用输出的内容
+    /// </summary>
+    public SKBitmap? ApplicationDrawingSkBitmap { set; get; }
 
     record InkInfo(int Id, DrawStrokeContext Context);
 
@@ -131,6 +137,14 @@ partial class SkInkCanvas
                     skCanvas.DrawPath(path, skPaint);
                 }
             }
+
+            skCanvas.Flush();
+
+            // 计算脏范围，用于渲染更新
+            var additionSize = 100d; // 用于设置比简单计算的范围更大一点的范围，解决重采样之后的模糊
+            var (x, y) = info.StylusPoint.Point;
+
+            RenderBoundsChanged?.Invoke(this, new Rect(x - additionSize / 2, y - additionSize / 2, additionSize, additionSize));
         }
     }
 
@@ -194,13 +208,12 @@ partial class SkInkCanvas
         _skCanvas = canvas;
     }
 
+<<<<<<< HEAD
     public SKCanvas? SkCanvas => _skCanvas;
     private SKCanvas? _skCanvas;
+=======
+>>>>>>> 423d0d697db86f6b4bda17c5b4e51fb5d4a99877
 
-    /// <summary>
-    /// 原应用输出的内容
-    /// </summary>
-    public SKBitmap? ApplicationDrawingSkBitmap { set; get; }
 
     /// <summary>
     /// 原来的背景

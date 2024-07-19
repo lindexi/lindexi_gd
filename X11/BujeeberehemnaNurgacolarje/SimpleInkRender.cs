@@ -6,7 +6,7 @@ namespace BujeeberehemnaNurgacolarje
     /// <summary>
     /// 特别简单的笔迹渲染器。
     /// </summary>
-    internal static class SimpleInkRender
+    public static class SimpleInkRender
     {
         public static Point[] GetOutlinePointList(Span<StylusPoint> pointList, double inkSize)
         {
