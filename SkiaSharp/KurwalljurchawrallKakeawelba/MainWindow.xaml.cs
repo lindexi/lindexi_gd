@@ -129,6 +129,8 @@ public class SkiaCanvas : FrameworkElement
         _writeableBitmap.Unlock();
 
         InvalidateVisual();
+
+        _isRequireDraw = false;
     }
 
     public SKBitmap? SkBitmap { get; private set; }
@@ -147,10 +149,14 @@ public class SkiaCanvas : FrameworkElement
 
     #region 输入层
 
+    private bool _isMouseDown = false;
+
     protected override void OnMouseDown(MouseButtonEventArgs e)
     {
+
         RequireDraw(context =>
         {
+            _isMouseDown = true;
             _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
 
             var position = e.GetPosition(this);
@@ -164,6 +170,11 @@ public class SkiaCanvas : FrameworkElement
     {
         RequireDraw(context =>
         {
+            if (!_isMouseDown)
+            {
+                return;
+            }
+
             _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
             var position = e.GetPosition(this);
             var inkingInputInfo = new InkingInputInfo(0, new Point(position.X, position.Y), (ulong) e.Timestamp);
@@ -176,6 +187,7 @@ public class SkiaCanvas : FrameworkElement
     {
         RequireDraw(context =>
         {
+            _isMouseDown = false;
             _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
             var position = e.GetPosition(this);
             var inkingInputInfo = new InkingInputInfo(0, new Point(position.X, position.Y), (ulong) e.Timestamp);

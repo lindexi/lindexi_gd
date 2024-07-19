@@ -60,14 +60,59 @@ partial class SkInkCanvas
 
     public void DrawStrokeDown(InkingInputInfo info)
     {
+        var context = new DrawStrokeContext(info, Color);
+        CurrentInputDictionary[info.Id] = context;
+
+        context.AllStylusPoints.Add(info.StylusPoint);
+        context.TipStylusPoints.Enqueue(info.StylusPoint);
     }
 
     public void DrawStrokeMove(InkingInputInfo info)
     {
+        if (_skCanvas is null)
+        {
+            // 理论上不可能进入这里
+            return;
+        }
+
+        if (CurrentInputDictionary.TryGetValue(info.Id,out var context))
+        {
+            context.AllStylusPoints.Add(info.StylusPoint);
+            context.TipStylusPoints.Enqueue(info.StylusPoint);
+
+            context.InkStrokePath?.Dispose();
+
+            var skPath = new SKPath();
+            skPath.AddPoly(context.AllStylusPoints.Select(t => new SKPoint((float) t.Point.X, (float) t.Point.Y)).ToArray());
+
+            context.InkStrokePath = skPath;
+
+            var skCanvas = _skCanvas;
+
+            using var skPaint = new SKPaint();
+            skPaint.StrokeWidth = 0.1f;
+            skPaint.IsAntialias = true;
+            skPaint.FilterQuality = SKFilterQuality.High;
+            skPaint.Style = SKPaintStyle.Fill;
+
+            foreach (var drawStrokeContext in CurrentInputDictionary)
+            {
+                skPaint.Color = drawStrokeContext.Value.StrokeColor;
+
+                if (drawStrokeContext.Value.InkStrokePath is { } path)
+                {
+                    skCanvas.DrawPath(path, skPaint);
+                }
+            }
+        }
     }
 
     public void DrawStrokeUp(InkingInputInfo info)
     {
+        if (CurrentInputDictionary.Remove(info.Id, out var context))
+        {
+            context.IsUp = true;
+        }
     }
 }
 
@@ -124,10 +169,10 @@ partial class SkInkCanvas
         /// </summary>
         public readonly FixedQueue<StylusPoint> TipStylusPoints = new FixedQueue<StylusPoint>(MaxTipStylusCount);
 
-        ///// <summary>
-        ///// 整个笔迹的点，包括笔尖的点
-        ///// </summary>
-        //public List<StylusPoint> AllStylusPoints { get; } = new List<StylusPoint>();
+        /// <summary>
+        /// 整个笔迹的点，包括笔尖的点
+        /// </summary>
+        public List<StylusPoint> AllStylusPoints { get; } = new List<StylusPoint>();
 
         public SKPath? InkStrokePath { set; get; }
 
