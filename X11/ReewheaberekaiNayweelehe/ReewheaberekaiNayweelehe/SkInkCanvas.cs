@@ -9,12 +9,12 @@ using SkiaSharp;
 
 namespace ReewheaberekaiNayweelehe;
 
-record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp)
+partial record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp)
 {
     public bool IsMouse { init; get; }
 };
 
-record InkInfo(int Id);
+partial record InkInfo(int Id);
 
 /// <summary>
 /// 画板的配置
@@ -57,6 +57,7 @@ class SkInkCanvas
         _skCanvas = canvas;
     }
 
+    public SKCanvas? SkCanvas => _skCanvas;
     private SKCanvas? _skCanvas;
 
     /// <summary>
@@ -74,9 +75,13 @@ class SkInkCanvas
     //public SKSurface? SkSurface { set; get; }
 
     public event EventHandler<Rect>? RenderBoundsChanged;
+    public void RaiseRenderBoundsChanged(Rect rect) => RenderBoundsChanged?.Invoke(this, rect);
 
     private Dictionary<int, DrawStrokeContext> CurrentInputDictionary { get; } =
         new Dictionary<int, DrawStrokeContext>();
+
+    public IEnumerable<SKPath> CurrentInkStrokePathEnumerable => CurrentInputDictionary.Values.Select(t => t.InkStrokePath)
+        .Where(t => t != null)!;
 
     /// <summary>
     /// 取多少个点做笔尖
