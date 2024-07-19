@@ -50,11 +50,33 @@ enum InkCanvasDynamicRenderTipStrokeType
 
 partial class SkInkCanvas
 {
+    public SkInkCanvas(SKCanvas skCanvas, SKBitmap applicationDrawingSkBitmap)
+    {
+        _skCanvas = skCanvas;
+        ApplicationDrawingSkBitmap = applicationDrawingSkBitmap;
+    }
 
+    public event EventHandler<Rect>? RenderBoundsChanged;
+
+    public void DrawStrokeDown(InkingInputInfo info)
+    {
+    }
+
+    public void DrawStrokeMove(InkingInputInfo info)
+    {
+    }
+
+    public void DrawStrokeUp(InkingInputInfo info)
+    {
+    }
 }
 
 partial class SkInkCanvas
 {
+    public SkInkCanvas()
+    {
+    }
+
     public SkInkCanvasSettings Settings { get; set; } = new SkInkCanvasSettings();
 
     public void SetCanvas(SKCanvas canvas)
@@ -78,7 +100,6 @@ partial class SkInkCanvas
 
     //public SKSurface? SkSurface { set; get; }
 
-    public event EventHandler<Rect>? RenderBoundsChanged;
 
     private Dictionary<int, DrawStrokeContext> CurrentInputDictionary { get; } =
         new Dictionary<int, DrawStrokeContext>();

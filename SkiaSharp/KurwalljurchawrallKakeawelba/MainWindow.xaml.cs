@@ -9,8 +9,12 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+
 using ReewheaberekaiNayweelehe;
+
 using SkiaSharp;
+
+using Point = Microsoft.Maui.Graphics.Point;
 
 namespace KurwalljurchawrallKakeawelba;
 
@@ -145,14 +149,39 @@ public class SkiaCanvas : FrameworkElement
 
     protected override void OnMouseDown(MouseButtonEventArgs e)
     {
+        RequireDraw(context =>
+        {
+            _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
+
+            var position = e.GetPosition(this);
+            var inkingInputInfo = new InkingInputInfo(0, new Point(position.X, position.Y), (ulong) e.Timestamp);
+
+            _inkCanvas.DrawStrokeDown(inkingInputInfo);
+        });
     }
 
     protected override void OnMouseMove(MouseEventArgs e)
     {
+        RequireDraw(context =>
+        {
+            _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
+            var position = e.GetPosition(this);
+            var inkingInputInfo = new InkingInputInfo(0, new Point(position.X, position.Y), (ulong) e.Timestamp);
+
+            _inkCanvas.DrawStrokeMove(inkingInputInfo);
+        });
     }
 
     protected override void OnMouseUp(MouseButtonEventArgs e)
     {
+        RequireDraw(context =>
+        {
+            _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
+            var position = e.GetPosition(this);
+            var inkingInputInfo = new InkingInputInfo(0, new Point(position.X, position.Y), (ulong) e.Timestamp);
+
+            _inkCanvas.DrawStrokeUp(inkingInputInfo);
+        });
     }
 
     private SkInkCanvas? _inkCanvas;
