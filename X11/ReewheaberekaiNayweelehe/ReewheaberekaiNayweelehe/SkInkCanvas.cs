@@ -13,6 +13,7 @@ partial record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 partial record InkInfo(int Id);
 =======
 >>>>>>> 06026b0bbb703276589096b11fd69181ce02f21c
@@ -25,30 +26,73 @@ partial record InkInfo(int Id);
 /// <param name="EnableClippingEraser">是否允许使用裁剪方式的橡皮擦，而不是走静态笔迹层</param>
 /// <param name="AutoSoftPen">是否开启自动软笔模式</param>
 record SkInkCanvasSettings(bool EnableClippingEraser = true, bool AutoSoftPen = true)
+=======
+enum InputMode
+>>>>>>> 9994af5e3facc399bf93df657e69c36f21288956
 {
-    /// <summary>
-    /// 修改笔尖渲染部分配置 动态笔迹层
-    /// </summary>
-    public InkCanvasDynamicRenderTipStrokeType DynamicRenderType { init; get; } =
-        InkCanvasDynamicRenderTipStrokeType.RenderAllTouchingStrokeWithoutTipStroke;
-
-    /// <summary>
-    /// 是否应该在橡皮擦丢点进行收集，进行一次性处理。现在橡皮擦速度慢在画图 DrawBitmap 里，而对于几何组装来说，似乎不耗时。此属性可能会降低性能
-    /// </summary>
-    /// 在触摸屏测试，使用兆芯机器，开启之后性能大幅降低
-    public bool ShouldCollectDropErasePoint { init; get; } = true;
+    Ink,
+    Manipulate,
 }
 
-/// <summary>
-/// 笔尖渲染模式
-/// </summary>
-enum InkCanvasDynamicRenderTipStrokeType
+class InkingInputManager
 {
-    /// <summary>
-    /// 所有触摸按下的笔迹都每次重新绘制，不区分笔尖和笔身
-    /// 此方式可以实现比较好的平滑效果
-    /// </summary>
-    RenderAllTouchingStrokeWithoutTipStroke,
+    public InkingInputManager(SkInkCanvas skInkCanvas)
+    {
+        SkInkCanvas = skInkCanvas;
+    }
+
+    public SkInkCanvas SkInkCanvas { get; }
+
+    public InputMode InputMode { set; get; } = InputMode.Ink;
+
+    private int _downCount;
+
+    private StylusPoint _lastStylusPoint;
+
+    public void Down(InkingInputInfo info)
+    {
+        _downCount++;
+        if (_downCount > 10)
+        {
+            InputMode = InputMode.Manipulate;
+        }
+
+        if (InputMode == InputMode.Ink)
+        {
+            SkInkCanvas.DrawStrokeDown(info);
+        }
+        else if (InputMode == InputMode.Manipulate)
+        {
+            _lastStylusPoint = info.StylusPoint;
+        }
+    }
+
+    public void Move(InkingInputInfo info)
+    {
+        if (InputMode == InputMode.Ink)
+        {
+            SkInkCanvas.DrawStrokeMove(info);
+        }
+        else if (InputMode == InputMode.Manipulate)
+        {
+            SkInkCanvas.ManipulateMove(new Point(info.StylusPoint.Point.X - _lastStylusPoint.Point.X, info.StylusPoint.Point.Y - _lastStylusPoint.Point.Y));
+
+            _lastStylusPoint = info.StylusPoint;
+        }
+    }
+
+    public void Up(InkingInputInfo info)
+    {
+        if (InputMode == InputMode.Ink)
+        {
+            SkInkCanvas.DrawStrokeUp(info);
+        }
+        else if (InputMode == InputMode.Manipulate)
+        {
+
+            _lastStylusPoint = info.StylusPoint;
+        }
+    }
 }
 
 partial class SkInkCanvas
@@ -200,6 +244,7 @@ partial class SkInkCanvas
     /// 取多少个点做笔尖
     /// </summary>
     private const int MaxTipStylusCount = 7;
+<<<<<<< HEAD
 <<<<<<< HEAD
 }
 
@@ -461,10 +506,19 @@ partial class SkInkCanvas
 
             return false;
         }
+=======
+
+    #region 漫游
+
+    public void ManipulateMove(Point delta)
+    {
+        _totalTransform = new Point(_totalTransform.X + delta.X, _totalTransform.Y + delta.Y);
+>>>>>>> 9994af5e3facc399bf93df657e69c36f21288956
 
         if (_skCanvas is null)
         {
             // 理论上不可能进入这里
+<<<<<<< HEAD
             return false;
         }
 
@@ -768,4 +822,33 @@ class EraserView
     }
 =======
 >>>>>>> fc149583aa0a4eb1ed4aa8ca82c20621a7b49d41
+=======
+            return;
+        }
+
+        if (ApplicationDrawingSkBitmap is null)
+        {
+            // 理论上不可能进入这里
+            return;
+        }
+
+        var skCanvas = _skCanvas;
+        skCanvas.Clear();
+
+        skCanvas.Save();
+
+        skCanvas.Translate((float)_totalTransform.X, (float)_totalTransform.Y);
+
+        DrawAllInk();
+
+        skCanvas.Restore();
+
+        RenderBoundsChanged?.Invoke(this,
+            new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
+    }
+
+    private Point _totalTransform;
+
+    #endregion
+>>>>>>> 9994af5e3facc399bf93df657e69c36f21288956
 }
