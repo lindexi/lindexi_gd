@@ -48,7 +48,12 @@ enum InkCanvasDynamicRenderTipStrokeType
     RenderAllTouchingStrokeWithoutTipStroke,
 }
 
-class SkInkCanvas
+partial class SkInkCanvas
+{
+
+}
+
+partial class SkInkCanvas
 {
     public SkInkCanvasSettings Settings { get; set; } = new SkInkCanvasSettings();
 

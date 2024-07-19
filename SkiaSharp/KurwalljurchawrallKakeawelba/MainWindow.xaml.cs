@@ -9,7 +9,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
-
+using ReewheaberekaiNayweelehe;
 using SkiaSharp;
 
 namespace KurwalljurchawrallKakeawelba;
@@ -154,6 +154,8 @@ public class SkiaCanvas : FrameworkElement
     protected override void OnMouseUp(MouseButtonEventArgs e)
     {
     }
+
+    private SkInkCanvas? _inkCanvas;
 
     #endregion
 }
