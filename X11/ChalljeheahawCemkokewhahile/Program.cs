@@ -41,8 +41,8 @@ var xSetWindowAttributes = new XSetWindowAttributes
 var xDisplayWidth = XDisplayWidth(display, screen);
 var xDisplayHeight = XDisplayHeight(display, screen);
 
-var width = xDisplayWidth ;
-var height = xDisplayHeight ;
+var width = xDisplayWidth;
+var height = xDisplayHeight;
 
 var handle = XCreateWindow(display, rootWindow, 0, 0, width, height, 5,
     32,
@@ -118,7 +118,20 @@ while (true)
         {
             var x = @event.MotionEvent.x;
             var y = @event.MotionEvent.y;
-            input.Move(new InkingInputInfo(0, new Point(x, y), (ulong)Environment.TickCount64));
+            input.Move(new InkingInputInfo(0, new Point(x, y), (ulong) Environment.TickCount64));
+        }
+
+        while (true)
+        {
+            XPeekEvent(display, out var nextEvent);
+            if (nextEvent.type == XEventName.MotionNotify)
+            {
+                XNextEvent(display, out _);
+            }
+            else
+            {
+                break;
+            }
         }
     }
     else if (@event.type == XEventName.ButtonRelease)
