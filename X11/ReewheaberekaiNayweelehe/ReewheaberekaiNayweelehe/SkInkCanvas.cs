@@ -28,11 +28,25 @@ class InkingInputManager
 
     public InputMode InputMode { set; get; } = InputMode.Ink;
 
+    private int _downCount;
+
+    private StylusPoint _lastStylusPoint;
+
     public void Down(InkingInputInfo info)
     {
+        _downCount++;
+        if (_downCount > 10)
+        {
+            InputMode = InputMode.Manipulate;
+        }
+
         if (InputMode == InputMode.Ink)
         {
             SkInkCanvas.DrawStrokeDown(info);
+        }
+        else if (InputMode == InputMode.Manipulate)
+        {
+            _lastStylusPoint = info.StylusPoint;
         }
     }
 
@@ -42,6 +56,12 @@ class InkingInputManager
         {
             SkInkCanvas.DrawStrokeMove(info);
         }
+        else if (InputMode == InputMode.Manipulate)
+        {
+            SkInkCanvas.ManipulateMove(new Point(info.StylusPoint.Point.X - _lastStylusPoint.Point.X, info.StylusPoint.Point.Y - _lastStylusPoint.Point.Y));
+
+            _lastStylusPoint = info.StylusPoint;
+        }
     }
 
     public void Up(InkingInputInfo info)
@@ -49,6 +69,11 @@ class InkingInputManager
         if (InputMode == InputMode.Ink)
         {
             SkInkCanvas.DrawStrokeUp(info);
+        }
+        else if (InputMode == InputMode.Manipulate)
+        {
+
+            _lastStylusPoint = info.StylusPoint;
         }
     }
 }
@@ -208,6 +233,32 @@ partial class SkInkCanvas
     public void ManipulateMove(Point delta)
     {
         _totalTransform = new Point(_totalTransform.X + delta.X, _totalTransform.Y + delta.Y);
+
+        if (_skCanvas is null)
+        {
+            // 理论上不可能进入这里
+            return;
+        }
+
+        if (ApplicationDrawingSkBitmap is null)
+        {
+            // 理论上不可能进入这里
+            return;
+        }
+
+        var skCanvas = _skCanvas;
+        skCanvas.Clear();
+
+        skCanvas.Save();
+
+        skCanvas.Translate((float)_totalTransform.X, (float)_totalTransform.Y);
+
+        DrawAllInk();
+
+        skCanvas.Restore();
+
+        RenderBoundsChanged?.Invoke(this,
+            new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
     }
 
     private Point _totalTransform;

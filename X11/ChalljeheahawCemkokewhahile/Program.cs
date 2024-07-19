@@ -87,6 +87,7 @@ skInkCanvas.RenderBoundsChanged += (sender, rect) =>
     // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
     XSendEvent(display, handle, propagate: false, new IntPtr((int) (EventMask.ExposureMask)), ref xEvent);
 };
+var input = new InkingInputManager(skInkCanvas);
 
 while (true)
 {
@@ -106,19 +107,19 @@ while (true)
     {
         var x = @event.ButtonEvent.x;
         var y = @event.ButtonEvent.y;
-        skInkCanvas.DrawStrokeDown(new InkingInputInfo(0, new Point(x, y), (ulong) Environment.TickCount64));
+        input.Down(new InkingInputInfo(0, new Point(x, y), (ulong) Environment.TickCount64));
     }
     else if (@event.type == XEventName.MotionNotify)
     {
         var x = @event.MotionEvent.x;
         var y = @event.MotionEvent.y;
-        skInkCanvas.DrawStrokeMove(new InkingInputInfo(0, new Point(x, y), (ulong) Environment.TickCount64));
+        input.Move(new InkingInputInfo(0, new Point(x, y), (ulong) Environment.TickCount64));
     }
     else if (@event.type == XEventName.ButtonRelease)
     {
         var x = @event.ButtonEvent.x;
         var y = @event.ButtonEvent.y;
-        skInkCanvas.DrawStrokeUp(new InkingInputInfo(0, new Point(x, y), (ulong) Environment.TickCount64));
+        input.Up(new InkingInputInfo(0, new Point(x, y), (ulong) Environment.TickCount64));
     }
 
 }
