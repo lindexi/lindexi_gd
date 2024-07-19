@@ -127,6 +127,12 @@ partial class SkInkCanvas
                     skCanvas.DrawPath(path, skPaint);
                 }
             }
+
+            // 计算脏范围，用于渲染更新
+            var additionSize = 10d; // 用于设置比简单计算的范围更大一点的范围，解决重采样之后的模糊
+            var (x, y) = info.StylusPoint.Point;
+
+            RenderBoundsChanged?.Invoke(this, new Rect(x - additionSize / 2, y - additionSize / 2, additionSize, additionSize));
         }
     }
 
