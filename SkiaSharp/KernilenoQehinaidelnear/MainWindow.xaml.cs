@@ -40,13 +40,13 @@ public partial class MainWindow : Window
 
             for (int y = 0; y < context.SKBitmap.Height; y += 25)
             {
-                skPaint.Color = new SKColor((uint)Random.Shared.Next()).WithAlpha(0xFF);
+                skPaint.Color = new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF);
                 context.SKCanvas.DrawLine(0, y, context.SKBitmap.Width, y, skPaint);
             }
 
             for (int x = 0; x < context.SKBitmap.Width; x += 25)
             {
-                skPaint.Color = new SKColor((uint)Random.Shared.Next()).WithAlpha(0xFF);
+                skPaint.Color = new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF);
                 context.SKCanvas.DrawLine(x, 0, x, context.SKBitmap.Height, skPaint);
             }
         });
@@ -159,11 +159,22 @@ public class SkiaCanvas : FrameworkElement
 
     private SkiaCanvasContext? _context;
     private WriteableBitmap? _writeableBitmap;
+
+    #region 输入层
+
+    protected override void OnMouseDown(MouseButtonEventArgs e)
+    {
+    }
+
+    protected override void OnMouseMove(MouseEventArgs e)
+    {
+    }
+
+    protected override void OnMouseUp(MouseButtonEventArgs e)
+    {
+    }
+
+    #endregion
 }
 
 public record SkiaCanvasContext(SKCanvas SKCanvas, SKBitmap SKBitmap);
-
-class PixelPanel(SkiaCanvasContext context)
-{
-    private SkiaCanvasContext Context => context;
-}
