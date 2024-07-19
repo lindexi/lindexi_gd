@@ -1,10 +1,7 @@
 ﻿#nullable enable
 using System.Diagnostics;
-
 using BujeeberehemnaNurgacolarje;
-
 using Microsoft.Maui.Graphics;
-
 using SkiaSharp;
 
 namespace ReewheaberekaiNayweelehe;
@@ -15,10 +12,13 @@ partial record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp)
 };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 partial record InkInfo(int Id);
 =======
 >>>>>>> 06026b0bbb703276589096b11fd69181ce02f21c
 
+=======
+>>>>>>> fc149583aa0a4eb1ed4aa8ca82c20621a7b49d41
 /// <summary>
 /// 画板的配置
 /// </summary>
@@ -78,6 +78,8 @@ partial class SkInkCanvas
     private Dictionary<int, DrawStrokeContext> CurrentInputDictionary { get; } =
         new Dictionary<int, DrawStrokeContext>();
 
+    public SKColor Color { set; get; } = SKColors.Red;
+
     public void DrawStrokeDown(InkingInputInfo info)
     {
         var context = new DrawStrokeContext(info, Color);
@@ -89,12 +91,6 @@ partial class SkInkCanvas
 
     public void DrawStrokeMove(InkingInputInfo info)
     {
-        if (_skCanvas is null)
-        {
-            // 理论上不可能进入这里
-            return;
-        }
-
         if (CurrentInputDictionary.TryGetValue(info.Id, out var context))
         {
             context.AllStylusPoints.Add(info.StylusPoint);
@@ -105,47 +101,59 @@ partial class SkInkCanvas
             var outlinePointList = SimpleInkRender.GetOutlinePointList(context.AllStylusPoints.ToArray(), 20);
 
             var skPath = new SKPath();
-            skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
+            skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float)t.X, (float)t.Y)).ToArray());
 
             context.InkStrokePath = skPath;
 
-            var skCanvas = _skCanvas;
-            skCanvas.Clear();
-
-            using var skPaint = new SKPaint();
-            skPaint.StrokeWidth = 0.1f;
-            skPaint.IsAntialias = true;
-            skPaint.FilterQuality = SKFilterQuality.High;
-            skPaint.Style = SKPaintStyle.Fill;
-
-            foreach (var drawStrokeContext in CurrentInputDictionary)
-            {
-                skPaint.Color = drawStrokeContext.Value.StrokeColor;
-
-                if (drawStrokeContext.Value.InkStrokePath is { } path)
-                {
-                    skCanvas.DrawPath(path, skPaint);
-                }
-            }
-
-            foreach (var inkInfo in StaticInkInfoList)
-            {
-                skPaint.Color = inkInfo.Context.StrokeColor;
-
-                if (inkInfo.Context.InkStrokePath is { } path)
-                {
-                    skCanvas.DrawPath(path, skPaint);
-                }
-            }
-
-            skCanvas.Flush();
+            DrawAllInk();
 
             // 计算脏范围，用于渲染更新
             var additionSize = 100d; // 用于设置比简单计算的范围更大一点的范围，解决重采样之后的模糊
             var (x, y) = info.StylusPoint.Point;
 
-            RenderBoundsChanged?.Invoke(this, new Rect(x - additionSize / 2, y - additionSize / 2, additionSize, additionSize));
+            RenderBoundsChanged?.Invoke(this,
+                new Rect(x - additionSize / 2, y - additionSize / 2, additionSize, additionSize));
         }
+    }
+
+    private void DrawAllInk()
+    {
+        if (_skCanvas is null)
+        {
+            // 理论上不可能进入这里
+            return;
+        }
+
+        var skCanvas = _skCanvas;
+        skCanvas.Clear();
+
+        using var skPaint = new SKPaint();
+        skPaint.StrokeWidth = 0.1f;
+        skPaint.IsAntialias = true;
+        skPaint.FilterQuality = SKFilterQuality.High;
+        skPaint.Style = SKPaintStyle.Fill;
+
+        foreach (var drawStrokeContext in CurrentInputDictionary)
+        {
+            skPaint.Color = drawStrokeContext.Value.StrokeColor;
+
+            if (drawStrokeContext.Value.InkStrokePath is { } path)
+            {
+                skCanvas.DrawPath(path, skPaint);
+            }
+        }
+
+        foreach (var inkInfo in StaticInkInfoList)
+        {
+            skPaint.Color = inkInfo.Context.StrokeColor;
+
+            if (inkInfo.Context.InkStrokePath is { } path)
+            {
+                skCanvas.DrawPath(path, skPaint);
+            }
+        }
+
+        skCanvas.Flush();
     }
 
     public void DrawStrokeUp(InkingInputInfo info)
@@ -157,7 +165,6 @@ partial class SkInkCanvas
             StaticInkInfoList.Add(new InkInfo(info.Id, context));
         }
     }
-
 
     /// <summary>
     /// 绘制使用的上下文信息
@@ -193,6 +200,7 @@ partial class SkInkCanvas
     /// 取多少个点做笔尖
     /// </summary>
     private const int MaxTipStylusCount = 7;
+<<<<<<< HEAD
 }
 
 partial class SkInkCanvas
@@ -758,4 +766,6 @@ class EraserView
         skPaint.Color = new SKColor(0x00, 0x00, 0x00, 0x26);
         skCanvas.DrawPath(path2, skPaint);
     }
+=======
+>>>>>>> fc149583aa0a4eb1ed4aa8ca82c20621a7b49d41
 }
