@@ -90,6 +90,7 @@ partial class SkInkCanvas
             context.InkStrokePath = skPath;
 
             var skCanvas = _skCanvas;
+            skCanvas.Clear();
 
             using var skPaint = new SKPaint();
             skPaint.StrokeWidth = 0.1f;
