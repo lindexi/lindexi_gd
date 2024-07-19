@@ -14,7 +14,6 @@ record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp)
     public bool IsMouse { init; get; }
 };
 
-record InkInfo(int Id);
 
 /// <summary>
 /// 画板的配置
@@ -57,6 +56,17 @@ partial class SkInkCanvas
     }
 
     public event EventHandler<Rect>? RenderBoundsChanged;
+
+
+    record InkInfo(int Id, DrawStrokeContext Context);
+
+    ///// <summary>
+    ///// 静态笔迹层
+    ///// </summary>
+    //public List<InkInfo> StaticInkInfoList { get; } = new List<InkInfo>();
+
+    private Dictionary<int, DrawStrokeContext> CurrentInputDictionary { get; } =
+        new Dictionary<int, DrawStrokeContext>();
 
     public void DrawStrokeDown(InkingInputInfo info)
     {
@@ -117,6 +127,42 @@ partial class SkInkCanvas
             context.IsUp = true;
         }
     }
+
+
+    /// <summary>
+    /// 绘制使用的上下文信息
+    /// </summary>
+    /// <param name="inputInfo"></param>
+    class DrawStrokeContext(InkingInputInfo inputInfo, SKColor strokeColor) : IDisposable
+    {
+        public SKColor StrokeColor { get; } = strokeColor;
+        public InkingInputInfo InputInfo { set; get; } = inputInfo;
+        public int DropPointCount { set; get; }
+
+        /// <summary>
+        /// 笔尖的点
+        /// </summary>
+        public readonly FixedQueue<StylusPoint> TipStylusPoints = new FixedQueue<StylusPoint>(MaxTipStylusCount);
+
+        /// <summary>
+        /// 整个笔迹的点，包括笔尖的点
+        /// </summary>
+        public List<StylusPoint> AllStylusPoints { get; } = new List<StylusPoint>();
+
+        public SKPath? InkStrokePath { set; get; }
+
+        public bool IsUp { set; get; }
+
+        public void Dispose()
+        {
+            //InkStrokePath?.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// 取多少个点做笔尖
+    /// </summary>
+    private const int MaxTipStylusCount = 7;
 }
 
 partial class SkInkCanvas
@@ -149,43 +195,8 @@ partial class SkInkCanvas
     //public SKSurface? SkSurface { set; get; }
 
 
-    private Dictionary<int, DrawStrokeContext> CurrentInputDictionary { get; } =
-        new Dictionary<int, DrawStrokeContext>();
 
-    /// <summary>
-    /// 取多少个点做笔尖
-    /// </summary>
-    private const int MaxTipStylusCount = 7;
 
-    /// <summary>
-    /// 绘制使用的上下文信息
-    /// </summary>
-    /// <param name="inputInfo"></param>
-    class DrawStrokeContext(InkingInputInfo inputInfo, SKColor strokeColor) : IDisposable
-    {
-        public SKColor StrokeColor { get; } = strokeColor;
-        public InkingInputInfo InputInfo { set; get; } = inputInfo;
-        public int DropPointCount { set; get; }
-
-        /// <summary>
-        /// 笔尖的点
-        /// </summary>
-        public readonly FixedQueue<StylusPoint> TipStylusPoints = new FixedQueue<StylusPoint>(MaxTipStylusCount);
-
-        /// <summary>
-        /// 整个笔迹的点，包括笔尖的点
-        /// </summary>
-        public List<StylusPoint> AllStylusPoints { get; } = new List<StylusPoint>();
-
-        public SKPath? InkStrokePath { set; get; }
-
-        public bool IsUp { set; get; }
-
-        public void Dispose()
-        {
-            //InkStrokePath?.Dispose();
-        }
-    }
 
     private readonly StylusPoint[] _cache = new StylusPoint[MaxTipStylusCount + 1];
 
@@ -359,13 +370,6 @@ partial class SkInkCanvas
             return context;
         }
     }
-
-    // 静态笔迹层还没实现
-    ///// <summary>
-    ///// 静态笔迹层
-    ///// </summary>
-    //public List<InkInfo> StaticInkInfoList { get; } = new List<InkInfo>();
-
 
     /// <summary>
     /// 按照德熙的玄幻算法，决定传入的点是否能丢掉
