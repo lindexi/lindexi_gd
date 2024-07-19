@@ -50,11 +50,78 @@ enum InkCanvasDynamicRenderTipStrokeType
 
 partial class SkInkCanvas
 {
+    public SkInkCanvas(SKCanvas skCanvas, SKBitmap applicationDrawingSkBitmap)
+    {
+        _skCanvas = skCanvas;
+        ApplicationDrawingSkBitmap = applicationDrawingSkBitmap;
+    }
 
+    public event EventHandler<Rect>? RenderBoundsChanged;
+
+    public void DrawStrokeDown(InkingInputInfo info)
+    {
+        var context = new DrawStrokeContext(info, Color);
+        CurrentInputDictionary[info.Id] = context;
+
+        context.AllStylusPoints.Add(info.StylusPoint);
+        context.TipStylusPoints.Enqueue(info.StylusPoint);
+    }
+
+    public void DrawStrokeMove(InkingInputInfo info)
+    {
+        if (_skCanvas is null)
+        {
+            // 理论上不可能进入这里
+            return;
+        }
+
+        if (CurrentInputDictionary.TryGetValue(info.Id,out var context))
+        {
+            context.AllStylusPoints.Add(info.StylusPoint);
+            context.TipStylusPoints.Enqueue(info.StylusPoint);
+
+            context.InkStrokePath?.Dispose();
+
+            var skPath = new SKPath();
+            skPath.AddPoly(context.AllStylusPoints.Select(t => new SKPoint((float) t.Point.X, (float) t.Point.Y)).ToArray());
+
+            context.InkStrokePath = skPath;
+
+            var skCanvas = _skCanvas;
+
+            using var skPaint = new SKPaint();
+            skPaint.StrokeWidth = 0.1f;
+            skPaint.IsAntialias = true;
+            skPaint.FilterQuality = SKFilterQuality.High;
+            skPaint.Style = SKPaintStyle.Fill;
+
+            foreach (var drawStrokeContext in CurrentInputDictionary)
+            {
+                skPaint.Color = drawStrokeContext.Value.StrokeColor;
+
+                if (drawStrokeContext.Value.InkStrokePath is { } path)
+                {
+                    skCanvas.DrawPath(path, skPaint);
+                }
+            }
+        }
+    }
+
+    public void DrawStrokeUp(InkingInputInfo info)
+    {
+        if (CurrentInputDictionary.Remove(info.Id, out var context))
+        {
+            context.IsUp = true;
+        }
+    }
 }
 
 partial class SkInkCanvas
 {
+    public SkInkCanvas()
+    {
+    }
+
     public SkInkCanvasSettings Settings { get; set; } = new SkInkCanvasSettings();
 
     public void SetCanvas(SKCanvas canvas)
@@ -79,8 +146,11 @@ partial class SkInkCanvas
 
     //public SKSurface? SkSurface { set; get; }
 
+<<<<<<< HEAD
     public event EventHandler<Rect>? RenderBoundsChanged;
     public void RaiseRenderBoundsChanged(Rect rect) => RenderBoundsChanged?.Invoke(this, rect);
+=======
+>>>>>>> 5f60ba247fc4ed21a521355bcad673325d210fa3
 
     private Dictionary<int, DrawStrokeContext> CurrentInputDictionary { get; } =
         new Dictionary<int, DrawStrokeContext>();
@@ -108,10 +178,10 @@ partial class SkInkCanvas
         /// </summary>
         public readonly FixedQueue<StylusPoint> TipStylusPoints = new FixedQueue<StylusPoint>(MaxTipStylusCount);
 
-        ///// <summary>
-        ///// 整个笔迹的点，包括笔尖的点
-        ///// </summary>
-        //public List<StylusPoint> AllStylusPoints { get; } = new List<StylusPoint>();
+        /// <summary>
+        /// 整个笔迹的点，包括笔尖的点
+        /// </summary>
+        public List<StylusPoint> AllStylusPoints { get; } = new List<StylusPoint>();
 
         public SKPath? InkStrokePath { set; get; }
 
