@@ -60,10 +60,10 @@ partial class SkInkCanvas
 
     record InkInfo(int Id, DrawStrokeContext Context);
 
-    ///// <summary>
-    ///// 静态笔迹层
-    ///// </summary>
-    //public List<InkInfo> StaticInkInfoList { get; } = new List<InkInfo>();
+    /// <summary>
+    /// 静态笔迹层
+    /// </summary>
+    private List<InkInfo> StaticInkInfoList { get; } = new List<InkInfo>();
 
     private Dictionary<int, DrawStrokeContext> CurrentInputDictionary { get; } =
         new Dictionary<int, DrawStrokeContext>();
@@ -85,7 +85,7 @@ partial class SkInkCanvas
             return;
         }
 
-        if (CurrentInputDictionary.TryGetValue(info.Id,out var context))
+        if (CurrentInputDictionary.TryGetValue(info.Id, out var context))
         {
             context.AllStylusPoints.Add(info.StylusPoint);
             context.TipStylusPoints.Enqueue(info.StylusPoint);
@@ -117,6 +117,16 @@ partial class SkInkCanvas
                     skCanvas.DrawPath(path, skPaint);
                 }
             }
+
+            foreach (var inkInfo in StaticInkInfoList)
+            {
+                skPaint.Color = inkInfo.Context.StrokeColor;
+
+                if (inkInfo.Context.InkStrokePath is { } path)
+                {
+                    skCanvas.DrawPath(path, skPaint);
+                }
+            }
         }
     }
 
@@ -125,6 +135,8 @@ partial class SkInkCanvas
         if (CurrentInputDictionary.Remove(info.Id, out var context))
         {
             context.IsUp = true;
+
+            StaticInkInfoList.Add(new InkInfo(info.Id, context));
         }
     }
 
