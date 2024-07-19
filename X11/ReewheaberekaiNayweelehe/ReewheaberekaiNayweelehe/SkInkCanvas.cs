@@ -82,12 +82,15 @@ partial class SkInkCanvas
 
             context.InkStrokePath?.Dispose();
 
+            var outlinePointList = SimpleInkRender.GetOutlinePointList(context.AllStylusPoints.ToArray(), 20);
+
             var skPath = new SKPath();
-            skPath.AddPoly(context.AllStylusPoints.Select(t => new SKPoint((float) t.Point.X, (float) t.Point.Y)).ToArray());
+            skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
 
             context.InkStrokePath = skPath;
 
             var skCanvas = _skCanvas;
+            skCanvas.Clear();
 
             using var skPaint = new SKPaint();
             skPaint.StrokeWidth = 0.1f;
