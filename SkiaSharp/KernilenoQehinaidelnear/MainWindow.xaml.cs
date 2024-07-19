@@ -162,3 +162,8 @@ public class SkiaCanvas : FrameworkElement
 }
 
 public record SkiaCanvasContext(SKCanvas SKCanvas, SKBitmap SKBitmap);
+
+class PixelPanel(SkiaCanvasContext context)
+{
+    private SkiaCanvasContext Context => context;
+}
