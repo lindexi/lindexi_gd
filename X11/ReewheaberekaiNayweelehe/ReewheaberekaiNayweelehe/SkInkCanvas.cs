@@ -11,36 +11,46 @@ record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp)
     public bool IsMouse { init; get; }
 };
 
-/// <summary>
-/// 画板的配置
-/// </summary>
-/// <param name="EnableClippingEraser">是否允许使用裁剪方式的橡皮擦，而不是走静态笔迹层</param>
-/// <param name="AutoSoftPen">是否开启自动软笔模式</param>
-record SkInkCanvasSettings(bool EnableClippingEraser = true, bool AutoSoftPen = true)
+enum InputMode
 {
-    /// <summary>
-    /// 修改笔尖渲染部分配置 动态笔迹层
-    /// </summary>
-    public InkCanvasDynamicRenderTipStrokeType DynamicRenderType { init; get; } =
-        InkCanvasDynamicRenderTipStrokeType.RenderAllTouchingStrokeWithoutTipStroke;
-
-    /// <summary>
-    /// 是否应该在橡皮擦丢点进行收集，进行一次性处理。现在橡皮擦速度慢在画图 DrawBitmap 里，而对于几何组装来说，似乎不耗时。此属性可能会降低性能
-    /// </summary>
-    /// 在触摸屏测试，使用兆芯机器，开启之后性能大幅降低
-    public bool ShouldCollectDropErasePoint { init; get; } = true;
+    Ink,
+    Manipulate,
 }
 
-/// <summary>
-/// 笔尖渲染模式
-/// </summary>
-enum InkCanvasDynamicRenderTipStrokeType
+class InkingInputManager
 {
-    /// <summary>
-    /// 所有触摸按下的笔迹都每次重新绘制，不区分笔尖和笔身
-    /// 此方式可以实现比较好的平滑效果
-    /// </summary>
-    RenderAllTouchingStrokeWithoutTipStroke,
+    public InkingInputManager(SkInkCanvas skInkCanvas)
+    {
+        SkInkCanvas = skInkCanvas;
+    }
+
+    public SkInkCanvas SkInkCanvas { get; }
+
+    public InputMode InputMode { set; get; } = InputMode.Ink;
+
+    public void Down(InkingInputInfo info)
+    {
+        if (InputMode == InputMode.Ink)
+        {
+            SkInkCanvas.DrawStrokeDown(info);
+        }
+    }
+
+    public void Move(InkingInputInfo info)
+    {
+        if (InputMode == InputMode.Ink)
+        {
+            SkInkCanvas.DrawStrokeMove(info);
+        }
+    }
+
+    public void Up(InkingInputInfo info)
+    {
+        if (InputMode == InputMode.Ink)
+        {
+            SkInkCanvas.DrawStrokeUp(info);
+        }
+    }
 }
 
 partial class SkInkCanvas
@@ -192,4 +202,15 @@ partial class SkInkCanvas
     /// 取多少个点做笔尖
     /// </summary>
     private const int MaxTipStylusCount = 7;
+
+    #region 漫游
+
+    public void ManipulateMove(Point delta)
+    {
+        _totalTransform = new Point(_totalTransform.X + delta.X, _totalTransform.Y + delta.Y);
+    }
+
+    private Point _totalTransform;
+
+    #endregion
 }

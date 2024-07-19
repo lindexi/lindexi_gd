@@ -158,11 +158,12 @@ public class SkiaCanvas : FrameworkElement
         {
             _isMouseDown = true;
             _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
+            _inkingInputManager ??= new InkingInputManager(_inkCanvas);
 
             var position = e.GetPosition(this);
             var inkingInputInfo = new InkingInputInfo(0, new Point(position.X, position.Y), (ulong) e.Timestamp);
 
-            _inkCanvas.DrawStrokeDown(inkingInputInfo);
+            _inkingInputManager.Down(inkingInputInfo);
         });
     }
 
@@ -176,10 +177,11 @@ public class SkiaCanvas : FrameworkElement
             }
 
             _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
+            _inkingInputManager ??= new InkingInputManager(_inkCanvas);
             var position = e.GetPosition(this);
             var inkingInputInfo = new InkingInputInfo(0, new Point(position.X, position.Y), (ulong) e.Timestamp);
 
-            _inkCanvas.DrawStrokeMove(inkingInputInfo);
+            _inkingInputManager.Move(inkingInputInfo);
         });
     }
 
@@ -189,14 +191,16 @@ public class SkiaCanvas : FrameworkElement
         {
             _isMouseDown = false;
             _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
+            _inkingInputManager ??= new InkingInputManager(_inkCanvas);
             var position = e.GetPosition(this);
             var inkingInputInfo = new InkingInputInfo(0, new Point(position.X, position.Y), (ulong) e.Timestamp);
 
-            _inkCanvas.DrawStrokeUp(inkingInputInfo);
+            _inkingInputManager.Up(inkingInputInfo);
         });
     }
 
     private SkInkCanvas? _inkCanvas;
+    private InkingInputManager? _inkingInputManager;
 
     #endregion
 }
