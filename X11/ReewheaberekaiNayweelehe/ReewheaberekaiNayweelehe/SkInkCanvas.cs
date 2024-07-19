@@ -35,7 +35,7 @@ class InkingInputManager
     public void Down(InkingInputInfo info)
     {
         _downCount++;
-        if (_downCount > 10)
+        if (_downCount > 2)
         {
             InputMode = InputMode.Manipulate;
         }
