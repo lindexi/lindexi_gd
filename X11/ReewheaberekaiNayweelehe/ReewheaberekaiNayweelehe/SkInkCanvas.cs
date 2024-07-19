@@ -1,10 +1,7 @@
 ﻿#nullable enable
 using System.Diagnostics;
-
 using BujeeberehemnaNurgacolarje;
-
 using Microsoft.Maui.Graphics;
-
 using SkiaSharp;
 
 namespace ReewheaberekaiNayweelehe;
@@ -13,7 +10,6 @@ record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp)
 {
     public bool IsMouse { init; get; }
 };
-
 
 /// <summary>
 /// 画板的配置
@@ -85,12 +81,6 @@ partial class SkInkCanvas
 
     public void DrawStrokeMove(InkingInputInfo info)
     {
-        if (_skCanvas is null)
-        {
-            // 理论上不可能进入这里
-            return;
-        }
-
         if (CurrentInputDictionary.TryGetValue(info.Id, out var context))
         {
             context.AllStylusPoints.Add(info.StylusPoint);
@@ -101,47 +91,59 @@ partial class SkInkCanvas
             var outlinePointList = SimpleInkRender.GetOutlinePointList(context.AllStylusPoints.ToArray(), 20);
 
             var skPath = new SKPath();
-            skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
+            skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float)t.X, (float)t.Y)).ToArray());
 
             context.InkStrokePath = skPath;
 
-            var skCanvas = _skCanvas;
-            skCanvas.Clear();
-
-            using var skPaint = new SKPaint();
-            skPaint.StrokeWidth = 0.1f;
-            skPaint.IsAntialias = true;
-            skPaint.FilterQuality = SKFilterQuality.High;
-            skPaint.Style = SKPaintStyle.Fill;
-
-            foreach (var drawStrokeContext in CurrentInputDictionary)
-            {
-                skPaint.Color = drawStrokeContext.Value.StrokeColor;
-
-                if (drawStrokeContext.Value.InkStrokePath is { } path)
-                {
-                    skCanvas.DrawPath(path, skPaint);
-                }
-            }
-
-            foreach (var inkInfo in StaticInkInfoList)
-            {
-                skPaint.Color = inkInfo.Context.StrokeColor;
-
-                if (inkInfo.Context.InkStrokePath is { } path)
-                {
-                    skCanvas.DrawPath(path, skPaint);
-                }
-            }
-
-            skCanvas.Flush();
+            DrawAllInk();
 
             // 计算脏范围，用于渲染更新
             var additionSize = 100d; // 用于设置比简单计算的范围更大一点的范围，解决重采样之后的模糊
             var (x, y) = info.StylusPoint.Point;
 
-            RenderBoundsChanged?.Invoke(this, new Rect(x - additionSize / 2, y - additionSize / 2, additionSize, additionSize));
+            RenderBoundsChanged?.Invoke(this,
+                new Rect(x - additionSize / 2, y - additionSize / 2, additionSize, additionSize));
         }
+    }
+
+    private void DrawAllInk()
+    {
+        if (_skCanvas is null)
+        {
+            // 理论上不可能进入这里
+            return;
+        }
+
+        var skCanvas = _skCanvas;
+        skCanvas.Clear();
+
+        using var skPaint = new SKPaint();
+        skPaint.StrokeWidth = 0.1f;
+        skPaint.IsAntialias = true;
+        skPaint.FilterQuality = SKFilterQuality.High;
+        skPaint.Style = SKPaintStyle.Fill;
+
+        foreach (var drawStrokeContext in CurrentInputDictionary)
+        {
+            skPaint.Color = drawStrokeContext.Value.StrokeColor;
+
+            if (drawStrokeContext.Value.InkStrokePath is { } path)
+            {
+                skCanvas.DrawPath(path, skPaint);
+            }
+        }
+
+        foreach (var inkInfo in StaticInkInfoList)
+        {
+            skPaint.Color = inkInfo.Context.StrokeColor;
+
+            if (inkInfo.Context.InkStrokePath is { } path)
+            {
+                skCanvas.DrawPath(path, skPaint);
+            }
+        }
+
+        skCanvas.Flush();
     }
 
     public void DrawStrokeUp(InkingInputInfo info)
@@ -205,7 +207,6 @@ partial class SkInkCanvas
     }
 
 
-
     /// <summary>
     /// 原来的背景
     /// </summary>
@@ -214,9 +215,6 @@ partial class SkInkCanvas
     private bool _isOriginBackgroundDisable = false;
 
     //public SKSurface? SkSurface { set; get; }
-
-
-
 
 
     private readonly StylusPoint[] _cache = new StylusPoint[MaxTipStylusCount + 1];
@@ -482,7 +480,7 @@ partial class SkInkCanvas
         var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, 20);
 
         using var skPath = new SKPath();
-        skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
+        skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float)t.X, (float)t.Y)).ToArray());
         //skPath.Close();
 
         if (Settings.DynamicRenderType == InkCanvasDynamicRenderTipStrokeType.RenderAllTouchingStrokeWithoutTipStroke)
@@ -600,13 +598,14 @@ partial class SkInkCanvas
                 foreach (var stylusPoint in _eraserDropPointList)
                 {
                     var dropPoint = stylusPoint.Point;
-                    var xDropPoint = (float) dropPoint.X;
-                    var yDropPoint = (float) dropPoint.Y;
+                    var xDropPoint = (float)dropPoint.X;
+                    var yDropPoint = (float)dropPoint.Y;
 
-                    xDropPoint -= (float) width / 2;
-                    yDropPoint -= (float) height / 2;
+                    xDropPoint -= (float)width / 2;
+                    yDropPoint -= (float)height / 2;
 
-                    var skRectDropPoint = new SKRect(xDropPoint, yDropPoint, (float) (xDropPoint + width), (float) (yDropPoint + height));
+                    var skRectDropPoint = new SKRect(xDropPoint, yDropPoint, (float)(xDropPoint + width),
+                        (float)(yDropPoint + height));
 
                     skRoundRect.Reset();
                     skRoundRect.AddRoundRect(skRectDropPoint, 5, 5);
@@ -618,13 +617,13 @@ partial class SkInkCanvas
             }
 
             var point = info.StylusPoint.Point;
-            var x = (float) point.X;
-            var y = (float) point.Y;
+            var x = (float)point.X;
+            var y = (float)point.Y;
 
-            x -= (float) width / 2;
-            y -= (float) height / 2;
+            x -= (float)width / 2;
+            y -= (float)height / 2;
 
-            var skRect = new SKRect(x, y, (float) (x + width), (float) (y + height));
+            var skRect = new SKRect(x, y, (float)(x + width), (float)(y + height));
 
             skRoundRect.AddRoundRect(skRect, 5, 5);
             EraserPath.Op(skRoundRect, SKPathOp.Difference, EraserPath);
@@ -643,7 +642,8 @@ partial class SkInkCanvas
 
             // 更新范围
             var addition = 20;
-            var currentEraserRenderBounds = new Rect(skRect.Left - addition, skRect.Top - addition, skRect.Width + addition * 2,
+            var currentEraserRenderBounds = new Rect(skRect.Left - addition, skRect.Top - addition,
+                skRect.Width + addition * 2,
                 skRect.Height + addition * 2);
 
             var rect = currentEraserRenderBounds;
@@ -658,7 +658,8 @@ partial class SkInkCanvas
             RenderBoundsChanged?.Invoke(this, rect);
 
             MoveEraserStopwatch.Stop();
-            Console.WriteLine($"EraserPath time={MoveEraserStopwatch.ElapsedMilliseconds}ms RenderBounds={rect.X} {rect.Y} {rect.Width} {rect.Height} EraserPathPointCount={EraserPath.PointCount}");
+            Console.WriteLine(
+                $"EraserPath time={MoveEraserStopwatch.ElapsedMilliseconds}ms RenderBounds={rect.X} {rect.Y} {rect.Width} {rect.Height} EraserPathPointCount={EraserPath.PointCount}");
             MoveEraserStopwatch.Restart();
         }
     }
