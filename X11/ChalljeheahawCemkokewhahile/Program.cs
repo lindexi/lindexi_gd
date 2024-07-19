@@ -41,8 +41,8 @@ var xSetWindowAttributes = new XSetWindowAttributes
 var xDisplayWidth = XDisplayWidth(display, screen);
 var xDisplayHeight = XDisplayHeight(display, screen);
 
-var width = xDisplayWidth / 2;
-var height = xDisplayHeight / 2;
+var width = xDisplayWidth;
+var height = xDisplayHeight;
 
 var handle = XCreateWindow(display, rootWindow, 0, 0, width, height, 5,
     32,
@@ -89,6 +89,8 @@ skInkCanvas.RenderBoundsChanged += (sender, rect) =>
 };
 var input = new InkingInputManager(skInkCanvas);
 
+bool isDown = false;
+
 while (true)
 {
     var xNextEvent = XNextEvent(display, out var @event);
@@ -108,20 +110,37 @@ while (true)
         var x = @event.ButtonEvent.x;
         var y = @event.ButtonEvent.y;
         input.Down(new InkingInputInfo(0, new Point(x, y), (ulong) Environment.TickCount64));
+        isDown = true;
     }
     else if (@event.type == XEventName.MotionNotify)
     {
-        var x = @event.MotionEvent.x;
-        var y = @event.MotionEvent.y;
-        input.Move(new InkingInputInfo(0, new Point(x, y), (ulong) Environment.TickCount64));
+        if (isDown)
+        {
+            var x = @event.MotionEvent.x;
+            var y = @event.MotionEvent.y;
+            input.Move(new InkingInputInfo(0, new Point(x, y), (ulong) Environment.TickCount64));
+        }
+
+        while (true)
+        {
+            XPeekEvent(display, out var nextEvent);
+            if (nextEvent.type == XEventName.MotionNotify)
+            {
+                XNextEvent(display, out _);
+            }
+            else
+            {
+                break;
+            }
+        }
     }
     else if (@event.type == XEventName.ButtonRelease)
     {
         var x = @event.ButtonEvent.x;
         var y = @event.ButtonEvent.y;
         input.Up(new InkingInputInfo(0, new Point(x, y), (ulong) Environment.TickCount64));
+        isDown = false;
     }
-
 }
 
 static XImage CreateImage(SKBitmap skBitmap)
