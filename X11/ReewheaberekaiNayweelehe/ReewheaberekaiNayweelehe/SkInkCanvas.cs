@@ -30,7 +30,7 @@ class InkingInputManager
 
     public SkInkCanvas SkInkCanvas { get; }
 
-    public InputMode InputMode { set; get; } = InputMode.Ink;
+    public InputMode InputMode { set; get; } = InputMode.Manipulate;
 
     private int _downCount;
 
@@ -88,6 +88,36 @@ partial class SkInkCanvas
     {
         _skCanvas = skCanvas;
         ApplicationDrawingSkBitmap = applicationDrawingSkBitmap;
+
+        RenderSplashScreen();
+    }
+
+    public void RenderSplashScreen()
+    {
+        if(_skCanvas is null || ApplicationDrawingSkBitmap is null)
+        {
+            // 理论上不可能进入这里
+            return;
+        }
+
+        _skCanvas.Clear(SKColors.White);
+
+        using var skPaint = new SKPaint();
+        skPaint.Color = SKColors.Black;
+        skPaint.StrokeWidth = 2;
+        skPaint.Style = SKPaintStyle.Stroke;
+
+        for (int y = 0; y < ApplicationDrawingSkBitmap.Height; y += 25)
+        {
+            skPaint.Color = new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF);
+            _skCanvas.DrawLine(0, y, ApplicationDrawingSkBitmap.Width, y, skPaint);
+        }
+
+        for (int x = 0; x < ApplicationDrawingSkBitmap.Width; x += 25)
+        {
+            skPaint.Color = new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF);
+            _skCanvas.DrawLine(x, 0, x, ApplicationDrawingSkBitmap.Height, skPaint);
+        }
     }
 
     public event EventHandler<Rect>? RenderBoundsChanged;

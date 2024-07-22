@@ -29,24 +29,7 @@ public partial class MainWindow : Window
 
         SkiaCanvas.RequireDraw(context =>
         {
-            context.SKCanvas.Clear(SKColors.White);
-
-            using var skPaint = new SKPaint();
-            skPaint.Color = SKColors.Black;
-            skPaint.StrokeWidth = 2;
-            skPaint.Style = SKPaintStyle.Stroke;
-
-            for (int y = 0; y < context.SKBitmap.Height; y += 25)
-            {
-                skPaint.Color = new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF);
-                context.SKCanvas.DrawLine(0, y, context.SKBitmap.Width, y, skPaint);
-            }
-
-            for (int x = 0; x < context.SKBitmap.Width; x += 25)
-            {
-                skPaint.Color = new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF);
-                context.SKCanvas.DrawLine(x, 0, x, context.SKBitmap.Height, skPaint);
-            }
+          
         });
     }
 }
@@ -159,7 +142,6 @@ public class SkiaCanvas : FrameworkElement
             _isMouseDown = true;
             _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
             _inkingInputManager ??= new InkingInputManager(_inkCanvas);
-            _inkingInputManager.InputMode = InputMode.Manipulate;
 
             var position = e.GetPosition(this);
             var inkingInputInfo = new InkingInputInfo(0, new Point(position.X, position.Y), (ulong) e.Timestamp);
