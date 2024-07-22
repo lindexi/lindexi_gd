@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35013.160
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NelkiwalweawhabairJewugekayfaylugere", "NelkiwalweawhabairJewugekayfaylugere\NelkiwalweawhabairJewugekayfaylugere.csproj", "{14309AF5-AFF0-4E65-B811-02CBD9A55E75}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NelkiwalweawhabairJewugekayfaylugere.Desktop", "NelkiwalweawhabairJewugekayfaylugere.Desktop\NelkiwalweawhabairJewugekayfaylugere.Desktop.csproj", "{66F94B5F-ABBC-468A-B46B-F406B814F938}"
+EndProject
+Global
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {739595CC-CD92-4DF6-9E36-4595D1EBD339}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{14309AF5-AFF0-4E65-B811-02CBD9A55E75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14309AF5-AFF0-4E65-B811-02CBD9A55E75}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14309AF5-AFF0-4E65-B811-02CBD9A55E75}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14309AF5-AFF0-4E65-B811-02CBD9A55E75}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66F94B5F-ABBC-468A-B46B-F406B814F938}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66F94B5F-ABBC-468A-B46B-F406B814F938}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66F94B5F-ABBC-468A-B46B-F406B814F938}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66F94B5F-ABBC-468A-B46B-F406B814F938}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
