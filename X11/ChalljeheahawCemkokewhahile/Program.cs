@@ -1,11 +1,7 @@
 ﻿using CPF.Linux;
-
 using Microsoft.Maui.Graphics;
-
 using ReewheaberekaiNayweelehe;
-
 using SkiaSharp;
-
 using static CPF.Linux.XLib;
 
 XInitThreads();
@@ -46,13 +42,13 @@ var height = xDisplayHeight;
 
 var handle = XCreateWindow(display, rootWindow, 0, 0, width, height, 5,
     32,
-    (int) CreateWindowArgs.InputOutput,
+    (int)CreateWindowArgs.InputOutput,
     visual,
-    (nuint) valueMask, ref xSetWindowAttributes);
+    (nuint)valueMask, ref xSetWindowAttributes);
 
 XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
                          XEventMask.PointerMotionHintMask;
-var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
+var mask = new IntPtr(0xffffff ^ (int)ignoredMask);
 XSelectInput(display, handle, mask);
 
 XMapWindow(display, handle);
@@ -85,7 +81,7 @@ skInkCanvas.RenderBoundsChanged += (sender, rect) =>
         }
     };
     // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
-    XSendEvent(display, handle, propagate: false, new IntPtr((int) (EventMask.ExposureMask)), ref xEvent);
+    XSendEvent(display, handle, propagate: false, new IntPtr((int)(EventMask.ExposureMask)), ref xEvent);
 };
 var input = new InkingInputManager(skInkCanvas);
 
@@ -102,14 +98,15 @@ while (true)
 
     if (@event.type == XEventName.Expose)
     {
-        XPutImage(display, handle, gc, ref xImage, @event.ExposeEvent.x, @event.ExposeEvent.y, @event.ExposeEvent.x, @event.ExposeEvent.y, (uint) @event.ExposeEvent.width,
-            (uint) @event.ExposeEvent.height);
+        XPutImage(display, handle, gc, ref xImage, @event.ExposeEvent.x, @event.ExposeEvent.y, @event.ExposeEvent.x,
+            @event.ExposeEvent.y, (uint)@event.ExposeEvent.width,
+            (uint)@event.ExposeEvent.height);
     }
     else if (@event.type == XEventName.ButtonPress)
     {
         var x = @event.ButtonEvent.x;
         var y = @event.ButtonEvent.y;
-        input.Down(new InkingInputInfo(0, new Point(x, y), (ulong) Environment.TickCount64));
+        input.Down(new InkingInputInfo(0, new Point(x, y), (ulong)Environment.TickCount64));
         isDown = true;
     }
     else if (@event.type == XEventName.MotionNotify)
@@ -118,7 +115,7 @@ while (true)
         {
             var x = @event.MotionEvent.x;
             var y = @event.MotionEvent.y;
-            input.Move(new InkingInputInfo(0, new Point(x, y), (ulong) Environment.TickCount64));
+            input.Move(new InkingInputInfo(0, new Point(x, y), (ulong)Environment.TickCount64));
         }
 
         while (true)
@@ -138,7 +135,7 @@ while (true)
     {
         var x = @event.ButtonEvent.x;
         var y = @event.ButtonEvent.y;
-        input.Up(new InkingInputInfo(0, new Point(x, y), (ulong) Environment.TickCount64));
+        input.Up(new InkingInputInfo(0, new Point(x, y), (ulong)Environment.TickCount64));
         isDown = false;
     }
 }
