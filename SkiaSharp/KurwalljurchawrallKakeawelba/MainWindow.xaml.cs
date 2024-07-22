@@ -13,7 +13,7 @@ using System.Windows.Threading;
 using ReewheaberekaiNayweelehe;
 
 using SkiaSharp;
-
+using InputMode = ReewheaberekaiNayweelehe.InputMode;
 using Point = Microsoft.Maui.Graphics.Point;
 
 namespace KurwalljurchawrallKakeawelba;
@@ -159,6 +159,7 @@ public class SkiaCanvas : FrameworkElement
             _isMouseDown = true;
             _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
             _inkingInputManager ??= new InkingInputManager(_inkCanvas);
+            _inkingInputManager.InputMode = InputMode.Manipulate;
 
             var position = e.GetPosition(this);
             var inkingInputInfo = new InkingInputInfo(0, new Point(position.X, position.Y), (ulong) e.Timestamp);

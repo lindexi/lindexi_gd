@@ -1,7 +1,11 @@
 ﻿#nullable enable
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+
 using BujeeberehemnaNurgacolarje;
+
 using Microsoft.Maui.Graphics;
+
 using SkiaSharp;
 
 namespace ReewheaberekaiNayweelehe;
@@ -128,7 +132,7 @@ partial class SkInkCanvas
             var outlinePointList = SimpleInkRender.GetOutlinePointList(context.AllStylusPoints.ToArray(), 20);
 
             var skPath = new SKPath();
-            skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float)t.X, (float)t.Y)).ToArray());
+            skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
 
             context.InkStrokePath = skPath;
 
@@ -232,6 +236,142 @@ partial class SkInkCanvas
 
     public void ManipulateMove(Point delta)
     {
+        // 像素漫游的方法
+        MoveWithPixel(delta);
+
+        //// 几何漫游的方法
+        //MoveWithPath(delta);
+    }
+
+    private unsafe void MoveWithPixel(Point delta)
+    {
+        if (_skCanvas is null)
+        {
+            // 理论上不可能进入这里
+            return;
+        }
+
+        if (ApplicationDrawingSkBitmap is null)
+        {
+            // 理论上不可能进入这里
+            return;
+        }
+
+        //"xx".StartsWith("x", StringComparison.Ordinal)
+
+        var pixels = ApplicationDrawingSkBitmap.GetPixels(out var length);
+
+        if (_cachePixel is null || _cachePixel.Length != length)
+        {
+            var lengthOfUint = length / 4;
+            _cachePixel = new uint[lengthOfUint];
+        }
+
+        fixed (uint* pCachePixel = _cachePixel)
+        {
+            //var byteCount = (uint) length * sizeof(uint);
+            ////Buffer.MemoryCopy((uint*) pixels, pCachePixel, byteCount, byteCount);
+            //////Buffer.MemoryCopy((uint*) pixels, pCachePixel, 0, byteCount);
+            //for (int i = 0; i < length; i++)
+            //{
+            //    var pixel = ((uint*) pixels)[i];
+            //    pCachePixel[i] = pixel;
+            //}
+
+            var byteCount = (uint) length;
+            Unsafe.CopyBlock(pCachePixel, (uint*) pixels, byteCount);
+        }
+
+        int destinationX, destinationY, destinationWidth, destinationHeight;
+        int sourceX, sourceY, sourceWidth, sourceHeight;
+        if (delta.X > 0)
+        {
+            destinationX = (int) delta.X;
+            destinationWidth = ApplicationDrawingSkBitmap.Width - destinationX;
+            sourceX = 0;
+        }
+        else
+        {
+            destinationX = 0;
+            destinationWidth = ApplicationDrawingSkBitmap.Width - ((int) -delta.X);
+
+            sourceX = (int) -delta.X;
+        }
+
+        if (delta.Y > 0)
+        {
+            destinationY = (int) delta.Y;
+            destinationHeight = ApplicationDrawingSkBitmap.Height - destinationY;
+            sourceY = 0;
+        }
+        else
+        {
+            destinationY = 0;
+            destinationHeight = ApplicationDrawingSkBitmap.Height - (int) -delta.Y;
+
+            sourceY = ((int) -delta.Y);
+        }
+
+        sourceWidth = destinationWidth;
+        sourceHeight = destinationHeight;
+
+        SKRectI destinationRectI = SKRectI.Create(destinationX, destinationY, destinationWidth, destinationHeight);
+        SKRectI sourceRectI = SKRectI.Create(sourceX, sourceY, sourceWidth, sourceHeight);
+
+        fixed (uint* pCachePixel = _cachePixel)
+        {
+            var pixelLength = (uint)(ApplicationDrawingSkBitmap.Width );
+
+            ReplacePixels((uint*) pixels, pCachePixel, destinationRectI, sourceRectI, pixelLength, pixelLength);
+        }
+
+        RenderBoundsChanged?.Invoke(this,
+            new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
+    }
+
+    public static unsafe bool ReplacePixels(uint* destinationBitmap, uint* sourceBitmap, SKRectI destinationRectI,
+        SKRectI sourceRectI, uint destinationPixelWidthLengthOfUint, uint sourcePixelWidthLengthOfUint)
+    {
+        if (destinationRectI.Width != sourceRectI.Width || destinationRectI.Height != sourceRectI.Height)
+        {
+            return false;
+        }
+
+        //for(var sourceRow = sourceRectI.Top; sourceRow< sourceRectI.Bottom; sourceRow++)
+        //{
+        //    for (var sourceColumn = sourceRectI.Left; sourceColumn < sourceRectI.Right; sourceColumn++)
+        //    {
+        //        var sourceIndex = sourceRow * sourceRectI.Width + sourceColumn;
+
+        //        var destinationRow = destinationRectI.Top + sourceRow - sourceRectI.Top;
+        //        var destinationColumn = destinationRectI.Left + sourceColumn - sourceRectI.Left;
+        //        var destinationIndex = destinationRow * destinationRectI.Width + destinationColumn;
+
+        //        destinationBitmap[destinationIndex] = sourceBitmap[sourceIndex];
+        //    }
+        //}
+
+        for (var sourceRow = sourceRectI.Top; sourceRow < sourceRectI.Bottom; sourceRow++)
+        {
+            for (var sourceColumn = sourceRectI.Left; sourceColumn < sourceRectI.Right; sourceColumn++)
+            {
+                var sourceIndex = sourceRow * destinationPixelWidthLengthOfUint + sourceColumn;
+
+                var destinationRow = destinationRectI.Top + sourceRow - sourceRectI.Top;
+                var destinationColumn = destinationRectI.Left + sourceColumn - sourceRectI.Left;
+                var destinationIndex = destinationRow * sourcePixelWidthLengthOfUint + destinationColumn;
+
+                destinationBitmap[destinationIndex] = sourceBitmap[sourceIndex];
+            }
+        }
+
+        return true;
+    }
+
+    private uint[]? _cachePixel;
+
+    private void MoveWithPath(Point delta)
+    {
         _totalTransform = new Point(_totalTransform.X + delta.X, _totalTransform.Y + delta.Y);
 
         if (_skCanvas is null)
@@ -251,7 +391,7 @@ partial class SkInkCanvas
 
         skCanvas.Save();
 
-        skCanvas.Translate((float)_totalTransform.X, (float)_totalTransform.Y);
+        skCanvas.Translate((float) _totalTransform.X, (float) _totalTransform.Y);
 
         DrawAllInk();
 
