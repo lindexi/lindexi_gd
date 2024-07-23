@@ -111,7 +111,7 @@ partial class SkInkCanvas
 
     public void RenderSplashScreen()
     {
-        if(_skCanvas is null || ApplicationDrawingSkBitmap is null)
+        if (_skCanvas is null || ApplicationDrawingSkBitmap is null)
         {
             // 理论上不可能进入这里
             return;
@@ -571,10 +571,10 @@ partial class SkInkCanvas
 
         var pixels = ApplicationDrawingSkBitmap.GetPixels(out var length);
 
-        if (_cachePixel is null || _cachePixel.Length != length)
+        var pixelLengthOfUint = length / 4;
+        if (_cachePixel is null || _cachePixel.Length != pixelLengthOfUint)
         {
-            var lengthOfUint = length / 4;
-            _cachePixel = new uint[lengthOfUint];
+            _cachePixel = new uint[pixelLengthOfUint];
         }
 
         fixed (uint* pCachePixel = _cachePixel)
@@ -630,7 +630,7 @@ partial class SkInkCanvas
 
         fixed (uint* pCachePixel = _cachePixel)
         {
-            var pixelLength = (uint)(ApplicationDrawingSkBitmap.Width );
+            var pixelLength = (uint) (ApplicationDrawingSkBitmap.Width);
 
             ReplacePixels((uint*) pixels, pCachePixel, destinationRectI, sourceRectI, pixelLength, pixelLength);
         }
@@ -663,16 +663,24 @@ partial class SkInkCanvas
 
         for (var sourceRow = sourceRectI.Top; sourceRow < sourceRectI.Bottom; sourceRow++)
         {
-            for (var sourceColumn = sourceRectI.Left; sourceColumn < sourceRectI.Right; sourceColumn++)
-            {
-                var sourceIndex = sourceRow * destinationPixelWidthLengthOfUint + sourceColumn;
+            var sourceStartColumn = sourceRectI.Left;
+            var sourceStartIndex = sourceRow * destinationPixelWidthLengthOfUint + sourceStartColumn;
 
-                var destinationRow = destinationRectI.Top + sourceRow - sourceRectI.Top;
-                var destinationColumn = destinationRectI.Left + sourceColumn - sourceRectI.Left;
-                var destinationIndex = destinationRow * sourcePixelWidthLengthOfUint + destinationColumn;
+            var destinationRow = destinationRectI.Top + sourceRow - sourceRectI.Top;
+            var destinationStartColumn = destinationRectI.Left;
+            var destinationStartIndex = destinationRow * sourcePixelWidthLengthOfUint + destinationStartColumn;
 
-                destinationBitmap[destinationIndex] = sourceBitmap[sourceIndex];
-            }
+            Unsafe.CopyBlockUnaligned((destinationBitmap + destinationStartIndex), (sourceBitmap + sourceStartIndex), (uint)(destinationRectI.Width * sizeof(uint)));
+
+            //for (var sourceColumn = sourceRectI.Left; sourceColumn < sourceRectI.Right; sourceColumn++)
+            //{
+            //    var sourceIndex = sourceRow * destinationPixelWidthLengthOfUint + sourceColumn;
+
+            //    var destinationColumn = destinationRectI.Left + sourceColumn - sourceRectI.Left;
+            //    var destinationIndex = destinationRow * sourcePixelWidthLengthOfUint + destinationColumn;
+
+            //    destinationBitmap[destinationIndex] = sourceBitmap[sourceIndex];
+            //}
         }
 
         return true;
