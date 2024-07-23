@@ -321,8 +321,7 @@ partial class SkInkCanvas
 
     public void ManipulateScale(ScaleContext scale)
     {
-        //var scaleMatrix = SKMatrix.CreateScale(scale.X, scale.Y, scale.PivotX, scale.PivotY);
-        var scaleMatrix = SKMatrix.CreateScale(scale.X, scale.Y);
+        var scaleMatrix = SKMatrix.CreateScale(scale.X, scale.Y, scale.PivotX, scale.PivotY);
         _totalMatrix = SKMatrix.Concat(_totalMatrix, scaleMatrix);
 
         var skCanvas = _skCanvas;
