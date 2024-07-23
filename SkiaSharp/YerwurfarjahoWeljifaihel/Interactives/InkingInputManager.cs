@@ -85,15 +85,8 @@ class TestInput(SkInkCanvas skInkCanvas)
 {
     public void RenderSplashScreen()
     {
-        using var skPaint = new SKPaint();
-        skPaint.Color = SKColors.Black;
-        skPaint.StrokeWidth = 2;
-        skPaint.Style = SKPaintStyle.Stroke;
-
         for (int y = 0; y < skInkCanvas. ApplicationDrawingSkBitmap.Height * 2; y += 25)
         {
-            //_skCanvas.DrawLine(0, y, ApplicationDrawingSkBitmap.Width, y, skPaint);
-
             var color = new SKColor((uint) Random.Shared.Next()).WithAlpha((byte) Random.Shared.Next(100, 0xFF));
 
             var inkPointList = new List<StylusPoint>();
