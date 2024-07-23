@@ -159,7 +159,10 @@ partial class SkInkCanvas
 
         void AddInk(SKColor color, IList<StylusPoint> inkPointList)
         {
-            var drawStrokeContext = new DrawStrokeContext(new InkingInputInfo(Random.Shared.Next(), new StylusPoint(), (ulong) Environment.TickCount64), color);
+            var inkingInputInfo = new InkingInputInfo(Random.Shared.Next(), new StylusPoint(), (ulong) Environment.TickCount64);
+            var inkId = new InkId(Random.Shared.Next());
+
+            var drawStrokeContext = new DrawStrokeContext(inkId, inkingInputInfo, color, 10);
             drawStrokeContext.AllStylusPoints.AddRange(inkPointList);
 
             var outline = SimpleInkRender.GetOutlinePointList([.. inkPointList], 10);
@@ -194,7 +197,7 @@ partial class SkInkCanvas
 
     public void DrawStrokeDown(InkingInputInfo info)
     {
-        var context = new DrawStrokeContext(info, Color);
+        var context = new DrawStrokeContext(new InkId(), info, Color, 20);
         CurrentInputDictionary[info.Id] = context;
 
         context.AllStylusPoints.Add(info.StylusPoint);
@@ -210,7 +213,7 @@ partial class SkInkCanvas
 
             context.InkStrokePath?.Dispose();
 
-            var outlinePointList = SimpleInkRender.GetOutlinePointList(context.AllStylusPoints.ToArray(), 20);
+            var outlinePointList = SimpleInkRender.GetOutlinePointList(context.AllStylusPoints.ToArray(), context.InkThickness);
 
             var skPath = new SKPath();
             skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
@@ -601,9 +604,10 @@ partial class SkInkCanvas
             InputInfo = inputInfo;
 >>>>>>> 3fa23c5db39211ac70b181c2423a7ab1a163836e
 
-            List<StylusPoint> historyDequeueList = [];
-            TipStylusPoints = new InkingFixedQueue<StylusPoint>(MaxTipStylusCount, historyDequeueList);
-            _historyDequeueList = historyDequeueList;
+            //List<StylusPoint> historyDequeueList = [];
+            //TipStylusPoints = new InkingFixedQueue<StylusPoint>(MaxTipStylusCount, historyDequeueList);
+            //_historyDequeueList = historyDequeueList;
+            TipStylusPoints = new FixedQueue<StylusPoint>(MaxTipStylusCount);
         }
 
         /// <summary>
@@ -625,38 +629,40 @@ partial class SkInkCanvas
         /// <summary>
         /// 笔尖的点
         /// </summary>
-        public InkingFixedQueue<StylusPoint> TipStylusPoints { get; }
+        public FixedQueue<StylusPoint> TipStylusPoints { get; }
 
-        /// <summary>
-        /// 存放笔迹的笔尖的点丢出来的点
-        /// </summary>
-        private List<StylusPoint>? _historyDequeueList;
+        public List<StylusPoint> AllStylusPoints { get; } = new List<StylusPoint>();
 
-        /// <summary>
-        /// 整个笔迹的点，包括笔尖的点
-        /// </summary>
-        public List<StylusPoint> GetAllStylusPointsOnFinish()
-        {
-            if (_historyDequeueList is null)
-            {
-                // 为了减少 List 对象的申请，这里将复用 _historyDequeueList 的 List 对象。这就导致了一旦上层调用过此方法，将不能重复调用，否则将会炸掉逻辑
-                throw new InvalidOperationException("此方法只能在完成的时候调用一次，禁止多次调用");
-            }
+        ///// <summary>
+        ///// 存放笔迹的笔尖的点丢出来的点
+        ///// </summary>
+        //private List<StylusPoint>? _historyDequeueList;
 
-            // 将笔尖的点合并到 _historyDequeueList 里面，这样就可以一次性返回所有的点。减少创建一个比较大的数组。缺点是这么做将不能多次调用，否则数据将会不正确
-            var historyDequeueList = _historyDequeueList;
-            //historyDequeueList.AddRange(TipStylusPoints);
-            int count = TipStylusPoints.Count; // 为什么需要取出来？因为会越出队越小
-            for (int i = 0; i < count; i++)
-            {
-                // 全部出队列，即可确保数据全取出来
-                TipStylusPoints.Dequeue();
-            }
+        ///// <summary>
+        ///// 整个笔迹的点，包括笔尖的点
+        ///// </summary>
+        //public List<StylusPoint> GetAllStylusPointsOnFinish()
+        //{
+        //    if (_historyDequeueList is null)
+        //    {
+        //        // 为了减少 List 对象的申请，这里将复用 _historyDequeueList 的 List 对象。这就导致了一旦上层调用过此方法，将不能重复调用，否则将会炸掉逻辑
+        //        throw new InvalidOperationException("此方法只能在完成的时候调用一次，禁止多次调用");
+        //    }
 
-            // 防止被多次调用
-            _historyDequeueList = null;
-            return historyDequeueList;
-        }
+        //    // 将笔尖的点合并到 _historyDequeueList 里面，这样就可以一次性返回所有的点。减少创建一个比较大的数组。缺点是这么做将不能多次调用，否则数据将会不正确
+        //    var historyDequeueList = _historyDequeueList;
+        //    //historyDequeueList.AddRange(TipStylusPoints);
+        //    int count = TipStylusPoints.Count; // 为什么需要取出来？因为会越出队越小
+        //    for (int i = 0; i < count; i++)
+        //    {
+        //        // 全部出队列，即可确保数据全取出来
+        //        TipStylusPoints.Dequeue();
+        //    }
+
+        //    // 防止被多次调用
+        //    _historyDequeueList = null;
+        //    return historyDequeueList;
+        //}
 
         public SKPath? InkStrokePath { set; get; }
 
@@ -1277,6 +1283,7 @@ class EraserView
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 /// <summary>
 /// 绘制使用的上下文信息
 /// </summary>
@@ -1316,3 +1323,6 @@ record InkInfo(int Id, DrawStrokeContext Context);
 >>>>>>> dcb1584ba73e3bd6236ef5a0cbf85c073e36ce5e
 =======
 >>>>>>> 3fa23c5db39211ac70b181c2423a7ab1a163836e
+=======
+readonly partial record struct InkId(int Value);
+>>>>>>> f329874ef34966a91e0ca1f358ededd562aa428b
