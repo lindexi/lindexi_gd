@@ -424,7 +424,8 @@ partial class SkInkCanvas
         var hitInk = new List<InkInfo>();
         foreach (var skRect in (Span<SKRect>) [topRectI, bottomRectI, leftRectI, rightRectI])
         {
-            var matrixSkRect = _totalMatrix.MapRect(skRect);
+            var matrix = _totalMatrix.Invert();
+            var matrixSkRect = matrix.MapRect(skRect);
             HitInk(matrixSkRect);
         }
 
