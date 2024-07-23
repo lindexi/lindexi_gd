@@ -73,6 +73,7 @@ public class SkiaCanvas : FrameworkElement
         RequireDraw(context =>
         {
             _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
+            _inkingInputManager ??= new InkingInputManager(_inkCanvas);
         });
     }
 

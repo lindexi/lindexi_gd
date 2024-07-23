@@ -17,67 +17,8 @@ partial class SkInkCanvas
     {
         _skCanvas = skCanvas;
         ApplicationDrawingSkBitmap = applicationDrawingSkBitmap;
-
-        RenderSplashScreen();
     }
-
-    public void RenderSplashScreen()
-    {
-        _skCanvas.Clear(SKColors.White);
-
-        using var skPaint = new SKPaint();
-        skPaint.Color = SKColors.Black;
-        skPaint.StrokeWidth = 2;
-        skPaint.Style = SKPaintStyle.Stroke;
-
-        for (int y = 0; y < ApplicationDrawingSkBitmap.Height * 2; y += 25)
-        {
-            //_skCanvas.DrawLine(0, y, ApplicationDrawingSkBitmap.Width, y, skPaint);
-
-            var color = new SKColor((uint) Random.Shared.Next()).WithAlpha((byte) Random.Shared.Next(100, 0xFF));
-
-            var inkPointList = new List<StylusPoint>();
-            for (int i = 0; i < ApplicationDrawingSkBitmap.Width * 2; i++)
-            {
-                inkPointList.Add(new StylusPoint(i, y));
-            }
-
-            AddInk(color, inkPointList);
-        }
-
-        for (int x = 0; x < ApplicationDrawingSkBitmap.Width * 2; x += 25)
-        {
-            var color = new SKColor((uint) Random.Shared.Next()).WithAlpha((byte) Random.Shared.Next(100, 0xFF));
-
-            var inkPointList = new List<StylusPoint>();
-            for (int i = 0; i < ApplicationDrawingSkBitmap.Height * 2; i++)
-            {
-                inkPointList.Add(new StylusPoint(x, i));
-            }
-
-            AddInk(color, inkPointList);
-        }
-
-        DrawAllInk();
-
-        void AddInk(SKColor color, List<StylusPoint> inkPointList)
-        {
-            var inkingInputInfo = new InkingModeInputArgs(Random.Shared.Next(), new StylusPoint(), (ulong) Environment.TickCount64);
-            var inkId = new InkId(Random.Shared.Next());
-
-            var drawStrokeContext = new DrawStrokeContext(inkId, inkingInputInfo, color, 10);
-            drawStrokeContext.AllStylusPoints.AddRange(inkPointList);
-
-            var outline = SimpleInkRender.GetOutlinePointList([.. inkPointList], drawStrokeContext.InkThickness);
-            var skPath = new SKPath();
-            skPath.AddPoly(outline.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
-
-            drawStrokeContext.InkStrokePath = skPath;
-
-            StaticInkInfoList.Add(new SkiaStrokeSynchronizer(0, new InkId(Random.Shared.Next()), color, 10, skPath, inkPointList));
-        }
-    }
-
+    
     public event EventHandler<Rect>? RenderBoundsChanged;
 
     private readonly SKCanvas _skCanvas;
@@ -143,14 +84,8 @@ partial class SkInkCanvas
         }
     }
 
-    private void DrawAllInk()
+    public void DrawAllInk()
     {
-        if (_skCanvas is null)
-        {
-            // 理论上不可能进入这里
-            return;
-        }
-
         var skCanvas = _skCanvas;
         skCanvas.Clear();
 
