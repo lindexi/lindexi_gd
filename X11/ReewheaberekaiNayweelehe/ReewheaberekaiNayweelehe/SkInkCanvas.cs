@@ -1,14 +1,11 @@
 ﻿#nullable enable
 using System;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using System.Text;
-
 using BujeeberehemnaNurgacolarje;
 
 using Microsoft.Maui.Graphics;
-
+using SkiaInkCore;
 using SkiaSharp;
 
 namespace ReewheaberekaiNayweelehe;
@@ -1316,6 +1313,7 @@ class EraserView
     }
 
     private Point _totalTransform;
+<<<<<<< HEAD
 }
 
 <<<<<<< HEAD
@@ -1502,3 +1500,6 @@ class StepCounter
     private static double TickToMillisecond(long tick) => tick * SecondToMillisecond / Stopwatch.Frequency;
 }
 >>>>>>> 478bd8d9d7d6a5df4c6d0d86ed2b849c955082e0
+=======
+}
+>>>>>>> c54fc6f0540f239c00c47c3883fcaa800ae7f1bf
