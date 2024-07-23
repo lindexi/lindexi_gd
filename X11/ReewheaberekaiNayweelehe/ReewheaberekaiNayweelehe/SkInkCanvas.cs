@@ -116,7 +116,7 @@ partial class SkInkCanvas
             var color = new SKColor((uint) Random.Shared.Next()).WithAlpha((byte) Random.Shared.Next(100, 0xFF));
 
             var inkPointList = new List<StylusPoint>();
-            for (int i = 0; i < ApplicationDrawingSkBitmap.Width; i++)
+            for (int i = 0; i < ApplicationDrawingSkBitmap.Width * 2; i++)
             {
                 inkPointList.Add(new StylusPoint(i, y));
             }
@@ -129,7 +129,7 @@ partial class SkInkCanvas
             var color = new SKColor((uint) Random.Shared.Next()).WithAlpha((byte) Random.Shared.Next(100, 0xFF));
 
             var inkPointList = new List<StylusPoint>();
-            for (int i = 0; i < ApplicationDrawingSkBitmap.Height; i++)
+            for (int i = 0; i < ApplicationDrawingSkBitmap.Height * 2; i++)
             {
                 inkPointList.Add(new StylusPoint(x, i));
             }
