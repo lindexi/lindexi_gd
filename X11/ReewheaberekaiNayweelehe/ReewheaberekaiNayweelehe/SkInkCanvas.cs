@@ -126,33 +126,48 @@ partial class SkInkCanvas
         skPaint.StrokeWidth = 2;
         skPaint.Style = SKPaintStyle.Stroke;
 
-        for (int y = 0; y < ApplicationDrawingSkBitmap.Height; y += 25)
+        for (int y = 0; y < ApplicationDrawingSkBitmap.Height * 2; y += 25)
         {
             //_skCanvas.DrawLine(0, y, ApplicationDrawingSkBitmap.Width, y, skPaint);
 
             var color = new SKColor((uint) Random.Shared.Next()).WithAlpha((byte) Random.Shared.Next(100, 0xFF));
 
-            var skPath = new SKPath();
-            skPath.MoveTo(0, y);
-            skPath.LineTo(ApplicationDrawingSkBitmap.Width, y);
+            var inkPointList = new List<StylusPoint>();
+            for (int i = 0; i < ApplicationDrawingSkBitmap.Width; i++)
+            {
+                inkPointList.Add(new StylusPoint(i, y));
+            }
 
-            AddInk(color, skPath);
+            AddInk(color, inkPointList);
         }
 
-        for (int x = 0; x < ApplicationDrawingSkBitmap.Width; x += 25)
+        for (int x = 0; x < ApplicationDrawingSkBitmap.Width * 2; x += 25)
         {
-            skPaint.Color = new SKColor((uint) Random.Shared.Next()).WithAlpha((byte) Random.Shared.Next(100, 0xFF));
-            _skCanvas.DrawLine(x, 0, x, ApplicationDrawingSkBitmap.Height, skPaint);
+            var color = new SKColor((uint) Random.Shared.Next()).WithAlpha((byte) Random.Shared.Next(100, 0xFF));
+
+            var inkPointList = new List<StylusPoint>();
+            for (int i = 0; i < ApplicationDrawingSkBitmap.Height; i++)
+            {
+                inkPointList.Add(new StylusPoint(x, i));
+            }
+
+            AddInk(color, inkPointList);
         }
 
         DrawAllInk();
 
-        void AddInk(SKColor color, SKPath path)
+        void AddInk(SKColor color, IList<StylusPoint> inkPointList)
         {
-            StaticInkInfoList.Add(new InkInfo(Random.Shared.Next(), new DrawStrokeContext(new InkingInputInfo(Random.Shared.Next(), new StylusPoint(), (ulong) Environment.TickCount64), color)
-            {
-                InkStrokePath = path
-            }));
+            var drawStrokeContext = new DrawStrokeContext(new InkingInputInfo(Random.Shared.Next(), new StylusPoint(), (ulong) Environment.TickCount64), color);
+            drawStrokeContext.AllStylusPoints.AddRange(inkPointList);
+
+            var outline = SimpleInkRender.GetOutlinePointList([.. inkPointList], 10);
+            var skPath = new SKPath();
+            skPath.AddPoly(outline.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
+
+            drawStrokeContext.InkStrokePath = skPath;
+
+            StaticInkInfoList.Add(new InkInfo(Random.Shared.Next(), drawStrokeContext));
         }
     }
 
