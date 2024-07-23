@@ -23,7 +23,16 @@ public partial class App : Application
         {
             stringBuilder.Clear();
             //stringBuilder.Append(i);
-            stringBuilder.AppendFormat(CultureInfo.InvariantCulture, compositeFormat, i);
+            //stringBuilder.AppendFormat(CultureInfo.InvariantCulture, compositeFormat, i);
+
+            var number = i;
+            var startIndex = stringBuilder.Length;
+            while (number > 0)
+            {
+                stringBuilder.Insert(startIndex, (char) ((number % 10) + '0'));
+
+                number /= 10;
+            }
         }
         stopwatch.Stop();
     }
