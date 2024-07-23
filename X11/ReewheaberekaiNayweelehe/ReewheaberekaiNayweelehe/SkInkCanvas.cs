@@ -6,93 +6,10 @@ using BujeeberehemnaNurgacolarje;
 
 using Microsoft.Maui.Graphics;
 using SkiaInkCore;
+using SkiaInkCore.Interactives;
 using SkiaSharp;
 
 namespace ReewheaberekaiNayweelehe;
-
-record InkingModeInputArgs(int Id, StylusPoint StylusPoint, ulong Timestamp)
-{
-    public Point Position => StylusPoint.Point;
-
-    /// <summary>
-    /// 是否来自鼠标的输入
-    /// </summary>
-    public bool IsMouse { init; get; }
-
-    /// <summary>
-    /// 被合并的其他历史的触摸点。可能为空
-    /// </summary>
-    public IReadOnlyList<StylusPoint>? StylusPointList { init; get; }
-};
-
-enum InputMode
-{
-    Ink,
-    Manipulate,
-}
-
-class InkingInputManager
-{
-    public InkingInputManager(SkInkCanvas skInkCanvas)
-    {
-        SkInkCanvas = skInkCanvas;
-    }
-
-    public SkInkCanvas SkInkCanvas { get; }
-
-    public InputMode InputMode { set; get; } = InputMode.Manipulate;
-
-    private int _downCount;
-
-    private StylusPoint _lastStylusPoint;
-
-    public void Down(InkingModeInputArgs args)
-    {
-        _downCount++;
-        if (_downCount > 2)
-        {
-            InputMode = InputMode.Manipulate;
-        }
-
-        if (InputMode == InputMode.Ink)
-        {
-            SkInkCanvas.DrawStrokeDown(args);
-        }
-        else if (InputMode == InputMode.Manipulate)
-        {
-            _lastStylusPoint = args.StylusPoint;
-        }
-    }
-
-    public void Move(InkingModeInputArgs args)
-    {
-        if (InputMode == InputMode.Ink)
-        {
-            SkInkCanvas.DrawStrokeMove(args);
-        }
-        else if (InputMode == InputMode.Manipulate)
-        {
-            SkInkCanvas.ManipulateMove(new Point(args.StylusPoint.Point.X - _lastStylusPoint.Point.X, args.StylusPoint.Point.Y - _lastStylusPoint.Point.Y));
-
-            _lastStylusPoint = args.StylusPoint;
-        }
-    }
-
-    public void Up(InkingModeInputArgs args)
-    {
-        if (InputMode == InputMode.Ink)
-        {
-            SkInkCanvas.DrawStrokeUp(args);
-        }
-        else if (InputMode == InputMode.Manipulate)
-        {
-            SkInkCanvas.ManipulateMove(new Point(args.StylusPoint.Point.X - _lastStylusPoint.Point.X, args.StylusPoint.Point.Y - _lastStylusPoint.Point.Y));
-            SkInkCanvas.ManipulateFinish();
-
-            _lastStylusPoint = args.StylusPoint;
-        }
-    }
-}
 
 partial class SkInkCanvas
 {
