@@ -378,8 +378,6 @@ partial class SkInkCanvas
         }
     }
 
-    record InkInfo(int Id, DrawStrokeContext Context);
-
     /// <summary>
     /// 取多少个点做笔尖
     /// </summary>
