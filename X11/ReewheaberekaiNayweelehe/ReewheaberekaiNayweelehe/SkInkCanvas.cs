@@ -635,7 +635,7 @@ partial class SkInkCanvas
     }
 
     [MemberNotNull(nameof(_originBackground))]
-    private void UpdateOriginBackground()
+    private unsafe void UpdateOriginBackground()
     {
         // 需要使用 SKCanvas 才能实现拷贝
         _originBackground ??= new SKBitmap(new SKImageInfo(ApplicationDrawingSkBitmap.Width,
@@ -644,9 +644,12 @@ partial class SkInkCanvas
             ApplicationDrawingSkBitmap.ColorSpace), SKBitmapAllocFlags.None);
         _isOriginBackgroundDisable = false;
 
-        using var skCanvas = new SKCanvas(_originBackground);
-        skCanvas.Clear();
-        skCanvas.DrawBitmap(ApplicationDrawingSkBitmap, 0, 0);
+        //using var skCanvas = new SKCanvas(_originBackground);
+        //skCanvas.Clear();
+        //skCanvas.DrawBitmap(ApplicationDrawingSkBitmap, 0, 0);
+        var applicationPixelHandler = ApplicationDrawingSkBitmap.GetPixels(out var length);
+        var originBackgroundPixelHandler = _originBackground.GetPixels();
+        Unsafe.CopyBlock((void*) originBackgroundPixelHandler, (void*) applicationPixelHandler, (uint) length);
     }
 
     private void MoveWithPath(Point delta)
