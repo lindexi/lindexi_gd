@@ -416,15 +416,16 @@ partial class SkInkCanvas
         SKRectI sourceRectI = SKRectI.Create(sourceX, sourceY, sourceWidth, sourceHeight);
 
         // 计算脏范围，用于在此绘制笔迹
-        var topRectI = SKRectI.Create(0, 0, ApplicationDrawingSkBitmap.Width, destinationY);
-        var bottomRectI = SKRectI.Create(0, destinationY + destinationHeight, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height - destinationY - destinationHeight);
-        var leftRectI = SKRectI.Create(0, destinationY, destinationX, destinationHeight);
-        var rightRectI = SKRectI.Create(destinationX + destinationWidth, destinationY, ApplicationDrawingSkBitmap.Width - destinationX - destinationWidth, destinationHeight);
+        var topRectI = SKRect.Create(0, 0, ApplicationDrawingSkBitmap.Width, destinationY);
+        var bottomRectI = SKRect.Create(0, destinationY + destinationHeight, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height - destinationY - destinationHeight);
+        var leftRectI = SKRect.Create(0, destinationY, destinationX, destinationHeight);
+        var rightRectI = SKRect.Create(destinationX + destinationWidth, destinationY, ApplicationDrawingSkBitmap.Width - destinationX - destinationWidth, destinationHeight);
 
         var hitInk = new List<InkInfo>();
-        foreach (var skRectI in (Span<SKRectI>) [topRectI, bottomRectI, leftRectI, rightRectI])
+        foreach (var skRect in (Span<SKRect>) [topRectI, bottomRectI, leftRectI, rightRectI])
         {
-            HitInk(skRectI);
+            var matrixSkRect = _totalMatrix.MapRect(skRect);
+            HitInk(matrixSkRect);
         }
 
         //var skCanvas = _skCanvas;
@@ -473,9 +474,8 @@ partial class SkInkCanvas
 
         static bool IsEmptySize(SKRectI skRectI) => skRectI.Width == 0 || skRectI.Height == 0;
 
-        void HitInk(SKRectI skRectI)
+        void HitInk(SKRect skRect)
         {
-            var skRect = SKRect.Create(skRectI.Left, skRectI.Top, skRectI.Width, skRectI.Height);
             foreach (var inkInfo in StaticInkInfoList)
             {
                 if (inkInfo.Context.InkStrokePath is { } path)
