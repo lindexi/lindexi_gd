@@ -8,6 +8,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChalljeheahawCemkokewhahile
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BujeeberehemnaNurgacolarje", "..\..\X11\BujeeberehemnaNurgacolarje\BujeeberehemnaNurgacolarje.csproj", "{0F95EB3B-8EA3-4230-BA91-0C371A0CE3AE}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YerwurfarjahoWeljifaihel", "..\YerwurfarjahoWeljifaihel\YerwurfarjahoWeljifaihel.csproj", "{CE4F8DD2-2481-44D4-B140-B95AA0CE1646}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,5 +31,9 @@ Global
 		{9AA135EE-B860-47C2-81CF-91C55B0F17F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9AA135EE-B860-47C2-81CF-91C55B0F17F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9AA135EE-B860-47C2-81CF-91C55B0F17F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE4F8DD2-2481-44D4-B140-B95AA0CE1646}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE4F8DD2-2481-44D4-B140-B95AA0CE1646}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE4F8DD2-2481-44D4-B140-B95AA0CE1646}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE4F8DD2-2481-44D4-B140-B95AA0CE1646}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
