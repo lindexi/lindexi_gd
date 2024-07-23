@@ -102,6 +102,43 @@ class InkingInputManager
     }
 }
 
+
+
+/// <summary>
+/// 绘制使用的上下文信息
+/// </summary>
+/// <param name="inputInfo"></param>
+class DrawStrokeContext(InkingInputInfo inputInfo, SKColor strokeColor) : IDisposable
+{
+    public SKColor StrokeColor { get; } = strokeColor;
+    public InkingInputInfo InputInfo { set; get; } = inputInfo;
+    public int DropPointCount { set; get; }
+    
+    /// <summary>
+    /// 取多少个点做笔尖
+    /// </summary>
+    private const int MaxTipStylusCount = 7;
+
+    /// <summary>
+    /// 笔尖的点
+    /// </summary>
+    public readonly FixedQueue<StylusPoint> TipStylusPoints = new FixedQueue<StylusPoint>(MaxTipStylusCount);
+
+    /// <summary>
+    /// 整个笔迹的点，包括笔尖的点
+    /// </summary>
+    public List<StylusPoint> AllStylusPoints { get; } = new List<StylusPoint>();
+
+    public SKPath? InkStrokePath { set; get; }
+
+    public bool IsUp { set; get; }
+
+    public void Dispose()
+    {
+        //InkStrokePath?.Dispose();
+    }
+}
+
 partial class SkInkCanvas
 {
     public SkInkCanvas(SKCanvas skCanvas, SKBitmap applicationDrawingSkBitmap)
@@ -174,14 +211,7 @@ partial class SkInkCanvas
 
     public event EventHandler<Rect>? RenderBoundsChanged;
 
-    private SKCanvas? _skCanvas;
 
-    /// <summary>
-    /// 原应用输出的内容
-    /// </summary>
-    public SKBitmap? ApplicationDrawingSkBitmap { set; get; }
-
-    record InkInfo(int Id, DrawStrokeContext Context);
 
     /// <summary>
     /// 静态笔迹层
@@ -284,6 +314,7 @@ partial class SkInkCanvas
         }
     }
 
+<<<<<<< HEAD
     /// <summary>
     /// 绘制使用的上下文信息
     /// </summary>
@@ -581,6 +612,8 @@ partial class SkInkCanvas
             return false;
         }
 =======
+=======
+>>>>>>> dcb1584ba73e3bd6236ef5a0cbf85c073e36ce5e
 
     #region 漫游
 
@@ -618,6 +651,24 @@ partial class SkInkCanvas
         //// 几何漫游的方法
         //MoveWithPath(delta);
     }
+
+    #endregion
+}
+
+partial class SkManipulationInkCanvas
+{
+
+    private SKCanvas? _skCanvas;
+
+    /// <summary>
+    /// 原应用输出的内容
+    /// </summary>
+    public SKBitmap? ApplicationDrawingSkBitmap { set; get; }
+
+    /// <summary>
+    /// 静态笔迹层
+    /// </summary>
+    private List<InkInfo> StaticInkInfoList { get; }
 
     private SKMatrix _totalMatrix = SKMatrix.CreateIdentity();
 
@@ -702,12 +753,21 @@ partial class SkInkCanvas
         var leftRect = SKRect.Create(0, destinationY, destinationX, destinationHeight);
         var rightRect = SKRect.Create(destinationX + destinationWidth, destinationY, ApplicationDrawingSkBitmap.Width - destinationX - destinationWidth, destinationHeight);
 
-        var hitInk = new List<InkInfo>();
+        var hitRectList = new List<SKRect>(4);
         var matrix = _totalMatrix.Invert();
-        Span<SKRect> hitRectSpan = [matrix.MapRect(topRect), matrix.MapRect(bottomRect), matrix.MapRect(leftRect), matrix.MapRect(rightRect),];
+        Span<SKRect> hitRectSpan = [topRect, bottomRect, leftRect, rightRect];
+        foreach (var skRect in hitRectSpan)
+        {
+            if (!IsEmptySize(skRect))
+            {
+                hitRectList.Add(matrix.MapRect(skRect));
+            }
+        }
+
+        var hitInk = new List<InkInfo>();
         foreach (var inkInfo in StaticInkInfoList)
         {
-            foreach (var skRect in hitRectSpan)
+            foreach (var skRect in hitRectList)
             {
                 if (IsHit(inkInfo, skRect))
                 {
@@ -761,7 +821,7 @@ partial class SkInkCanvas
         RenderBoundsChanged?.Invoke(this,
             new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
 
-        static bool IsEmptySize(SKRectI skRectI) => skRectI.Width == 0 || skRectI.Height == 0;
+        static bool IsEmptySize(SKRect skRect) => skRect.Width == 0 || skRect.Height == 0;
 
         static bool IsHit(InkInfo inkInfo, SKRect skRect)
         {
@@ -1165,7 +1225,12 @@ class EraserView
     }
 
     private Point _totalTransform;
+}
 
+<<<<<<< HEAD
     #endregion
 >>>>>>> 9994af5e3facc399bf93df657e69c36f21288956
 }
+=======
+record InkInfo(int Id, DrawStrokeContext Context);
+>>>>>>> dcb1584ba73e3bd6236ef5a0cbf85c073e36ce5e
