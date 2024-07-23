@@ -707,6 +707,22 @@ partial class SkInkCanvas
             HitInk(skRectI);
         }
 
+        //var skCanvas = _skCanvas;
+        //skCanvas.Clear();
+        //foreach (var skRectI in (Span<SKRectI>) [topRectI, bottomRectI, leftRectI, rightRectI])
+        //{
+        //    using var skPaint = new SKPaint();
+        //    skPaint.StrokeWidth = 0;
+        //    skPaint.IsAntialias = true;
+        //    skPaint.FilterQuality = SKFilterQuality.High;
+        //    skPaint.Style = SKPaintStyle.Fill;
+        //    skPaint.Color = SKColors.Blue;
+        //    var skRect = SKRect.Create(skRectI.Left, skRectI.Top, skRectI.Width, skRectI.Height);
+
+        //    skCanvas.DrawRect(skRect, skPaint);
+        //}
+        //skCanvas.Flush();
+
         var skCanvas = _skCanvas;
         skCanvas.Clear();
         skCanvas.Save();
@@ -725,12 +741,12 @@ partial class SkInkCanvas
         skCanvas.Restore();
         skCanvas.Flush();
 
-        //fixed (uint* pCachePixel = _cachePixel)
-        //{
-        //    var pixelLength = (uint) (ApplicationDrawingSkBitmap.Width);
+        fixed (uint* pCachePixel = _cachePixel)
+        {
+            var pixelLength = (uint) (ApplicationDrawingSkBitmap.Width);
 
-        //    ReplacePixels((uint*) pixels, pCachePixel, destinationRectI, sourceRectI, pixelLength, pixelLength);
-        //}
+            ReplacePixels((uint*) pixels, pCachePixel, destinationRectI, sourceRectI, pixelLength, pixelLength);
+        }
 
         RenderBoundsChanged?.Invoke(this,
             new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
