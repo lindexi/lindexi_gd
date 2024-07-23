@@ -417,14 +417,14 @@ partial class SkInkCanvas
         SKRectI sourceRectI = SKRectI.Create(sourceX, sourceY, sourceWidth, sourceHeight);
 
         // 计算脏范围，用于在此绘制笔迹
-        var topRectI = SKRect.Create(0, 0, ApplicationDrawingSkBitmap.Width, destinationY);
-        var bottomRectI = SKRect.Create(0, destinationY + destinationHeight, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height - destinationY - destinationHeight);
-        var leftRectI = SKRect.Create(0, destinationY, destinationX, destinationHeight);
-        var rightRectI = SKRect.Create(destinationX + destinationWidth, destinationY, ApplicationDrawingSkBitmap.Width - destinationX - destinationWidth, destinationHeight);
+        var topRect = SKRect.Create(0, 0, ApplicationDrawingSkBitmap.Width, destinationY);
+        var bottomRect = SKRect.Create(0, destinationY + destinationHeight, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height - destinationY - destinationHeight);
+        var leftRect = SKRect.Create(0, destinationY, destinationX, destinationHeight);
+        var rightRect = SKRect.Create(destinationX + destinationWidth, destinationY, ApplicationDrawingSkBitmap.Width - destinationX - destinationWidth, destinationHeight);
 
         var hitInk = new List<InkInfo>();
         var matrix = _totalMatrix.Invert();
-        Span<SKRect> hitRectSpan = [matrix.MapRect(topRectI), matrix.MapRect(bottomRectI), matrix.MapRect(leftRectI), matrix.MapRect(rightRectI),];
+        Span<SKRect> hitRectSpan = [matrix.MapRect(topRect), matrix.MapRect(bottomRect), matrix.MapRect(leftRect), matrix.MapRect(rightRect),];
         foreach (var inkInfo in StaticInkInfoList)
         {
             foreach (var skRect in hitRectSpan)
