@@ -429,21 +429,37 @@ partial class SkInkCanvas
 
         var skCanvas = _skCanvas;
         skCanvas.Clear();
-        skCanvas.Save();
-        skCanvas.SetMatrix(_totalMatrix);
-        using var skPaint = new SKPaint();
-        skPaint.StrokeWidth = 0;
-        skPaint.IsAntialias = true;
-        skPaint.FilterQuality = SKFilterQuality.High;
-        skPaint.Style = SKPaintStyle.Fill;
-
-        foreach (var inkInfo in hitInk.Distinct())
+        foreach (var skRectI in (Span<SKRectI>) [topRectI, bottomRectI, leftRectI, rightRectI])
         {
-            DrawInk(skCanvas, skPaint, inkInfo);
-        }
+            using var skPaint = new SKPaint();
+            skPaint.StrokeWidth = 0;
+            skPaint.IsAntialias = true;
+            skPaint.FilterQuality = SKFilterQuality.High;
+            skPaint.Style = SKPaintStyle.Fill;
+            skPaint.Color = SKColors.Blue;
+            var skRect = SKRect.Create(skRectI.Left, skRectI.Top, skRectI.Width, skRectI.Height);
 
-        skCanvas.Restore();
+            skCanvas.DrawRect(skRect, skPaint);
+        }
         skCanvas.Flush();
+
+        //var skCanvas = _skCanvas;
+        //skCanvas.Clear();
+        //skCanvas.Save();
+        //skCanvas.SetMatrix(_totalMatrix);
+        //using var skPaint = new SKPaint();
+        //skPaint.StrokeWidth = 0;
+        //skPaint.IsAntialias = true;
+        //skPaint.FilterQuality = SKFilterQuality.High;
+        //skPaint.Style = SKPaintStyle.Fill;
+
+        //foreach (var inkInfo in hitInk.Distinct())
+        //{
+        //    DrawInk(skCanvas, skPaint, inkInfo);
+        //}
+
+        //skCanvas.Restore();
+        //skCanvas.Flush();
 
         //fixed (uint* pCachePixel = _cachePixel)
         //{
