@@ -17,7 +17,8 @@ public partial class App : Application
         var stringBuilder = new StringBuilder();
 
         var stopwatch = Stopwatch.StartNew();
-        var compositeFormat = CompositeFormat.Parse("{0}");
+        //var compositeFormat = CompositeFormat.Parse("{0}");
+        var cache = new List<char>(7); // 1000_0000
 
         for (int i = 0; i < 1000_0000; i++)
         {
@@ -26,12 +27,18 @@ public partial class App : Application
             //stringBuilder.AppendFormat(CultureInfo.InvariantCulture, compositeFormat, i);
 
             var number = i;
-            var startIndex = stringBuilder.Length;
+
+            cache.Clear();
             while (number > 0)
             {
-                stringBuilder.Insert(startIndex, (char) ((number % 10) + '0'));
+                cache.Add((char) ((number % 10) + '0'));
 
                 number /= 10;
+            }
+
+            for (var cacheIndex = cache.Count - 1; cacheIndex >= 0; cacheIndex--)
+            {
+                stringBuilder.Append(cache[cacheIndex]);
             }
         }
         stopwatch.Stop();
