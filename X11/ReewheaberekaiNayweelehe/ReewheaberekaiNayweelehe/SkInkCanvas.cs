@@ -23,12 +23,6 @@ partial class SkInkCanvas
 
     public void RenderSplashScreen()
     {
-        if (_skCanvas is null)
-        {
-            // 理论上不可能进入这里
-            return;
-        }
-
         _skCanvas.Clear(SKColors.White);
 
         using var skPaint = new SKPaint();
@@ -86,7 +80,7 @@ partial class SkInkCanvas
 
     public event EventHandler<Rect>? RenderBoundsChanged;
 
-    private SKCanvas? _skCanvas;
+    private readonly SKCanvas _skCanvas;
 
     /// <summary>
     /// 原应用输出的内容
