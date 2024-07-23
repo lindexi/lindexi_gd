@@ -2,11 +2,15 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+
 using BujeeberehemnaNurgacolarje;
 
 using Microsoft.Maui.Graphics;
+
 using SkiaInkCore;
 using SkiaInkCore.Interactives;
+using SkiaInkCore.Primitive;
+
 using SkiaSharp;
 
 namespace ReewheaberekaiNayweelehe;
@@ -18,7 +22,7 @@ partial class SkInkCanvas
         _skCanvas = skCanvas;
         ApplicationDrawingSkBitmap = applicationDrawingSkBitmap;
     }
-    
+
     public event EventHandler<Rect>? RenderBoundsChanged;
 
     private readonly SKCanvas _skCanvas;
@@ -303,11 +307,22 @@ partial class SkInkCanvas
     /// </summary>
     public void ManipulateFinish()
     {
-        if (_skCanvas is null)
-        {
-            // 理论上不可能进入这里
-            return;
-        }
+        var skCanvas = _skCanvas;
+        skCanvas.Clear();
+
+        skCanvas.Save();
+        skCanvas.SetMatrix(_totalMatrix);
+
+        DrawAllInk();
+
+        skCanvas.Restore();
+        _isOriginBackgroundDisable = true;
+    }
+
+    public void ManipulateScale(ScaleContext scale)
+    {
+        var scaleMatrix = SKMatrix.CreateScale(scale.X, scale.Y, scale.PivotX, scale.PivotY);
+        _totalMatrix = SKMatrix.Concat(_totalMatrix, scaleMatrix);
 
         var skCanvas = _skCanvas;
         skCanvas.Clear();
@@ -318,6 +333,7 @@ partial class SkInkCanvas
         DrawAllInk();
 
         skCanvas.Restore();
+
         _isOriginBackgroundDisable = true;
     }
 
@@ -340,12 +356,6 @@ partial class SkInkCanvas
 
     private unsafe void MoveWithPixel(Point delta)
     {
-        if (_skCanvas is null)
-        {
-            // 理论上不可能进入这里
-            return;
-        }
-
         var pixels = ApplicationDrawingSkBitmap.GetPixels(out var length);
 
         UpdateOriginBackground();
@@ -502,12 +512,6 @@ partial class SkInkCanvas
     private void MoveWithPath(Point delta)
     {
         _totalTransform = new Point(_totalTransform.X + delta.X, _totalTransform.Y + delta.Y);
-
-        if (_skCanvas is null)
-        {
-            // 理论上不可能进入这里
-            return;
-        }
 
         var skCanvas = _skCanvas;
         skCanvas.Clear();

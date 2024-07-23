@@ -1,7 +1,7 @@
 ﻿using BujeeberehemnaNurgacolarje;
 using Microsoft.Maui.Graphics;
 using ReewheaberekaiNayweelehe;
-
+using SkiaInkCore.Primitive;
 using SkiaSharp;
 
 namespace SkiaInkCore.Interactives;
@@ -28,6 +28,7 @@ class InkingInputManager
     private int _downCount;
 
     private StylusPoint _lastStylusPoint;
+    private StylusPoint _firstStylusPoint;
 
     public void Down(InkingModeInputArgs args)
     {
@@ -44,6 +45,7 @@ class InkingInputManager
         else if (InputMode == InputMode.Manipulate)
         {
             _lastStylusPoint = args.StylusPoint;
+            _firstStylusPoint = args.StylusPoint;
         }
     }
 
@@ -55,7 +57,9 @@ class InkingInputManager
         }
         else if (InputMode == InputMode.Manipulate)
         {
-            SkInkCanvas.ManipulateMove(new Point(args.StylusPoint.Point.X - _lastStylusPoint.Point.X, args.StylusPoint.Point.Y - _lastStylusPoint.Point.Y));
+            //SkInkCanvas.ManipulateMove(new Point(args.StylusPoint.Point.X - _lastStylusPoint.Point.X, args.StylusPoint.Point.Y - _lastStylusPoint.Point.Y));
+
+            SkInkCanvas.ManipulateScale(new ScaleContext((float)(args.StylusPoint.Point.X - _lastStylusPoint.Point.X), (float)(args.StylusPoint.Point.Y - _lastStylusPoint.Point.Y), (float)_firstStylusPoint.Point.X, (float) _firstStylusPoint.Point.Y));
 
             _lastStylusPoint = args.StylusPoint;
         }
