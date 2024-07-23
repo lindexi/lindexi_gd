@@ -13,10 +13,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\SkiaSharp\YerwurfarjahoWeljifaihel\YerwurfarjahoWeljifaihel.csproj" />
     <ProjectReference Include="..\BujeeberehemnaNurgacolarje\BujeeberehemnaNurgacolarje.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="SkiaSharp" Version="2.88.7" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.7" />
   </ItemGroup>
 </Project>
