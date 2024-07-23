@@ -33,10 +33,19 @@ class InkingInputManager
 
     private StylusPoint _lastStylusPoint;
     private StylusPoint _firstStylusPoint;
+    private int MainInput { get; set; }
 
     public void Down(InkingModeInputArgs args)
     {
         _downCount++;
+
+        _lastStylusPoint = args.StylusPoint;
+
+        if (_downCount == 1)
+        {
+            _firstStylusPoint = args.StylusPoint;
+            MainInput = args.Id;
+        }
 
         if (InputMode == InputMode.Ink)
         {
@@ -44,12 +53,6 @@ class InkingInputManager
         }
         else if (InputMode == InputMode.Manipulate)
         {
-            _lastStylusPoint = args.StylusPoint;
-
-            if (_downCount == 1)
-            {
-                _firstStylusPoint = args.StylusPoint;
-            }
         }
     }
 
@@ -67,6 +70,11 @@ class InkingInputManager
             }
             else
             {
+                if (args.Id != MainInput)
+                {
+                    return;
+                }
+
                 var x = (float) (args.StylusPoint.Point.X - _lastStylusPoint.Point.X);
                 var y = (float) (args.StylusPoint.Point.Y - _lastStylusPoint.Point.Y);
 
