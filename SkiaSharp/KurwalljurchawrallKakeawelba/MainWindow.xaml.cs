@@ -146,7 +146,7 @@ public class SkiaCanvas : FrameworkElement
             _inkingInputManager ??= new InkingInputManager(_inkCanvas);
 
             var position = e.GetPosition(this);
-            var inkingInputInfo = new InkingInputInfo(0, new Point(position.X, position.Y), (ulong) e.Timestamp);
+            var inkingInputInfo = new InkingModeInputArgs(0, new Point(position.X, position.Y), (ulong) e.Timestamp);
 
             _inkingInputManager.Down(inkingInputInfo);
         });
@@ -164,7 +164,7 @@ public class SkiaCanvas : FrameworkElement
             _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
             _inkingInputManager ??= new InkingInputManager(_inkCanvas);
             var position = e.GetPosition(this);
-            var inkingInputInfo = new InkingInputInfo(0, new Point(position.X, position.Y), (ulong) e.Timestamp);
+            var inkingInputInfo = new InkingModeInputArgs(0, new Point(position.X, position.Y), (ulong) e.Timestamp);
 
             _inkingInputManager.Move(inkingInputInfo);
         });
@@ -178,7 +178,7 @@ public class SkiaCanvas : FrameworkElement
             _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
             _inkingInputManager ??= new InkingInputManager(_inkCanvas);
             var position = e.GetPosition(this);
-            var inkingInputInfo = new InkingInputInfo(0, new Point(position.X, position.Y), (ulong) e.Timestamp);
+            var inkingInputInfo = new InkingModeInputArgs(0, new Point(position.X, position.Y), (ulong) e.Timestamp);
 
             _inkingInputManager.Up(inkingInputInfo);
         });
