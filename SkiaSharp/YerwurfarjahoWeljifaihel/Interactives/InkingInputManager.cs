@@ -1,7 +1,11 @@
 ﻿using BujeeberehemnaNurgacolarje;
+
 using Microsoft.Maui.Graphics;
+
 using ReewheaberekaiNayweelehe;
+
 using SkiaInkCore.Primitive;
+
 using SkiaSharp;
 
 namespace SkiaInkCore.Interactives;
@@ -59,7 +63,13 @@ class InkingInputManager
         {
             //SkInkCanvas.ManipulateMove(new Point(args.StylusPoint.Point.X - _lastStylusPoint.Point.X, args.StylusPoint.Point.Y - _lastStylusPoint.Point.Y));
 
-            SkInkCanvas.ManipulateScale(new ScaleContext((float)(args.StylusPoint.Point.X - _lastStylusPoint.Point.X), (float)(args.StylusPoint.Point.Y - _lastStylusPoint.Point.Y), (float)_firstStylusPoint.Point.X, (float) _firstStylusPoint.Point.Y));
+            var x = (float) (args.StylusPoint.Point.X - _lastStylusPoint.Point.X);
+            var y = (float) (args.StylusPoint.Point.Y - _lastStylusPoint.Point.Y);
+
+            x = 1 + x / 100;
+            y = 1 + y / 100;
+
+            SkInkCanvas.ManipulateScale(new ScaleContext(x, y, (float) _firstStylusPoint.Point.X, (float) _firstStylusPoint.Point.Y));
 
             _lastStylusPoint = args.StylusPoint;
         }
@@ -85,7 +95,7 @@ class TestInput(SkInkCanvas skInkCanvas)
 {
     public void RenderSplashScreen()
     {
-        for (int y = 0; y < skInkCanvas. ApplicationDrawingSkBitmap.Height * 2; y += 25)
+        for (int y = 0; y < skInkCanvas.ApplicationDrawingSkBitmap.Height * 2; y += 25)
         {
             var color = new SKColor((uint) Random.Shared.Next()).WithAlpha((byte) Random.Shared.Next(100, 0xFF));
 
