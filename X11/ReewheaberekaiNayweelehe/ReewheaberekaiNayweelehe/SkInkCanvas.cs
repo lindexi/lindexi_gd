@@ -93,6 +93,8 @@ class InkingInputManager
         }
         else if (InputMode == InputMode.Manipulate)
         {
+            SkInkCanvas.ManipulateMove(new Point(info.StylusPoint.Point.X - _lastStylusPoint.Point.X, info.StylusPoint.Point.Y - _lastStylusPoint.Point.Y));
+            SkInkCanvas.ManipulateFinish();
 
             _lastStylusPoint = info.StylusPoint;
         }
@@ -126,14 +128,31 @@ partial class SkInkCanvas
 
         for (int y = 0; y < ApplicationDrawingSkBitmap.Height; y += 25)
         {
-            skPaint.Color = new SKColor((uint) Random.Shared.Next()).WithAlpha((byte) Random.Shared.Next(100, 0xFF));
-            _skCanvas.DrawLine(0, y, ApplicationDrawingSkBitmap.Width, y, skPaint);
+            //_skCanvas.DrawLine(0, y, ApplicationDrawingSkBitmap.Width, y, skPaint);
+
+            var color = new SKColor((uint) Random.Shared.Next()).WithAlpha((byte) Random.Shared.Next(100, 0xFF));
+
+            var skPath = new SKPath();
+            skPath.MoveTo(0, y);
+            skPath.LineTo(ApplicationDrawingSkBitmap.Width, y);
+
+            AddInk(color, skPath);
         }
 
         for (int x = 0; x < ApplicationDrawingSkBitmap.Width; x += 25)
         {
             skPaint.Color = new SKColor((uint) Random.Shared.Next()).WithAlpha((byte) Random.Shared.Next(100, 0xFF));
             _skCanvas.DrawLine(x, 0, x, ApplicationDrawingSkBitmap.Height, skPaint);
+        }
+
+        DrawAllInk();
+
+        void AddInk(SKColor color, SKPath path)
+        {
+            StaticInkInfoList.Add(new InkInfo(Random.Shared.Next(), new DrawStrokeContext(new InkingInputInfo(Random.Shared.Next(), new StylusPoint(), (ulong) Environment.TickCount64), color)
+            {
+                InkStrokePath = path
+            }));
         }
     }
 
@@ -544,14 +563,42 @@ partial class SkInkCanvas
 
     #region 漫游
 
+    /// <summary>
+    /// 漫游完成，需要将内容重新使用路径绘制，保持清晰
+    /// </summary>
+    public void ManipulateFinish()
+    {
+        if (_skCanvas is null)
+        {
+            // 理论上不可能进入这里
+            return;
+        }
+
+        var skCanvas = _skCanvas;
+        skCanvas.Clear();
+
+        skCanvas.Save();
+        skCanvas.SetMatrix(_totalMatrix);
+
+        DrawAllInk();
+
+        skCanvas.Restore();
+    }
+
     public void ManipulateMove(Point delta)
     {
+        //_totalMatrix = _totalMatrix * SKMatrix.CreateTranslation((float) delta.X, (float) delta.Y);
+        var translation = SKMatrix.CreateTranslation((float) delta.X, (float) delta.Y);
+        _totalMatrix = SKMatrix.Concat(_totalMatrix, translation);
+
         // 像素漫游的方法
         MoveWithPixel(delta);
 
         //// 几何漫游的方法
         //MoveWithPath(delta);
     }
+
+    private SKMatrix _totalMatrix = SKMatrix.CreateIdentity();
 
     private unsafe void MoveWithPixel(Point delta)
     {
