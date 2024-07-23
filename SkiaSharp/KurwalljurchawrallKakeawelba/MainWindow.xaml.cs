@@ -81,7 +81,7 @@ public class SkiaCanvas : FrameworkElement
         if (_writeableBitmap is null)
         {
             var writeableBitmap = new WriteableBitmap((int) ActualWidth, (int) ActualHeight, 96, 96, PixelFormats.Bgra32,
-                BitmapPalettes.Halftone256Transparent);
+                null);
             _writeableBitmap = writeableBitmap;
         }
 
