@@ -108,7 +108,7 @@ partial class SkInkCanvas
 
     public void RenderSplashScreen()
     {
-        if (_skCanvas is null || ApplicationDrawingSkBitmap is null)
+        if (_skCanvas is null)
         {
             // 理论上不可能进入这里
             return;
@@ -433,14 +433,6 @@ partial class SkInkCanvas
             return;
         }
 
-        if (ApplicationDrawingSkBitmap is null)
-        {
-            // 理论上不可能进入这里
-            return;
-        }
-
-        //"xx".StartsWith("x", StringComparison.Ordinal)
-
         var pixels = ApplicationDrawingSkBitmap.GetPixels(out var length);
 
         UpdateOriginBackground();
@@ -661,12 +653,6 @@ partial class SkInkCanvas
         _totalTransform = new Point(_totalTransform.X + delta.X, _totalTransform.Y + delta.Y);
 
         if (_skCanvas is null)
-        {
-            // 理论上不可能进入这里
-            return;
-        }
-
-        if (ApplicationDrawingSkBitmap is null)
         {
             // 理论上不可能进入这里
             return;
