@@ -85,6 +85,43 @@ class InkingInputManager
     }
 }
 
+
+
+/// <summary>
+/// 绘制使用的上下文信息
+/// </summary>
+/// <param name="inputInfo"></param>
+class DrawStrokeContext(InkingInputInfo inputInfo, SKColor strokeColor) : IDisposable
+{
+    public SKColor StrokeColor { get; } = strokeColor;
+    public InkingInputInfo InputInfo { set; get; } = inputInfo;
+    public int DropPointCount { set; get; }
+    
+    /// <summary>
+    /// 取多少个点做笔尖
+    /// </summary>
+    private const int MaxTipStylusCount = 7;
+
+    /// <summary>
+    /// 笔尖的点
+    /// </summary>
+    public readonly FixedQueue<StylusPoint> TipStylusPoints = new FixedQueue<StylusPoint>(MaxTipStylusCount);
+
+    /// <summary>
+    /// 整个笔迹的点，包括笔尖的点
+    /// </summary>
+    public List<StylusPoint> AllStylusPoints { get; } = new List<StylusPoint>();
+
+    public SKPath? InkStrokePath { set; get; }
+
+    public bool IsUp { set; get; }
+
+    public void Dispose()
+    {
+        //InkStrokePath?.Dispose();
+    }
+}
+
 partial class SkInkCanvas
 {
     public SkInkCanvas(SKCanvas skCanvas, SKBitmap applicationDrawingSkBitmap)
@@ -157,14 +194,7 @@ partial class SkInkCanvas
 
     public event EventHandler<Rect>? RenderBoundsChanged;
 
-    private SKCanvas? _skCanvas;
 
-    /// <summary>
-    /// 原应用输出的内容
-    /// </summary>
-    public SKBitmap? ApplicationDrawingSkBitmap { set; get; }
-
-    record InkInfo(int Id, DrawStrokeContext Context);
 
     /// <summary>
     /// 静态笔迹层
@@ -267,40 +297,6 @@ partial class SkInkCanvas
         }
     }
 
-    /// <summary>
-    /// 绘制使用的上下文信息
-    /// </summary>
-    /// <param name="inputInfo"></param>
-    class DrawStrokeContext(InkingInputInfo inputInfo, SKColor strokeColor) : IDisposable
-    {
-        public SKColor StrokeColor { get; } = strokeColor;
-        public InkingInputInfo InputInfo { set; get; } = inputInfo;
-        public int DropPointCount { set; get; }
-
-        /// <summary>
-        /// 笔尖的点
-        /// </summary>
-        public readonly FixedQueue<StylusPoint> TipStylusPoints = new FixedQueue<StylusPoint>(MaxTipStylusCount);
-
-        /// <summary>
-        /// 整个笔迹的点，包括笔尖的点
-        /// </summary>
-        public List<StylusPoint> AllStylusPoints { get; } = new List<StylusPoint>();
-
-        public SKPath? InkStrokePath { set; get; }
-
-        public bool IsUp { set; get; }
-
-        public void Dispose()
-        {
-            //InkStrokePath?.Dispose();
-        }
-    }
-
-    /// <summary>
-    /// 取多少个点做笔尖
-    /// </summary>
-    private const int MaxTipStylusCount = 7;
 
     #region 漫游
 
@@ -338,6 +334,24 @@ partial class SkInkCanvas
         //// 几何漫游的方法
         //MoveWithPath(delta);
     }
+
+    #endregion
+}
+
+partial class SkManipulationInkCanvas
+{
+
+    private SKCanvas? _skCanvas;
+
+    /// <summary>
+    /// 原应用输出的内容
+    /// </summary>
+    public SKBitmap? ApplicationDrawingSkBitmap { set; get; }
+
+    /// <summary>
+    /// 静态笔迹层
+    /// </summary>
+    private List<InkInfo> StaticInkInfoList { get; }
 
     private SKMatrix _totalMatrix = SKMatrix.CreateIdentity();
 
@@ -588,6 +602,6 @@ partial class SkInkCanvas
     }
 
     private Point _totalTransform;
-
-    #endregion
 }
+
+record InkInfo(int Id, DrawStrokeContext Context);
