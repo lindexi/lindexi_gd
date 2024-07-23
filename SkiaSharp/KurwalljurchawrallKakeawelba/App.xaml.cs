@@ -23,23 +23,23 @@ public partial class App : Application
         for (int i = 0; i < 1000_0000; i++)
         {
             stringBuilder.Clear();
-            //stringBuilder.Append(i);
+            stringBuilder.Append(i);
             //stringBuilder.AppendFormat(CultureInfo.InvariantCulture, compositeFormat, i);
 
-            var number = i;
+            //var number = i;
 
-            cache.Clear();
-            while (number > 0)
-            {
-                cache.Add((char) ((number % 10) + '0'));
+            //cache.Clear();
+            //while (number > 0)
+            //{
+            //    cache.Add((char) ((number % 10) + '0'));
 
-                number /= 10;
-            }
+            //    number /= 10;
+            //}
 
-            for (var cacheIndex = cache.Count - 1; cacheIndex >= 0; cacheIndex--)
-            {
-                stringBuilder.Append(cache[cacheIndex]);
-            }
+            //for (var cacheIndex = cache.Count - 1; cacheIndex >= 0; cacheIndex--)
+            //{
+            //    stringBuilder.Append(cache[cacheIndex]);
+            //}
         }
         stopwatch.Stop();
     }
