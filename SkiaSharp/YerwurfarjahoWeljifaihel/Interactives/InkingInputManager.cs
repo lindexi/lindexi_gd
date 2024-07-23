@@ -2,6 +2,8 @@
 using Microsoft.Maui.Graphics;
 using ReewheaberekaiNayweelehe;
 
+using SkiaSharp;
+
 namespace SkiaInkCore.Interactives;
 
 enum InputMode
@@ -15,6 +17,8 @@ class InkingInputManager
     public InkingInputManager(SkInkCanvas skInkCanvas)
     {
         SkInkCanvas = skInkCanvas;
+        var testInput = new TestInput(skInkCanvas);
+        testInput.RenderSplashScreen();
     }
 
     public SkInkCanvas SkInkCanvas { get; }
@@ -69,6 +73,58 @@ class InkingInputManager
             SkInkCanvas.ManipulateFinish();
 
             _lastStylusPoint = args.StylusPoint;
+        }
+    }
+}
+
+class TestInput(SkInkCanvas skInkCanvas)
+{
+    public void RenderSplashScreen()
+    {
+        using var skPaint = new SKPaint();
+        skPaint.Color = SKColors.Black;
+        skPaint.StrokeWidth = 2;
+        skPaint.Style = SKPaintStyle.Stroke;
+
+        for (int y = 0; y < skInkCanvas. ApplicationDrawingSkBitmap.Height * 2; y += 25)
+        {
+            //_skCanvas.DrawLine(0, y, ApplicationDrawingSkBitmap.Width, y, skPaint);
+
+            var color = new SKColor((uint) Random.Shared.Next()).WithAlpha((byte) Random.Shared.Next(100, 0xFF));
+
+            var inkPointList = new List<StylusPoint>();
+            for (int i = 0; i < skInkCanvas.ApplicationDrawingSkBitmap.Width * 2; i++)
+            {
+                inkPointList.Add(new StylusPoint(i, y));
+            }
+
+            AddInk(color, inkPointList);
+        }
+
+        for (int x = 0; x < skInkCanvas.ApplicationDrawingSkBitmap.Width * 2; x += 25)
+        {
+            var color = new SKColor((uint) Random.Shared.Next()).WithAlpha((byte) Random.Shared.Next(100, 0xFF));
+
+            var inkPointList = new List<StylusPoint>();
+            for (int i = 0; i < skInkCanvas.ApplicationDrawingSkBitmap.Height * 2; i++)
+            {
+                inkPointList.Add(new StylusPoint(x, i));
+            }
+
+            AddInk(color, inkPointList);
+        }
+
+        skInkCanvas.DrawAllInk();
+
+        void AddInk(SKColor color, List<StylusPoint> inkPointList)
+        {
+            var inkId = new InkId(Random.Shared.Next());
+
+            var outline = SimpleInkRender.GetOutlinePointList([.. inkPointList], 10);
+            var skPath = new SKPath();
+            skPath.AddPoly(outline.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
+
+            skInkCanvas.StaticInkInfoList.Add(new SkiaStrokeSynchronizer(0, inkId, color, 10, skPath, inkPointList));
         }
     }
 }
