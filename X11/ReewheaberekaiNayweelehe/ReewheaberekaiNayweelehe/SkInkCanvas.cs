@@ -11,9 +11,23 @@ using SkiaSharp;
 
 namespace ReewheaberekaiNayweelehe;
 
+<<<<<<< HEAD
 partial record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp)
+=======
+record InkingModeInputArgs(int Id, StylusPoint StylusPoint, ulong Timestamp)
+>>>>>>> 26fc699b4b42ce61c693a35760e56996f085d438
 {
+    public Point Position => StylusPoint.Point;
+
+    /// <summary>
+    /// 是否来自鼠标的输入
+    /// </summary>
     public bool IsMouse { init; get; }
+
+    /// <summary>
+    /// 被合并的其他历史的触摸点。可能为空
+    /// </summary>
+    public IReadOnlyList<StylusPoint>? StylusPointList { init; get; }
 };
 
 <<<<<<< HEAD
@@ -54,7 +68,7 @@ class InkingInputManager
 
     private StylusPoint _lastStylusPoint;
 
-    public void Down(InkingInputInfo info)
+    public void Down(InkingModeInputArgs args)
     {
         _downCount++;
         if (_downCount > 2)
@@ -64,40 +78,40 @@ class InkingInputManager
 
         if (InputMode == InputMode.Ink)
         {
-            SkInkCanvas.DrawStrokeDown(info);
+            SkInkCanvas.DrawStrokeDown(args);
         }
         else if (InputMode == InputMode.Manipulate)
         {
-            _lastStylusPoint = info.StylusPoint;
+            _lastStylusPoint = args.StylusPoint;
         }
     }
 
-    public void Move(InkingInputInfo info)
+    public void Move(InkingModeInputArgs args)
     {
         if (InputMode == InputMode.Ink)
         {
-            SkInkCanvas.DrawStrokeMove(info);
+            SkInkCanvas.DrawStrokeMove(args);
         }
         else if (InputMode == InputMode.Manipulate)
         {
-            SkInkCanvas.ManipulateMove(new Point(info.StylusPoint.Point.X - _lastStylusPoint.Point.X, info.StylusPoint.Point.Y - _lastStylusPoint.Point.Y));
+            SkInkCanvas.ManipulateMove(new Point(args.StylusPoint.Point.X - _lastStylusPoint.Point.X, args.StylusPoint.Point.Y - _lastStylusPoint.Point.Y));
 
-            _lastStylusPoint = info.StylusPoint;
+            _lastStylusPoint = args.StylusPoint;
         }
     }
 
-    public void Up(InkingInputInfo info)
+    public void Up(InkingModeInputArgs args)
     {
         if (InputMode == InputMode.Ink)
         {
-            SkInkCanvas.DrawStrokeUp(info);
+            SkInkCanvas.DrawStrokeUp(args);
         }
         else if (InputMode == InputMode.Manipulate)
         {
-            SkInkCanvas.ManipulateMove(new Point(info.StylusPoint.Point.X - _lastStylusPoint.Point.X, info.StylusPoint.Point.Y - _lastStylusPoint.Point.Y));
+            SkInkCanvas.ManipulateMove(new Point(args.StylusPoint.Point.X - _lastStylusPoint.Point.X, args.StylusPoint.Point.Y - _lastStylusPoint.Point.Y));
             SkInkCanvas.ManipulateFinish();
 
-            _lastStylusPoint = info.StylusPoint;
+            _lastStylusPoint = args.StylusPoint;
         }
     }
 }
@@ -159,7 +173,7 @@ partial class SkInkCanvas
 
         void AddInk(SKColor color, List<StylusPoint> inkPointList)
         {
-            var inkingInputInfo = new InkingInputInfo(Random.Shared.Next(), new StylusPoint(), (ulong) Environment.TickCount64);
+            var inkingInputInfo = new InkingModeInputArgs(Random.Shared.Next(), new StylusPoint(), (ulong) Environment.TickCount64);
             var inkId = new InkId(Random.Shared.Next());
 
             var drawStrokeContext = new DrawStrokeContext(inkId, inkingInputInfo, color, 10);
@@ -195,21 +209,21 @@ partial class SkInkCanvas
 
     public SKColor Color { set; get; } = SKColors.Red;
 
-    public void DrawStrokeDown(InkingInputInfo info)
+    public void DrawStrokeDown(InkingModeInputArgs args)
     {
-        var context = new DrawStrokeContext(new InkId(), info, Color, 20);
-        CurrentInputDictionary[info.Id] = context;
+        var context = new DrawStrokeContext(new InkId(), args, Color, 20);
+        CurrentInputDictionary[args.Id] = context;
 
-        context.AllStylusPoints.Add(info.StylusPoint);
-        context.TipStylusPoints.Enqueue(info.StylusPoint);
+        context.AllStylusPoints.Add(args.StylusPoint);
+        context.TipStylusPoints.Enqueue(args.StylusPoint);
     }
 
-    public void DrawStrokeMove(InkingInputInfo info)
+    public void DrawStrokeMove(InkingModeInputArgs args)
     {
-        if (CurrentInputDictionary.TryGetValue(info.Id, out var context))
+        if (CurrentInputDictionary.TryGetValue(args.Id, out var context))
         {
-            context.AllStylusPoints.Add(info.StylusPoint);
-            context.TipStylusPoints.Enqueue(info.StylusPoint);
+            context.AllStylusPoints.Add(args.StylusPoint);
+            context.TipStylusPoints.Enqueue(args.StylusPoint);
 
             context.InkStrokePath?.Dispose();
 
@@ -224,7 +238,7 @@ partial class SkInkCanvas
 
             // 计算脏范围，用于渲染更新
             var additionSize = 100d; // 用于设置比简单计算的范围更大一点的范围，解决重采样之后的模糊
-            var (x, y) = info.StylusPoint.Point;
+            var (x, y) = args.StylusPoint.Point;
 
             RenderBoundsChanged?.Invoke(this,
                 new Rect(x - additionSize / 2, y - additionSize / 2, additionSize, additionSize));
@@ -276,13 +290,13 @@ partial class SkInkCanvas
         }
     }
 
-    public void DrawStrokeUp(InkingInputInfo info)
+    public void DrawStrokeUp(InkingModeInputArgs args)
     {
-        if (CurrentInputDictionary.Remove(info.Id, out var context))
+        if (CurrentInputDictionary.Remove(args.Id, out var context))
         {
             context.IsUp = true;
 
-            StaticInkInfoList.Add(new SkiaStrokeSynchronizer((uint) info.Id, context.InkId, context.StrokeColor, context.InkThickness, context.InkStrokePath, context.AllStylusPoints));
+            StaticInkInfoList.Add(new SkiaStrokeSynchronizer((uint) args.Id, context.InkId, context.StrokeColor, context.InkThickness, context.InkStrokePath, context.AllStylusPoints));
         }
     }
 
@@ -596,13 +610,17 @@ partial class SkInkCanvas
         /// <summary>
         /// 绘制使用的上下文信息
         /// </summary>
-        public DrawStrokeContext(InkId inkId, InkingInputInfo inputInfo, SKColor strokeColor, double inkThickness)
+        public DrawStrokeContext(InkId inkId, InkingModeInputArgs modeInputArgs, SKColor strokeColor, double inkThickness)
         {
             InkId = inkId;
             InkThickness = inkThickness;
             StrokeColor = strokeColor;
+<<<<<<< HEAD
             InputInfo = inputInfo;
 >>>>>>> 3fa23c5db39211ac70b181c2423a7ab1a163836e
+=======
+            ModeInputArgs = modeInputArgs;
+>>>>>>> 26fc699b4b42ce61c693a35760e56996f085d438
 
             //List<StylusPoint> historyDequeueList = [];
             //TipStylusPoints = new InkingFixedQueue<StylusPoint>(MaxTipStylusCount, historyDequeueList);
@@ -619,7 +637,7 @@ partial class SkInkCanvas
         public double InkThickness { get; }
 
         public SKColor StrokeColor { get; }
-        public InkingInputInfo InputInfo { set; get; }
+        public InkingModeInputArgs ModeInputArgs { set; get; }
 
         /// <summary>
         /// 丢点的数量

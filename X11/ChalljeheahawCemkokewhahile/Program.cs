@@ -106,7 +106,7 @@ while (true)
     {
         var x = @event.ButtonEvent.x;
         var y = @event.ButtonEvent.y;
-        input.Down(new InkingInputInfo(0, new Point(x, y), (ulong)Environment.TickCount64));
+        input.Down(new InkingModeInputArgs(0, new Point(x, y), (ulong)Environment.TickCount64));
         isDown = true;
     }
     else if (@event.type == XEventName.MotionNotify)
@@ -115,7 +115,7 @@ while (true)
         {
             var x = @event.MotionEvent.x;
             var y = @event.MotionEvent.y;
-            input.Move(new InkingInputInfo(0, new Point(x, y), (ulong)Environment.TickCount64));
+            input.Move(new InkingModeInputArgs(0, new Point(x, y), (ulong)Environment.TickCount64));
         }
 
         while (true)
@@ -135,7 +135,7 @@ while (true)
     {
         var x = @event.ButtonEvent.x;
         var y = @event.ButtonEvent.y;
-        input.Up(new InkingInputInfo(0, new Point(x, y), (ulong)Environment.TickCount64));
+        input.Up(new InkingModeInputArgs(0, new Point(x, y), (ulong)Environment.TickCount64));
         isDown = false;
     }
 }
