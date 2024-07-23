@@ -415,7 +415,8 @@ partial class SkInkCanvas
             var destinationStartColumn = destinationRectI.Left;
             var destinationStartIndex = destinationRow * sourcePixelWidthLengthOfUint + destinationStartColumn;
 
-            Unsafe.CopyBlockUnaligned((destinationBitmap + destinationStartIndex), (sourceBitmap + sourceStartIndex), (uint) (destinationRectI.Width * sizeof(uint)));
+            var length = destinationRectI.Width * sizeof(uint);
+            Buffer.MemoryCopy((destinationBitmap + destinationStartIndex), (sourceBitmap + sourceStartIndex), length, length);
 
             //for (var sourceColumn = sourceRectI.Left; sourceColumn < sourceRectI.Right; sourceColumn++)
             //{
@@ -446,7 +447,7 @@ partial class SkInkCanvas
         //skCanvas.DrawBitmap(ApplicationDrawingSkBitmap, 0, 0);
         var applicationPixelHandler = ApplicationDrawingSkBitmap.GetPixels(out var length);
         var originBackgroundPixelHandler = _originBackground.GetPixels();
-        Unsafe.CopyBlock((void*) originBackgroundPixelHandler, (void*) applicationPixelHandler, (uint) length);
+        Buffer.MemoryCopy((void*) applicationPixelHandler, (void*) originBackgroundPixelHandler, length, length);
     }
 }
 
