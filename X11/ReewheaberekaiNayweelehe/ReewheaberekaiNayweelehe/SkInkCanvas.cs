@@ -240,15 +240,20 @@ partial class SkInkCanvas
 
         foreach (var inkInfo in StaticInkInfoList)
         {
-            skPaint.Color = inkInfo.Context.StrokeColor;
-
-            if (inkInfo.Context.InkStrokePath is { } path)
-            {
-                skCanvas.DrawPath(path, skPaint);
-            }
+            DrawInk(skCanvas, skPaint, inkInfo);
         }
 
         skCanvas.Flush();
+    }
+
+    private static void DrawInk(SKCanvas skCanvas, SKPaint skPaint, InkInfo inkInfo)
+    {
+        skPaint.Color = inkInfo.Context.StrokeColor;
+
+        if (inkInfo.Context.InkStrokePath is { } path)
+        {
+            skCanvas.DrawPath(path, skPaint);
+        }
     }
 
     public void DrawStrokeUp(InkingInputInfo info)
@@ -410,6 +415,35 @@ partial class SkInkCanvas
         SKRectI destinationRectI = SKRectI.Create(destinationX, destinationY, destinationWidth, destinationHeight);
         SKRectI sourceRectI = SKRectI.Create(sourceX, sourceY, sourceWidth, sourceHeight);
 
+        // 计算脏范围，用于在此绘制笔迹
+        var topRectI = SKRectI.Create(0, 0, ApplicationDrawingSkBitmap.Width, destinationY);
+        var bottomRectI = SKRectI.Create(0, destinationY + destinationHeight, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height - destinationY - destinationHeight);
+        var leftRectI = SKRectI.Create(0, destinationY, destinationX, destinationHeight);
+        var rightRectI = SKRectI.Create(destinationX + destinationWidth, destinationY, ApplicationDrawingSkBitmap.Width - destinationX - destinationWidth, destinationHeight);
+
+        var hitInk = new List<InkInfo>();
+        foreach (var skRectI in (Span<SKRectI>) [topRectI, bottomRectI, leftRectI, rightRectI])
+        {
+            HitInk(skRectI);
+        }
+
+        var skCanvas = _skCanvas;
+        skCanvas.Clear();
+        skCanvas.Save();
+        skCanvas.SetMatrix(_totalMatrix);
+        using var skPaint = new SKPaint();
+        skPaint.StrokeWidth = 0;
+        skPaint.IsAntialias = true;
+        skPaint.FilterQuality = SKFilterQuality.High;
+        skPaint.Style = SKPaintStyle.Fill;
+
+        foreach (var inkInfo in hitInk.Distinct())
+        {
+            DrawInk(skCanvas, skPaint, inkInfo);
+        }
+
+        skCanvas.Restore();
+
         fixed (uint* pCachePixel = _cachePixel)
         {
             var pixelLength = (uint) (ApplicationDrawingSkBitmap.Width);
@@ -419,6 +453,24 @@ partial class SkInkCanvas
 
         RenderBoundsChanged?.Invoke(this,
             new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
+
+        static bool IsEmptySize(SKRectI skRectI) => skRectI.Width == 0 || skRectI.Height == 0;
+
+        void HitInk(SKRectI skRectI)
+        {
+            var skRect = SKRect.Create(skRectI.Left, skRectI.Top, skRectI.Width, skRectI.Height);
+            foreach (var inkInfo in StaticInkInfoList)
+            {
+                if (inkInfo.Context.InkStrokePath is { } path)
+                {
+                    var bounds = path.Bounds;
+                    if (skRect.IntersectsWith(bounds))
+                    {
+                        hitInk.Add(inkInfo);
+                    }
+                }
+            }
+        }
     }
 
     public static unsafe bool ReplacePixels(uint* destinationBitmap, uint* sourceBitmap, SKRectI destinationRectI,
