@@ -29,7 +29,6 @@ public partial class MainWindow : Window
 
         SkiaCanvas.RequireDraw(context =>
         {
-          
         });
     }
 }
@@ -71,7 +70,10 @@ public class SkiaCanvas : FrameworkElement
 
     private void SkiaCanvas_Loaded(object sender, RoutedEventArgs e)
     {
-        RequireDraw();
+        RequireDraw(context =>
+        {
+            _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
+        });
     }
 
     private void DrawInner()
