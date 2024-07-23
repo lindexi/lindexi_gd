@@ -4,9 +4,11 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\X11\BujeeberehemnaNurgacolarje\FixedQueue.cs" Link="FixedQueue.cs" />
     <Compile Include="..\..\X11\BujeeberehemnaNurgacolarje\SimpleInkRender.cs" Link="SimpleInkRender.cs" />
     <Compile Include="..\..\X11\BujeeberehemnaNurgacolarje\StylusPoint.cs" Link="StylusPoint.cs" />
     <Compile Include="..\..\X11\ReewheaberekaiNayweelehe\ReewheaberekaiNayweelehe\SkInkCanvas.cs" Link="SkInkCanvas.cs" />
