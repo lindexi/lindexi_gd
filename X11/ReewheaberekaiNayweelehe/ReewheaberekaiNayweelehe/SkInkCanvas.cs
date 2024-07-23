@@ -291,10 +291,10 @@ partial class SkInkCanvas
 
         var pixels = ApplicationDrawingSkBitmap.GetPixels(out var length);
 
-        if (_cachePixel is null || _cachePixel.Length != length)
+        var pixelLengthOfUint = length / 4;
+        if (_cachePixel is null || _cachePixel.Length != pixelLengthOfUint)
         {
-            var lengthOfUint = length / 4;
-            _cachePixel = new uint[lengthOfUint];
+            _cachePixel = new uint[pixelLengthOfUint];
         }
 
         fixed (uint* pCachePixel = _cachePixel)
