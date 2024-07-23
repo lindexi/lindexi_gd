@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
@@ -696,17 +697,24 @@ partial class SkInkCanvas
         SKRectI sourceRectI = SKRectI.Create(sourceX, sourceY, sourceWidth, sourceHeight);
 
         // 计算脏范围，用于在此绘制笔迹
-        var topRectI = SKRect.Create(0, 0, ApplicationDrawingSkBitmap.Width, destinationY);
-        var bottomRectI = SKRect.Create(0, destinationY + destinationHeight, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height - destinationY - destinationHeight);
-        var leftRectI = SKRect.Create(0, destinationY, destinationX, destinationHeight);
-        var rightRectI = SKRect.Create(destinationX + destinationWidth, destinationY, ApplicationDrawingSkBitmap.Width - destinationX - destinationWidth, destinationHeight);
+        var topRect = SKRect.Create(0, 0, ApplicationDrawingSkBitmap.Width, destinationY);
+        var bottomRect = SKRect.Create(0, destinationY + destinationHeight, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height - destinationY - destinationHeight);
+        var leftRect = SKRect.Create(0, destinationY, destinationX, destinationHeight);
+        var rightRect = SKRect.Create(destinationX + destinationWidth, destinationY, ApplicationDrawingSkBitmap.Width - destinationX - destinationWidth, destinationHeight);
 
         var hitInk = new List<InkInfo>();
-        foreach (var skRect in (Span<SKRect>) [topRectI, bottomRectI, leftRectI, rightRectI])
+        var matrix = _totalMatrix.Invert();
+        Span<SKRect> hitRectSpan = [matrix.MapRect(topRect), matrix.MapRect(bottomRect), matrix.MapRect(leftRect), matrix.MapRect(rightRect),];
+        foreach (var inkInfo in StaticInkInfoList)
         {
-            var matrix = _totalMatrix.Invert();
-            var matrixSkRect = matrix.MapRect(skRect);
-            HitInk(matrixSkRect);
+            foreach (var skRect in hitRectSpan)
+            {
+                if (IsHit(inkInfo, skRect))
+                {
+                    hitInk.Add(inkInfo);
+                    break;
+                }
+            }
         }
 
         //var skCanvas = _skCanvas;
@@ -735,7 +743,7 @@ partial class SkInkCanvas
         skPaint.FilterQuality = SKFilterQuality.High;
         skPaint.Style = SKPaintStyle.Fill;
 
-        foreach (var inkInfo in hitInk.Distinct())
+        foreach (var inkInfo in hitInk)
         {
             DrawInk(skCanvas, skPaint, inkInfo);
         }
@@ -755,19 +763,18 @@ partial class SkInkCanvas
 
         static bool IsEmptySize(SKRectI skRectI) => skRectI.Width == 0 || skRectI.Height == 0;
 
-        void HitInk(SKRect skRect)
+        static bool IsHit(InkInfo inkInfo, SKRect skRect)
         {
-            foreach (var inkInfo in StaticInkInfoList)
+            if (inkInfo.Context.InkStrokePath is { } path)
             {
-                if (inkInfo.Context.InkStrokePath is { } path)
+                var bounds = path.Bounds;
+                if (skRect.IntersectsWith(bounds))
                 {
-                    var bounds = path.Bounds;
-                    if (skRect.IntersectsWith(bounds))
-                    {
-                        hitInk.Add(inkInfo);
-                    }
+                    return true;
                 }
             }
+
+            return false;
         }
     }
 
