@@ -269,29 +269,85 @@ partial class SkInkCanvas
     /// <summary>
     /// 绘制使用的上下文信息
     /// </summary>
-    /// <param name="inputInfo"></param>
-    class DrawStrokeContext(InkingInputInfo inputInfo, SKColor strokeColor) : IDisposable
+    class DrawStrokeContext : IDisposable
     {
-        public SKColor StrokeColor { get; } = strokeColor;
-        public InkingInputInfo InputInfo { set; get; } = inputInfo;
+        /// <summary>
+        /// 绘制使用的上下文信息
+        /// </summary>
+        public DrawStrokeContext(InkId inkId, InkingInputInfo inputInfo, SKColor strokeColor, double inkThickness)
+        {
+            InkId = inkId;
+            InkThickness = inkThickness;
+            StrokeColor = strokeColor;
+            InputInfo = inputInfo;
+
+            List<StylusPoint> historyDequeueList = [];
+            TipStylusPoints = new InkingFixedQueue<StylusPoint>(MaxTipStylusCount, historyDequeueList);
+            _historyDequeueList = historyDequeueList;
+        }
+
+        /// <summary>
+        /// 笔迹的 Id 号，基本上每个笔迹都是不相同的。和输入的 Id 是不相同的，这是给每个 Stroke 一个的，不同的 Stroke 是不同的。除非有人能够一秒一条笔迹，写 60 多年才能重复
+        /// </summary>
+        public InkId InkId { get; }
+
+
+        public double InkThickness { get; }
+
+        public SKColor StrokeColor { get; }
+        public InkingInputInfo InputInfo { set; get; }
+
+        /// <summary>
+        /// 丢点的数量
+        /// </summary>
         public int DropPointCount { set; get; }
 
         /// <summary>
         /// 笔尖的点
         /// </summary>
-        public readonly FixedQueue<StylusPoint> TipStylusPoints = new FixedQueue<StylusPoint>(SkInkCanvas.MaxTipStylusCount);
+        public InkingFixedQueue<StylusPoint> TipStylusPoints { get; }
+
+        /// <summary>
+        /// 存放笔迹的笔尖的点丢出来的点
+        /// </summary>
+        private List<StylusPoint>? _historyDequeueList;
 
         /// <summary>
         /// 整个笔迹的点，包括笔尖的点
         /// </summary>
-        public List<StylusPoint> AllStylusPoints { get; } = new List<StylusPoint>();
+        public List<StylusPoint> GetAllStylusPointsOnFinish()
+        {
+            if (_historyDequeueList is null)
+            {
+                // 为了减少 List 对象的申请，这里将复用 _historyDequeueList 的 List 对象。这就导致了一旦上层调用过此方法，将不能重复调用，否则将会炸掉逻辑
+                throw new InvalidOperationException("此方法只能在完成的时候调用一次，禁止多次调用");
+            }
+
+            // 将笔尖的点合并到 _historyDequeueList 里面，这样就可以一次性返回所有的点。减少创建一个比较大的数组。缺点是这么做将不能多次调用，否则数据将会不正确
+            var historyDequeueList = _historyDequeueList;
+            //historyDequeueList.AddRange(TipStylusPoints);
+            int count = TipStylusPoints.Count; // 为什么需要取出来？因为会越出队越小
+            for (int i = 0; i < count; i++)
+            {
+                // 全部出队列，即可确保数据全取出来
+                TipStylusPoints.Dequeue();
+            }
+
+            // 防止被多次调用
+            _historyDequeueList = null;
+            return historyDequeueList;
+        }
 
         public SKPath? InkStrokePath { set; get; }
 
         public bool IsUp { set; get; }
 
+        public bool IsLeave { set; get; }
+
         public void Dispose()
         {
+            // 不释放，否则另一个线程使用可能炸掉
+            // 如 cee6070566964a8143b235e10f90dda9907e6e22 的测试
             //InkStrokePath?.Dispose();
         }
     }
