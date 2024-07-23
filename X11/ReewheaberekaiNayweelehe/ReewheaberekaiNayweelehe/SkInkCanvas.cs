@@ -443,13 +443,14 @@ partial class SkInkCanvas
         }
 
         skCanvas.Restore();
+        skCanvas.Flush();
 
-        fixed (uint* pCachePixel = _cachePixel)
-        {
-            var pixelLength = (uint) (ApplicationDrawingSkBitmap.Width);
+        //fixed (uint* pCachePixel = _cachePixel)
+        //{
+        //    var pixelLength = (uint) (ApplicationDrawingSkBitmap.Width);
 
-            ReplacePixels((uint*) pixels, pCachePixel, destinationRectI, sourceRectI, pixelLength, pixelLength);
-        }
+        //    ReplacePixels((uint*) pixels, pCachePixel, destinationRectI, sourceRectI, pixelLength, pixelLength);
+        //}
 
         RenderBoundsChanged?.Invoke(this,
             new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
