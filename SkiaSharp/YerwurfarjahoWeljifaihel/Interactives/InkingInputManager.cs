@@ -33,10 +33,23 @@ class InkingInputManager
 
     private StylusPoint _lastStylusPoint;
     private StylusPoint _firstStylusPoint;
+    private int MainInput { get; set; }
 
     public void Down(InkingModeInputArgs args)
     {
         _downCount++;
+
+
+        if (_downCount == 1)
+        {
+            _firstStylusPoint = args.StylusPoint;
+            MainInput = args.Id;
+        }
+
+        if (args.Id == MainInput)
+        {
+            _lastStylusPoint = args.StylusPoint;
+        }
 
         if (InputMode == InputMode.Ink)
         {
@@ -44,12 +57,6 @@ class InkingInputManager
         }
         else if (InputMode == InputMode.Manipulate)
         {
-            _lastStylusPoint = args.StylusPoint;
-
-            if (_downCount == 1)
-            {
-                _firstStylusPoint = args.StylusPoint;
-            }
         }
     }
 
@@ -67,11 +74,19 @@ class InkingInputManager
             }
             else
             {
+                if (args.Id != MainInput)
+                {
+                    return;
+                }
+
                 var x = (float) (args.StylusPoint.Point.X - _lastStylusPoint.Point.X);
                 var y = (float) (args.StylusPoint.Point.Y - _lastStylusPoint.Point.Y);
 
                 x = 1 + x / 100;
                 y = 1 + y / 100;
+
+                x = MathF.Max(0.1f, MathF.Min(10, x));
+                y = MathF.Max(0.1f, MathF.Min(10, y));
 
                 SkInkCanvas.ManipulateScale(new ScaleContext(x, y, (float) _firstStylusPoint.Point.X, (float) _firstStylusPoint.Point.Y));
             }
