@@ -408,6 +408,7 @@ partial class SkInkCanvas
         DrawAllInk();
 
         skCanvas.Restore();
+        _isOriginBackgroundDisable = true;
     }
 
     public void ManipulateMove(Point delta)
@@ -421,6 +422,8 @@ partial class SkInkCanvas
 
         //// 几何漫游的方法
         //MoveWithPath(delta);
+
+        _isOriginBackgroundDisable = true;
     }
 
     private SKMatrix _totalMatrix = SKMatrix.CreateIdentity();
