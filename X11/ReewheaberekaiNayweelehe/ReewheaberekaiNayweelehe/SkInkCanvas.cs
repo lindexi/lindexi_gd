@@ -157,7 +157,7 @@ partial class SkInkCanvas
 
         DrawAllInk();
 
-        void AddInk(SKColor color, IList<StylusPoint> inkPointList)
+        void AddInk(SKColor color, List<StylusPoint> inkPointList)
         {
             var inkingInputInfo = new InkingInputInfo(Random.Shared.Next(), new StylusPoint(), (ulong) Environment.TickCount64);
             var inkId = new InkId(Random.Shared.Next());
@@ -171,7 +171,7 @@ partial class SkInkCanvas
 
             drawStrokeContext.InkStrokePath = skPath;
 
-            StaticInkInfoList.Add(new InkInfo(Random.Shared.Next(), drawStrokeContext));
+            StaticInkInfoList.Add(new SkiaStrokeSynchronizer(0, new InkId(Random.Shared.Next()), color, 10, skPath, inkPointList));
         }
     }
 
@@ -188,7 +188,7 @@ partial class SkInkCanvas
     /// <summary>
     /// 静态笔迹层
     /// </summary>
-    private List<InkInfo> StaticInkInfoList { get; } = new List<InkInfo>();
+    public List<SkiaStrokeSynchronizer> StaticInkInfoList { get; } = new List<SkiaStrokeSynchronizer>();
 
     private Dictionary<int, DrawStrokeContext> CurrentInputDictionary { get; } =
         new Dictionary<int, DrawStrokeContext>();
@@ -258,19 +258,19 @@ partial class SkInkCanvas
             }
         }
 
-        foreach (var inkInfo in StaticInkInfoList)
+        foreach (var skiaStrokeSynchronizer in StaticInkInfoList)
         {
-            DrawInk(skCanvas, skPaint, inkInfo);
+            DrawInk(skCanvas, skPaint, skiaStrokeSynchronizer);
         }
 
         skCanvas.Flush();
     }
 
-    private static void DrawInk(SKCanvas skCanvas, SKPaint skPaint, InkInfo inkInfo)
+    private static void DrawInk(SKCanvas skCanvas, SKPaint skPaint, SkiaStrokeSynchronizer inkInfo)
     {
-        skPaint.Color = inkInfo.Context.StrokeColor;
+        skPaint.Color = inkInfo.StrokeColor;
 
-        if (inkInfo.Context.InkStrokePath is { } path)
+        if (inkInfo.InkStrokePath is { } path)
         {
             skCanvas.DrawPath(path, skPaint);
         }
@@ -282,7 +282,7 @@ partial class SkInkCanvas
         {
             context.IsUp = true;
 
-            StaticInkInfoList.Add(new InkInfo(info.Id, context));
+            StaticInkInfoList.Add(new SkiaStrokeSynchronizer((uint) info.Id, context.InkId, context.StrokeColor, context.InkThickness, context.InkStrokePath, context.AllStylusPoints));
         }
     }
 
@@ -817,14 +817,14 @@ partial class SkInkCanvas
             }
         }
 
-        var hitInk = new List<InkInfo>();
-        foreach (var inkInfo in StaticInkInfoList)
+        var hitInk = new List<SkiaStrokeSynchronizer>();
+        foreach (var skiaStrokeSynchronizer in StaticInkInfoList)
         {
             foreach (var skRect in hitRectList)
             {
-                if (IsHit(inkInfo, skRect))
+                if (IsHit(skiaStrokeSynchronizer, skRect))
                 {
-                    hitInk.Add(inkInfo);
+                    hitInk.Add(skiaStrokeSynchronizer);
                     break;
                 }
             }
@@ -856,9 +856,9 @@ partial class SkInkCanvas
         skPaint.FilterQuality = SKFilterQuality.High;
         skPaint.Style = SKPaintStyle.Fill;
 
-        foreach (var inkInfo in hitInk)
+        foreach (var skiaStrokeSynchronizer in hitInk)
         {
-            DrawInk(skCanvas, skPaint, inkInfo);
+            DrawInk(skCanvas, skPaint, skiaStrokeSynchronizer);
         }
 
         skCanvas.Restore();
@@ -876,9 +876,9 @@ partial class SkInkCanvas
 
         static bool IsEmptySize(SKRect skRect) => skRect.Width == 0 || skRect.Height == 0;
 
-        static bool IsHit(InkInfo inkInfo, SKRect skRect)
+        static bool IsHit(SkiaStrokeSynchronizer inkInfo, SKRect skRect)
         {
-            if (inkInfo.Context.InkStrokePath is { } path)
+            if (inkInfo.InkStrokePath is { } path)
             {
                 var bounds = path.Bounds;
                 if (skRect.IntersectsWith(bounds))
@@ -1325,4 +1325,18 @@ record InkInfo(int Id, DrawStrokeContext Context);
 >>>>>>> 3fa23c5db39211ac70b181c2423a7ab1a163836e
 =======
 readonly partial record struct InkId(int Value);
+<<<<<<< HEAD
 >>>>>>> f329874ef34966a91e0ca1f358ededd562aa428b
+=======
+
+/// <summary>
+/// 笔迹信息 用于静态笔迹层
+/// </summary>
+record SkiaStrokeSynchronizer(uint StylusDeviceId,
+    InkId InkId,
+    SKColor StrokeColor,
+    double StrokeInkThickness,
+    SKPath? InkStrokePath,
+    List<StylusPoint> StylusPoints)
+    ;
+>>>>>>> 72ed49de4be8929bf6ab6fd3dfd6535e2ecdf686

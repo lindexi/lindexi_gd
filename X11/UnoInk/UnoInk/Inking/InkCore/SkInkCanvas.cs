@@ -1,4 +1,5 @@
 ﻿#nullable enable
+<<<<<<< HEAD
 using System.Diagnostics;
 <<<<<<< HEAD
 
@@ -6,10 +7,18 @@ using BujeeberehemnaNurgacolarje;
 =======
 using System.Numerics;
 >>>>>>> b1618a865a21321eec61d1eb4fa7ac3eb9ddfcc5
+=======
+using System;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+
+using BujeeberehemnaNurgacolarje;
+>>>>>>> 72ed49de4be8929bf6ab6fd3dfd6535e2ecdf686
 
 using Microsoft.Maui.Graphics;
 
 using SkiaSharp;
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 
@@ -24,10 +33,17 @@ namespace ReewheaberekaiNayweelehe;
 
 <<<<<<< HEAD
 partial record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp)
+=======
+
+namespace ReewheaberekaiNayweelehe;
+
+record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp)
+>>>>>>> 72ed49de4be8929bf6ab6fd3dfd6535e2ecdf686
 {
     public bool IsMouse { init; get; }
 };
 
+<<<<<<< HEAD
 =======
 /// <summary>
 <<<<<<< HEAD
@@ -104,6 +120,152 @@ class SkInkCanvas
     }
 
     public SKCanvas? SkCanvas => _skCanvas;
+=======
+enum InputMode
+{
+    Ink,
+    Manipulate,
+}
+
+class InkingInputManager
+{
+    public InkingInputManager(SkInkCanvas skInkCanvas)
+    {
+        SkInkCanvas = skInkCanvas;
+    }
+
+    public SkInkCanvas SkInkCanvas { get; }
+
+    public InputMode InputMode { set; get; } = InputMode.Manipulate;
+
+    private int _downCount;
+
+    private StylusPoint _lastStylusPoint;
+
+    public void Down(InkingInputInfo info)
+    {
+        _downCount++;
+        if (_downCount > 2)
+        {
+            InputMode = InputMode.Manipulate;
+        }
+
+        if (InputMode == InputMode.Ink)
+        {
+            SkInkCanvas.DrawStrokeDown(info);
+        }
+        else if (InputMode == InputMode.Manipulate)
+        {
+            _lastStylusPoint = info.StylusPoint;
+        }
+    }
+
+    public void Move(InkingInputInfo info)
+    {
+        if (InputMode == InputMode.Ink)
+        {
+            SkInkCanvas.DrawStrokeMove(info);
+        }
+        else if (InputMode == InputMode.Manipulate)
+        {
+            SkInkCanvas.ManipulateMove(new Point(info.StylusPoint.Point.X - _lastStylusPoint.Point.X, info.StylusPoint.Point.Y - _lastStylusPoint.Point.Y));
+
+            _lastStylusPoint = info.StylusPoint;
+        }
+    }
+
+    public void Up(InkingInputInfo info)
+    {
+        if (InputMode == InputMode.Ink)
+        {
+            SkInkCanvas.DrawStrokeUp(info);
+        }
+        else if (InputMode == InputMode.Manipulate)
+        {
+            SkInkCanvas.ManipulateMove(new Point(info.StylusPoint.Point.X - _lastStylusPoint.Point.X, info.StylusPoint.Point.Y - _lastStylusPoint.Point.Y));
+            SkInkCanvas.ManipulateFinish();
+
+            _lastStylusPoint = info.StylusPoint;
+        }
+    }
+}
+
+partial class SkInkCanvas
+{
+    public SkInkCanvas(SKCanvas skCanvas, SKBitmap applicationDrawingSkBitmap)
+    {
+        _skCanvas = skCanvas;
+        ApplicationDrawingSkBitmap = applicationDrawingSkBitmap;
+
+        RenderSplashScreen();
+    }
+
+    public void RenderSplashScreen()
+    {
+        if (_skCanvas is null || ApplicationDrawingSkBitmap is null)
+        {
+            // 理论上不可能进入这里
+            return;
+        }
+
+        _skCanvas.Clear(SKColors.White);
+
+        using var skPaint = new SKPaint();
+        skPaint.Color = SKColors.Black;
+        skPaint.StrokeWidth = 2;
+        skPaint.Style = SKPaintStyle.Stroke;
+
+        for (int y = 0; y < ApplicationDrawingSkBitmap.Height * 2; y += 25)
+        {
+            //_skCanvas.DrawLine(0, y, ApplicationDrawingSkBitmap.Width, y, skPaint);
+
+            var color = new SKColor((uint) Random.Shared.Next()).WithAlpha((byte) Random.Shared.Next(100, 0xFF));
+
+            var inkPointList = new List<StylusPoint>();
+            for (int i = 0; i < ApplicationDrawingSkBitmap.Width * 2; i++)
+            {
+                inkPointList.Add(new StylusPoint(i, y));
+            }
+
+            AddInk(color, inkPointList);
+        }
+
+        for (int x = 0; x < ApplicationDrawingSkBitmap.Width * 2; x += 25)
+        {
+            var color = new SKColor((uint) Random.Shared.Next()).WithAlpha((byte) Random.Shared.Next(100, 0xFF));
+
+            var inkPointList = new List<StylusPoint>();
+            for (int i = 0; i < ApplicationDrawingSkBitmap.Height * 2; i++)
+            {
+                inkPointList.Add(new StylusPoint(x, i));
+            }
+
+            AddInk(color, inkPointList);
+        }
+
+        DrawAllInk();
+
+        void AddInk(SKColor color, IList<StylusPoint> inkPointList)
+        {
+            var inkingInputInfo = new InkingInputInfo(Random.Shared.Next(), new StylusPoint(), (ulong) Environment.TickCount64);
+            var inkId = new InkId(Random.Shared.Next());
+
+            var drawStrokeContext = new DrawStrokeContext(inkId, inkingInputInfo, color, 10);
+            drawStrokeContext.AllStylusPoints.AddRange(inkPointList);
+
+            var outline = SimpleInkRender.GetOutlinePointList([.. inkPointList], 10);
+            var skPath = new SKPath();
+            skPath.AddPoly(outline.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
+
+            drawStrokeContext.InkStrokePath = skPath;
+
+            StaticInkInfoList.Add(new InkInfo(Random.Shared.Next(), drawStrokeContext));
+        }
+    }
+
+    public event EventHandler<Rect>? RenderBoundsChanged;
+
+>>>>>>> 72ed49de4be8929bf6ab6fd3dfd6535e2ecdf686
     private SKCanvas? _skCanvas;
 
     /// <summary>
@@ -111,6 +273,7 @@ class SkInkCanvas
     /// </summary>
     public SKBitmap? ApplicationDrawingSkBitmap { set; get; }
 
+<<<<<<< HEAD
     /// <summary>
     /// 原来的背景
     /// </summary>
@@ -122,10 +285,18 @@ class SkInkCanvas
 
     public event EventHandler<Rect>? RenderBoundsChanged;
     public void RaiseRenderBoundsChanged(Rect rect) => RenderBoundsChanged?.Invoke(this, rect);
+=======
+
+    /// <summary>
+    /// 静态笔迹层
+    /// </summary>
+    private List<InkInfo> StaticInkInfoList { get; } = new List<InkInfo>();
+>>>>>>> 72ed49de4be8929bf6ab6fd3dfd6535e2ecdf686
 
     private Dictionary<int, DrawStrokeContext> CurrentInputDictionary { get; } =
         new Dictionary<int, DrawStrokeContext>();
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     public IEnumerable<string> CurrentInkStrokePathEnumerable =>
         CurrentInputDictionary.Values.Select(t => t.InkStrokePath).Where(t => t != null).Select(t => t!.ToSvgPathData());
@@ -141,10 +312,105 @@ class SkInkCanvas
     /// 取多少个点做笔尖
     /// </summary>
     private const int MaxTipStylusCount = 7;
+=======
+    public SKColor Color { set; get; } = SKColors.Red;
+
+    public void DrawStrokeDown(InkingInputInfo info)
+    {
+        var context = new DrawStrokeContext(new InkId(), info, Color, 20);
+        CurrentInputDictionary[info.Id] = context;
+
+        context.AllStylusPoints.Add(info.StylusPoint);
+        context.TipStylusPoints.Enqueue(info.StylusPoint);
+    }
+
+    public void DrawStrokeMove(InkingInputInfo info)
+    {
+        if (CurrentInputDictionary.TryGetValue(info.Id, out var context))
+        {
+            context.AllStylusPoints.Add(info.StylusPoint);
+            context.TipStylusPoints.Enqueue(info.StylusPoint);
+
+            context.InkStrokePath?.Dispose();
+
+            var outlinePointList = SimpleInkRender.GetOutlinePointList(context.AllStylusPoints.ToArray(), context.InkThickness);
+
+            var skPath = new SKPath();
+            skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
+
+            context.InkStrokePath = skPath;
+
+            DrawAllInk();
+
+            // 计算脏范围，用于渲染更新
+            var additionSize = 100d; // 用于设置比简单计算的范围更大一点的范围，解决重采样之后的模糊
+            var (x, y) = info.StylusPoint.Point;
+
+            RenderBoundsChanged?.Invoke(this,
+                new Rect(x - additionSize / 2, y - additionSize / 2, additionSize, additionSize));
+        }
+    }
+
+    private void DrawAllInk()
+    {
+        if (_skCanvas is null)
+        {
+            // 理论上不可能进入这里
+            return;
+        }
+
+        var skCanvas = _skCanvas;
+        skCanvas.Clear();
+
+        using var skPaint = new SKPaint();
+        skPaint.StrokeWidth = 0;
+        skPaint.IsAntialias = true;
+        skPaint.FilterQuality = SKFilterQuality.High;
+        skPaint.Style = SKPaintStyle.Fill;
+
+        foreach (var drawStrokeContext in CurrentInputDictionary)
+        {
+            skPaint.Color = drawStrokeContext.Value.StrokeColor;
+
+            if (drawStrokeContext.Value.InkStrokePath is { } path)
+            {
+                skCanvas.DrawPath(path, skPaint);
+            }
+        }
+
+        foreach (var inkInfo in StaticInkInfoList)
+        {
+            DrawInk(skCanvas, skPaint, inkInfo);
+        }
+
+        skCanvas.Flush();
+    }
+
+    private static void DrawInk(SKCanvas skCanvas, SKPaint skPaint, InkInfo inkInfo)
+    {
+        skPaint.Color = inkInfo.Context.StrokeColor;
+
+        if (inkInfo.Context.InkStrokePath is { } path)
+        {
+            skCanvas.DrawPath(path, skPaint);
+        }
+    }
+
+    public void DrawStrokeUp(InkingInputInfo info)
+    {
+        if (CurrentInputDictionary.Remove(info.Id, out var context))
+        {
+            context.IsUp = true;
+
+            StaticInkInfoList.Add(new InkInfo(info.Id, context));
+        }
+    }
+>>>>>>> 72ed49de4be8929bf6ab6fd3dfd6535e2ecdf686
 
     /// <summary>
     /// 绘制使用的上下文信息
     /// </summary>
+<<<<<<< HEAD
 <<<<<<< HEAD
     /// <param name="inputInfo"></param>
     class DrawStrokeContext(InkingInputInfo inputInfo, SKColor strokeColor) : IDisposable
@@ -162,22 +428,93 @@ class SkInkCanvas
 >>>>>>> a313c7d1fa7ffb81c04c5af29dbd36289f0f1a6d
         public SKColor StrokeColor { get; } = strokeColor;
         public InkingInputInfo InputInfo { set; get; } = inputInfo;
+=======
+    class DrawStrokeContext : IDisposable
+    {
+        /// <summary>
+        /// 绘制使用的上下文信息
+        /// </summary>
+        public DrawStrokeContext(InkId inkId, InkingInputInfo inputInfo, SKColor strokeColor, double inkThickness)
+        {
+            InkId = inkId;
+            InkThickness = inkThickness;
+            StrokeColor = strokeColor;
+            InputInfo = inputInfo;
+
+            //List<StylusPoint> historyDequeueList = [];
+            //TipStylusPoints = new InkingFixedQueue<StylusPoint>(MaxTipStylusCount, historyDequeueList);
+            //_historyDequeueList = historyDequeueList;
+            TipStylusPoints = new FixedQueue<StylusPoint>(MaxTipStylusCount);
+        }
+
+        /// <summary>
+        /// 笔迹的 Id 号，基本上每个笔迹都是不相同的。和输入的 Id 是不相同的，这是给每个 Stroke 一个的，不同的 Stroke 是不同的。除非有人能够一秒一条笔迹，写 60 多年才能重复
+        /// </summary>
+        public InkId InkId { get; }
+
+
+        public double InkThickness { get; }
+
+        public SKColor StrokeColor { get; }
+        public InkingInputInfo InputInfo { set; get; }
+
+        /// <summary>
+        /// 丢点的数量
+        /// </summary>
+>>>>>>> 72ed49de4be8929bf6ab6fd3dfd6535e2ecdf686
         public int DropPointCount { set; get; }
 
         /// <summary>
         /// 笔尖的点
         /// </summary>
+<<<<<<< HEAD
         public readonly FixedQueue<StylusPoint> TipStylusPoints = new FixedQueue<StylusPoint>(MaxTipStylusCount);
+=======
+        public FixedQueue<StylusPoint> TipStylusPoints { get; }
+
+        public List<StylusPoint> AllStylusPoints { get; } = new List<StylusPoint>();
+
+        ///// <summary>
+        ///// 存放笔迹的笔尖的点丢出来的点
+        ///// </summary>
+        //private List<StylusPoint>? _historyDequeueList;
+>>>>>>> 72ed49de4be8929bf6ab6fd3dfd6535e2ecdf686
 
         ///// <summary>
         ///// 整个笔迹的点，包括笔尖的点
         ///// </summary>
+<<<<<<< HEAD
         //public List<StylusPoint> AllStylusPoints { get; } = new List<StylusPoint>();
+=======
+        //public List<StylusPoint> GetAllStylusPointsOnFinish()
+        //{
+        //    if (_historyDequeueList is null)
+        //    {
+        //        // 为了减少 List 对象的申请，这里将复用 _historyDequeueList 的 List 对象。这就导致了一旦上层调用过此方法，将不能重复调用，否则将会炸掉逻辑
+        //        throw new InvalidOperationException("此方法只能在完成的时候调用一次，禁止多次调用");
+        //    }
+
+        //    // 将笔尖的点合并到 _historyDequeueList 里面，这样就可以一次性返回所有的点。减少创建一个比较大的数组。缺点是这么做将不能多次调用，否则数据将会不正确
+        //    var historyDequeueList = _historyDequeueList;
+        //    //historyDequeueList.AddRange(TipStylusPoints);
+        //    int count = TipStylusPoints.Count; // 为什么需要取出来？因为会越出队越小
+        //    for (int i = 0; i < count; i++)
+        //    {
+        //        // 全部出队列，即可确保数据全取出来
+        //        TipStylusPoints.Dequeue();
+        //    }
+
+        //    // 防止被多次调用
+        //    _historyDequeueList = null;
+        //    return historyDequeueList;
+        //}
+>>>>>>> 72ed49de4be8929bf6ab6fd3dfd6535e2ecdf686
 
         public SKPath? InkStrokePath { set; get; }
 
         public bool IsUp { set; get; }
 
+<<<<<<< HEAD
         public void Dispose()
         {
 <<<<<<< HEAD
@@ -185,10 +522,19 @@ class SkInkCanvas
             // 不释放，否则另一个线程使用可能炸掉
             // 如 cee6070566964a8143b235e10f90dda9907e6e22 的测试
 >>>>>>> 01fd5aebad41efef3ec9afaaaefcd30a0d674cb0
+=======
+        public bool IsLeave { set; get; }
+
+        public void Dispose()
+        {
+            // 不释放，否则另一个线程使用可能炸掉
+            // 如 cee6070566964a8143b235e10f90dda9907e6e22 的测试
+>>>>>>> 72ed49de4be8929bf6ab6fd3dfd6535e2ecdf686
             //InkStrokePath?.Dispose();
         }
     }
 
+<<<<<<< HEAD
     private readonly StylusPoint[] _cache = new StylusPoint[MaxTipStylusCount + 1];
 
     private int MainInputId { set; get; }
@@ -843,10 +1189,187 @@ class SkInkCanvas
 
         using var skPaint = new SKPaint();
         skPaint.StrokeWidth = 0.1f;
+=======
+    record InkInfo(int Id, DrawStrokeContext Context);
+
+    /// <summary>
+    /// 取多少个点做笔尖
+    /// </summary>
+    /// 经验值，原本只是想取 5 + 1 个点，但是发现这样笔尖太短了，于是再加一个点
+    private const int MaxTipStylusCount = 7;
+
+    #region 漫游
+
+    /// <summary>
+    /// 漫游完成，需要将内容重新使用路径绘制，保持清晰
+    /// </summary>
+    public void ManipulateFinish()
+    {
+        if (_skCanvas is null)
+        {
+            // 理论上不可能进入这里
+            return;
+        }
+
+        var skCanvas = _skCanvas;
+        skCanvas.Clear();
+
+        skCanvas.Save();
+        skCanvas.SetMatrix(_totalMatrix);
+
+        DrawAllInk();
+
+        skCanvas.Restore();
+    }
+
+    public void ManipulateMove(Point delta)
+    {
+        //_totalMatrix = _totalMatrix * SKMatrix.CreateTranslation((float) delta.X, (float) delta.Y);
+        var translation = SKMatrix.CreateTranslation((float) delta.X, (float) delta.Y);
+        _totalMatrix = SKMatrix.Concat(_totalMatrix, translation);
+
+        // 像素漫游的方法
+        MoveWithPixel(delta);
+
+        //// 几何漫游的方法
+        //MoveWithPath(delta);
+    }
+
+    private SKMatrix _totalMatrix = SKMatrix.CreateIdentity();
+
+    private unsafe void MoveWithPixel(Point delta)
+    {
+        if (_skCanvas is null)
+        {
+            // 理论上不可能进入这里
+            return;
+        }
+
+        if (ApplicationDrawingSkBitmap is null)
+        {
+            // 理论上不可能进入这里
+            return;
+        }
+
+        //"xx".StartsWith("x", StringComparison.Ordinal)
+
+        var pixels = ApplicationDrawingSkBitmap.GetPixels(out var length);
+
+        var pixelLengthOfUint = length / 4;
+        if (_cachePixel is null || _cachePixel.Length != pixelLengthOfUint)
+        {
+            _cachePixel = new uint[pixelLengthOfUint];
+        }
+
+        fixed (uint* pCachePixel = _cachePixel)
+        {
+            //var byteCount = (uint) length * sizeof(uint);
+            ////Buffer.MemoryCopy((uint*) pixels, pCachePixel, byteCount, byteCount);
+            //////Buffer.MemoryCopy((uint*) pixels, pCachePixel, 0, byteCount);
+            //for (int i = 0; i < length; i++)
+            //{
+            //    var pixel = ((uint*) pixels)[i];
+            //    pCachePixel[i] = pixel;
+            //}
+
+            var byteCount = (uint) length;
+            Unsafe.CopyBlock(pCachePixel, (uint*) pixels, byteCount);
+        }
+
+        int destinationX, destinationY, destinationWidth, destinationHeight;
+        int sourceX, sourceY, sourceWidth, sourceHeight;
+        if (delta.X > 0)
+        {
+            destinationX = (int) delta.X;
+            destinationWidth = ApplicationDrawingSkBitmap.Width - destinationX;
+            sourceX = 0;
+        }
+        else
+        {
+            destinationX = 0;
+            destinationWidth = ApplicationDrawingSkBitmap.Width - ((int) -delta.X);
+
+            sourceX = (int) -delta.X;
+        }
+
+        if (delta.Y > 0)
+        {
+            destinationY = (int) delta.Y;
+            destinationHeight = ApplicationDrawingSkBitmap.Height - destinationY;
+            sourceY = 0;
+        }
+        else
+        {
+            destinationY = 0;
+            destinationHeight = ApplicationDrawingSkBitmap.Height - (int) -delta.Y;
+
+            sourceY = ((int) -delta.Y);
+        }
+
+        sourceWidth = destinationWidth;
+        sourceHeight = destinationHeight;
+
+        SKRectI destinationRectI = SKRectI.Create(destinationX, destinationY, destinationWidth, destinationHeight);
+        SKRectI sourceRectI = SKRectI.Create(sourceX, sourceY, sourceWidth, sourceHeight);
+
+        // 计算脏范围，用于在此绘制笔迹
+        var topRect = SKRect.Create(0, 0, ApplicationDrawingSkBitmap.Width, destinationY);
+        var bottomRect = SKRect.Create(0, destinationY + destinationHeight, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height - destinationY - destinationHeight);
+        var leftRect = SKRect.Create(0, destinationY, destinationX, destinationHeight);
+        var rightRect = SKRect.Create(destinationX + destinationWidth, destinationY, ApplicationDrawingSkBitmap.Width - destinationX - destinationWidth, destinationHeight);
+
+        var hitRectList = new List<SKRect>(4);
+        var matrix = _totalMatrix.Invert();
+        Span<SKRect> hitRectSpan = [topRect, bottomRect, leftRect, rightRect];
+        foreach (var skRect in hitRectSpan)
+        {
+            if (!IsEmptySize(skRect))
+            {
+                hitRectList.Add(matrix.MapRect(skRect));
+            }
+        }
+
+        var hitInk = new List<InkInfo>();
+        foreach (var inkInfo in StaticInkInfoList)
+        {
+            foreach (var skRect in hitRectList)
+            {
+                if (IsHit(inkInfo, skRect))
+                {
+                    hitInk.Add(inkInfo);
+                    break;
+                }
+            }
+        }
+
+        //var skCanvas = _skCanvas;
+        //skCanvas.Clear();
+        //foreach (var skRectI in (Span<SKRectI>) [topRectI, bottomRectI, leftRectI, rightRectI])
+        //{
+        //    using var skPaint = new SKPaint();
+        //    skPaint.StrokeWidth = 0;
+        //    skPaint.IsAntialias = true;
+        //    skPaint.FilterQuality = SKFilterQuality.High;
+        //    skPaint.Style = SKPaintStyle.Fill;
+        //    skPaint.Color = SKColors.Blue;
+        //    var skRect = SKRect.Create(skRectI.Left, skRectI.Top, skRectI.Width, skRectI.Height);
+
+        //    skCanvas.DrawRect(skRect, skPaint);
+        //}
+        //skCanvas.Flush();
+
+        var skCanvas = _skCanvas;
+        skCanvas.Clear();
+        skCanvas.Save();
+        skCanvas.SetMatrix(_totalMatrix);
+        using var skPaint = new SKPaint();
+        skPaint.StrokeWidth = 0;
+>>>>>>> 72ed49de4be8929bf6ab6fd3dfd6535e2ecdf686
         skPaint.IsAntialias = true;
         skPaint.FilterQuality = SKFilterQuality.High;
         skPaint.Style = SKPaintStyle.Fill;
 
+<<<<<<< HEAD
         //Console.WriteLine($"CurrentInputDictionary Count={CurrentInputDictionary.Count}");
         // 有个奇怪的炸掉情况，先忽略
         using var enumerator = CurrentInputDictionary.GetEnumerator();
@@ -1570,3 +2093,126 @@ class EraserView
         skCanvas.DrawPath(path2, skPaint);
     }
 }
+=======
+        foreach (var inkInfo in hitInk)
+        {
+            DrawInk(skCanvas, skPaint, inkInfo);
+        }
+
+        skCanvas.Restore();
+        skCanvas.Flush();
+
+        fixed (uint* pCachePixel = _cachePixel)
+        {
+            var pixelLength = (uint) (ApplicationDrawingSkBitmap.Width);
+
+            ReplacePixels((uint*) pixels, pCachePixel, destinationRectI, sourceRectI, pixelLength, pixelLength);
+        }
+
+        RenderBoundsChanged?.Invoke(this,
+            new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
+
+        static bool IsEmptySize(SKRect skRect) => skRect.Width == 0 || skRect.Height == 0;
+
+        static bool IsHit(InkInfo inkInfo, SKRect skRect)
+        {
+            if (inkInfo.Context.InkStrokePath is { } path)
+            {
+                var bounds = path.Bounds;
+                if (skRect.IntersectsWith(bounds))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    public static unsafe bool ReplacePixels(uint* destinationBitmap, uint* sourceBitmap, SKRectI destinationRectI,
+        SKRectI sourceRectI, uint destinationPixelWidthLengthOfUint, uint sourcePixelWidthLengthOfUint)
+    {
+        if (destinationRectI.Width != sourceRectI.Width || destinationRectI.Height != sourceRectI.Height)
+        {
+            return false;
+        }
+
+        //for(var sourceRow = sourceRectI.Top; sourceRow< sourceRectI.Bottom; sourceRow++)
+        //{
+        //    for (var sourceColumn = sourceRectI.Left; sourceColumn < sourceRectI.Right; sourceColumn++)
+        //    {
+        //        var sourceIndex = sourceRow * sourceRectI.Width + sourceColumn;
+
+        //        var destinationRow = destinationRectI.Top + sourceRow - sourceRectI.Top;
+        //        var destinationColumn = destinationRectI.Left + sourceColumn - sourceRectI.Left;
+        //        var destinationIndex = destinationRow * destinationRectI.Width + destinationColumn;
+
+        //        destinationBitmap[destinationIndex] = sourceBitmap[sourceIndex];
+        //    }
+        //}
+
+        for (var sourceRow = sourceRectI.Top; sourceRow < sourceRectI.Bottom; sourceRow++)
+        {
+            var sourceStartColumn = sourceRectI.Left;
+            var sourceStartIndex = sourceRow * destinationPixelWidthLengthOfUint + sourceStartColumn;
+
+            var destinationRow = destinationRectI.Top + sourceRow - sourceRectI.Top;
+            var destinationStartColumn = destinationRectI.Left;
+            var destinationStartIndex = destinationRow * sourcePixelWidthLengthOfUint + destinationStartColumn;
+
+            Unsafe.CopyBlockUnaligned((destinationBitmap + destinationStartIndex), (sourceBitmap + sourceStartIndex), (uint) (destinationRectI.Width * sizeof(uint)));
+
+            //for (var sourceColumn = sourceRectI.Left; sourceColumn < sourceRectI.Right; sourceColumn++)
+            //{
+            //    var sourceIndex = sourceRow * destinationPixelWidthLengthOfUint + sourceColumn;
+
+            //    var destinationColumn = destinationRectI.Left + sourceColumn - sourceRectI.Left;
+            //    var destinationIndex = destinationRow * sourcePixelWidthLengthOfUint + destinationColumn;
+
+            //    destinationBitmap[destinationIndex] = sourceBitmap[sourceIndex];
+            //}
+        }
+
+        return true;
+    }
+
+    private uint[]? _cachePixel;
+
+    private void MoveWithPath(Point delta)
+    {
+        _totalTransform = new Point(_totalTransform.X + delta.X, _totalTransform.Y + delta.Y);
+
+        if (_skCanvas is null)
+        {
+            // 理论上不可能进入这里
+            return;
+        }
+
+        if (ApplicationDrawingSkBitmap is null)
+        {
+            // 理论上不可能进入这里
+            return;
+        }
+
+        var skCanvas = _skCanvas;
+        skCanvas.Clear();
+
+        skCanvas.Save();
+
+        skCanvas.Translate((float) _totalTransform.X, (float) _totalTransform.Y);
+
+        DrawAllInk();
+
+        skCanvas.Restore();
+
+        RenderBoundsChanged?.Invoke(this,
+            new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
+    }
+
+    private Point _totalTransform;
+
+    #endregion
+}
+
+readonly partial record struct InkId(int Value);
+>>>>>>> 72ed49de4be8929bf6ab6fd3dfd6535e2ecdf686
