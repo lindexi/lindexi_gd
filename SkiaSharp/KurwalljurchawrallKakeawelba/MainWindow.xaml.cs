@@ -11,9 +11,9 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 
 using ReewheaberekaiNayweelehe;
-
+using SkiaInkCore.Interactives;
 using SkiaSharp;
-using InputMode = ReewheaberekaiNayweelehe.InputMode;
+using InputMode = SkiaInkCore.Interactives.InputMode;
 using Point = Microsoft.Maui.Graphics.Point;
 
 namespace KurwalljurchawrallKakeawelba;

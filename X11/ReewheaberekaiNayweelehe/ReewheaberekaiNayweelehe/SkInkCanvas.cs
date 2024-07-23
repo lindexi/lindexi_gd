@@ -6,10 +6,12 @@ using BujeeberehemnaNurgacolarje;
 
 using Microsoft.Maui.Graphics;
 using SkiaInkCore;
+using SkiaInkCore.Interactives;
 using SkiaSharp;
 
 namespace ReewheaberekaiNayweelehe;
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 partial record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp)
 =======
@@ -115,6 +117,8 @@ class InkingInputManager
     }
 }
 
+=======
+>>>>>>> ce8eee3cf06aef12e1d325fcb5d0e447eac79f34
 partial class SkInkCanvas
 {
     public SkInkCanvas(SKCanvas skCanvas, SKBitmap applicationDrawingSkBitmap)
