@@ -223,7 +223,7 @@ partial class SkInkCanvas
         skCanvas.Clear();
 
         using var skPaint = new SKPaint();
-        skPaint.StrokeWidth = 0.1f;
+        skPaint.StrokeWidth = 0;
         skPaint.IsAntialias = true;
         skPaint.FilterQuality = SKFilterQuality.High;
         skPaint.Style = SKPaintStyle.Fill;
