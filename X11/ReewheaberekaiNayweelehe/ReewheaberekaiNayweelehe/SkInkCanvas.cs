@@ -422,12 +422,21 @@ partial class SkInkCanvas
         var leftRect = SKRect.Create(0, destinationY, destinationX, destinationHeight);
         var rightRect = SKRect.Create(destinationX + destinationWidth, destinationY, ApplicationDrawingSkBitmap.Width - destinationX - destinationWidth, destinationHeight);
 
-        var hitInk = new List<InkInfo>();
+        var hitRectList = new List<SKRect>(4);
         var matrix = _totalMatrix.Invert();
-        Span<SKRect> hitRectSpan = [matrix.MapRect(topRect), matrix.MapRect(bottomRect), matrix.MapRect(leftRect), matrix.MapRect(rightRect),];
+        Span<SKRect> hitRectSpan = [topRect, bottomRect, leftRect, rightRect];
+        foreach (var skRect in hitRectSpan)
+        {
+            if (!IsEmptySize(skRect))
+            {
+                hitRectList.Add(matrix.MapRect(skRect));
+            }
+        }
+
+        var hitInk = new List<InkInfo>();
         foreach (var inkInfo in StaticInkInfoList)
         {
-            foreach (var skRect in hitRectSpan)
+            foreach (var skRect in hitRectList)
             {
                 if (IsHit(inkInfo, skRect))
                 {
@@ -481,7 +490,7 @@ partial class SkInkCanvas
         RenderBoundsChanged?.Invoke(this,
             new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
 
-        static bool IsEmptySize(SKRectI skRectI) => skRectI.Width == 0 || skRectI.Height == 0;
+        static bool IsEmptySize(SKRect skRect) => skRect.Width == 0 || skRect.Height == 0;
 
         static bool IsHit(InkInfo inkInfo, SKRect skRect)
         {
