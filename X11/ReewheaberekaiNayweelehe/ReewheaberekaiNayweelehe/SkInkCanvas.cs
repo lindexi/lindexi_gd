@@ -76,6 +76,8 @@ class InkingInputManager
         }
         else if (InputMode == InputMode.Manipulate)
         {
+            SkInkCanvas.ManipulateMove(new Point(info.StylusPoint.Point.X - _lastStylusPoint.Point.X, info.StylusPoint.Point.Y - _lastStylusPoint.Point.Y));
+            SkInkCanvas.ManipulateFinish();
 
             _lastStylusPoint = info.StylusPoint;
         }
@@ -263,6 +265,14 @@ partial class SkInkCanvas
     private const int MaxTipStylusCount = 7;
 
     #region 漫游
+
+    /// <summary>
+    /// 漫游完成，需要将内容重新使用路径绘制，保持清晰
+    /// </summary>
+    public void ManipulateFinish()
+    {
+        DrawAllInk();
+    }
 
     public void ManipulateMove(Point delta)
     {
