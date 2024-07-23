@@ -159,7 +159,7 @@ partial class SkInkCanvas
             var drawStrokeContext = new DrawStrokeContext(inkId, inkingInputInfo, color, 10);
             drawStrokeContext.AllStylusPoints.AddRange(inkPointList);
 
-            var outline = SimpleInkRender.GetOutlinePointList([.. inkPointList], 10);
+            var outline = SimpleInkRender.GetOutlinePointList([.. inkPointList], drawStrokeContext.InkThickness);
             var skPath = new SKPath();
             skPath.AddPoly(outline.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
 
@@ -384,7 +384,75 @@ partial class SkInkCanvas
     /// 经验值，原本只是想取 5 + 1 个点，但是发现这样笔尖太短了，于是再加一个点
     private const int MaxTipStylusCount = 7;
 
-    #region 漫游
+    public static unsafe bool ReplacePixels(uint* destinationBitmap, uint* sourceBitmap, SKRectI destinationRectI,
+        SKRectI sourceRectI, uint destinationPixelWidthLengthOfUint, uint sourcePixelWidthLengthOfUint)
+    {
+        if (destinationRectI.Width != sourceRectI.Width || destinationRectI.Height != sourceRectI.Height)
+        {
+            return false;
+        }
+
+        //for(var sourceRow = sourceRectI.Top; sourceRow< sourceRectI.Bottom; sourceRow++)
+        //{
+        //    for (var sourceColumn = sourceRectI.Left; sourceColumn < sourceRectI.Right; sourceColumn++)
+        //    {
+        //        var sourceIndex = sourceRow * sourceRectI.Width + sourceColumn;
+
+        //        var destinationRow = destinationRectI.Top + sourceRow - sourceRectI.Top;
+        //        var destinationColumn = destinationRectI.Left + sourceColumn - sourceRectI.Left;
+        //        var destinationIndex = destinationRow * destinationRectI.Width + destinationColumn;
+
+        //        destinationBitmap[destinationIndex] = sourceBitmap[sourceIndex];
+        //    }
+        //}
+
+        for (var sourceRow = sourceRectI.Top; sourceRow < sourceRectI.Bottom; sourceRow++)
+        {
+            var sourceStartColumn = sourceRectI.Left;
+            var sourceStartIndex = sourceRow * destinationPixelWidthLengthOfUint + sourceStartColumn;
+
+            var destinationRow = destinationRectI.Top + sourceRow - sourceRectI.Top;
+            var destinationStartColumn = destinationRectI.Left;
+            var destinationStartIndex = destinationRow * sourcePixelWidthLengthOfUint + destinationStartColumn;
+
+            Unsafe.CopyBlockUnaligned((destinationBitmap + destinationStartIndex), (sourceBitmap + sourceStartIndex), (uint) (destinationRectI.Width * sizeof(uint)));
+
+            //for (var sourceColumn = sourceRectI.Left; sourceColumn < sourceRectI.Right; sourceColumn++)
+            //{
+            //    var sourceIndex = sourceRow * destinationPixelWidthLengthOfUint + sourceColumn;
+
+            //    var destinationColumn = destinationRectI.Left + sourceColumn - sourceRectI.Left;
+            //    var destinationIndex = destinationRow * sourcePixelWidthLengthOfUint + destinationColumn;
+
+            //    destinationBitmap[destinationIndex] = sourceBitmap[sourceIndex];
+            //}
+        }
+
+        return true;
+    }
+
+    [MemberNotNull(nameof(_originBackground))]
+    private unsafe void UpdateOriginBackground()
+    {
+        // 需要使用 SKCanvas 才能实现拷贝
+        _originBackground ??= new SKBitmap(new SKImageInfo(ApplicationDrawingSkBitmap.Width,
+            ApplicationDrawingSkBitmap.Height, ApplicationDrawingSkBitmap.ColorType,
+            ApplicationDrawingSkBitmap.AlphaType,
+            ApplicationDrawingSkBitmap.ColorSpace), SKBitmapAllocFlags.None);
+        _isOriginBackgroundDisable = false;
+
+        //using var skCanvas = new SKCanvas(_originBackground);
+        //skCanvas.Clear();
+        //skCanvas.DrawBitmap(ApplicationDrawingSkBitmap, 0, 0);
+        var applicationPixelHandler = ApplicationDrawingSkBitmap.GetPixels(out var length);
+        var originBackgroundPixelHandler = _originBackground.GetPixels();
+        Unsafe.CopyBlock((void*) originBackgroundPixelHandler, (void*) applicationPixelHandler, (uint) length);
+    }
+}
+
+partial class SkInkCanvas
+{
+    // 漫游相关
 
     /// <summary>
     /// 漫游完成，需要将内容重新使用路径绘制，保持清晰
@@ -560,7 +628,7 @@ partial class SkInkCanvas
         skCanvas.Flush();
 
         var cachePixel = _originBackground.GetPixels();
-        uint* pCachePixel = (uint*)cachePixel;
+        uint* pCachePixel = (uint*) cachePixel;
         {
             var pixelLength = (uint) (ApplicationDrawingSkBitmap.Width);
 
@@ -585,71 +653,6 @@ partial class SkInkCanvas
 
             return false;
         }
-    }
-
-    public static unsafe bool ReplacePixels(uint* destinationBitmap, uint* sourceBitmap, SKRectI destinationRectI,
-        SKRectI sourceRectI, uint destinationPixelWidthLengthOfUint, uint sourcePixelWidthLengthOfUint)
-    {
-        if (destinationRectI.Width != sourceRectI.Width || destinationRectI.Height != sourceRectI.Height)
-        {
-            return false;
-        }
-
-        //for(var sourceRow = sourceRectI.Top; sourceRow< sourceRectI.Bottom; sourceRow++)
-        //{
-        //    for (var sourceColumn = sourceRectI.Left; sourceColumn < sourceRectI.Right; sourceColumn++)
-        //    {
-        //        var sourceIndex = sourceRow * sourceRectI.Width + sourceColumn;
-
-        //        var destinationRow = destinationRectI.Top + sourceRow - sourceRectI.Top;
-        //        var destinationColumn = destinationRectI.Left + sourceColumn - sourceRectI.Left;
-        //        var destinationIndex = destinationRow * destinationRectI.Width + destinationColumn;
-
-        //        destinationBitmap[destinationIndex] = sourceBitmap[sourceIndex];
-        //    }
-        //}
-
-        for (var sourceRow = sourceRectI.Top; sourceRow < sourceRectI.Bottom; sourceRow++)
-        {
-            var sourceStartColumn = sourceRectI.Left;
-            var sourceStartIndex = sourceRow * destinationPixelWidthLengthOfUint + sourceStartColumn;
-
-            var destinationRow = destinationRectI.Top + sourceRow - sourceRectI.Top;
-            var destinationStartColumn = destinationRectI.Left;
-            var destinationStartIndex = destinationRow * sourcePixelWidthLengthOfUint + destinationStartColumn;
-
-            Unsafe.CopyBlockUnaligned((destinationBitmap + destinationStartIndex), (sourceBitmap + sourceStartIndex), (uint) (destinationRectI.Width * sizeof(uint)));
-
-            //for (var sourceColumn = sourceRectI.Left; sourceColumn < sourceRectI.Right; sourceColumn++)
-            //{
-            //    var sourceIndex = sourceRow * destinationPixelWidthLengthOfUint + sourceColumn;
-
-            //    var destinationColumn = destinationRectI.Left + sourceColumn - sourceRectI.Left;
-            //    var destinationIndex = destinationRow * sourcePixelWidthLengthOfUint + destinationColumn;
-
-            //    destinationBitmap[destinationIndex] = sourceBitmap[sourceIndex];
-            //}
-        }
-
-        return true;
-    }
-
-    [MemberNotNull(nameof(_originBackground))]
-    private unsafe void UpdateOriginBackground()
-    {
-        // 需要使用 SKCanvas 才能实现拷贝
-        _originBackground ??= new SKBitmap(new SKImageInfo(ApplicationDrawingSkBitmap.Width,
-            ApplicationDrawingSkBitmap.Height, ApplicationDrawingSkBitmap.ColorType,
-            ApplicationDrawingSkBitmap.AlphaType,
-            ApplicationDrawingSkBitmap.ColorSpace), SKBitmapAllocFlags.None);
-        _isOriginBackgroundDisable = false;
-
-        //using var skCanvas = new SKCanvas(_originBackground);
-        //skCanvas.Clear();
-        //skCanvas.DrawBitmap(ApplicationDrawingSkBitmap, 0, 0);
-        var applicationPixelHandler = ApplicationDrawingSkBitmap.GetPixels(out var length);
-        var originBackgroundPixelHandler = _originBackground.GetPixels();
-        Unsafe.CopyBlock((void*) originBackgroundPixelHandler, (void*) applicationPixelHandler, (uint) length);
     }
 
     private void MoveWithPath(Point delta)
@@ -678,8 +681,6 @@ partial class SkInkCanvas
     }
 
     private Point _totalTransform;
-
-    #endregion
 }
 
 readonly partial record struct InkId(int Value);
