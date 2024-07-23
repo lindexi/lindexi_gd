@@ -39,12 +39,16 @@ class InkingInputManager
     {
         _downCount++;
 
-        _lastStylusPoint = args.StylusPoint;
 
         if (_downCount == 1)
         {
             _firstStylusPoint = args.StylusPoint;
             MainInput = args.Id;
+        }
+
+        if (args.Id == MainInput)
+        {
+            _lastStylusPoint = args.StylusPoint;
         }
 
         if (InputMode == InputMode.Ink)
@@ -80,6 +84,9 @@ class InkingInputManager
 
                 x = 1 + x / 100;
                 y = 1 + y / 100;
+
+                x = MathF.Max(0.1f, MathF.Min(10, x));
+                y = MathF.Max(0.1f, MathF.Min(10, y));
 
                 SkInkCanvas.ManipulateScale(new ScaleContext(x, y, (float) _firstStylusPoint.Point.X, (float) _firstStylusPoint.Point.Y));
             }
