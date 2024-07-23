@@ -1,6 +1,7 @@
 ﻿#nullable enable
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 using BujeeberehemnaNurgacolarje;
@@ -175,8 +176,17 @@ partial class SkInkCanvas
     /// <summary>
     /// 原应用输出的内容
     /// </summary>
-    public SKBitmap? ApplicationDrawingSkBitmap { set; get; }
+    public SKBitmap ApplicationDrawingSkBitmap { set; get; }
 
+    /// <summary>
+    /// 开始书写时对当前原应用输出的内容 <see cref="ApplicationDrawingSkBitmap"/> 制作的快照，用于解决笔迹的平滑处理，和笔迹算法相关
+    /// </summary>
+    private SKBitmap? _originBackground;
+
+    /// <summary>
+    /// 是否原来的背景，即充当静态层的界面是无效的
+    /// </summary>
+    private bool _isOriginBackgroundDisable = false;
 
     /// <summary>
     /// 静态笔迹层
@@ -433,26 +443,28 @@ partial class SkInkCanvas
 
         var pixels = ApplicationDrawingSkBitmap.GetPixels(out var length);
 
-        var pixelLengthOfUint = length / 4;
-        if (_cachePixel is null || _cachePixel.Length != pixelLengthOfUint)
-        {
-            _cachePixel = new uint[pixelLengthOfUint];
-        }
+        UpdateOriginBackground();
 
-        fixed (uint* pCachePixel = _cachePixel)
-        {
-            //var byteCount = (uint) length * sizeof(uint);
-            ////Buffer.MemoryCopy((uint*) pixels, pCachePixel, byteCount, byteCount);
-            //////Buffer.MemoryCopy((uint*) pixels, pCachePixel, 0, byteCount);
-            //for (int i = 0; i < length; i++)
-            //{
-            //    var pixel = ((uint*) pixels)[i];
-            //    pCachePixel[i] = pixel;
-            //}
+        //var pixelLengthOfUint = length / 4;
+        //if (_cachePixel is null || _cachePixel.Length != pixelLengthOfUint)
+        //{
+        //    _cachePixel = new uint[pixelLengthOfUint];
+        //}
 
-            var byteCount = (uint) length;
-            Unsafe.CopyBlock(pCachePixel, (uint*) pixels, byteCount);
-        }
+        //fixed (uint* pCachePixel = _cachePixel)
+        //{
+        //    //var byteCount = (uint) length * sizeof(uint);
+        //    ////Buffer.MemoryCopy((uint*) pixels, pCachePixel, byteCount, byteCount);
+        //    //////Buffer.MemoryCopy((uint*) pixels, pCachePixel, 0, byteCount);
+        //    //for (int i = 0; i < length; i++)
+        //    //{
+        //    //    var pixel = ((uint*) pixels)[i];
+        //    //    pCachePixel[i] = pixel;
+        //    //}
+
+        //    var byteCount = (uint) length;
+        //    Unsafe.CopyBlock(pCachePixel, (uint*) pixels, byteCount);
+        //}
 
         int destinationX, destinationY, destinationWidth, destinationHeight;
         int sourceX, sourceY, sourceWidth, sourceHeight;
@@ -554,7 +566,8 @@ partial class SkInkCanvas
         skCanvas.Restore();
         skCanvas.Flush();
 
-        fixed (uint* pCachePixel = _cachePixel)
+        var cachePixel = _originBackground.GetPixels();
+        uint* pCachePixel = (uint*)cachePixel;
         {
             var pixelLength = (uint) (ApplicationDrawingSkBitmap.Width);
 
@@ -628,7 +641,20 @@ partial class SkInkCanvas
         return true;
     }
 
-    private uint[]? _cachePixel;
+    [MemberNotNull(nameof(_originBackground))]
+    private void UpdateOriginBackground()
+    {
+        // 需要使用 SKCanvas 才能实现拷贝
+        _originBackground ??= new SKBitmap(new SKImageInfo(ApplicationDrawingSkBitmap.Width,
+            ApplicationDrawingSkBitmap.Height, ApplicationDrawingSkBitmap.ColorType,
+            ApplicationDrawingSkBitmap.AlphaType,
+            ApplicationDrawingSkBitmap.ColorSpace), SKBitmapAllocFlags.None);
+        _isOriginBackgroundDisable = false;
+
+        using var skCanvas = new SKCanvas(_originBackground);
+        skCanvas.Clear();
+        skCanvas.DrawBitmap(ApplicationDrawingSkBitmap, 0, 0);
+    }
 
     private void MoveWithPath(Point delta)
     {
