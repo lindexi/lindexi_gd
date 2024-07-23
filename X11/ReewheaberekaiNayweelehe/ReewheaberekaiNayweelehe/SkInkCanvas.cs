@@ -126,13 +126,13 @@ partial class SkInkCanvas
 
         for (int y = 0; y < ApplicationDrawingSkBitmap.Height; y += 25)
         {
-            skPaint.Color = new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF);
+            skPaint.Color = new SKColor((uint) Random.Shared.Next()).WithAlpha((byte) Random.Shared.Next(100, 0xFF));
             _skCanvas.DrawLine(0, y, ApplicationDrawingSkBitmap.Width, y, skPaint);
         }
 
         for (int x = 0; x < ApplicationDrawingSkBitmap.Width; x += 25)
         {
-            skPaint.Color = new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF);
+            skPaint.Color = new SKColor((uint) Random.Shared.Next()).WithAlpha((byte) Random.Shared.Next(100, 0xFF));
             _skCanvas.DrawLine(x, 0, x, ApplicationDrawingSkBitmap.Height, skPaint);
         }
     }
@@ -670,7 +670,7 @@ partial class SkInkCanvas
             var destinationStartColumn = destinationRectI.Left;
             var destinationStartIndex = destinationRow * sourcePixelWidthLengthOfUint + destinationStartColumn;
 
-            Unsafe.CopyBlockUnaligned((destinationBitmap + destinationStartIndex), (sourceBitmap + sourceStartIndex), (uint)(destinationRectI.Width * sizeof(uint)));
+            Unsafe.CopyBlockUnaligned((destinationBitmap + destinationStartIndex), (sourceBitmap + sourceStartIndex), (uint) (destinationRectI.Width * sizeof(uint)));
 
             //for (var sourceColumn = sourceRectI.Left; sourceColumn < sourceRectI.Right; sourceColumn++)
             //{
