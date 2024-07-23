@@ -196,7 +196,7 @@ partial class SkInkCanvas
 
             context.InkStrokePath?.Dispose();
 
-            var outlinePointList = SimpleInkRender.GetOutlinePointList(context.AllStylusPoints.ToArray(), 20);
+            var outlinePointList = SimpleInkRender.GetOutlinePointList(context.AllStylusPoints.ToArray(), context.InkThickness);
 
             var skPath = new SKPath();
             skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
