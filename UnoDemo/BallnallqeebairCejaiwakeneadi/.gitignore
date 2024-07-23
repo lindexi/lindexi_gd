@@ -394,10 +394,6 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
-# JetBrains Rider
-*.sln.iml
 
 # Single Target Config
 solution-config.props
-# Publish Profiles
-!**/Properties/PublishProfiles/*.pubxml

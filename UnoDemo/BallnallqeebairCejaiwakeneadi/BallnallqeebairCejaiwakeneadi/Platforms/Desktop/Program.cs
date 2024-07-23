@@ -9,6 +9,11 @@ public class Program
     {
         App.InitializeLogging();
 
+        if (args.Length > 0)
+        {
+            FeatureConfiguration.Rendering.UseOpenGLOnX11 = false;
+        }
+
         var host = SkiaHostBuilder.Create()
             .App(() => new App())
             .UseX11()
