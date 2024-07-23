@@ -11,8 +11,11 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 
 using ReewheaberekaiNayweelehe;
+
 using SkiaInkCore.Interactives;
+
 using SkiaSharp;
+
 using InputMode = SkiaInkCore.Interactives.InputMode;
 using Point = Microsoft.Maui.Graphics.Point;
 
@@ -137,8 +140,53 @@ public class SkiaCanvas : FrameworkElement
 
     private bool _isMouseDown = false;
 
+    protected override void OnStylusDown(StylusDownEventArgs e)
+    {
+        RequireDraw(context =>
+        {
+            _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
+            _inkingInputManager ??= new InkingInputManager(_inkCanvas);
+
+            var position = e.GetPosition(this);
+            var inkingInputInfo = new InkingModeInputArgs(e.StylusDevice.Id, new Point(position.X, position.Y), (ulong) e.Timestamp);
+
+            _inkingInputManager.Down(inkingInputInfo);
+        });
+    }
+
+    protected override void OnStylusMove(StylusEventArgs e)
+    {
+        RequireDraw(context =>
+        {
+            _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
+            _inkingInputManager ??= new InkingInputManager(_inkCanvas);
+            var position = e.GetPosition(this);
+            var inkingInputInfo = new InkingModeInputArgs(e.StylusDevice.Id, new Point(position.X, position.Y), (ulong) e.Timestamp);
+
+            _inkingInputManager.Move(inkingInputInfo);
+        });
+    }
+
+    protected override void OnStylusUp(StylusEventArgs e)
+    {
+        RequireDraw(context =>
+        {
+            _isMouseDown = false;
+            _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
+            _inkingInputManager ??= new InkingInputManager(_inkCanvas);
+            var position = e.GetPosition(this);
+            var inkingInputInfo = new InkingModeInputArgs(e.StylusDevice.Id, new Point(position.X, position.Y), (ulong) e.Timestamp);
+
+            _inkingInputManager.Up(inkingInputInfo);
+        });
+    }
+
     protected override void OnMouseDown(MouseButtonEventArgs e)
     {
+        if (e.StylusDevice != null)
+        {
+            return;
+        }
 
         RequireDraw(context =>
         {
@@ -155,6 +203,11 @@ public class SkiaCanvas : FrameworkElement
 
     protected override void OnMouseMove(MouseEventArgs e)
     {
+        if (e.StylusDevice != null)
+        {
+            return;
+        }
+
         RequireDraw(context =>
         {
             if (!_isMouseDown)
@@ -173,6 +226,11 @@ public class SkiaCanvas : FrameworkElement
 
     protected override void OnMouseUp(MouseButtonEventArgs e)
     {
+        if (e.StylusDevice != null)
+        {
+            return;
+        }
+
         RequireDraw(context =>
         {
             _isMouseDown = false;

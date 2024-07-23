@@ -37,10 +37,6 @@ class InkingInputManager
     public void Down(InkingModeInputArgs args)
     {
         _downCount++;
-        if (_downCount > 2)
-        {
-            InputMode = InputMode.Manipulate;
-        }
 
         if (InputMode == InputMode.Ink)
         {
@@ -49,7 +45,11 @@ class InkingInputManager
         else if (InputMode == InputMode.Manipulate)
         {
             _lastStylusPoint = args.StylusPoint;
-            _firstStylusPoint = args.StylusPoint;
+
+            if (_downCount == 1)
+            {
+                _firstStylusPoint = args.StylusPoint;
+            }
         }
     }
 
@@ -61,15 +61,20 @@ class InkingInputManager
         }
         else if (InputMode == InputMode.Manipulate)
         {
-            //SkInkCanvas.ManipulateMove(new Point(args.StylusPoint.Point.X - _lastStylusPoint.Point.X, args.StylusPoint.Point.Y - _lastStylusPoint.Point.Y));
+            if (_downCount == 1)
+            {
+                SkInkCanvas.ManipulateMove(new Point(args.StylusPoint.Point.X - _lastStylusPoint.Point.X, args.StylusPoint.Point.Y - _lastStylusPoint.Point.Y));
+            }
+            else
+            {
+                var x = (float) (args.StylusPoint.Point.X - _lastStylusPoint.Point.X);
+                var y = (float) (args.StylusPoint.Point.Y - _lastStylusPoint.Point.Y);
 
-            var x = (float) (args.StylusPoint.Point.X - _lastStylusPoint.Point.X);
-            var y = (float) (args.StylusPoint.Point.Y - _lastStylusPoint.Point.Y);
+                x = 1 + x / 100;
+                y = 1 + y / 100;
 
-            x = 1 + x / 100;
-            y = 1 + y / 100;
-
-            SkInkCanvas.ManipulateScale(new ScaleContext(x, y, (float) _firstStylusPoint.Point.X, (float) _firstStylusPoint.Point.Y));
+                SkInkCanvas.ManipulateScale(new ScaleContext(x, y, (float) _firstStylusPoint.Point.X, (float) _firstStylusPoint.Point.Y));
+            }
 
             _lastStylusPoint = args.StylusPoint;
         }
@@ -77,6 +82,7 @@ class InkingInputManager
 
     public void Up(InkingModeInputArgs args)
     {
+        _downCount--;
         if (InputMode == InputMode.Ink)
         {
             SkInkCanvas.DrawStrokeUp(args);
