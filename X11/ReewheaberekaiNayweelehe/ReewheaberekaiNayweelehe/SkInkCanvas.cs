@@ -798,8 +798,11 @@ partial class SkInkCanvas
 
         int destinationX, destinationY, destinationWidth, destinationHeight;
         int sourceX, sourceY, sourceWidth, sourceHeight;
+
         if (delta.X > 0)
         {
+            delta.X += 20;
+
             destinationX = (int) delta.X;
             destinationWidth = ApplicationDrawingSkBitmap.Width - destinationX;
             sourceX = 0;
@@ -823,7 +826,7 @@ partial class SkInkCanvas
             destinationY = 0;
             destinationHeight = ApplicationDrawingSkBitmap.Height - (int) -delta.Y;
 
-            sourceY = ((int) -delta.Y);
+            sourceY = (int) -delta.Y;
         }
 
         sourceWidth = destinationWidth;

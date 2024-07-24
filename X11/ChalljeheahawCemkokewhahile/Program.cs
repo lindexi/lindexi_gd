@@ -238,9 +238,23 @@ while (true)
                     }
                     else if (xiDeviceEvent->evtype is XiEventType.XI_Motion or XiEventType.XI_TouchUpdate)
                     {
-                        if (isDown)
+                        if (isDown || xiDeviceEvent->evtype is XiEventType.XI_TouchUpdate)
                         {
                             input.Move(new InkingModeInputArgs(id, new Point(xiDeviceEvent->event_x, xiDeviceEvent->event_y), timestamp));
+
+                            // 读走所有的事件，防止事件堆积
+                            while (true)
+                            {
+                                XPeekEvent(display, out var nextEvent);
+                                if (IsMove(nextEvent))
+                                {
+                                    XNextEvent(display, out _);
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
                         }
                     }
                     else if (xiDeviceEvent->evtype is XiEventType.XI_ButtonRelease or XiEventType.XI_TouchEnd)
@@ -256,6 +270,38 @@ while (true)
             }
         }
     }
+}
+
+bool IsMove(XEvent @event)
+{
+    if(@event.type != XEventName.GenericEvent)
+    {
+        return false;
+    }
+
+    unsafe
+    {
+        void* data = &@event.GenericEventCookie;
+        XGetEventData(display, data);
+
+        try
+        {
+            var xiEvent = (XIEvent*) @event.GenericEventCookie.data;
+            if (xiEvent->evtype is
+                XiEventType.XI_Motion
+                or XiEventType.XI_TouchUpdate
+               )
+            {
+                return true;
+            }
+        }
+        finally
+        {
+            XFreeEventData(display, data);
+        }
+    }
+
+    return false;
 }
 
 static XImage CreateImage(SKBitmap skBitmap)
