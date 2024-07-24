@@ -754,6 +754,8 @@ partial class SkInkCanvas
 
     public void ManipulateMove(Point delta)
     {
+        Console.WriteLine($"[ManipulateMove] {delta.X:0.00},{delta.Y:0.00}");
+
         //_totalMatrix = _totalMatrix * SKMatrix.CreateTranslation((float) delta.X, (float) delta.Y);
         var translation = SKMatrix.CreateTranslation((float) delta.X, (float) delta.Y);
         _totalMatrix = SKMatrix.Concat(_totalMatrix, translation);
@@ -801,7 +803,8 @@ partial class SkInkCanvas
 
         if (delta.X > 0)
         {
-            delta.X += 20;
+            // 不能直接做加法，这是不对的
+            //delta.X += 20;
 
             destinationX = (int) delta.X;
             destinationWidth = ApplicationDrawingSkBitmap.Width - destinationX;
