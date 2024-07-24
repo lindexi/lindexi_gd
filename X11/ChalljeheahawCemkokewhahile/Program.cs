@@ -243,11 +243,13 @@ while (true)
                             input.Move(new InkingModeInputArgs(id, new Point(xiDeviceEvent->event_x, xiDeviceEvent->event_y), timestamp));
 
                             // 读走所有的事件，防止事件堆积
+                            var count = 0;
                             while (true)
                             {
                                 XPeekEvent(display, out var nextEvent);
                                 if (IsMove(nextEvent))
                                 {
+                                    count++;
                                     XNextEvent(display, out _);
                                 }
                                 else
@@ -255,6 +257,8 @@ while (true)
                                     break;
                                 }
                             }
+
+                            Console.WriteLine($"清理数据 {count}");
                         }
                     }
                     else if (xiDeviceEvent->evtype is XiEventType.XI_ButtonRelease or XiEventType.XI_TouchEnd)
