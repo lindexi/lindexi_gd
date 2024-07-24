@@ -39,7 +39,6 @@ class InkingInputManager
     {
         _downCount++;
 
-
         if (_downCount == 1)
         {
             _firstStylusPoint = args.StylusPoint;
@@ -104,6 +103,11 @@ class InkingInputManager
         }
         else if (InputMode == InputMode.Manipulate)
         {
+            if (args.Id != MainInput)
+            {
+                return;
+            }
+
             SkInkCanvas.ManipulateMove(new Point(args.StylusPoint.Point.X - _lastStylusPoint.Point.X, args.StylusPoint.Point.Y - _lastStylusPoint.Point.Y));
             SkInkCanvas.ManipulateFinish();
 
