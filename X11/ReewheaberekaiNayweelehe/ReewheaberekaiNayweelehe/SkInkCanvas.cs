@@ -898,11 +898,9 @@ partial class SkInkCanvas
 
         var cachePixel = _originBackground.GetPixels();
         uint* pCachePixel = (uint*) cachePixel;
-        {
-            var pixelLength = (uint) (ApplicationDrawingSkBitmap.Width);
+        var pixelLength = (uint) (ApplicationDrawingSkBitmap.Width);
 
-            ReplacePixels((uint*) pixels, pCachePixel, destinationRectI, sourceRectI, pixelLength, pixelLength);
-        }
+        ReplacePixels((uint*) pixels, pCachePixel, destinationRectI, sourceRectI, pixelLength, pixelLength);
 
         RenderBoundsChanged?.Invoke(this,
             new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));

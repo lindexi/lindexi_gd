@@ -1,8 +1,14 @@
 ﻿using CPF.Linux;
+
 using Microsoft.Maui.Graphics;
+
 using ReewheaberekaiNayweelehe;
+
+using SkiaInkCore.Diagnostics;
 using SkiaInkCore.Interactives;
+
 using SkiaSharp;
+
 using static CPF.Linux.XLib;
 
 XInitThreads();
@@ -43,17 +49,58 @@ var height = xDisplayHeight;
 
 var handle = XCreateWindow(display, rootWindow, 0, 0, width, height, 5,
     32,
-    (int)CreateWindowArgs.InputOutput,
+    (int) CreateWindowArgs.InputOutput,
     visual,
-    (nuint)valueMask, ref xSetWindowAttributes);
+    (nuint) valueMask, ref xSetWindowAttributes);
 
 XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
                          XEventMask.PointerMotionHintMask;
-var mask = new IntPtr(0xffffff ^ (int)ignoredMask);
+var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
 XSelectInput(display, handle, mask);
 
 XMapWindow(display, handle);
 XFlush(display);
+
+unsafe
+{
+    var devices = (XIDeviceInfo*) XLib.XIQueryDevice(display,
+        (int) XiPredefinedDeviceId.XIAllMasterDevices, out int num);
+
+    XIDeviceInfo? pointerDevice = default;
+    for (var c = 0; c < num; c++)
+    {
+        StaticDebugLogger.WriteLine($"XIDeviceInfo [{c}] {devices[c].Deviceid} {devices[c].Use}");
+
+        if (devices[c].Use == XiDeviceType.XIMasterPointer)
+        {
+            pointerDevice = devices[c];
+            break;
+        }
+    }
+
+    if (pointerDevice != null)
+    {
+        XiEventType[] multiTouchEventTypes =
+        [
+            XiEventType.XI_TouchBegin,
+            XiEventType.XI_TouchUpdate,
+            XiEventType.XI_TouchEnd
+        ];
+
+        XiEventType[] defaultEventTypes =
+        [
+            XiEventType.XI_Motion,
+            XiEventType.XI_ButtonPress,
+            XiEventType.XI_ButtonRelease,
+            XiEventType.XI_Leave,
+            XiEventType.XI_Enter,
+        ];
+
+        List<XiEventType> eventTypes = [.. multiTouchEventTypes, .. defaultEventTypes];
+
+        XiSelectEvents(display, handle, new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = eventTypes });
+    }
+}
 
 var gc = XCreateGC(display, handle, 0, 0);
 var skBitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
@@ -82,7 +129,7 @@ skInkCanvas.RenderBoundsChanged += (sender, rect) =>
         }
     };
     // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
-    XSendEvent(display, handle, propagate: false, new IntPtr((int)(EventMask.ExposureMask)), ref xEvent);
+    XSendEvent(display, handle, propagate: false, new IntPtr((int) (EventMask.ExposureMask)), ref xEvent);
 };
 var input = new InkingInputManager(skInkCanvas);
 
@@ -100,14 +147,14 @@ while (true)
     if (@event.type == XEventName.Expose)
     {
         XPutImage(display, handle, gc, ref xImage, @event.ExposeEvent.x, @event.ExposeEvent.y, @event.ExposeEvent.x,
-            @event.ExposeEvent.y, (uint)@event.ExposeEvent.width,
-            (uint)@event.ExposeEvent.height);
+            @event.ExposeEvent.y, (uint) @event.ExposeEvent.width,
+            (uint) @event.ExposeEvent.height);
     }
     else if (@event.type == XEventName.ButtonPress)
     {
         var x = @event.ButtonEvent.x;
         var y = @event.ButtonEvent.y;
-        input.Down(new InkingModeInputArgs(0, new Point(x, y), (ulong)Environment.TickCount64));
+        input.Down(new InkingModeInputArgs(0, new Point(x, y), (ulong) Environment.TickCount64));
         isDown = true;
     }
     else if (@event.type == XEventName.MotionNotify)
@@ -116,7 +163,7 @@ while (true)
         {
             var x = @event.MotionEvent.x;
             var y = @event.MotionEvent.y;
-            input.Move(new InkingModeInputArgs(0, new Point(x, y), (ulong)Environment.TickCount64));
+            input.Move(new InkingModeInputArgs(0, new Point(x, y), (ulong) Environment.TickCount64));
         }
 
         while (true)
@@ -136,8 +183,78 @@ while (true)
     {
         var x = @event.ButtonEvent.x;
         var y = @event.ButtonEvent.y;
-        input.Up(new InkingModeInputArgs(0, new Point(x, y), (ulong)Environment.TickCount64));
+        input.Up(new InkingModeInputArgs(0, new Point(x, y), (ulong) Environment.TickCount64));
         isDown = false;
+    }
+    else if (@event.type == XEventName.GenericEvent)
+    {
+        unsafe
+        {
+            void* data = &@event.GenericEventCookie;
+            XGetEventData(display, data);
+            try
+            {
+                var xiEvent = (XIEvent*) @event.GenericEventCookie.data;
+                if (xiEvent->evtype is
+                    XiEventType.XI_ButtonPress
+                    or XiEventType.XI_ButtonRelease
+                    or XiEventType.XI_Motion
+                    or XiEventType.XI_TouchBegin
+                    or XiEventType.XI_TouchUpdate
+                    or XiEventType.XI_TouchEnd
+                   )
+                {
+                    var xiDeviceEvent = (XIDeviceEvent*) xiEvent;
+                    bool isMouse = false;
+                    var timestamp = (ulong) xiDeviceEvent->time.ToInt64();
+
+                    if (xiDeviceEvent->evtype is
+                        XiEventType.XI_ButtonPress
+                        or XiEventType.XI_ButtonRelease
+                        or XiEventType.XI_Motion)
+                    {
+                        if ((xiDeviceEvent->flags & XiDeviceEventFlags.XIPointerEmulated) ==
+                            XiDeviceEventFlags.XIPointerEmulated)
+                        {
+                            // 多指触摸下是模拟的，则忽略
+                            //Console.WriteLine("多指触摸下是模拟的");
+                            continue;
+                        }
+
+                        isMouse = true;
+                    }
+
+                    var id = xiDeviceEvent->detail;
+                    if (isMouse)
+                    {
+                        // 由于在 XI_ButtonPress 时的 id 是 1 而 XI_Motion 是 0 导致无法画出线
+                        id = 0;
+                    }
+
+                    if (xiDeviceEvent->evtype is XiEventType.XI_ButtonPress or XiEventType.XI_TouchBegin)
+                    {
+                        input.Down(new InkingModeInputArgs(id, new Point(xiDeviceEvent->event_x, xiDeviceEvent->event_y), timestamp));
+                        isDown = true;
+                    }
+                    else if (xiDeviceEvent->evtype is XiEventType.XI_Motion or XiEventType.XI_TouchUpdate)
+                    {
+                        if (isDown)
+                        {
+                            input.Move(new InkingModeInputArgs(id, new Point(xiDeviceEvent->event_x, xiDeviceEvent->event_y), timestamp));
+                        }
+                    }
+                    else if (xiDeviceEvent->evtype is XiEventType.XI_ButtonRelease or XiEventType.XI_TouchEnd)
+                    {
+                        input.Up(new InkingModeInputArgs(id, new Point(xiDeviceEvent->event_x, xiDeviceEvent->event_y), timestamp));
+                        isDown = false;
+                    }
+                }
+            }
+            finally
+            {
+                XFreeEventData(display, data);
+            }
+        }
     }
 }
 
