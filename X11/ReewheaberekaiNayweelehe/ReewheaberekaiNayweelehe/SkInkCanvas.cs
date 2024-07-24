@@ -338,7 +338,12 @@ partial class SkInkCanvas
         _isOriginBackgroundDisable = true;
     }
 
-    public void ManipulateMove(Point delta)
+    public void ManipulateMoveStart(Point startPoint)
+    {
+
+    }
+
+    public void ManipulateMove(Point delta, Point absPoint)
     {
         StaticDebugLogger.WriteLine($"[ManipulateMove] {delta.X:0.00},{delta.Y:0.00}");
 

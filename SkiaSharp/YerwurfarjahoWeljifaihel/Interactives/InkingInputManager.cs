@@ -56,6 +56,10 @@ class InkingInputManager
         }
         else if (InputMode == InputMode.Manipulate)
         {
+            if (args.Id == MainInput)
+            {
+                SkInkCanvas.ManipulateMoveStart(args.StylusPoint.Point);
+            }
         }
     }
 
@@ -69,7 +73,7 @@ class InkingInputManager
         {
             if (_downCount == 1)
             {
-                SkInkCanvas.ManipulateMove(new Point(args.StylusPoint.Point.X - _lastStylusPoint.Point.X, args.StylusPoint.Point.Y - _lastStylusPoint.Point.Y));
+                SkInkCanvas.ManipulateMove(new Point(args.StylusPoint.Point.X - _lastStylusPoint.Point.X, args.StylusPoint.Point.Y - _lastStylusPoint.Point.Y), args.StylusPoint.Point);
             }
             else
             {
@@ -108,7 +112,7 @@ class InkingInputManager
                 return;
             }
 
-            SkInkCanvas.ManipulateMove(new Point(args.StylusPoint.Point.X - _lastStylusPoint.Point.X, args.StylusPoint.Point.Y - _lastStylusPoint.Point.Y));
+            SkInkCanvas.ManipulateMove(new Point(args.StylusPoint.Point.X - _lastStylusPoint.Point.X, args.StylusPoint.Point.Y - _lastStylusPoint.Point.Y), args.StylusPoint.Point);
             SkInkCanvas.ManipulateFinish();
 
             _lastStylusPoint = args.StylusPoint;
