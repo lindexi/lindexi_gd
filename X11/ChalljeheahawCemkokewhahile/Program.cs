@@ -69,7 +69,7 @@ unsafe
     XIDeviceInfo? pointerDevice = default;
     for (var c = 0; c < num; c++)
     {
-        StaticDebugLogger.WriteLine($"XIDeviceInfo [{c}] {devices[c].Deviceid} {devices[c].Use}");
+        //StaticDebugLogger.WriteLine($"XIDeviceInfo [{c}] {devices[c].Deviceid} {devices[c].Use}");
 
         if (devices[c].Use == XiDeviceType.XIMasterPointer)
         {
