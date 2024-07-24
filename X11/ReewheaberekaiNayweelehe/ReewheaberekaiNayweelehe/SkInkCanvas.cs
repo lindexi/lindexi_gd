@@ -8,6 +8,7 @@ using BujeeberehemnaNurgacolarje;
 using Microsoft.Maui.Graphics;
 
 using SkiaInkCore;
+using SkiaInkCore.Diagnostics;
 using SkiaInkCore.Interactives;
 using SkiaInkCore.Primitive;
 
@@ -754,7 +755,7 @@ partial class SkInkCanvas
 
     public void ManipulateMove(Point delta)
     {
-        Console.WriteLine($"[ManipulateMove] {delta.X:0.00},{delta.Y:0.00}");
+        StaticDebugLogger.WriteLine($"[ManipulateMove] {delta.X:0.00},{delta.Y:0.00}");
 
         //_totalMatrix = _totalMatrix * SKMatrix.CreateTranslation((float) delta.X, (float) delta.Y);
         var translation = SKMatrix.CreateTranslation((float) delta.X, (float) delta.Y);

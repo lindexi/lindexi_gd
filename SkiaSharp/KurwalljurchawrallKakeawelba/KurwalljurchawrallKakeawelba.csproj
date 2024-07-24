@@ -9,9 +9,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\X11\BujeeberehemnaNurgacolarje\FixedQueue.cs" Link="FixedQueue.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="SkiaSharp" Version="2.88.7" />
     <PackageReference Include="Microsoft.Maui.Graphics" Version="8.0.70" />
   </ItemGroup>
