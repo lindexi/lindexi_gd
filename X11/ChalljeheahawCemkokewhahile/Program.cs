@@ -1,4 +1,7 @@
-﻿using BujeeberehemnaNurgacolarje;
+﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using BujeeberehemnaNurgacolarje;
+
 using CPF.Linux;
 
 using Microsoft.Maui.Graphics;
@@ -241,17 +244,19 @@ while (true)
                     {
                         if (isDown || xiDeviceEvent->evtype is XiEventType.XI_TouchUpdate)
                         {
-                            var x = xiDeviceEvent->event_x;
-                            var y = xiDeviceEvent->event_y;
+                            var lastArgs = ToRawInputArgs(xiDeviceEvent);
+                            List<StylusPoint>? stylusPointList = null;
 
                             // 读走所有的事件，防止事件堆积
                             var n = XPending(display);
                             for (; n > 0; n--)
                             {
                                 XPeekEvent(display, out var nextEvent);
-                                if (IsMove(nextEvent))
+                                if (IsMove(nextEvent, out var rawInputArgs))
                                 {
-
+                                    stylusPointList ??= new List<StylusPoint>();
+                                    stylusPointList.Add(lastArgs.StylusPoint);
+                                    lastArgs = rawInputArgs;
 
                                     XNextEvent(display, out _);
                                 }
@@ -261,7 +266,15 @@ while (true)
                                 }
                             }
 
-                            input.Move(new InkingModeInputArgs(id, new Point(x, y), timestamp));
+                            if (stylusPointList != null)
+                            {
+                                stylusPointList.Add(lastArgs.StylusPoint);
+                            }
+                           
+                            input.Move(new InkingModeInputArgs(id, lastArgs.StylusPoint, timestamp)
+                            {
+                                StylusPointList = stylusPointList
+                            });
                         }
                     }
                     else if (xiDeviceEvent->evtype is XiEventType.XI_ButtonRelease or XiEventType.XI_TouchEnd)
@@ -279,8 +292,9 @@ while (true)
     }
 }
 
-bool IsMove(XEvent @event)
+bool IsMove(XEvent @event, out RawInputArgs rawInputArgs)
 {
+    rawInputArgs = default;
     if (@event.type != XEventName.GenericEvent)
     {
         return false;
@@ -299,7 +313,9 @@ bool IsMove(XEvent @event)
                 or XiEventType.XI_TouchUpdate
                )
             {
+                var xiDeviceEvent = (XIDeviceEvent*) xiEvent;
 
+                rawInputArgs = ToRawInputArgs(xiDeviceEvent);
 
                 return true;
             }
@@ -313,6 +329,10 @@ bool IsMove(XEvent @event)
     return false;
 }
 
+static unsafe RawInputArgs ToRawInputArgs(XIDeviceEvent* xiDeviceEvent)
+{
+   return new RawInputArgs(xiDeviceEvent->detail, new StylusPoint(xiDeviceEvent->event_x, xiDeviceEvent->event_y), (ulong) xiDeviceEvent->time.ToInt64());
+}
 
 static XImage CreateImage(SKBitmap skBitmap)
 {
