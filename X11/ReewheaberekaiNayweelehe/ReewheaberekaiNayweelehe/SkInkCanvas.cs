@@ -372,8 +372,10 @@ partial class SkInkCanvas
         var translation = SKMatrix.CreateTranslation((float) x, (float) y);
         _totalMatrix = SKMatrix.Concat(_totalMatrix, translation);
 
-        // 像素漫游的方法
-        MoveWithPixel(new Point(x, y));
+        //// 像素漫游的方法
+        //MoveWithPixel(new Point(x, y));
+
+        ManipulateFinish();
 
         //// 几何漫游的方法
         //MoveWithPath(delta);
