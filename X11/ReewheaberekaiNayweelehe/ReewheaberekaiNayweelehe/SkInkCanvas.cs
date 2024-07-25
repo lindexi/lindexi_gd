@@ -753,25 +753,44 @@ partial class SkInkCanvas
         _isOriginBackgroundDisable = true;
     }
 
+    readonly record struct ManipulationInfo(Point StartAbsPoint, SKMatrix StartMatrix, Point LastAbsPoint);
+
+    private ManipulationInfo _manipulationInfo = default;
+
     public void ManipulateMoveStart(Point startPoint)
     {
+        _manipulationInfo = new ManipulationInfo(StartAbsPoint: startPoint, StartMatrix: _totalMatrix, LastAbsPoint: startPoint);
     }
 
     public void ManipulateMove(Point delta, Point absPoint)
     {
         //StaticDebugLogger.WriteLine($"[ManipulateMove] {delta.X:0.00},{delta.Y:0.00}");
 
-        if (Math.Abs(delta.X) < 0.01 && Math.Abs(delta.Y) < 0.01)
+        var x = absPoint.X - _manipulationInfo.LastAbsPoint.X;
+        var y = absPoint.Y - _manipulationInfo.LastAbsPoint.Y;
+
+        x = Math.Floor(x);
+        y = Math.Floor(y);
+
+        if (Math.Abs(x) < 0.01 && Math.Abs(y) < 0.01)
         {
             return;
         }
 
+        var lastAbsPoint = new Point(_manipulationInfo.LastAbsPoint.X + x, _manipulationInfo.LastAbsPoint.Y + y);
+        _manipulationInfo = _manipulationInfo with
+        {
+            LastAbsPoint = lastAbsPoint
+        };
+
         //_totalMatrix = _totalMatrix * SKMatrix.CreateTranslation((float) delta.X, (float) delta.Y);
-        var translation = SKMatrix.CreateTranslation((float) delta.X, (float) delta.Y);
+        var translation = SKMatrix.CreateTranslation((float) x, (float) y);
         _totalMatrix = SKMatrix.Concat(_totalMatrix, translation);
 
-        // 像素漫游的方法
-        MoveWithPixel(delta);
+        //// 像素漫游的方法
+        //MoveWithPixel(new Point(x, y));
+
+        ManipulateFinish();
 
         //// 几何漫游的方法
         //MoveWithPath(delta);

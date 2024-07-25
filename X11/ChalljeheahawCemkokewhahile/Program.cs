@@ -1,4 +1,5 @@
-﻿using CPF.Linux;
+﻿using BujeeberehemnaNurgacolarje;
+using CPF.Linux;
 
 using Microsoft.Maui.Graphics;
 
@@ -240,7 +241,8 @@ while (true)
                     {
                         if (isDown || xiDeviceEvent->evtype is XiEventType.XI_TouchUpdate)
                         {
-                            input.Move(new InkingModeInputArgs(id, new Point(xiDeviceEvent->event_x, xiDeviceEvent->event_y), timestamp));
+                            var x = xiDeviceEvent->event_x;
+                            var y = xiDeviceEvent->event_y;
 
                             // 读走所有的事件，防止事件堆积
                             var n = XPending(display);
@@ -249,6 +251,8 @@ while (true)
                                 XPeekEvent(display, out var nextEvent);
                                 if (IsMove(nextEvent))
                                 {
+
+
                                     XNextEvent(display, out _);
                                 }
                                 else
@@ -256,6 +260,8 @@ while (true)
                                     break;
                                 }
                             }
+
+                            input.Move(new InkingModeInputArgs(id, new Point(x, y), timestamp));
                         }
                     }
                     else if (xiDeviceEvent->evtype is XiEventType.XI_ButtonRelease or XiEventType.XI_TouchEnd)
@@ -293,6 +299,8 @@ bool IsMove(XEvent @event)
                 or XiEventType.XI_TouchUpdate
                )
             {
+
+
                 return true;
             }
         }
@@ -304,6 +312,7 @@ bool IsMove(XEvent @event)
 
     return false;
 }
+
 
 static XImage CreateImage(SKBitmap skBitmap)
 {
@@ -330,3 +339,5 @@ static XImage CreateImage(SKBitmap skBitmap)
 
     return img;
 }
+
+readonly record struct RawInputArgs(int Id, StylusPoint StylusPoint, ulong Timestamp);
