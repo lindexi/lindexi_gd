@@ -28,7 +28,8 @@ public partial class MainWindow : Window
 
         Loaded += MainWindow_Loaded;
 
-        Opacity = 0.6;
+        AllowsTransparency = true;
+        Opacity = 0.7;
     }
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -48,8 +49,12 @@ public partial class MainWindow : Window
                 Topmost = true;
                 Topmost = false;
 
-                await Task.Delay(1000);
-                Hide();
+                _isHiding = true;
+                await Task.Delay(3000);
+                if (_isHiding)
+                {
+                    Hide();
+                }
             }
             else
             {
@@ -61,6 +66,12 @@ public partial class MainWindow : Window
     private void KeyboardHookListener_KeyUp(object? sender, KeyboardHookListener.RawKeyEventArgs args)
     {
         
+    }
+
+    private bool _isHiding = false;
+    protected override void OnPreviewMouseMove(MouseEventArgs e)
+    {
+        _isHiding = false;
     }
 
     protected override void OnMouseDown(MouseButtonEventArgs e)
