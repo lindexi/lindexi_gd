@@ -28,7 +28,8 @@ public partial class MainWindow : Window
 
         Loaded += MainWindow_Loaded;
 
-        Opacity = 0.6;
+        AllowsTransparency = true;
+        Opacity = 0.7;
     }
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -37,30 +38,49 @@ public partial class MainWindow : Window
 
     private readonly Stopwatch _lastCtrlKeyDown = new Stopwatch();
 
-    private async void KeyboardHookListener_KeyDown(object? sender, KeyboardHookListener.RawKeyEventArgs args)
+    private void KeyboardHookListener_KeyDown(object? sender, KeyboardHookListener.RawKeyEventArgs args)
     {
         if (args.Key == Key.LeftCtrl)
         {   
             if (_lastCtrlKeyDown.IsRunning && _lastCtrlKeyDown.Elapsed < TimeSpan.FromMilliseconds(500))
             {
-                MessageTextBox.Text = $"{DateTime.Now}";
-                Show();
-                Topmost = true;
-                Topmost = false;
-
-                await Task.Delay(1000);
-                Hide();
+                ShowNotActive();
             }
             else
             {
                 _lastCtrlKeyDown.Restart();
             }
         }
+        else if (args.Key == Key.LWin)
+        {
+            ShowNotActive();
+        }
+    }
+
+    private async void ShowNotActive()
+    {
+        MessageTextBox.Text = $"{DateTime.Now}";
+        Show();
+        Topmost = true;
+        Topmost = false;
+
+        _isHiding = true;
+        await Task.Delay(TimeSpan.FromSeconds(10));
+        if (_isHiding)
+        {
+            Hide();
+        }
     }
 
     private void KeyboardHookListener_KeyUp(object? sender, KeyboardHookListener.RawKeyEventArgs args)
     {
         
+    }
+
+    private bool _isHiding = false;
+    protected override void OnPreviewMouseMove(MouseEventArgs e)
+    {
+        _isHiding = false;
     }
 
     protected override void OnMouseDown(MouseButtonEventArgs e)
