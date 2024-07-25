@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+
 using Windows.Win32;
 
 namespace DacemcalqeleHalibarbubem;
@@ -40,18 +41,7 @@ public partial class MainWindow : Window
 
     private void KeyboardHookListener_KeyDown(object? sender, KeyboardHookListener.RawKeyEventArgs args)
     {
-        if (args.Key == Key.LeftCtrl)
-        {   
-            if (_lastCtrlKeyDown.IsRunning && _lastCtrlKeyDown.Elapsed < TimeSpan.FromMilliseconds(500))
-            {
-                ShowNotActive();
-            }
-            else
-            {
-                _lastCtrlKeyDown.Restart();
-            }
-        }
-        else if (args.Key == Key.LWin)
+        if (args.Key == Key.LWin)
         {
             ShowNotActive();
         }
@@ -74,7 +64,17 @@ public partial class MainWindow : Window
 
     private void KeyboardHookListener_KeyUp(object? sender, KeyboardHookListener.RawKeyEventArgs args)
     {
-        
+        if (args.Key == Key.LeftCtrl)
+        {
+            if (_lastCtrlKeyDown.IsRunning && _lastCtrlKeyDown.Elapsed < TimeSpan.FromMilliseconds(500))
+            {
+                ShowNotActive();
+            }
+            else
+            {
+                _lastCtrlKeyDown.Restart();
+            }
+        }
     }
 
     private bool _isHiding = false;
