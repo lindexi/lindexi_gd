@@ -8,6 +8,6 @@
         WindowStyle="None"
         Title="MainWindow" Height="100" Width="300">
     <Grid>
-
+        <TextBox x:Name="MessageTextBox" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap"/>
     </Grid>
 </Window>
