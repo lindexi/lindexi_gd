@@ -2,6 +2,12 @@
 
 using System.Text;
 using System.Text.Encodings.Web;
+using System.Text.RegularExpressions;
+
+var match = Regex.Match("var hq_str_sz000651=\"格力电器,38.010,38.020,37.700,38.240,37.200,37.700,37.710,39027322,1466749485.590,46000,37.700,6900,37.690,29000,37.680,2900,37.670,11900,37.660,3200,37.710,12500,37.720,8300,37.730,3800,37.740,1700,37.750,2024-07-05,15:00:00,00\";",@"var hq_str_sz000651=""(\w+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),");
+var current = match.Groups[4].Value;
+var max = match.Groups[5].Value;
+var min = match.Groups[6].Value;
 
 var token = "6cecf0cf8d508f0afa762774e2dd310a-c-app";
 
