@@ -267,6 +267,8 @@ while (true)
                                 }
                             }
 
+                            StaticDebugLogger.WriteLine($"读取 {inputList.Count}");
+
                             Dictionary<int /*Id*/, List<RawInputArgs>> rawInputArgsMap = [];
 
                             foreach (var rawInputArgs in inputList)
