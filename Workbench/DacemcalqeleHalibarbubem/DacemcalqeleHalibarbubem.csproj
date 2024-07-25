@@ -8,4 +8,8 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Lsj.Util.Win32" Version="7.1.2" />
+  </ItemGroup>
+
 </Project>
