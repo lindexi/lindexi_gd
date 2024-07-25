@@ -783,14 +783,17 @@ partial class SkInkCanvas
             LastAbsPoint = lastAbsPoint
         };
 
+        // 需要解决缩放之后的平移，如果直接使用 Concat 方法，那将会在原有的基础上，叠加上缩放后的平移，导致平移的距离不准确
         //_totalMatrix = _totalMatrix * SKMatrix.CreateTranslation((float) delta.X, (float) delta.Y);
-        var translation = SKMatrix.CreateTranslation((float) x, (float) y);
+        var translation = SKMatrix.CreateTranslation((float) x / _totalMatrix.ScaleX, (float) y / _totalMatrix.ScaleY);
         _totalMatrix = SKMatrix.Concat(_totalMatrix, translation);
 
-        //// 像素漫游的方法
-        //MoveWithPixel(new Point(x, y));
 
-        ManipulateFinish();
+        // 像素漫游的方法
+        MoveWithPixel(new Point(x, y));
+
+        // 这是用来测试几何漫游的方法
+        //ManipulateFinish();
 
         //// 几何漫游的方法
         //MoveWithPath(delta);
