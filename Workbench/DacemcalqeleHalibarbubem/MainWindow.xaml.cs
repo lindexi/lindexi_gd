@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Windows.Win32;
 
 namespace DacemcalqeleHalibarbubem;
 
@@ -24,11 +25,19 @@ public partial class MainWindow : Window
         KeyboardHookListener.KeyDown += KeyboardHookListener_KeyDown;
         KeyboardHookListener.KeyUp += KeyboardHookListener_KeyUp;
         KeyboardHookListener.HookKeyboard();
+
+        Loaded += MainWindow_Loaded;
+
+        Opacity = 0.6;
+    }
+
+    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
     }
 
     private readonly Stopwatch _lastCtrlKeyDown = new Stopwatch();
 
-    private void KeyboardHookListener_KeyDown(object? sender, KeyboardHookListener.RawKeyEventArgs args)
+    private async void KeyboardHookListener_KeyDown(object? sender, KeyboardHookListener.RawKeyEventArgs args)
     {
         if (args.Key == Key.LeftCtrl)
         {   
@@ -36,6 +45,11 @@ public partial class MainWindow : Window
             {
                 MessageTextBox.Text = $"{DateTime.Now}";
                 Show();
+                Topmost = true;
+                Topmost = false;
+
+                await Task.Delay(1000);
+                Hide();
             }
             else
             {
