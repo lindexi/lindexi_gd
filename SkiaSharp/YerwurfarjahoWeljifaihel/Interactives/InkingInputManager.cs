@@ -124,8 +124,8 @@ class TestInput(SkInkCanvas skInkCanvas)
 {
     public void RenderSplashScreen()
     {
-        var lineStep = 70;
-        var pointStep = 100;
+        var lineStep = 100;
+        var pointStep = 500;
 
         for (int y = 0; y < skInkCanvas.ApplicationDrawingSkBitmap.Height * 2; y += lineStep)
         {
