@@ -24,9 +24,21 @@ public partial class App : Application
         var wr = AddAndRemoveImage(window);
         GC.Collect();
         GC.WaitForPendingFinalizers();
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        Thread.Sleep(10000);
         //Assert.IsFalse(wr.IsAlive);
         //Debug.Assert(wr.IsAlive is false);
-        Console.WriteLine($"{wr.IsAlive is false}");
+        for (int i = 0; i < 1000000; i++)
+        {
+            if (!wr.IsAlive)
+            {
+                break;
+            }
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
     }
 
     static WeakReference AddAndRemoveImage(Window window)
