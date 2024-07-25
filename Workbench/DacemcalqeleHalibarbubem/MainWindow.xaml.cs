@@ -38,28 +38,37 @@ public partial class MainWindow : Window
 
     private readonly Stopwatch _lastCtrlKeyDown = new Stopwatch();
 
-    private async void KeyboardHookListener_KeyDown(object? sender, KeyboardHookListener.RawKeyEventArgs args)
+    private void KeyboardHookListener_KeyDown(object? sender, KeyboardHookListener.RawKeyEventArgs args)
     {
         if (args.Key == Key.LeftCtrl)
         {   
             if (_lastCtrlKeyDown.IsRunning && _lastCtrlKeyDown.Elapsed < TimeSpan.FromMilliseconds(500))
             {
-                MessageTextBox.Text = $"{DateTime.Now}";
-                Show();
-                Topmost = true;
-                Topmost = false;
-
-                _isHiding = true;
-                await Task.Delay(3000);
-                if (_isHiding)
-                {
-                    Hide();
-                }
+                ShowNotActive();
             }
             else
             {
                 _lastCtrlKeyDown.Restart();
             }
+        }
+        else if (args.Key == Key.LWin)
+        {
+            ShowNotActive();
+        }
+    }
+
+    private async void ShowNotActive()
+    {
+        MessageTextBox.Text = $"{DateTime.Now}";
+        Show();
+        Topmost = true;
+        Topmost = false;
+
+        _isHiding = true;
+        await Task.Delay(TimeSpan.FromSeconds(10));
+        if (_isHiding)
+        {
+            Hide();
         }
     }
 
