@@ -73,10 +73,13 @@ public class SkiaCanvas : FrameworkElement
 
     private void SkiaCanvas_Loaded(object sender, RoutedEventArgs e)
     {
-        RequireDraw(context =>
+        // ReSharper disable once AsyncVoidLambda 虽然 async void 有异常会炸，但这里是测试代码，就这样
+        RequireDraw(async context =>
         {
             _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
             _inkingInputManager ??= new InkingInputManager(_inkCanvas);
+
+            await Task.Delay(100);
         });
     }
 

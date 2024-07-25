@@ -340,12 +340,11 @@ partial class SkInkCanvas
 
     public void ManipulateMoveStart(Point startPoint)
     {
-
     }
 
     public void ManipulateMove(Point delta, Point absPoint)
     {
-        StaticDebugLogger.WriteLine($"[ManipulateMove] {delta.X:0.00},{delta.Y:0.00}");
+        //StaticDebugLogger.WriteLine($"[ManipulateMove] {delta.X:0.00},{delta.Y:0.00}");
 
         if (Math.Abs(delta.X) < 0.01 && Math.Abs(delta.Y) < 0.01)
         {
