@@ -56,6 +56,10 @@ class InkingInputManager
         }
         else if (InputMode == InputMode.Manipulate)
         {
+            if (args.Id == MainInput)
+            {
+                SkInkCanvas.ManipulateMoveStart(args.StylusPoint.Point);
+            }
         }
     }
 
@@ -69,7 +73,7 @@ class InkingInputManager
         {
             if (_downCount == 1)
             {
-                SkInkCanvas.ManipulateMove(new Point(args.StylusPoint.Point.X - _lastStylusPoint.Point.X, args.StylusPoint.Point.Y - _lastStylusPoint.Point.Y));
+                SkInkCanvas.ManipulateMove(new Point(args.StylusPoint.Point.X - _lastStylusPoint.Point.X, args.StylusPoint.Point.Y - _lastStylusPoint.Point.Y), args.StylusPoint.Point);
             }
             else
             {
@@ -108,7 +112,7 @@ class InkingInputManager
                 return;
             }
 
-            SkInkCanvas.ManipulateMove(new Point(args.StylusPoint.Point.X - _lastStylusPoint.Point.X, args.StylusPoint.Point.Y - _lastStylusPoint.Point.Y));
+            SkInkCanvas.ManipulateMove(new Point(args.StylusPoint.Point.X - _lastStylusPoint.Point.X, args.StylusPoint.Point.Y - _lastStylusPoint.Point.Y), args.StylusPoint.Point);
             SkInkCanvas.ManipulateFinish();
 
             _lastStylusPoint = args.StylusPoint;
@@ -120,12 +124,15 @@ class TestInput(SkInkCanvas skInkCanvas)
 {
     public void RenderSplashScreen()
     {
-        for (int y = 0; y < skInkCanvas.ApplicationDrawingSkBitmap.Height * 2; y += 25)
+        var lineStep = 70;
+        var pointStep = 100;
+
+        for (int y = 0; y < skInkCanvas.ApplicationDrawingSkBitmap.Height * 2; y += lineStep)
         {
             var color = new SKColor((uint) Random.Shared.Next()).WithAlpha((byte) Random.Shared.Next(100, 0xFF));
 
             var inkPointList = new List<StylusPoint>();
-            for (int i = 0; i < skInkCanvas.ApplicationDrawingSkBitmap.Width * 2; i++)
+            for (int i = 0; i < skInkCanvas.ApplicationDrawingSkBitmap.Width * 2; i += pointStep)
             {
                 inkPointList.Add(new StylusPoint(i, y));
             }
@@ -133,12 +140,12 @@ class TestInput(SkInkCanvas skInkCanvas)
             AddInk(color, inkPointList);
         }
 
-        for (int x = 0; x < skInkCanvas.ApplicationDrawingSkBitmap.Width * 2; x += 25)
+        for (int x = 0; x < skInkCanvas.ApplicationDrawingSkBitmap.Width * 2; x += lineStep)
         {
             var color = new SKColor((uint) Random.Shared.Next()).WithAlpha((byte) Random.Shared.Next(100, 0xFF));
 
             var inkPointList = new List<StylusPoint>();
-            for (int i = 0; i < skInkCanvas.ApplicationDrawingSkBitmap.Height * 2; i++)
+            for (int i = 0; i < skInkCanvas.ApplicationDrawingSkBitmap.Height * 2; i += pointStep)
             {
                 inkPointList.Add(new StylusPoint(x, i));
             }
