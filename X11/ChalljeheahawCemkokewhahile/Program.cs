@@ -244,8 +244,11 @@ while (true)
                     {
                         if (isDown || xiDeviceEvent->evtype is XiEventType.XI_TouchUpdate)
                         {
+                            var inputList = new List<RawInputArgs>();
+
                             var lastArgs = ToRawInputArgs(xiDeviceEvent);
-                            List<StylusPoint>? stylusPointList = null;
+                           
+                            inputList.Add(lastArgs);
 
                             // 读走所有的事件，防止事件堆积
                             var n = XPending(display);
@@ -254,9 +257,7 @@ while (true)
                                 XPeekEvent(display, out var nextEvent);
                                 if (IsMove(nextEvent, out var rawInputArgs))
                                 {
-                                    stylusPointList ??= new List<StylusPoint>();
-                                    stylusPointList.Add(lastArgs.StylusPoint);
-                                    lastArgs = rawInputArgs;
+                                    inputList.Add(rawInputArgs);
 
                                     XNextEvent(display, out _);
                                 }
@@ -266,15 +267,29 @@ while (true)
                                 }
                             }
 
-                            if (stylusPointList != null)
+                            Dictionary<int /*Id*/, List<RawInputArgs>> rawInputArgsMap = [];
+
+                            foreach (var rawInputArgs in inputList)
                             {
-                                stylusPointList.Add(lastArgs.StylusPoint);
+                                if (rawInputArgsMap.TryGetValue(rawInputArgs.Id, out var list))
+                                {
+                                    list.Add(rawInputArgs);
+                                }
+                                else
+                                {
+                                    rawInputArgsMap[rawInputArgs.Id] = [rawInputArgs];
+                                }
                             }
-                           
-                            input.Move(new InkingModeInputArgs(id, lastArgs.StylusPoint, timestamp)
+
+                            foreach (var (_, list) in rawInputArgsMap)
                             {
-                                StylusPointList = stylusPointList
-                            });
+                                var rawInputArgs = list[0];
+
+                                input.Move(new InkingModeInputArgs(rawInputArgs.Id, rawInputArgs.StylusPoint, timestamp)
+                                {
+                                    StylusPointList = [.. list.Select(t => t.StylusPoint)]
+                                });
+                            }
                         }
                     }
                     else if (xiDeviceEvent->evtype is XiEventType.XI_ButtonRelease or XiEventType.XI_TouchEnd)
