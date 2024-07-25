@@ -20,4 +20,9 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
     }
+
+    protected override void OnMouseDown(MouseButtonEventArgs e)
+    {
+        DragMove();
+    }
 }
