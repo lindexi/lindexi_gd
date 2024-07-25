@@ -793,10 +793,8 @@ partial class SkInkCanvas
         MoveWithPixel(new Point(x, y));
 
         // 这是用来测试几何漫游的方法
-        //ManipulateFinish();
-
         //// 几何漫游的方法
-        //MoveWithPath(delta);
+        //ManipulateFinish();
 
         _isOriginBackgroundDisable = true;
     }
@@ -959,6 +957,7 @@ partial class SkInkCanvas
             return false;
         }
     }
+<<<<<<< HEAD
 
     private void MoveWithPath(Point delta)
     {
@@ -1485,3 +1484,6 @@ class StepCounter
 =======
 }
 >>>>>>> c54fc6f0540f239c00c47c3883fcaa800ae7f1bf
+=======
+}
+>>>>>>> 7e713e9e6340c66abbc9377edcf43f7b77c137e3

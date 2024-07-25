@@ -12,7 +12,6 @@
     <Compile Include="..\BujeeberehemnaNurgacolarje\FixedQueue.cs" Link="FixedQueue.cs" />
     <Compile Include="..\BujeeberehemnaNurgacolarje\PixelSize.cs" Link="PixelSize.cs" />
     <Compile Include="..\BujeeberehemnaNurgacolarje\SimpleInkRender.cs" Link="SimpleInkRender.cs" />
-    <Compile Include="..\BujeeberehemnaNurgacolarje\StylusPoint.cs" Link="StylusPoint.cs" />
     <Compile Include="..\BujeeberehemnaNurgacolarje\X11Atoms.cs" Link="X11Atoms.cs" />
     <Compile Include="..\BujeeberehemnaNurgacolarje\X11Enums.cs" Link="X11Enums.cs" />
     <Compile Include="..\BujeeberehemnaNurgacolarje\X11Info.cs" Link="X11Info.cs" />
