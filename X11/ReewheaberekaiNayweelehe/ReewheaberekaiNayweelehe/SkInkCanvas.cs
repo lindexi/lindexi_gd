@@ -369,8 +369,9 @@ partial class SkInkCanvas
         };
 
         //_totalMatrix = _totalMatrix * SKMatrix.CreateTranslation((float) delta.X, (float) delta.Y);
-        var translation = SKMatrix.CreateTranslation((float) x, (float) y);
+        var translation = SKMatrix.CreateTranslation((float) x / _totalMatrix.ScaleX, (float) y / _totalMatrix.ScaleY);
         _totalMatrix = SKMatrix.Concat(_totalMatrix, translation);
+
 
         //// 像素漫游的方法
         //MoveWithPixel(new Point(x, y));
