@@ -378,10 +378,8 @@ partial class SkInkCanvas
         MoveWithPixel(new Point(x, y));
 
         // 这是用来测试几何漫游的方法
-        //ManipulateFinish();
-
         //// 几何漫游的方法
-        //MoveWithPath(delta);
+        //ManipulateFinish();
 
         _isOriginBackgroundDisable = true;
     }
@@ -544,25 +542,4 @@ partial class SkInkCanvas
             return false;
         }
     }
-
-    private void MoveWithPath(Point delta)
-    {
-        _totalTransform = new Point(_totalTransform.X + delta.X, _totalTransform.Y + delta.Y);
-
-        var skCanvas = _skCanvas;
-        skCanvas.Clear();
-
-        skCanvas.Save();
-
-        skCanvas.Translate((float) _totalTransform.X, (float) _totalTransform.Y);
-
-        DrawAllInk();
-
-        skCanvas.Restore();
-
-        RenderBoundsChanged?.Invoke(this,
-            new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
-    }
-
-    private Point _totalTransform;
 }
