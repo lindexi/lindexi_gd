@@ -1,4 +1,6 @@
+using System.Text;
 using System.Text.Json.Serialization;
+
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 
@@ -12,7 +14,8 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 var app = builder.Build();
 app.Urls.Add("http://0.0.0.0:80");
 
-var sampleTodos = new Todo[] {
+var sampleTodos = new Todo[]
+{
     new(1, "Walk the dog"),
     new(2, "Do the dishes", DateOnly.FromDateTime(DateTime.Now)),
     new(3, "Do the laundry", DateOnly.FromDateTime(DateTime.Now.AddDays(1))),
@@ -32,12 +35,17 @@ app.UseFileServer(new FileServerOptions()
     },
 });
 
-var todosApi = app.MapGroup("/todos");
-todosApi.MapGet("/", () => sampleTodos);
-todosApi.MapGet("/{id}", (int id) =>
-    sampleTodos.FirstOrDefault(a => a.Id == id) is { } todo
-        ? Results.Ok(todo)
-        : Results.NotFound());
+//var todosApi = app.MapGroup("/todos");
+//todosApi.MapGet("/", () => sampleTodos);
+//todosApi.MapGet("/{id}", (int id) =>
+//    sampleTodos.FirstOrDefault(a => a.Id == id) is { } todo
+//        ? Results.Ok(todo)
+//        : Results.NotFound());
+
+app.Map("/", () =>
+{
+    return Results.Text("123", "foo/f", Encoding.UTF8);
+});
 
 app.Run();
 
