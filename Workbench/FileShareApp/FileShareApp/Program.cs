@@ -23,7 +23,7 @@ var sampleTodos = new Todo[] {
 app.UseFileServer(new FileServerOptions()
 {
     FileProvider = new PhysicalFileProvider(AppContext.BaseDirectory),
-    RequestPath = new PathString(),
+    RequestPath = new PathString("/file"),
     EnableDirectoryBrowsing = true,
     StaticFileOptions =
     {
