@@ -1,3 +1,8 @@
 SetWindowLong
 GetWindowLong
 UnhookWindowsHookEx
+CallNextHookEx
+GetModuleHandle
+SetWindowsHookEx
+WM_KEYDOWN
+WM_KEYUP
