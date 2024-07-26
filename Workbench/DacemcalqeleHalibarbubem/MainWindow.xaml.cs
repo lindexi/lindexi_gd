@@ -16,6 +16,7 @@ using Windows.Win32;
 using dotnetCampus.Configurations;
 using dotnetCampus.Configurations.Core;
 using System.Text.RegularExpressions;
+using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace DacemcalqeleHalibarbubem;
 
@@ -42,6 +43,9 @@ public partial class MainWindow : Window
         _fileConfigurationRepo = fileConfigurationRepo;
         var appConfigurator = fileConfigurationRepo.CreateAppConfigurator();
         AppConfigurator = appConfigurator;
+
+        var dacemcalqeleHalibarbubemConfiguratioin = appConfigurator.Of<DacemcalqeleHalibarbubemConfiguratioin>();
+        dacemcalqeleHalibarbubemConfiguratioin.TickName = dacemcalqeleHalibarbubemConfiguratioin.TickName;
 
         Closed += MainWindow_Closed;
     }
@@ -73,28 +77,28 @@ public partial class MainWindow : Window
 
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-        using var httpClient = new HttpClient();
-        httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Referer", "https://finance.sina.com.cn/");
-
-        var response = await httpClient.GetAsync("https://hq.sinajs.cn/list=sz000651");
-        var stream = await response.Content.ReadAsStreamAsync();
-        var streamReader = new StreamReader(stream, Encoding.GetEncoding("GBK"));
-        var text = await streamReader.ReadToEndAsync();
-
-        // 数据依次是“股票名称、今日开盘价、昨日收盘价、当前价格、今日最高价、今日最低价、竞买价、竞卖价、成交股数、成交金额、买1手、买1报价、买2手、买2报价、…、买5报价、…、卖5报价、日期、时间”。
-        // var hq_str_sz000651="格力电器,38.010,38.020,37.700,38.240,37.200,37.700,37.710,39027322,1466749485.590,46000,37.700,6900,37.690,29000,37.680,2900,37.670,11900,37.660,3200,37.710,12500,37.720,8300,37.730,3800,37.740,1700,37.750,2024-07-05,15:00:00,00";
-        var match = Regex.Match(text, @"var hq_str_sz000651=""(\w+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),");
-        var current = match.Groups[4].Value;
-        var max = match.Groups[5].Value;
-        var min = match.Groups[6].Value;
-        MessageTextBox.Text = $"{current} {max} {min}\r\n{DateTime.Now}";
-
-        _isHiding = true;
-        await Task.Delay(TimeSpan.FromSeconds(10));
-        if (_isHiding)
+        try
         {
-            Hide();
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Referer", "https://finance.sina.com.cn/");
+
+            var response = await httpClient.GetAsync($"https://hq.sinajs.cn/list={AppConfigurator.Of<DacemcalqeleHalibarbubemConfiguratioin>().TickName}");
+            var stream = await response.Content.ReadAsStreamAsync();
+            var streamReader = new StreamReader(stream, Encoding.GetEncoding("GBK"));
+            var text = await streamReader.ReadToEndAsync();
+
+            var match = Regex.Match(text,
+                @"var hq_str_sz000651=""(\w+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),");
+            var current = match.Groups[4].Value;
+            var max = match.Groups[5].Value;
+            var min = match.Groups[6].Value;
+            MessageTextBox.Text = $"{current} {max} {min}\r\n{DateTime.Now}";
         }
+        catch
+        {
+            // 忽略
+        }
+        _ = TryHide();
     }
 
     private void KeyboardHookListener_KeyUp(object? sender, KeyboardHookListener.RawKeyEventArgs args)
@@ -112,17 +116,40 @@ public partial class MainWindow : Window
         }
     }
 
-    private bool _isHiding = false;
-    private FileConfigurationRepo _fileConfigurationRepo;
+    private ulong _hideVersion;
+    private readonly FileConfigurationRepo _fileConfigurationRepo;
     public IAppConfigurator AppConfigurator { get; set; }
+
+    private async Task TryHide()
+    {
+        _hideVersion++;
+        var version = _hideVersion;
+        await Task.Delay(TimeSpan.FromSeconds(10));
+        if (version == _hideVersion)
+        {
+            Hide();
+        }
+    }
 
     protected override void OnPreviewMouseMove(MouseEventArgs e)
     {
-        _isHiding = false;
+        _ = TryHide();
     }
 
     protected override void OnMouseDown(MouseButtonEventArgs e)
     {
         DragMove();
+    }
+
+    class DacemcalqeleHalibarbubemConfiguratioin : Configuration
+    {
+        public DacemcalqeleHalibarbubemConfiguratioin() : base("")
+        {
+        }
+
+        public string TickName
+        {
+            get => GetString() ?? "sz000651";
+        }
     }
 }

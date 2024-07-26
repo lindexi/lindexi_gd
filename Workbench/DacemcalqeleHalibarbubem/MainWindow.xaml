@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:DacemcalqeleHalibarbubem"
         mc:Ignorable="d"
         WindowStyle="None"
-        Title="MainWindow" Height="100" Width="300">
+        Title="MainWindow" Height="100" Width="200">
     <Grid>
         <TextBox x:Name="MessageTextBox" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" Margin="10,10,10,10"/>
     </Grid>
