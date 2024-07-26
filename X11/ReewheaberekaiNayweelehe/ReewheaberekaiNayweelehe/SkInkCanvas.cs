@@ -55,7 +55,7 @@ partial class SkInkCanvas
 
     public void DrawStrokeDown(InkingModeInputArgs args)
     {
-        var context = new DrawStrokeContext(new InkId(), args, Color, 20);
+        var context = new DrawStrokeContext(InkId.NewId(), args, Color, 20);
         CurrentInputDictionary[args.Id] = context;
 
         context.AllStylusPoints.Add(args.StylusPoint);

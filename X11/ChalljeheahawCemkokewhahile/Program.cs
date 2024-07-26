@@ -289,7 +289,8 @@ while (true)
 
                                 input.Move(new InkingModeInputArgs(rawInputArgs.Id, rawInputArgs.StylusPoint, timestamp)
                                 {
-                                    StylusPointList = [.. list.Select(t => t.StylusPoint)]
+                                    StylusPointList = [.. list.Select(t => t.StylusPoint)],
+                                    IsMouse = isMouse
                                 });
                             }
                         }
