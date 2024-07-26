@@ -349,7 +349,7 @@ partial class SkInkCanvas
         _manipulationInfo = new ManipulationInfo(StartAbsPoint: startPoint, StartMatrix: _totalMatrix, LastAbsPoint: startPoint);
     }
 
-    public void ManipulateMove(Point delta, Point absPoint)
+    public void ManipulateMove(Point absPoint)
     {
         //StaticDebugLogger.WriteLine($"[ManipulateMove] {delta.X:0.00},{delta.Y:0.00}");
 
