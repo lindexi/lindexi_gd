@@ -48,4 +48,4 @@ var manualConfig = new ManualConfig()
 manualConfig.Add(DefaultConfig.Instance);
 
 //BenchmarkRunner.Run(Assembly.GetExecutingAssembly(), manualConfig, args);
-BenchmarkRunner.Run<ArrayCopyBenchmark>();
+BenchmarkRunner.Run<PointGeometryBenchmark>();
