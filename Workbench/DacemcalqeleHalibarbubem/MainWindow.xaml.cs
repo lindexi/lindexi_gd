@@ -44,9 +44,6 @@ public partial class MainWindow : Window
         var appConfigurator = fileConfigurationRepo.CreateAppConfigurator();
         AppConfigurator = appConfigurator;
 
-        var dacemcalqeleHalibarbubemConfiguratioin = appConfigurator.Of<DacemcalqeleHalibarbubemConfiguratioin>();
-        dacemcalqeleHalibarbubemConfiguratioin.TickName = dacemcalqeleHalibarbubemConfiguratioin.TickName;
-
         Closed += MainWindow_Closed;
     }
 
