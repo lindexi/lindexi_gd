@@ -1,0 +1,71 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
+    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Avalonia">
+      <HintPath>..\..\..\..\..\..\Library\Avalonia\Avalonia.dll</HintPath>
+    </Reference>
+    <Reference Include="Avalonia.Base">
+      <HintPath>..\..\..\..\..\..\Library\Avalonia\Avalonia.Base.dll</HintPath>
+    </Reference>
+    <Reference Include="Avalonia.Build.Tasks">
+      <HintPath>..\..\..\..\..\..\Library\Avalonia\Avalonia.Build.Tasks.dll</HintPath>
+    </Reference>
+    <Reference Include="Avalonia.Controls">
+      <HintPath>..\..\..\..\..\..\Library\Avalonia\Avalonia.Controls.dll</HintPath>
+    </Reference>
+    <Reference Include="Avalonia.DesignerSupport">
+      <HintPath>..\..\..\..\..\..\Library\Avalonia\Avalonia.DesignerSupport.dll</HintPath>
+    </Reference>
+    <Reference Include="Avalonia.Dialogs">
+      <HintPath>..\..\..\..\..\..\Library\Avalonia\Avalonia.Dialogs.dll</HintPath>
+    </Reference>
+    <Reference Include="Avalonia.FreeDesktop">
+      <HintPath>..\..\..\..\..\..\Library\Avalonia\Avalonia.FreeDesktop.dll</HintPath>
+    </Reference>
+    <Reference Include="Avalonia.Markup">
+      <HintPath>..\..\..\..\..\..\Library\Avalonia\Avalonia.Markup.dll</HintPath>
+    </Reference>
+    <Reference Include="Avalonia.Markup.Xaml">
+      <HintPath>..\..\..\..\..\..\Library\Avalonia\Avalonia.Markup.Xaml.dll</HintPath>
+    </Reference>
+    <Reference Include="Avalonia.Metal">
+      <HintPath>..\..\..\..\..\..\Library\Avalonia\Avalonia.Metal.dll</HintPath>
+    </Reference>
+    <Reference Include="Avalonia.MicroCom">
+      <HintPath>..\..\..\..\..\..\Library\Avalonia\Avalonia.MicroCom.dll</HintPath>
+    </Reference>
+    <Reference Include="Avalonia.OpenGL">
+      <HintPath>..\..\..\..\..\..\Library\Avalonia\Avalonia.OpenGL.dll</HintPath>
+    </Reference>
+    <Reference Include="Avalonia.Remote.Protocol">
+      <HintPath>..\..\..\..\..\..\Library\Avalonia\Avalonia.Remote.Protocol.dll</HintPath>
+    </Reference>
+    <Reference Include="Avalonia.Skia">
+      <HintPath>..\..\..\..\..\..\Library\Avalonia\Avalonia.Skia.dll</HintPath>
+    </Reference>
+    <Reference Include="Avalonia.Vulkan">
+      <HintPath>..\..\..\..\..\..\Library\Avalonia\Avalonia.Vulkan.dll</HintPath>
+    </Reference>
+    <Reference Include="Avalonia.X11">
+      <HintPath>..\..\..\..\..\..\Library\Avalonia\Avalonia.X11.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>
