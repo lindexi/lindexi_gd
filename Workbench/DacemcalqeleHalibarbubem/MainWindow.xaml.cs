@@ -36,9 +36,9 @@ public partial class MainWindow : Window
         Loaded += MainWindow_Loaded;
 
         AllowsTransparency = true;
-        Opacity = 0.7;
+        Opacity = 0.65;
 
-        var file = @"C:\lindexi\Application\DacemcalqeleHalibarbubem\Configuration.coin";
+        var file = @"C:\lindexi\Application\ApplicationConfiguration\屏幕信息展示\Configuration.coin";
         var fileConfigurationRepo = ConfigurationFactory.FromFile(file);
         _fileConfigurationRepo = fileConfigurationRepo;
         var appConfigurator = fileConfigurationRepo.CreateAppConfigurator();
@@ -85,7 +85,7 @@ public partial class MainWindow : Window
             var text = await streamReader.ReadToEndAsync();
 
             var match = Regex.Match(text,
-                @"var hq_str_sz000651=""(\w+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),");
+                @"var hq_str_\w+=""(\w+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),([\d\.]+),");
             var current = match.Groups[4].Value;
             var max = match.Groups[5].Value;
             var min = match.Groups[6].Value;
