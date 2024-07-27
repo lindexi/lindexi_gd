@@ -14,5 +14,10 @@
 
  <Grid Background="Transparent">
      <TextBlock x:Name="MessageTextBlock" Margin="10,10,10,10" IsHitTestVisible="False" TextWrapping="Wrap"></TextBlock>
+     <Border x:Name="FooBorder" Background="Black" IsHitTestVisible="False" HorizontalAlignment="Left" VerticalAlignment="Top">
+         <Border.RenderTransform>
+             <TranslateTransform ></TranslateTransform>
+         </Border.RenderTransform>
+     </Border>
  </Grid>
 </UserControl>
