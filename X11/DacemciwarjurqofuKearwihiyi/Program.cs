@@ -90,6 +90,7 @@ skPaint.TextSize = 20;
 skPaint.Typeface = typeface;
 skPaint.Color = SKColors.Black;
 skCanvas.DrawText("中文", 100, 100, skPaint);
+skCanvas.Clear(SKColors.White);
 
 unsafe
 {
@@ -120,6 +121,8 @@ unsafe
         XiSelectEvents(display, handle, new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = multiTouchEventTypes });
     }
 }
+
+var dictionary = new Dictionary<int, TouchInfo>();
 
 while (true)
 {
@@ -167,7 +170,32 @@ while (true)
 
                     //var name = "微软雅黑";
                     //var skTypeface = SKTypeface.FromFamilyName(name);
+                    var x = xiDeviceEvent->event_x;
+                    var y = xiDeviceEvent->event_y;
+                    if (xiEvent->evtype == XiEventType.XI_TouchBegin)
+                    {
+                        dictionary[xiDeviceEvent->detail] = new TouchInfo(xiDeviceEvent->detail, x, y);
+                    }
+                    else if (xiEvent->evtype == XiEventType.XI_TouchUpdate)
+                    {
+                        if (dictionary.TryGetValue(xiDeviceEvent->detail, out var t))
+                        {
+                            dictionary[xiDeviceEvent->detail] = t with
+                            {
+                                X = x,
+                                Y = y,
+                            };
+                        }
+                    }
+                    else if (xiEvent->evtype == XiEventType.XI_TouchEnd)
+                    {
+                        if (dictionary.Remove(xiDeviceEvent->detail, out var t))
+                        {
 
+                        }
+                    }
+
+                    Draw();
                 }
             }
             finally
@@ -177,6 +205,23 @@ while (true)
         }
     }
 }
+
+void Draw()
+{
+    skCanvas.Clear(SKColors.White);
+
+    foreach (var value in dictionary.Values)
+    {
+        skPaint.IsLinearText = false;
+        skCanvas.DrawText($"""
+                          Id={value.Id}
+                          X={value.X} Y={value.Y}
+                          """, (float) value.X, (float) value.Y, skPaint);
+    }
+
+    SendExposeEvent(display, handle, 0, 0, width, height);
+}
+
 
 static XImage CreateImage(SKBitmap skBitmap)
 {
@@ -226,3 +271,5 @@ static void SendExposeEvent(IntPtr display, IntPtr window, int x, int y, int wid
     XSendEvent(display, window, false, new IntPtr((int) (EventMask.ExposureMask)), ref xEvent);
     XFlush(display);
 }
+
+record TouchInfo(int Id, double X, double Y);
