@@ -90,6 +90,7 @@ skPaint.TextSize = 20;
 skPaint.Typeface = typeface;
 skPaint.Color = SKColors.Black;
 skCanvas.DrawText("中文", 100, 100, skPaint);
+skCanvas.Clear(SKColors.White);
 
 unsafe
 {
@@ -121,6 +122,9 @@ unsafe
     }
 }
 
+var dictionary = new Dictionary<int, TouchInfo>();
+bool isSendExposeEvent = false;
+
 while (true)
 {
     var xNextEvent = XNextEvent(display, out var @event);
@@ -134,6 +138,7 @@ while (true)
     {
         XPutImage(display, handle, gc, ref xImage, @event.ExposeEvent.x, @event.ExposeEvent.y, @event.ExposeEvent.x, @event.ExposeEvent.y, (uint) @event.ExposeEvent.width,
             (uint) @event.ExposeEvent.height);
+        isSendExposeEvent = false;
     }
     else if (@event.type == XEventName.MotionNotify)
     {
@@ -167,7 +172,37 @@ while (true)
 
                     //var name = "微软雅黑";
                     //var skTypeface = SKTypeface.FromFamilyName(name);
+                    var x = xiDeviceEvent->event_x;
+                    var y = xiDeviceEvent->event_y;
+                    if (xiEvent->evtype == XiEventType.XI_TouchBegin)
+                    {
+                        dictionary[xiDeviceEvent->detail] = new TouchInfo(xiDeviceEvent->detail, x, y, false);
+                    }
+                    else if (xiEvent->evtype == XiEventType.XI_TouchUpdate)
+                    {
+                        if (dictionary.TryGetValue(xiDeviceEvent->detail, out var t))
+                        {
+                            dictionary[xiDeviceEvent->detail] = t with
+                            {
+                                X = x,
+                                Y = y,
+                            };
+                        }
+                    }
+                    else if (xiEvent->evtype == XiEventType.XI_TouchEnd)
+                    {
+                        if (dictionary.TryGetValue(xiDeviceEvent->detail, out var t))
+                        {
+                            dictionary[xiDeviceEvent->detail] = t with
+                            {
+                                X = x,
+                                Y = y,
+                                IsUp = true,
+                            };
+                        }
+                    }
 
+                    Draw();
                 }
             }
             finally
@@ -177,6 +212,35 @@ while (true)
         }
     }
 }
+
+void Draw()
+{
+    skCanvas.Clear(SKColors.White);
+
+    foreach (var value in dictionary.Values)
+    {
+        skPaint.IsLinearText = false;
+        var text = $"""
+                    Id={value.Id}
+                    X={value.X} Y={value.Y}
+                    """;
+        if (value.IsUp)
+        {
+            text = "[已抬起]\r\n" + text;
+        }
+
+        skCanvas.DrawText(text, (float) value.X, (float) value.Y, skPaint);
+    }
+
+    if (isSendExposeEvent)
+    {
+        return;
+    }
+
+    SendExposeEvent(display, handle, 0, 0, width, height);
+    isSendExposeEvent = true;
+}
+
 
 static XImage CreateImage(SKBitmap skBitmap)
 {
@@ -226,3 +290,5 @@ static void SendExposeEvent(IntPtr display, IntPtr window, int x, int y, int wid
     XSendEvent(display, window, false, new IntPtr((int) (EventMask.ExposureMask)), ref xEvent);
     XFlush(display);
 }
+
+record TouchInfo(int Id, double X, double Y, bool IsUp);
