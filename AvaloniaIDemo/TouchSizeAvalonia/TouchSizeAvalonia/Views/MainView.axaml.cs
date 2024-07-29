@@ -69,6 +69,17 @@ public partial class MainView : UserControl
             var currentPoint = e.GetCurrentPoint(null);
             var position = currentPoint.Position;
             var (success, width, height) = GetSize(currentPoint);
+
+            string? errorMessage = null;
+            if (double.IsNaN(width))
+            {
+                errorMessage += "Origin width is NaN\r\n";
+            }
+            if (double.IsNaN(height))
+            {
+                errorMessage += "Origin height is NaN\r\n";
+            }
+
             var viewWidth = width;
             var viewHeight = height;
 
@@ -92,7 +103,7 @@ public partial class MainView : UserControl
             borderRenderTransform.Y = position.Y - viewHeight / 2;
 
             var textBlock = info.TextBlock;
-            textBlock.Text = $"Id:{e.Pointer.Id}\r\nX: {position.X}, Y: {position.Y}\r\nWidth: {width:F2}, Height: {height:F2}";
+            textBlock.Text = $"Id:{e.Pointer.Id}\r\nX: {position.X}, Y: {position.Y}\r\nWidth: {width:F2}, Height: {height:F2}\r\n{errorMessage}";
 
             var textBlockRenderTransform = (TranslateTransform) textBlock.RenderTransform!;
             textBlockRenderTransform.X = position.X;
