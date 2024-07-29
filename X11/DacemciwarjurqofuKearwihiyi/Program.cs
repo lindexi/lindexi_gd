@@ -123,6 +123,7 @@ unsafe
 }
 
 var dictionary = new Dictionary<int, TouchInfo>();
+bool isSendExposeEvent = false;
 
 while (true)
 {
@@ -137,6 +138,7 @@ while (true)
     {
         XPutImage(display, handle, gc, ref xImage, @event.ExposeEvent.x, @event.ExposeEvent.y, @event.ExposeEvent.x, @event.ExposeEvent.y, (uint) @event.ExposeEvent.width,
             (uint) @event.ExposeEvent.height);
+        isSendExposeEvent = false;
     }
     else if (@event.type == XEventName.MotionNotify)
     {
@@ -174,7 +176,7 @@ while (true)
                     var y = xiDeviceEvent->event_y;
                     if (xiEvent->evtype == XiEventType.XI_TouchBegin)
                     {
-                        dictionary[xiDeviceEvent->detail] = new TouchInfo(xiDeviceEvent->detail, x, y);
+                        dictionary[xiDeviceEvent->detail] = new TouchInfo(xiDeviceEvent->detail, x, y, false);
                     }
                     else if (xiEvent->evtype == XiEventType.XI_TouchUpdate)
                     {
@@ -189,9 +191,14 @@ while (true)
                     }
                     else if (xiEvent->evtype == XiEventType.XI_TouchEnd)
                     {
-                        if (dictionary.Remove(xiDeviceEvent->detail, out var t))
+                        if (dictionary.TryGetValue(xiDeviceEvent->detail, out var t))
                         {
-
+                            dictionary[xiDeviceEvent->detail] = t with
+                            {
+                                X = x,
+                                Y = y,
+                                IsUp = true,
+                            };
                         }
                     }
 
@@ -213,13 +220,25 @@ void Draw()
     foreach (var value in dictionary.Values)
     {
         skPaint.IsLinearText = false;
-        skCanvas.DrawText($"""
-                          Id={value.Id}
-                          X={value.X} Y={value.Y}
-                          """, (float) value.X, (float) value.Y, skPaint);
+        var text = $"""
+                    Id={value.Id}
+                    X={value.X} Y={value.Y}
+                    """;
+        if (value.IsUp)
+        {
+            text = "[已抬起]\r\n" + text;
+        }
+
+        skCanvas.DrawText(text, (float) value.X, (float) value.Y, skPaint);
+    }
+
+    if (isSendExposeEvent)
+    {
+        return;
     }
 
     SendExposeEvent(display, handle, 0, 0, width, height);
+    isSendExposeEvent = true;
 }
 
 
@@ -272,4 +291,4 @@ static void SendExposeEvent(IntPtr display, IntPtr window, int x, int y, int wid
     XFlush(display);
 }
 
-record TouchInfo(int Id, double X, double Y);
+record TouchInfo(int Id, double X, double Y, bool IsUp);
