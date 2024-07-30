@@ -63,6 +63,8 @@ var skBitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Pre
 var skCanvas = new SKCanvas(skBitmap);
 var xImage = CreateImage(skBitmap);
 
+Console.WriteLine($"WH={width},{height}");
+
 skCanvas.Clear(SKColors.Blue);
 
 using var skPaint = new SKPaint();
@@ -92,6 +94,13 @@ skPaint.Color = SKColors.Black;
 skCanvas.DrawText("中文", 100, 100, skPaint);
 skCanvas.Clear(SKColors.White);
 
+var touchMajorAtom = XInternAtom(display, "Abs MT Touch Major", false);
+var touchMinorAtom = XInternAtom(display, "Abs MT Touch Minor", false);
+var pressureAtom = XInternAtom(display, "Abs MT Pressure", false);
+
+var valuators = new List<XIValuatorClassInfo>();
+var scrollers = new List<XIScrollClassInfo>();
+
 unsafe
 {
     var devices = (XIDeviceInfo*) XIQueryDevice(display,
@@ -115,15 +124,48 @@ unsafe
         {
             XiEventType.XI_TouchBegin,
             XiEventType.XI_TouchUpdate,
-            XiEventType.XI_TouchEnd
+            XiEventType.XI_TouchEnd,
+
+            XiEventType.XI_Motion,
+            XiEventType.XI_ButtonPress,
+            XiEventType.XI_ButtonRelease,
+            XiEventType.XI_Leave,
+            XiEventType.XI_Enter,
         };
 
         XiSelectEvents(display, handle, new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = multiTouchEventTypes });
+
+        for (int i = 0; i < pointerDevice.Value.NumClasses; i++)
+        {
+            var xiAnyClassInfo = pointerDevice.Value.Classes[i];
+            if (xiAnyClassInfo->Type == XiDeviceClass.XIValuatorClass)
+            {
+                valuators.Add(*((XIValuatorClassInfo**) pointerDevice.Value.Classes)[i]);
+            }
+            else if (xiAnyClassInfo->Type == XiDeviceClass.XIScrollClass)
+            {
+                scrollers.Add(*((XIScrollClassInfo**) pointerDevice.Value.Classes)[i]);
+            }
+        }
+
+        foreach (var xiValuatorClassInfo in valuators)
+        {
+            if (xiValuatorClassInfo.Label == touchMajorAtom)
+            {
+                Console.WriteLine($"TouchMajorAtom Max={xiValuatorClassInfo.Max:0.00}; Min={xiValuatorClassInfo.Min:0.00}; Resolution={xiValuatorClassInfo.Resolution}");
+            }
+            else if (xiValuatorClassInfo.Label == touchMinorAtom)
+            {
+                Console.WriteLine($"TouchMinorAtom Max={xiValuatorClassInfo.Max:0.00}; Min={xiValuatorClassInfo.Min:0.00}; Resolution={xiValuatorClassInfo.Resolution}");
+            }
+        }
     }
 }
 
 var dictionary = new Dictionary<int, TouchInfo>();
 bool isSendExposeEvent = false;
+
+var valuatorDictionary = new Dictionary<int, double>();
 
 while (true)
 {
@@ -176,17 +218,61 @@ while (true)
                     var y = xiDeviceEvent->event_y;
                     if (xiEvent->evtype == XiEventType.XI_TouchBegin)
                     {
-                        dictionary[xiDeviceEvent->detail] = new TouchInfo(xiDeviceEvent->detail, x, y, false);
+                        dictionary[xiDeviceEvent->detail] = new TouchInfo(xiDeviceEvent->detail, x, y, -1, -1, false);
                     }
                     else if (xiEvent->evtype == XiEventType.XI_TouchUpdate)
                     {
                         if (dictionary.TryGetValue(xiDeviceEvent->detail, out var t))
                         {
-                            dictionary[xiDeviceEvent->detail] = t with
+                            t = t with
                             {
                                 X = x,
                                 Y = y,
                             };
+
+                            valuatorDictionary.Clear();
+                            var values = xiDeviceEvent->valuators.Values;
+                            for (var c = 0; c < xiDeviceEvent->valuators.MaskLen * 8/*一个 Byte 有 8 个 bit，以下 XIMaskIsSet 是按照 bit 进行判断的*/; c++)
+                            {
+                                if (XIMaskIsSet(xiDeviceEvent->valuators.Mask, c))
+                                {
+                                    // 只有 Mask 存在值的，才能获取 Values 的值
+                                    valuatorDictionary[c] = *values;
+                                    values++;
+                                }
+                            }
+
+                            foreach (var (key, value) in valuatorDictionary)
+                            {
+                                var xiValuatorClassInfo = valuators.FirstOrDefault(t => t.Number == key);
+
+                                //var label = GetAtomName(display, xiValuatorClassInfo.Label);
+
+                                if (xiValuatorClassInfo.Label == touchMajorAtom)
+                                {
+                                    //label = "TouchMajor";
+                                    t = t with
+                                    {
+                                        TouchMajor = value,
+                                    };
+                                }
+                                else if (xiValuatorClassInfo.Label == touchMinorAtom)
+                                {
+                                    //label = "TouchMinor";
+                                    t = t with
+                                    {
+                                        TouchMinor = value,
+                                    };
+                                }
+                                else if (xiValuatorClassInfo.Label == pressureAtom)
+                                {
+                                    //label = "Pressure";
+                                }
+
+                                //Console.WriteLine($"[Valuator] [{label}] Label={xiValuatorClassInfo.Label} Type={xiValuatorClassInfo.Type} Sourceid={xiValuatorClassInfo.Sourceid} Number={xiValuatorClassInfo.Number} Min={xiValuatorClassInfo.Min} Max={xiValuatorClassInfo.Max} Value={xiValuatorClassInfo.Value} Resolution={xiValuatorClassInfo.Resolution} Mode={xiValuatorClassInfo.Mode} Value={value}");
+                            }
+
+                            dictionary[xiDeviceEvent->detail] = t;
                         }
                     }
                     else if (xiEvent->evtype == XiEventType.XI_TouchEnd)
@@ -220,13 +306,10 @@ void Draw()
     foreach (var value in dictionary.Values)
     {
         skPaint.IsLinearText = false;
-        var text = $"""
-                    Id={value.Id}
-                    X={value.X} Y={value.Y}
-                    """;
+        var text = $"""Id={value.Id};X={value.X} Y={value.Y};W={value.TouchMajor} H={value.TouchMinor}""";
         if (value.IsUp)
         {
-            text = "[已抬起]\r\n" + text;
+            text = "[已抬起];" + text;
         }
 
         skCanvas.DrawText(text, (float) value.X, (float) value.Y, skPaint);
@@ -291,4 +374,4 @@ static void SendExposeEvent(IntPtr display, IntPtr window, int x, int y, int wid
     XFlush(display);
 }
 
-record TouchInfo(int Id, double X, double Y, bool IsUp);
+record TouchInfo(int Id, double X, double Y, double TouchMajor, double TouchMinor, bool IsUp);
