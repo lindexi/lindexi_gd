@@ -8,6 +8,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+
 using Windows.Data.Xml.Dom;
 using Windows.UI.Notifications;
 
@@ -27,21 +28,35 @@ public partial class MainWindow : Window
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 10240))
-        {
-            var xmlDocument = new XmlDocument();
-            // lang=xml
-            xmlDocument.LoadXml(xml: """
-                                     <toast launch='conversationId=9813'>
-                                         <visual>
-                                             <binding template='ToastGeneric'>
-                                                 <text>Some text</text>
-                                             </binding>
-                                         </visual>
-                                     </toast>
-                                     """);
-            var toastNotification = new ToastNotification(xmlDocument);
-            ToastNotificationManager.CreateToastNotifier().Show(toastNotification);
-        }
+        var thread = new Thread(() =>
+            {
+                if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 15063))
+                {
+                    global::WinRT.ComWrappersSupport.InitializeComWrappers();
+
+                    var xmlDocument = new XmlDocument();
+                    // lang=xml
+                    xmlDocument.LoadXml(xml: """
+                                             <toast>
+                                                 <visual>
+                                                     <binding template='ToastText01'>
+                                                         <text id="1">Some text</text>
+                                                     </binding>
+                                                 </visual>
+                                             </toast>
+                                             """);
+
+                    //xmlDocument = ToastNotificationManager.GetTemplateContent(ToastTemplateType.ToastText01);
+                    //XmlNodeList stringElements = xmlDocument.GetElementsByTagName("text");
+                    //stringElements[0].AppendChild(xmlDocument.CreateTextNode("Foo"));
+
+                    var toastNotification = new ToastNotification(xmlDocument);
+                    var toastNotificationManagerForUser = ToastNotificationManager.GetDefault();
+                    var toastNotifier = toastNotificationManagerForUser.CreateToastNotifier("Aa.Foo");
+                    toastNotifier.Show(toastNotification);
+                }
+            });
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
     }
 }
