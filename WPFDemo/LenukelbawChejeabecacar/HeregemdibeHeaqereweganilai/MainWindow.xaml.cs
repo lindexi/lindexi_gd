@@ -8,7 +8,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-
 using Windows.Data.Xml.Dom;
 using Windows.UI.Notifications;
 
@@ -32,18 +31,20 @@ public partial class MainWindow : Window
         {
             global::WinRT.ComWrappersSupport.InitializeComWrappers();
 
+            // 以下 XML 的构建，请看
             // https://learn.microsoft.com/en-us/windows/apps/design/shell/tiles-and-notifications/adaptive-interactive-toasts?tabs=xml
             var xmlDocument = new XmlDocument();
             // lang=xml
-            xmlDocument.LoadXml(xml: """
-                                     <toast>
-                                         <visual>
-                                             <binding template='ToastText01'>
-                                                 <text id="1">显示文本内容</text>
-                                             </binding>
-                                         </visual>
-                                     </toast>
-                                     """);
+            var toast = """
+                      <toast>
+                          <visual>
+                              <binding template='ToastText01'>
+                                  <text id="1">显示文本内容</text>
+                              </binding>
+                          </visual>
+                      </toast>
+                      """;
+            xmlDocument.LoadXml(xml: toast);
 
             var toastNotification = new ToastNotification(xmlDocument);
             var toastNotificationManagerForUser = ToastNotificationManager.GetDefault();
