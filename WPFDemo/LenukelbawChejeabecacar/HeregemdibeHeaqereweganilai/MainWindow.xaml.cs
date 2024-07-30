@@ -39,8 +39,8 @@ public partial class MainWindow : Window
                     xmlDocument.LoadXml(xml: """
                                              <toast>
                                                  <visual>
-                                                     <binding template='ToastGeneric'>
-                                                         <text>Some text</text>
+                                                     <binding template='ToastText01'>
+                                                         <text id="1">Some text</text>
                                                      </binding>
                                                  </visual>
                                              </toast>
