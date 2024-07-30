@@ -28,35 +28,27 @@ public partial class MainWindow : Window
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        var thread = new Thread(() =>
-            {
-                if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 15063))
-                {
-                    global::WinRT.ComWrappersSupport.InitializeComWrappers();
+        if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 15063))
+        {
+            global::WinRT.ComWrappersSupport.InitializeComWrappers();
 
-                    var xmlDocument = new XmlDocument();
-                    // lang=xml
-                    xmlDocument.LoadXml(xml: """
-                                             <toast>
-                                                 <visual>
-                                                     <binding template='ToastText01'>
-                                                         <text id="1">Some text</text>
-                                                     </binding>
-                                                 </visual>
-                                             </toast>
-                                             """);
+            // https://learn.microsoft.com/en-us/windows/apps/design/shell/tiles-and-notifications/adaptive-interactive-toasts?tabs=xml
+            var xmlDocument = new XmlDocument();
+            // lang=xml
+            xmlDocument.LoadXml(xml: """
+                                     <toast>
+                                         <visual>
+                                             <binding template='ToastGeneric'>
+                                                 <text>显示文本内容</text>
+                                             </binding>
+                                         </visual>
+                                     </toast>
+                                     """);
 
-                    //xmlDocument = ToastNotificationManager.GetTemplateContent(ToastTemplateType.ToastText01);
-                    //XmlNodeList stringElements = xmlDocument.GetElementsByTagName("text");
-                    //stringElements[0].AppendChild(xmlDocument.CreateTextNode("Foo"));
-
-                    var toastNotification = new ToastNotification(xmlDocument);
-                    var toastNotificationManagerForUser = ToastNotificationManager.GetDefault();
-                    var toastNotifier = toastNotificationManagerForUser.CreateToastNotifier("Aa.Foo");
-                    toastNotifier.Show(toastNotification);
-                }
-            });
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
+            var toastNotification = new ToastNotification(xmlDocument);
+            var toastNotificationManagerForUser = ToastNotificationManager.GetDefault();
+            var toastNotifier = toastNotificationManagerForUser.CreateToastNotifier("Lindexi.Foo");
+            toastNotifier.Show(toastNotification);
+        }
     }
 }
