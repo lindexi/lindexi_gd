@@ -38,8 +38,8 @@ public partial class MainWindow : Window
             xmlDocument.LoadXml(xml: """
                                      <toast>
                                          <visual>
-                                             <binding template='ToastGeneric'>
-                                                 <text>显示文本内容</text>
+                                             <binding template='ToastText01'>
+                                                 <text id="1">显示文本内容</text>
                                              </binding>
                                          </visual>
                                      </toast>
@@ -47,7 +47,7 @@ public partial class MainWindow : Window
 
             var toastNotification = new ToastNotification(xmlDocument);
             var toastNotificationManagerForUser = ToastNotificationManager.GetDefault();
-            var toastNotifier = toastNotificationManagerForUser.CreateToastNotifier("Lindexi.Foo");
+            var toastNotifier = toastNotificationManagerForUser.CreateToastNotifier();
             toastNotifier.Show(toastNotification);
         }
     }
