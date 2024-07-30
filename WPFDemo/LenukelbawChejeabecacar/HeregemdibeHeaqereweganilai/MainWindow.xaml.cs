@@ -32,13 +32,14 @@ public partial class MainWindow : Window
         {
             global::WinRT.ComWrappersSupport.InitializeComWrappers();
 
+            // https://learn.microsoft.com/en-us/windows/apps/design/shell/tiles-and-notifications/adaptive-interactive-toasts?tabs=xml
             var xmlDocument = new XmlDocument();
             // lang=xml
             xmlDocument.LoadXml(xml: """
                                      <toast>
                                          <visual>
-                                             <binding template='ToastText01'>
-                                                 <text id="1">Some text</text>
+                                             <binding template='ToastGeneric'>
+                                                 <text>显示文本内容</text>
                                              </binding>
                                          </visual>
                                      </toast>
@@ -49,12 +50,5 @@ public partial class MainWindow : Window
             var toastNotifier = toastNotificationManagerForUser.CreateToastNotifier("Lindexi.Foo");
             toastNotifier.Show(toastNotification);
         }
-
-        //var thread = new Thread(() =>
-        //    {
-               
-        //    });
-        //thread.SetApartmentState(ApartmentState.STA);
-        //thread.Start();
     }
 }
