@@ -9,19 +9,6 @@ using static CPF.Linux.XLib;
 using static System.Net.Mime.MediaTypeNames;
 using System.Xml.Linq;
 
-var l1 = Math.Sqrt(3840 * 3840 + 2160 * 2160);
-var l2 = Math.Sqrt(2400 * 2400 + 2160 * 2160);
-
-var 屏幕比例 = l1 / l2;
-
-var 比例 = Math.Sqrt(1.6 * 1.6 * 2);
-var 比例值 = Math.Sqrt(1.6 * 1.6 + 1 * 1);
-
-if (比例值 == Math.Sqrt((3840.0/ 2400) * (3840.0 / 2400) + (2160/ 2160.0)* (2160 / 2160.0)))
-{
-    
-}
-
 XInitThreads();
 var display = XOpenDisplay(IntPtr.Zero);
 var screen = XDefaultScreen(display);
