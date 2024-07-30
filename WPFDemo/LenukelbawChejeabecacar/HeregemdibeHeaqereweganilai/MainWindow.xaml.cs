@@ -47,7 +47,7 @@ public partial class MainWindow : Window
 
             var toastNotification = new ToastNotification(xmlDocument);
             var toastNotificationManagerForUser = ToastNotificationManager.GetDefault();
-            var toastNotifier = toastNotificationManagerForUser.CreateToastNotifier(applicationId: "Foo");
+            var toastNotifier = toastNotificationManagerForUser.CreateToastNotifier(applicationId: "应用名");
             toastNotifier.Show(toastNotification);
         }
     }
