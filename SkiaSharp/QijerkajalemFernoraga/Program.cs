@@ -20,11 +20,13 @@ blob.MakeImmutable();
 var face = new Face(blob, (uint) trueTypeCollectionIndex);
 face.UnitsPerEm = skTypeface.UnitsPerEm;
 
-
+var fontSize = 20f;
 
 var font = new Font(face);
 font.SetFunctionsOpenType();
-font.GetScale(out var x,out var y);
+font.GetScale(out var x, out var y);
+
+float glyphScale = fontSize / x;
 
 var buffer = new Buffer();
 //buffer.AddUtf16("林德熙");
@@ -35,6 +37,16 @@ buffer.Script = Script.Han;
 
 font.Shape(buffer);
 
+var skPaint = new SKPaint();
+skPaint.Typeface = skTypeface;
+skPaint.TextSize = fontSize;
 
+var length = 0f;
+foreach (var glyphPosition in buffer.GlyphPositions)
+{
+    length += glyphPosition.XOffset * glyphScale + glyphPosition.XAdvance * glyphScale;
+}
+
+var measureText = skPaint.MeasureText("iw林");
 
 Console.WriteLine("Hello, World!");
