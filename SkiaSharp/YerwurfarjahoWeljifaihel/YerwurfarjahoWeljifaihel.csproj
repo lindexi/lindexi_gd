@@ -15,7 +15,8 @@
     <Compile Include="..\..\X11\ReewheaberekaiNayweelehe\ReewheaberekaiNayweelehe\SkInkCanvas.cs" Link="SkInkCanvas.cs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="SeWzc.Numerics" Version="0.1.0-alpha05" />
+    <PackageReference Include="SeWzc.Numerics.Geometry" Version="0.1.0-alpha05" />
     <PackageReference Include="SkiaSharp" Version="2.88.7" />
-    <PackageReference Include="Microsoft.Maui.Graphics" Version="6.0.300" />
   </ItemGroup>
 </Project>
