@@ -16,53 +16,6 @@ namespace ReewheaberekaiNayweelehe;
 partial class SkInkCanvas
 {
     // 漫游相关
-
-    /// <summary>
-    /// 漫游完成，需要将内容重新使用路径绘制，保持清晰
-    /// </summary>
-    public void ManipulateFinish()
-    {
-        var skCanvas = _skCanvas;
-        skCanvas.Clear(Settings.ClearColor);
-
-        skCanvas.Save();
-        skCanvas.SetMatrix(_totalMatrix);
-
-        DrawAllInk();
-
-        skCanvas.Restore();
-        _isOriginBackgroundDisable = true;
-    }
-
-    public void ManipulateScale(ScaleContext scale)
-    {
-        StaticDebugLogger.WriteLine($"[ManipulateScale] {scale}");
-
-        var scaleMatrix = SKMatrix.CreateScale(scale.X, scale.Y, scale.PivotX, scale.PivotY);
-        _totalMatrix = SKMatrix.Concat(_totalMatrix, scaleMatrix);
-
-        var skCanvas = _skCanvas;
-        skCanvas.Clear(Settings.ClearColor);
-
-        skCanvas.Save();
-        skCanvas.SetMatrix(_totalMatrix);
-
-        DrawAllInk();
-
-        skCanvas.Restore();
-
-        _isOriginBackgroundDisable = true;
-
-        RenderBoundsChanged?.Invoke(this,
-            new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
-    }
-
-    readonly record struct ManipulationInfo(Point StartAbsPoint, SKMatrix StartMatrix, Point LastAbsPoint,List<ManipulationStaticInkInfo> InkList);
-
-    private ManipulationInfo _manipulationInfo = default;
-
-    record ManipulationStaticInkInfo(SkiaStrokeSynchronizer InkInfo, SKRect InkBounds);
-
     public void ManipulateMoveStart(Point startPoint)
     {
         var inkList = new List<ManipulationStaticInkInfo>(StaticInkInfoList.Count);
@@ -75,6 +28,7 @@ partial class SkInkCanvas
 
         _manipulationInfo = new ManipulationInfo(StartAbsPoint: startPoint, StartMatrix: _totalMatrix, LastAbsPoint: startPoint, inkList);
     }
+
 
     public void ManipulateMove(Point absPoint)
     {
@@ -114,6 +68,49 @@ partial class SkInkCanvas
 
         _isOriginBackgroundDisable = true;
     }
+
+    public void ManipulateScale(ScaleContext scale)
+    {
+        StaticDebugLogger.WriteLine($"[ManipulateScale] {scale}");
+
+        var scaleMatrix = SKMatrix.CreateScale(scale.X, scale.Y, scale.PivotX, scale.PivotY);
+        _totalMatrix = SKMatrix.Concat(_totalMatrix, scaleMatrix);
+
+        var skCanvas = _skCanvas;
+        skCanvas.Clear(Settings.ClearColor);
+
+        skCanvas.Save();
+        skCanvas.SetMatrix(_totalMatrix);
+
+        DrawAllInk();
+
+        skCanvas.Restore();
+
+        _isOriginBackgroundDisable = true;
+
+        RenderBoundsChanged?.Invoke(this,
+            new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
+    }
+
+    /// <summary>
+    /// 漫游完成，需要将内容重新使用路径绘制，保持清晰
+    /// </summary>
+    public void ManipulateFinish()
+    {
+        var skCanvas = _skCanvas;
+        skCanvas.Clear(Settings.ClearColor);
+
+        skCanvas.Save();
+        skCanvas.SetMatrix(_totalMatrix);
+
+        DrawAllInk();
+
+        skCanvas.Restore();
+        _isOriginBackgroundDisable = true;
+    }
+
+
+    private ManipulationInfo _manipulationInfo = default;
 
     private SKMatrix _totalMatrix = SKMatrix.CreateIdentity();
 
@@ -288,4 +285,12 @@ partial class SkInkCanvas
             return false;
         }
     }
+
+    #region 辅助类型
+
+    private record ManipulationStaticInkInfo(SkiaStrokeSynchronizer InkInfo, SKRect InkBounds);
+
+    private readonly record struct ManipulationInfo(Point StartAbsPoint, SKMatrix StartMatrix, Point LastAbsPoint, List<ManipulationStaticInkInfo> InkList);
+
+    #endregion
 }
