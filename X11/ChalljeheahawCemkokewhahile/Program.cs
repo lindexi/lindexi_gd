@@ -120,8 +120,30 @@ skInkCanvas.Settings = skInkCanvas.Settings with
     ClearColor = SKColors.Gray
 };
 
+SKRectI? renderRect = null;
+bool isPushExpose = false;
+
 skInkCanvas.RenderBoundsChanged += (sender, rect) =>
 {
+    var currentRect = SKRectI.Create((int)rect.X, (int)rect.Y, (int)rect.Width, (int)rect.Height);
+    if (renderRect is null)       
+    {
+        renderRect = currentRect;
+    }
+    else
+    {
+        var t = renderRect.Value;
+        t.Union(currentRect);
+        renderRect = t;
+    }
+
+    if (isPushExpose)
+    {
+        return;
+    }
+
+    isPushExpose = true;
+
     var xEvent = new XEvent
     {
         ExposeEvent =
@@ -155,9 +177,18 @@ while (true)
 
     if (@event.type == XEventName.Expose)
     {
-        XPutImage(display, handle, gc, ref xImage, @event.ExposeEvent.x, @event.ExposeEvent.y, @event.ExposeEvent.x,
-            @event.ExposeEvent.y, (uint) @event.ExposeEvent.width,
-            (uint) @event.ExposeEvent.height);
+        var exposeRect = SKRectI.Create(@event.ExposeEvent.x, @event.ExposeEvent.y, @event.ExposeEvent.width, @event.ExposeEvent.height);
+        if (renderRect != null)
+        {
+            exposeRect.Union(renderRect.Value);
+        }
+
+        var x = exposeRect.Left;
+        var y = exposeRect.Top;
+  
+        XPutImage(display, handle, gc, ref xImage, x, y, x,
+            y, (uint) exposeRect.Width,
+            (uint) exposeRect.Height);
     }
     else if (@event.type == XEventName.ButtonPress)
     {
