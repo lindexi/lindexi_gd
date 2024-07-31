@@ -11,6 +11,7 @@ using SkiaInkCore;
 using SkiaInkCore.Diagnostics;
 using SkiaInkCore.Interactives;
 using SkiaInkCore.Primitive;
+using SkiaInkCore.Settings;
 
 using SkiaSharp;
 
@@ -132,6 +133,8 @@ partial class SkInkCanvas
         ApplicationDrawingSkBitmap = applicationDrawingSkBitmap;
     }
 
+    public SkInkCanvasSettings Settings { get; set; } = new SkInkCanvasSettings();
+
     public event EventHandler<Rect>? RenderBoundsChanged;
 
     private readonly SKCanvas _skCanvas;
@@ -200,7 +203,7 @@ partial class SkInkCanvas
     public void DrawAllInk()
     {
         var skCanvas = _skCanvas;
-        skCanvas.Clear();
+        skCanvas.Clear(Settings.ClearColor);
 
         using var skPaint = new SKPaint();
         skPaint.StrokeWidth = 0;
@@ -724,7 +727,7 @@ partial class SkInkCanvas
     public void ManipulateFinish()
     {
         var skCanvas = _skCanvas;
-        skCanvas.Clear();
+        skCanvas.Clear(Settings.ClearColor);
 
         skCanvas.Save();
         skCanvas.SetMatrix(_totalMatrix);
@@ -743,7 +746,7 @@ partial class SkInkCanvas
         _totalMatrix = SKMatrix.Concat(_totalMatrix, scaleMatrix);
 
         var skCanvas = _skCanvas;
-        skCanvas.Clear();
+        skCanvas.Clear(Settings.ClearColor);
 
         skCanvas.Save();
         skCanvas.SetMatrix(_totalMatrix);
@@ -917,7 +920,7 @@ partial class SkInkCanvas
         //skCanvas.Flush();
 
         var skCanvas = _skCanvas;
-        skCanvas.Clear();
+        skCanvas.Clear(Settings.ClearColor);
         skCanvas.Save();
         skCanvas.SetMatrix(_totalMatrix);
         using var skPaint = new SKPaint();

@@ -115,6 +115,11 @@ skCanvas.Clear(SKColors.Blue);
 skCanvas.Flush();
 
 var skInkCanvas = new SkInkCanvas(skCanvas, skBitmap);
+skInkCanvas.Settings = skInkCanvas.Settings with
+{
+    ClearColor = SKColors.Gray
+};
+
 skInkCanvas.RenderBoundsChanged += (sender, rect) =>
 {
     var xEvent = new XEvent
