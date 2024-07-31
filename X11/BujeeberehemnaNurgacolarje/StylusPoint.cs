@@ -1,6 +1,4 @@
-﻿using Microsoft.Maui.Graphics;
-
-namespace BujeeberehemnaNurgacolarje;
+﻿namespace BujeeberehemnaNurgacolarje;
 
 public readonly record struct StylusPoint(Point Point, float Pressure = 0.5f)
 {

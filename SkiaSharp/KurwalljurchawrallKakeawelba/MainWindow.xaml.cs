@@ -17,7 +17,7 @@ using SkiaInkCore.Interactives;
 using SkiaSharp;
 
 using InputMode = SkiaInkCore.Interactives.InputMode;
-using Point = Microsoft.Maui.Graphics.Point;
+using Point = dotnetCampus.Mathematics.SpatialGeometry.Point2D;
 
 namespace KurwalljurchawrallKakeawelba;
 

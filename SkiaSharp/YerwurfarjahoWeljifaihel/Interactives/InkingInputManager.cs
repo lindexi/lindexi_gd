@@ -1,7 +1,5 @@
 ﻿using BujeeberehemnaNurgacolarje;
 
-using Microsoft.Maui.Graphics;
-
 using ReewheaberekaiNayweelehe;
 
 using SkiaInkCore.Primitive;

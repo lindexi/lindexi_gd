@@ -1,5 +1,4 @@
-﻿using Microsoft.Maui.Graphics;
-using SkiaInkCore.Diagnostics;
+﻿using SkiaInkCore.Diagnostics;
 using SkiaInkCore.Primitive;
 using SkiaSharp;
 

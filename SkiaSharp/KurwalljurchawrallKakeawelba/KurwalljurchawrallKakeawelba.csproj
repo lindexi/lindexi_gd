@@ -10,7 +10,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="SkiaSharp" Version="2.88.7" />
-    <PackageReference Include="Microsoft.Maui.Graphics" Version="8.0.70" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\YerwurfarjahoWeljifaihel\YerwurfarjahoWeljifaihel.csproj" />
