@@ -5,6 +5,7 @@ using SkiaSharp;
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -91,9 +92,11 @@ partial class SkInkCanvas
         var translation = SKMatrix.CreateTranslation((float) x / _totalMatrix.ScaleX, (float) y / _totalMatrix.ScaleY);
         _totalMatrix = SKMatrix.Concat(_totalMatrix, translation);
 
-
+        var stopwatch = Stopwatch.StartNew();
         // 像素漫游的方法
         MoveWithPixel(new Point(x, y));
+        stopwatch.Stop();
+        StaticDebugLogger.WriteLine($"[MoveWithPixel] {stopwatch.ElapsedMilliseconds}ms");
 
         // 这是用来测试几何漫游的方法
         //// 几何漫游的方法

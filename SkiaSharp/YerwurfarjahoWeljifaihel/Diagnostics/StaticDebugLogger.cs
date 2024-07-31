@@ -4,7 +4,7 @@ namespace SkiaInkCore.Diagnostics;
 
 static class StaticDebugLogger
 {
-    [Conditional("FALSE")]
+    //[Conditional("FALSE")]
     public static void WriteLine(string message)
     {
         Console.WriteLine(message);
