@@ -51,6 +51,9 @@ partial class SkInkCanvas
         skCanvas.Restore();
 
         _isOriginBackgroundDisable = true;
+
+        RenderBoundsChanged?.Invoke(this,
+            new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
     }
 
     readonly record struct ManipulationInfo(Point StartAbsPoint, SKMatrix StartMatrix, Point LastAbsPoint);
