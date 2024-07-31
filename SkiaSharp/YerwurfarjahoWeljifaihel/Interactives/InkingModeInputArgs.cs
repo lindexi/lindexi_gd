@@ -3,7 +3,7 @@ using Microsoft.Maui.Graphics;
 
 namespace SkiaInkCore.Interactives;
 
-record InkingModeInputArgs(int Id, StylusPoint StylusPoint, ulong Timestamp)
+readonly record struct InkingModeInputArgs(int Id, StylusPoint StylusPoint, ulong Timestamp)
 {
     public Point Position => StylusPoint.Point;
 
