@@ -1,4 +1,4 @@
-﻿namespace WpfInk
+﻿namespace SkiaInkCore.Interactives
 {
     /// <summary>
     /// 输入处理者
