@@ -1,8 +1,12 @@
+#if !ChalljeheahawCemkokewhahile
 using Microsoft.Maui.Graphics;
+#endif
 
 namespace UnoInk.Inking.X11Platforms.Input;
 
+#if !ChalljeheahawCemkokewhahile
 [ImplicitKeys(IsEnabled = false)]
+#endif
 public readonly record struct DeviceInputArgs(int Id, bool IsMouse, DeviceInputPoint Point)
 {
     public Point Position => Point.Position;

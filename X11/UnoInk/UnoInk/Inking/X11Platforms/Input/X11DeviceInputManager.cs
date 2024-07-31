@@ -73,7 +73,9 @@
 // https://github.com/whot/evemu-devices
 
 using CPF.Linux;
+#if !ChalljeheahawCemkokewhahile
 using Microsoft.Maui.Graphics;
+#endif
 using static CPF.Linux.XLib;
 
 namespace UnoInk.Inking.X11Platforms.Input;

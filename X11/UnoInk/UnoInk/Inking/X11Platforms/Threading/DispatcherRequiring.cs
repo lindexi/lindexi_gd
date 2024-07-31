@@ -1,3 +1,5 @@
+using Uno.Extensions;
+
 namespace UnoInk.Inking.X11Platforms.Threading;
 
 public class DispatcherRequiring
