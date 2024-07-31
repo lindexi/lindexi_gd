@@ -177,6 +177,7 @@ while (true)
 
     if (@event.type == XEventName.Expose)
     {
+        isPushExpose = false;
         var exposeRect = SKRectI.Create(@event.ExposeEvent.x, @event.ExposeEvent.y, @event.ExposeEvent.width, @event.ExposeEvent.height);
         if (renderRect != null)
         {
