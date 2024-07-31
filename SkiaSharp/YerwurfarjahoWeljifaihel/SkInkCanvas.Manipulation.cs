@@ -92,11 +92,11 @@ partial class SkInkCanvas
         var translation = SKMatrix.CreateTranslation((float) x / _totalMatrix.ScaleX, (float) y / _totalMatrix.ScaleY);
         _totalMatrix = SKMatrix.Concat(_totalMatrix, translation);
 
-        var stopwatch = Stopwatch.StartNew();
+        //var stopwatch = Stopwatch.StartNew();
         // 像素漫游的方法
         MoveWithPixel(new Point(x, y));
-        stopwatch.Stop();
-        StaticDebugLogger.WriteLine($"[MoveWithPixel] {stopwatch.ElapsedMilliseconds}ms");
+        //stopwatch.Stop();
+        //StaticDebugLogger.WriteLine($"[MoveWithPixel] {stopwatch.ElapsedMilliseconds}ms");
 
         // 这是用来测试几何漫游的方法
         //// 几何漫游的方法
@@ -109,9 +109,12 @@ partial class SkInkCanvas
 
     private unsafe void MoveWithPixel(Point delta)
     {
+        var stepCounter = new StepCounter();
+        stepCounter.Start();
         var pixels = ApplicationDrawingSkBitmap.GetPixels(out var length);
 
         UpdateOriginBackground();
+        stepCounter.Record("UpdateOriginBackground");
 
         //var pixelLengthOfUint = length / 4;
         //if (_cachePixel is null || _cachePixel.Length != pixelLengthOfUint)
@@ -219,6 +222,9 @@ partial class SkInkCanvas
         //    skCanvas.DrawRect(skRect, skPaint);
         //}
         //skCanvas.Flush();
+     
+
+        stepCounter.Record("统计所需命中的笔迹");
 
         var skCanvas = _skCanvas;
         skCanvas.Clear(Settings.ClearColor);
@@ -238,11 +244,18 @@ partial class SkInkCanvas
         skCanvas.Restore();
         skCanvas.Flush();
 
+        stepCounter.Record("完成绘制笔迹");
+
+
         var cachePixel = _originBackground.GetPixels();
         uint* pCachePixel = (uint*) cachePixel;
         var pixelLength = (uint) (ApplicationDrawingSkBitmap.Width);
 
         ReplacePixels((uint*) pixels, pCachePixel, destinationRectI, sourceRectI, pixelLength, pixelLength);
+
+        stepCounter.Record("拷贝像素");
+        stepCounter.OutputToConsole();
+
 
         RenderBoundsChanged?.Invoke(this,
             new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
