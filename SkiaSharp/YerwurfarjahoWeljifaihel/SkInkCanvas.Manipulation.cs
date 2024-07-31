@@ -120,7 +120,8 @@ partial class SkInkCanvas
     private unsafe void MoveWithPixel(Point delta)
     {
         var stepCounter = new StepCounter();
-        stepCounter.Start();
+        //stepCounter.Start();
+
         var pixels = ApplicationDrawingSkBitmap.GetPixels(out var length);
 
         UpdateOriginBackground();
@@ -267,7 +268,6 @@ partial class SkInkCanvas
 
         stepCounter.Record("拷贝像素");
         stepCounter.OutputToConsole();
-
 
         RenderBoundsChanged?.Invoke(this,
             new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
