@@ -57,13 +57,23 @@ partial class SkInkCanvas
             new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
     }
 
-    readonly record struct ManipulationInfo(Point StartAbsPoint, SKMatrix StartMatrix, Point LastAbsPoint);
+    readonly record struct ManipulationInfo(Point StartAbsPoint, SKMatrix StartMatrix, Point LastAbsPoint,List<ManipulationStaticInkInfo> InkList);
 
     private ManipulationInfo _manipulationInfo = default;
 
+    record ManipulationStaticInkInfo(SkiaStrokeSynchronizer InkInfo, SKRect InkBounds);
+
     public void ManipulateMoveStart(Point startPoint)
     {
-        _manipulationInfo = new ManipulationInfo(StartAbsPoint: startPoint, StartMatrix: _totalMatrix, LastAbsPoint: startPoint);
+        var inkList = new List<ManipulationStaticInkInfo>(StaticInkInfoList.Count);
+        foreach (var skiaStrokeSynchronizer in StaticInkInfoList)
+        {
+            SKRect inkBounds = skiaStrokeSynchronizer.InkStrokePath?.Bounds ?? SKRect.Empty;
+
+            inkList.Add(new ManipulationStaticInkInfo(skiaStrokeSynchronizer, inkBounds));
+        }
+
+        _manipulationInfo = new ManipulationInfo(StartAbsPoint: startPoint, StartMatrix: _totalMatrix, LastAbsPoint: startPoint, inkList);
     }
 
     public void ManipulateMove(Point absPoint)
@@ -194,14 +204,16 @@ partial class SkInkCanvas
             }
         }
 
+        stepCounter.Record("准备基础计算");
+
         var hitInk = new List<SkiaStrokeSynchronizer>();
-        foreach (var skiaStrokeSynchronizer in StaticInkInfoList)
+        foreach (var inkInfo in _manipulationInfo.InkList)
         {
             foreach (var skRect in hitRectList)
             {
-                if (IsHit(skiaStrokeSynchronizer, skRect))
+                if (inkInfo.InkBounds.IntersectsWith(skRect))
                 {
-                    hitInk.Add(skiaStrokeSynchronizer);
+                    hitInk.Add(inkInfo.InkInfo);
                     break;
                 }
             }
