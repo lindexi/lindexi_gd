@@ -57,13 +57,23 @@ partial class SkInkCanvas
             new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
     }
 
-    readonly record struct ManipulationInfo(Point StartAbsPoint, SKMatrix StartMatrix, Point LastAbsPoint);
+    readonly record struct ManipulationInfo(Point StartAbsPoint, SKMatrix StartMatrix, Point LastAbsPoint,List<ManipulationStaticInkInfo> InkList);
 
     private ManipulationInfo _manipulationInfo = default;
 
+    record ManipulationStaticInkInfo(SkiaStrokeSynchronizer InkInfo, SKRect InkBounds);
+
     public void ManipulateMoveStart(Point startPoint)
     {
-        _manipulationInfo = new ManipulationInfo(StartAbsPoint: startPoint, StartMatrix: _totalMatrix, LastAbsPoint: startPoint);
+        var inkList = new List<ManipulationStaticInkInfo>(StaticInkInfoList.Count);
+        foreach (var skiaStrokeSynchronizer in StaticInkInfoList)
+        {
+            SKRect inkBounds = skiaStrokeSynchronizer.InkStrokePath?.Bounds ?? SKRect.Empty;
+
+            inkList.Add(new ManipulationStaticInkInfo(skiaStrokeSynchronizer, inkBounds));
+        }
+
+        _manipulationInfo = new ManipulationInfo(StartAbsPoint: startPoint, StartMatrix: _totalMatrix, LastAbsPoint: startPoint, inkList);
     }
 
     public void ManipulateMove(Point absPoint)
@@ -92,11 +102,11 @@ partial class SkInkCanvas
         var translation = SKMatrix.CreateTranslation((float) x / _totalMatrix.ScaleX, (float) y / _totalMatrix.ScaleY);
         _totalMatrix = SKMatrix.Concat(_totalMatrix, translation);
 
-        var stopwatch = Stopwatch.StartNew();
+        //var stopwatch = Stopwatch.StartNew();
         // 像素漫游的方法
         MoveWithPixel(new Point(x, y));
-        stopwatch.Stop();
-        StaticDebugLogger.WriteLine($"[MoveWithPixel] {stopwatch.ElapsedMilliseconds}ms");
+        //stopwatch.Stop();
+        //StaticDebugLogger.WriteLine($"[MoveWithPixel] {stopwatch.ElapsedMilliseconds}ms");
 
         // 这是用来测试几何漫游的方法
         //// 几何漫游的方法
@@ -109,9 +119,13 @@ partial class SkInkCanvas
 
     private unsafe void MoveWithPixel(Point delta)
     {
+        var stepCounter = new StepCounter();
+        //stepCounter.Start();
+
         var pixels = ApplicationDrawingSkBitmap.GetPixels(out var length);
 
         UpdateOriginBackground();
+        stepCounter.Record("UpdateOriginBackground");
 
         //var pixelLengthOfUint = length / 4;
         //if (_cachePixel is null || _cachePixel.Length != pixelLengthOfUint)
@@ -191,14 +205,16 @@ partial class SkInkCanvas
             }
         }
 
+        stepCounter.Record("准备基础计算");
+
         var hitInk = new List<SkiaStrokeSynchronizer>();
-        foreach (var skiaStrokeSynchronizer in StaticInkInfoList)
+        foreach (var inkInfo in _manipulationInfo.InkList)
         {
             foreach (var skRect in hitRectList)
             {
-                if (IsHit(skiaStrokeSynchronizer, skRect))
+                if (inkInfo.InkBounds.IntersectsWith(skRect))
                 {
-                    hitInk.Add(skiaStrokeSynchronizer);
+                    hitInk.Add(inkInfo.InkInfo);
                     break;
                 }
             }
@@ -219,6 +235,9 @@ partial class SkInkCanvas
         //    skCanvas.DrawRect(skRect, skPaint);
         //}
         //skCanvas.Flush();
+     
+
+        stepCounter.Record("统计所需命中的笔迹");
 
         var skCanvas = _skCanvas;
         skCanvas.Clear(Settings.ClearColor);
@@ -238,11 +257,17 @@ partial class SkInkCanvas
         skCanvas.Restore();
         skCanvas.Flush();
 
+        stepCounter.Record("完成绘制笔迹");
+
+
         var cachePixel = _originBackground.GetPixels();
         uint* pCachePixel = (uint*) cachePixel;
         var pixelLength = (uint) (ApplicationDrawingSkBitmap.Width);
 
         ReplacePixels((uint*) pixels, pCachePixel, destinationRectI, sourceRectI, pixelLength, pixelLength);
+
+        stepCounter.Record("拷贝像素");
+        stepCounter.OutputToConsole();
 
         RenderBoundsChanged?.Invoke(this,
             new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));

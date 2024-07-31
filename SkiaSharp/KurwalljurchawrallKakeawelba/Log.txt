@@ -53,3 +53,8 @@
 [ManipulateMove] 0.12,-0.16
 [ManipulateMove] -0.12,-1.48
 [ManipulateMove] 0.00,0.00
+
+UpdateOriginBackground 1.653121ms
+统计所需命中的笔迹 5.986465ms
+完成绘制笔迹 1.959817ms
+拷贝像素 2.795475ms
