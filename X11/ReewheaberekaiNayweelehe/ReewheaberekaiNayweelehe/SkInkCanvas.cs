@@ -717,6 +717,7 @@ partial class SkInkCanvas
     }
 }
 
+<<<<<<< HEAD
 partial class SkInkCanvas
 {
     // 漫游相关
@@ -1492,3 +1493,5 @@ class StepCounter
 =======
 }
 >>>>>>> 7e713e9e6340c66abbc9377edcf43f7b77c137e3
+=======
+>>>>>>> ebae0743ab6691dfe8aa3e8e9cf4b98a657b52ad
