@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\SkiaSharp\YerwurfarjahoWeljifaihel\Primitive\Mathematics\GlobalUsing.cs" Link="GlobalUsing.cs" />
     <Compile Include="..\BujeeberehemnaNurgacolarje\FixedQueue.cs" Link="FixedQueue.cs" />
     <Compile Include="..\BujeeberehemnaNurgacolarje\PixelSize.cs" Link="PixelSize.cs" />
     <Compile Include="..\BujeeberehemnaNurgacolarje\SimpleInkRender.cs" Link="SimpleInkRender.cs" />

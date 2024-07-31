@@ -5,8 +5,6 @@ using System.Runtime.CompilerServices;
 
 using BujeeberehemnaNurgacolarje;
 
-using Microsoft.Maui.Graphics;
-
 using SkiaInkCore;
 using SkiaInkCore.Diagnostics;
 using SkiaInkCore.Interactives;

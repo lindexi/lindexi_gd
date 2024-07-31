@@ -4,8 +4,6 @@ using BujeeberehemnaNurgacolarje;
 
 using CPF.Linux;
 
-using Microsoft.Maui.Graphics;
-
 using ReewheaberekaiNayweelehe;
 
 using SkiaInkCore.Diagnostics;
