@@ -163,7 +163,7 @@ partial class SkInkCanvas
 
     public void DrawStrokeDown(InkingModeInputArgs args)
     {
-        var context = new DrawStrokeContext(new InkId(), args, Color, 20);
+        var context = new DrawStrokeContext(InkId.NewId(), args, Color, 20);
         CurrentInputDictionary[args.Id] = context;
 
         context.AllStylusPoints.Add(args.StylusPoint);
@@ -764,7 +764,7 @@ partial class SkInkCanvas
         _manipulationInfo = new ManipulationInfo(StartAbsPoint: startPoint, StartMatrix: _totalMatrix, LastAbsPoint: startPoint);
     }
 
-    public void ManipulateMove(Point delta, Point absPoint)
+    public void ManipulateMove(Point absPoint)
     {
         //StaticDebugLogger.WriteLine($"[ManipulateMove] {delta.X:0.00},{delta.Y:0.00}");
 
