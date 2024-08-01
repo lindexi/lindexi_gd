@@ -7,7 +7,11 @@ namespace BujeeberehemnaNurgacolarje
     /// </summary>
     public static class SimpleInkRender
     {
-        public static Point[] GetOutlinePointList(IList<StylusPoint> pointList, double inkSize)
+        private static readonly Matrix3x2 RotationPiDiv8 = Matrix3x2.CreateRotation(MathF.PI / 8);
+        private static readonly Matrix3x2 RotationPiDiv4 = Matrix3x2.CreateRotation(MathF.PI / 4);
+        private static readonly Matrix3x2 Rotation3PiDiv8 = Matrix3x2.CreateRotation(3 * MathF.PI / 8);
+
+        public static Point[] GetOutlinePointList(IReadOnlyList<StylusPoint> pointList, double inkSize)
         {
             if (pointList.Count < 2)
             {
@@ -39,6 +43,27 @@ namespace BujeeberehemnaNurgacolarje
                     var point1 = new Point(pointList[i].Point.X - direction.Y, pointList[i].Point.Y + direction.X);
                     var point2 = new Point(pointList[i].Point.X + direction.Y, pointList[i].Point.Y - direction.X);
 
+                    if (i == 0)
+                    {
+                        var direction0 = -direction;
+                        var direction1 = Vector2.Transform(direction0, RotationPiDiv8);
+                        var direction2 = Vector2.Transform(direction0, RotationPiDiv4);
+                        var direction3 = Vector2.Transform(direction0, Rotation3PiDiv8);
+                        var directionN1 = new Vector2(direction3.Y, -direction3.X);
+                        var directionN2 = new Vector2(direction2.Y, -direction2.X);
+                        var directionN3 = new Vector2(direction1.Y, -direction1.X);
+
+                        outlinePointList1.Add(new Point(pointList[i].Point.X + direction0.X, pointList[i].Point.Y + direction0.Y));
+                        outlinePointList1.Add(new Point(pointList[i].Point.X + directionN1.X, pointList[i].Point.Y + directionN1.Y));
+                        outlinePointList1.Add(new Point(pointList[i].Point.X + directionN2.X, pointList[i].Point.Y + directionN2.Y));
+                        outlinePointList1.Add(new Point(pointList[i].Point.X + directionN3.X, pointList[i].Point.Y + directionN3.Y));
+
+                        outlinePointList2.Add(new Point(pointList[i].Point.X + direction0.X, pointList[i].Point.Y + direction0.Y));
+                        outlinePointList2.Add(new Point(pointList[i].Point.X + direction1.X, pointList[i].Point.Y + direction1.Y));
+                        outlinePointList2.Add(new Point(pointList[i].Point.X + direction2.X, pointList[i].Point.Y + direction2.Y));
+                        outlinePointList2.Add(new Point(pointList[i].Point.X + direction3.X, pointList[i].Point.Y + direction3.Y));
+                    }
+
                     outlinePointList1.Add(point1);
                     outlinePointList2.Add(point2);
                 }
@@ -51,6 +76,31 @@ namespace BujeeberehemnaNurgacolarje
 
                     outlinePointList1.Add(point1);
                     outlinePointList2.Add(point2);
+
+                    if (i == pointList.Count - 1)
+                    {
+                        var rotationPiDiv8 = Matrix3x2.CreateRotation(MathF.PI / 8);
+                        var rotationPiDiv4 = Matrix3x2.CreateRotation(MathF.PI / 4);
+                        var rotation3PiDiv8 = Matrix3x2.CreateRotation(3 * MathF.PI / 8);
+
+                        var direction0 = direction;
+                        var direction1 = Vector2.Transform(direction0, rotationPiDiv8);
+                        var direction2 = Vector2.Transform(direction0, rotationPiDiv4);
+                        var direction3 = Vector2.Transform(direction0, rotation3PiDiv8);
+                        var directionN1 = new Vector2(direction3.Y, -direction3.X);
+                        var directionN2 = new Vector2(direction2.Y, -direction2.X);
+                        var directionN3 = new Vector2(direction1.Y, -direction1.X);
+
+                        outlinePointList1.Add(new Point(pointList[i].Point.X + direction3.X, pointList[i].Point.Y + direction3.Y));
+                        outlinePointList1.Add(new Point(pointList[i].Point.X + direction2.X, pointList[i].Point.Y + direction2.Y));
+                        outlinePointList1.Add(new Point(pointList[i].Point.X + direction1.X, pointList[i].Point.Y + direction1.Y));
+                        outlinePointList1.Add(new Point(pointList[i].Point.X + direction0.X, pointList[i].Point.Y + direction0.Y));
+
+                        outlinePointList2.Add(new Point(pointList[i].Point.X + directionN3.X, pointList[i].Point.Y + directionN3.Y));
+                        outlinePointList2.Add(new Point(pointList[i].Point.X + directionN2.X, pointList[i].Point.Y + directionN2.Y));
+                        outlinePointList2.Add(new Point(pointList[i].Point.X + directionN1.X, pointList[i].Point.Y + directionN1.Y));
+                        outlinePointList2.Add(new Point(pointList[i].Point.X + direction0.X, pointList[i].Point.Y + direction0.Y));
+                    }
                 }
                 else
                 {
