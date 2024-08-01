@@ -1,9 +1,12 @@
 ﻿#nullable enable
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 using BujeeberehemnaNurgacolarje;
+
+using dotnetCampus.Mathematics.SpatialGeometry;
 
 using SkiaInkCore;
 using SkiaInkCore.Diagnostics;
@@ -1058,33 +1061,378 @@ partial class SkInkCanvas
         return new InkId(currentInkId); // return _currentInkId++ 的意思，只是这个可读性太垃圾了
     }
 
-    private bool DrawStroke(DrawStrokeContext context, [NotNullWhen(true)] out Rect? rect)
+    /// <summary>
+    /// 按照德熙的玄幻算法，决定传入的点是否能丢掉
+    /// </summary>
+    /// <param name="pointList"></param>
+    /// <param name="currentStylusPoint"></param>
+    /// <param name="dropPointCount"></param>
+    /// <returns></returns>
+    private bool CanDropLastPoint(IReadOnlyList<StylusPoint> pointList, StylusPoint currentStylusPoint,
+        int dropPointCount)
     {
-        var skCanvas = _skCanvas;
-        var skPaint = new SKPaint
+        if (Settings.DropPointSettings.DropPointStrategy == DropPointStrategy.Aggressive)
         {
-            Color = context.StrokeColor,
-            IsAntialias = true,
-            FilterQuality = SKFilterQuality.High,
-            Style = SKPaintStyle.Stroke,
-            StrokeWidth = (float) context.InkThickness,
-            StrokeCap = SKStrokeCap.Round,
-            StrokeJoin = SKStrokeJoin.Round,
-        };
+            // 激进策略，会丢很多点
+            if (pointList.Count < 2)
+            {
+                return false;
+            }
 
-        var inkStrokePath = context.InkStrokePath;
-        if (inkStrokePath is null)
+            var aPoint = pointList[^2].Point;
+            var bPoint = pointList[^1].Point;
+            var cPoint = currentStylusPoint.Point;
+
+            // 短路代码，如果 b 和 c 点相同，那就直接返回可丢掉
+            if (bPoint == cPoint)
+            {
+                return true;
+            }
+
+            // 如果 b 和 c 距离足够长，那就不能替换
+            const int maxSquareDistance = (2 * 2 + 1);/*实际长度超过2的长度*/
+            if (SquareDistanceTo(bPoint, cPoint) > maxSquareDistance)
+            {
+                return false;
+            }
+            // 同理，如果 a 和 c 的距离足够长，也不能替换
+            if (SquareDistanceTo(aPoint, cPoint) > maxSquareDistance)
+            {
+                return false;
+            }
+
+            const double minDistance = 1;
+
+            var segment2D = new Segment2D(new Point2D(aPoint.X, aPoint.Y), new Point2D(cPoint.X, cPoint.Y));
+            var point2D = new Point2D(bPoint.X, bPoint.Y);
+            var distance = segment2D.GetDistanceToLine(point2D);
+            if (distance < minDistance)
+            {
+                return true;
+            }
+
+            return false;
+
+            static double SquareDistanceTo(Point a, Point b)
+            {
+                var x = a.X - b.X;
+                var y = a.Y - b.Y;
+                return x * x + y * y;
+            }
+        }
+        else
         {
-            rect = null;
+            // 普通的丢点，不会丢太多
+            if (pointList.Count < 3)
+            {
+                return false;
+            }
+
+            // 已经丢了10个点了，就不继续丢点了
+            if (dropPointCount >= Settings.DropPointSettings.MaxDropPointCount)
+            {
+                return false;
+            }
+
+            // 假定要丢掉倒数第一个点，所以上一个点是倒数第二个点
+            var lastPoint = pointList[^2].Point;
+            var currentPoint = currentStylusPoint.Point;
+
+            var lastPointVector = new Vector2((float) lastPoint.X, (float) lastPoint.Y);
+            var currentPointVector = new Vector2((float) currentPoint.X, (float) currentPoint.Y);
+
+            var lineVector = currentPointVector - lastPointVector;
+            var lineLength = lineVector.Length();
+
+            // 如果移动距离比较长，则不丢点
+            if (lineLength > 10)
+            {
+                return false;
+            }
+
+            var last2Point = pointList[^3].Point;
+            var line2Vector = lastPointVector - new Vector2((float) last2Point.X, (float) last2Point.Y);
+            var line2Length = line2Vector.Length();
+            var vector2 = currentPointVector - lastPointVector;
+            var distance2 = MathF.Abs(line2Vector.X * vector2.Y - line2Vector.Y * vector2.X) / line2Length;
+            if (distance2 > 2)
+            {
+                return false;
+            }
+
+            return true;
+        }
+    }
+
+    private bool DrawStroke(DrawStrokeContext context, out Rect drawRect)
+    {
+        //StaticDebugLogger.WriteLine($"DrawStroke {context.InputInfo.StylusPoint.Point}");
+        StylusPoint currentStylusPoint = context.InputInfo.StylusPoint;
+
+        drawRect = Rect.Zero;
+        if (context.TipStylusPoints.Count == 0)
+        {
+            context.TipStylusPoints.Enqueue(currentStylusPoint);
+
             return false;
         }
 
-        skCanvas.DrawPath(inkStrokePath, skPaint);
+        var lastPoint = context.TipStylusPoints[^1];
+        if (lastPoint.Point == currentStylusPoint.Point)
+        {
+            // 如果两点相同，则取最大压感
+            context.TipStylusPoints[^1] = lastPoint with
+            {
+                Pressure = Math.Max(lastPoint.Pressure, currentStylusPoint.Pressure)
+            };
 
-        var bounds = inkStrokePath.Bounds;
-        rect = new Rect(bounds.Left, bounds.Top, bounds.Width, bounds.Height);
-        return true;
+            if (context.TipStylusPoints.Count == 1)
+            {
+                // 只有 1 个点，不够计算
+                return false;
+            }
+        }
+        else
+        {
+            if (CanDropLastPoint(context.TipStylusPoints, currentStylusPoint, context.DropPointCount))
+            {
+                currentStylusPoint = currentStylusPoint with { Pressure = context.TipStylusPoints[^1].Pressure };
+                context.TipStylusPoints[^1] = currentStylusPoint;
+                // 丢点是为了让 SimpleInkRender 可以绘制更加平滑的折线。但是不能丢太多的点，否则将导致看起来断线
+                context.DropPointCount++;
+                //Console.WriteLine($"DropPointCount {context.DropPointCount}");
+
+                // 当前点能丢，则不绘制
+                if (Settings.DynamicRenderType == InkCanvasDynamicRenderTipStrokeType.RenderAllTouchingStrokeWithClip)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                context.DropPointCount = 0;
+                context.TipStylusPoints.Enqueue(currentStylusPoint);
+            }
+        }
+
+        // 是否开启自动模拟软笔效果
+        if (Settings.AutoSoftPen)
+        {
+            const int softPenCount = 5;
+            for (var i = 0; i < softPenCount; i++)
+            {
+                if (context.TipStylusPoints.Count - i - 1 < 0)
+                {
+                    break;
+                }
+
+                // 简单的算法…就是越靠近笔尖的点的压感越小
+                context.TipStylusPoints[context.TipStylusPoints.Count - i - 1] =
+                    context.TipStylusPoints[context.TipStylusPoints.Count - i - 1] with
+                    {
+                        Pressure = Math.Max(Math.Min(1.0f / softPenCount * (i + 1), 0.5f), 0.01f)
+                        //Pressure = 0.3f,
+                    };
+            }
+        }
+
+        var pointList = context.TipStylusPoints;
+
+        var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, context.InkThickness);
+
+        using var skPath = new SKPath() { FillType = SKPathFillType.Winding };
+        skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
+        //skPath.Close();
+
+        // 用于设置比简单计算的范围更大一点的范围，解决重采样之后的模糊
+        // 设置为笔迹粗细的一半，因为后续将会上下左右都加上这个值
+        var additionSize = Math.Min(context.InkThickness / 2, 4);
+
+        var skCanvas = _skCanvas;
+        if (Settings.DynamicRenderType == InkCanvasDynamicRenderTipStrokeType.RenderAllTouchingStrokeWithoutTipStroke)
+        {
+            // 将计算出来的笔尖部分叠加回去原先的笔身，这个方式对画长线性能不好
+            context.InkStrokePath ??= new SKPath { FillType = SKPathFillType.Winding };
+            context.InkStrokePath.AddPath(skPath.Simplify() ?? skPath);
+
+            var skPathBounds = skPath.Bounds;
+
+            // 计算脏范围，用于渲染更新
+            drawRect = new Rect(skPathBounds.Left - additionSize, skPathBounds.Top - additionSize,
+                skPathBounds.Width + additionSize * 2, skPathBounds.Height + additionSize * 2);
+            drawRect = LimitRect(drawRect,
+                new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
+
+            // 以下代码用于解决绘制的笔迹边缘锐利的问题。原因是笔迹执行了重采样，但是边缘如果没有被覆盖，则重采样的将会重复叠加，导致锐利
+            // 根据 Skia 的官方文档，建议是走清空重新绘制。在不清屏的情况下，除非能够获取到原始的像素点。尽管这是能够计算的，但是先走清空开发速度比较快
+            skCanvas.Clear();
+            skCanvas.DrawBitmap(_originBackground, 0, 0);
+            //Console.WriteLine($"DrawBitmap {stopwatch.ElapsedMilliseconds}");
+
+            // 将所有的笔迹绘制出来，作为动态笔迹层。后续抬手的笔迹需要重新写入到静态笔迹层
+            using var skPaint = new SKPaint();
+            skPaint.StrokeWidth = 0f;
+            skPaint.IsAntialias = true;
+            skPaint.IsStroke = false;
+            skPaint.FilterQuality = SKFilterQuality.High;
+            skPaint.Style = SKPaintStyle.Fill;
+
+            // 有个奇怪的炸掉情况，先忽略
+            using var enumerator = CurrentInputDictionary.GetEnumerator();
+
+            foreach (var drawStrokeContext in CurrentInputDictionary)
+            {
+                skPaint.Color = drawStrokeContext.Value.StrokeColor;
+
+                if (drawStrokeContext.Value.InkStrokePath is { } path)
+                {
+                    skCanvas.DrawPath(path, skPaint);
+                }
+            }
+
+            return true;
+        }
+        else if (Settings.DynamicRenderType == InkCanvasDynamicRenderTipStrokeType.RenderAllTouchingStrokeWithClip)
+        {
+            var stepCounter = new StepCounter();
+            //stepCounter.Start();
+
+            context.InkStrokePath ??= new SKPath { FillType = SKPathFillType.Winding };
+            context.InkStrokePath.AddPath(skPath);
+
+            var skPathBounds = skPath.Bounds;
+
+            if (skPath.IsEmpty)
+            {
+                StaticDebugLogger.WriteLine($"skPathBounds.IsEmpty={skPath.IsEmpty}");
+
+                StaticDebugLogger.WriteLine(skPath.ToSvgPathData());
+
+                StaticDebugLogger.WriteLine("pointList=");
+                foreach (var stylusPoint in pointList)
+                {
+                    StaticDebugLogger.WriteLine($"{stylusPoint.Point.X},{stylusPoint.Point.Y}");
+                }
+
+                StaticDebugLogger.WriteLine("outlinePointList=");
+                foreach (var point in outlinePointList)
+                {
+                    StaticDebugLogger.WriteLine($"{point.X},{point.Y}");
+                }
+
+                return false;
+            }
+
+            // 计算脏范围，用于渲染更新
+            drawRect = new Rect(skPathBounds.Left - additionSize, skPathBounds.Top - additionSize,
+                skPathBounds.Width + additionSize * 2, skPathBounds.Height + additionSize * 2);
+
+            System.Diagnostics.Debug.Assert(ApplicationDrawingSkBitmap != null);
+            // 限制矩形范围，防止超过画布
+            drawRect = LimitRect(drawRect,
+                new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
+
+            if (drawRect.IsEmpty)
+            {
+                // 渲染范围是空的，则不执行任何处理
+                return false;
+            }
+
+            // 以下代码用于解决绘制的笔迹边缘锐利的问题。原因是笔迹执行了重采样，但是边缘如果没有被覆盖，则重采样的将会重复叠加，导致锐利
+            // 使用裁剪画布代替 Clear 方法，优化其性能
+            var skRectI = SKRectI.Create((int) Math.Floor(drawRect.X), (int) Math.Floor(drawRect.Y),
+                (int) Math.Ceiling(drawRect.Width), (int) Math.Ceiling(drawRect.Height));
+
+            skRectI = LimitRect(skRectI,
+                SKRectI.Create(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
+
+            if (_originBackground is null)
+            {
+                return false;
+            }
+
+            //ApplicationDrawingSkBitmap.ClearBounds(skRectI);
+            var success = ApplicationDrawingSkBitmap.ReplacePixels(_originBackground, skRectI);
+            if (!success)
+            {
+                StaticDebugLogger.WriteLine(
+                    $"ReplacePixels Fail Rect={skRectI.Left},{skRectI.Top},{skRectI.Right},{skRectI.Bottom} wh={skRectI.Width},{skRectI.Height} BitmapWH={ApplicationDrawingSkBitmap.Width},{ApplicationDrawingSkBitmap.Height} D={ApplicationDrawingSkBitmap.RowBytes == (ApplicationDrawingSkBitmap.Width * sizeof(uint))}");
+            }
+
+            stepCounter.Record("ReplacePixels");
+
+            //ApplicationDrawingSkBitmap.ClearBounds(new SKRectI(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
+            //skCanvas.Clear();
+            //ApplicationDrawingSkBitmap.NotifyPixelsChanged();
+            // 调用 Discard 没有任何的优化
+            //skCanvas.Discard();
+            SKRect skRect = skRectI;
+
+            //stepCounter.Record("ClearBounds");
+
+            //skCanvas.DrawBitmap(_originBackground, skRect, skRect);
+
+            //stepCounter.Record("DrawBitmap");
+
+            // 需要裁剪的原因是解决画完一笔之后，再画第二笔会看到第一笔不平滑
+            // 效果上和第一笔所在的图片被多次绘制导致采样不平滑
+            // 实际原因是在以下代码里面不断绘制整个笔迹，导致在当前画布里面就是不平滑的 但是此时渲染范围不包括整个笔迹
+            // 就看不到已经不平滑的笔迹部分内容
+            // 第二笔开始画的时候 更新了背景 此时的背景就包含了之前看不到的不平滑的笔迹部分内容 导致第二笔更新渲染范围将不平滑的笔迹在背景画出来 从而看到第一笔不平滑
+            skCanvas.Save();
+            skCanvas.ClipRect(skRect, antialias: true);
+
+            // 将所有的笔迹绘制出来，作为动态笔迹层。后续抬手的笔迹需要重新写入到静态笔迹层
+            using var skPaint = new SKPaint();
+            skPaint.StrokeWidth = 0.1f;
+            skPaint.IsAntialias = true;
+            skPaint.FilterQuality = SKFilterQuality.High;
+            skPaint.Style = SKPaintStyle.Fill;
+
+            //Console.WriteLine($"CurrentInputDictionary Count={CurrentInputDictionary.Count}");
+            // 有个奇怪的炸掉情况，先忽略
+            using var enumerator = CurrentInputDictionary.GetEnumerator();
+
+            foreach (var drawStrokeContext in CurrentInputDictionary)
+            {
+                skPaint.Color = drawStrokeContext.Value.StrokeColor;
+
+                if (drawStrokeContext.Value.InkStrokePath is { } path)
+                {
+                    skCanvas.DrawPath(path, skPaint);
+                }
+            }
+
+            stepCounter.Record("DrawPath");
+
+            skCanvas.Restore();
+
+            stepCounter.OutputToConsole();
+
+            return true;
+        }
+        else if (Settings.DynamicRenderType == InkCanvasDynamicRenderTipStrokeType.RenderTipStrokeOnly)
+        {
+            // 不断向前叠
+            using var skPaint = new SKPaint();
+            skPaint.StrokeWidth = 0.1f;
+            skPaint.IsAntialias = true;
+            skPaint.FilterQuality = SKFilterQuality.High;
+            skPaint.Style = SKPaintStyle.Fill;
+            skPaint.Color = context.StrokeColor;
+
+            skCanvas.DrawPath(skPath, skPaint);
+
+            // 计算脏范围，用于渲染更新
+            drawRect = Expand(skPath.Bounds, 10);
+
+            return true;
+        }
+
+        return false;
     }
+
+    private const int DefaultAdditionSize = 4;
 
 
     public static unsafe bool ReplacePixels(uint* destinationBitmap, uint* sourceBitmap, SKRectI destinationRectI,
