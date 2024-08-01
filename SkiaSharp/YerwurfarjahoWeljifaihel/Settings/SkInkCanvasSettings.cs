@@ -1,4 +1,6 @@
-﻿using SkiaSharp;
+﻿using ReewheaberekaiNayweelehe;
+
+using SkiaSharp;
 
 using System;
 using System.Collections.Generic;
@@ -135,4 +137,29 @@ record SkInkCanvasSettings
     /// 清空时使用的颜色
     /// </summary>
     public SKColor ClearColor { get; init; } = SKColors.Empty;
+
+    public static SkInkCanvasSettings DebugSettings(SkInkCanvasSettings settings)
+    {
+        return settings with
+        {
+            AutoSoftPen = false,
+            //EnableEraserGesture = false,
+            DynamicRenderType = InkCanvasDynamicRenderTipStrokeType.RenderAllTouchingStrokeWithClip,
+
+            // 尝试修复丢失按下的点
+            ShouldDrawStrokeOnDown = true,
+
+            CleanStrokeSettings = new CleanStrokeSettings()
+            {
+                ShouldDrawBackground = false,
+                ShouldUpdateBackground = true,
+            },
+
+            // 丢点策略
+            DropPointSettings = settings.DropPointSettings with
+            {
+                DropPointStrategy = DropPointStrategy.Aggressive
+            }
+        };
+    }
 }
