@@ -19,6 +19,8 @@ public readonly record struct Rect2D(Point2D Location, Size2D Size)
     public double Right => X + Width;
     public double Bottom => Y + Height;
 
+    public bool IsEmpty => (Width <= 0) || (Height <= 0);
+
     public static Rect2D Zero => default;
 
     public static Rect2D FromLTRB(double left, double top, double right, double bottom)
