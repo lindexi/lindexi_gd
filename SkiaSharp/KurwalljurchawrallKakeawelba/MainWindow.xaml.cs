@@ -35,6 +35,16 @@ public partial class MainWindow : Window
         {
         });
     }
+
+    private void InkModeButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        SkiaCanvas.GotoInk();
+    }
+
+    private void ManipulationModeButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        SkiaCanvas.GotoManipulation();
+    }
 }
 
 public class SkiaCanvas : FrameworkElement
@@ -71,6 +81,29 @@ public class SkiaCanvas : FrameworkElement
     }
 
     private bool _isRequireDraw = false;
+
+    /// <summary>
+    ///     切换到笔模式
+    /// </summary>
+    public void GotoInk()
+    {
+        RequireDraw(context =>
+        {
+            Init(context);
+
+            _inkCanvas.SkInkCanvasManipulationManager.Enable = false;
+        });
+    }
+
+    public void GotoManipulation()
+    {
+        RequireDraw(context =>
+        {
+            Init(context);
+
+            _inkCanvas.SkInkCanvasManipulationManager.Enable = true;
+        });
+    }
 
     private void SkiaCanvas_Loaded(object sender, RoutedEventArgs e)
     {
@@ -253,6 +286,8 @@ public class SkiaCanvas : FrameworkElement
 
         if (!_isInit)
         {
+            _inkingInputManager.AddInputProcessor(_inkCanvas.SkInkCanvasManipulationManager);
+
             _isInit = true;
             var testInput = new TestInput(_inkCanvas);
             testInput.RenderSplashScreen();

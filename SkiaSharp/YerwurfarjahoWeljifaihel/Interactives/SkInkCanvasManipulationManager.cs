@@ -12,7 +12,7 @@ enum InputMode
     Manipulate,
 }
 
-class SkInkCanvasManipulationManager
+class SkInkCanvasManipulationManager : IInkingInputProcessor
 {
     public SkInkCanvasManipulationManager(SkInkCanvas skInkCanvas)
     {
@@ -29,7 +29,24 @@ class SkInkCanvasManipulationManager
 
     private StylusPoint _lastStylusPoint;
     private StylusPoint _firstStylusPoint;
+    private bool _enable = false;
     private int MainInput { get; set; }
+
+    public bool Enable
+    {
+        get => _enable;
+        set
+        {
+            _enable = value;
+            EnableChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    public event EventHandler? EnableChanged;
+
+    public void InputStart()
+    {
+    }
 
     public void Down(InkingModeInputArgs args)
     {
@@ -48,7 +65,7 @@ class SkInkCanvasManipulationManager
 
         if (InputMode == InputMode.Ink)
         {
-            SkInkCanvas.DrawStrokeDown(args);
+            throw new NotSupportedException();
         }
         else if (InputMode == InputMode.Manipulate)
         {
@@ -63,7 +80,7 @@ class SkInkCanvasManipulationManager
     {
         if (InputMode == InputMode.Ink)
         {
-            SkInkCanvas.DrawStrokeMove(args);
+            throw new NotSupportedException();
         }
         else if (InputMode == InputMode.Manipulate)
         {
@@ -94,12 +111,16 @@ class SkInkCanvasManipulationManager
         }
     }
 
+    public void Hover(InkingModeInputArgs args)
+    {
+    }
+
     public void Up(InkingModeInputArgs args)
     {
         _downCount--;
         if (InputMode == InputMode.Ink)
         {
-            SkInkCanvas.DrawStrokeUp(args);
+            throw new NotSupportedException();
         }
         else if (InputMode == InputMode.Manipulate)
         {
@@ -113,5 +134,13 @@ class SkInkCanvasManipulationManager
 
             _lastStylusPoint = args.StylusPoint;
         }
+    }
+
+    public void Leave()
+    {
+    }
+
+    public void InputComplete()
+    {
     }
 }

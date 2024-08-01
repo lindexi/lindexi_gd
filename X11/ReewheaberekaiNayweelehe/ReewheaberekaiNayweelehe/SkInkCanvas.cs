@@ -28,7 +28,7 @@ partial class SkInkCanvas : IInkingInputProcessor, IInkingModeInputDispatcherSen
         ApplicationDrawingSkBitmap = applicationDrawingSkBitmap;
     }
 
-    public bool Enable => true;
+    public bool Enable { get; private set; } = true;
 
     public SkInkCanvasSettings Settings { get; set; } = new SkInkCanvasSettings();
 
