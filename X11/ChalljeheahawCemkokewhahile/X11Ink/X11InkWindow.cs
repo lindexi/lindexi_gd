@@ -20,7 +20,13 @@ namespace ChalljeheahawCemkokewhahile.X11Ink;
 [SupportedOSPlatform("Linux")]
 class X11InkWindow : X11Window
 {
-    public X11InkWindow(X11Application application, IntPtr mainWindowHandle) : base(application,
+    /// <summary>
+    /// 创建一个 X11 笔迹窗口
+    /// </summary>
+    /// <param name="application"></param>
+    /// <param name="mainWindowHandle"></param>
+    /// <param name="enableInput">是否允许从 X11 获取输入</param>
+    public X11InkWindow(X11Application application, IntPtr mainWindowHandle, bool enableInput = false) : base(application,
         new X11WindowCreateInfo()
         {
             IsFullScreen = true
@@ -30,6 +36,7 @@ class X11InkWindow : X11Window
         var x11Info = application.X11Info;
         _x11Info = x11Info;
         _mainWindowHandle = mainWindowHandle;
+        _enableInput = enableInput;
 
         var xDisplayWidth = x11Info.XDisplayWidth;
         var xDisplayHeight = x11Info.XDisplayHeight;
@@ -131,12 +138,18 @@ class X11InkWindow : X11Window
     /// </summary>
     private void BusinessShow()
     {
-        // 设置不接受输入
-        // 这样输入穿透到后面一层里，由后面一层将内容上报上来
-        SetClickThrough();
+        if(!_enableInput)
+        {
+            // 设置不接受输入
+            // 这样输入穿透到后面一层里，由后面一层将内容上报上来
+            SetClickThrough();
+        }
 
+        if (_mainWindowHandle != IntPtr.Zero)
         // 设置一定放在输入的窗口上方
-        SetOwner(_mainWindowHandle);
+        {
+            SetOwner(_mainWindowHandle);
+        }
 
         ShowActive();
 
@@ -224,6 +237,7 @@ class X11InkWindow : X11Window
 
     private readonly X11InfoManager _x11Info;
     private readonly IntPtr _mainWindowHandle;
+    private readonly bool _enableInput;
     private readonly SKBitmap _skBitmap;
     private readonly SKCanvas _skCanvas;
     private XImage _image;

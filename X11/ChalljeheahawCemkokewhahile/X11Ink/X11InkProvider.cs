@@ -44,6 +44,18 @@ internal class X11InkProvider : X11Application
     //    }
     //}
 
+    protected override void OnStart()
+    {
+        var x11InkWindow = new X11InkWindow(this, IntPtr.Zero, enableInput:true);
+        _x11InkWindow = x11InkWindow;
+
+        X11PlatformThreading.Run();
+    }
+
+    /// <summary>
+    /// 启动且设置传入的 <paramref name="x11WindowIntPtr"/> 作为 Owner 窗口
+    /// </summary>
+    /// <param name="x11WindowIntPtr"></param>
     [MemberNotNull(nameof(_x11InkWindow))]
     public void Start(IntPtr x11WindowIntPtr)
     {
@@ -194,4 +206,8 @@ internal class X11InkProvider : X11Application
     //    //StaticDebugLogger.WriteLine($"[{nameof(X11InkProvider)}] Hide");
     //    InkWindow.Hide();
     //}
+
+    public void TryEnqueue(Action action)=> X11PlatformThreading.TryEnqueue(action, InkWindow.X11InkWindowIntPtr);
+
+    public Task InvokeAsync(Action action) => X11PlatformThreading.InvokeAsync(action, InkWindow.X11InkWindowIntPtr);
 }
