@@ -11,6 +11,9 @@
 
   <ItemGroup>
     <Compile Include="..\..\..\UnoInk\X11\UnoInk\UnoInk\Inking\X11Platforms\**\*.cs" LinkBase="X11Apps" />
+    <Compile Include="..\..\BehairracercairJifelalihay\EdidInfo.cs" Link="Edid\EdidInfo.cs" />
+    <Compile Include="..\..\BehairracercairJifelalihay\Cm.cs" Link="Edid\Cm.cs" />
+    <Compile Include="..\..\BehairracercairJifelalihay\EdidBasicDisplayParameters.cs" Link="Edid\EdidBasicDisplayParameters.cs" />
     <Compile Include="..\..\SkiaSharp\YerwurfarjahoWeljifaihel\Primitive\Mathematics\GlobalUsing.cs" Link="GlobalUsing.cs" />
     <Compile Include="..\BujeeberehemnaNurgacolarje\FixedQueue.cs" Link="FixedQueue.cs" />
     <Compile Include="..\BujeeberehemnaNurgacolarje\PixelSize.cs" Link="PixelSize.cs" />
@@ -27,7 +30,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\lindexi\BehairracercairJifelalihay\BehairracercairJifelalihay.csproj" />
     <ProjectReference Include="..\..\SkiaSharp\YerwurfarjahoWeljifaihel\YerwurfarjahoWeljifaihel.csproj" />
   </ItemGroup>
   <ItemGroup>
