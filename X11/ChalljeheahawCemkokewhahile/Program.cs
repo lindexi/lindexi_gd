@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+
 using BujeeberehemnaNurgacolarje;
 
 using ChalljeheahawCemkokewhahile.X11Ink;
@@ -15,10 +16,23 @@ using SkiaSharp;
 
 using static CPF.Linux.XLib;
 
-XInitThreads();
 
-var x11InkProvider = new X11InkProvider();
-x11InkProvider.Start();
+if (OperatingSystem.IsLinux())
+{
+    XInitThreads();
+    var x11InkProvider = new X11InkProvider();
+    x11InkProvider.X11InkWindowCreated += (sender, window) =>
+    {
+        var testInput = new TestInput(window.SkInkCanvas);
+        testInput.RenderSplashScreen();
+    };
+
+    x11InkProvider.Start();
+}
+else
+{
+    Console.WriteLine($"此代码不能在非 Linux 跑");
+}
 
 //var display = XOpenDisplay(IntPtr.Zero);
 //var screen = XDefaultScreen(display);
@@ -190,7 +204,7 @@ x11InkProvider.Start();
 
 //        var x = exposeRect.Left;
 //        var y = exposeRect.Top;
-  
+
 //        XPutImage(display, handle, gc, ref xImage, x, y, x,
 //            y, (uint) exposeRect.Width,
 //            (uint) exposeRect.Height);
@@ -288,7 +302,7 @@ x11InkProvider.Start();
 //                            var inputList = new List<RawInputArgs>();
 
 //                            var lastArgs = ToRawInputArgs(xiDeviceEvent);
-                           
+
 //                            inputList.Add(lastArgs);
 
 //                            // 读走所有的事件，防止事件堆积

@@ -44,10 +44,14 @@ internal class X11InkProvider : X11Application
     //    }
     //}
 
+    public event EventHandler<X11InkWindow>? X11InkWindowCreated;
+
     protected override void OnStart()
     {
-        var x11InkWindow = new X11InkWindow(this, IntPtr.Zero, enableInput:true);
+        var x11InkWindow = new X11InkWindow(this, IntPtr.Zero, enableInput: true);
         _x11InkWindow = x11InkWindow;
+
+        X11InkWindowCreated?.Invoke(this, x11InkWindow);
 
         X11PlatformThreading.Run();
     }
@@ -207,7 +211,7 @@ internal class X11InkProvider : X11Application
     //    InkWindow.Hide();
     //}
 
-    public void TryEnqueue(Action action)=> X11PlatformThreading.TryEnqueue(action, InkWindow.X11InkWindowIntPtr);
+    public void TryEnqueue(Action action) => X11PlatformThreading.TryEnqueue(action, InkWindow.X11InkWindowIntPtr);
 
     public Task InvokeAsync(Action action) => X11PlatformThreading.InvokeAsync(action, InkWindow.X11InkWindowIntPtr);
 }
