@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\..\UnoInk\X11\UnoInk\UnoInk\Inking\X11Platforms\**\*.cs" LinkBase="X11Apps"/>
+    <Compile Include="..\..\..\UnoInk\X11\UnoInk\UnoInk\Inking\X11Platforms\**\*.cs" LinkBase="X11Apps" />
     <Compile Include="..\..\SkiaSharp\YerwurfarjahoWeljifaihel\Primitive\Mathematics\GlobalUsing.cs" Link="GlobalUsing.cs" />
     <Compile Include="..\BujeeberehemnaNurgacolarje\FixedQueue.cs" Link="FixedQueue.cs" />
     <Compile Include="..\BujeeberehemnaNurgacolarje\PixelSize.cs" Link="PixelSize.cs" />
