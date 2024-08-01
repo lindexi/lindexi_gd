@@ -1,7 +1,12 @@
-﻿using System.ComponentModel;
+﻿// Copyright (c) Uno Platform
+// All rights reserved.
+// Apache 2.0 License
+ 
+using System.ComponentModel;
 
 namespace Uno.Extensions;
 
+// Copy From https://github.com/unoplatform/uno.extensions/blob/dd5bb81/src/Uno.Extensions.Core/IDispatcher.cs
 /// <summary>
 /// An abstraction of the dispatcher that is associated to the UI thread.
 /// </summary>
