@@ -12,9 +12,9 @@ enum InputMode
     Manipulate,
 }
 
-class InkingInputManager
+class SkInkCanvasManipulationManager
 {
-    public InkingInputManager(SkInkCanvas skInkCanvas)
+    public SkInkCanvasManipulationManager(SkInkCanvas skInkCanvas)
     {
         SkInkCanvas = skInkCanvas;
         var testInput = new TestInput(skInkCanvas);
