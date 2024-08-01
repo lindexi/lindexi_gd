@@ -15,7 +15,7 @@ using SkiaSharp;
 
 namespace ReewheaberekaiNayweelehe;
 
-partial class SkInkCanvas
+partial class SkInkCanvas : IInkingInputProcessor, IInkingModeInputDispatcherSensitive
 {
     public SkInkCanvas(SKCanvas skCanvas, SKBitmap applicationDrawingSkBitmap)
     {
@@ -53,6 +53,12 @@ partial class SkInkCanvas
         new Dictionary<int, DrawStrokeContext>();
 
     public SKColor Color { set; get; } = SKColors.Red;
+
+    public event EventHandler<SkiaStrokeSynchronizer>? StrokesCollected;
+
+    //public IEnumerable<string> CurrentInkStrokePathEnumerable =>
+    //    CurrentInputDictionary.Values.Select(t => t.InkStrokePath).Where(t => t != null).Select(t => t!.ToSvgPathData());
+
 
     public void DrawStrokeDown(InkingModeInputArgs args)
     {
