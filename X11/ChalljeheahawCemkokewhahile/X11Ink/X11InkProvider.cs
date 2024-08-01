@@ -206,4 +206,8 @@ internal class X11InkProvider : X11Application
     //    //StaticDebugLogger.WriteLine($"[{nameof(X11InkProvider)}] Hide");
     //    InkWindow.Hide();
     //}
+
+    public void TryEnqueue(Action action)=> X11PlatformThreading.TryEnqueue(action, InkWindow.X11InkWindowIntPtr);
+
+    public Task InvokeAsync(Action action) => X11PlatformThreading.InvokeAsync(action, InkWindow.X11InkWindowIntPtr);
 }

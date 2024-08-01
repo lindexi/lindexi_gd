@@ -14,6 +14,9 @@ using SkiaSharp;
 using static CPF.Linux.XLib;
 
 XInitThreads();
+
+
+
 var display = XOpenDisplay(IntPtr.Zero);
 var screen = XDefaultScreen(display);
 var rootWindow = XDefaultRootWindow(display);
