@@ -40,6 +40,11 @@ public class X11Application
 
     public void Start()
     {
+        OnStart();
+    }
+
+    protected virtual void OnStart()
+    {
         X11PlatformThreading.RunInNewThread();
     }
 
