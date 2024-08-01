@@ -57,6 +57,53 @@ static class SkiaExtension
         return true;
     }
 
+    public static unsafe bool ReplacePixels(uint* destinationBitmap, uint* sourceBitmap, SKRectI destinationRectI,
+    SKRectI sourceRectI, uint destinationPixelWidthLengthOfUint, uint sourcePixelWidthLengthOfUint)
+    {
+        if (destinationRectI.Width != sourceRectI.Width || destinationRectI.Height != sourceRectI.Height)
+        {
+            return false;
+        }
+
+        //for(var sourceRow = sourceRectI.Top; sourceRow< sourceRectI.Bottom; sourceRow++)
+        //{
+        //    for (var sourceColumn = sourceRectI.Left; sourceColumn < sourceRectI.Right; sourceColumn++)
+        //    {
+        //        var sourceIndex = sourceRow * sourceRectI.Width + sourceColumn;
+
+        //        var destinationRow = destinationRectI.Top + sourceRow - sourceRectI.Top;
+        //        var destinationColumn = destinationRectI.Left + sourceColumn - sourceRectI.Left;
+        //        var destinationIndex = destinationRow * destinationRectI.Width + destinationColumn;
+
+        //        destinationBitmap[destinationIndex] = sourceBitmap[sourceIndex];
+        //    }
+        //}
+
+        for (var sourceRow = sourceRectI.Top; sourceRow < sourceRectI.Bottom; sourceRow++)
+        {
+            var sourceStartColumn = sourceRectI.Left;
+            var sourceStartIndex = sourceRow * destinationPixelWidthLengthOfUint + sourceStartColumn;
+
+            var destinationRow = destinationRectI.Top + sourceRow - sourceRectI.Top;
+            var destinationStartColumn = destinationRectI.Left;
+            var destinationStartIndex = destinationRow * sourcePixelWidthLengthOfUint + destinationStartColumn;
+
+            Unsafe.CopyBlockUnaligned((destinationBitmap + destinationStartIndex), (sourceBitmap + sourceStartIndex), (uint) (destinationRectI.Width * sizeof(uint)));
+
+            //for (var sourceColumn = sourceRectI.Left; sourceColumn < sourceRectI.Right; sourceColumn++)
+            //{
+            //    var sourceIndex = sourceRow * destinationPixelWidthLengthOfUint + sourceColumn;
+
+            //    var destinationColumn = destinationRectI.Left + sourceColumn - sourceRectI.Left;
+            //    var destinationIndex = destinationRow * sourcePixelWidthLengthOfUint + destinationColumn;
+
+            //    destinationBitmap[destinationIndex] = sourceBitmap[sourceIndex];
+            //}
+        }
+
+        return true;
+    }
+
     /// <summary>
     /// 清理指定范围
     /// </summary>
