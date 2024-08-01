@@ -250,7 +250,16 @@ public class SkiaCanvas : FrameworkElement
         _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
         _inkCanvas.Settings = SkInkCanvasSettings.DebugSettings(_inkCanvas.Settings);
         _inkingInputManager ??= new InkingModeInputDispatcher(_inkCanvas);
+
+        if (!_isInit)
+        {
+            _isInit = true;
+            var testInput = new TestInput(_inkCanvas);
+            testInput.RenderSplashScreen();
+        }
     }
+
+    private bool _isInit = false;
 
     #endregion
 }
