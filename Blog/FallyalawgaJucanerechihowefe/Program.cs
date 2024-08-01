@@ -10,14 +10,14 @@ if (args.Length > 0)
     blogFolder = args[0];
 }
 
-var textFile = Path.Join(blogFolder, "WPF 下拉框选项做鼠标 Hover 预览效果.md");
+var textFile = Path.Join(blogFolder, "Windows 通过编辑注册表设置左右手使用习惯更改 Popup 弹出位置.md");
 GetImageLink(textFile);
 
 foreach (var blogFile in Directory.EnumerateFiles(blogFolder, "*.md"))
 {
     var blogOutputText = new StringBuilder();
 
-   
+
 }
 
 Console.WriteLine("Hello, World!");
@@ -28,9 +28,46 @@ void GetImageLink(string blogFile)
     var imageLinkRegex = new Regex(@"!\[\]\(http://image.acmx.xyz/");
 
     bool isImage = false;
+    var currentBlogFile = "";
+    var blogOutputText = new StringBuilder();
 
-    foreach (var line in File.ReadLines(blogFolder))
+    foreach (var line in File.ReadLines(blogFile))
     {
+        if (!isImage)
+        {
+            var match = imageFileRegex.Match(line);
+            if (match.Success)
+            {
+                currentBlogFile = Path.Join(blogFolder, "image", match.Groups[1].ValueSpan);
+                isImage = true;
+            }
 
+            blogOutputText.AppendLine(line);
+        }
+        else
+        {
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                blogOutputText.AppendLine();
+
+                continue;
+            }
+
+            var match = imageLinkRegex.Match(line);
+            if (match.Success)
+            {
+                Console.WriteLine($"本地文件 {currentBlogFile}");
+
+                blogOutputText.AppendLine(
+                    $"![](http://cdn.lindexi.com/{Uri.EscapeDataString(Path.GetFileName(currentBlogFile) ?? string.Empty)})");
+            }
+            else
+            {
+                blogOutputText.AppendLine();
+            }
+
+            isImage = false;
+            currentBlogFile = null;
+        }
     }
 }
