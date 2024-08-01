@@ -10,7 +10,7 @@ using SkiaInkCore.Diagnostics;
 using SkiaInkCore.Interactives;
 using SkiaInkCore.Primitive;
 using SkiaInkCore.Settings;
-
+using SkiaInkCore.Utils;
 using SkiaSharp;
 
 namespace ReewheaberekaiNayweelehe;
@@ -160,10 +160,9 @@ partial class SkInkCanvas : IInkingInputProcessor, IInkingModeInputDispatcherSen
             StrokeColor = strokeColor;
             ModeInputArgs = modeInputArgs;
 
-            //List<StylusPoint> historyDequeueList = [];
-            //TipStylusPoints = new InkingFixedQueue<StylusPoint>(MaxTipStylusCount, historyDequeueList);
-            //_historyDequeueList = historyDequeueList;
-            TipStylusPoints = new FixedQueue<StylusPoint>(MaxTipStylusCount);
+            List<StylusPoint> historyDequeueList = [];
+            TipStylusPoints = new InkingFixedQueue<StylusPoint>(MaxTipStylusCount, historyDequeueList);
+            _historyDequeueList = historyDequeueList;
         }
 
         /// <summary>
@@ -185,40 +184,40 @@ partial class SkInkCanvas : IInkingInputProcessor, IInkingModeInputDispatcherSen
         /// <summary>
         /// 笔尖的点
         /// </summary>
-        public FixedQueue<StylusPoint> TipStylusPoints { get; }
+        public InkingFixedQueue<StylusPoint> TipStylusPoints { get; }
 
         public List<StylusPoint> AllStylusPoints { get; } = new List<StylusPoint>();
 
-        ///// <summary>
-        ///// 存放笔迹的笔尖的点丢出来的点
-        ///// </summary>
-        //private List<StylusPoint>? _historyDequeueList;
+        /// <summary>
+        /// 存放笔迹的笔尖的点丢出来的点
+        /// </summary>
+        private List<StylusPoint>? _historyDequeueList;
 
-        ///// <summary>
-        ///// 整个笔迹的点，包括笔尖的点
-        ///// </summary>
-        //public List<StylusPoint> GetAllStylusPointsOnFinish()
-        //{
-        //    if (_historyDequeueList is null)
-        //    {
-        //        // 为了减少 List 对象的申请，这里将复用 _historyDequeueList 的 List 对象。这就导致了一旦上层调用过此方法，将不能重复调用，否则将会炸掉逻辑
-        //        throw new InvalidOperationException("此方法只能在完成的时候调用一次，禁止多次调用");
-        //    }
+        /// <summary>
+        /// 整个笔迹的点，包括笔尖的点
+        /// </summary>
+        public List<StylusPoint> GetAllStylusPointsOnFinish()
+        {
+            if (_historyDequeueList is null)
+            {
+                // 为了减少 List 对象的申请，这里将复用 _historyDequeueList 的 List 对象。这就导致了一旦上层调用过此方法，将不能重复调用，否则将会炸掉逻辑
+                throw new InvalidOperationException("此方法只能在完成的时候调用一次，禁止多次调用");
+            }
 
-        //    // 将笔尖的点合并到 _historyDequeueList 里面，这样就可以一次性返回所有的点。减少创建一个比较大的数组。缺点是这么做将不能多次调用，否则数据将会不正确
-        //    var historyDequeueList = _historyDequeueList;
-        //    //historyDequeueList.AddRange(TipStylusPoints);
-        //    int count = TipStylusPoints.Count; // 为什么需要取出来？因为会越出队越小
-        //    for (int i = 0; i < count; i++)
-        //    {
-        //        // 全部出队列，即可确保数据全取出来
-        //        TipStylusPoints.Dequeue();
-        //    }
+            // 将笔尖的点合并到 _historyDequeueList 里面，这样就可以一次性返回所有的点。减少创建一个比较大的数组。缺点是这么做将不能多次调用，否则数据将会不正确
+            var historyDequeueList = _historyDequeueList;
+            //historyDequeueList.AddRange(TipStylusPoints);
+            int count = TipStylusPoints.Count; // 为什么需要取出来？因为会越出队越小
+            for (int i = 0; i < count; i++)
+            {
+                // 全部出队列，即可确保数据全取出来
+                TipStylusPoints.Dequeue();
+            }
 
-        //    // 防止被多次调用
-        //    _historyDequeueList = null;
-        //    return historyDequeueList;
-        //}
+            // 防止被多次调用
+            _historyDequeueList = null;
+            return historyDequeueList;
+        }
 
         public SKPath? InkStrokePath { set; get; }
 
