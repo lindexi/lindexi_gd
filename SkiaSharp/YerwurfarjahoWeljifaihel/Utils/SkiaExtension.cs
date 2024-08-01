@@ -88,7 +88,10 @@ static class SkiaExtension
             var destinationStartColumn = destinationRectI.Left;
             var destinationStartIndex = destinationRow * sourcePixelWidthLengthOfUint + destinationStartColumn;
 
-            Unsafe.CopyBlockUnaligned((destinationBitmap + destinationStartIndex), (sourceBitmap + sourceStartIndex), (uint) (destinationRectI.Width * sizeof(uint)));
+            //Unsafe.CopyBlockUnaligned((destinationBitmap + destinationStartIndex), (sourceBitmap + sourceStartIndex), (uint) (destinationRectI.Width * sizeof(uint)));
+
+            Buffer.MemoryCopy((sourceBitmap + sourceStartIndex), (destinationBitmap + destinationStartIndex),
+                (uint)(destinationRectI.Width * sizeof(uint)), (uint)(destinationRectI.Width * sizeof(uint)));
 
             //for (var sourceColumn = sourceRectI.Left; sourceColumn < sourceRectI.Right; sourceColumn++)
             //{
