@@ -84,19 +84,12 @@ public class X11PlatformThreading
     private readonly IntPtr _invokeMessageId = new IntPtr(123123123);
     private ulong _invokeIndex;
 
-    public async Task InvokeAsync(Action action, IntPtr x11WindowIntPtr)
+    public void TryEnqueue(Action action, IntPtr x11WindowIntPtr)
     {
         var index = Interlocked.Increment(ref _invokeIndex);
-        var taskCompletionSource = new TaskCompletionSource();
         lock (_invokeList)
         {
-            _invokeList.Add(() =>
-            {
-                // 测试顺序调用通过
-                //Console.WriteLine($"Invoke Index={index}");
-                action();
-                taskCompletionSource.SetResult();
-            });
+            _invokeList.Add(action);
         }
 
         // 在 Avalonia 里面，是通过循环读取的方式，通过 XPending 判断是否有消息
@@ -131,7 +124,19 @@ public class X11PlatformThreading
         XLib.XSendEvent(X11Info.Display, x11WindowIntPtr, false, 0, ref @event);
 
         XLib.XFlush(X11Info.Display);
+    }
 
+
+    public async Task InvokeAsync(Action action, IntPtr x11WindowIntPtr)
+    {
+        var taskCompletionSource = new TaskCompletionSource();
+        TryEnqueue(() =>
+        {
+            // 测试顺序调用通过
+            //Console.WriteLine($"Invoke Index={index}");
+            action();
+            taskCompletionSource.SetResult();
+        }, x11WindowIntPtr);
         await taskCompletionSource.Task;
     }
 
