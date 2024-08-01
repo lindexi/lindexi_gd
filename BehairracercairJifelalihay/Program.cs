@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using BehairracercairJifelalihay;
 
 var drmFolder = "/sys/class/drm/";
 
@@ -147,55 +148,4 @@ EdidInfo ReadEdid(Span<byte> span)
 
         BasicDisplayParameters = edidBasicDisplayParameters,
     };
-}
-
-public readonly record struct Cm(uint Value)
-{
-    public override string ToString() => $"{Value} cm";
-}
-
-public readonly record struct EdidInfo
-{
-    public string ManufacturerName => new string([ManufacturerNameChar0, ManufacturerNameChar1, ManufacturerNameChar2]);
-
-    public char ManufacturerNameChar0 { get; init; }
-    public char ManufacturerNameChar1 { get; init; }
-    public char ManufacturerNameChar2 { get; init; }
-
-    public byte ManufactureWeek { get; init; }
-    
-    /// <summary>
-    /// 已加上 1990 的年份
-    /// </summary>
-    public int ManufactureYear { get; init; }
-
-    public byte Version { get; init; }
-    public byte Revision { get; init; }
-
-    public Version EdidVersion => new Version(Version, Revision);
-
-    /// <summary>
-    /// See Section 3.6
-    /// </summary>
-    public EdidBasicDisplayParameters BasicDisplayParameters { get; init; }
-}
-
-public readonly struct EdidBasicDisplayParameters
-{
-    /// <summary>
-    /// See Table 3.9 - Video Input Definition
-    /// </summary>
-    public byte VideoInputDefinition { get; init; }
-
-    /// <summary>
-    /// 物理屏幕宽度
-    /// </summary>
-    public Cm MonitorPhysicalWidth { get; init; }
-    /// <summary>
-    /// 物理屏幕高度
-    /// </summary>
-    public Cm MonitorPhysicalHeight { get; init; }
-
-    public byte DisplayTransferCharacteristicGamma { get; init; }
-    public byte FeatureSupport { get; init; }
 }
