@@ -1263,7 +1263,7 @@ partial class SkInkCanvas
             // 计算脏范围，用于渲染更新
             drawRect = new Rect(skPathBounds.Left - additionSize, skPathBounds.Top - additionSize,
                 skPathBounds.Width + additionSize * 2, skPathBounds.Height + additionSize * 2);
-            drawRect = LimitRect(drawRect,
+            drawRect = RectExtension.LimitRect(drawRect,
                 new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
 
             // 以下代码用于解决绘制的笔迹边缘锐利的问题。原因是笔迹执行了重采样，但是边缘如果没有被覆盖，则重采样的将会重复叠加，导致锐利
@@ -1332,7 +1332,7 @@ partial class SkInkCanvas
 
             System.Diagnostics.Debug.Assert(ApplicationDrawingSkBitmap != null);
             // 限制矩形范围，防止超过画布
-            drawRect = LimitRect(drawRect,
+            drawRect = RectExtension.LimitRect(drawRect,
                 new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
 
             if (drawRect.IsEmpty)
@@ -1346,7 +1346,7 @@ partial class SkInkCanvas
             var skRectI = SKRectI.Create((int) Math.Floor(drawRect.X), (int) Math.Floor(drawRect.Y),
                 (int) Math.Ceiling(drawRect.Width), (int) Math.Ceiling(drawRect.Height));
 
-            skRectI = LimitRect(skRectI,
+            skRectI = RectExtension.LimitRect(skRectI,
                 SKRectI.Create(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
 
             if (_originBackground is null)
@@ -1427,7 +1427,7 @@ partial class SkInkCanvas
             skCanvas.DrawPath(skPath, skPaint);
 
             // 计算脏范围，用于渲染更新
-            drawRect = Expand(skPath.Bounds, 10);
+            drawRect = RectExtension.Expand(skPath.Bounds, 10);
 
             return true;
         }
@@ -1523,7 +1523,7 @@ partial class SkInkCanvas
             UpdateOriginBackground();
         }
 
-        RenderBoundsChanged?.Invoke(this, Expand(drawRect, DefaultAdditionSize));
+        RenderBoundsChanged?.Invoke(this, RectExtension.Expand(drawRect, DefaultAdditionSize));
     }
 
     // 以下是橡皮擦系列逻辑
@@ -1728,7 +1728,7 @@ partial class SkInkCanvas
             skRoundRect.AddRoundRect(skRect, 5, 5);
 
             // 比擦掉的范围更大的范围，用于持续更新
-            var expandRect = ExpandSKRect(skRect, 10);
+            var expandRect = RectExtension.ExpandSKRect(skRect, 10);
             if (_lastEraserRenderBounds is not null)
             {
                 // 理论上此时需要从原先的拷贝覆盖，否则将不能清掉上次的橡皮擦内容
@@ -2295,6 +2295,7 @@ partial class SkInkCanvas
         var originBackgroundPixelHandler = _originBackground.GetPixels();
         Unsafe.CopyBlock((void*) originBackgroundPixelHandler, (void*) applicationPixelHandler, (uint) length);
     }
+<<<<<<< HEAD
 }
 
 <<<<<<< HEAD
@@ -3075,3 +3076,6 @@ class StepCounter
 >>>>>>> 7e713e9e6340c66abbc9377edcf43f7b77c137e3
 =======
 >>>>>>> ebae0743ab6691dfe8aa3e8e9cf4b98a657b52ad
+=======
+}
+>>>>>>> f8e84c3ee9fa8b4ecd4dffab6f2d782a5e14dba4
