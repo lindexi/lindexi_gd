@@ -70,27 +70,28 @@ class X11InkWindow : X11Window
         //skInkCanvas.ApplicationDrawingSkBitmap = _skBitmap;
         //skInkCanvas.SetCanvas(_skCanvas);
 
-        skInkCanvas.Settings = skInkCanvas.Settings with
-        {
-            AutoSoftPen = false,
-            //EnableEraserGesture = false,
-            DynamicRenderType = InkCanvasDynamicRenderTipStrokeType.RenderAllTouchingStrokeWithClip,
+        //skInkCanvas.Settings = skInkCanvas.Settings with
+        //{
+        //    AutoSoftPen = false,
+        //    //EnableEraserGesture = false,
+        //    DynamicRenderType = InkCanvasDynamicRenderTipStrokeType.RenderAllTouchingStrokeWithClip,
 
-            // 尝试修复丢失按下的点
-            ShouldDrawStrokeOnDown = true,
+        //    // 尝试修复丢失按下的点
+        //    ShouldDrawStrokeOnDown = true,
 
-            CleanStrokeSettings = new CleanStrokeSettings()
-            {
-                ShouldDrawBackground = false,
-                ShouldUpdateBackground = true,
-            },
+        //    CleanStrokeSettings = new CleanStrokeSettings()
+        //    {
+        //        ShouldDrawBackground = false,
+        //        ShouldUpdateBackground = true,
+        //    },
 
-            // 丢点策略
-            DropPointSettings = skInkCanvas.Settings.DropPointSettings with
-            {
-                DropPointStrategy = DropPointStrategy.Aggressive
-            }
-        };
+        //    // 丢点策略
+        //    DropPointSettings = skInkCanvas.Settings.DropPointSettings with
+        //    {
+        //        DropPointStrategy = DropPointStrategy.Aggressive
+        //    }
+        //};
+        skInkCanvas.Settings = SkInkCanvasSettings.DebugSettings(skInkCanvas.Settings);
 
         skInkCanvas.RenderBoundsChanged += (sender, rect) =>
         {
