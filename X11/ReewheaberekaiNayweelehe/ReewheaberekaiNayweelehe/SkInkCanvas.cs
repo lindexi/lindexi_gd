@@ -105,16 +105,6 @@ partial class SkInkCanvas : IInkingInputProcessor, IInkingModeInputDispatcherSen
         }
     }
 
-    public void DrawStrokeUp(InkingModeInputArgs args)
-    {
-        if (CurrentInputDictionary.Remove(args.Id, out var context))
-        {
-            context.IsUp = true;
-
-            StaticInkInfoList.Add(new SkiaStrokeSynchronizer((uint) args.Id, context.InkId, context.StrokeColor, context.InkThickness, context.InkStrokePath, context.AllStylusPoints));
-        }
-    }
-
     /// <summary>
     /// 绘制使用的上下文信息
     /// </summary>
@@ -209,7 +199,6 @@ partial class SkInkCanvas : IInkingInputProcessor, IInkingModeInputDispatcherSen
     /// </summary>
     /// 经验值，原本只是想取 5 + 1 个点，但是发现这样笔尖太短了，于是再加一个点
     private const int MaxTipStylusCount = 7;
-
 
     #region IInputProcessor
 
@@ -1752,7 +1741,6 @@ partial class SkInkCanvas : IInkingInputProcessor, IInkingModeInputDispatcherSen
         //RenderBoundsChanged?.Invoke(this, new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
     }
 
-
     private Rect LimitRectInAppBitmapRect(Rect inputRect)
     {
         return RectExtension.LimitRect(inputRect,
@@ -1768,10 +1756,6 @@ partial class SkInkCanvas : IInkingInputProcessor, IInkingModeInputDispatcherSen
     public InkingModeInputDispatcher ModeInputDispatcher { set; get; }
     // 框架层赋值
         = null!;
-
-
-
-
 
     [MemberNotNull(nameof(_originBackground))]
     private unsafe void UpdateOriginBackground()
