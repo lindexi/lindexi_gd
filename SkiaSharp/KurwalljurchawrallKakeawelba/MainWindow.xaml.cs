@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -146,9 +147,7 @@ public class SkiaCanvas : FrameworkElement
     {
         RequireDraw(context =>
         {
-            _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
-            _inkCanvas.Settings = SkInkCanvasSettings.DebugSettings(_inkCanvas.Settings);
-            _inkingInputManager ??= new InkingModeInputDispatcher();
+            Init(context);
 
             var position = e.GetPosition(this);
             var inkingInputInfo = new InkingModeInputArgs(e.StylusDevice.Id, new Point(position.X, position.Y), (ulong) e.Timestamp);
@@ -161,9 +160,7 @@ public class SkiaCanvas : FrameworkElement
     {
         RequireDraw(context =>
         {
-            _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
-            _inkCanvas.Settings = SkInkCanvasSettings.DebugSettings(_inkCanvas.Settings);
-            _inkingInputManager ??= new InkingModeInputDispatcher(_inkCanvas);
+            Init(context);
 
             var position = e.GetPosition(this);
             var inkingInputInfo = new InkingModeInputArgs(e.StylusDevice.Id, new Point(position.X, position.Y), (ulong) e.Timestamp);
@@ -177,9 +174,7 @@ public class SkiaCanvas : FrameworkElement
         RequireDraw(context =>
         {
             _isMouseDown = false;
-            _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
-            _inkCanvas.Settings = SkInkCanvasSettings.DebugSettings(_inkCanvas.Settings);
-            _inkingInputManager ??= new InkingModeInputDispatcher(_inkCanvas);
+            Init(context);
             var position = e.GetPosition(this);
             var inkingInputInfo = new InkingModeInputArgs(e.StylusDevice.Id, new Point(position.X, position.Y), (ulong) e.Timestamp);
 
@@ -197,9 +192,7 @@ public class SkiaCanvas : FrameworkElement
         RequireDraw(context =>
         {
             _isMouseDown = true;
-            _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
-            _inkCanvas.Settings = SkInkCanvasSettings.DebugSettings(_inkCanvas.Settings);
-            _inkingInputManager ??= new InkingModeInputDispatcher(_inkCanvas);
+            Init(context);
 
             var position = e.GetPosition(this);
             var inkingInputInfo = new InkingModeInputArgs(0, new Point(position.X, position.Y), (ulong) e.Timestamp);
@@ -222,9 +215,7 @@ public class SkiaCanvas : FrameworkElement
                 return;
             }
 
-            _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
-            _inkCanvas.Settings = SkInkCanvasSettings.DebugSettings(_inkCanvas.Settings);
-            _inkingInputManager ??= new InkingModeInputDispatcher(_inkCanvas);
+            Init(context);
             var position = e.GetPosition(this);
             var inkingInputInfo = new InkingModeInputArgs(0, new Point(position.X, position.Y), (ulong) e.Timestamp);
 
@@ -242,9 +233,7 @@ public class SkiaCanvas : FrameworkElement
         RequireDraw(context =>
         {
             _isMouseDown = false;
-            _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
-            _inkCanvas.Settings = SkInkCanvasSettings.DebugSettings(_inkCanvas.Settings);
-            _inkingInputManager ??= new InkingModeInputDispatcher(_inkCanvas);
+            Init(context);
             var position = e.GetPosition(this);
             var inkingInputInfo = new InkingModeInputArgs(0, new Point(position.X, position.Y), (ulong) e.Timestamp);
 
@@ -254,6 +243,14 @@ public class SkiaCanvas : FrameworkElement
 
     private SkInkCanvas? _inkCanvas;
     private InkingModeInputDispatcher? _inkingInputManager;
+
+    [MemberNotNull(nameof(_inkCanvas), nameof(_inkingInputManager))]
+    private void Init(SkiaCanvasContext context)
+    {
+        _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
+        _inkCanvas.Settings = SkInkCanvasSettings.DebugSettings(_inkCanvas.Settings);
+        _inkingInputManager ??= new InkingModeInputDispatcher(_inkCanvas);
+    }
 
     #endregion
 }
