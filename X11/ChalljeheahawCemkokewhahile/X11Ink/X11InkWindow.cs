@@ -205,7 +205,7 @@ class X11InkWindow : X11Window
                 return;
             }
 
-            // 经过之前的埋点分析，采样400万老师，橡皮擦面积都是 6-7 厘米，于是这里就取最小的 6 厘米，充分具备灵敏度，可以方便进行擦掉
+            // 经过之前的埋点分析，采样一些老师，橡皮擦面积都是 6-7 厘米，于是这里就取最小的 6 厘米，充分具备灵敏度，可以方便进行擦掉
             if (args.PhysicalWidth > Settings.MinEraserGesturePhysicalSizeCm)
             {
                 // 大于 给定 厘米视为手势擦

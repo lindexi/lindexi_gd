@@ -17,6 +17,7 @@ namespace ReewheaberekaiNayweelehe;
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 partial record InkingInputInfo(int Id, StylusPoint StylusPoint, ulong Timestamp)
 =======
 record InkingModeInputArgs(int Id, StylusPoint StylusPoint, ulong Timestamp)
@@ -124,6 +125,9 @@ class InkingInputManager
 =======
 >>>>>>> ce8eee3cf06aef12e1d325fcb5d0e447eac79f34
 partial class SkInkCanvas
+=======
+partial class SkInkCanvas : IInkingInputProcessor, IInkingModeInputDispatcherSensitive
+>>>>>>> 80e4690e464b58133b931ec1a63ee7a6c9d5df5e
 {
     public SkInkCanvas(SKCanvas skCanvas, SKBitmap applicationDrawingSkBitmap)
     {
@@ -161,6 +165,12 @@ partial class SkInkCanvas
         new Dictionary<int, DrawStrokeContext>();
 
     public SKColor Color { set; get; } = SKColors.Red;
+
+    public event EventHandler<SkiaStrokeSynchronizer>? StrokesCollected;
+
+    //public IEnumerable<string> CurrentInkStrokePathEnumerable =>
+    //    CurrentInputDictionary.Values.Select(t => t.InkStrokePath).Where(t => t != null).Select(t => t!.ToSvgPathData());
+
 
     public void DrawStrokeDown(InkingModeInputArgs args)
     {
