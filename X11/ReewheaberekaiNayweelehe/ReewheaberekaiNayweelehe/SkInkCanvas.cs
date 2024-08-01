@@ -178,43 +178,6 @@ partial class SkInkCanvas : IInkingInputProcessor, IInkingModeInputDispatcherSen
     //public IEnumerable<string> CurrentInkStrokePathEnumerable =>
     //    CurrentInputDictionary.Values.Select(t => t.InkStrokePath).Where(t => t != null).Select(t => t!.ToSvgPathData());
 
-
-    public void DrawStrokeDown(InkingModeInputArgs args)
-    {
-        var context = new DrawStrokeContext(InkId.NewId(), args, Color, 20);
-        CurrentInputDictionary[args.Id] = context;
-
-        context.AllStylusPoints.Add(args.StylusPoint);
-        context.TipStylusPoints.Enqueue(args.StylusPoint);
-    }
-
-    public void DrawStrokeMove(InkingModeInputArgs args)
-    {
-        if (CurrentInputDictionary.TryGetValue(args.Id, out var context))
-        {
-            context.AllStylusPoints.Add(args.StylusPoint);
-            context.TipStylusPoints.Enqueue(args.StylusPoint);
-
-            context.InkStrokePath?.Dispose();
-
-            var outlinePointList = SimpleInkRender.GetOutlinePointList(context.AllStylusPoints, context.InkThickness);
-
-            var skPath = new SKPath();
-            skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
-
-            context.InkStrokePath = skPath;
-
-            DrawAllInk();
-
-            // 计算脏范围，用于渲染更新
-            var additionSize = 100d; // 用于设置比简单计算的范围更大一点的范围，解决重采样之后的模糊
-            var (x, y) = args.StylusPoint.Point;
-
-            RenderBoundsChanged?.Invoke(this,
-                new Rect(x - additionSize / 2, y - additionSize / 2, additionSize, additionSize));
-        }
-    }
-
     public void DrawAllInk()
     {
         var skCanvas = _skCanvas;
