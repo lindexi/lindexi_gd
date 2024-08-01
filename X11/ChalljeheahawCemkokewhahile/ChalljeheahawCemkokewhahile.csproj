@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\lindexi\BehairracercairJifelalihay\BehairracercairJifelalihay.csproj" />
     <ProjectReference Include="..\..\SkiaSharp\YerwurfarjahoWeljifaihel\YerwurfarjahoWeljifaihel.csproj" />
   </ItemGroup>
   <ItemGroup>
