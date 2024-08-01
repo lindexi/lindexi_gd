@@ -6,9 +6,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>$(DefineConstants);ChalljeheahawCemkokewhahile</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\UnoInk\X11\UnoInk\UnoInk\Inking\X11Platforms\**\*.cs" />
     <Compile Include="..\..\SkiaSharp\YerwurfarjahoWeljifaihel\Primitive\Mathematics\GlobalUsing.cs" Link="GlobalUsing.cs" />
     <Compile Include="..\BujeeberehemnaNurgacolarje\FixedQueue.cs" Link="FixedQueue.cs" />
     <Compile Include="..\BujeeberehemnaNurgacolarje\PixelSize.cs" Link="PixelSize.cs" />
@@ -20,6 +22,8 @@
     <Compile Include="..\BujeeberehemnaNurgacolarje\XError.cs" Link="XError.cs" />
     <Compile Include="..\BujeeberehemnaNurgacolarje\XIStructs.cs" Link="XIStructs.cs" />
     <Compile Include="..\BujeeberehemnaNurgacolarje\XLib.cs" Link="XLib.cs" />
+    <Compile Include="..\DikalehebeekaJaqunicobo\ShapeConst.cs" Link="ShapeConst.cs" />
+    <Compile Include="..\DikalehebeekaJaqunicobo\XFixes.cs" Link="XFixes.cs" />
   </ItemGroup>
 
   <ItemGroup>
