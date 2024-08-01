@@ -217,6 +217,7 @@ partial class SkInkCanvas : IInkingInputProcessor, IInkingModeInputDispatcherSen
         }
     }
 
+<<<<<<< HEAD
     public void DrawStrokeUp(InkingModeInputArgs args)
     {
         if (CurrentInputDictionary.Remove(args.Id, out var context))
@@ -529,6 +530,8 @@ partial class SkInkCanvas
 =======
 >>>>>>> dcb1584ba73e3bd6236ef5a0cbf85c073e36ce5e
 =======
+=======
+>>>>>>> 435469951e736cff3cb38b322bdd71d8b0feecb0
     /// <summary>
     /// 绘制使用的上下文信息
     /// </summary>
@@ -632,7 +635,6 @@ partial class SkInkCanvas
     /// </summary>
     /// 经验值，原本只是想取 5 + 1 个点，但是发现这样笔尖太短了，于是再加一个点
     private const int MaxTipStylusCount = 7;
-
 
     #region IInputProcessor
 
@@ -2175,7 +2177,6 @@ partial class SkInkCanvas
         //RenderBoundsChanged?.Invoke(this, new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
     }
 
-
     private Rect LimitRectInAppBitmapRect(Rect inputRect)
     {
         return RectExtension.LimitRect(inputRect,
@@ -2191,10 +2192,6 @@ partial class SkInkCanvas
     public InkingModeInputDispatcher ModeInputDispatcher { set; get; }
     // 框架层赋值
         = null!;
-
-
-
-
 
     [MemberNotNull(nameof(_originBackground))]
     private unsafe void UpdateOriginBackground()
