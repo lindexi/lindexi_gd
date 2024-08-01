@@ -10,6 +10,7 @@ using SkiaInkCore.Diagnostics;
 using SkiaInkCore.Interactives;
 using SkiaInkCore.Primitive;
 using SkiaInkCore.Settings;
+using SkiaInkCore.Utils;
 
 using SkiaSharp;
 
@@ -573,16 +574,19 @@ partial class SkInkCanvas
             InkThickness = inkThickness;
             StrokeColor = strokeColor;
 <<<<<<< HEAD
+<<<<<<< HEAD
             InputInfo = inputInfo;
 >>>>>>> 3fa23c5db39211ac70b181c2423a7ab1a163836e
 =======
             ModeInputArgs = modeInputArgs;
 >>>>>>> 26fc699b4b42ce61c693a35760e56996f085d438
+=======
+            InputInfo = modeInputArgs;
+>>>>>>> 2ade76db594383844b39be7c43bacf08c910c678
 
-            //List<StylusPoint> historyDequeueList = [];
-            //TipStylusPoints = new InkingFixedQueue<StylusPoint>(MaxTipStylusCount, historyDequeueList);
-            //_historyDequeueList = historyDequeueList;
-            TipStylusPoints = new FixedQueue<StylusPoint>(MaxTipStylusCount);
+            List<StylusPoint> historyDequeueList = [];
+            TipStylusPoints = new InkingFixedQueue<StylusPoint>(MaxTipStylusCount, historyDequeueList);
+            _historyDequeueList = historyDequeueList;
         }
 
         /// <summary>
@@ -594,7 +598,8 @@ partial class SkInkCanvas
         public double InkThickness { get; }
 
         public SKColor StrokeColor { get; }
-        public InkingModeInputArgs ModeInputArgs { set; get; }
+        public InkingModeInputArgs InputInfo { set; get; }
+
 
         /// <summary>
         /// 丢点的数量
@@ -604,40 +609,40 @@ partial class SkInkCanvas
         /// <summary>
         /// 笔尖的点
         /// </summary>
-        public FixedQueue<StylusPoint> TipStylusPoints { get; }
+        public InkingFixedQueue<StylusPoint> TipStylusPoints { get; }
 
         public List<StylusPoint> AllStylusPoints { get; } = new List<StylusPoint>();
 
-        ///// <summary>
-        ///// 存放笔迹的笔尖的点丢出来的点
-        ///// </summary>
-        //private List<StylusPoint>? _historyDequeueList;
+        /// <summary>
+        /// 存放笔迹的笔尖的点丢出来的点
+        /// </summary>
+        private List<StylusPoint>? _historyDequeueList;
 
-        ///// <summary>
-        ///// 整个笔迹的点，包括笔尖的点
-        ///// </summary>
-        //public List<StylusPoint> GetAllStylusPointsOnFinish()
-        //{
-        //    if (_historyDequeueList is null)
-        //    {
-        //        // 为了减少 List 对象的申请，这里将复用 _historyDequeueList 的 List 对象。这就导致了一旦上层调用过此方法，将不能重复调用，否则将会炸掉逻辑
-        //        throw new InvalidOperationException("此方法只能在完成的时候调用一次，禁止多次调用");
-        //    }
+        /// <summary>
+        /// 整个笔迹的点，包括笔尖的点
+        /// </summary>
+        public List<StylusPoint> GetAllStylusPointsOnFinish()
+        {
+            if (_historyDequeueList is null)
+            {
+                // 为了减少 List 对象的申请，这里将复用 _historyDequeueList 的 List 对象。这就导致了一旦上层调用过此方法，将不能重复调用，否则将会炸掉逻辑
+                throw new InvalidOperationException("此方法只能在完成的时候调用一次，禁止多次调用");
+            }
 
-        //    // 将笔尖的点合并到 _historyDequeueList 里面，这样就可以一次性返回所有的点。减少创建一个比较大的数组。缺点是这么做将不能多次调用，否则数据将会不正确
-        //    var historyDequeueList = _historyDequeueList;
-        //    //historyDequeueList.AddRange(TipStylusPoints);
-        //    int count = TipStylusPoints.Count; // 为什么需要取出来？因为会越出队越小
-        //    for (int i = 0; i < count; i++)
-        //    {
-        //        // 全部出队列，即可确保数据全取出来
-        //        TipStylusPoints.Dequeue();
-        //    }
+            // 将笔尖的点合并到 _historyDequeueList 里面，这样就可以一次性返回所有的点。减少创建一个比较大的数组。缺点是这么做将不能多次调用，否则数据将会不正确
+            var historyDequeueList = _historyDequeueList;
+            //historyDequeueList.AddRange(TipStylusPoints);
+            int count = TipStylusPoints.Count; // 为什么需要取出来？因为会越出队越小
+            for (int i = 0; i < count; i++)
+            {
+                // 全部出队列，即可确保数据全取出来
+                TipStylusPoints.Dequeue();
+            }
 
-        //    // 防止被多次调用
-        //    _historyDequeueList = null;
-        //    return historyDequeueList;
-        //}
+            // 防止被多次调用
+            _historyDequeueList = null;
+            return historyDequeueList;
+        }
 
         public SKPath? InkStrokePath { set; get; }
 
@@ -658,6 +663,429 @@ partial class SkInkCanvas
     /// </summary>
     /// 经验值，原本只是想取 5 + 1 个点，但是发现这样笔尖太短了，于是再加一个点
     private const int MaxTipStylusCount = 7;
+
+
+    #region IInputProcessor
+
+    void IInkingInputProcessor.InputStart()
+    {
+        StaticDebugLogger.WriteLine("==========InputStart============");
+
+        // 这是浅拷贝
+        //_originBackground = SkBitmap?.Copy();
+
+        UpdateOriginBackground();
+    }
+
+    void IInkingInputProcessor.Down(InkingModeInputArgs info)
+    {
+        var inkId = CreateInkId();
+        var drawStrokeContext = new DrawStrokeContext(inkId, info, Settings.Color, Settings.InkThickness);
+        CurrentInputDictionary.Add(info.Id, drawStrokeContext);
+
+        StaticDebugLogger.WriteLine($"Down {info.Position.X:0.00},{info.Position.Y:0.00} CurrentInputDictionaryCount={CurrentInputDictionary.Count}");
+        //_outputMove = false;
+        _moveCount = 0;
+
+        // 以下逻辑由框架层处理
+        //if (CurrentInputDictionary.Count == 1)
+        //{
+        //    MainInputId = info.Id;
+        //}
+
+        if ((IsInEraserMode || IsInEraserGestureMode) && !_isErasing)
+        {
+            // 首次就进入橡皮擦
+            DownEraser(in info);
+        }
+        else
+        {
+            // 笔模式
+            if (Settings.ShouldDrawStrokeOnDown)
+            {
+                var result = DrawStroke(drawStrokeContext, out _);
+                // 必定不会成功，但是将点进行收集
+                System.Diagnostics.Debug.Assert(!result);
+            }
+        }
+    }
+
+    //private bool _outputMove;
+
+    private StepCounter _stepCounter = new StepCounter();
+    private int _moveCount = 0;
+
+    void IInkingInputProcessor.Move(InkingModeInputArgs info)
+    {
+        if (!CurrentInputDictionary.ContainsKey(info.Id))
+        {
+            // 如果丢失按下，那就不能画
+            // 解决鼠标在其他窗口按下，然后移动到当前窗口
+            StaticDebugLogger.WriteLine($"Lost Input Id={info.Id}");
+            return;
+        }
+
+        if (_moveCount == 0)
+        {
+            //_stepCounter.Start();
+        }
+        _stepCounter.Record($"StartMove{_moveCount}");
+
+        //if (!_outputMove)
+        //{
+        //    StaticDebugLogger.WriteLine($"IInputProcessor.Move {info.Position.X:0.00},{info.Position.Y:0.00}");
+        //}
+
+        //_outputMove = true;
+
+        var context = UpdateInkingStylusPoint(info);
+        // 重新赋值 info 值，因此旧的这个值没有处理宽度高度是空的情况，使用上一个点的宽度高度而让橡皮擦闪烁
+        info = context.InputInfo;
+
+        if (IsInEraserMode || IsInEraserGestureMode)
+        {
+            if (!_isErasing)
+            {
+                // 如果是手指按下，然后再判断是橡皮擦的，则进入此分支
+                // 或者上个橡皮擦抬起，下一次执行则也进入此分支
+                StaticDebugLogger.WriteLine($"[{nameof(SkInkCanvas)}] Move DownEraser");
+                DownEraser(context.InputInfo);
+            }
+
+            if (info.Id == _eraserDeviceId)
+            {
+                MoveEraser(info);
+            }
+
+#if DEBUG
+            string modeName = "NONE";
+            if (IsInEraserMode && IsInEraserGestureMode)
+            {
+                modeName = "[IsInEraserMode&&IsInEraserGestureMode]";
+            }
+            else if (IsInEraserMode)
+            {
+                modeName = nameof(IsInEraserMode);
+            }
+            else if (IsInEraserGestureMode)
+            {
+                modeName = nameof(IsInEraserGestureMode);
+            }
+
+            if (info.Id == _eraserDeviceId)
+            {
+                StaticDebugLogger.WriteLine($"[{modeName}] Id==_eraserDeviceId Id={info.Id} _eraserDeviceId={_eraserDeviceId}");
+            }
+            else
+            {
+                StaticDebugLogger.WriteLine(
+                    $"[{modeName}] Id!=_eraserDeviceId Id={info.Id} _eraserDeviceId={_eraserDeviceId} _eraserDeviceIdUp?={!ModeInputDispatcher.ContainsDeviceId(_eraserDeviceId)} DeviceCount={ModeInputDispatcher.CurrentDeviceCount}");
+            }
+#endif
+        }
+        else
+        {
+            var stylusPoint = context.InputInfo.StylusPoint;
+            if (Settings.EnableEraserGesture // 启用手势橡皮擦的前提下，通过尺寸进行判断
+                && stylusPoint.Width != null
+                && stylusPoint.Height != null
+                && stylusPoint.Width >= Settings.MinEraserGesturePixelSize.Width
+                && stylusPoint.Height >= Settings.MinEraserGesturePixelSize.Height
+                // 如果输入较长，则不能进入橡皮擦模式
+                && ModeInputDispatcher.InputDuring > Settings.DisableEnterEraserGestureAfterInputDuring)
+            {
+                EnterEraserGestureMode(context.InputInfo);
+                return;
+            }
+
+            var stylusPointList = context.InputInfo.StylusPointList;
+            if (stylusPointList != null)
+            {
+                // 这里是一个补丁的实现，因为现在底层没有处理多点计算的功能
+                // 如果底层能够在 DrawStroke 处理多点，预计性能比当前好非常多
+                // 至少可以减少重复清空和拼接创建路径
+
+                // 大部分情况下都不会进入此分支，除非是卡了
+
+                // 先执行丢点算法，避免进入太多的点
+                var result = new List<StylusPoint>();
+                result.Add(stylusPointList[0]);
+                // 这里使用新的丢点的算法
+                // 可以丢掉更多的点
+                for (var i = 1; i < stylusPointList.Count; i++)
+                {
+                    var lastPoint = result[^1];
+                    var currentPoint = stylusPointList[i];
+                    var length = Math.Pow((lastPoint.Point.X - currentPoint.Point.X), 2)
+                                 + Math.Pow((lastPoint.Point.Y - currentPoint.Point.Y), 2);
+                    if (length < 4)
+                    {
+                        // 太近了
+                        continue;
+                    }
+
+                    if (length < 10)
+                    {
+                        // 太近了
+                        continue;
+                    }
+                    if (result.Count < 2)
+                    {
+
+                    }
+
+                    result.Add(currentPoint);
+                }
+
+                _stepCounter.Record("完成丢点");
+
+                StaticDebugLogger.WriteLine($"完成丢点 丢点数量：{stylusPointList.Count - result.Count}  实际参与绘制点数：{result.Count}");
+
+                Rect currentRect = new Rect();
+                bool isFirst = true;
+
+                float pressure = stylusPoint.Pressure;
+                double width = stylusPoint.Width ?? 0;
+                double height = stylusPoint.Height ?? 0;
+
+                foreach (var point in result)
+                {
+                    pressure = point.IsPressureEnable ? point.Pressure : pressure;
+                    width = point.Width ?? width;
+                    height = point.Height ?? height;
+
+                    context.InputInfo = context.InputInfo with
+                    {
+                        StylusPoint = point with
+                        {
+                            Pressure = pressure,
+                            Width = width,
+                            Height = height,
+                        }
+                    };
+
+                    if (DrawStroke(context, out var rect))
+                    {
+                        if (isFirst)
+                        {
+                            currentRect = rect;
+                        }
+                        else
+                        {
+                            currentRect = currentRect.Union(rect);
+                        }
+                    }
+
+                    isFirst = false;
+                }
+                _stepCounter.Record("完成绘制");
+
+                RenderBoundsChanged?.Invoke(this, currentRect);
+            }
+            else
+            {
+                if (DrawStroke(context, out var rect))
+                {
+                    RenderBoundsChanged?.Invoke(this, rect);
+                }
+            }
+        }
+
+        _stepCounter.Record($"EndMove{_moveCount}");
+
+        _stepCounter.OutputToConsole();
+        //_stepCounter.Restart();
+    }
+
+    void IInkingInputProcessor.Hover(InkingModeInputArgs args)
+    {
+        // 没有什么作用
+    }
+
+    void IInkingInputProcessor.Up(InkingModeInputArgs info)
+    {
+        var context = UpdateInkingStylusPoint(info);
+        info = context.InputInfo;
+
+        if (IsInEraserMode || IsInEraserGestureMode)
+        {
+            if (info.Id == _eraserDeviceId)
+            {
+                StaticDebugLogger.WriteLine($"[{nameof(SkInkCanvas)}] UpEraser _eraserDeviceId={_eraserDeviceId}");
+                UpEraser(in info);
+            }
+        }
+        else
+        {
+            if (DrawStroke(context, out var rect))
+            {
+                RenderBoundsChanged?.Invoke(this, rect);
+            }
+        }
+
+        // 获取所有的点，包括笔尖的点
+        var allStylusPoints = context.GetAllStylusPointsOnFinish();
+
+        context.DropPointCount = 0;
+        // 清空笔尖的点，属于多余逻辑，因为在 GetAllStylusPointsOnFinish 里已经包含清空笔尖逻辑。反正多做一次也没损失，还能让逻辑更加清晰
+        context.TipStylusPoints.Clear();
+        context.IsUp = true;
+
+        var strokesCollectionInfo = new SkiaStrokeSynchronizer((uint) info.Id, context.InkId, context.StrokeColor, context.InkThickness, context.InkStrokePath, allStylusPoints);
+        StaticInkInfoList.Add(strokesCollectionInfo);
+        StrokesCollected?.Invoke(this, strokesCollectionInfo);
+
+        //if (CurrentInputDictionary.All(t => t.Value.IsUp))
+        //{
+        //    //完成等待清理
+        //}
+    }
+
+    void IInkingInputProcessor.InputComplete()
+    {
+        Clean();
+
+        StaticDebugLogger.WriteLine($"InputComplete\r\n==========\r\n");
+
+        InputCompleted?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void Clean()
+    {
+        // 不加这句话，将会在 foreach 里炸掉，不知道是不是 CLR 的坑
+        using var enumerator = CurrentInputDictionary.GetEnumerator();
+
+        foreach (var drawStrokeContext in CurrentInputDictionary)
+        {
+            if (!drawStrokeContext.Value.IsUp)
+            {
+                // 如果还没有 Up 的状态，那就是 Leave 状态了
+                drawStrokeContext.Value.IsLeave = true;
+            }
+
+            drawStrokeContext.Value.Dispose();
+        }
+
+        CurrentInputDictionary.Clear();
+
+        if (IsInEraserMode || IsInEraserGestureMode)
+        {
+            // 当前是橡皮擦模式，需要清理橡皮擦，修复 1382 对窗口在顶的工具条进行手势橡皮，橡皮擦不消失
+            CleanEraser();
+        }
+
+        _isOriginBackgroundDisable = true;
+        IsInEraserGestureMode = false;
+
+        _isErasing = false;
+    }
+
+    public event EventHandler? InputCompleted;
+
+    /// <summary>
+    /// 这是 WPF 的概念，那就继续用这个概念
+    /// </summary>
+    void IInkingInputProcessor.Leave()
+    {
+        StaticDebugLogger.WriteLine($"{DateTime.Now:hh-MM-ss} IInputProcessor.Leave");
+
+        Clean();
+
+        if (_isOriginBackgroundDisable)
+        {
+            // 几乎必定进入此分支，除非 Clean 方法后续改错了
+            //Console.WriteLine("_isOriginBackgroundDisable=true");
+            return;
+        }
+
+        if (_originBackground is null)
+        {
+            StaticDebugLogger.WriteLine(
+                $"Leave-------- 进入非预期分支，除非是初始化 _originBackground is null={_originBackground is null}");
+            return;
+        }
+
+        StaticDebugLogger.WriteLine("Leave--------");
+
+        var skCanvas = _skCanvas;
+        skCanvas.Clear(SKColors.Transparent);
+        skCanvas.DrawBitmap(_originBackground, 0, 0);
+        // 完全重绘，丢掉画出来的笔迹
+        RenderBoundsChanged?.Invoke(this, new Rect(0, 0, _originBackground.Width, _originBackground.Height));
+    }
+
+    #endregion
+
+    private DrawStrokeContext UpdateInkingStylusPoint(InkingModeInputArgs info)
+    {
+        if (CurrentInputDictionary.TryGetValue(info.Id, out var context))
+        {
+            var lastInfo = context.InputInfo;
+            var stylusPoint = info.StylusPoint;
+            var lastStylusPoint = lastInfo.StylusPoint;
+            stylusPoint = stylusPoint with
+            {
+                Pressure = stylusPoint.IsPressureEnable ? stylusPoint.Pressure : lastStylusPoint.Pressure,
+                Width = stylusPoint.Width ?? lastStylusPoint.Width,
+                Height = stylusPoint.Height ?? lastStylusPoint.Height,
+            };
+
+            info = info with
+            {
+                StylusPoint = stylusPoint
+            };
+
+            context.InputInfo = info;
+            return context;
+        }
+        else
+        {
+            // 理论上不会进入此分支
+            StaticDebugLogger.WriteLine($"UpdateInkingStylusPoint 找不到笔迹点");
+            var inkId = CreateInkId();
+            context = new DrawStrokeContext(inkId, info, Settings.Color, Settings.InkThickness);
+            CurrentInputDictionary.Add(info.Id, context);
+            return context;
+        }
+    }
+
+    private int _currentInkId;
+
+    private InkId CreateInkId()
+    {
+        var currentInkId = _currentInkId;
+        _currentInkId++;
+        return new InkId(currentInkId); // return _currentInkId++ 的意思，只是这个可读性太垃圾了
+    }
+
+    private bool DrawStroke(DrawStrokeContext context, [NotNullWhen(true)] out Rect? rect)
+    {
+        var skCanvas = _skCanvas;
+        var skPaint = new SKPaint
+        {
+            Color = context.StrokeColor,
+            IsAntialias = true,
+            FilterQuality = SKFilterQuality.High,
+            Style = SKPaintStyle.Stroke,
+            StrokeWidth = (float) context.InkThickness,
+            StrokeCap = SKStrokeCap.Round,
+            StrokeJoin = SKStrokeJoin.Round,
+        };
+
+        var inkStrokePath = context.InkStrokePath;
+        if (inkStrokePath is null)
+        {
+            rect = null;
+            return false;
+        }
+
+        skCanvas.DrawPath(inkStrokePath, skPaint);
+
+        var bounds = inkStrokePath.Bounds;
+        rect = new Rect(bounds.Left, bounds.Top, bounds.Width, bounds.Height);
+        return true;
+    }
+
 
     public static unsafe bool ReplacePixels(uint* destinationBitmap, uint* sourceBitmap, SKRectI destinationRectI,
         SKRectI sourceRectI, uint destinationPixelWidthLengthOfUint, uint sourcePixelWidthLengthOfUint)
