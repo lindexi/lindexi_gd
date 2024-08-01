@@ -7,6 +7,11 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace SkiaInkCore.Utils;
+
+/// <summary>
+/// 带最大数量的队列，超过最大数量将会自动将队头元素出队丢弃
+/// </summary>
+/// <typeparam name="T"></typeparam>
 internal class InkingFixedQueue<T> : ICollection, IReadOnlyList<T>
 {
     private readonly T[] _array;
