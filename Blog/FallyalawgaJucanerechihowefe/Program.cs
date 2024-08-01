@@ -39,7 +39,14 @@ void GetImageLink(string blogFile)
             if (match.Success)
             {
                 currentBlogFile = Path.Join(blogFolder, "image", match.Groups[1].ValueSpan);
-                isImage = true;
+                if (File.Exists(currentBlogFile))
+                {
+                    isImage = true;
+                }
+                else
+                {
+                    Console.WriteLine($"本地文件找不到");
+                }
             }
 
             blogOutputText.AppendLine(line);
