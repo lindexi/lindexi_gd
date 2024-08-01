@@ -1,4 +1,5 @@
 ﻿using BujeeberehemnaNurgacolarje;
+using UnoInk.Inking.X11Platforms.Input;
 
 namespace SkiaInkCore.Interactives;
 
@@ -31,7 +32,7 @@ static class ModeInputArgsExtension
     }
 
     public static StylusPoint ToStylusPoint(in DeviceInputPoint point, bool ignorePressure = true) =>
-        new StylusPoint(point.Position.ToFoundationPoint(), !ignorePressure ? point.Pressure ?? 0.5f : 0.5f)
+        new StylusPoint(point.Position, !ignorePressure ? point.Pressure ?? 0.5f : 0.5f)
         {
             IsPressureEnable = !ignorePressure && point.Pressure is not null,
             Width = point.PixelWidth,
