@@ -8,14 +8,14 @@
 ///// 例如尺寸
 //class CharRenderCacheData
 //{
-//    public CharRenderCacheData(Size size)
+//    public CharRenderCacheData(LineCharSize size)
 //    {
-//        Size = size;
+//        LineCharSize = size;
 //    }
 
 //    /// <summary>
 //    /// 尺寸
 //    /// </summary>
 //    /// 尺寸是可以复用的
-//    public Size Size { get; }
+//    public LineCharSize LineCharSize { get; }
 //}

@@ -15,7 +15,7 @@
 //    /// <param name="takeCharCount">所采用的字符数量</param>
 //    /// <param name="totalSize">总的尺寸</param>
 //    /// <param name="charSizeList">各个字符的尺寸。如果采用的字符数量是 1 个时，此属性可以为空，因为字符的尺寸等于 <paramref name="totalSize"/> 尺寸</param>
-//    public SingleCharInLineLayoutResult(int takeCharCount, Size totalSize,IReadOnlyList<Size>? charSizeList=null)
+//    public SingleCharInLineLayoutResult(int takeCharCount, LineCharSize totalSize,IReadOnlyList<LineCharSize>? charSizeList=null)
 //    {
 //       TakeCharCount = takeCharCount;
 //       TotalSize = totalSize;
@@ -30,7 +30,7 @@
 //           }
 //       }
 
-//        CharSizeList = charSizeList ?? Array.Empty<Size>();
+//        CharSizeList = charSizeList ?? Array.Empty<LineCharSize>();
 //    }
 
 //    public bool CanTake => TakeCharCount > 0;
@@ -39,14 +39,14 @@
 //    public int TakeCharCount { get;  }
 
 //    /// <summary>总的尺寸</summary>
-//    public Size TotalSize { get;  }
+//    public LineCharSize TotalSize { get;  }
 
 //    /// <summary>各个字符的尺寸。如果采用的字符数量是 1 个时，此属性可以为空，因为字符的尺寸等于 <see cref="TotalSize"/> 尺寸</summary>
-//    public IReadOnlyList<Size> CharSizeList { get; }
+//    public IReadOnlyList<LineCharSize> CharSizeList { get; }
 
     
 
-//    //public void Deconstruct(out int TakeCharCount, out Size TotalSize, out IReadOnlyList<Size>? CharSizeList)
+//    //public void Deconstruct(out int TakeCharCount, out LineCharSize TotalSize, out IReadOnlyList<LineCharSize>? CharSizeList)
 //    //{
 //    //    TakeCharCount = this.TakeCharCount;
 //    //    TotalSize = this.TotalSize;

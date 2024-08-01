@@ -27,33 +27,54 @@ public readonly struct FontName : IEquatable<FontName>
     /// </summary>
     public string UserFontName { get; }
 
+    /// <summary>
+    /// 是否未定义的字体名
+    /// </summary>
     public bool IsNotDefineFontName => string.Equals(UserFontName, NotDefineFontName, StringComparison.Ordinal);
 
     internal static FontName DefaultNotDefineFontName => new FontName(NotDefineFontName);
-    private const string NotDefineFontName = "_NotDefine_";
+    private const string NotDefineFontName = "_NotDefineFontName_";
 
+    /// <inheritdoc />
     public bool Equals(FontName other)
     {
         return UserFontName == other.UserFontName;
     }
 
+    /// <inheritdoc />
     public override bool Equals(object? obj)
     {
         return obj is FontName other && Equals(other);
     }
 
+    /// <inheritdoc />
     public override int GetHashCode()
     {
         return UserFontName.GetHashCode();
     }
 
+    /// <summary>
+    /// 判断相等
+    /// </summary>
+    /// <param name="left"></param>
+    /// <param name="right"></param>
+    /// <returns></returns>
     public static bool operator ==(FontName left, FontName right)
     {
         return left.Equals(right);
     }
 
+    /// <summary>
+    /// 判断不相等
+    /// </summary>
+    /// <param name="left"></param>
+    /// <param name="right"></param>
+    /// <returns></returns>
     public static bool operator !=(FontName left, FontName right)
     {
         return !left.Equals(right);
     }
+
+    /// <inheritdoc />
+    public override string ToString() => UserFontName;
 }
