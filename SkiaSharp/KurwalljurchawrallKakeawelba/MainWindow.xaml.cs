@@ -16,7 +16,6 @@ using SkiaInkCore.Interactives;
 
 using SkiaSharp;
 
-using InputMode = SkiaInkCore.Interactives.InputMode;
 using Point = dotnetCampus.Mathematics.SpatialGeometry.Point2D;
 
 namespace KurwalljurchawrallKakeawelba;
@@ -77,7 +76,6 @@ public class SkiaCanvas : FrameworkElement
         RequireDraw(async context =>
         {
             _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
-            _inkingInputManager ??= new InkingInputManager(_inkCanvas);
 
             await Task.Delay(100);
         });
@@ -148,7 +146,7 @@ public class SkiaCanvas : FrameworkElement
         RequireDraw(context =>
         {
             _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
-            _inkingInputManager ??= new InkingInputManager(_inkCanvas);
+            _inkingInputManager ??= new InkingModeInputDispatcher();
 
             var position = e.GetPosition(this);
             var inkingInputInfo = new InkingModeInputArgs(e.StylusDevice.Id, new Point(position.X, position.Y), (ulong) e.Timestamp);
@@ -162,7 +160,7 @@ public class SkiaCanvas : FrameworkElement
         RequireDraw(context =>
         {
             _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
-            _inkingInputManager ??= new InkingInputManager(_inkCanvas);
+            _inkingInputManager ??= new InkingModeInputDispatcher(_inkCanvas);
             var position = e.GetPosition(this);
             var inkingInputInfo = new InkingModeInputArgs(e.StylusDevice.Id, new Point(position.X, position.Y), (ulong) e.Timestamp);
 
@@ -176,7 +174,7 @@ public class SkiaCanvas : FrameworkElement
         {
             _isMouseDown = false;
             _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
-            _inkingInputManager ??= new InkingInputManager(_inkCanvas);
+            _inkingInputManager ??= new InkingModeInputDispatcher(_inkCanvas);
             var position = e.GetPosition(this);
             var inkingInputInfo = new InkingModeInputArgs(e.StylusDevice.Id, new Point(position.X, position.Y), (ulong) e.Timestamp);
 
@@ -195,7 +193,7 @@ public class SkiaCanvas : FrameworkElement
         {
             _isMouseDown = true;
             _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
-            _inkingInputManager ??= new InkingInputManager(_inkCanvas);
+            _inkingInputManager ??= new InkingModeInputDispatcher(_inkCanvas);
 
             var position = e.GetPosition(this);
             var inkingInputInfo = new InkingModeInputArgs(0, new Point(position.X, position.Y), (ulong) e.Timestamp);
@@ -219,7 +217,7 @@ public class SkiaCanvas : FrameworkElement
             }
 
             _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
-            _inkingInputManager ??= new InkingInputManager(_inkCanvas);
+            _inkingInputManager ??= new InkingModeInputDispatcher(_inkCanvas);
             var position = e.GetPosition(this);
             var inkingInputInfo = new InkingModeInputArgs(0, new Point(position.X, position.Y), (ulong) e.Timestamp);
 
@@ -238,7 +236,7 @@ public class SkiaCanvas : FrameworkElement
         {
             _isMouseDown = false;
             _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
-            _inkingInputManager ??= new InkingInputManager(_inkCanvas);
+            _inkingInputManager ??= new InkingModeInputDispatcher(_inkCanvas);
             var position = e.GetPosition(this);
             var inkingInputInfo = new InkingModeInputArgs(0, new Point(position.X, position.Y), (ulong) e.Timestamp);
 
@@ -247,7 +245,7 @@ public class SkiaCanvas : FrameworkElement
     }
 
     private SkInkCanvas? _inkCanvas;
-    private InkingInputManager? _inkingInputManager;
+    private InkingModeInputDispatcher? _inkingInputManager;
 
     #endregion
 }

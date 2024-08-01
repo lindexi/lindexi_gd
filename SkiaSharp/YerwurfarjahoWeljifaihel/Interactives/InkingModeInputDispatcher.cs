@@ -8,6 +8,15 @@ namespace SkiaInkCore.Interactives;
 /// </summary>
 class InkingModeInputDispatcher
 {
+    public InkingModeInputDispatcher()
+    {
+    }
+
+    public InkingModeInputDispatcher(IInkingInputProcessor inputProcessor):this()
+    {
+        AddInputProcessor(inputProcessor);
+    }
+
     private HashSet<int> CurrentInputIdHashSet { get; } = new HashSet<int>();
 
     /// <summary>
