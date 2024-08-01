@@ -1,4 +1,5 @@
 using System.Runtime.Versioning;
+
 using CPF.Linux;
 
 namespace UnoInk.Inking.X11Platforms.Threading;
@@ -13,10 +14,10 @@ public class X11PlatformThreading
     {
         _x11Application = x11Application;
     }
-    
+
     private readonly X11Application _x11Application;
-    
-    public void Run()
+
+    public void RunInNewThread()
     {
         // 启动消息
         _eventsThread = new Thread(RunInner)
@@ -24,12 +25,18 @@ public class X11PlatformThreading
             Name = $"X11InkWindow XEvents {Interlocked.Increment(ref _threadCount) - 1}",
             IsBackground = true
         };
-        
+
         _eventsThread.Start();
     }
-    
-    private X11InfoManager X11Info => _x11Application.X11Info;
 
+    public void Run()
+    {
+        _eventsThread = Thread.CurrentThread;
+        RunInner();
+    }
+
+    private X11InfoManager X11Info => _x11Application.X11Info;
+    public bool IsRunning => _eventsThread != null;
     public bool HasThreadAccess => ReferenceEquals(Thread.CurrentThread, _eventsThread);
 
     private void RunInner()
@@ -58,7 +65,7 @@ public class X11PlatformThreading
                         tempList = _invokeList.ToList();
                         _invokeList.Clear();
                     }
-                    
+
                     foreach (var action in tempList)
                     {
                         action();
@@ -67,16 +74,16 @@ public class X11PlatformThreading
                     continue;
                 }
             }
-            
+
             _x11Application.DispatchEvent(@event);
         }
         // ReSharper disable once FunctionNeverReturns
     }
-    
+
     private readonly List<Action> _invokeList = new List<Action>();
     private readonly IntPtr _invokeMessageId = new IntPtr(123123123);
     private ulong _invokeIndex;
-    
+
     public async Task InvokeAsync(Action action, IntPtr x11WindowIntPtr)
     {
         var index = Interlocked.Increment(ref _invokeIndex);
@@ -91,7 +98,7 @@ public class X11PlatformThreading
                 taskCompletionSource.SetResult();
             });
         }
-        
+
         // 在 Avalonia 里面，是通过循环读取的方式，通过 XPending 判断是否有消息
         // 如果没有消息就进入自旋判断是否有业务消息和判断是否有 XPending 消息
         // 核心使用 epoll_wait 进行等待
@@ -122,12 +129,12 @@ public class X11PlatformThreading
             }
         };
         XLib.XSendEvent(X11Info.Display, x11WindowIntPtr, false, 0, ref @event);
-        
+
         XLib.XFlush(X11Info.Display);
-        
+
         await taskCompletionSource.Task;
     }
-    
+
     private Thread? _eventsThread;
     private static int _threadCount;
 }
