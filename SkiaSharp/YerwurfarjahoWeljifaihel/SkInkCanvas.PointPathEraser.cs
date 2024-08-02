@@ -14,7 +14,7 @@ namespace ReewheaberekaiNayweelehe;
 
 partial class SkInkCanvas
 {
-    private void EraserPointPath(InkingModeInputArgs info, double width, double height)
+    private void MoveEraserPointPath(InkingModeInputArgs info, double width, double height)
     {
         if (_skCanvas is not { } canvas || _originBackground is null)
         {
@@ -71,6 +71,25 @@ partial class SkInkCanvas
         }
         rect = LimitRectInAppBitmapRect(rect);
         _lastEraserRenderBounds = currentEraserRenderBounds;
+
+        RenderBoundsChanged?.Invoke(this, rect);
+    }
+
+    private void CleanEraserPointPath()
+    {
+        if (_lastEraserRenderBounds is null)
+        {
+            return;
+        }
+
+        if (_skCanvas is not { } canvas || _originBackground is null)
+        {
+            return;
+        }
+
+        var rect = _lastEraserRenderBounds.Value;
+        rect = LimitRectInAppBitmapRect(rect);
+        ApplicationDrawingSkBitmap.ReplacePixels(_originBackground, SKRectI.Ceiling(rect.ToSkRect()));
 
         RenderBoundsChanged?.Invoke(this, rect);
     }

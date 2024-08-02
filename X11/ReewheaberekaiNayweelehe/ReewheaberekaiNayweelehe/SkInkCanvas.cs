@@ -1192,7 +1192,7 @@ partial class SkInkCanvas : IInkingInputProcessor, IInkingModeInputDispatcherSen
         _lastEraserTouchSize = (width, height);
         if (Settings.EraserMode == InkCanvasEraserAlgorithmMode.EnablePointPathEraser)
         {
-            EraserPointPath(info, width, height);
+            MoveEraserPointPath(info, width, height);
         }
         else if (Settings.EraserMode == InkCanvasEraserAlgorithmMode.EnableClippingEraserWithBinaryWithoutEraserPathCombine)
         {
@@ -1707,6 +1707,13 @@ partial class SkInkCanvas : IInkingInputProcessor, IInkingModeInputDispatcherSen
         {
             // 这个橡皮擦需要特殊的方式清空
             // 因为 EraserPath 是一个很小的值
+            // 还没实现……
+            return;
+        }
+        else if (Settings.EraserMode == InkCanvasEraserAlgorithmMode.EnablePointPathEraser)
+        {
+            // 这个橡皮擦需要特殊的方式清空
+            CleanEraserPointPath();
             return;
         }
 
