@@ -95,19 +95,7 @@ class X11InkWindow : X11Window
 
         skInkCanvas.RenderBoundsChanged += (sender, rect) =>
         {
-            //if (PutImageBeforeExposeOnRenderBoundsChanged)
-            //{
-            //    var x = (int) rect.X;
-            //    var y = (int) rect.Y;
-            //    var width = (int) rect.Width;
-            //    var height = (int) rect.Height;
-
-            //    // 曝光之前推送图片
-            //    XPutImage(Display, Window, GC, ref _image, x, y, x, y, (uint) width,
-            //        (uint) height);
-            //}
-
-            var currentRect = SKRectI.Create((int) rect.X, (int) rect.Y, (int) rect.Width, (int) rect.Height);
+           var currentRect = SKRectI.Create((int) rect.X, (int) rect.Y, (int) rect.Width, (int) rect.Height);
             if (_renderRect is null)
             {
                 _renderRect = currentRect;
@@ -117,6 +105,23 @@ class X11InkWindow : X11Window
                 var t = _renderRect.Value;
                 t.Union(currentRect);
                 _renderRect = t;
+            }
+
+            if (PutImageBeforeExposeOnRenderBoundsChanged)
+            {
+                var exposeRect = currentRect;
+
+                var x = exposeRect.Left;
+                var y = exposeRect.Top;
+
+                //XLib.XPutImage(_x11Info.Display, X11InkWindowIntPtr, GC, ref _image, exposeEvent.x, exposeEvent.y, exposeEvent.x,
+                //    exposeEvent.y, (uint) exposeEvent.width,
+                //    (uint) exposeEvent.height);
+                XLib.XPutImage(_x11Info.Display, X11InkWindowIntPtr, GC, ref _image,
+                    x, y,
+                    x, y,
+                    (uint) exposeRect.Width,
+                    (uint) exposeRect.Height);
             }
 
             if (_isPushExpose)
@@ -153,6 +158,8 @@ class X11InkWindow : X11Window
         ModeInputDispatcher = modeInputDispatcher;
         HandleInput(X11DeviceInputManager);
     }
+
+    public bool PutImageBeforeExposeOnRenderBoundsChanged { set; get; } = true;
 
     /// <summary>
     /// 业务上的显示窗口，包括设置窗口穿透和设置全屏
