@@ -166,7 +166,7 @@ partial class SkInkCanvas
 
                     var outlinePointList = SimpleInkRender.GetOutlinePointList(newList, inkInfoForEraserPointPath.StrokeSynchronizer.StrokeInkThickness);
                     var skPath = new SKPath() { FillType = SKPathFillType.Winding };
-                    skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float)t.X, (float)t.Y)).ToArray());
+                    skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
 
                     var skiaStrokeSynchronizer = inkInfoForEraserPointPath.StrokeSynchronizer with
                     {
@@ -348,10 +348,30 @@ partial class SkInkCanvas
 
         ApplicationDrawingSkBitmap.ReplacePixels(_originBackground, SKRectI.Ceiling(expandRect));
 
-        DrawAllInk();
 
 
 
+
+        if (EraserPath is null)
+        {
+            EraserPath = new SKPath();
+        }
+        else
+        {
+            EraserPath.Reset();
+        }
+        EraserPath.AddRect(new SKRect(0, 0, _originBackground.Width, _originBackground.Height));
+        // 几何裁剪本身无视顺序，因此先处理当前点再处理之前的点也是正确的
+        using var skRoundRect = new SKPath();
+        skRoundRect.AddRoundRect(skRect, 5, 5);
+        EraserPath.Op(skRoundRect, SKPathOp.Difference, EraserPath);
+        canvas.Clear();
+        canvas.Save();
+        canvas.ClipPath(EraserPath, antialias: true);
+        canvas.DrawBitmap(_originBackground, 0, 0);
+        canvas.Restore();
+
+        canvas.Flush();
 
         //重新更新 _originBackground 的内容，需要在画出橡皮擦之前
         UpdateOriginBackground();
@@ -394,10 +414,14 @@ partial class SkInkCanvas
             return;
         }
 
-        var rect = _lastEraserRenderBounds.Value;
-        rect = LimitRectInAppBitmapRect(rect);
-        ApplicationDrawingSkBitmap.ReplacePixels(_originBackground, SKRectI.Ceiling(rect.ToSkRect()));
+        //var rect = _lastEraserRenderBounds.Value;
+        //rect = LimitRectInAppBitmapRect(rect);
+        //ApplicationDrawingSkBitmap.ReplacePixels(_originBackground, SKRectI.Ceiling(rect.ToSkRect()));
 
-        RenderBoundsChanged?.Invoke(this, rect);
+        //RenderBoundsChanged?.Invoke(this, rect);
+
+
+        DrawAllInk();
+        RenderBoundsChanged?.Invoke(this, new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
     }
 }

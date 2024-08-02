@@ -1507,7 +1507,7 @@ partial class SkInkCanvas : IInkingInputProcessor, IInkingModeInputDispatcherSen
             //using var skCanvas = new SKCanvas(_originBackground);
             //skCanvas.Clear();
             //skCanvas.DrawBitmap(ApplicationDrawingSkBitmap, 0, 0);
-            _originBackground.ReplacePixels(ApplicationDrawingSkBitmap);
+            UpdateOriginBackground();
 
             // 画出橡皮擦
             canvas.Save();
