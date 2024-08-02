@@ -44,6 +44,7 @@ partial class SkInkCanvas
         private Stopwatch _stopwatch = new Stopwatch();
         private double _totalTime;
         private int _count;
+        private int _pointCount;
 
         public void Move(Rect rect)
         {
@@ -61,6 +62,8 @@ partial class SkInkCanvas
                         StylusPoint stylusPoint = inkInfoForEraserPointPath.StrokeSynchronizer.StylusPoints[index];
                         var point = stylusPoint.Point;
 
+                        _pointCount++;
+
                         if (rect.Contains(point))
                         {
 
@@ -75,8 +78,9 @@ partial class SkInkCanvas
 
             if (_count > 100)
             {
-                StaticDebugLogger.WriteLine($"[PointPathEraserManager] Move 平均耗时 {_totalTime / _count}");
+                StaticDebugLogger.WriteLine($"[PointPathEraserManager] Move 平均耗时 {_totalTime / _count} 点数量 {_pointCount}");
 
+                _pointCount = 0;
                 _totalTime = 0;
                 _count = 0;
             }
