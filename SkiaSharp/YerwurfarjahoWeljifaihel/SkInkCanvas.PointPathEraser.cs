@@ -438,12 +438,8 @@ partial class SkInkCanvas
             await _lastTask;
         }
 
-        StaticDebugLogger.WriteLine($"等待结束");
-
         RequestDispatcher?.Invoke(this, () =>
         {
-            StaticDebugLogger.WriteLine($"开始执行");
-
             DrawAllInk();
             RenderBoundsChanged?.Invoke(this, new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
         });
