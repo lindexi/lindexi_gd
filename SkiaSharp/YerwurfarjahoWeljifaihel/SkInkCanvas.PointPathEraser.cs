@@ -74,7 +74,13 @@ partial class SkInkCanvas
             {
                 foreach (ErasingSubInkInfoForEraserPointPath pointPath in inkInfoForEraserPointPath.SubInkInfoList)
                 {
-                    var span = pointPath.StylusPointListSpan;
+                    var bounds = pointPath.CacheBounds;
+                    if (!bounds.IntersectsWith(rect))
+                    {
+                        continue;
+                    }
+
+                    var span = pointPath.PointListSpan;
 
                     for (int i = 0; i < span.Length; i++)
                     {
@@ -114,7 +120,7 @@ partial class SkInkCanvas
                 StrokeSynchronizer = strokeSynchronizer;
                 SubInkInfoList = new List<ErasingSubInkInfoForEraserPointPath>();
 
-                var subInk = new ErasingSubInkInfoForEraserPointPath(new StylusPointListSpan(0, strokeSynchronizer.StylusPoints.Count), this);
+                var subInk = new ErasingSubInkInfoForEraserPointPath(new PointListSpan(0, strokeSynchronizer.StylusPoints.Count), this);
                 if (strokeSynchronizer.InkStrokePath is { } skPath)
                 {
                     subInk.CacheBounds = skPath.Bounds.ToMauiRect();
@@ -140,9 +146,9 @@ partial class SkInkCanvas
         /// </summary>
         class ErasingSubInkInfoForEraserPointPath
         {
-            public ErasingSubInkInfoForEraserPointPath(StylusPointListSpan stylusPointListSpan, InkInfoForEraserPointPath pointPath)
+            public ErasingSubInkInfoForEraserPointPath(PointListSpan pointListSpan, InkInfoForEraserPointPath pointPath)
             {
-                StylusPointListSpan = stylusPointListSpan;
+                PointListSpan = pointListSpan;
                 PointPath = pointPath;
             }
 
@@ -154,7 +160,21 @@ partial class SkInkCanvas
                 {
                     if (_cacheBounds == null)
                     {
+                        var span = PointPath.PointList.AsSpan(PointListSpan.Start, PointListSpan.Length);
+                        Rect bounds = Rect.Zero;
 
+                        if (span.Length > 0)
+                        {
+                            bounds = new Rect(span[0].X, span[0].Y, 0, 0);
+                        }
+
+                        for (int i = 1; i < span.Length; i++)
+                        {
+                            var rect2D = new Rect(span[i].X, span[i].Y, 0, 0);
+                            bounds = bounds.Union(rect2D);
+                        }
+
+                        _cacheBounds = bounds;
                     }
 
                     return _cacheBounds.Value;
@@ -164,11 +184,10 @@ partial class SkInkCanvas
 
             private Rect? _cacheBounds;
 
-
-            public StylusPointListSpan StylusPointListSpan { get; }
+            public PointListSpan PointListSpan { get; }
         }
 
-        readonly record struct StylusPointListSpan(int Start, int Length);
+        readonly record struct PointListSpan(int Start, int Length);
 
         #endregion
     }
