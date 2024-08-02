@@ -18,6 +18,7 @@ enum InkCanvasEraserAlgorithmMode
     /// <summary>
     /// 是否允许使用裁剪方式的橡皮擦，带不安全模式的二进制，橡皮擦每次裁剪都写入画布，需要有多余的画布拷贝逻辑，但是不需要做 Path 处理。原理同 <see cref="EnableClippingEraserWithoutEraserPathCombine"/> 但是具体的裁剪逻辑不相同。用来减少擦除时间长时的越擦越卡的问题。带不安全的二进制处理可以提升画图片的性能
     /// </summary>
+    /// 尚未全部完成
     EnableClippingEraserWithBinaryWithoutEraserPathCombine,
 
     /// <summary>
