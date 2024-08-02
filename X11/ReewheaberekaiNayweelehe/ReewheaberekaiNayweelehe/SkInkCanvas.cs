@@ -1020,13 +1020,9 @@ partial class SkInkCanvas
         }
     }
 
-    private int _currentInkId;
-
     private InkId CreateInkId()
     {
-        var currentInkId = _currentInkId;
-        _currentInkId++;
-        return new InkId(currentInkId); // return _currentInkId++ 的意思，只是这个可读性太垃圾了
+        return InkId.NewId();
     }
 
     /// <summary>
