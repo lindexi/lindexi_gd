@@ -1781,8 +1781,10 @@ partial class SkInkCanvas : IInkingInputProcessor, IInkingModeInputDispatcherSen
         //using var skCanvas = new SKCanvas(_originBackground);
         //skCanvas.Clear();
         //skCanvas.DrawBitmap(ApplicationDrawingSkBitmap, 0, 0);
-        var applicationPixelHandler = ApplicationDrawingSkBitmap.GetPixels(out var length);
-        var originBackgroundPixelHandler = _originBackground.GetPixels();
-        Unsafe.CopyBlock((void*) originBackgroundPixelHandler, (void*) applicationPixelHandler, (uint) length);
+        //var applicationPixelHandler = ApplicationDrawingSkBitmap.GetPixels(out var length);
+        //var originBackgroundPixelHandler = _originBackground.GetPixels();
+        //Unsafe.CopyBlock((void*) originBackgroundPixelHandler, (void*) applicationPixelHandler, (uint) length);
+
+        _originBackground.ReplacePixels(ApplicationDrawingSkBitmap);
     }
 }
