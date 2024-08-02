@@ -28,6 +28,11 @@ if (OperatingSystem.IsLinux())
         testInput.RenderSplashScreen();
 
         window.SkInkCanvas.EnterEraserMode();
+
+        window.SkInkCanvas.RequestDispatcher += (o, action) =>
+        {
+            window.InvokeAsync(_ => action());
+        };
     };
 
     x11InkProvider.Start();

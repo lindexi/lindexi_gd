@@ -12,7 +12,7 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 
 using ReewheaberekaiNayweelehe;
-
+using SkiaInkCore.Diagnostics;
 using SkiaInkCore.Interactives;
 using SkiaInkCore.Settings;
 
@@ -110,7 +110,7 @@ public class SkiaCanvas : FrameworkElement
         // ReSharper disable once AsyncVoidLambda 虽然 async void 有异常会炸，但这里是测试代码，就这样
         RequireDraw(async context =>
         {
-            _inkCanvas ??= new SkInkCanvas(context.SKCanvas, context.SKBitmap);
+            Init(context);
 
             await Task.Delay(100);
         });
@@ -299,6 +299,14 @@ public class SkiaCanvas : FrameworkElement
             _isInit = true;
             var testInput = new TestInput(_inkCanvas);
             testInput.RenderSplashScreen();
+
+            _inkCanvas.RequestDispatcher += (_, action) =>
+            {
+                Dispatcher.InvokeAsync(() =>
+                {
+                    RequireDraw(_ => action());
+                });
+            };
         }
     }
 

@@ -310,7 +310,7 @@ partial class SkInkCanvas
 
     private bool _isEraserPointPathStart;
 
-    private SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1);
+    private Task? _lastTask;
 
     private void MoveEraserPointPath(InkingModeInputArgs info, double width, double height)
     {
@@ -334,18 +334,15 @@ partial class SkInkCanvas
         x -= (float) width / 2;
         y -= (float) height / 2;
 
-        Task.Run(async () =>
+        var lastTask = _lastTask;
+        _lastTask = Task.Run(async () =>
         {
-            await _semaphoreSlim.WaitAsync();
+            if (lastTask is { } task)
+            {
+                await task;
+            }
 
-            try
-            {
-                _pointPathEraserManager.Move(new Rect(x, y, width, height));
-            }
-            finally
-            {
-                _semaphoreSlim.Release();
-            }
+            _pointPathEraserManager.Move(new Rect(x, y, width, height));
         });
 
         var skRect = new SKRect(x, y, (float) (x + width), (float) (y + height));
@@ -416,7 +413,7 @@ partial class SkInkCanvas
         RenderBoundsChanged?.Invoke(this, rect);
     }
 
-    private void CleanEraserPointPath()
+    private async void CleanEraserPointPath()
     {
         _isEraserPointPathStart = false;
 
@@ -430,14 +427,27 @@ partial class SkInkCanvas
             return;
         }
 
-        //var rect = _lastEraserRenderBounds.Value;
-        //rect = LimitRectInAppBitmapRect(rect);
-        //ApplicationDrawingSkBitmap.ReplacePixels(_originBackground, SKRectI.Ceiling(rect.ToSkRect()));
+        var rect = _lastEraserRenderBounds.Value;
+        rect = LimitRectInAppBitmapRect(rect);
+        ApplicationDrawingSkBitmap.ReplacePixels(_originBackground, SKRectI.Ceiling(rect.ToSkRect()));
 
-        //RenderBoundsChanged?.Invoke(this, rect);
-        Thread.Sleep(1000);
+        RenderBoundsChanged?.Invoke(this, rect);
 
-        DrawAllInk();
-        RenderBoundsChanged?.Invoke(this, new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
+        if (_lastTask != null)
+        {
+            await _lastTask;
+        }
+
+        StaticDebugLogger.WriteLine($"等待结束");
+
+        RequestDispatcher?.Invoke(this, () =>
+        {
+            StaticDebugLogger.WriteLine($"开始执行");
+
+            DrawAllInk();
+            RenderBoundsChanged?.Invoke(this, new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
+        });
     }
+
+    public event EventHandler<Action>? RequestDispatcher;
 }
