@@ -74,6 +74,12 @@ partial class SkInkCanvas
             {
                 foreach (ErasingSubInkInfoForEraserPointPath pointPath in inkInfoForEraserPointPath.SubInkInfoList)
                 {
+                    var bounds = pointPath.CacheBounds;
+                    if (!bounds.IntersectsWith(rect))
+                    {
+                        continue;
+                    }
+
                     var span = pointPath.StylusPointListSpan;
 
                     for (int i = 0; i < span.Length; i++)
@@ -154,7 +160,21 @@ partial class SkInkCanvas
                 {
                     if (_cacheBounds == null)
                     {
+                        var span = PointPath.PointList.AsSpan(StylusPointListSpan.Start, StylusPointListSpan.Length);
+                        Rect bounds = Rect.Zero;
 
+                        if (span.Length > 0)
+                        {
+                            bounds = new Rect(span[0].X, span[0].Y, 0, 0);
+                        }
+
+                        for (int i = 1; i < span.Length; i++)
+                        {
+                            var rect2D = new Rect(span[i].X, span[i].Y, 0, 0);
+                            bounds = bounds.Union(rect2D);
+                        }
+
+                        _cacheBounds = bounds;
                     }
 
                     return _cacheBounds.Value;
@@ -163,7 +183,6 @@ partial class SkInkCanvas
             }
 
             private Rect? _cacheBounds;
-
 
             public StylusPointListSpan StylusPointListSpan { get; }
         }
