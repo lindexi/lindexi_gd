@@ -72,15 +72,20 @@ partial class SkInkCanvas
 
             foreach (InkInfoForEraserPointPath inkInfoForEraserPointPath in WorkList)
             {
+                _cacheList.Clear();
+
                 foreach (ErasingSubInkInfoForEraserPointPath pointPath in inkInfoForEraserPointPath.SubInkInfoList)
                 {
                     var bounds = pointPath.CacheBounds;
                     if (!bounds.IntersectsWith(rect))
                     {
+                        _cacheList.Add(pointPath);
                         continue;
                     }
 
                     var span = pointPath.PointListSpan;
+                    var start = -1;
+                    var length = 0;
 
                     for (int i = 0; i < span.Length; i++)
                     {
@@ -92,10 +97,39 @@ partial class SkInkCanvas
 
                         if (rect.Contains(point))
                         {
+                            if (start != -1)
+                            {
+                                // 截断
+                                _cacheList.Add(pointPath.Sub(start, length));
+                            }
 
+                            start = -1; 
+                            length = 0;
+                        }
+                        else
+                        {
+                            if (start == -1)
+                            {
+                                start = index;
+                                length = 1;
+                            }
+                            else
+                            {
+                                length++;
+                            }
                         }
                     }
+
+                    if (start != -1)
+                    {
+                        // 截断
+                        _cacheList.Add(pointPath.Sub(start, length));
+                    }
                 }
+
+                inkInfoForEraserPointPath.SubInkInfoList.Clear();
+                inkInfoForEraserPointPath.SubInkInfoList.AddRange(_cacheList);
+                _cacheList.Clear();
             }
 
             _stopwatch.Stop();
@@ -141,6 +175,8 @@ partial class SkInkCanvas
             public List<ErasingSubInkInfoForEraserPointPath> SubInkInfoList { get; }
         }
 
+        private readonly List<ErasingSubInkInfoForEraserPointPath> _cacheList = new List<ErasingSubInkInfoForEraserPointPath>();
+
         /// <summary>
         /// 被橡皮擦拆分的子笔迹信息
         /// </summary>
@@ -185,6 +221,14 @@ partial class SkInkCanvas
             private Rect? _cacheBounds;
 
             public PointListSpan PointListSpan { get; }
+
+            public ErasingSubInkInfoForEraserPointPath Sub(int start, int length)
+            {
+                return new ErasingSubInkInfoForEraserPointPath(new PointListSpan(start, length), PointPath)
+                {
+                    _cacheBounds = null
+                };
+            }
         }
 
         readonly record struct PointListSpan(int Start, int Length);
