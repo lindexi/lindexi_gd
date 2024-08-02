@@ -141,10 +141,41 @@ partial class SkInkCanvas
                 if (inkInfoForEraserPointPath.SubInkInfoList.Count == 1)
                 {
                     var span = inkInfoForEraserPointPath.SubInkInfoList[0].PointListSpan;
-                    if(span.Start==0 && span. Length == inkInfoForEraserPointPath.PointList.Length)
+                    if (span.Start == 0 && span.Length == inkInfoForEraserPointPath.PointList.Length)
                     {
                         staticInkInfoList.Add(inkInfoForEraserPointPath.StrokeSynchronizer);
+
+                        continue;
                     }
+                }
+
+                //inkInfoForEraserPointPath.StrokeSynchronizer.InkStrokePath?.Dispose();
+
+                foreach (SubInkInfoForEraserPointPath subInkInfo in inkInfoForEraserPointPath.SubInkInfoList)
+                {
+                    var span = subInkInfo.PointListSpan;
+
+                    if (span.Length <= 2)
+                    {
+                        // 不能创建笔迹了
+                        continue;
+                    }
+
+                    var newList =
+                        inkInfoForEraserPointPath.StrokeSynchronizer.StylusPoints.GetRange(span.Start, span.Length);
+
+                    var outlinePointList = SimpleInkRender.GetOutlinePointList(newList, inkInfoForEraserPointPath.StrokeSynchronizer.StrokeInkThickness);
+                    var skPath = new SKPath() { FillType = SKPathFillType.Winding };
+                    skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float)t.X, (float)t.Y)).ToArray());
+
+                    var skiaStrokeSynchronizer = inkInfoForEraserPointPath.StrokeSynchronizer with
+                    {
+                        InkId = InkId.NewId(),
+                        InkStrokePath = skPath,
+                        StylusPoints = newList
+                    };
+
+                    staticInkInfoList.Add(skiaStrokeSynchronizer);
                 }
             }
 
