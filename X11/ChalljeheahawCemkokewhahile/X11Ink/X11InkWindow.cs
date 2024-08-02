@@ -130,6 +130,7 @@ class X11InkWindow : X11Window
 
         var modeInputDispatcher = new InkingModeInputDispatcher();
         modeInputDispatcher.AddInputProcessor(skInkCanvas);
+        modeInputDispatcher.AddInputProcessor(skInkCanvas.SkInkCanvasManipulationManager);
         ModeInputDispatcher = modeInputDispatcher;
         HandleInput(X11DeviceInputManager);
     }

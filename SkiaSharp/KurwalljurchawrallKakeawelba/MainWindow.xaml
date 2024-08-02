@@ -8,5 +8,9 @@
         Title="MainWindow" Height="600" Width="900">
     <Grid>
         <local:SkiaCanvas x:Name="SkiaCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+        <StackPanel Orientation="Horizontal" Margin="10,10,10,10" VerticalAlignment="Bottom">
+            <Button x:Name="ManipulationModeButton" Margin="10,10,10,10" Click="ManipulationModeButton_OnClick">漫游</Button>
+            <Button x:Name="InkModeButton" Margin="10,10,10,10" Click="InkModeButton_OnClick">笔</Button>
+        </StackPanel>
     </Grid>
 </Window>

@@ -10,12 +10,33 @@ using System.Text;
 using System.Threading.Tasks;
 using SkiaInkCore;
 using System.Runtime.CompilerServices;
+using SkiaInkCore.Interactives;
 using SkiaInkCore.Utils;
 
 namespace ReewheaberekaiNayweelehe;
 
 partial class SkInkCanvas
 {
+    public SkInkCanvasManipulationManager SkInkCanvasManipulationManager
+    {
+        get
+        {
+            if (_skInkCanvasManipulation == null)
+            {
+                _skInkCanvasManipulation = new SkInkCanvasManipulationManager(this);
+                _skInkCanvasManipulation.EnableChanged += (sender, args) =>
+                {
+                    // 仅在漫游模式下，才会禁用 InkCanvas 的输入
+                    Enable = !_skInkCanvasManipulation.Enable;
+                };
+            }
+
+            return _skInkCanvasManipulation;
+        }
+    }
+
+    private SkInkCanvasManipulationManager? _skInkCanvasManipulation;
+
     // 漫游相关
     public void ManipulateMoveStart(Point startPoint)
     {
@@ -233,7 +254,7 @@ partial class SkInkCanvas
         //    skCanvas.DrawRect(skRect, skPaint);
         //}
         //skCanvas.Flush();
-     
+
 
         stepCounter.Record("统计所需命中的笔迹");
 
@@ -287,7 +308,7 @@ partial class SkInkCanvas
         }
     }
 
-    
+
 
     #region 辅助类型
 
