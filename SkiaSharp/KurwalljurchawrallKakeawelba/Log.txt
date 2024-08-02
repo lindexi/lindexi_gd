@@ -58,3 +58,11 @@ UpdateOriginBackground 1.653121ms
 统计所需命中的笔迹 5.986465ms
 完成绘制笔迹 1.959817ms
 拷贝像素 2.795475ms
+
+[PointPathEraserManager] Move 平均耗时 12.10752376237623 点数量 34076996
+[PointPathEraserManager] Move 平均耗时 17.204573267326733 点数量 34076996
+[PointPathEraserManager] Move 平均耗时 17.68830495049505 点数量 34076996
+[PointPathEraserManager] Move 平均耗时 16.993600000000004 点数量 34076996
+[PointPathEraserManager] Move 平均耗时 16.83861683168317 点数量 34076996
+[PointPathEraserManager] Move 平均耗时 17.254797029702967 点数量 34076996
+[PointPathEraserManager] Move 平均耗时 17.05034950495049 点数量 34076996

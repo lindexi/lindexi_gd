@@ -9,7 +9,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BujeeberehemnaNurgacolarje;
 using SkiaInkCore;
+using SkiaInkCore.Diagnostics;
 using SkiaInkCore.Utils;
 
 namespace ReewheaberekaiNayweelehe;
@@ -39,9 +41,49 @@ partial class SkInkCanvas
 
         private List<InkInfoForEraserPointPath> WorkList { get; set; } = null!;
 
+        private Stopwatch _stopwatch = new Stopwatch();
+        private double _totalTime;
+        private int _count;
+        private int _pointCount;
+
         public void Move(Rect rect)
         {
+            _stopwatch.Restart();
 
+            foreach (InkInfoForEraserPointPath inkInfoForEraserPointPath in WorkList)
+            {
+                foreach (ErasingSubInkInfoForEraserPointPath pointPath in inkInfoForEraserPointPath.SubInkInfoList)
+                {
+                    var span = pointPath.StylusPointListSpan;
+
+                    for (int i = 0; i < span.Length; i++)
+                    {
+                        var index = span.Start + i;
+                        StylusPoint stylusPoint = inkInfoForEraserPointPath.StrokeSynchronizer.StylusPoints[index];
+                        var point = stylusPoint.Point;
+
+                        _pointCount++;
+
+                        if (rect.Contains(point))
+                        {
+
+                        }
+                    }
+                }
+            }
+
+            _stopwatch.Stop();
+            _totalTime += _stopwatch.Elapsed.TotalMilliseconds;
+            _count++;
+
+            if (_count > 100)
+            {
+                StaticDebugLogger.WriteLine($"[PointPathEraserManager] Move 平均耗时 {_totalTime / _count} 点数量 {_pointCount}");
+
+                _pointCount = 0;
+                _totalTime = 0;
+                _count = 0;
+            }
         }
 
         #region 辅助类型
@@ -64,6 +106,8 @@ partial class SkInkCanvas
 
             public SkiaStrokeSynchronizer StrokeSynchronizer { get; set; }
             public List<ErasingSubInkInfoForEraserPointPath> SubInkInfoList { get; }
+
+
         }
 
         /// <summary>
@@ -121,7 +165,7 @@ partial class SkInkCanvas
         x -= (float) width / 2;
         y -= (float) height / 2;
 
-        _pointPathEraserManager.Move(new Rect(x,y,width, height));
+        _pointPathEraserManager.Move(new Rect(x, y, width, height));
 
         var skRect = new SKRect(x, y, (float) (x + width), (float) (y + height));
         // 比擦掉的范围更大的范围，用于持续更新
