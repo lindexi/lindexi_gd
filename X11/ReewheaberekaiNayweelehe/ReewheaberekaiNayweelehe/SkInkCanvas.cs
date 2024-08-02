@@ -1799,9 +1799,10 @@ partial class SkInkCanvas
             canvas.Flush();
 
             //重新更新 _originBackground 的内容，需要在画出橡皮擦之前
-            using var skCanvas = new SKCanvas(_originBackground);
-            skCanvas.Clear();
-            skCanvas.DrawBitmap(ApplicationDrawingSkBitmap, 0, 0);
+            //using var skCanvas = new SKCanvas(_originBackground);
+            //skCanvas.Clear();
+            //skCanvas.DrawBitmap(ApplicationDrawingSkBitmap, 0, 0);
+            UpdateOriginBackground();
 
             // 画出橡皮擦
             canvas.Save();

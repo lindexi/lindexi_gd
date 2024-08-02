@@ -107,6 +107,25 @@ class X11InkWindow : X11Window
             //        (uint) height);
             //}
 
+            var currentRect = SKRectI.Create((int) rect.X, (int) rect.Y, (int) rect.Width, (int) rect.Height);
+            if (_renderRect is null)
+            {
+                _renderRect = currentRect;
+            }
+            else
+            {
+                var t = _renderRect.Value;
+                t.Union(currentRect);
+                _renderRect = t;
+            }
+
+            if (_isPushExpose)
+            {
+                return;
+            }
+
+            _isPushExpose = true;
+
             var xEvent = new XEvent
             {
                 ExposeEvent =
@@ -116,10 +135,10 @@ class X11InkWindow : X11Window
                     window = X11InkWindowIntPtr,
                     count = 1,
                     display = x11Info.Display,
-                    height = (int)rect.Height,
-                    width = (int)rect.Width,
-                    x = (int)rect.X,
-                    y = (int)rect.Y
+                    height = currentRect.Height,
+                    width = currentRect.Width,
+                    x = currentRect.Left,
+                    y = currentRect.Top
                 }
             };
             // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
@@ -285,10 +304,28 @@ class X11InkWindow : X11Window
         return X11PlatformThreading.InvokeAsync(() => { action(SkInkCanvas); }, X11InkWindowIntPtr);
     }
 
+    private bool _isPushExpose = false;
+    private SKRectI? _renderRect = null;
+
     public void Expose(XExposeEvent exposeEvent)
     {
-        XLib.XPutImage(_x11Info.Display, X11InkWindowIntPtr, GC, ref _image, exposeEvent.x, exposeEvent.y, exposeEvent.x,
-            exposeEvent.y, (uint) exposeEvent.width,
-            (uint) exposeEvent.height);
+        _isPushExpose = false;
+        var exposeRect = SKRectI.Create(exposeEvent.x, exposeEvent.y, exposeEvent.width, exposeEvent.height);
+        if (_renderRect != null)
+        {
+            exposeRect.Union(_renderRect.Value);
+        }
+
+        var x = exposeRect.Left;
+        var y = exposeRect.Top;
+
+        //XLib.XPutImage(_x11Info.Display, X11InkWindowIntPtr, GC, ref _image, exposeEvent.x, exposeEvent.y, exposeEvent.x,
+        //    exposeEvent.y, (uint) exposeEvent.width,
+        //    (uint) exposeEvent.height);
+        XLib.XPutImage(_x11Info.Display, X11InkWindowIntPtr, GC, ref _image,
+            x, y, 
+            x, y, 
+            (uint) exposeRect.Width,
+            (uint) exposeRect.Height);
     }
 }
