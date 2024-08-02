@@ -159,7 +159,10 @@ class X11InkWindow : X11Window
         HandleInput(X11DeviceInputManager);
     }
 
-    public bool PutImageBeforeExposeOnRenderBoundsChanged { set; get; } = true;
+    /// <summary>
+    /// 立即推送渲染。在 RenderBoundsChanged 事件中调用，可能会导致更加卡顿，但是能够更加频繁进行刷新渲染
+    /// </summary>
+    public bool PutImageBeforeExposeOnRenderBoundsChanged { set; get; } = false;
 
     /// <summary>
     /// 业务上的显示窗口，包括设置窗口穿透和设置全屏
