@@ -66,3 +66,26 @@ UpdateOriginBackground 1.653121ms
 [PointPathEraserManager] Move 平均耗时 16.83861683168317 点数量 34076996
 [PointPathEraserManager] Move 平均耗时 17.254797029702967 点数量 34076996
 [PointPathEraserManager] Move 平均耗时 17.05034950495049 点数量 34076996
+
+多线程版本的性能
+
+[PointPathEraserManager] Move 平均耗时 7.301952475247526
+[PointPathEraserManager] Move 平均耗时 10.627973267326736
+[PointPathEraserManager] Move 平均耗时 11.802664356435647
+[PointPathEraserManager] Move 平均耗时 12.236166336633664
+[PointPathEraserManager] Move 平均耗时 11.555821782178217
+[PointPathEraserManager] Move 平均耗时 11.60158217821782
+[PointPathEraserManager] Move 平均耗时 11.628834653465352
+[PointPathEraserManager] Move 平均耗时 12.27623366336634
+[PointPathEraserManager] Move 平均耗时 11.758031683168326
+[PointPathEraserManager] Move 平均耗时 11.83289504950495
+[PointPathEraserManager] Move 平均耗时 12.227991089108917
+[PointPathEraserManager] Move 平均耗时 12.089899009900995
+
+[PointPathEraserManager] Move 平均耗时 9.770741584158415
+[PointPathEraserManager] Move 平均耗时 8.86427623762376
+[PointPathEraserManager] Move 平均耗时 8.85716633663366
+[PointPathEraserManager] Move 平均耗时 9.034934653465344
+[PointPathEraserManager] Move 平均耗时 9.494974257425744
+[PointPathEraserManager] Move 平均耗时 9.157076237623764
+[PointPathEraserManager] Move 平均耗时 9.288452475247526

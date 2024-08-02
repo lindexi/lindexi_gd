@@ -44,13 +44,13 @@ partial class SkInkCanvas
         private Stopwatch _stopwatch = new Stopwatch();
         private double _totalTime;
         private int _count;
-        private int _pointCount;
+        //private int _pointCount;
 
         public void Move(Rect rect)
         {
             _stopwatch.Restart();
 
-            foreach (InkInfoForEraserPointPath inkInfoForEraserPointPath in WorkList)
+            Parallel.ForEach(WorkList, (inkInfoForEraserPointPath, status) =>
             {
                 foreach (ErasingSubInkInfoForEraserPointPath pointPath in inkInfoForEraserPointPath.SubInkInfoList)
                 {
@@ -62,15 +62,35 @@ partial class SkInkCanvas
                         StylusPoint stylusPoint = inkInfoForEraserPointPath.StrokeSynchronizer.StylusPoints[index];
                         var point = stylusPoint.Point;
 
-                        _pointCount++;
-
                         if (rect.Contains(point))
                         {
 
                         }
                     }
                 }
-            }
+            });
+
+            //foreach (InkInfoForEraserPointPath inkInfoForEraserPointPath in WorkList)
+            //{
+            //    foreach (ErasingSubInkInfoForEraserPointPath pointPath in inkInfoForEraserPointPath.SubInkInfoList)
+            //    {
+            //        var span = pointPath.StylusPointListSpan;
+
+            //        for (int i = 0; i < span.Length; i++)
+            //        {
+            //            var index = span.Start + i;
+            //            StylusPoint stylusPoint = inkInfoForEraserPointPath.StrokeSynchronizer.StylusPoints[index];
+            //            var point = stylusPoint.Point;
+
+            //            _pointCount++;
+
+            //            if (rect.Contains(point))
+            //            {
+
+            //            }
+            //        }
+            //    }
+            //}
 
             _stopwatch.Stop();
             _totalTime += _stopwatch.Elapsed.TotalMilliseconds;
@@ -78,9 +98,8 @@ partial class SkInkCanvas
 
             if (_count > 100)
             {
-                StaticDebugLogger.WriteLine($"[PointPathEraserManager] Move 平均耗时 {_totalTime / _count} 点数量 {_pointCount}");
+                StaticDebugLogger.WriteLine($"[PointPathEraserManager] Move 平均耗时 {_totalTime / _count}");
 
-                _pointCount = 0;
                 _totalTime = 0;
                 _count = 0;
             }
