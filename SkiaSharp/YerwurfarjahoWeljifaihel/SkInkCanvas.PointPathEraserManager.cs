@@ -162,8 +162,8 @@ partial class SkInkCanvas
                         continue;
                     }
 
-                    IReadOnlyList<Point> newList = span.ToArray();
-                        //inkInfoForEraserPointPath.StrokeSynchronizer.StylusPoints.GetRange(span.Start, span.Length);
+                    var newList =
+                        inkInfoForEraserPointPath.StrokeSynchronizer.StylusPoints.GetRange(span.Start, span.Length);
 
                     var outlinePointList = SimpleInkRender.GetOutlinePointList(newList, inkInfoForEraserPointPath.StrokeSynchronizer.StrokeInkThickness);
                     var skPath = new SKPath() { FillType = SKPathFillType.Winding };
@@ -203,13 +203,6 @@ partial class SkInkCanvas
             public InkInfoForEraserPointPath(SkiaStrokeSynchronizer strokeSynchronizer)
             {
                 StrokeSynchronizer = strokeSynchronizer;
-
-                PointList = new Point[strokeSynchronizer.StylusPoints.Count];
-                for (var i = 0; i < strokeSynchronizer.StylusPoints.Count; i++)
-                {
-                    PointList[i] = strokeSynchronizer.StylusPoints[i].Point;
-                }
-
                 SubInkInfoList = new List<SubInkInfoForEraserPointPath>();
 
                 var subInk = new SubInkInfoForEraserPointPath(new PointListSpan(0, strokeSynchronizer.StylusPoints.Count), this);
@@ -220,7 +213,11 @@ partial class SkInkCanvas
 
                 SubInkInfoList.Add(subInk);
 
-                
+                PointList = new Point[StrokeSynchronizer.StylusPoints.Count];
+                for (var i = 0; i < StrokeSynchronizer.StylusPoints.Count; i++)
+                {
+                    PointList[i] = StrokeSynchronizer.StylusPoints[i].Point;
+                }
             }
 
             /// <summary>
@@ -282,8 +279,7 @@ partial class SkInkCanvas
 
             private Rect? _cacheBounds;
 
-            //public PointListSpan PointListSpan { get; }
-            public Span<Point> PointListSpan { get; }
+            public PointListSpan PointListSpan { get; }
 
             public SubInkInfoForEraserPointPath Sub(int start, int length)
             {
