@@ -118,3 +118,24 @@ UpdateOriginBackground 1.653121ms
 [PointPathEraserManager] Move 平均耗时 2.4015544554455452
 [PointPathEraserManager] Move 平均耗时 2.410529702970297
 [PointPathEraserManager] Move 平均耗时 2.383587128712871
+
+带结构体
+
+[PointPathEraserManager] Move 平均耗时 2.4972455445544552
+[PointPathEraserManager] Move 平均耗时 2.5618554455445555
+[PointPathEraserManager] Move 平均耗时 2.571540594059406
+[PointPathEraserManager] Move 平均耗时 2.596585148514852
+[PointPathEraserManager] Move 平均耗时 2.4919316831683176
+[PointPathEraserManager] Move 平均耗时 2.4700792079207923
+[PointPathEraserManager] Move 平均耗时 2.4596366336633664
+
+带 Point 小结构体
+
+[PointPathEraserManager] Move 平均耗时 2.0423702970297026
+[PointPathEraserManager] Move 平均耗时 2.024487128712871
+[PointPathEraserManager] Move 平均耗时 2.00399405940594
+[PointPathEraserManager] Move 平均耗时 2.007448514851484
+[PointPathEraserManager] Move 平均耗时 2.017367326732674
+[PointPathEraserManager] Move 平均耗时 1.9945524752475243
+[PointPathEraserManager] Move 平均耗时 1.9932960396039616
+[PointPathEraserManager] Move 平均耗时 1.9945029702970296

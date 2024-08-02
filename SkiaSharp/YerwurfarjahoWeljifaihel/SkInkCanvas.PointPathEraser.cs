@@ -79,9 +79,9 @@ partial class SkInkCanvas
                     for (int i = 0; i < span.Length; i++)
                     {
                         var index = span.Start + i;
-                        StylusPoint stylusPoint = inkInfoForEraserPointPath.StrokeSynchronizer.StylusPoints[index];
-                        var point = stylusPoint.Point;
+                        var point = inkInfoForEraserPointPath.PointList[index];
 
+                        //var point = inkInfoForEraserPointPath.StrokeSynchronizer.StylusPoints[index].Point;
                         //_pointCount++;
 
                         if (rect.Contains(point))
@@ -114,19 +114,25 @@ partial class SkInkCanvas
                 StrokeSynchronizer = strokeSynchronizer;
                 SubInkInfoList = new List<ErasingSubInkInfoForEraserPointPath>();
 
-                var subInk = new ErasingSubInkInfoForEraserPointPath(new StylusPointListSpan(0, strokeSynchronizer.StylusPoints.Count));
+                var subInk = new ErasingSubInkInfoForEraserPointPath(new StylusPointListSpan(0, strokeSynchronizer.StylusPoints.Count), this);
                 if (strokeSynchronizer.InkStrokePath is { } skPath)
                 {
                     subInk.CacheBounds = skPath.Bounds.ToMauiRect();
                 }
 
                 SubInkInfoList.Add(subInk);
+
+                PointList = new Point[StrokeSynchronizer.StylusPoints.Count];
+                for (var i = 0; i < StrokeSynchronizer.StylusPoints.Count; i++)
+                {
+                    PointList[i] = StrokeSynchronizer.StylusPoints[i].Point;
+                }
             }
+
+            public Point[] PointList { get; }
 
             public SkiaStrokeSynchronizer StrokeSynchronizer { get; set; }
             public List<ErasingSubInkInfoForEraserPointPath> SubInkInfoList { get; }
-
-
         }
 
         /// <summary>
@@ -134,12 +140,31 @@ partial class SkInkCanvas
         /// </summary>
         class ErasingSubInkInfoForEraserPointPath
         {
-            public ErasingSubInkInfoForEraserPointPath(StylusPointListSpan stylusPointListSpan)
+            public ErasingSubInkInfoForEraserPointPath(StylusPointListSpan stylusPointListSpan, InkInfoForEraserPointPath pointPath)
             {
                 StylusPointListSpan = stylusPointListSpan;
+                PointPath = pointPath;
             }
 
-            public Rect CacheBounds { get; set; }
+            public InkInfoForEraserPointPath PointPath { get; }
+
+            public Rect CacheBounds
+            {
+                get
+                {
+                    if (_cacheBounds == null)
+                    {
+
+                    }
+
+                    return _cacheBounds.Value;
+                }
+                set => _cacheBounds = value;
+            }
+
+            private Rect? _cacheBounds;
+
+
             public StylusPointListSpan StylusPointListSpan { get; }
         }
 
