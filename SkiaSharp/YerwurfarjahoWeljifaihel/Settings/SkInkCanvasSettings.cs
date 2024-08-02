@@ -149,6 +149,8 @@ record SkInkCanvasSettings
             // 尝试修复丢失按下的点
             ShouldDrawStrokeOnDown = true,
 
+            EraserMode = InkCanvasEraserAlgorithmMode.EnablePointPathEraser,
+
             CleanStrokeSettings = new CleanStrokeSettings()
             {
                 ShouldDrawBackground = false,

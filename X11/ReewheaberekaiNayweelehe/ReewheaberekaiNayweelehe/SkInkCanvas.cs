@@ -1626,8 +1626,11 @@ partial class SkInkCanvas
         //StaticDebugLogger.WriteLine($"MoveEraser {width},{height}");
 
         _lastEraserTouchSize = (width, height);
-
-        if (Settings.EraserMode == InkCanvasEraserAlgorithmMode.EnableClippingEraserWithBinaryWithoutEraserPathCombine)
+        if (Settings.EraserMode == InkCanvasEraserAlgorithmMode.EnablePointPathEraser)
+        {
+            EraserPointPath(info, width, height);
+        }
+        else if (Settings.EraserMode == InkCanvasEraserAlgorithmMode.EnableClippingEraserWithBinaryWithoutEraserPathCombine)
         {
             // 算法原理：
             // 走蒙层裁剪的方式
