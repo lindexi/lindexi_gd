@@ -1,7 +1,8 @@
 ﻿using BujeeberehemnaNurgacolarje;
+using SkiaInkCore.Interactives;
 using UnoInk.Inking.X11Platforms.Input;
 
-namespace SkiaInkCore.Interactives;
+namespace ChalljeheahawCemkokewhahile.Interactives;
 
 static class ModeInputArgsExtension
 {
