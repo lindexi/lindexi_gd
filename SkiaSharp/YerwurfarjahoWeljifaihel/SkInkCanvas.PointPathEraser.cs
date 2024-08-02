@@ -13,13 +13,11 @@ using SkiaInkCore.Utils;
 
 namespace ReewheaberekaiNayweelehe;
 
-partial class SkInkCanvas
+class PointPathEraserManager
 {
-    private void StartEraserPointPath()
-    {
-        _isEraserPointPathStart = true;
 
-    }
+
+    #region 辅助类型
 
     class InkInfoForEraserPointPath
     {
@@ -52,7 +50,19 @@ partial class SkInkCanvas
         public StylusPointListSpan StylusPointListSpan { get; }
     }
 
-    readonly record struct StylusPointListSpan(int Start,int Length);
+    readonly record struct StylusPointListSpan(int Start, int Length);
+
+    #endregion
+}
+
+partial class SkInkCanvas
+{
+    private void StartEraserPointPath()
+    {
+        _isEraserPointPathStart = true;
+
+    }
+    
 
     private bool _isEraserPointPathStart;
 
