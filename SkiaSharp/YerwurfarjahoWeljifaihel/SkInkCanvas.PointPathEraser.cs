@@ -50,27 +50,7 @@ partial class SkInkCanvas
         {
             _stopwatch.Restart();
 
-            Parallel.ForEach(WorkList, (inkInfoForEraserPointPath, status) =>
-            {
-                foreach (ErasingSubInkInfoForEraserPointPath pointPath in inkInfoForEraserPointPath.SubInkInfoList)
-                {
-                    var span = pointPath.StylusPointListSpan;
-
-                    for (int i = 0; i < span.Length; i++)
-                    {
-                        var index = span.Start + i;
-                        StylusPoint stylusPoint = inkInfoForEraserPointPath.StrokeSynchronizer.StylusPoints[index];
-                        var point = stylusPoint.Point;
-
-                        if (rect.Contains(point))
-                        {
-
-                        }
-                    }
-                }
-            });
-
-            //foreach (InkInfoForEraserPointPath inkInfoForEraserPointPath in WorkList)
+            //Parallel.ForEach(WorkList, (inkInfoForEraserPointPath, status) =>
             //{
             //    foreach (ErasingSubInkInfoForEraserPointPath pointPath in inkInfoForEraserPointPath.SubInkInfoList)
             //    {
@@ -82,15 +62,35 @@ partial class SkInkCanvas
             //            StylusPoint stylusPoint = inkInfoForEraserPointPath.StrokeSynchronizer.StylusPoints[index];
             //            var point = stylusPoint.Point;
 
-            //            _pointCount++;
-
             //            if (rect.Contains(point))
             //            {
 
             //            }
             //        }
             //    }
-            //}
+            //});
+
+            foreach (InkInfoForEraserPointPath inkInfoForEraserPointPath in WorkList)
+            {
+                foreach (ErasingSubInkInfoForEraserPointPath pointPath in inkInfoForEraserPointPath.SubInkInfoList)
+                {
+                    var span = pointPath.StylusPointListSpan;
+
+                    for (int i = 0; i < span.Length; i++)
+                    {
+                        var index = span.Start + i;
+                        StylusPoint stylusPoint = inkInfoForEraserPointPath.StrokeSynchronizer.StylusPoints[index];
+                        var point = stylusPoint.Point;
+
+                        //_pointCount++;
+
+                        if (rect.Contains(point))
+                        {
+
+                        }
+                    }
+                }
+            }
 
             _stopwatch.Stop();
             _totalTime += _stopwatch.Elapsed.TotalMilliseconds;
