@@ -416,7 +416,7 @@ partial class SkInkCanvas
         RenderBoundsChanged?.Invoke(this, rect);
     }
 
-    private void CleanEraserPointPath()
+    private async void CleanEraserPointPath()
     {
         _isEraserPointPathStart = false;
 
@@ -435,7 +435,7 @@ partial class SkInkCanvas
         //ApplicationDrawingSkBitmap.ReplacePixels(_originBackground, SKRectI.Ceiling(rect.ToSkRect()));
 
         //RenderBoundsChanged?.Invoke(this, rect);
-
+        await Task.Delay(TimeSpan.FromSeconds(1));
 
         DrawAllInk();
         RenderBoundsChanged?.Invoke(this, new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
