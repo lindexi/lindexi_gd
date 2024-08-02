@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 using BujeeberehemnaNurgacolarje;
@@ -25,6 +26,8 @@ if (OperatingSystem.IsLinux())
     {
         var testInput = new TestInput(window.SkInkCanvas);
         testInput.RenderSplashScreen();
+
+        window.SkInkCanvas.EnterEraserMode();
     };
 
     x11InkProvider.Start();
