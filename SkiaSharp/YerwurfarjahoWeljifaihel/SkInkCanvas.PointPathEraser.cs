@@ -331,7 +331,7 @@ partial class SkInkCanvas
         x -= (float) width / 2;
         y -= (float) height / 2;
 
-        _pointPathEraserManager.Move(new Rect(x, y, width, height));
+        //_pointPathEraserManager.Move(new Rect(x, y, width, height));
 
         var skRect = new SKRect(x, y, (float) (x + width), (float) (y + height));
         // 比擦掉的范围更大的范围，用于持续更新
@@ -346,7 +346,7 @@ partial class SkInkCanvas
         }
         expandRect = LimitRectInAppBitmapRect(expandRect);
 
-        ApplicationDrawingSkBitmap.ReplacePixels(_originBackground, SKRectI.Ceiling(expandRect));
+        //ApplicationDrawingSkBitmap.ReplacePixels(_originBackground, SKRectI.Ceiling(expandRect));
 
 
 
@@ -365,6 +365,7 @@ partial class SkInkCanvas
         using var skRoundRect = new SKPath();
         skRoundRect.AddRoundRect(skRect, 5, 5);
         EraserPath.Op(skRoundRect, SKPathOp.Difference, EraserPath);
+
         canvas.Clear();
         canvas.Save();
         canvas.ClipPath(EraserPath, antialias: true);
