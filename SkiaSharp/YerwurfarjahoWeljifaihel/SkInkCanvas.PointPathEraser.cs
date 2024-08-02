@@ -13,6 +13,7 @@ using BujeeberehemnaNurgacolarje;
 using SkiaInkCore;
 using SkiaInkCore.Diagnostics;
 using SkiaInkCore.Utils;
+using System.Threading;
 
 namespace ReewheaberekaiNayweelehe;
 
@@ -309,6 +310,8 @@ partial class SkInkCanvas
 
     private bool _isEraserPointPathStart;
 
+    private SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1);
+
     private void MoveEraserPointPath(InkingModeInputArgs info, double width, double height)
     {
         if (_skCanvas is not { } canvas || _originBackground is null)
@@ -331,7 +334,19 @@ partial class SkInkCanvas
         x -= (float) width / 2;
         y -= (float) height / 2;
 
-        //_pointPathEraserManager.Move(new Rect(x, y, width, height));
+        Task.Run(async () =>
+        {
+            await _semaphoreSlim.WaitAsync();
+
+            try
+            {
+                _pointPathEraserManager.Move(new Rect(x, y, width, height));
+            }
+            finally
+            {
+                _semaphoreSlim.Release();
+            }
+        });
 
         var skRect = new SKRect(x, y, (float) (x + width), (float) (y + height));
         // 比擦掉的范围更大的范围，用于持续更新
