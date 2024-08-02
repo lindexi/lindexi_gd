@@ -8,17 +8,64 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SkiaInkCore;
 using SkiaInkCore.Utils;
 
 namespace ReewheaberekaiNayweelehe;
 
 partial class SkInkCanvas
 {
-    private void EraserPointPath(InkingModeInputArgs info, double width, double height)
+    private void StartEraserPointPath()
+    {
+        _isEraserPointPathStart = true;
+
+    }
+
+    class InkInfoForEraserPointPath
+    {
+        public InkInfoForEraserPointPath(SkiaStrokeSynchronizer strokeSynchronizer)
+        {
+            StrokeSynchronizer = strokeSynchronizer;
+            SubInkInfoList = new List<ErasingSubInkInfoForEraserPointPath>();
+
+            var subInk = new ErasingSubInkInfoForEraserPointPath(new StylusPointListSpan(0, strokeSynchronizer.StylusPoints.Count));
+            if (strokeSynchronizer.InkStrokePath is { } skPath)
+            {
+                subInk.CacheBounds = skPath.Bounds.ToMauiRect();
+            }
+
+            SubInkInfoList.Add(subInk);
+        }
+
+        public SkiaStrokeSynchronizer StrokeSynchronizer { get; set; }
+        public List<ErasingSubInkInfoForEraserPointPath> SubInkInfoList { get; }
+    }
+
+    class ErasingSubInkInfoForEraserPointPath
+    {
+        public ErasingSubInkInfoForEraserPointPath(StylusPointListSpan stylusPointListSpan)
+        {
+            StylusPointListSpan = stylusPointListSpan;
+        }
+
+        public Rect CacheBounds { get; set; }
+        public StylusPointListSpan StylusPointListSpan { get; }
+    }
+
+    readonly record struct StylusPointListSpan(int Start,int Length);
+
+    private bool _isEraserPointPathStart;
+
+    private void MoveEraserPointPath(InkingModeInputArgs info, double width, double height)
     {
         if (_skCanvas is not { } canvas || _originBackground is null)
         {
             return;
+        }
+
+        if (!_isEraserPointPathStart)
+        {
+            StartEraserPointPath();
         }
 
         var point = info.StylusPoint.Point;
@@ -71,6 +118,27 @@ partial class SkInkCanvas
         }
         rect = LimitRectInAppBitmapRect(rect);
         _lastEraserRenderBounds = currentEraserRenderBounds;
+
+        RenderBoundsChanged?.Invoke(this, rect);
+    }
+
+    private void CleanEraserPointPath()
+    {
+        _isEraserPointPathStart = false;
+
+        if (_lastEraserRenderBounds is null)
+        {
+            return;
+        }
+
+        if (_skCanvas is not { } canvas || _originBackground is null)
+        {
+            return;
+        }
+
+        var rect = _lastEraserRenderBounds.Value;
+        rect = LimitRectInAppBitmapRect(rect);
+        ApplicationDrawingSkBitmap.ReplacePixels(_originBackground, SKRectI.Ceiling(rect.ToSkRect()));
 
         RenderBoundsChanged?.Invoke(this, rect);
     }
