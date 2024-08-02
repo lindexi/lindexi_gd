@@ -435,7 +435,7 @@ partial class SkInkCanvas
         //ApplicationDrawingSkBitmap.ReplacePixels(_originBackground, SKRectI.Ceiling(rect.ToSkRect()));
 
         //RenderBoundsChanged?.Invoke(this, rect);
-
+        Thread.Sleep(1000);
 
         DrawAllInk();
         RenderBoundsChanged?.Invoke(this, new Rect(0, 0, ApplicationDrawingSkBitmap.Width, ApplicationDrawingSkBitmap.Height));
