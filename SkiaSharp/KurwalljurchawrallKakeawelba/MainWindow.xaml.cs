@@ -227,6 +227,11 @@ public class SkiaCanvas : FrameworkElement
             _isMouseDown = true;
             Init(context);
 
+            if ((Keyboard.Modifiers & ModifierKeys.Control) != 0)
+            {
+                _inkCanvas.EnterEraserMode();
+            }
+
             var position = e.GetPosition(this);
             var inkingInputInfo = new InkingModeInputArgs(0, new Point(position.X, position.Y), (ulong) e.Timestamp);
 
@@ -249,6 +254,7 @@ public class SkiaCanvas : FrameworkElement
             }
 
             Init(context);
+
             var position = e.GetPosition(this);
             var inkingInputInfo = new InkingModeInputArgs(0, new Point(position.X, position.Y), (ulong) e.Timestamp);
 
@@ -271,6 +277,8 @@ public class SkiaCanvas : FrameworkElement
             var inkingInputInfo = new InkingModeInputArgs(0, new Point(position.X, position.Y), (ulong) e.Timestamp);
 
             _inkingInputManager.Up(inkingInputInfo);
+
+            _inkCanvas.EnterPenMode();
         });
     }
 
