@@ -89,3 +89,32 @@ UpdateOriginBackground 1.653121ms
 [PointPathEraserManager] Move 平均耗时 9.494974257425744
 [PointPathEraserManager] Move 平均耗时 9.157076237623764
 [PointPathEraserManager] Move 平均耗时 9.288452475247526
+
+在 WPF 跑的性能
+
+[PointPathEraserManager] Move 平均耗时 0.6395207920792079
+[PointPathEraserManager] Move 平均耗时 0.6338920792079203
+[PointPathEraserManager] Move 平均耗时 0.5654366336633665
+[PointPathEraserManager] Move 平均耗时 0.5687079207920792
+[PointPathEraserManager] Move 平均耗时 0.6063267326732671
+[PointPathEraserManager] Move 平均耗时 0.5464405940594058
+
+在 WPF 单线程
+
+[PointPathEraserManager] Move 平均耗时 2.6840554455445553
+[PointPathEraserManager] Move 平均耗时 2.618812871287129
+[PointPathEraserManager] Move 平均耗时 2.514526732673268
+[PointPathEraserManager] Move 平均耗时 2.5372712871287137
+[PointPathEraserManager] Move 平均耗时 2.613154455445544
+[PointPathEraserManager] Move 平均耗时 2.5237980198019807
+[PointPathEraserManager] Move 平均耗时 2.4983475247524756
+[PointPathEraserManager] Move 平均耗时 2.5970960396039597
+[PointPathEraserManager] Move 平均耗时 2.669212871287128
+[PointPathEraserManager] Move 平均耗时 2.509209900990099
+[PointPathEraserManager] Move 平均耗时 2.460584158415842
+[PointPathEraserManager] Move 平均耗时 2.424407920792079
+[PointPathEraserManager] Move 平均耗时 2.41298811881188
+[PointPathEraserManager] Move 平均耗时 2.3992336633663363
+[PointPathEraserManager] Move 平均耗时 2.4015544554455452
+[PointPathEraserManager] Move 平均耗时 2.410529702970297
+[PointPathEraserManager] Move 平均耗时 2.383587128712871
