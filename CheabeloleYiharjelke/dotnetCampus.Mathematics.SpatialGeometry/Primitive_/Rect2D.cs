@@ -53,6 +53,15 @@ public readonly record struct Rect2D(Point2D Location, Size2D Size)
         return Union(this, r);
     }
 
+    public Rect Union(Point2D pt)
+    {
+        var left = Math.Min(Left, pt.X);
+        var top = Math.Min(Top, pt.Y);
+        var right = Math.Max(Right, pt.X);
+        var bottom = Math.Max(Bottom, pt.Y);
+        return FromLTRB(left, top, right, bottom);
+    }
+
     public static Rect2D Union(Rect2D r1, Rect2D r2)
     {
         return FromLTRB(Math.Min(r1.Left, r2.Left), Math.Min(r1.Top, r2.Top), Math.Max(r1.Right, r2.Right), Math.Max(r1.Bottom, r2.Bottom));
