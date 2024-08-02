@@ -79,9 +79,9 @@ partial class SkInkCanvas
                     for (int i = 0; i < span.Length; i++)
                     {
                         var index = span.Start + i;
-                        //var point = inkInfoForEraserPointPath.PointList[index];
+                        var point = inkInfoForEraserPointPath.PointList[index];
 
-                        var point = inkInfoForEraserPointPath.StrokeSynchronizer.StylusPoints[index].Point;
+                        //var point = inkInfoForEraserPointPath.StrokeSynchronizer.StylusPoints[index].Point;
                         //_pointCount++;
 
                         if (rect.Contains(point))
