@@ -266,8 +266,7 @@ partial class SkInkCanvas
 
                         for (int i = 1; i < span.Length; i++)
                         {
-                            var rect2D = new Rect(span[i].X, span[i].Y, 0, 0);
-                            bounds = bounds.Union(rect2D);
+                            bounds = bounds.Union(span[i]);
                         }
 
                         _cacheBounds = bounds;
