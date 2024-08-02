@@ -1943,7 +1943,7 @@ partial class SkInkCanvas
             //using var skCanvas = new SKCanvas(_originBackground);
             //skCanvas.Clear();
             //skCanvas.DrawBitmap(ApplicationDrawingSkBitmap, 0, 0);
-            _originBackground.ReplacePixels(ApplicationDrawingSkBitmap);
+            UpdateOriginBackground();
 
             // 画出橡皮擦
             canvas.Save();
@@ -2217,9 +2217,11 @@ partial class SkInkCanvas
         //using var skCanvas = new SKCanvas(_originBackground);
         //skCanvas.Clear();
         //skCanvas.DrawBitmap(ApplicationDrawingSkBitmap, 0, 0);
-        var applicationPixelHandler = ApplicationDrawingSkBitmap.GetPixels(out var length);
-        var originBackgroundPixelHandler = _originBackground.GetPixels();
-        Unsafe.CopyBlock((void*) originBackgroundPixelHandler, (void*) applicationPixelHandler, (uint) length);
+        //var applicationPixelHandler = ApplicationDrawingSkBitmap.GetPixels(out var length);
+        //var originBackgroundPixelHandler = _originBackground.GetPixels();
+        //Unsafe.CopyBlock((void*) originBackgroundPixelHandler, (void*) applicationPixelHandler, (uint) length);
+
+        _originBackground.ReplacePixels(ApplicationDrawingSkBitmap);
     }
 <<<<<<< HEAD
 }
