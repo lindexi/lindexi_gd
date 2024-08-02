@@ -5,6 +5,7 @@ using SkiaSharp;
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,46 +14,76 @@ using SkiaInkCore.Utils;
 
 namespace ReewheaberekaiNayweelehe;
 
-class PointPathEraserManager
+partial class SkInkCanvas
 {
-
-
-    #region 辅助类型
-
-    class InkInfoForEraserPointPath
+    class PointPathEraserManager
     {
-        public InkInfoForEraserPointPath(SkiaStrokeSynchronizer strokeSynchronizer)
+        public PointPathEraserManager(SkInkCanvas skInkCanvas)
         {
-            StrokeSynchronizer = strokeSynchronizer;
-            SubInkInfoList = new List<ErasingSubInkInfoForEraserPointPath>();
+            _skInkCanvas = skInkCanvas;
+        }
 
-            var subInk = new ErasingSubInkInfoForEraserPointPath(new StylusPointListSpan(0, strokeSynchronizer.StylusPoints.Count));
-            if (strokeSynchronizer.InkStrokePath is { } skPath)
+        private readonly SkInkCanvas _skInkCanvas;
+
+        public void StartEraserPointPath()
+        {
+            var workList = new List<InkInfoForEraserPointPath>(_skInkCanvas.StaticInkInfoList.Count);
+
+            foreach (var skiaStrokeSynchronizer in _skInkCanvas.StaticInkInfoList)
             {
-                subInk.CacheBounds = skPath.Bounds.ToMauiRect();
+                workList.Add(new InkInfoForEraserPointPath(skiaStrokeSynchronizer));
             }
 
-            SubInkInfoList.Add(subInk);
+            WorkList = workList;
         }
 
-        public SkiaStrokeSynchronizer StrokeSynchronizer { get; set; }
-        public List<ErasingSubInkInfoForEraserPointPath> SubInkInfoList { get; }
-    }
+        private List<InkInfoForEraserPointPath> WorkList { get; set; } = null!;
 
-    class ErasingSubInkInfoForEraserPointPath
-    {
-        public ErasingSubInkInfoForEraserPointPath(StylusPointListSpan stylusPointListSpan)
+        public void Move(Rect rect)
         {
-            StylusPointListSpan = stylusPointListSpan;
+
         }
 
-        public Rect CacheBounds { get; set; }
-        public StylusPointListSpan StylusPointListSpan { get; }
+        #region 辅助类型
+
+        class InkInfoForEraserPointPath
+        {
+            public InkInfoForEraserPointPath(SkiaStrokeSynchronizer strokeSynchronizer)
+            {
+                StrokeSynchronizer = strokeSynchronizer;
+                SubInkInfoList = new List<ErasingSubInkInfoForEraserPointPath>();
+
+                var subInk = new ErasingSubInkInfoForEraserPointPath(new StylusPointListSpan(0, strokeSynchronizer.StylusPoints.Count));
+                if (strokeSynchronizer.InkStrokePath is { } skPath)
+                {
+                    subInk.CacheBounds = skPath.Bounds.ToMauiRect();
+                }
+
+                SubInkInfoList.Add(subInk);
+            }
+
+            public SkiaStrokeSynchronizer StrokeSynchronizer { get; set; }
+            public List<ErasingSubInkInfoForEraserPointPath> SubInkInfoList { get; }
+        }
+
+        /// <summary>
+        /// 被橡皮擦拆分的子笔迹信息
+        /// </summary>
+        class ErasingSubInkInfoForEraserPointPath
+        {
+            public ErasingSubInkInfoForEraserPointPath(StylusPointListSpan stylusPointListSpan)
+            {
+                StylusPointListSpan = stylusPointListSpan;
+            }
+
+            public Rect CacheBounds { get; set; }
+            public StylusPointListSpan StylusPointListSpan { get; }
+        }
+
+        readonly record struct StylusPointListSpan(int Start, int Length);
+
+        #endregion
     }
-
-    readonly record struct StylusPointListSpan(int Start, int Length);
-
-    #endregion
 }
 
 partial class SkInkCanvas
@@ -60,9 +91,11 @@ partial class SkInkCanvas
     private void StartEraserPointPath()
     {
         _isEraserPointPathStart = true;
-
+        _pointPathEraserManager = new PointPathEraserManager(this);
+        _pointPathEraserManager.StartEraserPointPath();
     }
-    
+
+    private PointPathEraserManager? _pointPathEraserManager;
 
     private bool _isEraserPointPathStart;
 
@@ -78,6 +111,8 @@ partial class SkInkCanvas
             StartEraserPointPath();
         }
 
+        Debug.Assert(_pointPathEraserManager != null);
+
         var point = info.StylusPoint.Point;
         var x = (float) point.X;
         var y = (float) point.Y;
@@ -85,6 +120,8 @@ partial class SkInkCanvas
         // 变换为左上角
         x -= (float) width / 2;
         y -= (float) height / 2;
+
+        _pointPathEraserManager.Move(new Rect(x,y,width, height));
 
         var skRect = new SKRect(x, y, (float) (x + width), (float) (y + height));
         // 比擦掉的范围更大的范围，用于持续更新
