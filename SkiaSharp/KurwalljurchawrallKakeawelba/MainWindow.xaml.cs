@@ -12,7 +12,7 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 
 using ReewheaberekaiNayweelehe;
-
+using SkiaInkCore.Diagnostics;
 using SkiaInkCore.Interactives;
 using SkiaInkCore.Settings;
 
@@ -299,6 +299,14 @@ public class SkiaCanvas : FrameworkElement
             _isInit = true;
             var testInput = new TestInput(_inkCanvas);
             testInput.RenderSplashScreen();
+
+            _inkCanvas.RequestDispatcher += (_, action) =>
+            {
+                Dispatcher.InvokeAsync(() =>
+                {
+                    RequireDraw(_ => action());
+                });
+            };
         }
     }
 
