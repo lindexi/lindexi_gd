@@ -728,7 +728,7 @@ partial class SkInkCanvas
                 MoveEraser(info);
             }
 
-#if DEBUG
+#if DEBUG && false
             string modeName = "NONE";
             if (IsInEraserMode && IsInEraserGestureMode)
             {
