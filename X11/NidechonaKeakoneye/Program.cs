@@ -11,4 +11,4 @@ if (XCompositeQueryExtension(display, out var eventBase, out var errorBase) == 0
     return;
 }
 
-Console.WriteLine("Hello, World!");
+Console.WriteLine($"EventBase={eventBase} ErrorBase={errorBase}");
