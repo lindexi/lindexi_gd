@@ -36,6 +36,29 @@ class Element : IElement
     }
 }
 
+/// <summary>
+/// 由于元素可以是元素或者组合，因此需要一个中间的类型，防止元素自己变更，导致引用对象不正确
+/// </summary>
+class ElementProxy : IElement
+{
+    public ElementProxy(IElement innerElement)
+    {
+        InnerElement = innerElement;
+    }
+
+    public IElement InnerElement { set; get; }
+
+    public void SetInput(ElementInput input)
+    {
+        InnerElement.SetInput(input);
+    }
+
+    public ValueTask<ElementOutput> RunAsync()
+    {
+        return InnerElement.RunAsync();
+    }
+}
+
 class Group : IElement
 {
     public void SetInput(ElementInput input)
