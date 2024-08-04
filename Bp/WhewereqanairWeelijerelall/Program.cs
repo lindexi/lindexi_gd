@@ -18,13 +18,33 @@ record ElementOutput();
 
 interface IElement
 {
+    void SetInput(ElementInput input);
+    ValueTask<ElementOutput> RunAsync();
 }
 
 
 class Element : IElement
 {
+    public void SetInput(ElementInput input)
+    {
+        
+    }
+
+    public ValueTask<ElementOutput> RunAsync()
+    {
+        throw new NotImplementedException();
+    }
 }
 
 class Group : IElement
 {
+    public void SetInput(ElementInput input)
+    {
+        
+    }
+
+    public ValueTask<ElementOutput> RunAsync()
+    {
+        throw new NotImplementedException();
+    }
 }
