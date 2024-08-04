@@ -9,6 +9,7 @@ internal class Program
 {
     static void Main(string[] args)
     {
+        var element = new Element();
 
     }
 }
@@ -22,9 +23,11 @@ interface IElement
     ValueTask<ElementOutput> RunAsync();
 }
 
-
 class Element : IElement
 {
+    public List<ElementProxy> InputElementList { get; } = new List<ElementProxy>();
+    public List<ElementProxy> OutputElementList { get; } = new List<ElementProxy>();
+
     public void SetInput(ElementInput input)
     {
         
@@ -61,6 +64,8 @@ class ElementProxy : IElement
 
 class Group : IElement
 {
+    public List<ElementProxy> AllElementList { get; } = new List<ElementProxy>();
+
     public void SetInput(ElementInput input)
     {
         
