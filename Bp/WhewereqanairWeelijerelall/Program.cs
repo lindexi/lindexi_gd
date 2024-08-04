@@ -47,8 +47,10 @@ class Element : IElement
 {
     public void SetInput(ElementInput input)
     {
-
+        InputList.Add(input);
     }
+
+    public List<ElementInput> InputList { set; get; } = new List<ElementInput>();
 
     public ValueTask<ElementOutput> RunAsync()
     {
