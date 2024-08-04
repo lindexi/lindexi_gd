@@ -27,7 +27,7 @@ class TopElement : IElement
         ElementProxy.SetInput(input);
     }
 
-    public ValueTask<ElementOutput> RunAsync()
+    public ValueTask RunAsync()
     {
         return ElementProxy.RunAsync();
     }
@@ -39,7 +39,7 @@ record ElementOutput();
 interface IElement
 {
     void SetInput(ElementInput input);
-    ValueTask<ElementOutput> RunAsync();
+    ValueTask RunAsync();
     //event EventHandler OnOutput;
 }
 
@@ -52,10 +52,16 @@ class Element : IElement
 
     public List<ElementInput> InputList { set; get; } = new List<ElementInput>();
 
-    public ValueTask<ElementOutput> RunAsync()
+
+
+    public ValueTask RunAsync()
     {
         throw new NotImplementedException();
     }
+
+    public List<ElementOutput> OutputList { get; } = new List<ElementOutput>();
+
+    public event EventHandler<ElementOutput>? OnOutput;
 }
 
 /// <summary>
@@ -78,7 +84,7 @@ class ElementProxy : IElement
         InnerElement.SetInput(input);
     }
 
-    public ValueTask<ElementOutput> RunAsync()
+    public ValueTask RunAsync()
     {
         return InnerElement.RunAsync();
     }
@@ -93,7 +99,7 @@ class Group : IElement
 
     }
 
-    public ValueTask<ElementOutput> RunAsync()
+    public ValueTask RunAsync()
     {
         throw new NotImplementedException();
     }
