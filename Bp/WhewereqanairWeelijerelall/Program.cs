@@ -25,9 +25,6 @@ interface IElement
 
 class Element : IElement
 {
-    public List<ElementProxy> InputElementList { get; } = new List<ElementProxy>();
-    public List<ElementProxy> OutputElementList { get; } = new List<ElementProxy>();
-
     public void SetInput(ElementInput input)
     {
         
@@ -48,6 +45,9 @@ class ElementProxy : IElement
     {
         InnerElement = innerElement;
     }
+
+    public List<ElementProxy> InputElementList { get; } = new List<ElementProxy>();
+    public List<ElementProxy> OutputElementList { get; } = new List<ElementProxy>();
 
     public IElement InnerElement { set; get; }
 
