@@ -52,10 +52,16 @@ class Element : IElement
 
     public List<ElementInput> InputList { set; get; } = new List<ElementInput>();
 
+
+
     public ValueTask<ElementOutput> RunAsync()
     {
         throw new NotImplementedException();
     }
+
+    public List<ElementOutput> OutputList { get; } = new List<ElementOutput>();
+
+    public event EventHandler<ElementOutput>? OnOutput;
 }
 
 /// <summary>
