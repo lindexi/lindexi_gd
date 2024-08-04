@@ -31,16 +31,26 @@ class TopElement : IElement
     {
         return ElementProxy.RunAsync();
     }
+
+    public List<ElementOutput> OutputList => ElementProxy.OutputList;
+
+    public event EventHandler<ElementOutput>? OnOutput
+    {
+        add => ElementProxy.OnOutput += value;
+        remove => ElementProxy.OnOutput -= value;
+    }
 }
 
 record ElementInput(double Value);
-record ElementOutput();
+record ElementOutput(double Value);
 
 interface IElement
 {
     void SetInput(ElementInput input);
     ValueTask RunAsync();
-    //event EventHandler OnOutput;
+
+    List<ElementOutput> OutputList { get; }
+    event EventHandler<ElementOutput>? OnOutput;
 }
 
 class Element : IElement
@@ -88,6 +98,14 @@ class ElementProxy : IElement
     {
         return InnerElement.RunAsync();
     }
+
+    public List<ElementOutput> OutputList => InnerElement.OutputList;
+
+    public event EventHandler<ElementOutput>? OnOutput
+    {
+        add => InnerElement.OnOutput += value;
+        remove => InnerElement.OnOutput -= value;
+    }
 }
 
 class Group : IElement
@@ -103,4 +121,7 @@ class Group : IElement
     {
         throw new NotImplementedException();
     }
+
+    public List<ElementOutput> OutputList { get; }
+    public event EventHandler<ElementOutput>? OnOutput;
 }
