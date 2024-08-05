@@ -27,7 +27,7 @@ if (OperatingSystem.IsLinux())
         var testInput = new TestInput(window.SkInkCanvas);
         testInput.RenderSplashScreen();
 
-        window.SkInkCanvas.EnterEraserMode();
+        // window.SkInkCanvas.EnterEraserMode();
 
         window.SkInkCanvas.RequestDispatcher += (o, action) =>
         {
