@@ -19,19 +19,10 @@ public partial class MainWindow : Window
 
     private void MainWindow_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        //SpinWait.SpinUntil(() => Debugger.IsAttached);
-
-        //Debugger.Break();
-
         var topLevel = TopLevel.GetTopLevel(this);
         var platformImpl = topLevel.PlatformImpl;
 
         var type = platformImpl.GetType();
-
-        //foreach (var property in type.GetProperties(BindingFlags.Instance| BindingFlags.Public))
-        //{
-        //    Console.WriteLine(property);
-        //}
 
         var propertyInfo = type.GetProperty("Handle", BindingFlags.Instance | BindingFlags.Public);
 
@@ -42,6 +33,5 @@ public partial class MainWindow : Window
             var x11Handler = platformHandle.Handle;
             Console.WriteLine(x11Handler);
         }
-
     }
 }
