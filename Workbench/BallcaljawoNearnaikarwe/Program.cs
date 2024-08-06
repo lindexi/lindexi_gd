@@ -27,14 +27,27 @@ var standardOutput = process.StandardOutput;
 var standardError = process.StandardError;
 var standardInput = process.StandardInput;
 
+var line = standardOutput.ReadLine();
+Console.WriteLine($"[StandardOutput] {line}");
+
 
 standardInput.WriteLine("ssh -o ServerAliveInterval=600 uos@172.20.113.26");
+
+line = standardOutput.ReadLine();
+Console.WriteLine($"[StandardOutput] {line}");
+
+await Task.Delay(3000);
+
 standardInput.WriteLine("123");
+standardInput.Flush();
 
 Console.SetIn(standardOutput);
 Console.SetOut(standardInput);
 
-Console.WriteLine("Hello, World!");
+while (true)
+{
+    Console.Read();
+}
 
 void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
 {
