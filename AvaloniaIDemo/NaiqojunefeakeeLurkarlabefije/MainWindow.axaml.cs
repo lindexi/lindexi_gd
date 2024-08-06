@@ -27,12 +27,15 @@ public partial class MainWindow : Window
 
         var type = platformImpl.GetType();
 
-        foreach (var property in type.GetProperties(BindingFlags.Instance| BindingFlags.Public))
-        {
-            Console.WriteLine(property);
-        }
+        //foreach (var property in type.GetProperties(BindingFlags.Instance| BindingFlags.Public))
+        //{
+        //    Console.WriteLine(property);
+        //}
 
         var propertyInfo = type.GetProperty("Handle", BindingFlags.Instance | BindingFlags.Public);
-        Console.WriteLine(propertyInfo?.ToString() ?? "null");
+
+        var value = propertyInfo.GetValue(platformImpl);
+
+        Console.WriteLine(value);
     }
 }
