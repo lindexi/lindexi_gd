@@ -1,0 +1,8 @@
+<Project>
+
+  <!-- 框架和语言信息 -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+</Project>
