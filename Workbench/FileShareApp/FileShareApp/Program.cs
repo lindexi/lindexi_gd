@@ -1,8 +1,8 @@
 using System.Text;
 using System.Text.Json.Serialization;
-
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
+using MimeTypes;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
@@ -44,7 +44,27 @@ app.UseFileServer(new FileServerOptions()
 
 app.Map("/", () =>
 {
-    return Results.Text("123", "foo/f", Encoding.UTF8);
+    return Results.Text
+    (
+        // lang=html
+        """
+         <!DOCTYPE html>
+         <html>
+              <head>
+              </head>
+              <body>
+                <p>
+                    <h1>»­»­</h1>
+                </p>
+                <p>
+                  <img src="./images/image.png"/>
+                </p>
+                <p>
+                    <a href="https://beian.miit.gov.cn/" target="_blank"></a>
+                </p>
+              </body>
+        </html>
+        """, "text/html", Encoding.UTF8);
 });
 
 app.Run();
@@ -54,5 +74,4 @@ public record Todo(int Id, string? Title, DateOnly? DueBy = null, bool IsComplet
 [JsonSerializable(typeof(Todo[]))]
 internal partial class AppJsonSerializerContext : JsonSerializerContext
 {
-
 }
