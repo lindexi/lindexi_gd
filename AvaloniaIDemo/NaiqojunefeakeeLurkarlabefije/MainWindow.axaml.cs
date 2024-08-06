@@ -4,6 +4,7 @@ using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform;
 
 namespace NaiqojunefeakeeLurkarlabefije;
 
@@ -36,6 +37,11 @@ public partial class MainWindow : Window
 
         var value = propertyInfo.GetValue(platformImpl);
 
-        Console.WriteLine(value);
+        if (value is PlatformHandle platformHandle)
+        {
+            var x11Handler = platformHandle.Handle;
+            Console.WriteLine(x11Handler);
+        }
+
     }
 }
