@@ -19,7 +19,13 @@ public partial class MainWindow : Window
 
     private void MainWindow_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        var topLevel = TopLevel.GetTopLevel(this);
+        var topLevel = TopLevel.GetTopLevel(this)!;
+
+        // 通过窗口获取，方法更加简单：
+        var handle = topLevel.TryGetPlatformHandle()!;
+        Console.WriteLine($"X11 xid {handle.Handle}");
+
+        // 以下就是反射的方法：
         var platformImpl = topLevel.PlatformImpl;
 
         var type = platformImpl.GetType();
