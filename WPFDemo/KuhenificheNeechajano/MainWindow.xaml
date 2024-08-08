@@ -13,16 +13,16 @@
         </Grid.RowDefinitions>
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition SharedSizeGroup="S1"></ColumnDefinition>
-                <ColumnDefinition SharedSizeGroup="S2"></ColumnDefinition>
+                <ColumnDefinition Width="Auto" SharedSizeGroup="S1"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
             </Grid.ColumnDefinitions>
             <Border Background="Blue"></Border>
         </Grid>
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition SharedSizeGroup="S1"></ColumnDefinition>
-                <ColumnDefinition SharedSizeGroup="S2"></ColumnDefinition>
+                <ColumnDefinition Width="Auto" SharedSizeGroup="S1"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
             </Grid.ColumnDefinitions>
             <Button Width="10" Click="Button_OnClick"/>
         </Grid>
