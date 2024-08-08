@@ -6,23 +6,23 @@
         xmlns:local="clr-namespace:KuhenificheNeechajano"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
+    <Grid IsSharedSizeScope="True">
         <Grid.RowDefinitions>
             <RowDefinition Height="100"></RowDefinition>
             <RowDefinition Height="100"></RowDefinition>
         </Grid.RowDefinitions>
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" SharedSizeGroup="S1"></ColumnDefinition>
-                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition SharedSizeGroup="S1"></ColumnDefinition>
+                <ColumnDefinition SharedSizeGroup="S2"></ColumnDefinition>
             </Grid.ColumnDefinitions>
             <Border Background="Blue"></Border>
         </Grid>
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" SharedSizeGroup="S1"></ColumnDefinition>
-                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition SharedSizeGroup="S1"></ColumnDefinition>
+                <ColumnDefinition SharedSizeGroup="S2"></ColumnDefinition>
             </Grid.ColumnDefinitions>
             <Button Width="10" Click="Button_OnClick"/>
         </Grid>
