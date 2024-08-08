@@ -68,6 +68,11 @@ public static class ColumnSharedSizeHelper
             return;
         }
 
+        if (currentFrameworkElement.Parent is not Grid grid)
+        {
+            throw new InvalidOperationException();
+        }
+
         FrameworkElement p = currentFrameworkElement;
         while (!ColumnSharedSizeHelper.GetIsSharedSizeScope(p))
         {
@@ -86,7 +91,7 @@ public static class ColumnSharedSizeHelper
             return;
         }
 
-        if (!ColumnSharedSizeHelper.GetIsSharedSizeScope(p) || p is not Grid grid)
+        if (!ColumnSharedSizeHelper.GetIsSharedSizeScope(p))
         {
             return;
         }
@@ -98,12 +103,13 @@ public static class ColumnSharedSizeHelper
             p.SetValue(GroupsProperty, group);
         }
 
-        if (!group.ContainsKey(sharedSizeGroup))
+        if (!group.TryGetValue(sharedSizeGroup, out var columnSharedSizeGroup))
         {
-            group[sharedSizeGroup] = new ColumnSharedSizeGroup(grid);
+            columnSharedSizeGroup = new ColumnSharedSizeGroup();
+            group.Add(sharedSizeGroup, columnSharedSizeGroup);
         }
 
-        group[sharedSizeGroup].Update(currentFrameworkElement);
+        columnSharedSizeGroup.Update(currentFrameworkElement);
     }
 
     public static string GetSharedSizeGroup(DependencyObject o)
@@ -117,16 +123,9 @@ public static class ColumnSharedSizeHelper
 
     class ColumnSharedSizeGroup
     {
-        public ColumnSharedSizeGroup(Grid grid)
-        {
-            _grid = grid;
-        }
-
-        private readonly Grid _grid;
-
         public void Update(FrameworkElement currentFrameworkElement)
         {
-            var grid = _grid;
+            var grid = (Grid) currentFrameworkElement.Parent;
             var value = (int) currentFrameworkElement.GetValue(Grid.ColumnProperty);
 
             var column = grid.ColumnDefinitions[value];
