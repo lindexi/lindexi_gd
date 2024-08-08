@@ -34,10 +34,18 @@ public partial class MainWindow : Window
 
         var value = propertyInfo.GetValue(platformImpl);
 
+        Debug.Assert(value is IPlatformHandle);
+
         if (value is PlatformHandle platformHandle)
         {
             var x11Handler = platformHandle.Handle;
             Console.WriteLine(x11Handler);
+        }
+        else if(value is IPlatformHandle platformHandle2)
+        {
+            // 当前在 Windows 的没有明确的类型，是一个放在 WindowImpl 类中的 WindowImplPlatformHandle 内部类
+            var hwnd = platformHandle2.Handle;
+            Console.WriteLine(hwnd);
         }
     }
 }
