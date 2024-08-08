@@ -11,7 +11,14 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         Loaded += MainWindow_Loaded;
-        this.Activated += MainWindow_Activated;
+        Activated += MainWindow_Activated;
+        PositionChanged += MainWindow_PositionChanged;
+    }
+
+    private void MainWindow_PositionChanged(object? sender, PixelPointEventArgs e)
+    {
+        var pointToScreen = this.PointToScreen(new Point(0, 0));
+        Console.WriteLine($"PositionChanged PointToScreen={pointToScreen}");
     }
 
     private void MainWindow_Activated(object? sender, EventArgs e)
