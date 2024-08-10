@@ -41,7 +41,7 @@ public class IntArrayBenchmark
     [Benchmark]
     public long NewArrayWithOrdinalVisit()
     {
-        // 测试随机访问性能
+        // 测试顺序访问性能
         var buffer = new int[ArraySize];
         for (int i = 0; i < ArraySize; i++)
         {
