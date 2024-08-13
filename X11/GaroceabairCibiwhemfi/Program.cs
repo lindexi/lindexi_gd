@@ -58,6 +58,8 @@ IntPtr invokeMessageId = new IntPtr(123123123);
 
 Task.Run(() =>
 {
+    var newDisplay = XOpenDisplay(IntPtr.Zero);
+
     Console.ReadLine();
     var @event = new XEvent
     {
@@ -76,14 +78,15 @@ Task.Run(() =>
     };
 
     // 似乎如此发送是不安全的
-    XLib.XSendEvent(display, handle, false, 0, ref @event);
-    XLib.XFlush(display);
+    XLib.XSendEvent(newDisplay, handle, false, 0, ref @event);
+    XLib.XFlush(newDisplay);
     Console.WriteLine($"发送");
 
     Console.ReadLine();
     Console.WriteLine($"发送");
-    XLib.XSendEvent(display, handle, false, 0, ref @event);
-    XLib.XFlush(display);
+    XLib.XSendEvent(newDisplay, handle, false, 0, ref @event);
+    XLib.XFlush(newDisplay);
+    XCloseDisplay(newDisplay);
 });
 
 while (true)
