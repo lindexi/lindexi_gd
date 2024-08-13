@@ -54,6 +54,38 @@ XFlush(display);
 
 bool destroyWindow = false;
 
+IntPtr invokeMessageId = new IntPtr(123123123);
+
+Task.Run(() =>
+{
+    Console.ReadLine();
+    var @event = new XEvent
+    {
+        ClientMessageEvent =
+        {
+            type = XEventName.ClientMessage,
+            send_event = true,
+            window = handle,
+            message_type = 0,
+            format = 32,
+            ptr1 = invokeMessageId,
+            ptr2 = 0,
+            ptr3 = 0,
+            ptr4 = 0,
+        }
+    };
+
+    // 似乎如此发送是不安全的
+    XLib.XSendEvent(display, handle, false, 0, ref @event);
+    XLib.XFlush(display);
+    Console.WriteLine($"发送");
+
+    Console.ReadLine();
+    Console.WriteLine($"发送");
+    XLib.XSendEvent(display, handle, false, 0, ref @event);
+    XLib.XFlush(display);
+});
+
 while (true)
 {
     var xNextEvent = XNextEvent(display, out var @event);
@@ -63,20 +95,23 @@ while (true)
         break;
     }
 
-    if (@event.type == XEventName.KeyPress)
+    if (@event.type == XEventName.ClientMessage)
     {
-        if (!destroyWindow)
+        if (@event.ClientMessageEvent.ptr1 == invokeMessageId)
         {
-            Console.WriteLine("删除窗口");
-            XDestroyWindow(display, handle);
-            XFlush(display);
-            destroyWindow = true;
-        }
-        else
-        {
-            Console.WriteLine("映射窗口");
-            XMapWindow(display, handle);
-            XFlush(display);
+            if (!destroyWindow)
+            {
+                Console.WriteLine("删除窗口");
+                XDestroyWindow(display, handle);
+                XFlush(display);
+                destroyWindow = true;
+            }
+            else
+            {
+                Console.WriteLine("映射窗口");
+                XMapWindow(display, handle);
+                XFlush(display);
+            }
         }
     }
 }
