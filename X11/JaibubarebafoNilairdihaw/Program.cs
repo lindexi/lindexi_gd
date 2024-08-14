@@ -60,6 +60,13 @@ XFlush(display);
 
 var gc = XCreateGC(display, handle, 0, 0);
 var skBitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
+
+skBitmap.GetPixels(out var l);
+Console.WriteLine($"Length = {l.ToInt32()}");
+
+var mapLength = width *4 * height;
+Console.WriteLine($"Length = {mapLength}");
+
 var skCanvas = new SKCanvas(skBitmap);
 var xImage = CreateImage(skBitmap);
 
@@ -271,13 +278,12 @@ unsafe void BlitUnsafe(SKBitmap source)
             Console.WriteLine(s);
         }
     });
-
-
-    [DllImport("libc", SetLastError = true)]
-    static extern IntPtr mmap(IntPtr addr, IntPtr length, int prot, int flags, int fd, IntPtr offset);
-    [DllImport("libc", SetLastError = true)]
-    static extern int munmap(IntPtr addr, IntPtr length);
 }
+
+[DllImport("libc", SetLastError = true)]
+static extern IntPtr mmap(IntPtr addr, IntPtr length, int prot, int flags, int fd, IntPtr offset);
+[DllImport("libc", SetLastError = true)]
+static extern int munmap(IntPtr addr, IntPtr length);
 
 async void Blit(SKBitmap source)
 {
