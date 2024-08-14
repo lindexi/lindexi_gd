@@ -61,7 +61,7 @@ var skBitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Pre
 var skCanvas = new SKCanvas(skBitmap);
 var xImage = CreateImage(skBitmap);
 
-skCanvas.Clear(SKColors.Blue);
+skCanvas.Clear(new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF));
 skCanvas.Flush();
 
 IntPtr invokeMessageId = new IntPtr(123123123);
@@ -123,8 +123,8 @@ while (true)
             skCanvas.Flush();
 
             var stopwatch = Stopwatch.StartNew();
-            XPutImage(display, handle, gc, ref xImage, @event.ExposeEvent.x, @event.ExposeEvent.y, @event.ExposeEvent.x, @event.ExposeEvent.y, (uint) @event.ExposeEvent.width,
-                (uint) @event.ExposeEvent.height);
+            XPutImage(display, handle, gc, ref xImage, 0, 0, 0, 0, (uint) skBitmap.Width,
+                (uint) skBitmap.Height);
             stopwatch.Stop();
             Console.WriteLine($"耗时：{stopwatch.ElapsedMilliseconds}");
         }
