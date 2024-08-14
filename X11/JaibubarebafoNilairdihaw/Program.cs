@@ -1,4 +1,5 @@
-﻿using CPF.Linux;
+﻿using System.Diagnostics;
+using CPF.Linux;
 
 using SkiaSharp;
 
@@ -62,6 +63,39 @@ var xImage = CreateImage(skBitmap);
 skCanvas.Clear(SKColors.Blue);
 skCanvas.Flush();
 
+IntPtr invokeMessageId = new IntPtr(123123123);
+
+Task.Run(() =>
+{
+    var newDisplay = XOpenDisplay(IntPtr.Zero);
+
+    while (true)
+    {
+        Console.ReadLine();
+        var @event = new XEvent
+        {
+            ClientMessageEvent =
+            {
+                type = XEventName.ClientMessage,
+                send_event = true,
+                window = handle,
+                message_type = 0,
+                format = 32,
+                ptr1 = invokeMessageId,
+                ptr2 = 0,
+                ptr3 = 0,
+                ptr4 = 0,
+            }
+        };
+
+        XSendEvent(newDisplay, handle, false, 0, ref @event);
+        XFlush(newDisplay);
+        Console.WriteLine($"发送");
+    }
+
+    XCloseDisplay(newDisplay);
+});
+
 while (true)
 {
     var xNextEvent = XNextEvent(display, out var @event);
@@ -75,6 +109,18 @@ while (true)
     {
         XPutImage(display, handle, gc, ref xImage, @event.ExposeEvent.x, @event.ExposeEvent.y, @event.ExposeEvent.x, @event.ExposeEvent.y, (uint) @event.ExposeEvent.width,
             (uint) @event.ExposeEvent.height);
+    }
+
+    if (@event.type == XEventName.ClientMessage)
+    {
+        if (@event.ClientMessageEvent.ptr1 == invokeMessageId)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            XPutImage(display, handle, gc, ref xImage, @event.ExposeEvent.x, @event.ExposeEvent.y, @event.ExposeEvent.x, @event.ExposeEvent.y, (uint) @event.ExposeEvent.width,
+                (uint) @event.ExposeEvent.height);
+            stopwatch.Stop();
+            Console.WriteLine($"耗时：{stopwatch.ElapsedMilliseconds}");
+        }
     }
 }
 
