@@ -185,6 +185,11 @@ async void Blit(SKBitmap source)
     {
         var stopwatch = Stopwatch.StartNew();
         XLockDisplay(display);
+        stopwatch.Stop();
+
+        Console.WriteLine($"XLockDisplay 耗时 {stopwatch.ElapsedMilliseconds}");
+        stopwatch.Restart();
+
         try
         {
             var image = CreateImage(renderBitmap);
