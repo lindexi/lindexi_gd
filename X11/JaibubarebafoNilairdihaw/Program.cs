@@ -170,36 +170,71 @@ while (true)
 
 async void Blit(SKBitmap source)
 {
+    var list = new List<string>();
+
     var stopwatch = Stopwatch.StartNew();
     using var renderBitmap = new SKBitmap(source.Width, source.Height, SKColorType.Bgra8888, SKAlphaType.Premul);
     stopwatch.Stop();
 
-    Console.WriteLine($"创建 Bitmap 耗时 {stopwatch.ElapsedMilliseconds}");
+    list.Add($"创建 Bitmap 耗时 {stopwatch.ElapsedMilliseconds}");
 
     stopwatch.Restart();
     ReplacePixels(renderBitmap, source);
     stopwatch.Stop();
-    Console.WriteLine($"拷贝耗时 {stopwatch.ElapsedMilliseconds}");
+    list.Add($"拷贝耗时 {stopwatch.ElapsedMilliseconds}");
 
     await Task.Run(() =>
     {
         var stopwatch = Stopwatch.StartNew();
         XLockDisplay(display);
+
+        stopwatch.Stop();
+        list.Add($"XLockDisplay 耗时 {stopwatch.ElapsedMilliseconds}");
+        stopwatch.Restart();
+
         try
         {
             var image = CreateImage(renderBitmap);
+
+            stopwatch.Stop();
+            list.Add($"CreateImage 耗时 {stopwatch.ElapsedMilliseconds}");
+            stopwatch.Restart();
+
             var gc = XCreateGC(display, handle, 0, IntPtr.Zero);
+
+            stopwatch.Stop();
+            list.Add($"XCreateGC 耗时 {stopwatch.ElapsedMilliseconds}");
+            stopwatch.Restart();
+
             XPutImage(display, handle, gc, ref image, 0, 0, 0, 0, (uint) renderBitmap.Width,
                 (uint) renderBitmap.Height);
+
+            stopwatch.Stop();
+            list.Add($"XPutImage 耗时 {stopwatch.ElapsedMilliseconds}");
+            stopwatch.Restart();
+
             XFreeGC(display, gc);
             XSync(display, true);
+
+            stopwatch.Stop();
+            list.Add($"XSync 耗时 {stopwatch.ElapsedMilliseconds}");
+            stopwatch.Restart();
         }
         finally
         {
             XUnlockDisplay(display);
+
+            stopwatch.Stop();
+            list.Add($"XUnlockDisplay 耗时 {stopwatch.ElapsedMilliseconds}");
+            stopwatch.Restart();
         }
         stopwatch.Stop();
-        Console.WriteLine($"实际推送耗时 {stopwatch.ElapsedMilliseconds}");
+        //Console.WriteLine($"实际推送耗时 {stopwatch.ElapsedMilliseconds}");
+
+        foreach (var s in list)
+        {
+            Console.WriteLine(s);
+        }
     });
 }
 
