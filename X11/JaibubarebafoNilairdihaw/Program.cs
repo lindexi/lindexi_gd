@@ -60,12 +60,13 @@ XFlush(display);
 
 var gc = XCreateGC(display, handle, 0, 0);
 
-var mapLength = width *4 * height;
+var mapLength = width * 4 * height;
 Console.WriteLine($"Length = {mapLength}");
 var backendMap = mmap(IntPtr.Zero, new IntPtr(mapLength), 3, 0x22, -1, IntPtr.Zero);
 
 var skImageInfo = new SKImageInfo(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
-var skSurface = SKSurface.Create(skImageInfo, backendMap);
+var rowBytes = width * 4;
+var skSurface = SKSurface.Create(skImageInfo, backendMap, rowBytes, new SKSurfaceProperties(SKPixelGeometry.BgrHorizontal));
 
 var skBitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
 
@@ -301,18 +302,18 @@ unsafe void BlitUnsafe(SKBitmap source)
     }
 
     var map = mapCache;
- 
+
     stopwatch.Stop();
     list.Add($"创建 Bitmap 耗时 {stopwatch.ElapsedMilliseconds}");
     stopwatch.Restart();
 
     //Buffer.MemoryCopy((byte*)pixel,(byte*)map, size, size);
     Unsafe.CopyBlockUnaligned((byte*) map, (byte*) pixel, (uint) size);
-    
+
     stopwatch.Stop();
     list.Add($"拷贝耗时 {stopwatch.ElapsedMilliseconds}");
     stopwatch.Restart();
-    
+
     var image = new XImage
     {
         width = source.Width,
