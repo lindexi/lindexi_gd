@@ -119,6 +119,9 @@ while (true)
     {
         if (@event.ClientMessageEvent.ptr1 == invokeMessageId)
         {
+            skCanvas.Clear(new SKColor((uint)Random.Shared.Next()).WithAlpha(0xFF));
+            skCanvas.Flush();
+
             var stopwatch = Stopwatch.StartNew();
             XPutImage(display, handle, gc, ref xImage, @event.ExposeEvent.x, @event.ExposeEvent.y, @event.ExposeEvent.x, @event.ExposeEvent.y, (uint) @event.ExposeEvent.width,
                 (uint) @event.ExposeEvent.height);
