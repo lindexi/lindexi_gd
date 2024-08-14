@@ -175,6 +175,8 @@ async void Blit(SKBitmap source)
 
     await Task.Run(() =>
     {
+        var stopwatch = new Stopwatch();
+        stopwatch.Start();
         XLockDisplay(display);
         try
         {
@@ -189,6 +191,8 @@ async void Blit(SKBitmap source)
         {
             XUnlockDisplay(display);
         }
+        stopwatch.Stop();
+        Console.WriteLine($"实际推送耗时 {stopwatch.ElapsedMilliseconds}");
     });
 }
 
