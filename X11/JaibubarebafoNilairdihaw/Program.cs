@@ -37,8 +37,8 @@ var xSetWindowAttributes = new XSetWindowAttributes
 var xDisplayWidth = XDisplayWidth(display, screen);
 var xDisplayHeight = XDisplayHeight(display, screen);
 
-var width = xDisplayWidth / 2;
-var height = xDisplayHeight / 2;
+var width = xDisplayWidth;
+var height = xDisplayHeight;
 
 var handle = XCreateWindow(display, rootWindow, 0, 0, width, height, 5,
     32,
