@@ -214,10 +214,11 @@ async void Blit(SKBitmap source)
             stopwatch.Restart();
 
             XFreeGC(display, gc);
-            XSync(display, true);
+            //XSync(display, true);
+            XFlush(display);
 
             stopwatch.Stop();
-            list.Add($"XSync 耗时 {stopwatch.ElapsedMilliseconds}");
+            list.Add($"XFlush 耗时 {stopwatch.ElapsedMilliseconds}");
             stopwatch.Restart();
         }
         finally
