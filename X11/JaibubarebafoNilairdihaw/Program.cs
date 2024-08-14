@@ -119,7 +119,7 @@ while (true)
     {
         if (@event.ClientMessageEvent.ptr1 == invokeMessageId)
         {
-            skCanvas.Clear(new SKColor((uint)Random.Shared.Next()).WithAlpha(0xFF));
+            skCanvas.Clear(new SKColor((uint)Random.Shared.Next()));
             skCanvas.Flush();
 
             var stopwatch = Stopwatch.StartNew();
