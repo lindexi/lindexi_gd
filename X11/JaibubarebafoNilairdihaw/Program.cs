@@ -59,15 +59,18 @@ XMapWindow(display, handle);
 XFlush(display);
 
 var gc = XCreateGC(display, handle, 0, 0);
-var skBitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
-
-skBitmap.GetPixels(out var l);
-Console.WriteLine($"Length = {l.ToInt32()}");
 
 var mapLength = width *4 * height;
 Console.WriteLine($"Length = {mapLength}");
+var backendMap = mmap(IntPtr.Zero, new IntPtr(mapLength), 3, 0x22, -1, IntPtr.Zero);
 
-var skCanvas = new SKCanvas(skBitmap);
+var skImageInfo = new SKImageInfo(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
+var skSurface = SKSurface.Create(skImageInfo, backendMap);
+
+var skBitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
+
+var skCanvas = skSurface.Canvas; //new SKCanvas(skBitmap);
+
 var xImage = CreateImage(skBitmap);
 
 var skBitmap2 = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
@@ -157,6 +160,8 @@ while (true)
         skCanvas.Flush();
 
         var stopwatch = Stopwatch.StartNew();
+        BlitSurface(skSurface);
+
         BlitUnsafe(skBitmap);
         //Blit(skBitmap);
         stopwatch.Stop();
@@ -179,6 +184,105 @@ while (true)
     }
 }
 
+unsafe void BlitSurface(SKSurface source)
+{
+    var list = new List<string>();
+
+    var stopwatch = Stopwatch.StartNew();
+    // 从 source 拷贝到 mmap 耗时大概是 5-6
+    // 但从 SKBitmap 拷贝到 SKBitmap 只耗时 1-2
+    var pixel = backendMap;
+
+    int size = mapLength;
+
+    if (mapCache == 0)
+    {
+        mapCache = mmap(IntPtr.Zero, new IntPtr(size), 3, 0x22, -1, IntPtr.Zero);
+    }
+
+    var map = mapCache;
+
+    stopwatch.Stop();
+    list.Add($"创建 Bitmap 耗时 {stopwatch.ElapsedMilliseconds}");
+    stopwatch.Restart();
+
+    //Buffer.MemoryCopy((byte*)pixel,(byte*)map, size, size);
+    Unsafe.CopyBlockUnaligned((byte*) map, (byte*) pixel, (uint) size);
+
+    stopwatch.Stop();
+    list.Add($"拷贝耗时 {stopwatch.ElapsedMilliseconds}");
+    stopwatch.Restart();
+
+    var image = new XImage
+    {
+        width = width,
+        height = height,
+        format = 2, //ZPixmap;
+        data = map,
+        byte_order = 0, // LSBFirst;
+        bitmap_unit = 32,
+        bitmap_bit_order = 0, // LSBFirst;
+        bitmap_pad = 32,
+        depth = 32,
+        bytes_per_line = width * 4,
+        bits_per_pixel = 32,
+    };
+    XInitImage(ref image);
+
+    Task.Run(() =>
+    {
+        var stopwatch = Stopwatch.StartNew();
+        XLockDisplay(display);
+
+        stopwatch.Stop();
+        list.Add($"XLockDisplay 耗时 {stopwatch.ElapsedMilliseconds}");
+        stopwatch.Restart();
+
+        try
+        {
+            stopwatch.Stop();
+            list.Add($"CreateImage 耗时 {stopwatch.ElapsedMilliseconds}");
+            stopwatch.Restart();
+
+            var gc = XCreateGC(display, handle, 0, IntPtr.Zero);
+
+            stopwatch.Stop();
+            list.Add($"XCreateGC 耗时 {stopwatch.ElapsedMilliseconds}");
+            stopwatch.Restart();
+
+            XPutImage(display, handle, gc, ref image, 0, 0, 0, 0, (uint) width,
+                (uint) height);
+
+            stopwatch.Stop();
+            list.Add($"XPutImage 耗时 {stopwatch.ElapsedMilliseconds}");
+            stopwatch.Restart();
+
+            XFreeGC(display, gc);
+            //XSync(display, true); // 这里用同步的速度太慢，需要等下一次收到数据
+            XFlush(display);
+
+            stopwatch.Stop();
+            list.Add($"XFlush 耗时 {stopwatch.ElapsedMilliseconds}");
+            stopwatch.Restart();
+        }
+        finally
+        {
+            XUnlockDisplay(display);
+
+            stopwatch.Stop();
+            list.Add($"XUnlockDisplay 耗时 {stopwatch.ElapsedMilliseconds}");
+            stopwatch.Restart();
+            //munmap(map, new IntPtr(size));
+        }
+        stopwatch.Stop();
+        //Console.WriteLine($"实际推送耗时 {stopwatch.ElapsedMilliseconds}");
+
+        foreach (var s in list)
+        {
+            Console.WriteLine(s);
+        }
+    });
+}
 
 unsafe void BlitUnsafe(SKBitmap source)
 {
@@ -214,7 +318,7 @@ unsafe void BlitUnsafe(SKBitmap source)
         width = source.Width,
         height = source.Height,
         format = 2, //ZPixmap;
-        data = pixel,
+        data = map,
         byte_order = 0, // LSBFirst;
         bitmap_unit = 32,
         bitmap_bit_order = 0, // LSBFirst;
