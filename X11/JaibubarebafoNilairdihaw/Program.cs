@@ -278,13 +278,12 @@ unsafe void BlitUnsafe(SKBitmap source)
             Console.WriteLine(s);
         }
     });
-
-
-    [DllImport("libc", SetLastError = true)]
-    static extern IntPtr mmap(IntPtr addr, IntPtr length, int prot, int flags, int fd, IntPtr offset);
-    [DllImport("libc", SetLastError = true)]
-    static extern int munmap(IntPtr addr, IntPtr length);
 }
+
+[DllImport("libc", SetLastError = true)]
+static extern IntPtr mmap(IntPtr addr, IntPtr length, int prot, int flags, int fd, IntPtr offset);
+[DllImport("libc", SetLastError = true)]
+static extern int munmap(IntPtr addr, IntPtr length);
 
 async void Blit(SKBitmap source)
 {
