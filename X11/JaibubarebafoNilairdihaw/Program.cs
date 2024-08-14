@@ -73,23 +73,44 @@ Task.Run(() =>
     while (true)
     {
         Console.ReadLine();
-        var @event = new XEvent
+        //var @event = new XEvent
+        //{
+        //    ClientMessageEvent =
+        //    {
+        //        type = XEventName.ClientMessage,
+        //        send_event = true,
+        //        window = handle,
+        //        message_type = 0,
+        //        format = 32,
+        //        ptr1 = invokeMessageId,
+        //        ptr2 = 0,
+        //        ptr3 = 0,
+        //        ptr4 = 0,
+        //    }
+        //};
+
+        //XSendEvent(newDisplay, handle, false, 0, ref @event);
+
+        var xEvent = new XEvent
         {
-            ClientMessageEvent =
+            ExposeEvent =
             {
-                type = XEventName.ClientMessage,
+                type = XEventName.Expose,
                 send_event = true,
                 window = handle,
-                message_type = 0,
-                format = 32,
-                ptr1 = invokeMessageId,
-                ptr2 = 0,
-                ptr3 = 0,
-                ptr4 = 0,
+                count = 1,
+                display = newDisplay,
+                x = 0,
+                y = 0,
+                width = skBitmap.Width,
+                height = skBitmap.Height,
             }
         };
+        // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
+        XLib.XSendEvent(newDisplay, handle, propagate: false,
+            new IntPtr((int) (EventMask.ExposureMask)),
+            ref xEvent);
 
-        XSendEvent(newDisplay, handle, false, 0, ref @event);
         XFlush(newDisplay);
         Console.WriteLine($"发送");
     }
@@ -108,6 +129,9 @@ while (true)
 
     if (@event.type == XEventName.Expose)
     {
+        skCanvas.Clear(new SKColor((uint) Random.Shared.Next()));
+        skCanvas.Flush();
+
         var stopwatch = Stopwatch.StartNew();
         XPutImage(display, handle, gc, ref xImage, @event.ExposeEvent.x, @event.ExposeEvent.y, @event.ExposeEvent.x, @event.ExposeEvent.y, (uint) @event.ExposeEvent.width,
             (uint) @event.ExposeEvent.height);
