@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+
 using CPF.Linux;
 
 using SkiaSharp;
@@ -107,8 +108,11 @@ while (true)
 
     if (@event.type == XEventName.Expose)
     {
+        var stopwatch = Stopwatch.StartNew();
         XPutImage(display, handle, gc, ref xImage, @event.ExposeEvent.x, @event.ExposeEvent.y, @event.ExposeEvent.x, @event.ExposeEvent.y, (uint) @event.ExposeEvent.width,
             (uint) @event.ExposeEvent.height);
+        stopwatch.Stop();
+        Console.WriteLine($"耗时：{stopwatch.ElapsedMilliseconds}");
     }
 
     if (@event.type == XEventName.ClientMessage)
