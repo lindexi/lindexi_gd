@@ -64,16 +64,16 @@ var xImage = CreateImage(skBitmap);
 
 var skBitmap2 = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
 
-{
-    var stopwatch = Stopwatch.StartNew();
-    var length = 1000;
-    for (var i = 0; i < length; i++)
-    {
-        ReplacePixels(skBitmap2, skBitmap);
-    }
-    stopwatch.Stop();
-    Console.WriteLine($"拷贝耗时：{stopwatch.ElapsedMilliseconds * 1.0 / length}");
-}
+//{
+//    var stopwatch = Stopwatch.StartNew();
+//    var length = 1000;
+//    for (var i = 0; i < length; i++)
+//    {
+//        ReplacePixels(skBitmap2, skBitmap);
+//    }
+//    stopwatch.Stop();
+//    Console.WriteLine($"拷贝耗时：{stopwatch.ElapsedMilliseconds * 1.0 / length}");
+//}
 
 skCanvas.Clear(new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF));
 skCanvas.Flush();
@@ -147,8 +147,7 @@ while (true)
         skCanvas.Flush();
 
         var stopwatch = Stopwatch.StartNew();
-        XPutImage(display, handle, gc, ref xImage, @event.ExposeEvent.x, @event.ExposeEvent.y, @event.ExposeEvent.x, @event.ExposeEvent.y, (uint) @event.ExposeEvent.width,
-            (uint) @event.ExposeEvent.height);
+        Blit(skBitmap);
         stopwatch.Stop();
         Console.WriteLine($"耗时：{stopwatch.ElapsedMilliseconds}");
     }
@@ -167,6 +166,30 @@ while (true)
             Console.WriteLine($"耗时：{stopwatch.ElapsedMilliseconds}");
         }
     }
+}
+
+async void Blit(SKBitmap source)
+{
+    using var renderBitmap = new SKBitmap(source.Width, source.Height, SKColorType.Bgra8888, SKAlphaType.Premul);
+    ReplacePixels(renderBitmap, source);
+
+    await Task.Run(() =>
+    {
+        XLockDisplay(display);
+        try
+        {
+            var image = CreateImage(renderBitmap);
+            var gc = XCreateGC(display, handle, 0, IntPtr.Zero);
+            XPutImage(display, handle, gc, ref image, 0, 0, 0, 0, (uint) renderBitmap.Width,
+                (uint) renderBitmap.Height);
+            XFreeGC(display, gc);
+            XSync(display, true);
+        }
+        finally
+        {
+            XUnlockDisplay(display);
+        }
+    });
 }
 
 static XImage CreateImage(SKBitmap skBitmap)
