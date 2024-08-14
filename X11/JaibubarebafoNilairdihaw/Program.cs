@@ -65,6 +65,8 @@ var xImage = CreateImage(skBitmap);
 
 var skBitmap2 = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
 
+IntPtr mapCache = IntPtr.Zero;
+
 //{
 //    var stopwatch = Stopwatch.StartNew();
 //    var length = 1000;
@@ -148,8 +150,8 @@ while (true)
         skCanvas.Flush();
 
         var stopwatch = Stopwatch.StartNew();
-        //BlitUnsafe(skBitmap);
-        Blit(skBitmap);
+        BlitUnsafe(skBitmap);
+        //Blit(skBitmap);
         stopwatch.Stop();
         Console.WriteLine($"耗时：{stopwatch.ElapsedMilliseconds}");
     }
@@ -181,8 +183,14 @@ unsafe void BlitUnsafe(SKBitmap source)
     var pixel = source.GetPixels(out var length);
 
     int size = length.ToInt32();
-    var map = mmap(IntPtr.Zero, new IntPtr(size), 3, 0x22, -1, IntPtr.Zero);
 
+    if (mapCache == 0)
+    {
+        mapCache = mmap(IntPtr.Zero, new IntPtr(size), 3, 0x22, -1, IntPtr.Zero);
+    }
+
+    var map = mapCache;
+ 
     stopwatch.Stop();
     list.Add($"创建 Bitmap 耗时 {stopwatch.ElapsedMilliseconds}");
     stopwatch.Restart();
@@ -253,7 +261,7 @@ unsafe void BlitUnsafe(SKBitmap source)
             stopwatch.Stop();
             list.Add($"XUnlockDisplay 耗时 {stopwatch.ElapsedMilliseconds}");
             stopwatch.Restart();
-            munmap(map, new IntPtr(size));
+            //munmap(map, new IntPtr(size));
         }
         stopwatch.Stop();
         //Console.WriteLine($"实际推送耗时 {stopwatch.ElapsedMilliseconds}");
