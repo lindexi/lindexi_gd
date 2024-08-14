@@ -60,6 +60,13 @@ XFlush(display);
 
 var gc = XCreateGC(display, handle, 0, 0);
 var skBitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
+
+skBitmap.GetPixels(out var l);
+Console.WriteLine($"Length = {l.ToInt32()}");
+
+var mapLength = width *4 * height;
+Console.WriteLine($"Length = {mapLength}");
+
 var skCanvas = new SKCanvas(skBitmap);
 var xImage = CreateImage(skBitmap);
 
