@@ -66,7 +66,7 @@ var skBitmap2 = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Pr
 
 {
     var stopwatch = Stopwatch.StartNew();
-    var length = 100;
+    var length = 1000;
     for (var i = 0; i < length; i++)
     {
         ReplacePixels(skBitmap2, skBitmap);
