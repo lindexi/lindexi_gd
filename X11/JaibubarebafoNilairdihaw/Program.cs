@@ -163,7 +163,7 @@ while (true)
         var stopwatch = Stopwatch.StartNew();
         BlitSurface(skSurface);
 
-        BlitUnsafe(skBitmap);
+        //BlitUnsafe(skBitmap);
         //Blit(skBitmap);
         stopwatch.Stop();
         Console.WriteLine($"耗时：{stopwatch.ElapsedMilliseconds}");
