@@ -183,7 +183,7 @@ async void Blit(SKBitmap source)
 
     await Task.Run(() =>
     {
-        stopwatch = Stopwatch.StartNew();
+        var stopwatch = Stopwatch.StartNew();
         XLockDisplay(display);
         try
         {
