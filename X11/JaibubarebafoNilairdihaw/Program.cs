@@ -170,13 +170,20 @@ while (true)
 
 async void Blit(SKBitmap source)
 {
+    var stopwatch = Stopwatch.StartNew();
     using var renderBitmap = new SKBitmap(source.Width, source.Height, SKColorType.Bgra8888, SKAlphaType.Premul);
+    stopwatch.Stop();
+
+    Console.WriteLine($"创建 Bitmap 耗时 {stopwatch.ElapsedMilliseconds}");
+
+    stopwatch.Restart();
     ReplacePixels(renderBitmap, source);
+    stopwatch.Stop();
+    Console.WriteLine($"拷贝耗时 {stopwatch.ElapsedMilliseconds}");
 
     await Task.Run(() =>
     {
-        var stopwatch = new Stopwatch();
-        stopwatch.Start();
+        stopwatch = Stopwatch.StartNew();
         XLockDisplay(display);
         try
         {
