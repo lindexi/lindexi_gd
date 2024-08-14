@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 using CPF.Linux;
 
@@ -60,6 +61,19 @@ var gc = XCreateGC(display, handle, 0, 0);
 var skBitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
 var skCanvas = new SKCanvas(skBitmap);
 var xImage = CreateImage(skBitmap);
+
+var skBitmap2 = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
+
+{
+    var stopwatch = Stopwatch.StartNew();
+    var length = 100;
+    for (var i = 0; i < length; i++)
+    {
+        ReplacePixels(skBitmap2, skBitmap);
+    }
+    stopwatch.Stop();
+    Console.WriteLine($"拷贝耗时：{stopwatch.ElapsedMilliseconds * 1.0 / length}");
+}
 
 skCanvas.Clear(new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF));
 skCanvas.Flush();
@@ -143,7 +157,7 @@ while (true)
     {
         if (@event.ClientMessageEvent.ptr1 == invokeMessageId)
         {
-            skCanvas.Clear(new SKColor((uint)Random.Shared.Next()));
+            skCanvas.Clear(new SKColor((uint) Random.Shared.Next()));
             skCanvas.Flush();
 
             var stopwatch = Stopwatch.StartNew();
@@ -179,4 +193,13 @@ static XImage CreateImage(SKBitmap skBitmap)
     XInitImage(ref img);
 
     return img;
+}
+
+static unsafe bool ReplacePixels(SKBitmap destinationBitmap, SKBitmap sourceBitmap)
+{
+    var destinationPixelPtr = (byte*) destinationBitmap.GetPixels(out var length).ToPointer();
+    var sourcePixelPtr = (byte*) sourceBitmap.GetPixels().ToPointer();
+
+    Unsafe.CopyBlockUnaligned(destinationPixelPtr, sourcePixelPtr, (uint) length);
+    return true;
 }
