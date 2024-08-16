@@ -93,7 +93,7 @@ internal unsafe class XShm
         // ximage = XShmCreateImage(display, DefaultVisual(display, 0), DefaultDepth(display, 0), ZPixmap, 0, &shminfo, 100, 100);
         const int ZPixmap = 2;
         var xShmSegmentInfo = new XShmSegmentInfo();
-        var shmImage = (XImage*) XShmCreateImage(display, visual, 32, ZPixmap, IntPtr.Zero, ref xShmSegmentInfo, (uint) width, (uint) height);
+        var shmImage = (XImage*) XShmCreateImage(display, visual, 32, ZPixmap, IntPtr.Zero, &xShmSegmentInfo, (uint) width, (uint) height);
 
         Console.WriteLine($"XShmCreateImage = {(IntPtr)shmImage:X} xShmSegmentInfo={xShmSegmentInfo}");
 
@@ -108,7 +108,7 @@ internal unsafe class XShm
         xShmSegmentInfo.shmaddr = (char*) shmaddr.ToPointer();
         shmImage->data = shmaddr;
 
-        var XShmAttachResult = XShmAttach(display, ref xShmSegmentInfo);
+        var XShmAttachResult = XShmAttach(display, &xShmSegmentInfo);
         XFlush(display);
         Console.WriteLine($"完成 XShmAttach XShmAttachResult={XShmAttachResult}");
 
@@ -132,7 +132,7 @@ internal unsafe class XShm
 
     // XShmAttach(display, &shminfo);
     [DllImport("libXext.so.6", SetLastError = true)]
-    static extern int XShmAttach(IntPtr display, ref XShmSegmentInfo shminfo);
+    static extern int XShmAttach(IntPtr display, XShmSegmentInfo* shminfo);
 
     [DllImport("libc", SetLastError = true)]
     static extern IntPtr shmat(int shmid, IntPtr shmaddr, int shmflg);
@@ -165,7 +165,7 @@ internal unsafe class XShm
    XShmSegmentInfo *shminfo;
  */
     [DllImport("libXext.so.6", SetLastError = true)]
-    static extern IntPtr XShmCreateImage(IntPtr display, IntPtr visual, uint depth, int format, IntPtr data, ref XShmSegmentInfo shminfo, uint width, uint height);
+    static extern IntPtr XShmCreateImage(IntPtr display, IntPtr visual, uint depth, int format, IntPtr data,  XShmSegmentInfo* shminfo, uint width, uint height);
 }
 
 [StructLayout(LayoutKind.Sequential)]
