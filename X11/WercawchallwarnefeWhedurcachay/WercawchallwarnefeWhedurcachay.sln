@@ -4,11 +4,17 @@ VisualStudioVersion = 17.10.35013.160
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WercawchallwarnefeWhedurcachay", "WercawchallwarnefeWhedurcachay.csproj", "{AD5ECDAF-F06A-41AB-AE24-D3FB5B38AB11}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BujeeberehemnaNurgacolarje", "..\BujeeberehemnaNurgacolarje\BujeeberehemnaNurgacolarje.csproj", "{489BB3FA-EE91-49B1-B7BF-0593559A85CE}"
+EndProject
 Global
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {82B883F2-D75B-4E19-B63D-06AEB9A91366}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{489BB3FA-EE91-49B1-B7BF-0593559A85CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{489BB3FA-EE91-49B1-B7BF-0593559A85CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{489BB3FA-EE91-49B1-B7BF-0593559A85CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{489BB3FA-EE91-49B1-B7BF-0593559A85CE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{AD5ECDAF-F06A-41AB-AE24-D3FB5B38AB11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{AD5ECDAF-F06A-41AB-AE24-D3FB5B38AB11}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AD5ECDAF-F06A-41AB-AE24-D3FB5B38AB11}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -461,7 +461,7 @@ async void Blit(SKBitmap source)
     });
 }
 
-static XImage CreateImage(SKBitmap skBitmap)
+XImage CreateImage(SKBitmap skBitmap)
 {
     const int bytePerPixelCount = 4; // RGBA 一共4个 byte 长度
     var bitPerByte = 8;
@@ -481,8 +481,50 @@ static XImage CreateImage(SKBitmap skBitmap)
     img.bitmap_pad = bitsPerPixel;
     img.depth = bitsPerPixel;
     img.bytes_per_line = bitmapWidth * bytePerPixelCount;
-    img.bits_per_pixel = bitsPerPixel;
+    img.bits_per_pixel = 8;
+
     XInitImage(ref img);
+
+    /*
+     在 SendZImage 里面似乎判断了 bits_per_pixel 的值，决定了使用哪种方式进行拷贝
+    static void
+       SendZImage(
+           register Display *dpy,
+           register xPutImageReq *req,
+           register XImage *image,
+           int req_xoffset, int req_yoffset,
+           int dest_bits_per_pixel, int dest_scanline_pad)
+
+         if ((image->byte_order == dpy->byte_order) ||
+        (image->bits_per_pixel == 8))
+        NoSwap(src, dest, bytes_per_src, (long)image->bytes_per_line,
+               bytes_per_dest, req->height, image->byte_order);
+           else if (image->bits_per_pixel == 32)
+        SwapFourBytes(src, dest, bytes_per_src, (long)image->bytes_per_line,
+                  bytes_per_dest, req->height, image->byte_order);
+           else if (image->bits_per_pixel == 24)
+        SwapThreeBytes(src, dest, bytes_per_src, (long)image->bytes_per_line,
+                   bytes_per_dest, req->height, image->byte_order);
+           else if (image->bits_per_pixel == 16)
+        SwapTwoBytes(src, dest, bytes_per_src, (long)image->bytes_per_line,
+                 bytes_per_dest, req->height, image->byte_order);
+           else
+        SwapNibbles(src, dest, bytes_per_src, (long)image->bytes_per_line,
+                bytes_per_dest, req->height);
+     */
+
+    [DllImport("libX11.so.6", SetLastError = true)]
+    static extern int XImageByteOrder(IntPtr display);
+
+    var xImageByteOrder = XImageByteOrder(display);
+    Console.WriteLine($"xImageByteOrder={xImageByteOrder} Image={img.byte_order}");
+
+
+    [DllImport("libX11.so.6", SetLastError = true)]
+    static extern int XBitmapBitOrder(IntPtr display);
+
+    var bitmapBitOrder = XBitmapBitOrder(display);
+    Console.WriteLine($"bitmapBitOrder={bitmapBitOrder} Image={img.bitmap_bit_order}");
 
     return img;
 }
