@@ -154,16 +154,20 @@ unsafe
     static extern IntPtr shmat(int shmid, IntPtr shmaddr, int shmflg);
 
     var shmaddr = shmat(shmgetResult, IntPtr.Zero, 0);
+
+    Console.WriteLine($"shmaddr={shmaddr:X}");
+
     xShmSegmentInfo.shmaddr = (char*) shmaddr.ToPointer();
     ((XImage*) shmImage)->data = shmaddr;
 }
 
 // XShmAttach(display, &shminfo);
 [DllImport("libXext.so.6", SetLastError = true)]
-static extern void XShmAttach(IntPtr display, ref XShmSegmentInfo shminfo);
+static extern int XShmAttach(IntPtr display, ref XShmSegmentInfo shminfo);
 
-XShmAttach(display, ref xShmSegmentInfo);
-
+var XShmAttachResult= XShmAttach(display, ref xShmSegmentInfo);
+XFlush(display);
+Console.WriteLine($"完成 XShmAttach XShmAttachResult={XShmAttachResult}");
 
 
 var skImageInfo = new SKImageInfo(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
@@ -262,6 +266,8 @@ while (true)
         //skCanvas.Clear(new SKColor((uint) Random.Shared.Next()));
         //skCanvas.Flush();
 
+        Console.WriteLine($"收到曝光");
+
         var stopwatch = Stopwatch.StartNew();
         //BlitSurface(skSurface);
 
@@ -282,7 +288,6 @@ while (true)
                    unsigned int	/* src_height * /,
                    Bool		/* send_event * /
                );
-
              */
             [DllImport("libXext.so.6", SetLastError = true)]
             static extern int XShmPutImage(IntPtr display, IntPtr drawable, IntPtr gc, XImage* image, int src_x, int src_y, int dst_x, int dst_y, uint src_width, uint src_height, bool send_event);
