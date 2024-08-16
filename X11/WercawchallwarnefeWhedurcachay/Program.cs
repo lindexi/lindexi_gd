@@ -481,7 +481,7 @@ XImage CreateImage(SKBitmap skBitmap)
     img.bitmap_pad = bitsPerPixel;
     img.depth = bitsPerPixel;
     img.bytes_per_line = bitmapWidth * bytePerPixelCount;
-    img.bits_per_pixel = 8;
+    img.bits_per_pixel = bitsPerPixel;
 
     XInitImage(ref img);
 
