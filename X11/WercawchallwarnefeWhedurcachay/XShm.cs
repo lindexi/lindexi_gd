@@ -112,9 +112,11 @@ internal unsafe class XShm
         XFlush(display);
         Console.WriteLine($"完成 XShmAttach XShmAttachResult={XShmAttachResult}");
 
-        XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, false);
+        XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) 100, (uint) 100, false);
 
         XFlush(display);
+
+        Console.WriteLine($"完成推送图片");
 
         while (true)
         {
