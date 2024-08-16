@@ -109,12 +109,12 @@ internal unsafe class XShm
         xShmSegmentInfo.shmaddr = (char*) shmaddr.ToPointer();
         shmImage->data = shmaddr;
 
-        var color = (byte) Random.Shared.Next(255);
-        color = (byte) (color | 0xFF << 24);
+        int color = Random.Shared.Next();
+        color = (color | 0xFF << 24);
 
-        for (int i = 0; i < mapLength; i++)
+        for (int i = 0; i < mapLength / 4; i++)
         {
-            var p = (byte*) shmaddr;
+            var p = (int*) shmaddr;
             p[i] = color;
         }
 
@@ -191,14 +191,14 @@ internal unsafe class XShm
                 break;
             }
 
-            if(@event.type == XEventName.Expose)
+            if (@event.type == XEventName.Expose)
             {
-                color = (byte) Random.Shared.Next(255);
-                color = (byte) (color | 0xFF );
+                color = Random.Shared.Next();
+                color = (color | 0xFF << 24);
 
-                for (int i = 0; i < mapLength; i++)
+                for (int i = 0; i < mapLength / 4; i++)
                 {
-                    var p = (byte*) shmaddr;
+                    var p = (int*) shmaddr;
                     p[i] = color;
                 }
 
