@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -95,7 +96,7 @@ internal unsafe class XShm
         var xShmSegmentInfo = new XShmSegmentInfo();
         var shmImage = (XImage*) XShmCreateImage(display, visual, 32, ZPixmap, IntPtr.Zero, &xShmSegmentInfo, (uint) width, (uint) height);
 
-        Console.WriteLine($"XShmCreateImage = {(IntPtr)shmImage:X} xShmSegmentInfo={xShmSegmentInfo}");
+        Console.WriteLine($"XShmCreateImage = {(IntPtr) shmImage:X} xShmSegmentInfo={xShmSegmentInfo}");
 
         var shmgetResult = shmget(IPC_PRIVATE, mapLength, IPC_CREAT | 0777);
         Console.WriteLine($"shmgetResult={shmgetResult:X}");
@@ -108,7 +109,14 @@ internal unsafe class XShm
         xShmSegmentInfo.shmaddr = (char*) shmaddr.ToPointer();
         shmImage->data = shmaddr;
 
+        var color = (byte) Random.Shared.Next(255);
+        color = (byte) (color | 0xFF << 24);
 
+        for (int i = 0; i < mapLength; i++)
+        {
+            var p = (byte*) shmaddr;
+            p[i] = color;
+        }
 
         var XShmAttachResult = XShmAttach(display, &xShmSegmentInfo);
         XFlush(display);
@@ -120,6 +128,60 @@ internal unsafe class XShm
 
         Console.WriteLine($"完成推送图片");
 
+        Task.Run(() =>
+        {
+            var newDisplay = XOpenDisplay(IntPtr.Zero);
+
+            while (true)
+            {
+                Console.ReadLine();
+                //var @event = new XEvent
+                //{
+                //    ClientMessageEvent =
+                //    {
+                //        type = XEventName.ClientMessage,
+                //        send_event = true,
+                //        window = handle,
+                //        message_type = 0,
+                //        format = 32,
+                //        ptr1 = invokeMessageId,
+                //        ptr2 = 0,
+                //        ptr3 = 0,
+                //        ptr4 = 0,
+                //    }
+                //};
+
+                //XSendEvent(newDisplay, handle, false, 0, ref @event);
+
+                var xEvent = new XEvent
+                {
+                    ExposeEvent =
+                    {
+                        type = XEventName.Expose,
+                        send_event = true,
+                        window = handle,
+                        count = 1,
+                        display = newDisplay,
+                        x = 0,
+                        y = 0,
+                        width = width,
+                        height = height,
+                    }
+                };
+                // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
+                XLib.XSendEvent(newDisplay, handle, propagate: false,
+                    new IntPtr((int) (EventMask.ExposureMask)),
+                    ref xEvent);
+
+                XFlush(newDisplay);
+                Console.WriteLine($"发送");
+            }
+
+            XCloseDisplay(newDisplay);
+        });
+
+        var stopwatch = new Stopwatch();
+
         while (true)
         {
             var xNextEvent = XNextEvent(display, out var @event);
@@ -127,6 +189,27 @@ internal unsafe class XShm
             if (xNextEvent != 0)
             {
                 break;
+            }
+
+            if(@event.type == XEventName.Expose)
+            {
+                color = (byte) Random.Shared.Next(255);
+                color = (byte) (color | 0xFF );
+
+                for (int i = 0; i < mapLength; i++)
+                {
+                    var p = (byte*) shmaddr;
+                    p[i] = color;
+                }
+
+                stopwatch.Restart();
+
+                XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, false);
+
+                XFlush(display);
+
+                stopwatch.Stop();
+                Console.WriteLine($"完成推送图片 {stopwatch.ElapsedMilliseconds}ms");
             }
         }
     }
@@ -169,19 +252,19 @@ internal unsafe class XShm
    XShmSegmentInfo *shminfo;
  */
     [DllImport("libXext.so.6", SetLastError = true)]
-    static extern IntPtr XShmCreateImage(IntPtr display, IntPtr visual, uint depth, int format, IntPtr data,  XShmSegmentInfo* shminfo, uint width, uint height);
+    static extern IntPtr XShmCreateImage(IntPtr display, IntPtr visual, uint depth, int format, IntPtr data, XShmSegmentInfo* shminfo, uint width, uint height);
 }
 
 [StructLayout(LayoutKind.Sequential)]
 unsafe struct XShmSegmentInfo
 {
-   public ShmSeg shmseg;    /* resource id */
-   public int shmid;        /* kernel id */
-   public char* shmaddr;    /* address in client */
-   public bool readOnly;	/* how the server should attach it */
+    public ShmSeg shmseg;    /* resource id */
+    public int shmid;        /* kernel id */
+    public char* shmaddr;    /* address in client */
+    public bool readOnly;   /* how the server should attach it */
 
-   public override string ToString()
-   {
-       return    $"XShmSegmentInfo {{ shmseg = {shmseg}, shmid = {shmid}, shmaddr = {new IntPtr(shmaddr).ToString("X")}, readOnly = {readOnly} }}";
-   }
+    public override string ToString()
+    {
+        return $"XShmSegmentInfo {{ shmseg = {shmseg}, shmid = {shmid}, shmaddr = {new IntPtr(shmaddr).ToString("X")}, readOnly = {readOnly} }}";
+    }
 }
