@@ -154,17 +154,20 @@ unsafe
     static extern IntPtr shmat(int shmid, IntPtr shmaddr, int shmflg);
 
     var shmaddr = shmat(shmgetResult, IntPtr.Zero, 0);
+
+    Console.WriteLine($"shmaddr={shmaddr:X}");
+
     xShmSegmentInfo.shmaddr = (char*) shmaddr.ToPointer();
     ((XImage*) shmImage)->data = shmaddr;
 }
 
 // XShmAttach(display, &shminfo);
 [DllImport("libXext.so.6", SetLastError = true)]
-static extern void XShmAttach(IntPtr display, ref XShmSegmentInfo shminfo);
+static extern int XShmAttach(IntPtr display, ref XShmSegmentInfo shminfo);
 
-XShmAttach(display, ref xShmSegmentInfo);
+var XShmAttachResult= XShmAttach(display, ref xShmSegmentInfo);
 XFlush(display);
-Console.WriteLine("完成 XShmAttach");
+Console.WriteLine($"完成 XShmAttach XShmAttachResult={XShmAttachResult}");
 
 
 var skImageInfo = new SKImageInfo(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
