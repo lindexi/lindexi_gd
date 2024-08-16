@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using CPF.Linux;
-using ShmSeg = System.UInt32;
+using ShmSeg = System.UInt64;
 using static CPF.Linux.XLib;
 
 namespace WercawchallwarnefeWhedurcachay;
@@ -108,6 +108,8 @@ internal unsafe class XShm
         xShmSegmentInfo.shmaddr = (char*) shmaddr.ToPointer();
         shmImage->data = shmaddr;
 
+
+
         var XShmAttachResult = XShmAttach(display, &xShmSegmentInfo);
         XFlush(display);
         Console.WriteLine($"完成 XShmAttach XShmAttachResult={XShmAttachResult}");
@@ -115,6 +117,8 @@ internal unsafe class XShm
         XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, false);
 
         XFlush(display);
+
+        Console.WriteLine($"完成推送图片");
 
         while (true)
         {
