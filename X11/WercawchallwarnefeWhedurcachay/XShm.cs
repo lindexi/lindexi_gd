@@ -118,15 +118,12 @@ internal unsafe class XShm
             p[i] = color;
         }
 
-        var XShmAttachResult = XShmAttach(display, &xShmSegmentInfo);
+        XShmAttach(display, &xShmSegmentInfo);
         XFlush(display);
-        Console.WriteLine($"完成 XShmAttach XShmAttachResult={XShmAttachResult}");
 
         XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, false);
 
         XFlush(display);
-
-        Console.WriteLine($"完成推送图片");
 
         Task.Run(() =>
         {
