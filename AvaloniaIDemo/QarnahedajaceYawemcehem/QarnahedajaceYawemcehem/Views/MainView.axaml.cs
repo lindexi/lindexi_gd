@@ -19,6 +19,7 @@ public partial class MainView : UserControl
 
     private async void MainView_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
+        // 这里的延迟换成 Animation 的 Delay 也对的，且换成 Animation 的更好。这里的延迟非必须
         await Task.Delay(100);
 
         var content = Content;
@@ -35,7 +36,7 @@ public partial class MainView : UserControl
                 {
                     Setters =
                     {
-                        new Setter(TranslateTransform.XProperty, 0),
+                        new Setter(TranslateTransform.XProperty, 0d),
                     },
                     KeyTime = TimeSpan.FromSeconds(0)
                 },
@@ -43,14 +44,12 @@ public partial class MainView : UserControl
                 {
                     Setters =
                     {
-                        new Setter(TranslateTransform.XProperty, 500),
+                        new Setter(TranslateTransform.XProperty, 500d),
                     },
                     KeyTime = TimeSpan.FromSeconds(10)
                 }
             }
         };
-
-        //textBlock.RenderTransform = new TranslateTransform();
 
         _ = animation.RunAsync(textBlock);
     }
