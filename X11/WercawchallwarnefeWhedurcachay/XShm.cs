@@ -75,7 +75,6 @@ internal unsafe class XShm
         XMapWindow(display, handle);
         XFlush(display);
 
-        var gc = XCreateGC(display, handle, 0, 0);
 
         var mapLength = width * 4 * height;
         //Console.WriteLine($"Length = {mapLength}");
@@ -121,7 +120,9 @@ internal unsafe class XShm
         XShmAttach(display, &xShmSegmentInfo);
         XFlush(display);
 
+        var gc = XCreateGC(display, handle, 0, 0);
         XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, false);
+        XFreeGC(display, gc);
 
         XFlush(display);
 
@@ -194,7 +195,7 @@ internal unsafe class XShm
                 color = (color | 0xFF << 24);
 
                 var n = 10;
-                while(n-- > 0)
+                while (n-- > 0)
                 {
                     for (int i = 0; i < mapLength / 4; i++)
                     {
@@ -204,7 +205,9 @@ internal unsafe class XShm
 
                     stopwatch.Restart();
 
+                    gc = XCreateGC(display, handle, 0, 0);
                     XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, false);
+                    XFreeGC(display, gc);
 
                     XFlush(display);
                 }
