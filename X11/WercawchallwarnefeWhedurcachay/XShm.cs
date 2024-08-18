@@ -201,9 +201,13 @@ internal unsafe class XShm
 
                 stopwatch.Restart();
 
-                XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, false);
+                for (int i = 0; i < 10; i++)
+                {
+                    XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, false);
 
-                XFlush(display);
+                    XFlush(display);
+                }
+            
 
                 stopwatch.Stop();
                 Console.WriteLine($"完成推送图片 {stopwatch.ElapsedMilliseconds}ms");
