@@ -193,21 +193,21 @@ internal unsafe class XShm
                 color = Random.Shared.Next();
                 color = (color | 0xFF << 24);
 
-                for (int i = 0; i < mapLength / 4; i++)
+                var n = 10;
+                while(n-- > 0)
                 {
-                    var p = (int*) shmaddr;
-                    p[i] = color;
-                }
+                    for (int i = 0; i < mapLength / 4; i++)
+                    {
+                        var p = (int*) shmaddr;
+                        p[i] = color;
+                    }
 
-                stopwatch.Restart();
+                    stopwatch.Restart();
 
-                for (int i = 0; i < 10; i++)
-                {
                     XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, false);
 
                     XFlush(display);
                 }
-            
 
                 stopwatch.Stop();
                 Console.WriteLine($"完成推送图片 {stopwatch.ElapsedMilliseconds}ms");
