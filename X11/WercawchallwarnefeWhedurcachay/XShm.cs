@@ -10,6 +10,7 @@ using ShmSeg = System.UInt64;
 using static CPF.Linux.XLib;
 
 namespace WercawchallwarnefeWhedurcachay;
+
 internal unsafe class XShm
 {
     [DllImport("libXext.so.6", SetLastError = true)]
@@ -63,22 +64,20 @@ internal unsafe class XShm
 
         var handle = XCreateWindow(display, rootWindow, 0, 0, width, height, 5,
             32,
-            (int) CreateWindowArgs.InputOutput,
+            (int)CreateWindowArgs.InputOutput,
             visual,
-            (nuint) valueMask, ref xSetWindowAttributes);
+            (nuint)valueMask, ref xSetWindowAttributes);
 
         XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
                                  XEventMask.PointerMotionHintMask;
-        var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
+        var mask = new IntPtr(0xffffff ^ (int)ignoredMask);
         XSelectInput(display, handle, mask);
 
         XMapWindow(display, handle);
         XFlush(display);
 
-
         var mapLength = width * 4 * height;
         //Console.WriteLine($"Length = {mapLength}");
-
 
         var status = XShmQueryExtension(display);
         if (status == 0)
@@ -93,9 +92,10 @@ internal unsafe class XShm
         // ximage = XShmCreateImage(display, DefaultVisual(display, 0), DefaultDepth(display, 0), ZPixmap, 0, &shminfo, 100, 100);
         const int ZPixmap = 2;
         var xShmSegmentInfo = new XShmSegmentInfo();
-        var shmImage = (XImage*) XShmCreateImage(display, visual, 32, ZPixmap, IntPtr.Zero, &xShmSegmentInfo, (uint) width, (uint) height);
+        var shmImage = (XImage*)XShmCreateImage(display, visual, 32, ZPixmap, IntPtr.Zero, &xShmSegmentInfo,
+            (uint)width, (uint)height);
 
-        Console.WriteLine($"XShmCreateImage = {(IntPtr) shmImage:X} xShmSegmentInfo={xShmSegmentInfo}");
+        Console.WriteLine($"XShmCreateImage = {(IntPtr)shmImage:X} xShmSegmentInfo={xShmSegmentInfo}");
 
         var shmgetResult = shmget(IPC_PRIVATE, mapLength, IPC_CREAT | 0777);
         Console.WriteLine($"shmgetResult={shmgetResult:X}");
@@ -105,24 +105,13 @@ internal unsafe class XShm
         var shmaddr = shmat(shmgetResult, IntPtr.Zero, 0);
         Console.WriteLine($"shmaddr={shmaddr:X}");
 
-        xShmSegmentInfo.shmaddr = (char*) shmaddr.ToPointer();
+        xShmSegmentInfo.shmaddr = (char*)shmaddr.ToPointer();
         shmImage->data = shmaddr;
-
-        int color = Random.Shared.Next();
-        color = (color | 0xFF << 24);
-
-        for (int i = 0; i < mapLength / 4; i++)
-        {
-            var p = (int*) shmaddr;
-            p[i] = color;
-        }
 
         XShmAttach(display, &xShmSegmentInfo);
         XFlush(display);
 
         var gc = XCreateGC(display, handle, 0, 0);
-        XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, false);
-        XFreeGC(display, gc);
 
         XFlush(display);
 
@@ -168,7 +157,7 @@ internal unsafe class XShm
                 };
                 // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
                 XLib.XSendEvent(newDisplay, handle, propagate: false,
-                    new IntPtr((int) (EventMask.ExposureMask)),
+                    new IntPtr((int)(EventMask.ExposureMask)),
                     ref xEvent);
 
                 XFlush(newDisplay);
@@ -191,35 +180,32 @@ internal unsafe class XShm
 
             if (@event.type == XEventName.Expose)
             {
-                color = Random.Shared.Next();
+                // 模拟绘制界面
+                var color = Random.Shared.Next();
                 color = (color | 0xFF << 24);
-
-                var n = 10;
-                while (n-- > 0)
+                for (int i = 0; i < mapLength / 4; i++)
                 {
-                    for (int i = 0; i < mapLength / 4; i++)
-                    {
-                        var p = (int*) shmaddr;
-                        p[i] = color;
-                    }
-
-                    stopwatch.Restart();
-
-                    gc = XCreateGC(display, handle, 0, 0);
-                    XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, false);
-                    XFreeGC(display, gc);
-
-                    XFlush(display);
+                    var p = (int*)shmaddr;
+                    p[i] = color;
                 }
 
+                stopwatch.Restart();
+
+                XShmPutImage(display, handle, gc, (XImage*)shmImage, 0, 0, 0, 0, (uint)width, (uint)height, true);
+
+                XFlush(display);
+
                 stopwatch.Stop();
-                Console.WriteLine($"完成推送图片 {stopwatch.ElapsedMilliseconds}ms");
+            }
+            else if ((int)@event.type == 65 /*XShmCompletionEvent*/)
+            {
             }
         }
     }
 
     [DllImport("libXext.so.6", SetLastError = true)]
-    static extern int XShmPutImage(IntPtr display, IntPtr drawable, IntPtr gc, XImage* image, int src_x, int src_y, int dst_x, int dst_y, uint src_width, uint src_height, bool send_event);
+    static extern int XShmPutImage(IntPtr display, IntPtr drawable, IntPtr gc, XImage* image, int src_x, int src_y,
+        int dst_x, int dst_y, uint src_width, uint src_height, bool send_event);
 
     // XShmAttach(display, &shminfo);
     [DllImport("libXext.so.6", SetLastError = true)]
@@ -256,19 +242,21 @@ internal unsafe class XShm
    XShmSegmentInfo *shminfo;
  */
     [DllImport("libXext.so.6", SetLastError = true)]
-    static extern IntPtr XShmCreateImage(IntPtr display, IntPtr visual, uint depth, int format, IntPtr data, XShmSegmentInfo* shminfo, uint width, uint height);
+    static extern IntPtr XShmCreateImage(IntPtr display, IntPtr visual, uint depth, int format, IntPtr data,
+        XShmSegmentInfo* shminfo, uint width, uint height);
 }
 
 [StructLayout(LayoutKind.Sequential)]
 unsafe struct XShmSegmentInfo
 {
-    public ShmSeg shmseg;    /* resource id */
-    public int shmid;        /* kernel id */
-    public char* shmaddr;    /* address in client */
-    public bool readOnly;   /* how the server should attach it */
+    public ShmSeg shmseg; /* resource id */
+    public int shmid; /* kernel id */
+    public char* shmaddr; /* address in client */
+    public bool readOnly; /* how the server should attach it */
 
     public override string ToString()
     {
-        return $"XShmSegmentInfo {{ shmseg = {shmseg}, shmid = {shmid}, shmaddr = {new IntPtr(shmaddr).ToString("X")}, readOnly = {readOnly} }}";
+        return
+            $"XShmSegmentInfo {{ shmseg = {shmseg}, shmid = {shmid}, shmaddr = {new IntPtr(shmaddr).ToString("X")}, readOnly = {readOnly} }}";
     }
 }
