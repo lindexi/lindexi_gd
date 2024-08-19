@@ -106,17 +106,17 @@ unsafe
             var xEvent = new XEvent
             {
                 ExposeEvent =
-                        {
-                        type = XEventName.Expose,
-                        send_event = true,
-                        window = handle,
-                        count = 1,
-                        display = newDisplay,
-                        x = 0,
-                        y = 0,
-                        width = width,
-                        height = height,
-                        }
+                {
+                    type = XEventName.Expose,
+                    send_event = true,
+                    window = handle,
+                    count = 1,
+                    display = newDisplay,
+                    x = 0,
+                    y = 0,
+                    width = width,
+                    height = height,
+                }
             };
             // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
             XLib.XSendEvent(newDisplay, handle, propagate: false,
