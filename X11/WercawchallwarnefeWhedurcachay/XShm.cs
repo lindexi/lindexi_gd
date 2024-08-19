@@ -206,7 +206,7 @@ internal unsafe class XShm
                     stopwatch.Restart();
 
                     gc = XCreateGC(display, handle, 0, 0);
-                    XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, false);
+                    XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, true);
                     XFreeGC(display, gc);
 
                     XFlush(display);
@@ -214,6 +214,10 @@ internal unsafe class XShm
 
                 stopwatch.Stop();
                 Console.WriteLine($"完成推送图片 {stopwatch.ElapsedMilliseconds}ms");
+            }
+            else if ((int)@event.type == 65/*XShmCompletionEvent*/)
+            {
+                Console.WriteLine($"收到推送完成");
             }
         }
     }
