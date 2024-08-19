@@ -1,7 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-
 using CPF.Linux;
 
 using static CPF.Linux.XLib;
@@ -73,8 +70,6 @@ unsafe
     status = XShmQueryVersion(display, out var major, out var minor, out var pixmaps);
     Console.WriteLine($"XShmQueryVersion: {status} major={major} minor={minor} pixmaps={pixmaps}");
 
-    // /* Create XImage structure and map image memory on it */
-    // ximage = XShmCreateImage(display, DefaultVisual(display, 0), DefaultDepth(display, 0), ZPixmap, 0, &shminfo, 100, 100);
     const int ZPixmap = 2;
     var xShmSegmentInfo = new XShmSegmentInfo();
     var shmImage = (XImage*) XShmCreateImage(display, visual, 32, ZPixmap, IntPtr.Zero, &xShmSegmentInfo,
@@ -107,23 +102,6 @@ unsafe
         while (true)
         {
             Console.ReadLine();
-            //var @event = new XEvent
-            //{
-            //    ClientMessageEvent =
-            //    {
-            //        type = XEventName.ClientMessage,
-            //        send_event = true,
-            //        window = handle,
-            //        message_type = 0,
-            //        format = 32,
-            //        ptr1 = invokeMessageId,
-            //        ptr2 = 0,
-            //        ptr3 = 0,
-            //        ptr4 = 0,
-            //    }
-            //};
-
-            //XSendEvent(newDisplay, handle, false, 0, ref @event);
 
             var xEvent = new XEvent
             {
@@ -146,7 +124,6 @@ unsafe
                 ref xEvent);
 
             XFlush(newDisplay);
-            Console.WriteLine($"发送");
         }
 
         XCloseDisplay(newDisplay);
