@@ -7,6 +7,7 @@ unsafe
     Debugger.Break();
 
     F* foo = Foo(10);
+    F2(100, 20);
 
     var a1 = foo->A1;
 
@@ -35,6 +36,23 @@ unsafe
             count--;
             return Foo(count);
         }
+    }
+
+    int F2(int n, int count)
+    {
+        if (count == 0)
+        {
+            return n;
+        }
+
+        if (n == count)
+        {
+            return n;
+        }
+
+        count--;
+        n = Random.Shared.Next();
+        return F2(n, count);
     }
 }
 
