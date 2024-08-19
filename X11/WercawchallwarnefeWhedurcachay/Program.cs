@@ -264,7 +264,12 @@ while (true)
         break;
     }
 
-    if (@event.type == XEventName.Expose)
+    if ((int)@event.type == 65/*XShmCompletionEvent*/)
+    {
+        Console.WriteLine($"收到推送完成");
+    }
+
+    else if (@event.type == XEventName.Expose)
     {
         //skCanvas.Clear(new SKColor((uint) Random.Shared.Next()));
         //skCanvas.Flush();
@@ -295,7 +300,7 @@ while (true)
             [DllImport("libXext.so.6", SetLastError = true)]
             static extern int XShmPutImage(IntPtr display, IntPtr drawable, IntPtr gc, XImage* image, int src_x, int src_y, int dst_x, int dst_y, uint src_width, uint src_height, bool send_event);
 
-            XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, false);
+            XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, true);
 
             XFlush(display);
         }
@@ -306,7 +311,7 @@ while (true)
         Console.WriteLine($"耗时：{stopwatch.ElapsedMilliseconds}");
     }
 
-    if (@event.type == XEventName.ClientMessage)
+    else if (@event.type == XEventName.ClientMessage)
     {
         if (@event.ClientMessageEvent.ptr1 == invokeMessageId)
         {
@@ -319,6 +324,10 @@ while (true)
             stopwatch.Stop();
             Console.WriteLine($"耗时：{stopwatch.ElapsedMilliseconds}");
         }
+    }
+    else
+    {
+        Console.WriteLine($"Type={@event.type}");
     }
 }
 
