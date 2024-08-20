@@ -37,8 +37,8 @@ var xSetWindowAttributes = new XSetWindowAttributes
 var xDisplayWidth = XDisplayWidth(display, screen);
 var xDisplayHeight = XDisplayHeight(display, screen);
 
-var width = xDisplayWidth / 2;
-var height = xDisplayHeight / 2;
+var width = xDisplayWidth;
+var height = xDisplayHeight;
 
 var handle = XCreateWindow(display, rootWindow, 0, 0, width, height, 5,
     32,
@@ -65,7 +65,7 @@ skCanvas.Flush();
 var halfWidth = width / 2;
 var halfSkBitmap = new SKBitmap(halfWidth, height, SKColorType.Bgra8888, SKAlphaType.Premul);
 var halfSkCanvas = new SKCanvas(halfSkBitmap);
-halfSkCanvas.Clear(SKColors.Red);
+halfSkCanvas.Clear();
 halfSkCanvas.Flush();
 var halfImage = CreateImage(halfSkBitmap);
 
@@ -96,7 +96,7 @@ _ = Task.Run(() =>
         XLib.XSendEvent(newDisplay, handle, propagate: false,
             new IntPtr((int) (EventMask.ExposureMask)),
             ref xEvent);
-
+        
         XFlush(newDisplay);
     }
 
@@ -114,10 +114,13 @@ while (true)
 
     if (@event.type == XEventName.Expose)
     {
+        skCanvas.Clear(new SKColor((uint)Random.Shared.Next()).WithAlpha(0xFF));
+        skCanvas.Flush();
+
         XPutImage(display, handle, gc, ref xImage, @event.ExposeEvent.x, @event.ExposeEvent.y, @event.ExposeEvent.x, @event.ExposeEvent.y, (uint) @event.ExposeEvent.width,
             (uint) @event.ExposeEvent.height);
 
-        XPutImage(display, handle, gc, ref halfImage, 0, 0, width - Random.Shared.Next(halfWidth), 0, (uint) halfWidth,
+        XPutImage(display, handle, gc, ref halfImage, 0, 0, halfWidth, 0, (uint) halfWidth,
             (uint) height);
         XFlush(display);
     }
