@@ -125,6 +125,10 @@ unsafe
     c[0] = 0xCC;
     Console.WriteLine($"内存Pc={new IntPtr(c):X}");
 
+    var foo2 = new Foo();
+    var c2 = &foo2.Value;
+    Console.WriteLine($"内存Pc2={new IntPtr(c2):X} {new IntPtr(c2).ToInt64() - new IntPtr(c).ToInt64()}");
+
     var xShmProvider = new XShmProvider(new RenderInfo(display, visual, width, height, mapLength), new IntPtr(c));
     var xShmInfo = xShmProvider.XShmInfo;
     var (shmImage, shmAddr, debugIntPtr) = (xShmInfo.ShmAddr, (IntPtr) xShmInfo.ShmImage, xShmInfo.DebugIntPtr);
@@ -145,7 +149,7 @@ unsafe
 
     //Draw();
 
-   
+    // 在优化中，被提升到前面执行了
     var d = new IntPtr(c).ToInt64() - debugIntPtr.ToInt64();
     Console.WriteLine($"Pc={new IntPtr(c):X} 调试距离={d}");
     for (int i = 0; i < 1024 * 2; i++)
