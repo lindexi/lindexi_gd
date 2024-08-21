@@ -50,5 +50,7 @@ public partial class MainView : UserControl
         textBlock.RenderTransform = new TranslateTransform();
 
         await animation.RunAsync(textBlock);
+        IAnimation animationInterface = animation;
+        animationInterface.
     }
 }
