@@ -132,35 +132,8 @@ unsafe
     //Console.WriteLine($"内存Pc2={new IntPtr(c2):X} {new IntPtr(c2).ToInt64() - new IntPtr(c).ToInt64()}");
 
     var xShmProvider = new XShmProvider(new RenderInfo(display, visual, width, height, mapLength,handle,gc), new IntPtr());
-    xShmProvider.DoDraw();
-    var xShmInfo = xShmProvider.XShmInfo;
-    var (shmImage, shmAddr, debugIntPtr) = (xShmInfo.ShmAddr, (IntPtr) xShmInfo.ShmImage, xShmInfo.DebugIntPtr);
-
-    //void Draw()
-    //{
-    //    Span<byte> span = stackalloc byte[1024];
-    //    //Random.Shared.NextBytes(span);
-    //    var sharedMemory = (byte*) shmAddr;
-
-    //    for (int i = 0; i < span.Length; i++)
-    //    {
-    //        sharedMemory[i] = span[i];
-    //    }
-
-    //    Console.WriteLine($"绘制完成");
-    //}
-
-    //Draw();
-
-    //// 在优化中，被提升到前面执行了
-    //var d = new IntPtr(c).ToInt64() - debugIntPtr.ToInt64();
-    //Console.WriteLine($"Pc={new IntPtr(c):X} 调试距离={d}");
-    //for (int i = 0; i < 1024 * 2; i++)
-    //{
-    //    c[i] = 0xCC;
-    //}
-    //Console.WriteLine($"Pc={new IntPtr(c + 2047):X}");
-
+    //var xShmInfo = xShmProvider.XShmInfo;
+    //var (shmImage, shmAddr, debugIntPtr) = (xShmInfo.ShmAddr, (IntPtr) xShmInfo.ShmImage, xShmInfo.DebugIntPtr);
     while (true)
     {
         var xNextEvent = XNextEvent(display, out var @event);
@@ -186,8 +159,7 @@ unsafe
 
             stopwatch.Restart();
 
-
-          
+            xShmProvider.DoDraw();
 
             stopwatch.Stop();
         }
@@ -201,14 +173,16 @@ Console.WriteLine("Hello, World!");
 
 
 
-public record RenderInfo(
+public record RenderInfo
+(
     IntPtr Display,
     IntPtr Visual,
     int Width,
     int Height,
     int DataByteLength,
     IntPtr Handle,
-    IntPtr GC);
+    IntPtr GC
+    );
 
 class XShmProvider
 {
@@ -314,14 +288,6 @@ class XShmProvider
     //    //}
     //    //Console.WriteLine($"DoDraw Pc={new IntPtr(c):X} _XShmInfo={XShmInfo.DebugIntPtr:X} 距离={new IntPtr(c).ToInt64() - XShmInfo.DebugIntPtr.ToInt64()} 当前调试代码的内存 {*((long*) XShmInfo.DebugIntPtr):X}");
     //}
-}
-
-
-
-[InlineArray(1024 * 2)]
-struct Foo
-{
-    public byte Value;
 }
 
 unsafe class XShmInfo
