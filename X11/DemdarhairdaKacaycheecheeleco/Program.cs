@@ -107,6 +107,9 @@ unsafe
 
     //(IntPtr shmImage, IntPtr shmAddr, IntPtr debugIntPtr) Init()
     //{
+    //    Span<byte> span = stackalloc byte[1024];
+    //    Random.Shared.NextBytes(span);
+
     //    var xShmInfo = CreateXShmInfo(display, visual, width, height, mapLength);
 
     //    return (xShmInfo.ShmAddr, (IntPtr) xShmInfo.ShmImage, xShmInfo.DebugIntPtr);
@@ -114,12 +117,33 @@ unsafe
 
     //var (shmImage, shmAddr, debugIntPtr) = Init();
 
-    var xShmInfo = CreateXShmInfo(display, visual, width, height, mapLength);
+    //var xShmInfo = CreateXShmInfo(display, visual, width, height, mapLength);
+    //var (shmImage, shmAddr, debugIntPtr) = (xShmInfo.ShmAddr, (IntPtr) xShmInfo.ShmImage, xShmInfo.DebugIntPtr);
+
+    var xShmProvider = new XShmProvider(new RenderInfo(display, visual, width, height, mapLength));
+    var xShmInfo = xShmProvider.XShmInfo;
     var (shmImage, shmAddr, debugIntPtr) = (xShmInfo.ShmAddr, (IntPtr) xShmInfo.ShmImage, xShmInfo.DebugIntPtr);
+
+    void Draw()
+    {
+        Span<byte> span = stackalloc byte[1024];
+        //Random.Shared.NextBytes(span);
+        var sharedMemory = (byte*) shmAddr;
+
+        for (int i = 0; i < span.Length; i++)
+        {
+            sharedMemory[i] = span[i];
+        }
+
+        Console.WriteLine($"绘制完成");
+    }
+
+    //Draw();
 
     var foo = new Foo();
     var c = &foo.Value;
-    Console.WriteLine($"Pc={new IntPtr(c):X} 调试距离={(new IntPtr(c) - debugIntPtr)}");
+    var d = new IntPtr(c).ToInt64() - debugIntPtr.ToInt64();
+    Console.WriteLine($"Pc={new IntPtr(c):X} 调试距离={d}");
     for (int i = 0; i < 1024 * 2; i++)
     {
         c[i] = 0xCC;
@@ -137,19 +161,7 @@ unsafe
 
         if (@event.type == XEventName.Expose)
         {
-            void Draw()
-            {
-                Span<byte> span = stackalloc byte[1024];
-                //Random.Shared.NextBytes(span);
-                var sharedMemory = (byte*) shmAddr;
-
-                for (int i = 0; i < span.Length; i++)
-                {
-                    sharedMemory[i] = span[i];
-                }
-
-                Console.WriteLine($"绘制完成");
-            }
+           
 
             // 模拟绘制界面
             //Draw();
@@ -181,47 +193,61 @@ Console.WriteLine("Hello, World!");
 
 
 
-static unsafe XShmInfo CreateXShmInfo(IntPtr display, nint visual, int width, int height, int mapLength)
+public record RenderInfo(IntPtr Display, nint Visual, int Width, int Height, int DataByteLength);
+
+class XShmProvider
 {
-    var status = XShmQueryExtension(display);
-    if (status == 0)
+    public XShmProvider(RenderInfo renderInfo)
     {
-        throw new Exception("XShmQueryExtension failed"); // 实际使用请换成你的业务异常类型
+        XShmInfo = CreateXShmInfo(renderInfo.Display, renderInfo.Visual, renderInfo.Width, renderInfo.Height, renderInfo.DataByteLength);
     }
 
-    status = XShmQueryVersion(display, out var major, out var minor, out var pixmaps);
-    Console.WriteLine($"XShmQueryVersion: {status} major={major} minor={minor} pixmaps={pixmaps}");
-    if (status == 0)
+    public XShmInfo XShmInfo { get; }
+
+    static unsafe XShmInfo CreateXShmInfo(IntPtr display, nint visual, int width, int height, int mapLength)
     {
-        throw new Exception("XShmQueryVersion failed"); // 实际使用请换成你的业务异常类型
+        var status = XShmQueryExtension(display);
+        if (status == 0)
+        {
+            throw new Exception("XShmQueryExtension failed"); // 实际使用请换成你的业务异常类型
+        }
+
+        status = XShmQueryVersion(display, out var major, out var minor, out var pixmaps);
+        Console.WriteLine($"XShmQueryVersion: {status} major={major} minor={minor} pixmaps={pixmaps}");
+        if (status == 0)
+        {
+            throw new Exception("XShmQueryVersion failed"); // 实际使用请换成你的业务异常类型
+        }
+
+        const int ZPixmap = 2;
+        var xShmSegmentInfo = new XShmSegmentInfo();
+        var shmImage = (XImage*) XShmCreateImage(display, visual, 32, ZPixmap, IntPtr.Zero, &xShmSegmentInfo,
+            (uint) width, (uint) height);
+
+        Console.WriteLine($"XShmCreateImage = {(IntPtr) shmImage:X} xShmSegmentInfo={xShmSegmentInfo} PXShmCreateImage={new IntPtr(&xShmSegmentInfo):X}");
+
+        var shmgetResult = shmget(IPC_PRIVATE, mapLength, IPC_CREAT | 0777);
+        Console.WriteLine($"shmgetResult={shmgetResult:X}");
+
+        xShmSegmentInfo.shmid = shmgetResult;
+
+        var shmaddr = shmat(shmgetResult, IntPtr.Zero, 0);
+        Console.WriteLine($"shmaddr={shmaddr:X}");
+
+        xShmSegmentInfo.shmaddr = (char*) shmaddr.ToPointer();
+        shmImage->data = shmaddr;
+
+        XShmAttach(display, &xShmSegmentInfo);
+        XFlush(display);
+
+        return new XShmInfo(shmImage, shmaddr)
+        {
+            DebugIntPtr = new IntPtr(&xShmSegmentInfo)
+        };
     }
-
-    const int ZPixmap = 2;
-    var xShmSegmentInfo = new XShmSegmentInfo();
-    var shmImage = (XImage*) XShmCreateImage(display, visual, 32, ZPixmap, IntPtr.Zero, &xShmSegmentInfo,
-        (uint) width, (uint) height);
-
-    Console.WriteLine($"XShmCreateImage = {(IntPtr) shmImage:X} xShmSegmentInfo={xShmSegmentInfo} PXShmCreateImage={new IntPtr(&xShmSegmentInfo):X}");
-
-    var shmgetResult = shmget(IPC_PRIVATE, mapLength, IPC_CREAT | 0777);
-    Console.WriteLine($"shmgetResult={shmgetResult:X}");
-
-    xShmSegmentInfo.shmid = shmgetResult;
-
-    var shmaddr = shmat(shmgetResult, IntPtr.Zero, 0);
-    Console.WriteLine($"shmaddr={shmaddr:X}");
-
-    xShmSegmentInfo.shmaddr = (char*) shmaddr.ToPointer();
-    shmImage->data = shmaddr;
-
-    XShmAttach(display, &xShmSegmentInfo);
-    XFlush(display);
-
-    return new XShmInfo(shmImage, shmaddr)
-    {
-        DebugIntPtr = new IntPtr(&xShmSegmentInfo)
-    };
 }
+
+
 
 [InlineArray(1024 * 2)]
 struct Foo
