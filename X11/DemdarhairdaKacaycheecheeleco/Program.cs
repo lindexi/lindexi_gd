@@ -119,7 +119,7 @@ unsafe
 
     var foo = new Foo();
     var c = &foo.Value;
-    Console.WriteLine($"Pc={new IntPtr(c):X}");
+    Console.WriteLine($"Pc={new IntPtr(c):X} 调试距离={(new IntPtr(c) - debugIntPtr)}");
     for (int i = 0; i < 1024 * 2; i++)
     {
         c[i] = 0xCC;
