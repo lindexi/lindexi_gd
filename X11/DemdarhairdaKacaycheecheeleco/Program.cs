@@ -107,19 +107,7 @@ unsafe
 
     (IntPtr shmImage, IntPtr shmAddr, IntPtr debugIntPtr) Init()
     {
-        Span<byte> span = stackalloc byte[1024];
-        //Random.Shared.NextBytes(span);
-
         var xShmInfo = CreateXShmInfo(display, visual, width, height, mapLength);
-
-        // 尝试写入内存，如果能写入成功，说明共享内存正常工作
-        for (int i = 0; i < span.Length; i++)
-        {
-            var sharedMemory = (byte*) xShmInfo.ShmAddr;
-            sharedMemory[i] = span[i];
-        }
-
-        Console.WriteLine($"申请内存成功");
 
         return (xShmInfo.ShmAddr, (IntPtr) xShmInfo.ShmImage, xShmInfo.DebugIntPtr);
     }
