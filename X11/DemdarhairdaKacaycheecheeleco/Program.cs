@@ -114,12 +114,12 @@ unsafe
 
     var (shmImage, shmAddr, debugIntPtr) = Init();
 
-    var foo = new Foo();
-    var c = &foo.Value;
-    for (int i = 0; i < 1024 * 2; i++)
-    {
-        c[i] = 0xCC;
-    }
+    //var foo = new Foo();
+    //var c = &foo.Value;
+    //for (int i = 0; i < 1024 * 2; i++)
+    //{
+    //    c[i] = 0xCC;
+    //}
 
     while (true)
     {
@@ -148,13 +148,13 @@ unsafe
 
             // 模拟绘制界面
             //Draw();
-            Span<byte> span = new Span<byte>((&foo.Value), 1024 * 2);
-            var sharedMemory = (byte*) shmAddr;
-            for (int i = 0; i < span.Length; i++)
-            {
-                sharedMemory[i] = span[i];
-            }
-            Console.WriteLine($"绘制完成");
+            //Span<byte> span = new Span<byte>((&foo.Value), 1024 * 2);
+            //var sharedMemory = (byte*) shmAddr;
+            //for (int i = 0; i < span.Length; i++)
+            //{
+            //    sharedMemory[i] = span[i];
+            //}
+            //Console.WriteLine($"绘制完成");
 
             stopwatch.Restart();
 
