@@ -8,6 +8,8 @@ using static CPF.Linux.XShm;
 using static CPF.Linux.LibC;
 using System.Runtime.InteropServices;
 using SkiaSharp;
+using System.Reflection.Metadata;
+using System;
 
 unsafe
 {
@@ -120,44 +122,44 @@ unsafe
     //var xShmInfo = CreateXShmInfo(display, visual, width, height, mapLength);
     //var (shmImage, shmAddr, debugIntPtr) = (xShmInfo.ShmAddr, (IntPtr) xShmInfo.ShmImage, xShmInfo.DebugIntPtr);
 
-    var foo = new Foo();
-    var c = &foo.Value;
-    c[0] = 0xCC;
-    Console.WriteLine($"内存Pc={new IntPtr(c):X}");
+    //var foo = new Foo();
+    //var c = &foo.Value;
+    //c[0] = 0xCC;
+    //Console.WriteLine($"内存Pc={new IntPtr(c):X}");
 
-    var foo2 = new Foo();
-    var c2 = &foo2.Value;
-    Console.WriteLine($"内存Pc2={new IntPtr(c2):X} {new IntPtr(c2).ToInt64() - new IntPtr(c).ToInt64()}");
+    //var foo2 = new Foo();
+    //var c2 = &foo2.Value;
+    //Console.WriteLine($"内存Pc2={new IntPtr(c2):X} {new IntPtr(c2).ToInt64() - new IntPtr(c).ToInt64()}");
 
-    var xShmProvider = new XShmProvider(new RenderInfo(display, visual, width, height, mapLength), new IntPtr(c));
+    var xShmProvider = new XShmProvider(new RenderInfo(display, visual, width, height, mapLength,handle,gc), new IntPtr());
     xShmProvider.DoDraw();
     var xShmInfo = xShmProvider.XShmInfo;
     var (shmImage, shmAddr, debugIntPtr) = (xShmInfo.ShmAddr, (IntPtr) xShmInfo.ShmImage, xShmInfo.DebugIntPtr);
 
-    void Draw()
-    {
-        Span<byte> span = stackalloc byte[1024];
-        //Random.Shared.NextBytes(span);
-        var sharedMemory = (byte*) shmAddr;
+    //void Draw()
+    //{
+    //    Span<byte> span = stackalloc byte[1024];
+    //    //Random.Shared.NextBytes(span);
+    //    var sharedMemory = (byte*) shmAddr;
 
-        for (int i = 0; i < span.Length; i++)
-        {
-            sharedMemory[i] = span[i];
-        }
+    //    for (int i = 0; i < span.Length; i++)
+    //    {
+    //        sharedMemory[i] = span[i];
+    //    }
 
-        Console.WriteLine($"绘制完成");
-    }
+    //    Console.WriteLine($"绘制完成");
+    //}
 
     //Draw();
 
-    // 在优化中，被提升到前面执行了
-    var d = new IntPtr(c).ToInt64() - debugIntPtr.ToInt64();
-    Console.WriteLine($"Pc={new IntPtr(c):X} 调试距离={d}");
-    for (int i = 0; i < 1024 * 2; i++)
-    {
-        c[i] = 0xCC;
-    }
-    Console.WriteLine($"Pc={new IntPtr(c + 2047):X}");
+    //// 在优化中，被提升到前面执行了
+    //var d = new IntPtr(c).ToInt64() - debugIntPtr.ToInt64();
+    //Console.WriteLine($"Pc={new IntPtr(c):X} 调试距离={d}");
+    //for (int i = 0; i < 1024 * 2; i++)
+    //{
+    //    c[i] = 0xCC;
+    //}
+    //Console.WriteLine($"Pc={new IntPtr(c + 2047):X}");
 
     while (true)
     {
@@ -184,11 +186,8 @@ unsafe
 
             stopwatch.Restart();
 
-            Console.WriteLine($"当前调试代码的内存 {*((long*) debugIntPtr):X}");
 
-            XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, true);
-
-            XFlush(display);
+          
 
             stopwatch.Stop();
         }
@@ -202,7 +201,14 @@ Console.WriteLine("Hello, World!");
 
 
 
-public record RenderInfo(IntPtr Display, nint Visual, int Width, int Height, int DataByteLength);
+public record RenderInfo(
+    IntPtr Display,
+    IntPtr Visual,
+    int Width,
+    int Height,
+    int DataByteLength,
+    IntPtr Handle,
+    IntPtr GC);
 
 class XShmProvider
 {
@@ -272,19 +278,42 @@ class XShmProvider
 
     public unsafe void DoDraw()
     {
-        var foo = new Foo();
-        var c = &foo.Value;
-        c[0] = 0xCC;
-        Console.WriteLine($"DoDraw Pc={new IntPtr(c):X} _XShmInfo={XShmInfo.DebugIntPtr:X} 距离={new IntPtr(c).ToInt64() - XShmInfo.DebugIntPtr.ToInt64()} 当前调试代码的内存 {*((long*) XShmInfo.DebugIntPtr):X}");
-
-        for (int i = 0; i < 1024 * 2; i++)
+        Span<byte> span = stackalloc byte[1024*2];
+        for (int i = 0; i < span.Length; i++)
         {
-            *c = 0xCC;
-            c++;
+            span[i] = 0x00;
         }
 
-        Console.WriteLine($"DoDraw Pc={new IntPtr(c):X} _XShmInfo={XShmInfo.DebugIntPtr:X} 距离={new IntPtr(c).ToInt64() - XShmInfo.DebugIntPtr.ToInt64()} 当前调试代码的内存 {*((long*) XShmInfo.DebugIntPtr):X}");
+        Console.WriteLine($"当前调试代码的内存 {*((long*) XShmInfo.DebugIntPtr):X}");
+
+        var display = _renderInfo.Display;
+        var handle = _renderInfo.Handle;
+        var gc = _renderInfo.GC;
+        var shmImage = XShmInfo.ShmImage;
+        var width = _renderInfo.Width;
+        var height = _renderInfo.Height;
+
+        XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, true);
+
+        XFlush(display);
     }
+
+    //public unsafe void DoDraw()
+    //{
+    //    var foo = new Foo();
+    //    var c = &foo.Value;
+    //    c[0] = 0xCC;
+    //    Console.WriteLine($"DoDraw Pc={new IntPtr(c):X} _XShmInfo={XShmInfo.DebugIntPtr:X} 距离={new IntPtr(c).ToInt64() - XShmInfo.DebugIntPtr.ToInt64()} 当前调试代码的内存 {*((long*) XShmInfo.DebugIntPtr):X}");
+
+    //    // 如果经过以下写入过程，那原先的 XShmSegmentInfo 所在的内存地址就会被覆盖，控制抬输出的内容如下
+    //    // DoDraw Pc=7FCF54F7F8 _XShmInfo=7FCF54F2B8 距离=1344 当前调试代码的内存 CCCCCCCCCCCCCCCC
+    //    //for (int i = 0; i < 1024 * 2; i++)
+    //    //{
+    //    //    *c = 0xCC;
+    //    //    c++;
+    //    //}
+    //    //Console.WriteLine($"DoDraw Pc={new IntPtr(c):X} _XShmInfo={XShmInfo.DebugIntPtr:X} 距离={new IntPtr(c).ToInt64() - XShmInfo.DebugIntPtr.ToInt64()} 当前调试代码的内存 {*((long*) XShmInfo.DebugIntPtr):X}");
+    //}
 }
 
 
