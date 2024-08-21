@@ -161,7 +161,7 @@ unsafe
 
         if (@event.type == XEventName.Expose)
         {
-           
+
 
             // 模拟绘制界面
             //Draw();
@@ -199,10 +199,23 @@ class XShmProvider
 {
     public XShmProvider(RenderInfo renderInfo)
     {
-        XShmInfo = CreateXShmInfo(renderInfo.Display, renderInfo.Visual, renderInfo.Width, renderInfo.Height, renderInfo.DataByteLength);
+        _renderInfo = renderInfo;
+        XShmInfo = Init();
     }
 
     public XShmInfo XShmInfo { get; }
+    private readonly RenderInfo _renderInfo;
+
+    private XShmInfo Init()
+    {
+        //// 尝试抬高栈的空间
+        //Span<byte> span = stackalloc byte[1024];
+        //Random.Shared.NextBytes(span);
+
+        var renderInfo = _renderInfo;
+        var result = CreateXShmInfo(renderInfo.Display, renderInfo.Visual, renderInfo.Width, renderInfo.Height, renderInfo.DataByteLength);
+        return result;
+    }
 
     static unsafe XShmInfo CreateXShmInfo(IntPtr display, nint visual, int width, int height, int mapLength)
     {
