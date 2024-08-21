@@ -117,12 +117,14 @@ unsafe
     var xShmInfo = CreateXShmInfo(display, visual, width, height, mapLength);
     var (shmImage, shmAddr, debugIntPtr) = (xShmInfo.ShmAddr, (IntPtr) xShmInfo.ShmImage, xShmInfo.DebugIntPtr);
 
-    //var foo = new Foo();
-    //var c = &foo.Value;
-    //for (int i = 0; i < 1024 * 2; i++)
-    //{
-    //    c[i] = 0xCC;
-    //}
+    var foo = new Foo();
+    var c = &foo.Value;
+    Console.WriteLine($"Pc={new IntPtr(c):X}");
+    for (int i = 0; i < 1024 * 2; i++)
+    {
+        c[i] = 0xCC;
+    }
+    Console.WriteLine($"Pc={new IntPtr(c + 2047):X}");
 
     while (true)
     {
@@ -199,7 +201,7 @@ static unsafe XShmInfo CreateXShmInfo(IntPtr display, nint visual, int width, in
     var shmImage = (XImage*) XShmCreateImage(display, visual, 32, ZPixmap, IntPtr.Zero, &xShmSegmentInfo,
         (uint) width, (uint) height);
 
-    Console.WriteLine($"XShmCreateImage = {(IntPtr) shmImage:X} xShmSegmentInfo={xShmSegmentInfo}");
+    Console.WriteLine($"XShmCreateImage = {(IntPtr) shmImage:X} xShmSegmentInfo={xShmSegmentInfo} PXShmCreateImage={new IntPtr(&xShmSegmentInfo):X}");
 
     var shmgetResult = shmget(IPC_PRIVATE, mapLength, IPC_CREAT | 0777);
     Console.WriteLine($"shmgetResult={shmgetResult:X}");
