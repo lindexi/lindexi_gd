@@ -130,6 +130,7 @@ unsafe
     Console.WriteLine($"内存Pc2={new IntPtr(c2):X} {new IntPtr(c2).ToInt64() - new IntPtr(c).ToInt64()}");
 
     var xShmProvider = new XShmProvider(new RenderInfo(display, visual, width, height, mapLength), new IntPtr(c));
+    xShmProvider.DoDraw();
     var xShmInfo = xShmProvider.XShmInfo;
     var (shmImage, shmAddr, debugIntPtr) = (xShmInfo.ShmAddr, (IntPtr) xShmInfo.ShmImage, xShmInfo.DebugIntPtr);
 
@@ -218,9 +219,9 @@ class XShmProvider
 
     private XShmInfo Init()
     {
-        //// 尝试抬高栈的空间
-        //Span<byte> span = stackalloc byte[1024];
-        //Random.Shared.NextBytes(span);
+        // 尝试抬高栈的空间
+        Span<byte> span = stackalloc byte[1024];
+        Random.Shared.NextBytes(span);
 
         var renderInfo = _renderInfo;
         var result = CreateXShmInfo(renderInfo.Display, renderInfo.Visual, renderInfo.Width, renderInfo.Height, renderInfo.DataByteLength);
@@ -267,6 +268,22 @@ class XShmProvider
         {
             DebugIntPtr = new IntPtr(&xShmSegmentInfo)
         };
+    }
+
+    public unsafe void DoDraw()
+    {
+        var foo = new Foo();
+        var c = &foo.Value;
+        c[0] = 0xCC;
+        Console.WriteLine($"DoDraw Pc={new IntPtr(c):X} _XShmInfo={XShmInfo.DebugIntPtr:X} 距离={new IntPtr(c).ToInt64() - XShmInfo.DebugIntPtr.ToInt64()} 当前调试代码的内存 {*((long*) XShmInfo.DebugIntPtr):X}");
+
+        for (int i = 0; i < 1024 * 2; i++)
+        {
+            *c = 0xCC;
+            c++;
+        }
+
+        Console.WriteLine($"DoDraw Pc={new IntPtr(c):X} _XShmInfo={XShmInfo.DebugIntPtr:X} 距离={new IntPtr(c).ToInt64() - XShmInfo.DebugIntPtr.ToInt64()} 当前调试代码的内存 {*((long*) XShmInfo.DebugIntPtr):X}");
     }
 }
 
