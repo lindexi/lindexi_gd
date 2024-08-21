@@ -105,14 +105,17 @@ unsafe
     var mapLength = width * 4 * height;
     //Console.WriteLine($"Length = {mapLength}");
 
-    (IntPtr shmImage, IntPtr shmAddr, IntPtr debugIntPtr) Init()
-    {
-        var xShmInfo = CreateXShmInfo(display, visual, width, height, mapLength);
+    //(IntPtr shmImage, IntPtr shmAddr, IntPtr debugIntPtr) Init()
+    //{
+    //    var xShmInfo = CreateXShmInfo(display, visual, width, height, mapLength);
 
-        return (xShmInfo.ShmAddr, (IntPtr) xShmInfo.ShmImage, xShmInfo.DebugIntPtr);
-    }
+    //    return (xShmInfo.ShmAddr, (IntPtr) xShmInfo.ShmImage, xShmInfo.DebugIntPtr);
+    //}
 
-    var (shmImage, shmAddr, debugIntPtr) = Init();
+    //var (shmImage, shmAddr, debugIntPtr) = Init();
+
+    var xShmInfo = CreateXShmInfo(display, visual, width, height, mapLength);
+    var (shmImage, shmAddr, debugIntPtr) = (xShmInfo.ShmAddr, (IntPtr) xShmInfo.ShmImage, xShmInfo.DebugIntPtr);
 
     //var foo = new Foo();
     //var c = &foo.Value;
