@@ -105,21 +105,24 @@ unsafe
     var mapLength = width * 4 * height;
     //Console.WriteLine($"Length = {mapLength}");
 
-    (IntPtr shmImage, IntPtr shmAddr, IntPtr debugIntPtr) Init()
-    {
-        var xShmInfo = CreateXShmInfo(display, visual, width, height, mapLength);
+    //(IntPtr shmImage, IntPtr shmAddr, IntPtr debugIntPtr) Init()
+    //{
+    //    var xShmInfo = CreateXShmInfo(display, visual, width, height, mapLength);
 
-        return (xShmInfo.ShmAddr, (IntPtr) xShmInfo.ShmImage, xShmInfo.DebugIntPtr);
-    }
+    //    return (xShmInfo.ShmAddr, (IntPtr) xShmInfo.ShmImage, xShmInfo.DebugIntPtr);
+    //}
 
-    var (shmImage, shmAddr, debugIntPtr) = Init();
+    //var (shmImage, shmAddr, debugIntPtr) = Init();
 
-    var foo = new Foo();
-    var c = &foo.Value;
-    for (int i = 0; i < 1024 * 2; i++)
-    {
-        c[i] = 0xCC;
-    }
+    var xShmInfo = CreateXShmInfo(display, visual, width, height, mapLength);
+    var (shmImage, shmAddr, debugIntPtr) = (xShmInfo.ShmAddr, (IntPtr) xShmInfo.ShmImage, xShmInfo.DebugIntPtr);
+
+    //var foo = new Foo();
+    //var c = &foo.Value;
+    //for (int i = 0; i < 1024 * 2; i++)
+    //{
+    //    c[i] = 0xCC;
+    //}
 
     while (true)
     {
@@ -148,13 +151,13 @@ unsafe
 
             // 模拟绘制界面
             //Draw();
-            Span<byte> span = new Span<byte>((&foo.Value), 1024 * 2);
-            var sharedMemory = (byte*) shmAddr;
-            for (int i = 0; i < span.Length; i++)
-            {
-                sharedMemory[i] = span[i];
-            }
-            Console.WriteLine($"绘制完成");
+            //Span<byte> span = new Span<byte>((&foo.Value), 1024 * 2);
+            //var sharedMemory = (byte*) shmAddr;
+            //for (int i = 0; i < span.Length; i++)
+            //{
+            //    sharedMemory[i] = span[i];
+            //}
+            //Console.WriteLine($"绘制完成");
 
             stopwatch.Restart();
 
