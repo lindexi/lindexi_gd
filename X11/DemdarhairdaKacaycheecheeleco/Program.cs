@@ -123,8 +123,13 @@ unsafe
     var foo = new Foo();
     var c = &foo.Value;
     c[0] = 0xCC;
+    Console.WriteLine($"内存Pc={new IntPtr(c):X}");
 
-    var xShmProvider = new XShmProvider(new RenderInfo(display, visual, width, height, mapLength));
+    var foo2 = new Foo();
+    var c2 = &foo2.Value;
+    Console.WriteLine($"内存Pc2={new IntPtr(c2):X} {new IntPtr(c2).ToInt64() - new IntPtr(c).ToInt64()}");
+
+    var xShmProvider = new XShmProvider(new RenderInfo(display, visual, width, height, mapLength), new IntPtr(c));
     var xShmInfo = xShmProvider.XShmInfo;
     var (shmImage, shmAddr, debugIntPtr) = (xShmInfo.ShmAddr, (IntPtr) xShmInfo.ShmImage, xShmInfo.DebugIntPtr);
 
@@ -144,7 +149,7 @@ unsafe
 
     //Draw();
 
-   
+    // 在优化中，被提升到前面执行了
     var d = new IntPtr(c).ToInt64() - debugIntPtr.ToInt64();
     Console.WriteLine($"Pc={new IntPtr(c):X} 调试距离={d}");
     for (int i = 0; i < 1024 * 2; i++)
@@ -200,14 +205,16 @@ public record RenderInfo(IntPtr Display, nint Visual, int Width, int Height, int
 
 class XShmProvider
 {
-    public XShmProvider(RenderInfo renderInfo)
+    public XShmProvider(RenderInfo renderInfo, IntPtr debugIntPtr)
     {
         _renderInfo = renderInfo;
+        _debugIntPtr = debugIntPtr;
         XShmInfo = Init();
     }
 
     public XShmInfo XShmInfo { get; }
     private readonly RenderInfo _renderInfo;
+    private readonly IntPtr _debugIntPtr;
 
     private XShmInfo Init()
     {
