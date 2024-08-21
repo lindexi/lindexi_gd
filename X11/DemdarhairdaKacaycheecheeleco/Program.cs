@@ -1,15 +1,10 @@
 ﻿// See https://aka.ms/new-console-template for more information
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using CPF.Linux;
 
+using System.Diagnostics;
+using CPF.Linux;
 using static CPF.Linux.XLib;
 using static CPF.Linux.XShm;
 using static CPF.Linux.LibC;
-using System.Runtime.InteropServices;
-using SkiaSharp;
-using System.Reflection.Metadata;
-using System;
 
 unsafe
 {
@@ -52,13 +47,13 @@ unsafe
 
     var handle = XCreateWindow(display, rootWindow, 0, 0, width, height, 5,
         32,
-        (int) CreateWindowArgs.InputOutput,
+        (int)CreateWindowArgs.InputOutput,
         visual,
-        (nuint) valueMask, ref xSetWindowAttributes);
+        (nuint)valueMask, ref xSetWindowAttributes);
 
     XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.ResizeRedirectMask |
                              XEventMask.PointerMotionHintMask;
-    var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
+    var mask = new IntPtr(0xffffff ^ (int)ignoredMask);
     XSelectInput(display, handle, mask);
 
     XMapWindow(display, handle);
@@ -93,7 +88,7 @@ unsafe
             };
             // [Xlib Programming Manual: Expose Events](https://tronche.com/gui/x/xlib/events/exposure/expose.html )
             XLib.XSendEvent(newDisplay, handle, propagate: false,
-                new IntPtr((int) (EventMask.ExposureMask)),
+                new IntPtr((int)(EventMask.ExposureMask)),
                 ref xEvent);
 
             XFlush(newDisplay);
@@ -107,7 +102,7 @@ unsafe
     var mapLength = width * 4 * height;
     //Console.WriteLine($"Length = {mapLength}");
 
-    var xShmProvider = new XShmProvider(new RenderInfo(display, visual, width, height, mapLength,handle,gc), new IntPtr());
+    var xShmProvider = new XShmProvider(new RenderInfo(display, visual, width, height, mapLength, handle, gc));
     while (true)
     {
         var xNextEvent = XNextEvent(display, out var @event);
@@ -125,7 +120,7 @@ unsafe
 
             stopwatch.Stop();
         }
-        else if ((int) @event.type == 65 /*XShmCompletionEvent*/)
+        else if ((int)@event.type == 65 /*XShmCompletionEvent*/)
         {
         }
     }
@@ -146,16 +141,14 @@ public record RenderInfo
 
 class XShmProvider
 {
-    public XShmProvider(RenderInfo renderInfo, IntPtr debugIntPtr)
+    public XShmProvider(RenderInfo renderInfo)
     {
         _renderInfo = renderInfo;
-        _debugIntPtr = debugIntPtr;
         XShmInfo = Init();
     }
 
     public XShmInfo XShmInfo { get; }
     private readonly RenderInfo _renderInfo;
-    private readonly IntPtr _debugIntPtr;
 
     private XShmInfo Init()
     {
@@ -165,7 +158,8 @@ class XShmProvider
         Random.Shared.NextBytes(span);
 
         var renderInfo = _renderInfo;
-        var result = CreateXShmInfo(renderInfo.Display, renderInfo.Visual, renderInfo.Width, renderInfo.Height, renderInfo.DataByteLength);
+        var result = CreateXShmInfo(renderInfo.Display, renderInfo.Visual, renderInfo.Width, renderInfo.Height,
+            renderInfo.DataByteLength);
         return result;
     }
 
@@ -186,10 +180,11 @@ class XShmProvider
 
         const int ZPixmap = 2;
         var xShmSegmentInfo = new XShmSegmentInfo();
-        var shmImage = (XImage*) XShmCreateImage(display, visual, 32, ZPixmap, IntPtr.Zero, &xShmSegmentInfo,
-            (uint) width, (uint) height);
+        var shmImage = (XImage*)XShmCreateImage(display, visual, 32, ZPixmap, IntPtr.Zero, &xShmSegmentInfo,
+            (uint)width, (uint)height);
 
-        Console.WriteLine($"XShmCreateImage = {(IntPtr) shmImage:X} xShmSegmentInfo={xShmSegmentInfo} PXShmCreateImage={new IntPtr(&xShmSegmentInfo):X}");
+        Console.WriteLine(
+            $"XShmCreateImage = {(IntPtr)shmImage:X} xShmSegmentInfo={xShmSegmentInfo} PXShmCreateImage={new IntPtr(&xShmSegmentInfo):X}");
 
         var shmgetResult = shmget(IPC_PRIVATE, mapLength, IPC_CREAT | 0777);
         Console.WriteLine($"shmgetResult={shmgetResult:X}");
@@ -199,7 +194,7 @@ class XShmProvider
         var shmaddr = shmat(shmgetResult, IntPtr.Zero, 0);
         Console.WriteLine($"shmaddr={shmaddr:X}");
 
-        xShmSegmentInfo.shmaddr = (char*) shmaddr.ToPointer();
+        xShmSegmentInfo.shmaddr = (char*)shmaddr.ToPointer();
         shmImage->data = shmaddr;
 
         XShmAttach(display, &xShmSegmentInfo);
@@ -214,13 +209,13 @@ class XShmProvider
     public unsafe void DoDraw()
     {
         // 申请两倍于压栈空间的大小，确保测试地址被覆盖到，从而能够复现问题
-        Span<byte> span = stackalloc byte[1024*2];
+        Span<byte> span = stackalloc byte[1024 * 2];
         for (int i = 0; i < span.Length; i++)
         {
             span[i] = 0x00;
         }
 
-        Console.WriteLine($"当前调试代码的内存 {*((long*) XShmInfo.DebugIntPtr):X}");
+        Console.WriteLine($"当前调试代码的内存 {*((long*)XShmInfo.DebugIntPtr):X}");
 
         var display = _renderInfo.Display;
         var handle = _renderInfo.Handle;
@@ -229,7 +224,7 @@ class XShmProvider
         var width = _renderInfo.Width;
         var height = _renderInfo.Height;
 
-        XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, true);
+        XShmPutImage(display, handle, gc, (XImage*)shmImage, 0, 0, 0, 0, (uint)width, (uint)height, true);
 
         XFlush(display);
     }
