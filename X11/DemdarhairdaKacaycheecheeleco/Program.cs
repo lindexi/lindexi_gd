@@ -123,8 +123,9 @@ unsafe
     var foo = new Foo();
     var c = &foo.Value;
     c[0] = 0xCC;
+    Console.WriteLine($"内存Pc={new IntPtr(c):X}");
 
-    var xShmProvider = new XShmProvider(new RenderInfo(display, visual, width, height, mapLength));
+    var xShmProvider = new XShmProvider(new RenderInfo(display, visual, width, height, mapLength), new IntPtr(c));
     var xShmInfo = xShmProvider.XShmInfo;
     var (shmImage, shmAddr, debugIntPtr) = (xShmInfo.ShmAddr, (IntPtr) xShmInfo.ShmImage, xShmInfo.DebugIntPtr);
 
@@ -200,14 +201,16 @@ public record RenderInfo(IntPtr Display, nint Visual, int Width, int Height, int
 
 class XShmProvider
 {
-    public XShmProvider(RenderInfo renderInfo)
+    public XShmProvider(RenderInfo renderInfo, IntPtr debugIntPtr)
     {
         _renderInfo = renderInfo;
+        _debugIntPtr = debugIntPtr;
         XShmInfo = Init();
     }
 
     public XShmInfo XShmInfo { get; }
     private readonly RenderInfo _renderInfo;
+    private readonly IntPtr _debugIntPtr;
 
     private XShmInfo Init()
     {
