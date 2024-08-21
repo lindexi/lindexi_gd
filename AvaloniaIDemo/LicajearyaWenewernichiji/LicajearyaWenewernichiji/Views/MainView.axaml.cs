@@ -16,7 +16,7 @@ public partial class MainView : UserControl
         Loaded += MainView_Loaded;
     }
 
-    private void MainView_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void MainView_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         var content = Content;
         var textBlock = (TextBlock) content!;
@@ -49,6 +49,8 @@ public partial class MainView : UserControl
 
         textBlock.RenderTransform = new TranslateTransform();
 
-        _ = animation.RunAsync(textBlock);
+        await animation.RunAsync(textBlock);
+        IAnimation animationInterface = animation;
+        animationInterface.
     }
 }
