@@ -24,7 +24,7 @@ public partial class MainView : UserControl
         var animation = new Animation()
         {
             Duration = TimeSpan.FromSeconds(10),
-            IterationCount = new IterationCount(1),
+            IterationCount = IterationCount.Infinite,
             PlaybackDirection = PlaybackDirection.Alternate,
             Children =
             {
