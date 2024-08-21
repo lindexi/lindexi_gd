@@ -121,6 +121,8 @@ unsafe
     //var (shmImage, shmAddr, debugIntPtr) = (xShmInfo.ShmAddr, (IntPtr) xShmInfo.ShmImage, xShmInfo.DebugIntPtr);
 
     var foo = new Foo();
+    var c = &foo.Value;
+    c[0] = 0xCC;
 
     var xShmProvider = new XShmProvider(new RenderInfo(display, visual, width, height, mapLength));
     var xShmInfo = xShmProvider.XShmInfo;
@@ -142,7 +144,7 @@ unsafe
 
     //Draw();
 
-    var c = &foo.Value;
+   
     var d = new IntPtr(c).ToInt64() - debugIntPtr.ToInt64();
     Console.WriteLine($"Pc={new IntPtr(c):X} 调试距离={d}");
     for (int i = 0; i < 1024 * 2; i++)
