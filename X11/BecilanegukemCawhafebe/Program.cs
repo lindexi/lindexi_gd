@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using CPF.Linux;
 
 using static CPF.Linux.XLib;
@@ -153,6 +154,8 @@ unsafe
 
             stopwatch.Restart();
 
+            Console.WriteLine($"shmseg={xShmSegmentInfo.shmseg}");
+
             XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, true);
 
             XFlush(display);
@@ -161,6 +164,10 @@ unsafe
         }
         else if ((int) @event.type == 65 /*XShmCompletionEvent*/)
         {
+            var p = &@event;
+            var xShmCompletionEvent = (XShmCompletionEvent*) p;
+
+            Console.WriteLine($"XShmCompletionEvent: type={xShmCompletionEvent->type} serial={xShmCompletionEvent->serial} {xShmCompletionEvent->send_event} {xShmCompletionEvent->display} {xShmCompletionEvent->drawable} ShmReqCode={xShmCompletionEvent->major_code} X_ShmPutImage={xShmCompletionEvent->minor_code} shmseg={xShmCompletionEvent->shmseg} {xShmCompletionEvent->offset}");
         }
     }
 }
