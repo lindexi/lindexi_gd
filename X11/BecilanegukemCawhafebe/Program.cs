@@ -280,8 +280,6 @@ unsafe
 
                     drawAverageCounter.Start();
                  
-                    //skCanvas.Clear();
-
                     skCanvas.DrawRect((float) x, (float) y, 100, 100, skPaint);
 
                     drawAverageCounter.Stop();
