@@ -194,7 +194,7 @@ unsafe
     });
 
 
-    var stopwatch = new Stopwatch();
+    //var stopwatch = new Stopwatch();
 
 
     while (true)
@@ -220,7 +220,7 @@ unsafe
                 p[i] = color;
             }
 
-            stopwatch.Restart();
+            //stopwatch.Restart();
 
             Console.WriteLine($"shmseg={xShmSegmentInfo.shmseg}");
 
