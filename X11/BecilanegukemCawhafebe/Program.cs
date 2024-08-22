@@ -62,6 +62,11 @@ unsafe
     XFlush(display);
 
     var skBitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
+    var skCanvas = new SKCanvas(skBitmap);
+
+    using var skPaint = new SKPaint();
+    skPaint.Color = SKColors.Red;
+    skPaint.Style = SKPaintStyle.Fill;
 
     var mapLength = width * 4 * height;
     //Console.WriteLine($"Length = {mapLength}");
@@ -274,15 +279,9 @@ unsafe
                     }
 
                     drawAverageCounter.Start();
-                    using (var skCanvas = new SKCanvas(skBitmap))
-                    {
-                        skCanvas.Clear();
-                        using var skPaint = new SKPaint();
-                        skPaint.Color = SKColors.Red;
-                        skPaint.Style = SKPaintStyle.Fill;
+                 
+                    skCanvas.DrawRect((float) x, (float) y, 100, 100, skPaint);
 
-                        skCanvas.DrawRect((float) x, (float) y, 100, 100, skPaint);
-                    }
                     drawAverageCounter.Stop();
 
                     if (isRenderFinish)
