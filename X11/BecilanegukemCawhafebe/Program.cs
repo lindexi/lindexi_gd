@@ -96,6 +96,17 @@ unsafe
 
     XFlush(display);
 
+    for (int i = 0; i < 6; i++)
+    {
+        Task.Run(() =>
+        {
+            while (true)
+            {
+                
+            }
+        });
+    }
+
     Task.Run(() =>
     {
         var newDisplay = XOpenDisplay(IntPtr.Zero);
