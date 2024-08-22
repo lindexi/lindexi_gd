@@ -1,7 +1,8 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using CPF.Linux;
-
+using SkiaSharp;
 using static CPF.Linux.XLib;
 using static CPF.Linux.XShm;
 using static CPF.Linux.LibC;
@@ -58,6 +59,8 @@ unsafe
 
     XMapWindow(display, handle);
     XFlush(display);
+
+    var skBitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
 
     var mapLength = width * 4 * height;
     //Console.WriteLine($"Length = {mapLength}");
@@ -181,6 +184,9 @@ unsafe
         XCloseDisplay(newDisplay);
     });
 
+    bool isRequestRender = false;
+    bool isRenderFinish = true;
+
     var stopwatch = new Stopwatch();
 
     while (true)
@@ -215,7 +221,7 @@ unsafe
         {
             void* data = &@event.GenericEventCookie;
             XGetEventData(display, data);
-            var xiEvent = (XIEvent*)@event.GenericEventCookie.data;
+            var xiEvent = (XIEvent*) @event.GenericEventCookie.data;
             if (xiEvent->evtype is
                 XiEventType.XI_ButtonPress
                 or XiEventType.XI_ButtonRelease
@@ -231,13 +237,32 @@ unsafe
                     var x = xiDeviceEvent->event_x;
                     var y = xiDeviceEvent->event_y;
 
+                    using (var skCanvas = new SKCanvas(skBitmap))
+                    {
+                        skCanvas.Clear();
+                        using var skPaint = new SKPaint();
+                        skPaint.Color = SKColors.Red;
+                        skPaint.Style = SKPaintStyle.Fill;
 
+                        skCanvas.DrawRect((float) x, (float) y, 100, 100, skPaint);
+                    }
+
+                    if (isRenderFinish)
+                    {
+                        SendRender();
+                    }
+                    else
+                    {
+                        isRequestRender = true;
+                    }
                 }
             }
 
         }
         else if ((int) @event.type == 65 /*XShmCompletionEvent*/)
         {
+            isRenderFinish = true;
+
             var p = &@event;
             var xShmCompletionEvent = (XShmCompletionEvent*) p;
 
@@ -245,6 +270,20 @@ unsafe
 
             Console.WriteLine($"XShmCompletionEvent: type={xShmCompletionEvent->type} serial={xShmCompletionEvent->serial} {xShmCompletionEvent->send_event} {xShmCompletionEvent->display} {xShmCompletionEvent->drawable} ShmReqCode={xShmCompletionEvent->major_code} X_ShmPutImage={xShmCompletionEvent->minor_code} shmseg={xShmCompletionEvent->shmseg} {xShmCompletionEvent->offset}");
             Console.WriteLine($"消费耗时: {stopwatch.ElapsedMilliseconds}");
+
+            if (isRequestRender)
+            {
+                SendRender();
+            }
         }
+    }
+
+    void SendRender()
+    {
+        var pixels = skBitmap.GetPixels();
+        Unsafe.CopyBlockUnaligned((void*) shmaddr, (void*) pixels, (uint) mapLength);
+
+        XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, true);
+        XFlush(display);
     }
 }
