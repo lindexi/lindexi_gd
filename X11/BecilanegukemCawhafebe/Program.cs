@@ -161,6 +161,7 @@ unsafe
             XFlush(display);
 
             stopwatch.Stop();
+            Console.WriteLine($"推送耗时： {stopwatch.ElapsedMilliseconds}");
         }
         else if ((int) @event.type == 65 /*XShmCompletionEvent*/)
         {
