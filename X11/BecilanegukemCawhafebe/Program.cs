@@ -320,6 +320,7 @@ unsafe
 
         drawAverageCounter.Start();
 
+        skPaint.Color = new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF);
         skCanvas.DrawRect((float) x, (float) y, 100, 100, skPaint);
 
         drawAverageCounter.Stop();
