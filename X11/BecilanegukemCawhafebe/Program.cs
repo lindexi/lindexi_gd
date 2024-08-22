@@ -159,16 +159,16 @@ unsafe
             XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, true);
 
             XFlush(display);
-
-            stopwatch.Stop();
-            Console.WriteLine($"推送耗时： {stopwatch.ElapsedMilliseconds}");
         }
         else if ((int) @event.type == 65 /*XShmCompletionEvent*/)
         {
             var p = &@event;
             var xShmCompletionEvent = (XShmCompletionEvent*) p;
 
+            stopwatch.Stop();
+
             Console.WriteLine($"XShmCompletionEvent: type={xShmCompletionEvent->type} serial={xShmCompletionEvent->serial} {xShmCompletionEvent->send_event} {xShmCompletionEvent->display} {xShmCompletionEvent->drawable} ShmReqCode={xShmCompletionEvent->major_code} X_ShmPutImage={xShmCompletionEvent->minor_code} shmseg={xShmCompletionEvent->shmseg} {xShmCompletionEvent->offset}");
+            Console.WriteLine($"消费耗时: {stopwatch.ElapsedMilliseconds}");
         }
     }
 }
