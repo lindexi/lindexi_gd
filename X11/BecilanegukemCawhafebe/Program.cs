@@ -16,7 +16,7 @@ unsafe
     var screen = XDefaultScreen(display);
     var rootWindow = XDefaultRootWindow(display);
 
-    XMatchVisualInfo(display, screen, 24, 4, out var info);
+    XMatchVisualInfo(display, screen, 32, 4, out var info);
     var visual = info.visual;
 
     var xDisplayWidth = XDisplayWidth(display, screen);
@@ -48,7 +48,7 @@ unsafe
     };
 
     var handle = XCreateWindow(display, rootWindow, 0, 0, width, height, 5,
-        24,
+        32,
         (int) CreateWindowArgs.InputOutput,
         visual,
         (nuint) valueMask, ref xSetWindowAttributes);
@@ -75,7 +75,7 @@ unsafe
 
     const int ZPixmap = 2;
     var xShmSegmentInfo = new XShmSegmentInfo();
-    var shmImage = (XImage*) XShmCreateImage(display, visual, 24, ZPixmap, IntPtr.Zero, &xShmSegmentInfo,
+    var shmImage = (XImage*) XShmCreateImage(display, visual, 32, ZPixmap, IntPtr.Zero, &xShmSegmentInfo,
         (uint) width, (uint) height);
 
     Console.WriteLine($"XShmCreateImage = {(IntPtr) shmImage:X} xShmSegmentInfo={xShmSegmentInfo}");
