@@ -34,6 +34,7 @@ class AverageCounter
         _stopwatch.Stop();
         _totalTime += _stopwatch.Elapsed.TotalMilliseconds;
         _count++;
+        _stopwatch.Reset();
 
         if (_count >= _averageMaxCount)
         {
