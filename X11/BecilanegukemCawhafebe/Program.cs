@@ -96,16 +96,56 @@ unsafe
 
     XFlush(display);
 
-    for (int i = 0; i < 6; i++)
+    // 多指触摸
+    var devices = (XIDeviceInfo*) XIQueryDevice(display,
+        (int) XiPredefinedDeviceId.XIAllMasterDevices, out int num);
+    Console.WriteLine($"DeviceNumber={num}");
+    XIDeviceInfo? pointerDevice = default;
+    for (var c = 0; c < num; c++)
     {
-        Task.Run(() =>
+        Console.WriteLine($"XIDeviceInfo [{c}] {devices[c].Deviceid} {devices[c].Use}");
+
+        if (devices[c].Use == XiDeviceType.XIMasterPointer)
         {
-            while (true)
-            {
-                
-            }
-        });
+            pointerDevice = devices[c];
+            break;
+        }
     }
+
+    if (pointerDevice != null)
+    {
+        XiEventType[] multiTouchEventTypes =
+        [
+            XiEventType.XI_TouchBegin,
+            XiEventType.XI_TouchUpdate,
+            XiEventType.XI_TouchEnd
+        ];
+
+        XiEventType[] defaultEventTypes =
+        [
+            XiEventType.XI_Motion,
+            XiEventType.XI_ButtonPress,
+            XiEventType.XI_ButtonRelease,
+            XiEventType.XI_Leave,
+            XiEventType.XI_Enter,
+        ];
+
+        List<XiEventType> eventTypes = [.. multiTouchEventTypes, .. defaultEventTypes];
+
+        XiSelectEvents(display, handle, new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = eventTypes });
+    }
+
+    // 测试高 CPU 情况下，依然能够在服务端快速处理完成
+    //for (int i = 0; i < 6; i++)
+    //{
+    //    Task.Run(() =>
+    //    {
+    //        while (true)
+    //        {
+
+    //        }
+    //    });
+    //}
 
     Task.Run(() =>
     {
@@ -170,6 +210,31 @@ unsafe
             XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, true);
 
             XFlush(display);
+        }
+        else if (@event.type == XEventName.GenericEvent)
+        {
+            void* data = &@event.GenericEventCookie;
+            XGetEventData(display, data);
+            var xiEvent = (XIEvent*)@event.GenericEventCookie.data;
+            if (xiEvent->evtype is
+                XiEventType.XI_ButtonPress
+                or XiEventType.XI_ButtonRelease
+                or XiEventType.XI_Motion
+                or XiEventType.XI_TouchBegin
+                or XiEventType.XI_TouchUpdate
+                or XiEventType.XI_TouchEnd)
+            {
+                var xiDeviceEvent = (XIDeviceEvent*) xiEvent;
+
+                if (xiDeviceEvent->evtype == XiEventType.XI_TouchUpdate)
+                {
+                    var x = xiDeviceEvent->event_x;
+                    var y = xiDeviceEvent->event_y;
+
+
+                }
+            }
+
         }
         else if ((int) @event.type == 65 /*XShmCompletionEvent*/)
         {
