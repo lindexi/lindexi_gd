@@ -98,7 +98,7 @@ unsafe
 
     var skCanvas = skSurface.Canvas;
 
-    using var skPaint = new SKPaint();
+    var skPaint = new SKPaint();
     skPaint.Color = SKColors.Red;
     skPaint.Style = SKPaintStyle.Fill;
 
@@ -205,7 +205,10 @@ unsafe
     });
 
     //var stopwatch = new Stopwatch();
-    double x = 0, y = 0;
+    RenderInfo renderInfo = new RenderInfo(() =>
+    {
+        skCanvas.Clear(new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF));
+    });
 
     while (true)
     {
@@ -222,21 +225,14 @@ unsafe
         if (@event.type == XEventName.Expose)
         {
             // 模拟绘制界面
-            var color = Random.Shared.Next();
-            color = (color | 0xFF << 24);
-            for (int i = 0; i < mapLength / 4; i++)
+            if (isRenderFinish)
             {
-                var p = (int*) shmaddr;
-                p[i] = color;
+                SendRender();
             }
-
-            //stopwatch.Restart();
-
-            Console.WriteLine($"shmseg={xShmSegmentInfo.shmseg}");
-
-            XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, true);
-
-            XFlush(display);
+            else
+            {
+                isRequestRender = true;
+            }
         }
         else if (@event.type == XEventName.GenericEvent)
         {
@@ -255,8 +251,8 @@ unsafe
 
                 if (xiDeviceEvent->evtype == XiEventType.XI_TouchUpdate)
                 {
-                    x = xiDeviceEvent->event_x;
-                    y = xiDeviceEvent->event_y;
+                   var x = xiDeviceEvent->event_x;
+                   var y = xiDeviceEvent->event_y;
 
                     for (int i = 0; i < count; i++)
                     {
@@ -279,6 +275,16 @@ unsafe
 
                         break;
                     }
+
+                    renderInfo = new RenderInfo(() =>
+                    {
+                        drawAverageCounter.Start();
+
+                        skPaint.Color = new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF);
+                        skCanvas.DrawRect((float) x, (float) y, 100, 100, skPaint);
+
+                        drawAverageCounter.Stop();
+                    });
 
                     if (isRenderFinish)
                     {
@@ -318,15 +324,7 @@ unsafe
             Console.WriteLine("渲染还没完成就触发");
         }
 
-        drawAverageCounter.Start();
-
-        skPaint.Color = new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF);
-        skCanvas.DrawRect((float) x, (float) y, 100, 100, skPaint);
-
-        drawAverageCounter.Stop();
-
-        //var pixels = skBitmap.GetPixels();
-        //Unsafe.CopyBlockUnaligned((void*) shmaddr, (void*) pixels, (uint) mapLength);
+        renderInfo.Action();
 
         XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, true);
         XFlush(display);
@@ -334,3 +332,5 @@ unsafe
         renderAverageCounter.Start();
     }
 }
+
+record RenderInfo(Action Action);
