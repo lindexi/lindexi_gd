@@ -188,14 +188,17 @@ unsafe
     bool isRequestRender = false;
     bool isRenderFinish = true;
 
-    var averageCounter = new AverageCounter(100, averageTime =>
+    var renderAverageCounter = new AverageCounter(100, averageTime =>
     {
         Console.WriteLine($"渲染平均耗时： {averageTime}");
     });
 
+    var drawAverageCounter = new AverageCounter(100, t =>
+    {
+        Console.WriteLine($"绘制耗时： {t}");
+    });
 
     //var stopwatch = new Stopwatch();
-
 
     while (true)
     {
@@ -270,6 +273,7 @@ unsafe
                         break;
                     }
 
+                    drawAverageCounter.Start();
                     using (var skCanvas = new SKCanvas(skBitmap))
                     {
                         skCanvas.Clear();
@@ -279,6 +283,7 @@ unsafe
 
                         skCanvas.DrawRect((float) x, (float) y, 100, 100, skPaint);
                     }
+                    drawAverageCounter.Stop();
 
                     if (isRenderFinish)
                     {
@@ -299,7 +304,7 @@ unsafe
             var p = &@event;
             var xShmCompletionEvent = (XShmCompletionEvent*) p;
 
-            averageCounter.Stop();
+            renderAverageCounter.Stop();
 
             //Console.WriteLine($"XShmCompletionEvent: type={xShmCompletionEvent->type} serial={xShmCompletionEvent->serial} {xShmCompletionEvent->send_event} {xShmCompletionEvent->display} {xShmCompletionEvent->drawable} ShmReqCode={xShmCompletionEvent->major_code} X_ShmPutImage={xShmCompletionEvent->minor_code} shmseg={xShmCompletionEvent->shmseg} {xShmCompletionEvent->offset}");
             //Console.WriteLine($"消费耗时: {stopwatch.ElapsedMilliseconds}");
@@ -324,6 +329,6 @@ unsafe
         XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, true);
         XFlush(display);
 
-        averageCounter.Start();
+        renderAverageCounter.Start();
     }
 }
