@@ -194,7 +194,7 @@ unsafe
     });
 
 
-    var stopwatch = new Stopwatch();
+    //var stopwatch = new Stopwatch();
 
 
     while (true)
@@ -220,7 +220,7 @@ unsafe
                 p[i] = color;
             }
 
-            stopwatch.Restart();
+            //stopwatch.Restart();
 
             Console.WriteLine($"shmseg={xShmSegmentInfo.shmseg}");
 
@@ -302,7 +302,7 @@ unsafe
             averageCounter.Stop();
 
             //Console.WriteLine($"XShmCompletionEvent: type={xShmCompletionEvent->type} serial={xShmCompletionEvent->serial} {xShmCompletionEvent->send_event} {xShmCompletionEvent->display} {xShmCompletionEvent->drawable} ShmReqCode={xShmCompletionEvent->major_code} X_ShmPutImage={xShmCompletionEvent->minor_code} shmseg={xShmCompletionEvent->shmseg} {xShmCompletionEvent->offset}");
-            Console.WriteLine($"消费耗时: {stopwatch.ElapsedMilliseconds}");
+            //Console.WriteLine($"消费耗时: {stopwatch.ElapsedMilliseconds}");
 
             if (isRequestRender)
             {
