@@ -202,7 +202,7 @@ unsafe
         var xNextEvent = XNextEvent(display, out var @event);
 
         var count = XPending(display);
-        Console.WriteLine($"卡顿度： {count}");
+        //Console.WriteLine($"卡顿度： {count}");
 
         if (xNextEvent != 0)
         {
