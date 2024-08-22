@@ -61,13 +61,6 @@ unsafe
     XMapWindow(display, handle);
     XFlush(display);
 
-    var skBitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
-    var skCanvas = new SKCanvas(skBitmap);
-
-    using var skPaint = new SKPaint();
-    skPaint.Color = SKColors.Red;
-    skPaint.Style = SKPaintStyle.Fill;
-
     var mapLength = width * 4 * height;
     //Console.WriteLine($"Length = {mapLength}");
 
@@ -100,6 +93,14 @@ unsafe
 
     XShmAttach(display, &xShmSegmentInfo);
     XFlush(display);
+
+    var skSurface = SKSurface.Create(new SKImageInfo(width, height, SKColorType.Bgra8888, SKAlphaType.Premul), shmaddr);
+
+    var skCanvas = skSurface.Canvas;
+
+    using var skPaint = new SKPaint();
+    skPaint.Color = SKColors.Red;
+    skPaint.Style = SKPaintStyle.Fill;
 
     var gc = XCreateGC(display, handle, 0, 0);
 
@@ -204,6 +205,7 @@ unsafe
     });
 
     //var stopwatch = new Stopwatch();
+    double x = 0, y = 0;
 
     while (true)
     {
@@ -253,8 +255,8 @@ unsafe
 
                 if (xiDeviceEvent->evtype == XiEventType.XI_TouchUpdate)
                 {
-                    var x = xiDeviceEvent->event_x;
-                    var y = xiDeviceEvent->event_y;
+                    x = xiDeviceEvent->event_x;
+                    y = xiDeviceEvent->event_y;
 
                     for (int i = 0; i < count; i++)
                     {
@@ -277,12 +279,6 @@ unsafe
 
                         break;
                     }
-
-                    drawAverageCounter.Start();
-                 
-                    skCanvas.DrawRect((float) x, (float) y, 100, 100, skPaint);
-
-                    drawAverageCounter.Stop();
 
                     if (isRenderFinish)
                     {
@@ -322,8 +318,14 @@ unsafe
             Console.WriteLine("渲染还没完成就触发");
         }
 
-        var pixels = skBitmap.GetPixels();
-        Unsafe.CopyBlockUnaligned((void*) shmaddr, (void*) pixels, (uint) mapLength);
+        drawAverageCounter.Start();
+
+        skCanvas.DrawRect((float) x, (float) y, 100, 100, skPaint);
+
+        drawAverageCounter.Stop();
+
+        //var pixels = skBitmap.GetPixels();
+        //Unsafe.CopyBlockUnaligned((void*) shmaddr, (void*) pixels, (uint) mapLength);
 
         XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, true);
         XFlush(display);
