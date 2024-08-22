@@ -185,7 +185,7 @@ namespace CPF.Linux
         XIFloatingSlave = 5
     }
 
-    enum XiPredefinedDeviceId : int
+    public enum XiPredefinedDeviceId : int
     {
         XIAllDevices = 0,
         XIAllMasterDevices = 1
@@ -218,7 +218,7 @@ namespace CPF.Linux
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    struct XIDeviceEvent
+    public struct XIDeviceEvent
     {
         public XEventName type; /* GenericEvent */
         public ulong serial; /* # of last request processed by server */
