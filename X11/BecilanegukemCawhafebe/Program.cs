@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using BecilanegukemCawhafebe;
 using CPF.Linux;
 using SkiaSharp;
 using static CPF.Linux.XLib;
@@ -187,11 +188,21 @@ unsafe
     bool isRequestRender = false;
     bool isRenderFinish = true;
 
+    var averageCounter = new AverageCounter(100, averageTime =>
+    {
+        Console.WriteLine($"渲染平均耗时： {averageTime}");
+    });
+
+
     var stopwatch = new Stopwatch();
+
 
     while (true)
     {
         var xNextEvent = XNextEvent(display, out var @event);
+
+        var count = XPending(display);
+        Console.WriteLine($"卡顿度： {count}");
 
         if (xNextEvent != 0)
         {
@@ -237,6 +248,28 @@ unsafe
                     var x = xiDeviceEvent->event_x;
                     var y = xiDeviceEvent->event_y;
 
+                    for (int i = 0; i < count; i++)
+                    {
+                        XPeekEvent(display, out var nextEvent);
+                        if (nextEvent.type == XEventName.GenericEvent)
+                        {
+                            void* nextData = &nextEvent.GenericEventCookie;
+                            XGetEventData(display, nextData);
+                            var nextXiEvent = (XIEvent*) nextEvent.GenericEventCookie.data;
+                            if (nextXiEvent->evtype == XiEventType.XI_TouchUpdate)
+                            {
+                                x = xiDeviceEvent->event_x;
+                                y = xiDeviceEvent->event_y;
+
+                                XNextEvent(display, out _);
+
+                                continue;
+                            }
+                        }
+
+                        break;
+                    }
+
                     using (var skCanvas = new SKCanvas(skBitmap))
                     {
                         skCanvas.Clear();
@@ -266,7 +299,7 @@ unsafe
             var p = &@event;
             var xShmCompletionEvent = (XShmCompletionEvent*) p;
 
-            stopwatch.Stop();
+            averageCounter.Stop();
 
             //Console.WriteLine($"XShmCompletionEvent: type={xShmCompletionEvent->type} serial={xShmCompletionEvent->serial} {xShmCompletionEvent->send_event} {xShmCompletionEvent->display} {xShmCompletionEvent->drawable} ShmReqCode={xShmCompletionEvent->major_code} X_ShmPutImage={xShmCompletionEvent->minor_code} shmseg={xShmCompletionEvent->shmseg} {xShmCompletionEvent->offset}");
             Console.WriteLine($"消费耗时: {stopwatch.ElapsedMilliseconds}");
@@ -280,12 +313,17 @@ unsafe
 
     void SendRender()
     {
+        if (!isRenderFinish)
+        {
+            Console.WriteLine("渲染还没完成就触发");
+        }
+
         var pixels = skBitmap.GetPixels();
         Unsafe.CopyBlockUnaligned((void*) shmaddr, (void*) pixels, (uint) mapLength);
 
         XShmPutImage(display, handle, gc, (XImage*) shmImage, 0, 0, 0, 0, (uint) width, (uint) height, true);
         XFlush(display);
 
-        stopwatch.Restart();
+        averageCounter.Start();
     }
 }
