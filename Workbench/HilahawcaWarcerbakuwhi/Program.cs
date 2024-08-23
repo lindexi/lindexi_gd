@@ -2,15 +2,14 @@
 
 using System.Diagnostics;
 
-Console.WriteLine(string.Equals("Straße", "Strae", StringComparison.InvariantCultureIgnoreCase));
+Console.WriteLine(string.Equals("Straße", "Strase", StringComparison.InvariantCultureIgnoreCase));
 Console.WriteLine(string.Equals("Straße", "STRASSE", StringComparison.OrdinalIgnoreCase));
 
 unsafe
 {
     Debugger.Break();
 
-    F* foo = Foo(10);
-    //F2(100, 20);
+    F* foo = Foo();
 
     var a1 = foo->A1;
 
@@ -24,24 +23,16 @@ unsafe
     Console.WriteLine($"{a1} {a2} {a3}");
 
 
-    F* Foo(int count)
+    F* Foo()
     {
-        if (count == 0)
+        F f = new F()
         {
-            F f = new F()
-            {
-                A1 = 100,
-                A2 = 200,
-                A3 = 300
-            };
+            A1 = 100,
+            A2 = 200,
+            A3 = 300
+        };
 
-            return &f;
-        }
-        else
-        {
-            count--;
-            return Foo(count);
-        }
+        return &f;
     }
 
     int F2(int n, int count)
