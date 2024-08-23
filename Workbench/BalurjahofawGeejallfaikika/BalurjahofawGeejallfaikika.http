@@ -1,0 +1,11 @@
+@BalurjahofawGeejallfaikika_HostAddress = http://localhost:5254
+
+GET {{BalurjahofawGeejallfaikika_HostAddress}}/todos/
+Accept: application/json
+
+###
+
+GET {{BalurjahofawGeejallfaikika_HostAddress}}/todos/1
+Accept: application/json
+
+###
