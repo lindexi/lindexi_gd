@@ -1,4 +1,5 @@
 ﻿using Windows.ApplicationModel.Core;
+using Windows.Graphics.DirectX;
 using Windows.Graphics.Display;
 using Windows.UI.Core;
 using Microsoft.Graphics.Canvas;
@@ -74,6 +75,12 @@ public class App : Application, IFrameworkViewSource, IFrameworkView
 
                 };
             }
+
+            var coreWindow = window.CoreWindow;
+            var sharedDevice = CanvasDevice.GetSharedDevice();
+
+            var canvasSwapChain = new CanvasSwapChain(sharedDevice,100,100,96);
+            var swapChain = CanvasSwapChain.CreateForCoreWindow(sharedDevice, coreWindow, 96,100,96,DirectXPixelFormat.R8G8B8A8Int,2);
         };
         
         window.Activate();
