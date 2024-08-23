@@ -7,7 +7,7 @@ unsafe
     Debugger.Break();
 
     F* foo = Foo(10);
-    F2(100, 20);
+    //F2(100, 20);
 
     var a1 = foo->A1;
 
@@ -17,6 +17,9 @@ unsafe
     GC.KeepAlive(a1);
     GC.KeepAlive(a2);
     GC.KeepAlive(a3);
+
+    Console.WriteLine($"{a1} {a2} {a3}");
+
 
     F* Foo(int count)
     {
