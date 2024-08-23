@@ -10,6 +10,9 @@ foreach (var jsonContentHeader in jsonContent.Headers)
     Console.WriteLine(jsonContentHeader.Key);
 }
 
+var httpClient = new HttpClient();
+await httpClient.PostAsync("http://www.baidu.com", jsonContent);
+
 await jsonContent.LoadIntoBufferAsync();
 
 foreach (var jsonContentHeader in jsonContent.Headers)
