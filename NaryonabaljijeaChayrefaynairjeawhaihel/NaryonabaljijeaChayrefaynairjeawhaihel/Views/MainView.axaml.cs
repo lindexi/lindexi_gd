@@ -21,4 +21,9 @@ public partial class MainView : UserControl
         translateTransform.X = point.Position.X;
         translateTransform.Y = point.Position.Y;
     }
+
+    public override void Render(DrawingContext context)
+    {
+        base.Render(context);
+    }
 }
