@@ -29,6 +29,8 @@ internal class Program
             var app = new App();
             app.Launched += (sender, e) =>
             {
+                var current = Window.Current;
+
                 var window = new Window()
                 {
                     Title = "控制台创建应用"
@@ -47,12 +49,13 @@ internal class Program
                 };
 
                 var sharedDevice = CanvasDevice.GetSharedDevice();
-                //var logicalDpi = DisplayInformation.GetForCurrentView().LogicalDpi;
                 var coreWindow = window.CoreWindow;
+                window.Activate();
 
+
+                var logicalDpi = DisplayInformation.GetForCurrentView().LogicalDpi;
                 var swapChain = CanvasSwapChain.CreateForCoreWindow(sharedDevice, coreWindow, 96);
 
-                window.Activate();
             };
         });
     }
