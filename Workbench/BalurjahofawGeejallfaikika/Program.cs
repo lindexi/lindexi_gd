@@ -7,6 +7,8 @@ Task.Run(async () =>
     var foo = new Foo();
     var jsonContent = JsonContent.Create(foo);
 
+    await jsonContent.LoadIntoBufferAsync();
+
     var httpClient = new HttpClient();
     await httpClient.PostAsync("http://localhost:5255", jsonContent);
 
