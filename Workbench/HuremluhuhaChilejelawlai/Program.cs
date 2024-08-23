@@ -7,7 +7,7 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace FinayfuweewawWakibawlu;
 
-public class App : IFrameworkViewSource, IFrameworkView
+public class App : Application, IFrameworkViewSource, IFrameworkView
 {
     public IFrameworkView CreateView()
     {
@@ -43,6 +43,43 @@ public class App : IFrameworkViewSource, IFrameworkView
     {
 
     }
+
+    protected override void OnLaunched(LaunchActivatedEventArgs args)
+    {
+        var window = new Window()
+        {
+            Title = "控制台创建应用"
+        };
+        window.Content = new Grid()
+        {
+            Children =
+            {
+                new TextBlock()
+                {
+                    Text = "控制台应用",
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                }
+            }
+        };
+
+        window.Activated += (sender, eventArgs) =>
+        {
+            var xamlRoot = window.Content.XamlRoot;
+
+            if (xamlRoot != null)
+            {
+                var rasterizationScale = xamlRoot.RasterizationScale;
+            }
+
+            var currentThread = CoreWindow.GetForCurrentThread();
+            var displayInformation = DisplayInformation.GetForCurrentView();
+        };
+        
+        window.Activate();
+
+        base.OnLaunched(args);
+    }
 }
 
 internal class Program
@@ -53,8 +90,8 @@ internal class Program
 
         global::Microsoft.UI.Xaml.Application.Start(p =>
         {
-            var application = new Application();
-            CoreApplication.Run(new App());
+            var app = new App();
+            //CoreApplication.Run(app);
         });
 
     }
