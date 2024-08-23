@@ -2,6 +2,9 @@
 
 using System.Diagnostics;
 
+Console.WriteLine(string.Equals("Straße", "Strae", StringComparison.InvariantCultureIgnoreCase));
+Console.WriteLine(string.Equals("Straße", "STRASSE", StringComparison.OrdinalIgnoreCase));
+
 unsafe
 {
     Debugger.Break();
