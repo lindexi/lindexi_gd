@@ -24,7 +24,7 @@ public class App : IFrameworkViewSource, IFrameworkView
 
     public void SetWindow(CoreWindow window)
     {
-        _coreWindow  = window;
+        _coreWindow = window;
     }
 
     public void Load(string entryPoint)
@@ -41,7 +41,7 @@ public class App : IFrameworkViewSource, IFrameworkView
 
     public void Uninitialize()
     {
-      
+
     }
 }
 
@@ -50,6 +50,12 @@ internal class Program
     unsafe static void Main(string[] args)
     {
         global::WinRT.ComWrappersSupport.InitializeComWrappers();
-        CoreApplication.Run(new App());
+
+        global::Microsoft.UI.Xaml.Application.Start(p =>
+        {
+            CoreApplication.Run(new App());
+
+        });
+
     }
 }
