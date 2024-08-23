@@ -53,8 +53,8 @@ internal class Program
 
         global::Microsoft.UI.Xaml.Application.Start(p =>
         {
+            var application = new Application();
             CoreApplication.Run(new App());
-
         });
 
     }
