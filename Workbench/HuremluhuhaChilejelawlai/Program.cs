@@ -74,6 +74,10 @@ public class App : Application, IFrameworkViewSource, IFrameworkView
 
                 };
             }
+
+            var coreWindow = window.CoreWindow;
+            var sharedDevice = CanvasDevice.GetSharedDevice();
+            var swapChain = CanvasSwapChain.CreateForCoreWindow(sharedDevice, coreWindow, 96);
         };
         
         window.Activate();
