@@ -29,8 +29,6 @@ internal class Program
             var app = new App();
             app.Launched += (sender, e) =>
             {
-                var current = Window.Current;
-
                 var window = new Window()
                 {
                     Title = "控制台创建应用"
