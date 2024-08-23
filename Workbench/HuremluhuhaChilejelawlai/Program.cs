@@ -48,10 +48,16 @@ internal class Program
 
                 var sharedDevice = CanvasDevice.GetSharedDevice();
                 var coreWindow = window.CoreWindow;
+
+                window.VisibilityChanged += (o, eventArgs) =>
+                {
+                    var logicalDpi = DisplayInformation.GetForCurrentView().LogicalDpi;
+
+                };
+                
                 window.Activate();
 
 
-                var logicalDpi = DisplayInformation.GetForCurrentView().LogicalDpi;
                 var swapChain = CanvasSwapChain.CreateForCoreWindow(sharedDevice, coreWindow, 96);
 
             };
