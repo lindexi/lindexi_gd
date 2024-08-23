@@ -65,15 +65,15 @@ public class App : Application, IFrameworkViewSource, IFrameworkView
 
         window.Activated += (sender, eventArgs) =>
         {
-            var xamlRoot = window.Content.XamlRoot;
-
-            if (xamlRoot != null)
+            if (window.Content is Grid grid)
             {
-                var rasterizationScale = xamlRoot.RasterizationScale;
-            }
+                grid.Loaded += (o, routedEventArgs) =>
+                {
+                    var xamlRoot = window.Content.XamlRoot;
+                    var rasterizationScale = xamlRoot.RasterizationScale;
 
-            var currentThread = CoreWindow.GetForCurrentThread();
-            var displayInformation = DisplayInformation.GetForCurrentView();
+                };
+            }
         };
         
         window.Activate();
