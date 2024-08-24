@@ -1,54 +1,17 @@
 ﻿using System.Numerics;
-using Windows.ApplicationModel.Core;
 using Windows.Foundation;
-using Windows.UI.Core;
 using Microsoft.Graphics.Canvas;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 using Microsoft.Graphics.Canvas.UI.Composition;
 using Microsoft.Graphics.DirectX;
-using Microsoft.UI;
 using Microsoft.UI.Composition;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Hosting;
 
-namespace FinayfuweewawWakibawlu;
+namespace HuremluhuhaChilejelawlai;
 
-public class App : Application, IFrameworkViewSource, IFrameworkView
+public class App : Application
 {
-    public IFrameworkView CreateView()
-    {
-        return this;
-    }
-
-    private CoreApplicationView? _applicationView;
-    private CoreWindow? _coreWindow;
-
-    public void Initialize(CoreApplicationView applicationView)
-    {
-        _applicationView = applicationView;
-    }
-
-    public void SetWindow(CoreWindow window)
-    {
-        _coreWindow = window;
-    }
-
-    public void Load(string entryPoint)
-    {
-    }
-
-    public void Run()
-    {
-        //var swapChain = CanvasSwapChain.CreateForCoreWindow(
-        //    resourceCreator: CanvasDevice.GetSharedDevice(),
-        //    coreWindow: _coreWindow,
-        //    dpi: DisplayInformation.GetForCurrentView().LogicalDpi);
-    }
-
-    public void Uninitialize()
-    {
-    }
-
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         var window = new Window()
@@ -110,14 +73,14 @@ public class App : Application, IFrameworkViewSource, IFrameworkView
 
 internal class Program
 {
-    unsafe static void Main(string[] args)
+    static void Main(string[] args)
     {
         global::WinRT.ComWrappersSupport.InitializeComWrappers();
 
         global::Microsoft.UI.Xaml.Application.Start(p =>
         {
             var app = new App();
-            //CoreApplication.Run(app);
+            _ = app;
         });
     }
 }
