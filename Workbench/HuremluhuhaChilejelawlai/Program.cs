@@ -7,6 +7,8 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.Graphics.Canvas.UI.Composition;
 using Microsoft.Graphics.DirectX;
 using Microsoft.UI;
+using Microsoft.UI.Composition;
+using Microsoft.UI.Xaml.Hosting;
 
 namespace FinayfuweewawWakibawlu;
 
@@ -70,7 +72,10 @@ public class App : Application, IFrameworkViewSource, IFrameworkView
         {
             var canvasDevice = new CanvasDevice();
 
-            var compositionGraphicsDevice = CanvasComposition.CreateCompositionGraphicsDevice(window.Compositor, canvasDevice);
+            var compositor = window.Compositor;
+
+            var compositionGraphicsDevice = CanvasComposition.CreateCompositionGraphicsDevice(compositor, canvasDevice);
+
             var compositionDrawingSurface = compositionGraphicsDevice.CreateDrawingSurface(
                 new Windows.Foundation.Size(100, 100),
                 DirectXPixelFormat.B8G8R8A8UIntNormalized,
@@ -78,6 +83,18 @@ public class App : Application, IFrameworkViewSource, IFrameworkView
             using (CanvasDrawingSession? drawingSession = CanvasComposition.CreateDrawingSession(compositionDrawingSurface))
             {
                 drawingSession.FillRectangle(new Rect(10, 10, 10, 10), Windows.UI.Color.FromArgb(0xFF, 0x56, 0x56, 0x56));
+            }
+
+            // 在 Win2d 渲染到平面完成之后，将这个平面作为一个画刷用于在之后的效果
+            CompositionSurfaceBrush surfaceBrush = compositor.CreateSurfaceBrush(compositionDrawingSurface);
+
+            SpriteVisual visual = compositor.CreateSpriteVisual();
+            visual.Brush = surfaceBrush;
+
+            Visual elementVisual = ElementCompositionPreview.GetElementVisual(window.Content);
+            if (elementVisual is ContainerVisual containerVisual)
+            {
+                containerVisual.Children.InsertAtTop(visual);
             }
         };
 
