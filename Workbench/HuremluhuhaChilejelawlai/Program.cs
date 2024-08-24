@@ -1,10 +1,12 @@
 ﻿using Windows.ApplicationModel.Core;
-using Windows.Graphics.DirectX;
-using Windows.Graphics.Display;
+using Windows.Foundation;
 using Windows.UI.Core;
 using Microsoft.Graphics.Canvas;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.Graphics.Canvas.UI.Composition;
+using Microsoft.Graphics.DirectX;
+using Microsoft.UI;
 
 namespace FinayfuweewawWakibawlu;
 
@@ -34,10 +36,10 @@ public class App : Application, IFrameworkViewSource, IFrameworkView
 
     public void Run()
     {
-        var swapChain = CanvasSwapChain.CreateForCoreWindow(
-            resourceCreator: CanvasDevice.GetSharedDevice(),
-            coreWindow: _coreWindow,
-            dpi: DisplayInformation.GetForCurrentView().LogicalDpi);
+        //var swapChain = CanvasSwapChain.CreateForCoreWindow(
+        //    resourceCreator: CanvasDevice.GetSharedDevice(),
+        //    coreWindow: _coreWindow,
+        //    dpi: DisplayInformation.GetForCurrentView().LogicalDpi);
     }
 
     public void Uninitialize()
@@ -66,23 +68,19 @@ public class App : Application, IFrameworkViewSource, IFrameworkView
 
         window.Activated += (sender, eventArgs) =>
         {
-            if (window.Content is Grid grid)
+            var canvasDevice = new CanvasDevice();
+
+            var compositionGraphicsDevice = CanvasComposition.CreateCompositionGraphicsDevice(window.Compositor, canvasDevice);
+            var compositionDrawingSurface = compositionGraphicsDevice.CreateDrawingSurface(
+                new Windows.Foundation.Size(100, 100),
+                DirectXPixelFormat.B8G8R8A8UIntNormalized,
+                DirectXAlphaMode.Premultiplied);
+            using (CanvasDrawingSession? drawingSession = CanvasComposition.CreateDrawingSession(compositionDrawingSurface))
             {
-                grid.Loaded += (o, routedEventArgs) =>
-                {
-                    var xamlRoot = window.Content.XamlRoot;
-                    var rasterizationScale = xamlRoot.RasterizationScale;
-
-                };
+                drawingSession.FillRectangle(new Rect(10, 10, 10, 10), Windows.UI.Color.FromArgb(0xFF, 0x56, 0x56, 0x56));
             }
-
-            var coreWindow = window.CoreWindow;
-            var sharedDevice = CanvasDevice.GetSharedDevice();
-
-            var canvasSwapChain = new CanvasSwapChain(sharedDevice,100,100,96);
-            var swapChain = CanvasSwapChain.CreateForCoreWindow(sharedDevice, coreWindow, 96,100,96,DirectXPixelFormat.R8G8B8A8Int,2);
         };
-        
+
         window.Activate();
 
         base.OnLaunched(args);
