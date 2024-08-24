@@ -1,4 +1,5 @@
-﻿using Windows.ApplicationModel.Core;
+﻿using System.Numerics;
+using Windows.ApplicationModel.Core;
 using Windows.Foundation;
 using Windows.UI.Core;
 using Microsoft.Graphics.Canvas;
@@ -46,7 +47,6 @@ public class App : Application, IFrameworkViewSource, IFrameworkView
 
     public void Uninitialize()
     {
-
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
@@ -77,12 +77,14 @@ public class App : Application, IFrameworkViewSource, IFrameworkView
             var compositionGraphicsDevice = CanvasComposition.CreateCompositionGraphicsDevice(compositor, canvasDevice);
 
             var compositionDrawingSurface = compositionGraphicsDevice.CreateDrawingSurface(
-                new Windows.Foundation.Size(100, 100),
+                new Windows.Foundation.Size(200, 200),
                 DirectXPixelFormat.B8G8R8A8UIntNormalized,
                 DirectXAlphaMode.Premultiplied);
-            using (CanvasDrawingSession? drawingSession = CanvasComposition.CreateDrawingSession(compositionDrawingSurface))
+            using (CanvasDrawingSession? drawingSession =
+                   CanvasComposition.CreateDrawingSession(compositionDrawingSurface))
             {
-                drawingSession.FillRectangle(new Rect(10, 10, 10, 10), Windows.UI.Color.FromArgb(0xFF, 0x56, 0x56, 0x56));
+                drawingSession.FillRectangle(new Rect(10, 10, 100, 100),
+                    Windows.UI.Color.FromArgb(0xFF, 0x56, 0x56, 0x56));
             }
 
             // 在 Win2d 渲染到平面完成之后，将这个平面作为一个画刷用于在之后的效果
@@ -90,6 +92,8 @@ public class App : Application, IFrameworkViewSource, IFrameworkView
 
             SpriteVisual visual = compositor.CreateSpriteVisual();
             visual.Brush = surfaceBrush;
+            visual.Size = new Vector2(200, 200);
+            visual.Offset = new Vector3(20, 20, 0);
 
             Visual elementVisual = ElementCompositionPreview.GetElementVisual(window.Content);
             if (elementVisual is ContainerVisual containerVisual)
@@ -115,6 +119,5 @@ internal class Program
             var app = new App();
             //CoreApplication.Run(app);
         });
-
     }
 }
