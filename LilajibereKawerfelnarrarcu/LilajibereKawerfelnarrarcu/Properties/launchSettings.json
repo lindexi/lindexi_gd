@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "LilajibereKawerfelnarrarcu (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "LilajibereKawerfelnarrarcu (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
