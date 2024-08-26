@@ -19,15 +19,20 @@ class Foo : Control
 {
     public override void Render(DrawingContext context)
     {
-        context.Custom(new C());
+        context.Custom(new C(new Rect(0, 0, Bounds.Width, Bounds.Height)));
     }
 }
 
 class C : ICustomDrawOperation
 {
+    public C(Rect bounds)
+    {
+        Bounds = bounds;
+    }
+
     public void Dispose()
     {
-        
+
     }
 
     public bool Equals(ICustomDrawOperation? other)
@@ -51,5 +56,5 @@ class C : ICustomDrawOperation
         }
     }
 
-    public Rect Bounds { get; set; }
+    public Rect Bounds { get; }
 }
