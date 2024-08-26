@@ -181,6 +181,8 @@ public partial class MainView : UserControl
             dynamic d = currentPoint.Properties;
             Rect contactRect = d.ContactRect;
 
+            Console.WriteLine($"ContactRect={contactRect}");
+
             return (Success: true, contactRect.Width, contactRect.Height);
         }
         catch
