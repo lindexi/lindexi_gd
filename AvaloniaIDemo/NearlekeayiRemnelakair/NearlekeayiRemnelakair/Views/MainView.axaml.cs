@@ -20,7 +20,6 @@ class Foo : Control
     public override void Render(DrawingContext context)
     {
         context.Custom(new C());
-        base.Render(context);
     }
 }
 
