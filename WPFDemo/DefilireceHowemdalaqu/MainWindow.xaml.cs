@@ -46,6 +46,7 @@ public partial class MainWindow : Window
         var strokeVisual = GetStrokeVisual((uint) e.TouchDevice.Id);
         strokeVisual.Add(new StylusPoint(touchPoint.Position.X, touchPoint.Position.Y));
         strokeVisual.Redraw();
+        Console.WriteLine($"{e.TouchDevice.Id} Position={touchPoint.Position.X},{touchPoint.Position.Y}");
     }
 
     private void MainWindow_TouchUp(object? sender, TouchEventArgs e)
@@ -107,10 +108,12 @@ public partial class MainWindow : Window
             PInvoke.GetPointerTouchInfo(pointerId, out var info);
             POINTER_INFO pointerInfo = info.pointerInfo;
 
-            //Debug.WriteLine($"PixelLocation={pointerInfo.ptPixelLocation.X},{pointerInfo.ptPixelLocation.Y}; Raw={pointerInfo.ptPixelLocationRaw.X},{pointerInfo.ptPixelLocationRaw.Y} Same={pointerInfo.ptPixelLocation== pointerInfo.ptPixelLocationRaw}");
+            //Console.WriteLine($"Id={pointerId}; PixelLocation={pointerInfo.ptPixelLocation.X},{pointerInfo.ptPixelLocation.Y}; Raw={pointerInfo.ptPixelLocationRaw.X},{pointerInfo.ptPixelLocationRaw.Y} Same={pointerInfo.ptPixelLocation== pointerInfo.ptPixelLocationRaw}");
 
             var point = pointerInfo.ptPixelLocation;
             PInvoke.ScreenToClient(new HWND(hwnd), ref point);
+
+            Console.WriteLine($"Pointer {pointerId} XY={point.X},{point.Y}");
 
             //if (msg == WM_POINTERUPDATE)
             //{
