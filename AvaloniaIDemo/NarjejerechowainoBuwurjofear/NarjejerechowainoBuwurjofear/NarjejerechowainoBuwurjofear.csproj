@@ -10,6 +10,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Using Include="System" />
+    <Using Include="System.Collections" />
+    <Using Include="System.Collections.Generic" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\..\..\UnoInk\X11\UnoInk\UnoInk\Inking\InkCore\Primitive\StylusPoint.cs" Link="StylusPoint.cs" />
+    <Compile Include="..\..\..\..\UnoInk\X11\UnoInk\UnoInk\Inking\InkCore\SimpleInkRender.cs" Link="SimpleInkRender.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
     <PackageReference Include="Avalonia.Skia" Version="$(AvaloniaVersion)" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
@@ -17,5 +28,6 @@
     <PackageReference Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
+    <PackageReference Include="Microsoft.Maui.Graphics" Version="8.0.80" />
   </ItemGroup>
 </Project>
