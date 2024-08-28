@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -43,7 +44,6 @@ public partial class MainWindow : Window
         if (msg is WM_POINTERDOWN or WM_POINTERUPDATE or WM_POINTERUP)
         {
             var pointerId = (uint)(ToInt32(wparam) & 0xFFFF);
-            Console.WriteLine(pointerId);
         }
 
 
@@ -56,5 +56,26 @@ public partial class MainWindow : Window
             return ptr.ToInt32();
 
         return (int) (ptr.ToInt64() & 0xffffffff);
+    }
+
+    [DllImport("user32.dll", SetLastError = true)]
+    static extern bool GetPointerTouchInfo(uint pointerId, out POINTER_TOUCH_INFO touchInfo);
+
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct POINTER_TOUCH_INFO
+    {
+        public POINTER_INFO pointerInfo;
+        public TouchFlags touchFlags;
+        public TouchMask touchMask;
+        public int rcContactLeft;
+        public int rcContactTop;
+        public int rcContactRight;
+        public int rcContactBottom;
+        public int rcContactRawLeft;
+        public int rcContactRawTop;
+        public int rcContactRawRight;
+        public int rcContactRawBottom;
+        public uint orientation;
+        public uint pressure;
     }
 }
