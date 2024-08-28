@@ -16,8 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\..\..\UnoInk\X11\UnoInk\UnoInk\Inking\InkCore\Primitive\StylusPoint.cs" Link="StylusPoint.cs" />
-    <Compile Include="..\..\..\..\UnoInk\X11\UnoInk\UnoInk\Inking\InkCore\SimpleInkRender.cs" Link="SimpleInkRender.cs" />
+    <Compile Include="..\..\..\..\UnoInk\X11\UnoInk\UnoInk\Inking\InkCore\Primitive\StylusPoint.cs" Link="Inking\StylusPoint.cs" />
+    <Compile Include="..\..\..\..\UnoInk\X11\UnoInk\UnoInk\Inking\InkCore\SimpleInkRender.cs" Link="Inking\SimpleInkRender.cs" />
   </ItemGroup>
 
   <ItemGroup>
