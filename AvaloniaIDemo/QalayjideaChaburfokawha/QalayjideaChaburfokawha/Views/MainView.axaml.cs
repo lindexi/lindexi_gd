@@ -11,6 +11,7 @@ public partial class MainView : UserControl
         InitializeComponent();
 
         RootGrid.PointerMoved += RootGrid_PointerMoved;
+        RootGrid.PointerReleased += RootGrid_PointerReleased;
     }
 
     private Polyline? _polyline;
@@ -36,5 +37,10 @@ public partial class MainView : UserControl
         }
 
         RootGrid.InvalidateVisual();
+    }
+
+    private void RootGrid_PointerReleased(object? sender, Avalonia.Input.PointerReleasedEventArgs e)
+    {
+        _polyline = null;
     }
 }
