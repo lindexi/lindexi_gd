@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
@@ -12,9 +13,13 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.Input.Pointer;
+using Windows.Win32.UI.Input.Touch;
+
+using Point = System.Drawing.Point;
 
 namespace DefilireceHowemdalaqu;
 
@@ -28,6 +33,38 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         SourceInitialized += OnSourceInitialized;
+
+        //StylusMove += MainWindow_StylusMove;
+        //StylusUp += MainWindow_StylusUp;
+        TouchMove += MainWindow_TouchMove;
+        TouchUp += MainWindow_TouchUp;
+    }
+
+    private void MainWindow_TouchMove(object? sender, TouchEventArgs e)
+    {
+        var touchPoint = e.GetTouchPoint(RootGrid);
+        var strokeVisual = GetStrokeVisual((uint) e.TouchDevice.Id);
+        strokeVisual.Add(new StylusPoint(touchPoint.Position.X, touchPoint.Position.Y));
+        strokeVisual.Redraw();
+    }
+
+    private void MainWindow_TouchUp(object? sender, TouchEventArgs e)
+    {
+        StrokeVisualList.Remove((uint) e.TouchDevice.Id);
+        Console.WriteLine("触摸");
+    }
+
+    private void MainWindow_StylusMove(object sender, StylusEventArgs e)
+    {
+        var position = e.GetPosition(RootGrid);
+        var strokeVisual = GetStrokeVisual((uint) e.StylusDevice.Id);
+        strokeVisual.Add(new StylusPoint(position.X, position.Y));
+        strokeVisual.Redraw();
+    }
+
+    private void MainWindow_StylusUp(object sender, StylusEventArgs e)
+    {
+        StrokeVisualList.Remove((uint) e.StylusDevice.Id);
     }
 
     private Dictionary<uint, StrokeVisual> StrokeVisualList { get; } = new Dictionary<uint, StrokeVisual>();
@@ -47,16 +84,18 @@ public partial class MainWindow : Window
         return strokeVisual;
     }
 
-    private void OnSourceInitialized(object sender, EventArgs e)
+    private void OnSourceInitialized(object? sender, EventArgs e)
     {
         var windowInteropHelper = new WindowInteropHelper(this);
         var hwnd = windowInteropHelper.Handle;
+
+        PInvoke.RegisterTouchWindow(new HWND(hwnd), 0);
 
         HwndSource source = HwndSource.FromHwnd(hwnd)!;
         source.AddHook(Hook);
     }
 
-    private IntPtr Hook(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam, ref bool handled)
+    private unsafe IntPtr Hook(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam, ref bool handled)
     {
         const int WM_POINTERDOWN = 0x0246;
         const int WM_POINTERUPDATE = 0x0245;
@@ -64,31 +103,61 @@ public partial class MainWindow : Window
 
         if (msg is WM_POINTERDOWN or WM_POINTERUPDATE or WM_POINTERUP)
         {
-            var pointerId = (uint)(ToInt32(wparam) & 0xFFFF);
+            var pointerId = (uint) (ToInt32(wparam) & 0xFFFF);
             PInvoke.GetPointerTouchInfo(pointerId, out var info);
             POINTER_INFO pointerInfo = info.pointerInfo;
 
-            Debug.WriteLine($"PixelLocation={pointerInfo.ptPixelLocation.X},{pointerInfo.ptPixelLocation.Y}; Raw={pointerInfo.ptPixelLocationRaw.X},{pointerInfo.ptPixelLocationRaw.Y} Same={pointerInfo.ptPixelLocation== pointerInfo.ptPixelLocationRaw}");
+            //Debug.WriteLine($"PixelLocation={pointerInfo.ptPixelLocation.X},{pointerInfo.ptPixelLocation.Y}; Raw={pointerInfo.ptPixelLocationRaw.X},{pointerInfo.ptPixelLocationRaw.Y} Same={pointerInfo.ptPixelLocation== pointerInfo.ptPixelLocationRaw}");
 
             var point = pointerInfo.ptPixelLocation;
             PInvoke.ScreenToClient(new HWND(hwnd), ref point);
 
-            if (msg == WM_POINTERUPDATE)
-            {
-                var strokeVisual = GetStrokeVisual(pointerId);
-                strokeVisual.Add(new StylusPoint(point.X, point.Y));
-                strokeVisual.Redraw();
-            }
-            else if (msg == WM_POINTERUP)
-            {
-                StrokeVisualList.Remove(pointerId);
-            }
+            //if (msg == WM_POINTERUPDATE)
+            //{
+            //    var strokeVisual = GetStrokeVisual(pointerId);
+            //    strokeVisual.Add(new StylusPoint(point.X, point.Y));
+            //    strokeVisual.Redraw();
+            //}
+            //else if (msg == WM_POINTERUP)
+            //{
+            //    StrokeVisualList.Remove(pointerId);
+            //}
+        }
+        else if ((uint) msg is PInvoke.WM_TOUCH)
+        {
+            var touchInputCount = wparam.ToInt32();
+
+            //var pTouchInputs = stackalloc TOUCHINPUT[touchInputCount];
+            //if (PInvoke.GetTouchInputInfo(new HTOUCHINPUT(lparam), (uint) touchInputCount, pTouchInputs, sizeof(TOUCHINPUT)))
+            //{
+            //    for (var i = 0; i < touchInputCount; i++)
+            //    {
+            //        var touchInput = pTouchInputs[i];
+            //        var point = new Point(touchInput.x / 100, touchInput.y / 100);
+            //        PInvoke.ScreenToClient(new HWND(hwnd), ref point);
+
+            //        Debug.WriteLine($"{touchInput.x/100}, {touchInput.y / 100}");
+
+            //        if (touchInput.dwFlags.HasFlag(TOUCHEVENTF_FLAGS.TOUCHEVENTF_MOVE))
+            //        {
+            //            var strokeVisual = GetStrokeVisual(touchInput.dwID);
+            //            strokeVisual.Add(new StylusPoint(point.X, point.Y));
+            //            strokeVisual.Redraw();
+            //        }
+            //        else if (touchInput.dwFlags.HasFlag(TOUCHEVENTF_FLAGS.TOUCHEVENTF_UP))
+            //        {
+            //            StrokeVisualList.Remove(touchInput.dwID);
+            //        }
+            //    }
+
+            //    PInvoke.CloseTouchInputHandle(new HTOUCHINPUT(lparam));
+            //}
         }
 
         return IntPtr.Zero;
     }
 
-    private static int ToInt32(IntPtr ptr) => IntPtr.Size == 4 ? ptr.ToInt32() : (int)(ptr.ToInt64() & 0xffffffff);
+    private static int ToInt32(IntPtr ptr) => IntPtr.Size == 4 ? ptr.ToInt32() : (int) (ptr.ToInt64() & 0xffffffff);
 
     /// <summary>
     ///     用于显示笔迹的类
