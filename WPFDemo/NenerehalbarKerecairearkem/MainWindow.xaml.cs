@@ -35,7 +35,7 @@ public partial class MainWindow : Window
 
         var pixels = new byte[height * stride];
 
-        var file = @"c:\lindexi\Work\DUMP memory";
+        var file = @"c:\lindexi\Work\2";
         var byteList = File.ReadAllBytes(file);
 
         for (int col = 0; col < width; col++)
