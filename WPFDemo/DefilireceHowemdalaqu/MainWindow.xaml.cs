@@ -34,8 +34,24 @@ public partial class MainWindow : Window
 
         SourceInitialized += OnSourceInitialized;
 
-        StylusMove += MainWindow_StylusMove;
-        StylusUp += MainWindow_StylusUp;
+        //StylusMove += MainWindow_StylusMove;
+        //StylusUp += MainWindow_StylusUp;
+        TouchMove += MainWindow_TouchMove;
+        TouchUp += MainWindow_TouchUp;
+    }
+
+    private void MainWindow_TouchMove(object? sender, TouchEventArgs e)
+    {
+        var touchPoint = e.GetTouchPoint(RootGrid);
+        var strokeVisual = GetStrokeVisual((uint) e.TouchDevice.Id);
+        strokeVisual.Add(new StylusPoint(touchPoint.Position.X, touchPoint.Position.Y));
+        strokeVisual.Redraw();
+    }
+
+    private void MainWindow_TouchUp(object? sender, TouchEventArgs e)
+    {
+        StrokeVisualList.Remove((uint) e.TouchDevice.Id);
+        Console.WriteLine("触摸");
     }
 
     private void MainWindow_StylusMove(object sender, StylusEventArgs e)
