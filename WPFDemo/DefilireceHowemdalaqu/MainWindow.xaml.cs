@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Drawing;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
@@ -46,7 +47,7 @@ public partial class MainWindow : Window
         var strokeVisual = GetStrokeVisual((uint) e.TouchDevice.Id);
         strokeVisual.Add(new StylusPoint(touchPoint.Position.X, touchPoint.Position.Y));
         strokeVisual.Redraw();
-        Console.WriteLine($"{e.TouchDevice.Id} Position={touchPoint.Position.X},{touchPoint.Position.Y}");
+        Console.WriteLine($"WPF {e.TouchDevice.Id} XY={touchPoint.Position.X},{touchPoint.Position.Y}");
     }
 
     private void MainWindow_TouchUp(object? sender, TouchEventArgs e)
@@ -130,31 +131,31 @@ public partial class MainWindow : Window
         {
             var touchInputCount = wparam.ToInt32();
 
-            //var pTouchInputs = stackalloc TOUCHINPUT[touchInputCount];
-            //if (PInvoke.GetTouchInputInfo(new HTOUCHINPUT(lparam), (uint) touchInputCount, pTouchInputs, sizeof(TOUCHINPUT)))
-            //{
-            //    for (var i = 0; i < touchInputCount; i++)
-            //    {
-            //        var touchInput = pTouchInputs[i];
-            //        var point = new Point(touchInput.x / 100, touchInput.y / 100);
-            //        PInvoke.ScreenToClient(new HWND(hwnd), ref point);
+            var pTouchInputs = stackalloc TOUCHINPUT[touchInputCount];
+            if (PInvoke.GetTouchInputInfo(new HTOUCHINPUT(lparam), (uint) touchInputCount, pTouchInputs, sizeof(TOUCHINPUT)))
+            {
+                for (var i = 0; i < touchInputCount; i++)
+                {
+                    var touchInput = pTouchInputs[i];
+                    var point = new Point(touchInput.x / 100, touchInput.y / 100);
+                    PInvoke.ScreenToClient(new HWND(hwnd), ref point);
 
-            //        Debug.WriteLine($"{touchInput.x/100}, {touchInput.y / 100}");
+                    Console.WriteLine($"Touch {touchInput.dwID} XY={point.X}, {point.Y}");
 
-            //        if (touchInput.dwFlags.HasFlag(TOUCHEVENTF_FLAGS.TOUCHEVENTF_MOVE))
-            //        {
-            //            var strokeVisual = GetStrokeVisual(touchInput.dwID);
-            //            strokeVisual.Add(new StylusPoint(point.X, point.Y));
-            //            strokeVisual.Redraw();
-            //        }
-            //        else if (touchInput.dwFlags.HasFlag(TOUCHEVENTF_FLAGS.TOUCHEVENTF_UP))
-            //        {
-            //            StrokeVisualList.Remove(touchInput.dwID);
-            //        }
-            //    }
+                    if (touchInput.dwFlags.HasFlag(TOUCHEVENTF_FLAGS.TOUCHEVENTF_MOVE))
+                    {
+                        var strokeVisual = GetStrokeVisual(touchInput.dwID);
+                        strokeVisual.Add(new StylusPoint(point.X, point.Y));
+                        strokeVisual.Redraw();
+                    }
+                    else if (touchInput.dwFlags.HasFlag(TOUCHEVENTF_FLAGS.TOUCHEVENTF_UP))
+                    {
+                        StrokeVisualList.Remove(touchInput.dwID);
+                    }
+                }
 
-            //    PInvoke.CloseTouchInputHandle(new HTOUCHINPUT(lparam));
-            //}
+                PInvoke.CloseTouchInputHandle(new HTOUCHINPUT(lparam));
+            }
         }
 
         return IntPtr.Zero;
