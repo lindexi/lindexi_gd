@@ -13,5 +13,7 @@
     <vm:MainViewModel />
   </Design.DataContext>
 
-  <views:AvaSkiaInkCanvas x:Name="AvaSkiaInkCanvas"/>
+  <Grid x:Name="RootGrid" Background="Transparent">
+      <views:AvaSkiaInkCanvas x:Name="AvaSkiaInkCanvas"/>
+  </Grid>
 </UserControl>
