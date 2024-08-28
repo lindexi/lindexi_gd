@@ -34,5 +34,7 @@ public partial class MainView : UserControl
         {
             _polyline.Points.Add(position);
         }
+
+        RootGrid.InvalidateVisual();
     }
 }
