@@ -7,6 +7,9 @@ using Avalonia.Skia;
 
 using SkiaSharp;
 
+using System.Linq;
+using UnoInk.Inking.InkCore;
+
 namespace NarjejerechowainoBuwurjofear.Views;
 
 class SkiaStroke:IDisposable
@@ -45,6 +48,34 @@ class SkiaStroke:IDisposable
     public void Dispose()
     {
         _path.Dispose();
+    }
+
+    public static List<StylusPoint> ApplyMeanFilter(List<StylusPoint> pointList, int step = 10)
+    {
+        var xList = ApplyMeanFilter(pointList.Select(t => t.Point.X).ToList(), step);
+        var yList = ApplyMeanFilter(pointList.Select(t => t.Point.Y).ToList(), step);
+
+        var newPointList = new List<StylusPoint>();
+        for (int i = 0; i < xList.Count && i < yList.Count; i++)
+        {
+            newPointList.Add(new StylusPoint(xList[i], yList[i]));
+        }
+
+        return newPointList;
+    }
+
+    public static List<double> ApplyMeanFilter(List<double> list, int step)
+    {
+        // 前面一半加不了
+        var newList = new List<double>(list.Take(step / 2));
+        for (int i = step / 2; i < list.Count - step + step / 2; i++)
+        {
+            // 当前点，取前后各一半，即 step / 2 个点，求平均值作为当前点的值
+            newList.Add(list.Skip(i - step / 2).Take(step).Sum() / step);
+        }
+        // 后面一半加不了
+        newList.AddRange(list.Skip(list.Count - (step - step / 2)));
+        return newList;
     }
 }
 
