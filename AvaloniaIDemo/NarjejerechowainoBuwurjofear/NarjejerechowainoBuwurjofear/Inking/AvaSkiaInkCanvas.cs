@@ -4,9 +4,44 @@ using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
+
 using SkiaSharp;
 
 namespace NarjejerechowainoBuwurjofear.Views;
+
+class SkiaStroke
+{
+    public SkiaStroke()
+    {
+        _path = new SKPath();
+    }
+
+    private SKPath _path;
+
+    public void AddPoint(Point point)
+    {
+        _path.LineTo((float) point.X, (float) point.Y);
+    }
+
+    public void Render(ImmediateDrawingContext context)
+    {
+        var skiaSharpApiLeaseFeature = context.TryGetFeature<ISkiaSharpApiLeaseFeature>();
+        if (skiaSharpApiLeaseFeature == null)
+        {
+            return;
+        }
+
+        using var skiaSharpApiLease = skiaSharpApiLeaseFeature.Lease();
+        var canvas = skiaSharpApiLease.SkCanvas;
+
+        using var skPaint = new SKPaint();
+        skPaint.Color = SKColors.Black;
+        skPaint.Style = SKPaintStyle.Stroke;
+        skPaint.StrokeWidth = 2;
+
+        canvas.DrawPath(_path, skPaint);
+    }
+}
 
 class AvaSkiaInkCanvas : Control
 {
@@ -76,10 +111,10 @@ class AvaSkiaInkCanvas : Control
             for (var i = 0; i < _list.Count; i++)
             {
                 var bounds = _list[i];
-                var x = (float)bounds.X;
-                var y = (float)bounds.Y;
+                var x = (float) bounds.X;
+                var y = (float) bounds.Y;
 
-                skPaint.Color = new SKColor((uint)(Math.Sin(Math.Pow(Math.E * i, Math.PI)) * int.MaxValue));
+                skPaint.Color = new SKColor((uint) (Math.Sin(Math.Pow(Math.E * i, Math.PI)) * int.MaxValue));
 
                 canvas.DrawRect(x, y, 10, 10, skPaint);
             }
