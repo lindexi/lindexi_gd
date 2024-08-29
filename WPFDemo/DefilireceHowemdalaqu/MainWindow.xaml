@@ -7,6 +7,6 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid x:Name="RootGrid">
-
+        <CheckBox IsChecked="True" Margin="10,10,10,10" HorizontalAlignment="Left" VerticalAlignment="Top" Content="启用平滑算法" Click="CheckBox_OnClick"></CheckBox>
     </Grid>
 </Window>

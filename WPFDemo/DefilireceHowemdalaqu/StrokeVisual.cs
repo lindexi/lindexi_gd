@@ -36,7 +36,7 @@ public class StrokeVisual : DrawingVisual
     /// <summary>
     ///     设置或获取显示的笔迹
     /// </summary>
-    public Stroke Stroke { set; get; }
+    public Stroke? Stroke { set; get; }
 
     /// <summary>
     ///     在笔迹中添加点
@@ -51,16 +51,24 @@ public class StrokeVisual : DrawingVisual
         }
         else
         {
-            Stroke.StylusPoints.Add(point);
+            _rawPointList.Add(point);
 
-            if (Stroke.StylusPoints.Count > 10)
+            if (ShouldReCreatePoint && _rawPointList.Count > 10)
             {
-                var newPointList = ApplyMeanFilter(Stroke.StylusPoints.ToList(), 10);
-              
+                var newPointList = ApplyMeanFilter(_rawPointList);
+
                 Stroke.StylusPoints = new StylusPointCollection(newPointList);
+            }
+            else
+            {
+                Stroke.StylusPoints.Add(point);
             }
         }
     }
+
+    public static bool ShouldReCreatePoint { get; set; } = true;
+
+    private readonly List<StylusPoint> _rawPointList = [];
 
     public static List<StylusPoint> ApplyMeanFilter(List<StylusPoint> pointList, int step = 10)
     {
@@ -78,11 +86,14 @@ public class StrokeVisual : DrawingVisual
 
     public static List<double> ApplyMeanFilter(List<double> list, int step)
     {
+        // 前面一半加不了
         var newList = new List<double>(list.Take(step / 2));
         for (int i = step / 2; i < list.Count - step + step / 2; i++)
         {
+            // 当前前，取前后各一半，即 step / 2 个点，求平均值作为当前点的值
             newList.Add(list.Skip(i - step / 2).Take(step).Sum() / step);
         }
+        // 后面一半加不了
         newList.AddRange(list.Skip(list.Count - (step - step / 2)));
         return newList;
     }
