@@ -1,53 +1,35 @@
-﻿using Avalonia;
+﻿using System.Linq;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
-
 using SkiaSharp;
-
-using System.Linq;
 using UnoInk.Inking.InkCore;
 
-namespace NarjejerechowainoBuwurjofear.Views;
+namespace NarjejerechowainoBuwurjofear.Inking;
 
-class SkiaStroke:IDisposable
+class SkiaStroke : IDisposable
 {
     public SkiaStroke()
     {
-        _path = new SKPath();
+        Path = new SKPath();
     }
 
-    private readonly SKPath _path;
+    public SKPath Path { get; }
+
+    public SKColor Color { get; set; }
+    public float Width { get; set; } = 10;
 
     public void AddPoint(Point point)
     {
-        _path.LineTo((float) point.X, (float) point.Y);
-    }
-
-    public void Render(ImmediateDrawingContext context)
-    {
-        var skiaSharpApiLeaseFeature = context.TryGetFeature<ISkiaSharpApiLeaseFeature>();
-        if (skiaSharpApiLeaseFeature == null)
-        {
-            return;
-        }
-
-        using var skiaSharpApiLease = skiaSharpApiLeaseFeature.Lease();
-        var canvas = skiaSharpApiLease.SkCanvas;
-
-        using var skPaint = new SKPaint();
-        skPaint.Color = SKColors.Black;
-        skPaint.Style = SKPaintStyle.Stroke;
-        skPaint.StrokeWidth = 2;
-
-        canvas.DrawPath(_path, skPaint);
+        Path.LineTo((float) point.X, (float) point.Y);
     }
 
     public void Dispose()
     {
-        _path.Dispose();
+        Path.Dispose();
     }
 
     public static List<StylusPoint> ApplyMeanFilter(List<StylusPoint> pointList, int step = 10)
