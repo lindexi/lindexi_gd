@@ -9,14 +9,14 @@ using SkiaSharp;
 
 namespace NarjejerechowainoBuwurjofear.Views;
 
-class SkiaStroke
+class SkiaStroke:IDisposable
 {
     public SkiaStroke()
     {
         _path = new SKPath();
     }
 
-    private SKPath _path;
+    private readonly SKPath _path;
 
     public void AddPoint(Point point)
     {
@@ -40,6 +40,11 @@ class SkiaStroke
         skPaint.StrokeWidth = 2;
 
         canvas.DrawPath(_path, skPaint);
+    }
+
+    public void Dispose()
+    {
+        _path.Dispose();
     }
 }
 
