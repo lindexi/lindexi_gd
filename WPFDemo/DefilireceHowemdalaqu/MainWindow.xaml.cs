@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -127,6 +128,7 @@ public partial class MainWindow : Window
             PInvoke.ScreenToClient(new HWND(hwnd), ref point);
 
             Console.WriteLine($"Pointer {pointerId} XY={point.X},{point.Y}");
+            File.AppendAllLines("output.txt", [$"{point.X},{point.Y}"]);
 
             if (!_isPointerUp)
             {
