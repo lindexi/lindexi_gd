@@ -1,4 +1,5 @@
-﻿using System.Windows.Ink;
+﻿using System.Windows;
+using System.Windows.Ink;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -51,10 +52,40 @@ public class StrokeVisual : DrawingVisual
         else
         {
             Stroke.StylusPoints.Add(point);
+
+            if (Stroke.StylusPoints.Count > 10)
+            {
+                var newPointList = ApplyMeanFilter(Stroke.StylusPoints.ToList(), 10);
+              
+                Stroke.StylusPoints = new StylusPointCollection(newPointList);
+            }
         }
     }
 
+    public static List<StylusPoint> ApplyMeanFilter(List<StylusPoint> pointList, int step = 10)
+    {
+        var xList = ApplyMeanFilter(pointList.Select(t => t.X).ToList(), step);
+        var yList = ApplyMeanFilter(pointList.Select(t => t.Y).ToList(), step);
 
+        var newPointList = new List<StylusPoint>();
+        for (int i = 0; i < xList.Count && i < yList.Count; i++)
+        {
+            newPointList.Add(new StylusPoint(xList[i], yList[i]));
+        }
+
+        return newPointList;
+    }
+
+    public static List<double> ApplyMeanFilter(List<double> list, int step)
+    {
+        var newList = new List<double>(list.Take(step / 2));
+        for (int i = step / 2; i < list.Count - step + step / 2; i++)
+        {
+            newList.Add(list.Skip(i - step / 2).Take(step).Sum() / step);
+        }
+        newList.AddRange(list.Skip(list.Count - (step - step / 2)));
+        return newList;
+    }
 
     /// <summary>
     ///     重新画出笔迹
