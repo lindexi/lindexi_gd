@@ -129,14 +129,14 @@ public partial class MainWindow : Window
 
             PInvoke.GetPointerDeviceRects(pointerInfo.sourceDevice, &pointerDeviceRect, &displayRect);
 
-            Console.WriteLine($"PointerDeviceRect={pointerDeviceRect.X},{pointerDeviceRect.Y} WH={pointerDeviceRect.Width},{pointerDeviceRect.Height} DisplayRect={displayRect.X},{displayRect.Y} WH={displayRect.Width},{displayRect.Height}");
+            //Console.WriteLine($"PointerDeviceRect={pointerDeviceRect.X},{pointerDeviceRect.Y} WH={pointerDeviceRect.Width},{pointerDeviceRect.Height} DisplayRect={displayRect.X},{displayRect.Y} WH={displayRect.Width},{displayRect.Height}");
 
             //Console.WriteLine($"Id={pointerId}; PixelLocation={pointerInfo.ptPixelLocation.X},{pointerInfo.ptPixelLocation.Y}; Raw={pointerInfo.ptPixelLocationRaw.X},{pointerInfo.ptPixelLocationRaw.Y} Same={pointerInfo.ptPixelLocation== pointerInfo.ptPixelLocationRaw}");
 
             var point = pointerInfo.ptPixelLocation;
             PInvoke.ScreenToClient(new HWND(hwnd), ref point);
 
-            Console.WriteLine($"Pointer {pointerId} XY={point.X},{point.Y}");
+            Console.WriteLine($"Pointer {pointerId} XY={point.X},{point.Y} Himetric={pointerInfo.ptHimetricLocationRaw.X},{pointerInfo.ptHimetricLocationRaw.Y}");
 
             var point2D = new Point2D(point.X, point.Y);
 
@@ -180,16 +180,16 @@ public partial class MainWindow : Window
 
                     Console.WriteLine($"Touch {touchInput.dwID} XY={point.X}, {point.Y}");
 
-                    if (touchInput.dwFlags.HasFlag(TOUCHEVENTF_FLAGS.TOUCHEVENTF_MOVE))
-                    {
-                        var strokeVisual = GetStrokeVisual(touchInput.dwID);
-                        strokeVisual.Add(new StylusPoint(point.X, point.Y));
-                        strokeVisual.Redraw();
-                    }
-                    else if (touchInput.dwFlags.HasFlag(TOUCHEVENTF_FLAGS.TOUCHEVENTF_UP))
-                    {
-                        StrokeVisualList.Remove(touchInput.dwID);
-                    }
+                    //if (touchInput.dwFlags.HasFlag(TOUCHEVENTF_FLAGS.TOUCHEVENTF_MOVE))
+                    //{
+                    //    var strokeVisual = GetStrokeVisual(touchInput.dwID);
+                    //    strokeVisual.Add(new StylusPoint(point.X, point.Y));
+                    //    strokeVisual.Redraw();
+                    //}
+                    //else if (touchInput.dwFlags.HasFlag(TOUCHEVENTF_FLAGS.TOUCHEVENTF_UP))
+                    //{
+                    //    StrokeVisualList.Remove(touchInput.dwID);
+                    //}
                 }
 
                 PInvoke.CloseTouchInputHandle(new HTOUCHINPUT(lparam));
