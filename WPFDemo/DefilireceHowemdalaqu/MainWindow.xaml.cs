@@ -124,6 +124,13 @@ public partial class MainWindow : Window
             PInvoke.GetPointerTouchInfo(pointerId, out var info);
             POINTER_INFO pointerInfo = info.pointerInfo;
 
+            global::Windows.Win32.Foundation.RECT pointerDeviceRect = default;
+            global::Windows.Win32.Foundation.RECT displayRect = default;
+
+            PInvoke.GetPointerDeviceRects(pointerInfo.sourceDevice, &pointerDeviceRect, &displayRect);
+
+            Console.WriteLine($"PointerDeviceRect={pointerDeviceRect.X},{pointerDeviceRect.Y} WH={pointerDeviceRect.Width},{pointerDeviceRect.Height} DisplayRect={displayRect.X},{displayRect.Y} WH={displayRect.Width},{displayRect.Height}");
+
             //Console.WriteLine($"Id={pointerId}; PixelLocation={pointerInfo.ptPixelLocation.X},{pointerInfo.ptPixelLocation.Y}; Raw={pointerInfo.ptPixelLocationRaw.X},{pointerInfo.ptPixelLocationRaw.Y} Same={pointerInfo.ptPixelLocation== pointerInfo.ptPixelLocationRaw}");
 
             var point = pointerInfo.ptPixelLocation;
@@ -131,9 +138,14 @@ public partial class MainWindow : Window
 
             Console.WriteLine($"Pointer {pointerId} XY={point.X},{point.Y}");
 
+            var point2D = new Point2D(point.X, point.Y);
+
+            point2D = new Point2D(pointerInfo.ptHimetricLocationRaw.X / (double) pointerDeviceRect.Width * displayRect.Width, pointerInfo.ptHimetricLocationRaw.Y / (double) pointerDeviceRect.Height * displayRect.Height);
+            Console.WriteLine($"{point2D.X},{point2D.Y}");
+
             if (!_isPointerUp)
             {
-                _pointerPointList.Add(new Point2D(point.X, point.Y));
+                _pointerPointList.Add(point2D);
             }
 
             if (msg == WM_POINTERUP)
@@ -145,7 +157,7 @@ public partial class MainWindow : Window
             if (msg == WM_POINTERUPDATE)
             {
                 var strokeVisual = GetStrokeVisual(pointerId);
-                strokeVisual.Add(new StylusPoint(point.X, point.Y));
+                strokeVisual.Add(new StylusPoint(point2D.X, point2D.Y));
                 strokeVisual.Redraw();
             }
             else if (msg == WM_POINTERUP)
@@ -208,7 +220,7 @@ public partial class MainWindow : Window
                 }
 
                 message += " | ";
-                if(i< _pointerPointList.Count)
+                if (i < _pointerPointList.Count)
                 {
                     message += $"{_pointerPointList[i].X:0000},{_pointerPointList[i].Y:0000}";
                 }
