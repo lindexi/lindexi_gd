@@ -31,18 +31,45 @@ public partial class MainWindow : Window
         var pointList = new List<Point>();
         foreach (var line in lines)
         {
-            var match = Regex.Match(line,@"(\d+),(\d+)");
+            var match = Regex.Match(line, @"(\d+),(\d+)");
             if (match.Success)
             {
                 pointList.Add(new Point(double.Parse(match.Groups[1].ValueSpan), double.Parse(match.Groups[2].ValueSpan)));
             }
         }
 
+        var applyMeanFilter = ApplyMeanFilter(pointList);
+
         var polyline = new Polyline();
         polyline.Stroke = Brushes.Black;
         polyline.StrokeThickness = 2;
-        polyline.Points = new PointCollection(pointList);
+        polyline.Points = new PointCollection(applyMeanFilter);
 
         RootCanvas.Children.Add(polyline);
+    }
+
+    public static List<Point> ApplyMeanFilter(List<Point> pointList, int step = 10)
+    {
+        var xList = ApplyMeanFilter(pointList.Select(t => t.X).ToList(), step);
+        var yList = ApplyMeanFilter(pointList.Select(t => t.Y).ToList(), step);
+
+        var newPointList = new List<Point>();
+        for (int i = 0; i < xList.Count && i < yList.Count; i++)
+        {
+            newPointList.Add(new Point(xList[i], yList[i]));
+        }
+
+        return newPointList;
+    }
+
+    public static List<double> ApplyMeanFilter(List<double> list, int step)
+    {
+        var newList = new List<double>(list.Take(step / 2));
+        for (int i = step / 2; i < list.Count - step + step / 2; i++)
+        {
+            newList.Add(list.Skip(i - step / 2).Take(step).Sum() / step);
+        }
+        newList.AddRange(list.Skip(list.Count - (step - step / 2)));
+        return newList;
     }
 }
