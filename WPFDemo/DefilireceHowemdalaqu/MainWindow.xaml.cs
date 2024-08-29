@@ -10,6 +10,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Input.StylusPlugIns;
 using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
@@ -140,7 +141,16 @@ public partial class MainWindow : Window
 
             var point2D = new Point2D(point.X, point.Y);
 
-            point2D = new Point2D(pointerInfo.ptHimetricLocationRaw.X / (double) pointerDeviceRect.Width * displayRect.Width, pointerInfo.ptHimetricLocationRaw.Y / (double) pointerDeviceRect.Height * displayRect.Height);
+            point2D = new Point2D(pointerInfo.ptHimetricLocationRaw.X / (double) pointerDeviceRect.Width * displayRect.Width + displayRect.left, pointerInfo.ptHimetricLocationRaw.Y / (double) pointerDeviceRect.Height * displayRect.Height + displayRect.top);
+            //var p = PointFromScreen(new System.Windows.Point(point2D.X, point2D.Y));
+            //point2D = new Point2D(p.X, p.Y);
+
+            var screenTranslate = new Point(0, 0);
+            PInvoke.ClientToScreen(new HWND(hwnd), ref screenTranslate);
+            var dpi = VisualTreeHelper.GetDpi(this);
+            point2D = new Point2D(point2D.X - screenTranslate.X, point2D.Y - screenTranslate.Y);
+            point2D = new Point2D(point2D.X / dpi.DpiScaleX, point2D.Y / dpi.DpiScaleY);
+
             Console.WriteLine($"{point2D.X},{point2D.Y}");
 
             if (!_isPointerUp)
