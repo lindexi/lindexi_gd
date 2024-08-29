@@ -3,3 +3,4 @@ ScreenToClient
 RegisterTouchWindow
 WM_TOUCH
 GetTouchInputInfo
+GetPointerDeviceRects
