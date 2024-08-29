@@ -146,9 +146,9 @@ public partial class MainWindow : Window
             //point2D = new Point2D(p.X, p.Y);
 
             var screenTranslate = new Point(0, 0);
-            PInvoke.ScreenToClient(new HWND(hwnd), ref screenTranslate);
+            PInvoke.ClientToScreen(new HWND(hwnd), ref screenTranslate);
             var dpi = VisualTreeHelper.GetDpi(this);
-            point2D = new Point2D(point2D.X + screenTranslate.X, point2D.Y + screenTranslate.Y);
+            point2D = new Point2D(point2D.X - screenTranslate.X, point2D.Y - screenTranslate.Y);
             point2D = new Point2D(point2D.X / dpi.DpiScaleX, point2D.Y / dpi.DpiScaleY);
 
             Console.WriteLine($"{point2D.X},{point2D.Y}");
