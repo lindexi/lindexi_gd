@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Input.StylusPlugIns;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
@@ -35,8 +36,9 @@ public partial class MainWindow : Window
 
         //StylusMove += MainWindow_StylusMove;
         //StylusUp += MainWindow_StylusUp;
-        //TouchMove += MainWindow_TouchMove;
-        //TouchUp += MainWindow_TouchUp;
+        TouchMove += MainWindow_TouchMove;
+        TouchUp += MainWindow_TouchUp;
+        StylusPlugIns.Add(new F());
     }
 
     private List<Point2D> _wpfPointList = [];
@@ -48,9 +50,9 @@ public partial class MainWindow : Window
     private void MainWindow_TouchMove(object? sender, TouchEventArgs e)
     {
         var touchPoint = e.GetTouchPoint(RootGrid);
-        var strokeVisual = GetStrokeVisual((uint) e.TouchDevice.Id);
-        strokeVisual.Add(new StylusPoint(touchPoint.Position.X, touchPoint.Position.Y));
-        strokeVisual.Redraw();
+        //var strokeVisual = GetStrokeVisual((uint) e.TouchDevice.Id);
+        //strokeVisual.Add(new StylusPoint(touchPoint.Position.X, touchPoint.Position.Y));
+        //strokeVisual.Redraw();
         Console.WriteLine($"WPF {e.TouchDevice.Id} XY={touchPoint.Position.X},{touchPoint.Position.Y}");
 
         if (!_isWpfUp)
@@ -61,7 +63,7 @@ public partial class MainWindow : Window
 
     private void MainWindow_TouchUp(object? sender, TouchEventArgs e)
     {
-        StrokeVisualList.Remove((uint) e.TouchDevice.Id);
+        //StrokeVisualList.Remove((uint) e.TouchDevice.Id);
         _isWpfUp = true;
         Output();
     }
@@ -140,16 +142,16 @@ public partial class MainWindow : Window
                 Output();
             }
 
-            //if (msg == WM_POINTERUPDATE)
-            //{
-            //    var strokeVisual = GetStrokeVisual(pointerId);
-            //    strokeVisual.Add(new StylusPoint(point.X, point.Y));
-            //    strokeVisual.Redraw();
-            //}
-            //else if (msg == WM_POINTERUP)
-            //{
-            //    StrokeVisualList.Remove(pointerId);
-            //}
+            if (msg == WM_POINTERUPDATE)
+            {
+                var strokeVisual = GetStrokeVisual(pointerId);
+                strokeVisual.Add(new StylusPoint(point.X, point.Y));
+                strokeVisual.Redraw();
+            }
+            else if (msg == WM_POINTERUP)
+            {
+                StrokeVisualList.Remove(pointerId);
+            }
         }
         else if ((uint) msg is PInvoke.WM_TOUCH)
         {
@@ -225,3 +227,11 @@ public partial class MainWindow : Window
 }
 
 readonly record struct Point2D(double X, double Y);
+
+class F : StylusPlugIn
+{
+    protected override void OnStylusMove(RawStylusInput rawStylusInput)
+    {
+        base.OnStylusMove(rawStylusInput);
+    }
+}
