@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:NarjejerechowainoBuwurjofear.ViewModels"
              xmlns:views="clr-namespace:NarjejerechowainoBuwurjofear.Views"
+             xmlns:inking="clr-namespace:NarjejerechowainoBuwurjofear.Inking"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="NarjejerechowainoBuwurjofear.Views.MainView"
              x:DataType="vm:MainViewModel">
@@ -14,6 +15,6 @@
   </Design.DataContext>
 
   <Grid x:Name="RootGrid" Background="Transparent">
-      <views:AvaSkiaInkCanvas x:Name="AvaSkiaInkCanvas"/>
+      <inking:AvaSkiaInkCanvas x:Name="AvaSkiaInkCanvas"/>
   </Grid>
 </UserControl>

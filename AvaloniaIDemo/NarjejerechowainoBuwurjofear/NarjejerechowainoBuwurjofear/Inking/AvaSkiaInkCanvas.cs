@@ -1,50 +1,63 @@
-﻿using Avalonia;
+﻿using System.Linq;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
-
 using SkiaSharp;
+using UnoInk.Inking.InkCore;
 
-namespace NarjejerechowainoBuwurjofear.Views;
+namespace NarjejerechowainoBuwurjofear.Inking;
 
-class SkiaStroke:IDisposable
+class SkiaStroke : IDisposable
 {
     public SkiaStroke()
     {
-        _path = new SKPath();
+        Path = new SKPath();
     }
 
-    private readonly SKPath _path;
+    public SKPath Path { get; }
+
+    public SKColor Color { get; set; }
+    public float Width { get; set; } = 10;
 
     public void AddPoint(Point point)
     {
-        _path.LineTo((float) point.X, (float) point.Y);
-    }
-
-    public void Render(ImmediateDrawingContext context)
-    {
-        var skiaSharpApiLeaseFeature = context.TryGetFeature<ISkiaSharpApiLeaseFeature>();
-        if (skiaSharpApiLeaseFeature == null)
-        {
-            return;
-        }
-
-        using var skiaSharpApiLease = skiaSharpApiLeaseFeature.Lease();
-        var canvas = skiaSharpApiLease.SkCanvas;
-
-        using var skPaint = new SKPaint();
-        skPaint.Color = SKColors.Black;
-        skPaint.Style = SKPaintStyle.Stroke;
-        skPaint.StrokeWidth = 2;
-
-        canvas.DrawPath(_path, skPaint);
+        Path.LineTo((float) point.X, (float) point.Y);
     }
 
     public void Dispose()
     {
-        _path.Dispose();
+        Path.Dispose();
+    }
+
+    public static List<StylusPoint> ApplyMeanFilter(List<StylusPoint> pointList, int step = 10)
+    {
+        var xList = ApplyMeanFilter(pointList.Select(t => t.Point.X).ToList(), step);
+        var yList = ApplyMeanFilter(pointList.Select(t => t.Point.Y).ToList(), step);
+
+        var newPointList = new List<StylusPoint>();
+        for (int i = 0; i < xList.Count && i < yList.Count; i++)
+        {
+            newPointList.Add(new StylusPoint(xList[i], yList[i]));
+        }
+
+        return newPointList;
+    }
+
+    public static List<double> ApplyMeanFilter(List<double> list, int step)
+    {
+        // 前面一半加不了
+        var newList = new List<double>(list.Take(step / 2));
+        for (int i = step / 2; i < list.Count - step + step / 2; i++)
+        {
+            // 当前点，取前后各一半，即 step / 2 个点，求平均值作为当前点的值
+            newList.Add(list.Skip(i - step / 2).Take(step).Sum() / step);
+        }
+        // 后面一半加不了
+        newList.AddRange(list.Skip(list.Count - (step - step / 2)));
+        return newList;
     }
 }
 
