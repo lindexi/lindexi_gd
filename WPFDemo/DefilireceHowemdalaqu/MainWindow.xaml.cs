@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Drawing;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
@@ -40,19 +41,31 @@ public partial class MainWindow : Window
         TouchUp += MainWindow_TouchUp;
     }
 
+    private List<Point2D> _wpfPointList = [];
+    private List<Point2D> _pointerPointList = [];
+
+    private bool _isWpfUp;
+    private bool _isPointerUp;
+
     private void MainWindow_TouchMove(object? sender, TouchEventArgs e)
     {
         var touchPoint = e.GetTouchPoint(RootGrid);
         var strokeVisual = GetStrokeVisual((uint) e.TouchDevice.Id);
         strokeVisual.Add(new StylusPoint(touchPoint.Position.X, touchPoint.Position.Y));
         strokeVisual.Redraw();
-        Console.WriteLine($"{e.TouchDevice.Id} Position={touchPoint.Position.X},{touchPoint.Position.Y}");
+        Console.WriteLine($"WPF {e.TouchDevice.Id} XY={touchPoint.Position.X},{touchPoint.Position.Y}");
+
+        if (!_isWpfUp)
+        {
+            _wpfPointList.Add(new Point2D(touchPoint.Position.X, touchPoint.Position.Y));
+        }
     }
 
     private void MainWindow_TouchUp(object? sender, TouchEventArgs e)
     {
         StrokeVisualList.Remove((uint) e.TouchDevice.Id);
-        Console.WriteLine("触摸");
+        _isWpfUp = true;
+        Output();
     }
 
     private void MainWindow_StylusMove(object sender, StylusEventArgs e)
@@ -115,6 +128,17 @@ public partial class MainWindow : Window
 
             Console.WriteLine($"Pointer {pointerId} XY={point.X},{point.Y}");
 
+            if (!_isPointerUp)
+            {
+                _pointerPointList.Add(new Point2D(point.X, point.Y));
+            }
+
+            if (msg == WM_POINTERUP)
+            {
+                _isPointerUp = true;
+                Output();
+            }
+
             //if (msg == WM_POINTERUPDATE)
             //{
             //    var strokeVisual = GetStrokeVisual(pointerId);
@@ -130,34 +154,63 @@ public partial class MainWindow : Window
         {
             var touchInputCount = wparam.ToInt32();
 
-            //var pTouchInputs = stackalloc TOUCHINPUT[touchInputCount];
-            //if (PInvoke.GetTouchInputInfo(new HTOUCHINPUT(lparam), (uint) touchInputCount, pTouchInputs, sizeof(TOUCHINPUT)))
-            //{
-            //    for (var i = 0; i < touchInputCount; i++)
-            //    {
-            //        var touchInput = pTouchInputs[i];
-            //        var point = new Point(touchInput.x / 100, touchInput.y / 100);
-            //        PInvoke.ScreenToClient(new HWND(hwnd), ref point);
+            var pTouchInputs = stackalloc TOUCHINPUT[touchInputCount];
+            if (PInvoke.GetTouchInputInfo(new HTOUCHINPUT(lparam), (uint) touchInputCount, pTouchInputs, sizeof(TOUCHINPUT)))
+            {
+                for (var i = 0; i < touchInputCount; i++)
+                {
+                    var touchInput = pTouchInputs[i];
+                    var point = new Point(touchInput.x / 100, touchInput.y / 100);
+                    PInvoke.ScreenToClient(new HWND(hwnd), ref point);
 
-            //        Debug.WriteLine($"{touchInput.x/100}, {touchInput.y / 100}");
+                    Console.WriteLine($"Touch {touchInput.dwID} XY={point.X}, {point.Y}");
 
-            //        if (touchInput.dwFlags.HasFlag(TOUCHEVENTF_FLAGS.TOUCHEVENTF_MOVE))
-            //        {
-            //            var strokeVisual = GetStrokeVisual(touchInput.dwID);
-            //            strokeVisual.Add(new StylusPoint(point.X, point.Y));
-            //            strokeVisual.Redraw();
-            //        }
-            //        else if (touchInput.dwFlags.HasFlag(TOUCHEVENTF_FLAGS.TOUCHEVENTF_UP))
-            //        {
-            //            StrokeVisualList.Remove(touchInput.dwID);
-            //        }
-            //    }
+                    if (touchInput.dwFlags.HasFlag(TOUCHEVENTF_FLAGS.TOUCHEVENTF_MOVE))
+                    {
+                        var strokeVisual = GetStrokeVisual(touchInput.dwID);
+                        strokeVisual.Add(new StylusPoint(point.X, point.Y));
+                        strokeVisual.Redraw();
+                    }
+                    else if (touchInput.dwFlags.HasFlag(TOUCHEVENTF_FLAGS.TOUCHEVENTF_UP))
+                    {
+                        StrokeVisualList.Remove(touchInput.dwID);
+                    }
+                }
 
-            //    PInvoke.CloseTouchInputHandle(new HTOUCHINPUT(lparam));
-            //}
+                PInvoke.CloseTouchInputHandle(new HTOUCHINPUT(lparam));
+            }
         }
 
         return IntPtr.Zero;
+    }
+
+    private void Output()
+    {
+        if (_isWpfUp && _isPointerUp)
+        {
+            Console.WriteLine($"WPF 触摸点数量： {_wpfPointList.Count} Pointer点数量： {_pointerPointList.Count}");
+
+            for (int i = 0; i < _wpfPointList.Count || i < _pointerPointList.Count; i++)
+            {
+                string message;
+                if (i < _wpfPointList.Count)
+                {
+                    message = $"{_wpfPointList[i].X:0000},{_wpfPointList[i].Y:0000}";
+                }
+                else
+                {
+                    message = "    ,    ";
+                }
+
+                message += " | ";
+                if(i< _pointerPointList.Count)
+                {
+                    message += $"{_pointerPointList[i].X:0000},{_pointerPointList[i].Y:0000}";
+                }
+
+                Console.WriteLine(message);
+            }
+        }
     }
 
     private static int ToInt32(IntPtr ptr) => IntPtr.Size == 4 ? ptr.ToInt32() : (int) (ptr.ToInt64() & 0xffffffff);
@@ -240,3 +293,5 @@ public partial class MainWindow : Window
         public DrawingVisual Visual { get; }
     }
 }
+
+readonly record struct Point2D(double X, double Y);
