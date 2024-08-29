@@ -41,6 +41,12 @@ public partial class MainWindow : Window
         TouchUp += MainWindow_TouchUp;
     }
 
+    private List<Point2D> _wpfPointList = [];
+    private List<Point2D> _pointerPointList = [];
+
+    private bool _isWpfUp;
+    private bool _isPointerUp;
+
     private void MainWindow_TouchMove(object? sender, TouchEventArgs e)
     {
         var touchPoint = e.GetTouchPoint(RootGrid);
@@ -48,12 +54,18 @@ public partial class MainWindow : Window
         strokeVisual.Add(new StylusPoint(touchPoint.Position.X, touchPoint.Position.Y));
         strokeVisual.Redraw();
         Console.WriteLine($"WPF {e.TouchDevice.Id} XY={touchPoint.Position.X},{touchPoint.Position.Y}");
+
+        if (!_isWpfUp)
+        {
+            _wpfPointList.Add(new Point2D(touchPoint.Position.X, touchPoint.Position.Y));
+        }
     }
 
     private void MainWindow_TouchUp(object? sender, TouchEventArgs e)
     {
         StrokeVisualList.Remove((uint) e.TouchDevice.Id);
-        Console.WriteLine("触摸");
+        _isWpfUp = true;
+        Output();
     }
 
     private void MainWindow_StylusMove(object sender, StylusEventArgs e)
@@ -116,6 +128,17 @@ public partial class MainWindow : Window
 
             Console.WriteLine($"Pointer {pointerId} XY={point.X},{point.Y}");
 
+            if (!_isPointerUp)
+            {
+                _pointerPointList.Add(new Point2D(point.X, point.Y));
+            }
+
+            if (msg == WM_POINTERUP)
+            {
+                _isPointerUp = true;
+                Output();
+            }
+
             //if (msg == WM_POINTERUPDATE)
             //{
             //    var strokeVisual = GetStrokeVisual(pointerId);
@@ -159,6 +182,35 @@ public partial class MainWindow : Window
         }
 
         return IntPtr.Zero;
+    }
+
+    private void Output()
+    {
+        if (_isWpfUp && _isPointerUp)
+        {
+            Console.WriteLine($"WPF 触摸点数量： {_wpfPointList.Count} Pointer点数量： {_pointerPointList.Count}");
+
+            for (int i = 0; i < _wpfPointList.Count || i < _pointerPointList.Count; i++)
+            {
+                string message;
+                if (i < _wpfPointList.Count)
+                {
+                    message = $"{_wpfPointList[i].X:0000},{_wpfPointList[i].Y:0000}";
+                }
+                else
+                {
+                    message = "    ,    ";
+                }
+
+                message += " | ";
+                if(i< _pointerPointList.Count)
+                {
+                    message += $"{_pointerPointList[i].X:0000},{_pointerPointList[i].Y:0000}";
+                }
+
+                Console.WriteLine(message);
+            }
+        }
     }
 
     private static int ToInt32(IntPtr ptr) => IntPtr.Size == 4 ? ptr.ToInt32() : (int) (ptr.ToInt64() & 0xffffffff);
@@ -241,3 +293,5 @@ public partial class MainWindow : Window
         public DrawingVisual Visual { get; }
     }
 }
+
+readonly record struct Point2D(double X, double Y);
