@@ -90,7 +90,10 @@ public partial class MainWindow : Window
 
         var strokeVisual = new StrokeVisual();
         StrokeVisualList[id] = strokeVisual;
-        var visualCanvas = new VisualCanvas(strokeVisual);
+        var visualCanvas = new VisualCanvas(strokeVisual)
+        {
+            IsHitTestVisible = false
+        };
         RootGrid.Children.Add(visualCanvas);
 
         return strokeVisual;
@@ -214,6 +217,11 @@ public partial class MainWindow : Window
     }
 
     private static int ToInt32(IntPtr ptr) => IntPtr.Size == 4 ? ptr.ToInt32() : (int) (ptr.ToInt64() & 0xffffffff);
+
+    private void CheckBox_OnClick(object sender, RoutedEventArgs e)
+    {
+        StrokeVisual.ShouldReCreatePoint = (sender as CheckBox)?.IsChecked ?? false;
+    }
 }
 
 readonly record struct Point2D(double X, double Y);
