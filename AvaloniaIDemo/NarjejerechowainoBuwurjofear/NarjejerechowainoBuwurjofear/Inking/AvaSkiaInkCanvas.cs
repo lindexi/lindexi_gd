@@ -1,21 +1,27 @@
 ﻿using System.Linq;
+
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
+
 using SkiaSharp;
+
 using UnoInk.Inking.InkCore;
 
 namespace NarjejerechowainoBuwurjofear.Inking;
 
 class SkiaStroke : IDisposable
 {
-    public SkiaStroke()
+    public SkiaStroke(InkId id)
     {
         Path = new SKPath();
+        Id = id;
     }
+
+    public InkId Id { get; init; }
 
     public SKPath Path { get; }
 
@@ -40,7 +46,7 @@ class SkiaStroke : IDisposable
         }
 
         Path.Reset();
-        Path.AddPoly(pointList.Select(t=>new SKPoint((float) t.Point.X, (float) t.Point.Y)).ToArray());
+        Path.AddPoly(pointList.Select(t => new SKPoint((float) t.Point.X, (float) t.Point.Y)).ToArray());
     }
 
     public void Dispose()
@@ -77,10 +83,46 @@ class SkiaStroke : IDisposable
     }
 }
 
+readonly record struct InkingInputArgs(int Id, StylusPoint Point);
+
 class AvaSkiaInkCanvas : Control
 {
+    public void Down(InkingInputArgs args)
+    {
+
+    }
+
+    public void Move(InkingInputArgs args)
+    {
+
+    }
+
+    public void Up(InkingInputArgs args)
+    {
+
+    }
+
+
+
+
     private int _count;
     private List<Rect> _list = [];
+
+
+
+    private readonly Dictionary<InkId, SkiaStroke> _staticStrokeDictionary = [];
+
+    public SkiaStroke GetOrCreate(InkId id)
+    {
+        if (_staticStrokeDictionary.TryGetValue(id, out var stroke))
+        {
+            return stroke;
+        }
+
+        stroke = new SkiaStroke(id);
+        _staticStrokeDictionary.Add(id, stroke);
+        return stroke;
+    }
 
     public override void Render(DrawingContext context)
     {
