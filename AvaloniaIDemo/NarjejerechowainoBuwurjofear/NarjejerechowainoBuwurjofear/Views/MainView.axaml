@@ -16,5 +16,6 @@
 
   <Grid x:Name="RootGrid" Background="Transparent">
       <inking:AvaSkiaInkCanvas x:Name="AvaSkiaInkCanvas"/>
+      <TextBlock x:Name="MessageTextBlock" IsHitTestVisible="False" Margin="10,10,10,10" HorizontalAlignment="Left" VerticalAlignment="Top"/>
   </Grid>
 </UserControl>
