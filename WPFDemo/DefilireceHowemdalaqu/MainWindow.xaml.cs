@@ -135,6 +135,55 @@ public partial class MainWindow : Window
         _channel.Writer.TryWrite(() => Console.WriteLine(message));
     }
 
+    private Stopwatch _touchStopwatch = new Stopwatch();
+    private Stopwatch _pointerStopwatch = new Stopwatch();
+
+    private int _touchCount;
+    private int _pointerCount;
+
+    private void CountTouch()
+    {
+        _touchCount++;
+        if (_touchStopwatch.IsRunning)
+        {
+            if (_touchStopwatch.Elapsed > TimeSpan.FromSeconds(1))
+            {
+                var fps = _touchCount / _touchStopwatch.Elapsed.TotalSeconds;
+
+                AsyncConsole($"Touch 频次： {fps}");
+
+                _touchStopwatch.Restart();
+                _touchCount = 0;
+            }
+        }
+        else
+        {
+            _touchStopwatch.Restart();
+        }
+    }
+
+    private void CountPointer()
+    {
+        _pointerCount++;
+
+        if (_pointerStopwatch.IsRunning)
+        {
+            if (_pointerStopwatch.Elapsed > TimeSpan.FromSeconds(1))
+            {
+                var fps = _pointerCount / _pointerStopwatch.Elapsed.TotalSeconds;
+
+                AsyncConsole($"Pointer 频次： {fps}");
+
+                _pointerStopwatch.Restart();
+                _pointerCount = 0;
+            }
+        }
+        else
+        {
+            _pointerStopwatch.Restart();
+        }
+    }
+
     private unsafe IntPtr Hook(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam, ref bool handled)
     {
         const int WM_POINTERDOWN = 0x0246;
@@ -159,7 +208,10 @@ public partial class MainWindow : Window
             var point = pointerInfo.ptPixelLocation;
             PInvoke.ScreenToClient(new HWND(hwnd), ref point);
 
-            AsyncConsole($"Pointer {pointerId} XY={point.X},{point.Y} Himetric={pointerInfo.ptHimetricLocationRaw.X},{pointerInfo.ptHimetricLocationRaw.Y}");
+            //AsyncConsole($"Pointer {pointerId} XY={point.X},{point.Y} Himetric={pointerInfo.ptHimetricLocationRaw.X},{pointerInfo.ptHimetricLocationRaw.Y}");
+
+            CountPointer();
+
             return IntPtr.Zero;
 
             var point2D = new Point2D(point.X, point.Y);
@@ -211,7 +263,8 @@ public partial class MainWindow : Window
                     var point = new Point(touchInput.x / 100, touchInput.y / 100);
                     PInvoke.ScreenToClient(new HWND(hwnd), ref point);
 
-                    AsyncConsole($"Touch {touchInput.dwID} XY={point.X}, {point.Y}");
+                    //AsyncConsole($"Touch {touchInput.dwID} XY={point.X}, {point.Y}");
+                    CountTouch();
                     break;
 
                     //if (touchInput.dwFlags.HasFlag(TOUCHEVENTF_FLAGS.TOUCHEVENTF_MOVE))
