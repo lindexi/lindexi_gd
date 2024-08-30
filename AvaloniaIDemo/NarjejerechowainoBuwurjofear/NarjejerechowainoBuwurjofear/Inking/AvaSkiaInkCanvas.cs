@@ -28,7 +28,7 @@ class SkiaStroke : IDisposable
     public SKColor Color { get; set; }
     public float Width { get; set; } = 10;
 
-    public List<StylusPoint> PointList { get; } = null;
+    public List<StylusPoint> PointList { get; } = [];
 
     /// <summary>
     /// 是否需要重新创建笔迹点，采用平滑滤波算法
