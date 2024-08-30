@@ -83,8 +83,6 @@ class SkiaStroke : IDisposable
     }
 }
 
-readonly record struct InkingInputArgs(int Id, StylusPoint Point);
-
 class AvaSkiaInkCanvas : Control
 {
     public void Down(InkingInputArgs args)
