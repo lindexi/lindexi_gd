@@ -106,6 +106,8 @@ class AvaSkiaInkCanvas : Control
         var dynamicStrokeContext = new DynamicStrokeContext(args);
         _contextDictionary[args.Id] = dynamicStrokeContext;
         dynamicStrokeContext.Stroke.AddPoint(args.Point);
+
+        InvalidateVisual();
     }
 
     public void Move(InkingInputArgs args)
@@ -114,6 +116,7 @@ class AvaSkiaInkCanvas : Control
         {
             context.Stroke.AddPoint(args.Point);
         }
+        InvalidateVisual();
     }
 
     public void Up(InkingInputArgs args)
@@ -123,6 +126,7 @@ class AvaSkiaInkCanvas : Control
             context.Stroke.AddPoint(args.Point);
             _staticStrokeDictionary[context.Stroke.Id] = context.Stroke;
         }
+        InvalidateVisual();
     }
 
     private readonly Dictionary<int, DynamicStrokeContext> _contextDictionary = [];
