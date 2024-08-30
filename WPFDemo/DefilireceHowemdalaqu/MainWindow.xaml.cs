@@ -123,13 +123,18 @@ public partial class MainWindow : Window
         var windowInteropHelper = new WindowInteropHelper(this);
         var hwnd = windowInteropHelper.Handle;
 
-        PInvoke.RegisterTouchWindow(new HWND(hwnd), REGISTER_TOUCH_WINDOW_FLAGS.TWF_WANTPALM);
+        PInvoke.RegisterTouchWindow(new HWND(hwnd), 0);
+        //PInvoke.RegisterTouchWindow(new HWND(hwnd), REGISTER_TOUCH_WINDOW_FLAGS.TWF_WANTPALM);
 
         HwndSource source = HwndSource.FromHwnd(hwnd)!;
         source.AddHook(Hook);
     }
 
-    private void AsyncConsole(string message) => _channel.Writer.TryWrite(() => Console.WriteLine(message));
+    private void AsyncConsole(string message)
+    {
+        message = $"[{DateTime.Now:HH:mm:ss.fff}] {message}";
+        _channel.Writer.TryWrite(() => Console.WriteLine(message));
+    }
 
     private unsafe IntPtr Hook(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam, ref bool handled)
     {
