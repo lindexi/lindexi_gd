@@ -241,7 +241,7 @@ class AvaSkiaInkCanvas : Control
                 skPaint.Color = SKColors.Red;
                 skPaint.Style = SKPaintStyle.Fill;
 
-                skPaint.StrokeWidth = 0;
+                skPaint.StrokeWidth = 10;
 
                 foreach (var path in _pathList)
                 {
