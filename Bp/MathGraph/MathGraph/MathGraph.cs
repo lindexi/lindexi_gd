@@ -19,7 +19,7 @@ public class MathGraph<T>
 
     public MathGraphElement<T> CreateAndAddElement(T value, string? id = null)
     {
-        var element = new MathGraphElement<T>(value, id);
+        var element = new MathGraphElement<T>(this, value, id);
         ElementList.Add(element);
         return element;
     }
@@ -130,9 +130,10 @@ public class MathGraphSerializer<T>
 
 public class MathGraphElement<T>
 {
-    public MathGraphElement(T value, string? id = null)
+    public MathGraphElement(MathGraph<T> mathGraph, T value, string? id = null)
     {
         Value = value;
+        MathGraph = mathGraph;
 
         if (id is null)
         {
@@ -147,6 +148,8 @@ public class MathGraphElement<T>
             sensitive.MathGraphElement = this;
         }
     }
+
+    public MathGraph<T> MathGraph { get; }
 
     public string Id { get; }
 
@@ -185,7 +188,7 @@ public class MathGraphElement<T>
 
     public override string ToString()
     {
-        return $"Value={Value} ; Id={Id};\r\nOut={string.Join(',', OutElementList.Select(t=>$"(Value={t.Value};Id={t.Id})"))};\r\nIn={string.Join(',', InElementList.Select(t => $"(Value={t.Value};Id={t.Id})"))}";
+        return $"Value={Value} ; Id={Id};\r\nOut={string.Join(',', OutElementList.Select(t => $"(Value={t.Value};Id={t.Id})"))};\r\nIn={string.Join(',', InElementList.Select(t => $"(Value={t.Value};Id={t.Id})"))}";
     }
 }
 
