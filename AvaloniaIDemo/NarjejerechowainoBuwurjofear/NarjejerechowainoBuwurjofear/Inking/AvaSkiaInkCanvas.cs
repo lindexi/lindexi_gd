@@ -83,26 +83,49 @@ class SkiaStroke : IDisposable
     }
 }
 
-readonly record struct InkingInputArgs(int Id, StylusPoint Point);
+class DynamicStrokeContext
+{
+    public DynamicStrokeContext(InkingInputArgs lastInputArgs)
+    {
+        LastInputArgs = lastInputArgs;
+
+        Stroke = new SkiaStroke(InkId.NewId());
+    }
+
+    public InkingInputArgs LastInputArgs { get; }
+
+    public int Id => LastInputArgs.Id;
+
+    public SkiaStroke Stroke { get; }
+}
 
 class AvaSkiaInkCanvas : Control
 {
     public void Down(InkingInputArgs args)
     {
-
+        var dynamicStrokeContext = new DynamicStrokeContext(args);
+        _contextDictionary[args.Id] = dynamicStrokeContext;
+        dynamicStrokeContext.Stroke.AddPoint(args.Point);
     }
 
     public void Move(InkingInputArgs args)
     {
-
+        if (_contextDictionary.TryGetValue(args.Id, out var context))
+        {
+            context.Stroke.AddPoint(args.Point);
+        }
     }
 
     public void Up(InkingInputArgs args)
     {
-
+        if (_contextDictionary.Remove(args.Id, out var context))
+        {
+            context.Stroke.AddPoint(args.Point);
+            _staticStrokeDictionary[context.Stroke.Id] = context.Stroke;
+        }
     }
 
-
+    private readonly Dictionary<int, DynamicStrokeContext> _contextDictionary = [];
 
 
     private int _count;
@@ -112,17 +135,19 @@ class AvaSkiaInkCanvas : Control
 
     private readonly Dictionary<InkId, SkiaStroke> _staticStrokeDictionary = [];
 
-    public SkiaStroke GetOrCreate(InkId id)
-    {
-        if (_staticStrokeDictionary.TryGetValue(id, out var stroke))
-        {
-            return stroke;
-        }
+    public SkiaStroke GetSkiaStroke(InkId id) => _staticStrokeDictionary[id];
 
-        stroke = new SkiaStroke(id);
-        _staticStrokeDictionary.Add(id, stroke);
-        return stroke;
-    }
+    //public SkiaStroke GetOrCreate(InkId id)
+    //{
+    //    if (_staticStrokeDictionary.TryGetValue(id, out var stroke))
+    //    {
+    //        return stroke;
+    //    }
+
+    //    stroke = new SkiaStroke(id);
+    //    _staticStrokeDictionary.Add(id, stroke);
+    //    return stroke;
+    //}
 
     public override void Render(DrawingContext context)
     {
