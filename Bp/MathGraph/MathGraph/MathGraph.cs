@@ -16,17 +16,22 @@ public class MathGraph<T>
 
     public List<MathGraphElement<T>> ElementList { get; }
 
-
-
-    public void AddElement(MathGraphElement<T> element)
+    public MathGraphElement<T> CreateAndAddElement(T value, string? id = null)
     {
+        var element = new MathGraphElement<T>(value, id);
         ElementList.Add(element);
+        return element;
     }
 
-    public void RemoveElement(MathGraphElement<T> element)
-    {
-        ElementList.Remove(element);
-    }
+    //public void AddElement(MathGraphElement<T> element)
+    //{
+    //    ElementList.Add(element);
+    //}
+
+    //public void RemoveElement(MathGraphElement<T> element)
+    //{
+    //    ElementList.Remove(element);
+    //}
 
     public string Serialize()
     {
