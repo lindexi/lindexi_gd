@@ -185,7 +185,7 @@ public class MathGraphElement<T>
 
     public override string ToString()
     {
-        return $"Value={Value} ; Id={Id};\r\nOut={string.Join(',', OutElementList.Select(t=>$"(Value={t.Value};Id={Id})"))};\r\nIn={string.Join(',', InElementList.Select(t => $"(Value={t.Value};Id={Id})"))}";
+        return $"Value={Value} ; Id={Id};\r\nOut={string.Join(',', OutElementList.Select(t=>$"(Value={t.Value};Id={t.Id})"))};\r\nIn={string.Join(',', InElementList.Select(t => $"(Value={t.Value};Id={t.Id})"))}";
     }
 }
 

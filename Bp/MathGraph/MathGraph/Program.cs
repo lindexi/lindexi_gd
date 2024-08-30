@@ -26,7 +26,7 @@ internal class Program
             {
                 if (i != j)
                 {
-                    mathGraphElement.AddInElement(elementList[i]);
+                    mathGraphElement.AddInElement(elementList[j]);
                 }
             }
         }
