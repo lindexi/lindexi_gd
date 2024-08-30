@@ -22,9 +22,25 @@ class SkiaStroke : IDisposable
     public SKColor Color { get; set; }
     public float Width { get; set; } = 10;
 
-    public void AddPoint(Point point)
+    public List<StylusPoint> PointList { get; } = null;
+
+    /// <summary>
+    /// 是否需要重新创建笔迹点，采用平滑滤波算法
+    /// </summary>
+    public static bool ShouldReCreatePoint { get; set; } = false;
+
+    public void AddPoint(StylusPoint point)
     {
-        Path.LineTo((float) point.X, (float) point.Y);
+        PointList.Add(point);
+
+        var pointList = PointList;
+        if (ShouldReCreatePoint && pointList.Count > 10)
+        {
+            pointList = ApplyMeanFilter(pointList);
+        }
+
+        Path.Reset();
+        Path.AddPoly(pointList.Select(t=>new SKPoint((float) t.Point.X, (float) t.Point.Y)).ToArray());
     }
 
     public void Dispose()
