@@ -28,6 +28,15 @@ internal class Program
             }
         }
 
+        var mathGraphSerializer = mathGraph.GetSerializer();
+        var json = mathGraphSerializer.Serialize();
+        Deserialize(json);
+    }
 
+    private static void Deserialize(string json)
+    {
+        var mathGraph = new MathGraph<int>();
+        var mathGraphSerializer = mathGraph.GetSerializer();
+        mathGraphSerializer.Deserialize(json);
     }
 }

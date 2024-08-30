@@ -33,6 +33,8 @@ public class MathGraph<T>
     //{
     //    ElementList.Remove(element);
     //}
+
+    public MathGraphSerializer<T> GetSerializer() => new MathGraphSerializer<T>(this);
 }
 
 public class MathGraphSerializer<T>
@@ -98,7 +100,7 @@ public class MathGraphSerializer<T>
             return;
         }
 
-        var dictionary = new Dictionary< int, MathGraphElement<T>>();
+        var dictionary = new Dictionary<int, MathGraphElement<T>>();
         foreach (var serializationContext in list)
         {
             var elementType = serializationContext.ElementType;
