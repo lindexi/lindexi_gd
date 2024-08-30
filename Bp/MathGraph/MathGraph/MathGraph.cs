@@ -33,8 +33,12 @@ public class MathGraph<T>
     //    ElementList.Remove(element);
     //}
 
+
+
     public string Serialize()
     {
+       
+
         return JsonSerializer.Serialize(ElementList);
     }
 
@@ -46,6 +50,58 @@ public class MathGraph<T>
         {
             ElementList.AddRange(list);
         }
+    }
+
+
+}
+
+public class MathGraphSerializer<T>
+{
+    public MathGraphSerializer(MathGraph<T> mathGraph)
+    {
+        _mathGraph = mathGraph;
+    }
+
+    private readonly MathGraph<T> _mathGraph;
+
+    public readonly record struct SerializationContext(T Value, string Id, int Index, List<int> InList, List<int> OutList);
+
+    public string Serialize()
+    {
+        var elementList = _mathGraph.ElementList;
+
+        var dictionary = new Dictionary<MathGraphElement<T>, int>();
+        for (var i = 0; i < elementList.Count; i++)
+        {
+            dictionary[elementList[i]] = i;
+        }
+
+        var contextList = new List<SerializationContext>(elementList.Count);
+
+        foreach (var element in elementList)
+        {
+            List<int> inList = new List<int>(element.InElementList.Count);
+            List<int> outList = new List<int>(element.OutElementList.Count);
+
+            foreach (var inElement in element.InElementList)
+            {
+                inList.Add(dictionary[inElement]);
+            }
+
+            foreach (var outElement in element.OutElementList)
+            {
+                outList.Add(dictionary[outElement]);
+            }
+
+            contextList.Add(new SerializationContext(element.Value, element.Id, dictionary[element], inList, outList));
+        }
+
+        return JsonSerializer.Serialize(contextList);
+    }
+
+    public void Deserialize(string json)
+    {
+
     }
 }
 
