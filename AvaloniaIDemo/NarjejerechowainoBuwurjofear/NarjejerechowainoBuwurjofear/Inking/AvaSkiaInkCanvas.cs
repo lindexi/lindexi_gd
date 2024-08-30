@@ -25,7 +25,7 @@ class SkiaStroke : IDisposable
 
     public SKPath Path { get; }
 
-    public SKColor Color { get; set; }
+    public SKColor Color { get; set; } = SKColors.Red;
     public float Width { get; set; } = 10;
 
     public List<StylusPoint> PointList { get; } = [];
@@ -164,24 +164,41 @@ class AvaSkiaInkCanvas : Control
 
         _list.Add(new Rect(x, y, 10, 10));
 
-        context.Custom(new InkCanvasCustomDrawOperation(_list));
+        context.Custom(new InkCanvasCustomDrawOperation(this));
     }
 
     class InkCanvasCustomDrawOperation : ICustomDrawOperation
     {
-        public InkCanvasCustomDrawOperation(List<Rect> list)
+        public InkCanvasCustomDrawOperation(AvaSkiaInkCanvas inkCanvas)
         {
+            var contextDictionary = inkCanvas._contextDictionary;
+            _list = [];
+            _pathList = [];
+
+            foreach (var strokeContext in contextDictionary.Values)
+            {
+                var stroke = strokeContext.Stroke;
+                _list.Add(stroke.Path.Bounds.ToAvaloniaRect());
+
+                _pathList.Add(stroke.Path);
+            }
+
+            if (_list.Count == 0)
+            {
+                _list = inkCanvas._list;
+            }
+            var list = _list;
+
             Rect bounds = list[0];
             for (var i = 1; i < list.Count; i++)
             {
                 bounds = bounds.Union(list[i]);
             }
             Bounds = bounds;
-
-            _list = list;
         }
 
         private List<Rect> _list;
+        private List<SKPath> _pathList;
 
         public void Dispose()
         {
@@ -210,6 +227,23 @@ class AvaSkiaInkCanvas : Control
             var canvas = skiaSharpApiLease.SkCanvas;
 
             using var skPaint = new SKPaint();
+
+            if (_pathList.Count > 0)
+            {
+                skPaint.Color = SKColors.Red;
+                skPaint.Style = SKPaintStyle.Stroke;
+
+                skPaint.StrokeWidth = 10;
+
+                foreach (var path in _pathList)
+                {
+                    canvas.DrawPath(path, skPaint);
+                }
+
+                return;
+            }
+
+
             skPaint.Color = SKColors.Red;
             skPaint.Style = SKPaintStyle.Fill;
 
