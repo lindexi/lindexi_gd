@@ -136,7 +136,6 @@ class AvaSkiaInkCanvas : Control
 
     private readonly Dictionary<int, DynamicStrokeContext> _contextDictionary = [];
 
-
     private int _count;
     private List<Rect> _list = [];
 
@@ -183,7 +182,7 @@ class AvaSkiaInkCanvas : Control
             foreach (var strokeContext in contextDictionary.Values)
             {
                 var stroke = strokeContext.Stroke;
-                _list.Add(stroke.Path.Bounds.ToAvaloniaRect());
+                _list.Add(stroke.Path.Bounds.ToAvaloniaRect().Expand(stroke.Width));
 
                 _pathList.Add(stroke.Path.Clone());
             }
@@ -240,6 +239,8 @@ class AvaSkiaInkCanvas : Control
             {
                 skPaint.Color = SKColors.Red;
                 skPaint.Style = SKPaintStyle.Fill;
+
+                skPaint.IsAntialias = true;
 
                 skPaint.StrokeWidth = 10;
 
