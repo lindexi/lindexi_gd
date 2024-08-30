@@ -143,7 +143,7 @@ class AvaSkiaInkCanvas : Control
 
     private readonly Dictionary<InkId, SkiaStroke> _staticStrokeDictionary = [];
 
-    public SkiaStroke GetSkiaStroke(InkId id) => _staticStrokeDictionary[id];
+    public SkiaStroke GetStaticStroke(InkId id) => _staticStrokeDictionary[id];
 
     //public SkiaStroke GetOrCreate(InkId id)
     //{
