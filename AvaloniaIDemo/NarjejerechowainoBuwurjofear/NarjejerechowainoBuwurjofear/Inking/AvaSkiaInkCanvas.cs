@@ -33,7 +33,7 @@ class SkiaStroke : IDisposable
     /// <summary>
     /// 是否需要重新创建笔迹点，采用平滑滤波算法
     /// </summary>
-    public static bool ShouldReCreatePoint { get; set; } = false;
+    public static bool ShouldReCreatePoint { get; set; } = true;
 
     public void AddPoint(StylusPoint point)
     {
