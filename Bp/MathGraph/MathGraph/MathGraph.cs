@@ -39,9 +39,17 @@ public class MathGraph<T>
 
 public class MathGraphElement<T>
 {
-    public MathGraphElement(T value)
+    public MathGraphElement(T value, string? id = null)
     {
         Value = value;
+
+        if (id is null)
+        {
+            var idCounter = Interlocked.Increment(ref _idCounter);
+            id = idCounter.ToString();
+        }
+
+        Id = id;
 
         if (Value is IMathGraphElementSensitive<T> sensitive)
         {
@@ -49,9 +57,29 @@ public class MathGraphElement<T>
         }
     }
 
+    public string Id { get; }
+
     public T Value { get; }
 
     public List<MathGraphElement<T>> OutElementList { get; } = [];
 
     public List<MathGraphElement<T>> InElementList { get; } = [];
+
+    private static ulong _idCounter = 0;
+}
+
+public class MathGraphEdge<T>
+{
+    public MathGraphEdge(MathGraphElement<T> from, MathGraphElement<T> to)
+    {
+        From = from;
+        To = to;
+
+        from.OutElementList.Add(to);
+        to.InElementList.Add(from);
+    }
+
+    public MathGraphElement<T> From { get; }
+
+    public MathGraphElement<T> To { get; }
 }
