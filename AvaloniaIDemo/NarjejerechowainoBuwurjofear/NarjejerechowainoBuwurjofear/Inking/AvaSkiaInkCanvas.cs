@@ -47,10 +47,11 @@ class SkiaStroke : IDisposable
 
         if (pointList.Count > 2)
         {
-            var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, Width);
+            //var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, Width);
 
             Path.Reset();
-            Path.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
+            //Path.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
+            Path.AddPoly(pointList.Select(t => new SKPoint((float) t.Point.X, (float) t.Point.Y)).ToArray(), close: false);
         }
     }
 
@@ -239,9 +240,9 @@ class AvaSkiaInkCanvas : Control
             if (_pathList.Count > 0)
             {
                 skPaint.Color = SKColors.Red;
-                skPaint.Style = SKPaintStyle.Fill;
+                skPaint.Style = SKPaintStyle.Stroke;
 
-                skPaint.StrokeWidth = 0;
+                skPaint.StrokeWidth = 10;
 
                 foreach (var path in _pathList)
                 {
