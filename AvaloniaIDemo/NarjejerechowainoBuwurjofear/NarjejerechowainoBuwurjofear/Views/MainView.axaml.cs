@@ -13,6 +13,13 @@ public partial class MainView : UserControl
         InitializeComponent();
 
         Loaded += MainView_Loaded;
+
+        RootGrid.PointerPressed += RootGrid_PointerPressed;
+    }
+
+    private void RootGrid_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    {
+        var currentPoint = e.GetCurrentPoint(RootGrid);
     }
 
     private async void MainView_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
