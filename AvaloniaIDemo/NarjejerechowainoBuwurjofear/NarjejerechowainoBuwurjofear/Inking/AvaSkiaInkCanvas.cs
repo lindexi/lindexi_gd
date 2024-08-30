@@ -102,22 +102,25 @@ class AvaSkiaInkCanvas : Control
 
     }
 
+
+
+
     private int _count;
     private List<Rect> _list = [];
 
 
 
-    private readonly Dictionary<InkId, SkiaStroke> _strokeDictionary = [];
+    private readonly Dictionary<InkId, SkiaStroke> _staticStrokeDictionary = [];
 
     public SkiaStroke GetOrCreate(InkId id)
     {
-        if (_strokeDictionary.TryGetValue(id, out var stroke))
+        if (_staticStrokeDictionary.TryGetValue(id, out var stroke))
         {
             return stroke;
         }
 
         stroke = new SkiaStroke(id);
-        _strokeDictionary.Add(id, stroke);
+        _staticStrokeDictionary.Add(id, stroke);
         return stroke;
     }
 
