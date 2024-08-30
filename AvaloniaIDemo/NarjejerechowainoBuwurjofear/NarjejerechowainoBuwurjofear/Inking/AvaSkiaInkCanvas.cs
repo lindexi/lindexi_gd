@@ -24,12 +24,17 @@ class SkiaStroke : IDisposable
 
     public List<StylusPoint> PointList { get; } = null;
 
+    /// <summary>
+    /// 是否需要重新创建笔迹点，采用平滑滤波算法
+    /// </summary>
+    public static bool ShouldReCreatePoint { get; set; } = false;
+
     public void AddPoint(StylusPoint point)
     {
         PointList.Add(point);
 
         var pointList = PointList;
-        if (pointList.Count > 10)
+        if (ShouldReCreatePoint && pointList.Count > 10)
         {
             pointList = ApplyMeanFilter(pointList);
         }
