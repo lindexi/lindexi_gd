@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Channels;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -33,6 +34,8 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
+        _channel = Channel.CreateUnbounded<Action>();
+
         SourceInitialized += OnSourceInitialized;
 
         //StylusMove += MainWindow_StylusMove;
@@ -40,6 +43,19 @@ public partial class MainWindow : Window
         //TouchMove += MainWindow_TouchMove;
         //TouchUp += MainWindow_TouchUp;
         StylusPlugIns.Add(new F());
+
+        Foo();
+    }
+
+    private Channel<Action> _channel;
+
+    private async void Foo()
+    {
+        while (true)
+        {
+            var action = await _channel.Reader.ReadAsync();
+            action();
+        }
     }
 
     private List<Point2D> _wpfPointList = [];
@@ -108,9 +124,16 @@ public partial class MainWindow : Window
         var hwnd = windowInteropHelper.Handle;
 
         PInvoke.RegisterTouchWindow(new HWND(hwnd), 0);
+        //PInvoke.RegisterTouchWindow(new HWND(hwnd), REGISTER_TOUCH_WINDOW_FLAGS.TWF_WANTPALM);
 
         HwndSource source = HwndSource.FromHwnd(hwnd)!;
         source.AddHook(Hook);
+    }
+
+    private void AsyncConsole(string message)
+    {
+        message = $"[{DateTime.Now:HH:mm:ss.fff}] {message}";
+        _channel.Writer.TryWrite(() => Console.WriteLine(message));
     }
 
     private unsafe IntPtr Hook(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam, ref bool handled)
@@ -137,7 +160,8 @@ public partial class MainWindow : Window
             var point = pointerInfo.ptPixelLocation;
             PInvoke.ScreenToClient(new HWND(hwnd), ref point);
 
-            Console.WriteLine($"Pointer {pointerId} XY={point.X},{point.Y} Himetric={pointerInfo.ptHimetricLocationRaw.X},{pointerInfo.ptHimetricLocationRaw.Y}");
+            AsyncConsole($"Pointer {pointerId} XY={point.X},{point.Y} Himetric={pointerInfo.ptHimetricLocationRaw.X},{pointerInfo.ptHimetricLocationRaw.Y}");
+            return IntPtr.Zero;
 
             var point2D = new Point2D(point.X, point.Y);
 
@@ -188,7 +212,8 @@ public partial class MainWindow : Window
                     var point = new Point(touchInput.x / 100, touchInput.y / 100);
                     PInvoke.ScreenToClient(new HWND(hwnd), ref point);
 
-                    Console.WriteLine($"Touch {touchInput.dwID} XY={point.X}, {point.Y}");
+                    AsyncConsole($"Touch {touchInput.dwID} XY={point.X}, {point.Y}");
+                    break;
 
                     //if (touchInput.dwFlags.HasFlag(TOUCHEVENTF_FLAGS.TOUCHEVENTF_MOVE))
                     //{
