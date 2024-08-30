@@ -46,7 +46,7 @@ class SkiaStroke : IDisposable
         }
 
         Path.Reset();
-        Path.AddPoly(pointList.Select(t => new SKPoint((float) t.Point.X, (float) t.Point.Y)).ToArray());
+        Path.AddPoly(pointList.Select(t => new SKPoint((float) t.Point.X, (float) t.Point.Y)).ToArray(), close: false);
     }
 
     public void Dispose()
