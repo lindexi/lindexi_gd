@@ -157,18 +157,7 @@ class AvaSkiaInkCanvas : Control
     private readonly Dictionary<InkId, SkiaStroke> _staticStrokeDictionary = [];
 
     public SkiaStroke GetStaticStroke(InkId id) => _staticStrokeDictionary[id];
-
-    //public SkiaStroke GetOrCreate(InkId id)
-    //{
-    //    if (_staticStrokeDictionary.TryGetValue(id, out var stroke))
-    //    {
-    //        return stroke;
-    //    }
-
-    //    stroke = new SkiaStroke(id);
-    //    _staticStrokeDictionary.Add(id, stroke);
-    //    return stroke;
-    //}
+   
 
     public override void Render(DrawingContext context)
     {
