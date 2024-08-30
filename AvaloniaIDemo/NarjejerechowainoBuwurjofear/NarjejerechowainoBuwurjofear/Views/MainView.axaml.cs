@@ -22,24 +22,24 @@ public partial class MainView : UserControl
 
         //Loaded += MainView_Loaded;
 
-        //RootGrid.PointerPressed += RootGrid_PointerPressed;
-        //RootGrid.PointerMoved += RootGrid_PointerMoved;
-        //RootGrid.PointerReleased += RootGrid_PointerReleased;
+        RootGrid.PointerPressed += RootGrid_PointerPressed;
+        RootGrid.PointerMoved += RootGrid_PointerMoved;
+        RootGrid.PointerReleased += RootGrid_PointerReleased;
 
-        Stopwatch stopwatch = Stopwatch.StartNew();
-        var count = 0;
-        RootGrid.PointerMoved += (sender, args) =>
-        {
-            count++;
+        //Stopwatch stopwatch = Stopwatch.StartNew();
+        //var count = 0;
+        //RootGrid.PointerMoved += (sender, args) =>
+        //{
+        //    count++;
 
-            if (stopwatch.Elapsed > TimeSpan.FromSeconds(1))
-            {
-                MessageTextBlock.Text = $"FPS: {count / stopwatch.Elapsed.TotalSeconds}";
+        //    if (stopwatch.Elapsed > TimeSpan.FromSeconds(1))
+        //    {
+        //        MessageTextBlock.Text = $"FPS: {count / stopwatch.Elapsed.TotalSeconds}";
 
-                stopwatch.Restart();
-                count = 0;
-            }
-        };
+        //        stopwatch.Restart();
+        //        count = 0;
+        //    }
+        //};
     }
 
     private Polyline? _polyline;
@@ -47,7 +47,7 @@ public partial class MainView : UserControl
 
     private void RootGrid_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
-        AvaSkiaInkCanvas.Down(ToInkingInputArgs(e));
+        //AvaSkiaInkCanvas.Down(ToInkingInputArgs(e));
 
         _polyline = new Polyline
         {
@@ -60,7 +60,7 @@ public partial class MainView : UserControl
 
     private void RootGrid_PointerMoved(object? sender, PointerEventArgs e)
     {
-        AvaSkiaInkCanvas.Move(ToInkingInputArgs(e));
+        //AvaSkiaInkCanvas.Move(ToInkingInputArgs(e));
 
         if (_polyline != null)
         {
@@ -71,7 +71,7 @@ public partial class MainView : UserControl
 
     private void RootGrid_PointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        AvaSkiaInkCanvas.Up(ToInkingInputArgs(e));
+        //AvaSkiaInkCanvas.Up(ToInkingInputArgs(e));
 
         if (_polyline != null)
         {
