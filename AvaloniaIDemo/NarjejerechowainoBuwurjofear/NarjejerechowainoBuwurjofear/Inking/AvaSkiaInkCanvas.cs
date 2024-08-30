@@ -180,7 +180,7 @@ class AvaSkiaInkCanvas : Control
                 var stroke = strokeContext.Stroke;
                 _list.Add(stroke.Path.Bounds.ToAvaloniaRect());
 
-                _pathList.Add(stroke.Path);
+                _pathList.Add(stroke.Path.Clone());
             }
 
             if (_list.Count == 0)
@@ -202,7 +202,10 @@ class AvaSkiaInkCanvas : Control
 
         public void Dispose()
         {
-
+            foreach (var skPath in _pathList)
+            {
+                skPath.Dispose();
+            }
         }
 
         public bool Equals(ICustomDrawOperation? other)
