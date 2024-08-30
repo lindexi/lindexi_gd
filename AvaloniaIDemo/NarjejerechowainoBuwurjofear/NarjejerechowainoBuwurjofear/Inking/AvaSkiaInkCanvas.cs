@@ -86,6 +86,19 @@ class SkiaStroke : IDisposable
         newList.AddRange(list.Skip(list.Count - (step - step / 2)));
         return newList;
     }
+
+    public SkiaStrokeDrawContext CreateDrawContext()
+    {
+        return new SkiaStrokeDrawContext(Color, Path.Clone(), Path.Bounds.ToAvaloniaRect().Expand(Width));
+    }
+}
+
+readonly record struct SkiaStrokeDrawContext(SKColor Color, SKPath Path, Rect DrawBounds) : IDisposable
+{
+    public void Dispose()
+    {
+        Path.Dispose();
+    }
 }
 
 class DynamicStrokeContext
@@ -182,9 +195,20 @@ class AvaSkiaInkCanvas : Control
             foreach (var strokeContext in contextDictionary.Values)
             {
                 var stroke = strokeContext.Stroke;
-                _list.Add(stroke.Path.Bounds.ToAvaloniaRect().Expand(stroke.Width));
 
-                _pathList.Add(stroke.Path.Clone());
+                var skiaStrokeDrawContext = stroke.CreateDrawContext();
+                _pathList.Add(skiaStrokeDrawContext);
+            }
+
+            foreach (var skiaStroke in inkCanvas._staticStrokeDictionary.Values)
+            {
+                var skiaStrokeDrawContext = skiaStroke.CreateDrawContext();
+                _pathList.Add(skiaStrokeDrawContext);
+            }
+
+            foreach (var skiaStrokeDrawContext in _pathList)
+            {
+                _list.Add(skiaStrokeDrawContext.DrawBounds);
             }
 
             if (_list.Count == 0)
@@ -202,13 +226,13 @@ class AvaSkiaInkCanvas : Control
         }
 
         private List<Rect> _list;
-        private List<SKPath> _pathList;
+        private List<SkiaStrokeDrawContext> _pathList;
 
         public void Dispose()
         {
-            foreach (var skPath in _pathList)
+            foreach (var skiaStrokeDrawContext in _pathList)
             {
-                skPath.Dispose();
+                skiaStrokeDrawContext.Dispose();
             }
         }
 
@@ -244,14 +268,14 @@ class AvaSkiaInkCanvas : Control
 
                 skPaint.StrokeWidth = 10;
 
-                foreach (var path in _pathList)
+                foreach (var skiaStrokeDrawContext in _pathList)
                 {
-                    canvas.DrawPath(path, skPaint);
+                    skPaint.Color = skiaStrokeDrawContext.Color;
+                    canvas.DrawPath(skiaStrokeDrawContext.Path, skPaint);
                 }
 
                 return;
             }
-
 
             skPaint.Color = SKColors.Red;
             skPaint.Style = SKPaintStyle.Fill;

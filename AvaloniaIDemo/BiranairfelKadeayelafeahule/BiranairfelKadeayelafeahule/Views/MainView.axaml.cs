@@ -116,7 +116,7 @@ class Foo : Control
             }
         }
 
-        public Rect Bounds { get; set; }
+        public Rect Bounds { get; }
     }
 }
 
