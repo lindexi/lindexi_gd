@@ -197,6 +197,7 @@ public class MathGraphElement<T>
         }
 
         _outElementList.Add(element);
+        Debug.Assert(!element._inElementList.Contains(this));
         element._inElementList.Add(this);
     }
 
@@ -209,6 +210,7 @@ public class MathGraphElement<T>
         }
 
         _inElementList.Add(element);
+        Debug.Assert(!element._outElementList.Contains(this));
         element._outElementList.Add(this);
     }
 

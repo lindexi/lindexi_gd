@@ -11,6 +11,19 @@ internal class Program
 {
     private static void Main(string[] args)
     {
+        var mathGraph = new MathGraph<string>();
+        var a = mathGraph.CreateAndAddElement("a");
+        var b = mathGraph.CreateAndAddElement("b");
+        var c = mathGraph.CreateAndAddElement("c");
+
+        mathGraph.AddEdge(a, b);
+        mathGraph.AddEdge(b, c);
+        Debug.Assert(a.OutElementList[0] == b);
+        Debug.Assert(b.OutElementList[0] == c);
+        Debug.Assert(c.InElementList[0] == b);
+        Debug.Assert(b.InElementList[0] == a);
+        SerializeDeserialize(mathGraph);
+
         AddBidirectionalEdge();
 
         AddEdge();
