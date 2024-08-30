@@ -2,6 +2,7 @@
 
 using Avalonia;
 using Avalonia.ReactiveUI;
+using Avalonia.Threading;
 
 namespace NarjejerechowainoBuwurjofear.Desktop;
 
@@ -17,9 +18,12 @@ class Program
     // Avalonia configuration, don't remove; also used by visual designer.
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
-            .UseWin32()
-            .UseDirect2D1()
+            .UsePlatformDetect()
             .WithInterFont()
+            .With(new DispatcherOptions()
+            {
+                InputStarvationTimeout = TimeSpan.FromDays(1)
+            })
             .LogToTrace()
             .UseReactiveUI();
 }
