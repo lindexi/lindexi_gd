@@ -12,15 +12,17 @@ public class MathGraph<T>
 {
     public MathGraph()
     {
-        ElementList = [];
+        _elementList = [];
     }
 
-    public List<MathGraphElement<T>> ElementList { get; }
+    private readonly List<MathGraphElement<T>> _elementList;
+
+    public IReadOnlyList<MathGraphElement<T>> ElementList => _elementList;
 
     public MathGraphElement<T> CreateAndAddElement(T value, string? id = null)
     {
         var element = new MathGraphElement<T>(this, value, id);
-        ElementList.Add(element);
+        _elementList.Add(element);
         return element;
     }
 
@@ -35,6 +37,28 @@ public class MathGraph<T>
     //}
 
     public MathGraphSerializer<T> GetSerializer() => new MathGraphSerializer<T>(this);
+
+    /// <summary>
+    /// 添加单向边
+    /// </summary>
+    /// <param name="from"></param>
+    /// <param name="to"></param>
+    public void AddEdge(MathGraphElement<T> from, MathGraphElement<T> to)
+    {
+        from.AddOutElement(to);
+        Debug.Assert(to.OutElementList.Contains(from));
+    }
+
+    /// <summary>
+    /// 添加双向边
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    public void AddBidirectionalEdge(MathGraphElement<T> a, MathGraphElement<T> b)
+    {
+        AddEdge(a, b);
+        AddEdge(b, a);
+    }
 }
 
 public class MathGraphSerializer<T>
@@ -166,6 +190,7 @@ public class MathGraphElement<T>
 
     public void AddOutElement(MathGraphElement<T> element)
     {
+        EnsureSameMathGraph(element);
         if (_outElementList.Contains(element))
         {
             return;
@@ -177,6 +202,7 @@ public class MathGraphElement<T>
 
     public void AddInElement(MathGraphElement<T> element)
     {
+        EnsureSameMathGraph(element);
         if (_inElementList.Contains(element))
         {
             return;
@@ -189,6 +215,14 @@ public class MathGraphElement<T>
     public override string ToString()
     {
         return $"Value={Value} ; Id={Id};\r\nOut={string.Join(',', OutElementList.Select(t => $"(Value={t.Value};Id={t.Id})"))};\r\nIn={string.Join(',', InElementList.Select(t => $"(Value={t.Value};Id={t.Id})"))}";
+    }
+
+    private void EnsureSameMathGraph(MathGraphElement<T> element)
+    {
+        if (!ReferenceEquals(MathGraph, element.MathGraph))
+        {
+            throw new InvalidOperationException();
+        }
     }
 }
 
