@@ -115,8 +115,8 @@ class AvaSkiaInkCanvas : Control
         if (_contextDictionary.TryGetValue(args.Id, out var context))
         {
             context.Stroke.AddPoint(args.Point);
+            InvalidateVisual();
         }
-        InvalidateVisual();
     }
 
     public void Up(InkingInputArgs args)

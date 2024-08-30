@@ -14,6 +14,8 @@ using UnoInk.Inking.InkCore;
 
 namespace NarjejerechowainoBuwurjofear.Views;
 
+
+
 public partial class MainView : UserControl
 {
     public MainView()
@@ -22,24 +24,24 @@ public partial class MainView : UserControl
 
         //Loaded += MainView_Loaded;
 
-        //RootGrid.PointerPressed += RootGrid_PointerPressed;
-        //RootGrid.PointerMoved += RootGrid_PointerMoved;
-        //RootGrid.PointerReleased += RootGrid_PointerReleased;
+        RootGrid.PointerPressed += RootGrid_PointerPressed;
+        RootGrid.PointerMoved += RootGrid_PointerMoved;
+        RootGrid.PointerReleased += RootGrid_PointerReleased;
 
-        Stopwatch stopwatch = Stopwatch.StartNew();
-        var count = 0;
-        RootGrid.PointerMoved += (sender, args) =>
-        {
-            count++;
+        //Stopwatch stopwatch = Stopwatch.StartNew();
+        //var count = 0;
+        //RootGrid.PointerMoved += (sender, args) =>
+        //{
+        //    count++;
 
-            if (stopwatch.Elapsed > TimeSpan.FromSeconds(1))
-            {
-                MessageTextBlock.Text = $"FPS: {count / stopwatch.Elapsed.TotalSeconds}";
+        //    if (stopwatch.Elapsed > TimeSpan.FromSeconds(1))
+        //    {
+        //        MessageTextBlock.Text = $"FPS: {count / stopwatch.Elapsed.TotalSeconds}";
 
-                stopwatch.Restart();
-                count = 0;
-            }
-        };
+        //        stopwatch.Restart();
+        //        count = 0;
+        //    }
+        //};
     }
 
     private Polyline? _polyline;
