@@ -14,7 +14,9 @@ public class MathGraph<T>
         ElementList = [];
     }
 
-    public List<MathGraphElement<T>> ElementList { get; private set; }
+    public List<MathGraphElement<T>> ElementList { get; }
+
+
 
     public void AddElement(MathGraphElement<T> element)
     {
@@ -33,7 +35,12 @@ public class MathGraph<T>
 
     public void Deserialize(string json)
     {
-        ElementList = JsonSerializer.Deserialize<List<MathGraphElement<T>>>(json);
+        ElementList.Clear();
+        var list = JsonSerializer.Deserialize<List<MathGraphElement<T>>>(json);
+        if (list != null)
+        {
+            ElementList.AddRange(list);
+        }
     }
 }
 
