@@ -166,6 +166,7 @@ public class MathGraphElement<T>
 
     public void AddOutElement(MathGraphElement<T> element)
     {
+        EnsureSameMathGraph(element);
         if (_outElementList.Contains(element))
         {
             return;
@@ -177,6 +178,7 @@ public class MathGraphElement<T>
 
     public void AddInElement(MathGraphElement<T> element)
     {
+        EnsureSameMathGraph(element);
         if (_inElementList.Contains(element))
         {
             return;
@@ -189,6 +191,14 @@ public class MathGraphElement<T>
     public override string ToString()
     {
         return $"Value={Value} ; Id={Id};\r\nOut={string.Join(',', OutElementList.Select(t => $"(Value={t.Value};Id={t.Id})"))};\r\nIn={string.Join(',', InElementList.Select(t => $"(Value={t.Value};Id={t.Id})"))}";
+    }
+
+    private void EnsureSameMathGraph(MathGraphElement<T> element)
+    {
+        if (!ReferenceEquals(MathGraph, element.MathGraph))
+        {
+            throw new InvalidOperationException();
+        }
     }
 }
 
