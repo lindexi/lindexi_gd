@@ -23,7 +23,7 @@ public class MathGraphElement<T>
         }
     }
 
-    public T Value { get; set; }
+    public T Value { get; }
 
     public List<MathGraphElement<T>> OutElementList { get; } = [];
 
