@@ -14,7 +14,10 @@ using UnoInk.Inking.InkCore;
 
 namespace NarjejerechowainoBuwurjofear.Views;
 
+static class Foo
+{
 
+}
 
 public partial class MainView : UserControl
 {
@@ -63,6 +66,7 @@ public partial class MainView : UserControl
     private void RootGrid_PointerMoved(object? sender, PointerEventArgs e)
     {
         AvaSkiaInkCanvas.Move(ToInkingInputArgs(e));
+        AvaSkiaInkCanvas.Debug(Stopwatch.StartNew());
 
         if (_polyline != null)
         {
