@@ -182,6 +182,11 @@ public class MathGraphElement<T>
         _inElementList.Add(element);
         element._outElementList.Add(this);
     }
+
+    public override string ToString()
+    {
+        return $"Value={Value} ; Id={Id};\r\nOut={string.Join(',', OutElementList.Select(t=>$"(Value={t.Value};Id={t.Id})"))};\r\nIn={string.Join(',', InElementList.Select(t => $"(Value={t.Value};Id={t.Id})"))}";
+    }
 }
 
 public class MathGraphEdge<T>
