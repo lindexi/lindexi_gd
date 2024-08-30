@@ -14,8 +14,9 @@ public class MathGraph
 public class MathGraphElement<T>
 {
     public T Value { get; set; }
-    public MathGraphElement<T>? Next { get; set; }
-    public MathGraphElement<T>? Previous { get; set; }
+
+    public List<MathGraphElement<T>> OutElementList { get; } = [];
+    public List<MathGraphElement<T>> InElementList { get; } = [];
 
     public MathGraphElement(T value)
     {
