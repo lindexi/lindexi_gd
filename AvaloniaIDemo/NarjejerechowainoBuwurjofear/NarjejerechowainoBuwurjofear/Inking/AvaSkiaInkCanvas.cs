@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Linq;
+﻿using System.Linq;
 
 using Avalonia;
 using Avalonia.Controls;
@@ -156,8 +155,6 @@ class AvaSkiaInkCanvas : Control
 
     public override void Render(DrawingContext context)
     {
-      
-
         _count++;
         var n = Math.Sin(Math.Pow(Math.E * _count, Math.PI));
         var x = Math.Abs(n) * Bounds.Width;
@@ -174,7 +171,6 @@ class AvaSkiaInkCanvas : Control
     {
         public InkCanvasCustomDrawOperation(AvaSkiaInkCanvas inkCanvas)
         {
-            _inkCanvas = inkCanvas;
             var contextDictionary = inkCanvas._contextDictionary;
             _list = [];
             _pathList = [];
@@ -201,8 +197,6 @@ class AvaSkiaInkCanvas : Control
             Bounds = bounds;
         }
 
-        private readonly AvaSkiaInkCanvas _inkCanvas;
-
         private List<Rect> _list;
         private List<SKPath> _pathList;
 
@@ -226,12 +220,6 @@ class AvaSkiaInkCanvas : Control
 
         public void Render(ImmediateDrawingContext context)
         {
-            _inkCanvas._debugStopwatch?.Stop();
-            if (_inkCanvas._debugStopwatch != null)
-            {
-                System.Diagnostics.Debug.WriteLine($"Render 延迟 {_inkCanvas._debugStopwatch.Elapsed.TotalMilliseconds}");
-            }
-
             var skiaSharpApiLeaseFeature = context.TryGetFeature<ISkiaSharpApiLeaseFeature>();
             if (skiaSharpApiLeaseFeature == null)
             {
@@ -276,11 +264,4 @@ class AvaSkiaInkCanvas : Control
 
         public Rect Bounds { get; }
     }
-
-    public void Debug(Stopwatch stopwatch)
-    {
-        _debugStopwatch ??= stopwatch;
-    }
-
-    private Stopwatch? _debugStopwatch;
 }
