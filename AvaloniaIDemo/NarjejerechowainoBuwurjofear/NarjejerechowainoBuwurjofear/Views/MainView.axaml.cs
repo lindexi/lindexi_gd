@@ -14,8 +14,6 @@ using UnoInk.Inking.InkCore;
 
 namespace NarjejerechowainoBuwurjofear.Views;
 
-
-
 public partial class MainView : UserControl
 {
     public MainView()
@@ -42,6 +40,8 @@ public partial class MainView : UserControl
         //        count = 0;
         //    }
         //};
+
+        MessageTextBlock.Text = "Hello, Avalonia!";
     }
 
     private Polyline? _polyline;
