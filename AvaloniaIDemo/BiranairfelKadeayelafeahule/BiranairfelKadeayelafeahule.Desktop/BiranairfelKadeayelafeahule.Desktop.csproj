@@ -11,10 +11,9 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
-    <PackageReference Include="Avalonia.Direct2D1" Version="$(AvaloniaVersion)" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NarjejerechowainoBuwurjofear\NarjejerechowainoBuwurjofear.csproj" />
+    <ProjectReference Include="..\BiranairfelKadeayelafeahule\BiranairfelKadeayelafeahule.csproj" />
   </ItemGroup>
 </Project>
