@@ -6,9 +6,48 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace MathGraph;
+
 internal class Program
 {
     private static void Main(string[] args)
+    {
+        AddBidirectionalEdge();
+
+        AddEdge();
+
+        Serialize();
+    }
+
+    private static void AddBidirectionalEdge()
+    {
+        var mathGraph = new MathGraph<string>();
+        var a = mathGraph.CreateAndAddElement("a");
+        var b = mathGraph.CreateAndAddElement("b");
+
+        mathGraph.AddBidirectionalEdge(a, b);
+
+        Debug.Assert(a.OutElementList.Contains(b));
+        Debug.Assert(b.InElementList.Contains(a));
+        Debug.Assert(a.InElementList.Contains(b));
+        Debug.Assert(b.OutElementList.Contains(a));
+        SerializeDeserialize(mathGraph);
+    }
+
+    private static void AddEdge()
+    {
+        var mathGraph = new MathGraph<string>();
+        var a = mathGraph.CreateAndAddElement("a");
+        var b = mathGraph.CreateAndAddElement("b");
+
+        mathGraph.AddEdge(a, b);
+
+        Debug.Assert(a.OutElementList.Contains(b));
+        Debug.Assert(b.InElementList.Contains(a));
+
+        SerializeDeserialize(mathGraph);
+    }
+
+    private static void Serialize()
     {
         var mathGraph = new MathGraph<int>();
 
@@ -32,14 +71,19 @@ internal class Program
             }
         }
 
-        var mathGraphSerializer = mathGraph.GetSerializer();
-        var json = mathGraphSerializer.Serialize();
-        Equals(mathGraph, Deserialize(json));
+        SerializeDeserialize(mathGraph);
     }
 
-    private static MathGraph<int> Deserialize(string json)
+    private static void SerializeDeserialize<T>(MathGraph<T> mathGraph)
     {
-        var mathGraph = new MathGraph<int>();
+        var mathGraphSerializer = mathGraph.GetSerializer();
+        var json = mathGraphSerializer.Serialize();
+        Equals(mathGraph, Deserialize<T>(json));
+    }
+
+    private static MathGraph<T> Deserialize<T>(string json)
+    {
+        var mathGraph = new MathGraph<T>();
         var mathGraphSerializer = mathGraph.GetSerializer();
         mathGraphSerializer.Deserialize(json);
         return mathGraph;
@@ -47,7 +91,7 @@ internal class Program
 
     private static void Equals<T>(MathGraph<T> a, MathGraph<T> b)
     {
-        Debug.Assert(a.ElementList == b.ElementList);
+        Debug.Assert(a.ElementList.Count == b.ElementList.Count);
         for (var i = 0; i < a.ElementList.Count; i++)
         {
             var elementA = a.ElementList[i];

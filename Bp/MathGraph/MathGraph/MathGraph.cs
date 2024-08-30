@@ -46,7 +46,7 @@ public class MathGraph<T>
     public void AddEdge(MathGraphElement<T> from, MathGraphElement<T> to)
     {
         from.AddOutElement(to);
-        Debug.Assert(to.OutElementList.Contains(from));
+        Debug.Assert(to.InElementList.Contains(from));
     }
 
     /// <summary>
