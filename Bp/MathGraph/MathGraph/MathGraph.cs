@@ -169,6 +169,7 @@ public class MathGraphElement<T>
 
         if (Value is IMathGraphElementSensitive<T> sensitive)
         {
+            Debug.Assert(sensitive.MathGraphElement is null);
             sensitive.MathGraphElement = this;
         }
     }
@@ -197,7 +198,21 @@ public class MathGraphElement<T>
         }
 
         _outElementList.Add(element);
+        Debug.Assert(!element._inElementList.Contains(this));
         element._inElementList.Add(this);
+    }
+
+    public void RemoveOutElement(MathGraphElement<T> element)
+    {
+        EnsureSameMathGraph(element);
+        if (!_outElementList.Contains(element))
+        {
+            return;
+        }
+
+        _outElementList.Remove(element);
+        Debug.Assert(element._inElementList.Contains(this));
+        element._inElementList.Remove(this);
     }
 
     public void AddInElement(MathGraphElement<T> element)
@@ -209,7 +224,21 @@ public class MathGraphElement<T>
         }
 
         _inElementList.Add(element);
+        Debug.Assert(!element._outElementList.Contains(this));
         element._outElementList.Add(this);
+    }
+
+    public void RemoveInElement(MathGraphElement<T> element)
+    {
+        EnsureSameMathGraph(element);
+        if (!_inElementList.Contains(element))
+        {
+            return;
+        }
+
+        _inElementList.Remove(element);
+        Debug.Assert(element._outElementList.Contains(this));
+        element._outElementList.Remove(this);
     }
 
     public override string ToString()
