@@ -177,6 +177,7 @@ class AvaSkiaInkCanvas : Control
         {
             context.Stroke.AddPoint(args.Point);
             _staticStrokeDictionary[context.Stroke.Id] = context.Stroke;
+            context.Stroke.SetAsStatic();
         }
         InvalidateVisual();
     }
