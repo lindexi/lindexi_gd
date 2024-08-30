@@ -123,8 +123,7 @@ public partial class MainWindow : Window
         var windowInteropHelper = new WindowInteropHelper(this);
         var hwnd = windowInteropHelper.Handle;
 
-        PInvoke.RegisterTouchWindow(new HWND(hwnd), 0);
-        //PInvoke.RegisterTouchWindow(new HWND(hwnd), REGISTER_TOUCH_WINDOW_FLAGS.TWF_WANTPALM);
+        PInvoke.RegisterTouchWindow(new HWND(hwnd), REGISTER_TOUCH_WINDOW_FLAGS.TWF_WANTPALM);
 
         HwndSource source = HwndSource.FromHwnd(hwnd)!;
         source.AddHook(Hook);
