@@ -49,7 +49,7 @@ public partial class MainView : UserControl
 
     private void RootGrid_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
-        AvaSkiaInkCanvas.Down(ToInkingInputArgs(e));
+        AvaSkiaInkCanvas.WritingDown(ToInkingInputArgs(e));
 
         _polyline = new Polyline
         {
@@ -62,7 +62,7 @@ public partial class MainView : UserControl
 
     private void RootGrid_PointerMoved(object? sender, PointerEventArgs e)
     {
-        AvaSkiaInkCanvas.Move(ToInkingInputArgs(e));
+        AvaSkiaInkCanvas.WritingMove(ToInkingInputArgs(e));
 
         if (_polyline != null)
         {
@@ -73,7 +73,7 @@ public partial class MainView : UserControl
 
     private void RootGrid_PointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        AvaSkiaInkCanvas.Up(ToInkingInputArgs(e));
+        AvaSkiaInkCanvas.WritingUp(ToInkingInputArgs(e));
 
         if (_polyline != null)
         {

@@ -117,9 +117,14 @@ class DynamicStrokeContext
     public SkiaStroke Stroke { get; }
 }
 
+class AvaSkiaInkCanvasEraserMode
+{
+
+}
+
 class AvaSkiaInkCanvas : Control
 {
-    public void Down(InkingInputArgs args)
+    public void WritingDown(InkingInputArgs args)
     {
         var dynamicStrokeContext = new DynamicStrokeContext(args);
         _contextDictionary[args.Id] = dynamicStrokeContext;
@@ -128,7 +133,7 @@ class AvaSkiaInkCanvas : Control
         InvalidateVisual();
     }
 
-    public void Move(InkingInputArgs args)
+    public void WritingMove(InkingInputArgs args)
     {
         if (_contextDictionary.TryGetValue(args.Id, out var context))
         {
@@ -137,7 +142,7 @@ class AvaSkiaInkCanvas : Control
         }
     }
 
-    public void Up(InkingInputArgs args)
+    public void WritingUp(InkingInputArgs args)
     {
         if (_contextDictionary.Remove(args.Id, out var context))
         {
@@ -152,6 +157,7 @@ class AvaSkiaInkCanvas : Control
     private int _count;
     private List<Rect> _list = [];
 
+    public bool IsWriting => _contextDictionary.Count > 0;
 
 
     private readonly Dictionary<InkId, SkiaStroke> _staticStrokeDictionary = [];
