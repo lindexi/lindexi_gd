@@ -11,6 +11,14 @@ public class MathGraph
 {
 }
 
-public class MathGraphElement
+public class MathGraphElement<T>
 {
+    public T Value { get; set; }
+    public MathGraphElement<T>? Next { get; set; }
+    public MathGraphElement<T>? Previous { get; set; }
+
+    public MathGraphElement(T value)
+    {
+        Value = value;
+    }
 }
