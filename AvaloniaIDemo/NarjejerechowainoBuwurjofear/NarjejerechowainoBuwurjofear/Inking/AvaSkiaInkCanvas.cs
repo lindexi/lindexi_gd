@@ -26,7 +26,7 @@ class SkiaStroke : IDisposable
     public SKPath Path { get; }
 
     public SKColor Color { get; set; } = SKColors.Red;
-    public float Width { get; set; } = 10;
+    public float Width { get; set; } = 20;
 
     public List<StylusPoint> PointList { get; } = [];
 
@@ -45,8 +45,13 @@ class SkiaStroke : IDisposable
             pointList = ApplyMeanFilter(pointList);
         }
 
-        Path.Reset();
-        Path.AddPoly(pointList.Select(t => new SKPoint((float) t.Point.X, (float) t.Point.Y)).ToArray(), close: false);
+        if (pointList.Count > 2)
+        {
+            var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, Width);
+
+            Path.Reset();
+            Path.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
+        }
     }
 
     public void Dispose()
@@ -234,9 +239,9 @@ class AvaSkiaInkCanvas : Control
             if (_pathList.Count > 0)
             {
                 skPaint.Color = SKColors.Red;
-                skPaint.Style = SKPaintStyle.Stroke;
+                skPaint.Style = SKPaintStyle.Fill;
 
-                skPaint.StrokeWidth = 10;
+                skPaint.StrokeWidth = 0;
 
                 foreach (var path in _pathList)
                 {
