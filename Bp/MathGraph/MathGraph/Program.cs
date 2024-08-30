@@ -24,7 +24,10 @@ internal class Program
             var mathGraphElement = elementList[i];
             for (int j = 0; j < 10; j++)
             {
-                mathGraphElement.AddInElement(elementList[i]);
+                if (i != j)
+                {
+                    mathGraphElement.AddInElement(elementList[i]);
+                }
             }
         }
 
