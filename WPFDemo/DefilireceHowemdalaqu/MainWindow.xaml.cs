@@ -34,6 +34,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
+        // 准备在后台线程中输出日志等逻辑写的简单代码
         _channel = Channel.CreateUnbounded<Action>();
 
         SourceInitialized += OnSourceInitialized;
@@ -42,7 +43,7 @@ public partial class MainWindow : Window
         //StylusUp += MainWindow_StylusUp;
         //TouchMove += MainWindow_TouchMove;
         //TouchUp += MainWindow_TouchUp;
-        StylusPlugIns.Add(new F());
+        //StylusPlugIns.Add(new F());
 
         Foo();
     }
@@ -58,11 +59,11 @@ public partial class MainWindow : Window
         }
     }
 
-    private List<Point2D> _wpfPointList = [];
-    private List<Point2D> _pointerPointList = [];
+    //private List<Point2D> _wpfPointList = [];
+    //private List<Point2D> _pointerPointList = [];
 
-    private bool _isWpfUp;
-    private bool _isPointerUp;
+    //private bool _isWpfUp;
+    //private bool _isPointerUp;
 
     private void MainWindow_TouchMove(object? sender, TouchEventArgs e)
     {
@@ -72,17 +73,17 @@ public partial class MainWindow : Window
         strokeVisual.Redraw();
         Console.WriteLine($"WPF {e.TouchDevice.Id} XY={touchPoint.Position.X},{touchPoint.Position.Y}");
 
-        if (!_isWpfUp)
-        {
-            _wpfPointList.Add(new Point2D(touchPoint.Position.X, touchPoint.Position.Y));
-        }
+        //if (!_isWpfUp)
+        //{
+        //    _wpfPointList.Add(new Point2D(touchPoint.Position.X, touchPoint.Position.Y));
+        //}
     }
 
     private void MainWindow_TouchUp(object? sender, TouchEventArgs e)
     {
         StrokeVisualList.Remove((uint) e.TouchDevice.Id);
-        _isWpfUp = true;
-        Output();
+        //_isWpfUp = true;
+        //Output();
     }
 
     private void MainWindow_StylusMove(object sender, StylusEventArgs e)
@@ -193,6 +194,7 @@ public partial class MainWindow : Window
 
         if (msg is WM_POINTERDOWN or WM_POINTERUPDATE or WM_POINTERUP)
         {
+            // 为什么这里可以不用判断 win8 以上？原因是 win8 以下不会走到这里，不会收到 WM_POINTERDOWN 等消息
             var pointerId = (uint) (ToInt32(wparam) & 0xFFFF);
             PInvoke.GetPointerTouchInfo(pointerId, out var info);
             POINTER_INFO pointerInfo = info.pointerInfo;
@@ -206,6 +208,8 @@ public partial class MainWindow : Window
 
             //Console.WriteLine($"Id={pointerId}; PixelLocation={pointerInfo.ptPixelLocation.X},{pointerInfo.ptPixelLocation.Y}; Raw={pointerInfo.ptPixelLocationRaw.X},{pointerInfo.ptPixelLocationRaw.Y} Same={pointerInfo.ptPixelLocation== pointerInfo.ptPixelLocationRaw}");
 
+            // 从 ptPixelLocation 拿到的是丢失精度的点，像素为单位。如果在精度稍微高的触摸屏下，将会有明显的锯齿效果
+            // 如果真要使用此点，可配合 [WPF 记一个特别简单的点集滤波平滑方法 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/18387840 ) 提供的方法优化
             var point = pointerInfo.ptPixelLocation;
             PInvoke.ScreenToClient(new HWND(hwnd), ref point);
 
@@ -213,32 +217,48 @@ public partial class MainWindow : Window
 
             CountPointer();
 
-            return IntPtr.Zero;
-
             var point2D = new Point2D(point.X, point.Y);
 
-            point2D = new Point2D(pointerInfo.ptHimetricLocationRaw.X / (double) pointerDeviceRect.Width * displayRect.Width + displayRect.left, pointerInfo.ptHimetricLocationRaw.Y / (double) pointerDeviceRect.Height * displayRect.Height + displayRect.top);
+            // 如果想要获取比较高精度的触摸点，可以使用 ptHimetricLocationRaw 字段
+            // 由于 ptHimetricLocationRaw 采用的是 pointerDeviceRect 坐标系，需要转换到屏幕坐标系
+            // 转换方法就是先将 ptHimetricLocationRaw 的 X 坐标，压缩到 [0-1] 范围内，然后乘以 displayRect 的宽度，再加上 displayRect 的 left 值，即得到了屏幕坐标系的 X 坐标。压缩到 [0-1] 范围内的方法就是除以 pointerDeviceRect 的宽度
+            // 为什么需要加上 displayRect.left 的值？考虑多屏的情况，屏幕可能是副屏
+            // Y 坐标同理
+            point2D = new Point2D(
+                pointerInfo.ptHimetricLocationRaw.X / (double) pointerDeviceRect.Width * displayRect.Width +
+                displayRect.left,
+                pointerInfo.ptHimetricLocationRaw.Y / (double) pointerDeviceRect.Height * displayRect.Height +
+                displayRect.top);
             //var p = PointFromScreen(new System.Windows.Point(point2D.X, point2D.Y));
             //point2D = new Point2D(p.X, p.Y);
 
+            // 获取到的屏幕坐标系的点，需要转换到 WPF 坐标系
+            // 转换过程的两个重点：
+            // 1. 底层 ClientToScreen 只支持整数类型，直接转换会丢失精度。即使是 WPF 封装的 PointFromScreen 或 PointToScreen 方法也会丢失精度
+            // 2. 需要进行 DPI 换算，必须要求 DPI 感知
+
+            // 先测量窗口与屏幕的偏移量，这里直接取 0 0 点即可，因为这里获取到的是虚拟屏幕坐标系，不需要考虑多屏的情况
             var screenTranslate = new Point(0, 0);
             PInvoke.ClientToScreen(new HWND(hwnd), ref screenTranslate);
+            // 获取当前的 DPI 值
             var dpi = VisualTreeHelper.GetDpi(this);
+            // 先做平移，再做 DPI 换算
             point2D = new Point2D(point2D.X - screenTranslate.X, point2D.Y - screenTranslate.Y);
             point2D = new Point2D(point2D.X / dpi.DpiScaleX, point2D.Y / dpi.DpiScaleY);
 
+            // 此时拿到的 point2D 就是 WPF 坐标系的点了
             Console.WriteLine($"{point2D.X},{point2D.Y}");
 
-            if (!_isPointerUp)
-            {
-                _pointerPointList.Add(point2D);
-            }
+            //if (!_isPointerUp)
+            //{
+            //    _pointerPointList.Add(point2D);
+            //}
 
-            if (msg == WM_POINTERUP)
-            {
-                _isPointerUp = true;
-                Output();
-            }
+            //if (msg == WM_POINTERUP)
+            //{
+            //    _isPointerUp = true;
+            //    Output();
+            //}
 
             if (msg == WM_POINTERUPDATE)
             {
@@ -253,10 +273,13 @@ public partial class MainWindow : Window
         }
         else if ((uint) msg is PInvoke.WM_TOUCH)
         {
+            // 这里的 WM_TOUCH 是从 Pointer 消息转换过来的
+            // 开启 WM_Pointer 支持之后，不需要禁用实时触摸即可收到 WM_TOUCH 消息
             var touchInputCount = wparam.ToInt32();
 
             var pTouchInputs = stackalloc TOUCHINPUT[touchInputCount];
-            if (PInvoke.GetTouchInputInfo(new HTOUCHINPUT(lparam), (uint) touchInputCount, pTouchInputs, sizeof(TOUCHINPUT)))
+            if (PInvoke.GetTouchInputInfo(new HTOUCHINPUT(lparam), (uint) touchInputCount, pTouchInputs,
+                    sizeof(TOUCHINPUT)))
             {
                 for (var i = 0; i < touchInputCount; i++)
                 {
@@ -287,36 +310,34 @@ public partial class MainWindow : Window
         return IntPtr.Zero;
     }
 
+    //private void Output()
+    //{
+    //    if (_isWpfUp && _isPointerUp)
+    //    {
+    //        Console.WriteLine($"WPF 触摸点数量： {_wpfPointList.Count} Pointer点数量： {_pointerPointList.Count}");
 
+    //        for (int i = 0; i < _wpfPointList.Count || i < _pointerPointList.Count; i++)
+    //        {
+    //            string message;
+    //            if (i < _wpfPointList.Count)
+    //            {
+    //                message = $"{_wpfPointList[i].X:0000},{_wpfPointList[i].Y:0000}";
+    //            }
+    //            else
+    //            {
+    //                message = "    ,    ";
+    //            }
 
-    private void Output()
-    {
-        if (_isWpfUp && _isPointerUp)
-        {
-            Console.WriteLine($"WPF 触摸点数量： {_wpfPointList.Count} Pointer点数量： {_pointerPointList.Count}");
+    //            message += " | ";
+    //            if (i < _pointerPointList.Count)
+    //            {
+    //                message += $"{_pointerPointList[i].X:0000},{_pointerPointList[i].Y:0000}";
+    //            }
 
-            for (int i = 0; i < _wpfPointList.Count || i < _pointerPointList.Count; i++)
-            {
-                string message;
-                if (i < _wpfPointList.Count)
-                {
-                    message = $"{_wpfPointList[i].X:0000},{_wpfPointList[i].Y:0000}";
-                }
-                else
-                {
-                    message = "    ,    ";
-                }
-
-                message += " | ";
-                if (i < _pointerPointList.Count)
-                {
-                    message += $"{_pointerPointList[i].X:0000},{_pointerPointList[i].Y:0000}";
-                }
-
-                Console.WriteLine(message);
-            }
-        }
-    }
+    //            Console.WriteLine(message);
+    //        }
+    //    }
+    //}
 
     private static int ToInt32(IntPtr ptr) => IntPtr.Size == 4 ? ptr.ToInt32() : (int) (ptr.ToInt64() & 0xffffffff);
 
@@ -328,10 +349,10 @@ public partial class MainWindow : Window
 
 readonly record struct Point2D(double X, double Y);
 
-class F : StylusPlugIn
-{
-    protected override void OnStylusMove(RawStylusInput rawStylusInput)
-    {
-        base.OnStylusMove(rawStylusInput);
-    }
-}
+//class F : StylusPlugIn
+//{
+//    protected override void OnStylusMove(RawStylusInput rawStylusInput)
+//    {
+//        base.OnStylusMove(rawStylusInput);
+//    }
+//}

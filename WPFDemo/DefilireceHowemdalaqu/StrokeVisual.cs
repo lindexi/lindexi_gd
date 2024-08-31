@@ -103,6 +103,11 @@ public class StrokeVisual : DrawingVisual
     /// </summary>
     public void Redraw()
     {
+        if (Stroke is null)
+        {
+            return;
+        }
+
         using var dc = RenderOpen();
         Stroke.Draw(dc);
     }
