@@ -7,6 +7,6 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-
+        <Button x:Name="PickFolderButton" Content="选取文件夹" Click="PickFolderButton_OnClick"></Button>
     </Grid>
 </Window>
