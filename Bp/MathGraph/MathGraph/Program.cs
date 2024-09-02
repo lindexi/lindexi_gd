@@ -11,7 +11,7 @@ internal class Program
 {
     private static void Main(string[] args)
     {
-        var mathGraph = new MathGraph<string>();
+        var mathGraph = new MathGraph<string, string>();
         var a = mathGraph.CreateAndAddElement("a");
         var b = mathGraph.CreateAndAddElement("b");
         var c = mathGraph.CreateAndAddElement("c");
@@ -33,7 +33,7 @@ internal class Program
 
     private static void AddBidirectionalEdge()
     {
-        var mathGraph = new MathGraph<string>();
+        var mathGraph = new MathGraph<string, string>();
         var a = mathGraph.CreateAndAddElement("a");
         var b = mathGraph.CreateAndAddElement("b");
 
@@ -48,7 +48,7 @@ internal class Program
 
     private static void AddEdge()
     {
-        var mathGraph = new MathGraph<string>();
+        var mathGraph = new MathGraph<string, string>();
         var a = mathGraph.CreateAndAddElement("a");
         var b = mathGraph.CreateAndAddElement("b");
 
@@ -62,9 +62,9 @@ internal class Program
 
     private static void Serialize()
     {
-        var mathGraph = new MathGraph<int>();
+        var mathGraph = new MathGraph<int, string>();
 
-        List<MathGraphElement<int>> elementList = [];
+        List<MathGraphElement<int, string>> elementList = [];
 
         for (int i = 0; i < 10; i++)
         {
@@ -87,22 +87,22 @@ internal class Program
         SerializeDeserialize(mathGraph);
     }
 
-    private static void SerializeDeserialize<T>(MathGraph<T> mathGraph)
+    private static void SerializeDeserialize<TElementInfo, TEdgeInfo>(MathGraph<TElementInfo, TEdgeInfo> mathGraph)
     {
         var mathGraphSerializer = mathGraph.GetSerializer();
         var json = mathGraphSerializer.Serialize();
-        Equals(mathGraph, Deserialize<T>(json));
+        Equals(mathGraph, Deserialize<TElementInfo, TEdgeInfo>(json));
     }
 
-    private static MathGraph<T> Deserialize<T>(string json)
+    private static MathGraph<TElementInfo, TEdgeInfo> Deserialize<TElementInfo, TEdgeInfo>(string json)
     {
-        var mathGraph = new MathGraph<T>();
+        var mathGraph = new MathGraph<TElementInfo, TEdgeInfo>();
         var mathGraphSerializer = mathGraph.GetSerializer();
         mathGraphSerializer.Deserialize(json);
         return mathGraph;
     }
 
-    private static void Equals<T>(MathGraph<T> a, MathGraph<T> b)
+    private static void Equals<TElementInfo, TEdgeInfo>(MathGraph<TElementInfo, TEdgeInfo> a, MathGraph<TElementInfo, TEdgeInfo> b)
     {
         Debug.Assert(a.ElementList.Count == b.ElementList.Count);
         for (var i = 0; i < a.ElementList.Count; i++)
@@ -116,7 +116,7 @@ internal class Program
             ElementListEquals(elementA.OutElementList, elementB.OutElementList);
         }
 
-        static void ElementListEquals(IReadOnlyList<MathGraphElement<T>> a, IReadOnlyList<MathGraphElement<T>> b)
+        static void ElementListEquals(IReadOnlyList<MathGraphElement<TElementInfo, TEdgeInfo>> a, IReadOnlyList<MathGraphElement<TElementInfo, TEdgeInfo>> b)
         {
             Debug.Assert(a.Count == b.Count);
             for (var i = 0; i < a.Count; i++)
@@ -125,9 +125,9 @@ internal class Program
             }
         }
 
-        static void ElementEquals(MathGraphElement<T> a, MathGraphElement<T> b)
+        static void ElementEquals(MathGraphElement<TElementInfo, TEdgeInfo> a, MathGraphElement<TElementInfo, TEdgeInfo> b)
         {
-            Debug.Assert(EqualityComparer<T>.Default.Equals(a.Value, b.Value));
+            Debug.Assert(EqualityComparer<TElementInfo>.Default.Equals(a.Value, b.Value));
             Debug.Assert(a.Id == b.Id);
         }
     }
