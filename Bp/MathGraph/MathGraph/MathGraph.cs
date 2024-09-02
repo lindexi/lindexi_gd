@@ -89,7 +89,15 @@ public class MathGraphSerializer<T>
 
     private readonly MathGraph<T> _mathGraph;
 
-    public readonly record struct SerializationContext(string Value, string? ElementType, string Id, int Index, List<int> InList, List<int> OutList);
+    public readonly record struct ElementSerializationContext(string Value, string? ElementType, string Id, int Index, List<int> InList, List<int> OutList, List<EdgeSerializationContext> EdgeList);
+
+    public readonly record struct EdgeSerializationContext(EdgeType EdgeType, int AElementIndex, int BElementIndex, string EdgeInfo, string? EdgeInfoType);
+
+    public enum EdgeType
+    {
+        Unidirectional,
+        Bidirectional
+    }
 
     public string Serialize()
     {
@@ -101,7 +109,7 @@ public class MathGraphSerializer<T>
             dictionary[elementList[i]] = i;
         }
 
-        var contextList = new List<SerializationContext>(elementList.Count);
+        var contextList = new List<ElementSerializationContext>(elementList.Count);
 
         foreach (var element in elementList)
         {
@@ -118,6 +126,44 @@ public class MathGraphSerializer<T>
                 outList.Add(dictionary[outElement]);
             }
 
+            var edgeList = new List<EdgeSerializationContext>(element.EdgeList.Count);
+            foreach (var mathGraphEdge in element.EdgeList)
+            {
+                EdgeType type;
+                MathGraphElement<T> a;
+                MathGraphElement<T> b;
+
+                if (mathGraphEdge is MathGraphUnidirectionalEdge<T> unidirectionalEdge)
+                {
+                    type = EdgeType.Unidirectional;
+                    a = unidirectionalEdge.From;
+                    b = unidirectionalEdge.To;
+                }
+                else if (mathGraphEdge is MathGraphBidirectionalEdge<T> bidirectionalEdge)
+                {
+                    type = EdgeType.Bidirectional;
+                    a = bidirectionalEdge.AElement;
+                    b = bidirectionalEdge.BElement;
+                }
+                else
+                {
+                    throw new InvalidOperationException();
+                }
+
+                var aElementIndex = dictionary[a];
+                var bElementIndex = dictionary[b];
+
+                var edgeInfoText = string.Empty;
+                var edgeInfo = mathGraphEdge.EdgeInfo;
+                if (edgeInfo is ISerializableEdge serializableEdge)
+                {
+                    edgeInfoText = serializableEdge.Serialize();
+                }
+
+                var edgeSerializationContext = new EdgeSerializationContext(type, aElementIndex, bElementIndex, edgeInfoText, edgeInfo?.GetType().FullName);
+                edgeList.Add(edgeSerializationContext);
+            }
+
             string value;
             if (element.Value is ISerializableElement serializableElement)
             {
@@ -128,7 +174,7 @@ public class MathGraphSerializer<T>
                 value = JsonSerializer.Serialize(element.Value);
             }
 
-            contextList.Add(new SerializationContext(value, element.GetType().FullName, element.Id, dictionary[element], inList, outList));
+            contextList.Add(new ElementSerializationContext(value, element.GetType().FullName, element.Id, dictionary[element], inList, outList, edgeList));
         }
 
         return JsonSerializer.Serialize(contextList);
@@ -136,7 +182,7 @@ public class MathGraphSerializer<T>
 
     public void Deserialize(string json)
     {
-        var list = JsonSerializer.Deserialize<List<SerializationContext>>(json);
+        var list = JsonSerializer.Deserialize<List<ElementSerializationContext>>(json);
 
         if (list is null)
         {
@@ -166,6 +212,46 @@ public class MathGraphSerializer<T>
             foreach (var outIndex in serializationContext.OutList)
             {
                 mathGraphElement.AddOutElement(dictionary[outIndex]);
+            }
+
+            foreach (var edgeSerializationContext in serializationContext.EdgeList)
+            {
+                MathGraphElement<T> a = dictionary[edgeSerializationContext.AElementIndex];
+                MathGraphElement<T> b = dictionary[edgeSerializationContext.BElementIndex];
+                MathGraphEdge<T> edge;
+                IEdgeInfo? edgeInfo = null;
+
+                if (edgeSerializationContext.EdgeInfoType is not null)
+                {
+                    var edgeInfoType = Type.GetType(edgeSerializationContext.EdgeInfoType);
+                    if (edgeInfoType is null)
+                    {
+                        throw new InvalidOperationException();
+                    }
+
+                    edgeInfo = (IEdgeInfo?) JsonSerializer.Deserialize(edgeSerializationContext.EdgeInfo, edgeInfoType);
+                }
+
+                if (edgeSerializationContext.EdgeType == EdgeType.Unidirectional)
+                {
+                    edge = new MathGraphUnidirectionalEdge<T>(a, b)
+                    {
+                        EdgeInfo = edgeInfo,
+                    };
+                    a.AddEdge(edge);
+                }
+                else if (edgeSerializationContext.EdgeType == EdgeType.Bidirectional)
+                {
+                    edge = new MathGraphBidirectionalEdge<T>(a, b)
+                    {
+                        EdgeInfo = edgeInfo,
+                    };
+                    a.AddEdge(edge);
+                }
+                else
+                {
+                    throw new InvalidOperationException();
+                }
             }
         }
     }
