@@ -327,7 +327,7 @@ public class MathGraphElement<TElementInfo, TEdgeInfo>
 
         Id = id;
 
-        if (Value is IMathGraphElementSensitive<TElementInfo> sensitive)
+        if (Value is IMathGraphElementSensitive<TElementInfo, TEdgeInfo> sensitive)
         {
             Debug.Assert(sensitive.MathGraphElement is null);
             sensitive.MathGraphElement = this;
