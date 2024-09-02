@@ -207,7 +207,7 @@ public class MathGraphSerializer<TElementInfo, TEdgeInfo>
                 value = JsonSerializer.Serialize(element.Value);
             }
 
-            contextList.Add(new ElementSerializationContext(value, element.GetType().FullName, element.Id,
+            contextList.Add(new ElementSerializationContext(value, element.Value?.GetType().FullName, element.Id,
                 dictionary[element], inList, outList, edgeList));
         }
 
