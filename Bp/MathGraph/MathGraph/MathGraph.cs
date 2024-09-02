@@ -237,18 +237,19 @@ public class MathGraphSerializer<TElementInfo, TEdgeInfo>
                 MathGraphElement<TElementInfo, TEdgeInfo> a = dictionary[edgeSerializationContext.AElementIndex];
                 MathGraphElement<TElementInfo, TEdgeInfo> b = dictionary[edgeSerializationContext.BElementIndex];
                 MathGraphEdge<TElementInfo, TEdgeInfo> edge;
-                TEdgeInfo? edgeInfo = default;
 
+                Type? edgeInfoType = null;
                 if (edgeSerializationContext.EdgeInfoType is not null)
                 {
-                    var edgeInfoType = Type.GetType(edgeSerializationContext.EdgeInfoType);
-                    if (edgeInfoType is null)
-                    {
-                        throw new InvalidOperationException();
-                    }
-
-                    edgeInfo = (TEdgeInfo?)JsonSerializer.Deserialize(edgeSerializationContext.EdgeInfo, edgeInfoType);
+                    edgeInfoType = Type.GetType(edgeSerializationContext.EdgeInfoType);
                 }
+                        
+                if (edgeInfoType is null)
+                {
+                    edgeInfoType = typeof(TEdgeInfo);
+                }
+
+                var edgeInfo = (TEdgeInfo?)JsonSerializer.Deserialize(edgeSerializationContext.EdgeInfo, edgeInfoType);
 
                 if (edgeSerializationContext.EdgeType == EdgeType.Unidirectional)
                 {
