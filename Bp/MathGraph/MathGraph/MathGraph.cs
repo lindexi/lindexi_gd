@@ -8,20 +8,20 @@ using System.Threading.Tasks;
 
 namespace MathGraph;
 
-public class MathGraph<T>
+public class MathGraph<TElementInfo, TEdgeInfo>
 {
     public MathGraph()
     {
         _elementList = [];
     }
 
-    private readonly List<MathGraphElement<T>> _elementList;
+    private readonly List<MathGraphElement<TElementInfo, TEdgeInfo>> _elementList;
 
-    public IReadOnlyList<MathGraphElement<T>> ElementList => _elementList;
+    public IReadOnlyList<MathGraphElement<TElementInfo, TEdgeInfo>> ElementList => _elementList;
 
-    public MathGraphElement<T> CreateAndAddElement(T value, string? id = null)
+    public MathGraphElement<TElementInfo, TEdgeInfo> CreateAndAddElement(TElementInfo value, string? id = null)
     {
-        var element = new MathGraphElement<T>(this, value, id);
+        var element = new MathGraphElement<TElementInfo, TEdgeInfo>(this, value, id);
         _elementList.Add(element);
         return element;
     }
@@ -36,21 +36,23 @@ public class MathGraph<T>
     //    ElementList.Remove(element);
     //}
 
-    public MathGraphSerializer<T> GetSerializer() => new MathGraphSerializer<T>(this);
+    public MathGraphSerializer<TElementInfo, TEdgeInfo> GetSerializer() =>
+        new MathGraphSerializer<TElementInfo, TEdgeInfo>(this);
 
     /// <summary>
     /// 添加单向边
     /// </summary>
     /// <param name="from"></param>
     /// <param name="to"></param>
-    public void AddEdge(MathGraphElement<T> from, MathGraphElement<T> to, IEdgeInfo? edgeInfo = null)
+    public void AddEdge(MathGraphElement<TElementInfo, TEdgeInfo> from, MathGraphElement<TElementInfo, TEdgeInfo> to,
+        TEdgeInfo? edgeInfo = default)
     {
         from.AddOutElement(to);
         Debug.Assert(to.InElementList.Contains(from));
 
         if (edgeInfo != null)
         {
-            var edge = new MathGraphUnidirectionalEdge<T>(from, to)
+            var edge = new MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo>(from, to)
             {
                 EdgeInfo = edgeInfo
             };
@@ -63,14 +65,15 @@ public class MathGraph<T>
     /// </summary>
     /// <param name="a"></param>
     /// <param name="b"></param>
-    public void AddBidirectionalEdge(MathGraphElement<T> a, MathGraphElement<T> b, IEdgeInfo? edgeInfo = null)
+    public void AddBidirectionalEdge(MathGraphElement<TElementInfo, TEdgeInfo> a,
+        MathGraphElement<TElementInfo, TEdgeInfo> b, TEdgeInfo? edgeInfo = default)
     {
         AddEdge(a, b);
         AddEdge(b, a);
 
         if (edgeInfo != null)
         {
-            var edge = new MathGraphBidirectionalEdge<T>(a, b)
+            var edge = new MathGraphBidirectionalEdge<TElementInfo, TEdgeInfo>(a, b)
             {
                 EdgeInfo = edgeInfo
             };
@@ -80,18 +83,30 @@ public class MathGraph<T>
     }
 }
 
-public class MathGraphSerializer<T>
+public class MathGraphSerializer<TElementInfo, TEdgeInfo>
 {
-    public MathGraphSerializer(MathGraph<T> mathGraph)
+    public MathGraphSerializer(MathGraph<TElementInfo, TEdgeInfo> mathGraph)
     {
         _mathGraph = mathGraph;
     }
 
-    private readonly MathGraph<T> _mathGraph;
+    private readonly MathGraph<TElementInfo, TEdgeInfo> _mathGraph;
 
-    public readonly record struct ElementSerializationContext(string Value, string? ElementType, string Id, int Index, List<int> InList, List<int> OutList, List<EdgeSerializationContext> EdgeList);
+    public readonly record struct ElementSerializationContext(
+        string Value,
+        string? ElementType,
+        string Id,
+        int Index,
+        List<int> InList,
+        List<int> OutList,
+        List<EdgeSerializationContext> EdgeList);
 
-    public readonly record struct EdgeSerializationContext(EdgeType EdgeType, int AElementIndex, int BElementIndex, string EdgeInfo, string? EdgeInfoType);
+    public readonly record struct EdgeSerializationContext(
+        EdgeType EdgeType,
+        int AElementIndex,
+        int BElementIndex,
+        string EdgeInfo,
+        string? EdgeInfoType);
 
     public enum EdgeType
     {
@@ -103,7 +118,7 @@ public class MathGraphSerializer<T>
     {
         var elementList = _mathGraph.ElementList;
 
-        var dictionary = new Dictionary<MathGraphElement<T>, int>();
+        var dictionary = new Dictionary<MathGraphElement<TElementInfo, TEdgeInfo>, int>();
         for (var i = 0; i < elementList.Count; i++)
         {
             dictionary[elementList[i]] = i;
@@ -130,16 +145,16 @@ public class MathGraphSerializer<T>
             foreach (var mathGraphEdge in element.EdgeList)
             {
                 EdgeType type;
-                MathGraphElement<T> a;
-                MathGraphElement<T> b;
+                MathGraphElement<TElementInfo, TEdgeInfo> a;
+                MathGraphElement<TElementInfo, TEdgeInfo> b;
 
-                if (mathGraphEdge is MathGraphUnidirectionalEdge<T> unidirectionalEdge)
+                if (mathGraphEdge is MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo> unidirectionalEdge)
                 {
                     type = EdgeType.Unidirectional;
                     a = unidirectionalEdge.From;
                     b = unidirectionalEdge.To;
                 }
-                else if (mathGraphEdge is MathGraphBidirectionalEdge<T> bidirectionalEdge)
+                else if (mathGraphEdge is MathGraphBidirectionalEdge<TElementInfo, TEdgeInfo> bidirectionalEdge)
                 {
                     type = EdgeType.Bidirectional;
                     a = bidirectionalEdge.AElement;
@@ -160,7 +175,8 @@ public class MathGraphSerializer<T>
                     edgeInfoText = serializableEdge.Serialize();
                 }
 
-                var edgeSerializationContext = new EdgeSerializationContext(type, aElementIndex, bElementIndex, edgeInfoText, edgeInfo?.GetType().FullName);
+                var edgeSerializationContext = new EdgeSerializationContext(type, aElementIndex, bElementIndex,
+                    edgeInfoText, edgeInfo?.GetType().FullName);
                 edgeList.Add(edgeSerializationContext);
             }
 
@@ -174,7 +190,8 @@ public class MathGraphSerializer<T>
                 value = JsonSerializer.Serialize(element.Value);
             }
 
-            contextList.Add(new ElementSerializationContext(value, element.GetType().FullName, element.Id, dictionary[element], inList, outList, edgeList));
+            contextList.Add(new ElementSerializationContext(value, element.GetType().FullName, element.Id,
+                dictionary[element], inList, outList, edgeList));
         }
 
         return JsonSerializer.Serialize(contextList);
@@ -189,15 +206,16 @@ public class MathGraphSerializer<T>
             return;
         }
 
-        var dictionary = new Dictionary<int, MathGraphElement<T>>();
+        var dictionary = new Dictionary<int, MathGraphElement<TElementInfo, TEdgeInfo>>();
         foreach (var serializationContext in list)
         {
             var elementType = serializationContext.ElementType;
-            var value = JsonSerializer.Deserialize<T>(serializationContext.Value);
+            var value = JsonSerializer.Deserialize<TElementInfo>(serializationContext.Value);
 
             Debug.Assert(value is not null);
 
-            MathGraphElement<T> mathGraphElement = _mathGraph.CreateAndAddElement(value, serializationContext.Id);
+            MathGraphElement<TElementInfo, TEdgeInfo> mathGraphElement =
+                _mathGraph.CreateAndAddElement(value, serializationContext.Id);
             dictionary[serializationContext.Index] = mathGraphElement;
         }
 
@@ -216,10 +234,10 @@ public class MathGraphSerializer<T>
 
             foreach (var edgeSerializationContext in serializationContext.EdgeList)
             {
-                MathGraphElement<T> a = dictionary[edgeSerializationContext.AElementIndex];
-                MathGraphElement<T> b = dictionary[edgeSerializationContext.BElementIndex];
-                MathGraphEdge<T> edge;
-                IEdgeInfo? edgeInfo = null;
+                MathGraphElement<TElementInfo, TEdgeInfo> a = dictionary[edgeSerializationContext.AElementIndex];
+                MathGraphElement<TElementInfo, TEdgeInfo> b = dictionary[edgeSerializationContext.BElementIndex];
+                MathGraphEdge<TElementInfo, TEdgeInfo> edge;
+                TEdgeInfo? edgeInfo = default;
 
                 if (edgeSerializationContext.EdgeInfoType is not null)
                 {
@@ -229,12 +247,12 @@ public class MathGraphSerializer<T>
                         throw new InvalidOperationException();
                     }
 
-                    edgeInfo = (IEdgeInfo?) JsonSerializer.Deserialize(edgeSerializationContext.EdgeInfo, edgeInfoType);
+                    edgeInfo = (TEdgeInfo?)JsonSerializer.Deserialize(edgeSerializationContext.EdgeInfo, edgeInfoType);
                 }
 
                 if (edgeSerializationContext.EdgeType == EdgeType.Unidirectional)
                 {
-                    edge = new MathGraphUnidirectionalEdge<T>(a, b)
+                    edge = new MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo>(a, b)
                     {
                         EdgeInfo = edgeInfo,
                     };
@@ -242,7 +260,7 @@ public class MathGraphSerializer<T>
                 }
                 else if (edgeSerializationContext.EdgeType == EdgeType.Bidirectional)
                 {
-                    edge = new MathGraphBidirectionalEdge<T>(a, b)
+                    edge = new MathGraphBidirectionalEdge<TElementInfo, TEdgeInfo>(a, b)
                     {
                         EdgeInfo = edgeInfo,
                     };
@@ -267,9 +285,9 @@ static class MathGraphElementIdGenerator
     }
 }
 
-public class MathGraphElement<T>
+public class MathGraphElement<TElementInfo, TEdgeInfo>
 {
-    public MathGraphElement(MathGraph<T> mathGraph, T value, string? id = null)
+    public MathGraphElement(MathGraph<TElementInfo, TEdgeInfo> mathGraph, TElementInfo value, string? id = null)
     {
         Value = value;
         MathGraph = mathGraph;
@@ -281,31 +299,31 @@ public class MathGraphElement<T>
 
         Id = id;
 
-        if (Value is IMathGraphElementSensitive<T> sensitive)
+        if (Value is IMathGraphElementSensitive<TElementInfo> sensitive)
         {
             Debug.Assert(sensitive.MathGraphElement is null);
             sensitive.MathGraphElement = this;
         }
     }
 
-    public MathGraph<T> MathGraph { get; }
+    public MathGraph<TElementInfo, TEdgeInfo> MathGraph { get; }
 
     public string Id { get; }
 
-    public T Value { get; }
+    public TElementInfo Value { get; }
 
-    public IReadOnlyList<MathGraphElement<T>> OutElementList => _outElementList;
+    public IReadOnlyList<MathGraphElement<TElementInfo, TEdgeInfo>> OutElementList => _outElementList;
 
-    public IReadOnlyList<MathGraphElement<T>> InElementList => _inElementList;
+    public IReadOnlyList<MathGraphElement<TElementInfo, TEdgeInfo>> InElementList => _inElementList;
 
-    public IReadOnlyList<MathGraphEdge<T>> EdgeList => _edgeList;
+    public IReadOnlyList<MathGraphEdge<TElementInfo, TEdgeInfo>> EdgeList => _edgeList;
 
-    private readonly List<MathGraphElement<T>> _outElementList = [];
-    private readonly List<MathGraphElement<T>> _inElementList = [];
+    private readonly List<MathGraphElement<TElementInfo, TEdgeInfo>> _outElementList = [];
+    private readonly List<MathGraphElement<TElementInfo, TEdgeInfo>> _inElementList = [];
 
-    private readonly List<MathGraphEdge<T>> _edgeList = [];
+    private readonly List<MathGraphEdge<TElementInfo, TEdgeInfo>> _edgeList = [];
 
-    public void AddEdge(MathGraphEdge<T> edge)
+    public void AddEdge(MathGraphEdge<TElementInfo, TEdgeInfo> edge)
     {
         edge.EnsureContain(this);
 
@@ -315,7 +333,7 @@ public class MathGraphElement<T>
         otherElement._edgeList.Add(edge);
     }
 
-    public void AddOutElement(MathGraphElement<T> element)
+    public void AddOutElement(MathGraphElement<TElementInfo, TEdgeInfo> element)
     {
         EnsureSameMathGraph(element);
         if (_outElementList.Contains(element))
@@ -328,7 +346,7 @@ public class MathGraphElement<T>
         element._inElementList.Add(this);
     }
 
-    public void RemoveOutElement(MathGraphElement<T> element)
+    public void RemoveOutElement(MathGraphElement<TElementInfo, TEdgeInfo> element)
     {
         EnsureSameMathGraph(element);
         if (!_outElementList.Contains(element))
@@ -341,7 +359,7 @@ public class MathGraphElement<T>
         element._inElementList.Remove(this);
     }
 
-    public void AddInElement(MathGraphElement<T> element)
+    public void AddInElement(MathGraphElement<TElementInfo, TEdgeInfo> element)
     {
         EnsureSameMathGraph(element);
         if (_inElementList.Contains(element))
@@ -354,7 +372,7 @@ public class MathGraphElement<T>
         element._outElementList.Add(this);
     }
 
-    public void RemoveInElement(MathGraphElement<T> element)
+    public void RemoveInElement(MathGraphElement<TElementInfo, TEdgeInfo> element)
     {
         EnsureSameMathGraph(element);
         if (!_inElementList.Contains(element))
@@ -369,10 +387,11 @@ public class MathGraphElement<T>
 
     public override string ToString()
     {
-        return $"Value={Value} ; Id={Id};\r\nOut={string.Join(',', OutElementList.Select(t => $"(Value={t.Value};Id={t.Id})"))};\r\nIn={string.Join(',', InElementList.Select(t => $"(Value={t.Value};Id={t.Id})"))}";
+        return
+            $"Value={Value} ; Id={Id};\r\nOut={string.Join(',', OutElementList.Select(t => $"(Value={t.Value};Id={t.Id})"))};\r\nIn={string.Join(',', InElementList.Select(t => $"(Value={t.Value};Id={t.Id})"))}";
     }
 
-    private void EnsureSameMathGraph(MathGraphElement<T> element)
+    private void EnsureSameMathGraph(MathGraphElement<TElementInfo, TEdgeInfo> element)
     {
         if (!ReferenceEquals(MathGraph, element.MathGraph))
         {
@@ -381,46 +400,44 @@ public class MathGraphElement<T>
     }
 }
 
-public interface IEdgeInfo
+public class MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo> : MathGraphEdge<TElementInfo, TEdgeInfo>
 {
-}
-
-public class MathGraphUnidirectionalEdge<T> : MathGraphEdge<T>
-{
-    public MathGraphUnidirectionalEdge(MathGraphElement<T> from, MathGraphElement<T> to) : base(from, to)
+    public MathGraphUnidirectionalEdge(MathGraphElement<TElementInfo, TEdgeInfo> from,
+        MathGraphElement<TElementInfo, TEdgeInfo> to) : base(from, to)
     {
     }
 
-    public MathGraphElement<T> From => base.A;
+    public MathGraphElement<TElementInfo, TEdgeInfo> From => base.A;
 
-    public MathGraphElement<T> To => base.B;
+    public MathGraphElement<TElementInfo, TEdgeInfo> To => base.B;
 }
 
-public class MathGraphBidirectionalEdge<T> : MathGraphEdge<T>
+public class MathGraphBidirectionalEdge<TElementInfo, TEdgeInfo> : MathGraphEdge<TElementInfo, TEdgeInfo>
 {
-    public MathGraphBidirectionalEdge(MathGraphElement<T> a, MathGraphElement<T> b) : base(a, b)
+    public MathGraphBidirectionalEdge(MathGraphElement<TElementInfo, TEdgeInfo> a,
+        MathGraphElement<TElementInfo, TEdgeInfo> b) : base(a, b)
     {
     }
 
-    public MathGraphElement<T> AElement => base.A;
+    public MathGraphElement<TElementInfo, TEdgeInfo> AElement => base.A;
 
-    public MathGraphElement<T> BElement => base.B;
+    public MathGraphElement<TElementInfo, TEdgeInfo> BElement => base.B;
 }
 
-public abstract class MathGraphEdge<T>
+public abstract class MathGraphEdge<TElementInfo, TEdgeInfo>
 {
-    protected MathGraphEdge(MathGraphElement<T> a, MathGraphElement<T> b)
+    protected MathGraphEdge(MathGraphElement<TElementInfo, TEdgeInfo> a, MathGraphElement<TElementInfo, TEdgeInfo> b)
     {
         A = a;
         B = b;
     }
 
-    public IEdgeInfo? EdgeInfo { get; set; }
+    public TEdgeInfo? EdgeInfo { get; set; }
 
-    protected MathGraphElement<T> A { get; }
-    protected MathGraphElement<T> B { get; }
+    protected MathGraphElement<TElementInfo, TEdgeInfo> A { get; }
+    protected MathGraphElement<TElementInfo, TEdgeInfo> B { get; }
 
-    public void EnsureContain(MathGraphElement<T> element)
+    public void EnsureContain(MathGraphElement<TElementInfo, TEdgeInfo> element)
     {
         if (!ReferenceEquals(element, A) && !ReferenceEquals(element, B))
         {
@@ -428,7 +445,7 @@ public abstract class MathGraphEdge<T>
         }
     }
 
-    public MathGraphElement<T> GetOtherElement(MathGraphElement<T> element)
+    public MathGraphElement<TElementInfo, TEdgeInfo> GetOtherElement(MathGraphElement<TElementInfo, TEdgeInfo> element)
     {
         if (ReferenceEquals(element, A))
         {
