@@ -1,4 +1,4 @@
-﻿namespace MathGraph;
+﻿namespace MathGraph.Serialization;
 
 public interface ISerializableEdge
 {
