@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -83,14 +84,30 @@ public class MathGraph<TElementInfo, TEdgeInfo>
     }
 }
 
+public interface IDeserializationContext
+{
+    bool TryDeserialize(string value, string? type, [NotNullWhen(true)] out object? result);
+}
+
+class DefaultDeserializationContext : IDeserializationContext
+{
+    public bool TryDeserialize(string value, string? type, out object? result)
+    {
+        result = null;
+        return false;
+    }
+}
+
 public class MathGraphSerializer<TElementInfo, TEdgeInfo>
 {
-    public MathGraphSerializer(MathGraph<TElementInfo, TEdgeInfo> mathGraph)
+    public MathGraphSerializer(MathGraph<TElementInfo, TEdgeInfo> mathGraph, IDeserializationContext? deserializationContext = null)
     {
         _mathGraph = mathGraph;
+        _deserializationContext = deserializationContext ?? new DefaultDeserializationContext();
     }
 
     private readonly MathGraph<TElementInfo, TEdgeInfo> _mathGraph;
+    private IDeserializationContext _deserializationContext;
 
     public readonly record struct ElementSerializationContext(
         string Value,
@@ -266,6 +283,11 @@ public class MathGraphSerializer<TElementInfo, TEdgeInfo>
 
     private T Deserialize<T>(string value, string? type)
     {
+        if (_deserializationContext.TryDeserialize(value, type, out var result))
+        {
+            return (T) result;
+        }
+
         Type? returnType = null;
         if (type is not null)
         {
@@ -277,7 +299,7 @@ public class MathGraphSerializer<TElementInfo, TEdgeInfo>
             returnType = typeof(T);
         }
 
-        return (T)JsonSerializer.Deserialize(value, returnType)!;
+        return (T) JsonSerializer.Deserialize(value, returnType)!;
     }
 }
 
