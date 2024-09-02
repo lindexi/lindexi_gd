@@ -90,14 +90,24 @@ public class MathGraphSerializer<TElementInfo, TEdgeInfo>
                     throw new InvalidOperationException();
                 }
 
+                if (!ReferenceEquals(a, element))
+                {
+                    // 边只序列化一次，所以只序列化入边，无论是否双向边
+                    continue;
+                }
+
                 var aElementIndex = dictionary[a];
                 var bElementIndex = dictionary[b];
 
-                var edgeInfoText = string.Empty;
+                string edgeInfoText;
                 var edgeInfo = mathGraphEdge.EdgeInfo;
                 if (edgeInfo is ISerializableEdge serializableEdge)
                 {
                     edgeInfoText = serializableEdge.Serialize();
+                }
+                else
+                {
+                    edgeInfoText = JsonSerializer.Serialize(edgeInfo);
                 }
 
                 var edgeSerializationContext = new EdgeSerializationContext(type, aElementIndex, bElementIndex,

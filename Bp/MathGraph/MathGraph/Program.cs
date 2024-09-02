@@ -11,6 +11,37 @@ internal class Program
 {
     private static void Main(string[] args)
     {
+        SerializeEdge();
+
+        SerializeLink();
+
+        AddBidirectionalEdge();
+
+        AddEdge();
+
+        Serialize();
+    }
+
+    private static void SerializeEdge()
+    {
+        var mathGraph = new MathGraph<string, string>();
+        var a = mathGraph.CreateAndAddElement("a");
+        var b = mathGraph.CreateAndAddElement("b");
+        var c = mathGraph.CreateAndAddElement("c");
+
+        mathGraph.AddEdge(a, b, "ab");
+        mathGraph.AddEdge(b, c, "bc");
+
+        Debug.Assert(a.OutElementList[0] == b);
+        Debug.Assert(b.OutElementList[0] == c);
+        Debug.Assert(c.InElementList[0] == b);
+        Debug.Assert(b.InElementList[0] == a);
+
+        SerializeDeserialize(mathGraph);
+    }
+
+    private static void SerializeLink()
+    {
         var mathGraph = new MathGraph<string, string>();
         var a = mathGraph.CreateAndAddElement("a");
         var b = mathGraph.CreateAndAddElement("b");
@@ -23,12 +54,6 @@ internal class Program
         Debug.Assert(c.InElementList[0] == b);
         Debug.Assert(b.InElementList[0] == a);
         SerializeDeserialize(mathGraph);
-
-        AddBidirectionalEdge();
-
-        AddEdge();
-
-        Serialize();
     }
 
     private static void AddBidirectionalEdge()
@@ -114,6 +139,8 @@ internal class Program
 
             ElementListEquals(elementA.InElementList, elementB.InElementList);
             ElementListEquals(elementA.OutElementList, elementB.OutElementList);
+
+            EdgeListEquals(elementA.EdgeList, elementB.EdgeList);
         }
 
         static void ElementListEquals(IReadOnlyList<MathGraphElement<TElementInfo, TEdgeInfo>> a, IReadOnlyList<MathGraphElement<TElementInfo, TEdgeInfo>> b)
@@ -129,6 +156,41 @@ internal class Program
         {
             Debug.Assert(EqualityComparer<TElementInfo>.Default.Equals(a.Value, b.Value));
             Debug.Assert(a.Id == b.Id);
+        }
+
+        static void EdgeListEquals(IReadOnlyList<MathGraphEdge<TElementInfo, TEdgeInfo>> aEdgeList,
+            IReadOnlyList<MathGraphEdge<TElementInfo, TEdgeInfo>> bEdgeList)
+        {
+            Debug.Assert(aEdgeList.Count == bEdgeList.Count);
+
+            for (var i = 0; i < aEdgeList.Count; i++)
+            {
+                EdgeEquals(aEdgeList[i], bEdgeList[i]);
+            }
+        }
+
+        static void EdgeEquals(MathGraphEdge<TElementInfo, TEdgeInfo> a, MathGraphEdge<TElementInfo, TEdgeInfo> b)
+        {
+            Debug.Assert(EqualityComparer<TEdgeInfo>.Default.Equals(a.EdgeInfo, b.EdgeInfo));
+
+            Debug.Assert(a.GetType() == b.GetType());
+
+            if (a is MathGraphBidirectionalEdge<TElementInfo, TEdgeInfo> aBidirectionalEdge &&
+                b is MathGraphBidirectionalEdge<TElementInfo, TEdgeInfo> bBidirectionalEdge)
+            {
+                ElementEquals(aBidirectionalEdge.AElement, bBidirectionalEdge.AElement);
+                ElementEquals(aBidirectionalEdge.BElement, bBidirectionalEdge.BElement);
+            }
+            else if (a is MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo> aUnidirectionalEdge &&
+                     b is MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo> bUnidirectionalEdge)
+            {
+                ElementEquals(aUnidirectionalEdge.From, bUnidirectionalEdge.From);
+                ElementEquals(aUnidirectionalEdge.To, bUnidirectionalEdge.To);
+            }
+            else
+            {
+                throw new InvalidOperationException();
+            }
         }
     }
 }

@@ -124,6 +124,14 @@ public class MathGraphElement<TElementInfo, TEdgeInfo>
 
     public void AddEdge(MathGraphEdge<TElementInfo, TEdgeInfo> edge)
     {
+        foreach (var mathGraphEdge in _edgeList)
+        {
+            if (ReferenceEquals(mathGraphEdge, edge))
+            {
+                return;
+            }
+        }
+
         edge.EnsureContain(this);
 
         _edgeList.Add(edge);
