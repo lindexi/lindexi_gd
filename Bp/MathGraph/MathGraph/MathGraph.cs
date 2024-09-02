@@ -210,7 +210,7 @@ public class MathGraphSerializer<TElementInfo, TEdgeInfo>
         foreach (var serializationContext in list)
         {
             var elementType = serializationContext.ElementType;
-            var value = JsonSerializer.Deserialize<TElementInfo>(serializationContext.Value);
+            var value = Deserialize<TElementInfo>(serializationContext.Value, elementType);
 
             Debug.Assert(value is not null);
 
@@ -238,18 +238,7 @@ public class MathGraphSerializer<TElementInfo, TEdgeInfo>
                 MathGraphElement<TElementInfo, TEdgeInfo> b = dictionary[edgeSerializationContext.BElementIndex];
                 MathGraphEdge<TElementInfo, TEdgeInfo> edge;
 
-                Type? edgeInfoType = null;
-                if (edgeSerializationContext.EdgeInfoType is not null)
-                {
-                    edgeInfoType = Type.GetType(edgeSerializationContext.EdgeInfoType);
-                }
-                        
-                if (edgeInfoType is null)
-                {
-                    edgeInfoType = typeof(TEdgeInfo);
-                }
-
-                var edgeInfo = (TEdgeInfo?)JsonSerializer.Deserialize(edgeSerializationContext.EdgeInfo, edgeInfoType);
+                var edgeInfo = Deserialize<TEdgeInfo?>(edgeSerializationContext.EdgeInfo, edgeSerializationContext.EdgeInfoType);
 
                 if (edgeSerializationContext.EdgeType == EdgeType.Unidirectional)
                 {
@@ -273,6 +262,22 @@ public class MathGraphSerializer<TElementInfo, TEdgeInfo>
                 }
             }
         }
+    }
+
+    private T Deserialize<T>(string value, string? type)
+    {
+        Type? returnType = null;
+        if (type is not null)
+        {
+            returnType = Type.GetType(type);
+        }
+
+        if (returnType is null)
+        {
+            returnType = typeof(T);
+        }
+
+        return (T)JsonSerializer.Deserialize(value, returnType)!;
     }
 }
 
