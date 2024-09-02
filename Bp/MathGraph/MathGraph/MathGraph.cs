@@ -91,7 +91,7 @@ public interface IDeserializationContext
 
 class DefaultDeserializationContext : IDeserializationContext
 {
-    public bool TryDeserialize(string value, string? type, out object? result)
+    public bool TryDeserialize(string value, string? type, [NotNullWhen(true)] out object? result)
     {
         result = null;
         return false;
@@ -100,16 +100,18 @@ class DefaultDeserializationContext : IDeserializationContext
 
 public class MathGraphSerializer<TElementInfo, TEdgeInfo>
 {
-    public MathGraphSerializer(MathGraph<TElementInfo, TEdgeInfo> mathGraph, IDeserializationContext? deserializationContext = null)
+    public MathGraphSerializer(MathGraph<TElementInfo, TEdgeInfo> mathGraph,
+        IDeserializationContext? deserializationContext = null)
     {
         _mathGraph = mathGraph;
         _deserializationContext = deserializationContext ?? new DefaultDeserializationContext();
     }
 
     private readonly MathGraph<TElementInfo, TEdgeInfo> _mathGraph;
-    private IDeserializationContext _deserializationContext;
+    private readonly IDeserializationContext _deserializationContext;
 
-    public readonly record struct ElementSerializationContext(
+    public readonly record struct ElementSerializationContext
+    (
         string Value,
         string? ElementType,
         string Id,
@@ -118,7 +120,8 @@ public class MathGraphSerializer<TElementInfo, TEdgeInfo>
         List<int> OutList,
         List<EdgeSerializationContext> EdgeList);
 
-    public readonly record struct EdgeSerializationContext(
+    public readonly record struct EdgeSerializationContext
+    (
         EdgeType EdgeType,
         int AElementIndex,
         int BElementIndex,
@@ -207,7 +210,7 @@ public class MathGraphSerializer<TElementInfo, TEdgeInfo>
                 value = JsonSerializer.Serialize(element.Value);
             }
 
-            contextList.Add(new ElementSerializationContext(value, element.GetType().FullName, element.Id,
+            contextList.Add(new ElementSerializationContext(value, element.Value?.GetType().FullName, element.Id,
                 dictionary[element], inList, outList, edgeList));
         }
 
@@ -255,7 +258,8 @@ public class MathGraphSerializer<TElementInfo, TEdgeInfo>
                 MathGraphElement<TElementInfo, TEdgeInfo> b = dictionary[edgeSerializationContext.BElementIndex];
                 MathGraphEdge<TElementInfo, TEdgeInfo> edge;
 
-                var edgeInfo = Deserialize<TEdgeInfo?>(edgeSerializationContext.EdgeInfo, edgeSerializationContext.EdgeInfoType);
+                var edgeInfo = Deserialize<TEdgeInfo?>(edgeSerializationContext.EdgeInfo,
+                    edgeSerializationContext.EdgeInfoType);
 
                 if (edgeSerializationContext.EdgeType == EdgeType.Unidirectional)
                 {
