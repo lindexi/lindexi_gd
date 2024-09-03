@@ -89,7 +89,26 @@ class SkiaStroke : IDisposable
 
     public SkiaStrokeDrawContext CreateDrawContext()
     {
-        return new SkiaStrokeDrawContext(Color, Path.Clone(), Path.Bounds.ToAvaloniaRect().Expand(Width));
+        return new SkiaStrokeDrawContext(Color, Path.Clone(), GetDrawBounds());
+    }
+
+    internal void SetAsStatic()
+    {
+        _drawBounds = GetDrawBounds();
+        _isStaticStroke = true;
+    }
+
+    private bool _isStaticStroke;
+    private Rect _drawBounds;
+
+    public Rect GetDrawBounds()
+    {
+        if (_isStaticStroke)
+        {
+            return _drawBounds;
+        }
+
+        return Path.Bounds.ToAvaloniaRect().Expand(Width);
     }
 }
 
@@ -119,7 +138,17 @@ class DynamicStrokeContext
 
 class AvaSkiaInkCanvasEraserMode
 {
+    public void EraserDown(InkingInputArgs args)
+    {
+    }
 
+    public void EraserMove(InkingInputArgs args)
+    {
+    }
+
+    public void EraserUp(InkingInputArgs args)
+    {
+    }
 }
 
 class AvaSkiaInkCanvas : Control
@@ -148,6 +177,7 @@ class AvaSkiaInkCanvas : Control
         {
             context.Stroke.AddPoint(args.Point);
             _staticStrokeDictionary[context.Stroke.Id] = context.Stroke;
+            context.Stroke.SetAsStatic();
         }
         InvalidateVisual();
     }
@@ -163,7 +193,7 @@ class AvaSkiaInkCanvas : Control
     private readonly Dictionary<InkId, SkiaStroke> _staticStrokeDictionary = [];
 
     public SkiaStroke GetStaticStroke(InkId id) => _staticStrokeDictionary[id];
-   
+
 
     public override void Render(DrawingContext context)
     {
