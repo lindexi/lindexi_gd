@@ -22,7 +22,10 @@ class Program
             .WithInterFont()
             .With(new DispatcherOptions()
             {
-                InputStarvationTimeout = TimeSpan.FromDays(1)
+                InputStarvationTimeout = TimeSpan.FromDays(1),
+                // 修复笔迹延迟
+                // https://github.com/AvaloniaUI/Avalonia/pull/16896
+                InstantRendering = true,
             })
             .LogToTrace()
             .UseReactiveUI();
