@@ -138,23 +138,61 @@ class DynamicStrokeContext
 
 class AvaSkiaInkCanvasEraserMode
 {
+    public AvaSkiaInkCanvasEraserMode(AvaSkiaInkCanvas inkCanvas)
+    {
+        InkCanvas = inkCanvas;
+    }
+
+    public AvaSkiaInkCanvas InkCanvas { get; }
+    public bool IsErasing { get; private set; }
+    private int MainEraserInputId { set; get; }
+
     public void EraserDown(InkingInputArgs args)
     {
+        InkCanvas.EnsureInputConflicts();
+        if (!IsErasing)
+        {
+            MainEraserInputId = args.Id;
+
+            IsErasing = true;
+        }
+        else
+        {
+            // 忽略其他的输入点
+        }
     }
 
     public void EraserMove(InkingInputArgs args)
     {
+        InkCanvas.EnsureInputConflicts();
+        if (IsErasing && args.Id == MainEraserInputId)
+        {
+            // 擦除
+        }
     }
 
     public void EraserUp(InkingInputArgs args)
     {
+        InkCanvas.EnsureInputConflicts();
+        if (IsErasing && args.Id == MainEraserInputId)
+        {
+            IsErasing = false;
+        }
     }
 }
 
 class AvaSkiaInkCanvas : Control
 {
+    public AvaSkiaInkCanvas()
+    {
+        EraserMode = new AvaSkiaInkCanvasEraserMode(this);
+    }
+
+    public AvaSkiaInkCanvasEraserMode EraserMode { get; }
+
     public void WritingDown(InkingInputArgs args)
     {
+        EnsureInputConflicts();
         var dynamicStrokeContext = new DynamicStrokeContext(args);
         _contextDictionary[args.Id] = dynamicStrokeContext;
         dynamicStrokeContext.Stroke.AddPoint(args.Point);
@@ -164,6 +202,7 @@ class AvaSkiaInkCanvas : Control
 
     public void WritingMove(InkingInputArgs args)
     {
+        EnsureInputConflicts();
         if (_contextDictionary.TryGetValue(args.Id, out var context))
         {
             context.Stroke.AddPoint(args.Point);
@@ -173,6 +212,7 @@ class AvaSkiaInkCanvas : Control
 
     public void WritingUp(InkingInputArgs args)
     {
+        EnsureInputConflicts();
         if (_contextDictionary.Remove(args.Id, out var context))
         {
             context.Stroke.AddPoint(args.Point);
@@ -189,6 +229,13 @@ class AvaSkiaInkCanvas : Control
 
     public bool IsWriting => _contextDictionary.Count > 0;
 
+    internal void EnsureInputConflicts()
+    {
+        if (IsWriting && EraserMode.IsErasing)
+        {
+            throw new InvalidOperationException("Writing and erasing cannot be performed at the same time.");
+        }
+    }
 
     private readonly Dictionary<InkId, SkiaStroke> _staticStrokeDictionary = [];
 
