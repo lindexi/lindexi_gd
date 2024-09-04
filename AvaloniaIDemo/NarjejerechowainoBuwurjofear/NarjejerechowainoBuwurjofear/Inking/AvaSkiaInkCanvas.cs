@@ -138,14 +138,6 @@ class SkiaStroke : IDisposable
 
         return Path.Bounds.ToAvaloniaRect().Expand(Width);
     }
-
-
-    private bool _isErasing;
-
-    public void EnterEraserMode()
-    {
-        _isErasing = true;
-    }
 }
 
 readonly record struct SkiaStrokeDrawContext(SKColor Color, SKPath Path, Rect DrawBounds, bool ShouldDisposePath) : IDisposable
