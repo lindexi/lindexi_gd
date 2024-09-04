@@ -178,7 +178,7 @@ class PointPathEraserManager
             var subInk = new SubInkInfoForEraserPointPath(new PointListSpan(0, originSkiaStroke.PointList.Count), this);
             if (originSkiaStroke.Path is { } skPath)
             {
-                subInk.CacheBounds = skPath.Bounds.ToAvaloniaRect().ToMauiRect();
+                subInk.CacheBounds = skPath.Bounds.ToMauiRect();
             }
 
             SubInkInfoList.Add(subInk);
