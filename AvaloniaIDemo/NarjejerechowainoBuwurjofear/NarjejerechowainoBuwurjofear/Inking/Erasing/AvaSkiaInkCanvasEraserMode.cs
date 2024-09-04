@@ -6,6 +6,7 @@ using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 
+using NarjejerechowainoBuwurjofear.Inking.Contexts;
 using NarjejerechowainoBuwurjofear.Inking.Utils;
 
 using SkiaSharp;
@@ -72,8 +73,12 @@ public class AvaSkiaInkCanvasEraserMode
             var pointPathEraserResult = PointPathEraserManager.Finish();
 
             InkCanvas.ResetStaticStrokeListEraserResult(pointPathEraserResult.ErasingSkiaStrokeList.SelectMany(t => t.NewStrokeList));
+
+            ErasingCompleted?.Invoke(this, new ErasingCompletedEventArgs(pointPathEraserResult.ErasingSkiaStrokeList));
         }
     }
+
+    public event EventHandler<ErasingCompletedEventArgs>? ErasingCompleted;
 
     public void Render(DrawingContext context)
     {

@@ -1,4 +1,4 @@
-﻿namespace NarjejerechowainoBuwurjofear.Inking;
+﻿namespace NarjejerechowainoBuwurjofear.Inking.Contexts;
 
 public readonly partial record struct InkId(int Value)
 {

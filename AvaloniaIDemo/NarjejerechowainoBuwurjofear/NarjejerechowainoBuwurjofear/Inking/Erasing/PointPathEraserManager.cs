@@ -3,7 +3,7 @@
 using Avalonia.Skia;
 
 using Microsoft.Maui.Graphics;
-
+using NarjejerechowainoBuwurjofear.Inking.Contexts;
 using NarjejerechowainoBuwurjofear.Inking.Utils;
 
 using SkiaSharp;
@@ -11,11 +11,6 @@ using SkiaSharp;
 using UnoInk.Inking.InkCore;
 
 namespace NarjejerechowainoBuwurjofear.Inking.Erasing;
-
-//readonly record struct ErasingSkiaStrokeDrawContext(SKColor Color, SKPath Path,)
-//{
-
-//}
 
 class PointPathEraserManager
 {
