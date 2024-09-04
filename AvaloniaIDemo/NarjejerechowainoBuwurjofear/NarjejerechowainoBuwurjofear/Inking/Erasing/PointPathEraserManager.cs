@@ -1,21 +1,175 @@
-﻿using Microsoft.Maui.Graphics;
+﻿using System.Linq;
+
+using Avalonia.Skia;
+
+using Microsoft.Maui.Graphics;
+
+using SkiaSharp;
+
 using UnoInk.Inking.InkCore;
 
 namespace NarjejerechowainoBuwurjofear.Inking.Erasing;
 
+record PointPathEraserResult();
+
+//readonly record struct ErasingSkiaStrokeDrawContext(SKColor Color, SKPath Path,)
+//{
+
+//}
+
 class PointPathEraserManager
 {
+    public void StartEraserPointPath(IReadOnlyList<SkiaStroke> staticStrokeList)
+    {
+        WorkList.EnsureCapacity(staticStrokeList.Count);
+        var workList = WorkList;
+        foreach (var skiaStrokeSynchronizer in staticStrokeList)
+        {
+            workList.Add(new InkInfoForEraserPointPath(skiaStrokeSynchronizer));
+        }
+    }
 
+    private List<InkInfoForEraserPointPath> WorkList { get; } = [];
 
-    private List<InkInfoForEraserPointPath> WorkList { get; set; } = null!;
+    private readonly List<SubInkInfoForEraserPointPath> _cacheList = [];
+
+    public void Move(Rect rect)
+    {
+        foreach (InkInfoForEraserPointPath inkInfoForEraserPointPath in WorkList)
+        {
+            _cacheList.Clear();
+
+            foreach (SubInkInfoForEraserPointPath pointPath in inkInfoForEraserPointPath.SubInkInfoList)
+            {
+                var bounds = pointPath.CacheBounds;
+                if (!bounds.IntersectsWith(rect))
+                {
+                    _cacheList.Add(pointPath);
+                    continue;
+                }
+
+                var span = pointPath.PointListSpan;
+                var start = -1;
+                var length = 0;
+
+                for (int i = 0; i < span.Length; i++)
+                {
+                    var index = span.Start + i;
+                    var point = inkInfoForEraserPointPath.PointList[index];
+
+                    //var point = inkInfoForEraserPointPath.StrokeSynchronizer.StylusPoints[index].Point;
+                    //_pointCount++;
+
+                    if (rect.Contains(point))
+                    {
+                        if (start != -1)
+                        {
+                            // 截断
+                            _cacheList.Add(pointPath.Sub(start, length));
+                        }
+
+                        start = -1;
+                        length = 0;
+                    }
+                    else
+                    {
+                        if (start == -1)
+                        {
+                            start = index;
+                            length = 1;
+                        }
+                        else
+                        {
+                            length++;
+                        }
+                    }
+                }
+
+                if (start != -1)
+                {
+                    // 截断
+                    _cacheList.Add(pointPath.Sub(start, length));
+                }
+            }
+
+            inkInfoForEraserPointPath.SubInkInfoList.Clear();
+            inkInfoForEraserPointPath.SubInkInfoList.AddRange(_cacheList);
+            _cacheList.Clear();
+        }
+    }
+
+    public PointPathEraserResult Finish()
+    {
+        var result = new PointPathEraserResult();
+        WorkList.Clear();
+        return result;
+    }
+
+    public IReadOnlyList<SkiaStrokeDrawContext> GetDrawContextList()
+    {
+        var count = WorkList.Sum(t => t.SubInkInfoList.Count);
+        var result = new List<SkiaStrokeDrawContext>(count);
+
+        foreach (var inkInfoForEraserPointPath in WorkList)
+        {
+            foreach (var subInkInfoForEraserPointPath in inkInfoForEraserPointPath.SubInkInfoList)
+            {
+                //var skPath = inkInfoForEraserPointPath.OriginSkiaStroke.Path;
+                SkiaStroke originSkiaStroke = inkInfoForEraserPointPath.OriginSkiaStroke;
+
+                var subSpan = subInkInfoForEraserPointPath.PointListSpan;
+                //var subPointList = inkInfoForEraserPointPath.PointList.AsSpan(subSpan.Start, subSpan.Length);
+                var skPath = new SKPath();
+
+                if (subSpan.Length > 2)
+                {
+                    var pointList =
+                        inkInfoForEraserPointPath.OriginSkiaStroke.PointList.GetRange(subSpan.Start, subSpan.Length);
+
+                    var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, originSkiaStroke.Width);
+
+                    //skPath.Reset();
+                    skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
+                }
+
+                //var path = new SKPath();
+                //path.MoveTo((float)subPointList[0].X, (float)subPointList[0].Y);
+                //for (int i = 1; i < subPointList.Length; i++)
+                //{
+                //    path.LineTo((float)subPointList[i].X, (float)subPointList[i].Y);
+                //}
+
+                result.Add(new SkiaStrokeDrawContext(inkInfoForEraserPointPath.OriginSkiaStroke.Color, skPath, skPath.Bounds.ToAvaloniaRect(), ShouldDisposePath: true));
+            }
+        }
+
+        return result;
+    }
 
     class InkInfoForEraserPointPath
     {
         public InkInfoForEraserPointPath(SkiaStroke originSkiaStroke)
         {
             OriginSkiaStroke = originSkiaStroke;
+
+            SubInkInfoList = new List<SubInkInfoForEraserPointPath>();
+
+            var subInk = new SubInkInfoForEraserPointPath(new PointListSpan(0, originSkiaStroke.PointList.Count), this);
+            if (originSkiaStroke.Path is { } skPath)
+            {
+                subInk.CacheBounds = skPath.Bounds.ToAvaloniaRect().ToMauiRect();
+            }
+
+            SubInkInfoList.Add(subInk);
+
+            PointList = new Point[StrokeSynchronizer.PointList.Count];
+            for (var i = 0; i < StrokeSynchronizer.PointList.Count; i++)
+            {
+                PointList[i] = StrokeSynchronizer.PointList[i].Point;
+            }
         }
 
+        public SkiaStroke StrokeSynchronizer => OriginSkiaStroke;
         public SkiaStroke OriginSkiaStroke { get; }
 
         /// <summary>
@@ -23,6 +177,12 @@ class PointPathEraserManager
         /// </summary>
         /// 比 <see cref="StylusPoint"/> 结构体小，如此可以提升遍历性能
         public Point[] PointList { get; }
+
+        /// <summary>
+        /// 拆分出来的笔迹
+        /// </summary>
+        /// 默认会有一条笔迹，就是原始的
+        public List<SubInkInfoForEraserPointPath> SubInkInfoList { get; }
     }
 
     /// <summary>

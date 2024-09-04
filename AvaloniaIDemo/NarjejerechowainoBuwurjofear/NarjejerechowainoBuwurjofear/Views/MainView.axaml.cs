@@ -59,6 +59,7 @@ public partial class MainView : UserControl
         else if (_inkMode == InkMode.Eraser)
         {
             AvaSkiaInkCanvas.EraserMode.EraserDown(inkingInputArgs);
+            AvaSkiaInkCanvas.InvalidateVisual();
         }
 
         //_polyline = new Polyline
@@ -80,6 +81,7 @@ public partial class MainView : UserControl
         else if(_inkMode == InkMode.Eraser)
         {
             AvaSkiaInkCanvas.EraserMode.EraserMove(inkingInputArgs);
+            AvaSkiaInkCanvas.InvalidateVisual();
         }
 
         //if (_polyline != null)
@@ -99,6 +101,7 @@ public partial class MainView : UserControl
         else if (_inkMode == InkMode.Eraser)
         {
             AvaSkiaInkCanvas.EraserMode.EraserUp(inkingInputArgs);
+            AvaSkiaInkCanvas.InvalidateVisual();
         }
 
         //if (_polyline != null)
