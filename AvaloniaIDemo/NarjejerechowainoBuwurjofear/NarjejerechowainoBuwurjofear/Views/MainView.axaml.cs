@@ -44,41 +44,41 @@ public partial class MainView : UserControl
         MessageTextBlock.Text = "Hello, Avalonia!";
     }
 
-    private Polyline? _polyline;
+    //private Polyline? _polyline;
 
 
     private void RootGrid_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
         AvaSkiaInkCanvas.WritingDown(ToInkingInputArgs(e));
 
-        _polyline = new Polyline
-        {
-            Stroke = Brushes.Black,
-            StrokeThickness = 2
-        };
-        _polyline.IsHitTestVisible = false;
-        RootGrid.Children.Add(_polyline);
+        //_polyline = new Polyline
+        //{
+        //    Stroke = Brushes.Black,
+        //    StrokeThickness = 2
+        //};
+        //_polyline.IsHitTestVisible = false;
+        //RootGrid.Children.Add(_polyline);
     }
 
     private void RootGrid_PointerMoved(object? sender, PointerEventArgs e)
     {
         AvaSkiaInkCanvas.WritingMove(ToInkingInputArgs(e));
 
-        if (_polyline != null)
-        {
-            var currentPoint = e.GetCurrentPoint(RootGrid);
-            _polyline.Points.Add(currentPoint.Position);
-        }
+        //if (_polyline != null)
+        //{
+        //    var currentPoint = e.GetCurrentPoint(RootGrid);
+        //    _polyline.Points.Add(currentPoint.Position);
+        //}
     }
 
     private void RootGrid_PointerReleased(object? sender, PointerReleasedEventArgs e)
     {
         AvaSkiaInkCanvas.WritingUp(ToInkingInputArgs(e));
 
-        if (_polyline != null)
-        {
-            RootGrid.Children.Remove(_polyline);
-        }
+        //if (_polyline != null)
+        //{
+        //    RootGrid.Children.Remove(_polyline);
+        //}
     }
 
     private InkingInputArgs ToInkingInputArgs(PointerEventArgs args)
