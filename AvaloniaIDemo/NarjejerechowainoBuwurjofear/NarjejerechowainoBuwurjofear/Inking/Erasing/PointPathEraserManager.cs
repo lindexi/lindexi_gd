@@ -3,11 +3,26 @@ using UnoInk.Inking.InkCore;
 
 namespace NarjejerechowainoBuwurjofear.Inking.Erasing;
 
+record PointPathEraserResult();
+
 class PointPathEraserManager
 {
+    public void StartEraserPointPath(IReadOnlyList<SkiaStroke> staticStrokeList)
+    {
 
+    }
 
     private List<InkInfoForEraserPointPath> WorkList { get; set; } = null!;
+
+    public void Move(Rect rect)
+    {
+
+    }
+
+    public PointPathEraserResult Finish()
+    {
+        return new PointPathEraserResult();
+    }
 
     class InkInfoForEraserPointPath
     {

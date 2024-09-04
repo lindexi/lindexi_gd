@@ -1,4 +1,5 @@
-﻿using Avalonia.Media;
+﻿using Avalonia;
+using Avalonia.Media;
 using Avalonia.Rendering.SceneGraph;
 
 namespace NarjejerechowainoBuwurjofear.Inking.Erasing;
@@ -19,7 +20,7 @@ public class AvaSkiaInkCanvasEraserMode
     public void StartEraser()
     {
         var staticStrokeList = InkCanvas.StaticStrokeList;
-
+        PointPathEraserManager.StartEraserPointPath(staticStrokeList);
     }
 
     public void EraserDown(InkingInputArgs args)
@@ -45,6 +46,12 @@ public class AvaSkiaInkCanvasEraserMode
         if (IsErasing && args.Id == MainEraserInputId)
         {
             // 擦除
+            var eraserWidth = 50d;
+            var eraserHeight = 70d;
+
+            var rect = new Rect(args.Point.Point.X - eraserWidth / 2, args.Point.Point.Y - eraserHeight / 2, eraserWidth, eraserHeight);
+
+            PointPathEraserManager.Move(rect.ToMauiRect());
         }
     }
 
@@ -54,6 +61,7 @@ public class AvaSkiaInkCanvasEraserMode
         if (IsErasing && args.Id == MainEraserInputId)
         {
             IsErasing = false;
+            var pointPathEraserResult = PointPathEraserManager.Finish();
         }
     }
 
@@ -79,7 +87,7 @@ public class AvaSkiaInkCanvasEraserMode
             return false;
         }
 
-        public bool HitTest(Avalonia.Point p)
+        public bool HitTest(Point p)
         {
             return false;
         }
