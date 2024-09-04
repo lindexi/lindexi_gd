@@ -90,9 +90,9 @@ class AvaSkiaInkCanvasEraserMode
         public Rect Bounds { get; }
     }
 
-    class ErasingSkiaStroke
+    class InkInfoForEraserPointPath
     {
-        public ErasingSkiaStroke(SkiaStroke originSkiaStroke)
+        public InkInfoForEraserPointPath(SkiaStroke originSkiaStroke)
         {
             OriginSkiaStroke = originSkiaStroke;
         }
