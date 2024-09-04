@@ -3,19 +3,14 @@
 using Avalonia.Skia;
 
 using Microsoft.Maui.Graphics;
+using NarjejerechowainoBuwurjofear.Inking.Contexts;
 using NarjejerechowainoBuwurjofear.Inking.Utils;
+
 using SkiaSharp;
 
 using UnoInk.Inking.InkCore;
 
 namespace NarjejerechowainoBuwurjofear.Inking.Erasing;
-
-record PointPathEraserResult();
-
-//readonly record struct ErasingSkiaStrokeDrawContext(SKColor Color, SKPath Path,)
-//{
-
-//}
 
 class PointPathEraserManager
 {
@@ -100,8 +95,38 @@ class PointPathEraserManager
 
     public PointPathEraserResult Finish()
     {
-        var result = new PointPathEraserResult();
+        var count = WorkList.Sum(t => t.SubInkInfoList.Count);
+        var erasingSkiaStrokeList = new List<ErasingSkiaStroke>(count);
+
+        foreach (var inkInfoForEraserPointPath in WorkList)
+        {
+            var originSkiaStroke = inkInfoForEraserPointPath.OriginSkiaStroke;
+            var newStrokeList = new List<SkiaStroke>(inkInfoForEraserPointPath.SubInkInfoList.Count);
+
+            foreach (var subInkInfoForEraserPointPath in inkInfoForEraserPointPath.SubInkInfoList)
+            {
+                var subSpan = subInkInfoForEraserPointPath.PointListSpan;
+                var pointList =
+                    originSkiaStroke.PointList.GetRange(subSpan.Start, subSpan.Length);
+
+                var skPath = ToPath(subInkInfoForEraserPointPath);
+
+                var skiaStroke = new SkiaStroke(InkId.NewId(), skPath)
+                {
+                    Color = originSkiaStroke.Color,
+                    Width = originSkiaStroke.Width,
+                };
+                skiaStroke.PointList.AddRange(pointList);
+                skiaStroke.SetAsStatic();
+                newStrokeList.Add(skiaStroke);
+                //result.Add(new SkiaStrokeDrawContext(subInkInfoForEraserPointPath.PointPath.OriginSkiaStroke.Color, skPath, skPath.Bounds.ToAvaloniaRect(), ShouldDisposePath: true));
+            }
+
+            erasingSkiaStrokeList.Add(new ErasingSkiaStroke(originSkiaStroke, newStrokeList));
+        }
+
         WorkList.Clear();
+        var result = new PointPathEraserResult(erasingSkiaStrokeList);
         return result;
     }
 
@@ -114,26 +139,32 @@ class PointPathEraserManager
         {
             foreach (var subInkInfoForEraserPointPath in inkInfoForEraserPointPath.SubInkInfoList)
             {
-                SkiaStroke originSkiaStroke = inkInfoForEraserPointPath.OriginSkiaStroke;
+                var skPath = ToPath(subInkInfoForEraserPointPath);
 
-                var subSpan = subInkInfoForEraserPointPath.PointListSpan;
-                var skPath = new SKPath();
-
-                if (subSpan.Length > 2)
-                {
-                    var pointList =
-                        inkInfoForEraserPointPath.OriginSkiaStroke.PointList.GetRange(subSpan.Start, subSpan.Length);
-
-                    var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, originSkiaStroke.Width);
-
-                    skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
-                }
-
-                result.Add(new SkiaStrokeDrawContext(inkInfoForEraserPointPath.OriginSkiaStroke.Color, skPath, skPath.Bounds.ToAvaloniaRect(), ShouldDisposePath: true));
+                result.Add(new SkiaStrokeDrawContext(subInkInfoForEraserPointPath.PointPath.OriginSkiaStroke.Color, skPath, skPath.Bounds.ToAvaloniaRect(), ShouldDisposePath: true));
             }
         }
 
         return result;
+    }
+
+    private static SKPath ToPath(SubInkInfoForEraserPointPath subInkInfoForEraserPointPath)
+    {
+        SkiaStroke originSkiaStroke = subInkInfoForEraserPointPath.PointPath.OriginSkiaStroke;
+
+        var subSpan = subInkInfoForEraserPointPath.PointListSpan;
+        var skPath = new SKPath();
+        if (subSpan.Length > 2)
+        {
+            var pointList =
+                originSkiaStroke.PointList.GetRange(subSpan.Start, subSpan.Length);
+
+            var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, originSkiaStroke.Width);
+
+            skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
+        }
+
+        return skPath;
     }
 
     class InkInfoForEraserPointPath

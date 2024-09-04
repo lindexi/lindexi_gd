@@ -10,7 +10,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 
 using NarjejerechowainoBuwurjofear.Inking;
-
+using NarjejerechowainoBuwurjofear.Inking.Contexts;
 using UnoInk.Inking.InkCore;
 
 namespace NarjejerechowainoBuwurjofear.Views;
@@ -113,7 +113,7 @@ public partial class MainView : UserControl
         }
         else if (_inkMode == InkMode.Eraser)
         {
-            //AvaSkiaInkCanvas.EraserMode.EraserUp(inkingInputArgs);
+            AvaSkiaInkCanvas.EraserMode.EraserUp(inkingInputArgs);
             AvaSkiaInkCanvas.InvalidateVisual();
         }
 

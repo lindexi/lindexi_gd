@@ -6,8 +6,10 @@ using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
+using NarjejerechowainoBuwurjofear.Inking.Contexts;
 using NarjejerechowainoBuwurjofear.Inking.Erasing;
 using NarjejerechowainoBuwurjofear.Inking.Utils;
+
 using SkiaSharp;
 
 using UnoInk.Inking.InkCore;
@@ -16,10 +18,14 @@ namespace NarjejerechowainoBuwurjofear.Inking;
 
 public class SkiaStroke : IDisposable
 {
-    public SkiaStroke(InkId id)
+    public SkiaStroke(InkId id) : this(id, new SKPath())
     {
-        Path = new SKPath();
+    }
+
+    internal SkiaStroke(InkId id, SKPath path)
+    {
         Id = id;
+        Path = path;
     }
 
     public InkId Id { get; init; }
@@ -233,6 +239,12 @@ public class AvaSkiaInkCanvas : Control
 
     //public SkiaStroke GetStaticStroke(InkId id) => _staticStrokeDictionary[id];
 
+    internal void ResetStaticStrokeListEraserResult(IEnumerable<SkiaStroke> skiaStrokeList)
+    {
+        _staticStrokeList.Clear();
+        _staticStrokeList.AddRange(skiaStrokeList);
+        InvalidateVisual();
+    }
 
     public override void Render(DrawingContext context)
     {
