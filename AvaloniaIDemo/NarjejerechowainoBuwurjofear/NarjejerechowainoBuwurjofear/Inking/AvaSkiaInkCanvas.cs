@@ -92,7 +92,18 @@ class SkiaStroke : IDisposable
 
     public SkiaStrokeDrawContext CreateDrawContext()
     {
-        return new SkiaStrokeDrawContext(Color, Path.Clone(), GetDrawBounds());
+        SKPath skPath;
+        if (_isStaticStroke)
+        {
+            // 静态笔迹，不需要复制，因为不会再更改，不存在线程安全问题
+            skPath = Path;
+        }
+        else
+        {
+            skPath = Path.Clone();
+        }
+
+        return new SkiaStrokeDrawContext(Color, skPath, GetDrawBounds());
     }
 
     internal void SetAsStatic()
