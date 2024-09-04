@@ -175,51 +175,6 @@ class DynamicStrokeContext
     public SkiaStroke Stroke { get; }
 }
 
-class AvaSkiaInkCanvasEraserMode
-{
-    public AvaSkiaInkCanvasEraserMode(AvaSkiaInkCanvas inkCanvas)
-    {
-        InkCanvas = inkCanvas;
-    }
-
-    public AvaSkiaInkCanvas InkCanvas { get; }
-    public bool IsErasing { get; private set; }
-    private int MainEraserInputId { set; get; }
-
-    public void EraserDown(InkingInputArgs args)
-    {
-        InkCanvas.EnsureInputConflicts();
-        if (!IsErasing)
-        {
-            MainEraserInputId = args.Id;
-
-            IsErasing = true;
-        }
-        else
-        {
-            // 忽略其他的输入点
-        }
-    }
-
-    public void EraserMove(InkingInputArgs args)
-    {
-        InkCanvas.EnsureInputConflicts();
-        if (IsErasing && args.Id == MainEraserInputId)
-        {
-            // 擦除
-        }
-    }
-
-    public void EraserUp(InkingInputArgs args)
-    {
-        InkCanvas.EnsureInputConflicts();
-        if (IsErasing && args.Id == MainEraserInputId)
-        {
-            IsErasing = false;
-        }
-    }
-}
-
 class AvaSkiaInkCanvas : Control
 {
     public AvaSkiaInkCanvas()
@@ -277,7 +232,9 @@ class AvaSkiaInkCanvas : Control
         }
     }
 
-    private List<SkiaStroke> _staticStrokeList = [];
+    public IReadOnlyList<SkiaStroke> StaticStrokeList => _staticStrokeList;
+
+    private readonly List<SkiaStroke> _staticStrokeList = [];
 
     //private readonly Dictionary<InkId, SkiaStroke> _staticStrokeDictionary = [];
 
@@ -295,7 +252,14 @@ class AvaSkiaInkCanvas : Control
 
         _list.Add(new Rect(x, y, 10, 10));
 
-        context.Custom(new InkCanvasCustomDrawOperation(this));
+        if (EraserMode.IsErasing)
+        {
+            EraserMode.Render(context);
+        }
+        else
+        {
+            context.Custom(new InkCanvasCustomDrawOperation(this));
+        }
     }
 
     class InkCanvasCustomDrawOperation : ICustomDrawOperation
