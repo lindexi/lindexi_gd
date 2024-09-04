@@ -1,17 +1,12 @@
 ﻿using Microsoft.Maui.Graphics;
 
-namespace NarjejerechowainoBuwurjofear.Inking;
+namespace NarjejerechowainoBuwurjofear.Inking.Utils;
 
 static class MauiRectExtension
 {
     public static Rect Union(this Rect rect, Point point)
     {
-        if (rect.IsEmpty)
-        {
-            return new Rect(point.X, point.Y, 0, 0);
-        }
-
-        return new Rect
+        return Rect.FromLTRB
         (
             Math.Min(rect.Left, point.X),
             Math.Min(rect.Top, point.Y),

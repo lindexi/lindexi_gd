@@ -1,6 +1,6 @@
 ﻿using Microsoft.Maui.Graphics;
 
-namespace NarjejerechowainoBuwurjofear.Inking;
+namespace NarjejerechowainoBuwurjofear.Inking.Utils;
 
 static class PointExtension
 {
