@@ -15,8 +15,11 @@ class AvaSkiaInkCanvasEraserMode
     public bool IsErasing { get; private set; }
     private int MainEraserInputId { set; get; }
 
+ 
+
     public void StartEraser()
     {
+        var staticStrokeList = InkCanvas.StaticStrokeList;
         
     }
 
@@ -86,4 +89,16 @@ class AvaSkiaInkCanvasEraserMode
 
         public Rect Bounds { get; }
     }
+
+    class ErasingSkiaStroke
+    {
+        public ErasingSkiaStroke(SkiaStroke originSkiaStroke)
+        {
+            OriginSkiaStroke = originSkiaStroke;
+        }
+
+        public SkiaStroke OriginSkiaStroke { get; }
+    }
+
+    readonly record struct PointListSpan(int Start, int Length);
 }
