@@ -37,6 +37,16 @@ class SkiaStroke : IDisposable
 
     public void AddPoint(StylusPoint point)
     {
+        if (PointList.Count > 0)
+        {
+            var lastPoint = PointList[^1];
+            if (lastPoint == point)
+            {
+                // 如果两个点相同，则丢点
+                return;
+            }
+        }
+
         PointList.Add(point);
 
         var pointList = PointList;
@@ -236,7 +246,7 @@ class AvaSkiaInkCanvas : Control
         EnsureInputConflicts();
         if (_contextDictionary.Remove(args.Id, out var context))
         {
-            //context.Stroke.AddPoint(args.Point);
+            context.Stroke.AddPoint(args.Point);
             //_staticStrokeDictionary[context.Stroke.Id] = context.Stroke;
             _staticStrokeList.Add(context.Stroke);
             context.Stroke.SetAsStatic();
