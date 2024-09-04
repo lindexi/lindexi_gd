@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 
 using NarjejerechowainoBuwurjofear.Inking;
@@ -45,11 +46,20 @@ public partial class MainView : UserControl
     }
 
     //private Polyline? _polyline;
-
+    private InkMode _inkMode = InkMode.Pen;
 
     private void RootGrid_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
-        AvaSkiaInkCanvas.WritingDown(ToInkingInputArgs(e));
+        var inkingInputArgs = ToInkingInputArgs(e);
+
+        if (_inkMode == InkMode.Pen)
+        {
+            AvaSkiaInkCanvas.WritingDown(inkingInputArgs);
+        }
+        else if (_inkMode == InkMode.Eraser)
+        {
+            AvaSkiaInkCanvas.EraserMode.EraserDown(inkingInputArgs);
+        }
 
         //_polyline = new Polyline
         //{
@@ -62,7 +72,15 @@ public partial class MainView : UserControl
 
     private void RootGrid_PointerMoved(object? sender, PointerEventArgs e)
     {
-        AvaSkiaInkCanvas.WritingMove(ToInkingInputArgs(e));
+        var inkingInputArgs = ToInkingInputArgs(e);
+        if (_inkMode == InkMode.Pen)
+        {
+            AvaSkiaInkCanvas.WritingMove(inkingInputArgs);
+        }
+        else if(_inkMode == InkMode.Eraser)
+        {
+            AvaSkiaInkCanvas.EraserMode.EraserMove(inkingInputArgs);
+        }
 
         //if (_polyline != null)
         //{
@@ -73,7 +91,15 @@ public partial class MainView : UserControl
 
     private void RootGrid_PointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        AvaSkiaInkCanvas.WritingUp(ToInkingInputArgs(e));
+        var inkingInputArgs = ToInkingInputArgs(e);
+        if (_inkMode == InkMode.Pen)
+        {
+            AvaSkiaInkCanvas.WritingUp(inkingInputArgs);
+        }
+        else if (_inkMode == InkMode.Eraser)
+        {
+            AvaSkiaInkCanvas.EraserMode.EraserUp(inkingInputArgs);
+        }
 
         //if (_polyline != null)
         //{
@@ -95,5 +121,21 @@ public partial class MainView : UserControl
             await Task.Delay(100);
             AvaSkiaInkCanvas.InvalidateVisual();
         }
+    }
+
+    private void PenModeButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        _inkMode = InkMode.Pen;
+    }
+
+    private void EraserModeButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        _inkMode = InkMode.Eraser;
+    }
+
+    enum InkMode
+    {
+        Pen,
+        Eraser
     }
 }
