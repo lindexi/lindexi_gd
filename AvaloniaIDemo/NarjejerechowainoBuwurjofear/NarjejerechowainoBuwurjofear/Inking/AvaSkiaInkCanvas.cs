@@ -93,17 +93,20 @@ class SkiaStroke : IDisposable
     public SkiaStrokeDrawContext CreateDrawContext()
     {
         SKPath skPath;
+        bool shouldDisposePath = true;
         if (_isStaticStroke)
         {
             // 静态笔迹，不需要复制，因为不会再更改，不存在线程安全问题
             skPath = Path;
+            shouldDisposePath = false;
         }
         else
         {
             skPath = Path.Clone();
+            shouldDisposePath = true;
         }
 
-        return new SkiaStrokeDrawContext(Color, skPath, GetDrawBounds());
+        return new SkiaStrokeDrawContext(Color, skPath, GetDrawBounds(), shouldDisposePath);
     }
 
     internal void SetAsStatic()
@@ -126,11 +129,14 @@ class SkiaStroke : IDisposable
     }
 }
 
-readonly record struct SkiaStrokeDrawContext(SKColor Color, SKPath Path, Rect DrawBounds) : IDisposable
+readonly record struct SkiaStrokeDrawContext(SKColor Color, SKPath Path, Rect DrawBounds, bool ShouldDisposePath) : IDisposable
 {
     public void Dispose()
     {
-        Path.Dispose();
+        if (ShouldDisposePath)
+        {
+            Path.Dispose();
+        }
     }
 }
 
