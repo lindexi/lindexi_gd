@@ -18,8 +18,8 @@
       <inking:AvaSkiaInkCanvas x:Name="AvaSkiaInkCanvas"/>
       <TextBlock x:Name="MessageTextBlock" IsHitTestVisible="False" Margin="10,10,10,10" HorizontalAlignment="Left" VerticalAlignment="Top"/>
       <StackPanel Orientation="Horizontal" Margin="10,10,10,10" HorizontalAlignment="Left" VerticalAlignment="Bottom">
-          <Button x:Name="PenModeButton" Content="笔模式" Click="PenModeButton_OnClick"></Button>
-          <Button x:Name="EraserModeButton" Content="橡皮擦模式" Click="EraserModeButton_OnClick"></Button>
+          <Button x:Name="PenModeButton" Margin="10,10,10,10" Content="笔模式" Click="PenModeButton_OnClick"></Button>
+          <Button x:Name="EraserModeButton" Margin="10,10,10,10" Content="橡皮擦模式" Click="EraserModeButton_OnClick"></Button>
       </StackPanel>
   </Grid>
 </UserControl>
