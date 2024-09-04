@@ -93,17 +93,21 @@ class SkiaStroke : IDisposable
     public SkiaStrokeDrawContext CreateDrawContext()
     {
         SKPath skPath;
+        bool shouldDisposePath;
         if (_isStaticStroke)
         {
             // 静态笔迹，不需要复制，因为不会再更改，不存在线程安全问题
             skPath = Path;
+            // 静态笔迹不需要释放，释放了会导致绘制闪退
+            shouldDisposePath = false;
         }
         else
         {
             skPath = Path.Clone();
+            shouldDisposePath = true;
         }
 
-        return new SkiaStrokeDrawContext(Color, skPath, GetDrawBounds());
+        return new SkiaStrokeDrawContext(Color, skPath, GetDrawBounds(), shouldDisposePath);
     }
 
     internal void SetAsStatic()
@@ -126,11 +130,14 @@ class SkiaStroke : IDisposable
     }
 }
 
-readonly record struct SkiaStrokeDrawContext(SKColor Color, SKPath Path, Rect DrawBounds) : IDisposable
+readonly record struct SkiaStrokeDrawContext(SKColor Color, SKPath Path, Rect DrawBounds, bool ShouldDisposePath) : IDisposable
 {
     public void Dispose()
     {
-        Path.Dispose();
+        if (ShouldDisposePath)
+        {
+            Path.Dispose();
+        }
     }
 }
 
@@ -229,7 +236,7 @@ class AvaSkiaInkCanvas : Control
         EnsureInputConflicts();
         if (_contextDictionary.Remove(args.Id, out var context))
         {
-            context.Stroke.AddPoint(args.Point);
+            //context.Stroke.AddPoint(args.Point);
             //_staticStrokeDictionary[context.Stroke.Id] = context.Stroke;
             _staticStrokeList.Add(context.Stroke);
             context.Stroke.SetAsStatic();
