@@ -33,7 +33,7 @@ class SkiaStroke : IDisposable
     /// <summary>
     /// 是否需要重新创建笔迹点，采用平滑滤波算法
     /// </summary>
-    public static bool ShouldReCreatePoint { get; set; } = true;
+    public static bool ShouldReCreatePoint { get; set; } = false;
 
     public void AddPoint(StylusPoint point)
     {
@@ -51,6 +51,9 @@ class SkiaStroke : IDisposable
 
             Path.Reset();
             Path.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
+        }
+        else
+        {
         }
     }
 
