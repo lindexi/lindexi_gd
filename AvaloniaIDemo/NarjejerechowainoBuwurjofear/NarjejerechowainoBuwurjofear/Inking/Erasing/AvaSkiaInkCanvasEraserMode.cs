@@ -1,9 +1,13 @@
-﻿using Avalonia;
+﻿using System.Linq;
+
+using Avalonia;
 using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
+
 using NarjejerechowainoBuwurjofear.Inking.Utils;
+
 using SkiaSharp;
 
 namespace NarjejerechowainoBuwurjofear.Inking.Erasing;
@@ -66,6 +70,8 @@ public class AvaSkiaInkCanvasEraserMode
         {
             IsErasing = false;
             var pointPathEraserResult = PointPathEraserManager.Finish();
+
+            InkCanvas.ResetStaticStrokeListEraserResult(pointPathEraserResult.ErasingSkiaStrokeList.SelectMany(t => t.NewStrokeList));
         }
     }
 

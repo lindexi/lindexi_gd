@@ -113,7 +113,7 @@ public partial class MainView : UserControl
         }
         else if (_inkMode == InkMode.Eraser)
         {
-            //AvaSkiaInkCanvas.EraserMode.EraserUp(inkingInputArgs);
+            AvaSkiaInkCanvas.EraserMode.EraserUp(inkingInputArgs);
             AvaSkiaInkCanvas.InvalidateVisual();
         }
 
