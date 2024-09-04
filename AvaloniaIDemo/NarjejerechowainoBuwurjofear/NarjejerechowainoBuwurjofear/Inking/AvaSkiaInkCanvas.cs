@@ -6,14 +6,14 @@ using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
-
+using NarjejerechowainoBuwurjofear.Inking.Erasing;
 using SkiaSharp;
 
 using UnoInk.Inking.InkCore;
 
 namespace NarjejerechowainoBuwurjofear.Inking;
 
-class SkiaStroke : IDisposable
+public class SkiaStroke : IDisposable
 {
     public SkiaStroke(InkId id)
     {
@@ -100,7 +100,7 @@ class SkiaStroke : IDisposable
         return newList;
     }
 
-    public SkiaStrokeDrawContext CreateDrawContext()
+    internal SkiaStrokeDrawContext CreateDrawContext()
     {
         SKPath skPath;
         bool shouldDisposePath;
@@ -167,7 +167,7 @@ class DynamicStrokeContext
     public SkiaStroke Stroke { get; }
 }
 
-class AvaSkiaInkCanvas : Control
+public class AvaSkiaInkCanvas : Control
 {
     public AvaSkiaInkCanvas()
     {

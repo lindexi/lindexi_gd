@@ -2,4 +2,4 @@
 
 namespace NarjejerechowainoBuwurjofear.Inking;
 
-readonly record struct InkingInputArgs(int Id, StylusPoint Point);
+public readonly record struct InkingInputArgs(int Id, StylusPoint Point);

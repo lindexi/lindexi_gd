@@ -1,10 +1,9 @@
-﻿using Avalonia;
-using Avalonia.Media;
+﻿using Avalonia.Media;
 using Avalonia.Rendering.SceneGraph;
 
-namespace NarjejerechowainoBuwurjofear.Inking;
+namespace NarjejerechowainoBuwurjofear.Inking.Erasing;
 
-class AvaSkiaInkCanvasEraserMode
+public class AvaSkiaInkCanvasEraserMode
 {
     public AvaSkiaInkCanvasEraserMode(AvaSkiaInkCanvas inkCanvas)
     {
@@ -15,12 +14,12 @@ class AvaSkiaInkCanvasEraserMode
     public bool IsErasing { get; private set; }
     private int MainEraserInputId { set; get; }
 
- 
+    private PointPathEraserManager PointPathEraserManager { get; } = new PointPathEraserManager();
 
     public void StartEraser()
     {
         var staticStrokeList = InkCanvas.StaticStrokeList;
-        
+
     }
 
     public void EraserDown(InkingInputArgs args)
@@ -31,6 +30,8 @@ class AvaSkiaInkCanvasEraserMode
             MainEraserInputId = args.Id;
 
             IsErasing = true;
+
+            StartEraser();
         }
         else
         {
@@ -70,7 +71,7 @@ class AvaSkiaInkCanvasEraserMode
 
         public void Dispose()
         {
-            
+
         }
 
         public bool Equals(ICustomDrawOperation? other)
@@ -78,7 +79,7 @@ class AvaSkiaInkCanvasEraserMode
             return false;
         }
 
-        public bool HitTest(Point p)
+        public bool HitTest(Avalonia.Point p)
         {
             return false;
         }
@@ -87,18 +88,7 @@ class AvaSkiaInkCanvasEraserMode
         {
         }
 
-        public Rect Bounds { get; }
+        public Avalonia.Rect Bounds { get; }
     }
 
-    class InkInfoForEraserPointPath
-    {
-        public InkInfoForEraserPointPath(SkiaStroke originSkiaStroke)
-        {
-            OriginSkiaStroke = originSkiaStroke;
-        }
-
-        public SkiaStroke OriginSkiaStroke { get; }
-    }
-
-    readonly record struct PointListSpan(int Start, int Length);
 }
