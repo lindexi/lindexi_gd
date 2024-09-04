@@ -114,11 +114,9 @@ class PointPathEraserManager
         {
             foreach (var subInkInfoForEraserPointPath in inkInfoForEraserPointPath.SubInkInfoList)
             {
-                //var skPath = inkInfoForEraserPointPath.OriginSkiaStroke.Path;
                 SkiaStroke originSkiaStroke = inkInfoForEraserPointPath.OriginSkiaStroke;
 
                 var subSpan = subInkInfoForEraserPointPath.PointListSpan;
-                //var subPointList = inkInfoForEraserPointPath.PointList.AsSpan(subSpan.Start, subSpan.Length);
                 var skPath = new SKPath();
 
                 if (subSpan.Length > 2)
@@ -128,16 +126,8 @@ class PointPathEraserManager
 
                     var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, originSkiaStroke.Width);
 
-                    //skPath.Reset();
                     skPath.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
                 }
-
-                //var path = new SKPath();
-                //path.MoveTo((float)subPointList[0].X, (float)subPointList[0].Y);
-                //for (int i = 1; i < subPointList.Length; i++)
-                //{
-                //    path.LineTo((float)subPointList[i].X, (float)subPointList[i].Y);
-                //}
 
                 result.Add(new SkiaStrokeDrawContext(inkInfoForEraserPointPath.OriginSkiaStroke.Color, skPath, skPath.Bounds.ToAvaloniaRect(), ShouldDisposePath: true));
             }
