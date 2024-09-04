@@ -92,7 +92,18 @@ class SkiaStroke : IDisposable
 
     public SkiaStrokeDrawContext CreateDrawContext()
     {
-        return new SkiaStrokeDrawContext(Color, Path.Clone(), GetDrawBounds());
+        SKPath skPath;
+        if (_isStaticStroke)
+        {
+            // 静态笔迹，不需要复制，因为不会再更改，不存在线程安全问题
+            skPath = Path;
+        }
+        else
+        {
+            skPath = Path.Clone();
+        }
+
+        return new SkiaStrokeDrawContext(Color, skPath, GetDrawBounds());
     }
 
     internal void SetAsStatic()
@@ -219,7 +230,8 @@ class AvaSkiaInkCanvas : Control
         if (_contextDictionary.Remove(args.Id, out var context))
         {
             context.Stroke.AddPoint(args.Point);
-            _staticStrokeDictionary[context.Stroke.Id] = context.Stroke;
+            //_staticStrokeDictionary[context.Stroke.Id] = context.Stroke;
+            _staticStrokeList.Add(context.Stroke);
             context.Stroke.SetAsStatic();
         }
         InvalidateVisual();
@@ -240,9 +252,11 @@ class AvaSkiaInkCanvas : Control
         }
     }
 
-    private readonly Dictionary<InkId, SkiaStroke> _staticStrokeDictionary = [];
+    private List<SkiaStroke> _staticStrokeList = [];
 
-    public SkiaStroke GetStaticStroke(InkId id) => _staticStrokeDictionary[id];
+    //private readonly Dictionary<InkId, SkiaStroke> _staticStrokeDictionary = [];
+
+    //public SkiaStroke GetStaticStroke(InkId id) => _staticStrokeDictionary[id];
 
 
     public override void Render(DrawingContext context)
@@ -275,7 +289,7 @@ class AvaSkiaInkCanvas : Control
                 _pathList.Add(skiaStrokeDrawContext);
             }
 
-            foreach (var skiaStroke in inkCanvas._staticStrokeDictionary.Values)
+            foreach (var skiaStroke in inkCanvas._staticStrokeList)
             {
                 var skiaStrokeDrawContext = skiaStroke.CreateDrawContext();
                 _pathList.Add(skiaStrokeDrawContext);
