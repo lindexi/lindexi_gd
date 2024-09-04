@@ -114,10 +114,6 @@ class SkiaStroke : IDisposable
 
     private bool _isStaticStroke;
     private Rect _drawBounds;
-    /// <summary>
-    /// 将在另一个线程使用的路径，仅在 <see cref="_isStaticStroke"/> 静态笔迹层有效
-    /// </summary>
-    private SKPath? _drawPath;
 
     public Rect GetDrawBounds()
     {
@@ -127,17 +123,6 @@ class SkiaStroke : IDisposable
         }
 
         return Path.Bounds.ToAvaloniaRect().Expand(Width);
-    }
-
-    private SKPath GetDrawPath()
-    {
-        if (_isStaticStroke)
-        {
-            _drawPath ??= Path.Clone();
-            return _drawPath;
-        }
-
-        return Path.Clone();
     }
 }
 
