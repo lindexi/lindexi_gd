@@ -232,7 +232,9 @@ class AvaSkiaInkCanvas : Control
         }
     }
 
-    private List<SkiaStroke> _staticStrokeList = [];
+    public IReadOnlyList<SkiaStroke> StaticStrokeList => _staticStrokeList;
+
+    private readonly List<SkiaStroke> _staticStrokeList = [];
 
     //private readonly Dictionary<InkId, SkiaStroke> _staticStrokeDictionary = [];
 
@@ -250,7 +252,14 @@ class AvaSkiaInkCanvas : Control
 
         _list.Add(new Rect(x, y, 10, 10));
 
-        context.Custom(new InkCanvasCustomDrawOperation(this));
+        if (EraserMode.IsErasing)
+        {
+            EraserMode.Render(context);
+        }
+        else
+        {
+            context.Custom(new InkCanvasCustomDrawOperation(this));
+        }
     }
 
     class InkCanvasCustomDrawOperation : ICustomDrawOperation

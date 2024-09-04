@@ -1,4 +1,8 @@
-﻿namespace NarjejerechowainoBuwurjofear.Inking;
+﻿using Avalonia;
+using Avalonia.Media;
+using Avalonia.Rendering.SceneGraph;
+
+namespace NarjejerechowainoBuwurjofear.Inking;
 
 class AvaSkiaInkCanvasEraserMode
 {
@@ -10,6 +14,11 @@ class AvaSkiaInkCanvasEraserMode
     public AvaSkiaInkCanvas InkCanvas { get; }
     public bool IsErasing { get; private set; }
     private int MainEraserInputId { set; get; }
+
+    public void StartEraser()
+    {
+        
+    }
 
     public void EraserDown(InkingInputArgs args)
     {
@@ -42,5 +51,39 @@ class AvaSkiaInkCanvasEraserMode
         {
             IsErasing = false;
         }
+    }
+
+    public void Render(DrawingContext context)
+    {
+        context.Custom(new EraserModeCustomDrawOperation(this));
+    }
+
+    class EraserModeCustomDrawOperation : ICustomDrawOperation
+    {
+        public EraserModeCustomDrawOperation(AvaSkiaInkCanvasEraserMode eraserMode)
+        {
+
+        }
+
+        public void Dispose()
+        {
+            
+        }
+
+        public bool Equals(ICustomDrawOperation? other)
+        {
+            return false;
+        }
+
+        public bool HitTest(Point p)
+        {
+            return false;
+        }
+
+        public void Render(ImmediateDrawingContext context)
+        {
+        }
+
+        public Rect Bounds { get; }
     }
 }
