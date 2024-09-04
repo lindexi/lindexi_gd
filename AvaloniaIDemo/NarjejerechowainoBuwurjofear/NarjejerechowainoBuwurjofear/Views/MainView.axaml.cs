@@ -50,6 +50,8 @@ public partial class MainView : UserControl
 
     private void RootGrid_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
+        _isDown = true;
+
         var inkingInputArgs = ToInkingInputArgs(e);
 
         if (_inkMode == InkMode.Pen)
@@ -71,6 +73,8 @@ public partial class MainView : UserControl
         //RootGrid.Children.Add(_polyline);
     }
 
+    private bool _isDown;
+
     private void RootGrid_PointerMoved(object? sender, PointerEventArgs e)
     {
         var inkingInputArgs = ToInkingInputArgs(e);
@@ -80,6 +84,13 @@ public partial class MainView : UserControl
         }
         else if(_inkMode == InkMode.Eraser)
         {
+            if (e.Pointer.Type == PointerType.Mouse)
+            {
+                if (!_isDown)
+                {
+                    return;
+                }
+            }
             AvaSkiaInkCanvas.EraserMode.EraserMove(inkingInputArgs);
             AvaSkiaInkCanvas.InvalidateVisual();
         }
@@ -93,6 +104,8 @@ public partial class MainView : UserControl
 
     private void RootGrid_PointerReleased(object? sender, PointerReleasedEventArgs e)
     {
+        _isDown = false;
+
         var inkingInputArgs = ToInkingInputArgs(e);
         if (_inkMode == InkMode.Pen)
         {
@@ -100,7 +113,7 @@ public partial class MainView : UserControl
         }
         else if (_inkMode == InkMode.Eraser)
         {
-            AvaSkiaInkCanvas.EraserMode.EraserUp(inkingInputArgs);
+            //AvaSkiaInkCanvas.EraserMode.EraserUp(inkingInputArgs);
             AvaSkiaInkCanvas.InvalidateVisual();
         }
 

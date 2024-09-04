@@ -1,6 +1,6 @@
 ﻿using Avalonia;
 
-namespace NarjejerechowainoBuwurjofear.Inking;
+namespace NarjejerechowainoBuwurjofear.Inking.Utils;
 
 static class RectExtension
 {
