@@ -14,12 +14,6 @@ class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        var streamReader = new StreamReader(Stream.Null);
-        if (streamReader.EndOfStream)
-        {
-            
-        }
-
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
     }
