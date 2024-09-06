@@ -21,6 +21,12 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         Loaded += MainWindow_Loaded;
+
+        this.TouchDown += MainWindow_TouchDown;
+    }
+
+    private void MainWindow_TouchDown(object? sender, TouchEventArgs e)
+    {
     }
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
