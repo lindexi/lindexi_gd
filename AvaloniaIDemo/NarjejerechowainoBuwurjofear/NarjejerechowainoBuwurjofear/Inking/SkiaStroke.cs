@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Skia;
 
 using NarjejerechowainoBuwurjofear.Inking.Contexts;
+using NarjejerechowainoBuwurjofear.Inking.Primitive;
 using NarjejerechowainoBuwurjofear.Inking.Utils;
 
 using SkiaSharp;
@@ -164,24 +165,5 @@ public class SkiaStroke : IDisposable
         {
             throw new InvalidOperationException();
         }
-    }
-}
-
-public readonly record struct StylusPointListSpan(IReadOnlyList<StylusPoint> OriginList, int Start, int Length)
-{
-    public IEnumerable<StylusPoint> GetEnumerable()
-    {
-        return OriginList.Skip(Start).Take(Length);
-    }
-
-    public IReadOnlyList<StylusPoint> ToReadOnlyList()
-    {
-        var result = new StylusPoint[Length];
-        for (int i = 0, listIndex = 0; i < Length; i++, listIndex++)
-        {
-            result[i] = OriginList[listIndex];
-        }
-
-        return result;
     }
 }

@@ -67,7 +67,7 @@ public class AvaSkiaInkCanvas : Control
     private readonly Dictionary<int, DynamicStrokeContext> _contextDictionary = [];
 
     private int _count;
-    private List<Rect> _list = [];
+    private readonly List<Rect> _list = [];
 
     public bool IsWriting => _contextDictionary.Count > 0;
 

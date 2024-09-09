@@ -4,6 +4,7 @@ using Avalonia.Skia;
 
 using Microsoft.Maui.Graphics;
 using NarjejerechowainoBuwurjofear.Inking.Contexts;
+using NarjejerechowainoBuwurjofear.Inking.Primitive;
 using NarjejerechowainoBuwurjofear.Inking.Utils;
 
 using SkiaSharp;
