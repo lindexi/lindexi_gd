@@ -19,6 +19,7 @@ using Color = Avalonia.Media.Color;
 using HorizontalAlignment = Avalonia.Layout.HorizontalAlignment;
 using Point = Avalonia.Point;
 using Rect = Avalonia.Rect;
+using Size = Avalonia.Size;
 using VerticalAlignment = Avalonia.Layout.VerticalAlignment;
 
 namespace NarjejerechowainoBuwurjofear.Inking.Erasing;
@@ -78,6 +79,7 @@ public class AvaSkiaInkCanvasEraserMode
 
             PointPathEraserManager.Move(rect.ToMauiRect());
 
+            _eraserView.SetEraserSize(new Size(eraserWidth, eraserHeight));
             _eraserView.Move(args.Point.Point.ToAvaloniaPoint());
         }
     }
@@ -232,6 +234,12 @@ class EraserView : Control
     {
         _translateTransform.X = position.X - Width / 2;
         _translateTransform.Y = position.Y - Height / 2;
+    }
+
+    public void SetEraserSize(Size size)
+    {
+        _scaleTransform.ScaleX = size.Width / Width;
+        _scaleTransform.ScaleY = size.Height / Height;
     }
 
     public override void Render(DrawingContext context)
