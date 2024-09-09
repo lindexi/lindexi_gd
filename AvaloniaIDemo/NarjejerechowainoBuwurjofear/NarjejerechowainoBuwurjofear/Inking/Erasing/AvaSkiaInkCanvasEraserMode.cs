@@ -3,6 +3,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
+using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
@@ -29,7 +30,19 @@ public class AvaSkiaInkCanvasEraserMode
     public AvaSkiaInkCanvasEraserMode(AvaSkiaInkCanvas inkCanvas)
     {
         InkCanvas = inkCanvas;
+
+#if DEBUG
+        var topLevel = TopLevel.GetTopLevel(inkCanvas)!;
+        topLevel.PointerWheelChanged += InkCanvas_PointerWheelChanged;
+#endif
     }
+
+    private void InkCanvas_PointerWheelChanged(object? sender, PointerWheelEventArgs e)
+    {
+        _debugEraserSizeScale += e.Delta.Y;
+    }
+
+    private double _debugEraserSizeScale = 0;
 
     public AvaSkiaInkCanvas InkCanvas { get; }
     public bool IsErasing { get; private set; }
@@ -217,8 +230,8 @@ class EraserView : Control
         var scaleTransform = new ScaleTransform();
         _scaleTransform = scaleTransform;
         var transformGroup = new TransformGroup();
-        transformGroup.Children.Add(_translateTransform);
         transformGroup.Children.Add(_scaleTransform);
+        transformGroup.Children.Add(_translateTransform);
         RenderTransform = transformGroup;
     }
 
