@@ -15,6 +15,10 @@ public class AvaSkiaInkCanvas : Control
     public AvaSkiaInkCanvas()
     {
         EraserMode = new AvaSkiaInkCanvasEraserMode(this);
+
+        var eraserView = new EraserView();
+        LogicalChildren.Add(eraserView);
+        VisualChildren.Add(eraserView);
     }
 
     public AvaSkiaInkCanvasEraserMode EraserMode { get; }
