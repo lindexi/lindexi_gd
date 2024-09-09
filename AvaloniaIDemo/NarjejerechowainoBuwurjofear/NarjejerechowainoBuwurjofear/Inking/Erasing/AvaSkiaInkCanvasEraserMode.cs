@@ -56,6 +56,8 @@ public class AvaSkiaInkCanvasEraserMode
             IsErasing = true;
 
             StartEraser();
+
+            _eraserView.Move(args.Point.Point.ToAvaloniaPoint());
         }
         else
         {
@@ -75,6 +77,8 @@ public class AvaSkiaInkCanvasEraserMode
             var rect = new Rect(args.Point.Point.X - eraserWidth / 2, args.Point.Point.Y - eraserHeight / 2, eraserWidth, eraserHeight);
 
             PointPathEraserManager.Move(rect.ToMauiRect());
+
+            _eraserView.Move(args.Point.Point.ToAvaloniaPoint());
         }
     }
 
@@ -211,8 +215,8 @@ class EraserView : Control
         var scaleTransform = new ScaleTransform();
         _scaleTransform = scaleTransform;
         var transformGroup = new TransformGroup();
-        //transformGroup.Children.Add(_translateTransform);
-        //transformGroup.Children.Add(_scaleTransform);
+        transformGroup.Children.Add(_translateTransform);
+        transformGroup.Children.Add(_scaleTransform);
         RenderTransform = transformGroup;
     }
 
@@ -226,7 +230,8 @@ class EraserView : Control
 
     public void Move(Point position)
     {
-
+        _translateTransform.X = position.X - Width / 2;
+        _translateTransform.Y = position.Y - Height / 2;
     }
 
     public override void Render(DrawingContext context)
