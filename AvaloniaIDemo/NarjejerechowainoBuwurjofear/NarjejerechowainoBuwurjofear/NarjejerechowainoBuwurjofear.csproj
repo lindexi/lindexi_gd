@@ -30,8 +30,4 @@
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
     <PackageReference Include="Microsoft.Maui.Graphics" Version="8.0.80" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Inking\Primitive\" />
-  </ItemGroup>
 </Project>
