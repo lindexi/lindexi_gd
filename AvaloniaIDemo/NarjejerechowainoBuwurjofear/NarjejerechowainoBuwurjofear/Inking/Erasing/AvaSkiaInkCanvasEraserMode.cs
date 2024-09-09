@@ -32,7 +32,8 @@ public class AvaSkiaInkCanvasEraserMode
         InkCanvas = inkCanvas;
 
 #if DEBUG
-        inkCanvas.PointerWheelChanged += InkCanvas_PointerWheelChanged;
+        var topLevel = TopLevel.GetTopLevel(inkCanvas)!;
+        topLevel.PointerWheelChanged += InkCanvas_PointerWheelChanged;
 #endif
     }
 
