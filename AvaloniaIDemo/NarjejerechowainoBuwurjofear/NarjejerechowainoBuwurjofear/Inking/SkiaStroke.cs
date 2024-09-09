@@ -30,7 +30,7 @@ public class SkiaStroke : IDisposable
     public SKPath Path { get; }
 
     public SKColor Color { get; set; } = SKColors.Red;
-    public float Width { get; set; } = 20;
+    public float InkThickness { get; set; } = 20;
 
     public IReadOnlyList<StylusPoint> PointList => _pointList;
     private readonly List<StylusPoint> _pointList = [];
@@ -67,7 +67,7 @@ public class SkiaStroke : IDisposable
 
         if (pointList.Count > 2)
         {
-            var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, Width);
+            var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, InkThickness);
 
             Path.Reset();
             Path.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
@@ -141,7 +141,7 @@ public class SkiaStroke : IDisposable
         var skiaStroke = new SkiaStroke(id, path)
         {
             Color = color,
-            Width = inkThickness,
+            InkThickness = inkThickness,
         };
 
         skiaStroke._pointList.EnsureCapacity(pointList.Length);
@@ -161,7 +161,7 @@ public class SkiaStroke : IDisposable
             return _drawBounds;
         }
 
-        return Path.Bounds.ToAvaloniaRect().Expand(Width);
+        return Path.Bounds.ToAvaloniaRect().Expand(InkThickness);
     }
 
     public void EnsureIsStaticStroke()
