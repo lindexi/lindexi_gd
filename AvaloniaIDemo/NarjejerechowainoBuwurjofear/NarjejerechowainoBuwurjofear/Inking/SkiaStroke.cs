@@ -1,9 +1,13 @@
 ﻿using System.Linq;
+
 using Avalonia;
 using Avalonia.Skia;
+
 using NarjejerechowainoBuwurjofear.Inking.Contexts;
 using NarjejerechowainoBuwurjofear.Inking.Utils;
+
 using SkiaSharp;
+
 using UnoInk.Inking.InkCore;
 
 namespace NarjejerechowainoBuwurjofear.Inking;
@@ -14,7 +18,7 @@ public class SkiaStroke : IDisposable
     {
     }
 
-    internal SkiaStroke(InkId id, SKPath path)
+    private SkiaStroke(InkId id, SKPath path)
     {
         Id = id;
         Path = path;
@@ -125,6 +129,20 @@ public class SkiaStroke : IDisposable
         _isStaticStroke = true;
     }
 
+    public static SkiaStroke CreateStaticStroke(InkId id, SKPath path, IList<StylusPoint> pointList, SKColor color, float inkThickness)
+    {
+        var skiaStroke = new SkiaStroke(id, path)
+        {
+            Color = color,
+            Width = inkThickness,
+        };
+
+        skiaStroke.PointList.AddRange(pointList);
+        skiaStroke.SetAsStatic();
+
+        return skiaStroke;
+    }
+
     private bool _isStaticStroke;
     private Rect _drawBounds;
 
@@ -136,5 +154,13 @@ public class SkiaStroke : IDisposable
         }
 
         return Path.Bounds.ToAvaloniaRect().Expand(Width);
+    }
+
+    public void EnsureIsStaticStroke()
+    {
+        if (!_isStaticStroke)
+        {
+            throw new InvalidOperationException();
+        }
     }
 }
