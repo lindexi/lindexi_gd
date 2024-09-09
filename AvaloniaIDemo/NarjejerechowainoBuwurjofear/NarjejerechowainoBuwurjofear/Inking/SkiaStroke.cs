@@ -25,12 +25,12 @@ public class SkiaStroke : IDisposable
         Path = path;
     }
 
-    public InkId Id { get; init; }
+    public InkId Id { get; }
 
     public SKPath Path { get; }
 
-    public SKColor Color { get; set; } = SKColors.Red;
-    public float InkThickness { get; set; } = 20;
+    public SKColor Color { get; init; } = SKColors.Red;
+    public float InkThickness { get; init; } = 20;
 
     public IReadOnlyList<StylusPoint> PointList => _pointList;
     private readonly List<StylusPoint> _pointList = [];
