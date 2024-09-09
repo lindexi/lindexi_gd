@@ -16,8 +16,10 @@ using NarjejerechowainoBuwurjofear.Inking.Utils;
 using SkiaSharp;
 
 using Color = Avalonia.Media.Color;
+using HorizontalAlignment = Avalonia.Layout.HorizontalAlignment;
 using Point = Avalonia.Point;
 using Rect = Avalonia.Rect;
+using VerticalAlignment = Avalonia.Layout.VerticalAlignment;
 
 namespace NarjejerechowainoBuwurjofear.Inking.Erasing;
 
@@ -185,6 +187,10 @@ class EraserView : Control
         var bounds = Path1.Bounds.Union(Path2.Bounds);
         Width = bounds.Width;
         Height = bounds.Height;
+
+        HorizontalAlignment = HorizontalAlignment.Left;
+        VerticalAlignment = VerticalAlignment.Top;
+        IsHitTestVisible = false;
     }
 
     private Geometry Path1 { get; }
