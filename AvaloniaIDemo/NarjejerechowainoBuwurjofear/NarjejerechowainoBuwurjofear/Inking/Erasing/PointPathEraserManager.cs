@@ -177,14 +177,13 @@ class PointPathEraserManager
 
             SubInkInfoList.Add(subInk);
 
-            PointList = new Point[StrokeSynchronizer.PointList.Count];
-            for (var i = 0; i < StrokeSynchronizer.PointList.Count; i++)
+            PointList = new Point[OriginSkiaStroke.PointList.Count];
+            for (var i = 0; i < OriginSkiaStroke.PointList.Count; i++)
             {
-                PointList[i] = StrokeSynchronizer.PointList[i].Point;
+                PointList[i] = OriginSkiaStroke.PointList[i].Point;
             }
         }
 
-        public SkiaStroke StrokeSynchronizer => OriginSkiaStroke;
         public SkiaStroke OriginSkiaStroke { get; }
 
         /// <summary>
