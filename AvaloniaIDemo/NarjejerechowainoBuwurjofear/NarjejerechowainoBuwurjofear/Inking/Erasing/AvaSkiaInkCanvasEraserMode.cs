@@ -91,19 +91,19 @@ public class AvaSkiaInkCanvasEraserMode
             var eraserHeight = 70d;
 
 #if DEBUG
-            if (_debugEraserSizeScale > 10)
+            if (_debugEraserSizeScale > 0)
             {
                 _debugEraserSizeScale = Math.Min(100, _debugEraserSizeScale);
 
-                eraserWidth *= _debugEraserSizeScale / 10;
-                eraserHeight *= _debugEraserSizeScale / 10;
+                eraserWidth *= (1 + _debugEraserSizeScale / 10);
+                eraserHeight *= (1 + _debugEraserSizeScale / 10);
             }
             else if (_debugEraserSizeScale < -10)
             {
                 _debugEraserSizeScale = Math.Max(-100, _debugEraserSizeScale);
 
-                eraserWidth *= -10 / _debugEraserSizeScale;
-                eraserHeight *= -10 / _debugEraserSizeScale;
+                eraserWidth *= (1 + _debugEraserSizeScale / 100);
+                eraserHeight *= (1 + _debugEraserSizeScale / 100);
             }
 #endif
 
@@ -252,6 +252,8 @@ class EraserView : Control
         transformGroup.Children.Add(_scaleTransform);
         transformGroup.Children.Add(_translateTransform);
         RenderTransform = transformGroup;
+
+        _currentEraserSize = new Size(Width, Height);
     }
 
     private Geometry Path1 { get; }
@@ -262,16 +264,20 @@ class EraserView : Control
 
     private IBrush Path3FillBrush { get; }
 
+    private Size _currentEraserSize;
+
     public void Move(Point position)
     {
-        _translateTransform.X = position.X - Width / 2;
-        _translateTransform.Y = position.Y - Height / 2;
+        _translateTransform.X = position.X - _currentEraserSize.Width / 2;
+        _translateTransform.Y = position.Y - _currentEraserSize.Height / 2;
     }
 
     public void SetEraserSize(Size size)
     {
         _scaleTransform.ScaleX = size.Width / Width;
         _scaleTransform.ScaleY = size.Height / Height;
+
+        _currentEraserSize = size;
     }
 
     public override void Render(DrawingContext context)
