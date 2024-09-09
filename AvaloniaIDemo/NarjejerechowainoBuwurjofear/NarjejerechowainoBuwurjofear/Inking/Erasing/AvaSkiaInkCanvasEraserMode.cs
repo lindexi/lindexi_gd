@@ -30,11 +30,6 @@ public class AvaSkiaInkCanvasEraserMode
     public AvaSkiaInkCanvasEraserMode(AvaSkiaInkCanvas inkCanvas)
     {
         InkCanvas = inkCanvas;
-
-#if DEBUG
-        var topLevel = TopLevel.GetTopLevel(inkCanvas)!;
-        topLevel.PointerWheelChanged += InkCanvas_PointerWheelChanged;
-#endif
     }
 
     private void InkCanvas_PointerWheelChanged(object? sender, PointerWheelEventArgs e)
@@ -54,6 +49,13 @@ public class AvaSkiaInkCanvasEraserMode
 
     public void StartEraser()
     {
+
+#if DEBUG
+        var topLevel = TopLevel.GetTopLevel(InkCanvas)!;
+        topLevel.PointerWheelChanged -= InkCanvas_PointerWheelChanged;
+        topLevel.PointerWheelChanged += InkCanvas_PointerWheelChanged;
+#endif
+
         var staticStrokeList = InkCanvas.StaticStrokeList;
         PointPathEraserManager.StartEraserPointPath(staticStrokeList);
 
@@ -87,6 +89,23 @@ public class AvaSkiaInkCanvasEraserMode
             // 擦除
             var eraserWidth = 50d;
             var eraserHeight = 70d;
+
+#if DEBUG
+            if (_debugEraserSizeScale > 0)
+            {
+                _debugEraserSizeScale = Math.Min(100, _debugEraserSizeScale);
+
+                eraserWidth *= (1 + _debugEraserSizeScale / 10);
+                eraserHeight *= (1 + _debugEraserSizeScale / 10);
+            }
+            else if (_debugEraserSizeScale < -10)
+            {
+                _debugEraserSizeScale = Math.Max(-100, _debugEraserSizeScale);
+
+                eraserWidth *= (1 + _debugEraserSizeScale / 100);
+                eraserHeight *= (1 + _debugEraserSizeScale / 100);
+            }
+#endif
 
             var rect = new Rect(args.Point.Point.X - eraserWidth / 2, args.Point.Point.Y - eraserHeight / 2, eraserWidth, eraserHeight);
 
@@ -233,6 +252,8 @@ class EraserView : Control
         transformGroup.Children.Add(_scaleTransform);
         transformGroup.Children.Add(_translateTransform);
         RenderTransform = transformGroup;
+
+        _currentEraserSize = new Size(Width, Height);
     }
 
     private Geometry Path1 { get; }
@@ -243,16 +264,20 @@ class EraserView : Control
 
     private IBrush Path3FillBrush { get; }
 
+    private Size _currentEraserSize;
+
     public void Move(Point position)
     {
-        _translateTransform.X = position.X - Width / 2;
-        _translateTransform.Y = position.Y - Height / 2;
+        _translateTransform.X = position.X - _currentEraserSize.Width / 2;
+        _translateTransform.Y = position.Y - _currentEraserSize.Height / 2;
     }
 
     public void SetEraserSize(Size size)
     {
         _scaleTransform.ScaleX = size.Width / Width;
         _scaleTransform.ScaleY = size.Height / Height;
+
+        _currentEraserSize = size;
     }
 
     public override void Render(DrawingContext context)
