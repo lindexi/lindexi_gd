@@ -3,6 +3,7 @@
 using Avalonia.Skia;
 
 using Microsoft.Maui.Graphics;
+
 using NarjejerechowainoBuwurjofear.Inking.Contexts;
 using NarjejerechowainoBuwurjofear.Inking.Primitive;
 using NarjejerechowainoBuwurjofear.Inking.Utils;
@@ -132,11 +133,24 @@ class PointPathEraserManager
 
         foreach (var inkInfoForEraserPointPath in WorkList)
         {
-            foreach (var subInkInfoForEraserPointPath in inkInfoForEraserPointPath.SubInkInfoList)
+            var originSkiaStroke = inkInfoForEraserPointPath.OriginSkiaStroke;
+            if (inkInfoForEraserPointPath.IsErased)
             {
-                var skPath = ToPath(subInkInfoForEraserPointPath);
+                // 被擦掉的笔迹，就需要逐个笔迹计算
+                foreach (var subInkInfoForEraserPointPath in inkInfoForEraserPointPath.SubInkInfoList)
+                {
+                    var skPath = ToPath(subInkInfoForEraserPointPath);
 
-                result.Add(new SkiaStrokeDrawContext(subInkInfoForEraserPointPath.PointPath.OriginSkiaStroke.Color, skPath, skPath.Bounds.ToAvaloniaRect(), ShouldDisposePath: true));
+                    result.Add(new SkiaStrokeDrawContext(originSkiaStroke.Color, skPath, skPath.Bounds.ToAvaloniaRect(), ShouldDisposePath: true));
+                }
+            }
+            else
+            {
+                // 没被擦的笔迹依然可以使用静态笔迹提升性能
+#if DEBUG
+                originSkiaStroke.EnsureIsStaticStroke();
+#endif
+                result.Add(originSkiaStroke.CreateDrawContext());
             }
         }
 
@@ -177,14 +191,13 @@ class PointPathEraserManager
 
             SubInkInfoList.Add(subInk);
 
-            PointList = new Point[StrokeSynchronizer.PointList.Count];
-            for (var i = 0; i < StrokeSynchronizer.PointList.Count; i++)
+            PointList = new Point[OriginSkiaStroke.PointList.Count];
+            for (var i = 0; i < OriginSkiaStroke.PointList.Count; i++)
             {
-                PointList[i] = StrokeSynchronizer.PointList[i].Point;
+                PointList[i] = OriginSkiaStroke.PointList[i].Point;
             }
         }
 
-        public SkiaStroke StrokeSynchronizer => OriginSkiaStroke;
         public SkiaStroke OriginSkiaStroke { get; }
 
         /// <summary>
@@ -198,6 +211,26 @@ class PointPathEraserManager
         /// </summary>
         /// 默认会有一条笔迹，就是原始的
         public List<SubInkInfoForEraserPointPath> SubInkInfoList { get; }
+
+        /// <summary>
+        /// 是否被擦到了
+        /// </summary>
+        public bool IsErased
+        {
+            get
+            {
+                if (SubInkInfoList.Count == 1)
+                {
+                    var subInk = SubInkInfoList[0];
+                    if (subInk.PointListSpan.Start == 0 && subInk.PointListSpan.Length == PointList.Length)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
     }
 
     /// <summary>
