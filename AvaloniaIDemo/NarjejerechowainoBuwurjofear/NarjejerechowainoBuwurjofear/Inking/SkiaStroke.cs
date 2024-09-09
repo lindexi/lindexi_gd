@@ -42,6 +42,11 @@ public class SkiaStroke : IDisposable
 
     public void AddPoint(StylusPoint point)
     {
+        if (_isStaticStroke)
+        {
+            throw new InvalidOperationException($"禁止修改静态笔迹的点");
+        }
+
         if (_pointList.Count > 0)
         {
             var lastPoint = PointList[^1];
