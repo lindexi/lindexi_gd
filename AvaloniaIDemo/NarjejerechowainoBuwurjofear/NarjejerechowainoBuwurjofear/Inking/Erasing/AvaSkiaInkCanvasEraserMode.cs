@@ -36,10 +36,14 @@ public class AvaSkiaInkCanvasEraserMode
 
     private PointPathEraserManager PointPathEraserManager { get; } = new PointPathEraserManager();
 
+    private readonly EraserView _eraserView = new EraserView();
+
     public void StartEraser()
     {
         var staticStrokeList = InkCanvas.StaticStrokeList;
         PointPathEraserManager.StartEraserPointPath(staticStrokeList);
+
+        InkCanvas.AddChild(_eraserView);
     }
 
     public void EraserDown(InkingInputArgs args)
@@ -84,8 +88,15 @@ public class AvaSkiaInkCanvasEraserMode
 
             InkCanvas.ResetStaticStrokeListEraserResult(pointPathEraserResult.ErasingSkiaStrokeList.SelectMany(t => t.NewStrokeList));
 
+            ClearEraser();
+
             ErasingCompleted?.Invoke(this, new ErasingCompletedEventArgs(pointPathEraserResult.ErasingSkiaStrokeList));
         }
+    }
+
+    private void ClearEraser()
+    {
+        InkCanvas.RemoveChild(_eraserView);
     }
 
     public event EventHandler<ErasingCompletedEventArgs>? ErasingCompleted;
@@ -173,6 +184,9 @@ public class AvaSkiaInkCanvasEraserMode
 
 class EraserView : Control
 {
+    private TranslateTransform _translateTransform;
+    private ScaleTransform _scaleTransform;
+
     public EraserView()
     {
         Path1 = Geometry.Parse("M0,5.0093855C0,2.24277828,2.2303666,0,5.00443555,0L24.9955644,0C27.7594379,0,30,2.23861485,30,4.99982044L30,17.9121669C30,20.6734914,30,25.1514578,30,27.9102984L30,40.0016889C30,42.7621799,27.7696334,45,24.9955644,45L5.00443555,45C2.24056212,45,0,42.768443,0,39.9906145L0,5.0093855z");
@@ -191,6 +205,15 @@ class EraserView : Control
         HorizontalAlignment = HorizontalAlignment.Left;
         VerticalAlignment = VerticalAlignment.Top;
         IsHitTestVisible = false;
+
+        var translateTransform = new TranslateTransform();
+        _translateTransform = translateTransform;
+        var scaleTransform = new ScaleTransform();
+        _scaleTransform = scaleTransform;
+        var transformGroup = new TransformGroup();
+        //transformGroup.Children.Add(_translateTransform);
+        //transformGroup.Children.Add(_scaleTransform);
+        RenderTransform = transformGroup;
     }
 
     private Geometry Path1 { get; }
@@ -200,6 +223,11 @@ class EraserView : Control
     private IBrush Path2FillBrush { get; }
 
     private IBrush Path3FillBrush { get; }
+
+    public void Move(Point position)
+    {
+
+    }
 
     public override void Render(DrawingContext context)
     {

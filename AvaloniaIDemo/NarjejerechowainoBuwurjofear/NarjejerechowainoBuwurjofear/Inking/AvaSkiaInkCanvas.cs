@@ -15,13 +15,21 @@ public class AvaSkiaInkCanvas : Control
     public AvaSkiaInkCanvas()
     {
         EraserMode = new AvaSkiaInkCanvasEraserMode(this);
-
-        var eraserView = new EraserView();
-        LogicalChildren.Add(eraserView);
-        VisualChildren.Add(eraserView);
     }
 
     public AvaSkiaInkCanvasEraserMode EraserMode { get; }
+
+    internal void AddChild(Control childControl)
+    {
+        LogicalChildren.Add(childControl);
+        VisualChildren.Add(childControl);
+    }
+
+    internal void RemoveChild(Control childControl)
+    {
+        LogicalChildren.Remove(childControl);
+        VisualChildren.Remove(childControl);
+    }
 
     public void WritingDown(InkingInputArgs args)
     {
