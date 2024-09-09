@@ -30,11 +30,6 @@ public class AvaSkiaInkCanvasEraserMode
     public AvaSkiaInkCanvasEraserMode(AvaSkiaInkCanvas inkCanvas)
     {
         InkCanvas = inkCanvas;
-
-#if DEBUG
-        var topLevel = TopLevel.GetTopLevel(inkCanvas)!;
-        topLevel.PointerWheelChanged += InkCanvas_PointerWheelChanged;
-#endif
     }
 
     private void InkCanvas_PointerWheelChanged(object? sender, PointerWheelEventArgs e)
@@ -54,6 +49,13 @@ public class AvaSkiaInkCanvasEraserMode
 
     public void StartEraser()
     {
+
+#if DEBUG
+        var topLevel = TopLevel.GetTopLevel(InkCanvas)!;
+        topLevel.PointerWheelChanged -= InkCanvas_PointerWheelChanged;
+        topLevel.PointerWheelChanged += InkCanvas_PointerWheelChanged;
+#endif
+
         var staticStrokeList = InkCanvas.StaticStrokeList;
         PointPathEraserManager.StartEraserPointPath(staticStrokeList);
 
@@ -87,6 +89,23 @@ public class AvaSkiaInkCanvasEraserMode
             // 擦除
             var eraserWidth = 50d;
             var eraserHeight = 70d;
+
+#if DEBUG
+            if (_debugEraserSizeScale > 10)
+            {
+                _debugEraserSizeScale = Math.Min(100, _debugEraserSizeScale);
+
+                eraserWidth *= _debugEraserSizeScale / 10;
+                eraserHeight *= _debugEraserSizeScale / 10;
+            }
+            else if (_debugEraserSizeScale < -10)
+            {
+                _debugEraserSizeScale = Math.Max(-100, _debugEraserSizeScale);
+
+                eraserWidth *= -10 / _debugEraserSizeScale;
+                eraserHeight *= -10 / _debugEraserSizeScale;
+            }
+#endif
 
             var rect = new Rect(args.Point.Point.X - eraserWidth / 2, args.Point.Point.Y - eraserHeight / 2, eraserWidth, eraserHeight);
 
