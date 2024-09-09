@@ -1,9 +1,13 @@
 ﻿using System.Linq;
+
 using Avalonia;
 using Avalonia.Skia;
+
 using NarjejerechowainoBuwurjofear.Inking.Contexts;
 using NarjejerechowainoBuwurjofear.Inking.Utils;
+
 using SkiaSharp;
+
 using UnoInk.Inking.InkCore;
 
 namespace NarjejerechowainoBuwurjofear.Inking;
@@ -14,7 +18,7 @@ public class SkiaStroke : IDisposable
     {
     }
 
-    internal SkiaStroke(InkId id, SKPath path)
+    private SkiaStroke(InkId id, SKPath path)
     {
         Id = id;
         Path = path;
@@ -27,7 +31,8 @@ public class SkiaStroke : IDisposable
     public SKColor Color { get; set; } = SKColors.Red;
     public float Width { get; set; } = 20;
 
-    public List<StylusPoint> PointList { get; } = [];
+    public IReadOnlyList<StylusPoint> PointList => _pointList;
+    private readonly List<StylusPoint> _pointList = [];
 
     /// <summary>
     /// 是否需要重新创建笔迹点，采用平滑滤波算法
@@ -36,7 +41,7 @@ public class SkiaStroke : IDisposable
 
     public void AddPoint(StylusPoint point)
     {
-        if (PointList.Count > 0)
+        if (_pointList.Count > 0)
         {
             var lastPoint = PointList[^1];
             if (lastPoint == point)
@@ -46,9 +51,9 @@ public class SkiaStroke : IDisposable
             }
         }
 
-        PointList.Add(point);
+        _pointList.Add(point);
 
-        var pointList = PointList;
+        var pointList = _pointList;
         if (ShouldReCreatePoint && pointList.Count > 10)
         {
             pointList = ApplyMeanFilter(pointList);
@@ -125,6 +130,21 @@ public class SkiaStroke : IDisposable
         _isStaticStroke = true;
     }
 
+    public static SkiaStroke CreateStaticStroke(InkId id, SKPath path, StylusPointListSpan pointList, SKColor color, float inkThickness)
+    {
+        var skiaStroke = new SkiaStroke(id, path)
+        {
+            Color = color,
+            Width = inkThickness,
+        };
+
+        skiaStroke._pointList.EnsureCapacity(pointList.Length);
+        skiaStroke._pointList.AddRange(pointList.GetEnumerable());
+        skiaStroke.SetAsStatic();
+
+        return skiaStroke;
+    }
+
     private bool _isStaticStroke;
     private Rect _drawBounds;
 
@@ -136,5 +156,32 @@ public class SkiaStroke : IDisposable
         }
 
         return Path.Bounds.ToAvaloniaRect().Expand(Width);
+    }
+
+    public void EnsureIsStaticStroke()
+    {
+        if (!_isStaticStroke)
+        {
+            throw new InvalidOperationException();
+        }
+    }
+}
+
+public readonly record struct StylusPointListSpan(IReadOnlyList<StylusPoint> OriginList, int Start, int Length)
+{
+    public IEnumerable<StylusPoint> GetEnumerable()
+    {
+        return OriginList.Skip(Start).Take(Length);
+    }
+
+    public IReadOnlyList<StylusPoint> ToReadOnlyList()
+    {
+        var result = new StylusPoint[Length];
+        for (int i = 0, listIndex = 0; i < Length; i++, listIndex++)
+        {
+            result[i] = OriginList[listIndex];
+        }
+
+        return result;
     }
 }

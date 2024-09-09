@@ -58,8 +58,8 @@ public class AvaSkiaInkCanvas : Control
         {
             context.Stroke.AddPoint(args.Point);
             //_staticStrokeDictionary[context.Stroke.Id] = context.Stroke;
-            _staticStrokeList.Add(context.Stroke);
             context.Stroke.SetAsStatic();
+            _staticStrokeList.Add(context.Stroke);
         }
         InvalidateVisual();
     }
@@ -83,14 +83,16 @@ public class AvaSkiaInkCanvas : Control
 
     private readonly List<SkiaStroke> _staticStrokeList = [];
 
-    //private readonly Dictionary<InkId, SkiaStroke> _staticStrokeDictionary = [];
-
-    //public SkiaStroke GetStaticStroke(InkId id) => _staticStrokeDictionary[id];
-
     internal void ResetStaticStrokeListEraserResult(IEnumerable<SkiaStroke> skiaStrokeList)
     {
         _staticStrokeList.Clear();
         _staticStrokeList.AddRange(skiaStrokeList);
+#if DEBUG
+        foreach (var skiaStroke in _staticStrokeList)
+        {
+            skiaStroke.EnsureIsStaticStroke();
+        }
+#endif
         InvalidateVisual();
     }
 
