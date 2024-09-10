@@ -83,5 +83,7 @@ internal partial class ImageProvider
                 currentImageFile = null;
             }
         }
+
+        File.WriteAllText(blogFile.FullName, blogOutputText.ToString());
     }
 }

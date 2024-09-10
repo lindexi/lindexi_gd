@@ -15,12 +15,12 @@ var cnBlogsImageUploader = new CnBlogsImageUploader()
 };
 
 var originFolder = new DirectoryInfo(@"C:\lindexi\Work\");
-var blogFile = new FileInfo(@"C:\lindexi\Work\WPF 记一个特别简单的点集滤波平滑方法.md");
+var workFolder = new DirectoryInfo(@"C:\lindexi\Work\");
 
 if (args.Length == 2)
 {
     originFolder = new DirectoryInfo(args[0]);
-    blogFile = new FileInfo(args[1]);
+    workFolder = new DirectoryInfo(args[1]);
 }
 
 var imageManagerFile = new FileInfo(Path.Join(originFolder.FullName, "Image.json"));
@@ -29,13 +29,16 @@ if (imageManagerFile.Exists)
     imageManager.Deserialize(imageManagerFile);
 }
 
-var imageProvider = new ImageProvider()
+foreach (var blogFile in workFolder.EnumerateFiles("*.md", SearchOption.AllDirectories))
 {
-    OriginFolder = originFolder,
-    CnBlogsImageUploader = cnBlogsImageUploader,
-    ImageManager = imageManager
-};
+    var imageProvider = new ImageProvider()
+    {
+        OriginFolder = originFolder,
+        CnBlogsImageUploader = cnBlogsImageUploader,
+        ImageManager = imageManager
+    };
 
-imageProvider.Convert(blogFile);
+    imageProvider.Convert(blogFile);
+}
 
 imageManager.Serialize(imageManagerFile);
