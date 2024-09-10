@@ -7,7 +7,7 @@ for (int i = 0; i < 10; i++)
     list.Add(new Foo());
 }
 
-Foo? foo = list.FirstOrDefault(t=>t.N==-1,null);
+Foo? foo = list.Cast<Foo?>().FirstOrDefault(t => t.Value.N == -1, null);
 
 Console.WriteLine("Hello, World!");
 
