@@ -16,22 +16,46 @@ internal partial class ImageProvider
     public required CnBlogsImageUploader CnBlogsImageUploader { get; init; }
 
     [GeneratedRegex(@"<!--\s*!\[\]\(image/([\w /\.]*)\)\s-->")]
-    public static partial Regex GetImageFileRegex();
+    private static partial Regex GetImageFileRegex();
 
     [GeneratedRegex(@"!\[\]\(http://cdn.lindexi.site/")]
-    public static partial Regex GetImageLinkRegex();
+    private static partial Regex GetImageLinkRegex();
+
+    [GeneratedRegex(@"<!--\s*CreateTime:([\d/\s:]*)\s*-->")]
+    private static partial Regex GetCreateTimeRegex();
 
     public void Convert(FileInfo blogFile)
     {
         var imageFileRegex = GetImageFileRegex();
         var imageLinkRegex = GetImageLinkRegex();
+        var createTimeRegex = GetCreateTimeRegex();
 
         bool isImage = false;
         var currentImageFile = "";
         var blogOutputText = new StringBuilder();
 
+        DateTime? createTime = null;
+
         foreach (var line in File.ReadLines(blogFile.FullName))
         {
+            if (createTime is null)
+            {
+                var match = createTimeRegex.Match(line);
+                if (match.Success)
+                {
+                    if (DateTime.TryParse(match.Groups[1].ValueSpan, out var time))
+                    {
+                        createTime = time;
+
+                        if (createTime < new DateTime(2024, 9, 1))
+                        {
+                            // 不要点爆了博客园
+                            return;
+                        }
+                    }
+                }
+            }
+
             if (!isImage)
             {
                 var match = imageFileRegex.Match(line);

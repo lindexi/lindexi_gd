@@ -29,15 +29,15 @@ if (imageManagerFile.Exists)
     imageManager.Deserialize(imageManagerFile);
 }
 
+var imageProvider = new ImageProvider()
+{
+    OriginFolder = originFolder,
+    CnBlogsImageUploader = cnBlogsImageUploader,
+    ImageManager = imageManager
+};
+
 foreach (var blogFile in workFolder.EnumerateFiles("*.md", SearchOption.AllDirectories))
 {
-    var imageProvider = new ImageProvider()
-    {
-        OriginFolder = originFolder,
-        CnBlogsImageUploader = cnBlogsImageUploader,
-        ImageManager = imageManager
-    };
-
     imageProvider.Convert(blogFile);
 }
 
