@@ -23,7 +23,7 @@ if (args.Length == 2)
     workFolder = new DirectoryInfo(args[1]);
 }
 
-var imageManagerFile = new FileInfo(Path.Join(originFolder.FullName, "Image.json"));
+var imageManagerFile = new FileInfo(Path.Join(workFolder.FullName, "Image.json"));
 if (imageManagerFile.Exists)
 {
     imageManager.Deserialize(imageManagerFile);
