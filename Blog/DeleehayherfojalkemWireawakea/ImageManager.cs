@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 
 namespace DeleehayherfojalkemWireawakea;
@@ -21,7 +22,11 @@ class ImageManager
     {
         using var fileStream = file.OpenWrite();
         fileStream.SetLength(0);
-        JsonSerializer.Serialize(fileStream, _dictionary);
+        JsonSerializer.Serialize(fileStream, _dictionary,new JsonSerializerOptions()
+        {
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            WriteIndented = true,
+        });
     }
 
     public void Deserialize(FileInfo file)

@@ -23,21 +23,21 @@ if (args.Length == 2)
     workFolder = new DirectoryInfo(args[1]);
 }
 
-var imageManagerFile = new FileInfo(Path.Join(originFolder.FullName, "Image.json"));
+var imageManagerFile = new FileInfo(Path.Join(workFolder.FullName, "Image.json"));
 if (imageManagerFile.Exists)
 {
     imageManager.Deserialize(imageManagerFile);
 }
 
+var imageProvider = new ImageProvider()
+{
+    OriginFolder = originFolder,
+    CnBlogsImageUploader = cnBlogsImageUploader,
+    ImageManager = imageManager
+};
+
 foreach (var blogFile in workFolder.EnumerateFiles("*.md", SearchOption.AllDirectories))
 {
-    var imageProvider = new ImageProvider()
-    {
-        OriginFolder = originFolder,
-        CnBlogsImageUploader = cnBlogsImageUploader,
-        ImageManager = imageManager
-    };
-
     imageProvider.Convert(blogFile);
 }
 
