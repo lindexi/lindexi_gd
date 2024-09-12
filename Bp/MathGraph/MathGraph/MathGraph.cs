@@ -4,10 +4,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MathGraph.Serialization;
 
 namespace MathGraph;
 
-public class MathGraph<TElementInfo, TEdgeInfo>
+public class MathGraph<TElementInfo, TEdgeInfo>: ISerializableElement
 {
     public MathGraph()
     {
@@ -25,11 +26,11 @@ public class MathGraph<TElementInfo, TEdgeInfo>
         return element;
     }
 
-    public MathGraphSerializer<TElementInfo, TEdgeInfo> GetSerializer() =>
-        new MathGraphSerializer<TElementInfo, TEdgeInfo>(this);
+    public MathGraphSerializer<TElementInfo, TEdgeInfo> GetSerializer(IDeserializationContext? deserializationContext = null) =>
+        new MathGraphSerializer<TElementInfo, TEdgeInfo>(this, deserializationContext);
 
     /// <summary>
-    /// 添加单向边
+    /// 添加单向边，添加边的同时，会添加元素关系
     /// </summary>
     /// <param name="from"></param>
     /// <param name="to"></param>
@@ -71,6 +72,12 @@ public class MathGraph<TElementInfo, TEdgeInfo>
             a.AddEdge(edge);
             //b.AddEdge(edge);
         }
+    }
+
+    public string Serialize()
+    {
+        var mathGraphSerializer = GetSerializer();
+        return mathGraphSerializer.Serialize();
     }
 }
 
@@ -122,6 +129,10 @@ public class MathGraphElement<TElementInfo, TEdgeInfo>
 
     private readonly List<MathGraphEdge<TElementInfo, TEdgeInfo>> _edgeList = [];
 
+    /// <summary>
+    /// 添加边的关系，只加边关系，不加元素关系。如需加元素关系，调用 <see cref="MathGraph{TElementInfo, TEdgeInfo}.AddEdge"/> 方法，或调用 <see cref="AddInElement"/> 或 <see cref="AddOutElement"/> 方法
+    /// </summary>
+    /// <param name="edge"></param>
     public void AddEdge(MathGraphEdge<TElementInfo, TEdgeInfo> edge)
     {
         foreach (var mathGraphEdge in _edgeList)
@@ -137,6 +148,15 @@ public class MathGraphElement<TElementInfo, TEdgeInfo>
         _edgeList.Add(edge);
 
         var otherElement = edge.GetOtherElement(this);
+#if DEBUG
+        foreach (var mathGraphEdge in otherElement._edgeList)
+        {
+            if (ReferenceEquals(mathGraphEdge, edge))
+            {
+                Debug.Fail("边都是成对出现，在当前元素不存在的边，在边的对应元素必定也不存在");
+            }
+        }
+#endif
         otherElement._edgeList.Add(edge);
     }
 
@@ -194,8 +214,9 @@ public class MathGraphElement<TElementInfo, TEdgeInfo>
 
     public override string ToString()
     {
-        return
-            $"Value={Value} ; Id={Id};\r\nOut={string.Join(',', OutElementList.Select(t => $"(Value={t.Value};Id={t.Id})"))};\r\nIn={string.Join(',', InElementList.Select(t => $"(Value={t.Value};Id={t.Id})"))}";
+        // Out={string.Join(',', OutElementList.Select(t => $"(Value={t.Value};Id={t.Id})"))};
+        // In={string.Join(',', InElementList.Select(t => $"(Value={t.Value};Id={t.Id})"))}
+        return $"Value={Value} ; Id={Id};";
     }
 
     private void EnsureSameMathGraph(MathGraphElement<TElementInfo, TEdgeInfo> element)
@@ -207,6 +228,11 @@ public class MathGraphElement<TElementInfo, TEdgeInfo>
     }
 }
 
+/// <summary>
+/// 单向边
+/// </summary>
+/// <typeparam name="TElementInfo"></typeparam>
+/// <typeparam name="TEdgeInfo"></typeparam>
 public class MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo> : MathGraphEdge<TElementInfo, TEdgeInfo>
 {
     public MathGraphUnidirectionalEdge(MathGraphElement<TElementInfo, TEdgeInfo> from,
@@ -217,8 +243,18 @@ public class MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo> : MathGraphEdg
     public MathGraphElement<TElementInfo, TEdgeInfo> From => base.A;
 
     public MathGraphElement<TElementInfo, TEdgeInfo> To => base.B;
+
+    public override string ToString()
+    {
+        return $"[{From}] -> [{To}]";
+    }
 }
 
+/// <summary>
+/// 双向边
+/// </summary>
+/// <typeparam name="TElementInfo"></typeparam>
+/// <typeparam name="TEdgeInfo"></typeparam>
 public class MathGraphBidirectionalEdge<TElementInfo, TEdgeInfo> : MathGraphEdge<TElementInfo, TEdgeInfo>
 {
     public MathGraphBidirectionalEdge(MathGraphElement<TElementInfo, TEdgeInfo> a,
@@ -229,6 +265,11 @@ public class MathGraphBidirectionalEdge<TElementInfo, TEdgeInfo> : MathGraphEdge
     public MathGraphElement<TElementInfo, TEdgeInfo> AElement => base.A;
 
     public MathGraphElement<TElementInfo, TEdgeInfo> BElement => base.B;
+
+    public override string ToString()
+    {
+        return $"[{AElement}] <-> [{BElement}]";
+    }
 }
 
 public abstract class MathGraphEdge<TElementInfo, TEdgeInfo>
