@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+using MathGraph.Serialization;
 
 namespace MathGraph;
 
@@ -11,6 +14,8 @@ internal class Program
 {
     private static void Main(string[] args)
     {
+        AddSuperPoint();
+
         SerializeEdge();
 
         SerializeLink();
@@ -20,6 +25,40 @@ internal class Program
         AddEdge();
 
         Serialize();
+    }
+
+    private static void AddSuperPoint()
+    {
+        var mathGraph = new MathGraph<MathGraph<string, string>, int>();
+        var ap = new MathGraph<string, string>();
+        ap.CreateAndAddElement("aaa");
+        var bp = new MathGraph<string, string>();
+        bp.CreateAndAddElement("bbb");
+        mathGraph.CreateAndAddElement(ap);
+        mathGraph.CreateAndAddElement(bp);
+
+        var mathGraphSerializer = mathGraph.GetSerializer();
+        var json = mathGraphSerializer.Serialize();
+        Equals(mathGraph, Deserialize<MathGraph<string, string>, int>(json, new SuperPointDeserializationContext()));
+    }
+
+    class SuperPointDeserializationContext : IDeserializationContext
+    {
+        public bool TryDeserialize(string value, string? type, [NotNullWhen(true)] out object? result)
+        {
+            result = null;
+
+            if (type == typeof(MathGraph<string, string>).FullName)
+            {
+                var mathGraph = new MathGraph<string, string>();
+                var mathGraphSerializer = mathGraph.GetSerializer();
+                mathGraphSerializer.Deserialize(value);
+                result = mathGraph;
+                return true;
+            }
+
+            return false;
+        }
     }
 
     private static void SerializeEdge()
@@ -119,10 +158,10 @@ internal class Program
         Equals(mathGraph, Deserialize<TElementInfo, TEdgeInfo>(json));
     }
 
-    private static MathGraph<TElementInfo, TEdgeInfo> Deserialize<TElementInfo, TEdgeInfo>(string json)
+    private static MathGraph<TElementInfo, TEdgeInfo> Deserialize<TElementInfo, TEdgeInfo>(string json, IDeserializationContext? deserializationContext = null)
     {
         var mathGraph = new MathGraph<TElementInfo, TEdgeInfo>();
-        var mathGraphSerializer = mathGraph.GetSerializer();
+        var mathGraphSerializer = mathGraph.GetSerializer(deserializationContext);
         mathGraphSerializer.Deserialize(json);
         return mathGraph;
     }
@@ -154,6 +193,12 @@ internal class Program
 
         static void ElementEquals(MathGraphElement<TElementInfo, TEdgeInfo> a, MathGraphElement<TElementInfo, TEdgeInfo> b)
         {
+            if(a.Value is MathGraph<string, string> aMathGraph && b.Value is MathGraph<string, string> bMathGraph)
+            {
+                Equals(aMathGraph, bMathGraph);
+                return;
+            }
+
             Debug.Assert(EqualityComparer<TElementInfo>.Default.Equals(a.Value, b.Value));
             Debug.Assert(a.Id == b.Id);
         }
