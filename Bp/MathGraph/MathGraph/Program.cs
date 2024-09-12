@@ -51,7 +51,7 @@ internal class Program
             if (type == typeof(MathGraph<string, string>).FullName)
             {
                 var mathGraph = new MathGraph<string, string>();
-                var mathGraphSerializer = mathGraph.GetSerializer();
+                var mathGraphSerializer = mathGraph.GetSerializer(this);
                 mathGraphSerializer.Deserialize(value);
                 result = mathGraph;
                 return true;

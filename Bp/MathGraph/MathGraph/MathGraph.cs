@@ -4,11 +4,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using MathGraph.Serialization;
 
 namespace MathGraph;
 
-public class MathGraph<TElementInfo, TEdgeInfo>: ISerializableElement
+public class MathGraph<TElementInfo, TEdgeInfo> : ISerializableElement
 {
     public MathGraph()
     {
