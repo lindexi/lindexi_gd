@@ -75,10 +75,25 @@ public class MathGraph<TElementInfo, TEdgeInfo> : ISerializableElement
         }
     }
 
-    public string Serialize()
+    string ISerializableElement.Serialize()
     {
         var mathGraphSerializer = GetSerializer();
         return mathGraphSerializer.Serialize();
+    }
+
+    internal void StartDeserialize(int elementCount)
+    {
+        _elementList.Clear();
+        EnsureElementCapacity(elementCount);
+    }
+
+    /// <summary>
+    /// 序列化使用设置元素的大小
+    /// </summary>
+    /// <param name="capacity"></param>
+    private void EnsureElementCapacity(int capacity)
+    {
+        _elementList.EnsureCapacity(capacity);
     }
 }
 
