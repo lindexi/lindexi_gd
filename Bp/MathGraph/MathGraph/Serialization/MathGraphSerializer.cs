@@ -142,6 +142,7 @@ public class MathGraphSerializer<TElementInfo, TEdgeInfo>
         }
 
         var dictionary = new Dictionary<int, MathGraphElement<TElementInfo, TEdgeInfo>>();
+        _mathGraph.StartDeserialize(list.Count);
         foreach (var serializationContext in list)
         {
             var elementType = serializationContext.ElementType;
