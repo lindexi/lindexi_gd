@@ -6,8 +6,6 @@ using System.Text;
 
 using DeleehayherfojalkemWireawakea;
 
-//Debugger.Launch();
-
 var imageManager = new ImageManager();
 
 // Token 申请：https://i.cnblogs.com/settings
@@ -45,6 +43,11 @@ if (imageManagerFile.Exists)
 else if (backupFile.Exists)
 {
     imageManager.Deserialize(backupFile);
+}
+else
+{
+    Console.WriteLine($"找不到任何备份文件，是否首次使用");
+    Debugger.Launch();
 }
 
 var imageProvider = new ImageProvider()
