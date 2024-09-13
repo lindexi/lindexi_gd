@@ -1,6 +1,9 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System.Diagnostics;
 using DeleehayherfojalkemWireawakea;
+
+Debugger.Launch();
 
 var imageManager = new ImageManager();
 
@@ -23,8 +26,8 @@ if (args.Length == 2)
     workFolder = new DirectoryInfo(args[1]);
 }
 
-Console.WriteLine($"OriginFolder={originFolder.FullName}");
-Console.WriteLine($"WorkFolder={workFolder.FullName}");
+Log.WriteLine($"OriginFolder={originFolder.FullName}");
+Log.WriteLine($"WorkFolder={workFolder.FullName}");
 
 var imageManagerFile = new FileInfo(Path.Join(workFolder.FullName, "Image.json"));
 if (imageManagerFile.Exists)
@@ -41,9 +44,9 @@ var imageProvider = new ImageProvider()
 
 foreach (var blogFile in workFolder.EnumerateFiles("*.md", SearchOption.AllDirectories))
 {
-    Console.WriteLine($"开始转换 {blogFile}");
+    Log.WriteLine($"开始转换 {blogFile}");
     imageProvider.Convert(blogFile);
-    Console.WriteLine();
+    Log.WriteLine();
 }
 
 imageManager.Serialize(imageManagerFile);
