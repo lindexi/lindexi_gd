@@ -103,7 +103,7 @@ internal partial class ImageProvider
                 }
                 else
                 {
-                    blogOutputText.AppendLine();
+                    blogOutputText.AppendLine(line);
                 }
 
                 isImage = false;
