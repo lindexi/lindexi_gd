@@ -81,8 +81,6 @@ public class MathGraph<TElementInfo, TEdgeInfo> : ISerializableElement
         return mathGraphSerializer.Serialize();
     }
 
-    internal void ResetElementList(IEnumerable<()>)
-
     internal void StartDeserialize(int elementCount)
     {
         _elementList.Clear();
