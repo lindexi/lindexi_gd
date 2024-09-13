@@ -23,6 +23,9 @@ if (args.Length == 2)
     workFolder = new DirectoryInfo(args[1]);
 }
 
+Console.WriteLine($"OriginFolder={originFolder.FullName}");
+Console.WriteLine($"WorkFolder={workFolder.FullName}");
+
 var imageManagerFile = new FileInfo(Path.Join(workFolder.FullName, "Image.json"));
 if (imageManagerFile.Exists)
 {
@@ -38,7 +41,9 @@ var imageProvider = new ImageProvider()
 
 foreach (var blogFile in workFolder.EnumerateFiles("*.md", SearchOption.AllDirectories))
 {
+    Console.WriteLine($"开始转换 {blogFile}");
     imageProvider.Convert(blogFile);
+    Console.WriteLine();
 }
 
 imageManager.Serialize(imageManagerFile);

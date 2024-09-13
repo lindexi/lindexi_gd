@@ -86,14 +86,17 @@ internal partial class ImageProvider
                 var match = imageLinkRegex.Match(line);
                 if (match.Success && !string.IsNullOrEmpty(currentImageFile) && File.Exists(currentImageFile))
                 {
-                    Console.WriteLine($"本地文件 {currentImageFile}");
-
                     var relativePath = Path.GetRelativePath(OriginFolder.FullName, currentImageFile);
 
                     if (!ImageManager.TryGetImageUrl(relativePath, out var url))
                     {
                         url = CnBlogsImageUploader.UploadImage(currentImageFile);
                         ImageManager.AddImageUrl(relativePath, url);
+                        Console.WriteLine($"本地文件 {currentImageFile} 上传图片");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"本地文件 {currentImageFile} 命中缓存");
                     }
 
                     blogOutputText.AppendLine($"![]({url})");
