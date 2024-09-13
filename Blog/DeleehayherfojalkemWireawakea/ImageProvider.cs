@@ -68,7 +68,7 @@ internal partial class ImageProvider
                     }
                     else
                     {
-                        Console.WriteLine($"本地文件找不到");
+                        Log.WriteLine($"本地文件找不到");
                     }
                 }
 
@@ -92,11 +92,11 @@ internal partial class ImageProvider
                     {
                         url = CnBlogsImageUploader.UploadImage(currentImageFile);
                         ImageManager.AddImageUrl(relativePath, url);
-                        Console.WriteLine($"本地文件 {currentImageFile} 上传图片");
+                        Log.WriteLine($"本地文件 {currentImageFile} 上传图片");
                     }
                     else
                     {
-                        Console.WriteLine($"本地文件 {currentImageFile} 命中缓存");
+                        Log.WriteLine($"本地文件 {currentImageFile} 命中缓存");
                     }
 
                     blogOutputText.AppendLine($"![]({url})");
