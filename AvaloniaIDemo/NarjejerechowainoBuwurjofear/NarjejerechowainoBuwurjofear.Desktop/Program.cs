@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.IO;
 using Avalonia;
 using Avalonia.ReactiveUI;
 using Avalonia.Threading;
@@ -12,8 +12,11 @@ class Program
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
     // yet and stuff might break.
     [STAThread]
-    public static void Main(string[] args) => BuildAvaloniaApp()
-        .StartWithClassicDesktopLifetime(args);
+    public static void Main(string[] args)
+    {
+        BuildAvaloniaApp()
+            .StartWithClassicDesktopLifetime(args);
+    }
 
     // Avalonia configuration, don't remove; also used by visual designer.
     public static AppBuilder BuildAvaloniaApp()
@@ -22,7 +25,10 @@ class Program
             .WithInterFont()
             .With(new DispatcherOptions()
             {
-                InputStarvationTimeout = TimeSpan.FromDays(1)
+                InputStarvationTimeout = TimeSpan.FromDays(1),
+                // 修复笔迹延迟
+                // https://github.com/AvaloniaUI/Avalonia/pull/16896
+                InstantRendering = true,
             })
             .LogToTrace()
             .UseReactiveUI();

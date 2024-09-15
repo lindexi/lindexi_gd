@@ -1,6 +1,6 @@
 ﻿namespace MathGraph;
 
-public interface IMathGraphElementSensitive<T>
+public interface IMathGraphElementSensitive<TElementInfo, TEdgeInfo>
 {
-    MathGraphElement<T> MathGraphElement { set; get; }
+    MathGraphElement<TElementInfo, TEdgeInfo> MathGraphElement { set; get; }
 }

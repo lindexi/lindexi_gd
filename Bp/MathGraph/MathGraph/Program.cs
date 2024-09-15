@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+using MathGraph.Serialization;
 
 namespace MathGraph;
 
@@ -11,7 +14,74 @@ internal class Program
 {
     private static void Main(string[] args)
     {
-        var mathGraph = new MathGraph<string>();
+        AddSuperPoint();
+
+        SerializeEdge();
+
+        SerializeLink();
+
+        AddBidirectionalEdge();
+
+        AddEdge();
+
+        Serialize();
+    }
+
+    private static void AddSuperPoint()
+    {
+        var mathGraph = new MathGraph<MathGraph<string, string>, int>();
+        var ap = new MathGraph<string, string>();
+        ap.CreateAndAddElement("aaa");
+        var bp = new MathGraph<string, string>();
+        bp.CreateAndAddElement("bbb");
+        mathGraph.CreateAndAddElement(ap);
+        mathGraph.CreateAndAddElement(bp);
+
+        var mathGraphSerializer = mathGraph.GetSerializer();
+        var json = mathGraphSerializer.Serialize();
+        Equals(mathGraph, Deserialize<MathGraph<string, string>, int>(json, new SuperPointDeserializationContext()));
+    }
+
+    class SuperPointDeserializationContext : IDeserializationContext
+    {
+        public bool TryDeserialize(string value, string? type, [NotNullWhen(true)] out object? result)
+        {
+            result = null;
+
+            if (type == typeof(MathGraph<string, string>).FullName)
+            {
+                var mathGraph = new MathGraph<string, string>();
+                var mathGraphSerializer = mathGraph.GetSerializer(this);
+                mathGraphSerializer.Deserialize(value);
+                result = mathGraph;
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    private static void SerializeEdge()
+    {
+        var mathGraph = new MathGraph<string, string>();
+        var a = mathGraph.CreateAndAddElement("a");
+        var b = mathGraph.CreateAndAddElement("b");
+        var c = mathGraph.CreateAndAddElement("c");
+
+        mathGraph.AddEdge(a, b, "ab");
+        mathGraph.AddEdge(b, c, "bc");
+
+        Debug.Assert(a.OutElementList[0] == b);
+        Debug.Assert(b.OutElementList[0] == c);
+        Debug.Assert(c.InElementList[0] == b);
+        Debug.Assert(b.InElementList[0] == a);
+
+        SerializeDeserialize(mathGraph);
+    }
+
+    private static void SerializeLink()
+    {
+        var mathGraph = new MathGraph<string, string>();
         var a = mathGraph.CreateAndAddElement("a");
         var b = mathGraph.CreateAndAddElement("b");
         var c = mathGraph.CreateAndAddElement("c");
@@ -23,17 +93,11 @@ internal class Program
         Debug.Assert(c.InElementList[0] == b);
         Debug.Assert(b.InElementList[0] == a);
         SerializeDeserialize(mathGraph);
-
-        AddBidirectionalEdge();
-
-        AddEdge();
-
-        Serialize();
     }
 
     private static void AddBidirectionalEdge()
     {
-        var mathGraph = new MathGraph<string>();
+        var mathGraph = new MathGraph<string, string>();
         var a = mathGraph.CreateAndAddElement("a");
         var b = mathGraph.CreateAndAddElement("b");
 
@@ -48,7 +112,7 @@ internal class Program
 
     private static void AddEdge()
     {
-        var mathGraph = new MathGraph<string>();
+        var mathGraph = new MathGraph<string, string>();
         var a = mathGraph.CreateAndAddElement("a");
         var b = mathGraph.CreateAndAddElement("b");
 
@@ -62,9 +126,9 @@ internal class Program
 
     private static void Serialize()
     {
-        var mathGraph = new MathGraph<int>();
+        var mathGraph = new MathGraph<int, string>();
 
-        List<MathGraphElement<int>> elementList = [];
+        List<MathGraphElement<int, string>> elementList = [];
 
         for (int i = 0; i < 10; i++)
         {
@@ -87,22 +151,22 @@ internal class Program
         SerializeDeserialize(mathGraph);
     }
 
-    private static void SerializeDeserialize<T>(MathGraph<T> mathGraph)
+    private static void SerializeDeserialize<TElementInfo, TEdgeInfo>(MathGraph<TElementInfo, TEdgeInfo> mathGraph)
     {
         var mathGraphSerializer = mathGraph.GetSerializer();
         var json = mathGraphSerializer.Serialize();
-        Equals(mathGraph, Deserialize<T>(json));
+        Equals(mathGraph, Deserialize<TElementInfo, TEdgeInfo>(json));
     }
 
-    private static MathGraph<T> Deserialize<T>(string json)
+    private static MathGraph<TElementInfo, TEdgeInfo> Deserialize<TElementInfo, TEdgeInfo>(string json, IDeserializationContext? deserializationContext = null)
     {
-        var mathGraph = new MathGraph<T>();
-        var mathGraphSerializer = mathGraph.GetSerializer();
+        var mathGraph = new MathGraph<TElementInfo, TEdgeInfo>();
+        var mathGraphSerializer = mathGraph.GetSerializer(deserializationContext);
         mathGraphSerializer.Deserialize(json);
         return mathGraph;
     }
 
-    private static void Equals<T>(MathGraph<T> a, MathGraph<T> b)
+    private static void Equals<TElementInfo, TEdgeInfo>(MathGraph<TElementInfo, TEdgeInfo> a, MathGraph<TElementInfo, TEdgeInfo> b)
     {
         Debug.Assert(a.ElementList.Count == b.ElementList.Count);
         for (var i = 0; i < a.ElementList.Count; i++)
@@ -114,9 +178,11 @@ internal class Program
 
             ElementListEquals(elementA.InElementList, elementB.InElementList);
             ElementListEquals(elementA.OutElementList, elementB.OutElementList);
+
+            EdgeListEquals(elementA.EdgeList, elementB.EdgeList);
         }
 
-        static void ElementListEquals(IReadOnlyList<MathGraphElement<T>> a, IReadOnlyList<MathGraphElement<T>> b)
+        static void ElementListEquals(IReadOnlyList<MathGraphElement<TElementInfo, TEdgeInfo>> a, IReadOnlyList<MathGraphElement<TElementInfo, TEdgeInfo>> b)
         {
             Debug.Assert(a.Count == b.Count);
             for (var i = 0; i < a.Count; i++)
@@ -125,10 +191,51 @@ internal class Program
             }
         }
 
-        static void ElementEquals(MathGraphElement<T> a, MathGraphElement<T> b)
+        static void ElementEquals(MathGraphElement<TElementInfo, TEdgeInfo> a, MathGraphElement<TElementInfo, TEdgeInfo> b)
         {
-            Debug.Assert(EqualityComparer<T>.Default.Equals(a.Value, b.Value));
+            if(a.Value is MathGraph<string, string> aMathGraph && b.Value is MathGraph<string, string> bMathGraph)
+            {
+                Equals(aMathGraph, bMathGraph);
+                return;
+            }
+
+            Debug.Assert(EqualityComparer<TElementInfo>.Default.Equals(a.Value, b.Value));
             Debug.Assert(a.Id == b.Id);
+        }
+
+        static void EdgeListEquals(IReadOnlyList<MathGraphEdge<TElementInfo, TEdgeInfo>> aEdgeList,
+            IReadOnlyList<MathGraphEdge<TElementInfo, TEdgeInfo>> bEdgeList)
+        {
+            Debug.Assert(aEdgeList.Count == bEdgeList.Count);
+
+            for (var i = 0; i < aEdgeList.Count; i++)
+            {
+                EdgeEquals(aEdgeList[i], bEdgeList[i]);
+            }
+        }
+
+        static void EdgeEquals(MathGraphEdge<TElementInfo, TEdgeInfo> a, MathGraphEdge<TElementInfo, TEdgeInfo> b)
+        {
+            Debug.Assert(EqualityComparer<TEdgeInfo>.Default.Equals(a.EdgeInfo, b.EdgeInfo));
+
+            Debug.Assert(a.GetType() == b.GetType());
+
+            if (a is MathGraphBidirectionalEdge<TElementInfo, TEdgeInfo> aBidirectionalEdge &&
+                b is MathGraphBidirectionalEdge<TElementInfo, TEdgeInfo> bBidirectionalEdge)
+            {
+                ElementEquals(aBidirectionalEdge.AElement, bBidirectionalEdge.AElement);
+                ElementEquals(aBidirectionalEdge.BElement, bBidirectionalEdge.BElement);
+            }
+            else if (a is MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo> aUnidirectionalEdge &&
+                     b is MathGraphUnidirectionalEdge<TElementInfo, TEdgeInfo> bUnidirectionalEdge)
+            {
+                ElementEquals(aUnidirectionalEdge.From, bUnidirectionalEdge.From);
+                ElementEquals(aUnidirectionalEdge.To, bUnidirectionalEdge.To);
+            }
+            else
+            {
+                throw new InvalidOperationException();
+            }
         }
     }
 }

@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 
 using NarjejerechowainoBuwurjofear.Inking;
-
+using NarjejerechowainoBuwurjofear.Inking.Contexts;
 using UnoInk.Inking.InkCore;
 
 namespace NarjejerechowainoBuwurjofear.Views;
@@ -44,41 +45,82 @@ public partial class MainView : UserControl
         MessageTextBlock.Text = "Hello, Avalonia!";
     }
 
-    private Polyline? _polyline;
-
+    //private Polyline? _polyline;
+    private InkMode _inkMode = InkMode.Pen;
 
     private void RootGrid_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
-        AvaSkiaInkCanvas.WritingDown(ToInkingInputArgs(e));
+        _isDown = true;
 
-        _polyline = new Polyline
+        var inkingInputArgs = ToInkingInputArgs(e);
+
+        if (_inkMode == InkMode.Pen)
         {
-            Stroke = Brushes.Black,
-            StrokeThickness = 2
-        };
-        _polyline.IsHitTestVisible = false;
-        RootGrid.Children.Add(_polyline);
+            AvaSkiaInkCanvas.WritingDown(inkingInputArgs);
+        }
+        else if (_inkMode == InkMode.Eraser)
+        {
+            AvaSkiaInkCanvas.EraserMode.EraserDown(inkingInputArgs);
+            AvaSkiaInkCanvas.InvalidateVisual();
+        }
+
+        //_polyline = new Polyline
+        //{
+        //    Stroke = Brushes.Black,
+        //    StrokeThickness = 2
+        //};
+        //_polyline.IsHitTestVisible = false;
+        //RootGrid.Children.Add(_polyline);
     }
+
+    private bool _isDown;
 
     private void RootGrid_PointerMoved(object? sender, PointerEventArgs e)
     {
-        AvaSkiaInkCanvas.WritingMove(ToInkingInputArgs(e));
-
-        if (_polyline != null)
+        var inkingInputArgs = ToInkingInputArgs(e);
+        if (_inkMode == InkMode.Pen)
         {
-            var currentPoint = e.GetCurrentPoint(RootGrid);
-            _polyline.Points.Add(currentPoint.Position);
+            AvaSkiaInkCanvas.WritingMove(inkingInputArgs);
         }
+        else if(_inkMode == InkMode.Eraser)
+        {
+            if (e.Pointer.Type == PointerType.Mouse)
+            {
+                if (!_isDown)
+                {
+                    return;
+                }
+            }
+            AvaSkiaInkCanvas.EraserMode.EraserMove(inkingInputArgs);
+            AvaSkiaInkCanvas.InvalidateVisual();
+        }
+
+        //if (_polyline != null)
+        //{
+        //    var currentPoint = e.GetCurrentPoint(RootGrid);
+        //    _polyline.Points.Add(currentPoint.Position);
+        //}
     }
 
     private void RootGrid_PointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        AvaSkiaInkCanvas.WritingUp(ToInkingInputArgs(e));
+        _isDown = false;
 
-        if (_polyline != null)
+        var inkingInputArgs = ToInkingInputArgs(e);
+        if (_inkMode == InkMode.Pen)
         {
-            RootGrid.Children.Remove(_polyline);
+            AvaSkiaInkCanvas.WritingUp(inkingInputArgs);
         }
+        else if (_inkMode == InkMode.Eraser)
+        {
+            AvaSkiaInkCanvas.EraserMode.EraserUp(inkingInputArgs);
+            AvaSkiaInkCanvas.InvalidateVisual();
+        }
+
+        //if (_polyline != null)
+        //{
+        //    RootGrid.Children.Remove(_polyline);
+        //}
     }
 
     private InkingInputArgs ToInkingInputArgs(PointerEventArgs args)
@@ -95,5 +137,21 @@ public partial class MainView : UserControl
             await Task.Delay(100);
             AvaSkiaInkCanvas.InvalidateVisual();
         }
+    }
+
+    private void PenModeButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        _inkMode = InkMode.Pen;
+    }
+
+    private void EraserModeButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        _inkMode = InkMode.Eraser;
+    }
+
+    enum InkMode
+    {
+        Pen,
+        Eraser
     }
 }

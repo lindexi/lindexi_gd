@@ -1,131 +1,39 @@
-﻿using System.Linq;
-
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
-
+using NarjejerechowainoBuwurjofear.Inking.Contexts;
+using NarjejerechowainoBuwurjofear.Inking.Erasing;
 using SkiaSharp;
-
-using UnoInk.Inking.InkCore;
 
 namespace NarjejerechowainoBuwurjofear.Inking;
 
-class SkiaStroke : IDisposable
+public class AvaSkiaInkCanvas : Control
 {
-    public SkiaStroke(InkId id)
+    public AvaSkiaInkCanvas()
     {
-        Path = new SKPath();
-        Id = id;
+        EraserMode = new AvaSkiaInkCanvasEraserMode(this);
     }
 
-    public InkId Id { get; init; }
+    public AvaSkiaInkCanvasEraserMode EraserMode { get; }
 
-    public SKPath Path { get; }
-
-    public SKColor Color { get; set; } = SKColors.Red;
-    public float Width { get; set; } = 20;
-
-    public List<StylusPoint> PointList { get; } = [];
-
-    /// <summary>
-    /// 是否需要重新创建笔迹点，采用平滑滤波算法
-    /// </summary>
-    public static bool ShouldReCreatePoint { get; set; } = true;
-
-    public void AddPoint(StylusPoint point)
+    internal void AddChild(Control childControl)
     {
-        PointList.Add(point);
-
-        var pointList = PointList;
-        if (ShouldReCreatePoint && pointList.Count > 10)
-        {
-            pointList = ApplyMeanFilter(pointList);
-        }
-
-        if (pointList.Count > 2)
-        {
-            var outlinePointList = SimpleInkRender.GetOutlinePointList(pointList, Width);
-
-            Path.Reset();
-            Path.AddPoly(outlinePointList.Select(t => new SKPoint((float) t.X, (float) t.Y)).ToArray());
-        }
+        LogicalChildren.Add(childControl);
+        VisualChildren.Add(childControl);
     }
 
-    public void Dispose()
+    internal void RemoveChild(Control childControl)
     {
-        Path.Dispose();
+        LogicalChildren.Remove(childControl);
+        VisualChildren.Remove(childControl);
     }
 
-    public static List<StylusPoint> ApplyMeanFilter(List<StylusPoint> pointList, int step = 10)
-    {
-        var xList = ApplyMeanFilter(pointList.Select(t => t.Point.X).ToList(), step);
-        var yList = ApplyMeanFilter(pointList.Select(t => t.Point.Y).ToList(), step);
-
-        var newPointList = new List<StylusPoint>();
-        for (int i = 0; i < xList.Count && i < yList.Count; i++)
-        {
-            newPointList.Add(new StylusPoint(xList[i], yList[i]));
-        }
-
-        return newPointList;
-    }
-
-    public static List<double> ApplyMeanFilter(List<double> list, int step)
-    {
-        // 前面一半加不了
-        var newList = new List<double>(list.Take(step / 2));
-        for (int i = step / 2; i < list.Count - step + step / 2; i++)
-        {
-            // 当前点，取前后各一半，即 step / 2 个点，求平均值作为当前点的值
-            newList.Add(list.Skip(i - step / 2).Take(step).Sum() / step);
-        }
-        // 后面一半加不了
-        newList.AddRange(list.Skip(list.Count - (step - step / 2)));
-        return newList;
-    }
-
-    public SkiaStrokeDrawContext CreateDrawContext()
-    {
-        return new SkiaStrokeDrawContext(Color, Path.Clone(), Path.Bounds.ToAvaloniaRect().Expand(Width));
-    }
-}
-
-readonly record struct SkiaStrokeDrawContext(SKColor Color, SKPath Path, Rect DrawBounds) : IDisposable
-{
-    public void Dispose()
-    {
-        Path.Dispose();
-    }
-}
-
-class DynamicStrokeContext
-{
-    public DynamicStrokeContext(InkingInputArgs lastInputArgs)
-    {
-        LastInputArgs = lastInputArgs;
-
-        Stroke = new SkiaStroke(InkId.NewId());
-    }
-
-    public InkingInputArgs LastInputArgs { get; }
-
-    public int Id => LastInputArgs.Id;
-
-    public SkiaStroke Stroke { get; }
-}
-
-class AvaSkiaInkCanvasEraserMode
-{
-
-}
-
-class AvaSkiaInkCanvas : Control
-{
     public void WritingDown(InkingInputArgs args)
     {
+        EnsureInputConflicts();
         var dynamicStrokeContext = new DynamicStrokeContext(args);
         _contextDictionary[args.Id] = dynamicStrokeContext;
         dynamicStrokeContext.Stroke.AddPoint(args.Point);
@@ -135,6 +43,7 @@ class AvaSkiaInkCanvas : Control
 
     public void WritingMove(InkingInputArgs args)
     {
+        EnsureInputConflicts();
         if (_contextDictionary.TryGetValue(args.Id, out var context))
         {
             context.Stroke.AddPoint(args.Point);
@@ -144,10 +53,13 @@ class AvaSkiaInkCanvas : Control
 
     public void WritingUp(InkingInputArgs args)
     {
+        EnsureInputConflicts();
         if (_contextDictionary.Remove(args.Id, out var context))
         {
             context.Stroke.AddPoint(args.Point);
-            _staticStrokeDictionary[context.Stroke.Id] = context.Stroke;
+            //_staticStrokeDictionary[context.Stroke.Id] = context.Stroke;
+            context.Stroke.SetAsStatic();
+            _staticStrokeList.Add(context.Stroke);
         }
         InvalidateVisual();
     }
@@ -155,15 +67,34 @@ class AvaSkiaInkCanvas : Control
     private readonly Dictionary<int, DynamicStrokeContext> _contextDictionary = [];
 
     private int _count;
-    private List<Rect> _list = [];
+    private readonly List<Rect> _list = [];
 
     public bool IsWriting => _contextDictionary.Count > 0;
 
+    internal void EnsureInputConflicts()
+    {
+        if (IsWriting && EraserMode.IsErasing)
+        {
+            throw new InvalidOperationException("Writing and erasing cannot be performed at the same time.");
+        }
+    }
 
-    private readonly Dictionary<InkId, SkiaStroke> _staticStrokeDictionary = [];
+    public IReadOnlyList<SkiaStroke> StaticStrokeList => _staticStrokeList;
 
-    public SkiaStroke GetStaticStroke(InkId id) => _staticStrokeDictionary[id];
-   
+    private readonly List<SkiaStroke> _staticStrokeList = [];
+
+    internal void ResetStaticStrokeListEraserResult(IEnumerable<SkiaStroke> skiaStrokeList)
+    {
+        _staticStrokeList.Clear();
+        _staticStrokeList.AddRange(skiaStrokeList);
+#if DEBUG
+        foreach (var skiaStroke in _staticStrokeList)
+        {
+            skiaStroke.EnsureIsStaticStroke();
+        }
+#endif
+        InvalidateVisual();
+    }
 
     public override void Render(DrawingContext context)
     {
@@ -176,7 +107,14 @@ class AvaSkiaInkCanvas : Control
 
         _list.Add(new Rect(x, y, 10, 10));
 
-        context.Custom(new InkCanvasCustomDrawOperation(this));
+        if (EraserMode.IsErasing)
+        {
+            EraserMode.Render(context);
+        }
+        else
+        {
+            context.Custom(new InkCanvasCustomDrawOperation(this));
+        }
     }
 
     class InkCanvasCustomDrawOperation : ICustomDrawOperation
@@ -195,7 +133,7 @@ class AvaSkiaInkCanvas : Control
                 _pathList.Add(skiaStrokeDrawContext);
             }
 
-            foreach (var skiaStroke in inkCanvas._staticStrokeDictionary.Values)
+            foreach (var skiaStroke in inkCanvas._staticStrokeList)
             {
                 var skiaStrokeDrawContext = skiaStroke.CreateDrawContext();
                 _pathList.Add(skiaStrokeDrawContext);
