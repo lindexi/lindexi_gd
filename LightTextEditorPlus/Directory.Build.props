@@ -8,6 +8,11 @@
     <NoWarn>NU1803</NoWarn>
     
     <CodeRootPath>$(MSBuildThisFileDirectory)</CodeRootPath>
+
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)\.editorconfig" Link=".editorconfig" />
+  </ItemGroup>
 
 </Project>
