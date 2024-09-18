@@ -4,7 +4,7 @@ using System.Buffers;
 using System.Runtime.CompilerServices;
 
 var n = 10;
-string t = string.Join(',', Enumerable.Range(0, 10000));
+string t = string.Join(',', Enumerable.Range(0, 100));
 for (int i = 0; i < int.MaxValue; i++)
 {
     Foo($"asd{1 + 2} n={n} {t}");
@@ -20,7 +20,7 @@ void Foo(FooInterpolatedStringHandler handler)
 }
 
 [InterpolatedStringHandler]
-ref struct FooInterpolatedStringHandler
+ struct FooInterpolatedStringHandler
 {
     public FooInterpolatedStringHandler(int literalLength, int formattedCount)
     {
