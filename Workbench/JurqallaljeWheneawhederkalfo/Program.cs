@@ -14,13 +14,13 @@ for (int i = 0; i < int.MaxValue; i++)
 Console.WriteLine("Hello, World!");
 
 
-void Foo(DefaultInterpolatedStringHandler handler)
+void Foo(FooInterpolatedStringHandler handler)
 {
 
 }
 
 [InterpolatedStringHandler]
-ref struct FooInterpolatedStringHandler
+ struct FooInterpolatedStringHandler
 {
     public FooInterpolatedStringHandler(int literalLength, int formattedCount)
     {
