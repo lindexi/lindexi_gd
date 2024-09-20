@@ -21,6 +21,9 @@ internal partial class ImageProvider
     [GeneratedRegex(@"!\[\]\(http://cdn.lindexi.site/")]
     private static partial Regex GetImageLinkRegex();
 
+    [GeneratedRegex(@"!\[\]\(http://image.acmx.xyz/")]
+    private static partial Regex GetImageLinkRegex2();
+
     [GeneratedRegex(@"<!--\s*CreateTime:([\d/\s:]*)\s*-->")]
     private static partial Regex GetCreateTimeRegex();
 
@@ -28,6 +31,7 @@ internal partial class ImageProvider
     {
         var imageFileRegex = GetImageFileRegex();
         var imageLinkRegex = GetImageLinkRegex();
+        var imageLinkRegex2 = GetImageLinkRegex2();
         var createTimeRegex = GetCreateTimeRegex();
 
         bool isImage = false;
@@ -47,7 +51,7 @@ internal partial class ImageProvider
                     {
                         createTime = time;
 
-                        if (createTime < new DateTime(2024, 6, 1))
+                        if (createTime < new DateTime(2024, 1, 1))
                         {
                             // 不要点爆了博客园
                             return;
@@ -84,6 +88,10 @@ internal partial class ImageProvider
                 }
 
                 var match = imageLinkRegex.Match(line);
+                if (!match.Success)
+                {
+                    match = imageLinkRegex2.Match(line);
+                }
                 if (match.Success && !string.IsNullOrEmpty(currentImageFile) && File.Exists(currentImageFile))
                 {
                     var relativePath = Path.GetRelativePath(OriginFolder.FullName, currentImageFile);
