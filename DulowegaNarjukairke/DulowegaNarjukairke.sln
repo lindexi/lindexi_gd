@@ -1,0 +1,50 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35013.160
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DulowegaNarjukairke", "DulowegaNarjukairke\DulowegaNarjukairke.csproj", "{BC8D2154-FB6E-42B1-8AE4-EAD42489CD50}"
+EndProject
+Global
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {63AC94B6-133A-4306-A949-2824AE795FD1}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BC8D2154-FB6E-42B1-8AE4-EAD42489CD50}.Debug|ARM.ActiveCfg = Debug|ARM
+		{BC8D2154-FB6E-42B1-8AE4-EAD42489CD50}.Debug|ARM.Build.0 = Debug|ARM
+		{BC8D2154-FB6E-42B1-8AE4-EAD42489CD50}.Debug|ARM.Deploy.0 = Debug|ARM
+		{BC8D2154-FB6E-42B1-8AE4-EAD42489CD50}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{BC8D2154-FB6E-42B1-8AE4-EAD42489CD50}.Debug|ARM64.Build.0 = Debug|ARM64
+		{BC8D2154-FB6E-42B1-8AE4-EAD42489CD50}.Debug|ARM64.Deploy.0 = Debug|ARM64
+		{BC8D2154-FB6E-42B1-8AE4-EAD42489CD50}.Debug|x64.ActiveCfg = Debug|x64
+		{BC8D2154-FB6E-42B1-8AE4-EAD42489CD50}.Debug|x64.Build.0 = Debug|x64
+		{BC8D2154-FB6E-42B1-8AE4-EAD42489CD50}.Debug|x64.Deploy.0 = Debug|x64
+		{BC8D2154-FB6E-42B1-8AE4-EAD42489CD50}.Debug|x86.ActiveCfg = Debug|x86
+		{BC8D2154-FB6E-42B1-8AE4-EAD42489CD50}.Debug|x86.Build.0 = Debug|x86
+		{BC8D2154-FB6E-42B1-8AE4-EAD42489CD50}.Debug|x86.Deploy.0 = Debug|x86
+		{BC8D2154-FB6E-42B1-8AE4-EAD42489CD50}.Release|ARM.ActiveCfg = Release|ARM
+		{BC8D2154-FB6E-42B1-8AE4-EAD42489CD50}.Release|ARM.Build.0 = Release|ARM
+		{BC8D2154-FB6E-42B1-8AE4-EAD42489CD50}.Release|ARM.Deploy.0 = Release|ARM
+		{BC8D2154-FB6E-42B1-8AE4-EAD42489CD50}.Release|ARM64.ActiveCfg = Release|ARM64
+		{BC8D2154-FB6E-42B1-8AE4-EAD42489CD50}.Release|ARM64.Build.0 = Release|ARM64
+		{BC8D2154-FB6E-42B1-8AE4-EAD42489CD50}.Release|ARM64.Deploy.0 = Release|ARM64
+		{BC8D2154-FB6E-42B1-8AE4-EAD42489CD50}.Release|x64.ActiveCfg = Release|x64
+		{BC8D2154-FB6E-42B1-8AE4-EAD42489CD50}.Release|x64.Build.0 = Release|x64
+		{BC8D2154-FB6E-42B1-8AE4-EAD42489CD50}.Release|x64.Deploy.0 = Release|x64
+		{BC8D2154-FB6E-42B1-8AE4-EAD42489CD50}.Release|x86.ActiveCfg = Release|x86
+		{BC8D2154-FB6E-42B1-8AE4-EAD42489CD50}.Release|x86.Build.0 = Release|x86
+		{BC8D2154-FB6E-42B1-8AE4-EAD42489CD50}.Release|x86.Deploy.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|ARM = Debug|ARM
+		Debug|ARM64 = Debug|ARM64
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|ARM = Release|ARM
+		Release|ARM64 = Release|ARM64
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
