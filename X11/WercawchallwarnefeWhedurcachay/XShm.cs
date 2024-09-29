@@ -34,6 +34,9 @@ internal unsafe class XShm
     [DllImport("libXext.so.6", SetLastError = true)]
     public static extern int XShmAttach(IntPtr display, XShmSegmentInfo* shminfo);
 
+    [DllImport("libXext.so.6", SetLastError = true)]
+    public static extern int XShmGetEventBase(IntPtr display);
+
     /*
     XImage *XShmCreateImage (display, visual, depth, format, data,
                        shminfo, width, height)
