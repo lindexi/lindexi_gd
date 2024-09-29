@@ -70,6 +70,9 @@ unsafe
     status = XShmQueryVersion(display, out var major, out var minor, out var pixmaps);
     Console.WriteLine($"XShmQueryVersion: {status} major={major} minor={minor} pixmaps={pixmaps}");
 
+    var xshmGetEventBase = XShmGetEventBase(display);
+    Console.WriteLine($"XShmGetEventBase = {xshmGetEventBase}");
+
     const int ZPixmap = 2;
     var xShmSegmentInfo = new XShmSegmentInfo();
     var shmImage = (XImage*) XShmCreateImage(display, visual, 32, ZPixmap, IntPtr.Zero, &xShmSegmentInfo,
@@ -161,6 +164,7 @@ unsafe
         }
         else if ((int) @event.type == 65 /*XShmCompletionEvent*/)
         {
+            Console.WriteLine($"XShmCompletionEvent");
         }
     }
 }
