@@ -2,10 +2,13 @@
 
 using System.ComponentModel;
 using System.Text.Json.Serialization;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
+
+using OpenAI.Chat;
 
 var builder = Kernel.CreateBuilder();
 builder.Services.AddSingleton<IChatCompletionService>(new Foo());
@@ -23,6 +26,14 @@ OpenAIPromptExecutionSettings openAIPromptExecutionSettings = new()
 var history = new ChatHistory();
 
 var chatCompletionService = kernel.Services.GetRequiredService<IChatCompletionService>();
+
+var chatCompletionOptions = new ChatCompletionOptions();
+//chatCompletionOptions.Functions.Add(new ChatFunction("change_state", "Changes the state of the light",new BinaryData()));
+chatCompletionOptions.ToolChoice = ChatToolChoice.Auto;
+
+var functionTool = ChatTool.CreateFunctionTool("TurnOn","Turn on the light");
+chatCompletionOptions.ToolChoice = ChatToolChoice.Auto;
+chatCompletionOptions.Tools.Add(functionTool);
 
 // Get the response from the AI
 var result = await chatCompletionService.GetChatMessageContentAsync(
