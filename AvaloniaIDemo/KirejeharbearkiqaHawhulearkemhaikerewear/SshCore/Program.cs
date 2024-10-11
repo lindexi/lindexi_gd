@@ -20,13 +20,48 @@ internal class Program
         var appConfigurator = fileConfigurationRepo.CreateAppConfigurator();
 
         var sshConfiguration = appConfigurator.Of<SshConfiguration>();
-        sshConfiguration.Host = "127.0.0.1";
-        sshConfiguration.UserName = "root";
-        sshConfiguration.Password = "lindexi";
+        //sshConfiguration.Host = "127.0.0.1";
+        //sshConfiguration.UserName = "root";
+        //sshConfiguration.Password = "lindexi";
 
+        var sshClient = new SshClient(sshConfiguration.Host, sshConfiguration.UserName, sshConfiguration.Password);
+        await sshClient.ConnectAsync(CancellationToken.None);
 
+        var shellStream = sshClient.CreateShellStream("xxx",(uint) Console.WindowWidth,(uint) Console.WindowHeight, (uint) Console.WindowWidth, (uint) Console.WindowHeight, Console.BufferWidth*Console.BufferHeight);
+        shellStream.DataReceived += (sender, e) =>
+        {
+            var message = e.Line;
+            if (string.IsNullOrEmpty(message))
+            {
+                message = Encoding.UTF8.GetString(e.Data);
+            }
 
-        //var sshClient = new SshClient(new ConnectionInfo());
+            Console.WriteLine($"[SSH] {message}");
+        };
+
+        while (true)
+        {
+            var line = Console.ReadLine();
+
+            if (line is null)
+            {
+                break;
+            }
+
+            shellStream.WriteLine(line);
+        }
+
+        var streamReader = new StreamReader(shellStream);
+        Console.SetIn(streamReader);
+        var streamWriter = new StreamWriter(shellStream);
+        Console.SetOut(streamWriter);
+
+     
+
+        while (true)
+        {
+            await Task.Delay(1000);
+        }
 
         await fileConfigurationRepo.SaveAsync();
     }
