@@ -1,0 +1,3 @@
+﻿namespace SshCore;
+
+record LogInInfo();
