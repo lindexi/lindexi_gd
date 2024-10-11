@@ -8,7 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\KereqeewahaihibayNohelqiji\KereqeewahaihibayNohelqiji.csproj" ReferenceOutputAssembly="false"/>
+    <PaintStateDiagramMarkdownFile Include="..\KereqeewahaihibayNohelqiji\*.txt" Link="Assets\StateDiagrams\%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="@(PaintStateDiagramMarkdownFile)"></None>
+    <AdditionalFiles Include="@(PaintStateDiagramMarkdownFile)" Link="%(Link)"/>
+
+    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="Link" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\KereqeewahaihibayNohelqiji\KereqeewahaihibayNohelqiji.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>
