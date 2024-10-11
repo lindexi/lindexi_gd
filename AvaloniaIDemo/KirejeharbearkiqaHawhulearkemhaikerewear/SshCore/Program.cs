@@ -15,7 +15,7 @@ internal class Program
 {
     static async Task Main(string[] args)
     {
-        var file = @"c:\lindexi\CA\ssh.coin\";
+        var file = @"c:\lindexi\CA\ssh.coin";
         var fileConfigurationRepo = ConfigurationFactory.FromFile(file, RepoSyncingBehavior.Sync);
         var appConfigurator = fileConfigurationRepo.CreateAppConfigurator();
 
