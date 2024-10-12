@@ -15,6 +15,39 @@ internal class Program
 {
     static async Task Main(string[] args)
     {
+        var currentLine = new StringBuilder();
+        bool isSendTab = false;
+
+        while (true)
+        {
+            var consoleKeyInfo = Console.ReadKey(true);
+
+            if (consoleKeyInfo.Key == ConsoleKey.Escape)
+            {
+                break;
+            }
+
+            if (consoleKeyInfo.Key == ConsoleKey.Tab)
+            {
+                isSendTab = true;
+            }
+            else if (consoleKeyInfo.Key == ConsoleKey.Backspace)
+            {
+                currentLine.Remove(currentLine.Length - 1, 1);
+                //Console.Write('\b');
+                //continue;
+            }
+            else
+            {
+                currentLine.Append(consoleKeyInfo.KeyChar);
+            }
+
+            Console.CursorLeft = 0;
+            Console.Write($"\r{currentLine.ToString()}");
+            //consoleKeyInfo.KeyChar
+        }
+
+
         var file = @"c:\lindexi\CA\ssh.coin";
         var fileConfigurationRepo = ConfigurationFactory.FromFile(file, RepoSyncingBehavior.Sync);
         var appConfigurator = fileConfigurationRepo.CreateAppConfigurator();
@@ -38,6 +71,8 @@ internal class Program
 
             Console.WriteLine($"[SSH] {message}");
         };
+
+       
 
         while (true)
         {
