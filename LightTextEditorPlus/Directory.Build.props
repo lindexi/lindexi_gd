@@ -9,6 +9,7 @@
     
     <CodeRootPath>$(MSBuildThisFileDirectory)</CodeRootPath>
 
+    <AvaloniaVersion>11.1.0</AvaloniaVersion>
   </PropertyGroup>
 
   <ItemGroup>

@@ -11,9 +11,8 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
+    <ProjectReference Include="..\..\LightTextEditorPlus.Avalonia\LightTextEditorPlus.Avalonia.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\WeechewhabeJereciwe\WeechewhabeJereciwe.csproj" />
-  </ItemGroup>
+
 </Project>
