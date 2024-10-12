@@ -20,6 +20,7 @@ internal class Program
 
         var standardInput = Console.OpenStandardInput();
 
+
         while (true)
         {
             var consoleKeyInfo = Console.ReadKey(false);
