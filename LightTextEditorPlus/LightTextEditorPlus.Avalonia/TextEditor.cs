@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
@@ -21,10 +22,27 @@ public partial class TextEditor : Control
     {
         SkiaTextEditor = new SkiaTextEditor();
         SkiaTextEditor.RenderRequested += (sender, args) => InvalidateVisual();
+
+        HorizontalAlignment = HorizontalAlignment.Stretch;
+        VerticalAlignment = VerticalAlignment.Stretch;
     }
 
     public SkiaTextEditor SkiaTextEditor { get; }
     public TextEditorCore TextEditorCore => SkiaTextEditor.TextEditorCore;
+
+    protected override Size MeasureOverride(Size availableSize)
+    {
+        var result = base.MeasureOverride(availableSize);
+        return availableSize;
+    }
+
+    protected override Size ArrangeOverride(Size finalSize)
+    {
+        TextEditorCore.DocumentManager.DocumentWidth = finalSize.Width;
+        TextEditorCore.DocumentManager.DocumentHeight = finalSize.Height;
+
+        return base.ArrangeOverride(finalSize);
+    }
 
     public override void Render(DrawingContext context)
     {
