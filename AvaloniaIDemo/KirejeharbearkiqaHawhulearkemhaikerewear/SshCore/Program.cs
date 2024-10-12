@@ -18,9 +18,11 @@ internal class Program
         var currentLine = new StringBuilder();
         bool isSendTab = false;
 
+        var standardInput = Console.OpenStandardInput();
+
         while (true)
         {
-            var consoleKeyInfo = Console.ReadKey(true);
+            var consoleKeyInfo = Console.ReadKey(false);
 
             if (consoleKeyInfo.Key == ConsoleKey.Escape)
             {
@@ -34,7 +36,9 @@ internal class Program
             else if (consoleKeyInfo.Key == ConsoleKey.Backspace)
             {
                 currentLine.Remove(currentLine.Length - 1, 1);
-                //Console.Write('\b');
+                var cursorLeft = Console.CursorLeft;
+                Console.Write(' ');
+                Console.CursorLeft = cursorLeft;
                 //continue;
             }
             else
@@ -42,10 +46,10 @@ internal class Program
                 currentLine.Append(consoleKeyInfo.KeyChar);
             }
 
-            var cursorTop = Console.CursorTop;
-            Console.CursorLeft = 0;
-            Console.Write($"{currentLine.ToString().PadRight(Console.BufferWidth)}");
-            Console.SetCursorPosition(currentLine.Length, cursorTop);
+            //var cursorTop = Console.CursorTop;
+            //Console.CursorLeft = 0;
+            //Console.Write($"{currentLine.ToString().PadRight(Console.BufferWidth)}");
+            //Console.SetCursorPosition(currentLine.Length, cursorTop);
             //Console.CursorLeft = currentLine.Length;
             //consoleKeyInfo.KeyChar
         }
@@ -63,7 +67,7 @@ internal class Program
         var sshClient = new SshClient(sshConfiguration.Host, sshConfiguration.UserName, sshConfiguration.Password);
         await sshClient.ConnectAsync(CancellationToken.None);
 
-        var openStandardInput = Console.OpenStandardInput();
+        var openStandardInput = standardInput;
         var openStandardOutput = Console.OpenStandardOutput();
         var shell = sshClient.CreateShell(openStandardInput, openStandardOutput, openStandardOutput);
         shell.Start();
