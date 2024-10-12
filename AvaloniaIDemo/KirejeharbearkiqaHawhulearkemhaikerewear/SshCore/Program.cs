@@ -42,8 +42,11 @@ internal class Program
                 currentLine.Append(consoleKeyInfo.KeyChar);
             }
 
+            var cursorTop = Console.CursorTop;
             Console.CursorLeft = 0;
-            Console.Write($"\r{currentLine.ToString()}");
+            Console.Write($"{currentLine.ToString().PadRight(Console.BufferWidth)}");
+            Console.SetCursorPosition(currentLine.Length, cursorTop);
+            //Console.CursorLeft = currentLine.Length;
             //consoleKeyInfo.KeyChar
         }
 
