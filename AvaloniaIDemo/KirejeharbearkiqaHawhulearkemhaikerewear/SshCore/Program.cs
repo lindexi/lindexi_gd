@@ -15,6 +15,14 @@ internal class Program
 {
     static async Task Main(string[] args)
     {
+        Console.Write("123");
+        while (true)
+        {
+            var consoleKeyInfo = Console.ReadKey(true);
+            Console.Read();
+        }
+
+
         var file = @"c:\lindexi\CA\ssh.coin";
         var fileConfigurationRepo = ConfigurationFactory.FromFile(file, RepoSyncingBehavior.Sync);
         var appConfigurator = fileConfigurationRepo.CreateAppConfigurator();

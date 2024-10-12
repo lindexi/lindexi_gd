@@ -6,7 +6,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KirejeharbearkiqaHawhuleark
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KirejeharbearkiqaHawhulearkemhaikerewear.Desktop", "KirejeharbearkiqaHawhulearkemhaikerewear.Desktop\KirejeharbearkiqaHawhulearkemhaikerewear.Desktop.csproj", "{151C750F-0A29-4D44-B539-6946AD89A24A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SshCore", "SshCore\SshCore.csproj", "{409B4C1E-63DB-401E-998B-EF30EF325430}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SshCore", "SshCore\SshCore.csproj", "{409B4C1E-63DB-401E-998B-EF30EF325430}"
 EndProject
 Global
 	GlobalSection(ExtensibilityGlobals) = postSolution
