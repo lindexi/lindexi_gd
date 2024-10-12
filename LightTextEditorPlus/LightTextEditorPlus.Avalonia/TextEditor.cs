@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Avalonia.Controls;
+using Avalonia.Media;
 using LightTextEditorPlus.Core;
 
 namespace LightTextEditorPlus.Avalonia;
@@ -18,4 +19,9 @@ public partial class TextEditor : Control
 
     public SkiaTextEditor SkiaTextEditor { get; }
     public TextEditorCore TextEditorCore => SkiaTextEditor.TextEditorCore;
+
+    public override void Render(DrawingContext context)
+    {
+        base.Render(context);
+    }
 }
