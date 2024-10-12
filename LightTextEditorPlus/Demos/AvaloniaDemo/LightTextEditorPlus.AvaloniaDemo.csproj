@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
@@ -15,6 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LightTextEditorPlus.Skia\LightTextEditorPlus.Skia.csproj" />
+    <ProjectReference Include="..\..\LightTextEditorPlus.Avalonia\LightTextEditorPlus.Avalonia.csproj" />
   </ItemGroup>
 </Project>
