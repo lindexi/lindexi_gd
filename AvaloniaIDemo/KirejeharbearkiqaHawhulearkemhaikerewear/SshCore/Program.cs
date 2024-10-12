@@ -36,7 +36,9 @@ internal class Program
             else if (consoleKeyInfo.Key == ConsoleKey.Backspace)
             {
                 currentLine.Remove(currentLine.Length - 1, 1);
-                //Console.Write('\b');
+                var cursorLeft = Console.CursorLeft;
+                Console.Write(' ');
+                Console.CursorLeft = cursorLeft;
                 //continue;
             }
             else
