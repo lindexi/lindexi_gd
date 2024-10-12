@@ -42,8 +42,11 @@ internal class Program
                 currentLine.Append(consoleKeyInfo.KeyChar);
             }
 
+            var cursorTop = Console.CursorTop;
             Console.CursorLeft = 0;
-            Console.Write($"\r{currentLine.ToString()}");
+            Console.Write($"{currentLine.ToString().PadRight(Console.BufferWidth)}");
+            Console.SetCursorPosition(currentLine.Length, cursorTop);
+            //Console.CursorLeft = currentLine.Length;
             //consoleKeyInfo.KeyChar
         }
 
@@ -59,6 +62,19 @@ internal class Program
 
         var sshClient = new SshClient(sshConfiguration.Host, sshConfiguration.UserName, sshConfiguration.Password);
         await sshClient.ConnectAsync(CancellationToken.None);
+
+        var openStandardInput = Console.OpenStandardInput();
+        var openStandardOutput = Console.OpenStandardOutput();
+        var shell = sshClient.CreateShell(openStandardInput, openStandardOutput, openStandardOutput);
+        shell.Start();
+        while (true)
+        {
+            var consoleKeyInfo = Console.ReadKey(true);
+            if (consoleKeyInfo.Key == ConsoleKey.Escape)
+            {
+                break;
+            }
+        }
 
         var shellStream = sshClient.CreateShellStream("xxx",(uint) Console.WindowWidth,(uint) Console.WindowHeight, (uint) Console.WindowWidth, (uint) Console.WindowHeight, Console.BufferWidth*Console.BufferHeight);
         shellStream.DataReceived += (sender, e) =>
