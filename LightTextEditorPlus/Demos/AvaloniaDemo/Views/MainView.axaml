@@ -2,19 +2,20 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="clr-namespace:WeechewhabeJereciwe.ViewModels"
              xmlns:views="clr-namespace:WeechewhabeJereciwe.Views"
+             xmlns:viewModels="clr-namespace:LightTextEditorPlus.AvaloniaDemo.ViewModels"
+             xmlns:views1="clr-namespace:LightTextEditorPlus.AvaloniaDemo.Views"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="WeechewhabeJereciwe.Views.MainView"
-             x:DataType="vm:MainViewModel">
+             x:Class="LightTextEditorPlus.AvaloniaDemo.Views.MainView"
+             x:DataType="viewModels:MainViewModel">
   <Design.DataContext>
     <!-- This only sets the DataContext for the previewer in an IDE,
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-    <vm:MainViewModel />
+    <viewModels:MainViewModel />
   </Design.DataContext>
 
   <StackPanel>
-      <views:Foo x:Name="Foo" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+      <views1:Foo x:Name="Foo" HorizontalAlignment="Left" VerticalAlignment="Top"/>
       <Button Content="Button" Click="Button_OnClick"></Button>
   </StackPanel>
 </UserControl>

@@ -1,6 +1,6 @@
 ﻿using Avalonia.Controls;
 
-namespace WeechewhabeJereciwe.Views;
+namespace LightTextEditorPlus.AvaloniaDemo.Views;
 
 public partial class MainWindow : Window
 {

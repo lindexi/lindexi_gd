@@ -1,6 +1,6 @@
 ﻿using ReactiveUI;
 
-namespace WeechewhabeJereciwe.ViewModels;
+namespace LightTextEditorPlus.AvaloniaDemo.ViewModels;
 
 public class ViewModelBase : ReactiveObject
 {

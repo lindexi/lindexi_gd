@@ -4,7 +4,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Rendering.SceneGraph;
 
-namespace WeechewhabeJereciwe.Views;
+namespace LightTextEditorPlus.AvaloniaDemo.Views;
 
 public partial class MainView : UserControl
 {

@@ -1,9 +1,8 @@
 ﻿using System;
-
 using Avalonia;
 using Avalonia.ReactiveUI;
 
-namespace WeechewhabeJereciwe.Desktop;
+namespace LightTextEditorPlus.AvaloniaDemo.Desktop;
 
 class Program
 {

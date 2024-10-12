@@ -1,11 +1,10 @@
 ﻿using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using LightTextEditorPlus.AvaloniaDemo.ViewModels;
+using LightTextEditorPlus.AvaloniaDemo.Views;
 
-using WeechewhabeJereciwe.ViewModels;
-using WeechewhabeJereciwe.Views;
-
-namespace WeechewhabeJereciwe;
+namespace LightTextEditorPlus.AvaloniaDemo;
 
 public partial class App : Application
 {

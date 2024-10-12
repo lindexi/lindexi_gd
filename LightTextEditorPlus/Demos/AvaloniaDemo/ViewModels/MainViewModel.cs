@@ -1,4 +1,4 @@
-﻿namespace WeechewhabeJereciwe.ViewModels;
+﻿namespace LightTextEditorPlus.AvaloniaDemo.ViewModels;
 
 public class MainViewModel : ViewModelBase
 {
