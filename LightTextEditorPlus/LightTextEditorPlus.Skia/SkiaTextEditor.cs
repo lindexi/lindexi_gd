@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Rendering;
+using SkiaSharp;
 
 namespace LightTextEditorPlus;
 
-public partial class SkiaTextEditor : IRenderManager
+public partial class SkiaTextEditor : IRenderManager, ITextEditorSkiaRender
 {
     public SkiaTextEditor()
     {
@@ -20,14 +21,29 @@ public partial class SkiaTextEditor : IRenderManager
 
     public TextEditorCore TextEditorCore { get; }
 
+
     void IRenderManager.Render(RenderInfoProvider renderInfoProvider)
     {
-
+        RenderRequested?.Invoke(this, EventArgs.Empty);
     }
 
+    public ITextEditorSkiaRender GetCurrentRender()
+    {
+        return this;
+    }
 
+    public event EventHandler? RenderRequested;
+
+    void ITextEditorSkiaRender.Render(SKCanvas canvas)
+    {
+        
+    }
 }
 
+public interface ITextEditorSkiaRender
+{
+    void Render(SKCanvas canvas);
+}
 
 internal class SkiaTextEditorPlatformProvider : PlatformProvider
 {

@@ -4,8 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Platform;
+using Avalonia.Rendering.SceneGraph;
+using Avalonia.Skia;
+
 using LightTextEditorPlus.Core;
 
 namespace LightTextEditorPlus.Avalonia;
@@ -15,6 +20,7 @@ public partial class TextEditor : Control
     public TextEditor()
     {
         SkiaTextEditor = new SkiaTextEditor();
+        SkiaTextEditor.RenderRequested += (sender, args) => InvalidateVisual();
     }
 
     public SkiaTextEditor SkiaTextEditor { get; }
@@ -22,6 +28,45 @@ public partial class TextEditor : Control
 
     public override void Render(DrawingContext context)
     {
-        base.Render(context);
+        ITextEditorSkiaRender textEditorSkiaRender = SkiaTextEditor.GetCurrentRender();
+        context.Custom(new TextEditorCustomDrawOperation(new Rect(DesiredSize), textEditorSkiaRender));
     }
+}
+
+class TextEditorCustomDrawOperation : ICustomDrawOperation
+{
+    public TextEditorCustomDrawOperation(Rect bounds, ITextEditorSkiaRender render)
+    {
+        _render = render;
+        Bounds = bounds;
+    }
+
+    private readonly ITextEditorSkiaRender _render;
+
+    public void Dispose()
+    {
+
+    }
+
+    public bool Equals(ICustomDrawOperation? other)
+    {
+        return ReferenceEquals(this, other);
+    }
+
+    public bool HitTest(Point p)
+    {
+        return Bounds.Contains(p);
+    }
+
+    public void Render(ImmediateDrawingContext context)
+    {
+        ISkiaSharpApiLeaseFeature? skiaSharpApiLeaseFeature = context.TryGetFeature<ISkiaSharpApiLeaseFeature>();
+        if (skiaSharpApiLeaseFeature != null)
+        {
+            using ISkiaSharpApiLease skiaSharpApiLease = skiaSharpApiLeaseFeature.Lease();
+            _render.Render(skiaSharpApiLease.SkCanvas);
+        }
+    }
+
+    public Rect Bounds { get; }
 }
