@@ -4,10 +4,15 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <RootNamespace>LightTextEditorPlus</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="SkiaSharp" Version="2.88.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LightTextEditorPlus.Core\LightTextEditorPlus.Core.csproj" />
   </ItemGroup>
 
 </Project>
