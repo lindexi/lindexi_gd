@@ -3,6 +3,7 @@
   <ItemGroup>
     <UIFrameworkCompatibilityCode Include="$(MSBuildThisFileDirectory)Build\Shared\UI.Compatibility.Global.g.cs"
                                   Link="Properties\%(Filename)%(Extension)" />
+    <LightTextEditorPlusAPIDefineCode Include="$(MSBuildThisFileDirectory)Build\Shared\TextEditor.API.cs" Link="API_\%(Filename)%(Extension)"/>
   </ItemGroup>
 
   <!-- 自动处理不同 UI 框架之间的差异 -->
@@ -13,6 +14,7 @@
       </PropertyGroup>
       <ItemGroup>
         <Compile Include="@(UIFrameworkCompatibilityCode)" />
+        <Compile Include="@(LightTextEditorPlusAPIDefineCode)" />
         <Compile Remove="**\*.test.cs" />
         <Compile Remove="**\*.uno.cs" />
         <Compile Remove="**\*.wpf.cs" />
@@ -36,6 +38,7 @@
       </PropertyGroup>
       <ItemGroup>
         <Compile Include="@(UIFrameworkCompatibilityCode)" />
+        <Compile Include="@(LightTextEditorPlusAPIDefineCode)" />
         <Compile Remove="**\*.ava.cs" />
         <Compile Remove="**\*.test.cs" />
         <Compile Remove="**\*.uno.cs" />

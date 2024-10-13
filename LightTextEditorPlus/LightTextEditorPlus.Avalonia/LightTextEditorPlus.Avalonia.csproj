@@ -4,7 +4,14 @@
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <UseUIFramework>Avalonia</UseUIFramework>
+    <RootNamespace>LightTextEditorPlus</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="API_\TextEditor.Edit.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="API_\TextEditor.Edit.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />

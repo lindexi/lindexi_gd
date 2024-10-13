@@ -14,7 +14,7 @@ using Avalonia.Skia;
 
 using LightTextEditorPlus.Core;
 
-namespace LightTextEditorPlus.Avalonia;
+namespace LightTextEditorPlus;
 
 public partial class TextEditor : Control
 {

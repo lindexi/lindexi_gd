@@ -33,8 +33,6 @@ using LightTextEditorPlus.Rendering;
 using LightTextEditorPlus.Utils;
 using LightTextEditorPlus.Utils.Threading;
 
-using Microsoft.Win32;
-
 using FrameworkElement = System.Windows.FrameworkElement;
 using Point = LightTextEditorPlus.Core.Primitive.Point;
 using Rect = LightTextEditorPlus.Core.Primitive.Rect;
