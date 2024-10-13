@@ -8,7 +8,7 @@ using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Rendering;
-
+using LightTextEditorPlus.Rendering;
 using SkiaSharp;
 
 namespace LightTextEditorPlus;
@@ -21,11 +21,9 @@ public partial class SkiaTextEditor : IRenderManager, ITextEditorSkiaRender
         TextEditorCore = new TextEditorCore(skiaTextEditorPlatformProvider);
     }
 
+    internal RenderManager RenderManager { get; } = new RenderManager();
+
     public TextEditorCore TextEditorCore { get; }
-
-    record SkiaTextRenderInfo();
-
-    private List<SkiaTextRenderInfo>? RenderInfoList { set; get; }
 
     void IRenderManager.Render(RenderInfoProvider renderInfoProvider)
     {
@@ -34,14 +32,7 @@ public partial class SkiaTextEditor : IRenderManager, ITextEditorSkiaRender
             return;
         }
 
-        foreach (ParagraphRenderInfo paragraphRenderInfo in renderInfoProvider.GetParagraphRenderInfoList())
-        {
-            foreach (ParagraphLineRenderInfo lineInfo in paragraphRenderInfo.GetLineRenderInfoList())
-            {
-                // 先不考虑缓存
-                LineDrawingArgument argument = lineInfo.Argument;
-            }
-        }
+        RenderManager.Render(renderInfoProvider);
 
         RenderRequested?.Invoke(this, EventArgs.Empty);
     }
@@ -55,18 +46,13 @@ public partial class SkiaTextEditor : IRenderManager, ITextEditorSkiaRender
 
     public void Render(SKCanvas canvas)
     {
-        if (RenderInfoList is null)
-        {
-            return;
-        }
-
-        foreach (SkiaTextRenderInfo skiaTextRenderInfo in RenderInfoList)
-        {
-            
-        }
+        RenderManager.Render(canvas);
     }
 }
 
+/// <summary>
+/// 文本的 Skia 渲染器
+/// </summary>
 public interface ITextEditorSkiaRender
 {
     void Render(SKCanvas canvas);
