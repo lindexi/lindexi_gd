@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using LightTextEditorPlus.Core;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Rendering;
 
@@ -22,6 +23,10 @@ public partial class SkiaTextEditor : IRenderManager, ITextEditorSkiaRender
 
     public TextEditorCore TextEditorCore { get; }
 
+    record SkiaTextRenderInfo();
+
+    private List<SkiaTextRenderInfo>? RenderInfoList { set; get; }
+
     void IRenderManager.Render(RenderInfoProvider renderInfoProvider)
     {
         if (renderInfoProvider.IsDirty)
@@ -31,6 +36,11 @@ public partial class SkiaTextEditor : IRenderManager, ITextEditorSkiaRender
 
         foreach (ParagraphRenderInfo paragraphRenderInfo in renderInfoProvider.GetParagraphRenderInfoList())
         {
+            foreach (ParagraphLineRenderInfo lineInfo in paragraphRenderInfo.GetLineRenderInfoList())
+            {
+                // 先不考虑缓存
+                LineDrawingArgument argument = lineInfo.Argument;
+            }
         }
 
         RenderRequested?.Invoke(this, EventArgs.Empty);
@@ -45,7 +55,15 @@ public partial class SkiaTextEditor : IRenderManager, ITextEditorSkiaRender
 
     public void Render(SKCanvas canvas)
     {
+        if (RenderInfoList is null)
+        {
+            return;
+        }
 
+        foreach (SkiaTextRenderInfo skiaTextRenderInfo in RenderInfoList)
+        {
+            
+        }
     }
 }
 
