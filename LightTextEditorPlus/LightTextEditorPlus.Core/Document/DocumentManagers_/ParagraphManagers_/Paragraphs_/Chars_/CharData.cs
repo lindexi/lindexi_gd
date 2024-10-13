@@ -118,7 +118,10 @@ public class CharData
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// 用于输出调试信息
+    /// </summary>
+    /// <returns></returns>
     public override string ToString()
     {
         DebugVerify();

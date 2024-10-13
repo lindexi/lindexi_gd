@@ -30,7 +30,7 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
                     Point startPoint = charData.GetStartPoint();
                     float x = (float) startPoint.X;
                     float y = (float) startPoint.Y;
-                    var skiaTextRenderInfo = new SkiaTextRenderInfo(charData.ToString(), x, y, charData.RunProperty);
+                    var skiaTextRenderInfo = new SkiaTextRenderInfo(charData.CharObject.ToText(), x, y, charData.RunProperty);
                     list.Add(skiaTextRenderInfo);
                 }
             }
