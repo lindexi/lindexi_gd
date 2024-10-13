@@ -1,10 +1,16 @@
 ﻿<Project>
+
+  <ItemGroup>
+    <UIFrameworkCompatibilityCode Include="$(MSBuildThisFileDirectory)Build\Shared\UI.Compatibility.Global.g.cs" Link="Properties\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+
   <!-- 自动处理不同 UI 框架之间的差异 -->
   <PropertyGroup Condition=" '$(UseUIFramework)' == 'Avalonia' ">
     <DefineConstants>$(DefineConstants);USE_AVALONIA</DefineConstants>
   </PropertyGroup>
   <ItemGroup Condition=" '$(UseUIFramework)' == 'Avalonia' ">
-    <Compile Include="$(MSBuildThisFileDirectory)build\UI.Compatibility.Global.g.cs" Link="Properties\%(Filename)%(Extension)" />
+    <Compile Include="@(UIFrameworkCompatibilityCode)" />
     <Compile Remove="**\*.test.cs" />
     <Compile Remove="**\*.uno.cs" />
     <Compile Remove="**\*.wpf.cs" />
@@ -14,7 +20,7 @@
     <DefineConstants>$(DefineConstants);USE_UNO</DefineConstants>
   </PropertyGroup>
   <ItemGroup Condition=" '$(UseUIFramework)' == 'Uno' ">
-    <Compile Include="$(MSBuildThisFileDirectory)build\UI.Compatibility.Global.g.cs" Link="Properties\%(Filename)%(Extension)" />
+    <Compile Include="@(UIFrameworkCompatibilityCode)" />
     <Compile Remove="**\*.ava.cs" />
     <Compile Remove="**\*.test.cs" />
     <Compile Remove="**\*.wpf.cs" />
@@ -24,7 +30,7 @@
     <DefineConstants>$(DefineConstants);USE_WPF</DefineConstants>
   </PropertyGroup>
   <ItemGroup Condition=" '$(UseUIFramework)' == 'Wpf' ">
-    <Compile Include="$(MSBuildThisFileDirectory)build\UI.Compatibility.Global.g.cs" Link="Properties\%(Filename)%(Extension)" />
+    <Compile Include="@(UIFrameworkCompatibilityCode)" />
     <Compile Remove="**\*.ava.cs" />
     <Compile Remove="**\*.test.cs" />
     <Compile Remove="**\*.uno.cs" />
@@ -34,7 +40,7 @@
     <DefineConstants>$(DefineConstants);USE_TEST</DefineConstants>
   </PropertyGroup>
   <ItemGroup Condition=" '$(UseUIFramework)' == 'Test' ">
-    <Compile Include="$(MSBuildThisFileDirectory)build\UI.Compatibility.Global.g.cs" Link="Properties\%(Filename)%(Extension)" />
+    <Compile Include="@(UIFrameworkCompatibilityCode)" />
     <Compile Remove="**\*.ava.cs" />
     <Compile Remove="**\*.uno.cs" />
     <Compile Remove="**\*.wpf.cs" />
