@@ -8,7 +8,7 @@ using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Utils;
-
+using LightTextEditorPlus.Core.Utils.Maths;
 using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Document
@@ -43,6 +43,11 @@ namespace LightTextEditorPlus.Core.Document
         {
             set
             {
+                if (Nearly.Equals(_documentWidth,value))
+                {
+                    return;
+                }
+
                 _documentWidth = value;
 
                 TextEditor.RequireDispatchReLayoutAllDocument("DocumentWidthChanged");
@@ -60,6 +65,11 @@ namespace LightTextEditorPlus.Core.Document
         {
             set
             {
+                if (Nearly.Equals(_documentHeight, value))
+                {
+                    return;
+                }
+
                 _documentHeight = value;
 
                 TextEditor.RequireDispatchReLayoutAllDocument("DocumentHeightChanged");
