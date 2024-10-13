@@ -25,6 +25,8 @@ public partial class TextEditor : Control
 
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;
+
+        TextEditorCore.AppendText("123");
     }
 
     public SkiaTextEditor SkiaTextEditor { get; }

@@ -7,23 +7,32 @@ using System.Threading.Tasks;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Rendering;
+
 using SkiaSharp;
 
 namespace LightTextEditorPlus;
 
 public partial class SkiaTextEditor : IRenderManager, ITextEditorSkiaRender
 {
-    public SkiaTextEditor()
+    public SkiaTextEditor(PlatformProvider? platformProvider = null)
     {
-        var skiaTextEditorPlatformProvider = new SkiaTextEditorPlatformProvider(this);
+        var skiaTextEditorPlatformProvider = platformProvider ?? new SkiaTextEditorPlatformProvider(this);
         TextEditorCore = new TextEditorCore(skiaTextEditorPlatformProvider);
     }
 
     public TextEditorCore TextEditorCore { get; }
 
-
     void IRenderManager.Render(RenderInfoProvider renderInfoProvider)
     {
+        if (renderInfoProvider.IsDirty)
+        {
+            return;
+        }
+
+        foreach (ParagraphRenderInfo paragraphRenderInfo in renderInfoProvider.GetParagraphRenderInfoList())
+        {
+        }
+
         RenderRequested?.Invoke(this, EventArgs.Empty);
     }
 
@@ -34,9 +43,9 @@ public partial class SkiaTextEditor : IRenderManager, ITextEditorSkiaRender
 
     public event EventHandler? RenderRequested;
 
-    void ITextEditorSkiaRender.Render(SKCanvas canvas)
+    public void Render(SKCanvas canvas)
     {
-        
+
     }
 }
 
@@ -45,7 +54,7 @@ public interface ITextEditorSkiaRender
     void Render(SKCanvas canvas);
 }
 
-internal class SkiaTextEditorPlatformProvider : PlatformProvider
+public class SkiaTextEditorPlatformProvider : PlatformProvider
 {
     public SkiaTextEditorPlatformProvider(SkiaTextEditor textEditor)
     {
@@ -53,4 +62,9 @@ internal class SkiaTextEditorPlatformProvider : PlatformProvider
     }
 
     private SkiaTextEditor TextEditor { get; }
+
+    public override IRenderManager? GetRenderManager()
+    {
+        return TextEditor;
+    }
 }
