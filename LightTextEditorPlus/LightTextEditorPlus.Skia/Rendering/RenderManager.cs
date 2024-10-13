@@ -6,7 +6,7 @@ using SkiaSharp;
 
 namespace LightTextEditorPlus.Rendering;
 
-class RenderManager: IRenderManager
+class RenderManager: IRenderManager, ITextEditorSkiaRender
 {
     record SkiaTextRenderInfo();
 

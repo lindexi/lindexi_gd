@@ -9,11 +9,10 @@ using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Rendering;
-using SkiaSharp;
 
 namespace LightTextEditorPlus;
 
-public partial class SkiaTextEditor : IRenderManager, ITextEditorSkiaRender
+public partial class SkiaTextEditor : IRenderManager
 {
     public SkiaTextEditor(PlatformProvider? platformProvider = null)
     {
@@ -39,23 +38,10 @@ public partial class SkiaTextEditor : IRenderManager, ITextEditorSkiaRender
 
     public ITextEditorSkiaRender GetCurrentRender()
     {
-        return this;
+        return RenderManager;
     }
 
     public event EventHandler? RenderRequested;
-
-    public void Render(SKCanvas canvas)
-    {
-        RenderManager.Render(canvas);
-    }
-}
-
-/// <summary>
-/// 文本的 Skia 渲染器
-/// </summary>
-public interface ITextEditorSkiaRender
-{
-    void Render(SKCanvas canvas);
 }
 
 public class SkiaTextEditorPlatformProvider : PlatformProvider

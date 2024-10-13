@@ -26,6 +26,7 @@ public partial class TextEditor : Control
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;
 
+        // 调试代码
         TextEditorCore.AppendText("123");
     }
 
@@ -35,11 +36,13 @@ public partial class TextEditor : Control
     protected override Size MeasureOverride(Size availableSize)
     {
         var result = base.MeasureOverride(availableSize);
+        // 文本库，有多少就要多少
         return availableSize;
     }
 
     protected override Size ArrangeOverride(Size finalSize)
     {
+        // 实际布局多大就使用多大
         TextEditorCore.DocumentManager.DocumentWidth = finalSize.Width;
         TextEditorCore.DocumentManager.DocumentHeight = finalSize.Height;
 
@@ -85,6 +88,10 @@ class TextEditorCustomDrawOperation : ICustomDrawOperation
         {
             using ISkiaSharpApiLease skiaSharpApiLease = skiaSharpApiLeaseFeature.Lease();
             _render.Render(skiaSharpApiLease.SkCanvas);
+        }
+        else
+        {
+            // 不支持 Skia 绘制
         }
     }
 
