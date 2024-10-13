@@ -1,49 +1,57 @@
 ﻿<Project>
 
   <ItemGroup>
-    <UIFrameworkCompatibilityCode Include="$(MSBuildThisFileDirectory)Build\Shared\UI.Compatibility.Global.g.cs" Link="Properties\%(Filename)%(Extension)" />
+    <UIFrameworkCompatibilityCode Include="$(MSBuildThisFileDirectory)Build\Shared\UI.Compatibility.Global.g.cs"
+                                  Link="Properties\%(Filename)%(Extension)" />
   </ItemGroup>
-
 
   <!-- 自动处理不同 UI 框架之间的差异 -->
-  <PropertyGroup Condition=" '$(UseUIFramework)' == 'Avalonia' ">
-    <DefineConstants>$(DefineConstants);USE_AVALONIA</DefineConstants>
-  </PropertyGroup>
-  <ItemGroup Condition=" '$(UseUIFramework)' == 'Avalonia' ">
-    <Compile Include="@(UIFrameworkCompatibilityCode)" />
-    <Compile Remove="**\*.test.cs" />
-    <Compile Remove="**\*.uno.cs" />
-    <Compile Remove="**\*.wpf.cs" />
-  </ItemGroup>
+  <Choose>
+    <When Condition=" '$(UseUIFramework)' == 'Avalonia' ">
+      <PropertyGroup>
+        <DefineConstants>$(DefineConstants);USE_AVALONIA</DefineConstants>
+      </PropertyGroup>
+      <ItemGroup>
+        <Compile Include="@(UIFrameworkCompatibilityCode)" />
+        <Compile Remove="**\*.test.cs" />
+        <Compile Remove="**\*.uno.cs" />
+        <Compile Remove="**\*.wpf.cs" />
+      </ItemGroup>
+    </When>
 
-  <PropertyGroup Condition=" '$(UseUIFramework)' == 'Uno' ">
-    <DefineConstants>$(DefineConstants);USE_UNO</DefineConstants>
-  </PropertyGroup>
-  <ItemGroup Condition=" '$(UseUIFramework)' == 'Uno' ">
-    <Compile Include="@(UIFrameworkCompatibilityCode)" />
-    <Compile Remove="**\*.ava.cs" />
-    <Compile Remove="**\*.test.cs" />
-    <Compile Remove="**\*.wpf.cs" />
-  </ItemGroup>
-
-  <PropertyGroup Condition=" '$(UseUIFramework)' == 'Wpf' ">
-    <DefineConstants>$(DefineConstants);USE_WPF</DefineConstants>
-  </PropertyGroup>
-  <ItemGroup Condition=" '$(UseUIFramework)' == 'Wpf' ">
-    <Compile Include="@(UIFrameworkCompatibilityCode)" />
-    <Compile Remove="**\*.ava.cs" />
-    <Compile Remove="**\*.test.cs" />
-    <Compile Remove="**\*.uno.cs" />
-  </ItemGroup>
-
-  <PropertyGroup Condition=" '$(UseUIFramework)' == 'Test' ">
-    <DefineConstants>$(DefineConstants);USE_TEST</DefineConstants>
-  </PropertyGroup>
-  <ItemGroup Condition=" '$(UseUIFramework)' == 'Test' ">
-    <Compile Include="@(UIFrameworkCompatibilityCode)" />
-    <Compile Remove="**\*.ava.cs" />
-    <Compile Remove="**\*.uno.cs" />
-    <Compile Remove="**\*.wpf.cs" />
-  </ItemGroup>
+    <When Condition=" '$(UseUIFramework)' == 'Uno' ">
+      <PropertyGroup>
+        <DefineConstants>$(DefineConstants);USE_UNO</DefineConstants>
+      </PropertyGroup>
+      <ItemGroup>
+        <Compile Include="@(UIFrameworkCompatibilityCode)" />
+        <Compile Remove="**\*.ava.cs" />
+        <Compile Remove="**\*.test.cs" />
+        <Compile Remove="**\*.wpf.cs" />
+      </ItemGroup>
+    </When>
+    <When Condition=" '$(UseUIFramework)' == 'Wpf' ">
+      <PropertyGroup>
+        <DefineConstants>$(DefineConstants);USE_WPF</DefineConstants>
+      </PropertyGroup>
+      <ItemGroup>
+        <Compile Include="@(UIFrameworkCompatibilityCode)" />
+        <Compile Remove="**\*.ava.cs" />
+        <Compile Remove="**\*.test.cs" />
+        <Compile Remove="**\*.uno.cs" />
+      </ItemGroup>
+    </When>
+    <When Condition=" '$(UseUIFramework)' == 'Test' ">
+      <PropertyGroup>
+        <DefineConstants>$(DefineConstants);USE_TEST</DefineConstants>
+      </PropertyGroup>
+      <ItemGroup>
+        <Compile Include="@(UIFrameworkCompatibilityCode)" />
+        <Compile Remove="**\*.ava.cs" />
+        <Compile Remove="**\*.uno.cs" />
+        <Compile Remove="**\*.wpf.cs" />
+      </ItemGroup>
+    </When>
+  </Choose>
 
 </Project>
