@@ -14,6 +14,7 @@ class RenderManager: IRenderManager, ITextEditorSkiaRender
 
     public void Render(RenderInfoProvider renderInfoProvider)
     {
+        
         foreach (ParagraphRenderInfo paragraphRenderInfo in renderInfoProvider.GetParagraphRenderInfoList())
         {
             foreach (ParagraphLineRenderInfo lineInfo in paragraphRenderInfo.GetLineRenderInfoList())

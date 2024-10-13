@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Platform;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Rendering;
 
@@ -24,12 +25,19 @@ public partial class SkiaTextEditor : IRenderManager
 
     public TextEditorCore TextEditorCore { get; }
 
+    /// <summary>
+    /// 获取文档的布局尺寸，实际布局尺寸
+    /// </summary>
+    public Rect CurrentLayoutBounds { get; private set; } = Rect.Zero;
+
     void IRenderManager.Render(RenderInfoProvider renderInfoProvider)
     {
         if (renderInfoProvider.IsDirty)
         {
             return;
         }
+
+        CurrentLayoutBounds = TextEditorCore.GetDocumentLayoutBounds();
 
         RenderManager.Render(renderInfoProvider);
 
