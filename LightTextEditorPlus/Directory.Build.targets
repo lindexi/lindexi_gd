@@ -1,0 +1,43 @@
+﻿<Project>
+  <!-- 自动处理不同 UI 框架之间的差异 -->
+  <PropertyGroup Condition=" '$(UseUIFramework)' == 'Avalonia' ">
+    <DefineConstants>$(DefineConstants);USE_AVALONIA</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition=" '$(UseUIFramework)' == 'Avalonia' ">
+    <Compile Include="$(MSBuildThisFileDirectory)build\UI.Compatibility.Global.g.cs" Link="Properties\%(Filename)%(Extension)" />
+    <Compile Remove="**\*.test.cs" />
+    <Compile Remove="**\*.uno.cs" />
+    <Compile Remove="**\*.wpf.cs" />
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(UseUIFramework)' == 'Uno' ">
+    <DefineConstants>$(DefineConstants);USE_UNO</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition=" '$(UseUIFramework)' == 'Uno' ">
+    <Compile Include="$(MSBuildThisFileDirectory)build\UI.Compatibility.Global.g.cs" Link="Properties\%(Filename)%(Extension)" />
+    <Compile Remove="**\*.ava.cs" />
+    <Compile Remove="**\*.test.cs" />
+    <Compile Remove="**\*.wpf.cs" />
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(UseUIFramework)' == 'Wpf' ">
+    <DefineConstants>$(DefineConstants);USE_WPF</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition=" '$(UseUIFramework)' == 'Wpf' ">
+    <Compile Include="$(MSBuildThisFileDirectory)build\UI.Compatibility.Global.g.cs" Link="Properties\%(Filename)%(Extension)" />
+    <Compile Remove="**\*.ava.cs" />
+    <Compile Remove="**\*.test.cs" />
+    <Compile Remove="**\*.uno.cs" />
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(UseUIFramework)' == 'Test' ">
+    <DefineConstants>$(DefineConstants);USE_TEST</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition=" '$(UseUIFramework)' == 'Test' ">
+    <Compile Include="$(MSBuildThisFileDirectory)build\UI.Compatibility.Global.g.cs" Link="Properties\%(Filename)%(Extension)" />
+    <Compile Remove="**\*.ava.cs" />
+    <Compile Remove="**\*.uno.cs" />
+    <Compile Remove="**\*.wpf.cs" />
+  </ItemGroup>
+
+</Project>

@@ -6,7 +6,7 @@
     <!-- 忽略异常： -->
     <!-- - NU1803： Nuget 服务器采用 http 协议 https://learn.microsoft.com/zh-cn/nuget/reference/errors-and-warnings/nu1803 -->
     <NoWarn>NU1803</NoWarn>
-    
+
     <CodeRootPath>$(MSBuildThisFileDirectory)</CodeRootPath>
 
     <AvaloniaVersion>11.1.0</AvaloniaVersion>

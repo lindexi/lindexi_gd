@@ -8,6 +8,7 @@
     <Nullable>enable</Nullable>
     <RootNamespace>LightTextEditorPlus</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <UseUIFramework>Wpf</UseUIFramework>
   </PropertyGroup>
 
   <ItemGroup>
