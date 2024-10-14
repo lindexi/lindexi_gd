@@ -102,10 +102,12 @@ var touchMajorAtom = XInternAtom(display, "Abs MT Touch Major", false);
 var touchMinorAtom = XInternAtom(display, "Abs MT Touch Minor", false);
 var pressureAtom = XInternAtom(display, "Abs MT Pressure", false);
 
+Console.WriteLine($"ABS_MT_TOUCH_MAJOR={touchMajorAtom} Name={XLib.GetAtomName(display, touchMajorAtom)} ABS_MT_TOUCH_MINOR={touchMinorAtom} Name={XLib.GetAtomName(display, touchMinorAtom)} Abs_MT_Pressure={pressureAtom} Name={XLib.GetAtomName(display, pressureAtom)}");
+
 var valuators = new List<XIValuatorClassInfo>();
 var scrollers = new List<XIScrollClassInfo>();
 
-XIValuatorClassInfo? touchMajorValuatorClassInfo=null;
+XIValuatorClassInfo? touchMajorValuatorClassInfo = null;
 XIValuatorClassInfo? touchMinorValuatorClassInfo = null;
 XIValuatorClassInfo? pressureValuatorClassInfo = null;
 
@@ -271,7 +273,7 @@ while (true)
 
                             if (touchMajorValuatorClassInfo.HasValue)
                             {
-                                if (valuatorDictionary.TryGetValue(touchMajorValuatorClassInfo.Value.Number,out var value))
+                                if (valuatorDictionary.TryGetValue(touchMajorValuatorClassInfo.Value.Number, out var value))
                                 {
                                     t = t with
                                     {
@@ -280,7 +282,7 @@ while (true)
                                 }
                                 else
                                 {
-                                    
+
                                 }
                             }
 
@@ -295,7 +297,7 @@ while (true)
                                 }
                                 else
                                 {
-                                    
+
                                 }
                             }
 
@@ -375,7 +377,7 @@ void Draw()
                 pixelHeight = value.TouchMinor / touchMinorValuatorClassInfo.Value.Max * xDisplayHeight;
             }
 
-            skCanvas.DrawOval((float) value.X, (float) value.Y, (float) pixelWidth, (float) pixelHeight, skPaint);
+            skCanvas.DrawRect((float) (value.X - pixelWidth / 2), (float) (value.Y - pixelHeight / 2), (float) pixelWidth, (float) pixelHeight, skPaint);
         }
 
         skPaint.IsLinearText = false;
