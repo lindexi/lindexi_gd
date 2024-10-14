@@ -105,6 +105,10 @@ var pressureAtom = XInternAtom(display, "Abs MT Pressure", false);
 var valuators = new List<XIValuatorClassInfo>();
 var scrollers = new List<XIScrollClassInfo>();
 
+XIValuatorClassInfo? touchMajorValuatorClassInfo=null;
+XIValuatorClassInfo? touchMinorValuatorClassInfo = null;
+XIValuatorClassInfo? pressureValuatorClassInfo = null;
+
 unsafe
 {
     var devices = (XIDeviceInfo*) XIQueryDevice(display,
@@ -152,22 +156,29 @@ unsafe
             }
         }
 
-        bool canFindTouchMajor = false;
-
         foreach (var xiValuatorClassInfo in valuators)
         {
             if (xiValuatorClassInfo.Label == touchMajorAtom)
             {
                 Console.WriteLine($"TouchMajorAtom Max={xiValuatorClassInfo.Max:0.00}; Min={xiValuatorClassInfo.Min:0.00}; Resolution={xiValuatorClassInfo.Resolution}");
-                canFindTouchMajor = true;
+
+                touchMajorValuatorClassInfo = xiValuatorClassInfo;
             }
             else if (xiValuatorClassInfo.Label == touchMinorAtom)
             {
                 Console.WriteLine($"TouchMinorAtom Max={xiValuatorClassInfo.Max:0.00}; Min={xiValuatorClassInfo.Min:0.00}; Resolution={xiValuatorClassInfo.Resolution}");
+
+                touchMinorValuatorClassInfo = xiValuatorClassInfo;
+            }
+            else if (xiValuatorClassInfo.Label == pressureAtom)
+            {
+                Console.WriteLine($"PressureAtom Max={xiValuatorClassInfo.Max:0.00}; Min={xiValuatorClassInfo.Min:0.00}; Resolution={xiValuatorClassInfo.Resolution}");
+
+                pressureValuatorClassInfo = xiValuatorClassInfo;
             }
         }
 
-        if (!canFindTouchMajor)
+        if (touchMajorValuatorClassInfo is null)
         {
             Console.WriteLine("Can't find TouchMajorAtom 丢失触摸宽度高度");
         }
@@ -258,35 +269,65 @@ while (true)
                                 }
                             }
 
-                            foreach (var (key, value) in valuatorDictionary)
+                            if (touchMajorValuatorClassInfo.HasValue)
                             {
-                                var xiValuatorClassInfo = valuators.FirstOrDefault(t => t.Number == key);
-
-                                //var label = GetAtomName(display, xiValuatorClassInfo.Label);
-
-                                if (xiValuatorClassInfo.Label == touchMajorAtom)
+                                if (valuatorDictionary.TryGetValue(touchMajorValuatorClassInfo.Value.Number,out var value))
                                 {
-                                    //label = "TouchMajor";
                                     t = t with
                                     {
                                         TouchMajor = value,
                                     };
                                 }
-                                else if (xiValuatorClassInfo.Label == touchMinorAtom)
+                                else
                                 {
-                                    //label = "TouchMinor";
+                                    
+                                }
+                            }
+
+                            if (touchMinorValuatorClassInfo.HasValue)
+                            {
+                                if (valuatorDictionary.TryGetValue(touchMinorValuatorClassInfo.Value.Number, out var value))
+                                {
                                     t = t with
                                     {
                                         TouchMinor = value,
                                     };
                                 }
-                                else if (xiValuatorClassInfo.Label == pressureAtom)
+                                else
                                 {
-                                    //label = "Pressure";
+                                    
                                 }
-
-                                //Console.WriteLine($"[Valuator] [{label}] Label={xiValuatorClassInfo.Label} Type={xiValuatorClassInfo.Type} Sourceid={xiValuatorClassInfo.Sourceid} Number={xiValuatorClassInfo.Number} Min={xiValuatorClassInfo.Min} Max={xiValuatorClassInfo.Max} Value={xiValuatorClassInfo.Value} Resolution={xiValuatorClassInfo.Resolution} Mode={xiValuatorClassInfo.Mode} Value={value}");
                             }
+
+                            //foreach (var (key, value) in valuatorDictionary)
+                            //{
+                            //    var xiValuatorClassInfo = valuators.FirstOrDefault(t => t.Number == key);
+
+                            //    //var label = GetAtomName(display, xiValuatorClassInfo.Label);
+
+                            //    if (xiValuatorClassInfo.Label == touchMajorAtom)
+                            //    {
+                            //        //label = "TouchMajor";
+                            //        t = t with
+                            //        {
+                            //            TouchMajor = value,
+                            //        };
+                            //    }
+                            //    else if (xiValuatorClassInfo.Label == touchMinorAtom)
+                            //    {
+                            //        //label = "TouchMinor";
+                            //        t = t with
+                            //        {
+                            //            TouchMinor = value,
+                            //        };
+                            //    }
+                            //    else if (xiValuatorClassInfo.Label == pressureAtom)
+                            //    {
+                            //        //label = "Pressure";
+                            //    }
+
+                            //    //Console.WriteLine($"[Valuator] [{label}] Label={xiValuatorClassInfo.Label} Type={xiValuatorClassInfo.Type} Sourceid={xiValuatorClassInfo.Sourceid} Number={xiValuatorClassInfo.Number} Min={xiValuatorClassInfo.Min} Max={xiValuatorClassInfo.Max} Value={xiValuatorClassInfo.Value} Resolution={xiValuatorClassInfo.Resolution} Mode={xiValuatorClassInfo.Mode} Value={value}");
+                            //}
 
                             dictionary[xiDeviceEvent->detail] = t;
                         }
