@@ -123,8 +123,8 @@ unsafe
 
         if (devices[c].Use == XiDeviceType.XIMasterPointer)
         {
-            pointerDevice = devices[c];
-            break;
+            pointerDevice ??= devices[c];
+            continue;
         }
     }
 
@@ -177,6 +177,10 @@ unsafe
                 Console.WriteLine($"PressureAtom Value={xiValuatorClassInfo.Value}; Max={xiValuatorClassInfo.Max:0.00}; Min={xiValuatorClassInfo.Min:0.00}; Resolution={xiValuatorClassInfo.Resolution}");
 
                 pressureValuatorClassInfo = xiValuatorClassInfo;
+            }
+            else
+            {
+                Console.WriteLine($"XiValuatorClassInfo Label={xiValuatorClassInfo.Label}({XLib.GetAtomName(display, xiValuatorClassInfo.Label)} Value={xiValuatorClassInfo.Value}; Max={xiValuatorClassInfo.Max:0.00}; Min={xiValuatorClassInfo.Min:0.00}; Resolution={xiValuatorClassInfo.Resolution})");
             }
         }
 
