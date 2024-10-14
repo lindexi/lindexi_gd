@@ -160,19 +160,19 @@ unsafe
         {
             if (xiValuatorClassInfo.Label == touchMajorAtom)
             {
-                Console.WriteLine($"TouchMajorAtom Max={xiValuatorClassInfo.Max:0.00}; Min={xiValuatorClassInfo.Min:0.00}; Resolution={xiValuatorClassInfo.Resolution}");
+                Console.WriteLine($"TouchMajorAtom Value={xiValuatorClassInfo.Value}; Max={xiValuatorClassInfo.Max:0.00}; Min={xiValuatorClassInfo.Min:0.00}; Resolution={xiValuatorClassInfo.Resolution}");
 
                 touchMajorValuatorClassInfo = xiValuatorClassInfo;
             }
             else if (xiValuatorClassInfo.Label == touchMinorAtom)
             {
-                Console.WriteLine($"TouchMinorAtom Max={xiValuatorClassInfo.Max:0.00}; Min={xiValuatorClassInfo.Min:0.00}; Resolution={xiValuatorClassInfo.Resolution}");
+                Console.WriteLine($"TouchMinorAtom Value={xiValuatorClassInfo.Value}; Max={xiValuatorClassInfo.Max:0.00}; Min={xiValuatorClassInfo.Min:0.00}; Resolution={xiValuatorClassInfo.Resolution}");
 
                 touchMinorValuatorClassInfo = xiValuatorClassInfo;
             }
             else if (xiValuatorClassInfo.Label == pressureAtom)
             {
-                Console.WriteLine($"PressureAtom Max={xiValuatorClassInfo.Max:0.00}; Min={xiValuatorClassInfo.Min:0.00}; Resolution={xiValuatorClassInfo.Resolution}");
+                Console.WriteLine($"PressureAtom Value={xiValuatorClassInfo.Value}; Max={xiValuatorClassInfo.Max:0.00}; Min={xiValuatorClassInfo.Min:0.00}; Resolution={xiValuatorClassInfo.Resolution}");
 
                 pressureValuatorClassInfo = xiValuatorClassInfo;
             }
@@ -362,6 +362,22 @@ void Draw()
 
     foreach (var value in dictionary.Values)
     {
+        if (touchMajorValuatorClassInfo != null)
+        {
+            double pixelWidth = value.TouchMajor / touchMajorValuatorClassInfo.Value.Max * xDisplayWidth;
+            double pixelHeight;
+            if (touchMinorValuatorClassInfo is null)
+            {
+                pixelHeight = pixelWidth;
+            }
+            else
+            {
+                pixelHeight = value.TouchMinor / touchMinorValuatorClassInfo.Value.Max * xDisplayHeight;
+            }
+
+            skCanvas.DrawOval((float) value.X, (float) value.Y, (float) pixelWidth, (float) pixelHeight, skPaint);
+        }
+
         skPaint.IsLinearText = false;
         var text = $"""Id={value.Id};X={value.X} Y={value.Y};W={value.TouchMajor} H={value.TouchMinor}""";
         if (value.IsUp)
