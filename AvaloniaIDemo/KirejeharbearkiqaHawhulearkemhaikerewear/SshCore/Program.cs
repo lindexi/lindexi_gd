@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,40 +22,6 @@ internal class Program
         var standardInput = Console.OpenStandardInput();
 
 
-        while (true)
-        {
-            var consoleKeyInfo = Console.ReadKey(false);
-
-            if (consoleKeyInfo.Key == ConsoleKey.Escape)
-            {
-                break;
-            }
-
-            if (consoleKeyInfo.Key == ConsoleKey.Tab)
-            {
-                isSendTab = true;
-            }
-            else if (consoleKeyInfo.Key == ConsoleKey.Backspace)
-            {
-                currentLine.Remove(currentLine.Length - 1, 1);
-                var cursorLeft = Console.CursorLeft;
-                Console.Write(' ');
-                Console.CursorLeft = cursorLeft;
-                //continue;
-            }
-            else
-            {
-                currentLine.Append(consoleKeyInfo.KeyChar);
-            }
-
-            //var cursorTop = Console.CursorTop;
-            //Console.CursorLeft = 0;
-            //Console.Write($"{currentLine.ToString().PadRight(Console.BufferWidth)}");
-            //Console.SetCursorPosition(currentLine.Length, cursorTop);
-            //Console.CursorLeft = currentLine.Length;
-            //consoleKeyInfo.KeyChar
-        }
-
 
         var file = @"c:\lindexi\CA\ssh.coin";
         var fileConfigurationRepo = ConfigurationFactory.FromFile(file, RepoSyncingBehavior.Sync);
@@ -64,6 +31,20 @@ internal class Program
         //sshConfiguration.Host = "127.0.0.1";
         //sshConfiguration.UserName = "root";
         //sshConfiguration.Password = "lindexi";
+
+        var processStartInfo = new ProcessStartInfo("ssh", ["-o", "ServerAliveInterval=600",$"{sshConfiguration.UserName}@{sshConfiguration.Host}"]);
+        Process.Start(processStartInfo);
+        var output = Console.OpenStandardOutput();
+        var reader = new StreamReader(output);
+        while (true)
+        {
+            var line = reader.ReadLine();
+            if (line is null)
+            {
+                break;
+            }
+        }
+
 
         var sshClient = new SshClient(sshConfiguration.Host, sshConfiguration.UserName, sshConfiguration.Password);
         await sshClient.ConnectAsync(CancellationToken.None);
