@@ -3,8 +3,6 @@ using CPF.Linux;
 
 using SkiaSharp;
 
-using System.Diagnostics.Tracing;
-
 using static CPF.Linux.XLib;
 
 XInitThreads();
@@ -63,36 +61,17 @@ var xImage = CreateImage(skBitmap);
 
 Console.WriteLine($"WH={width},{height}");
 
-skCanvas.Clear(SKColors.Blue);
-
 using var skPaint = new SKPaint();
 skPaint.Color = SKColors.Black;
 skPaint.StrokeWidth = 2;
 skPaint.Style = SKPaintStyle.Stroke;
 skPaint.IsAntialias = true;
 
-//for (int y = 0; y < skBitmap.Height; y += 25)
-//{
-//    skPaint.Color = new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF);
-//    skCanvas.DrawLine(0, y, skBitmap.Width, y, skPaint);
-//}
-
-//for (int x = 0; x < skBitmap.Width; x += 25)
-//{
-//    skPaint.Color = new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF);
-//    skCanvas.DrawLine(x, 0, x, skBitmap.Height, skPaint);
-//}
-
-//skCanvas.Flush();
-
-//skCanvas.Clear(SKColors.White);
-
 // 随意用一个支持中文的字体
 var typeface = SKFontManager.Default.MatchCharacter('十');
 skPaint.TextSize = 20;
 skPaint.Typeface = typeface;
 skPaint.Color = SKColors.Black;
-//skCanvas.DrawText("中文", 100, 100, skPaint); // 测试绘制中文
 skCanvas.Clear(SKColors.White);
 
 var touchMajorAtom = XInternAtom(display, "Abs MT Touch Major", false);
@@ -213,16 +192,6 @@ while (true)
             (uint) @event.ExposeEvent.height);
         isSendExposeEvent = false;
     }
-    else if (@event.type == XEventName.MotionNotify)
-    {
-        var x = @event.MotionEvent.x;
-        var y = @event.MotionEvent.y;
-
-        skCanvas.Clear(new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF));
-        skCanvas.Flush();
-
-        SendExposeEvent(display, handle, 0, 0, width, height);
-    }
     else if (@event.type == XEventName.GenericEvent)
     {
         unsafe
@@ -300,37 +269,6 @@ while (true)
 
                                 }
                             }
-
-                            //foreach (var (key, value) in valuatorDictionary)
-                            //{
-                            //    var xiValuatorClassInfo = valuators.FirstOrDefault(t => t.Number == key);
-
-                            //    //var label = GetAtomName(display, xiValuatorClassInfo.Label);
-
-                            //    if (xiValuatorClassInfo.Label == touchMajorAtom)
-                            //    {
-                            //        //label = "TouchMajor";
-                            //        t = t with
-                            //        {
-                            //            TouchMajor = value,
-                            //        };
-                            //    }
-                            //    else if (xiValuatorClassInfo.Label == touchMinorAtom)
-                            //    {
-                            //        //label = "TouchMinor";
-                            //        t = t with
-                            //        {
-                            //            TouchMinor = value,
-                            //        };
-                            //    }
-                            //    else if (xiValuatorClassInfo.Label == pressureAtom)
-                            //    {
-                            //        //label = "Pressure";
-                            //    }
-
-                            //    //Console.WriteLine($"[Valuator] [{label}] Label={xiValuatorClassInfo.Label} Type={xiValuatorClassInfo.Type} Sourceid={xiValuatorClassInfo.Sourceid} Number={xiValuatorClassInfo.Number} Min={xiValuatorClassInfo.Min} Max={xiValuatorClassInfo.Max} Value={xiValuatorClassInfo.Value} Resolution={xiValuatorClassInfo.Resolution} Mode={xiValuatorClassInfo.Mode} Value={value}");
-                            //}
-
                             dictionary[xiDeviceEvent->detail] = t;
                         }
                     }
