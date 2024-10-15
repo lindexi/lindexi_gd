@@ -318,10 +318,14 @@ class Program
                 _ = TranslateMessage(&msg);
                 _ = DispatchMessage(&msg);
 
-                if (msg.message is WM_QUIT or WM_CLOSE)
+                if (msg.message is WM_QUIT or WM_CLOSE or WM_DESTROY)
                 {
                     return;
                 }
+            }
+            else
+            {
+                
             }
         }
     }
