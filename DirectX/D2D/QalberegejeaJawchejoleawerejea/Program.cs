@@ -20,8 +20,12 @@ using D2D = Vortice.Direct2D1;
 using System.Drawing;
 using Vortice.Direct2D1;
 using System.Diagnostics;
+using Windows.Win32;
+using Windows.Win32.UI.Input.Pointer;
 using Vortice.WIC;
 using SharpGen.Runtime;
+using Vortice;
+using Vortice.Win32;
 
 namespace QalberegejeaJawchejoleawerejea;
 
@@ -135,6 +139,10 @@ class Program
         {
             throw new InvalidOperationException("Cannot detect D3D11 adapter");
         }
+        else
+        {
+            Console.WriteLine($"使用显卡 {hardwareAdapter.Description1.Description}");
+        }
 
         // 功能等级
         // [C# 从零开始写 SharpDx 应用 聊聊功能等级](https://blog.lindexi.com/post/C-%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E5%86%99-SharpDx-%E5%BA%94%E7%94%A8-%E8%81%8A%E8%81%8A%E5%8A%9F%E8%83%BD%E7%AD%89%E7%BA%A7.html)
@@ -201,14 +209,14 @@ class Program
             BufferUsage = DXGI.Usage.RenderTargetOutput,
             SampleDescription = DXGI.SampleDescription.Default,
             Scaling = DXGI.Scaling.Stretch,
-            SwapEffect = DXGI.SwapEffect.FlipDiscard,
+            SwapEffect = DXGI.SwapEffect.FlipSequential,
             AlphaMode = AlphaMode.Ignore,
+            Flags = DXGI.SwapChainFlags.AllowTearing,
         };
-
         // 设置是否全屏
         DXGI.SwapChainFullscreenDescription fullscreenDescription = new DXGI.SwapChainFullscreenDescription
         {
-            Windowed = true
+            Windowed = true,
         };
 
         // 给创建出来的窗口挂上交换链
@@ -251,6 +259,10 @@ class Program
         var stopwatch = Stopwatch.StartNew();
         var count = 0;
 
+        var first = 0;
+
+        var pointList = new List<Point2D>();
+
         Task.Factory.StartNew(() =>
         {
             while (true)
@@ -258,17 +270,21 @@ class Program
                 // 开始绘制逻辑
                 renderTarget.BeginDraw();
 
-                // 清空画布
-                renderTarget.Clear(new Color4(0xFFFFFFFF));
+                if (first < 2)
+                {
+                    // 清空画布
+                    renderTarget.Clear(new Color4(0xFFFFFFFF));
+                    first++;
+                }
 
                 // 随意创建颜色
                 var color = new Color4((uint) Random.Shared.Next());
                 using var brush = renderTarget.CreateSolidColorBrush(color);
-                renderTarget.FillEllipse(new Ellipse(new System.Numerics.Vector2(200, 200), 100, 100), brush);
+                renderTarget.FillEllipse(new Ellipse(new System.Numerics.Vector2(Random.Shared.Next(clientSize.Width), Random.Shared.Next(clientSize.Height)), 100, 100), brush);
 
                 renderTarget.EndDraw();
 
-                swapChain.Present(1, DXGI.PresentFlags.None);
+                swapChain.Present(1, DXGI.PresentFlags.AllowTearing);
                 // 等待刷新
                 d3D11DeviceContext.Flush();
 
@@ -299,6 +315,8 @@ class Program
             }
         }
     }
+
+    private static int ToInt32(IntPtr ptr) => IntPtr.Size == 4 ? ptr.ToInt32() : (int) (ptr.ToInt64() & 0xffffffff);
 
     private static IEnumerable<DXGI.IDXGIAdapter1> GetHardwareAdapter(DXGI.IDXGIFactory2 factory)
     {
@@ -356,4 +374,6 @@ class Program
     {
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
+
+    readonly record struct Point2D(double X, double Y);
 }
