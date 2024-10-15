@@ -4,7 +4,7 @@ using CPF.Linux;
 using SkiaSharp;
 
 using System.Diagnostics.Tracing;
-
+using System.Runtime.InteropServices;
 using static CPF.Linux.XLib;
 
 XInitThreads();
@@ -115,7 +115,7 @@ unsafe
     XIDeviceInfo? pointerDevice = default;
     for (var c = 0; c < num; c++)
     {
-        Console.WriteLine($"XIDeviceInfo [{c}] {devices[c].Deviceid} {devices[c].Use}");
+        Console.WriteLine($"XIDeviceInfo [{c}] DeviceId={devices[c].Deviceid} Name={devices[c].Name:X}({Marshal.PtrToStringAnsi(devices[c].Name)}) Use={devices[c].Use} Attachment={devices[c].Attachment}");
 
         if (devices[c].Use == XiDeviceType.XIMasterPointer)
         {
