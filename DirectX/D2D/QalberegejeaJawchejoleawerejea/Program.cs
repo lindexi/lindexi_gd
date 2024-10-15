@@ -33,10 +33,10 @@ class Program
     {
         // 准备创建窗口
         // 使用 Win32 创建窗口需要很多参数，这些参数系列不是本文的重点，还请自行了解
-        SizeI clientSize = new SizeI(1000, 1000);
+        SizeI clientSize = new SizeI(1000, 600);
 
         // 窗口标题
-        var title = "Demo";
+        var title = "QalberegejeaJawchejoleawerejea";
         var windowClassName = "lindexi doubi";
 
         // 窗口样式，窗口样式含义请执行参阅官方文档，样式只要不离谱，自己随便写，影响不大
@@ -259,7 +259,7 @@ class Program
                 renderTarget.BeginDraw();
 
                 // 清空画布
-                renderTarget.Clear(new Color4(0xFF, 0xFF, 0xFF));
+                //renderTarget.Clear(new Color4(0xFF, 0xFF, 0xFF));
 
                 // 随意创建颜色
                 var color = new Color4((byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255),
