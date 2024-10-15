@@ -258,7 +258,7 @@ class Program
 
         //var renderTarget = d2dDeviceContext;
 
-        var stopwatch = Stopwatch.StartNew();
+        var stopwatch = new Stopwatch();
         var count = 0;
 
         var first = 0;
@@ -267,6 +267,9 @@ class Program
 
         Task.Factory.StartNew(() =>
         {
+            Thread.Sleep(1000);
+            stopwatch.Start();
+
             var list = new List<Point2D>();
             // 随意创建颜色
             var color = new Color4((uint) Random.Shared.Next());
