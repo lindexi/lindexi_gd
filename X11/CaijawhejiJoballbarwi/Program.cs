@@ -53,8 +53,7 @@ XEventMask ignoredMask = XEventMask.SubstructureRedirectMask | XEventMask.Resize
 var mask = new IntPtr(0xffffff ^ (int) ignoredMask);
 XSelectInput(display, handle, mask);
 
-XMapWindow(display, handle);
-XFlush(display);
+
 
 var gc = XCreateGC(display, handle, 0, 0);
 var skBitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
@@ -192,6 +191,10 @@ unsafe
         Console.WriteLine("pointerDevice==null");
     }
 }
+
+// 先获取触摸再显示窗口
+XMapWindow(display, handle);
+XFlush(display);
 
 var dictionary = new Dictionary<int, TouchInfo>();
 bool isSendExposeEvent = false;
