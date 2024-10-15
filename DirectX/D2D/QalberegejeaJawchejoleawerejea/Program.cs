@@ -242,6 +242,7 @@ class Program
         // 在窗口的 dxgi 的平面上创建 D2D 的画布，如此即可让 D2D 绘制到窗口上
         D2D.ID2D1RenderTarget d2D1RenderTarget =
             d2DFactory.CreateDxgiSurfaceRenderTarget(dxgiSurface, renderTargetProperties);
+        d2D1RenderTarget.AntialiasMode = D2D.AntialiasMode.PerPrimitive;
 
         var renderTarget = d2D1RenderTarget;
 
@@ -276,7 +277,7 @@ class Program
             color = new Color4(0xFF0000FF);
             using var brush = renderTarget.CreateSolidColorBrush(color);
 
-            while (true)
+            while (list.Count != 0)
             {
                 // 开始绘制逻辑
                 renderTarget.BeginDraw();
@@ -345,11 +346,34 @@ class Program
                         displayRect.top);
 
                     point2D = new Point2D(point2D.X - screenTranslate.X, point2D.Y - screenTranslate.Y);
-
-                    lock (pointList)
+                    //lock (pointList)
                     {
+                        if (pointList.Count > 200)
+                        {
+                            pointList.RemoveRange(0, 100);
+                        }
                         pointList.Add(point2D);
                     }
+
+                    var color = new Color4(0xFF0000FF);
+                    using var brush = renderTarget.CreateSolidColorBrush(color);
+
+                    renderTarget.BeginDraw();
+                    renderTarget.AntialiasMode = AntialiasMode.Aliased;
+
+                    renderTarget.Clear(new Color4(0xFFFFFFFF));
+
+                    foreach (var p in pointList)
+                    {
+                        renderTarget.FillEllipse(new Ellipse(new System.Numerics.Vector2((float) p.X, (float) p.Y), 5, 5), brush);
+                    }
+
+                    renderTarget.EndDraw();
+                    swapChain.Present(1, DXGI.PresentFlags.None);
+                    // 等待刷新
+                    d3D11DeviceContext.Flush();
+
+
                 }
 
                 _ = TranslateMessage(&msg);
