@@ -259,11 +259,10 @@ class Program
                 renderTarget.BeginDraw();
 
                 // 清空画布
-                //renderTarget.Clear(new Color4(0xFF, 0xFF, 0xFF));
+                renderTarget.Clear(new Color4(0xFFFFFFFF));
 
                 // 随意创建颜色
-                var color = new Color4((byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255),
-                    (byte) Random.Shared.Next(255));
+                var color = new Color4((uint) Random.Shared.Next());
                 using var brush = renderTarget.CreateSolidColorBrush(color);
                 renderTarget.FillEllipse(new Ellipse(new System.Numerics.Vector2(200, 200), 100, 100), brush);
 
