@@ -192,7 +192,7 @@ unsafe
     }
 }
 
-// 先获取触摸再显示窗口
+// 先获取触摸再显示窗口，依然拿不到触摸宽度高度
 XMapWindow(display, handle);
 XFlush(display);
 
