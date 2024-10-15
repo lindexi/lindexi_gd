@@ -6,8 +6,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaijawhejiJoballbarwi", "Ca
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BujeeberehemnaNurgacolarje", "..\BujeeberehemnaNurgacolarje\BujeeberehemnaNurgacolarje.csproj", "{CCD6A6BA-B887-46C5-B4D0-EE1A848D17BA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManipulationDemoCpfX11", "..\ManipulationDemoCpfX11\ManipulationDemoCpfX11.csproj", "{3F40B89F-4E46-4A83-AD96-D2A616510547}"
-EndProject
 Global
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8F70C33D-DDB8-4E67-92D4-86465E997A60}
@@ -20,13 +18,17 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{3F40B89F-4E46-4A83-AD96-D2A616510547}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3F40B89F-4E46-4A83-AD96-D2A616510547}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3F40B89F-4E46-4A83-AD96-D2A616510547}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3F40B89F-4E46-4A83-AD96-D2A616510547}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C9EA6BFF-658C-4D4E-AC6F-F283C7709308}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C9EA6BFF-658C-4D4E-AC6F-F283C7709308}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9EA6BFF-658C-4D4E-AC6F-F283C7709308}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9EA6BFF-658C-4D4E-AC6F-F283C7709308}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CCD6A6BA-B887-46C5-B4D0-EE1A848D17BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CCD6A6BA-B887-46C5-B4D0-EE1A848D17BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CCD6A6BA-B887-46C5-B4D0-EE1A848D17BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CCD6A6BA-B887-46C5-B4D0-EE1A848D17BA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
+FF-658C-4D4E-AC6F-F283C7709308}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C9EA6BFF-658C-4D4E-AC6F-F283C7709308}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CCD6A6BA-B887-46C5-B4D0-EE1A848D17BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CCD6A6BA-B887-46C5-B4D0-EE1A848D17BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
