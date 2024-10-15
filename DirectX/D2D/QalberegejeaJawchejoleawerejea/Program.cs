@@ -258,7 +258,7 @@ class Program
 
         //var renderTarget = d2dDeviceContext;
 
-        var stopwatch = Stopwatch.StartNew();
+        var stopwatch = new Stopwatch();
         var count = 0;
 
         var first = 0;
@@ -267,10 +267,20 @@ class Program
 
         Task.Factory.StartNew(() =>
         {
+            Thread.Sleep(1000);
+            stopwatch.Start();
+
+            var list = new List<Point2D>();
+            // 随意创建颜色
+            var color = new Color4((uint) Random.Shared.Next());
+            color = new Color4(0xFF0000FF);
+            using var brush = renderTarget.CreateSolidColorBrush(color);
+
             while (true)
             {
                 // 开始绘制逻辑
                 renderTarget.BeginDraw();
+                renderTarget.AntialiasMode = AntialiasMode.Aliased;
 
                 if (first < 2)
                 {
@@ -279,17 +289,15 @@ class Program
                     first++;
                 }
 
-                // 随意创建颜色
-                var color = new Color4((uint) Random.Shared.Next());
-                color = new Color4(0xFF0000FF);
-                using var brush = renderTarget.CreateSolidColorBrush(color);
-
                 lock (pointList)
                 {
-                    foreach (var point2D in pointList)
-                    {
-                        renderTarget.FillEllipse(new Ellipse(new System.Numerics.Vector2((float) point2D.X, (float) point2D.Y), 5, 5), brush);
-                    }
+                    list.AddRange(pointList);
+                    pointList.Clear();
+                }
+
+                foreach (var point2D in list)
+                {
+                    renderTarget.FillEllipse(new Ellipse(new System.Numerics.Vector2((float) point2D.X, (float) point2D.Y), 5, 5), brush);
                 }
 
                 renderTarget.EndDraw();
@@ -302,12 +310,15 @@ class Program
                 count++;
                 if (stopwatch.Elapsed >= TimeSpan.FromSeconds(1))
                 {
-                    Console.WriteLine($"FPS: {count / stopwatch.Elapsed.TotalSeconds}");
+                    Console.WriteLine($"FPS: {count / stopwatch.Elapsed.TotalSeconds} 点数：{list.Count}");
                     stopwatch.Restart();
                     count = 0;
                 }
             }
         }, TaskCreationOptions.LongRunning);
+
+        var screenTranslate = new Point(0, 0);
+        PInvoke.ClientToScreen(hWnd, ref screenTranslate);
 
         // 开个消息循环等待
         Windows.Win32.UI.WindowsAndMessaging.MSG msg;
@@ -332,9 +343,6 @@ class Program
                         displayRect.left,
                         pointerInfo.ptHimetricLocationRaw.Y / (double) pointerDeviceRect.Height * displayRect.Height +
                         displayRect.top);
-
-                    var screenTranslate = new Point(0, 0);
-                    PInvoke.ClientToScreen(hWnd, ref screenTranslate);
 
                     point2D = new Point2D(point2D.X - screenTranslate.X, point2D.Y - screenTranslate.Y);
 
