@@ -211,6 +211,7 @@ class Program
             Scaling = DXGI.Scaling.Stretch,
             SwapEffect = DXGI.SwapEffect.FlipSequential,
             AlphaMode = AlphaMode.Ignore,
+            // https://learn.microsoft.com/zh-cn/windows/win32/api/dxgi/nf-dxgi-idxgiswapchain-present
             Flags = DXGI.SwapChainFlags.AllowTearing,
         };
         // 设置是否全屏
@@ -284,7 +285,7 @@ class Program
 
                 renderTarget.EndDraw();
 
-                swapChain.Present(1, DXGI.PresentFlags.AllowTearing);
+                swapChain.Present(0, DXGI.PresentFlags.AllowTearing);
                 // 等待刷新
                 d3D11DeviceContext.Flush();
 
