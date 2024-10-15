@@ -211,7 +211,9 @@ class Program
             Scaling = DXGI.Scaling.Stretch,
             SwapEffect = DXGI.SwapEffect.FlipSequential,
             AlphaMode = AlphaMode.Ignore,
-            Flags = DXGI.SwapChainFlags.AllowTearing,
+            // https://learn.microsoft.com/zh-cn/windows/win32/api/dxgi/nf-dxgi-idxgiswapchain-present
+            // 可变刷新率显示 启用撕裂是可变刷新率显示器的要求
+            //Flags = DXGI.SwapChainFlags.AllowTearing,
         };
         // 设置是否全屏
         DXGI.SwapChainFullscreenDescription fullscreenDescription = new DXGI.SwapChainFullscreenDescription
@@ -279,12 +281,20 @@ class Program
 
                 // 随意创建颜色
                 var color = new Color4((uint) Random.Shared.Next());
+                color = new Color4(0xFF0000FF);
                 using var brush = renderTarget.CreateSolidColorBrush(color);
-                renderTarget.FillEllipse(new Ellipse(new System.Numerics.Vector2(Random.Shared.Next(clientSize.Width), Random.Shared.Next(clientSize.Height)), 100, 100), brush);
+
+                lock (pointList)
+                {
+                    foreach (var point2D in pointList)
+                    {
+                        renderTarget.FillEllipse(new Ellipse(new System.Numerics.Vector2((float) point2D.X, (float) point2D.Y), 5, 5), brush);
+                    }
+                }
 
                 renderTarget.EndDraw();
 
-                swapChain.Present(1, DXGI.PresentFlags.AllowTearing);
+                swapChain.Present(1, DXGI.PresentFlags.None);
                 // 等待刷新
                 d3D11DeviceContext.Flush();
 
@@ -305,6 +315,35 @@ class Program
         {
             if (PeekMessage(out msg, default, 0, 0, PM_REMOVE) != false)
             {
+                if (msg.message is PInvoke.WM_POINTERDOWN or PInvoke.WM_POINTERUPDATE or PInvoke.WM_POINTERUP)
+                {
+                    var wparam = msg.wParam;
+                    var pointerId = (uint) (ToInt32((IntPtr) wparam.Value) & 0xFFFF);
+                    PInvoke.GetPointerTouchInfo(pointerId, out var info);
+                    POINTER_INFO pointerInfo = info.pointerInfo;
+
+                    global::Windows.Win32.Foundation.RECT pointerDeviceRect = default;
+                    global::Windows.Win32.Foundation.RECT displayRect = default;
+
+                    PInvoke.GetPointerDeviceRects(pointerInfo.sourceDevice, &pointerDeviceRect, &displayRect);
+
+                    var point2D = new Point2D(
+                        pointerInfo.ptHimetricLocationRaw.X / (double) pointerDeviceRect.Width * displayRect.Width +
+                        displayRect.left,
+                        pointerInfo.ptHimetricLocationRaw.Y / (double) pointerDeviceRect.Height * displayRect.Height +
+                        displayRect.top);
+
+                    var screenTranslate = new Point(0, 0);
+                    PInvoke.ClientToScreen(hWnd, ref screenTranslate);
+
+                    point2D = new Point2D(point2D.X - screenTranslate.X, point2D.Y - screenTranslate.Y);
+
+                    lock (pointList)
+                    {
+                        pointList.Add(point2D);
+                    }
+                }
+
                 _ = TranslateMessage(&msg);
                 _ = DispatchMessage(&msg);
 
