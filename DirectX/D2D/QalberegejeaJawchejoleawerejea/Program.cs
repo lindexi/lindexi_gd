@@ -227,26 +227,26 @@ class Program
         D2D.ID2D1Factory1 d2DFactory = D2D.D2D1.D2D1CreateFactory<D2D.ID2D1Factory1>();
 
         // 方法1：
-        //var renderTargetProperties = new D2D.RenderTargetProperties(PixelFormat.Premultiplied);
+        var renderTargetProperties = new D2D.RenderTargetProperties(Vortice.DCommon.PixelFormat.Premultiplied);
 
-        //// 在窗口的 dxgi 的平面上创建 D2D 的画布，如此即可让 D2D 绘制到窗口上
-        //D2D.ID2D1RenderTarget d2D1RenderTarget =
-        //    d2DFactory.CreateDxgiSurfaceRenderTarget(dxgiSurface, renderTargetProperties);
+        // 在窗口的 dxgi 的平面上创建 D2D 的画布，如此即可让 D2D 绘制到窗口上
+        D2D.ID2D1RenderTarget d2D1RenderTarget =
+            d2DFactory.CreateDxgiSurfaceRenderTarget(dxgiSurface, renderTargetProperties);
 
-        //var renderTarget = d2D1RenderTarget;
+        var renderTarget = d2D1RenderTarget;
 
         // 方法2：
         // 创建 D2D 设备，通过设置 ID2D1DeviceContext 的 Target 输出为 dxgiSurface 从而让 ID2D1DeviceContext 渲染内容渲染到窗口上
         // 如 https://learn.microsoft.com/en-us/windows/win32/direct2d/images/devicecontextdiagram.png 图
         // 获取 DXGI 设备，用来创建 D2D 设备
-        DXGI.IDXGIDevice dxgiDevice = d3D11Device.QueryInterface<DXGI.IDXGIDevice>();
-        ID2D1Device d2dDevice = d2DFactory.CreateDevice(dxgiDevice);
-        ID2D1DeviceContext d2dDeviceContext = d2dDevice.CreateDeviceContext();
+        //DXGI.IDXGIDevice dxgiDevice = d3D11Device.QueryInterface<DXGI.IDXGIDevice>();
+        //ID2D1Device d2dDevice = d2DFactory.CreateDevice(dxgiDevice);
+        //ID2D1DeviceContext d2dDeviceContext = d2dDevice.CreateDeviceContext();
 
-        ID2D1Bitmap1 d2dBitmap = d2dDeviceContext.CreateBitmapFromDxgiSurface(dxgiSurface);
-        d2dDeviceContext.Target = d2dBitmap;
+        //ID2D1Bitmap1 d2dBitmap = d2dDeviceContext.CreateBitmapFromDxgiSurface(dxgiSurface);
+        //d2dDeviceContext.Target = d2dBitmap;
 
-        var renderTarget = d2dDeviceContext;
+        //var renderTarget = d2dDeviceContext;
 
         var stopwatch = Stopwatch.StartNew();
         var count = 0;
@@ -259,11 +259,10 @@ class Program
                 renderTarget.BeginDraw();
 
                 // 清空画布
-                //renderTarget.Clear(new Color4(0xFF, 0xFF, 0xFF));
+                renderTarget.Clear(new Color4(0xFFFFFFFF));
 
                 // 随意创建颜色
-                var color = new Color4((byte) Random.Shared.Next(255), (byte) Random.Shared.Next(255),
-                    (byte) Random.Shared.Next(255));
+                var color = new Color4((uint) Random.Shared.Next());
                 using var brush = renderTarget.CreateSolidColorBrush(color);
                 renderTarget.FillEllipse(new Ellipse(new System.Numerics.Vector2(200, 200), 100, 100), brush);
 
@@ -308,7 +307,7 @@ class Program
         {
             // 先告诉系统，要高性能的显卡
             for (uint adapterIndex = 0;
-                 factory6.EnumAdapterByGpuPreference(adapterIndex, DXGI.GpuPreference.HighPerformance,
+                 factory6.EnumAdapterByGpuPreference(adapterIndex, DXGI.GpuPreference.Unspecified,
                      out DXGI.IDXGIAdapter1? adapter).Success;
                  adapterIndex++)
             {
