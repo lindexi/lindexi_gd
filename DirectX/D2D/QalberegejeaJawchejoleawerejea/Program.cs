@@ -10,7 +10,6 @@ using static Windows.Win32.UI.WindowsAndMessaging.WINDOW_STYLE;
 using static Windows.Win32.UI.WindowsAndMessaging.WINDOW_EX_STYLE;
 using static Windows.Win32.UI.WindowsAndMessaging.SYSTEM_METRICS_INDEX;
 using static Windows.Win32.UI.WindowsAndMessaging.SHOW_WINDOW_CMD;
-using Vortice.DCommon;
 using Vortice.Mathematics;
 using AlphaMode = Vortice.DXGI.AlphaMode;
 using D3D = Vortice.Direct3D;
@@ -19,13 +18,9 @@ using DXGI = Vortice.DXGI;
 using D2D = Vortice.Direct2D1;
 using System.Drawing;
 using Vortice.Direct2D1;
-using System.Diagnostics;
+using System.Numerics;
 using Windows.Win32;
 using Windows.Win32.UI.Input.Pointer;
-using Vortice.WIC;
-using SharpGen.Runtime;
-using Vortice;
-using Vortice.Win32;
 
 namespace QalberegejeaJawchejoleawerejea;
 
@@ -77,22 +72,22 @@ class Program
         x = (screenWidth - windowWidth) / 2;
         y = (screenHeight - windowHeight) / 2;
 
-        var hInstance = GetModuleHandle((string?) null);
+        var hInstance = GetModuleHandle((string?)null);
 
         fixed (char* lpszClassName = windowClassName)
         {
-            PCWSTR szCursorName = new((char*) IDC_ARROW);
+            PCWSTR szCursorName = new((char*)IDC_ARROW);
 
             var wndClassEx = new WNDCLASSEXW
             {
-                cbSize = (uint) Unsafe.SizeOf<WNDCLASSEXW>(),
+                cbSize = (uint)Unsafe.SizeOf<WNDCLASSEXW>(),
                 style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
                 // 核心逻辑，设置消息循环
                 lpfnWndProc = new WNDPROC(WndProc),
-                hInstance = (HINSTANCE) hInstance.DangerousGetHandle(),
-                hCursor = LoadCursor((HINSTANCE) IntPtr.Zero, szCursorName),
-                hbrBackground = (Windows.Win32.Graphics.Gdi.HBRUSH) IntPtr.Zero,
-                hIcon = (HICON) IntPtr.Zero,
+                hInstance = (HINSTANCE)hInstance.DangerousGetHandle(),
+                hCursor = LoadCursor((HINSTANCE)IntPtr.Zero, szCursorName),
+                hbrBackground = (Windows.Win32.Graphics.Gdi.HBRUSH)IntPtr.Zero,
+                hIcon = (HICON)IntPtr.Zero,
                 lpszClassName = lpszClassName
             };
 
@@ -202,8 +197,8 @@ class Program
 
         DXGI.SwapChainDescription1 swapChainDescription = new()
         {
-            Width = (uint) clientSize.Width,
-            Height = (uint) clientSize.Height,
+            Width = (uint)clientSize.Width,
+            Height = (uint)clientSize.Height,
             Format = colorFormat,
             BufferCount = FrameCount,
             BufferUsage = DXGI.Usage.RenderTargetOutput,
@@ -242,6 +237,7 @@ class Program
         // 在窗口的 dxgi 的平面上创建 D2D 的画布，如此即可让 D2D 绘制到窗口上
         D2D.ID2D1RenderTarget d2D1RenderTarget =
             d2DFactory.CreateDxgiSurfaceRenderTarget(dxgiSurface, renderTargetProperties);
+        d2D1RenderTarget.AntialiasMode = D2D.AntialiasMode.PerPrimitive;
 
         var renderTarget = d2D1RenderTarget;
 
@@ -258,64 +254,7 @@ class Program
 
         //var renderTarget = d2dDeviceContext;
 
-        var stopwatch = new Stopwatch();
-        var count = 0;
-
-        var first = 0;
-
         var pointList = new List<Point2D>();
-
-        Task.Factory.StartNew(() =>
-        {
-            Thread.Sleep(1000);
-            stopwatch.Start();
-
-            var list = new List<Point2D>();
-            // 随意创建颜色
-            var color = new Color4((uint) Random.Shared.Next());
-            color = new Color4(0xFF0000FF);
-            using var brush = renderTarget.CreateSolidColorBrush(color);
-
-            while (true)
-            {
-                // 开始绘制逻辑
-                renderTarget.BeginDraw();
-                renderTarget.AntialiasMode = AntialiasMode.Aliased;
-
-                if (first < 2)
-                {
-                    // 清空画布
-                    renderTarget.Clear(new Color4(0xFFFFFFFF));
-                    first++;
-                }
-
-                lock (pointList)
-                {
-                    list.AddRange(pointList);
-                    pointList.Clear();
-                }
-
-                foreach (var point2D in list)
-                {
-                    renderTarget.FillEllipse(new Ellipse(new System.Numerics.Vector2((float) point2D.X, (float) point2D.Y), 5, 5), brush);
-                }
-
-                renderTarget.EndDraw();
-
-                swapChain.Present(1, DXGI.PresentFlags.None);
-                // 等待刷新
-                d3D11DeviceContext.Flush();
-
-                // 统计刷新率
-                count++;
-                if (stopwatch.Elapsed >= TimeSpan.FromSeconds(1))
-                {
-                    Console.WriteLine($"FPS: {count / stopwatch.Elapsed.TotalSeconds} 点数：{list.Count}");
-                    stopwatch.Restart();
-                    count = 0;
-                }
-            }
-        }, TaskCreationOptions.LongRunning);
 
         var screenTranslate = new Point(0, 0);
         PInvoke.ClientToScreen(hWnd, ref screenTranslate);
@@ -329,7 +268,7 @@ class Program
                 if (msg.message is PInvoke.WM_POINTERDOWN or PInvoke.WM_POINTERUPDATE or PInvoke.WM_POINTERUP)
                 {
                     var wparam = msg.wParam;
-                    var pointerId = (uint) (ToInt32((IntPtr) wparam.Value) & 0xFFFF);
+                    var pointerId = (uint)(ToInt32((IntPtr)wparam.Value) & 0xFFFF);
                     PInvoke.GetPointerTouchInfo(pointerId, out var info);
                     POINTER_INFO pointerInfo = info.pointerInfo;
 
@@ -339,17 +278,41 @@ class Program
                     PInvoke.GetPointerDeviceRects(pointerInfo.sourceDevice, &pointerDeviceRect, &displayRect);
 
                     var point2D = new Point2D(
-                        pointerInfo.ptHimetricLocationRaw.X / (double) pointerDeviceRect.Width * displayRect.Width +
+                        pointerInfo.ptHimetricLocationRaw.X / (double)pointerDeviceRect.Width * displayRect.Width +
                         displayRect.left,
-                        pointerInfo.ptHimetricLocationRaw.Y / (double) pointerDeviceRect.Height * displayRect.Height +
+                        pointerInfo.ptHimetricLocationRaw.Y / (double)pointerDeviceRect.Height * displayRect.Height +
                         displayRect.top);
 
                     point2D = new Point2D(point2D.X - screenTranslate.X, point2D.Y - screenTranslate.Y);
 
-                    lock (pointList)
+                    pointList.Add(point2D);
+                    if (pointList.Count > 200)
                     {
-                        pointList.Add(point2D);
+                        // 不要让点太多，导致绘制速度太慢
+                        pointList.RemoveRange(0, 100);
                     }
+
+                    var color = new Color4(0xFF0000FF);
+                    using var brush = renderTarget.CreateSolidColorBrush(color);
+
+                    renderTarget.BeginDraw();
+                    renderTarget.AntialiasMode = AntialiasMode.Aliased;
+
+                    renderTarget.Clear(new Color4(0xFFFFFFFF));
+
+                    for (var i = 1; i < pointList.Count; i++)
+                    {
+                        var previousPoint = pointList[i - 1];
+                        var currentPoint = pointList[i];
+
+                        renderTarget.DrawLine(new Vector2((float)previousPoint.X, (float)previousPoint.Y),
+                            new Vector2((float)currentPoint.X, (float)currentPoint.Y), brush, 5);
+                    }
+
+                    renderTarget.EndDraw();
+                    swapChain.Present(1, DXGI.PresentFlags.None);
+                    // 等待刷新
+                    d3D11DeviceContext.Flush();
                 }
 
                 _ = TranslateMessage(&msg);
@@ -363,7 +326,7 @@ class Program
         }
     }
 
-    private static int ToInt32(IntPtr ptr) => IntPtr.Size == 4 ? ptr.ToInt32() : (int) (ptr.ToInt64() & 0xffffffff);
+    private static int ToInt32(IntPtr ptr) => IntPtr.Size == 4 ? ptr.ToInt32() : (int)(ptr.ToInt64() & 0xffffffff);
 
     private static IEnumerable<DXGI.IDXGIAdapter1> GetHardwareAdapter(DXGI.IDXGIFactory2 factory)
     {
