@@ -146,6 +146,10 @@ class Program
         var color = new Color4(0xFF0000FF);
         using var brush = renderTarget.CreateSolidColorBrush(color);
 
+        renderTarget.BeginDraw();
+        renderTarget.Clear(new Color4(0xFFFFFFFF));
+        renderTarget.EndDraw();
+
         var stopwatch = Stopwatch.StartNew();
         var count = 0;
         // 开个消息循环等待
@@ -183,9 +187,8 @@ class Program
 
                     renderTarget.BeginDraw();
 
-                    renderTarget.Clear(new Color4(0xFFFFFFFF));
 
-                    for (var i = 1; i < pointList.Count; i++)
+                    for (var i = pointList.Count - 1; i < pointList.Count && pointList.Count > 1; i++)
                     {
                         var previousPoint = pointList[i - 1];
                         var currentPoint = pointList[i];
@@ -197,7 +200,7 @@ class Program
                     renderTarget.EndDraw();
 
                     count++;
-                    if (stopwatch.Elapsed > TimeSpan.FromSeconds(1))
+                    if (stopwatch.Elapsed > TimeSpan.FromSeconds(5))
                     {
                         Console.WriteLine($"FPS: {count / stopwatch.Elapsed.TotalSeconds}");
 
