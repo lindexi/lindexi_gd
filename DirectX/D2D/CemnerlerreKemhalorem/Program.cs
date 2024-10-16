@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using Windows.Win32.Foundation;
@@ -36,7 +37,7 @@ class Program
         SizeI clientSize = new SizeI(1000, 600);
 
         // 窗口标题
-        var title = "QalberegejeaJawchejoleawerejea";
+        var title = "CemnerlerreKemhalorem";
         var windowClassName = "lindexi doubi";
 
         // 窗口样式，窗口样式含义请执行参阅官方文档，样式只要不离谱，自己随便写，影响不大
@@ -125,7 +126,10 @@ class Program
         GetClientRect(hWnd, &windowRect);
         clientSize = new SizeI(windowRect.right - windowRect.left, windowRect.bottom - windowRect.top);
 
-        D2D1.D2D1CreateFactory(FactoryType.SingleThreaded, out ID2D1Factory d2D1Factory);
+        var result = D2D1.D2D1CreateFactory(FactoryType.SingleThreaded, out ID2D1Factory? d2D1Factory);
+        result.CheckError();
+        Debug.Assert(d2D1Factory != null, nameof(d2D1Factory) + " != null");
+
         var d2D1HwndRenderTarget = d2D1Factory.CreateHwndRenderTarget(new RenderTargetProperties(PixelFormat.Premultiplied), new HwndRenderTargetProperties()
         {
             Hwnd = hWnd.Value,
@@ -143,7 +147,7 @@ class Program
         Windows.Win32.UI.WindowsAndMessaging.MSG msg;
         while (true)
         {
-            if (PeekMessage(out msg, default, 0, 0, PM_REMOVE) != false)
+            if (GetMessage(out msg, hWnd, 0, 0))
             {
                 if (msg.message is PInvoke.WM_POINTERDOWN or PInvoke.WM_POINTERUPDATE or PInvoke.WM_POINTERUP)
                 {
@@ -199,10 +203,6 @@ class Program
                 {
                     return;
                 }
-            }
-            else
-            {
-
             }
         }
     }
