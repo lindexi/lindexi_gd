@@ -143,6 +143,11 @@ class Program
         var screenTranslate = new Point(0, 0);
         PInvoke.ClientToScreen(hWnd, ref screenTranslate);
 
+        var color = new Color4(0xFF0000FF);
+        using var brush = renderTarget.CreateSolidColorBrush(color);
+
+        var stopwatch = Stopwatch.StartNew();
+        var count = 0;
         // 开个消息循环等待
         Windows.Win32.UI.WindowsAndMessaging.MSG msg;
         while (true)
@@ -176,11 +181,7 @@ class Program
                         pointList.RemoveRange(0, 100);
                     }
 
-                    var color = new Color4(0xFF0000FF);
-                    using var brush = renderTarget.CreateSolidColorBrush(color);
-
                     renderTarget.BeginDraw();
-                    renderTarget.AntialiasMode = AntialiasMode.Aliased;
 
                     renderTarget.Clear(new Color4(0xFFFFFFFF));
 
@@ -194,6 +195,15 @@ class Program
                     }
 
                     renderTarget.EndDraw();
+
+                    count++;
+                    if (stopwatch.Elapsed > TimeSpan.FromSeconds(1))
+                    {
+                        Console.WriteLine($"FPS: {count / stopwatch.Elapsed.TotalSeconds}");
+
+                        count = 0;
+                        stopwatch.Restart();
+                    }
                 }
 
                 _ = TranslateMessage(&msg);
