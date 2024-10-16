@@ -187,7 +187,6 @@ class Program
 
                     renderTarget.BeginDraw();
 
-
                     for (var i = pointList.Count - 1; i < pointList.Count && pointList.Count > 1; i++)
                     {
                         var previousPoint = pointList[i - 1];
@@ -200,7 +199,7 @@ class Program
                     renderTarget.EndDraw();
 
                     count++;
-                    if (stopwatch.Elapsed > TimeSpan.FromSeconds(5))
+                    if (stopwatch.Elapsed > TimeSpan.FromSeconds(1))
                     {
                         Console.WriteLine($"FPS: {count / stopwatch.Elapsed.TotalSeconds}");
 
