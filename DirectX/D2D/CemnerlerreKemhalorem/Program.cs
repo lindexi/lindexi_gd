@@ -185,22 +185,22 @@ class Program
                         pointList.RemoveRange(0, 100);
                     }
 
-                    renderTarget.BeginDraw();
+                    //renderTarget.BeginDraw();
 
 
-                    for (var i = pointList.Count - 1; i < pointList.Count && pointList.Count > 1; i++)
-                    {
-                        var previousPoint = pointList[i - 1];
-                        var currentPoint = pointList[i];
+                    //for (var i = pointList.Count - 1; i < pointList.Count && pointList.Count > 1; i++)
+                    //{
+                    //    var previousPoint = pointList[i - 1];
+                    //    var currentPoint = pointList[i];
 
-                        renderTarget.DrawLine(new Vector2((float) previousPoint.X, (float) previousPoint.Y),
-                            new Vector2((float) currentPoint.X, (float) currentPoint.Y), brush, 5);
-                    }
+                    //    renderTarget.DrawLine(new Vector2((float) previousPoint.X, (float) previousPoint.Y),
+                    //        new Vector2((float) currentPoint.X, (float) currentPoint.Y), brush, 5);
+                    //}
 
-                    renderTarget.EndDraw();
+                    //renderTarget.EndDraw();
 
                     count++;
-                    if (stopwatch.Elapsed > TimeSpan.FromSeconds(5))
+                    if (stopwatch.Elapsed > TimeSpan.FromSeconds(1))
                     {
                         Console.WriteLine($"FPS: {count / stopwatch.Elapsed.TotalSeconds}");
 
