@@ -310,10 +310,6 @@ class Program
                     }
 
                     renderTarget.EndDraw();
-
-                    var id3D11Asynchronous = new D3D11.ID3D11Asynchronous();
-                    d3D11DeviceContext.End(id3D11Asynchronous);
-
                     swapChain.Present(1, DXGI.PresentFlags.None);
                     // 等待刷新
                     d3D11DeviceContext.Flush();
