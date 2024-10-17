@@ -6,7 +6,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QalberegejeaJawchejoleawere
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CemnerlerreKemhalorem", "..\CemnerlerreKemhalorem\CemnerlerreKemhalorem.csproj", "{78269C84-D2AC-4575-870A-206F9745DD0E}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KawhayhayarnenurwhiLalhelkearnairbai", "..\KawhayhayarnenurwhiLalhelkearnairbai\KawhayhayarnenurwhiLalhelkearnairbai.csproj", "{4E4A4C7B-E433-4B4B-BC18-4C981E2F3160}"
+EndProject
 Global
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {37994376-4695-47D1-B1CA-6435398AAD11}
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -19,6 +24,10 @@ Global
 		{3573A957-5345-4501-ACA5-5984E852BBE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3573A957-5345-4501-ACA5-5984E852BBE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3573A957-5345-4501-ACA5-5984E852BBE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E4A4C7B-E433-4B4B-BC18-4C981E2F3160}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E4A4C7B-E433-4B4B-BC18-4C981E2F3160}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E4A4C7B-E433-4B4B-BC18-4C981E2F3160}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E4A4C7B-E433-4B4B-BC18-4C981E2F3160}.Release|Any CPU.Build.0 = Release|Any CPU
 		{78269C84-D2AC-4575-870A-206F9745DD0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{78269C84-D2AC-4575-870A-206F9745DD0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{78269C84-D2AC-4575-870A-206F9745DD0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
