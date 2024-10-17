@@ -158,6 +158,8 @@ class Program
         {
             while (true)
             {
+                Thread.Sleep(10);
+
                 renderTarget.BeginDraw();
 
                 lock (pointList)
@@ -179,7 +181,7 @@ class Program
                 count++;
                 if (total > TimeSpan.FromSeconds(1))
                 {
-                    Console.WriteLine($"FPS {count/total.TotalSeconds}");
+                    Console.WriteLine($"{total.TotalMilliseconds / count}");
                     total = TimeSpan.Zero;
                     count = 0;
                 }
