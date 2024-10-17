@@ -350,7 +350,7 @@ class Program
         {
             // 先告诉系统，要高性能的显卡
             for (uint adapterIndex = 0;
-                 factory6.EnumAdapterByGpuPreference(adapterIndex, DXGI.GpuPreference.Unspecified,
+                 factory6.EnumAdapterByGpuPreference(adapterIndex, DXGI.GpuPreference.HighPerformance,
                      out DXGI.IDXGIAdapter1? adapter).Success;
                  adapterIndex++)
             {
