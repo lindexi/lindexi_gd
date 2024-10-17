@@ -158,13 +158,17 @@ class Program
         {
             while (true)
             {
-                Thread.Sleep(10);
+                stopwatch.Restart();
+                SpinWait.SpinUntil(() => stopwatch.ElapsedMilliseconds > 13);
+                stopwatch.Stop();
 
                 renderTarget.BeginDraw();
 
                 lock (pointList)
                 {
-                    for (var i = pointList.Count - 1; i < pointList.Count && pointList.Count > 1; i++)
+                    renderTarget.Clear(new Color4(0xFFFFFFFF));
+
+                    for (var i = 1; i < pointList.Count && pointList.Count > 1; i++)
                     {
                         var previousPoint = pointList[i - 1];
                         var currentPoint = pointList[i];
@@ -217,10 +221,10 @@ class Program
                     lock (pointList)
                     {
                         pointList.Add(point2D);
-                        if (pointList.Count > 200)
+                        if (pointList.Count > 300)
                         {
                             // 不要让点太多，导致绘制速度太慢
-                            pointList.RemoveRange(0, 100);
+                            pointList.RemoveRange(0, 150);
                         }
                     }
                 }
