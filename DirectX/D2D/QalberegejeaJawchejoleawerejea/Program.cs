@@ -21,6 +21,7 @@ using Vortice.Direct2D1;
 using System.Numerics;
 using Windows.Win32;
 using Windows.Win32.UI.Input.Pointer;
+using SharpGen.Runtime;
 
 namespace QalberegejeaJawchejoleawerejea;
 
@@ -295,6 +296,8 @@ class Program
                     var color = new Color4(0xFF0000FF);
                     using var brush = renderTarget.CreateSolidColorBrush(color);
 
+                    using D3D11.ID3D11Query d3D11Query = d3D11DeviceContext.Device.CreateQuery(D3D11.QueryType.Event);
+                    d3D11DeviceContext.Begin(d3D11Query);
                     renderTarget.BeginDraw();
                     renderTarget.AntialiasMode = AntialiasMode.Aliased;
 
@@ -311,8 +314,16 @@ class Program
 
                     renderTarget.EndDraw();
                     swapChain.Present(1, DXGI.PresentFlags.None);
-                    // 等待刷新
-                    d3D11DeviceContext.Flush();
+                    //// 等待刷新
+                    //d3D11DeviceContext.Flush();
+
+                    // 在渲染上一帧后，结束查询
+                    d3D11DeviceContext.End(d3D11Query);
+                    // 在开始渲染下一帧前，检查查询的状态
+                    if (d3D11DeviceContext.GetData(d3D11Query, IntPtr.Zero, 0, D3D11.AsyncGetDataFlags.None).Success !=
+                        true)
+                    {
+                    }
                 }
 
                 _ = TranslateMessage(&msg);
