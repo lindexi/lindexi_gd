@@ -37,7 +37,7 @@ class Program
         SizeI clientSize = new SizeI(1000, 600);
 
         // 窗口标题
-        var title = "CemnerlerreKemhalorem";
+        var title = "KawhayhayarnenurwhiLalhelkearnairbai";
         var windowClassName = "lindexi doubi";
 
         // 窗口样式，窗口样式含义请执行参阅官方文档，样式只要不离谱，自己随便写，影响不大
@@ -146,13 +146,7 @@ class Program
         var color = new Color4(0xFF0000FF);
         var brush = renderTarget.CreateSolidColorBrush(color);
 
-        renderTarget.BeginDraw();
-        renderTarget.Clear(new Color4(0xFFFFFFFF));
-        renderTarget.EndDraw();
-
         var stopwatch = Stopwatch.StartNew();
-        TimeSpan total = TimeSpan.Zero;
-        var count = 0;
 
         Task.Run(() =>
         {
@@ -178,17 +172,7 @@ class Program
                     }
                 }
 
-                stopwatch.Restart();
                 renderTarget.EndDraw();
-                stopwatch.Stop();
-                total += stopwatch.Elapsed;
-                count++;
-                if (total > TimeSpan.FromSeconds(1))
-                {
-                    Console.WriteLine($"{total.TotalMilliseconds / count}");
-                    total = TimeSpan.Zero;
-                    count = 0;
-                }
             }
         });
 
