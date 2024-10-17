@@ -312,18 +312,18 @@ class Program
                             new Vector2((float)currentPoint.X, (float)currentPoint.Y), brush, 5);
                     }
 
-                    renderTarget.EndDraw();
-                    swapChain.Present(1, DXGI.PresentFlags.None);
                     //// 等待刷新
                     //d3D11DeviceContext.Flush();
 
                     // 在渲染上一帧后，结束查询
                     d3D11DeviceContext.End(d3D11Query);
+                    renderTarget.EndDraw();
                     // 在开始渲染下一帧前，检查查询的状态
                     if (d3D11DeviceContext.GetData(d3D11Query, IntPtr.Zero, 0, D3D11.AsyncGetDataFlags.None).Success !=
                         true)
                     {
                     }
+                    swapChain.Present(1, DXGI.PresentFlags.None);
                 }
 
                 _ = TranslateMessage(&msg);
