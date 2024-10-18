@@ -110,6 +110,39 @@ XIValuatorClassInfo? touchMajorValuatorClassInfo = null;
 XIValuatorClassInfo? touchMinorValuatorClassInfo = null;
 XIValuatorClassInfo? pressureValuatorClassInfo = null;
 
+Task.Run(() =>
+{
+    Console.ReadLine();
+    Console.WriteLine("重新获取");
+
+    unsafe
+    {
+        var devices = (XIDeviceInfo*) XIQueryDevice(display,
+            (int) XiPredefinedDeviceId.XIAllMasterDevices, out int num);
+
+        for (var c = 0; c < num; c++)
+        {
+            if (devices[c].Use == XiDeviceType.XIMasterPointer)
+            {
+                var pointerDevice = devices[c];
+
+                for (int i = 0; i < pointerDevice.NumClasses; i++)
+                {
+                    var xiAnyClassInfo = pointerDevice.Classes[i];
+                    if (xiAnyClassInfo->Type == XiDeviceClass.XIValuatorClass)
+                    {
+                        var xiValuatorClassInfo = *((XIValuatorClassInfo*) xiAnyClassInfo);
+
+                        Console.WriteLine($"XiValuatorClassInfo Label={xiValuatorClassInfo.Label}({XLib.GetAtomName(display, xiValuatorClassInfo.Label)}) Value={xiValuatorClassInfo.Value}; Max={xiValuatorClassInfo.Max:0.00}; Min={xiValuatorClassInfo.Min:0.00}; Resolution={xiValuatorClassInfo.Resolution})");
+                    }
+                }
+                break;
+            }
+        }
+
+    }
+});
+
 unsafe
 {
     var devices = (XIDeviceInfo*) XIQueryDevice(display,
@@ -157,14 +190,21 @@ unsafe
             [pointerDevice.Value.Deviceid] = multiTouchEventTypes,
         });
 
-        XiSelectEvents(display, rootWindow, new Dictionary<int, List<XiEventType>>()
-        {
-            [(int)XiPredefinedDeviceId.XIAllMasterDevices] = new List<XiEventType>()
-            {
-                XiEventType.XI_HierarchyChanged,
-                XiEventType.XI_DeviceChanged,
-            }
-        });
+        // 以下注册炸掉
+        // X Error of failed request:  BadValue (integer parameter out of range for operation)
+        // Major opcode of failed request:  131 (XInputExtension)
+        // Minor opcode of failed request:  46 ()
+        // Value in failed request:  0xb
+        // Serial number of failed request:  23
+        // Current serial number in output stream:  24
+        //XiSelectEvents(display, rootWindow, new Dictionary<int, List<XiEventType>>()
+        //{
+        //    [(int) XiPredefinedDeviceId.XIAllMasterDevices] = new List<XiEventType>()
+        //    {
+        //        XiEventType.XI_HierarchyChanged,
+        //        XiEventType.XI_DeviceChanged,
+        //    }
+        //});
 
         for (int i = 0; i < pointerDevice.Value.NumClasses; i++)
         {
