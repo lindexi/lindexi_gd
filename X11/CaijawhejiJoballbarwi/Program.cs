@@ -142,7 +142,14 @@ unsafe
             XiEventType.XI_Leave,
             XiEventType.XI_Enter,
 
-            XiEventType.XI_HierarchyChanged,
+            // 不能这么写，将会出现以下错误
+            // X Error of failed request:  BadValue (integer parameter out of range for operation)
+            // Major opcode of failed request:  131 (XInputExtension)
+            // Minor opcode of failed request:  46 ()
+            // Value in failed request:  0xb
+            // Serial number of failed request:  22
+            // Current serial number in output stream:  23
+            //XiEventType.XI_HierarchyChanged,
             XiEventType.XI_DeviceChanged,
         };
 
