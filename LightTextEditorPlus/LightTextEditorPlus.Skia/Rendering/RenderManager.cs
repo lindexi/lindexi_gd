@@ -52,7 +52,7 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
         foreach (SkiaTextRenderInfo skiaTextRenderInfo in RenderInfoList)
         {
             skPaint.TextSize = (float) skiaTextRenderInfo.RunProperty.FontSize;
-            canvas.DrawText(skiaTextRenderInfo.Text,new SKPoint(skiaTextRenderInfo.X, skiaTextRenderInfo.Y+ skPaint.TextSize),skPaint);
+            canvas.DrawText(skiaTextRenderInfo.Text, new SKPoint(skiaTextRenderInfo.X, skiaTextRenderInfo.Y + skPaint.TextSize), skPaint);
         }
     }
 }

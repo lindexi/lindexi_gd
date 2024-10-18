@@ -5,10 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 using LightTextEditorPlus.Core;
-using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
+using LightTextEditorPlus.Platform;
 using LightTextEditorPlus.Rendering;
 
 namespace LightTextEditorPlus;
@@ -64,5 +64,10 @@ public class SkiaTextEditorPlatformProvider : PlatformProvider
     public override IRenderManager? GetRenderManager()
     {
         return TextEditor;
+    }
+
+    public override ICharInfoMeasurer? GetCharInfoMeasurer()
+    {
+        return new SkiaCharInfoMeasurer(TextEditor);
     }
 }
