@@ -12,6 +12,9 @@ var display = XOpenDisplay(IntPtr.Zero);
 var screen = XDefaultScreen(display);
 var rootWindow = XDefaultRootWindow(display);
 
+int major = 2, minor = 0;
+XIQueryVersion(display, ref major, ref minor);
+
 XMatchVisualInfo(display, screen, 32, 4, out var info);
 var visual = info.visual;
 
