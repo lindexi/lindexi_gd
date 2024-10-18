@@ -141,6 +141,9 @@ unsafe
             XiEventType.XI_ButtonRelease,
             XiEventType.XI_Leave,
             XiEventType.XI_Enter,
+
+            XiEventType.XI_HierarchyChanged,
+            XiEventType.XI_DeviceChanged,
         };
 
         XiSelectEvents(display, handle, new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = multiTouchEventTypes });
