@@ -110,38 +110,40 @@ XIValuatorClassInfo? touchMajorValuatorClassInfo = null;
 XIValuatorClassInfo? touchMinorValuatorClassInfo = null;
 XIValuatorClassInfo? pressureValuatorClassInfo = null;
 
-Task.Run(() =>
-{
-    Console.ReadLine();
-    Console.WriteLine("重新获取");
+//Task.Run(() =>
+//{
+//    Console.ReadLine();
 
-    unsafe
-    {
-        var devices = (XIDeviceInfo*) XIQueryDevice(display,
-            (int) XiPredefinedDeviceId.XIAllMasterDevices, out int num);
+//    // 重新获取触摸宽度高度是可以获取到的
+//    Console.WriteLine("重新获取");
 
-        for (var c = 0; c < num; c++)
-        {
-            if (devices[c].Use == XiDeviceType.XIMasterPointer)
-            {
-                var pointerDevice = devices[c];
+//    unsafe
+//    {
+//        var devices = (XIDeviceInfo*) XIQueryDevice(display,
+//            (int) XiPredefinedDeviceId.XIAllMasterDevices, out int num);
 
-                for (int i = 0; i < pointerDevice.NumClasses; i++)
-                {
-                    var xiAnyClassInfo = pointerDevice.Classes[i];
-                    if (xiAnyClassInfo->Type == XiDeviceClass.XIValuatorClass)
-                    {
-                        var xiValuatorClassInfo = *((XIValuatorClassInfo*) xiAnyClassInfo);
+//        for (var c = 0; c < num; c++)
+//        {
+//            if (devices[c].Use == XiDeviceType.XIMasterPointer)
+//            {
+//                var pointerDevice = devices[c];
 
-                        Console.WriteLine($"XiValuatorClassInfo Label={xiValuatorClassInfo.Label}({XLib.GetAtomName(display, xiValuatorClassInfo.Label)}) Value={xiValuatorClassInfo.Value}; Max={xiValuatorClassInfo.Max:0.00}; Min={xiValuatorClassInfo.Min:0.00}; Resolution={xiValuatorClassInfo.Resolution})");
-                    }
-                }
-                break;
-            }
-        }
+//                for (int i = 0; i < pointerDevice.NumClasses; i++)
+//                {
+//                    var xiAnyClassInfo = pointerDevice.Classes[i];
+//                    if (xiAnyClassInfo->Type == XiDeviceClass.XIValuatorClass)
+//                    {
+//                        var xiValuatorClassInfo = *((XIValuatorClassInfo*) xiAnyClassInfo);
 
-    }
-});
+//                        Console.WriteLine($"XiValuatorClassInfo Label={xiValuatorClassInfo.Label}({XLib.GetAtomName(display, xiValuatorClassInfo.Label)}) Value={xiValuatorClassInfo.Value}; Max={xiValuatorClassInfo.Max:0.00}; Min={xiValuatorClassInfo.Min:0.00}; Resolution={xiValuatorClassInfo.Resolution})");
+//                    }
+//                }
+//                break;
+//            }
+//        }
+
+//    }
+//});
 
 unsafe
 {
@@ -188,6 +190,17 @@ unsafe
         XiSelectEvents(display, handle, new Dictionary<int, List<XiEventType>>
         {
             [pointerDevice.Value.Deviceid] = multiTouchEventTypes,
+        });
+
+        Task.Run(() =>
+        {
+            Console.ReadLine();
+            Console.WriteLine("重新注册");
+
+            XiSelectEvents(display, handle, new Dictionary<int, List<XiEventType>>
+            {
+                [pointerDevice.Value.Deviceid] = multiTouchEventTypes,
+            });
         });
 
         // 以下注册炸掉
