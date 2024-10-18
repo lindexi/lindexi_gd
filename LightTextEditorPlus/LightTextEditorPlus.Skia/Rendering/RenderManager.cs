@@ -47,7 +47,12 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
         }
 
         using SKPaint skPaint = new SKPaint();
-        skPaint.Typeface = SKTypeface.FromFamilyName("微软雅黑");
+
+        var skFontManager = SKFontManager.Default;
+        var skTypeface = skFontManager.MatchFamily("微软雅黑");
+
+        skPaint.Typeface = skTypeface;
+        skPaint.IsAntialias = true;
 
         foreach (SkiaTextRenderInfo skiaTextRenderInfo in RenderInfoList)
         {
