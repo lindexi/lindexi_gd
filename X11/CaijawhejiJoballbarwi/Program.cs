@@ -256,7 +256,7 @@ unsafe
         // _gdk_x11_device_manager_xi2_select_events
         XiSelectEvents(display, rootWindow, new Dictionary<int, List<XiEventType>>()
         {
-            [(int) XiPredefinedDeviceId.XIAllMasterDevices] = new List<XiEventType>()
+            [(int) XiPredefinedDeviceId.XIAllDevices] = new List<XiEventType>()
             {
                 XiEventType.XI_HierarchyChanged,
             }
