@@ -113,6 +113,8 @@ XIValuatorClassInfo? pressureValuatorClassInfo = null;
 Task.Run(() =>
 {
     Console.ReadLine();
+
+    // 重新获取触摸宽度高度是可以获取到的
     Console.WriteLine("重新获取");
 
     unsafe
