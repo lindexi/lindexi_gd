@@ -228,6 +228,7 @@ unsafe
         //    });
         //});
 
+        // 注册炸掉原因是使用了 XIAllMasterDevices 而不是 XIAllDevices 会炸掉
         // 以下注册炸掉
         // X Error of failed request:  BadValue (integer parameter out of range for operation)
         // Major opcode of failed request:  131 (XInputExtension)
