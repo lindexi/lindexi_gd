@@ -27,7 +27,7 @@ public partial class TextEditor : Control
         VerticalAlignment = VerticalAlignment.Stretch;
 
         // 调试代码
-        TextEditorCore.AppendText("微软雅黑");
+        TextEditorCore.AppendText("123微软雅黑");
     }
 
     public SkiaTextEditor SkiaTextEditor { get; }
