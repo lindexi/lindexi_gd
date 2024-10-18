@@ -150,10 +150,21 @@ unsafe
             // Serial number of failed request:  22
             // Current serial number in output stream:  23
             //XiEventType.XI_HierarchyChanged,
-            XiEventType.XI_DeviceChanged,
         };
 
-        XiSelectEvents(display, handle, new Dictionary<int, List<XiEventType>> { [pointerDevice.Value.Deviceid] = multiTouchEventTypes });
+        XiSelectEvents(display, handle, new Dictionary<int, List<XiEventType>>
+        {
+            [pointerDevice.Value.Deviceid] = multiTouchEventTypes,
+        });
+
+        XiSelectEvents(display, rootWindow, new Dictionary<int, List<XiEventType>>()
+        {
+            [(int)XiPredefinedDeviceId.XIAllMasterDevices] = new List<XiEventType>()
+            {
+                XiEventType.XI_HierarchyChanged,
+                XiEventType.XI_DeviceChanged,
+            }
+        });
 
         for (int i = 0; i < pointerDevice.Value.NumClasses; i++)
         {
