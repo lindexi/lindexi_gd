@@ -214,6 +214,10 @@ unsafe
         XiSelectEvents(display, handle, new Dictionary<int, List<XiEventType>>
         {
             [pointerDevice.Value.Deviceid] = multiTouchEventTypes,
+            [(int) XiPredefinedDeviceId.XIAllMasterDevices] = new List<XiEventType>()
+            {
+                XiEventType.XI_HierarchyChanged,
+            }
         });
 
         // 重新注册依然没有触摸宽度高度
