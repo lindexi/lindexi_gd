@@ -156,6 +156,10 @@ unsafe
             {
                 scrollers.Add(*((XIScrollClassInfo**) pointerDevice.Value.Classes)[i]);
             }
+            else if (xiAnyClassInfo->Type == XiDeviceClass.XITouchClass)
+            {
+                Console.WriteLine($"Touch Sourceid={xiAnyClassInfo->Sourceid}");
+            }
         }
 
         foreach (var xiValuatorClassInfo in valuators)
