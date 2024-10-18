@@ -216,7 +216,7 @@ unsafe
             [pointerDevice.Value.Deviceid] = multiTouchEventTypes,
             [(int) XiPredefinedDeviceId.XIAllMasterDevices] = new List<XiEventType>()
             {
-
+                XiEventType.XI_HierarchyChanged,
             }
         });
 
