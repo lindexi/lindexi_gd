@@ -123,6 +123,8 @@ Task.Run(() =>
         var devices = (XIDeviceInfo*) XIQueryDevice(display,
             (int) XiPredefinedDeviceId.XIAllMasterDevices, out int num);
         stopwatch.Stop();
+        // 统计到的耗时是 XIQueryDevice 耗时=7297ms
+        // 似乎没有点击屏幕时，是不会完成 XIQueryDevice 方法的
         Console.WriteLine($"XIQueryDevice 耗时={stopwatch.ElapsedMilliseconds}ms");
 
         for (var c = 0; c < num; c++)
