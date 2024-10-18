@@ -356,6 +356,15 @@ while (true)
                             };
                         }
                     }
+                    else if (xiEvent->evtype == XiEventType.XI_HierarchyChanged)
+                    {
+                        // 没有触发，在丢失触摸宽度高度的情况下，也没有触发
+                        Console.WriteLine($"xiEvent->evtype={xiEvent->evtype}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"xiEvent->evtype={xiEvent->evtype}");
+                    }
 
                     Draw();
                 }
