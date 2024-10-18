@@ -296,6 +296,8 @@ unsafe
     {
         Console.WriteLine("pointerDevice==null");
     }
+
+    XIFreeDeviceInfo(devices);
 }
 
 // 先获取触摸再显示窗口，依然拿不到触摸宽度高度
