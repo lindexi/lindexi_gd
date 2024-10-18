@@ -1,4 +1,4 @@
-using System.Diagnostics;
+锘縰sing System.Diagnostics;
 using System.Windows;
 
 namespace LightTextEditorPlus.Tests;
@@ -9,7 +9,7 @@ public record TextEditTestContext(Window TestWindow, TextEditor TextEditor):IDis
     {
         if (TestFramework.IsDebug())
         {
-            // 如果在附加调试，那就先不退出了
+            // 濡傛灉鍦ㄩ檮鍔犺皟璇曪紝閭ｅ氨鍏堜笉閫�鍑轰簡
             return;
         }
 

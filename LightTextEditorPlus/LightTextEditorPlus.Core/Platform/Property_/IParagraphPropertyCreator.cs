@@ -1,6 +1,9 @@
-﻿namespace LightTextEditorPlus.Core.Platform;
+﻿//namespace LightTextEditorPlus.Core.Platform;
 
-public interface IParagraphPropertyCreator
-{
+///// <summary>
+///// 段落属性创建器
+///// </summary>
+//public interface IParagraphPropertyCreator
+//{
 
-}
+//}
