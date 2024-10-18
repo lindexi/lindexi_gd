@@ -481,10 +481,6 @@ public class X11App
                     if (xiEvent->evtype == XiEventType.XI_DeviceChanged)
                     {
                     }
-                    else if (xiEvent->evtype == XiEventType.XI_HierarchyChanged)
-                    {
-                        Console.WriteLine($"XI_HierarchyChanged");
-                    }
                     else if (xiEvent->evtype is
                          XiEventType.XI_ButtonPress
                          or XiEventType.XI_ButtonRelease
