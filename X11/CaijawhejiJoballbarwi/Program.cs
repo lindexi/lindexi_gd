@@ -214,10 +214,6 @@ unsafe
         XiSelectEvents(display, handle, new Dictionary<int, List<XiEventType>>
         {
             [pointerDevice.Value.Deviceid] = multiTouchEventTypes,
-            [(int) XiPredefinedDeviceId.XIAllMasterDevices] = new List<XiEventType>()
-            {
-                XiEventType.XI_HierarchyChanged,
-            }
         });
 
         // 重新注册依然没有触摸宽度高度
@@ -247,6 +243,24 @@ unsafe
         //        XiEventType.XI_DeviceChanged,
         //    }
         //});
+
+        // GTK3 gdkdevicemanager-xi2.c
+        // XIEventMask event_mask;
+        // unsigned char mask[2] = { 0 };
+        // XISetMask (mask, XI_HierarchyChanged);
+        // XISetMask (mask, XI_DeviceChanged);
+        // XISetMask (mask, XI_PropertyEvent);
+        // event_mask.deviceid = XIAllDevices;
+        // event_mask.mask_len = sizeof (mask);
+        // event_mask.mask = mask;
+        // _gdk_x11_device_manager_xi2_select_events
+        XiSelectEvents(display, rootWindow, new Dictionary<int, List<XiEventType>>()
+        {
+            [(int) XiPredefinedDeviceId.XIAllMasterDevices] = new List<XiEventType>()
+            {
+                XiEventType.XI_HierarchyChanged,
+            }
+        });
 
         for (int i = 0; i < pointerDevice.Value.NumClasses; i++)
         {
