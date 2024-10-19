@@ -25,6 +25,9 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         var skFontManager = SKFontManager.Default;
         var skTypeface = skFontManager.MatchFamily("微软雅黑");
 
+        using SKPaint skPaint = new SKPaint();
+        skPaint.Typeface = skTypeface;
+
         var asset = skTypeface.OpenStream(out var trueTypeCollectionIndex);
         var size = asset.Length;
         var memoryBase = asset.GetMemoryBase();

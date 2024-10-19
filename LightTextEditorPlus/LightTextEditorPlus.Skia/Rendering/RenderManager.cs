@@ -28,8 +28,26 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
 
     private Rect CurrentCaretBounds { set; get; }
 
+    private SKBitmap? _debugBitmap;
+
     public void Render(RenderInfoProvider renderInfoProvider)
     {
+        var textWidth = 1000;
+        var textHeight = 1000;
+        if (_debugBitmap != null && (_debugBitmap.Width != textWidth || _debugBitmap.Height != textHeight))
+        {
+            _debugBitmap.Dispose();
+            _debugBitmap = null;
+        }
+
+        _debugBitmap ??= new SKBitmap(textWidth, textHeight, SKColorType.Bgra8888, SKAlphaType.Premul);
+        using SKCanvas debugSkCanvas = new SKCanvas(_debugBitmap);
+        using SKPaint debugSkPaint = new SKPaint();
+        debugSkPaint.Color = SKColors.Blue;
+        debugSkPaint.Style = SKPaintStyle.Stroke;
+        debugSkPaint.StrokeWidth = 1;
+        debugSkPaint.IsAntialias = true;
+
         var list = new List<SkiaTextRenderInfo>();
 
         CaretRenderInfo currentCaretRenderInfo = renderInfoProvider.GetCurrentCaretRenderInfo();
@@ -50,6 +68,9 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
                     var skiaTextRenderInfo = new SkiaTextRenderInfo(charData.CharObject.ToText(), x, y, charData.RunProperty);
                     list.Add(skiaTextRenderInfo);
                 }
+
+                Rect rect = new Rect(argument.StartPoint, argument.Size);
+                debugSkCanvas.DrawRect(rect.ToSKRect(), debugSkPaint);
             }
         }
 
@@ -80,6 +101,11 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
         SKPaint caretPaint = skPaint;
         caretPaint.Color = SKColors.Black;
         caretPaint.Style = SKPaintStyle.Fill;
+
+        if (_debugBitmap != null)
+        {
+            canvas.DrawBitmap(_debugBitmap, 0, 0);
+        }
 
         canvas.DrawRect(CurrentCaretBounds.ToSKRect(), caretPaint);
     }
