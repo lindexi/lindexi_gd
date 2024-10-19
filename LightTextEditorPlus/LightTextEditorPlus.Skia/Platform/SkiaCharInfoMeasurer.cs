@@ -33,8 +33,14 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         var textAdvances = skPaint.GetGlyphWidths(charInfo.CharObject.ToText(), out var skBounds);
         if (skBounds != null && skBounds.Length > 0)
         {
-            // 这里测量的高度是 11 的值，然而实际渲染是超过 11 的值
-            return new CharInfoMeasureResult(skBounds[0].ToRect());
+            // 为什么实际渲染会感觉超过 11 的值？这是因为 DrawText 的 Point 给的是最下方的坐标，而不是最上方的坐标
+            //// 这里测量的高度是 11 的值，然而实际渲染是超过 11 的值
+            return new CharInfoMeasureResult(skBounds[0].ToRect() with
+            {
+                X = 0,
+                Y = 0,
+                Width = textAdvances[0],
+            });
         }
 
         var asset = skTypeface.OpenStream(out var trueTypeCollectionIndex);
