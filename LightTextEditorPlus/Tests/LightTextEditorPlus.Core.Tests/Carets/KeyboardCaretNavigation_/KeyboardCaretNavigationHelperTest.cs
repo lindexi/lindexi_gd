@@ -639,7 +639,7 @@ public class KeyboardCaretNavigationHelperTest
 
             // Assert
             // 光标可到末段首行
-            var caretRenderInfo = textEditorCore.GetRenderInfo().GetCaretRenderInfo(textEditorCore.CurrentCaretOffset);
+            var caretRenderInfo = textEditorCore.GetRenderInfo().GetCurrentCaretRenderInfo();
             Assert.AreEqual(0, caretRenderInfo.LineIndex);
             Assert.AreEqual(1, caretRenderInfo.ParagraphIndex);
 
