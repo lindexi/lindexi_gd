@@ -410,11 +410,11 @@
     <NetCoreReference Include="System.Security.Principal.Windows" />
     <NetCoreReference Include="System.Text.Encoding.Extensions" />
     <NetCoreReference Include="System.Threading" />
-    <NetCoreReference Include="System.Threading.Tasks" />
+    <!--<NetCoreReference Include="System.Threading.Tasks" />-->
     <NetCoreReference Include="System.Threading.Thread" />
     <NetCoreReference Include="System.Threading.ThreadPool" />
     <NetCoreReference Include="System.Threading.Timer" />
-    <NetCoreReference Include="System.Xml" />
+    <!--<NetCoreReference Include="System.Xml" />-->
     <NetCoreReference Include="System.Xml.Document" />
     <NetCoreReference Include="System.Xml.ReaderWriter" />
     <MicrosoftPrivateWinFormsReference Include="Accessibility" />
