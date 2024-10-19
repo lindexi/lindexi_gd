@@ -19,9 +19,11 @@ public partial class SkiaTextEditor : IRenderManager
     {
         var skiaTextEditorPlatformProvider = platformProvider ?? new SkiaTextEditorPlatformProvider(this);
         TextEditorCore = new TextEditorCore(skiaTextEditorPlatformProvider);
+
+        RenderManager = new RenderManager(this);
     }
 
-    internal RenderManager RenderManager { get; } = new RenderManager();
+    internal RenderManager RenderManager { get; }
 
     public TextEditorCore TextEditorCore { get; }
 

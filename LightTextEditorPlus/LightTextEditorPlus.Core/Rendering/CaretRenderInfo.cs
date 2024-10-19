@@ -112,7 +112,7 @@ public readonly struct CaretRenderInfo
     public CaretOffset CaretOffset { get; }
 
     /// <summary>
-    /// 获取光标的范围
+    /// 获取光标的范围，坐标相对于文档左上角
     /// </summary>
     /// <param name="caretWidth"></param>
     /// <returns></returns>

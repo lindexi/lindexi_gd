@@ -11,13 +11,29 @@ namespace LightTextEditorPlus.Rendering;
 
 class RenderManager : IRenderManager, ITextEditorSkiaRender
 {
-    record SkiaTextRenderInfo(string Text, float X, float Y, IReadOnlyRunProperty RunProperty);
+    public RenderManager(SkiaTextEditor textEditor)
+    {
+        _textEditor = textEditor;
+    }
+
+    private readonly SkiaTextEditor _textEditor;
 
     private List<SkiaTextRenderInfo>? RenderInfoList { set; get; }
+
+    /// <summary>
+    /// 默认的光标宽度
+    /// </summary>
+    public const double DefaultCaretWidth = 2;
+
+    private Rect CurrentCaretBounds { set; get; }
 
     public void Render(RenderInfoProvider renderInfoProvider)
     {
         var list = new List<SkiaTextRenderInfo>();
+
+        CaretRenderInfo currentCaretRenderInfo = renderInfoProvider.GetCurrentCaretRenderInfo();
+        Rect caretBounds = currentCaretRenderInfo.GetCaretBounds(DefaultCaretWidth);
+        CurrentCaretBounds = caretBounds;
 
         foreach (ParagraphRenderInfo paragraphRenderInfo in renderInfoProvider.GetParagraphRenderInfoList())
         {
@@ -59,5 +75,23 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
             skPaint.TextSize = (float) skiaTextRenderInfo.RunProperty.FontSize;
             canvas.DrawText(skiaTextRenderInfo.Text, new SKPoint(skiaTextRenderInfo.X, skiaTextRenderInfo.Y + skPaint.TextSize), skPaint);
         }
+
+        {
+            SKPaint caretPaint = skPaint;
+            caretPaint.Color = SKColors.Black;
+            caretPaint.Style = SKPaintStyle.Fill;
+
+            canvas.DrawRect(CurrentCaretBounds.ToSKRect(), caretPaint);
+        }
+    }
+
+    record SkiaTextRenderInfo(string Text, float X, float Y, IReadOnlyRunProperty RunProperty);
+}
+
+public static class SkiaExtensions
+{
+    public static SKRect ToSKRect(this Rect rect)
+    {
+        return new SKRect((float) rect.Left, (float) rect.Top, (float) rect.Right, (float) rect.Bottom);
     }
 }
