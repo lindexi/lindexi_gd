@@ -12,13 +12,15 @@ public interface IReadOnlyRunProperty : IEquatable<IReadOnlyRunProperty>
     /// <summary>
     /// 字体大小
     /// </summary>
-    /// 没有明确的属性，交给文本业务层。有些使用像素、有些使用磅
+    /// <remarks>
+    /// 没有明确的属性，交给文本业务层。有些使用像素、有些使用磅。但文本布局里面，将会将其作为对应 UI 框架的单位进行处理。如果传入非 UI 框架的单位，将需要 UI 层自行进行转换
+    /// </remarks>
     double FontSize { get; }
 
     /// <summary>
     /// 用户设置的字体名
     /// </summary>
-    /// 非底层找不到字体而进行回滚的字体
+    /// 非底层找不到字体而进行回滚的字体，而是用户设置的字体
     /// 
     /// 在 Word 里面，可以同时设置一个文本 Run 的中文使用一个字体，西文使用一个字体
     /// 虽然 Word 这么做看起来不错，但是也存在设计无解的问题，例如西文字体的行高比中文字体的高

@@ -60,10 +60,20 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             var width = glyphPosition.XAdvance * glyphScale;
             var height = glyphPosition.YAdvance * glyphScale;
 
+            // 预计 height 就是 0 的值
+            if (height == 0)
+            {
+                height = (float) fontSize;
+            }
+
             bounds = new Rect(left, top, width, height);
 
             length += glyphPosition.XOffset * glyphScale + glyphPosition.XAdvance * glyphScale;
         }
+
+#if DEBUG
+        GC.KeepAlive(length); // 调试代码，仅用于方便在此调试获取其长度/宽度
+#endif
 
         return new CharInfoMeasureResult(bounds);
     }

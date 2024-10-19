@@ -60,6 +60,7 @@ public class CharData
     /// </summary>
     /// <param name="point"></param>
     /// <exception cref="InvalidOperationException"></exception>
+    /// 这是文本排版布局的核心方法，通过此方法即可设置每个字符的位置
     internal void SetStartPoint(Point point)
     {
         if (CharLayoutData is null)

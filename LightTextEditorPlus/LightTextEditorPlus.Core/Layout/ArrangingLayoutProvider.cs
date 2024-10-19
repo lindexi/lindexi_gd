@@ -19,8 +19,16 @@ abstract class ArrangingLayoutProvider
         LayoutManager = layoutManager;
     }
 
+    /// <summary>
+    /// 布局方式
+    /// </summary>
     public abstract ArrangingType ArrangingType { get; }
+
+    /// <summary>
+    /// 布局管理器
+    /// </summary>
     public LayoutManager LayoutManager { get; }
+
     public TextEditorCore TextEditor => LayoutManager.TextEditor;
 
     #region 命中测试
@@ -489,6 +497,11 @@ abstract class ArrangingLayoutProvider
 
     #region 通用辅助方法
 
+    /// <summary>
+    /// 通用的测量字符信息的方法，直接就是设置宽度高度为字号大小
+    /// </summary>
+    /// <param name="charInfo"></param>
+    /// <returns></returns>
     protected CharInfoMeasureResult MeasureCharInfo(CharInfo charInfo)
     {
         var bounds = new Rect(0, 0, charInfo.RunProperty.FontSize, charInfo.RunProperty.FontSize);

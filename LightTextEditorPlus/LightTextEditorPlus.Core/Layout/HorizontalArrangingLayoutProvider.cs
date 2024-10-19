@@ -108,6 +108,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// <summary>
     /// 更新字符的坐标
     /// </summary>
+    /// 在已知一行的高度以及当前字符的高度，计算出字符的顶部 Y 坐标
     /// <param name="charHeight">charData.LineCharSize.Height</param>
     /// <param name="lineHeight">当前字符所在行的行高，包括行距在内</param>
     /// <param name="lineTop">文档布局给到行的距离文本框开头的距离</param>
@@ -292,7 +293,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             }
             else
             {
-                // 继续往下执行，如果没有注入自定义的行布局层的话
+                // 继续往下执行，如果没有注入自定义的行布局层的话，则使用默认的行布局器
+                // 为什么不做默认实现？因为默认实现会导致默认逻辑写在外面，而不是相同一个文件里面，没有内聚性，对于文本排版布局内部重调试的情况下，不友好。即，尽管代码结构是清晰了，但实际调试体验却下降了，一个调试或阅读代码需要跳转多个文件，复杂度提升
                 result = LayoutWholeLine(wholeRunLineLayoutArgument);
             }
 
@@ -381,6 +383,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         // 处理行距
         var lineSpacingCalculateArgument = new LineSpacingCalculateArgument(argument.ParagraphIndex, argument.LineIndex, argument.ParagraphProperty, maxFontSizeCharRunProperty);
         LineSpacingCalculateResult lineSpacingCalculateResult = CalculateLineSpacing(lineSpacingCalculateArgument);
+
+        // 获取到行高，行高的意思是整行的高度，包括空白行距+字符高度
         double lineHeight = lineSpacingCalculateResult.TotalLineHeight;
         if (lineSpacingCalculateResult.ShouldUseCharLineHeight)
         {
@@ -390,6 +394,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         var fixLineSpacing = lineHeight - currentSize.Height; // 行距值，现在仅调试用途
         GC.KeepAlive(fixLineSpacing);
 
+        // 具体设置每个字符的坐标的逻辑
         var lineTop = currentStartPoint.Y;
         var currentX = currentStartPoint.X;
         foreach (CharData charData in charDataTakeList)
