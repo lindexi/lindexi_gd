@@ -95,7 +95,17 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
         foreach (SkiaTextRenderInfo skiaTextRenderInfo in RenderInfoList)
         {
             skPaint.TextSize = (float) skiaTextRenderInfo.RunProperty.FontSize;
-            canvas.DrawText(skiaTextRenderInfo.Text, new SKPoint(skiaTextRenderInfo.X, 0), skPaint);
+
+            skPaint.GetGlyphWidths(skiaTextRenderInfo.Text, out var skBounds);
+
+            var y = skiaTextRenderInfo.Y;
+
+            if (skBounds != null && skBounds.Length > 0)
+            {
+                y += skBounds[0].Height;
+            }
+
+            canvas.DrawText(skiaTextRenderInfo.Text, new SKPoint(skiaTextRenderInfo.X, y), skPaint);
         }
 
         SKPaint caretPaint = skPaint;
