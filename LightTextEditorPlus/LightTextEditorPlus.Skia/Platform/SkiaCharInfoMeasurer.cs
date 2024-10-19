@@ -4,6 +4,7 @@ using LightTextEditorPlus.Core.Platform;
 
 using HarfBuzzSharp;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Utils;
 using SkiaSharp;
 
 using Buffer = HarfBuzzSharp.Buffer;
@@ -27,6 +28,14 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
         using SKPaint skPaint = new SKPaint();
         skPaint.Typeface = skTypeface;
+        skPaint.TextSize = (float) charInfo.RunProperty.FontSize;
+
+        var textAdvances = skPaint.GetGlyphWidths(charInfo.CharObject.ToText(), out var skBounds);
+        if (skBounds != null && skBounds.Length > 0)
+        {
+            // 这里测量的高度是 11 的值，然而实际渲染是超过 11 的值
+            return new CharInfoMeasureResult(skBounds[0].ToRect());
+        }
 
         var asset = skTypeface.OpenStream(out var trueTypeCollectionIndex);
         var size = asset.Length;
@@ -44,7 +53,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         font.SetFunctionsOpenType();
         font.GetScale(out var x, out var y);
 
-        float glyphScale =(float) (fontSize / x);
+        float glyphScale = (float) (fontSize / x);
 
         using var buffer = new Buffer();
         buffer.AddUtf32(charInfo.CharObject.ToText());
