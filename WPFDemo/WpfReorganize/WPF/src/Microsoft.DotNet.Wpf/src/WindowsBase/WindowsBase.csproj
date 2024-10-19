@@ -1,5 +1,5 @@
-﻿<Project>
-  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <!--<Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />-->
   <PropertyGroup>
     <DefineConstants>$(DefineConstants);BASE_NATIVEMETHODS;WINDOWS_BASE</DefineConstants>
     <DefineConstants Condition="'$(WeakEventTelemetry)'=='true'">$(DefineConstants);WeakEventTelemetry</DefineConstants>
@@ -368,13 +368,13 @@
        TXT files they consume and the tools (which are not compiled, simply scripts).
        The output files are automatically added as source files to the Compile task.
    -->
-  <Target Name="GenerateSources" BeforeTargets="CoreCompile" Inputs="MS\Internal\IO\Packaging\PackageXmlNamespaces.txt;MS\Internal\IO\Packaging\PackageXmlStrings.txt;" Outputs="$(IntermediateOutputPath)\PackageXmlStringTable.cs">
+  <!--<Target Name="GenerateSources" BeforeTargets="CoreCompile" Inputs="MS\Internal\IO\Packaging\PackageXmlNamespaces.txt;MS\Internal\IO\Packaging\PackageXmlStrings.txt;" Outputs="$(IntermediateOutputPath)\PackageXmlStringTable.cs">
     <Error Condition="!Exists($(PerlCommand.Replace('&quot;','')))" Text="Perl is not found: PerlCommand=$(PerlCommand)" />
     <MakeDir Condition="!Exists('$(IntermediateOutputPath)')" Directories="$(IntermediateOutputPath)" />
     <Exec Command="$(PerlCommand) $(GenXmlStringTable) -o $(IntermediateOutputPath)\PackageXmlStringTable.cs -n MS\Internal\IO\Packaging\PackageXmlNamespaces.txt -x MS\Internal\IO\Packaging\PackageXmlStrings.txt -e MS.Internal.IO.Packaging.PackageXmlEnum -c MS.Internal.IO.Packaging.PackageXmlStringTable" StandardOutputImportance="normal" Outputs="$(IntermediateOutputPath)\PackageXmlStringTable.cs">
       <Output TaskParameter="Outputs" ItemName="Compile" />
     </Exec>
-  </Target>
+  </Target>-->
 
   <ItemGroup>
     <NetCoreReference Include="netstandard" />
@@ -440,9 +440,28 @@
        it needs to be imported after Sdk.targets. This causes the BuildDependsOn variable,
        which is modified by the T4 targets, to be overwritten, so the TransformAll target
        doesn’t run before the Build target. -->
-  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  <!--<Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   <Import Project="$(WpfCodeGenDir)AvTrace\GenTraceSources.targets" />
-  <Import Project="$(WpfCodeGenDir)AvTrace\GenAvMessages.targets" />
+  <Import Project="$(WpfCodeGenDir)AvTrace\GenAvMessages.targets" />-->
   <!-- DevDiv Bug 888747: Re-enable AvTrace codegen -->
   <!-- <Import Project="$(WpfCodeGenDir)DesignTimeTextTemplating.targets" /> -->
+
+  <ItemGroup>
+    <Compile Include="..\System.Xaml\PatchCode\SR.cs" Link="PatchCode\SR.cs" />
+    <Compile Include="Resources\Strings.Designer.cs" />
+    <Compile Include="PatchCode\AccessibilityCode.cs" />
+    <Compile Include="PatchCode\NativeCode.cs" />
+
+    <Compile Update="Resources\Strings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
+
+    <EmbeddedResource Update="Resources\Strings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>
