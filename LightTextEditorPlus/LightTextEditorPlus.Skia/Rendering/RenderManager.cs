@@ -76,13 +76,11 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
             canvas.DrawText(skiaTextRenderInfo.Text, new SKPoint(skiaTextRenderInfo.X, skiaTextRenderInfo.Y + skPaint.TextSize), skPaint);
         }
 
-        {
-            SKPaint caretPaint = skPaint;
-            caretPaint.Color = SKColors.Black;
-            caretPaint.Style = SKPaintStyle.Fill;
+        SKPaint caretPaint = skPaint;
+        caretPaint.Color = SKColors.Black;
+        caretPaint.Style = SKPaintStyle.Fill;
 
-            canvas.DrawRect(CurrentCaretBounds.ToSKRect(), caretPaint);
-        }
+        canvas.DrawRect(CurrentCaretBounds.ToSKRect(), caretPaint);
     }
 
     record SkiaTextRenderInfo(string Text, float X, float Y, IReadOnlyRunProperty RunProperty);
