@@ -28,4 +28,9 @@
   <Import Sdk="Microsoft.DotNet.Arcade.Wpf.Sdk"
           Project="Sdk.props"
           Condition="!Exists('$(WpfArcadeSdkProps)') Or !Exists('$(WpfArcadeSdkTargets)')"/>-->
+
+  <PropertyGroup>
+    <WpfSharedDir>$(MSBuildThisFileDirectory)src\Microsoft.DotNet.Wpf\src\Shared\</WpfSharedDir>
+    <WpfCommonDir>$(MSBuildThisFileDirectory)src\Microsoft.DotNet.Wpf\src\Common\</WpfCommonDir>
+  </PropertyGroup>
 </Project>
