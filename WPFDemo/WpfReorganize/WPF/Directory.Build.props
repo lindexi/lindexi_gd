@@ -30,10 +30,10 @@
           Condition="!Exists('$(WpfArcadeSdkProps)') Or !Exists('$(WpfArcadeSdkTargets)')"/>-->
 
   <PropertyGroup>
+    <WpfSourceDir>$(MSBuildThisFileDirectory)src\Microsoft.DotNet.Wpf\src\</WpfSourceDir>
     <WpfSharedDir>$(MSBuildThisFileDirectory)src\Microsoft.DotNet.Wpf\src\Shared\</WpfSharedDir>
     <WpfCommonDir>$(MSBuildThisFileDirectory)src\Microsoft.DotNet.Wpf\src\Common\</WpfCommonDir>
-
-    <SystemSecurityPermissionsPackageVersion>8.0.0</SystemSecurityPermissionsPackageVersion>
-    <SystemWindowsExtensionsPackageVersion>8.0.0</SystemWindowsExtensionsPackageVersion>
   </PropertyGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)eng\Versions.props"/>
 </Project>

@@ -6,7 +6,7 @@ using System.Resources;
 
 namespace MS.Internal.WindowsBase
 {
-    internal static partial class SR
+    internal partial class SR
     {
         public static string Get(string name)
         {
