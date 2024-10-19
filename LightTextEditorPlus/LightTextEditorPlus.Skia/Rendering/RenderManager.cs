@@ -43,7 +43,7 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
         _debugBitmap ??= new SKBitmap(textWidth, textHeight, SKColorType.Bgra8888, SKAlphaType.Premul);
         using SKCanvas debugSkCanvas = new SKCanvas(_debugBitmap);
         using SKPaint debugSkPaint = new SKPaint();
-        debugSkPaint.Color = SKColors.Blue;
+        debugSkPaint.Color = SKColors.Blue.WithAlpha(0x50);
         debugSkPaint.Style = SKPaintStyle.Stroke;
         debugSkPaint.StrokeWidth = 1;
         debugSkPaint.IsAntialias = true;
@@ -111,13 +111,19 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
         SKPaint caretPaint = skPaint;
         caretPaint.Color = SKColors.Black;
         caretPaint.Style = SKPaintStyle.Fill;
+        caretPaint.StrokeWidth = 1;
 
         if (_debugBitmap != null)
         {
-            canvas.DrawBitmap(_debugBitmap, 0, 0);
+            //canvas.DrawBitmap(_debugBitmap, 0, 0);
+            // 经过画一条线的测试，可以发现 DrawRect 时的高度，其实偏小了一个像素的高度
+            //canvas.DrawLine(0, (float) CurrentCaretBounds.Height,100, (float) CurrentCaretBounds.Height, caretPaint);
         }
 
-        canvas.DrawRect(CurrentCaretBounds.ToSKRect(), caretPaint);
+        canvas.DrawRect((CurrentCaretBounds with
+        {
+            Height = CurrentCaretBounds.Height + 1
+        }).ToSKRect(), caretPaint);
     }
 
     record SkiaTextRenderInfo(string Text, float X, float Y, IReadOnlyRunProperty RunProperty);
