@@ -30,8 +30,10 @@ internal class LayoutUpdateReasonManager
 
     private List<string> ReasonList { get; } = new List<string>();
 
+    public string ReasonText => string.Join(';', ReasonList);
+
     public override string ToString()
     {
-        return "LayoutUpdateReason:" + string.Join(';', ReasonList);
+        return "LayoutUpdateReason:" + ReasonText;
     }
 }

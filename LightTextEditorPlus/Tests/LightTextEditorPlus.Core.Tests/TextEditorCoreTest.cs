@@ -1,5 +1,9 @@
-﻿using LightTextEditorPlus.Core.Platform;
+﻿using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document.Segments;
+using LightTextEditorPlus.Core.Platform;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.TestsFramework;
+
 using MSTest.Extensions.Contracts;
 
 namespace LightTextEditorPlus.Core.Tests;
@@ -12,7 +16,7 @@ public class TextEditorCoreTest
     {
         "测试文本的创建".Test(() =>
         {
-            var textEditorCore = new TextEditorCore(new TestPlatformProvider());
+            var textEditorCore = TestHelper.GetTextEditorCore();
 
             // 没有异常，那就是符合预期
             Assert.IsNotNull(textEditorCore);
@@ -20,18 +24,27 @@ public class TextEditorCoreTest
     }
 
     [ContractTestCase]
-    public void BuildTextLogger()
+    public void GetHitParagraphData()
     {
-        "文本的日志属性不为空，即使平台返回空".Test(() =>
+        "命中到文本的段落的换车符，可以自动修改为命中段末".Test(() =>
         {
             // Arrange
-            var testPlatformProvider = new TestPlatformProvider();
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            // 加上一个测试信息，用来有两个段落，这样才能命中
+            textEditorCore.AppendText("12\r\n");
 
             // Action
-            var textEditorCore = new TextEditorCore(testPlatformProvider);
+            var caretOffset = new CaretOffset(textEditorCore.CurrentCaretOffset.Offset - 1);
+            var paragraphManager = textEditorCore.DocumentManager.ParagraphManager;
+            var result = paragraphManager.GetHitParagraphData(caretOffset);
+
+            var hitCharData = result.GetHitCharData();
+            Assert.IsNotNull(hitCharData);
 
             // Assert
-            Assert.IsNotNull(textEditorCore.Logger);
+            Assert.AreEqual(2, result.HitOffset.Offset);
+            // 命中到 '2' 字符
+            Assert.AreEqual("2", hitCharData.CharObject.ToText());
         });
     }
 
@@ -96,123 +109,223 @@ public class TextEditorCoreTest
     }
 
     [ContractTestCase]
-    public void AppendText()
+    public void TestDebugName()
     {
-        "给文本编辑器连续两次追加文本，可以将后追加的文本，追加在最后".Test(() =>
+        "给文本添加字符串内容，可以自动生成文本的调试名".Test(() =>
         {
             // Arrange
             var textEditorCore = TestHelper.GetTextEditorCore();
-
-            // Action
-            textEditorCore.AppendText("123");
-            textEditorCore.AppendText("456");
-
-            // Assert
-            var renderInfoProvider = textEditorCore.GetRenderInfo();
-            Assert.IsNotNull(renderInfoProvider);
-
-            var paragraphRenderInfoList = renderInfoProvider.GetParagraphRenderInfoList().ToList();
-
-            // 可以排版出来1段1行
-            Assert.AreEqual(1, paragraphRenderInfoList.Count);
-
-            Assert.AreEqual("123456", paragraphRenderInfoList.First().GetLineRenderInfoList().First().LineLayoutData.GetText());
-        });
-
-        @"给文本编辑器追加 123\r\n123\r\n 文本，可以排版出来三段".Test(() =>
-        {
-            // Arrange
-            var textEditorCore = TestHelper.GetTextEditorCore();
-
-            textEditorCore.LayoutCompleted += (sender, args) =>
-            {
-                // Assert
-                var renderInfoProvider = textEditorCore.GetRenderInfo();
-                Assert.IsNotNull(renderInfoProvider);
-
-                var paragraphRenderInfoList = renderInfoProvider.GetParagraphRenderInfoList().ToList();
-
-                // 可以排版出来三段
-                Assert.AreEqual(3, paragraphRenderInfoList.Count);
-            };
-
-            // Action
-            textEditorCore.AppendText("123\r\n123\r\n");
-        });
-
-        "给文本编辑器追加两段纯文本，可以排版出来两段两行".Test(() =>
-        {
-            // Arrange
-            var textEditorCore = TestHelper.GetTextEditorCore();
-
-            textEditorCore.LayoutCompleted += (sender, args) =>
-            {
-                // Assert
-                var renderInfoProvider = textEditorCore.GetRenderInfo();
-                Assert.IsNotNull(renderInfoProvider);
-
-                var paragraphRenderInfoList = renderInfoProvider.GetParagraphRenderInfoList().ToList();
-
-                // 可以排版出来两段两行
-                Assert.AreEqual(2, paragraphRenderInfoList.Count);
-
-                foreach (var paragraphRenderInfo in paragraphRenderInfoList)
-                {
-                    var paragraphLineRenderInfoList = paragraphRenderInfo.GetLineRenderInfoList().ToList();
-                    Assert.AreEqual(1, paragraphLineRenderInfoList.Count);
-
-                    Assert.AreEqual("123", paragraphLineRenderInfoList[0].LineLayoutData.GetText());
-                }
-            };
-
-            // Action
-            // 给文本编辑器追加两段纯文本
-            textEditorCore.AppendText("123\r\n123");
-        });
-
-        "给文本编辑器追加一段纯文本，先触发 DocumentChanging 再触发 DocumentChanged 事件".Test(() =>
-        {
-            // Arrange
-            var textEditorCore = TestHelper.GetTextEditorCore();
-            var raiseCount = 0;
-
-            textEditorCore.DocumentChanging += (sender, args) =>
-            {
-                // Assert
-                Assert.AreEqual(0, raiseCount);
-                raiseCount++;
-            };
-
-            textEditorCore.DocumentChanged += (sender, args) =>
-            {
-                // Assert
-                Assert.AreEqual(1, raiseCount);
-                raiseCount = 2;
-            };
 
             // Action
             textEditorCore.AppendText(TestHelper.PlainNumberText);
 
             // Assert
-            Assert.AreEqual(2, raiseCount);
+            Assert.IsNotNull(textEditorCore.DebugName);
         });
     }
 
-
     [ContractTestCase]
-    public void AppendBreakParagraph()
+    public void SetInDebugMode()
     {
-        "给文本追加一个 \\r\\n 字符串，文本可以分两段".Test(() =>
+        "调用 SetInDebugMode 可以设置文本进入调试模式".Test(() =>
         {
             // Arrange
-            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
+            var textEditorCore = TestHelper.GetTextEditorCore();
 
             // Action
-            textEditorCore.AppendText("\r\n");
+            textEditorCore.SetInDebugMode();
 
             // Assert
-            Assert.AreEqual(0, textEditorCore.GetDocumentLayoutBounds().Width);
-            Assert.AreEqual(30, textEditorCore.GetDocumentLayoutBounds().Height);
+            Assert.AreEqual(true, textEditorCore.IsInDebugMode);
+        });
+    }
+
+    [ContractTestCase]
+    public void UpdateLayout()
+    {
+        "布局过的文本设置 自适应模式 属性，将触发布局".Test(() =>
+        {
+            // Arrange
+            var count = 0;
+            var testPlatformProvider = new TestPlatformProvider();
+            testPlatformProvider.RequireDispatchUpdateLayoutHandler = action =>
+            {
+                // 触发布局
+                if (count == 0)
+                {
+                    action();
+                }
+
+                count++;
+            };
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
+            textEditorCore.AppendText(TestHelper.PlainNumberText);
+
+            // Action
+            textEditorCore.SizeToContent = SizeToContent.Height;
+
+            // Assert
+            // 触发布局，一次是初始化时，一次是设置属性
+            Assert.AreEqual(2, count);
+        });
+
+        "布局过的文本设置 多倍行距呈现策略 属性，将触发布局".Test(() =>
+        {
+            // Arrange
+            var count = 0;
+            var testPlatformProvider = new TestPlatformProvider();
+            testPlatformProvider.RequireDispatchUpdateLayoutHandler = action =>
+            {
+                // 触发布局
+                if (count == 0)
+                {
+                    action();
+                }
+                count++;
+            };
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
+            textEditorCore.AppendText(TestHelper.PlainNumberText);
+
+            // Action
+            textEditorCore.LineSpacingStrategy = LineSpacingStrategy.FirstLineShrink;
+
+            // Assert
+            // 触发布局，一次是初始化时，一次是设置属性
+            Assert.AreEqual(2, count);
+        });
+
+        "布局过的文本设置 行距算法 属性，将触发布局".Test(() =>
+        {
+            // Arrange
+            var count = 0;
+            var testPlatformProvider = new TestPlatformProvider();
+            testPlatformProvider.RequireDispatchUpdateLayoutHandler = action =>
+            {
+                // 触发布局
+                if (count == 0)
+                {
+                    action();
+                }
+                count++;
+            };
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
+            textEditorCore.AppendText(TestHelper.PlainNumberText);
+
+            // Action
+            textEditorCore.LineSpacingAlgorithm = LineSpacingAlgorithm.WPF;
+
+            // Assert
+            // 触发布局，一次是初始化时，一次是设置属性
+            Assert.AreEqual(2, count);
+        });
+
+        "布局过的文本设置 ArrangingType 属性，将触发布局".Test(() =>
+        {
+            // Arrange
+            var count = 0;
+            var testPlatformProvider = new TestPlatformProvider();
+            testPlatformProvider.RequireDispatchUpdateLayoutHandler = action =>
+            {
+                // 触发布局
+                if (count == 0)
+                {
+                    action();
+                }
+                count++;
+            };
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
+            textEditorCore.AppendText(TestHelper.PlainNumberText);
+
+            // Action
+            textEditorCore.ArrangingType = ArrangingType.Vertical;
+
+            // Assert
+            // 触发布局，一次是初始化时，一次是设置属性
+            Assert.AreEqual(2, count);
+        });
+
+        "空文本初始化时设置 自适应模式 属性，不会触发布局".Test(() =>
+        {
+            // Arrange
+            var count = 0;
+            var testPlatformProvider = new TestPlatformProvider();
+            testPlatformProvider.RequireDispatchUpdateLayoutHandler = _ =>
+            {
+                // 触发布局
+                count++;
+            };
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
+            Assert.AreEqual(0, count);
+
+            // Action
+            textEditorCore.SizeToContent = SizeToContent.Height;
+
+            // Assert
+            // 不会触发布局
+            Assert.AreEqual(0, count);
+        });
+
+        "空文本初始化时设置 多倍行距呈现策略 属性，不会触发布局".Test(() =>
+        {
+            // Arrange
+            var count = 0;
+            var testPlatformProvider = new TestPlatformProvider();
+            testPlatformProvider.RequireDispatchUpdateLayoutHandler = _ =>
+            {
+                // 触发布局
+                count++;
+            };
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
+            Assert.AreEqual(0, count);
+
+            // Action
+            textEditorCore.LineSpacingStrategy = LineSpacingStrategy.FirstLineShrink;
+
+            // Assert
+            // 不会触发布局
+            Assert.AreEqual(0, count);
+        });
+
+        "空文本初始化时设置 行距算法 属性，不会触发布局".Test(() =>
+        {
+            // Arrange
+            var count = 0;
+            var testPlatformProvider = new TestPlatformProvider();
+            testPlatformProvider.RequireDispatchUpdateLayoutHandler = _ =>
+            {
+                // 触发布局
+                count++;
+            };
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
+            Assert.AreEqual(0, count);
+
+            // Action
+            textEditorCore.LineSpacingAlgorithm = LineSpacingAlgorithm.WPF;
+
+            // Assert
+            // 不会触发布局
+            Assert.AreEqual(0, count);
+        });
+
+        "空文本初始化时设置 ArrangingType 属性，不会触发布局".Test(() =>
+        {
+            // Arrange
+            var count = 0;
+            var testPlatformProvider = new TestPlatformProvider();
+            testPlatformProvider.RequireDispatchUpdateLayoutHandler = _ =>
+            {
+                // 触发布局
+                count++;
+            };
+            var textEditorCore = TestHelper.GetTextEditorCore(testPlatformProvider);
+            Assert.AreEqual(0, count);
+
+            // Action
+            textEditorCore.ArrangingType = ArrangingType.Vertical;
+
+            // Assert
+            // 不会触发布局
+            Assert.AreEqual(0, count);
         });
     }
 }

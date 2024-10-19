@@ -5,7 +5,14 @@ namespace LightTextEditorPlus.Core.Tests;
 
 class RenderManagerTestPlatformProvider : TestPlatformProvider
 {
-    public override IRenderManager GetRenderManager() => TestRenderManager;
+    public RenderManagerTestPlatformProvider()
+    {
+        RenderManager = new TestRenderManager();
+    }
 
-    public TestRenderManager TestRenderManager { set; get; } = new TestRenderManager();
+    public TestRenderManager TestRenderManager
+    {
+        set=> RenderManager = value;
+        get => (TestRenderManager) RenderManager!;
+    }
 }
