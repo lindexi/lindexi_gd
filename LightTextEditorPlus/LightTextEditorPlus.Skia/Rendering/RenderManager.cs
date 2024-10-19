@@ -6,6 +6,7 @@ using SkiaSharp;
 
 using System.Collections.Generic;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Utils;
 
 namespace LightTextEditorPlus.Rendering;
 
@@ -84,12 +85,4 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
     }
 
     record SkiaTextRenderInfo(string Text, float X, float Y, IReadOnlyRunProperty RunProperty);
-}
-
-public static class SkiaExtensions
-{
-    public static SKRect ToSKRect(this Rect rect)
-    {
-        return new SKRect((float) rect.Left, (float) rect.Top, (float) rect.Right, (float) rect.Bottom);
-    }
 }
