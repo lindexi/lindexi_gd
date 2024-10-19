@@ -6,6 +6,17 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+
+    <GenerateSatelliteAssembliesForCore>true</GenerateSatelliteAssembliesForCore>
+
   </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Resources\Greeting.en-US.resx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Resources\Greeting.en-US.resx" />
+  </ItemGroup>
 
 </Project>
