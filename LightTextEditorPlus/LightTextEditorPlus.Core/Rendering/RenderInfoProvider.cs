@@ -85,6 +85,17 @@ public class RenderInfoProvider
     }
 
     /// <summary>
+    /// 获取当前文本的光标的光标渲染信息
+    /// </summary>
+    /// <returns></returns>
+    public CaretRenderInfo GetCurrentCaretRenderInfo()
+    {
+        var textEditor = TextEditor;
+        CaretOffset currentCaretOffset = textEditor.CurrentCaretOffset;
+        return GetCaretRenderInfo(currentCaretOffset);
+    }
+
+    /// <summary>
     /// 获取给定光标坐标的光标渲染信息
     /// </summary>
     /// <param name="caretOffset"></param>
