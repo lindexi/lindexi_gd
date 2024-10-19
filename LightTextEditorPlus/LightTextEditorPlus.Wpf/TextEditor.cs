@@ -312,7 +312,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     {
         TextEditorPlatformProvider.EnsureLayoutUpdated();
         var renderInfoProvider = TextEditorCore.GetRenderInfo();
-        var caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(CurrentCaretOffset);
+        var caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(TextEditorCore.CurrentCaretOffset);
         var caretBounds = caretRenderInfo.GetCaretBounds(2);
         return caretBounds.ToWpfRect().TopLeft;
     }
