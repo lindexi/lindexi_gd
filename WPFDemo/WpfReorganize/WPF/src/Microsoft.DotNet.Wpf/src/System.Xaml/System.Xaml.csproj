@@ -7,8 +7,6 @@
     <NoWarn>$(NoWarn);0618;NU5125;0618</NoWarn>
     <DefineConstants>$(DefineConstants);OLDRESOURCES;SYSTEM_XAML</DefineConstants>
     <EnableAnalyzers>true</EnableAnalyzers>
-
-    <GenerateSatelliteAssembliesForCore>true</GenerateSatelliteAssembliesForCore>
   </PropertyGroup>
 
   <ItemGroup>
@@ -116,10 +114,10 @@
     <NetCoreReference Include="System.Text.Encoding" />
     <NetCoreReference Include="System.Text.Encoding.Extensions" />
     <NetCoreReference Include="System.Threading" />
-    <NetCoreReference Include="System.Threading.Tasks" />
+    <!--<NetCoreReference Include="System.Threading.Tasks" />-->
     <NetCoreReference Include="System.Threading.Thread" />
     <NetCoreReference Include="System.Threading.ThreadPool" />
-    <NetCoreReference Include="System.Xml" />
+    <!--<NetCoreReference Include="System.Xml" />-->
     <NetCoreReference Include="System.Xml.ReaderWriter" />
   </ItemGroup>
 
@@ -127,13 +125,29 @@
     <PackageReference Include="System.Security.Permissions" Version="$(SystemSecurityPermissionsPackageVersion)" />
     <PackageReference Include="System.Windows.Extensions" Version="$(SystemWindowsExtensionsPackageVersion)" />
   </ItemGroup>
-  <!-- <ItemGroup> -->
-  <!--   <PackageReference Include="System.Security.Permissions" Version="$(SystemSecurityPermissionsPackageVersion)" /> -->
-  <!--    -->
-  <!-- </ItemGroup> -->
+ 
   <!-- <ItemGroup> -->
   <!--   <ProjectReference Include="$(WpfSourceDir)System.Xaml\ref\System.Xaml-ref.csproj"> -->
   <!--     <ReferenceOutputAssembly>false</ReferenceOutputAssembly> -->
   <!--   </ProjectReference> -->
   <!-- </ItemGroup> -->
+
+  <!-- <ItemGroup> -->
+  <!--   <PackageReference Include="System.Security.Permissions" Version="$(SystemSecurityPermissionsPackageVersion)" /> -->
+  <!--    -->
+  <!-- </ItemGroup> -->
+
+  <ItemGroup>
+    <Compile Update="Resources\Strings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
+
+    <EmbeddedResource Update="Resources\Strings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>
