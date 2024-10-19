@@ -62,10 +62,14 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
                 LineDrawingArgument argument = lineInfo.Argument;
                 foreach (CharData charData in argument.CharList)
                 {
-                    Point startPoint = charData.GetStartPoint();
+                    Rect bounds = charData.GetBounds();
+                    Point startPoint = bounds.LeftTop;
+
                     float x = (float) startPoint.X;
                     float y = (float) startPoint.Y;
-                    var skiaTextRenderInfo = new SkiaTextRenderInfo(charData.CharObject.ToText(), x, y, charData.RunProperty);
+                    float width = (float) bounds.Width;
+                    float height = (float) bounds.Height;
+                    var skiaTextRenderInfo = new SkiaTextRenderInfo(charData.CharObject.ToText(), x, y, width, height, charData.RunProperty);
                     list.Add(skiaTextRenderInfo);
                 }
 
@@ -96,16 +100,20 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
         {
             skPaint.TextSize = (float) skiaTextRenderInfo.RunProperty.FontSize;
 
-            skPaint.GetGlyphWidths(skiaTextRenderInfo.Text, out var skBounds);
+            float x = skiaTextRenderInfo.X;
+            float y = skiaTextRenderInfo.Y;
 
-            var y = skiaTextRenderInfo.Y;
+            // 由于 Skia 的 DrawText 传入的 Point 是文本的最下方，因此需要调整 Y 值
+            y += skiaTextRenderInfo.Height;
 
-            if (skBounds != null && skBounds.Length > 0)
-            {
-                y += skBounds[0].Height;
-            }
+            //skPaint.GetGlyphWidths(skiaTextRenderInfo.Text, out var skBounds);
 
-            canvas.DrawText(skiaTextRenderInfo.Text, new SKPoint(skiaTextRenderInfo.X, y), skPaint);
+            //if (skBounds != null && skBounds.Length > 0)
+            //{
+            //    y += skBounds[0].Height;
+            //}
+
+            canvas.DrawText(skiaTextRenderInfo.Text, new SKPoint(x, y), skPaint);
         }
 
         SKPaint caretPaint = skPaint;
@@ -126,5 +134,5 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
         }).ToSKRect(), caretPaint);
     }
 
-    record SkiaTextRenderInfo(string Text, float X, float Y, IReadOnlyRunProperty RunProperty);
+    record SkiaTextRenderInfo(string Text, float X, float Y, float Width, float Height, IReadOnlyRunProperty RunProperty);
 }
