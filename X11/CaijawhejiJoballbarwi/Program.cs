@@ -330,6 +330,8 @@ bool isSendExposeEvent = false;
 
 var valuatorDictionary = new Dictionary<int, double>();
 
+Action? action = null;
+
 while (true)
 {
     var xNextEvent = XNextEvent(display, out var @event);
@@ -349,6 +351,8 @@ while (true)
     {
         var x = @event.MotionEvent.x;
         var y = @event.MotionEvent.y;
+
+        action?.Invoke();
 
         skCanvas.Clear(new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF));
         skCanvas.Flush();
@@ -518,6 +522,8 @@ while (true)
                 }
                 else if (xiEvent->evtype is XiEventType.XI_DeviceChanged)
                 {
+                    Console.WriteLine($"设备变更");
+
                     var devices = (XIDeviceInfo*)XIQueryDevice(display,
                         (int)XiPredefinedDeviceId.XIAllMasterDevices, out int num);
 
@@ -577,10 +583,17 @@ while (true)
                     XFlush(display);
 
                     Console.WriteLine($"尝试禁用触摸");
-                    //XiSelectEvents(display, handle, new Dictionary<int, List<XiEventType>>
-                    //{
-                    //    [pointerDevice.Value.Deviceid] = multiTouchEventTypes,
-                    //});
+
+                    action = () =>
+                    {
+                        Console.WriteLine($"重新注册触摸");
+                        XiSelectEvents(display, handle, new Dictionary<int, List<XiEventType>>
+                        {
+                            [pointerDevice.Value.Deviceid] = multiTouchEventTypes,
+                        });
+                    };
+
+                    XIFreeDeviceInfo(devices);
                 }
                 else
                 {
