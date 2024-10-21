@@ -480,20 +480,27 @@ while (true)
                     }
                     else if (xiEvent->evtype == XiEventType.XI_HierarchyChanged)
                     {
+                        // 没有触发的原因是前面有一个判断，只有触摸的事件才进入
                         // 没有触发，在丢失触摸宽度高度的情况下，也没有触发
                         Console.WriteLine($"xiEvent->evtype={xiEvent->evtype}");
                     }
                     else if (xiEvent->evtype == XiEventType.XI_DeviceChanged)
                     {
+                        // 没有触发的原因是前面有一个判断，只有触摸的事件才进入
                         // 没有触发，在丢失触摸宽度高度的情况下，也没有触发
                         Console.WriteLine($"xiEvent->evtype={xiEvent->evtype}");
                     }
+
                     else
                     {
                         Console.WriteLine($"xiEvent->evtype={xiEvent->evtype}");
                     }
 
                     Draw();
+                }
+                else if (xiEvent->evtype is XiEventType.XI_Enter or XiEventType.XI_Leave or XiEventType.XI_Motion)
+                {
+
                 }
                 else
                 {
@@ -505,6 +512,10 @@ while (true)
 
             }
         }
+    }
+    else if(@event.type is XEventName.PropertyNotify or XEventName.EnterNotify or XEventName.KeymapNotify or XEventName.LeaveNotify)
+    {
+        
     }
     else
     {
