@@ -567,6 +567,7 @@ while (true)
                         //XiEventType.XI_HierarchyChanged,
                     };
 
+                    // 尝试重新注册也是无效的，无法获取到触摸宽度高度
                     XiSelectEvents(display, handle, new Dictionary<int, List<XiEventType>>
                     {
                         [pointerDevice.Value.Deviceid] = [],
