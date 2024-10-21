@@ -381,6 +381,36 @@ while (true)
                     {
                         Console.WriteLine("XI_TouchBegin");
                         dictionary[xiDeviceEvent->detail] = new TouchInfo(xiDeviceEvent->detail, x, y, -1, -1, false);
+
+                        valuatorDictionary.Clear();
+                        var values = xiDeviceEvent->valuators.Values;
+                        for (var c = 0; c < xiDeviceEvent->valuators.MaskLen * 8/*一个 Byte 有 8 个 bit，以下 XIMaskIsSet 是按照 bit 进行判断的*/; c++)
+                        {
+                            if (XIMaskIsSet(xiDeviceEvent->valuators.Mask, c))
+                            {
+                                // 只有 Mask 存在值的，才能获取 Values 的值
+                                valuatorDictionary[c] = *values;
+                                values++;
+                            }
+                        }
+
+                        bool readTouchMajor = false;
+                        if (touchMinorValuatorClassInfo.HasValue)
+                        {
+                            if (valuatorDictionary.TryGetValue(touchMinorValuatorClassInfo.Value.Number, out var value))
+                            {
+                                readTouchMajor = true;
+                            }
+                        }
+
+                        if (readTouchMajor)
+                        {
+                            Console.WriteLine($"读取到触摸宽度");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"没有读取到触摸宽度");
+                        }
                     }
                     else if (xiEvent->evtype == XiEventType.XI_TouchUpdate)
                     {
@@ -486,6 +516,31 @@ while (true)
                 {
 
                 }
+                else if (xiEvent->evtype is XiEventType.XI_DeviceChanged)
+                {
+                    var devices = (XIDeviceInfo*)XIQueryDevice(display,
+                        (int)XiPredefinedDeviceId.XIAllMasterDevices, out int num);
+
+                    for (var c = 0; c < num; c++)
+                    {
+                        if (devices[c].Use == XiDeviceType.XIMasterPointer)
+                        {
+                            var pointerDevice = devices[c];
+                            Console.WriteLine($"XIMasterPointer Deviceid={pointerDevice.Deviceid}");
+
+                            for (int i = 0; i < pointerDevice.NumClasses; i++)
+                            {
+                                var xiAnyClassInfo = pointerDevice.Classes[i];
+                                if (xiAnyClassInfo->Type == XiDeviceClass.XIValuatorClass)
+                                {
+                                    var xiValuatorClassInfo = *((XIValuatorClassInfo*)xiAnyClassInfo);
+
+                                    Console.WriteLine($"XiValuatorClassInfo Label={xiValuatorClassInfo.Label}({XLib.GetAtomName(display, xiValuatorClassInfo.Label)}) Value={xiValuatorClassInfo.Value}; Max={xiValuatorClassInfo.Max:0.00}; Min={xiValuatorClassInfo.Min:0.00}; Resolution={xiValuatorClassInfo.Resolution})");
+                                }
+                            }
+                        }
+                    }
+                }
                 else
                 {
                     Console.WriteLine($"xiEvent->evtype={xiEvent->evtype}");
@@ -497,9 +552,9 @@ while (true)
             }
         }
     }
-    else if(@event.type is XEventName.PropertyNotify or XEventName.EnterNotify or XEventName.KeymapNotify or XEventName.LeaveNotify)
+    else if (@event.type is XEventName.PropertyNotify or XEventName.EnterNotify or XEventName.KeymapNotify or XEventName.LeaveNotify)
     {
-        
+
     }
     else
     {
