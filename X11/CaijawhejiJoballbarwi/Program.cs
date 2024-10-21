@@ -415,6 +415,11 @@ while (true)
                         else
                         {
                             Console.WriteLine($"没有读取到触摸宽度");
+
+                            foreach (var keyValuePair in valuatorDictionary)
+                            {
+                                Console.WriteLine($"Number={keyValuePair.Key} Value={keyValuePair.Value}");
+                            }
                         }
                     }
                     else if (xiEvent->evtype == XiEventType.XI_TouchUpdate)
