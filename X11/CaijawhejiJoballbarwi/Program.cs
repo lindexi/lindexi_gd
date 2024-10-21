@@ -571,6 +571,8 @@ while (true)
                     {
                         [pointerDevice.Value.Deviceid] = [],
                     });
+                    XFlush(display);
+                    Console.WriteLine($"尝试刷新触摸");
                     XiSelectEvents(display, handle, new Dictionary<int, List<XiEventType>>
                     {
                         [pointerDevice.Value.Deviceid] = multiTouchEventTypes,
