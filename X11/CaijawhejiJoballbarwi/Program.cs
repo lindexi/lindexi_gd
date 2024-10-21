@@ -400,9 +400,9 @@ while (true)
                         }
 
                         bool readTouchMajor = false;
-                        if (touchMinorValuatorClassInfo.HasValue)
+                        if (touchMajorValuatorClassInfo.HasValue)
                         {
-                            if (valuatorDictionary.TryGetValue(touchMinorValuatorClassInfo.Value.Number, out var value))
+                            if (valuatorDictionary.TryGetValue(touchMajorValuatorClassInfo.Value.Number, out var value))
                             {
                                 readTouchMajor = true;
                             }
@@ -420,6 +420,7 @@ while (true)
                             {
                                 Console.WriteLine($"Number={keyValuePair.Key} Value={keyValuePair.Value}");
                             }
+
                         }
                     }
                     else if (xiEvent->evtype == XiEventType.XI_TouchUpdate)
@@ -560,49 +561,49 @@ while (true)
                         }
                     }
 
-                    var multiTouchEventTypes = new List<XiEventType>
-                    {
-                        XiEventType.XI_TouchBegin,
-                        XiEventType.XI_TouchUpdate,
-                        XiEventType.XI_TouchEnd,
+                    //var multiTouchEventTypes = new List<XiEventType>
+                    //{
+                    //    XiEventType.XI_TouchBegin,
+                    //    XiEventType.XI_TouchUpdate,
+                    //    XiEventType.XI_TouchEnd,
 
-                        XiEventType.XI_Motion,
-                        XiEventType.XI_ButtonPress,
-                        XiEventType.XI_ButtonRelease,
-                        XiEventType.XI_Leave,
-                        XiEventType.XI_Enter,
+                    //    XiEventType.XI_Motion,
+                    //    XiEventType.XI_ButtonPress,
+                    //    XiEventType.XI_ButtonRelease,
+                    //    XiEventType.XI_Leave,
+                    //    XiEventType.XI_Enter,
 
-                        XiEventType.XI_DeviceChanged,
+                    //    XiEventType.XI_DeviceChanged,
 
-                        // 不能这么写，将会出现以下错误
-                        // X Error of failed request:  BadValue (integer parameter out of range for operation)
-                        // Major opcode of failed request:  131 (XInputExtension)
-                        // Minor opcode of failed request:  46 ()
-                        // Value in failed request:  0xb
-                        // Serial number of failed request:  22
-                        // Current serial number in output stream:  23
-                        //XiEventType.XI_HierarchyChanged,
-                    };
+                    //    // 不能这么写，将会出现以下错误
+                    //    // X Error of failed request:  BadValue (integer parameter out of range for operation)
+                    //    // Major opcode of failed request:  131 (XInputExtension)
+                    //    // Minor opcode of failed request:  46 ()
+                    //    // Value in failed request:  0xb
+                    //    // Serial number of failed request:  22
+                    //    // Current serial number in output stream:  23
+                    //    //XiEventType.XI_HierarchyChanged,
+                    //};
 
-                    // 尝试重新注册也是无效的，无法获取到触摸宽度高度
-                    XiSelectEvents(display, handle, new Dictionary<int, List<XiEventType>>
-                    {
-                        [pointerDevice.Value.Deviceid] = [],
-                    });
+                    //// 尝试重新注册也是无效的，无法获取到触摸宽度高度
+                    //XiSelectEvents(display, handle, new Dictionary<int, List<XiEventType>>
+                    //{
+                    //    [pointerDevice.Value.Deviceid] = [],
+                    //});
 
 
-                    XFlush(display);
+                    //XFlush(display);
 
-                    Console.WriteLine($"尝试禁用触摸");
+                    //Console.WriteLine($"尝试禁用触摸");
 
-                    action = () =>
-                    {
-                        Console.WriteLine($"重新注册触摸");
-                        XiSelectEvents(display, handle, new Dictionary<int, List<XiEventType>>
-                        {
-                            [pointerDevice.Value.Deviceid] = multiTouchEventTypes,
-                        });
-                    };
+                    //action = () =>
+                    //{
+                    //    Console.WriteLine($"重新注册触摸");
+                    //    XiSelectEvents(display, handle, new Dictionary<int, List<XiEventType>>
+                    //    {
+                    //        [pointerDevice.Value.Deviceid] = multiTouchEventTypes,
+                    //    });
+                    //};
 
                     XIFreeDeviceInfo(devices);
                 }
