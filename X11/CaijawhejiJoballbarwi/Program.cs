@@ -569,6 +569,10 @@ while (true)
 
                     XiSelectEvents(display, handle, new Dictionary<int, List<XiEventType>>
                     {
+                        [pointerDevice.Value.Deviceid] = [],
+                    });
+                    XiSelectEvents(display, handle, new Dictionary<int, List<XiEventType>>
+                    {
                         [pointerDevice.Value.Deviceid] = multiTouchEventTypes,
                     });
                 }
