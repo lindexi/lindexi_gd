@@ -379,6 +379,7 @@ while (true)
                     var y = xiDeviceEvent->event_y;
                     if (xiEvent->evtype == XiEventType.XI_TouchBegin)
                     {
+                        Console.WriteLine("XI_TouchBegin");
                         dictionary[xiDeviceEvent->detail] = new TouchInfo(xiDeviceEvent->detail, x, y, -1, -1, false);
                     }
                     else if (xiEvent->evtype == XiEventType.XI_TouchUpdate)
