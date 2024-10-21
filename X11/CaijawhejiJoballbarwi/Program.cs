@@ -353,6 +353,7 @@ while (true)
         var y = @event.MotionEvent.y;
 
         action?.Invoke();
+        action = null;
 
         skCanvas.Clear(new SKColor((uint) Random.Shared.Next()).WithAlpha(0xFF));
         skCanvas.Flush();
@@ -414,6 +415,11 @@ while (true)
                         else
                         {
                             Console.WriteLine($"没有读取到触摸宽度");
+
+                            foreach (var keyValuePair in valuatorDictionary)
+                            {
+                                Console.WriteLine($"Number={keyValuePair.Key} Value={keyValuePair.Value}");
+                            }
                         }
                     }
                     else if (xiEvent->evtype == XiEventType.XI_TouchUpdate)
@@ -543,7 +549,12 @@ while (true)
                                 {
                                     var xiValuatorClassInfo = *((XIValuatorClassInfo*)xiAnyClassInfo);
 
-                                    Console.WriteLine($"XiValuatorClassInfo Label={xiValuatorClassInfo.Label}({XLib.GetAtomName(display, xiValuatorClassInfo.Label)}) Value={xiValuatorClassInfo.Value}; Max={xiValuatorClassInfo.Max:0.00}; Min={xiValuatorClassInfo.Min:0.00}; Resolution={xiValuatorClassInfo.Resolution})");
+                                    Console.WriteLine($"XiValuatorClassInfo Label={xiValuatorClassInfo.Label}({XLib.GetAtomName(display, xiValuatorClassInfo.Label)}) Num={xiValuatorClassInfo.Number} Value={xiValuatorClassInfo.Value}; Max={xiValuatorClassInfo.Max:0.00}; Min={xiValuatorClassInfo.Min:0.00}; Resolution={xiValuatorClassInfo.Resolution})");
+
+                                    if (xiValuatorClassInfo.Label == touchMajorAtom)
+                                    {
+                                        touchMajorValuatorClassInfo = xiValuatorClassInfo;
+                                    }
                                 }
                             }
                         }
