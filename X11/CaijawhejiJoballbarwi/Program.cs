@@ -172,7 +172,7 @@ XIValuatorClassInfo? pressureValuatorClassInfo = null;
 unsafe
 {
     var devices = (XIDeviceInfo*) XIQueryDevice(display,
-        (int) XiPredefinedDeviceId.XIAllMasterDevices, out int num);
+        (int) XiPredefinedDeviceId.XIAllDevices, out int num);
 
     XIDeviceInfo? pointerDevice = default;
     for (var c = 0; c < num; c++)
@@ -201,7 +201,7 @@ unsafe
             XiEventType.XI_Leave,
             XiEventType.XI_Enter,
 
-            //XiEventType.XI_DeviceChanged,
+            XiEventType.XI_DeviceChanged,
 
             // 不能这么写，将会出现以下错误
             // X Error of failed request:  BadValue (integer parameter out of range for operation)
