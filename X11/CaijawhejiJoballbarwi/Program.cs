@@ -400,9 +400,9 @@ while (true)
                         }
 
                         bool readTouchMajor = false;
-                        if (touchMinorValuatorClassInfo.HasValue)
+                        if (touchMajorValuatorClassInfo.HasValue)
                         {
-                            if (valuatorDictionary.TryGetValue(touchMinorValuatorClassInfo.Value.Number, out var value))
+                            if (valuatorDictionary.TryGetValue(touchMajorValuatorClassInfo.Value.Number, out var value))
                             {
                                 readTouchMajor = true;
                             }
@@ -420,6 +420,7 @@ while (true)
                             {
                                 Console.WriteLine($"Number={keyValuePair.Key} Value={keyValuePair.Value}");
                             }
+
                         }
                     }
                     else if (xiEvent->evtype == XiEventType.XI_TouchUpdate)
@@ -589,20 +590,23 @@ while (true)
                     {
                         [pointerDevice.Value.Deviceid] = [],
                     });
-
-
                     XFlush(display);
-
-                    Console.WriteLine($"尝试禁用触摸");
-
-                    action = () =>
+                    Console.WriteLine($"重新注册触摸");
+                    XiSelectEvents(display, handle, new Dictionary<int, List<XiEventType>>
                     {
-                        Console.WriteLine($"重新注册触摸");
-                        XiSelectEvents(display, handle, new Dictionary<int, List<XiEventType>>
-                        {
-                            [pointerDevice.Value.Deviceid] = multiTouchEventTypes,
-                        });
-                    };
+                        [pointerDevice.Value.Deviceid] = multiTouchEventTypes,
+                    });
+
+                    //Console.WriteLine($"尝试禁用触摸");
+
+                    //action = () =>
+                    //{
+                    //    Console.WriteLine($"重新注册触摸");
+                    //    XiSelectEvents(display, handle, new Dictionary<int, List<XiEventType>>
+                    //    {
+                    //        [pointerDevice.Value.Deviceid] = multiTouchEventTypes,
+                    //    });
+                    //};
 
                     XIFreeDeviceInfo(devices);
                 }
