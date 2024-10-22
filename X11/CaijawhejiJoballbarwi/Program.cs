@@ -172,7 +172,7 @@ XIValuatorClassInfo? pressureValuatorClassInfo = null;
 unsafe
 {
     var devices = (XIDeviceInfo*) XIQueryDevice(display,
-        (int) XiPredefinedDeviceId.XIAllMasterDevices, out int num);
+        (int) XiPredefinedDeviceId.XIAllDevices, out int num);
 
     XIDeviceInfo? pointerDevice = default;
     for (var c = 0; c < num; c++)
