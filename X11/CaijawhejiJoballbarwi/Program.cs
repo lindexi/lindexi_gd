@@ -201,7 +201,7 @@ unsafe
             XiEventType.XI_Leave,
             XiEventType.XI_Enter,
 
-            XiEventType.XI_DeviceChanged,
+            //XiEventType.XI_DeviceChanged,
 
             // 不能这么写，将会出现以下错误
             // X Error of failed request:  BadValue (integer parameter out of range for operation)
