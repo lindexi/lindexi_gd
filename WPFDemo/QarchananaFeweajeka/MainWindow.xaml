@@ -5,8 +5,18 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:QarchananaFeweajeka"
         mc:Ignorable="d"
-        Title="MainWindow" Height="200" Width="500">
+        WindowStyle="ToolWindow"
+        Topmost="True"
+        Title="Latex Word 输入法" Height="100" Width="300">
     <Grid>
-        <Button x:Name="SendButton" Click="SendButton_OnClick">发送</Button>
+        <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top"
+                   FontSize="20">
+            <Run Foreground="Gray" Text="1."/>
+            <Run Foreground="Black" Text="a^2+b^2=c^2"></Run>
+        </TextBlock>
+        <Button x:Name="SendButton"
+                Margin="10 10 10 10"
+                HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                Click="SendButton_OnClick">发送</Button>
     </Grid>
 </Window>
