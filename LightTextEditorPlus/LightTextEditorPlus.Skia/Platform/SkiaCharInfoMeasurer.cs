@@ -49,15 +49,15 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         var size = asset.Length;
         var memoryBase = asset.GetMemoryBase();
 
-        var blob = new Blob(memoryBase, size, MemoryMode.ReadOnly, () => asset.Dispose());
+        using var blob = new Blob(memoryBase, size, MemoryMode.ReadOnly, () => asset.Dispose());
         blob.MakeImmutable();
 
-        var face = new Face(blob, (uint) trueTypeCollectionIndex);
+        using var face = new Face(blob, (uint) trueTypeCollectionIndex);
         face.UnitsPerEm = skTypeface.UnitsPerEm;
 
         var fontSize = charInfo.RunProperty.FontSize;
 
-        var font = new Font(face);
+        using var font = new Font(face);
         font.SetFunctionsOpenType();
         font.GetScale(out var x, out var y);
 
@@ -69,6 +69,8 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         buffer.Direction = Direction.LeftToRight;
         buffer.Script = Script.Han;
         buffer.Language = new Language("en");
+
+        buffer.GuessSegmentProperties();
 
         font.Shape(buffer);
 
