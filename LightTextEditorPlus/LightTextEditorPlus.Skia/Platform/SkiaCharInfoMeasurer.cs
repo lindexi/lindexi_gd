@@ -31,6 +31,8 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         skPaint.TextSize = (float) charInfo.RunProperty.FontSize;
 
         var textAdvances = skPaint.GetGlyphWidths(charInfo.CharObject.ToText(), out var skBounds);
+        // 使用 GetGlyphWidths 布局也能达到效果，但是其布局效果本身不佳
+        // 暂时没有找到如何对齐基线
         if (skBounds != null && skBounds.Length > 0 && false)
         {
             // 为什么实际渲染会感觉超过 11 的值？这是因为 DrawText 的 Point 给的是最下方的坐标，而不是最上方的坐标
@@ -64,7 +66,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         float glyphScale = (float) (fontSize / x);
 
         using var buffer = new Buffer();
-        buffer.AddUtf32(charInfo.CharObject.ToText());
+        buffer.AddUtf32("123微软雅黑bfg");
 
         buffer.Direction = Direction.LeftToRight;
         buffer.Script = Script.Han;
