@@ -107,6 +107,10 @@ namespace LightTextEditorPlus.Core.Document
             return false;
         }
 
+        /// <summary>
+        /// 额外的属性信息
+        /// </summary>
+        /// 这是在开始设计的时候，以为可以让此类型支持到业务端，然而实际使用却发现无法这么做。也许继续开发发现这个属性确实没有用时，可以考虑删除
         private Dictionary<string, IImmutableRunPropertyValue>? AdditionalPropertyDictionary { set; get; }
 
         #endregion

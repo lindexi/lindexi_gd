@@ -34,12 +34,14 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         if (skBounds != null && skBounds.Length > 0)
         {
             // 为什么实际渲染会感觉超过 11 的值？这是因为 DrawText 的 Point 给的是最下方的坐标，而不是最上方的坐标
+            // 字号是 15 时，测量返回的高度是 11 的值。这是因为这个 11 指的是字符渲染高度
             //// 这里测量的高度是 11 的值，然而实际渲染是超过 11 的值
             return new CharInfoMeasureResult(skBounds[0].ToRect() with
             {
                 X = 0,
                 Y = 0,
                 Width = textAdvances[0],
+                //Height = skBounds[0].Height
             });
         }
 
