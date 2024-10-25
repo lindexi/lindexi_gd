@@ -106,6 +106,8 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
             // 由于 Skia 的 DrawText 传入的 Point 是文本的最下方，因此需要调整 Y 值
             y += skiaTextRenderInfo.Height;
 
+            y -= skiaTextRenderInfo.Height/10;// 特意让文字上移一点，似乎效果更好
+
             //skPaint.GetGlyphWidths(skiaTextRenderInfo.Text, out var skBounds);
 
             //if (skBounds != null && skBounds.Length > 0)

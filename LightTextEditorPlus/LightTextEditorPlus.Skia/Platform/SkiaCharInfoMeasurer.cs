@@ -33,7 +33,8 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         var textAdvances = skPaint.GetGlyphWidths(charInfo.CharObject.ToText(), out var skBounds);
         // 使用 GetGlyphWidths 布局也能达到效果，但是其布局效果本身不佳
         // 暂时没有找到如何对齐基线
-        if (skBounds != null && skBounds.Length > 0 && false)
+        // 但是在绘制渲染时，自动带上了基线对齐，因此保持 Y 坐标为 0 即可
+        if (skBounds != null && skBounds.Length > 0)
         {
             // 为什么实际渲染会感觉超过 11 的值？这是因为 DrawText 的 Point 给的是最下方的坐标，而不是最上方的坐标
             // 字号是 15 时，测量返回的高度是 11 的值。这是因为这个 11 指的是字符渲染高度
@@ -44,6 +45,8 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
                 Y = 0,
                 Width = textAdvances[0],
                 //Height = skBounds[0].Height
+                // 测量的高度是 11 的值，却设置为字体大小 15 的值。刚好渲染 123微软雅黑 时，自动让 123 对齐基线
+                Height = skPaint.TextSize
             });
         }
 
@@ -62,11 +65,12 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         using var font = new Font(face);
         font.SetFunctionsOpenType();
         font.GetScale(out var x, out var y);
+        font.SetFunctionsOpenType();
 
         float glyphScale = (float) (fontSize / x);
 
         using var buffer = new Buffer();
-        buffer.AddUtf32("123微软雅黑bfg");
+        buffer.AddUtf32(charInfo.CharObject.ToText());
 
         buffer.Direction = Direction.LeftToRight;
         buffer.Script = Script.Han;
