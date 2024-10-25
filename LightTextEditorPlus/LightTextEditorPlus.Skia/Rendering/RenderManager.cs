@@ -123,7 +123,7 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
 
         if (_debugBitmap != null)
         {
-            canvas.DrawBitmap(_debugBitmap, 0, 0);
+            //canvas.DrawBitmap(_debugBitmap, 0, 0);
             // 经过画一条线的测试，可以发现 DrawRect 时的高度，其实偏小了一个像素的高度
             //canvas.DrawLine(0, (float) CurrentCaretBounds.Height,100, (float) CurrentCaretBounds.Height, caretPaint);
         }

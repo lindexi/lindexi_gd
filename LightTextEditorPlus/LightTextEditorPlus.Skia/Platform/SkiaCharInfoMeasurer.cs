@@ -24,7 +24,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
     public CharInfoMeasureResult MeasureCharInfo(in CharInfo charInfo)
     {
         var skFontManager = SKFontManager.Default;
-        var skTypeface = skFontManager.MatchFamily("Arial");
+        var skTypeface = skFontManager.MatchFamily("微软雅黑");
 
         using SKPaint skPaint = new SKPaint();
         skPaint.Typeface = skTypeface;
