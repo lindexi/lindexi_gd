@@ -24,14 +24,14 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
     public CharInfoMeasureResult MeasureCharInfo(in CharInfo charInfo)
     {
         var skFontManager = SKFontManager.Default;
-        var skTypeface = skFontManager.MatchFamily("微软雅黑");
+        var skTypeface = skFontManager.MatchFamily("Arial");
 
         using SKPaint skPaint = new SKPaint();
         skPaint.Typeface = skTypeface;
         skPaint.TextSize = (float) charInfo.RunProperty.FontSize;
 
         var textAdvances = skPaint.GetGlyphWidths(charInfo.CharObject.ToText(), out var skBounds);
-        if (skBounds != null && skBounds.Length > 0)
+        if (skBounds != null && skBounds.Length > 0 && false)
         {
             // 为什么实际渲染会感觉超过 11 的值？这是因为 DrawText 的 Point 给的是最下方的坐标，而不是最上方的坐标
             // 字号是 15 时，测量返回的高度是 11 的值。这是因为这个 11 指的是字符渲染高度
@@ -68,8 +68,14 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
         buffer.Direction = Direction.LeftToRight;
         buffer.Script = Script.Han;
+        buffer.Language = new Language("en");
 
         font.Shape(buffer);
+
+        foreach (GlyphInfo glyphInfo in buffer.GlyphInfos)
+        {
+            uint glyphInfoCodepoint = glyphInfo.Codepoint;
+        }
 
         var length = 0f;
         Rect bounds = Rect.Zero;
@@ -81,6 +87,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             var height = glyphPosition.YAdvance * glyphScale;
 
             // 预计 height 就是 0 的值
+            // https://github.com/harfbuzz/harfbuzz/discussions/4827
             if (height == 0)
             {
                 height = (float) fontSize;
