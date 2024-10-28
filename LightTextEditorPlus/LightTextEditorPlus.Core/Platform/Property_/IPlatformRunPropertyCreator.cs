@@ -8,11 +8,11 @@ namespace LightTextEditorPlus.Core.Platform;
 /// </summary>
 public interface IPlatformRunPropertyCreator
 {
-    /// <summary>
-    /// 基于原有的只读属性创建出新的字符属性
-    /// </summary>
-    /// <returns></returns>
-    IReadOnlyRunProperty BuildNewProperty(Action<IReadOnlyRunProperty> config, IReadOnlyRunProperty baseRunProperty);
+    ///// <summary>
+    ///// 基于原有的只读属性创建出新的字符属性
+    ///// </summary>
+    ///// <returns></returns>
+    //IReadOnlyRunProperty BuildNewProperty(Action<IReadOnlyRunProperty> config, IReadOnlyRunProperty baseRunProperty);
 
     /// <summary>
     /// 获取默认的字符属性

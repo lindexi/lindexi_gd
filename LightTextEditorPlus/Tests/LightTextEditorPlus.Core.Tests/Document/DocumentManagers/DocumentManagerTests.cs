@@ -30,8 +30,11 @@ public class DocumentManagerTests
             // 调用 DocumentManager.SetRunProperty 设置文本字符属性
             textEditorCore.DocumentManager.SetRunProperty((LayoutOnlyRunProperty runProperty) =>
             {
-                runProperty.FontSize = fontSize;
-                runProperty.FontName = new FontName(fontName);
+                return runProperty with
+                {
+                    FontSize = fontSize,
+                    FontName = new FontName(fontName)
+                };
             }, selection);
 
             // Assert
@@ -63,8 +66,11 @@ public class DocumentManagerTests
             Selection? selection = new Selection(new CaretOffset(0), 0);
             textEditorCore.DocumentManager.SetRunProperty((LayoutOnlyRunProperty runProperty) =>
             {
-                runProperty.FontSize = fontSize;
-                runProperty.FontName = new FontName(fontName);
+                return runProperty with
+                {
+                    FontSize = fontSize,
+                    FontName = new FontName(fontName)
+                };
             }, selection);
 
             // Assert
@@ -97,8 +103,11 @@ public class DocumentManagerTests
             Selection? selection = null;
             textEditorCore.DocumentManager.SetRunProperty((LayoutOnlyRunProperty runProperty) =>
             {
-                runProperty.FontSize = fontSize;
-                runProperty.FontName = new FontName(fontName);
+                return runProperty with
+                {
+                    FontSize = fontSize,
+                    FontName = new FontName(fontName)
+                };
             }, selection);
 
             // Assert
@@ -131,8 +140,11 @@ public class DocumentManagerTests
             var selection = new Selection(new CaretOffset(2), 1/*c*/+ ParagraphData.DelimiterLength + 3/*efg*/+ ParagraphData.DelimiterLength + 1/*h*/);// 选择范围是 c\r\nefg\r\nh
             textEditorCore.DocumentManager.SetRunProperty((LayoutOnlyRunProperty runProperty) =>
             {
-                runProperty.FontSize = fontSize;
-                runProperty.FontName = new FontName(fontName);
+                return runProperty with
+                {
+                    FontSize = fontSize,
+                    FontName = new FontName(fontName)
+                };
             }, selection);
 
             // Assert

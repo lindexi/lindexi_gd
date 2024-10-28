@@ -11,7 +11,7 @@ namespace LightTextEditorPlus.Document;
 /// <summary>
 /// 文本字符属性
 /// </summary>
-public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunProperty
+public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunProperty
 {
     internal RunProperty(RunPropertyPlatformManager runPropertyPlatformManager, RunProperty? styleRunProperty = null) : base(styleRunProperty)
     {
@@ -238,18 +238,18 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
 
     #region 相等判断
 
-    /// <inheritdoc />
-    public override bool Equals(object? obj)
-    {
-        if (obj is null) return false;
-        if (ReferenceEquals(this, obj)) return true;
-        if (obj is RunProperty runProperty)
-        {
-            return Equals(runProperty);
-        }
+    ///// <inheritdoc />
+    //public override bool Equals(object? obj)
+    //{
+    //    if (obj is null) return false;
+    //    if (ReferenceEquals(this, obj)) return true;
+    //    if (obj is RunProperty runProperty)
+    //    {
+    //        return Equals(runProperty);
+    //    }
 
-        return false;
-    }
+    //    return false;
+    //}
 
     /// <inheritdoc />
     public override bool Equals(IReadOnlyRunProperty? other)
@@ -286,7 +286,7 @@ public class RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunP
     }
 
     /// <inheritdoc />
-    public bool Equals(RunProperty? other)
+    public virtual bool Equals(RunProperty? other)
     {
         if (other == null)
         {

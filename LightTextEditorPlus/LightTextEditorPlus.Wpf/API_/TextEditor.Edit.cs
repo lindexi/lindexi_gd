@@ -71,7 +71,7 @@ public partial class TextEditor
     /// <param name="selection"></param>
     public void SetFontName(FontName fontName, Selection? selection = null)
     {
-        SetRunProperty(p => p.FontName = fontName, PropertyType.FontName, selection);
+        SetRunProperty(p => p with{ FontName = fontName }, PropertyType.FontName, selection);
     }
 
     /// <summary>
@@ -81,7 +81,7 @@ public partial class TextEditor
     /// <param name="selection"></param>
     public void SetFontSize(double fontSize, Selection? selection = null)
     {
-        SetRunProperty(p => p.FontSize = fontSize, PropertyType.FontSize, selection);
+        SetRunProperty(p => p with{ FontSize = fontSize }, PropertyType.FontSize, selection);
     }
 
     /// <summary>
@@ -91,7 +91,7 @@ public partial class TextEditor
     /// <param name="selection"></param>
     public void SetForeground(ImmutableBrush foreground, Selection? selection = null)
     {
-        SetRunProperty(p => p.Foreground = foreground, PropertyType.Foreground, selection);
+        SetRunProperty(p => p with { Foreground = foreground }, PropertyType.Foreground, selection);
     }
 
     /// <summary>
@@ -125,7 +125,7 @@ public partial class TextEditor
     /// <param name="selection"></param>
     public void SetFontStyle(FontStyle fontStyle, Selection? selection = null)
     {
-        SetRunProperty(p => p.FontStyle = fontStyle, PropertyType.FontStyle, selection);
+        SetRunProperty(p => p with { FontStyle = fontStyle }, PropertyType.FontStyle, selection);
     }
 
     /// <summary>
@@ -158,16 +158,16 @@ public partial class TextEditor
     /// <param name="selection">如果未设置，将采用当前文本选择。文本未选择则设置当前光标属性</param>
     public void SetFontWeight(FontWeight fontWeight, Selection? selection = null)
     {
-        SetRunProperty(p => p.FontWeight = fontWeight, PropertyType.FontWeight, selection);
+        SetRunProperty(p => p with { FontWeight = fontWeight }, PropertyType.FontWeight, selection);
     }
 
     /// <summary>
     /// 设置字符属性。如果传入的 <paramref name="selection"/> 是空，将会使用当前选择。当前选择是空将会修改当前光标字符属性。修改当前光标字符属性样式，只触发 StyleChanging 和 StyleChanged 事件，不触发布局变更
     /// </summary>
-    /// <param name="action"></param>
+    /// <param name="config"></param>
     /// <param name="property"></param>
     /// <param name="selection"></param>
-    internal void SetRunProperty(Action<RunProperty> action, PropertyType property, Selection? selection)
+    internal void SetRunProperty(ConfigRunProperty config, PropertyType property, Selection? selection)
     {
         selection ??= TextEditorCore.CurrentSelection;
 
@@ -187,7 +187,7 @@ public partial class TextEditor
 
         OnStyleChanging(new StyleChangeEventArgs(selection.Value, property, TextEditorCore.IsUndoRedoMode));
 
-        TextEditorCore.DocumentManager.SetRunProperty<RunProperty>(action, selection);
+        TextEditorCore.DocumentManager.SetRunProperty<RunProperty>(runProperty => config(runProperty), selection);
 
         OnStyleChanged(new StyleChangeEventArgs(selection.Value, property, TextEditorCore.IsUndoRedoMode));
     }

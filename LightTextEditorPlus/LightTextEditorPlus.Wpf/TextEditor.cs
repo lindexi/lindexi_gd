@@ -137,8 +137,10 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     /// <param name="config"></param>
     /// <param name="selection"></param>
     /// <remarks>这是给业务层调用的，非框架内调用</remarks>
-    public void SetRunProperty(Action<RunProperty> config, Selection? selection = null)
-        => SetRunProperty(config, PropertyType.RunProperty, selection);
+    public void SetRunProperty(ConfigRunProperty config, Selection? selection = null)
+    {
+        SetRunProperty(config, PropertyType.RunProperty, selection);
+    }
 
     /// <summary>
     /// 等待渲染完成

@@ -332,23 +332,6 @@ namespace LightTextEditorPlus.Core.Document
         {
             CurrentRunProperty = config((T) CurrentRunProperty);
         }
-
-        /// <summary>
-        /// 设置当前光标的字符属性。在光标切走之后，自动失效
-        /// </summary>
-        /// <typeparam name="T">实际业务端使用的字符属性类型</typeparam>
-        /// <param name="config"></param>
-        [Obsolete("这里不好设置不可变的属性")]
-        public void SetCurrentCaretRunProperty<T>(Action<T> config) where T : IReadOnlyRunProperty
-        {
-            // 先获取当前光标的字符属性吧
-            IReadOnlyRunProperty currentCaretRunProperty = CurrentCaretRunProperty;
-
-            var platformRunPropertyCreator = TextEditor.PlatformProvider.GetPlatformRunPropertyCreator();
-            CaretManager.CurrentCaretRunProperty = platformRunPropertyCreator.BuildNewProperty(
-                property => config((T) property),
-                currentCaretRunProperty);
-        }
         
         /// <summary>
         /// 设置当前光标的字符属性。在光标切走之后，自动失效
@@ -426,86 +409,6 @@ namespace LightTextEditorPlus.Core.Document
                         currentRunProperty = charData.RunProperty;
 
                         currentRunProperty = config((T)currentRunProperty);
-                    }
-
-                    runList.Add(new SingleCharImmutableRun(charData.CharObject, currentRunProperty));
-
-                    lastChangedRunProperty = currentRunProperty;
-                    lastCharData = charData;
-                }
-
-                ReplaceCore(selection.Value, runList);
-
-                // 只触发文档变更，不需要修改光标
-
-                InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
-            }
-        }
-
-        /// <summary>
-        /// 将设置一段范围内的文本的字符属性。如传入的 <paramref name="selection"/> 为空，且当前也没有选择内容，则仅修改当前光标的字符属性
-        /// </summary>
-        /// <typeparam name="T">实际业务端使用的字符属性类型</typeparam>
-        /// <param name="config"></param>
-        /// <param name="selection">如为空，则采用当前选择内容。如当前也没有选择内容，则仅修改当前光标的字符属性</param>
-        [Obsolete("这里不好设置不可变的属性")]
-        public void SetRunProperty<T>(Action<T> config, Selection? selection) where T : IReadOnlyRunProperty
-        {
-            // 如为空，则采用当前选择内容
-            selection ??= CaretManager.CurrentSelection;
-
-            // 如当前也没有选择内容，则仅修改当前光标的字符属性
-            if (selection.Value.IsEmpty)
-            {
-                // 设置当前的光标样式，没有修改文档内容，不需要触发文档变更事件
-                if (selection.Value.FrontOffset != CaretManager.CurrentCaretOffset)
-                {
-                    // 这是在搞什么呀？对一个没有选择内容的地方设置文本字符属性
-                    // 这里也不合适抛出异常，可以忽略
-                    // 文本库允许你这么做，但是这么做，文本库啥都不干
-                    TextEditor.Logger.LogDebug($"[DocumentManager][SetRunProperty] selection is empty, but not equals CurrentCaretOffset. 传入 selection 范围的长度是 0 且起点不等于当前光标坐标。将不会修改任何文本字符属性");
-                }
-                else
-                {
-                    SetCurrentCaretRunProperty(config);
-                }
-            }
-            else
-            {
-                // 修改属性，需要触发样式变更，也就是文档变更
-                InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
-                // 表示最后一个更改之后的文本字符属性，为了提升性能，不让每个文本字符属性都需要执行 config 函数
-                // 用来判断如果相邻两个字符的字符属性是相同的，就可以直接复用，不需要重新执行 config 函数创建新的字符属性对象
-                IReadOnlyRunProperty? lastChangedRunProperty = null;
-                CharData? lastCharData = null;
-
-                var runList = new ImmutableRunList();
-
-                foreach (var charData in GetCharDataRange(selection.Value))
-                {
-                    Debug.Assert(charData.CharLayoutData != null, "能够从段落里获取到的，一定是存在在段落里面，因此此属性一定不为空");
-                    if (charData.IsLineBreakCharData)
-                    {
-                        // 是换行的话，需要加上换行的字符
-                        runList.Add(new LineBreakRun(lastChangedRunProperty));
-                        continue;
-                    }
-
-                    IReadOnlyRunProperty currentRunProperty;
-
-                    if (ReferenceEquals(charData.RunProperty, lastCharData?.RunProperty))
-                    {
-                        // 如果相邻两个 CharData 采用相同的字符属性，那就不需要再创建了，稍微提升一点性能和减少内存占用
-                        Debug.Assert(lastChangedRunProperty != null, "当前字符和上一个字符的字符属性相同，证明存在上一个字符，证明存在上一个字符属性");
-                        // ReSharper disable once RedundantSuppressNullableWarningExpression
-                        currentRunProperty = lastChangedRunProperty!;
-                    }
-                    else
-                    {
-                        currentRunProperty = charData.RunProperty;
-
-                        var platformRunPropertyCreator = TextEditor.PlatformProvider.GetPlatformRunPropertyCreator();
-                        currentRunProperty = platformRunPropertyCreator.BuildNewProperty(property => config((T) property), currentRunProperty);
                     }
 
                     runList.Add(new SingleCharImmutableRun(charData.CharObject, currentRunProperty));

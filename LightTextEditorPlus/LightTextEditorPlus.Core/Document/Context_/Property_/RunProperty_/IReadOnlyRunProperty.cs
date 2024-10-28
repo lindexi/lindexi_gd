@@ -29,11 +29,11 @@ public interface IReadOnlyRunProperty : IEquatable<IReadOnlyRunProperty>
     /// 大部分的中文字体都有带英文字符，那不如就依然是单个字体
     FontName FontName { get; }
 
-    /// <summary>
-    /// 尝试获取属性
-    /// </summary>
-    /// <param name="propertyName"></param>
-    /// <param name="value"></param>
-    /// <returns></returns>
-    bool TryGetProperty(string propertyName, [NotNullWhen(true)] out IImmutableRunPropertyValue? value);
+    ///// <summary>
+    ///// 尝试获取属性
+    ///// </summary>
+    ///// <param name="propertyName"></param>
+    ///// <param name="value"></param>
+    ///// <returns></returns>
+    //bool TryGetProperty(string propertyName, [NotNullWhen(true)] out IImmutableRunPropertyValue? value);
 }

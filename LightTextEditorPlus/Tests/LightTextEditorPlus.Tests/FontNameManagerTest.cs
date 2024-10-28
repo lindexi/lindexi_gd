@@ -35,11 +35,12 @@ public class FontNameManagerTest
 
             var (mainWindow, textEditor) = TestFramework.CreateTextEditorInNewWindow();
             var runPropertyCreator = textEditor.TextEditorPlatformProvider.GetPlatformRunPropertyCreator();
-            var styleRunProperty = runPropertyCreator.BuildNewProperty(config =>
+            var styleRunProperty = runPropertyCreator.GetDefaultRunProperty().AsRunProperty() with
             {
-                var property = (RunProperty) config;
-                property.FontName = new FontName(fontName);
-            }, runPropertyCreator.GetDefaultRunProperty()).AsRunProperty();
+                FontName = new FontName(fontName)
+            };
+
+
 
             styleRunProperty.GetGlyphTypeface();
 

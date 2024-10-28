@@ -52,7 +52,10 @@ public class TextEditorTest
             textEditor.TextEditorCore.AppendText("123");
 
             // 再修改当前光标属性
-            textEditor.SetRunProperty(runProperty => runProperty.FontSize = 15);
+            textEditor.SetRunProperty(runProperty => runProperty with
+            {
+                FontSize = 15
+            });
 
             // 再追加一段文本
             textEditor.TextEditorCore.AppendText("123");

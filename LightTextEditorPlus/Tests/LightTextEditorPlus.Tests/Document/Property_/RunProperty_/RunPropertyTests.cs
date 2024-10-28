@@ -22,8 +22,14 @@ public class RunPropertyTests
         {
             // Arrange
             // Action
-            var runProperty1 = CreateRunProperty(property => property.Background = new ImmutableBrush(Brushes.AliceBlue));
-            var runProperty2 = CreateRunProperty(property => property.Background = new ImmutableBrush(Brushes.AntiqueWhite));
+            var runProperty1 = CreateRunProperty() with
+            {
+                Background = new ImmutableBrush(Brushes.AliceBlue)
+            };
+            var runProperty2 = CreateRunProperty() with
+            {
+                Background = new ImmutableBrush(Brushes.AntiqueWhite)
+            };
 
             // Assert
             Assert.AreNotEqual(runProperty1, runProperty2);
@@ -41,8 +47,14 @@ public class RunPropertyTests
         {
             // Arrange
             // Action
-            var runProperty1 = CreateRunProperty(property => property.Stretch = FontStretches.SemiExpanded);
-            var runProperty2 = CreateRunProperty(property => property.Stretch = FontStretches.Normal);
+            var runProperty1 = CreateRunProperty() with
+            {
+                Stretch = FontStretches.SemiExpanded
+            };
+            var runProperty2 = CreateRunProperty() with
+            {
+                Stretch = FontStretches.Normal
+            };
 
             // Assert
             Assert.AreNotEqual(runProperty1, runProperty2);
@@ -60,8 +72,14 @@ public class RunPropertyTests
         {
             // Arrange
             // Action
-            var runProperty1 = CreateRunProperty(property => property.FontStyle = FontStyles.Normal);
-            var runProperty2 = CreateRunProperty(property => property.FontStyle = FontStyles.Italic);
+            var runProperty1 = CreateRunProperty() with
+            {
+                FontStyle = FontStyles.Normal
+            };
+            var runProperty2 = CreateRunProperty() with
+            {
+                FontStyle = FontStyles.Italic
+            };
 
             // Assert
             Assert.AreNotEqual(runProperty1, runProperty2);
@@ -79,8 +97,14 @@ public class RunPropertyTests
         {
             // Arrange
             // Action
-            var runProperty1 = CreateRunProperty(property => property.FontWeight = FontWeights.Bold);
-            var runProperty2 = CreateRunProperty(property => property.FontWeight = FontWeights.ExtraBlack);
+            var runProperty1 = CreateRunProperty() with
+            {
+                FontWeight = FontWeights.Bold
+            };
+            var runProperty2 = CreateRunProperty() with
+            {
+                FontWeight = FontWeights.ExtraBlack
+            };
 
             // Assert
             Assert.AreNotEqual(runProperty1, runProperty2);
@@ -98,8 +122,14 @@ public class RunPropertyTests
         {
             // Arrange
             // Action
-            var runProperty1 = CreateRunProperty(property => property.Opacity = 0.9);
-            var runProperty2 = CreateRunProperty(property => property.Opacity = 0.2);
+            var runProperty1 = CreateRunProperty() with
+            {
+                Opacity = 0.9
+            };
+            var runProperty2 = CreateRunProperty() with
+            {
+                Opacity = 0.2
+            };
 
             // Assert
             Assert.AreNotEqual(runProperty1, runProperty2);
@@ -117,8 +147,14 @@ public class RunPropertyTests
         {
             // Arrange
             // Action
-            var runProperty1 = CreateRunProperty(property => property.Foreground = new ImmutableBrush(Brushes.AliceBlue));
-            var runProperty2 = CreateRunProperty(property => property.Foreground = new ImmutableBrush(Brushes.AntiqueWhite));
+            var runProperty1 = CreateRunProperty() with
+            {
+                Foreground = new ImmutableBrush(Brushes.AliceBlue)
+            };
+            var runProperty2 = CreateRunProperty() with
+            {
+                Foreground = new ImmutableBrush(Brushes.AntiqueWhite)
+            };
 
             // Assert
             Assert.AreNotEqual(runProperty1, runProperty2);
@@ -136,8 +172,14 @@ public class RunPropertyTests
         {
             // Arrange
             // Action
-            var runProperty1 = CreateRunProperty(property => property.FontSize = 100);
-            var runProperty2 = CreateRunProperty(property => property.FontSize = 200);
+            var runProperty1 = CreateRunProperty() with
+            {
+                FontSize = 100
+            };
+            var runProperty2 = CreateRunProperty() with
+            {
+                FontSize = 200
+            };
 
             // Assert
             Assert.AreNotEqual(runProperty1, runProperty2);
@@ -155,8 +197,14 @@ public class RunPropertyTests
         {
             // Arrange
             // Action
-            var runProperty1 = CreateRunProperty(property => property.FontName = new FontName("A"));
-            var runProperty2 = CreateRunProperty(property => property.FontName = new FontName("B"));
+            var runProperty1 = CreateRunProperty() with
+            {
+                FontName = new FontName("A")
+            };
+            var runProperty2 = CreateRunProperty() with
+            {
+                FontName = new FontName("B")
+            };
 
             // Assert
             Assert.AreNotEqual(runProperty1, runProperty2);
@@ -166,13 +214,14 @@ public class RunPropertyTests
         });
     }
 
-    private RunProperty CreateRunProperty(Action<RunProperty> config)
+    private RunProperty CreateRunProperty()
     {
         using var context = TestFramework.CreateTextEditorInNewWindow();
         var textEditor = context.TextEditor;
         IPlatformRunPropertyCreator platformRunPropertyCreator = textEditor.TextEditorPlatformProvider.GetPlatformRunPropertyCreator();
         var runProperty = platformRunPropertyCreator.GetDefaultRunProperty();
-        return (RunProperty) platformRunPropertyCreator.BuildNewProperty(property => config((RunProperty) property), runProperty);
+        return (RunProperty) runProperty;
+        //return (RunProperty) platformRunPropertyCreator.BuildNewProperty(property => config((RunProperty) property), runProperty);
     }
 
     [UIContractTestCase]
@@ -188,8 +237,8 @@ public class RunPropertyTests
 
             // Action
             // 设置两个字符的字符属性的字体名不相同
-            textEditor.SetRunProperty(property => property.FontName = new FontName("A"), new Selection(new CaretOffset(0), 1));
-            textEditor.SetRunProperty(property => property.FontName = new FontName("B"), new Selection(new CaretOffset(1), 1));
+            textEditor.SetRunProperty(property => property with { FontName = new FontName("A") }, new Selection(new CaretOffset(0), 1));
+            textEditor.SetRunProperty(property => property with{ FontName = new FontName("B") }, new Selection(new CaretOffset(1), 1));
 
             // Assert
             var runPropertyList = textEditor.TextEditorCore.DocumentManager.GetRunPropertyRange(new Selection(new CaretOffset(0), 2)).ToList();

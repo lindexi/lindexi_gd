@@ -19,18 +19,17 @@ public class RunPropertyTest
             var (mainWindow, textEditor) = TestFramework.CreateTextEditorInNewWindow();
             var runPropertyCreator = textEditor.TextEditorPlatformProvider.GetPlatformRunPropertyCreator();
 
-            var styleRunProperty = runPropertyCreator.BuildNewProperty(config =>
+            var styleRunProperty = runPropertyCreator.GetDefaultRunProperty().AsRunProperty() with
             {
-                var property = (RunProperty) config;
-                property.FontName = new FontName("Arial");
-            }, runPropertyCreator.GetDefaultRunProperty()).AsRunProperty();
+                FontName = new FontName("Arial")
+            };
 
             var glyphTypeface1 = styleRunProperty.GetGlyphTypeface();
 
-            var runProperty = runPropertyCreator.BuildNewProperty(config =>
+            var runProperty = styleRunProperty with
             {
                 // 没有修改 RunProperty 的字体相关属性
-            },styleRunProperty).AsRunProperty();
+            };
 
             var glyphTypeface2 = runProperty.GetGlyphTypeface();
 
@@ -42,11 +41,10 @@ public class RunPropertyTest
             var (mainWindow, textEditor) = TestFramework.CreateTextEditorInNewWindow();
             var runPropertyCreator = textEditor.TextEditorPlatformProvider.GetPlatformRunPropertyCreator();
 
-            var runProperty = runPropertyCreator.BuildNewProperty(config =>
+            var runProperty = runPropertyCreator.GetDefaultRunProperty().AsRunProperty() with
             {
-                var property = (RunProperty) config;
-                property.FontName = new FontName("Arial");
-            }, runPropertyCreator.GetDefaultRunProperty()).AsRunProperty();
+                FontName = new FontName("Arial")
+            };
 
             var glyphTypeface = runProperty.GetGlyphTypeface();
 

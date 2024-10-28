@@ -42,8 +42,8 @@ public class TextEditorUndoRedoTest
             var selection = new Selection(new CaretOffset(1), 1);
             textEditorCore.DocumentManager.SetRunProperty<LayoutOnlyRunProperty>(runProperty =>
             {
-                runProperty.FontName = new FontName(newFontName);
-                return new LayoutOnlyRunProperty(runProperty)
+                //runProperty.FontName = new FontName(newFontName);
+                return runProperty with
                 {
                     FontName = new FontName(newFontName)
                 };
@@ -221,8 +221,10 @@ public class TextEditorUndoRedoTest
             // 追加带样式的文本
             const string fontName = "测试用的字体";
             var platformRunPropertyCreator = textEditorCore.PlatformProvider.GetPlatformRunPropertyCreator();
-            var runProperty = platformRunPropertyCreator.BuildNewProperty(t => ((LayoutOnlyRunProperty) t).FontName = new FontName(fontName),
-                platformRunPropertyCreator.GetDefaultRunProperty());
+            var runProperty = ((LayoutOnlyRunProperty) platformRunPropertyCreator.GetDefaultRunProperty()) with
+            {
+                FontName = new FontName(fontName)
+            };
 
             textEditorCore.AppendRun(new TextRun(TestHelper.PlainNumberText, runProperty));
 
