@@ -13,10 +13,9 @@ namespace LightTextEditorPlus.Document;
 /// </summary>
 public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunProperty
 {
-    internal RunProperty(RunPropertyPlatformManager runPropertyPlatformManager, RunProperty? styleRunProperty = null) : base(styleRunProperty)
+    internal RunProperty(RunPropertyPlatformManager runPropertyPlatformManager)
     {
         RunPropertyPlatformManager = runPropertyPlatformManager;
-        StyleRunProperty = styleRunProperty;
     }
 
     #region 属性
