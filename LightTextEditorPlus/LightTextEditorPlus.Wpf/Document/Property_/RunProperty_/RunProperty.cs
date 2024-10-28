@@ -26,7 +26,7 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     /// <inheritdoc />
     public ImmutableBrush Foreground
     {
-        set
+        init
         {
             _foreground = value;
         }
@@ -41,7 +41,7 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     /// </summary>
     public static readonly ImmutableBrush DefaultForeground = new ImmutableBrush(Brushes.Black);
 
-    private ImmutableBrush? _foreground;
+    private readonly ImmutableBrush? _foreground;
 
     #endregion
 
@@ -50,7 +50,7 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     /// <inheritdoc />
     public ImmutableBrush? Background
     {
-        set => _background = value;
+        init => _background = value;
         get => _background ?? StyleRunProperty?.Background ?? DefaultBackground;
     }
 
@@ -59,7 +59,7 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     /// </summary>
     public static ImmutableBrush? DefaultBackground => null;
 
-    private ImmutableBrush? _background;
+    private readonly ImmutableBrush? _background;
 
     #endregion
 
@@ -68,7 +68,7 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     /// <inheritdoc />
     public double Opacity
     {
-        set => _opacity = value;
+        init => _opacity = value;
         get => _opacity ?? StyleRunProperty?.Opacity ?? DefaultOpacity;
     }
 
@@ -77,7 +77,7 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     /// </summary>
     public const double DefaultOpacity = 1;
 
-    private double? _opacity;
+    private readonly double? _opacity;
 
     #endregion
 
@@ -86,11 +86,11 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     /// <inheritdoc />
     public FontStretch Stretch
     {
-        set => _stretch = value;
+        init => _stretch = value;
         get => _stretch ?? StyleRunProperty?.Stretch ?? DefaultFontStretch;
     }
 
-    private FontStretch? _stretch;
+    private readonly FontStretch? _stretch;
     /// <summary>
     /// 默认字体拉伸
     /// </summary>
@@ -105,11 +105,11 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     /// </summary>
     public FontWeight FontWeight
     {
-        set => _fontWeight = value;
+        init => _fontWeight = value;
         get => _fontWeight ?? StyleRunProperty?.FontWeight ?? DefaultFontWeight;
     }
 
-    private FontWeight? _fontWeight;
+    private readonly FontWeight? _fontWeight;
     /// <summary>
     /// 默认字重
     /// </summary>
@@ -124,11 +124,11 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     /// </summary>
     public FontStyle FontStyle
     {
-        set => _fontStyle = value;
+        init => _fontStyle = value;
         get => _fontStyle ?? StyleRunProperty?.FontStyle ?? DefaultFontStyle;
     }
 
-    private FontStyle? _fontStyle;
+    private readonly FontStyle? _fontStyle;
     /// <summary>
     /// 默认字体样式
     /// </summary>
@@ -237,19 +237,6 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     #endregion
 
     #region 相等判断
-
-    ///// <inheritdoc />
-    //public override bool Equals(object? obj)
-    //{
-    //    if (obj is null) return false;
-    //    if (ReferenceEquals(this, obj)) return true;
-    //    if (obj is RunProperty runProperty)
-    //    {
-    //        return Equals(runProperty);
-    //    }
-
-    //    return false;
-    //}
 
     /// <inheritdoc />
     public override bool Equals(IReadOnlyRunProperty? other)
