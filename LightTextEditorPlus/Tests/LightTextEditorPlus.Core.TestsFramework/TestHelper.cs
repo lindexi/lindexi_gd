@@ -34,7 +34,10 @@ public static class TestHelper
         if (testPlatformProvider.CharInfoMeasurer is FixedCharSizeCharInfoMeasurer)
         {
             // 如果是固定字符尺寸测量的，那就设置默认字体就是 15 号
-            textEditorCore.DocumentManager.SetDefaultTextRunProperty<LayoutOnlyRunProperty>(runProperty => runProperty.FontSize = DefaultFixCharFontSize);
+            textEditorCore.DocumentManager.SetDefaultTextRunProperty<LayoutOnlyRunProperty>(runProperty => new LayoutOnlyRunProperty(runProperty)
+            {
+                FontSize = DefaultFixCharFontSize
+            });
         }
 
         return textEditorCore;
@@ -49,7 +52,10 @@ public static class TestHelper
 
         var textEditor = TestHelper.GetTextEditorCore(testPlatformProvider);
         // 设置 20 字号，方便行距计算
-        textEditor.DocumentManager.SetDefaultTextRunProperty<LayoutOnlyRunProperty>(t => t.FontSize = LayoutTestFontSize);
+        textEditor.DocumentManager.SetDefaultTextRunProperty<LayoutOnlyRunProperty>(t => new LayoutOnlyRunProperty(t)
+        {
+            FontSize = LayoutTestFontSize
+        });
         // 设置一行能布局 5 个字
         textEditor.DocumentManager.DocumentWidth = LayoutTestCharWidth * 5 + 0.1;
         return textEditor;

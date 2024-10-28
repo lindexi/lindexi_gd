@@ -20,7 +20,10 @@ public class CaretManagerTest
             // Action
             // 设置当前光标文本字符属性
             textEditorCore.DocumentManager
-                .SetCurrentCaretRunProperty<LayoutOnlyRunProperty>(property => property.FontSize = 1000);
+                .SetCurrentCaretRunProperty<LayoutOnlyRunProperty>(property => new LayoutOnlyRunProperty(property)
+                {
+                    FontSize = 1000
+                });
             // 追加字符串文本
             textEditorCore.AppendText(TestHelper.PlainNumberText);
 
@@ -37,14 +40,20 @@ public class CaretManagerTest
             var textEditorCore = TestHelper.GetTextEditorCore();
             // 先准备两个字符，用来设置光标在文本中间
             textEditorCore.DocumentManager
-                .SetDefaultTextRunProperty<LayoutOnlyRunProperty>(property => property.FontSize = 10);
+                .SetDefaultTextRunProperty<LayoutOnlyRunProperty>(property => new LayoutOnlyRunProperty(property)
+                {
+                    FontSize = 10
+                });
             textEditorCore.AppendText("12");
             textEditorCore.CurrentCaretOffset = new CaretOffset(1);
 
             // Action
             // 设置当前光标文本字符属性
             textEditorCore.DocumentManager
-                .SetCurrentCaretRunProperty<LayoutOnlyRunProperty>(property => property.FontSize = 1000);
+                .SetCurrentCaretRunProperty<LayoutOnlyRunProperty>(property => new LayoutOnlyRunProperty(property)
+                {
+                    FontSize = 1000
+                });
             // 在当前光标下输入字符串
             textEditorCore.EditAndReplace("3");
 

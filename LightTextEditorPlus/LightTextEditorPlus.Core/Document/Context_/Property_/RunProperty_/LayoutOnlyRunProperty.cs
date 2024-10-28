@@ -181,8 +181,10 @@ namespace LightTextEditorPlus.Core.Document
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
-        public bool Equals(LayoutOnlyRunProperty other)
+        public virtual bool Equals(LayoutOnlyRunProperty? other)
         {
+            if(other is null) return false;
+
             // 先判断一定存在的属性，再判断业务端注入的属性
             if 
             (

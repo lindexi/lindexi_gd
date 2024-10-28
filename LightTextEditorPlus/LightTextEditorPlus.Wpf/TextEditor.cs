@@ -41,6 +41,11 @@ using Size = LightTextEditorPlus.Core.Primitive.Size;
 namespace LightTextEditorPlus;
 
 /// <summary>
+/// 字符属性的配置委托
+/// </summary>
+public delegate RunProperty ConfigRunProperty(RunProperty baseRunProperty);
+
+/// <summary>
 /// 文本编辑器
 /// </summary>
 /// 这就是整个程序集的入口
@@ -74,7 +79,10 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
         var textEditorPlatformProvider = new TextEditorPlatformProvider(this);
         TextEditorCore = new TextEditorCore(textEditorPlatformProvider);
-        SetDefaultTextRunProperty(property => { property.FontSize = 40; });
+        //SetDefaultTextRunProperty(property => property with
+        //{
+        //    FontSize = 40
+        //});
 
         TextEditorPlatformProvider = textEditorPlatformProvider;
 
@@ -112,16 +120,16 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     /// <summary>
     /// 设置当前文本的默认字符属性
     /// </summary>
-    public void SetDefaultTextRunProperty(Action<RunProperty> config)
+    public void SetDefaultTextRunProperty(ConfigRunProperty config)
     {
-        TextEditorCore.DocumentManager.SetDefaultTextRunProperty<RunProperty>(config);
+        TextEditorCore.DocumentManager.SetDefaultTextRunProperty((RunProperty property) => config( property));
     }
 
     /// <summary>
     /// 设置当前光标的字符属性。在光标切走之后，自动失效
     /// </summary>
-    public void SetCurrentCaretRunProperty(Action<RunProperty> config)
-        => TextEditorCore.DocumentManager.SetCurrentCaretRunProperty<RunProperty>(config);
+    public void SetCurrentCaretRunProperty(ConfigRunProperty config)
+        => TextEditorCore.DocumentManager.SetCurrentCaretRunProperty((RunProperty property) => config(property));
 
     /// <summary>
     /// 设置当前的属性，如果没有选择内容，则设置当前光标的属性。设置光标属性，在输入之后，将会修改光标，从而干掉光标属性。干掉了光标属性，将会获取当前光标对应的字符的属性

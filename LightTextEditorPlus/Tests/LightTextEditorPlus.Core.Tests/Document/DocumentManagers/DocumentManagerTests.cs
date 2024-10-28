@@ -288,7 +288,10 @@ public class DocumentManagerTests
             textEditorCore.DocumentManager.SetCurrentCaretRunProperty<LayoutOnlyRunProperty>(runProperty =>
             {
                 fontSize = runProperty.FontSize + 10;
-                runProperty.FontSize = fontSize;
+                return new LayoutOnlyRunProperty(runProperty)
+                {
+                    FontSize = fontSize
+                };
             });
 
             // Action
@@ -323,7 +326,10 @@ public class DocumentManagerTests
             {
                 oldFontSize = runProperty.FontSize;
                 fontSize = runProperty.FontSize + 10;
-                runProperty.FontSize = fontSize;
+                return new LayoutOnlyRunProperty(runProperty)
+                {
+                    FontSize = fontSize
+                };
             });
 
             // 先证明已设置成功
@@ -348,7 +354,10 @@ public class DocumentManagerTests
             textEditorCore.DocumentManager.SetCurrentCaretRunProperty<LayoutOnlyRunProperty>(runProperty =>
             {
                 fontSize = runProperty.FontSize + 10;
-                runProperty.FontSize = fontSize;
+                return new LayoutOnlyRunProperty(runProperty)
+                {
+                    FontSize = fontSize
+                };
             });
 
             // Assert
