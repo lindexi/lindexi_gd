@@ -1,4 +1,4 @@
-﻿<Window x:Class="QarchananaFeweajeka.MainWindow"
+﻿<Window x:Uid="Window_1" x:Class="QarchananaFeweajeka.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -8,13 +8,13 @@
         WindowStyle="ToolWindow"
         Topmost="True"
         Title="Latex Word 输入法" Height="100" Width="300">
-    <Grid>
-        <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top"
+    <Grid x:Uid="Grid_1">
+        <TextBlock x:Uid="TextBlock_1" HorizontalAlignment="Left" VerticalAlignment="Top"
                    FontSize="20">
-            <Run Foreground="Gray" Text="1."/>
-            <Run Foreground="Black" Text="a^2+b^2=c^2"></Run>
+            <Run x:Uid="Run_1" Foreground="Gray" Text="1."/>
+            <Run x:Uid="Run_2" Foreground="Black" Text="a^2+b^2=c^2"></Run>
         </TextBlock>
-        <Button x:Name="SendButton"
+        <Button x:Uid="SendButton" x:Name="SendButton"
                 Margin="10 10 10 10"
                 HorizontalAlignment="Right" VerticalAlignment="Bottom"
                 Click="SendButton_OnClick">发送</Button>
