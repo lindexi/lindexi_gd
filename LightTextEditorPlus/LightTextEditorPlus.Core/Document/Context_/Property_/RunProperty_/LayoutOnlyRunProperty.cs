@@ -17,35 +17,6 @@ namespace LightTextEditorPlus.Core.Document
         {
         }
 
-        /// <summary>
-        /// 创建仅布局支持的文本字符属性
-        /// </summary>
-        /// <param name="styleRunProperty"></param>
-        public LayoutOnlyRunProperty(LayoutOnlyRunProperty? styleRunProperty)
-        {
-            StyleRunProperty = styleRunProperty;
-        }
-
-        /// <summary>
-        /// 属性继承的深度
-        /// </summary>
-        public int InheritDeepCount
-        {
-            get
-            {
-                var currentStyle = StyleRunProperty;
-                var count = 0;
-                while (currentStyle is not null)
-                {
-                    currentStyle = currentStyle.StyleRunProperty;
-
-                    count++;
-                }
-
-                return count;
-            }
-        }
-
         /// <inheritdoc />
         public double FontSize
         {
@@ -55,7 +26,7 @@ namespace LightTextEditorPlus.Core.Document
                 _fontSize = valueToSet;
                 //RaiseOnTextRunPropertyChanged();
             }
-            get => _fontSize ?? StyleRunProperty?.FontSize ?? DefaultFontSize;
+            get => _fontSize ?? DefaultFontSize;
         }
 
         private readonly double? _fontSize;
@@ -70,19 +41,10 @@ namespace LightTextEditorPlus.Core.Document
                 _fontFamily = value;
                 //RaiseOnTextRunPropertyChanged();
             }
-            get => _fontFamily ?? StyleRunProperty?.FontName ?? FontName.DefaultNotDefineFontName;
+            get => _fontFamily ?? FontName.DefaultNotDefineFontName;
         }
 
         private readonly FontName? _fontFamily;
-
-        #region 框架
-
-        /// <summary>
-        /// 继承样式里的属性
-        /// </summary>
-        private LayoutOnlyRunProperty? StyleRunProperty { get; }
-
-        #endregion
 
         /// <inheritdoc />
         public override int GetHashCode()

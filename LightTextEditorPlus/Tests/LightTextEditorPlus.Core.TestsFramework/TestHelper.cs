@@ -34,7 +34,7 @@ public static class TestHelper
         if (testPlatformProvider.CharInfoMeasurer is FixedCharSizeCharInfoMeasurer)
         {
             // 如果是固定字符尺寸测量的，那就设置默认字体就是 15 号
-            textEditorCore.DocumentManager.SetDefaultTextRunProperty<LayoutOnlyRunProperty>(runProperty => new LayoutOnlyRunProperty(runProperty)
+            textEditorCore.DocumentManager.SetDefaultTextRunProperty<LayoutOnlyRunProperty>(runProperty => runProperty with
             {
                 FontSize = DefaultFixCharFontSize
             });
@@ -52,7 +52,7 @@ public static class TestHelper
 
         var textEditor = TestHelper.GetTextEditorCore(testPlatformProvider);
         // 设置 20 字号，方便行距计算
-        textEditor.DocumentManager.SetDefaultTextRunProperty<LayoutOnlyRunProperty>(t => new LayoutOnlyRunProperty(t)
+        textEditor.DocumentManager.SetDefaultTextRunProperty<LayoutOnlyRunProperty>(t => t with
         {
             FontSize = LayoutTestFontSize
         });

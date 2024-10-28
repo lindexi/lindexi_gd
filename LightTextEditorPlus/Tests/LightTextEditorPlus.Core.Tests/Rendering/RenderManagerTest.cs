@@ -25,7 +25,7 @@ public class RenderManagerTest
 
             // 这是用来设置的行缓存数据，在第一次渲染时设置，期望在下次渲染能拿到
             object renderCache = new object();
-            textEditorCore.DocumentManager.SetDefaultTextRunProperty<LayoutOnlyRunProperty>(p => new LayoutOnlyRunProperty(p)
+            textEditorCore.DocumentManager.SetDefaultTextRunProperty<LayoutOnlyRunProperty>(p => p with
             {
                 FontSize = 15
             });

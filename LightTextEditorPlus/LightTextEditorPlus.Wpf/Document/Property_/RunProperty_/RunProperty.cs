@@ -320,25 +320,4 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     }
 
     #endregion
-
-    /// <summary>
-    /// 去掉继承的字符属性
-    /// </summary>
-    /// <returns></returns>
-    public RunProperty ToFlattenRunProperty()
-    {
-        var runProperty = new RunProperty(RunPropertyPlatformManager, styleRunProperty: null)
-        {
-            FontName = FontName,
-            FontSize = FontSize,
-            Foreground = Foreground,
-            Opacity = Opacity,
-            FontWeight = FontWeight,
-            FontStyle = FontStyle,
-            Stretch = Stretch,
-            Background = Background,
-        };
-
-        return runProperty;
-    }
 }

@@ -29,7 +29,7 @@ public class ChangeTextEditorDefaultTextRunPropertyValueOperationTest
             var oldValue = textEditorCore.DocumentManager.CurrentRunProperty;
 
             // Action
-            textEditorCore.DocumentManager.SetDefaultTextRunProperty<LayoutOnlyRunProperty>(p => new LayoutOnlyRunProperty(p)
+            textEditorCore.DocumentManager.SetDefaultTextRunProperty<LayoutOnlyRunProperty>(p => p with
             {
                 FontSize = 15
             });
@@ -66,7 +66,7 @@ public class ChangeTextEditorDefaultTextRunPropertyValueOperationTest
             var textEditorCore = TestHelper.GetTextEditorCore(new FakeTestPlatformProvider(mock.Object));
 
             // Action
-            textEditorCore.DocumentManager.SetDefaultTextRunProperty<LayoutOnlyRunProperty>(p => new LayoutOnlyRunProperty(p)
+            textEditorCore.DocumentManager.SetDefaultTextRunProperty<LayoutOnlyRunProperty>(p => p with
             {
                 FontSize = 15
             });

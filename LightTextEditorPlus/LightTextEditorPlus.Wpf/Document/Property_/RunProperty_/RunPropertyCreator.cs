@@ -17,17 +17,6 @@ class RunPropertyCreator : PlatformRunPropertyCreatorBase<RunProperty>
 
     public TextEditor TextEditor { get; }
 
-    protected override RunProperty OnBuildNewProperty(Action<IReadOnlyRunProperty> config, RunProperty baseRunProperty)
-    {
-        var runProperty = new RunProperty(_runPropertyPlatformManager, baseRunProperty);
-        config(runProperty);
-        if (runProperty.InheritDeepCount > 10)
-        {
-            return runProperty.ToFlattenRunProperty();
-        }
-        return runProperty;
-    }
-
     protected override RunProperty OnGetDefaultRunProperty()
     {
         return new RunProperty(_runPropertyPlatformManager);

@@ -20,7 +20,7 @@ public class CaretManagerTest
             // Action
             // 设置当前光标文本字符属性
             textEditorCore.DocumentManager
-                .SetCurrentCaretRunProperty<LayoutOnlyRunProperty>(property => new LayoutOnlyRunProperty(property)
+                .SetCurrentCaretRunProperty<LayoutOnlyRunProperty>(property => property with
                 {
                     FontSize = 1000
                 });
@@ -40,7 +40,7 @@ public class CaretManagerTest
             var textEditorCore = TestHelper.GetTextEditorCore();
             // 先准备两个字符，用来设置光标在文本中间
             textEditorCore.DocumentManager
-                .SetDefaultTextRunProperty<LayoutOnlyRunProperty>(property => new LayoutOnlyRunProperty(property)
+                .SetDefaultTextRunProperty<LayoutOnlyRunProperty>(property => property with
                 {
                     FontSize = 10
                 });
@@ -50,7 +50,7 @@ public class CaretManagerTest
             // Action
             // 设置当前光标文本字符属性
             textEditorCore.DocumentManager
-                .SetCurrentCaretRunProperty<LayoutOnlyRunProperty>(property => new LayoutOnlyRunProperty(property)
+                .SetCurrentCaretRunProperty<LayoutOnlyRunProperty>(property => property with
                 {
                     FontSize = 1000
                 });

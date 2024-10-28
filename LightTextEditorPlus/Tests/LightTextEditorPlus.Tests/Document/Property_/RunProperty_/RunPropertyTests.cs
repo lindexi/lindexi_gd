@@ -33,10 +33,6 @@ public class RunPropertyTests
 
             // Assert
             Assert.AreNotEqual(runProperty1, runProperty2);
-
-            var flattenRunProperty = runProperty1.ToFlattenRunProperty();
-            Assert.AreEqual(runProperty1, flattenRunProperty);
-            Assert.AreNotEqual(runProperty2, flattenRunProperty);
         });
     }
 
@@ -58,10 +54,6 @@ public class RunPropertyTests
 
             // Assert
             Assert.AreNotEqual(runProperty1, runProperty2);
-
-            var flattenRunProperty = runProperty1.ToFlattenRunProperty();
-            Assert.AreEqual(runProperty1, flattenRunProperty);
-            Assert.AreNotEqual(runProperty2, flattenRunProperty);
         });
     }
 
@@ -83,10 +75,6 @@ public class RunPropertyTests
 
             // Assert
             Assert.AreNotEqual(runProperty1, runProperty2);
-
-            var flattenRunProperty = runProperty1.ToFlattenRunProperty();
-            Assert.AreEqual(runProperty1, flattenRunProperty);
-            Assert.AreNotEqual(runProperty2, flattenRunProperty);
         });
     }
 
@@ -108,10 +96,6 @@ public class RunPropertyTests
 
             // Assert
             Assert.AreNotEqual(runProperty1, runProperty2);
-
-            var flattenRunProperty = runProperty1.ToFlattenRunProperty();
-            Assert.AreEqual(runProperty1, flattenRunProperty);
-            Assert.AreNotEqual(runProperty2, flattenRunProperty);
         });
     }
 
@@ -133,10 +117,6 @@ public class RunPropertyTests
 
             // Assert
             Assert.AreNotEqual(runProperty1, runProperty2);
-
-            var flattenRunProperty = runProperty1.ToFlattenRunProperty();
-            Assert.AreEqual(runProperty1, flattenRunProperty);
-            Assert.AreNotEqual(runProperty2, flattenRunProperty);
         });
     }
 
@@ -158,10 +138,6 @@ public class RunPropertyTests
 
             // Assert
             Assert.AreNotEqual(runProperty1, runProperty2);
-
-            var flattenRunProperty = runProperty1.ToFlattenRunProperty();
-            Assert.AreEqual(runProperty1, flattenRunProperty);
-            Assert.AreNotEqual(runProperty2, flattenRunProperty);
         });
     }
 
@@ -183,10 +159,6 @@ public class RunPropertyTests
 
             // Assert
             Assert.AreNotEqual(runProperty1, runProperty2);
-
-            var flattenRunProperty = runProperty1.ToFlattenRunProperty();
-            Assert.AreEqual(runProperty1, flattenRunProperty);
-            Assert.AreNotEqual(runProperty2, flattenRunProperty);
         });
     }
 
@@ -208,9 +180,6 @@ public class RunPropertyTests
 
             // Assert
             Assert.AreNotEqual(runProperty1, runProperty2);
-
-            var flattenRunProperty = runProperty1.ToFlattenRunProperty();
-            Assert.AreEqual(runProperty1, flattenRunProperty);
         });
     }
 

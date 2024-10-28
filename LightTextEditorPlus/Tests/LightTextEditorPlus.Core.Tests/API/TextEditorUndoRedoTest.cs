@@ -24,7 +24,7 @@ public class TextEditorUndoRedoTest
 
             var defaultFontName = "DefaultFontName_Test";
             textEditorCore.DocumentManager.SetCurrentCaretRunProperty<LayoutOnlyRunProperty>(runProperty =>
-            new LayoutOnlyRunProperty(runProperty)
+                runProperty with
             {
                 FontName = new FontName(defaultFontName)
             });

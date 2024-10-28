@@ -23,15 +23,15 @@ public interface IPlatformRunPropertyCreator
 public abstract class PlatformRunPropertyCreatorBase<T> : IPlatformRunPropertyCreator
     where T : IReadOnlyRunProperty
 {
-    /// <inheritdoc />
-    public IReadOnlyRunProperty BuildNewProperty(Action<IReadOnlyRunProperty> config,
-        IReadOnlyRunProperty baseRunProperty)
-    {
-        return OnBuildNewProperty(config, (T)baseRunProperty);
-    }
+    ///// <inheritdoc />
+    //public IReadOnlyRunProperty BuildNewProperty(Action<IReadOnlyRunProperty> config,
+    //    IReadOnlyRunProperty baseRunProperty)
+    //{
+    //    return OnBuildNewProperty(config, (T)baseRunProperty);
+    //}
 
-    /// <inheritdoc cref="BuildNewProperty"/>
-    protected abstract T OnBuildNewProperty(Action<IReadOnlyRunProperty> config, T baseRunProperty);
+    ///// <inheritdoc cref="BuildNewProperty"/>
+    //protected abstract T OnBuildNewProperty(Action<IReadOnlyRunProperty> config, T baseRunProperty);
 
     /// <inheritdoc />
     public IReadOnlyRunProperty GetDefaultRunProperty()
@@ -48,14 +48,14 @@ public abstract class PlatformRunPropertyCreatorBase<T> : IPlatformRunPropertyCr
 /// </summary>
 public class DefaultPlatformRunPropertyCreator : PlatformRunPropertyCreatorBase<LayoutOnlyRunProperty>
 {
-    /// <inheritdoc />
-    protected override LayoutOnlyRunProperty OnBuildNewProperty(Action<IReadOnlyRunProperty> config,
-        LayoutOnlyRunProperty baseRunProperty)
-    {
-        var runProperty = new LayoutOnlyRunProperty(baseRunProperty);
-        config(runProperty);
-        return runProperty;
-    }
+    ///// <inheritdoc />
+    //protected override LayoutOnlyRunProperty OnBuildNewProperty(Action<IReadOnlyRunProperty> config,
+    //    LayoutOnlyRunProperty baseRunProperty)
+    //{
+    //    var runProperty = new LayoutOnlyRunProperty(baseRunProperty);
+    //    config(runProperty);
+    //    return runProperty;
+    //}
 
     /// <inheritdoc />
     protected override LayoutOnlyRunProperty OnGetDefaultRunProperty()
