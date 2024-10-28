@@ -165,6 +165,70 @@ public class RunPropertyTests
     [UIContractTestCase]
     public void EqualsFontName()
     {
+        "字体没有变更，获取的字体信息不改变".Test(() =>
+        {
+            // Arrange
+            var fontName = "Arial";
+            var origin = CreateRunProperty() with
+            {
+                FontName = new FontName(fontName)
+            };
+            // 先获取一次字体信息，确保存在缓存
+            GlyphTypeface glyphTypeface = origin.GetGlyphTypeface();
+
+            // Action
+            // 修改字体，设置为一样的字体
+            var runProperty1 = origin with
+            {
+                FontName = new FontName(fontName)
+            };
+            // 再次获取字体信息，用于判断字体信息是否相同
+            GlyphTypeface glyphTypeface1 = runProperty1.GetGlyphTypeface();
+            Assert.AreSame(glyphTypeface, glyphTypeface1);
+        });
+
+        "字体在变更之后，获取的字体信息改变".Test(() =>
+        {
+            // Arrange
+            var origin = CreateRunProperty() with
+            {
+                FontName = new FontName("Arial")
+            };
+            // 先获取一次字体信息，确保存在缓存
+            GlyphTypeface glyphTypeface = origin.GetGlyphTypeface();
+
+            // Action
+            // 修改字体
+            var runProperty1 = origin with
+            {
+                FontName = new FontName("宋体")
+            };
+            // 再次获取字体信息，用于判断字体信息是否相同
+            GlyphTypeface glyphTypeface1 = runProperty1.GetGlyphTypeface();
+            Assert.AreNotSame(glyphTypeface, glyphTypeface1);
+        });
+
+        "经过拷贝之后，依然可以使用字体缓存信息".Test(() =>
+        {
+            // Arrange
+            var origin = CreateRunProperty() with
+            {
+                FontName = new FontName("Arial")
+            };
+            // 先获取一次字体信息，确保存在缓存
+            GlyphTypeface glyphTypeface = origin.GetGlyphTypeface();
+
+            // Action
+            // 经过拷贝，如只改字体大小
+            var runProperty1 = origin with
+            {
+                FontSize = 100
+            };
+            // 再次获取字体信息，用于判断字体信息是否相同
+            GlyphTypeface glyphTypeface1 = runProperty1.GetGlyphTypeface();
+            Assert.AreSame(glyphTypeface, glyphTypeface1);
+        });
+
         "两个 RunProperty 的字体名不相同，则判断相等结果为不相等".Test(() =>
         {
             // Arrange

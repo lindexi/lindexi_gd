@@ -34,7 +34,7 @@ namespace LightTextEditorPlus.Core.Document
         private const double DefaultFontSize = 15;
 
         /// <inheritdoc />
-        public FontName FontName
+        public virtual FontName FontName
         {
             init
             {

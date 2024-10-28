@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Media;
 
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Document;
 
@@ -19,6 +20,21 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     }
 
     #region 属性
+
+    /// <inheritdoc />
+    public override FontName FontName
+    {
+        get => base.FontName;
+        init
+        {
+            if (!base.FontName.Equals(value))
+            {
+                _renderingFontInfo = null;
+            }
+
+            base.FontName = value;
+        }
+    }
 
     #region Foreground
 
