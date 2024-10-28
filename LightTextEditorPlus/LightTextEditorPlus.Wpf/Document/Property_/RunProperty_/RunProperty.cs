@@ -31,7 +31,7 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
         }
         get
         {
-            return _foreground ?? StyleRunProperty?.Foreground ?? DefaultForeground;
+            return _foreground ?? DefaultForeground;
         }
     }
 
@@ -50,7 +50,7 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     public ImmutableBrush? Background
     {
         init => _background = value;
-        get => _background ?? StyleRunProperty?.Background ?? DefaultBackground;
+        get => _background ?? DefaultBackground;
     }
 
     /// <summary>
@@ -68,7 +68,7 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     public double Opacity
     {
         init => _opacity = value;
-        get => _opacity ?? StyleRunProperty?.Opacity ?? DefaultOpacity;
+        get => _opacity ?? DefaultOpacity;
     }
 
     /// <summary>
@@ -86,7 +86,7 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     public FontStretch Stretch
     {
         init => _stretch = value;
-        get => _stretch ?? StyleRunProperty?.Stretch ?? DefaultFontStretch;
+        get => _stretch ?? DefaultFontStretch;
     }
 
     private readonly FontStretch? _stretch;
@@ -105,7 +105,7 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     public FontWeight FontWeight
     {
         init => _fontWeight = value;
-        get => _fontWeight ?? StyleRunProperty?.FontWeight ?? DefaultFontWeight;
+        get => _fontWeight ?? DefaultFontWeight;
     }
 
     private readonly FontWeight? _fontWeight;
@@ -124,7 +124,7 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     public FontStyle FontStyle
     {
         init => _fontStyle = value;
-        get => _fontStyle ?? StyleRunProperty?.FontStyle ?? DefaultFontStyle;
+        get => _fontStyle ?? DefaultFontStyle;
     }
 
     private readonly FontStyle? _fontStyle;
@@ -140,11 +140,6 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     #region 框架
 
     private RunPropertyPlatformManager RunPropertyPlatformManager { get; }
-
-    /// <summary>
-    /// 继承样式里的属性
-    /// </summary>
-    private RunProperty? StyleRunProperty { get; }
 
     /// <summary>
     /// 缓存的回滚字体
@@ -213,17 +208,6 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
         if (_renderingFontInfo is not null)
         {
             return _renderingFontInfo.Value;
-        }
-
-        // 先判断是否配置了文本的字体等属性，如果没有就从 StyleRunProperty 里面获取。如此可以尽可能复用 StyleRunProperty 的字体
-        if (StyleRunProperty is not null)
-        {
-            if (_stretch is null && _fontWeight is null && _fontStyle is null && FontName.Equals(StyleRunProperty.FontName))
-            {
-                // 如果当前的字符属性啥字体相关的都没有设置，那就使用 StyleRunProperty 的，如此可以尽可能复用字体
-                _renderingFontInfo = StyleRunProperty.GetGlyphTypefaceAndRenderingFontFamily(unicodeChar);
-                return _renderingFontInfo.Value;
-            }
         }
 
         _renderingFontInfo =
