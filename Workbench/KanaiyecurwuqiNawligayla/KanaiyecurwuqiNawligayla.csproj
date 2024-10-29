@@ -5,6 +5,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <UseAppHost>true</UseAppHost>
+    <AppHostSourcePath>C:\lindexi\Library\龙芯\apphost</AppHostSourcePath>
   </PropertyGroup>
 
 </Project>
