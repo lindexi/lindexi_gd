@@ -18,10 +18,12 @@ var originBitmap = new SKBitmap(new SKImageInfo(width, height, SKColorType.Bgra8
     }
 }
 
-SKRect rect = new SKRect(0, 0, width, height);
-var skMatrix = SKMatrix.CreateRotation(MathF.PI / 2, width / 2f, height / 2f);
-//.PreConcat(SKMatrix.CreateTranslation(-width / 2f, -height / 2f))
-//.PostConcat(SKMatrix.CreateTranslation(height / 2f, width / 2f));
+var rect = new SKRect(0, 0, width, height);
+
+var skMatrix = SKMatrix.CreateTranslation(-width / 2f, -height / 2f)
+    .PostConcat(SKMatrix.CreateRotation(MathF.PI / 2))
+    .PostConcat(SKMatrix.CreateTranslation(height / 2f, width / 2f))
+    ;
 
 rect = skMatrix.MapRect(rect);
 
