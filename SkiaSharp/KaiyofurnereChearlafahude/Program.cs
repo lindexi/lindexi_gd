@@ -48,7 +48,7 @@ using (var buffer = new Buffer())
 
     // Copy from https://github.com/AvaloniaUI/Avalonia
     // src\Skia\Avalonia.Skia\TextShaperImpl.cs
-    var textScale = fontRenderingEmSize / scaleX;
+    var textScale = fontRenderingEmSize / (float) scaleX;
 
     var bufferLength = buffer.Length;
 
@@ -178,4 +178,4 @@ skData.SaveTo(fileStream);
 Console.WriteLine("Hello, World!");
 
 
-readonly record struct TestGlyphInfo(ushort GlyphIndex, int GlyphCluster, double GlyphAdvance, (int OffsetX, int OffsetY) GlyphOffset = default);
+readonly record struct TestGlyphInfo(ushort GlyphIndex, int GlyphCluster, double GlyphAdvance, (float OffsetX, float OffsetY) GlyphOffset = default);
