@@ -110,11 +110,14 @@ skFont.Hinting = SKFontHinting.Full;
 skFont.Edging = edging;
 skFont.Subpixel = edging != SKFontEdging.Alias;
 
+skFont.BaselineSnap = false;
+
 var runBounds = new SKRect();
 var glyphBounds = new SKRect[count];
 skFont.GetGlyphWidths(glyphIndices, null, glyphBounds);
 
 var glyphRunBounds = new SKRect[count];
+
 
 var baselineOrigin = new SKPoint(0, 0);
 
