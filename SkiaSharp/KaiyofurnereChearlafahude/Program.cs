@@ -110,7 +110,8 @@ skFont.Hinting = SKFontHinting.Full;
 skFont.Edging = edging;
 skFont.Subpixel = edging != SKFontEdging.Alias;
 
-skFont.BaselineSnap = false;
+// 这里基线设置是无效的
+//skFont.BaselineSnap = false;
 
 var runBounds = new SKRect();
 var glyphBounds = new SKRect[count];
@@ -118,8 +119,10 @@ skFont.GetGlyphWidths(glyphIndices, null, glyphBounds);
 
 var glyphRunBounds = new SKRect[count];
 
+// 按照 [SKPaint方法：自动换行、是否乱码、字符偏移、边界、截距、文本轮廓、测量文本_skiasharp 绘制字体-CSDN博客](https://blog.csdn.net/TyroneKing/article/details/139842310 ) 博客提供的方法获取基线
+var baselineY = -skFont.Metrics.Ascent;
 
-var baselineOrigin = new SKPoint(0, 0);
+var baselineOrigin = new SKPoint(0, baselineY);
 
 currentX = 0;
 
