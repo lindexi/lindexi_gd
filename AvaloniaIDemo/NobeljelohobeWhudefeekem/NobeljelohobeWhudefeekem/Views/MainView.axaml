@@ -1,0 +1,31 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:NobeljelohobeWhudefeekem.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="NobeljelohobeWhudefeekem.Views.MainView"
+             x:DataType="vm:MainViewModel">
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainViewModel />
+    </Design.DataContext>
+
+    <Grid>
+        <Border x:Name="ScanBorder" ZIndex="101" IsVisible="True" HorizontalAlignment="Center" VerticalAlignment="Top"
+                Height="220" Width="600">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                    <GradientStop Color="#0033CEFF" Offset="0" />
+                    <GradientStop Color="#CC3592FF" Offset="1" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.RenderTransform>
+                <TranslateTransform />
+            </Border.RenderTransform>
+        </Border>
+
+        <Button x:Name="ControlButton" Content="Click" Click="ControlButton_OnClick"></Button>
+    </Grid>
+</UserControl>
