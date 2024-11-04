@@ -1,0 +1,12 @@
+﻿<Window x:Class="GeebifeqeyurNurchonarwejair.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GeebifeqeyurNurchonarwejair"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <TextBlock Margin="10,10,10,10" Width="200" FontSize="20" Text="一二三一二三.abcasdasdasd.123123123123123123123.bc" TextWrapping="Wrap" LineStackingStrategy="BlockLineHeight" TextTrimming="WordEllipsis"></TextBlock>
+    </Grid>
+</Window>
