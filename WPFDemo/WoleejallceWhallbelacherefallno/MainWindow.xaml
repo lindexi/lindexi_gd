@@ -1,0 +1,20 @@
+﻿<Window x:Class="WoleejallceWhallbelacherefallno.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WoleejallceWhallbelacherefallno"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <StackPanel>
+            <RichTextBox x:Name="ItemsTextBox" Height="100" Width="300" Margin="0 0 12 12" />
+
+            <Button x:Name="Button"
+                    Height="28"
+                    HorizontalAlignment="Center"
+                    Content="Convert text to item"
+                    Click="Button_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
