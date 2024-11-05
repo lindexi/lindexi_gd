@@ -2,10 +2,26 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net9.0-windows</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Change this value based on where your local repo is located -->
+    <WpfRepoRoot>C:\lindexi\Library\WPF</WpfRepoRoot>
+    <!-- Change based on which assemblies you build (Release/Debug) -->
+    <WpfConfig>Debug</WpfConfig>
+    <!-- Publishing a self-contained app ensures our binaries are used. -->
+    <SelfContained>true</SelfContained>
+    <!-- The runtime identifier needs to match the architecture you built WPF assemblies for. -->
+    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="$(WpfRepoRoot)\*.dll" />
+    <ReferenceCopyLocalPaths Include="$(WpfRepoRoot)\*.dll" />
+    <ReferenceCopyLocalPaths Include="$(WpfRepoRoot)\*.pdb" />
+  </ItemGroup>
 
 </Project>
