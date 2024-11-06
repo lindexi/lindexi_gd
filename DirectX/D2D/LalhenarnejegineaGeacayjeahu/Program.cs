@@ -134,7 +134,7 @@ class Program
         {
             Hwnd = hWnd.Value,
             PixelSize = clientSize,
-            PresentOptions = PresentOptions.None
+            PresentOptions = PresentOptions.Immediately
         });
         var renderTarget = d2D1HwndRenderTarget;
 
