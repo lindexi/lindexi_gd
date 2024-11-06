@@ -139,6 +139,7 @@ class Program
         var renderTarget = d2D1HwndRenderTarget;
 
         var pointList = new List<Point2D>();
+        int pointListUpdated = 0;
 
         var screenTranslate = new Point(0, 0);
         PInvoke.ClientToScreen(hWnd, ref screenTranslate);
@@ -153,13 +154,15 @@ class Program
             while (true)
             {
                 stopwatch.Restart();
-                SpinWait.SpinUntil(() => stopwatch.ElapsedMilliseconds > 13);
+                SpinWait.SpinUntil(() => pointListUpdated > 0 || stopwatch.ElapsedMilliseconds > 13);
                 stopwatch.Stop();
 
                 renderTarget.BeginDraw();
 
                 lock (pointList)
                 {
+                    Interlocked.Exchange(ref pointListUpdated, 0);
+
                     renderTarget.Clear(new Color4(0xFFFFFFFF));
 
                     for (var i = 1; i < pointList.Count && pointList.Count > 1; i++)
@@ -210,6 +213,8 @@ class Program
                             // 不要让点太多，导致绘制速度太慢
                             pointList.RemoveRange(0, 150);
                         }
+
+                        Interlocked.Exchange(ref pointListUpdated, 1);
                     }
                 }
 
