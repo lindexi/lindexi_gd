@@ -152,9 +152,9 @@ class Program
         {
             while (true)
             {
-                stopwatch.Restart();
-                SpinWait.SpinUntil(() => stopwatch.ElapsedMilliseconds > 13);
-                stopwatch.Stop();
+                //stopwatch.Restart();
+                //SpinWait.SpinUntil(() => stopwatch.ElapsedMilliseconds > 13);
+                //stopwatch.Stop();
 
                 renderTarget.BeginDraw();
 
