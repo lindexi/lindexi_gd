@@ -139,7 +139,6 @@ class Program
         var renderTarget = d2D1HwndRenderTarget;
 
         var pointList = new List<Point2D>();
-        int pointListUpdated = 0;
 
         var screenTranslate = new Point(0, 0);
         PInvoke.ClientToScreen(hWnd, ref screenTranslate);
@@ -154,14 +153,14 @@ class Program
             while (true)
             {
                 stopwatch.Restart();
-                SpinWait.SpinUntil(() => pointListUpdated > 0 || stopwatch.ElapsedMilliseconds > 13);
+                SpinWait.SpinUntil(() => _pointListUpdated > 0 || stopwatch.ElapsedMilliseconds > 13);
                 stopwatch.Stop();
 
                 renderTarget.BeginDraw();
 
                 lock (pointList)
                 {
-                    pointListUpdated = 0;
+                    _pointListUpdated = 0;
 
                     renderTarget.Clear(new Color4(0xFFFFFFFF));
 
@@ -214,7 +213,7 @@ class Program
                             pointList.RemoveRange(0, 150);
                         }
 
-                        pointListUpdated = 1;
+                        _pointListUpdated = 1;
                     }
                 }
 
@@ -228,6 +227,8 @@ class Program
             }
         }
     }
+
+    private static int _pointListUpdated;
 
     private static int ToInt32(IntPtr ptr) => IntPtr.Size == 4 ? ptr.ToInt32() : (int) (ptr.ToInt64() & 0xffffffff);
 
