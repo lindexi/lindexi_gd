@@ -154,6 +154,7 @@ class Program
             {
                 stopwatch.Restart();
                 SpinWait.SpinUntil(() => _pointListUpdated > 0 || stopwatch.ElapsedMilliseconds > 13);
+
                 stopwatch.Stop();
 
                 renderTarget.BeginDraw();
