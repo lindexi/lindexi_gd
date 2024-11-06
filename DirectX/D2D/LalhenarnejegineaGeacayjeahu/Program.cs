@@ -153,14 +153,9 @@ class Program
             while (true)
             {
                 stopwatch.Restart();
-                SpinWait.SpinUntil(() => _pointListUpdated > 0 || stopwatch.ElapsedMilliseconds > 13/2);
+                SpinWait.SpinUntil(() => _pointListUpdated > 0 || stopwatch.ElapsedMilliseconds > 13);
 
                 stopwatch.Stop();
-
-                if (_pointListUpdated > 0 && stopwatch.ElapsedMilliseconds < 13)
-                {
-
-                }
 
                 renderTarget.BeginDraw();
 
