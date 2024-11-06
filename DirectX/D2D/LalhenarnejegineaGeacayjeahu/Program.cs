@@ -161,7 +161,7 @@ class Program
 
                 lock (pointList)
                 {
-                    Interlocked.Exchange(ref pointListUpdated, 0);
+                    pointListUpdated = 0;
 
                     renderTarget.Clear(new Color4(0xFFFFFFFF));
 
@@ -214,7 +214,7 @@ class Program
                             pointList.RemoveRange(0, 150);
                         }
 
-                        Interlocked.Exchange(ref pointListUpdated, 1);
+                        pointListUpdated = 1;
                     }
                 }
 
