@@ -73,17 +73,18 @@ XChangeProperty(display, handle,
 using var utsName = UtsName.GetUtsName();
 Console.WriteLine($"utsName.sysname={utsName.SystemName} utsName.nodename={utsName.NodeName} utsName.release={utsName.Release} utsName.version={utsName.Version} utsName.machine={utsName.Machine} utsName.domainname={utsName.DomainName}");
 
-ref byte s = ref utsName.NodeNameSpan.GetPinnableReference();
-
 var WM_CLIENT_MACHINE = XInternAtom(display, "WM_CLIENT_MACHINE", false);
 IntPtr XA_STRING = (IntPtr) 31;
 
 unsafe
 {
-    var p = &s;
-    XChangeProperty(display, handle,
-        WM_CLIENT_MACHINE, XA_STRING, 8,
-        PropertyMode.Replace, buffer, hostNameLength);
+    var nodeNameSpan = utsName.NodeNameSpan;
+    fixed (byte* bp = &nodeNameSpan.GetPinnableReference())
+    {
+        XChangeProperty(display, handle,
+            WM_CLIENT_MACHINE, XA_STRING, 8,
+            PropertyMode.Replace, bp, nodeNameSpan.Length);
+    }
 }
 
 
