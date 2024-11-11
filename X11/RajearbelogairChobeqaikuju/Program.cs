@@ -82,6 +82,62 @@ while (Marshal.ReadByte(buffer, hostNameLength) != 0)
 [DllImport("libc")]
 static extern int uname(IntPtr buf);
 
+GetMachineHostName();
+
+void GetMachineHostName()
+{
+    /*
+         struct utsname 
+         {
+             char sysname[];    /* Operating system name (e.g., "Linux") * /
+             char nodename[];   /* Name within communications network
+                                   to which the node is attached, if any * /
+             char release[];    /* Operating system release
+                                   (e.g., "2.6.28") * /
+             char version[];    /* Operating system version * /
+             char machine[];    /* Hardware type identifier * /
+         #ifdef _GNU_SOURCE
+             char domainname[]; /* NIS or YP domain name * /
+         #endif
+         };
+     */
+
+    var buffer = Marshal.AllocHGlobal(0x1000);
+    var result = uname(buffer);
+    Console.WriteLine($"uname result={result}");
+
+    for (int i = 0; i < 20; i++)
+    {
+        unsafe
+        {
+            var p = (byte*) (buffer + i);
+            var value = *p;
+            Console.WriteLine((char) (value));
+        }
+    }
+
+
+    var systemNameLength = 0;
+    while (Marshal.ReadByte(buffer, systemNameLength) != 0)
+    {
+        systemNameLength++;
+    }
+
+    var systemName = Marshal.PtrToStringAnsi(buffer, systemNameLength);
+
+    var nodeNameLength = 0;
+    while (Marshal.ReadByte(buffer, systemNameLength + 2 + nodeNameLength) != 0)
+    {
+        nodeNameLength++;
+    }
+
+    var nodeName = Marshal.PtrToStringAnsi(buffer + systemNameLength + 1, nodeNameLength);
+
+    Console.WriteLine($"SystemName={systemName} NodeName={nodeName} systemNameLength={systemNameLength} nodeNameLength={nodeNameLength}");
+
+  
+}
+
 var hostName = Marshal.PtrToStringAnsi(buffer, hostNameLength);
 Console.WriteLine($"HostName={hostName} hostNameLength={hostNameLength}");
 
@@ -200,11 +256,11 @@ while (true)
 
             Console.WriteLine($"读取设备信息");
 
-            XGetWMClientMachine(display,handle, out var textPropertyReturn);
+            XGetWMClientMachine(display, handle, out var textPropertyReturn);
 
             unsafe
             {
-                
+
             }
 
             var machineName = Marshal.PtrToStringAnsi(textPropertyReturn.value, textPropertyReturn.nitems.ToInt32());
