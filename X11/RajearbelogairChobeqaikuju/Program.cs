@@ -178,13 +178,15 @@ while (true)
             */
 
             [DllImport("libX11.so.6")]
-            static extern int XGetWMClientMachine(IntPtr display, IntPtr window, IntPtr atom, out XTextProperty textPropertyReturn);
+            static extern int XGetWMClientMachine(IntPtr display, IntPtr window, out XTextProperty textPropertyReturn);
 
             Console.WriteLine($"读取设备信息");
 
-            XGetWMClientMachine(display,handle, WM_CLIENT_MACHINE, out var textPropertyReturn);
+            XGetWMClientMachine(display,handle, out var textPropertyReturn);
 
-            Console.WriteLine($"WM_CLIENT_MACHINE={textPropertyReturn.value} nitems={textPropertyReturn.nitems.ToInt32()} textPropertyReturn.format = {textPropertyReturn.format}");
+            var machineName = Marshal.PtrToStringAnsi(textPropertyReturn.value, textPropertyReturn.nitems.ToInt32());
+
+            Console.WriteLine($"WM_CLIENT_MACHINE={machineName} {textPropertyReturn.value} nitems={textPropertyReturn.nitems.ToInt32()} textPropertyReturn.format = {textPropertyReturn.format}");
 
 
         }
