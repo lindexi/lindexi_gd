@@ -12,6 +12,8 @@ var display = XOpenDisplay(IntPtr.Zero);
 var screen = XDefaultScreen(display);
 var rootWindow = XDefaultRootWindow(display);
 
+
+
 int major = 2, minor = 0;
 XIQueryVersion(display, ref major, ref minor);
 
@@ -88,7 +90,7 @@ IntPtr XA_STRING = (IntPtr) 31;
 
 XChangeProperty(display, handle,
     WM_CLIENT_MACHINE, XA_STRING, 8,
-    PropertyMode.Replace, ref buffer, hostNameLength);
+    PropertyMode.Replace, buffer, hostNameLength);
 
 Marshal.FreeHGlobal(buffer);
 
@@ -168,6 +170,22 @@ while (true)
             Console.WriteLine($"PID={Environment.ProcessId:X}; Property={pidProperty:X} nitems={nitems.ToInt32()}");
         }
 
+        //Read();
+
+        //void Read()
+        //{
+        //    XGetWindowProperty(display, new IntPtr(0xbe00007), _NET_WM_PIDAtom,
+        //        IntPtr.Zero, new IntPtr(0x7fffffff),
+        //        false, XA_CARDINAL, out var actualType, out var actualFormat,
+        //        out var nitems, out _, out var prop);
+
+        //    unsafe
+        //    {
+        //        var pidProperty = *(uint*) prop;
+        //        Console.WriteLine($"应用信息 PID={Environment.ProcessId:X}; Property={pidProperty:X} nitems={nitems.ToInt32()}");
+        //    }
+        //}
+
         unsafe
         {
             /*
@@ -183,6 +201,11 @@ while (true)
             Console.WriteLine($"读取设备信息");
 
             XGetWMClientMachine(display,handle, out var textPropertyReturn);
+
+            unsafe
+            {
+                
+            }
 
             var machineName = Marshal.PtrToStringAnsi(textPropertyReturn.value, textPropertyReturn.nitems.ToInt32());
 
