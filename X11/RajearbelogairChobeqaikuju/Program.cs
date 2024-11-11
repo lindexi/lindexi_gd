@@ -64,6 +64,33 @@ IntPtr XA_CARDINAL = (IntPtr) 6;
 XChangeProperty(display, handle,
     _NET_WM_PIDAtom, XA_CARDINAL, 32,
     PropertyMode.Replace, ref pid, 1);
+// The XSetWMClientMachine() convenience function calls XSetTextProperty() to set the WM_CLIENT_MACHINE property.
+
+var buffer = Marshal.AllocHGlobal(0x1000);
+// the hostname can change, so we can't cache it
+// gethostname(3) on Linux just calls uname(2), so do it ourselves
+// and avoid a memcpy
+uname(buffer);
+var hostNameLength = 0;
+while (Marshal.ReadByte(buffer, hostNameLength) != 0)
+{
+    hostNameLength++;
+}
+
+[DllImport("libc")]
+static extern int uname(IntPtr buf);
+
+var hostName = Marshal.PtrToStringAnsi(buffer, hostNameLength);
+Console.WriteLine($"HostName={hostName} hostNameLength={hostNameLength}");
+
+var WM_CLIENT_MACHINE = XInternAtom(display, "WM_CLIENT_MACHINE", false);
+IntPtr XA_STRING = (IntPtr) 31;
+
+XChangeProperty(display, handle,
+    WM_CLIENT_MACHINE, XA_STRING, 8,
+    PropertyMode.Replace, ref buffer, hostNameLength);
+
+Marshal.FreeHGlobal(buffer);
 
 var gc = XCreateGC(display, handle, 0, 0);
 var skBitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
@@ -134,10 +161,29 @@ while (true)
             IntPtr.Zero, new IntPtr(0x7fffffff),
             false, XA_CARDINAL, out var actualType, out var actualFormat,
             out var nitems, out _, out var prop);
+
         unsafe
         {
-            var pidProperty = * (uint*) prop;
+            var pidProperty = *(uint*) prop;
             Console.WriteLine($"PID={Environment.ProcessId:X}; Property={pidProperty:X} nitems={nitems.ToInt32()}");
+        }
+
+        unsafe
+        {
+            /*
+            *Status XGetWMClientMachine(display, w, text_prop_return)
+              Display *display;
+              Window w;
+              XTextProperty *text_prop_return;
+            */
+
+            [DllImport("libX11.so.6")]
+            static extern int XGetWMClientMachine(IntPtr display, IntPtr window, IntPtr atom, out XTextProperty textPropertyReturn);
+
+            XGetWMClientMachine(display,handle, WM_CLIENT_MACHINE, out var textPropertyReturn);
+
+            var name = Marshal.PtrToStringAnsi(textPropertyReturn.value, textPropertyReturn.nitems.ToInt32());
+            Console.WriteLine($"WM_CLIENT_MACHINE={name}");
         }
 
         XPutImage(display, handle, gc, ref xImage, @event.ExposeEvent.x, @event.ExposeEvent.y, @event.ExposeEvent.x, @event.ExposeEvent.y, (uint) @event.ExposeEvent.width,
