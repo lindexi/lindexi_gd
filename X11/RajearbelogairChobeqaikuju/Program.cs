@@ -128,8 +128,6 @@ while (true)
 
     if (@event.type == XEventName.Expose)
     {
-        var UTF8_STRINGAtom = XInternAtom(display, "UTF8_STRING", false);
-
         // _NET_WM_PID CARDINAL/32
         // https://specifications.freedesktop.org/wm-spec/1.3/ar01s05.html
         XGetWindowProperty(display, handle, _NET_WM_PIDAtom,
@@ -138,8 +136,8 @@ while (true)
             out var nitems, out _, out var prop);
         unsafe
         {
-            var pidProperty = *(uint*) prop;
-            Console.WriteLine($"PID={Environment.ProcessId:X}; Property={pidProperty:X}");
+            var pidProperty = * (uint*) prop;
+            Console.WriteLine($"PID={Environment.ProcessId:X}; Property={pidProperty:X} nitems={nitems.ToInt32()}");
         }
 
         XPutImage(display, handle, gc, ref xImage, @event.ExposeEvent.x, @event.ExposeEvent.y, @event.ExposeEvent.x, @event.ExposeEvent.y, (uint) @event.ExposeEvent.width,
