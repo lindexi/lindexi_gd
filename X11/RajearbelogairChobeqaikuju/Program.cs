@@ -103,14 +103,16 @@ void GetMachineHostName()
      */
 
     var buffer = Marshal.AllocHGlobal(0x1000);
-    uname(buffer);
+    var result = uname(buffer);
+    Console.WriteLine($"uname result={result}");
 
     for (int i = 0; i < 20; i++)
     {
         unsafe
         {
             var p = (byte*) (buffer + i);
-            Console.WriteLine((char) (*p));
+            var value = *p;
+            Console.WriteLine((char) (value));
         }
     }
 
