@@ -106,16 +106,12 @@ void GetMachineHostName()
     var result = uname(buffer);
     Console.WriteLine($"uname result={result}");
 
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < 20; i++)
     {
         unsafe
         {
             var p = (byte*) (buffer + i);
             var value = *p;
-            if (value == 0)
-            {
-                continue;
-            }
             Console.WriteLine((char) (value));
         }
     }
