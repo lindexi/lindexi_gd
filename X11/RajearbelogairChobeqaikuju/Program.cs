@@ -5,7 +5,9 @@ using SkiaSharp;
 
 using System.Diagnostics.Tracing;
 using System.Runtime.InteropServices;
+using System.Text;
 using static CPF.Linux.XLib;
+using RajearbelogairChobeqaikuju;
 
 XInitThreads();
 var display = XOpenDisplay(IntPtr.Zero);
@@ -68,6 +70,9 @@ XChangeProperty(display, handle,
     PropertyMode.Replace, ref pid, 1);
 // The XSetWMClientMachine() convenience function calls XSetTextProperty() to set the WM_CLIENT_MACHINE property.
 
+using var utsName = UtsName.GetUtsName();
+Console.WriteLine($"utsName.sysname={utsName.SystemName} utsName.nodename={utsName.NodeName} utsName.release={utsName.Release} utsName.version={utsName.Version} utsName.machine={utsName.Machine} utsName.domainname={utsName.DomainName}");
+
 var buffer = Marshal.AllocHGlobal(0x1000);
 // the hostname can change, so we can't cache it
 // gethostname(3) on Linux just calls uname(2), so do it ourselves
@@ -86,56 +91,50 @@ GetMachineHostName();
 
 void GetMachineHostName()
 {
+    // https://github.com/torvalds/linux/blob/master/include/uapi/linux/utsname.h
     /*
-         struct utsname 
-         {
-             char sysname[];    /* Operating system name (e.g., "Linux") * /
-             char nodename[];   /* Name within communications network
-                                   to which the node is attached, if any * /
-             char release[];    /* Operating system release
-                                   (e.g., "2.6.28") * /
-             char version[];    /* Operating system version * /
-             char machine[];    /* Hardware type identifier * /
-         #ifdef _GNU_SOURCE
-             char domainname[]; /* NIS or YP domain name * /
-         #endif
-         };
+       #define __NEW_UTS_LEN 64
+
+       struct new_utsname 
+       {
+        char sysname[__NEW_UTS_LEN + 1];
+        char nodename[__NEW_UTS_LEN + 1];
+        char release[__NEW_UTS_LEN + 1];
+        char version[__NEW_UTS_LEN + 1];
+        char machine[__NEW_UTS_LEN + 1];
+        char domainname[__NEW_UTS_LEN + 1];
+       };
      */
 
-    var buffer = Marshal.AllocHGlobal(0x1000);
-    var result = uname(buffer);
-    Console.WriteLine($"uname result={result}");
+    int newUtsLength = 64;
+    const int fieldCount = 6;
+    var ntsNameStructSize = (newUtsLength + 1) * fieldCount;
 
-    for (int i = 0; i < 20; i++)
+    var buffer = Marshal.AllocHGlobal(ntsNameStructSize);
+    var result = uname(buffer);
+
+    var systemNameFieldIndex = 0;
+    var systemName = GetValue(systemNameFieldIndex);
+    var nodeNameFieldIndex = 1;
+    var nodeName = GetValue(nodeNameFieldIndex);
+
+    Console.WriteLine($"uname systemName={Encoding.ASCII.GetString(systemName)} nodeName={Encoding.ASCII.GetString(nodeName)}");
+ 
+
+    Span<byte> GetValue(int fieldIndex)
     {
+        var startOffset = (newUtsLength + 1) * fieldIndex;
+        var length = 0;
+        while (Marshal.ReadByte(buffer, startOffset + length) != 0)
+        {
+            length++;
+        }
+
         unsafe
         {
-            var p = (byte*) (buffer + i);
-            var value = *p;
-            Console.WriteLine((char) (value));
+            return new Span<byte>((byte*)buffer + startOffset, length);
         }
     }
-
-
-    var systemNameLength = 0;
-    while (Marshal.ReadByte(buffer, systemNameLength) != 0)
-    {
-        systemNameLength++;
-    }
-
-    var systemName = Marshal.PtrToStringAnsi(buffer, systemNameLength);
-
-    var nodeNameLength = 0;
-    while (Marshal.ReadByte(buffer, systemNameLength + 2 + nodeNameLength) != 0)
-    {
-        nodeNameLength++;
-    }
-
-    var nodeName = Marshal.PtrToStringAnsi(buffer + systemNameLength + 1, nodeNameLength);
-
-    Console.WriteLine($"SystemName={systemName} NodeName={nodeName} systemNameLength={systemNameLength} nodeNameLength={nodeNameLength}");
-
-  
 }
 
 var hostName = Marshal.PtrToStringAnsi(buffer, hostNameLength);
