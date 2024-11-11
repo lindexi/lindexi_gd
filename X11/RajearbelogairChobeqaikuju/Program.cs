@@ -130,9 +130,11 @@ while (true)
     {
         var UTF8_STRINGAtom = XInternAtom(display, "UTF8_STRING", false);
 
+        // _NET_WM_PID CARDINAL/32
+        // https://specifications.freedesktop.org/wm-spec/1.3/ar01s05.html
         XGetWindowProperty(display, handle, _NET_WM_PIDAtom,
             IntPtr.Zero, new IntPtr(0x7fffffff),
-            false, UTF8_STRINGAtom, out var actualType, out var actualFormat,
+            false, XA_CARDINAL, out var actualType, out var actualFormat,
             out var nitems, out _, out var prop);
         unsafe
         {
