@@ -73,81 +73,19 @@ XChangeProperty(display, handle,
 using var utsName = UtsName.GetUtsName();
 Console.WriteLine($"utsName.sysname={utsName.SystemName} utsName.nodename={utsName.NodeName} utsName.release={utsName.Release} utsName.version={utsName.Version} utsName.machine={utsName.Machine} utsName.domainname={utsName.DomainName}");
 
-var buffer = Marshal.AllocHGlobal(0x1000);
-// the hostname can change, so we can't cache it
-// gethostname(3) on Linux just calls uname(2), so do it ourselves
-// and avoid a memcpy
-uname(buffer);
-var hostNameLength = 0;
-while (Marshal.ReadByte(buffer, hostNameLength) != 0)
-{
-    hostNameLength++;
-}
-
-[DllImport("libc")]
-static extern int uname(IntPtr buf);
-
-GetMachineHostName();
-
-void GetMachineHostName()
-{
-    // https://github.com/torvalds/linux/blob/master/include/uapi/linux/utsname.h
-    /*
-       #define __NEW_UTS_LEN 64
-
-       struct new_utsname 
-       {
-        char sysname[__NEW_UTS_LEN + 1];
-        char nodename[__NEW_UTS_LEN + 1];
-        char release[__NEW_UTS_LEN + 1];
-        char version[__NEW_UTS_LEN + 1];
-        char machine[__NEW_UTS_LEN + 1];
-        char domainname[__NEW_UTS_LEN + 1];
-       };
-     */
-
-    int newUtsLength = 64;
-    const int fieldCount = 6;
-    var ntsNameStructSize = (newUtsLength + 1) * fieldCount;
-
-    var buffer = Marshal.AllocHGlobal(ntsNameStructSize);
-    var result = uname(buffer);
-
-    var systemNameFieldIndex = 0;
-    var systemName = GetValue(systemNameFieldIndex);
-    var nodeNameFieldIndex = 1;
-    var nodeName = GetValue(nodeNameFieldIndex);
-
-    Console.WriteLine($"uname systemName={Encoding.ASCII.GetString(systemName)} nodeName={Encoding.ASCII.GetString(nodeName)}");
- 
-
-    Span<byte> GetValue(int fieldIndex)
-    {
-        var startOffset = (newUtsLength + 1) * fieldIndex;
-        var length = 0;
-        while (Marshal.ReadByte(buffer, startOffset + length) != 0)
-        {
-            length++;
-        }
-
-        unsafe
-        {
-            return new Span<byte>((byte*)buffer + startOffset, length);
-        }
-    }
-}
-
-var hostName = Marshal.PtrToStringAnsi(buffer, hostNameLength);
-Console.WriteLine($"HostName={hostName} hostNameLength={hostNameLength}");
+ref byte s = ref utsName.NodeNameSpan.GetPinnableReference();
 
 var WM_CLIENT_MACHINE = XInternAtom(display, "WM_CLIENT_MACHINE", false);
 IntPtr XA_STRING = (IntPtr) 31;
 
-XChangeProperty(display, handle,
-    WM_CLIENT_MACHINE, XA_STRING, 8,
-    PropertyMode.Replace, buffer, hostNameLength);
+unsafe
+{
+    var p = &s;
+    XChangeProperty(display, handle,
+        WM_CLIENT_MACHINE, XA_STRING, 8,
+        PropertyMode.Replace, buffer, hostNameLength);
+}
 
-Marshal.FreeHGlobal(buffer);
 
 var gc = XCreateGC(display, handle, 0, 0);
 var skBitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
