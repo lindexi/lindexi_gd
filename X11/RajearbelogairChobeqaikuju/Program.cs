@@ -184,7 +184,9 @@ while (true)
 
             XGetWMClientMachine(display,handle, out var textPropertyReturn);
 
-            Console.WriteLine($"WM_CLIENT_MACHINE={textPropertyReturn.value} nitems={textPropertyReturn.nitems.ToInt32()} textPropertyReturn.format = {textPropertyReturn.format}");
+            var machineName = Marshal.PtrToStringAnsi(textPropertyReturn.value, textPropertyReturn.nitems.ToInt32());
+
+            Console.WriteLine($"WM_CLIENT_MACHINE={machineName} {textPropertyReturn.value} nitems={textPropertyReturn.nitems.ToInt32()} textPropertyReturn.format = {textPropertyReturn.format}");
 
 
         }
