@@ -7,6 +7,7 @@ using System.Diagnostics.Tracing;
 using System.Runtime.InteropServices;
 using System.Text;
 using static CPF.Linux.XLib;
+using RajearbelogairChobeqaikuju;
 
 XInitThreads();
 var display = XOpenDisplay(IntPtr.Zero);
@@ -69,6 +70,9 @@ XChangeProperty(display, handle,
     PropertyMode.Replace, ref pid, 1);
 // The XSetWMClientMachine() convenience function calls XSetTextProperty() to set the WM_CLIENT_MACHINE property.
 
+using var utsName = UtsName.GetUtsName();
+Console.WriteLine($"utsName.sysname={utsName.SystemName} utsName.nodename={utsName.NodeName} utsName.release={utsName.Release} utsName.version={utsName.Version} utsName.machine={utsName.Machine} utsName.domainname={utsName.DomainName}");
+
 var buffer = Marshal.AllocHGlobal(0x1000);
 // the hostname can change, so we can't cache it
 // gethostname(3) on Linux just calls uname(2), so do it ourselves
@@ -102,8 +106,8 @@ void GetMachineHostName()
        };
      */
 
-    var newUtsLength = 64;
-    var fieldCount = 6;
+    int newUtsLength = 64;
+    const int fieldCount = 6;
     var ntsNameStructSize = (newUtsLength + 1) * fieldCount;
 
     var buffer = Marshal.AllocHGlobal(ntsNameStructSize);
