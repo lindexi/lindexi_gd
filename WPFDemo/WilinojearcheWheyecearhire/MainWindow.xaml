@@ -14,7 +14,7 @@
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
             </Grid.ColumnDefinitions>
             <TextBlock Text="文件路径：" Margin="50,0,0,0" VerticalAlignment="Center"/>
-            <TextBox x:Name="InputTextBox"  Grid.Column="1" Margin="10,0,10,0" VerticalAlignment="Center"/>
+            <TextBox x:Name="InputTextBox"  Grid.Column="1" Margin="10,0,10,0" VerticalAlignment="Center" AcceptsReturn="True" TextWrapping="Wrap"/>
             <Button Grid.Column="2" Content="打开" Margin="10,0,50,0" VerticalAlignment="Center" Click="Button_OnClick"/>
         </Grid>
     </Grid>
