@@ -1,0 +1,21 @@
+﻿<Window x:Class="WilinojearcheWheyecearhire.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WilinojearcheWheyecearhire"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Grid VerticalAlignment="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="文件路径：" Margin="50,0,0,0" VerticalAlignment="Center"/>
+            <TextBox x:Name="InputTextBox"  Grid.Column="1" Margin="10,0,10,0" VerticalAlignment="Center"/>
+            <Button Grid.Column="2" Content="打开" Margin="10,0,50,0" VerticalAlignment="Center" Click="Button_OnClick"/>
+        </Grid>
+    </Grid>
+</Window>
