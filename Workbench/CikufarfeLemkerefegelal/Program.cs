@@ -2,6 +2,6 @@
 
 using System.Runtime.InteropServices;
 
-Console.WriteLine(RuntimeInformation.RuntimeIdentifier);
+Console.WriteLine(RuntimeInformation.OSArchitecture);
 
 Console.WriteLine("Hello, World!");

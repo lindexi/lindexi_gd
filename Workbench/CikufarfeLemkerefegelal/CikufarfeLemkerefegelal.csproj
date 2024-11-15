@@ -8,6 +8,6 @@
   </PropertyGroup>
 
   <Target Name="CecuryicuwallHaiqeayichu" AfterTargets="Build">
-    <Warning Condition="$([System.Runtime.InteropServices.RuntimeInformation]::RuntimeIdentifier)=='win-x64'" Text="QalairnicijalGairceyurcharhee"/>
+    <Warning Condition="$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)=='x64'" Text="QalairnicijalGairceyurcharhee"/>
   </Target>
 </Project>
