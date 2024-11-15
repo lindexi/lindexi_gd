@@ -8,6 +8,6 @@
   </PropertyGroup>
 
   <Target Name="CecuryicuwallHaiqeayichu" AfterTargets="Build">
-    <Warning Condition="'$(Configuration)|$(TargetFramework)'=='DEBUG|net9.0'" Text="WhearjearlegerharJawkeanebur"/>
+    <Warning Condition="'Exists(CikufarfeLemkerefegelal.csproj)' == 'true'" Text="QalairnicijalGairceyurcharhee"/>
   </Target>
 </Project>
