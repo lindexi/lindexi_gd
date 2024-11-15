@@ -8,6 +8,6 @@
   </PropertyGroup>
 
   <Target Name="CecuryicuwallHaiqeayichu" AfterTargets="Build">
-    <Warning Condition="Exists('CikufarfeLemkerefegelal.csproj') == 'true'" Text="QalairnicijalGairceyurcharhee"/>
+    <Warning Condition="'Exists(CikufarfeLemkerefegelal.csproj)' == 'true'" Text="QalairnicijalGairceyurcharhee"/>
   </Target>
 </Project>
