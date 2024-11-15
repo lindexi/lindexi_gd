@@ -8,6 +8,12 @@
   </PropertyGroup>
 
   <Target Name="CecuryicuwallHaiqeayichu" AfterTargets="Build">
-    <Warning Condition="$([MSBuild]::IsOSPlatform('Windows')) And $([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)=='x64'" Text="KalgeaqelkeRemkewairhaja"/>
+    <PropertyGroup>
+      <FooToolName Condition="$([MSBuild]::IsOSPlatform('Windows')) And $([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)=='x64'">Tool_win-x64.exe</FooToolName>
+      <FooToolName Condition="$([MSBuild]::IsOSPlatform('Linux')) And $([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)=='x64'">Tool_linux-x64</FooToolName>
+      <FooToolName Condition="$([MSBuild]::IsOSPlatform('Linux')) And $([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)=='loongarch64'">Tool_linux-loongarch64</FooToolName>
+    </PropertyGroup>
+    
+    <Warning Text="$(FooToolName)" />
   </Target>
 </Project>
