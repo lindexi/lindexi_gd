@@ -1,4 +1,6 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.IO;
+using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -24,20 +26,41 @@ public partial class MainWindow : Window
 
     private void Button_OnClick(object sender, RoutedEventArgs e)
     {
-        var filePath = InputTextBox.Text;
-        filePath = System.IO.Path.GetFullPath(filePath);
+        // 必定返回失败，因为 WPF 已经调用过了
+        var result = CoInitialize(0, 0);
 
-        IntPtr pidlList = ILCreateFromPathW(filePath);
+        var folderPath = InputTextBox.Text;
+
+        folderPath = System.IO.Path.GetFullPath(folderPath);
+
+        IntPtr pidlList = ILCreateFromPathW(folderPath);
+
+
         if (pidlList != IntPtr.Zero)
         {
+            var fileList = Directory.GetFiles(folderPath);
+
+            var selectedFileList = new IntPtr[fileList.Length];
+
+            for (var i = 0; i < fileList.Length; i++)
+            {
+                var file = fileList[i];
+                selectedFileList[i] = ILCreateFromPathW(file);
+            }
+
             try
             {
                 // Open parent folder and select item
-                Marshal.ThrowExceptionForHR(SHOpenFolderAndSelectItems(pidlList, 0, IntPtr.Zero, 0));
+                Marshal.ThrowExceptionForHR(SHOpenFolderAndSelectItems(pidlList, (uint) fileList.Length, selectedFileList, 0));
             }
             finally
             {
                 ILFree(pidlList);
+
+                foreach (var nint in selectedFileList)
+                {
+                    ILFree(nint);
+                }
             }
         }
     }
@@ -51,6 +74,9 @@ public partial class MainWindow : Window
     //[DllImport("shell32.dll", ExactSpelling = true)]
     //private static extern int SHOpenFolderAndSelectItems(IntPtr pidlList, uint cild, IntPtr children, uint dwFlags);
 
+    [LibraryImport("Ole32.dll")]
+    private static partial int CoInitialize(IntPtr pvReserved, uint dwCoInit);
+
     [LibraryImport("shell32.dll")]
     private static partial void ILFree(IntPtr pidlList);
 
@@ -58,5 +84,5 @@ public partial class MainWindow : Window
     private static partial IntPtr ILCreateFromPathW(string pszPath);
 
     [LibraryImport("shell32.dll")]
-    private static partial int SHOpenFolderAndSelectItems(IntPtr pidlList, uint cild, IntPtr children, uint dwFlags);
+    private static partial int SHOpenFolderAndSelectItems(IntPtr pidlList, uint cild, [MarshalAs(UnmanagedType.LPArray)] IntPtr[] children, uint dwFlags);
 }
