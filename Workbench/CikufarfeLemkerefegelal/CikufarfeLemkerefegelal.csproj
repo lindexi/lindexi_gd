@@ -8,6 +8,6 @@
   </PropertyGroup>
 
   <Target Name="CecuryicuwallHaiqeayichu" AfterTargets="Build">
-    <Warning Condition="$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)=='x64'" Text="QalairnicijalGairceyurcharhee"/>
+    <Warning Condition="$([MSBuild]::IsOSPlatform('Windows')) And $([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)=='x64'" Text="KalgeaqelkeRemkewairhaja"/>
   </Target>
 </Project>
