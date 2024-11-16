@@ -1,0 +1,32 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35506.116
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GebeakalurburfallChijalaynarcha", "GebeakalurburfallChijalaynarcha\GebeakalurburfallChijalaynarcha.csproj", "{86160765-4DBC-44F9-9E99-2ABEB15B1B4A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{762CC176-FE00-45AD-BB2A-832FF49A9C73}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
+		Directory.Packages.props = Directory.Packages.props
+		global.json = global.json
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{86160765-4DBC-44F9-9E99-2ABEB15B1B4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86160765-4DBC-44F9-9E99-2ABEB15B1B4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86160765-4DBC-44F9-9E99-2ABEB15B1B4A}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{86160765-4DBC-44F9-9E99-2ABEB15B1B4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86160765-4DBC-44F9-9E99-2ABEB15B1B4A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86160765-4DBC-44F9-9E99-2ABEB15B1B4A}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
