@@ -5,10 +5,7 @@ using SixLabors.ImageSharp.Processing;
 var file = @"C:\lindexi\Image\Image.png";
 using Image image = Image.Load(new DecoderOptions()
 {
-    Configuration = new Configuration()
-    {
-        
-    },
+    Configuration = Configuration.Default,
     SkipMetadata = false,
 }, file);
 
