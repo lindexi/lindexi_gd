@@ -3,15 +3,20 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:QearnallfalweljuGuwolerjajearfairhe"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-  <ScrollViewer>
+    <Page.Resources>
+        <local:FooDataTemplateSelector x:Key="FooDataTemplateSelector" />
+    </Page.Resources>
     <Grid>
-      <StackPanel
-        HorizontalAlignment="Center"
-        VerticalAlignment="Center">
-        <TextBlock AutomationProperties.AutomationId="HelloTextBlock"
-          Text="Hello Uno Platform!123"
-          HorizontalAlignment="Center" />
-      </StackPanel>
+        <ListView x:Name="FooListView">
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="local:DataModel">
+                    <Grid ColumnDefinitions="*,*">
+                        <TextBlock Grid.Column="0" Text="{x:Bind Value}" />
+                        <ContentPresenter Grid.Column="1" Content="{x:Bind}"
+                                              ContentTemplateSelector="{StaticResource FooDataTemplateSelector}" />
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
     </Grid>
-  </ScrollViewer>
 </Page>
