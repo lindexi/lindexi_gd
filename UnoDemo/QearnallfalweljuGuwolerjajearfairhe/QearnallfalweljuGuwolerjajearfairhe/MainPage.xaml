@@ -1,0 +1,22 @@
+﻿<Page x:Class="QearnallfalweljuGuwolerjajearfairhe.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:QearnallfalweljuGuwolerjajearfairhe"
+      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Page.Resources>
+        <local:FooDataTemplateSelector x:Key="FooDataTemplateSelector" />
+    </Page.Resources>
+    <Grid>
+        <ListView x:Name="FooListView">
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="local:DataModel">
+                    <Grid ColumnDefinitions="*,*">
+                        <TextBlock Grid.Column="0" Text="{x:Bind Value}" />
+                        <ContentPresenter Grid.Column="1" Content="{x:Bind}"
+                                              ContentTemplateSelector="{StaticResource FooDataTemplateSelector}" />
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Grid>
+</Page>
