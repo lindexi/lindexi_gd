@@ -9,6 +9,14 @@ var file = @"C:\lindexi\Image\Image.png";
 
 using var fileStream = File.OpenRead(file);
 
+Image image = Image.Load(new DecoderOptions()
+{
+    Configuration = new Configuration(new PngConfigurationModule()
+    {
+        
+    })
+},fileStream);
+
 var decode = JpegDecoder.Instance.Decode(new JpegDecoderOptions(),fileStream);
 
 var imageInfo = Image.Identify(fileStream);
