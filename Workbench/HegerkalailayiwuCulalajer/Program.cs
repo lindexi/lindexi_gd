@@ -8,13 +8,20 @@ var file = @"C:\lindexi\Image\Image.png";
 
 using var fileStream = File.OpenRead(file);
 
-var decode = PngDecoder.Instance.Decode(new PngDecoderOptions()
+var imageInfo = Image.Identify(fileStream);
+
+var decodeImage = PngDecoder.Instance.Decode(new PngDecoderOptions()
 {
     PngCrcChunkHandling = PngCrcChunkHandling.IgnoreAll,
 }, fileStream);
 
-var decodeSize = decode.Size;
-var pixelType = decode.PixelType;
+var decodeSize = decodeImage.Size;
+var pixelType = decodeImage.PixelType;
+
+decodeImage.Mutate(context =>
+{
+    context.Resize(100, 100);
+});
 
 var pngEncoder = new PngEncoder()
 {
@@ -25,7 +32,7 @@ var pngEncoder = new PngEncoder()
 
 var outputFile = Path.GetFullPath("1.png");
 
-decode.SaveAsPng(outputFile, pngEncoder);
+decodeImage.SaveAsPng(outputFile, pngEncoder);
 
 // See https://aka.ms/new-console-template for more information
 Console.WriteLine("Hello, World!");
