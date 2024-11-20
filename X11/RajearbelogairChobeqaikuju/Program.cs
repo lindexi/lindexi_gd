@@ -76,6 +76,8 @@ Console.WriteLine($"utsName.sysname={utsName.SystemName} utsName.nodename={utsNa
 var WM_CLIENT_MACHINE = XInternAtom(display, "WM_CLIENT_MACHINE", false);
 IntPtr XA_STRING = (IntPtr) 31;
 
+Console.WriteLine($"WM_CLIENT_MACHINE={WM_CLIENT_MACHINE}");
+
 unsafe
 {
     var nodeNameSpan = utsName.NodeNameSpan;
