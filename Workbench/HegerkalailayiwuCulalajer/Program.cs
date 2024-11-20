@@ -1,5 +1,6 @@
 ﻿using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Processing.Processors.Quantization;
@@ -7,6 +8,8 @@ using SixLabors.ImageSharp.Processing.Processors.Quantization;
 var file = @"C:\lindexi\Image\Image.png";
 
 using var fileStream = File.OpenRead(file);
+
+var decode = JpegDecoder.Instance.Decode(new JpegDecoderOptions(),fileStream);
 
 var imageInfo = Image.Identify(fileStream);
 
