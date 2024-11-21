@@ -11,10 +11,15 @@
   <PropertyGroup>
     <AppHostDotNetRoot>..\runtime</AppHostDotNetRoot>
     <AppHostErrorMessage>自定义消息软件运行环境异常，请尝试重新安装软件。</AppHostErrorMessage>
+    <AppHostCoreLibMissingDialogMessage>$(AppHostErrorMessage)</AppHostCoreLibMissingDialogMessage>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="dotnetCampus.AppHost" Version="1.0.0-alpha12"/>
   </ItemGroup>
+
+  <Target Name="CopyAfterCreateAppHost" AfterTargets="_CreateAppHost">
+    <Copy SourceFiles="$(AppHostIntermediatePath)" DestinationFiles="foo.exe" />
+  </Target>
 
 </Project>
