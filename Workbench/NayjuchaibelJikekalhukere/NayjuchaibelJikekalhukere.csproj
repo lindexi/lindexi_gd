@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UseWpf>true</UseWpf>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AppHostDotNetRoot>..\runtime</AppHostDotNetRoot>
+    <AppHostErrorMessage>自定义消息软件运行环境异常，请尝试重新安装软件。</AppHostErrorMessage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="dotnetCampus.AppHost" Version="1.0.0-alpha12"/>
+  </ItemGroup>
+
+</Project>
