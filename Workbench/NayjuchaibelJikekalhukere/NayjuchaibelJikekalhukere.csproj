@@ -15,10 +15,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="dotnetCampus.AppHost" Version="1.0.0-alpha12"/>
+    <PackageReference Include="dotnetCampus.AppHost" Version="1.0.0-alpha13" />
   </ItemGroup>
 
   <Target Name="CopyAfterCreateAppHost" AfterTargets="_CreateAppHost">
+    <Warning Text="UseAppHostFromAssetsFile=$(UseAppHostFromAssetsFile)" />
     <Copy SourceFiles="$(AppHostIntermediatePath)" DestinationFiles="foo.exe" />
   </Target>
 
