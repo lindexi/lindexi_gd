@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\HiqellalkeaChurbawgaijokiwe\**\*.cs" Visible="False" LinkBase="." />
-    <Compile Include="..\CallfaybibaiBukijelaifo\**\*.cs" Visible="False" LinkBase="." />
+    <Compile Include="..\HiqellalkeaChurbawgaijokiwe\**\*.cs" Visible="False" LinkBase="." Exclude="..\HiqellalkeaChurbawgaijokiwe\**\*.wpf.cs"/>
+    <Compile Include="..\CallfaybibaiBukijelaifo\**\*.cs" Visible="False" LinkBase="." Exclude="..\CallfaybibaiBukijelaifo\**\*.wpf.cs"/>
   </ItemGroup>
 
 </Project>
