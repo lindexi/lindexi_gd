@@ -155,6 +155,7 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
         var baselineY = -skFont.Metrics.Ascent;
 
         var baselineOrigin = new SKPoint(0, baselineY);
+        currentX = 0.0;
 
         for (var i = 0; i < count; i++)
         {
@@ -162,7 +163,7 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
             var glyphInfo = glyphInfoList[i];
             var advance = glyphInfo.GlyphAdvance;
 
-            glyphRunBounds[i] = new SKRect((float) (currentX + gBounds.Left), baselineOrigin.Y + gBounds.Top, gBounds.Width,
+            glyphRunBounds[i] = SKRect.Create((float) (currentX + gBounds.Left), baselineOrigin.Y + gBounds.Top, gBounds.Width,
                 gBounds.Height);
 
             runBounds.Union(glyphRunBounds[i]);
