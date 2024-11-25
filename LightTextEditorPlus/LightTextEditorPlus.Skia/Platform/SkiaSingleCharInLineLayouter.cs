@@ -28,7 +28,8 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
         SKFont font = runProperty.GetRenderSKFont();
         // todo 考虑 SKPaint 的复用，不要频繁创建，可以考虑在 SkiaTextEditor 中创建一个 SKPaint 的缓存池
         using SKPaint skPaint = new SKPaint(font);
-        // todo skPaint 是否已经用上 SKFont 的字号属性？
+        // skPaint 已经用上 SKFont 的字号属性，不需要再设置 TextSize 属性
+        //skPaint.TextSize = runProperty.FontSize;
 
         var lineRemainingWidth = (float) argument.LineRemainingWidth;
 
@@ -37,19 +38,20 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
         for (var i = argument.CurrentIndex; i < argument.RunList.Count; i++)
         {
             CharData charData = argument.RunList[i];
-            stringBuilder.Append(charData.ToString());
+            stringBuilder.Append(charData.CharObject.ToText());
         }
 
         string text = stringBuilder.ToString();
 
         // todo 这里需要处理换行规则
         long charCount = skPaint.BreakText(text, lineRemainingWidth, out var measuredWidth);
+        var measureCharCount = charCount;
         int taskCount = 0;
         for (var i = argument.CurrentIndex; i < argument.RunList.Count; i++)
         {
             CharData charData = argument.RunList[i];
-            charCount -= charData.ToString().Length;
-            if (charCount < 0)
+            measureCharCount -= charData.CharObject.ToText().Length;
+            if (measureCharCount < 0)
             {
                 break;
             }
