@@ -5,9 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 
 using LightTextEditorPlus.Core;
+using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
+using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Platform;
 using LightTextEditorPlus.Rendering;
 
@@ -63,9 +66,20 @@ public class SkiaTextEditorPlatformProvider : PlatformProvider
 
     private SkiaTextEditor TextEditor { get; }
 
+    public override IPlatformRunPropertyCreator GetPlatformRunPropertyCreator()
+    {
+        var skiaPlatformFontManager = new SkiaPlatformFontManager();
+        return new SkiaPlatformRunPropertyCreator(skiaPlatformFontManager);
+    }
+
     public override IRenderManager? GetRenderManager()
     {
         return TextEditor;
+    }
+
+    public override ISingleCharInLineLayouter? GetSingleRunLineLayouter()
+    {
+        return base.GetSingleRunLineLayouter();
     }
 
     public override ICharInfoMeasurer? GetCharInfoMeasurer()
@@ -73,3 +87,20 @@ public class SkiaTextEditorPlatformProvider : PlatformProvider
         return new SkiaCharInfoMeasurer(TextEditor);
     }
 }
+
+//internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
+//{
+//    public SkiaSingleCharInLineLayouter(SkiaTextEditor textEditor)
+//    {
+//        TextEditor = textEditor;
+//    }
+
+//    private SkiaTextEditor TextEditor { get; }
+
+//    public SingleCharInLineLayoutResult LayoutSingleCharInLine(in SingleCharInLineLayoutArgument argument)
+//    {
+//        IReadOnlyRunProperty runProperty = argument.CurrentCharData.RunProperty;
+
+
+//    }
+//}
