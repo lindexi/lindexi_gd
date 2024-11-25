@@ -44,7 +44,17 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
 
         // todo 这里需要处理换行规则
         long charCount = skPaint.BreakText(text, lineRemainingWidth, out var measuredWidth);
-        // todo 这里假定 charCount 数量为 CharData 数量，后续需要优化，如 CharData 可以包含多个字符的情况
-        return new SingleCharInLineLayoutResult((int) charCount, new Size(measuredWidth, 0));
+        int taskCount = 0;
+        for (var i = argument.CurrentIndex; i < argument.RunList.Count; i++)
+        {
+            CharData charData = argument.RunList[i];
+            charCount -= charData.ToString().Length;
+            if (charCount < 0)
+            {
+                break;
+            }
+            taskCount++;
+        }
+        return new SingleCharInLineLayoutResult(taskCount, new Size(measuredWidth, 0));
     }
 }
