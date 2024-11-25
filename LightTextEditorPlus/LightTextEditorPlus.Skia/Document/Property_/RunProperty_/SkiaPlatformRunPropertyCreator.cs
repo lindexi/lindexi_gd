@@ -1,8 +1,7 @@
 ﻿using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Platform;
-using LightTextEditorPlus.Document;
 
-namespace LightTextEditorPlus;
+namespace LightTextEditorPlus.Document;
 
 internal class SkiaPlatformRunPropertyCreator : IPlatformRunPropertyCreator
 {

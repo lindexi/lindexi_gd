@@ -42,23 +42,3 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
 
     private SKTypeface? _skTypeface;
 }
-
-internal class SkiaPlatformFontManager
-{
-    public RenderingFontInfo GetRenderingFontInfo(SkiaTextRunProperty runProperty, char unicodeChar)
-    {
-        // todo 处理缓存和未找到字体的情况
-        var typeface = SKTypeface.FromFamilyName(runProperty.FontName.UserFontName);
-        return new RenderingFontInfo(typeface);
-    }
-}
-
-/// <summary>
-/// 渲染时的字体信息
-/// </summary>
-internal readonly record struct RenderingFontInfo(SKTypeface Typeface);
-
-static class RunPropertyExtension
-{
-    public static SkiaTextRunProperty AsRunProperty(this IReadOnlyRunProperty runProperty) => (SkiaTextRunProperty) runProperty;
-}
