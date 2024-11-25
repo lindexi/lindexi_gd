@@ -1,10 +1,9 @@
-﻿using System.Text;
-using LightTextEditorPlus.Core.Document;
-using LightTextEditorPlus.Core.Primitive.Collections;
+﻿using LightTextEditorPlus.Core.Primitive.Collections;
+using System.Text;
 
-namespace LightTextEditorPlus.Core.Tests;
+namespace LightTextEditorPlus.Core.Document;
 
-static class ReadOnlyListSpanExtension
+static class CharDataReadOnlyListSpanExtension
 {
     public static string ToText(this ReadOnlyListSpan<CharData> list)
     {

@@ -1,4 +1,5 @@
-﻿using LightTextEditorPlus.Core.Document;
+﻿using System.Text;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive.Collections;
 
 namespace LightTextEditorPlus.Core.Layout;
@@ -23,4 +24,9 @@ public readonly record struct SingleCharInLineLayoutArgument(ReadOnlyListSpan<Ch
     /// 对于这个情况下，尽管这一行放不下一个字符，但是依然还是要强行放入。否则可能下一行依然也不够空间放下
     /// </summary>
     public bool IsTakeEmpty => CurrentIndex == 0;
+
+    public override string ToString()
+    {
+        return $"Current:'{CurrentCharData.CharObject.ToText()}';Index:{CurrentIndex};\r\nRunList={RunList.ToText()}";
+    }
 }
