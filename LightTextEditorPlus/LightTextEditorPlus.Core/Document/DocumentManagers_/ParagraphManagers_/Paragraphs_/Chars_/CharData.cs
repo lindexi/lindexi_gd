@@ -78,6 +78,11 @@ public class CharData
     /// </summary>
     public bool IsSetStartPointInDebugMode { set; get; }
 
+    public void SetSize(Size size)
+    {
+        Size = size;
+    }
+
     /// <summary>
     /// 尺寸
     /// </summary>
