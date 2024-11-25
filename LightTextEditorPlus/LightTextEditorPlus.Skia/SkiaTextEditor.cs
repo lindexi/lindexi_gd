@@ -80,7 +80,7 @@ public class SkiaTextEditorPlatformProvider : PlatformProvider
         return new SkiaPlatformRunPropertyCreator(skiaPlatformFontManager);
     }
 
-    public override IRenderManager? GetRenderManager()
+    public override IRenderManager GetRenderManager()
     {
         return TextEditor;
     }
