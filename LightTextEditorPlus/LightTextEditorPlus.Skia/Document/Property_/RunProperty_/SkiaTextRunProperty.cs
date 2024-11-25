@@ -1,4 +1,6 @@
-﻿using LightTextEditorPlus.Core.Document;
+﻿using HarfBuzzSharp;
+
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 using SkiaSharp;
 
@@ -41,4 +43,25 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
     }
 
     private SKTypeface? _skTypeface;
+
+    public SKFont GetRenderSKFont(char unicodeChar = '1')
+    {
+        // todo 处理对齐情况
+        // todo 处理缓存
+        SKFont renderSkFont = new SKFont(GetRenderSKTypeface(unicodeChar), (float) FontSize);
+        // From Avalonia
+        // Ideally the requested edging should be passed to the glyph run.
+        // Currently the edging is computed dynamically inside the drawing context, so we can't know it in advance.
+        // But the bounds depends on the edging: for now, always use SubpixelAntialias so we have consistent values.
+        // The resulting bounds may be shifted by 1px on some fonts:
+        // "F" text with Inter size 14 has a 0px left bound with SubpixelAntialias but 1px with Antialias.
+
+        var edging = SKFontEdging.SubpixelAntialias;
+
+        renderSkFont.Hinting = SKFontHinting.Full;
+        renderSkFont.Edging = edging;
+        renderSkFont.Subpixel = edging != SKFontEdging.Alias;
+
+        return renderSkFont;
+    }
 }

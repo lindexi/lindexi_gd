@@ -1,5 +1,6 @@
 ﻿using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Platform;
+using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Document;
 

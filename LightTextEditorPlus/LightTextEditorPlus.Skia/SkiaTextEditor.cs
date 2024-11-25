@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Document;
-using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
@@ -24,9 +23,18 @@ public partial class SkiaTextEditor : IRenderManager
         TextEditorCore = new TextEditorCore(skiaTextEditorPlatformProvider);
 
         RenderManager = new RenderManager(this);
+
+#if DEBUG
+        DocumentManager.SetDefaultTextRunProperty<SkiaTextRunProperty>(property => property with
+        {
+            FontName = new FontName("微软雅黑"),
+            FontSize = 50,
+        });
+#endif
     }
 
     internal RenderManager RenderManager { get; }
+    private DocumentManager DocumentManager => TextEditorCore.DocumentManager;
 
     public TextEditorCore TextEditorCore { get; }
 
@@ -79,7 +87,7 @@ public class SkiaTextEditorPlatformProvider : PlatformProvider
 
     public override ISingleCharInLineLayouter? GetSingleRunLineLayouter()
     {
-        return base.GetSingleRunLineLayouter();
+        return new SkiaSingleCharInLineLayouter(TextEditor);
     }
 
     public override ICharInfoMeasurer? GetCharInfoMeasurer()
@@ -87,20 +95,3 @@ public class SkiaTextEditorPlatformProvider : PlatformProvider
         return new SkiaCharInfoMeasurer(TextEditor);
     }
 }
-
-//internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
-//{
-//    public SkiaSingleCharInLineLayouter(SkiaTextEditor textEditor)
-//    {
-//        TextEditor = textEditor;
-//    }
-
-//    private SkiaTextEditor TextEditor { get; }
-
-//    public SingleCharInLineLayoutResult LayoutSingleCharInLine(in SingleCharInLineLayoutArgument argument)
-//    {
-//        IReadOnlyRunProperty runProperty = argument.CurrentCharData.RunProperty;
-
-
-//    }
-//}
