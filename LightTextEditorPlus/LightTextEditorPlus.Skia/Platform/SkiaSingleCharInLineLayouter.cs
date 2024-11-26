@@ -174,6 +174,7 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
             var width = (float) advance;// renderBounds.Width;
             var height = renderBounds.Height; //skPaint.TextSize; //(float) skFont.Metrics.Ascent + (float) skFont.Metrics.Descent;
             height = (float) LineSpacingCalculator.CalculateLineHeightWithPPTLineSpacingAlgorithm(1, skPaint.TextSize);
+            height = baselineY + skFont.Metrics.Descent;
 
             glyphRunBounds[i] = SKRect.Create((float) (currentX + renderBounds.Left), baselineOrigin.Y + renderBounds.Top, width,
                 height);
