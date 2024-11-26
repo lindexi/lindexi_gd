@@ -163,12 +163,18 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
 
         for (var i = 0; i < count; i++)
         {
-            var gBounds = glyphBounds[i];
+            var renderBounds = glyphBounds[i];
             var glyphInfo = glyphInfoList[i];
             var advance = glyphInfo.GlyphAdvance;
 
-            glyphRunBounds[i] = SKRect.Create((float) (currentX + gBounds.Left), baselineOrigin.Y + gBounds.Top, (float) advance,// gBounds.Width,
-                gBounds.Height);
+            // 水平布局下，不应该返回字符的渲染高度，而是应该返回字符高度。这样可以保证字符的基线对齐。如 a 和 f 和 g 的高度不相同，则如果将其渲染高度返回，会导致基线不对齐，变成底部对齐
+            // 宽度应该是 advance 而不是渲染宽度，渲染宽度太窄
+
+            var width = (float)advance;// renderBounds.Width;
+            var height = skPaint.TextSize; //(float) skFont.Metrics.Ascent + (float) skFont.Metrics.Descent;
+
+            glyphRunBounds[i] = SKRect.Create((float) (currentX + renderBounds.Left), baselineOrigin.Y + renderBounds.Top, width,
+                height);
 
             runBounds.Union(glyphRunBounds[i]);
 
