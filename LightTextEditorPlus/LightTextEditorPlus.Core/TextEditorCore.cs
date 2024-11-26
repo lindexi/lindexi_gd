@@ -96,8 +96,10 @@ public partial class TextEditorCore
 
         Logger = platformProvider.BuildTextLogger() ?? new EmptyTextLogger(this);
 
+        DebugConfiguration = new TextEditorDebugConfiguration(Logger);
+
 #if DEBUG
-        IsInDebugMode = true;
+        DebugConfiguration.SetInDebugMode();
 #endif
     }
 
@@ -476,38 +478,18 @@ public partial class TextEditorCore
     public override string ToString() => $"[{nameof(TextEditorCore)}] {DebugName}";
 
     /// <summary>
-    /// 是否正在调试模式
+    /// 文本调试的配置
     /// </summary>
-    /// 文本库将使用 Release 构建进行分发，但是依然提供调试方法，开启调试模式之后会有更多输出和判断逻辑，以及抛出调试异常。不应该在正式发布时，设置进入调试模式
-    public bool IsInDebugMode
-    {
-        private set => _isInDebugMode = value;
-        get => _isInDebugMode || IsAllInDebugMode;
-    }
+    public TextEditorDebugConfiguration DebugConfiguration { get; }
 
-    private bool _isInDebugMode;
+    /// <inheritdoc cref="TextEditorDebugConfiguration.IsInDebugMode"/>
+    public bool IsInDebugMode => DebugConfiguration.IsInDebugMode;
 
-    /// <summary>
-    /// 设置当前的文本进入调试模式
-    /// </summary>
-    public void SetInDebugMode()
-    {
-        IsInDebugMode = true;
-        Logger.LogInfo($"文本进入调试模式");
-    }
+    /// <inheritdoc cref="TextEditorDebugConfiguration.SetInDebugMode"/>
+    public void SetInDebugMode() => DebugConfiguration.SetInDebugMode();
 
-    /// <summary>
-    /// 是否全部的文本都进入调试模式
-    /// </summary>
-    public static bool IsAllInDebugMode { private set; get; }
-
-    /// <summary>
-    /// 设置全部的文本都进入调试模式，理论上不能将此调用此方法的代码进行发布
-    /// </summary>
-    public static void SetAllInDebugMode()
-    {
-        IsAllInDebugMode = true;
-    }
+    /// <inheritdoc cref="TextEditorDebugConfiguration.SetAllInDebugMode"/>
+    public static void SetAllInDebugMode() => TextEditorDebugConfiguration.SetAllInDebugMode();
 
     #endregion
 
