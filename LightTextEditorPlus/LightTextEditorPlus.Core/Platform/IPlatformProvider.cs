@@ -9,6 +9,8 @@ namespace LightTextEditorPlus.Core.Platform;
 /// <summary>
 ///     用于提供各个平台的不同方式的接入
 /// </summary>
+/// 平台接入属于框架的一部分，不同平台的接入方式可能不同，但是框架的核心逻辑是一致的
+/// 平台接入直接耦合框架的实现方式。平台接入不属于抽象实现，只是将部分实现放在具体平台中。甚至可以认为后续是具体平台直接源代码引用框架代码，原本就是一套代码，只是被分开了
 public interface IPlatformProvider
 {
     /// <summary>
@@ -56,7 +58,7 @@ public interface IPlatformProvider
     IWholeLineLayouter? GetWholeRunLineLayouter();
 
     /// <summary>
-    ///     获取文本的行测量器，返回空则采用默认的行测量逻辑
+    ///     获取文本的行测量器，返回空则采用默认的行测量逻辑。如自定义，则无须再处理 <see cref="GetCharInfoMeasurer"/> 返回的 <see cref="ICharInfoMeasurer"/> 的实现
     /// </summary>
     /// <remarks>需要处理横竖排等布局方式</remarks>
     /// <returns></returns>

@@ -5,6 +5,7 @@ using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Layout.WordDividers;
+using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 
@@ -576,7 +577,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         {
             var charInfo = new CharInfo(charData.CharObject, charData.RunProperty);
             CharInfoMeasureResult charInfoMeasureResult;
-            var charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
+            ICharInfoMeasurer? charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
             if (charInfoMeasurer != null)
             {
                 charInfoMeasureResult = charInfoMeasurer.MeasureCharInfo(charInfo);
