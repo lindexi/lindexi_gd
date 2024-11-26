@@ -3,11 +3,8 @@ using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Rendering;
 
 using SkiaSharp;
-
-using System.Collections.Generic;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Utils;
-using HarfBuzzSharp;
 using LightTextEditorPlus.Document;
 
 namespace LightTextEditorPlus.Rendering;
@@ -107,6 +104,7 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
 
             // 由于 Skia 的 DrawText 传入的 Point 是文本的最下方，因此需要调整 Y 值
             y += baselineY;
+            // todo 不要一个个字符渲染，应该是一行渲染
             canvas.DrawText(skiaTextRenderInfo.Text, new SKPoint(x, y), textRenderSKPaint);
         }
 

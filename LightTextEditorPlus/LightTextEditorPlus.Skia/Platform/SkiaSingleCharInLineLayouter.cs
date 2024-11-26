@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 using HarfBuzzSharp;
-
+using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Exceptions;
@@ -23,11 +23,14 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
     public SkiaSingleCharInLineLayouter(SkiaTextEditor textEditor)
     {
         //TextEditor = textEditor;
-        DebugConfiguration = textEditor.TextEditorCore.DebugConfiguration;
+        TextEditorCore textEditorCore = textEditor.TextEditorCore;
+        DebugConfiguration = textEditorCore.DebugConfiguration;
+        Logger = textEditorCore.Logger;
     }
 
     //private SkiaTextEditor TextEditor { get; } // todo 后续考虑弱引用，方便释放
     private TextEditorDebugConfiguration DebugConfiguration { get; }
+    private ITextLogger Logger { get; }
 
     public SingleCharInLineLayoutResult LayoutSingleCharInLine(in SingleCharInLineLayoutArgument argument)
     {
@@ -153,6 +156,9 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
             currentX += glyphInfoList[i].GlyphAdvance;
         }
 
+        // 以下代码仅仅只是为了调试而已，等稳定了就可以删除
+        _ = renderGlyphPositions;
+
         var runBounds = new SKRect();
         var glyphRunBounds = new SKRect[count];
         skFont.GetGlyphWidths(glyphIndices, null, glyphBounds);
@@ -162,6 +168,7 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
         var baselineOrigin = new SKPoint(0, baselineY);
         currentX = 0.0;
 
+        // 实际使用里面，可以忽略 GetGlyphWidths 的影响，因为实际上没有用到
         for (var i = 0; i < count; i++)
         {
             var renderBounds = glyphBounds[i];
@@ -212,10 +219,12 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
                     // 调试下，且非最后一个。最后一个预期是相等的
                     && i != argument.CurrentIndex + taskCount - 1)
                 {
-                    throw new TextEditorInnerDebugException("布局过程中发现 CharData 和 Text 数量不匹配，预计是框架内实现的问题");
+                  
+                    throw new TextEditorInnerDebugException(Message);
                 }
                 else
                 {
+                    Logger.LogWarning(Message);
                     break;
                 }
             }
@@ -223,11 +232,13 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
 
         if (DebugConfiguration.IsInDebugMode && glyphRunBoundsIndex != glyphRunBounds.Length)
         {
-            throw new TextEditorInnerDebugException("布局过程中发现 CharData 和 Text 数量不匹配，预计是框架内实现的问题");
+            throw new TextEditorInnerDebugException(Message);
         }
 
         return new SingleCharInLineLayoutResult(taskCount, new Size(measuredWidth, 0));
     }
+
+    private const string Message = "布局过程中发现 CharData 和 Text 数量不匹配，预计是框架内实现的问题";
 
     readonly record struct TestGlyphInfo(ushort GlyphIndex, int GlyphCluster, double GlyphAdvance, (float OffsetX, float OffsetY) GlyphOffset = default);
 }
