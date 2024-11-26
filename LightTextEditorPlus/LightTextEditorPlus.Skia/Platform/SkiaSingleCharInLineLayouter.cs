@@ -1,8 +1,10 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 
 using HarfBuzzSharp;
+
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Document;
@@ -10,6 +12,7 @@ using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Document;
 
 using SkiaSharp;
@@ -34,10 +37,13 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
 
     public SingleCharInLineLayoutResult LayoutSingleCharInLine(in SingleCharInLineLayoutArgument argument)
     {
+        // 获取连续的字符，不连续的字符也不能进入到这里布局。属性不相同的，等待下次进入此方法布局
+        ReadOnlyListSpan<CharData> runList = argument.RunList.GetFirstCharSpanContinuous();
+        Debug.Assert(runList.Count > 0);
+
         CharData currentCharData = argument.CurrentCharData;
         var runProperty = currentCharData.RunProperty.AsSkiaRunProperty();
 
-        // todo 处理连续字符属性的情况
         SKFont skFont = runProperty.GetRenderSKFont();
         // todo 考虑 SKPaint 的复用，不要频繁创建，可以考虑在 SkiaTextEditor 中创建一个 SKPaint 的缓存池
         using SKPaint skPaint = new SKPaint(skFont);
@@ -48,9 +54,9 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
 
         // todo 优化以下代码写法
         var stringBuilder = new StringBuilder();
-        for (var i = argument.CurrentIndex; i < argument.RunList.Count; i++)
+        for (var i = argument.CurrentIndex; i < runList.Count; i++)
         {
-            CharData charData = argument.RunList[i];
+            CharData charData = runList[i];
             stringBuilder.Append(charData.CharObject.ToText());
         }
 
@@ -60,9 +66,9 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
         long charCount = skPaint.BreakText(text, lineRemainingWidth, out var measuredWidth);
         var measureCharCount = charCount;
         int taskCount = 0;
-        for (var i = argument.CurrentIndex; i < argument.RunList.Count; i++)
+        for (var i = argument.CurrentIndex; i < runList.Count; i++)
         {
-            CharData charData = argument.RunList[i];
+            CharData charData = runList[i];
             measureCharCount -= charData.CharObject.ToText().Length;
             if (measureCharCount < 0)
             {
@@ -202,7 +208,7 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
         var glyphRunBoundsIndex = 0;
         for (var i = argument.CurrentIndex; i < argument.CurrentIndex + taskCount; i++)
         {
-            CharData charData = argument.RunList[i];
+            CharData charData = runList[i];
             if (charData.Size == null)
             {
                 SKRect glyphRunBound = glyphRunBounds[glyphRunBoundsIndex];
@@ -219,7 +225,7 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
                     // 调试下，且非最后一个。最后一个预期是相等的
                     && i != argument.CurrentIndex + taskCount - 1)
                 {
-                  
+
                     throw new TextEditorInnerDebugException(Message);
                 }
                 else

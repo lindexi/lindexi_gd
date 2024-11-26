@@ -102,6 +102,10 @@ class HorizontalTextRender : TextRenderBase
 
         GlyphTypeface glyphTypeface = currentRunProperty.GetGlyphTypeface(firstChar);
 
+        // 可选一段段获取连续的字符
+        //charList.GetFirstCharSpanContinuous()
+        // 但由于可能存在字体不一致的情况，因此需要逐个字符获取
+
         foreach (CharData charData in charList)
         {
             var text = charData.CharObject.ToText();

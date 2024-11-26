@@ -95,6 +95,7 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
             using SKPaint textRenderSKPaint = new SKPaint(skFont);
             textRenderSKPaint.IsAntialias = true;
 
+            // todo 这里应该是从 RunProperty 中获取颜色
             textRenderSKPaint.Color = SKColors.Black;
 
             float x = skiaTextRenderInfo.X;
