@@ -3,7 +3,7 @@
   <ItemGroup>
     <UIFrameworkCompatibilityCode Include="$(MSBuildThisFileDirectory)Build\Shared\UI.Compatibility.Global.g.cs"
                                   Link="Properties\%(Filename)%(Extension)" />
-    <LightTextEditorPlusAPIDefineCode Include="$(MSBuildThisFileDirectory)Build\Shared\TextEditor.API.cs" Link="API_\%(Filename)%(Extension)"/>
+    <LightTextEditorPlusAPIDefineCode Include="$(MSBuildThisFileDirectory)Build\Shared\API\**\*.cs" LinkBase="API_"/>
   </ItemGroup>
 
   <!-- 自动处理不同 UI 框架之间的差异 -->
