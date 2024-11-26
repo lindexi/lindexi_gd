@@ -8,4 +8,13 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
+  <ItemGroup>
+    <BanAttributeAPI Include="TextEditorPublicAPIAttribute"/>
+    <CompilerVisibleItemMetadata Include="BanAttributeAPI"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Analyzers\TextEditorInternalAnalyzer\TextEditorInternalAnalyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
 </Project>

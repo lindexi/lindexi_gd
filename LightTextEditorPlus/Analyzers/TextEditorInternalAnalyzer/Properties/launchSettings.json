@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DebugTextEditorCore": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "../../LightTextEditorPlus.Core/LightTextEditorPlus.Core.csproj"
+    }
+  }
+}
