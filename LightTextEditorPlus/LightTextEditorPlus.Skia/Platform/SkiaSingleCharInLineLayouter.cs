@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 using HarfBuzzSharp;
-
+using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Layout;
@@ -21,10 +21,12 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
 {
     public SkiaSingleCharInLineLayouter(SkiaTextEditor textEditor)
     {
-        TextEditor = textEditor;
+        //TextEditor = textEditor;
+        DebugConfiguration = textEditor.TextEditorCore.DebugConfiguration;
     }
 
-    private SkiaTextEditor TextEditor { get; } // todo 后续考虑弱引用，方便释放
+    //private SkiaTextEditor TextEditor { get; } // todo 后续考虑弱引用，方便释放
+    private TextEditorDebugConfiguration DebugConfiguration { get; }
 
     public SingleCharInLineLayoutResult LayoutSingleCharInLine(in SingleCharInLineLayoutArgument argument)
     {
@@ -197,7 +199,7 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
             // 预期不会出现超出的情况
             if (glyphRunBoundsIndex >= glyphRunBounds.Length)
             {
-                if (TextEditor.TextEditorCore.IsInDebugMode)
+                if (DebugConfiguration.IsInDebugMode)
                 {
                     throw new TextEditorDebugException("布局过程中发现 CharData 和 Text 数量不匹配，预计是框架内实现的问题");
                 }
