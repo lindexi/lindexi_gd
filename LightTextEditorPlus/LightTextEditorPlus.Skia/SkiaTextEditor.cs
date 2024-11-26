@@ -59,7 +59,12 @@ public partial class SkiaTextEditor : IRenderManager
 
     public ITextEditorSkiaRender GetCurrentTextRender()
     {
-        return RenderManager.GetCurrentRender();
+        return RenderManager.GetCurrentTextRender();
+    }
+
+    public ITextEditorCaretAndSelectionRenderSkiaRender GetCurrentCaretAndSelectionRender()
+    {
+        return RenderManager.GetCurrentCaretAndSelectionRender();
     }
 
     public event EventHandler? RenderRequested;

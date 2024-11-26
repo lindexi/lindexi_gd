@@ -38,11 +38,13 @@ public class RenderInfoProvider
     /// </summary>
     /// <param name="selection"></param>
     /// <returns></returns>
-    public IList<Rect> GetSelectionBoundsList(in Selection selection)
+    public IReadOnlyList<Rect> GetSelectionBoundsList(in Selection selection)
     {
         if (selection.IsEmpty)
         {
+#pragma warning disable IDE0300 // 简化集合初始化。因为几乎不可能进入此分支，所以不简化
             return new Rect[0];
+#pragma warning restore IDE0300 // 简化集合初始化
         }
 
         var result = new List<Rect>();

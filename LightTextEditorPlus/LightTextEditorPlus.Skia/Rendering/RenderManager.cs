@@ -1,8 +1,10 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Rendering;
 using SkiaSharp;
@@ -22,25 +24,73 @@ class RenderManager
 
         if (debugConfiguration.IsInDebugMode)
         {
-            _debugDrawCharBounds = SKColors.Bisque.WithAlpha(0xA0);
-            _debugDrawCharSpanBounds = SKColors.Red.WithAlpha(0xA0);
-            _debugDrawLineBounds = SKColors.Blue.WithAlpha(0x50);
+            //_debugDrawCharBounds = SKColors.Bisque.WithAlpha(0xA0);
+            //_debugDrawCharSpanBounds = SKColors.Red.WithAlpha(0xA0);
+            //_debugDrawLineBounds = SKColors.Blue.WithAlpha(0x50);
         }
+
+        _textEditor.TextEditorCore.CurrentSelectionChanged += TextEditorCore_CurrentSelectionChanged;
     }
 
     private readonly SkiaTextEditor _textEditor;
+
+    #region 光标渲染
+
+    private void TextEditorCore_CurrentSelectionChanged(object? sender, TextEditorValueChangeEventArgs<Selection> e)
+    {
+        if (_textEditor.TextEditorCore.IsDirty)
+        {
+            // 如果是脏的，那就不需要更新光标和选择区域的渲染，等待后续自动进入渲染
+            return;
+        }
+
+        RenderInfoProvider renderInfoProvider = _textEditor.TextEditorCore.GetRenderInfo();
+        UpdateCaretAndSelectionRender(renderInfoProvider, e.NewValue);
+    }
+
+    [MemberNotNull(nameof(_currentCaretAndSelectionRender))]
+    private void UpdateCaretAndSelectionRender(RenderInfoProvider renderInfoProvider, Selection selection)
+    {
+        if (selection.IsEmpty)
+        {
+            // 无选择，只有光标
+            CaretRenderInfo currentCaretRenderInfo = renderInfoProvider.GetCurrentCaretRenderInfo();
+            Rect caretBounds = currentCaretRenderInfo.GetCaretBounds(DefaultCaretWidth);
+
+            // todo 光标的颜色应该从配置中获取
+            SKColor caretColor = SKColors.Black;
+            _currentCaretAndSelectionRender  = new TextEditorCaretSkiaRender(caretBounds.ToSKRect(), caretColor);
+        }
+        else
+        {
+            // todo 选择区域的颜色应该从配置中获取
+            SKColor selectionColor = SKColors.Blue.WithAlpha(0x50);
+
+            IReadOnlyList<Rect> selectionBoundsList = renderInfoProvider.GetSelectionBoundsList(selection);
+
+            _currentCaretAndSelectionRender = new TextEditorSelectionSkiaRender(selectionBoundsList, selectionColor);
+        }
+    }
 
     /// <summary>
     /// 默认的光标宽度
     /// </summary>
     public const double DefaultCaretWidth = 2;
 
-    private Rect CurrentCaretBounds { set; get; }
+    private ITextEditorCaretAndSelectionRenderSkiaRender? _currentCaretAndSelectionRender;
+
+    public ITextEditorCaretAndSelectionRenderSkiaRender GetCurrentCaretAndSelectionRender()
+    {
+        Debug.Assert(_currentCaretAndSelectionRender != null, "不可能一开始就获取当前渲染，必然调用过 Render 方法");
+        return _currentCaretAndSelectionRender;
+    }
+
+    #endregion
 
     // 在 Skia 里面的 SKPicture 就和 DX 的 Command 地位差不多，都是预先记录的绘制命令，而不是立刻进行绘制
     private TextEditorSkiaRender? _currentRender;
 
-    public ITextEditorSkiaRender GetCurrentRender()
+    public ITextEditorSkiaRender GetCurrentTextRender()
     {
         Debug.Assert(_currentRender != null, "不可能一开始就获取当前渲染，必然调用过 Render 方法");
 
@@ -52,9 +102,13 @@ class RenderManager
     private SKColor _debugDrawLineBounds;
     private SKPaint? _debugSkPaint;
 
-    [MemberNotNull(nameof(_currentRender))]
+    [MemberNotNull(nameof(_currentRender), nameof(_currentCaretAndSelectionRender))]
     public void Render(RenderInfoProvider renderInfoProvider)
     {
+        Debug.Assert(!renderInfoProvider.IsDirty);
+
+        UpdateCaretAndSelectionRender(renderInfoProvider, _textEditor.TextEditorCore.CurrentSelection);
+
         if (_currentRender is not null)
         {
             if (!_currentRender.IsUsed)
@@ -75,10 +129,6 @@ class RenderManager
 
         using (SKCanvas canvas = skPictureRecorder.BeginRecording(SKRect.Create(0, 0, textWidth, textHeight)))
         {
-            CaretRenderInfo currentCaretRenderInfo = renderInfoProvider.GetCurrentCaretRenderInfo();
-            Rect caretBounds = currentCaretRenderInfo.GetCaretBounds(DefaultCaretWidth);
-            CurrentCaretBounds = caretBounds;
-
             var stringBuilder = new StringBuilder();
 
             foreach (ParagraphRenderInfo paragraphRenderInfo in renderInfoProvider.GetParagraphRenderInfoList())
@@ -101,10 +151,10 @@ class RenderManager
                         var runBounds = firstCharData.GetBounds();
                         var startPoint = runBounds.LeftTop;
 
-                        float x = (float)startPoint.X;
-                        float y = (float)startPoint.Y;
+                        float x = (float) startPoint.X;
+                        float y = (float) startPoint.Y;
                         float width = 0;
-                        float height = (float)runBounds.Height;
+                        float height = (float) runBounds.Height;
 
                         stringBuilder.Clear();
 
@@ -114,7 +164,7 @@ class RenderManager
 
                             DrawDebugBounds(charData.GetBounds().ToSKRect(), _debugDrawCharBounds);
 
-                            width += (float)charData.Size!.Value.Width;
+                            width += (float) charData.Size!.Value.Width;
                         }
 
                         SKRect charSpanBounds = SKRect.Create(x, y, width, height);

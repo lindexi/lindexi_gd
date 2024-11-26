@@ -53,6 +53,9 @@ public partial class TextEditor : Control
     {
         ITextEditorSkiaRender textEditorSkiaRender = SkiaTextEditor.GetCurrentTextRender();
         context.Custom(new TextEditorCustomDrawOperation(new Rect(DesiredSize), textEditorSkiaRender));
+
+        context.Custom(new TextEditorCustomDrawOperation(new Rect(DesiredSize),
+            SkiaTextEditor.GetCurrentCaretAndSelectionRender()));
     }
 }
 
