@@ -25,6 +25,7 @@ public readonly record struct SingleCharInLineLayoutArgument(ReadOnlyListSpan<Ch
     /// </summary>
     public bool IsTakeEmpty => CurrentIndex == 0;
 
+    /// <inheritdoc />
     public override string ToString()
     {
         return $"Current:'{CurrentCharData.CharObject.ToText()}';Index:{CurrentIndex};\r\nRunList={RunList.ToText()}";

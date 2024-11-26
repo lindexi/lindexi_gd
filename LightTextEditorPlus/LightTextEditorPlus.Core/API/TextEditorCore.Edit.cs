@@ -99,8 +99,10 @@ public partial class TextEditorCore
     /// </summary>
     /// <param name="text"></param>
     [Obsolete("请使用" + nameof(EditAndReplace) + "代替。此方法只是用来告诉你正确的用法是调用" + nameof(EditAndReplace) + "方法", true)]
-    public void InsertTextAfterCurrentCaretOffset(string text) =>
-        EditAndReplace(text);
+    public void InsertTextAfterCurrentCaretOffset(string text)
+    {
+        throw new NotSupportedException();
+    }
 
     /// <summary>
     /// 清空文本，现在仅调试下使用
