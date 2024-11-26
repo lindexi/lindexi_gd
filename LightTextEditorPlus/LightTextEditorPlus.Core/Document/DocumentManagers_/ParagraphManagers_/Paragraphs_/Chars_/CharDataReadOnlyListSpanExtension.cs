@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using System.Text;
 
@@ -22,6 +23,18 @@ public static class CharDataReadOnlyListSpanExtension
             stringBuilder.Append(charData.CharObject.ToText());
         }
         return stringBuilder.ToString();
+    }
+
+    /// <inheritdoc cref="GetFirstCharSpanContinuous"/>
+    public static IEnumerable<ReadOnlyListSpan<CharData>> GetCharSpanContinuous(this ReadOnlyListSpan<CharData> charList, CheckCharDataContinuous? checker = null)
+    {
+        var currentList = charList;
+        while (currentList.Count > 0)
+        {
+            var firstSpan = currentList.GetFirstCharSpanContinuous(checker);
+            yield return firstSpan;
+            currentList = currentList.Slice(start: firstSpan.Count);
+        }
     }
 
     /// <summary>

@@ -1,9 +1,11 @@
-﻿using LightTextEditorPlus.Core.Document;
+﻿using System.Text;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Rendering;
 
 using SkiaSharp;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Utils;
 using LightTextEditorPlus.Document;
 
@@ -53,22 +55,35 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
         Rect caretBounds = currentCaretRenderInfo.GetCaretBounds(DefaultCaretWidth);
         CurrentCaretBounds = caretBounds;
 
+        var stringBuilder = new StringBuilder();
+
         foreach (ParagraphRenderInfo paragraphRenderInfo in renderInfoProvider.GetParagraphRenderInfoList())
         {
             foreach (ParagraphLineRenderInfo lineInfo in paragraphRenderInfo.GetLineRenderInfoList())
             {
                 // 先不考虑缓存
                 LineDrawingArgument argument = lineInfo.Argument;
-                foreach (CharData charData in argument.CharList)
+                foreach (ReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous())
                 {
-                    Rect bounds = charData.GetBounds();
-                    Point startPoint = bounds.LeftTop;
+                    CharData firstCharData = charList[0];
+                    var runBounds = firstCharData.GetBounds();
+                    var startPoint = runBounds.LeftTop;
 
                     float x = (float) startPoint.X;
                     float y = (float) startPoint.Y;
-                    float width = (float) bounds.Width;
-                    float height = (float) bounds.Height;
-                    var skiaTextRenderInfo = new SkiaTextRenderInfo(charData.CharObject.ToText(), x, y, width, height, charData.RunProperty);
+                    float width = (float) runBounds.Width;
+                    float height = (float) runBounds.Height;
+
+                    stringBuilder.Clear();
+
+                    foreach (CharData charData in charList)
+                    {
+                        stringBuilder.Append(charData.CharObject.ToText());
+
+                        width += (float) charData.Size!.Value.Width;
+                    }
+
+                    var skiaTextRenderInfo = new SkiaTextRenderInfo(stringBuilder.ToString(), x, y, width, height, firstCharData.RunProperty);
                     list.Add(skiaTextRenderInfo);
                 }
 
