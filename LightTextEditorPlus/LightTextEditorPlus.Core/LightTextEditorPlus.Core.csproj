@@ -6,11 +6,11 @@
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest</AnalysisLevel>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <BanAttributeAPI>TextEditorPublicAPIAttribute</BanAttributeAPI>
   </PropertyGroup>
 
   <ItemGroup>
-    <BanAttributeAPI Include="TextEditorPublicAPIAttribute"/>
-    <CompilerVisibleItemMetadata Include="BanAttributeAPI"/>
+    <CompilerVisibleProperty Include="BanAttributeAPI"/>
   </ItemGroup>
 
   <ItemGroup>
