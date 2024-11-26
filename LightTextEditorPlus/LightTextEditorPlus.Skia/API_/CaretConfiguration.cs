@@ -1,5 +1,7 @@
 ﻿using System;
 
+using SkiaSharp;
+
 namespace LightTextEditorPlus;
 
 /// <summary>
@@ -42,4 +44,14 @@ public class SkiaCaretConfiguration
     }
 
     private TimeSpan? _caretBlinkTime;
+
+    public SKColor CaretBrush { get; set; } = SKColors.Black;
+
+    /// <summary>
+    /// 不在编辑状态时，保留显示选择范围
+    /// </summary>
+    /// 默认 WPF 的 TextBox 是不保留显示的
+    public bool ShowSelectionWhenNotInEditingInputMode { set; get; } = true;
+
+    public SKColor SelectionBrush { get; set; } = SKColors.Blue.WithAlpha(0x50);
 }

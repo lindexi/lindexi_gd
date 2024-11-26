@@ -57,14 +57,12 @@ class RenderManager
             CaretRenderInfo currentCaretRenderInfo = renderInfoProvider.GetCurrentCaretRenderInfo();
             Rect caretBounds = currentCaretRenderInfo.GetCaretBounds(DefaultCaretWidth);
 
-            // todo 光标的颜色应该从配置中获取
-            SKColor caretColor = SKColors.Black;
+            SKColor caretColor = _textEditor.CaretConfiguration.CaretBrush;
             _currentCaretAndSelectionRender  = new TextEditorCaretSkiaRender(caretBounds.ToSKRect(), caretColor);
         }
         else
         {
-            // todo 选择区域的颜色应该从配置中获取
-            SKColor selectionColor = SKColors.Blue.WithAlpha(0x50);
+            SKColor selectionColor = _textEditor.CaretConfiguration.SelectionBrush;
 
             IReadOnlyList<Rect> selectionBoundsList = renderInfoProvider.GetSelectionBoundsList(selection);
 
