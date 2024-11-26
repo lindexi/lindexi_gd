@@ -66,8 +66,10 @@ class RenderManager
             _currentRender = null;
         }
 
-        var textWidth = 1000;
-        var textHeight = 1000;
+        Rect documentLayoutBounds = renderInfoProvider.GetDocumentLayoutBounds();
+
+        var textWidth = (float) documentLayoutBounds.Width;
+        var textHeight = (float) documentLayoutBounds.Height;
 
         using SKPictureRecorder skPictureRecorder = new SKPictureRecorder();
 

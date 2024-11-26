@@ -51,7 +51,7 @@ public partial class SkiaTextEditor : IRenderManager
         }
 
         CurrentLayoutBounds = TextEditorCore.GetDocumentLayoutBounds();
-
+        
         RenderManager.Render(renderInfoProvider);
 
         RenderRequested?.Invoke(this, EventArgs.Empty);

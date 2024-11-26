@@ -30,6 +30,9 @@ public class RenderInfoProvider
     /// </summary>
     public bool IsDirty { internal set; get; }
 
+    /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.GetDocumentLayoutBounds"/>
+    public Rect GetDocumentLayoutBounds() => TextEditor.GetDocumentLayoutBounds();
+
     /// <summary>
     /// 获取选择对应的范围。一般是一行一个 Rect 对象
     /// </summary>
