@@ -8,9 +8,16 @@
 
 #if USE_AVALONIA
 
+global using FontStyle = Avalonia.Media.FontStyle;
+global using FontWeight = Avalonia.Media.FontWeight;
+global using FontStretch = Avalonia.Media.FontStretch;
+
 namespace LightTextEditorPlus;
 
 #elif USE_WPF
+global using FontStyle = System.Windows.FontStyle;
+global using FontWeight = System.Windows.FontWeight;
+global using FontStretch = System.Windows.FontStretch;
 
 using System;
 using System.Threading.Tasks;
