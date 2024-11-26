@@ -105,17 +105,21 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
         {
             SkiaTextRunProperty skiaTextRunProperty = skiaTextRenderInfo.RunProperty.AsSkiaRunProperty();
             SKFont skFont = skiaTextRunProperty.GetRenderSKFont();
-            
 
-            skPaint.TextSize = (float) skiaTextRenderInfo.RunProperty.FontSize;
+            using SKPaint textRenderSKPaint = new SKPaint(skFont);
+            textRenderSKPaint.IsAntialias = true;
+
+            textRenderSKPaint.Color = SKColors.Black;
 
             float x = skiaTextRenderInfo.X;
             float y = skiaTextRenderInfo.Y;
 
-            // 由于 Skia 的 DrawText 传入的 Point 是文本的最下方，因此需要调整 Y 值
-            y += skiaTextRenderInfo.Height;
+            var baselineY = -skFont.Metrics.Ascent;
 
-            y -= skiaTextRenderInfo.Height/10;// 特意让文字上移一点，似乎效果更好
+            // 由于 Skia 的 DrawText 传入的 Point 是文本的最下方，因此需要调整 Y 值
+            y += baselineY;
+
+            //y -= skiaTextRenderInfo.Height / 10;// 特意让文字上移一点，似乎效果更好
 
             //skPaint.GetGlyphWidths(skiaTextRenderInfo.Text, out var skBounds);
 
@@ -124,7 +128,7 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
             //    y += skBounds[0].Height;
             //}
 
-            canvas.DrawText(skiaTextRenderInfo.Text, new SKPoint(x, y), skPaint);
+            canvas.DrawText(skiaTextRenderInfo.Text, new SKPoint(x, y), textRenderSKPaint);
         }
 
         SKPaint caretPaint = skPaint;
