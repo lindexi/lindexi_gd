@@ -55,7 +55,7 @@ class RenderManager
         {
             // 无选择，只有光标
             CaretRenderInfo currentCaretRenderInfo = renderInfoProvider.GetCurrentCaretRenderInfo();
-            Rect caretBounds = currentCaretRenderInfo.GetCaretBounds(DefaultCaretWidth);
+            Rect caretBounds = currentCaretRenderInfo.GetCaretBounds(_textEditor.CaretConfiguration.CaretWidth);
 
             SKColor caretColor = _textEditor.CaretConfiguration.CaretBrush;
             _currentCaretAndSelectionRender  = new TextEditorCaretSkiaRender(caretBounds.ToSKRect(), caretColor);
@@ -69,11 +69,6 @@ class RenderManager
             _currentCaretAndSelectionRender = new TextEditorSelectionSkiaRender(selectionBoundsList, selectionColor);
         }
     }
-
-    /// <summary>
-    /// 默认的光标宽度
-    /// </summary>
-    public const double DefaultCaretWidth = 2;
 
     private ITextEditorCaretAndSelectionRenderSkiaRender? _currentCaretAndSelectionRender;
 
