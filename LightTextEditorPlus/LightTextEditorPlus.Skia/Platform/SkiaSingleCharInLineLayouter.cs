@@ -199,7 +199,9 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
             // 预期不会出现超出的情况
             if (glyphRunBoundsIndex >= glyphRunBounds.Length)
             {
-                if (DebugConfiguration.IsInDebugMode)
+                if (DebugConfiguration.IsInDebugMode 
+                    // 调试下，且非最后一个。最后一个预期是相等的
+                    && i != argument.CurrentIndex + taskCount - 1)
                 {
                     throw new TextEditorInnerDebugException("布局过程中发现 CharData 和 Text 数量不匹配，预计是框架内实现的问题");
                 }
@@ -208,6 +210,11 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
                     break;
                 }
             }
+        }
+
+        if (DebugConfiguration.IsInDebugMode && glyphRunBoundsIndex != glyphRunBounds.Length)
+        {
+            throw new TextEditorInnerDebugException("布局过程中发现 CharData 和 Text 数量不匹配，预计是框架内实现的问题");
         }
 
         return new SingleCharInLineLayoutResult(taskCount, new Size(measuredWidth, 0));
