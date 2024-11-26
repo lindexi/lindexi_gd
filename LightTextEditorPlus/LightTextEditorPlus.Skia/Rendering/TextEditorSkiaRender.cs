@@ -1,27 +1,31 @@
-﻿using SkiaSharp;
+﻿using LightTextEditorPlus.Core.Primitive;
+
+using SkiaSharp;
 
 namespace LightTextEditorPlus.Rendering;
 
 class TextEditorSkiaRender : ITextEditorSkiaRender
 {
-    public TextEditorSkiaRender(SKPicture picture)
+    public TextEditorSkiaRender(SKPicture picture, Rect currentCaretBounds)
     {
-        _picture = picture;
+        Picture = picture;
+        CurrentCaretBounds = currentCaretBounds;
     }
 
     internal bool IsUsed { get; set; }
 
-    private readonly SKPicture _picture;
+    internal SKPicture Picture { get; }
 
     // todo 考虑光标的绘制
+    public Rect CurrentCaretBounds { get; internal set; }
 
     public void Dispose()
     {
-        _picture.Dispose();
+        Picture.Dispose();
     }
 
     public void Render(SKCanvas canvas)
     {
-        canvas.DrawPicture(_picture);
+        canvas.DrawPicture(Picture);
     }
 }
