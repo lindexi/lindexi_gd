@@ -44,14 +44,6 @@ class RenderManager
     {
         Debug.Assert(_currentRender != null, "不可能一开始就获取当前渲染，必然调用过 Render 方法");
 
-        if (_currentRender.CurrentCaretBounds != CurrentCaretBounds)
-        {
-            if (_currentRender.IsUsed)
-            {
-                _currentRender = new TextEditorSkiaRender(_currentRender.Picture.)
-            }
-        }
-
         return _currentRender;
     }
 
@@ -63,8 +55,6 @@ class RenderManager
     [MemberNotNull(nameof(_currentRender))]
     public void Render(RenderInfoProvider renderInfoProvider)
     {
-        Debug.Assert(!renderInfoProvider.IsDirty);
-
         if (_currentRender is not null)
         {
             if (!_currentRender.IsUsed)
@@ -76,7 +66,6 @@ class RenderManager
             _currentRender = null;
         }
 
-        // todo 获取文本范围
         var textWidth = 1000;
         var textHeight = 1000;
 
@@ -110,10 +99,10 @@ class RenderManager
                         var runBounds = firstCharData.GetBounds();
                         var startPoint = runBounds.LeftTop;
 
-                        float x = (float) startPoint.X;
-                        float y = (float) startPoint.Y;
+                        float x = (float)startPoint.X;
+                        float y = (float)startPoint.Y;
                         float width = 0;
-                        float height = (float) runBounds.Height;
+                        float height = (float)runBounds.Height;
 
                         stringBuilder.Clear();
 
@@ -123,7 +112,7 @@ class RenderManager
 
                             DrawDebugBounds(charData.GetBounds().ToSKRect(), _debugDrawCharBounds);
 
-                            width += (float) charData.Size!.Value.Width;
+                            width += (float)charData.Size!.Value.Width;
                         }
 
                         SKRect charSpanBounds = SKRect.Create(x, y, width, height);
