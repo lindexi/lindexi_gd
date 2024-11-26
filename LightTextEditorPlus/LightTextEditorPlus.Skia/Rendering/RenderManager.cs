@@ -5,7 +5,6 @@ using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Rendering;
-
 using SkiaSharp;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
@@ -23,9 +22,9 @@ class RenderManager
 
         if (debugConfiguration.IsInDebugMode)
         {
-            _debugDrawCharBounds = true;
-            _debugDrawCharSpanBounds = true;
-            _debugDrawLineBounds = true;
+            _debugDrawCharBounds = SKColors.Bisque.WithAlpha(0xA0);
+            _debugDrawCharSpanBounds = SKColors.Red.WithAlpha(0xA0);
+            _debugDrawLineBounds = SKColors.Blue.WithAlpha(0x50);
         }
     }
 
@@ -48,9 +47,9 @@ class RenderManager
         return _currentRender;
     }
 
-    private bool _debugDrawCharBounds;
-    private bool _debugDrawCharSpanBounds;
-    private bool _debugDrawLineBounds;
+    private SKColor _debugDrawCharBounds;
+    private SKColor _debugDrawCharSpanBounds;
+    private SKColor _debugDrawLineBounds;
     private SKPaint? _debugSkPaint;
 
     [MemberNotNull(nameof(_currentRender))]
@@ -63,6 +62,7 @@ class RenderManager
                 // 如果被使用了，那就交给使用方释放。如果没有被使用，那就直接释放
                 _currentRender.Dispose();
             }
+
             _currentRender = null;
         }
 
@@ -101,7 +101,7 @@ class RenderManager
 
                         float x = (float)startPoint.X;
                         float y = (float)startPoint.Y;
-                        float width = (float)runBounds.Width;
+                        float width = 0;
                         float height = (float)runBounds.Height;
 
                         stringBuilder.Clear();
@@ -110,30 +110,13 @@ class RenderManager
                         {
                             stringBuilder.Append(charData.CharObject.ToText());
 
-                            if (_debugDrawCharBounds)
-                            {
-                                SKRect charBounds = charData.GetBounds().ToSKRect();
+                            DrawDebugBounds(charData.GetBounds().ToSKRect(), _debugDrawCharBounds);
 
-                                _debugSkPaint ??= new SKPaint();
-                                _debugSkPaint.Color = SKColors.Bisque.WithAlpha(0x50);
-                                _debugSkPaint.Style = SKPaintStyle.Stroke;
-                                _debugSkPaint.StrokeWidth = 1;
-
-                                canvas.DrawRect(charBounds, _debugSkPaint);
-                            }
                             width += (float)charData.Size!.Value.Width;
                         }
 
-                        if (_debugDrawCharSpanBounds)
-                        {
-                            _debugSkPaint ??= new SKPaint();
-                            _debugSkPaint.Color = SKColors.CadetBlue.WithAlpha(0x50);
-                            _debugSkPaint.Style = SKPaintStyle.Stroke;
-                            _debugSkPaint.StrokeWidth = 1;
-
-                            SKRect charSpanBounds = new SKRect(x, y, x + width, y + height);
-                            canvas.DrawRect(charSpanBounds, _debugSkPaint);
-                        }
+                        SKRect charSpanBounds = SKRect.Create(x, y, width, height);
+                        DrawDebugBounds(charSpanBounds, _debugDrawCharSpanBounds);
 
                         string text = stringBuilder.ToString();
 
@@ -156,20 +139,36 @@ class RenderManager
                         canvas.DrawText(text, new SKPoint(x, y), textRenderSKPaint);
                     }
 
-                    if (_debugDrawLineBounds)
-                    {
-                        Rect rect = new Rect(argument.StartPoint, argument.Size);
-                        _debugSkPaint ??= new SKPaint();
-                        _debugSkPaint.Color = SKColors.Blue.WithAlpha(0x50);
-                        _debugSkPaint.Style = SKPaintStyle.Stroke;
-                        _debugSkPaint.StrokeWidth = 1;
-                        canvas.DrawRect(rect.ToSKRect(), _debugSkPaint);
-                    }
+                    DrawDebugBounds(new Rect(argument.StartPoint, argument.Size).ToSKRect(), _debugDrawLineBounds);
                 }
+            }
+
+            void DrawDebugBounds(SKRect bounds, SKColor? color)
+            {
+                if (color is null)
+                {
+                    return;
+                }
+
+                SKPaint debugPaint = GetDebugPaint(color.Value);
+                canvas.DrawRect(bounds, debugPaint);
             }
         }
 
         SKPicture skPicture = skPictureRecorder.EndRecording();
         _currentRender = new TextEditorSkiaRender(skPicture);
+    }
+
+    private SKPaint GetDebugPaint(SKColor color)
+    {
+        if (_debugSkPaint is null)
+        {
+            _debugSkPaint = new SKPaint();
+            _debugSkPaint.Style = SKPaintStyle.Stroke;
+            _debugSkPaint.StrokeWidth = 1;
+        }
+
+        _debugSkPaint.Color = color;
+        return _debugSkPaint;
     }
 }
