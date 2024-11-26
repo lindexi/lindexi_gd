@@ -45,7 +45,7 @@ public class SkiaCaretConfiguration
 
     private TimeSpan? _caretBlinkTime;
 
-    public SKColor CaretBrush { get; set; } = SKColors.Black;
+    public SKColor? CaretBrush { get; set; } = SKColors.Black;
 
     /// <summary>
     /// 不在编辑状态时，保留显示选择范围

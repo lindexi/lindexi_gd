@@ -17,11 +17,16 @@ partial class
     TextEditor
 #endif
 {
-#if USE_WPF || USE_SKIA
+#if USE_WPF || USE_SKIA || USE_AVALONIA
     /// <summary>
     /// 光标显示的配置
     /// </summary>
-    public CaretConfiguration CaretConfiguration { get; set; } = new CaretConfiguration();
+    public CaretConfiguration CaretConfiguration { get; set; }
+#if USE_AVALONIA
+
+#else
+        = new CaretConfiguration();
+#endif
 #endif
 
 #if USE_WPF

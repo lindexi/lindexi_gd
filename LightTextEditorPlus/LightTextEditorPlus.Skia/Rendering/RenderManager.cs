@@ -57,7 +57,9 @@ class RenderManager
             CaretRenderInfo currentCaretRenderInfo = renderInfoProvider.GetCurrentCaretRenderInfo();
             Rect caretBounds = currentCaretRenderInfo.GetCaretBounds(_textEditor.CaretConfiguration.CaretWidth);
 
-            SKColor caretColor = _textEditor.CaretConfiguration.CaretBrush;
+            SKColor caretColor = _textEditor.CaretConfiguration.CaretBrush
+                                 // todo 获取当前前景色作为光标颜色
+                                 ?? SKColors.Black;
             _currentCaretAndSelectionRender  = new TextEditorCaretSkiaRender(caretBounds.ToSKRect(), caretColor);
         }
         else
