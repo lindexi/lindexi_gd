@@ -5,12 +5,19 @@ using LightTextEditorPlus.Document;
 namespace LightTextEditorPlus;
 
 // 此文件存放状态获取相关的方法
+
+#if USE_SKIA
+public partial class SkiaTextEditor
+#else
 public partial class TextEditor
+#endif
 {
+#if USE_WPF
     /// <summary>
     /// 当前光标下的文本字符属性
     /// </summary>
     public IRunProperty CurrentCaretRunProperty => (IRunProperty)TextEditorCore.DocumentManager.CurrentCaretRunProperty;
+#endif
 
     #region 光标和选择
 

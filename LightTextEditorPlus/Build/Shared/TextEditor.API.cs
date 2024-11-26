@@ -24,7 +24,7 @@ internal interface ITextEditor
     /// </summary>
     TextEditorCore TextEditorCore { get; }
 
-#if USE_WPF
+#if USE_WPF || USE_SKIA || USE_AVALONIA
     CaretOffset CurrentCaretOffset { get; }
     Selection CurrentSelection { get; }
 #endif

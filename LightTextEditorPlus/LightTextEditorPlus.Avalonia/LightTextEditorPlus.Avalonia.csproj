@@ -7,10 +7,7 @@
     <RootNamespace>LightTextEditorPlus</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="API_\TextEditor.Edit.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="API_\TextEditor.Edit.cs" />
+    <Compile Include="..\LightTextEditorPlus.Wpf\API_\TextEditor.Status.cs" Link="API_\TextEditor.Status.cs" />
   </ItemGroup>
 
   <ItemGroup>

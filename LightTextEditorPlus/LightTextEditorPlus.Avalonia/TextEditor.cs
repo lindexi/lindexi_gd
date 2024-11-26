@@ -13,6 +13,7 @@ using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 
 using LightTextEditorPlus.Core;
+using LightTextEditorPlus.Core.Carets;
 
 namespace LightTextEditorPlus;
 
