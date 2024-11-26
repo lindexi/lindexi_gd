@@ -5,6 +5,7 @@ using System.Text;
 using HarfBuzzSharp;
 
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
@@ -135,7 +136,7 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
         }
 
         var count = glyphInfoList.Count;
-        var renderGlyphPositions = new SKPoint[count];
+        var renderGlyphPositions = new SKPoint[count]; // 没有真的用到
         var currentX = 0.0;
         for (int i = 0; i < count; i++)
         {
@@ -191,7 +192,20 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
                 charData.SetSize(new Size(glyphRunBound.Width, glyphRunBound.Height));
             }
 
+            // 解决 CharData 和字符不一一对应的问题，可能一个 CharData 对应多个字符
             glyphRunBoundsIndex += charData.CharObject.ToText().Length;
+            // 预期不会出现超出的情况
+            if (glyphRunBoundsIndex >= glyphRunBounds.Length)
+            {
+                if (TextEditor.TextEditorCore.IsInDebugMode)
+                {
+                    throw new TextEditorDebugException("布局过程中发现 CharData 和 Text 数量不匹配，预计是框架内实现的问题");
+                }
+                else
+                {
+                    break;
+                }
+            }
         }
 
         return new SingleCharInLineLayoutResult(taskCount, new Size(measuredWidth, 0));
