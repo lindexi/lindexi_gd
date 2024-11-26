@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Utils;
 using HarfBuzzSharp;
+using LightTextEditorPlus.Document;
 
 namespace LightTextEditorPlus.Rendering;
 
@@ -91,14 +92,21 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
 
         using SKPaint skPaint = new SKPaint();
 
+        // todo 干掉以下两个调试代码
         var skFontManager = SKFontManager.Default;
         var skTypeface = skFontManager.MatchFamily("微软雅黑");
 
         skPaint.Typeface = skTypeface;
         skPaint.IsAntialias = true;
 
+        skPaint.Color = SKColors.Black;
+
         foreach (SkiaTextRenderInfo skiaTextRenderInfo in RenderInfoList)
         {
+            SkiaTextRunProperty skiaTextRunProperty = skiaTextRenderInfo.RunProperty.AsSkiaRunProperty();
+            SKFont skFont = skiaTextRunProperty.GetRenderSKFont();
+            
+
             skPaint.TextSize = (float) skiaTextRenderInfo.RunProperty.FontSize;
 
             float x = skiaTextRenderInfo.X;
