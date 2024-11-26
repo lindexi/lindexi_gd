@@ -44,6 +44,24 @@
         <Compile Remove="**\*.uno.cs" />
       </ItemGroup>
     </When>
+    <When Condition=" '$(UseUIFramework)' == 'Skia' ">
+      <PropertyGroup>
+        <DefineConstants>$(DefineConstants);USE_SKIA</DefineConstants>
+      </PropertyGroup>
+      <ItemGroup>
+        <Compile Include="@(UIFrameworkCompatibilityCode)" />
+        <Compile Include="@(LightTextEditorPlusAPIDefineCode)" />
+      </ItemGroup>
+    </When>
+       <When Condition=" '$(UseUIFramework)' == 'MauiGraphics' ">
+      <PropertyGroup>
+        <DefineConstants>$(DefineConstants);USE_MauiGraphics</DefineConstants>
+      </PropertyGroup>
+      <ItemGroup>
+        <Compile Include="@(UIFrameworkCompatibilityCode)" />
+        <Compile Include="@(LightTextEditorPlusAPIDefineCode)" />
+      </ItemGroup>
+    </When>
     <When Condition=" '$(UseUIFramework)' == 'Test' ">
       <PropertyGroup>
         <DefineConstants>$(DefineConstants);USE_TEST</DefineConstants>

@@ -7,9 +7,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LightTextEditorPlus.MauiGraphics;
+namespace LightTextEditorPlus;
 
-public class TextEditor
+public partial class TextEditor
 {
     public TextEditor()
     {

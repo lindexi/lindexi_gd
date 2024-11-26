@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>LightTextEditorPlus</RootNamespace>
+    <UseUIFramework>Skia</UseUIFramework>
   </PropertyGroup>
 
   <ItemGroup>
