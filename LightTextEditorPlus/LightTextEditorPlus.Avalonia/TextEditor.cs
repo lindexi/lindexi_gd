@@ -68,12 +68,12 @@ class TextEditorCustomDrawOperation : ICustomDrawOperation
 
     public void Dispose()
     {
-
+        _render.Dispose();
     }
 
     public bool Equals(ICustomDrawOperation? other)
     {
-        return ReferenceEquals(this, other);
+        return ReferenceEquals(_render, (other as TextEditorCustomDrawOperation)?._render);
     }
 
     public bool HitTest(Point p)
