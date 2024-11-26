@@ -5,6 +5,19 @@ namespace LightTextEditorPlus;
 
 public class CaretConfiguration : SkiaCaretConfiguration
 {
+    public CaretConfiguration()
+    {
+    }
+
+    internal CaretConfiguration(SkiaCaretConfiguration configuration)
+    {
+        CaretWidth = configuration.CaretWidth;
+        base.CaretBrush = configuration.CaretBrush;
+        base.SelectionBrush = configuration.SelectionBrush;
+        CaretBlinkTime = configuration.CaretBlinkTime;
+        ShowSelectionWhenNotInEditingInputMode = configuration.ShowSelectionWhenNotInEditingInputMode;
+    }
+
     public new Color? CaretBrush
     {
         get => base.CaretBrush.ToAvaloniaColor();
