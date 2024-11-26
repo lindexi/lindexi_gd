@@ -11,6 +11,7 @@ using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
 
 using SkiaSharp;
+
 using Buffer = HarfBuzzSharp.Buffer;
 
 namespace LightTextEditorPlus.Platform;
@@ -70,10 +71,10 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
         var glyphIndices = new ushort[charCount];
         var glyphBounds = new SKRect[charCount];
 
-            var glyphInfoList = new List<TestGlyphInfo>();
+        var glyphInfoList = new List<TestGlyphInfo>();
         using (var buffer = new Buffer())
         {
-            buffer.AddUtf16(text.AsSpan().Slice(0, (int)charCount));
+            buffer.AddUtf16(text.AsSpan().Slice(0, (int) charCount));
             buffer.GuessSegmentProperties();
 
             // todo 处理语言文化
@@ -105,7 +106,7 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
             font.GetScale(out var scaleX, out _);
 
             var fontRenderingEmSize = skPaint.TextSize;
-            var textScale = fontRenderingEmSize / (float)scaleX;
+            var textScale = fontRenderingEmSize / (float) scaleX;
 
             var bufferLength = buffer.Length;
 
@@ -183,12 +184,14 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
         for (var i = argument.CurrentIndex; i < argument.CurrentIndex + taskCount; i++)
         {
             CharData charData = argument.RunList[i];
-            if (charData.Size==null)
+            if (charData.Size == null)
             {
                 SKRect glyphRunBound = glyphRunBounds[glyphRunBoundsIndex];
 
                 charData.SetSize(new Size(glyphRunBound.Width, glyphRunBound.Height));
             }
+
+            glyphRunBoundsIndex += charData.CharObject.ToText().Length;
         }
 
         return new SingleCharInLineLayoutResult(taskCount, new Size(measuredWidth, 0));
