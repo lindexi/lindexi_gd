@@ -171,7 +171,7 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
             // 宽度应该是 advance 而不是渲染宽度，渲染宽度太窄
 
             var width = (float)advance;// renderBounds.Width;
-            var height = skPaint.TextSize; //(float) skFont.Metrics.Ascent + (float) skFont.Metrics.Descent;
+            var height = renderBounds.Height; //skPaint.TextSize; //(float) skFont.Metrics.Ascent + (float) skFont.Metrics.Descent;
 
             glyphRunBounds[i] = SKRect.Create((float) (currentX + renderBounds.Left), baselineOrigin.Y + renderBounds.Top, width,
                 height);

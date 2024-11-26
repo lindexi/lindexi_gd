@@ -118,16 +118,6 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
 
             // 由于 Skia 的 DrawText 传入的 Point 是文本的最下方，因此需要调整 Y 值
             y += baselineY;
-
-            //y -= skiaTextRenderInfo.Height / 10;// 特意让文字上移一点，似乎效果更好
-
-            //skPaint.GetGlyphWidths(skiaTextRenderInfo.Text, out var skBounds);
-
-            //if (skBounds != null && skBounds.Length > 0)
-            //{
-            //    y += skBounds[0].Height;
-            //}
-
             canvas.DrawText(skiaTextRenderInfo.Text, new SKPoint(x, y), textRenderSKPaint);
         }
 
@@ -138,7 +128,7 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
 
         if (_debugBitmap != null)
         {
-            //canvas.DrawBitmap(_debugBitmap, 0, 0);
+            canvas.DrawBitmap(_debugBitmap, 0, 0);
             // 经过画一条线的测试，可以发现 DrawRect 时的高度，其实偏小了一个像素的高度
             //canvas.DrawLine(0, (float) CurrentCaretBounds.Height,100, (float) CurrentCaretBounds.Height, caretPaint);
         }
