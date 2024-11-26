@@ -51,7 +51,7 @@ public partial class TextEditor : Control
 
     public override void Render(DrawingContext context)
     {
-        ITextEditorSkiaRender textEditorSkiaRender = SkiaTextEditor.GetCurrentRender();
+        ITextEditorSkiaRender textEditorSkiaRender = SkiaTextEditor.GetCurrentTextRender();
         context.Custom(new TextEditorCustomDrawOperation(new Rect(DesiredSize), textEditorSkiaRender));
     }
 }

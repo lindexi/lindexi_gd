@@ -57,7 +57,7 @@ public partial class SkiaTextEditor : IRenderManager
         RenderRequested?.Invoke(this, EventArgs.Empty);
     }
 
-    public ITextEditorSkiaRender GetCurrentRender()
+    public ITextEditorSkiaRender GetCurrentTextRender()
     {
         return RenderManager.GetCurrentRender();
     }
