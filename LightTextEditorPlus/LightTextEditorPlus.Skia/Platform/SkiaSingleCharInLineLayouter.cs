@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 using HarfBuzzSharp;
+
 using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Exceptions;
@@ -170,8 +171,9 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
             // 水平布局下，不应该返回字符的渲染高度，而是应该返回字符高度。这样可以保证字符的基线对齐。如 a 和 f 和 g 的高度不相同，则如果将其渲染高度返回，会导致基线不对齐，变成底部对齐
             // 宽度应该是 advance 而不是渲染宽度，渲染宽度太窄
 
-            var width = (float)advance;// renderBounds.Width;
+            var width = (float) advance;// renderBounds.Width;
             var height = renderBounds.Height; //skPaint.TextSize; //(float) skFont.Metrics.Ascent + (float) skFont.Metrics.Descent;
+            height = (float) LineSpacingCalculator.CalculateLineHeightWithPPTLineSpacingAlgorithm(1, skPaint.TextSize);
 
             glyphRunBounds[i] = SKRect.Create((float) (currentX + renderBounds.Left), baselineOrigin.Y + renderBounds.Top, width,
                 height);
@@ -205,7 +207,7 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
             // 预期不会出现超出的情况
             if (glyphRunBoundsIndex >= glyphRunBounds.Length)
             {
-                if (DebugConfiguration.IsInDebugMode 
+                if (DebugConfiguration.IsInDebugMode
                     // 调试下，且非最后一个。最后一个预期是相等的
                     && i != argument.CurrentIndex + taskCount - 1)
                 {
