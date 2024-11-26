@@ -31,7 +31,7 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
     public SingleCharInLineLayoutResult LayoutSingleCharInLine(in SingleCharInLineLayoutArgument argument)
     {
         CharData currentCharData = argument.CurrentCharData;
-        var runProperty = currentCharData.RunProperty.AsRunProperty();
+        var runProperty = currentCharData.RunProperty.AsSkiaRunProperty();
 
         // todo 处理连续字符属性的情况
         SKFont skFont = runProperty.GetRenderSKFont();
