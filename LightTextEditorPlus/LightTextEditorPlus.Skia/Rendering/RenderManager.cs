@@ -90,17 +90,6 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
             return;
         }
 
-        using SKPaint skPaint = new SKPaint();
-
-        // todo 干掉以下两个调试代码
-        var skFontManager = SKFontManager.Default;
-        var skTypeface = skFontManager.MatchFamily("微软雅黑");
-
-        skPaint.Typeface = skTypeface;
-        skPaint.IsAntialias = true;
-
-        skPaint.Color = SKColors.Black;
-
         foreach (SkiaTextRenderInfo skiaTextRenderInfo in RenderInfoList)
         {
             SkiaTextRunProperty skiaTextRunProperty = skiaTextRenderInfo.RunProperty.AsSkiaRunProperty();
@@ -121,7 +110,7 @@ class RenderManager : IRenderManager, ITextEditorSkiaRender
             canvas.DrawText(skiaTextRenderInfo.Text, new SKPoint(x, y), textRenderSKPaint);
         }
 
-        SKPaint caretPaint = skPaint;
+        using SKPaint caretPaint = new SKPaint();
         caretPaint.Color = SKColors.Black;
         caretPaint.Style = SKPaintStyle.Fill;
         caretPaint.StrokeWidth = 1;
