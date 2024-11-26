@@ -163,7 +163,7 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
             var glyphInfo = glyphInfoList[i];
             var advance = glyphInfo.GlyphAdvance;
 
-            glyphRunBounds[i] = SKRect.Create((float) (currentX + gBounds.Left), baselineOrigin.Y + gBounds.Top, gBounds.Width,
+            glyphRunBounds[i] = SKRect.Create((float) (currentX + gBounds.Left), baselineOrigin.Y + gBounds.Top, (float) advance,// gBounds.Width,
                 gBounds.Height);
 
             runBounds.Union(glyphRunBounds[i]);
