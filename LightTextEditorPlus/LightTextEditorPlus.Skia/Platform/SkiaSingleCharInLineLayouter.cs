@@ -201,7 +201,7 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
             {
                 if (DebugConfiguration.IsInDebugMode)
                 {
-                    throw new TextEditorDebugException("布局过程中发现 CharData 和 Text 数量不匹配，预计是框架内实现的问题");
+                    throw new TextEditorInnerDebugException("布局过程中发现 CharData 和 Text 数量不匹配，预计是框架内实现的问题");
                 }
                 else
                 {
