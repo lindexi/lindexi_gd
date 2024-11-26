@@ -6,9 +6,6 @@
     <UseUIFramework>Avalonia</UseUIFramework>
     <RootNamespace>LightTextEditorPlus</RootNamespace>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="..\LightTextEditorPlus.Wpf\API_\TextEditor.Status.cs" Link="API_\TextEditor.Status.cs" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
@@ -22,5 +19,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LightTextEditorPlus.Skia\LightTextEditorPlus.Skia.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="C:\lindexi\Code\lindexi_gd\LightTextEditorPlus\LightTextEditorPlus\Build\Shared\API\TextEditor.Status.cs" />
   </ItemGroup>
 </Project>

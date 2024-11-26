@@ -6,10 +6,11 @@ namespace LightTextEditorPlus;
 
 // 此文件存放状态获取相关的方法
 
+partial class
 #if USE_SKIA
-public partial class SkiaTextEditor
+    SkiaTextEditor
 #else
-public partial class TextEditor
+    TextEditor
 #endif
 {
 #if USE_WPF

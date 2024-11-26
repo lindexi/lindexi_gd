@@ -9,16 +9,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\LightTextEditorPlus.Wpf\API_\TextEditor.Status.cs" Link="API_\TextEditor.Status.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="SkiaSharp" Version="2.88.7" />
     <PackageReference Include="SkiaSharp.HarfBuzz" Version="2.88.7" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\LightTextEditorPlus.Core\LightTextEditorPlus.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="C:\lindexi\Code\lindexi_gd\LightTextEditorPlus\LightTextEditorPlus\Build\Shared\API\TextEditor.Status.cs" />
   </ItemGroup>
 
 </Project>
