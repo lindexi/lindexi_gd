@@ -39,6 +39,11 @@ public partial class SkiaTextEditor : IRenderManager
     public TextEditorCore TextEditorCore { get; }
 
     /// <summary>
+    /// 日志
+    /// </summary>
+    public ITextLogger Logger => TextEditorCore.Logger;
+
+    /// <summary>
     /// 获取文档的布局尺寸，实际布局尺寸
     /// </summary>
     public Rect CurrentLayoutBounds { get; private set; } = Rect.Zero;

@@ -28,7 +28,7 @@ namespace LightTextEditorPlus
 
                 //EnsureEditInit();
 
-                //Logger.LogDebug(value ? "进入用户编辑模式" : "退出用户编辑模式");
+                Logger.LogDebug(value ? "进入用户编辑模式" : "退出用户编辑模式");
 
                 _isInEditingInputMode = value;
 
