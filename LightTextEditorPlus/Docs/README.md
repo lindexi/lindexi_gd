@@ -39,23 +39,23 @@
 
 从整体的角度：
 
-![](http://image.acmx.xyz/lindexi%2F202211916957655.jpg)
+![](http://cdn.lindexi.site/lindexi%2F202211916957655.jpg)
 
 分层的角度：
 
-![](http://image.acmx.xyz/lindexi%2F20221191610494994.jpg)
+![](http://cdn.lindexi.site/lindexi%2F20221191610494994.jpg)
 
 调用关系：
 
-![](http://image.acmx.xyz/lindexi%2F20221191611114337.jpg)
+![](http://cdn.lindexi.site/lindexi%2F20221191611114337.jpg)
 
 依赖关系：
 
-![](http://image.acmx.xyz/lindexi%2F20221191611321914.jpg)
+![](http://cdn.lindexi.site/lindexi%2F20221191611321914.jpg)
 
 数据走向：
 
-![](http://image.acmx.xyz/lindexi%2F20221192012258129.jpg)
+![](http://cdn.lindexi.site/lindexi%2F20221192012258129.jpg)
 
 ## 各个项目的作用
 
