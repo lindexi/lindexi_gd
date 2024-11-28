@@ -5,7 +5,7 @@
         xmlns:views1="clr-namespace:LightTextEditorPlus.AvaloniaDemo.Views"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="LightTextEditorPlus.AvaloniaDemo.Views.MainWindow"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/Text.png"
         Title="WeechewhabeJereciwe">
         <views1:MainView />
 </Window>

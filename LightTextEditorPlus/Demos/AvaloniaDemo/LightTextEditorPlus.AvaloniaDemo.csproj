@@ -10,6 +10,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="..\LightTextEditorPlus.Demo\Assets\Text.png" Link="Assets\Text.png" />
+    <AvaloniaResource Include="..\LightTextEditorPlus.Demo\Assets\Text.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />

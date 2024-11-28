@@ -8,6 +8,9 @@
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
+  <ItemGroup>
+    <Content Include="..\LightTextEditorPlus.Demo\Assets\Text.png" Link="Assets\Text.png" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
@@ -16,6 +19,5 @@
   <ItemGroup>
     <ProjectReference Include="..\AvaloniaDemo\LightTextEditorPlus.AvaloniaDemo.csproj" />
   </ItemGroup>
-
 
 </Project>
