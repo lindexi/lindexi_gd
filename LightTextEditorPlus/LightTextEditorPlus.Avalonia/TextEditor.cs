@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Input.TextInput;
+using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Platform;
@@ -31,6 +34,30 @@ public partial class TextEditor : Control
         TextEditorCore.AppendText("afg123微软雅黑");
 
         // 设计上会导致 Avalonia 总会调用二级的 SkiaTextEditor 接口实现功能。有开发资源可以做一层代理
+
+        Loaded += TextEditor_Loaded;
+    }
+
+    private void TextEditor_Loaded(object? sender, RoutedEventArgs e)
+    {
+        this.Focus(NavigationMethod.Directional);
+        this.TextInputMethodClientRequested += TextEditor_TextInputMethodClientRequested;
+    }
+
+    protected override void OnPointerPressed(PointerPressedEventArgs e)
+    {
+        this.Focus(NavigationMethod.Directional);
+        base.OnPointerPressed(e);
+    }
+
+    private void TextEditor_TextInputMethodClientRequested(object? sender, TextInputMethodClientRequestedEventArgs e)
+    {
+    }
+
+    protected override void OnTextInput(TextInputEventArgs e)
+    {
+
+        base.OnTextInput(e);
     }
 
     public SkiaTextEditor SkiaTextEditor { get; }
