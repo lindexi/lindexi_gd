@@ -1,0 +1,6 @@
+Opacity
+// Foreground
+// Background
+Stretch
+FontWeight
+FontStyle

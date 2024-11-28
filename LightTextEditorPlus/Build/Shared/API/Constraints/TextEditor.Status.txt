@@ -1,0 +1,4 @@
+// 当前光标下的文本字符属性
+// CurrentCaretRunProperty
+CurrentCaretOffset
+CurrentSelection

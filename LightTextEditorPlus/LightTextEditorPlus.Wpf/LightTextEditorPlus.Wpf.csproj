@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LightTextEditorPlus.Core\LightTextEditorPlus.Core.csproj" />
+    <ProjectReference Include="..\Analyzers\TextEditorInternalAnalyzer\TextEditorInternalAnalyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>

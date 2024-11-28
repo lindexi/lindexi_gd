@@ -19,9 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LightTextEditorPlus.Skia\LightTextEditorPlus.Skia.csproj" />
+    <ProjectReference Include="..\Analyzers\TextEditorInternalAnalyzer\TextEditorInternalAnalyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="C:\lindexi\Code\lindexi_gd\LightTextEditorPlus\LightTextEditorPlus\Build\Shared\API\TextEditor.Status.cs" />
-  </ItemGroup>
 </Project>

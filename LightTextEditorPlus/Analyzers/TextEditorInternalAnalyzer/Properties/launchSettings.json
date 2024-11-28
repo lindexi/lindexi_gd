@@ -3,6 +3,10 @@
     "DebugTextEditorCore": {
       "commandName": "DebugRoslynComponent",
       "targetProject": "..\\..\\LightTextEditorPlus.Core\\LightTextEditorPlus.Core.csproj"
+    },
+    "DebugTextEditorWPF": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\..\\LightTextEditorPlus.Wpf\\LightTextEditorPlus.Wpf.csproj"
     }
   }
 }

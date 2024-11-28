@@ -5,7 +5,7 @@ using LightTextEditorPlus.Document;
 namespace LightTextEditorPlus;
 
 // 此文件存放状态获取相关的方法
-
+[APIConstraint("TextEditor.Status.txt")]
 partial class
 #if USE_SKIA
     SkiaTextEditor

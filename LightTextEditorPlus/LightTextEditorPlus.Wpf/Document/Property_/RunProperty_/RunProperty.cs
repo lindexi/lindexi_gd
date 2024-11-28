@@ -12,6 +12,7 @@ namespace LightTextEditorPlus.Document;
 /// <summary>
 /// 文本字符属性
 /// </summary>
+[APIConstraint("RunProperty.txt")]
 public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRunProperty
 {
     internal RunProperty(RunPropertyPlatformManager runPropertyPlatformManager)

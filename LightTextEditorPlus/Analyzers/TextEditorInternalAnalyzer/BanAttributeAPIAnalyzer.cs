@@ -15,9 +15,9 @@ public class BanAttributeAPIAnalyzer : DiagnosticAnalyzer
 {
     public BanAttributeAPIAnalyzer()
     {
-        SupportedDiagnostics = new []
+        SupportedDiagnostics = new[]
         {
-            new DiagnosticDescriptor("Ban1", "CallBanAPI", "不能调用禁用的 API 哦，方法 {0} 被标记 {1} 不可在本项目使用", "Error", DiagnosticSeverity.Error, true)
+            new DiagnosticDescriptor("Ban01", "CallBanAPI", "不能调用禁用的 API 哦，方法 {0} 被标记 {1} 不可在本项目使用", "Error", DiagnosticSeverity.Error, true)
         }.ToImmutableArray();
     }
 
@@ -38,7 +38,7 @@ public class BanAttributeAPIAnalyzer : DiagnosticAnalyzer
                         return;
                     }
 
-                    if (methodSymbol.GetAttributes().Any(t=>t.AttributeClass?.Name== banAttributeName))
+                    if (methodSymbol.GetAttributes().Any(t => t.AttributeClass?.Name == banAttributeName))
                     {
                         nodeAnalysisContext.ReportDiagnostic(Diagnostic.Create(SupportedDiagnostics[0], Location.Create(nodeAnalysisContext.Node.SyntaxTree, nodeAnalysisContext.Node.FullSpan), methodSymbol.Name, banAttributeName));
                     }

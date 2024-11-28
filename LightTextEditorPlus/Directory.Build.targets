@@ -4,6 +4,9 @@
     <UIFrameworkCompatibilityCode Include="$(MSBuildThisFileDirectory)Build\Shared\UI.Compatibility.Global.g.cs"
                                   Link="Properties\%(Filename)%(Extension)" />
     <LightTextEditorPlusAPIDefineCode Include="$(MSBuildThisFileDirectory)Build\Shared\API\**\*.cs" LinkBase="API_"/>
+    <LightTextEditorPlusAPIConstraints Include="$(MSBuildThisFileDirectory)Build\Shared\API\Constraints\*.txt" LinkBase="API_\Constraints"/>
+    <AdditionalFiles Include="@(LightTextEditorPlusAPIConstraints)" APIConstraint="True"/>
+    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="APIConstraint" />
   </ItemGroup>
 
   <!-- 自动处理不同 UI 框架之间的差异 -->
@@ -15,6 +18,7 @@
       <ItemGroup>
         <Compile Include="@(UIFrameworkCompatibilityCode)" />
         <Compile Include="@(LightTextEditorPlusAPIDefineCode)" />
+        <None Include="@(LightTextEditorPlusAPIConstraints)"/>
         <Compile Remove="**\*.test.cs" />
         <Compile Remove="**\*.uno.cs" />
         <Compile Remove="**\*.wpf.cs" />
@@ -27,6 +31,7 @@
       </PropertyGroup>
       <ItemGroup>
         <Compile Include="@(UIFrameworkCompatibilityCode)" />
+        <None Include="@(LightTextEditorPlusAPIConstraints)"/>
         <Compile Remove="**\*.ava.cs" />
         <Compile Remove="**\*.test.cs" />
         <Compile Remove="**\*.wpf.cs" />
@@ -39,6 +44,7 @@
       <ItemGroup>
         <Compile Include="@(UIFrameworkCompatibilityCode)" />
         <Compile Include="@(LightTextEditorPlusAPIDefineCode)" />
+        <None Include="@(LightTextEditorPlusAPIConstraints)"/>
         <Compile Remove="**\*.ava.cs" />
         <Compile Remove="**\*.test.cs" />
         <Compile Remove="**\*.uno.cs" />
@@ -51,6 +57,7 @@
       <ItemGroup>
         <Compile Include="@(UIFrameworkCompatibilityCode)" />
         <Compile Include="@(LightTextEditorPlusAPIDefineCode)" />
+        <None Include="@(LightTextEditorPlusAPIConstraints)"/>
       </ItemGroup>
     </When>
        <When Condition=" '$(UseUIFramework)' == 'MauiGraphics' ">
@@ -60,6 +67,7 @@
       <ItemGroup>
         <Compile Include="@(UIFrameworkCompatibilityCode)" />
         <Compile Include="@(LightTextEditorPlusAPIDefineCode)" />
+        <None Include="@(LightTextEditorPlusAPIConstraints)"/>
       </ItemGroup>
     </When>
     <When Condition=" '$(UseUIFramework)' == 'Test' ">
@@ -68,6 +76,7 @@
       </PropertyGroup>
       <ItemGroup>
         <Compile Include="@(UIFrameworkCompatibilityCode)" />
+        <None Include="@(LightTextEditorPlusAPIConstraints)"/>
         <Compile Remove="**\*.ava.cs" />
         <Compile Remove="**\*.uno.cs" />
         <Compile Remove="**\*.wpf.cs" />
