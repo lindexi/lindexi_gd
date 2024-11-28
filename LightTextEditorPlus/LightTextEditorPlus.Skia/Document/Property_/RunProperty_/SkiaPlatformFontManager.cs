@@ -20,17 +20,24 @@ internal class SkiaPlatformFontManager
         _cache.TrimExcess();
     }
 
-    public RenderingFontInfo GetRenderingFontInfo(SkiaTextRunProperty runProperty, char unicodeChar, ref SKTypeface? skTypeface)
+    public RenderingFontInfo GetRenderingFontInfo(SkiaTextRunProperty runProperty, char unicodeChar)
     {
-        if (skTypeface?.ContainsGlyphs([unicodeChar]) is true)
+        // todo 处理未找到字体的情况
+        if (_cache.TryGetValue(runProperty,out var cache))
         {
-            return new RenderingFontInfo(skTypeface);
+            return cache;
         }
 
-        // todo 处理缓存和未找到字体的情况
+        //if (skTypeface?.ContainsGlyphs([unicodeChar]) is true)
+        //{
+        //    return new RenderingFontInfo(skTypeface);
+        //}
+
         var typeface = SKTypeface.FromFamilyName(runProperty.FontName.UserFontName, runProperty.FontWeight, runProperty.Stretch, runProperty.FontStyle);
 
-        return new RenderingFontInfo(typeface);
+        var info = new RenderingFontInfo(typeface);
+        _cache[runProperty] = info;
+        return info;
     }
 
     private readonly Dictionary<SkiaTextRunProperty, RenderingFontInfo> _cache =

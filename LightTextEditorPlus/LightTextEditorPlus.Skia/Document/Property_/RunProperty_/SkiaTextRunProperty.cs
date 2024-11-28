@@ -32,16 +32,10 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
 
     public SKTypeface GetRenderSKTypeface(char unicodeChar = '1')
     {
-        RenderingFontInfo renderingFontInfo = FontManager.GetRenderingFontInfo(this, unicodeChar, ref _skTypeface);
+        RenderingFontInfo renderingFontInfo = FontManager.GetRenderingFontInfo(this, unicodeChar);
 
         return renderingFontInfo.Typeface;
     }
-
-    /// <summary>
-    /// 字体
-    /// </summary>
-    /// 在 Skia 底层会自己释放。只是需要等 GC 才释放资源
-    private SKTypeface? _skTypeface;
 
     public SKFont GetRenderSKFont(char unicodeChar = '1')
     {
@@ -115,7 +109,6 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
 
     private void InvalidateFont()
     {
-        // 由于 record 会自动拷贝字段，所以这里需要手动设置为 null 的值
-        _skTypeface = null;
+       
     }
 }
