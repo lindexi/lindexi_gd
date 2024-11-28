@@ -71,7 +71,7 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
     /// <summary>
     /// 字的粗细度，默认值为Normal
     /// </summary>
-    public int FontWeight { get; init; } = 400;
+    public SKFontStyleWeight FontWeight { get; init; } = SKFontStyleWeight.Normal;
 
     /// <summary>
     /// 斜体
