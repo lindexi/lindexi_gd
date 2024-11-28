@@ -6,7 +6,7 @@
              mc:Ignorable="d"    
              d:DesignWidth="360" d:DesignHeight="600"
              x:Class="LightTextEditorPlus.AvaloniaDemo.Views.TextEditorSettingsControl">
-  <Grid d:Background="White">
+  <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="*"></RowDefinition>
       <RowDefinition Height="Auto"></RowDefinition>
