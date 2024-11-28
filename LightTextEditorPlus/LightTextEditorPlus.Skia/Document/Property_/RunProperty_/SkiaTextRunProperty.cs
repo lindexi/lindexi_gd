@@ -4,6 +4,7 @@ using SkiaSharp;
 
 namespace LightTextEditorPlus.Document;
 
+[APIConstraint("RunProperty.txt")]
 public record SkiaTextRunProperty : LayoutOnlyRunProperty
 {
     internal SkiaTextRunProperty(SkiaPlatformFontManager skiaPlatformFontManager)
@@ -62,4 +63,18 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
 
         return renderSkFont;
     }
+
+    public double Opacity { get; init; } = 1;
+    public SKColor Foreground { get; init; } = SKColors.Black;
+    public SKColor Background { get; init; } = SKColors.Transparent;
+  
+    /// <summary>
+    /// 字的粗细度，默认值为Normal
+    /// </summary>
+    public int FontWeight { get; init; } = 400;
+
+    /// <summary>
+    /// 斜体
+    /// </summary>
+    public SKFontStyleSlant FontStyle { get; init; } = SKFontStyleSlant.Upright;
 }
