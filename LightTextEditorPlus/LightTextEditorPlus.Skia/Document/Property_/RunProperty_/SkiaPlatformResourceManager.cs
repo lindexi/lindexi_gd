@@ -2,9 +2,9 @@
 
 namespace LightTextEditorPlus.Document;
 
-internal class SkiaPlatformFontManager
+internal class SkiaPlatformResourceManager
 {
-    public SkiaPlatformFontManager(SkiaTextEditor textEditor)
+    public SkiaPlatformResourceManager(SkiaTextEditor textEditor)
     {
         textEditor.InternalRenderCompleted += TextEditor_InternalRenderCompleted;
     }

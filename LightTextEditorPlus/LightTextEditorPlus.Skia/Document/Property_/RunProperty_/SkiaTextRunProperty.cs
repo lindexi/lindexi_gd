@@ -7,9 +7,9 @@ namespace LightTextEditorPlus.Document;
 [APIConstraint("RunProperty.txt")]
 public record SkiaTextRunProperty : LayoutOnlyRunProperty
 {
-    internal SkiaTextRunProperty(SkiaPlatformFontManager skiaPlatformFontManager)
+    internal SkiaTextRunProperty(SkiaPlatformResourceManager skiaPlatformResourceManager)
     {
-        FontManager = skiaPlatformFontManager;
+        ResourceManager = skiaPlatformResourceManager;
     }
 
     public override FontName FontName
@@ -28,11 +28,11 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
     }
 
     private readonly FontName _fontName;
-    private SkiaPlatformFontManager FontManager { get; }
+    private SkiaPlatformResourceManager ResourceManager { get; }
 
     public SKTypeface GetRenderSKTypeface(char unicodeChar = '1')
     {
-        RenderingFontInfo renderingFontInfo = FontManager.GetRenderingFontInfo(this, unicodeChar);
+        RenderingFontInfo renderingFontInfo = ResourceManager.GetRenderingFontInfo(this, unicodeChar);
 
         return renderingFontInfo.Typeface;
     }

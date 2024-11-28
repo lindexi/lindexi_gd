@@ -31,7 +31,7 @@ public partial class TextEditor : Control
         Focusable = true;
 
         SkiaTextEditor = new SkiaTextEditor();
-        SkiaTextEditor.RenderRequested += (sender, args) => InvalidateVisual();
+        SkiaTextEditor.InvalidateVisualRequested += (sender, args) => InvalidateVisual();
 
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;

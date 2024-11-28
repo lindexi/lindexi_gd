@@ -61,7 +61,7 @@ public partial class SkiaTextEditor : IRenderManager
 
         InternalRenderCompleted?.Invoke(this, EventArgs.Empty);
 
-        RenderRequested?.Invoke(this, EventArgs.Empty);
+        InvalidateVisualRequested?.Invoke(this, EventArgs.Empty);
 
         _renderCompletionSource.TrySetResult();
     }
@@ -76,7 +76,7 @@ public partial class SkiaTextEditor : IRenderManager
         return RenderManager.GetCurrentCaretAndSelectionRender();
     }
 
-    public event EventHandler? RenderRequested; // todo 改名
+    public event EventHandler? InvalidateVisualRequested;
 
     internal event EventHandler? InternalRenderCompleted;
 
@@ -106,11 +106,11 @@ public class SkiaTextEditorPlatformProvider : PlatformProvider
 
     private SkiaTextEditor TextEditor { get; }
 
-    private SkiaPlatformFontManager? _skiaPlatformFontManager;
+    private SkiaPlatformResourceManager? _skiaPlatformFontManager;
 
     public override IPlatformRunPropertyCreator GetPlatformRunPropertyCreator()
     {
-        _skiaPlatformFontManager ??= new SkiaPlatformFontManager(TextEditor);
+        _skiaPlatformFontManager ??= new SkiaPlatformResourceManager(TextEditor);
         return new SkiaPlatformRunPropertyCreator(_skiaPlatformFontManager);
     }
 

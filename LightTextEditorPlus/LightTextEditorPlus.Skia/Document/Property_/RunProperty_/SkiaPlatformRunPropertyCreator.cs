@@ -6,16 +6,16 @@ namespace LightTextEditorPlus.Document;
 
 internal class SkiaPlatformRunPropertyCreator : IPlatformRunPropertyCreator
 {
-    public SkiaPlatformRunPropertyCreator(SkiaPlatformFontManager skiaPlatformFontManager)
+    public SkiaPlatformRunPropertyCreator(SkiaPlatformResourceManager skiaPlatformResourceManager)
     {
-        _skiaPlatformFontManager = skiaPlatformFontManager;
+        _skiaPlatformResourceManager = skiaPlatformResourceManager;
     }
 
-    private readonly SkiaPlatformFontManager _skiaPlatformFontManager;
+    private readonly SkiaPlatformResourceManager _skiaPlatformResourceManager;
 
 
     public IReadOnlyRunProperty GetDefaultRunProperty()
     {
-        return new SkiaTextRunProperty(_skiaPlatformFontManager);
+        return new SkiaTextRunProperty(_skiaPlatformResourceManager);
     }
 }
