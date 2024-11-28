@@ -7,6 +7,10 @@
     "DebugTextEditorWPF": {
       "commandName": "DebugRoslynComponent",
       "targetProject": "..\\..\\LightTextEditorPlus.Wpf\\LightTextEditorPlus.Wpf.csproj"
+    },
+    "DebugTextEditorAvalonia": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\..\\LightTextEditorPlus.Avalonia\\LightTextEditorPlus.Avalonia.csproj"
     }
   }
 }

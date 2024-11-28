@@ -41,12 +41,17 @@ public class APIConstraintAnalyzer : DiagnosticAnalyzer
 
     public override void Initialize(AnalysisContext context)
     {
-        context.EnableConcurrentExecution();
+        //context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
 
         context.RegisterSyntaxNodeAction(analysisContext =>
         {
             var analysisContextNode = (TypeDeclarationSyntax) analysisContext.Node;
+
+            if (analysisContextNode.Identifier.Text == "CaretConfiguration")
+            {
+
+            }
 
             string attributeName = "global::LightTextEditorPlus.APIConstraintAttribute";
             if (!ContainAttribute(analysisContextNode, attributeName))
@@ -71,7 +76,7 @@ public class APIConstraintAnalyzer : DiagnosticAnalyzer
             var constraintFileName = constraintAttribute.ConstructorArguments[0].Value?.ToString();
             string? ignoreOrderText = constraintAttribute.ConstructorArguments[1].Value?.ToString();
             bool ignoreOrder;
-            if (!bool.TryParse(ignoreOrderText,out ignoreOrder))
+            if (!bool.TryParse(ignoreOrderText, out ignoreOrder))
             {
                 ignoreOrder = false;
             }
@@ -107,7 +112,7 @@ public class APIConstraintAnalyzer : DiagnosticAnalyzer
             if (dictionary.TryGetValue(constraintFileName!, out var additionalText))
             {
                 List<MemberConstraint> memberConstraintList = ReadMemberConstraintList(additionalText);
-                ImmutableArray<ISymbol> memberArray = namedTypeSymbol.GetMembers();
+                var memberList = GetAllMember(namedTypeSymbol, includeBaseClass: ignoreOrder/*只有忽略顺序的情况，才能包含基类的成员*/);
 
                 var memberConstraintIndex = 0;
                 var memberIndex = 0;
@@ -118,9 +123,9 @@ public class APIConstraintAnalyzer : DiagnosticAnalyzer
 
                     bool canFind = false;
 
-                    for (; memberIndex < memberArray.Length && !canFind; memberIndex++)
+                    for (; memberIndex < memberList.Count && !canFind; memberIndex++)
                     {
-                        ISymbol member = memberArray[memberIndex];
+                        ISymbol member = memberList[memberIndex];
                         if (IsMatch(member, memberConstraint))
                         {
                             canFind = true;
@@ -130,7 +135,7 @@ public class APIConstraintAnalyzer : DiagnosticAnalyzer
                     if (!canFind)
                     {
                         // 找不到可能是顺序错了
-                        var isOrderError = memberArray.Any(t => IsMatch(t, memberConstraint));
+                        var isOrderError = memberList.Any(t => IsMatch(t, memberConstraint));
 
                         Location location = Location.Create(analysisContextNode.SyntaxTree, analysisContextNode.FullSpan);
 
@@ -143,7 +148,7 @@ public class APIConstraintAnalyzer : DiagnosticAnalyzer
                                 continue;
                             }
 
-                            diagnostic = Diagnostic.Create(_diagnosticDescriptor02, location, constraintFileName, memberConstraint.Name, string.Join(";", memberConstraintList.Select(t => t.Name)), string.Join(";", memberArray.Select(t => t.Name)));
+                            diagnostic = Diagnostic.Create(_diagnosticDescriptor02, location, constraintFileName, memberConstraint.Name, string.Join(";", memberConstraintList.Select(t => t.Name)), string.Join(";", memberList.Select(t => t.Name)));
                         }
                         else
                         {
@@ -187,7 +192,7 @@ public class APIConstraintAnalyzer : DiagnosticAnalyzer
                 {
                     continue;
                 }
-                
+
                 if (line.StartsWith("//"))
                 {
                     continue;
@@ -239,5 +244,23 @@ public class APIConstraintAnalyzer : DiagnosticAnalyzer
 
         hitAttributeData = null;
         return false;
+    }
+
+    static IReadOnlyList<ISymbol> GetAllMember(INamedTypeSymbol symbol, bool includeBaseClass)
+    {
+        var memberList = new List<ISymbol>();
+        memberList.AddRange(symbol.GetMembers());
+
+        if (includeBaseClass)
+        {
+            var currentType = symbol.BaseType;
+            while (currentType != null)
+            {
+                memberList.AddRange(currentType.GetMembers());
+                currentType = currentType.BaseType;
+            }
+        }
+
+        return memberList;
     }
 }

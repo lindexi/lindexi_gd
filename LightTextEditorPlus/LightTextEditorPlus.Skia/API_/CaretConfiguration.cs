@@ -7,6 +7,7 @@ namespace LightTextEditorPlus;
 /// <summary>
 /// 光标的配置
 /// </summary>
+[APIConstraint("CaretConfiguration.txt")]
 public class SkiaCaretConfiguration
 {
     /// <summary>

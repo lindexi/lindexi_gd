@@ -3,6 +3,7 @@ using LightTextEditorPlus.Utils;
 
 namespace LightTextEditorPlus;
 
+[APIConstraint("CaretConfiguration.txt", true)]
 public class CaretConfiguration : SkiaCaretConfiguration
 {
     public CaretConfiguration()
