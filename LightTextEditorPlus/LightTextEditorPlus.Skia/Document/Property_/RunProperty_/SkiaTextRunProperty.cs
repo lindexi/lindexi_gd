@@ -23,7 +23,7 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
             }
 
             _fontName = value;
-            _skTypeface = null;
+            InvalidateFont();
         }
     }
 
@@ -47,7 +47,7 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
     {
         // todo 处理对齐情况
         // todo 处理缓存
-        SKFont renderSkFont = new SKFont(GetRenderSKTypeface(unicodeChar), (float) FontSize);
+        SKFont renderSkFont = new SKFont(GetRenderSKTypeface(unicodeChar), (float)FontSize);
         // From Avalonia
         // Ideally the requested edging should be passed to the glyph run.
         // Currently the edging is computed dynamically inside the drawing context, so we can't know it in advance.
@@ -71,15 +71,51 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
     /// <summary>
     /// 获取描述与某个字体与该字体的正常纵横比相比的拉伸程度
     /// </summary>
-    public SKFontStyleWidth Stretch { get; init; } = SKFontStyleWidth.Normal;
+    public SKFontStyleWidth Stretch
+    {
+        get => _stretch;
+        init
+        {
+            _stretch = value;
+            InvalidateFont();
+        }
+    }
+
+    private readonly SKFontStyleWidth _stretch = SKFontStyleWidth.Normal;
 
     /// <summary>
     /// 字的粗细度，默认值为Normal
     /// </summary>
-    public SKFontStyleWeight FontWeight { get; init; } = SKFontStyleWeight.Normal;
+    public SKFontStyleWeight FontWeight
+    {
+        get => _fontWeight;
+        init
+        {
+            _fontWeight = value;
+            InvalidateFont();
+        }
+    }
+
+    private readonly SKFontStyleWeight _fontWeight = SKFontStyleWeight.Normal;
 
     /// <summary>
     /// 斜体
     /// </summary>
-    public SKFontStyleSlant FontStyle { get; init; } = SKFontStyleSlant.Upright;
+    public SKFontStyleSlant FontStyle
+    {
+        get => _fontStyle;
+        init
+        {
+            _fontStyle = value;
+            InvalidateFont();
+        }
+    }
+
+    private readonly SKFontStyleSlant _fontStyle = SKFontStyleSlant.Upright;
+
+    private void InvalidateFont()
+    {
+        // 由于 record 会自动拷贝字段，所以这里需要手动设置为 null 的值
+        _skTypeface = null;
+    }
 }
