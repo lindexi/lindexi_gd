@@ -24,6 +24,9 @@ public partial class TextEditor : Control
 {
     public TextEditor()
     {
+        // 属性初始化
+        Focusable = true;
+
         SkiaTextEditor = new SkiaTextEditor();
         SkiaTextEditor.RenderRequested += (sender, args) => InvalidateVisual();
 
@@ -40,6 +43,8 @@ public partial class TextEditor : Control
         {
 
         });
+
+
     }
 
     private void TextEditor_Loaded(object? sender, RoutedEventArgs e)
@@ -104,8 +109,12 @@ public partial class TextEditor : Control
         ITextEditorSkiaRender textEditorSkiaRender = SkiaTextEditor.GetCurrentTextRender();
         context.Custom(new TextEditorCustomDrawOperation(new Rect(DesiredSize), textEditorSkiaRender));
 
-        context.Custom(new TextEditorCustomDrawOperation(new Rect(DesiredSize),
-            SkiaTextEditor.GetCurrentCaretAndSelectionRender()));
+        if (IsInEditingInputMode)
+        {
+            // 只有编辑模式下才会绘制光标和选择区域
+            context.Custom(new TextEditorCustomDrawOperation(new Rect(DesiredSize),
+                SkiaTextEditor.GetCurrentCaretAndSelectionRender()));
+        }
     }
 }
 

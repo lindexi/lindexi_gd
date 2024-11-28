@@ -38,6 +38,8 @@ namespace LightTextEditorPlus
                 }
 
                 IsInEditingInputModeChanged?.Invoke(this, EventArgs.Empty);
+
+                InvalidateVisual();
             }
             get => _isInEditingInputMode;
         }
