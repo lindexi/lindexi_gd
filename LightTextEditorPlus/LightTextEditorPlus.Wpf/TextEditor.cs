@@ -41,11 +41,6 @@ using Size = LightTextEditorPlus.Core.Primitive.Size;
 namespace LightTextEditorPlus;
 
 /// <summary>
-/// 字符属性的配置委托
-/// </summary>
-public delegate RunProperty ConfigRunProperty(RunProperty baseRunProperty);
-
-/// <summary>
 /// 文本编辑器
 /// </summary>
 /// 这就是整个程序集的入口
