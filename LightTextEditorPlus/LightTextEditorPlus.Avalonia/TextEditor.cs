@@ -34,8 +34,12 @@ public partial class TextEditor : Control
         TextEditorCore.AppendText("afg123微软雅黑");
 
         // 设计上会导致 Avalonia 总会调用二级的 SkiaTextEditor 接口实现功能。有开发资源可以做一层代理
-
+        
         Loaded += TextEditor_Loaded;
+        InputMethod.AddTextInputMethodClientRequeryRequestedHandler(this, (sender, args) =>
+        {
+
+        });
     }
 
     private void TextEditor_Loaded(object? sender, RoutedEventArgs e)
@@ -55,7 +59,7 @@ public partial class TextEditor : Control
     }
 
     protected override void OnTextInput(TextInputEventArgs e)
-    {
+    {   
 
         base.OnTextInput(e);
     }
