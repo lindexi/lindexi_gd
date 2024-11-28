@@ -2,6 +2,40 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:lightTextEditorPlus="clr-namespace:LightTextEditorPlus;assembly=LightTextEditorPlus.Avalonia"
+             xmlns:views="clr-namespace:LightTextEditorPlus.AvaloniaDemo.Views"
              mc:Ignorable="d" Width="1000" Height="600"
              x:Class="LightTextEditorPlus.AvaloniaDemo.Views.TextEditorDebugView">
+  <Grid>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="600"></ColumnDefinition>
+      <ColumnDefinition Width="*"></ColumnDefinition>
+    </Grid.ColumnDefinitions>
+    <Grid Grid.Column="0">
+      <Grid.RowDefinitions>
+        <RowDefinition></RowDefinition>
+        <RowDefinition Height="Auto"></RowDefinition>
+      </Grid.RowDefinitions>
+      <Border Margin="10,10,10,10" BorderBrush="Blue" BorderThickness="1" HorizontalAlignment="Left"
+              VerticalAlignment="Stretch">
+        <Grid>
+          <lightTextEditorPlus:TextEditor x:Name="TextEditor" x:FieldModifier="public" Width="500">
+          </lightTextEditorPlus:TextEditor>
+          <Canvas x:Name="DebugCanvas" IsHitTestVisible="False">
+            <!-- 用来绘制调试内容 -->
+          </Canvas>
+        </Grid>
+      </Border>
+      <StackPanel Grid.Row="1" Margin="10,0,10,10" Orientation="Horizontal">
+        <Button Margin="5,0,0,0" Click="DebugButton_OnClick">调试</Button>
+        <ToggleButton x:Name="ShowDocumentBoundsButton" Margin="5,0,0,0" Click="ShowDocumentBoundsButton_OnClick">显示文档范围</ToggleButton>
+      </StackPanel>
+    
+    </Grid>
+
+    <Grid Grid.Column="1">
+      <views:TextEditorSettingsControl x:Name="TextEditorSettingsControl"/>
+    </Grid>
+
+  </Grid>
 </UserControl>
