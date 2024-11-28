@@ -17,6 +17,8 @@ using Avalonia.Skia;
 
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document;
+using SizeToContent = LightTextEditorPlus.Core.Primitive.SizeToContent;
 
 namespace LightTextEditorPlus;
 
@@ -34,7 +36,7 @@ public partial class TextEditor : Control
         VerticalAlignment = VerticalAlignment.Stretch;
 
         // 调试代码
-        TextEditorCore.AppendText("afg123微软雅黑");
+        TextEditorCore.AppendText("afg123微软雅黑123123");
 
         // 设计上会导致 Avalonia 总会调用二级的 SkiaTextEditor 接口实现功能。有开发资源可以做一层代理
         
@@ -87,10 +89,32 @@ public partial class TextEditor : Control
 
     public SkiaTextEditor SkiaTextEditor { get; }
     public TextEditorCore TextEditorCore => SkiaTextEditor.TextEditorCore;
+    private DocumentManager DocumentManager => TextEditorCore.DocumentManager;
 
     protected override Size MeasureOverride(Size availableSize)
     {
         var result = base.MeasureOverride(availableSize);
+
+        if (TextEditorCore.SizeToContent is SizeToContent.Width or SizeToContent.WidthAndHeight or SizeToContent.Height)
+        {
+            throw new NotImplementedException();
+        }
+        //else if (TextEditorCore.SizeToContent is SizeToContent.Width)
+        //{
+        //    // 宽度自适应，高度固定
+        //    if (TextEditorCore.IsDirty)
+        //    {
+        //        TextEditorCore.ForceRedraw();
+        //    }
+        //    //TextEditorCore.GetDocumentLayoutBounds()
+        //    return new Size(, availableSize.Height);
+        //}
+        else if (TextEditorCore.SizeToContent == SizeToContent.Manual)
+        {
+            // 手动的，有多少就要多少
+            return availableSize;
+        }
+
         // 文本库，有多少就要多少
         return availableSize;
     }

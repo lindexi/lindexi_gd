@@ -1,6 +1,4 @@
-﻿using HarfBuzzSharp;
-
-using LightTextEditorPlus.Core.Document;
+﻿using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 using SkiaSharp;
 
