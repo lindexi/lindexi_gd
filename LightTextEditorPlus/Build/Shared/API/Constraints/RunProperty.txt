@@ -1,8 +1,8 @@
 Opacity
 // Foreground
 // Background
-// 字体拉伸，似乎不是必须的
-// Stretch
+// 字体拉伸
+Stretch
 // 加粗
 FontWeight
 // 斜体

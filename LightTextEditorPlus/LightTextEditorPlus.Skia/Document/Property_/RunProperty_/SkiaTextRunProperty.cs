@@ -67,7 +67,12 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
     public double Opacity { get; init; } = 1;
     public SKColor Foreground { get; init; } = SKColors.Black;
     public SKColor Background { get; init; } = SKColors.Transparent;
-  
+
+    /// <summary>
+    /// 获取描述与某个字体与该字体的正常纵横比相比的拉伸程度
+    /// </summary>
+    public SKFontStyleWidth Stretch { get; init; } = SKFontStyleWidth.Normal;
+
     /// <summary>
     /// 字的粗细度，默认值为Normal
     /// </summary>
