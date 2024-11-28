@@ -47,7 +47,6 @@ public partial class TextEditor
     /// <summary>
     /// 是否进入编辑的模式变更完成事件
     /// </summary>
-
     public event EventHandler? IsInEditingInputModeChanged;
 
     #endregion

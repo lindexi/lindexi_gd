@@ -2,6 +2,7 @@
 
 namespace LightTextEditorPlus;
 
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 internal class APIConstraintAttribute : Attribute
 {
     /// <summary>

@@ -64,6 +64,22 @@ public partial class TextEditor : Control
         base.OnTextInput(e);
     }
 
+    #region 状态同步
+
+    protected override void OnGotFocus(GotFocusEventArgs e)
+    {
+        IsInEditingInputMode = true;
+        base.OnGotFocus(e);
+    }
+
+    protected override void OnLostFocus(RoutedEventArgs e)
+    {
+        IsInEditingInputMode = false;
+        base.OnLostFocus(e);
+    }
+
+    #endregion
+
     public SkiaTextEditor SkiaTextEditor { get; }
     public TextEditorCore TextEditorCore => SkiaTextEditor.TextEditorCore;
 
