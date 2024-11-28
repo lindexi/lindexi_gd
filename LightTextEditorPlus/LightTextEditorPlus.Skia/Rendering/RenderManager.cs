@@ -140,7 +140,7 @@ class RenderManager
 
                         SkiaTextRunProperty skiaTextRunProperty = firstCharData.RunProperty.AsSkiaRunProperty();
 
-                        SKFont skFont = skiaTextRunProperty.GetRenderSKFont();
+                        using SKFont skFont = skiaTextRunProperty.GetRenderSKFont();
 
                         using SKPaint textRenderSKPaint = new SKPaint(skFont);
                         textRenderSKPaint.IsAntialias = true;
