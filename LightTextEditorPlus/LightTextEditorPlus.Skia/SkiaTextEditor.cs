@@ -59,7 +59,11 @@ public partial class SkiaTextEditor : IRenderManager
         
         RenderManager.Render(renderInfoProvider);
 
+        InternalRenderCompleted?.Invoke(this, EventArgs.Empty);
+
         RenderRequested?.Invoke(this, EventArgs.Empty);
+
+        _renderCompletionSource.TrySetResult();
     }
 
     public ITextEditorSkiaRender GetCurrentTextRender()
@@ -72,7 +76,25 @@ public partial class SkiaTextEditor : IRenderManager
         return RenderManager.GetCurrentCaretAndSelectionRender();
     }
 
-    public event EventHandler? RenderRequested;
+    public event EventHandler? RenderRequested; // todo 改名
+
+    internal event EventHandler? InternalRenderCompleted;
+
+    /// <summary>
+    /// 等待渲染完成
+    /// </summary>
+    /// <returns></returns>
+    public Task WaitForRenderCompletedAsync()
+    {
+        if (_renderCompletionSource.Task.IsCompleted && TextEditorCore.IsDirty)
+        {
+            // 已经完成渲染，但是当前的文档又是脏的。那就是需要重新等待渲染
+            _renderCompletionSource = new TaskCompletionSource();
+        }
+
+        return _renderCompletionSource.Task;
+    }
+    private TaskCompletionSource _renderCompletionSource = new TaskCompletionSource();
 }
 
 public class SkiaTextEditorPlatformProvider : PlatformProvider
@@ -84,10 +106,12 @@ public class SkiaTextEditorPlatformProvider : PlatformProvider
 
     private SkiaTextEditor TextEditor { get; }
 
+    private SkiaPlatformFontManager? _skiaPlatformFontManager;
+
     public override IPlatformRunPropertyCreator GetPlatformRunPropertyCreator()
     {
-        var skiaPlatformFontManager = new SkiaPlatformFontManager();
-        return new SkiaPlatformRunPropertyCreator(skiaPlatformFontManager);
+        _skiaPlatformFontManager ??= new SkiaPlatformFontManager(TextEditor);
+        return new SkiaPlatformRunPropertyCreator(_skiaPlatformFontManager);
     }
 
     public override IRenderManager GetRenderManager()

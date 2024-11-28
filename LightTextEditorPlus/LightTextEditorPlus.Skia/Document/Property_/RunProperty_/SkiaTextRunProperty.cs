@@ -32,15 +32,15 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
 
     public SKTypeface GetRenderSKTypeface(char unicodeChar = '1')
     {
-        if (_skTypeface is null)
-        {
-            RenderingFontInfo renderingFontInfo = FontManager.GetRenderingFontInfo(this, unicodeChar);
-            _skTypeface = renderingFontInfo.Typeface;
-        }
+        RenderingFontInfo renderingFontInfo = FontManager.GetRenderingFontInfo(this, unicodeChar, ref _skTypeface);
 
-        return _skTypeface;
+        return renderingFontInfo.Typeface;
     }
 
+    /// <summary>
+    /// 字体
+    /// </summary>
+    /// 在 Skia 底层会自己释放。只是需要等 GC 才释放资源
     private SKTypeface? _skTypeface;
 
     public SKFont GetRenderSKFont(char unicodeChar = '1')
