@@ -52,5 +52,9 @@ namespace LightTextEditorPlus
         public event EventHandler? IsInEditingInputModeChanged;
 
         #endregion
+
+        #region Style
+
+        #endregion
     }
 }

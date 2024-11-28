@@ -26,6 +26,22 @@ class TextEditorSkiaRender : ITextEditorSkiaRender
     {
         canvas.DrawPicture(_picture);
     }
+
+    private int _count;
+
+    public void AddReference()
+    {
+        _count++;
+    }
+
+    public void ReleaseReference()
+    {
+        _count--;
+        if (_count == 0)
+        {
+            Dispose();
+        }
+    }
 }
 
 record TextEditorSelectionSkiaRender(IReadOnlyList<Rect> SelectionBoundsList, SKColor SelectionColor) : ITextEditorCaretAndSelectionRenderSkiaRender
@@ -41,6 +57,15 @@ record TextEditorSelectionSkiaRender(IReadOnlyList<Rect> SelectionBoundsList, SK
         }
     }
 
+    public void AddReference()
+    {
+        
+    }
+
+    public void ReleaseReference()
+    {
+    }
+
     public void Dispose()
     {
     }
@@ -54,6 +79,14 @@ record TextEditorCaretSkiaRender(SKRect CaretBounds, SKColor CaretColor) : IText
         skPaint.Style = SKPaintStyle.Fill;
         skPaint.Color = CaretColor;
         canvas.DrawRect(CaretBounds, skPaint);
+    }
+
+    public void AddReference()
+    {
+    }
+
+    public void ReleaseReference()
+    {
     }
 
     public void Dispose()

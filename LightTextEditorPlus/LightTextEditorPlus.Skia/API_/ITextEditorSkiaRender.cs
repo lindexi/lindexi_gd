@@ -8,8 +8,11 @@ namespace LightTextEditorPlus;
 public interface ITextEditorSkiaRender : IDisposable
 {
     void Render(SKCanvas canvas);
+
+    void AddReference();
+    void ReleaseReference();
 }
 
-public interface ITextEditorCaretAndSelectionRenderSkiaRender: ITextEditorSkiaRender
+public interface ITextEditorCaretAndSelectionRenderSkiaRender : ITextEditorSkiaRender
 {
 }

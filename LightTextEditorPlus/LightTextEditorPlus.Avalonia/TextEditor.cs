@@ -39,10 +39,10 @@ public partial class TextEditor : Control
         // 设计上会导致 Avalonia 总会调用二级的 SkiaTextEditor 接口实现功能。有开发资源可以做一层代理
         
         Loaded += TextEditor_Loaded;
-        InputMethod.AddTextInputMethodClientRequeryRequestedHandler(this, (sender, args) =>
-        {
+        //InputMethod.AddTextInputMethodClientRequeryRequestedHandler(this, (sender, args) =>
+        //{
 
-        });
+        //});
 
 
     }
@@ -124,13 +124,15 @@ class TextEditorCustomDrawOperation : ICustomDrawOperation
     {
         _render = render;
         Bounds = bounds;
+
+        render.AddReference();
     }
 
     private readonly ITextEditorSkiaRender _render;
 
     public void Dispose()
     {
-        _render.Dispose();
+        _render.ReleaseReference();
     }
 
     public bool Equals(ICustomDrawOperation? other)
