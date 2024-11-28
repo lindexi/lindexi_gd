@@ -13,6 +13,10 @@ public interface ITextEditorSkiaRender : IDisposable
     void ReleaseReference();
 }
 
+public interface ITextEditorContentSkiaRender : ITextEditorSkiaRender
+{
+}
+
 public interface ITextEditorCaretAndSelectionRenderSkiaRender : ITextEditorSkiaRender
 {
 }

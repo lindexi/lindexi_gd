@@ -4,7 +4,7 @@ using SkiaSharp;
 
 namespace LightTextEditorPlus.Rendering;
 
-class TextEditorSkiaRender : ITextEditorSkiaRender
+class TextEditorSkiaRender : ITextEditorContentSkiaRender
 {
     public TextEditorSkiaRender(SKPicture picture)
     {
@@ -14,8 +14,6 @@ class TextEditorSkiaRender : ITextEditorSkiaRender
     internal bool IsUsed { get; set; }
 
     private readonly SKPicture _picture;
-
-    // todo 考虑光标的绘制
 
     public void Dispose()
     {
@@ -59,7 +57,6 @@ record TextEditorSelectionSkiaRender(IReadOnlyList<Rect> SelectionBoundsList, SK
 
     public void AddReference()
     {
-        
     }
 
     public void ReleaseReference()
