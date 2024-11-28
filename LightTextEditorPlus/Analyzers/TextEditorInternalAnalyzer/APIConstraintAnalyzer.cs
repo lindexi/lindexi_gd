@@ -69,6 +69,12 @@ public class APIConstraintAnalyzer : DiagnosticAnalyzer
             }
 
             var constraintFileName = constraintAttribute.ConstructorArguments[0].Value?.ToString();
+            string? ignoreOrderText = constraintAttribute.ConstructorArguments[1].Value?.ToString();
+            bool ignoreOrder;
+            if (!bool.TryParse(ignoreOrderText,out ignoreOrder))
+            {
+                ignoreOrder = false;
+            }
 
             var constraintAdditionalTextList = new List<AdditionalText>();
 
@@ -131,6 +137,12 @@ public class APIConstraintAnalyzer : DiagnosticAnalyzer
                         Diagnostic diagnostic;
                         if (isOrderError)
                         {
+                            if (ignoreOrder)
+                            {
+                                // 如果可以忽略顺序，那就不报错
+                                continue;
+                            }
+
                             diagnostic = Diagnostic.Create(_diagnosticDescriptor02, location, constraintFileName, memberConstraint.Name, string.Join(";", memberConstraintList.Select(t => t.Name)), string.Join(";", memberArray.Select(t => t.Name)));
                         }
                         else
