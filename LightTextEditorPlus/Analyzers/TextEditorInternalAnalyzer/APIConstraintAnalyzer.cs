@@ -17,27 +17,27 @@ public class APIConstraintAnalyzer : DiagnosticAnalyzer
 {
     public APIConstraintAnalyzer()
     {
-        _diagnosticDescriptor01 = new DiagnosticDescriptor("APIConstraint01", "API约束不满足，成员丢失", "此类型不实现标记的 {0} 里的 {1} 成员", "Error", DiagnosticSeverity.Error, true);
+        _lostConstraintMemberDiagnosticDescriptor = new DiagnosticDescriptor("APIConstraint01", "API约束不满足，成员丢失", "此类型不实现标记的 {0} 里的 {1} 成员", "Error", DiagnosticSeverity.Error, true);
 
-        _diagnosticDescriptor02 = new DiagnosticDescriptor("APIConstraint02", "API约束不满足，成员定义顺序错误", "此类型实现标记的 {0} 的成员 {1} 顺序错误，正确顺序应该是 {2} ，实际顺序是 {3}", "Error", DiagnosticSeverity.Error, true);
+        _constraintMemberOrderErrorDiagnosticDescriptor = new DiagnosticDescriptor("APIConstraint02", "API约束不满足，成员定义顺序错误", "此类型实现标记的 {0} 的成员 {1} 顺序错误，正确顺序应该是 {2} ，实际顺序是 {3}", "Error", DiagnosticSeverity.Error, true);
 
-        _diagnosticDescriptor03 = new DiagnosticDescriptor("APIConstraint03", "未写明约束文件", "没有在特性上标记约束文件名。当前可用约束文件列表： {0}", "Error", DiagnosticSeverity.Error, true);
+        _missConstraintFileNameDiagnosticDescriptor = new DiagnosticDescriptor("APIConstraint03", "未写明约束文件", "没有在特性上标记约束文件名。当前可用约束文件列表： {0}", "Error", DiagnosticSeverity.Error, true);
 
-        _diagnosticDescriptor04 = new DiagnosticDescriptor("APIConstraint03", "标记的约束文件找不到", "在特性上标记约束文件名 {0} 无法找到。当前可用约束文件列表： {1}", "Error", DiagnosticSeverity.Error, true);
+        _canNotFindConstraintFileDiagnosticDescriptor = new DiagnosticDescriptor("APIConstraint03", "标记的约束文件找不到", "在特性上标记约束文件名 {0} 无法找到。当前可用约束文件列表： {1}", "Error", DiagnosticSeverity.Error, true);
 
         SupportedDiagnostics = new[]
         {
-            _diagnosticDescriptor01,
-            _diagnosticDescriptor02,
-            _diagnosticDescriptor03,
-            _diagnosticDescriptor04,
+            _lostConstraintMemberDiagnosticDescriptor,
+            _constraintMemberOrderErrorDiagnosticDescriptor,
+            _missConstraintFileNameDiagnosticDescriptor,
+            _canNotFindConstraintFileDiagnosticDescriptor,
         }.ToImmutableArray();
     }
 
-    private readonly DiagnosticDescriptor _diagnosticDescriptor01;
-    private readonly DiagnosticDescriptor _diagnosticDescriptor02;
-    private readonly DiagnosticDescriptor _diagnosticDescriptor03;
-    private readonly DiagnosticDescriptor _diagnosticDescriptor04;
+    private readonly DiagnosticDescriptor _lostConstraintMemberDiagnosticDescriptor;
+    private readonly DiagnosticDescriptor _constraintMemberOrderErrorDiagnosticDescriptor;
+    private readonly DiagnosticDescriptor _missConstraintFileNameDiagnosticDescriptor;
+    private readonly DiagnosticDescriptor _canNotFindConstraintFileDiagnosticDescriptor;
 
     public override void Initialize(AnalysisContext context)
     {
@@ -60,7 +60,6 @@ public class APIConstraintAnalyzer : DiagnosticAnalyzer
                 return;
             }
 
-            //SymbolInfo symbolInfo = analysisContext.SemanticModel.GetSymbolInfo(analysisContextNode);
             INamedTypeSymbol? namedTypeSymbol = analysisContext.SemanticModel.GetDeclaredSymbol(analysisContextNode);
             if (namedTypeSymbol == null)
             {
@@ -73,14 +72,17 @@ public class APIConstraintAnalyzer : DiagnosticAnalyzer
                 return;
             }
 
+            // 经过以上步骤，绝大部分的代码都不会进入这里。因此不怕性能问题
             var constraintFileName = constraintAttribute.ConstructorArguments[0].Value?.ToString();
             string? ignoreOrderText = constraintAttribute.ConstructorArguments[1].Value?.ToString();
+            // 是否忽略顺序
             bool ignoreOrder;
             if (!bool.TryParse(ignoreOrderText, out ignoreOrder))
             {
                 ignoreOrder = false;
             }
 
+            // 只加上标记是属于 API 约束的文件
             var constraintAdditionalTextList = new List<AdditionalText>();
 
             ImmutableArray<AdditionalText> additionalFileArray = analysisContext.Options.AdditionalFiles;
@@ -90,6 +92,7 @@ public class APIConstraintAnalyzer : DiagnosticAnalyzer
                 AnalyzerConfigOptions analyzerConfigOptions = analysisContext.Options.AnalyzerConfigOptionsProvider.GetOptions(additionalFile);
                 if (analyzerConfigOptions.TryGetValue("build_metadata.AdditionalFiles.APIConstraint", out var isAPIConstraintFile))
                 {
+                    // 有标记的才能加上
                     if (string.Equals(isAPIConstraintFile, bool.TrueString, StringComparison.OrdinalIgnoreCase))
                     {
                         constraintAdditionalTextList.Add(additionalFile);
@@ -102,7 +105,7 @@ public class APIConstraintAnalyzer : DiagnosticAnalyzer
             if (string.IsNullOrEmpty(constraintFileName))
             {
                 Location location = Location.Create(analysisContextNode.SyntaxTree, analysisContextNode.AttributeLists.FullSpan);
-                Diagnostic diagnostic = Diagnostic.Create(_diagnosticDescriptor03, location,
+                Diagnostic diagnostic = Diagnostic.Create(_missConstraintFileNameDiagnosticDescriptor, location,
                     string.Join("\n", dictionary.Select(t => t.Key)));
                 analysisContext.ReportDiagnostic(diagnostic);
                 return;
@@ -148,11 +151,11 @@ public class APIConstraintAnalyzer : DiagnosticAnalyzer
                                 continue;
                             }
 
-                            diagnostic = Diagnostic.Create(_diagnosticDescriptor02, location, constraintFileName, memberConstraint.Name, string.Join(";", memberConstraintList.Select(t => t.Name)), string.Join(";", memberList.Select(t => t.Name)));
+                            diagnostic = Diagnostic.Create(_constraintMemberOrderErrorDiagnosticDescriptor, location, constraintFileName, memberConstraint.Name, string.Join(";", memberConstraintList.Select(t => t.Name)), string.Join(";", memberList.Select(t => t.Name)));
                         }
                         else
                         {
-                            diagnostic = Diagnostic.Create(_diagnosticDescriptor01, location, constraintFileName, memberConstraint.Name);
+                            diagnostic = Diagnostic.Create(_lostConstraintMemberDiagnosticDescriptor, location, constraintFileName, memberConstraint.Name);
                         }
 
                         analysisContext.ReportDiagnostic(diagnostic);
@@ -168,7 +171,7 @@ public class APIConstraintAnalyzer : DiagnosticAnalyzer
             else
             {
                 Location location = Location.Create(analysisContextNode.SyntaxTree, analysisContextNode.AttributeLists.FullSpan);
-                Diagnostic diagnostic = Diagnostic.Create(_diagnosticDescriptor04, location, constraintFileName,
+                Diagnostic diagnostic = Diagnostic.Create(_canNotFindConstraintFileDiagnosticDescriptor, location, constraintFileName,
                     string.Join("\n", dictionary.Select(t => t.Key)));
                 analysisContext.ReportDiagnostic(diagnostic);
                 return;
