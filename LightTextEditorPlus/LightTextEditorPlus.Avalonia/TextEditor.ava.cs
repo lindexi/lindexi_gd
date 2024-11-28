@@ -18,7 +18,6 @@ using Avalonia.Skia;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
-using LightTextEditorPlus.Core.Primitive;
 
 using SizeToContent = LightTextEditorPlus.Core.Primitive.SizeToContent;
 
@@ -54,7 +53,7 @@ public partial class TextEditor : Control
     /// <summary>
     /// 日志
     /// </summary>
-    public ITextLogger Logger => TextEditorCore.Logger;
+    public LightTextEditorPlus.Core.Primitive.ITextLogger Logger => TextEditorCore.Logger;
 
     private void TextEditor_Loaded(object? sender, RoutedEventArgs e)
     {

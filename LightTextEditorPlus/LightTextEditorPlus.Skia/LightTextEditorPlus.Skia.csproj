@@ -22,4 +22,9 @@
     <Compile Remove="C:\lindexi\Code\lindexi_gd\LightTextEditorPlus\LightTextEditorPlus\Build\Shared\API\TextEditor.Status.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\LightTextEditorPlus.Wpf\API_\Events\StyleChangeEventArgs.cs" Link="API_\Events\StyleChangeEventArgs.cs" />
+    <Compile Include="..\LightTextEditorPlus.Wpf\Document\Property_\PropertyType.cs" Link="Document\PropertyType.cs" />
+  </ItemGroup>
+
 </Project>

@@ -1,2 +1,7 @@
+// 编辑模式
 IsInEditingInputMode
 IsInEditingInputModeChanged
+
+// 事件
+StyleChanging
+StyleChanged

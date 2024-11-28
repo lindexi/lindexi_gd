@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LightTextEditorPlus.Events;
 
 namespace LightTextEditorPlus
 {
@@ -55,6 +56,38 @@ namespace LightTextEditorPlus
 
         #region Style
 
+        #region RunProperty
+
+        #endregion
+
+        #endregion
+
+        #region 输入
+
+
+
+        #endregion
+
+        #region 事件
+        /// <summary>
+        /// 当设置样式时触发
+        /// </summary>
+        public event EventHandler<StyleChangeEventArgs>? StyleChanging;
+
+        /// <summary>
+        /// 当设置样式后触发
+        /// </summary>
+        public event EventHandler<StyleChangeEventArgs>? StyleChanged;
+
+        internal void OnStyleChanging(StyleChangeEventArgs styleChangeEventArgs)
+        {
+            StyleChanging?.Invoke(this, styleChangeEventArgs);
+        }
+
+        internal void OnStyleChanged(StyleChangeEventArgs styleChangeEventArgs)
+        {
+            StyleChanged?.Invoke(this, styleChangeEventArgs);
+        }
         #endregion
     }
 }

@@ -195,6 +195,12 @@ public partial class TextEditor
 
     #endregion
 
+    #region 输入
+
+    
+
+    #endregion
+
     #region 事件
 
     /// <summary>
