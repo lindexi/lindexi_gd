@@ -92,10 +92,12 @@ class RenderManager
         return _currentRender;
     }
 
+#pragma warning disable CS0649 // 从未对字段赋值，字段将一直保持其默认值。 调试的就忽略警告
     private SKColor _debugDrawCharBounds;
     private SKColor _debugDrawCharSpanBounds;
     private SKColor _debugDrawLineBounds;
     private SKPaint? _debugSkPaint;
+#pragma warning restore CS0649 // 从未对字段赋值，字段将一直保持其默认值
 
     [MemberNotNull(nameof(_currentRender), nameof(_currentCaretAndSelectionRender))]
     public void Render(RenderInfoProvider renderInfoProvider)

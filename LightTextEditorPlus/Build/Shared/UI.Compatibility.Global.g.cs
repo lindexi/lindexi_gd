@@ -152,6 +152,11 @@ internal sealed class UICompatibilityDispatcher(System.Windows.Threading.Dispatc
     }
 }
 
+/// <summary>
+/// 像素大小
+/// </summary>
+/// <param name="Width">宽度</param>
+/// <param name="Height">高度</param>
 public readonly record struct PixelSize(int Width, int Height);
 
 
