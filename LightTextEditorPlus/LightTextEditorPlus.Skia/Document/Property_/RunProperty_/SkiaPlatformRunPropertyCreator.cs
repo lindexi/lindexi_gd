@@ -13,7 +13,7 @@ internal class SkiaPlatformRunPropertyCreator : PlatformRunPropertyCreatorBase<S
 
     private readonly SkiaPlatformResourceManager _skiaPlatformResourceManager;
 
-    public override IReadOnlyRunProperty GetRunProperty(ICharObject charObject, IReadOnlyRunProperty baseRunProperty)
+    public override IReadOnlyRunProperty ToPlatformRunProperty(ICharObject charObject, IReadOnlyRunProperty baseRunProperty)
     {
         if (baseRunProperty is SkiaTextRunProperty skiaTextRunProperty)
         {
@@ -22,7 +22,7 @@ internal class SkiaPlatformRunPropertyCreator : PlatformRunPropertyCreatorBase<S
         else
         {
             // 让底层去抛出异常
-            return base.GetRunProperty(charObject, baseRunProperty);
+            return base.ToPlatformRunProperty(charObject, baseRunProperty);
         }
     }
 

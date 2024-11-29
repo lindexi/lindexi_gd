@@ -24,8 +24,7 @@ public interface IPlatformRunPropertyCreator
     /// <param name="charObject"></param>
     /// <param name="baseRunProperty"></param>
     /// <returns></returns>
-    /// todo 改名
-    IReadOnlyRunProperty GetRunProperty(ICharObject charObject, IReadOnlyRunProperty baseRunProperty);
+    IReadOnlyRunProperty ToPlatformRunProperty(ICharObject charObject, IReadOnlyRunProperty baseRunProperty);
 }
 
 /// <summary>
@@ -52,7 +51,7 @@ public abstract class PlatformRunPropertyCreatorBase<T> : IPlatformRunPropertyCr
     }
 
     /// <inheritdoc />
-    public virtual IReadOnlyRunProperty GetRunProperty(ICharObject charObject, IReadOnlyRunProperty baseRunProperty)
+    public virtual IReadOnlyRunProperty ToPlatformRunProperty(ICharObject charObject, IReadOnlyRunProperty baseRunProperty)
     {
         if (baseRunProperty is not T)
         {

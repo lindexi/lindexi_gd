@@ -271,7 +271,7 @@ class ParagraphData
         {
             var charObject = run.GetChar(i).DeepClone();
             IPlatformRunPropertyCreator platformRunPropertyCreator = TextEditor.PlatformProvider.GetPlatformRunPropertyCreator();
-            IReadOnlyRunProperty platformRunProperty = platformRunPropertyCreator.GetRunProperty(charObject,runProperty);
+            IReadOnlyRunProperty platformRunProperty = platformRunPropertyCreator.ToPlatformRunProperty(charObject,runProperty);
 
             var charData = new CharData(charObject, platformRunProperty);
             AppendCharData(charData);
