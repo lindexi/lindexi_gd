@@ -21,7 +21,7 @@ class RichTextCaseProvider
             SkiaTextRunProperty runProperty = editor.GetDefaultRunProperty();
             runProperty = runProperty with
             {
-                FontSize = 50
+                FontSize = 60
             };
 
             editor.AppendRun(new SkiaTextRun("追加的文本", runProperty));

@@ -49,6 +49,25 @@ internal class SkiaPlatformRunPropertyCreator : PlatformRunPropertyCreatorBase<S
 
     protected override SkiaTextRunProperty OnGetDefaultRunProperty()
     {
-        return new SkiaTextRunProperty(_skiaPlatformResourceManager);
+        // 默认字体
+        var defaultFontName = "微软雅黑";
+        
+        if (OperatingSystem.IsWindows())
+        {
+            defaultFontName = "微软雅黑";
+        }
+        else if(OperatingSystem.IsLinux())
+        {
+            defaultFontName = "Noto Sans CJK SC";
+        }
+        else if (OperatingSystem.IsMacOS())
+        {
+            defaultFontName = "PingFang SC";
+        }
+
+        return new SkiaTextRunProperty(_skiaPlatformResourceManager)
+        {
+            FontName = new FontName(defaultFontName),
+        };
     }
 }
