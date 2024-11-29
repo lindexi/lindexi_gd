@@ -60,12 +60,6 @@ namespace LightTextEditorPlus.Core;
 ///   - 可以获取到 <see cref="RenderInfoProvider"/> 内容
 /// - <see cref="LayoutCompleted"/>
 /// - 触发平台渲染
-/// todo 下划线模块
-/// todo 项目符号
-/// todo 上下标
-/// todo 支持上加音标 Ruby 拼音
-/// todo 支持下加注释
-/// todo 支持文档获取 SaveInfo 序列化存储
 public partial class TextEditorCore
 {
     /// <summary>
