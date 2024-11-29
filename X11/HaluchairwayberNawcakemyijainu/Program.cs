@@ -6,7 +6,7 @@ unsafe
     var result = gethostname(name, 1024);
 
     var length = 0;
-    while (length + 1 < 1024 && name[length + 1] != 0)
+    while (length < 1024 && name[length] != 0)
     {
         length++;
     }
