@@ -183,9 +183,7 @@ class RenderManager
 
                         // 由于 Skia 的 DrawText 传入的 Point 是文本的最下方，因此需要调整 Y 值
                         y += baselineY;
-                        canvas.Save();
                         canvas.DrawText(text, new SKPoint(x, y), textRenderSKPaint);
-                        canvas.Restore();
                     }
 
                     DrawDebugBounds(new Rect(argument.StartPoint, argument.Size).ToSKRect(), _debugDrawLineBounds);

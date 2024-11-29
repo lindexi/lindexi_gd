@@ -66,6 +66,13 @@ internal class SkiaPlatformResourceManager
         // skPaint 已经用上 SKFont 的字号属性，不需要再设置 TextSize 属性
         //skPaint.TextSize = runProperty.FontSize;
         skPaint.Color = runProperty.Foreground;
+
+        if (runProperty.Opacity < 1)
+        {
+            // 处理透明度
+            skPaint.Color = skPaint.Color.WithAlpha((byte) (skPaint.Color.Alpha * runProperty.Opacity));
+        }
+
         skPaint.IsAntialias = true;
 
         var info = new RenderingRunPropertyInfo(skTypeface, renderSkFont, skPaint);

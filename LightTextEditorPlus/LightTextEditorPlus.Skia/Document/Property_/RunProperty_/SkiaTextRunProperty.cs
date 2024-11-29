@@ -35,6 +35,9 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
         return ResourceManager.GetRenderingRunPropertyInfo(this, unicodeChar);
     }
 
+    /// <summary>
+    /// 不透明度 [0-1] 范围
+    /// </summary>
     public double Opacity { get; init; } = 1;
     public SKColor Foreground { get; init; } = SKColors.Black;
     public SKColor Background { get; init; } = SKColors.Transparent;
