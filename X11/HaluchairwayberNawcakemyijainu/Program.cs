@@ -5,9 +5,15 @@ unsafe
     var name = stackalloc byte[1024];
     var result = gethostname(name, 1024);
 
+    var length = 0;
+    while (length < 1024 && name[length] != 0)
+    {
+        length++;
+    }
+
     var t = Marshal.PtrToStringAnsi(new IntPtr(name));
 
-    Console.WriteLine($"name={t};result={result}");
+    Console.WriteLine($"name={t};length={length}");
 
     /*
        这个函数需要两个参数：
