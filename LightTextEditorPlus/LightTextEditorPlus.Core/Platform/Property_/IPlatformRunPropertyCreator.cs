@@ -14,6 +14,14 @@ public interface IPlatformRunPropertyCreator
     /// <returns></returns>
     /// 允许跨多个 TextEditor 使用
     IReadOnlyRunProperty GetDefaultRunProperty();
+
+    /// <summary>
+    /// 获取字符属性。需要处理字符的字体降级
+    /// </summary>
+    /// <param name="charObject"></param>
+    /// <param name="baseRunProperty"></param>
+    /// <returns></returns>
+    IReadOnlyRunProperty GetRunProperty(ICharObject charObject, IReadOnlyRunProperty baseRunProperty);
 }
 
 /// <summary>
@@ -37,6 +45,12 @@ public abstract class PlatformRunPropertyCreatorBase<T> : IPlatformRunPropertyCr
     public IReadOnlyRunProperty GetDefaultRunProperty()
     {
         return OnGetDefaultRunProperty();
+    }
+
+    /// <inheritdoc />
+    public virtual IReadOnlyRunProperty GetRunProperty(ICharObject charObject, IReadOnlyRunProperty baseRunProperty)
+    {
+        return baseRunProperty;
     }
 
     /// <inheritdoc cref="GetDefaultRunProperty"/>

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Text;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
+using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Utils;
 
@@ -269,7 +270,10 @@ class ParagraphData
         for (int i = 0; i < run.Count; i++)
         {
             var charObject = run.GetChar(i).DeepClone();
-            var charData = new CharData(charObject, runProperty);
+            IPlatformRunPropertyCreator platformRunPropertyCreator = TextEditor.PlatformProvider.GetPlatformRunPropertyCreator();
+            IReadOnlyRunProperty platformRunProperty = platformRunPropertyCreator.GetRunProperty(charObject,runProperty);
+
+            var charData = new CharData(charObject, platformRunProperty);
             AppendCharData(charData);
         }
 
