@@ -55,29 +55,12 @@
               <SolidColorBrush Color="#8B7E6E" />
             </collections:ArrayList>
           </ItemsControl.ItemsSource>
-          <!--<ItemsControl.ItemTemplate>
+          <ItemsControl.ItemTemplate>
             <DataTemplate>
-              <Button Foreground="{Binding}" Click="ForegroundButton_OnClick">
-                <Button.Style>
-                  <Style TargetType="{x:Type Button}">
-                    <Setter Property="Template">
-                      <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type Button}">
-                          --><!-- 放一个 Border 用来吃掉交互，否则将会被穿到 ItemsControl 的选择 --><!--
-                          <Grid Background="Transparent" Margin="2,2,2,2">
-                            <Ellipse Width="16" Height="16"
-                                     Fill="{TemplateBinding Foreground}"
-                                     Stroke="Black" StrokeThickness="1"/>
-
-                          </Grid>
-                        </ControlTemplate>
-                      </Setter.Value>
-                    </Setter>
-                  </Style>
-                </Button.Style>
-              </Button>
+                <Ellipse Margin="5" Width="20" Height="20"
+                         Fill="{Binding .}"></Ellipse>
             </DataTemplate>
-          </ItemsControl.ItemTemplate>-->
+          </ItemsControl.ItemTemplate>
         </ItemsControl>
 
         <StackPanel Orientation="Horizontal">
