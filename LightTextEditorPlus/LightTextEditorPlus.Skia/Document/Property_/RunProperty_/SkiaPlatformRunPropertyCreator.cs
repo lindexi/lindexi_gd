@@ -21,8 +21,8 @@ internal class SkiaPlatformRunPropertyCreator : PlatformRunPropertyCreatorBase<S
         }
         else
         {
-            // 非当前平台支持的属性
-            throw new NotSupportedException(); // todo 填充内容
+            // 让底层去抛出异常
+            return base.GetRunProperty(charObject, baseRunProperty);
         }
     }
 
