@@ -6,14 +6,15 @@ namespace LightTextEditorPlus.Document;
 
 internal class SkiaPlatformRunPropertyCreator : PlatformRunPropertyCreatorBase<SkiaTextRunProperty>
 {
-    public SkiaPlatformRunPropertyCreator(SkiaPlatformResourceManager skiaPlatformResourceManager,ITextLogger logger)
+    public SkiaPlatformRunPropertyCreator(SkiaPlatformResourceManager skiaPlatformResourceManager, SkiaTextEditor textEditor)
     {
         _skiaPlatformResourceManager = skiaPlatformResourceManager;
-        _logger = logger;
+        _skiaTextEditor = textEditor;
     }
 
     private readonly SkiaPlatformResourceManager _skiaPlatformResourceManager;
-    private readonly ITextLogger _logger;
+    private ITextLogger Logger => _skiaTextEditor.Logger;
+    private readonly SkiaTextEditor _skiaTextEditor;
 
     public override IReadOnlyRunProperty ToPlatformRunProperty(ICharObject charObject, IReadOnlyRunProperty baseRunProperty)
     {
@@ -32,7 +33,7 @@ internal class SkiaPlatformRunPropertyCreator : PlatformRunPropertyCreatorBase<S
             bool canFontSupportChar = _skiaPlatformResourceManager.CanFontSupportChar(skiaTextRunProperty, charObject);
             if (!canFontSupportChar)
             {
-                _logger.LogWarning($"当前字体 {skiaTextRunProperty.FontName} 不支持字符 {charObject.ToText()}");
+                Logger.LogWarning($"当前字体 {skiaTextRunProperty.FontName} 不支持字符 {charObject.ToText()}");
                 // todo 进行字体回滚。完成字体回滚才能删除下面代码
                 throw new NotSupportedException($"当前字体 {skiaTextRunProperty.FontName} 不支持字符 {charObject.ToText()}");
             }

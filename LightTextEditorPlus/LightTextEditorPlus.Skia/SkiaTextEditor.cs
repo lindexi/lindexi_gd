@@ -111,7 +111,7 @@ public class SkiaTextEditorPlatformProvider : PlatformProvider
 
     public override IPlatformRunPropertyCreator GetPlatformRunPropertyCreator()
     {
-        return new SkiaPlatformRunPropertyCreator(_skiaPlatformFontManager, TextEditor.Logger);
+        return new SkiaPlatformRunPropertyCreator(_skiaPlatformFontManager, TextEditor);
     }
 
     public override IRenderManager GetRenderManager()
