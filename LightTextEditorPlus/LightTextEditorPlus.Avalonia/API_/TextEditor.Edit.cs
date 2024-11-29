@@ -5,11 +5,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Events;
 
 namespace LightTextEditorPlus
 {
     // 此文件存放编辑相关的方法
+    [APIConstraint("TextEditor.Edit.Input.txt")]
     [APIConstraint("TextEditor.Edit.txt")]
     partial class TextEditor
     {
@@ -64,7 +67,19 @@ namespace LightTextEditorPlus
 
         #region 输入
 
+        public void AppendText(string text) => SkiaTextEditor.AppendText(text);
 
+        public void AppendRun(SkiaTextRun textRun) => SkiaTextEditor.AppendRun(textRun);
+
+        public void EditAndReplace(string text, Selection? selection = null) => SkiaTextEditor.EditAndReplace(text, selection);
+
+        public void EditAndReplaceRun(SkiaTextRun textRun, Selection? selection = null) => SkiaTextEditor.EditAndReplaceRun(textRun, selection);
+
+        public void Backspace() => SkiaTextEditor.Backspace();
+
+        public void Delete() => SkiaTextEditor.Delete();
+
+        public void Remove(in Selection selection) => SkiaTextEditor.Remove(in selection);
 
         #endregion
 

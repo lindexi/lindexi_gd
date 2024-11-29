@@ -13,6 +13,11 @@ class RichTextCaseProvider
             // 追加文本
             editor.TextEditorCore.AppendText("追加的文本");
         }, "追加文本");
+
+        Add(editor =>
+        {
+            editor.TextEditorCore.AppendRun(new TextRun("追加的文本"));
+        }, "插入文本带大字号");
     }
 
     public void Add(Action<TextEditor> action, string name = "")

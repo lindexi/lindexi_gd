@@ -6,6 +6,7 @@ using LightTextEditorPlus.Core.Attributes;
 
 namespace LightTextEditorPlus.Core;
 
+[APIConstraint("TextEditor.Edit.Input.txt")]
 public partial class TextEditorCore
 {
     /// <summary>

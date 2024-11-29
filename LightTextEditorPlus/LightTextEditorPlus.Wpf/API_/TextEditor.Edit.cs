@@ -10,6 +10,7 @@ using LightTextEditorPlus.Events;
 namespace LightTextEditorPlus;
 
 // 此文件存放编辑相关的方法
+[APIConstraint("TextEditor.Edit.txt")]
 public partial class TextEditor
 {
     #region 编辑模式

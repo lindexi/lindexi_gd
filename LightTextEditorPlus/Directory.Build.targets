@@ -10,6 +10,12 @@
 
   <!-- 自动处理不同 UI 框架之间的差异 -->
   <Choose>
+    <When Condition=" '$(UseUIFramework)' == 'Standard' ">
+      <PropertyGroup>
+        <DefineConstants>$(DefineConstants);USE_Standard</DefineConstants>
+        <IncludeAPIConstraints>true</IncludeAPIConstraints>
+      </PropertyGroup>
+    </When>
     <When Condition=" '$(UseUIFramework)' == 'Avalonia' ">
       <PropertyGroup>
         <DefineConstants>$(DefineConstants);USE_AVALONIA</DefineConstants>
@@ -24,7 +30,6 @@
         <Compile Remove="**\*.wpf.cs" />
       </ItemGroup>
     </When>
-
     <When Condition=" '$(UseUIFramework)' == 'Uno' ">
       <PropertyGroup>
         <DefineConstants>$(DefineConstants);USE_UNO</DefineConstants>
