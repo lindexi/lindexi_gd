@@ -28,7 +28,7 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
     }
 
     private readonly FontName _fontName;
-    private SkiaPlatformResourceManager ResourceManager { get; }
+    internal SkiaPlatformResourceManager ResourceManager { get; init; }
 
     internal RenderingRunPropertyInfo GetRenderingRunPropertyInfo(char unicodeChar = '1')
     {

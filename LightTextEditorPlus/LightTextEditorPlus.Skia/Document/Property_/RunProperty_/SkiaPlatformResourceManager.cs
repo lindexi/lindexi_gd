@@ -1,5 +1,5 @@
 ﻿using HarfBuzzSharp;
-
+using LightTextEditorPlus.Core.Document;
 using SkiaSharp;
 
 namespace LightTextEditorPlus.Document;
@@ -23,10 +23,18 @@ internal class SkiaPlatformResourceManager
         _cache.TrimExcess();
     }
 
-    private SKTypeface GetTypeface(SkiaTextRunProperty runProperty, char unicodeChar)
+    public bool CanFontSupportChar(SkiaTextRunProperty runProperty, ICharObject charObject)
+    {
+        // todo 测试 SKTypeface.FromFamilyName 性能
+        using SKTypeface skTypeface = GetTypeface(runProperty);
+        string text = charObject.ToText();
+        return skTypeface.ContainsGlyphs(text);
+    }
+
+    private SKTypeface GetTypeface(SkiaTextRunProperty runProperty)
     {
         var typeface = SKTypeface.FromFamilyName(runProperty.FontName.UserFontName, runProperty.FontWeight, runProperty.Stretch, runProperty.FontStyle);
-        // todo 处理未找到字体的情况
+        // 不处理未找到字体的情况。由上层保证
         //if (skTypeface?.ContainsGlyphs([unicodeChar]) is true)
         //{
         //    return new RenderingFontInfo(skTypeface);
@@ -39,15 +47,11 @@ internal class SkiaPlatformResourceManager
         // todo 处理对齐情况
         if (_cache.TryGetValue(runProperty, out var cache))
         {
-            // todo 处理未找到字体的情况
-            //if (skTypeface?.ContainsGlyphs([unicodeChar]) is true)
-            //{
-            //    return new RenderingFontInfo(skTypeface);
-            //}
+            // 不需要在这里处理找不到字体的情况
             return cache;
         }
 
-        SKTypeface skTypeface = GetTypeface(runProperty, unicodeChar);
+        SKTypeface skTypeface = GetTypeface(runProperty);
         SKFont renderSkFont = new SKFont(skTypeface, (float) runProperty.FontSize);
         // From Avalonia
         // Ideally the requested edging should be passed to the glyph run.
