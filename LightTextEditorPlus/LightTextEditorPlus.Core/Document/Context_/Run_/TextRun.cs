@@ -7,7 +7,7 @@ namespace LightTextEditorPlus.Core.Document;
 /// <summary>
 /// 字符串文本片段
 /// </summary>
-public sealed class TextRun : IImmutableTextRun
+public class TextRun : IImmutableTextRun
     // 同时让 TextRun 继承 IImmutableRunList 的原因是 TextRun 使用次数特别多。而且每次都是单个 TextRun 在使用。如果每次都需要为 TextRun 分配一个新的对象，那自然是比较亏的
     // 让 TextRun 继承 IImmutableRunList 可以共用一个对象，减少对象分配
     , IImmutableRunList
@@ -35,6 +35,7 @@ public sealed class TextRun : IImmutableTextRun
     /// <inheritdoc />
     public ICharObject GetChar(int index)
     {
+        // todo 考虑 emoij 的情况，多个 char 组成一个字符
         return TextCharObjectCreator.CreateCharObject(Text, index);
     }
 
