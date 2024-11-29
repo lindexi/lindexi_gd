@@ -60,6 +60,7 @@ namespace LightTextEditorPlus.Core;
 ///   - 可以获取到 <see cref="RenderInfoProvider"/> 内容
 /// - <see cref="LayoutCompleted"/>
 /// - 触发平台渲染
+/// todo 决定哪些内容应该放在此文件里面，哪些应该放在 API 文件夹里面
 public partial class TextEditorCore
 {
     /// <summary>
@@ -397,7 +398,7 @@ public partial class TextEditorCore
     /// 移动光标
     /// </summary>
     /// <param name="caretOffset"></param>
-    [Obsolete("如已知 CaretOffset 可直接给 CurrentCaretOffset 属性赋值。此方法仅仅只是用来告诉你正确的方法应该是给 CurrentCaretOffset 属性赋值")]
+    [Obsolete("如已知 CaretOffset 的值，则可直接给 CurrentCaretOffset 属性赋值。此方法仅仅只是用来告诉你正确的方法应该是给 CurrentCaretOffset 属性赋值，无需再调用任何方法")]
     public void MoveCaret(CaretOffset caretOffset) => CaretManager.CurrentCaretOffset = caretOffset;
 
     /// <summary>
