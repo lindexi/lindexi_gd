@@ -4,7 +4,7 @@ using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Document;
 
-internal class SkiaPlatformRunPropertyCreator : IPlatformRunPropertyCreator
+internal class SkiaPlatformRunPropertyCreator : PlatformRunPropertyCreatorBase<SkiaTextRunProperty>
 {
     public SkiaPlatformRunPropertyCreator(SkiaPlatformResourceManager skiaPlatformResourceManager)
     {
@@ -13,8 +13,7 @@ internal class SkiaPlatformRunPropertyCreator : IPlatformRunPropertyCreator
 
     private readonly SkiaPlatformResourceManager _skiaPlatformResourceManager;
 
-
-    public IReadOnlyRunProperty GetDefaultRunProperty()
+    protected override SkiaTextRunProperty OnGetDefaultRunProperty()
     {
         return new SkiaTextRunProperty(_skiaPlatformResourceManager);
     }
