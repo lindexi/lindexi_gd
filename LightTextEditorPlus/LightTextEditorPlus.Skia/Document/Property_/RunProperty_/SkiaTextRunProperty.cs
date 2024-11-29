@@ -14,20 +14,19 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
 
     public override FontName FontName
     {
-        get => _fontName;
+        get => base.FontName;
         init
         {
-            if (value.Equals(_fontName))
+            if (value.Equals(base.FontName))
             {
                 return;
             }
 
-            _fontName = value;
+            base.FontName = value;
             InvalidateFont();
         }
     }
 
-    private readonly FontName _fontName;
     internal SkiaPlatformResourceManager ResourceManager { get; init; }
 
     internal RenderingRunPropertyInfo GetRenderingRunPropertyInfo(char unicodeChar = '1')
