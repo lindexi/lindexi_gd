@@ -30,17 +30,19 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
     private readonly FontName _fontName;
     private SkiaPlatformResourceManager ResourceManager { get; }
 
+    internal RenderingRunPropertyInfo GetRenderingRunPropertyInfo(char unicodeChar = '1')
+    {
+        return ResourceManager.GetRenderingRunPropertyInfo(this, unicodeChar);
+    }
+
     public SKTypeface GetRenderSKTypeface(char unicodeChar = '1')
     {
-        RenderingFontInfo renderingFontInfo = ResourceManager.GetRenderingFontInfo(this, unicodeChar);
-
-        return renderingFontInfo.Typeface;
+        return GetRenderingRunPropertyInfo(unicodeChar).Typeface;
     }
 
     public SKFont GetRenderSKFont(char unicodeChar = '1')
     {
-        // todo 处理对齐情况
-        // todo 处理缓存
+        
         SKFont renderSkFont = new SKFont(GetRenderSKTypeface(unicodeChar), (float)FontSize);
         // From Avalonia
         // Ideally the requested edging should be passed to the glyph run.

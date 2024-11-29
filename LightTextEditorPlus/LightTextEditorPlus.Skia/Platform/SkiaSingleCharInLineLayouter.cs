@@ -44,11 +44,10 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
         CharData currentCharData = argument.CurrentCharData;
         var runProperty = currentCharData.RunProperty.AsSkiaRunProperty();
 
-        using SKFont skFont = runProperty.GetRenderSKFont();
-        // todo 考虑 SKPaint 的复用，不要频繁创建，可以考虑在 SkiaTextEditor 中创建一个 SKPaint 的缓存池
-        using SKPaint skPaint = new SKPaint(skFont);
-        // skPaint 已经用上 SKFont 的字号属性，不需要再设置 TextSize 属性
-        //skPaint.TextSize = runProperty.FontSize;
+        RenderingRunPropertyInfo renderingRunPropertyInfo = runProperty.GetRenderingRunPropertyInfo();
+        SKTypeface skTypeface = renderingRunPropertyInfo.Typeface;
+        SKFont skFont = renderingRunPropertyInfo.Font;
+        SKPaint skPaint = renderingRunPropertyInfo.Paint;
 
         var lineRemainingWidth = (float) argument.LineRemainingWidth;
 
@@ -97,7 +96,6 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
 
             Blob? GetTable(Face face, Tag tag)
             {
-                SKTypeface skTypeface = skFont.Typeface;
                 var size = skTypeface.GetTableSize(tag);
                 var data = Marshal.AllocCoTaskMem(size);
                 if (skTypeface.TryGetTableData(tag, 0, size, data))

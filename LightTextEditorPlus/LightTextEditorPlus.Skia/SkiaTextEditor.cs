@@ -102,15 +102,15 @@ public class SkiaTextEditorPlatformProvider : PlatformProvider
     public SkiaTextEditorPlatformProvider(SkiaTextEditor textEditor)
     {
         TextEditor = textEditor;
+        _skiaPlatformFontManager = new SkiaPlatformResourceManager(TextEditor);
     }
 
     private SkiaTextEditor TextEditor { get; }
 
-    private SkiaPlatformResourceManager? _skiaPlatformFontManager;
+    private readonly SkiaPlatformResourceManager _skiaPlatformFontManager;
 
     public override IPlatformRunPropertyCreator GetPlatformRunPropertyCreator()
     {
-        _skiaPlatformFontManager ??= new SkiaPlatformResourceManager(TextEditor);
         return new SkiaPlatformRunPropertyCreator(_skiaPlatformFontManager);
     }
 
