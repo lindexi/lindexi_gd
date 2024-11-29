@@ -67,18 +67,25 @@ namespace LightTextEditorPlus
 
         #region 输入
 
+        /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.AppendText"/>
         public void AppendText(string text) => SkiaTextEditor.AppendText(text);
 
+        /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.AppendRun"/>
         public void AppendRun(SkiaTextRun textRun) => SkiaTextEditor.AppendRun(textRun);
 
+        /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.EditAndReplace"/>
         public void EditAndReplace(string text, Selection? selection = null) => SkiaTextEditor.EditAndReplace(text, selection);
 
+        /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.EditAndReplaceRun"/>
         public void EditAndReplaceRun(SkiaTextRun textRun, Selection? selection = null) => SkiaTextEditor.EditAndReplaceRun(textRun, selection);
 
+        /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.Backspace"/>
         public void Backspace() => SkiaTextEditor.Backspace();
 
+        /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.Delete"/>
         public void Delete() => SkiaTextEditor.Delete();
 
+        /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.Remove"/>
         public void Remove(in Selection selection) => SkiaTextEditor.Remove(in selection);
 
         #endregion
