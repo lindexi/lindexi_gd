@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Document;
 
 namespace LightTextEditorPlus.AvaloniaDemo.Business.RichTextCases;
 
@@ -16,7 +17,14 @@ class RichTextCaseProvider
 
         Add(editor =>
         {
-            editor.TextEditorCore.AppendRun(new TextRun("追加的文本"));
+            //editor.TextEditorCore.PlatformProvider.GetPlatformRunPropertyCreator()
+            SkiaTextRunProperty runProperty = editor.GetDefaultRunProperty();
+            runProperty = runProperty with
+            {
+                FontSize = 50
+            };
+
+            editor.AppendRun(new SkiaTextRun("追加的文本", runProperty));
         }, "插入文本带大字号");
     }
 
@@ -36,6 +44,6 @@ class RichTextCaseProvider
 
     public void Debug(TextEditor textEditor)
     {
-        RichTextCases[0].Exec(textEditor);
+        RichTextCases[1].Exec(textEditor);
     }
 }

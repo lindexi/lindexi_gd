@@ -61,6 +61,13 @@ namespace LightTextEditorPlus
 
         #region RunProperty
 
+      
+        public SkiaTextRunProperty GetDefaultRunProperty()
+        {
+            // todo 此 API 待定
+            return (SkiaTextRunProperty) TextEditorCore.PlatformProvider.GetPlatformRunPropertyCreator().GetDefaultRunProperty();
+        }
+
         #endregion
 
         #endregion
