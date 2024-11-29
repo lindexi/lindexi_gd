@@ -1,7 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using LightTextEditorPlus.AvaloniaDemo.ViewModels;
 using LightTextEditorPlus.AvaloniaDemo.Views;
 
 namespace LightTextEditorPlus.AvaloniaDemo;
@@ -19,14 +18,12 @@ public partial class App : Application
         {
             desktop.MainWindow = new MainWindow
             {
-                DataContext = new MainViewModel()
             };
         }
         else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
         {
-            singleViewPlatform.MainView = new MainView
+            singleViewPlatform.MainView = new TextEditorDebugView
             {
-                DataContext = new MainViewModel()
             };
         }
 
