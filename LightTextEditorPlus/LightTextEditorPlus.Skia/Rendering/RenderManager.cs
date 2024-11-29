@@ -140,10 +140,12 @@ class RenderManager
 
                         SkiaTextRunProperty skiaTextRunProperty = firstCharData.RunProperty.AsSkiaRunProperty();
 
-                        using SKFont skFont = skiaTextRunProperty.GetRenderSKFont();
+                        // todo 考虑字体回滚问题
+                        RenderingRunPropertyInfo renderingRunPropertyInfo = skiaTextRunProperty.GetRenderingRunPropertyInfo();
 
-                        using SKPaint textRenderSKPaint = new SKPaint(skFont);
-                        textRenderSKPaint.IsAntialias = true;
+                        SKFont skFont = renderingRunPropertyInfo.Font;
+
+                        SKPaint textRenderSKPaint = renderingRunPropertyInfo.Paint;
 
                         var runBounds = firstCharData.GetBounds();
                         var startPoint = runBounds.LeftTop;
@@ -174,9 +176,6 @@ class RenderManager
                             // todo 处理无法渲染的字符，自动字符降级
                         }
 
-                        // todo 这里应该是从 RunProperty 中获取颜色
-                        textRenderSKPaint.Color = SKColors.Black;
-
                         //float x = skiaTextRenderInfo.X;
                         //float y = skiaTextRenderInfo.Y;
 
@@ -184,7 +183,6 @@ class RenderManager
 
                         // 由于 Skia 的 DrawText 传入的 Point 是文本的最下方，因此需要调整 Y 值
                         y += baselineY;
-                        // todo 不要一个个字符渲染，应该是一行渲染
                         canvas.DrawText(text, new SKPoint(x, y), textRenderSKPaint);
                     }
 
