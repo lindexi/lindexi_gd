@@ -13,7 +13,6 @@ public interface IPlatformRunPropertyCreator
     /// 获取默认的字符属性
     /// </summary>
     /// <returns></returns>
-    /// 允许跨多个 TextEditor 使用
     IReadOnlyRunProperty GetDefaultRunProperty();
 
     /// <summary>
