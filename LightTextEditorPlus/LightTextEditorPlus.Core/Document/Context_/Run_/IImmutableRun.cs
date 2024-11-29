@@ -7,12 +7,12 @@
 public interface IImmutableRun
 {
     /// <summary>
-    /// 包含的字符数量
+    /// 包含的字符数量，字符数量不等于 char 数量，而是等于人类语言的字符数量。例如表情是两个 char，但是只有一个字符
     /// </summary>
     int Count { get; }
 
     /// <summary>
-    /// 获取某个字符
+    /// 获取某个字符。返回的是一个 ICharObject 对象，这个对象是不可变的，返回的是人类语言的字符
     /// </summary>
     /// <param name="index"></param>
     /// <returns></returns>

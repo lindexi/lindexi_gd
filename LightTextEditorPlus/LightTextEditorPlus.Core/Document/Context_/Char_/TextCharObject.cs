@@ -5,7 +5,8 @@ namespace LightTextEditorPlus.Core.Document;
 /// <summary>
 /// 文本字符
 /// </summary>
-public class TextCharObject : ICharObject, IEquatable<string>
+/// 暂时没逻辑使用，标记为 file 范围
+file class TextCharObject : ICharObject, IEquatable<string>
 {
     /// <summary>
     /// 文本字符
