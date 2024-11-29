@@ -11,7 +11,7 @@ class RichTextCaseProvider
         Add(editor =>
         {
             // 追加文本
-            editor.TextEditorCore.AppendText("追加的文本");
+            editor.AppendText("追加的文本");
         }, "追加文本");
 
         Add(editor =>
