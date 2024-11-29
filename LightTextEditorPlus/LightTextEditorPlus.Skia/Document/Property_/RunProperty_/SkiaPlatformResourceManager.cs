@@ -19,6 +19,7 @@ internal class SkiaPlatformResourceManager
             RenderingRunPropertyInfo runPropertyInfo = renderingFontInfo.Value;
             runPropertyInfo.Dispose();
         }
+        _cache.Clear();
         _cache.TrimExcess();
     }
 
