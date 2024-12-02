@@ -18,6 +18,11 @@ using LightTextEditorPlus.Rendering;
 
 namespace LightTextEditorPlus;
 
+/// <summary>
+/// 使用 Skia 渲染承载的文本编辑器
+/// </summary>
+/// 这是一个分部类，相关实现代码在：
+/// - API 定义层： API\[Skia]TextEditor.*.cs
 public partial class SkiaTextEditor : IRenderManager
 {
     public SkiaTextEditor(PlatformProvider? platformProvider = null)
