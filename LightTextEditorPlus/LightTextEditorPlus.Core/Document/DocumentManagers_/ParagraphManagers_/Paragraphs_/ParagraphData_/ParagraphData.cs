@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
+using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Utils;
 
@@ -27,8 +29,15 @@ class ParagraphData
     /// <summary>
     /// 段落属性样式
     /// </summary>
-    // todo 还没开始写段落样式
-    public ParagraphProperty ParagraphProperty { set; get; }
+    public ParagraphProperty ParagraphProperty { private set; get; }
+
+    public void SetParagraphProperty(ParagraphProperty paragraphProperty)
+    {
+        ParagraphProperty = paragraphProperty;
+
+        // 段落属性变更，需要设置整段都是脏的
+        SetDirty();
+    }
 
     /// <summary>
     /// 段落管理器
@@ -54,36 +63,104 @@ class ParagraphData
         return CharDataManager.GetCharData(offset.Offset);
     }
 
-    public ReadOnlyListSpan<CharData> ToReadOnlyListSpan(int start) =>
-        CharDataManager.ToReadOnlyListSpan(start);
+    /// <summary>
+    /// 获取这一段的换段符号
+    /// </summary>
+    /// <returns></returns>
+    public CharData GetLineBreakCharData()
+    {
+        IReadOnlyRunProperty runProperty;
+        if (CharCount == 0)
+        {
+            // 如果这是一个空段，那就采用段落属性的字符属性
+            runProperty = ParagraphProperty.ParagraphStartRunProperty ?? TextEditor.DocumentManager.CurrentRunProperty;
+        }
+        else
+        {
+            // 如果有内容，那就获取最后一个字符的字符样式
+            runProperty = CharDataManager.GetCharData(CharCount - 1).RunProperty;
+        }
 
-    public ReadOnlyListSpan<CharData> ToReadOnlyListSpan(int start, int length) =>
-        CharDataManager.ToReadOnlyListSpan(start, length);
+        var charData = new CharData(LineBreakCharObject.Instance, runProperty);
+        charData.CharLayoutData = new CharLayoutData(charData, this)
+        {
+            // 由于获取换行符是一个在任意逻辑执行的方法，此时也许是在布局过程中，如果设置或获取了字符尺寸等，那是不靠谱的
+            // 创建 CharLayoutData 对象只是为了让属性不为空，不代表换行字符可获取正确的布局
+            // 因此重新赋值为 0 的值，防止业务端使用字符坐标
+            CurrentParagraphVersion = 0
+        };
+        return charData;
+    }
+
+    /// <summary>
+    /// 获取字符列表
+    /// </summary>
+    /// <param name="start"></param>
+    /// <param name="length"></param>
+    /// <returns></returns>
+    [Obsolete("这个方法存在的作用只是告诉你可以使用 ToReadOnlyListSpan 代替")]
+    public TextReadOnlyListSpan<CharData> GetCharDataList(ParagraphCharOffset start, int length) =>
+        ToReadOnlyListSpan(start, length);
+
+    /// <summary>
+    /// 获取此段落的字符列表
+    /// </summary>
+    /// <param name="start">相对于段落</param>
+    /// <returns></returns>
+    public TextReadOnlyListSpan<CharData> ToReadOnlyListSpan(ParagraphCharOffset start) =>
+        CharDataManager.ToReadOnlyListSpan(start.Offset);
+
+    /// <summary>
+    /// 获取此段落的字符列表
+    /// </summary>
+    /// <param name="start"></param>
+    /// <param name="length"></param>
+    /// <returns></returns>
+    public TextReadOnlyListSpan<CharData> ToReadOnlyListSpan(ParagraphCharOffset start, int length) =>
+        CharDataManager.ToReadOnlyListSpan(start.Offset, length);
 
     /// <summary>
     /// 这一段的字符长度
     /// </summary>
     public int CharCount => CharDataManager.CharCount;
 
+#if DEBUG
     /// <summary>
     /// 获取这个文本行是否已经从文档中删除
     /// </summary>
     /// 这个属性更多是给调试
     public bool IsDeleted { set; get; }
+#endif
 
     /// <summary>
     /// 获取行分隔符的长度
-    /// 0 为文档中的最后一行， 1 for <c>"\r"</c> or <c>"\n"</c>, 2 for <c>"\r\n"</c> 
+    /// 0 为文档中的最后一行， 1 for <c>"\r"</c> or <c>"\n"</c> 但理论上文本库不会产生 \r 的内容
     /// 当本行被删除后这个属性值依然有效，这种情况下，它包含在删除之前的行分隔符的长度
     /// </summary>
-    /// 无论在哪个平台上，都统一为 \r\n 两个字符
+    /// 无论在哪个平台上，都统一为 \n 一个字符
     public static int DelimiterLength => TextContext.NewLine.Length;
 
     /// <summary>
-    /// 获取本文本行的起始位置在文档中的偏移量，此偏移量的计算考虑了换行符，如123/r/n123，那么第二个段落的Offset为5
+    /// 获取本文本行的起始位置在文档中的偏移量，此偏移量的计算考虑了换行符，如“123/r/n123”字符串，那么第二个段落的 Offset 为 "123".Length + DelimiterLength 的长度
     /// </summary>
     /// <exception cref="InvalidOperationException">这个文本行被删除后引发此异常</exception>
     public DocumentOffset GetParagraphStartOffset() => ParagraphManager.GetParagraphStartOffset(this);
+
+    /// <summary>
+    /// 将段落的光标坐标转换为文档光标坐标
+    /// </summary>
+    /// <param name="paragraphCaretOffset"></param>
+    /// <returns></returns>
+    public CaretOffset ToCaretOffset(ParagraphCaretOffset paragraphCaretOffset) =>
+        new CaretOffset(paragraphCaretOffset.Offset + GetParagraphStartOffset());
+
+    /// <summary>
+    /// 将段落字符坐标转换为文档坐标
+    /// </summary>
+    /// <param name="paragraphCharOffset"></param>
+    /// <returns></returns>
+    public DocumentOffset ToDocumentOffset(ParagraphCharOffset paragraphCharOffset) =>
+        new DocumentOffset(paragraphCharOffset.Offset + GetParagraphStartOffset());
 
     // 不合适，将会让段落必须知道文档坐标
     ///// <summary>
@@ -106,6 +183,10 @@ class ParagraphData
     //    var runList = SplitRemoveByDocumentOffset(new ParagraphOffset(paragraphOffset));
     //    return runList;
     //}
+
+    public void RemoveRange(ParagraphCaretOffset start) => RemoveRange(start, CharCount - start.Offset);
+
+    public void RemoveRange(ParagraphCaretOffset start, int count) => CharDataManager.RemoveRange(start.Offset, count);
 
     /// <summary>
     /// 在段落中间插入的时候，需要将段落在插入后面的内容分割删除
@@ -189,7 +270,10 @@ class ParagraphData
         for (int i = 0; i < run.Count; i++)
         {
             var charObject = run.GetChar(i).DeepClone();
-            var charData = new CharData(charObject, runProperty);
+            IPlatformRunPropertyCreator platformRunPropertyCreator = TextEditor.PlatformProvider.GetPlatformRunPropertyCreator();
+            IReadOnlyRunProperty platformRunProperty = platformRunPropertyCreator.ToPlatformRunProperty(charObject,runProperty);
+
+            var charData = new CharData(charObject, platformRunProperty);
             AppendCharData(charData);
         }
 
@@ -206,6 +290,11 @@ class ParagraphData
     //    SetDirty();
     //}
 
+    /// <summary>
+    /// 将 <paramref name="charData"/> 加入到段落。记得调用完成，自己调用 <see cref="SetDirty"/> 方法
+    /// </summary>
+    /// <param name="charData"></param>
+    /// <exception cref="ArgumentException"></exception>
     internal void AppendCharData(CharData charData)
     {
         // 谨慎 CharData 的加入开放给框架之外，原因在于 CharData 不能被加入到文本多次
@@ -214,6 +303,11 @@ class ParagraphData
         if (charData.CharLayoutData is not null)
         {
             throw new ArgumentException($"此 CharData 已经被加入到某个段落，不能重复加入");
+        }
+
+        if (charData.IsLineBreakCharData)
+        {
+            throw new ArgumentException($"禁止将 {nameof(LineBreakCharObject)} 加入到段落");
         }
 
         CharDataManager.Add(charData);
@@ -226,7 +320,7 @@ class ParagraphData
 
     #region 渲染排版数据
 
-    public List<LineLayoutData> LineVisualDataList { get; } = new List<LineLayoutData>();
+    public List<LineLayoutData> LineLayoutDataList { get; } = new List<LineLayoutData>();
 
     #endregion
 

@@ -1,0 +1,99 @@
+﻿<Project>
+
+  <ItemGroup>
+    <UIFrameworkCompatibilityCode Include="$(MSBuildThisFileDirectory)Build\Shared\UI.Compatibility.Global.g.cs"
+                                  Link="Properties\%(Filename)%(Extension)" />
+    <LightTextEditorPlusAPIDefineCode Include="$(MSBuildThisFileDirectory)Build\Shared\API\**\*.cs" LinkBase="API_"/>
+    <LightTextEditorPlusAPIConstraints Include="$(MSBuildThisFileDirectory)Build\Shared\API\Constraints\*.txt" LinkBase="API_\Constraints"/>
+
+  </ItemGroup>
+
+  <!-- 自动处理不同 UI 框架之间的差异 -->
+  <Choose>
+    <When Condition=" '$(UseUIFramework)' == 'Standard' ">
+      <PropertyGroup>
+        <DefineConstants>$(DefineConstants);USE_Standard</DefineConstants>
+        <IncludeAPIConstraints>true</IncludeAPIConstraints>
+      </PropertyGroup>
+    </When>
+    <When Condition=" '$(UseUIFramework)' == 'Avalonia' ">
+      <PropertyGroup>
+        <DefineConstants>$(DefineConstants);USE_AVALONIA</DefineConstants>
+        <IncludeAPIConstraints>true</IncludeAPIConstraints>
+      </PropertyGroup>
+      <ItemGroup>
+        <Compile Include="@(UIFrameworkCompatibilityCode)" />
+        <Compile Include="@(LightTextEditorPlusAPIDefineCode)" />
+        <None Include="@(LightTextEditorPlusAPIConstraints)"/>
+        <Compile Remove="**\*.test.cs" />
+        <Compile Remove="**\*.uno.cs" />
+        <Compile Remove="**\*.wpf.cs" />
+      </ItemGroup>
+    </When>
+    <When Condition=" '$(UseUIFramework)' == 'Uno' ">
+      <PropertyGroup>
+        <DefineConstants>$(DefineConstants);USE_UNO</DefineConstants>
+        <IncludeAPIConstraints>true</IncludeAPIConstraints>
+      </PropertyGroup>
+      <ItemGroup>
+        <Compile Include="@(UIFrameworkCompatibilityCode)" />
+        <None Include="@(LightTextEditorPlusAPIConstraints)"/>
+        <Compile Remove="**\*.ava.cs" />
+        <Compile Remove="**\*.test.cs" />
+        <Compile Remove="**\*.wpf.cs" />
+      </ItemGroup>
+    </When>
+    <When Condition=" '$(UseUIFramework)' == 'Wpf' ">
+      <PropertyGroup>
+        <DefineConstants>$(DefineConstants);USE_WPF</DefineConstants>
+        <IncludeAPIConstraints>true</IncludeAPIConstraints>
+      </PropertyGroup>
+      <ItemGroup>
+        <Compile Include="@(UIFrameworkCompatibilityCode)" />
+        <Compile Include="@(LightTextEditorPlusAPIDefineCode)" />
+        <None Include="@(LightTextEditorPlusAPIConstraints)"/>
+        <Compile Remove="**\*.ava.cs" />
+        <Compile Remove="**\*.test.cs" />
+        <Compile Remove="**\*.uno.cs" />
+      </ItemGroup>
+    </When>
+    <When Condition=" '$(UseUIFramework)' == 'Skia' ">
+      <PropertyGroup>
+        <DefineConstants>$(DefineConstants);USE_SKIA</DefineConstants>
+        <IncludeAPIConstraints>true</IncludeAPIConstraints>
+      </PropertyGroup>
+      <ItemGroup>
+        <Compile Include="@(UIFrameworkCompatibilityCode)" />
+        <Compile Include="@(LightTextEditorPlusAPIDefineCode)" />
+        <None Include="@(LightTextEditorPlusAPIConstraints)"/>
+      </ItemGroup>
+    </When>
+    <When Condition=" '$(UseUIFramework)' == 'MauiGraphics' ">
+      <PropertyGroup>
+        <DefineConstants>$(DefineConstants);USE_MauiGraphics</DefineConstants>
+        <IncludeAPIConstraints>true</IncludeAPIConstraints>
+      </PropertyGroup>
+      <ItemGroup>
+        <Compile Include="@(UIFrameworkCompatibilityCode)" />
+        <Compile Include="@(LightTextEditorPlusAPIDefineCode)" />
+      </ItemGroup>
+    </When>
+    <When Condition=" '$(UseUIFramework)' == 'Test' ">
+      <PropertyGroup>
+        <DefineConstants>$(DefineConstants);USE_TEST</DefineConstants>
+      </PropertyGroup>
+      <ItemGroup>
+        <Compile Include="@(UIFrameworkCompatibilityCode)" />
+        <Compile Remove="**\*.ava.cs" />
+        <Compile Remove="**\*.uno.cs" />
+        <Compile Remove="**\*.wpf.cs" />
+      </ItemGroup>
+    </When>
+  </Choose>
+
+  <ItemGroup Condition="$(IncludeAPIConstraints) == true">
+    <None Include="@(LightTextEditorPlusAPIConstraints)"/>
+    <AdditionalFiles Include="@(LightTextEditorPlusAPIConstraints)" APIConstraint="True"/>
+    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="APIConstraint" />
+  </ItemGroup>
+</Project>

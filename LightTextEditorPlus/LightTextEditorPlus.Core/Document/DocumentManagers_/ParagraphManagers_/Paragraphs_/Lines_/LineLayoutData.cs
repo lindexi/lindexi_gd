@@ -1,7 +1,12 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
+using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
+using LightTextEditorPlus.Core.Rendering;
+
 // ReSharper disable All
 
 namespace LightTextEditorPlus.Core.Document;
@@ -9,7 +14,7 @@ namespace LightTextEditorPlus.Core.Document;
 /// <summary>
 /// 行渲染信息
 /// </summary>
-class LineLayoutData : IParagraphCache
+class LineLayoutData : IParagraphCache, IDisposable
 {
     /// <summary>
     /// 行渲染信息
@@ -28,6 +33,7 @@ class LineLayoutData : IParagraphCache
     /// </summary>
     public bool IsDirty => CurrentParagraph.IsInvalidVersion(this);
 
+    public void SetDirty() => CurrentParagraphVersion = 0;
     public void UpdateVersion() => CurrentParagraph.UpdateVersion(this);
     public uint CurrentParagraphVersion { get; set; }
 
@@ -50,22 +56,27 @@ class LineLayoutData : IParagraphCache
     /// <summary>
     /// 这一行的起始的点，相对于文本框
     /// </summary>
-    public Point StartPoint
+    public TextPoint CharStartPoint
     {
         set
         {
-            _startPoint = value;
+            _charStartPoint = value;
             IsLineStartPointUpdated = true;
         }
-        get => _startPoint;
+        get => _charStartPoint;
     }
 
-    private Point _startPoint;
+    private TextPoint _charStartPoint;
 
     /// <summary>
-    /// 这一行的尺寸
+    /// 这一行的字符尺寸
     /// </summary>
-    public Size Size { get; init; }
+    public TextSize LineCharTextSize { get; init; }
+
+    /// <summary>
+    /// 这一行的范围
+    /// </summary>
+    public TextRect GetLineBounds() => new TextRect(_charStartPoint, LineCharTextSize);
 
     /// <summary>
     /// 这一行是当前段落的第几行
@@ -78,15 +89,34 @@ class LineLayoutData : IParagraphCache
             {
                 // 理论上框架内不会进入此分支，于是可以在 get 方法抛出异常
                 // 业务层无法访问到这个属性
-                throw new TextEditorDirtyException();
+                throw new TextEditorDirtyException(CurrentParagraph.ParagraphManager.TextEditor);
             }
 
-            return CurrentParagraph.LineVisualDataList.FindIndex(t => ReferenceEquals(t, this));
+            return CurrentParagraph.LineLayoutDataList.FindIndex(t => ReferenceEquals(t, this));
         }
     }
 
-    public ReadOnlyListSpan<CharData> GetCharList() =>
-        CurrentParagraph.ToReadOnlyListSpan(CharStartParagraphIndex, CharEndParagraphIndex - CharStartParagraphIndex);
+    /// <summary>
+    /// 获取这一行的字符列表
+    /// </summary>
+    /// <remarks>这个方法调用接近不用钱，随便调用</remarks>
+    /// <returns></returns>
+    public TextReadOnlyListSpan<CharData> GetCharList() =>
+        CurrentParagraph.ToReadOnlyListSpan(new ParagraphCharOffset(CharStartParagraphIndex), CharEndParagraphIndex - CharStartParagraphIndex);
+
+    public ParagraphCaretOffset ToParagraphCaretOffset(LineCaretOffset lineCaretOffset)
+    {
+        // 需要自动设置为不超过行的坐标
+        var offset = Math.Min(CharCount, lineCaretOffset.Offset);
+
+        return new ParagraphCaretOffset(CharStartParagraphIndex + offset);
+    }
+
+    public CaretOffset ToCaretOffset(LineCaretOffset lineCaretOffset)
+    {
+        var paragraphCaretOffset = ToParagraphCaretOffset(lineCaretOffset);
+        return CurrentParagraph.ToCaretOffset(paragraphCaretOffset);
+    }
 
     #region 绘制渲染
 
@@ -123,28 +153,21 @@ class LineLayoutData : IParagraphCache
 
         LineAssociatedRenderData = result.LineAssociatedRenderData;
     }
+
     public LineDrawingArgument GetLineDrawingArgument()
     {
-        return new LineDrawingArgument(IsDrawn, IsLineStartPointUpdated, LineAssociatedRenderData, StartPoint, Size,
+        return new LineDrawingArgument(IsDrawn, IsLineStartPointUpdated, LineAssociatedRenderData, CharStartPoint, LineCharTextSize,
             GetCharList());
     }
 
     #endregion
-
-    //public List<RunVisualData>? RunVisualDataList { set; get; }
-
-    //public Span<IImmutableRun> GetSpan()
-    //{
-    //    //return CurrentParagraph.AsSpan().Slice(StartParagraphIndex, EndParagraphIndex - StartParagraphIndex);
-    //    return CurrentParagraph.AsSpan()[StartParagraphIndex..EndParagraphIndex];
-    //}
 
 #if DEBUG
     /// <summary>
     /// 调试下，用来了解有那些字符
     /// </summary>
     // ReSharper disable once UnusedMember.Local
-    private ReadOnlyListSpan<CharData> DebugCharList => GetCharList();
+    private TextReadOnlyListSpan<CharData> DebugCharList => GetCharList();
 #endif
 
     public override string ToString()
@@ -161,5 +184,14 @@ class LineLayoutData : IParagraphCache
         }
 
         return stringBuilder.ToString();
+    }
+
+    public void Dispose()
+    {
+        // 如果关联的是需要释放的资源，那就调用释放
+        if (LineAssociatedRenderData is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
     }
 }

@@ -4,10 +4,15 @@
     <OutputType>WinExe</OutputType>
     <TargetFrameworks>net6.0-windows</TargetFrameworks>
     <UseWPF>true</UseWPF>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\LightTextEditorPlus\LightTextEditorPlus.csproj" />
+    <ProjectReference Include="..\..\LightTextEditorPlus.Wpf\LightTextEditorPlus.Wpf.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\Text.png" />
   </ItemGroup>
 
 </Project>

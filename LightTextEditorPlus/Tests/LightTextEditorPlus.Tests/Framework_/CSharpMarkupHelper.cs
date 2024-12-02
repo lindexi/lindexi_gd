@@ -1,4 +1,4 @@
-using System.Windows;
+ï»¿using System.Windows;
 using System.Windows.Controls;
 
 namespace LightTextEditorPlus.Tests;
@@ -22,7 +22,7 @@ public static class CSharpMarkupHelper
     }
 
     public static T Out<T>(this T obj, out T value)
-        // ¾¡¹ÜÉèÖÃÎª object Ò²¿ÉÒÔ£¬µ«ÊÇ»á¸ÉÈÅÆäËûÂß¼­
+        // å°½ç®¡è®¾ç½®ä¸º object ä¹Ÿå¯ä»¥ï¼Œä½†æ˜¯ä¼šå¹²æ‰°å…¶ä»–é€»è¾‘
         where T : DependencyObject
     {
         value = obj;
@@ -30,7 +30,7 @@ public static class CSharpMarkupHelper
     }
 
     public static T Do<T>(this T obj, Action<T> action)
-        // ¾¡¹ÜÉèÖÃÎª object Ò²¿ÉÒÔ£¬µ«ÊÇ»á¸ÉÈÅÆäËûÂß¼­
+        // å°½ç®¡è®¾ç½®ä¸º object ä¹Ÿå¯ä»¥ï¼Œä½†æ˜¯ä¼šå¹²æ‰°å…¶ä»–é€»è¾‘
         where T : DependencyObject
     {
         action(obj);

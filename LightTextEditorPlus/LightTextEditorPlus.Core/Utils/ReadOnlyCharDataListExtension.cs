@@ -6,15 +6,18 @@ using LightTextEditorPlus.Core.Primitive.Collections;
 
 namespace LightTextEditorPlus.Core.Utils;
 
+/// <summary>
+/// 只读的字符列表扩展方法
+/// </summary>
 public static class ReadOnlyCharDataListExtension
 {
     /// <summary>
     /// 将传入的字符列表，根据判断条件，分割为一个个相邻的字符列表
     /// </summary>
     /// <param name="charDataList"></param>
-    /// <param name="predicate"></param>
+    /// <param name="predicate">判断给定两个 <see cref="CharData"/> 是否符合条件</param>
     /// <returns></returns>
-    public static IEnumerable<ReadOnlyListSpan<CharData>> SplitContinuousCharData(this ReadOnlyListSpan<CharData> charDataList,
+    public static IEnumerable<TextReadOnlyListSpan<CharData>> SplitContinuousCharData(this TextReadOnlyListSpan<CharData> charDataList,
         Func<CharData, CharData, bool> predicate)
     {
         CharData lastCharData = null!;

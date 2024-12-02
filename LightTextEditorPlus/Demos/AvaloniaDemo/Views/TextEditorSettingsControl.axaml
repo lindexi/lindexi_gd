@@ -1,0 +1,188 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:collections="clr-namespace:System.Collections;assembly=System.Runtime"
+             mc:Ignorable="d"    
+             d:DesignWidth="360" d:DesignHeight="600"
+             x:Class="LightTextEditorPlus.AvaloniaDemo.Views.TextEditorSettingsControl">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="*"></RowDefinition>
+      <RowDefinition Height="Auto"></RowDefinition>
+    </Grid.RowDefinitions>
+    <ScrollViewer Margin="10,10,10,10" VerticalScrollBarVisibility="Auto">
+      <StackPanel Orientation="Vertical">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+          </Grid.ColumnDefinitions>
+          <StackPanel Grid.Column="0">
+            <TextBlock FontWeight="Bold">字体</TextBlock>
+            <ComboBox x:Name="FontNameComboBox" SelectionChanged="FontNameComboBox_OnSelectionChanged"></ComboBox>
+          </StackPanel>
+          <StackPanel Grid.Column="1" Margin="5,0,0,0">
+            <TextBlock Margin="0,0,0,0" FontWeight="Bold">字号</TextBlock>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+              </Grid.ColumnDefinitions>
+              <TextBox x:Name="FontSizeTextBox"></TextBox>
+              <Button x:Name="ApplyFontSizeButton" Grid.Column="1" Margin="5,0,0,0" Click="ApplyFontSizeButton_OnClick">应用</Button>
+            </Grid>
+          </StackPanel>
+        </Grid>
+
+        <TextBlock Margin="0,5,0,0" FontWeight="Bold">前景色</TextBlock>
+        <!-- 文本颜色 -->
+        <ItemsControl>
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal"></StackPanel>
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemsSource>
+            <collections:ArrayList>
+              <SolidColorBrush Color="#FF1000" />
+              <SolidColorBrush Color="#000000" />
+              <SolidColorBrush Color="#FFC510" />
+              <SolidColorBrush Color="#321EB5" />
+              <SolidColorBrush Color="#306C00" />
+              <SolidColorBrush Color="#66D552" />
+              <SolidColorBrush Color="#FFFFFF" />
+              <SolidColorBrush Color="#8B7E6E" />
+            </collections:ArrayList>
+          </ItemsControl.ItemsSource>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+                <Ellipse Margin="5" Width="20" Height="20"
+                         Fill="{Binding .}"></Ellipse>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <StackPanel Orientation="Horizontal">
+          <Button x:Name="ToggleBoldButton" Margin="1,1,1,1" Click="ToggleBoldButton_OnClick">加粗</Button>
+          <Button x:Name="ToggleItalicButton" Margin="1,1,1,1" >斜体</Button>
+          <Button x:Name="ToggleStrikeThroughButton" Margin="1,1,1,1">删除线</Button>
+          <Button x:Name="ToggleUnderlineButton" Margin="1,1,1,1">下划线</Button>
+          <Button x:Name="ToggleFontSuperscriptButton" Margin="1,1,1,1">上标</Button>
+          <Button x:Name="ToggleFontSubscriptButton" Margin="1,1,1,1">下标</Button>
+        </StackPanel>
+
+        <TextBlock Margin="0,5,0,0" FontWeight="Bold">自适应</TextBlock>
+        <UniformGrid Columns="4">
+          <Button x:Name="ManualSizeToContentButton" Margin="0,2,0,0">手动</Button>
+          <Button x:Name="WidthSizeToContentButton" Margin="10,2,0,0">高度自适应</Button>
+          <Button x:Name="HeightSizeToContentButton" Margin="10,2,0,0">宽度自适应</Button>
+          <Button x:Name="WidthAndHeightSizeToContentButton" Margin="10,2,0,0">宽度高度自适应</Button>
+        </UniformGrid>
+
+
+        <TextBlock Margin="0,5,0,0" FontWeight="Bold">多倍行距呈现策略</TextBlock>
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+          </Grid.ColumnDefinitions>
+          <Button x:Name="FullExpandButton" Margin="0,2,10,0" >空间全部展开</Button>
+          <Button x:Name="FirstLineShrinkButton" Grid.Column="1" Margin="10,2,0,0" >首段首行空间不展开</Button>
+        </Grid>
+
+        <TextBlock Margin="0,5,0,0" FontWeight="Bold">布局方式</TextBlock>
+        <StackPanel Orientation="Horizontal">
+
+        </StackPanel>
+        <UniformGrid Columns="3">
+          <Button x:Name="HorizontalArrangingTypeButton" >横排</Button>
+          <Button x:Name="VerticalArrangingTypeButton" Margin="10,0,0,0" >竖排</Button>
+          <Button x:Name="MongolianArrangingTypeButton" Margin="10,0,0,0" >蒙文竖排</Button>
+        </UniformGrid>
+
+        <TextBlock Margin="0,5,0,0" FontWeight="Bold">对齐</TextBlock>
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+          </Grid.ColumnDefinitions>
+          <Button Margin="0,2,10,0">水平居左</Button>
+          <Button Grid.Column="1" Margin="10,2,10,0">水平居中</Button>
+          <Button Grid.Column="2" Margin="10,2,0,0">水平居右</Button>
+        </Grid>
+
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+          </Grid.ColumnDefinitions>
+          <Button Margin="0,2,10,0">垂直居上</Button>
+          <Button Grid.Column="1" Margin="10,2,10,0">垂直居中</Button>
+          <Button Grid.Column="2" Margin="10,2,0,0">垂直居下</Button>
+        </Grid>
+
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+          </Grid.ColumnDefinitions>
+          <StackPanel Grid.Column="0" Margin="0,5,0,0" Orientation="Horizontal">
+            <TextBlock FontWeight="Bold" VerticalAlignment="Center">缩进</TextBlock>
+            <TextBox x:Name="IndentTextBox" Margin="5,0,0,0" Width="50">0</TextBox>
+            <Button x:Name="IndentButton" Margin="5,0,0,0">应用</Button>
+            <Button x:Name="AddIndentButton" Margin="5,0,0,0" Width="20">+</Button>
+            <Button x:Name="SubtractIndentButton" Margin="5,0,0,0" Width="20">-</Button>
+          </StackPanel>
+          <StackPanel Grid.Column="1" Margin="0,5,0,0" Orientation="Horizontal">
+            <TextBlock FontWeight="Bold" VerticalAlignment="Center">缩进方式</TextBlock>
+            <ComboBox x:Name="IndentTypeComboBox" Margin="5,0,0,0">
+              <ComboBoxItem IsSelected="True">首行缩进</ComboBoxItem>
+              <ComboBoxItem IsSelected="True">悬挂缩进</ComboBoxItem>
+            </ComboBox>
+            <Button x:Name="IndentTypeButton" Margin="5,0,0,0">应用</Button>
+          </StackPanel>
+        </Grid>
+
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+          </Grid.ColumnDefinitions>
+          <StackPanel Grid.Column="0" Margin="0,5,0,0" Orientation="Horizontal">
+            <TextBlock FontWeight="Bold" VerticalAlignment="Center">倍数行距</TextBlock>
+            <TextBox x:Name="LineSpacingTextBox" Margin="5,0,0,0" Width="50">1</TextBox>
+            <Button x:Name="LineSpacingButton" Margin="5,0,0,0" >应用</Button>
+          </StackPanel>
+          <StackPanel Grid.Column="1" Margin="0,5,0,0" Orientation="Horizontal">
+            <TextBlock FontWeight="Bold" VerticalAlignment="Center">固定行距</TextBlock>
+            <TextBox x:Name="FixedLineSpacingTextBox" Margin="5,0,0,0" Width="50"></TextBox>
+            <Button x:Name="FixedLineSpacingButton" Margin="5,0,0,0" >应用</Button>
+            <Button x:Name="FixedLineSpacingResetButton" Margin="5,0,0,0" >重置</Button>
+          </StackPanel>
+        </Grid>
+
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+          </Grid.ColumnDefinitions>
+          <StackPanel Grid.Column="0" Margin="0,5,0,0" Orientation="Horizontal">
+            <TextBlock FontWeight="Bold" VerticalAlignment="Center">段前间距</TextBlock>
+            <TextBox x:Name="ParagraphBeforeTextBox" Margin="5,0,0,0" Width="50">0</TextBox>
+            <Button x:Name="ParagraphBeforeButton" Margin="5,0,0,0">应用</Button>
+          </StackPanel>
+          <StackPanel Grid.Column="1" Margin="0,5,0,0" Orientation="Horizontal">
+            <TextBlock FontWeight="Bold" VerticalAlignment="Center">段后间距</TextBlock>
+            <TextBox x:Name="ParagraphAfterTextBox" Margin="5,0,0,0" Width="50">0</TextBox>
+            <Button x:Name="ParagraphAfterButton" Margin="5,0,0,0">应用</Button>
+          </StackPanel>
+        </Grid>
+      </StackPanel>
+    </ScrollViewer>
+    <Button Grid.Row="1" Margin="10,10,10,10">应用</Button>
+
+  </Grid>
+</UserControl>

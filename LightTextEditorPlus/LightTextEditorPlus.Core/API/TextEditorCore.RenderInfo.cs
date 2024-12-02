@@ -14,7 +14,7 @@ public partial class TextEditorCore
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TextEditorDirtyException"></exception>
-    public Rect GetDocumentLayoutBounds()
+    public TextRect GetDocumentLayoutBounds()
     {
         VerifyNotDirty();
 
@@ -22,12 +22,21 @@ public partial class TextEditorCore
     }
 
     /// <summary>
-    /// 获取文本的渲染信息，必须要在布局完成之后才能获取。可选使用 <see cref="WaitLayoutCompletedAsync"/> 等待布局完成
+    /// 获取文本的用于渲染信息，必须要在布局完成之后才能获取。可选使用 <see cref="WaitLayoutCompletedAsync"/> 等待布局完成
     /// </summary>
     /// <returns></returns>
     public RenderInfoProvider GetRenderInfo()
     {
         VerifyNotDirty();
+
+        if (_renderInfoProvider is null && DocumentManager.CharCount == 0)
+        {
+            // 如果是空文本，也就是还在所有布局之前的情况下
+            // 那就启动空文本布局，将会在布局完成之后，通过事件赋值 _renderInfoProvider 内容
+            LayoutEmptyTextEditor();
+            // 如果布局能完成，那就一定不是空
+            Debug.Assert(_renderInfoProvider != null, nameof(_renderInfoProvider) + " != null");
+        }
 
         Debug.Assert(_renderInfoProvider != null, nameof(_renderInfoProvider) + " != null");
         return _renderInfoProvider!;
@@ -67,8 +76,6 @@ public partial class TextEditorCore
 
     #endregion
 
-    
-
     #region 辅助方法
 
     internal void VerifyNotDirty()
@@ -84,8 +91,7 @@ public partial class TextEditorCore
     /// </summary>
     /// 拆分一个方法是为了减少 JIT 过程需要生成异常的代码，提升 JIT 性能。同时让 <see cref="VerifyNotDirty"/> 被内联
     /// <exception cref="TextEditorDirtyException"></exception>
-    private static void ThrowTextEditorDirtyException()=> throw new TextEditorDirtyException();
+    internal void ThrowTextEditorDirtyException() => throw new TextEditorDirtyException(this);
 
     #endregion
 }
-

@@ -38,7 +38,7 @@ public class ReadOnlyCharDataListExtensionTests
                 charData6,
             };
 
-            var list = new ReadOnlyListSpan<CharData>(source, 0, source.Length);
+            var list = new TextReadOnlyListSpan<CharData>(source, 0, source.Length);
 
             var splitList = list.SplitContinuousCharData((last, current) => ReferenceEquals(last.RunProperty, current.RunProperty)).ToList();
 
@@ -70,7 +70,7 @@ public class ReadOnlyCharDataListExtensionTests
                 charData1,
             };
 
-            var list = new ReadOnlyListSpan<CharData>(source, 0, source.Length);
+            var list = new TextReadOnlyListSpan<CharData>(source, 0, source.Length);
             var splitList = list.SplitContinuousCharData((last, current) => ReferenceEquals(last, current)).ToList();
 
             Assert.AreEqual(5, splitList.Count);
@@ -90,7 +90,7 @@ public class ReadOnlyCharDataListExtensionTests
                 charData3,
             };
 
-            var list = new ReadOnlyListSpan<CharData>(source, 0, source.Length);
+            var list = new TextReadOnlyListSpan<CharData>(source, 0, source.Length);
             var splitList = list.SplitContinuousCharData((last, current) => ReferenceEquals(last, current)).ToList();
 
             Assert.AreEqual(3, splitList.Count);
@@ -113,7 +113,7 @@ public class ReadOnlyCharDataListExtensionTests
                 charData3,
             };
 
-            var list = new ReadOnlyListSpan<CharData>(source, 0, source.Length);
+            var list = new TextReadOnlyListSpan<CharData>(source, 0, source.Length);
             var splitList = list.SplitContinuousCharData((last, current) => ReferenceEquals(last, current)).ToList();
 
             Assert.AreEqual(3, splitList.Count);
@@ -135,7 +135,7 @@ public class ReadOnlyCharDataListExtensionTests
                 charData2,
             };
 
-            var list = new ReadOnlyListSpan<CharData>(source, 0, source.Length);
+            var list = new TextReadOnlyListSpan<CharData>(source, 0, source.Length);
             var splitList = list.SplitContinuousCharData((last, current) => ReferenceEquals(last, current)).ToList();
 
             Assert.AreEqual(2, splitList.Count);
@@ -154,7 +154,7 @@ public class ReadOnlyCharDataListExtensionTests
                 charData2,
             };
 
-            var list = new ReadOnlyListSpan<CharData>(source, 0, source.Length);
+            var list = new TextReadOnlyListSpan<CharData>(source, 0, source.Length);
             var splitList = list.SplitContinuousCharData((last, current) => ReferenceEquals(last, current)).ToList();
 
             Assert.AreEqual(2, splitList.Count);
@@ -173,7 +173,7 @@ public class ReadOnlyCharDataListExtensionTests
                 charData2,
             };
 
-            var list = new ReadOnlyListSpan<CharData>(source, 0, source.Length);
+            var list = new TextReadOnlyListSpan<CharData>(source, 0, source.Length);
             var splitList = list.SplitContinuousCharData((last, current) => ReferenceEquals(last, current)).ToList();
 
             Assert.AreEqual(2, splitList.Count);
@@ -191,7 +191,7 @@ public class ReadOnlyCharDataListExtensionTests
                 charData2
             };
 
-            var list = new ReadOnlyListSpan<CharData>(source, 0, source.Length);
+            var list = new TextReadOnlyListSpan<CharData>(source, 0, source.Length);
             var splitList = list.SplitContinuousCharData((last, current) => ReferenceEquals(last,current)).ToList();
 
             Assert.AreEqual(2, splitList.Count);
@@ -207,7 +207,7 @@ public class ReadOnlyCharDataListExtensionTests
                 charData,
                 charData
             };
-            var list = new ReadOnlyListSpan<CharData>(source, 0, 2);
+            var list = new TextReadOnlyListSpan<CharData>(source, 0, 2);
 
             var splitList = list.SplitContinuousCharData((last, current) => true).ToList();
 
@@ -218,7 +218,7 @@ public class ReadOnlyCharDataListExtensionTests
         "获取一个只有一项的 CharData 列表的相邻内容，返回是一个列表，列表只有一个元素".Test(() =>
         {
             var source = new CharData[] { GetCharData() };
-            var list = new ReadOnlyListSpan<CharData>(source, 0, 1);
+            var list = new TextReadOnlyListSpan<CharData>(source, 0, 1);
             var splitList = list.SplitContinuousCharData((last, current) => true).ToList();
             Assert.AreEqual(1, splitList.Count);
             Assert.AreEqual(1, splitList[0].Count);
@@ -231,7 +231,7 @@ public class ReadOnlyCharDataListExtensionTests
         "获取一个空 CharData 列表的相邻内容，返回是空列表".Test(() =>
         {
             var source = new CharData[0];
-            var list = new ReadOnlyListSpan<CharData>(source, 0, 0);
+            var list = new TextReadOnlyListSpan<CharData>(source, 0, 0);
             var splitList = list.SplitContinuousCharData((last, current) => true).ToList();
             Assert.AreEqual(0, splitList.Count);
         });

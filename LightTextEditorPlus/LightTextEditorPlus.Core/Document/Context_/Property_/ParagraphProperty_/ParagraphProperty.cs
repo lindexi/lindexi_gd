@@ -36,6 +36,23 @@ public record ParagraphProperty
     public double Indent { get; init; } = 0;
 
     /// <summary>
+    /// 缩进类型
+    /// </summary>
+    // todo 首行缩进 悬挂缩进
+    public IndentType IndentType { get; init; } = IndentType.FirstLine;
+
+    /// <summary>
+    /// 左侧缩进
+    /// </summary>
+    /// Word 里 Indentation indentation1 = new Indentation(){ Left = "2835", Right = "1134" };
+    public double LeftIndentation { get; init; }
+
+    /// <summary>
+    /// 右侧缩进
+    /// </summary>
+    public double RightIndentation { get; init; }
+
+    /// <summary>
     /// 是否允许标点溢出边界
     /// <para>
     /// 这个功能是在一段文本排版时，在接近末尾，如果再加上标点符号，将会超过文本的约束宽度。如果此属性设置为 true 将会允许加上标点符号之后的文本段超过约束宽度
@@ -45,8 +62,16 @@ public record ParagraphProperty
     public bool AllowHangingPunctuation { get; init; } = false;
 
     /// <summary>
+    /// 是否允许空格溢出边界
+    /// </summary>
+    /// todo 实现允许空格溢出边界
+    public bool AllowHangingSpace { get; init; } = false;
+
+    /// <summary>
     /// 行间距倍数，默认值为1，范围0~1000
     /// </summary>
+    /// 行距的倍数需要根据 <see cref="TextEditor.LineSpacingAlgorithm"/> 进行决定
+    /// 另外是否加上行距计算，需要根据 <see cref="TextEditor.LineSpacingStrategy"/> 进行决定
     public double LineSpacing
     {
         get;
@@ -63,7 +88,6 @@ public record ParagraphProperty
         init;
     } = double.NaN;
 
-    // todo 首行缩进 悬挂缩进
 
     ///// <summary>
     ///// 项目符号
@@ -102,7 +126,7 @@ public record ParagraphProperty
     }
 
     /// <summary>
-    /// 段前间距
+    /// 段前间距（竖方向）
     /// </summary>
     public double ParagraphBefore
     {
@@ -111,11 +135,22 @@ public record ParagraphProperty
     }
 
     /// <summary>
-    /// 段后间距
+    /// 段后间距（竖方向）
     /// </summary>
     public double ParagraphAfter
     {
         get;
         init;
+    }
+
+    /// <summary>
+    /// 判断传入是否合法
+    /// </summary>
+    internal void Verify()
+    {
+        if (Direction != FlowDirection.LeftToRight)
+        {
+            throw new NotSupportedException($"Not Support {Direction}");
+        }
     }
 }

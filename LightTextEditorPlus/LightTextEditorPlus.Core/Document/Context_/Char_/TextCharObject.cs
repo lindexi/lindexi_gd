@@ -2,7 +2,11 @@
 
 namespace LightTextEditorPlus.Core.Document;
 
-public class TextCharObject : ICharObject, IEquatable<string>
+/// <summary>
+/// 文本字符
+/// </summary>
+/// 暂时没逻辑使用，标记为 file 范围
+file class TextCharObject : ICharObject, IEquatable<string>
 {
     /// <summary>
     /// 文本字符
@@ -18,16 +22,19 @@ public class TextCharObject : ICharObject, IEquatable<string>
     /// </summary>
     public string TextChar { get; }
 
+    /// <inheritdoc />
     public bool Equals(string? other)
     {
         return TextChar.Equals(other);
     }
 
+    /// <inheritdoc />
     public ICharObject DeepClone()
     {
         return this;
     }
 
+    /// <inheritdoc />
     public string ToText()
     {
         return TextChar;

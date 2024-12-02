@@ -1,5 +1,7 @@
-using System.Windows;
+ï»¿using System.Windows;
+
 using dotnetCampus.UITest.WPF;
+
 using MSTest.Extensions.Contracts;
 
 namespace LightTextEditorPlus.Tests;
@@ -8,24 +10,58 @@ namespace LightTextEditorPlus.Tests;
 public class TextEditorTest
 {
     [UIContractTestCase]
+    public void LayoutTest()
+    {
+        "è®¾ç½® TextEditor çš„å®½åº¦ï¼Œå¯ä»¥å½±å“åˆ°å¸ƒå±€çš„è¡Œæœ€å¤§å®½åº¦".Test(async () =>
+        {
+            // Arrange
+            using var context = TestFramework.CreateTextEditorInNewWindow();
+            var textEditor = context.TextEditor;
+
+            // Action
+            // è®¾ç½® TextEditor çš„å®½åº¦ï¼Œè®¾ç½®ä¸º 50 å®½åº¦ï¼Œå­—ä½“é€‰ç”¨å¾®è½¯é›…é»‘ 30 å­—ä½“ï¼Œé‚£å°±æ”¾ä¸ä¸‹ä¸¤ä¸ªå­—ç¬¦
+            textEditor.Width = 50;
+            textEditor.SetFontName("å¾®è½¯é›…é»‘");
+            textEditor.SetFontSize(30);
+
+            // å†è¾“å…¥ä¸¤ä¸ªå­—ç¬¦ï¼Œé¢„è®¡å°±èƒ½è¢«å¸ƒå±€ä¸ºä¸¤è¡Œ
+            textEditor.TextEditorCore.AppendText("ä¸€äºŒ");
+
+            // Assert
+            await textEditor.WaitForRenderCompletedAsync();
+
+            await TestFramework.FreezeTestToDebug();
+            var renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
+            // å¸ƒå±€æ¸²æŸ“ä¸€æ®µä¸¤è¡Œ
+            var paragraphRenderInfo = renderInfoProvider.GetParagraphRenderInfoList().First();
+            var lineRenderInfoList = paragraphRenderInfo.GetLineRenderInfoList().ToList();
+
+            Assert.AreEqual(2, lineRenderInfoList.Count, "è®¾ç½® TextEditor çš„å®½åº¦ï¼Œè®¾ç½®ä¸º 50 å®½åº¦ï¼Œå­—ä½“é€‰ç”¨å¾®è½¯é›…é»‘ 30 å­—ä½“ï¼Œå°†å¸ƒå±€ä¸¤è¡Œ");
+        });
+    }
+
+    [UIContractTestCase]
     public void AppendTestAfterSetRunProperty()
     {
-        "ÏÈ×·¼ÓÒ»¶ÎÎÄ±¾£¬ÔÙÐÞ¸Äµ±Ç°¹â±êÊôÐÔ£¬ÔÙ×·¼ÓÒ»¶ÎÎÄ±¾£¬¿ÉÒÔ·ûºÏÔ¤ÆÚµÄÏÔÊ¾Á½¶ÎÑùÊ½²»Í¬µÄÎÄ±¾".Test(async () =>
+        "å…ˆè¿½åŠ ä¸€æ®µæ–‡æœ¬ï¼Œå†ä¿®æ”¹å½“å‰å…‰æ ‡å±žæ€§ï¼Œå†è¿½åŠ ä¸€æ®µæ–‡æœ¬ï¼Œå¯ä»¥ç¬¦åˆé¢„æœŸçš„æ˜¾ç¤ºä¸¤æ®µæ ·å¼ä¸åŒçš„æ–‡æœ¬".Test(async () =>
         {
             using var context = TestFramework.CreateTextEditorInNewWindow();
             var textEditor = context.TextEditor;
 
-            // ÏÈ×·¼ÓÒ»¶ÎÎÄ±¾
+            // å…ˆè¿½åŠ ä¸€æ®µæ–‡æœ¬
             textEditor.TextEditorCore.AppendText("123");
 
-            // ÔÙÐÞ¸Äµ±Ç°¹â±êÊôÐÔ
-            textEditor.SetRunProperty(runProperty => runProperty.FontSize = 15);
+            // å†ä¿®æ”¹å½“å‰å…‰æ ‡å±žæ€§
+            textEditor.SetRunProperty(runProperty => runProperty with
+            {
+                FontSize = 15
+            });
 
-            // ÔÙ×·¼ÓÒ»¶ÎÎÄ±¾
+            // å†è¿½åŠ ä¸€æ®µæ–‡æœ¬
             textEditor.TextEditorCore.AppendText("123");
 
-            // ¿ÉÒÔ·ûºÏÔ¤ÆÚµÄÏÔÊ¾Á½¶ÎÑùÊ½²»Í¬µÄÎÄ±¾
-            // ÏÈ¿¿ÈËÈ¥¿´
+            // å¯ä»¥ç¬¦åˆé¢„æœŸçš„æ˜¾ç¤ºä¸¤æ®µæ ·å¼ä¸åŒçš„æ–‡æœ¬
+            // å…ˆé äººåŽ»çœ‹
             await TestFramework.FreezeTestToDebug();
         });
     }
@@ -33,7 +69,7 @@ public class TextEditorTest
     [UIContractTestCase]
     public void AppendText()
     {
-        "¸ø¿ÕµÄÎÄ±¾¿ò×·¼Ó 123 ×Ö·û´®£¬¿ÉÒÔÏÔÊ¾³ö 123 µÄÎÄ±¾".Test(async () =>
+        "ç»™ç©ºçš„æ–‡æœ¬æ¡†è¿½åŠ  123 å­—ç¬¦ä¸²ï¼Œå¯ä»¥æ˜¾ç¤ºå‡º 123 çš„æ–‡æœ¬".Test(async () =>
         {
             using var context = TestFramework.CreateTextEditorInNewWindow();
             var textEditor = context.TextEditor;

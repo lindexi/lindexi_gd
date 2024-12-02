@@ -29,13 +29,17 @@ class CharLayoutData : IParagraphCache
     /// 左上角的点，相对于文本框
     /// </summary>
     /// 可用来辅助布局上下标
-    public Point StartPoint { set; get; }
+    public TextPoint StartPoint { set; get; }
 
     /// <summary>
     /// 字符是当前段落 <see cref="Paragraph"/> 的第几个字符
     /// </summary>
+    /// 调试作用
     public ParagraphCharOffset CharIndex { set; get; }
 
+    /// <summary>
+    /// 字符是当前行的第几个字
+    /// </summary>
     public int CharIndexInLine
     {
         get

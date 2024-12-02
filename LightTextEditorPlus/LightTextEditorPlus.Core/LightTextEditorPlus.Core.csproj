@@ -5,6 +5,17 @@
     <Nullable>enable</Nullable>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest</AnalysisLevel>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <BanAttributeAPI>TextEditorPublicAPIAttribute</BanAttributeAPI>
+    <UseUIFramework>Standard</UseUIFramework>
   </PropertyGroup>
+
+  <ItemGroup>
+    <CompilerVisibleProperty Include="BanAttributeAPI"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Analyzers\TextEditorInternalAnalyzer\TextEditorInternalAnalyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
 
 </Project>

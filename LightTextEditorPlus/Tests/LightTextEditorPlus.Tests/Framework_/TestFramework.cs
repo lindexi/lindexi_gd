@@ -1,4 +1,4 @@
-using System.Diagnostics;
+ï»¿using System.Diagnostics;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -36,44 +36,49 @@ public class TestFramework
     [AssemblyCleanup]
     public static void CleanApplication()
     {
-        _application.Dispatcher.InvokeAsync(() =>
-        {
-            _application.Shutdown();
-        });
+        _application.Dispatcher.InvokeAsync(() => { _application.Shutdown(); });
     }
 
     public static TextEditTestContext CreateTextEditorInNewWindow()
     {
-        //var mainWindow = new Window()
-        //{
-        //    Width = 1000,
-        //    Height = 700,
-        //    Content = Border
-        //    (
-        //        BorderThickness: Thickness(1),
-        //        BorderBrush: Brushes.Blue,
-        //        Child: Grid
-        //        (
-        //            new TextEditor()
-        //            {
-        //                Width = 600,
-        //                Height = 600,
-        //                HorizontalAlignment = HorizontalAlignment.Left,
-        //                VerticalAlignment = VerticalAlignment.Stretch,
-        //            }.Out(out var textEditor)
-        //        )
-        //    ).Margin(10).UI
-        //};
+        var mainWindow = new Window()
+        {
+            Title = "æ–‡æœ¬åº“ UI å•å…ƒæµ‹è¯•",
+            Width = 1000,
+            Height = 700,
+            Content = Border
+            (
+                BorderThickness: Thickness(1),
+                BorderBrush: Brushes.Blue,
+                Child: Grid
+                (
+                    Columns(600, "*"),
+                    new TextEditor()
+                    {
+                        Width = 600,
+                        Height = 600,
+                        Margin = Thickness(10,10,10,10),
+                        HorizontalAlignment = HorizontalAlignment.Left,
+                        VerticalAlignment = VerticalAlignment.Stretch,
+                    }
+                        .Column(0)
+                        .Out(out var textEditor),
 
-        var mainWindow = new MainWindow();
-        var textEditor = mainWindow.TextEditor;
+                    new TextEditorSettingsControl()
+                    {
+                        TextEditor = textEditor
+                    }
+                        .Column(1)
+                )
+            ).Margin(10).UI
+        };
 
         mainWindow.Show();
         return new TextEditTestContext(mainWindow, textEditor);
     }
 
     /// <summary>
-    /// ÓÃÓÚµ÷ÊÔÏÂ¸¨ÖúÁË½âµ½µ±Ç°ÊÇ·ñ·ûºÏÔ¤ÆÚ£¬½«ÔİÍ£²âÊÔÂß¼­£¬¿ÉÒÔÖØĞÂ½øÈë´Ë·½·¨ÍË³ö¡£½ö Debug ÏÂÓĞĞ§
+    /// ç”¨äºè°ƒè¯•ä¸‹è¾…åŠ©äº†è§£åˆ°å½“å‰æ˜¯å¦ç¬¦åˆé¢„æœŸï¼Œå°†æš‚åœæµ‹è¯•é€»è¾‘ï¼Œå¯ä»¥é‡æ–°è¿›å…¥æ­¤æ–¹æ³•é€€å‡ºã€‚ä»… Debug ä¸‹æœ‰æ•ˆ
     /// </summary>
     /// <returns></returns>
     public static async Task FreezeTestToDebug()
@@ -82,7 +87,7 @@ public class TestFramework
         {
             for (int i = 0; i < int.MaxValue; i++)
             {
-                // ¿ÉÒÔÔÚÕâÀï´ò¶Ïµã½øĞĞÍË³öÂß¼­
+                // å¯ä»¥åœ¨è¿™é‡Œæ‰“æ–­ç‚¹è¿›è¡Œé€€å‡ºé€»è¾‘
                 await Task.Delay(TimeSpan.FromSeconds(1));
             }
         }

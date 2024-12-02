@@ -1,10 +1,19 @@
-﻿namespace LightTextEditorPlus.Core.Document.Segments;
+﻿using System.Diagnostics;
+
+namespace LightTextEditorPlus.Core.Document.Segments;
 
 /// <summary>
 /// 文档的按照字符定位的一段
 /// </summary>
+/// 对应 <see cref="LightTextEditorPlus.Core.Carets.Selection"/> 采用光标单位，这个类型是采用 <see cref="DocumentOffset"/> 文档字符单位
 public readonly struct DocumentCharSegment
 {
+    /// <summary>
+    /// 创建文档的按照字符定位的一段
+    /// </summary>
+    /// <param name="startOffset"></param>
+    /// <param name="length"></param>
+    [DebuggerStepThrough]
     public DocumentCharSegment(DocumentOffset startOffset, int length)
     {
         StartOffset = startOffset;

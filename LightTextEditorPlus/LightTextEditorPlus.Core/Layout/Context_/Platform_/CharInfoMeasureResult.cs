@@ -2,6 +2,10 @@
 
 namespace LightTextEditorPlus.Core.Layout;
 
-public readonly record struct CharInfoMeasureResult(Rect Bounds)
+/// <summary>
+/// 字符测量结果
+/// </summary>
+/// <param name="Bounds"></param>
+public readonly record struct CharInfoMeasureResult(TextRect Bounds)
 {
 }

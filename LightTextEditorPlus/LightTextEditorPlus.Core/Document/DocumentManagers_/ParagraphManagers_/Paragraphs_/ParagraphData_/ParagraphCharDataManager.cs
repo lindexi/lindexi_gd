@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+
+using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive.Collections;
 
 namespace LightTextEditorPlus.Core.Document;
@@ -43,14 +46,21 @@ class ParagraphCharDataManager
 
     public IList<CharData> GetRange(int index, int count) => CharDataList.GetRange(index, count);
 
-    public ReadOnlyListSpan<CharData> ToReadOnlyListSpan(int start) =>
+    public TextReadOnlyListSpan<CharData> ToReadOnlyListSpan(int start) =>
         ToReadOnlyListSpan(start, CharDataList.Count - start);
 
-    public ReadOnlyListSpan<CharData> ToReadOnlyListSpan(int start, int length) =>
-        new ReadOnlyListSpan<CharData>(CharDataList, start, length);
+    public TextReadOnlyListSpan<CharData> ToReadOnlyListSpan(int start, int length) =>
+        new TextReadOnlyListSpan<CharData>(CharDataList, start, length);
 
     public CharData GetCharData(int offset)
     {
-        return CharDataList[offset];
+        try
+        {
+            return CharDataList[offset];
+        }
+        catch (ArgumentOutOfRangeException e)
+        {
+            throw new GetCharDataOutOfRangeException(_paragraph, CharDataList, offset, e);
+        }
     }
 }

@@ -1,17 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using LightTextEditorPlus.Core.Attributes;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Events;
+using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
+using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Core;
 
@@ -39,7 +40,7 @@ namespace LightTextEditorPlus.Core;
 ///
 /// 支持段落项目符号，支持自定义扩展项目符号属性设置，通过文本属性系统给项目符号进行业务方定义
 ///
-/// 支持光标系统，支持选择模块，支持注入光标渲染实现
+/// 支持光标系统，支持选择模块，支持业务端实现光标渲染
 ///
 /// 支持事件系统，支持日志注入和埋点支持
 ///
@@ -59,36 +60,41 @@ namespace LightTextEditorPlus.Core;
 ///   - 可以获取到 <see cref="RenderInfoProvider"/> 内容
 /// - <see cref="LayoutCompleted"/>
 /// - 触发平台渲染
-/// todo 光标系统
-/// todo 鼠标命中字符
-/// todo 选择模块
-/// todo 选择效果视觉反馈
-/// todo 下划线模块
-/// todo 项目符号
-/// todo 上下标
-/// todo 支持上加音标
-/// todo 支持下加注释
-/// todo 撤销重做
-/// todo 支持文档获取 SaveInfo 序列化存储
-/// todo 支持设置当前的文本需要等待布局之后才能获取布局信息的属性
+/// todo 决定哪些内容应该放在此文件里面，哪些应该放在 API 文件夹里面
 public partial class TextEditorCore
 {
+    /// <summary>
+    /// 创建文本编辑控件
+    /// </summary>
+    /// <param name="platformProvider"></param>
     public TextEditorCore(IPlatformProvider platformProvider)
     {
         PlatformProvider = platformProvider;
 
+        UndoRedoProvider = platformProvider.BuildTextEditorUndoRedoProvider();
+
         DocumentManager = new DocumentManager(this);
-        CaretManager = new CaretManager(this);
         DocumentManager.InternalDocumentChanging += DocumentManager_InternalDocumentChanging;
         DocumentManager.InternalDocumentChanged += DocumentManager_DocumentChanged;
+
+        CaretManager = new CaretManager(this);
+        CaretManager.InternalCurrentCaretOffsetChanging +=
+            CaretManager_InternalCurrentCaretOffsetChanging;
+        CaretManager.InternalCurrentCaretOffsetChanged +=
+            CaretManager_InternalCurrentCaretOffsetChanged;
+        CaretManager.InternalCurrentSelectionChanging +=
+            CaretManager_InternalCurrentSelectionChanging;
+        CaretManager.InternalCurrentSelectionChanged += CaretManager_InternalCurrentSelectionChanged;
 
         _layoutManager = new LayoutManager(this);
         _layoutManager.InternalLayoutCompleted += LayoutManager_InternalLayoutCompleted;
 
-        Logger = platformProvider.BuildTextLogger() ?? new EmptyTextLogger();
+        Logger = platformProvider.BuildTextLogger() ?? new EmptyTextLogger(this);
+
+        DebugConfiguration = new TextEditorDebugConfiguration(Logger);
 
 #if DEBUG
-        IsInDebugMode = true;
+        DebugConfiguration.SetInDebugMode();
 #endif
     }
 
@@ -97,24 +103,91 @@ public partial class TextEditorCore
     private readonly LayoutManager _layoutManager;
     private RenderInfoProvider? _renderInfoProvider;
     internal CaretManager CaretManager { get; }
+
+    /// <inheritdoc cref="T:LightTextEditorPlus.Core.Document.DocumentManager"/>
     public DocumentManager DocumentManager { get; }
 
     #region 平台相关
 
+    /// <inheritdoc cref="T:LightTextEditorPlus.Core.Platform.IPlatformProvider"/>
     public IPlatformProvider PlatformProvider { get; }
-
-    internal IPlatformRunPropertyCreator PlatformRunPropertyCreator => PlatformProvider.GetPlatformRunPropertyCreator();
 
     #endregion
 
+    #region 光标
+
+    private void CaretManager_InternalCurrentCaretOffsetChanging(object? sender,
+        TextEditorValueChangeEventArgs<CaretOffset> args)
+    {
+        CurrentCaretOffsetChanging?.Invoke(sender, args);
+    }
+
+    private void CaretManager_InternalCurrentCaretOffsetChanged(object? sender,
+        TextEditorValueChangeEventArgs<CaretOffset> args)
+    {
+        CurrentCaretOffsetChanged?.Invoke(sender, args);
+    }
+
+    private void CaretManager_InternalCurrentSelectionChanging(object? sender,
+        TextEditorValueChangeEventArgs<Selection> args)
+    {
+        CurrentSelectionChanging?.Invoke(sender, args);
+    }
+
+    private void CaretManager_InternalCurrentSelectionChanged(object? sender,
+        TextEditorValueChangeEventArgs<Selection> args)
+    {
+        CurrentSelectionChanged?.Invoke(sender, args);
+    }
+
+    #endregion
+
+    /// <summary>
+    /// 准备重新布局整个文档
+    /// </summary>
+    /// <param name="reason"></param>
+    internal void RequireDispatchReLayoutAllDocument(string reason)
+    {
+        // 是否在文本初始化时进入，如果是文本初始化进入，那就不需要重新布局整个文档，可以等待有具体数据传入再执行，提升性能
+        // 如果立刻获取光标信息，此时是可以通过调用布局获取到的
+        var isInit = !_isAnyLayoutUpdate;
+
+        if (isInit)
+        {
+            return;
+        }
+
+        IsDirty = true;
+
+        if (DocumentManager.CharCount != 0)
+        {
+            // 整个文档设置都是脏的
+            foreach (var paragraphData in DocumentManager.ParagraphManager.GetParagraphList())
+            {
+                paragraphData.SetDirty();
+                //foreach (var lineLayoutData in paragraphData.LineLayoutDataList)
+                //{
+                //}
+            }
+        }
+
+        RequireDispatchUpdateLayoutInner(reason);
+    }
+
+    /// <summary>
+    /// 是否发生过一次布局更新
+    /// </summary>
+    // ReSharper disable once RedundantDefaultMemberInitializer
+    private bool _isAnyLayoutUpdate = false;
+
     private void DocumentManager_InternalDocumentChanging(object? sender, EventArgs e)
     {
-        IsDirty = true;
-        if (_renderInfoProvider != null)
+        if (IsUpdatingLayout)
         {
-            _renderInfoProvider.IsDirty = true;
-            _renderInfoProvider = null;
+            throw new ChangeDocumentOnUpdatingLayoutException(this);
         }
+
+        IsDirty = true;
 
         // 文档开始变更
         DocumentChanging?.Invoke(this, e);
@@ -129,15 +202,44 @@ public partial class TextEditorCore
         Logger.LogDebug($"[TextEditorCore] 文档变更，更新布局");
 
         // todo 考虑在需要立刻获取布局信息时，直接更新布局
+        RequireDispatchUpdateLayout("DocumentChanged");
+    }
+
+    internal void RequireDispatchUpdateLayout(string updateReason)
+    {
+        RequireDispatchUpdateLayoutInner(updateReason);
+    }
+
+    private void RequireDispatchUpdateLayoutInner(string updateReason)
+    {
+        AddLayoutReason(updateReason);
         PlatformProvider.RequireDispatchUpdateLayout(UpdateLayout);
+    }
+
+    /// <summary>
+    /// 空文本布局。在文本没有更改的时候，有逻辑需要获取渲染信息
+    /// </summary>
+    /// 特别加一个方法，用来方便调试是哪个业务调用
+    private void LayoutEmptyTextEditor()
+    {
+        AddLayoutReason(nameof(LayoutEmptyTextEditor) + "空文本布局");
+        PlatformProvider.InvokeDispatchUpdateLayout(UpdateLayout);
     }
 
     private void UpdateLayout()
     {
+        // 设置更新过布局
+        _isAnyLayoutUpdate = true;
+
         IsUpdatingLayout = true;
 
         // 更新布局完成之后，更新渲染信息
         Logger.LogDebug($"[TextEditorCore][UpdateLayout] 开始更新布局");
+        if (_layoutUpdateReasonManager is { } layoutUpdateReasonManager)
+        {
+            Logger.LogDebug(
+                $"[TextEditorCore][UpdateLayout][UpdateReason] 布局原因：{layoutUpdateReasonManager.ReasonText}");
+        }
 
         try
         {
@@ -164,7 +266,7 @@ public partial class TextEditorCore
         LayoutCompleted?.Invoke(this, new LayoutCompletedEventArgs());
 
         Logger.LogDebug($"[TextEditorCore][Render] 开始调用平台渲染");
- 
+
         // 布局完成，触发渲染
         var renderManager = PlatformProvider.GetRenderManager();
         renderManager?.Render(_renderInfoProvider);
@@ -177,25 +279,76 @@ public partial class TextEditorCore
 
     #region 文本属性
 
-    // todo FontSize
-
     /// <summary>
     /// 获取或设置文本框的尺寸自适应模式
     /// </summary>
-    /// todo 处理自适应变更的重新更新
-    public SizeToContent SizeToContent { set; get; }
+    public SizeToContent SizeToContent
+    {
+        set
+        {
+            if (_sizeToContent == value) return;
+            _sizeToContent = value;
+            RequireDispatchReLayoutAllDocument("SizeToContent Changed");
+        }
+        get => _sizeToContent;
+    }
+
+    private SizeToContent _sizeToContent = SizeToContent.Manual;
 
     /// <summary>
     /// 设置当前多倍行距呈现策略
     /// </summary>
-    /// todo 实现当前多倍行距呈现策略
-    public LineSpacingStrategy LineSpacingStrategy { set; get; }
+    public LineSpacingStrategy LineSpacingStrategy
+    {
+        set
+        {
+            if (_lineSpacingStrategy == value) return;
+
+            _lineSpacingStrategy = value;
+            RequireDispatchReLayoutAllDocument("LineSpacingStrategy Changed");
+        }
+        get => _lineSpacingStrategy;
+    }
+
+    private LineSpacingStrategy _lineSpacingStrategy = LineSpacingStrategy.FullExpand;
+
+    /// <summary>
+    /// 行距算法
+    /// </summary>
+    public LineSpacingAlgorithm LineSpacingAlgorithm
+    {
+        set
+        {
+            if (_lineSpacingAlgorithm == value) return;
+
+            _lineSpacingAlgorithm = value;
+            RequireDispatchReLayoutAllDocument("LineSpacingAlgorithm Changed");
+        }
+        get => _lineSpacingAlgorithm;
+    }
+
+    private LineSpacingAlgorithm _lineSpacingAlgorithm = LineSpacingAlgorithm.PPT;
 
     /// <summary>
     /// 布局方式
     /// </summary>
-    /// todo 实现布局方式
-    public ArrangingType ArrangingType { set; get; }
+    public ArrangingType ArrangingType
+    {
+        set
+        {
+            if (_arrangingType == value) return;
+            var oldArrangingType = _arrangingType;
+            _arrangingType = value;
+
+            ArrangingTypeChanged?.Invoke(this,
+                new TextEditorValueChangeEventArgs<ArrangingType>(oldArrangingType, value));
+
+            RequireDispatchReLayoutAllDocument("ArrangingType Changed");
+        }
+        get => _arrangingType;
+    }
+
+    private ArrangingType _arrangingType;
 
     /// <summary>
     /// 日志
@@ -211,6 +364,8 @@ public partial class TextEditorCore
     /// <summary>
     /// 获取或设置当前光标位置
     /// </summary>
+    /// 这是对外调用的，非框架内使用
+    [TextEditorPublicAPI]
     public CaretOffset CurrentCaretOffset
     {
         set => CaretManager.CurrentCaretOffset = value;
@@ -220,15 +375,45 @@ public partial class TextEditorCore
     /// <summary>
     /// 获取或设置当前的选择范围
     /// </summary>
+    /// 这是对外调用的，非框架内使用
+    [TextEditorPublicAPI]
     public Selection CurrentSelection
     {
         set => CaretManager.SetSelection(value);
         get => CaretManager.CurrentSelection;
     }
 
+    /// <summary>
+    /// 移动光标。如已知 <see cref="CaretOffset"/> 可直接给 <see cref="CurrentCaretOffset"/> 属性赋值
+    /// </summary>
+    /// <param name="type"></param>
+    [TextEditorPublicAPI]
+    public void MoveCaret(CaretMoveType type)
+    {
+        var caretOffset = GetNewCaretOffset(type);
+        CaretManager.CurrentCaretOffset = caretOffset;
+    }
+
+    /// <summary>
+    /// 移动光标
+    /// </summary>
+    /// <param name="caretOffset"></param>
+    [Obsolete("如已知 CaretOffset 的值，则可直接给 CurrentCaretOffset 属性赋值。此方法仅仅只是用来告诉你正确的方法应该是给 CurrentCaretOffset 属性赋值，无需再调用任何方法")]
+    public void MoveCaret(CaretOffset caretOffset) => CaretManager.CurrentCaretOffset = caretOffset;
+
+    /// <summary>
+    /// 根据键盘操作获取光标导航
+    /// </summary>
+    /// <param name="caretMoveType"></param>
+    /// <returns></returns>
+    public CaretOffset GetNewCaretOffset(CaretMoveType caretMoveType)
+    {
+        return KeyboardCaretNavigationHelper.GetNewCaretOffset(this, caretMoveType);
+    }
+
     #endregion
 
-    #region 状态属性 
+    #region 状态属性
 
     // 存放文本当前的状态
 
@@ -240,44 +425,66 @@ public partial class TextEditorCore
     /// <summary>
     /// 文本是不是脏的，需要等待布局完成。可选使用 <see cref="WaitLayoutCompletedAsync"/> 等待布局完成
     /// </summary>
-    public bool IsDirty { get; private set; } = true;
+    // ReSharper disable once RedundantDefaultMemberInitializer
+    public bool IsDirty
+    {
+        get => _isDirty;
+        private set
+        {
+            _isDirty = value;
 
+            if (_renderInfoProvider != null)
+            {
+                _renderInfoProvider.IsDirty = true;
+                _renderInfoProvider = null;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 文本是不是脏的
+    /// </summary>
+    /// 默认情况下是非脏的，使用预设的值
+    private bool _isDirty = false;
     #endregion
 
     #region 调试属性
 
     /// <summary>
-    /// 是否正在调试模式
+    /// 这个文本的调试名，用于在各个抛出的异常等，方便记录调试日志或埋点上报了解是哪个文本框抛出的。默认是空将取文本的前15个字符
     /// </summary>
-    /// 文本库将使用 Release 构建进行分发，但是依然提供调试方法，开启调试模式之后会有更多输出和判断逻辑，以及抛出调试异常。不应该在正式发布时，设置进入调试模式
-    public bool IsInDebugMode
+    public string? DebugName
     {
-        private set => _isInDebugMode = value;
-        get => _isInDebugMode || IsAllInDebugMode;
-    }
-    private bool _isInDebugMode;
+        set => _debugName = value;
+        get
+        {
+            if (_debugName is null)
+            {
+                return "\"" + DocumentManager.ParagraphManager.GetText().LimitTrim(15) + "\"";
+            }
 
-    /// <summary>
-    /// 设置当前的文本进入调试模式
-    /// </summary>
-    public void SetInDebugMode()
-    {
-        IsInDebugMode = true;
-        Logger.LogInfo($"文本进入调试模式");
+            return _debugName;
+        }
     }
 
-    /// <summary>
-    /// 是否全部的文本都进入调试模式
-    /// </summary>
-    public static bool IsAllInDebugMode { private set; get; }
+    private string? _debugName;
+
+    /// <inheritdoc />
+    public override string ToString() => $"[{nameof(TextEditorCore)}] {DebugName}";
 
     /// <summary>
-    /// 设置全部的文本都进入调试模式，理论上不能将此调用此方法的代码进行发布
+    /// 文本调试的配置
     /// </summary>
-    public static void SetAllInDebugMode()
-    {
-        IsAllInDebugMode = true;
-    }
+    public TextEditorDebugConfiguration DebugConfiguration { get; }
+
+    /// <inheritdoc cref="TextEditorDebugConfiguration.IsInDebugMode"/>
+    public bool IsInDebugMode => DebugConfiguration.IsInDebugMode;
+
+    /// <inheritdoc cref="TextEditorDebugConfiguration.SetInDebugMode"/>
+    public void SetInDebugMode() => DebugConfiguration.SetInDebugMode();
+
+    /// <inheritdoc cref="TextEditorDebugConfiguration.SetAllInDebugMode"/>
+    public static void SetAllInDebugMode() => TextEditorDebugConfiguration.SetAllInDebugMode();
 
     #endregion
 
@@ -288,11 +495,15 @@ public partial class TextEditorCore
     /// <summary>
     /// 文档开始变更事件
     /// </summary>
+    /// 内部使用 <see cref="LightTextEditorPlus.Core.Document.DocumentManager.InternalDocumentChanging"/> 事件
+    [TextEditorPublicAPI]
     public event EventHandler? DocumentChanging;
 
     /// <summary>
     /// 文档变更完成事件
     /// </summary>
+    /// 内部使用 <see cref="LightTextEditorPlus.Core.Document.DocumentManager.InternalDocumentChanged"/> 事件
+    [TextEditorPublicAPI]
     public event EventHandler? DocumentChanged;
 
     /// <summary>
@@ -301,6 +512,37 @@ public partial class TextEditorCore
     public event EventHandler<LayoutCompletedEventArgs>? LayoutCompleted;
 
     // todo 考虑 DocumentLayoutBoundsChanged 事件
+
+    #region 光标
+
+    /// <summary>
+    /// 当前光标开始变更事件
+    /// </summary>
+    public event EventHandler<TextEditorValueChangeEventArgs<CaretOffset>>?
+        CurrentCaretOffsetChanging;
+
+    /// <summary>
+    /// 当前光标已变更事件
+    /// </summary>
+    public event EventHandler<TextEditorValueChangeEventArgs<CaretOffset>>?
+        CurrentCaretOffsetChanged;
+
+    /// <summary>
+    /// 当前选择范围开始变更事件
+    /// </summary>
+    public event EventHandler<TextEditorValueChangeEventArgs<Selection>>? CurrentSelectionChanging;
+
+    /// <summary>
+    /// 当前选择范围已变更事件。当光标变更或选择范围变更时，会触发此事件。即 <see cref="CurrentCaretOffsetChanged"/> 触发时，一定会随后触发此事件
+    /// </summary>
+    public event EventHandler<TextEditorValueChangeEventArgs<Selection>>? CurrentSelectionChanged;
+
+    #endregion
+
+    /// <summary>
+    /// 布局变更后触发的事件
+    /// </summary>
+    public event EventHandler<TextEditorValueChangeEventArgs<ArrangingType>>? ArrangingTypeChanged;
 
     #endregion
 
@@ -322,13 +564,76 @@ public partial class TextEditorCore
         {
             _layoutUpdateReasonManager ??= new LayoutUpdateReasonManager(this);
             _layoutUpdateReasonManager.AddLayoutReason(reason);
-            Logger.LogDebug($"[TextEditorCore][AddLayoutReason] {reason}");
+            Logger.LogDebug($"[TextEditorCore][AddLayoutReason] 添加布局理由 {reason}");
         }
     }
 
     private LayoutUpdateReasonManager? _layoutUpdateReasonManager;
 
     #endregion
+
+    #endregion
+
+    #region UndoRedo
+
+    /// <inheritdoc cref="T:LightTextEditorPlus.Core.Document.UndoRedo.ITextEditorUndoRedoProvider"/>
+    public ITextEditorUndoRedoProvider UndoRedoProvider { get; }
+
+    /// <summary>
+    /// 进入撤销恢复模式
+    /// </summary>
+    /// 由于撤销恢复需要一些绕过安全的步骤，因此需要先设置开关才能调用。同时撤销重做需要处理在撤销或恢复过程产生动作
+    public void EnterUndoRedoMode()
+    {
+        IsUndoRedoMode = true;
+    }
+
+    /// <summary>
+    /// 退出撤销恢复模式
+    /// </summary>
+    public void QuitUndoRedoMode()
+    {
+        IsUndoRedoMode = false;
+    }
+
+    /// <summary>
+    /// 获取文本是否进入撤销恢复模式
+    /// </summary>
+    public bool IsUndoRedoMode { private set; get; }
+
+    /// <summary>
+    /// 撤销恢复是否可用
+    /// </summary>
+    public bool EnableUndoRedo { private set; get; } = true;
+
+    /// <summary>
+    /// 设置撤销恢复是否可用
+    /// </summary>
+    /// <param name="isEnable"></param>
+    /// <param name="debugReason">调试使用的设置撤销恢复的理由</param>
+    /// <returns></returns>
+    public void SetUndoRedoEnable(bool isEnable, string debugReason)
+    {
+        Logger.LogDebug($"[SetUndoRedoEnable] Enable={isEnable};Reason={debugReason}");
+        EnableUndoRedo = isEnable;
+    }
+
+    /// <summary>
+    /// 是否应该插入撤销恢复。等同于不在撤销恢复模式且撤销恢复可用
+    /// </summary>
+    internal bool ShouldInsertUndoRedo => !IsUndoRedoMode && EnableUndoRedo;
+
+    /// <summary>
+    /// 判断当前是否进入撤销恢复模式，如果没有，抛出 <see cref="TextEditorNotInUndoRedoModeException"/> 异常
+    /// </summary>
+    /// <exception cref="TextEditorNotInUndoRedoModeException"></exception>
+    public void VerifyInUndoRedoMode()
+    {
+        if (!IsUndoRedoMode)
+        {
+            throw new TextEditorNotInUndoRedoModeException(this);
+        }
+    }
 
     #endregion
 }

@@ -4,11 +4,14 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <UseUIFramework>MauiGraphics</UseUIFramework>
+    <RootNamespace>LightTextEditorPlus</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Maui.Graphics" Version="6.0.403" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LightTextEditorPlus.Core\LightTextEditorPlus.Core.csproj" />
+    <ProjectReference Include="..\Analyzers\TextEditorInternalAnalyzer\TextEditorInternalAnalyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 </Project>

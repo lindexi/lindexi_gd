@@ -2,7 +2,9 @@
 
 namespace LightTextEditorPlus.Core.Layout;
 
-public readonly record struct EmptyParagraphLineHeightMeasureResult(Rect ParagraphBounds, Point NextLineStartPoint)
+/// <summary>
+/// 空段的行高测量结果
+/// </summary>
+public readonly record struct EmptyParagraphLineHeightMeasureResult(double LineHeight)
 {
-
 }

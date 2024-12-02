@@ -3,23 +3,38 @@
 namespace LightTextEditorPlus.Core.Document;
 
 /// <summary>
-/// 段落的渲染数据
+/// 段落的布局数据
 /// </summary>
-class ParagraphLayoutData
+public interface IParagraphLayoutData
 {
     /// <summary>
     /// 段落的起始点
     /// </summary>
-    public Point StartPoint { set; get; }
+    TextPoint StartPoint { get; }
+    /// <summary>
+    /// 段落尺寸
+    /// </summary>
+    TextSize TextSize { get; }
+}
+
+/// <summary>
+/// 段落的布局数据
+/// </summary>
+class ParagraphLayoutData : IParagraphLayoutData
+{
+    /// <summary>
+    /// 段落的起始点
+    /// </summary>
+    public TextPoint StartPoint { set; get; }
 
     /// <summary>
     /// 段落尺寸
     /// </summary>
-    public Size Size { set; get; }
+    public TextSize TextSize { set; get; }
 
     /// <summary>
     /// 段落的范围
     /// </summary>
     /// <returns></returns>
-    public Rect GetBounds() => new Rect(StartPoint, Size);
+    public TextRect GetBounds() => new TextRect(StartPoint, TextSize);
 }

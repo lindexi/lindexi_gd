@@ -3,6 +3,9 @@ using LightTextEditorPlus.Core.Document;
 
 namespace LightTextEditorPlus.Core;
 
+/// <summary>
+/// 文本选择扩展方法
+/// </summary>
 public static class TextEditorCoreSelectionExtension
 {
     /// <summary>
@@ -12,7 +15,7 @@ public static class TextEditorCoreSelectionExtension
     {
         DocumentManager documentManager = textEditor.DocumentManager;
         var allDocumentSelection = documentManager.GetAllDocumentSelection();
-        textEditor.CurrentSelection = allDocumentSelection;
+        textEditor.CaretManager.SetSelection(allDocumentSelection);
     }
 
     /// <summary>
@@ -22,7 +25,7 @@ public static class TextEditorCoreSelectionExtension
     {
         // todo 确认清空选择的时候，光标应该在哪
 
-        var selection = new Selection(textEditor.CurrentCaretOffset, 0);
-        textEditor.CurrentSelection = selection;
+        var selection = new Selection(textEditor.CaretManager.CurrentCaretOffset, 0);
+        textEditor.CaretManager.SetSelection(selection);
     }
 }

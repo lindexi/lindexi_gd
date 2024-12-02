@@ -5,8 +5,11 @@ namespace LightTextEditorPlus.Core.Utils.Patterns;
 /// <summary>
 /// 文本内容范围判断类
 /// </summary>
-class TextRangePattern : IPattern
+public class TextRangePattern : IPattern
 {
+    /// <summary>
+    /// 创建文本内容范围判断类
+    /// </summary>
     public TextRangePattern(char minChar, char maxChar)
     {
         MinChar = minChar;

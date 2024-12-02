@@ -1,4 +1,4 @@
-using LightTextEditorPlus.Core.Document;
+ï»¿using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
@@ -6,13 +6,13 @@ using LightTextEditorPlus.Core.Primitive;
 namespace LightTextEditorPlus.Core.TestsFramework;
 
 /// <summary>
-/// ¹Ì¶¨×Ö·ûÊ¹ÓÃ×ÖºÅ×÷Îª³ß´çµÄ²âÁ¿
+/// å›ºå®šå­—ç¬¦ä½¿ç”¨å­—å·ä½œä¸ºå°ºå¯¸çš„æµ‹é‡
 /// </summary>
-/// ÓÃÓÚÔÚµ¥Ôª²âÊÔÎŞÊÓ¾ßÌåÆ½Ì¨ºÍ¾ßÌå×ÖÌåµÄÓ°Ïì
+/// ç”¨äºåœ¨å•å…ƒæµ‹è¯•æ— è§†å…·ä½“å¹³å°å’Œå…·ä½“å­—ä½“çš„å½±å“
 public class FixedCharSizeCharInfoMeasurer : ICharInfoMeasurer
 {
     public CharInfoMeasureResult MeasureCharInfo(in CharInfo charInfo)
     {
-        return new CharInfoMeasureResult(new Rect(0, 0, charInfo.RunProperty.FontSize, charInfo.RunProperty.FontSize));
+        return new CharInfoMeasureResult(new TextRect(0, 0, charInfo.RunProperty.FontSize, charInfo.RunProperty.FontSize));
     }
 }
