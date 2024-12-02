@@ -15,6 +15,9 @@ public partial class TextEditorDebugView : UserControl
         InitializeComponent();
 
         TextEditorSettingsControl.TextEditor = TextEditor;
+
+        // ต๗สิด๚ย๋
+        TextEditor.AppendText("asd");
     }
 
     private readonly RichTextCaseProvider _richTextCaseProvider = new RichTextCaseProvider();

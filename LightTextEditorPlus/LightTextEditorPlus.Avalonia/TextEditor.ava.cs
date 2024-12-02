@@ -36,8 +36,8 @@ public partial class TextEditor : Control
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;
 
-        // 调试代码
-        TextEditorCore.AppendText("afg123微软雅黑123123");
+        //// 调试代码
+        //TextEditorCore.AppendText("afg123微软雅黑123123");
 
         // 设计上会导致 Avalonia 总会调用二级的 SkiaTextEditor 接口实现功能。有开发资源可以做一层代理
         
