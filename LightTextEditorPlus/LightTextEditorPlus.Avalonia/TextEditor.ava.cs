@@ -97,6 +97,10 @@ public partial class TextEditor : Control
         {
             TextEditorCore.Backspace();
         }
+        else if (e.Key == Key.Enter)
+        {
+            TextEditorCore.EditAndReplace("\n");
+        }
         else if (e.Key == Key.Up)
         {
             TextEditorCore.MoveCaret(CaretMoveType.UpByLine);
