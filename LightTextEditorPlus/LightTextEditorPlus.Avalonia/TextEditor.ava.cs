@@ -99,19 +99,19 @@ public partial class TextEditor : Control
         }
         else if (e.Key == Key.Up)
         {
-            TextEditorCore.MoveCaret(CaretMoveType.Up);
+            TextEditorCore.MoveCaret(CaretMoveType.UpByLine);
         }
         else if (e.Key == Key.Down)
         {
-            TextEditorCore.MoveCaret(CaretMoveType.Down);
+            TextEditorCore.MoveCaret(CaretMoveType.DownByLine);
         }
         else if (e.Key == Key.Left)
         {
-            TextEditorCore.MoveCaret(CaretMoveType.Left);
+            TextEditorCore.MoveCaret(CaretMoveType.LeftByCharacter);
         }
         else if (e.Key == Key.Right)
         {
-            TextEditorCore.MoveCaret(CaretMoveType.Right);
+            TextEditorCore.MoveCaret(CaretMoveType.RightByCharacter);
         }
     }
 
