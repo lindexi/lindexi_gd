@@ -24,13 +24,13 @@ public partial class SkiaTextEditor : IRenderManager
 
         RenderManager = new RenderManager(this);
 
-#if DEBUG
-        DocumentManager.SetDefaultTextRunProperty<SkiaTextRunProperty>(property => property with
-        {
-            FontName = new FontName("微软雅黑"),
-            FontSize = 50,
-        });
-#endif
+//#if DEBUG
+//        DocumentManager.SetDefaultTextRunProperty<SkiaTextRunProperty>(property => property with
+//        {
+//            FontName = new FontName("微软雅黑"),
+//            FontSize = 50,
+//        });
+//#endif
     }
 
     internal RenderManager RenderManager { get; }
@@ -56,7 +56,7 @@ public partial class SkiaTextEditor : IRenderManager
         }
 
         CurrentLayoutBounds = TextEditorCore.GetDocumentLayoutBounds();
-        
+
         RenderManager.Render(renderInfoProvider);
 
         InternalRenderCompleted?.Invoke(this, EventArgs.Empty);
@@ -109,9 +109,11 @@ public class SkiaTextEditorPlatformProvider : PlatformProvider
 
     private readonly SkiaPlatformResourceManager _skiaPlatformFontManager;
 
+    private SkiaPlatformRunPropertyCreator? _skiaPlatformRunPropertyCreator;
+
     public override IPlatformRunPropertyCreator GetPlatformRunPropertyCreator()
     {
-        return new SkiaPlatformRunPropertyCreator(_skiaPlatformFontManager, TextEditor);
+        return _skiaPlatformRunPropertyCreator ??= new SkiaPlatformRunPropertyCreator(_skiaPlatformFontManager, TextEditor);
     }
 
     public override IRenderManager GetRenderManager()

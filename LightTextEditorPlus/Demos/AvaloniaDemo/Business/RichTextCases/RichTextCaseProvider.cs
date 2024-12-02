@@ -24,7 +24,7 @@ class RichTextCaseProvider
                 FontSize = 60
             };
 
-            editor.AppendRun(new SkiaTextRun("追加的文本", runProperty));
+            editor.AppendRun(new SkiaTextRun("文本", runProperty));
         }, "插入文本带大字号");
     }
 
