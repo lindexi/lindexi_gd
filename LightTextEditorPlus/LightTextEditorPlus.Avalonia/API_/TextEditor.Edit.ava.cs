@@ -31,10 +31,14 @@ namespace LightTextEditorPlus
             {
                 _isEditable = value;
                 IsInEditingInputMode = false;
+
+                IsEditableChanged?.Invoke(this, EventArgs.Empty);
             }
         }
 
         private bool _isEditable = true;
+
+        public event EventHandler? IsEditableChanged;
 
         /// <summary>
         /// 是否只读的文本。这里的只读指的是不开放用户编辑，依然可以使用 API 调用进行文本编辑

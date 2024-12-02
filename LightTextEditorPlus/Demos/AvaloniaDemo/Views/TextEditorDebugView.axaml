@@ -28,9 +28,10 @@
       </Border>
       <StackPanel Grid.Row="1" Margin="10,0,10,10" Orientation="Horizontal">
         <Button Margin="5,0,0,0" Click="DebugButton_OnClick">调试</Button>
+        <Button x:Name="ReadOnlyModeButton" Margin="5,0,0,0" Click="ReadOnlyModeButton_OnClick">进入只读模式</Button>
         <ToggleButton x:Name="ShowDocumentBoundsButton" Margin="5,0,0,0" Click="ShowDocumentBoundsButton_OnClick">显示文档范围</ToggleButton>
       </StackPanel>
-    
+
     </Grid>
 
     <Grid Grid.Column="1">

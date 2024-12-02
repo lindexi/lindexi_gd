@@ -31,4 +31,19 @@ public partial class TextEditorDebugView : UserControl
     private void ShowDocumentBoundsButton_OnClick(object? sender, RoutedEventArgs e)
     {
     }
+
+    private void ReadOnlyModeButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (TextEditor.IsEditable)
+        {
+            ReadOnlyModeButton.Content = $"进入编辑模式";
+            TextEditor.IsEditable = false;
+        }
+        else
+        {
+            ReadOnlyModeButton.Content = $"进入只读模式";
+            TextEditor.IsEditable = true;
+            TextEditor.Focus();
+        }
+    }
 }
