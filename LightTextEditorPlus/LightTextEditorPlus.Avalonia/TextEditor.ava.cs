@@ -18,7 +18,8 @@ using Avalonia.Skia;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
-
+using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Utils;
 using SizeToContent = LightTextEditorPlus.Core.Primitive.SizeToContent;
 
 namespace LightTextEditorPlus;
@@ -64,6 +65,14 @@ public partial class TextEditor : Control
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         this.Focus(NavigationMethod.Directional);
+        PointerPoint currentPoint = e.GetCurrentPoint(this);
+        Point position = currentPoint.Position;
+        TextPoint textPoint = position.ToTextPoint();
+
+        if (TextEditorCore.TryHitTest(textPoint,out var result))
+        {
+            TextEditorCore.CurrentCaretOffset = result.HitCaretOffset;
+        }
         base.OnPointerPressed(e);
     }
 
