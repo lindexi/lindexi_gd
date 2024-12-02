@@ -28,28 +28,14 @@ class RenderManager
             //_debugDrawCharSpanBounds = SKColors.Red.WithAlpha(0xA0);
             //_debugDrawLineBounds = SKColors.Blue.WithAlpha(0x50);
         }
-
-        _textEditor.TextEditorCore.CurrentSelectionChanged += TextEditorCore_CurrentSelectionChanged;
     }
 
     private readonly SkiaTextEditor _textEditor;
 
     #region 光标渲染
 
-    private void TextEditorCore_CurrentSelectionChanged(object? sender, TextEditorValueChangeEventArgs<Selection> e)
-    {
-        if (_textEditor.TextEditorCore.IsDirty)
-        {
-            // 如果是脏的，那就不需要更新光标和选择区域的渲染，等待后续自动进入渲染
-            return;
-        }
-
-        RenderInfoProvider renderInfoProvider = _textEditor.TextEditorCore.GetRenderInfo();
-        UpdateCaretAndSelectionRender(renderInfoProvider, e.NewValue);
-    }
-
     [MemberNotNull(nameof(_currentCaretAndSelectionRender))]
-    private void UpdateCaretAndSelectionRender(RenderInfoProvider renderInfoProvider, Selection selection)
+    public void UpdateCaretAndSelectionRender(RenderInfoProvider renderInfoProvider, Selection selection)
     {
         if (selection.IsEmpty)
         {

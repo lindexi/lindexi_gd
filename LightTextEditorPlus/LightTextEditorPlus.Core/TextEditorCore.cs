@@ -533,7 +533,7 @@ public partial class TextEditorCore
     public event EventHandler<TextEditorValueChangeEventArgs<Selection>>? CurrentSelectionChanging;
 
     /// <summary>
-    /// 当前选择范围已变更事件
+    /// 当前选择范围已变更事件。当光标变更或选择范围变更时，会触发此事件。即 <see cref="CurrentCaretOffsetChanged"/> 触发时，一定会随后触发此事件
     /// </summary>
     public event EventHandler<TextEditorValueChangeEventArgs<Selection>>? CurrentSelectionChanged;
 

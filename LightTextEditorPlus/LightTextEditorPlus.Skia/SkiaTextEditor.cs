@@ -6,7 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 using LightTextEditorPlus.Core;
+using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
@@ -24,6 +26,7 @@ public partial class SkiaTextEditor : IRenderManager
         TextEditorCore = new TextEditorCore(skiaTextEditorPlatformProvider);
 
         RenderManager = new RenderManager(this);
+        TextEditorCore.CurrentSelectionChanged += TextEditorCore_CurrentSelectionChanged;
 
 //#if DEBUG
 //        DocumentManager.SetDefaultTextRunProperty<SkiaTextRunProperty>(property => property with
@@ -34,7 +37,6 @@ public partial class SkiaTextEditor : IRenderManager
 //#endif
     }
 
-    internal RenderManager RenderManager { get; }
     private DocumentManager DocumentManager => TextEditorCore.DocumentManager;
 
     public TextEditorCore TextEditorCore { get; }
@@ -49,6 +51,22 @@ public partial class SkiaTextEditor : IRenderManager
     /// </summary>
     public TextRect CurrentLayoutBounds { get; private set; } = TextRect.Zero;
 
+    #region 渲染
+    internal RenderManager RenderManager { get; }
+
+    private void TextEditorCore_CurrentSelectionChanged(object? sender, TextEditorValueChangeEventArgs<Selection> e)
+    {
+        if (TextEditorCore.IsDirty)
+        {
+            // 如果是脏的，那就不需要更新光标和选择区域的渲染，等待后续自动进入渲染
+            return;
+        }
+
+        RenderInfoProvider renderInfoProvider = TextEditorCore.GetRenderInfo();
+        RenderManager.UpdateCaretAndSelectionRender(renderInfoProvider, e.NewValue);
+        OnInvalidateVisualRequested();
+    }
+
     void IRenderManager.Render(RenderInfoProvider renderInfoProvider)
     {
         if (renderInfoProvider.IsDirty)
@@ -62,7 +80,7 @@ public partial class SkiaTextEditor : IRenderManager
 
         InternalRenderCompleted?.Invoke(this, EventArgs.Empty);
 
-        InvalidateVisualRequested?.Invoke(this, EventArgs.Empty);
+        OnInvalidateVisualRequested();
 
         _renderCompletionSource.TrySetResult();
     }
@@ -96,6 +114,13 @@ public partial class SkiaTextEditor : IRenderManager
         return _renderCompletionSource.Task;
     }
     private TaskCompletionSource _renderCompletionSource = new TaskCompletionSource();
+
+    private void OnInvalidateVisualRequested()
+    {
+        InvalidateVisualRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    #endregion
 }
 
 public class SkiaTextEditorPlatformProvider : PlatformProvider
