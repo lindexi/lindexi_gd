@@ -82,6 +82,13 @@ public partial class TextEditor : Control
     protected override void OnKeyUp(KeyEventArgs e)
     {
         base.OnKeyUp(e);
+        if (TextEditorCore.IsDirty)
+        {
+            // 如果有明确布局的话，可以在这里加上明确布局
+            // todo ForceRedraw
+            return;
+        }
+
         if (e.Key == Key.Delete)
         {
             TextEditorCore.Delete();
@@ -89,6 +96,22 @@ public partial class TextEditor : Control
         else if (e.Key == Key.Back)
         {
             TextEditorCore.Backspace();
+        }
+        else if (e.Key == Key.Up)
+        {
+            TextEditorCore.MoveCaret(CaretMoveType.Up);
+        }
+        else if (e.Key == Key.Down)
+        {
+            TextEditorCore.MoveCaret(CaretMoveType.Down);
+        }
+        else if (e.Key == Key.Left)
+        {
+            TextEditorCore.MoveCaret(CaretMoveType.Left);
+        }
+        else if (e.Key == Key.Right)
+        {
+            TextEditorCore.MoveCaret(CaretMoveType.Right);
         }
     }
 
