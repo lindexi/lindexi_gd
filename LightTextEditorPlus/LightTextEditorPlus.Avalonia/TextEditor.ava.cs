@@ -62,11 +62,17 @@ public partial class TextEditor : Control
         base.OnPointerPressed(e);
     }
 
-    //protected override void OnTextInput(TextInputEventArgs e)
-    //{   
+    protected override void OnTextInput(TextInputEventArgs e)
+    {
+        string? inputText = e.Text;
+        // todo 处理 emoij 表情符号
+        if (inputText != null)
+        {
+            TextEditorCore.EditAndReplace(inputText);
+        }
 
-    //    base.OnTextInput(e);
-    //}
+        base.OnTextInput(e);
+    }
 
     #region 状态同步
 
