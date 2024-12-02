@@ -18,6 +18,7 @@ public partial class TextEditorDebugView : UserControl
 
         // ต๗สิด๚ย๋
         TextEditor.AppendText("asd");
+        _richTextCaseProvider.Debug(TextEditor);
     }
 
     private readonly RichTextCaseProvider _richTextCaseProvider = new RichTextCaseProvider();

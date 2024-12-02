@@ -38,9 +38,13 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
     public SingleCharInLineLayoutResult LayoutSingleCharInLine(in SingleCharInLineLayoutArgument argument)
     {
         // 获取连续的字符，不连续的字符也不能进入到这里布局。属性不相同的，等待下次进入此方法布局
-        ReadOnlyListSpan<CharData> runList = argument.RunList.GetFirstCharSpanContinuous();
+        ReadOnlyListSpan<CharData> runList = argument.RunList.Slice(argument.CurrentIndex).GetFirstCharSpanContinuous();
+        // 这里的 runList 就是当前准备布局的文本，首个字符就是 CurrentCharData 的值。至少会包含一个字符
         Debug.Assert(runList.Count > 0);
-
+#if DEBUG
+        string debugText = runList.ToText();
+        _ = debugText;
+#endif
         CharData currentCharData = argument.CurrentCharData;
         var runProperty = currentCharData.RunProperty.AsSkiaRunProperty();
 
@@ -53,7 +57,8 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
 
         // todo 优化以下代码写法
         var stringBuilder = new StringBuilder();
-        for (var i = argument.CurrentIndex; i < runList.Count; i++)
+        // 为什么从 0 开始，而不是 argument.CurrentIndex 开始？原因是在 runList 里面已经使用 Slice 裁剪了
+        for (var i = 0; i < runList.Count; i++)
         {
             CharData charData = runList[i];
             stringBuilder.Append(charData.CharObject.ToText());
@@ -64,17 +69,25 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
         // todo 这里需要处理换行规则
         long charCount = skPaint.BreakText(text, lineRemainingWidth, out var measuredWidth);
         var measureCharCount = charCount;
-        int taskCount = 0;
-        for (var i = argument.CurrentIndex; i < runList.Count; i++)
+        // 取出的 CharObject 数量
+        // 由于 CharObject 和字符不一一对应，可能一个 CharObject 对应多个字符，因此 taskCountOfCharObject 不一定等于 charCount 的值
+        int taskCountOfCharObject = 0;
+        // 为什么从 0 开始，而不是 argument.CurrentIndex 开始？原因是在 runList 里面已经使用 Slice 裁剪了
+        for (var i = 0; i < runList.Count; i++)
         {
+            // 这里解决的是可能有一个 CharObject 包含多个 Char 的情况
             CharData charData = runList[i];
             measureCharCount -= charData.CharObject.ToText().Length;
             if (measureCharCount < 0)
             {
                 break;
             }
-            taskCount++;
+            taskCountOfCharObject++;
         }
+
+        // 是否取了所有的 CharObject 全布局了。当前仅用于调试
+        bool takeAllCharObject = taskCountOfCharObject == runList.Count;
+        _ = takeAllCharObject;
 
         // Copy from https://github.com/AvaloniaUI/Avalonia
         // src\Skia\Avalonia.Skia\TextShaperImpl.cs
@@ -204,7 +217,8 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
 
         // 赋值给每个字符的尺寸
         var glyphRunBoundsIndex = 0;
-        for (var i = argument.CurrentIndex; i < argument.CurrentIndex + taskCount; i++)
+        // 为什么从 0 开始，而不是 argument.CurrentIndex 开始？原因是在 runList 里面已经使用 Slice 裁剪了
+        for (var i = 0; i < taskCountOfCharObject; i++)
         {
             CharData charData = runList[i];
             if (charData.Size == null)
@@ -221,9 +235,8 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
             {
                 if (DebugConfiguration.IsInDebugMode
                     // 调试下，且非最后一个。最后一个预期是相等的
-                    && i != argument.CurrentIndex + taskCount - 1)
+                    && i != taskCountOfCharObject - 1)
                 {
-
                     throw new TextEditorInnerDebugException(Message);
                 }
                 else
@@ -239,7 +252,7 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
             throw new TextEditorInnerDebugException(Message);
         }
 
-        return new SingleCharInLineLayoutResult(taskCount, new Size(measuredWidth, 0));
+        return new SingleCharInLineLayoutResult(taskCountOfCharObject, new Size(measuredWidth, 0));
     }
 
     private const string Message = "布局过程中发现 CharData 和 Text 数量不匹配，预计是框架内实现的问题";

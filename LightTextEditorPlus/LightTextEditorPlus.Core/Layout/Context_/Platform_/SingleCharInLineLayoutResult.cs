@@ -53,4 +53,8 @@ public readonly struct SingleCharInLineLayoutResult
     //    TotalSize = this.TotalSize;
     //    CharSizeList = this.CharSizeList;
     //}
+
+    /// <inheritdoc />
+    public override string ToString()
+        => $"CanTake={CanTake};ShouldBreakLine={ShouldBreakLine};TakeCount={TakeCount};TotalSize={TotalSize}";
 }
