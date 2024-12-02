@@ -41,26 +41,12 @@ public partial class TextEditor : Control
         //TextEditorCore.AppendText("afg123微软雅黑123123");
 
         // 设计上会导致 Avalonia 总会调用二级的 SkiaTextEditor 接口实现功能。有开发资源可以做一层代理
-        
-        Loaded += TextEditor_Loaded;
-        //InputMethod.AddTextInputMethodClientRequeryRequestedHandler(this, (sender, args) =>
-        //{
-
-        //});
-
-
     }
 
     /// <summary>
     /// 日志
     /// </summary>
-    public LightTextEditorPlus.Core.Primitive.ITextLogger Logger => TextEditorCore.Logger;
-
-    private void TextEditor_Loaded(object? sender, RoutedEventArgs e)
-    {
-        this.Focus(NavigationMethod.Directional);
-        this.TextInputMethodClientRequested += TextEditor_TextInputMethodClientRequested;
-    }
+    internal ITextLogger Logger => TextEditorCore.Logger;
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
@@ -76,21 +62,18 @@ public partial class TextEditor : Control
         base.OnPointerPressed(e);
     }
 
-    private void TextEditor_TextInputMethodClientRequested(object? sender, TextInputMethodClientRequestedEventArgs e)
-    {
-    }
+    //protected override void OnTextInput(TextInputEventArgs e)
+    //{   
 
-    protected override void OnTextInput(TextInputEventArgs e)
-    {   
-
-        base.OnTextInput(e);
-    }
+    //    base.OnTextInput(e);
+    //}
 
     #region 状态同步
 
     protected override void OnGotFocus(GotFocusEventArgs e)
     {
-        IsInEditingInputMode = true;
+        // 获取焦点时，允许用户编辑，才能设置为编辑模式
+        IsInEditingInputMode = IsEditable && true;
         base.OnGotFocus(e);
     }
 

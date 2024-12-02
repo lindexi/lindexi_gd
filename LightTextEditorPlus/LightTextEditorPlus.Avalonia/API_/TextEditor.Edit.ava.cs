@@ -19,6 +19,29 @@ namespace LightTextEditorPlus
         #region 编辑模式
 
         /// <summary>
+        /// 是否可编辑。可编辑和 <see cref="IsInEditingInputMode"/> 不同点在于，可编辑是指是否开放用户编辑，不可编辑时用户无法编辑文本。而 <see cref="IsInEditingInputMode"/> 指的是当前的状态是否是用户编辑状态
+        /// </summary>
+        /// <remarks>
+        /// 设置不可编辑时，仅仅是不开放用户编辑，但是可以通过 API 进行编辑
+        /// </remarks>
+        public bool IsEditable
+        {
+            get => _isEditable;
+            set
+            {
+                _isEditable = value;
+                IsInEditingInputMode = false;
+            }
+        }
+
+        private bool _isEditable = true;
+
+        /// <summary>
+        /// 是否只读的文本。这里的只读指的是不开放用户编辑，依然可以使用 API 调用进行文本编辑
+        /// </summary>
+        public bool IsReadOnly => !IsEditable;
+
+        /// <summary>
         /// 是否进入用户编辑模式。进入用户编辑模式将闪烁光标，支持输入法输入
         /// </summary>
         public bool IsInEditingInputMode
@@ -28,6 +51,13 @@ namespace LightTextEditorPlus
                 if (_isInEditingInputMode == value)
                 {
                     return;
+                }
+
+                if (value is true && IsEditable is false)
+                {
+                    Logger.LogDebug($"设置进入用户编辑模式，但当前文本禁用编辑，设置进入用户编辑模式失效");
+
+                    value = false;
                 }
 
                 //EnsureEditInit();
