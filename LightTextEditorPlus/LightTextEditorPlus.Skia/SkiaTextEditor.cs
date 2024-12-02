@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -121,13 +122,14 @@ public class SkiaTextEditorPlatformProvider : PlatformProvider
         return TextEditor;
     }
 
-    public override ISingleCharInLineLayouter? GetSingleRunLineLayouter()
+    public override ISingleCharInLineLayouter GetSingleRunLineLayouter()
     {
         return new SkiaSingleCharInLineLayouter(TextEditor);
     }
 
-    public override ICharInfoMeasurer? GetCharInfoMeasurer()
+    public override ICharInfoMeasurer GetCharInfoMeasurer()
     {
+        Debug.Fail($"已重写 GetSingleRunLineLayouter 方法，不应再进入 GetCharInfoMeasurer 方法");
         return new SkiaCharInfoMeasurer(TextEditor);
     }
 }
