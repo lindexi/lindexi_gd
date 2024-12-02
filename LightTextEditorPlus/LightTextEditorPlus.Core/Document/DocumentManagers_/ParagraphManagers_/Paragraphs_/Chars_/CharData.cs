@@ -45,7 +45,7 @@ public class CharData
     /// </summary>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException"></exception>
-    public Point GetStartPoint()
+    public TextPoint GetStartPoint()
     {
         if (CharLayoutData is null || CharLayoutData.IsInvalidVersion())
         {
@@ -61,7 +61,7 @@ public class CharData
     /// <param name="point"></param>
     /// <exception cref="InvalidOperationException"></exception>
     /// 这是文本排版布局的核心方法，通过此方法即可设置每个字符的位置
-    internal void SetStartPoint(Point point)
+    internal void SetStartPoint(TextPoint point)
     {
         if (CharLayoutData is null)
         {
@@ -81,17 +81,17 @@ public class CharData
     /// <summary>
     /// 设置尺寸
     /// </summary>
-    /// <param name="size"></param>
-    public void SetSize(Size size)
+    /// <param name="textSize"></param>
+    public void SetSize(TextSize textSize)
     {
-        Size = size;
+        Size = textSize;
     }
 
     /// <summary>
     /// 尺寸
     /// </summary>
     /// 尺寸是可以复用的
-    public Size? Size
+    public TextSize? Size
     {
         internal set
         {
@@ -105,13 +105,13 @@ public class CharData
         get => _size;
     }
 
-    private Size? _size;
+    private TextSize? _size;
 
     /// <summary>
     /// 获取字符的布局范围
     /// </summary>
     /// <returns></returns>
-    public Rect GetBounds() => new Rect(GetStartPoint(), Size!.Value);
+    public TextRect GetBounds() => new TextRect(GetStartPoint(), Size!.Value);
 
     /// <summary>
     /// 调试下的判断逻辑

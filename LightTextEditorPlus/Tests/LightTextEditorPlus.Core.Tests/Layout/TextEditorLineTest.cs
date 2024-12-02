@@ -75,7 +75,7 @@ public class TextEditorLineTest
     {
         public CharInfoMeasureResult MeasureCharInfo(in CharInfo charInfo)
         {
-            var bounds = new Rect(0, 0, charInfo.RunProperty.FontSize, charInfo.RunProperty.FontSize);
+            var bounds = new TextRect(0, 0, charInfo.RunProperty.FontSize, charInfo.RunProperty.FontSize);
             return new CharInfoMeasureResult(bounds);
         }
     }

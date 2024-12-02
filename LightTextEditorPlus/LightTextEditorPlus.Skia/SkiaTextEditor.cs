@@ -47,7 +47,7 @@ public partial class SkiaTextEditor : IRenderManager
     /// <summary>
     /// 获取文档的布局尺寸，实际布局尺寸
     /// </summary>
-    public Rect CurrentLayoutBounds { get; private set; } = Rect.Zero;
+    public TextRect CurrentLayoutBounds { get; private set; } = TextRect.Zero;
 
     void IRenderManager.Render(RenderInfoProvider renderInfoProvider)
     {

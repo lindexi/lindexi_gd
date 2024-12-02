@@ -58,7 +58,7 @@ class HorizontalTextRender : TextRenderBase
         return drawingVisual;
     }
 
-    private IEnumerable<List<CharSpanDrawInfo>> GetCharSpanContinuous(ReadOnlyListSpan<CharData> charList)
+    private IEnumerable<List<CharSpanDrawInfo>> GetCharSpanContinuous(TextReadOnlyListSpan<CharData> charList)
     {
         var list = new List<CharSpanDrawInfo>();
         GlyphTypeface? glyphTypeface = null;
@@ -86,7 +86,7 @@ class HorizontalTextRender : TextRenderBase
         yield return list;
     }
 
-    private IEnumerable<CharSpanDrawInfo> GetCharSpan(ReadOnlyListSpan<CharData> charList)
+    private IEnumerable<CharSpanDrawInfo> GetCharSpan(TextReadOnlyListSpan<CharData> charList)
     {
         var firstCharData = charList[0];
         var runProperty = firstCharData.RunProperty;
@@ -138,7 +138,7 @@ class HorizontalTextRender : TextRenderBase
         using var drawingContext = drawingGroup.Open();
 
         // 获取字符属性相同聚合一起的拆分之后的字符
-        IEnumerable<ReadOnlyListSpan<CharData>> splitList = argument.CharList.SplitContinuousCharData((last, current) => last.RunProperty.Equals(current.RunProperty));
+        IEnumerable<TextReadOnlyListSpan<CharData>> splitList = argument.CharList.SplitContinuousCharData((last, current) => last.RunProperty.Equals(current.RunProperty));
 
         foreach (var charList in splitList)
         {
@@ -156,7 +156,7 @@ class HorizontalTextRender : TextRenderBase
                 var advanceWidths = new List<double>(charSpanDrawInfoList.Count);
                 var characters = new List<char>(charSpanDrawInfoList.Count);
 
-                LightTextEditorPlus.Core.Primitive.Point? startPoint = null;
+                LightTextEditorPlus.Core.Primitive.TextPoint? startPoint = null;
                 // 行渲染高度
                 var height = 0d;// argument.Size.Height;
                 GlyphTypeface? currentGlyphTypeface = null;

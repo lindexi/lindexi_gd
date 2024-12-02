@@ -42,14 +42,14 @@ class TextEditorSkiaRender : ITextEditorContentSkiaRender
     }
 }
 
-record TextEditorSelectionSkiaRender(IReadOnlyList<Rect> SelectionBoundsList, SKColor SelectionColor) : ITextEditorCaretAndSelectionRenderSkiaRender
+record TextEditorSelectionSkiaRender(IReadOnlyList<TextRect> SelectionBoundsList, SKColor SelectionColor) : ITextEditorCaretAndSelectionRenderSkiaRender
 {
     public void Render(SKCanvas canvas)
     {
         using SKPaint skPaint = new SKPaint();
         skPaint.Style = SKPaintStyle.Fill;
         skPaint.Color = SelectionColor;
-        foreach (Rect selectionBounds in SelectionBoundsList)
+        foreach (TextRect selectionBounds in SelectionBoundsList)
         {
             canvas.DrawRect(selectionBounds.ToSKRect(), skPaint);
         }

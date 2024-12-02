@@ -10,9 +10,9 @@ namespace LightTextEditorPlus.Core.Primitive;
 /// 文本库使用的尺寸
 /// </summary>
 [DebuggerDisplay("W:{Width} H:{Height}")]
-public readonly struct Size : IEquatable<Size>
+public readonly struct TextSize : IEquatable<TextSize>
 {
-    public Size(double width, double height)
+    public TextSize(double width, double height)
     {
         Width = width;
         Height = height;
@@ -21,28 +21,28 @@ public readonly struct Size : IEquatable<Size>
     public double Width { get; }
     public double Height { get; }
 
-    public Size HorizontalUnion(Size other)
+    public TextSize HorizontalUnion(TextSize other)
     {
         return HorizontalUnion(other.Width, other.Height);
     }
 
-    public Size HorizontalUnion(double otherWidth,double otherHeight)
+    public TextSize HorizontalUnion(double otherWidth,double otherHeight)
     {
         var width = Width + otherWidth;
         var height = Math.Max(Height, otherHeight);
-        return new Size(width, height);
+        return new TextSize(width, height);
     }
 
-    public static Size Zero => new Size(0, 0);
+    public static TextSize Zero => new TextSize(0, 0);
 
-    public bool Equals(Size other)
+    public bool Equals(TextSize other)
     {
         return Width.Equals(other.Width) && Height.Equals(other.Height);
     }
 
     public override bool Equals(object? obj)
     {
-        return obj is Size other && Equals(other);
+        return obj is TextSize other && Equals(other);
     }
 
     public override int GetHashCode()
@@ -50,32 +50,32 @@ public readonly struct Size : IEquatable<Size>
         return HashCode.Combine(Width, Height);
     }
 
-    public static Size operator +(Size size1, Size size2)
+    public static TextSize operator +(TextSize size1, TextSize size2)
     {
-        return new Size(size1.Width + size2.Width, size1.Height + size2.Height);
+        return new TextSize(size1.Width + size2.Width, size1.Height + size2.Height);
     }
 
-    public static Size operator -(Size size1, Size size2)
+    public static TextSize operator -(TextSize size1, TextSize size2)
     {
-        return new Size(size1.Width - size2.Width, size1.Height - size2.Height);
+        return new TextSize(size1.Width - size2.Width, size1.Height - size2.Height);
     }
 
-    public static Size operator *(Size size1, double value)
+    public static TextSize operator *(TextSize size1, double value)
     {
-        return new Size(size1.Width * value, size1.Height * value);
+        return new TextSize(size1.Width * value, size1.Height * value);
     }
 
-    public static Size operator /(Size size1, double value)
+    public static TextSize operator /(TextSize size1, double value)
     {
-        return new Size(size1.Width / value, size1.Height / value);
+        return new TextSize(size1.Width / value, size1.Height / value);
     }
 
-    public static bool operator ==(Size left, Size right)
+    public static bool operator ==(TextSize left, TextSize right)
     {
         return left.Equals(right);
     }
 
-    public static bool operator !=(Size left, Size right)
+    public static bool operator !=(TextSize left, TextSize right)
     {
         return !left.Equals(right);
     }
@@ -86,7 +86,7 @@ public readonly struct Size : IEquatable<Size>
         height = Height;
     }
 
-    public static bool TryParse(string value, out Size size)
+    public static bool TryParse(string value, out TextSize textSize)
     {
         if (!string.IsNullOrEmpty(value))
         {
@@ -95,12 +95,12 @@ public readonly struct Size : IEquatable<Size>
                 && double.TryParse(wh[0], NumberStyles.Number, CultureInfo.InvariantCulture, out double w)
                 && double.TryParse(wh[1], NumberStyles.Number, CultureInfo.InvariantCulture, out double h))
             {
-                size = new Size(w, h);
+                textSize = new TextSize(w, h);
                 return true;
             }
         }
 
-        size = default;
+        textSize = default;
         return false;
     }
 }

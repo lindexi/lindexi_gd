@@ -10,11 +10,10 @@ namespace LightTextEditorPlus.Core.Primitive.Collections;
 /// </summary>
 /// <typeparam name="T"></typeparam>
 /// <remarks>无法处理传入的 source 实际源被更改问题。在 source 不变更情况下，读取是线程安全。 使用结构体能够减少 GC 压力</remarks>
-/// todo 改名，不能叫这么通用的名字，不利于 public 到项目外使用
-public readonly struct ReadOnlyListSpan<T> : IReadOnlyList<T>, IEquatable<ReadOnlyListSpan<T>>
+public readonly struct TextReadOnlyListSpan<T> : IReadOnlyList<T>, IEquatable<TextReadOnlyListSpan<T>>
 {
-    /// <inheritdoc cref="ReadOnlyListSpan{T}"/>
-    public ReadOnlyListSpan(IReadOnlyList<T> source, int start, int length)
+    /// <inheritdoc cref="TextReadOnlyListSpan{T}"/>
+    public TextReadOnlyListSpan(IReadOnlyList<T> source, int start, int length)
     {
         _source = source;
         _start = start;
@@ -47,25 +46,25 @@ public readonly struct ReadOnlyListSpan<T> : IReadOnlyList<T>, IEquatable<ReadOn
     /// </summary>
     /// <param name="start"></param>
     /// <returns></returns>
-    public ReadOnlyListSpan<T> Slice(int start)
+    public TextReadOnlyListSpan<T> Slice(int start)
     {
         var length = _length - start;
         return Slice(start, length);
     }
 
     /// <inheritdoc cref="Slice(int)"/>
-    public ReadOnlyListSpan<T> Slice(int start, int length)
+    public TextReadOnlyListSpan<T> Slice(int start, int length)
     {
         if (length + start > _length)
         {
             throw new ArgumentOutOfRangeException(nameof(length));
         }
 
-        return new ReadOnlyListSpan<T>(_source, _start + start, length);
+        return new TextReadOnlyListSpan<T>(_source, _start + start, length);
     }
 
     /// <inheritdoc />
-    public bool Equals(ReadOnlyListSpan<T> other)
+    public bool Equals(TextReadOnlyListSpan<T> other)
     {
         return ReferenceEquals(_source, other._source) && _start == other._start && _length == other._length;
     }
@@ -73,7 +72,7 @@ public readonly struct ReadOnlyListSpan<T> : IReadOnlyList<T>, IEquatable<ReadOn
     /// <inheritdoc />
     public override bool Equals(object? obj)
     {
-        return obj is ReadOnlyListSpan<T> other && Equals(other);
+        return obj is TextReadOnlyListSpan<T> other && Equals(other);
     }
 
     /// <inheritdoc />

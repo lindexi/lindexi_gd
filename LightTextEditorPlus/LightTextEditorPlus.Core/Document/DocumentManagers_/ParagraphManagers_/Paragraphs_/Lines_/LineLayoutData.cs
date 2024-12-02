@@ -56,7 +56,7 @@ class LineLayoutData : IParagraphCache, IDisposable
     /// <summary>
     /// 这一行的起始的点，相对于文本框
     /// </summary>
-    public Point CharStartPoint
+    public TextPoint CharStartPoint
     {
         set
         {
@@ -66,17 +66,17 @@ class LineLayoutData : IParagraphCache, IDisposable
         get => _charStartPoint;
     }
 
-    private Point _charStartPoint;
+    private TextPoint _charStartPoint;
 
     /// <summary>
     /// 这一行的字符尺寸
     /// </summary>
-    public Size LineCharSize { get; init; }
+    public TextSize LineCharTextSize { get; init; }
 
     /// <summary>
     /// 这一行的范围
     /// </summary>
-    public Rect GetLineBounds() => new Rect(_charStartPoint, LineCharSize);
+    public TextRect GetLineBounds() => new TextRect(_charStartPoint, LineCharTextSize);
 
     /// <summary>
     /// 这一行是当前段落的第几行
@@ -101,7 +101,7 @@ class LineLayoutData : IParagraphCache, IDisposable
     /// </summary>
     /// <remarks>这个方法调用接近不用钱，随便调用</remarks>
     /// <returns></returns>
-    public ReadOnlyListSpan<CharData> GetCharList() =>
+    public TextReadOnlyListSpan<CharData> GetCharList() =>
         CurrentParagraph.ToReadOnlyListSpan(new ParagraphCharOffset(CharStartParagraphIndex), CharEndParagraphIndex - CharStartParagraphIndex);
 
     public ParagraphCaretOffset ToParagraphCaretOffset(LineCaretOffset lineCaretOffset)
@@ -156,7 +156,7 @@ class LineLayoutData : IParagraphCache, IDisposable
 
     public LineDrawingArgument GetLineDrawingArgument()
     {
-        return new LineDrawingArgument(IsDrawn, IsLineStartPointUpdated, LineAssociatedRenderData, CharStartPoint, LineCharSize,
+        return new LineDrawingArgument(IsDrawn, IsLineStartPointUpdated, LineAssociatedRenderData, CharStartPoint, LineCharTextSize,
             GetCharList());
     }
 
@@ -167,7 +167,7 @@ class LineLayoutData : IParagraphCache, IDisposable
     /// 调试下，用来了解有那些字符
     /// </summary>
     // ReSharper disable once UnusedMember.Local
-    private ReadOnlyListSpan<CharData> DebugCharList => GetCharList();
+    private TextReadOnlyListSpan<CharData> DebugCharList => GetCharList();
 #endif
 
     public override string ToString()

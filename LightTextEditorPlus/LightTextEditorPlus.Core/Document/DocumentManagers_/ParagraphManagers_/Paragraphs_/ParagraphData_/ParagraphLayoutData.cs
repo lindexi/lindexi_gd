@@ -10,11 +10,11 @@ public interface IParagraphLayoutData
     /// <summary>
     /// 段落的起始点
     /// </summary>
-    Point StartPoint { get; }
+    TextPoint StartPoint { get; }
     /// <summary>
     /// 段落尺寸
     /// </summary>
-    Size Size { get; }
+    TextSize TextSize { get; }
 }
 
 /// <summary>
@@ -25,16 +25,16 @@ class ParagraphLayoutData : IParagraphLayoutData
     /// <summary>
     /// 段落的起始点
     /// </summary>
-    public Point StartPoint { set; get; }
+    public TextPoint StartPoint { set; get; }
 
     /// <summary>
     /// 段落尺寸
     /// </summary>
-    public Size Size { set; get; }
+    public TextSize TextSize { set; get; }
 
     /// <summary>
     /// 段落的范围
     /// </summary>
     /// <returns></returns>
-    public Rect GetBounds() => new Rect(StartPoint, Size);
+    public TextRect GetBounds() => new TextRect(StartPoint, TextSize);
 }

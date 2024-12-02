@@ -34,9 +34,6 @@ using LightTextEditorPlus.Utils;
 using LightTextEditorPlus.Utils.Threading;
 
 using FrameworkElement = System.Windows.FrameworkElement;
-using Point = LightTextEditorPlus.Core.Primitive.Point;
-using Rect = LightTextEditorPlus.Core.Primitive.Rect;
-using Size = LightTextEditorPlus.Core.Primitive.Size;
 
 namespace LightTextEditorPlus;
 
@@ -454,18 +451,18 @@ class CharInfoMeasurer : ICharInfoMeasurer
         GlyphTypeface glyphTypeface = runProperty.GetGlyphTypeface();
         var fontSize = charInfo.RunProperty.FontSize;
 
-        Size size;
+        TextSize textSize;
 
         if (_textEditor.TextEditorCore.ArrangingType == ArrangingType.Horizontal)
         {
             if (charInfo.CharObject is SingleCharObject singleCharObject)
             {
                 var (width, height) = MeasureChar(singleCharObject.GetChar());
-                size = new Size(width, height);
+                textSize = new TextSize(width, height);
             }
             else
             {
-                size = Size.Zero;
+                textSize = TextSize.Zero;
 
                 var text = charInfo.CharObject.ToText();
 
@@ -475,7 +472,7 @@ class CharInfoMeasurer : ICharInfoMeasurer
 
                     var (width, height) = MeasureChar(c);
 
-                    size = size.HorizontalUnion(width, height);
+                    textSize = textSize.HorizontalUnion(width, height);
                 }
             }
 
@@ -578,6 +575,6 @@ class CharInfoMeasurer : ICharInfoMeasurer
             throw new NotImplementedException("还没有实现竖排的文本测量");
         }
 
-        return new CharInfoMeasureResult(new Rect(new Point(), size));
+        return new CharInfoMeasureResult(new TextRect(new TextPoint(), textSize));
     }
 }

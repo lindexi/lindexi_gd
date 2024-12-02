@@ -21,7 +21,7 @@ public class TextEditorStatusTest
             textEditorCore.AppendText("abcde");
 
             // Action
-            var point = new Point(TestHelper.LayoutTestCharWidth + 0.2, 5);
+            var point = new TextPoint(TestHelper.LayoutTestCharWidth + 0.2, 5);
 
             bool result = textEditorCore.TryHitTest(point, out var hitTestResult);
 
@@ -49,7 +49,7 @@ public class TextEditorStatusTest
             textEditorCore.AppendText(TestHelper.PlainNumberText);
 
             // Action
-            var point = new Point(0, 0);
+            var point = new TextPoint(0, 0);
 
             bool result = textEditorCore.TryHitTest(point, out var hitTestResult);
 
@@ -64,7 +64,7 @@ public class TextEditorStatusTest
             var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider());
 
             // Action
-            var point = new Point(0, 0);
+            var point = new TextPoint(0, 0);
 
             bool result = textEditorCore.TryHitTest(point, out var hitTestResult);
 

@@ -9,7 +9,7 @@ namespace LightTextEditorPlus.Core.Primitive;
 /// </summary>
 /// Copy From https://github.com/dotnet/Microsoft.Maui.Graphics 但是修改了一些代码
 [DebuggerDisplay("X={X}, Y={Y}, Width={Width}, Height={Height}")]
-public struct Rect
+public struct TextRect
 {
     /// <summary>
     /// 创建文本库使用的坐标和尺寸的矩形
@@ -18,7 +18,7 @@ public struct Rect
     /// <param name="y"></param>
     /// <param name="width"></param>
     /// <param name="height"></param>
-    public Rect(double x, double y, double width, double height) : this()
+    public TextRect(double x, double y, double width, double height) : this()
     {
         X = x;
         Y = y;
@@ -30,8 +30,8 @@ public struct Rect
     /// 创建文本库使用的坐标和尺寸的矩形
     /// </summary>
     /// <param name="location"></param>
-    /// <param name="size"></param>
-    public Rect(Point location, Size size) : this(location.X, location.Y, size.Width, size.Height)
+    /// <param name="textSize"></param>
+    public TextRect(TextPoint location, TextSize textSize) : this(location.X, location.Y, textSize.Width, textSize.Height)
     {
     }
 
@@ -58,7 +58,7 @@ public struct Rect
     /// <summary>
     /// 创建一个 <see cref="X"/> <see cref="Y"/> <see cref="Width"/> <see cref="Height"/> 都是 0 的矩形
     /// </summary>
-    public static Rect Zero => new Rect();
+    public static TextRect Zero => new TextRect();
 
     /// <summary>
     /// 从左上和右下点创建矩形
@@ -68,9 +68,9 @@ public struct Rect
     /// <param name="right"></param>
     /// <param name="bottom"></param>
     /// <returns></returns>
-    public static Rect FromLeftTopRightBottom(double left, double top, double right, double bottom)
+    public static TextRect FromLeftTopRightBottom(double left, double top, double right, double bottom)
     {
-        return new Rect(left, top, right - left, bottom - top);
+        return new TextRect(left, top, right - left, bottom - top);
     }
 
     /// <summary>
@@ -78,7 +78,7 @@ public struct Rect
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public bool Equals(Rect other)
+    public bool Equals(TextRect other)
     {
         return X.Equals(other.X) && Y.Equals(other.Y) && Width.Equals(other.Width) && Height.Equals(other.Height);
     }
@@ -88,7 +88,7 @@ public struct Rect
     {
         if (ReferenceEquals(null, obj))
             return false;
-        return obj is Rect rect && Equals(rect);
+        return obj is TextRect rect && Equals(rect);
     }
 
     /// <inheritdoc />
@@ -111,9 +111,9 @@ public struct Rect
     /// <param name="rect1"></param>
     /// <param name="rect2"></param>
     /// <returns></returns>
-    public static bool operator ==(Rect rect1, Rect rect2)
+    public static bool operator ==(TextRect rect1, TextRect rect2)
     {
-        return (rect1.Location == rect2.Location) && (rect1.Size == rect2.Size);
+        return (rect1.Location == rect2.Location) && (rect1.TextSize == rect2.TextSize);
     }
 
     /// <summary>
@@ -122,7 +122,7 @@ public struct Rect
     /// <param name="rect1"></param>
     /// <param name="rect2"></param>
     /// <returns></returns>
-    public static bool operator !=(Rect rect1, Rect rect2)
+    public static bool operator !=(TextRect rect1, TextRect rect2)
     {
         return !(rect1 == rect2);
     }
@@ -133,7 +133,7 @@ public struct Rect
     /// <param name="rect"></param>
     /// <returns></returns>
     // Hit Testing / Intersection / Union
-    public bool Contains(Rect rect)
+    public bool Contains(TextRect rect)
     {
         return X <= rect.X && Right >= rect.Right && Y <= rect.Y && Bottom >= rect.Bottom;
     }
@@ -143,7 +143,7 @@ public struct Rect
     /// </summary>
     /// <param name="point"></param>
     /// <returns></returns>
-    public bool Contains(in Point point)
+    public bool Contains(in TextPoint point)
     {
         return Contains(point.X, point.Y);
     }
@@ -164,7 +164,7 @@ public struct Rect
     /// </summary>
     /// <param name="rect"></param>
     /// <returns></returns>
-    public bool IntersectsWith(Rect rect)
+    public bool IntersectsWith(TextRect rect)
     {
         return !((Left >= rect.Right) || (Right <= rect.Left) || (Top >= rect.Bottom) || (Bottom <= rect.Top));
     }
@@ -174,7 +174,7 @@ public struct Rect
     /// </summary>
     /// <param name="rect"></param>
     /// <returns></returns>
-    public Rect Union(Rect rect)
+    public TextRect Union(TextRect rect)
     {
         return Union(this, rect);
     }
@@ -185,7 +185,7 @@ public struct Rect
     /// <param name="rect1"></param>
     /// <param name="rect2"></param>
     /// <returns></returns>
-    public static Rect Union(Rect rect1, Rect rect2)
+    public static TextRect Union(TextRect rect1, TextRect rect2)
     {
         return FromLeftTopRightBottom(Math.Min(rect1.Left, rect2.Left), Math.Min(rect1.Top, rect2.Top),
             Math.Max(rect1.Right, rect2.Right), Math.Max(rect1.Bottom, rect2.Bottom));
@@ -196,7 +196,7 @@ public struct Rect
     /// </summary>
     /// <param name="rect"></param>
     /// <returns></returns>
-    public Rect Intersect(Rect rect)
+    public TextRect Intersect(TextRect rect)
     {
         return Intersect(this, rect);
     }
@@ -207,7 +207,7 @@ public struct Rect
     /// <param name="rect1"></param>
     /// <param name="rect2"></param>
     /// <returns></returns>
-    public static Rect Intersect(Rect rect1, Rect rect2)
+    public static TextRect Intersect(TextRect rect1, TextRect rect2)
     {
         double x = Math.Max(rect1.X, rect2.X);
         double y = Math.Max(rect1.Y, rect2.Y);
@@ -219,7 +219,7 @@ public struct Rect
             return Zero;
         }
 
-        return new Rect(x, y, width, height);
+        return new TextRect(x, y, width, height);
     }
 
     /// <summary>
@@ -262,12 +262,12 @@ public struct Rect
     /// <summary>
     /// 左上角的点，和 <see cref="Location"/> 相同
     /// </summary>
-    public Point LeftTop => Location; //new Point(Left, Top);
+    public TextPoint LeftTop => Location; //new Point(Left, Top);
 
     /// <summary>
     /// 右下角的点
     /// </summary>
-    public Point RightBottom => new Point(Right, Bottom);
+    public TextPoint RightBottom => new TextPoint(Right, Bottom);
 
     /// <summary>
     /// 是否一个空居心，也就是 <see cref="Width"/> 和 <see cref="Height"/> 都是 0 的值
@@ -277,9 +277,9 @@ public struct Rect
     /// <summary>
     /// 尺寸
     /// </summary>
-    public Size Size
+    public TextSize TextSize
     {
-        get => new Size(Width, Height);
+        get => new TextSize(Width, Height);
         set
         {
             Width = value.Width;
@@ -290,9 +290,9 @@ public struct Rect
     /// <summary>
     /// 坐标
     /// </summary>
-    public Point Location
+    public TextPoint Location
     {
-        get => new Point(X, Y);
+        get => new TextPoint(X, Y);
         set
         {
             X = value.X;
@@ -303,17 +303,17 @@ public struct Rect
     /// <summary>
     /// 中心店
     /// </summary>
-    public Point Center => new Point(X + (Width / 2), Y + (Height / 2));
+    public TextPoint Center => new TextPoint(X + (Width / 2), Y + (Height / 2));
 
     /// <summary>
     /// 在当前矩形基础上获取放大给定尺寸的新矩形
     /// </summary>
-    /// <param name="size"></param>
+    /// <param name="textSize"></param>
     /// <returns></returns>
     // Inflate and Offset
-    public Rect Inflate(Size size)
+    public TextRect Inflate(TextSize textSize)
     {
-        return Inflate(size.Width, size.Height);
+        return Inflate(textSize.Width, textSize.Height);
     }
 
     /// <summary>
@@ -322,9 +322,9 @@ public struct Rect
     /// <param name="width"></param>
     /// <param name="height"></param>
     /// <returns></returns>
-    public Rect Inflate(double width, double height)
+    public TextRect Inflate(double width, double height)
     {
-        Rect r = this;
+        TextRect r = this;
         r.X -= width;
         r.Y -= height;
         r.Width += width * 2;
@@ -338,9 +338,9 @@ public struct Rect
     /// <param name="dx"></param>
     /// <param name="dy"></param>
     /// <returns></returns>
-    public Rect Offset(double dx, double dy)
+    public TextRect Offset(double dx, double dy)
     {
-        Rect r = this;
+        TextRect r = this;
         r.X += dx;
         r.Y += dy;
         return r;
@@ -351,7 +351,7 @@ public struct Rect
     /// </summary>
     /// <param name="distance"></param>
     /// <returns></returns>
-    public Rect Offset(Point distance)
+    public TextRect Offset(TextPoint distance)
     {
         return Offset(distance.X, distance.Y);
     }
@@ -360,9 +360,9 @@ public struct Rect
     /// 对 <see cref="X"/> <see cref="Y"/> <see cref="Width"/> <see cref="Height"/> 都调用 <see cref="Math.Round(double)"/> 的新矩形
     /// </summary>
     /// <returns></returns>
-    public Rect Round()
+    public TextRect Round()
     {
-        return new Rect(Math.Round(X), Math.Round(Y), Math.Round(Width), Math.Round(Height));
+        return new TextRect(Math.Round(X), Math.Round(Y), Math.Round(Width), Math.Round(Height));
     }
 
     /// <summary>
@@ -388,7 +388,7 @@ public struct Rect
     /// <returns></returns>
     //public static implicit operator RectF(Rect rect) => new RectF((float) rect.X, (float) rect.Y, (float) rect.Width, (float) rect.Height);
 
-    public static bool TryParse(string value, out Rect rectangle)
+    public static bool TryParse(string value, out TextRect rectangle)
     {
         if (!string.IsNullOrEmpty(value))
         {
@@ -399,7 +399,7 @@ public struct Rect
                 && double.TryParse(xywh[2], NumberStyles.Number, CultureInfo.InvariantCulture, out double w)
                 && double.TryParse(xywh[3], NumberStyles.Number, CultureInfo.InvariantCulture, out double h))
             {
-                rectangle = new Rect(x, y, w, h);
+                rectangle = new TextRect(x, y, w, h);
                 return true;
             }
         }

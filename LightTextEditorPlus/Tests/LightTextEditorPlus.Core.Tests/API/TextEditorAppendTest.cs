@@ -166,9 +166,9 @@ public class TextEditorAppendTest
             ParagraphRenderInfo paragraphRenderInfo = textEditorCore.GetRenderInfo().GetParagraphRenderInfoList().Last();
             var lastLine = paragraphRenderInfo.GetLineRenderInfoList().Last();
             Assert.AreEqual(30, lastLine.LineLayoutData.CharStartPoint.Y);
-            Assert.AreEqual(15, lastLine.LineLayoutData.LineCharSize.Height);
+            Assert.AreEqual(15, lastLine.LineLayoutData.LineCharTextSize.Height);
 
-            Assert.AreEqual(new Rect(0, 0, 15 * 2, 15 * 3), textEditorCore.GetDocumentLayoutBounds());
+            Assert.AreEqual(new TextRect(0, 0, 15 * 2, 15 * 3), textEditorCore.GetDocumentLayoutBounds());
         });
 
         "对空段的文本追加字符串，如对 \\r\\n 追加 a 字符，不会抛出异常".Test(() =>
@@ -203,7 +203,7 @@ public class TextEditorAppendTest
             //  -
             // 高度 = 一行 15 高度 + 一行 15 高度 = 30 高度
             // 宽度 = 字符 a 宽度 = 15 宽度
-            Assert.AreEqual(new Rect(0, 0, 15, 30), textEditorCore.GetDocumentLayoutBounds());
+            Assert.AreEqual(new TextRect(0, 0, 15, 30), textEditorCore.GetDocumentLayoutBounds());
         });
 
         "给文本追加一个 \\r\\n 字符串，文本可以分两段".Test(() =>

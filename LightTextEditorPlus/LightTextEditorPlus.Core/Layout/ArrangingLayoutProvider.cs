@@ -33,7 +33,7 @@ abstract class ArrangingLayoutProvider
 
     #region 命中测试
 
-    public TextHitTestResult HitTest(in Point point)
+    public TextHitTestResult HitTest(in TextPoint point)
     {
         // 不需要通过 GetRenderInfo 方法获取，这是一个比较上层的方法了
         //TextEditor.GetRenderInfo()
@@ -138,7 +138,7 @@ abstract class ArrangingLayoutProvider
                     {
                         // 一行里面没有命中，可能是这是一个居中对齐的文本，此时需要根据排版规则，修改一行的尺寸，重新计算是否命中到某行
                         // 这是横排的算法
-                        var unionLineBounds = new Rect(paragraphBounds.X, lineBounds.Y, paragraphBounds.Width,
+                        var unionLineBounds = new TextRect(paragraphBounds.X, lineBounds.Y, paragraphBounds.Width,
                             lineBounds.Height);
                         if (unionLineBounds.Contains(point))
                         {
@@ -204,7 +204,7 @@ abstract class ArrangingLayoutProvider
         // 首行出现变脏的序号
         var firstDirtyParagraphIndex = -1;
         // 首个脏段的起始 也就是横排左上角的点。等于非脏段的下一个行起点
-        Point firstStartPoint = default;
+        TextPoint firstStartPoint = default;
 
         var paragraphList = TextEditor.DocumentManager.ParagraphManager.GetParagraphList();
 
@@ -220,7 +220,7 @@ abstract class ArrangingLayoutProvider
                 if (index == 0)
                 {
                     // 从首段落开始
-                    firstStartPoint = new Point(0, 0);
+                    firstStartPoint = new TextPoint(0, 0);
                 }
                 else
                 {
@@ -252,7 +252,7 @@ abstract class ArrangingLayoutProvider
             currentStartPoint = result.NextLineStartPoint;
         }
 
-        var documentBounds = Rect.Zero;
+        var documentBounds = TextRect.Zero;
         foreach (var paragraphData in paragraphList)
         {
             var bounds = paragraphData.ParagraphLayoutData.GetBounds();
@@ -436,7 +436,7 @@ abstract class ArrangingLayoutProvider
     /// <param name="paragraphData"></param>
     /// <returns></returns>
     /// 对于横排来说，是往下排。对于竖排来说，也许是往左也许是往右排
-    protected abstract Point GetNextParagraphLineStartPoint(ParagraphData paragraphData);
+    protected abstract TextPoint GetNextParagraphLineStartPoint(ParagraphData paragraphData);
 
     #region 行距
 
@@ -504,7 +504,7 @@ abstract class ArrangingLayoutProvider
     /// <returns></returns>
     protected CharInfoMeasureResult MeasureCharInfo(CharInfo charInfo)
     {
-        var bounds = new Rect(0, 0, charInfo.RunProperty.FontSize, charInfo.RunProperty.FontSize);
+        var bounds = new TextRect(0, 0, charInfo.RunProperty.FontSize, charInfo.RunProperty.FontSize);
         return new CharInfoMeasureResult(bounds);
     }
 

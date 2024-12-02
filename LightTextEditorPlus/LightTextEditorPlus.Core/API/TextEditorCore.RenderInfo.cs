@@ -14,7 +14,7 @@ public partial class TextEditorCore
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TextEditorDirtyException"></exception>
-    public Rect GetDocumentLayoutBounds()
+    public TextRect GetDocumentLayoutBounds()
     {
         VerifyNotDirty();
 

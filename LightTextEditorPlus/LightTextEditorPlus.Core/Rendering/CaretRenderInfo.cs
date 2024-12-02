@@ -40,12 +40,12 @@ public readonly struct CaretRenderInfo
     /// <summary>
     /// 这一行的字符列表
     /// </summary>
-    public ReadOnlyListSpan<CharData> LineCharDataList => LineLayoutData.GetCharList();
+    public TextReadOnlyListSpan<CharData> LineCharDataList => LineLayoutData.GetCharList();
 
     /// <summary>
     /// 行的范围
     /// </summary>
-    public Rect LineBounds => LineLayoutData.GetLineBounds();
+    public TextRect LineBounds => LineLayoutData.GetLineBounds();
 
     /// <summary>
     /// 命中到行的哪个字符
@@ -118,18 +118,18 @@ public readonly struct CaretRenderInfo
     /// <returns></returns>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     /// <exception cref="NotImplementedException"></exception>
-    public Rect GetCaretBounds(double caretWidth)
+    public TextRect GetCaretBounds(double caretWidth)
     {
         var charData = CharData;
         var startPoint = charData?.GetStartPoint() ?? LineBounds.LeftTop;
-        Size size;
+        TextSize textSize;
         if (charData?.Size is not null)
         {
-            size = charData.Size.Value;
+            textSize = charData.Size.Value;
         }
         else
         {
-            size = LineBounds.Size;
+            textSize = LineBounds.TextSize;
         }
 
         switch (TextEditor.ArrangingType)
@@ -143,14 +143,14 @@ public readonly struct CaretRenderInfo
                 }
                 else
                 {
-                    x += size.Width;
+                    x += textSize.Width;
                 }
                 var width = caretWidth;
                 var height =
                     LineSpacingCalculator.CalculateLineHeightWithLineSpacing(TextEditor,
                         TextEditor.DocumentManager.CurrentCaretRunProperty, 1);
-                y += size.Height - height;
-                var rectangle = new Rect(x, y, width, height);
+                y += textSize.Height - height;
+                var rectangle = new TextRect(x, y, width, height);
                 return rectangle;
             case ArrangingType.Vertical:
                 break;

@@ -17,7 +17,7 @@ public static class ReadOnlyCharDataListExtension
     /// <param name="charDataList"></param>
     /// <param name="predicate">判断给定两个 <see cref="CharData"/> 是否符合条件</param>
     /// <returns></returns>
-    public static IEnumerable<ReadOnlyListSpan<CharData>> SplitContinuousCharData(this ReadOnlyListSpan<CharData> charDataList,
+    public static IEnumerable<TextReadOnlyListSpan<CharData>> SplitContinuousCharData(this TextReadOnlyListSpan<CharData> charDataList,
         Func<CharData, CharData, bool> predicate)
     {
         CharData lastCharData = null!;

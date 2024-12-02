@@ -38,7 +38,7 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
     public SingleCharInLineLayoutResult LayoutSingleCharInLine(in SingleCharInLineLayoutArgument argument)
     {
         // 获取连续的字符，不连续的字符也不能进入到这里布局。属性不相同的，等待下次进入此方法布局
-        ReadOnlyListSpan<CharData> runList = argument.RunList.Slice(argument.CurrentIndex).GetFirstCharSpanContinuous();
+        TextReadOnlyListSpan<CharData> runList = argument.RunList.Slice(argument.CurrentIndex).GetFirstCharSpanContinuous();
         // 这里的 runList 就是当前准备布局的文本，首个字符就是 CurrentCharData 的值。至少会包含一个字符
         Debug.Assert(runList.Count > 0);
 #if DEBUG
@@ -225,7 +225,7 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
             {
                 SKRect glyphRunBound = glyphRunBounds[glyphRunBoundsIndex];
 
-                charData.SetSize(new Size(glyphRunBound.Width, glyphRunBound.Height));
+                charData.SetSize(new TextSize(glyphRunBound.Width, glyphRunBound.Height));
             }
 
             // 解决 CharData 和字符不一一对应的问题，可能一个 CharData 对应多个字符
@@ -252,7 +252,7 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
             throw new TextEditorInnerDebugException(Message);
         }
 
-        return new SingleCharInLineLayoutResult(taskCountOfCharObject, new Size(measuredWidth, 0));
+        return new SingleCharInLineLayoutResult(taskCountOfCharObject, new TextSize(measuredWidth, 0));
     }
 
     private const string Message = "布局过程中发现 CharData 和 Text 数量不匹配，预计是框架内实现的问题";

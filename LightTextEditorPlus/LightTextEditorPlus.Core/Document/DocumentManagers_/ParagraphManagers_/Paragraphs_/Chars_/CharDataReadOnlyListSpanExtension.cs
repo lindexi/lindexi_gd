@@ -15,7 +15,7 @@ public static class CharDataReadOnlyListSpanExtension
     /// </summary>
     /// <param name="list"></param>
     /// <returns></returns>
-    public static string ToText(this ReadOnlyListSpan<CharData> list)
+    public static string ToText(this TextReadOnlyListSpan<CharData> list)
     {
         var stringBuilder = new StringBuilder();
         foreach (CharData charData in list)
@@ -26,7 +26,7 @@ public static class CharDataReadOnlyListSpanExtension
     }
 
     /// <inheritdoc cref="GetFirstCharSpanContinuous"/>
-    public static IEnumerable<ReadOnlyListSpan<CharData>> GetCharSpanContinuous(this ReadOnlyListSpan<CharData> charList, CheckCharDataContinuous? checker = null)
+    public static IEnumerable<TextReadOnlyListSpan<CharData>> GetCharSpanContinuous(this TextReadOnlyListSpan<CharData> charList, CheckCharDataContinuous? checker = null)
     {
         var currentList = charList;
         while (currentList.Count > 0)
@@ -43,7 +43,7 @@ public static class CharDataReadOnlyListSpanExtension
     /// <param name="charList"></param>
     /// <param name="checker">默认不传将只判断 <see cref="CharData.RunProperty"/> 部分</param>
     /// <returns></returns>
-    public static ReadOnlyListSpan<CharData> GetFirstCharSpanContinuous(this ReadOnlyListSpan<CharData> charList, CheckCharDataContinuous? checker = null)
+    public static TextReadOnlyListSpan<CharData> GetFirstCharSpanContinuous(this TextReadOnlyListSpan<CharData> charList, CheckCharDataContinuous? checker = null)
     {
         if (charList.Count == 0)
         {

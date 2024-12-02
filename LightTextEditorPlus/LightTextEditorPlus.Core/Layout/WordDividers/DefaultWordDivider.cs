@@ -31,7 +31,7 @@ internal class DefaultWordDivider
     {
         // 判断是否在单词内
         var charData = argument.CurrentCharData;
-        Size size = GetCharSize(charData);
+        TextSize textSize = GetCharSize(charData);
 
         // 思路：
         // 先判断字符所在的语言文化，是 Latin 的还是中文的，还是合写字的蒙文或藏文的
@@ -44,12 +44,12 @@ internal class DefaultWordDivider
 
         // 读取一个单词的宽度，看看是否太长了
         Debug.Assert(argument.CurrentIndex + charCount <= argument.RunList.Count, "读取的单词一定在行内");
-        var totalWidth = size.Width;
+        var totalWidth = textSize.Width;
         for (int i = argument.CurrentIndex + 1; i < argument.CurrentIndex + charCount; i++)
         {
             CharData currentCharData = argument.RunList[i];
-            Size currentSize = GetCharSize(currentCharData);
-            totalWidth += currentSize.Width;
+            TextSize currentTextSize = GetCharSize(currentCharData);
+            totalWidth += currentTextSize.Width;
         }
 
         // 如果剩余的宽度大于此当前能够获取的，那还需要判断下一个字符是否标点符号，且标点符号是不能放在下一行行首的
@@ -62,10 +62,10 @@ internal class DefaultWordDivider
             {
                 // 先判断能不能放下这个字符，能放下就无视其他规则
                 CharData charDataInNextWord = argument.RunList[wordNextCharIndex];
-                Size currentSize = GetCharSize(charDataInNextWord);
+                TextSize currentTextSize = GetCharSize(charDataInNextWord);
 
                 // 获取测试宽度，再次判断测试行剩余宽度是否足够
-                var testWidth = totalWidth + currentSize.Width;
+                var testWidth = totalWidth + currentTextSize.Width;
 
                 if (testWidth <= argument.LineRemainingWidth)
                 {
@@ -110,7 +110,7 @@ internal class DefaultWordDivider
 
         if (canTakeCurrentWord)
         {
-            return new SingleCharInLineLayoutResult(takeCount: charCount, new Size(totalWidth, size.Height));
+            return new SingleCharInLineLayoutResult(takeCount: charCount, new TextSize(totalWidth, textSize.Height));
         }
         else
         {
@@ -153,13 +153,13 @@ internal class DefaultWordDivider
     /// <returns></returns>
     private SingleCharInLineLayoutResult LayoutCharWithoutCulture(in SingleCharInLineLayoutArgument argument)
     {
-        var totalWidth = Size.Zero;
+        var totalWidth = TextSize.Zero;
         var i = argument.CurrentIndex;
         for (; i < argument.RunList.Count; i++)
         {
             CharData charData = argument.RunList[i];
-            Size size = GetCharSize(charData);
-            var currentSize = totalWidth.HorizontalUnion(size);
+            TextSize textSize = GetCharSize(charData);
+            var currentSize = totalWidth.HorizontalUnion(textSize);
             if (currentSize.Width > argument.LineRemainingWidth)
             {
                 // 超过了，那就不能获取了
@@ -266,7 +266,7 @@ internal class DefaultWordDivider
     }
 
     [DebuggerStepThrough] // 别跳太多层
-    private Size GetCharSize(CharData charData) => _charDataSizeMeasurer.GetCharSize(charData);
+    private TextSize GetCharSize(CharData charData) => _charDataSizeMeasurer.GetCharSize(charData);
 
     //readonly record struct WordRange(ReadOnlyListSpan<CharData> RunList, int StartIndex, int EndIndex);
 }

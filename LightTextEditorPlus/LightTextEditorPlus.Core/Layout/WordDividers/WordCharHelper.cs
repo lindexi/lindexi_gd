@@ -9,7 +9,7 @@ namespace LightTextEditorPlus.Core.Layout.WordDividers;
 
 internal static class WordCharHelper
 {
-    public static IEnumerable<string> TraversalSplit(ReadOnlyListSpan<CharData> runList, int currentIndex = 0)
+    public static IEnumerable<string> TraversalSplit(TextReadOnlyListSpan<CharData> runList, int currentIndex = 0)
     {
         foreach ((int start, int count) in Traversal(runList, currentIndex))
         {
@@ -23,7 +23,7 @@ internal static class WordCharHelper
         }
     }
 
-    public static IEnumerable<(int Start, int Count)> Traversal(ReadOnlyListSpan<CharData> runList, int currentIndex = 0)
+    public static IEnumerable<(int Start, int Count)> Traversal(TextReadOnlyListSpan<CharData> runList, int currentIndex = 0)
     {
         while (currentIndex < runList.Count)
         {
@@ -33,7 +33,7 @@ internal static class WordCharHelper
         }
     }
 
-    public static int ReadWordCharCount(ReadOnlyListSpan<CharData> runList, int currentIndex)
+    public static int ReadWordCharCount(TextReadOnlyListSpan<CharData> runList, int currentIndex)
     {
         // 读取当前的字符所在的单词的字符数量
         if (TryReadWordCharCount(CheckSpace, out var count)

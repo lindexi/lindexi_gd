@@ -31,25 +31,25 @@ public class RenderInfoProvider
     public bool IsDirty { internal set; get; }
 
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.GetDocumentLayoutBounds"/>
-    public Rect GetDocumentLayoutBounds() => TextEditor.GetDocumentLayoutBounds();
+    public TextRect GetDocumentLayoutBounds() => TextEditor.GetDocumentLayoutBounds();
 
     /// <summary>
     /// 获取选择对应的范围。一般是一行一个 Rect 对象
     /// </summary>
     /// <param name="selection"></param>
     /// <returns></returns>
-    public IReadOnlyList<Rect> GetSelectionBoundsList(in Selection selection)
+    public IReadOnlyList<TextRect> GetSelectionBoundsList(in Selection selection)
     {
         if (selection.IsEmpty)
         {
 #pragma warning disable IDE0300 // 简化集合初始化。因为几乎不可能进入此分支，所以不简化
-            return new Rect[0];
+            return new TextRect[0];
 #pragma warning restore IDE0300 // 简化集合初始化
         }
 
-        var result = new List<Rect>();
+        var result = new List<TextRect>();
         LineLayoutData? currentLineLayoutData = null;
-        Rect currentBounds = default;
+        TextRect currentBounds = default;
         CharData? lastCharData = null;
         foreach (var charData in TextEditor.DocumentManager.GetCharDataRange(selection))
         {

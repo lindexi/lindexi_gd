@@ -7,5 +7,5 @@ namespace LightTextEditorPlus.Core.Layout;
 /// </summary>
 class DocumentRenderData
 {
-    public Rect DocumentBounds { set; get; }
+    public TextRect DocumentBounds { set; get; }
 }

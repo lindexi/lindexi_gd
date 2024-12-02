@@ -12,5 +12,5 @@ public static class RectExtension
     /// </summary>
     /// <param name="rect"></param>
     /// <returns></returns>
-    public static Rect ToWpfRect(this LightTextEditorPlus.Core.Primitive.Rect rect) => new Rect(rect.X, rect.Y, rect.Width, rect.Height);
+    public static Rect ToWpfRect(this LightTextEditorPlus.Core.Primitive.TextRect rect) => new Rect(rect.X, rect.Y, rect.Width, rect.Height);
 }

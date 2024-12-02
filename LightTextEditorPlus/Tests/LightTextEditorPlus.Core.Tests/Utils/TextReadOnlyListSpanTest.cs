@@ -4,7 +4,7 @@ using MSTest.Extensions.Contracts;
 namespace LightTextEditorPlus.Core.Tests;
 
 [TestClass]
-public class ReadOnlyListSpanTest
+public class TextReadOnlyListSpanTest
 {
     [ContractTestCase]
     public void ToReadOnlyListSpan()
@@ -19,7 +19,7 @@ public class ReadOnlyListSpanTest
 
             // Action
             // 取第2到第5个作为 ReadOnlyListSpan 列表
-            var readOnlyListSpan = new ReadOnlyListSpan<int>(list, 2, 4);
+            var readOnlyListSpan = new TextReadOnlyListSpan<int>(list, 2, 4);
 
             // Assert
             // 可以取出 3456 元素

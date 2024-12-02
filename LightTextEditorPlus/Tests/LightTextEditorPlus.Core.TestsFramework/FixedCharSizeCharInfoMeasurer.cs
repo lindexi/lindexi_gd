@@ -13,6 +13,6 @@ public class FixedCharSizeCharInfoMeasurer : ICharInfoMeasurer
 {
     public CharInfoMeasureResult MeasureCharInfo(in CharInfo charInfo)
     {
-        return new CharInfoMeasureResult(new Rect(0, 0, charInfo.RunProperty.FontSize, charInfo.RunProperty.FontSize));
+        return new CharInfoMeasureResult(new TextRect(0, 0, charInfo.RunProperty.FontSize, charInfo.RunProperty.FontSize));
     }
 }

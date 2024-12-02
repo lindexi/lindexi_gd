@@ -8,7 +8,7 @@ namespace LightTextEditorPlus.Core.Utils;
 static class ReadOnlyRunListExtension
 {
     public static (ICharObject charObject, IReadOnlyRunProperty? RunProperty) GetCharInfo(
-        this in ReadOnlyListSpan<IImmutableRun> runList, int charIndex)
+        this in TextReadOnlyListSpan<IImmutableRun> runList, int charIndex)
     {
         var (run, _, hitIndex) = runList.GetRunByCharIndex(charIndex);
         return (run.GetChar(hitIndex), run.RunProperty);
@@ -25,7 +25,7 @@ static class ReadOnlyRunListExtension
     /// hitIndex：给定的 <paramref name="charIndex"/> 字符序号在此 <see cref="IImmutableRun"/> 里面的序号
     /// </returns>
     /// <exception cref="ArgumentOutOfRangeException">给定的字符超过 <paramref name="runList"/> 的字符数量</exception>
-    public static (IImmutableRun run, int runIndex, int hitIndex) GetRunByCharIndex(this in ReadOnlyListSpan<IImmutableRun> runList, int charIndex)
+    public static (IImmutableRun run, int runIndex, int hitIndex) GetRunByCharIndex(this in TextReadOnlyListSpan<IImmutableRun> runList, int charIndex)
     {
         var currentCharCount = 0;
         for (var i = 0; i < runList.Count; i++)

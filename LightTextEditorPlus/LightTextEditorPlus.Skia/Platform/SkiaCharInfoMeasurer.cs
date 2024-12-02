@@ -86,7 +86,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         }
 
         var length = 0f;
-        Rect bounds = Rect.Zero;
+        TextRect bounds = TextRect.Zero;
         foreach (var glyphPosition in buffer.GlyphPositions)
         {
             var left = glyphPosition.XOffset * glyphScale;
@@ -101,7 +101,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
                 height = (float) fontSize;
             }
 
-            bounds = new Rect(left, top, width, height);
+            bounds = new TextRect(left, top, width, height);
 
             length += glyphPosition.XOffset * glyphScale + glyphPosition.XAdvance * glyphScale;
         }

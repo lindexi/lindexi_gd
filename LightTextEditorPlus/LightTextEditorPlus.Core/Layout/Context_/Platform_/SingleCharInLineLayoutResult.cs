@@ -15,7 +15,7 @@ public readonly struct SingleCharInLineLayoutResult
     /// </summary>
     /// <param name="totalSize">这一行的布局尺寸</param>
     /// <param name="takeCount">使用了多少个字符元素，有一些是需要连带字符后面的标点符号字符一起，于是就需要获取到多个</param>
-    public SingleCharInLineLayoutResult(int takeCount, Size totalSize)
+    public SingleCharInLineLayoutResult(int takeCount, TextSize totalSize)
     {
         TakeCount = takeCount;
         TotalSize = totalSize;
@@ -42,7 +42,7 @@ public readonly struct SingleCharInLineLayoutResult
     public int TakeCount { get; init; }
 
     /// <summary>所有的字符合起来的布局尺寸</summary>
-    public Size TotalSize { get; init; }
+    public TextSize TotalSize { get; init; }
 
     ///// <summary>当 <see cref="TakeCount"/> 大于一个时，将存放每个字符的尺寸</summary>
     //public IReadOnlyList<LineCharSize>? CharSizeList { get; init; }

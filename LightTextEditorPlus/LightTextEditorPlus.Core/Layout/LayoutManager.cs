@@ -24,7 +24,7 @@ class LayoutManager
     public event EventHandler? InternalLayoutCompleted;
 
     [DebuggerStepThrough] // 别跳太多层
-    public TextHitTestResult HitTest(in Point point)
+    public TextHitTestResult HitTest(in TextPoint point)
     {
         return ArrangingLayoutProvider.HitTest(point);
     }

@@ -109,7 +109,7 @@ public class WordCharHelperTest
         });
     }
 
-    private ReadOnlyListSpan<CharData> ToCharData(string text)
+    private TextReadOnlyListSpan<CharData> ToCharData(string text)
     {
         var list = new List<CharData>();
         for (var i = 0; i < text.Length; i++)
@@ -118,6 +118,6 @@ public class WordCharHelperTest
             list.Add(charData);
         }
 
-        return new ReadOnlyListSpan<CharData>(list, 0, list.Count);
+        return new TextReadOnlyListSpan<CharData>(list, 0, list.Count);
     }
 }

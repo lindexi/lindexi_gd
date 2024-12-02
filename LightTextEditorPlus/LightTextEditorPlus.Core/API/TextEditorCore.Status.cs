@@ -19,7 +19,7 @@ public partial class TextEditorCore
     /// <param name="result"></param>
     /// <returns></returns>
     [TextEditorPublicAPI]
-    public bool TryHitTest(in Point point, out TextHitTestResult result)
+    public bool TryHitTest(in TextPoint point, out TextHitTestResult result)
     {
         if (IsDirty)
         {

@@ -15,8 +15,8 @@ namespace LightTextEditorPlus.Core.Layout;
 /// <param name="LineMaxWidth">这一行能布局的最大宽度</param>
 /// <param name="CurrentStartPoint">当前行的起始点，相对于文本框的坐标</param>
 public readonly record struct WholeLineLayoutArgument(int ParagraphIndex, int LineIndex,
-    ParagraphProperty ParagraphProperty, in ReadOnlyListSpan<CharData> CharDataList, double LineMaxWidth,
-    Point CurrentStartPoint)
+    ParagraphProperty ParagraphProperty, in TextReadOnlyListSpan<CharData> CharDataList, double LineMaxWidth,
+    TextPoint CurrentStartPoint)
 {
     /// <summary>
     /// 调试使用的这一行的文本

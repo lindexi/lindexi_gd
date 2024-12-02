@@ -5,5 +5,5 @@ namespace LightTextEditorPlus.Core.Layout;
 
 internal interface IInternalCharDataSizeMeasurer
 {
-    Size GetCharSize(CharData charData);
+    TextSize GetCharSize(CharData charData);
 }

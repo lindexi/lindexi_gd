@@ -55,7 +55,7 @@ class RenderManager
         {
             // 无选择，只有光标
             CaretRenderInfo currentCaretRenderInfo = renderInfoProvider.GetCurrentCaretRenderInfo();
-            Rect caretBounds = currentCaretRenderInfo.GetCaretBounds(_textEditor.CaretConfiguration.CaretWidth);
+            TextRect caretBounds = currentCaretRenderInfo.GetCaretBounds(_textEditor.CaretConfiguration.CaretWidth);
 
             SKColor caretColor = _textEditor.CaretConfiguration.CaretBrush
                                  // todo 获取当前前景色作为光标颜色
@@ -66,7 +66,7 @@ class RenderManager
         {
             SKColor selectionColor = _textEditor.CaretConfiguration.SelectionBrush;
 
-            IReadOnlyList<Rect> selectionBoundsList = renderInfoProvider.GetSelectionBoundsList(selection);
+            IReadOnlyList<TextRect> selectionBoundsList = renderInfoProvider.GetSelectionBoundsList(selection);
 
             _currentCaretAndSelectionRender = new TextEditorSelectionSkiaRender(selectionBoundsList, selectionColor);
         }
@@ -117,7 +117,7 @@ class RenderManager
             _currentRender = null;
         }
 
-        Rect documentLayoutBounds = renderInfoProvider.GetDocumentLayoutBounds();
+        TextRect documentLayoutBounds = renderInfoProvider.GetDocumentLayoutBounds();
 
         var textWidth = (float) documentLayoutBounds.Width;
         var textHeight = (float) documentLayoutBounds.Height;
@@ -134,7 +134,7 @@ class RenderManager
                 {
                     // 先不考虑缓存
                     LineDrawingArgument argument = lineInfo.Argument;
-                    foreach (ReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous())
+                    foreach (TextReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous())
                     {
                         CharData firstCharData = charList[0];
 
@@ -186,7 +186,7 @@ class RenderManager
                         canvas.DrawText(text, new SKPoint(x, y), textRenderSKPaint);
                     }
 
-                    DrawDebugBounds(new Rect(argument.StartPoint, argument.Size).ToSKRect(), _debugDrawLineBounds);
+                    DrawDebugBounds(new TextRect(argument.StartPoint, argument.TextSize).ToSKRect(), _debugDrawLineBounds);
                 }
             }
 

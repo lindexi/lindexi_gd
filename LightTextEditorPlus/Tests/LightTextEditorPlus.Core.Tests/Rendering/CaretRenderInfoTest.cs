@@ -212,7 +212,7 @@ public class CaretRenderInfoTest
             var caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(textEditorCore.CurrentCaretOffset);
             Assert.AreEqual(true, caretRenderInfo.IsEmptyParagraph);
             // 一行的高度是 15 也就是第二行就是 (0,15) 的
-            Assert.AreEqual(new Rect(0, 15, 0, 15), caretRenderInfo.LineBounds);
+            Assert.AreEqual(new TextRect(0, 15, 0, 15), caretRenderInfo.LineBounds);
 
             Assert.AreEqual(0, caretRenderInfo.HitLineCaretOffset.Offset);
             Assert.AreEqual(0, caretRenderInfo.HitLineCharOffset.Offset);

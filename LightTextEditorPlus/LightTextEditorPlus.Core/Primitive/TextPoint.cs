@@ -12,7 +12,7 @@ namespace LightTextEditorPlus.Core.Primitive;
 /// Copy From https://github.com/dotnet/Microsoft.Maui.Graphics
 [DebuggerDisplay("X={X}, Y={Y}")]
 //[TypeConverter(typeof(Converters.PointTypeConverter))]
-public struct Point
+public struct TextPoint
 {
     /// <summary>
     ///  X 坐标
@@ -27,7 +27,7 @@ public struct Point
     /// <summary>
     /// 表示一个 X 和 Y 都是 0 的点
     /// </summary>
-    public static Point Zero => new Point();
+    public static TextPoint Zero => new TextPoint();
 
     /// <inheritdoc />
     public override string ToString()
@@ -40,7 +40,7 @@ public struct Point
     /// </summary>
     /// <param name="x"></param>
     /// <param name="y"></param>
-    public Point(double x, double y) : this()
+    public TextPoint(double x, double y) : this()
     {
         X = x;
         Y = y;
@@ -50,7 +50,7 @@ public struct Point
     /// 创建给文本库使用的点
     /// </summary>
     /// <param name="sz"></param>
-    public Point(Size sz) : this()
+    public TextPoint(TextSize sz) : this()
     {
         X = sz.Width;
         Y = sz.Height;
@@ -60,7 +60,7 @@ public struct Point
     /// 创建给文本库使用的点
     /// </summary>
     /// <param name="v"></param>
-    public Point(Vector2 v)
+    public TextPoint(Vector2 v)
     {
         X = v.X;
         Y = v.Y;
@@ -69,7 +69,7 @@ public struct Point
     /// <inheritdoc />
     public override bool Equals(object? o)
     {
-        if (o is not Point point)
+        if (o is not TextPoint point)
         {
             return false;
         }
@@ -85,7 +85,7 @@ public struct Point
     /// <returns></returns>
     public bool Equals(object o, double epsilon)
     {
-        if (o is not Point compareTo)
+        if (o is not TextPoint compareTo)
         {
             return false;
         }
@@ -105,9 +105,9 @@ public struct Point
     /// <param name="dx"></param>
     /// <param name="dy"></param>
     /// <returns></returns>
-    public Point Offset(double dx, double dy)
+    public TextPoint Offset(double dx, double dy)
     {
-        Point p = this;
+        TextPoint p = this;
         p.X += dx;
         p.Y += dy;
         return p;
@@ -117,9 +117,9 @@ public struct Point
     /// 对 X 和 Y 取 <see cref="Math.Round(double)"/> 的新点
     /// </summary>
     /// <returns></returns>
-    public Point Round()
+    public TextPoint Round()
     {
-        return new Point(Math.Round(X), Math.Round(Y));
+        return new TextPoint(Math.Round(X), Math.Round(Y));
     }
 
     /// <summary>
@@ -131,9 +131,9 @@ public struct Point
     /// 将点转换为尺寸
     /// </summary>
     /// <param name="point"></param>
-    public static explicit operator Size(Point point)
+    public static explicit operator TextSize(TextPoint point)
     {
-        return new Size(point.X, point.Y);
+        return new TextSize(point.X, point.Y);
     }
 
     /// <summary>
@@ -142,9 +142,9 @@ public struct Point
     /// <param name="pointA"></param>
     /// <param name="pointB"></param>
     /// <returns></returns>
-    public static Size operator -(Point pointA, Point pointB)
+    public static TextSize operator -(TextPoint pointA, TextPoint pointB)
     {
-        return new Size(pointA.X - pointB.X, pointA.Y - pointB.Y);
+        return new TextSize(pointA.X - pointB.X, pointA.Y - pointB.Y);
     }
 
     /// <summary>
@@ -153,7 +153,7 @@ public struct Point
     /// <param name="pointA"></param>
     /// <param name="pointB"></param>
     /// <returns></returns>
-    public static bool operator ==(Point pointA, Point pointB)
+    public static bool operator ==(TextPoint pointA, TextPoint pointB)
     {
         return Math.Abs(pointA.X - pointB.X) < TextContext.Epsilon && Math.Abs(pointA.Y - pointB.Y) < TextContext.Epsilon;
     }
@@ -164,7 +164,7 @@ public struct Point
     /// <param name="pointA"></param>
     /// <param name="pointB"></param>
     /// <returns></returns>
-    public static bool operator !=(Point pointA, Point pointB)
+    public static bool operator !=(TextPoint pointA, TextPoint pointB)
     {
         return !(pointA == pointB);
     }
@@ -174,7 +174,7 @@ public struct Point
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public double Distance(Point other)
+    public double Distance(TextPoint other)
     {
         return (double) Math.Sqrt(Math.Pow(X - other.X, 2) + Math.Pow(Y - other.Y, 2));
     }
@@ -194,7 +194,7 @@ public struct Point
     /// 从向量转换为点
     /// </summary>
     /// <param name="v"></param>
-    public static implicit operator Point(Vector2 v) => new Point(v);
+    public static implicit operator TextPoint(Vector2 v) => new TextPoint(v);
 
     /// <summary>
     /// 尝试将给定的字符串转换为点
@@ -202,7 +202,7 @@ public struct Point
     /// <param name="value"></param>
     /// <param name="point"></param>
     /// <returns></returns>
-    public static bool TryParse(string value, out Point point)
+    public static bool TryParse(string value, out TextPoint point)
     {
         if (!string.IsNullOrEmpty(value))
         {
@@ -210,7 +210,7 @@ public struct Point
             if (xy.Length == 2 && double.TryParse(xy[0], NumberStyles.Number, CultureInfo.InvariantCulture, out var x)
                                && double.TryParse(xy[1], NumberStyles.Number, CultureInfo.InvariantCulture, out var y))
             {
-                point = new Point(x, y);
+                point = new TextPoint(x, y);
                 return true;
             }
         }
