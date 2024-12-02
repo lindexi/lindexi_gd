@@ -74,6 +74,24 @@ public partial class TextEditor : Control
         base.OnTextInput(e);
     }
 
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        base.OnKeyDown(e);
+    }
+
+    protected override void OnKeyUp(KeyEventArgs e)
+    {
+        base.OnKeyUp(e);
+        if (e.Key == Key.Delete)
+        {
+            TextEditorCore.Delete();
+        }
+        else if (e.Key == Key.Back)
+        {
+            TextEditorCore.Backspace();
+        }
+    }
+
     #region 状态同步
 
     protected override void OnGotFocus(GotFocusEventArgs e)
