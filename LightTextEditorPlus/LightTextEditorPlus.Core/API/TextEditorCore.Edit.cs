@@ -111,10 +111,7 @@ public partial class TextEditorCore
     [Obsolete("仅调试使用")]
     public void Clear()
     {
-        // 调试代码，就这么强行转换
-        var paragraphDataList =
-            (List<ParagraphData>)DocumentManager.ParagraphManager.GetParagraphList();
-        paragraphDataList.Clear();
+        DocumentManager.Remove(DocumentManager.GetAllDocumentSelection());
     }
 
     /// <summary>
