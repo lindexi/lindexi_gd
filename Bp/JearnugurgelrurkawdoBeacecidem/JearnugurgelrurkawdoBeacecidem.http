@@ -1,0 +1,6 @@
+@JearnugurgelrurkawdoBeacecidem_HostAddress = http://localhost:5017
+
+GET {{JearnugurgelrurkawdoBeacecidem_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
