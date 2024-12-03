@@ -34,7 +34,6 @@ app.MapPost("/Chat", async (ChatRequest request, HttpContext context) =>
     try
     {
         var streamWriter = new StreamWriter(response.Body);
-        response.RegisterForDispose(streamWriter);
 
         var prompt = request.Prompt;
 
