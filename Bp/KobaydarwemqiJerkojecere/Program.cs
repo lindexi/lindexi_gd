@@ -42,10 +42,10 @@ while (true)
                  ] 
                  
                  When the user asks you a question, if you need to use functions, provide function calls in the format:
-                 [
+                 $$[
                      { "name": "function_name", "params": { dictionary containing parameters}, "output": "The output variable name, to be possibly used as input for another function"}.
                      ...
-                 ]
+                 ]$$
                  
                  Here is a list of functions you can use:
                  [
