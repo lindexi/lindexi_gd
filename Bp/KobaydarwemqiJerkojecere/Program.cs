@@ -89,7 +89,7 @@ while (true)
                  Assistant: 生成课程计划
                  <|end|>
                  <|user|>
-                 请帮我生成课程的教学计划<|end|>
+                 请根据“We need to pass through four levels”这句英文生成单词课件<|end|>
                  <|assistant|>
                  """;
     }
