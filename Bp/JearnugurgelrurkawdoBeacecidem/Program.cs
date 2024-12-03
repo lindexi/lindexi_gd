@@ -3,6 +3,7 @@ using System.Net;
 using Microsoft.ML.OnnxRuntimeGenAI;
 
 using System.Text;
+using System.Text.Json;
 
 var folder = @"C:\lindexi\Phi3\directml-int4-awq-block-128\";
 if (!Directory.Exists(folder))
@@ -20,6 +21,10 @@ builder.WebHost.UseUrls("http://0.0.0.0:5017");
 
 // Add services to the container.
 
+var logFile = "ChatLog.txt";
+var chatSessionFolder = "ChatSession";
+Directory.CreateDirectory(chatSessionFolder);
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -31,10 +36,11 @@ app.MapPost("/Chat", async (ChatRequest request, HttpContext context) =>
     await response.StartAsync();
     await semaphoreSlim.WaitAsync();
 
+    var sessionName = $"{DateTime.Now:yyyy-MM-dd_HHmmssfff}";
+
     try
     {
         var streamWriter = new StreamWriter(response.Body);
-        response.RegisterForDispose(streamWriter);
 
         var prompt = request.Prompt;
 
@@ -87,6 +93,28 @@ app.MapPost("/Chat", async (ChatRequest request, HttpContext context) =>
                 return decodeText;
             }
         }
+
+        var responseText = stringBuilder.ToString();
+        await File.AppendAllTextAsync
+        (
+            logFile,
+            $"""
+             Request: 
+             {prompt}
+             ----------------
+             Response:
+             {responseText}
+             =================
+             """
+        );
+
+        var chatSessionLogInfo = new ChatSessionLogInfo(prompt, responseText);
+        var chatSessionLogInfoJson = JsonSerializer.Serialize(chatSessionLogInfo, new JsonSerializerOptions()
+        {
+            WriteIndented = true,
+        });
+        var sessionLogFile = Path.Join(chatSessionFolder, $"{sessionName}_{Path.GetRandomFileName()}.txt");
+        await File.WriteAllTextAsync(sessionLogFile, chatSessionLogInfoJson);
     }
     finally
     {
@@ -98,5 +126,9 @@ app.MapPost("/Chat", async (ChatRequest request, HttpContext context) =>
 app.Run();
 
 record ChatRequest(string Prompt)
+{
+}
+
+record ChatSessionLogInfo(string Request, string Response)
 {
 }
