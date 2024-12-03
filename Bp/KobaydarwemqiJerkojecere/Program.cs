@@ -73,6 +73,25 @@ while (true)
                  天津的天气如何<|end|>
                  <|assistant|>
                  """;
+
+        // 请帮我将以下内容转述为地道的英文：你是一个意图识别机器人。你需要根据用户输入的内容，识别出用户的意图。请只输出以下列表里面的用户意图，不要回答任何问题，不要包含其他内容。如果用户的意图不在列表里面，请返回 Other 
+        prompt = """
+                 <|system|>
+                 You are an entity designed to detect the intent behind user inputs. Based on the user's input, you must identify the user's intent from the provided list. Respond solely with the intent from the list, without asking any further questions or including additional information. If the user's intent is not listed, please respond with "Other".
+                 Intent list:
+                 - 生成课程计划
+                 - 生成单词卡
+                 - 总结文本
+                 - Other
+                 
+                 Example:
+                 User: 帮忙生成课程计划
+                 Assistant: 生成课程计划
+                 <|end|>
+                 <|user|>
+                 请帮我生成课程的教学计划<|end|>
+                 <|assistant|>
+                 """;
     }
     else
     {
