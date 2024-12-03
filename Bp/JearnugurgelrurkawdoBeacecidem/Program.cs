@@ -12,7 +12,6 @@ if (!Directory.Exists(folder))
 }
 
 var model = new Model(folder);
-var tokenizer = new Tokenizer(model);
 
 var semaphoreSlim = new SemaphoreSlim(initialCount: 1, maxCount: 1);
 
@@ -46,6 +45,7 @@ app.MapPost("/Chat", async (ChatRequest request, HttpContext context) =>
 
         var generatorParams = new GeneratorParams(model);
 
+        using var tokenizer = new Tokenizer(model);
         var sequences = tokenizer.Encode(prompt);
 
         generatorParams.SetSearchOption("max_length", 1024);
