@@ -24,6 +24,81 @@ for(var i = 0; i < int.MaxValue; i++)
     var userPrompt = text;
 
     var prompt = $@"<|system|>{systemPrompt}<|end|><|user|>{userPrompt}<|end|><|assistant|>";
+    prompt = """
+             你是一位代码审查者，以下是一些 C# 的代码，你需要审查出代码里面的有哪些地方可以为其编写单元测试。请列举出可以编写单元测试的点
+             
+             #####
+             public partial class TextEditorCore
+             {
+                 /// <summary>
+                 /// 追加一段文本，追加的文本按照段末的样式
+                 /// </summary>
+                 /// 这是对外调用的，非框架内使用
+                 [TextEditorPublicAPI]
+                 public void AppendText(string text)
+                 {
+                     if (string.IsNullOrEmpty(text))
+                     {
+                         return;
+                     }
+             
+                     DocumentManager.AppendText(new TextRun(text));
+                 }
+             
+                 /// <summary>
+                 /// 追加一段文本
+                 /// </summary>
+                 /// <param name="run"></param>
+                 /// 这是对外调用的，非框架内使用
+                 [TextEditorPublicAPI]
+                 public void AppendRun(IImmutableRun run)
+                 {
+                     DocumentManager.AppendText(run);
+                 }
+             
+                 /// <summary>
+                 /// 在当前的文本上编辑且替换。文本没有选择时，将在当前光标后面加入文本。文本有选择时，替换选择内容为输入内容
+                 /// </summary>
+                 /// <param name="text"></param>
+                 /// <param name="selection">传入空时，将采用 <see cref="CurrentSelection"/> 当前选择范围</param>
+                 /// 这是对外调用的，非框架内使用
+                 [TextEditorPublicAPI]
+                 public void EditAndReplace(string text, Selection? selection = null)
+                 {
+                     AddLayoutReason("TextEditorCore.EditAndReplace(string text)");
+             
+                     TextEditorCore textEditor = this;
+                     DocumentManager documentManager = textEditor.DocumentManager;
+                     // 判断光标是否在文档末尾，且没有选择内容
+                     var currentSelection = selection ?? CaretManager.CurrentSelection;
+                     var caretOffset = currentSelection.FrontOffset;
+                     var isEmptyText = string.IsNullOrEmpty(text);
+                     if (currentSelection.IsEmpty && caretOffset.Offset == documentManager.CharCount)
+                     {
+                         if (!isEmptyText)
+                         {
+                             // 在末尾，调用追加，性能更好
+                             documentManager.AppendText(new TextRun(text));
+                         }
+                     }
+                     else
+                     {
+                         if (isEmptyText)
+                         {
+                             documentManager.EditAndReplaceRun(currentSelection, null);
+                         }
+                         else
+                         {
+                             var textRun = new TextRun(text);
+                             documentManager.EditAndReplaceRun(currentSelection, textRun);
+                         }
+                     }
+                 }
+             }
+             #####
+             
+             可以编写单元测试的内容：
+             """;
 
     var generatorParams = new GeneratorParams(model);
 
