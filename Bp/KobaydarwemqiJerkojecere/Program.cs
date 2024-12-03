@@ -6,8 +6,6 @@ var url = "http://172.20.114.91:5017";
 
 var httpClient = new HttpClient();
 
-
-
 while (true)
 {
     Console.WriteLine($"请输入聊天内容");
@@ -17,7 +15,7 @@ while (true)
         continue;
     }
 
-    var chatRequest = new ChatRequest(prompt);
+    var chatRequest = new ChatRequest($@"<|user|>{prompt}<|end|><|assistant|>");
 
     var httpRequestMessage = new HttpRequestMessage();
     httpRequestMessage.Content = JsonContent.Create(chatRequest);
@@ -40,6 +38,4 @@ while (true)
     Console.WriteLine();
 }
 
-record ChatRequest(string Prompt)
-{
-}
+record ChatRequest(string Prompt);
