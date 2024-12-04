@@ -2,7 +2,7 @@
 
 using System.Net.Http.Json;
 
-var url = "http://172.20.114.91:5017";
+var url = "http://127.0.0.1:5017";
 
 var httpClient = new HttpClient();
 

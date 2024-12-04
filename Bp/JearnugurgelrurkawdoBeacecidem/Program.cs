@@ -3,6 +3,7 @@ using System.Net;
 using Microsoft.ML.OnnxRuntimeGenAI;
 
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 
 var folder = @"C:\lindexi\Phi3\directml-int4-awq-block-128\";
@@ -105,6 +106,7 @@ app.MapPost("/Chat", async (ChatRequest request, HttpContext context) =>
              Response:
              {responseText}
              =================
+
              """
         );
 
@@ -112,6 +114,7 @@ app.MapPost("/Chat", async (ChatRequest request, HttpContext context) =>
         var chatSessionLogInfoJson = JsonSerializer.Serialize(chatSessionLogInfo, new JsonSerializerOptions()
         {
             WriteIndented = true,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         });
         var sessionLogFile = Path.Join(chatSessionFolder, $"{sessionName}_{Path.GetRandomFileName()}.txt");
         await File.WriteAllTextAsync(sessionLogFile, chatSessionLogInfoJson);
