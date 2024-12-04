@@ -28,7 +28,7 @@ for (var i = 0; i < int.MaxValue; i++)
     using var tokenizer = new Tokenizer(model);
     var sequences = tokenizer.Encode(prompt);
 
-    generatorParams.SetSearchOption("max_length", 1024);
+    generatorParams.SetSearchOption("max_length", 100000);
     generatorParams.SetInputSequences(sequences);
     generatorParams.TryGraphCaptureWithMaxBatchSize(1);
 
