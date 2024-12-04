@@ -4,7 +4,7 @@ using Microsoft.ML.OnnxRuntimeGenAI;
 
 using System.Text;
 
-var folder = @"f:\lindexi\Code\Phi3\Phi-3-medium-128k-instruct-onnx-cuda\cuda-int4-rtn-block-32\";
+var folder = @"C:\lindexi\Phi3\Phi-3-medium-128k-instruct-onnx-cuda\cuda-int4-rtn-block-32\";
 if (!Directory.Exists(folder))
 {
     folder = Path.GetFullPath(".");
