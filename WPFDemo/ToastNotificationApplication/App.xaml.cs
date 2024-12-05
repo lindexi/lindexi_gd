@@ -29,7 +29,24 @@ public partial class App : Application
             var toast = GetToast();
             if (toast is null)
             {
+                Console.WriteLine
+                (
+                    """
+                    class Option
+                    {
+                        [Option("ApplicationName")]
+                        public string? ApplicationName { get; set; }
+                    
+                        [Option("XmlFilePath")]
+                        public string? XmlFilePath { get; set; }
+                    
+                        [Option("Text")]
+                        public string? Text { get; set; }
+                    }
+                    """
+                );
                 Shutdown(-1);
+                Environment.Exit(-1);
             }
 
             xmlDocument.LoadXml(xml: toast);
