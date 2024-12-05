@@ -10,6 +10,11 @@ if (!Directory.Exists(folder))
     folder = Path.GetFullPath(".");
 }
 
+if (args.Length > 0)
+{
+    folder = args[0];
+}
+
 using var model = new Model(folder);
 using var tokenizer = new Tokenizer(model);
 
