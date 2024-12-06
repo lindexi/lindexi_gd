@@ -1,0 +1,7 @@
+﻿<Project>
+ 
+  <Target Name="HejurjeelodayJicochibiki" AfterTargets="Build">
+    <Warning Text="TargetFrameworks=$(TargetFrameworks) | TargetFramework=$(TargetFramework)"/>
+  </Target>
+
+</Project>
