@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="HekairkefairfallQecairwaqai" Version="1.0.0" />
+    <PackageReference Include="HekairkefairfallQecairwaqai" Version="2.0.0" />
   </ItemGroup>
 
 </Project>
