@@ -5,6 +5,10 @@ using Microsoft.ML.OnnxRuntimeGenAI;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
+using Microsoft.Extensions.Primitives;
+using System.Diagnostics;
 
 var folder = @"C:\lindexi\Phi3\directml-int4-awq-block-128\";
 if (!Directory.Exists(folder))
@@ -12,13 +16,13 @@ if (!Directory.Exists(folder))
     folder = Path.GetFullPath(".");
 }
 
-var model = new Model(folder);
+Model model = new Model(folder);
 
 var semaphoreSlim = new SemaphoreSlim(initialCount: 1, maxCount: 1);
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://0.0.0.0:5017");
-
+builder.Services.AddLogging(loggingBuilder => loggingBuilder.AddSimpleConsole());
 // Add services to the container.
 
 var logFile = "ChatLog.txt";
@@ -29,20 +33,43 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 
-app.MapPost("/Chat", async (ChatRequest request, HttpContext context) =>
+//Task.Run(async () =>
+//{
+//    var httpClient = new HttpClient();
+//    var text = await httpClient.GetStringAsync("http://127.0.0.1:5017/Status");
+//    var response = await httpClient.PostAsync("http://127.0.0.1:5017/Chat", JsonContent.Create(new ChatRequest("²âÊÔ")));
+//});
+
+int current = 0;
+int total = 0;
+
+app.MapGet("/Status", () => $"Current={current};Total={total}");
+
+app.MapPost("/Chat", async (ChatRequest request, HttpContext context, [FromServices] ILogger<ChatSessionLogInfo> logger) =>
 {
     var response = context.Response;
     response.StatusCode = (int) HttpStatusCode.OK;
     await response.StartAsync();
     await semaphoreSlim.WaitAsync();
 
+    Interlocked.Increment(ref current);
+    Interlocked.Increment(ref total);
     var sessionName = $"{DateTime.Now:yyyy-MM-dd_HHmmssfff}";
 
     try
     {
+        var headerDictionary = context.Request.Headers;
+        string traceId = string.Empty;
+        if (headerDictionary.TryGetValue("X-APM-TraceId", out StringValues traceIdValue))
+        {
+            traceId = traceIdValue.ToString();
+        }
+
         var streamWriter = new StreamWriter(response.Body);
 
         var prompt = request.Prompt;
+
+        logger.LogInformation($"Session={sessionName};TraceId={traceId}\r\nPrompt={request.Prompt}");
 
         var generatorParams = new GeneratorParams(model);
 
@@ -96,19 +123,25 @@ app.MapPost("/Chat", async (ChatRequest request, HttpContext context) =>
         }
 
         var responseText = stringBuilder.ToString();
+        var contents = $"""
+                        Session={sessionName}
+                        TraceId={traceId}
+                        ----------------
+                        Request: 
+                        {prompt}
+                        ----------------
+                        Response:
+                        {responseText}
+                        =================
+
+                        """;
         await File.AppendAllTextAsync
         (
             logFile,
-            $"""
-             Request: 
-             {prompt}
-             ----------------
-             Response:
-             {responseText}
-             =================
-
-             """
+            contents
         );
+
+        logger.LogInformation(contents);
 
         var chatSessionLogInfo = new ChatSessionLogInfo(prompt, responseText);
         var chatSessionLogInfoJson = JsonSerializer.Serialize(chatSessionLogInfo, new JsonSerializerOptions()
@@ -123,6 +156,7 @@ app.MapPost("/Chat", async (ChatRequest request, HttpContext context) =>
     {
         semaphoreSlim.Release();
         await response.CompleteAsync();
+        Interlocked.Decrement(ref current);
     }
 });
 
