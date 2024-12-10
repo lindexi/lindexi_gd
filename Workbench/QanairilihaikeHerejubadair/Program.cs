@@ -5,19 +5,13 @@ var m = 50d;
 var k = 1d;
 var n = 2d;
 
-//for (int i = 2; i < m; i++)
-//{
-//    n = i;
-//    var result = 1 - (Factorial(m - n * k - 1)) / (Math.Pow(m, n - 1) * Factorial(m - n * (k + 1)));
-//    Console.WriteLine($"在 m={m} 人范围中，抽选 n={n} 次时，抽选相同 k=1 的情况，概率是 {result}");
-//}
-
 for (int i = 2; i < m; i++)
 {
-    n = i;
-    var q = 1 - Math.Pow(((m - 1) / m), n);
-    Console.WriteLine($"在 m={m} 人范围中，抽选 n={n} 次时，抽选相同 k=1 的情况，概率是 {q}");
+    k = i;
+    var result = 1 - (Factorial(m - n * k - 1)) / (Math.Pow(m, n - 1) * Factorial(m - n * (k + 1)));
+    Console.WriteLine($"在 m={m} 人范围中，抽选 k={k} 次时，抽选相同 n={n} 的情况，概率是 {result}");
 }
+
 
 Console.WriteLine("Hello, World!");
 
