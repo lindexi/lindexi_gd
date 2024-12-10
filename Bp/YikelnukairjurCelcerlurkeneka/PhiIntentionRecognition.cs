@@ -37,6 +37,16 @@ public class PhiIntentionRecognition
                       <|assistant|>
                       """;
 
+         prompt = $"""
+                      <|system|>
+                      You are an entity designed to detect the intent behind user inputs. Based on the user's input, you must identify the user's intent from the provided list. Respond solely with the intent from the list, without asking any further questions or including additional information. If the user's intent is not listed, please respond with "Other".
+                      Intent list:
+                      {string.Join("\r\n", intentionList)}
+                      <|end|>
+                      <|user|>{userPrompt}<|end|>
+                      <|assistant|>
+                      """;
+
         await using var response = await phiProvider.ChatAsync(prompt);
 
         if (response.Success)
