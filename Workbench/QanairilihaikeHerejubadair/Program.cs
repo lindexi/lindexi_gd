@@ -2,6 +2,6 @@
 
 var n = 50d;
 
-var p = 1 - 1 / Math.Pow(Math.E, (n * n) / (2 * n));
+var p = 1 - 1 / Math.Exp((n * n) / (2 * n));
 
 Console.WriteLine("Hello, World!");
