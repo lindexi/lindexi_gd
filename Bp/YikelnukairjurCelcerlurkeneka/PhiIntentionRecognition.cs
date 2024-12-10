@@ -14,6 +14,7 @@ public class PhiIntentionRecognition
     public const string 教学相关问题 = "教学相关问题";
     public const string 写报告 = "写报告";
     public const string 写材料 = "写材料";
+    public const string 仿写内容 = "仿写内容";
     public const string 聊天 = "聊天";
 
     public async Task<IntentionRecognitionResult> RecognizeAsync(string text)
@@ -25,6 +26,7 @@ public class PhiIntentionRecognition
             教学相关问题,
             写报告,
             写材料,
+            仿写内容,
             生成随机抽选,
             生成教学设计,
             修改聊天,
