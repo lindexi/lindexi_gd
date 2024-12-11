@@ -5,7 +5,7 @@
 /// </summary>
 public class PhiIntentionRecognition
 {
-    public const string 生成随机抽选 = "生成随机抽选";
+    public const string 生成随机抽选 = "随机抽选";
     public const string 生成教学设计 = "生成教学设计";
     public const string 修改聊天 = "修改聊天";
     public const string 禁用敏感词过滤 = "禁用敏感词过滤";
