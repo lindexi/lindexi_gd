@@ -7,7 +7,8 @@ var phiIntentionRecognition = new PhiIntentionRecognition();
 var inputList =
     new string[]
     {
-        "从1至10数字中，随机抽取4个数字",
+        "帮我润色选中的文本",
+        // "从1至10数字中，随机抽取4个数字",
         //"五年二班随机抽取一名学生",
         //"小象过河的图片",
         //"仿写夜宿山寺",

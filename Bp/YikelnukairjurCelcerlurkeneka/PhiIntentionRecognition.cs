@@ -43,7 +43,7 @@ public class PhiIntentionRecognition
         var phiProvider = PhiProvider.GetPhiProvider();
         var userPrompt = text;
         var prompt = $"""
-                      <|system|>你是一个意图识别机器人，可以识别出用户说话的意图是什么。请根据用户输入的内容，将用户输入的内容分类为以下类别中的一类。如果用户输入的内容无法进行归类，则归类为未知。请只对用户输入内容的意图进行归类，不要回答任何问题。
+                      <|system|>你是一个意图识别机器人，可以识别出用户说话的意图是什么。请根据用户输入的内容，将用户输入的内容分类为以下类别中的一类。如果用户输入的内容无法进行归类，则归类为未知。请只对用户输入内容的意图进行归类，不要回答任何问题。只能使用以下意图类别，不能添加新的意图类别
                       意图类别：
                       {string.Join("\r\n", intentionList)}
                       <|end|>
