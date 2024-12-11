@@ -7,7 +7,6 @@ public class PhiIntentionRecognition
 {
     public const string 生成随机抽选 = "随机抽选";
     public const string 生成教学设计 = "生成教学设计";
-    public const string 修改聊天 = "修改聊天";
     public const string 禁用敏感词过滤 = "禁用敏感词过滤";
     public const string 生成图片 = "生成图片";
     public const string 询问问题 = "询问问题";
@@ -32,7 +31,6 @@ public class PhiIntentionRecognition
             仿写内容,
             生成随机抽选,
             生成教学设计,
-            修改聊天,
             禁用敏感词过滤,
             生成图片,
             润色当前选中的文本,
