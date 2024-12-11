@@ -16,6 +16,9 @@ public class PhiIntentionRecognition
     public const string 写材料 = "写材料";
     public const string 仿写内容 = "仿写内容";
     public const string 聊天 = "聊天";
+    public const string 润色当前选中的文本 = "润色当前选中的文本";
+    public const string 润色文本 = "润色文本";
+    public const string 总结文本内容 = "总结文本";
 
     public async Task<IntentionRecognitionResult> RecognizeAsync(string text)
     {
@@ -32,6 +35,9 @@ public class PhiIntentionRecognition
             修改聊天,
             禁用敏感词过滤,
             生成图片,
+            润色当前选中的文本,
+            润色文本,
+            总结文本内容,
         };
 
         var phiProvider = PhiProvider.GetPhiProvider();
@@ -41,19 +47,25 @@ public class PhiIntentionRecognition
                       意图类别：
                       {string.Join("\r\n", intentionList)}
                       <|end|>
+                      <|user|>帮忙生成本份课件的教学设计内容，要求语句通顺<|end|>
+                      <|assistant|>生成教学设计<|end|>
+                      <|user|>我遇见一只小狗<|end|>
+                      <|assistant|>聊天<|end|>
+                      <|user|>如何指导小学低段学生进行写作<|end|>
+                      <|assistant|>询问问题<|end|>
                       <|user|>{userPrompt}<|end|>
                       <|assistant|>
                       """;
 
-        prompt = $"""
-                  <|system|>
-                  You are an entity designed to detect the intent behind user inputs. Based on the user's input, you must identify the user's intent from the provided list. Respond solely with the intent from the list, without asking any further questions or including additional information. If the user's intent is not listed, please respond with "Other".
-                  Intent list:
-                  {string.Join("\r\n", intentionList)}
-                  <|end|>
-                  <|user|>{userPrompt}<|end|>
-                  <|assistant|>
-                  """;
+        //prompt = $"""
+        //          <|system|>
+        //          You are an entity designed to detect the intent behind user inputs. Based on the user's input, you must identify the user's intent from the provided list. Respond solely with the intent from the list, without asking any further questions or including additional information. If the user's intent is not listed, please respond with "Other".
+        //          Intent list:
+        //          {string.Join("\r\n", intentionList)}
+        //          <|end|>
+        //          <|user|>{userPrompt}<|end|>
+        //          <|assistant|>
+        //          """;
 
         await using var response = await phiProvider.ChatAsync(prompt);
 
