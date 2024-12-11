@@ -42,9 +42,27 @@ public class PhiIntentionRecognition
 
         var phiProvider = PhiProvider.GetPhiProvider();
         var userPrompt = text;
+        //var prompt = $"""
+        //              <|system|>你是一个意图识别机器人，可以识别出用户说话的意图是什么。请根据用户输入的内容，将用户输入的内容分类为以下类别中的一类。如果用户输入的内容无法进行归类，则归类为未知。请只对用户输入内容的意图进行归类，不要回答任何问题。只能使用以下意图类别，不能添加新的意图类别
+        //              意图类别：
+        //              {string.Join("\r\n", intentionList)}
+        //              <|end|>
+        //              <|user|>帮忙生成本份课件的教学设计内容，要求语句通顺<|end|>
+        //              <|assistant|>生成教学设计<|end|>
+        //              <|user|>我遇见一只小狗<|end|>
+        //              <|assistant|>聊天<|end|>
+        //              <|user|>如何指导小学低段学生进行写作<|end|>
+        //              <|assistant|>询问问题<|end|>
+        //              <|user|>{userPrompt}<|end|>
+        //              <|assistant|>
+        //              """;
+
+        // 我正在给 GPT 编写提示词 Prompt 内容，请帮我将以下的提示词进行优化和翻译为英文：
+        // 你是一个意图识别机器人，可以识别出用户说话的意图是什么。请根据用户输入的内容，将用户输入的内容分类为以下类别中的一类。如果用户输入的内容无法进行归类，则归类为未知。请只对用户输入内容的意图进行归类，不要回答任何问题。只能使用以下意图类别，不能添加新的意图类别
+
         var prompt = $"""
-                      <|system|>你是一个意图识别机器人，可以识别出用户说话的意图是什么。请根据用户输入的内容，将用户输入的内容分类为以下类别中的一类。如果用户输入的内容无法进行归类，则归类为未知。请只对用户输入内容的意图进行归类，不要回答任何问题。只能使用以下意图类别，不能添加新的意图类别
-                      意图类别：
+                      <|system|>You are an intent recognition bot capable of identifying the user's intent based on their input. Please classify the user's input into one of the following categories. If the user's input cannot be classified, categorize it as "Unknown". Only classify the intent of the user's input and do not answer any questions. Use only the provided intent categories and do not add any new ones.
+                      Intent list：
                       {string.Join("\r\n", intentionList)}
                       <|end|>
                       <|user|>帮忙生成本份课件的教学设计内容，要求语句通顺<|end|>
