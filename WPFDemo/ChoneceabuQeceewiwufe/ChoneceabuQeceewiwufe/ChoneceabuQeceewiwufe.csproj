@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.22000</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <PlatformTarget>x86</PlatformTarget>
+    <RuntimeIdentifiers>win-x86;win-x64</RuntimeIdentifiers>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <WindowsSdkPackageVersion>10.0.22000.38</WindowsSdkPackageVersion>
+  </PropertyGroup>
+
+<!--   <ItemGroup>
+    <Reference Include="Microsoft.Windows.SDK.NET">
+      <HintPath>..\bin\Microsoft.Windows.SDK.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="WinRT.Runtime">
+      <HintPath>..\bin\WinRT.Runtime.dll</HintPath>
+    </Reference>
+  </ItemGroup> -->
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.241114003" />
+  </ItemGroup>
+  
+</Project>
