@@ -77,14 +77,49 @@ public partial class MainWindow : Window
                 // class DECLSPEC_UUID("062584a6-f830-4bdc-a4d2-0a10ab062b1d") InkDesktopHost;
                 var rclsidInkDesktopHost = new Guid("062584A6-F830-4BDC-A4D2-0A10AB062B1D");
 
-                var hResult = CoCreateInstance(&rclsidInkDesktopHost, null, CLSCTX.CLSCTX_INPROC_SERVER, &riidInkDesktopHost,
+                var hResult = CoCreateInstance(&rclsidInkDesktopHost, null, CLSCTX.CLSCTX_INPROC_SERVER,
+                    &riidInkDesktopHost,
                     out var inkDesktopHost);
 
+                void** lpVtbl = (void**) inkDesktopHost;
                 // 遇到 0x80040154 是因为将 riidInkDesktopHost 当成 rclsidInkDesktopHost 传入 
 
                 if (hResult.Failed)
                 {
                 }
+
+                // QueryInterface - 0
+                // AddRef - 1
+                // Release - 2
+                /*
+                   MIDL_INTERFACE("4ce7d875-a981-4140-a1ff-ad93258e8d59")
+                   IInkDesktopHost : public IUnknown
+                   {
+                   public:
+                       virtual HRESULT STDMETHODCALLTYPE QueueWorkItem(
+                           /* [in] * / __RPC__in_opt IInkHostWorkItem *workItem) = 0;
+
+                       virtual HRESULT STDMETHODCALLTYPE CreateInkPresenter(
+                           /* [in] * / __RPC__in REFIID riid,
+                           /* [iid_is][out] * / __RPC__deref_out_opt void **ppv) = 0;
+
+                       virtual HRESULT STDMETHODCALLTYPE CreateAndInitializeInkPresenter(
+                           /* [in] * / __RPC__in_opt IUnknown *rootVisual,
+                           /* [in] * / float width,
+                           /* [in] * / float height,
+                           /* [in] * / __RPC__in REFIID riid,
+                           /* [iid_is][out] * / __RPC__deref_out_opt void **ppv) = 0;
+
+                   };
+                 */
+                // QueueWorkItem - 4
+                // CreateInkPresenter - 5
+                // CreateAndInitializeInkPresenter - 6
+                // CreateInkPresenter
+                // IInkPresenterDesktop 
+                var rridIInkPresenterDesktop = new Guid("73f3c0d9-2e8b-48f3-895e-20cbd27b723b");
+                void* inkPresenterDesktop;
+                var result = ((delegate* unmanaged[Stdcall]<IntPtr, Guid*, void**, int>) lpVtbl[5])(inkDesktopHost, &rridIInkPresenterDesktop, &inkPresenterDesktop);
             });
         });
         thread.IsBackground = true;
