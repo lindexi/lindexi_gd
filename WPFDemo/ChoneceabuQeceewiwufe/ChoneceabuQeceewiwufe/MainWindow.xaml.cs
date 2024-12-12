@@ -73,7 +73,7 @@ public partial class MainWindow : Window
                 // InkDesktopHost 4ce7d875-a981-4140-a1ff-ad93258e8d59
                 var inkDesktopHostGuid = new Guid("4ce7d875-a981-4140-a1ff-ad93258e8d59");
                 var riid = new Guid("062584A6-F830-4BDC-A4D2-0A10AB062B1D");
-                var hResult = PInvoke.CoCreateInstance(inkDesktopHostGuid, null, CLSCTX.CLSCTX_INPROC_SERVER, riid, out object inkDesktopHost);
+                var hResult = PInvoke.CoCreateInstance(riid, null, CLSCTX.CLSCTX_INPROC_SERVER, inkDesktopHostGuid, out object inkDesktopHost);
                 if (hResult.Failed)
                 {
                     // 0x80040154
