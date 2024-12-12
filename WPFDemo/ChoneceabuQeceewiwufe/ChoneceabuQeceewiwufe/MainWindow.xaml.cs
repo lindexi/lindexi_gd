@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +23,8 @@ using Windows.UI.Input.Inking.Analysis;
 using Windows.UI.Input.Inking.Core;
 using Windows.Win32;
 using Windows.Win32.System.Com;
+using WinRT;
+
 using InkPresenter = Windows.UI.Input.Inking.InkPresenter;
 using Point = Windows.Foundation.Point;
 
@@ -58,10 +61,11 @@ public partial class MainWindow : Window
                 // https://github.com/microsoft/microsoft-ui-xaml/blob/ff21f9b212cea2191b959649e45e52486c8465aa/src/controls/dev/InkCanvas/InkCanvas.cpp#L92C9-L92C150
                 // InkDesktopHost 4ce7d875-a981-4140-a1ff-ad93258e8d59
                 var inkDesktopHostGuid = new Guid("4ce7d875-a981-4140-a1ff-ad93258e8d59");
-                var hResult = PInvoke.CoCreateInstance(inkDesktopHostGuid, null, CLSCTX.CLSCTX_INPROC_SERVER, out object inkDesktopHost);
+                var hResult = PInvoke.CoCreateInstance(inkDesktopHostGuid, null, CLSCTX.CLSCTX_INPROC_SERVER, inkDesktopHostGuid, out object inkDesktopHost);
                 if (hResult.Failed)
                 {
                     // 0x80040154
+                    
                 }
             });
 
