@@ -81,7 +81,7 @@ public partial class MainWindow : Window
                     &riidInkDesktopHost,
                     out var inkDesktopHost);
 
-                void** lpVtbl = (void**) inkDesktopHost;
+                void** lpVtbl = (void**) &inkDesktopHost;
                 // 遇到 0x80040154 是因为将 riidInkDesktopHost 当成 rclsidInkDesktopHost 传入 
 
                 if (hResult.Failed)
