@@ -30,6 +30,7 @@ using WinRT.Interop;
 using InkPresenter = Windows.UI.Input.Inking.InkPresenter;
 using Point = Windows.Foundation.Point;
 using winmdroot = global::Windows.Win32;
+using Windows.Devices.Enumeration.Pnp;
 
 namespace ChoneceabuQeceewiwufe;
 
@@ -81,7 +82,7 @@ public partial class MainWindow : Window
                     &riidInkDesktopHost,
                     out var inkDesktopHost);
 
-                void** lpVtbl = (void**) &inkDesktopHost;
+               var lpVtbl = (void**) inkDesktopHost;
                 // 遇到 0x80040154 是因为将 riidInkDesktopHost 当成 rclsidInkDesktopHost 传入 
 
                 if (hResult.Failed)
@@ -89,6 +90,10 @@ public partial class MainWindow : Window
                 }
 
                 // QueryInterface - 0
+                void* inkPresenterDesktop;
+                var rridIInkPresenterDesktop = new Guid("73f3c0d9-2e8b-48f3-895e-20cbd27b723b");
+                ((delegate* unmanaged[Cdecl]<void*, Guid*, void**, int>) lpVtbl[0])((void*) inkDesktopHost, &rridIInkPresenterDesktop, &inkPresenterDesktop);
+
                 // AddRef - 1
                 // Release - 2
                 /*
@@ -117,9 +122,7 @@ public partial class MainWindow : Window
                 // CreateAndInitializeInkPresenter - 6
                 // CreateInkPresenter
                 // IInkPresenterDesktop 
-                var rridIInkPresenterDesktop = new Guid("73f3c0d9-2e8b-48f3-895e-20cbd27b723b");
-                void* inkPresenterDesktop;
-                var result = ((delegate* unmanaged[Stdcall]<IntPtr, Guid*, void**, int>) lpVtbl[5])(inkDesktopHost, &rridIInkPresenterDesktop, &inkPresenterDesktop);
+                var result = ((delegate* unmanaged[Stdcall]<IntPtr, Guid*, void**, int>) lpVtbl[1])(inkDesktopHost, &rridIInkPresenterDesktop, &inkPresenterDesktop);
             });
         });
         thread.IsBackground = true;
