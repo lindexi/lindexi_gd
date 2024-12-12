@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -12,13 +13,4 @@ namespace ChoneceabuQeceewiwufe;
 /// </summary>
 public partial class App : Application
 {
-    public App()
-    {
-        global::WinRT.ComWrappersSupport.InitializeComWrappers();
-
-        global::Microsoft.UI.Xaml.Application.Start(p =>
-        {
-
-        });
-    }
 }
