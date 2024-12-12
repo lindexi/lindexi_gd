@@ -89,6 +89,9 @@ public partial class MainWindow : Window
                 var hResult = PInvoke.CoCreateInstance(rclsidInkDesktopHost, null, CLSCTX.CLSCTX_INPROC_SERVER,
                     out InkDesktopHost inkDesktopHost);
 
+                var t = inkDesktopHost.As<InkDesktopHost>();
+                var tryGetComInstance = ComWrappers.TryGetComInstance(inkDesktopHost,out var unknown);
+
                 var rridIInkPresenterDesktop = new Guid("73f3c0d9-2e8b-48f3-895e-20cbd27b723b");
                 inkDesktopHost.CreateInkPresenter(rridIInkPresenterDesktop,out var inkPresenterDesktop);
 
