@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -31,11 +32,29 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        Loaded += MainWindow_Loaded;
+    }
+
+    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        var thread = new Thread(() =>
+        {
+            global::WinRT.ComWrappersSupport.InitializeComWrappers();
+
+            global::Microsoft.UI.Xaml.Application.Start(p =>
+            {
+                var coreInkPresenterHost = new CoreInkPresenterHost();
+
+            });
+
+        });
+        thread.IsBackground = true;
+        thread.Start();
     }
 
     private async void InkCanvas_OnStrokeCollected(object sender, InkCanvasStrokeCollectedEventArgs e)
     {
-        var coreInkPresenterHost = new CoreInkPresenterHost();
 
         var inkStrokeBuilder = new InkStrokeBuilder();
         var inkStroke = inkStrokeBuilder.CreateStroke(e.Stroke.StylusPoints.Select(t => new Point(t.X, t.Y)));
