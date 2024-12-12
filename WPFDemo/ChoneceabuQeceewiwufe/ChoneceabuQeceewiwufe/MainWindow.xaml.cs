@@ -78,9 +78,16 @@ public partial class MainWindow : Window
                 // class DECLSPEC_UUID("062584a6-f830-4bdc-a4d2-0a10ab062b1d") InkDesktopHost;
                 var rclsidInkDesktopHost = new Guid("062584A6-F830-4BDC-A4D2-0A10AB062B1D");
 
+                void* inkDesktopHost = (void*) IntPtr.Zero;
                 var hResult = CoCreateInstance(&rclsidInkDesktopHost, null, CLSCTX.CLSCTX_INPROC_SERVER,
                     &riidInkDesktopHost,
-                    out var inkDesktopHost);
+                    &inkDesktopHost);
+
+                IUnknownVftbl* v = *((IUnknownVftbl**)inkDesktopHost);
+                void* inkPresenterDesktop = default;
+
+                v->QueryInterface(new IntPtr(inkDesktopHost), &riidInkDesktopHost, (nint*)inkPresenterDesktop);
+                //PInvoke.CoGetClassObject(&rclsidInkDesktopHost,CLSCTX.CLSCTX_INPROC_SERVER,null,&riidInkDesktopHost,IUnknownVftbl)
 
                var lpVtbl = (void**) inkDesktopHost;
                 // 遇到 0x80040154 是因为将 riidInkDesktopHost 当成 rclsidInkDesktopHost 传入 
@@ -90,9 +97,8 @@ public partial class MainWindow : Window
                 }
 
                 // QueryInterface - 0
-                void* inkPresenterDesktop;
-                var rridIInkPresenterDesktop = new Guid("73f3c0d9-2e8b-48f3-895e-20cbd27b723b");
-                ((delegate* unmanaged[Cdecl]<void*, Guid*, void**, int>) lpVtbl[0])((void*) inkDesktopHost, &rridIInkPresenterDesktop, &inkPresenterDesktop);
+                //var rridIInkPresenterDesktop = new Guid("73f3c0d9-2e8b-48f3-895e-20cbd27b723b");
+                //((delegate* unmanaged[Cdecl]<void*, Guid*, void**, int>) lpVtbl[0])((void*) inkDesktopHost, &rridIInkPresenterDesktop, &inkPresenterDesktop);
 
                 // AddRef - 1
                 // Release - 2
@@ -122,7 +128,7 @@ public partial class MainWindow : Window
                 // CreateAndInitializeInkPresenter - 6
                 // CreateInkPresenter
                 // IInkPresenterDesktop 
-                var result = ((delegate* unmanaged[Stdcall]<IntPtr, Guid*, void**, int>) lpVtbl[1])(inkDesktopHost, &rridIInkPresenterDesktop, &inkPresenterDesktop);
+                //var result = ((delegate* unmanaged[Stdcall]<IntPtr, Guid*, void**, int>) lpVtbl[1])(inkDesktopHost, &rridIInkPresenterDesktop, &inkPresenterDesktop);
             });
         });
         thread.IsBackground = true;
@@ -150,5 +156,5 @@ public partial class MainWindow : Window
     [DllImport("OLE32.dll", ExactSpelling = true)]
     internal static extern unsafe winmdroot.Foundation.HRESULT CoCreateInstance(global::System.Guid* rclsid,
         [MarshalAs(UnmanagedType.IUnknown)] object pUnkOuter, winmdroot.System.Com.CLSCTX dwClsContext,
-        global::System.Guid* riid, out IntPtr ppv);
+        global::System.Guid* riid, void** ppv);
 }
