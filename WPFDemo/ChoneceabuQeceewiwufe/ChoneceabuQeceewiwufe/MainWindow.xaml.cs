@@ -82,6 +82,12 @@ public partial class MainWindow : Window
                     &riidInkDesktopHost,
                     out var inkDesktopHost);
 
+                IUnknownVftbl v = *((IUnknownVftbl*)inkDesktopHost);
+                void* inkPresenterDesktop = default;
+
+                v.QueryInterface(inkDesktopHost, &riidInkDesktopHost, (nint*)inkPresenterDesktop);
+                //PInvoke.CoGetClassObject(&rclsidInkDesktopHost,CLSCTX.CLSCTX_INPROC_SERVER,null,&riidInkDesktopHost,IUnknownVftbl)
+
                var lpVtbl = (void**) inkDesktopHost;
                 // 遇到 0x80040154 是因为将 riidInkDesktopHost 当成 rclsidInkDesktopHost 传入 
 
@@ -90,7 +96,6 @@ public partial class MainWindow : Window
                 }
 
                 // QueryInterface - 0
-                void* inkPresenterDesktop;
                 var rridIInkPresenterDesktop = new Guid("73f3c0d9-2e8b-48f3-895e-20cbd27b723b");
                 ((delegate* unmanaged[Cdecl]<void*, Guid*, void**, int>) lpVtbl[0])((void*) inkDesktopHost, &rridIInkPresenterDesktop, &inkPresenterDesktop);
 
