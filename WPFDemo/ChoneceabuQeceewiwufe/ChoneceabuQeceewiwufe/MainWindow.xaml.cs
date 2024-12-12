@@ -48,6 +48,8 @@ public partial class MainWindow : Window
             // 将抛出 没有注册类 (0x80040154 (REGDB_E_CLASSNOTREG))
             global::Microsoft.UI.Xaml.Application.Start(p =>
             {
+                // 0x8001010e
+                var coreInkPresenterHost = new CoreInkPresenterHost();
             });
 
         });
