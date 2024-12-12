@@ -42,10 +42,10 @@ namespace ChoneceabuQeceewiwufe;
 
 [ComImport, Guid("4ce7d875-a981-4140-a1ff-ad93258e8d59")]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public interface InkDesktopHost
+public unsafe interface InkDesktopHost
 {
     void QueueWorkItem(IntPtr workItem); 
-    void CreateInkPresenter([MarshalAs(UnmanagedType.LPStruct)] Guid riid, [MarshalAs(UnmanagedType.IUnknown)] out object ppv); 
+    void CreateInkPresenter(Guid* riid, [MarshalAs(UnmanagedType.IUnknown)] out object ppv); 
     void CreateAndInitializeInkPresenter([MarshalAs(UnmanagedType.Interface)] object rootVisual, float width, float height, [MarshalAs(UnmanagedType.LPStruct)] Guid riid, [MarshalAs(UnmanagedType.IUnknown)] out object ppv);
 }
 
@@ -94,7 +94,7 @@ public partial class MainWindow : Window
                 var tryGetComInstance = ComWrappers.TryGetComInstance(inkDesktopHost,out var unknown);
 
                 var rridIInkPresenterDesktop = new Guid("73f3c0d9-2e8b-48f3-895e-20cbd27b723b");
-                inkDesktopHost.CreateInkPresenter(rridIInkPresenterDesktop,out var inkPresenterDesktop);
+                inkDesktopHost.CreateInkPresenter(&rridIInkPresenterDesktop,out var inkPresenterDesktop);
 
                 //void* inkDesktopHost = (void*) IntPtr.Zero;
                 //var hResult = CoCreateInstance(&rclsidInkDesktopHost, null, CLSCTX.CLSCTX_INPROC_SERVER,
