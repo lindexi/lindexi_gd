@@ -42,9 +42,12 @@ public partial class MainWindow : Window
         {
             global::WinRT.ComWrappersSupport.InitializeComWrappers();
 
+            // 如果不在 csproj 加上
+            // <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+            // <WindowsPackageType>None</WindowsPackageType>
+            // 将抛出 没有注册类 (0x80040154 (REGDB_E_CLASSNOTREG))
             global::Microsoft.UI.Xaml.Application.Start(p =>
             {
-
             });
 
         });
