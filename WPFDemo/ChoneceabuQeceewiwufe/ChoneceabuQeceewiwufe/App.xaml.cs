@@ -12,4 +12,13 @@ namespace ChoneceabuQeceewiwufe;
 /// </summary>
 public partial class App : Application
 {
+    public App()
+    {
+        global::WinRT.ComWrappersSupport.InitializeComWrappers();
+
+        global::Microsoft.UI.Xaml.Application.Start(p =>
+        {
+
+        });
+    }
 }

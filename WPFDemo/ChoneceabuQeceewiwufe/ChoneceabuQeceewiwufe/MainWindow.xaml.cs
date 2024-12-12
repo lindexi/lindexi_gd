@@ -44,7 +44,6 @@ public partial class MainWindow : Window
 
             global::Microsoft.UI.Xaml.Application.Start(p =>
             {
-                var coreInkPresenterHost = new CoreInkPresenterHost();
 
             });
 
