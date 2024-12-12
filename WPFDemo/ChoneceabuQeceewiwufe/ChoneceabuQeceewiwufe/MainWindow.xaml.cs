@@ -44,8 +44,9 @@ namespace ChoneceabuQeceewiwufe;
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 public interface InkDesktopHost
 {
-    void QueueWorkItem(IntPtr _);
-    void CreateInkPresenter(Guid rrid, out IntPtr ppv);
+    void QueueWorkItem(IntPtr workItem); 
+    void CreateInkPresenter([MarshalAs(UnmanagedType.LPStruct)] Guid riid, [MarshalAs(UnmanagedType.IUnknown)] out object ppv); 
+    void CreateAndInitializeInkPresenter([MarshalAs(UnmanagedType.Interface)] object rootVisual, float width, float height, [MarshalAs(UnmanagedType.LPStruct)] Guid riid, [MarshalAs(UnmanagedType.IUnknown)] out object ppv);
 }
 
 /// <summary>
