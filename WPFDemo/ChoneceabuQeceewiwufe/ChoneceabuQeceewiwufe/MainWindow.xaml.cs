@@ -77,19 +77,13 @@ public partial class MainWindow : Window
                 // class DECLSPEC_UUID("062584a6-f830-4bdc-a4d2-0a10ab062b1d") InkDesktopHost;
                 var rclsidInkDesktopHost = new Guid("062584A6-F830-4BDC-A4D2-0A10AB062B1D");
 
-                fixed (global::System.Guid* riidLocal = &riidInkDesktopHost)
+                var hResult = CoCreateInstance(&rclsidInkDesktopHost, null, CLSCTX.CLSCTX_INPROC_SERVER, &riidInkDesktopHost,
+                    out var inkDesktopHost);
+
+                // 遇到 0x80040154 是因为将 riidInkDesktopHost 当成 rclsidInkDesktopHost 传入 
+
+                if (hResult.Failed)
                 {
-                    fixed (global::System.Guid* rclsidLocal = &rclsidInkDesktopHost)
-                    {
-                        var hResult = CoCreateInstance(rclsidLocal, null, CLSCTX.CLSCTX_INPROC_SERVER, riidLocal,
-                            out var inkDesktopHost);
-
-                        // 遇到 0x80040154 是因为将 riidInkDesktopHost 当成 rclsidInkDesktopHost 传入 
-
-                        if (hResult.Failed)
-                        {
-                        }
-                    }
                 }
             });
         });
