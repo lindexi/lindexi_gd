@@ -40,6 +40,14 @@ namespace ChoneceabuQeceewiwufe;
 //    static Guid* INativeGuid.NativeGuid => (Guid*) Unsafe.AsPointer(ref Unsafe.AsRef(in CLSID_InkDesktopHost));
 //}
 
+[ComImport, Guid("4ce7d875-a981-4140-a1ff-ad93258e8d59")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface InkDesktopHost
+{
+    void QueueWorkItem(IntPtr _);
+    void CreateInkPresenter(Guid rrid, out IntPtr ppv);
+}
+
 /// <summary>
 /// Interaction logic for MainWindow.xaml
 /// </summary>
@@ -78,26 +86,33 @@ public partial class MainWindow : Window
                 // class DECLSPEC_UUID("062584a6-f830-4bdc-a4d2-0a10ab062b1d") InkDesktopHost;
                 var rclsidInkDesktopHost = new Guid("062584A6-F830-4BDC-A4D2-0A10AB062B1D");
 
-                void* inkDesktopHost = (void*) IntPtr.Zero;
-                var hResult = CoCreateInstance(&rclsidInkDesktopHost, null, CLSCTX.CLSCTX_INPROC_SERVER,
-                    &riidInkDesktopHost,
-                    &inkDesktopHost);
+                var hResult = PInvoke.CoCreateInstance(rclsidInkDesktopHost, null, CLSCTX.CLSCTX_INPROC_SERVER,
+                    out InkDesktopHost inkDesktopHost);
 
-                IUnknownVftbl* v = *((IUnknownVftbl**)inkDesktopHost);
-                void* inkPresenterDesktop = default;
+                var rridIInkPresenterDesktop = new Guid("73f3c0d9-2e8b-48f3-895e-20cbd27b723b");
+                inkDesktopHost.CreateInkPresenter(rridIInkPresenterDesktop,out var inkPresenterDesktop);
 
-                v->QueryInterface(new IntPtr(inkDesktopHost), &riidInkDesktopHost, (nint*)inkPresenterDesktop);
-                //PInvoke.CoGetClassObject(&rclsidInkDesktopHost,CLSCTX.CLSCTX_INPROC_SERVER,null,&riidInkDesktopHost,IUnknownVftbl)
+                //void* inkDesktopHost = (void*) IntPtr.Zero;
+                //var hResult = CoCreateInstance(&rclsidInkDesktopHost, null, CLSCTX.CLSCTX_INPROC_SERVER,
+                //    &riidInkDesktopHost,
+                //    &inkDesktopHost);
 
-               var lpVtbl = (void**) inkDesktopHost;
-                // 遇到 0x80040154 是因为将 riidInkDesktopHost 当成 rclsidInkDesktopHost 传入 
+                //Marshal.GetObjectForIUnknown(new IntPtr(inkDesktopHost))
 
-                if (hResult.Failed)
-                {
-                }
+                //IUnknownVftbl* v = *((IUnknownVftbl**) inkDesktopHost);
+                //void* inkPresenterDesktop = default;
+
+                //v->QueryInterface(new IntPtr(inkDesktopHost), &riidInkDesktopHost, (nint*) inkPresenterDesktop);
+                ////PInvoke.CoGetClassObject(&rclsidInkDesktopHost,CLSCTX.CLSCTX_INPROC_SERVER,null,&riidInkDesktopHost,IUnknownVftbl)
+
+                //var lpVtbl = (void**) inkDesktopHost;
+                //// 遇到 0x80040154 是因为将 riidInkDesktopHost 当成 rclsidInkDesktopHost 传入 
+
+                //if (hResult.Failed)
+                //{
+                //}
 
                 // QueryInterface - 0
-                //var rridIInkPresenterDesktop = new Guid("73f3c0d9-2e8b-48f3-895e-20cbd27b723b");
                 //((delegate* unmanaged[Cdecl]<void*, Guid*, void**, int>) lpVtbl[0])((void*) inkDesktopHost, &rridIInkPresenterDesktop, &inkPresenterDesktop);
 
                 // AddRef - 1
