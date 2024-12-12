@@ -50,6 +50,8 @@ public partial class MainWindow : Window
             // 将抛出 没有注册类 (0x80040154 (REGDB_E_CLASSNOTREG))
             global::Microsoft.UI.Xaml.Application.Start(p =>
             {
+                //  __RP_Marker_ClassById(RuntimeProfiler::ProfId_InkCanvas);
+                // https://learn.microsoft.com/en-us/windows/win32/input_ink/inkdesktophost
                 //// 0x8001010e
                 //var coreInkPresenterHost = new CoreInkPresenterHost();
                 // winrt::check_hresult(CoCreateInstance(__uuidof(InkDesktopHost), nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(m_threadData->m_inkHost.put())));
@@ -59,7 +61,7 @@ public partial class MainWindow : Window
                 var hResult = PInvoke.CoCreateInstance(inkDesktopHostGuid, null, CLSCTX.CLSCTX_INPROC_SERVER, out object inkDesktopHost);
                 if (hResult.Failed)
                 {
-                    
+                    // 0x80040154
                 }
             });
 
