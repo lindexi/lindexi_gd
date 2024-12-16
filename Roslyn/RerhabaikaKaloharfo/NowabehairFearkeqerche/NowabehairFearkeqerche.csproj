@@ -12,4 +12,8 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0" PrivateAssets="all" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\..\Library\ILSpy\ICSharpCode.BamlDecompiler\ICSharpCode.BamlDecompiler.csproj" />
+  </ItemGroup>
+
 </Project>

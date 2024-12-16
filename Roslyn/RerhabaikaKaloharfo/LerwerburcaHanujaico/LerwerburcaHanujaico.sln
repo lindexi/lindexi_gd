@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DalljukanemDaryawceceegal",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NowabehairFearkeqerche", "..\NowabehairFearkeqerche\NowabehairFearkeqerche.csproj", "{D044C4A3-3BDB-4405-9149-B6DFCED4401D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ICSharpCode.BamlDecompiler", "..\..\..\..\..\..\Library\ILSpy\ICSharpCode.BamlDecompiler\ICSharpCode.BamlDecompiler.csproj", "{FC9534AC-7907-4F6C-A693-5569FAFF07A8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ICSharpCode.Decompiler", "..\..\..\..\..\..\Library\ILSpy\ICSharpCode.Decompiler\ICSharpCode.Decompiler.csproj", "{3CC6C6F3-DE84-4143-AA4A-9F7560BF15A7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,14 @@ Global
 		{D044C4A3-3BDB-4405-9149-B6DFCED4401D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D044C4A3-3BDB-4405-9149-B6DFCED4401D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D044C4A3-3BDB-4405-9149-B6DFCED4401D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC9534AC-7907-4F6C-A693-5569FAFF07A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC9534AC-7907-4F6C-A693-5569FAFF07A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC9534AC-7907-4F6C-A693-5569FAFF07A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC9534AC-7907-4F6C-A693-5569FAFF07A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3CC6C6F3-DE84-4143-AA4A-9F7560BF15A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3CC6C6F3-DE84-4143-AA4A-9F7560BF15A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3CC6C6F3-DE84-4143-AA4A-9F7560BF15A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3CC6C6F3-DE84-4143-AA4A-9F7560BF15A7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
