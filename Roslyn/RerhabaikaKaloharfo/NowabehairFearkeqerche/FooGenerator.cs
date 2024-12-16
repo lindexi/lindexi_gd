@@ -10,6 +10,7 @@ using ICSharpCode.Decompiler.CSharp;
 using ICSharpCode.Decompiler.CSharp.ProjectDecompiler;
 using ICSharpCode.Decompiler.Metadata;
 using ICSharpCode.Decompiler.Util;
+
 using Microsoft.CodeAnalysis;
 
 namespace NowabehairFearkeqerche
@@ -30,9 +31,11 @@ namespace NowabehairFearkeqerche
                         {
                             var filePath = portableExecutableReference.FilePath;
 
-                            if (Path.GetDirectoryName(filePath) is var directory && Path.GetFileName(directory) == "ref") 
+                            if (Path.GetDirectoryName(filePath) is var directory && Path.GetFileName(directory) == "ref")
                             {
-                               
+                                filePath = Path.Combine(directory, "..", "..", "..", "..", "bin", "Debug",
+                                    "net9.0-windows", "DalljukanemDaryawceceegal.dll");
+                                filePath = Path.GetFullPath(filePath);
                             }
 
                             //var fileStream = File.OpenRead(filePath);
@@ -47,15 +50,15 @@ namespace NowabehairFearkeqerche
                             {
                                 ThrowOnAssemblyResolveErrors = false
                             });
-                         
+
 
                             using (var fileStream = fileInfo.OpenRead())
                             {
-                                var metadata = MetadataReaderProvider.FromMetadataStream(fileStream, MetadataStreamOptions.PrefetchMetadata | MetadataStreamOptions.LeaveOpen);
+                                //var metadata = MetadataReaderProvider.FromMetadataStream(fileStream, MetadataStreamOptions.PrefetchMetadata | MetadataStreamOptions.LeaveOpen);
 
-                                var metadataReader = metadata.GetMetadataReader(MetadataReaderOptions.None);
+                                //var metadataReader = metadata.GetMetadataReader(MetadataReaderOptions.None);
 
-                                var metadataFile = new MetadataFile(MetadataFile.MetadataFileKind.Metadata, fileInfo.FullName, metadata);
+                                //var metadataFile = new MetadataFile(MetadataFile.MetadataFileKind.Metadata, fileInfo.FullName, metadata);
 
                                 var peReader = new PEReader(fileStream);
 
@@ -65,7 +68,21 @@ namespace NowabehairFearkeqerche
 
                                 foreach (var resource in peFile.Resources)
                                 {
-                                    
+                                    if (resource.TryOpenStream() is Stream stream)
+                                    {
+                                        var resourcesFile = new ResourcesFile(stream);
+                                        foreach (var keyValuePair in resourcesFile)
+                                        {
+                                            if (keyValuePair.Key.EndsWith(".baml"))
+                                            {
+                                                if (keyValuePair.Value is Stream bamlStream)
+                                                {
+                                                    var decompilationResult = xamlDecompiler.Decompile(bamlStream);
+                                                    var xaml = decompilationResult.Xaml;
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
 
 
