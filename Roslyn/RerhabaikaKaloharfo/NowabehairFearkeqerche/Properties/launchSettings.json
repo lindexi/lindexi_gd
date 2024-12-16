@@ -1,9 +1,9 @@
 {
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
-    "CajembechawjelyaGawjerenayfayhaba": {
+    "DebugRoslyn": {
       "commandName": "DebugRoslynComponent",
-      "targetProject": "../LerwerburcaHanujaico/LerwerburcaHanujaico.csproj"
+      "targetProject": "..\\LerwerburcaHanujaico\\LerwerburcaHanujaico.csproj"
     }
   }
 }

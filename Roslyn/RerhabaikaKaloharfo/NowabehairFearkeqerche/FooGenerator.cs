@@ -7,7 +7,17 @@ namespace NowabehairFearkeqerche
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
+            var typeNameIncrementalValueProvider = context.CompilationProvider.Select((compilation, token) =>
+            {
+                var referencedAssemblySymbols = compilation.SourceModule.ReferencedAssemblySymbols;
 
+                return referencedAssemblySymbols.Length;
+            });
+
+            context.RegisterSourceOutput(typeNameIncrementalValueProvider, (productionContext, provider) =>
+            {
+
+            });
         }
     }
 }
