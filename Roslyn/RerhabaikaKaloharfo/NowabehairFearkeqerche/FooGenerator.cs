@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using ICSharpCode.BamlDecompiler;
+using ICSharpCode.Decompiler.CSharp.ProjectDecompiler;
 using Microsoft.CodeAnalysis;
 
 namespace NowabehairFearkeqerche
@@ -24,10 +25,20 @@ namespace NowabehairFearkeqerche
                             var filePath = portableExecutableReference.FilePath;
                             //var fileStream = File.OpenRead(filePath);
                             var fileInfo = new FileInfo(filePath);
-                            //FileStream fileStream = fileInfo.OpenRead();
                             //var peReader = new PEReader(fileStream);
 
-                            var xamlDecompiler = new XamlDecompiler(fileInfo.FullName,new BamlDecompilerSettings());
+                            var xamlDecompiler = new XamlDecompiler(fileInfo.FullName, new BamlDecompilerSettings()
+                            {
+                                ThrowOnAssemblyResolveErrors = false
+                            });
+
+                            using (var fileStream = fileInfo.OpenRead())
+                            {
+                             
+
+
+                                var bamlDecompilationResult = xamlDecompiler.Decompile(fileStream);
+                            }
                         }
                     }
                 }
