@@ -1,16 +1,16 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices.ComTypes;
-
+using System.Xml.Linq;
 using ICSharpCode.BamlDecompiler;
 using ICSharpCode.Decompiler;
 using ICSharpCode.Decompiler.CSharp;
 using ICSharpCode.Decompiler.CSharp.ProjectDecompiler;
 using ICSharpCode.Decompiler.Metadata;
 using ICSharpCode.Decompiler.Util;
-
 using Microsoft.CodeAnalysis;
 
 namespace NowabehairFearkeqerche
@@ -20,122 +20,97 @@ namespace NowabehairFearkeqerche
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            var typeNameIncrementalValueProvider = context.CompilationProvider.Select((compilation, token) =>
+            var xamlIncrementalValueProvider = context.CompilationProvider.Select((compilation, token) =>
             {
+                var list = new List<XamlRecord>();
+
                 foreach (MetadataReference compilationReference in compilation.References)
                 {
-                    if (compilationReference is PortableExecutableReference portableExecutableReference)
+                    if (!(compilationReference is PortableExecutableReference portableExecutableReference))
                     {
-                        var assemblySymbol = compilation.GetAssemblyOrModuleSymbol(compilationReference) as IAssemblySymbol;
-                        if (assemblySymbol?.Name == "DalljukanemDaryawceceegal")
+                        continue;
+                    }
+
+                    var assemblySymbol = compilation.GetAssemblyOrModuleSymbol(compilationReference) as IAssemblySymbol;
+
+                    var testDemoProjectName = "DalljukanemDaryawceceegal";
+
+                    if (assemblySymbol?.Name != testDemoProjectName)
+                    {
+                        continue;
+                    }
+
+                    var filePath = portableExecutableReference.FilePath;
+
+                    if (filePath is null)
+                    {
+                        continue;
+                    }
+
+                    if (Path.GetDirectoryName(filePath) is var directory && Path.GetFileName(directory) == "ref")
+                    {
+                        filePath = Path.Combine(directory, "..", "..", "..", "..", "bin", "Debug",
+                            "net9.0-windows", "DalljukanemDaryawceceegal.dll");
+                        filePath = Path.GetFullPath(filePath);
+                    }
+
+                    var fileInfo = new FileInfo(filePath);
+
+                    var xamlDecompiler = new XamlDecompiler(fileInfo.FullName, new BamlDecompilerSettings()
+                    {
+                        ThrowOnAssemblyResolveErrors = false
+                    });
+
+                    var peFile = new PEFile(fileInfo.FullName);
+
+                    foreach (var resource in peFile.Resources)
+                    {
+                        if (!(resource.TryOpenStream() is Stream stream))
                         {
-                            var filePath = portableExecutableReference.FilePath;
+                            continue;
+                        }
 
-                            if (Path.GetDirectoryName(filePath) is var directory && Path.GetFileName(directory) == "ref")
+                        var resourcesFile = new ResourcesFile(stream);
+                        foreach (var keyValuePair in resourcesFile)
+                        {
+                            if (keyValuePair.Key.EndsWith(".baml"))
                             {
-                                filePath = Path.Combine(directory, "..", "..", "..", "..", "bin", "Debug",
-                                    "net9.0-windows", "DalljukanemDaryawceceegal.dll");
-                                filePath = Path.GetFullPath(filePath);
-                            }
-
-                            //var fileStream = File.OpenRead(filePath);
-                            var fileInfo = new FileInfo(filePath);
-
-                            var cSharpDecompiler = new CSharpDecompiler(fileInfo.FullName, new DecompilerSettings()
-                            {
-                                ThrowOnAssemblyResolveErrors = false
-                            });
-
-                            var xamlDecompiler = new XamlDecompiler(fileInfo.FullName, new BamlDecompilerSettings()
-                            {
-                                ThrowOnAssemblyResolveErrors = false
-                            });
-
-
-                            using (var fileStream = fileInfo.OpenRead())
-                            {
-                                //var metadata = MetadataReaderProvider.FromMetadataStream(fileStream, MetadataStreamOptions.PrefetchMetadata | MetadataStreamOptions.LeaveOpen);
-
-                                //var metadataReader = metadata.GetMetadataReader(MetadataReaderOptions.None);
-
-                                //var metadataFile = new MetadataFile(MetadataFile.MetadataFileKind.Metadata, fileInfo.FullName, metadata);
-
-                                var peReader = new PEReader(fileStream);
-
-                                var win32ResourceDirectory = peReader.ReadWin32Resources();
-
-                                var peFile = new PEFile(fileInfo.FullName);
-
-                                foreach (var resource in peFile.Resources)
+                                if (keyValuePair.Value is Stream bamlStream)
                                 {
-                                    if (resource.TryOpenStream() is Stream stream)
-                                    {
-                                        var resourcesFile = new ResourcesFile(stream);
-                                        foreach (var keyValuePair in resourcesFile)
-                                        {
-                                            if (keyValuePair.Key.EndsWith(".baml"))
-                                            {
-                                                if (keyValuePair.Value is Stream bamlStream)
-                                                {
-                                                    var decompilationResult = xamlDecompiler.Decompile(bamlStream);
-                                                    var xaml = decompilationResult.Xaml;
-                                                }
-                                            }
-                                        }
-                                    }
+                                    var decompilationResult = xamlDecompiler.Decompile(bamlStream);
+                                    var xaml = decompilationResult.Xaml;
+
+                                    var xamlRecord = new XamlRecord(xaml, portableExecutableReference,
+                                        assemblySymbol);
+                                    list.Add(xamlRecord);
                                 }
-
-
-
-                                var bamlDecompilationResult = xamlDecompiler.Decompile(fileStream);
                             }
                         }
                     }
                 }
 
-                var referencedAssemblySymbols = compilation.SourceModule.ReferencedAssemblySymbols;
-
-                foreach (IAssemblySymbol referencedAssemblySymbol in referencedAssemblySymbols)
-                {
-                    var location = referencedAssemblySymbol.Locations[0];
-
-
-                    if (referencedAssemblySymbol.Name == "DalljukanemDaryawceceegal")
-                    {
-                        IAssemblySymbol dalljukanemDaryawceceegalAssembly = referencedAssemblySymbol;
-
-
-                        using (var metadata = dalljukanemDaryawceceegalAssembly.GetMetadata())
-                        {
-                            ModuleMetadata module = metadata.GetModules()[0];
-                            MetadataReader metadataReader = module.GetMetadataReader();
-                            foreach (var assemblyFile in metadataReader.AssemblyFiles)
-                            {
-                                // 返回 0 个
-                            }
-
-                            foreach (var manifestResource in metadataReader.ManifestResources)
-                            {
-                                // 也是 0 个
-                            }
-
-                        }
-
-                        var containingModule = dalljukanemDaryawceceegalAssembly.ContainingModule;
-                        var containingModuleLocations = containingModule?.Locations;
-
-                        var moduleSymbol = dalljukanemDaryawceceegalAssembly.Modules.FirstOrDefault();
-                        var moduleSymbolLocations = moduleSymbol?.Locations;
-                    }
-                }
-
-                return referencedAssemblySymbols.Length;
+                return list;
             });
 
-            context.RegisterSourceOutput(typeNameIncrementalValueProvider, (productionContext, provider) =>
+            context.RegisterSourceOutput(xamlIncrementalValueProvider, (productionContext, provider) =>
             {
 
             });
         }
+    }
+
+    struct XamlRecord
+    {
+        public XamlRecord(XDocument xaml, PortableExecutableReference portableExecutableReference,
+            IAssemblySymbol assemblySymbol)
+        {
+            Xaml = xaml;
+            PortableExecutableReference = portableExecutableReference;
+            AssemblySymbol = assemblySymbol;
+        }
+
+        public XDocument Xaml { get; }
+        public PortableExecutableReference PortableExecutableReference { get; }
+        public IAssemblySymbol AssemblySymbol { get; }
     }
 }
