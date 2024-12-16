@@ -1,5 +1,7 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis;
 
 namespace NowabehairFearkeqerche
@@ -19,7 +21,10 @@ namespace NowabehairFearkeqerche
                         if (assemblySymbol?.Name == "DalljukanemDaryawceceegal")
                         {
                             var filePath = portableExecutableReference.FilePath;
-
+                            //var fileStream = File.OpenRead(filePath);
+                            var fileInfo = new FileInfo(filePath);
+                            FileStream fileStream = fileInfo.OpenRead();
+                            var peReader = new PEReader(fileStream);
                         }
                     }
                 }
