@@ -22,11 +22,13 @@ public partial class MainWindow : Window
         InitializeComponent();
     }
 
-    protected override void OnSourceInitialized(EventArgs e)
+    protected unsafe override void OnSourceInitialized(EventArgs e)
     {
         var inkDesktopHost = new InkDesktopHost();
-        var desktopHost = new IInkDesktopHost();
-        desktopHost.CreateInkPresenter();
+        var desktopHost = new IInkDesktopHost()
+        {
+            lpVtbl = (void**) 0,
+        };
         var inkPresenterDesktop = new IInkPresenterDesktop();
     }
 }
