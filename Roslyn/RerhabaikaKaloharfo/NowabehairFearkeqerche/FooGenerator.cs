@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices.ComTypes;
 
 using ICSharpCode.BamlDecompiler;
 using ICSharpCode.Decompiler;
@@ -28,6 +29,12 @@ namespace NowabehairFearkeqerche
                         if (assemblySymbol?.Name == "DalljukanemDaryawceceegal")
                         {
                             var filePath = portableExecutableReference.FilePath;
+
+                            if (Path.GetDirectoryName(filePath) is var directory && Path.GetFileName(directory) == "ref") 
+                            {
+                               
+                            }
+
                             //var fileStream = File.OpenRead(filePath);
                             var fileInfo = new FileInfo(filePath);
 
@@ -40,10 +47,16 @@ namespace NowabehairFearkeqerche
                             {
                                 ThrowOnAssemblyResolveErrors = false
                             });
-
+                         
 
                             using (var fileStream = fileInfo.OpenRead())
                             {
+                                var metadata = MetadataReaderProvider.FromMetadataStream(fileStream, MetadataStreamOptions.PrefetchMetadata | MetadataStreamOptions.LeaveOpen);
+
+                                var metadataReader = metadata.GetMetadataReader(MetadataReaderOptions.None);
+
+                                var metadataFile = new MetadataFile(MetadataFile.MetadataFileKind.Metadata, fileInfo.FullName, metadata);
+
                                 var peReader = new PEReader(fileStream);
 
                                 var win32ResourceDirectory = peReader.ReadWin32Resources();
