@@ -1,5 +1,7 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis;
 
 namespace NowabehairFearkeqerche
@@ -11,13 +13,34 @@ namespace NowabehairFearkeqerche
         {
             var typeNameIncrementalValueProvider = context.CompilationProvider.Select((compilation, token) =>
             {
+                foreach (MetadataReference compilationReference in compilation.References)
+                {
+                    if (compilationReference is PortableExecutableReference portableExecutableReference)
+                    {
+                        var assemblySymbol = compilation.GetAssemblyOrModuleSymbol(compilationReference) as IAssemblySymbol;
+                        if (assemblySymbol?.Name == "DalljukanemDaryawceceegal")
+                        {
+                            var filePath = portableExecutableReference.FilePath;
+                            //var fileStream = File.OpenRead(filePath);
+                            var fileInfo = new FileInfo(filePath);
+                            FileStream fileStream = fileInfo.OpenRead();
+                            var peReader = new PEReader(fileStream);
+                        }
+                    }
+                }
+
                 var referencedAssemblySymbols = compilation.SourceModule.ReferencedAssemblySymbols;
 
-                foreach (var referencedAssemblySymbol in referencedAssemblySymbols)
+                foreach (IAssemblySymbol referencedAssemblySymbol in referencedAssemblySymbols)
                 {
+                    var location = referencedAssemblySymbol.Locations[0];
+                    
+
                     if (referencedAssemblySymbol.Name == "DalljukanemDaryawceceegal")
                     {
                         IAssemblySymbol dalljukanemDaryawceceegalAssembly = referencedAssemblySymbol;
+
+
                         using (var metadata = dalljukanemDaryawceceegalAssembly.GetMetadata())
                         {
                             ModuleMetadata module = metadata.GetModules()[0];
