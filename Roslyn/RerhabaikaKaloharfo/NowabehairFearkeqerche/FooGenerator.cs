@@ -36,13 +36,10 @@ namespace NowabehairFearkeqerche
                                 ThrowOnAssemblyResolveErrors = false
                             });
 
-                            
-
                             var xamlDecompiler = new XamlDecompiler(fileInfo.FullName, new BamlDecompilerSettings()
                             {
                                 ThrowOnAssemblyResolveErrors = false
                             });
-
 
 
                             using (var fileStream = fileInfo.OpenRead())
@@ -51,7 +48,8 @@ namespace NowabehairFearkeqerche
 
                                 var win32ResourceDirectory = peReader.ReadWin32Resources();
 
-                                var peFile = new PEFile(fileInfo.FullName, peReader);
+                                var peFile = new PEFile(fileInfo.FullName);
+
                                 foreach (var resource in peFile.Resources)
                                 {
                                     
