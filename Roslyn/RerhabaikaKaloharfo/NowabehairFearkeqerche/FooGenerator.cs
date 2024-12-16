@@ -2,8 +2,13 @@
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+
 using ICSharpCode.BamlDecompiler;
+using ICSharpCode.Decompiler;
+using ICSharpCode.Decompiler.CSharp;
 using ICSharpCode.Decompiler.CSharp.ProjectDecompiler;
+using ICSharpCode.Decompiler.Metadata;
+using ICSharpCode.Decompiler.Util;
 using Microsoft.CodeAnalysis;
 
 namespace NowabehairFearkeqerche
@@ -25,16 +30,33 @@ namespace NowabehairFearkeqerche
                             var filePath = portableExecutableReference.FilePath;
                             //var fileStream = File.OpenRead(filePath);
                             var fileInfo = new FileInfo(filePath);
-                            //var peReader = new PEReader(fileStream);
+
+                            var cSharpDecompiler = new CSharpDecompiler(fileInfo.FullName, new DecompilerSettings()
+                            {
+                                ThrowOnAssemblyResolveErrors = false
+                            });
+
+                            
 
                             var xamlDecompiler = new XamlDecompiler(fileInfo.FullName, new BamlDecompilerSettings()
                             {
                                 ThrowOnAssemblyResolveErrors = false
                             });
 
+
+
                             using (var fileStream = fileInfo.OpenRead())
                             {
-                             
+                                var peReader = new PEReader(fileStream);
+
+                                var win32ResourceDirectory = peReader.ReadWin32Resources();
+
+                                var peFile = new PEFile(fileInfo.FullName, peReader);
+                                foreach (var resource in peFile.Resources)
+                                {
+                                    
+                                }
+
 
 
                                 var bamlDecompilationResult = xamlDecompiler.Decompile(fileStream);
@@ -48,7 +70,7 @@ namespace NowabehairFearkeqerche
                 foreach (IAssemblySymbol referencedAssemblySymbol in referencedAssemblySymbols)
                 {
                     var location = referencedAssemblySymbol.Locations[0];
-                    
+
 
                     if (referencedAssemblySymbol.Name == "DalljukanemDaryawceceegal")
                     {
