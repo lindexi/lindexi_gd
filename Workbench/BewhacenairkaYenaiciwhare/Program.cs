@@ -7,7 +7,7 @@ Console.WriteLine("Hello, World!");
 
     static class StrangeBehavior
     {
-        private static bool s_stopWorker = false;
+        private static volatile bool s_stopWorker = false;
 
         public static void Run()
         {
