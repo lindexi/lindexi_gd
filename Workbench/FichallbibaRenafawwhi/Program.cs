@@ -4,7 +4,12 @@ using System.Globalization;
 
 using Icu;
 
+Wrapper.ConfineIcuVersions(62);
+
+Wrapper.SetPreferredIcu4cDirectory(Path.Join(AppContext.BaseDirectory, "runtimes", "win-x64"));
+
 Icu.Wrapper.Init();
+var version = Wrapper.IcuVersion;
 
 var text = "asd fx, aasa “说话大学生上课”\nasd sadf";
 // https://unicode.org/reports/tr14/
