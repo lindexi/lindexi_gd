@@ -7,7 +7,9 @@ using Icu;
 Icu.Wrapper.Init();
 
 var text = "asd fx, aasa “说话大学生上课”\nasd sadf";
-var boundaries = Icu.BreakIterator.GetBoundaries(BreakIterator.UBreakIteratorType.SENTENCE, Locale.GetLocaleForLCID(CultureInfo.CurrentCulture.LCID), text);
+// https://unicode.org/reports/tr14/
+// Unicode Line Breaking Algorithm (UAX #14)
+var boundaries = Icu.BreakIterator.GetBoundaries(BreakIterator.UBreakIteratorType.LINE, Locale.GetLocaleForLCID(CultureInfo.CurrentCulture.LCID), text);
 foreach (Boundary boundary in boundaries)
 {
     var subText = text.AsSpan().Slice(boundary.Start, boundary.End - boundary.Start);
