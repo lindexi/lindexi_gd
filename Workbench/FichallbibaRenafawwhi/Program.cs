@@ -6,8 +6,8 @@ using Icu;
 
 Icu.Wrapper.Init();
 
-var text = "asd fx, aasa “说话大”";
-var boundaries = Icu.BreakIterator.GetBoundaries(BreakIterator.UBreakIteratorType.LINE, Locale.GetLocaleForLCID(CultureInfo.CurrentCulture.LCID), text);
+var text = "asd fx, aasa “说话大学生上课”\nasd sadf";
+var boundaries = Icu.BreakIterator.GetBoundaries(BreakIterator.UBreakIteratorType.SENTENCE, Locale.GetLocaleForLCID(CultureInfo.CurrentCulture.LCID), text);
 foreach (Boundary boundary in boundaries)
 {
     var subText = text.AsSpan().Slice(boundary.Start, boundary.End - boundary.Start);
