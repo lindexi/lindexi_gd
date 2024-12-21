@@ -4,7 +4,7 @@ using LightTextEditorPlus.Core.Platform;
 namespace LightTextEditorPlus.Core.TestsFramework;
 
 /// <summary>
-/// 让行高和字号一样，方便测试
+/// 璁╄楂樺拰瀛楀彿涓�鏍凤紝鏂逛究娴嬭瘯
 /// </summary>
 public class FakeLineSpacingCalculator : ILineSpacingCalculator
 {

@@ -1,4 +1,4 @@
-﻿//using System.Collections.Generic;
+//using System.Collections.Generic;
 //using LightTextEditorPlus.Core.Primitive;
 
 //namespace LightTextEditorPlus.Core.Document;

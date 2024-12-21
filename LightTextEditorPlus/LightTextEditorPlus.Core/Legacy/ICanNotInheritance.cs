@@ -1,4 +1,4 @@
-﻿//namespace LightTextEditorPlus.Core.Document;
+//namespace LightTextEditorPlus.Core.Document;
 
 ///// <summary>
 ///// 用来限制某个类型不能被其他程序集继承

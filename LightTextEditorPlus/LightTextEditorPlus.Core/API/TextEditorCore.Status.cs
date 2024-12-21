@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,7 +21,9 @@ public partial class TextEditorCore
     [TextEditorPublicAPI]
     public bool TryHitTest(in TextPoint point, out TextHitTestResult result)
     {
-        if (IsDirty)
+        if (IsDirty
+            // 非空文本的初始化状态下，不允许命中测试。如果在初始化状态下，允许命中测试，返回的就是文档末尾。此时也不需要申请布局
+            && !IsEmptyInitializingTextEditor())
         {
             result = default;
             return false;

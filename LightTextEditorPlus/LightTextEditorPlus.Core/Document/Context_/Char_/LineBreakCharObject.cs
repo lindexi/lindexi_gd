@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Core.Document;

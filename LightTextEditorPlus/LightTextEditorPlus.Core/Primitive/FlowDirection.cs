@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Core.Primitive;
+namespace LightTextEditorPlus.Core.Primitive;
 
 /// <summary>
 /// 文本排版方向

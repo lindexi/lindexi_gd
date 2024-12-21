@@ -1,4 +1,4 @@
-﻿[*.{cs,vb}]
+[*.{cs,vb}]
 
 # IDE0032: 使用自动属性
 dotnet_style_prefer_auto_properties = false

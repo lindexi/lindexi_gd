@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using LightTextEditorPlus.Core.Carets;
@@ -10,6 +11,7 @@ using LightTextEditorPlus.Core.Rendering;
 using SkiaSharp;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
+using LightTextEditorPlus.Diagnostics;
 using LightTextEditorPlus.Utils;
 using LightTextEditorPlus.Document;
 
@@ -20,14 +22,6 @@ class RenderManager
     public RenderManager(SkiaTextEditor textEditor)
     {
         _textEditor = textEditor;
-        TextEditorDebugConfiguration debugConfiguration = textEditor.TextEditorCore.DebugConfiguration;
-
-        if (debugConfiguration.IsInDebugMode)
-        {
-            //_debugDrawCharBounds = SKColors.Bisque.WithAlpha(0xA0);
-            //_debugDrawCharSpanBounds = SKColors.Red.WithAlpha(0xA0);
-            //_debugDrawLineBounds = SKColors.Blue.WithAlpha(0x50);
-        }
     }
 
     private readonly SkiaTextEditor _textEditor;
@@ -46,7 +40,7 @@ class RenderManager
             SKColor caretColor = _textEditor.CaretConfiguration.CaretBrush
                                  // todo 获取当前前景色作为光标颜色
                                  ?? SKColors.Black;
-            _currentCaretAndSelectionRender  = new TextEditorCaretSkiaRender(caretBounds.ToSKRect(), caretColor);
+            _currentCaretAndSelectionRender = new TextEditorCaretSkiaRender(caretBounds.ToSKRect(), caretColor);
         }
         else
         {
@@ -73,22 +67,29 @@ class RenderManager
 
     public ITextEditorSkiaRender GetCurrentTextRender()
     {
-        Debug.Assert(_currentRender != null, "不可能一开始就获取当前渲染，必然调用过 Render 方法");
+        //Debug.Assert(_currentRender != null, "不可能一开始就获取当前渲染，必然调用过 Render 方法");
+        if (_currentRender is null)
+        {
+            // 首次渲染，需要尝试获取一下
+            Debug.Assert(!_textEditor.TextEditorCore.IsDirty);
+            RenderInfoProvider renderInfoProvider = _textEditor.TextEditorCore.GetRenderInfo();
+            Render(renderInfoProvider);
+        }
 
         return _currentRender;
     }
 
-#pragma warning disable CS0649 // 从未对字段赋值，字段将一直保持其默认值。 调试的就忽略警告
-    private SKColor _debugDrawCharBounds;
-    private SKColor _debugDrawCharSpanBounds;
-    private SKColor _debugDrawLineBounds;
-    private SKPaint? _debugSkPaint;
-#pragma warning restore CS0649 // 从未对字段赋值，字段将一直保持其默认值
+    private SKColor? _debugDrawCharBoundsColor;
+    private SKColor? _debugDrawCharSpanBoundsColor;
+    private SKColor? _debugDrawLineBoundsColor;
+    private SKPaint? _debugSKPaint;
 
     [MemberNotNull(nameof(_currentRender), nameof(_currentCaretAndSelectionRender))]
     public void Render(RenderInfoProvider renderInfoProvider)
     {
         Debug.Assert(!renderInfoProvider.IsDirty);
+
+        UpdateDebugColor();
 
         UpdateCaretAndSelectionRender(renderInfoProvider, _textEditor.TextEditorCore.CurrentSelection);
 
@@ -110,7 +111,22 @@ class RenderManager
 
         using SKPictureRecorder skPictureRecorder = new SKPictureRecorder();
 
-        using (SKCanvas canvas = skPictureRecorder.BeginRecording(SKRect.Create(0, 0, textWidth, textHeight)))
+        float renderWidth = textWidth;
+        float renderHeight = textHeight;
+
+        if (_textEditor.DebugConfiguration.IsInDebugMode)
+        {
+            if (renderWidth < 1)
+            {
+                double documentWidth = _textEditor.TextEditorCore.DocumentManager.DocumentWidth;
+                if (documentWidth > 0)
+                {
+                    renderWidth = (float) documentWidth;
+                }
+            }
+        }
+
+        using (SKCanvas canvas = skPictureRecorder.BeginRecording(SKRect.Create(0, 0, renderWidth, renderHeight)))
         {
             var stringBuilder = new StringBuilder();
 
@@ -147,32 +163,58 @@ class RenderManager
                         {
                             stringBuilder.Append(charData.CharObject.ToText());
 
-                            DrawDebugBounds(charData.GetBounds().ToSKRect(), _debugDrawCharBounds);
+                            DrawDebugBounds(charData.GetBounds().ToSKRect(), _debugDrawCharBoundsColor);
 
                             width += (float) charData.Size!.Value.Width;
                         }
 
                         SKRect charSpanBounds = SKRect.Create(x, y, width, height);
-                        DrawDebugBounds(charSpanBounds, _debugDrawCharSpanBounds);
+                        DrawDebugBounds(charSpanBounds, _debugDrawCharSpanBoundsColor);
 
                         string text = stringBuilder.ToString();
 
                         if (!skFont.ContainsGlyphs(text))
                         {
                             // todo 处理无法渲染的字符，自动字符降级
+                            // 预计不会出现这样的问题，在渲染之前已经处理过了
+                        }
+
+                        // 绘制四线三格调试信息
+                        if (_textEditor.DebugConfiguration.ShowHandwritingPaperDebugInfo)
+                        {
+                            CharHandwritingPaperInfo charHandwritingPaperInfo =
+                                renderInfoProvider.GetHandwritingPaperInfo(in lineInfo, firstCharData);
+                            DrawDebugHandwritingPaper(canvas, charSpanBounds, charHandwritingPaperInfo);
                         }
 
                         //float x = skiaTextRenderInfo.X;
                         //float y = skiaTextRenderInfo.Y;
 
-                        var baselineY = -skFont.Metrics.Ascent;
+                        var baselineY = /*skFont.Metrics.Leading +*/ (-skFont.Metrics.Ascent);
 
                         // 由于 Skia 的 DrawText 传入的 Point 是文本的最下方，因此需要调整 Y 值
                         y += baselineY;
+
                         canvas.DrawText(text, new SKPoint(x, y), textRenderSKPaint);
                     }
 
-                    DrawDebugBounds(new TextRect(argument.StartPoint, argument.TextSize).ToSKRect(), _debugDrawLineBounds);
+                    if (argument.CharList.Count == 0)
+                    {
+                        // 空行
+                        // 绘制四线三格调试信息
+                        if (_textEditor.DebugConfiguration.ShowHandwritingPaperDebugInfo)
+                        {
+                            CharHandwritingPaperInfo charHandwritingPaperInfo =
+                                renderInfoProvider.GetHandwritingPaperInfo(in lineInfo);
+                            DrawDebugHandwritingPaper(canvas, new TextRect(argument.StartPoint, argument.TextSize with
+                            {
+                                // 空行是 0 宽度，需要将其设置为整个文本的宽度才好计算
+                                Width = renderInfoProvider.TextEditor.DocumentManager.DocumentWidth,
+                            }).ToSKRect(), charHandwritingPaperInfo);
+                        }
+                    }
+
+                    DrawDebugBounds(new TextRect(argument.StartPoint, argument.TextSize).ToSKRect(), _debugDrawLineBoundsColor);
                 }
             }
 
@@ -192,16 +234,51 @@ class RenderManager
         _currentRender = new TextEditorSkiaRender(skPicture);
     }
 
+    /// <summary>
+    /// 绘制四线三格调试信息
+    /// </summary>
+    /// <param name="canvas"></param>
+    /// <param name="charSpanBounds"></param>
+    /// <param name="charHandwritingPaperInfo"></param>
+    private void DrawDebugHandwritingPaper(SKCanvas canvas, SKRect charSpanBounds, in CharHandwritingPaperInfo charHandwritingPaperInfo)
+    {
+        HandwritingPaperDebugDrawInfo drawInfo = _textEditor.DebugConfiguration.HandwritingPaperDebugDrawInfo;
+        DrawLine(charHandwritingPaperInfo.TopLineGradation, drawInfo.TopLineGradationDebugDrawInfo);
+        DrawLine(charHandwritingPaperInfo.MiddleLineGradation, drawInfo.MiddleLineGradationDebugDrawInfo);
+        DrawLine(charHandwritingPaperInfo.BaselineGradation, drawInfo.BaselineGradationDebugDrawInfo);
+        DrawLine(charHandwritingPaperInfo.BottomLineGradation, drawInfo.BottomLineGradationDebugDrawInfo);
+
+        void DrawLine(double gradation, HandwritingPaperGradationDebugDrawInfo info)
+        {
+            SKPaint debugPaint = GetDebugPaint(info.DebugColor);
+            debugPaint.StrokeWidth = info.StrokeThickness;
+
+            float y = (float) gradation;
+            float x = charSpanBounds.Left;
+            float width = charSpanBounds.Width;
+            canvas.DrawLine(x, y, x + width, y, debugPaint);
+        }
+    }
+
     private SKPaint GetDebugPaint(SKColor color)
     {
-        if (_debugSkPaint is null)
-        {
-            _debugSkPaint = new SKPaint();
-            _debugSkPaint.Style = SKPaintStyle.Stroke;
-            _debugSkPaint.StrokeWidth = 1;
-        }
+        _debugSKPaint ??= new SKPaint();
 
-        _debugSkPaint.Color = color;
-        return _debugSkPaint;
+        _debugSKPaint.Style = SKPaintStyle.Stroke;
+        _debugSKPaint.StrokeWidth = 1;
+        _debugSKPaint.Color = color;
+        return _debugSKPaint;
+    }
+
+    private void UpdateDebugColor()
+    {
+        SkiaTextEditorDebugConfiguration debugConfiguration = _textEditor.DebugConfiguration;
+
+        if (debugConfiguration.IsInDebugMode)
+        {
+            _debugDrawCharBoundsColor = debugConfiguration.DebugDrawCharBoundsColor;
+            _debugDrawCharSpanBoundsColor = debugConfiguration.DebugDrawCharSpanBoundsColor;
+            _debugDrawLineBoundsColor = debugConfiguration.DebugDrawLineBoundsColor;
+        }
     }
 }

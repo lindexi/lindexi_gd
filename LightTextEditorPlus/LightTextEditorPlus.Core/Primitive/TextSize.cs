@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Globalization;
 
@@ -18,8 +18,8 @@ public readonly struct TextSize : IEquatable<TextSize>
         Height = height;
     }
 
-    public double Width { get; }
-    public double Height { get; }
+    public double Width { get; init; }
+    public double Height { get; init; }
 
     public TextSize HorizontalUnion(TextSize other)
     {

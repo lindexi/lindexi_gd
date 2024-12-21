@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using LightTextEditorPlus.Core.Document;
 
 using MSTest.Extensions.Contracts;

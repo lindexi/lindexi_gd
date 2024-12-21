@@ -1,4 +1,6 @@
-﻿using LightTextEditorPlus.Core.Document;
+using System;
+
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 
@@ -34,8 +36,14 @@ internal class SkiaPlatformRunPropertyCreator : PlatformRunPropertyCreatorBase<S
             if (!canFontSupportChar)
             {
                 Logger.LogWarning($"当前字体 {skiaTextRunProperty.FontName} 不支持字符 {charObject.ToText()}");
-                // todo 进行字体回滚。完成字体回滚才能删除下面代码
-                throw new NotSupportedException($"当前字体 {skiaTextRunProperty.FontName} 不支持字符 {charObject.ToText()}");
+                if (_skiaPlatformResourceManager.TryFallbackRunProperty(skiaTextRunProperty, charObject, out var newRunProperty))
+                {
+                    return newRunProperty;
+                }
+                else
+                {
+                    throw new NotSupportedException($"当前字体 {skiaTextRunProperty.FontName} 不支持字符 {charObject.ToText()}");
+                }
             }
 
             return skiaTextRunProperty;
@@ -51,12 +59,12 @@ internal class SkiaPlatformRunPropertyCreator : PlatformRunPropertyCreatorBase<S
     {
         // 默认字体
         var defaultFontName = "微软雅黑";
-        
+
         if (OperatingSystem.IsWindows())
         {
             defaultFontName = "微软雅黑";
         }
-        else if(OperatingSystem.IsLinux())
+        else if (OperatingSystem.IsLinux())
         {
             defaultFontName = "Noto Sans CJK SC";
         }

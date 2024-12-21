@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 
 using LightTextEditorPlus.Core.Document;
@@ -261,10 +261,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         // 获取最大宽度信息
         double lineMaxWidth = TextEditor.SizeToContent switch
         {
-            SizeToContent.Manual => TextEditor.DocumentManager.DocumentWidth,
-            SizeToContent.Width => double.PositiveInfinity,
-            SizeToContent.Height => TextEditor.DocumentManager.DocumentWidth,
-            SizeToContent.WidthAndHeight => double.PositiveInfinity,
+            TextSizeToContent.Manual => TextEditor.DocumentManager.DocumentWidth,
+            TextSizeToContent.Width => double.PositiveInfinity,
+            TextSizeToContent.Height => TextEditor.DocumentManager.DocumentWidth,
+            TextSizeToContent.WidthAndHeight => double.PositiveInfinity,
             _ => throw new ArgumentOutOfRangeException()
         };
 

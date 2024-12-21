@@ -1,4 +1,5 @@
-﻿using SkiaSharp;
+using System;
+using SkiaSharp;
 
 namespace LightTextEditorPlus.Document;
 

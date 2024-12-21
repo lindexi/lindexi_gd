@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Diagnostics;
 
@@ -32,10 +32,13 @@ public class TextEditorDebugConfiguration
     /// <summary>
     /// 设置当前的文本进入调试模式
     /// </summary>
-    internal void SetInDebugMode()
+    internal void SetInDebugMode(bool withLog = true)
     {
         IsInDebugMode = true;
-        Logger.LogInfo($"文本进入调试模式");
+        if (withLog)
+        {
+            Logger.LogInfo($"文本进入调试模式");
+        }
     }
 
     /// <summary>

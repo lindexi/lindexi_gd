@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.TestsFramework;
 
@@ -28,9 +28,10 @@ public class DocumentManagerSetParagraphPropertyTests
             var currentRenderCount = testRenderManager.RenderCount;
 
             // Action
-            var paragraphProperty = new ParagraphProperty()
+
+            var paragraphProperty = textEditorCore.DocumentManager.DefaultParagraphProperty with
             {
-                LineSpacing = 123
+                LineSpacing = 123,
             };
 
             textEditorCore.DocumentManager.SetParagraphProperty(0, paragraphProperty);
@@ -62,7 +63,7 @@ public class DocumentManagerSetParagraphPropertyTests
             // Action
             // 设置第二个段落的段落属性
             var lineSpacing = 10253; // 用来标识段落
-            var paragraphProperty = new ParagraphProperty()
+            var paragraphProperty = textEditorCore.DocumentManager.DefaultParagraphProperty with
             {
                 LineSpacing = lineSpacing
             };
@@ -112,7 +113,7 @@ public class DocumentManagerSetParagraphPropertyTests
             // Action
             // 设置第一个段落的段落属性
             var lineSpacing = 10253; // 用来标识段落
-            var paragraphProperty = new ParagraphProperty()
+            var paragraphProperty = textEditorCore.DocumentManager.DefaultParagraphProperty with
             {
                 LineSpacing = lineSpacing
             };

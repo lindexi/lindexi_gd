@@ -1,4 +1,4 @@
-﻿using System.Collections.Frozen;
+using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -48,9 +48,12 @@ public class APIConstraintAnalyzer : DiagnosticAnalyzer
         {
             var analysisContextNode = (TypeDeclarationSyntax) analysisContext.Node;
 
-            if (analysisContextNode.Identifier.Text == "CaretConfiguration")
+            if (analysisContextNode.Identifier.Text == "TextEditor")
             {
+                if (analysisContextNode.SyntaxTree.FilePath.EndsWith("TextEditor.Edit.ava.cs"))
+                {
 
+                }
             }
 
             string attributeName = "global::LightTextEditorPlus.APIConstraintAttribute";
@@ -66,21 +69,7 @@ public class APIConstraintAnalyzer : DiagnosticAnalyzer
                 return;
             }
 
-            if (!TryGetAttribute(namedTypeSymbol, attributeName, out var constraintAttribute))
-            {
-                // 再走一次语义，确定是否有特性
-                return;
-            }
-
             // 经过以上步骤，绝大部分的代码都不会进入这里。因此不怕性能问题
-            var constraintFileName = constraintAttribute.ConstructorArguments[0].Value?.ToString();
-            string? ignoreOrderText = constraintAttribute.ConstructorArguments[1].Value?.ToString();
-            // 是否忽略顺序
-            bool ignoreOrder;
-            if (!bool.TryParse(ignoreOrderText, out ignoreOrder))
-            {
-                ignoreOrder = false;
-            }
 
             // 只加上标记是属于 API 约束的文件
             var constraintAdditionalTextList = new List<AdditionalText>();
@@ -102,81 +91,112 @@ public class APIConstraintAnalyzer : DiagnosticAnalyzer
 
             FrozenDictionary<string, AdditionalText> dictionary = constraintAdditionalTextList.ToFrozenDictionary(t => Path.GetFileName(t.Path));
 
-            if (string.IsNullOrEmpty(constraintFileName))
+            foreach (AttributeData constraintAttribute in GetAttributeList(namedTypeSymbol, attributeName))
             {
-                Location location = Location.Create(analysisContextNode.SyntaxTree, analysisContextNode.AttributeLists.FullSpan);
-                Diagnostic diagnostic = Diagnostic.Create(_missConstraintFileNameDiagnosticDescriptor, location,
-                    string.Join("\n", dictionary.Select(t => t.Key)));
-                analysisContext.ReportDiagnostic(diagnostic);
-                return;
-            }
-
-            Debug.Assert(constraintFileName != null, nameof(constraintFileName) + " != null");
-            if (dictionary.TryGetValue(constraintFileName!, out var additionalText))
-            {
-                List<MemberConstraint> memberConstraintList = ReadMemberConstraintList(additionalText);
-                var memberList = GetAllMember(namedTypeSymbol, includeBaseClass: ignoreOrder/*只有忽略顺序的情况，才能包含基类的成员*/);
-
-                var memberConstraintIndex = 0;
-                var memberIndex = 0;
-
-                for (; memberConstraintIndex < memberConstraintList.Count; memberConstraintIndex++)
+                var constraintFileName = constraintAttribute.ConstructorArguments[0].Value?.ToString();
+                string? ignoreOrderText = constraintAttribute.ConstructorArguments[1].Value?.ToString();
+                // 是否忽略顺序
+                bool ignoreOrder;
+                if (!bool.TryParse(ignoreOrderText, out ignoreOrder))
                 {
-                    MemberConstraint memberConstraint = memberConstraintList[memberConstraintIndex];
+                    ignoreOrder = false;
+                }
 
-                    bool canFind = false;
+                if (string.IsNullOrEmpty(constraintFileName))
+                {
+                    Location location = Location.Create(analysisContextNode.SyntaxTree, analysisContextNode.AttributeLists.FullSpan);
+                    Diagnostic diagnostic = Diagnostic.Create(_missConstraintFileNameDiagnosticDescriptor, location,
+                        string.Join("\n", dictionary.Select(t => t.Key)));
+                    analysisContext.ReportDiagnostic(diagnostic);
+                    continue;
+                }
 
-                    for (; memberIndex < memberList.Count && !canFind; memberIndex++)
+                Debug.Assert(constraintFileName != null, nameof(constraintFileName) + " != null");
+                if (dictionary.TryGetValue(constraintFileName!, out var additionalText))
+                {
+                    List<MemberConstraint> memberConstraintList = ReadMemberConstraintList(additionalText);
+                    var memberList = GetAllMember(namedTypeSymbol, includeBaseClass: ignoreOrder/*只有忽略顺序的情况，才能包含基类的成员*/);
+
+                    var memberConstraintIndex = 0;
+                    var memberIndex = 0;
+
+                    bool isAnyMiss = false;
+                    for (; memberConstraintIndex < memberConstraintList.Count; memberConstraintIndex++)
                     {
-                        ISymbol member = memberList[memberIndex];
-                        if (IsMatch(member, memberConstraint))
+                        MemberConstraint memberConstraint = memberConstraintList[memberConstraintIndex];
+
+                        bool canFind = false;
+
+                        for (; memberIndex < memberList.Count && !canFind; memberIndex++)
                         {
-                            canFind = true;
-                        }
-                    }
-
-                    if (!canFind)
-                    {
-                        // 找不到可能是顺序错了
-                        var isOrderError = memberList.Any(t => IsMatch(t, memberConstraint));
-
-                        Location location = Location.Create(analysisContextNode.SyntaxTree, analysisContextNode.FullSpan);
-
-                        Diagnostic diagnostic;
-                        if (isOrderError)
-                        {
-                            if (ignoreOrder)
+                            ISymbol member = memberList[memberIndex];
+                            if (IsMatch(member, memberConstraint))
                             {
-                                // 如果可以忽略顺序，那就不报错
-                                continue;
+                                canFind = true;
+                            }
+                        }
+
+                        if (!canFind)
+                        {
+                            // 找不到可能是顺序错了
+                            var isOrderError = memberList.Any(t => IsMatch(t, memberConstraint));
+
+                            Location location = Location.Create(analysisContextNode.SyntaxTree, analysisContextNode.FullSpan);
+
+                            Diagnostic diagnostic;
+                            if (isOrderError)
+                            {
+                                if (ignoreOrder)
+                                {
+                                    // 如果可以忽略顺序，那就不报错
+                                    continue;
+                                }
+
+                                if (isAnyMiss)
+                                {
+                                    // 已经有缺少的成员了，那就不再报错了
+                                    // 可能是因为缺少成员，才出现的没有按照顺序
+                                    continue;
+                                }
+
+                                diagnostic = Diagnostic.Create(_constraintMemberOrderErrorDiagnosticDescriptor, location, constraintFileName, memberConstraint.Name, string.Join(";", memberConstraintList.Select(t => t.Name)), string.Join(";", memberList.Select(t => t.Name)));
+                            }
+                            else
+                            {
+                                diagnostic = Diagnostic.Create(_lostConstraintMemberDiagnosticDescriptor, location, constraintFileName, memberConstraint.Name);
                             }
 
-                            diagnostic = Diagnostic.Create(_constraintMemberOrderErrorDiagnosticDescriptor, location, constraintFileName, memberConstraint.Name, string.Join(";", memberConstraintList.Select(t => t.Name)), string.Join(";", memberList.Select(t => t.Name)));
-                        }
-                        else
-                        {
-                            diagnostic = Diagnostic.Create(_lostConstraintMemberDiagnosticDescriptor, location, constraintFileName, memberConstraint.Name);
-                        }
+                            analysisContext.ReportDiagnostic(diagnostic);
 
-                        analysisContext.ReportDiagnostic(diagnostic);
-                        return;
+                            isAnyMiss = true;
+
+                            if (isOrderError)
+                            {
+                                // 如果是顺序错误，那就停止，否则可能后面的都是顺序错误的，导致淹没
+                                break;
+                            }
+                            else
+                            {
+                                // 不是顺序错误，那就是缺少了，一次性给出所有缺少的成员
+                                continue;
+                            }
+                        }
+                    }
+
+                    static bool IsMatch(ISymbol member, MemberConstraint memberConstraint)
+                    {
+                        return member.Name == memberConstraint.Name;
                     }
                 }
-
-                static bool IsMatch(ISymbol member, MemberConstraint memberConstraint)
+                else
                 {
-                    return member.Name == memberConstraint.Name;
+                    Location location = Location.Create(analysisContextNode.SyntaxTree, analysisContextNode.AttributeLists.FullSpan);
+                    Diagnostic diagnostic = Diagnostic.Create(_canNotFindConstraintFileDiagnosticDescriptor, location, constraintFileName,
+                        string.Join("\n", dictionary.Select(t => t.Key)));
+                    analysisContext.ReportDiagnostic(diagnostic);
+                    continue;
                 }
             }
-            else
-            {
-                Location location = Location.Create(analysisContextNode.SyntaxTree, analysisContextNode.AttributeLists.FullSpan);
-                Diagnostic diagnostic = Diagnostic.Create(_canNotFindConstraintFileDiagnosticDescriptor, location, constraintFileName,
-                    string.Join("\n", dictionary.Select(t => t.Key)));
-                analysisContext.ReportDiagnostic(diagnostic);
-                return;
-            }
-
         }, SyntaxKind.ClassDeclaration, SyntaxKind.RecordDeclaration);
     }
 
@@ -231,7 +251,7 @@ public class APIConstraintAnalyzer : DiagnosticAnalyzer
         return false;
     }
 
-    static bool TryGetAttribute(INamedTypeSymbol symbol, string attributeName, [NotNullWhen(true)] out AttributeData? hitAttributeData)
+    static IEnumerable<AttributeData> GetAttributeList(INamedTypeSymbol symbol, string attributeName)
     {
         foreach (var attributeData in symbol.GetAttributes())
         {
@@ -239,14 +259,10 @@ public class APIConstraintAnalyzer : DiagnosticAnalyzer
             {
                 if (attributeClass.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == attributeName)
                 {
-                    hitAttributeData = attributeData;
-                    return true;
+                    yield return attributeData;
                 }
             }
         }
-
-        hitAttributeData = null;
-        return false;
     }
 
     static IReadOnlyList<ISymbol> GetAllMember(INamedTypeSymbol symbol, bool includeBaseClass)

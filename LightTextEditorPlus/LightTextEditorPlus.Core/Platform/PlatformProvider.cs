@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Document.Utils;
@@ -14,7 +14,7 @@ public abstract class PlatformProvider : IPlatformProvider
     /// <inheritdoc />
     public virtual ITextEditorUndoRedoProvider BuildTextEditorUndoRedoProvider()
     {
-        return new EmptyTextEditorUndoRedoProvider();
+        return new TextEditorUndoRedoProvider();
     }
 
     private DefaultRunParagraphSplitter? _defaultRunParagraphSplitter;

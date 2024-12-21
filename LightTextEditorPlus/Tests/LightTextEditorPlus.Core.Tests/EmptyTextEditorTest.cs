@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.TestsFramework;
 
@@ -9,6 +9,16 @@ namespace LightTextEditorPlus.Core.Tests;
 [TestClass]
 public class EmptyTextEditorTest
 {
+    [ContractTestCase]
+    public void TestIsDirty()
+    {
+        "空文本创建出来时，文本就是脏的，即使没有做任何的变更".Test(() =>
+        {
+            var textEditorCore = new TextEditorCore(new TestPlatformProvider());
+            Assert.AreEqual(true, textEditorCore.IsDirty, "按照约定，默认创建出来的文本是脏的，需要布局完成之后，才不是脏的");
+        });
+    }
+
     [ContractTestCase]
     public void GetHitParagraphData()
     {

@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Core.Document;
+namespace LightTextEditorPlus.Core.Document;
 
 /// <summary>
 /// 行的渲染结果

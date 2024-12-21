@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -30,6 +30,13 @@ class ParagraphCharDataManager
         Debug.Assert(charData.CharLayoutData is null, "一个 CharData 不会被加入两次");
         charData.CharLayoutData = new CharLayoutData(charData, _paragraph);
         CharDataList.Add(charData);
+
+        if (CharDataList.Count == 1)
+        {
+            // 首个加入的字符，需要更新段落字符属性
+            // 由于这个类型不提供 Insert 插入方法，只有添加和删除，所以这里判断 Count 为 1 是合理的
+            _paragraph.UpdateStartRunProperty();
+        }
     }
 
     public void AddRange(IEnumerable<CharData> charDataList)

@@ -1,4 +1,5 @@
-﻿using LightTextEditorPlus.Core.Primitive;
+using System.Collections.Generic;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Utils;
 using SkiaSharp;
 

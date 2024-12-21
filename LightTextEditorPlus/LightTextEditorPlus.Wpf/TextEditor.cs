@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing.Text;
@@ -20,6 +20,7 @@ using System.Windows.Threading;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
@@ -109,17 +110,13 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
     #region 公开方法
 
-    /// <summary>
-    /// 设置当前文本的默认字符属性
-    /// </summary>
+    /// <inheritdoc cref="DocumentManager.SetDefaultTextRunProperty{T}"/>
     public void SetDefaultTextRunProperty(ConfigRunProperty config)
     {
         TextEditorCore.DocumentManager.SetDefaultTextRunProperty((RunProperty property) => config( property));
     }
 
-    /// <summary>
-    /// 设置当前光标的字符属性。在光标切走之后，自动失效
-    /// </summary>
+    /// <inheritdoc cref="DocumentManager.SetCurrentCaretRunProperty{T}"/>
     public void SetCurrentCaretRunProperty(ConfigRunProperty config)
         => TextEditorCore.DocumentManager.SetCurrentCaretRunProperty((RunProperty property) => config(property));
 
@@ -386,6 +383,23 @@ internal class TextEditorPlatformProvider : PlatformProvider
         _charInfoMeasurer = new CharInfoMeasurer(textEditor);
         _runPropertyCreator = new RunPropertyCreator(textEditor);
     }
+
+    #region 可基类重写方法
+
+    /// <inheritdoc />
+    /// 如果需要自定义撤销恢复，可以获取文本编辑器重写的方法
+    /// 默认文本库是独立的撤销恢复，每个文本编辑器都有自己的撤销恢复。如果想要全局的撤销恢复，可以自定义一个全局的撤销恢复
+    public override ITextEditorUndoRedoProvider BuildTextEditorUndoRedoProvider()
+    {
+        return TextEditor.BuildCustomTextEditorUndoRedoProvider() ?? base.BuildTextEditorUndoRedoProvider();
+    }
+
+    public override ITextLogger? BuildTextLogger()
+    {
+        return TextEditor.BuildCustomTextLogger() ?? base.BuildTextLogger();
+    }
+
+    #endregion
 
     private void UpdateLayout()
     {

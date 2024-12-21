@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Layout.WordDividers;
 using LightTextEditorPlus.Core.Primitive.Collections;
 

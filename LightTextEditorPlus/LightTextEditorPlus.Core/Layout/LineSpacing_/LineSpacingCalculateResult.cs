@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Core.Layout;
+namespace LightTextEditorPlus.Core.Layout;
 
 /// <summary>
 /// 行距计算结果

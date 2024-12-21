@@ -1,9 +1,8 @@
-﻿
+
 using LightTextEditorPlus.Core.Primitive;
 
 using System;
 using System.Runtime.CompilerServices;
-using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -70,8 +69,8 @@ public record ParagraphProperty
     /// <summary>
     /// 行间距倍数，默认值为1，范围0~1000
     /// </summary>
-    /// 行距的倍数需要根据 <see cref="TextEditor.LineSpacingAlgorithm"/> 进行决定
-    /// 另外是否加上行距计算，需要根据 <see cref="TextEditor.LineSpacingStrategy"/> 进行决定
+    /// 行距的倍数需要根据 <see cref="LineSpacingAlgorithm"/> 进行决定
+    /// 另外是否加上行距计算，需要根据 <see cref="LineSpacingStrategy"/> 进行决定
     public double LineSpacing
     {
         get;
@@ -119,7 +118,7 @@ public record ParagraphProperty
     /// <summary>
     /// 段落起始的文本格式，表示在段落第一个字符之前的样式
     /// </summary>
-    public IReadOnlyRunProperty? ParagraphStartRunProperty
+    public required IReadOnlyRunProperty ParagraphStartRunProperty
     {
         init;
         get;

@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Core.Document.Segments;
+namespace LightTextEditorPlus.Core.Document.Segments;
 
 /// <summary>
 /// 行内光标偏移量

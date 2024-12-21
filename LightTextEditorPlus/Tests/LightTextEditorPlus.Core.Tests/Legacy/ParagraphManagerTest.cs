@@ -1,4 +1,4 @@
-﻿//using LightTextEditorPlus.Core.Document;
+//using LightTextEditorPlus.Core.Document;
 //using MSTest.Extensions.Contracts;
 
 //namespace LightTextEditorPlus.Core.Tests;

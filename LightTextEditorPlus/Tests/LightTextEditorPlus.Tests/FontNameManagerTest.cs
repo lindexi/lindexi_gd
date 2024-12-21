@@ -1,4 +1,4 @@
-﻿using dotnetCampus.UITest.WPF;
+using dotnetCampus.UITest.WPF;
 
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;

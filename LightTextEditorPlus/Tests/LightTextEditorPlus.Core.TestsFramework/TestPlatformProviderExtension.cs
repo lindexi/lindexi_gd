@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Platform;
+using LightTextEditorPlus.Core.Platform;
 
 namespace LightTextEditorPlus.Core.TestsFramework;
 
@@ -18,6 +18,14 @@ public static class TestPlatformProviderExtension
     public static TestPlatformProvider UseFakeLineSpacingCalculator(this TestPlatformProvider provider, ILineSpacingCalculator? lineSpacingCalculator = null)
     {
         provider.LineSpacingCalculator = lineSpacingCalculator ?? new FakeLineSpacingCalculator();
+        return provider;
+    }
+
+    public static TestPlatformProvider UseManuallyRequireLayoutDispatcher(this TestPlatformProvider provider,
+        out ManuallyRequireLayoutDispatcher manuallyRequireLayoutDispatcher)
+    {
+        manuallyRequireLayoutDispatcher = new ManuallyRequireLayoutDispatcher();
+        provider.RequireDispatchUpdateLayoutHandler = manuallyRequireLayoutDispatcher.RequireDispatchUpdateLayout;
         return provider;
     }
 }

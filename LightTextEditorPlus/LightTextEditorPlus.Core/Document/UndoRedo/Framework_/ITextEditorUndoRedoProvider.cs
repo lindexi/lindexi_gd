@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Core.Document.UndoRedo;
+namespace LightTextEditorPlus.Core.Document.UndoRedo;
 
 /// <summary>
 /// 文本撤销恢复提供

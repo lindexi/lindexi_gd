@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Utils;

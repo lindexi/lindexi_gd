@@ -7,6 +7,7 @@
     <Nullable>disable</Nullable>
 
     <IsPackable>false</IsPackable>
+    <RootNamespace>LightTextEditorPlus.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

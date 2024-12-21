@@ -1,8 +1,10 @@
-﻿using System.Diagnostics;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
-
+using System.Threading;
 using HarfBuzzSharp;
 
 using LightTextEditorPlus.Core;
@@ -25,15 +27,12 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
 {
     public SkiaSingleCharInLineLayouter(SkiaTextEditor textEditor)
     {
-        //TextEditor = textEditor;
-        TextEditorCore textEditorCore = textEditor.TextEditorCore;
-        DebugConfiguration = textEditorCore.DebugConfiguration;
-        Logger = textEditorCore.Logger;
+        TextEditor = textEditor;
     }
 
-    //private SkiaTextEditor TextEditor { get; } // todo 后续考虑弱引用，方便释放
-    private TextEditorDebugConfiguration DebugConfiguration { get; }
-    private ITextLogger Logger { get; }
+    private SkiaTextEditor TextEditor { get; } // todo 后续考虑弱引用，方便释放
+    private TextEditorDebugConfiguration DebugConfiguration => TextEditor.TextEditorCore.DebugConfiguration;
+    private ITextLogger Logger => TextEditor.TextEditorCore.Logger;
 
     public SingleCharInLineLayoutResult LayoutSingleCharInLine(in SingleCharInLineLayoutArgument argument)
     {
@@ -96,14 +95,13 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
         var glyphIndices = new ushort[charCount];
         var glyphBounds = new SKRect[charCount];
 
-        var glyphInfoList = new List<TestGlyphInfo>();
+        var glyphInfoList = new List<TextGlyphInfo>();
         using (var buffer = new Buffer())
         {
             buffer.AddUtf16(text.AsSpan().Slice(0, (int) charCount));
             buffer.GuessSegmentProperties();
 
-            // todo 处理语言文化
-            buffer.Language = new Language(CultureInfo.CurrentCulture);
+            buffer.Language = new Language(TextEditor.TextEditorCore.CurrentCulture);
 
             var face = new HarfBuzzSharp.Face(GetTable);
 
@@ -120,7 +118,6 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
                     return null;
                 }
             }
-
 
             var font = new HarfBuzzSharp.Font(face);
             font.SetFunctionsOpenType();
@@ -154,7 +151,7 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
 
                 var offsetY = -position.YOffset * textScale;
 
-                glyphInfoList.Add(new TestGlyphInfo(glyphIndex, glyphCluster, glyphAdvance, (offsetX, offsetY)));
+                glyphInfoList.Add(new TextGlyphInfo(glyphIndex, glyphCluster, glyphAdvance, (offsetX, offsetY)));
             }
         }
 
@@ -185,6 +182,8 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
         var baselineOrigin = new SKPoint(0, baselineY);
         currentX = 0.0;
 
+        float charHeight = renderingRunPropertyInfo.GetLayoutCharHeight();
+
         // 实际使用里面，可以忽略 GetGlyphWidths 的影响，因为实际上没有用到
         for (var i = 0; i < count; i++)
         {
@@ -196,9 +195,17 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
             // 宽度应该是 advance 而不是渲染宽度，渲染宽度太窄
 
             var width = (float) advance;// renderBounds.Width;
-            float height;// = renderBounds.Height; //skPaint.TextSize; //(float) skFont.Metrics.Ascent + (float) skFont.Metrics.Descent;
+            float height = charHeight;// = renderBounds.Height; //skPaint.TextSize; //(float) skFont.Metrics.Ascent + (float) skFont.Metrics.Descent;
             //height = (float) LineSpacingCalculator.CalculateLineHeightWithPPTLineSpacingAlgorithm(1, skPaint.TextSize);
-            height = baselineY + skFont.Metrics.Descent;
+            //var enhance = 0f;
+            //// 有些字体的 Top 就是超过格子，不要补偿。如华文仿宋字体
+            ////if (baselineY < Math.Abs(skFont.Metrics.Top))
+            ////{
+            ////    enhance = Math.Abs(skFont.Metrics.Top) - baselineY;
+            ////}
+
+            //height = /*skFont.Metrics.Leading + 有些字体的 Leading 是不参与排版的，越过的，属于上加。不能将其加入计算 */ baselineY + skFont.Metrics.Descent + enhance;
+            //// 同理 skFont.Metrics.Bottom 也是不应该使用的，可能下加是超过格子的
 
             glyphRunBounds[i] = SKRect.Create((float) (currentX + renderBounds.Left), baselineOrigin.Y + renderBounds.Top, width,
                 height);
@@ -233,15 +240,21 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
             // 预期不会出现超出的情况
             if (glyphRunBoundsIndex >= glyphRunBounds.Length)
             {
-                if (DebugConfiguration.IsInDebugMode
-                    // 调试下，且非最后一个。最后一个预期是相等的
-                    && i != taskCountOfCharObject - 1)
+                if (i == taskCountOfCharObject - 1 && glyphRunBoundsIndex == glyphRunBounds.Length)
+                {
+                    // 非最后一个。最后一个预期是相等的
+                    // 进入这个分支是符合预期的。刚刚好最后一个 CharData 对应的字符刚好是最后一个字符
+                    break;
+                }
+
+                if (DebugConfiguration.IsInDebugMode)
                 {
                     throw new TextEditorInnerDebugException(Message);
                 }
                 else
                 {
                     Logger.LogWarning(Message);
+                    // 不能继续循环，否则会出现越界
                     break;
                 }
             }
@@ -257,5 +270,5 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
 
     private const string Message = "布局过程中发现 CharData 和 Text 数量不匹配，预计是框架内实现的问题";
 
-    readonly record struct TestGlyphInfo(ushort GlyphIndex, int GlyphCluster, double GlyphAdvance, (float OffsetX, float OffsetY) GlyphOffset = default);
+    readonly record struct TextGlyphInfo(ushort GlyphIndex, int GlyphCluster, double GlyphAdvance, (float OffsetX, float OffsetY) GlyphOffset = default);
 }

@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
@@ -162,7 +162,7 @@ public class TextEditorCoreTest
             textEditorCore.AppendText(TestHelper.PlainNumberText);
 
             // Action
-            textEditorCore.SizeToContent = SizeToContent.Height;
+            textEditorCore.SizeToContent = TextSizeToContent.Height;
 
             // Assert
             // 触发布局，一次是初始化时，一次是设置属性
@@ -258,7 +258,7 @@ public class TextEditorCoreTest
             Assert.AreEqual(0, count);
 
             // Action
-            textEditorCore.SizeToContent = SizeToContent.Height;
+            textEditorCore.SizeToContent = TextSizeToContent.Height;
 
             // Assert
             // 不会触发布局

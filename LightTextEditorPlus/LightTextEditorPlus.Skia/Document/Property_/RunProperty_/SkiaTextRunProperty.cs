@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 using SkiaSharp;
 
@@ -88,6 +88,6 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
 
     private void InvalidateFont()
     {
-       
+       // 后续可以考虑删除，因为缓存策略是在每次布局的时候制作的
     }
 }

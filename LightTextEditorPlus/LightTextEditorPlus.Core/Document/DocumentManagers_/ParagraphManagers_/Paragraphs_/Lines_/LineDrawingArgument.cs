@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 
 namespace LightTextEditorPlus.Core.Document;

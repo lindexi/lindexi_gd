@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Core.Document.UndoRedo;
+namespace LightTextEditorPlus.Core.Document.UndoRedo;
 
 /// <summary>
 /// 文本动作影响类型

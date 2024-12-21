@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.TestsFramework;
+using LightTextEditorPlus.Core.TestsFramework;
 using MSTest.Extensions.Contracts;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.UndoRedo;
@@ -26,14 +26,14 @@ public class ChangeTextEditorDefaultTextRunPropertyValueOperationTest
                 });
 
             var textEditorCore = TestHelper.GetTextEditorCore(new FakeTestPlatformProvider(mock.Object));
-            var oldValue = textEditorCore.DocumentManager.CurrentRunProperty;
+            var oldValue = textEditorCore.DocumentManager.DefaultRunProperty;
 
             // Action
             textEditorCore.DocumentManager.SetDefaultTextRunProperty<LayoutOnlyRunProperty>(p => p with
             {
                 FontSize = 15
             });
-            var newValue = textEditorCore.DocumentManager.CurrentRunProperty;
+            var newValue = textEditorCore.DocumentManager.DefaultRunProperty;
 
             // Assert
             mock.Verify(provider => provider
@@ -46,10 +46,10 @@ public class ChangeTextEditorDefaultTextRunPropertyValueOperationTest
 
             // 测试撤销重做
             operation.Undo();
-            Assert.AreEqual(operation.OldValue, textEditorCore.DocumentManager.CurrentRunProperty);
+            Assert.AreEqual(operation.OldValue, textEditorCore.DocumentManager.DefaultRunProperty);
 
             operation.Redo();
-            Assert.AreEqual(operation.NewValue, textEditorCore.DocumentManager.CurrentRunProperty);
+            Assert.AreEqual(operation.NewValue, textEditorCore.DocumentManager.DefaultRunProperty);
 
             // 撤销恢复过程不会产生新的撤销恢复内容
             mock.Verify(

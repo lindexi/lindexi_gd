@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Linq;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
@@ -385,7 +385,7 @@ abstract class ArrangingLayoutProvider
             var paragraphProperty = argument.ParagraphProperty;
 
             var runProperty = paragraphProperty.ParagraphStartRunProperty;
-            runProperty ??= TextEditor.DocumentManager.CurrentRunProperty;
+            runProperty ??= TextEditor.DocumentManager.DefaultRunProperty;
 
             var lineSpacingCalculateArgument =
                 new LineSpacingCalculateArgument(argument.ParagraphIndex, 0, paragraphProperty, runProperty);

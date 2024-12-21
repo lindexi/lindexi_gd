@@ -1,10 +1,10 @@
-﻿<Project>
+<Project>
 
   <ItemGroup>
     <UIFrameworkCompatibilityCode Include="$(MSBuildThisFileDirectory)Build\Shared\UI.Compatibility.Global.g.cs"
                                   Link="Properties\%(Filename)%(Extension)" />
-    <LightTextEditorPlusAPIDefineCode Include="$(MSBuildThisFileDirectory)Build\Shared\API\**\*.cs" LinkBase="API_"/>
-    <LightTextEditorPlusAPIConstraints Include="$(MSBuildThisFileDirectory)Build\Shared\API\Constraints\*.txt" LinkBase="API_\Constraints"/>
+    <LightTextEditorPlusAPIDefineCode Include="$(MSBuildThisFileDirectory)Build\Shared\API\**\*.cs" LinkBase="API"/>
+    <LightTextEditorPlusAPIConstraints Include="$(MSBuildThisFileDirectory)Build\Shared\API\Constraints\*.txt" LinkBase="API\Constraints"/>
 
   </ItemGroup>
 

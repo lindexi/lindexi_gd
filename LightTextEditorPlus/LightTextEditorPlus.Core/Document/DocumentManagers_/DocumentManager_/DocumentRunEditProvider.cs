@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using LightTextEditorPlus.Core.Carets;
@@ -131,8 +131,7 @@ internal class DocumentRunEditProvider
                 if (paragraphDataResult.HitOffset.Offset == 0)
                 {
                     // 规定，光标是 0 获取段落的字符属性
-                    styleRunProperty = paragraphData.ParagraphProperty.ParagraphStartRunProperty ??
-                                       TextEditor.DocumentManager.CurrentRunProperty;
+                    styleRunProperty = paragraphData.ParagraphProperty.ParagraphStartRunProperty;
                 }
                 else
                 {

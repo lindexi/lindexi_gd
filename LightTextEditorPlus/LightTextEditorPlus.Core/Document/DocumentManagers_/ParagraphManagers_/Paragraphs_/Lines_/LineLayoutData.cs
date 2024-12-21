@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;

@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Document.Segments;
+using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Document;

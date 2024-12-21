@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils;
 
 using System;

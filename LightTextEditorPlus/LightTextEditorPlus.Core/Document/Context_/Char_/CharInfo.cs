@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Core.Document;
+namespace LightTextEditorPlus.Core.Document;
 
 /// <summary>
 /// 字符信息

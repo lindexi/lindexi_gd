@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Rendering;
 
 using System;
@@ -19,8 +19,8 @@ internal static class KeyboardCaretNavigationHelper
         if (textEditor.IsDirty)
         {
             // 理论上不能进来，必须等待文本布局完成才能进入
-            // 不使用 VerifyNotDirty 的原因是为了方便在这里打断点
-            textEditor.ThrowTextEditorDirtyException();
+            // 在 VerifyNotDirty 外面套 IsDirty 判断的原因是为了方便在这里打断点
+            textEditor.VerifyNotDirty();
         }
 
         switch (caretMoveType)

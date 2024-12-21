@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Core.Document.UndoRedo;
+namespace LightTextEditorPlus.Core.Document.UndoRedo;
 
 /// <inheritdoc cref="T:LightTextEditorPlus.Core.Document.UndoRedo.ITextOperation"/>
 public abstract class TextOperation : ITextOperation

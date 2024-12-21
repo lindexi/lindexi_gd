@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Core.Exceptions;
+namespace LightTextEditorPlus.Core.Exceptions;
 
 /// <summary>
 /// 在更新布局的过程中修改文档的异常

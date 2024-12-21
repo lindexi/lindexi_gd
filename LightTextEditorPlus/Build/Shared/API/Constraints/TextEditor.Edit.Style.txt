@@ -1,0 +1,15 @@
+CurrentCaretRunProperty
+// 设置样式
+// RunProperty
+SetFontName
+SetFontSize
+SetForeground
+ToggleItalic
+SetFontStyle
+ToggleBold
+SetFontWeight
+// 文本属性
+SizeToContent
+// 事件
+StyleChanging
+StyleChanged

@@ -45,6 +45,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Analyzers", "Analyzers", "{
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextEditorInternalAnalyzer", "Analyzers\TextEditorInternalAnalyzer\TextEditorInternalAnalyzer.csproj", "{F312315E-589E-43BD-BBCE-E2AE1268F2C1}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pack", "Pack", "{6F64D075-2A75-401D-B913-38F31A30CEF2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{BB306CBA-F40A-4974-ABE7-4FF8C66317F0}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightTextEditorPlus.AllInOne.Wpf", "AllInOne.Wpf\LightTextEditorPlus.AllInOne.Wpf.csproj", "{8A68919B-15F9-4FA5-AEF8-D532AEAF3970}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightTextEditorPlus.AllInOne.Avalonia", "AllInOne.Avalonia\LightTextEditorPlus.AllInOne.Avalonia.csproj", "{1D08CEC5-24F1-4B5D-AEE9-57E1FB7E5A44}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -107,6 +119,14 @@ Global
 		{F312315E-589E-43BD-BBCE-E2AE1268F2C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F312315E-589E-43BD-BBCE-E2AE1268F2C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F312315E-589E-43BD-BBCE-E2AE1268F2C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A68919B-15F9-4FA5-AEF8-D532AEAF3970}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A68919B-15F9-4FA5-AEF8-D532AEAF3970}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A68919B-15F9-4FA5-AEF8-D532AEAF3970}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A68919B-15F9-4FA5-AEF8-D532AEAF3970}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D08CEC5-24F1-4B5D-AEE9-57E1FB7E5A44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D08CEC5-24F1-4B5D-AEE9-57E1FB7E5A44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D08CEC5-24F1-4B5D-AEE9-57E1FB7E5A44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D08CEC5-24F1-4B5D-AEE9-57E1FB7E5A44}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -125,6 +145,8 @@ Global
 		{5B50D9C3-FF25-42EB-9695-9AA68DFC6BDA} = {5F8FEFD7-226B-4821-8087-5EF1086A6164}
 		{8C3DF161-62F3-4449-815F-EFF9E514DA4C} = {5F8FEFD7-226B-4821-8087-5EF1086A6164}
 		{F312315E-589E-43BD-BBCE-E2AE1268F2C1} = {A8CD9ED0-10A3-43F5-8B6A-C71BD5E91525}
+		{8A68919B-15F9-4FA5-AEF8-D532AEAF3970} = {6F64D075-2A75-401D-B913-38F31A30CEF2}
+		{1D08CEC5-24F1-4B5D-AEE9-57E1FB7E5A44} = {6F64D075-2A75-401D-B913-38F31A30CEF2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E48340DD-252E-4F4F-8FD7-DA0F41E2557E}

@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.TestsFramework;
 
@@ -51,7 +51,7 @@ public class HorizontalArrangingLayoutProviderTest
             var textEditor = GetTestTextEditor();
 
             // 设置 1.5 倍行距
-            textEditor.DocumentManager.SetParagraphProperty(0, textEditor.DocumentManager.CurrentParagraphProperty with
+            textEditor.DocumentManager.SetParagraphProperty(0, textEditor.DocumentManager.DefaultParagraphProperty with
             {
                 LineSpacing = LineSpacing
             });
@@ -106,7 +106,7 @@ public class HorizontalArrangingLayoutProviderTest
             var textEditor = GetTestTextEditor();
 
             // 设置 1.5 倍行距
-            textEditor.DocumentManager.SetParagraphProperty(0, textEditor.DocumentManager.CurrentParagraphProperty with
+            textEditor.DocumentManager.SetParagraphProperty(0, textEditor.DocumentManager.DefaultParagraphProperty with
             {
                 LineSpacing = LineSpacing
             });
@@ -149,7 +149,7 @@ public class HorizontalArrangingLayoutProviderTest
             // 文本包含一段一行
             textEditor.AppendText(text);
             // 设置 1.5 倍行距
-            textEditor.DocumentManager.SetParagraphProperty(0, textEditor.DocumentManager.CurrentParagraphProperty with
+            textEditor.DocumentManager.SetParagraphProperty(0, textEditor.DocumentManager.DefaultParagraphProperty with
             {
                 LineSpacing = LineSpacing
             });

@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UseUIFramework>Avalonia</UseUIFramework>
+    <DefineConstants>$(DefineConstants);USE_SKIA;USE_AllInOne</DefineConstants>
+    <AssemblyName>LightTextEditorPlus.Avalonia</AssemblyName>
+    <!-- 为什么命名上会带一个 AllInOne 标识？ 因为还有不带 AllInOne 的版本，分开多个包的版本 -->
+    <PackageId>LightTextEditorPlus.AllInOne.Avalonia</PackageId>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!--调试下设置高高版本号，以便在调试时能够快速调试-->
+    <Version Condition="'$(Configuration)'=='Debug'">99.99.99.99</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
+    <PackageReference Include="Avalonia.Skia" Version="$(AvaloniaVersion)" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
+    <!-- 通过拷贝 DLL 从而实现快速调试，仅调试下安装 -->
+    <PackageReference Include="dotnetCampus.UsingMSBuildCopyOutputFileToFastDebug" Version="1.3.232" Condition="'$(Configuration)'=='Debug'">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="dotnetCampus.LatestCSharpFeatures" Version="12.0.1" PrivateAssets="all"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\LightTextEditorPlus.Core\**\*.cs" LinkBase="Core" Exclude="..\LightTextEditorPlus.Core\obj\**\*;..\LightTextEditorPlus.Core\bin\**\*" />
+    <Compile Include="..\LightTextEditorPlus.Skia\**\*.cs" LinkBase="Skia" Exclude="..\LightTextEditorPlus.Skia\obj\**\*;..\LightTextEditorPlus.Skia\bin\**\*" />
+    <Compile Include="..\LightTextEditorPlus.Avalonia\**\*.cs" LinkBase="Avalonia" Exclude="..\LightTextEditorPlus.Avalonia\obj\**\*;..\LightTextEditorPlus.Avalonia\bin\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Analyzers\TextEditorInternalAnalyzer\TextEditorInternalAnalyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+</Project>

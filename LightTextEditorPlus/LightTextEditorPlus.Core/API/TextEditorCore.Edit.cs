@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document;
 using System;
 using System.Collections.Generic;
 using LightTextEditorPlus.Core.Carets;
@@ -21,6 +21,7 @@ public partial class TextEditorCore
             return;
         }
 
+        AddLayoutReason($"TextEditorCore.AppendText(string text = {text})");
         DocumentManager.AppendText(new TextRun(text));
     }
 
@@ -32,6 +33,7 @@ public partial class TextEditorCore
     [TextEditorPublicAPI]
     public void AppendRun(IImmutableRun run)
     {
+        AddLayoutReason($"TextEditorCore.AppendRun(IImmutableRun run = {run})");
         DocumentManager.AppendText(run);
     }
 
@@ -44,7 +46,7 @@ public partial class TextEditorCore
     [TextEditorPublicAPI]
     public void EditAndReplace(string text, Selection? selection = null)
     {
-        AddLayoutReason("TextEditorCore.EditAndReplace(string text)");
+        AddLayoutReason($"TextEditorCore.EditAndReplace(string text={text}, Selection? selection = {(selection?.ToString() ?? "null")}");
 
         TextEditorCore textEditor = this;
         DocumentManager documentManager = textEditor.DocumentManager;
@@ -83,7 +85,7 @@ public partial class TextEditorCore
     [TextEditorPublicAPI]
     public void EditAndReplaceRun(IImmutableRun? run, Selection? selection = null)
     {
-        AddLayoutReason("TextEditorCore.EditAndReplace(IImmutableRun, Selection)");
+        AddLayoutReason($"TextEditorCore.EditAndReplace(IImmutableRun run = {run}, Selection selection = {selection?.ToString() ?? "null"})");
         DocumentManager.EditAndReplaceRun(selection ?? CaretManager.CurrentSelection, run);
     }
 

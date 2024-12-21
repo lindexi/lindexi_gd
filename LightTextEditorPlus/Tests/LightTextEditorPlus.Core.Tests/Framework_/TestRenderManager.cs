@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Platform;
+using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Rendering;
 
 namespace LightTextEditorPlus.Core.Tests;

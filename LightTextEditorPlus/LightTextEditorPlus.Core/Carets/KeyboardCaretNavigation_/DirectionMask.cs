@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Core.Carets;
+namespace LightTextEditorPlus.Core.Carets;
 
 /// <summary>
 /// 方向的掩码

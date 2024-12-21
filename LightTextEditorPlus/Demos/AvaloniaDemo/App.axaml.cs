@@ -1,7 +1,8 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using LightTextEditorPlus.AvaloniaDemo.Views;
+using MainWindow = LightTextEditorPlus.AvaloniaDemo.Views.MainWindow;
 
 namespace LightTextEditorPlus.AvaloniaDemo;
 

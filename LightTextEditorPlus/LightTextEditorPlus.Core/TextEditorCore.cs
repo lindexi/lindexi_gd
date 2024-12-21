@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Diagnostics;
-
+using System.Globalization;
+using System.Runtime.CompilerServices;
 using LightTextEditorPlus.Core.Attributes;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics;
@@ -21,7 +22,7 @@ namespace LightTextEditorPlus.Core;
 /// <para></para>
 /// 支持复杂文本编辑，支持添加扩展字符包括图片等到文本
 /// <para></para>
-/// 这是一个底层类型，提供很多定制逻辑，设计上属于功能多但是不可简单使用，上层应该对此进行再次封装
+/// 这是一个底层类型，提供很多定制逻辑，设计上属于功能多但是不可简单使用，上层应该对此进行再次封装。此类型将被业务方作为高级 API 使用。正常情况下，业务方不应该直接使用此类型、不应该直接创建此类型的实例
 /// </summary>
 /// <remarks> 这个项目的核心和入口就是这个类</remarks>
 ///
@@ -71,8 +72,6 @@ public partial class TextEditorCore
     {
         PlatformProvider = platformProvider;
 
-        UndoRedoProvider = platformProvider.BuildTextEditorUndoRedoProvider();
-
         DocumentManager = new DocumentManager(this);
         DocumentManager.InternalDocumentChanging += DocumentManager_InternalDocumentChanging;
         DocumentManager.InternalDocumentChanged += DocumentManager_DocumentChanged;
@@ -94,7 +93,7 @@ public partial class TextEditorCore
         DebugConfiguration = new TextEditorDebugConfiguration(Logger);
 
 #if DEBUG
-        DebugConfiguration.SetInDebugMode();
+        DebugConfiguration.SetInDebugMode(withLog: false);
 #endif
     }
 
@@ -143,7 +142,7 @@ public partial class TextEditorCore
     #endregion
 
     /// <summary>
-    /// 准备重新布局整个文档
+    /// 准备重新布局整个文档。如果是空文本、文本初始化时，不会重新布局整个文档
     /// </summary>
     /// <param name="reason"></param>
     internal void RequireDispatchReLayoutAllDocument(string reason)
@@ -159,16 +158,14 @@ public partial class TextEditorCore
 
         IsDirty = true;
 
-        if (DocumentManager.CharCount != 0)
+        // 整个文档设置都是脏的
+        // 这里要用 GetRawParagraphList 方法，防止空文本获取时，创建除了一个空段落，导致不必要的损耗。虽然后续也会创建一个空段落，但是这里不需要
+        foreach (var paragraphData in DocumentManager.ParagraphManager.GetRawParagraphList())
         {
-            // 整个文档设置都是脏的
-            foreach (var paragraphData in DocumentManager.ParagraphManager.GetParagraphList())
-            {
-                paragraphData.SetDirty();
-                //foreach (var lineLayoutData in paragraphData.LineLayoutDataList)
-                //{
-                //}
-            }
+            paragraphData.SetDirty();
+            //foreach (var lineLayoutData in paragraphData.LineLayoutDataList)
+            //{
+            //}
         }
 
         RequireDispatchUpdateLayoutInner(reason);
@@ -199,9 +196,8 @@ public partial class TextEditorCore
         DocumentChanged?.Invoke(this, e);
 
         // 文档变更，更新布局
-        Logger.LogDebug($"[TextEditorCore] 文档变更，更新布局");
+        Logger.LogDebug($"[TextEditorCore] DocumentChanged 文档变更，更新布局");
 
-        // todo 考虑在需要立刻获取布局信息时，直接更新布局
         RequireDispatchUpdateLayout("DocumentChanged");
     }
 
@@ -282,7 +278,7 @@ public partial class TextEditorCore
     /// <summary>
     /// 获取或设置文本框的尺寸自适应模式
     /// </summary>
-    public SizeToContent SizeToContent
+    public TextSizeToContent SizeToContent
     {
         set
         {
@@ -293,7 +289,7 @@ public partial class TextEditorCore
         get => _sizeToContent;
     }
 
-    private SizeToContent _sizeToContent = SizeToContent.Manual;
+    private TextSizeToContent _sizeToContent = TextSizeToContent.Manual;
 
     /// <summary>
     /// 设置当前多倍行距呈现策略
@@ -356,6 +352,27 @@ public partial class TextEditorCore
     public ITextLogger Logger { get; }
 
     // todo 考虑设置可见范围，用来支持长文本
+
+    /// <summary>
+    /// 文本的当前语言文化，此属性会影响文本的排版或渲染
+    /// </summary>
+    public CultureInfo CurrentCulture
+    {
+        get => _cultureInfo ?? CultureInfo.CurrentCulture;
+        set
+        {
+            if (value.Equals(CurrentCulture))
+            {
+                return;
+            }
+
+            _cultureInfo = value;
+            // 变更语言文化，需要重新布局
+            RequireDispatchReLayoutAllDocument("CurrentCultureChanged");
+        }
+    }
+
+    private CultureInfo? _cultureInfo;
 
     #endregion
 
@@ -444,8 +461,9 @@ public partial class TextEditorCore
     /// <summary>
     /// 文本是不是脏的
     /// </summary>
-    /// 默认情况下是非脏的，使用预设的值
-    private bool _isDirty = false;
+    /// 创建出来的文本就是脏的，需要等待布局完成才能获取到布局信息
+    /// 根据 README.md 文档约定： “默认创建出来的文本是脏的，需要布局完成之后，才不是脏的”
+    private bool _isDirty = true;
     #endregion
 
     #region 调试属性
@@ -568,7 +586,18 @@ public partial class TextEditorCore
         }
     }
 
+    /// <inheritdoc cref="AddLayoutReason(string)"/>
+    public void AddLayoutReason(DefaultInterpolatedStringHandler reason)
+    {
+        if (IsInDebugMode)
+        {
+            AddLayoutReason(reason.ToStringAndClear());
+        }
+    }
+
     private LayoutUpdateReasonManager? _layoutUpdateReasonManager;
+
+    internal string? GetLayoutUpdateReason() => _layoutUpdateReasonManager?.ReasonText;
 
     #endregion
 
@@ -577,7 +606,9 @@ public partial class TextEditorCore
     #region UndoRedo
 
     /// <inheritdoc cref="T:LightTextEditorPlus.Core.Document.UndoRedo.ITextEditorUndoRedoProvider"/>
-    public ITextEditorUndoRedoProvider UndoRedoProvider { get; }
+    public ITextEditorUndoRedoProvider UndoRedoProvider =>
+        _undoRedoProvider ??= PlatformProvider.BuildTextEditorUndoRedoProvider();
+    private ITextEditorUndoRedoProvider? _undoRedoProvider;
 
     /// <summary>
     /// 进入撤销恢复模式
@@ -609,6 +640,7 @@ public partial class TextEditorCore
     /// <summary>
     /// 设置撤销恢复是否可用
     /// </summary>
+    /// <remarks>业务方自行确保成对的问题。文本撤销恢复采用的是增量方式，如果是开启撤销恢复-写入历史记录-关闭撤销恢复-执行文本变更-开启撤销恢复-写入历史记录，那么撤销恢复栈将记录不连续的内容，可能导致文本无法正确进行撤销恢复</remarks>
     /// <param name="isEnable"></param>
     /// <param name="debugReason">调试使用的设置撤销恢复的理由</param>
     /// <returns></returns>

@@ -1,4 +1,4 @@
-﻿//namespace LightTextEditorPlus.Core.Document;
+//namespace LightTextEditorPlus.Core.Document;
 
 ///// <summary>
 ///// 表示一个 <see cref="IImmutableRun"/> 在 <see cref="ParagraphData"/> 的序号。此结构体不建议保存，因为段落状态将会变更

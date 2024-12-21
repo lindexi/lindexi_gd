@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Document.Segments;
+using LightTextEditorPlus.Core.Document.Segments;
 using MSTest.Extensions.Contracts;
 
 namespace LightTextEditorPlus.Core.Tests.Document.Segments;

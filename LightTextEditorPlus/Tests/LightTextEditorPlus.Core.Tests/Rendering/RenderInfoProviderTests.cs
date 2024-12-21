@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.TestsFramework;
 using LightTextEditorPlus.Core.Utils;

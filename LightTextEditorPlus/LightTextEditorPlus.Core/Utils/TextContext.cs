@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Core.Utils;
+namespace LightTextEditorPlus.Core.Utils;
 
 /// <summary>
 /// 文本的上下文，放置暴露给外界的文本全局的静态上下文操作

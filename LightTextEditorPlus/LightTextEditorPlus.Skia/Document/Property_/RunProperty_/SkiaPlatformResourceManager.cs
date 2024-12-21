@@ -1,4 +1,8 @@
-﻿using HarfBuzzSharp;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.Loader;
+using HarfBuzzSharp;
 using LightTextEditorPlus.Core.Document;
 using SkiaSharp;
 
@@ -8,8 +12,11 @@ internal class SkiaPlatformResourceManager
 {
     public SkiaPlatformResourceManager(SkiaTextEditor textEditor)
     {
+        _skiaTextEditor = textEditor;
         textEditor.InternalRenderCompleted += TextEditor_InternalRenderCompleted;
     }
+    private readonly SkiaTextEditor _skiaTextEditor;
+    public SkiaTextEditorPlatformProvider PlatformProvider => _skiaTextEditor.SkiaTextEditorPlatformProvider;
 
     private void TextEditor_InternalRenderCompleted(object? sender, EventArgs e)
     {
@@ -31,15 +38,36 @@ internal class SkiaPlatformResourceManager
         return skTypeface.ContainsGlyphs(text);
     }
 
+    public bool TryFallbackRunProperty(SkiaTextRunProperty runProperty, ICharObject charObject, [NotNullWhen(true)] out SkiaTextRunProperty? newRunProperty)
+    {
+        if (PlatformProvider.GetFontNameToSKTypefaceManager() is { } manager)
+        {
+            return manager.TryFallbackRunProperty(runProperty, charObject, out newRunProperty);
+        }
+
+        newRunProperty = null;
+        return false;
+    }
+
     private SKTypeface GetTypeface(SkiaTextRunProperty runProperty)
     {
-        var typeface = SKTypeface.FromFamilyName(runProperty.FontName.UserFontName, runProperty.FontWeight, runProperty.Stretch, runProperty.FontStyle);
-        // 不处理未找到字体的情况。由上层保证
+        if (PlatformProvider.GetFontNameToSKTypefaceManager() is { } manager)
+        {
+            return manager.Resolve(runProperty);
+        }
+        else
+        {
+            // 这是默认实现
+            var typeface = SKTypeface.FromFamilyName(runProperty.FontName.UserFontName, runProperty.FontWeight, runProperty.Stretch, runProperty.FontStyle);
+            // 不处理未找到字体的情况。由上层保证
+
+            return typeface;
+        }
+
         //if (skTypeface?.ContainsGlyphs([unicodeChar]) is true)
         //{
         //    return new RenderingFontInfo(skTypeface);
         //}
-        return typeface;
     }
 
     public RenderingRunPropertyInfo GetRenderingRunPropertyInfo(SkiaTextRunProperty runProperty, char unicodeChar)
@@ -86,4 +114,5 @@ internal class SkiaPlatformResourceManager
 
     private readonly Dictionary<SkiaTextRunProperty, RenderingRunPropertyInfo> _cache =
         new Dictionary<SkiaTextRunProperty, RenderingRunPropertyInfo>();
+
 }
