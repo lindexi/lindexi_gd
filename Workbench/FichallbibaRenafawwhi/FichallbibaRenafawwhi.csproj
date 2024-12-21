@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="icu.net" Version="3.0.0" />
-    <PackageReference Include="Microsoft.ICU.ICU4C.Runtime" Version="72.1.0.3" />
+    <PackageReference Include="Icu4c.Win.Min" Version="62.2.3-beta" />
   </ItemGroup>
 
 </Project>
