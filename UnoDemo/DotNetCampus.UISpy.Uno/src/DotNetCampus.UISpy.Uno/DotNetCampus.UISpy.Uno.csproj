@@ -19,10 +19,11 @@
       https://aka.platform.uno/singleproject-features
     -->
     <UnoFeatures>
-      Material;
-      Dsp;
-      MVUX;
-      ThemeService;
+        CSharpMarkup;
+        Material;
+        Dsp;
+        MVUX;
+        ThemeService;
     </UnoFeatures>
   </PropertyGroup>
 

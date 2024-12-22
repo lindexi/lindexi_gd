@@ -4,15 +4,17 @@
       xmlns:local="using:SampleUnoApp"
       xmlns:um="using:Uno.Material"
       Background="{ThemeResource BackgroundBrush}">
-  <ScrollViewer>
-    <Grid>
-      <StackPanel
+    <ScrollViewer>
+        <Grid>
+            <StackPanel x:Name="StackPanel"
         HorizontalAlignment="Center"
         VerticalAlignment="Center">
-        <TextBlock AutomationProperties.AutomationId="HelloTextBlock"
+                <TextBlock AutomationProperties.AutomationId="HelloTextBlock"
           Text="Hello Uno Platform!"
           HorizontalAlignment="Center" />
-      </StackPanel>
-    </Grid>
-  </ScrollViewer>
+                <Button Content="Get focus" />
+                <Button x:Name="ShowUnoSpyWindowButton" Content="Start ShowUnoSpyWindow" Click="Button_OnClick"/>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
 </Page>
