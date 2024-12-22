@@ -5,8 +5,8 @@
     xmlns:local="using:DotNetCampus.UISpy.Uno"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:pe="using:dotnetCampus.UISpy.Uno.PropertyEditors"
-    xmlns:tree="using:dotnetCampus.UISpy.Uno.Tree"
+    xmlns:pe="using:DotnetCampus.UISpy.Uno.PropertyEditors"
+    xmlns:tree="using:DotnetCampus.UISpy.Uno.Tree"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
@@ -15,7 +15,7 @@
         <local:ElementPropertyProxyToBackgroundConverter x:Key="ElementPropertyProxyToBackgroundConverter" />
     </Page.Resources>
 
-    <Grid RowDefinitions="Auto,*" >
+    <Grid RowDefinitions="Auto,*">
         <StackPanel Orientation="Horizontal">
             <Button x:Name="ReloadButton" Margin="2,1,2,1" Content="Reload" Click="ReloadButton_OnClick"/>
         </StackPanel>

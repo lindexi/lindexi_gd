@@ -18,8 +18,8 @@ internal class UnoSpyWindow : Window
         {
             TargetRootElement = rootElement,
         };
-#if DEBUG
-        this.EnableHotReload();
-#endif
+//#if DEBUG
+//        this.EnableHotReload();
+//#endif
     }
 }
