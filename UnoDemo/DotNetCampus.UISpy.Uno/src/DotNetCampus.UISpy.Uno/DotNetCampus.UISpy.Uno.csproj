@@ -2,17 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>net8.0-desktop</TargetFrameworks>
 
-    <!-- Display name -->
-    <ApplicationTitle>DotNetCampus.UISpy.Uno</ApplicationTitle>
-    <!-- App Identifier -->
-    <ApplicationId>com.companyname.dotnetcampus-uispy-uno</ApplicationId>
-    <!-- Versions -->
-    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-    <ApplicationVersion>1</ApplicationVersion>
-    <!-- Package Publisher -->
-    <ApplicationPublisher>DotNetCampus.UISpy.Uno</ApplicationPublisher>
-    <!-- Package Description -->
-    <Description>DotNetCampus.UISpy.Uno powered by Uno Platform.</Description>
+    <IsPackable>true</IsPackable>
 
     <!--
       UnoFeatures let's you quickly add and manage implicit package references based on the features you want to use.
@@ -20,10 +10,8 @@
     -->
     <UnoFeatures>
         CSharpMarkup;
-        Material;
-        Dsp;
         MVUX;
-        ThemeService;
+        Toolkit;
     </UnoFeatures>
   </PropertyGroup>
 
