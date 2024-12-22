@@ -11,7 +11,7 @@ public class ReadonlyValueEditorView : UserControl
     public ReadonlyValueEditorView(object initialValue)
     {
         this.DataContext(
-            new BindableObjectEditorModel().WithModel(x => x.Model.Value = initialValue),
+            new ObjectEditorViewModel().WithModel(x => x.Model.Value = initialValue),
             (v, vm) => v
                 .Content(new TextBlock()
                     .Text(x => x.Binding(() => vm.Value))
