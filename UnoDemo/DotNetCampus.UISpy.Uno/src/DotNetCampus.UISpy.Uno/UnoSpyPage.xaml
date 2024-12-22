@@ -5,8 +5,8 @@
     xmlns:local="using:DotNetCampus.UISpy.Uno"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:pe="using:DotnetCampus.UISpy.Uno.PropertyEditors"
-    xmlns:tree="using:DotnetCampus.UISpy.Uno.Tree"
+    xmlns:pe="using:DotNetCampus.UISpy.Uno.PropertyEditors"
+    xmlns:tree="using:DotNetCampus.UISpy.Uno.Tree"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
@@ -29,9 +29,9 @@
                     <DataTemplate x:DataType="tree:ElementProxy">
                         <TreeViewItem ItemsSource="{x:Bind Children}">
                             <TextBlock>
-                          <Run Text="{x:Bind TypeName}" />
-                          <Run Text="  " />
-                          <Run Text="{x:Bind Name}" Foreground="Gray" />
+                                <Run Text="{x:Bind TypeName}" />
+                                <Run Text="  " />
+                                <Run Text="{x:Bind Name}" Foreground="Gray" />
                             </TextBlock>
                         </TreeViewItem>
                     </DataTemplate>

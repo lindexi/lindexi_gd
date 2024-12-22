@@ -5,6 +5,8 @@
     <OutputType>Exe</OutputType>
     <UnoSingleProject>true</UnoSingleProject>
 
+    <IsPackable>false</IsPackable>
+
     <!-- Display name -->
     <ApplicationTitle>SampleUnoApp</ApplicationTitle>
     <!-- App Identifier -->

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace DotNetCampus.UISpy.Uno.Tree;
 
 [DebuggerDisplay("{TypeName,nq} ({Name,nq}) [{Children.Length,nq}]")]
-public readonly record struct ElementProxy(DependencyObject Element, ImmutableArray<ElementProxy> Children)
+public record ElementProxy(DependencyObject Element, ImmutableArray<ElementProxy> Children)
 {
     public DependencyObject Element { get; init; } = Element;
 
