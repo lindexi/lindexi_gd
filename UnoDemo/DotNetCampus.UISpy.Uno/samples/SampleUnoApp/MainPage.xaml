@@ -1,7 +1,7 @@
-﻿<Page x:Class="DotNetCampus.UISpy.Uno.MainPage"
+﻿<Page x:Class="SampleUnoApp.MainPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:local="using:DotNetCampus.UISpy.Uno"
+      xmlns:local="using:SampleUnoApp"
       xmlns:um="using:Uno.Material"
       Background="{ThemeResource BackgroundBrush}">
   <ScrollViewer>

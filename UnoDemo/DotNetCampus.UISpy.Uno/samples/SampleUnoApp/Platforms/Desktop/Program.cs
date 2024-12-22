@@ -1,6 +1,6 @@
 using Uno.UI.Runtime.Skia;
 
-namespace DotNetCampus.UISpy.Uno;
+namespace SampleUnoApp;
 
 public class Program
 {

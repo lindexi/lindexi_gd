@@ -2,7 +2,7 @@ using System;
 using Microsoft.Extensions.Logging;
 using Uno.Resizetizer;
 
-namespace DotNetCampus.UISpy.Uno;
+namespace SampleUnoApp;
 
 public partial class App : Application
 {

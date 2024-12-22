@@ -1,4 +1,4 @@
-namespace DotNetCampus.UISpy.Uno;
+namespace SampleUnoApp;
 
 public sealed partial class MainPage : Page
 {
