@@ -4,8 +4,12 @@ using HPPH;
 using HPPH.SkiaSharp;
 using StableDiffusion.NET;
 
-using DiffusionModel model = ModelBuilder.StableDiffusion(@"<path to model")
-    .WithVae(@"<optional path to vae>")
+var gitFolder = @"D:\lindexi\Taiyi-Stable-Diffusion-1B-Chinese-v0.1";
+var modelFile = Path.Join(gitFolder, "Taiyi-Stable-Diffusion-1B-Chinese-v0.1.ckpt");
+var vaeFolder = Path.Join(gitFolder, "vae");
+
+using DiffusionModel model = ModelBuilder.StableDiffusion(modelFile)
+    .WithVae(vaeFolder)
     .WithMultithreading()
     .Build();
 
