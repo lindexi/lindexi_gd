@@ -4,23 +4,31 @@ namespace WatchDog.Core.Services;
 
 public class DogInfoProvider
 {
+    public DogInfoProvider(ITimeProvider timeProvider)
+    {
+        _timeProvider = timeProvider;
+    }
+
+    private readonly ITimeProvider _timeProvider;
+
     public const string MuteAllKey = "MuteAll_F4695EE6-5774-43A9-8427-FEE3D860D648";
 
     public void SetMute(MuteInfo muteInfo)
     {
         if (!MuteSet.TryGetValue(muteInfo.Id, out var value))
         {
-            value = new Dictionary<string, MuteInfo>();
+            value = new Dictionary<string, MuteFeedInfo>();
             MuteSet[muteInfo.Id] = value;
         }
 
+        var currentTime = _timeProvider.GetCurrentTime();
         if (muteInfo.MuteAll)
         {
-            value[MuteAllKey] = muteInfo;
+            value[MuteAllKey] = new MuteFeedInfo(muteInfo, currentTime);
         }
         else
         {
-            value[muteInfo.DogId] = muteInfo;
+            value[muteInfo.DogId] = new MuteFeedInfo(muteInfo, currentTime);
         }
     }
 
@@ -31,7 +39,7 @@ public class DogInfoProvider
             var removeList = new List<string>();
             foreach (var (key, muteInfo) in muteDictionary)
             {
-                if (muteInfo.ActiveInNextFeed)
+                if (muteInfo.MuteInfo.ActiveInNextFeed)
                 {
                     removeList.Add(key);
                 }
@@ -50,13 +58,21 @@ public class DogInfoProvider
         {
             if (muteDictionary.TryGetValue(MuteAllKey, out var muteAllInfo))
             {
-                //muteAllInfo.SilentSecond
-                return true;
+                return ShouldSilent(muteAllInfo);
             }
 
             if (muteDictionary.TryGetValue(dogId, out var muteInfo))
             {
-                //muteInfo.SilentSecond
+                return ShouldSilent(muteInfo);
+            }
+
+            bool ShouldSilent(MuteFeedInfo muteFeedInfo)
+            {
+                var currentTime = _timeProvider.GetCurrentTime();
+                if ((currentTime - muteFeedInfo.LastMuteTime).TotalSeconds > muteFeedInfo.MuteInfo.SilentSecond)
+                {
+                    return false;
+                }
                 return true;
             }
         }
@@ -64,5 +80,5 @@ public class DogInfoProvider
         return false;
     }
 
-    private Dictionary<string /*id*/, Dictionary<string /*dogId*/, MuteInfo>> MuteSet { get; } = new();
+    private Dictionary<string /*id*/, Dictionary<string /*dogId*/, MuteFeedInfo>> MuteSet { get; } = new();
 }

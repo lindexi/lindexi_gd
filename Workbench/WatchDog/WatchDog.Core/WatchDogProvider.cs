@@ -5,8 +5,14 @@ namespace WatchDog.Core;
 
 public class WatchDogProvider
 {
-    private readonly DogInfoProvider _dogInfoProvider = new DogInfoProvider();
-    private ITimeProvider _timeProvider = new TimeProvider();
+    public WatchDogProvider(ITimeProvider? timeProvider = null)
+    {
+        _timeProvider ??= new TimeProvider();
+        _dogInfoProvider = new DogInfoProvider(_timeProvider);
+    }
+
+    private readonly DogInfoProvider _dogInfoProvider;
+    private readonly ITimeProvider _timeProvider;
 
     public FeedDogResult Feed(FeedDogInfo feedDogInfo)
     {
@@ -49,7 +55,7 @@ public class WatchDogProvider
             if (timeSpan.TotalSeconds > lastFeedDogInfo.FeedDogInfo.DelaySecond)
             {
                 // 咬人
-                if (_dogInfoProvider.ShouldMute(lastFeedDogInfo,wangInfo.DogId))
+                if (_dogInfoProvider.ShouldMute(lastFeedDogInfo, wangInfo.DogId))
                 {
                     continue;
                 }
