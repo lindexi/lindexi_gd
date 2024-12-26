@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WatchDog.Core", "WatchDog.Core\WatchDog.Core.csproj", "{91FE9061-4942-4712-8826-BA986D469720}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WatchDog.Service", "WatchDog.Service\WatchDog.Service.csproj", "{55060BA0-677F-41AF-953B-01D6F7C84A83}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{91FE9061-4942-4712-8826-BA986D469720}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91FE9061-4942-4712-8826-BA986D469720}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{91FE9061-4942-4712-8826-BA986D469720}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55060BA0-677F-41AF-953B-01D6F7C84A83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55060BA0-677F-41AF-953B-01D6F7C84A83}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55060BA0-677F-41AF-953B-01D6F7C84A83}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55060BA0-677F-41AF-953B-01D6F7C84A83}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
