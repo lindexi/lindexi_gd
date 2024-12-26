@@ -1,6 +1,4 @@
-﻿using Timer = System.Timers.Timer;
-
-namespace WatchDog.Core
+﻿namespace WatchDog.Core
 {
     internal class Program
     {
@@ -10,23 +8,155 @@ namespace WatchDog.Core
         }
     }
 
-    public class WatchDogProvider
+    public interface ITimeProvider
     {
-        public void Feed()
+        DateTimeOffset GetCurrentTime();
+    }
+
+    public class TimeProvider : ITimeProvider
+    {
+        public DateTimeOffset GetCurrentTime()
         {
-
-        }
-
-        public void GetWang()
-        {
-
-        }
-
-        public void Mute()
-        {
-
+            return DateTimeOffset.Now;
         }
     }
+
+    public class WatchDogProvider
+    {
+        private readonly DogInfoProvider _dogInfoProvider = new DogInfoProvider();
+        private ITimeProvider _timeProvider = new TimeProvider();
+
+        public FeedDogResult Feed(FeedDogInfo feedDogInfo)
+        {
+            var id = feedDogInfo.Id ?? Guid.NewGuid().ToString("N");
+
+            bool isRegister = false;
+            if (LastFeedDogInfoDictionary.TryGetValue(id, out var lastFeedDogInfo))
+            {
+                lastFeedDogInfo = lastFeedDogInfo with
+                {
+                    FeedDogInfo = feedDogInfo,
+                    LastUpdateTime = _timeProvider.GetCurrentTime(),
+                };
+            }
+            else
+            {
+                // 新注册
+                isRegister = true;
+                var currentTime = _timeProvider.GetCurrentTime();
+                lastFeedDogInfo = new LastFeedDogInfo(id, currentTime, currentTime, feedDogInfo);
+            }
+            LastFeedDogInfoDictionary[id] = lastFeedDogInfo;
+
+            _dogInfoProvider.RemoveMuteByActive(id);
+
+            return new FeedDogResult(id, feedDogInfo.DelaySecond, feedDogInfo.MaxDelayCount, feedDogInfo.NotifyIntervalSecond, feedDogInfo.NotifyMaxCount, lastFeedDogInfo.RegisterTime, isRegister);
+        }
+
+        private Dictionary<string /*Id*/, LastFeedDogInfo> LastFeedDogInfoDictionary { get; } = new();
+
+        public GetWangResult GetWang(GetWangInfo wangInfo)
+        {
+            DateTimeOffset currentTime = _timeProvider.GetCurrentTime();
+
+            var wangList = new List<WangInfo>();
+
+            foreach (var lastFeedDogInfo in LastFeedDogInfoDictionary.Values)
+            {
+                var timeSpan = currentTime - lastFeedDogInfo.LastUpdateTime;
+                if (timeSpan.TotalSeconds > lastFeedDogInfo.FeedDogInfo.DelaySecond)
+                {
+                    // 咬人
+                    if (_dogInfoProvider.ShouldMute(lastFeedDogInfo,wangInfo.DogId))
+                    {
+                        continue;
+                    }
+
+                    wangList.Add(new WangInfo(lastFeedDogInfo.Id, lastFeedDogInfo.FeedDogInfo.Name, lastFeedDogInfo.FeedDogInfo.Status, lastFeedDogInfo.FeedDogInfo.DelaySecond, lastFeedDogInfo.LastUpdateTime, lastFeedDogInfo.RegisterTime));
+                }
+            }
+
+            return new GetWangResult(wangInfo.DogId, wangList);
+        }
+
+        public void Mute(MuteInfo muteInfo)
+        {
+            if (muteInfo.ShouldRemove)
+            {
+                LastFeedDogInfoDictionary.Remove(muteInfo.Id);
+                return;
+            }
+
+            _dogInfoProvider.SetMute(muteInfo);
+        }
+    }
+
+    public class DogInfoProvider
+    {
+        public const string MuteAllKey = "MuteAll_F4695EE6-5774-43A9-8427-FEE3D860D648";
+
+        public void SetMute(MuteInfo muteInfo)
+        {
+            if (!MuteSet.TryGetValue(muteInfo.Id, out var value))
+            {
+                value = new Dictionary<string, MuteInfo>();
+                MuteSet[muteInfo.Id] = value;
+            }
+
+            if (muteInfo.MuteAll)
+            {
+                value[MuteAllKey] = muteInfo;
+            }
+            else
+            {
+                value[muteInfo.DogId] = muteInfo;
+            }
+        }
+
+        public void RemoveMuteByActive(string id)
+        {
+            if (MuteSet.TryGetValue(id, out var muteDictionary))
+            {
+                var removeList = new List<string>();
+                foreach (var (key, muteInfo) in muteDictionary)
+                {
+                    if (muteInfo.ActiveInNextFeed)
+                    {
+                        removeList.Add(key);
+                    }
+                }
+
+                foreach (var key in removeList)
+                {
+                    muteDictionary.Remove(key);
+                }
+            }
+        }
+
+        public bool ShouldMute(LastFeedDogInfo info,string dogId)
+        {
+            if (MuteSet.TryGetValue(info.Id,out var muteDictionary))
+            {
+                if (muteDictionary.TryGetValue(MuteAllKey, out var muteAllInfo))
+                {
+                    //muteAllInfo.SilentSecond
+                    return true;
+                }
+
+                if (muteDictionary.TryGetValue(dogId, out var muteInfo))
+                {
+                    //muteInfo.SilentSecond
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private Dictionary<string /*id*/, Dictionary<string /*dogId*/, MuteInfo>> MuteSet { get; } = new();
+    }
+
+    public record LastFeedDogInfo(string Id, DateTimeOffset RegisterTime, DateTimeOffset LastUpdateTime, FeedDogInfo FeedDogInfo);
 
     /// <summary>
     /// 喂狗信息
@@ -58,7 +188,7 @@ namespace WatchDog.Core
     /// <param name="NotifyMaxCount"></param>
     /// <param name="RegisterTime">注册时间</param>
     /// <param name="IsRegister">这一条是否输出注册的，首次喂狗</param>
-    public record FeedDogResult(string Id, uint DelaySecond, uint MaxDelayCount, uint NotifyIntervalSecond, int NotifyMaxCount, DateTimeOffset RegisterTime,bool IsRegister);
+    public record FeedDogResult(string Id, uint DelaySecond, uint MaxDelayCount, uint NotifyIntervalSecond, int NotifyMaxCount, DateTimeOffset RegisterTime, bool IsRegister);
 
     /// <summary>
     /// 获取 Wang 咬人信息
@@ -70,7 +200,7 @@ namespace WatchDog.Core
     /// 获取 Wang 咬人的结果
     /// </summary>
     /// <param name="DogId"></param>
-    public record GetWangResult(string DogId);
+    public record GetWangResult(string DogId, List<WangInfo> WangList);
 
     public record WangInfo(string Id, string Name, string LastStatus, uint DelaySecond, DateTimeOffset LastUpdateTime, DateTimeOffset RegisterTime);
 
