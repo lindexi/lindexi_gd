@@ -1,4 +1,4 @@
-﻿namespace WatchDog.Core;
+﻿namespace WatchDog.Core.Context;
 
 /// <summary>
 /// 喂狗的结果，返回的是喂狗的信息

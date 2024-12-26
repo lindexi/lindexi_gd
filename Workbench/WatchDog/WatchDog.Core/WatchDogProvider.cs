@@ -1,4 +1,7 @@
-﻿namespace WatchDog.Core;
+﻿using WatchDog.Core.Context;
+using WatchDog.Core.Services;
+
+namespace WatchDog.Core;
 
 public class WatchDogProvider
 {

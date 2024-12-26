@@ -1,4 +1,4 @@
-﻿namespace WatchDog.Core;
+﻿namespace WatchDog.Core.Context;
 
 /// <summary>
 /// 获取 Wang 咬人的结果

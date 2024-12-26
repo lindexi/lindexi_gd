@@ -1,4 +1,4 @@
-﻿namespace WatchDog.Core;
+﻿namespace WatchDog.Core.Services;
 
 public class TimeProvider : ITimeProvider
 {

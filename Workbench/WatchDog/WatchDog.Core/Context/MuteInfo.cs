@@ -1,4 +1,4 @@
-﻿namespace WatchDog.Core;
+﻿namespace WatchDog.Core.Context;
 
 /// <summary>
 /// 禁言信息
