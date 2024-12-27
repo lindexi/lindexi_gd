@@ -5,13 +5,13 @@ namespace WatchDog.Core;
 
 public class WatchDogProvider
 {
-    public WatchDogProvider(ITimeProvider? timeProvider = null)
+    public WatchDogProvider(IDogInfoProvider? dogInfoProvider = null, ITimeProvider? timeProvider = null)
     {
-        _timeProvider ??= new TimeProvider();
-        _dogInfoProvider = new DogInfoProvider(_timeProvider);
+        _timeProvider = timeProvider ?? new TimeProvider();
+        _dogInfoProvider = dogInfoProvider ?? new DogInfoProvider(_timeProvider);
     }
 
-    private readonly DogInfoProvider _dogInfoProvider;
+    private readonly IDogInfoProvider _dogInfoProvider;
     private readonly ITimeProvider _timeProvider;
 
     public FeedDogResult Feed(FeedDogInfo feedDogInfo)

@@ -2,7 +2,7 @@
 
 namespace WatchDog.Core.Services;
 
-public class DogInfoProvider
+public class DogInfoProvider : IDogInfoProvider
 {
     public DogInfoProvider(ITimeProvider timeProvider)
     {
