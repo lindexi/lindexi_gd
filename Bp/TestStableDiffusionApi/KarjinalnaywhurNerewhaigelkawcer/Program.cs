@@ -8,7 +8,7 @@ using System.Text.Json.Nodes;
 
 // https://soulteary.com/2022/12/09/use-docker-to-quickly-get-started-with-the-chinese-stable-diffusion-model-taiyi.html
 
-var host = "http://127.0.0.1:56622";
+var host = "http://172.20.114.91:5017/Stable-Diffusion-proxy/";
 
 var minSize = 260;
 var width = 260;
