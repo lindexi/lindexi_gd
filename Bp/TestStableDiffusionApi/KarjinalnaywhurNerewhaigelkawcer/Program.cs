@@ -62,7 +62,7 @@ using var httpClient = new HttpClient()
     BaseAddress = new Uri(host)
 };
 
-var httpResponseMessage = await httpClient.PostAsync("sdapi/v1/txt2img", new StringContent(json,MediaTypeHeaderValue.Parse("application/json")));
+var httpResponseMessage = await httpClient.PostAsync("http://172.20.114.91:5017/Stable-Diffusion-proxy/"+"sdapi/v1/txt2img", new StringContent(json,MediaTypeHeaderValue.Parse("application/json")));
 
 httpResponseMessage.EnsureSuccessStatusCode();
 
