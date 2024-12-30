@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.Extensions.Primitives;
 using System.Diagnostics;
+using System.Net.Http.Headers;
 
 var folder = @"C:\lindexi\Phi3\directml-int4-awq-block-128\";
 if (!Directory.Exists(folder))
@@ -23,6 +24,7 @@ var semaphoreSlim = new SemaphoreSlim(initialCount: 1, maxCount: 1);
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://0.0.0.0:5017");
 builder.Services.AddLogging(loggingBuilder => loggingBuilder.AddSimpleConsole());
+builder.Services.AddHttpClient();
 // Add services to the container.
 
 var logFile = "ChatLog.txt";
@@ -44,6 +46,17 @@ int current = 0;
 int total = 0;
 
 app.MapGet("/Status", () => $"Current={current};Total={total}");
+
+app.MapPost("/Stable-Diffusion-proxy/sdapi/v1/txt2img", async (HttpContext context, [FromServices] HttpClient httpClient) =>
+{
+    await context.Response.StartAsync();
+    var recallHost = "http://127.0.0.1:56622";
+    using var streamContent = new StreamContent(context.Request.Body);
+    streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+    using var httpResponseMessage = await httpClient.PostAsync($"{recallHost}/sdapi/v1/txt2img", streamContent);
+    await httpResponseMessage.Content.CopyToAsync(context.Response.Body);
+    await context.Response.CompleteAsync();
+});
 
 app.MapPost("/Chat", async (ChatRequest request, HttpContext context, [FromServices] ILogger<ChatSessionLogInfo> logger) =>
 {

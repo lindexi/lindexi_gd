@@ -7,6 +7,7 @@ public class PhiIntentionRecognition
 {
     public const string 生成随机抽选 = "随机抽选";
     public const string 生成教学设计 = "生成教学设计";
+    public const string 修改聊天温度 = "修改聊天温度";
     public const string 禁用敏感词过滤 = "禁用敏感词过滤";
     public const string 生成图片 = "生成图片";
     public const string 询问问题 = "询问问题";
@@ -18,6 +19,9 @@ public class PhiIntentionRecognition
     public const string 润色当前选中的文本 = "润色当前选中的文本";
     public const string 润色文本 = "润色文本";
     public const string 总结文本内容 = "总结文本";
+
+    // 统一文档字体、去掉水印？设置为水印
+    // 
 
     public async Task<IntentionRecognitionResult> RecognizeAsync(string text)
     {
@@ -31,6 +35,7 @@ public class PhiIntentionRecognition
             仿写内容,
             生成随机抽选,
             生成教学设计,
+            修改聊天温度,
             禁用敏感词过滤,
             生成图片,
             润色当前选中的文本,
