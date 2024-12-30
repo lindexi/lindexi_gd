@@ -8,7 +8,7 @@ using System.Text.Json.Nodes;
 
 // https://soulteary.com/2022/12/09/use-docker-to-quickly-get-started-with-the-chinese-stable-diffusion-model-taiyi.html
 
-var host = "http://127.0.0.1:56622";
+var host = "http://172.20.114.91:5017/Stable-Diffusion-proxy/";
 
 var minSize = 260;
 var width = 260;
@@ -62,7 +62,7 @@ using var httpClient = new HttpClient()
     BaseAddress = new Uri(host)
 };
 
-var httpResponseMessage = await httpClient.PostAsync("sdapi/v1/txt2img", new StringContent(json,MediaTypeHeaderValue.Parse("application/json")));
+var httpResponseMessage = await httpClient.PostAsync("http://172.20.114.91:5017/Stable-Diffusion-proxy/"+"sdapi/v1/txt2img", new StringContent(json,MediaTypeHeaderValue.Parse("application/json")));
 
 httpResponseMessage.EnsureSuccessStatusCode();
 
