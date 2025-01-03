@@ -10,7 +10,7 @@ using System.Text.Json.Nodes;
 
 var host = "http://172.20.114.91:5017/Stable-Diffusion-proxy/";
 
-var minSize = 260;
+var minSize = 512;
 var width = 260;
 var height = 260;
 
@@ -19,7 +19,7 @@ height = Math.Max(minSize, height);
 
 string prompt = "一看有几笔";
 
-int steps = 5;
+int steps = 20;
 
 // lang=json
 var json =
