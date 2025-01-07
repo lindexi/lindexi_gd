@@ -103,6 +103,7 @@ class TextRenderTestFrameworkElement : FrameworkElement
 
         var pixelsPerDip = (float) VisualTreeHelper.GetDpi(this).PixelsPerDip;
 
+        Debug.Assert(fontFamily.Baseline == glyphTypeface.Baseline);
         var baseline = glyphTypeface.Baseline * fontSize;
 
         var location = new Point(0, baseline);
