@@ -33,14 +33,16 @@ class TextRenderTestFrameworkElement : FrameworkElement
         var visualTextHintingMode = VisualTextHintingMode;
         Debug.Assert(visualTextHintingMode == TextHintingMode.Auto);
 
-        //RenderOptions.SetClearTypeHint(this, ClearTypeHint.Enabled);
-        //VisualEdgeMode = EdgeMode.Aliased;
-        //VisualTextRenderingMode = TextRenderingMode.ClearType;
-        //VisualTextHintingMode = TextHintingMode.Fixed;
+        RenderOptions.SetClearTypeHint(this, ClearTypeHint.Enabled);
+        VisualEdgeMode = EdgeMode.Aliased;
+        VisualTextRenderingMode = TextRenderingMode.ClearType;
+        VisualTextHintingMode = TextHintingMode.Fixed;
     }
 
     protected override void OnRender(DrawingContext drawingContext)
     {
+        var offset = new Point(10, 20);
+
         var fontFamily = new FontFamily("微软雅黑");
 
         Typeface typeface = fontFamily.GetTypefaces().First();
@@ -106,8 +108,8 @@ class TextRenderTestFrameworkElement : FrameworkElement
         Debug.Assert(fontFamily.Baseline == glyphTypeface.Baseline);
         var baseline = glyphTypeface.Baseline * fontSize;
 
-        var location = new Point(0, baseline);
-        drawingContext.PushGuidelineSet(new GuidelineSet([0], [baseline]));
+        var location = new Point(offset.X, offset.Y + baseline);
+        drawingContext.PushGuidelineSet(new GuidelineSet([location.X], [location.Y]));
 
         var defaultXmlLanguage =
             XmlLanguage.GetLanguage(CultureInfo.CurrentUICulture.IetfLanguageTag);
@@ -132,7 +134,7 @@ class TextRenderTestFrameworkElement : FrameworkElement
 
         drawingContext.DrawGlyphRun(Brushes.Black, glyphRun);
 
-        drawingContext.DrawLine(new Pen(Brushes.Black,1), new Point(0, baseline), new Point(300, baseline));
+        //drawingContext.DrawLine(new Pen(Brushes.Black,1), new Point(0, baseline), new Point(300, baseline));
     }
 
     record GlyphInfo(ushort GlyphIndex, double AdvanceWidth, double AdvanceHeight);
