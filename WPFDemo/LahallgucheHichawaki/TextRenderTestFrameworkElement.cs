@@ -89,6 +89,7 @@ class TextRenderTestFrameworkElement : FrameworkElement
         var baseline = glyphTypeface.Baseline * fontSize;
 
         var location = new Point(0, baseline);
+        drawingContext.PushGuidelineSet(new GuidelineSet([0], [baseline]));
 
         var defaultXmlLanguage =
             XmlLanguage.GetLanguage(CultureInfo.CurrentUICulture.IetfLanguageTag);
