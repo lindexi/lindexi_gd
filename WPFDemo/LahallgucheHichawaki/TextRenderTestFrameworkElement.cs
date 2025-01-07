@@ -15,11 +15,6 @@ class TextRenderTestFrameworkElement : FrameworkElement
 
         HorizontalAlignment = HorizontalAlignment.Left;
         VerticalAlignment = VerticalAlignment.Top;
-
-        RenderOptions.SetClearTypeHint(this, ClearTypeHint.Enabled);
-        VisualEdgeMode = EdgeMode.Aliased;
-        VisualTextRenderingMode = TextRenderingMode.ClearType;
-        VisualTextHintingMode = TextHintingMode.Fixed;
     }
 
     protected override void OnRender(DrawingContext drawingContext)
