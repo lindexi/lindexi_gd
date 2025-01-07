@@ -130,6 +130,8 @@ class TextRenderTestFrameworkElement : FrameworkElement
         );
 
         drawingContext.DrawGlyphRun(Brushes.Black, glyphRun);
+
+        drawingContext.DrawLine(new Pen(Brushes.Black,1), new Point(0, baseline), new Point(300, baseline));
     }
 
     record GlyphInfo(ushort GlyphIndex, double AdvanceWidth, double AdvanceHeight);
