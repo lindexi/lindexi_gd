@@ -15,6 +15,28 @@ class TextRenderTestFrameworkElement : FrameworkElement
 
         HorizontalAlignment = HorizontalAlignment.Left;
         VerticalAlignment = VerticalAlignment.Top;
+
+        var clearTypeHint = RenderOptions.GetClearTypeHint(this);
+        Debug.Assert(clearTypeHint == ClearTypeHint.Auto);
+        var visualEdgeMode = VisualEdgeMode;
+        Debug.Assert(visualEdgeMode == EdgeMode.Unspecified);
+
+        // 渲染模式有以下几样：
+        // 1. ClearType - 最为清晰，对大小字号都友好
+        // 2. Aliased - 采样效果好，也比较平滑，会有彩边
+        // 3. Grayscale - 灰度采样，效果和 Aliased 差不多
+        var visualTextRenderingMode = VisualTextRenderingMode;
+        Debug.Assert(visualTextRenderingMode == TextRenderingMode.Auto);
+        // 文本的 Hinting 模式有以下几样：
+        // 1. 针对固定的，优化效果好
+        // 2. 针对动画的，会有运动模糊的感觉。但对于大部分文本来说都是看不出来的
+        var visualTextHintingMode = VisualTextHintingMode;
+        Debug.Assert(visualTextHintingMode == TextHintingMode.Auto);
+
+        //RenderOptions.SetClearTypeHint(this, ClearTypeHint.Enabled);
+        //VisualEdgeMode = EdgeMode.Aliased;
+        //VisualTextRenderingMode = TextRenderingMode.ClearType;
+        //VisualTextHintingMode = TextHintingMode.Fixed;
     }
 
     protected override void OnRender(DrawingContext drawingContext)
