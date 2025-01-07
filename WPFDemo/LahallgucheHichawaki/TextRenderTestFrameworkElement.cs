@@ -15,11 +15,6 @@ class TextRenderTestFrameworkElement : FrameworkElement
 
         HorizontalAlignment = HorizontalAlignment.Left;
         VerticalAlignment = VerticalAlignment.Top;
-
-        RenderOptions.SetClearTypeHint(this, ClearTypeHint.Enabled);
-        VisualEdgeMode = EdgeMode.Aliased;
-        VisualTextRenderingMode = TextRenderingMode.ClearType;
-        VisualTextHintingMode = TextHintingMode.Fixed;
     }
 
     protected override void OnRender(DrawingContext drawingContext)
@@ -89,6 +84,7 @@ class TextRenderTestFrameworkElement : FrameworkElement
         var baseline = glyphTypeface.Baseline * fontSize;
 
         var location = new Point(0, baseline);
+        drawingContext.PushGuidelineSet(new GuidelineSet([0], [baseline]));
 
         var defaultXmlLanguage =
             XmlLanguage.GetLanguage(CultureInfo.CurrentUICulture.IetfLanguageTag);
