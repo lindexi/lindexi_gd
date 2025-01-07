@@ -8,5 +8,7 @@
         Title="MainWindow" Height="600" Width="900">
     <Grid>
         <local:TextRenderTestFrameworkElement/>
+
+        <TextBlock Margin="0,200,0,0" FontSize="30" Text="文本测试afgjqiWHXx"/>
     </Grid>
 </Window>
