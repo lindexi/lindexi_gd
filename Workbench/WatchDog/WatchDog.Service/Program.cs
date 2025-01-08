@@ -1,3 +1,5 @@
+using WatchDog.Service.Controllers;
+
 namespace WatchDog.Service;
 
 public class Program
@@ -9,6 +11,7 @@ public class Program
         // Add services to the container.
 
         builder.Services.AddControllers();
+        builder.Services.AddWatchDog();
 
         var app = builder.Build();
 
