@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -22,12 +23,17 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        var fontFamily = new FontFamily("微软雅黑");
-        var lineSpacing = fontFamily.LineSpacing;
+        foreach (var fontFamilyName in SKFontManager.Default.GetFontFamilies())
+        {
+            var fontFamily = new FontFamily(fontFamilyName);
+            var lineSpacing = fontFamily.LineSpacing;
 
-        SKTypeface? skTypeface = SKFontManager.Default.MatchFamily("微软雅黑");
-        var skFont = new SKFont(skTypeface, 100);
-        var leading = skFont.Metrics.Leading / 100;
-        var h = (-skFont.Metrics.Ascent + skFont.Metrics.Descent) / 100;
+            SKTypeface? skTypeface = SKFontManager.Default.MatchFamily(fontFamilyName);
+            var skFont = new SKFont(skTypeface, 100);
+            var h = (-skFont.Metrics.Ascent + skFont.Metrics.Descent) / 100;
+
+            Debug.WriteLine($"{fontFamilyName} 是否相近 {Math.Abs(lineSpacing - h) < 0.01} {Math.Abs(lineSpacing - h):0.00000}");
+        }
+
     }
 }
