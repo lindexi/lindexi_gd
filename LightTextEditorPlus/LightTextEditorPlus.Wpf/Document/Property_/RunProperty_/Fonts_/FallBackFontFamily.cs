@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Media;
+using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Document
 {
@@ -39,7 +40,7 @@ namespace LightTextEditorPlus.Document
         /// <param name="familyName"></param>
         /// <returns></returns>
       
-        public bool TryGetFallBackFontFamily(char unicodeChar,[NotNullWhen(true)] out string? familyName)
+        public bool TryGetFallBackFontFamily(Utf32CodePoint unicodeChar,[NotNullWhen(true)] out string? familyName)
         {
             var mapItem = GetFontFamilyMapItem(unicodeChar);
             familyName = null;
@@ -53,9 +54,9 @@ namespace LightTextEditorPlus.Document
             return false;
         }
 
-        public FontFamilyMapItem? GetFontFamilyMapItem(char unicodeChar)
+        public FontFamilyMapItem? GetFontFamilyMapItem(Utf32CodePoint unicodeChar)
         {
-            var mapItem = FontFamilyItems.FirstOrDefault(item => item.InRange(unicodeChar));
+            var mapItem = FontFamilyItems.FirstOrDefault(item => item.InRange(unicodeChar.Value));
             return mapItem;
         }
     }

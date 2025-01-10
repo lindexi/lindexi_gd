@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Attributes;
+using LightTextEditorPlus.Core.Attributes;
 using LightTextEditorPlus.Core.Carets;
 
 namespace LightTextEditorPlus.Core.Document;

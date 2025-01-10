@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Core.Document.UndoRedo;
+namespace LightTextEditorPlus.Core.Document.UndoRedo;
 
 /// <summary>
 /// 修改值的动作

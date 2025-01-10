@@ -1,9 +1,9 @@
 Opacity
 // Foreground
 // Background
-// 字体拉伸
+// 瀛椾綋鎷変几
 Stretch
-// 加粗
+// 鍔犵矖
 FontWeight
-// 斜体
+// 鏂滀綋
 FontStyle

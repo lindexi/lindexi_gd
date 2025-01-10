@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.Serialization;
 
 namespace LightTextEditorPlus.Core.Exceptions;
@@ -10,11 +10,6 @@ public abstract class TextEditorException : Exception
 {
     /// <inheritdoc cref="TextEditorException"/>
     protected TextEditorException()
-    {
-    }
-
-    /// <inheritdoc cref="TextEditorException"/>
-    protected TextEditorException(SerializationInfo info, StreamingContext context) : base(info, context)
     {
     }
 
@@ -42,6 +37,11 @@ public abstract class TextEditorException : Exception
     /// <inheritdoc />
     public override string ToString()
     {
+        if (TextEditor is null)
+        {
+            return base.ToString();
+        }
+
         return $"TextEditor={TextEditor}\r\n{base.ToString()}";
     }
 }

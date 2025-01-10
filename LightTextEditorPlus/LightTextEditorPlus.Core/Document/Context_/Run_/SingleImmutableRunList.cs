@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Exceptions;
+using LightTextEditorPlus.Core.Exceptions;
 
 namespace LightTextEditorPlus.Core.Document;
 

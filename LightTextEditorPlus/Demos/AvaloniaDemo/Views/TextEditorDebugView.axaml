@@ -17,10 +17,8 @@
         <RowDefinition Height="Auto"></RowDefinition>
       </Grid.RowDefinitions>
       <Border Margin="10,10,10,10" BorderBrush="Blue" BorderThickness="1" HorizontalAlignment="Left"
-              VerticalAlignment="Stretch">
-        <Grid>
-          <lightTextEditorPlus:TextEditor x:Name="TextEditor" x:FieldModifier="public" Width="500">
-          </lightTextEditorPlus:TextEditor>
+              VerticalAlignment="Top">
+        <Grid x:Name="TextEditorGrid">
           <Canvas x:Name="DebugCanvas" IsHitTestVisible="False">
             <!-- 用来绘制调试内容 -->
           </Canvas>
@@ -30,6 +28,7 @@
         <Button Margin="5,0,0,0" Click="DebugButton_OnClick">调试</Button>
         <Button x:Name="ReadOnlyModeButton" Margin="5,0,0,0" Click="ReadOnlyModeButton_OnClick">进入只读模式</Button>
         <ToggleButton x:Name="ShowDocumentBoundsButton" Margin="5,0,0,0" Click="ShowDocumentBoundsButton_OnClick">显示文档范围</ToggleButton>
+        <ToggleButton x:Name="ShowHandwritingPaperDebugInfoButton" Margin="5,0,0,0" Click="ShowHandwritingPaperDebugInfoButton_OnClick">显示四线三格</ToggleButton>
       </StackPanel>
 
     </Grid>

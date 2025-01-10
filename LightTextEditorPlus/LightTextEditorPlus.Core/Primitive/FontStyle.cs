@@ -1,4 +1,4 @@
-﻿//namespace LightTextEditorPlus.Core.Primitive;
+//namespace LightTextEditorPlus.Core.Primitive;
 
 //public readonly struct FontStyle
 //{

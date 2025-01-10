@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Core.Utils.Patterns;
+namespace LightTextEditorPlus.Core.Utils.Patterns;
 
 /// <summary>
 /// 表示匹配的接口

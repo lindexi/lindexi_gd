@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Markup;
 using System.Windows.Media;
+using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Document
 {
@@ -18,7 +19,7 @@ namespace LightTextEditorPlus.Document
         /// <param name="unicodeChar"></param>
         /// <param name="info"></param>
         /// <returns></returns>
-        public static bool TryGetGlyphInfo( Typeface typeface, char unicodeChar, out GlyphInfo? info)
+        public static bool TryGetGlyphInfo(Typeface typeface, Utf32CodePoint unicodeChar, out GlyphInfo? info)
         {
             if (typeface is null)
             {
@@ -30,7 +31,7 @@ namespace LightTextEditorPlus.Document
 
             if (typeface.TryGetGlyphTypeface(out var glyph))
             {
-                if (glyph.CharacterToGlyphMap.TryGetValue(unicodeChar, out glyphIndex))
+                if (glyph.CharacterToGlyphMap.TryGetValue(unicodeChar.Value, out glyphIndex))
                 {
                     info = new GlyphInfo(typeface, glyph, glyph, unicodeChar, glyphIndex);
                     return true;
@@ -44,7 +45,7 @@ namespace LightTextEditorPlus.Document
 
                 if (fallbackTypeface.TryGetGlyphTypeface(out var fallbackGlyph))
                 {
-                    if (fallbackGlyph.CharacterToGlyphMap.TryGetValue(unicodeChar, out glyphIndex))
+                    if (fallbackGlyph.CharacterToGlyphMap.TryGetValue(unicodeChar.Value, out glyphIndex))
                     {
                         var originGlyph = glyph ?? fallbackGlyph;
                         info = new GlyphInfo(typeface, fallbackGlyph, originGlyph, unicodeChar, glyphIndex);
@@ -74,7 +75,7 @@ namespace LightTextEditorPlus.Document
         /// <param name="fontSize"></param>
         /// <param name="baselineOrigin"></param>
         /// <returns></returns>
-        public static GlyphRun BuildSingleGlyphRun( GlyphInfo info, double fontSize, Point baselineOrigin)
+        public static GlyphRun BuildSingleGlyphRun(GlyphInfo info, double fontSize, Point baselineOrigin)
         {
             if (info is null)
             {
@@ -84,7 +85,7 @@ namespace LightTextEditorPlus.Document
             var width = info.RenderGlyphTypeface.AdvanceWidths[info.GlyphIndex] * fontSize;
             width = GlyphExtension.RefineValue(width);
 
-#pragma warning disable 618 // 忽略调用废弃构造函数
+#pragma warning disable 618 // 忽略调用废弃构造函数。因为这里无法传入 DPI 值
             var glyphRun = new GlyphRun(
 #pragma warning restore 618
                 info.RenderGlyphTypeface,
@@ -95,7 +96,7 @@ namespace LightTextEditorPlus.Document
                 baselineOrigin,
                 new[] {width},
                 DefaultGlyphOffsetArray,
-                new char[] {info.UnicodeChar},
+                info.UnicodeChar.ToCharArray(),
                 null,
                 null,
                 null, DefaultXmlLanguage);

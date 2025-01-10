@@ -1,9 +1,8 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
-using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Layout;
 
@@ -15,12 +14,12 @@ namespace LightTextEditorPlus.Core.Layout;
 // todo 文本公式混排 文本图片混排 文本和其他元素的混排多选 文本和其他可交互元素混排的光标策略
 class LayoutManager
 {
-    public LayoutManager(TextEditor textEditor)
+    public LayoutManager(TextEditorCore textEditor)
     {
         TextEditor = textEditor;
     }
 
-    public TextEditor TextEditor { get; }
+    public TextEditorCore TextEditor { get; }
     public event EventHandler? InternalLayoutCompleted;
 
     [DebuggerStepThrough] // 别跳太多层

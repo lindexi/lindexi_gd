@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -23,6 +24,28 @@ public sealed class SingleCharObject : ISingleCharObject, ICharObject, IEquatabl
 
     /// <inheritdoc />
     public string ToText() => _currentChar.ToString();
+
+    /// <inheritdoc />
+    public Utf32CodePoint CodePoint
+    {
+        get
+        {
+            int codePoint = _currentChar;
+            if (char.IsHighSurrogate(_currentChar))
+            {
+                // 单个高代理字符
+                const int lowSurrogate = 0;
+                codePoint = 0x10000 | ((_currentChar - 0xD800) << 10) | (lowSurrogate - 0xDC00);
+            }
+            else if (char.IsLowSurrogate(_currentChar))
+            {
+                // Single low surrogte?
+                codePoint = 0x10000 + _currentChar - 0xDC00;
+            }
+
+            return new Utf32CodePoint(codePoint);
+        }
+    }
 
     /// <inheritdoc />
     public char GetChar() => _currentChar;

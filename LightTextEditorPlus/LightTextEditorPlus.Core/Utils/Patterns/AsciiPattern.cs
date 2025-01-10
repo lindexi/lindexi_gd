@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Core.Utils.Patterns;
+namespace LightTextEditorPlus.Core.Utils.Patterns;
 
 class AsciiPattern : IPattern
 {

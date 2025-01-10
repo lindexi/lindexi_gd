@@ -1,7 +1,9 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Media;
+using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Document;
 
@@ -17,7 +19,7 @@ class RunPropertyPlatformManager
 
     private readonly TextEditor _textEditor;
 
-    public RenderingFontInfo GetGlyphTypefaceAndRenderingFontFamily(RunProperty runProperty, char unicodeChar)
+    public RenderingFontInfo GetGlyphTypefaceAndRenderingFontFamily(RunProperty runProperty, Utf32CodePoint unicodeChar)
     {
         FontFamily fontFamily;
         if (runProperty.FontName.IsNotDefineFontName)
@@ -56,7 +58,7 @@ class RunPropertyPlatformManager
             // 理论上还失败，只能使用最终回滚字体了
             else
             {
-                renderingFontFamily = new FontFamily(FontNameManager.FallbackDefaultFontName);
+                renderingFontFamily = new FontFamily(PlatformFontNameManager.FallbackDefaultFontName);
                 var fallbackTypeface = new Typeface(renderingFontFamily, typeface.Style, typeface.Weight,
                     typeface.Stretch);
                 // 理论上不会失败
@@ -67,11 +69,11 @@ class RunPropertyPlatformManager
         return new RenderingFontInfo(glyphTypeface, renderingFontFamily);
     }
 
-    public static bool TryGetFallbackFontInfoByCustom(RunProperty runProperty, Typeface typeface,
+    public bool TryGetFallbackFontInfoByCustom(RunProperty runProperty, Typeface typeface,
         [NotNullWhen(true)] out GlyphTypeface? glyphTypeface, [NotNullWhen(true)] out FontFamily? fallbackFontFamily)
     {
         var fallbackFontName =
-            TextEditor.StaticConfiguration.FontNameManager.GetFallbackFontName(runProperty.FontName.UserFontName);
+            _textEditor.TextEditorCore.FontNameManager.GetFallbackFontName(runProperty.FontName.UserFontName, _textEditor.TextEditorCore);
         if (string.IsNullOrEmpty(fallbackFontName))
         {
             glyphTypeface = null;
@@ -86,7 +88,7 @@ class RunPropertyPlatformManager
         return fallbackTypeface.TryGetGlyphTypeface(out glyphTypeface);
     }
 
-    public bool TryGetFallbackFontInfoByWpf(RunProperty runProperty, char unicodeChar,
+    public bool TryGetFallbackFontInfoByWpf(RunProperty runProperty, Utf32CodePoint unicodeChar,
         [NotNullWhen(true)] out GlyphTypeface? glyphTypeface, [NotNullWhen(true)] out FontFamily? fallbackFontFamily)
     {
         if (FallBackFontFamily.TryGetFallBackFontFamily(unicodeChar, out var familyName))

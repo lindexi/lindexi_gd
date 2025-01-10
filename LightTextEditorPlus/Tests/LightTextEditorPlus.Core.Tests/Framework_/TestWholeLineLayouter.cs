@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Layout;
+using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 
@@ -10,6 +10,7 @@ class TestWholeLineLayouter : IWholeLineLayouter
 
     public WholeLineLayoutResult LayoutWholeLine(in WholeLineLayoutArgument argument)
     {
-        return LayoutWholeLineFunc?.Invoke(argument) ?? new WholeLineLayoutResult(new TextSize(10, 10), 1);
+        TextSize size = new TextSize(10, 10);
+        return LayoutWholeLineFunc?.Invoke(argument) ?? new WholeLineLayoutResult(size, size, 1);
     }
 }

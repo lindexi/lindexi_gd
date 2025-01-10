@@ -1,7 +1,6 @@
-﻿using System;
+using System;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Events;
-using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Carets;
 
@@ -15,7 +14,7 @@ namespace LightTextEditorPlus.Core.Carets;
 /// - 光标变更的时候，可视化的光标是否跟随文本字符属性的颜色和字号，以及横排和竖排，以及光标所在的坐标，这是需要通知到渲染层
 class CaretManager
 {
-    public CaretManager(TextEditor textEditor)
+    public CaretManager(TextEditorCore textEditor)
     {
         TextEditor = textEditor;
     }
@@ -25,9 +24,10 @@ class CaretManager
     /// </summary>
     /// 用户可以设置当前光标的字符属性，但是在光标切走之后，将会自动清掉此属性
     /// 之前我做的文本库的设计是当前光标的字符属性和 <see cref="P:LightTextEditorPlus.Core.Document.DocumentManager.CurrentRunProperty"/> 耦合，存在的一个问题是文档的字符属性不断被变更
+    /// 即使点击到段首，设置字符属性也不会影响当前段落字符属性。当前段落字符属性仅仅受到首个字符的影响
     public IReadOnlyRunProperty? CurrentCaretRunProperty { get; set; }
 
-    private TextEditor TextEditor { get; }
+    private TextEditorCore TextEditor { get; }
     private DocumentManager DocumentManager => TextEditor.DocumentManager;
 
     #region 事件

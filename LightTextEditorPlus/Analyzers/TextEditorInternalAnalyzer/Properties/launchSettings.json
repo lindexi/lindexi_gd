@@ -5,12 +5,12 @@
       "targetProject": "..\\..\\LightTextEditorPlus.Core\\LightTextEditorPlus.Core.csproj"
     },
     "DebugTextEditorWPF": {
-      "commandName": "DebugRoslynComponent",
-      "targetProject": "..\\..\\LightTextEditorPlus.Wpf\\LightTextEditorPlus.Wpf.csproj"
+        "commandName": "DebugRoslynComponent",
+        "targetProject": "..\\..\\LightTextEditorPlus.Wpf\\LightTextEditorPlus.Wpf.csproj"
     },
     "DebugTextEditorAvalonia": {
-      "commandName": "DebugRoslynComponent",
-      "targetProject": "..\\..\\LightTextEditorPlus.Avalonia\\LightTextEditorPlus.Avalonia.csproj"
+        "commandName": "DebugRoslynComponent",
+        "targetProject": "..\\..\\LightTextEditorPlus.Avalonia\\LightTextEditorPlus.Avalonia.csproj"
     }
   }
 }

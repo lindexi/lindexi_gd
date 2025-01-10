@@ -1,4 +1,4 @@
-﻿//using System;
+//using System;
 //using LightTextEditorPlus.Core.Document;
 //using LightTextEditorPlus.Core.Primitive.Collections;
 //using LightTextEditorPlus.Core.Utils;

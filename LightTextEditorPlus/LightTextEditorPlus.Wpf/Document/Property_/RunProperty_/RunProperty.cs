@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows;
@@ -171,11 +171,12 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     /// <param name="glyphTypeface"></param>
     /// <param name="glyphIndex"></param>
     /// <returns></returns>
-    public bool TryGetFallbackGlyphTypeface(char c,[NotNullWhen(true)] out GlyphTypeface? glyphTypeface,out ushort glyphIndex)
+    public bool TryGetFallbackGlyphTypeface(Utf32CodePoint c, [NotNullWhen(true)] out GlyphTypeface? glyphTypeface,
+        out ushort glyphIndex)
     {
         if (_cacheFallbackGlyphTypeface is not null)
         {
-            if (_cacheFallbackGlyphTypeface.CharacterToGlyphMap.TryGetValue(c, out var index))
+            if (_cacheFallbackGlyphTypeface.CharacterToGlyphMap.TryGetValue(c.Value, out var index))
             {
                 // 命中缓存
                 glyphTypeface = _cacheFallbackGlyphTypeface;
@@ -186,7 +187,7 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
 
         if (RunPropertyPlatformManager.TryGetFallbackFontInfoByWpf(this, c, out var result, out _))
         {
-            if (result.CharacterToGlyphMap.TryGetValue(c,out var index))
+            if (result.CharacterToGlyphMap.TryGetValue(c.Value, out var index))
             {
                 glyphTypeface = result;
                 glyphIndex = index;
@@ -207,6 +208,14 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     /// <returns></returns>
     public FontFamily GetRenderingFontFamily(char unicodeChar = '1')
     {
+        return GetRenderingFontFamily(new Utf32CodePoint(unicodeChar));
+    }
+
+    /// <summary>
+    /// 获取渲染使用的字体
+    /// </summary>
+    public FontFamily GetRenderingFontFamily(Utf32CodePoint unicodeChar)
+    {
         return GetGlyphTypefaceAndRenderingFontFamily(unicodeChar).RenderingFontFamily;
     }
 
@@ -217,10 +226,18 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
     /// <returns></returns>
     public GlyphTypeface GetGlyphTypeface(char unicodeChar = '1')
     {
+        return GetGlyphTypeface(new Utf32CodePoint(unicodeChar));
+    }
+
+    /// <summary>
+    /// 获取渲染使用的字体
+    /// </summary>
+    public GlyphTypeface GetGlyphTypeface(Utf32CodePoint unicodeChar)
+    {
         return GetGlyphTypefaceAndRenderingFontFamily(unicodeChar).GlyphTypeface;
     }
 
-    private RenderingFontInfo GetGlyphTypefaceAndRenderingFontFamily(char unicodeChar = '1')
+    private RenderingFontInfo GetGlyphTypefaceAndRenderingFontFamily(Utf32CodePoint unicodeChar)
     {
         if (_renderingFontInfo is not null)
         {
@@ -236,88 +253,88 @@ public record RunProperty : LayoutOnlyRunProperty, IEquatable<RunProperty>, IRun
 
     #endregion
 
-    #region 相等判断
+    //#region 相等判断
 
-    /// <inheritdoc />
-    public override bool Equals(IReadOnlyRunProperty? other)
-    {
-        if (ReferenceEquals(other, this))
-        {
-            // 大部分的判断情况下，都会进入这个分支
-            return true;
-        }
+    ///// <inheritdoc />
+    //public override bool Equals(IReadOnlyRunProperty? other)
+    //{
+    //    if (ReferenceEquals(other, this))
+    //    {
+    //        // 大部分的判断情况下，都会进入这个分支
+    //        return true;
+    //    }
 
-        if (other is RunProperty otherRunProperty)
-        {
-            return Equals(otherRunProperty);
-        }
-        else
-        {
-            return false;
-        }
-    }
+    //    if (other is RunProperty otherRunProperty)
+    //    {
+    //        return Equals(otherRunProperty);
+    //    }
+    //    else
+    //    {
+    //        return false;
+    //    }
+    //}
 
-    /// <inheritdoc />
-    public override int GetHashCode()
-    {
-        var hashCode = new HashCode();
-        hashCode.Add(FontName);
-        hashCode.Add(FontSize);
-        hashCode.Add(Foreground);
-        hashCode.Add(Opacity);
-        hashCode.Add(FontWeight);
-        hashCode.Add(FontStyle);
-        hashCode.Add(Stretch);
-        hashCode.Add(Background);
-        return hashCode.ToHashCode();
-    }
+    ///// <inheritdoc />
+    //public override int GetHashCode()
+    //{
+    //    var hashCode = new HashCode();
+    //    hashCode.Add(FontName);
+    //    hashCode.Add(FontSize);
+    //    hashCode.Add(Foreground);
+    //    hashCode.Add(Opacity);
+    //    hashCode.Add(FontWeight);
+    //    hashCode.Add(FontStyle);
+    //    hashCode.Add(Stretch);
+    //    hashCode.Add(Background);
+    //    return hashCode.ToHashCode();
+    //}
 
-    /// <inheritdoc />
-    public virtual bool Equals(RunProperty? other)
-    {
-        if (other == null)
-        {
-            return false;
-        }
+    ///// <inheritdoc />
+    //public virtual bool Equals(RunProperty? other)
+    //{
+    //    if (other == null)
+    //    {
+    //        return false;
+    //    }
 
-        // 按照用户可能修改的属性排序，被设置越多的属性放在最前面
-        if (!base.Equals(other))
-        {
-            return false;
-        }
+    //    // 按照用户可能修改的属性排序，被设置越多的属性放在最前面
+    //    if (!base.Equals(other))
+    //    {
+    //        return false;
+    //    }
 
-        if (!Equals(Foreground, other.Foreground))
-        {
-            return false;
-        }
+    //    if (!Equals(Foreground, other.Foreground))
+    //    {
+    //        return false;
+    //    }
 
-        if (!Equals(Opacity, other.Opacity))
-        {
-            return false;
-        }
+    //    if (!Equals(Opacity, other.Opacity))
+    //    {
+    //        return false;
+    //    }
 
-        if (!Equals(FontWeight, other.FontWeight))
-        {
-            return false;
-        }
+    //    if (!Equals(FontWeight, other.FontWeight))
+    //    {
+    //        return false;
+    //    }
 
-        if (!Equals(FontStyle, other.FontStyle))
-        {
-            return false;
-        }
+    //    if (!Equals(FontStyle, other.FontStyle))
+    //    {
+    //        return false;
+    //    }
 
-        if (!Equals(Stretch, other.Stretch))
-        {
-            return false;
-        }
+    //    if (!Equals(Stretch, other.Stretch))
+    //    {
+    //        return false;
+    //    }
 
-        if (!Equals(Background, other.Background))
-        {
-            return false;
-        }
+    //    if (!Equals(Background, other.Background))
+    //    {
+    //        return false;
+    //    }
 
-        return true;
-    }
+    //    return true;
+    //}
 
-    #endregion
+    //#endregion
 }

@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Core.Document;
+namespace LightTextEditorPlus.Core.Document;
 
 /// <summary>
 /// 表示一个类型支持段落的缓存，且支持缓存失效

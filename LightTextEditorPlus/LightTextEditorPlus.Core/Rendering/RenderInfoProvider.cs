@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 
@@ -9,8 +10,6 @@ using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
 
-using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
-
 namespace LightTextEditorPlus.Core.Rendering;
 
 /// <summary>
@@ -18,12 +17,15 @@ namespace LightTextEditorPlus.Core.Rendering;
 /// </summary>
 public class RenderInfoProvider
 {
-    internal RenderInfoProvider(TextEditor textEditor)
+    internal RenderInfoProvider(TextEditorCore textEditor)
     {
         TextEditor = textEditor;
     }
 
-    internal TextEditor TextEditor { get; }
+    /// <summary>
+    /// 文本编辑器
+    /// </summary>
+    public TextEditorCore TextEditor { get; }
 
     /// <summary>
     /// 当前渲染信息是否脏的。如果是脏的就不能使用
@@ -222,8 +224,14 @@ public class RenderInfoProvider
         }
     }
 
-    internal void VerifyNotDirty()
+    /// <summary>
+    /// 确保当前渲染信息不是脏的
+    /// </summary>
+    /// <exception cref="TextEditorRenderInfoDirtyException"></exception>
+    [EditorBrowsable(EditorBrowsableState.Never)] // 表示不要提示，因为这个方法是内部使用的，基本上业务开发者也用不着
+    public void VerifyNotDirty()
     {
+        // 这里不能用 TextEditor.VerifyNotDirty 方法，因为调用的 IsDirty 不是一个属性
         if (IsDirty)
         {
             throw new TextEditorRenderInfoDirtyException(TextEditor);

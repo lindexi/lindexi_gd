@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.Serialization;
 
 namespace LightTextEditorPlus.Core.Exceptions;
@@ -10,11 +10,6 @@ public class TextEditorInnerException : TextEditorException
 {
     /// <inheritdoc cref="TextEditorInnerException"/>
     public TextEditorInnerException()
-    {
-    }
-
-    /// <inheritdoc cref="TextEditorInnerException"/>
-    public TextEditorInnerException(SerializationInfo info, StreamingContext context) : base(info, context)
     {
     }
 

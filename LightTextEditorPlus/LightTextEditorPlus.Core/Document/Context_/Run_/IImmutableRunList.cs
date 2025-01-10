@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Core.Document;
+namespace LightTextEditorPlus.Core.Document;
 
 /// <summary>
 /// 表示一个 <see cref="IImmutableRun"/> 列表

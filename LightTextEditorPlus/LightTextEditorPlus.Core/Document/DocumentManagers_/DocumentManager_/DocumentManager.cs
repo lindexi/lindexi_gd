@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 using LightTextEditorPlus.Core.Carets;
@@ -9,7 +10,6 @@ using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.Maths;
-using TextEditor = LightTextEditorPlus.Core.TextEditorCore;
 
 namespace LightTextEditorPlus.Core.Document
 {
@@ -19,19 +19,22 @@ namespace LightTextEditorPlus.Core.Document
     public class DocumentManager
     {
         /// <inheritdoc cref="T:LightTextEditorPlus.Core.Document.DocumentManager"/>
-        public DocumentManager(TextEditor textEditor)
+        public DocumentManager(TextEditorCore textEditor)
         {
             TextEditor = textEditor;
-            CurrentParagraphProperty = new ParagraphProperty();
-            _currentRunProperty = textEditor.PlatformProvider.GetPlatformRunPropertyCreator().GetDefaultRunProperty();
-
+            var currentRunProperty = textEditor.PlatformProvider.GetPlatformRunPropertyCreator().GetDefaultRunProperty();
+            _initParagraphProperty = new ParagraphProperty()
+            {
+                ParagraphStartRunProperty = currentRunProperty,
+            };
+            
             ParagraphManager = new ParagraphManager(textEditor);
             DocumentRunEditProvider = new DocumentRunEditProvider(textEditor);
         }
 
         #region 框架
 
-        internal TextEditor TextEditor { get; }
+        internal TextEditorCore TextEditor { get; }
 
         #region DocumentWidth DocumentHeight
 
@@ -43,7 +46,7 @@ namespace LightTextEditorPlus.Core.Document
         {
             set
             {
-                if (Nearly.Equals(_documentWidth,value))
+                if (Nearly.Equals(_documentWidth, value))
                 {
                     return;
                 }
@@ -78,6 +81,7 @@ namespace LightTextEditorPlus.Core.Document
         }
 
         private double _documentHeight = double.PositiveInfinity;
+
         #endregion
 
         /// <summary>
@@ -118,9 +122,50 @@ namespace LightTextEditorPlus.Core.Document
         #region Paragraph段落
 
         /// <summary>
-        /// 设置或获取当前文本的默认段落属性。设置之后，只影响新变更的文本，不影响之前的文本
+        /// 设置或获取默认的文本的默认段落属性。设置之后，只影响新变更的文本，不影响之前的文本。当文本初始化完成之后，设置无效
         /// </summary>
-        public ParagraphProperty CurrentParagraphProperty { set; get; }
+        /// 此属性一般只在初始化时设置和使用，当存在文本段落的时候，将被替换为实际的文本段落，首个段落的属性
+        public ParagraphProperty DefaultParagraphProperty
+        {
+            [MemberNotNull(nameof(_initParagraphProperty))]
+            set
+            {
+                var isInit = ParagraphManager.GetRawParagraphList().Count == 0;
+                if (!isInit && !TextEditor.IsUndoRedoMode)
+                {
+                    string message = "禁止在初始化完成之后，即存在段落之后，设置默认的段落属性";
+                    if (TextEditor.IsInDebugMode)
+                    {
+                        throw new TextEditorDebugException(message);
+                    }
+                    else
+                    {
+                        TextEditor.Logger.LogWarning(message);
+                    }
+                }
+
+                _initParagraphProperty = value;
+            }
+            get
+            {
+                IReadOnlyList<ParagraphData> paragraphList = ParagraphManager.GetRawParagraphList();
+                int count = paragraphList.Count;
+                if (count == 0)
+                {
+                    // 没有段落，那就使用默认段落属性
+                    return _initParagraphProperty;
+                }
+                else
+                {
+                    return paragraphList[0].ParagraphProperty;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 初始化过程中的段落属性。等初始化完成之后，即存在段落之后，将会被替换为首个段落的属性
+        /// </summary>
+        private ParagraphProperty _initParagraphProperty;
 
         ///// <summary>
         ///// 当前光标下的段落
@@ -201,14 +246,15 @@ namespace LightTextEditorPlus.Core.Document
         #region RunProperty
 
         /// <summary>
-        /// 获取当前文本的默认字符属性
+        /// 获取当前文本的默认字符属性。正常情况下和 <see cref="CurrentCaretRunProperty"/> 一致，只有当调用 <see cref="SetCurrentCaretRunProperty{T}"/> 设置当前光标的字符属性时，才会不一致
         /// </summary>
-        public IReadOnlyRunProperty CurrentRunProperty
+        public IReadOnlyRunProperty DefaultRunProperty
         {
             private set
             {
-                var oldValue = _currentRunProperty;
-                _currentRunProperty = value;
+                var oldValue = DefaultParagraphProperty.ParagraphStartRunProperty;
+
+                DefaultParagraphProperty = DefaultParagraphProperty with { ParagraphStartRunProperty = value };
 
                 if (TextEditor.ShouldInsertUndoRedo)
                 {
@@ -218,10 +264,8 @@ namespace LightTextEditorPlus.Core.Document
                     TextEditor.InsertUndoRedoOperation(operation);
                 }
             }
-            get => _currentRunProperty;
+            get => DefaultParagraphProperty.ParagraphStartRunProperty;
         }
-
-        private IReadOnlyRunProperty _currentRunProperty;
 
         /// <inheritdoc cref="P:LightTextEditorPlus.Core.Carets.CaretManager.CurrentCaretRunProperty"/>
         public IReadOnlyRunProperty CurrentCaretRunProperty
@@ -246,7 +290,7 @@ namespace LightTextEditorPlus.Core.Document
                 if (CharCount == 0)
                 {
                     // 无任何文本字符时，获取段落和文档的属性
-                    currentCaretRunProperty = CurrentRunProperty;
+                    currentCaretRunProperty = DefaultRunProperty;
                 }
                 else
                 {
@@ -268,10 +312,9 @@ namespace LightTextEditorPlus.Core.Document
                         }
                         else
                         {
-                            // 这个段落没有字符，那就使用段落默认字符属性，段落没有默认的字符属性，那就采用文档属性
+                            // 这个段落没有字符，那就使用段落默认字符属性
                             currentCaretRunProperty =
-                                paragraphData.ParagraphProperty.ParagraphStartRunProperty ??
-                                CurrentRunProperty;
+                                paragraphData.ParagraphProperty.ParagraphStartRunProperty;
                         }
                     }
                     else
@@ -327,12 +370,21 @@ namespace LightTextEditorPlus.Core.Document
         /// <summary>
         /// 设置当前文本的默认字符属性
         /// </summary>
+        /// <remarks>
+        /// 仅当文本没有创建出任何段落之前，初始化过程中，才能设置文本的默认字符属性
+        /// </remarks>
         /// <typeparam name="T">实际业务端使用的字符属性类型</typeparam>
         public void SetDefaultTextRunProperty<T>(ConfigReadOnlyRunProperty<T> config) where T : IReadOnlyRunProperty
         {
-            CurrentRunProperty = config((T) CurrentRunProperty);
+            var isInit = ParagraphManager.GetRawParagraphList().Count == 0;
+            if (!isInit)
+            {
+                throw new InvalidOperationException($"仅当文本没有创建出任何段落之前，初始化过程中，才能设置文本的默认字符属性");
+            }
+
+            DefaultRunProperty = config((T) DefaultRunProperty);
         }
-        
+
         /// <summary>
         /// 设置当前光标的字符属性。在光标切走之后，自动失效
         /// </summary>
@@ -367,7 +419,7 @@ namespace LightTextEditorPlus.Core.Document
                     // 这是在搞什么呀？对一个没有选择内容的地方设置文本字符属性
                     // 这里也不合适抛出异常，可以忽略
                     // 文本库允许你这么做，但是这么做，文本库啥都不干
-                    TextEditor.Logger.LogDebug($"[DocumentManager][SetRunProperty] selection is empty, but not equals CurrentCaretOffset. 传入 selection 范围的长度是 0 且起点不等于当前光标坐标。将不会修改任何文本字符属性");
+                    TextEditor.Logger.LogDebug($"[DocumentManager][SetRunProperty] selection is empty, but not equals CurrentCaretOffset. 传入 selection 范围的长度是 0 且起点不等于当前光标坐标。将不会修改任何文本字符属性 selection.FrontOffset={selection.Value.FrontOffset};CaretManager.CurrentCaretOffset={CaretManager.CurrentCaretOffset}");
                 }
                 else
                 {
@@ -408,7 +460,7 @@ namespace LightTextEditorPlus.Core.Document
                     {
                         currentRunProperty = charData.RunProperty;
 
-                        currentRunProperty = config((T)currentRunProperty);
+                        currentRunProperty = config((T) currentRunProperty);
                     }
 
                     runList.Add(new SingleCharImmutableRun(charData.CharObject, currentRunProperty));
@@ -433,7 +485,7 @@ namespace LightTextEditorPlus.Core.Document
         /// <param name="selection"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public bool IsAnyRunProperty<T>(Predicate<T> predicate, Selection? selection = null) where T : IReadOnlyRunProperty
+        public bool IsAllRunPropertyMatchPredicate<T>(Predicate<T> predicate, Selection? selection = null) where T : IReadOnlyRunProperty
         {
             selection ??= CaretManager.CurrentSelection;
             if (selection.Value.IsEmpty)
@@ -656,7 +708,7 @@ namespace LightTextEditorPlus.Core.Document
             {
                 // 如果有加上任何内容，则需要判断是否采用换行符结束，如果采用换行符结束，需要设置光标是在行首
                 // 如果仅仅只是替换相等同的内容，如 CaretManager.CurrentCaretOffset.Offset == caretOffset.Offset 的条件，则不应该修改光标。这条规则也许不对，如果后续行为不符合交互设计，则进行修改
-                CaretManager.CurrentCaretOffset = new CaretOffset(caretOffset,isAtLineStart: IsEndWithBreakLine(run));
+                CaretManager.CurrentCaretOffset = new CaretOffset(caretOffset, isAtLineStart: IsEndWithBreakLine(run));
             }
             else
             {
@@ -669,12 +721,12 @@ namespace LightTextEditorPlus.Core.Document
 
         private static bool IsEndWithBreakLine(IImmutableRunList? runList)
         {
-            if (runList is null || runList.RunCount==0)
+            if (runList is null || runList.RunCount == 0)
             {
                 return false;
             }
 
-            IImmutableRun run = runList.GetRun(runList.RunCount-1);
+            IImmutableRun run = runList.GetRun(runList.RunCount - 1);
             if (run is LineBreakRun)
             {
                 return true;
@@ -690,7 +742,7 @@ namespace LightTextEditorPlus.Core.Document
                 return IsTextEndWithBreakLine(textRun.Text);
             }
 
-            ICharObject charObject = run.GetChar(run.Count-1);
+            ICharObject charObject = run.GetChar(run.Count - 1);
             string text = charObject.ToText();
             return IsTextEndWithBreakLine(text);
 
@@ -829,7 +881,7 @@ namespace LightTextEditorPlus.Core.Document
         internal void SetDefaultTextRunPropertyByUndoRedo(IReadOnlyRunProperty runProperty)
         {
             TextEditor.VerifyInUndoRedoMode();
-            CurrentRunProperty = runProperty;
+            DefaultRunProperty = runProperty;
         }
 
         #endregion

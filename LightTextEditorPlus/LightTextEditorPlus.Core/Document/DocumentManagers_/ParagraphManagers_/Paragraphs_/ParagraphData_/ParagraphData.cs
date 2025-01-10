@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -40,6 +40,26 @@ class ParagraphData
     }
 
     /// <summary>
+    /// 更新段落的起始字符属性
+    /// </summary>
+    public void UpdateStartRunProperty()
+    {
+        if (CharDataManager.CharCount > 0)
+        {
+            CharData firstCharData = CharDataManager.GetCharData(0);
+            IReadOnlyRunProperty runProperty = firstCharData.RunProperty;
+            if (!ReferenceEquals(ParagraphProperty.ParagraphStartRunProperty, runProperty))
+            {
+                // todo 考虑将 ParagraphStartRunProperty 拆开，减少不断的创建段落属性对象
+                ParagraphProperty = ParagraphProperty with
+                {
+                    ParagraphStartRunProperty = runProperty
+                };
+            }
+        }
+    }
+
+    /// <summary>
     /// 段落管理器
     /// </summary>
     public ParagraphManager ParagraphManager { get; }
@@ -73,7 +93,7 @@ class ParagraphData
         if (CharCount == 0)
         {
             // 如果这是一个空段，那就采用段落属性的字符属性
-            runProperty = ParagraphProperty.ParagraphStartRunProperty ?? TextEditor.DocumentManager.CurrentRunProperty;
+            runProperty = ParagraphProperty.ParagraphStartRunProperty;
         }
         else
         {
@@ -271,7 +291,11 @@ class ParagraphData
         {
             var charObject = run.GetChar(i).DeepClone();
             IPlatformRunPropertyCreator platformRunPropertyCreator = TextEditor.PlatformProvider.GetPlatformRunPropertyCreator();
-            IReadOnlyRunProperty platformRunProperty = platformRunPropertyCreator.ToPlatformRunProperty(charObject,runProperty);
+            IReadOnlyRunProperty platformRunProperty =
+                platformRunPropertyCreator.ToPlatformRunProperty(charObject, runProperty);
+
+            // 似乎对每个 Char 都调用也不亏，正常都是相同的 runProperty 对象，除非字体不存在等情况
+            //// 不应该为每个 Char 都调用一次 ToPlatformRunProperty 防止创建出大量相同的字符属性对象
 
             var charData = new CharData(charObject, platformRunProperty);
             AppendCharData(charData);

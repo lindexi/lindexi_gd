@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
@@ -78,10 +79,17 @@ public partial class TextEditorCore
 
     #region 辅助方法
 
-    internal void VerifyNotDirty()
+    internal void VerifyNotDirty(bool autoLayoutEmptyTextEditor = true)
     {
         if (IsDirty)
         {
+            if (autoLayoutEmptyTextEditor && IsEmptyInitializingTextEditor())
+            {
+                // 初始化状态，如果要获取文本状态。可能此时的获取状态属于通用逻辑，就不要让业务方区分文本状态，是否空文本初始化状态，直接就走布局，让布局完成，这样就可以正确获取状态
+                LayoutEmptyTextEditor();
+                return;
+            }
+
             ThrowTextEditorDirtyException();
         }
     }
@@ -91,7 +99,17 @@ public partial class TextEditorCore
     /// </summary>
     /// 拆分一个方法是为了减少 JIT 过程需要生成异常的代码，提升 JIT 性能。同时让 <see cref="VerifyNotDirty"/> 被内联
     /// <exception cref="TextEditorDirtyException"></exception>
-    internal void ThrowTextEditorDirtyException() => throw new TextEditorDirtyException(this);
+    private void ThrowTextEditorDirtyException() => throw new TextEditorDirtyException(this);
+
+    /// <summary>
+    /// 是否空的且初始化中的文本编辑器
+    /// </summary>
+    /// <returns></returns>
+    private bool IsEmptyInitializingTextEditor()
+    {
+        var isInit = !_isAnyLayoutUpdate;
+        return isInit && DocumentManager.CharCount == 0;
+    }
 
     #endregion
 }

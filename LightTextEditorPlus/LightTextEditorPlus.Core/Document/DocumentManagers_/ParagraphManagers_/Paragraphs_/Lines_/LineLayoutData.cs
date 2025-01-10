@@ -1,13 +1,10 @@
-﻿using System;
+using System;
 using System.Text;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
-using LightTextEditorPlus.Core.Rendering;
-
-// ReSharper disable All
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -69,14 +66,19 @@ class LineLayoutData : IParagraphCache, IDisposable
     private TextPoint _charStartPoint;
 
     /// <summary>
-    /// 这一行的字符尺寸
+    /// 这一行的尺寸。这是在 <see cref="LineCharTextSize"/> 基础上叠加行距尺寸信息
+    /// </summary>
+    public TextSize LineSize { get; init; }
+
+    /// <summary>
+    /// 这一行的字符尺寸，不会受到行距的影响
     /// </summary>
     public TextSize LineCharTextSize { get; init; }
 
     /// <summary>
     /// 这一行的范围
     /// </summary>
-    public TextRect GetLineBounds() => new TextRect(_charStartPoint, LineCharTextSize);
+    public TextRect GetLineBounds() => new TextRect(_charStartPoint, LineSize);
 
     /// <summary>
     /// 这一行是当前段落的第几行
@@ -156,7 +158,7 @@ class LineLayoutData : IParagraphCache, IDisposable
 
     public LineDrawingArgument GetLineDrawingArgument()
     {
-        return new LineDrawingArgument(IsDrawn, IsLineStartPointUpdated, LineAssociatedRenderData, CharStartPoint, LineCharTextSize,
+        return new LineDrawingArgument(IsDrawn, IsLineStartPointUpdated, LineAssociatedRenderData, CharStartPoint, LineSize,
             GetCharList());
     }
 

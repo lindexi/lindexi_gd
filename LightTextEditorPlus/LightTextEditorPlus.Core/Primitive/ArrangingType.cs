@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Core.Primitive;
+namespace LightTextEditorPlus.Core.Primitive;
 
 /// <summary>
 ///     布局方式

@@ -1,4 +1,4 @@
-﻿using MSTest.Extensions.Contracts;
+using MSTest.Extensions.Contracts;
 
 using System;
 using System.Collections.Generic;
@@ -24,7 +24,7 @@ public class LayoutOnlyRunPropertyTest
             var textEditorCore = TestHelper.GetTextEditorCore();
 
             // Action
-            var runProperty = textEditorCore.DocumentManager.CurrentRunProperty;
+            var runProperty = textEditorCore.DocumentManager.DefaultRunProperty;
 
             // Assert
             Assert.AreEqual(FontName.DefaultNotDefineFontName, runProperty.FontName);

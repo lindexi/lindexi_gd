@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -6,6 +6,7 @@ using System.Text;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
+using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Core.Document;
@@ -111,7 +112,7 @@ class ParagraphManager
             // 不优化语法，方便加上断点
 
             // 获取当前的段落属性作为默认段落属性
-            paragraphProperty = TextEditor.DocumentManager.CurrentParagraphProperty;
+            paragraphProperty = TextEditor.DocumentManager.DefaultParagraphProperty;
         }
 
         // 使用 with 关键词，重新拷贝一份对象，防止多个段落之间使用相同的段落对象属性，导致可能存在的对象变更
@@ -156,12 +157,23 @@ class ParagraphManager
         ParagraphList.RemoveRange(index, count);
     }
 
+    /// <summary>
+    /// 获取段落列表，获取时，至少会确保有一个段落存在
+    /// </summary>
+    /// <returns></returns>
     public IReadOnlyList<ParagraphData> GetParagraphList()
     {
         EnsureFirstParagraphExists();
 
         return ParagraphList;
     }
+
+    /// <summary>
+    /// 和 <see cref="GetParagraphList"/> 不同的是，这个方法返回的是原始的段落列表，不会确保至少有一个段落存在
+    /// </summary>
+    /// <returns></returns>
+    internal IReadOnlyList<ParagraphData> GetRawParagraphList()
+        => ParagraphList;
 
     public ParagraphData GetParagraph(int index)
     {

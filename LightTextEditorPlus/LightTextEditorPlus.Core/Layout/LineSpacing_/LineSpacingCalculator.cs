@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.CompilerServices;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;

@@ -1,4 +1,16 @@
-// µ±Ç°¹â±êÏÂµÄÎÄ±¾×Ö·ûÊôĞÔ
-// CurrentCaretRunProperty
 CurrentCaretOffset
 CurrentSelection
+// å…‰æ ‡äº‹ä»¶
+CurrentCaretOffsetChanging
+CurrentCaretOffsetChanged
+CurrentSelectionChanging
+CurrentSelectionChanged
+// æ–‡æœ¬çŠ¶æ€
+IsDirty
+IsUpdatingLayout
+// è°ƒè¯•
+IsInDebugMode
+SetInDebugMode
+SetAllInDebugMode
+// è°ƒè¯•å
+DebugName

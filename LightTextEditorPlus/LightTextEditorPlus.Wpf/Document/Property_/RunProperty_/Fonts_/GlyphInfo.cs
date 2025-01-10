@@ -1,4 +1,5 @@
-﻿using System.Windows.Media;
+using System.Windows.Media;
+using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Document
 {
@@ -16,7 +17,7 @@ namespace LightTextEditorPlus.Document
         /// <param name="unicodeChar"></param>
         /// <param name="glyphIndex"></param>
         public GlyphInfo(Typeface typeface, GlyphTypeface renderGlyphTypeface, GlyphTypeface originGlyphTypeface,
-            char unicodeChar, ushort glyphIndex)
+            Utf32CodePoint unicodeChar, ushort glyphIndex)
         {
             Typeface = typeface;
             RenderGlyphTypeface = renderGlyphTypeface;
@@ -28,7 +29,7 @@ namespace LightTextEditorPlus.Document
         /// <summary>
         /// 渲染字符
         /// </summary>
-        public char UnicodeChar { get; }
+        public Utf32CodePoint UnicodeChar { get; }
 
         /// <summary>
         /// 渲染字符的目标<see cref="Typeface"/>

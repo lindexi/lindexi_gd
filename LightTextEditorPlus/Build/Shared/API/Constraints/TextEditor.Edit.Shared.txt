@@ -1,0 +1,7 @@
+// 编辑模式
+IsEditable
+IsEditableChanged
+IsReadOnly
+// 进入和退出编辑模式
+EnterEditMode
+QuitEditMode

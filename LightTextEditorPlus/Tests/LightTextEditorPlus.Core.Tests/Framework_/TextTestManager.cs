@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Core.Tests;
+namespace LightTextEditorPlus.Core.Tests;
 
 [TestClass]
 public static class TextTestManager

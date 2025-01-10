@@ -1,7 +1,4 @@
-// �༭ģʽ
+// 编辑模式
+// 是否进入用户编辑模式。进入用户编辑模式将闪烁光标，支持输入法输入
 IsInEditingInputMode
 IsInEditingInputModeChanged
-
-// �¼�
-StyleChanging
-StyleChanged

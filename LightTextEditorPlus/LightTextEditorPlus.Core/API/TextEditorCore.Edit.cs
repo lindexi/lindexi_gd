@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document;
 using System;
 using System.Collections.Generic;
 using LightTextEditorPlus.Core.Carets;
@@ -21,6 +21,7 @@ public partial class TextEditorCore
             return;
         }
 
+        AddLayoutReason($"TextEditorCore.AppendText(string text = {text})");
         DocumentManager.AppendText(new TextRun(text));
     }
 
@@ -32,6 +33,7 @@ public partial class TextEditorCore
     [TextEditorPublicAPI]
     public void AppendRun(IImmutableRun run)
     {
+        AddLayoutReason($"TextEditorCore.AppendRun(IImmutableRun run = {run})");
         DocumentManager.AppendText(run);
     }
 
@@ -44,7 +46,7 @@ public partial class TextEditorCore
     [TextEditorPublicAPI]
     public void EditAndReplace(string text, Selection? selection = null)
     {
-        AddLayoutReason("TextEditorCore.EditAndReplace(string text)");
+        AddLayoutReason($"TextEditorCore.EditAndReplace(string text={text}, Selection? selection = {(selection?.ToString() ?? "null")}");
 
         TextEditorCore textEditor = this;
         DocumentManager documentManager = textEditor.DocumentManager;
@@ -83,7 +85,7 @@ public partial class TextEditorCore
     [TextEditorPublicAPI]
     public void EditAndReplaceRun(IImmutableRun? run, Selection? selection = null)
     {
-        AddLayoutReason("TextEditorCore.EditAndReplace(IImmutableRun, Selection)");
+        AddLayoutReason($"TextEditorCore.EditAndReplace(IImmutableRun run = {run}, Selection selection = {selection?.ToString() ?? "null"})");
         DocumentManager.EditAndReplaceRun(selection ?? CaretManager.CurrentSelection, run);
     }
 
@@ -115,7 +117,7 @@ public partial class TextEditorCore
     }
 
     /// <summary>
-    /// 退格删除，如果没有选择，则删除光标前一个字符。如果有选择，则删除选择内容
+    /// 退格删除，如果没有选择，则删除光标前一个字符。如果当前有选择文本，即 <see cref="CurrentSelection"/> 有范围，则删除选择内容。如需手动指定删除范围，请使用 <see cref="Remove(in Selection)"/> 方法
     /// </summary>
     /// 这是对外调用的，非框架内使用
     [TextEditorPublicAPI]
@@ -125,7 +127,7 @@ public partial class TextEditorCore
     }
 
     /// <summary>
-    /// 删除文本 Delete 删除光标后一个字符
+    /// 删除文本 Delete 删除光标后一个字符。如果当前有选择文本，即 <see cref="CurrentSelection"/> 有范围，则删除选择内容。如需手动指定删除范围，请使用 <see cref="Remove(in Selection)"/> 方法
     /// </summary>
     /// 这是对外调用的，非框架内使用
     [TextEditorPublicAPI]

@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Diagnostics.CodeAnalysis;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
 
@@ -61,6 +62,7 @@ public class CharData
     /// <param name="point"></param>
     /// <exception cref="InvalidOperationException"></exception>
     /// 这是文本排版布局的核心方法，通过此方法即可设置每个字符的位置
+    [MemberNotNull(nameof(CharLayoutData))]
     internal void SetStartPoint(TextPoint point)
     {
         if (CharLayoutData is null)
@@ -82,10 +84,17 @@ public class CharData
     /// 设置尺寸
     /// </summary>
     /// <param name="textSize"></param>
-    public void SetSize(TextSize textSize)
+    /// <param name="baseline">基线，相对于字符的左上角，字符坐标系。即无论这个字符放在哪一行哪一段，这个字符的基线都是一样的</param>
+    public void SetCharDataInfo(TextSize textSize, double baseline)
     {
         Size = textSize;
+        Baseline = baseline;
     }
+
+    /// <summary>
+    /// 基线，相对于字符的左上角，字符坐标系。即无论这个字符放在哪一行哪一段，这个字符的基线都是一样的
+    /// </summary>
+    public double Baseline { private set; get; }
 
     /// <summary>
     /// 尺寸
@@ -93,7 +102,7 @@ public class CharData
     /// 尺寸是可以复用的
     public TextSize? Size
     {
-        internal set
+        private set
         {
             if (_size != null)
             {

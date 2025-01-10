@@ -37,7 +37,7 @@
 
         <TextBlock Margin="0,5,0,0" FontWeight="Bold">前景色</TextBlock>
         <!-- 文本颜色 -->
-        <ItemsControl>
+        <ItemsControl x:Name="ColorItemsControl">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
               <StackPanel Orientation="Horizontal"></StackPanel>
@@ -58,14 +58,14 @@
           <ItemsControl.ItemTemplate>
             <DataTemplate>
                 <Ellipse Margin="5" Width="20" Height="20"
-                         Fill="{Binding .}"></Ellipse>
+                         Fill="{Binding .}" PointerReleased="ColorEllipse_OnPointerReleased"></Ellipse>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
 
         <StackPanel Orientation="Horizontal">
           <Button x:Name="ToggleBoldButton" Margin="1,1,1,1" Click="ToggleBoldButton_OnClick">加粗</Button>
-          <Button x:Name="ToggleItalicButton" Margin="1,1,1,1" >斜体</Button>
+          <Button x:Name="ToggleItalicButton" Margin="1,1,1,1" Click="ToggleItalicButton_OnClick">斜体</Button>
           <Button x:Name="ToggleStrikeThroughButton" Margin="1,1,1,1">删除线</Button>
           <Button x:Name="ToggleUnderlineButton" Margin="1,1,1,1">下划线</Button>
           <Button x:Name="ToggleFontSuperscriptButton" Margin="1,1,1,1">上标</Button>
@@ -74,10 +74,10 @@
 
         <TextBlock Margin="0,5,0,0" FontWeight="Bold">自适应</TextBlock>
         <UniformGrid Columns="4">
-          <Button x:Name="ManualSizeToContentButton" Margin="0,2,0,0">手动</Button>
-          <Button x:Name="WidthSizeToContentButton" Margin="10,2,0,0">高度自适应</Button>
-          <Button x:Name="HeightSizeToContentButton" Margin="10,2,0,0">宽度自适应</Button>
-          <Button x:Name="WidthAndHeightSizeToContentButton" Margin="10,2,0,0">宽度高度自适应</Button>
+          <Button x:Name="ManualSizeToContentButton" Margin="0,2,0,0" Click="ManualSizeToContentButton_OnClick">手动</Button>
+          <Button x:Name="WidthSizeToContentButton" Margin="10,2,0,0" Click="WidthSizeToContentButton_OnClick">宽度自适应</Button>
+          <Button x:Name="HeightSizeToContentButton" Margin="10,2,0,0" Click="HeightSizeToContentButton_OnClick">高度自适应</Button>
+          <Button x:Name="WidthAndHeightSizeToContentButton" Margin="10,2,0,0" Click="WidthAndHeightSizeToContentButton_OnClick">宽度高度自适应</Button>
         </UniformGrid>
 
 
@@ -87,8 +87,8 @@
             <ColumnDefinition></ColumnDefinition>
             <ColumnDefinition></ColumnDefinition>
           </Grid.ColumnDefinitions>
-          <Button x:Name="FullExpandButton" Margin="0,2,10,0" >空间全部展开</Button>
-          <Button x:Name="FirstLineShrinkButton" Grid.Column="1" Margin="10,2,0,0" >首段首行空间不展开</Button>
+          <Button x:Name="FullExpandButton" Margin="0,2,10,0" Click="FullExpandButton_OnClick">空间全部展开</Button>
+          <Button x:Name="FirstLineShrinkButton" Grid.Column="1" Margin="10,2,0,0" Click="FirstLineShrinkButton_OnClick">首段首行空间不展开</Button>
         </Grid>
 
         <TextBlock Margin="0,5,0,0" FontWeight="Bold">布局方式</TextBlock>
@@ -96,9 +96,9 @@
 
         </StackPanel>
         <UniformGrid Columns="3">
-          <Button x:Name="HorizontalArrangingTypeButton" >横排</Button>
-          <Button x:Name="VerticalArrangingTypeButton" Margin="10,0,0,0" >竖排</Button>
-          <Button x:Name="MongolianArrangingTypeButton" Margin="10,0,0,0" >蒙文竖排</Button>
+          <Button x:Name="HorizontalArrangingTypeButton">横排</Button>
+          <Button x:Name="VerticalArrangingTypeButton" Margin="10,0,0,0">竖排</Button>
+          <Button x:Name="MongolianArrangingTypeButton" Margin="10,0,0,0">蒙文竖排</Button>
         </UniformGrid>
 
         <TextBlock Margin="0,5,0,0" FontWeight="Bold">对齐</TextBlock>
@@ -154,13 +154,13 @@
           <StackPanel Grid.Column="0" Margin="0,5,0,0" Orientation="Horizontal">
             <TextBlock FontWeight="Bold" VerticalAlignment="Center">倍数行距</TextBlock>
             <TextBox x:Name="LineSpacingTextBox" Margin="5,0,0,0" Width="50">1</TextBox>
-            <Button x:Name="LineSpacingButton" Margin="5,0,0,0" >应用</Button>
+            <Button x:Name="LineSpacingButton" Margin="5,0,0,0" Click="LineSpacingButton_OnClick">应用</Button>
           </StackPanel>
           <StackPanel Grid.Column="1" Margin="0,5,0,0" Orientation="Horizontal">
             <TextBlock FontWeight="Bold" VerticalAlignment="Center">固定行距</TextBlock>
             <TextBox x:Name="FixedLineSpacingTextBox" Margin="5,0,0,0" Width="50"></TextBox>
-            <Button x:Name="FixedLineSpacingButton" Margin="5,0,0,0" >应用</Button>
-            <Button x:Name="FixedLineSpacingResetButton" Margin="5,0,0,0" >重置</Button>
+            <Button x:Name="FixedLineSpacingButton" Margin="5,0,0,0" Click="FixedLineSpacingButton_OnClick">应用</Button>
+            <Button x:Name="FixedLineSpacingResetButton" Margin="5,0,0,0" Click="FixedLineSpacingResetButton_OnClick">重置</Button>
           </StackPanel>
         </Grid>
 
@@ -179,6 +179,15 @@
             <TextBox x:Name="ParagraphAfterTextBox" Margin="5,0,0,0" Width="50">0</TextBox>
             <Button x:Name="ParagraphAfterButton" Margin="5,0,0,0">应用</Button>
           </StackPanel>
+        </Grid>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <RadioButton x:Name="ApplyStyleToSelectionRadioButton" Grid.Column="0" GroupName="ApplyTextEditor" IsChecked="True">只应用于选择</RadioButton>
+            <RadioButton x:Name="ApplyStyleToTextEditorRadioButton" Grid.Column="1" GroupName="ApplyTextEditor">应用整个文本</RadioButton>
         </Grid>
       </StackPanel>
     </ScrollViewer>

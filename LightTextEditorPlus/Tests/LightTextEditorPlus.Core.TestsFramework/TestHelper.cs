@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document;
 
 namespace LightTextEditorPlus.Core.TestsFramework;
 
@@ -64,4 +64,10 @@ public static class TestHelper
     public const double LayoutTestFontSize = 20;
     public const double LayoutTestCharWidth = LayoutTestFontSize;
     public const double LayoutTestCharHeight = LayoutTestFontSize;
+
+    public static IReadOnlyRunProperty CreateRunProperty(this TextEditorCore textEditor, ConfigReadOnlyRunProperty<LayoutOnlyRunProperty> config)
+    {
+        LayoutOnlyRunProperty runProperty = (LayoutOnlyRunProperty) textEditor.DocumentManager.DefaultRunProperty;
+        return config(runProperty);
+    }
 }

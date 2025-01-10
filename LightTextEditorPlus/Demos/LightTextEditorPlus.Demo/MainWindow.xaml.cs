@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -31,7 +31,9 @@ namespace LightTextEditorPlus.Demo
         {
             InitializeComponent();
 
-            TextEditor.TextEditorCore.AppendText("123123123123123123123123123123123123123\r\n1231231231231231231231231231");
+            TextEditor.SetFontSize(60);
+            TextEditor.SetFontName("华文中宋");
+            TextEditor.TextEditorCore.AppendText("123123");
             TextEditor.TextEditorCore.DocumentManager.SetParagraphProperty(0, TextEditor.TextEditorCore.DocumentManager.GetParagraphProperty(0) with
             {
                 LeftIndentation = 5

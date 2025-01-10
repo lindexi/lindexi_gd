@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Core.Primitive;
+namespace LightTextEditorPlus.Core.Primitive;
 
 /// <summary>
 /// 表示缩进类型

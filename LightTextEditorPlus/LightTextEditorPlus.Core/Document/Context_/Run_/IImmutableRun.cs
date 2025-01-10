@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Core.Document;
+namespace LightTextEditorPlus.Core.Document;
 
 /// <summary>
 /// 表示一段不可变字符，具有相同的属性定义。表示共享单个属性集的字符序列

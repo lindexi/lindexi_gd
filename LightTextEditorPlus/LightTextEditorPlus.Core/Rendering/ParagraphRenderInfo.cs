@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using LightTextEditorPlus.Core.Document;
 
 namespace LightTextEditorPlus.Core.Rendering;
@@ -28,6 +28,11 @@ public readonly struct ParagraphRenderInfo
     public IParagraphLayoutData ParagraphLayoutData => _paragraphData.ParagraphLayoutData;
 
     /// <summary>
+    /// 段落属性
+    /// </summary>
+    public ParagraphProperty ParagraphProperty => _paragraphData.ParagraphProperty;
+
+    /// <summary>
     /// 获取此段落内的行的渲染信息
     /// </summary>
     /// <returns></returns>
@@ -41,10 +46,7 @@ public readonly struct ParagraphRenderInfo
 
             _renderInfoProvider.VerifyNotDirty();
 
-            yield return new ParagraphLineRenderInfo(i, argument)
-            {
-                LineLayoutData = lineLayoutData
-            };
+            yield return new ParagraphLineRenderInfo(lineIndex: i, paragraphIndex: Index, argument, lineLayoutData, _renderInfoProvider);
         }
     }
 }

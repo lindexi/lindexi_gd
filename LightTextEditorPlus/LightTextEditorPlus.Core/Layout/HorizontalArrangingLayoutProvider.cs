@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 
 using LightTextEditorPlus.Core.Document;
@@ -81,52 +81,18 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         // 更新包括两个方面：
         // 1. 此行的起点
         // 2. 此行内的所有字符的起点坐标
-        var currentStartPoint = startPoint;
-        lineLayoutData.CharStartPoint = currentStartPoint;
+        lineLayoutData.CharStartPoint = startPoint;
+
         // 更新行内所有字符的坐标
-        var lineTop = currentStartPoint.Y;
-        var list = lineLayoutData.GetCharList();
-        var lineHeight = lineLayoutData.LineCharTextSize.Height;
-        for (var index = 0; index < list.Count; index++)
-        {
-            var charData = list[index];
+        TextReadOnlyListSpan<CharData> list = lineLayoutData.GetCharList();
 
-            Debug.Assert(charData.CharLayoutData is not null);
-
-            var charHeight = charData.Size!.Value.Height;
-
-            // 保持 X 不变
-            var xOffset = charData.CharLayoutData.StartPoint.X;
-            // 计算 Y 方向的值
-            var yOffset = CalculateCharDataTop(charHeight, lineHeight, lineTop);
-            charData.CharLayoutData!.StartPoint = new TextPoint(xOffset, yOffset);
-            charData.CharLayoutData.UpdateVersion();
-        }
+        var lineHeight = lineLayoutData.LineSize.Height;
+        UpdateTextLineStartPoint(list, startPoint, lineHeight,
+            // 这里只是更新行的起始点，行内的字符坐标不需要变更，因此不需要重新排列 X 坐标
+            reArrangeXPosition: false,
+            needUpdateCharLayoutDataVersion: true);
 
         lineLayoutData.UpdateVersion();
-    }
-
-    /// <summary>
-    /// 更新字符的坐标
-    /// </summary>
-    /// 在已知一行的高度以及当前字符的高度，计算出字符的顶部 Y 坐标
-    /// <param name="charHeight">charData.LineCharSize.Height</param>
-    /// <param name="lineHeight">当前字符所在行的行高，包括行距在内</param>
-    /// <param name="lineTop">文档布局给到行的距离文本框开头的距离</param>
-    /// 只是封装算法而已
-    private static double CalculateCharDataTop(double charHeight, double lineHeight, double lineTop)
-    {
-        // 以下的代码是简单版本的 AdaptBaseLine 方法。而正确的做法是：
-        // 1. 求出最大字符的 Baseline 出来
-        // 2. 求出当前字符的 Baseline 出来
-        // 3. 求出 最大字符的 Baseline 和 当前字符的 Baseline 的差，此结果叠加 lineTop 就是偏移量了
-        // 这里只使用简单的方法，求尺寸和行高的差，让字符底部对齐
-
-        // 先计算出字符相对行的距离
-        var charMarginTop = lineHeight - charHeight;
-        // 再加上文档里面给这一行的 lineTop 距离，即可算出字符相对于文本框的距离
-        var yOffset = charMarginTop + lineTop;
-        return yOffset;
     }
 
     #endregion
@@ -233,7 +199,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             CharStartParagraphIndex = 0,
             CharEndParagraphIndex = 0,
             CharStartPoint = currentStartPoint,
-            LineCharTextSize = new TextSize(0, lineHeight)
+            LineSize = new TextSize(0, lineHeight)
         };
         paragraph.LineLayoutDataList.Add(lineLayoutData);
 
@@ -261,10 +227,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         // 获取最大宽度信息
         double lineMaxWidth = TextEditor.SizeToContent switch
         {
-            SizeToContent.Manual => TextEditor.DocumentManager.DocumentWidth,
-            SizeToContent.Width => double.PositiveInfinity,
-            SizeToContent.Height => TextEditor.DocumentManager.DocumentWidth,
-            SizeToContent.WidthAndHeight => double.PositiveInfinity,
+            TextSizeToContent.Manual => TextEditor.DocumentManager.DocumentWidth,
+            TextSizeToContent.Width => double.PositiveInfinity,
+            TextSizeToContent.Height => TextEditor.DocumentManager.DocumentWidth,
+            TextSizeToContent.WidthAndHeight => double.PositiveInfinity,
             _ => throw new ArgumentOutOfRangeException()
         };
 
@@ -304,6 +270,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             {
                 CharStartParagraphIndex = i,
                 CharEndParagraphIndex = i + result.CharCount,
+                LineSize = result.LineSize,
                 LineCharTextSize = result.TextSize,
                 CharStartPoint = currentStartPoint,
             };
@@ -354,6 +321,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// <param name="argument"></param>
     /// <returns></returns>
     /// <exception cref="NotSupportedException"></exception>
+    /// 1. 布局一行的字符，分行算法
+    /// 2. 处理行高，行距算法
     private WholeLineLayoutResult LayoutWholeLine(in WholeLineLayoutArgument argument)
     {
         var charDataList = argument.CharDataList;
@@ -362,10 +331,19 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         if (charDataList.Count == 0)
         {
             // 理论上不会进入这里，如果没有任何的字符，那就不需要进行行布局
-            return new WholeLineLayoutResult(TextSize.Zero, 0);
+            return new WholeLineLayoutResult(TextSize.Zero, TextSize.Zero, 0);
         }
 
         var layoutResult = LayoutWholeLineChars(argument);
+#if DEBUG
+        if (layoutResult.CurrentLineCharTextSize.Width > 0 && layoutResult.CurrentLineCharTextSize.Height == 0)
+        {
+            // 这可能是不正常的情况
+            // 可以在这里打断点看
+            TextEditor.Logger.LogDebug($"单行布局结果是有宽度没高度，预计是不正确的情况。仅调试下输出");
+        }
+#endif
+
         int wholeCharCount = layoutResult.WholeCharCount;
         TextSize currentTextSize = layoutResult.CurrentLineCharTextSize;
 
@@ -373,13 +351,16 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         {
             // 这一行一个字符都不能拿
             Debug.Assert(currentTextSize == TextSize.Zero);
-            return new WholeLineLayoutResult(currentTextSize, wholeCharCount);
+            // 有可能这一行一个字符都不能拿，但是还是有行高的
+            var currentLineSize = currentTextSize; // todo 这里需要重新确认一下，行高应该是多少
+            return new WholeLineLayoutResult(currentLineSize, currentTextSize, wholeCharCount);
         }
 
         // 遍历一次，用来取出其中 FontSize 最大的字符，此字符的对应字符属性就是所期望的参与后续计算的字符属性
         // 遍历这一行的所有字符，找到最大字符的字符属性
         var charDataTakeList = charDataList.Slice(0, wholeCharCount);
-        IReadOnlyRunProperty maxFontSizeCharRunProperty = GetMaxFontSizeCharRunProperty(charDataTakeList);
+        CharData maxFontSizeCharData = GetMaxFontSizeCharData(charDataTakeList);
+        IReadOnlyRunProperty maxFontSizeCharRunProperty = maxFontSizeCharData.RunProperty;
 
         // 处理行距
         var lineSpacingCalculateArgument = new LineSpacingCalculateArgument(argument.ParagraphIndex, argument.LineIndex, argument.ParagraphProperty, maxFontSizeCharRunProperty);
@@ -392,29 +373,22 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             lineHeight = currentTextSize.Height;
         }
         
-        var fixLineSpacing = lineHeight - currentTextSize.Height; // 行距值，现在仅调试用途
-        GC.KeepAlive(fixLineSpacing);
+        var lineSpacing = lineHeight - currentTextSize.Height; // 行距值，现在仅调试用途
+        GC.KeepAlive(lineSpacing);
+        // 不能使用 lineSpacing 作为计算参考，因为在 Skia 平台下 TextSize 会更大，超过了布局行高的值，导致 lineSpacing 为负数
 
         // 具体设置每个字符的坐标的逻辑
-        var lineTop = currentStartPoint.Y;
-        var currentX = currentStartPoint.X;
-        foreach (CharData charData in charDataTakeList)
-        {
-            // 计算和更新每个字符的相对文本框的坐标
-            Debug.Assert(charData.Size != null, "charData.LineCharSize != null");
-            var charDataSize = charData.Size!.Value;
-
-            var yOffset = CalculateCharDataTop(charDataSize.Height, lineHeight,
-                lineTop); // (lineHeight - charDataSize.Height) + lineTop;
-            charData.SetStartPoint(new TextPoint(currentX, yOffset));
-
-            currentX += charDataSize.Width;
-        }
+        UpdateTextLineStartPoint(charDataTakeList, currentStartPoint, lineHeight,
+            // 重新排列 X 坐标，因为这一行的字符可能是新加入的或修改的，需要重新排列 X 坐标
+            reArrangeXPosition: true,
+            // 这时候不需要更新 CharLayoutData 版本，因为这个版本是在布局行的时候更新的
+            // 这时候必定这一行需要重新更新渲染，不需要标记脏，这是新加入的布局行
+            needUpdateCharLayoutDataVersion: false);
 
         // 行的尺寸
         var lineSize = new TextSize(currentTextSize.Width, lineHeight);
 
-        return new WholeLineLayoutResult(lineSize, wholeCharCount);
+        return new WholeLineLayoutResult(lineSize, currentTextSize, wholeCharCount);
     }
 
     /// <summary>
@@ -460,6 +434,15 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             if (singleRunLineLayouter is not null)
             {
                 result = singleRunLineLayouter.LayoutSingleCharInLine(arguments);
+
+#if DEBUG
+                if (result.TotalSize.Width > 0 && result.TotalSize.Height == 0)
+                {
+                    // 这可能是不正常的情况
+                    // 可以在这里打断点看
+                    TextEditor.Logger.LogDebug($"单行布局结果是有宽度没高度，预计是不正确的情况。仅调试下输出");
+                }
+#endif
             }
             else
             {
@@ -496,21 +479,98 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// </summary>
     /// <param name="charDataList"></param>
     /// <returns></returns>
-    static IReadOnlyRunProperty GetMaxFontSizeCharRunProperty(in TextReadOnlyListSpan<CharData> charDataList)
+    static CharData GetMaxFontSizeCharData(in TextReadOnlyListSpan<CharData> charDataList)
     {
-        var firstCharData = charDataList[0];
-        IReadOnlyRunProperty maxFontSizeCharRunProperty = firstCharData.RunProperty;
+        CharData firstCharData = charDataList[0];
+        var maxFontSizeCharData = firstCharData;
         // 遍历这一行的所有字符，找到最大字符的字符属性
         for (var i = 1; i < charDataList.Count; i++)
         {
             var charData = charDataList[i];
-            if (charData.RunProperty.FontSize > maxFontSizeCharRunProperty.FontSize)
+            if (charData.RunProperty.FontSize > maxFontSizeCharData.RunProperty.FontSize)
             {
-                maxFontSizeCharRunProperty = charData.RunProperty;
+                maxFontSizeCharData = charData;
             }
         }
 
-        return maxFontSizeCharRunProperty;
+        return maxFontSizeCharData;
+    }
+
+    /// <summary>
+    /// 更新行的起始点
+    /// </summary>
+    /// <param name="lineCharList"></param>
+    /// <param name="startPoint"></param>
+    /// <param name="lineHeight"></param>
+    /// <param name="reArrangeXPosition">是否需要重新排列 X 坐标</param>
+    /// <param name="needUpdateCharLayoutDataVersion">是否需要更新 CharLayoutData 版本</param>
+    static void UpdateTextLineStartPoint(TextReadOnlyListSpan<CharData> lineCharList, TextPoint startPoint,
+        double lineHeight, bool reArrangeXPosition, bool needUpdateCharLayoutDataVersion)
+    {
+        var lineTop = startPoint.Y; // 相对于文本框的坐标
+        var currentX = startPoint.X;
+
+        foreach (CharData charData in lineCharList)
+        {
+            // 计算和更新每个字符的相对文本框的坐标
+            Debug.Assert(charData.Size != null, "charData.LineCharSize != null");
+            var charDataSize = charData.Size!.Value;
+
+            double xOffset;
+            if (reArrangeXPosition)
+            {
+                // 保持 X 不变
+                xOffset = currentX;
+            }
+            else
+            {
+                xOffset = charData.CharLayoutData!.StartPoint.X;
+            }
+
+            // todo 应该是计算出基线对齐，然后再计算出字符的下方坐标
+            var yOffset = CalculateCharDataTop(charDataSize.Height, lineHeight,
+                lineTop); // (lineHeight - charDataSize.Height) + lineTop;
+            charData.SetStartPoint(new TextPoint(xOffset, yOffset));
+
+            if (needUpdateCharLayoutDataVersion)
+            {
+                charData.CharLayoutData.UpdateVersion();
+            }
+
+            currentX += charDataSize.Width;
+        }
+    }
+
+    /// <summary>
+    /// 更新字符的坐标
+    /// </summary>
+    /// 在已知一行的高度以及当前字符的高度，计算出字符的顶部 Y 坐标
+    /// <param name="charHeight">charData.LineCharSize.Height</param>
+    /// <param name="lineHeight">当前字符所在行的行高，包括行距在内</param>
+    /// <param name="lineTop">文档布局给到行的距离文本框开头的距离</param>
+    /// 只是封装算法而已
+    private static double CalculateCharDataTop(double charHeight, double lineHeight, double lineTop)
+    {
+        // 以下的代码是简单版本的 AdaptBaseLine 方法。而正确的做法是：
+        // 1. 求出最大字符的 Baseline 出来
+        // 2. 求出当前字符的 Baseline 出来
+        // 3. 求出 最大字符的 Baseline 和 当前字符的 Baseline 的差，此结果叠加 lineTop 就是偏移量了
+        // 求底部 leading 的值，让多倍行距时，也有上下边距
+        // 这里只使用简单的方法，求尺寸和行高的差，让字符底部对齐
+
+        // todo 这里的布局是错误的，因为多倍行距时，字符的底部对齐是不对的
+        /*
+          /// <summary>
+           /// 行高的比例，字符上半部分增加4/5，下半部分增加1/5
+           /// </summary>
+           internal const double LineSpaceRatio = 4 / 5.0;
+         */
+
+        // 先计算出字符相对行的距离
+        var charMarginTop = lineHeight - charHeight;
+        // 再加上文档里面给这一行的 lineTop 距离，即可算出字符相对于文本框的距离
+        var yOffset = charMarginTop + lineTop;
+        return yOffset;
     }
 
     #endregion  
@@ -588,13 +648,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             }
 
             textSize = charInfoMeasureResult.Bounds.TextSize;
+            charData.SetCharDataInfo(textSize, charInfoMeasureResult.Baseline);
         }
         else
         {
             textSize = cacheSize.Value;
         }
 
-        charData.Size ??= textSize;
         return textSize;
     }
 
@@ -607,7 +667,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// <returns></returns>
     private static TextPoint GetNextLineStartPoint(TextPoint currentStartPoint, LineLayoutData currentLineLayoutData)
     {
-        currentStartPoint = new TextPoint(currentStartPoint.X, currentStartPoint.Y + currentLineLayoutData.LineCharTextSize.Height);
+        currentStartPoint = new TextPoint(currentStartPoint.X, currentStartPoint.Y + currentLineLayoutData.LineSize.Height);
         return currentStartPoint;
     }
 
@@ -616,8 +676,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         var paragraphSize = new TextSize(0, 0);
         foreach (var lineVisualData in argument.ParagraphData.LineLayoutDataList)
         {
-            var width = Math.Max(paragraphSize.Width, lineVisualData.LineCharTextSize.Width);
-            var height = paragraphSize.Height + lineVisualData.LineCharTextSize.Height;
+            var width = Math.Max(paragraphSize.Width, lineVisualData.LineSize.Width);
+            var height = paragraphSize.Height + lineVisualData.LineSize.Height;
 
             paragraphSize = new TextSize(width, height);
         }

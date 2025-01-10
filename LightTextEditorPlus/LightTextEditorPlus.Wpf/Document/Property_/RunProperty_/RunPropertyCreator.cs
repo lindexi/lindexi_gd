@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows.Media.Media3D;
 
 using LightTextEditorPlus.Core.Document;

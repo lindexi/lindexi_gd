@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.TestsFramework;
 
@@ -166,7 +166,7 @@ public class TextEditorAppendTest
             ParagraphRenderInfo paragraphRenderInfo = textEditorCore.GetRenderInfo().GetParagraphRenderInfoList().Last();
             var lastLine = paragraphRenderInfo.GetLineRenderInfoList().Last();
             Assert.AreEqual(30, lastLine.LineLayoutData.CharStartPoint.Y);
-            Assert.AreEqual(15, lastLine.LineLayoutData.LineCharTextSize.Height);
+            Assert.AreEqual(15, lastLine.LineLayoutData.LineSize.Height);
 
             Assert.AreEqual(new TextRect(0, 0, 15 * 2, 15 * 3), textEditorCore.GetDocumentLayoutBounds());
         });

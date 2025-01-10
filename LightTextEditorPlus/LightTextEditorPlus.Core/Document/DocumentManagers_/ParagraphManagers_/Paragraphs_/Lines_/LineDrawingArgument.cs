@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 
 namespace LightTextEditorPlus.Core.Document;
@@ -10,9 +10,9 @@ namespace LightTextEditorPlus.Core.Document;
 /// <param name="IsLineStartPointUpdated">是否行的起始点变更。例如横排文本的此行的前面输入新行，导致此行的 Y 坐标变更，此时需要重新更新此行渲染坐标</param>
 /// <param name="LineAssociatedRenderData">上次绘制完成之后，传入给框架层的渲染缓存数据。通过 <see cref="LineDrawnResult.LineAssociatedRenderData"/> 传入给框架，原封不动在渲染时传给业务层</param>
 /// <param name="StartPoint">行的起始点坐标</param>
-/// <param name="TextSize">行的尺寸</param>
+/// <param name="LineSize">行的尺寸</param>
 /// <param name="CharList">行里面的字符信息</param>
 public readonly record struct LineDrawingArgument(bool IsDrawn, bool IsLineStartPointUpdated,
-    object? LineAssociatedRenderData, TextPoint StartPoint, TextSize TextSize, TextReadOnlyListSpan<CharData> CharList)
+    object? LineAssociatedRenderData, TextPoint StartPoint, TextSize LineSize, TextReadOnlyListSpan<CharData> CharList)
 {
 }

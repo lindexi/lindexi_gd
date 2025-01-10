@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Document.UndoRedo;
+using LightTextEditorPlus.Core.Document.UndoRedo;
 
 namespace LightTextEditorPlus.Core.Utils;
 

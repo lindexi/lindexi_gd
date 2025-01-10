@@ -1,4 +1,4 @@
-﻿using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
@@ -71,12 +71,11 @@ public class TextEditorLineTest
         private Action<RenderInfoProvider>? RenderAction { get; }
     }
 
-    class LineTestCharInfoMeasurer : ICharInfoMeasurer
+    class LineTestCharInfoMeasurer : FixedCharSizeCharInfoMeasurer, ICharInfoMeasurer
     {
-        public CharInfoMeasureResult MeasureCharInfo(in CharInfo charInfo)
+        public LineTestCharInfoMeasurer() : base(baselineRatio: 1)
         {
-            var bounds = new TextRect(0, 0, charInfo.RunProperty.FontSize, charInfo.RunProperty.FontSize);
-            return new CharInfoMeasureResult(bounds);
+            // 行的字符测量特意设置基线到最底，这样方便使用整数计算
         }
     }
 }

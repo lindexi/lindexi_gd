@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Core.Utils;
+namespace LightTextEditorPlus.Core.Utils;
 
 static class StringExtension
 {

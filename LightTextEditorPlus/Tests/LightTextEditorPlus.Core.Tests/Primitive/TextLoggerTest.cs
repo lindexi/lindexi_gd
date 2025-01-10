@@ -1,4 +1,4 @@
-﻿using MSTest.Extensions.Contracts;
+using MSTest.Extensions.Contracts;
 
 using System;
 using System.Collections.Generic;

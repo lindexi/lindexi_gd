@@ -1,10 +1,58 @@
-﻿namespace LightTextEditorPlus.Core.Document;
+using System.Collections.Generic;
+using System.Text;
+
+namespace LightTextEditorPlus.Core.Document;
 
 /// <summary>
 /// 文本字符创建器
 /// </summary>
 internal static class TextCharObjectCreator
 {
+    public static List<ICharObject> TextToCharObjectList(string text)
+    {
+        // 特殊处理的情况有：
+        // 1. 表情符号
+        // 2. 换行字符。包括 \r\n 和 \n 和 \r 的情况
+        // 3. 空字符串
+        if (string.IsNullOrEmpty(text))
+        {
+            return new List<ICharObject>();
+        }
+
+        var charObjectList = new List<ICharObject>(text.Length);
+        var isLastCharCarriageReturn = false;// 上一个字符是否 \r 字符
+        foreach (Rune rune in text.EnumerateRunes())
+        {
+            if (rune.Value is '\r')
+            {
+                isLastCharCarriageReturn = true;
+                charObjectList.Add(LineBreakCharObject.Instance);
+                continue;
+            }
+            else if (rune.Value is '\n')
+            {
+                // 需要判断上一个字符是否 \r 字符
+                if (isLastCharCarriageReturn)
+                {
+                    // 啥都不干，跳过 \r\n 的情况，只在 \r 时添加换行符
+                }
+                else
+                {
+                    // 单个 \n 字符的情况
+                    charObjectList.Add(LineBreakCharObject.Instance);
+                }
+            }
+            else
+            {
+                charObjectList.Add(new RuneCharObject(rune));
+            }
+
+            isLastCharCarriageReturn = false;
+        }
+
+        return charObjectList;
+    }
+
     /// <summary>
     /// 根据传入的字符串创建字符对象
     /// </summary>
