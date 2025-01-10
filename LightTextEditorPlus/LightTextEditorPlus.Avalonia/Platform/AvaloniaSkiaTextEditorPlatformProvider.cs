@@ -4,6 +4,7 @@ using System.Diagnostics;
 using Avalonia.Threading;
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Document;
 
 namespace LightTextEditorPlus.Platform;
 
@@ -99,10 +100,13 @@ public class AvaloniaSkiaTextEditorPlatformProvider : SkiaTextEditorPlatformProv
 
     #region 字体管理
 
-    public override IFontNameToSKTypefaceManager? GetFontNameToSKTypefaceManager()
+    protected override SkiaPlatformResourceManager GetSkiaPlatformResourceManager()
     {
-        return new AvaloniaFontNameToSKTypefaceManager();
+        return _avaloniaTextEditorResourceManager ??=
+            new AvaloniaTextEditorResourceManager(AvaloniaTextEditor, TextEditor);
     }
+
+    private AvaloniaTextEditorResourceManager? _avaloniaTextEditorResourceManager;
 
     #endregion
 }

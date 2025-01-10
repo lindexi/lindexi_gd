@@ -1,9 +1,13 @@
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Utils;
 using SkiaSharp;
 
 namespace LightTextEditorPlus.Document;
 
+/// <summary>
+/// 字符属性。创建字符属性时，应该基于所在文本框的某个现有的 <see cref="SkiaTextRunProperty"/> 使用 <see langword="with"/> 关键字进行修改和创建新的属性
+/// </summary>
 [APIConstraint("RunProperty.txt")]
 public record SkiaTextRunProperty : LayoutOnlyRunProperty
 {
@@ -23,15 +27,37 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
             }
 
             base.FontName = value;
-            InvalidateFont();
+
+            _renderFontName = null;
         }
     }
 
+    /// <summary>
+    /// 获取渲染字体名称
+    /// </summary>
+    internal string RenderFontName
+    {
+        get => _renderFontName ?? FontName.UserFontName;
+        init => _renderFontName = value;
+    }
+
+    private readonly string? _renderFontName;
+
     internal SkiaPlatformResourceManager ResourceManager { get; init; }
 
-    internal RenderingRunPropertyInfo GetRenderingRunPropertyInfo(char unicodeChar = '1')
+    internal RenderingRunPropertyInfo GetRenderingRunPropertyInfo()
     {
-        return ResourceManager.GetRenderingRunPropertyInfo(this, unicodeChar);
+        return GetRenderingRunPropertyInfo(TextContext.DefaultCharCodePoint);
+    }
+
+    /// <summary>
+    /// 获取字符的渲染属性
+    /// </summary>
+    /// <param name="codePointToDebug">只有调试意义的代码点</param>
+    /// <returns></returns>
+    internal RenderingRunPropertyInfo GetRenderingRunPropertyInfo(Utf32CodePoint codePointToDebug)
+    {
+        return ResourceManager.GetRenderingRunPropertyInfo(this, codePointToDebug);
     }
 
     /// <summary>
@@ -90,4 +116,7 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
     {
        // 后续可以考虑删除，因为缓存策略是在每次布局的时候制作的
     }
+
+    internal SKFontStyle ToSKFontStyle() =>
+        new SKFontStyle(FontWeight, Stretch, FontStyle);
 }

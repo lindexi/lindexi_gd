@@ -108,7 +108,7 @@ public partial class TextEditor
     {
         FontStyle fontStyle;
 
-        if (IsAnyRunProperty(property => property.FontStyle == FontStyles.Normal, selection))
+        if (IsAllRunPropertyMatchPredicate(property => property.FontStyle == FontStyles.Normal, selection))
         {
             // 字体倾斜 Italic 和 Oblique 的差别
             // 使用 Italic 是字体提供的斜体，可以和正常字体有不同的界面
@@ -141,7 +141,7 @@ public partial class TextEditor
     public void ToggleBold(Selection? selection = null)
     {
         FontWeight fontWeight;
-        if (IsAnyRunProperty(property => property.FontWeight == FontWeights.Normal, selection))
+        if (IsAllRunPropertyMatchPredicate(property => property.FontWeight == FontWeights.Normal, selection))
         {
             fontWeight = FontWeights.Bold;
         }
@@ -153,9 +153,9 @@ public partial class TextEditor
         SetFontWeight(fontWeight, selection);
     }
 
-    private bool IsAnyRunProperty(Predicate<IRunProperty> predicate, Selection? selection)
+    private bool IsAllRunPropertyMatchPredicate(Predicate<IRunProperty> predicate, Selection? selection)
     {
-        return TextEditorCore.DocumentManager.IsAnyRunProperty(predicate);
+        return TextEditorCore.DocumentManager.IsAllRunPropertyMatchPredicate(predicate, selection);
     }
 
     /// <summary>
@@ -246,6 +246,7 @@ public partial class TextEditor
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.AppendText"/>
     public void AppendText(string text) => TextEditorCore.AppendText(text);
 
+    // todo 修改为 WPF 的 ImmutableRun 类型
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.AppendRun"/>
     public void AppendRun(IImmutableRun run) => TextEditorCore.AppendRun(run);
 

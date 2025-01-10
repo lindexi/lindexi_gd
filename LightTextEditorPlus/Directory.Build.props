@@ -31,7 +31,7 @@
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     <ThisYear>$([System.DateTime]::Now.ToString(`yyyy`))</ThisYear>
     <!-- 这个库是从 2023 开始的 -->
-    <Copyright>Copyright © 2023-$(ThisYear) dotnet campus, All Rights Reserved.</Copyright>
+    <Copyright>Copyright © 2023-$(ThisYear) dotnet campus All Rights Reserved.</Copyright>
   </PropertyGroup>
 
   <ItemGroup>

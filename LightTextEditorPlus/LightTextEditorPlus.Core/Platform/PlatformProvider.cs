@@ -9,15 +9,13 @@ namespace LightTextEditorPlus.Core.Platform;
 /// <summary>
 ///     提供平台接入的辅助类，可以减少编写的代码量
 /// </summary>
-public abstract class PlatformProvider : IPlatformProvider
+public abstract class PlatformProvider : ITextEditorPlatformProvider
 {
     /// <inheritdoc />
     public virtual ITextEditorUndoRedoProvider BuildTextEditorUndoRedoProvider()
     {
         return new TextEditorUndoRedoProvider();
     }
-
-    private DefaultRunParagraphSplitter? _defaultRunParagraphSplitter;
 
     /// <inheritdoc />
     public virtual IPlatformRunPropertyCreator GetPlatformRunPropertyCreator()
@@ -50,6 +48,7 @@ public abstract class PlatformProvider : IPlatformProvider
     {
         return _defaultRunParagraphSplitter ??= new DefaultRunParagraphSplitter();
     }
+    private DefaultRunParagraphSplitter? _defaultRunParagraphSplitter;
 
     /// <inheritdoc />
     public virtual IWholeLineLayouter? GetWholeRunLineLayouter()
@@ -102,5 +101,11 @@ public abstract class PlatformProvider : IPlatformProvider
     public virtual ILineSpacingCalculator? GetLineSpacingCalculator()
     {
         return null;
+    }
+
+    /// <inheritdoc />
+    public virtual IPlatformFontNameManager GetPlatformFontNameManager()
+    {
+        return new DefaultPlatformFontNameManager();
     }
 }

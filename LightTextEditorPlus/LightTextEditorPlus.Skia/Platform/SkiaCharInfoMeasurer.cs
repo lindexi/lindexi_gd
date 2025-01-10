@@ -5,6 +5,7 @@ using LightTextEditorPlus.Core.Platform;
 
 using HarfBuzzSharp;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Utils;
 using SkiaSharp;
 
@@ -24,13 +25,18 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
     public CharInfoMeasureResult MeasureCharInfo(in CharInfo charInfo)
     {
-        var skFontManager = SKFontManager.Default;
-        var skTypeface = skFontManager.MatchFamily("微软雅黑");
+        // 此逻辑只有空行测量才会进入
 
-        using SKPaint skPaint = new SKPaint();
-        skPaint.Typeface = skTypeface;
-        skPaint.TextSize = (float) charInfo.RunProperty.FontSize;
+        SkiaTextRunProperty skiaTextRunProperty = charInfo.RunProperty.AsSkiaRunProperty();
 
+        RenderingRunPropertyInfo renderingRunPropertyInfo = skiaTextRunProperty.GetRenderingRunPropertyInfo(charInfo.CharObject.CodePoint);
+
+        var skTypeface = renderingRunPropertyInfo.Typeface;
+
+        SKPaint skPaint = renderingRunPropertyInfo.Paint;
+
+        SKFont skFont = renderingRunPropertyInfo.Font;
+        float baselineY = -skFont.Metrics.Ascent;
         var textAdvances = skPaint.GetGlyphWidths(charInfo.CharObject.ToText(), out var skBounds);
         // 使用 GetGlyphWidths 布局也能达到效果，但是其布局效果本身不佳
         // 暂时没有找到如何对齐基线
@@ -47,8 +53,8 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
                 Width = textAdvances[0],
                 //Height = skBounds[0].Height
                 // 测量的高度是 11 的值，却设置为字体大小 15 的值。刚好渲染 123微软雅黑 时，自动让 123 对齐基线
-                Height = skPaint.TextSize
-            });
+                Height = skPaint.TextSize // todo 使用 FontCharHelper 的计算方法
+            }, baselineY);
         }
 
         var asset = skTypeface.OpenStream(out var trueTypeCollectionIndex);
@@ -111,6 +117,6 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         GC.KeepAlive(length); // 调试代码，仅用于方便在此调试获取其长度/宽度
 #endif
 
-        return new CharInfoMeasureResult(bounds);
+        return new CharInfoMeasureResult(bounds, baselineY);
     }
 }

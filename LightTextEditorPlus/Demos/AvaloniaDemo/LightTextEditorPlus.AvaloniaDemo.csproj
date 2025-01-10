@@ -21,5 +21,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\LightTextEditorPlus.Avalonia\LightTextEditorPlus.Avalonia.csproj" />
+    <ProjectReference Include="..\..\Tests\TextVisionComparer\TextVisionComparer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Assets\Fonts\仓耳小丸子.ttf" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Assets\RichTextCaseImages\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

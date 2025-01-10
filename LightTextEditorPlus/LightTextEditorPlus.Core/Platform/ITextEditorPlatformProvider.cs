@@ -11,7 +11,7 @@ namespace LightTextEditorPlus.Core.Platform;
 /// </summary>
 /// 平台接入属于框架的一部分，不同平台的接入方式可能不同，但是框架的核心逻辑是一致的
 /// 平台接入直接耦合框架的实现方式。平台接入不属于抽象实现，只是将部分实现放在具体平台中。甚至可以认为后续是具体平台直接源代码引用框架代码，原本就是一套代码，只是被分开了
-public interface IPlatformProvider
+public interface ITextEditorPlatformProvider
 {
     /// <summary>
     /// 获取文本的撤销恢复提供，仅构造调用一次
@@ -101,4 +101,10 @@ public interface IPlatformProvider
     /// </summary>
     /// <returns></returns>
     ILineSpacingCalculator? GetLineSpacingCalculator();
+
+    /// <summary>
+    /// 获取平台字体名称管理器
+    /// </summary>
+    /// <returns></returns>
+    IPlatformFontNameManager GetPlatformFontNameManager();
 }

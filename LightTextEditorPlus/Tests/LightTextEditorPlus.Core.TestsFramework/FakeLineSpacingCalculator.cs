@@ -12,11 +12,12 @@ public class FakeLineSpacingCalculator : ILineSpacingCalculator
     {
         if (double.IsNaN(argument.ParagraphProperty.FixedLineSpacing))
         {
-            return new LineSpacingCalculateResult(false, argument.MaxFontSizeCharRunProperty.FontSize * argument.ParagraphProperty.LineSpacing);
+            return new LineSpacingCalculateResult(false,
+                argument.MaxFontSizeCharRunProperty.FontSize * argument.ParagraphProperty.LineSpacing, 0);
         }
         else
         {
-            return new LineSpacingCalculateResult(true, argument.ParagraphProperty.FixedLineSpacing);
+            return new LineSpacingCalculateResult(true, argument.ParagraphProperty.FixedLineSpacing, 0);
         }
     }
 }

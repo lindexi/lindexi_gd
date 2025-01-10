@@ -1,15 +1,19 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
-
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 
 using LightTextEditorPlus.AvaloniaDemo.Business;
 using LightTextEditorPlus.AvaloniaDemo.Business.RichTextCases;
+using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.FontManagers;
+
 using SkiaSharp;
 
 namespace LightTextEditorPlus.AvaloniaDemo.Views;
@@ -23,19 +27,44 @@ public partial class TextEditorDebugView : UserControl
         //var fontFamily = (FontFamily) Application.Current!.Resources["TestMeatballFontFamily"]!;
         //TextEditorFontManager.RegisterFontNameToResource("仓耳小丸子", fontFamily);
         TextEditorFontResourceManager.TryRegisterFontNameToResource("仓耳小丸子", new FileInfo(Path.Join(AppContext.BaseDirectory, "Assets", "Fonts", "仓耳小丸子.ttf")));
+        CreateAndReplaceTextEditor();
 
-        TextEditorSettingsControl.TextEditor = TextEditor;
+        TextContext.FontNameManager.UseDefaultFontFallbackRules();
 
+        _richTextCaseProvider = new RichTextCaseProvider(() => TextEditor);
         // 调试代码
-        //TextEditor.AppendText("asd");
-        _richTextCaseProvider.Debug(TextEditor);
+        _richTextCaseProvider.Debug();
     }
 
-    private readonly RichTextCaseProvider _richTextCaseProvider = new RichTextCaseProvider();
+    [MemberNotNull(nameof(TextEditor), nameof(_textEditor))]
+    private void CreateAndReplaceTextEditor()
+    {
+        TextEditor = new TextEditor()
+        {
+            Width = 500,
+        };
+        TextEditorGrid.Children.RemoveAll(TextEditorGrid.Children.OfType<TextEditor>().ToList());
+        TextEditorGrid.Children.Insert(0, TextEditor);
+    }
+
+    public TextEditor TextEditor
+    {
+        get => _textEditor;
+        [MemberNotNull(nameof(_textEditor))]
+        private set
+        {
+            _textEditor = value;
+            TextEditorSettingsControl.TextEditor = TextEditor;
+        }
+    }
+
+    private TextEditor _textEditor;
+
+    private readonly RichTextCaseProvider _richTextCaseProvider;
 
     private void DebugButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        _richTextCaseProvider.Debug(TextEditor);
+        _richTextCaseProvider.Debug();
     }
 
     private void ShowDocumentBoundsButton_OnClick(object? sender, RoutedEventArgs e)
@@ -58,7 +87,7 @@ public partial class TextEditorDebugView : UserControl
         }
         else
         {
-            TextEditor.SkiaTextEditor.DebugConfiguration.ShowHandwritingPaperDebugInfo = false;
+            TextEditor.SkiaTextEditor.DebugConfiguration.HideHandwritingPaperDebugInfoWhenInDebugMode();
         }
     }
 

@@ -20,6 +20,7 @@ using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Utils.Patterns;
 using LightTextEditorPlus.Platform;
 using LightTextEditorPlus.Utils;
 
@@ -49,6 +50,13 @@ partial class TextEditor : Control
         //TextEditorCore.AppendText("afg123微软雅黑123123");
 
         // 设计上会导致 Avalonia 总会调用二级的 SkiaTextEditor 接口实现功能。有开发资源可以做一层代理
+
+#if DEBUG
+        WidthProperty.Changed.AddClassHandler((TextEditor o, AvaloniaPropertyChangedEventArgs args) =>
+        {
+
+        });
+#endif
     }
 
     private AvaloniaSkiaTextEditorPlatformProvider PlatformProvider { get; }
@@ -71,19 +79,58 @@ partial class TextEditor : Control
 
     protected override void OnTextInput(TextInputEventArgs e)
     {
-        string? inputText = e.Text;
-        // todo 处理 emoij 表情符号
-        if (inputText != null)
+        if (e.Handled ||
+            string.IsNullOrEmpty(e.Text) ||
+            e.Text == "\x1b" ||
+            // 退格键 \b 键
+            e.Text == "\b" ||
+            //emoji包围符
+            e.Text == "\ufe0f")
+            return;
+
+        //如果是由两个Unicode码组成的Emoji的其中一个Unicode码，则等待第二个Unicode码的输入后合并成一个字符串作为一个字符插入
+        if (RegexPatterns.Utf16SurrogatesPattern.ContainInRange(e.Text))
         {
-            TextEditorCore.EditAndReplace(inputText);
+            if (string.IsNullOrEmpty(_emojiCache))
+            {
+                _emojiCache += e.Text;
+            }
+            else
+            {
+                _emojiCache += e.Text;
+                TextEditorCore.EditAndReplace(_emojiCache);
+                _emojiCache = string.Empty;
+            }
+        }
+        else
+        {
+            _emojiCache = string.Empty;
+            TextEditorCore.EditAndReplace(e.Text);
         }
 
         base.OnTextInput(e);
     }
 
+    /// <summary>
+    /// 如果是由两个Unicode码组成的Emoji的其中一个Unicode码，则等待第二个Unicode码的输入后合并成一个字符串作为一个字符插入
+    /// 用于接收第一个字符
+    /// </summary>
+    private string _emojiCache = string.Empty;
+
     protected override void OnKeyDown(KeyEventArgs e)
     {
-        base.OnKeyDown(e);
+        if (e.Key == Key.Delete)
+        {
+            TextEditorCore.Delete();
+        }
+        else if (e.Key == Key.Back)
+        {
+            TextEditorCore.Backspace();
+        }
+        else if (e.Key == Key.Enter)
+        {
+            TextEditorCore.EditAndReplace("\n");
+        }
     }
 
     protected override void OnKeyUp(KeyEventArgs e)
@@ -102,19 +149,8 @@ partial class TextEditor : Control
             ForceLayout();
         }
 
-        if (e.Key == Key.Delete)
-        {
-            TextEditorCore.Delete();
-        }
-        else if (e.Key == Key.Back)
-        {
-            TextEditorCore.Backspace();
-        }
-        else if (e.Key == Key.Enter)
-        {
-            TextEditorCore.EditAndReplace("\n");
-        }
-        else if (e.Key == Key.Up)
+      
+        if (e.Key == Key.Up)
         {
             TextEditorCore.MoveCaret(CaretMoveType.UpByLine);
         }

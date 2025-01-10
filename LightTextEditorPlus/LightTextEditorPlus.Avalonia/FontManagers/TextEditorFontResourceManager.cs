@@ -1,24 +1,26 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
-
-using Avalonia.Media;
 
 namespace LightTextEditorPlus.FontManagers;
 
 public class TextEditorFontResourceManager
 {
-    private static void RegisterFontNameToResource(string fontName, FontFamily fontFamily)
-    {
-        // 由于 Avalonia 的 FontFamily 无法直接转换为 SKTypeface 不给开放，因此这个方法先不开出来
-        ResourceDictionary[fontName] = fontFamily;
-    }
+    //private static void RegisterFontNameToResource(string fontName, FontFamily fontFamily)
+    //{
+    //    // 由于 Avalonia 的 FontFamily 无法直接转换为 SKTypeface 不给开放，因此这个方法先不开出来
+    //    ResourceDictionary[fontName] = fontFamily;
+    //}
+
+    // 由于 Avalonia 的 FontFamily 无法直接转换为 SKTypeface 不给开放，因此这个属性先不开出来
+    //internal static Dictionary<string /*fontName*/, FontFamily> ResourceDictionary { get; } = new();
 
     /// <summary>
     /// 尝试注册字体名到资源
     /// </summary>
     /// <param name="fontName"></param>
     /// <param name="fontFile"></param>
-    /// <returns></returns>
+    /// <returns>True: 注册成功； False: 已经有同名的字体注册过了</returns>
     /// <exception cref="FileNotFoundException"></exception>
     public static bool TryRegisterFontNameToResource(string fontName, FileInfo fontFile)
     {
@@ -42,7 +44,10 @@ public class TextEditorFontResourceManager
         }
     }
 
-    internal static Dictionary<string/*fontName*/, FileInfo/*fontFile*/> FontFileDictionary { get; } = new();
+    public static bool TryGetFontFile(string fontName, [NotNullWhen(true)] out FileInfo? fontFile)
+    {
+        return FontFileDictionary.TryGetValue(fontName, out fontFile);
+    }
 
-    internal static Dictionary<string /*fontName*/, FontFamily> ResourceDictionary { get; } = new();
+    private static Dictionary<string/*fontName*/, FileInfo/*fontFile*/> FontFileDictionary { get; } = new();
 }

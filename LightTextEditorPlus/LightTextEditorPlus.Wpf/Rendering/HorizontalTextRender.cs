@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Windows.Media;
 
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils;
@@ -108,23 +109,19 @@ class HorizontalTextRender : TextRenderBase
 
         foreach (CharData charData in charList)
         {
-            var text = charData.CharObject.ToText();
-            for (var i = 0; i < text.Length; i++)
+            Utf32CodePoint codePoint = charData.CharObject.CodePoint;
+            // 这里额外处理的情况是，用户设置的字体实际上无法被应用在此字符上。于是就需要执行回滚逻辑
+            if (glyphTypeface.CharacterToGlyphMap.TryGetValue(codePoint.Value, out var glyphIndex))
             {
-                var c = text[i];
-                // 这里额外处理的情况是，用户设置的字体实际上无法被应用在此字符上。于是就需要执行回滚逻辑
-                if (glyphTypeface.CharacterToGlyphMap.TryGetValue(c, out var glyphIndex))
+                var charSpanDrawInfo = new CharSpanDrawInfo(glyphIndex, glyphTypeface, codePoint, charData);
+                yield return charSpanDrawInfo;
+            }
+            else
+            {
+                if (currentRunProperty.TryGetFallbackGlyphTypeface(codePoint, out var fallbackGlyphTypeface, out var fallbackGlyphIndex))
                 {
-                    var charSpanDrawInfo = new CharSpanDrawInfo(glyphIndex, glyphTypeface, c, charData);
+                    var charSpanDrawInfo = new CharSpanDrawInfo(fallbackGlyphIndex, fallbackGlyphTypeface, codePoint, charData);
                     yield return charSpanDrawInfo;
-                }
-                else
-                {
-                    if (currentRunProperty.TryGetFallbackGlyphTypeface(c, out var fallbackGlyphTypeface, out var fallbackGlyphIndex))
-                    {
-                        var charSpanDrawInfo = new CharSpanDrawInfo(fallbackGlyphIndex, fallbackGlyphTypeface, c, charData);
-                        yield return charSpanDrawInfo;
-                    }
                 }
             }
         }
@@ -159,6 +156,7 @@ class HorizontalTextRender : TextRenderBase
                 LightTextEditorPlus.Core.Primitive.TextPoint? startPoint = null;
                 // 行渲染高度
                 var height = 0d;// argument.Size.Height;
+                var baseline = 0d;
                 GlyphTypeface? currentGlyphTypeface = null;
 
                 foreach (var (glyphIndex, glyphTypeface, currentChar, charData) in charSpanDrawInfoList)
@@ -180,10 +178,12 @@ class HorizontalTextRender : TextRenderBase
 
                     height = Math.Max(height, glyphTypeface.AdvanceHeights[glyphIndex] * fontSize);
 
-                    characters.Add(currentChar);
+                    baseline = Math.Max(baseline, glyphTypeface.Baseline * fontSize);
+
+                    currentChar.AppendToCharList(characters);
                 }
 
-                var location = new System.Windows.Point(startPoint!.Value.X, startPoint.Value.Y + height);
+                var location = new System.Windows.Point(startPoint!.Value.X, startPoint.Value.Y + baseline);
                 drawingGroup.GuidelineSet.GuidelinesX.Add(location.X);
                 drawingGroup.GuidelineSet.GuidelinesY.Add(location.Y);
 

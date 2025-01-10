@@ -18,9 +18,7 @@
       </Grid.RowDefinitions>
       <Border Margin="10,10,10,10" BorderBrush="Blue" BorderThickness="1" HorizontalAlignment="Left"
               VerticalAlignment="Top">
-        <Grid>
-          <lightTextEditorPlus:TextEditor x:Name="TextEditor" x:FieldModifier="public" Width="500">
-          </lightTextEditorPlus:TextEditor>
+        <Grid x:Name="TextEditorGrid">
           <Canvas x:Name="DebugCanvas" IsHitTestVisible="False">
             <!-- 用来绘制调试内容 -->
           </Canvas>

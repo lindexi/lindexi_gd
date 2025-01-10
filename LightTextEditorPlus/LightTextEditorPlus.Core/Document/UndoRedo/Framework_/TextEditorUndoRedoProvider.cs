@@ -4,7 +4,7 @@ using LightTextEditorPlus.Core.Exceptions;
 namespace LightTextEditorPlus.Core.Document.UndoRedo;
 
 /// <summary>
-/// 默认的空白文本撤销恢复提供
+/// 默认的文本撤销恢复提供
 /// </summary>
 public class TextEditorUndoRedoProvider : ITextEditorUndoRedoProvider
 {
@@ -27,7 +27,7 @@ public class TextEditorUndoRedoProvider : ITextEditorUndoRedoProvider
     }
 
     /// <summary>
-    /// 执行撤消操作
+    /// 执行撤销操作
     /// </summary>
     public void Undo()
     {
@@ -73,7 +73,7 @@ public class TextEditorUndoRedoProvider : ITextEditorUndoRedoProvider
     }
 
     /// <summary>
-    /// 获取撤消是否可用
+    /// 获取撤销是否可用
     /// </summary>
     public bool CanUndo => _currentUndoRedoStack.UndoStack.Count != 0;
 
@@ -83,7 +83,7 @@ public class TextEditorUndoRedoProvider : ITextEditorUndoRedoProvider
     public bool CanRedo => _currentUndoRedoStack.RedoStack.Count != 0;
 
     /// <summary>
-    /// 当前操作的撤消恢复栈
+    /// 当前操作的撤销恢复栈
     /// </summary>
     private readonly TextEditorUndoRedoStack _currentUndoRedoStack = new TextEditorUndoRedoStack();
 
@@ -92,12 +92,12 @@ public class TextEditorUndoRedoProvider : ITextEditorUndoRedoProvider
 }
 
 /// <summary>
-/// 撤消恢复栈组，用于应用程序或文档的撤消恢复功能实现。
+/// 撤销恢复栈组，用于应用程序或文档的撤销恢复功能实现。
 /// </summary>
 class TextEditorUndoRedoStack
 {
     /// <summary>
-    /// 获取撤消操作栈
+    /// 获取撤销操作栈
     /// </summary>
     public Stack<ITextOperation> UndoStack { get; } = new();
 

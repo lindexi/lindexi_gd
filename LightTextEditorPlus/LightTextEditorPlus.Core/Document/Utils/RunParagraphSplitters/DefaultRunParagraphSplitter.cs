@@ -10,104 +10,91 @@ internal class DefaultRunParagraphSplitter : IRunParagraphSplitter
     {
         if (run is TextRun textRun)
         {
-            var text = textRun.Text;
+            return Split(textRun);
 
-            if (text.Contains('\n') || text.Contains('\r'))
-            {
-                return Split(textRun);
-            }
-            else
-            {
-                // 这是一个优化，大部分的文本都没有包含换行的输入，那就返回自身即可，不需要再构建复杂的逻辑
-                return new[] { textRun };
-            }
+            // 现在也是遍历，就不需要再判断是否包含换行符了
+            //var text = textRun.Text;
+
+            //if (text.Contains('\n') || text.Contains('\r'))
+            //{
+            //    return Split(textRun);
+            //}
+            //else
+            //{
+            //    // 这是一个优化，大部分的文本都没有包含换行的输入，那就返回自身即可，不需要再构建复杂的逻辑
+            //    return [textRun];
+            //}
         }
         else if (run is SingleCharImmutableRun singleCharImmutableRun)
         {
-            return new[] { singleCharImmutableRun };
+            return [singleCharImmutableRun];
         }
         else
         {
-            return new[] { run };
+            return [run];
         }
     }
 
     private static IEnumerable<IImmutableRun> Split(TextRun textRun)
     {
-        var text = textRun.Text;
-        foreach (SplitTextResult result in Split(text))
-        {
-            if (result.IsLineBreak)
-            {
-                yield return new LineBreakRun(textRun.RunProperty);
-            }
-            else
-            {
-                yield return new SpanTextRun(text, result.Start, result.Length, textRun.RunProperty);
-                //yield return new TextRun(subText, textRun.RunProperty);
-            }
-        }
-    }
-
-    private readonly record struct SplitTextResult(int Start, int Length)
-    {
-        public bool IsLineBreak => Length == 0;
-    }
-
-    private static IEnumerable<SplitTextResult> Split(string text)
-    {
-        int position = 0;
+        var start = -1;
+        var length = 0;
+        // 对于文本来说，需要考虑 123\r\n 和 123\r\nabc 的情况，这两个情况都是两段
+        // 但 123\r\n\r\n 和 123\r\n\r\nabc 的情况是三段
         bool endWithBreakLine = false;
-        for (int i = 0; i < text.Length; i++)
+        for (int i = 0; i < textRun.Count; i++)
         {
-            var currentChar = text[i];
-            // 是否 \r 字符
-            bool isCr = currentChar == '\r';
-            // 是否 \n 字符
-            bool isLf = !isCr && currentChar == '\n';
-            if (isCr || isLf)
+            var charObject = textRun.GetChar(i);
+            if (ReferenceEquals(charObject, LineBreakCharObject.Instance))
             {
-                if (position == i)
+                if (length > 0)
                 {
-                    yield return new SplitTextResult(i,0);
+                    Debug.Assert(start >= 0);
+                    yield return textRun.Slice(start, length);
+                    start = -1;
+                    length = 0;
+                    endWithBreakLine = true;
                 }
                 else
                 {
-                    var length = i - position;
-                    yield return new SplitTextResult(position, length); //text.Substring(position, length);
-
-                    endWithBreakLine = true;
+                    // 如果是 123\r\nabc 则需要返回两段，分别是 123 和 abc 两段
+                    // 如果是 123\r\n\r\nabc则需要返回三段，分别是 123、LineBreakRun、abc 三段
+                    // 因此判断 length > 0 即可知道是否多余了一行
+                    yield return new LineBreakRun(textRun.RunProperty);
                 }
-
-                // 如果是 \r 情况下，读取下一个字符，判断是否 \n 字符
-                if (isCr && i != text.Length - 1)
-                {
-                    var nextChar = text[i + 1];
-                    if (nextChar is '\n')
-                    {
-                        i++;
-                    }
-                }
-
-                position = i + 1;
             }
             else
             {
+                if (start == -1)
+                {
+                    start = i;
+                    length = 1;
+                }
+                else
+                {
+                    length++;
+                }
+
                 endWithBreakLine = false;
             }
         }
 
-        if (position < text.Length)
+        if (length == textRun.Count)
         {
+            yield return textRun;
+        }
+        else if (length > 0)
+        {
+            Debug.Assert(start >= 0);
             Debug.Assert(endWithBreakLine is false);
 
-            var length = text.Length - position;
-            yield return new SplitTextResult(position, length);
+            yield return textRun.Slice(start, length);
         }
 
         if (endWithBreakLine)
         {
-            yield return new SplitTextResult(text.Length - 1, 0);
+            Debug.Assert(length == 0);
+            yield return new LineBreakRun(textRun.RunProperty);
         }
     }
 }

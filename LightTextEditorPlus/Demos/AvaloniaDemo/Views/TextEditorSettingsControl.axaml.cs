@@ -11,6 +11,7 @@ using Avalonia.Media;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Events;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
 
 using SkiaSharp;
@@ -19,6 +20,8 @@ namespace LightTextEditorPlus.AvaloniaDemo.Views;
 
 public partial class TextEditorSettingsControl : UserControl
 {
+    private TextEditor _textEditor = null!;
+
     public TextEditorSettingsControl()
     {
         InitializeComponent();
@@ -32,9 +35,6 @@ public partial class TextEditorSettingsControl : UserControl
         list.Insert(0, "仓耳小丸子");
 
         FontNameComboBox.ItemsSource = list;
-
-        TextEditor.CurrentCaretOffsetChanged += TextEditorCore_CurrentCaretOffsetChanged;
-        SetFeedback();
     }
 
     private void TextEditorCore_CurrentCaretOffsetChanged(object? sender, TextEditorValueChangeEventArgs<CaretOffset> e)
@@ -51,7 +51,17 @@ public partial class TextEditorSettingsControl : UserControl
         FontSizeTextBox.Text = currentCaretRunProperty.FontSize.ToString("0");
     }
 
-    public TextEditor TextEditor { get; set; } = null!;
+    public TextEditor TextEditor
+    {
+        get => _textEditor;
+        set
+        {
+            _textEditor = value;
+
+            _textEditor.CurrentCaretOffsetChanged += TextEditorCore_CurrentCaretOffsetChanged;
+            SetFeedback();
+        }
+    }
 
     private void FontNameComboBox_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
@@ -125,4 +135,63 @@ public partial class TextEditorSettingsControl : UserControl
     {
         TextEditor.ToggleItalic(GetSelection());
     }
+
+    #region 行距
+
+    private void FullExpandButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        TextEditor.TextEditorCore.LineSpacingStrategy = LineSpacingStrategy.FullExpand;
+    }
+
+    private void FirstLineShrinkButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        TextEditor.TextEditorCore.LineSpacingStrategy = LineSpacingStrategy.FirstLineShrink;
+    }
+
+    private void LineSpacingButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (double.TryParse(LineSpacingTextBox.Text, out var lineSpacing))
+        {
+            SetCurrentParagraphProperty(GetCurrentParagraphProperty() with
+            {
+                LineSpacing = lineSpacing
+            });
+        }
+        else
+        {
+            LineSpacingTextBox.Text = 1.ToString();
+        }
+    }
+
+    private void FixedLineSpacingButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (double.TryParse(FixedLineSpacingTextBox.Text, out var fixedLineSpacing))
+        {
+            SetCurrentParagraphProperty(GetCurrentParagraphProperty() with
+            {
+                FixedLineSpacing = fixedLineSpacing
+            });
+        }
+        else
+        {
+            FixedLineSpacingTextBox.Text = null;
+        }
+    }
+
+    private void FixedLineSpacingResetButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        SetCurrentParagraphProperty(GetCurrentParagraphProperty() with
+        {
+            FixedLineSpacing = double.NaN
+        });
+
+        FixedLineSpacingTextBox.Text = null;
+    }
+
+    #endregion
+
+    private ParagraphProperty GetCurrentParagraphProperty() => TextEditor.TextEditorCore.DocumentManager.GetParagraphProperty(TextEditor.CurrentCaretOffset);
+
+    private void SetCurrentParagraphProperty(ParagraphProperty paragraphParagraph) =>
+        TextEditor.TextEditorCore.DocumentManager.SetParagraphProperty(TextEditor.CurrentCaretOffset, paragraphParagraph);
 }

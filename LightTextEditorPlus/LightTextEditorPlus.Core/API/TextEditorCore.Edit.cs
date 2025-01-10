@@ -117,7 +117,7 @@ public partial class TextEditorCore
     }
 
     /// <summary>
-    /// 退格删除，如果没有选择，则删除光标前一个字符。如果有选择，则删除选择内容
+    /// 退格删除，如果没有选择，则删除光标前一个字符。如果当前有选择文本，即 <see cref="CurrentSelection"/> 有范围，则删除选择内容。如需手动指定删除范围，请使用 <see cref="Remove(in Selection)"/> 方法
     /// </summary>
     /// 这是对外调用的，非框架内使用
     [TextEditorPublicAPI]
@@ -127,7 +127,7 @@ public partial class TextEditorCore
     }
 
     /// <summary>
-    /// 删除文本 Delete 删除光标后一个字符
+    /// 删除文本 Delete 删除光标后一个字符。如果当前有选择文本，即 <see cref="CurrentSelection"/> 有范围，则删除选择内容。如需手动指定删除范围，请使用 <see cref="Remove(in Selection)"/> 方法
     /// </summary>
     /// 这是对外调用的，非框架内使用
     [TextEditorPublicAPI]

@@ -485,7 +485,7 @@ namespace LightTextEditorPlus.Core.Document
         /// <param name="selection"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public bool IsAnyRunProperty<T>(Predicate<T> predicate, Selection? selection = null) where T : IReadOnlyRunProperty
+        public bool IsAllRunPropertyMatchPredicate<T>(Predicate<T> predicate, Selection? selection = null) where T : IReadOnlyRunProperty
         {
             selection ??= CaretManager.CurrentSelection;
             if (selection.Value.IsEmpty)

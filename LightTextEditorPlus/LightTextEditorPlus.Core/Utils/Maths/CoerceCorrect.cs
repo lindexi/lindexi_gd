@@ -12,6 +12,11 @@ namespace LightTextEditorPlus.Core.Utils.Maths
         /// </summary>
         public static int CoerceValue(this int value, int minimum, int maximum)
         {
+            // todo 这个方法实现和 Math.Clamp 有什么区别？
+            //Math.Clamp()
+            // - 如果 min ≤ value ≤ max，则为 value
+            // - 如果 value<min，则为 min
+            // - 如果 value>max，则为 max
             return Math.Max(Math.Min(value, maximum), minimum);
         }
 

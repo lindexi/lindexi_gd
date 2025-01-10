@@ -16,6 +16,7 @@ using LightTextEditorPlus.Diagnostics;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Platform;
 using LightTextEditorPlus.Rendering;
+using SkiaSharp;
 
 namespace LightTextEditorPlus;
 
@@ -183,14 +184,32 @@ public class SkiaTextEditorPlatformProvider : PlatformProvider
     // 框架确保赋值
         = null!;
 
-    internal SkiaPlatformResourceManager SkiaPlatformFontManager => _skiaPlatformFontManager ??= new SkiaPlatformResourceManager(TextEditor);
+    public override double GetFontLineSpacing(IReadOnlyRunProperty runProperty)
+    {
+        // 兼容获取的方法
+        // 详细请参阅 cb389420514f0eb9cdb6ed79378e5e4508c2e2c4
+        RenderingRunPropertyInfo renderingRunPropertyInfo = runProperty.AsSkiaRunProperty().GetRenderingRunPropertyInfo();
+        SKFont skFont = renderingRunPropertyInfo.Font;
+        return (-skFont.Metrics.Ascent + skFont.Metrics.Descent) / skFont.Size;
+    }
+
     private SkiaPlatformResourceManager? _skiaPlatformFontManager;
 
     private SkiaPlatformRunPropertyCreator? _skiaPlatformRunPropertyCreator;
 
+    protected virtual SkiaPlatformResourceManager GetSkiaPlatformResourceManager()
+    {
+        return _skiaPlatformFontManager ??= new SkiaPlatformResourceManager(TextEditor);
+    }
+
+    public override IPlatformFontNameManager GetPlatformFontNameManager()
+    {
+        return GetSkiaPlatformResourceManager();
+    }
+
     public override IPlatformRunPropertyCreator GetPlatformRunPropertyCreator()
     {
-        return _skiaPlatformRunPropertyCreator ??= new SkiaPlatformRunPropertyCreator(SkiaPlatformFontManager, TextEditor);
+        return _skiaPlatformRunPropertyCreator ??= new SkiaPlatformRunPropertyCreator(GetSkiaPlatformResourceManager(), TextEditor);
     }
 
     public override IRenderManager GetRenderManager()
@@ -205,10 +224,8 @@ public class SkiaTextEditorPlatformProvider : PlatformProvider
 
     public override ICharInfoMeasurer GetCharInfoMeasurer()
     {
-        Debug.Fail($"已重写 GetSingleRunLineLayouter 方法，不应再进入 GetCharInfoMeasurer 方法");
+        // 空段落测量依然会进来的
+        //Debug.Fail($"已重写 GetSingleRunLineLayouter 方法，不应再进入 GetCharInfoMeasurer 方法");
         return new SkiaCharInfoMeasurer(TextEditor);
     }
-
-    public virtual IFontNameToSKTypefaceManager? GetFontNameToSKTypefaceManager()
-        => null;
 }

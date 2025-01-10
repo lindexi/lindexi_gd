@@ -448,6 +448,11 @@ internal class TextEditorPlatformProvider : PlatformProvider
     {
         return runProperty.AsRunProperty().GetRenderingFontFamily().LineSpacing;
     }
+
+    public override IPlatformFontNameManager GetPlatformFontNameManager()
+    {
+        return TextEditor.StaticConfiguration.PlatformFontNameManager;
+    }
 }
 
 class CharInfoMeasurer : ICharInfoMeasurer
@@ -469,37 +474,20 @@ class CharInfoMeasurer : ICharInfoMeasurer
 
         if (_textEditor.TextEditorCore.ArrangingType == ArrangingType.Horizontal)
         {
-            if (charInfo.CharObject is SingleCharObject singleCharObject)
-            {
-                var (width, height) = MeasureChar(singleCharObject.GetChar());
-                textSize = new TextSize(width, height);
-            }
-            else
-            {
-                textSize = TextSize.Zero;
+            Utf32CodePoint codePoint = charInfo.CharObject.CodePoint;
+            textSize = MeasureChar(codePoint);
 
-                var text = charInfo.CharObject.ToText();
 
-                for (var i = 0; i < text.Length; i++)
-                {
-                    var c = text[i];
-
-                    var (width, height) = MeasureChar(c);
-
-                    textSize = textSize.HorizontalUnion(width, height);
-                }
-            }
-
-            (double width, double height) MeasureChar(char c)
+            TextSize MeasureChar(Utf32CodePoint c)
             {
                 var currentGlyphTypeface = glyphTypeface;
-                if (!currentGlyphTypeface.CharacterToGlyphMap.TryGetValue(c, out var glyphIndex))
+                if (!currentGlyphTypeface.CharacterToGlyphMap.TryGetValue(c.Value, out var glyphIndex))
                 {
                     // 居然给定的字体找不到，也就是给定的字符不在当前的字体包含范围里面
                     if (!runProperty.TryGetFallbackGlyphTypeface(c, out currentGlyphTypeface, out glyphIndex))
                     {
                         // 如果连回滚的都没有，那就返回默认方块空格
-                        return (fontSize, fontSize);
+                        return new TextSize(fontSize, fontSize);
                     }
                 }
 
@@ -508,7 +496,7 @@ class CharInfoMeasurer : ICharInfoMeasurer
                 var width = currentGlyphTypeface.AdvanceWidths[glyphIndex] * fontSize;
                 width = GlyphExtension.RefineValue(width);
                 var height = currentGlyphTypeface.AdvanceHeights[glyphIndex] * fontSize;
-
+                
                 //var pixelsPerDip = (float) VisualTreeHelper.GetDpi(_textEditor).PixelsPerDip;
                 //var glyphIndices = new[] { glyphIndex };
                 //var advanceWidths = new[] { width };
@@ -581,7 +569,7 @@ class CharInfoMeasurer : ICharInfoMeasurer
                 }
 
                 //return (bounds.Width, bounds.Height);
-                return (width, height);
+                return new TextSize(width, height);
             }
         }
         else
@@ -589,6 +577,6 @@ class CharInfoMeasurer : ICharInfoMeasurer
             throw new NotImplementedException("还没有实现竖排的文本测量");
         }
 
-        return new CharInfoMeasureResult(new TextRect(new TextPoint(), textSize));
+        return new CharInfoMeasureResult(new TextRect(new TextPoint(), textSize), glyphTypeface.Baseline * fontSize);
     }
 }

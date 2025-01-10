@@ -1,8 +1,11 @@
 using System;
 
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
+
+using SkiaSharp;
 
 namespace LightTextEditorPlus.Document;
 
@@ -25,6 +28,18 @@ internal class SkiaPlatformRunPropertyCreator : PlatformRunPropertyCreatorBase<S
             if (!ReferenceEquals(skiaTextRunProperty.ResourceManager, _skiaPlatformResourceManager))
             {
                 // 是从其他平台创建的？
+                var message = $"""
+                               当前传入字符属性不是由当前文本的资源管理器所创建，可能将其他文本的字符属性传入给到当前文本。
+                               请确保传入的字符属性由当前文本的资源管理器创建。
+                               可使用 with 关键字从 DefaultRunProperty 属性创建出新的字符属性。
+                               当前文本框DebugName='{_skiaTextEditor.DebugName}';字符属性RunProperty所在资源的文本框DebugName='{skiaTextRunProperty.ResourceManager.SkiaTextEditor.DebugName}'
+                               """;
+                Logger.LogWarning(message);
+                if (_skiaTextEditor.IsInDebugMode)
+                {
+                    throw new TextEditorDebugException(message);
+                }
+
                 // 尝试兼容
                 skiaTextRunProperty = skiaTextRunProperty with
                 {
@@ -32,21 +47,7 @@ internal class SkiaPlatformRunPropertyCreator : PlatformRunPropertyCreatorBase<S
                 };
             }
 
-            bool canFontSupportChar = _skiaPlatformResourceManager.CanFontSupportChar(skiaTextRunProperty, charObject);
-            if (!canFontSupportChar)
-            {
-                Logger.LogWarning($"当前字体 {skiaTextRunProperty.FontName} 不支持字符 {charObject.ToText()}");
-                if (_skiaPlatformResourceManager.TryFallbackRunProperty(skiaTextRunProperty, charObject, out var newRunProperty))
-                {
-                    return newRunProperty;
-                }
-                else
-                {
-                    throw new NotSupportedException($"当前字体 {skiaTextRunProperty.FontName} 不支持字符 {charObject.ToText()}");
-                }
-            }
-
-            return skiaTextRunProperty;
+            return _skiaPlatformResourceManager.NormalRunProperty(skiaTextRunProperty, charObject);
         }
         else
         {
@@ -58,20 +59,7 @@ internal class SkiaPlatformRunPropertyCreator : PlatformRunPropertyCreatorBase<S
     protected override SkiaTextRunProperty OnGetDefaultRunProperty()
     {
         // 默认字体
-        var defaultFontName = "微软雅黑";
-
-        if (OperatingSystem.IsWindows())
-        {
-            defaultFontName = "微软雅黑";
-        }
-        else if (OperatingSystem.IsLinux())
-        {
-            defaultFontName = "Noto Sans CJK SC";
-        }
-        else if (OperatingSystem.IsMacOS())
-        {
-            defaultFontName = "PingFang SC";
-        }
+        var defaultFontName = SkiaPlatformResourceManager.GetDefaultFontName();
 
         return new SkiaTextRunProperty(_skiaPlatformResourceManager)
         {

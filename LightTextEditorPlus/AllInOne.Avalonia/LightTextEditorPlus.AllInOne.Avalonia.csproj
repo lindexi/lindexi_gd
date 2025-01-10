@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UseUIFramework>Avalonia</UseUIFramework>
     <DefineConstants>$(DefineConstants);USE_SKIA;USE_AllInOne</DefineConstants>

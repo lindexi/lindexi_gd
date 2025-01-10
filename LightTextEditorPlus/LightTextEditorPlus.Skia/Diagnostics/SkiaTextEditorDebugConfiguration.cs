@@ -97,6 +97,17 @@ namespace LightTextEditorPlus.Diagnostics
             };
             TextEditor.DebugReRender();
         }
+
+        public void HideHandwritingPaperDebugInfoWhenInDebugMode()
+        {
+            if (!IsInDebugMode)
+            {
+                return;
+            }
+            ShowHandwritingPaperDebugInfo = false;
+            TextEditor.DebugReRender();
+        }
+
         #endregion
     }
 }

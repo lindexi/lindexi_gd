@@ -459,7 +459,7 @@ abstract class ArrangingLayoutProvider
         ParagraphProperty paragraphProperty = argument.ParagraphProperty;
 
         double lineHeight;
-        if (double.IsNaN(paragraphProperty.FixedLineSpacing))
+        if (double.IsNaN(paragraphProperty.FixedLineHeight))
         {
             // 倍数行距逻辑
             var lineSpacing = paragraphProperty.LineSpacing;
@@ -474,7 +474,7 @@ abstract class ArrangingLayoutProvider
             if (needNotCalculateLineSpacing)
             {
                 // 如果不需要计算行距，那就随意了
-                return new LineSpacingCalculateResult(true, double.NaN);
+                return new LineSpacingCalculateResult(true, double.NaN, LineSpacing: 0);
             }
             else
             {
@@ -487,10 +487,10 @@ abstract class ArrangingLayoutProvider
         else
         {
             // 如果定义了固定行距，那就使用固定行距
-            lineHeight = paragraphProperty.FixedLineSpacing;
+            lineHeight = paragraphProperty.FixedLineHeight;
         }
 
-        return new LineSpacingCalculateResult(ShouldUseCharLineHeight: false, lineHeight);
+        return new LineSpacingCalculateResult(ShouldUseCharLineHeight: false, lineHeight, lineHeight);
     }
 
     #endregion
@@ -504,8 +504,12 @@ abstract class ArrangingLayoutProvider
     /// <returns></returns>
     protected CharInfoMeasureResult MeasureCharInfo(CharInfo charInfo)
     {
-        var bounds = new TextRect(0, 0, charInfo.RunProperty.FontSize, charInfo.RunProperty.FontSize);
-        return new CharInfoMeasureResult(bounds);
+        double fontSize = charInfo.RunProperty.FontSize;
+        var bounds = new TextRect(0, 0, fontSize, fontSize);
+        // 设置基线为字号大小的向上一点点
+        const double testBaselineRatio = 4d / 5; // 这是一个测试值，确保无 UI 框架下，都采用相同的基线值，方便调试计算。这个值是如何获取的？通过在 PPT 里面进行测量微软雅黑字体的基线的
+        double baseline = fontSize * testBaselineRatio;
+        return new CharInfoMeasureResult(bounds, baseline);
     }
 
     #endregion

@@ -1,0 +1,71 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:LightTextEditorPlus.AvaloniaDemo.Views"
+             xmlns:richTextCases="clr-namespace:LightTextEditorPlus.AvaloniaDemo.Business.RichTextCases"
+             xmlns:lightTextEditorPlus="clr-namespace:LightTextEditorPlus;assembly=LightTextEditorPlus.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="LightTextEditorPlus.AvaloniaDemo.Views.TextEditorTestView">
+    <Grid ColumnDefinitions="Auto,*,*">
+        <Border>
+            <!-- 测试列 -->
+            <ListBox x:Name="TestCaseListBox" MinWidth="160">
+                <ListBox.ItemTemplate>
+                    <DataTemplate DataType="richTextCases:IRichTextCase">
+                        <TextBlock Text="{Binding Name,Mode=OneTime}"></TextBlock>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Border>
+        <Border Grid.Column="1">
+            <!-- 文本编辑器 -->
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition></RowDefinition>
+                    <RowDefinition Height="Auto"></RowDefinition>
+                </Grid.RowDefinitions>
+                <Grid>
+                    <lightTextEditorPlus:TextEditor x:Name="TextEditor" x:FieldModifier="public" Width="500" HorizontalAlignment="Left" VerticalAlignment="Top">
+                    </lightTextEditorPlus:TextEditor>
+                    <Canvas x:Name="DebugCanvas" IsHitTestVisible="False">
+                        <!-- 用来绘制调试内容 -->
+                    </Canvas>
+                </Grid>
+                <StackPanel Grid.Row="1" Margin="10,0,10,10" Orientation="Horizontal">
+                    <Button Margin="5,0,0,0" Click="DebugButton_OnClick">调试</Button>
+                    <ToggleButton x:Name="SettingToggleButton" Click="SettingToggleButton_OnClick">切换调试列</ToggleButton>
+                    <ToggleButton x:Name="ShowDiffToggleButton" Click="ShowDiffToggleButton_OnClick">显示对比范围</ToggleButton>
+                </StackPanel>
+            </Grid>
+        </Border>
+        <Border Grid.Column="2">
+            <!-- 原本的图 -->
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition></RowDefinition>
+                    <RowDefinition Height="Auto"></RowDefinition>
+                    <RowDefinition Height="Auto"></RowDefinition>
+                </Grid.RowDefinitions>
+
+                <Border Background="Black" Width="1" Grid.RowSpan="3" HorizontalAlignment="Left"></Border>
+
+                <Grid Grid.Row="0">
+                    <Image x:Name="OriginImage" Stretch="None" HorizontalAlignment="Left" VerticalAlignment="Top"></Image>
+                    <Canvas x:Name="OriginImageDebugCanvas" IsHitTestVisible="False">
+                        <!-- 用来绘制调试内容 -->
+                    </Canvas>
+                </Grid>
+
+                <TextBlock x:Name="LogTextBlock" Grid.Row="1" TextWrapping="Wrap"></TextBlock>
+                <StackPanel Grid.Row="2" Margin="10,0,10,10" Orientation="Horizontal">
+                    <ToggleButton x:Name="ShowDiffOriginToggleButton" IsChecked="True" Click="ShowDiffOriginToggleButton_OnClick">显示对比范围</ToggleButton>
+                </StackPanel>
+            </Grid>
+        </Border>
+        <Border x:Name="SettingBorder" Grid.Column="2" IsVisible="False">
+            <!--调试属性列-->
+            <views:TextEditorSettingsControl x:Name="TextEditorSettingsControl"/>
+        </Border>
+    </Grid>
+</UserControl>

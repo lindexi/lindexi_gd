@@ -14,7 +14,7 @@ static class FontCharHelper
     public static float GetLayoutCharHeight(this in RenderingRunPropertyInfo renderingRunPropertyInfo)
     {
         SKFont skFont = renderingRunPropertyInfo.Font;
-        var baselineY = -skFont.Metrics.Ascent;
+        var baselineY = GetBaseline(in renderingRunPropertyInfo);
         var enhance = 0f;
         // 有些字体的 Top 就是超过格子，不要补偿。如华文仿宋字体
         //if (baselineY < Math.Abs(skFont.Metrics.Top))
@@ -25,4 +25,7 @@ static class FontCharHelper
         // 同理 skFont.Metrics.Bottom 也是不应该使用的，可能下加是超过格子的
         return height;
     }
+
+    public static float GetBaseline(this in RenderingRunPropertyInfo renderingRunPropertyInfo) =>
+        -renderingRunPropertyInfo.Font.Metrics.Ascent;
 }

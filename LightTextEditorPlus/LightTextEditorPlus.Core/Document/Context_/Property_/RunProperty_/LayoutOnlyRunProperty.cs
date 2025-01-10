@@ -22,12 +22,22 @@ namespace LightTextEditorPlus.Core.Document
         {
             init
             {
-                var valueToSet = value.CoerceValue(1, 65536);
+                var valueToSet = value.CoerceValue(MinFontSize, MaxFontSize);
                 _fontSize = valueToSet;
                 //RaiseOnTextRunPropertyChanged();
             }
             get => _fontSize ?? DefaultFontSize;
         }
+
+        /// <summary>
+        /// 最大字体大小
+        /// </summary>
+        public const double MaxFontSize = 65536;
+
+        /// <summary>
+        /// 最小字体大小
+        /// </summary>
+        public const double MinFontSize = 1;
 
         private readonly double? _fontSize;
 
@@ -61,8 +71,7 @@ namespace LightTextEditorPlus.Core.Document
         {
             if(other is null) return false;
 
-            // 先判断一定存在的属性，再判断业务端注入的属性
-            if 
+            if
             (
                 FontSize.Equals(other.FontSize)
                 && FontName.Equals(other.FontName)

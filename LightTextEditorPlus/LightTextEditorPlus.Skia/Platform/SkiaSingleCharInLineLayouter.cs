@@ -15,6 +15,7 @@ using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
+using LightTextEditorPlus.Core.Utils.Maths;
 using LightTextEditorPlus.Document;
 
 using SkiaSharp;
@@ -47,7 +48,7 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
         CharData currentCharData = argument.CurrentCharData;
         var runProperty = currentCharData.RunProperty.AsSkiaRunProperty();
 
-        RenderingRunPropertyInfo renderingRunPropertyInfo = runProperty.GetRenderingRunPropertyInfo();
+        RenderingRunPropertyInfo renderingRunPropertyInfo = runProperty.GetRenderingRunPropertyInfo(runList[0].CharObject.CodePoint);
         SKTypeface skTypeface = renderingRunPropertyInfo.Typeface;
         SKFont skFont = renderingRunPropertyInfo.Font;
         SKPaint skPaint = renderingRunPropertyInfo.Paint;
@@ -232,7 +233,7 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
             {
                 SKRect glyphRunBound = glyphRunBounds[glyphRunBoundsIndex];
 
-                charData.SetSize(new TextSize(glyphRunBound.Width, glyphRunBound.Height));
+                charData.SetCharDataInfo(new TextSize(glyphRunBound.Width, glyphRunBound.Height), baselineY);
             }
 
             // 解决 CharData 和字符不一一对应的问题，可能一个 CharData 对应多个字符
@@ -265,7 +266,33 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
             throw new TextEditorInnerDebugException(Message);
         }
 
-        return new SingleCharInLineLayoutResult(taskCountOfCharObject, new TextSize(measuredWidth, 0));
+        var lineHeight = 0d;
+        for (int i = 0; i < taskCountOfCharObject; i++)
+        {
+            CharData charData = runList[i];
+            if (TextEditor.IsInDebugMode && charData.Size == null)
+            {
+                throw new TextEditorDebugException($"经过 Skia 排版之后，字符依然不存在尺寸");
+            }
+
+            var currentCharHeight = charData.Size!.Value.Height;
+            if (currentCharHeight > lineHeight)
+            {
+                lineHeight = currentCharHeight;
+            }
+        }
+
+        if (taskCountOfCharObject > 0)
+        {
+            Debug.Assert(Math.Abs(charHeight - lineHeight) < 0.1, "正常布局的情况下，行高和字高是相同的。在 Skia 里面所有字的布局字高都是相同的");
+        }
+        else
+        {
+            // 没有获取到任何字符的情况下，行高是 0 的值
+            Debug.Assert(lineHeight == 0, "没有获取到任何字符的情况下，行高是 0 的值");
+        }
+
+        return new SingleCharInLineLayoutResult(taskCountOfCharObject, new TextSize(measuredWidth, lineHeight));
     }
 
     private const string Message = "布局过程中发现 CharData 和 Text 数量不匹配，预计是框架内实现的问题";

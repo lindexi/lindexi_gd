@@ -142,8 +142,9 @@ class RenderManager
 
                         SkiaTextRunProperty skiaTextRunProperty = firstCharData.RunProperty.AsSkiaRunProperty();
 
-                        // todo 考虑字体回滚问题
-                        RenderingRunPropertyInfo renderingRunPropertyInfo = skiaTextRunProperty.GetRenderingRunPropertyInfo();
+                        // 不需要在这里处理字体回滚，在输入的过程中已经处理过了
+                        ////  考虑字体回滚问题
+                        RenderingRunPropertyInfo renderingRunPropertyInfo = skiaTextRunProperty.GetRenderingRunPropertyInfo(firstCharData.CharObject.CodePoint);
 
                         SKFont skFont = renderingRunPropertyInfo.Font;
 
@@ -206,7 +207,7 @@ class RenderManager
                         {
                             CharHandwritingPaperInfo charHandwritingPaperInfo =
                                 renderInfoProvider.GetHandwritingPaperInfo(in lineInfo);
-                            DrawDebugHandwritingPaper(canvas, new TextRect(argument.StartPoint, argument.TextSize with
+                            DrawDebugHandwritingPaper(canvas, new TextRect(argument.StartPoint, argument.LineSize with
                             {
                                 // 空行是 0 宽度，需要将其设置为整个文本的宽度才好计算
                                 Width = renderInfoProvider.TextEditor.DocumentManager.DocumentWidth,
@@ -214,7 +215,7 @@ class RenderManager
                         }
                     }
 
-                    DrawDebugBounds(new TextRect(argument.StartPoint, argument.TextSize).ToSKRect(), _debugDrawLineBoundsColor);
+                    DrawDebugBounds(new TextRect(argument.StartPoint, argument.LineSize).ToSKRect(), _debugDrawLineBoundsColor);
                 }
             }
 

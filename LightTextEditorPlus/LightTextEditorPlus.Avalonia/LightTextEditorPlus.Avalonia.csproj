@@ -4,6 +4,7 @@
     <Nullable>enable</Nullable>
     <UseUIFramework>Avalonia</UseUIFramework>
     <RootNamespace>LightTextEditorPlus</RootNamespace>
+    <IsTrimmable>true</IsTrimmable>
   </PropertyGroup>
 
   <ItemGroup>

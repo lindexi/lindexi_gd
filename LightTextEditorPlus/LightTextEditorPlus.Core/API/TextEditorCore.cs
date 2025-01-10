@@ -6,6 +6,6 @@ using System.Threading.Tasks;
 
 namespace LightTextEditorPlus.Core;
 
-public partial class TextEditorCore
+partial class TextEditorCore
 {
 }

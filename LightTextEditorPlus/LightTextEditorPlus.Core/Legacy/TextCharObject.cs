@@ -1,4 +1,5 @@
 using System;
+using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -39,4 +40,8 @@ file class TextCharObject : ICharObject, IEquatable<string>
     {
         return TextChar;
     }
+
+    // 不知道如何实现
+    /// <inheritdoc />
+    public Utf32CodePoint CodePoint => throw new NotSupportedException();
 }

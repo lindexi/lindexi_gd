@@ -1,4 +1,5 @@
 using System;
+using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -12,4 +13,9 @@ public interface ICharObject : IEquatable<string>, IDeepCloneable<ICharObject>
     /// </summary>
     /// <returns></returns>
     string ToText();
+
+    /// <summary>
+    /// 获取字符的 Unicode 代码点
+    /// </summary>
+    Utf32CodePoint CodePoint { get; }
 }

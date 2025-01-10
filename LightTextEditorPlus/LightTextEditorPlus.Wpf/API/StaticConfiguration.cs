@@ -12,7 +12,7 @@ public class StaticConfiguration
     /// <summary>
     /// 业务端可以配置其用来处理字体回滚
     /// </summary>
-    public FontNameManager FontNameManager { get; } = new FontNameManager();
+    public PlatformFontNameManager PlatformFontNameManager { get; } = new PlatformFontNameManager();
 
     /// <summary>
     /// 默认的未定义的字体使用的字体。如果当前的字符属性等没有定义明确的字体，那就采用此字体

@@ -1,6 +1,7 @@
 using System;
-
+using System.Collections.Generic;
 using LightTextEditorPlus.Core.Exceptions;
+using LightTextEditorPlus.Core.Primitive.Collections;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -20,9 +21,14 @@ public class TextRun : IImmutableTextRun
     public TextRun(string text, IReadOnlyRunProperty? runProperty = null)
     {
         ArgumentNullException.ThrowIfNull(text);
-        Text = text.Replace("\r\n", "\n").Replace('\r', '\n');
+        //Text = text.Replace("\r\n", "\n").Replace('\r', '\n');
+        Text = text;
         RunProperty = runProperty;
+
+        CharObjectList = TextCharObjectCreator.TextToCharObjectList(text);
     }
+
+    private IReadOnlyList<ICharObject> CharObjectList { get; }
 
     /// <summary>
     /// 文本字符串
@@ -30,13 +36,12 @@ public class TextRun : IImmutableTextRun
     public string Text { get; }
 
     /// <inheritdoc />
-    public int Count => Text.Length;
+    public int Count => CharObjectList.Count;
 
     /// <inheritdoc />
     public ICharObject GetChar(int index)
     {
-        // todo 考虑 emoij 的情况，多个 char 组成一个字符
-        return TextCharObjectCreator.CreateCharObject(Text, index);
+        return CharObjectList[index];
     }
 
     /// <inheritdoc />
@@ -55,14 +60,32 @@ public class TextRun : IImmutableTextRun
             throw new ArgumentException($"{nameof(index)} must more than 0");
         }
 
-        var firstStart = 0;
-        var firstLength = index;
+        var listSpan = new TextReadOnlyListSpan<ICharObject>(CharObjectList, 0, CharObjectList.Count);
+        var firstSpan = listSpan.Slice(0, index);
+        var secondSpan = listSpan.Slice(index);
+        return (new CharObjectSpanTextRun(firstSpan, RunProperty), new CharObjectSpanTextRun(secondSpan, RunProperty));
+    }
 
-        var secondStart = 0 + index;
-        var secondLength = Count - index;
+    /// <summary>
+    /// 拆分文本片段
+    /// </summary>
+    /// <param name="start"></param>
+    /// <param name="length"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    public IImmutableRun Slice(int start, int length)
+    {
+        if (start < 0 || start >= Count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(start));
+        }
+        if (length < 0 || start + length > Count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(length));
+        }
 
-        return (new SpanTextRun(Text, firstStart, firstLength, RunProperty),
-            new SpanTextRun(Text, secondStart, secondLength));
+        var listSpan = new TextReadOnlyListSpan<ICharObject>(CharObjectList, start, length);
+        return new CharObjectSpanTextRun(listSpan, RunProperty);
     }
 
     /// <inheritdoc />

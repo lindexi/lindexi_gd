@@ -87,8 +87,8 @@
             <ColumnDefinition></ColumnDefinition>
             <ColumnDefinition></ColumnDefinition>
           </Grid.ColumnDefinitions>
-          <Button x:Name="FullExpandButton" Margin="0,2,10,0" >空间全部展开</Button>
-          <Button x:Name="FirstLineShrinkButton" Grid.Column="1" Margin="10,2,0,0" >首段首行空间不展开</Button>
+          <Button x:Name="FullExpandButton" Margin="0,2,10,0" Click="FullExpandButton_OnClick">空间全部展开</Button>
+          <Button x:Name="FirstLineShrinkButton" Grid.Column="1" Margin="10,2,0,0" Click="FirstLineShrinkButton_OnClick">首段首行空间不展开</Button>
         </Grid>
 
         <TextBlock Margin="0,5,0,0" FontWeight="Bold">布局方式</TextBlock>
@@ -154,13 +154,13 @@
           <StackPanel Grid.Column="0" Margin="0,5,0,0" Orientation="Horizontal">
             <TextBlock FontWeight="Bold" VerticalAlignment="Center">倍数行距</TextBlock>
             <TextBox x:Name="LineSpacingTextBox" Margin="5,0,0,0" Width="50">1</TextBox>
-            <Button x:Name="LineSpacingButton" Margin="5,0,0,0" >应用</Button>
+            <Button x:Name="LineSpacingButton" Margin="5,0,0,0" Click="LineSpacingButton_OnClick">应用</Button>
           </StackPanel>
           <StackPanel Grid.Column="1" Margin="0,5,0,0" Orientation="Horizontal">
             <TextBlock FontWeight="Bold" VerticalAlignment="Center">固定行距</TextBlock>
             <TextBox x:Name="FixedLineSpacingTextBox" Margin="5,0,0,0" Width="50"></TextBox>
-            <Button x:Name="FixedLineSpacingButton" Margin="5,0,0,0" >应用</Button>
-            <Button x:Name="FixedLineSpacingResetButton" Margin="5,0,0,0" >重置</Button>
+            <Button x:Name="FixedLineSpacingButton" Margin="5,0,0,0" Click="FixedLineSpacingButton_OnClick">应用</Button>
+            <Button x:Name="FixedLineSpacingResetButton" Margin="5,0,0,0" Click="FixedLineSpacingResetButton_OnClick">重置</Button>
           </StackPanel>
         </Grid>
 
