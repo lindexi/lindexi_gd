@@ -43,7 +43,7 @@ class TextRenderTestFrameworkElement : FrameworkElement
     {
         var offset = new Point(10, 20);
 
-        var fontFamily = new FontFamily("微软雅黑");
+        var fontFamily = new FontFamily("Javanese Text");
 
         Typeface typeface = fontFamily.GetTypefaces().First();
         var maxValue = 0;
@@ -85,7 +85,7 @@ class TextRenderTestFrameworkElement : FrameworkElement
 
         var fontSize = 30;
 
-        var text = "文本测试afgjqiWHXx";
+        var text = "afgjqiWHXx";
         var glyphIndexList = new List<GlyphInfo>();
         var maxHeight = 0d;
 
