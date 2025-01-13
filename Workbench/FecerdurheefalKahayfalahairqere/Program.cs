@@ -34,6 +34,12 @@ Console.WriteLine($"foo2.N2: {foo2.N2}");
 Console.WriteLine($"FooStruct.N3: {fooStruct.N3}");
 Console.WriteLine($"foo2.N3: {foo2.N3}");
 
+var buffer = new byte[] { 11, 0, 0, 0, 21, 0, 0, 0, 30, 0, 0, 0 };
+var foo3 = MemoryMarshal.Cast<byte, FooStruct>(buffer.AsSpan())[0];
+
+Console.WriteLine($"foo3.N1: {foo3.N1}");
+Console.WriteLine($"foo3.N2: {foo3.N2}");
+
 Console.WriteLine("Hello, World!");
 
 [StructLayout(LayoutKind.Sequential)]
