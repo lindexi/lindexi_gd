@@ -2,31 +2,44 @@
 
 using System.Runtime.InteropServices;
 
-var foo = new Foo()
+var fooStruct = new FooStruct()
 {
-    F1 = 2
+    N1 = 1,
+    N2 = 2,
+    N3 = 3
 };
 
-Span<Foo> span1 = MemoryMarshal.CreateSpan(ref foo, 1);
+Span<FooStruct> fooSpan = MemoryMarshal.CreateSpan(ref fooStruct, 1);
 
-Span<byte> sp = MemoryMarshal.Cast<Foo, byte>(span1);
-sp[0] = 10;
+Span<byte> byteSpan = MemoryMarshal.Cast<FooStruct, byte>(fooSpan);
 
-sp[4] = 20; // F2
+for (var i = 0; i < byteSpan.Length; i++)
+{
+    var t = byteSpan[i];
+    Console.WriteLine($"[{i}] - {t:X2}");
+}
 
-sp[5] = 30; // F3
+byteSpan[0] = 10;
+byteSpan[4] = 20;
+byteSpan[8] = 30;
 
-sp[6] = 5;  // Fx
+var foo2 = MemoryMarshal.Cast<byte, FooStruct>(byteSpan)[0];
 
+// 此时 FooStruct 已经被修改，刚好和 foo2 相同
+
+Console.WriteLine($"FooStruct.N1: {fooStruct.N1}");
+Console.WriteLine($"foo2.N1: {foo2.N1}");
+Console.WriteLine($"FooStruct.N2: {fooStruct.N2}");
+Console.WriteLine($"foo2.N2: {foo2.N2}");
+Console.WriteLine($"FooStruct.N3: {fooStruct.N3}");
+Console.WriteLine($"foo2.N3: {foo2.N3}");
 
 Console.WriteLine("Hello, World!");
 
 [StructLayout(LayoutKind.Sequential)]
-struct Foo
+struct FooStruct
 {
-    public int F1 { get; set; }
-
-    public byte F2 { get; set; }
-    public byte F3 { get; set; }
-    public byte Fx { get; set; }
+    public int N1 { get; set; }
+    public int N2 { get; set; }
+    public int N3 { get; set; }
 }
