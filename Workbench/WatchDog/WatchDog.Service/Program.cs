@@ -1,4 +1,5 @@
 using WatchDog.Service.Controllers;
+using WatchDog.Service.Frameworks;
 
 namespace WatchDog.Service;
 
