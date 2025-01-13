@@ -11,13 +11,15 @@ public class Program
         // Add services to the container.
 
         builder.Services.AddControllers();
-        builder.Services.AddWatchDog();
+        builder.AddWatchDog();
+        builder.WebHost.UseUrls("http://0.0.0.0:57725");
 
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
 
         app.UseAuthorization();
+        app.UseWatchDog();
 
 
         app.MapControllers();
