@@ -4,6 +4,7 @@ using StackExchange.Redis;
 using StackExchange.Redis.Extensions.Core.Abstractions;
 using StackExchange.Redis.Extensions.Core.Implementations;
 
+using WatchDog.Core;
 using WatchDog.Core.Context;
 using WatchDog.Core.Services;
 
@@ -13,12 +14,17 @@ namespace WatchDog.Service.Controllers;
 [Route("[controller]")]
 public class DogController : ControllerBase
 {
-    private readonly ILogger<DogController> _logger;
-
-    public DogController(ILogger<DogController> logger, IRedisClient redisClient)
+    public DogController(ILogger<DogController> logger, IMasterHostProvider masterHostProvider,IHttpClientFactory httpClientFactory)
     {
         _logger = logger;
+        _masterHostProvider = masterHostProvider;
+        _httpClientFactory = httpClientFactory;
     }
+
+    private readonly ILogger<DogController> _logger;
+
+    private readonly IMasterHostProvider _masterHostProvider;
+    private readonly IHttpClientFactory _httpClientFactory;
 
     [HttpGet]
     [Route("Enable")]
@@ -26,7 +32,134 @@ public class DogController : ControllerBase
     {
         return "Enable";
     }
+
+    [HttpPost]
+    [Route("Feed")]
+    public async Task<FeedDogResponse?> FeedAsync(FeedDogRequest request)
+    {
+        var host = GetMasterHostAsync();
+        var url = $"{host}WatchDog/Feed";
+        var httpClient = _httpClientFactory.CreateClient();
+        var response = await httpClient.PostAsJsonAsync(url, request);
+        var result = await response.Content.ReadFromJsonAsync<FeedDogResponse>();
+        return result;
+    }
+
+    private async Task<string> GetMasterHostAsync()
+    {
+        var result = await _masterHostProvider.GetMasterHostAsync();
+        var masterHost = result.MasterHost;
+
+        if (masterHost.StartsWith("Fake-") || result.SelfIsMaster)
+        {
+            return "http://127.0.0.1:57725/";
+        }
+        else
+        {
+            return $"http://{masterHost}:57725/";
+        }
+    }
+
+    [HttpPost]
+    [Route("Wang")]
+    public async Task<GetWangResponse?> GetWangAsync(GetWangRequest request)
+    {
+        var host = GetMasterHostAsync();
+        var url = $"{host}WatchDog/Wang";
+        var httpClient = _httpClientFactory.CreateClient();
+        var response = await httpClient.PostAsJsonAsync(url, request);
+        var result = await response.Content.ReadFromJsonAsync<GetWangResponse>();
+        return result;
+    }
+
+    [HttpPost]
+    [Route("Mute")]
+    public async Task<MuteResponse?> MuteAsync(MuteRequest request)
+    {
+        var host = GetMasterHostAsync();
+        var url = $"{host}WatchDog/Mute";
+        var httpClient = _httpClientFactory.CreateClient();
+        var response = await httpClient.PostAsJsonAsync(url, request);
+        var result = await response.Content.ReadFromJsonAsync<MuteResponse>();
+        return result;
+    }
 }
+
+public record MuteRequest(MuteInfo MuteInfo);
+
+public record MuteResponse();
+
+public record GetWangRequest(GetWangInfo GetWangInfo);
+
+public record GetWangResponse(GetWangResult GetWangResult);
+
+public record FeedDogRequest(FeedDogInfo FeedDogInfo);
+
+public record FeedDogResponse(FeedDogResult FeedDogResult);
+
+[ApiController]
+[Route("[controller]")]
+public class WatchDogController : ControllerBase
+{
+    public WatchDogController(WatchDogProvider watchDogProvider)
+    {
+        _watchDogProvider = watchDogProvider;
+    }
+
+    private readonly WatchDogProvider _watchDogProvider;
+
+    [HttpPost]
+    [Route("Feed")]
+    public async Task<FeedDogResponse?> FeedAsync(FeedDogRequest request)
+    {
+        await Task.CompletedTask;
+
+        lock (_watchDogProvider)
+        {
+            var result = _watchDogProvider.Feed(request.FeedDogInfo);
+            return new FeedDogResponse(result);
+        }
+    }
+
+    [HttpPost]
+    [Route("Wang")]
+    public async Task<GetWangResponse?> GetWangAsync(GetWangRequest request)
+    {
+        await Task.CompletedTask;
+        lock (_watchDogProvider)
+        {
+            var result = _watchDogProvider.GetWang(request.GetWangInfo);
+            return new GetWangResponse(result);
+        }
+    }
+
+    [HttpPost]
+    [Route("Mute")]
+    public async Task<MuteResponse?> MuteAsync(MuteRequest request)
+    {
+        await Task.CompletedTask;
+        lock (_watchDogProvider)
+        {
+            _watchDogProvider.Mute(request.MuteInfo);
+            return new MuteResponse();
+        }
+    }
+}
+
+//public class MasterHostMiddleware
+//{
+//    public MasterHostMiddleware(RequestDelegate next)
+//    {
+//        _next = next;
+//    }
+
+//    private readonly RequestDelegate _next;
+
+//    public async Task InvokeAsync(HttpContext context)
+//    {
+
+//    }
+//}
 
 /// <summary>
 /// 用于获取主设备信息
@@ -285,11 +418,23 @@ public class FakeSelfHostProvider : ISelfHostProvider
 
 public static class WatchDogStartup
 {
-    public static void AddWatchDog(this IServiceCollection services)
+    public static WebApplicationBuilder AddWatchDog(this WebApplicationBuilder builder)
     {
+        var services = builder.Services;
         services.AddSingleton<ISelfHostProvider, FakeSelfHostProvider>();
         services.AddSingleton<IMasterHostProvider, RedisMasterHostProvider>();
         services.AddSingleton<IMasterHostStatusChecker, MasterHostStatusChecker>();
+
+        services.AddSingleton<IDogInfoProvider, DogInfoProvider>();
+        services.AddSingleton<ITimeProvider, TimeProvider>();
+        services.AddSingleton<WatchDogProvider>();
+        return builder;
+    }
+
+    public static WebApplication UseWatchDog(this WebApplication webApplication)
+    {
+        //webApplication.UseMiddleware<MasterHostMiddleware>();
+        return webApplication;
     }
 }
 
