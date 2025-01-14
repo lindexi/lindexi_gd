@@ -34,11 +34,35 @@ public class DogController : ControllerBase
     {
         _logger.LogInformation($"[Feed] {request.FeedDogInfo}");
 
-        var host = GetMasterHostAsync();
+        var host = await GetMasterHostAsync();
         var url = $"{host}WatchDog/Feed";
         var httpClient = _httpClientFactory.CreateClient();
         var response = await httpClient.PostAsJsonAsync(url, request);
         var result = await response.Content.ReadFromJsonAsync<FeedDogResponse>();
+        return result;
+    }
+
+    [HttpPost]
+    [Route("Wang")]
+    public async Task<GetWangResponse?> GetWangAsync(GetWangRequest request)
+    {
+        var host = await GetMasterHostAsync();
+        var url = $"{host}WatchDog/Wang";
+        var httpClient = _httpClientFactory.CreateClient();
+        var response = await httpClient.PostAsJsonAsync(url, request);
+        var result = await response.Content.ReadFromJsonAsync<GetWangResponse>();
+        return result;
+    }
+
+    [HttpPost]
+    [Route("Mute")]
+    public async Task<MuteResponse?> MuteAsync(MuteRequest request)
+    {
+        var host = await GetMasterHostAsync();
+        var url = $"{host}WatchDog/Mute";
+        var httpClient = _httpClientFactory.CreateClient();
+        var response = await httpClient.PostAsJsonAsync(url, request);
+        var result = await response.Content.ReadFromJsonAsync<MuteResponse>();
         return result;
     }
 
@@ -55,30 +79,6 @@ public class DogController : ControllerBase
         {
             return $"http://{masterHost}:57725/";
         }
-    }
-
-    [HttpPost]
-    [Route("Wang")]
-    public async Task<GetWangResponse?> GetWangAsync(GetWangRequest request)
-    {
-        var host = GetMasterHostAsync();
-        var url = $"{host}WatchDog/Wang";
-        var httpClient = _httpClientFactory.CreateClient();
-        var response = await httpClient.PostAsJsonAsync(url, request);
-        var result = await response.Content.ReadFromJsonAsync<GetWangResponse>();
-        return result;
-    }
-
-    [HttpPost]
-    [Route("Mute")]
-    public async Task<MuteResponse?> MuteAsync(MuteRequest request)
-    {
-        var host = GetMasterHostAsync();
-        var url = $"{host}WatchDog/Mute";
-        var httpClient = _httpClientFactory.CreateClient();
-        var response = await httpClient.PostAsJsonAsync(url, request);
-        var result = await response.Content.ReadFromJsonAsync<MuteResponse>();
-        return result;
     }
 }
 
