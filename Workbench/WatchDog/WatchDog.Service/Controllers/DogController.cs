@@ -32,6 +32,8 @@ public class DogController : ControllerBase
     [Route("Feed")]
     public async Task<FeedDogResponse?> FeedAsync(FeedDogRequest request)
     {
+        _logger.LogInformation($"[Feed] {request.FeedDogInfo}");
+
         var host = GetMasterHostAsync();
         var url = $"{host}WatchDog/Feed";
         var httpClient = _httpClientFactory.CreateClient();
