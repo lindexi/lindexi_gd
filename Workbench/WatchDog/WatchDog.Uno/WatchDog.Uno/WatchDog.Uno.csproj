@@ -35,5 +35,9 @@
     <UnoFeatures>
     </UnoFeatures>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\WatchDog.Core\Context\*.cs" LinkBase="WatchDogClient" />
+    <Compile Include="..\..\WatchDog.Service\Contexts\*.cs" LinkBase="WatchDogClient" />
+  </ItemGroup>
 
 </Project>
