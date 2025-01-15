@@ -52,7 +52,14 @@ public partial class MainWindow : Window
 
         if (!libHandle.IsInvalid)
         {
-            return;
+            libHandle = PInvoke.LoadLibrary("kernel32.dll");
+        }
+
+        var procAddress = PInvoke.GetProcAddress(libHandle, "CreateIFEDictionaryInstance");
+        if (procAddress.IsNull)
+        {
+            libHandle = PInvoke.LoadLibrary("user32.dll");
+            procAddress = PInvoke.GetProcAddress(libHandle, "CreateIFEDictionaryInstance");
         }
     }
 }
