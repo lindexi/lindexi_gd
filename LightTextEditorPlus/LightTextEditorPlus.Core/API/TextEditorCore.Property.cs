@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using LightTextEditorPlus.Core.Attributes;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils;
@@ -56,38 +57,55 @@ partial class TextEditorCore
     private TextSizeToContent _sizeToContent = TextSizeToContent.Manual;
 
     /// <summary>
+    /// 行距的配置
+    /// </summary>
+    public DocumentLineSpacingConfiguration LineSpacingConfiguration
+    {
+        get => _lineSpacingConfiguration;
+        set
+        {
+            _lineSpacingConfiguration = value;
+            RequireDispatchReLayoutAllDocument("LineSpacingConfiguration Changed");
+        }
+    }
+
+    private DocumentLineSpacingConfiguration _lineSpacingConfiguration = new();
+
+    /// <summary>
     /// 设置当前多倍行距呈现策略
     /// </summary>
+    /// <remarks>
+    /// 如需更高级的配置，请使用 <see cref="LineSpacingConfiguration"/> 属性
+    /// </remarks>
     public LineSpacingStrategy LineSpacingStrategy
     {
         set
         {
-            if (_lineSpacingStrategy == value) return;
-
-            _lineSpacingStrategy = value;
-            RequireDispatchReLayoutAllDocument("LineSpacingStrategy Changed");
+            LineSpacingConfiguration = LineSpacingConfiguration with
+            {
+                LineSpacingStrategy = value
+            };
         }
-        get => _lineSpacingStrategy;
+        get => LineSpacingConfiguration.LineSpacingStrategy;
     }
-
-    private LineSpacingStrategy _lineSpacingStrategy = LineSpacingStrategy.FullExpand;
 
     /// <summary>
     /// 行距算法
     /// </summary>
+    /// <remarks>
+    /// 如需更高级的配置，请使用 <see cref="LineSpacingConfiguration"/> 属性
+    /// </remarks>
     public LineSpacingAlgorithm LineSpacingAlgorithm
     {
         set
         {
-            if (_lineSpacingAlgorithm == value) return;
-
-            _lineSpacingAlgorithm = value;
-            RequireDispatchReLayoutAllDocument("LineSpacingAlgorithm Changed");
+            LineSpacingConfiguration = LineSpacingConfiguration with
+            {
+                LineSpacingAlgorithm = value
+            };
         }
-        get => _lineSpacingAlgorithm;
+        get => LineSpacingConfiguration.LineSpacingAlgorithm;
     }
-
-    private LineSpacingAlgorithm _lineSpacingAlgorithm = LineSpacingAlgorithm.PPT;
 
     /// <summary>
     /// 布局方式

@@ -1,4 +1,5 @@
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.Segments;
 
 namespace LightTextEditorPlus.Core.Rendering;
 
@@ -15,7 +16,7 @@ public readonly struct ParagraphLineRenderInfo
     /// <param name="argument">行渲染参数</param>
     /// <param name="lineLayoutData"></param>
     /// <param name="renderInfoProvider"></param>
-    internal ParagraphLineRenderInfo(int lineIndex, int paragraphIndex, LineDrawingArgument argument,
+    internal ParagraphLineRenderInfo(int lineIndex, ParagraphIndex paragraphIndex, LineDrawingArgument argument,
         LineLayoutData lineLayoutData, RenderInfoProvider renderInfoProvider)
     {
         LineIndex = lineIndex;
@@ -49,7 +50,7 @@ public readonly struct ParagraphLineRenderInfo
     /// <summary>
     /// 当前是在第几个段落，从0开始
     /// </summary>
-    public int ParagraphIndex { get; }
+    public ParagraphIndex ParagraphIndex { get; }
 
     /// <summary>行渲染参数</summary>
     public LineDrawingArgument Argument { get;  }

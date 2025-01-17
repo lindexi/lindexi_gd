@@ -1,9 +1,11 @@
+using System;
 using System.Diagnostics;
 using System.Linq;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
+using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils;
 
@@ -117,7 +119,7 @@ abstract class ArrangingLayoutProvider
                                 }
 
                                 return new TextHitTestResult(false, false, false, hitCaretOffset, charData,
-                                    paragraphIndex)
+                                    new ParagraphIndex(paragraphIndex))
                                 {
                                     HitParagraphData = paragraphData
                                 };
@@ -127,7 +129,7 @@ abstract class ArrangingLayoutProvider
                         }
                         // 行内没有命中到字符，视为命中到最后一个字符
                         return new TextHitTestResult(false, false, false, new CaretOffset(currentCharIndex), charList.LastOrDefault(),
-                            paragraphIndex)
+                            new ParagraphIndex(paragraphIndex))
                         {
                             HitParagraphData = paragraphData,
                             // 行内没有命中到字符
@@ -154,7 +156,7 @@ abstract class ArrangingLayoutProvider
                                 hitCaretOffset = new CaretOffset(currentCharIndex + lineLayoutData.CharCount);
                             }
 
-                            return new TextHitTestResult(false, false, true, hitCaretOffset, null, paragraphIndex)
+                            return new TextHitTestResult(false, false, true, hitCaretOffset, null, new ParagraphIndex(paragraphIndex))
                             {
                                 HitParagraphData = paragraphData,
                                 // 命中到了字符
@@ -200,6 +202,11 @@ abstract class ArrangingLayoutProvider
         //   - 进入行布局
         // - 获取文档整个的布局信息
         //   - 获取文档的布局尺寸
+        var updateLayoutContext = new UpdateLayoutContext(this);
+
+        updateLayoutContext.RecordDebugLayoutInfo($"开始布局");
+
+        updateLayoutContext.RecordDebugLayoutInfo($"开始寻找首个变脏段落序号");
 
         // 首行出现变脏的序号
         var firstDirtyParagraphIndex = -1;
@@ -237,6 +244,7 @@ abstract class ArrangingLayoutProvider
         {
             throw new TextEditorInnerException($"进入布局时，没有任何一段需要布局");
         }
+        updateLayoutContext.RecordDebugLayoutInfo($"完成寻找首个变脏段落序号。首个变脏的段落序号是： {firstDirtyParagraphIndex}；首个脏段的起始点：{firstStartPoint}");
 
         //// 进入各个段落的段落之间和行之间的布局
 
@@ -244,12 +252,14 @@ abstract class ArrangingLayoutProvider
         var currentStartPoint = firstStartPoint;
         for (var index = firstDirtyParagraphIndex; index < paragraphList.Count; index++)
         {
+            updateLayoutContext.RecordDebugLayoutInfo($"开始布局第 {index} 段");
             ParagraphData paragraphData = paragraphList[index];
 
-            var argument = new ParagraphLayoutArgument(index, currentStartPoint, paragraphData, paragraphList);
+            var argument = new ParagraphLayoutArgument(new ParagraphIndex(index), currentStartPoint, paragraphData, paragraphList, updateLayoutContext);
 
             ParagraphLayoutResult result = LayoutParagraph(argument);
             currentStartPoint = result.NextLineStartPoint;
+            updateLayoutContext.RecordDebugLayoutInfo($"完成布局第 {index} 段");
         }
 
         var documentBounds = TextRect.Zero;
@@ -262,7 +272,9 @@ abstract class ArrangingLayoutProvider
         Debug.Assert(TextEditor.DocumentManager.ParagraphManager.GetParagraphList()
             .All(t => t.IsDirty() == false));
 
-        return new DocumentLayoutResult(documentBounds);
+        updateLayoutContext.SetLayoutCompleted();
+
+        return new DocumentLayoutResult(documentBounds, updateLayoutContext);
     }
 
     /// <summary>
@@ -279,10 +291,17 @@ abstract class ArrangingLayoutProvider
     {
         // 如果段落本身是没有脏的，可能是当前段落的前面段落变更，导致需要更新段落的左上角坐标点而已
         // 这里执行快速的短路代码，提升性能
+        UpdateLayoutContext context = argument.UpdateLayoutContext;
         if (!argument.ParagraphData.IsDirty())
         {
+            context.RecordDebugLayoutInfo($"段落本身没有脏，进入快速分支，只需更新段落起始点坐标");
             return UpdateParagraphStartPoint(argument);
         }
+        else
+        {
+            // 继续执行段落内布局
+        }
+        context.RecordDebugLayoutInfo($"段落是脏的，执行段落内布局");
 
         // 先找到首个需要更新的坐标点，这里的坐标是段坐标
         var dirtyParagraphOffset = 0;
@@ -302,6 +321,8 @@ abstract class ArrangingLayoutProvider
                 break;
             }
         }
+
+        context.RecordDebugLayoutInfo($"段内第 {lastIndex} 行是脏的，从此行开始布局");
 
         // 将脏的行移除掉，然后重新添加新的行
         // 例如在一段里面，首行就是脏的，那么此时应该就是从 0 开始，将后续所有行都移除掉
@@ -385,7 +406,7 @@ abstract class ArrangingLayoutProvider
             var paragraphProperty = argument.ParagraphProperty;
 
             var runProperty = paragraphProperty.ParagraphStartRunProperty;
-            runProperty ??= TextEditor.DocumentManager.DefaultRunProperty;
+            runProperty ??= TextEditor.DocumentManager.StyleRunProperty;
 
             var lineSpacingCalculateArgument =
                 new LineSpacingCalculateArgument(argument.ParagraphIndex, 0, paragraphProperty, runProperty);
@@ -457,12 +478,13 @@ abstract class ArrangingLayoutProvider
         // 没有注入平台相关的行距计算器的情况下，以下是默认逻辑
 
         ParagraphProperty paragraphProperty = argument.ParagraphProperty;
+        ITextLineSpacing textLineSpacing = paragraphProperty.LineSpacing;
 
         double lineHeight;
-        if (double.IsNaN(paragraphProperty.FixedLineHeight))
+        if (textLineSpacing is MultipleTextLineSpace multipleTextLineSpace)
         {
             // 倍数行距逻辑
-            var lineSpacing = paragraphProperty.LineSpacing;
+            var lineSpacing = multipleTextLineSpace.LineSpacing;
 
             var needNotCalculateLineSpacing =
                 // 处理首行不展开，文档的首段首行不加上行距
@@ -484,10 +506,14 @@ abstract class ArrangingLayoutProvider
                         lineSpacing);
             }
         }
-        else
+        else if (textLineSpacing is ExactlyTextLineSpace exactlyTextLineSpace)
         {
             // 如果定义了固定行距，那就使用固定行距
-            lineHeight = paragraphProperty.FixedLineHeight;
+            lineHeight = exactlyTextLineSpace.ExactlyLineHeight;
+        }
+        else
+        {
+            throw new NotSupportedException($"传入的行距为 {textLineSpacing?.GetType()} 类型，无法在文本框框架内处理。可重写 {nameof(ILineSpacingCalculator)} 处理器自行处理此行距类型");
         }
 
         return new LineSpacingCalculateResult(ShouldUseCharLineHeight: false, lineHeight, lineHeight);

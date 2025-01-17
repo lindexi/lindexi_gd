@@ -14,7 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media.TextFormatting;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-
+using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Utils;
 
@@ -33,8 +33,11 @@ namespace LightTextEditorPlus.Demo
 
             TextEditor.SetFontSize(60);
             TextEditor.SetFontName("华文中宋");
+            TextEditor.SetFontName("微软雅黑");
+            TextEditor.SetFontName("Javanese Text");
             TextEditor.TextEditorCore.AppendText("123123");
-            TextEditor.TextEditorCore.DocumentManager.SetParagraphProperty(0, TextEditor.TextEditorCore.DocumentManager.GetParagraphProperty(0) with
+            ParagraphIndex paragraphIndex = new ParagraphIndex(0);
+            TextEditor.TextEditorCore.DocumentManager.SetParagraphProperty(paragraphIndex, TextEditor.TextEditorCore.DocumentManager.GetParagraphProperty(paragraphIndex) with
             {
                 LeftIndentation = 5
             });

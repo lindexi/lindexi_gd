@@ -112,7 +112,7 @@ class ParagraphManager
             // 不优化语法，方便加上断点
 
             // 获取当前的段落属性作为默认段落属性
-            paragraphProperty = TextEditor.DocumentManager.DefaultParagraphProperty;
+            paragraphProperty = TextEditor.DocumentManager.StyleParagraphProperty;
         }
 
         // 使用 with 关键词，重新拷贝一份对象，防止多个段落之间使用相同的段落对象属性，导致可能存在的对象变更
@@ -129,7 +129,7 @@ class ParagraphManager
         }
         else
         {
-            var index = relativeParagraph.Index;
+            var index = relativeParagraph.Index.Index;
             ParagraphList.Insert(index + 1, paragraphData);
         }
 
@@ -175,17 +175,17 @@ class ParagraphManager
     internal IReadOnlyList<ParagraphData> GetRawParagraphList()
         => ParagraphList;
 
-    public ParagraphData GetParagraph(int index)
+    public ParagraphData GetParagraph(ParagraphIndex index)
     {
         EnsureFirstParagraphExists();
         var list = ParagraphList;
-        if (index >= list.Count)
+        if (index.Index >= list.Count)
         {
             throw new ArgumentOutOfRangeException(nameof(index),
                 $"ParagraphCount:{list.Count} Index={index}");
         }
 
-        return list[index];
+        return list[index.Index];
     }
 
     private List<ParagraphData> ParagraphList { get; } = new List<ParagraphData>();
@@ -237,10 +237,10 @@ class ParagraphManager
         return stringBuilder.ToString();
     }
 
-    public int GetParagraphIndex(ParagraphData paragraphData)
+    public ParagraphIndex GetParagraphIndex(ParagraphData paragraphData)
     {
         var index = ParagraphList.IndexOf(paragraphData);
-        return index;
+        return new ParagraphIndex(index);
     }
 
     /// <summary>

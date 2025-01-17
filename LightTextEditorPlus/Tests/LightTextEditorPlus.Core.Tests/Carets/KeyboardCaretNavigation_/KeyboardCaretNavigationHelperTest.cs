@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.TestsFramework;
 
@@ -641,7 +642,7 @@ public class KeyboardCaretNavigationHelperTest
             // 光标可到末段首行
             var caretRenderInfo = textEditorCore.GetRenderInfo().GetCurrentCaretRenderInfo();
             Assert.AreEqual(0, caretRenderInfo.LineIndex);
-            Assert.AreEqual(1, caretRenderInfo.ParagraphIndex);
+            Assert.AreEqual(new ParagraphIndex(1), caretRenderInfo.ParagraphIndex);
 
             Assert.AreEqual("abcdefg".Length + ParagraphData.DelimiterLength + offset, textEditorCore.CurrentCaretOffset.Offset);
         }).WithArguments(0, 1, 2);
@@ -667,7 +668,7 @@ public class KeyboardCaretNavigationHelperTest
             // 光标可到首段末行
             var caretRenderInfo = textEditorCore.GetRenderInfo().GetCaretRenderInfo(textEditorCore.CurrentCaretOffset);
             Assert.AreEqual(1, caretRenderInfo.LineIndex);
-            Assert.AreEqual(0, caretRenderInfo.ParagraphIndex);
+            Assert.AreEqual(new ParagraphIndex(0), caretRenderInfo.ParagraphIndex);
 
             if (offset < 2)
             {
@@ -751,7 +752,7 @@ public class KeyboardCaretNavigationHelperTest
             // 光标可到首段末行
             var caretRenderInfo = textEditorCore.GetRenderInfo().GetCaretRenderInfo(textEditorCore.CurrentCaretOffset);
             Assert.AreEqual(1, caretRenderInfo.LineIndex);
-            Assert.AreEqual(0, caretRenderInfo.ParagraphIndex);
+            Assert.AreEqual(new ParagraphIndex(0), caretRenderInfo.ParagraphIndex);
 
             if (offset > 2)
             {
@@ -785,7 +786,7 @@ public class KeyboardCaretNavigationHelperTest
             // 光标可到首段首行
             var caretRenderInfo = textEditorCore.GetRenderInfo().GetCaretRenderInfo(textEditorCore.CurrentCaretOffset);
             Assert.AreEqual(0, caretRenderInfo.LineIndex);
-            Assert.AreEqual(0, caretRenderInfo.ParagraphIndex);
+            Assert.AreEqual(new ParagraphIndex(0), caretRenderInfo.ParagraphIndex);
 
             Assert.AreEqual(offset - 5, textEditorCore.CurrentCaretOffset.Offset);
         }).WithArguments(5, 6, 7);

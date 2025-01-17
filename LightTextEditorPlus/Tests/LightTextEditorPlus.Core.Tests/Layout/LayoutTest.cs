@@ -1,5 +1,6 @@
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
@@ -116,8 +117,8 @@ public class LayoutTest
                 .UseFixedLineSpacing();
 
             // Action
-            var paragraphProperty = textEditorCore.DocumentManager.GetParagraphProperty(0);
-            textEditorCore.DocumentManager.SetParagraphProperty(0, paragraphProperty with
+            var paragraphProperty = textEditorCore.DocumentManager.GetParagraphProperty(new ParagraphIndex(0));
+            textEditorCore.DocumentManager.SetParagraphProperty(new ParagraphIndex(0), paragraphProperty with
             {
                 // 随便定义两个距离，又刚好不是整数，方便测试
                 ParagraphBefore = 21,
@@ -147,8 +148,8 @@ public class LayoutTest
                 .UseFixedLineSpacing();
 
             // Action
-            var paragraphProperty = textEditorCore.DocumentManager.GetParagraphProperty(0);
-            textEditorCore.DocumentManager.SetParagraphProperty(0, paragraphProperty with
+            var paragraphProperty = textEditorCore.DocumentManager.GetParagraphProperty(new ParagraphIndex(0));
+            textEditorCore.DocumentManager.SetParagraphProperty(new ParagraphIndex(0), paragraphProperty with
             {
                 // 随便定义两个距离，又刚好不是整数，方便测试
                 ParagraphBefore = 21,
@@ -175,8 +176,8 @@ public class LayoutTest
                 .UseFixedLineSpacing();
 
             // Action
-            var paragraphProperty = textEditorCore.DocumentManager.GetParagraphProperty(0);
-            textEditorCore.DocumentManager.SetParagraphProperty(0, paragraphProperty with
+            var paragraphProperty = textEditorCore.DocumentManager.GetParagraphProperty(new ParagraphIndex(0));
+            textEditorCore.DocumentManager.SetParagraphProperty(new ParagraphIndex(0), paragraphProperty with
             {
                 // 随便定义两个距离，又刚好不是整数，方便测试
                 ParagraphBefore = 5,
@@ -200,8 +201,8 @@ public class LayoutTest
                 .UseFixedLineSpacing();
 
             // Action
-            var paragraphProperty = textEditorCore.DocumentManager.GetParagraphProperty(0);
-            textEditorCore.DocumentManager.SetParagraphProperty(0, paragraphProperty with
+            var paragraphProperty = textEditorCore.DocumentManager.GetParagraphProperty(new ParagraphIndex(0));
+            textEditorCore.DocumentManager.SetParagraphProperty(new ParagraphIndex(0), paragraphProperty with
             {
                 // 随便定义两个距离，又刚好不是整数，方便测试
                 ParagraphBefore = 5,

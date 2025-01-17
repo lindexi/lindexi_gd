@@ -1,5 +1,6 @@
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.Segments;
 
 namespace LightTextEditorPlus.Core.Layout;
 
@@ -12,7 +13,7 @@ namespace LightTextEditorPlus.Core.Layout;
 /// <param name="HitCaretOffset">命中的光标</param>
 /// <param name="HitCharData">命中到的字符，如果没有命中到字符，将返回空</param>
 /// <param name="HitParagraphIndex">命中到第几段</param>
-public readonly record struct TextHitTestResult(bool IsOutOfTextCharacterBounds, bool IsEndOfTextCharacterBounds, bool IsInLineBoundsNotHitChar, CaretOffset HitCaretOffset, CharData? HitCharData, int HitParagraphIndex)
+public readonly record struct TextHitTestResult(bool IsOutOfTextCharacterBounds, bool IsEndOfTextCharacterBounds, bool IsInLineBoundsNotHitChar, CaretOffset HitCaretOffset, CharData? HitCharData, ParagraphIndex HitParagraphIndex)
 {
     /// <summary>
     /// 是否命中到了空白部分，也就是没有直接命中字符

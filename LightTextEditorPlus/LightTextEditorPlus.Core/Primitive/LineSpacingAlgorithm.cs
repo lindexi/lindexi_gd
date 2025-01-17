@@ -43,4 +43,7 @@ public enum LineSpacingAlgorithm
     /// 此算法计算出来的行距和 PPT 的相近
     /// </summary>
     PPT = 1,
+
+    // todo Word 行距
+    // 在 Word 里几倍行距就是几倍行高
 }

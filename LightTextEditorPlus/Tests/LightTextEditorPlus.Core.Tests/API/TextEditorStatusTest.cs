@@ -1,5 +1,6 @@
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.TestsFramework;
@@ -75,7 +76,7 @@ public class TextEditorStatusTest
             // 文档没有任何字符，因此是空
             Assert.IsNull(hitTestResult.HitCharData);
             // 命中首段
-            Assert.AreEqual(0, hitTestResult.HitParagraphIndex);
+            Assert.AreEqual(new ParagraphIndex(0), hitTestResult.HitParagraphIndex);
             Assert.IsNotNull(hitTestResult.ParagraphProperty);
             Assert.AreEqual(true, hitTestResult.IsHitSpace);
         });

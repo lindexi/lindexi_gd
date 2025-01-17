@@ -118,7 +118,7 @@ public partial class TextEditorSettingsControl : UserControl
         {
             SetCurrentParagraphProperty(GetCurrentParagraphProperty() with
             {
-                LineSpacing = lineSpacing
+                LineSpacing = TextLineSpacings.MultipleLineSpace(lineSpacing)
             });
         }
         else
@@ -133,12 +133,12 @@ public partial class TextEditorSettingsControl : UserControl
         {
             SetCurrentParagraphProperty(GetCurrentParagraphProperty() with
             {
-                FixedLineSpacing = fixedLineSpacing
+                LineSpacing = TextLineSpacings.ExactlyLineSpace(fixedLineSpacing)
             });
         }
         else
         {
-            FixedLineSpacingTextBox.Text = null;
+            FixedLineSpacingTextBox.Text = string.Empty;
         }
     }
 
@@ -146,10 +146,10 @@ public partial class TextEditorSettingsControl : UserControl
     {
         SetCurrentParagraphProperty(GetCurrentParagraphProperty() with
         {
-            FixedLineSpacing = double.NaN
+            LineSpacing = TextLineSpacings.SingleLineSpace(),
         });
 
-        FixedLineSpacingTextBox.Text = null;
+        FixedLineSpacingTextBox.Text = string.Empty;
     }
 
     #endregion
@@ -158,4 +158,14 @@ public partial class TextEditorSettingsControl : UserControl
 
     private void SetCurrentParagraphProperty(ParagraphProperty paragraphParagraph) =>
         TextEditor.TextEditorCore.DocumentManager.SetParagraphProperty(TextEditor.CurrentCaretOffset, paragraphParagraph);
+
+    private void WPFLineSpacingAlgorithmButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.TextEditorCore.LineSpacingAlgorithm = LineSpacingAlgorithm.WPF;
+    }
+
+    private void PPTLineSpacingAlgorithmButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.TextEditorCore.LineSpacingAlgorithm = LineSpacingAlgorithm.PPT;
+    }
 }

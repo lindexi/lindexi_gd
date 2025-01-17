@@ -1,7 +1,12 @@
 #if USE_AllInOne || !USE_MauiGraphics && !USE_SKIA
 
 using System;
+using System.Reflection;
+
 using LightTextEditorPlus.Core;
+using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Primitive;
 
@@ -64,6 +69,61 @@ namespace LightTextEditorPlus
             IsInEditingInputMode = false;
             TextEditorCore.ClearSelection();
         }
+
+        #endregion
+
+        #region 段落属性
+
+        /// <summary>
+        /// 设置段落属性
+        /// </summary>
+        /// <param name="caretOffset"></param>
+        /// <param name="paragraphProperty"></param>
+        public void SetParagraphProperty(CaretOffset caretOffset, ParagraphProperty paragraphProperty)
+        {
+            TextEditorCore.DocumentManager.SetParagraphProperty(caretOffset, paragraphProperty);
+        }
+
+        /// <summary>
+        /// 设置段落属性
+        /// </summary>
+        public void SetParagraphProperty(ParagraphIndex index, ParagraphProperty paragraphProperty)
+        {
+            TextEditorCore.DocumentManager.SetParagraphProperty(index, paragraphProperty);
+        }
+
+        /// <summary>
+        /// 设置当前光标所在的段落的段落属性
+        /// </summary>
+        /// <param name="paragraphProperty"></param>
+        public void SetCurrentCaretOffsetParagraphProperty(ParagraphProperty paragraphProperty) => SetParagraphProperty(TextEditorCore.CurrentCaretOffset, paragraphProperty);
+
+        /// <summary>
+        /// 获取段落属性
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public ParagraphProperty GetParagraphProperty(ParagraphIndex index)
+        {
+            return TextEditorCore.DocumentManager.GetParagraphProperty(index);
+        }
+
+        /// <summary>
+        /// 获取段落属性
+        /// </summary>
+        /// <param name="caretOffset"></param>
+        /// <returns></returns>
+        public ParagraphProperty GetParagraphProperty(CaretOffset caretOffset)
+        {
+            return TextEditorCore.DocumentManager.GetParagraphProperty(caretOffset);
+        }
+
+        /// <summary>
+        /// 获取当前光标所在的段落的段落属性
+        /// </summary>
+        /// <returns></returns>
+        public ParagraphProperty GetCurrentCaretOffsetParagraphProperty()
+            => GetParagraphProperty(TextEditorCore.CurrentCaretOffset);
 
         #endregion
     }

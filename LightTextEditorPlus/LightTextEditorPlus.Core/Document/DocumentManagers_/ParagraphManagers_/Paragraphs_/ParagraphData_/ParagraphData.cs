@@ -67,7 +67,7 @@ class ParagraphData
     /// <summary>
     /// 获取当前段落是文档的第几段，从0开始
     /// </summary>
-    public int Index => ParagraphManager.GetParagraphIndex(this);
+    public ParagraphIndex Index => ParagraphManager.GetParagraphIndex(this);
 
     private TextEditorCore TextEditor => ParagraphManager.TextEditor;
 

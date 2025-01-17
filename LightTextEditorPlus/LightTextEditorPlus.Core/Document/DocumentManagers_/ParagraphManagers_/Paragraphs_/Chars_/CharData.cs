@@ -63,7 +63,7 @@ public class CharData
     /// <exception cref="InvalidOperationException"></exception>
     /// 这是文本排版布局的核心方法，通过此方法即可设置每个字符的位置
     [MemberNotNull(nameof(CharLayoutData))]
-    internal void SetStartPoint(TextPoint point)
+    internal void SetLayoutStartPoint(TextPoint point/*, TextPoint baselineStartPoint*/)
     {
         if (CharLayoutData is null)
         {
@@ -71,9 +71,13 @@ public class CharData
         }
 
         CharLayoutData.StartPoint = point;
+        //CharLayoutData.BaselineStartPoint = baselineStartPoint;
 
         IsSetStartPointInDebugMode = true;
     }
+
+    // 原本以为直接设置给基线即可，后续发现这样排版依然是无法对齐的，需要获取明确的左上角坐标。然后在渲染层自行叠加基线
+    //public TextPoint BaselineStartPoint => CharLayoutData!.BaselineStartPoint;
 
     /// <summary>
     /// 是否已经设置了此字符的起始（左上角）坐标。这是一个调试属性，仅调试下有用
@@ -85,7 +89,7 @@ public class CharData
     /// </summary>
     /// <param name="textSize"></param>
     /// <param name="baseline">基线，相对于字符的左上角，字符坐标系。即无论这个字符放在哪一行哪一段，这个字符的基线都是一样的</param>
-    public void SetCharDataInfo(TextSize textSize, double baseline)
+    internal void SetCharDataInfo(TextSize textSize, double baseline)
     {
         Size = textSize;
         Baseline = baseline;

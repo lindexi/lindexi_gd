@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.Segments;
 
 namespace LightTextEditorPlus.Core.Rendering;
 
@@ -8,7 +9,7 @@ namespace LightTextEditorPlus.Core.Rendering;
 /// </summary>
 public readonly struct ParagraphRenderInfo
 {
-    internal ParagraphRenderInfo(int index, ParagraphData paragraphData, RenderInfoProvider renderInfoProvider)
+    internal ParagraphRenderInfo(ParagraphIndex index, ParagraphData paragraphData, RenderInfoProvider renderInfoProvider)
     {
         Index = index;
         _paragraphData = paragraphData;
@@ -18,7 +19,7 @@ public readonly struct ParagraphRenderInfo
     /// <summary>
     /// 段落序号，这是文档里的第几段，从0开始
     /// </summary>
-    public int Index { get; }
+    public ParagraphIndex Index { get; }
     private readonly ParagraphData _paragraphData;
     private readonly RenderInfoProvider _renderInfoProvider;
 

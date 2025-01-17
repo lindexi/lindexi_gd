@@ -1,5 +1,6 @@
 using System.Linq;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 
@@ -14,12 +15,13 @@ namespace LightTextEditorPlus.Core.Layout;
 /// <param name="CharDataList"></param>
 /// <param name="LineMaxWidth">这一行能布局的最大宽度</param>
 /// <param name="CurrentStartPoint">当前行的起始点，相对于文本框的坐标</param>
-public readonly record struct WholeLineLayoutArgument(int ParagraphIndex, int LineIndex,
+/// <param name="UpdateLayoutContext"></param>
+public readonly record struct WholeLineLayoutArgument(ParagraphIndex ParagraphIndex, int LineIndex,
     ParagraphProperty ParagraphProperty, in TextReadOnlyListSpan<CharData> CharDataList, double LineMaxWidth,
-    TextPoint CurrentStartPoint)
+    TextPoint CurrentStartPoint, UpdateLayoutContext UpdateLayoutContext)
 {
     /// <summary>
     /// 调试使用的这一行的文本
     /// </summary>
-    public string DebugText =>$"第 {ParagraphIndex} 段，第 {LineIndex} 行。文本：{string.Join("", CharDataList.Select(t => t.CharObject.ToText()))}" ;
+    public string DebugText =>$"第 {ParagraphIndex.Index} 段，第 {LineIndex} 行。文本：{string.Join("", CharDataList.Select(t => t.CharObject.ToText()))}" ;
 }

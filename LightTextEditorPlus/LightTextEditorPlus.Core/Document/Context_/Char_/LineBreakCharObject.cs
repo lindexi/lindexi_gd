@@ -7,7 +7,7 @@ namespace LightTextEditorPlus.Core.Document;
 /// <summary>
 /// 表示一个换行的字符
 /// </summary>
-public class LineBreakCharObject : ICharObject
+public sealed class LineBreakCharObject : ICharObject
 {
     /// <summary>
     /// 获取换行字符实例

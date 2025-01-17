@@ -31,4 +31,11 @@ public interface ITextLogger
     /// </summary>
     /// <param name="message"></param>
     void LogWarning(string message);
+
+    /// <summary>
+    /// 记录文本库内特殊的信息
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="info"></param>
+    void Log<T>(T info);
 }

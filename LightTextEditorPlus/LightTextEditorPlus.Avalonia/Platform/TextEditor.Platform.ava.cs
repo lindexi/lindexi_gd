@@ -20,7 +20,9 @@ using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils.Patterns;
+using LightTextEditorPlus.Editing;
 using LightTextEditorPlus.Platform;
 using LightTextEditorPlus.Utils;
 
@@ -51,31 +53,23 @@ partial class TextEditor : Control
 
         // 设计上会导致 Avalonia 总会调用二级的 SkiaTextEditor 接口实现功能。有开发资源可以做一层代理
 
-#if DEBUG
-        WidthProperty.Changed.AddClassHandler((TextEditor o, AvaloniaPropertyChangedEventArgs args) =>
-        {
+        MouseHandler = new MouseHandler(this);
 
-        });
-#endif
+        //#if DEBUG
+        //        WidthProperty.Changed.AddClassHandler((TextEditor o, AvaloniaPropertyChangedEventArgs args) =>
+        //        {
+
+        //        });
+        //#endif
+
+        IMESupporter.AddIMESupport(this);
     }
 
-    private AvaloniaSkiaTextEditorPlatformProvider PlatformProvider { get; }
+    internal AvaloniaSkiaTextEditorPlatformProvider PlatformProvider { get; }
 
     #region 交互
 
-    protected override void OnPointerPressed(PointerPressedEventArgs e)
-    {
-        this.Focus(NavigationMethod.Directional);
-        PointerPoint currentPoint = e.GetCurrentPoint(this);
-        Point position = currentPoint.Position;
-        TextPoint textPoint = position.ToTextPoint();
-
-        if (TextEditorCore.TryHitTest(textPoint, out var result))
-        {
-            TextEditorCore.CurrentCaretOffset = result.HitCaretOffset;
-        }
-        base.OnPointerPressed(e);
-    }
+    private MouseHandler MouseHandler { get; }
 
     protected override void OnTextInput(TextInputEventArgs e)
     {
@@ -200,7 +194,7 @@ partial class TextEditor : Control
         {
             // 当前实现的 ForceLayout 是不亏的，因为只有文本存在变更的时候，才会执行实际逻辑
             // 而不是让文本必定需要重新布局
-            PlatformProvider.ForceLayout();
+            PlatformProvider.EnsureLayoutUpdated();
         }
         finally
         {

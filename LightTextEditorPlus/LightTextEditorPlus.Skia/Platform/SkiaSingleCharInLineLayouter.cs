@@ -233,7 +233,7 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
             {
                 SKRect glyphRunBound = glyphRunBounds[glyphRunBoundsIndex];
 
-                charData.SetCharDataInfo(new TextSize(glyphRunBound.Width, glyphRunBound.Height), baselineY);
+                argument.CharDataLayoutInfoSetter.SetCharDataInfo(charData, new TextSize(glyphRunBound.Width, glyphRunBound.Height), baselineY);
             }
 
             // 解决 CharData 和字符不一一对应的问题，可能一个 CharData 对应多个字符

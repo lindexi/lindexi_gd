@@ -13,13 +13,9 @@ static class TextEditorInternalExtension
     /// <param name="textEditor"></param>
     /// <param name="operation"></param>
     /// <returns></returns>
-    public static TextEditorCore InsertUndoRedoOperation(this TextEditorCore textEditor,ITextOperation operation)
+    public static TextEditorCore InsertUndoRedoOperation(this TextEditorCore textEditor, ITextOperation operation)
     {
-        if (textEditor.IsUndoRedoMode)
-        {
-            // 如果文本处于撤销恢复模式则不插入
-        }
-        else
+        if (textEditor.ShouldInsertUndoRedo)
         {
             textEditor.UndoRedoProvider.Insert(operation);
         }

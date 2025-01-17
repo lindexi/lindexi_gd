@@ -220,7 +220,7 @@ public class RenderInfoProvider
         {
             VerifyNotDirty();
             var paragraphData = list[index];
-            yield return new ParagraphRenderInfo(index, paragraphData, this);
+            yield return new ParagraphRenderInfo(new ParagraphIndex(index), paragraphData, this);
         }
     }
 

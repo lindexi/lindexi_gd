@@ -5,3 +5,8 @@ IsReadOnly
 // 进入和退出编辑模式
 EnterEditMode
 QuitEditMode
+// 段落属性
+SetParagraphProperty
+SetCurrentCaretOffsetParagraphProperty
+GetParagraphProperty
+GetCurrentCaretOffsetParagraphProperty

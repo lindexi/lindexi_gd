@@ -44,6 +44,22 @@ internal static class TextCharObjectCreator
             }
             else
             {
+                /*
+                ## Paragraph segmentation
+
+                   The coarsest, and also simplest, segmentation task is paragraph segmentation. Most of the time, paragraphs are simply separated by newline (U+000A) characters, though Unicode in its infinite wisdom specifies a number of code point sequences that function as paragraph separators in plain text:
+
+                   U+000A LINE FEED
+                   U+000B VERTICAL TAB
+                   U+000C FORM FEED
+                   U+000D CARRIAGE RETURN
+                   U+000D U+000A (CR + LF)
+                   U+0085 NEXT LINE
+                   U+2008 LINE SEPARATOR
+                   U+2009 PARAGRAPH SEPARATOR
+
+                By https://raphlinus.github.io/text/2020/10/26/text-layout.html
+                 */
                 charObjectList.Add(new RuneCharObject(rune));
             }
 

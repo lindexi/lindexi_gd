@@ -102,11 +102,21 @@
                 <TextBlock Margin="0,5,0,0" FontWeight="Bold">多倍行距呈现策略</TextBlock>
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition></ColumnDefinition>
-                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition Width="Auto"></ColumnDefinition>
+                        <ColumnDefinition Width="Auto"></ColumnDefinition>
+
+                        <ColumnDefinition Width="Auto"></ColumnDefinition>
+
+                        <ColumnDefinition Width="Auto"></ColumnDefinition>
+                        <ColumnDefinition Width="Auto"></ColumnDefinition>
                     </Grid.ColumnDefinitions>
-                    <Button x:Name="FullExpandButton" Margin="0,2,10,0" Click="FullExpandButton_OnClick">空间全部展开</Button>
-                    <Button x:Name="FirstLineShrinkButton" Grid.Column="1" Margin="10,2,0,0" Click="FirstLineShrinkButton_OnClick">首段首行空间不展开</Button>
+                    <Button x:Name="FullExpandButton" Margin="0,2,5,0" Click="FullExpandButton_OnClick">空间全部展开</Button>
+                    <Button x:Name="FirstLineShrinkButton" Grid.Column="1" Margin="0,2,2,0" Click="FirstLineShrinkButton_OnClick">首段首行空间不展开</Button>
+
+                    <Border Grid.Column="2" Width="2" Background="Gray" Margin="5 0 5 0"></Border>
+
+                    <Button x:Name="WPFLineSpacingAlgorithmButton" Grid.Column="3" Margin="0,2,5,0" Click="WPFLineSpacingAlgorithmButton_OnClick">WPF行距算法</Button>
+                    <Button x:Name="PPTLineSpacingAlgorithmButton" Grid.Column="4" Margin="0,2,5,0" Click="PPTLineSpacingAlgorithmButton_OnClick">PPT行距算法</Button>
                 </Grid>
 
                 <TextBlock Margin="0,5,0,0" FontWeight="Bold">布局方式</TextBlock>

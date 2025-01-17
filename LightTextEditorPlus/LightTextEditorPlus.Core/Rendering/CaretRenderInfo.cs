@@ -35,7 +35,7 @@ public readonly struct CaretRenderInfo
     /// <summary>
     /// 段落在文档里属于第几段
     /// </summary>
-    public int ParagraphIndex => ParagraphData.Index;
+    public ParagraphIndex ParagraphIndex => ParagraphData.Index;
 
     /// <summary>
     /// 这一行的字符列表

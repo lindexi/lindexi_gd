@@ -79,7 +79,7 @@ public class AvaloniaSkiaTextEditorPlatformProvider : SkiaTextEditorPlatformProv
     /// <summary>
     /// 立刻布局
     /// </summary>
-    public void ForceLayout()
+    public void EnsureLayoutUpdated()
     {
         if (_updatingLayout)
         {

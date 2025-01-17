@@ -45,4 +45,25 @@ internal class EmptyTextLogger : ITextLogger
             Debug.WriteLine($"[Warn] {message}");
         }
     }
+
+    public void Log<T>(T info)
+    {
+        // 不知道干啥咯
+        if (!_textEditor.IsInDebugMode)
+        {
+            return;
+        }
+
+        if (info is LayoutCompletedLogInfo layoutCompletedLogInfo)
+        {
+            // 可选将其输出一下？
+#if DEBUG
+            // 只有在文本库调试模式下才会输出，不要影响业务开发者
+            foreach (string message in layoutCompletedLogInfo.GetLayoutDebugMessageList())
+            {
+                LogDebug($"[Layout] {message}");
+            }
+#endif
+        }
+    }
 }

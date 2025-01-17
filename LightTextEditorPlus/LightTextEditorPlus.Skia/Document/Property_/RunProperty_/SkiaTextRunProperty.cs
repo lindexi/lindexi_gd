@@ -1,6 +1,7 @@
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils;
+using LightTextEditorPlus.Platform;
 using SkiaSharp;
 
 namespace LightTextEditorPlus.Document;
