@@ -1,14 +1,15 @@
+using LightTextEditorPlus.Core.Document;
+
 namespace LightTextEditorPlus.Core.TestsFramework;
 
 public static class TextEditorCoreTestExtension
 {
     public static TextEditorCore UseFixedLineSpacing(this TextEditorCore textEditorCore, double fixedLineSpacing = 15)
     {
-        textEditorCore.DocumentManager.DefaultParagraphProperty =
-            textEditorCore.DocumentManager.DefaultParagraphProperty with
-            {
-                FixedLineSpacing = fixedLineSpacing
-            };
+        textEditorCore.DocumentManager.SetStyleParagraphProperty(textEditorCore.DocumentManager.StyleParagraphProperty with
+        {
+            LineSpacing = TextLineSpacings.ExactlyLineSpace(fixedLineSpacing)
+        }); 
 
         return textEditorCore;
     }

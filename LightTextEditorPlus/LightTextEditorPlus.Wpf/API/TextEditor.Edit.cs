@@ -155,7 +155,7 @@ public partial class TextEditor
 
     private bool IsAllRunPropertyMatchPredicate(Predicate<IRunProperty> predicate, Selection? selection)
     {
-        return TextEditorCore.DocumentManager.IsAllRunPropertyMatchPredicate(predicate, selection);
+        return TextEditorCore.DocumentManager.AreAllRunPropertiesMatch(predicate, selection);
     }
 
     /// <summary>

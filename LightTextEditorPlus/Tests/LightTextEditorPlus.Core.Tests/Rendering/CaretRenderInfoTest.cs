@@ -1,6 +1,7 @@
 using MSTest.Extensions.Contracts;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.TestsFramework;
@@ -72,7 +73,7 @@ public class CaretRenderInfoTest
             Assert.AreEqual("f", caretRenderInfo.CharData.CharObject.ToText());
 
             Assert.AreEqual(0, caretRenderInfo.LineIndex);
-            Assert.AreEqual(1, caretRenderInfo.ParagraphIndex);
+            Assert.AreEqual(new ParagraphIndex(1), caretRenderInfo.ParagraphIndex);
 
             Assert.AreEqual(1, caretRenderInfo.HitLineCaretOffset.Offset);
             Assert.AreEqual(0, caretRenderInfo.HitLineCharOffset.Offset);
@@ -108,7 +109,7 @@ public class CaretRenderInfoTest
             Assert.AreEqual("g", caretRenderInfo.CharData.CharObject.ToText());
 
             Assert.AreEqual(0, caretRenderInfo.LineIndex);
-            Assert.AreEqual(1, caretRenderInfo.ParagraphIndex);
+            Assert.AreEqual(new ParagraphIndex(1), caretRenderInfo.ParagraphIndex);
 
             Assert.AreEqual(2, caretRenderInfo.HitLineCaretOffset.Offset);
             Assert.AreEqual(1, caretRenderInfo.HitLineCharOffset.Offset);
@@ -155,7 +156,7 @@ public class CaretRenderInfoTest
             Assert.AreEqual(true, caretRenderInfo.IsLineStart);
 
             Assert.AreEqual(0, caretRenderInfo.LineIndex);
-            Assert.AreEqual(1, caretRenderInfo.ParagraphIndex);
+            Assert.AreEqual(new ParagraphIndex(1), caretRenderInfo.ParagraphIndex);
 
             Assert.AreEqual(0, caretRenderInfo.HitLineCaretOffset.Offset);
             Assert.AreEqual(0, caretRenderInfo.HitLineCharOffset.Offset);
@@ -186,7 +187,7 @@ public class CaretRenderInfoTest
 
             // Assert
             Assert.AreEqual(1, caretRenderInfo.LineIndex, "获取到的是首段的末行");
-            Assert.AreEqual(0, caretRenderInfo.ParagraphIndex, "获取到的是首段的末行");
+            Assert.AreEqual(new ParagraphIndex(0), caretRenderInfo.ParagraphIndex, "获取到的是首段的末行");
             Assert.AreEqual(0, caretRenderInfo.HitLineCaretOffset.Offset);
             Assert.AreEqual(0, caretRenderInfo.HitLineCharOffset.Offset);
 
@@ -218,7 +219,7 @@ public class CaretRenderInfoTest
             Assert.AreEqual(0, caretRenderInfo.HitLineCharOffset.Offset);
 
             Assert.AreEqual(0, caretRenderInfo.LineIndex);
-            Assert.AreEqual(1, caretRenderInfo.ParagraphIndex);
+            Assert.AreEqual(new ParagraphIndex(1), caretRenderInfo.ParagraphIndex);
         });
     }
 

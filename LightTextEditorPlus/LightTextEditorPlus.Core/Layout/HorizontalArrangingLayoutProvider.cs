@@ -8,6 +8,7 @@ using LightTextEditorPlus.Core.Layout.WordDividers;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
+using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Core.Layout;
 
@@ -56,7 +57,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
-    private static TextPoint UpdateParagraphLineLayoutDataStartPoint(in ParagraphLayoutArgument argument)
+    private TextPoint UpdateParagraphLineLayoutDataStartPoint(in ParagraphLayoutArgument argument)
     {
         var currentStartPoint = argument.CurrentStartPoint;
         var paragraph = argument.ParagraphData;
@@ -76,7 +77,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// </summary>
     /// <param name="lineLayoutData"></param>
     /// <param name="startPoint"></param>
-    static void UpdateLineLayoutDataStartPoint(LineLayoutData lineLayoutData, TextPoint startPoint)
+    void UpdateLineLayoutDataStartPoint(LineLayoutData lineLayoutData, TextPoint startPoint)
     {
         // 更新包括两个方面：
         // 1. 此行的起点
@@ -253,7 +254,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             WholeLineLayoutResult result;
             var wholeRunLineLayoutArgument = new WholeLineLayoutArgument(argument.ParagraphIndex,
                 paragraph.LineLayoutDataList.Count, paragraph.ParagraphProperty, charDataList,
-                lineMaxWidth, currentStartPoint);
+                lineMaxWidth, currentStartPoint, argument.UpdateLayoutContext);
             if (wholeRunLineLayouter != null)
             {
                 result = wholeRunLineLayouter.LayoutWholeLine(wholeRunLineLayoutArgument);
@@ -405,7 +406,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// <returns></returns>
     private WholeLineCharsLayoutResult LayoutWholeLineChars(in WholeLineLayoutArgument argument)
     {
-        var (paragraphIndex, lineIndex, paragraphProperty, charDataList, lineMaxWidth, currentStartPoint) = argument;
+        var (paragraphIndex, lineIndex, paragraphProperty, charDataList, lineMaxWidth, currentStartPoint, context) = argument;
 
 #if DEBUG
         // 调试下显示当前这一行的文本，方便了解当前在哪一行
@@ -428,7 +429,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         {
             // 一行里面需要逐个字符进行布局
             var arguments = new SingleCharInLineLayoutArgument(charDataList, currentIndex, lineRemainingWidth,
-                paragraphProperty);
+                paragraphProperty, context);
 
             SingleCharInLineLayoutResult result;
             if (singleRunLineLayouter is not null)
@@ -479,7 +480,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// </summary>
     /// <param name="charDataList"></param>
     /// <returns></returns>
-    static CharData GetMaxFontSizeCharData(in TextReadOnlyListSpan<CharData> charDataList)
+    private static CharData GetMaxFontSizeCharData(in TextReadOnlyListSpan<CharData> charDataList)
     {
         CharData firstCharData = charDataList[0];
         var maxFontSizeCharData = firstCharData;
@@ -500,15 +501,32 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// 更新行的起始点
     /// </summary>
     /// <param name="lineCharList"></param>
-    /// <param name="startPoint"></param>
-    /// <param name="lineHeight"></param>
-    /// <param name="reArrangeXPosition">是否需要重新排列 X 坐标</param>
+    /// <param name="startPoint">文档布局给到行的距离文本框开头的距离</param>
+    /// <param name="lineHeight">当前字符所在行的行高，包括行距在内</param>
+    /// <param name="reArrangeXPosition">是否需要重新排列 X 坐标。对于只是更新行的 Y 坐标的情况，是不需要重新排列的</param>
     /// <param name="needUpdateCharLayoutDataVersion">是否需要更新 CharLayoutData 版本</param>
-    static void UpdateTextLineStartPoint(TextReadOnlyListSpan<CharData> lineCharList, TextPoint startPoint,
+    private void UpdateTextLineStartPoint(TextReadOnlyListSpan<CharData> lineCharList, TextPoint startPoint,
         double lineHeight, bool reArrangeXPosition, bool needUpdateCharLayoutDataVersion)
     {
         var lineTop = startPoint.Y; // 相对于文本框的坐标
         var currentX = startPoint.X;
+
+        CharData maxFontSizeCharData = GetMaxFontSizeCharData(lineCharList);
+        // 求基线的行内偏移量
+        var maxFontHeight = maxFontSizeCharData.Size!.Value.Height;
+        // 先算行内坐标，再转文档坐标
+        double maxFontYOffset = lineHeight - maxFontHeight; 
+
+        // 计算字符在行内的坐标
+        // 字符在行内的垂直对齐方式
+        RatioVerticalCharInLineAlignment verticalCharInLineAlignment = TextEditor.LineSpacingConfiguration.VerticalCharInLineAlignment;
+        // 按照比例对齐
+        maxFontYOffset = maxFontYOffset * verticalCharInLineAlignment.LineSpaceRatio;
+
+        // 计算出最大字符的基线坐标
+        maxFontYOffset += maxFontSizeCharData.Baseline;
+        // 从行内坐标转换为文档坐标
+        maxFontYOffset += lineTop; // 相对于文本框的坐标
 
         foreach (CharData charData in lineCharList)
         {
@@ -527,10 +545,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
                 xOffset = charData.CharLayoutData!.StartPoint.X;
             }
 
-            // todo 应该是计算出基线对齐，然后再计算出字符的下方坐标
-            var yOffset = CalculateCharDataTop(charDataSize.Height, lineHeight,
-                lineTop); // (lineHeight - charDataSize.Height) + lineTop;
-            charData.SetStartPoint(new TextPoint(xOffset, yOffset));
+            // 通过将最大字符的基线和当前字符的基线的差，来计算出当前字符的偏移量
+            // 如此可以实现字体的基线对齐
+            double yOffset = maxFontYOffset - charData.Baseline;
+
+            charData.SetLayoutStartPoint(new TextPoint(xOffset, yOffset)/*, new TextPoint(xOffset, yOffset)*/);
 
             if (needUpdateCharLayoutDataVersion)
             {
@@ -539,38 +558,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
             currentX += charDataSize.Width;
         }
-    }
-
-    /// <summary>
-    /// 更新字符的坐标
-    /// </summary>
-    /// 在已知一行的高度以及当前字符的高度，计算出字符的顶部 Y 坐标
-    /// <param name="charHeight">charData.LineCharSize.Height</param>
-    /// <param name="lineHeight">当前字符所在行的行高，包括行距在内</param>
-    /// <param name="lineTop">文档布局给到行的距离文本框开头的距离</param>
-    /// 只是封装算法而已
-    private static double CalculateCharDataTop(double charHeight, double lineHeight, double lineTop)
-    {
-        // 以下的代码是简单版本的 AdaptBaseLine 方法。而正确的做法是：
-        // 1. 求出最大字符的 Baseline 出来
-        // 2. 求出当前字符的 Baseline 出来
-        // 3. 求出 最大字符的 Baseline 和 当前字符的 Baseline 的差，此结果叠加 lineTop 就是偏移量了
-        // 求底部 leading 的值，让多倍行距时，也有上下边距
-        // 这里只使用简单的方法，求尺寸和行高的差，让字符底部对齐
-
-        // todo 这里的布局是错误的，因为多倍行距时，字符的底部对齐是不对的
-        /*
-          /// <summary>
-           /// 行高的比例，字符上半部分增加4/5，下半部分增加1/5
-           /// </summary>
-           internal const double LineSpaceRatio = 4 / 5.0;
-         */
-
-        // 先计算出字符相对行的距离
-        var charMarginTop = lineHeight - charHeight;
-        // 再加上文档里面给这一行的 lineTop 距离，即可算出字符相对于文本框的距离
-        var yOffset = charMarginTop + lineTop;
-        return yOffset;
     }
 
     #endregion  

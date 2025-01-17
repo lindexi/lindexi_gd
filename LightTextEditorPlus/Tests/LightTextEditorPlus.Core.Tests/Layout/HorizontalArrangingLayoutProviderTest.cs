@@ -1,4 +1,6 @@
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.TestsFramework;
 
@@ -11,7 +13,7 @@ public class HorizontalArrangingLayoutProviderTest
 {
     private const double CharWidth = TestHelper.LayoutTestCharWidth;
     private const double CharHeight = TestHelper.LayoutTestCharHeight;
-    private const double LineSpacing = 1.5;
+    private static MultipleTextLineSpace LineSpacing => new MultipleTextLineSpace(1.5);
 
     [ContractTestCase]
     public void LayoutParagraph()
@@ -51,7 +53,7 @@ public class HorizontalArrangingLayoutProviderTest
             var textEditor = GetTestTextEditor();
 
             // 设置 1.5 倍行距
-            textEditor.DocumentManager.SetParagraphProperty(0, textEditor.DocumentManager.DefaultParagraphProperty with
+            textEditor.DocumentManager.SetParagraphProperty(new ParagraphIndex(0), textEditor.DocumentManager.StyleParagraphProperty with
             {
                 LineSpacing = LineSpacing
             });
@@ -82,15 +84,15 @@ public class HorizontalArrangingLayoutProviderTest
             Assert.AreNotEqual(startPoint, paragraphLayoutData.StartPoint);
             // 布局有两行，一行宽度是 5 个字符，每个字符 20 的宽度
             // 一行高度是 LineSpacing * CharHeight 的高度
-            var size = new TextSize(CharWidth * 5, LineSpacing * CharHeight * 2);
+            var size = new TextSize(CharWidth * 5, LineSpacing.LineSpacing * CharHeight * 2);
             Assert.AreEqual(size, paragraphLayoutData.TextSize);
 
             var lineRenderInfoList = paragraphRenderInfo.GetLineRenderInfoList().ToList();
             // 第一行起始就是首段的末尾，首段的高度是两行的高度，一行高度是 LineSpacing * CharHeight 的高度
-            Assert.AreEqual(new TextPoint(0, LineSpacing * CharHeight * 2),
+            Assert.AreEqual(new TextPoint(0, LineSpacing.LineSpacing * CharHeight * 2),
                 lineRenderInfoList[0].LineLayoutData.CharStartPoint);
             // 一行的宽度是 CharWidth * 字符数量
-            Assert.AreEqual(new TextSize(CharWidth * "ABCDE".Length, LineSpacing * CharHeight),
+            Assert.AreEqual(new TextSize(CharWidth * "ABCDE".Length, LineSpacing.LineSpacing * CharHeight),
                 lineRenderInfoList[0].LineLayoutData.LineSize);
             // 行字符高度等于字符高度
             // 无论设置多少倍行距，行字符高度都是字符高度
@@ -98,9 +100,9 @@ public class HorizontalArrangingLayoutProviderTest
             Assert.AreEqual(CharHeight, lineRenderInfoList[0].LineLayoutData.LineCharTextSize.Height);
 
             // 第二行的起始等于首段的末尾加第一行高度
-            Assert.AreEqual(new TextPoint(0, LineSpacing * CharHeight * 2 + LineSpacing * CharHeight),
+            Assert.AreEqual(new TextPoint(0, LineSpacing.LineSpacing * CharHeight * 2 + LineSpacing.LineSpacing * CharHeight),
                 lineRenderInfoList[1].LineLayoutData.CharStartPoint);
-            Assert.AreEqual(new TextSize(CharWidth * "FG".Length, LineSpacing * CharHeight),
+            Assert.AreEqual(new TextSize(CharWidth * "FG".Length, LineSpacing.LineSpacing * CharHeight),
                 lineRenderInfoList[1].LineLayoutData.LineSize);
             // 行字符高度等于字符高度
             Assert.AreEqual(CharHeight, lineRenderInfoList[1].LineLayoutData.LineCharTextSize.Height);
@@ -112,7 +114,7 @@ public class HorizontalArrangingLayoutProviderTest
             var textEditor = GetTestTextEditor();
 
             // 设置 1.5 倍行距
-            textEditor.DocumentManager.SetParagraphProperty(0, textEditor.DocumentManager.DefaultParagraphProperty with
+            textEditor.DocumentManager.SetParagraphProperty(new ParagraphIndex(0), textEditor.DocumentManager.StyleParagraphProperty with
             {
                 LineSpacing = LineSpacing
             });
@@ -140,7 +142,7 @@ public class HorizontalArrangingLayoutProviderTest
             Assert.AreEqual(startPoint, paragraphLayoutData.StartPoint);
             // 布局有两行，一行宽度是 5 个字符，每个字符 20 的宽度
             // 一行高度是 LineSpacing * CharHeight 的高度
-            var size = new TextSize(CharWidth * 5, LineSpacing * CharHeight * 2);
+            var size = new TextSize(CharWidth * 5, LineSpacing.LineSpacing * CharHeight * 2);
             Assert.AreEqual(size, paragraphLayoutData.TextSize);
         });
 
@@ -155,7 +157,7 @@ public class HorizontalArrangingLayoutProviderTest
             // 文本包含一段一行
             textEditor.AppendText(text);
             // 设置 1.5 倍行距
-            textEditor.DocumentManager.SetParagraphProperty(0, textEditor.DocumentManager.DefaultParagraphProperty with
+            textEditor.DocumentManager.SetParagraphProperty(new ParagraphIndex(0), textEditor.DocumentManager.StyleParagraphProperty with
             {
                 LineSpacing = LineSpacing
             });
@@ -166,14 +168,14 @@ public class HorizontalArrangingLayoutProviderTest
             var paragraphRenderInfo = paragraphRenderInfoList[0];
             Assert.AreEqual(new TextPoint(0, 0), paragraphRenderInfo.ParagraphLayoutData.StartPoint);
 
-            Assert.AreEqual(new TextSize(CharWidth * text.Length, CharHeight * LineSpacing),
+            Assert.AreEqual(new TextSize(CharWidth * text.Length, CharHeight * LineSpacing.LineSpacing),
                 paragraphRenderInfo.ParagraphLayoutData.TextSize);
 
             var lineRenderInfo = paragraphRenderInfo.GetLineRenderInfoList().First();
             var lineLayoutData = lineRenderInfo.LineLayoutData;
             Assert.AreEqual(new TextPoint(0, 0), lineLayoutData.CharStartPoint);
             // 行高是字符高度乘以行距
-            Assert.AreEqual(new TextSize(CharWidth * text.Length, CharHeight * LineSpacing), lineLayoutData.LineSize);
+            Assert.AreEqual(new TextSize(CharWidth * text.Length, CharHeight * LineSpacing.LineSpacing), lineLayoutData.LineSize);
 
             // 行字符高度等于字符高度
             Assert.AreEqual(CharHeight, lineLayoutData.LineCharTextSize.Height);

@@ -110,10 +110,10 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
     #region 公开方法
 
-    /// <inheritdoc cref="DocumentManager.SetDefaultTextRunProperty{T}"/>
-    public void SetDefaultTextRunProperty(ConfigRunProperty config)
+    /// <inheritdoc cref="DocumentManager.SetStyleTextRunProperty{T}"/>
+    public void SetStyleTextRunProperty(ConfigRunProperty config)
     {
-        TextEditorCore.DocumentManager.SetDefaultTextRunProperty((RunProperty property) => config( property));
+        TextEditorCore.DocumentManager.SetStyleTextRunProperty((RunProperty property) => config( property));
     }
 
     /// <inheritdoc cref="DocumentManager.SetCurrentCaretRunProperty{T}"/>
@@ -469,7 +469,7 @@ class CharInfoMeasurer : ICharInfoMeasurer
         var runProperty = charInfo.RunProperty.AsRunProperty();
         GlyphTypeface glyphTypeface = runProperty.GetGlyphTypeface();
         var fontSize = charInfo.RunProperty.FontSize;
-
+        
         TextSize textSize;
 
         if (_textEditor.TextEditorCore.ArrangingType == ArrangingType.Horizontal)
@@ -496,7 +496,9 @@ class CharInfoMeasurer : ICharInfoMeasurer
                 var width = currentGlyphTypeface.AdvanceWidths[glyphIndex] * fontSize;
                 width = GlyphExtension.RefineValue(width);
                 var height = currentGlyphTypeface.AdvanceHeights[glyphIndex] * fontSize;
-                
+                double topSideBearing = currentGlyphTypeface.TopSideBearings[glyphIndex] * fontSize;
+                double bottomSideBearing = currentGlyphTypeface.BottomSideBearings[glyphIndex] * fontSize;
+
                 //var pixelsPerDip = (float) VisualTreeHelper.GetDpi(_textEditor).PixelsPerDip;
                 //var glyphIndices = new[] { glyphIndex };
                 //var advanceWidths = new[] { width };
@@ -554,22 +556,34 @@ class CharInfoMeasurer : ICharInfoMeasurer
 
                 //height = (pptFontLineSpacing * lineSpacing + b) * height;
 
-                switch (_textEditor.TextEditorCore.LineSpacingAlgorithm)
-                {
-                    case LineSpacingAlgorithm.WPF:
-                        var fontLineSpacing = runProperty.GetRenderingFontFamily(c).LineSpacing;
-                        height = LineSpacingCalculator.CalculateLineHeightWithWPFLineSpacingAlgorithm(1, height,
-                            fontLineSpacing);
-                        break;
-                    case LineSpacingAlgorithm.PPT:
-                        height = LineSpacingCalculator.CalculateLineHeightWithPPTLineSpacingAlgorithm(1, height);
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+                //switch (_textEditor.TextEditorCore.LineSpacingAlgorithm)
+                //{
+                //    case LineSpacingAlgorithm.WPF:
+                //        var fontLineSpacing = runProperty.GetRenderingFontFamily(c).LineSpacing;
+                //        height = LineSpacingCalculator.CalculateLineHeightWithWPFLineSpacingAlgorithm(1, height,
+                //            fontLineSpacing);
+                //        break;
+                //    case LineSpacingAlgorithm.PPT:
+                //        height = LineSpacingCalculator.CalculateLineHeightWithPPTLineSpacingAlgorithm(1, height);
+                //        break;
+                //    default:
+                //        throw new ArgumentOutOfRangeException();
+                //}
 
+                var fontLineSpacing = runProperty.GetRenderingFontFamily(c).LineSpacing;
+                // 使用固定字高，而不是每个字符的字高
+                var glyphTypefaceHeight = currentGlyphTypeface.Height * fontSize;
+                _ = fontLineSpacing;
+                _ = glyphTypefaceHeight;
+                _ = height;
+                _ = topSideBearing;
+                _ = bottomSideBearing;
+                var fakeHeight = height + topSideBearing + bottomSideBearing;
+                _ = fakeHeight;
+                // 在以上这些数据上，似乎只有 glyphTypefaceHeight 最正确
+                // 但是在 Javanese Text 字体里面，glyphTypefaceHeight=136 显著大于 height=60 导致字符上浮，超过文本框
                 //return (bounds.Width, bounds.Height);
-                return new TextSize(width, height);
+                return new TextSize(width, glyphTypefaceHeight);
             }
         }
         else

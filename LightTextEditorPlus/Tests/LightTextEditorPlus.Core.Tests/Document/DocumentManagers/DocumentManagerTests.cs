@@ -168,6 +168,32 @@ public class DocumentManagerTests
     }
 
     [ContractTestCase]
+    public void TestCurrentCaretRunProperty()
+    {
+        "文本正在初始化过程中，设置样式属性，获取当前光标属性，可以获取到样式属性".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+
+            // 设置样式属性
+            textEditorCore.DocumentManager.SetStyleTextRunProperty((LayoutOnlyRunProperty property) => property with
+            {
+                FontSize = 123,
+                FontName = new FontName("Test123")
+            });
+
+            // Action
+            // 获取当前光标属性
+            var currentCaretRunProperty = textEditorCore.DocumentManager.CurrentCaretRunProperty;
+
+            // Assert
+            // 可以获取到样式属性
+            Assert.AreEqual(123, currentCaretRunProperty.FontSize);
+            Assert.AreEqual("Test123", currentCaretRunProperty.FontName.UserFontName);
+        });
+    }
+
+    [ContractTestCase]
     public void GetCharDataRange()
     {
         "调用 DocumentManager.GetCharDataRange 跨了三段选择，可以获取到三段的内容".Test(() =>

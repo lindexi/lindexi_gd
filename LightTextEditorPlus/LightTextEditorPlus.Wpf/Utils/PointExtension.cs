@@ -19,5 +19,5 @@ public static class PointExtension
     /// </summary>
     /// <param name="point"></param>
     /// <returns></returns>
-    internal static LightTextEditorPlus.Core.Primitive.TextPoint ToPoint(this Point point) => new LightTextEditorPlus.Core.Primitive.TextPoint(point.X, point.Y);
+    internal static LightTextEditorPlus.Core.Primitive.TextPoint ToTextPoint(this Point point) => new LightTextEditorPlus.Core.Primitive.TextPoint(point.X, point.Y);
 }

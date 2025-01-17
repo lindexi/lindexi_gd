@@ -1,3 +1,4 @@
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 
@@ -10,14 +11,16 @@ public class FakeLineSpacingCalculator : ILineSpacingCalculator
 {
     public LineSpacingCalculateResult CalculateLineSpacing(in LineSpacingCalculateArgument argument)
     {
-        if (double.IsNaN(argument.ParagraphProperty.FixedLineSpacing))
+        ITextLineSpacing textLineSpacing = argument.ParagraphProperty.LineSpacing;
+        if (textLineSpacing is MultipleTextLineSpace multipleTextLineSpace)
         {
             return new LineSpacingCalculateResult(false,
-                argument.MaxFontSizeCharRunProperty.FontSize * argument.ParagraphProperty.LineSpacing, 0);
+                argument.MaxFontSizeCharRunProperty.FontSize * multipleTextLineSpace.LineSpacing, 0);
         }
         else
         {
-            return new LineSpacingCalculateResult(true, argument.ParagraphProperty.FixedLineSpacing, 0);
+            ExactlyTextLineSpace exactlyTextLineSpace = (ExactlyTextLineSpace) textLineSpacing;
+            return new LineSpacingCalculateResult(true, exactlyTextLineSpace.ExactlyLineHeight, 0);
         }
     }
 }

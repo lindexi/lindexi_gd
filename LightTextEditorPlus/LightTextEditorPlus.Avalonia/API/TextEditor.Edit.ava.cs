@@ -1,5 +1,3 @@
-using Avalonia.Logging;
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -79,17 +77,17 @@ namespace LightTextEditorPlus
         /// <inheritdoc cref="LightTextEditorPlus.Core.Document.DocumentManager.CurrentCaretRunProperty"/>
         public SkiaTextRunProperty CurrentCaretRunProperty => (SkiaTextRunProperty) TextEditorCore.DocumentManager.CurrentCaretRunProperty;
 
-        /// <inheritdoc cref="LightTextEditorPlus.Core.Document.DocumentManager.DefaultRunProperty"/>
-        public SkiaTextRunProperty DefaultRunProperty => (SkiaTextRunProperty) TextEditorCore.DocumentManager.DefaultRunProperty;
+        /// <inheritdoc cref="DocumentManager.StyleRunProperty"/>
+        public SkiaTextRunProperty StyleRunProperty => (SkiaTextRunProperty) TextEditorCore.DocumentManager.StyleRunProperty;
 
         /// <summary>
         /// 创建一个新的 RunProperty 对象
         /// </summary>
-        /// <param name="createRunProperty">传入默认的 <see cref="DefaultRunProperty"/> 字符属性，返回创建的新的字符属性。方法等同于直接拿 <see cref="DefaultRunProperty"/> 字符属性带 with 关键字创建新的属性</param>
+        /// <param name="createRunProperty">传入默认的 <see cref="StyleRunProperty"/> 字符属性，返回创建的新的字符属性。方法等同于直接拿 <see cref="StyleRunProperty"/> 字符属性带 with 关键字创建新的属性</param>
         /// <returns></returns>
         /// 这是一个多余的方法，但是可以比较方便让大家找到创建字符属性的方法
         public SkiaTextRunProperty CreateRunProperty(CreateRunProperty createRunProperty) =>
-            createRunProperty(DefaultRunProperty);
+            createRunProperty(StyleRunProperty);
 
         /// <summary>
         /// 设置字体名
@@ -147,7 +145,7 @@ namespace LightTextEditorPlus
             FontStyle fontStyle;
 
             SKFontStyleSlant normalStyle = FontStyle.Normal.ToSKFontStyleSlant();
-            if (IsAllRunPropertyMatchPredicate(property => property.FontStyle == normalStyle, selection))
+            if (AreAllRunPropertiesMatch(property => property.FontStyle == normalStyle, selection))
             {
                 // 字体倾斜 Italic 和 Oblique 的差别
                 // 使用 Italic 是字体提供的斜体，可以和正常字体有不同的界面
@@ -181,7 +179,7 @@ namespace LightTextEditorPlus
         {
             FontWeight fontWeight;
             SKFontStyleWeight normalWeight = FontWeight.Normal.ToSKFontStyleWeight();
-            if (IsAllRunPropertyMatchPredicate(property => property.FontWeight == normalWeight, selection))
+            if (AreAllRunPropertiesMatch(property => property.FontWeight == normalWeight, selection))
             {
                 fontWeight = FontWeight.Bold;
             }
@@ -193,9 +191,9 @@ namespace LightTextEditorPlus
             SetFontWeight(fontWeight, selection);
         }
 
-        private bool IsAllRunPropertyMatchPredicate(Predicate<SkiaTextRunProperty> predicate, Selection? selection)
+        private bool AreAllRunPropertiesMatch(Predicate<SkiaTextRunProperty> predicate, Selection? selection)
         {
-            return TextEditorCore.DocumentManager.IsAllRunPropertyMatchPredicate(predicate, selection);
+            return TextEditorCore.DocumentManager.AreAllRunPropertiesMatch(predicate, selection);
         }
 
         /// <summary>

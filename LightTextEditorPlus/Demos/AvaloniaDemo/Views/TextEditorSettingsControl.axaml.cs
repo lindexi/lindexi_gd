@@ -154,7 +154,7 @@ public partial class TextEditorSettingsControl : UserControl
         {
             SetCurrentParagraphProperty(GetCurrentParagraphProperty() with
             {
-                LineSpacing = lineSpacing
+                LineSpacing = TextLineSpacings.MultipleLineSpace(lineSpacing)
             });
         }
         else
@@ -169,7 +169,7 @@ public partial class TextEditorSettingsControl : UserControl
         {
             SetCurrentParagraphProperty(GetCurrentParagraphProperty() with
             {
-                FixedLineSpacing = fixedLineSpacing
+                LineSpacing = TextLineSpacings.ExactlyLineSpace(fixedLineSpacing)
             });
         }
         else
@@ -182,7 +182,7 @@ public partial class TextEditorSettingsControl : UserControl
     {
         SetCurrentParagraphProperty(GetCurrentParagraphProperty() with
         {
-            FixedLineSpacing = double.NaN
+            LineSpacing = TextLineSpacings.SingleLineSpace(),
         });
 
         FixedLineSpacingTextBox.Text = null;

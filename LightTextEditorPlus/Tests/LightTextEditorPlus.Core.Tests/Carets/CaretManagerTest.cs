@@ -40,7 +40,7 @@ public class CaretManagerTest
             var textEditorCore = TestHelper.GetTextEditorCore();
             // 先准备两个字符，用来设置光标在文本中间
             textEditorCore.DocumentManager
-                .SetDefaultTextRunProperty<LayoutOnlyRunProperty>(property => property with
+                .SetStyleTextRunProperty<LayoutOnlyRunProperty>(property => property with
                 {
                     FontSize = 10
                 });

@@ -22,10 +22,10 @@ namespace LightTextEditorPlus.Core.Document
         public DocumentManager(TextEditorCore textEditor)
         {
             TextEditor = textEditor;
-            var currentRunProperty = textEditor.PlatformProvider.GetPlatformRunPropertyCreator().GetDefaultRunProperty();
-            _initParagraphProperty = new ParagraphProperty()
+            IReadOnlyRunProperty styleRunProperty = textEditor.PlatformProvider.GetPlatformRunPropertyCreator().GetDefaultRunProperty();
+            StyleParagraphProperty = new ParagraphProperty()
             {
-                ParagraphStartRunProperty = currentRunProperty,
+                ParagraphStartRunProperty = styleRunProperty,
             };
             
             ParagraphManager = new ParagraphManager(textEditor);
@@ -122,50 +122,52 @@ namespace LightTextEditorPlus.Core.Document
         #region Paragraph段落
 
         /// <summary>
-        /// 设置或获取默认的文本的默认段落属性。设置之后，只影响新变更的文本，不影响之前的文本。当文本初始化完成之后，设置无效
+        /// 设置或获取文本的样式段落属性。此属性一般只在初始化时设置和使用，当首段文本创建时，将会继承此样式。但当文本已经完成初始化之后，即存在过文本之后，则此属性设置将对文本毫无影响
+        /// <para>
+        /// 此属性的存在只有两个功能：
+        /// 1. 作为文本初始化的默认样式
+        /// 2. 给业务方获取样式段落属性方便使用 with 关键字创建出新的段落属性
+        /// </para>
         /// </summary>
-        /// 此属性一般只在初始化时设置和使用，当存在文本段落的时候，将被替换为实际的文本段落，首个段落的属性
-        public ParagraphProperty DefaultParagraphProperty
+        public ParagraphProperty StyleParagraphProperty
         {
-            [MemberNotNull(nameof(_initParagraphProperty))]
-            set
-            {
-                var isInit = ParagraphManager.GetRawParagraphList().Count == 0;
-                if (!isInit && !TextEditor.IsUndoRedoMode)
-                {
-                    string message = "禁止在初始化完成之后，即存在段落之后，设置默认的段落属性";
-                    if (TextEditor.IsInDebugMode)
-                    {
-                        throw new TextEditorDebugException(message);
-                    }
-                    else
-                    {
-                        TextEditor.Logger.LogWarning(message);
-                    }
-                }
+            get;
+            private set;
+            //[MemberNotNull(nameof(_initParagraphProperty))]
+            //set
+            //{
+            //    var isInit = ParagraphManager.GetRawParagraphList().Count == 0;
+            //    if (!isInit && !TextEditor.IsUndoRedoMode)
+            //    {
+            //        string message = "禁止在初始化完成之后，即存在段落之后，设置默认的段落属性";
+            //        if (TextEditor.IsInDebugMode)
+            //        {
+            //            throw new TextEditorDebugException(message);
+            //        }
+            //        else
+            //        {
+            //            TextEditor.Logger.LogWarning(message);
+            //        }
+            //    }
 
-                _initParagraphProperty = value;
-            }
-            get
-            {
-                IReadOnlyList<ParagraphData> paragraphList = ParagraphManager.GetRawParagraphList();
-                int count = paragraphList.Count;
-                if (count == 0)
-                {
-                    // 没有段落，那就使用默认段落属性
-                    return _initParagraphProperty;
-                }
-                else
-                {
-                    return paragraphList[0].ParagraphProperty;
-                }
-            }
+            //    _initParagraphProperty = value;
+            //}
+            //get
+            //{
+            // 这个逻辑太复杂了，取的是首段的段落属性
+            //IReadOnlyList<ParagraphData> paragraphList = ParagraphManager.GetRawParagraphList();
+            //int count = paragraphList.Count;
+            //if (count == 0)
+            //{
+            //    // 没有段落，那就使用默认段落属性
+            //    return _initParagraphProperty;
+            //}
+            //else
+            //{
+            //    return paragraphList[0].ParagraphProperty;
+            //}
+            //}
         }
-
-        /// <summary>
-        /// 初始化过程中的段落属性。等初始化完成之后，即存在段落之后，将会被替换为首个段落的属性
-        /// </summary>
-        private ParagraphProperty _initParagraphProperty;
 
         ///// <summary>
         ///// 当前光标下的段落
@@ -181,11 +183,28 @@ namespace LightTextEditorPlus.Core.Document
         //}
 
         /// <summary>
+        /// 设置当前文本的样式段落属性
+        /// </summary>
+        /// <remarks>
+        /// 仅当文本没有创建出任何段落之前，初始化过程中，才能设置文本的样式段落属性。设置段落的样式属性将会覆盖文本的样式字符属性
+        /// </remarks>
+        public void SetStyleParagraphProperty(ParagraphProperty paragraphProperty)
+        {
+            var isInit = IsInitializingTextEditor();
+            if (!isInit)
+            {
+                throw new InvalidOperationException($"仅当文本没有创建出任何段落之前，初始化过程中，才能设置文本的样式字符属性");
+            }
+
+            StyleParagraphProperty = paragraphProperty;
+        }
+
+        /// <summary>
         /// 设置段落属性
         /// </summary>
         /// <param name="paragraphIndex"></param>
         /// <param name="paragraphProperty"></param>
-        public void SetParagraphProperty(int paragraphIndex, ParagraphProperty paragraphProperty)
+        public void SetParagraphProperty(ParagraphIndex paragraphIndex, ParagraphProperty paragraphProperty)
         {
             ParagraphData paragraphData = ParagraphManager.GetParagraph(paragraphIndex);
             SetParagraphProperty(paragraphData, paragraphProperty);
@@ -228,7 +247,7 @@ namespace LightTextEditorPlus.Core.Document
         /// <summary>
         /// 获取段落属性
         /// </summary>
-        public ParagraphProperty GetParagraphProperty(int paragraphIndex)
+        public ParagraphProperty GetParagraphProperty(ParagraphIndex paragraphIndex)
         {
             return ParagraphManager.GetParagraph(paragraphIndex).ParagraphProperty;
         }
@@ -246,25 +265,33 @@ namespace LightTextEditorPlus.Core.Document
         #region RunProperty
 
         /// <summary>
-        /// 获取当前文本的默认字符属性。正常情况下和 <see cref="CurrentCaretRunProperty"/> 一致，只有当调用 <see cref="SetCurrentCaretRunProperty{T}"/> 设置当前光标的字符属性时，才会不一致
+        /// 获取当前文本的样式字符属性。样式字符属性只用来作为初始化文本的默认字符属性，以及方便业务方使用 with 关键字创建新的字符属性
+        /// <para>
+        /// 此属性在文本初始化之后再次设置将不会影响任何文本内容，即存在过文本之后，则此属性设置将对文本毫无影响
+        /// </para>
+        /// <para>
+        /// 样式字符属性和 <see cref="StyleParagraphProperty"/> 的 <see cref="ParagraphProperty.ParagraphStartRunProperty"/> 属性相同
+        /// </para>
         /// </summary>
-        public IReadOnlyRunProperty DefaultRunProperty
+        public IReadOnlyRunProperty StyleRunProperty
         {
             private set
             {
-                var oldValue = DefaultParagraphProperty.ParagraphStartRunProperty;
+                var oldValue = StyleParagraphProperty.ParagraphStartRunProperty;
 
-                DefaultParagraphProperty = DefaultParagraphProperty with { ParagraphStartRunProperty = value };
+                StyleParagraphProperty = StyleParagraphProperty with { ParagraphStartRunProperty = value };
 
                 if (TextEditor.ShouldInsertUndoRedo)
                 {
-                    // 如果不在撤销恢复模式，那就记录一条
+                    // 如果应该记录撤销重做，
+                    // 如不在撤销恢复模式，且开启了撤销恢复功能
+                    // 那就记录一条
                     var operation =
-                        new ChangeTextEditorDefaultTextRunPropertyValueOperation(TextEditor, value, oldValue);
+                        new ChangeTextEditorStyleTextRunPropertyValueOperation(TextEditor, value, oldValue);
                     TextEditor.InsertUndoRedoOperation(operation);
                 }
             }
-            get => DefaultParagraphProperty.ParagraphStartRunProperty;
+            get => StyleParagraphProperty.ParagraphStartRunProperty;
         }
 
         /// <inheritdoc cref="P:LightTextEditorPlus.Core.Carets.CaretManager.CurrentCaretRunProperty"/>
@@ -287,10 +314,13 @@ namespace LightTextEditorPlus.Core.Document
                 }
 
                 IReadOnlyRunProperty currentCaretRunProperty;
-                if (CharCount == 0)
+                // 无文本时，也是有第一段的。因此不能通过 CharCount == 0 判断空文本
+                // 而是应该通过 IsInitializingTextEditor 判断是否正在初始化，即连第一段可能都没有的情况
+                //if (CharCount == 0)
+                if (IsInitializingTextEditor())
                 {
-                    // 无任何文本字符时，获取段落和文档的属性
-                    currentCaretRunProperty = DefaultRunProperty;
+                    // 如果当前正在初始化过程，则获取样式字符属性
+                    currentCaretRunProperty = StyleRunProperty;
                 }
                 else
                 {
@@ -368,22 +398,29 @@ namespace LightTextEditorPlus.Core.Document
         #region RunProperty
 
         /// <summary>
-        /// 设置当前文本的默认字符属性
+        /// 设置当前文本的样式字符属性
         /// </summary>
         /// <remarks>
-        /// 仅当文本没有创建出任何段落之前，初始化过程中，才能设置文本的默认字符属性
+        /// 仅当文本没有创建出任何段落之前，初始化过程中，才能设置文本的样式字符属性
         /// </remarks>
         /// <typeparam name="T">实际业务端使用的字符属性类型</typeparam>
-        public void SetDefaultTextRunProperty<T>(ConfigReadOnlyRunProperty<T> config) where T : IReadOnlyRunProperty
+        public void SetStyleTextRunProperty<T>(ConfigReadOnlyRunProperty<T> config) where T : IReadOnlyRunProperty
         {
-            var isInit = ParagraphManager.GetRawParagraphList().Count == 0;
+            var isInit = IsInitializingTextEditor();
             if (!isInit)
             {
-                throw new InvalidOperationException($"仅当文本没有创建出任何段落之前，初始化过程中，才能设置文本的默认字符属性");
+                throw new InvalidOperationException($"仅当文本没有创建出任何段落之前，初始化过程中，才能设置文本的样式字符属性");
             }
 
-            DefaultRunProperty = config((T) DefaultRunProperty);
+            StyleRunProperty = config((T) StyleRunProperty);
         }
+
+        /// <summary>
+        /// 是否正在初始化文本编辑器
+        /// </summary>
+        /// <returns></returns>
+        /// 如果文本编辑器有过一次文本，则段落列表不为空，那就不是初始化状态。这和是否空文本是不同的
+        private bool IsInitializingTextEditor() => ParagraphManager.GetRawParagraphList().Count == 0;
 
         /// <summary>
         /// 设置当前光标的字符属性。在光标切走之后，自动失效
@@ -440,13 +477,7 @@ namespace LightTextEditorPlus.Core.Document
                 foreach (var charData in GetCharDataRange(selection.Value))
                 {
                     Debug.Assert(charData.CharLayoutData != null, "能够从段落里获取到的，一定是存在在段落里面，因此此属性一定不为空");
-                    if (charData.IsLineBreakCharData)
-                    {
-                        // 是换行的话，需要加上换行的字符
-                        runList.Add(new LineBreakRun(lastChangedRunProperty));
-                        continue;
-                    }
-
+                    
                     IReadOnlyRunProperty currentRunProperty;
 
                     if (ReferenceEquals(charData.RunProperty, lastCharData?.RunProperty))
@@ -463,7 +494,15 @@ namespace LightTextEditorPlus.Core.Document
                         currentRunProperty = config((T) currentRunProperty);
                     }
 
-                    runList.Add(new SingleCharImmutableRun(charData.CharObject, currentRunProperty));
+                    if (charData.IsLineBreakCharData)
+                    {
+                        // 是换行的话，需要加上换行的字符
+                        runList.Add(new LineBreakRun(currentRunProperty));
+                    }
+                    else
+                    {
+                        runList.Add(new SingleCharImmutableRun(charData.CharObject, currentRunProperty));
+                    }
 
                     lastChangedRunProperty = currentRunProperty;
                     lastCharData = charData;
@@ -485,7 +524,7 @@ namespace LightTextEditorPlus.Core.Document
         /// <param name="selection"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public bool IsAllRunPropertyMatchPredicate<T>(Predicate<T> predicate, Selection? selection = null) where T : IReadOnlyRunProperty
+        public bool AreAllRunPropertiesMatch<T>(Predicate<T> predicate, Selection? selection = null) where T : IReadOnlyRunProperty
         {
             selection ??= CaretManager.CurrentSelection;
             if (selection.Value.IsEmpty)
@@ -522,22 +561,7 @@ namespace LightTextEditorPlus.Core.Document
         {
             var runPropertyRange = GetRunPropertyRange(selection);
 
-            return GetDifferentRunPropertyRangeInner(runPropertyRange);
-
-            static IEnumerable<IReadOnlyRunProperty> GetDifferentRunPropertyRangeInner(
-                IEnumerable<IReadOnlyRunProperty> runPropertyRange)
-            {
-                IReadOnlyRunProperty? lastRunProperty = null;
-
-                foreach (var readOnlyRunProperty in runPropertyRange)
-                {
-                    if (!ReferenceEquals(lastRunProperty, readOnlyRunProperty))
-                    {
-                        lastRunProperty = readOnlyRunProperty;
-                        yield return readOnlyRunProperty;
-                    }
-                }
-            }
+            return runPropertyRange.GetDifferentRunPropertyRangeInner();
         }
 
         /// <summary>
@@ -578,7 +602,7 @@ namespace LightTextEditorPlus.Core.Document
             // 继续获取后续段落，如果首段不够的话
             var lastParagraphData = result.ParagraphData;
             var list = ParagraphManager.GetParagraphList();
-            for (int i = result.ParagraphData.Index + 1; i < list.Count && remainingLength > 0; i++)
+            for (int i = result.ParagraphData.Index.Index + 1; i < list.Count && remainingLength > 0; i++)
             {
                 // 加上段末换行符
                 remainingLength -= ParagraphData.DelimiterLength;
@@ -597,16 +621,23 @@ namespace LightTextEditorPlus.Core.Document
         }
 
         /// <summary>
-        /// 获取不可变的文本块列表。如考虑性能，请优先选择 <see cref="GetCharDataRange"/> 方法
+        /// 获取不可变的文本块列表。如考虑性能，请优先选择 <see cref="GetCharDataRange"/> 方法或 <see cref="EnumerateImmutableRunRange"/> 方法
         /// </summary>
         /// <param name="selection"></param>
         /// <returns></returns>
         public IImmutableRunList GetImmutableRunList(in Selection selection)
         {
-            var charDataRange = GetCharDataRange(selection);
-            IImmutableRunList list = new ImmutableRunList(charDataRange.Select(t => new SingleCharImmutableRun(t.CharObject, t.RunProperty)));
-            return list;
+            IEnumerable<IImmutableRun> enumerateImmutableRunRange = EnumerateImmutableRunRange(selection);
+            return new ImmutableRunList(enumerateImmutableRunRange);
         }
+
+        /// <summary>
+        /// 枚举给定范围的不可变文本块
+        /// </summary>
+        /// <param name="selection"></param>
+        /// <returns></returns>
+        public IEnumerable<IImmutableRun> EnumerateImmutableRunRange(in Selection selection) =>
+            this.GetImmutableRunRangeInner(selection);
 
         #region 编辑
 
@@ -632,7 +663,7 @@ namespace LightTextEditorPlus.Core.Document
             if (TextEditor.ShouldInsertUndoRedo)
             {
                 var oldSelection = new Selection(new CaretOffset(oldCharCount), length: 0);
-                IImmutableRunList? oldRun = null;
+                IImmutableRunList? oldRun = null; // 追加的过程，是没有替换的，即 oldRun 一定是空
                 var newSelection = new Selection(new CaretOffset(oldCharCount), new CaretOffset(newCharCount));
 
                 // 不能直接使用 run 的内容，因为 run 里可能没有写好使用的样式。因此需要获取实际插入的内容，从而获取到实际的插入带样式文本
@@ -648,7 +679,7 @@ namespace LightTextEditorPlus.Core.Document
         /// 编辑和替换文本
         /// </summary>
         /// <param name="selection"></param>
-        /// <param name="run"></param>
+        /// <param name="run">传入 null 表示删除 <paramref name="selection"/> 范围文本</param>
         internal void EditAndReplaceRun(in Selection selection, IImmutableRun? run)
         {
             TextEditor.AddLayoutReason("DocumentManager.EditAndReplaceRun");
@@ -668,6 +699,7 @@ namespace LightTextEditorPlus.Core.Document
             }
             else if (run is null)
             {
+                // 传入 null 的意思就是删除选择范围
                 EditAndReplaceRunListInner(selection, null);
             }
             else
@@ -878,10 +910,10 @@ namespace LightTextEditorPlus.Core.Document
         /// 从撤销重做里面设置回默认的文本字符属性
         /// </summary>
         /// <param name="runProperty"></param>
-        internal void SetDefaultTextRunPropertyByUndoRedo(IReadOnlyRunProperty runProperty)
+        internal void SetStyleTextRunPropertyByUndoRedo(IReadOnlyRunProperty runProperty)
         {
             TextEditor.VerifyInUndoRedoMode();
-            DefaultRunProperty = runProperty;
+            StyleRunProperty = runProperty;
         }
 
         #endregion

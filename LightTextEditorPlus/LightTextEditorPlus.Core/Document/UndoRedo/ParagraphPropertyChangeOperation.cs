@@ -1,3 +1,5 @@
+using LightTextEditorPlus.Core.Document.Segments;
+
 namespace LightTextEditorPlus.Core.Document.UndoRedo;
 
 /// <summary>
@@ -12,7 +14,7 @@ public class ParagraphPropertyChangeOperation : TextValueChangeOperation<Paragra
     /// <param name="oldValue"></param>
     /// <param name="newValue"></param>
     /// <param name="paragraphIndex"></param>
-    public ParagraphPropertyChangeOperation(TextEditorCore textEditor, ParagraphProperty oldValue, ParagraphProperty newValue, int paragraphIndex) : base(textEditor, oldValue, newValue)
+    public ParagraphPropertyChangeOperation(TextEditorCore textEditor, ParagraphProperty oldValue, ParagraphProperty newValue, ParagraphIndex paragraphIndex) : base(textEditor, oldValue, newValue)
     {
         ParagraphIndex = paragraphIndex;
     }
@@ -20,7 +22,7 @@ public class ParagraphPropertyChangeOperation : TextValueChangeOperation<Paragra
     /// <summary>
     /// 段落序号
     /// </summary>
-    public int ParagraphIndex { get; }
+    public ParagraphIndex ParagraphIndex { get; }
 
     /// <summary>
     /// 段落 调试用的属性

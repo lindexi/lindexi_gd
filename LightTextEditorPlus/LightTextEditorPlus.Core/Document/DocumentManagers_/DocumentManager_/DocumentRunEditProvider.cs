@@ -307,7 +307,7 @@ internal class DocumentRunEditProvider
                 {
                     // 取下一段
                     var nextParagraphDataIndex = paragraphData.Index + 1;
-                    var nextParagraphData = paragraphList[nextParagraphDataIndex];
+                    var nextParagraphData = paragraphList[nextParagraphDataIndex.Index];
 
                     paragraphData = nextParagraphData;
                     // 取下一段就是从头开始删除了
@@ -326,8 +326,8 @@ internal class DocumentRunEditProvider
         }
         else
         {
-            var start = firstParagraph.Index;
-            var end = paragraphData.Index;
+            var start = firstParagraph.Index.Index;
+            var end = paragraphData.Index.Index;
 
             // 如果最后一段不是完全删除的
             // 只需要加上最后一段的即可，中间的都是被全部删除的

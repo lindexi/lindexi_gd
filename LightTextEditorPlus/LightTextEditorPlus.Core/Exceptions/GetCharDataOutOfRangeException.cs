@@ -41,5 +41,5 @@ public class GetCharDataOutOfRangeException : TextEditorException
     public int Count { get; }
 
     /// <inheritdoc />
-    public override string Message => $"Count={Count};InputOffset={InputOffset};ParagraphIndex={Paragraph.Index};CharDataList={Paragraph.GetText().LimitTrim(20)};TextEditor={TextEditor}";
+    public override string Message => $"Count={Count};InputOffset={InputOffset};ParagraphIndex={Paragraph.Index.Index};CharDataList={Paragraph.GetText().LimitTrim(20)};TextEditor={TextEditor}";
 }

@@ -11,7 +11,7 @@ using SkiaSharp;
 
 namespace LightTextEditorPlus.Platform;
 
-public class AvaloniaTextEditorResourceManager : SkiaPlatformResourceManager, IFontNameToSKTypefaceManager
+public class AvaloniaTextEditorResourceManager : SkiaPlatformResourceManager
 {
     public AvaloniaTextEditorResourceManager(TextEditor textEditor, SkiaTextEditor skiaTextEditor) : base(skiaTextEditor)
     {

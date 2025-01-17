@@ -11,13 +11,19 @@ namespace LightTextEditorPlus.Core.Layout;
 /// <param name="CurrentIndex">当前字符的序号，相对于 <see cref="RunList"/> 的序号</param>
 /// <param name="LineRemainingWidth">这一行剩余的宽度</param>
 /// <param name="ParagraphProperty"></param>
+/// <param name="UpdateLayoutContext"></param>
 public readonly record struct SingleCharInLineLayoutArgument(TextReadOnlyListSpan<CharData> RunList, int CurrentIndex,
-    double LineRemainingWidth, ParagraphProperty ParagraphProperty)
+    double LineRemainingWidth, ParagraphProperty ParagraphProperty, UpdateLayoutContext UpdateLayoutContext)
 {
     /// <summary>
     /// 当前的字符信息
     /// </summary>
     public CharData CurrentCharData => RunList[CurrentIndex];
+
+    /// <summary>
+    /// 字符布局信息设置器
+    /// </summary>
+    public ICharDataLayoutInfoSetter CharDataLayoutInfoSetter => UpdateLayoutContext;
 
     /// <summary>
     /// 是否这一行啥都没有获取到，这一行还没布局到一个字符

@@ -6,6 +6,7 @@
     <LightTextEditorPlusAPIDefineCode Include="$(MSBuildThisFileDirectory)Build\Shared\API\**\*.cs" LinkBase="API"/>
     <LightTextEditorPlusAPIConstraints Include="$(MSBuildThisFileDirectory)Build\Shared\API\Constraints\*.txt" LinkBase="API\Constraints"/>
 
+    <LightTextEditorPlusAppPlatformSharedUtils Include="$(MSBuildThisFileDirectory)Build\Shared\AppPlatform\Utils\**\*.cs" LinkBase="Utils"/>
   </ItemGroup>
 
   <!-- 自动处理不同 UI 框架之间的差异 -->
@@ -24,6 +25,7 @@
       <ItemGroup>
         <Compile Include="@(UIFrameworkCompatibilityCode)" />
         <Compile Include="@(LightTextEditorPlusAPIDefineCode)" />
+        <Compile Include="@(LightTextEditorPlusAppPlatformSharedUtils)"/>
         <None Include="@(LightTextEditorPlusAPIConstraints)"/>
         <Compile Remove="**\*.test.cs" />
         <Compile Remove="**\*.uno.cs" />
@@ -51,6 +53,7 @@
       <ItemGroup>
         <Compile Include="@(UIFrameworkCompatibilityCode)" />
         <Compile Include="@(LightTextEditorPlusAPIDefineCode)" />
+        <Compile Include="@(LightTextEditorPlusAppPlatformSharedUtils)"/>
         <None Include="@(LightTextEditorPlusAPIConstraints)"/>
         <Compile Remove="**\*.ava.cs" />
         <Compile Remove="**\*.test.cs" />

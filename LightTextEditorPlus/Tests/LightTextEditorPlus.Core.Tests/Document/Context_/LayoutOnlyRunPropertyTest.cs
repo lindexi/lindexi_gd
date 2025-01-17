@@ -24,7 +24,7 @@ public class LayoutOnlyRunPropertyTest
             var textEditorCore = TestHelper.GetTextEditorCore();
 
             // Action
-            var runProperty = textEditorCore.DocumentManager.DefaultRunProperty;
+            var runProperty = textEditorCore.DocumentManager.StyleRunProperty;
 
             // Assert
             Assert.AreEqual(FontName.DefaultNotDefineFontName, runProperty.FontName);
