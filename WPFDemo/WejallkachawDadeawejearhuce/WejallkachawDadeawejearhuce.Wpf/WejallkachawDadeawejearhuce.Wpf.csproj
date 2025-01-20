@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\..\..\UnoInk\X11\UnoInk\UnoInk\Inking\InkCore\SimpleInkRender.cs" Link="Inking\SimpleInkRender.cs" />
+    <Compile Include="..\..\..\X11\UnoInk\UnoInk\Inking\InkCore\Utils\FixedQueue.cs" Link="Inking\FixedQueue.cs" />
+    <Compile Include="..\WejallkachawDadeawejearhuce\Inking\Primitive\StylusPointListSpan.cs" Link="Inking\StylusPointListSpan.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WejallkachawDadeawejearhuce\WejallkachawDadeawejearhuce.csproj" />
+  </ItemGroup>
+
+</Project>

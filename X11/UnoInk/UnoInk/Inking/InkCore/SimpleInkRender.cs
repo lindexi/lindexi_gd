@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using Microsoft.Maui.Graphics;
 
 namespace UnoInk.Inking.InkCore
