@@ -15,7 +15,7 @@ int GetTestInfo()
 
 class Fx
 {
-    public void Foo([InterpolatedStringHandlerArgument("")] FooInterpolatedStringHandler fooInterpolatedStringHandler)
+    public void Foo([InterpolatedStringHandlerArgument("")] ref FooInterpolatedStringHandler fooInterpolatedStringHandler)
     {
     }
 
