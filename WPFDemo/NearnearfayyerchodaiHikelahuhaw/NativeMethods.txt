@@ -1,0 +1,3 @@
+CoInitializeEx
+CoCreateInstance
+CoGetClassObject
