@@ -1,0 +1,51 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35506.116
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NemficubehayWaybakiwerwhaw.Desktop", "NemficubehayWaybakiwerwhaw.Desktop\NemficubehayWaybakiwerwhaw.Desktop.csproj", "{EC0BCDDF-ABCE-4CE4-94B1-4F81A5DBF080}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NemficubehayWaybakiwerwhaw", "NemficubehayWaybakiwerwhaw\NemficubehayWaybakiwerwhaw.csproj", "{047B9C86-17BE-40B2-A845-DC5289C7BD94}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightTextEditorPlus.Avalonia", "..\..\LightTextEditorPlus\LightTextEditorPlus.Avalonia\LightTextEditorPlus.Avalonia.csproj", "{F4ED13D5-E2F3-4819-8B0A-6DAF799C01E3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightTextEditorPlus.Skia", "..\..\LightTextEditorPlus\LightTextEditorPlus.Skia\LightTextEditorPlus.Skia.csproj", "{3022F5FA-BE7A-48BC-9483-8F89D32E2355}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightTextEditorPlus.Core", "..\..\LightTextEditorPlus\LightTextEditorPlus.Core\LightTextEditorPlus.Core.csproj", "{5BE2ACEF-4CA4-4285-8728-B2A88C3D7484}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextEditorInternalAnalyzer", "..\..\LightTextEditorPlus\Analyzers\TextEditorInternalAnalyzer\TextEditorInternalAnalyzer.csproj", "{BE58269E-4917-4E95-AB88-9E510C46A3A6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EC0BCDDF-ABCE-4CE4-94B1-4F81A5DBF080}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC0BCDDF-ABCE-4CE4-94B1-4F81A5DBF080}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC0BCDDF-ABCE-4CE4-94B1-4F81A5DBF080}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC0BCDDF-ABCE-4CE4-94B1-4F81A5DBF080}.Release|Any CPU.Build.0 = Release|Any CPU
+		{047B9C86-17BE-40B2-A845-DC5289C7BD94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{047B9C86-17BE-40B2-A845-DC5289C7BD94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{047B9C86-17BE-40B2-A845-DC5289C7BD94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{047B9C86-17BE-40B2-A845-DC5289C7BD94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F4ED13D5-E2F3-4819-8B0A-6DAF799C01E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4ED13D5-E2F3-4819-8B0A-6DAF799C01E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4ED13D5-E2F3-4819-8B0A-6DAF799C01E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4ED13D5-E2F3-4819-8B0A-6DAF799C01E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3022F5FA-BE7A-48BC-9483-8F89D32E2355}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3022F5FA-BE7A-48BC-9483-8F89D32E2355}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3022F5FA-BE7A-48BC-9483-8F89D32E2355}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3022F5FA-BE7A-48BC-9483-8F89D32E2355}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5BE2ACEF-4CA4-4285-8728-B2A88C3D7484}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5BE2ACEF-4CA4-4285-8728-B2A88C3D7484}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5BE2ACEF-4CA4-4285-8728-B2A88C3D7484}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5BE2ACEF-4CA4-4285-8728-B2A88C3D7484}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE58269E-4917-4E95-AB88-9E510C46A3A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE58269E-4917-4E95-AB88-9E510C46A3A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE58269E-4917-4E95-AB88-9E510C46A3A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE58269E-4917-4E95-AB88-9E510C46A3A6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

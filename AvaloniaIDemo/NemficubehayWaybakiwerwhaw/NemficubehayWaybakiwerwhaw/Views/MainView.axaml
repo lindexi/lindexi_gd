@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:NemficubehayWaybakiwerwhaw.ViewModels"
+             xmlns:lightTextEditorPlus="clr-namespace:LightTextEditorPlus;assembly=LightTextEditorPlus.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="NemficubehayWaybakiwerwhaw.Views.MainView"
+             x:DataType="vm:MainViewModel">
+  <Design.DataContext>
+    <!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+    <vm:MainViewModel />
+  </Design.DataContext>
+
+  <Grid x:Name="RootGrid" Background="Transparent">
+      <Grid.RowDefinitions>
+          <RowDefinition Height="*"/>
+          <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+      <Border Margin="10 10 10 10" BorderThickness="1" BorderBrush="Black" >
+      <lightTextEditorPlus:TextEditor x:Name="TextEditor"/>
+    </Border>
+    <Button Grid.Row="1" Margin="10 10 10 10" Content="着色" Click="Button_OnClick"></Button>
+  </Grid>
+</UserControl>
