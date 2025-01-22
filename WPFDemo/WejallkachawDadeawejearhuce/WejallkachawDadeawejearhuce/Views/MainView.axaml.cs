@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
-
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
@@ -13,6 +13,7 @@ using WejallkachawDadeawejearhuce.Inking;
 using WejallkachawDadeawejearhuce.Inking.Contexts;
 using UnoInk.Inking.InkCore;
 using WejallkachawDadeawejearhuce.Inking.WpfInking;
+using Splat;
 
 namespace WejallkachawDadeawejearhuce.Views;
 
@@ -109,6 +110,9 @@ public partial class MainView : UserControl
         {
             if (_isDown)
             {
+                var pointToScreen = RootGrid.PointToScreen(new Point(0,0));
+                var topLevel = TopLevel.GetTopLevel(RootGrid);
+                var scale = topLevel.RenderScaling;
                 WpfInkCanvasWindow.WpfInkCanvas.WritingMove(inkingInputArgs);
             }
         }

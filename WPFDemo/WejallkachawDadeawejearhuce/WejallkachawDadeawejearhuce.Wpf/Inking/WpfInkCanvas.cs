@@ -34,8 +34,28 @@ public class WpfInkCanvas : FrameworkElement, IWpfInkCanvas
         Dispatcher.Invoke(() => Up(inkingInputArgs), DispatcherPriority.Send);
     }
 
+    private InkingInputArgs Transform(in InkingInputArgs inkingInputArgs)
+    {
+        var pointFromScreen = PointFromScreen(new System.Windows.Point(0, 0));
+        var point = inkingInputArgs.Point.Point;
+        point = point with
+        {
+            X = point.X + pointFromScreen.X,
+            Y = point.Y + pointFromScreen.Y
+        };
+
+        return inkingInputArgs with
+        {
+            Point = inkingInputArgs.Point with
+            {
+                Point = point
+            }
+        };
+    }
+
     public void Down(InkingInputArgs inkingInputArgs)
     {
+        inkingInputArgs = Transform(in inkingInputArgs);
         _contextDictionary[inkingInputArgs.Id] = new DynamicStrokeContext();
 
         _contextDictionary[inkingInputArgs.Id].StylusPointQueue.Enqueue(inkingInputArgs.Point);
@@ -46,6 +66,8 @@ public class WpfInkCanvas : FrameworkElement, IWpfInkCanvas
     {
         if (_contextDictionary.TryGetValue(inkingInputArgs.Id, out var context))
         {
+            inkingInputArgs = Transform(in inkingInputArgs);
+
             context.StylusPointQueue.Enqueue(inkingInputArgs.Point);
             InvalidateVisual();
         }
@@ -55,6 +77,7 @@ public class WpfInkCanvas : FrameworkElement, IWpfInkCanvas
     {
         if (_contextDictionary.TryGetValue(inkingInputArgs.Id, out var context))
         {
+            inkingInputArgs = Transform(in inkingInputArgs);
             context.StylusPointQueue.Enqueue(inkingInputArgs.Point);
             InvalidateVisual();
         }
@@ -89,11 +112,14 @@ public class WpfInkCanvas : FrameworkElement, IWpfInkCanvas
             streamGeometryContext.PolyLineTo(outlinePointList.Select(t => t.ToWpfPoint()).ToList(), false, false);
             streamGeometryContext.Close();
 
-            drawingContext.DrawGeometry(Brushes.Red, null, context.StreamGeometry);
+            drawingContext.DrawGeometry(_brush, null, context.StreamGeometry);
         }
     }
 
+    private readonly SolidColorBrush _brush = new SolidColorBrush(Colors.Blue)
+    {
+        Opacity = 0.6
+    };
+
     private readonly Dictionary<int, DynamicStrokeContext> _contextDictionary = [];
-
-
 }
