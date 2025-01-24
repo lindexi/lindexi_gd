@@ -6,6 +6,7 @@ using LightTextEditorPlus.Core.Attributes;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.DocumentEventArgs;
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Exceptions;
@@ -205,10 +206,14 @@ public partial class TextEditorCore
         DocumentChanging?.Invoke(this, e);
     }
 
-    private void DocumentManager_DocumentChanged(object? sender, EventArgs e)
+    private void DocumentManager_DocumentChanged(object? sender, DocumentChangeEventArgs e)
     {
         // 按照 事件触发顺序 需要先触发 DocumentChanged 事件，再触发 LayoutCompleted 事件
         DocumentChanged?.Invoke(this, e);
+        if (e.DocumentChangeKind == DocumentChangeKind.Text)
+        {
+            TextChanged?.Invoke(this, e);
+        }
 
         // 文档变更，更新布局
         Logger.LogDebug($"[TextEditorCore] DocumentChanged 文档变更，更新布局");

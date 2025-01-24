@@ -15,7 +15,6 @@ namespace LightTextEditorPlus.Core.Document;
 /// 段落管理
 /// </summary>
 /// 段落的组织，段落的创建删除和查找
-[DebuggerDisplay("{GetText()}")]
 class ParagraphManager
 {
     public ParagraphManager(TextEditorCore textEditor)
@@ -217,24 +216,6 @@ class ParagraphManager
 
         // 没有找到段落，证明段落被删除
         throw new InvalidOperationException();
-    }
-
-    public string GetText()
-    {
-        bool isFirst = true;
-        var stringBuilder = new StringBuilder();
-        foreach (var paragraphData in ParagraphList)
-        {
-            if (!isFirst)
-            {
-                stringBuilder.Append(TextContext.NewLine);
-            }
-
-            paragraphData.GetText(stringBuilder);
-            isFirst = false;
-        }
-
-        return stringBuilder.ToString();
     }
 
     public ParagraphIndex GetParagraphIndex(ParagraphData paragraphData)

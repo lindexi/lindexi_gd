@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
@@ -12,6 +14,7 @@ using LightTextEditorPlus.Events;
 using Avalonia.Media;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Utils;
+using ReactiveUI;
 using SkiaSharp;
 
 namespace LightTextEditorPlus
@@ -22,6 +25,67 @@ namespace LightTextEditorPlus
     [APIConstraint("TextEditor.Edit.txt")]
     partial class TextEditor
     {
+        #region Text
+
+        /// <summary>
+        /// 文本内容
+        /// </summary>
+        public string Text
+        {
+            get
+            {
+                if (_cacheText is null)
+                {
+                    _cacheText = TextEditorCore.GetText();
+                }
+
+                return _cacheText;
+            }
+            set
+            {
+                _isSettingsTextProperty = true;
+                TextEditorCore.EditAndReplace(value, TextEditorCore.GetAllDocumentSelection());
+                _isSettingsTextProperty = false;
+            }
+        }
+
+        private string? _cacheText;
+
+        /// <summary>
+        /// 文本内容属性
+        /// </summary>
+        public static readonly DirectProperty<TextEditor, string> TextProperty = AvaloniaProperty.RegisterDirect<TextEditor, string>(nameof(Text),
+            editor => editor.Text, (editor, value) => editor.Text = value);
+
+        /// <summary>
+        /// 是否正在设置 Text 属性。正在设置 Text 属性时，不触发 TextProperty 变更事件
+        /// </summary>
+        private bool _isSettingsTextProperty;
+
+        /// <summary>
+        /// 是否应该触发 Text 属性变更事件
+        /// </summary>
+        /// <remarks>
+        /// 由于 Avalonia 机制缺失，导致无法只触发 TextProperty 变更而延迟求值，再加上对 Text 求值是一个耗时操作，所以这里提供一个属性，用于控制是否触发 TextProperty 变更事件。默认为 false，不触发 TextProperty 变更事件。如果设置为 true，将会触发 TextProperty 变更事件，但会带来额外的性能开销
+        /// </remarks>
+        public bool ShouldRaiseTextPropertyChanged { get; set; } = false;
+
+        private void TextEditorCore_TextChanged(object? sender, EventArgs e)
+        {
+            if (ShouldRaiseTextPropertyChanged)
+            {
+                if (!_isSettingsTextProperty)
+                {
+                    // Can I raise the DirectProperty changed without set the value?
+                    // One of my properties can be bound, but most of the time, users don't pay attention to this property, meaning that changes to this property are not of interest to all users. However, assigning a value to this property is time-consuming. I would like to simply notify about the change of this property and perform a lazy evaluation when the property's getter is accessed. I noticed that in Avalonia there are only SetAndRaise and RaisePropertyChanged methods, both of which require the new value to be passed immediately. Is there a way in Avalonia to notify about a property change without having to assign the value immediately?
+                    _cacheText = null;
+                    SetAndRaise(TextProperty, ref _cacheText!, TextEditorCore.GetText());
+                }
+            }
+        }
+
+        #endregion
+
         #region 编辑模式
 
         /// <summary>
@@ -330,4 +394,4 @@ namespace LightTextEditorPlus
 
 public delegate SkiaTextRunProperty ConfigRunProperty(SkiaTextRunProperty runProperty);
 
-public delegate SkiaTextRunProperty CreateRunProperty(SkiaTextRunProperty defaultRunProperty);
+public delegate SkiaTextRunProperty CreateRunProperty(SkiaTextRunProperty styleRunProperty);

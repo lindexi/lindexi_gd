@@ -1,6 +1,5 @@
 using LightTextEditorPlus.Core.Document;
 using System;
-using System.Collections.Generic;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Attributes;
 
@@ -10,7 +9,7 @@ namespace LightTextEditorPlus.Core;
 public partial class TextEditorCore
 {
     /// <summary>
-    /// 追加一段文本，追加的文本按照段末的样式
+    /// 追加一段文本，追加的文本按照段末的样式。追加到文本末尾，无视当前光标位置
     /// </summary>
     /// 这是对外调用的，非框架内使用
     [TextEditorPublicAPI]
@@ -26,7 +25,7 @@ public partial class TextEditorCore
     }
 
     /// <summary>
-    /// 追加一段文本
+    /// 追加一段文本。追加到文本末尾，无视当前光标位置
     /// </summary>
     /// <param name="run"></param>
     /// 这是对外调用的，非框架内使用
@@ -92,7 +91,8 @@ public partial class TextEditorCore
     /// <summary>
     /// 添加文本
     /// </summary>
-    [Obsolete("请使用" + nameof(EditAndReplace) + "代替。此方法只是用来告诉你正确的用法是调用" + nameof(EditAndReplace) + "方法", true)]
+    [Obsolete("请使用" + nameof(EditAndReplace) + "或" + nameof(AppendText) + "代替。此方法只是用来告诉你正确的用法是调用" + nameof(EditAndReplace) +
+              "方法", true)]
     public void AddText()
     {
     }

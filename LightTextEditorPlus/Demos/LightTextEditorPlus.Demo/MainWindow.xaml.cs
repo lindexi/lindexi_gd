@@ -18,8 +18,6 @@ using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Utils;
 
-using Microsoft.Win32;
-
 namespace LightTextEditorPlus.Demo
 {
     /// <summary>
@@ -32,9 +30,9 @@ namespace LightTextEditorPlus.Demo
             InitializeComponent();
 
             TextEditor.SetFontSize(60);
-            TextEditor.SetFontName("华文中宋");
+            //TextEditor.SetFontName("华文中宋");
             TextEditor.SetFontName("微软雅黑");
-            TextEditor.SetFontName("Javanese Text");
+            //TextEditor.SetFontName("Javanese Text");
             TextEditor.TextEditorCore.AppendText("123123");
             ParagraphIndex paragraphIndex = new ParagraphIndex(0);
             TextEditor.TextEditorCore.DocumentManager.SetParagraphProperty(paragraphIndex, TextEditor.TextEditorCore.DocumentManager.GetParagraphProperty(paragraphIndex) with

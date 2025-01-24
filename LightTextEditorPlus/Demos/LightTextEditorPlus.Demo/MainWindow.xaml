@@ -26,6 +26,9 @@
                     <Canvas x:Name="DebugCanvas" IsHitTestVisible="False">
                         <!-- 用来绘制调试内容 -->
                     </Canvas>
+                    <TextBox Visibility="Collapsed" IsHitTestVisible="False" Margin="0 200 0 0" Opacity="0.5" Text="{Binding ElementName=TextEditor,Path=Text,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}">
+                        <!-- 测试 Text 属性绑定的功能 -->
+                    </TextBox>
                 </Grid>
             </Border>
             <StackPanel Grid.Row="1" Margin="10,0,10,10" Orientation="Horizontal">

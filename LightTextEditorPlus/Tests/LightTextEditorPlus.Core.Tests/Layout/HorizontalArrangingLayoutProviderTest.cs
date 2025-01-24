@@ -35,7 +35,7 @@ public class HorizontalArrangingLayoutProviderTest
             // 布局有两行，一行宽度是 5 个字符，每个字符 20 的宽度
             // 一行高度是 CharHeight 的高度
             var size = new TextSize(CharWidth * 5, CharHeight * 2);
-            Assert.AreEqual(size, paragraphLayoutData.TextSize);
+            Assert.AreEqual(size, paragraphLayoutData.TextBounds.TextSize);
         });
     }
 
@@ -65,8 +65,7 @@ public class HorizontalArrangingLayoutProviderTest
             textEditor.AppendText("abcde\r\nABCDEFG");
 
             // 获取第二段的起始坐标，用于后续判断是否改变
-            TextPoint startPoint = textEditor.GetRenderInfo().GetParagraphRenderInfoList().ToList()[1].ParagraphLayoutData
-                .StartPoint;
+            TextPoint startPoint = textEditor.GetRenderInfo().GetParagraphRenderInfoList().ToList()[1].ParagraphLayoutData.TextBounds.LeftTop;
 
             // Action
             // 在首段追加一行
@@ -81,11 +80,11 @@ public class HorizontalArrangingLayoutProviderTest
             // 影响文本第二段起始坐标，文本第二段布局正确
             var paragraphRenderInfo = textEditor.GetRenderInfo().GetParagraphRenderInfoList().ToList()[1];
             var paragraphLayoutData = paragraphRenderInfo.ParagraphLayoutData;
-            Assert.AreNotEqual(startPoint, paragraphLayoutData.StartPoint);
+            Assert.AreNotEqual(startPoint, paragraphLayoutData.TextBounds.LeftTop);
             // 布局有两行，一行宽度是 5 个字符，每个字符 20 的宽度
             // 一行高度是 LineSpacing * CharHeight 的高度
             var size = new TextSize(CharWidth * 5, LineSpacing.LineSpacing * CharHeight * 2);
-            Assert.AreEqual(size, paragraphLayoutData.TextSize);
+            Assert.AreEqual(size, paragraphLayoutData.TextBounds.TextSize);
 
             var lineRenderInfoList = paragraphRenderInfo.GetLineRenderInfoList().ToList();
             // 第一行起始就是首段的末尾，首段的高度是两行的高度，一行高度是 LineSpacing * CharHeight 的高度
@@ -93,7 +92,7 @@ public class HorizontalArrangingLayoutProviderTest
                 lineRenderInfoList[0].LineLayoutData.CharStartPoint);
             // 一行的宽度是 CharWidth * 字符数量
             Assert.AreEqual(new TextSize(CharWidth * "ABCDE".Length, LineSpacing.LineSpacing * CharHeight),
-                lineRenderInfoList[0].LineLayoutData.LineSize);
+                lineRenderInfoList[0].LineLayoutData.LineContentSize);
             // 行字符高度等于字符高度
             // 无论设置多少倍行距，行字符高度都是字符高度
             // 行距影响的是行高 LineSize 属性
@@ -103,7 +102,7 @@ public class HorizontalArrangingLayoutProviderTest
             Assert.AreEqual(new TextPoint(0, LineSpacing.LineSpacing * CharHeight * 2 + LineSpacing.LineSpacing * CharHeight),
                 lineRenderInfoList[1].LineLayoutData.CharStartPoint);
             Assert.AreEqual(new TextSize(CharWidth * "FG".Length, LineSpacing.LineSpacing * CharHeight),
-                lineRenderInfoList[1].LineLayoutData.LineSize);
+                lineRenderInfoList[1].LineLayoutData.LineContentSize);
             // 行字符高度等于字符高度
             Assert.AreEqual(CharHeight, lineRenderInfoList[1].LineLayoutData.LineCharTextSize.Height);
         });
@@ -123,8 +122,7 @@ public class HorizontalArrangingLayoutProviderTest
             textEditor.AppendText("abcdefg\r\nABCDEFG");
 
             // 获取第二段的起始坐标，用于后续判断是否改变
-            TextPoint startPoint = textEditor.GetRenderInfo().GetParagraphRenderInfoList().ToList()[1].ParagraphLayoutData
-                .StartPoint;
+            TextPoint startPoint = textEditor.GetRenderInfo().GetParagraphRenderInfoList().ToList()[1].ParagraphLayoutData.TextBounds.LeftTop;
 
             // Action
             // 在首段追加
@@ -139,11 +137,11 @@ public class HorizontalArrangingLayoutProviderTest
             // 修改之后不影响文本第二段起始坐标，文本第二段布局正确
             var paragraphRenderInfo = textEditor.GetRenderInfo().GetParagraphRenderInfoList().ToList()[1];
             var paragraphLayoutData = paragraphRenderInfo.ParagraphLayoutData;
-            Assert.AreEqual(startPoint, paragraphLayoutData.StartPoint);
+            Assert.AreEqual(startPoint, paragraphLayoutData.TextBounds.LeftTop);
             // 布局有两行，一行宽度是 5 个字符，每个字符 20 的宽度
             // 一行高度是 LineSpacing * CharHeight 的高度
             var size = new TextSize(CharWidth * 5, LineSpacing.LineSpacing * CharHeight * 2);
-            Assert.AreEqual(size, paragraphLayoutData.TextSize);
+            Assert.AreEqual(size, paragraphLayoutData.TextBounds.TextSize);
         });
 
         "文本包含一段一行，设置 1.5 倍行距，采用 FakeLineSpacing 算法，字号 20 的文本为 30 行高".Test(() =>
@@ -166,16 +164,16 @@ public class HorizontalArrangingLayoutProviderTest
             var renderInfoProvider = textEditor.GetRenderInfo();
             var paragraphRenderInfoList = renderInfoProvider.GetParagraphRenderInfoList().ToList();
             var paragraphRenderInfo = paragraphRenderInfoList[0];
-            Assert.AreEqual(new TextPoint(0, 0), paragraphRenderInfo.ParagraphLayoutData.StartPoint);
+            Assert.AreEqual(new TextPoint(0, 0), paragraphRenderInfo.ParagraphLayoutData.TextBounds.LeftTop);
 
             Assert.AreEqual(new TextSize(CharWidth * text.Length, CharHeight * LineSpacing.LineSpacing),
-                paragraphRenderInfo.ParagraphLayoutData.TextSize);
+                paragraphRenderInfo.ParagraphLayoutData.TextBounds.TextSize);
 
             var lineRenderInfo = paragraphRenderInfo.GetLineRenderInfoList().First();
             var lineLayoutData = lineRenderInfo.LineLayoutData;
             Assert.AreEqual(new TextPoint(0, 0), lineLayoutData.CharStartPoint);
             // 行高是字符高度乘以行距
-            Assert.AreEqual(new TextSize(CharWidth * text.Length, CharHeight * LineSpacing.LineSpacing), lineLayoutData.LineSize);
+            Assert.AreEqual(new TextSize(CharWidth * text.Length, CharHeight * LineSpacing.LineSpacing), lineLayoutData.LineContentSize);
 
             // 行字符高度等于字符高度
             Assert.AreEqual(CharHeight, lineLayoutData.LineCharTextSize.Height);

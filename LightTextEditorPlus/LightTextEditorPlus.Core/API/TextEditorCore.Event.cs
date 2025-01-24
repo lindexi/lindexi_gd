@@ -29,6 +29,15 @@ partial class TextEditorCore
     public event EventHandler? DocumentChanged;
 
     /// <summary>
+    /// 文本内容变更事件。和 <see cref="DocumentChanged"/> 不同的是，这个事件只有在文本内容变更时才会触发，而 <see cref="DocumentChanged"/> 在文本样式变更时也会触发
+    /// </summary>
+    /// <remarks>
+    /// 此事件在 <see cref="DocumentChanged"/> 之后触发
+    /// </remarks>
+    [TextEditorPublicAPI]
+    public event EventHandler? TextChanged;
+
+    /// <summary>
     /// 文档布局完成事件
     /// </summary>
     public event EventHandler<LayoutCompletedEventArgs>? LayoutCompleted;

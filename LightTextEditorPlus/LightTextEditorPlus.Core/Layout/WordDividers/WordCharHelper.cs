@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Utils.Patterns;
 
@@ -78,47 +79,46 @@ internal static class WordCharHelper
 
     private static bool CheckMongolian(CharData charData)
     {
-        string currentCharText = charData.CharObject.ToText();
-        return RegexPatterns.MongolianPattern.AreAllInRange(currentCharText);
+        return RegexPatterns.MongolianPattern.IsInRange(charData);
     }
 
     private static bool CheckTibetan(CharData charData)
     {
-        string currentCharText = charData.CharObject.ToText();
-        return RegexPatterns.TibetanPattern.AreAllInRange(currentCharText);
+        return RegexPatterns.TibetanPattern.IsInRange(charData);
     }
 
     private static bool CheckNumber(CharData charData)
     {
-        // todo 后续优化 ToText 调用多次
-        string currentCharText = charData.CharObject.ToText();
-        return RegexPatterns.NumberPattern.AreAllInRange(currentCharText) || IsAllPoint(currentCharText);
+        return RegexPatterns.NumberPattern.IsInRange(charData) || IsPoint(charData);
 
-        static bool IsAllPoint(string charText)
+        static bool IsPoint(CharData charData)
         {
-            for (var i = 0; i < charText.Length; i++)
-            {
-                if (charText[i] != '.')
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            return charData.CharObject.CodePoint.Equals('.');
         }
+
+        //static bool IsAllPoint(string charText)
+        //{
+        //    for (var i = 0; i < charText.Length; i++)
+        //    {
+        //        if (charText[i] != '.')
+        //        {
+        //            return false;
+        //        }
+        //    }
+
+        //    return true;
+        //}
     }
 
     private static bool CheckEnglish(CharData charData)
     {
-        string currentCharText = charData.CharObject.ToText();
-        bool isLatin = RegexPatterns.EnglishLetterPattern.AreAllInRange(currentCharText);
+        bool isLatin = RegexPatterns.EnglishLetterPattern.IsInRange(charData.CharObject.CodePoint);
         return isLatin;
     }
 
     private static bool CheckSpace(CharData charData)
     {
         // todo 后续考虑多空格问题
-        string currentCharText = charData.CharObject.ToText();
-        return currentCharText == RegexPatterns.BlankSpace;
+        return charData.CharObject.CodePoint.Equals(RegexPatterns.BlankSpaceChar);
     }
 }

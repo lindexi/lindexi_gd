@@ -216,9 +216,17 @@ partial class TextEditorCore
     [TextEditorPublicAPI]
     public Selection CurrentSelection
     {
-        set => CaretManager.SetSelection(value);
+        set => CaretManager.SetSelection(in value);
         get => CaretManager.CurrentSelection;
     }
+
+    /// <summary>
+    /// 选择文本
+    /// </summary>
+    /// <remarks>完全等同于 <see cref="CurrentSelection"/> 的 set 方法</remarks>
+    /// <param name="selection"></param>
+    [TextEditorPublicAPI]
+    public void Select(in Selection selection) => CaretManager.SetSelection(in selection);
 
     /// <summary>
     /// 移动光标。如已知 <see cref="CaretOffset"/> 可直接给 <see cref="CurrentCaretOffset"/> 属性赋值

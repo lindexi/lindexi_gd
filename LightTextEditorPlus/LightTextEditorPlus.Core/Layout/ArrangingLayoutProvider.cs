@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using LightTextEditorPlus.Core.Carets;
@@ -33,178 +34,62 @@ abstract class ArrangingLayoutProvider
 
     public TextEditorCore TextEditor => LayoutManager.TextEditor;
 
-    #region 命中测试
-
-    public TextHitTestResult HitTest(in TextPoint point)
+    /// <summary>
+    /// 更新布局
+    /// </summary>
+    /// <returns></returns>
+    /// 入口方法
+    public DocumentLayoutResult UpdateLayout()
     {
-        // 不需要通过 GetRenderInfo 方法获取，这是一个比较上层的方法了
-        //TextEditor.GetRenderInfo()
-        // 先判断是否命中到文档
-        // 命中到文档，那就继续判断段落命中
-        var documentManager = TextEditor.DocumentManager;
-        var paragraphManager = documentManager.ParagraphManager;
-        var documentBounds = LayoutManager.DocumentRenderData.DocumentBounds;
-        var contains = documentBounds.Contains(point);
-        // 如果没有点到文档范围内，则处理超过范围逻辑
-        if (!contains)
-        {
-            // 是否超过文本字符范围了
-            const bool isOutOfTextCharacterBounds = true;
-            // 是否在文档末尾
-            const bool isEndOfTextCharacterBounds = false;
-            // 是否在段落最后一行上
-            const bool isInLastLineBounds = false;
+        // 布局逻辑：
+        // - 01 获取需要更新布局段落的逻辑
+        // - 02 预布局阶段
+        //   - 进入段落布局
+        //     - 进入行布局
+        // - 03 回溯最终布局阶段
+        //   - 获取文档整个的布局信息
+        //     - 获取文档的布局尺寸
+        //   - 段落回溯布局
+        //     - 行回溯布局
+        //     - 右对齐、居中对齐等
+        var updateLayoutContext = new UpdateLayoutContext(this);
 
-            // 对于水平布局，顶端对齐来说，应该是只判断上下
-            var isInTop = point.Y < documentBounds.Top;
-            ParagraphData paragraphData;
-            CaretOffset hitCaretOffset;
-            if (isInTop)
-            {
-                // 在文档的上方，则取首个字符
-                var firstParagraphData = paragraphManager.GetParagraphList().First();
-                paragraphData = firstParagraphData;
-                hitCaretOffset = documentManager.GetDocumentStartCaretOffset();
-            }
-            else
-            {
-                // 无论是在左边还是在右边，都设置为文档最后
-                var lastParagraphData = paragraphManager.GetParagraphList().Last();
-                paragraphData = lastParagraphData;
-                hitCaretOffset = documentManager.GetDocumentEndCaretOffset();
-            }
+        updateLayoutContext.RecordDebugLayoutInfo($"开始布局");
 
-            return new TextHitTestResult(isOutOfTextCharacterBounds, isEndOfTextCharacterBounds, isInLastLineBounds,
-                hitCaretOffset, HitCharData: null, paragraphData.Index)
-            {
-                HitParagraphData = paragraphData,
-                // 没在文档内，那一定是命中到空白
-                IsHitSpace = true,
-            };
-        }
+        IReadOnlyList<ParagraphData> paragraphList = updateLayoutContext.ParagraphList;
+        Debug.Assert(paragraphList.Count > 0, "获取到的段落，即使空文本也会存在一段");
 
-        var list = paragraphManager.GetParagraphList();
-        // 先进行段落的命中，再执行(xing)行(hang)命中
-        var currentCharIndex = 0;
-        for (var paragraphIndex = 0; paragraphIndex < list.Count; paragraphIndex++)
-        {
-            var paragraphData = list[paragraphIndex];
-            var paragraphBounds = paragraphData.ParagraphLayoutData.GetBounds();
-            if (paragraphBounds.Contains(point))
-            {
-                for (var lineIndex = 0; lineIndex < paragraphData.LineLayoutDataList.Count; lineIndex++)
-                {
-                    LineLayoutData lineLayoutData = paragraphData.LineLayoutDataList[lineIndex];
-                    var lineBounds = lineLayoutData.GetLineBounds();
-                    if (lineBounds.Contains(point))
-                    {
-                        var charList = lineLayoutData.GetCharList();
-                        for (var charIndex = 0; charIndex < charList.Count; charIndex++)
-                        {
-                            var charData = charList[charIndex];
-                            var charBounds = charData.GetBounds();
-                            if (charBounds.Contains(point))
-                            {
-                                // 横排的话，需要判断命中在字符的前后，也就是前半部分还是后半部分
-                                var center = charBounds.Center;
-                                CaretOffset hitCaretOffset;
-                                if (point.X <= center.X)
-                                {
-                                    // 在前面
-                                    hitCaretOffset = new CaretOffset(currentCharIndex, isAtLineStart: charIndex == 0);
-                                }
-                                else
-                                {
-                                    hitCaretOffset = new CaretOffset(currentCharIndex + 1);
-                                }
+        // 01 获取需要更新布局段落的逻辑
+        FirstDirtyParagraphInfo firstDirtyParagraphInfo = GetFirstDirtyParagraph(paragraphList, updateLayoutContext);
 
-                                return new TextHitTestResult(false, false, false, hitCaretOffset, charData,
-                                    new ParagraphIndex(paragraphIndex))
-                                {
-                                    HitParagraphData = paragraphData
-                                };
-                            }
+        // 02 预布局阶段
+        PreLayoutDocumentResult preLayoutDocumentResult =
+            PreLayoutDocument(paragraphList, updateLayoutContext, firstDirtyParagraphInfo);
 
-                            currentCharIndex++;
-                        }
-                        // 行内没有命中到字符，视为命中到最后一个字符
-                        return new TextHitTestResult(false, false, false, new CaretOffset(currentCharIndex), charList.LastOrDefault(),
-                            new ParagraphIndex(paragraphIndex))
-                        {
-                            HitParagraphData = paragraphData,
-                            // 行内没有命中到字符
-                            IsHitSpace = true,
-                        };
-                    }
-                    else
-                    {
-                        // 一行里面没有命中，可能是这是一个居中对齐的文本，此时需要根据排版规则，修改一行的尺寸，重新计算是否命中到某行
-                        // 这是横排的算法
-                        var unionLineBounds = new TextRect(paragraphBounds.X, lineBounds.Y, paragraphBounds.Width,
-                            lineBounds.Height);
-                        if (unionLineBounds.Contains(point))
-                        {
-                            // 命中到了，需要判断是行首还是行末
-                            var isLineStart = point.X <= lineBounds.X;
-                            CaretOffset hitCaretOffset;
-                            if (isLineStart)
-                            {
-                                hitCaretOffset = new CaretOffset(currentCharIndex, isAtLineStart: true);
-                            }
-                            else
-                            {
-                                hitCaretOffset = new CaretOffset(currentCharIndex + lineLayoutData.CharCount);
-                            }
+        // 03 回溯最终布局阶段
+        FinalLayoutDocument(preLayoutDocumentResult, updateLayoutContext);
 
-                            return new TextHitTestResult(false, false, true, hitCaretOffset, null, new ParagraphIndex(paragraphIndex))
-                            {
-                                HitParagraphData = paragraphData,
-                                // 命中到了字符
-                                IsHitSpace = false,
-                            };
-                        }
-                    }
+        Debug.Assert(TextEditor.DocumentManager.ParagraphManager.GetParagraphList()
+            .All(t => t.IsDirty() == false));
 
-                    currentCharIndex += lineLayoutData.CharCount;
-                }
-            }
+        updateLayoutContext.SetLayoutCompleted();
 
-            currentCharIndex += paragraphData.CharCount + ParagraphData.DelimiterLength;
-        }
-
-        {
-            var lastParagraphData = list.Last();
-            // 任何一个都没命中，那就返回命中到最后
-            return new TextHitTestResult(false, false, false, documentManager.GetDocumentEndCaretOffset(),
-                null, lastParagraphData.Index)
-            {
-                HitParagraphData = lastParagraphData,
-
-                // 没有命中到字符
-                IsHitSpace = true,
-            };
-        }
-
-        // todo 命中测试处理竖排文本
+        return new DocumentLayoutResult(preLayoutDocumentResult.DocumentBounds, updateLayoutContext);
     }
 
-    #endregion
+    #region 01 获取需要更新布局段落的逻辑
 
-    public DocumentLayoutResult UpdateLayout()
+    /// <summary>
+    /// 获取首个变脏的段落
+    /// </summary>
+    /// <param name="paragraphList"></param>
+    /// <param name="updateLayoutContext"></param>
+    private FirstDirtyParagraphInfo GetFirstDirtyParagraph(IReadOnlyList<ParagraphData> paragraphList,
+        UpdateLayoutContext updateLayoutContext)
     {
         // todo 项目符号的段落，如果在段落上方新建段落，那需要项目符号更新
         // 这个逻辑准备给项目符号逻辑更新，逻辑是，假如现在有两段，分别采用 `1. 2.` 作为项目符号
         // 在 `1.` 后面新建一个段落，需要自动将原本的 `2.` 修改为 `3.` 的内容，这个逻辑准备交给项目符号模块自己编辑实现
-
-        // 布局逻辑：
-        // - 获取需要更新布局段落的逻辑
-        // - 进入段落布局
-        //   - 进入行布局
-        // - 获取文档整个的布局信息
-        //   - 获取文档的布局尺寸
-        var updateLayoutContext = new UpdateLayoutContext(this);
-
-        updateLayoutContext.RecordDebugLayoutInfo($"开始布局");
 
         updateLayoutContext.RecordDebugLayoutInfo($"开始寻找首个变脏段落序号");
 
@@ -212,10 +97,6 @@ abstract class ArrangingLayoutProvider
         var firstDirtyParagraphIndex = -1;
         // 首个脏段的起始 也就是横排左上角的点。等于非脏段的下一个行起点
         TextPoint firstStartPoint = default;
-
-        var paragraphList = TextEditor.DocumentManager.ParagraphManager.GetParagraphList();
-
-        Debug.Assert(paragraphList.Count > 0, "获取到的段落，即使空文本也会存在一段");
 
         for (var index = 0; index < paragraphList.Count; index++)
         {
@@ -244,45 +125,71 @@ abstract class ArrangingLayoutProvider
         {
             throw new TextEditorInnerException($"进入布局时，没有任何一段需要布局");
         }
-        updateLayoutContext.RecordDebugLayoutInfo($"完成寻找首个变脏段落序号。首个变脏的段落序号是： {firstDirtyParagraphIndex}；首个脏段的起始点：{firstStartPoint}");
 
-        //// 进入各个段落的段落之间和行之间的布局
+        updateLayoutContext.RecordDebugLayoutInfo(
+            $"完成寻找首个变脏段落序号。首个变脏的段落序号是： {firstDirtyParagraphIndex}；首个脏段的起始点：{firstStartPoint}");
+
+        return new FirstDirtyParagraphInfo(new ParagraphIndex(firstDirtyParagraphIndex), firstStartPoint);
+    }
+
+    /// <summary>
+    /// 获取首个变脏的段落的序号和起始点
+    /// </summary>
+    /// <param name="FirstDirtyParagraphIndex">首个出现变脏的序号</param>
+    /// <param name="FirstStartPoint">首个脏段的起始 也就是横排左上角的点。等于非脏段的下一个行起点</param>
+    private readonly record struct FirstDirtyParagraphInfo(
+        ParagraphIndex FirstDirtyParagraphIndex,
+        TextPoint FirstStartPoint);
+
+    #endregion 获取需要更新布局段落的逻辑
+
+    #region 02 预布局阶段
+
+    /// <summary>
+    /// 预布局文档
+    /// </summary>
+    /// <param name="paragraphList"></param>
+    /// <param name="updateLayoutContext"></param>
+    /// <param name="firstDirtyParagraphInfo"></param>
+    /// <returns></returns>
+    /// 等价于 BuildRenderData 阶段。只是文本库将布局和渲染分开了，所以这里只是获取布局信息
+    private PreLayoutDocumentResult PreLayoutDocument(IReadOnlyList<ParagraphData> paragraphList,
+        UpdateLayoutContext updateLayoutContext, in FirstDirtyParagraphInfo firstDirtyParagraphInfo)
+    {
+        // firstDirtyParagraphIndex - 首行出现变脏的序号
+        // firstStartPoint - 首个脏段的起始 也就是横排左上角的点。等于非脏段的下一个行起点
+        (ParagraphIndex firstDirtyParagraphIndex, TextPoint firstStartPoint) = firstDirtyParagraphInfo;
 
         // 进入段落内布局
         var currentStartPoint = firstStartPoint;
-        for (var index = firstDirtyParagraphIndex; index < paragraphList.Count; index++)
+        for (var index = firstDirtyParagraphIndex.Index; index < paragraphList.Count; index++)
         {
             updateLayoutContext.RecordDebugLayoutInfo($"开始布局第 {index} 段");
             ParagraphData paragraphData = paragraphList[index];
 
-            var argument = new ParagraphLayoutArgument(new ParagraphIndex(index), currentStartPoint, paragraphData, paragraphList, updateLayoutContext);
+            var argument = new ParagraphLayoutArgument(new ParagraphIndex(index), currentStartPoint, paragraphData,
+                paragraphList, updateLayoutContext);
 
             ParagraphLayoutResult result = LayoutParagraph(argument);
             currentStartPoint = result.NextLineStartPoint;
             updateLayoutContext.RecordDebugLayoutInfo($"完成布局第 {index} 段");
         }
 
-        var documentBounds = TextRect.Zero;
+        TextRect documentBounds = TextRect.Zero;
         foreach (var paragraphData in paragraphList)
         {
-            var bounds = paragraphData.ParagraphLayoutData.GetBounds();
+            var bounds = paragraphData.ParagraphLayoutData.TextBounds;
             documentBounds = documentBounds.Union(bounds);
         }
 
-        Debug.Assert(TextEditor.DocumentManager.ParagraphManager.GetParagraphList()
-            .All(t => t.IsDirty() == false));
-
-        updateLayoutContext.SetLayoutCompleted();
-
-        return new DocumentLayoutResult(documentBounds, updateLayoutContext);
+        return new PreLayoutDocumentResult(documentBounds);
     }
 
     /// <summary>
-    /// 更新段落的左上角坐标
+    /// 预布局文档的结果
     /// </summary>
-    /// <param name="argument"></param>
-    /// <returns></returns>
-    protected abstract ParagraphLayoutResult UpdateParagraphStartPoint(in ParagraphLayoutArgument argument);
+    /// <param name="DocumentBounds">文档的范围</param>
+    protected readonly record struct PreLayoutDocumentResult(TextRect DocumentBounds);
 
     /// <summary>
     /// 段落内布局
@@ -301,6 +208,7 @@ abstract class ArrangingLayoutProvider
         {
             // 继续执行段落内布局
         }
+
         context.RecordDebugLayoutInfo($"段落是脏的，执行段落内布局");
 
         // 先找到首个需要更新的坐标点，这里的坐标是段坐标
@@ -355,7 +263,7 @@ abstract class ArrangingLayoutProvider
 
         // 不需要通过如此复杂的逻辑获取有哪些，因为存在的坑在于后续分拆 IImmutableRun 逻辑将会复杂
         //paragraph.GetRunRange(dirtyParagraphOffset);
-        
+
         var startParagraphOffset = new ParagraphCharOffset(dirtyParagraphOffset);
 
         var result = LayoutParagraphCore(argument, startParagraphOffset);
@@ -390,11 +298,19 @@ abstract class ArrangingLayoutProvider
         in ParagraphCharOffset startParagraphOffset);
 
     /// <summary>
+    /// 更新段落的左上角坐标
+    /// </summary>
+    /// <param name="argument"></param>
+    /// <returns></returns>
+    protected abstract ParagraphLayoutResult UpdateParagraphStartPoint(in ParagraphLayoutArgument argument);
+
+    /// <summary>
     /// 测量空段高度。空段的文本行高度包括行距，不包括段前和段后距离
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
-    protected EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeight(in EmptyParagraphLineHeightMeasureArgument argument)
+    protected EmptyParagraphLineHeightMeasureResult MeasureEmptyParagraphLineHeight(
+        in EmptyParagraphLineHeightMeasureArgument argument)
     {
         var emptyParagraphLineHeightMeasurer = TextEditor.PlatformProvider.GetEmptyParagraphLineHeightMeasurer();
         if (emptyParagraphLineHeightMeasurer != null)
@@ -513,13 +429,27 @@ abstract class ArrangingLayoutProvider
         }
         else
         {
-            throw new NotSupportedException($"传入的行距为 {textLineSpacing?.GetType()} 类型，无法在文本框框架内处理。可重写 {nameof(ILineSpacingCalculator)} 处理器自行处理此行距类型");
+            throw new NotSupportedException(
+                $"传入的行距为 {textLineSpacing?.GetType()} 类型，无法在文本框框架内处理。可重写 {nameof(ILineSpacingCalculator)} 处理器自行处理此行距类型");
         }
 
         return new LineSpacingCalculateResult(ShouldUseCharLineHeight: false, lineHeight, lineHeight);
     }
 
     #endregion
+
+    #endregion 02 预布局阶段
+
+    #region 03 回溯最终布局阶段
+
+    /// <summary>
+    /// 回溯文档布局排版。例如右对齐、居中对齐等
+    /// </summary>
+    /// Rewind Polished Document Layout 回溯也是抛光的过程，抛光是指对文档的最后一次布局调整
+    protected abstract void FinalLayoutDocument(PreLayoutDocumentResult preLayoutDocumentResult,
+        UpdateLayoutContext updateLayoutContext);
+
+    #endregion 03 回溯最终布局阶段
 
     #region 通用辅助方法
 
@@ -533,10 +463,28 @@ abstract class ArrangingLayoutProvider
         double fontSize = charInfo.RunProperty.FontSize;
         var bounds = new TextRect(0, 0, fontSize, fontSize);
         // 设置基线为字号大小的向上一点点
-        const double testBaselineRatio = 4d / 5; // 这是一个测试值，确保无 UI 框架下，都采用相同的基线值，方便调试计算。这个值是如何获取的？通过在 PPT 里面进行测量微软雅黑字体的基线的
+        const double
+            testBaselineRatio = 4d / 5; // 这是一个测试值，确保无 UI 框架下，都采用相同的基线值，方便调试计算。这个值是如何获取的？通过在 PPT 里面进行测量微软雅黑字体的基线的
         double baseline = fontSize * testBaselineRatio;
         return new CharInfoMeasureResult(bounds, baseline);
     }
 
-    #endregion
+    /// <summary>
+    /// 获取文档的命中范围
+    /// </summary>
+    /// <returns></returns>
+    public TextRect GetDocumentHitBounds()
+    {
+        var documentBounds = LayoutManager.DocumentRenderData.DocumentBounds;
+        return CalculateHitBounds(in documentBounds);
+    }
+
+    /// <summary>
+    /// 根据传入的文档范围计算命中范围
+    /// </summary>
+    /// <param name="documentBounds"></param>
+    /// <returns></returns>
+    protected abstract TextRect CalculateHitBounds(in TextRect documentBounds);
+
+    #endregion 通用辅助方法
 }

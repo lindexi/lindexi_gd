@@ -124,8 +124,15 @@ internal class MouseHandler
                 var position = e.GetPosition(TextEditor);
                 if (TextEditorCore.TryHitTest(position.ToTextPoint(), out var result))
                 {
-                    var endOffset = result.HitCaretOffset;
-                    TextEditorCore.CurrentSelection = new Selection(startOffset, endOffset);
+                    if (result.IsOutOfTextCharacterBounds)
+                    {
+                        // 如果拖动过程超过文本了，那应该忽略，而不是获取文档末尾的 HitCaretOffset 值
+                    }
+                    else
+                    {
+                        var endOffset = result.HitCaretOffset;
+                        TextEditorCore.CurrentSelection = new Selection(startOffset, endOffset);
+                    }
                 }
                 else
                 {

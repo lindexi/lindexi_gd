@@ -58,10 +58,20 @@ public partial class TextEditor
 
     #region RunProperty
 
+    /// <inheritdoc cref="DocumentManager.CurrentCaretRunProperty"/>
+    /// 这里的转换使用 <see cref="RunProperty"/> 明确类型，这是为了在乱用的时候，可以更好抛出异常
+    public IRunProperty CurrentCaretRunProperty => (RunProperty) TextEditorCore.DocumentManager.CurrentCaretRunProperty;
+
+    /// <inheritdoc cref="DocumentManager.StyleRunProperty"/>
+    public IRunProperty StyleRunProperty => (RunProperty) TextEditorCore.DocumentManager.StyleRunProperty;
+
     /// <summary>
-    /// 当前光标下的文本字符属性
+    /// 创建一个新的 RunProperty 对象
     /// </summary>
-    public IRunProperty CurrentCaretRunProperty => (IRunProperty) TextEditorCore.DocumentManager.CurrentCaretRunProperty;
+    /// <param name="createRunProperty">传入默认的 <see cref="StyleRunProperty"/> 字符属性，返回创建的新的字符属性</param>
+    /// <returns></returns>
+    public IRunProperty CreateRunProperty(CreateRunProperty createRunProperty) =>
+        createRunProperty((RunProperty) StyleRunProperty);
 
     /// <summary>
     /// 设置字体名
@@ -246,15 +256,14 @@ public partial class TextEditor
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.AppendText"/>
     public void AppendText(string text) => TextEditorCore.AppendText(text);
 
-    // todo 修改为 WPF 的 ImmutableRun 类型
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.AppendRun"/>
-    public void AppendRun(IImmutableRun run) => TextEditorCore.AppendRun(run);
+    public void AppendRun(ImmutableRun run) => TextEditorCore.AppendRun(run);
 
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.EditAndReplace"/>
     public void EditAndReplace(string text, Selection? selection = null) => TextEditorCore.EditAndReplace(text, selection);
 
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.EditAndReplaceRun"/>
-    public void EditAndReplaceRun(IImmutableRun run, Selection? selection = null) => TextEditorCore.EditAndReplaceRun(run, selection);
+    public void EditAndReplaceRun(ImmutableRun run, Selection? selection = null) => TextEditorCore.EditAndReplaceRun(run, selection);
 
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.Backspace"/>
     public void Backspace() => TextEditorCore.Backspace();
@@ -291,3 +300,10 @@ public partial class TextEditor
 
     #endregion
 }
+
+/// <summary>
+/// 创建一个新的 RunProperty 对象的委托
+/// </summary>
+/// <param name="styleRunProperty"></param>
+/// <returns></returns>
+public delegate IRunProperty CreateRunProperty(RunProperty styleRunProperty);

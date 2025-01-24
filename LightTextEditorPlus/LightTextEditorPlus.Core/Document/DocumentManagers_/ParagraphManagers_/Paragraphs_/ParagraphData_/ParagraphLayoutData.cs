@@ -7,14 +7,24 @@ namespace LightTextEditorPlus.Core.Document;
 /// </summary>
 public interface IParagraphLayoutData
 {
+    ///// <summary>
+    ///// 段落的起始点
+    ///// </summary>
+    //TextPoint StartPoint { get; }
+    ///// <summary>
+    ///// 段落尺寸
+    ///// </summary>
+    //TextSize TextSize { get; }
+
     /// <summary>
-    /// 段落的起始点
+    /// 段落的文本范围
     /// </summary>
-    TextPoint StartPoint { get; }
+    TextRect TextBounds { get; }
+
     /// <summary>
-    /// 段落尺寸
+    /// 外接边界，包含对齐的空白
     /// </summary>
-    TextSize TextSize { get; }
+    TextRect OutlineBounds { get; }
 }
 
 /// <summary>
@@ -22,19 +32,25 @@ public interface IParagraphLayoutData
 /// </summary>
 class ParagraphLayoutData : IParagraphLayoutData
 {
-    /// <summary>
-    /// 段落的起始点
-    /// </summary>
-    public TextPoint StartPoint { set; get; }
+    ///// <summary>
+    ///// 段落的起始点
+    ///// </summary>
+    //public TextPoint StartPoint { set; get; }
+
+    ///// <summary>
+    ///// 段落尺寸
+    ///// </summary>
+    //public TextSize TextSize { set; get; }
 
     /// <summary>
-    /// 段落尺寸
+    /// 外接边界，包含对齐的空白
     /// </summary>
-    public TextSize TextSize { set; get; }
+    public TextRect OutlineBounds { set; get; }
 
     /// <summary>
-    /// 段落的范围
+    /// 段落的文本范围，不包含空白
     /// </summary>
     /// <returns></returns>
-    public TextRect GetBounds() => new TextRect(StartPoint, TextSize);
+    public TextRect TextBounds { get; set; }
+    //public TextRect GetTextBounds() => new TextRect(StartPoint, TextSize);
 }

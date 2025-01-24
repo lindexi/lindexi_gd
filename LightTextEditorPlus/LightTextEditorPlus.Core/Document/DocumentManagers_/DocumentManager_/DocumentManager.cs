@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document.DocumentEventArgs;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Exceptions;
@@ -110,12 +111,12 @@ namespace LightTextEditorPlus.Core.Document
         /// <summary>
         /// 给内部提供的文档开始变更事件
         /// </summary>
-        internal event EventHandler? InternalDocumentChanging;
+        internal event EventHandler<DocumentChangeEventArgs>? InternalDocumentChanging;
 
         /// <summary>
         /// 给内部提供的文档变更完成事件
         /// </summary>
-        internal event EventHandler? InternalDocumentChanged;
+        internal event EventHandler<DocumentChangeEventArgs>? InternalDocumentChanged;
 
         #endregion
 
@@ -239,9 +240,9 @@ namespace LightTextEditorPlus.Core.Document
             // 2.
             // 3.
             // 然后将 2. 的段落修改为其他项目符号，此时需要更新 3. 段落
-            InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
+            InternalDocumentChanging?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.OnlyStyle));
             paragraphData.SetParagraphProperty(paragraphProperty);
-            InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
+            InternalDocumentChanged?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.OnlyStyle));
         }
 
         /// <summary>
@@ -412,7 +413,8 @@ namespace LightTextEditorPlus.Core.Document
                 throw new InvalidOperationException($"仅当文本没有创建出任何段落之前，初始化过程中，才能设置文本的样式字符属性");
             }
 
-            StyleRunProperty = config((T) StyleRunProperty);
+            T runProperty = config((T) StyleRunProperty);
+            StyleRunProperty = runProperty;
         }
 
         /// <summary>
@@ -466,7 +468,7 @@ namespace LightTextEditorPlus.Core.Document
             else
             {
                 // 修改属性，需要触发样式变更，也就是文档变更
-                InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
+                InternalDocumentChanging?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.OnlyStyle));
                 // 表示最后一个更改之后的文本字符属性，为了提升性能，不让每个文本字符属性都需要执行 config 函数
                 // 用来判断如果相邻两个字符的字符属性是相同的，就可以直接复用，不需要重新执行 config 函数创建新的字符属性对象
                 IReadOnlyRunProperty? lastChangedRunProperty = null;
@@ -512,7 +514,7 @@ namespace LightTextEditorPlus.Core.Document
 
                 // 只触发文档变更，不需要修改光标
 
-                InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
+                InternalDocumentChanged?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.OnlyStyle));
             }
         }
 
@@ -579,7 +581,7 @@ namespace LightTextEditorPlus.Core.Document
         /// </summary>
         /// <param name="selection"></param>
         /// <returns></returns>
-        public IEnumerable<CharData> GetCharDataRange(in Selection selection)
+        internal IEnumerable<CharData> GetCharDataRange(in Selection selection)
         {
             // 获取方法：
             // 1. 先获取命中到的首段，取首段的字符
@@ -649,7 +651,7 @@ namespace LightTextEditorPlus.Core.Document
         {
             TextEditor.AddLayoutReason(nameof(AppendText));
 
-            InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
+            InternalDocumentChanging?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.Text));
 
             // 设置光标到文档最后，再进行追加。设置光标到文档最后之后，可以自动获取当前光标下的文本字符属性
             var oldCharCount = CharCount;
@@ -672,7 +674,7 @@ namespace LightTextEditorPlus.Core.Document
                 TextEditor.UndoRedoProvider.Insert(textChangeOperation);
             }
 
-            InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
+            InternalDocumentChanged?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.Text));
         }
 
         /// <summary>
@@ -725,7 +727,7 @@ namespace LightTextEditorPlus.Core.Document
         /// </summary>
         private void EditAndReplaceRunListInner(in Selection selection, IImmutableRunList? run)
         {
-            InternalDocumentChanging?.Invoke(this, EventArgs.Empty);
+            InternalDocumentChanging?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.Text));
             // 这里只处理数据变更，后续渲染需要通过 InternalDocumentChanged 事件触发
 
             // 替换文本
@@ -736,19 +738,32 @@ namespace LightTextEditorPlus.Core.Document
             var caretOffset = selection.FrontOffset.Offset + addCharCount;
             // 是否更改了文本内容。也就是有添加或者有删除。有添加则 addCharCount != 0 成立。有删除 selection.Length > 0 成立
             var isChangedText = addCharCount != 0 || selection.Length > 0;
-            if (isChangedText && CaretManager.CurrentCaretOffset.Offset != caretOffset)
+            if (isChangedText)
             {
-                // 如果有加上任何内容，则需要判断是否采用换行符结束，如果采用换行符结束，需要设置光标是在行首
-                // 如果仅仅只是替换相等同的内容，如 CaretManager.CurrentCaretOffset.Offset == caretOffset.Offset 的条件，则不应该修改光标。这条规则也许不对，如果后续行为不符合交互设计，则进行修改
-                CaretManager.CurrentCaretOffset = new CaretOffset(caretOffset, isAtLineStart: IsEndWithBreakLine(run));
+                CaretOffset currentCaretOffset = new CaretOffset(caretOffset, isAtLineStart: IsEndWithBreakLine(run));
+
+                if (CaretManager.CurrentCaretOffset.Offset != caretOffset)
+                {
+                    // 如果有加上任何内容，则需要判断是否采用换行符结束，如果采用换行符结束，需要设置光标是在行首
+                    // 如果仅仅只是替换相等同的内容，如 CaretManager.CurrentCaretOffset.Offset == caretOffset.Offset 的条件，则不应该修改光标。这条规则也许不对，如果后续行为不符合交互设计，则进行修改
+                    CaretManager.CurrentCaretOffset = currentCaretOffset;
+                }
+                else
+                {
+                    if (CaretManager.CurrentSelection.Length > 0)
+                    {
+                        // 现在是选中删除的情况，应该将光标设置到删除的位置
+                        // 通过给 CurrentCaretOffset 赋值的方式清空选择内容
+                        CaretManager.CurrentCaretOffset = currentCaretOffset;
+                    }
+                }
             }
             else
             {
-                // 考虑选中删除的情况，此时不应该修改光标
             }
 
             // 触发事件。触发事件将用来执行重新排版
-            InternalDocumentChanged?.Invoke(this, EventArgs.Empty);
+            InternalDocumentChanged?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.Text));
         }
 
         private static bool IsEndWithBreakLine(IImmutableRunList? runList)

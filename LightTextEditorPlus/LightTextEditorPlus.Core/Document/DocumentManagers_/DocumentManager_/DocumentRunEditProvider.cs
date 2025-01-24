@@ -68,7 +68,17 @@ internal class DocumentRunEditProvider
                 }
                 else
                 {
-                    var paragraphCharOffset = new ParagraphCharOffset(paragraphDataResult.HitOffset.Offset);
+                    ParagraphCharOffset paragraphCharOffset;
+                    
+                    if (paragraphDataResult.HitOffset.Offset == paragraphDataResult.ParagraphData.CharCount)
+                    {
+                        // 命中到最后一个字符，命中到段末，需要执行修正
+                        paragraphCharOffset = new ParagraphCharOffset(paragraphDataResult.ParagraphData.CharCount - 1);
+                    }
+                    else
+                    {
+                        paragraphCharOffset = new ParagraphCharOffset(paragraphDataResult.HitOffset.Offset);
+                    }
                     var charData = paragraphDataResult.ParagraphData.GetCharData(paragraphCharOffset);
                     styleRunProperty = charData.RunProperty;
                 }

@@ -182,7 +182,7 @@ public static class RegexPatterns
     /// <summary>
     /// 匹配英文字符
     /// </summary>
-    public static readonly IPattern EnglishLetterPattern = new EnglishLetterPattern();
+    internal static readonly EnglishLetterPattern EnglishLetterPattern = new EnglishLetterPattern();
 
     /// <summary>
     /// 小写字符

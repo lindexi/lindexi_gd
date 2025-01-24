@@ -42,4 +42,7 @@ public sealed class RuneCharObject : ICharObject
 
     /// <inheritdoc />
     public Utf32CodePoint CodePoint => new Utf32CodePoint(Rune.Value);
+
+    /// <inheritdoc />
+    public override string ToString() => ToText();
 }

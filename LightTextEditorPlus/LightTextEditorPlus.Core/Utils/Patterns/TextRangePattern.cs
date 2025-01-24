@@ -1,4 +1,5 @@
 using System;
+using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Utils.Patterns;
 
@@ -33,6 +34,15 @@ public class TextRangePattern : IPattern
     /// <returns></returns>
     public bool IsInRange(char c)
     {
+        return !(c < MinChar || c > MaxChar);
+    }
+
+    /// <summary>
+    /// 是否输入的字符在范围内
+    /// </summary>
+    public bool IsInRange(Utf32CodePoint codePoint)
+    {
+        int c = codePoint.Value;
         return !(c < MinChar || c > MaxChar);
     }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -47,6 +48,7 @@ partial class TextEditor : Control
         VerticalAlignment = VerticalAlignment.Stretch;
 
         TextEditorCore.LayoutCompleted += TextEditorCore_LayoutCompleted;
+        TextEditorCore.TextChanged += TextEditorCore_TextChanged;
 
         //// 调试代码
         //TextEditorCore.AppendText("afg123微软雅黑123123");
