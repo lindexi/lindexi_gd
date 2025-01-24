@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing.Text;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Security;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -42,7 +44,7 @@ namespace LightTextEditorPlus;
 /// 文本编辑器
 /// </summary>
 /// 这就是整个程序集的入口
-public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEditor
+public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEditor, INotifyPropertyChanged
 {
     static TextEditor()
     {
@@ -72,6 +74,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
         var textEditorPlatformProvider = new TextEditorPlatformProvider(this);
         TextEditorCore = new TextEditorCore(textEditorPlatformProvider);
+        TextEditorCore.TextChanged += TextEditorCore_TextChanged;
         //SetDefaultTextRunProperty(property => property with
         //{
         //    FontSize = 40
@@ -105,6 +108,41 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     /// 文本库的静态配置
     /// </summary>
     public static StaticConfiguration StaticConfiguration { get; } = new StaticConfiguration();
+
+    /// <summary>
+    /// 文本内容
+    /// </summary>
+    public string Text
+    {
+        get
+        {
+            if (_cacheText is null)
+            {
+                _cacheText = TextEditorCore.GetText();
+            }
+
+            return _cacheText;
+        }
+        set
+        {
+            _isSettingsTextProperty = true;
+            TextEditorCore.EditAndReplace(value, TextEditorCore.GetAllDocumentSelection());
+            _isSettingsTextProperty = false;
+            _cacheText = value;
+        }
+    }
+
+    private bool _isSettingsTextProperty;
+    private string? _cacheText;
+
+    private void TextEditorCore_TextChanged(object? sender, EventArgs e)
+    {
+        if (!_isSettingsTextProperty)
+        {
+            _cacheText = null;
+            OnPropertyChanged(nameof(Text));
+        }
+    }
 
     #endregion
 
@@ -370,6 +408,21 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     /// </summary>
     // ReSharper disable once IdentifierTypo
     private string _emojiCache = string.Empty;
+    #endregion
+
+    #region NotifyPropertyChanged
+
+    /// <inheritdoc />
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    /// <summary>
+    /// 属性变更通知
+    /// </summary>
+    /// <param name="propertyName"></param>
+    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
     #endregion
 }
 

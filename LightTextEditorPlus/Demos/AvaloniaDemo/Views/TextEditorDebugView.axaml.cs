@@ -45,7 +45,21 @@ public partial class TextEditorDebugView : UserControl
         };
         TextEditorGrid.Children.RemoveAll(TextEditorGrid.Children.OfType<TextEditor>().ToList());
         TextEditorGrid.Children.Insert(0, TextEditor);
+
+        // 调试绑定
+        if (_debugTextPropertyBinding)
+        {
+            TextEditor.ShouldRaiseTextPropertyChanged = true;
+            TextBox textBox = new TextBox()
+            {
+                Margin = new Thickness(0, 100, 0, 0)
+            };
+            textBox.Bind(TextBox.TextProperty, TextEditor.GetObservable(TextEditor.TextProperty));
+            TextEditorGrid.Children.Insert(1, textBox);
+        }
     }
+
+    private bool _debugTextPropertyBinding = false;
 
     public TextEditor TextEditor
     {

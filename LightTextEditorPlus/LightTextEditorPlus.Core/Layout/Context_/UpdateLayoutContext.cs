@@ -15,7 +15,12 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
     internal UpdateLayoutContext(ArrangingLayoutProvider arrangingLayoutProvider)
     {
         ArrangingLayoutProvider = arrangingLayoutProvider;
+
+        IReadOnlyList<ParagraphData> paragraphList = TextEditor.DocumentManager.ParagraphManager.GetParagraphList();
+        ParagraphList = paragraphList;
     }
+
+    internal IReadOnlyList<ParagraphData> ParagraphList { get; }
 
     internal ArrangingLayoutProvider ArrangingLayoutProvider { get; }
 
@@ -33,7 +38,7 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
     /// 记录布局过程的调试信息
     /// </summary>
     /// <param name="message"></param>
-    public void RecordDebugLayoutInfo([InterpolatedStringHandlerArgument("")] LayoutDebugMessageInterpolatedStringHandler message)
+    public void RecordDebugLayoutInfo([InterpolatedStringHandlerArgument("")] ref LayoutDebugMessageInterpolatedStringHandler message)
     {
         if (!message.IsInDebugMode)
         {
@@ -102,7 +107,7 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
     /// 用于记录布局调试信息的字符串处理器
     /// </summary>
     [InterpolatedStringHandler]
-    public ref struct LayoutDebugMessageInterpolatedStringHandler
+    public readonly ref struct LayoutDebugMessageInterpolatedStringHandler
     {
         /// <summary>
         /// 创建用于记录布局调试信息的字符串处理器

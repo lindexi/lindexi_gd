@@ -53,10 +53,16 @@ class LineLayoutData : IParagraphCache, IDisposable
     /// <summary>
     /// 这一行的起始的点，相对于文本框
     /// </summary>
+    /// todo 需要再添加一个属性用来表示缩进
     public TextPoint CharStartPoint
     {
         set
         {
+            if (_charStartPoint == value)
+            {
+                return;
+            }
+
             _charStartPoint = value;
             IsLineStartPointUpdated = true;
         }
@@ -68,7 +74,11 @@ class LineLayoutData : IParagraphCache, IDisposable
     /// <summary>
     /// 这一行的尺寸。这是在 <see cref="LineCharTextSize"/> 基础上叠加行距尺寸信息
     /// </summary>
-    public TextSize LineSize { get; init; }
+    /// 可能这个属性也需要一个对应的 StartPoint 值。且和 <see cref="OutlineBounds"/> 有些关联。现在缺少一个表示缩进的属性
+    /// - IndentationThickness - 表示缩进带来的空白
+    /// - HorizontalTextAlignmentGapThickness - 表示对齐带来的空白，如居中对齐
+    /// - LineSpacingThickness - 表示行距带来的空白
+    public TextSize LineContentSize { get; init; }
 
     /// <summary>
     /// 这一行的字符尺寸，不会受到行距的影响
@@ -76,9 +86,14 @@ class LineLayoutData : IParagraphCache, IDisposable
     public TextSize LineCharTextSize { get; init; }
 
     /// <summary>
-    /// 这一行的范围
+    /// 这一行的有内容的范围。这个范围包裹住了文本的内容，包括行距尺寸信息
     /// </summary>
-    public TextRect GetLineBounds() => new TextRect(_charStartPoint, LineSize);
+    public TextRect GetLineContentBounds() => new TextRect(_charStartPoint, LineContentSize);
+
+    /// <summary>
+    /// 这一行的包括对齐产生的空白 Gap 的范围，为最大的范围
+    /// </summary>
+    public TextRect OutlineBounds { get; internal set; }
 
     /// <summary>
     /// 这一行是当前段落的第几行
@@ -158,7 +173,7 @@ class LineLayoutData : IParagraphCache, IDisposable
 
     public LineDrawingArgument GetLineDrawingArgument()
     {
-        return new LineDrawingArgument(IsDrawn, IsLineStartPointUpdated, LineAssociatedRenderData, CharStartPoint, LineSize,
+        return new LineDrawingArgument(IsDrawn, IsLineStartPointUpdated, LineAssociatedRenderData, CharStartPoint, LineContentSize,
             GetCharList());
     }
 

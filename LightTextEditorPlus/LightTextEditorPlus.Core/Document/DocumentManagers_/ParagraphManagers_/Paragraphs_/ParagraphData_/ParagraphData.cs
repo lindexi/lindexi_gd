@@ -5,6 +5,7 @@ using System.Text;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Platform;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Utils;
 
@@ -24,7 +25,37 @@ class ParagraphData
         CharDataManager = new ParagraphCharDataManager(this);
     }
 
-    public ParagraphLayoutData ParagraphLayoutData { get; } = new ParagraphLayoutData();
+    #region 布局
+
+    public IParagraphLayoutData ParagraphLayoutData => _paragraphLayoutData;
+    private readonly ParagraphLayoutData _paragraphLayoutData = new ParagraphLayoutData();
+
+    public void SetParagraphLayoutTextBounds(TextRect textBounds)
+        => _paragraphLayoutData.TextBounds = textBounds;
+
+    public void SetParagraphLayoutOutlineBounds(TextRect outlineBounds)
+        => _paragraphLayoutData.OutlineBounds = outlineBounds;
+
+    /// <summary>
+    /// 更新段落左上角起始点的坐标
+    /// </summary>
+    /// <param name="textStartPoint"></param>
+    /// <param name="outlineStartPoint"></param>
+    public void UpdateParagraphLayoutStartPoint(TextPoint textStartPoint, TextPoint outlineStartPoint)
+    {
+        _paragraphLayoutData.TextBounds = _paragraphLayoutData.TextBounds with
+        {
+            X = textStartPoint.X,
+            Y = textStartPoint.Y
+        };
+
+        _paragraphLayoutData.OutlineBounds = _paragraphLayoutData.OutlineBounds with
+        {
+            X = outlineStartPoint.X, Y = outlineStartPoint.Y
+        };
+    }
+
+    #endregion
 
     /// <summary>
     /// 段落属性样式
@@ -413,7 +444,6 @@ class ParagraphData
     /// 已经更新布局的版本
     /// </summary>
     private uint _updatedLayoutVersion = 0;
-
 
     internal bool IsInvalidVersion(uint version) => version != Version;
 

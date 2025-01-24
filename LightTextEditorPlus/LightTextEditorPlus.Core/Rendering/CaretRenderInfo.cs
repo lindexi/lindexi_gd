@@ -45,7 +45,7 @@ public readonly struct CaretRenderInfo
     /// <summary>
     /// 行的范围
     /// </summary>
-    public TextRect LineBounds => LineLayoutData.GetLineBounds();
+    public TextRect LineBounds => LineLayoutData.GetLineContentBounds();
 
     /// <summary>
     /// 命中到行的哪个字符

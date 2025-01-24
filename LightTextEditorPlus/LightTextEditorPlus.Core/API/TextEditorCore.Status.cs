@@ -29,7 +29,7 @@ public partial class TextEditorCore
             return false;
         }
 
-        result = _layoutManager.HitTest(point);
+        result = _layoutManager.HitTest(in point);
         return true;
     }
 

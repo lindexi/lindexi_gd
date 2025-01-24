@@ -7,5 +7,11 @@ namespace LightTextEditorPlus.Core.Layout;
 /// </summary>
 class DocumentRenderData
 {
+    /// <summary>
+    /// 文档的边界
+    /// </summary>
+    /// <remarks>
+    /// 可能小于 DocumentWidth 和 DocumentHeight 的值
+    /// </remarks>
     public TextRect DocumentBounds { set; get; }
 }

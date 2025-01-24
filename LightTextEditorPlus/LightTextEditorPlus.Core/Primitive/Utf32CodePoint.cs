@@ -9,7 +9,8 @@ namespace LightTextEditorPlus.Core.Primitive;
 /// </summary>
 /// https://en.wikipedia.org/wiki/Code_point
 /// 感觉不如 Rune 类型
-public readonly record struct Utf32CodePoint(int Value)
+/// [.NET 中的字符编码简介 - .NET Microsoft Learn](https://learn.microsoft.com/zh-cn/dotnet/standard/base-types/character-encoding-introduction#grapheme-clusters )
+public readonly record struct Utf32CodePoint(int Value) : IEquatable<char>
 {
     /// <summary>
     /// 将码点转换为符文
@@ -55,9 +56,30 @@ public readonly record struct Utf32CodePoint(int Value)
     }
 
     /// <summary>
+    /// 将码点追加到字符串构建器中
+    /// </summary>
+    /// <param name="stringBuilder"></param>
+    /// 等待 [Flow System.Text.Rune through more APIs · Issue #27912 · dotnet/runtime](https://github.com/dotnet/runtime/issues/27912 )
+    public void AppendToStringBuilder(StringBuilder stringBuilder)
+    {
+        Span<char> buffer = stackalloc char[2];
+        int length = Rune.EncodeToUtf16(buffer);
+        for (int i = 0; i < length; i++)
+        {
+            stringBuilder.Append(buffer[i]);
+        }
+    }
+
+    /// <summary>
     /// 将码点追加到字符列表中
     /// </summary>
     public void AppendToCharList(List<char> charList) => AppendToCharCollection(charList);
+
+    /// <inheritdoc />
+    public bool Equals(char other)
+    {
+        return Value == other;
+    }
 
     /// <inheritdoc />
     public override string ToString() => Char.ConvertFromUtf32(Value);

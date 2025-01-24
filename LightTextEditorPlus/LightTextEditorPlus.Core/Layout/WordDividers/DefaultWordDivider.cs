@@ -18,7 +18,7 @@ internal class DefaultWordDivider
     }
 
     private readonly TextEditorCore _textEditor;
-    private IInternalCharDataSizeMeasurer _charDataSizeMeasurer;
+    private readonly IInternalCharDataSizeMeasurer _charDataSizeMeasurer;
     //private WordRange _currentWord;
 
     /// <summary>
@@ -77,9 +77,9 @@ internal class DefaultWordDivider
                     // 不能放下的话，需要额外考虑一下，判断一下这个单词后的下一个字符是否属于不能放在行首的符号
                     // punctuation
                     // 不能放在行首的符号
-                    string text = charDataInNextWord.CharObject.ToText();
+                    Utf32CodePoint codePoint = charDataInNextWord.CharObject.CodePoint;
                     bool allowHangingPunctuation = argument.ParagraphProperty.AllowHangingPunctuation;
-                    (bool isOverflow, bool shouldTakeNextChar) = ShouldTakeNextPunctuationChar(text, allowHangingPunctuation);
+                    (bool isOverflow, bool shouldTakeNextChar) = ShouldTakeNextPunctuationChar(codePoint, allowHangingPunctuation);
 
                     if (isOverflow)
                     {
@@ -179,27 +179,24 @@ internal class DefaultWordDivider
     /// <summary>
     /// 是否需要获取下一个字符，只有在符号不能存在行末，且允许符号溢出
     /// </summary>
-    /// <param name="text"></param>
+    /// <param name="codePoint"></param>
     /// <param name="allowHangingPunctuation"></param>
     /// <returns></returns>
-    private static (bool isOverflow, bool shouldTakeNextChar) ShouldTakeNextPunctuationChar(string text, bool allowHangingPunctuation)
+    private static (bool isOverflow, bool shouldTakeNextChar) ShouldTakeNextPunctuationChar(Utf32CodePoint codePoint, bool allowHangingPunctuation)
     {
-        if (text.Length == 1)
+        if (IsPunctuationNotInLineStart(codePoint))
         {
-            if (IsPunctuationNotInLineStart(text))
+            if (allowHangingPunctuation)
             {
-                if (allowHangingPunctuation)
-                {
-                    // 允许溢出符号的情况下，再多取一个符号
-                    // todo 判断是否多符号连续
-                    // 例如 !!! 的情况
-                    return (isOverflow: false, shouldTakeNextChar: true);
-                }
-                else
-                {
-                    // 不能作为行末的符号，且不允许溢出，凉凉
-                    return (isOverflow: true, shouldTakeNextChar: false);
-                }
+                // 允许溢出符号的情况下，再多取一个符号
+                // todo 判断是否多符号连续
+                // 例如 !!! 的情况
+                return (isOverflow: false, shouldTakeNextChar: true);
+            }
+            else
+            {
+                // 不能作为行末的符号，且不允许溢出，凉凉
+                return (isOverflow: true, shouldTakeNextChar: false);
             }
         }
         // 既然不是符号，那就不存在溢出
@@ -209,13 +206,13 @@ internal class DefaultWordDivider
     /// <summary>
     /// 通过语言文化判断当前传入的标点符号是否不能放在行首。语言文化里面只能用来判断符号，是否能放在行首是文本库的判断
     /// </summary>
-    /// <param name="text">传入参数之前，确保只有一个字符</param>
+    /// <param name="codePoint">传入参数之前，确保只有一个字符</param>
     /// <returns></returns>
-    private static bool IsPunctuationNotInLineStart(string text)
+    private static bool IsPunctuationNotInLineStart(Utf32CodePoint codePoint)
     {
         // 只是判断标点符号而已
         // 反向判断，通过正则辅助判断。只要是标点符号，且不是可以在行首的，那就返回 true 值
-        UnicodeCategory unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(text, 0);
+        UnicodeCategory unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(codePoint.Value);
         return unicodeCategory is UnicodeCategory.OtherPunctuation
             //or UnicodeCategory.OpenPunctuation 如 （）
             or UnicodeCategory.ClosePunctuation

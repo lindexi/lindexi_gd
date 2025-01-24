@@ -2,7 +2,8 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace LightTextEditorPlus.Core.Utils.Patterns;
 
-class MultiTextRangePattern
+// 此类型暂时没有用上，先放着
+file class MultiTextRangePattern
 {
     /// <summary>
     /// 多个文本范围的判断
