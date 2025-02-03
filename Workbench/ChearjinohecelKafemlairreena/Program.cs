@@ -14,6 +14,10 @@ bool isPathIgnored = repository.Ignore.IsPathIgnored("bin/obj/Foo.exe");
 var queryableCommitLog = repository.Commits;
 Commit commit = queryableCommitLog.First();
 
+var logEntries = queryableCommitLog.QueryBy("Workbench/ChearjinohecelKafemlairreena/Program.cs");
+foreach (LogEntry logEntry in logEntries)
+{
+}
 
 ObjectId commitId = commit.Id;
 GitObject gitObject = repository.Lookup(commitId);
