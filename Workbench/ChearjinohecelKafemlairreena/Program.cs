@@ -19,6 +19,15 @@ var remoteCollection = repository.Network.Remotes;
 HistoryDivergence historyDivergence = repository.ObjectDatabase.CalculateHistoryDivergence(queryableCommitLog.Skip(100).First(), commit);
 var historyDivergenceCommonAncestor = historyDivergence.CommonAncestor;
 
+//queryableCommitLog.QueryBy(new CommitFilter()
+//{
+//    SortBy = CommitSortStrategies.None,
+//})
+
+foreach (var note in historyDivergenceCommonAncestor.Notes)
+{
+    
+}
 
 GC.KeepAlive(repository);
 Console.WriteLine("Hello, World!");
