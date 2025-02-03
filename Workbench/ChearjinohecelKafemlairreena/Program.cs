@@ -9,6 +9,8 @@ var repository = new Repository(folder, new RepositoryOptions()
     
 });
 
+bool isPathIgnored = repository.Ignore.IsPathIgnored("bin/obj/Foo.exe");
+
 var queryableCommitLog = repository.Commits;
 Commit commit = queryableCommitLog.First();
 
@@ -17,7 +19,6 @@ var remoteCollection = repository.Network.Remotes;
 HistoryDivergence historyDivergence = repository.ObjectDatabase.CalculateHistoryDivergence(queryableCommitLog.Skip(100).First(), commit);
 var historyDivergenceCommonAncestor = historyDivergence.CommonAncestor;
 
-bool isPathIgnored = repository.Ignore.IsPathIgnored(@"bin\obj\Foo.exe");
 
 GC.KeepAlive(repository);
 Console.WriteLine("Hello, World!");
