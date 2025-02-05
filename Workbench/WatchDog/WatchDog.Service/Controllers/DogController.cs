@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using StackExchange.Redis.Extensions.Core.Implementations;
+
+using WatchDog.Core;
 using WatchDog.Service.Contexts;
 using WatchDog.Service.Frameworks;
 
@@ -44,13 +46,22 @@ public class DogController : ControllerBase
 
     [HttpPost]
     [Route("Wang")]
-    public async Task<GetWangResponse?> GetWangAsync(GetWangRequest request)
+    public async Task<GetWangResponse?> GetWangAsync(GetWangRequest request, [FromServices] WatchDogProvider watchDogProvider)
     {
         var host = await GetMasterHostAsync();
         var url = $"{host}WatchDog/Wang";
         var httpClient = _httpClientFactory.CreateClient();
         var response = await httpClient.PostAsJsonAsync(url, request);
         var result = await response.Content.ReadFromJsonAsync<GetWangResponse>();
+
+        if (result?.GetWangResult is {} wangResult)
+        {
+            lock (watchDogProvider)
+            {
+                watchDogProvider.Sync(wangResult);
+            }
+        }
+
         return result;
     }
 
@@ -79,6 +90,7 @@ public class DogController : ControllerBase
         {
             return $"http://{masterHost}:57725/";
         }
+
     }
 }
 

@@ -1,4 +1,8 @@
+using Windows.Data.Xml.Dom;
+using Windows.UI.Notifications;
 using WatchDog.Core.Context;
+using WatchDog.Service.Contexts;
+using WatchDog.Uno.ViewModels;
 using WatchDog.Uno.WatchDogClient;
 
 namespace WatchDog.Uno;
@@ -8,31 +12,95 @@ public sealed partial class MainPage : Page
     public MainPage()
     {
         this.InitializeComponent();
-
         Loaded += MainPage_Loaded;
     }
 
-    private async void MainPage_Loaded(object sender, RoutedEventArgs e)
+    public FeedDogViewModel CurrentFeedDogViewModel { get; } = new FeedDogViewModel();
+    public WatchDogViewModel WatchDogViewModel => (WatchDogViewModel) DataContext;
+
+    private void MainPage_Loaded(object sender, RoutedEventArgs e)
     {
-        var watchDogProvider = new WatchDogProvider("http://127.0.0.1:57725/");
-        var feedDogResponse = await watchDogProvider.FeedAsync(new FeedDogInfo("测试应用", "运行"));
-        if (feedDogResponse == null)
+        FeedDogButton.Focus(FocusState.Programmatic);
+        _ = WatchDogViewModel.WatchAsync();
+
+        WatchDogViewModel.NotifyWang += (o, info) =>
         {
-            return;
+            var lastFeedDogInfo = info.FeedDogInfo;
+
+            var feedDogInfo = lastFeedDogInfo.FeedDogInfo;
+            var offset = DateTimeOffset.Now - lastFeedDogInfo.LastUpdateTime;
+            var message = $"名为 '{feedDogInfo.Name}', Id为 '{lastFeedDogInfo.Id}'\r\n 已经超过 {offset.TotalSeconds}秒没有更新。\r\n最后更新状态是 {feedDogInfo.Status}";
+            var escaped = new System.Xml.Linq.XText(message).ToString();
+
+            var xmlDocument = new XmlDocument();
+            // lang=xml
+            var toast = $"""
+                        <toast>
+                            <visual>
+                                <binding template='ToastText01'>
+                                    <text id="1">{escaped}</text>
+                                </binding>
+                            </visual>
+                        </toast>
+                        """;
+            xmlDocument.LoadXml(xml: toast);
+
+            var toastNotification = new ToastNotification(xmlDocument);
+            var toastNotificationManagerForUser = ToastNotificationManager.GetDefault();
+            var toastNotifier = toastNotificationManagerForUser.CreateToastNotifier(applicationId: "WatchDog");
+            toastNotifier.Show(toastNotification);
+        };
+        return;
+
+        //var watchDogProvider = new WatchDogProvider("http://127.0.0.1:57725/");
+        //var feedDogResponse = await watchDogProvider.FeedAsync(new FeedDogInfo("测试应用", "运行"));
+        //if (feedDogResponse == null)
+        //{
+        //    return;
+        //}
+
+        //var id = feedDogResponse.FeedDogResult.Id;
+        //var currentDogId = Guid.NewGuid().ToString("N");
+
+        //var wangResponse = await watchDogProvider.GetWangAsync(new GetWangInfo(currentDogId));
+        //if (wangResponse == null)
+        //{
+        //    return;
+        //}
+
+        //foreach (var wangInfo in wangResponse.GetWangResult.WangList)
+        //{
+
+        //}
+    }
+
+    private async void FeedDogButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var watchDogProvider = WatchDogViewModel.WatchDogProvider;
+
+            // 通知间隔时间
+            uint notifyIntervalSecond = 60 * 30;
+#if DEBUG
+            notifyIntervalSecond = 3;
+#endif
+
+            var feedDogInfo = new FeedDogInfo(CurrentFeedDogViewModel.Name, CurrentFeedDogViewModel.Status, CurrentFeedDogViewModel.Id, NotifyIntervalSecond : notifyIntervalSecond);
+            FeedDogResponse? feedDogResponse = await watchDogProvider.FeedAsync(feedDogInfo);
+            if (feedDogResponse == null)
+            {
+                FeedDogResultTextBox.Text = $"{DateTime.Now:HH:mm:ss,fff} 喂狗失败";
+                return;
+            }
+
+            var feedDogResult = feedDogResponse.FeedDogResult;
+            CurrentFeedDogViewModel.Id = feedDogResult.Id;
+            FeedDogResultTextBox.Text = $"{DateTime.Now:HH:mm:ss,fff} 喂狗成功 {feedDogResult}";
         }
-
-        var id = feedDogResponse.FeedDogResult.Id;
-        var currentDogId = Guid.NewGuid().ToString("N");
-
-        var wangResponse = await watchDogProvider.GetWangAsync(new GetWangInfo(currentDogId));
-        if (wangResponse == null)
+        catch (Exception exception)
         {
-            return;
-        }
-
-        foreach (var wangInfo in wangResponse.GetWangResult.WangList)
-        {
-            
+            FeedDogResultTextBox.Text = $"{DateTime.Now:HH:mm:ss,fff} 喂狗失败 {exception}";
         }
     }
 }

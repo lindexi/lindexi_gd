@@ -10,6 +10,7 @@
 /// <param name="MaxDelayCount">最多的次数，一般是 1 的值</param>
 /// <param name="NotifyIntervalSecond">通知的间隔时间</param>
 /// <param name="NotifyMaxCount">最多的通知次数，默认是无限通知</param>
+/// <param name="MaxCleanTimeSecond">如果经过了多久都没有响应，则清除喂狗信息。默认是 7 天</param>
 public record FeedDogInfo
 (
     string Name,
@@ -18,5 +19,6 @@ public record FeedDogInfo
     uint DelaySecond = 60,
     uint MaxDelayCount = 1,
     uint NotifyIntervalSecond = 60 * 30,
-    int NotifyMaxCount = -1
+    int NotifyMaxCount = -1,
+    int MaxCleanTimeSecond = 60 * 60 * 24 * 7
 );
