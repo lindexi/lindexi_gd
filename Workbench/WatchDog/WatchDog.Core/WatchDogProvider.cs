@@ -16,7 +16,11 @@ public class WatchDogProvider
 
     public FeedDogResult Feed(FeedDogInfo feedDogInfo)
     {
-        var id = feedDogInfo.Id ?? Guid.NewGuid().ToString("N");
+        var id = feedDogInfo.Id;
+        if (string.IsNullOrEmpty(id))
+        {
+            id = Guid.NewGuid().ToString("N");
+        }
 
         bool isRegister = false;
         if (LastFeedDogInfoDictionary.TryGetValue(id, out var lastFeedDogInfo))
@@ -36,7 +40,7 @@ public class WatchDogProvider
         }
         LastFeedDogInfoDictionary[id] = lastFeedDogInfo;
 
-        _dogInfoProvider.RemoveMuteByActive(id);
+        _dogInfoProvider.SetActive(id);
 
         return new FeedDogResult(id, feedDogInfo.DelaySecond, feedDogInfo.MaxDelayCount, feedDogInfo.NotifyIntervalSecond, feedDogInfo.NotifyMaxCount, lastFeedDogInfo.RegisterTime, isRegister);
     }
@@ -49,22 +53,50 @@ public class WatchDogProvider
 
         var wangList = new List<WangInfo>();
 
+        var cleanIdList = new List<string>();
+
         foreach (var lastFeedDogInfo in LastFeedDogInfoDictionary.Values)
         {
             var timeSpan = currentTime - lastFeedDogInfo.LastUpdateTime;
+            CheckShouldWangResult checkShouldWangResult;
             if (timeSpan.TotalSeconds > lastFeedDogInfo.FeedDogInfo.DelaySecond)
             {
-                // 咬人
-                if (_dogInfoProvider.ShouldMute(lastFeedDogInfo, wangInfo.DogId))
+                if (timeSpan.TotalSeconds > lastFeedDogInfo.FeedDogInfo.MaxCleanTimeSecond)
                 {
+                    // 如果狗忘记这个了，那就加入清理列表
+                    cleanIdList.Add(lastFeedDogInfo.Id);
                     continue;
                 }
 
-                wangList.Add(new WangInfo(lastFeedDogInfo.Id, lastFeedDogInfo.FeedDogInfo.Name, lastFeedDogInfo.FeedDogInfo.Status, lastFeedDogInfo.FeedDogInfo.DelaySecond, lastFeedDogInfo.LastUpdateTime, lastFeedDogInfo.RegisterTime));
+                // 咬人
+                checkShouldWangResult = _dogInfoProvider.RegisterAndCheckShouldWang(lastFeedDogInfo, wangInfo.DogId);
             }
+            else
+            {
+                checkShouldWangResult = new CheckShouldWangResult(ShouldWang: false, ShouldMute: false, InNotifyInterval: false, OverNotifyMaxCount: false);
+            }
+
+            wangList.Add(new WangInfo(lastFeedDogInfo, checkShouldWangResult));
         }
 
+        foreach (var id in cleanIdList)
+        {
+            LastFeedDogInfoDictionary.Remove(id);
+        }
+
+        _dogInfoProvider.CleanWangList(cleanIdList);
+
         return new GetWangResult(wangInfo.DogId, wangList);
+    }
+
+    public void Sync(GetWangResult result)
+    {
+        LastFeedDogInfoDictionary.Clear();
+        foreach (var wangInfo in result.WangList)
+        {
+            var id = wangInfo.FeedDogInfo.Id;
+            LastFeedDogInfoDictionary[id] = wangInfo.FeedDogInfo;
+        }
     }
 
     public void Mute(MuteInfo muteInfo)

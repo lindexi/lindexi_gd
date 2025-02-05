@@ -8,6 +8,7 @@ namespace WatchDog.Service.Controllers;
 [Route("[controller]")]
 public class WatchDogController : ControllerBase
 {
+    // 这是内部调用的
     public WatchDogController(WatchDogProvider watchDogProvider)
     {
         _watchDogProvider = watchDogProvider;

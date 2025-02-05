@@ -32,7 +32,7 @@ public class DogInfoProvider : IDogInfoProvider
         }
     }
 
-    public void RemoveMuteByActive(string id)
+    public void SetActive(string id)
     {
         if (MuteSet.TryGetValue(id, out var muteDictionary))
         {
@@ -50,11 +50,77 @@ public class DogInfoProvider : IDogInfoProvider
                 muteDictionary.Remove(key);
             }
         }
+
+        CleanWangList(new[] { id });
     }
 
-    public bool ShouldMute(LastFeedDogInfo info,string dogId)
+    public void CleanWangList(IReadOnlyList<string> idList)
     {
-        if (MuteSet.TryGetValue(info.Id,out var muteDictionary))
+        var removeList = new List<string>();
+        foreach (var (dogId, lastWangInfoSet) in _wangSet)
+        {
+            foreach (var id in idList)
+            {
+                lastWangInfoSet.Remove(id);
+            }
+
+            if (lastWangInfoSet.Count == 0)
+            {
+                removeList.Add(dogId);
+            }
+        }
+
+        foreach (var dogId in removeList)
+        {
+            _wangSet.Remove(dogId);
+        }
+    }
+
+    public CheckShouldWangResult RegisterAndCheckShouldWang(LastFeedDogInfo info, string dogId)
+    {
+        if (ShouldMute(info, dogId))
+        {
+            // 需要静音
+            return new(ShouldWang: false, ShouldMute: true, InNotifyInterval: false, OverNotifyMaxCount: false);
+        }
+
+        if (!_wangSet.TryGetValue(dogId, out var lastWangInfoDictionary))
+        {
+            lastWangInfoDictionary = new Dictionary<string, LastWangInfo>();
+            _wangSet[dogId] = lastWangInfoDictionary;
+        }
+
+        var currentTime = _timeProvider.GetCurrentTime();
+        if (lastWangInfoDictionary.TryGetValue(info.Id, out var lastWangInfo))
+        {
+            var timeSpan = currentTime - lastWangInfo.WangTime;
+            if (timeSpan.TotalSeconds < info.FeedDogInfo.NotifyIntervalSecond)
+            {
+                // 在通知的间隔时间内，不需要再次通知
+                return new CheckShouldWangResult(ShouldWang: false, ShouldMute: false, InNotifyInterval: true, OverNotifyMaxCount: false);
+            }
+
+            if (lastWangInfo.WangCount > info.FeedDogInfo.NotifyMaxCount)
+            {
+                // 超过了最大通知次数
+                return new CheckShouldWangResult(ShouldWang: false, ShouldMute: false, InNotifyInterval: false, OverNotifyMaxCount: true);
+            }
+        }
+
+        var wangCount = lastWangInfo?.WangCount ?? 0;
+        lastWangInfoDictionary[info.Id] = new LastWangInfo(currentTime, wangCount + 1);
+
+        return new CheckShouldWangResult(ShouldWang: true, ShouldMute: false, InNotifyInterval: false,
+            OverNotifyMaxCount: false);
+    }
+
+    private readonly Dictionary<string /*DogId*/, Dictionary<string/*Id*/, LastWangInfo>> _wangSet = new();
+
+    record LastWangInfo(DateTimeOffset WangTime, int WangCount);
+
+    private bool ShouldMute(LastFeedDogInfo info, string dogId)
+    {
+        if (MuteSet.TryGetValue(info.Id, out var muteDictionary))
         {
             if (muteDictionary.TryGetValue(MuteAllKey, out var muteAllInfo))
             {
@@ -80,5 +146,5 @@ public class DogInfoProvider : IDogInfoProvider
         return false;
     }
 
-    private Dictionary<string /*id*/, Dictionary<string /*dogId*/, MuteFeedInfo>> MuteSet { get; } = new();
+    private Dictionary<string /*Id*/, Dictionary<string /*DogId*/, MuteFeedInfo>> MuteSet { get; } = new();
 }
