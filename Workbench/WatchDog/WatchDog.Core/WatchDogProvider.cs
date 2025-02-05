@@ -73,7 +73,8 @@ public class WatchDogProvider
             }
             else
             {
-                checkShouldWangResult = new CheckShouldWangResult(ShouldWang: false, ShouldMute: false, InNotifyInterval: false, OverNotifyMaxCount: false);
+                checkShouldWangResult = new CheckShouldWangResult(IsOk: true, ShouldWang: false, ShouldMute: false,
+                    InNotifyInterval: false, OverNotifyMaxCount: false);
             }
 
             wangList.Add(new WangInfo(lastFeedDogInfo, checkShouldWangResult));

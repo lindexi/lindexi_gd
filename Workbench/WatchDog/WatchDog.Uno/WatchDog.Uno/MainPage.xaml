@@ -4,10 +4,14 @@
       xmlns:local="using:WatchDog.Uno"
       xmlns:viewModels="using:WatchDog.Uno.ViewModels"
       xmlns:context="using:WatchDog.Core.Context"
+      xmlns:valueConverters="using:WatchDog.Uno.ValueConverters"
       Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
     <Page.DataContext>
         <viewModels:WatchDogViewModel/>
     </Page.DataContext>
+    <Page.Resources>
+        <valueConverters:BoolToVisibilityValueConverter x:Key="BoolToVisibilityValueConverter"/>
+    </Page.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -38,28 +42,39 @@
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="viewModels:WangModel">
                         <Border Margin="10 0 10 10" Background="#5C565656">
-                            <StackPanel Margin="10 0 10 10">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="300"></ColumnDefinition>
-                                        <ColumnDefinition></ColumnDefinition>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock FontSize="25" Text="{Binding Name}"></TextBlock>
-                                    <TextBlock Grid.Column="1" Foreground="Red" VerticalAlignment="Center" Text="{Binding WangStatus,Mode=OneTime}"></TextBlock>
-                                </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition></ColumnDefinition>
+                                    <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Margin="10 0 10 10">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="300"></ColumnDefinition>
+                                            <ColumnDefinition></ColumnDefinition>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock FontSize="25" Text="{Binding Name}"></TextBlock>
+                                        <TextBlock Grid.Column="1" Foreground="Red" VerticalAlignment="Center"
+                                                   Text="{Binding WangStatus,Mode=OneTime}">
+                                        </TextBlock>
+                                    </Grid>
 
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"></ColumnDefinition>
-                                        <ColumnDefinition Width="Auto"></ColumnDefinition>
-                                        <ColumnDefinition></ColumnDefinition>
-                                    </Grid.ColumnDefinitions>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                            <ColumnDefinition></ColumnDefinition>
+                                        </Grid.ColumnDefinitions>
 
-                                    <TextBlock Text="{Binding Id}"></TextBlock>
-                                    <TextBlock Grid.Column="1" Margin="10 0 0 0" Text="{Binding LastUpdateTime}"></TextBlock>
-                                    <TextBlock Grid.Column="2" Margin="10 0 0 0" Text="{Binding Status}"></TextBlock>
-                                </Grid>
-                            </StackPanel>
+                                        <TextBlock Text="{Binding Id}"></TextBlock>
+                                        <TextBlock Grid.Column="1" Margin="10 0 0 0" Text="{Binding LastUpdateTime}"></TextBlock>
+                                        <TextBlock Grid.Column="2" Margin="10 0 0 0" Text="{Binding Status}"></TextBlock>
+                                    </Grid>
+                                </StackPanel>
+
+                                <Button x:Name="MuteButton" Grid.Column="1" Margin="10,10,10,10" 
+                                        Visibility="{Binding CanMute,Converter={StaticResource BoolToVisibilityValueConverter}}" Content="静默" Click="MuteButton_OnClick"></Button>
+                            </Grid>
                         </Border>
                     </DataTemplate>
                 </ListView.ItemTemplate>
