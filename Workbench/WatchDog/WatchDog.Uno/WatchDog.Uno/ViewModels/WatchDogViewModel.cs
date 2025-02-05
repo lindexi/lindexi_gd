@@ -2,9 +2,9 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using Microsoft.UI.Xaml.Data;
 using WatchDog.Core.Context;
 using WatchDog.Service.Contexts;
+using WatchDog.Uno.ValueConverters;
 using WatchDog.Uno.WatchDogClient;
 
 namespace WatchDog.Uno.ViewModels;
@@ -120,6 +120,18 @@ public sealed class WatchDogViewModel : INotifyPropertyChanged
         }
     }
 
+    public void Mute(WangModel wangModel)
+    {
+        _ = MuteAsync();
+
+        async Task MuteAsync()
+        {
+            var muteResponse = await
+                WatchDogProvider.MuteAsync(new MuteInfo(wangModel.Id, _dogId));
+            _ = muteResponse;
+        }
+    }
+
     public event EventHandler<WangInfo>? NotifyWang;
 
     private readonly string _dogId = Guid.NewGuid().ToString();
@@ -147,7 +159,12 @@ public class WangModel
     // 从 ViewModel 层面上来说，不应该有这个类型
     public WangModel(WangInfo wangInfo)
     {
-        WangStatus = CheckShouldWangResultToTextConverter.ToText(wangInfo.CheckShouldWangResult);
+        var wangResult = wangInfo.CheckShouldWangResult;
+        WangStatus = CheckShouldWangResultToTextConverter.ToText(wangResult);
+
+        IsOk = wangResult.IsOk;
+
+        CanMute = !IsOk && !wangResult.ShouldMute;
 
         Id = wangInfo.FeedDogInfo.Id;
         LastUpdateTime = wangInfo.FeedDogInfo.LastUpdateTime.ToString($"yyyy-MM-dd HH:mm:ss,fff");
@@ -158,6 +175,13 @@ public class WangModel
 
         _wangInfo = wangInfo;
     }
+
+    public bool IsOk { get; set; }
+
+    /// <summary>
+    /// 能否静音
+    /// </summary>
+    public bool CanMute { get; set; }
 
     public string WangStatus { get; set; }
 
@@ -170,50 +194,4 @@ public class WangModel
     private readonly WangInfo _wangInfo;
 
     public bool Equals(WangInfo wangInfo) => _wangInfo.Equals(wangInfo);
-}
-
-static class CheckShouldWangResultToTextConverter
-{
-    public static string ToText(CheckShouldWangResult result)
-    {
-        if (result.ShouldWang)
-        {
-            return "汪";
-        }
-
-        if (result.ShouldMute)
-        {
-            return "汪(静默)";
-        }
-
-        if (result.OverNotifyMaxCount)
-        {
-            return "汪(超过最大通知次数)";
-        }
-
-        if (result.InNotifyInterval)
-        {
-            return "汪";
-        }
-
-        return "OK";
-    }
-}
-
-public class CheckShouldWangResultToTextValueConverter : IValueConverter
-{
-    public object? Convert(object value, Type targetType, object parameter, string language)
-    {
-        if (value is CheckShouldWangResult result)
-        {
-            return CheckShouldWangResultToTextConverter.ToText(result);
-        }
-
-        return null;
-    }
-
-    public object ConvertBack(object value, Type targetType, object parameter, string language)
-    {
-        return value;
-    }
 }

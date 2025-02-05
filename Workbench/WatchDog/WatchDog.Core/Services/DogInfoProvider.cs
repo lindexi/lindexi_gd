@@ -81,7 +81,8 @@ public class DogInfoProvider : IDogInfoProvider
         if (ShouldMute(info, dogId))
         {
             // 需要静音
-            return new(ShouldWang: false, ShouldMute: true, InNotifyInterval: false, OverNotifyMaxCount: false);
+            return new(IsOk: false, ShouldWang: false, ShouldMute: true, InNotifyInterval: false,
+                OverNotifyMaxCount: false);
         }
 
         if (!_wangSet.TryGetValue(dogId, out var lastWangInfoDictionary))
@@ -97,20 +98,22 @@ public class DogInfoProvider : IDogInfoProvider
             if (timeSpan.TotalSeconds < info.FeedDogInfo.NotifyIntervalSecond)
             {
                 // 在通知的间隔时间内，不需要再次通知
-                return new CheckShouldWangResult(ShouldWang: false, ShouldMute: false, InNotifyInterval: true, OverNotifyMaxCount: false);
+                return new CheckShouldWangResult(IsOk: false, ShouldWang: false, ShouldMute: false,
+                    InNotifyInterval: true, OverNotifyMaxCount: false);
             }
 
-            if (lastWangInfo.WangCount > info.FeedDogInfo.NotifyMaxCount)
+            if (info.FeedDogInfo.NotifyMaxCount != -1/*如果是 -1 就是不限制通知次数*/  && lastWangInfo.WangCount > info.FeedDogInfo.NotifyMaxCount)
             {
                 // 超过了最大通知次数
-                return new CheckShouldWangResult(ShouldWang: false, ShouldMute: false, InNotifyInterval: false, OverNotifyMaxCount: true);
+                return new CheckShouldWangResult(IsOk: false, ShouldWang: false, ShouldMute: false,
+                    InNotifyInterval: false, OverNotifyMaxCount: true);
             }
         }
 
         var wangCount = lastWangInfo?.WangCount ?? 0;
         lastWangInfoDictionary[info.Id] = new LastWangInfo(currentTime, wangCount + 1);
 
-        return new CheckShouldWangResult(ShouldWang: true, ShouldMute: false, InNotifyInterval: false,
+        return new CheckShouldWangResult(IsOk: false, ShouldWang: true, ShouldMute: false, InNotifyInterval: false,
             OverNotifyMaxCount: false);
     }
 

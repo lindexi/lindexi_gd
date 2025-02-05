@@ -29,7 +29,7 @@ public sealed partial class MainPage : Page
 
             var feedDogInfo = lastFeedDogInfo.FeedDogInfo;
             var offset = DateTimeOffset.Now - lastFeedDogInfo.LastUpdateTime;
-            var message = $"名为 '{feedDogInfo.Name}', Id为 '{lastFeedDogInfo.Id}'\r\n 已经超过 {offset.TotalSeconds}秒没有更新。\r\n最后更新状态是 {feedDogInfo.Status}";
+            var message = $"名为 '{feedDogInfo.Name}', Id为 '{lastFeedDogInfo.Id}'\r\n已经超过 {offset.TotalSeconds}秒没有更新。\r\n最后更新状态是 {feedDogInfo.Status}";
             var escaped = new System.Xml.Linq.XText(message).ToString();
 
             var xmlDocument = new XmlDocument();
@@ -82,11 +82,13 @@ public sealed partial class MainPage : Page
 
             // 通知间隔时间
             uint notifyIntervalSecond = 60 * 30;
+            uint delaySecond = 60;
 #if DEBUG
             notifyIntervalSecond = 3;
+            delaySecond = 3;
 #endif
 
-            var feedDogInfo = new FeedDogInfo(CurrentFeedDogViewModel.Name, CurrentFeedDogViewModel.Status, CurrentFeedDogViewModel.Id, NotifyIntervalSecond : notifyIntervalSecond);
+            var feedDogInfo = new FeedDogInfo(CurrentFeedDogViewModel.Name, CurrentFeedDogViewModel.Status, CurrentFeedDogViewModel.Id, DelaySecond: delaySecond, NotifyIntervalSecond : notifyIntervalSecond);
             FeedDogResponse? feedDogResponse = await watchDogProvider.FeedAsync(feedDogInfo);
             if (feedDogResponse == null)
             {
@@ -102,5 +104,12 @@ public sealed partial class MainPage : Page
         {
             FeedDogResultTextBox.Text = $"{DateTime.Now:HH:mm:ss,fff} 喂狗失败 {exception}";
         }
+    }
+
+    private void MuteButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        var button = (Button) sender;
+        var wangModel = (WangModel) button.DataContext;
+        WatchDogViewModel.Mute(wangModel);
     }
 }
