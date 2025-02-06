@@ -10,6 +10,9 @@ using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.Extensions.Primitives;
 using System.Diagnostics;
 using System.Net.Http.Headers;
+using System.Net.NetworkInformation;
+using WatchDog.Uno.WatchDogClient;
+using System.Net.Sockets;
 
 var folder = @"C:\lindexi\Phi3\directml-int4-awq-block-128\";
 if (!Directory.Exists(folder))
@@ -47,15 +50,27 @@ int total = 0;
 
 app.MapGet("/Status", () => $"Current={current};Total={total}");
 
-app.MapPost("/Stable-Diffusion-proxy/sdapi/v1/txt2img", async (HttpContext context, [FromServices] HttpClient httpClient) =>
+app.MapPost("/Stable-Diffusion-proxy/sdapi/v1/txt2img", async (HttpContext context, [FromServices] HttpClient httpClient, [FromServices] ILogger<ChatSessionLogInfo> logger) =>
 {
+    logger.LogInformation("Stable-Diffusion-proxy");
+
     await context.Response.StartAsync();
-    var recallHost = "http://127.0.0.1:56622";
-    using var streamContent = new StreamContent(context.Request.Body);
-    streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-    using var httpResponseMessage = await httpClient.PostAsync($"{recallHost}/sdapi/v1/txt2img", streamContent);
-    await httpResponseMessage.Content.CopyToAsync(context.Response.Body);
-    await context.Response.CompleteAsync();
+    try
+    {
+        var recallHost = "http://127.0.0.1:56622";
+        using var streamContent = new StreamContent(context.Request.Body);
+        streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+        using var httpResponseMessage = await httpClient.PostAsync($"{recallHost}/sdapi/v1/txt2img", streamContent);
+        await httpResponseMessage.Content.CopyToAsync(context.Response.Body);
+    }
+    catch (Exception e)
+    {
+        logger.LogWarning(e, "Stable-Diffusion-proxy");
+    }
+    finally
+    {
+        await context.Response.CompleteAsync();
+    }
 });
 
 app.MapPost("/Chat", async (ChatRequest request, HttpContext context, [FromServices] ILogger<ChatSessionLogInfo> logger) =>
@@ -170,6 +185,55 @@ app.MapPost("/Chat", async (ChatRequest request, HttpContext context, [FromServi
         semaphoreSlim.Release();
         await response.CompleteAsync();
         Interlocked.Decrement(ref current);
+    }
+});
+
+_ = Task.Run(async () =>
+{
+    var watchDogProvider = WatchDogProvider.CreateFromConfiguration();
+    string id = $"Phi3";
+    string ip = "";
+    try
+    {
+        foreach (var networkInterface in NetworkInterface.GetAllNetworkInterfaces())
+        {
+            if (networkInterface.NetworkInterfaceType == NetworkInterfaceType.Loopback)
+            {
+                continue;
+            }
+
+            if (networkInterface.Supports(NetworkInterfaceComponent.IPv4))
+            {
+                var ipInterfaceProperties = networkInterface.
+                    GetIPProperties();
+                foreach (var unicastIpAddressInformation in ipInterfaceProperties.UnicastAddresses)
+                {
+                    if (unicastIpAddressInformation.Address.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        var address = unicastIpAddressInformation.Address.ToString();
+                        ip += address + ";";
+                    }
+                }
+            }
+        }
+    }
+    catch
+    {
+       // ºöÂÔ
+    }
+
+    id = $"{id}-{ip}";
+
+    while (true)
+    {
+        if (watchDogProvider is null)
+        {
+            return;
+        }
+
+        await watchDogProvider.FeedAsync(new FeedDogInfo("ËãÁ¦»úÆ÷", $"Current={current};Total={total}", id));
+
+        await Task.Delay(TimeSpan.FromSeconds(15));
     }
 });
 
