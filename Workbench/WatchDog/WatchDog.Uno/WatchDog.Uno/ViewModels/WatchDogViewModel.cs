@@ -132,6 +132,18 @@ public sealed class WatchDogViewModel : INotifyPropertyChanged
         }
     }
 
+    public void PerpetualMute(WangModel wangModel)
+    {
+        _ = MuteAsync();
+
+        async Task MuteAsync()
+        {
+            var muteResponse = await
+                WatchDogProvider.MuteAsync(new MuteInfo(wangModel.Id, _dogId, ShouldRemove: true));
+            _ = muteResponse;
+        }
+    }
+
     public event EventHandler<WangInfo>? NotifyWang;
 
     private readonly string _dogId = Guid.NewGuid().ToString();
@@ -167,7 +179,7 @@ public class WangModel
         CanMute = !IsOk && !wangResult.ShouldMute;
 
         Id = wangInfo.FeedDogInfo.Id;
-        LastUpdateTime = wangInfo.FeedDogInfo.LastUpdateTime.ToString($"yyyy-MM-dd HH:mm:ss,fff");
+        LastUpdateTime = wangInfo.FeedDogInfo.LastUpdateTime.ToUniversalTime().ToOffset(TimeSpan.FromHours(8)/*北京时间*/).ToString($"yyyy-MM-dd HH:mm:ss,fff");
 
         var feedDogInfo = wangInfo.FeedDogInfo.FeedDogInfo;
         Name = feedDogInfo.Name;

@@ -46,6 +46,7 @@ public partial class App : Application
             rootFrame.Navigate(typeof(MainPage), args.Arguments);
         }
 
+        MainWindow.Title = "喂狗监控";
         MainWindow.SetWindowIcon();
         // Ensure the current window is active
         MainWindow.Activate();

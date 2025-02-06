@@ -34,6 +34,14 @@
             <TextBox FontSize="10" Foreground="Red" Margin="10,0,10,0" Padding="5 0 0 0 " Height="20" MinHeight="0" IsReadOnly="True" VerticalContentAlignment="Center" Text="{Binding ServerStatus,Mode=OneWay}"></TextBox>
 
             <ListView Grid.Row="1" Margin="10 10 10 10" ItemsSource="{Binding WangInfoCollection,Mode=OneWay}">
+                <ListView.ItemContainerTransitions>
+                    <TransitionCollection>
+                        <!--<AddDeleteThemeTransition />
+                        <ContentThemeTransition/>
+                        <ReorderThemeTransition/>
+                        <EntranceThemeTransition IsStaggeringEnabled="False"/>-->
+                    </TransitionCollection>
+                </ListView.ItemContainerTransitions>
                 <ListView.ItemContainerStyle>
                     <Style TargetType="ListViewItem">
                         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -61,9 +69,9 @@
 
                                     <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"></ColumnDefinition>
-                                            <ColumnDefinition Width="Auto"></ColumnDefinition>
-                                            <ColumnDefinition></ColumnDefinition>
+                                            <ColumnDefinition Width="Auto" MinWidth="300"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition/>
                                         </Grid.ColumnDefinitions>
 
                                         <TextBlock Text="{Binding Id}"></TextBlock>
@@ -72,8 +80,12 @@
                                     </Grid>
                                 </StackPanel>
 
-                                <Button x:Name="MuteButton" Grid.Column="1" Margin="10,10,10,10" 
-                                        Visibility="{Binding CanMute,Converter={StaticResource BoolToVisibilityValueConverter}}" Content="静默" Click="MuteButton_OnClick"></Button>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <Button x:Name="PerpetualMuteButton" Margin="10,10,10,10" Visibility="{Binding CanMute,Converter={StaticResource BoolToVisibilityValueConverter}}" Content="永久静默" Click="PerpetualMuteButton_OnClick"></Button>
+
+                                    <Button x:Name="MuteButton" Margin="10,10,10,10" 
+                                            Visibility="{Binding CanMute,Converter={StaticResource BoolToVisibilityValueConverter}}" Content="静默" Click="MuteButton_OnClick"></Button>
+                                </StackPanel>
                             </Grid>
                         </Border>
                     </DataTemplate>

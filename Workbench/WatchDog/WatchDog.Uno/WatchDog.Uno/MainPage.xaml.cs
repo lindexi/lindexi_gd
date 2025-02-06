@@ -1,4 +1,4 @@
-using Windows.Data.Xml.Dom;
+﻿using Windows.Data.Xml.Dom;
 using Windows.UI.Notifications;
 using WatchDog.Core.Context;
 using WatchDog.Service.Contexts;
@@ -83,12 +83,16 @@ public sealed partial class MainPage : Page
             // 通知间隔时间
             uint notifyIntervalSecond = 60 * 30;
             uint delaySecond = 60;
+            // 如果经过了多久都没有响应，则清除喂狗信息。默认是 7 天
+            int maxCleanTimeSecond = 60 * 60 * 24 * 7;
 #if DEBUG
             notifyIntervalSecond = 3;
             delaySecond = 3;
+            maxCleanTimeSecond = 60 * 3;// 调试下 3 分钟就好，不要影响正式环境
 #endif
-
-            var feedDogInfo = new FeedDogInfo(CurrentFeedDogViewModel.Name, CurrentFeedDogViewModel.Status, CurrentFeedDogViewModel.Id, DelaySecond: delaySecond, NotifyIntervalSecond : notifyIntervalSecond);
+            var feedDogInfo = new FeedDogInfo(CurrentFeedDogViewModel.Name, CurrentFeedDogViewModel.Status,
+                CurrentFeedDogViewModel.Id, DelaySecond: delaySecond, NotifyIntervalSecond: notifyIntervalSecond,
+                MaxCleanTimeSecond: maxCleanTimeSecond);
             FeedDogResponse? feedDogResponse = await watchDogProvider.FeedAsync(feedDogInfo);
             if (feedDogResponse == null)
             {
@@ -111,5 +115,13 @@ public sealed partial class MainPage : Page
         var button = (Button) sender;
         var wangModel = (WangModel) button.DataContext;
         WatchDogViewModel.Mute(wangModel);
+    }
+
+    private void PerpetualMuteButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        // 永久静默
+        var button = (Button) sender;
+        var wangModel = (WangModel) button.DataContext;
+        WatchDogViewModel.PerpetualMute(wangModel);
     }
 }
