@@ -35,5 +35,5 @@ public class IncrementalGeneratorTest
                 // 如果缺少引用，那将会导致单元测试有些符号无法寻找正确，从而导致解析失败
                 MetadataReference.CreateFromFile(typeof(Binder).GetTypeInfo().Assembly.Location)
             },
-            new CSharpCompilationOptions(OutputKind.ConsoleApplication, sourceReferenceResolver: new SourceFileResolver([@"C:\lindexi\Code"/*代码查找文件夹*/], null)));
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication, sourceReferenceResolver: new SourceFileResolver([/*代码查找文件夹*/], @"C:\lindexi\Code")));
 }
