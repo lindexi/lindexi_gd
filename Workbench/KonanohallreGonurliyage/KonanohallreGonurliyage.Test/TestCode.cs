@@ -1,0 +1,6 @@
+namespace Lindexi;
+
+class Foo
+{
+
+}
