@@ -15,12 +15,12 @@ var memoryStream = new MemoryStream();
 
 foreach (var foo in fooList)
 {
+    memoryStream.Write("message: "u8);
     JsonSerializer.Serialize(memoryStream, foo);
     memoryStream.Write("\r\n"u8);
 }
 
 memoryStream.Position = 0;
-
 foreach (var sseItem in SseParser.Create(memoryStream).Enumerate())
 {
     var sseItemData = sseItem.Data;
