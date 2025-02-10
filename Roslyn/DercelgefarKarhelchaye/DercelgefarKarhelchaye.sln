@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34221.43
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DercelgefarKarhelchaye", "DercelgefarKarhelchaye\DercelgefarKarhelchaye.csproj", "{9E849D7E-BFAC-404C-A049-6A16DBB0DEA0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DercelgefarKarhelchaye.Analyzer", "DercelgefarKarhelchaye.Analyzer\DercelgefarKarhelchaye.Analyzer.csproj", "{2805D928-8E69-43B7-9F47-26D2A95F857C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9E849D7E-BFAC-404C-A049-6A16DBB0DEA0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E849D7E-BFAC-404C-A049-6A16DBB0DEA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E849D7E-BFAC-404C-A049-6A16DBB0DEA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E849D7E-BFAC-404C-A049-6A16DBB0DEA0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2805D928-8E69-43B7-9F47-26D2A95F857C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2805D928-8E69-43B7-9F47-26D2A95F857C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2805D928-8E69-43B7-9F47-26D2A95F857C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2805D928-8E69-43B7-9F47-26D2A95F857C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DC06D1F0-D76D-440C-B028-E52AA14905AD}
+	EndGlobalSection
+EndGlobal
