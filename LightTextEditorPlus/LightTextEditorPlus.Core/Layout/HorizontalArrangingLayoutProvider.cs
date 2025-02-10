@@ -775,7 +775,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
                 }
                 // 可用的空白宽度。即空白宽度减去左缩进和右缩进
                 double usableGapWidth = gapWidth - leftIndentation - paragraphProperty.RightIndentation;
-
+                
                 {
                     // 计算 Outline 的范围
                     var x = 0;
