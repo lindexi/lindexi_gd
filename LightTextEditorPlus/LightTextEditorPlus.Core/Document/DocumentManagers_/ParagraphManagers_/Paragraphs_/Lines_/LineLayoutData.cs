@@ -87,14 +87,25 @@ class LineLayoutData : IParagraphCache, IDisposable
     public TextSize LineCharTextSize { get; init; }
 
     /// <summary>
+    /// 行内有内容的起始点
+    /// </summary>
+    public TextPoint LineContentStartPoint
+    {
+        get
+        {
+            var x = _charStartPoint.X + IndentationThickness.Left + HorizontalTextAlignmentGapThickness.Left;
+            var y = _charStartPoint.Y + IndentationThickness.Top + HorizontalTextAlignmentGapThickness.Top;
+            var startPoint = new TextPoint(x, y);
+            return startPoint;
+        }
+    }
+
+    /// <summary>
     /// 这一行的有内容的范围。这个范围包裹住了文本的内容，包括行距尺寸信息
     /// </summary>
     public TextRect GetLineContentBounds()
     {
-        var x = _charStartPoint.X + IndentationThickness.Left + HorizontalTextAlignmentGapThickness.Left;
-        var y = _charStartPoint.Y + IndentationThickness.Top + HorizontalTextAlignmentGapThickness.Top;
-        var startPoint = new TextPoint(x, y);
-        return new TextRect(startPoint, LineContentSize);
+        return new TextRect(LineContentStartPoint, LineContentSize);
     }
 
     /// <summary>

@@ -26,10 +26,10 @@ class CharLayoutData : IParagraphCache
     public void UpdateVersion() => Paragraph.UpdateVersion(this);
 
     /// <summary>
-    /// 左上角的点，相对于文本框
+    /// 字符在行内的起始点，坐标相对于行
     /// </summary>
     /// 可用来辅助布局上下标
-    public TextPoint StartPoint { set; get; }
+    public TextPoint CharLineStartPoint { set; get; }
 
     //public TextPoint BaselineStartPoint { set; get; }
 

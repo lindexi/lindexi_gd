@@ -48,12 +48,16 @@ public class CharData
     /// <exception cref="InvalidOperationException"></exception>
     public TextPoint GetStartPoint()
     {
-        if (CharLayoutData is null || CharLayoutData.IsInvalidVersion())
+        if (CharLayoutData is null || CharLayoutData.IsInvalidVersion()
+            || CharLayoutData.CurrentLine is null)
         {
             throw new InvalidOperationException($"禁止在开始布局之前获取");
         }
 
-        return CharLayoutData.StartPoint;
+        var x = CharLayoutData.CharLineStartPoint.X + CharLayoutData.CurrentLine.LineContentStartPoint.X;
+        var y = CharLayoutData.CharLineStartPoint.Y + CharLayoutData.CurrentLine.LineContentStartPoint.Y;
+
+        return new TextPoint(x, y);
     }
 
     /// <summary>
@@ -70,7 +74,7 @@ public class CharData
             throw new InvalidOperationException($"禁止在开始布局之前设置");
         }
 
-        CharLayoutData.StartPoint = point;
+        CharLayoutData.CharLineStartPoint = point;
         //CharLayoutData.BaselineStartPoint = baselineStartPoint;
 
         IsSetStartPointInDebugMode = true;
@@ -151,6 +155,6 @@ public class CharData
 
         if (IsLineBreakCharData) return "\\r\\n";
 
-        return $"'{CharObject}' {(CharLayoutData != null?$"X:{CharLayoutData.StartPoint.X:0.00} Y:{CharLayoutData.StartPoint.Y:0.00}":"")} {(Size!=null?$"W:{Size.Value.Width:0.00} H:{Size.Value.Height:0.00}":"")}";
+        return $"'{CharObject}' {(CharLayoutData != null?$"X:{CharLayoutData.CharLineStartPoint.X:0.00} Y:{CharLayoutData.CharLineStartPoint.Y:0.00}":"")} {(Size!=null?$"W:{Size.Value.Width:0.00} H:{Size.Value.Height:0.00}":"")}";
     }
 }
