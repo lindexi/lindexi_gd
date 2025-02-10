@@ -1,0 +1,3 @@
+﻿using DercelgefarKarhelchaye;
+
+GeneratedCode.Print();
