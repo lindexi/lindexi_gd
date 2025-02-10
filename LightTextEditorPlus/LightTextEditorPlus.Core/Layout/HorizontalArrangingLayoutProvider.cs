@@ -855,6 +855,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
     #region 通用辅助方法
 
+    /// <inheritdoc />
     protected override TextRect CalculateHitBounds(in TextRect documentBounds)
     {
         // 获取当前文档的大小，对水平布局来说，只取横排的最大值即可

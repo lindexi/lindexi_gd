@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using LightTextEditorPlus.Core.Document;
@@ -171,6 +172,17 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
     }
 
     #endregion
+
+    /// <inheritdoc />
+    public override string? ToString()
+    {
+        if (LayoutDebugMessageList != null)
+        {
+            return LayoutDebugMessageList.Last();
+        }
+
+        return base.ToString();
+    }
 }
 
 /// <summary>
