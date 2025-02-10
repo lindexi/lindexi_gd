@@ -53,7 +53,8 @@ class LineLayoutData : IParagraphCache, IDisposable
     /// <summary>
     /// 这一行的起始的点，相对于文本框
     /// </summary>
-    /// todo 需要再添加一个属性用来表示缩进
+    /// 左侧贴边，上侧为文档坐标。依靠各个 Thickness 属性来计算具体的位置
+    /// 即表示整个行的起始点。而具体的字符渲染的起始点，需要加上 <see cref="IndentationThickness"/> 和 <see cref="HorizontalTextAlignmentGapThickness"/> 的值
     public TextPoint CharStartPoint
     {
         set
@@ -88,12 +89,40 @@ class LineLayoutData : IParagraphCache, IDisposable
     /// <summary>
     /// 这一行的有内容的范围。这个范围包裹住了文本的内容，包括行距尺寸信息
     /// </summary>
-    public TextRect GetLineContentBounds() => new TextRect(_charStartPoint, LineContentSize);
+    public TextRect GetLineContentBounds()
+    {
+        var x = _charStartPoint.X + IndentationThickness.Left + HorizontalTextAlignmentGapThickness.Left;
+        var y = _charStartPoint.Y + IndentationThickness.Top + HorizontalTextAlignmentGapThickness.Top;
+        var startPoint = new TextPoint(x, y);
+        return new TextRect(startPoint, LineContentSize);
+    }
 
     /// <summary>
     /// 这一行的包括对齐产生的空白 Gap 的范围，为最大的范围
     /// </summary>
+    /// todo 加上校验，判断是否 _charStartPoint 加上 Thickness 能获取相等的值
     public TextRect OutlineBounds { get; internal set; }
+
+    /// <summary>
+    /// 这一行的缩进信息带来的边距
+    /// </summary>
+    public TextThickness IndentationThickness { get; private set; }
+   
+    /// <summary>
+    /// 这一行的对齐信息带来的边距
+    /// </summary>
+    public TextThickness HorizontalTextAlignmentGapThickness { get; private set; }
+
+    /// <summary>
+    /// 表示行距带来的空白
+    /// </summary>
+    public TextThickness LineSpacingThickness { get; init; }
+
+    public void SetLineFinalLayoutInfo(TextThickness indentationThickness, TextThickness horizontalTextAlignmentGapThickness)
+    {
+        IndentationThickness = indentationThickness;
+        HorizontalTextAlignmentGapThickness = horizontalTextAlignmentGapThickness;
+    }
 
     /// <summary>
     /// 这一行是当前段落的第几行
