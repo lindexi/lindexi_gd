@@ -98,7 +98,6 @@ public record ParagraphProperty
     public HorizontalTextAlignment HorizontalTextAlignment
     {
         get;
-        [Obsolete("当前还没实现，请不要调用")]
         init;
     } = HorizontalTextAlignment.Left;
 

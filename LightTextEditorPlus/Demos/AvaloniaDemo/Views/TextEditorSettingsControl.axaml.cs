@@ -194,4 +194,28 @@ public partial class TextEditorSettingsControl : UserControl
 
     private void SetCurrentParagraphProperty(ParagraphProperty paragraphParagraph) =>
         TextEditor.TextEditorCore.DocumentManager.SetParagraphProperty(TextEditor.CurrentCaretOffset, paragraphParagraph);
+
+    private void LeftHorizontalTextAlignmentButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        TextEditor.ConfigCurrentCaretOffsetParagraphProperty(property => property with
+        {
+            HorizontalTextAlignment = HorizontalTextAlignment.Left
+        });
+    }
+
+    private void CenterHorizontalTextAlignmentButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        TextEditor.ConfigCurrentCaretOffsetParagraphProperty(property => property with
+        {
+            HorizontalTextAlignment = HorizontalTextAlignment.Center
+        });
+    }
+
+    private void RightHorizontalTextAlignmentButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        TextEditor.ConfigCurrentCaretOffsetParagraphProperty(property => property with
+        {
+            HorizontalTextAlignment = HorizontalTextAlignment.Right
+        });
+    }
 }
