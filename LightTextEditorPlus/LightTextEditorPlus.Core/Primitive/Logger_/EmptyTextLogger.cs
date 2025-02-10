@@ -57,13 +57,14 @@ internal class EmptyTextLogger : ITextLogger
         if (info is LayoutCompletedLogInfo layoutCompletedLogInfo)
         {
             // 可选将其输出一下？
-#if DEBUG
-            // 只有在文本库调试模式下才会输出，不要影响业务开发者
-            foreach (string message in layoutCompletedLogInfo.GetLayoutDebugMessageList())
-            {
-                LogDebug($"[Layout] {message}");
-            }
-#endif
+            // 调试下不要在此输出。附加调试下，每一步都输出
+//#if DEBUG
+//            // 只有在文本库调试模式下才会输出，不要影响业务开发者
+//            foreach (string message in layoutCompletedLogInfo.GetLayoutDebugMessageList())
+//            {
+//                LogDebug($"[Layout] {message}");
+//            }
+//#endif
         }
     }
 }
