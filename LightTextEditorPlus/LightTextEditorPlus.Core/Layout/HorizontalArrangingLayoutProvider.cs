@@ -229,12 +229,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     private TextPoint LayoutParagraphLines(in ParagraphLayoutArgument argument, in ParagraphCharOffset startParagraphOffset,
         TextPoint currentStartPoint)
     {
-        ParagraphData paragraph= argument.ParagraphData;
+        ParagraphData paragraph = argument.ParagraphData;
         // 获取最大宽度信息
         double lineMaxWidth = GetLineMaxWidth();
-        // todo 这里需要考虑缩进
-        //ParagraphProperty paragraphProperty = paragraph.ParagraphProperty;
-        //lineMaxWidth = lineMaxWidth - paragraphProperty.RightIndentation;
 
         var wholeRunLineLayouter = TextEditor.PlatformProvider.GetWholeRunLineLayouter();
         for (var i = startParagraphOffset.Offset; i < paragraph.CharCount;)
@@ -252,10 +249,17 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
                 }
             }
 
+            int lineIndex = paragraph.LineLayoutDataList.Count;
+            var isFirstLine = lineIndex == 0;
+            ParagraphProperty paragraphProperty = paragraph.ParagraphProperty;
+            double leftIndentationValue = paragraphProperty.GetLeftIndentationValue(isFirstLine);
+            // 一行可用的宽度，需要减去缩进
+            var usableLineMaxWidth = lineMaxWidth - leftIndentationValue - paragraphProperty.RightIndentation;
+
             WholeLineLayoutResult result;
             var wholeRunLineLayoutArgument = new WholeLineLayoutArgument(argument.ParagraphIndex,
-                paragraph.LineLayoutDataList.Count, paragraph.ParagraphProperty, charDataList,
-                lineMaxWidth, currentStartPoint, argument.UpdateLayoutContext);
+                lineIndex, paragraphProperty, charDataList,
+                usableLineMaxWidth, currentStartPoint, argument.UpdateLayoutContext);
             if (wholeRunLineLayouter != null)
             {
                 result = wholeRunLineLayouter.LayoutWholeLine(wholeRunLineLayoutArgument);
@@ -469,9 +473,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             }
         }
 
-        // todo 这里可以支持两端对齐
-        // 整行的字符布局
-
         // 整个行所使用的字符数量
         var wholeCharCount = currentIndex;
         return new WholeLineCharsLayoutResult(currentSize, wholeCharCount);
@@ -544,7 +545,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             }
             else
             {
-                xOffset = charData.CharLayoutData!.StartPoint.X;
+                xOffset = charData.CharLayoutData!.CharLineStartPoint.X;
             }
 
             // 通过将最大字符的基线和当前字符的基线的差，来计算出当前字符的偏移量
@@ -773,9 +774,35 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
                 {
                     leftIndentation = paragraphProperty.LeftIndentation;
                 }
+
+                var indentationThickness =
+                    new TextThickness(leftIndentation, 0, paragraphProperty.RightIndentation, 0);
+
                 // 可用的空白宽度。即空白宽度减去左缩进和右缩进
                 double usableGapWidth = gapWidth - leftIndentation - paragraphProperty.RightIndentation;
-                
+
+                TextThickness horizontalTextAlignmentGapThickness;
+                if (horizontalTextAlignment == HorizontalTextAlignment.Left)
+                {
+                    horizontalTextAlignmentGapThickness = new TextThickness(0, 0, usableGapWidth, 0);
+                }
+                else if (horizontalTextAlignment == HorizontalTextAlignment.Center)
+                {
+                    horizontalTextAlignmentGapThickness = new TextThickness(usableGapWidth / 2, 0, usableGapWidth/2, 0);
+                }
+                else if (horizontalTextAlignment == HorizontalTextAlignment.Right)
+                {
+                    horizontalTextAlignmentGapThickness = new TextThickness(usableGapWidth, 0, 0, 0);
+                }
+                else
+                {
+                    // 两端对齐 还不知道如何实现
+                    throw new NotSupportedException($"不支持 {horizontalTextAlignment} 对齐方式");
+                }
+
+                lineLayoutData
+                    .SetLineFinalLayoutInfo(indentationThickness, horizontalTextAlignmentGapThickness);
+
                 {
                     // 计算 Outline 的范围
                     var x = 0;
@@ -784,55 +811,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
                     var height = lineLayoutData.LineContentSize.Height;
 
                     lineLayoutData.OutlineBounds = new TextRect(x, y, width, height);
-                }
-
-                if (horizontalTextAlignment == HorizontalTextAlignment.Left)
-                {
-                    // 没啥需要更新的
-                }
-                else if (horizontalTextAlignment == HorizontalTextAlignment.Center)
-                {
-                    // 相对于文本框的左上角的坐标
-                    // 从最左边，即 0 开始，加上左缩进，再加上可用的空白宽度的一半。这就是文本的起始点
-                    var x = 0 + leftIndentation + usableGapWidth / 2;
-                    var y = lineLayoutData.CharStartPoint.Y;
-
-                    var originStartPointX = lineLayoutData.CharStartPoint.X;
-                    lineLayoutData.CharStartPoint = new TextPoint(x, y);
-                    var deltaX = x - originStartPointX;
-                    foreach (CharData charData in lineLayoutData.GetCharList())
-                    {
-                        // 设置最终布局的起始点
-                        TextPoint charStartPoint = charData.GetStartPoint();
-                        charData.SetLayoutStartPoint(charStartPoint with
-                        {
-                            X = charStartPoint.X + deltaX
-                        });
-                    }
-                }
-                else if (horizontalTextAlignment == HorizontalTextAlignment.Right)
-                {
-                    var x = 0 + leftIndentation + usableGapWidth;
-                    var originStartPointX = lineLayoutData.CharStartPoint.X;
-                    lineLayoutData.CharStartPoint = lineLayoutData.CharStartPoint with
-                    {
-                        X = x
-                    };
-                    var deltaX = x - originStartPointX;
-                    foreach (CharData charData in lineLayoutData.GetCharList())
-                    {
-                        // 设置最终布局的起始点
-                        TextPoint charStartPoint = charData.GetStartPoint();
-                        charData.SetLayoutStartPoint(charStartPoint with
-                        {
-                            X = charStartPoint.X + deltaX
-                        });
-                    }
-                }
-                else
-                {
-                    // 两端对齐 还不知道如何实现
-                    throw new NotSupportedException($"不支持 {horizontalTextAlignment} 对齐方式");
                 }
             }
 
