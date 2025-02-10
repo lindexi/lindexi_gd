@@ -144,12 +144,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             currentStartPoint = UpdateParagraphLineLayoutDataStartPoint(argument);
         }
 
-        // 更新段左边距
-        // todo 这里应该考虑首行缩进
-        currentStartPoint = currentStartPoint with
-        {
-            X = paragraph.ParagraphProperty.LeftIndentation
-        };
+        // 预布局过程中，不考虑边距的影响。但只考虑缩进等对可用尺寸的影响
+        // 在回溯过程中，才赋值给到边距。详细请参阅 《文本库行布局信息定义.enbx》 维护文档
+        //// 更新段左边距
+        //currentStartPoint = currentStartPoint with
+        //{
+        //    X = paragraph.ParagraphProperty.LeftIndentation
+        //};
 
         // 如果是空段的话，那就进行空段布局，否则布局段落里面每一行
         bool isEmptyParagraph = paragraph.CharCount == 0;

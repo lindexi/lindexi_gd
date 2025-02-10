@@ -32,6 +32,7 @@ public record ParagraphProperty
     /// <summary>
     /// 缩进度量值
     /// </summary>
+    [Obsolete("此属性只是为了告诉你应该使用 LeftIndentation 属性", true)]
     public double Indent { get; init; } = 0;
 
     /// <summary>
