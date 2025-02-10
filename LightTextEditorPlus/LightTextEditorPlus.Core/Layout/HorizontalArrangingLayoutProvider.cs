@@ -758,23 +758,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
                 // 空白的宽度
                 var gapWidth = documentWidth - lineLayoutData.LineContentSize.Width;
-                double leftIndentation;
-                if (paragraphProperty.IndentType == IndentType.FirstLine)
-                {
-                    if (isFirstLine)
-                    {
-                        leftIndentation = paragraphProperty.LeftIndentation;
-                    }
-                    else
-                    {
-                        // 首行缩进下非首行，左缩进为 0
-                        leftIndentation = 0;
-                    }
-                }
-                else
-                {
-                    leftIndentation = paragraphProperty.LeftIndentation;
-                }
+                double leftIndentation = paragraphProperty.GetLeftIndentationValue(isFirstLine);
 
                 var indentationThickness =
                     new TextThickness(leftIndentation, 0, paragraphProperty.RightIndentation, 0);
