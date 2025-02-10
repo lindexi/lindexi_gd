@@ -99,6 +99,17 @@ namespace LightTextEditorPlus
         public void SetCurrentCaretOffsetParagraphProperty(ParagraphProperty paragraphProperty) => SetParagraphProperty(TextEditorCore.CurrentCaretOffset, paragraphProperty);
 
         /// <summary>
+        /// 配置当前光标所在的段落的段落属性
+        /// </summary>
+        /// <param name="config"></param>
+        public void ConfigCurrentCaretOffsetParagraphProperty(Func<ParagraphProperty, ParagraphProperty> config)
+        {
+            CaretOffset currentCaretOffset = TextEditorCore.CurrentCaretOffset;
+            ParagraphProperty paragraphProperty = GetParagraphProperty(currentCaretOffset);
+            SetParagraphProperty(currentCaretOffset, config(paragraphProperty));
+        }
+
+        /// <summary>
         /// 获取段落属性
         /// </summary>
         /// <param name="index"></param>

@@ -168,4 +168,28 @@ public partial class TextEditorSettingsControl : UserControl
     {
         TextEditor.TextEditorCore.LineSpacingAlgorithm = LineSpacingAlgorithm.PPT;
     }
+
+    private void LeftHorizontalTextAlignmentButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.ConfigCurrentCaretOffsetParagraphProperty(property => property with
+        {
+            HorizontalTextAlignment = HorizontalTextAlignment.Left
+        });
+    }
+
+    private void CenterHorizontalTextAlignmentButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.ConfigCurrentCaretOffsetParagraphProperty(property => property with
+        {
+            HorizontalTextAlignment = HorizontalTextAlignment.Center
+        });
+    }
+
+    private void RightHorizontalTextAlignmentButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.ConfigCurrentCaretOffsetParagraphProperty(property => property with
+        {
+            HorizontalTextAlignment = HorizontalTextAlignment.Right
+        });
+    }
 }

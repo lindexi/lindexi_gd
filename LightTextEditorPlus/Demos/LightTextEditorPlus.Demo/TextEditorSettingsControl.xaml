@@ -136,9 +136,9 @@
                         <ColumnDefinition></ColumnDefinition>
                         <ColumnDefinition></ColumnDefinition>
                     </Grid.ColumnDefinitions>
-                    <Button Margin="0,2,10,0">水平居左</Button>
-                    <Button Grid.Column="1" Margin="10,2,10,0">水平居中</Button>
-                    <Button Grid.Column="2" Margin="10,2,0,0">水平居右</Button>
+                    <Button x:Name="LeftHorizontalTextAlignmentButton" Margin="0,2,10,0" Click="LeftHorizontalTextAlignmentButton_OnClick">水平居左</Button>
+                    <Button x:Name="CenterHorizontalTextAlignmentButton" Grid.Column="1" Margin="10,2,10,0" Click="CenterHorizontalTextAlignmentButton_OnClick">水平居中</Button>
+                    <Button x:Name="RightHorizontalTextAlignmentButton" Grid.Column="2" Margin="10,2,0,0" Click="RightHorizontalTextAlignmentButton_OnClick">水平居右</Button>
                 </Grid>
 
                 <Grid>
