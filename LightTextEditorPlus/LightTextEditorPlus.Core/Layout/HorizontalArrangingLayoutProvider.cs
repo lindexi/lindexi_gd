@@ -145,6 +145,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         }
 
         // 更新段左边距
+        // todo 这里应该考虑首行缩进
         currentStartPoint = currentStartPoint with
         {
             X = paragraph.ParagraphProperty.LeftIndentation
@@ -231,6 +232,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         ParagraphData paragraph= argument.ParagraphData;
         // 获取最大宽度信息
         double lineMaxWidth = GetLineMaxWidth();
+        // todo 这里需要考虑缩进
+        //ParagraphProperty paragraphProperty = paragraph.ParagraphProperty;
+        //lineMaxWidth = lineMaxWidth - paragraphProperty.RightIndentation;
 
         var wholeRunLineLayouter = TextEditor.PlatformProvider.GetWholeRunLineLayouter();
         for (var i = startParagraphOffset.Offset; i < paragraph.CharCount;)
@@ -743,6 +747,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             {
                 updateLayoutContext.RecordDebugLayoutInfo($"开始回溯第 {paragraphIndex} 段的第 {lineIndex} 行");
 
+                var isFirstLine = lineIndex == 0;
                 // 是否最后一行
                 var isLastLine = lineIndex == paragraph.LineLayoutDataList.Count - 1;
 
@@ -751,9 +756,28 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
                 // 空白的宽度
                 var gapWidth = documentWidth - lineLayoutData.LineContentSize.Width;
-
-                if (horizontalTextAlignment == HorizontalTextAlignment.Left)
+                double leftIndentation;
+                if (paragraphProperty.IndentType == IndentType.FirstLine)
                 {
+                    if (isFirstLine)
+                    {
+                        leftIndentation = paragraphProperty.LeftIndentation;
+                    }
+                    else
+                    {
+                        // 首行缩进下非首行，左缩进为 0
+                        leftIndentation = 0;
+                    }
+                }
+                else
+                {
+                    leftIndentation = paragraphProperty.LeftIndentation;
+                }
+                // 可用的空白宽度。即空白宽度减去左缩进和右缩进
+                double usableGapWidth = gapWidth - leftIndentation - paragraphProperty.RightIndentation;
+
+                {
+                    // 计算 Outline 的范围
                     var x = 0;
                     var y = lineLayoutData.CharStartPoint.Y;
                     var width = documentWidth;
@@ -761,15 +785,49 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
                     lineLayoutData.OutlineBounds = new TextRect(x, y, width, height);
                 }
+
+                if (horizontalTextAlignment == HorizontalTextAlignment.Left)
+                {
+                    // 没啥需要更新的
+                }
                 else if (horizontalTextAlignment == HorizontalTextAlignment.Center)
                 {
-                    // todo 实现居中对齐
-                    throw new NotImplementedException($"当前还没实现 {horizontalTextAlignment} 对齐方式");
+                    // 相对于文本框的左上角的坐标
+                    // 从最左边，即 0 开始，加上左缩进，再加上可用的空白宽度的一半。这就是文本的起始点
+                    var x = 0 + leftIndentation + usableGapWidth / 2;
+                    var y = lineLayoutData.CharStartPoint.Y;
+
+                    var originStartPointX = lineLayoutData.CharStartPoint.X;
+                    lineLayoutData.CharStartPoint = new TextPoint(x, y);
+                    var deltaX = x - originStartPointX;
+                    foreach (CharData charData in lineLayoutData.GetCharList())
+                    {
+                        // 设置最终布局的起始点
+                        TextPoint charStartPoint = charData.GetStartPoint();
+                        charData.SetLayoutStartPoint(charStartPoint with
+                        {
+                            X = charStartPoint.X + deltaX
+                        });
+                    }
                 }
                 else if (horizontalTextAlignment == HorizontalTextAlignment.Right)
                 {
-                    // todo 实现右对齐
-                    throw new NotImplementedException($"当前还没实现 {horizontalTextAlignment} 对齐方式");
+                    var x = 0 + leftIndentation + usableGapWidth;
+                    var originStartPointX = lineLayoutData.CharStartPoint.X;
+                    lineLayoutData.CharStartPoint = lineLayoutData.CharStartPoint with
+                    {
+                        X = x
+                    };
+                    var deltaX = x - originStartPointX;
+                    foreach (CharData charData in lineLayoutData.GetCharList())
+                    {
+                        // 设置最终布局的起始点
+                        TextPoint charStartPoint = charData.GetStartPoint();
+                        charData.SetLayoutStartPoint(charStartPoint with
+                        {
+                            X = charStartPoint.X + deltaX
+                        });
+                    }
                 }
                 else
                 {
