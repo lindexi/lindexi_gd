@@ -114,7 +114,6 @@
           <Button x:Name="WidthAndHeightSizeToContentButton" Margin="10,2,0,0" Click="WidthAndHeightSizeToContentButton_OnClick">宽度高度自适应</Button>
         </UniformGrid>
 
-
         <TextBlock Margin="0,5,0,0" FontWeight="Bold">多倍行距呈现策略</TextBlock>
         <Grid>
           <Grid.ColumnDefinitions>
@@ -167,8 +166,8 @@
             <TextBlock FontWeight="Bold" VerticalAlignment="Center">缩进</TextBlock>
             <TextBox x:Name="IndentTextBox" Margin="5,0,0,0" Width="50">0</TextBox>
             <Button x:Name="IndentButton" Margin="5,0,0,0">应用</Button>
-            <Button x:Name="AddIndentButton" Margin="5,0,0,0" Width="20">+</Button>
-            <Button x:Name="SubtractIndentButton" Margin="5,0,0,0" Width="20">-</Button>
+            <Button x:Name="AddIndentButton" Margin="5,0,0,0" Width="20" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">+</Button>
+            <Button x:Name="SubtractIndentButton" Margin="5,0,0,0" Width="20" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">-</Button>
           </StackPanel>
           <StackPanel Grid.Column="1" Margin="0,5,0,0" Orientation="Horizontal">
             <TextBlock FontWeight="Bold" VerticalAlignment="Center">缩进方式</TextBlock>
@@ -178,6 +177,39 @@
             </ComboBox>
             <Button x:Name="IndentTypeButton" Margin="5,0,0,0">应用</Button>
           </StackPanel>
+        </Grid>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Margin="0,5,0,0" Orientation="Horizontal">
+                <TextBlock FontWeight="Bold" VerticalAlignment="Center">左边距</TextBlock>
+                <TextBox x:Name="LeftIndentationTextBox" Margin="5,0,0,0" Width="50">0</TextBox>
+                <Button x:Name="LeftIndentationButton" Margin="5,0,0,0" Click="LeftIndentationButton_OnClick">应用</Button>
+                <Button x:Name="AddLeftIndentationButton" Margin="5,0,0,0" Width="20" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                        Click="AddLeftIndentationButton_OnClick">
+                    +
+                </Button>
+                <Button x:Name="SubtractLeftIndentationButton" Margin="5,0,0,0" Width="20" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                        Click="SubtractLeftIndentationButton_OnClick">
+                    -
+                </Button>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Margin="0,5,0,0" Orientation="Horizontal">
+                <TextBlock FontWeight="Bold" VerticalAlignment="Center">右边距</TextBlock>
+                <TextBox x:Name="RightIndentationTextBox" Margin="5,0,0,0" Width="50">0</TextBox>
+                <Button x:Name="RightIndentationButton" Margin="5,0,0,0" Click="RightIndentationButton_OnClick">应用</Button>
+                <Button x:Name="AddRightIndentationButton" Margin="5,0,0,0" Width="20" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                        Click="AddRightIndentationButton_OnClick">
+                    +
+                </Button>
+                <Button x:Name="SubtractRightIndentationButton" Margin="5,0,0,0" Width="20" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                        Click="SubtractRightIndentationButton_OnClick">
+                    -
+                </Button>
+            </StackPanel>
         </Grid>
 
         <Grid>

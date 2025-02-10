@@ -218,4 +218,103 @@ public partial class TextEditorSettingsControl : UserControl
             HorizontalTextAlignment = HorizontalTextAlignment.Right
         });
     }
+
+    #region 边距
+
+    private void LeftIndentationButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (double.TryParse(LeftIndentationTextBox.Text, out var value))
+        {
+            SetLeftIndentation(value);
+        }
+        else
+        {
+            // 别逗
+        }
+    }
+
+    private void AddLeftIndentationButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (double.TryParse(LeftIndentationTextBox.Text, out var value))
+        {
+            value++;
+            SetLeftIndentation(value);
+            LeftIndentationTextBox.Text = value.ToString("#.##");
+        }
+        else
+        {
+            // 别逗
+        }
+    }
+
+    private void SubtractLeftIndentationButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (double.TryParse(LeftIndentationTextBox.Text, out var value))
+        {
+            value--;
+            SetLeftIndentation(value);
+            LeftIndentationTextBox.Text = value.ToString("#.##");
+        }
+        else
+        {
+            // 别逗
+        }
+    }
+
+    private void SetLeftIndentation(double leftIndentation)
+    {
+        TextEditor.ConfigCurrentCaretOffsetParagraphProperty(property => property with
+        {
+            LeftIndentation = leftIndentation
+        });
+    }
+
+    private void RightIndentationButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (double.TryParse(RightIndentationTextBox.Text, out var value))
+        {
+            SetRightIndentation(value);
+        }
+        else
+        {
+            // 别逗
+        }
+    }
+
+    private void AddRightIndentationButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (double.TryParse(RightIndentationTextBox.Text, out var value))
+        {
+            value++;
+            SetRightIndentation(value);
+            RightIndentationTextBox.Text = value.ToString("#.##");
+        }
+        else
+        {
+            // 别逗
+        }
+    }
+
+    private void SubtractRightIndentationButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (double.TryParse(RightIndentationTextBox.Text, out var value))
+        {
+            value--;
+            SetRightIndentation(value);
+            RightIndentationTextBox.Text = value.ToString("#.##");
+        }
+        else
+        {
+            // 别逗
+        }
+    }
+
+    private void SetRightIndentation(double rightIndentation)
+    {
+        TextEditor.ConfigCurrentCaretOffsetParagraphProperty(property => property with
+        {
+            RightIndentation = rightIndentation
+        });
+    }
+    #endregion
 }
