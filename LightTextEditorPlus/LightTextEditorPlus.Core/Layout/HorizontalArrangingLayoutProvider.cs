@@ -81,21 +81,29 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// </summary>
     /// <param name="lineLayoutData"></param>
     /// <param name="startPoint"></param>
-    void UpdateLineLayoutDataStartPoint(LineLayoutData lineLayoutData, TextPoint startPoint)
+    private void UpdateLineLayoutDataStartPoint(LineLayoutData lineLayoutData, TextPoint startPoint)
     {
         // 更新包括两个方面：
         // 1. 此行的起点
-        // 2. 此行内的所有字符的起点坐标
+        // 2. 更新行内的所有字符的版本
+        //// 2. 此行内的所有字符的起点坐标
         lineLayoutData.CharStartPoint = startPoint;
 
-        // 更新行内所有字符的坐标
-        TextReadOnlyListSpan<CharData> list = lineLayoutData.GetCharList();
+        // 行内字符相对于行的坐标，只需更新行的起始点即可
+        //// 更新行内所有字符的坐标
+        //TextReadOnlyListSpan<CharData> list = lineLayoutData.GetCharList();
+        //var lineHeight = lineLayoutData.LineContentSize.Height;
+        //UpdateTextLineStartPoint(list, startPoint, lineHeight,
+        //    // 这里只是更新行的起始点，行内的字符坐标不需要变更，因此不需要重新排列 X 坐标
+        //    reArrangeXPosition: false,
+        //    needUpdateCharLayoutDataVersion: true);
 
-        var lineHeight = lineLayoutData.LineContentSize.Height;
-        UpdateTextLineStartPoint(list, startPoint, lineHeight,
-            // 这里只是更新行的起始点，行内的字符坐标不需要变更，因此不需要重新排列 X 坐标
-            reArrangeXPosition: false,
-            needUpdateCharLayoutDataVersion: true);
+        // 更新行内的所有字符的版本
+        TextReadOnlyListSpan<CharData> list = lineLayoutData.GetCharList();
+        foreach (CharData charData in list)
+        {
+            charData.CharLayoutData!.UpdateVersion();
+        }
 
         lineLayoutData.UpdateVersion();
     }
@@ -384,9 +392,18 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         var lineSpacing = lineHeight - currentTextSize.Height; // 行距值，现在仅调试用途
         GC.KeepAlive(lineSpacing);
         // 不能使用 lineSpacing 作为计算参考，因为在 Skia 平台下 TextSize 会更大，超过了布局行高的值，导致 lineSpacing 为负数
+        RatioVerticalCharInLineAlignment verticalCharInLineAlignment = TextEditor.LineSpacingConfiguration.VerticalCharInLineAlignment;
+        // todo 后续可选在这里计算行距
+        GC.KeepAlive(verticalCharInLineAlignment);
+
+        // 字符在行内坐标
+        TextPoint charLineStartPoint = currentStartPoint with
+        {
+            Y = 0, // 相对于行的坐标，绝大部分情况下应该是 0 的值
+        };
 
         // 具体设置每个字符的坐标的逻辑
-        UpdateTextLineStartPoint(charDataTakeList, currentStartPoint, lineHeight,
+        UpdateTextLineStartPoint(charDataTakeList, charLineStartPoint, lineHeight,
             // 重新排列 X 坐标，因为这一行的字符可能是新加入的或修改的，需要重新排列 X 坐标
             reArrangeXPosition: true,
             // 这时候不需要更新 CharLayoutData 版本，因为这个版本是在布局行的时候更新的
@@ -505,24 +522,25 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// 更新行的起始点
     /// </summary>
     /// <param name="lineCharList"></param>
-    /// <param name="startPoint">文档布局给到行的距离文本框开头的距离</param>
+    /// <param name="charLineStartPoint">文档布局给到行的距离</param>
     /// <param name="lineHeight">当前字符所在行的行高，包括行距在内</param>
     /// <param name="reArrangeXPosition">是否需要重新排列 X 坐标。对于只是更新行的 Y 坐标的情况，是不需要重新排列的</param>
     /// <param name="needUpdateCharLayoutDataVersion">是否需要更新 CharLayoutData 版本</param>
-    private void UpdateTextLineStartPoint(TextReadOnlyListSpan<CharData> lineCharList, TextPoint startPoint,
+    private void UpdateTextLineStartPoint(TextReadOnlyListSpan<CharData> lineCharList, TextPoint charLineStartPoint,
         double lineHeight, bool reArrangeXPosition, bool needUpdateCharLayoutDataVersion)
     {
-        var lineTop = startPoint.Y; // 相对于文本框的坐标
-        var currentX = startPoint.X;
+        var lineTop = charLineStartPoint.Y; // 相对于行的坐标，绝大部分情况下应该是 0 的值
+        var currentX = charLineStartPoint.X;
 
         CharData maxFontSizeCharData = GetMaxFontSizeCharData(lineCharList);
         // 求基线的行内偏移量
         var maxFontHeight = maxFontSizeCharData.Size!.Value.Height;
         // 先算行内坐标，再转文档坐标
-        double maxFontYOffset = lineHeight - maxFontHeight; 
+        double maxFontYOffset = lineHeight - maxFontHeight;
 
         // 计算字符在行内的坐标
         // 字符在行内的垂直对齐方式
+        // todo 这个数值可以统一给到行计算，不需要每个字符都计算一次
         RatioVerticalCharInLineAlignment verticalCharInLineAlignment = TextEditor.LineSpacingConfiguration.VerticalCharInLineAlignment;
         // 按照比例对齐
         maxFontYOffset = maxFontYOffset * verticalCharInLineAlignment.LineSpaceRatio;
