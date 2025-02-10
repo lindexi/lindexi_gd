@@ -3,44 +3,51 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:collections="clr-namespace:System.Collections;assembly=System.Runtime"
-             mc:Ignorable="d"    
+             mc:Ignorable="d"
              d:DesignWidth="360" d:DesignHeight="600"
              x:Class="LightTextEditorPlus.AvaloniaDemo.Views.TextEditorSettingsControl">
-    <UserControl.Styles>
-        <Style Selector="Button">
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="CornerRadius" Value="0"/>
-            <Setter Property="BorderThickness" Value="1"></Setter>
-            <Setter Property="BorderBrush" Value="Black"></Setter>
-            <Setter Property="Background" Value="#DDDDDD"></Setter>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate>
-                        <Border x:Name="PART_TemplateRoot"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                CornerRadius="{TemplateBinding CornerRadius}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                UseLayoutRounding="{TemplateBinding UseLayoutRounding}">
-                            <ContentPresenter x:Name="PART_Content"
-                                              Content="{TemplateBinding Content}"
-                                              Margin="{TemplateBinding Padding}"
-                                              FontSize="{TemplateBinding FontSize}"
-                                              FontStyle="{TemplateBinding FontStyle}"
-                                              FontFamily="{TemplateBinding FontFamily}"
-                                              FontWeight="{TemplateBinding FontWeight}"
-                                              FontStretch="{TemplateBinding FontStretch}"
-                                              Foreground="{TemplateBinding Foreground}"
-                                              ContentTemplate="{TemplateBinding ContentTemplate}"
-                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </UserControl.Styles>
-    <Grid>
+  <UserControl.Styles>
+    <Style Selector="Button">
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="CornerRadius" Value="0"/>
+      <Setter Property="BorderThickness" Value="1"></Setter>
+      <Setter Property="BorderBrush" Value="Black"></Setter>
+      <Setter Property="Background" Value="#DDDDDD"></Setter>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate>
+            <Border x:Name="PART_TemplateRoot"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    CornerRadius="{TemplateBinding CornerRadius}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    UseLayoutRounding="{TemplateBinding UseLayoutRounding}">
+              <ContentPresenter x:Name="PART_Content"
+                                Content="{TemplateBinding Content}"
+                                Margin="{TemplateBinding Padding}"
+                                FontSize="{TemplateBinding FontSize}"
+                                FontStyle="{TemplateBinding FontStyle}"
+                                FontFamily="{TemplateBinding FontFamily}"
+                                FontWeight="{TemplateBinding FontWeight}"
+                                FontStretch="{TemplateBinding FontStretch}"
+                                Foreground="{TemplateBinding Foreground}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+            </Border>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+      <Style Selector="RepeatButton">
+          <Setter Property="Padding" Value="0"/>
+          <Setter Property="CornerRadius" Value="0"/>
+          <Setter Property="BorderThickness" Value="1"></Setter>
+          <Setter Property="BorderBrush" Value="Black"></Setter>
+          <Setter Property="Background" Value="#DDDDDD"></Setter>
+      </Style>
+  </UserControl.Styles>
+  <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="*"></RowDefinition>
       <RowDefinition Height="Auto"></RowDefinition>
@@ -91,8 +98,8 @@
           </ItemsControl.ItemsSource>
           <ItemsControl.ItemTemplate>
             <DataTemplate>
-                <Ellipse Margin="5" Width="20" Height="20"
-                         Fill="{Binding .}" PointerReleased="ColorEllipse_OnPointerReleased"></Ellipse>
+              <Ellipse Margin="5" Width="20" Height="20"
+                       Fill="{Binding .}" PointerReleased="ColorEllipse_OnPointerReleased"></Ellipse>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
@@ -180,36 +187,36 @@
         </Grid>
 
         <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
-            <StackPanel Grid.Column="0" Margin="0,5,0,0" Orientation="Horizontal">
-                <TextBlock FontWeight="Bold" VerticalAlignment="Center">左边距</TextBlock>
-                <TextBox x:Name="LeftIndentationTextBox" Margin="5,0,0,0" Width="50">0</TextBox>
-                <Button x:Name="LeftIndentationButton" Margin="5,0,0,0" Click="LeftIndentationButton_OnClick">应用</Button>
-                <Button x:Name="AddLeftIndentationButton" Margin="5,0,0,0" Width="20" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                        Click="AddLeftIndentationButton_OnClick">
-                    +
-                </Button>
-                <Button x:Name="SubtractLeftIndentationButton" Margin="5,0,0,0" Width="20" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                        Click="SubtractLeftIndentationButton_OnClick">
-                    -
-                </Button>
-            </StackPanel>
-            <StackPanel Grid.Column="1" Margin="0,5,0,0" Orientation="Horizontal">
-                <TextBlock FontWeight="Bold" VerticalAlignment="Center">右边距</TextBlock>
-                <TextBox x:Name="RightIndentationTextBox" Margin="5,0,0,0" Width="50">0</TextBox>
-                <Button x:Name="RightIndentationButton" Margin="5,0,0,0" Click="RightIndentationButton_OnClick">应用</Button>
-                <Button x:Name="AddRightIndentationButton" Margin="5,0,0,0" Width="20" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                        Click="AddRightIndentationButton_OnClick">
-                    +
-                </Button>
-                <Button x:Name="SubtractRightIndentationButton" Margin="5,0,0,0" Width="20" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                        Click="SubtractRightIndentationButton_OnClick">
-                    -
-                </Button>
-            </StackPanel>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition />
+          </Grid.ColumnDefinitions>
+          <StackPanel Grid.Column="0" Margin="0,5,0,0" Orientation="Horizontal">
+            <TextBlock FontWeight="Bold" VerticalAlignment="Center">左边距</TextBlock>
+            <TextBox x:Name="LeftIndentationTextBox" Margin="5,0,0,0" Width="50">0</TextBox>
+            <Button x:Name="LeftIndentationButton" Margin="5,0,0,0" Click="LeftIndentationButton_OnClick">应用</Button>
+            <RepeatButton x:Name="AddLeftIndentationButton" Margin="5,0,0,0" Width="20" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                          Click="AddLeftIndentationButton_OnClick">
+              +
+            </RepeatButton>
+            <RepeatButton x:Name="SubtractLeftIndentationButton" Margin="5,0,0,0" Width="20" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                          Click="SubtractLeftIndentationButton_OnClick">
+              -
+            </RepeatButton>
+          </StackPanel>
+          <StackPanel Grid.Column="1" Margin="0,5,0,0" Orientation="Horizontal">
+            <TextBlock FontWeight="Bold" VerticalAlignment="Center">右边距</TextBlock>
+            <TextBox x:Name="RightIndentationTextBox" Margin="5,0,0,0" Width="50">0</TextBox>
+            <Button x:Name="RightIndentationButton" Margin="5,0,0,0" Click="RightIndentationButton_OnClick">应用</Button>
+            <RepeatButton x:Name="AddRightIndentationButton" Margin="5,0,0,0" Width="20" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                          Click="AddRightIndentationButton_OnClick">
+              +
+            </RepeatButton>
+            <RepeatButton x:Name="SubtractRightIndentationButton" Margin="5,0,0,0" Width="20" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                          Click="SubtractRightIndentationButton_OnClick">
+              -
+            </RepeatButton>
+          </StackPanel>
         </Grid>
 
         <Grid>
@@ -248,12 +255,12 @@
         </Grid>
 
         <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
-            <RadioButton x:Name="ApplyStyleToSelectionRadioButton" Grid.Column="0" GroupName="ApplyTextEditor" IsChecked="True">只应用于选择</RadioButton>
-            <RadioButton x:Name="ApplyStyleToTextEditorRadioButton" Grid.Column="1" GroupName="ApplyTextEditor">应用整个文本</RadioButton>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition />
+          </Grid.ColumnDefinitions>
+          <RadioButton x:Name="ApplyStyleToSelectionRadioButton" Grid.Column="0" GroupName="ApplyTextEditor" IsChecked="True">只应用于选择</RadioButton>
+          <RadioButton x:Name="ApplyStyleToTextEditorRadioButton" Grid.Column="1" GroupName="ApplyTextEditor">应用整个文本</RadioButton>
         </Grid>
       </StackPanel>
     </ScrollViewer>

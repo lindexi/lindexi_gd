@@ -183,15 +183,15 @@
                     <TextBlock FontWeight="Bold" VerticalAlignment="Center">左边距</TextBlock>
                         <TextBox x:Name="LeftIndentationTextBox" Margin="5,0,0,0" Width="50">0</TextBox>
                         <Button x:Name="LeftIndentationButton" Margin="5,0,0,0" Click="LeftIndentationButton_OnClick">应用</Button>
-                        <Button x:Name="AddLeftIndentationButton" Margin="5,0,0,0" Width="20" Click="AddLeftIndentationButton_OnClick">+</Button>
-                        <Button x:Name="SubtractLeftIndentationButton" Margin="5,0,0,0" Width="20" Click="SubtractLeftIndentationButton_OnClick">-</Button>
+                        <RepeatButton x:Name="AddLeftIndentationButton" Margin="5,0,0,0" Width="20" Click="AddLeftIndentationButton_OnClick">+</RepeatButton>
+                        <RepeatButton x:Name="SubtractLeftIndentationButton" Margin="5,0,0,0" Width="20" Click="SubtractLeftIndentationButton_OnClick">-</RepeatButton>
                 </StackPanel>
                     <StackPanel Grid.Column="1" Margin="0,5,0,0" Orientation="Horizontal">
                         <TextBlock FontWeight="Bold" VerticalAlignment="Center">右边距</TextBlock>
                         <TextBox x:Name="RightIndentationTextBox" Margin="5,0,0,0" Width="50">0</TextBox>
                         <Button x:Name="RightIndentationButton" Margin="5,0,0,0" Click="RightIndentationButton_OnClick">应用</Button>
-                        <Button x:Name="AddRightIndentationButton" Margin="5,0,0,0" Width="20" Click="AddRightIndentationButton_OnClick">+</Button>
-                        <Button x:Name="SubtractRightIndentationButton" Margin="5,0,0,0" Width="20" Click="SubtractRightIndentationButton_OnClick">-</Button>
+                        <RepeatButton x:Name="AddRightIndentationButton" Margin="5,0,0,0" Width="20" Click="AddRightIndentationButton_OnClick">+</RepeatButton>
+                        <RepeatButton x:Name="SubtractRightIndentationButton" Margin="5,0,0,0" Width="20" Click="SubtractRightIndentationButton_OnClick">-</RepeatButton>
                     </StackPanel>
                 </Grid>
 
