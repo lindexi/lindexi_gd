@@ -4,12 +4,12 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:lightTextEditorPlus="clr-namespace:LightTextEditorPlus;assembly=LightTextEditorPlus.Avalonia"
              xmlns:views="clr-namespace:LightTextEditorPlus.AvaloniaDemo.Views"
-             mc:Ignorable="d" Width="1000" Height="600"
+             mc:Ignorable="d" Height="600"
              x:Class="LightTextEditorPlus.AvaloniaDemo.Views.TextEditorDebugView">
   <Grid>
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="600"></ColumnDefinition>
-      <ColumnDefinition Width="*"></ColumnDefinition>
+      <ColumnDefinition Width="Auto"></ColumnDefinition>
     </Grid.ColumnDefinitions>
     <Grid Grid.Column="0">
       <Grid.RowDefinitions>
