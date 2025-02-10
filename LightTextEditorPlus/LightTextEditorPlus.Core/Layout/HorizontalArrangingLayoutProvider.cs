@@ -229,12 +229,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     private TextPoint LayoutParagraphLines(in ParagraphLayoutArgument argument, in ParagraphCharOffset startParagraphOffset,
         TextPoint currentStartPoint)
     {
-        ParagraphData paragraph= argument.ParagraphData;
+        ParagraphData paragraph = argument.ParagraphData;
         // 获取最大宽度信息
         double lineMaxWidth = GetLineMaxWidth();
-        // todo 这里需要考虑缩进
-        //ParagraphProperty paragraphProperty = paragraph.ParagraphProperty;
-        //lineMaxWidth = lineMaxWidth - paragraphProperty.RightIndentation;
 
         var wholeRunLineLayouter = TextEditor.PlatformProvider.GetWholeRunLineLayouter();
         for (var i = startParagraphOffset.Offset; i < paragraph.CharCount;)
@@ -252,10 +249,17 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
                 }
             }
 
+            int lineIndex = paragraph.LineLayoutDataList.Count;
+            var isFirstLine = lineIndex == 0;
+            ParagraphProperty paragraphProperty = paragraph.ParagraphProperty;
+            double leftIndentationValue = paragraphProperty.GetLeftIndentationValue(isFirstLine);
+            // 一行可用的宽度，需要减去缩进
+            var usableLineMaxWidth = lineMaxWidth - leftIndentationValue - paragraphProperty.RightIndentation;
+
             WholeLineLayoutResult result;
             var wholeRunLineLayoutArgument = new WholeLineLayoutArgument(argument.ParagraphIndex,
-                paragraph.LineLayoutDataList.Count, paragraph.ParagraphProperty, charDataList,
-                lineMaxWidth, currentStartPoint, argument.UpdateLayoutContext);
+                lineIndex, paragraphProperty, charDataList,
+                usableLineMaxWidth, currentStartPoint, argument.UpdateLayoutContext);
             if (wholeRunLineLayouter != null)
             {
                 result = wholeRunLineLayouter.LayoutWholeLine(wholeRunLineLayoutArgument);
@@ -468,9 +472,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
                 break;
             }
         }
-
-        // todo 这里可以支持两端对齐
-        // 整行的字符布局
 
         // 整个行所使用的字符数量
         var wholeCharCount = currentIndex;
