@@ -85,18 +85,25 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     {
         // 更新包括两个方面：
         // 1. 此行的起点
+        // 2. 更新行内的所有字符的版本
         //// 2. 此行内的所有字符的起点坐标
         lineLayoutData.CharStartPoint = startPoint;
 
         // 行内字符相对于行的坐标，只需更新行的起始点即可
         //// 更新行内所有字符的坐标
         //TextReadOnlyListSpan<CharData> list = lineLayoutData.GetCharList();
-
         //var lineHeight = lineLayoutData.LineContentSize.Height;
         //UpdateTextLineStartPoint(list, startPoint, lineHeight,
         //    // 这里只是更新行的起始点，行内的字符坐标不需要变更，因此不需要重新排列 X 坐标
         //    reArrangeXPosition: false,
         //    needUpdateCharLayoutDataVersion: true);
+
+        // 更新行内的所有字符的版本
+        TextReadOnlyListSpan<CharData> list = lineLayoutData.GetCharList();
+        foreach (CharData charData in list)
+        {
+            charData.CharLayoutData!.UpdateVersion();
+        }
 
         lineLayoutData.UpdateVersion();
     }
