@@ -57,20 +57,20 @@ public class CharData
     }
 
     /// <summary>
-    /// 设置当前字符的行内左上角坐标
+    /// 设置当前字符的左上角坐标，坐标相对于文本框
     /// </summary>
     /// <param name="point"></param>
     /// <exception cref="InvalidOperationException"></exception>
     /// 这是文本排版布局的核心方法，通过此方法即可设置每个字符的位置
     [MemberNotNull(nameof(CharLayoutData))]
-    internal void SetLayoutLineCharStartPoint(TextPoint point/*, TextPoint baselineStartPoint*/)
+    internal void SetLayoutStartPoint(TextPoint point/*, TextPoint baselineStartPoint*/)
     {
         if (CharLayoutData is null)
         {
             throw new InvalidOperationException($"禁止在开始布局之前设置");
         }
 
-        CharLayoutData.LineCharStartPoint = point;
+        CharLayoutData.StartPoint = point;
         //CharLayoutData.BaselineStartPoint = baselineStartPoint;
 
         IsSetStartPointInDebugMode = true;

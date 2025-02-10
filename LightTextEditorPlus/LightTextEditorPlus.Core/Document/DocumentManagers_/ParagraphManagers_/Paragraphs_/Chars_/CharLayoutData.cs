@@ -29,23 +29,7 @@ class CharLayoutData : IParagraphCache
     /// 左上角的点，相对于文本框
     /// </summary>
     /// 可用来辅助布局上下标
-    public TextPoint StartPoint 
-    {
-        get
-        {
-            if (CurrentLine is null)
-            {
-                return new TextPoint(double.NegativeInfinity, double.NegativeInfinity);
-            }
-
-            return new TextPoint(CurrentLine.CharStartPoint.X + LineCharStartPoint.X, CurrentLine.CharStartPoint.Y + LineCharStartPoint.Y);
-        }
-    }
-
-    /// <summary>
-    /// 行内的字符的左上角点
-    /// </summary>
-    public TextPoint LineCharStartPoint { get; set; }
+    public TextPoint StartPoint { set; get; }
 
     //public TextPoint BaselineStartPoint { set; get; }
 

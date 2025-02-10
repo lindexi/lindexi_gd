@@ -551,7 +551,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             // 如此可以实现字体的基线对齐
             double yOffset = maxFontYOffset - charData.Baseline;
 
-            charData.SetLayoutLineCharStartPoint(new TextPoint(xOffset, yOffset)/*, new TextPoint(xOffset, yOffset)*/);
+            charData.SetLayoutStartPoint(new TextPoint(xOffset, yOffset)/*, new TextPoint(xOffset, yOffset)*/);
 
             if (needUpdateCharLayoutDataVersion)
             {
@@ -726,7 +726,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
     #region 03 回溯最终布局阶段
 
-    /// <inheritdoc />
     protected override void FinalLayoutDocument(PreLayoutDocumentResult preLayoutDocumentResult, UpdateLayoutContext updateLayoutContext)
     {
         updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 进入最终布局阶段");
@@ -798,37 +797,37 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
                     var x = 0 + leftIndentation + usableGapWidth / 2;
                     var y = lineLayoutData.CharStartPoint.Y;
 
-                    //var originStartPointX = lineLayoutData.CharStartPoint.X;
+                    var originStartPointX = lineLayoutData.CharStartPoint.X;
                     lineLayoutData.CharStartPoint = new TextPoint(x, y);
-                    //var deltaX = x - originStartPointX;
-                    //foreach (CharData charData in lineLayoutData.GetCharList())
-                    //{
-                    //    // 设置最终布局的起始点
-                    //    TextPoint charStartPoint = charData.GetStartPoint();
-                    //    charData.SetLayoutStartPoint(charStartPoint with
-                    //    {
-                    //        X = charStartPoint.X + deltaX
-                    //    });
-                    //}
+                    var deltaX = x - originStartPointX;
+                    foreach (CharData charData in lineLayoutData.GetCharList())
+                    {
+                        // 设置最终布局的起始点
+                        TextPoint charStartPoint = charData.GetStartPoint();
+                        charData.SetLayoutStartPoint(charStartPoint with
+                        {
+                            X = charStartPoint.X + deltaX
+                        });
+                    }
                 }
                 else if (horizontalTextAlignment == HorizontalTextAlignment.Right)
                 {
                     var x = 0 + leftIndentation + usableGapWidth;
-                    //var originStartPointX = lineLayoutData.CharStartPoint.X;
+                    var originStartPointX = lineLayoutData.CharStartPoint.X;
                     lineLayoutData.CharStartPoint = lineLayoutData.CharStartPoint with
                     {
                         X = x
                     };
-                    //var deltaX = x - originStartPointX;
-                    //foreach (CharData charData in lineLayoutData.GetCharList())
-                    //{
-                    //    // 设置最终布局的起始点
-                    //    TextPoint charStartPoint = charData.GetStartPoint();
-                    //    charData.SetLayoutStartPoint(charStartPoint with
-                    //    {
-                    //        X = charStartPoint.X + deltaX
-                    //    });
-                    //}
+                    var deltaX = x - originStartPointX;
+                    foreach (CharData charData in lineLayoutData.GetCharList())
+                    {
+                        // 设置最终布局的起始点
+                        TextPoint charStartPoint = charData.GetStartPoint();
+                        charData.SetLayoutStartPoint(charStartPoint with
+                        {
+                            X = charStartPoint.X + deltaX
+                        });
+                    }
                 }
                 else
                 {
