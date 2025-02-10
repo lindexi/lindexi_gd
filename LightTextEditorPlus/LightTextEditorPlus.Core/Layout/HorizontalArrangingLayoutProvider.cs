@@ -743,10 +743,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             {
                 updateLayoutContext.RecordDebugLayoutInfo($"开始回溯第 {paragraphIndex} 段的第 {lineIndex} 行");
 
+                // 是否最后一行
                 var isLastLine = lineIndex == paragraph.LineLayoutDataList.Count - 1;
 
                 LineLayoutData lineLayoutData = paragraph.LineLayoutDataList[lineIndex];
                 HorizontalTextAlignment horizontalTextAlignment = paragraphProperty.HorizontalTextAlignment;
+
+                // 空白的宽度
                 var gapWidth = documentWidth - lineLayoutData.LineContentSize.Width;
 
                 if (horizontalTextAlignment == HorizontalTextAlignment.Left)
