@@ -553,7 +553,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             // 如此可以实现字体的基线对齐
             double yOffset = maxFontYOffset - charData.Baseline;
 
-            charData.SetLayoutStartPoint(new TextPoint(xOffset, yOffset)/*, new TextPoint(xOffset, yOffset)*/);
+            charData.SetLayoutCharLineStartPoint(new TextPoint(xOffset, yOffset)/*, new TextPoint(xOffset, yOffset)*/);
 
             if (needUpdateCharLayoutDataVersion)
             {
@@ -773,7 +773,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
                 }
                 else if (horizontalTextAlignment == HorizontalTextAlignment.Center)
                 {
-                    horizontalTextAlignmentGapThickness = new TextThickness(usableGapWidth / 2, 0, usableGapWidth/2, 0);
+                    horizontalTextAlignmentGapThickness =
+                        new TextThickness(usableGapWidth / 2, 0, usableGapWidth / 2, 0);
                 }
                 else if (horizontalTextAlignment == HorizontalTextAlignment.Right)
                 {

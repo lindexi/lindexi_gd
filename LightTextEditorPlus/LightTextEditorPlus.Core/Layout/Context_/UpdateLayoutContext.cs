@@ -92,7 +92,7 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
             throw new InvalidOperationException($"只有在布局过程才能设置 {nameof(charData)} 的布局属性");
         }
 
-        charData.SetLayoutStartPoint(point);
+        charData.SetLayoutCharLineStartPoint(point);
     }
 
     /// <inheritdoc />
@@ -190,7 +190,7 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
 /// </summary>
 public interface ICharDataLayoutInfoSetter
 {
-    /// <inheritdoc cref="CharData.SetLayoutStartPoint"/>
+    /// <inheritdoc cref="CharData.SetLayoutCharLineStartPoint"/>
     void SetLayoutStartPoint(CharData charData, TextPoint point /*, TextPoint baselineStartPoint*/);
 
     /// <inheritdoc cref="CharData.SetCharDataInfo"/>
