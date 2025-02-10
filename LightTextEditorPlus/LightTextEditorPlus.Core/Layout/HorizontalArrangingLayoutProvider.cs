@@ -553,7 +553,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             // 如此可以实现字体的基线对齐
             double yOffset = maxFontYOffset - charData.Baseline;
 
-            charData.SetLayoutStartPoint(new TextPoint(xOffset, yOffset)/*, new TextPoint(xOffset, yOffset)*/);
+            charData.SetLayoutCharLineStartPoint(new TextPoint(xOffset, yOffset)/*, new TextPoint(xOffset, yOffset)*/);
 
             if (needUpdateCharLayoutDataVersion)
             {
@@ -758,23 +758,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
                 // 空白的宽度
                 var gapWidth = documentWidth - lineLayoutData.LineContentSize.Width;
-                double leftIndentation;
-                if (paragraphProperty.IndentType == IndentType.FirstLine)
-                {
-                    if (isFirstLine)
-                    {
-                        leftIndentation = paragraphProperty.LeftIndentation;
-                    }
-                    else
-                    {
-                        // 首行缩进下非首行，左缩进为 0
-                        leftIndentation = 0;
-                    }
-                }
-                else
-                {
-                    leftIndentation = paragraphProperty.LeftIndentation;
-                }
+                double leftIndentation = paragraphProperty.GetLeftIndentationValue(isFirstLine);
 
                 var indentationThickness =
                     new TextThickness(leftIndentation, 0, paragraphProperty.RightIndentation, 0);
@@ -789,7 +773,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
                 }
                 else if (horizontalTextAlignment == HorizontalTextAlignment.Center)
                 {
-                    horizontalTextAlignmentGapThickness = new TextThickness(usableGapWidth / 2, 0, usableGapWidth/2, 0);
+                    horizontalTextAlignmentGapThickness =
+                        new TextThickness(usableGapWidth / 2, 0, usableGapWidth / 2, 0);
                 }
                 else if (horizontalTextAlignment == HorizontalTextAlignment.Right)
                 {
