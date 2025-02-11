@@ -282,5 +282,6 @@ public readonly struct DocumentOffset : IEquatable<DocumentOffset>, IEquatable<i
         return Offset;
     }
 
+    /// <inheritdoc />
     public override string ToString() => Offset.ToString();
 }
