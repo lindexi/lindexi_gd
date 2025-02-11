@@ -26,7 +26,7 @@ foreach (var t in dest)
     Console.Write(t);
 }
 
-var isPow2 = BitOperations.IsPow2(choices.Length);
+var isPow2 = BitOperations.IsPow2(10);
 Console.WriteLine(BitOperations.IsPow2(15));
 
 Console.WriteLine();
