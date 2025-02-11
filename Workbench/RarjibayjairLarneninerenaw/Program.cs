@@ -1,5 +1,8 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System.Numerics;
+using System.Security.Cryptography;
+
 var choices = "0123456789abcdef";
 Span<char> dest = stackalloc char[choices.Length];
 Random.Shared.GetItems(choices, dest);
@@ -22,5 +25,8 @@ foreach (var t in dest)
 {
     Console.Write(t);
 }
+
+var isPow2 = BitOperations.IsPow2(choices.Length);
+Console.WriteLine(BitOperations.IsPow2(15));
 
 Console.WriteLine();
