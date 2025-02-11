@@ -261,9 +261,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             int lineIndex = paragraph.LineLayoutDataList.Count;
             var isFirstLine = lineIndex == 0;
             ParagraphProperty paragraphProperty = paragraph.ParagraphProperty;
-            double leftIndentationValue = paragraphProperty.LeftIndentation;
-            // 一行可用的宽度，需要减去缩进
-            var usableLineMaxWidth = lineMaxWidth - leftIndentationValue - paragraphProperty.RightIndentation;
+
+            var usableLineMaxWidth = paragraphProperty.GetUsableLineMaxWidth(lineMaxWidth, isFirstLine);
 
             WholeLineLayoutResult result;
             var wholeRunLineLayoutArgument = new WholeLineLayoutArgument(argument.ParagraphIndex,
@@ -782,7 +781,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
                     new TextThickness(leftIndentation, 0, paragraphProperty.RightIndentation, 0);
 
                 // 可用的空白宽度。即空白宽度减去左缩进和右缩进
-                double usableGapWidth = gapWidth - leftIndentation - paragraphProperty.RightIndentation;
+                double usableGapWidth = gapWidth - indentationThickness.Left - indentationThickness.Right;
 
                 TextThickness horizontalTextAlignmentGapThickness;
                 if (horizontalTextAlignment == HorizontalTextAlignment.Left)
