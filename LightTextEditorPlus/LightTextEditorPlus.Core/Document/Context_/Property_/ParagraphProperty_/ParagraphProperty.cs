@@ -2,7 +2,6 @@
 using LightTextEditorPlus.Core.Primitive;
 
 using System;
-using System.Runtime.CompilerServices;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -27,12 +26,24 @@ public record ParagraphProperty
     /// <summary>
     /// 文本从右向左布局还是从左向右布局
     /// </summary>
-    public FlowDirection Direction { get; init; } = FlowDirection.LeftToRight;
+    public FlowDirection Direction 
+    { 
+        get;
+        [Obsolete("当前还不支持设置从右到左")]
+        init;
+    } = FlowDirection.LeftToRight;
 
     /// <summary>
     /// 缩进度量值
     /// </summary>
-    [Obsolete("此属性只是为了告诉你应该使用 LeftIndentation 属性", true)]
+    /// 在 Word 里面是 `<w:ind w:leftChars="200" w:left="7020" w:hangingChars="1100" w:hanging="6600" />` 具体是 DocumentFormat.OpenXml.Wordprocessing.Indentation 类型。分别有 FirstLine 和 Hanging 两种缩进。左右侧缩进也在 DocumentFormat.OpenXml.Wordprocessing.Indentation 类型里
+    /// 在 Word 里面，同时采用厘米和字符单位。但在文本库里面不适合使用字符单位，因为字符单位直接关联了字体和语言文化。这也是 Word 设计给排版人员挖的坑，经常遇到排版人员吐槽说缩进宽度不正确的问题。如设置首行缩进为 2 字符，然后设置两段的字号不相同，甚至只有首个字符的字号不相同，那么将看到缩进宽度不相同，这个问题让许多排版人员很头疼
+    /// 为了减少文本库的心智负担，这里依然采用无单位，保持和其他属性一致
+    /// 
+    /// 在 PPT 里面使用正数和负数来表示首行缩进和悬挂缩进，正数表示首行缩进，负数表示悬挂缩进
+    /// 首行缩进+文本之前（左边距）： `<a:pPr marL="1600000" indent="457200" />`
+    /// 悬挂缩进+文本之前（左边距）： `<a:pPr marL="1166000" indent="-457200" />`
+    /// 缩进设置都在 DocumentFormat.OpenXml.Drawing.ParagraphProperties 类型里面，分别是 LeftMargin 和 RightMargin 和 Indent 属性。其中界面里面没有提供 RightMargin 的设置，且将 LeftMargin 命名为 `文本之前` 设置项
     public double Indent { get; init; } = 0;
 
     /// <summary>
@@ -52,6 +63,7 @@ public record ParagraphProperty
     /// 左侧缩进
     /// </summary>
     /// Word 里 Indentation indentation1 = new Indentation(){ Left = "2835", Right = "1134" };
+    /// PPT 里是 LeftMargin 和 RightMargin 属性
     public double LeftIndentation { get; init; }
 
     /// <summary>

@@ -261,7 +261,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             int lineIndex = paragraph.LineLayoutDataList.Count;
             var isFirstLine = lineIndex == 0;
             ParagraphProperty paragraphProperty = paragraph.ParagraphProperty;
-            double leftIndentationValue = paragraphProperty.GetLeftIndentationValue(isFirstLine);
+            double leftIndentationValue = paragraphProperty.LeftIndentation;
             // 一行可用的宽度，需要减去缩进
             var usableLineMaxWidth = lineMaxWidth - leftIndentationValue - paragraphProperty.RightIndentation;
 
@@ -776,7 +776,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
                 // 空白的宽度
                 var gapWidth = documentWidth - lineLayoutData.LineContentSize.Width;
-                double leftIndentation = paragraphProperty.GetLeftIndentationValue(isFirstLine);
+                double leftIndentation = paragraphProperty.LeftIndentation;
 
                 var indentationThickness =
                     new TextThickness(leftIndentation, 0, paragraphProperty.RightIndentation, 0);
