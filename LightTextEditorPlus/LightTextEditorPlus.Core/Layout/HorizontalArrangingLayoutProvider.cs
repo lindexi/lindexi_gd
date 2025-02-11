@@ -776,9 +776,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
                 // 空白的宽度
                 var gapWidth = documentWidth - lineLayoutData.LineContentSize.Width;
                 double leftIndentation = paragraphProperty.LeftIndentation;
+                double indent = paragraphProperty.GetIndent(isFirstLine);
 
                 var indentationThickness =
-                    new TextThickness(leftIndentation, 0, paragraphProperty.RightIndentation, 0);
+                    new TextThickness(leftIndentation + indent, 0, paragraphProperty.RightIndentation, 0);
 
                 // 可用的空白宽度。即空白宽度减去左缩进和右缩进
                 double usableGapWidth = gapWidth - indentationThickness.Left - indentationThickness.Right;
