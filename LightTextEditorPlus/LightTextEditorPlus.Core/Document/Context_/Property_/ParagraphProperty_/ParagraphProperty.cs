@@ -2,7 +2,6 @@
 using LightTextEditorPlus.Core.Primitive;
 
 using System;
-using System.Runtime.CompilerServices;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -27,7 +26,12 @@ public record ParagraphProperty
     /// <summary>
     /// 文本从右向左布局还是从左向右布局
     /// </summary>
-    public FlowDirection Direction { get; init; } = FlowDirection.LeftToRight;
+    public FlowDirection Direction 
+    { 
+        get;
+        [Obsolete("当前还不支持设置从右到左")]
+        init;
+    } = FlowDirection.LeftToRight;
 
     /// <summary>
     /// 缩进度量值
@@ -59,6 +63,7 @@ public record ParagraphProperty
     /// 左侧缩进
     /// </summary>
     /// Word 里 Indentation indentation1 = new Indentation(){ Left = "2835", Right = "1134" };
+    /// PPT 里是 LeftMargin 和 RightMargin 属性
     public double LeftIndentation { get; init; }
 
     /// <summary>
