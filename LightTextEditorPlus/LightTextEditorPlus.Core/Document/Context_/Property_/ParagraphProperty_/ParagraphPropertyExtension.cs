@@ -36,18 +36,4 @@ internal static class ParagraphPropertyExtension
         };
         return indent;
     }
-
-    ///// <summary>
-    ///// 获取缩进边距。包含左右边距和首行悬挂缩进
-    ///// </summary>
-    ///// <param name="paragraphProperty"></param>
-    ///// <param name="isFirstLine">是否首行</param>
-    ///// <returns></returns>
-    //public static TextThickness GetIndentation(this ParagraphProperty paragraphProperty, bool isFirstLine)
-    //{
-    //    double leftIndentation = paragraphProperty.LeftIndentation;
-
-    //    var indentationThickness =
-    //        new TextThickness(leftIndentation, 0, paragraphProperty.RightIndentation, 0);
-    //}
 }
