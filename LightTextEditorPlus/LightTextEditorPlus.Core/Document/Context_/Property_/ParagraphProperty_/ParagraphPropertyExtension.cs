@@ -1,14 +1,14 @@
-using LightTextEditorPlus.Core.Primitive;
+ï»¿using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Document;
 
 internal static class ParagraphPropertyExtension
 {
     /// <summary>
-    /// »ñÈ¡¶ÎÂäµÄ×óËõ½øÖµ¡£ÒòÎª¶ÎÂäµÄËõ½øÖµÊÇ´æÔÚÊ×ĞĞËõ½øºÍĞü¹ÒËõ½øÁ½ÖÖÇé¿öµÄ£¬ËùÒÔĞèÒª¸ù¾İÊÇ·ñÊÇÊ×ĞĞÀ´ÅĞ¶Ï
+    /// è·å–æ®µè½çš„å·¦ç¼©è¿›å€¼ã€‚å› ä¸ºæ®µè½çš„ç¼©è¿›å€¼æ˜¯å­˜åœ¨é¦–è¡Œç¼©è¿›å’Œæ‚¬æŒ‚ç¼©è¿›ä¸¤ç§æƒ…å†µçš„ï¼Œæ‰€ä»¥éœ€è¦æ ¹æ®æ˜¯å¦æ˜¯é¦–è¡Œæ¥åˆ¤æ–­
     /// </summary>
     /// <param name="property"></param>
-    /// <param name="isFirstLine">ÊÇ·ñÊ×ĞĞ</param>
+    /// <param name="isFirstLine">æ˜¯å¦é¦–è¡Œ</param>
     /// <returns></returns>
     public static double GetLeftIndentationValue(this ParagraphProperty property, bool isFirstLine)
     {
