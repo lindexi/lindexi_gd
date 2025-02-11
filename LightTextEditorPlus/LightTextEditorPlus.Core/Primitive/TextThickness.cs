@@ -1,6 +1,6 @@
-namespace LightTextEditorPlus.Core.Primitive;
+ï»¿namespace LightTextEditorPlus.Core.Primitive;
 
 /// <summary>
-/// ÎÄ±¾¿âÊ¹ÓÃµÄºñ¶È£¬¸÷Ïî±ß¾à
+/// æ–‡æœ¬åº“ä½¿ç”¨çš„åšåº¦ï¼Œå„é¡¹è¾¹è·
 /// </summary>
 public readonly record struct TextThickness(double Left, double Top, double Right, double Bottom);
