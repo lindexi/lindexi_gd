@@ -203,6 +203,75 @@ public partial class TextEditorSettingsControl : UserControl
 
     #endregion
 
+    #region 缩进
+
+    private void IndentButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (double.TryParse(IndentTextBox.Text, out var value))
+        {
+            SetIndent(value);
+        }
+        else
+        {
+            // 别逗
+            IndentTextBox.Text = 0.ToString();
+        }
+    }
+
+    private void AddIndentButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (double.TryParse(IndentTextBox.Text, out var value))
+        {
+            value++;
+            SetIndent(value);
+            IndentTextBox.Text = value.ToString("#.##");
+        }
+        else
+        {
+            // 别逗
+            IndentTextBox.Text = 0.ToString();
+        }
+    }
+
+    private void SubtractIndentButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (double.TryParse(IndentTextBox.Text, out var value))
+        {
+            value--;
+            SetIndent(value);
+            IndentTextBox.Text = value.ToString("#.##");
+        }
+        else
+        {
+            // 别逗
+            IndentTextBox.Text = 0.ToString();
+        }
+    }
+
+    private void SetIndent(double indent)
+    {
+        TextEditor.ConfigCurrentCaretOffsetParagraphProperty(property => property with
+        {
+            Indent = indent
+        });
+    }
+
+    private void IndentTypeButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        string? text = IndentTypeComboBox.SelectionBoxItem.ToString();
+        TextEditor.ConfigCurrentCaretOffsetParagraphProperty(property => property with
+        {
+            IndentType = text switch
+            {
+                "首行缩进" => IndentType.FirstLine,
+                "悬挂缩进" => IndentType.Hanging,
+                _ => IndentType.FirstLine
+            }
+        });
+    }
+
+    #endregion
+
     #region 边距
 
     private void LeftIndentationButton_OnClick(object sender, RoutedEventArgs e)
@@ -214,6 +283,7 @@ public partial class TextEditorSettingsControl : UserControl
         else
         {
             // 别逗
+            LeftIndentationTextBox.Text = 0.ToString();
         }
     }
 
@@ -228,6 +298,7 @@ public partial class TextEditorSettingsControl : UserControl
         else
         {
             // 别逗
+            LeftIndentationTextBox.Text = 0.ToString();
         }
     }
 
@@ -242,6 +313,7 @@ public partial class TextEditorSettingsControl : UserControl
         else
         {
             // 别逗
+            LeftIndentationTextBox.Text = 0.ToString();
         }
     }
 
@@ -262,6 +334,7 @@ public partial class TextEditorSettingsControl : UserControl
         else
         {
             // 别逗
+            RightIndentationTextBox.Text = 0.ToString();
         }
     }
 
@@ -276,6 +349,7 @@ public partial class TextEditorSettingsControl : UserControl
         else
         {
             // 别逗
+            RightIndentationTextBox.Text = 0.ToString();
         }
     }
 

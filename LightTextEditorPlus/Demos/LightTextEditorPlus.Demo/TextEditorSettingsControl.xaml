@@ -160,17 +160,17 @@
                     <StackPanel Grid.Column="0" Margin="0,5,0,0" Orientation="Horizontal">
                         <TextBlock FontWeight="Bold" VerticalAlignment="Center">缩进</TextBlock>
                         <TextBox x:Name="IndentTextBox" Margin="5,0,0,0" Width="50">0</TextBox>
-                        <Button x:Name="IndentButton" Margin="5,0,0,0">应用</Button>
-                        <Button x:Name="AddIndentButton" Margin="5,0,0,0" Width="20">+</Button>
-                        <Button x:Name="SubtractIndentButton" Margin="5,0,0,0" Width="20">-</Button>
+                        <Button x:Name="IndentButton" Margin="5,0,0,0" Click="IndentButton_OnClick">应用</Button>
+                        <RepeatButton x:Name="AddIndentButton" Margin="5,0,0,0" Width="20" Click="AddIndentButton_OnClick">+</RepeatButton>
+                        <RepeatButton x:Name="SubtractIndentButton" Margin="5,0,0,0" Width="20" Click="SubtractIndentButton_OnClick">-</RepeatButton>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Margin="0,5,0,0" Orientation="Horizontal">
                         <TextBlock FontWeight="Bold" VerticalAlignment="Center">缩进方式</TextBlock>
                         <ComboBox x:Name="IndentTypeComboBox" Margin="5,0,0,0">
                             <ComboBoxItem IsSelected="True">首行缩进</ComboBoxItem>
-                            <ComboBoxItem IsSelected="True">悬挂缩进</ComboBoxItem>
+                            <ComboBoxItem>悬挂缩进</ComboBoxItem>
                         </ComboBox>
-                        <Button x:Name="IndentTypeButton" Margin="5,0,0,0">应用</Button>
+                        <Button x:Name="IndentTypeButton" Margin="5,0,0,0" Click="IndentTypeButton_OnClick">应用</Button>
                     </StackPanel>
                 </Grid>
 
