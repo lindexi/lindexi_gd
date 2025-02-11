@@ -9,4 +9,18 @@ foreach (var t in dest)
     Console.Write(t);
 }
 
-Console.WriteLine("Hello, World!");
+Console.WriteLine();
+
+for (var i = 0; i < choices.Length; i++)
+{
+    dest[i] = choices[i];
+}
+
+Random.Shared.Shuffle(dest);
+
+foreach (var t in dest)
+{
+    Console.Write(t);
+}
+
+Console.WriteLine();
