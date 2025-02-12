@@ -35,7 +35,7 @@ namespace LightTextEditorPlus.Demo
             //TextEditor.SetFontName("Javanese Text");
             TextEditor.TextEditorCore.AppendText("123123");
             ParagraphIndex paragraphIndex = new ParagraphIndex(0);
-            TextEditor.TextEditorCore.DocumentManager.SetParagraphProperty(paragraphIndex, TextEditor.TextEditorCore.DocumentManager.GetParagraphProperty(paragraphIndex) with
+            TextEditor.SetParagraphProperty(paragraphIndex, TextEditor.GetParagraphProperty(paragraphIndex) with
             {
                 LeftIndentation = 5
             });
@@ -45,27 +45,27 @@ namespace LightTextEditorPlus.Demo
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            var fontFamily = new FontFamily("微软雅黑");
-            Typeface typeface = fontFamily.GetTypefaces().First();
+            //var fontFamily = new FontFamily("微软雅黑");
+            //Typeface typeface = fontFamily.GetTypefaces().First();
 
-            var textRunProperties = new SimpleTextRunProperties(15, Brushes.Black, typeface);
-            var text = "abc1,abc";
-            var simpleTextSource = new SimpleTextSource(text, textRunProperties);
+            //var textRunProperties = new SimpleTextRunProperties(15, Brushes.Black, typeface);
+            //var text = "abc1,abc";
+            //var simpleTextSource = new SimpleTextSource(text, textRunProperties);
 
-            var simpleTextParagraphProperties = new SimpleTextParagraphProperties(textRunProperties, firstLineInParagraph: true, FlowDirection.LeftToRight, indent: 0, lineHeight: 0, TextAlignment.Left, null!, TextWrapping.Wrap);
+            //var simpleTextParagraphProperties = new SimpleTextParagraphProperties(textRunProperties, firstLineInParagraph: true, FlowDirection.LeftToRight, indent: 0, lineHeight: 0, TextAlignment.Left, null!, TextWrapping.Wrap);
 
-            using var formatter = TextFormatter.Create(TextFormattingMode.Ideal);
+            //using var formatter = TextFormatter.Create(TextFormattingMode.Ideal);
 
-            var textStorePosition = 0;
-            Point linePosition = default;
+            //var textStorePosition = 0;
+            //Point linePosition = default;
 
-            while (textStorePosition < text.Length)
-            {
-                using TextLine textLine = formatter.FormatLine(simpleTextSource, textStorePosition, paragraphWidth: 30, simpleTextParagraphProperties, previousLineBreak: null);
+            //while (textStorePosition < text.Length)
+            //{
+            //    using TextLine textLine = formatter.FormatLine(simpleTextSource, textStorePosition, paragraphWidth: 30, simpleTextParagraphProperties, previousLineBreak: null);
 
-                textStorePosition += textLine.Length;
-                linePosition.Y += textLine.Height;
-            }
+            //    textStorePosition += textLine.Length;
+            //    linePosition.Y += textLine.Height;
+            //}
         }
 
         class SimpleTextParagraphProperties : TextParagraphProperties

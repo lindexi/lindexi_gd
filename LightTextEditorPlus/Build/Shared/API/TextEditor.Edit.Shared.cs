@@ -108,6 +108,9 @@ namespace LightTextEditorPlus
             SetParagraphProperty(currentCaretOffset, config(paragraphProperty));
         }
 
+        /// <inheritdoc cref="DocumentManager.StyleParagraphProperty"/>
+        public ParagraphProperty StyleParagraphProperty => TextEditorCore.DocumentManager.StyleParagraphProperty;
+
         /// <summary>
         /// 获取段落属性
         /// </summary>
