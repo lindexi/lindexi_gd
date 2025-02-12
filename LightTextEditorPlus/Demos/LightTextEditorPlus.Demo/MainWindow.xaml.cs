@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media.TextFormatting;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Utils;
@@ -42,7 +43,14 @@ namespace LightTextEditorPlus.Demo
             TextEditor.IsAutoEditingModeByFocus = false;
             TextEditor.EnterEditMode();
 
+            TextEditor.CurrentCaretOffsetChanged += TextEditor_CurrentCaretOffsetChanged;
+
             Loaded += MainWindow_Loaded;
+        }
+
+        private void TextEditor_CurrentCaretOffsetChanged(object? sender, TextEditorValueChangeEventArgs<CaretOffset> e)
+        {
+            CaretTextBlock.Text = $"光标： {e.NewValue}";
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)

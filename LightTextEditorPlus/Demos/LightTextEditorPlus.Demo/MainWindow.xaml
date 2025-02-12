@@ -34,6 +34,8 @@
             <StackPanel Grid.Row="1" Margin="10,0,10,10" Orientation="Horizontal">
                 <Button Margin="5,0,0,0" Click="DebugButton_OnClick">调试</Button>
                 <ToggleButton x:Name="ShowDocumentBoundsButton" Margin="5,0,0,0" Click="ShowDocumentBoundsButton_OnClick">显示文档范围</ToggleButton>
+
+                <TextBlock x:Name="CaretTextBlock" Margin="10,0,0,0" HorizontalAlignment="Right" VerticalAlignment="Center"></TextBlock>
             </StackPanel>
             <!-- <Grid Grid.Row="1" Margin="10,0,10,10"> -->
             <!--     <Grid.ColumnDefinitions> -->
