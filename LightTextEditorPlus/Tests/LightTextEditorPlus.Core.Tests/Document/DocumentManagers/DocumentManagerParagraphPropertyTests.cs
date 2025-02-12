@@ -79,7 +79,7 @@ public class DocumentManagerParagraphPropertyTests
             Assert.AreEqual(runProperty.FontSize, firstParagraph.ParagraphStartRunProperty.FontSize);
 
             // 文本样式属性不会受到更改
-            Assert.AreEqual(styleRunProperty.FontSize, textEditorCore.DocumentManager.StyleRunProperty);
+            Assert.AreEqual(styleRunProperty.FontSize, textEditorCore.DocumentManager.StyleRunProperty.FontSize);
         });
     }
 }

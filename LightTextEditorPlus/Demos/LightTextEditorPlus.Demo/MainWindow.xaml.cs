@@ -39,6 +39,8 @@ namespace LightTextEditorPlus.Demo
             {
                 LeftIndentation = 5
             });
+            TextEditor.IsAutoEditingModeByFocus = false;
+            TextEditor.EnterEditMode();
 
             Loaded += MainWindow_Loaded;
         }
