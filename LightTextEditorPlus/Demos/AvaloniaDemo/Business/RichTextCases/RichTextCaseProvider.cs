@@ -257,7 +257,7 @@ class RichTextCaseProvider
             editor.SetFontSize(50);
             editor.SetFontName("微软雅黑");
             editor.AppendText("123123123123123123123123123");
-            editor.TextEditorCore.SelectAll();
+            editor.SelectAll();
         }, "两行文本进行选择，选择范围重叠");
     }
 
