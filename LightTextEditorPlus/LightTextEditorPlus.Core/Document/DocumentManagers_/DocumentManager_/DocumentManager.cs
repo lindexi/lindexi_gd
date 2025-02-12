@@ -738,7 +738,7 @@ namespace LightTextEditorPlus.Core.Document
             // 修改光标
             var addCharCount = run?.CharCount ?? 0;
             var caretOffset = selection.FrontOffset.Offset + addCharCount;
-            // 是否更改了文本内容。也就是有添加或者有删除。有添加则 addCharCount != 0 成立。有删除 selection.Length > 0 成立
+            // 是否更改了文本内容。也就是有添加或者有删除。有添加则 addCharCount != 0 成立。有删除则 selection.Length > 0 成立
             var isChangedText = addCharCount != 0 || selection.Length > 0;
             if (isChangedText)
             {
@@ -749,15 +749,17 @@ namespace LightTextEditorPlus.Core.Document
                     // 如果有加上任何内容，则需要判断是否采用换行符结束，如果采用换行符结束，需要设置光标是在行首
                     // 即在 IsEndWithBreakLine(run) 已经处理过了
                     // 如果仅仅只是替换相等同的内容，如 CaretManager.CurrentCaretOffset.Offset == caretOffset.Offset 的条件，则不应该修改光标。这条规则也许不对，如果后续行为不符合交互设计，则进行修改
-                    // 如果没有加上任何内容，即进入删除的情况。则需要判断删除之后的光标是否落在段首
-                    if (run is null 
-                        // 原本不在段首。 如果原本就在段首，则可能是删除空段
-                        && !CaretManager.CurrentCaretOffset.IsAtLineStart)
-                    {
-                        // 尝试命中一下。如果此时刚好命中到上一段的段末，则应该修正为下一段的段首
-                        HitParagraphDataResult hitParagraphDataResult = ParagraphManager.GetHitParagraphData(currentCaretOffset);
-                        // 修正规则：原本不在段首，但是删除之后在上一段的段末，则修正为段首
-                    }
+
+                    // 这个逻辑是错误的，需要带上退格方向才能确定光标位置
+                    //// 如果没有加上任何内容，即进入删除的情况。则需要判断删除之后的光标是否落在段首
+                    //if (run is null 
+                    //    // 原本不在段首。 如果原本就在段首，则可能是删除空段
+                    //    && !CaretManager.CurrentCaretOffset.IsAtLineStart)
+                    //{
+                    //    // 尝试命中一下。如果此时刚好命中到上一段的段末，则应该修正为下一段的段首
+                    //    HitParagraphDataResult hitParagraphDataResult = ParagraphManager.GetHitParagraphData(currentCaretOffset);
+                    //    // 修正规则：原本不在段首，但是删除之后在上一段的段末，则修正为段首
+                    //}
 
                     CaretManager.CurrentCaretOffset = currentCaretOffset;
                 }
@@ -861,6 +863,7 @@ namespace LightTextEditorPlus.Core.Document
             // 退格键时，有选择就删除选择内容。没选择就删除给定内容
             var caretManager = CaretManager;
             var currentSelection = caretManager.CurrentSelection;
+            var removedSelection = currentSelection;
             if (currentSelection.IsEmpty)
             {
                 var currentCaretOffset = caretManager.CurrentCaretOffset;
@@ -873,11 +876,21 @@ namespace LightTextEditorPlus.Core.Document
                 var offset = currentCaretOffset.Offset - count;
                 offset = Math.Max(0, offset);
                 var length = currentCaretOffset.Offset - offset;
-                currentSelection = new Selection(new CaretOffset(offset), length);
+                removedSelection = new Selection(new CaretOffset(offset), length);
             }
 
             TextEditor.AddLayoutReason(nameof(Backspace) + "退格删除");
-            RemoveInner(currentSelection);
+            // 不能使用 RemoveInner 方法，这个方法的光标处理是不正确的
+            //RemoveInner(currentSelection);
+
+            InternalDocumentChanging?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.Text));
+
+            // 替换文本
+            ReplaceCore(removedSelection, null/*传入 null 用来表示删除*/);
+            //CaretManager.CurrentCaretOffset
+
+            // 触发事件。触发事件将用来执行重新排版
+            InternalDocumentChanged?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.Text));
         }
 
         /// <summary>

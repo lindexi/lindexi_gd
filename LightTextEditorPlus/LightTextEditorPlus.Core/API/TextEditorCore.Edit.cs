@@ -1,5 +1,6 @@
 using LightTextEditorPlus.Core.Document;
 using System;
+using System.Diagnostics;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Attributes;
 
@@ -121,6 +122,7 @@ public partial class TextEditorCore
     /// </summary>
     /// 这是对外调用的，非框架内使用
     [TextEditorPublicAPI]
+    [DebuggerStepThrough]
     public void Backspace()
     {
         DocumentManager.Backspace();
