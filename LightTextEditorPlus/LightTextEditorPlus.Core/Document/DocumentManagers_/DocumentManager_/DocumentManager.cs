@@ -880,17 +880,7 @@ namespace LightTextEditorPlus.Core.Document
             }
 
             TextEditor.AddLayoutReason(nameof(Backspace) + "退格删除");
-            // 不能使用 RemoveInner 方法，这个方法的光标处理是不正确的
-            //RemoveInner(currentSelection);
-
-            InternalDocumentChanging?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.Text));
-
-            // 替换文本
-            ReplaceCore(removedSelection, null/*传入 null 用来表示删除*/);
-            //CaretManager.CurrentCaretOffset
-
-            // 触发事件。触发事件将用来执行重新排版
-            InternalDocumentChanged?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.Text));
+            RemoveInner(removedSelection);
         }
 
         /// <summary>
