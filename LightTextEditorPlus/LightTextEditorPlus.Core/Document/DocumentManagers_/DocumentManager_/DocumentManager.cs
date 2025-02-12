@@ -862,11 +862,7 @@ namespace LightTextEditorPlus.Core.Document
                 // 尝试命中一下段落。如果此时刚好命中到上一段的段末，则应该修正为下一段的段首
                 var testCaretOffset = new CaretOffset(offset);
                 HitParagraphDataResult hitParagraphDataResult = ParagraphManager.GetHitParagraphData(testCaretOffset);
-                bool isHitParagraphEnd = hitParagraphDataResult.HitOffset.Offset ==
-                                         hitParagraphDataResult.ParagraphData.CharCount + 1;
-                // 修正规则：原本不在段首，但是删除之后在上一段的段末，则修正为段首
-                var isAtLineStart = isHitParagraphEnd;
-
+                var isAtLineStart = hitParagraphDataResult.HitOffset.Offset == 0;
                 removedSelection = new Selection(new CaretOffset(offset, isAtLineStart), length);
             }
 
