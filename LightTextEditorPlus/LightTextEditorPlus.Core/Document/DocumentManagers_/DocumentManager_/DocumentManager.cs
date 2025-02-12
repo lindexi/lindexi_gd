@@ -747,7 +747,18 @@ namespace LightTextEditorPlus.Core.Document
                 if (CaretManager.CurrentCaretOffset.Offset != caretOffset)
                 {
                     // 如果有加上任何内容，则需要判断是否采用换行符结束，如果采用换行符结束，需要设置光标是在行首
+                    // 即在 IsEndWithBreakLine(run) 已经处理过了
                     // 如果仅仅只是替换相等同的内容，如 CaretManager.CurrentCaretOffset.Offset == caretOffset.Offset 的条件，则不应该修改光标。这条规则也许不对，如果后续行为不符合交互设计，则进行修改
+                    // 如果没有加上任何内容，即进入删除的情况。则需要判断删除之后的光标是否落在段首
+                    if (run is null 
+                        // 原本不在段首。 如果原本就在段首，则可能是删除空段
+                        && !CaretManager.CurrentCaretOffset.IsAtLineStart)
+                    {
+                        // 尝试命中一下。如果此时刚好命中到上一段的段末，则应该修正为下一段的段首
+                        HitParagraphDataResult hitParagraphDataResult = ParagraphManager.GetHitParagraphData(currentCaretOffset);
+                        // 修正规则：原本不在段首，但是删除之后在上一段的段末，则修正为段首
+                    }
+
                     CaretManager.CurrentCaretOffset = currentCaretOffset;
                 }
                 else
