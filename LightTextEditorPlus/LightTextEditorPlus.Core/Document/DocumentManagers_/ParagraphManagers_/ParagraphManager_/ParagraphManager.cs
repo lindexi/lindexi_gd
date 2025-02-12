@@ -37,8 +37,7 @@ class ParagraphManager
         if (offset.Offset == 0)
         {
             ParagraphData firstParagraph = ParagraphList[0];
-            bool isHitParagraphEnd = firstParagraph.CharCount == 0;
-            return GetResult(firstParagraph, isHitParagraphEnd, hitOffset: null);
+            return GetResult(firstParagraph, hitOffset: null);
         }
         else
         {
@@ -50,11 +49,14 @@ class ParagraphManager
                 var endOffset =
                     currentDocumentOffset + paragraphData.CharCount +
                     ParagraphData.DelimiterLength;
-                bool isHitParagraphEnd = offset.Offset == endOffset && !offset.IsAtLineStart;
 
-                if (offset.Offset < endOffset
-                    // 可能命中到段落末尾的换行符
-                    || isHitParagraphEnd)
+                // 设计：
+                // 关于段末命中：
+                // 如果 1\n2\n3 的文本情况。光标为 1|\n2\n3 时，行为就是首段的段末
+                // 光标为 1\n|2\n3 时，行为就是第二段的段首，在 2 字符之前
+                // 这个逻辑不受 offset.IsAtLineStart 的影响
+
+                if (offset.Offset < endOffset)
                 {
                     var hitParagraphOffset = offset.Offset - currentDocumentOffset;
                     // 当前的 DelimiterLength 设计是 \n 不存在加一问题
@@ -67,7 +69,7 @@ class ParagraphManager
                     //    hitParagraphOffset = paragraphData.CharCount;
                     //}
 
-                    return GetResult(paragraphData, isHitParagraphEnd, new ParagraphCaretOffset(hitParagraphOffset));
+                    return GetResult(paragraphData, new ParagraphCaretOffset(hitParagraphOffset));
                 }
 
                 currentDocumentOffset = endOffset;
@@ -77,10 +79,10 @@ class ParagraphManager
         // 没有落到哪个段落？那就抛个异常
         throw GetHitCaretOffsetOutOfRangeException();
 
-        HitParagraphDataResult GetResult(ParagraphData paragraphData, bool isHitParagraphEnd, ParagraphCaretOffset? hitOffset)
+        HitParagraphDataResult GetResult(ParagraphData paragraphData, ParagraphCaretOffset? hitOffset)
         {
             return new HitParagraphDataResult(offset, paragraphData,
-                hitOffset ?? new ParagraphCaretOffset(0), isHitParagraphEnd, this);
+                hitOffset ?? new ParagraphCaretOffset(0), this);
         }
 
         HitCaretOffsetOutOfRangeException GetHitCaretOffsetOutOfRangeException()
