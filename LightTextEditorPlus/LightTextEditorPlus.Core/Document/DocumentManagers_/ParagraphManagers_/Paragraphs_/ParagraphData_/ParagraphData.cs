@@ -170,7 +170,7 @@ class ParagraphData
         CharDataManager.ToReadOnlyListSpan(start.Offset, length);
 
     /// <summary>
-    /// 这一段的字符长度
+    /// 这一段的字符长度。不包括 \n 字符
     /// </summary>
     public int CharCount => CharDataManager.CharCount;
 

@@ -1,3 +1,4 @@
+using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.TestsFramework;
@@ -116,6 +117,19 @@ public class TextEditorAppendTest
     [ContractTestCase]
     public void AppendBreakParagraph()
     {
+        "在文本 1 后面追加回车换行，此时光标可以放在第二段段首".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            textEditorCore.AppendText("1");
+            // Action
+            textEditorCore.AppendText("\n");
+
+            // Assert
+            CaretOffset currentCaretOffset = textEditorCore.CurrentCaretOffset;
+            Assert.AreEqual(new CaretOffset(2, isAtLineStart: true), currentCaretOffset);
+        });
+
         "给空文本追加 \\n1 字符串，文本创建两段".Test(() =>
         {
             // Arrange
