@@ -47,7 +47,7 @@ public readonly struct ParagraphRenderInfo
 
             _renderInfoProvider.VerifyNotDirty();
 
-            yield return new ParagraphLineRenderInfo(lineIndex: i, paragraphIndex: Index, argument, lineLayoutData, _renderInfoProvider);
+            yield return new ParagraphLineRenderInfo(lineIndex: i, paragraphIndex: Index, argument, lineLayoutData, _paragraphData.ParagraphStartRunProperty, _renderInfoProvider);
         }
     }
 }

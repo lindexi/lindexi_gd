@@ -19,8 +19,9 @@ readonly record struct HitParagraphDataResult(CaretOffset InputCaretOffset, Para
     /// <returns>对于空段落，返回 null 值</returns>
     public CharData? GetHitCharData()
     {
-        if (ParagraphData.CharCount == 0)
+        if (ParagraphData.IsEmptyParagraph)
         {
+            // 如果是空段，那就没有命中字符
             return null;
         }
 

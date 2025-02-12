@@ -17,10 +17,11 @@ namespace LightTextEditorPlus.Core.Document;
 [DebuggerDisplay("第{Index}段，文本：{GetText()}")]
 class ParagraphData
 {
-    public ParagraphData(ParagraphProperty paragraphProperty, ParagraphManager paragraphManager)
+    public ParagraphData(IReadOnlyRunProperty paragraphStartRunProperty, ParagraphProperty paragraphProperty, ParagraphManager paragraphManager)
     {
         ParagraphProperty = paragraphProperty;
         ParagraphManager = paragraphManager;
+        ParagraphStartRunProperty = paragraphStartRunProperty;
 
         CharDataManager = new ParagraphCharDataManager(this);
     }
@@ -62,6 +63,11 @@ class ParagraphData
     /// </summary>
     public ParagraphProperty ParagraphProperty { private set; get; }
 
+    /// <summary>
+    /// 段落起始的字符属性，表示在段落第一个字符之前的样式
+    /// </summary>
+    public IReadOnlyRunProperty ParagraphStartRunProperty { get; private set; }
+
     public void SetParagraphProperty(ParagraphProperty paragraphProperty)
     {
         ParagraphProperty = paragraphProperty;
@@ -79,14 +85,7 @@ class ParagraphData
         {
             CharData firstCharData = CharDataManager.GetCharData(0);
             IReadOnlyRunProperty runProperty = firstCharData.RunProperty;
-            if (!ReferenceEquals(ParagraphProperty.ParagraphStartRunProperty, runProperty))
-            {
-                // todo 考虑将 ParagraphStartRunProperty 拆开，减少不断的创建段落属性对象
-                ParagraphProperty = ParagraphProperty with
-                {
-                    ParagraphStartRunProperty = runProperty
-                };
-            }
+            ParagraphStartRunProperty = runProperty;
         }
     }
 
@@ -121,10 +120,10 @@ class ParagraphData
     public CharData GetLineBreakCharData()
     {
         IReadOnlyRunProperty runProperty;
-        if (CharCount == 0)
+        if (IsEmptyParagraph)
         {
             // 如果这是一个空段，那就采用段落属性的字符属性
-            runProperty = ParagraphProperty.ParagraphStartRunProperty;
+            runProperty = ParagraphStartRunProperty;
         }
         else
         {
@@ -174,6 +173,11 @@ class ParagraphData
     /// 这一段的字符长度
     /// </summary>
     public int CharCount => CharDataManager.CharCount;
+
+    /// <summary>
+    /// 是否空段
+    /// </summary>
+    public bool IsEmptyParagraph => CharDataManager.CharCount == 0;
 
 #if DEBUG
     /// <summary>

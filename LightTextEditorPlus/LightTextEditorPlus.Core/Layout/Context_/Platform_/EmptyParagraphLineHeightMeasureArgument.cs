@@ -8,6 +8,10 @@ namespace LightTextEditorPlus.Core.Layout;
 /// </summary>
 /// <param name="ParagraphProperty">段落属性</param>
 /// <param name="ParagraphIndex">段落序号</param>
-public readonly record struct EmptyParagraphLineHeightMeasureArgument(ParagraphProperty ParagraphProperty, ParagraphIndex ParagraphIndex)
+/// <param name="ParagraphStartRunProperty"></param>
+public readonly record struct EmptyParagraphLineHeightMeasureArgument(
+    ParagraphProperty ParagraphProperty,
+    ParagraphIndex ParagraphIndex,
+    IReadOnlyRunProperty ParagraphStartRunProperty)
 {
 }

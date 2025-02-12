@@ -320,9 +320,8 @@ abstract class ArrangingLayoutProvider
         else
         {
             var paragraphProperty = argument.ParagraphProperty;
-
-            var runProperty = paragraphProperty.ParagraphStartRunProperty;
-            runProperty ??= TextEditor.DocumentManager.StyleRunProperty;
+            
+            var runProperty = argument.ParagraphStartRunProperty;
 
             var lineSpacingCalculateArgument =
                 new LineSpacingCalculateArgument(argument.ParagraphIndex, 0, paragraphProperty, runProperty);

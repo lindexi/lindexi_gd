@@ -132,6 +132,11 @@ namespace LightTextEditorPlus
         /// </summary>
         public event EventHandler? IsInEditingInputModeChanged;
 
+        /// <summary>
+        /// 是否自动根据是否获取焦点设置是否进入编辑模式
+        /// </summary>
+        public bool IsAutoEditingModeByFocus { get; set; } = true;
+
         #endregion
 
         #region Style
