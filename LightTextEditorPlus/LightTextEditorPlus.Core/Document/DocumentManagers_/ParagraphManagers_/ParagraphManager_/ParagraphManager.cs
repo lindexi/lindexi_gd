@@ -36,7 +36,9 @@ class ParagraphManager
 
         if (offset.Offset == 0)
         {
-            return GetResult(ParagraphList[0]);
+            ParagraphData firstParagraph = ParagraphList[0];
+            bool isHitParagraphEnd = firstParagraph.CharCount == 0;
+            return GetResult(firstParagraph, isHitParagraphEnd, hitOffset: null);
         }
         else
         {
@@ -48,9 +50,11 @@ class ParagraphManager
                 var endOffset =
                     currentDocumentOffset + paragraphData.CharCount +
                     ParagraphData.DelimiterLength;
+                bool isHitParagraphEnd = offset.Offset == endOffset && !offset.IsAtLineStart;
+
                 if (offset.Offset < endOffset
                     // 可能命中到段落末尾的换行符
-                    || (offset.Offset == endOffset && !offset.IsAtLineStart))
+                    || isHitParagraphEnd)
                 {
                     var hitParagraphOffset = offset.Offset - currentDocumentOffset;
                     // 当前的 DelimiterLength 设计是 \n 不存在加一问题
@@ -63,7 +67,7 @@ class ParagraphManager
                     //    hitParagraphOffset = paragraphData.CharCount;
                     //}
 
-                    return GetResult(paragraphData, new ParagraphCaretOffset(hitParagraphOffset));
+                    return GetResult(paragraphData, isHitParagraphEnd, new ParagraphCaretOffset(hitParagraphOffset));
                 }
 
                 currentDocumentOffset = endOffset;
@@ -73,10 +77,10 @@ class ParagraphManager
         // 没有落到哪个段落？那就抛个异常
         throw GetHitCaretOffsetOutOfRangeException();
 
-        HitParagraphDataResult GetResult(ParagraphData paragraphData, ParagraphCaretOffset? hitOffset = null)
+        HitParagraphDataResult GetResult(ParagraphData paragraphData, bool isHitParagraphEnd, ParagraphCaretOffset? hitOffset)
         {
             return new HitParagraphDataResult(offset, paragraphData,
-                hitOffset ?? new ParagraphCaretOffset(0), this);
+                hitOffset ?? new ParagraphCaretOffset(0), isHitParagraphEnd, this);
         }
 
         HitCaretOffsetOutOfRangeException GetHitCaretOffsetOutOfRangeException()
