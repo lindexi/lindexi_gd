@@ -353,9 +353,22 @@ namespace LightTextEditorPlus.Core.Document
                     else
                     {
                         // 不在段首，那就取光标前一个字符的文本属性
-                        var paragraphCharOffset = new ParagraphCharOffset(hitParagraphDataResult.HitOffset.Offset - 1);
-                        var charData = paragraphData.GetCharData(paragraphCharOffset);
-                        currentCaretRunProperty = charData.RunProperty;
+                        // 判断是否在段末，小心就在段末行首的情况
+                        bool isHitParagraphEnd = hitParagraphDataResult.IsHitParagraphEnd;
+                        if (isHitParagraphEnd && hitParagraphDataResult.HitOffset.Offset == 1)
+                        {
+                            // 只命中到段末，且 hitParagraphDataResult.HitOffset 为 1 的 \n 字符，则代表没有命中到任何内容，且这是空段
+                            Debug.Assert(paragraphData.IsEmptyParagraph,"命中到段末，且命中到为 1 的 \\n 字符，证明这是空段");
+                            // 这个段落没有字符，那就使用段落默认字符属性
+                            currentCaretRunProperty =
+                                paragraphData.ParagraphStartRunProperty;
+                        }
+                        else
+                        {
+                            var paragraphCharOffset = new ParagraphCharOffset(hitParagraphDataResult.HitOffset.Offset - 1);
+                            var charData = paragraphData.GetCharData(paragraphCharOffset);
+                            currentCaretRunProperty = charData.RunProperty;
+                        }
                     }
                 }
 

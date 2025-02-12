@@ -9,9 +9,10 @@ namespace LightTextEditorPlus.Core.Document;
 /// <param name="InputCaretOffset">参与命中的光标偏移量</param>
 /// <param name="ParagraphData">命中到的段落</param>
 /// <param name="HitOffset">命中到的段落偏移量</param>
+/// <param name="IsHitParagraphEnd">是否命中到段落的末尾</param>
 /// <param name="ParagraphManager"></param>
 /// 此类型用来减少重复计算
-readonly record struct HitParagraphDataResult(CaretOffset InputCaretOffset, ParagraphData ParagraphData, ParagraphCaretOffset HitOffset, ParagraphManager ParagraphManager)
+readonly record struct HitParagraphDataResult(CaretOffset InputCaretOffset, ParagraphData ParagraphData, ParagraphCaretOffset HitOffset, bool IsHitParagraphEnd, ParagraphManager ParagraphManager)
 {
     /// <summary>
     /// 获取命中的字符。如果命中到段落首，那将取首个字符，否则取命中到的前一个字符
