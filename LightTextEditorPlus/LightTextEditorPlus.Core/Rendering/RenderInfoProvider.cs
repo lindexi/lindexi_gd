@@ -139,7 +139,9 @@ public class RenderInfoProvider
             var hitLineCaretOffset = new LineCaretOffset(0);
             return new CaretRenderInfo(TextEditor, lineIndex, hitLineCharOffset, hitLineCaretOffset, hitParagraphCaretOffset, caretOffset, lineLayoutData);
         }
-        else if (hitParagraphCaretOffset.Offset == paragraphData.CharCount)
+        else if (hitParagraphCaretOffset.Offset == paragraphData.CharCount
+                 // 命中到最后一个 \n 字符，且不是在下一段的行首。则就是当前段的段末
+                 || (hitParagraphCaretOffset.Offset == paragraphData.CharCount + 1 && !caretOffset.IsAtLineStart))
         {
             // 短路代码，如果命中到段末。这个逻辑可以快速判断，不需要走循环
             var lineIndex = paragraphData.LineLayoutDataList.Count - 1;
