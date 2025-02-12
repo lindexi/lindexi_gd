@@ -10,6 +10,11 @@ namespace LightTextEditorPlus;
 partial class TextEditor
 {
     /// <summary>
+    /// 文本库的静态配置
+    /// </summary>
+    public static StaticConfiguration StaticConfiguration { get; } = new StaticConfiguration();
+
+    /// <summary>
     /// 光标的配置
     /// </summary>
     public CaretConfiguration CaretConfiguration { get; set; } = new CaretConfiguration();

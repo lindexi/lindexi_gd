@@ -105,11 +105,6 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     public TextEditorCore TextEditorCore { get; }
 
     /// <summary>
-    /// 文本库的静态配置
-    /// </summary>
-    public static StaticConfiguration StaticConfiguration { get; } = new StaticConfiguration();
-
-    /// <summary>
     /// 文本内容
     /// </summary>
     public string Text
