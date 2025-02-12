@@ -14,7 +14,6 @@ namespace LightTextEditorPlus.Core.Document;
 /// <summary>
 /// 段落数据
 /// </summary>
-[DebuggerDisplay("第{Index}段，文本：{GetText()}")]
 class ParagraphData
 {
     public ParagraphData(IReadOnlyRunProperty paragraphStartRunProperty, ParagraphProperty paragraphProperty, ParagraphManager paragraphManager)
@@ -509,5 +508,11 @@ class ParagraphData
         {
             stringBuilder.Append(charData.CharObject.ToText());
         }
+    }
+
+    /// <inheritdoc />
+    public override string ToString()
+    {
+        return $"第{Index.Index}段 {GetText()}";
     }
 }
