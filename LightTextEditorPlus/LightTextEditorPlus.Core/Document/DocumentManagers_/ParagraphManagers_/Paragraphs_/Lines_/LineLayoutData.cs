@@ -124,10 +124,11 @@ class LineLayoutData : IParagraphCache, IDisposable
     /// </summary>
     public TextThickness HorizontalTextAlignmentGapThickness { get; private set; }
 
-    /// <summary>
-    /// 表示行距带来的空白
-    /// </summary>
-    public TextThickness LineSpacingThickness { get; init; }
+    // 由于行距是作用在字符的基线上的，不一定存在正数的行距。这个属性本身就可能不存在，因此决定还是在逐个行里面进行计算
+    ///// <summary>
+    ///// 表示行距带来的空白
+    ///// </summary>
+    //public TextThickness LineSpacingThickness { get; init; }
 
     public void SetLineFinalLayoutInfo(TextThickness indentationThickness, TextThickness horizontalTextAlignmentGapThickness)
     {
