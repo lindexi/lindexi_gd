@@ -99,6 +99,27 @@ public class TextEditorEditTest
     [ContractTestCase]
     public void Backspace()
     {
+        "光标在两段的文本的第二段首个字符之后，执行退格，可以删除第二段的第一个字符，且光标在第二段的行首".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            // 先追加两段，用于后续删除
+            textEditorCore.AppendText("1\nabc");
+            // Action
+            // 设置光标在第二段的首个字符之后
+            textEditorCore.CurrentCaretOffset = new CaretOffset("1\na".Length);
+
+            // 执行退格
+            textEditorCore.Backspace();
+            // Assert
+            // 可以删除第二段的第一个字符
+            string text = textEditorCore.GetText();
+            Assert.AreEqual("1\nbc", text);
+            // 光标在第二段的行首
+            Assert.AreEqual(2, textEditorCore.CurrentCaretOffset.Offset);
+            Assert.AreEqual(true, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+        });
+
         "对文本字符串为 1\r\n23 的文本，设置光标在最后一段的行首，执行退格，可以删除段落，删除完成之后光标在字符1之后在字符2之前".Test(() =>
         {
             // Arrange

@@ -48,25 +48,25 @@ class ParagraphManager
                 var endOffset =
                     currentDocumentOffset + paragraphData.CharCount +
                     ParagraphData.DelimiterLength;
-                if (offset.Offset < endOffset)
+                if (offset.Offset < endOffset
+                    // 可能命中到段落末尾的换行符
+                    || (offset.Offset == endOffset && !offset.IsAtLineStart))
                 {
                     var hitParagraphOffset = offset.Offset - currentDocumentOffset;
-                    if (hitParagraphOffset == paragraphData.CharCount + 1)
-                    {
-                        // 命中到段末，自动修正
-                        // 这里有加一问题
-                        // 例如这一段是 12\r\n
-                        // 在传入命中 3 光标坐标时，命中到的是 \r 字符。而 paragraphData.CharCount 是不计入 \r\n 两个字符的
-                        // 因此判断命中是否到 \r 字符，就需要使用 paragraphData.CharCount + 1 来判断
-                        hitParagraphOffset = paragraphData.CharCount;
-                    }
+                    // 当前的 DelimiterLength 设计是 \n 不存在加一问题
+                    //if (hitParagraphOffset == paragraphData.CharCount + 1)
+                    //{
+                    //    // 命中到段末，自动修正
+                    //    // 这里有加一问题
+                    //    // 例如这一段是 12\n3
+                    //    // 在传入命中 3 光标坐标时，命中到的是 \n 字符
+                    //    hitParagraphOffset = paragraphData.CharCount;
+                    //}
 
                     return GetResult(paragraphData, new ParagraphCaretOffset(hitParagraphOffset));
                 }
-                else
-                {
-                    currentDocumentOffset = endOffset;
-                }
+
+                currentDocumentOffset = endOffset;
             }
         }
 
