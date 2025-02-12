@@ -182,10 +182,10 @@ class LayoutHitTestProvider
             {
                 // 如果行内不包含，则说明命中到了行的空白部分
                 // 如居中对齐的空白
-                var isLeft = point.X < lineContentBounds.Left;
-                var isRight = point.X > lineContentBounds.Right;
-                var isTop = point.Y < lineContentBounds.Top;
-                var isBottom = point.Y > lineContentBounds.Bottom;
+                var isLeft = point.X <= lineContentBounds.Left;
+                var isRight = point.X >= lineContentBounds.Right;
+                var isTop = point.Y <= lineContentBounds.Top;
+                var isBottom = point.Y >= lineContentBounds.Bottom;
                 CaretOffset hitCaretOffset;
                 if (isLeft)
                 {
