@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.DocumentEventArgs;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Document.UndoRedo;
+using LightTextEditorPlus.Core.Document.Utils;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.Maths;
@@ -675,7 +675,7 @@ namespace LightTextEditorPlus.Core.Document
             DocumentRunEditProvider.Append(run);
 
             var newCharCount = CharCount;
-            var newCaretOffsetIsAtLineStart = IsEndWithBreakLine(run);
+            var newCaretOffsetIsAtLineStart = ImmutableRunHelper.IsEndWithBreakLine(run);
             CaretOffset newCaretOffset = new CaretOffset(newCharCount, newCaretOffsetIsAtLineStart);
             CaretManager.CurrentCaretOffset = newCaretOffset;
 
@@ -769,8 +769,8 @@ namespace LightTextEditorPlus.Core.Document
             if (isChangedText)
             {
                 // 如果有添加内容，则需要判断是否采用换行符结束，如果采用换行符结束，需要设置光标在行首。一旦 IsEndWithBreakLine 为 true 的值，则原本的 isAtLineStart 必定是 false 值
-                Debug.Assert((isAtLineStart && IsEndWithBreakLine(run)) == false, "一旦 IsEndWithBreakLine 为 true 的值，则原本的 isAtLineStart 必定是 false 值。不可能两个同时为 true 的值");
-                isAtLineStart = isAtLineStart || IsEndWithBreakLine(run);
+                Debug.Assert((isAtLineStart && ImmutableRunHelper.IsEndWithBreakLine(run)) == false, "一旦 IsEndWithBreakLine 为 true 的值，则原本的 isAtLineStart 必定是 false 值。不可能两个同时为 true 的值");
+                isAtLineStart = isAtLineStart || ImmutableRunHelper.IsEndWithBreakLine(run);
 
                 CaretOffset currentCaretOffset = new CaretOffset(caretOffset, isAtLineStart);
 
@@ -810,69 +810,7 @@ namespace LightTextEditorPlus.Core.Document
             // 触发事件。触发事件将用来执行重新排版
             InternalDocumentChanged?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.Text));
         }
-
-        private static bool IsEndWithBreakLine(IImmutableRun run)
-        {
-            if (run is TextRun textRun)
-            {
-                return IsEndWithBreakLine((IImmutableRunList) textRun);
-            }
-
-            if (run.Count==0)
-            {
-                return false;
-            }
-
-            ICharObject charObject = run.GetChar(run.Count-1);
-            return IsCharObjectEndWithBreakLine(charObject);
-        }
-
-        private static bool IsEndWithBreakLine(IImmutableRunList? runList)
-        {
-            if (runList is null || runList.RunCount == 0)
-            {
-                return false;
-            }
-
-            IImmutableRun run = runList.GetRun(runList.RunCount - 1);
-            if (run is LineBreakRun)
-            {
-                return true;
-            }
-
-            if (run.Count == 0)
-            {
-                return false;
-            }
-
-            if (run is TextRun textRun)
-            {
-                return IsTextEndWithBreakLine(textRun.Text);
-            }
-
-            ICharObject charObject = run.GetChar(run.Count - 1);
-            return IsCharObjectEndWithBreakLine(charObject);
-        }
-
-        private static bool IsCharObjectEndWithBreakLine(ICharObject charObject)
-        {
-            if (ReferenceEquals(charObject, LineBreakCharObject.Instance))
-            {
-                return true;
-            }
-            string text = charObject.ToText();
-            return IsTextEndWithBreakLine(text);
-        }
-        private static bool IsTextEndWithBreakLine(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-            {
-                return false;
-            }
-
-            return text.EndsWith('\r') || text.EndsWith("\n");
-        }
-
+        
         private void ReplaceCore(in Selection selection, IImmutableRunList? run)
         {
             if (selection.BehindOffset.Offset > CharCount)
