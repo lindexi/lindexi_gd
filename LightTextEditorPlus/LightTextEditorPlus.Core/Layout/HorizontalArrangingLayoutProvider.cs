@@ -391,11 +391,16 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         var lineSpacing = lineHeight - currentTextSize.Height; // 行距值，现在仅调试用途
         GC.KeepAlive(lineSpacing);
         // 不能使用 lineSpacing 作为计算参考，因为在 Skia 平台下 TextSize 会更大，超过了布局行高的值，导致 lineSpacing 为负数
+        // 正确的应该是使用 MaxFontHeight 进行计算。尽管这个计算可能算出负数
+        var maxFontHeight = maxFontSizeCharData.Size!.Value.Height;
+        var lineSpacingGap = lineHeight - maxFontHeight;
+        RatioVerticalCharInLineAlignment verticalCharInLineAlignment = TextEditor.LineSpacingConfiguration.VerticalCharInLineAlignment;
+        var topLineSpacingGap = lineSpacingGap * verticalCharInLineAlignment.LineSpaceRatio;
 
         // 字符在行内坐标
         TextPoint charLineStartPoint = currentStartPoint with
         {
-            Y = 0, // 相对于行的坐标，绝大部分情况下应该是 0 的值
+            Y = topLineSpacingGap, // 相对于行的坐标，叠加上了行距
         };
 
         // 具体设置每个字符的坐标的逻辑
@@ -530,21 +535,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
         CharData maxFontSizeCharData = GetMaxFontSizeCharData(lineCharList);
         // 求基线的行内偏移量
-        var maxFontHeight = maxFontSizeCharData.Size!.Value.Height;
-        // 先算行内坐标，再转文档坐标
-        double maxFontYOffset = lineHeight - maxFontHeight;
-
-        // 计算字符在行内的坐标
-        // 字符在行内的垂直对齐方式
-        //// 这个数值可以统一给到行计算，不需要每个字符都计算一次
-        RatioVerticalCharInLineAlignment verticalCharInLineAlignment = TextEditor.LineSpacingConfiguration.VerticalCharInLineAlignment;
-        // 按照比例对齐
-        maxFontYOffset = maxFontYOffset * verticalCharInLineAlignment.LineSpaceRatio;
-
+        double maxFontYOffset = lineTop;
         // 计算出最大字符的基线坐标
         maxFontYOffset += maxFontSizeCharData.Baseline;
-        // 从行内坐标转换为文档坐标
-        maxFontYOffset += lineTop; // 相对于文本框的坐标
 
         foreach (CharData charData in lineCharList)
         {
