@@ -368,7 +368,9 @@ partial class TextEditor : Control
             ITextEditorSkiaRender textEditorSkiaRender = SkiaTextEditor.GetCurrentTextRender();
             context.Custom(new TextEditorCustomDrawOperation(new Rect(DesiredSize), textEditorSkiaRender));
 
-            if (IsInEditingInputMode)
+            if (IsInEditingInputMode
+                // 如果配置了选择区域在非编辑模式下也会绘制，那在非编辑模式下也会绘制选择区域
+                || CaretConfiguration.ShowSelectionWhenNotInEditingInputMode)
             {
                 // 只有编辑模式下才会绘制光标和选择区域
                 context.Custom(new TextEditorCustomDrawOperation(new Rect(DesiredSize),
