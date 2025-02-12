@@ -662,13 +662,20 @@ namespace LightTextEditorPlus.Core.Document
             DocumentRunEditProvider.Append(run);
 
             var newCharCount = CharCount;
-            CaretManager.CurrentCaretOffset = new CaretOffset(newCharCount);
+            var newCaretOffsetIsAtLineStart = IsEndWithBreakLine(run);
+            CaretOffset newCaretOffset = new CaretOffset(newCharCount, newCaretOffsetIsAtLineStart);
+            CaretManager.CurrentCaretOffset = newCaretOffset;
 
             if (TextEditor.ShouldInsertUndoRedo)
             {
-                var oldSelection = new Selection(new CaretOffset(oldCharCount), length: 0);
+                // 如果最后一段是空段，则证明命中到段首
+                var lastParagraph = ParagraphManager.GetLastParagraph();
+                var isAtLineStart = lastParagraph.IsEmptyParagraph;
+
+                CaretOffset oldCaretOffset = new CaretOffset(oldCharCount, isAtLineStart);
+                var oldSelection = new Selection(oldCaretOffset, length: 0);
                 IImmutableRunList? oldRun = null; // 追加的过程，是没有替换的，即 oldRun 一定是空
-                var newSelection = new Selection(new CaretOffset(oldCharCount), new CaretOffset(newCharCount));
+                var newSelection = new Selection(oldCaretOffset, newCaretOffset);
 
                 // 不能直接使用 run 的内容，因为 run 里可能没有写好使用的样式。因此需要获取实际插入的内容，从而获取到实际的插入带样式文本
                 var newRun = GetImmutableRunList(newSelection);
@@ -791,6 +798,22 @@ namespace LightTextEditorPlus.Core.Document
             InternalDocumentChanged?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.Text));
         }
 
+        private static bool IsEndWithBreakLine(IImmutableRun run)
+        {
+            if (run is TextRun textRun)
+            {
+                return IsEndWithBreakLine((IImmutableRunList) textRun);
+            }
+
+            if (run.Count==0)
+            {
+                return false;
+            }
+
+            ICharObject charObject = run.GetChar(run.Count-1);
+            return IsCharObjectEndWithBreakLine(charObject);
+        }
+
         private static bool IsEndWithBreakLine(IImmutableRunList? runList)
         {
             if (runList is null || runList.RunCount == 0)
@@ -815,18 +838,26 @@ namespace LightTextEditorPlus.Core.Document
             }
 
             ICharObject charObject = run.GetChar(run.Count - 1);
+            return IsCharObjectEndWithBreakLine(charObject);
+        }
+
+        private static bool IsCharObjectEndWithBreakLine(ICharObject charObject)
+        {
+            if (ReferenceEquals(charObject, LineBreakCharObject.Instance))
+            {
+                return true;
+            }
             string text = charObject.ToText();
             return IsTextEndWithBreakLine(text);
-
-            static bool IsTextEndWithBreakLine(string text)
+        }
+        private static bool IsTextEndWithBreakLine(string text)
+        {
+            if (string.IsNullOrEmpty(text))
             {
-                if (string.IsNullOrEmpty(text))
-                {
-                    return false;
-                }
-
-                return text.EndsWith('\r') || text.EndsWith("\n");
+                return false;
             }
+
+            return text.EndsWith('\r') || text.EndsWith("\n");
         }
 
         private void ReplaceCore(in Selection selection, IImmutableRunList? run)

@@ -48,7 +48,15 @@ public readonly struct CaretOffset : IEquatable<CaretOffset>
     public bool IsAtLineStart { get; }
 
     /// <inheritdoc />
-    public override string ToString() => Offset.ToString();
+    public override string ToString()
+    {
+        if (IsAtLineStart)
+        {
+            return $"{Offset} IsAtLineStart:true";
+        }
+
+        return Offset.ToString();
+    }
 
     /// <inheritdoc />
     public bool Equals(CaretOffset other)
