@@ -96,8 +96,8 @@ class RichTextCaseProvider
         {
             editor.SetFontSize(96);
 
-            ParagraphProperty paragraphProperty = editor.TextEditorCore.DocumentManager.GetParagraphProperty(firstParagraphIndex);
-            editor.TextEditorCore.DocumentManager.SetParagraphProperty(firstParagraphIndex, paragraphProperty with
+            ParagraphProperty paragraphProperty = editor.GetParagraphProperty(firstParagraphIndex);
+            editor.SetParagraphProperty(firstParagraphIndex, paragraphProperty with
             {
                 LineSpacing = TextLineSpacings.MultipleLineSpace(2),
             });
@@ -112,8 +112,8 @@ class RichTextCaseProvider
 
             editor.TextEditorCore.LineSpacingStrategy = LineSpacingStrategy.FirstLineShrink;
 
-            ParagraphProperty paragraphProperty = editor.TextEditorCore.DocumentManager.GetParagraphProperty(firstParagraphIndex);
-            editor.TextEditorCore.DocumentManager.SetParagraphProperty(firstParagraphIndex, paragraphProperty with
+            ParagraphProperty paragraphProperty = editor.GetParagraphProperty(firstParagraphIndex);
+            editor.SetParagraphProperty(firstParagraphIndex, paragraphProperty with
             {
                 LineSpacing = TextLineSpacings.MultipleLineSpace(2)
             });
@@ -127,8 +127,7 @@ class RichTextCaseProvider
             editor.SetFontSize(50);
             editor.SetFontName("微软雅黑");
 
-            TextEditorCore textEditorCore = editor.TextEditorCore;
-            textEditorCore.DocumentManager.SetParagraphProperty(firstParagraphIndex, textEditorCore.DocumentManager.StyleParagraphProperty with
+            editor.SetParagraphProperty(firstParagraphIndex, editor.StyleParagraphProperty with
             {
                 HorizontalTextAlignment = HorizontalTextAlignment.Center
             });
@@ -162,13 +161,7 @@ class RichTextCaseProvider
         {
             editor.TextEditorCore.LineSpacingAlgorithm = LineSpacingAlgorithm.PPT;
 
-            DocumentManager documentManager = editor.TextEditorCore.DocumentManager;
-
-            //documentManager.DefaultParagraphProperty = documentManager.DefaultParagraphProperty with
-            //{
-            //    LineSpacing = TextLineSpacings.MultipleLineSpace(2),
-            //};
-            editor.SetParagraphProperty(firstParagraphIndex, documentManager.StyleParagraphProperty with
+            editor.SetParagraphProperty(firstParagraphIndex, editor.StyleParagraphProperty with
             {
                 LineSpacing = TextLineSpacings.MultipleLineSpace(2),
             });
@@ -196,9 +189,7 @@ class RichTextCaseProvider
         {
             editor.TextEditorCore.LineSpacingAlgorithm = LineSpacingAlgorithm.WPF;
 
-            DocumentManager documentManager = editor.TextEditorCore.DocumentManager;
-
-            editor.SetParagraphProperty(firstParagraphIndex, documentManager.StyleParagraphProperty with
+            editor.SetParagraphProperty(firstParagraphIndex, editor.StyleParagraphProperty with
             {
                 LineSpacing = TextLineSpacings.MultipleLineSpace(14),
             });
@@ -213,8 +204,7 @@ class RichTextCaseProvider
             editor.SetFontSize(36); // 36pixel = 27pound
             editor.AppendText("1asgf微软\r\n1gf雅黑\r\n1gf中文");
 
-            DocumentManager documentManager = editor.TextEditorCore.DocumentManager;
-            ParagraphProperty paragraphProperty = documentManager.StyleParagraphProperty;
+            ParagraphProperty paragraphProperty = editor.StyleParagraphProperty;
             editor.SetParagraphProperty(new ParagraphIndex(0), paragraphProperty with
             {
                 LineSpacing = TextLineSpacings.MultipleLineSpace(4),
@@ -235,9 +225,7 @@ class RichTextCaseProvider
             editor.SetFontSize(36); // 36pixel = 27pound
             editor.AppendText("1asgf微软\r\n1gf雅黑\r\n1gf中文");
 
-            DocumentManager documentManager = editor.TextEditorCore.DocumentManager;
-
-            ParagraphProperty paragraphProperty = documentManager.StyleParagraphProperty;
+            ParagraphProperty paragraphProperty = editor.StyleParagraphProperty;
             editor.SetParagraphProperty(new ParagraphIndex(0), paragraphProperty with
             {
                 LineSpacing = TextLineSpacings.MultipleLineSpace(4),
