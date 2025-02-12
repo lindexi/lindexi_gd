@@ -111,7 +111,7 @@ public class TextEditorEditTest
             // Assert
             // 此时应该在在第二段首，现在是 1\n|2 的情况
             Assert.AreEqual(2, textEditorCore.CurrentCaretOffset.Offset);
-            //Assert.AreEqual(true, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+            Assert.AreEqual(true, textEditorCore.CurrentCaretOffset.IsAtLineStart);
         });
 
         "光标在两段的文本的第二段首个字符之后，执行退格，可以删除第二段的第一个字符，且光标在第二段的行首".Test(() =>
@@ -132,7 +132,7 @@ public class TextEditorEditTest
             Assert.AreEqual("1\nbc", text);
             // 光标在第二段的行首
             Assert.AreEqual(2, textEditorCore.CurrentCaretOffset.Offset);
-            //Assert.AreEqual(true, textEditorCore.CurrentCaretOffset.IsAtLineStart);
+            Assert.AreEqual(true, textEditorCore.CurrentCaretOffset.IsAtLineStart);
         });
 
         "对文本字符串为 1\r\n23 的文本，设置光标在最后一段的行首，执行退格，可以删除段落，删除完成之后光标在字符1之后在字符2之前".Test(() =>
