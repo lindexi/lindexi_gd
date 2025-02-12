@@ -393,8 +393,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         // 不能使用 lineSpacing 作为计算参考，因为在 Skia 平台下 TextSize 会更大，超过了布局行高的值，导致 lineSpacing 为负数
         // 正确的应该是使用 MaxFontHeight 进行计算。尽管这个计算可能算出负数
         var maxFontHeight = maxFontSizeCharData.Size!.Value.Height;
+        // 行距的空白。正常 MaxFontHeight 小于 LineHeight 的情况下，可以认为这就是行距的空白
         var lineSpacingGap = lineHeight - maxFontHeight;
         RatioVerticalCharInLineAlignment verticalCharInLineAlignment = TextEditor.LineSpacingConfiguration.VerticalCharInLineAlignment;
+        // 计算出行距的顶部空白
         var topLineSpacingGap = lineSpacingGap * verticalCharInLineAlignment.LineSpaceRatio;
 
         // 字符在行内坐标
