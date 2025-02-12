@@ -251,6 +251,14 @@ class RichTextCaseProvider
                 LineSpacing = TextLineSpacings.MultipleLineSpace(14),
             });
         }, "行距测试-Wod行距样式-三段不同行距");
+
+        Add(editor =>
+        {
+            editor.SetFontSize(50);
+            editor.SetFontName("微软雅黑");
+            editor.AppendText("123123123123123123123123123");
+            editor.SelectAll();
+        }, "两行文本进行选择，选择范围重叠");
     }
 
     private readonly ITextEditorProvider _textEditorProvider;
@@ -289,7 +297,7 @@ class RichTextCaseProvider
     public void Debug()
     {
         //RichTextCases[2].Exec(textEditor);
-        Run("一行包含不同的字号的文本");
-        //Run(_richTextCases.Last());
+        //Run("一行包含不同的字号的文本");
+        Run(_richTextCases.Last());
     }
 }
