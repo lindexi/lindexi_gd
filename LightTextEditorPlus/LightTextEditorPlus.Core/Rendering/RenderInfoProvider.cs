@@ -130,6 +130,12 @@ public class RenderInfoProvider
 
         if (isParagraphStart)
         {
+            if (!caretOffset.IsAtLineStart)
+            {
+                // 光标的状态不正确，兼容逻辑，设置其为行首
+                caretOffset = new CaretOffset(caretOffset.Offset, isAtLineStart: true);
+            }
+
             // 段首，短路代码，特殊执行，不需要走循环
             var lineIndex = 0;
             var lineLayoutData = paragraphData.LineLayoutDataList[0];
