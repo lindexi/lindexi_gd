@@ -14,7 +14,9 @@ namespace LightTextEditorPlus.Core.Rendering;
 /// </summary>
 public readonly struct CaretRenderInfo
 {
-    internal CaretRenderInfo(TextEditorCore textEditor,int lineIndex, LineCharOffset hitLineCharOffset,LineCaretOffset hitLineCaretOffset, ParagraphCaretOffset hitOffset, CaretOffset caretOffset, LineLayoutData lineLayoutData)
+    internal CaretRenderInfo(TextEditorCore textEditor, int lineIndex, LineCharOffset hitLineCharOffset,
+        LineCaretOffset hitLineCaretOffset, ParagraphCaretOffset hitOffset, CaretOffset caretOffset,
+        LineLayoutData lineLayoutData)
     {
         TextEditor = textEditor;
         LineIndex = lineIndex;
@@ -23,6 +25,12 @@ public readonly struct CaretRenderInfo
         HitOffset = hitOffset;
         CaretOffset = caretOffset;
         LineLayoutData = lineLayoutData;
+
+        if (textEditor.IsInDebugMode)
+        {
+            CharData? currentCharData = CharData;
+            GC.KeepAlive(currentCharData);
+        }
     }
 
     internal TextEditorCore TextEditor { get; }
