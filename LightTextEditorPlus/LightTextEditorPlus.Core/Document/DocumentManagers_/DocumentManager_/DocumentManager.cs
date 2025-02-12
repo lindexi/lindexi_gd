@@ -365,7 +365,14 @@ namespace LightTextEditorPlus.Core.Document
                         }
                         else
                         {
-                            var paragraphCharOffset = new ParagraphCharOffset(hitParagraphDataResult.HitOffset.Offset - 1);
+                            // 取前面一个字符
+                            int hitOffsetOffset = hitParagraphDataResult.HitOffset.Offset - 1;
+                            if (isHitParagraphEnd)
+                            {
+                                // 命中到段末，需要考虑 \n 字符
+                                hitOffsetOffset = hitOffsetOffset - 1;
+                            }
+                            var paragraphCharOffset = new ParagraphCharOffset(hitOffsetOffset);
                             var charData = paragraphData.GetCharData(paragraphCharOffset);
                             currentCaretRunProperty = charData.RunProperty;
                         }

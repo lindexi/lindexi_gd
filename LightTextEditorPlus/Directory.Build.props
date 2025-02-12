@@ -9,9 +9,10 @@
     <!--
     - NU1903： 具有已知的 高 严重性漏洞
     - NU1803： 使用 HTTP 的源
+    - NU1603： 忽略找不到匹配版本。因为使用了内部的 Avalonia 版本，不在这里警告
     - CS0162： 未使用的代码，不可达代码警告。有些代码就是特意写不可达的，只是用来作为设计说明
     -->
-    <NoWarn>NU1903;NU1803;CS0162</NoWarn>
+    <NoWarn>NU1903;NU1803;NU1603;CS0162</NoWarn>
 
     <CodeRootPath>$(MSBuildThisFileDirectory)</CodeRootPath>
 
