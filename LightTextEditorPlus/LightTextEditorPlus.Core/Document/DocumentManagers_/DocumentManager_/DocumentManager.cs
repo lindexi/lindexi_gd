@@ -863,6 +863,7 @@ namespace LightTextEditorPlus.Core.Document
             // 退格键时，有选择就删除选择内容。没选择就删除给定内容
             var caretManager = CaretManager;
             var currentSelection = caretManager.CurrentSelection;
+            var removedSelection = currentSelection;
             if (currentSelection.IsEmpty)
             {
                 var currentCaretOffset = caretManager.CurrentCaretOffset;
@@ -875,11 +876,21 @@ namespace LightTextEditorPlus.Core.Document
                 var offset = currentCaretOffset.Offset - count;
                 offset = Math.Max(0, offset);
                 var length = currentCaretOffset.Offset - offset;
-                currentSelection = new Selection(new CaretOffset(offset), length);
+                removedSelection = new Selection(new CaretOffset(offset), length);
             }
 
             TextEditor.AddLayoutReason(nameof(Backspace) + "退格删除");
-            RemoveInner(currentSelection);
+            // 不能使用 RemoveInner 方法，这个方法的光标处理是不正确的
+            //RemoveInner(currentSelection);
+
+            InternalDocumentChanging?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.Text));
+
+            // 替换文本
+            ReplaceCore(removedSelection, null/*传入 null 用来表示删除*/);
+            //CaretManager.CurrentCaretOffset
+
+            // 触发事件。触发事件将用来执行重新排版
+            InternalDocumentChanged?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.Text));
         }
 
         /// <summary>
