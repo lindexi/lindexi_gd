@@ -737,12 +737,22 @@ namespace LightTextEditorPlus.Core.Document
 
             // 修改光标
             var addCharCount = run?.CharCount ?? 0;
+            var isAtLineStart = selection.FrontOffset.IsAtLineStart;
+            if (addCharCount > 0)
+            {
+                // 有添加内容，则不在行首
+                isAtLineStart = false;
+            }
             var caretOffset = selection.FrontOffset.Offset + addCharCount;
             // 是否更改了文本内容。也就是有添加或者有删除。有添加则 addCharCount != 0 成立。有删除则 selection.Length > 0 成立
             var isChangedText = addCharCount != 0 || selection.Length > 0;
             if (isChangedText)
             {
-                CaretOffset currentCaretOffset = new CaretOffset(caretOffset, isAtLineStart: IsEndWithBreakLine(run));
+                // 如果有添加内容，则需要判断是否采用换行符结束，如果采用换行符结束，需要设置光标在行首。一旦 IsEndWithBreakLine 为 true 的值，则原本的 isAtLineStart 必定是 false 值
+                Debug.Assert((isAtLineStart && IsEndWithBreakLine(run)) == false, "一旦 IsEndWithBreakLine 为 true 的值，则原本的 isAtLineStart 必定是 false 值。不可能两个同时为 true 的值");
+                isAtLineStart = isAtLineStart || IsEndWithBreakLine(run);
+
+                CaretOffset currentCaretOffset = new CaretOffset(caretOffset, isAtLineStart);
 
                 if (CaretManager.CurrentCaretOffset.Offset != caretOffset)
                 {
@@ -880,17 +890,7 @@ namespace LightTextEditorPlus.Core.Document
             }
 
             TextEditor.AddLayoutReason(nameof(Backspace) + "退格删除");
-            // 不能使用 RemoveInner 方法，这个方法的光标处理是不正确的
-            //RemoveInner(currentSelection);
-
-            InternalDocumentChanging?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.Text));
-
-            // 替换文本
-            ReplaceCore(removedSelection, null/*传入 null 用来表示删除*/);
-            //CaretManager.CurrentCaretOffset
-
-            // 触发事件。触发事件将用来执行重新排版
-            InternalDocumentChanged?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.Text));
+            RemoveInner(removedSelection);
         }
 
         /// <summary>
