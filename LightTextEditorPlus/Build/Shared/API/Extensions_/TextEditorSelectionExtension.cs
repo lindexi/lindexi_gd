@@ -1,3 +1,5 @@
+#if USE_WPF || USE_AVALONIA
+
 using LightTextEditorPlus.Core;
 
 namespace LightTextEditorPlus;
@@ -23,3 +25,4 @@ public static class TextEditorSelectionExtension
         textEditor.TextEditorCore.SelectAll();
     }
 }
+#endif
