@@ -36,8 +36,7 @@ public class CaretConfiguration
             {
                 var caretBlinkTime = Win32.User32.GetCaretBlinkTime();
                 // 要求闪烁至少是16毫秒。因为可能拿到 0 的值
-                caretBlinkTime = Math.Max(16, caretBlinkTime);
-                caretBlinkTime = Math.Min(1000, caretBlinkTime);
+                caretBlinkTime = Math.Clamp(caretBlinkTime, 16, 1000);
                 _caretBlinkTime = TimeSpan.FromMilliseconds(caretBlinkTime);
             }
 
