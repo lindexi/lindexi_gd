@@ -99,7 +99,7 @@ public readonly struct CaretRenderInfo
     /// <summary>
     /// 是否一个空段
     /// </summary>
-    public bool IsEmptyParagraph => ParagraphData.CharCount == 0;
+    public bool IsEmptyParagraph => ParagraphData.IsEmptyParagraph;
 
     internal ParagraphData ParagraphData => LineLayoutData.CurrentParagraph;
     internal ParagraphCaretOffset HitOffset { get; }

@@ -61,10 +61,10 @@ internal class DocumentRunEditProvider
                     A B C  ------ 字符 
                  * 假设光标是 1 的值，那将取 B 字符，因此换算方法就是获取当前光标的偏移转换
                  */
-                if (paragraphDataResult.ParagraphData.CharCount == 0)
+                if (paragraphDataResult.ParagraphData.IsEmptyParagraph)
                 {
                     // 这是一个空段，那就采用段落属性
-                    styleRunProperty = paragraphDataResult.ParagraphData.ParagraphProperty.ParagraphStartRunProperty;
+                    styleRunProperty = paragraphDataResult.ParagraphData.ParagraphStartRunProperty;
                 }
                 else
                 {
@@ -141,7 +141,7 @@ internal class DocumentRunEditProvider
                 if (paragraphDataResult.HitOffset.Offset == 0)
                 {
                     // 规定，光标是 0 获取段落的字符属性
-                    styleRunProperty = paragraphData.ParagraphProperty.ParagraphStartRunProperty;
+                    styleRunProperty = paragraphData.ParagraphStartRunProperty;
                 }
                 else
                 {

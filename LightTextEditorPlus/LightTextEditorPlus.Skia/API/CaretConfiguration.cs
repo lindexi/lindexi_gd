@@ -46,6 +46,9 @@ public class SkiaCaretConfiguration
 
     private TimeSpan? _caretBlinkTime;
 
+    /// <summary>
+    /// 光标的颜色
+    /// </summary>
     public SKColor? CaretBrush { get; set; } = SKColors.Black;
 
     /// <summary>
@@ -54,5 +57,8 @@ public class SkiaCaretConfiguration
     /// 默认 WPF 的 TextBox 是不保留显示的
     public bool ShowSelectionWhenNotInEditingInputMode { set; get; } = true;
 
+    /// <summary>
+    /// 选择的背景色
+    /// </summary>
     public SKColor SelectionBrush { get; set; } = SKColors.Blue.WithAlpha(0x50);
 }

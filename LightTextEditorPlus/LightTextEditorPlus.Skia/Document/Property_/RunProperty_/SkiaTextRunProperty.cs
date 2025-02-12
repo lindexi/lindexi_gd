@@ -86,6 +86,16 @@ public record SkiaTextRunProperty : LayoutOnlyRunProperty
     /// <summary>
     /// 字的粗细度，默认值为Normal
     /// </summary>
+    /// 粗细表：
+    /// 100	Thin (Hairline)
+    /// 200	Extra Light (Ultra Light)
+    /// 300	Light
+    /// 400	Normal
+    /// 500	Medium
+    /// 600	Semi Bold (Demi Bold)
+    /// 700	Bold
+    /// 800	Extra Bold (Ultra Bold)
+    /// 900	Black (Heavy)
     public SKFontStyleWeight FontWeight
     {
         get => _fontWeight;

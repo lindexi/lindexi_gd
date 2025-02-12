@@ -75,11 +75,11 @@ public class DocumentManagerParagraphPropertyTests
             textEditorCore.AppendRun(new TextRun(TestHelper.PlainNumberText, runProperty));
             // Assert
             // 添加之后段落属性变更为添加的文本的属性
-            ParagraphProperty firstParagraphProperty = textEditorCore.DocumentManager.GetParagraphProperty(new ParagraphIndex(0));
-            Assert.AreEqual(runProperty.FontSize, firstParagraphProperty.ParagraphStartRunProperty.FontSize);
+            var firstParagraph = textEditorCore.DocumentManager.ParagraphManager.GetParagraph(new ParagraphIndex(0));
+            Assert.AreEqual(runProperty.FontSize, firstParagraph.ParagraphStartRunProperty.FontSize);
 
             // 文本样式属性不会受到更改
-            Assert.AreEqual(styleRunProperty.FontSize, textEditorCore.DocumentManager.StyleParagraphProperty.ParagraphStartRunProperty.FontSize);
+            Assert.AreEqual(styleRunProperty.FontSize, textEditorCore.DocumentManager.StyleRunProperty);
         });
     }
 }

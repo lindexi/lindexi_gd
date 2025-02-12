@@ -205,19 +205,19 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         }
     }
 
-    /// <inheritdoc />
-    protected override void OnGotFocus(RoutedEventArgs e)
-    {
-        IsInEditingInputMode = true;
-        base.OnGotFocus(e);
-    }
+    ///// <inheritdoc />
+    //protected override void OnGotFocus(RoutedEventArgs e)
+    //{
+    //    IsInEditingInputMode = true;
+    //    base.OnGotFocus(e);
+    //}
 
-    /// <inheritdoc />
-    protected override void OnLostFocus(RoutedEventArgs e)
-    {
-        IsInEditingInputMode = false;
-        base.OnLostFocus(e);
-    }
+    ///// <inheritdoc />
+    //protected override void OnLostFocus(RoutedEventArgs e)
+    //{
+    //    IsInEditingInputMode = false;
+    //    base.OnLostFocus(e);
+    //}
 
     /// <summary>
     /// 确保编辑功能初始化完成
@@ -311,7 +311,11 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     protected override void OnGotKeyboardFocus(KeyboardFocusChangedEventArgs e)
     {
         Logger.LogDebug($"[TextEditor] GotKeyboardFocus 获取键盘焦点");
-        IsInEditingInputMode = true;
+
+        if (IsAutoEditingModeByFocus)
+        {
+            IsInEditingInputMode = IsEditable && true;
+        }
 
         base.OnGotKeyboardFocus(e);
     }
@@ -320,7 +324,11 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     protected override void OnLostKeyboardFocus(KeyboardFocusChangedEventArgs e)
     {
         Logger.LogDebug($"[TextEditor] LostKeyboardFocus");
-        IsInEditingInputMode = false;
+
+        if (IsAutoEditingModeByFocus)
+        {
+            IsInEditingInputMode = false;
+        }
 
         base.OnLostKeyboardFocus(e);
     }

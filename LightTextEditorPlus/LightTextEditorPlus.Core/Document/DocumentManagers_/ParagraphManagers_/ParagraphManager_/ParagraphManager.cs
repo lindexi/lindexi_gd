@@ -114,13 +114,14 @@ class ParagraphManager
             paragraphProperty = TextEditor.DocumentManager.StyleParagraphProperty;
         }
 
-        // 使用 with 关键词，重新拷贝一份对象，防止多个段落之间使用相同的段落对象属性，导致可能存在的对象变更
         paragraphProperty = paragraphProperty with
         {
-            ParagraphStartRunProperty = paragraphStartRunProperty ?? paragraphProperty.ParagraphStartRunProperty
+            // 使用 with 关键词，重新拷贝一份对象，防止多个段落之间使用相同的段落对象属性，导致可能存在的对象变更
         };
+        paragraphStartRunProperty ??=
+            relativeParagraph?.ParagraphStartRunProperty ?? TextEditor.DocumentManager.StyleRunProperty;
 
-        var paragraphData = new ParagraphData(paragraphProperty, this);
+        var paragraphData = new ParagraphData(paragraphStartRunProperty, paragraphProperty, this);
 
         if (relativeParagraph is null)
         {

@@ -56,7 +56,7 @@ public static class RenderManagerExtension
         {
             // 没有指定的情况，则取整行的字符属性
             runProperty =
-                paragraphLineRenderInfo.ParagraphProperty.ParagraphStartRunProperty;
+                paragraphLineRenderInfo.ParagraphStartRunProperty;
             //startPoint = lineDrawingArgument.StartPoint;
         }
 

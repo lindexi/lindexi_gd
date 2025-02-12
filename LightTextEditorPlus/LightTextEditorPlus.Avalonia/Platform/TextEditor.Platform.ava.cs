@@ -170,14 +170,21 @@ partial class TextEditor : Control
 
     protected override void OnGotFocus(GotFocusEventArgs e)
     {
-        // 获取焦点时，允许用户编辑，才能设置为编辑模式
-        IsInEditingInputMode = IsEditable && true;
+        if (IsAutoEditingModeByFocus)
+        {
+            // 获取焦点时，允许用户编辑，才能设置为编辑模式
+            IsInEditingInputMode = IsEditable && true;
+        }
+      
         base.OnGotFocus(e);
     }
 
     protected override void OnLostFocus(RoutedEventArgs e)
     {
-        IsInEditingInputMode = false;
+        if (IsAutoEditingModeByFocus)
+        {
+            IsInEditingInputMode = false;
+        }
         base.OnLostFocus(e);
     }
 

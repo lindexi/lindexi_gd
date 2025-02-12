@@ -24,10 +24,8 @@ namespace LightTextEditorPlus.Core.Document
         {
             TextEditor = textEditor;
             IReadOnlyRunProperty styleRunProperty = textEditor.PlatformProvider.GetPlatformRunPropertyCreator().GetDefaultRunProperty();
-            StyleParagraphProperty = new ParagraphProperty()
-            {
-                ParagraphStartRunProperty = styleRunProperty,
-            };
+            _styleRunProperty = styleRunProperty;
+            StyleParagraphProperty = new ParagraphProperty();
             
             ParagraphManager = new ParagraphManager(textEditor);
             DocumentRunEditProvider = new DocumentRunEditProvider(textEditor);
@@ -270,17 +268,19 @@ namespace LightTextEditorPlus.Core.Document
         /// <para>
         /// 此属性在文本初始化之后再次设置将不会影响任何文本内容，即存在过文本之后，则此属性设置将对文本毫无影响
         /// </para>
-        /// <para>
-        /// 样式字符属性和 <see cref="StyleParagraphProperty"/> 的 <see cref="ParagraphProperty.ParagraphStartRunProperty"/> 属性相同
-        /// </para>
         /// </summary>
         public IReadOnlyRunProperty StyleRunProperty
         {
             private set
             {
-                var oldValue = StyleParagraphProperty.ParagraphStartRunProperty;
+                if (_styleRunProperty == value)
+                {
+                    return;
+                }
 
-                StyleParagraphProperty = StyleParagraphProperty with { ParagraphStartRunProperty = value };
+                var oldValue = _styleRunProperty;
+
+                _styleRunProperty = value;
 
                 if (TextEditor.ShouldInsertUndoRedo)
                 {
@@ -292,8 +292,10 @@ namespace LightTextEditorPlus.Core.Document
                     TextEditor.InsertUndoRedoOperation(operation);
                 }
             }
-            get => StyleParagraphProperty.ParagraphStartRunProperty;
+            get => _styleRunProperty;
         }
+
+        private IReadOnlyRunProperty _styleRunProperty;
 
         /// <inheritdoc cref="P:LightTextEditorPlus.Core.Carets.CaretManager.CurrentCaretRunProperty"/>
         public IReadOnlyRunProperty CurrentCaretRunProperty
@@ -345,7 +347,7 @@ namespace LightTextEditorPlus.Core.Document
                         {
                             // 这个段落没有字符，那就使用段落默认字符属性
                             currentCaretRunProperty =
-                                paragraphData.ParagraphProperty.ParagraphStartRunProperty;
+                                paragraphData.ParagraphStartRunProperty;
                         }
                     }
                     else

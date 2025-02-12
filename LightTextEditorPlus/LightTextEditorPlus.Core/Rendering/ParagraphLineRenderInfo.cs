@@ -14,15 +14,18 @@ public readonly struct ParagraphLineRenderInfo
     /// <param name="lineIndex">这一行是段落的第几行，从0开始</param>
     /// <param name="paragraphIndex">当前是在第几个段落</param>
     /// <param name="argument">行渲染参数</param>
+    /// <param name="paragraphStartRunProperty"></param>
     /// <param name="lineLayoutData"></param>
     /// <param name="renderInfoProvider"></param>
     internal ParagraphLineRenderInfo(int lineIndex, ParagraphIndex paragraphIndex, LineDrawingArgument argument,
-        LineLayoutData lineLayoutData, RenderInfoProvider renderInfoProvider)
+        LineLayoutData lineLayoutData, IReadOnlyRunProperty paragraphStartRunProperty,
+        RenderInfoProvider renderInfoProvider)
     {
         LineIndex = lineIndex;
         ParagraphIndex = paragraphIndex;
         Argument = argument;
         LineLayoutData = lineLayoutData;
+        ParagraphStartRunProperty = paragraphStartRunProperty;
         _renderInfoProvider = renderInfoProvider;
     }
 
@@ -53,7 +56,12 @@ public readonly struct ParagraphLineRenderInfo
     public ParagraphIndex ParagraphIndex { get; }
 
     /// <summary>行渲染参数</summary>
-    public LineDrawingArgument Argument { get;  }
+    public LineDrawingArgument Argument { get; }
+
+    /// <summary>
+    /// 段落起始字符信息
+    /// </summary>
+    public IReadOnlyRunProperty ParagraphStartRunProperty { get; }
 
     private readonly RenderInfoProvider _renderInfoProvider;
 
