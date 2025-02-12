@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
@@ -155,7 +156,7 @@ class RichTextCaseProvider
                     FontSize = fontSize
                 }));
             }
-        },"一行包含不同的字号的文本");
+        }, "一行包含不同的字号的文本");
 
         Add(editor =>
         {
@@ -288,7 +289,7 @@ class RichTextCaseProvider
     public void Debug()
     {
         //RichTextCases[2].Exec(textEditor);
-        //Run("宽度自适应的居中对齐");
-        Run(_richTextCases.Last());
+        Run("一行包含不同的字号的文本");
+        //Run(_richTextCases.Last());
     }
 }

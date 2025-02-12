@@ -404,12 +404,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         };
 
         // 具体设置每个字符的坐标的逻辑
-        UpdateTextLineStartPoint(charDataTakeList, charLineStartPoint, lineHeight,
-            // 重新排列 X 坐标，因为这一行的字符可能是新加入的或修改的，需要重新排列 X 坐标
-            reArrangeXPosition: true,
-            // 这时候不需要更新 CharLayoutData 版本，因为这个版本是在布局行的时候更新的
-            // 这时候必定这一行需要重新更新渲染，不需要标记脏，这是新加入的布局行
-            needUpdateCharLayoutDataVersion: false);
+        UpdateTextLineStartPoint(charDataTakeList, charLineStartPoint, maxFontSizeCharData);
 
         // 行的尺寸
         var lineSize = new TextSize(currentTextSize.Width, lineHeight);
@@ -524,16 +519,20 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// </summary>
     /// <param name="lineCharList"></param>
     /// <param name="charLineStartPoint">文档布局给到行的距离</param>
-    /// <param name="lineHeight">当前字符所在行的行高，包括行距在内</param>
-    /// <param name="reArrangeXPosition">是否需要重新排列 X 坐标。对于只是更新行的 Y 坐标的情况，是不需要重新排列的</param>
-    /// <param name="needUpdateCharLayoutDataVersion">是否需要更新 CharLayoutData 版本</param>
-    private void UpdateTextLineStartPoint(TextReadOnlyListSpan<CharData> lineCharList, TextPoint charLineStartPoint,
-        double lineHeight, bool reArrangeXPosition, bool needUpdateCharLayoutDataVersion)
+    /// <param name="maxFontSizeCharData"></param>
+    private void UpdateTextLineStartPoint(TextReadOnlyListSpan<CharData> lineCharList, TextPoint charLineStartPoint, CharData maxFontSizeCharData)
     {
+        // 是否需要重新排列 X 坐标。对于只是更新行的 Y 坐标的情况，是不需要重新排列的
+        // 需要重新排列 X 坐标，因为这一行的字符可能是新加入的或修改的，需要重新排列 X 坐标
+        const bool reArrangeXPosition = true;
+        // 是否需要更新 CharLayoutData 版本
+        // 不需要。 这时候不需要更新 CharLayoutData 版本，因为这个版本是在布局行的时候更新的
+        // 这时候必定这一行需要重新更新渲染，不需要标记脏，这是新加入的布局行
+        const bool needUpdateCharLayoutDataVersion = false;
+
         var lineTop = charLineStartPoint.Y; // 相对于行的坐标，绝大部分情况下应该是 0 的值
         var currentX = charLineStartPoint.X;
 
-        CharData maxFontSizeCharData = GetMaxFontSizeCharData(lineCharList);
         // 求基线的行内偏移量
         double maxFontYOffset = lineTop;
         // 计算出最大字符的基线坐标
@@ -548,11 +547,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             double xOffset;
             if (reArrangeXPosition)
             {
-                // 保持 X 不变
                 xOffset = currentX;
             }
             else
             {
+                // 保持 X 不变
                 xOffset = charData.CharLayoutData!.CharLineStartPoint.X;
             }
 
