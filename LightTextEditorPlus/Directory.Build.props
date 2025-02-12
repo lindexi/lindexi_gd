@@ -9,8 +9,9 @@
     <!--
     - NU1903： 具有已知的 高 严重性漏洞
     - NU1803： 使用 HTTP 的源
+    - CS0162： 未使用的代码，不可达代码警告。有些代码就是特意写不可达的，只是用来作为设计说明
     -->
-    <NoWarn>NU1903;NU1803</NoWarn>
+    <NoWarn>NU1903;NU1803;CS0162</NoWarn>
 
     <CodeRootPath>$(MSBuildThisFileDirectory)</CodeRootPath>
 
