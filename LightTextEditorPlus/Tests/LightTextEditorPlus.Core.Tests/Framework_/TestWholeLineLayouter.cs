@@ -11,6 +11,6 @@ class TestWholeLineLayouter : IWholeLineLayouter
     public WholeLineLayoutResult LayoutWholeLine(in WholeLineLayoutArgument argument)
     {
         TextSize size = new TextSize(10, 10);
-        return LayoutWholeLineFunc?.Invoke(argument) ?? new WholeLineLayoutResult(size, size, 1);
+        return LayoutWholeLineFunc?.Invoke(argument) ?? new WholeLineLayoutResult(size, size, 1, default);
     }
 }

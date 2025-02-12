@@ -8,7 +8,7 @@ namespace LightTextEditorPlus.Core.Layout;
 /// <param name="LineSize">这一行的尺寸</param>
 /// <param name="TextSize">这一行的文本字符的尺寸</param>
 /// <param name="CharCount">这一行使用的 字符 的数量</param>
-public readonly record struct WholeLineLayoutResult(TextSize LineSize, TextSize TextSize, int CharCount)
+/// <param name="LineSpacingThickness"></param>
+public readonly record struct WholeLineLayoutResult(TextSize LineSize, TextSize TextSize, int CharCount, TextThickness LineSpacingThickness)
 {
-    // todo 这一行的字符起点信息，相对于本行。感觉不如行范围
 }
