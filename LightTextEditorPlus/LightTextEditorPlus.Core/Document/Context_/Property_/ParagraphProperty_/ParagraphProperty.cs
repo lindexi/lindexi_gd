@@ -115,15 +115,6 @@ public record ParagraphProperty
         init;
     } = HorizontalTextAlignment.Left;
 
-    ///// <summary>
-    ///// 段落的默认格式，默认值为NewTextRunProperty
-    ///// </summary>
-    //public RunProperty DefaultRunProperty
-    //{
-    //    get;
-    //    set;
-    //} = new RunProperty();
-
     // 原本设计是将 段落起始的文本格式 放在这里，但是这会导致段落属性需要不断被更新。每次更改段落首个字符的时候，都需要更新段落属性。这样太亏了，所以放弃这个设计
     // 尽管 段落起始的文本格式 放在段落属性这里是设计正确的，但为了维持不可变性和均衡内存压力性能，所以放弃这个设计
     ///// <summary>
