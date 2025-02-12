@@ -391,9 +391,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         var lineSpacing = lineHeight - currentTextSize.Height; // 行距值，现在仅调试用途
         GC.KeepAlive(lineSpacing);
         // 不能使用 lineSpacing 作为计算参考，因为在 Skia 平台下 TextSize 会更大，超过了布局行高的值，导致 lineSpacing 为负数
-        RatioVerticalCharInLineAlignment verticalCharInLineAlignment = TextEditor.LineSpacingConfiguration.VerticalCharInLineAlignment;
-        // todo 后续可选在这里计算行距
-        GC.KeepAlive(verticalCharInLineAlignment);
 
         // 字符在行内坐标
         TextPoint charLineStartPoint = currentStartPoint with
@@ -539,7 +536,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
         // 计算字符在行内的坐标
         // 字符在行内的垂直对齐方式
-        // todo 这个数值可以统一给到行计算，不需要每个字符都计算一次
+        //// 这个数值可以统一给到行计算，不需要每个字符都计算一次
         RatioVerticalCharInLineAlignment verticalCharInLineAlignment = TextEditor.LineSpacingConfiguration.VerticalCharInLineAlignment;
         // 按照比例对齐
         maxFontYOffset = maxFontYOffset * verticalCharInLineAlignment.LineSpaceRatio;
