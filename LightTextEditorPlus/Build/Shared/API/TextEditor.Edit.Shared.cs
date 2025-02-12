@@ -1,7 +1,6 @@
 #if USE_AllInOne || !USE_MauiGraphics && !USE_SKIA
 
 using System;
-using System.Reflection;
 
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
