@@ -57,6 +57,20 @@ public partial class TextEditorDebugView : UserControl
             textBox.Bind(TextBox.TextProperty, TextEditor.GetObservable(TextEditor.TextProperty));
             TextEditorGrid.Children.Insert(1, textBox);
         }
+
+        TextEditor.LayoutUpdated += TextEditor_LayoutUpdated;
+    }
+
+    private void TextEditor_LayoutUpdated(object? sender, EventArgs e)
+    {
+        UpdateTextEditorBorder();
+    }
+
+    private void UpdateTextEditorBorder()
+    {
+        Rect textEditorBounds = TextEditor.Bounds;
+        TextEditorBorder.Width = textEditorBounds.Width;
+        TextEditorBorder.Height = textEditorBounds.Height;
     }
 
     private bool _debugTextPropertyBinding = false;
