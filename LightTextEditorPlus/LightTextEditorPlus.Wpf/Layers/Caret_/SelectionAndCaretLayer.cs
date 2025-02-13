@@ -2,12 +2,11 @@ using System;
 using System.Diagnostics;
 using System.Windows.Media;
 using System.Windows.Threading;
-
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Utils;
 
-namespace LightTextEditorPlus.Layout;
+namespace LightTextEditorPlus.Layers.Caret_;
 
 /// <summary>
 /// 选择和光标的一层
