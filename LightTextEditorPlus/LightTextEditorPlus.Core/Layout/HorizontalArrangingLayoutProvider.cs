@@ -286,6 +286,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
                 LineContentSize = result.LineSize,
                 LineCharTextSize = result.TextSize,
                 CharStartPoint = currentStartPoint,
+                LineSpacingThickness = result.LineSpacingThickness,
             };
             // 更新字符信息
             Debug.Assert(result.CharCount <= charDataList.Count, "所获取的行的字符数量不能超过可提供布局的行的字符数量");
@@ -345,7 +346,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         if (charDataList.Count == 0)
         {
             // 理论上不会进入这里，如果没有任何的字符，那就不需要进行行布局
-            return new WholeLineLayoutResult(TextSize.Zero, TextSize.Zero, 0);
+            return new WholeLineLayoutResult(TextSize.Zero, TextSize.Zero, 0, default);
         }
 
         var layoutResult = LayoutWholeLineChars(argument);
@@ -366,8 +367,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             // 这一行一个字符都不能拿
             Debug.Assert(currentTextSize == TextSize.Zero);
             // 有可能这一行一个字符都不能拿，但是还是有行高的
-            var currentLineSize = currentTextSize; // todo 这里需要重新确认一下，行高应该是多少
-            return new WholeLineLayoutResult(currentLineSize, currentTextSize, wholeCharCount);
+            var currentLineSize = currentTextSize; // todo 这里需要重新确认一下，行高应该是多少，行距是多少
+            return new WholeLineLayoutResult(currentLineSize, currentTextSize, wholeCharCount, default);
         }
 
         // 遍历一次，用来取出其中 FontSize 最大的字符，此字符的对应字符属性就是所期望的参与后续计算的字符属性
@@ -397,6 +398,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         RatioVerticalCharInLineAlignment verticalCharInLineAlignment = TextEditor.LineSpacingConfiguration.VerticalCharInLineAlignment;
         // 计算出行距的顶部空白
         var topLineSpacingGap = lineSpacingGap * verticalCharInLineAlignment.LineSpaceRatio;
+        var bottomLineSpacingGap = lineSpacingGap - topLineSpacingGap;
 
         // 字符在行内坐标
         TextPoint charLineStartPoint = currentStartPoint with
@@ -410,7 +412,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         // 行的尺寸
         var lineSize = new TextSize(currentTextSize.Width, lineHeight);
 
-        return new WholeLineLayoutResult(lineSize, currentTextSize, wholeCharCount);
+        return new WholeLineLayoutResult(lineSize, currentTextSize, wholeCharCount,
+            new TextThickness(0, topLineSpacingGap, 0, bottomLineSpacingGap));
     }
 
     /// <summary>
