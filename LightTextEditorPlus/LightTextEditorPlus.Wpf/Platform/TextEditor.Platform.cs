@@ -97,67 +97,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         _ = new IMESupporter<TextEditor>(this);
     }
 
-    #region 公开属性
-
-    /// <summary>
-    /// 文本内容
-    /// </summary>
-    public string Text
-    {
-        get
-        {
-            if (_cacheText is null)
-            {
-                _cacheText = TextEditorCore.GetText();
-            }
-
-            return _cacheText;
-        }
-        set
-        {
-            _isSettingsTextProperty = true;
-            TextEditorCore.EditAndReplace(value, TextEditorCore.GetAllDocumentSelection());
-            _isSettingsTextProperty = false;
-            _cacheText = value;
-        }
-    }
-
-    private bool _isSettingsTextProperty;
-    private string? _cacheText;
-
-    private void TextEditorCore_TextChanged(object? sender, EventArgs e)
-    {
-        if (!_isSettingsTextProperty)
-        {
-            _cacheText = null;
-            OnPropertyChanged(nameof(Text));
-        }
-    }
-
-    #endregion
-
     #region 公开方法
-
-    /// <inheritdoc cref="DocumentManager.SetStyleTextRunProperty{T}"/>
-    public void SetStyleTextRunProperty(ConfigRunProperty config)
-    {
-        TextEditorCore.DocumentManager.SetStyleTextRunProperty((RunProperty property) => config( property));
-    }
-
-    /// <inheritdoc cref="DocumentManager.SetCurrentCaretRunProperty{T}"/>
-    public void SetCurrentCaretRunProperty(ConfigRunProperty config)
-        => TextEditorCore.DocumentManager.SetCurrentCaretRunProperty((RunProperty property) => config(property));
-
-    /// <summary>
-    /// 设置当前的属性，如果没有选择内容，则设置当前光标的属性。设置光标属性，在输入之后，将会修改光标，从而干掉光标属性。干掉了光标属性，将会获取当前光标对应的字符的属性
-    /// </summary>
-    /// <param name="config"></param>
-    /// <param name="selection"></param>
-    /// <remarks>这是给业务层调用的，非框架内调用</remarks>
-    public void SetRunProperty(ConfigRunProperty config, Selection? selection = null)
-    {
-        SetRunProperty(config, PropertyType.RunProperty, selection);
-    }
 
     /// <summary>
     /// 等待渲染完成
@@ -290,11 +230,6 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     }
 
     private TaskCompletionSource _renderCompletionSource = new TaskCompletionSource();
-
-    /// <summary>
-    /// 日志
-    /// </summary>
-    public ITextLogger Logger => TextEditorCore.Logger;
 
     #endregion
 

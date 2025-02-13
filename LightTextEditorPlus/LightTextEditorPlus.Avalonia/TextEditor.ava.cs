@@ -12,11 +12,18 @@ namespace LightTextEditorPlus;
 public partial class TextEditor 
 {
     /// <summary>
+    /// 文本核心
+    /// </summary>
+    public TextEditorCore TextEditorCore => SkiaTextEditor.TextEditorCore;
+
+    /// <summary>
+    /// 使用 Skia 渲染承载的文本编辑器
+    /// </summary>
+    public SkiaTextEditor SkiaTextEditor { get; }
+
+    /// <summary>
     /// 日志
     /// </summary>
     internal ITextLogger Logger => TextEditorCore.Logger;
-
-    public SkiaTextEditor SkiaTextEditor { get; }
-    public TextEditorCore TextEditorCore => SkiaTextEditor.TextEditorCore;
 }
 
