@@ -70,6 +70,16 @@
 
 使用 WPF 框架承载的文本库，平台相关具体实现。底层使用 `LightTextEditorPlus.Core` 进行驱动，渲染层和 IME 输入法等使用 WPF 提供
 
+### LightTextEditorPlus.Skia
+
+使用 Skia 提供平台渲染能力，底层使用 `LightTextEditorPlus.Core` 进行驱动。这一层只提供渲染支持，不提供输入交互编辑功能
+
+### LightTextEditorPlus.Avalonia
+
+基于 `LightTextEditorPlus.Skia` 进行的 Avalonia 平台对接。提供 Avalonia 平台的文本编辑功能，以及文本框控件接入功能
+
+入口文件： TextEditor.ava.cs
+
 ### LightTextEditorPlus.MauiGraphics
 
 使用 MAUI 框架承载的文本库，使用到 MAUI 的渲染层。仅提供渲染输出功能，不提供编辑功能。支持多平台渲染。底层核心对接是 SKIA 技术
@@ -95,7 +105,6 @@
 ### 布局原因
 
 通过 TextEditorCore 的 `_layoutUpdateReasonManager` 字段即可了解到框架内记录的触发布局的原因
-
 
 ## 行为定义
 
