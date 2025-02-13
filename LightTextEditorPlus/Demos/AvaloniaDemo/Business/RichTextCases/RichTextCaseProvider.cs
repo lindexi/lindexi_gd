@@ -174,9 +174,7 @@ class RichTextCaseProvider
         {
             editor.TextEditorCore.LineSpacingAlgorithm = LineSpacingAlgorithm.PPT;
 
-            DocumentManager documentManager = editor.TextEditorCore.DocumentManager;
-
-            editor.SetParagraphProperty(firstParagraphIndex, documentManager.StyleParagraphProperty with
+            editor.SetParagraphProperty(firstParagraphIndex, editor.StyleParagraphProperty with
             {
                 LineSpacing = TextLineSpacings.MultipleLineSpace(3),
             });
@@ -221,7 +219,7 @@ class RichTextCaseProvider
 
         Add(editor =>
         {
-            editor.TextEditorCore.UseWordLineSpacingStrategy();
+            editor.UseWordLineSpacingStrategy();
             editor.SetFontSize(36); // 36pixel = 27pound
             editor.AppendText("1asgf微软\r\n1gf雅黑\r\n1gf中文");
 

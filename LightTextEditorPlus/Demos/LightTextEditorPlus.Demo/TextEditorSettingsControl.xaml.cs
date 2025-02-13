@@ -158,12 +158,12 @@ public partial class TextEditorSettingsControl : UserControl
 
     private void WPFLineSpacingAlgorithmButton_OnClick(object sender, RoutedEventArgs e)
     {
-        TextEditor.TextEditorCore.LineSpacingAlgorithm = LineSpacingAlgorithm.WPF;
+        TextEditor.UseWpfLineSpacingStyle();
     }
 
     private void PPTLineSpacingAlgorithmButton_OnClick(object sender, RoutedEventArgs e)
     {
-        TextEditor.TextEditorCore.LineSpacingAlgorithm = LineSpacingAlgorithm.PPT;
+        TextEditor.UsePptLineSpacingStyle();
     }
     #endregion
 
