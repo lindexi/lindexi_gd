@@ -96,17 +96,17 @@ public partial class TextEditorSettingsControl : UserControl
 
     private void HorizontalArrangingTypeButton_OnClick(object sender, RoutedEventArgs e)
     {
-        TextEditor.TextEditorCore.ArrangingType = ArrangingType.Horizontal;
+        TextEditor.ArrangingType = ArrangingType.Horizontal;
     }
 
     private void VerticalArrangingTypeButton_OnClick(object sender, RoutedEventArgs e)
     {
-        TextEditor.TextEditorCore.ArrangingType = ArrangingType.Vertical;
+        TextEditor.ArrangingType = ArrangingType.Vertical;
     }
 
     private void MongolianArrangingTypeButton_OnClick(object sender, RoutedEventArgs e)
     {
-        TextEditor.TextEditorCore.ArrangingType = ArrangingType.Mongolian;
+        TextEditor.ArrangingType = ArrangingType.Mongolian;
     }
     #endregion
 

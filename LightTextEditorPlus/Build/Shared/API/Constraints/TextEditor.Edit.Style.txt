@@ -12,6 +12,7 @@ ToggleBold
 SetFontWeight
 // 文本属性
 SizeToContent
+ArrangingType
 // 事件
 StyleChanging
 StyleChanged

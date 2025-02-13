@@ -136,6 +136,24 @@ public partial class TextEditorSettingsControl : UserControl
         TextEditor.ToggleItalic(GetSelection());
     }
 
+    #region 布局方式
+
+    private void HorizontalArrangingTypeButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.ArrangingType = ArrangingType.Horizontal;
+    }
+
+    private void VerticalArrangingTypeButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.ArrangingType = ArrangingType.Vertical;
+    }
+
+    private void MongolianArrangingTypeButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.ArrangingType = ArrangingType.Mongolian;
+    }
+    #endregion
+
     #region 行距
 
     private void FullExpandButton_OnClick(object? sender, RoutedEventArgs e)

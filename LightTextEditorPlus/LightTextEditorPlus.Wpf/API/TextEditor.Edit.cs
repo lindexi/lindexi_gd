@@ -252,6 +252,13 @@ public partial class TextEditor
         }
     }
 
+    /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.ArrangingType"/>
+    public ArrangingType ArrangingType
+    {
+        set => TextEditorCore.ArrangingType = value;
+        get => TextEditorCore.ArrangingType;
+    }
+
     #endregion
 
     #endregion
