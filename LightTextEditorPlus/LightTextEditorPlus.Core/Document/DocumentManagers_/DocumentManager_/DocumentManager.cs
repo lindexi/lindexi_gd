@@ -81,6 +81,9 @@ namespace LightTextEditorPlus.Core.Document
 
         private double _documentHeight = double.PositiveInfinity;
 
+        // todo 考虑添加最大文档宽度高度的支持
+        //private double MaxDocumentWidth { get; set; }
+
         #endregion
 
         /// <summary>

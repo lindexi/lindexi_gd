@@ -19,11 +19,15 @@
                 <RowDefinition Height="Auto"></RowDefinition>
                 <RowDefinition Height="Auto"></RowDefinition>
             </Grid.RowDefinitions>
-            <Border Margin="10,10,10,10" BorderBrush="Blue" BorderThickness="1" HorizontalAlignment="Left"
+            <Border Margin="10,10,10,10" HorizontalAlignment="Left"
                     VerticalAlignment="Stretch">
                 <Grid>
+                    <Border x:Name="TextEditorBorder" BorderBrush="Blue" BorderThickness="1" HorizontalAlignment="Left" VerticalAlignment="Top">
+                    </Border>
+
                     <textEditorPlus:TextEditor x:Name="TextEditor" x:FieldModifier="public" Width="500">
                     </textEditorPlus:TextEditor>
+                        
                     <Canvas x:Name="DebugCanvas" IsHitTestVisible="False">
                         <!-- 用来绘制调试内容 -->
                     </Canvas>

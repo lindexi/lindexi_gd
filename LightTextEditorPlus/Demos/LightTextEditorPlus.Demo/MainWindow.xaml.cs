@@ -51,6 +51,25 @@ namespace LightTextEditorPlus.Demo
             TextEditor.TextEditorCore.LayoutCompleted += TextEditorCore_LayoutCompleted;
 
             Loaded += MainWindow_Loaded;
+
+            TextEditor.SizeChanged += TextEditor_SizeChanged;
+            TextEditor.LayoutUpdated += TextEditor_LayoutUpdated;
+        }
+
+        private void TextEditor_LayoutUpdated(object? sender, EventArgs e)
+        {
+            UpdateTextEditorBorder();
+        }
+
+        private void TextEditor_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            UpdateTextEditorBorder();
+        }
+
+        private void UpdateTextEditorBorder()
+        {
+            TextEditorBorder.Width = TextEditor.ActualWidth;
+            TextEditorBorder.Height = TextEditor.ActualHeight;
         }
 
         private void TextEditorCore_LayoutCompleted(object? sender, LayoutCompletedEventArgs e)

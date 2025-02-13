@@ -334,10 +334,10 @@ public class TextEditorEditTest
             var textEditorCore = TestHelper.GetTextEditorCore();
             // 初始化一段文本，这样才能进行选择
             textEditorCore.AppendText("123abcABC");
-            // 从后向前选择一段文本
+            // 从后向前选择一段文本。从 `123abc|ABC` 开始，向前选到 `123|abcABC` 的范围
             textEditorCore.CurrentSelection = new Selection(new CaretOffset("123abc".Length), new CaretOffset("123".Length));
+            // 确定选中的是 abc 文本。当前的选中是 `123|abc|ABC` 范围
             string selectionText = textEditorCore.GetText(textEditorCore.CurrentSelection);
-            // 确定选中的是 abc 文本
             Assert.AreEqual("abc", selectionText);
             // Action
             // 删除选中的文本
