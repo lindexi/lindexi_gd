@@ -145,7 +145,7 @@ class LayoutHitTestProvider
                 LineLayoutData lineLayoutData = paragraphData.LineLayoutDataList[lineIndex];
 
                 var lineHitTestContext = new LineHitTestContext(lineLayoutData, currentCharIndex, context);
-                ParagraphHitTestResult result = LineHitTest(lineHitTestContext).ParagraphHitTestResult;
+                ParagraphHitTestResult result = LineHitTest(in lineHitTestContext).ParagraphHitTestResult;
                 if (result.Success)
                 {
                     return result;
@@ -198,6 +198,13 @@ class LayoutHitTestProvider
                     Debug.Assert(isRight);
                     // 点到了行的右边，那就是行末
                     var isAtLineStart = false;
+                    // 但也可能是空行，空行则证明是空段，此时应该在行首
+                    bool isEmptyLine = lineLayoutData.CharCount==0;
+                    if (isEmptyLine)
+                    {
+                        Debug.Assert(paragraphData.IsEmptyParagraph, "空行必定在空段内");
+                        isAtLineStart = true;
+                    }
                     hitCaretOffset = new CaretOffset(currentCharIndex + lineLayoutData.CharCount, isAtLineStart);
                 }
 

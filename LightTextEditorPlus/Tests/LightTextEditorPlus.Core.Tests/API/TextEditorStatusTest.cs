@@ -13,8 +13,25 @@ namespace LightTextEditorPlus.Core.Tests;
 public class TextEditorStatusTest
 {
     [ContractTestCase]
-    public void TryHitTest()
+    public void TestTryHitTest()
     {
+        "文本包含空段，命中空段，可返回命中到行首".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetLayoutTestTextEditor();
+            // 第二段是空段
+            textEditorCore.AppendText("1\n\n2");
+            // Action
+            // 命中到第二段行首，也就是 1.5 倍高度，确保命中在第二段中间
+            var point = new TextPoint(0.2, TestHelper.LayoutTestCharHeight * 1.5);
+            bool result = textEditorCore.TryHitTest(point, out var hitTestResult);
+
+            // Assert
+            Assert.AreEqual(true, result);
+            Assert.AreEqual(1, hitTestResult.HitParagraphIndex.Index);
+            Assert.AreEqual(new CaretOffset(2, isAtLineStart: true/*命中到行首*/), hitTestResult.HitCaretOffset);
+        });
+
         "文本包含一段，在段内范围首个字符之后进行命中测试，可以命中".Test(() =>
         {
             // Arrange
