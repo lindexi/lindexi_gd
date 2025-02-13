@@ -34,7 +34,7 @@ namespace LightTextEditorPlus.Demo
             //TextEditor.SetFontName("华文中宋");
             TextEditor.SetFontName("微软雅黑");
             //TextEditor.SetFontName("Javanese Text");
-            TextEditor.TextEditorCore.AppendText("123123");
+            TextEditor.AppendText("123123");
             ParagraphIndex paragraphIndex = new ParagraphIndex(0);
             TextEditor.SetParagraphProperty(paragraphIndex, TextEditor.GetParagraphProperty(paragraphIndex) with
             {
@@ -225,11 +225,11 @@ namespace LightTextEditorPlus.Demo
             {
                 for (int i = 0; i < 100; i++)
                 {
-                    TextEditor.TextEditorCore.AppendText(((char) Random.Shared.Next('a', 'z')).ToString());
+                    TextEditor.AppendText(((char) Random.Shared.Next('a', 'z')).ToString());
                     await Task.Delay(10);
                 }
 
-                TextEditor.TextEditorCore.AppendText("\r\n");
+                TextEditor.AppendText("\r\n");
                 await Task.Delay(10);
 
                 count++;
