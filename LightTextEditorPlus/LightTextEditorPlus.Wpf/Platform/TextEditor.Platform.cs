@@ -24,7 +24,7 @@ using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.Patterns;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Editing;
-using LightTextEditorPlus.Layout;
+using LightTextEditorPlus.Layers;
 using LightTextEditorPlus.Rendering;
 using LightTextEditorPlus.Utils;
 using FrameworkElement = System.Windows.FrameworkElement;
@@ -109,6 +109,8 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
     #region 框架
 
+    #region 布局
+
     /// <inheritdoc />
     protected override System.Windows.Size MeasureOverride(System.Windows.Size availableSize)
     {
@@ -122,6 +124,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         TextView.Arrange(new System.Windows.Rect(new System.Windows.Point(), finalSize));
         return base.ArrangeOverride(finalSize);
     }
+    #endregion
 
     private void TextEditor_Loaded(object sender, RoutedEventArgs e)
     {

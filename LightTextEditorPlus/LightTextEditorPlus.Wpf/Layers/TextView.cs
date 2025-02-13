@@ -4,11 +4,11 @@ using System.Windows.Media;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
+using LightTextEditorPlus.Layers.Caret_;
 using LightTextEditorPlus.Rendering;
-
 using Rect = System.Windows.Rect;
 
-namespace LightTextEditorPlus.Layout;
+namespace LightTextEditorPlus.Layers;
 
 /// <summary>
 /// 视觉呈现容器

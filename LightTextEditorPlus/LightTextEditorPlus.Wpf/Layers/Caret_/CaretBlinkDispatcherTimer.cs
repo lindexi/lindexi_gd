@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Threading;
 
-namespace LightTextEditorPlus.Layout;
+namespace LightTextEditorPlus.Layers.Caret_;
 
 /// <summary>
 /// 用来控制光标的 <see cref="DispatcherTimer"/> 类型，同时解决业务端忘记调用 Stop 关闭光标，从而被 <see cref="DispatcherTimer"/> 内存泄露

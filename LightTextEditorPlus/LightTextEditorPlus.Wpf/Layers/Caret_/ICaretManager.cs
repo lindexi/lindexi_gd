@@ -1,4 +1,4 @@
-namespace LightTextEditorPlus.Layout;
+namespace LightTextEditorPlus.Layers.Caret_;
 
 interface ICaretManager
 {
