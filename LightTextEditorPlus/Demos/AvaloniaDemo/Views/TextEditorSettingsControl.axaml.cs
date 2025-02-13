@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 
@@ -86,22 +87,31 @@ public partial class TextEditorSettingsControl : UserControl
     private void ManualSizeToContentButton_OnClick(object? sender, RoutedEventArgs e)
     {
         TextEditor.SizeToContent = SizeToContent.Manual;
+        TextEditor.HorizontalAlignment = HorizontalAlignment.Stretch;
+        TextEditor.VerticalAlignment = VerticalAlignment.Stretch;
     }
 
     private void WidthSizeToContentButton_OnClick(object? sender, RoutedEventArgs e)
     {
         TextEditor.Width = double.NaN;
+        TextEditor.HorizontalAlignment = HorizontalAlignment.Left;
         TextEditor.SizeToContent = SizeToContent.Width;
     }
 
     private void HeightSizeToContentButton_OnClick(object? sender, RoutedEventArgs e)
     {
         TextEditor.SizeToContent = SizeToContent.Height;
+        TextEditor.Height = double.NaN;
+        TextEditor.VerticalAlignment = VerticalAlignment.Top;
     }
 
     private void WidthAndHeightSizeToContentButton_OnClick(object? sender, RoutedEventArgs e)
     {
         TextEditor.SizeToContent = SizeToContent.WidthAndHeight;
+        TextEditor.HorizontalAlignment = HorizontalAlignment.Left;
+        TextEditor.VerticalAlignment = VerticalAlignment.Top;
+        TextEditor.Width = double.NaN;
+        TextEditor.Height = double.NaN;
     }
 
     private void ColorEllipse_OnPointerReleased(object? sender, PointerReleasedEventArgs e)
