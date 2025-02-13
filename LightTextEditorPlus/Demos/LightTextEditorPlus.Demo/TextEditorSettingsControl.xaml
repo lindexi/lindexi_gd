@@ -93,8 +93,8 @@
                 <TextBlock Margin="0,5,0,0" FontWeight="Bold">自适应</TextBlock>
                 <UniformGrid Columns="4">
                     <Button x:Name="ManualSizeToContentButton" Margin="0,2,0,0" Click="ManualSizeToContentButton_OnClick">手动</Button>
-                    <Button x:Name="WidthSizeToContentButton" Margin="10,2,0,0" Click="WidthSizeToContentButton_OnClick">高度自适应</Button>
-                    <Button x:Name="HeightSizeToContentButton" Margin="10,2,0,0" Click="HeightSizeToContentButton_OnClick">宽度自适应</Button>
+                    <Button x:Name="WidthSizeToContentButton" Margin="10,2,0,0" Click="WidthSizeToContentButton_OnClick">宽度自适应</Button>
+                    <Button x:Name="HeightSizeToContentButton" Margin="10,2,0,0" Click="HeightSizeToContentButton_OnClick">高度自适应</Button>
                     <Button x:Name="WidthAndHeightSizeToContentButton" Margin="10,2,0,0" Click="WidthAndHeightSizeToContentButton_OnClick">宽度高度自适应</Button>
                 </UniformGrid>
 

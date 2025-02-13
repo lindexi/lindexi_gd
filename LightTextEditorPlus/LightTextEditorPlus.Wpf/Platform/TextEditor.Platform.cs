@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing.Text;
 using System.Globalization;
 using System.Linq;
@@ -16,9 +17,12 @@ using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using System.Windows.Navigation;
+
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Platform;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.Patterns;
@@ -27,6 +31,7 @@ using LightTextEditorPlus.Editing;
 using LightTextEditorPlus.Layers;
 using LightTextEditorPlus.Rendering;
 using LightTextEditorPlus.Utils;
+
 using FrameworkElement = System.Windows.FrameworkElement;
 
 namespace LightTextEditorPlus;
@@ -64,14 +69,10 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         #region 配置文本
 
         var textEditorPlatformProvider = new TextEditorPlatformProvider(this);
+        TextEditorPlatformProvider = textEditorPlatformProvider;
         TextEditorCore = new TextEditorCore(textEditorPlatformProvider);
         TextEditorCore.TextChanged += TextEditorCore_TextChanged;
-        //SetDefaultTextRunProperty(property => property with
-        //{
-        //    FontSize = 40
-        //});
-
-        TextEditorPlatformProvider = textEditorPlatformProvider;
+        TextEditorCore.LayoutCompleted += TextEditorCore_LayoutCompleted;
 
         #endregion
 
@@ -111,16 +112,158 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
     #region 布局
 
+    /// <summary>
+    /// 立刻布局
+    /// </summary>
+    private void ForceLayout()
+    {
+        _isInForceLayout = true;
+
+        try
+        {
+            // 当前实现的 ForceLayout 是不亏的，因为只有文本存在变更的时候，才会执行实际逻辑
+            // 而不是让文本必定需要重新布局
+            TextEditorPlatformProvider.EnsureLayoutUpdated();
+        }
+        finally
+        {
+            _isInForceLayout = false;
+        }
+    }
+
+    private bool _isInForceLayout;
+
+    private void TextEditorCore_LayoutCompleted(object? sender, LayoutCompletedEventArgs e)
+    {
+        InvalidateMeasureAfterLayoutCompleted();
+    }
+
+    /// <summary>
+    /// 布局完成之后，判断是否需要重新测量
+    /// </summary>
+    private void InvalidateMeasureAfterLayoutCompleted()
+    {
+        if (_isInForceLayout)
+        {
+            // 强行布局的情况下，不需要再次触发布局
+            // 可能此时正在 UI 布局过程中，也可能只是其他业务需要获取值。此时再次触发布局是比较亏的
+            return;
+        }
+
+        if (_isMeasuring)
+        {
+            return;
+        }
+
+        Debug.Assert(!TextEditorCore.IsDirty, "布局完成时，文本一定可用");
+
+        TextRect documentLayoutBounds = TextEditorCore.GetDocumentLayoutBounds();
+        bool widthChanged = !NearlyEquals(documentLayoutBounds.Width, DesiredSize.Width);
+        bool heightChanged = !NearlyEquals(documentLayoutBounds.Height, DesiredSize.Height);
+
+        bool shouldInvalidateMeasure = false;
+        TextSizeToContent sizeToContent = TextEditorCore.SizeToContent;
+        if (sizeToContent == TextSizeToContent.Width && widthChanged)
+        {
+            // 宽度自适应的情况下
+            shouldInvalidateMeasure = true;
+        }
+        else if (sizeToContent == TextSizeToContent.Height && heightChanged)
+        {
+            // 高度自适应的情况下
+            shouldInvalidateMeasure = true;
+        }
+        else if (sizeToContent == TextSizeToContent.WidthAndHeight && (widthChanged || heightChanged))
+        {
+            // 宽度和高度都自适应的情况下
+            shouldInvalidateMeasure = true;
+        }
+        else if(sizeToContent == TextSizeToContent.Manual)
+        {
+            // 手动情况下，不需要重新布局
+        }
+
+        if (shouldInvalidateMeasure)
+        {
+            InvalidateMeasure();
+        }
+    }
+
+    private static bool NearlyEquals(double a, double b)
+        => Math.Abs(a - b) < 0.001;
+
+    private bool _isMeasuring;
+
     /// <inheritdoc />
     protected override System.Windows.Size MeasureOverride(System.Windows.Size availableSize)
     {
-        TextView.Measure(availableSize);
-        return base.MeasureOverride(availableSize);
+         _isMeasuring = true;
+        try
+        {
+            Size result = base.MeasureOverride(availableSize);
+            _ = result;
+
+            Size measureResult = MeasureTextEditorCore(availableSize);
+
+            TextView.Measure(measureResult);
+
+            return measureResult;
+        }
+        finally
+        {
+            _isMeasuring = false;
+        }
+    }
+
+    private Size MeasureTextEditorCore(Size availableSize)
+    {
+        TextSizeToContent sizeToContent = TextEditorCore.SizeToContent;
+        if (sizeToContent == TextSizeToContent.Width)
+        {
+            // 宽度自适应，高度固定
+            EnsureLayout();
+            (double x, double y, double width, double height) = TextEditorCore.GetDocumentLayoutBounds();
+            return new Size(width, availableSize.Height);
+        }
+        else if (sizeToContent == TextSizeToContent.Height)
+        {
+            // 高度自适应，宽度固定
+            EnsureLayout();
+            (double x, double y, double width, double height) = TextEditorCore.GetDocumentLayoutBounds();
+            return new Size(availableSize.Width, height);
+        }
+        else if (sizeToContent == TextSizeToContent.WidthAndHeight)
+        {
+            // 宽度和高度都自适应
+            EnsureLayout();
+            (double x, double y, double width, double height) = TextEditorCore.GetDocumentLayoutBounds();
+            return new Size(width, height);
+        }
+        else if (sizeToContent == TextSizeToContent.Manual)
+        {
+            // 手动的，有多少就要多少
+            return availableSize;
+        }
+
+        // 文本库，有多少就要多少
+        return availableSize;
+
+        void EnsureLayout()
+        {
+            if (TextEditorCore.IsDirty)
+            {
+                ForceLayout();
+            }
+        }
     }
 
     /// <inheritdoc />
     protected override System.Windows.Size ArrangeOverride(System.Windows.Size finalSize)
     {
+        // 实际布局多大就使用多大
+        TextEditorCore.DocumentManager.DocumentWidth = finalSize.Width;
+        TextEditorCore.DocumentManager.DocumentHeight = finalSize.Height;
+
         TextView.Arrange(new System.Windows.Rect(new System.Windows.Point(), finalSize));
         return base.ArrangeOverride(finalSize);
     }
