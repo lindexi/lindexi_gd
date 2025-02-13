@@ -249,4 +249,108 @@ public class TextEditorEditTest
                 textEditorCore.DocumentManager.ParagraphManager.GetParagraphList()[0].LineLayoutDataList.Count);
         });
     }
+
+    [ContractTestCase]
+    public void DeleteSelection()
+    {
+        "选择一段文本，使用 Backspace 将其删除，可以正确删除且设置光标".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            // 初始化一段文本，这样才能进行选择
+            textEditorCore.AppendText("123abcABC");
+            // 选择一段文本
+            textEditorCore.CurrentSelection = new Selection(new CaretOffset("123".Length), "abc".Length);
+            string selectionText = textEditorCore.GetText(textEditorCore.CurrentSelection);
+            // 确定选中的是 abc 文本
+            Assert.AreEqual("abc", selectionText);
+            // Action
+            // 删除选中的文本
+            textEditorCore.Backspace();
+
+            // Assert
+            // 删除之后的文本应该是 123ABC 字符串
+            string text = textEditorCore.GetText();
+            Assert.AreEqual("123ABC", text);
+            // 光标应该在 123 后面
+            Assert.AreEqual("123".Length, textEditorCore.CurrentCaretOffset.Offset);
+            // 且没有选择
+            Assert.IsTrue(textEditorCore.CurrentSelection.IsEmpty);
+        });
+
+        "选择一段文本，使用 Delete 将其删除，可以正确删除且设置光标".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            // 初始化一段文本，这样才能进行选择
+            textEditorCore.AppendText("123abcABC");
+            // 选择一段文本
+            textEditorCore.CurrentSelection = new Selection(new CaretOffset("123".Length), "abc".Length);
+            string selectionText = textEditorCore.GetText(textEditorCore.CurrentSelection);
+            // 确定选中的是 abc 文本
+            Assert.AreEqual("abc", selectionText);
+            // Action
+            // 删除选中的文本
+            textEditorCore.Delete();
+
+            // Assert
+            // 删除之后的文本应该是 123ABC 字符串
+            string text = textEditorCore.GetText();
+            Assert.AreEqual("123ABC", text);
+            // 光标应该在 123 后面
+            Assert.AreEqual("123".Length, textEditorCore.CurrentCaretOffset.Offset);
+            // 且没有选择
+            Assert.IsTrue(textEditorCore.CurrentSelection.IsEmpty);
+        });
+
+        "从后向前选择一段文本，使用 Backspace 将其删除，可以正确删除且设置光标".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            // 初始化一段文本，这样才能进行选择
+            textEditorCore.AppendText("123abcABC");
+            // 从后向前选择一段文本
+            textEditorCore.CurrentSelection = new Selection(new CaretOffset("123abc".Length), new CaretOffset("123".Length));
+            string selectionText = textEditorCore.GetText(textEditorCore.CurrentSelection);
+            // 确定选中的是 abc 文本
+            Assert.AreEqual("abc", selectionText);
+            // Action
+            // 删除选中的文本
+            textEditorCore.Backspace();
+
+            // Assert
+            // 删除之后的文本应该是 123ABC 字符串
+            string text = textEditorCore.GetText();
+            Assert.AreEqual("123ABC", text);
+            // 光标应该在 123 后面
+            Assert.AreEqual("123".Length, textEditorCore.CurrentCaretOffset.Offset);
+            // 且没有选择
+            Assert.IsTrue(textEditorCore.CurrentSelection.IsEmpty);
+        });
+
+        "从后向前选择一段文本，使用 Delete 将其删除，可以正确删除且设置光标".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetTextEditorCore();
+            // 初始化一段文本，这样才能进行选择
+            textEditorCore.AppendText("123abcABC");
+            // 从后向前选择一段文本
+            textEditorCore.CurrentSelection = new Selection(new CaretOffset("123abc".Length), new CaretOffset("123".Length));
+            string selectionText = textEditorCore.GetText(textEditorCore.CurrentSelection);
+            // 确定选中的是 abc 文本
+            Assert.AreEqual("abc", selectionText);
+            // Action
+            // 删除选中的文本
+            textEditorCore.Delete();
+
+            // Assert
+            // 删除之后的文本应该是 123ABC 字符串
+            string text = textEditorCore.GetText();
+            Assert.AreEqual("123ABC", text);
+            // 光标应该在 123 后面
+            Assert.AreEqual("123".Length, textEditorCore.CurrentCaretOffset.Offset);
+            // 且没有选择
+            Assert.IsTrue(textEditorCore.CurrentSelection.IsEmpty);
+        });
+    }
 }
