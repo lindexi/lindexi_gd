@@ -231,11 +231,6 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
     private TaskCompletionSource _renderCompletionSource = new TaskCompletionSource();
 
-    /// <summary>
-    /// 日志
-    /// </summary>
-    public ITextLogger Logger => TextEditorCore.Logger;
-
     #endregion
 
     #endregion
