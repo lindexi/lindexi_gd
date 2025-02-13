@@ -143,7 +143,7 @@ public struct TextRect
     /// </summary>
     /// <param name="point"></param>
     /// <returns></returns>
-    public bool Contains(in TextPoint point)
+    public bool Contains(TextPoint point)
     {
         return Contains(point.X, point.Y);
     }
