@@ -136,9 +136,9 @@
 
         </StackPanel>
         <UniformGrid Columns="3">
-          <Button x:Name="HorizontalArrangingTypeButton">横排</Button>
-          <Button x:Name="VerticalArrangingTypeButton" Margin="10,0,0,0">竖排</Button>
-          <Button x:Name="MongolianArrangingTypeButton" Margin="10,0,0,0">蒙文竖排</Button>
+          <Button x:Name="HorizontalArrangingTypeButton" Click="HorizontalArrangingTypeButton_OnClick">横排</Button>
+          <Button x:Name="VerticalArrangingTypeButton" Margin="10,0,0,0" Click="VerticalArrangingTypeButton_OnClick">竖排</Button>
+          <Button x:Name="MongolianArrangingTypeButton" Margin="10,0,0,0" Click="MongolianArrangingTypeButton_OnClick">蒙文竖排</Button>
         </UniformGrid>
 
         <TextBlock Margin="0,5,0,0" FontWeight="Bold">对齐</TextBlock>

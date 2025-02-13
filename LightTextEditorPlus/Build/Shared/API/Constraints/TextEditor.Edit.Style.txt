@@ -11,7 +11,10 @@ SetFontStyle
 ToggleBold
 SetFontWeight
 // 文本属性
+VerticalTextAlignment
+VerticalContentAlignment
 SizeToContent
+ArrangingType
 // 事件
 StyleChanging
 StyleChanged
