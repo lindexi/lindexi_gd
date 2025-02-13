@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Drawing.Text;
 using System.Globalization;
 using System.Linq;
@@ -17,15 +16,9 @@ using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using System.Windows.Navigation;
-using System.Windows.Threading;
-
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
-using LightTextEditorPlus.Core.Document;
-using LightTextEditorPlus.Core.Document.UndoRedo;
-using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
-using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.Patterns;
@@ -34,8 +27,6 @@ using LightTextEditorPlus.Editing;
 using LightTextEditorPlus.Layout;
 using LightTextEditorPlus.Rendering;
 using LightTextEditorPlus.Utils;
-using LightTextEditorPlus.Utils.Threading;
-
 using FrameworkElement = System.Windows.FrameworkElement;
 
 namespace LightTextEditorPlus;
@@ -357,226 +348,4 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
     #endregion
-}
-
-internal class TextEditorPlatformProvider : PlatformProvider
-{
-    public TextEditorPlatformProvider(TextEditor textEditor)
-    {
-        TextEditor = textEditor;
-
-        _textLayoutDispatcherRequiring = new DispatcherRequiring(UpdateLayout, DispatcherPriority.Render);
-        _charInfoMeasurer = new CharInfoMeasurer(textEditor);
-        _runPropertyCreator = new RunPropertyCreator(textEditor);
-    }
-
-    #region 可基类重写方法
-
-    /// <inheritdoc />
-    /// 如果需要自定义撤销恢复，可以获取文本编辑器重写的方法
-    /// 默认文本库是独立的撤销恢复，每个文本编辑器都有自己的撤销恢复。如果想要全局的撤销恢复，可以自定义一个全局的撤销恢复
-    public override ITextEditorUndoRedoProvider BuildTextEditorUndoRedoProvider()
-    {
-        return TextEditor.BuildCustomTextEditorUndoRedoProvider() ?? base.BuildTextEditorUndoRedoProvider();
-    }
-
-    public override ITextLogger? BuildTextLogger()
-    {
-        return TextEditor.BuildCustomTextLogger() ?? base.BuildTextLogger();
-    }
-
-    #endregion
-
-    private void UpdateLayout()
-    {
-        Debug.Assert(_lastTextLayout is not null);
-        _lastTextLayout?.Invoke();
-    }
-
-    private TextEditor TextEditor { get; }
-    private readonly DispatcherRequiring _textLayoutDispatcherRequiring;
-    private Action? _lastTextLayout;
-
-    public override void RequireDispatchUpdateLayout(Action updateLayoutAction)
-    {
-        _lastTextLayout = updateLayoutAction;
-        _textLayoutDispatcherRequiring.Require();
-    }
-
-    public override void InvokeDispatchUpdateLayout(Action updateLayoutAction)
-    {
-        _lastTextLayout = updateLayoutAction;
-        _textLayoutDispatcherRequiring.Invoke(withRequire: true);
-    }
-
-    /// <summary>
-    /// 尝试执行布局，如果无需布局，那就啥都不做
-    /// </summary>
-    public void EnsureLayoutUpdated() => _textLayoutDispatcherRequiring.Invoke();
-
-    public override ICharInfoMeasurer? GetCharInfoMeasurer()
-    {
-        return _charInfoMeasurer;
-    }
-
-    private readonly CharInfoMeasurer _charInfoMeasurer;
-
-    public override IRenderManager? GetRenderManager()
-    {
-        return TextEditor;
-    }
-
-    public override IPlatformRunPropertyCreator GetPlatformRunPropertyCreator() => _runPropertyCreator;
-
-    private readonly RunPropertyCreator _runPropertyCreator; //= new RunPropertyCreator();
-
-    public override double GetFontLineSpacing(IReadOnlyRunProperty runProperty)
-    {
-        return runProperty.AsRunProperty().GetRenderingFontFamily().LineSpacing;
-    }
-
-    public override IPlatformFontNameManager GetPlatformFontNameManager()
-    {
-        return TextEditor.StaticConfiguration.PlatformFontNameManager;
-    }
-}
-
-class CharInfoMeasurer : ICharInfoMeasurer
-{
-    public CharInfoMeasurer(TextEditor textEditor)
-    {
-        _textEditor = textEditor;
-    }
-
-    private readonly TextEditor _textEditor;
-
-    public CharInfoMeasureResult MeasureCharInfo(in CharInfo charInfo)
-    {
-        var runProperty = charInfo.RunProperty.AsRunProperty();
-        GlyphTypeface glyphTypeface = runProperty.GetGlyphTypeface();
-        var fontSize = charInfo.RunProperty.FontSize;
-        
-        TextSize textSize;
-
-        if (_textEditor.TextEditorCore.ArrangingType == ArrangingType.Horizontal)
-        {
-            Utf32CodePoint codePoint = charInfo.CharObject.CodePoint;
-            textSize = MeasureChar(codePoint);
-
-
-            TextSize MeasureChar(Utf32CodePoint c)
-            {
-                var currentGlyphTypeface = glyphTypeface;
-                if (!currentGlyphTypeface.CharacterToGlyphMap.TryGetValue(c.Value, out var glyphIndex))
-                {
-                    // 居然给定的字体找不到，也就是给定的字符不在当前的字体包含范围里面
-                    if (!runProperty.TryGetFallbackGlyphTypeface(c, out currentGlyphTypeface, out glyphIndex))
-                    {
-                        // 如果连回滚的都没有，那就返回默认方块空格
-                        return new TextSize(fontSize, fontSize);
-                    }
-                }
-
-                //var glyphIndex = glyphTypeface.CharacterToGlyphMap[c];
-
-                var width = currentGlyphTypeface.AdvanceWidths[glyphIndex] * fontSize;
-                width = GlyphExtension.RefineValue(width);
-                var height = currentGlyphTypeface.AdvanceHeights[glyphIndex] * fontSize;
-                double topSideBearing = currentGlyphTypeface.TopSideBearings[glyphIndex] * fontSize;
-                double bottomSideBearing = currentGlyphTypeface.BottomSideBearings[glyphIndex] * fontSize;
-
-                //var pixelsPerDip = (float) VisualTreeHelper.GetDpi(_textEditor).PixelsPerDip;
-                //var glyphIndices = new[] { glyphIndex };
-                //var advanceWidths = new[] { width };
-                //var characters = new[] { c };
-
-                //var location = new System.Windows.Point(0, 0);
-                //var glyphRun = new GlyphRun
-                //(
-                //    glyphTypeface,
-                //    bidiLevel: 0,
-                //    isSideways: false,
-                //    renderingEmSize: fontSize,
-                //    pixelsPerDip: pixelsPerDip,
-                //    glyphIndices: glyphIndices,
-                //    baselineOrigin: location, // 设置文本的偏移量
-                //    advanceWidths: advanceWidths, // 设置每个字符的字宽，也就是字号
-                //    glyphOffsets: null, // 设置每个字符的偏移量，可以为空
-                //    characters: characters,
-                //    deviceFontName: null,
-                //    clusterMap: null,
-                //    caretStops: null,
-                //    language: DefaultXmlLanguage
-                //);
-                //var computeInkBoundingBox = glyphRun.ComputeInkBoundingBox();
-
-                //var matrix = new Matrix();
-                //matrix.Translate(location.X, location.Y);
-                //computeInkBoundingBox.Transform(matrix);
-                ////相对于run.BuildGeometry().Bounds方法，run.ComputeInkBoundingBox()会多出一个厚度为1的框框，所以要减去
-                //if (computeInkBoundingBox.Width >= 2 && computeInkBoundingBox.Height >= 2)
-                //{
-                //    computeInkBoundingBox.Inflate(-1, -1);
-                //}
-
-                //var bounds = computeInkBoundingBox;
-                // 此方法计算的尺寸远远大于视觉效果
-
-                //// 根据 WPF 行高算法 height = fontSize * fontFamily.LineSpacing
-                //// 不等于 glyphTypeface.AdvanceHeights[glyphIndex] * fontSize 的值
-                //var fontFamily = new FontFamily("微软雅黑"); // 这里强行使用微软雅黑，只是为了测试
-                //height = fontSize * fontFamily.LineSpacing;
-
-                // 根据 PPT 行高算法
-                // PPTPixelLineSpacing = (a * PPTFL * OriginLineSpacing + b) * FontSize
-                // 其中 PPT 的行距计算的 a 和 b 为一次线性函数的方法，而 PPTFL 是 PPT Font Line Spacing 的意思，在 PPT 所有文字的行距都是这个值
-                // 可以将 a 和 PPTFL 合并为 PPTFL 然后使用 a 代替，此时 a 和 b 是常量
-                // PPTPixelLineSpacing = (a * OriginLineSpacing + b) * FontSize
-                // 常量 a 和 b 的值如下
-                // a = 1.2018;
-                // b = 0.0034;
-                // PPTFontLineSpacing = a;
-                //const double pptFontLineSpacing = 1.2018;
-                //const double b = 0.0034;
-                //const int lineSpacing = 1;
-
-                //height = (pptFontLineSpacing * lineSpacing + b) * height;
-
-                //switch (_textEditor.TextEditorCore.LineSpacingAlgorithm)
-                //{
-                //    case LineSpacingAlgorithm.WPF:
-                //        var fontLineSpacing = runProperty.GetRenderingFontFamily(c).LineSpacing;
-                //        height = LineSpacingCalculator.CalculateLineHeightWithWPFLineSpacingAlgorithm(1, height,
-                //            fontLineSpacing);
-                //        break;
-                //    case LineSpacingAlgorithm.PPT:
-                //        height = LineSpacingCalculator.CalculateLineHeightWithPPTLineSpacingAlgorithm(1, height);
-                //        break;
-                //    default:
-                //        throw new ArgumentOutOfRangeException();
-                //}
-
-                var fontLineSpacing = runProperty.GetRenderingFontFamily(c).LineSpacing;
-                // 使用固定字高，而不是每个字符的字高
-                var glyphTypefaceHeight = currentGlyphTypeface.Height * fontSize;
-                _ = fontLineSpacing;
-                _ = glyphTypefaceHeight;
-                _ = height;
-                _ = topSideBearing;
-                _ = bottomSideBearing;
-                var fakeHeight = height + topSideBearing + bottomSideBearing;
-                _ = fakeHeight;
-                // 在以上这些数据上，似乎只有 glyphTypefaceHeight 最正确
-                // 但是在 Javanese Text 字体里面，glyphTypefaceHeight=136 显著大于 height=60 导致字符上浮，超过文本框
-                //return (bounds.Width, bounds.Height);
-                return new TextSize(width, glyphTypefaceHeight);
-            }
-        }
-        else
-        {
-            throw new NotImplementedException("还没有实现竖排的文本测量");
-        }
-
-        return new CharInfoMeasureResult(new TextRect(new TextPoint(), textSize), glyphTypeface.Baseline * fontSize);
-    }
 }
