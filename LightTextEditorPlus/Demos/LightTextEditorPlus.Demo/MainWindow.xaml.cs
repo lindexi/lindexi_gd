@@ -15,9 +15,13 @@ using System.Windows.Media.TextFormatting;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Events;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Utils;
+using FlowDirection = System.Windows.FlowDirection;
+using TextRun = System.Windows.Media.TextFormatting.TextRun;
 
 namespace LightTextEditorPlus.Demo
 {
@@ -44,17 +48,38 @@ namespace LightTextEditorPlus.Demo
             TextEditor.EnterEditMode();
 
             TextEditor.CurrentCaretOffsetChanged += TextEditor_CurrentCaretOffsetChanged;
+            TextEditor.TextEditorCore.LayoutCompleted += TextEditorCore_LayoutCompleted;
 
             Loaded += MainWindow_Loaded;
         }
 
+        private void TextEditorCore_LayoutCompleted(object? sender, LayoutCompletedEventArgs e)
+        {
+            UpdateStatus();
+        }
+
         private void TextEditor_CurrentCaretOffsetChanged(object? sender, TextEditorValueChangeEventArgs<CaretOffset> e)
         {
-            CaretTextBlock.Text = $"光标： {e.NewValue}";
+            UpdateStatus();
         }
+
+        private void UpdateStatus()
+        {
+            if (!TextEditor.IsDirty)
+            {
+                TextRect layoutBounds = TextEditor.TextEditorCore.GetDocumentLayoutBounds();
+                _layoutMessage = $"布局宽高：{layoutBounds.Width:0.00},{layoutBounds.Height:0.00}";
+            }
+
+            DocumentManager documentManager = TextEditor.TextEditorCore.DocumentManager;
+            StatusTextBlock.Text = $"光标：{TextEditor.CurrentCaretOffset} 文档宽高：{documentManager.DocumentWidth:0.00},{documentManager.DocumentHeight:0.00} {_layoutMessage}";
+        }
+
+        private string _layoutMessage = string.Empty;
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            UpdateStatus();
             //var fontFamily = new FontFamily("微软雅黑");
             //Typeface typeface = fontFamily.GetTypefaces().First();
 

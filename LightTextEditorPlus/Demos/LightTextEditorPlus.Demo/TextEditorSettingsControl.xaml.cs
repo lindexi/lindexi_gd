@@ -375,4 +375,26 @@ public partial class TextEditorSettingsControl : UserControl
         });
     }
     #endregion
+
+    #region 自适应
+    private void ManualSizeToContentButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.SizeToContent = SizeToContent.Manual;
+    }
+
+    private void WidthSizeToContentButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.SizeToContent = SizeToContent.Width;
+    }
+
+    private void HeightSizeToContentButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.SizeToContent = SizeToContent.Height;
+    }
+
+    private void WidthAndHeightSizeToContentButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        TextEditor.SizeToContent = SizeToContent.WidthAndHeight;
+    }
+    #endregion
 }

@@ -17,6 +17,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition></RowDefinition>
                 <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
             </Grid.RowDefinitions>
             <Border Margin="10,10,10,10" BorderBrush="Blue" BorderThickness="1" HorizontalAlignment="Left"
                     VerticalAlignment="Stretch">
@@ -31,12 +32,13 @@
                     </TextBox>
                 </Grid>
             </Border>
-            <StackPanel Grid.Row="1" Margin="10,0,10,10" Orientation="Horizontal">
+            <StackPanel Grid.Row="1" Margin="10,0,10,5" Orientation="Horizontal">
                 <Button Margin="5,0,0,0" Click="DebugButton_OnClick">调试</Button>
                 <ToggleButton x:Name="ShowDocumentBoundsButton" Margin="5,0,0,0" Click="ShowDocumentBoundsButton_OnClick">显示文档范围</ToggleButton>
 
-                <TextBlock x:Name="CaretTextBlock" Margin="10,0,0,0" HorizontalAlignment="Right" VerticalAlignment="Center"></TextBlock>
             </StackPanel>
+
+            <TextBlock Grid.Row="2" x:Name="StatusTextBlock" Margin="10,0,0,10" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
             <!-- <Grid Grid.Row="1" Margin="10,0,10,10"> -->
             <!--     <Grid.ColumnDefinitions> -->
             <!--         <ColumnDefinition Width="*"></ColumnDefinition> -->
