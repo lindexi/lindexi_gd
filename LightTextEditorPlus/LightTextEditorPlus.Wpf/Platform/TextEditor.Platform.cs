@@ -100,11 +100,6 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     #region 公开属性
 
     /// <summary>
-    /// 文本核心
-    /// </summary>
-    public TextEditorCore TextEditorCore { get; }
-
-    /// <summary>
     /// 文本内容
     /// </summary>
     public string Text
