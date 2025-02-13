@@ -270,7 +270,7 @@ public struct TextRect
     public TextPoint RightBottom => new TextPoint(Right, Bottom);
 
     /// <summary>
-    /// 是否一个空居心，也就是 <see cref="Width"/> 和 <see cref="Height"/> 都是 0 的值
+    /// 是否一个空矩形，也就是 <see cref="Width"/> 和 <see cref="Height"/> 都是 0 的值
     /// </summary>
     public bool IsEmpty => (Width <= 0) || (Height <= 0);
 
