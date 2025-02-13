@@ -221,6 +221,39 @@ public partial class TextEditor
 
     #region 文本属性
 
+    /// <summary>
+    /// 获取或设置文本的垂直对齐方式 
+    /// </summary>
+    public VerticalAlignment VerticalTextAlignment
+    {
+        get => TextEditorCore.VerticalTextAlignment switch
+        {
+           LightTextEditorPlus.Core.Primitive.VerticalTextAlignment.Top => VerticalAlignment.Top,
+           LightTextEditorPlus.Core.Primitive.VerticalTextAlignment.Center => VerticalAlignment.Center,
+            LightTextEditorPlus.Core.Primitive.VerticalTextAlignment.Bottom => VerticalAlignment.Bottom,
+            _ => VerticalAlignment.Top
+        };
+        [Obsolete("当前还没实现，请不要调用")]
+        set => TextEditorCore.VerticalTextAlignment = value switch
+        {
+            VerticalAlignment.Top => LightTextEditorPlus.Core.Primitive.VerticalTextAlignment.Top,
+            VerticalAlignment.Center => LightTextEditorPlus.Core.Primitive.VerticalTextAlignment.Center,
+            VerticalAlignment.Bottom => LightTextEditorPlus.Core.Primitive.VerticalTextAlignment.Bottom,
+            _ => Core.Primitive.VerticalTextAlignment.Top
+        };
+    }
+
+    /// <summary>
+    /// 获取或设置文本的垂直对齐方式。此属性仅仅只是为了兼容其他控件的设置属性而已，更加正确的是使用 <see cref="VerticalTextAlignment"/> 属性。此属性和 <see cref="VerticalTextAlignment"/> 完全等价
+    /// </summary>
+    /// <remarks>完全等价于 <see cref="VerticalTextAlignment"/> 属性</remarks>
+    public VerticalAlignment VerticalContentAlignment
+    {
+        get => VerticalTextAlignment;
+        [Obsolete("当前还没实现，请不要调用")]
+        set => VerticalTextAlignment = value;
+    }
+
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.SizeToContent"/>
     public SizeToContent SizeToContent
     {

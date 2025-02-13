@@ -29,6 +29,12 @@ partial class TextEditorCore
     }
 
     /// <summary>
+    /// 获取或设置文本的垂直对齐方式。此属性只是为了告诉大家，更加正确的是使用 <see cref="VerticalTextAlignment"/> 属性
+    /// </summary>
+    [Obsolete("此属性只是为了告诉大家，更加正确的是使用 VerticalTextAlignment 属性")]
+    public VerticalTextAlignment VerticalContentAlignment => VerticalTextAlignment;
+
+    /// <summary>
     /// 这个属性在这里只是为了告诉你，文本的水平布局是由段落控制的，不是由整个文本控制的
     /// </summary>
     [Obsolete("这个属性在这里只是为了告诉你，文本的水平布局是由段落控制的，不是由整个文本控制的", error: true)]
