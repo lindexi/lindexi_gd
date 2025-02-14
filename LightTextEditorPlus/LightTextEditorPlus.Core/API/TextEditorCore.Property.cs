@@ -24,9 +24,17 @@ partial class TextEditorCore
     /// </summary>
     public VerticalTextAlignment VerticalTextAlignment
     {
-        get => VerticalTextAlignment.Top;
-        [Obsolete("当前还没实现，请不要调用")] set => throw new NotSupportedException($"当前还没实现文本的垂直对齐方式");
+        get => _verticalTextAlignment;
+        set
+        {
+            _verticalTextAlignment = value;
+
+            // 实际上可以不布局的，只是修改文档左上角坐标即可
+            RequireDispatchReLayoutAllDocument("VerticalTextAlignment Changed");
+        }
     }
+
+    private VerticalTextAlignment _verticalTextAlignment;
 
     /// <summary>
     /// 获取或设置文本的垂直对齐方式。此属性只是为了告诉大家，更加正确的是使用 <see cref="VerticalTextAlignment"/> 属性

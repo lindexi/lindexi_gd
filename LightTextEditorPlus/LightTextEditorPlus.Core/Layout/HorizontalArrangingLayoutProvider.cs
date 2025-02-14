@@ -9,9 +9,11 @@ using LightTextEditorPlus.Core.Layout.WordDividers;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
-using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Core.Layout;
+
+// ReSharper 禁用不可达代码提示
+// ReSharper disable HeuristicUnreachableCode
 
 /// <summary>
 /// 水平方向布局的提供器
@@ -430,7 +432,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// <returns></returns>
     private WholeLineCharsLayoutResult LayoutWholeLineChars(in WholeLineLayoutArgument argument)
     {
-        var (paragraphIndex, lineIndex, paragraphProperty, charDataList, lineMaxWidth, currentStartPoint, context) = argument;
+        ParagraphProperty paragraphProperty = argument.ParagraphProperty;
+        TextReadOnlyListSpan<CharData> charDataList = argument.CharDataList;
+        double lineMaxWidth = argument.LineMaxWidth;
+        UpdateLayoutContext context = argument.UpdateLayoutContext;
 
 #if DEBUG
         // 调试下显示当前这一行的文本，方便了解当前在哪一行
@@ -581,6 +586,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
+    /// Layout 是名词哦，不应该说 Layout Xxx 的
     private SingleCharInLineLayoutResult LayoutSingleCharInLine(in SingleCharInLineLayoutArgument argument)
     {
         // LayoutRule 布局规则
@@ -744,7 +750,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
         TextRect documentBounds = preLayoutDocumentResult.DocumentBounds;
         var documentWidth = CalculateHitBounds(documentBounds).Width;
-        IReadOnlyList <ParagraphData> paragraphList = updateLayoutContext.ParagraphList;
+        IReadOnlyList<ParagraphData> paragraphList = updateLayoutContext.ParagraphList;
 
         for (var paragraphIndex = 0/*为什么从首段开始？如右对齐情况下，被撑大文档范围，则即使没有变脏也需要更新坐标*/; paragraphIndex < paragraphList.Count; paragraphIndex++)
         {
@@ -762,6 +768,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
                 var isFirstLine = lineIndex == 0;
                 // 是否最后一行
                 var isLastLine = lineIndex == paragraph.LineLayoutDataList.Count - 1;
+                _ = isLastLine;
 
                 LineLayoutData lineLayoutData = paragraph.LineLayoutDataList[lineIndex];
                 HorizontalTextAlignment horizontalTextAlignment = paragraphProperty.HorizontalTextAlignment;

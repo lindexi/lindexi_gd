@@ -223,6 +223,8 @@ public partial class TextEditorSettingsControl : UserControl
     private void SetCurrentParagraphProperty(ParagraphProperty paragraphParagraph) =>
         TextEditor.TextEditorCore.DocumentManager.SetParagraphProperty(TextEditor.CurrentCaretOffset, paragraphParagraph);
 
+    #region 水平对齐
+
     private void LeftHorizontalTextAlignmentButton_OnClick(object? sender, RoutedEventArgs e)
     {
         TextEditor.ConfigCurrentCaretOffsetParagraphProperty(property => property with
@@ -246,6 +248,27 @@ public partial class TextEditorSettingsControl : UserControl
             HorizontalTextAlignment = HorizontalTextAlignment.Right
         });
     }
+
+    #endregion
+    
+    #region 垂直对齐
+
+    private void TopVerticalTextAlignmentButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        TextEditor.VerticalTextAlignment = VerticalAlignment.Top;
+    }
+
+    private void CenterVerticalTextAlignmentButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        TextEditor.VerticalTextAlignment = VerticalAlignment.Center;
+    }
+
+    private void BottomVerticalTextAlignmentButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        TextEditor.VerticalTextAlignment = VerticalAlignment.Bottom;
+    }
+
+    #endregion
 
     #region 边距
 

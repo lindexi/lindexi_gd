@@ -293,12 +293,13 @@ public partial class TextEditor
             LightTextEditorPlus.Core.Primitive.VerticalTextAlignment.Bottom => VerticalAlignment.Bottom,
             _ => VerticalAlignment.Top
         };
-        [Obsolete("当前还没实现，请不要调用")]
         set => TextEditorCore.VerticalTextAlignment = value switch
         {
             VerticalAlignment.Top => LightTextEditorPlus.Core.Primitive.VerticalTextAlignment.Top,
             VerticalAlignment.Center => LightTextEditorPlus.Core.Primitive.VerticalTextAlignment.Center,
             VerticalAlignment.Bottom => LightTextEditorPlus.Core.Primitive.VerticalTextAlignment.Bottom,
+            // 文本里面没有 Stretch 的概念，映射为 Top 算了
+            VerticalAlignment.Stretch => LightTextEditorPlus.Core.Primitive.VerticalTextAlignment.Top,
             _ => Core.Primitive.VerticalTextAlignment.Top
         };
     }
