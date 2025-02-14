@@ -6,7 +6,7 @@ using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Utils.Patterns;
 
-namespace LightTextEditorPlus.Core.Layout.WordDividers;
+namespace LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
 
 internal static class WordCharHelper
 {

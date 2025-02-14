@@ -1,5 +1,5 @@
 using LightTextEditorPlus.Core.Document;
-using LightTextEditorPlus.Core.Layout.WordDividers;
+using LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
 using LightTextEditorPlus.Core.Primitive.Collections;
 
 using MSTest.Extensions.Contracts;

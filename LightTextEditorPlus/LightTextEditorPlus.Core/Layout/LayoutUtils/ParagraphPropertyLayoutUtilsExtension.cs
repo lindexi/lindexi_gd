@@ -1,10 +1,10 @@
-﻿using LightTextEditorPlus.Core.Primitive;
+﻿using System;
+using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Primitive;
 
-using System;
+namespace LightTextEditorPlus.Core.Layout.LayoutUtils;
 
-namespace LightTextEditorPlus.Core.Document;
-
-internal static class ParagraphPropertyExtension
+internal static class ParagraphPropertyLayoutUtilsExtension
 {
     /// <summary>
     /// 获取一行最大可用宽度。即 <paramref name="lineMaxWidth"/> 减去左右边距和缩进
