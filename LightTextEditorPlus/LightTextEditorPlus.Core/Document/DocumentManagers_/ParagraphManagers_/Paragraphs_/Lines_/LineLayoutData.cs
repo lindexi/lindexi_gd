@@ -50,6 +50,7 @@ class LineLayoutData : IParagraphCache, IDisposable
     /// </summary>
     public int CharCount => CharEndParagraphIndex - CharStartParagraphIndex;
 
+    // todo 修改行为相对段落的坐标。然后才能更好的支持垂直对齐。否则垂直对齐变更，将会由于不知道行相对段落的距离，在下次更新时，缺少参数用来修改
     /// <summary>
     /// 这一行的起始的点，相对于文本框
     /// </summary>

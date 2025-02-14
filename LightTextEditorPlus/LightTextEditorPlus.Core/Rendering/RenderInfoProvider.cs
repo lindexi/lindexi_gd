@@ -55,7 +55,7 @@ public class RenderInfoProvider
         CharData? lastCharData = null;
         foreach (var charData in TextEditor.DocumentManager.GetCharDataRange(selection))
         {
-            if (ReferenceEquals(charData.CharObject, LineBreakCharObject.Instance))
+            if (charData.IsLineBreakCharData)
             {
                 // 这是换段了
                 continue;

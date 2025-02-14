@@ -6,10 +6,7 @@ using LightTextEditorPlus.Core.Primitive;
 namespace LightTextEditorPlus.Core.Document;
 
 /// <summary>
-/// 表示一个 人类语言文化 的字符信息
-/// <para>
-/// 有一些字符，如表情，是需要使用两个 char 表示。这里当成一个处理
-/// </para>
+/// 表示一个 人类语言文化 的字符信息，包括字符和对应的字符属性
 /// </summary>
 public class CharData
 {

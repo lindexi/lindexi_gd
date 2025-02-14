@@ -194,6 +194,25 @@ public partial class TextEditorSettingsControl : UserControl
     }
     #endregion
 
+    #region 垂直对齐
+
+    private void TopVerticalTextAlignmentButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        TextEditor.VerticalTextAlignment = VerticalAlignment.Top;
+    }
+
+    private void CenterVerticalTextAlignmentButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        TextEditor.VerticalTextAlignment = VerticalAlignment.Center;
+    }
+
+    private void BottomVerticalTextAlignmentButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        TextEditor.VerticalTextAlignment = VerticalAlignment.Bottom;
+    }
+
+    #endregion
+
     #region 辅助方法
 
     private ParagraphProperty GetCurrentParagraphProperty() => TextEditor.GetCurrentCaretOffsetParagraphProperty();
