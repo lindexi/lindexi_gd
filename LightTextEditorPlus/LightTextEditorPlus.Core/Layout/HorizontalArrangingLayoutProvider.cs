@@ -712,6 +712,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
     #endregion
 
+    /// <summary>
+    /// 获取下一段的行起始点
+    /// </summary>
+    /// <param name="paragraphData"></param>
+    /// <returns></returns>
     protected override TextPoint GetNextParagraphLineStartPoint(ParagraphData paragraphData)
     {
         const double x = 0;
@@ -744,6 +749,12 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
     #region 03 回溯最终布局阶段
 
+    /// <summary>
+    /// 回溯最终布局文档
+    /// </summary>
+    /// 布局过程是： 文档-段落-行
+    /// <param name="preLayoutDocumentResult"></param>
+    /// <param name="updateLayoutContext"></param>
     protected override void FinalLayoutDocument(PreLayoutDocumentResult preLayoutDocumentResult, UpdateLayoutContext updateLayoutContext)
     {
         updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 进入最终布局阶段");
@@ -766,6 +777,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
     readonly record struct FinalParagraphLayoutArgument(ParagraphData Paragraph, ParagraphIndex ParagraphIndex, double DocumentWidth, UpdateLayoutContext UpdateLayoutContext);
 
+    /// <summary>
+    /// 回溯最终布局段落
+    /// </summary>
+    /// <param name="argument"></param>
     private static void FinalParagraphLayout(in FinalParagraphLayoutArgument argument)
     {
         UpdateLayoutContext updateLayoutContext = argument.UpdateLayoutContext;
@@ -780,8 +795,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
         for (int lineIndex = 0; lineIndex < paragraph.LineLayoutDataList.Count; lineIndex++)
         {
+            updateLayoutContext.RecordDebugLayoutInfo($"开始回溯第 {paragraphIndex} 段的第 {lineIndex} 行");
+
             LineLayoutData lineLayoutData = paragraph.LineLayoutDataList[lineIndex];
-            var lineLayoutArgument = new FinalParagraphLineLayoutArgument(lineIndex, lineLayoutData,argument);
+            var lineLayoutArgument = new FinalParagraphLineLayoutArgument(lineIndex, lineLayoutData, argument);
 
             FinalParagraphLineLayout(in lineLayoutArgument);
         }
@@ -799,26 +816,27 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         paragraph.SetFinishLayout();
     }
 
-    readonly record struct FinalParagraphLineLayoutArgument(
+    readonly record struct FinalParagraphLineLayoutArgument
+    (
         int LineIndex,
         LineLayoutData LineLayoutData,
-        FinalParagraphLayoutArgument FinalParagraphLayoutArgument)
+        FinalParagraphLayoutArgument FinalParagraphLayoutArgument
+    )
     {
         public bool IsFirstLine => LineIndex == 0;
         public bool IsLastLine => LineIndex == FinalParagraphLayoutArgument.Paragraph.LineLayoutDataList.Count - 1;
     }
 
+    /// <summary>
+    /// 回溯最终布局行
+    /// </summary>
+    /// <param name="lineLayoutArgument"></param>
+    /// <exception cref="NotSupportedException"></exception>
     private static void FinalParagraphLineLayout(in FinalParagraphLineLayoutArgument lineLayoutArgument)
     {
         FinalParagraphLayoutArgument paragraphLayoutArgument = lineLayoutArgument.FinalParagraphLayoutArgument;
-        UpdateLayoutContext updateLayoutContext = paragraphLayoutArgument.UpdateLayoutContext;
-        int paragraphIndex = paragraphLayoutArgument.ParagraphIndex.Index;
         ParagraphProperty paragraphProperty = paragraphLayoutArgument.Paragraph.ParagraphProperty;
         double documentWidth = paragraphLayoutArgument.DocumentWidth;
-
-        int lineIndex = lineLayoutArgument.LineIndex;
-
-        updateLayoutContext.RecordDebugLayoutInfo($"开始回溯第 {paragraphIndex} 段的第 {lineIndex} 行");
 
         var isFirstLine = lineLayoutArgument.IsFirstLine;
         // 是否最后一行
@@ -839,6 +857,34 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         // 可用的空白宽度。即空白宽度减去左缩进和右缩进
         double usableGapWidth = gapWidth - indentationThickness.Left - indentationThickness.Right;
 
+        TextThickness horizontalTextAlignmentGapThickness = GetHorizontalTextAlignmentGapThickness(horizontalTextAlignment, usableGapWidth);
+
+        lineLayoutData
+            .SetLineFinalLayoutInfo(indentationThickness, horizontalTextAlignmentGapThickness);
+
+        lineLayoutData.OutlineBounds = GetOutlineBounds();
+
+        TextRect GetOutlineBounds()
+        {
+            // 计算 Outline 的范围
+            var x = 0;
+            var y = lineLayoutData.CharStartPoint.Y;
+            var width = documentWidth;
+            var height = lineLayoutData.LineContentSize.Height;
+            return new TextRect(x, y, width, height);
+        }
+    }
+
+    /// <summary>
+    /// 获取水平文本对齐的空白
+    /// </summary>
+    /// <param name="horizontalTextAlignment"></param>
+    /// <param name="usableGapWidth">可用的空白</param>
+    /// <returns></returns>
+    /// <exception cref="NotSupportedException"></exception>
+    private static TextThickness GetHorizontalTextAlignmentGapThickness(HorizontalTextAlignment horizontalTextAlignment,
+        double usableGapWidth)
+    {
         TextThickness horizontalTextAlignmentGapThickness;
         if (horizontalTextAlignment == HorizontalTextAlignment.Left)
         {
@@ -859,20 +905,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             throw new NotSupportedException($"不支持 {horizontalTextAlignment} 对齐方式");
         }
 
-        lineLayoutData
-            .SetLineFinalLayoutInfo(indentationThickness, horizontalTextAlignmentGapThickness);
-
-        lineLayoutData.OutlineBounds = GetOutlineBounds();
-
-        TextRect GetOutlineBounds()
-        {
-            // 计算 Outline 的范围
-            var x = 0;
-            var y = lineLayoutData.CharStartPoint.Y;
-            var width = documentWidth;
-            var height = lineLayoutData.LineContentSize.Height;
-            return new TextRect(x, y, width, height);
-        }
+        return horizontalTextAlignmentGapThickness;
     }
 
     #endregion 03 回溯最终布局阶段
