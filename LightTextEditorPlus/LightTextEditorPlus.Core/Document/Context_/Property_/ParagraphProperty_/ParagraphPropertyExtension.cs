@@ -1,5 +1,7 @@
 ﻿using LightTextEditorPlus.Core.Primitive;
 
+using System;
+
 namespace LightTextEditorPlus.Core.Document;
 
 internal static class ParagraphPropertyExtension
@@ -35,5 +37,39 @@ internal static class ParagraphPropertyExtension
             _ => 0
         };
         return indent;
+    }
+
+    /// <summary>
+    /// 获取水平文本对齐的空白
+    /// </summary>
+    /// <param name="paragraphProperty"></param>
+    /// <param name="usableGapWidth">可用的空白</param>
+    /// <returns></returns>
+    /// <exception cref="NotSupportedException"></exception>
+    public static TextThickness GetHorizontalTextAlignmentGapThickness(this ParagraphProperty paragraphProperty,
+        double usableGapWidth)
+    {
+        HorizontalTextAlignment horizontalTextAlignment = paragraphProperty.HorizontalTextAlignment;
+        TextThickness horizontalTextAlignmentGapThickness;
+        if (horizontalTextAlignment == HorizontalTextAlignment.Left)
+        {
+            horizontalTextAlignmentGapThickness = new TextThickness(0, 0, usableGapWidth, 0);
+        }
+        else if (horizontalTextAlignment == HorizontalTextAlignment.Center)
+        {
+            horizontalTextAlignmentGapThickness =
+                new TextThickness(usableGapWidth / 2, 0, usableGapWidth / 2, 0);
+        }
+        else if (horizontalTextAlignment == HorizontalTextAlignment.Right)
+        {
+            horizontalTextAlignmentGapThickness = new TextThickness(usableGapWidth, 0, 0, 0);
+        }
+        else
+        {
+            // 两端对齐 还不知道如何实现
+            throw new NotSupportedException($"不支持 {horizontalTextAlignment} 对齐方式");
+        }
+
+        return horizontalTextAlignmentGapThickness;
     }
 }
