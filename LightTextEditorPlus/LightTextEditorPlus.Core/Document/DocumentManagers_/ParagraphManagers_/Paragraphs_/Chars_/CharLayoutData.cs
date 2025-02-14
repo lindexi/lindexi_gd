@@ -29,7 +29,7 @@ class CharLayoutData : IParagraphCache
     /// 字符在行内的起始点，坐标相对于行
     /// </summary>
     /// 可用来辅助布局上下标
-    public TextPoint CharLineStartPoint { set; get; }
+    public TextPointInLine CharLineStartPoint { set; get; }
 
     //public TextPoint BaselineStartPoint { set; get; }
 

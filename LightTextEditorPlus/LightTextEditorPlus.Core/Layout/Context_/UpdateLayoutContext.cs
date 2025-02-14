@@ -85,7 +85,7 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
     #region ICharDataLayoutInfoSetter
 
     /// <inheritdoc />
-    public void SetLayoutStartPoint(CharData charData, TextPoint point)
+    public void SetLayoutStartPoint(CharData charData, TextPointInLine point)
     {
         if (IsCurrentLayoutCompleted)
         {
@@ -191,7 +191,7 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
 public interface ICharDataLayoutInfoSetter
 {
     /// <inheritdoc cref="CharData.SetLayoutCharLineStartPoint"/>
-    void SetLayoutStartPoint(CharData charData, TextPoint point /*, TextPoint baselineStartPoint*/);
+    void SetLayoutStartPoint(CharData charData, TextPointInLine point /*, TextPoint baselineStartPoint*/);
 
     /// <inheritdoc cref="CharData.SetCharDataInfo"/>
     void SetCharDataInfo(CharData charData, TextSize textSize, double baseline);
