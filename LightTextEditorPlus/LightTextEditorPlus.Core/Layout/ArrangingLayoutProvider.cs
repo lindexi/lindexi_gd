@@ -172,7 +172,7 @@ abstract class ArrangingLayoutProvider
                 paragraphList, updateLayoutContext);
 
             ParagraphLayoutResult result = UpdateParagraphLayout(argument);
-            currentStartPoint = result.NextLineStartPoint;
+            currentStartPoint = result.NextParagraphStartPoint;
             updateLayoutContext.RecordDebugLayoutInfo($"完成布局第 {index} 段");
         }
 
