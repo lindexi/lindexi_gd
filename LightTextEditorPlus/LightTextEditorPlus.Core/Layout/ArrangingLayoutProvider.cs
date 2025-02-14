@@ -51,7 +51,8 @@ abstract class ArrangingLayoutProvider
         //     - 获取文档的布局尺寸
         //   - 段落回溯布局
         //     - 行回溯布局
-        //     - 右对齐、居中对齐等
+        //     - 水平对齐的右对齐、居中对齐等
+        //     - 垂直对齐的下对齐、居中对齐等
         var updateLayoutContext = new UpdateLayoutContext(this);
 
         updateLayoutContext.RecordDebugLayoutInfo($"开始布局");
@@ -63,18 +64,18 @@ abstract class ArrangingLayoutProvider
         FirstDirtyParagraphInfo firstDirtyParagraphInfo = GetFirstDirtyParagraph(paragraphList, updateLayoutContext);
 
         // 02 预布局阶段
-        PreLayoutDocumentResult preLayoutDocumentResult =
-            PreLayoutDocument(paragraphList, updateLayoutContext, firstDirtyParagraphInfo);
+        PreUpdateDocumentLayoutResult preUpdateDocumentLayoutResult =
+            PreUpdateDocumentLayout(paragraphList, updateLayoutContext, firstDirtyParagraphInfo);
 
         // 03 回溯最终布局阶段
-        FinalLayoutDocument(preLayoutDocumentResult, updateLayoutContext);
+        FinalUpdateDocumentLayout(preUpdateDocumentLayoutResult, updateLayoutContext);
 
         Debug.Assert(TextEditor.DocumentManager.ParagraphManager.GetParagraphList()
             .All(t => t.IsDirty() == false));
 
         updateLayoutContext.SetLayoutCompleted();
 
-        return new DocumentLayoutResult(preLayoutDocumentResult.DocumentBounds, updateLayoutContext);
+        return new DocumentLayoutResult(preUpdateDocumentLayoutResult.DocumentBounds, updateLayoutContext);
     }
 
     #region 01 获取需要更新布局段落的逻辑
@@ -153,7 +154,7 @@ abstract class ArrangingLayoutProvider
     /// <param name="firstDirtyParagraphInfo"></param>
     /// <returns></returns>
     /// 等价于 BuildRenderData 阶段。只是文本库将布局和渲染分开了，所以这里只是获取布局信息
-    private PreLayoutDocumentResult PreLayoutDocument(IReadOnlyList<ParagraphData> paragraphList,
+    private PreUpdateDocumentLayoutResult PreUpdateDocumentLayout(IReadOnlyList<ParagraphData> paragraphList,
         UpdateLayoutContext updateLayoutContext, in FirstDirtyParagraphInfo firstDirtyParagraphInfo)
     {
         // firstDirtyParagraphIndex - 首行出现变脏的序号
@@ -170,7 +171,7 @@ abstract class ArrangingLayoutProvider
             var argument = new ParagraphLayoutArgument(new ParagraphIndex(index), currentStartPoint, paragraphData,
                 paragraphList, updateLayoutContext);
 
-            ParagraphLayoutResult result = LayoutParagraph(argument);
+            ParagraphLayoutResult result = UpdateParagraphLayout(argument);
             currentStartPoint = result.NextLineStartPoint;
             updateLayoutContext.RecordDebugLayoutInfo($"完成布局第 {index} 段");
         }
@@ -182,19 +183,19 @@ abstract class ArrangingLayoutProvider
             documentBounds = documentBounds.Union(bounds);
         }
 
-        return new PreLayoutDocumentResult(documentBounds);
+        return new PreUpdateDocumentLayoutResult(documentBounds);
     }
 
     /// <summary>
     /// 预布局文档的结果
     /// </summary>
     /// <param name="DocumentBounds">文档的范围</param>
-    protected readonly record struct PreLayoutDocumentResult(TextRect DocumentBounds);
+    protected readonly record struct PreUpdateDocumentLayoutResult(TextRect DocumentBounds);
 
     /// <summary>
     /// 段落内布局
     /// </summary>
-    private ParagraphLayoutResult LayoutParagraph(in ParagraphLayoutArgument argument)
+    private ParagraphLayoutResult UpdateParagraphLayout(in ParagraphLayoutArgument argument)
     {
         // 如果段落本身是没有脏的，可能是当前段落的前面段落变更，导致需要更新段落的左上角坐标点而已
         // 这里执行快速的短路代码，提升性能
@@ -266,7 +267,7 @@ abstract class ArrangingLayoutProvider
 
         var startParagraphOffset = new ParagraphCharOffset(dirtyParagraphOffset);
 
-        var result = LayoutParagraphCore(argument, startParagraphOffset);
+        var result = UpdateParagraphLayoutCore(argument, startParagraphOffset);
 
 #if DEBUG
         // 排版的结果如何？通过段落里面的每一行的信息，可以了解
@@ -294,7 +295,7 @@ abstract class ArrangingLayoutProvider
     /// <param name="paragraph"></param>
     /// <param name="startParagraphOffset"></param>
     /// <returns></returns>
-    protected abstract ParagraphLayoutResult LayoutParagraphCore(in ParagraphLayoutArgument paragraph,
+    protected abstract ParagraphLayoutResult UpdateParagraphLayoutCore(in ParagraphLayoutArgument paragraph,
         in ParagraphCharOffset startParagraphOffset);
 
     /// <summary>
@@ -445,7 +446,7 @@ abstract class ArrangingLayoutProvider
     /// 回溯文档布局排版。例如右对齐、居中对齐等
     /// </summary>
     /// Rewind Polished Document Layout 回溯也是抛光的过程，抛光是指对文档的最后一次布局调整
-    protected abstract void FinalLayoutDocument(PreLayoutDocumentResult preLayoutDocumentResult,
+    protected abstract void FinalUpdateDocumentLayout(PreUpdateDocumentLayoutResult preUpdateDocumentLayoutResult,
         UpdateLayoutContext updateLayoutContext);
 
     #endregion 03 回溯最终布局阶段
