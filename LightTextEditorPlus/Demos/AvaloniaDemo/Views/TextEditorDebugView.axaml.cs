@@ -12,7 +12,7 @@ using Avalonia.Media.Imaging;
 using LightTextEditorPlus.AvaloniaDemo.Business;
 using LightTextEditorPlus.AvaloniaDemo.Business.RichTextCases;
 using LightTextEditorPlus.Core.Utils;
-using LightTextEditorPlus.FontManagers;
+using LightTextEditorPlus.FontManagers; 
 
 using SkiaSharp;
 

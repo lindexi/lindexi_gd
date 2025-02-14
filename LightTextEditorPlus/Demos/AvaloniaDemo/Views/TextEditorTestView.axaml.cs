@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
@@ -68,7 +68,7 @@ public partial class TextEditorTestView : UserControl
         _richTextCaseProvider.Debug();
     }
 
-    private void UpdateOriginImage()
+    private async void UpdateOriginImage()
     {
         if (_richTextCaseProvider.CurrentRichTextCase is { } richTextCase)
         {
@@ -78,6 +78,11 @@ public partial class TextEditorTestView : UserControl
             if (File.Exists(imageFile))
             {
                 OriginImage.Source = new Bitmap(imageFile);
+
+                while (TextEditor.IsDirty)
+                {
+                    await Task.Delay(100);
+                }
 
                 TextRect documentLayoutBounds = TextEditor.TextEditorCore.GetDocumentLayoutBounds();
                 using RenderTargetBitmap renderTargetBitmap = new RenderTargetBitmap(new PixelSize((int) documentLayoutBounds.Width, (int) documentLayoutBounds.Height));
