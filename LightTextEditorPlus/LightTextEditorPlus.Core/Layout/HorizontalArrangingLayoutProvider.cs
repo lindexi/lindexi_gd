@@ -64,6 +64,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
+    /// todo 这个方法需要改名，现在是只获取段落的下一段应该的坐标点而已
     private TextPoint UpdateParagraphLineLayoutDataStartPoint(in ParagraphLayoutArgument argument)
     {
         var currentStartPoint = argument.CurrentStartPoint;
@@ -71,7 +72,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
         foreach (LineLayoutData lineVisualData in paragraph.LineLayoutDataList)
         {
-            UpdateLineLayoutDataStartPoint(lineVisualData, currentStartPoint);
+            //UpdateLineLayoutDataStartPoint(lineVisualData, currentStartPoint);
 
             currentStartPoint = GetNextLineStartPoint(currentStartPoint, lineVisualData);
         }
@@ -79,37 +80,37 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         return currentStartPoint;
     }
 
-    /// <summary>
-    /// 重新更新每一行的起始点。例如现在第一段的文本加了一行，那第二段的所有文本都需要更新每一行的起始点，而不需要重新布局第二段
-    /// </summary>
-    /// <param name="lineLayoutData"></param>
-    /// <param name="startPoint"></param>
-    private void UpdateLineLayoutDataStartPoint(LineLayoutData lineLayoutData, TextPoint startPoint)
-    {
-        // 更新包括两个方面：
-        // 1. 此行的起点
-        // 2. 更新行内的所有字符的版本
-        //// 2. 此行内的所有字符的起点坐标
-        lineLayoutData.CharStartPoint = startPoint;
+    ///// <summary>
+    ///// 重新更新每一行的起始点。例如现在第一段的文本加了一行，那第二段的所有文本都需要更新每一行的起始点，而不需要重新布局第二段
+    ///// </summary>
+    ///// <param name="lineLayoutData"></param>
+    ///// <param name="startPoint"></param>
+    //private void UpdateLineLayoutDataStartPoint(LineLayoutData lineLayoutData, TextPoint startPoint)
+    //{
+    //    // 更新包括两个方面：
+    //    // 1. 此行的起点
+    //    // 2. 更新行内的所有字符的版本
+    //    //// 2. 此行内的所有字符的起点坐标
+    //    lineLayoutData.CharStartPoint = startPoint;
 
-        // 行内字符相对于行的坐标，只需更新行的起始点即可
-        //// 更新行内所有字符的坐标
-        //TextReadOnlyListSpan<CharData> list = lineLayoutData.GetCharList();
-        //var lineHeight = lineLayoutData.LineContentSize.Height;
-        //UpdateTextLineStartPoint(list, startPoint, lineHeight,
-        //    // 这里只是更新行的起始点，行内的字符坐标不需要变更，因此不需要重新排列 X 坐标
-        //    reArrangeXPosition: false,
-        //    needUpdateCharLayoutDataVersion: true);
+    //    // 行内字符相对于行的坐标，只需更新行的起始点即可
+    //    //// 更新行内所有字符的坐标
+    //    //TextReadOnlyListSpan<CharData> list = lineLayoutData.GetCharList();
+    //    //var lineHeight = lineLayoutData.LineContentSize.Height;
+    //    //UpdateTextLineStartPoint(list, startPoint, lineHeight,
+    //    //    // 这里只是更新行的起始点，行内的字符坐标不需要变更，因此不需要重新排列 X 坐标
+    //    //    reArrangeXPosition: false,
+    //    //    needUpdateCharLayoutDataVersion: true);
 
-        // 更新行内的所有字符的版本
-        TextReadOnlyListSpan<CharData> list = lineLayoutData.GetCharList();
-        foreach (CharData charData in list)
-        {
-            charData.CharLayoutData!.UpdateVersion();
-        }
+    //    // 更新行内的所有字符的版本
+    //    TextReadOnlyListSpan<CharData> list = lineLayoutData.GetCharList();
+    //    foreach (CharData charData in list)
+    //    {
+    //        charData.CharLayoutData!.UpdateVersion();
+    //    }
 
-        lineLayoutData.UpdateVersion();
-    }
+    //    lineLayoutData.UpdateVersion();
+    //}
 
     #endregion
 
@@ -125,12 +126,12 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// 逻辑上是：
     /// 布局按照： 文本-段落-行-Run-字符
     /// 布局整个文本
-    /// 布局文本的每个段落 <see cref="LayoutParagraphCore"/>
-    /// 段落里面，需要对每一行进行布局 <see cref="LayoutWholeLine"/>
-    /// 每一行里面，需要对每个 Char 字符进行布局 <see cref="LayoutSingleCharInLine"/>
+    /// 布局文本的每个段落 <see cref="UpdateParagraphLayoutCore"/>
+    /// 段落里面，需要对每一行进行布局 <see cref="UpdateWholeLineLayout"/>
+    /// 每一行里面，需要对每个 Char 字符进行布局 <see cref="UpdateSingleCharInLineLayout"/>
     /// 每个字符需要调用平台的测量 <see cref="ArrangingLayoutProvider.MeasureCharInfo"/>
     /// </remarks>
-    protected override ParagraphLayoutResult LayoutParagraphCore(in ParagraphLayoutArgument argument,
+    protected override ParagraphLayoutResult UpdateParagraphLayoutCore(in ParagraphLayoutArgument argument,
         in ParagraphCharOffset startParagraphOffset)
     {
         var paragraph = argument.ParagraphData;
@@ -167,12 +168,12 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         if (paragraph.IsEmptyParagraph)
         {
             // 空段布局
-            currentStartPoint = LayoutEmptyParagraph(argument, currentStartPoint);
+            currentStartPoint = UpdateEmptyParagraphLayout(argument, currentStartPoint);
         }
         else
         {
             // 布局段落里面每一行
-            currentStartPoint = LayoutParagraphLines(argument, startParagraphOffset, currentStartPoint);
+            currentStartPoint = UpdateParagraphLinesLayout(argument, startParagraphOffset, currentStartPoint);
         }
 
         //// 考虑行复用，例如刚好添加的内容是一行。或者在一行内做文本替换等
@@ -201,7 +202,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// <param name="argument"></param>
     /// <param name="currentStartPoint"></param>
     /// <returns></returns>
-    private TextPoint LayoutEmptyParagraph(in ParagraphLayoutArgument argument, TextPoint currentStartPoint)
+    private TextPoint UpdateEmptyParagraphLayout(in ParagraphLayoutArgument argument, TextPoint currentStartPoint)
     {
         var paragraph = argument.ParagraphData;
         // 如果是空段的话，如一段只是一个 \n 而已，那就需要执行空段布局逻辑
@@ -215,7 +216,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         {
             CharStartParagraphIndex = 0,
             CharEndParagraphIndex = 0,
-            CharStartPoint = currentStartPoint,
+            // todo 空段这里的相对应该是加上段前距离才对
+            CharStartPointInParagraph = new TextPointInParagraph(default, paragraph),
             LineContentSize = new TextSize(0, lineHeight)
         };
         paragraph.LineLayoutDataList.Add(lineLayoutData);
@@ -237,9 +239,12 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     /// <exception cref="TextEditorDebugException"></exception>
     /// <exception cref="TextEditorInnerException"></exception>
-    private TextPoint LayoutParagraphLines(in ParagraphLayoutArgument argument, in ParagraphCharOffset startParagraphOffset,
+    private TextPoint UpdateParagraphLinesLayout(in ParagraphLayoutArgument argument, in ParagraphCharOffset startParagraphOffset,
         TextPoint currentStartPoint)
     {
+        // 当前的坐标点，这是相对于段落的坐标点
+        _ = currentStartPoint;
+
         ParagraphData paragraph = argument.ParagraphData;
         // 获取最大宽度信息
         double lineMaxWidth = GetLineMaxWidth();
@@ -278,7 +283,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             {
                 // 继续往下执行，如果没有注入自定义的行布局层的话，则使用默认的行布局器
                 // 为什么不做默认实现？因为默认实现会导致默认逻辑写在外面，而不是相同一个文件里面，没有内聚性，对于文本排版布局内部重调试的情况下，不友好。即，尽管代码结构是清晰了，但实际调试体验却下降了，一个调试或阅读代码需要跳转多个文件，复杂度提升
-                result = LayoutWholeLine(wholeRunLineLayoutArgument);
+                result = UpdateWholeLineLayout(wholeRunLineLayoutArgument);
             }
 
             // 当前的行布局信息
@@ -288,7 +293,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
                 CharEndParagraphIndex = i + result.CharCount,
                 LineContentSize = result.LineSize,
                 LineCharTextSize = result.TextSize,
-                CharStartPoint = currentStartPoint,
+                CharStartPointInParagraph = new TextPointInParagraph(currentStartPoint, paragraph),
                 LineSpacingThickness = result.LineSpacingThickness,
             };
             // 更新字符信息
@@ -341,7 +346,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// <exception cref="NotSupportedException"></exception>
     /// 1. 布局一行的字符，分行算法
     /// 2. 处理行高，行距算法
-    private WholeLineLayoutResult LayoutWholeLine(in WholeLineLayoutArgument argument)
+    private WholeLineLayoutResult UpdateWholeLineLayout(in WholeLineLayoutArgument argument)
     {
         var charDataList = argument.CharDataList;
         var currentStartPoint = argument.CurrentStartPoint;
@@ -352,7 +357,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             return new WholeLineLayoutResult(TextSize.Zero, TextSize.Zero, 0, default);
         }
 
-        var layoutResult = LayoutWholeLineChars(argument);
+        var layoutResult = UpdateWholeLineCharsLayout(argument);
 #if DEBUG
         if (layoutResult.CurrentLineCharTextSize.Width > 0 && layoutResult.CurrentLineCharTextSize.Height == 0)
         {
@@ -431,7 +436,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
-    private WholeLineCharsLayoutResult LayoutWholeLineChars(in WholeLineLayoutArgument argument)
+    private WholeLineCharsLayoutResult UpdateWholeLineCharsLayout(in WholeLineLayoutArgument argument)
     {
         ParagraphProperty paragraphProperty = argument.ParagraphProperty;
         TextReadOnlyListSpan<CharData> charDataList = argument.CharDataList;
@@ -477,7 +482,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             }
             else
             {
-                result = LayoutSingleCharInLine(arguments);
+                result = UpdateSingleCharInLineLayout(arguments);
             }
 
             if (result.CanTake)
@@ -562,14 +567,14 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             else
             {
                 // 保持 X 不变
-                xOffset = charData.CharLayoutData!.CharLineStartPoint.X;
+                //xOffset = charData.CharLayoutData!.CharLineStartPoint.X;
             }
 
             // 通过将最大字符的基线和当前字符的基线的差，来计算出当前字符的偏移量
             // 如此可以实现字体的基线对齐
             double yOffset = maxFontYOffset - charData.Baseline;
 
-            charData.SetLayoutCharLineStartPoint(new TextPoint(xOffset, yOffset)/*, new TextPoint(xOffset, yOffset)*/);
+            charData.SetLayoutCharLineStartPoint(new TextPointInLine(xOffset, yOffset)/*, new TextPoint(xOffset, yOffset)*/);
 
             if (needUpdateCharLayoutDataVersion)
             {
@@ -587,8 +592,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
-    /// Layout 是名词哦，不应该说 Layout Xxx 的
-    private SingleCharInLineLayoutResult LayoutSingleCharInLine(in SingleCharInLineLayoutArgument argument)
+    private SingleCharInLineLayoutResult UpdateSingleCharInLineLayout(in SingleCharInLineLayoutArgument argument)
     {
         // LayoutRule 布局规则
         // 可选无规则-直接字符布局，预计没有人使用
@@ -754,13 +758,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// 回溯最终布局文档
     /// </summary>
     /// 布局过程是： 文档-段落-行
-    /// <param name="preLayoutDocumentResult"></param>
+    /// <param name="preUpdateDocumentLayoutResult"></param>
     /// <param name="updateLayoutContext"></param>
-    protected override void FinalLayoutDocument(PreLayoutDocumentResult preLayoutDocumentResult, UpdateLayoutContext updateLayoutContext)
+    protected override void FinalUpdateDocumentLayout(PreUpdateDocumentLayoutResult preUpdateDocumentLayoutResult, UpdateLayoutContext updateLayoutContext)
     {
         updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 进入最终布局阶段");
 
-        TextRect documentBounds = preLayoutDocumentResult.DocumentBounds;
+        TextRect documentBounds = preUpdateDocumentLayoutResult.DocumentBounds;
         var documentWidth = CalculateHitBounds(documentBounds).Width;
         IReadOnlyList<ParagraphData> paragraphList = updateLayoutContext.ParagraphList;
 
@@ -770,7 +774,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
             var paragraphLayoutArgument = new FinalParagraphLayoutArgument(paragraphData,
                 new ParagraphIndex(paragraphIndex), documentWidth, updateLayoutContext);
-            FinalParagraphLayout(in paragraphLayoutArgument);
+            FinalUpdateParagraphLayout(in paragraphLayoutArgument);
         }
 
         updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 完成最终布局阶段");
@@ -782,7 +786,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// 回溯最终布局段落
     /// </summary>
     /// <param name="argument"></param>
-    private static void FinalParagraphLayout(in FinalParagraphLayoutArgument argument)
+    private static void FinalUpdateParagraphLayout(in FinalParagraphLayoutArgument argument)
     {
         UpdateLayoutContext updateLayoutContext = argument.UpdateLayoutContext;
         int paragraphIndex = argument.ParagraphIndex.Index;
@@ -801,7 +805,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             LineLayoutData lineLayoutData = paragraph.LineLayoutDataList[lineIndex];
             var lineLayoutArgument = new FinalParagraphLineLayoutArgument(lineIndex, lineLayoutData, argument);
 
-            FinalParagraphLineLayout(in lineLayoutArgument);
+            FinalUpdateParagraphLineLayout(in lineLayoutArgument);
         }
 
         // 给定段落的范围
@@ -833,7 +837,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// </summary>
     /// <param name="lineLayoutArgument"></param>
     /// <exception cref="NotSupportedException"></exception>
-    private static void FinalParagraphLineLayout(in FinalParagraphLineLayoutArgument lineLayoutArgument)
+    private static void FinalUpdateParagraphLineLayout(in FinalParagraphLineLayoutArgument lineLayoutArgument)
     {
         FinalParagraphLayoutArgument paragraphLayoutArgument = lineLayoutArgument.FinalParagraphLayoutArgument;
         ParagraphProperty paragraphProperty = paragraphLayoutArgument.Paragraph.ParagraphProperty;

@@ -4,6 +4,9 @@ using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Layout.LayoutUtils;
 
+/// <summary>
+/// 段落属性在布局过程的工具扩展
+/// </summary>
 internal static class ParagraphPropertyLayoutUtilsExtension
 {
     /// <summary>

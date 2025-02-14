@@ -50,13 +50,20 @@ class LineLayoutData : IParagraphCache, IDisposable
     /// </summary>
     public int CharCount => CharEndParagraphIndex - CharStartParagraphIndex;
 
-    // todo 修改行为相对段落的坐标。然后才能更好的支持垂直对齐。否则垂直对齐变更，将会由于不知道行相对段落的距离，在下次更新时，缺少参数用来修改
     /// <summary>
     /// 这一行的起始的点，相对于文本框
     /// </summary>
     /// 左侧贴边，上侧为文档坐标。依靠各个 Thickness 属性来计算具体的位置
     /// 即表示整个行的起始点。而具体的字符渲染的起始点，需要加上 <see cref="IndentationThickness"/> 和 <see cref="HorizontalTextAlignmentGapThickness"/> 的值
     public TextPoint CharStartPoint
+    {
+        get => CharStartPointInParagraph.ToDocumentPoint(CurrentParagraph);
+    }
+
+    /// <summary>
+    /// 相对于段落的起始点
+    /// </summary>
+    internal TextPointInParagraph CharStartPointInParagraph
     {
         set
         {
@@ -71,7 +78,7 @@ class LineLayoutData : IParagraphCache, IDisposable
         get => _charStartPoint;
     }
 
-    private TextPoint _charStartPoint;
+    private TextPointInParagraph _charStartPoint;
 
     /// <summary>
     /// 这一行的尺寸。这是在 <see cref="LineCharTextSize"/> 基础上叠加行距尺寸信息
@@ -94,8 +101,10 @@ class LineLayoutData : IParagraphCache, IDisposable
     {
         get
         {
-            var x = _charStartPoint.X + IndentationThickness.Left + HorizontalTextAlignmentGapThickness.Left;
-            var y = _charStartPoint.Y + IndentationThickness.Top + HorizontalTextAlignmentGapThickness.Top;
+            TextPoint charStartPoint = CharStartPoint;
+
+            var x = charStartPoint.X + IndentationThickness.Left + HorizontalTextAlignmentGapThickness.Left;
+            var y = charStartPoint.Y + IndentationThickness.Top + HorizontalTextAlignmentGapThickness.Top;
             var startPoint = new TextPoint(x, y);
             return startPoint;
         }

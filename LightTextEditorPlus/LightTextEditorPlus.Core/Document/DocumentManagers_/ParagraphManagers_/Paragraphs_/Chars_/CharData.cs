@@ -51,10 +51,7 @@ public class CharData
             throw new InvalidOperationException($"禁止在开始布局之前获取");
         }
 
-        var x = CharLayoutData.CharLineStartPoint.X + CharLayoutData.CurrentLine.LineContentStartPoint.X;
-        var y = CharLayoutData.CharLineStartPoint.Y + CharLayoutData.CurrentLine.LineContentStartPoint.Y;
-
-        return new TextPoint(x, y);
+        return CharLayoutData.CharLineStartPoint.ToDocumentPoint(CharLayoutData.CurrentLine);
     }
 
     /// <summary>
@@ -64,7 +61,7 @@ public class CharData
     /// <exception cref="InvalidOperationException"></exception>
     /// 这是文本排版布局的核心方法，通过此方法即可设置每个字符的位置
     [MemberNotNull(nameof(CharLayoutData))]
-    internal void SetLayoutCharLineStartPoint(TextPoint point/*, TextPoint baselineStartPoint*/)
+    internal void SetLayoutCharLineStartPoint(TextPointInLine point/*, TextPoint baselineStartPoint*/)
     {
         if (CharLayoutData is null)
         {
@@ -152,6 +149,6 @@ public class CharData
 
         if (IsLineBreakCharData) return "\\r\\n";
 
-        return $"'{CharObject}' {(CharLayoutData != null?$"X:{CharLayoutData.CharLineStartPoint.X:0.00} Y:{CharLayoutData.CharLineStartPoint.Y:0.00}":"")} {(Size!=null?$"W:{Size.Value.Width:0.00} H:{Size.Value.Height:0.00}":"")}";
+        return $"'{CharObject}' {CharLayoutData?.CharLineStartPoint} {(Size!=null?$"W:{Size.Value.Width:0.00} H:{Size.Value.Height:0.00}":"")}";
     }
 }
