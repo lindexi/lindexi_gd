@@ -6,6 +6,46 @@
 
     <Application.Styles>
         <FluentTheme />
+
+      <Style Selector="Button">
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="CornerRadius" Value="0"/>
+        <Setter Property="BorderThickness" Value="1"></Setter>
+        <Setter Property="BorderBrush" Value="Black"></Setter>
+        <Setter Property="Background" Value="#DDDDDD"></Setter>
+        <Setter Property="Template">
+          <Setter.Value>
+            <ControlTemplate>
+              <Border x:Name="PART_TemplateRoot"
+                      Background="{TemplateBinding Background}"
+                      BorderBrush="{TemplateBinding BorderBrush}"
+                      CornerRadius="{TemplateBinding CornerRadius}"
+                      BorderThickness="{TemplateBinding BorderThickness}"
+                      UseLayoutRounding="{TemplateBinding UseLayoutRounding}">
+                <ContentPresenter x:Name="PART_Content"
+                                  Content="{TemplateBinding Content}"
+                                  Margin="{TemplateBinding Padding}"
+                                  FontSize="{TemplateBinding FontSize}"
+                                  FontStyle="{TemplateBinding FontStyle}"
+                                  FontFamily="{TemplateBinding FontFamily}"
+                                  FontWeight="{TemplateBinding FontWeight}"
+                                  FontStretch="{TemplateBinding FontStretch}"
+                                  Foreground="{TemplateBinding Foreground}"
+                                  ContentTemplate="{TemplateBinding ContentTemplate}"
+                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+              </Border>
+            </ControlTemplate>
+          </Setter.Value>
+        </Setter>
+      </Style>
+      <Style Selector="RepeatButton">
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="CornerRadius" Value="0"/>
+        <Setter Property="BorderThickness" Value="1"></Setter>
+        <Setter Property="BorderBrush" Value="Black"></Setter>
+        <Setter Property="Background" Value="#DDDDDD"></Setter>
+      </Style>
     </Application.Styles>
 
     <Application.Resources>
