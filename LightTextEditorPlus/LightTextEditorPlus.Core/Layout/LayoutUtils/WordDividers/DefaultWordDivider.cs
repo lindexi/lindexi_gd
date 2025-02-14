@@ -4,7 +4,7 @@ using System.Globalization;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 
-namespace LightTextEditorPlus.Core.Layout.WordDividers;
+namespace LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
 
 /// <summary>
 /// 默认的分词器
