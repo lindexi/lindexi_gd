@@ -7,7 +7,12 @@ using System.IO.Pipes;
 var uri = new Uri(@"file:///./pipe/");
 Console.WriteLine("Hello, World!");
 
-var namedPipeClientStream = new NamedPipeClientStream(@"\\.\pipe\xx");
+var namedPipeClientStream = new NamedPipeClientStream(@"\\.\pipe\eventlog");
+
+if (File.Exists(@"\\.\pipe\eventlog"))
+{
+
+}
 
 class Foo : UriParser
 {
