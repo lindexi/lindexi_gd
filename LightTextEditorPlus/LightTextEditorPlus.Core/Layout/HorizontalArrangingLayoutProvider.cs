@@ -754,85 +754,127 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
         for (var paragraphIndex = 0/*为什么从首段开始？如右对齐情况下，被撑大文档范围，则即使没有变脏也需要更新坐标*/; paragraphIndex < paragraphList.Count; paragraphIndex++)
         {
-            updateLayoutContext.RecordDebugLayoutInfo($"开始回溯第 {paragraphIndex} 段");
+            ParagraphData paragraphData = paragraphList[paragraphIndex];
 
-            ParagraphData paragraph = paragraphList[paragraphIndex];
-            ParagraphProperty paragraphProperty = paragraph.ParagraphProperty;
-
-            IParagraphLayoutData layoutData = paragraph.ParagraphLayoutData;
-
-            for (int lineIndex = 0; lineIndex < paragraph.LineLayoutDataList.Count; lineIndex++)
-            {
-                updateLayoutContext.RecordDebugLayoutInfo($"开始回溯第 {paragraphIndex} 段的第 {lineIndex} 行");
-
-                var isFirstLine = lineIndex == 0;
-                // 是否最后一行
-                var isLastLine = lineIndex == paragraph.LineLayoutDataList.Count - 1;
-                _ = isLastLine;
-
-                LineLayoutData lineLayoutData = paragraph.LineLayoutDataList[lineIndex];
-                HorizontalTextAlignment horizontalTextAlignment = paragraphProperty.HorizontalTextAlignment;
-
-                // 空白的宽度
-                var gapWidth = documentWidth - lineLayoutData.LineContentSize.Width;
-                double leftIndentation = paragraphProperty.LeftIndentation;
-                double indent = paragraphProperty.GetIndent(isFirstLine);
-
-                var indentationThickness =
-                    new TextThickness(leftIndentation + indent, 0, paragraphProperty.RightIndentation, 0);
-
-                // 可用的空白宽度。即空白宽度减去左缩进和右缩进
-                double usableGapWidth = gapWidth - indentationThickness.Left - indentationThickness.Right;
-
-                TextThickness horizontalTextAlignmentGapThickness;
-                if (horizontalTextAlignment == HorizontalTextAlignment.Left)
-                {
-                    horizontalTextAlignmentGapThickness = new TextThickness(0, 0, usableGapWidth, 0);
-                }
-                else if (horizontalTextAlignment == HorizontalTextAlignment.Center)
-                {
-                    horizontalTextAlignmentGapThickness =
-                        new TextThickness(usableGapWidth / 2, 0, usableGapWidth / 2, 0);
-                }
-                else if (horizontalTextAlignment == HorizontalTextAlignment.Right)
-                {
-                    horizontalTextAlignmentGapThickness = new TextThickness(usableGapWidth, 0, 0, 0);
-                }
-                else
-                {
-                    // 两端对齐 还不知道如何实现
-                    throw new NotSupportedException($"不支持 {horizontalTextAlignment} 对齐方式");
-                }
-
-                lineLayoutData
-                    .SetLineFinalLayoutInfo(indentationThickness, horizontalTextAlignmentGapThickness);
-
-                {
-                    // 计算 Outline 的范围
-                    var x = 0;
-                    var y = lineLayoutData.CharStartPoint.Y;
-                    var width = documentWidth;
-                    var height = lineLayoutData.LineContentSize.Height;
-
-                    lineLayoutData.OutlineBounds = new TextRect(x, y, width, height);
-                }
-            }
-
-            // 给定段落的范围
-            paragraph.SetParagraphLayoutOutlineBounds(layoutData.TextBounds with
-            {
-                X = 0,
-                Width = documentWidth
-            });
-
-            updateLayoutContext.RecordDebugLayoutInfo($"完成回溯第 {paragraphIndex} 段");
-
-            // 设置当前段落已经布局完成
-            paragraph.SetFinishLayout();
+            var paragraphLayoutArgument = new FinalParagraphLayoutArgument(paragraphData,
+                new ParagraphIndex(paragraphIndex), documentWidth, updateLayoutContext);
+            FinalParagraphLayout(in paragraphLayoutArgument);
         }
 
         updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 完成最终布局阶段");
     }
+
+    readonly record struct FinalParagraphLayoutArgument(ParagraphData Paragraph, ParagraphIndex ParagraphIndex, double DocumentWidth, UpdateLayoutContext UpdateLayoutContext);
+
+    private static void FinalParagraphLayout(in FinalParagraphLayoutArgument argument)
+    {
+        UpdateLayoutContext updateLayoutContext = argument.UpdateLayoutContext;
+        int paragraphIndex = argument.ParagraphIndex.Index;
+        double documentWidth = argument.DocumentWidth;
+
+        updateLayoutContext.RecordDebugLayoutInfo($"开始回溯第 {paragraphIndex} 段");
+
+        ParagraphData paragraph = argument.Paragraph;
+
+        IParagraphLayoutData layoutData = paragraph.ParagraphLayoutData;
+
+        for (int lineIndex = 0; lineIndex < paragraph.LineLayoutDataList.Count; lineIndex++)
+        {
+            LineLayoutData lineLayoutData = paragraph.LineLayoutDataList[lineIndex];
+            var lineLayoutArgument = new FinalParagraphLineLayoutArgument(lineIndex, lineLayoutData,argument);
+
+            FinalParagraphLineLayout(in lineLayoutArgument);
+        }
+
+        // 给定段落的范围
+        paragraph.SetParagraphLayoutOutlineBounds(layoutData.TextBounds with
+        {
+            X = 0,
+            Width = documentWidth
+        });
+
+        updateLayoutContext.RecordDebugLayoutInfo($"完成回溯第 {paragraphIndex} 段");
+
+        // 设置当前段落已经布局完成
+        paragraph.SetFinishLayout();
+    }
+
+    readonly record struct FinalParagraphLineLayoutArgument(
+        int LineIndex,
+        LineLayoutData LineLayoutData,
+        FinalParagraphLayoutArgument FinalParagraphLayoutArgument)
+    {
+        public bool IsFirstLine => LineIndex == 0;
+        public bool IsLastLine => LineIndex == FinalParagraphLayoutArgument.Paragraph.LineLayoutDataList.Count - 1;
+    }
+
+    private static void FinalParagraphLineLayout(in FinalParagraphLineLayoutArgument lineLayoutArgument)
+    {
+        FinalParagraphLayoutArgument paragraphLayoutArgument = lineLayoutArgument.FinalParagraphLayoutArgument;
+        UpdateLayoutContext updateLayoutContext = paragraphLayoutArgument.UpdateLayoutContext;
+        int paragraphIndex = paragraphLayoutArgument.ParagraphIndex.Index;
+        ParagraphProperty paragraphProperty = paragraphLayoutArgument.Paragraph.ParagraphProperty;
+        double documentWidth = paragraphLayoutArgument.DocumentWidth;
+
+        int lineIndex = lineLayoutArgument.LineIndex;
+
+        updateLayoutContext.RecordDebugLayoutInfo($"开始回溯第 {paragraphIndex} 段的第 {lineIndex} 行");
+
+        var isFirstLine = lineLayoutArgument.IsFirstLine;
+        // 是否最后一行
+        var isLastLine = lineLayoutArgument.IsLastLine;
+        _ = isLastLine;
+
+        LineLayoutData lineLayoutData = lineLayoutArgument.LineLayoutData;
+        HorizontalTextAlignment horizontalTextAlignment = paragraphProperty.HorizontalTextAlignment;
+
+        // 空白的宽度
+        var gapWidth = documentWidth - lineLayoutData.LineContentSize.Width;
+        double leftIndentation = paragraphProperty.LeftIndentation;
+        double indent = paragraphProperty.GetIndent(isFirstLine);
+
+        var indentationThickness =
+            new TextThickness(leftIndentation + indent, 0, paragraphProperty.RightIndentation, 0);
+
+        // 可用的空白宽度。即空白宽度减去左缩进和右缩进
+        double usableGapWidth = gapWidth - indentationThickness.Left - indentationThickness.Right;
+
+        TextThickness horizontalTextAlignmentGapThickness;
+        if (horizontalTextAlignment == HorizontalTextAlignment.Left)
+        {
+            horizontalTextAlignmentGapThickness = new TextThickness(0, 0, usableGapWidth, 0);
+        }
+        else if (horizontalTextAlignment == HorizontalTextAlignment.Center)
+        {
+            horizontalTextAlignmentGapThickness =
+                new TextThickness(usableGapWidth / 2, 0, usableGapWidth / 2, 0);
+        }
+        else if (horizontalTextAlignment == HorizontalTextAlignment.Right)
+        {
+            horizontalTextAlignmentGapThickness = new TextThickness(usableGapWidth, 0, 0, 0);
+        }
+        else
+        {
+            // 两端对齐 还不知道如何实现
+            throw new NotSupportedException($"不支持 {horizontalTextAlignment} 对齐方式");
+        }
+
+        lineLayoutData
+            .SetLineFinalLayoutInfo(indentationThickness, horizontalTextAlignmentGapThickness);
+
+        lineLayoutData.OutlineBounds = GetOutlineBounds();
+
+        TextRect GetOutlineBounds()
+        {
+            // 计算 Outline 的范围
+            var x = 0;
+            var y = lineLayoutData.CharStartPoint.Y;
+            var width = documentWidth;
+            var height = lineLayoutData.LineContentSize.Height;
+            return new TextRect(x, y, width, height);
+        }
+    }
+
     #endregion 03 回溯最终布局阶段
 
     #region 通用辅助方法
