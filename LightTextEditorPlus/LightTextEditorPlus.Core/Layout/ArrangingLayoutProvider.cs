@@ -35,6 +35,11 @@ abstract class ArrangingLayoutProvider
     public TextEditorCore TextEditor => LayoutManager.TextEditor;
 
     /// <summary>
+    /// 是否进入调试模式
+    /// </summary>
+    protected bool IsInDebugMode => TextEditor.IsInDebugMode;
+
+    /// <summary>
     /// 更新布局
     /// </summary>
     /// <returns></returns>

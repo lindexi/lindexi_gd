@@ -58,6 +58,7 @@ public readonly record struct TextPointInParagraph
     /// <param name="x"></param>
     /// <param name="y"></param>
     /// <returns></returns>
+    /// todo 改名为 Offset
     public TextPointInParagraph Add(double x, double y)
     {
         return new TextPointInParagraph(x + _paragraphPoint.X, y + _paragraphPoint.Y, _paragraphData);

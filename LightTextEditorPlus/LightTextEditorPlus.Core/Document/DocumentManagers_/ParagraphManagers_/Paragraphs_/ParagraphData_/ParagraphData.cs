@@ -30,29 +30,33 @@ class ParagraphData
     public IParagraphLayoutData ParagraphLayoutData => _paragraphLayoutData;
     private readonly ParagraphLayoutData _paragraphLayoutData = new ParagraphLayoutData();
 
-    public void SetParagraphLayoutTextBounds(TextRect textBounds)
-        => _paragraphLayoutData.TextBounds = textBounds;
+    public void SetParagraphLayoutTextSize(TextSize textSize)
+        => _paragraphLayoutData.TextSize = textSize;
 
-    public void SetParagraphLayoutOutlineBounds(TextRect outlineBounds)
-        => _paragraphLayoutData.OutlineBounds = outlineBounds;
+    public void SetParagraphLayoutOutlineSize(TextSize outlineSize)
+        => _paragraphLayoutData.OutlineSize = outlineSize;
+
+    public void SetParagraphLayoutContentThickness(TextThickness contentThickness)
+        => _paragraphLayoutData.ContentThickness = contentThickness;
 
     /// <summary>
     /// 更新段落左上角起始点的坐标
     /// </summary>
-    /// <param name="textStartPoint"></param>
-    /// <param name="outlineStartPoint"></param>
-    public void UpdateParagraphLayoutStartPoint(TextPoint textStartPoint, TextPoint outlineStartPoint)
+    /// <param name="startPoint"></param>
+    ///// <param name="outlineStartPoint"></param>
+    public void UpdateParagraphLayoutStartPoint(TextPoint startPoint)
     {
-        _paragraphLayoutData.TextBounds = _paragraphLayoutData.TextBounds with
-        {
-            X = textStartPoint.X,
-            Y = textStartPoint.Y
-        };
+        _paragraphLayoutData.StartPoint = startPoint;
+        //_paragraphLayoutData.TextBounds = _paragraphLayoutData.TextBounds with
+        //{
+        //    X = textStartPoint.X,
+        //    Y = textStartPoint.Y
+        //};
 
-        _paragraphLayoutData.OutlineBounds = _paragraphLayoutData.OutlineBounds with
-        {
-            X = outlineStartPoint.X, Y = outlineStartPoint.Y
-        };
+        //_paragraphLayoutData.OutlineBounds = _paragraphLayoutData.OutlineBounds with
+        //{
+        //    X = outlineStartPoint.X, Y = outlineStartPoint.Y
+        //};
     }
 
     #endregion
