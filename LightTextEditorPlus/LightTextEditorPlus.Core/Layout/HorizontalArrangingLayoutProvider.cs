@@ -844,7 +844,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         _ = isLastLine;
 
         LineLayoutData lineLayoutData = lineLayoutArgument.LineLayoutData;
-        HorizontalTextAlignment horizontalTextAlignment = paragraphProperty.HorizontalTextAlignment;
 
         // 空白的宽度
         var gapWidth = documentWidth - lineLayoutData.LineContentSize.Width;
@@ -857,7 +856,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         // 可用的空白宽度。即空白宽度减去左缩进和右缩进
         double usableGapWidth = gapWidth - indentationThickness.Left - indentationThickness.Right;
 
-        TextThickness horizontalTextAlignmentGapThickness = GetHorizontalTextAlignmentGapThickness(horizontalTextAlignment, usableGapWidth);
+        TextThickness horizontalTextAlignmentGapThickness = paragraphProperty.GetHorizontalTextAlignmentGapThickness(usableGapWidth);
 
         lineLayoutData
             .SetLineFinalLayoutInfo(indentationThickness, horizontalTextAlignmentGapThickness);
@@ -873,39 +872,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             var height = lineLayoutData.LineContentSize.Height;
             return new TextRect(x, y, width, height);
         }
-    }
-
-    /// <summary>
-    /// 获取水平文本对齐的空白
-    /// </summary>
-    /// <param name="horizontalTextAlignment"></param>
-    /// <param name="usableGapWidth">可用的空白</param>
-    /// <returns></returns>
-    /// <exception cref="NotSupportedException"></exception>
-    private static TextThickness GetHorizontalTextAlignmentGapThickness(HorizontalTextAlignment horizontalTextAlignment,
-        double usableGapWidth)
-    {
-        TextThickness horizontalTextAlignmentGapThickness;
-        if (horizontalTextAlignment == HorizontalTextAlignment.Left)
-        {
-            horizontalTextAlignmentGapThickness = new TextThickness(0, 0, usableGapWidth, 0);
-        }
-        else if (horizontalTextAlignment == HorizontalTextAlignment.Center)
-        {
-            horizontalTextAlignmentGapThickness =
-                new TextThickness(usableGapWidth / 2, 0, usableGapWidth / 2, 0);
-        }
-        else if (horizontalTextAlignment == HorizontalTextAlignment.Right)
-        {
-            horizontalTextAlignmentGapThickness = new TextThickness(usableGapWidth, 0, 0, 0);
-        }
-        else
-        {
-            // 两端对齐 还不知道如何实现
-            throw new NotSupportedException($"不支持 {horizontalTextAlignment} 对齐方式");
-        }
-
-        return horizontalTextAlignmentGapThickness;
     }
 
     #endregion 03 回溯最终布局阶段
