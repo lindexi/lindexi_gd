@@ -10,6 +10,7 @@ using LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
+using LightTextEditorPlus.Core.Utils.Maths;
 
 namespace LightTextEditorPlus.Core.Layout;
 
@@ -39,24 +40,42 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         // 先设置是脏的，然后再更新，这样即可更新段落版本号
         paragraph.SetDirty();
 
-        double paragraphBefore = argument.IsFirstParagraph ? 0 /*首段不加段前距离*/  : paragraph.ParagraphProperty.ParagraphBefore;
-        var currentStartPoint = argument.CurrentStartPoint with
-        {
-            Y = argument.CurrentStartPoint.Y + paragraphBefore
-        };
-        // todo 对于 Outline 来说，ParagraphBefore 应该被忽略，且应该被加入到 Outline 里面
-        paragraph.UpdateParagraphLayoutStartPoint(currentStartPoint, currentStartPoint);
+        UpdateParagraphLayoutData(in argument);
 
-        var layoutArgument = argument with
-        {
-            CurrentStartPoint = currentStartPoint
-        };
+        //var layoutArgument = argument with
+        //{
+        //    //CurrentStartPoint = currentStartPoint
+        //};
 
-        var nextLineStartPoint = UpdateParagraphLineLayoutDataStartPoint(layoutArgument);
+        var nextLineStartPoint = UpdateParagraphLineLayoutDataStartPoint(in argument);
         // 设置当前段落已经布局完成
         paragraph.SetFinishLayout();
 
-        return new ParagraphLayoutResult(nextLineStartPoint);
+        // 转换为下一段的坐标
+        TextPoint nextParagraphStartPoint = nextLineStartPoint.ToDocumentPoint(paragraph);
+        return new ParagraphLayoutResult(nextParagraphStartPoint);
+    }
+
+    /// <summary>
+    /// 更新段落的布局信息
+    /// </summary>
+    /// <param name="argument"></param>
+    private static void UpdateParagraphLayoutData(in ParagraphLayoutArgument argument)
+    {
+        var paragraph = argument.ParagraphData;
+        //double paragraphBefore = argument.IsFirstParagraph ? 0 /*首段不加段前距离*/  : paragraph.ParagraphProperty.ParagraphBefore;
+        //var currentStartPoint = argument.CurrentStartPoint with
+        //{
+        //    Y = argument.CurrentStartPoint.Y + paragraphBefore
+        //};
+        paragraph.UpdateParagraphLayoutStartPoint(argument.CurrentStartPoint);
+
+        double paragraphBefore = argument.IsFirstParagraph ? 0 /*首段不加段前距离*/  : paragraph.ParagraphProperty.ParagraphBefore;
+        // 只加上段前后距离，左右边距现在不加上，因为左右边距在行里进行计算
+        // 左右边距影响行的可用宽度，这就是为什么放在行进行计算的原因。既然放在行进行计算了，那就顺带叠加在行的布局属性
+        var contentThickness =
+            new TextThickness(0, paragraphBefore, 0, paragraph.ParagraphProperty.ParagraphAfter);
+        paragraph.SetParagraphLayoutContentThickness(contentThickness);
     }
 
     /// <summary>
@@ -64,17 +83,26 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
-    /// todo 这个方法需要改名，现在是只获取段落的下一段应该的坐标点而已
-    private TextPoint UpdateParagraphLineLayoutDataStartPoint(in ParagraphLayoutArgument argument)
+    private TextPointInParagraph UpdateParagraphLineLayoutDataStartPoint(in ParagraphLayoutArgument argument)
     {
-        var currentStartPoint = argument.CurrentStartPoint;
         var paragraph = argument.ParagraphData;
+        var currentStartPoint = new TextPointInParagraph(0, 0, paragraph);
 
-        foreach (LineLayoutData lineVisualData in paragraph.LineLayoutDataList)
+        foreach (LineLayoutData lineLayoutData in paragraph.LineLayoutDataList)
         {
             //UpdateLineLayoutDataStartPoint(lineVisualData, currentStartPoint);
+            // 更新行内的所有字符的版本
+            // 由于现在的行是相对段落坐标，因此段落坐标变更即可，不需要再变更到具体的行的坐标
 
-            currentStartPoint = GetNextLineStartPoint(currentStartPoint, lineVisualData);
+            TextReadOnlyListSpan<CharData> list = lineLayoutData.GetCharList();
+            foreach (CharData charData in list)
+            {
+                charData.CharLayoutData!.UpdateVersion();
+            }
+
+            lineLayoutData.UpdateVersion();
+
+            currentStartPoint = GetNextLineStartPoint(currentStartPoint, lineLayoutData);
         }
 
         return currentStartPoint;
@@ -134,27 +162,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     protected override ParagraphLayoutResult UpdateParagraphLayoutCore(in ParagraphLayoutArgument argument,
         in ParagraphCharOffset startParagraphOffset)
     {
+        UpdateParagraphLayoutData(in argument);
+        
         var paragraph = argument.ParagraphData;
-        // 先更新非脏的行的坐标
-        // 布局左上角坐标
-        TextPoint currentStartPoint;
-        // 根据是否存在缓存行决定是否需要计算段前距离
-        if (paragraph.LineLayoutDataList.Count == 0)
-        {
-            // 一行都没有的情况下，需要计算段前距离
-            double paragraphBefore = argument.IsFirstParagraph ? 0 /*首段不加段前距离*/  : paragraph.ParagraphProperty.ParagraphBefore;
-
-            currentStartPoint = argument.CurrentStartPoint with
-            {
-                Y = argument.CurrentStartPoint.Y + paragraphBefore
-            };
-        }
-        else
-        {
-            // 有缓存的行，证明段落属性没有更改，不需要计算段前距离
-            // 只需要更新缓存的行
-            currentStartPoint = UpdateParagraphLineLayoutDataStartPoint(argument);
-        }
 
         // 预布局过程中，不考虑边距的影响。但只考虑缩进等对可用尺寸的影响
         // 在回溯过程中，才赋值给到边距。详细请参阅 《文本库行布局信息定义.enbx》 维护文档
@@ -164,16 +174,44 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         //    X = paragraph.ParagraphProperty.LeftIndentation
         //};
 
+        // 下一段的起始点
+        TextPoint nextParagraphStartPoint;
         // 如果是空段的话，那就进行空段布局，否则布局段落里面每一行
         if (paragraph.IsEmptyParagraph)
         {
             // 空段布局
-            currentStartPoint = UpdateEmptyParagraphLayout(argument, currentStartPoint);
+            nextParagraphStartPoint = UpdateEmptyParagraphLayout(argument, argument.CurrentStartPoint);
         }
         else
         {
             // 布局段落里面每一行
-            currentStartPoint = UpdateParagraphLinesLayout(argument, startParagraphOffset, currentStartPoint);
+
+            // 先更新非脏的行的坐标
+            // 布局左上角坐标，当前行的坐标点。行的坐标点是相对于段落的
+            TextPointInParagraph currentLinePoint;
+            // 根据是否存在缓存行决定是否需要计算段前距离
+            if (paragraph.LineLayoutDataList.Count == 0)
+            {
+                // 一行都没有的情况下，需要计算段前距离
+                double paragraphBefore = argument.IsFirstParagraph ? 0 /*首段不加段前距离*/  : paragraph.ParagraphProperty.ParagraphBefore;
+
+                //currentStartPoint = argument.CurrentStartPoint with
+                //{
+                //    Y = argument.CurrentStartPoint.Y + paragraphBefore
+                //};
+                // 行的坐标点是相对于段落的，只需加上段前距离即可
+                var x = 0;
+                var y = paragraphBefore;
+                currentLinePoint = new TextPointInParagraph(x, y, paragraph);
+            }
+            else
+            {
+                // 有缓存的行，证明段落属性没有更改，不需要计算段前距离
+                // 只需要更新缓存的行
+                currentLinePoint = UpdateParagraphLineLayoutDataStartPoint(argument);
+            }
+
+            nextParagraphStartPoint = UpdateParagraphLinesLayout(argument, startParagraphOffset, currentLinePoint);
         }
 
         //// 考虑行复用，例如刚好添加的内容是一行。或者在一行内做文本替换等
@@ -182,18 +220,18 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         // 下一段的距离需要加上段后距离
         double paragraphAfter =
             argument.IsLastParagraph ? 0 /*最后一段不加段后距离*/ : paragraph.ParagraphProperty.ParagraphAfter;
-        var nextLineStartPoint = currentStartPoint with
+        nextParagraphStartPoint = nextParagraphStartPoint with
         {
-            Y = currentStartPoint.Y + paragraphAfter,
+            Y = nextParagraphStartPoint.Y + paragraphAfter,
         };
 
-        // 计算段落的文本范围
-        TextPoint paragraphTextStartPoint = argument.ParagraphData.LineLayoutDataList[0].CharStartPoint;
+        // 计算段落的文本尺寸
+        //TextPoint paragraphTextStartPoint = argument.ParagraphData.LineLayoutDataList[0].CharStartPoint;
         TextSize paragraphTextSize = BuildParagraphSize(argument);
-        TextRect paragraphTextBounds = new TextRect(paragraphTextStartPoint, paragraphTextSize);
-        paragraph.SetParagraphLayoutTextBounds(paragraphTextBounds);
-       
-        return new ParagraphLayoutResult(nextLineStartPoint);
+        //TextRect paragraphTextBounds = new TextRect(paragraphTextStartPoint, paragraphTextSize);
+        paragraph.SetParagraphLayoutTextSize(paragraphTextSize);
+
+        return new ParagraphLayoutResult(nextParagraphStartPoint);
     }
 
     /// <summary>
@@ -204,6 +242,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// <returns></returns>
     private TextPoint UpdateEmptyParagraphLayout(in ParagraphLayoutArgument argument, TextPoint currentStartPoint)
     {
+        // todo 空段也应该加上段前距离
+
         var paragraph = argument.ParagraphData;
         // 如果是空段的话，如一段只是一个 \n 而已，那就需要执行空段布局逻辑
         Debug.Assert(paragraph.LineLayoutDataList.Count == 0, "空段布局时一定是一行都不存在");
@@ -240,7 +280,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// <exception cref="TextEditorDebugException"></exception>
     /// <exception cref="TextEditorInnerException"></exception>
     private TextPoint UpdateParagraphLinesLayout(in ParagraphLayoutArgument argument, in ParagraphCharOffset startParagraphOffset,
-        TextPoint currentStartPoint)
+        TextPointInParagraph currentStartPoint)
     {
         // 当前的坐标点，这是相对于段落的坐标点
         _ = currentStartPoint;
@@ -256,7 +296,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             // 第一个 Run 就是行的开始
             TextReadOnlyListSpan<CharData> charDataList = paragraph.ToReadOnlyListSpan(new ParagraphCharOffset(i));
 
-            if (TextEditor.IsInDebugMode)
+            if (IsInDebugMode)
             {
                 // 这是调试代码，判断是否在布局过程，漏掉某个字符
                 foreach (var charData in charDataList)
@@ -293,7 +333,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
                 CharEndParagraphIndex = i + result.CharCount,
                 LineContentSize = result.LineSize,
                 LineCharTextSize = result.TextSize,
-                CharStartPointInParagraph = new TextPointInParagraph(currentStartPoint, paragraph),
+                CharStartPointInParagraph = currentStartPoint,
                 LineSpacingThickness = result.LineSpacingThickness,
             };
             // 更新字符信息
@@ -302,7 +342,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             {
                 var charData = charDataList[index];
 
-                if (TextEditor.IsInDebugMode)
+                if (IsInDebugMode)
                 {
                     if (charData.IsSetStartPointInDebugMode == false)
                     {
@@ -331,7 +371,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             currentStartPoint = GetNextLineStartPoint(currentStartPoint, currentLineLayoutData);
         }
 
-        return currentStartPoint;
+        // 下一段的起始坐标。从行进行转换
+        var nextParagraphStartPoint = currentStartPoint.ToDocumentPoint(argument.ParagraphData);
+        return nextParagraphStartPoint;
     }
 
     #endregion
@@ -349,7 +391,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     private WholeLineLayoutResult UpdateWholeLineLayout(in WholeLineLayoutArgument argument)
     {
         var charDataList = argument.CharDataList;
-        var currentStartPoint = argument.CurrentStartPoint;
+        //var currentStartPoint = argument.CurrentStartPoint;
 
         if (charDataList.Count == 0)
         {
@@ -409,10 +451,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         var bottomLineSpacingGap = lineSpacingGap - topLineSpacingGap;
 
         // 字符在行内坐标
-        TextPoint charLineStartPoint = currentStartPoint with
-        {
-            Y = topLineSpacingGap, // 相对于行的坐标，叠加上了行距
-        };
+        //TextPoint charLineStartPoint = currentStartPoint with
+        //{
+        //    Y = topLineSpacingGap, // 相对于行的坐标，叠加上了行距
+        //};
+        TextPoint charLineStartPoint = new TextPoint(0, topLineSpacingGap /*topLineSpacingGap*/);
 
         // 具体设置每个字符的坐标的逻辑
         UpdateTextLineStartPoint(charDataTakeList, charLineStartPoint, maxFontSizeCharData);
@@ -677,10 +720,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// <param name="currentStartPoint"></param>
     /// <param name="currentLineLayoutData"></param>
     /// <returns></returns>
-    private static TextPoint GetNextLineStartPoint(TextPoint currentStartPoint, LineLayoutData currentLineLayoutData)
+    private static TextPointInParagraph GetNextLineStartPoint(TextPointInParagraph currentStartPoint, LineLayoutData currentLineLayoutData)
     {
-        currentStartPoint = new TextPoint(currentStartPoint.X, currentStartPoint.Y + currentLineLayoutData.LineContentSize.Height);
-        return currentStartPoint;
+        //currentStartPoint = new TextPoint(currentStartPoint.X, currentStartPoint.Y + currentLineLayoutData.LineContentSize.Height);
+
+        return currentStartPoint.Add(0, currentLineLayoutData.LineContentSize.Height);
     }
 
     private static TextSize BuildParagraphSize(in ParagraphLayoutArgument argument)
@@ -777,6 +821,28 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             FinalUpdateParagraphLayout(in paragraphLayoutArgument);
         }
 
+        if (IsInDebugMode)
+        {
+            // 调试逻辑，理论上下一段的起始点就是等于本段最低点
+            var lastParagraphOutlineBounds = paragraphList[0].ParagraphLayoutData.OutlineBounds;
+            for (var paragraphIndex = 1;
+                 paragraphIndex < paragraphList.Count;
+                 paragraphIndex++)
+            {
+                // 当前段落的起始点就等于上一段的最低点
+                ParagraphData paragraphData = paragraphList[paragraphIndex];
+                TextPoint startPoint = paragraphData.ParagraphLayoutData.StartPoint;
+
+                if (!Nearly.Equals(lastParagraphOutlineBounds.Bottom, startPoint.Y))
+                {
+                    // 如果不相等，则证明计算不正确
+                    throw new TextEditorInnerDebugException($"文本段落计算之间存在空隙。当前第 {paragraphIndex} 段。上一段范围： {lastParagraphOutlineBounds} ，当前段的起始点 {startPoint}");
+                }
+
+                lastParagraphOutlineBounds = paragraphData.ParagraphLayoutData.OutlineBounds;
+            }
+        }
+
         updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 完成最终布局阶段");
     }
 
@@ -808,10 +874,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             FinalUpdateParagraphLineLayout(in lineLayoutArgument);
         }
 
-        // 给定段落的范围
-        paragraph.SetParagraphLayoutOutlineBounds(layoutData.TextBounds with
+        // 给定段落的尺寸
+        paragraph.SetParagraphLayoutOutlineSize(layoutData.TextSize with
         {
-            X = 0,
             Width = documentWidth
         });
 

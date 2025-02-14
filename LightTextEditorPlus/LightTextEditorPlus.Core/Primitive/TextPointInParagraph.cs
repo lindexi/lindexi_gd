@@ -6,9 +6,14 @@ namespace LightTextEditorPlus.Core.Primitive;
 /// <summary>
 /// 相对于段落的坐标点
 /// </summary>
-readonly record struct TextPointInParagraph
+public readonly record struct TextPointInParagraph
 {
-    public TextPointInParagraph(TextPoint textPointInParagraph, ParagraphData paragraphData)
+    internal TextPointInParagraph(double x, double y, ParagraphData paragraphData) : this(new TextPoint(x, y),
+        paragraphData)
+    {
+    }
+
+    internal TextPointInParagraph(TextPoint textPointInParagraph, ParagraphData paragraphData)
     {
         _paragraphPoint = textPointInParagraph;
         _paragraphData = paragraphData;
@@ -22,7 +27,7 @@ readonly record struct TextPointInParagraph
     /// </summary>
     /// <param name="paragraphData"></param>
     /// <returns></returns>
-    public TextPoint ToDocumentPoint(ParagraphData paragraphData)
+    internal TextPoint ToDocumentPoint(ParagraphData paragraphData)
     {
         Debug.Assert(ReferenceEquals(_paragraphData, paragraphData), "禁止哪其他段落获取相对的坐标点");
 
@@ -41,8 +46,21 @@ readonly record struct TextPointInParagraph
         return new TextPoint(_paragraphPoint.X + bounds.X, _paragraphPoint.Y + bounds.Y);
     }
 
+    /// <inheritdoc />
     public override string ToString()
     {
         return $"段内坐标：{_paragraphPoint.X:0.00},{_paragraphPoint.Y:0.00}";
+    }
+
+    /// <summary>
+    /// 相对的增加
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <returns></returns>
+    /// todo 改名为 Offset
+    public TextPointInParagraph Add(double x, double y)
+    {
+        return new TextPointInParagraph(x + _paragraphPoint.X, y + _paragraphPoint.Y, _paragraphData);
     }
 }

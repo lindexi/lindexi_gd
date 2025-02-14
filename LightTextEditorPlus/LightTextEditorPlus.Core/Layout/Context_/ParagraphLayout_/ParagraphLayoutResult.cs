@@ -5,5 +5,5 @@ namespace LightTextEditorPlus.Core.Layout;
 /// <summary>
 /// 段落布局的结果
 /// </summary>
-/// <param name="NextLineStartPoint">下一行的起始坐标</param>
-public readonly record struct ParagraphLayoutResult(TextPoint NextLineStartPoint);
+/// <param name="NextParagraphStartPoint">下一段的起始坐标</param>
+public readonly record struct ParagraphLayoutResult(TextPoint NextParagraphStartPoint);
