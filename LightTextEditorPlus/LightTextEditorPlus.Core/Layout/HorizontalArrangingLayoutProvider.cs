@@ -86,8 +86,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         double paragraphBefore = argument.IsFirstParagraph ? 0 /*首段不加段前距离*/  : paragraph.ParagraphProperty.ParagraphBefore;
         // 只加上段前后距离，左右边距现在不加上，因为左右边距在行里进行计算
         // 左右边距影响行的可用宽度，这就是为什么放在行进行计算的原因。既然放在行进行计算了，那就顺带叠加在行的布局属性
+        double paragraphAfter = argument.IsLastParagraph ? 0 /*最后一段不加段后距离*/ : paragraph.ParagraphProperty.ParagraphAfter;
         var contentThickness =
-            new TextThickness(0, paragraphBefore, 0, paragraph.ParagraphProperty.ParagraphAfter);
+            new TextThickness(0, paragraphBefore, 0, paragraphAfter);
         paragraph.SetParagraphLayoutContentThickness(contentThickness);
     }
 

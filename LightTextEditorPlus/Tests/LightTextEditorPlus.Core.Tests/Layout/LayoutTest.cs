@@ -163,7 +163,7 @@ public class LayoutTest
             // a
             // \n
             // \nb
-            // 文档尺寸 = a 字符高度 15 + a 段后 21 + 空段段前 21 + 空段高度 15 + 空段段后 22 + b 段前 22 + b 字符高度 15
+            // 文档尺寸 = a 字符高度 15 + a 段后 22 + 空段段前 21 + 空段高度 15 + 空段段后 22 + b 段前 22 + b 字符高度 15
             TextRect documentLayoutBounds = textEditorCore.GetDocumentLayoutBounds();
             Assert.AreEqual(15 + 22 + 21 + 15 + 22 + 21 + 15, documentLayoutBounds.Height);
         });
