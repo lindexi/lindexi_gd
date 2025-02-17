@@ -75,12 +75,49 @@ abstract class ArrangingLayoutProvider
         // 03 回溯最终布局阶段
         FinalUpdateDocumentLayout(preUpdateDocumentLayoutResult, updateLayoutContext);
 
+        if (IsInDebugMode)
+        {
+            // 进入一些校验逻辑
+            EnsureFinishLayoutCompletedInDebugMode();
+        }
+
+        // 这是多余的判断，仅仅用在 DEBUG 过程中，没开 IsInDebugMode 的逻辑
         Debug.Assert(TextEditor.DocumentManager.ParagraphManager.GetParagraphList()
             .All(t => t.IsDirty() == false));
 
         updateLayoutContext.SetLayoutCompleted();
 
         return new DocumentLayoutResult(preUpdateDocumentLayoutResult.DocumentBounds, updateLayoutContext);
+    }
+
+    /// <summary>
+    /// 调试模式下确保布局完成
+    /// </summary>
+    /// <exception cref="TextEditorInnerDebugException"></exception>
+    private void EnsureFinishLayoutCompletedInDebugMode()
+    {
+        foreach (ParagraphData paragraphData in TextEditor.DocumentManager.ParagraphManager.GetParagraphList())
+        {
+            if (paragraphData.IsDirty())
+            {
+                throw new TextEditorInnerDebugException($"完成布局之后，段落还是脏的");
+            }
+
+            IParagraphLayoutData paragraphLayoutData = paragraphData.ParagraphLayoutData;
+            if (paragraphLayoutData.StartPoint ==
+                TextContext.InvalidStartPoint)
+            {
+                throw new TextEditorInnerDebugException($"完成布局之后，没有更新段落的文本起始点布局信息");
+            }
+            if (paragraphLayoutData.TextSize == TextSize.Invalid)
+            {
+                throw new TextEditorInnerDebugException($"完成布局之后，没有更新段落的文本尺寸布局信息");
+            }
+            if (paragraphLayoutData.OutlineSize == TextSize.Invalid)
+            {
+                throw new TextEditorInnerDebugException($"完成布局之后，没有更新段落的文本外接尺寸布局信息");
+            }
+        }
     }
 
     #region 01 获取需要更新布局段落的逻辑
@@ -170,15 +207,32 @@ abstract class ArrangingLayoutProvider
         var currentStartPoint = firstStartPoint;
         for (var index = firstDirtyParagraphIndex.Index; index < paragraphList.Count; index++)
         {
-            updateLayoutContext.RecordDebugLayoutInfo($"开始布局第 {index} 段");
+            updateLayoutContext.RecordDebugLayoutInfo($"开始预布局第 {index} 段");
             ParagraphData paragraphData = paragraphList[index];
 
             var argument = new ParagraphLayoutArgument(new ParagraphIndex(index), currentStartPoint, paragraphData,
                 paragraphList, updateLayoutContext);
 
             ParagraphLayoutResult result = UpdateParagraphLayout(argument);
-            currentStartPoint = result.NextParagraphStartPoint;
-            updateLayoutContext.RecordDebugLayoutInfo($"完成布局第 {index} 段");
+            var nextParagraphStartPoint = result.NextParagraphStartPoint;
+            // 预布局过程中，没有获取其 Outline 的值。 于是 OutlineBounds={paragraphData.ParagraphLayoutData.OutlineBounds}; 将在无缓存时，为 {X=0 Y=0 Width=0 Height=0} 的值
+            updateLayoutContext.RecordDebugLayoutInfo($"完成预布局第 {index} 段TextBounds={paragraphData.ParagraphLayoutData.TextBounds};NextParagraphStartPoint={nextParagraphStartPoint}");
+            currentStartPoint = nextParagraphStartPoint;
+
+            if (IsInDebugMode)
+            {
+                // 预期此时完成了起始点和文本尺寸的布局了，即已经有值了
+                if (paragraphData.ParagraphLayoutData.TextSize == TextSize.Invalid)
+                {
+                    throw new TextEditorInnerDebugException($"完成预布局第 {index} 段之后，没有更新段落的文本尺寸布局信息");
+                }
+
+                if (paragraphData.ParagraphLayoutData.StartPoint ==
+                    TextContext.InvalidStartPoint)
+                {
+                    throw new TextEditorInnerDebugException($"完成预布局第 {index} 段之后，没有更新段落的文本起始点布局信息");
+                }
+            }
         }
 
         TextRect documentBounds = TextRect.Zero;
@@ -216,6 +270,7 @@ abstract class ArrangingLayoutProvider
         }
 
         context.RecordDebugLayoutInfo($"段落是脏的，执行段落内布局");
+        argument.ParagraphData.SetLayoutDirty();
 
         // 先找到首个需要更新的坐标点，这里的坐标是段坐标
         var dirtyParagraphOffset = 0;

@@ -7,7 +7,7 @@ namespace LightTextEditorPlus.Core.Primitive;
 /// <summary>
 /// 文本库使用的尺寸
 /// </summary>
-[DebuggerDisplay("W:{Width} H:{Height}")]
+[DebuggerDisplay("{DebugText}")]
 public readonly struct TextSize : IEquatable<TextSize>
 {
     /// <summary>
@@ -57,6 +57,11 @@ public readonly struct TextSize : IEquatable<TextSize>
     /// 零值
     /// </summary>
     public static TextSize Zero => new TextSize(0, 0);
+
+    /// <summary>
+    /// 无效的尺寸
+    /// </summary>
+    public static TextSize Invalid => new TextSize(-1, -1);
 
     /// <inheritdoc />
     public bool Equals(TextSize other)
@@ -164,5 +169,20 @@ public readonly struct TextSize : IEquatable<TextSize>
 
         textSize = default;
         return false;
+    }
+
+    internal string DebugText
+    {
+        get
+        {
+            if (this == Invalid)
+            {
+                return $"W:{Width} H:{Height} {nameof(Invalid)}";
+            }
+            else
+            {
+                return $"W:{Width} H:{Height}";
+            }
+        }
     }
 }
