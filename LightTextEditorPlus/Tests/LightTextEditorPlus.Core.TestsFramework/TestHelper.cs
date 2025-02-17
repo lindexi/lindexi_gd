@@ -43,21 +43,31 @@ public static class TestHelper
         return textEditorCore;
     }
 
-    public static TextEditorCore GetLayoutTestTextEditor(TestPlatformProvider? testPlatformProvider = null)
+    /// <summary>
+    /// 使用非常明确的布局。将内置使用 <see cref="TestPlatformProviderExtension.UsingFixedCharSizeCharInfoMeasurer"/> 方式
+    /// </summary>
+    /// <param name="testPlatformProvider"></param>
+    /// <param name="lineCharCount">一行能够布局多少个字符</param>
+    /// <param name="fontSize"></param>
+    public static TextEditorCore GetLayoutTestTextEditor(int lineCharCount=5, double fontSize = LayoutTestFontSize, TestPlatformProvider? testPlatformProvider = null)
     {
         testPlatformProvider ??= new TestPlatformProvider();
         // 使用固定字符尺寸计算，返回字符尺寸等于字号，方便计算
         testPlatformProvider.UsingFixedCharSizeCharInfoMeasurer();
         testPlatformProvider.UseFakeLineSpacingCalculator();
 
-        var textEditor = TestHelper.GetTextEditorCore(testPlatformProvider);
         // 设置 20 字号，方便行距计算
-        textEditor.DocumentManager.SetStyleTextRunProperty<LayoutOnlyRunProperty>(t => t with
-        {
-            FontSize = LayoutTestFontSize
-        });
-        // 设置一行能布局 5 个字
-        textEditor.DocumentManager.DocumentWidth = LayoutTestCharWidth * 5 + 0.1;
+        testPlatformProvider.FakePlatformRunPropertyCreator = new FakePlatformRunPropertyCreator
+        (
+            getDefaultRunPropertyFunc: () => new LayoutOnlyRunProperty()
+            {
+                FontSize = fontSize
+            }
+        );
+
+        var textEditor = new TextEditorCore(testPlatformProvider); 
+        // 设置一行能布局 lineCharCount 个字
+        textEditor.DocumentManager.DocumentWidth = fontSize * lineCharCount + 0.1;
         return textEditor;
     }
 
