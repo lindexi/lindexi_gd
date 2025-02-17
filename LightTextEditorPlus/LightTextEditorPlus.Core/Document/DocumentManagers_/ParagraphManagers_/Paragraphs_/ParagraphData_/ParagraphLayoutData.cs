@@ -18,6 +18,13 @@ public interface IParagraphLayoutData
     TextSize TextSize { get; }
 
     /// <summary>
+    /// 段落的文本内容的边距。一般就是段前和段后距离
+    /// </summary>
+    /// 为什么左右边距不叠加在段落上？现在是每一行都叠加，因为前面实现错误，以为左边距会受到悬挂缩进的影响。实际应该让左右边距放在这里，行只处理缩进
+    /// 但行在处理的过程，本身就需要考虑左右边距影响了行的可用宽度，因此放在行里面处理也是可以的
+    TextThickness ContentThickness { get; }
+
+    /// <summary>
     /// 段落的文本范围
     /// </summary>
     TextRect TextBounds { get; }
