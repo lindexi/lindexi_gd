@@ -143,7 +143,7 @@ public class LayoutTest
         "空段文本包含段前段后距离，可以给空段文本计算入段前段后距离".Test(() =>
         {
             // Arrange
-            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider())
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider().UseManuallyRequireLayoutDispatcher(out var dispatcher))
                 // 固定行距，用于减少行距影响，只测试段落前后距离
                 .UseFixedLineSpacing();
 
@@ -157,6 +157,9 @@ public class LayoutTest
             });
 
             textEditorCore.AppendText("a\n\nb");
+
+            // 开始布局。防止准备过程进入太多次
+            dispatcher.InvokeLayoutAction();
 
             // Assert
             // 加入有两段，那么总尺寸应该是，根据首段不加段前，末段不加段后

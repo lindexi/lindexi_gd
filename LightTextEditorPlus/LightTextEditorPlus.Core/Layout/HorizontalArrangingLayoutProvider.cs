@@ -225,19 +225,20 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
                 currentLinePoint = UpdateParagraphLineLayoutDataStartPoint(argument);
             }
 
+            // 布局段落里面的每一行
             nextParagraphStartPoint = UpdateParagraphLinesLayout(argument, startParagraphOffset, currentLinePoint);
+
+            // 下一段的距离需要加上段后距离
+            double paragraphAfter =
+                argument.IsLastParagraph ? 0 /*最后一段不加段后距离*/ : paragraph.ParagraphProperty.ParagraphAfter;
+            nextParagraphStartPoint = nextParagraphStartPoint with
+            {
+                Y = nextParagraphStartPoint.Y + paragraphAfter,
+            };
         }
 
         //// 考虑行复用，例如刚好添加的内容是一行。或者在一行内做文本替换等
         //// 这个没有啥优先级。测试了 SublimeText 和 NotePad 工具，都没有做此复用，预计有坑
-        
-        // 下一段的距离需要加上段后距离
-        double paragraphAfter =
-            argument.IsLastParagraph ? 0 /*最后一段不加段后距离*/ : paragraph.ParagraphProperty.ParagraphAfter;
-        nextParagraphStartPoint = nextParagraphStartPoint with
-        {
-            Y = nextParagraphStartPoint.Y + paragraphAfter,
-        };
 
         // 计算段落的文本尺寸
         //TextPoint paragraphTextStartPoint = argument.ParagraphData.LineLayoutDataList[0].CharStartPoint;
@@ -256,7 +257,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// <returns></returns>
     private TextPoint UpdateEmptyParagraphLayout(in ParagraphLayoutArgument argument, TextPoint currentStartPoint)
     {
-        // todo 空段也应该加上段前距离
+        double paragraphBefore = argument.IsFirstParagraph ? 0 /*首段不加段前距离*/  : argument.ParagraphData.ParagraphProperty.ParagraphBefore;
 
         var paragraph = argument.ParagraphData;
         // 如果是空段的话，如一段只是一个 \n 而已，那就需要执行空段布局逻辑
@@ -270,17 +271,19 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         {
             CharStartParagraphIndex = 0,
             CharEndParagraphIndex = 0,
-            // todo 空段这里的相对应该是加上段前距离才对
-            CharStartPointInParagraph = new TextPointInParagraph(default, paragraph),
+            CharStartPointInParagraph = new TextPointInParagraph(0, paragraphBefore, paragraph),
             LineContentSize = new TextSize(0, lineHeight)
         };
         paragraph.LineLayoutDataList.Add(lineLayoutData);
 
-        currentStartPoint = currentStartPoint with
+        // 下一段的起始坐标
+        //  = 当前的坐标 + 段前 + 行高 + 段后
+        double paragraphAfter = argument.IsLastParagraph ? 0 /*最后一段不加段后距离*/ : paragraph.ParagraphProperty.ParagraphAfter;
+        var nextParagraphStartPoint = currentStartPoint with
         {
-            Y = currentStartPoint.Y + lineHeight
+            Y = currentStartPoint.Y + paragraphBefore + lineHeight + paragraphAfter
         };
-        return currentStartPoint;
+        return nextParagraphStartPoint;
     }
 
     /// <summary>
@@ -889,9 +892,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         }
 
         // 给定段落的尺寸
-        paragraph.SetParagraphLayoutOutlineSize(layoutData.TextSize with
+        TextThickness contentThickness = layoutData.ContentThickness;
+        paragraph.SetParagraphLayoutOutlineSize(new TextSize
         {
-            Width = documentWidth
+            Width = documentWidth, 
+            Height = contentThickness.Top + layoutData.TextSize.Height + contentThickness.Bottom
         });
 
         updateLayoutContext.RecordDebugLayoutInfo($"完成回溯第 {paragraphIndex} 段");
