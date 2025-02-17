@@ -82,4 +82,6 @@ public static class TextContext
     /// 行高的比例，字符上半部分增加4/5，下半部分增加1/5
     /// </summary>
     internal const double LineSpaceRatio = 4 / 5.0;
+
+    internal static TextPoint InvalidStartPoint => new TextPoint(double.NegativeInfinity, double.NegativeInfinity);
 }
