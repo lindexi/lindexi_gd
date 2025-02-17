@@ -33,9 +33,20 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
     #region 更新非脏的段落和行
 
+    /// <summary>
+    /// 更新非脏的段落和行的起始点
+    /// </summary>
+    /// <param name="argument"></param>
+    /// <returns></returns>
+    /// <exception cref="TextEditorDebugException"></exception>
     protected override ParagraphLayoutResult UpdateParagraphStartPoint(in ParagraphLayoutArgument argument)
     {
         var paragraph = argument.ParagraphData;
+
+        if (TextEditor.IsInDebugMode && paragraph.IsDirty())
+        {
+            throw new TextEditorDebugException("更新非脏的段落和行时，段落是脏的");
+        }
 
         // 先设置是脏的，然后再更新，这样即可更新段落版本号
         paragraph.SetDirty();
@@ -53,6 +64,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
         // 转换为下一段的坐标
         TextPoint nextParagraphStartPoint = nextLineStartPoint.ToDocumentPoint(paragraph);
+        // 加上段后距离
+        nextParagraphStartPoint = nextParagraphStartPoint.Offset(0, paragraph.ParagraphProperty.ParagraphAfter);
         return new ParagraphLayoutResult(nextParagraphStartPoint);
     }
 
