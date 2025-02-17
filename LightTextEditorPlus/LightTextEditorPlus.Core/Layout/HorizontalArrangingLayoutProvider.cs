@@ -207,7 +207,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             if (paragraph.LineLayoutDataList.Count == 0)
             {
                 // 一行都没有的情况下，需要计算段前距离
-                double paragraphBefore = argument.IsFirstParagraph ? 0 /*首段不加段前距离*/  : paragraph.ParagraphProperty.ParagraphBefore;
+                double paragraphBefore = argument.GetParagraphBefore();
 
                 //currentStartPoint = argument.CurrentStartPoint with
                 //{
@@ -230,7 +230,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
             // 下一段的距离需要加上段后距离
             double paragraphAfter =
-                argument.IsLastParagraph ? 0 /*最后一段不加段后距离*/ : paragraph.ParagraphProperty.ParagraphAfter;
+                argument.GetParagraphAfter();
             nextParagraphStartPoint = nextParagraphStartPoint with
             {
                 Y = nextParagraphStartPoint.Y + paragraphAfter,
@@ -257,7 +257,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// <returns></returns>
     private TextPoint UpdateEmptyParagraphLayout(in ParagraphLayoutArgument argument, TextPoint currentStartPoint)
     {
-        double paragraphBefore = argument.IsFirstParagraph ? 0 /*首段不加段前距离*/  : argument.ParagraphData.ParagraphProperty.ParagraphBefore;
+        double paragraphBefore = argument.GetParagraphBefore();
 
         var paragraph = argument.ParagraphData;
         // 如果是空段的话，如一段只是一个 \n 而已，那就需要执行空段布局逻辑
@@ -278,7 +278,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
         // 下一段的起始坐标
         //  = 当前的坐标 + 段前 + 行高 + 段后
-        double paragraphAfter = argument.IsLastParagraph ? 0 /*最后一段不加段后距离*/ : paragraph.ParagraphProperty.ParagraphAfter;
+        double paragraphAfter = argument.GetParagraphAfter();
         var nextParagraphStartPoint = currentStartPoint with
         {
             Y = currentStartPoint.Y + paragraphBefore + lineHeight + paragraphAfter
