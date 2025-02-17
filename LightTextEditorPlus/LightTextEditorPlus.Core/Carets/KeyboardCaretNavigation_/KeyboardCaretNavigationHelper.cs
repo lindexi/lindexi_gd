@@ -106,7 +106,14 @@ internal static class KeyboardCaretNavigationHelper
             // 判断是否在段落内存在下一行
             var targetLine = caretRenderInfo.ParagraphData.LineLayoutDataList[caretRenderInfo.LineIndex + 1];
 
+            // 为什么不能取 caretRenderInfo 的 CaretOffset 属性？因为这里需要计算下一行 targetLine 的相对文档光标坐标系。即 caretRenderInfo.LineLayoutData.Index + 1 == targetLine.Index
+            //CaretOffset caretOffset = caretRenderInfo.CaretOffset;
+
             // 这里拿到的是行坐标系，需要将其换算为文档光标坐标系
+            // 转换过程中，自动适配行内的字符数量。如有以下两行
+            // 123123|123
+            // abc
+            // 此时按 下 键，光标之会在第二行的 abc 之后，不会出现越界问题
             var documentCaretOffset = targetLine.ToCaretOffset(caretRenderInfo.HitLineCaretOffset);
             return new CaretOffset(documentCaretOffset.Offset, currentCaretOffset.IsAtLineStart);
         }
