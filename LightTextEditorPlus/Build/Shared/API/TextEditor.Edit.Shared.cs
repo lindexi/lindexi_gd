@@ -6,8 +6,6 @@ using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
-using LightTextEditorPlus.Core.Document.UndoRedo;
-using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus
 {
@@ -108,9 +106,6 @@ namespace LightTextEditorPlus
             SetParagraphProperty(currentCaretOffset, config(paragraphProperty));
         }
 
-        /// <inheritdoc cref="DocumentManager.StyleParagraphProperty"/>
-        public ParagraphProperty StyleParagraphProperty => TextEditorCore.DocumentManager.StyleParagraphProperty;
-
         /// <summary>
         /// 获取段落属性
         /// </summary>
@@ -137,6 +132,15 @@ namespace LightTextEditorPlus
         /// <returns></returns>
         public ParagraphProperty GetCurrentCaretOffsetParagraphProperty()
             => GetParagraphProperty(TextEditorCore.CurrentCaretOffset);
+
+        /// <inheritdoc cref="DocumentManager.StyleParagraphProperty"/>
+        public ParagraphProperty StyleParagraphProperty => TextEditorCore.DocumentManager.StyleParagraphProperty;
+
+        /// <inheritdoc cref="DocumentManager.SetStyleParagraphProperty"/>
+        public void SetStyleParagraphProperty(ParagraphProperty paragraphProperty)
+        {
+            TextEditorCore.DocumentManager.SetStyleParagraphProperty(paragraphProperty);
+        }
 
         #endregion
     }

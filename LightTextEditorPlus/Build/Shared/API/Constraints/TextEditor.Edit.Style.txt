@@ -1,6 +1,8 @@
 CurrentCaretRunProperty
 StyleRunProperty
 CreateRunProperty
+SetStyleTextRunProperty
+SetCurrentCaretRunProperty
 // 设置样式
 // RunProperty
 SetFontName

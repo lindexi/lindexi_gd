@@ -188,8 +188,9 @@ namespace LightTextEditorPlus.Core.Document
         /// 设置当前文本的样式段落属性
         /// </summary>
         /// <remarks>
-        /// 仅当文本没有创建出任何段落之前，初始化过程中，才能设置文本的样式段落属性。设置段落的样式属性将会覆盖文本的样式字符属性
+        /// 仅当文本没有创建出任何段落之前，初始化过程中，才能设置文本的样式段落属性
         /// </remarks>
+        /// <exception cref="InvalidOperationException">如果文本已经创建出任何段落或完成任何初始化，则抛出此异常。请确保此方法在刚创建出文本时立刻调用。否则则请设置对应段落的样式</exception>
         public void SetStyleParagraphProperty(ParagraphProperty paragraphProperty)
         {
             var isInit = IsInitializingTextEditor();

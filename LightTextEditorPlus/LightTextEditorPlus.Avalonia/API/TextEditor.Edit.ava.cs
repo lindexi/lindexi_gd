@@ -159,6 +159,16 @@ namespace LightTextEditorPlus
         public SkiaTextRunProperty CreateRunProperty(CreateRunProperty createRunProperty) =>
             createRunProperty(StyleRunProperty);
 
+        /// <inheritdoc cref="DocumentManager.SetStyleTextRunProperty{T}"/>
+        public void SetStyleTextRunProperty(ConfigRunProperty config)
+        {
+            TextEditorCore.DocumentManager.SetStyleTextRunProperty((SkiaTextRunProperty property) => config(property));
+        }
+
+        /// <inheritdoc cref="DocumentManager.SetCurrentCaretRunProperty{T}"/>
+        public void SetCurrentCaretRunProperty(ConfigRunProperty config)
+            => TextEditorCore.DocumentManager.SetCurrentCaretRunProperty((SkiaTextRunProperty property) => config(property));
+
         /// <summary>
         /// 设置字体名
         /// </summary>

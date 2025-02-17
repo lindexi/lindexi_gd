@@ -8,5 +8,9 @@ QuitEditMode
 // 段落属性
 SetParagraphProperty
 SetCurrentCaretOffsetParagraphProperty
+ConfigCurrentCaretOffsetParagraphProperty
 GetParagraphProperty
 GetCurrentCaretOffsetParagraphProperty
+// 段落样式
+StyleParagraphProperty
+SetStyleParagraphProperty
