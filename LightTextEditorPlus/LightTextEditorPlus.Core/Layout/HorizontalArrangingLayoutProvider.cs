@@ -38,14 +38,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
-    /// <exception cref="TextEditorDebugException"></exception>
     protected override ParagraphLayoutResult UpdateParagraphStartPoint(in ParagraphLayoutArgument argument)
     {
         var paragraph = argument.ParagraphData;
 
         if (TextEditor.IsInDebugMode && paragraph.IsDirty())
         {
-            throw new TextEditorDebugException("更新非脏的段落和行时，段落是脏的");
+            throw new TextEditorInnerDebugException("更新非脏的段落和行时，段落是脏的");
         }
 
         // 先设置是脏的，然后再更新，这样即可更新段落版本号
