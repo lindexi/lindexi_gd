@@ -262,7 +262,7 @@ class ParagraphData
         {
             // 超过段落了
             //todo 处理超过段落
-            throw new ArgumentOutOfRangeException(nameof(offset), $"段落字符:{CharCount};Offset={offset.Offset}");
+            throw new ArgumentOutOfRangeException(nameof(offset), $"段落字符:{CharCount};参数Offset={offset.Offset}");
         }
         else
         {
@@ -286,38 +286,6 @@ class ParagraphData
             return charDataList;
         }
     }
-
-    ///// <summary>
-    ///// 在行渲染的时候，将行末的一个 IImmutableRun 按照需求，分割为多个的时候，替换原有的
-    ///// </summary>
-    //internal void SplitReplace(int paragraphIndex, IImmutableRun firstRun, IImmutableRun secondRun)
-    //{
-    //    Version++;
-
-    //    TextRunList[paragraphIndex] = firstRun;
-    //    TextRunList.Insert(paragraphIndex + 1, secondRun);
-    //}
-
-    ///// <summary>
-    ///// 在指定的地方插入一段文本
-    ///// </summary>
-    ///// <param name="insertOffset"></param>
-    ///// <param name="run"></param>
-    //public void InsertRun(int insertOffset, IImmutableRun run)
-    //{
-    //    if (insertOffset == CharCount)
-    //    {
-    //        AppendRun(run);
-    //    }
-    //    else
-    //    {
-    //        throw new NotImplementedException($"还没实现从段落中间插入的功能");
-    //    }
-
-    //    // todo 设置LineVisualData是脏的
-
-    //    SetDirty();
-    //}
 
     public void AppendRun(IImmutableRun run, IReadOnlyRunProperty runProperty)
     {
