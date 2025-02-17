@@ -7,6 +7,13 @@ namespace LightTextEditorPlus.Core.TestsFramework;
 
 public class TestPlatformProvider : PlatformProvider
 {
+    public IPlatformRunPropertyCreator? FakePlatformRunPropertyCreator { get; set; }
+
+    public override IPlatformRunPropertyCreator GetPlatformRunPropertyCreator()
+    {
+        return FakePlatformRunPropertyCreator ?? base.GetPlatformRunPropertyCreator();
+    }
+
     public override ICharInfoMeasurer? GetCharInfoMeasurer() => CharInfoMeasurer ?? base.GetCharInfoMeasurer();
     public ICharInfoMeasurer? CharInfoMeasurer { set; get; }
 

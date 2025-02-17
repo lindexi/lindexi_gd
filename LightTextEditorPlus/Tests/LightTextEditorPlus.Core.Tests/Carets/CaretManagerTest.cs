@@ -1,7 +1,6 @@
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.TestsFramework;
-
 using MSTest.Extensions.Contracts;
 
 namespace LightTextEditorPlus.Core.Tests.Carets;
@@ -29,7 +28,8 @@ public class CaretManagerTest
 
             // Action
             // 追加的字符串将使用当前光标文本字符属性
-            var runPropertyList = textEditorCore.DocumentManager.GetDifferentRunPropertyRange(textEditorCore.GetAllDocumentSelection()).ToList();
+            var runPropertyList = textEditorCore.DocumentManager
+                .GetDifferentRunPropertyRange(textEditorCore.GetAllDocumentSelection()).ToList();
             Assert.AreEqual(1, runPropertyList.Count);
             Assert.AreEqual(1000, runPropertyList[0].FontSize);
         });
@@ -59,8 +59,9 @@ public class CaretManagerTest
 
             // Assert
             // 输入的字符串将使用当前光标文本字符属性
-            var runPropertyList = textEditorCore.DocumentManager.GetRunPropertyRange(textEditorCore.GetAllDocumentSelection()).ToList();
-            Assert.AreEqual(3,runPropertyList.Count);
+            var runPropertyList = textEditorCore.DocumentManager
+                .GetRunPropertyRange(textEditorCore.GetAllDocumentSelection()).ToList();
+            Assert.AreEqual(3, runPropertyList.Count);
             Assert.AreEqual(10, runPropertyList[0].FontSize);
             Assert.AreEqual(1000, runPropertyList[1].FontSize);
             Assert.AreEqual(10, runPropertyList[2].FontSize);
