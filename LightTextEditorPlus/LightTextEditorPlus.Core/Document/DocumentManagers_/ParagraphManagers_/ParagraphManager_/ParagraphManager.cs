@@ -8,6 +8,7 @@ using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Utils;
+using LightTextEditorPlus.Diagnostics.LogInfos;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -239,6 +240,7 @@ class ParagraphManager
     {
         if (ParagraphList.Count == 0)
         {
+            TextEditor.Logger.Log(new EnsureFirstParagraphExistsLogInfo());
             CreateParagraphAndInsertAfter(relativeParagraph: null);
         }
     }

@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using LightTextEditorPlus.Diagnostics.LogInfos;
 
 namespace LightTextEditorPlus.Core.Primitive;
 

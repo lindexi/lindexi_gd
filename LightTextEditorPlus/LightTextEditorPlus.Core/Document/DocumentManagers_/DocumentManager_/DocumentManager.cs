@@ -381,8 +381,15 @@ namespace LightTextEditorPlus.Core.Document
         {
             get
             {
+                IReadOnlyList<ParagraphData> rawParagraphList = DocumentRunEditProvider.ParagraphManager.GetRawParagraphList();
+                // 为什么不调用 DocumentRunEditProvider.ParagraphManager.GetParagraphList() 方法？因为担心 GetParagraphList 额外调用了确保至少一段的方法，导致不必要的损耗
+                if (rawParagraphList.Count == 0)
+                {
+                    return 0;
+                }
+
                 var sum = 0;
-                foreach (var paragraphData in DocumentRunEditProvider.ParagraphManager.GetParagraphList())
+                foreach (var paragraphData in rawParagraphList)
                 {
                     sum += paragraphData.CharCount;
                     // 加上换行符的字符

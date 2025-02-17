@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using LightTextEditorPlus.Core.Layout;
+using LightTextEditorPlus.Core.Primitive;
 
-namespace LightTextEditorPlus.Core.Primitive;
+namespace LightTextEditorPlus.Diagnostics.LogInfos;
 
 /// <summary>
 /// 布局完成的日志信息
