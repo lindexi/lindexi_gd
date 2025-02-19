@@ -28,45 +28,59 @@ public partial class MainWindow : Window
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        var longPath = new StringBuilder();
-        longPath.Append(@"C:\");
-        for (int i = 0; i < 1000; i++)
+        try
         {
-            longPath.Append(@"abc\");
-        }
-        longPath.Append("File.cs");
-
-        Clipboard.SetFileDropList(new StringCollection()
-        {
-            longPath.ToString(),
-        });
-
-        var dataObject = Clipboard.GetDataObject()!;
-        var isFileDrop = dataObject.GetDataPresent(DataFormats.FileDrop);
-        var data = dataObject.GetData(DataFormats.FileDrop);
-
-        var fileDropList = Clipboard.GetFileDropList();
-        var length = fileDropList[0].Length;
-
-        OpenClipboard(IntPtr.Zero);
-        var dataPointer =
-            GetClipboardData(15); //15 is for CF_HDROP datatype - this does in fact return a pointer, so it's working fine
-        var fileCount = DragQueryFile(dataPointer, unchecked((int) 0xFFFFFFFF), null, 0);
-
-        for (int i = 0; i < fileCount; i++)
-        {
-            var charCount = DragQueryFile(dataPointer, i, null, 0);
-
-            var stringBuilder = new StringBuilder(charCount);
-            var result = DragQueryFile(dataPointer, i, stringBuilder, charCount);
-            var success = result != 0;
-            if (success)
+            var longPath = new StringBuilder();
+            longPath.Append(@"C:\");
+            for (int i = 0; i < 1000; i++)
             {
-                Debug.WriteLine($"Get the file from Clipboard. Length of File Path is {stringBuilder.Length}. FilePath={stringBuilder.ToString()}");
+                longPath.Append(@"abc\");
             }
-        }
 
-        CloseClipboard();
+            longPath.Append("File.cs");
+
+            Clipboard.SetFileDropList(new StringCollection()
+            {
+                longPath.ToString(),
+            });
+
+            var dataObject = Clipboard.GetDataObject()!;
+            var isFileDrop = dataObject.GetDataPresent(DataFormats.FileDrop);
+            var data = dataObject.GetData(DataFormats.FileDrop);
+
+            LogTextBlock.Text = $"IsFileDrop={isFileDrop};";
+
+            var fileDropList = Clipboard.GetFileDropList();
+            var length = fileDropList[0].Length;
+
+            LogTextBlock.Text += $"ExpectedLength={longPath.Length};ActualLength={length};";
+
+            OpenClipboard(IntPtr.Zero);
+            var dataPointer =
+                GetClipboardData(
+                    15); //15 is for CF_HDROP datatype - this does in fact return a pointer, so it's working fine
+            var fileCount = DragQueryFile(dataPointer, unchecked((int)0xFFFFFFFF), null, 0);
+
+            for (int i = 0; i < fileCount; i++)
+            {
+                var charCount = DragQueryFile(dataPointer, i, null, 0);
+
+                var stringBuilder = new StringBuilder(charCount);
+                var result = DragQueryFile(dataPointer, i, stringBuilder, charCount);
+                var success = result != 0;
+                if (success)
+                {
+                    LogTextBlock.Text +=
+                        $"Get the file from Clipboard. Length of File Path is {stringBuilder.Length}. FilePath={stringBuilder.ToString()}";
+                }
+            }
+
+            CloseClipboard();
+        }
+        catch (Exception exception)
+        {
+            LogTextBlock.Text = exception.ToString();
+        }
     }
 
     [DllImport("shell32.dll", CharSet = CharSet.Auto)]
