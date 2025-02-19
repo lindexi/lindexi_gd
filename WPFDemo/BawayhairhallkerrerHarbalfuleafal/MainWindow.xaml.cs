@@ -41,6 +41,9 @@ public partial class MainWindow : Window
             longPath.ToString(),
         });
 
+        var fileDropList = Clipboard.GetFileDropList();
+        var length = fileDropList[0].Length;
+
         OpenClipboard(IntPtr.Zero);
         var dataPointer =
             GetClipboardData(15); //15 is for CF_HDROP datatype - this does in fact return a pointer, so it's working fine
