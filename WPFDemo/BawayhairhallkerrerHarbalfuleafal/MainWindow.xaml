@@ -7,6 +7,6 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-
+        <TextBlock x:Name="LogTextBlock" Margin="10 10 10 10" TextWrapping="Wrap"></TextBlock>
     </Grid>
 </Window>
