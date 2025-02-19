@@ -41,6 +41,10 @@ public partial class MainWindow : Window
             longPath.ToString(),
         });
 
+        var dataObject = Clipboard.GetDataObject()!;
+        var isFileDrop = dataObject.GetDataPresent(DataFormats.FileDrop);
+        var data = dataObject.GetData(DataFormats.FileDrop);
+
         var fileDropList = Clipboard.GetFileDropList();
         var length = fileDropList[0].Length;
 
