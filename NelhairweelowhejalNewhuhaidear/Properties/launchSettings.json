@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "NelhairweelowhejalNewhuhaidear (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "NelhairweelowhejalNewhuhaidear (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
