@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "JehairqogefaKaiwuwhailallkihaiki.Analyzer": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\JehairqogefaKaiwuwhailallkihaiki\\JehairqogefaKaiwuwhailallkihaiki.csproj"
+    }
+  }
+}
