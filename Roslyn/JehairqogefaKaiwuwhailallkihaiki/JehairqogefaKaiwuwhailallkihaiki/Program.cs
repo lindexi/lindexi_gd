@@ -1,0 +1,3 @@
+using JehairqogefaKaiwuwhailallkihaiki;
+
+GeneratedCode.Print();
