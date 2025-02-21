@@ -3,7 +3,7 @@ using System;
 using (var presentationDocument =
        DocumentFormat.OpenXml.Packaging.PresentationDocument.Open("Test.pptx", true))
 {
-    presentationDocument.PackageProperties.Title = "Hello, World!ƒ„∫√ ¿ΩÁ£§&$#!";
+    presentationDocument.PackageProperties.Title = "\u0001";
 }
 // System.ArgumentException:°∞'', hexadecimal value 0x01, is an invalid character.°±
 //  	 System.Private.Xml.dll!System.Xml.XmlUtf8RawTextWriter.InvalidXmlChar(int ch, byte* pDst, bool entitize)	
