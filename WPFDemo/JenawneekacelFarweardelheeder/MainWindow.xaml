@@ -1,0 +1,15 @@
+﻿<Window x:Class="JenawneekacelFarweardelheeder.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:JenawneekacelFarweardelheeder"
+        mc:Ignorable="d"
+        Title="使用作业限制内存" Height="450" Width="800">
+    <Grid>
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Button x:Name="LimitMemoryButton" Margin="10 10 10 10" Click="LimitMemoryButton_OnClick">限制内存</Button>
+            <Button x:Name="TakeMemoryButton" Margin="10 10 10 10" Click="TakeMemoryButton_OnClick">占用内存</Button>
+        </StackPanel>
+    </Grid>
+</Window>
