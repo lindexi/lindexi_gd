@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net45</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+<ItemGroup>
+  <PackageReference Include="dotnetCampus.Ipc" Version="2.0.0-alpha419" ExcludeAssets="analyzers" />
+</ItemGroup>
+</Project>
