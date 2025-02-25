@@ -9,6 +9,7 @@ using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Document.Utils;
 using LightTextEditorPlus.Core.Exceptions;
+using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.Maths;
 
@@ -491,6 +492,7 @@ namespace LightTextEditorPlus.Core.Document
 
                 var runList = new ImmutableRunList();
 
+                // todo 这里应该是走直接替换逻辑，不应该是重新构建 Run 再替换。因为如此替换会导致原本的段落被删除
                 foreach (var charData in GetCharDataRange(selection.Value))
                 {
                     Debug.Assert(charData.CharLayoutData != null, "能够从段落里获取到的，一定是存在在段落里面，因此此属性一定不为空");
@@ -503,12 +505,18 @@ namespace LightTextEditorPlus.Core.Document
                         Debug.Assert(lastChangedRunProperty != null, "当前字符和上一个字符的字符属性相同，证明存在上一个字符，证明存在上一个字符属性");
                         // ReSharper disable once RedundantSuppressNullableWarningExpression
                         currentRunProperty = lastChangedRunProperty!;
+
+                        IPlatformRunPropertyCreator platformRunPropertyCreator = TextEditor.PlatformProvider.GetPlatformRunPropertyCreator();
+                        currentRunProperty = platformRunPropertyCreator.ToPlatformRunProperty(charData.CharObject, currentRunProperty);
                     }
                     else
                     {
                         currentRunProperty = charData.RunProperty;
 
                         currentRunProperty = config((T) currentRunProperty);
+
+                        IPlatformRunPropertyCreator platformRunPropertyCreator = TextEditor.PlatformProvider.GetPlatformRunPropertyCreator();
+                        currentRunProperty = platformRunPropertyCreator.ToPlatformRunProperty(charData.CharObject, currentRunProperty);
                     }
 
                     if (charData.IsLineBreakCharData)
