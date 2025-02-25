@@ -1,9 +1,9 @@
-namespace LightTextEditorPlus.Diagnostics.LogInfos;
+ï»¿namespace LightTextEditorPlus.Diagnostics.LogInfos;
 
 /// <summary>
-/// È·±£µÚÒ»¸ö¶ÎÂä´æÔÚµÄÈÕÖ¾ĞÅÏ¢
+/// ç¡®ä¿ç¬¬ä¸€ä¸ªæ®µè½å­˜åœ¨çš„æ—¥å¿—ä¿¡æ¯
 /// </summary>
 public readonly record struct EnsureFirstParagraphExistsLogInfo
 {
-    // Ã»ÓĞÄÚÈİ£¬ÕâÖ»ÊÇÒ»¸ö±ê¼Ç
+    // æ²¡æœ‰å†…å®¹ï¼Œè¿™åªæ˜¯ä¸€ä¸ªæ ‡è®°
 }
