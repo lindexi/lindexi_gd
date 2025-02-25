@@ -740,7 +740,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     {
         //currentStartPoint = new TextPoint(currentStartPoint.X, currentStartPoint.Y + currentLineLayoutData.LineContentSize.Height);
 
-        return currentStartPoint.Add(0, currentLineLayoutData.LineContentSize.Height);
+        return currentStartPoint.Offset(0, currentLineLayoutData.LineContentSize.Height);
     }
 
     private static TextSize BuildParagraphSize(in ParagraphLayoutArgument argument)
