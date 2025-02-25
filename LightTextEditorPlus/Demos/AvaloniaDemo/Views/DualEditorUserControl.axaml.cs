@@ -32,6 +32,7 @@ public partial class DualEditorUserControl : UserControl
 
     private void LeftTextEditor_LayoutCompleted(object? sender, LayoutCompletedEventArgs e)
     {
+        //LeftTextEditor.TextEditorCore.DocumentManager.pa
     }
 
     private void LeftTextEditor_DocumentChanged(object? sender, System.EventArgs e)

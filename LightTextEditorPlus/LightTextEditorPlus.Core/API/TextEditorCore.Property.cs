@@ -273,5 +273,15 @@ partial class TextEditorCore
 
     #endregion
 
+    #region 段落
+
+    /// <summary>
+    /// 获取文档的段落列表
+    /// </summary>
+    public ReadOnlyParagraphList ParagraphList => _paragraphList ??= new ReadOnlyParagraphList(this);
+    private ReadOnlyParagraphList? _paragraphList;
+
+    #endregion
+
     #endregion
 }
