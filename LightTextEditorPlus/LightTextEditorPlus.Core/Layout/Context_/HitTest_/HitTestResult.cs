@@ -23,7 +23,8 @@ public readonly record struct TextHitTestResult(bool IsOutOfTextCharacterBounds,
     /// <summary>
     /// 命中到哪个段落
     /// </summary>
-    internal ParagraphData HitParagraphData { init; get; } = null!;// 框架内部使用
+    /// todo 尝试扔到构造函数里面
+    public ITextParagraph HitParagraphData { init; get; } = null!;// 框架内部使用
 
     /// <summary>
     /// 命中的段落的段落属性

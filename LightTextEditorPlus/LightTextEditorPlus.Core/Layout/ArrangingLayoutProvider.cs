@@ -62,7 +62,7 @@ abstract class ArrangingLayoutProvider
 
         updateLayoutContext.RecordDebugLayoutInfo($"开始布局");
 
-        IReadOnlyList<ParagraphData> paragraphList = updateLayoutContext.ParagraphList;
+        IReadOnlyList<ParagraphData> paragraphList = updateLayoutContext.InternalParagraphList;
         Debug.Assert(paragraphList.Count > 0, "获取到的段落，即使空文本也会存在一段");
 
         // 01 获取需要更新布局段落的逻辑

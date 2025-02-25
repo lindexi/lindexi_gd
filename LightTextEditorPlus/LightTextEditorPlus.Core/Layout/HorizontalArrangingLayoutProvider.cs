@@ -826,7 +826,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
         TextRect documentBounds = preUpdateDocumentLayoutResult.DocumentBounds;
         var documentWidth = CalculateHitBounds(documentBounds).Width;
-        IReadOnlyList<ParagraphData> paragraphList = updateLayoutContext.ParagraphList;
+        IReadOnlyList<ParagraphData> paragraphList = updateLayoutContext.InternalParagraphList;
 
         for (var paragraphIndex = 0/*为什么从首段开始？如右对齐情况下，被撑大文档范围，则即使没有变脏也需要更新坐标*/; paragraphIndex < paragraphList.Count; paragraphIndex++)
         {
