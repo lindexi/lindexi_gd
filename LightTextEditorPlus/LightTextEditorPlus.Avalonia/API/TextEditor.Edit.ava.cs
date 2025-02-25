@@ -443,9 +443,29 @@ namespace LightTextEditorPlus
 
         internal void OnStyleChanged(StyleChangeEventArgs styleChangeEventArgs)
         {
+            
             StyleChanged?.Invoke(this, styleChangeEventArgs);
         }
 
+        /// <summary>
+        /// 请使用 AvaloniaLayoutUpdated 事件。此事件为 Avalonia 框架里的控件布局更新事件，不是文本库的排版更新事件 Occurs when a layout pass completes for the control. 
+        /// </summary>
+        [Obsolete("请使用 AvaloniaLayoutUpdated 事件。此事件为 Avalonia 框架里的控件布局更新事件，不是文本库的排版更新事件")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public new event EventHandler LayoutUpdated
+        {
+            add => base.LayoutUpdated += value;
+            remove => base.LayoutUpdated -= value;
+        }
+
+        /// <summary>
+        /// Occurs when a layout pass completes for the control. 
+        /// </summary>
+        public event EventHandler AvaloniaLayoutUpdated
+        {
+            add => base.LayoutUpdated += value;
+            remove => base.LayoutUpdated -= value;
+        }
         #endregion
     }
 }

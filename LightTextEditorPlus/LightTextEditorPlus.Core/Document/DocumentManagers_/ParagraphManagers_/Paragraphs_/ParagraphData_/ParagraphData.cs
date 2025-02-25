@@ -14,7 +14,7 @@ namespace LightTextEditorPlus.Core.Document;
 /// <summary>
 /// 段落数据
 /// </summary>
-class ParagraphData
+class ParagraphData : ITextParagraph
 {
     public ParagraphData(IReadOnlyRunProperty paragraphStartRunProperty, ParagraphProperty paragraphProperty, ParagraphManager paragraphManager)
     {
@@ -66,14 +66,10 @@ class ParagraphData
 
     #endregion
 
-    /// <summary>
-    /// 段落属性样式
-    /// </summary>
+    /// <inheritdoc />
     public ParagraphProperty ParagraphProperty { private set; get; }
 
-    /// <summary>
-    /// 段落起始的字符属性，表示在段落第一个字符之前的样式
-    /// </summary>
+    /// <inheritdoc />
     public IReadOnlyRunProperty ParagraphStartRunProperty { get; private set; }
 
     public void SetParagraphProperty(ParagraphProperty paragraphProperty)
@@ -102,9 +98,7 @@ class ParagraphData
     /// </summary>
     public ParagraphManager ParagraphManager { get; }
 
-    /// <summary>
-    /// 获取当前段落是文档的第几段，从0开始
-    /// </summary>
+    /// <inheritdoc />
     public ParagraphIndex Index => ParagraphManager.GetParagraphIndex(this);
 
     private TextEditorCore TextEditor => ParagraphManager.TextEditor;
@@ -149,6 +143,9 @@ class ParagraphData
         };
         return charData;
     }
+
+    /// <inheritdoc />
+    public TextReadOnlyListSpan<CharData> GetParagraphCharDataList() => ToReadOnlyListSpan(new ParagraphCharOffset(0));
 
     /// <summary>
     /// 获取字符列表

@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using LightTextEditorPlus.Core.Events;
 
 namespace LightTextEditorPlus.AvaloniaDemo.Views;
 
@@ -29,15 +30,16 @@ public partial class DualEditorUserControl : UserControl
         RightTextEditor.TextEditorCore.LayoutCompleted += RightTextEditor_LayoutCompleted;
     }
 
-    private void LeftTextEditor_LayoutCompleted(object? sender, Core.Events.LayoutCompletedEventArgs e)
+    private void LeftTextEditor_LayoutCompleted(object? sender, LayoutCompletedEventArgs e)
     {
+        //LeftTextEditor.TextEditorCore.DocumentManager.pa
     }
 
     private void LeftTextEditor_DocumentChanged(object? sender, System.EventArgs e)
     {
     }
 
-    private void RightTextEditor_LayoutCompleted(object? sender, Core.Events.LayoutCompletedEventArgs e)
+    private void RightTextEditor_LayoutCompleted(object? sender, LayoutCompletedEventArgs e)
     {
     }
 
