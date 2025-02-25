@@ -5,7 +5,7 @@ namespace LightTextEditorPlus.Core.Document.DocumentEventArgs
     /// <summary>
     /// 文档变更事件参数
     /// </summary>
-    internal class DocumentChangeEventArgs : EventArgs
+    public class DocumentChangeEventArgs : EventArgs
     {
         /// <summary>
         /// 文档变更事件参数

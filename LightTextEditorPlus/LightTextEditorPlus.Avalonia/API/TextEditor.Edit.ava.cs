@@ -445,6 +445,7 @@ namespace LightTextEditorPlus
         {
             StyleChanged?.Invoke(this, styleChangeEventArgs);
         }
+
         #endregion
     }
 }

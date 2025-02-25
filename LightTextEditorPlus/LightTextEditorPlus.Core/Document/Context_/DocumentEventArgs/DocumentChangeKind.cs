@@ -3,7 +3,7 @@
 /// <summary>
 /// 文档变更类型
 /// </summary>
-enum DocumentChangeKind
+public enum DocumentChangeKind
 {
     /// <summary>
     /// 文本变更，如输入或删除等
