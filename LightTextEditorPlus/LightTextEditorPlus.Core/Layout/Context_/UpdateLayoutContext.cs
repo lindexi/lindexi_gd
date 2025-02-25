@@ -19,10 +19,19 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
         ArrangingLayoutProvider = arrangingLayoutProvider;
 
         IReadOnlyList<ParagraphData> paragraphList = TextEditor.DocumentManager.ParagraphManager.GetParagraphList();
-        ParagraphList = paragraphList;
+        InternalParagraphList = paragraphList;
+        ParagraphList = TextEditor.ParagraphList;
     }
 
-    internal IReadOnlyList<ParagraphData> ParagraphList { get; }
+    /// <summary>
+    /// 段落列表
+    /// </summary>
+    public ReadOnlyParagraphList ParagraphList { get; set; }
+
+    /// <summary>
+    /// 内部使用的段落列表
+    /// </summary>
+    internal IReadOnlyList<ParagraphData> InternalParagraphList { get; }
 
     internal ArrangingLayoutProvider ArrangingLayoutProvider { get; }
 
@@ -76,6 +85,7 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
     /// 当前布局是否已经完成
     /// </summary>
     public bool IsCurrentLayoutCompleted { get; private set; }
+
 
     internal void SetLayoutCompleted()
     {

@@ -23,7 +23,10 @@ public class GetCharDataOutOfRangeException : TextEditorException
         TextEditor = paragraph.ParagraphManager.TextEditor;
     }
 
-    internal ParagraphData Paragraph { get; }
+    /// <summary>
+    /// 所在的段落
+    /// </summary>
+    public ITextParagraph Paragraph { get; }
 
     /// <summary>
     /// 字符列表
