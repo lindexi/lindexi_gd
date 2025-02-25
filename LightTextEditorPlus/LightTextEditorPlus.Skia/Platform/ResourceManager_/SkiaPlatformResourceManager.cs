@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.Utils;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
@@ -79,9 +80,8 @@ public class SkiaPlatformResourceManager :
             shouldDisposeSkTypeface = true;
         }
 
-        // todo 给 ICharObject 添加包含字符的判断属性。当前只有一个 LineBreakCharObject 类型是特殊的
-        var containedChar = charObject is not LineBreakCharObject;
-        if (!containedChar)
+        var notContainedChar = charObject.IsLineBreak();
+        if (notContainedChar)
         {
             // 如果不包含字符，那么不需要检查字体是否支持字符
             return normalRunProperty;
