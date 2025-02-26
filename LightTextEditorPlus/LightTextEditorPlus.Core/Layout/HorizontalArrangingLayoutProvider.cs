@@ -409,6 +409,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// <exception cref="NotSupportedException"></exception>
     /// 1. 布局一行的字符，分行算法
     /// 2. 处理行高，行距算法
+    ///
+    /// | -------- 顶部行距 ------- |
+    /// | 左侧缩进 | 文本 | 右侧缩进 |
+    /// | -------- 底部行距 ------- |
     private WholeLineLayoutResult UpdateWholeLineLayout(in WholeLineLayoutArgument argument)
     {
         var charDataList = argument.CharDataList;

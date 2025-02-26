@@ -17,6 +17,18 @@ namespace LightTextEditorPlus.Core.Layout;
 /// <summary>
 /// 实际的布局提供器
 /// </summary>
+/// 段落排版关系
+/// ------------------------------------------
+/// |段起始点
+/// | // 段前距离 ParagraphBefore
+/// | --------------------------------------
+/// | |行起始点  
+/// | |    // 行
+/// | |         
+/// | --------------------------------------
+/// |
+/// | // 段后距离 ParagraphAfter
+/// -------------------------------------------
 abstract class ArrangingLayoutProvider
 {
     protected ArrangingLayoutProvider(LayoutManager layoutManager)
