@@ -791,8 +791,16 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     {
         const double x = 0;
         var layoutData = paragraphData.ParagraphLayoutData;
-        TextRect textBounds = layoutData.TextContentBounds;
-        var y = textBounds.Y + textBounds.Height;
+        //TextRect textBounds = layoutData.TextContentBounds;
+        if (IsInDebugMode)
+        {
+            if (layoutData.OutlineSize == TextSize.Invalid)
+            {
+                throw new TextEditorDebugException($"只有完全完成布局的段落才能进入此分支，获取下一段的行起始点");
+            }
+        }
+
+        var y = layoutData.OutlineBounds.Bottom;
         return new TextPoint(x, y);
 
         // 以下是通过最后一行的值进行计算的。不足的是需要判断空段，因此不如使用段落偏移加上段落高度进行计算
