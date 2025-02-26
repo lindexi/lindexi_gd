@@ -12,6 +12,36 @@ namespace LightTextEditorPlus.Core.Tests;
 [TestClass]
 public class TextEditorStatusTest
 {
+    /// <summary>
+    /// 测试命中测试，命中到段落之后的空白
+    /// </summary>
+    [ContractTestCase]
+    public void TestTryHitTest_HitParagraphAfter()
+    {
+        "对包含两段的文本进行命中测试，文本首段和第二段存在首段的段后间距，命中到首段的段后距离，可以返回命中到首段".Test(() =>
+        {
+            // Arrange
+            const double fontSize = 20;
+            const double paragraphAfter = 10;
+            var textEditorCore = TestHelper.GetLayoutTestTextEditor(fontSize: fontSize);
+            // 文本首段和第二段存在首段的段后间距
+            textEditorCore.DocumentManager.SetStyleParagraphProperty(textEditorCore.DocumentManager.StyleParagraphProperty with
+            {
+                ParagraphAfter = paragraphAfter
+            });
+            // 再添加两段用来测试
+            textEditorCore.AppendText("123\nabc");
+            // Action
+            // 第一段的 Outline 高度为 fontSize + paragraphAfter = 30，于是取 fontSize + paragraphAfter / 2 = 25 确保命中到第一段的段后间距的空白地方
+            var point = new TextPoint(10, fontSize + paragraphAfter / 2);
+            bool result = textEditorCore.TryHitTest(point, out var hitTestResult);
+
+            // Assert
+            Assert.AreEqual(true, result);
+            Assert.AreEqual(0, hitTestResult.HitParagraphIndex.Index, "可以命中到首段");
+        });
+    }
+
     [ContractTestCase]
     public void TestTryHitTest()
     {

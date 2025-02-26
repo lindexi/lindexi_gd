@@ -49,7 +49,8 @@ public static class TestHelper
     /// <param name="testPlatformProvider"></param>
     /// <param name="lineCharCount">一行能够布局多少个字符</param>
     /// <param name="fontSize"></param>
-    public static TextEditorCore GetLayoutTestTextEditor(int lineCharCount=5, double fontSize = LayoutTestFontSize, TestPlatformProvider? testPlatformProvider = null)
+    public static TextEditorCore GetLayoutTestTextEditor(int lineCharCount = 5, double fontSize = LayoutTestFontSize,
+        TestPlatformProvider? testPlatformProvider = null)
     {
         testPlatformProvider ??= new TestPlatformProvider();
         // 使用固定字符尺寸计算，返回字符尺寸等于字号，方便计算
@@ -65,7 +66,7 @@ public static class TestHelper
             }
         );
 
-        var textEditor = new TextEditorCore(testPlatformProvider); 
+        var textEditor = new TextEditorCore(testPlatformProvider);
         // 设置一行能布局 lineCharCount 个字
         textEditor.DocumentManager.DocumentWidth = fontSize * lineCharCount + 0.1;
         return textEditor;

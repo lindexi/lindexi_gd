@@ -11,5 +11,8 @@ public readonly record struct TextThickness(double Left, double Top, double Righ
     public static TextThickness Invalid => new TextThickness(double.NegativeInfinity, double.NegativeInfinity,
         double.NegativeInfinity, double.NegativeInfinity);
 
+    /// <summary>
+    /// 是否是无效的厚度边距
+    /// </summary>
     public bool IsInvalid => Equals(Invalid);
 }
