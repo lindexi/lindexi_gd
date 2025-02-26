@@ -799,7 +799,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     {
         const double x = 0;
         var layoutData = paragraphData.ParagraphLayoutData;
-        TextRect textBounds = layoutData.TextBounds;
+        TextRect textBounds = layoutData.TextContentBounds;
         var y = textBounds.Y + textBounds.Height;
         return new TextPoint(x, y);
 
@@ -912,7 +912,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         }
 
         // 给定段落的尺寸
-        TextThickness contentThickness = layoutData.ContentThickness;
+        TextThickness contentThickness = layoutData.TextContentThickness;
         paragraph.SetParagraphLayoutOutlineSize(new TextSize
         {
             Width = documentWidth, 
