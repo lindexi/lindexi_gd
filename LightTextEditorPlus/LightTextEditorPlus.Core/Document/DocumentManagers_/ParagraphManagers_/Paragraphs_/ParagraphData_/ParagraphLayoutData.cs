@@ -88,10 +88,13 @@ class ParagraphLayoutData : IParagraphLayoutData
         }
     }
 
-    public void SetLayoutDirty()
+    public void SetLayoutDirty(bool exceptTextSize)
     {
         StartPoint = TextContext.InvalidStartPoint;
-        TextSize = TextSize.Invalid;
+        if (!exceptTextSize)
+        {
+            TextSize = TextSize.Invalid;
+        }
         OutlineSize = TextSize.Invalid;
         TextContentThickness = TextThickness.Invalid;
     }

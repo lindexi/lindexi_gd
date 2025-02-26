@@ -155,6 +155,11 @@ public struct TextPoint
     /// <returns></returns>
     public static bool operator ==(TextPoint pointA, TextPoint pointB)
     {
+        if (pointA.X.Equals(pointB.X) && pointA.Y.Equals(pointB.Y))
+        {
+            return true;
+        }
+
         return Math.Abs(pointA.X - pointB.X) < TextContext.Epsilon && Math.Abs(pointA.Y - pointB.Y) < TextContext.Epsilon;
     }
 
