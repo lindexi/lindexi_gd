@@ -86,7 +86,6 @@ public partial class TextEditorCore
         CaretManager.InternalCurrentSelectionChanged += CaretManager_InternalCurrentSelectionChanged;
 
         _layoutManager = new LayoutManager(this);
-        _layoutManager.InternalLayoutCompleted += LayoutManager_InternalLayoutCompleted;
 
         Logger = platformProvider.BuildTextLogger() ?? new EmptyTextLogger(this);
 
@@ -267,9 +266,11 @@ public partial class TextEditorCore
         }
 
         Logger.LogDebug($"[TextEditorCore][UpdateLayout] 完成更新布局");
+
+        OnLayoutCompleted();
     }
 
-    private void LayoutManager_InternalLayoutCompleted(object? sender, EventArgs e)
+    private void OnLayoutCompleted()
     {
         // 布局完成了，文本不是脏的，可以获取布局内容
         IsDirty = false;
