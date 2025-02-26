@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -25,9 +25,9 @@ public partial class DualEditorUserControl : UserControl
         LeftTextEditor.TextEditorCore.LayoutCompleted += LeftTextEditor_LayoutCompleted;
         LeftTextEditor.SetFontSize(60);
         LeftTextEditor.AppendText("""
-                                  ½­ÄÏ¿É²ÉÁ«£¬Á«Ò¶ºÎÌïÌï£¬ÓãÏ·Á«Ò¶¼ä¡£
-                                  ÓãÏ·Á«Ò¶¶«£¬ÓãÏ·Á«Ò¶Î÷£¬
-                                  ÓãÏ·Á«Ò¶ÄÏ£¬ÓãÏ·Á«Ò¶±±¡£
+                                  æ±Ÿå—å¯é‡‡è²ï¼Œè²å¶ä½•ç”°ç”°ï¼Œé±¼æˆè²å¶é—´ã€‚
+                                  é±¼æˆè²å¶ä¸œï¼Œé±¼æˆè²å¶è¥¿ï¼Œ
+                                  é±¼æˆè²å¶å—ï¼Œé±¼æˆè²å¶åŒ—ã€‚
                                   """);
 
         RightTextEditor.SetStyleParagraphProperty(RightTextEditor.StyleParagraphProperty with
@@ -38,9 +38,9 @@ public partial class DualEditorUserControl : UserControl
         RightTextEditor.TextEditorCore.LayoutCompleted += RightTextEditor_LayoutCompleted;
         RightTextEditor.SetFontSize(60);
         RightTextEditor.AppendText("""
-                                   ½­ÄÏÁ«»¨¿ª£¬Á«»¨ÈÇÈË²É¡£Á«Ò¶Ò»Æ¬ÂÌ£¬·Â·ğ³É±Ìº£¡£Óã¶ùÖªÏ·ÀÖ£¬Ñ°×ÙÃÙ·¼À´¡£
-                                   Óã¶ù³©ÓÎÁ«Ò¶¶«£¬Óã¶ù³©ÓÎÁ«Ò¶Î÷£¬
-                                   Óã¶ù³©ÓÎÁ«Ò¶ÄÏ£¬Óã¶ù³©ÓÎÁ«Ò¶±±¡£
+                                   æ±Ÿå—è²èŠ±å¼€ï¼Œè²èŠ±æƒ¹äººé‡‡ã€‚è²å¶ä¸€ç‰‡ç»¿ï¼Œä»¿ä½›æˆç¢§æµ·ã€‚é±¼å„¿çŸ¥æˆä¹ï¼Œå¯»è¸ªè§…èŠ³æ¥ã€‚
+                                   é±¼å„¿ç•…æ¸¸è²å¶ä¸œï¼Œé±¼å„¿ç•…æ¸¸è²å¶è¥¿ï¼Œ
+                                   é±¼å„¿ç•…æ¸¸è²å¶å—ï¼Œé±¼å„¿ç•…æ¸¸è²å¶åŒ—ã€‚
                                    """);
 
         _isInitialized = true;
@@ -130,13 +130,13 @@ public partial class DualEditorUserControl : UserControl
             Debug.Assert(ReferenceEquals(leftParagraph, leftParagraphRenderInfo.Paragraph));
             Debug.Assert(ReferenceEquals(rightParagraph, rightParagraphRenderInfo.Paragraph));
 
-            // ×îĞ¡¸ß¶È¾ÍÊÇÁ½¸ö¶ÎÂäÖ®¼ä£¬¿´ÄÄ¸ö¶ÎÂäµÄ¸ß¶È¸ü¸ß
+            // æœ€å°é«˜åº¦å°±æ˜¯ä¸¤ä¸ªæ®µè½ä¹‹é—´ï¼Œçœ‹å“ªä¸ªæ®µè½çš„é«˜åº¦æ›´é«˜
             double leftParagraphHeight = leftParagraphRenderInfo.ParagraphLayoutData.TextSize.Height;
             double rightParagraphHeight = rightParagraphRenderInfo.ParagraphLayoutData.TextSize.Height;
 
             var minHeight = Math.Max(leftParagraphHeight, rightParagraphHeight);
 
-            // Á½¸ö¶ÎÂäµÄ¸ß¶È²»Ò»ÖÂ£¬ÄÇÃ´¾Íµ÷Õû¸ß¶È
+            // ä¸¤ä¸ªæ®µè½çš„é«˜åº¦ä¸ä¸€è‡´ï¼Œé‚£ä¹ˆå°±è°ƒæ•´é«˜åº¦
             var leftGap = minHeight - leftParagraphHeight;
             var rightGap = minHeight - rightParagraphHeight;
 
