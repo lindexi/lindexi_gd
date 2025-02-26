@@ -42,7 +42,7 @@ class ParagraphData : ITextParagraph
     /// <summary>
     /// 设置布局数据是脏的
     /// </summary>
-    public void SetLayoutDirty() => _paragraphLayoutData.SetLayoutDirty();
+    public void SetLayoutDirty(bool exceptTextSize) => _paragraphLayoutData.SetLayoutDirty(exceptTextSize);
 
     /// <summary>
     /// 更新段落左上角起始点的坐标

@@ -51,7 +51,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         // 先设置是脏的，然后再更新，这样即可更新段落版本号
         paragraph.SetDirty();
 
-        paragraph.SetLayoutDirty();
+        paragraph.SetLayoutDirty(exceptTextSize: true);
         Debug.Assert(paragraph.ParagraphLayoutData.StartPoint == TextContext.InvalidStartPoint);
         UpdateParagraphLayoutData(in argument);
 
@@ -181,13 +181,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         UpdateParagraphLayoutData(in argument);
         
         var paragraph = argument.ParagraphData;
-
-#if DEBUG
-        if (paragraph.GetText().Contains("鱼戏莲叶东，鱼戏莲叶西"))
-        {
-            
-        }
-#endif
 
         // 预布局过程中，不考虑边距的影响。但只考虑缩进等对可用尺寸的影响
         // 在回溯过程中，才赋值给到边距。详细请参阅 《文本库行布局信息定义.enbx》 维护文档
@@ -843,13 +836,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         for (var paragraphIndex = 0/*为什么从首段开始？如右对齐情况下，被撑大文档范围，则即使没有变脏也需要更新坐标*/; paragraphIndex < paragraphList.Count; paragraphIndex++)
         {
             ParagraphData paragraphData = paragraphList[paragraphIndex];
-
-#if DEBUG
-            if (paragraphData.GetText().Contains("鱼戏莲叶南，鱼戏莲叶北"))
-            {
-                
-            }
-#endif
 
             var paragraphLayoutArgument = new FinalParagraphLayoutArgument(paragraphData,
                 new ParagraphIndex(paragraphIndex), documentWidth, updateLayoutContext);

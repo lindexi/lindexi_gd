@@ -280,7 +280,7 @@ abstract class ArrangingLayoutProvider
         }
 
         context.RecordDebugLayoutInfo($"段落是脏的，执行段落内布局");
-        argument.ParagraphData.SetLayoutDirty();
+        argument.ParagraphData.SetLayoutDirty(exceptTextSize: false/*应该是连文本尺寸都是脏的*/);
 
         // 先找到首个需要更新的坐标点，这里的坐标是段坐标
         var dirtyParagraphOffset = 0;
