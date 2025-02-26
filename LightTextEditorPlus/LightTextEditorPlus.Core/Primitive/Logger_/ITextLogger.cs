@@ -37,5 +37,5 @@ public interface ITextLogger
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="info"></param>
-    void Log<T>(T info);
+    void Log<T>(T info) where T : notnull;
 }

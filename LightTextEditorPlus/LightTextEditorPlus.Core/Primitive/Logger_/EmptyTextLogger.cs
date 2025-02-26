@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Windows.Forms;
+
 using LightTextEditorPlus.Diagnostics.LogInfos;
 
 namespace LightTextEditorPlus.Core.Primitive;
@@ -50,7 +52,7 @@ internal class EmptyTextLogger : ITextLogger
         }
     }
 
-    public void Log<T>(T info)
+    public void Log<T>(T info) where T : notnull
     {
         // 不知道干啥咯
         if (!IsInDebugMode)
@@ -62,9 +64,14 @@ internal class EmptyTextLogger : ITextLogger
         {
             foreach (string message in layoutCompletedLogInfo.GetLayoutDebugMessageList())
             {
-                LogDebug($"[Layout] {message}");
+                // 不要输出了，因为附加调试时候，每一步都输出，太多了
+                //LogDebug($"[Layout] {message}");
                 RecordMessage($"[Layout] {message}", outputToDebug: false /*调试下不要在此输出。附加调试下，每一步都输出*/);
             }
+        }
+        else
+        {
+            RecordMessage(info.ToString() ?? string.Empty);
         }
     }
 
@@ -75,9 +82,11 @@ internal class EmptyTextLogger : ITextLogger
             Debug.WriteLine(message);
         }
 
-        _logList ??= new List<string>();
-        _logList.Add(message);
+        _logList ??= [];
+        _logList.Add((DateTime.Now, message));
     }
 
-    private List<string>? _logList;
+    // 这个属性仅仅只是在调试下，给开发者看的，没有其他用途。因此就没有任何地方使用
+    // ReSharper disable once CollectionNeverQueried.Local
+    private List<(DateTime Time, string Message)>? _logList;
 }
