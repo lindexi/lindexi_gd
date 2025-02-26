@@ -24,7 +24,8 @@ class LayoutManager
     }
 
     public TextEditorCore TextEditor { get; }
-    public event EventHandler? InternalLayoutCompleted;
+    // 由于 InternalLayoutCompleted 触发太快了，导致无法正确处理状态，因此决定将此事件干掉，换成在 TextEditorCore 进行统一处理
+    //public event EventHandler? InternalLayoutCompleted;
 
     private LayoutHitTestProvider? _layoutHitTestProvider;
 
@@ -51,7 +52,7 @@ class LayoutManager
         TextEditor.Logger.Log(new LayoutCompletedLogInfo(result));
         TextEditor.Logger.LogDebug("===完成布局===");
 
-        InternalLayoutCompleted?.Invoke(this, EventArgs.Empty);
+        //InternalLayoutCompleted?.Invoke(this, EventArgs.Empty);
     }
 
     private ArrangingLayoutProvider ArrangingLayoutProvider
