@@ -58,14 +58,14 @@ public class DocumentManagerParagraphPropertyTests
             // 特殊排版规则下，高度等于字高，方便测试
             Assert.AreEqual(fontSize, firstParagraphLayoutData.TextSize.Height);
             Assert.AreEqual(/*paragraphBefore + */fontSize + paragraphAfter, firstParagraphLayoutData.OutlineSize.Height,
-                "首段的高度等于文本高度加上段后距离。为什么不加上段前距离？因为排版规则设置文本首段不添加段前距离");
+                "首段的高度等于文本高度加上段后间距。为什么不加上段前间距？因为排版规则设置文本首段不添加段前间距");
 
             // 第二段紧接第一段
             Assert.AreEqual(firstParagraphLayoutData.OutlineSize.Height, secondParagraphLayoutData.OutlineBounds.Y, "第二段紧接第一段。第一段的 Bottom 和 高度 是相等的。第一段的 Top 就是 0 值");
             Assert.AreEqual(paragraphBefore + fontSize + paragraphAfter, secondParagraphLayoutData.OutlineSize.Height);
 
             Assert.AreEqual(secondParagraphLayoutData.OutlineBounds.Bottom, thirdParagraphLayoutData.StartPoint.Y);
-            Assert.AreEqual(paragraphBefore + fontSize /*+ paragraphAfter*/, thirdParagraphLayoutData.OutlineSize.Height,"最后一段不加上段后距离");
+            Assert.AreEqual(paragraphBefore + fontSize /*+ paragraphAfter*/, thirdParagraphLayoutData.OutlineSize.Height, "最后一段不加上段后间距");
         });
     }
 

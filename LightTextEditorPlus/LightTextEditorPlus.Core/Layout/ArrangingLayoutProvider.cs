@@ -20,14 +20,14 @@ namespace LightTextEditorPlus.Core.Layout;
 /// 段落排版关系
 /// ------------------------------------------
 /// |段起始点
-/// | // 段前距离 ParagraphBefore
+/// | // 段前间距 ParagraphBefore
 /// | --------------------------------------
 /// | |行起始点  
 /// | |    // 行
 /// | |         
 /// | --------------------------------------
 /// |
-/// | // 段后距离 ParagraphAfter
+/// | // 段后间距 ParagraphAfter
 /// -------------------------------------------
 abstract class ArrangingLayoutProvider
 {
@@ -252,7 +252,7 @@ abstract class ArrangingLayoutProvider
                                 paragraphData.ParagraphLayoutData.TextSize.Height + argument.GetParagraphAfter();
                 if (!Nearly.Equals(nextY, exceptedY))
                 {
-                    // 预期下一个段落的起始点是当前段落的起始点 + 当前段落的段前距离 + 当前段落的文本高度 + 当前段落的段后距离
+                    // 预期下一个段落的起始点是当前段落的起始点 + 当前段落的段前间距 + 当前段落的文本高度 + 当前段落的段后间距
                 }
             }
         }
@@ -388,7 +388,7 @@ abstract class ArrangingLayoutProvider
     protected abstract ParagraphLayoutResult UpdateParagraphStartPoint(in ParagraphLayoutArgument argument);
 
     /// <summary>
-    /// 测量空段高度。空段的文本行高度包括行距，不包括段前和段后距离
+    /// 测量空段高度。空段的文本行高度包括行距，不包括段前和段后间距
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
