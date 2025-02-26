@@ -46,11 +46,10 @@ class LayoutManager
     /// </summary>
     public void UpdateLayout()
     {
-        TextEditor.Logger.LogDebug("===开始布局===");
+        TextEditor.Logger.Log(new StartLayoutLogInfo());
         var result = ArrangingLayoutProvider.UpdateLayout();
         DocumentRenderData.DocumentBounds = result.DocumentBounds;
         TextEditor.Logger.Log(new LayoutCompletedLogInfo(result));
-        TextEditor.Logger.LogDebug("===完成布局===");
 
         //InternalLayoutCompleted?.Invoke(this, EventArgs.Empty);
     }

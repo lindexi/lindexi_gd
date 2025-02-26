@@ -252,6 +252,8 @@ public partial class TextEditorCore
         Logger.LogDebug($"[TextEditorCore][UpdateLayout] 开始更新布局");
         if (_layoutUpdateReasonManager is { } layoutUpdateReasonManager)
         {
+            // 只有调试模式才能进入此分支
+            //Debug.Assert(IsInDebugMode);
             Logger.LogDebug(
                 $"[TextEditorCore][UpdateLayout][UpdateReason] 布局原因：{layoutUpdateReasonManager.ReasonText}");
         }
