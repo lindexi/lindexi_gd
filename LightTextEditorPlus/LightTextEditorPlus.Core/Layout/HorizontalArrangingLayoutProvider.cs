@@ -51,9 +51,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         // 先设置是脏的，然后再更新，这样即可更新段落版本号
         paragraph.SetDirty();
 
-        // 此时有些数据还不敢随意清掉
-        //paragraph.SetLayoutDirty();
-        //Debug.Assert(paragraph.ParagraphLayoutData.StartPoint == TextContext.InvalidStartPoint);
+        paragraph.SetLayoutDirty();
+        Debug.Assert(paragraph.ParagraphLayoutData.StartPoint == TextContext.InvalidStartPoint);
         UpdateParagraphLayoutData(in argument);
 
         //var layoutArgument = argument with
