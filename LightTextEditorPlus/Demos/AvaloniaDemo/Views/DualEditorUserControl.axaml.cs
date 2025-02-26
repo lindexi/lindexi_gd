@@ -57,7 +57,7 @@ public partial class DualEditorUserControl : UserControl
 
     private readonly List<(ITextParagraph Left, ITextParagraph Right)> _associatedParagraphList = [];
 
-    private bool _isInitialized;
+    private readonly bool _isInitialized;
 
     private void LeftTextEditor_LayoutCompleted(object? sender, LayoutCompletedEventArgs e)
     {
