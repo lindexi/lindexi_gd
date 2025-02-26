@@ -60,7 +60,11 @@ internal class EmptyTextLogger : ITextLogger
             return;
         }
 
-        if (info is LayoutCompletedLogInfo layoutCompletedLogInfo)
+        if (info is StartLayoutLogInfo)
+        {
+            RecordMessage("===开始布局===");
+        }
+        else if (info is LayoutCompletedLogInfo layoutCompletedLogInfo)
         {
             foreach (string message in layoutCompletedLogInfo.GetLayoutDebugMessageList())
             {
@@ -68,6 +72,8 @@ internal class EmptyTextLogger : ITextLogger
                 //LogDebug($"[Layout] {message}");
                 RecordMessage($"[Layout] {message}", outputToDebug: false /*调试下不要在此输出。附加调试下，每一步都输出*/);
             }
+
+            RecordMessage("===完成布局===");
         }
         else
         {

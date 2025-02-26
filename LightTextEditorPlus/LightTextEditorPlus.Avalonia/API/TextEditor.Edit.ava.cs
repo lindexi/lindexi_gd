@@ -103,7 +103,7 @@ namespace LightTextEditorPlus
 
                 if (value is true && IsEditable is false)
                 {
-                    Logger.LogDebug($"设置进入用户编辑模式，但当前文本禁用编辑，设置进入用户编辑模式失效");
+                    Logger.LogDebug("设置进入用户编辑模式，但当前文本禁用编辑，设置进入用户编辑模式失效");
 
                     value = false;
                 }
