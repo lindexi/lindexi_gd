@@ -17,6 +17,10 @@ public partial class DualEditorUserControl : UserControl
     {
         InitializeComponent();
 
+        LeftTextEditor.SetStyleParagraphProperty(LeftTextEditor.StyleParagraphProperty with
+        {
+            ParagraphBefore = 15,
+        });
         LeftTextEditor.TextEditorCore.DocumentChanged += LeftTextEditor_DocumentChanged;
         LeftTextEditor.TextEditorCore.LayoutCompleted += LeftTextEditor_LayoutCompleted;
         LeftTextEditor.SetFontSize(60);
@@ -26,6 +30,10 @@ public partial class DualEditorUserControl : UserControl
                                   ÓãÏ·Á«Ò¶ÄÏ£¬ÓãÏ·Á«Ò¶±±¡£
                                   """);
 
+        RightTextEditor.SetStyleParagraphProperty(RightTextEditor.StyleParagraphProperty with
+        {
+            ParagraphBefore = 15,
+        });
         RightTextEditor.TextEditorCore.DocumentChanged += RightTextEditor_DocumentChanged;
         RightTextEditor.TextEditorCore.LayoutCompleted += RightTextEditor_LayoutCompleted;
         RightTextEditor.SetFontSize(60);
