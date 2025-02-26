@@ -33,8 +33,7 @@ internal class IMESupporter : TextInputMethodClient
         _textEditor = textEditor;
 
         _textEditor.TextEditorCore.CurrentCaretOffsetChanged += TextEditor_CurrentCaretOffsetChanged;
-        // todo 这里应该修改为 TextEditor 的事件，确保框架内一定更快被触发
-        _textEditor.TextEditorCore.LayoutCompleted += TextEditorCore_LayoutCompleted;
+        _textEditor.InternalLayoutCompleted += TextEditorCore_LayoutCompleted;
     }
 
     private void TextEditorCore_LayoutCompleted(object? sender, LayoutCompletedEventArgs e)

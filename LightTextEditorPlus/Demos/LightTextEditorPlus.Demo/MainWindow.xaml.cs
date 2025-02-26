@@ -48,7 +48,7 @@ namespace LightTextEditorPlus.Demo
             TextEditor.EnterEditMode();
 
             TextEditor.CurrentCaretOffsetChanged += TextEditor_CurrentCaretOffsetChanged;
-            TextEditor.TextEditorCore.LayoutCompleted += TextEditorCore_LayoutCompleted;
+            TextEditor.LayoutCompleted += TextEditor_LayoutCompleted;
 
             Loaded += MainWindow_Loaded;
 
@@ -72,7 +72,7 @@ namespace LightTextEditorPlus.Demo
             TextEditorBorder.Height = TextEditor.ActualHeight;
         }
 
-        private void TextEditorCore_LayoutCompleted(object? sender, LayoutCompletedEventArgs e)
+        private void TextEditor_LayoutCompleted(object? sender, LayoutCompletedEventArgs e)
         {
             UpdateStatus();
         }
@@ -295,17 +295,17 @@ namespace LightTextEditorPlus.Demo
 
         private void ShowDocumentBoundsButton_OnClick(object sender, RoutedEventArgs e)
         {
-            TextEditor.TextEditorCore.LayoutCompleted -= TextEditorCore_LayoutCompleted;
+            TextEditor.LayoutCompleted -= TextEditor_LayoutCompletedInner;
             RemoveDocumentBoundsDebugBorder();
 
             if (ShowDocumentBoundsButton.IsChecked is true)
             {
-                TextEditor.TextEditorCore.LayoutCompleted += TextEditorCore_LayoutCompleted;
+                TextEditor.LayoutCompleted += TextEditor_LayoutCompletedInner;
                 ShowDocumentBoundsDebugBorder();
             }
 
             // ReSharper disable once InconsistentNaming
-            void TextEditorCore_LayoutCompleted(object? _, LayoutCompletedEventArgs __)
+            void TextEditor_LayoutCompletedInner(object? _, LayoutCompletedEventArgs __)
             {
                 RemoveDocumentBoundsDebugBorder();
                 ShowDocumentBoundsDebugBorder();
