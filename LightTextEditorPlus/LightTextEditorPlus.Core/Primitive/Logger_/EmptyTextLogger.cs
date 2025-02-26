@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using LightTextEditorPlus.Diagnostics.LogInfos;
 
@@ -13,59 +14,70 @@ internal class EmptyTextLogger : ITextLogger
     {
         _textEditor = textEditor;
     }
+
     private readonly TextEditorCore _textEditor;
+    private bool IsInDebugMode => _textEditor.IsInDebugMode;
 
     public void LogDebug(string message)
     {
-        if (_textEditor.IsInDebugMode)
+        if (IsInDebugMode)
         {
-            Debug.WriteLine($"[Debug] {message}");
+            RecordMessage($"[Debug] {message}");
         }
     }
 
     public void LogException(Exception exception, string? message)
     {
-        if (_textEditor.IsInDebugMode)
+        if (IsInDebugMode)
         {
-            Debug.WriteLine($"[Warn] {message} 异常:{exception}");
+            RecordMessage($"[Warn] {message} 异常:{exception}");
         }
     }
 
     public void LogInfo(string message)
     {
-        if (_textEditor.IsInDebugMode)
+        if (IsInDebugMode)
         {
-            Debug.WriteLine($"[Info] {message}");
+            RecordMessage($"[Info] {message}");
         }
     }
 
     public void LogWarning(string message)
     {
-        if (_textEditor.IsInDebugMode)
+        if (IsInDebugMode)
         {
-            Debug.WriteLine($"[Warn] {message}");
+            RecordMessage($"[Warn] {message}");
         }
     }
 
     public void Log<T>(T info)
     {
         // 不知道干啥咯
-        if (!_textEditor.IsInDebugMode)
+        if (!IsInDebugMode)
         {
             return;
         }
 
         if (info is LayoutCompletedLogInfo layoutCompletedLogInfo)
         {
-            // 可选将其输出一下？
-            // 调试下不要在此输出。附加调试下，每一步都输出
-//#if DEBUG
-//            // 只有在文本库调试模式下才会输出，不要影响业务开发者
-//            foreach (string message in layoutCompletedLogInfo.GetLayoutDebugMessageList())
-//            {
-//                LogDebug($"[Layout] {message}");
-//            }
-//#endif
+            foreach (string message in layoutCompletedLogInfo.GetLayoutDebugMessageList())
+            {
+                LogDebug($"[Layout] {message}");
+                RecordMessage($"[Layout] {message}", outputToDebug: false /*调试下不要在此输出。附加调试下，每一步都输出*/);
+            }
         }
     }
+
+    private void RecordMessage(string message, bool outputToDebug = true)
+    {
+        if (outputToDebug)
+        {
+            Debug.WriteLine(message);
+        }
+
+        _logList ??= new List<string>();
+        _logList.Add(message);
+    }
+
+    private List<string>? _logList;
 }
