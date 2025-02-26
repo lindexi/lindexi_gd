@@ -72,11 +72,9 @@ class LayoutHitTestProvider
         {
             var lastParagraphData = list.Last();
             // 任何一个都没命中，那就返回命中到最后
-            return new TextHitTestResult(false, false, false, documentManager.GetDocumentEndCaretOffset(),
+            return new TextHitTestResult(lastParagraphData, false, false, false, documentManager.GetDocumentEndCaretOffset(),
                 null, lastParagraphData.Index)
             {
-                HitParagraphData = lastParagraphData,
-
                 // 没有命中到字符
                 IsHitSpace = true,
             };
@@ -122,10 +120,9 @@ class LayoutHitTestProvider
             hitCaretOffset = documentManager.GetDocumentEndCaretOffset();
         }
 
-        return new TextHitTestResult(isOutOfTextCharacterBounds, isEndOfTextCharacterBounds, isInLastLineBounds,
+        return new TextHitTestResult(paragraphData, isOutOfTextCharacterBounds, isEndOfTextCharacterBounds, isInLastLineBounds,
             hitCaretOffset, HitCharData: null, paragraphData.Index)
         {
-            HitParagraphData = paragraphData,
             // 没在文档内，那一定是命中到空白
             IsHitSpace = true,
         };
@@ -258,11 +255,10 @@ class LayoutHitTestProvider
                 const bool isOutOfTextCharacterBounds = false; // 是否超过文本字符范围了
                 const bool isEndOfTextCharacterBounds = false; // >在 IsOutOfTextCharacterBounds 的基础上，是否在文档末尾
 
-                var result = new TextHitTestResult(isOutOfTextCharacterBounds, isEndOfTextCharacterBounds,
+                var result = new TextHitTestResult(paragraphData, isOutOfTextCharacterBounds, isEndOfTextCharacterBounds,
                     isInLineBoundsNotHitChar, hitCaretOffset, hitCharData,
                     hitParagraphIndex)
                 {
-                    HitParagraphData = paragraphData,
                     // 命中到了空白部分
                     IsHitSpace = isHitSpace,
                 };
