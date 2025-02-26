@@ -139,7 +139,7 @@ class LayoutHitTestProvider
         var paragraphBounds = paragraphLayoutData.OutlineBounds;
         if (paragraphBounds.Contains(point))
         {
-            if (!paragraphLayoutData.TextBounds.Contains(point))
+            if (!paragraphLayoutData.TextContentBounds.Contains(point))
             {
                 // 快速分支，命中到段落，但预计命中到了段落的空白部分。如段落前后的空白
 

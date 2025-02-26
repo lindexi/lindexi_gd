@@ -48,7 +48,7 @@ public readonly record struct TextPointInParagraph
     public TextPoint ToDocumentPoint(IParagraphLayoutData layoutData)
     {
         TextPoint startPoint = layoutData.StartPoint;
-        TextThickness contentThickness = layoutData.ContentThickness;
+        TextThickness contentThickness = layoutData.TextContentThickness;
         if (_paragraphData.IsInDebugMode)
         {
             if (contentThickness.IsInvalid)

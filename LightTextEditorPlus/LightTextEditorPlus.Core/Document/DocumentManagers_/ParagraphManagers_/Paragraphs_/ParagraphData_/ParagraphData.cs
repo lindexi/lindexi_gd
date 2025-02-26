@@ -37,7 +37,7 @@ class ParagraphData : ITextParagraph
         => _paragraphLayoutData.OutlineSize = outlineSize;
 
     public void SetParagraphLayoutContentThickness(TextThickness contentThickness)
-        => _paragraphLayoutData.ContentThickness = contentThickness;
+        => _paragraphLayoutData.TextContentThickness = contentThickness;
 
     /// <summary>
     /// 设置布局数据是脏的
