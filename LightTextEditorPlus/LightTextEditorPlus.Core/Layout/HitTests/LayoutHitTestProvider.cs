@@ -131,12 +131,20 @@ class LayoutHitTestProvider
     private ParagraphHitTestResult ParagraphHitTest(in ParagraphHitTestContext context)
     {
         ParagraphData paragraphData = context.ParagraphData;
-        var point = context.HitPoint;
+        TextPoint point = context.HitPoint;
         var currentCharIndex = context.StartDocumentOffset;
 
-        var paragraphBounds = paragraphData.ParagraphLayoutData.OutlineBounds;
+        IParagraphLayoutData paragraphLayoutData = paragraphData.ParagraphLayoutData;
+
+        var paragraphBounds = paragraphLayoutData.OutlineBounds;
         if (paragraphBounds.Contains(point))
         {
+            if (!paragraphLayoutData.TextBounds.Contains(point))
+            {
+                // 快速分支，命中到段落，但预计命中到了段落的空白部分。如段落前后的空白
+
+            }
+
             for (var lineIndex = 0; lineIndex < paragraphData.LineLayoutDataList.Count; lineIndex++)
             {
                 LineLayoutData lineLayoutData = paragraphData.LineLayoutDataList[lineIndex];

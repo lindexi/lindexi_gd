@@ -34,6 +34,11 @@ public readonly struct ParagraphRenderInfo
     public ParagraphProperty ParagraphProperty => _paragraphData.ParagraphProperty;
 
     /// <summary>
+    /// 段落
+    /// </summary>
+    public ITextParagraph Paragraph => _paragraphData;
+
+    /// <summary>
     /// 获取此段落内的行的渲染信息
     /// </summary>
     /// <returns></returns>
