@@ -103,6 +103,8 @@ class ParagraphData : ITextParagraph
 
     private TextEditorCore TextEditor => ParagraphManager.TextEditor;
 
+    public bool IsInDebugMode => TextEditor.IsInDebugMode;
+
     /// <summary>
     /// 段落的字符管理
     /// </summary>
