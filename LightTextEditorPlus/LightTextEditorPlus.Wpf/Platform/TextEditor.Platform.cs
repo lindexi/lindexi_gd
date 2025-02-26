@@ -136,6 +136,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     private void TextEditorCore_LayoutCompleted(object? sender, LayoutCompletedEventArgs e)
     {
         InvalidateMeasureAfterLayoutCompleted();
+        OnLayoutCompleted(e);
     }
 
     /// <summary>
