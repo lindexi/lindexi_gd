@@ -64,7 +64,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         // 转换为下一段的坐标
         TextPoint nextParagraphStartPoint = nextLineStartPoint.ToDocumentPoint(paragraph);
         // 加上段后距离
-        nextParagraphStartPoint = nextParagraphStartPoint.Offset(0, paragraph.ParagraphProperty.ParagraphAfter);
+        nextParagraphStartPoint = nextParagraphStartPoint.Offset(0, argument.GetParagraphAfter());
         return new ParagraphLayoutResult(nextParagraphStartPoint);
     }
 
@@ -82,10 +82,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         //};
         paragraph.UpdateParagraphLayoutStartPoint(argument.CurrentStartPoint);
 
-        double paragraphBefore = argument.IsFirstParagraph ? 0 /*首段不加段前距离*/  : paragraph.ParagraphProperty.ParagraphBefore;
+        double paragraphBefore = argument.GetParagraphBefore();
         // 只加上段前后距离，左右边距现在不加上，因为左右边距在行里进行计算
         // 左右边距影响行的可用宽度，这就是为什么放在行进行计算的原因。既然放在行进行计算了，那就顺带叠加在行的布局属性
-        double paragraphAfter = argument.IsLastParagraph ? 0 /*最后一段不加段后距离*/ : paragraph.ParagraphProperty.ParagraphAfter;
+        double paragraphAfter = argument.GetParagraphAfter();
         var contentThickness =
             new TextThickness(0, paragraphBefore, 0, paragraphAfter);
         paragraph.SetParagraphLayoutContentThickness(contentThickness);
@@ -178,6 +178,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         UpdateParagraphLayoutData(in argument);
         
         var paragraph = argument.ParagraphData;
+
+#if DEBUG
+        if (paragraph.GetText().Contains("鱼戏莲叶东，鱼戏莲叶西"))
+        {
+            
+        }
+#endif
 
         // 预布局过程中，不考虑边距的影响。但只考虑缩进等对可用尺寸的影响
         // 在回溯过程中，才赋值给到边距。详细请参阅 《文本库行布局信息定义.enbx》 维护文档
@@ -856,7 +863,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
                 ParagraphData paragraphData = paragraphList[paragraphIndex];
                 TextPoint startPoint = paragraphData.ParagraphLayoutData.StartPoint;
 
-                if (!Nearly.Equals(lastParagraphOutlineBounds.Bottom, startPoint.Y))
+                if (!Nearly.Equals(lastParagraphOutlineBounds.Bottom, startPoint. Y))
                 {
                     // 如果不相等，则证明计算不正确
                     throw new TextEditorInnerDebugException($"文本段落计算之间存在空隙。当前第 {paragraphIndex} 段。上一段范围： {lastParagraphOutlineBounds} ，当前段的起始点 {startPoint}");
