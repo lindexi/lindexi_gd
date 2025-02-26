@@ -19,7 +19,7 @@ public partial class DualEditorUserControl : UserControl
 
         LeftTextEditor.SetStyleParagraphProperty(LeftTextEditor.StyleParagraphProperty with
         {
-            ParagraphBefore = 15,
+            ParagraphBefore = 30,
         });
         LeftTextEditor.TextEditorCore.DocumentChanged += LeftTextEditor_DocumentChanged;
         LeftTextEditor.TextEditorCore.LayoutCompleted += LeftTextEditor_LayoutCompleted;
@@ -32,7 +32,7 @@ public partial class DualEditorUserControl : UserControl
 
         RightTextEditor.SetStyleParagraphProperty(RightTextEditor.StyleParagraphProperty with
         {
-            ParagraphBefore = 15,
+            ParagraphBefore = 30,
         });
         RightTextEditor.TextEditorCore.DocumentChanged += RightTextEditor_DocumentChanged;
         RightTextEditor.TextEditorCore.LayoutCompleted += RightTextEditor_LayoutCompleted;
