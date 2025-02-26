@@ -4,7 +4,10 @@ using System.Diagnostics;
 using System.Linq;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
+using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Utils;
+using LightTextEditorPlus.Core.Utils.Maths;
 
 namespace LightTextEditorPlus.Core.Layout.HitTests;
 
@@ -132,17 +135,69 @@ class LayoutHitTestProvider
     {
         ParagraphData paragraphData = context.ParagraphData;
         TextPoint point = context.HitPoint;
+        // 当前的文档偏移量。为什么不能用段落的偏移量？因为段落里面的偏移量也是一个获取的时候才进行计算的属性。为了提升性能，这里直接传递，就不用每个段落重新计算了
         var currentCharIndex = context.StartDocumentOffset;
+        // 理论上，段落的偏移量应该和当前的文档偏移量相同。如果不同，那就是框架实现错误
+        if (TextEditor.IsInDebugMode)
+        {
+            DocumentOffset paragraphStartOffset = paragraphData.GetParagraphStartOffset();
+            if (currentCharIndex != paragraphStartOffset)
+            {
+                throw new TextEditorInnerDebugException($"命中测试传递的当前文档偏移量和段落的偏移量不相同 CurrentCharIndex={currentCharIndex.Offset} ParagraphStartOffset={paragraphStartOffset.Offset}");
+            }
+        }
 
         IParagraphLayoutData paragraphLayoutData = paragraphData.ParagraphLayoutData;
+
+        Debug.Assert(paragraphData.LineLayoutDataList.Count > 0, "经过布局之后的段落必定至少有一行，即使空段也有一行");
 
         var paragraphBounds = paragraphLayoutData.OutlineBounds;
         if (paragraphBounds.Contains(point))
         {
-            if (!paragraphLayoutData.TextContentBounds.Contains(point))
+            TextRect textContentBounds = paragraphLayoutData.TextContentBounds;
+            if (!textContentBounds.Contains(point))
             {
                 // 快速分支，命中到段落，但预计命中到了段落的空白部分。如段落前后的空白
+                // 这里当成横排文本处理
+                var isLeft = point.X <= textContentBounds.Left;
+                var isRight = point.X >= textContentBounds.Right;
+                var isTop = point.Y <= textContentBounds.Top;
+                var isBottom = point.Y >= textContentBounds.Bottom;
 
+                // 如果是在段落前的情况，取首行命中，否则取末行命中
+                LineLayoutData lineLayoutData;
+                if (isLeft || isTop)
+                {
+                    lineLayoutData = paragraphData.LineLayoutDataList.First();
+                }
+                else
+                {
+                    Debug.Assert(isRight || isBottom);
+                    lineLayoutData = paragraphData.LineLayoutDataList.Last();
+                }
+
+                TextRect lineContentBounds = lineLayoutData.GetLineContentBounds();
+
+                double x = point.X.CoerceValue(lineContentBounds.Left + TextContext.Epsilon,
+                    lineContentBounds.Right - TextContext.Epsilon);
+                double y = point.Y.CoerceValue(lineContentBounds.Top + TextContext.Epsilon,
+                    lineContentBounds.Bottom - TextContext.Epsilon);
+                var lineHitTestContext = new LineHitTestContext(lineLayoutData, currentCharIndex, context with
+                {
+                    HitPoint = new TextPoint(x,y)
+                });
+                ParagraphHitTestResult result = LineHitTest(in lineHitTestContext).ParagraphHitTestResult;
+                Debug.Assert(result.Success, "经过了约束的点，必定命中成功");
+                return result with
+                {
+                    Result = result.Result with
+                    {
+                        // 这是命中到段落的空白部分
+                        IsHitSpace = true,
+                        // 超过文字字符范围
+                        IsOutOfTextCharacterBounds = true,
+                    }
+                };
             }
 
             for (var lineIndex = 0; lineIndex < paragraphData.LineLayoutDataList.Count; lineIndex++)
@@ -269,6 +324,7 @@ class LayoutHitTestProvider
                 {
                     // 命中到了空白部分
                     IsHitSpace = isHitSpace,
+                    LineLayoutData = lineLayoutData,
                 };
 
                 return ParagraphHitTestResult.OnSuccess(result);
