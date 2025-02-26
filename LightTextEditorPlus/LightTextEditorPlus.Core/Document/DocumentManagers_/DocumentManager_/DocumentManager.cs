@@ -225,6 +225,23 @@ namespace LightTextEditorPlus.Core.Document
             SetParagraphProperty(paragraphData, paragraphProperty);
         }
 
+        /// <summary>
+        /// 设置段落属性
+        /// </summary>
+        public void SetParagraphProperty(ITextParagraph paragraph, ParagraphProperty paragraphProperty)
+        {
+            if (TextEditor.IsInDebugMode)
+            {
+                bool contains = ParagraphManager.GetParagraphList().Contains(paragraph);
+                if (!contains)
+                {
+                    throw new TextEditorDebugException("设置的段落不在文档中");
+                }
+            }
+
+            SetParagraphProperty((ParagraphData) paragraph, paragraphProperty);
+        }
+
         private void SetParagraphProperty(ParagraphData paragraphData, ParagraphProperty paragraphProperty)
         {
             paragraphProperty.Verify();
