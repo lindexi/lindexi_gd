@@ -222,6 +222,7 @@ partial class TextEditor : Control
     private void TextEditorCore_LayoutCompleted(object? sender, LayoutCompletedEventArgs e)
     {
         InvalidateMeasureAfterLayoutCompleted();
+        OnLayoutCompleted(e);
     }
 
     /// <summary>

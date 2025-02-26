@@ -16,7 +16,7 @@ public class TextEditorStyleTest
             using var context = TestFramework.CreateTextEditorInNewWindow();
             var textEditor = context.TextEditor;
             // 只触发 StyleChanging 和 StyleChanged 事件。不用测试了，交给其他单元测试
-            textEditor.TextEditorCore.LayoutCompleted += (sender, args) =>
+            textEditor.LayoutCompleted += (sender, args) =>
             {
                 // Assert
                 // 未选择时，修改当前光标字符属性样式，只触发 StyleChanging 和 StyleChanged 事件，不触发布局变更

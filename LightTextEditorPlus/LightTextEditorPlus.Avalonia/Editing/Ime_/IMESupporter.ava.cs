@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,31 +33,28 @@ internal class IMESupporter : TextInputMethodClient
         _textEditor = textEditor;
 
         _textEditor.TextEditorCore.CurrentCaretOffsetChanged += TextEditor_CurrentCaretOffsetChanged;
-        _textEditor.TextEditorCore.LayoutCompleted += TextEditorCore_LayoutCompleted;
+        _textEditor.InternalLayoutCompleted += TextEditorCore_LayoutCompleted;
     }
 
     private void TextEditorCore_LayoutCompleted(object? sender, LayoutCompletedEventArgs e)
     {
-        if (_textEditor.TextEditorCore.IsDirty)
-        {
-            // 这是有可能的，因为可能有业务就刚好在布局完成后修改了文本
-        }
+        Debug.Assert(!_textEditor.TextEditorCore.IsDirty);
 
         UpdateCaret();
     }
 
     private void TextEditor_CurrentCaretOffsetChanged(object? sender, TextEditorValueChangeEventArgs<CaretOffset> e)
     {
-        UpdateCaret();
-    }
-
-    private void UpdateCaret()
-    {
         if (_textEditor.TextEditorCore.IsDirty)
         {
             return;
         }
 
+        UpdateCaret();
+    }
+
+    private void UpdateCaret()
+    {
         CaretRenderInfo currentCaretRenderInfo = _textEditor.TextEditorCore.GetRenderInfo().GetCurrentCaretRenderInfo();
         _cursorRectangle = currentCaretRenderInfo.GetCaretBounds(caretWidth: 1).ToSKRect().ToAvaloniaRect();
         base.RaiseCursorRectangleChanged();
