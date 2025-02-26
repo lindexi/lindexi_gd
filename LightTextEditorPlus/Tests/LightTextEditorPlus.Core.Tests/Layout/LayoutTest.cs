@@ -109,11 +109,11 @@ public class LayoutTest
     [ContractTestCase]
     public void TestParagraphBefore()
     {
-        "文本包含段前段后距离，可以给文本计算入段前段后距离".Test(() =>
+        "文本包含段前段后间距，可以给文本计算入段前段后间距".Test(() =>
         {
             // Arrange
             var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider())
-                // 固定行距，用于减少行距影响，只测试段落前后距离
+                // 固定行距，用于减少行距影响，只测试段落前后间距
                 .UseFixedLineSpacing();
 
             // Action
@@ -140,11 +140,11 @@ public class LayoutTest
     [ContractTestCase]
     public void TestEmptyParagraph()
     {
-        "空段文本包含段前段后距离，可以给空段文本计算入段前段后距离".Test(() =>
+        "空段文本包含段前段后间距，可以给空段文本计算入段前段后间距".Test(() =>
         {
             // Arrange
             var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider().UseManuallyRequireLayoutDispatcher(out var dispatcher))
-                // 固定行距，用于减少行距影响，只测试段落前后距离
+                // 固定行距，用于减少行距影响，只测试段落前后间距
                 .UseFixedLineSpacing();
 
             // Action
@@ -171,23 +171,23 @@ public class LayoutTest
             Assert.AreEqual(15 + 22 + 21 + 15 + 22 + 21 + 15, documentLayoutBounds.Height);
         });
 
-        "空段文本包含段后距离，可以给空段文本计算入段后距离".Test(() =>
+        "空段文本包含段后间距，可以给空段文本计算入段后间距".Test(() =>
         {
             // Arrange
             var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider())
-                // 固定行距，用于减少行距影响，只测试段落前后距离
+                // 固定行距，用于减少行距影响，只测试段落前后间距
                 .UseFixedLineSpacing();
 
             // Action
             var paragraphProperty = textEditorCore.DocumentManager.GetParagraphProperty(new ParagraphIndex(0));
             textEditorCore.DocumentManager.SetParagraphProperty(new ParagraphIndex(0), paragraphProperty with
             {
-                // 随便定义两个距离，又刚好不是整数，方便测试
+                // 随便定义两个间距，又刚好不是整数，方便测试
                 ParagraphBefore = 5,
                 ParagraphAfter = 22
             });
 
-            // 空段放在首段，根据首段不计算段前距离，即可让段落只计算段后距离
+            // 空段放在首段，根据首段不计算段前间距，即可让段落只计算段后间距
             textEditorCore.AppendText("\na");
 
             // Assert
@@ -196,11 +196,11 @@ public class LayoutTest
             Assert.AreEqual(15 + 22 + 5 + 15, documentLayoutBounds.Height);
         });
 
-        "空段文本包含段前距离，可以给空段文本计算入段前距离".Test(() =>
+        "空段文本包含段前间距，可以给空段文本计算入段前间距".Test(() =>
         {
             // Arrange
             var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider())
-                // 固定行距，用于减少行距影响，只测试段落前后距离
+                // 固定行距，用于减少行距影响，只测试段落前后间距
                 .UseFixedLineSpacing();
 
             // Action
@@ -212,7 +212,7 @@ public class LayoutTest
                 ParagraphAfter = 22
             });
 
-            // 空段放在末段，根据末段不计算段末距离，即可让段落只计算段前距离
+            // 空段放在末段，根据末段不计算段末间距，即可让段落只计算段前间距
             textEditorCore.AppendText("a\n");
 
             // Assert

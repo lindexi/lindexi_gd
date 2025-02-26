@@ -8,19 +8,19 @@ namespace LightTextEditorPlus.Core.Layout.LayoutUtils;
 internal static class ParagraphLayoutArgumentLayoutUtilsExtension
 {
     /// <summary>
-    /// 获取段前距离。首段不加段前距离
+    /// 获取段前间距。首段不加段前间距
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
     public static double GetParagraphBefore(this in ParagraphLayoutArgument argument)
     {
         ParagraphData paragraph = argument.ParagraphData;
-        double paragraphBefore = argument.IsFirstParagraph ? 0 /*首段不加段前距离*/  : paragraph.ParagraphProperty.ParagraphBefore;
+        double paragraphBefore = argument.IsFirstParagraph ? 0 /*首段不加段前间距*/  : paragraph.ParagraphProperty.ParagraphBefore;
         return paragraphBefore;
     }
 
     /// <summary>
-    /// 获取段后距离。最后一段不加段后距离
+    /// 获取段后间距。最后一段不加段后间距
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
@@ -28,7 +28,7 @@ internal static class ParagraphLayoutArgumentLayoutUtilsExtension
     {
         ParagraphData paragraph = argument.ParagraphData;
         double paragraphAfter =
-            argument.IsLastParagraph ? 0 /*最后一段不加段后距离*/ : paragraph.ParagraphProperty.ParagraphAfter;
+            argument.IsLastParagraph ? 0 /*最后一段不加段后间距*/ : paragraph.ParagraphProperty.ParagraphAfter;
         return paragraphAfter;
     }
 }

@@ -69,12 +69,12 @@ public static class SetFormatCommands
     public static readonly RoutedUICommand PastePlainTextCommand = new RoutedUICommand();
 
     /// <summary>
-    /// 设置段前距离命令
+    /// 设置段前间距命令
     /// </summary>
     public static readonly RoutedUICommand SetParagraphSpaceBeforeCommand = new RoutedUICommand();
 
     /// <summary>
-    /// 设置段后距离命令
+    /// 设置段后间距命令
     /// </summary>
     public static readonly RoutedUICommand SetParagraphSpaceAfterCommand = new RoutedUICommand();
 

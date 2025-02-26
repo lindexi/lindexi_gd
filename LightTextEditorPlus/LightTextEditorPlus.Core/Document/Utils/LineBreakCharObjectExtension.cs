@@ -1,12 +1,12 @@
-namespace LightTextEditorPlus.Core.Document.Utils;
+ï»¿namespace LightTextEditorPlus.Core.Document.Utils;
 
 /// <summary>
-/// »»ĞĞ×Ö·û¶ÔÏóÀ©Õ¹
+/// æ¢è¡Œå­—ç¬¦å¯¹è±¡æ‰©å±•
 /// </summary>
 public static class LineBreakCharObjectExtension
 {
     /// <summary>
-    /// ÅĞ¶ÏÊÇ·ñÊÇ»»ĞĞ×Ö·û
+    /// åˆ¤æ–­æ˜¯å¦æ˜¯æ¢è¡Œå­—ç¬¦
     /// </summary>
     /// <param name="charObject"></param>
     /// <returns></returns>

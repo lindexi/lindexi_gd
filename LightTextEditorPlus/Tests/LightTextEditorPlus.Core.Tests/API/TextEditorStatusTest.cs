@@ -43,7 +43,7 @@ public class TextEditorStatusTest
             Assert.AreEqual(0, hitTestResult.LineLayoutData.LineInParagraphIndex, "可以命中到第二段首行");
         });
 
-        "对包含两段的文本进行命中测试，文本首段和第二段存在首段的段后间距，命中到首段的段后距离，可以返回命中到首段".Test(() =>
+        "对包含两段的文本进行命中测试，文本首段和第二段存在首段的段后间距，命中到首段的段后间距，可以返回命中到首段".Test(() =>
         {
             // Arrange
             const double fontSize = 20;
