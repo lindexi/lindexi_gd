@@ -155,7 +155,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
     #endregion
 
-    #region LayoutParagraphCore
+    #region 段落布局核心
 
     /// <summary>
     /// 布局段落的核心逻辑
@@ -832,6 +832,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         {
             ParagraphData paragraphData = paragraphList[paragraphIndex];
 
+#if DEBUG
+            if (paragraphData.GetText().Contains("鱼戏莲叶南，鱼戏莲叶北"))
+            {
+                
+            }
+#endif
+
             var paragraphLayoutArgument = new FinalParagraphLayoutArgument(paragraphData,
                 new ParagraphIndex(paragraphIndex), documentWidth, updateLayoutContext);
             FinalUpdateParagraphLayout(in paragraphLayoutArgument);
@@ -877,6 +884,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         updateLayoutContext.RecordDebugLayoutInfo($"开始回溯第 {paragraphIndex} 段");
 
         ParagraphData paragraph = argument.Paragraph;
+        Debug.Assert(paragraphIndex == paragraph.Index.Index, "参数拿到的 ParagraphIndex 是不用计算的，而 paragraph.Index 是需要遍历计算的。这两个值应该是相同的");
 
         IParagraphLayoutData layoutData = paragraph.ParagraphLayoutData;
 

@@ -228,7 +228,7 @@ class ParagraphManager
 
     public ParagraphIndex GetParagraphIndex(ParagraphData paragraphData)
     {
-        var index = ParagraphList.IndexOf(paragraphData);
+        var index = ParagraphList.FindIndex(data => ReferenceEquals(data, paragraphData));
         return new ParagraphIndex(index);
     }
 
