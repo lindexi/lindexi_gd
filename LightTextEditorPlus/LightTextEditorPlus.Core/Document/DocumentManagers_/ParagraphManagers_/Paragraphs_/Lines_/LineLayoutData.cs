@@ -61,7 +61,7 @@ class LineLayoutData : IParagraphCache, IDisposable
     }
 
     /// <summary>
-    /// 相对于段落的起始点
+    /// 相对于段落的文本范围的起始点
     /// </summary>
     internal TextPointInParagraph CharStartPointInParagraph
     {

@@ -6,9 +6,11 @@ using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
+using LightTextEditorPlus.Core.Layout.LayoutUtils;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils;
+using LightTextEditorPlus.Core.Utils.Maths;
 
 namespace LightTextEditorPlus.Core.Layout;
 
@@ -231,6 +233,14 @@ abstract class ArrangingLayoutProvider
                     TextContext.InvalidStartPoint)
                 {
                     throw new TextEditorInnerDebugException($"完成预布局第 {index} 段之后，没有更新段落的文本起始点布局信息");
+                }
+
+                var nextY = nextParagraphStartPoint.Y;
+                var exceptedY = argument.CurrentStartPoint.Y + argument.GetParagraphBefore() +
+                                paragraphData.ParagraphLayoutData.TextSize.Height + argument.GetParagraphAfter();
+                if (!Nearly.Equals(nextY, exceptedY))
+                {
+                    // 预期下一个段落的起始点是当前段落的起始点 + 当前段落的段前距离 + 当前段落的文本高度 + 当前段落的段后距离
                 }
             }
         }

@@ -10,6 +10,7 @@ using LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
+using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.Maths;
 
 namespace LightTextEditorPlus.Core.Layout;
@@ -50,6 +51,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         // 先设置是脏的，然后再更新，这样即可更新段落版本号
         paragraph.SetDirty();
 
+        // 此时有些数据还不敢随意清掉
+        //paragraph.SetLayoutDirty();
+        //Debug.Assert(paragraph.ParagraphLayoutData.StartPoint == TextContext.InvalidStartPoint);
         UpdateParagraphLayoutData(in argument);
 
         //var layoutArgument = argument with
@@ -64,7 +68,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         // 转换为下一段的坐标
         TextPoint nextParagraphStartPoint = nextLineStartPoint.ToDocumentPoint(paragraph);
         // 加上段后距离
-        nextParagraphStartPoint = nextParagraphStartPoint.Offset(0, paragraph.ParagraphProperty.ParagraphAfter);
+        nextParagraphStartPoint = nextParagraphStartPoint.Offset(0, argument.GetParagraphAfter());
         return new ParagraphLayoutResult(nextParagraphStartPoint);
     }
 
@@ -82,10 +86,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         //};
         paragraph.UpdateParagraphLayoutStartPoint(argument.CurrentStartPoint);
 
-        double paragraphBefore = argument.IsFirstParagraph ? 0 /*首段不加段前距离*/  : paragraph.ParagraphProperty.ParagraphBefore;
+        double paragraphBefore = argument.GetParagraphBefore();
         // 只加上段前后距离，左右边距现在不加上，因为左右边距在行里进行计算
         // 左右边距影响行的可用宽度，这就是为什么放在行进行计算的原因。既然放在行进行计算了，那就顺带叠加在行的布局属性
-        double paragraphAfter = argument.IsLastParagraph ? 0 /*最后一段不加段后距离*/ : paragraph.ParagraphProperty.ParagraphAfter;
+        double paragraphAfter = argument.GetParagraphAfter();
         var contentThickness =
             new TextThickness(0, paragraphBefore, 0, paragraphAfter);
         paragraph.SetParagraphLayoutContentThickness(contentThickness);
@@ -95,7 +99,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// 更新段落里面的所有行的起始点
     /// </summary>
     /// <param name="argument"></param>
-    /// <returns></returns>
+    /// <returns>下一行的坐标。不包括段后距离</returns>
     private TextPointInParagraph UpdateParagraphLineLayoutDataStartPoint(in ParagraphLayoutArgument argument)
     {
         var paragraph = argument.ParagraphData;
@@ -179,6 +183,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         
         var paragraph = argument.ParagraphData;
 
+#if DEBUG
+        if (paragraph.GetText().Contains("鱼戏莲叶东，鱼戏莲叶西"))
+        {
+            
+        }
+#endif
+
         // 预布局过程中，不考虑边距的影响。但只考虑缩进等对可用尺寸的影响
         // 在回溯过程中，才赋值给到边距。详细请参阅 《文本库行布局信息定义.enbx》 维护文档
         //// 更新段左边距
@@ -205,22 +216,23 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             // 根据是否存在缓存行决定是否需要计算段前距离
             if (paragraph.LineLayoutDataList.Count == 0)
             {
-                // 一行都没有的情况下，需要计算段前距离
-                double paragraphBefore = argument.GetParagraphBefore();
+                //// 一行都没有的情况下，需要计算段前距离
+                //double paragraphBefore = argument.GetParagraphBefore();
 
                 //currentStartPoint = argument.CurrentStartPoint with
                 //{
                 //    Y = argument.CurrentStartPoint.Y + paragraphBefore
                 //};
-                // 行的坐标点是相对于段落的，只需加上段前距离即可
+                // 行的坐标点是相对于段落文本范围的，~~只需加上段前距离即可~~ 不能加上段落前后距离
                 var x = 0;
-                var y = paragraphBefore;
+                //var y = paragraphBefore;
+                var y = 0;
                 currentLinePoint = new TextPointInParagraph(x, y, paragraph);
             }
             else
             {
-                // 有缓存的行，证明段落属性没有更改，不需要计算段前距离
-                // 只需要更新缓存的行
+                // 有缓存的行，证明段落属性没有更改~~，不需要计算段前距离~~
+                // 只需要更新缓存的行，获取到首个需要布局的行的坐标点
                 currentLinePoint = UpdateParagraphLineLayoutDataStartPoint(argument);
             }
 
@@ -270,7 +282,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         {
             CharStartParagraphIndex = 0,
             CharEndParagraphIndex = 0,
-            CharStartPointInParagraph = new TextPointInParagraph(0, paragraphBefore, paragraph),
+            CharStartPointInParagraph = new TextPointInParagraph(0, 0, paragraph),
             LineContentSize = new TextSize(0, lineHeight)
         };
         paragraph.LineLayoutDataList.Add(lineLayoutData);
@@ -295,6 +307,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     /// <exception cref="TextEditorDebugException"></exception>
     /// <exception cref="TextEditorInnerException"></exception>
+    /// 每一行的布局都是相对于文本的每个对应的段落的坐标点。更具体来说是相对于段落的文本范围的坐标点。即不包括段前距离和段后距离的坐标点
     private TextPoint UpdateParagraphLinesLayout(in ParagraphLayoutArgument argument, in ParagraphCharOffset startParagraphOffset,
         TextPointInParagraph currentStartPoint)
     {
@@ -856,7 +869,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
                 ParagraphData paragraphData = paragraphList[paragraphIndex];
                 TextPoint startPoint = paragraphData.ParagraphLayoutData.StartPoint;
 
-                if (!Nearly.Equals(lastParagraphOutlineBounds.Bottom, startPoint.Y))
+                if (!Nearly.Equals(lastParagraphOutlineBounds.Bottom, startPoint. Y))
                 {
                     // 如果不相等，则证明计算不正确
                     throw new TextEditorInnerDebugException($"文本段落计算之间存在空隙。当前第 {paragraphIndex} 段。上一段范围： {lastParagraphOutlineBounds} ，当前段的起始点 {startPoint}");

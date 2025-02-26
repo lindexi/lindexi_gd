@@ -10,4 +10,6 @@ public readonly record struct TextThickness(double Left, double Top, double Righ
     /// </summary>
     public static TextThickness Invalid => new TextThickness(double.NegativeInfinity, double.NegativeInfinity,
         double.NegativeInfinity, double.NegativeInfinity);
+
+    public bool IsInvalid => Equals(Invalid);
 }

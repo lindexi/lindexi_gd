@@ -61,6 +61,7 @@ class ParagraphLayoutData : IParagraphLayoutData
     /// </summary>
     /// 为什么左右边距不叠加在段落上？现在是每一行都叠加，因为前面实现错误，以为左边距会受到悬挂缩进的影响。实际应该让左右边距放在这里，行只处理缩进
     /// 但行在处理的过程，本身就需要考虑左右边距影响了行的可用宽度，因此放在行里面处理也是可以的
+    /// todo 改名为 TextContentThickness
     public TextThickness ContentThickness { get; set; } = TextThickness.Invalid;
 
     /// <summary>
@@ -78,6 +79,7 @@ class ParagraphLayoutData : IParagraphLayoutData
     /// <summary>
     /// 段落的文本范围，不包含空白
     /// </summary>
+    /// todo 改名为 TextContentBounds
     public TextRect TextBounds
     {
         get
