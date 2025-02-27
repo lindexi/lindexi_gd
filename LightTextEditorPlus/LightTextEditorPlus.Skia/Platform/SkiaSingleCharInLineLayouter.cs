@@ -270,7 +270,7 @@ internal class SkiaSingleCharInLineLayouter : ISingleCharInLineLayouter
         for (int i = 0; i < taskCountOfCharObject; i++)
         {
             CharData charData = runList[i];
-            if (TextEditor.IsInDebugMode && charData.Size == null)
+            if (TextEditor.TextEditorCore.IsInDebugMode && charData.Size == null)
             {
                 throw new TextEditorDebugException($"经过 Skia 排版之后，字符依然不存在尺寸");
             }

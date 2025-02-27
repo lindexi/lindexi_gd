@@ -32,10 +32,10 @@ internal class SkiaPlatformRunPropertyCreator : PlatformRunPropertyCreatorBase<S
                                当前传入字符属性不是由当前文本的资源管理器所创建，可能将其他文本的字符属性传入给到当前文本。
                                请确保传入的字符属性由当前文本的资源管理器创建。
                                可使用 with 关键字从 DefaultRunProperty 属性创建出新的字符属性。
-                               当前文本框DebugName='{_skiaTextEditor.DebugName}';字符属性RunProperty所在资源的文本框DebugName='{skiaTextRunProperty.ResourceManager.SkiaTextEditor.DebugName}'
+                               当前文本框DebugName='{_skiaTextEditor.TextEditorCore.DebugName}';字符属性RunProperty所在资源的文本框DebugName='{skiaTextRunProperty.ResourceManager.SkiaTextEditor.TextEditorCore.DebugName}'
                                """;
                 Logger.LogWarning(message);
-                if (_skiaTextEditor.IsInDebugMode)
+                if (_skiaTextEditor.TextEditorCore.IsInDebugMode)
                 {
                     throw new TextEditorDebugException(message);
                 }
