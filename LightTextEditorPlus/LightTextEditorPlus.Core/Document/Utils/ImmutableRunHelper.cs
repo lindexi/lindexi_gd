@@ -63,5 +63,4 @@ static class ImmutableRunHelper
 
         return text.EndsWith('\r') || text.EndsWith("\n");
     }
-
 }

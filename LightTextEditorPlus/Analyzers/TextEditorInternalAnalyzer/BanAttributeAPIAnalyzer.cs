@@ -42,7 +42,6 @@ public class BanAttributeAPIAnalyzer : DiagnosticAnalyzer
                     {
                         nodeAnalysisContext.ReportDiagnostic(Diagnostic.Create(SupportedDiagnostics[0], Location.Create(nodeAnalysisContext.Node.SyntaxTree, nodeAnalysisContext.Node.FullSpan), methodSymbol.Name, banAttributeName));
                     }
-
                 }, SyntaxKind.InvocationExpression);
             }
         });

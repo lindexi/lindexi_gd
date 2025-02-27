@@ -30,7 +30,6 @@ class CharInfoMeasurer : ICharInfoMeasurer
             Utf32CodePoint codePoint = charInfo.CharObject.CodePoint;
             textSize = MeasureChar(codePoint);
 
-
             TextSize MeasureChar(Utf32CodePoint c)
             {
                 var currentGlyphTypeface = glyphTypeface;

@@ -175,7 +175,6 @@ internal class MouseHandler
     private TextEditor TextEditor { get; }
     private TextEditorCore TextEditorCore => TextEditor.TextEditorCore;
 
-
     #region 光标
 
     private Cursor GetVerticalCursor()

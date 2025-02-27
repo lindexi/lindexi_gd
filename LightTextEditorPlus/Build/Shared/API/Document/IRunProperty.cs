@@ -27,7 +27,6 @@ public interface IRunProperty : IReadOnlyRunProperty
     ImmutableBrush? Background { get; }
 #endif
 
-
 #if USE_WPF || USE_AVALONIA
 
     /// <summary>

@@ -18,6 +18,5 @@ namespace LightTextEditorPlus.Core.Document.DocumentEventArgs
 
         /// <summary></summary>
         public DocumentChangeKind DocumentChangeKind { get; init; }
-
     }
 }

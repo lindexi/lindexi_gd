@@ -113,7 +113,6 @@ public class TextEditorAppendTest
         });
     }
 
-
     [ContractTestCase]
     public void AppendBreakParagraph()
     {

@@ -86,7 +86,6 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
     /// </summary>
     public bool IsCurrentLayoutCompleted { get; private set; }
 
-
     internal void SetLayoutCompleted()
     {
         IsCurrentLayoutCompleted = true;

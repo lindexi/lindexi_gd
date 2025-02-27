@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Runtime.Loader;
 using System.Text;
@@ -146,7 +147,6 @@ partial class TextEditor : Control
             ForceLayout();
         }
 
-
         if (e.Key == Key.Up)
         {
             TextEditorCore.MoveCaret(CaretMoveType.UpByLine);
@@ -291,9 +291,17 @@ partial class TextEditor : Control
         {
             var result = base.MeasureOverride(availableSize);
 
+            var notExistsWidth = double.IsInfinity(availableSize.Width) && double.IsNaN(Width);
+            var notExistsHeight = double.IsInfinity(availableSize.Height) && double.IsNaN(Height);
+
             if (TextEditorCore.SizeToContent is TextSizeToContent.Width)
             {
                 // 宽度自适应，高度固定
+                if (notExistsHeight)
+                {
+                    throw new InvalidOperationException($"宽度自适应时，要求高度固定。{GetWidthAndHeightFormatMessage()}");
+                }
+
                 if (TextEditorCore.IsDirty)
                 {
                     ForceLayout();
@@ -304,10 +312,14 @@ partial class TextEditor : Control
             else if (TextEditorCore.SizeToContent is TextSizeToContent.Height)
             {
                 // 高度自适应，宽度固定
+                if (notExistsWidth)
+                {
+                    throw new InvalidOperationException($"高度自适应，要求宽度固定。{GetWidthAndHeightFormatMessage()}");
+                }
+
                 if (TextEditorCore.IsDirty)
                 {
                     ForceLayout();
-
                 }
                 (double x, double y, double width, double height) = TextEditorCore.GetDocumentLayoutBounds();
                 return new Size(availableSize.Width, height);
@@ -324,10 +336,9 @@ partial class TextEditor : Control
             }
             else if (TextEditorCore.SizeToContent == TextSizeToContent.Manual)
             {
-                if ((double.IsInfinity(availableSize.Width) && double.IsNaN(Width))
-                    || (double.IsInfinity(availableSize.Height) && double.IsNaN(Height)))
+                if (notExistsWidth || notExistsHeight)
                 {
-                    throw new InvalidOperationException($"设置为 SizeToContent 为 TextSizeToContent.Manual 手动时，不能无限定 {nameof(Width)} 和 {nameof(Height)} 放入无限尺寸的容器。AvailableSize={availableSize.Width:0.00},{availableSize.Height:0.00};Width={Width:0.00},Height={Height:0.00}");
+                    throw new InvalidOperationException($"设置为 SizeToContent 为 TextSizeToContent.Manual 手动时，不能无限定 {nameof(Width)} 和 {nameof(Height)} 放入无限尺寸的容器。{GetWidthAndHeightFormatMessage()}");
                 }
 
                 // 手动的，有多少就要多少
@@ -341,6 +352,9 @@ partial class TextEditor : Control
         {
             _isMeasuring = false;
         }
+
+        string GetWidthAndHeightFormatMessage() =>
+            $"AvailableSize={availableSize.Width:0.00},{availableSize.Height:0.00};Width={Width:0.00},Height={Height:0.00}";
     }
 
     protected override Size ArrangeOverride(Size finalSize)
