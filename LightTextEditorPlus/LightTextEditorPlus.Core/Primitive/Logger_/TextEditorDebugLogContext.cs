@@ -1,18 +1,34 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace LightTextEditorPlus.Core.Layout.HitTests;
+namespace LightTextEditorPlus.Core.Primitive;
 
 /// <summary>
-/// 命中测试的日志上下文
+/// 文本的调试日志上下文
 /// </summary>
-/// <param name="TextEditor"></param>
-readonly record struct HitTestLogContext(TextEditorCore TextEditor)
+readonly record struct TextEditorDebugLogContext
 {
+    /// <summary>
+    /// 文本的调试日志上下文
+    /// </summary>
+    /// <param name="textEditor"></param>
+    public TextEditorDebugLogContext(TextEditorCore textEditor)
+    {
+        IsInDebugMode = textEditor.DebugConfiguration.IsInDebugMode;
+        if (IsInDebugMode)
+        {
+            DebugMessageList = new List<string>();
+        }
+    }
+
+    private List<string>? DebugMessageList { get; }
+
     /// <summary>
     /// 是否在调试模式
     /// </summary>
-    private bool IsInDebugMode => TextEditor.DebugConfiguration.IsInDebugMode;
+    private bool IsInDebugMode { get; }
 
     public void RecordDebugMessage([InterpolatedStringHandlerArgument("")] ref HitTestDebugMessageInterpolatedStringHandler message)
     {
@@ -20,8 +36,22 @@ readonly record struct HitTestLogContext(TextEditorCore TextEditor)
         {
             string formattedText = message.GetFormattedText();
 
-
+            DebugMessageList?.Add(formattedText);
         }
+    }
+
+    /// <summary>
+    /// 获取调试信息列表
+    /// </summary>
+    /// <returns></returns>
+    public IReadOnlyList<string> GetDebugMessageList()
+    {
+        if (DebugMessageList is { } list)
+        {
+            return list;
+        }
+
+        return Array.Empty<string>();
     }
 
     /// <summary>
@@ -31,7 +61,7 @@ readonly record struct HitTestLogContext(TextEditorCore TextEditor)
     public readonly ref struct HitTestDebugMessageInterpolatedStringHandler
     {
         public HitTestDebugMessageInterpolatedStringHandler(int literalLength, int formattedCount,
-            HitTestLogContext context, out bool isEnable)
+            TextEditorDebugLogContext context, out bool isEnable)
         {
             bool isInDebugMode = context.IsInDebugMode;
             isEnable = isInDebugMode;
