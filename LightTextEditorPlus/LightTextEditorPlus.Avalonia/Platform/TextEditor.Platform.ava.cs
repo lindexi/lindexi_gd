@@ -17,7 +17,7 @@ using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
-
+using Avalonia.Threading;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
@@ -211,7 +211,6 @@ partial class TextEditor : Control
         finally
         {
             _isInForceLayout = false;
-            _isForceLayoutFromRedrawRender = false;
         }
     }
 
@@ -222,15 +221,9 @@ partial class TextEditor : Control
 
     private void ForceRedraw()
     {
-        _isForceLayoutFromRedrawRender = true;
         // 现在只需立刻布局即可，在布局完成之后会自动触发重绘
         ForceLayout();
     }
-
-    /// <summary>
-    /// 是否当前的强制布局状态是从 ForceRedraw 过来的
-    /// </summary>
-    private bool _isForceLayoutFromRedrawRender;
 
     private void TextEditorCore_LayoutCompleted(object? sender, LayoutCompletedEventArgs e)
     {
@@ -252,10 +245,10 @@ partial class TextEditor : Control
         {
 
         }
-
+        
         if (_isMeasuring)
         {
-            // 正在布局测量中，不需要再次触发布局。预计是触发 ForceLayout 或空文本布局。由于前面已经经过了 _isInForceLayout 判断了，所以能进入这里的只有空文本布局
+            // 正在布局测量中，不需要再次触发布局~~。预计是触发 ForceLayout 或空文本布局。由于前面已经经过了 _isInForceLayout 判断了，所以能进入这里的只有空文本布局~~
             return;
         }
 
@@ -285,33 +278,27 @@ partial class TextEditor : Control
             // 手动情况下，不需要重新布局
         }
 
-        if (_isInForceLayout)
+        // 强行布局的情况下，不需要再次触发布局
+        // 可能此时正在 UI 布局过程中，也可能只是其他业务需要获取值。此时再次触发布局是比较亏的
+        // 除了一个情况，那就是当前是渲染强行触发的
+        // 渲染强行触发的，则触发重新布局，可能此时渲染拿到的尺寸已不相同
+        // 解决 问题号：b003ee 问题
+        // 是否需要延迟执行重新布局
+        bool shouldLazyInvalidateMeasure = shouldInvalidateMeasure // 应该布局
+                                           // 强行布局且是渲染过程
+                                           && _isInForceLayout 
+                                           && _isRendering;
+        if (shouldLazyInvalidateMeasure)
         {
-            // 强行布局的情况下，不需要再次触发布局
-            // 可能此时正在 UI 布局过程中，也可能只是其他业务需要获取值。此时再次触发布局是比较亏的
-            // 除了一个情况，那就是当前是渲染强行触发的
-            if (_isForceLayoutFromRedrawRender)
-            {
-                // 渲染强行触发的，则触发重新布局，可能此时渲染拿到的尺寸已不相同
-                // 解决 问题号：b003ee 问题
-                TryInvalidateMeasure();
-            }
-            else
-            {
-                // 啥都不干，不需要再次触发布局
-            }
-        }
-        else
-        {
-            TryInvalidateMeasure();
+            // 延迟执行布局
+            Dispatcher.UIThread.InvokeAsync(InvalidateMeasure);
+
+            return;
         }
 
-        void TryInvalidateMeasure()
+        if (shouldInvalidateMeasure)
         {
-            if (shouldInvalidateMeasure)
-            {
-                InvalidateMeasure();
-            }
+            InvalidateMeasure();
         }
     }
 
