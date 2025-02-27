@@ -58,7 +58,7 @@ public record ParagraphProperty
     /// 此属性只是为了告诉你应该使用 LeftIndentation 属性
     /// </summary>
     [Obsolete("此属性只是为了告诉你应该使用 LeftIndentation 属性", true)]
-    public double MarginLeft => throw new NotSupportedException();
+    public double MarginLeft => 0;
 
     /// <summary>
     /// 左侧缩进
