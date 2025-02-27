@@ -80,7 +80,7 @@ internal class MouseHandler
                     TextEditor.Focus();
                     //Keyboard.Focus(TextEditor);
                     //FocusManager.SetFocusedElement(TextEditor, TextEditor);
-                    
+
                     Mouse.Capture(TextEditor, CaptureMode.SubTree);
 
                     e.Handled = true;

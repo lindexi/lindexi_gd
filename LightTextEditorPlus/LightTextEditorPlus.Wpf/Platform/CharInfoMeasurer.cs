@@ -22,7 +22,7 @@ class CharInfoMeasurer : ICharInfoMeasurer
         var runProperty = charInfo.RunProperty.AsRunProperty();
         GlyphTypeface glyphTypeface = runProperty.GetGlyphTypeface();
         var fontSize = charInfo.RunProperty.FontSize;
-        
+
         TextSize textSize;
 
         if (_textEditor.TextEditorCore.ArrangingType == ArrangingType.Horizontal)

@@ -184,7 +184,7 @@ class LayoutHitTestProvider
                     lineContentBounds.Bottom - TextContext.Epsilon);
                 var lineHitTestContext = new LineHitTestContext(lineLayoutData, currentCharIndex, context with
                 {
-                    HitPoint = new TextPoint(x,y)
+                    HitPoint = new TextPoint(x, y)
                 });
                 ParagraphHitTestResult result = LineHitTest(in lineHitTestContext).ParagraphHitTestResult;
                 Debug.Assert(result.Success, "经过了约束的点，必定命中成功");
@@ -259,7 +259,7 @@ class LayoutHitTestProvider
                     // 点到了行的右边，那就是行末
                     var isAtLineStart = false;
                     // 但也可能是空行，空行则证明是空段，此时应该在行首
-                    bool isEmptyLine = lineLayoutData.CharCount==0;
+                    bool isEmptyLine = lineLayoutData.CharCount == 0;
                     if (isEmptyLine)
                     {
                         Debug.Assert(paragraphData.IsEmptyParagraph, "空行必定在空段内");

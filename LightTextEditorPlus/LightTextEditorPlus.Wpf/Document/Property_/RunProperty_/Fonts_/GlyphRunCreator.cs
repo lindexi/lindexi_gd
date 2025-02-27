@@ -92,9 +92,9 @@ namespace LightTextEditorPlus.Document
                 0,
                 false,
                 fontSize,
-                new[] {info.GlyphIndex},
+                new[] { info.GlyphIndex },
                 baselineOrigin,
-                new[] {width},
+                new[] { width },
                 DefaultGlyphOffsetArray,
                 info.UnicodeChar.ToCharArray(),
                 null,
@@ -104,7 +104,7 @@ namespace LightTextEditorPlus.Document
             return glyphRun;
         }
 
-        private static readonly Point[] DefaultGlyphOffsetArray = new Point[] {new Point()};
+        private static readonly Point[] DefaultGlyphOffsetArray = new Point[] { new Point() };
 
         private static readonly XmlLanguage DefaultXmlLanguage =
             XmlLanguage.GetLanguage(CultureInfo.CurrentUICulture.IetfLanguageTag);

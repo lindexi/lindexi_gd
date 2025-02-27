@@ -26,8 +26,8 @@ public record ParagraphProperty
     /// <summary>
     /// 文本从右向左布局还是从左向右布局
     /// </summary>
-    public FlowDirection Direction 
-    { 
+    public FlowDirection Direction
+    {
         get;
         [Obsolete("当前还不支持设置从右到左")]
         init;

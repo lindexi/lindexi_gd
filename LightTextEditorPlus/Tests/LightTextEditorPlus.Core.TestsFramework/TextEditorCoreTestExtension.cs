@@ -9,7 +9,7 @@ public static class TextEditorCoreTestExtension
         textEditorCore.DocumentManager.SetStyleParagraphProperty(textEditorCore.DocumentManager.StyleParagraphProperty with
         {
             LineSpacing = TextLineSpacings.ExactlyLineSpace(fixedLineSpacing)
-        }); 
+        });
 
         return textEditorCore;
     }

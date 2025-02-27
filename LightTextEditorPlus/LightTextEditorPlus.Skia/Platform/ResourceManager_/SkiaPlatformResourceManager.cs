@@ -157,7 +157,7 @@ public class SkiaPlatformResourceManager :
             skTypeface = ResolveWithCache(runProperty);
         }
 
-        if(SkiaTextEditor.IsInDebugMode)
+        if (SkiaTextEditor.IsInDebugMode)
         {
             // 判断字体是否支持字符本身是要钱的，所以只在调试模式下才判断
             if (!skTypeface.ContainsGlyph(codePointToDebug.Value))
@@ -308,5 +308,5 @@ public class SkiaPlatformResourceManager :
     /// </summary>
     /// 字体是有限的，所以不需要担心缓存过大
     private static readonly ConcurrentDictionary<string /*FontName*/, bool /*Installed*/> InstalledFontCache =
-        new ();
+        new();
 }

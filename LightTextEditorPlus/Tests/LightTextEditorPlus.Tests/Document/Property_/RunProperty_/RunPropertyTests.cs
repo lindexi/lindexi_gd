@@ -271,7 +271,7 @@ public class RunPropertyTests
             // Action
             // 设置两个字符的字符属性的字体名不相同
             textEditor.SetRunProperty(property => property with { FontName = new FontName("A") }, new Selection(new CaretOffset(0), 1));
-            textEditor.SetRunProperty(property => property with{ FontName = new FontName("B") }, new Selection(new CaretOffset(1), 1));
+            textEditor.SetRunProperty(property => property with { FontName = new FontName("B") }, new Selection(new CaretOffset(1), 1));
 
             // Assert
             var runPropertyList = textEditor.TextEditorCore.DocumentManager.GetRunPropertyRange(new Selection(new CaretOffset(0), 2)).ToList();

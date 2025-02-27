@@ -9,7 +9,7 @@ namespace LightTextEditorPlus;
 /// 这是入口文件，这是一个分部类
 /// - 平台实现相关代码： Platform\TextEditor.Platform.ava.cs
 /// - API 定义层： API\TextEditor.*.cs
-public partial class TextEditor 
+public partial class TextEditor
 {
     /// <summary>
     /// 文本核心

@@ -6,7 +6,7 @@ namespace LightTextEditorPlus.Core.Document.UndoRedo;
 public class ChangeTextEditorStyleTextRunPropertyValueOperation : ChangeValueTextOperation<IReadOnlyRunProperty>, ITextOperation
 {
     internal ChangeTextEditorStyleTextRunPropertyValueOperation(TextEditorCore textEditor, IReadOnlyRunProperty newValue,
-        IReadOnlyRunProperty oldValue) : base(textEditor,newValue, oldValue)
+        IReadOnlyRunProperty oldValue) : base(textEditor, newValue, oldValue)
     {
     }
 

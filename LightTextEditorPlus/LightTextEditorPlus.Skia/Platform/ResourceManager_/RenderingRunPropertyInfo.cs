@@ -8,7 +8,7 @@ namespace LightTextEditorPlus.Document;
 /// </summary>
 internal readonly record struct RenderingRunPropertyInfo(SKTypeface Typeface, SKFont Font, SKPaint Paint)
 {
-  
+
 }
 
 /// <summary>

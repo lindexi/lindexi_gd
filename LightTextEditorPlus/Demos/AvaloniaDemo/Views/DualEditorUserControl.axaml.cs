@@ -95,7 +95,7 @@ public partial class DualEditorUserControl : UserControl
         }
         else
         {
-            
+
         }
     }
 
