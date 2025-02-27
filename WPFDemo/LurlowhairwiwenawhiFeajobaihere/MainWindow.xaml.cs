@@ -218,7 +218,11 @@ public partial class MainWindow : Window
             uint count = 0;
             PInvoke.GetPointerDeviceProperties(pointerInfo.sourceDevice, &count, null);
             var properties = stackalloc POINTER_DEVICE_PROPERTY[(int) count];
-            PInvoke.GetPointerDeviceProperties(pointerInfo.sourceDevice, &count, properties);
+            var propertyResult = PInvoke.GetPointerDeviceProperties(pointerInfo.sourceDevice, &count, properties);
+            if (!propertyResult)
+            {
+                Console.WriteLine($"GetPointerDevicePropertiesError {new Win32Exception().ToString()}");
+            }
 
             LogOnce($"GetPointerDeviceProperties Count={count}");
 
@@ -297,6 +301,7 @@ public partial class MainWindow : Window
                 double width = info.rcContact.Width;
                 double height = info.rcContact.Height;
                 Console.WriteLine($"rcContact {width},{height}");
+                Console.WriteLine($"rcContactRaw {info.rcContactRaw.Width},{info.rcContactRaw.Height}");
             }
 
             //Console.WriteLine($"WidthProperty={ToString(widthProperty)}");
