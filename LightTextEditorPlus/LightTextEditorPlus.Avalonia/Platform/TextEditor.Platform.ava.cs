@@ -71,6 +71,8 @@ partial class TextEditor : Control
 
     internal AvaloniaSkiaTextEditorPlatformProvider PlatformProvider { get; }
 
+    private bool IsDebugging => DebugName?.Contains("江南莲花开，莲花惹人采") ?? false;
+
     #region 交互
 
     private MouseHandler MouseHandler { get; }
@@ -209,19 +211,34 @@ partial class TextEditor : Control
         finally
         {
             _isInForceLayout = false;
+            _isForceLayoutFromRedrawRender = false;
         }
     }
 
+    /// <summary>
+    /// 是否进入强制布局状态
+    /// </summary>
     private bool _isInForceLayout;
 
     private void ForceRedraw()
     {
+        _isForceLayoutFromRedrawRender = true;
         // 现在只需立刻布局即可，在布局完成之后会自动触发重绘
         ForceLayout();
     }
 
+    /// <summary>
+    /// 是否当前的强制布局状态是从 ForceRedraw 过来的
+    /// </summary>
+    private bool _isForceLayoutFromRedrawRender;
+
     private void TextEditorCore_LayoutCompleted(object? sender, LayoutCompletedEventArgs e)
     {
+        if (IsDebugging)
+        {
+
+        }
+
         InvalidateMeasureAfterLayoutCompleted();
         OnLayoutCompleted(e);
     }
@@ -231,17 +248,9 @@ partial class TextEditor : Control
     /// </summary>
     private void InvalidateMeasureAfterLayoutCompleted()
     {
-        if (_isInForceLayout)
+        if (IsDebugging)
         {
-            // 强行布局的情况下，不需要再次触发布局
-            // 可能此时正在 UI 布局过程中，也可能只是其他业务需要获取值。此时再次触发布局是比较亏的
-            return;
-        }
 
-        if (_isRendering)
-        {
-            // 如果当前正在渲染中，那就不要再次触发重绘。因为再次触发重绘也是浪费
-            return;
         }
 
         if (_isMeasuring)
@@ -276,9 +285,33 @@ partial class TextEditor : Control
             // 手动情况下，不需要重新布局
         }
 
-        if (shouldInvalidateMeasure)
+        if (_isInForceLayout)
         {
-            InvalidateMeasure();
+            // 强行布局的情况下，不需要再次触发布局
+            // 可能此时正在 UI 布局过程中，也可能只是其他业务需要获取值。此时再次触发布局是比较亏的
+            // 除了一个情况，那就是当前是渲染强行触发的
+            if (_isForceLayoutFromRedrawRender)
+            {
+                // 渲染强行触发的，则触发重新布局，可能此时渲染拿到的尺寸已不相同
+                // 解决 问题号：b003ee 问题
+                TryInvalidateMeasure();
+            }
+            else
+            {
+                // 啥都不干，不需要再次触发布局
+            }
+        }
+        else
+        {
+            TryInvalidateMeasure();
+        }
+
+        void TryInvalidateMeasure()
+        {
+            if (shouldInvalidateMeasure)
+            {
+                InvalidateMeasure();
+            }
         }
     }
 
@@ -286,10 +319,16 @@ partial class TextEditor : Control
 
     protected override Size MeasureOverride(Size availableSize)
     {
+        if (IsDebugging)
+        {
+
+        }
+
         _isMeasuring = true;
         try
         {
             var result = base.MeasureOverride(availableSize);
+            _ = result;
 
             var notExistsWidth = double.IsInfinity(availableSize.Width) && double.IsNaN(Width);
             var notExistsHeight = double.IsInfinity(availableSize.Height) && double.IsNaN(Height);
@@ -385,6 +424,11 @@ partial class TextEditor : Control
 
     public override void Render(DrawingContext context)
     {
+        if (IsDebugging)
+        {
+
+        }
+
         _isRendering = true;
 
         try
