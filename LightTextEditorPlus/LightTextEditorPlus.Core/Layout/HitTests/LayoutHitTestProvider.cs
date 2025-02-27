@@ -206,6 +206,11 @@ class LayoutHitTestProvider
                     lineLayoutData = paragraphData.LineLayoutDataList.Last();
                 }
 
+                // 这里的 currentCharIndex 偏移量等于段落的起始偏移量
+                Debug.Assert(currentCharIndex == paragraphData.GetParagraphStartOffset());
+                // 将段落的起始偏移量加上当前行的相对段落偏移量，就是当前行的文档偏移量
+                currentCharIndex += lineLayoutData.CharStartParagraphIndex;
+
                 TextRect lineContentBounds = lineLayoutData.GetLineContentBounds();
 
                 double x = point.X.CoerceValue(lineContentBounds.Left + TextContext.Epsilon,
@@ -234,7 +239,7 @@ class LayoutHitTestProvider
 
             for (var lineIndex = 0; lineIndex < paragraphData.LineLayoutDataList.Count; lineIndex++)
             {
-                logContext.RecordDebugMessage($"开始测试第 {context.ParagraphIndex.Index} 段，第 {lineIndex} 行命中测试");
+                logContext.RecordDebugMessage($"第 {context.ParagraphIndex.Index} 段，第 {lineIndex} 行开始命中测试");
 
                 LineLayoutData lineLayoutData = paragraphData.LineLayoutDataList[lineIndex];
 
