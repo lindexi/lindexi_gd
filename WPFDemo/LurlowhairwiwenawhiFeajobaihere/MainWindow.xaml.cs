@@ -205,6 +205,9 @@ public partial class MainWindow : Window
 
             PInvoke.GetPointerDeviceRects(pointerInfo.sourceDevice, &pointerDeviceRect, &displayRect);
 
+            Console.WriteLine($"pointerDeviceRect={pointerDeviceRect.X},{pointerDeviceRect.Y} WH={pointerDeviceRect.Width},{pointerDeviceRect.Height}");
+            Console.WriteLine($"displayRect={displayRect.X},{displayRect.Y} WH={displayRect.Width},{displayRect.Height}");
+
             uint count = 0;
             PInvoke.GetPointerDeviceProperties(pointerInfo.sourceDevice, &count, null);
             var properties = stackalloc POINTER_DEVICE_PROPERTY[(int) count];
@@ -227,14 +230,25 @@ public partial class MainWindow : Window
                 {
                     heightProperty = pointerDeviceProperty;
                 }
+
+                Console.WriteLine(ToString(pointerDeviceProperty));
             }
 
             Console.WriteLine($"WidthProperty={ToString(widthProperty)}");
             Console.WriteLine($"HeightProperty={ToString(heightProperty)}");
 
-            string ToString(POINTER_DEVICE_PROPERTY property)
+            static string ToString(POINTER_DEVICE_PROPERTY property)
             {
-                return $"UsageId={property.usageId}; Unit={property.unit}; PhysicalMin={property.physicalMin}; PhysicalMax={property.physicalMax}; LogicalMin={property.logicalMin}; LogicalMax={property.logicalMax}; UnitExponent={property.unitExponent}";
+                return $"""
+                        UsageId=0x{property.usageId:X}
+                        Unit={property.unit}
+                        PhysicalMin={property.physicalMin}
+                        PhysicalMax={property.physicalMax}
+                        LogicalMin={property.logicalMin}
+                        LogicalMax={property.logicalMax}
+                        UnitExponent={property.unitExponent}
+                        
+                        """;
             }
 
             if ((info.touchMask & PInvoke.TOUCH_MASK_CONTACTAREA )!= 0)
@@ -245,7 +259,12 @@ public partial class MainWindow : Window
                 var w = width / displayRect.Width * pointerDeviceRect.Width;
                 var h = height / displayRect.Height * pointerDeviceRect.Height;
 
-
+                if (widthProperty.physicalMax > 0 && heightProperty.physicalMax > 0)
+                {
+                    var pw = w / widthProperty.physicalMax;
+                    var ph = h / heightProperty.physicalMax;
+                    Console.WriteLine($"物理尺寸： {pw:#.##},{ph:#.##}");
+                }
                 //widthProperty.physicalMax
             }
 
