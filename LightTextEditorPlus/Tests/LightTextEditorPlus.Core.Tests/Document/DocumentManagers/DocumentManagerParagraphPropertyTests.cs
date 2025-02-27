@@ -46,7 +46,7 @@ public class DocumentManagerParagraphPropertyTests
                                       123
                                       """);
             // Assert
-            Assert.IsFalse(textEditorCore.IsDirty,"此单元测试下为立刻布局，不会让文本是脏的");
+            Assert.IsFalse(textEditorCore.IsDirty, "此单元测试下为立刻布局，不会让文本是脏的");
 
             RenderInfoProvider renderInfoProvider = textEditorCore.GetRenderInfo();
             List<ParagraphRenderInfo> paragraphRenderInfoList = renderInfoProvider.GetParagraphRenderInfoList().ToList();
@@ -120,7 +120,7 @@ public class DocumentManagerParagraphPropertyTests
                     FontSize = 20
                 }
             );
-            textEditorCore.DocumentManager.SetStyleTextRunProperty< LayoutOnlyRunProperty>(_ => styleRunProperty);
+            textEditorCore.DocumentManager.SetStyleTextRunProperty<LayoutOnlyRunProperty>(_ => styleRunProperty);
 
             // 空文本空段，添加文本带属性
             IReadOnlyRunProperty runProperty = textEditorCore.CreateRunProperty(property => property with

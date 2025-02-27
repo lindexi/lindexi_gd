@@ -15,7 +15,7 @@ internal static class WordCharHelper
         foreach ((int start, int count) in Traversal(runList, currentIndex))
         {
             var stringBuilder = new StringBuilder();
-            foreach (CharData charData in runList.Slice(start,count))
+            foreach (CharData charData in runList.Slice(start, count))
             {
                 stringBuilder.Append(charData.CharObject.ToText());
             }

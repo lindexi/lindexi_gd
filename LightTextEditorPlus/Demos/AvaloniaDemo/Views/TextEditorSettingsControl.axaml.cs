@@ -250,7 +250,7 @@ public partial class TextEditorSettingsControl : UserControl
     }
 
     #endregion
-    
+
     #region 垂直对齐
 
     private void TopVerticalTextAlignmentButton_OnClick(object? sender, RoutedEventArgs e)

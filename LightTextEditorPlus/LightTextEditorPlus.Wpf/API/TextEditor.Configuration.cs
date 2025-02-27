@@ -27,7 +27,7 @@ partial class TextEditor
         set
         {
             _cursorStyles = value;
-            CursorStylesChanged?.Invoke(this,EventArgs.Empty);
+            CursorStylesChanged?.Invoke(this, EventArgs.Empty);
         }
         get => _cursorStyles;
     }

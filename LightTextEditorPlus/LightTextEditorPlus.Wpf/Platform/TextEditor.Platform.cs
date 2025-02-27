@@ -179,7 +179,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
             // 宽度和高度都自适应的情况下
             shouldInvalidateMeasure = true;
         }
-        else if(sizeToContent == TextSizeToContent.Manual)
+        else if (sizeToContent == TextSizeToContent.Manual)
         {
             // 手动情况下，不需要重新布局
         }
@@ -198,7 +198,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     /// <inheritdoc />
     protected override System.Windows.Size MeasureOverride(System.Windows.Size availableSize)
     {
-         _isMeasuring = true;
+        _isMeasuring = true;
         try
         {
             Size result = base.MeasureOverride(availableSize);

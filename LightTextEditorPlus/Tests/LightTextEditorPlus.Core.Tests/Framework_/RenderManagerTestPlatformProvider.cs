@@ -12,7 +12,7 @@ class RenderManagerTestPlatformProvider : TestPlatformProvider
 
     public TestRenderManager TestRenderManager
     {
-        set=> RenderManager = value;
+        set => RenderManager = value;
         get => (TestRenderManager) RenderManager!;
     }
 }

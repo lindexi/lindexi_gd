@@ -367,7 +367,7 @@ namespace LightTextEditorPlus
                 TextSizeToContent.Height => SizeToContent.Height,
                 TextSizeToContent.Manual => SizeToContent.Manual,
                 TextSizeToContent.WidthAndHeight => SizeToContent.WidthAndHeight,
-                var t => (SizeToContent)t,
+                var t => (SizeToContent) t,
             };
             set
             {
@@ -443,7 +443,7 @@ namespace LightTextEditorPlus
 
         internal void OnStyleChanged(StyleChangeEventArgs styleChangeEventArgs)
         {
-            
+
             StyleChanged?.Invoke(this, styleChangeEventArgs);
         }
 

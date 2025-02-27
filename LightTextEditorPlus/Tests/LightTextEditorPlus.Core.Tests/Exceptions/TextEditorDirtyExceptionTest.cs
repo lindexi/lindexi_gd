@@ -24,7 +24,7 @@ public class TextEditorDirtyExceptionTest
             // Assert
             // 文本变更没布局，文本是脏的
             Assert.AreEqual(true, textEditorCore.IsDirty);
-            Assert.IsNotNull(manuallyRequireLayoutDispatcher.CurrentLayoutAction,"文本变更之后，手动布局器可以收到布局请求");
+            Assert.IsNotNull(manuallyRequireLayoutDispatcher.CurrentLayoutAction, "文本变更之后，手动布局器可以收到布局请求");
             // 特意不让布局完成，直接获取布局信息。预期抛出异常
             Assert.ThrowsException<TextEditorDirtyException>(() =>
             {
@@ -35,7 +35,7 @@ public class TextEditorDirtyExceptionTest
             // 手动布局调度器执行布局一下，此时再获取布局信息，不应该抛出异常
             manuallyRequireLayoutDispatcher.InvokeLayoutAction();
             // 不用取值，不抛出异常就符合预期
-            _ = textEditorCore.GetRenderInfo(); 
+            _ = textEditorCore.GetRenderInfo();
 
             //textEditorCore.DocumentChanging += (sender, args) =>
             //{

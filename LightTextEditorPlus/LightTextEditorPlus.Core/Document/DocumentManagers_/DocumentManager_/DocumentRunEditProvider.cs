@@ -69,7 +69,7 @@ internal class DocumentRunEditProvider
                 else
                 {
                     ParagraphCharOffset paragraphCharOffset;
-                    
+
                     if (paragraphDataResult.HitOffset.Offset == paragraphDataResult.ParagraphData.CharCount)
                     {
                         // 命中到最后一个字符，命中到段末，需要执行修正

@@ -75,7 +75,7 @@ public class CaretConfiguration
                 brush.Freeze();
                 _selectionBrush = brush;
             }
-            
+
             return _selectionBrush;
         }
     }

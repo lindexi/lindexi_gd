@@ -4,7 +4,7 @@ namespace LightTextEditorPlus.Core.Document;
 
 class SpanTextRun : IImmutableTextRun
 {
-    public SpanTextRun(string originText,int start,int length, IReadOnlyRunProperty? runProperty = null)
+    public SpanTextRun(string originText, int start, int length, IReadOnlyRunProperty? runProperty = null)
     {
         OriginText = originText;
         RunProperty = runProperty;

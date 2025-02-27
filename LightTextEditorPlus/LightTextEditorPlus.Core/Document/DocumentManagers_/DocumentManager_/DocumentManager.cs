@@ -27,7 +27,7 @@ namespace LightTextEditorPlus.Core.Document
             IReadOnlyRunProperty styleRunProperty = textEditor.PlatformProvider.GetPlatformRunPropertyCreator().GetDefaultRunProperty();
             _styleRunProperty = styleRunProperty;
             StyleParagraphProperty = new ParagraphProperty();
-            
+
             ParagraphManager = new ParagraphManager(textEditor);
             DocumentRunEditProvider = new DocumentRunEditProvider(textEditor);
         }
@@ -513,7 +513,7 @@ namespace LightTextEditorPlus.Core.Document
                 foreach (var charData in GetCharDataRange(selection.Value))
                 {
                     Debug.Assert(charData.CharLayoutData != null, "能够从段落里获取到的，一定是存在在段落里面，因此此属性一定不为空");
-                    
+
                     IReadOnlyRunProperty currentRunProperty;
 
                     if (ReferenceEquals(charData.RunProperty, lastCharData?.RunProperty))
@@ -835,7 +835,7 @@ namespace LightTextEditorPlus.Core.Document
             // 触发事件。触发事件将用来执行重新排版
             InternalDocumentChanged?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.Text));
         }
-        
+
         private void ReplaceCore(in Selection selection, IImmutableRunList? run)
         {
             if (selection.BehindOffset.Offset > CharCount)

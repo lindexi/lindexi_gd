@@ -23,7 +23,7 @@ public class CaretTests
 
             // Assert
             // 选择的长度是所有的文本
-            Assert.AreEqual(text.Length,textEditorCore.CurrentSelection.Length);
+            Assert.AreEqual(text.Length, textEditorCore.CurrentSelection.Length);
         });
     }
 
@@ -38,7 +38,7 @@ public class CaretTests
             textEditorCore.AppendText("123123123");
             // 当前是已选择部分内容
             var selection = new Selection(new CaretOffset(1), 2);
-            textEditorCore.CurrentSelection=selection;
+            textEditorCore.CurrentSelection = selection;
 
             // 当前是有选择的
             Assert.AreEqual(false, textEditorCore.CurrentSelection.IsEmpty);

@@ -295,7 +295,7 @@ public partial class TextEditorSettingsControl : UserControl
 
     private void LeftIndentationButton_OnClick(object sender, RoutedEventArgs e)
     {
-        if (double.TryParse(LeftIndentationTextBox.Text,out var value))
+        if (double.TryParse(LeftIndentationTextBox.Text, out var value))
         {
             SetLeftIndentation(value);
         }

@@ -56,7 +56,7 @@ public class RenderInfoProviderTests
             textEditorCore.AppendText("abcdef");
 
             // Action
-            var selection = new Selection(new CaretOffset(1),new CaretOffset(5)); // 从 b 到 e 这几个字符的范围
+            var selection = new Selection(new CaretOffset(1), new CaretOffset(5)); // 从 b 到 e 这几个字符的范围
             var renderInfoProvider = textEditorCore.GetRenderInfo();
             var selectionBoundsList = renderInfoProvider.GetSelectionBoundsList(selection);
 

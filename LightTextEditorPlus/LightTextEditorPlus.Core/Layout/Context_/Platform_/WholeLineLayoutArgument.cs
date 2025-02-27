@@ -23,5 +23,5 @@ public readonly record struct WholeLineLayoutArgument(ParagraphIndex ParagraphIn
     /// <summary>
     /// 调试使用的这一行的文本
     /// </summary>
-    public string DebugText =>$"第 {ParagraphIndex.Index} 段，第 {LineIndex} 行。文本：{string.Join("", CharDataList.Select(t => t.CharObject.ToText()))}" ;
+    public string DebugText => $"第 {ParagraphIndex.Index} 段，第 {LineIndex} 行。文本：{string.Join("", CharDataList.Select(t => t.CharObject.ToText()))}";
 }

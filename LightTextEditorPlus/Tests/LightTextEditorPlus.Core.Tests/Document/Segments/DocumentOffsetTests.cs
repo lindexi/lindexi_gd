@@ -42,7 +42,7 @@ public class DocumentOffsetTest
             Assert.AreEqual(false, documentOffsetA >= documentOffsetB);
             Assert.AreEqual(false, documentOffsetA >= offsetB);
 
-            Assert.AreEqual(true , documentOffsetA < documentOffsetB);
+            Assert.AreEqual(true, documentOffsetA < documentOffsetB);
             Assert.AreEqual(true, documentOffsetA < offsetB);
 
             Assert.AreEqual(true, documentOffsetA <= documentOffsetB);

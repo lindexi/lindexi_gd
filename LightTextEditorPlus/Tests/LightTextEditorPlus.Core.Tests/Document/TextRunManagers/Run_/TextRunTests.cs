@@ -44,7 +44,7 @@ public class TextRunTests
 
             // Assert
             // 可以分割为 123 和 456 两个 Run 对象
-            Assert.AreEqual(3,firstRun.Count);
+            Assert.AreEqual(3, firstRun.Count);
             Assert.AreEqual(3, secondRun.Count);
 
             Assert.AreEqual("1", firstRun.GetChar(0).ToText());

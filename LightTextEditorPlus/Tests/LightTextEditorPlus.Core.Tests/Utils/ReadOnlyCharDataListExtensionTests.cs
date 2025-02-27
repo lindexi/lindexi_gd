@@ -47,7 +47,7 @@ public class ReadOnlyCharDataListExtensionTests
             var list1 = splitList[0];
             var list2 = splitList[1];
 
-            Assert.AreEqual("1",list1[0].CharObject.ToText());
+            Assert.AreEqual("1", list1[0].CharObject.ToText());
             Assert.AreEqual("2", list1[1].CharObject.ToText());
             Assert.AreEqual("3", list1[2].CharObject.ToText());
 
@@ -192,7 +192,7 @@ public class ReadOnlyCharDataListExtensionTests
             };
 
             var list = new TextReadOnlyListSpan<CharData>(source, 0, source.Length);
-            var splitList = list.SplitContinuousCharData((last, current) => ReferenceEquals(last,current)).ToList();
+            var splitList = list.SplitContinuousCharData((last, current) => ReferenceEquals(last, current)).ToList();
 
             Assert.AreEqual(2, splitList.Count);
             Assert.AreEqual(1, splitList[0].Count);

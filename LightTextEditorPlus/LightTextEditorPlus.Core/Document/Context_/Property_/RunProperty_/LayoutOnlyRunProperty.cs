@@ -72,7 +72,7 @@ namespace LightTextEditorPlus.Core.Document
         /// <returns></returns>
         public virtual bool Equals(LayoutOnlyRunProperty? other)
         {
-            if(other is null) return false;
+            if (other is null) return false;
 
             if
             (

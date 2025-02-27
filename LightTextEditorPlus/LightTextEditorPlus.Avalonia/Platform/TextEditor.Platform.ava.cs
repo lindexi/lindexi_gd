@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.Loader;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -145,7 +146,7 @@ partial class TextEditor : Control
             ForceLayout();
         }
 
-      
+
         if (e.Key == Key.Up)
         {
             TextEditorCore.MoveCaret(CaretMoveType.UpByLine);
@@ -175,7 +176,7 @@ partial class TextEditor : Control
             // 获取焦点时，允许用户编辑，才能设置为编辑模式
             IsInEditingInputMode = IsEditable && true;
         }
-      
+
         base.OnGotFocus(e);
     }
 
@@ -306,6 +307,7 @@ partial class TextEditor : Control
                 if (TextEditorCore.IsDirty)
                 {
                     ForceLayout();
+
                 }
                 (double x, double y, double width, double height) = TextEditorCore.GetDocumentLayoutBounds();
                 return new Size(availableSize.Width, height);

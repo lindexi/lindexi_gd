@@ -57,7 +57,7 @@ public class TestFramework
                     {
                         Width = 600,
                         Height = 600,
-                        Margin = Thickness(10,10,10,10),
+                        Margin = Thickness(10, 10, 10, 10),
                         HorizontalAlignment = HorizontalAlignment.Left,
                         VerticalAlignment = VerticalAlignment.Stretch,
                     }

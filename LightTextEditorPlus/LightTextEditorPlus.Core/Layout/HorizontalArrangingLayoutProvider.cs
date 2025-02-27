@@ -179,7 +179,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         in ParagraphCharOffset startParagraphOffset)
     {
         UpdateParagraphLayoutData(in argument);
-        
+
         var paragraph = argument.ParagraphData;
 
         // 预布局过程中，不考虑边距的影响。但只考虑缩进等对可用尺寸的影响
@@ -462,7 +462,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         {
             lineHeight = currentTextSize.Height;
         }
-        
+
         var lineSpacing = lineHeight - currentTextSize.Height; // 行距值，现在仅调试用途
         GC.KeepAlive(lineSpacing);
         // 不能使用 lineSpacing 作为计算参考，因为在 Skia 平台下 TextSize 会更大，超过了布局行高的值，导致 lineSpacing 为负数
@@ -866,7 +866,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
                 ParagraphData paragraphData = paragraphList[paragraphIndex];
                 TextPoint startPoint = paragraphData.ParagraphLayoutData.StartPoint;
 
-                if (!Nearly.Equals(lastParagraphOutlineBounds.Bottom, startPoint. Y))
+                if (!Nearly.Equals(lastParagraphOutlineBounds.Bottom, startPoint.Y))
                 {
                     // 如果不相等，则证明计算不正确
                     throw new TextEditorInnerDebugException($"文本段落计算之间存在空隙。当前第 {paragraphIndex} 段。上一段范围： {lastParagraphOutlineBounds} ，当前段的起始点 {startPoint}");
@@ -912,7 +912,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         TextThickness contentThickness = layoutData.TextContentThickness;
         paragraph.SetParagraphLayoutOutlineSize(new TextSize
         {
-            Width = documentWidth, 
+            Width = documentWidth,
             Height = contentThickness.Top + layoutData.TextSize.Height + contentThickness.Bottom
         });
 

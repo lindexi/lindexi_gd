@@ -207,7 +207,7 @@ internal class KeyboardHandler
         var visual = _textArea;
         var root = GetRootVisual(visual);
         var transform = ((MatrixTransform) visual.TransformToAncestor(root)).Value;
-        
+
         // 计算旋转分量
         var unitVector = new Vector(1, 0);
         var vector = transform.Transform(unitVector);

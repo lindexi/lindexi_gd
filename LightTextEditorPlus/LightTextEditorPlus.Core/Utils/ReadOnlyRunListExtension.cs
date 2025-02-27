@@ -47,6 +47,6 @@ static class ReadOnlyRunListExtension
             }
         }
 
-        throw new ArgumentOutOfRangeException(nameof(charIndex),$"最大的字符数量是: {currentCharCount}；传入的字符索引是: {charIndex}");
+        throw new ArgumentOutOfRangeException(nameof(charIndex), $"最大的字符数量是: {currentCharCount}；传入的字符索引是: {charIndex}");
     }
 }

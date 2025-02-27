@@ -403,7 +403,7 @@ abstract class ArrangingLayoutProvider
         else
         {
             var paragraphProperty = argument.ParagraphProperty;
-            
+
             var runProperty = argument.ParagraphStartRunProperty;
 
             var lineSpacingCalculateArgument =
