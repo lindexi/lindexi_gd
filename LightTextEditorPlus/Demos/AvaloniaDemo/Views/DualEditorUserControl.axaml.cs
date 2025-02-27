@@ -76,7 +76,6 @@ public partial class DualEditorUserControl : UserControl
         }
     }
 
-
     private void RightTextEditor_LayoutCompleted(object? sender, LayoutCompletedEventArgs e)
     {
         if (!_isInitialized)

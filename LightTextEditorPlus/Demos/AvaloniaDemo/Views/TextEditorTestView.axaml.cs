@@ -133,5 +133,4 @@ public partial class TextEditorTestView : UserControl
     {
         UpdateOriginImage();
     }
-
 }

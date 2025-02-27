@@ -49,7 +49,6 @@ public class TestPlatformProvider : PlatformProvider
 
     public ILineSpacingCalculator? LineSpacingCalculator { set; get; }
 
-
     public HandleRequireDispatchUpdateLayout? RequireDispatchUpdateLayoutHandler { set; get; }
 
     public delegate void HandleRequireDispatchUpdateLayout(Action updateLayoutAction);

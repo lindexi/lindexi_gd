@@ -174,7 +174,6 @@ namespace LightTextEditorPlus.Document
             return retValue;
         }
 
-
         internal bool InRange(int ch)
         {
             foreach (var r in _ranges)

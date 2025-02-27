@@ -33,7 +33,6 @@ namespace LightTextEditorPlus.Document
             return false;
         }
 
-
         /// <remarks>
         ///     Differs from calling string.StartsWith, because each subtag must match
         ///         in its entirety.
@@ -42,7 +41,6 @@ namespace LightTextEditorPlus.Document
         private static bool IsPrefixOf(this XmlLanguage language, string longTag)
         {
             string prefix = language.IetfLanguageTag;
-
 
             // if we fail a simple string-prefix test, we know we don't have a subtag-prefix.
             if (!longTag.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))

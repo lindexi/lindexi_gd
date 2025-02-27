@@ -146,7 +146,6 @@ partial class TextEditor : Control
             ForceLayout();
         }
 
-
         if (e.Key == Key.Up)
         {
             TextEditorCore.MoveCaret(CaretMoveType.UpByLine);

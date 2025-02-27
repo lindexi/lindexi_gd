@@ -39,6 +39,14 @@ dotnet_style_namespace_match_folder = true:suggestion
 dotnet_style_predefined_type_for_locals_parameters_members = true:silent
 dotnet_style_predefined_type_for_member_access = true:silent
 
+# Analyzer severity
+
+dotnet_diagnostic.IDE0078.severity    = none  #
+dotnet_diagnostic.IDE0046.severity    = none  # 可简化 "if" 语句
+dotnet_diagnostic.IDE0041.severity    = none  # 可以简化 Null 检查
+dotnet_diagnostic.IDE0057.severity    = none  # Slice 可以简化
+dotnet_diagnostic.IDE0042.severity    = none  # 可以析构变量声明
+
 [*.cs]
 #### 命名样式 ####
 
