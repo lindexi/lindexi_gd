@@ -325,7 +325,7 @@ partial class TextEditor : Control
                 if ((double.IsInfinity(availableSize.Width) && double.IsNaN(Width))
                     || (double.IsInfinity(availableSize.Height) && double.IsNaN(Height)))
                 {
-                    throw new InvalidOperationException($"设置为 SizeToContent 为 TextSizeToContent.Manual 手动时，不能无限定 {nameof(Width)} 和 {nameof(Height)} 放入无限尺寸的容器");
+                    throw new InvalidOperationException($"设置为 SizeToContent 为 TextSizeToContent.Manual 手动时，不能无限定 {nameof(Width)} 和 {nameof(Height)} 放入无限尺寸的容器。AvailableSize={availableSize.Width:0.00},{availableSize.Height:0.00};Width={Width:0.00},Height={Height:0.00}");
                 }
 
                 // 手动的，有多少就要多少
