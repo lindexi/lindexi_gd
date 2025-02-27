@@ -322,6 +322,11 @@ partial class TextEditor : Control
             }
             else if (TextEditorCore.SizeToContent == TextSizeToContent.Manual)
             {
+                if (IsInvalidSize(availableSize))
+                {
+                    throw new InvalidOperationException($"设置为 SizeToContent 为 TextSizeToContent.Manual 手动时，不能无限定 {nameof(Width)} 和 {nameof(Height)} 放入无限尺寸的容器");
+                }
+
                 // 手动的，有多少就要多少
                 return availableSize;
             }
@@ -333,6 +338,20 @@ partial class TextEditor : Control
         {
             _isMeasuring = false;
         }
+    }
+
+    /// <summary>
+    /// Tests whether any of a <see cref="Size"/>'s properties include negative values,
+    /// a NaN or Infinity.
+    /// </summary>
+    /// <param name="size">The size.</param>
+    /// <returns>True if the size is invalid; otherwise false.</returns>
+    /// Copy from Avalonia https://github.com/AvaloniaUI/Avalonia/blob/master/src/Avalonia.Base/Layout/Layoutable.cs#L890-L901
+    private static bool IsInvalidSize(Size size)
+    {
+        return size.Width < 0 || size.Height < 0 ||
+               double.IsInfinity(size.Width) || double.IsInfinity(size.Height) ||
+               double.IsNaN(size.Width) || double.IsNaN(size.Height);
     }
 
     protected override Size ArrangeOverride(Size finalSize)
