@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.Loader;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -306,6 +307,7 @@ partial class TextEditor : Control
                 if (TextEditorCore.IsDirty)
                 {
                     ForceLayout();
+                    
                 }
                 (double x, double y, double width, double height) = TextEditorCore.GetDocumentLayoutBounds();
                 return new Size(availableSize.Width, height);
