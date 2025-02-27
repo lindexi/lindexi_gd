@@ -71,6 +71,8 @@ partial class TextEditor : Control
 
     internal AvaloniaSkiaTextEditorPlatformProvider PlatformProvider { get; }
 
+    private bool IsDebugging => DebugName?.Contains("江南莲花开，莲花惹人采") ?? false;
+
     #region 交互
 
     private MouseHandler MouseHandler { get; }
@@ -222,6 +224,11 @@ partial class TextEditor : Control
 
     private void TextEditorCore_LayoutCompleted(object? sender, LayoutCompletedEventArgs e)
     {
+        if (IsDebugging)
+        {
+
+        }
+
         InvalidateMeasureAfterLayoutCompleted();
         OnLayoutCompleted(e);
     }
@@ -231,6 +238,11 @@ partial class TextEditor : Control
     /// </summary>
     private void InvalidateMeasureAfterLayoutCompleted()
     {
+        if (IsDebugging)
+        {
+
+        }
+
         if (_isInForceLayout)
         {
             // 强行布局的情况下，不需要再次触发布局
@@ -286,10 +298,16 @@ partial class TextEditor : Control
 
     protected override Size MeasureOverride(Size availableSize)
     {
+        if (IsDebugging)
+        {
+
+        }
+
         _isMeasuring = true;
         try
         {
             var result = base.MeasureOverride(availableSize);
+            _ = result;
 
             var notExistsWidth = double.IsInfinity(availableSize.Width) && double.IsNaN(Width);
             var notExistsHeight = double.IsInfinity(availableSize.Height) && double.IsNaN(Height);
