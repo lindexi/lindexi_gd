@@ -71,7 +71,15 @@ partial class TextEditor : Control
 
     internal AvaloniaSkiaTextEditorPlatformProvider PlatformProvider { get; }
 
-    private bool IsDebugging => DebugName?.Contains("江南莲花开，莲花惹人采") ?? false;
+    /// <summary>
+    /// 是否是当前正在调试的文本控件。一个界面里面包含多个控件的时候，就不太适合只用 IsInDebugMode 属性了，需要再有一个用来做业务上的区分
+    /// </summary>
+    private bool IsDebugging
+#if DEBUG
+        => DebugName?.Contains("江南莲花开，莲花惹人采") ?? false;
+#else
+        => false;
+#endif
 
     #region 交互
 
