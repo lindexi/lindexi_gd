@@ -6,7 +6,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="LightTextEditorPlus.AvaloniaDemo.Views.DualEditorUserControl">
 
-  <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible">
+  <ScrollViewer AllowAutoHide="False" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible">
     <Grid ColumnDefinitions="*,Auto,*" ShowGridLines="True">
       <Border Grid.Row="0" Margin="5 0 5 0" BorderBrush="Blue" BorderThickness="1">
         <lightTextEditorPlus:TextEditor x:Name="LeftTextEditor"  SizeToContent="Height" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
