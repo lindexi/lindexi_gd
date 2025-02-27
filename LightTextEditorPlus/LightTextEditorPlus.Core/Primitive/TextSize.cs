@@ -171,18 +171,5 @@ public readonly struct TextSize : IEquatable<TextSize>
         return false;
     }
 
-    internal string DebugText
-    {
-        get
-        {
-            if (this == Invalid)
-            {
-                return $"W:{Width} H:{Height} {nameof(Invalid)}";
-            }
-            else
-            {
-                return $"W:{Width} H:{Height}";
-            }
-        }
-    }
+    internal string DebugText => this.ToDebugText();
 }
