@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace LightTextEditorPlus.Core.Layout.HitTests;
+namespace LightTextEditorPlus.Core.Primitive;
 
 /// <summary>
 /// 文本的调试日志上下文
