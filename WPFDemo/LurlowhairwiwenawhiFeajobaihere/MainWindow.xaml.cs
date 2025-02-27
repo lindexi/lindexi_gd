@@ -1,4 +1,6 @@
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.PerformanceData;
 using System.Drawing;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -187,6 +189,8 @@ public partial class MainWindow : Window
         }
     }
 
+    private bool _isLog = true;
+
     private unsafe IntPtr Hook(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam, ref bool handled)
     {
         const int WM_POINTERDOWN = 0x0246;
@@ -195,6 +199,9 @@ public partial class MainWindow : Window
 
         if (msg is WM_POINTERDOWN or WM_POINTERUPDATE or WM_POINTERUP)
         {
+            bool canLog = _isLog;
+            _isLog = false;
+
             // 为什么这里可以不用判断 win8 以上？原因是 win8 以下不会走到这里，不会收到 WM_POINTERDOWN 等消息
             var pointerId = (uint) (ToInt32(wparam) & 0xFFFF);
             PInvoke.GetPointerTouchInfo(pointerId, out var info);
@@ -212,9 +219,19 @@ public partial class MainWindow : Window
             PInvoke.GetPointerDeviceProperties(pointerInfo.sourceDevice, &count, null);
             var properties = stackalloc POINTER_DEVICE_PROPERTY[(int) count];
             PInvoke.GetPointerDeviceProperties(pointerInfo.sourceDevice, &count, properties);
-            
+
+            LogOnce($"GetPointerDeviceProperties Count={count}");
+
+            POINTER_DEVICE_PROPERTY xProperty = default;
+            POINTER_DEVICE_PROPERTY yProperty = default;
+            var xIndex = 0;
+            var yIndex = 0;
+
             POINTER_DEVICE_PROPERTY widthProperty = default;
             POINTER_DEVICE_PROPERTY heightProperty = default;
+
+            var wIndex = 0;
+            var hIndex = 0;
 
             for (int i = 0; i < count; i++)
             {
@@ -222,20 +239,68 @@ public partial class MainWindow : Window
                 var widthId = 0x48;
                 var heightId = 0x49;
 
+                var xId = 0x30;
+                var yId = 0x31;
+
                 if (pointerDeviceProperty.usageId == widthId)
                 {
                     widthProperty = pointerDeviceProperty;
+                    wIndex = i;
+                    LogOnce($"找到 width {ToString(widthProperty)}");
                 }
                 else if (pointerDeviceProperty.usageId == heightId)
                 {
                     heightProperty = pointerDeviceProperty;
+                    hIndex = i;
+                    LogOnce($"找到 height {ToString(heightProperty)}");
                 }
-
-                Console.WriteLine(ToString(pointerDeviceProperty));
+                else if (pointerDeviceProperty.usageId == xId)
+                {
+                    xProperty = pointerDeviceProperty;
+                    xIndex = i;
+                    LogOnce($"找到 x {ToString(pointerDeviceProperty)}");
+                }
+                else if (pointerDeviceProperty.usageId == yId)
+                {
+                    yProperty = pointerDeviceProperty;
+                    yIndex = i;
+                    LogOnce($"找到 y {ToString(pointerDeviceProperty)}");
+                }
+                else
+                {
+                    LogOnce(ToString(pointerDeviceProperty));
+                }
             }
 
-            Console.WriteLine($"WidthProperty={ToString(widthProperty)}");
-            Console.WriteLine($"HeightProperty={ToString(heightProperty)}");
+            void LogOnce(string message)
+            {
+                if (canLog)
+                {
+                    Console.WriteLine(message);
+                }
+            }
+
+            var historyCount = info.pointerInfo.historyCount;
+            int[] rawPointerData = new int[count * historyCount];
+            fixed (int* p = rawPointerData)
+            {
+                var success = PInvoke.GetRawPointerDeviceData(pointerId, (uint) historyCount, count, properties, p);
+                var s = new Win32Exception(Marshal.GetLastWin32Error()).ToString();
+            }
+
+            Console.WriteLine($"裸数据 X={rawPointerData[xIndex] * 1.0 / xProperty.logicalMax * displayRect.Width},Y={rawPointerData[yIndex] * 1.0 / yProperty.logicalMax * displayRect.Height}");
+
+            if (widthProperty.physicalMax > 0 && heightProperty.physicalMax > 0)
+            {
+                Console.WriteLine($"裸数据 W={rawPointerData[wIndex] * 1.0 / widthProperty.logicalMax * displayRect.Width},Y={rawPointerData[hIndex] * 1.0 / heightProperty.logicalMax * displayRect.Height}");
+
+                double width = info.rcContact.Width;
+                double height = info.rcContact.Height;
+                Console.WriteLine($"rcContact {width},{height}");
+            }
+
+            //Console.WriteLine($"WidthProperty={ToString(widthProperty)}");
+            //Console.WriteLine($"HeightProperty={ToString(heightProperty)}");
 
             static string ToString(POINTER_DEVICE_PROPERTY property)
             {
@@ -251,7 +316,7 @@ public partial class MainWindow : Window
                         """;
             }
 
-            if ((info.touchMask & PInvoke.TOUCH_MASK_CONTACTAREA )!= 0)
+            if ((info.touchMask & PInvoke.TOUCH_MASK_CONTACTAREA) != 0)
             {
                 double width = info.rcContact.Width;
                 double height = info.rcContact.Height;
