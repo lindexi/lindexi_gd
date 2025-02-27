@@ -36,6 +36,11 @@ public readonly record struct TextHitTestResult
     public ParagraphProperty ParagraphProperty => HitParagraphData.ParagraphProperty;
 
     /// <summary>
+    /// 命中到段落的第几行。如果没有命中到行，将返回 -1 的值
+    /// </summary>
+    public int HitLineInParagraphIndex => LineLayoutData?.LineInParagraphIndex ?? -1;
+
+    /// <summary>
     /// 命中到哪一行
     /// </summary>
     internal LineLayoutData? LineLayoutData { init; get; }

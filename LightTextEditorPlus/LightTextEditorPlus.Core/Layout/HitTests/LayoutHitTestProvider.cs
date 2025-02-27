@@ -35,8 +35,6 @@ class LayoutHitTestProvider
     /// 入口方法
     public TextHitTestResult HitTest(in TextPoint point)
     {
-        // 不需要通过 GetRenderInfo 方法获取，这是一个比较上层的方法了
-        //TextEditor.GetRenderInfo()
         var logContext = new TextEditorDebugLogContext(TextEditor);
         logContext.RecordDebugMessage($"Start HitTest Point={point.ToMathPointFormat()}");
 
@@ -57,6 +55,9 @@ class LayoutHitTestProvider
         // 命中到文档，那就继续判断段落命中
         var documentManager = TextEditor.DocumentManager;
         var paragraphManager = documentManager.ParagraphManager;
+
+        // 不需要通过 GetRenderInfo 方法获取，这是一个比较上层的方法了。框架内应该使用 LayoutProvider 获取
+        //TextEditor.GetRenderInfo()
         TextRect documentHitBounds = LayoutProvider.GetDocumentHitBounds();
 
         logContext.RecordDebugMessage($"开始测试文档范围是否命中");
