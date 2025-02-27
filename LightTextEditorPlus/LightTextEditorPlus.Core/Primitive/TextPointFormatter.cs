@@ -1,12 +1,12 @@
-namespace LightTextEditorPlus.Core.Primitive;
+ï»¿namespace LightTextEditorPlus.Core.Primitive;
 
 /// <summary>
-/// ÎÄ±¾µã¸ñÊ½»¯Æ÷
+/// æ–‡æœ¬ç‚¹æ ¼å¼åŒ–å™¨
 /// </summary>
 public static class TextPointFormatter
 {
     /// <summary>
-    /// ×ª»»ÎªÊıÑ§µã¸ñÊ½£¬Èç (1.23,4.56)
+    /// è½¬æ¢ä¸ºæ•°å­¦ç‚¹æ ¼å¼ï¼Œå¦‚ (1.23,4.56)
     /// </summary>
     /// <param name="textPoint"></param>
     /// <returns></returns>
