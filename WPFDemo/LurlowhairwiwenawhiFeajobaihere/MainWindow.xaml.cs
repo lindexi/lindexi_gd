@@ -221,6 +221,7 @@ public partial class MainWindow : Window
             var propertyResult = PInvoke.GetPointerDeviceProperties(pointerInfo.sourceDevice, &count, properties);
             if (!propertyResult)
             {
+                // GetPointerDevicePropertiesError System.ComponentModel.Win32Exception (998): 内存位置访问无效。
                 Console.WriteLine($"GetPointerDevicePropertiesError {new Win32Exception().ToString()}");
             }
 
