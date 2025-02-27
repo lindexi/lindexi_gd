@@ -213,6 +213,8 @@ abstract class ArrangingLayoutProvider
     private PreUpdateDocumentLayoutResult PreUpdateDocumentLayout(IReadOnlyList<ParagraphData> paragraphList,
         UpdateLayoutContext updateLayoutContext, in FirstDirtyParagraphInfo firstDirtyParagraphInfo)
     {
+        updateLayoutContext.RecordDebugLayoutInfo($"PreUpdateDocumentLayout 进入预布局阶段");
+
         // firstDirtyParagraphIndex - 首行出现变脏的序号
         // firstStartPoint - 首个脏段的起始 也就是横排左上角的点。等于非脏段的下一个行起点
         (ParagraphIndex firstDirtyParagraphIndex, TextPoint firstStartPoint) = firstDirtyParagraphInfo;
@@ -263,6 +265,8 @@ abstract class ArrangingLayoutProvider
             var bounds = paragraphData.ParagraphLayoutData.TextContentBounds;
             documentBounds = documentBounds.Union(bounds);
         }
+
+        updateLayoutContext.RecordDebugLayoutInfo($"PreUpdateDocumentLayout 完成预布局阶段。段落数量： {paragraphList.Count}，文档范围：{documentBounds}");
 
         return new PreUpdateDocumentLayoutResult(documentBounds);
     }
