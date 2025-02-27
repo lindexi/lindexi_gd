@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-
+using LightTextEditorPlus.Core.Layout;
+using LightTextEditorPlus.Core.Layout.HitTests;
 using LightTextEditorPlus.Diagnostics.LogInfos;
 
 namespace LightTextEditorPlus.Core.Primitive;
@@ -73,6 +74,15 @@ internal class EmptyTextLogger : ITextLogger
             }
 
             RecordMessage("===完成布局===");
+        }
+        else if(info is HitTestLogInfo hitTestLogInfo)
+        {
+            TextHitTestResult textHitTestResult = hitTestLogInfo.TextHitTestResult;
+
+            RecordMessage
+            (
+                $"命中测试结果： HitPoint={hitTestLogInfo.HitPoint.ToMathPointFormat()}, 命中到第 {textHitTestResult.HitParagraphIndex.Index}段，第{textHitTestResult.LineLayoutData?.LineInParagraphIndex}行，字符为：'{textHitTestResult.HitCharData?.CharObject.ToText()}'。命中到空白={textHitTestResult.IsHitSpace}"
+            );
         }
         else
         {

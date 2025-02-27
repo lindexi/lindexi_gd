@@ -37,53 +37,78 @@ class LayoutHitTestProvider
     {
         // 不需要通过 GetRenderInfo 方法获取，这是一个比较上层的方法了
         //TextEditor.GetRenderInfo()
+        var logContext = new TextEditorDebugLogContext(TextEditor);
+        logContext.RecordDebugMessage($"Start HitTest Point={point.ToMathPointFormat()}");
 
+        var result = HitTestInner(in point, in logContext);
+
+        logContext.RecordDebugMessage($"Finish HitTest Result={result}, HitPoint={point.ToMathPointFormat()}");
+
+        TextEditor.Logger.Log(new HitTestLogInfo(point, result, logContext));
+
+        return result;
+
+        // todo 命中测试处理竖排文本
+    }
+
+    private TextHitTestResult HitTestInner(in TextPoint point, in TextEditorDebugLogContext logContext)
+    {
         // 先判断是否命中到文档
         // 命中到文档，那就继续判断段落命中
         var documentManager = TextEditor.DocumentManager;
         var paragraphManager = documentManager.ParagraphManager;
         TextRect documentHitBounds = LayoutProvider.GetDocumentHitBounds();
 
+        logContext.RecordDebugMessage($"开始测试文档范围是否命中");
+
         var contains = documentHitBounds.Contains(point);
         // 如果没有点到文档范围内，则处理超过范围逻辑
         if (!contains)
         {
+            logContext.RecordDebugMessage($"没有命中到文档范围。文档范围 {documentHitBounds}");
             return GetOverBoundsHitTestResult(point, documentHitBounds);
         }
+
+        logContext.RecordDebugMessage($"命中到文档范围。文档范围 {documentHitBounds}，继续进行段落命中");
+        logContext.RecordDebugMessage($"开始段落命中测试");
 
         IReadOnlyList<ParagraphData> list = paragraphManager.GetParagraphList();
         // 先进行段落的命中，再执行(xing)行(hang)命中
         var currentDocumentOffset = new DocumentOffset(0);
         for (var paragraphIndex = 0; paragraphIndex < list.Count; paragraphIndex++)
         {
+            logContext.RecordDebugMessage($"第 {paragraphIndex} 段命中测试");
+
             ParagraphData paragraphData = list[paragraphIndex];
 
             var context = new ParagraphHitTestContext(point, paragraphData, new ParagraphIndex(paragraphIndex),
-                currentDocumentOffset);
+                currentDocumentOffset, logContext);
 
             ParagraphHitTestResult result = ParagraphHitTest(in context);
             if (result.Success)
             {
+                logContext.RecordDebugMessage($"第 {paragraphIndex} 段成功命中。命中测试结束");
+
                 return result.Result;
             }
             else
             {
                 currentDocumentOffset = result.CurrentDocumentOffset;
+
+                logContext.RecordDebugMessage($"第 {paragraphIndex} 段没有命中");
             }
         }
 
-        {
-            var lastParagraphData = list.Last();
-            // 任何一个都没命中，那就返回命中到最后
-            return new TextHitTestResult(lastParagraphData, false, false, false, documentManager.GetDocumentEndCaretOffset(),
-                null, lastParagraphData.Index)
-            {
-                // 没有命中到字符
-                IsHitSpace = true,
-            };
-        }
+        logContext.RecordDebugMessage($"没有命中到任意一段。回滚。取最后一段作为命中的段落");
 
-        // todo 命中测试处理竖排文本
+        var lastParagraphData = list.Last();
+        // 任何一个都没命中，那就返回命中到最后
+        return new TextHitTestResult(lastParagraphData, false, false, false, documentManager.GetDocumentEndCaretOffset(),
+            null, lastParagraphData.Index)
+        {
+            // 没有命中到字符
+            IsHitSpace = true,
+        };
     }
 
     /// <summary>
@@ -133,6 +158,7 @@ class LayoutHitTestProvider
 
     private ParagraphHitTestResult ParagraphHitTest(in ParagraphHitTestContext context)
     {
+        var logContext = context.LogContext;
         ParagraphData paragraphData = context.ParagraphData;
         TextPoint point = context.HitPoint;
         // 当前的文档偏移量。为什么不能用段落的偏移量？因为段落里面的偏移量也是一个获取的时候才进行计算的属性。为了提升性能，这里直接传递，就不用每个段落重新计算了
@@ -154,9 +180,13 @@ class LayoutHitTestProvider
         var paragraphBounds = paragraphLayoutData.OutlineBounds;
         if (paragraphBounds.Contains(point))
         {
+            logContext.RecordDebugMessage($"段落范围包含命中点 ParagraphOutlineBounds={paragraphBounds} HitPoint={point.ToMathPointFormat()}");
+
             TextRect textContentBounds = paragraphLayoutData.TextContentBounds;
             if (!textContentBounds.Contains(point))
             {
+                logContext.RecordDebugMessage($"段落文本范围不包含命中点，命中到段落空白部分 ParagraphTextContentBounds={textContentBounds}");
+
                 // 快速分支，命中到段落，但预计命中到了段落的空白部分。如段落前后的空白
                 // 这里当成横排文本处理
                 var isLeft = point.X <= textContentBounds.Left;
@@ -175,6 +205,11 @@ class LayoutHitTestProvider
                     Debug.Assert(isRight || isBottom);
                     lineLayoutData = paragraphData.LineLayoutDataList.Last();
                 }
+
+                // 这里的 currentCharIndex 偏移量等于段落的起始偏移量
+                Debug.Assert(currentCharIndex == paragraphData.GetParagraphStartOffset());
+                // 将段落的起始偏移量加上当前行的相对段落偏移量，就是当前行的文档偏移量
+                currentCharIndex += lineLayoutData.CharStartParagraphIndex;
 
                 TextRect lineContentBounds = lineLayoutData.GetLineContentBounds();
 
@@ -200,24 +235,32 @@ class LayoutHitTestProvider
                 };
             }
 
+            logContext.RecordDebugMessage($"段落文本范围包含命中点，命中到段落文本部分。开始进入行命中测试 ParagraphTextContentBounds={textContentBounds}");
+
             for (var lineIndex = 0; lineIndex < paragraphData.LineLayoutDataList.Count; lineIndex++)
             {
+                logContext.RecordDebugMessage($"第 {context.ParagraphIndex.Index} 段，第 {lineIndex} 行开始命中测试");
+
                 LineLayoutData lineLayoutData = paragraphData.LineLayoutDataList[lineIndex];
 
                 var lineHitTestContext = new LineHitTestContext(lineLayoutData, currentCharIndex, context);
                 ParagraphHitTestResult result = LineHitTest(in lineHitTestContext).ParagraphHitTestResult;
                 if (result.Success)
                 {
+                    logContext.RecordDebugMessage($"第 {context.ParagraphIndex.Index} 段，第 {lineIndex} 行命中测试成功");
                     return result;
                 }
                 else
                 {
                     currentCharIndex = result.CurrentDocumentOffset;
+                    logContext.RecordDebugMessage($"第 {context.ParagraphIndex.Index} 段，第 {lineIndex} 行没有命中");
                 }
             }
 
             Debug.Fail($"命中到一段，但是在一段里面没有命中一行");
         }
+
+        logContext.RecordDebugMessage($"段落范围不包含命中点，段落没有命中 ParagraphOutlineBounds={paragraphBounds} HitPoint={point.ToMathPointFormat()}");
 
         currentCharIndex += paragraphData.CharCount + ParagraphData.DelimiterLength;
         return ParagraphHitTestResult.OnFail(new DocumentOffset(currentCharIndex));

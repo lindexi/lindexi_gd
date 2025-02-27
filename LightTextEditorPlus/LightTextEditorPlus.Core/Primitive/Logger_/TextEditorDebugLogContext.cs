@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -8,7 +9,7 @@ namespace LightTextEditorPlus.Core.Primitive;
 /// <summary>
 /// 文本的调试日志上下文
 /// </summary>
-readonly record struct TextEditorDebugLogContext
+public readonly record struct TextEditorDebugLogContext
 {
     /// <summary>
     /// 文本的调试日志上下文
@@ -30,11 +31,19 @@ readonly record struct TextEditorDebugLogContext
     /// </summary>
     private bool IsInDebugMode { get; }
 
+    /// <summary>
+    /// 记录调试信息
+    /// </summary>
+    /// <param name="message"></param>
     public void RecordDebugMessage([InterpolatedStringHandlerArgument("")] ref HitTestDebugMessageInterpolatedStringHandler message)
     {
         if (IsInDebugMode)
         {
             string formattedText = message.GetFormattedText();
+
+#if DEBUG
+            Debug.WriteLine(formattedText);
+#endif
 
             DebugMessageList?.Add(formattedText);
         }
@@ -60,6 +69,13 @@ readonly record struct TextEditorDebugLogContext
     [InterpolatedStringHandler]
     public readonly ref struct HitTestDebugMessageInterpolatedStringHandler
     {
+        /// <summary>
+        /// 创建用于记录命中测试调试信息的字符串处理器
+        /// </summary>
+        /// <param name="literalLength"></param>
+        /// <param name="formattedCount"></param>
+        /// <param name="context"></param>
+        /// <param name="isEnable"></param>
         public HitTestDebugMessageInterpolatedStringHandler(int literalLength, int formattedCount,
             TextEditorDebugLogContext context, out bool isEnable)
         {
