@@ -1,0 +1,9 @@
+GetPointerTouchInfo
+ScreenToClient
+RegisterTouchWindow
+WM_TOUCH
+GetTouchInputInfo
+GetPointerDeviceRects
+ClientToScreen
+TOUCH_MASK_CONTACTAREA
+GetPointerDeviceProperties
