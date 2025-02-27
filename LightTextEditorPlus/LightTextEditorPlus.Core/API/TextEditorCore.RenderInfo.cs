@@ -48,6 +48,12 @@ public partial class TextEditorCore
     /// <summary>
     /// 等待布局完成
     /// </summary>
+    /// <remarks>
+    /// 等待此 Task 任务完成之后，需要再次判断 <see cref="IsDirty"/> 属性。等待任务完成不代表此时一定拿到不是脏的文本
+    /// <para>
+    /// 如需要求等待到不脏的文本，请使用 <see cref="TextEditorCoreTextLayoutExtensions.DoWhenLayoutCompletedNotDirtyAsync"/> 方法代替
+    /// </para>
+    /// </remarks>
     /// <returns></returns>
     /// 为什么设计使用 Task 没有加返回值？返回值如果是 <see cref="RenderInfoProvider"/> 类型，但是等待调度过程中，文本再次是脏的，那将会导致获取到的渲染数据不对
     public Task WaitLayoutCompletedAsync()
