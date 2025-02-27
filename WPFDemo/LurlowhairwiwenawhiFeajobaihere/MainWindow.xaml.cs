@@ -217,7 +217,7 @@ public partial class MainWindow : Window
             {
                 POINTER_DEVICE_PROPERTY pointerDeviceProperty = properties[i];
                 var widthId = 0x48;
-                var heightId = 0x48;
+                var heightId = 0x49;
 
                 if (pointerDeviceProperty.usageId == widthId)
                 {
