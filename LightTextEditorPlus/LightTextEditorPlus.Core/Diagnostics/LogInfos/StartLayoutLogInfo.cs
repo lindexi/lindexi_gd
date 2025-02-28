@@ -1,6 +1,6 @@
-namespace LightTextEditorPlus.Diagnostics.LogInfos;
+ï»¿namespace LightTextEditorPlus.Diagnostics.LogInfos;
 
 /// <summary>
-/// ¿ªÊ¼²¼¾ÖµÄÈÕÖ¾ĞÅÏ¢
+/// å¼€å§‹å¸ƒå±€çš„æ—¥å¿—ä¿¡æ¯
 /// </summary>
 public readonly record struct StartLayoutLogInfo();
