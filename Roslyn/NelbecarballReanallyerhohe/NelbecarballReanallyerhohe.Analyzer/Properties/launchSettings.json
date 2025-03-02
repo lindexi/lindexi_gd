@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "NelbecarballReanallyerhohe": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\NelbecarballReanallyerhohe\\NelbecarballReanallyerhohe.csproj"
+    }
+  }
+}
