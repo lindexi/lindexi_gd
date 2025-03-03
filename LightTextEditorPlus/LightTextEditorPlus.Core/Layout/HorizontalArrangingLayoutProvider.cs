@@ -716,7 +716,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         TextSize textSize;
         if (cacheSize == null)
         {
-            var charInfo = new CharInfo(charData.CharObject, charData.RunProperty);
+            var charInfo = charData.ToCharInfo();
             CharInfoMeasureResult charInfoMeasureResult;
             ICharInfoMeasurer? charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
             if (charInfoMeasurer != null)
