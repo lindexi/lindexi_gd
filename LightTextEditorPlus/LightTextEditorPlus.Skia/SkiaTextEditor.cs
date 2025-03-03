@@ -217,10 +217,10 @@ public class SkiaTextEditorPlatformProvider : PlatformProvider
         return TextEditor;
     }
 
-    public override ISingleCharInLineLayouter GetSingleRunLineLayouter()
-    {
-        return new SkiaSingleCharInLineLayouter(TextEditor);
-    }
+    //public override ISingleCharInLineLayouter GetSingleRunLineLayouter()
+    //{
+    //    return new SkiaSingleCharInLineLayouter(TextEditor);
+    //}
 
     public override IWholeLineCharsLayouter GetWholeLineCharsLayouter()
     {
