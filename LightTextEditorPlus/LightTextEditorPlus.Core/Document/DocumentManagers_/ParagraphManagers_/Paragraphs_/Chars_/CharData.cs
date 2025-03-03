@@ -151,4 +151,6 @@ public class CharData
 
         return $"'{CharObject}' {CharLayoutData?.CharLineStartPoint} {(Size != null ? $"W:{Size.Value.Width:0.00} H:{Size.Value.Height:0.00}" : "")}";
     }
+
+    public CharInfo ToCharInfo() => new CharInfo(CharObject, RunProperty);
 }

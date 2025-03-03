@@ -540,6 +540,35 @@ abstract class ArrangingLayoutProvider
     #region 通用辅助方法
 
     /// <summary>
+    /// 测量字符信息
+    /// </summary>
+    /// <param name="argument"></param>
+    /// <returns></returns>
+    protected CharInfoMeasureResult MeasureCharInfo(in CharMeasureArgument argument)
+    {
+        // 通过平台提供者获取字符信息测量器
+        ICharInfoMeasurer? charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
+        CharInfoMeasureResult result;
+        if (charInfoMeasurer != null)
+        {
+            result = charInfoMeasurer.MeasureCharInfo(argument);
+        }
+        else
+        {
+            // 默认的字符信息测量器
+            result = MeasureCharInfo(argument.CharData.ToCharInfo());
+        }
+
+        if (argument.CharData.Size is null)
+        {
+            // 如果平台忘记给 Size 赋值，那就在框架层赋值
+            argument.CharData.SetCharDataInfo(result.Bounds.TextSize, result.Baseline);
+        }
+
+        return result;
+    }
+
+    /// <summary>
     /// 通用的测量字符信息的方法，直接就是设置宽度高度为字号大小
     /// </summary>
     /// <param name="charInfo"></param>

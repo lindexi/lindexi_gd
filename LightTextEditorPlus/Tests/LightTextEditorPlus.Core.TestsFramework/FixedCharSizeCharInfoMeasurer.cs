@@ -26,4 +26,9 @@ public class FixedCharSizeCharInfoMeasurer : ICharInfoMeasurer
         double baseline = fontSize * _baselineRatio;
         return new CharInfoMeasureResult(bounds, baseline);
     }
+
+    public CharInfoMeasureResult MeasureCharInfo(in CharMeasureArgument argument)
+    {
+        return MeasureCharInfo(argument.CharInfo);
+    }
 }

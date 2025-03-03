@@ -119,4 +119,9 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
         return new CharInfoMeasureResult(bounds, baselineY);
     }
+
+    public CharInfoMeasureResult MeasureCharInfo(in CharMeasureArgument argument)
+    {
+        return MeasureCharInfo(argument.CharInfo);
+    }
 }

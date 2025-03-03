@@ -145,4 +145,9 @@ class CharInfoMeasurer : ICharInfoMeasurer
 
         return new CharInfoMeasureResult(new TextRect(new TextPoint(), textSize), glyphTypeface.Baseline * fontSize);
     }
+
+    public CharInfoMeasureResult MeasureCharInfo(in CharMeasureArgument argument)
+    {
+        return MeasureCharInfo(argument.CharInfo);
+    }
 }

@@ -18,6 +18,7 @@ using LightTextEditorPlus.Document;
 
 namespace LightTextEditorPlus.Platform;
 
+// 其实这里是不需要的，只要有字符布局即可
 public class SkiaWholeLineCharsLayouter : IWholeLineCharsLayouter
 {
     public WholeLineCharsLayoutResult UpdateWholeLineCharsLayout(in WholeLineLayoutArgument argument)
@@ -41,7 +42,7 @@ public class SkiaWholeLineCharsLayouter : IWholeLineCharsLayouter
         {
             TextReadOnlyListSpan<CharData> runList = charDataList.Slice(currentIndex).GetFirstCharSpanContinuous();
             var arguments = new SingleCharInLineLayoutArgument(charDataList, currentIndex, lineRemainingWidth,
-                paragraphProperty, context);
+                argument.Paragraph, context);
 
             FillSizeOfCharData(runList, in arguments);
 
