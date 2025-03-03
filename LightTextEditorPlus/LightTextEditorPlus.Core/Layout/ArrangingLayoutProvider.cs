@@ -556,13 +556,13 @@ abstract class ArrangingLayoutProvider
         else
         {
             // 默认的字符信息测量器
-            result = MeasureCharInfo(argument.CharData.ToCharInfo());
+            result = MeasureCharInfo(argument.CurrentCharData.ToCharInfo());
         }
 
-        if (argument.CharData.Size is null)
+        if (argument.CurrentCharData.Size is null)
         {
             // 如果平台忘记给 Size 赋值，那就在框架层赋值
-            argument.CharData.SetCharDataInfo(result.Bounds.TextSize, result.Baseline);
+            argument.CurrentCharData.SetCharDataInfo(result.Bounds.TextSize, result.Baseline);
         }
 
         return result;
