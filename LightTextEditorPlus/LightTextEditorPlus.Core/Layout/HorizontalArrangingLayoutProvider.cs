@@ -424,7 +424,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             return new WholeLineLayoutResult(TextSize.Zero, TextSize.Zero, 0, default);
         }
 
-        var layoutResult = UpdateWholeLineCharsLayout(argument);
+        var layoutResult = UpdateWholeLineCharsLayout(in argument);
 #if DEBUG
         if (layoutResult.CurrentLineCharTextSize.Width > 0 && layoutResult.CurrentLineCharTextSize.Height == 0)
         {
@@ -434,7 +434,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         }
 #endif
 
-        int wholeCharCount = layoutResult.WholeCharCount;
+        int wholeCharCount = layoutResult.WholeTakeCount;
         TextSize currentTextSize = layoutResult.CurrentLineCharTextSize;
 
         if (wholeCharCount == 0)
@@ -493,19 +493,18 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     }
 
     /// <summary>
-    /// 布局一行的结果
-    /// </summary>
-    /// <param name="CurrentLineCharTextSize"></param>
-    /// <param name="WholeCharCount"></param>
-    readonly record struct WholeLineCharsLayoutResult(TextSize CurrentLineCharTextSize, int WholeCharCount);
-
-    /// <summary>
     /// 布局一行里面有哪些字符
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
     private WholeLineCharsLayoutResult UpdateWholeLineCharsLayout(in WholeLineLayoutArgument argument)
     {
+        IWholeLineCharsLayouter? wholeLineCharsLayouter = TextEditor.PlatformProvider.GetWholeLineCharsLayouter();
+        if (wholeLineCharsLayouter != null)
+        {
+            return wholeLineCharsLayouter.UpdateWholeLineCharsLayout(in argument);
+        }
+
         ParagraphProperty paragraphProperty = argument.ParagraphProperty;
         TextReadOnlyListSpan<CharData> charDataList = argument.CharDataList;
         double lineMaxWidth = argument.LineMaxWidth;
