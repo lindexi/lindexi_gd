@@ -334,7 +334,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
 
             WholeLineLayoutResult result;
             var wholeRunLineLayoutArgument = new WholeLineLayoutArgument(argument.ParagraphIndex,
-                lineIndex, paragraphProperty, charDataList,
+                lineIndex, paragraph, charDataList,
                 usableLineMaxWidth, currentStartPoint, argument.UpdateLayoutContext);
             if (wholeRunLineLayouter != null)
             {
@@ -505,7 +505,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             return wholeLineCharsLayouter.UpdateWholeLineCharsLayout(in argument);
         }
 
-        ParagraphProperty paragraphProperty = argument.ParagraphProperty;
         TextReadOnlyListSpan<CharData> charDataList = argument.CharDataList;
         double lineMaxWidth = argument.LineMaxWidth;
         UpdateLayoutContext context = argument.UpdateLayoutContext;
@@ -531,7 +530,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         {
             // 一行里面需要逐个字符进行布局
             var arguments = new SingleCharInLineLayoutArgument(charDataList, currentIndex, lineRemainingWidth,
-                paragraphProperty, context);
+                argument.Paragraph, context);
 
             SingleCharInLineLayoutResult result;
             if (singleRunLineLayouter is not null)
@@ -676,7 +675,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         {
             var charData = argument.CurrentCharData;
 
-            TextSize textSize = GetCharSize(charData);
+            CharInfoMeasureResult charInfoMeasureResult = MeasureCharInfo(new CharMeasureArgument(charData,
+                argument.RunList, argument.CurrentIndex, argument.Paragraph, argument.UpdateLayoutContext));
+
+            TextSize textSize = charInfoMeasureResult.Bounds.TextSize;
 
             // 单个字符直接布局，无视语言文化。快，但是诡异
             if (argument.LineRemainingWidth > textSize.Width)
