@@ -2,6 +2,7 @@ using System;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Document.Utils;
+using LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
 using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Platform;
@@ -115,4 +116,6 @@ public interface ITextEditorPlatformProvider
     /// </summary>
     /// <returns></returns>
     IPlatformFontNameManager GetPlatformFontNameManager();
+
+    IWordDivider GetWordDivider();
 }
