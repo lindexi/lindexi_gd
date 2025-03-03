@@ -222,6 +222,13 @@ public class SkiaTextEditorPlatformProvider : PlatformProvider
         return new SkiaSingleCharInLineLayouter(TextEditor);
     }
 
+    //public override IWholeLineLayouter GetWholeRunLineLayouter()
+    //{
+    //    return _skiaWholeLineLayouter ??= new SkiaWholeLineCharsLayouter();
+    //}
+
+    //private SkiaWholeLineCharsLayouter? _skiaWholeLineLayouter;
+
     public override ICharInfoMeasurer GetCharInfoMeasurer()
     {
         // 空段落测量依然会进来的
