@@ -222,12 +222,12 @@ public class SkiaTextEditorPlatformProvider : PlatformProvider
         return new SkiaSingleCharInLineLayouter(TextEditor);
     }
 
-    //public override IWholeLineLayouter GetWholeRunLineLayouter()
-    //{
-    //    return _skiaWholeLineLayouter ??= new SkiaWholeLineCharsLayouter();
-    //}
+    public override IWholeLineCharsLayouter GetWholeLineCharsLayouter()
+    {
+        return _skiaWholeLineLayouter ??= new SkiaWholeLineCharsLayouter();
+    }
 
-    //private SkiaWholeLineCharsLayouter? _skiaWholeLineLayouter;
+    private SkiaWholeLineCharsLayouter? _skiaWholeLineLayouter;
 
     public override ICharInfoMeasurer GetCharInfoMeasurer()
     {
