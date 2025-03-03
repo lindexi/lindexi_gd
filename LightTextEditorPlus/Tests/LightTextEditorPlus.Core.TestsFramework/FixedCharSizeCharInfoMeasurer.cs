@@ -29,6 +29,6 @@ public class FixedCharSizeCharInfoMeasurer : ICharInfoMeasurer
 
     public CharInfoMeasureResult MeasureCharInfo(in CharMeasureArgument argument)
     {
-        return MeasureCharInfo(argument.CharInfo);
+        return MeasureCharInfo(argument.CurrentCharInfo);
     }
 }
