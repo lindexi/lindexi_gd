@@ -56,6 +56,9 @@ public abstract class PlatformProvider : ITextEditorPlatformProvider
         return null;
     }
 
+    /// <inheritdoc />
+    public virtual IWholeLineCharsLayouter? GetWholeLineCharsLayouter() => null;
+
     //public virtual IRunMeasureProvider GetRunMeasureProvider()
     //{
     //    return  new DefaultRunMeasureProvider();
