@@ -217,17 +217,17 @@ public class SkiaTextEditorPlatformProvider : PlatformProvider
         return TextEditor;
     }
 
-    public override ISingleCharInLineLayouter GetSingleRunLineLayouter()
-    {
-        return new SkiaSingleCharInLineLayouter(TextEditor);
-    }
-
-    //public override IWholeLineLayouter GetWholeRunLineLayouter()
+    //public override ISingleCharInLineLayouter GetSingleRunLineLayouter()
     //{
-    //    return _skiaWholeLineLayouter ??= new SkiaWholeLineCharsLayouter();
+    //    return new SkiaSingleCharInLineLayouter(TextEditor);
     //}
 
-    //private SkiaWholeLineCharsLayouter? _skiaWholeLineLayouter;
+    public override IWholeLineCharsLayouter GetWholeLineCharsLayouter()
+    {
+        return _skiaWholeLineLayouter ??= new SkiaWholeLineCharsLayouter();
+    }
+
+    private SkiaWholeLineCharsLayouter? _skiaWholeLineLayouter;
 
     public override ICharInfoMeasurer GetCharInfoMeasurer()
     {
