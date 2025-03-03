@@ -665,7 +665,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         // 调用分词规则-支持注入分词规则
 
         // 使用分词规则进行布局
-        bool useWordDividerLayout = true;
+        bool useWordDividerLayout = false;
 
         if (useWordDividerLayout)
         {

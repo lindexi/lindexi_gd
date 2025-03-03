@@ -22,3 +22,4 @@ public interface ICharInfoMeasurer
     /// <returns></returns>
     CharInfoMeasureResult MeasureCharInfo(in CharMeasureArgument argument);
 }
+
