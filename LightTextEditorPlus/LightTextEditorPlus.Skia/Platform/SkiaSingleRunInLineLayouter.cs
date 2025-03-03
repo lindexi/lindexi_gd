@@ -18,7 +18,7 @@ using LightTextEditorPlus.Document;
 
 namespace LightTextEditorPlus.Platform;
 
-public class SkiaSingleRunInLineLayouter : IWholeLineCharsLayouter
+public class SkiaWholeLineCharsLayouter : IWholeLineCharsLayouter
 {
     public WholeLineCharsLayoutResult UpdateWholeLineCharsLayout(in WholeLineLayoutArgument argument)
     {
@@ -78,7 +78,7 @@ public class SkiaSingleRunInLineLayouter : IWholeLineCharsLayouter
                     // 这一行一个单词都放不下，那就强行放入一个个字符
                     for (; currentIndex < currentRunList.Count; currentIndex++)
                     {
-                        var charData = currentRunList[i];
+                        var charData = currentRunList[currentIndex];
                         TextSize textSize = charData.Size ?? throw new InvalidOperationException("CharData 的 Size 不能为空");
 
                         if (lineRemainingWidth > textSize.Width)
