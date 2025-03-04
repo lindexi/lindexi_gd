@@ -17,7 +17,6 @@ public class FakePlatformRunPropertyCreator : IPlatformRunPropertyCreator
 
     public Func<ICharObject, IReadOnlyRunProperty, IReadOnlyRunProperty>? ToPlatformRunPropertyFunc { get; set; }
 
-
     public IReadOnlyRunProperty GetDefaultRunProperty()
     {
         if (GetDefaultRunPropertyFunc != null)

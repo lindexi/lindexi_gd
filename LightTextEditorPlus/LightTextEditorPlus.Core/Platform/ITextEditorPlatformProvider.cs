@@ -2,6 +2,7 @@ using System;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Document.Utils;
+using LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
 using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Platform;
@@ -55,7 +56,15 @@ public interface ITextEditorPlatformProvider
     /// </summary>
     /// <remarks>需要处理横竖排等布局方式</remarks>
     /// <returns></returns>
+    /// <see cref="GetWholeRunLineLayouter"/> 包含 <see cref="GetWholeLineCharsLayouter"/>
     IWholeLineLayouter? GetWholeRunLineLayouter();
+
+    /// <summary>
+    ///    获取整行的字符的布局器。整行的字符布局器，用来布局一整行的字符，不包括行距等信息。只有字符排列
+    /// </summary>
+    /// <remarks>需要处理横竖排等布局方式</remarks>
+    /// <returns></returns>
+    IWholeLineCharsLayouter? GetWholeLineCharsLayouter();
 
     /// <summary>
     ///     获取文本的行测量器，返回空则采用默认的行测量逻辑。如自定义，则无须再处理 <see cref="GetCharInfoMeasurer"/> 返回的 <see cref="ICharInfoMeasurer"/> 的实现
@@ -107,4 +116,6 @@ public interface ITextEditorPlatformProvider
     /// </summary>
     /// <returns></returns>
     IPlatformFontNameManager GetPlatformFontNameManager();
+
+    IWordDivider GetWordDivider();
 }

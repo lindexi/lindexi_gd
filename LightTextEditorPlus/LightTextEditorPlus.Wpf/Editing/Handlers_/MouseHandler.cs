@@ -80,7 +80,7 @@ internal class MouseHandler
                     TextEditor.Focus();
                     //Keyboard.Focus(TextEditor);
                     //FocusManager.SetFocusedElement(TextEditor, TextEditor);
-                    
+
                     Mouse.Capture(TextEditor, CaptureMode.SubTree);
 
                     e.Handled = true;
@@ -174,7 +174,6 @@ internal class MouseHandler
 
     private TextEditor TextEditor { get; }
     private TextEditorCore TextEditorCore => TextEditor.TextEditorCore;
-
 
     #region 光标
 

@@ -26,8 +26,8 @@ public record ParagraphProperty
     /// <summary>
     /// 文本从右向左布局还是从左向右布局
     /// </summary>
-    public FlowDirection Direction 
-    { 
+    public FlowDirection Direction
+    {
         get;
         [Obsolete("当前还不支持设置从右到左")]
         init;
@@ -58,7 +58,7 @@ public record ParagraphProperty
     /// 此属性只是为了告诉你应该使用 LeftIndentation 属性
     /// </summary>
     [Obsolete("此属性只是为了告诉你应该使用 LeftIndentation 属性", true)]
-    public double MarginLeft => throw new NotSupportedException();
+    public double MarginLeft => 0;
 
     /// <summary>
     /// 左侧缩进

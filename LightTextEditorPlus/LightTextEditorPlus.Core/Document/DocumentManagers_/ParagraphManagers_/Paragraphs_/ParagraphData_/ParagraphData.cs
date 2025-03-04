@@ -14,7 +14,7 @@ namespace LightTextEditorPlus.Core.Document;
 /// <summary>
 /// 段落数据
 /// </summary>
-class ParagraphData
+class ParagraphData : ITextParagraph
 {
     public ParagraphData(IReadOnlyRunProperty paragraphStartRunProperty, ParagraphProperty paragraphProperty, ParagraphManager paragraphManager)
     {
@@ -37,12 +37,12 @@ class ParagraphData
         => _paragraphLayoutData.OutlineSize = outlineSize;
 
     public void SetParagraphLayoutContentThickness(TextThickness contentThickness)
-        => _paragraphLayoutData.ContentThickness = contentThickness;
+        => _paragraphLayoutData.TextContentThickness = contentThickness;
 
     /// <summary>
     /// 设置布局数据是脏的
     /// </summary>
-    public void SetLayoutDirty() => _paragraphLayoutData.SetLayoutDirty();
+    public void SetLayoutDirty(bool exceptTextSize) => _paragraphLayoutData.SetLayoutDirty(exceptTextSize);
 
     /// <summary>
     /// 更新段落左上角起始点的坐标
@@ -66,14 +66,10 @@ class ParagraphData
 
     #endregion
 
-    /// <summary>
-    /// 段落属性样式
-    /// </summary>
+    /// <inheritdoc />
     public ParagraphProperty ParagraphProperty { private set; get; }
 
-    /// <summary>
-    /// 段落起始的字符属性，表示在段落第一个字符之前的样式
-    /// </summary>
+    /// <inheritdoc />
     public IReadOnlyRunProperty ParagraphStartRunProperty { get; private set; }
 
     public void SetParagraphProperty(ParagraphProperty paragraphProperty)
@@ -102,12 +98,12 @@ class ParagraphData
     /// </summary>
     public ParagraphManager ParagraphManager { get; }
 
-    /// <summary>
-    /// 获取当前段落是文档的第几段，从0开始
-    /// </summary>
+    /// <inheritdoc />
     public ParagraphIndex Index => ParagraphManager.GetParagraphIndex(this);
 
     private TextEditorCore TextEditor => ParagraphManager.TextEditor;
+
+    public bool IsInDebugMode => TextEditor.IsInDebugMode;
 
     /// <summary>
     /// 段落的字符管理
@@ -149,6 +145,9 @@ class ParagraphData
         };
         return charData;
     }
+
+    /// <inheritdoc />
+    public TextReadOnlyListSpan<CharData> GetParagraphCharDataList() => ToReadOnlyListSpan(new ParagraphCharOffset(0));
 
     /// <summary>
     /// 获取字符列表

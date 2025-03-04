@@ -35,7 +35,7 @@ public class HorizontalArrangingLayoutProviderTest
             // 布局有两行，一行宽度是 5 个字符，每个字符 20 的宽度
             // 一行高度是 CharHeight 的高度
             var size = new TextSize(CharWidth * 5, CharHeight * 2);
-            Assert.AreEqual(size, paragraphLayoutData.TextBounds.TextSize);
+            Assert.AreEqual(size, paragraphLayoutData.TextContentBounds.TextSize);
         });
     }
 
@@ -65,7 +65,7 @@ public class HorizontalArrangingLayoutProviderTest
             textEditor.AppendText("abcde\r\nABCDEFG");
 
             // 获取第二段的起始坐标，用于后续判断是否改变
-            TextPoint startPoint = textEditor.GetRenderInfo().GetParagraphRenderInfoList().ToList()[1].ParagraphLayoutData.TextBounds.LeftTop;
+            TextPoint startPoint = textEditor.GetRenderInfo().GetParagraphRenderInfoList().ToList()[1].ParagraphLayoutData.TextContentBounds.LeftTop;
 
             // Action
             // 在首段追加一行
@@ -80,11 +80,11 @@ public class HorizontalArrangingLayoutProviderTest
             // 影响文本第二段起始坐标，文本第二段布局正确
             var paragraphRenderInfo = textEditor.GetRenderInfo().GetParagraphRenderInfoList().ToList()[1];
             var paragraphLayoutData = paragraphRenderInfo.ParagraphLayoutData;
-            Assert.AreNotEqual(startPoint, paragraphLayoutData.TextBounds.LeftTop);
+            Assert.AreNotEqual(startPoint, paragraphLayoutData.TextContentBounds.LeftTop);
             // 布局有两行，一行宽度是 5 个字符，每个字符 20 的宽度
             // 一行高度是 LineSpacing * CharHeight 的高度
             var size = new TextSize(CharWidth * 5, LineSpacing.LineSpacing * CharHeight * 2);
-            Assert.AreEqual(size, paragraphLayoutData.TextBounds.TextSize);
+            Assert.AreEqual(size, paragraphLayoutData.TextContentBounds.TextSize);
 
             var lineRenderInfoList = paragraphRenderInfo.GetLineRenderInfoList().ToList();
             // 第一行起始就是首段的末尾，首段的高度是两行的高度，一行高度是 LineSpacing * CharHeight 的高度
@@ -122,7 +122,7 @@ public class HorizontalArrangingLayoutProviderTest
             textEditor.AppendText("abcdefg\r\nABCDEFG");
 
             // 获取第二段的起始坐标，用于后续判断是否改变
-            TextPoint startPoint = textEditor.GetRenderInfo().GetParagraphRenderInfoList().ToList()[1].ParagraphLayoutData.TextBounds.LeftTop;
+            TextPoint startPoint = textEditor.GetRenderInfo().GetParagraphRenderInfoList().ToList()[1].ParagraphLayoutData.TextContentBounds.LeftTop;
 
             // Action
             // 在首段追加
@@ -137,11 +137,11 @@ public class HorizontalArrangingLayoutProviderTest
             // 修改之后不影响文本第二段起始坐标，文本第二段布局正确
             var paragraphRenderInfo = textEditor.GetRenderInfo().GetParagraphRenderInfoList().ToList()[1];
             var paragraphLayoutData = paragraphRenderInfo.ParagraphLayoutData;
-            Assert.AreEqual(startPoint, paragraphLayoutData.TextBounds.LeftTop);
+            Assert.AreEqual(startPoint, paragraphLayoutData.TextContentBounds.LeftTop);
             // 布局有两行，一行宽度是 5 个字符，每个字符 20 的宽度
             // 一行高度是 LineSpacing * CharHeight 的高度
             var size = new TextSize(CharWidth * 5, LineSpacing.LineSpacing * CharHeight * 2);
-            Assert.AreEqual(size, paragraphLayoutData.TextBounds.TextSize);
+            Assert.AreEqual(size, paragraphLayoutData.TextContentBounds.TextSize);
         });
 
         "文本包含一段一行，设置 1.5 倍行距，采用 FakeLineSpacing 算法，字号 20 的文本为 30 行高".Test(() =>
@@ -164,10 +164,10 @@ public class HorizontalArrangingLayoutProviderTest
             var renderInfoProvider = textEditor.GetRenderInfo();
             var paragraphRenderInfoList = renderInfoProvider.GetParagraphRenderInfoList().ToList();
             var paragraphRenderInfo = paragraphRenderInfoList[0];
-            Assert.AreEqual(new TextPoint(0, 0), paragraphRenderInfo.ParagraphLayoutData.TextBounds.LeftTop);
+            Assert.AreEqual(new TextPoint(0, 0), paragraphRenderInfo.ParagraphLayoutData.TextContentBounds.LeftTop);
 
             Assert.AreEqual(new TextSize(CharWidth * text.Length, CharHeight * LineSpacing.LineSpacing),
-                paragraphRenderInfo.ParagraphLayoutData.TextBounds.TextSize);
+                paragraphRenderInfo.ParagraphLayoutData.TextContentBounds.TextSize);
 
             var lineRenderInfo = paragraphRenderInfo.GetLineRenderInfoList().First();
             var lineLayoutData = lineRenderInfo.LineLayoutData;

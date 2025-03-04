@@ -33,7 +33,7 @@ public readonly struct ParagraphLineRenderInfo
     /// 内部使用的行信息
     /// </summary>
     /// 由于需要修改访问权限，修改为属性
-    internal LineLayoutData LineLayoutData {  get; }
+    internal LineLayoutData LineLayoutData { get; }
 
     /// <summary>
     /// 当前行所在的段落属性
@@ -48,7 +48,7 @@ public readonly struct ParagraphLineRenderInfo
         => new ParagraphRenderInfo(ParagraphIndex, LineLayoutData.CurrentParagraph, _renderInfoProvider);
 
     /// <summary>这一行是段落的第几行，从0开始</summary>
-    public int LineIndex { get;}
+    public int LineIndex { get; }
 
     /// <summary>
     /// 当前是在第几个段落，从0开始

@@ -10,7 +10,7 @@ public readonly record struct TextPointInLine
     /// <summary>
     /// 相对于行的坐标点
     /// </summary>
-    public TextPointInLine(double x, double y):this(new TextPoint(x, y))
+    public TextPointInLine(double x, double y) : this(new TextPoint(x, y))
     {
     }
 

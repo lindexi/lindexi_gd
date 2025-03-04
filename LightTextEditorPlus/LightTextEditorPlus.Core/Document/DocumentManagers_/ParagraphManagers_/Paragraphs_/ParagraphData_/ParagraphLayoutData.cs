@@ -19,11 +19,11 @@ public interface IParagraphLayoutData
     TextSize TextSize { get; }
 
     /// <summary>
-    /// 段落的文本内容的边距。一般就是段前和段后距离
+    /// 段落的文本内容的边距。一般就是段前和段后间距
     /// </summary>
     /// 为什么左右边距不叠加在段落上？现在是每一行都叠加，因为前面实现错误，以为左边距会受到悬挂缩进的影响。实际应该让左右边距放在这里，行只处理缩进
     /// 但行在处理的过程，本身就需要考虑左右边距影响了行的可用宽度，因此放在行里面处理也是可以的
-    TextThickness ContentThickness { get; }
+    TextThickness TextContentThickness { get; }
 
     /// <summary>
     /// 外接的尺寸，包含段前和段后和左右边距
@@ -33,7 +33,7 @@ public interface IParagraphLayoutData
     /// <summary>
     /// 段落的文本范围
     /// </summary>
-    TextRect TextBounds { get; }
+    TextRect TextContentBounds { get; }
 
     /// <summary>
     /// 外接边界，包含对齐的空白
@@ -57,11 +57,11 @@ class ParagraphLayoutData : IParagraphLayoutData
     public TextSize TextSize { set; get; } = TextSize.Invalid;
 
     /// <summary>
-    /// 段落的文本内容的边距。一般就是段前和段后距离
+    /// 段落的文本内容的边距。一般就是段前和段后间距
     /// </summary>
     /// 为什么左右边距不叠加在段落上？现在是每一行都叠加，因为前面实现错误，以为左边距会受到悬挂缩进的影响。实际应该让左右边距放在这里，行只处理缩进
     /// 但行在处理的过程，本身就需要考虑左右边距影响了行的可用宽度，因此放在行里面处理也是可以的
-    public TextThickness ContentThickness { get; set; } = TextThickness.Invalid;
+    public TextThickness TextContentThickness { get; set; } = TextThickness.Invalid;
 
     /// <summary>
     /// 外接的尺寸，包含段前和段后和左右边距
@@ -78,21 +78,24 @@ class ParagraphLayoutData : IParagraphLayoutData
     /// <summary>
     /// 段落的文本范围，不包含空白
     /// </summary>
-    public TextRect TextBounds
+    public TextRect TextContentBounds
     {
         get
         {
             // 跳过空白部分
-            TextPoint textPoint = StartPoint.Offset(ContentThickness.Left, ContentThickness.Top);
+            TextPoint textPoint = StartPoint.Offset(TextContentThickness.Left, TextContentThickness.Top);
             return new TextRect(textPoint, TextSize);
         }
     }
 
-    public void SetLayoutDirty()
+    public void SetLayoutDirty(bool exceptTextSize)
     {
         StartPoint = TextContext.InvalidStartPoint;
-        TextSize = TextSize.Invalid;
+        if (!exceptTextSize)
+        {
+            TextSize = TextSize.Invalid;
+        }
         OutlineSize = TextSize.Invalid;
-        ContentThickness = TextThickness.Invalid;
+        TextContentThickness = TextThickness.Invalid;
     }
 }

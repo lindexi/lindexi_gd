@@ -111,7 +111,6 @@ public class AvaloniaSkiaTextEditorPlatformProvider : SkiaTextEditorPlatformProv
     #endregion
 }
 
-
 class AvaloniaTextEditorDispatcherRequiring
 {
     public AvaloniaTextEditorDispatcherRequiring(Action action, Dispatcher dispatcher, DispatcherPriority? priority = null)

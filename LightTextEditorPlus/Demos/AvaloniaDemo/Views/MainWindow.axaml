@@ -9,13 +9,16 @@
         Icon="/Assets/Text.ico"
         Title="文本">
     <TabControl>
-        <TabItem Header="调试" IsSelected="True">
+        <TabItem Header="调试">
             <TabItem.Content>
                 <views:TextEditorDebugView Margin="0,25,0,0"/>
             </TabItem.Content>
         </TabItem>
         <TabItem Header="测试">
             <views:TextEditorTestView Margin="0,25,0,0"/>
+        </TabItem>
+        <TabItem Header="Markdown" IsSelected="True">
+          <views:DualEditorUserControl/>
         </TabItem>
     </TabControl>
 </Window>

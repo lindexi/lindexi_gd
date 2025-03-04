@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Document.Utils;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
@@ -79,9 +80,8 @@ public class SkiaPlatformResourceManager :
             shouldDisposeSkTypeface = true;
         }
 
-        // todo 给 ICharObject 添加包含字符的判断属性。当前只有一个 LineBreakCharObject 类型是特殊的
-        var containedChar = charObject is not LineBreakCharObject;
-        if (!containedChar)
+        var notContainedChar = charObject.IsLineBreak();
+        if (notContainedChar)
         {
             // 如果不包含字符，那么不需要检查字体是否支持字符
             return normalRunProperty;
@@ -157,7 +157,7 @@ public class SkiaPlatformResourceManager :
             skTypeface = ResolveWithCache(runProperty);
         }
 
-        if(SkiaTextEditor.IsInDebugMode)
+        if (SkiaTextEditor.TextEditorCore.IsInDebugMode)
         {
             // 判断字体是否支持字符本身是要钱的，所以只在调试模式下才判断
             if (!skTypeface.ContainsGlyph(codePointToDebug.Value))
@@ -308,5 +308,5 @@ public class SkiaPlatformResourceManager :
     /// </summary>
     /// 字体是有限的，所以不需要担心缓存过大
     private static readonly ConcurrentDictionary<string /*FontName*/, bool /*Installed*/> InstalledFontCache =
-        new ();
+        new();
 }

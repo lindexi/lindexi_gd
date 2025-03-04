@@ -22,7 +22,7 @@ public class ChangeTextEditorStyleTextRunPropertyValueOperationTest
                     .Insert(It.IsNotNull<ChangeTextEditorStyleTextRunPropertyValueOperation>()))
                 .Callback((ITextOperation t) =>
                 {
-                    operation = (ChangeTextEditorStyleTextRunPropertyValueOperation)t;
+                    operation = (ChangeTextEditorStyleTextRunPropertyValueOperation) t;
                 });
 
             var textEditorCore = TestHelper.GetTextEditorCore(new FakeTestPlatformProvider(mock.Object));

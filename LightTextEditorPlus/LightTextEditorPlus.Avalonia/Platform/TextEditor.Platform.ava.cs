@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
+using System.Runtime.Loader;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,7 +17,7 @@ using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
-
+using Avalonia.Threading;
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
@@ -68,6 +70,16 @@ partial class TextEditor : Control
     }
 
     internal AvaloniaSkiaTextEditorPlatformProvider PlatformProvider { get; }
+
+    /// <summary>
+    /// 是否是当前正在调试的文本控件。一个界面里面包含多个控件的时候，就不太适合只用 IsInDebugMode 属性了，需要再有一个用来做业务上的区分
+    /// </summary>
+    private bool IsDebugging
+#if DEBUG
+        => DebugName?.Contains("江南莲花开，莲花惹人采") ?? false;
+#else
+        => false;
+#endif
 
     #region 交互
 
@@ -145,7 +157,6 @@ partial class TextEditor : Control
             ForceLayout();
         }
 
-      
         if (e.Key == Key.Up)
         {
             TextEditorCore.MoveCaret(CaretMoveType.UpByLine);
@@ -175,7 +186,7 @@ partial class TextEditor : Control
             // 获取焦点时，允许用户编辑，才能设置为编辑模式
             IsInEditingInputMode = IsEditable && true;
         }
-      
+
         base.OnGotFocus(e);
     }
 
@@ -211,6 +222,9 @@ partial class TextEditor : Control
         }
     }
 
+    /// <summary>
+    /// 是否进入强制布局状态
+    /// </summary>
     private bool _isInForceLayout;
 
     private void ForceRedraw()
@@ -221,7 +235,13 @@ partial class TextEditor : Control
 
     private void TextEditorCore_LayoutCompleted(object? sender, LayoutCompletedEventArgs e)
     {
+        if (IsDebugging)
+        {
+
+        }
+
         InvalidateMeasureAfterLayoutCompleted();
+        OnLayoutCompleted(e);
     }
 
     /// <summary>
@@ -229,22 +249,14 @@ partial class TextEditor : Control
     /// </summary>
     private void InvalidateMeasureAfterLayoutCompleted()
     {
-        if (_isInForceLayout)
+        if (IsDebugging)
         {
-            // 强行布局的情况下，不需要再次触发布局
-            // 可能此时正在 UI 布局过程中，也可能只是其他业务需要获取值。此时再次触发布局是比较亏的
-            return;
-        }
 
-        if (_isRendering)
-        {
-            // 如果当前正在渲染中，那就不要再次触发重绘。因为再次触发重绘也是浪费
-            return;
         }
-
+        
         if (_isMeasuring)
         {
-            // 正在布局测量中，不需要再次触发布局。预计是触发 ForceLayout 或空文本布局。由于前面已经经过了 _isInForceLayout 判断了，所以能进入这里的只有空文本布局
+            // 正在布局测量中，不需要再次触发布局~~。预计是触发 ForceLayout 或空文本布局。由于前面已经经过了 _isInForceLayout 判断了，所以能进入这里的只有空文本布局~~
             return;
         }
 
@@ -274,6 +286,24 @@ partial class TextEditor : Control
             // 手动情况下，不需要重新布局
         }
 
+        // 强行布局的情况下，不需要再次触发布局
+        // 可能此时正在 UI 布局过程中，也可能只是其他业务需要获取值。此时再次触发布局是比较亏的
+        // 除了一个情况，那就是当前是渲染强行触发的
+        // 渲染强行触发的，则触发重新布局，可能此时渲染拿到的尺寸已不相同
+        // 解决 问题号：b003ee 问题
+        // 是否需要延迟执行重新布局
+        bool shouldLazyInvalidateMeasure = shouldInvalidateMeasure // 应该布局
+                                           // 强行布局且是渲染过程
+                                           && _isInForceLayout 
+                                           && _isRendering;
+        if (shouldLazyInvalidateMeasure)
+        {
+            // 延迟执行布局
+            Dispatcher.UIThread.InvokeAsync(InvalidateMeasure);
+
+            return;
+        }
+
         if (shouldInvalidateMeasure)
         {
             InvalidateMeasure();
@@ -284,14 +314,28 @@ partial class TextEditor : Control
 
     protected override Size MeasureOverride(Size availableSize)
     {
+        if (IsDebugging)
+        {
+
+        }
+
         _isMeasuring = true;
         try
         {
             var result = base.MeasureOverride(availableSize);
+            _ = result;
+
+            var notExistsWidth = double.IsInfinity(availableSize.Width) && double.IsNaN(Width);
+            var notExistsHeight = double.IsInfinity(availableSize.Height) && double.IsNaN(Height);
 
             if (TextEditorCore.SizeToContent is TextSizeToContent.Width)
             {
                 // 宽度自适应，高度固定
+                if (notExistsHeight)
+                {
+                    throw new InvalidOperationException($"宽度自适应时，要求高度固定。{GetWidthAndHeightFormatMessage()}");
+                }
+
                 if (TextEditorCore.IsDirty)
                 {
                     ForceLayout();
@@ -302,6 +346,11 @@ partial class TextEditor : Control
             else if (TextEditorCore.SizeToContent is TextSizeToContent.Height)
             {
                 // 高度自适应，宽度固定
+                if (notExistsWidth)
+                {
+                    throw new InvalidOperationException($"高度自适应，要求宽度固定。{GetWidthAndHeightFormatMessage()}");
+                }
+
                 if (TextEditorCore.IsDirty)
                 {
                     ForceLayout();
@@ -321,6 +370,11 @@ partial class TextEditor : Control
             }
             else if (TextEditorCore.SizeToContent == TextSizeToContent.Manual)
             {
+                if (notExistsWidth || notExistsHeight)
+                {
+                    throw new InvalidOperationException($"设置为 SizeToContent 为 TextSizeToContent.Manual 手动时，不能无限定 {nameof(Width)} 和 {nameof(Height)} 放入无限尺寸的容器。{GetWidthAndHeightFormatMessage()}");
+                }
+
                 // 手动的，有多少就要多少
                 return availableSize;
             }
@@ -332,6 +386,9 @@ partial class TextEditor : Control
         {
             _isMeasuring = false;
         }
+
+        string GetWidthAndHeightFormatMessage() =>
+            $"AvailableSize={availableSize.Width:0.00},{availableSize.Height:0.00};Width={Width:0.00},Height={Height:0.00}";
     }
 
     protected override Size ArrangeOverride(Size finalSize)
@@ -362,6 +419,11 @@ partial class TextEditor : Control
 
     public override void Render(DrawingContext context)
     {
+        if (IsDebugging)
+        {
+
+        }
+
         _isRendering = true;
 
         try

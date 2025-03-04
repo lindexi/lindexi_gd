@@ -69,7 +69,7 @@ internal class DocumentRunEditProvider
                 else
                 {
                     ParagraphCharOffset paragraphCharOffset;
-                    
+
                     if (paragraphDataResult.HitOffset.Offset == paragraphDataResult.ParagraphData.CharCount)
                     {
                         // 命中到最后一个字符，命中到段末，需要执行修正
@@ -341,7 +341,7 @@ internal class DocumentRunEditProvider
 
             // 如果最后一段不是完全删除的
             // 只需要加上最后一段的即可，中间的都是被全部删除的
-            var lastParagraphCharDataList = paragraphData.ToReadOnlyListSpan(new ParagraphCharOffset(0));
+            var lastParagraphCharDataList = paragraphData.GetParagraphCharDataList();
             foreach (var charData in lastParagraphCharDataList)
             {
                 charData.CharLayoutData = null;

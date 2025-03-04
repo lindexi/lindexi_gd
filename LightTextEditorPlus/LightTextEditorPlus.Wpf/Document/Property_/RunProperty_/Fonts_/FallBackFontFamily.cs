@@ -39,8 +39,8 @@ namespace LightTextEditorPlus.Document
         /// <param name="unicodeChar"></param>
         /// <param name="familyName"></param>
         /// <returns></returns>
-      
-        public bool TryGetFallBackFontFamily(Utf32CodePoint unicodeChar,[NotNullWhen(true)] out string? familyName)
+
+        public bool TryGetFallBackFontFamily(Utf32CodePoint unicodeChar, [NotNullWhen(true)] out string? familyName)
         {
             var mapItem = GetFontFamilyMapItem(unicodeChar);
             familyName = null;

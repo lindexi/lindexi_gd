@@ -12,7 +12,7 @@ using Avalonia.Media.Imaging;
 using LightTextEditorPlus.AvaloniaDemo.Business;
 using LightTextEditorPlus.AvaloniaDemo.Business.RichTextCases;
 using LightTextEditorPlus.Core.Utils;
-using LightTextEditorPlus.FontManagers; 
+using LightTextEditorPlus.FontManagers;
 
 using SkiaSharp;
 
@@ -58,7 +58,7 @@ public partial class TextEditorDebugView : UserControl
             TextEditorGrid.Children.Insert(1, textBox);
         }
 
-        TextEditor.LayoutUpdated += TextEditor_LayoutUpdated;
+        TextEditor.AvaloniaLayoutUpdated += TextEditor_LayoutUpdated;
     }
 
     private void TextEditor_LayoutUpdated(object? sender, EventArgs e)

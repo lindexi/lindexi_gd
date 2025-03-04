@@ -22,14 +22,13 @@ class CharInfoMeasurer : ICharInfoMeasurer
         var runProperty = charInfo.RunProperty.AsRunProperty();
         GlyphTypeface glyphTypeface = runProperty.GetGlyphTypeface();
         var fontSize = charInfo.RunProperty.FontSize;
-        
+
         TextSize textSize;
 
         if (_textEditor.TextEditorCore.ArrangingType == ArrangingType.Horizontal)
         {
             Utf32CodePoint codePoint = charInfo.CharObject.CodePoint;
             textSize = MeasureChar(codePoint);
-
 
             TextSize MeasureChar(Utf32CodePoint c)
             {
@@ -145,5 +144,10 @@ class CharInfoMeasurer : ICharInfoMeasurer
         }
 
         return new CharInfoMeasureResult(new TextRect(new TextPoint(), textSize), glyphTypeface.Baseline * fontSize);
+    }
+
+    public CharInfoMeasureResult MeasureCharInfo(in CharMeasureArgument argument)
+    {
+        return MeasureCharInfo(argument.CurrentCharInfo);
     }
 }

@@ -38,7 +38,7 @@ public class PlatformFontNameManager : IPlatformFontNameManager
     /// </summary>
     public const string FallbackDefaultFontName = "Arial";
     //private FontFamily? _defaultFontFamily;
-  
+
     /// <summary>
     /// 已安装的字体列表
     /// </summary>

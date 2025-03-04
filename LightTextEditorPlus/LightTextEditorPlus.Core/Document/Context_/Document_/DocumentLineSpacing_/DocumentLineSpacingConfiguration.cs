@@ -49,6 +49,5 @@ public readonly record struct DocumentLineSpacingConfiguration
         }
     }
 
-
     private readonly RatioVerticalCharInLineAlignment? _verticalCharInLineAlignment;
 }

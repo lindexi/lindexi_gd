@@ -66,12 +66,12 @@ public enum PropertyType
     Opacity,
 
     /// <summary>
-    /// 段前距离
+    /// 段前间距（段前距离）
     /// </summary>
     ParagraphBefore,
 
     /// <summary>
-    /// 段后距离
+    /// 段后间距（段后距离）
     /// </summary>
     ParagraphAfter,
 
@@ -113,7 +113,7 @@ public enum PropertyType
     /// <summary>
     /// 文本水平对齐
     /// </summary>
-    [Obsolete("请使用 TextHorizontalAlignment 代替")] 
+    [Obsolete("请使用 TextHorizontalAlignment 代替")]
     [EditorBrowsable(EditorBrowsableState.Never)]
     TextAlignment = TextHorizontalAlignment,
 

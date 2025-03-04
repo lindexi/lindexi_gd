@@ -286,7 +286,7 @@ public struct TextRect
             Height = value.Height;
         }
     }
-    
+
     /// <summary>
     /// 坐标
     /// </summary>

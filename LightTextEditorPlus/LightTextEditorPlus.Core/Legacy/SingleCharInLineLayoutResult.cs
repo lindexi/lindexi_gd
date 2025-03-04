@@ -44,8 +44,6 @@
 //    /// <summary>各个字符的尺寸。如果采用的字符数量是 1 个时，此属性可以为空，因为字符的尺寸等于 <see cref="TotalSize"/> 尺寸</summary>
 //    public IReadOnlyList<LineCharSize> CharSizeList { get; }
 
-    
-
 //    //public void Deconstruct(out int TakeCharCount, out LineCharSize TotalSize, out IReadOnlyList<LineCharSize>? CharSizeList)
 //    //{
 //    //    TakeCharCount = this.TakeCharCount;

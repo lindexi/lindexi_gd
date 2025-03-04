@@ -41,5 +41,5 @@ public sealed class LineBreakCharObject : ICharObject
     Utf32CodePoint ICharObject.CodePoint => new Utf32CodePoint(TextContext.NewLineChar);
 
     /// <inheritdoc />
-    public override string ToString() => ((ICharObject)this).ToText();
+    public override string ToString() => ((ICharObject) this).ToText();
 }

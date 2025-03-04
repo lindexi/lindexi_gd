@@ -34,7 +34,7 @@ public class SelectionTest
         "传入相同的 Selection 判断 EqualRange 返回相同".Test(() =>
         {
             // Arrange
-            var selection = new Selection(new CaretOffset(10),0);
+            var selection = new Selection(new CaretOffset(10), 0);
 
             // Action
             // Assert

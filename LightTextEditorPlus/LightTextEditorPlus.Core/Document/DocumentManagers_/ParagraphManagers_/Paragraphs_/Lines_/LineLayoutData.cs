@@ -61,7 +61,7 @@ class LineLayoutData : IParagraphCache, IDisposable
     }
 
     /// <summary>
-    /// 相对于段落的起始点
+    /// 相对于段落的文本范围的起始点
     /// </summary>
     internal TextPointInParagraph CharStartPointInParagraph
     {
@@ -128,7 +128,7 @@ class LineLayoutData : IParagraphCache, IDisposable
     /// 这一行的缩进信息带来的边距
     /// </summary>
     public TextThickness IndentationThickness { get; private set; }
-   
+
     /// <summary>
     /// 这一行的对齐信息带来的边距
     /// </summary>

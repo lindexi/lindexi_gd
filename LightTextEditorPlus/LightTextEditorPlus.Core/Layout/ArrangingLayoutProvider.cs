@@ -6,15 +6,29 @@ using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
+using LightTextEditorPlus.Core.Layout.LayoutUtils;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils;
+using LightTextEditorPlus.Core.Utils.Maths;
 
 namespace LightTextEditorPlus.Core.Layout;
 
 /// <summary>
 /// 实际的布局提供器
 /// </summary>
+/// 段落排版关系
+/// ------------------------------------------
+/// |段起始点
+/// | // 段前间距 ParagraphBefore
+/// | --------------------------------------
+/// | |行起始点  
+/// | |    // 行
+/// | |         
+/// | --------------------------------------
+/// |
+/// | // 段后间距 ParagraphAfter
+/// -------------------------------------------
 abstract class ArrangingLayoutProvider
 {
     protected ArrangingLayoutProvider(LayoutManager layoutManager)
@@ -62,7 +76,7 @@ abstract class ArrangingLayoutProvider
 
         updateLayoutContext.RecordDebugLayoutInfo($"开始布局");
 
-        IReadOnlyList<ParagraphData> paragraphList = updateLayoutContext.ParagraphList;
+        IReadOnlyList<ParagraphData> paragraphList = updateLayoutContext.InternalParagraphList;
         Debug.Assert(paragraphList.Count > 0, "获取到的段落，即使空文本也会存在一段");
 
         // 01 获取需要更新布局段落的逻辑
@@ -199,6 +213,8 @@ abstract class ArrangingLayoutProvider
     private PreUpdateDocumentLayoutResult PreUpdateDocumentLayout(IReadOnlyList<ParagraphData> paragraphList,
         UpdateLayoutContext updateLayoutContext, in FirstDirtyParagraphInfo firstDirtyParagraphInfo)
     {
+        updateLayoutContext.RecordDebugLayoutInfo($"PreUpdateDocumentLayout 进入预布局阶段");
+
         // firstDirtyParagraphIndex - 首行出现变脏的序号
         // firstStartPoint - 首个脏段的起始 也就是横排左上角的点。等于非脏段的下一个行起点
         (ParagraphIndex firstDirtyParagraphIndex, TextPoint firstStartPoint) = firstDirtyParagraphInfo;
@@ -216,7 +232,7 @@ abstract class ArrangingLayoutProvider
             ParagraphLayoutResult result = UpdateParagraphLayout(argument);
             var nextParagraphStartPoint = result.NextParagraphStartPoint;
             // 预布局过程中，没有获取其 Outline 的值。 于是 OutlineBounds={paragraphData.ParagraphLayoutData.OutlineBounds}; 将在无缓存时，为 {X=0 Y=0 Width=0 Height=0} 的值
-            updateLayoutContext.RecordDebugLayoutInfo($"完成预布局第 {index} 段TextBounds={paragraphData.ParagraphLayoutData.TextBounds};NextParagraphStartPoint={nextParagraphStartPoint}");
+            updateLayoutContext.RecordDebugLayoutInfo($"完成预布局第 {index} 段TextBounds={paragraphData.ParagraphLayoutData.TextContentBounds};NextParagraphStartPoint={nextParagraphStartPoint}");
             currentStartPoint = nextParagraphStartPoint;
 
             if (IsInDebugMode)
@@ -232,15 +248,25 @@ abstract class ArrangingLayoutProvider
                 {
                     throw new TextEditorInnerDebugException($"完成预布局第 {index} 段之后，没有更新段落的文本起始点布局信息");
                 }
+
+                var nextY = nextParagraphStartPoint.Y;
+                var exceptedY = argument.CurrentStartPoint.Y + argument.GetParagraphBefore() +
+                                paragraphData.ParagraphLayoutData.TextSize.Height + argument.GetParagraphAfter();
+                if (!Nearly.Equals(nextY, exceptedY))
+                {
+                    // 预期下一个段落的起始点是当前段落的起始点 + 当前段落的段前间距 + 当前段落的文本高度 + 当前段落的段后间距
+                }
             }
         }
 
         TextRect documentBounds = TextRect.Zero;
         foreach (var paragraphData in paragraphList)
         {
-            var bounds = paragraphData.ParagraphLayoutData.TextBounds;
+            var bounds = paragraphData.ParagraphLayoutData.TextContentBounds;
             documentBounds = documentBounds.Union(bounds);
         }
+
+        updateLayoutContext.RecordDebugLayoutInfo($"PreUpdateDocumentLayout 完成预布局阶段。段落数量： {paragraphList.Count}，文档范围：{documentBounds}");
 
         return new PreUpdateDocumentLayoutResult(documentBounds);
     }
@@ -270,7 +296,7 @@ abstract class ArrangingLayoutProvider
         }
 
         context.RecordDebugLayoutInfo($"段落是脏的，执行段落内布局");
-        argument.ParagraphData.SetLayoutDirty();
+        argument.ParagraphData.SetLayoutDirty(exceptTextSize: false/*应该是连文本尺寸都是脏的*/);
 
         // 先找到首个需要更新的坐标点，这里的坐标是段坐标
         var dirtyParagraphOffset = 0;
@@ -366,7 +392,7 @@ abstract class ArrangingLayoutProvider
     protected abstract ParagraphLayoutResult UpdateParagraphStartPoint(in ParagraphLayoutArgument argument);
 
     /// <summary>
-    /// 测量空段高度。空段的文本行高度包括行距，不包括段前和段后距离
+    /// 测量空段高度。空段的文本行高度包括行距，不包括段前和段后间距
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
@@ -381,7 +407,7 @@ abstract class ArrangingLayoutProvider
         else
         {
             var paragraphProperty = argument.ParagraphProperty;
-            
+
             var runProperty = argument.ParagraphStartRunProperty;
 
             var lineSpacingCalculateArgument =
@@ -512,6 +538,35 @@ abstract class ArrangingLayoutProvider
     #endregion 03 回溯最终布局阶段
 
     #region 通用辅助方法
+
+    /// <summary>
+    /// 测量字符信息
+    /// </summary>
+    /// <param name="argument"></param>
+    /// <returns></returns>
+    protected CharInfoMeasureResult MeasureCharInfo(in CharMeasureArgument argument)
+    {
+        // 通过平台提供者获取字符信息测量器
+        ICharInfoMeasurer? charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
+        CharInfoMeasureResult result;
+        if (charInfoMeasurer != null)
+        {
+            result = charInfoMeasurer.MeasureCharInfo(argument);
+        }
+        else
+        {
+            // 默认的字符信息测量器
+            result = MeasureCharInfo(argument.CurrentCharData.ToCharInfo());
+        }
+
+        if (argument.CurrentCharData.Size is null)
+        {
+            // 如果平台忘记给 Size 赋值，那就在框架层赋值
+            argument.CurrentCharData.SetCharDataInfo(result.Bounds.TextSize, result.Baseline);
+        }
+
+        return result;
+    }
 
     /// <summary>
     /// 通用的测量字符信息的方法，直接就是设置宽度高度为字号大小

@@ -25,9 +25,9 @@ public class TextEditorUndoRedoTest
             var defaultFontName = "DefaultFontName_Test";
             textEditorCore.DocumentManager.SetCurrentCaretRunProperty<LayoutOnlyRunProperty>(runProperty =>
                 runProperty with
-            {
-                FontName = new FontName(defaultFontName)
-            });
+                {
+                    FontName = new FontName(defaultFontName)
+                });
             // 设置文本禁用撤销重做，这样可以先准备一些测试数据，不会干扰
             textEditorCore.SetUndoRedoEnable(false, "Test");
             // 文本追加等将不会加入撤销恢复
@@ -57,7 +57,7 @@ public class TextEditorUndoRedoTest
             testTextEditorUndoRedoProvider.Undo();
             // 撤销后回到原来的文本字符样式
             IReadOnlyRunProperty readOnlyRunProperty = textEditorCore.DocumentManager.GetRunPropertyRange(selection).ToList()[0];
-            Assert.AreEqual(defaultFontName,readOnlyRunProperty.FontName.UserFontName);
+            Assert.AreEqual(defaultFontName, readOnlyRunProperty.FontName.UserFontName);
 
             // 重做一下
             testTextEditorUndoRedoProvider.Redo();

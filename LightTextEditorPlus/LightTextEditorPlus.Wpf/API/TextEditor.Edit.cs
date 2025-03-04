@@ -153,7 +153,7 @@ public partial class TextEditor
     /// <param name="selection"></param>
     public void SetFontName(FontName fontName, Selection? selection = null)
     {
-        SetRunProperty(p => p with{ FontName = fontName }, PropertyType.FontName, selection);
+        SetRunProperty(p => p with { FontName = fontName }, PropertyType.FontName, selection);
     }
 
     /// <summary>
@@ -163,7 +163,7 @@ public partial class TextEditor
     /// <param name="selection"></param>
     public void SetFontSize(double fontSize, Selection? selection = null)
     {
-        SetRunProperty(p => p with{ FontSize = fontSize }, PropertyType.FontSize, selection);
+        SetRunProperty(p => p with { FontSize = fontSize }, PropertyType.FontSize, selection);
     }
 
     /// <summary>
@@ -288,8 +288,8 @@ public partial class TextEditor
     {
         get => TextEditorCore.VerticalTextAlignment switch
         {
-           LightTextEditorPlus.Core.Primitive.VerticalTextAlignment.Top => VerticalAlignment.Top,
-           LightTextEditorPlus.Core.Primitive.VerticalTextAlignment.Center => VerticalAlignment.Center,
+            LightTextEditorPlus.Core.Primitive.VerticalTextAlignment.Top => VerticalAlignment.Top,
+            LightTextEditorPlus.Core.Primitive.VerticalTextAlignment.Center => VerticalAlignment.Center,
             LightTextEditorPlus.Core.Primitive.VerticalTextAlignment.Bottom => VerticalAlignment.Bottom,
             _ => VerticalAlignment.Top
         };

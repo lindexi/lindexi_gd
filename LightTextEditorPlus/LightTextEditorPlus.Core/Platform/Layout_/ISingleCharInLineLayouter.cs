@@ -5,6 +5,7 @@ namespace LightTextEditorPlus.Core.Platform;
 /// <summary>
 /// 文本的行内单个字符布局器，用于将单个字符布局到行内
 /// </summary>
+/// todo 改名为单个 Run 的布局器
 public interface ISingleCharInLineLayouter
 {
     /// <summary>
@@ -12,5 +13,6 @@ public interface ISingleCharInLineLayouter
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
+    /// todo 改名为 MeasureSingleRunLayout
     SingleCharInLineLayoutResult LayoutSingleCharInLine(in SingleCharInLineLayoutArgument argument);
 }

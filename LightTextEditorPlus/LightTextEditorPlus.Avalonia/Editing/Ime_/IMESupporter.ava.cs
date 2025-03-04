@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,11 +33,13 @@ internal class IMESupporter : TextInputMethodClient
         _textEditor = textEditor;
 
         _textEditor.TextEditorCore.CurrentCaretOffsetChanged += TextEditor_CurrentCaretOffsetChanged;
-        _textEditor.TextEditorCore.LayoutCompleted += TextEditorCore_LayoutCompleted1;
+        _textEditor.InternalLayoutCompleted += TextEditorCore_LayoutCompleted;
     }
 
-    private void TextEditorCore_LayoutCompleted1(object? sender, LayoutCompletedEventArgs e)
+    private void TextEditorCore_LayoutCompleted(object? sender, LayoutCompletedEventArgs e)
     {
+        Debug.Assert(!_textEditor.TextEditorCore.IsDirty);
+
         UpdateCaret();
     }
 

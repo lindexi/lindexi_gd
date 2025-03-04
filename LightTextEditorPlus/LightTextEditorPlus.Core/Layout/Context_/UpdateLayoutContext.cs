@@ -4,7 +4,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Layout;
@@ -19,10 +21,19 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
         ArrangingLayoutProvider = arrangingLayoutProvider;
 
         IReadOnlyList<ParagraphData> paragraphList = TextEditor.DocumentManager.ParagraphManager.GetParagraphList();
-        ParagraphList = paragraphList;
+        InternalParagraphList = paragraphList;
+        ParagraphList = TextEditor.ParagraphList;
     }
 
-    internal IReadOnlyList<ParagraphData> ParagraphList { get; }
+    /// <summary>
+    /// 段落列表
+    /// </summary>
+    public ReadOnlyParagraphList ParagraphList { get; set; }
+
+    /// <summary>
+    /// 内部使用的段落列表
+    /// </summary>
+    internal IReadOnlyList<ParagraphData> InternalParagraphList { get; }
 
     internal ArrangingLayoutProvider ArrangingLayoutProvider { get; }
 
@@ -32,9 +43,24 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
     public TextEditorCore TextEditor => ArrangingLayoutProvider.TextEditor;
 
     /// <summary>
+    /// 平台提供者
+    /// </summary>
+    public ITextEditorPlatformProvider PlatformProvider => TextEditor.PlatformProvider;
+
+    /// <summary>
+    /// 调试配置
+    /// </summary>
+    public TextEditorDebugConfiguration DebugConfiguration => TextEditor.DebugConfiguration;
+
+    /// <summary>
     /// 是否在调试模式
     /// </summary>
-    public bool IsInDebugMode => TextEditor.DebugConfiguration.IsInDebugMode;
+    public bool IsInDebugMode => DebugConfiguration.IsInDebugMode;
+
+    /// <summary>
+    /// 日志
+    /// </summary>
+    public ITextLogger Logger => TextEditor.Logger;
 
     /// <summary>
     /// 记录布局过程的调试信息
