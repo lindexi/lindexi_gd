@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "KawhawnahemCanalllearlerwhu.Analyzer": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\KawhawnahemCanalllearlerwhu\\KawhawnahemCanalllearlerwhu.csproj"
+    }
+  }
+}
