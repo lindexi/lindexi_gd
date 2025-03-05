@@ -27,6 +27,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
     public CharInfoMeasureResult MeasureCharInfo(in CharInfo charInfo)
     {
         // 此逻辑只有空行测量才会进入
+        // 以下测量逻辑预计是不正确的
 
         SkiaTextRunProperty skiaTextRunProperty = charInfo.RunProperty.AsSkiaRunProperty();
 
