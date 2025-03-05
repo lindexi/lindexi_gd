@@ -53,7 +53,8 @@ public class TextEditorStatusTest
             // Arrange
             const double fontSize = 20;
             const double paragraphAfter = 10;
-            var textEditorCore = TestHelper.GetLayoutTestTextEditor(lineCharCount: 5, fontSize: fontSize);
+            const int lineCharCount = 5;
+            var textEditorCore = TestHelper.GetLayoutTestTextEditor(lineCharCount, fontSize: fontSize);
             // 文本首段和第二段存在首段的段后间距
             textEditorCore.DocumentManager.SetStyleParagraphProperty(
                 textEditorCore.DocumentManager.StyleParagraphProperty with
@@ -63,6 +64,14 @@ public class TextEditorStatusTest
             // 再添加两段用来测试
             // 一行能布局 5 个字符，特意写一段包含 9 个字符，确保有两行
             textEditorCore.AppendText("123123123\nabcabcabc");
+
+            // 第一段第一行的字符数量，在 LineCount 里面设置了 5 的值，这里应该就是布局 5 个字符
+            int firstParagraphFirstLineCharCount = textEditorCore.GetRenderInfo().GetParagraphRenderInfoList().First().GetLineRenderInfoList().First().Argument.CharList.Count;
+            Assert.AreEqual(lineCharCount, firstParagraphFirstLineCharCount,
+                "第一段第一行的字符数量，在 LineCount 里面设置了 5 的值，这里应该就是布局 5 个字符");
+
+            string dumpBreakLineRenderInfo = textEditorCore.DumpBreakLineRenderInfo();
+            GC.KeepAlive(dumpBreakLineRenderInfo); // 仅用于调试
 
             // Action
             // 第一段的 Outline 高度为 fontSize + paragraphAfter = 30，于是取 fontSize + paragraphAfter / 2 = 25 确保命中到第一段的段后间距的空白地方
