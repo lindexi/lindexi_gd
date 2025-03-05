@@ -75,7 +75,7 @@ internal class EmptyTextLogger : ITextLogger
 
             RecordMessage("===完成布局===");
         }
-        else if(info is HitTestLogInfo hitTestLogInfo)
+        else if (info is HitTestLogInfo hitTestLogInfo)
         {
             TextHitTestResult textHitTestResult = hitTestLogInfo.TextHitTestResult;
 

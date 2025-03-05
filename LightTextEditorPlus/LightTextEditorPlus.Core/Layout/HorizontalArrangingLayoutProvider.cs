@@ -667,9 +667,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         var charData = argument.CurrentCharData;
         if (charData.Size is null)
         {
-            MeasureAndFillSizeOfRun(new FillSizeOfRunArgument(argument.SliceFromCurrentRunList(),argument.UpdateLayoutContext));
+            MeasureAndFillSizeOfRun(new FillSizeOfRunArgument(argument.SliceFromCurrentRunList(), argument.UpdateLayoutContext));
 
-            Debug.Assert(charData.Size != null,$"经过 {nameof(MeasureAndFillSizeOfRun)} 方法可确保 CurrentCharData 的 Size 一定不空");
+            Debug.Assert(charData.Size != null, $"经过 {nameof(MeasureAndFillSizeOfRun)} 方法可确保 CurrentCharData 的 Size 一定不空");
         }
 
         // 使用分词规则进行布局
