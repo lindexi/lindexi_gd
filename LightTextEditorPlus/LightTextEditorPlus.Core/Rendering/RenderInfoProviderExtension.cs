@@ -10,13 +10,13 @@ namespace LightTextEditorPlus.Core.Rendering;
 public static class RenderInfoProviderExtension
 {
     /// <summary>
-    /// 获取其布局换行的信息。这一般是给调试用的信息
+    /// 获取其布局换行的信息。这一般是给调试用的信息，用于了解当前布局之后拿到的一行行信息
     /// </summary>
     /// <param name="renderInfoProvider"></param>
     /// <returns></returns>
     public static string DumpBreakLineRenderInfo(this RenderInfoProvider renderInfoProvider)
     {
-        StringBuilder stringBuilder = new StringBuilder();
+        var stringBuilder = new StringBuilder();
 
         foreach (ParagraphRenderInfo paragraphRenderInfo in renderInfoProvider.GetParagraphRenderInfoList())
         {
