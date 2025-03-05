@@ -409,6 +409,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     /// <exception cref="NotSupportedException"></exception>
     /// 1. 布局一行的字符，分行算法
     /// 2. 处理行高，行距算法
+    /// 3. 设置每个字符在行内的坐标
     ///
     /// | -------- 顶部行距 ------- |
     /// | 左侧缩进 | 文本 | 右侧缩进 |
@@ -424,6 +425,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             return new WholeLineLayoutResult(TextSize.Zero, TextSize.Zero, 0, default);
         }
 
+        // 1. 布局一行的字符，分行算法
         var layoutResult = UpdateWholeLineCharsLayout(in argument);
 #if DEBUG
         if (layoutResult.CurrentLineCharTextSize.Width > 0 && layoutResult.CurrentLineCharTextSize.Height == 0)
@@ -433,7 +435,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
             TextEditor.Logger.LogDebug($"单行布局结果是有宽度没高度，预计是不正确的情况。仅调试下输出");
         }
 #endif
-
+        // 2. 处理行高，行距算法
         int wholeCharCount = layoutResult.WholeTakeCount;
         TextSize currentTextSize = layoutResult.CurrentLineCharTextSize;
 
@@ -475,7 +477,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         var topLineSpacingGap = lineSpacingGap * verticalCharInLineAlignment.LineSpaceRatio;
         var bottomLineSpacingGap = lineSpacingGap - topLineSpacingGap;
 
-        // 字符在行内坐标
+        // 3. 设置每个字符在行内的坐标
         //TextPoint charLineStartPoint = currentStartPoint with
         //{
         //    Y = topLineSpacingGap, // 相对于行的坐标，叠加上了行距
@@ -493,7 +495,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
     }
 
     /// <summary>
-    /// 布局一行里面有哪些字符
+    /// 布局一行里面有哪些字符。只有字符排列，决定哪些字符可以排在当前行里面，不包括行距等信息，不包括将每个字放在行内的具体位置
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
