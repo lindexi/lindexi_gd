@@ -267,7 +267,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 如果是空段的话，如一段只是一个 \n 而已，那就需要执行空段布局逻辑
         Debug.Assert(paragraph.LineLayoutDataList.Count == 0, "空段布局时一定是一行都不存在");
         var emptyParagraphLineHeightMeasureResult = MeasureEmptyParagraphLineHeight(
-            new EmptyParagraphLineHeightMeasureArgument(paragraph.ParagraphProperty, argument.ParagraphIndex, paragraph.ParagraphStartRunProperty,argument.UpdateLayoutContext));
+            new EmptyParagraphLineHeightMeasureArgument(paragraph.ParagraphProperty, argument.ParagraphIndex, paragraph.ParagraphStartRunProperty, argument.UpdateLayoutContext));
         double lineHeight = emptyParagraphLineHeightMeasureResult.LineHeight;
 
         // 加上空行
@@ -728,7 +728,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                     // 单个字符直接布局，无视语言文化。快，但是诡异
 
                     var charData = currentRunList[i];
-                    Debug.Assert(charData.Size != null,"进入当前逻辑里，必然已经完成字符尺寸测量");
+                    Debug.Assert(charData.Size != null, "进入当前逻辑里，必然已经完成字符尺寸测量");
 
                     testSize = testSize.HorizontalUnion(charData.Size.Value);
 
@@ -864,7 +864,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// <param name="updateLayoutContext"></param>
     protected override void FinalUpdateDocumentLayout(PreUpdateDocumentLayoutResult preUpdateDocumentLayoutResult, UpdateLayoutContext updateLayoutContext)
     {
-        updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 进入最终布局阶段",LayoutDebugCategory.FinalDocument);
+        updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 进入最终布局阶段", LayoutDebugCategory.FinalDocument);
 
         TextRect documentBounds = preUpdateDocumentLayoutResult.DocumentBounds;
         var documentWidth = CalculateHitBounds(documentBounds).Width;
@@ -901,7 +901,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             }
         }
 
-        updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 完成最终布局阶段。文档尺寸：{documentBounds.TextSize.ToCommaSplitWidthAndHeight()}",LayoutDebugCategory.FinalDocument);
+        updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 完成最终布局阶段。文档尺寸：{documentBounds.TextSize.ToCommaSplitWidthAndHeight()}", LayoutDebugCategory.FinalDocument);
     }
 
     readonly record struct FinalParagraphLayoutArgument(ParagraphData Paragraph, ParagraphIndex ParagraphIndex, double DocumentWidth, UpdateLayoutContext UpdateLayoutContext);

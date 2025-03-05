@@ -419,7 +419,7 @@ abstract class ArrangingLayoutProvider
             {
                 // 如果需要使用文本高度，那么进行
                 // 测量空行文本
-                var size = MeasureEmptyParagraphLineSize(runProperty,argument.UpdateLayoutContext);
+                var size = MeasureEmptyParagraphLineSize(runProperty, argument.UpdateLayoutContext);
 
                 lineHeight = size.Height;
             }
@@ -434,14 +434,14 @@ abstract class ArrangingLayoutProvider
     /// <param name="runProperty"></param>
     /// <param name="context"></param>
     /// <returns></returns>
-    private TextSize MeasureEmptyParagraphLineSize(IReadOnlyRunProperty runProperty,UpdateLayoutContext context)
+    private TextSize MeasureEmptyParagraphLineSize(IReadOnlyRunProperty runProperty, UpdateLayoutContext context)
     {
         // todo 考虑这里减少对象创建和分配
         var singleCharObject = new SingleCharObject(TextContext.DefaultChar);
         var testCharData = new CharData(singleCharObject, runProperty);
         MeasureAndFillSizeOfRun(new FillSizeOfRunArgument(new TextReadOnlyListSpan<CharData>([testCharData], 0, 1),
             context));
-        Debug.Assert(testCharData.Size!=null);
+        Debug.Assert(testCharData.Size != null);
         return testCharData.Size.Value;
     }
 

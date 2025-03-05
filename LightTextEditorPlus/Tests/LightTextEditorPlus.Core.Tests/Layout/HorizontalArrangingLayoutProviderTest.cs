@@ -41,7 +41,7 @@ public class HorizontalArrangingLayoutProviderTest
             var size = new TextSize(CharWidth * LineCharCount, CharHeight * 2);
             Assert.AreEqual(size, paragraphLayoutData.TextContentBounds.TextSize);
             ParagraphLineRenderInfo firstLine = paragraphRenderInfo.GetLineRenderInfoList().First();
-            Assert.AreEqual(LineCharCount, firstLine.Argument.CharList.Count,"第一行有5个字符");
+            Assert.AreEqual(LineCharCount, firstLine.Argument.CharList.Count, "第一行有5个字符");
         });
     }
 
