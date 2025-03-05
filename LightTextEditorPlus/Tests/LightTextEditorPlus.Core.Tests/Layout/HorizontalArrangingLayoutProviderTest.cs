@@ -45,8 +45,6 @@ public class HorizontalArrangingLayoutProviderTest
         });
     }
 
-    // todo 加上段前段后布局测试
-
     /// <summary>
     /// 倍数行距的文本排版
     /// </summary>
