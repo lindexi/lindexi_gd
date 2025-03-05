@@ -214,7 +214,10 @@ partial class TextEditor : Control
         {
             // 当前实现的 ForceLayout 是不亏的，因为只有文本存在变更的时候，才会执行实际逻辑
             // 而不是让文本必定需要重新布局
-            PlatformProvider.EnsureLayoutUpdated();
+            while (TextEditorCore.IsDirty)
+            {
+                PlatformProvider.EnsureLayoutUpdated();
+            }
         }
         finally
         {
