@@ -540,32 +540,38 @@ abstract class ArrangingLayoutProvider
     #region 通用辅助方法
 
     /// <summary>
-    /// 测量字符信息
+    /// 测量字符信息。确保 argument.CurrentCharData.Size 一定不为空
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
-    protected CharInfoMeasureResult MeasureCharInfo(in CharMeasureArgument argument)
+    protected void MeasureAndFillSizeOfRun(in FillSizeOfRunArgument argument)
     {
         // 通过平台提供者获取字符信息测量器
         ICharInfoMeasurer? charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
-        CharInfoMeasureResult result;
         if (charInfoMeasurer != null)
         {
-            result = charInfoMeasurer.MeasureCharInfo(argument);
+            charInfoMeasurer.MeasureAndFillSizeOfRun(argument);
+
+            if (IsInDebugMode)
+            {
+                if (argument.CurrentCharData.Size is null)
+                {
+                    throw new TextEditorDebugException($"测量布局之后，当前字符依然没有尺寸");
+                }
+            }
         }
         else
         {
+            if (argument.CurrentCharData.Size is not null)
+            {
+                return;
+            }
+
             // 默认的字符信息测量器
-            result = MeasureCharInfo(argument.CurrentCharData.ToCharInfo());
-        }
+            var result = MeasureCharInfo(argument.CurrentCharData.ToCharInfo());
 
-        if (argument.CurrentCharData.Size is null)
-        {
-            // 如果平台忘记给 Size 赋值，那就在框架层赋值
-            argument.CurrentCharData.SetCharDataInfo(result.Bounds.TextSize, result.Baseline);
+            argument.CharDataLayoutInfoSetter.SetCharDataInfo(argument.CurrentCharData, result.Bounds.TextSize, result.Baseline);
         }
-
-        return result;
     }
 
     /// <summary>

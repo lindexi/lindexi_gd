@@ -31,6 +31,7 @@ internal class DefaultWordDivider
     {
         // 判断是否在单词内
         var charData = argument.CurrentCharData;
+        Debug.Assert(charData.Size!=null,"进入此方法之前，已经确保完成了字符的尺寸测量");
         TextSize textSize = GetCharSize(charData);
 
         // 思路：

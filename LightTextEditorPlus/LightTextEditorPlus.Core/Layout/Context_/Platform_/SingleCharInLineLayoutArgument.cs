@@ -7,7 +7,7 @@ namespace LightTextEditorPlus.Core.Layout;
 /// <summary>
 /// 测量行内字符参数
 /// </summary>
-/// <param name="RunList">当前一整行的字符信息</param>
+/// <param name="RunList">当前一整行的字符信息，甚至可以认为是一整段字符。这是因为设计上认为单字符行内布局过程中，可能由于语言文化缘故，需要获取 <see cref="CurrentIndex"/> 前后周围的字符才能决定，因此决定给其更大的字符范围</param>
 /// <param name="CurrentIndex">当前字符的序号，相对于 <see cref="RunList"/> 的序号</param>
 /// <param name="LineRemainingWidth">这一行剩余的宽度</param>
 /// <param name="Paragraph"></param>
@@ -20,6 +20,15 @@ public readonly record struct SingleCharInLineLayoutArgument(TextReadOnlyListSpa
     /// </summary>
     public CharData CurrentCharData => RunList[CurrentIndex];
 
+    /// <summary>
+    /// 从当前的 <see cref="CurrentIndex"/> 开始拆分出新的列表
+    /// </summary>
+    /// <returns></returns>
+    public TextReadOnlyListSpan<CharData> SliceFromCurrentRunList()=> RunList.Slice(CurrentIndex);
+
+    /// <summary>
+    /// 段落的属性
+    /// </summary>
     public ParagraphProperty ParagraphProperty => Paragraph.ParagraphProperty;
 
     /// <summary>

@@ -27,8 +27,9 @@ public class FixedCharSizeCharInfoMeasurer : ICharInfoMeasurer
         return new CharInfoMeasureResult(bounds, baseline);
     }
 
-    public CharInfoMeasureResult MeasureCharInfo(in CharMeasureArgument argument)
+    public void MeasureAndFillSizeOfRun(in FillSizeOfRunArgument argument)
     {
-        return MeasureCharInfo(argument.CurrentCharInfo);
+        var result = MeasureCharInfo(argument.CurrentCharData.ToCharInfo());
+        argument.SetCurrentCharDataMeasureResult(in result);
     }
 }
