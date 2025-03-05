@@ -3,6 +3,7 @@ using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.TestsFramework;
 using LightTextEditorPlus.Core.Utils;
 using MSTest.Extensions.Contracts;
@@ -70,7 +71,7 @@ public class TextEditorStatusTest
             Assert.AreEqual(lineCharCount, firstParagraphFirstLineCharCount,
                 "第一段第一行的字符数量，在 LineCount 里面设置了 5 的值，这里应该就是布局 5 个字符");
 
-            string dumpBreakLineRenderInfo = textEditorCore.DumpBreakLineRenderInfo();
+            string dumpBreakLineRenderInfo = textEditorCore.GetRenderInfo().DumpBreakLineRenderInfo();
             GC.KeepAlive(dumpBreakLineRenderInfo); // 仅用于调试
 
             // Action
