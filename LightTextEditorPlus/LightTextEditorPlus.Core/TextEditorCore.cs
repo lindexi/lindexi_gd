@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+
 using LightTextEditorPlus.Core.Attributes;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics;
@@ -281,11 +282,20 @@ public partial class TextEditorCore
         _renderInfoProvider = new RenderInfoProvider(this);
 
         SetLayoutCompleted();
-
         LayoutCompleted?.Invoke(this, new LayoutCompletedEventArgs());
 
-        Logger.LogDebug($"[TextEditorCore][Render] 开始调用平台渲染");
+        if (IsDirty)
+        {
+            Debug.Assert(_renderInfoProvider is null, "在 LayoutCompleted 事件里面，再次变更了文本，此时文本是脏的，同时渲染提供应该是空");
 
+            // 在 LayoutCompleted 事件里面重新变更了文本
+            Logger.LogDebug($"[TextEditorCore][Layout] 在 LayoutCompleted 事件里面，再次变更了文本，此时不再调用平台渲染，等待下次布局之后再进入");
+            return;
+        }
+
+        Debug.Assert(_renderInfoProvider is not null);
+
+        Logger.LogDebug($"[TextEditorCore][Render] 开始调用平台渲染");
         // 布局完成，触发渲染
         var renderManager = PlatformProvider.GetRenderManager();
         renderManager?.Render(_renderInfoProvider);
