@@ -721,9 +721,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             {
                 // 空行强行换行，否则下一行说不定也不够放
                 // LayoutCharWithoutCulture
-
                 int i = 0;
                 totalSize = TextSize.Zero;
+                var testSize = TextSize.Zero;
                 for (; i < takeCount/*这个限制是多余的，必定最终小于 takeCount 宽度*/; i++)
                 {
                     // 单个字符直接布局，无视语言文化。快，但是诡异
@@ -731,11 +731,15 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                     var charData = currentRunList[i];
                     Debug.Assert(charData.Size != null,"进入当前逻辑里，必然已经完成字符尺寸测量");
 
-                    totalSize = totalSize.HorizontalUnion(charData.Size.Value);
+                    testSize = testSize.HorizontalUnion(charData.Size.Value);
 
-                    if (totalSize.Width > argument.LineRemainingWidth)
+                    if (testSize.Width > argument.LineRemainingWidth)
                     {
                         break;
+                    }
+                    else
+                    {
+                        totalSize = testSize;
                     }
                 }
 

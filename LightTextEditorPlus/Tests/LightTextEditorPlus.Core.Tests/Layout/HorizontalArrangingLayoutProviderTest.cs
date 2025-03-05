@@ -2,6 +2,7 @@ using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.TestsFramework;
 
 using MSTest.Extensions.Contracts;
@@ -33,9 +34,11 @@ public class HorizontalArrangingLayoutProviderTest
             var paragraphRenderInfo = textEditor.GetRenderInfo().GetParagraphRenderInfoList().First();
             var paragraphLayoutData = paragraphRenderInfo.ParagraphLayoutData;
             // 布局有两行，一行宽度是 5 个字符，每个字符 20 的宽度
-            // 一行高度是 CharHeight 的高度
-            var size = new TextSize(CharWidth * 5, CharHeight * 2);
+            // 一行高度是 CharHeight 的高度，两行高度是 CharHeight * 2
+            var size = new TextSize(CharWidth * LineCharCount, CharHeight * 2);
             Assert.AreEqual(size, paragraphLayoutData.TextContentBounds.TextSize);
+            ParagraphLineRenderInfo firstLine = paragraphRenderInfo.GetLineRenderInfoList().First();
+            Assert.AreEqual(LineCharCount, firstLine.Argument.CharList.Count,"第一行有5个字符");
         });
     }
 
@@ -180,5 +183,11 @@ public class HorizontalArrangingLayoutProviderTest
         });
     }
 
-    private static TextEditorCore GetTestTextEditor() => TestHelper.GetLayoutTestTextEditor();
+    /// <summary>
+    /// 一行有5个字符
+    /// </summary>
+    private const int LineCharCount = 5;
+
+    private const double FontSize = 20;
+    private static TextEditorCore GetTestTextEditor() => TestHelper.GetLayoutTestTextEditor(LineCharCount, FontSize);
 }
