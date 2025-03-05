@@ -24,7 +24,7 @@ public readonly record struct SingleCharInLineLayoutArgument(TextReadOnlyListSpa
     /// 从当前的 <see cref="CurrentIndex"/> 开始拆分出新的列表
     /// </summary>
     /// <returns></returns>
-    public TextReadOnlyListSpan<CharData> SliceFromCurrentRunList()=> RunList.Slice(CurrentIndex);
+    public TextReadOnlyListSpan<CharData> SliceFromCurrentRunList() => RunList.Slice(CurrentIndex);
 
     /// <summary>
     /// 段落的属性

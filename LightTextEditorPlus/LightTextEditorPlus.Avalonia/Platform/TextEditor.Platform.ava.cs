@@ -253,7 +253,7 @@ partial class TextEditor : Control
         {
 
         }
-        
+
         if (_isMeasuring)
         {
             // 正在布局测量中，不需要再次触发布局~~。预计是触发 ForceLayout 或空文本布局。由于前面已经经过了 _isInForceLayout 判断了，所以能进入这里的只有空文本布局~~
@@ -293,8 +293,8 @@ partial class TextEditor : Control
         // 解决 问题号：b003ee 问题
         // 是否需要延迟执行重新布局
         bool shouldLazyInvalidateMeasure = shouldInvalidateMeasure // 应该布局
-                                           // 强行布局且是渲染过程
-                                           && _isInForceLayout 
+                                                                   // 强行布局且是渲染过程
+                                           && _isInForceLayout
                                            && _isRendering;
         if (shouldLazyInvalidateMeasure)
         {
