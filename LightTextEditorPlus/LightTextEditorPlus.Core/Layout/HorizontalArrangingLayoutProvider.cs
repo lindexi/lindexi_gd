@@ -664,6 +664,14 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         // 可选无规则-直接字符布局，预计没有人使用
         // 调用分词规则-支持注入分词规则
 
+        var charData = argument.CurrentCharData;
+        if (charData.Size is null)
+        {
+            MeasureAndFillSizeOfRun(new FillSizeOfRunArgument(argument.SliceFromCurrentRunList(),argument.UpdateLayoutContext));
+
+            Debug.Assert(charData.Size != null,$"经过 {nameof(MeasureAndFillSizeOfRun)} 方法可确保 CurrentCharData 的 Size 一定不空");
+        }
+
         // 使用分词规则进行布局
         bool useWordDividerLayout = true;
 
@@ -673,12 +681,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         }
         else
         {
-            var charData = argument.CurrentCharData;
-
-            CharInfoMeasureResult charInfoMeasureResult = MeasureCharInfo(new CharMeasureArgument(charData,
-                argument.RunList, argument.CurrentIndex, argument.Paragraph, argument.UpdateLayoutContext));
-
-            TextSize textSize = charInfoMeasureResult.Bounds.TextSize;
+            TextSize textSize = charData.Size.Value;
 
             // 单个字符直接布局，无视语言文化。快，但是诡异
             if (argument.LineRemainingWidth > textSize.Width)

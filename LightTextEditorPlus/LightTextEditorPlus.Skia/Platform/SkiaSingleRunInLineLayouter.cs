@@ -23,7 +23,6 @@ public class SkiaWholeLineCharsLayouter : IWholeLineCharsLayouter
 {
     public WholeLineCharsLayoutResult UpdateWholeLineCharsLayout(in WholeLineLayoutArgument argument)
     {
-        ParagraphProperty paragraphProperty = argument.ParagraphProperty;
         TextReadOnlyListSpan<CharData> charDataList = argument.CharDataList;
         double lineMaxWidth = argument.LineMaxWidth;
         UpdateLayoutContext context = argument.UpdateLayoutContext;

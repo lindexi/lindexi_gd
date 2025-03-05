@@ -71,7 +71,7 @@ public abstract class PlatformProvider : ITextEditorPlatformProvider
         return null;
     }
 
-    //public ISingleCharInLineLayouter? GetSingleCharInLineLayouter()
+    //public virtual ISingleCharInLineLayouter? GetSingleCharInLineLayouter()
     //{
     //    return null;
     //}

@@ -121,18 +121,17 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         return new CharInfoMeasureResult(bounds, baselineY);
     }
 
-    public CharInfoMeasureResult MeasureCharInfo(in CharMeasureArgument argument)
+    public void MeasureAndFillSizeOfRun(in FillSizeOfRunArgument argument)
     {
         CharData currentCharData = argument.CurrentCharData;
 
         if (currentCharData.Size != null)
         {
             // 已有缓存的尺寸，直接返回即可
-            return new CharInfoMeasureResult(new TextRect(new TextPoint(), currentCharData.Size.Value),
-                currentCharData.Baseline);
+            return;
         }
 
-        var runList = argument.RunList.Slice(argument.CurrentIndex);
+        var runList = argument.RunList;
 
         // 获取当前相同的字符属性的段，作为当前一次性测量的段。如此可以提高性能
         runList = runList.GetFirstCharSpanContinuous();
@@ -304,7 +303,8 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             {
                 SKRect glyphRunBound = glyphRunBounds[glyphRunBoundsIndex];
 
-                updateLayoutContext.SetCharDataInfo(charData, new TextSize(glyphRunBound.Width, glyphRunBound.Height), baselineY);
+                // 确保赋值给每个字符的尺寸
+                argument.CharDataLayoutInfoSetter.SetCharDataInfo(charData, new TextSize(glyphRunBound.Width, glyphRunBound.Height), baselineY);
             }
 
             // 解决 CharData 和字符不一一对应的问题，可能一个 CharData 对应多个字符
@@ -332,15 +332,10 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             }
         }
 
-        if (currentCharData.Size != null)
-        {
-            // 已有缓存的尺寸，直接返回即可
-            return new CharInfoMeasureResult(new TextRect(new TextPoint(), currentCharData.Size.Value),
-                currentCharData.Baseline);
-        }
-        else
+        if (currentCharData.Size == null)
         {
             throw new TextEditorInnerException($"测量之后，必然能够获取当前字符的尺寸");
+
         }
     }
 
