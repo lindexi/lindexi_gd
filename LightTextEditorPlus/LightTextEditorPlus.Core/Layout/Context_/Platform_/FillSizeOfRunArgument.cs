@@ -1,27 +1,27 @@
-using LightTextEditorPlus.Core.Document;
+ï»¿using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive.Collections;
 
 namespace LightTextEditorPlus.Core.Layout;
 
 /// <summary>
-/// Ìî³ä Run µÄ³ß´ç²ÎÊı
+/// å¡«å…… Run çš„å°ºå¯¸å‚æ•°
 /// </summary>
 /// <param name="RunList"></param>
 /// <param name="UpdateLayoutContext"></param>
 public readonly record struct FillSizeOfRunArgument(TextReadOnlyListSpan<CharData> RunList, UpdateLayoutContext UpdateLayoutContext)
 {
     /// <summary>
-    /// µ±Ç°µÄ×Ö·û
+    /// å½“å‰çš„å­—ç¬¦
     /// </summary>
     public CharData CurrentCharData => RunList[0];
 
     /// <summary>
-    /// ÉèÖÃ×Ö·û²¼¾ÖĞÅÏ¢¸¨Öú¹¤¾ß
+    /// è®¾ç½®å­—ç¬¦å¸ƒå±€ä¿¡æ¯è¾…åŠ©å·¥å…·
     /// </summary>
     public ICharDataLayoutInfoSetter CharDataLayoutInfoSetter => UpdateLayoutContext;
 
     /// <summary>
-    /// ÉèÖÃµ±Ç°×Ö·ûµÄ²âÁ¿½á¹û¡£½«»áµ÷ÓÃ <see cref="CharDataLayoutInfoSetter"/> ÉèÖÃ¸øµ½ <see cref="CurrentCharData"/> µÄ³ß´çĞÅÏ¢
+    /// è®¾ç½®å½“å‰å­—ç¬¦çš„æµ‹é‡ç»“æœã€‚å°†ä¼šè°ƒç”¨ <see cref="CharDataLayoutInfoSetter"/> è®¾ç½®ç»™åˆ° <see cref="CurrentCharData"/> çš„å°ºå¯¸ä¿¡æ¯
     /// </summary>
     /// <param name="result"></param>
     public void SetCurrentCharDataMeasureResult(in CharInfoMeasureResult result)
