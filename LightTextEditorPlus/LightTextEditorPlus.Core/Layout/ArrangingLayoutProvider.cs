@@ -9,6 +9,7 @@ using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Layout.LayoutUtils;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Core.Utils.Maths;
 
@@ -418,9 +419,9 @@ abstract class ArrangingLayoutProvider
             {
                 // 如果需要使用文本高度，那么进行
                 // 测量空行文本
-                CharInfoMeasureResult charInfoMeasureResult = MeasureEmptyParagraphLineSize(runProperty);
+                var size = MeasureEmptyParagraphLineSize(runProperty,argument.UpdateLayoutContext);
 
-                lineHeight = charInfoMeasureResult.Bounds.Height;
+                lineHeight = size.Height;
             }
 
             return new EmptyParagraphLineHeightMeasureResult(lineHeight);
@@ -431,26 +432,17 @@ abstract class ArrangingLayoutProvider
     /// 测量使用 <paramref name="runProperty"/> 的空段文本行的字符高度
     /// </summary>
     /// <param name="runProperty"></param>
+    /// <param name="context"></param>
     /// <returns></returns>
-    private CharInfoMeasureResult MeasureEmptyParagraphLineSize(IReadOnlyRunProperty runProperty)
+    private TextSize MeasureEmptyParagraphLineSize(IReadOnlyRunProperty runProperty,UpdateLayoutContext context)
     {
+        // todo 考虑这里减少对象创建和分配
         var singleCharObject = new SingleCharObject(TextContext.DefaultChar);
-        var charInfo = new CharInfo(singleCharObject, runProperty);
-
-        var charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
-
-        CharInfoMeasureResult charInfoMeasureResult;
-        if (charInfoMeasurer != null)
-        {
-            // 测量空行高度
-            charInfoMeasureResult = charInfoMeasurer.MeasureCharInfo(charInfo);
-        }
-        else
-        {
-            charInfoMeasureResult = MeasureCharInfo(charInfo);
-        }
-
-        return charInfoMeasureResult;
+        var testCharData = new CharData(singleCharObject, runProperty);
+        MeasureAndFillSizeOfRun(new FillSizeOfRunArgument(new TextReadOnlyListSpan<CharData>([testCharData], 0, 1),
+            context));
+        Debug.Assert(testCharData.Size!=null);
+        return testCharData.Size.Value;
     }
 
     /// <summary>
@@ -568,26 +560,26 @@ abstract class ArrangingLayoutProvider
             }
 
             // 默认的字符信息测量器
-            var result = MeasureCharInfo(argument.CurrentCharData.ToCharInfo());
-
-            argument.CharDataLayoutInfoSetter.SetCharDataInfo(argument.CurrentCharData, result.Bounds.TextSize, result.Baseline);
+            MeasureAndFillCharInfo(argument.CurrentCharData, argument.CharDataLayoutInfoSetter);
         }
     }
 
     /// <summary>
     /// 通用的测量字符信息的方法，直接就是设置宽度高度为字号大小
     /// </summary>
-    /// <param name="charInfo"></param>
+    /// <param name="charData"></param>
+    /// <param name="setter"></param>
     /// <returns></returns>
-    protected CharInfoMeasureResult MeasureCharInfo(CharInfo charInfo)
+    private static void MeasureAndFillCharInfo(CharData charData, ICharDataLayoutInfoSetter setter)
     {
-        double fontSize = charInfo.RunProperty.FontSize;
-        var bounds = new TextRect(0, 0, fontSize, fontSize);
+        double fontSize = charData.RunProperty.FontSize;
+        var size = new TextSize(fontSize, fontSize);
         // 设置基线为字号大小的向上一点点
         const double
             testBaselineRatio = 4d / 5; // 这是一个测试值，确保无 UI 框架下，都采用相同的基线值，方便调试计算。这个值是如何获取的？通过在 PPT 里面进行测量微软雅黑字体的基线的
         double baseline = fontSize * testBaselineRatio;
-        return new CharInfoMeasureResult(bounds, baseline);
+
+        setter.SetCharDataInfo(charData, size, baseline);
     }
 
     /// <summary>

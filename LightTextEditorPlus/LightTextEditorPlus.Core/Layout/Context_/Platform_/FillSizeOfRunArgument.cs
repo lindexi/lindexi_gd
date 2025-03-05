@@ -20,12 +20,12 @@ public readonly record struct FillSizeOfRunArgument(TextReadOnlyListSpan<CharDat
     /// </summary>
     public ICharDataLayoutInfoSetter CharDataLayoutInfoSetter => UpdateLayoutContext;
 
-    /// <summary>
-    /// 设置当前字符的测量结果。将会调用 <see cref="CharDataLayoutInfoSetter"/> 设置给到 <see cref="CurrentCharData"/> 的尺寸信息
-    /// </summary>
-    /// <param name="result"></param>
-    public void SetCurrentCharDataMeasureResult(in CharInfoMeasureResult result)
-    {
-        CharDataLayoutInfoSetter.SetCharDataInfo(CurrentCharData, result.Bounds.TextSize, result.Baseline);
-    }
+    ///// <summary>
+    ///// 设置当前字符的测量结果。将会调用 <see cref="CharDataLayoutInfoSetter"/> 设置给到 <see cref="CurrentCharData"/> 的尺寸信息
+    ///// </summary>
+    ///// <param name="result"></param>
+    //public void SetCurrentCharDataMeasureResult(in CharInfoMeasureResult result)
+    //{
+    //    CharDataLayoutInfoSetter.SetCharDataInfo(CurrentCharData, result.Bounds.TextSize, result.Baseline);
+    //}
 };

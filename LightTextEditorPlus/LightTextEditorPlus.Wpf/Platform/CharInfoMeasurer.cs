@@ -17,17 +17,25 @@ class CharInfoMeasurer : ICharInfoMeasurer
 
     private readonly TextEditor _textEditor;
 
-    public CharInfoMeasureResult MeasureCharInfo(in CharInfo charInfo)
+    public void MeasureAndFillSizeOfRun(in FillSizeOfRunArgument argument)
     {
-        var runProperty = charInfo.RunProperty.AsRunProperty();
+        CharData currentCharData = argument.CurrentCharData;
+
+        if (currentCharData.Size is not null)
+        {
+            return;
+        }
+
+        var runProperty = currentCharData.RunProperty.AsRunProperty();
+
         GlyphTypeface glyphTypeface = runProperty.GetGlyphTypeface();
-        var fontSize = charInfo.RunProperty.FontSize;
+        var fontSize = currentCharData.RunProperty.FontSize;
 
         TextSize textSize;
 
         if (_textEditor.TextEditorCore.ArrangingType == ArrangingType.Horizontal)
         {
-            Utf32CodePoint codePoint = charInfo.CharObject.CodePoint;
+            Utf32CodePoint codePoint = currentCharData.CharObject.CodePoint;
             textSize = MeasureChar(codePoint);
 
             TextSize MeasureChar(Utf32CodePoint c)
@@ -143,13 +151,7 @@ class CharInfoMeasurer : ICharInfoMeasurer
             throw new NotImplementedException("还没有实现竖排的文本测量");
         }
 
-        return new CharInfoMeasureResult(new TextRect(new TextPoint(), textSize), glyphTypeface.Baseline * fontSize);
-    }
-
-    public void MeasureAndFillSizeOfRun(in FillSizeOfRunArgument argument)
-    {
-        CharInfo charInfo = argument.CurrentCharData.ToCharInfo();
-        CharInfoMeasureResult result = MeasureCharInfo(in charInfo);
-        argument.SetCurrentCharDataMeasureResult(in result);
+        var baseline = glyphTypeface.Baseline * fontSize;
+        argument.CharDataLayoutInfoSetter.SetCharDataInfo(currentCharData,textSize, baseline);
     }
 }

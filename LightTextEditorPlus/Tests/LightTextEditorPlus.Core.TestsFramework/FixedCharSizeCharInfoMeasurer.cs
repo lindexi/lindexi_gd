@@ -18,18 +18,15 @@ public class FixedCharSizeCharInfoMeasurer : ICharInfoMeasurer
 
     private readonly double _baselineRatio;
 
-    public CharInfoMeasureResult MeasureCharInfo(in CharInfo charInfo)
-    {
-        double fontSize = charInfo.RunProperty.FontSize;
-        var bounds = new TextRect(0, 0, fontSize, fontSize);
-        // 设置基线为字号大小的向上一点点
-        double baseline = fontSize * _baselineRatio;
-        return new CharInfoMeasureResult(bounds, baseline);
-    }
-
     public void MeasureAndFillSizeOfRun(in FillSizeOfRunArgument argument)
     {
-        var result = MeasureCharInfo(argument.CurrentCharData.ToCharInfo());
-        argument.SetCurrentCharDataMeasureResult(in result);
+        CharData currentCharData = argument.CurrentCharData;
+
+        double fontSize = currentCharData.RunProperty.FontSize;
+        var size = new TextSize(fontSize, fontSize);
+        // 设置基线为字号大小的向上一点点
+        double baseline = fontSize * _baselineRatio;
+
+        argument.CharDataLayoutInfoSetter.SetCharDataInfo(currentCharData,size,baseline);
     }
 }

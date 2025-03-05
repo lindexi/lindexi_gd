@@ -175,7 +175,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// 布局文本的每个段落 <see cref="UpdateParagraphLayoutCore"/>
     /// 段落里面，需要对每一行进行布局 <see cref="UpdateWholeLineLayout"/>
     /// 每一行里面，需要对每个 Char 字符进行布局 <see cref="UpdateSingleCharInLineLayout"/>
-    /// 每个字符需要调用平台的测量 <see cref="ArrangingLayoutProvider.MeasureCharInfo"/>
     /// </remarks>
     protected override ParagraphLayoutResult UpdateParagraphLayoutCore(in ParagraphLayoutArgument argument,
         in ParagraphCharOffset startParagraphOffset)
@@ -268,7 +267,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 如果是空段的话，如一段只是一个 \n 而已，那就需要执行空段布局逻辑
         Debug.Assert(paragraph.LineLayoutDataList.Count == 0, "空段布局时一定是一行都不存在");
         var emptyParagraphLineHeightMeasureResult = MeasureEmptyParagraphLineHeight(
-            new EmptyParagraphLineHeightMeasureArgument(paragraph.ParagraphProperty, argument.ParagraphIndex, paragraph.ParagraphStartRunProperty));
+            new EmptyParagraphLineHeightMeasureArgument(paragraph.ParagraphProperty, argument.ParagraphIndex, paragraph.ParagraphStartRunProperty,argument.UpdateLayoutContext));
         double lineHeight = emptyParagraphLineHeightMeasureResult.LineHeight;
 
         // 加上空行
@@ -755,42 +754,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     // 这是为分词器提供的接口。现在分词器只做分词，不做布局，所以这个接口不需要
     // [DebuggerStepThrough] // 别跳太多层
     //TextSize IInternalCharDataSizeMeasurer.GetCharSize(CharData charData) => GetCharSize(charData);
-
-    /// <summary>
-    /// 获取给定字符的尺寸
-    /// </summary>
-    /// <param name="charData"></param>
-    /// <returns></returns>
-    private TextSize GetCharSize(CharData charData)
-    {
-        // 字符可能自己缓存有了自己的尺寸，如果有缓存，那是可以重复使用
-        var cacheSize = charData.Size;
-
-        TextSize textSize;
-        if (cacheSize == null)
-        {
-            var charInfo = charData.ToCharInfo();
-            CharInfoMeasureResult charInfoMeasureResult;
-            ICharInfoMeasurer? charInfoMeasurer = TextEditor.PlatformProvider.GetCharInfoMeasurer();
-            if (charInfoMeasurer != null)
-            {
-                charInfoMeasureResult = charInfoMeasurer.MeasureCharInfo(charInfo);
-            }
-            else
-            {
-                charInfoMeasureResult = MeasureCharInfo(charInfo);
-            }
-
-            textSize = charInfoMeasureResult.Bounds.TextSize;
-            charData.SetCharDataInfo(textSize, charInfoMeasureResult.Baseline);
-        }
-        else
-        {
-            textSize = cacheSize.Value;
-        }
-
-        return textSize;
-    }
 
     /// <summary>
     /// 获取下一行的起始点

@@ -12,6 +12,7 @@ namespace LightTextEditorPlus.Core.Layout;
 public readonly record struct EmptyParagraphLineHeightMeasureArgument(
     ParagraphProperty ParagraphProperty,
     ParagraphIndex ParagraphIndex,
-    IReadOnlyRunProperty ParagraphStartRunProperty)
+    IReadOnlyRunProperty ParagraphStartRunProperty,
+    UpdateLayoutContext UpdateLayoutContext)
 {
 }
