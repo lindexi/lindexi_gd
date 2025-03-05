@@ -28,5 +28,5 @@ public readonly record struct LayoutCompletedLogInfo
     /// 获取布局的调试信息
     /// </summary>
     /// <returns></returns>
-    public IReadOnlyList<string> GetLayoutDebugMessageList() => _documentLayoutResult.UpdateLayoutContext.GetLayoutDebugMessageList();
+    public IReadOnlyList<LayoutDebugMessage> GetLayoutDebugMessageList() => _documentLayoutResult.UpdateLayoutContext.GetLayoutDebugMessageList();
 }
