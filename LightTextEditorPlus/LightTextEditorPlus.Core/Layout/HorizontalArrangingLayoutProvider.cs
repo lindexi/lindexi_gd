@@ -739,8 +739,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                     }
                 }
 
+                // 刚好第 i 个就超过了可用宽度。于是在 i - 1 个时，还是满足条件的。数量是序号加 1 的值，因此就是在 (i - 1) 的序号上加 1 就是当前获取的数量
+                var actualTakeCount = (i - 1) + 1;
                 // 至少强行取一个字符
-                var actualTakeCount = i + 1;
+                actualTakeCount = Math.Max(actualTakeCount, 1);
                 return new SingleCharInLineLayoutResult(actualTakeCount, totalSize);
             }
             else

@@ -1,4 +1,6 @@
+using System.Text;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Rendering;
 
 namespace LightTextEditorPlus.Core.TestsFramework;
 
