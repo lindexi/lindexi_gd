@@ -30,5 +30,3 @@ public interface ICharInfoMeasurer
     /// <param name="argument"></param>
     void MeasureAndFillSizeOfRun(in FillSizeOfRunArgument argument);
 }
-
-// todo 将此放在 Layout Context 文件夹里
