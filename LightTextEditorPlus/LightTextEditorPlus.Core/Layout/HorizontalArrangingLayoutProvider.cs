@@ -339,13 +339,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 usableLineMaxWidth, currentStartPoint, argument.UpdateLayoutContext);
             if (wholeRunLineLayouter != null)
             {
-                result = wholeRunLineLayouter.LayoutWholeLine(wholeRunLineLayoutArgument);
+                result = wholeRunLineLayouter.LayoutWholeLine(in wholeRunLineLayoutArgument);
             }
             else
             {
                 // 继续往下执行，如果没有注入自定义的行布局层的话，则使用默认的行布局器
                 // 为什么不做默认实现？因为默认实现会导致默认逻辑写在外面，而不是相同一个文件里面，没有内聚性，对于文本排版布局内部重调试的情况下，不友好。即，尽管代码结构是清晰了，但实际调试体验却下降了，一个调试或阅读代码需要跳转多个文件，复杂度提升
-                result = UpdateWholeLineLayout(wholeRunLineLayoutArgument);
+                result = UpdateWholeLineLayout(in wholeRunLineLayoutArgument);
             }
 
             // 当前的行布局信息
@@ -551,7 +551,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             }
             else
             {
-                result = UpdateSingleCharInLineLayout(arguments);
+                result = UpdateSingleCharInLineLayout(in arguments);
             }
 
             if (result.CanTake)

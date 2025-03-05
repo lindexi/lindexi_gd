@@ -31,7 +31,10 @@ public class HorizontalArrangingLayoutProviderTest
             textEditor.AppendText("abcdefg");
 
             // Assert
-            var paragraphRenderInfo = textEditor.GetRenderInfo().GetParagraphRenderInfoList().First();
+            RenderInfoProvider renderInfoProvider = textEditor.GetRenderInfo();
+            string dumpBreakLineRenderInfo = renderInfoProvider.DumpBreakLineRenderInfo();
+            GC.KeepAlive(dumpBreakLineRenderInfo); // 仅用于调试
+            var paragraphRenderInfo = renderInfoProvider.GetParagraphRenderInfoList().First();
             var paragraphLayoutData = paragraphRenderInfo.ParagraphLayoutData;
             // 布局有两行，一行宽度是 5 个字符，每个字符 20 的宽度
             // 一行高度是 CharHeight 的高度，两行高度是 CharHeight * 2
