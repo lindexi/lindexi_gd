@@ -1,10 +1,10 @@
-using LightTextEditorPlus.Core.Document;
+﻿using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive.Collections;
 
 namespace LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
 
 /// <summary>
-/// �ָ�ʵĲ���
+/// 分割单词的参数
 /// </summary>
 /// <param name="CurrentRunList"></param>
 /// <param name="UpdateLayoutContext"></param>

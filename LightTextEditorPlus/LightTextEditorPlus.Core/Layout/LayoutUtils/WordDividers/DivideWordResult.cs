@@ -1,7 +1,7 @@
-namespace LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
+﻿namespace LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
 
 /// <summary>
-/// �ִʽ��
+/// 分词结果
 /// </summary>
 /// <param name="TakeCount"></param>
 public readonly record struct DivideWordResult(int TakeCount);

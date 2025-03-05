@@ -1,12 +1,12 @@
-namespace LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
+ï»¿namespace LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
 
 /// <summary>
-/// µ¥´Ê·Ö¸ôÆ÷£¬·Ö´ÊÆ÷
+/// å•è¯åˆ†éš”å™¨ï¼Œåˆ†è¯å™¨
 /// </summary>
 public interface IWordDivider
 {
     /// <summary>
-    /// ·Ö¸îµ¥´Ê
+    /// åˆ†å‰²å•è¯
     /// </summary>
     /// <param name="argument"></param>
     /// <returns></returns>
