@@ -113,6 +113,7 @@ public abstract class PlatformProvider : ITextEditorPlatformProvider
         return new DefaultPlatformFontNameManager();
     }
 
+    /// <inheritdoc />
     public virtual IWordDivider GetWordDivider()
     {
         return _wordDivider ??= new WordDivider();

@@ -117,5 +117,9 @@ public interface ITextEditorPlatformProvider
     /// <returns></returns>
     IPlatformFontNameManager GetPlatformFontNameManager();
 
+    /// <summary>
+    /// 获取单词分隔器，分词器
+    /// </summary>
+    /// <returns></returns>
     IWordDivider GetWordDivider();
 }
