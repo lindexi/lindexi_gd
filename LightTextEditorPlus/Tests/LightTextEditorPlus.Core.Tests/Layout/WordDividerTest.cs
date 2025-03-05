@@ -37,7 +37,7 @@ public class WordDividerTest
             Assert.AreEqual($"aa{c}", lineList[0].Argument.CharList.ToText());
             Assert.AreEqual("aaaaa", lineList[1].Argument.CharList.ToText());
             Assert.AreEqual("a", lineList[2].Argument.CharList.ToText());
-        }).WithArguments(',', '.', '!', '(', ')', '#', '1', '2', ':', ';', '十');
+        }).WithArguments(',', '.', '!'/*, '(' 争议，左括号不能放在行末，因此必当换行*/, ')', '#', '1', '2', ':', ';', '十');
 
         "测试后拆分方式，传入字符串包含两个单词，其中第二个单词是超长单词，可以排版为三行".Test(() =>
         {

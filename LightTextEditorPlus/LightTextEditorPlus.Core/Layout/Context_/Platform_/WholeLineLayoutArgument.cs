@@ -20,6 +20,9 @@ public readonly record struct WholeLineLayoutArgument(ParagraphIndex ParagraphIn
     ITextParagraph Paragraph, in TextReadOnlyListSpan<CharData> CharDataList, double LineMaxWidth,
     TextPointInParagraph CurrentStartPoint, UpdateLayoutContext UpdateLayoutContext)
 {
+    /// <summary>
+    /// 段落属性
+    /// </summary>
     public ParagraphProperty ParagraphProperty => Paragraph.ParagraphProperty;
 
     /// <summary>
