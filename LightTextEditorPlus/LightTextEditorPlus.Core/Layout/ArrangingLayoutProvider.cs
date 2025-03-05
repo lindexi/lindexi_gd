@@ -100,6 +100,7 @@ abstract class ArrangingLayoutProvider
         Debug.Assert(TextEditor.DocumentManager.ParagraphManager.GetParagraphList()
             .All(t => t.IsDirty() == false));
 
+        updateLayoutContext.RecordDebugLayoutInfo($"完成布局", LayoutDebugCategory.Document);
         updateLayoutContext.SetLayoutCompleted();
 
         return new DocumentLayoutResult(preUpdateDocumentLayoutResult.DocumentBounds, updateLayoutContext);

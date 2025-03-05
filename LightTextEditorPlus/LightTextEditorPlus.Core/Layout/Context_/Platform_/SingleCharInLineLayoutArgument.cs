@@ -1,5 +1,6 @@
 using System.Text;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Layout.LayoutUtils;
 using LightTextEditorPlus.Core.Primitive.Collections;
 
 namespace LightTextEditorPlus.Core.Layout;
