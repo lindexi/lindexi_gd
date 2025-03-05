@@ -688,7 +688,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
             if (charData.Size is null)
             {
-                MeasureAndFillSizeOfRun(new FillSizeOfRunArgument(currentRunList, updateLayoutContext));
+                var fillSizeOfRunArgument = new FillSizeOfRunArgument(currentRunList.Slice(i), updateLayoutContext);
+                Debug.Assert(ReferenceEquals(charData, fillSizeOfRunArgument.CurrentCharData));
+
+                MeasureAndFillSizeOfRun(fillSizeOfRunArgument);
 
                 // 不用扔调试异常了，在 MeasureAndFillSizeOfRun 方法里面已经扔过了。只加一个额外调试判断就好了。以下是一个多余的判断，只是为了不耦合 MeasureAndFillSizeOfRun 方法的判断而已
                 Debug.Assert(charData.Size != null, $"经过 {nameof(MeasureAndFillSizeOfRun)} 方法可确保 CurrentCharData 的 Size 一定不空");

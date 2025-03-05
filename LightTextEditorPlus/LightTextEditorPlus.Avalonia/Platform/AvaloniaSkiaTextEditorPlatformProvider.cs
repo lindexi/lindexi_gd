@@ -49,12 +49,22 @@ public class AvaloniaSkiaTextEditorPlatformProvider : SkiaTextEditorPlatformProv
 
     public override void RequireDispatchUpdateLayout(Action updateLayoutAction)
     {
+        if (_updatingLayout && AvaloniaTextEditor.TextEditorCore.IsInDebugMode)
+        {
+            AvaloniaTextEditor.Logger.LogDebug($"在执行布局的过程中，又再次被推送了布局委托。这可能是正常的，但会导致本次布局结果无法被正确应用");
+        }
+
         _layoutUpdateAction = updateLayoutAction;
         LayoutDispatcherRequiring.Require();
     }
 
     public override void InvokeDispatchUpdateLayout(Action updateLayoutAction)
     {
+        if (_updatingLayout && AvaloniaTextEditor.TextEditorCore.IsInDebugMode)
+        {
+            AvaloniaTextEditor.Logger.LogDebug($"在执行布局的过程中，又再次被推送了布局委托。这可能是正常的，但会导致本次布局结果无法被正确应用");
+        }
+
         _layoutUpdateAction = updateLayoutAction;
         LayoutDispatcherRequiring.Invoke(withRequire: true);
     }
@@ -64,9 +74,14 @@ public class AvaloniaSkiaTextEditorPlatformProvider : SkiaTextEditorPlatformProv
         _updatingLayout = true;
         try
         {
-            _layoutUpdateAction?.Invoke();
+            // Fixed : 这里有安全性问题。如果没有获取变量，则可能在 _layoutUpdateAction 执行过程中，调用进了 RequireDispatchUpdateLayout 或 InvokeDispatchUpdateLayout 方法，从而导致 _layoutUpdateAction 对象变更。即在进行禁止多次执行的 `_layoutUpdateAction = null` 方法时，将新的布局委托赋空
+            // 立即将其赋空则是安全的
+            Action? layoutUpdateAction = _layoutUpdateAction;
+
             // 禁止多次执行
             _layoutUpdateAction = null;
+
+            layoutUpdateAction?.Invoke();
         }
         finally
         {
@@ -93,7 +108,7 @@ public class AvaloniaSkiaTextEditorPlatformProvider : SkiaTextEditorPlatformProv
             return;
         }
 
-        LayoutDispatcherRequiring.Invoke(withRequire: false);
+        LayoutDispatcherRequiring.Invoke(withRequire: true);
     }
 
     #endregion
