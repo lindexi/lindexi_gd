@@ -152,6 +152,6 @@ class CharInfoMeasurer : ICharInfoMeasurer
         }
 
         var baseline = glyphTypeface.Baseline * fontSize;
-        argument.CharDataLayoutInfoSetter.SetCharDataInfo(currentCharData,textSize, baseline);
+        argument.CharDataLayoutInfoSetter.SetCharDataInfo(currentCharData, textSize, baseline);
     }
 }

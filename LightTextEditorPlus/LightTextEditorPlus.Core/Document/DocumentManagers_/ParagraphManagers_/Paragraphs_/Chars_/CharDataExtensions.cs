@@ -1,12 +1,12 @@
-namespace LightTextEditorPlus.Core.Document;
+ï»¿namespace LightTextEditorPlus.Core.Document;
 
 /// <summary>
-/// ¶Ô <see cref="CharData"/> µÄÀ©Õ¹
+/// å¯¹ <see cref="CharData"/> çš„æ‰©å±•
 /// </summary>
 public static class CharDataExtensions
 {
     /// <summary>
-    /// ×ª»»Îª <see cref="CharInfo"/> ½á¹¹Ìå
+    /// è½¬æ¢ä¸º <see cref="CharInfo"/> ç»“æ„ä½“
     /// </summary>
     /// <param name="charData"></param>
     /// <returns></returns>

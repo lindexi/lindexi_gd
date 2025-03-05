@@ -27,6 +27,6 @@ public class FixedCharSizeCharInfoMeasurer : ICharInfoMeasurer
         // 设置基线为字号大小的向上一点点
         double baseline = fontSize * _baselineRatio;
 
-        argument.CharDataLayoutInfoSetter.SetCharDataInfo(currentCharData,size,baseline);
+        argument.CharDataLayoutInfoSetter.SetCharDataInfo(currentCharData, size, baseline);
     }
 }
