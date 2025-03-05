@@ -665,7 +665,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     {
         // LayoutRule 布局规则
         // 可选无规则-直接字符布局，预计没有人使用
-        // 调用分词规则-支持注入分词规则
+        // 调用分词规则-支持注入分词换行规则
         UpdateLayoutContext updateLayoutContext = argument.UpdateLayoutContext;
         TextReadOnlyListSpan<CharData> currentRunList = argument.SliceFromCurrentRunList();
 
