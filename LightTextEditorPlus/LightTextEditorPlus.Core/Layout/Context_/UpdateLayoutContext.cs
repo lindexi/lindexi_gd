@@ -66,37 +66,38 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
     /// 记录布局过程的调试信息
     /// </summary>
     /// <param name="message"></param>
-    public void RecordDebugLayoutInfo([InterpolatedStringHandlerArgument("")] ref LayoutDebugMessageInterpolatedStringHandler message)
+    /// <param name="category"></param>
+    public void RecordDebugLayoutInfo([InterpolatedStringHandlerArgument("")] ref LayoutDebugMessageInterpolatedStringHandler message, LayoutDebugCategory category)
     {
         if (!message.IsInDebugMode)
         {
             return;
         }
         string formattedText = message.GetFormattedText();
-
+        var layoutDebugMessage = new LayoutDebugMessage(category, formattedText);
 #if DEBUG
         Debug.WriteLine(formattedText);
 #endif
 
-        LayoutDebugMessageList ??= new List<string>();
-        LayoutDebugMessageList.Add(formattedText);
+        LayoutDebugMessageList ??= [];
+        LayoutDebugMessageList.Add(layoutDebugMessage);
     }
 
     /// <summary>
     /// 获取布局调试信息列表
     /// </summary>
     /// <returns></returns>
-    public IReadOnlyList<string> GetLayoutDebugMessageList()
+    public IReadOnlyList<LayoutDebugMessage> GetLayoutDebugMessageList()
     {
         if (LayoutDebugMessageList is { } list)
         {
             return list;
         }
 
-        return Array.Empty<string>();
+        return Array.Empty<LayoutDebugMessage>();
     }
 
-    private List<string>? LayoutDebugMessageList { get; set; }
+    private List<LayoutDebugMessage>? LayoutDebugMessageList { get; set; }
 
     /// <summary>
     /// 当前布局是否已经完成
@@ -204,11 +205,69 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
     {
         if (LayoutDebugMessageList != null)
         {
-            return LayoutDebugMessageList.Last();
+            return LayoutDebugMessageList.Last().ToString();
         }
 
         return base.ToString();
     }
+}
+
+/// <summary>
+/// 布局过程中的调试分类信息
+/// </summary>
+public enum LayoutDebugCategory
+{
+    /// <summary>
+    /// 整个文档
+    /// </summary>
+    Document,
+    /// <summary>
+    /// 寻找脏数据开始，准备过程
+    /// </summary>
+    FindDirty,
+    /// <summary>
+    /// 预布局的文档部分
+    /// </summary>
+    PreDocument,
+    /// <summary>
+    /// 预布局的段落部分
+    /// </summary>
+    PreParagraph,
+    /// <summary>
+    /// 预布局的整行部分
+    /// </summary>
+    PreWholeLine,
+    /// <summary>
+    /// 预布局的行内单字词部分
+    /// </summary>
+    PreSingleCharLine,
+    /// <summary>
+    /// 分词换行部分
+    /// </summary>
+    PreDivideWord,
+    /// <summary>
+    /// 回溯的文档部分
+    /// </summary>
+    FinalDocument,
+    /// <summary>
+    /// 回溯的段落部分
+    /// </summary>
+    FinalParagraph,
+    /// <summary>
+    /// 回溯的行部分
+    /// </summary>
+    FinalLine,
+}
+
+/// <summary>
+/// 布局调试信息
+/// </summary>
+/// <param name="Category"></param>
+/// <param name="Message"></param>
+public readonly record struct LayoutDebugMessage(LayoutDebugCategory Category, string Message)
+{
+    /// <inheritdoc />
+    public override string ToString() => $"[{Category}] {Message}";
 }
 
 /// <summary>
@@ -222,3 +281,4 @@ public interface ICharDataLayoutInfoSetter
     /// <inheritdoc cref="CharData.SetCharDataInfo"/>
     void SetCharDataInfo(CharData charData, TextSize textSize, double baseline);
 }
+

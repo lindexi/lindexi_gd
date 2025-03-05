@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using LightTextEditorPlus.Core.Document;
 
 namespace LightTextEditorPlus.Core.Primitive.Collections;
 
@@ -79,5 +81,25 @@ public readonly struct TextReadOnlyListSpan<T> : IReadOnlyList<T>, IEquatable<Te
     public override int GetHashCode()
     {
         return HashCode.Combine(_source, _start, _length);
+    }
+
+    /// <inheritdoc />
+    public override string? ToString()
+    {
+        if (this is TextReadOnlyListSpan<CharData> textReadOnlyListSpan)
+        {
+            return textReadOnlyListSpan.ToText();
+        }
+        else if (this is TextReadOnlyListSpan<ICharObject> charObjectListSpan)
+        {
+            var stringBuilder = new StringBuilder();
+            foreach (ICharObject charObject in charObjectListSpan)
+            {
+                stringBuilder.Append(charObject.ToText());
+            }
+            return stringBuilder.ToString();
+        }
+
+        return base.ToString();
     }
 }

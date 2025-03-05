@@ -75,7 +75,7 @@ abstract class ArrangingLayoutProvider
         //     - 垂直对齐的下对齐、居中对齐等
         var updateLayoutContext = new UpdateLayoutContext(this);
 
-        updateLayoutContext.RecordDebugLayoutInfo($"开始布局");
+        updateLayoutContext.RecordDebugLayoutInfo($"开始布局", LayoutDebugCategory.Document);
 
         IReadOnlyList<ParagraphData> paragraphList = updateLayoutContext.InternalParagraphList;
         Debug.Assert(paragraphList.Count > 0, "获取到的段落，即使空文本也会存在一段");
@@ -149,7 +149,7 @@ abstract class ArrangingLayoutProvider
         // 这个逻辑准备给项目符号逻辑更新，逻辑是，假如现在有两段，分别采用 `1. 2.` 作为项目符号
         // 在 `1.` 后面新建一个段落，需要自动将原本的 `2.` 修改为 `3.` 的内容，这个逻辑准备交给项目符号模块自己编辑实现
 
-        updateLayoutContext.RecordDebugLayoutInfo($"开始寻找首个变脏段落序号");
+        updateLayoutContext.RecordDebugLayoutInfo($"开始寻找首个变脏段落序号", LayoutDebugCategory.FindDirty);
 
         // 首行出现变脏的序号
         var firstDirtyParagraphIndex = -1;
@@ -185,7 +185,7 @@ abstract class ArrangingLayoutProvider
         }
 
         updateLayoutContext.RecordDebugLayoutInfo(
-            $"完成寻找首个变脏段落序号。首个变脏的段落序号是： {firstDirtyParagraphIndex}；首个脏段的起始点：{firstStartPoint}");
+            $"完成寻找首个变脏段落序号。首个变脏的段落序号是： {firstDirtyParagraphIndex}；首个脏段的起始点：{firstStartPoint}", LayoutDebugCategory.FindDirty);
 
         return new FirstDirtyParagraphInfo(new ParagraphIndex(firstDirtyParagraphIndex), firstStartPoint);
     }
@@ -214,7 +214,7 @@ abstract class ArrangingLayoutProvider
     private PreUpdateDocumentLayoutResult PreUpdateDocumentLayout(IReadOnlyList<ParagraphData> paragraphList,
         UpdateLayoutContext updateLayoutContext, in FirstDirtyParagraphInfo firstDirtyParagraphInfo)
     {
-        updateLayoutContext.RecordDebugLayoutInfo($"PreUpdateDocumentLayout 进入预布局阶段");
+        updateLayoutContext.RecordDebugLayoutInfo($"PreUpdateDocumentLayout 进入预布局阶段", LayoutDebugCategory.PreDocument);
 
         // firstDirtyParagraphIndex - 首行出现变脏的序号
         // firstStartPoint - 首个脏段的起始 也就是横排左上角的点。等于非脏段的下一个行起点
@@ -224,7 +224,7 @@ abstract class ArrangingLayoutProvider
         var currentStartPoint = firstStartPoint;
         for (var index = firstDirtyParagraphIndex.Index; index < paragraphList.Count; index++)
         {
-            updateLayoutContext.RecordDebugLayoutInfo($"开始预布局第 {index} 段");
+            updateLayoutContext.RecordDebugLayoutInfo($"开始预布局第 {index} 段", LayoutDebugCategory.PreParagraph);
             ParagraphData paragraphData = paragraphList[index];
 
             var argument = new ParagraphLayoutArgument(new ParagraphIndex(index), currentStartPoint, paragraphData,
@@ -233,7 +233,7 @@ abstract class ArrangingLayoutProvider
             ParagraphLayoutResult result = UpdateParagraphLayout(argument);
             var nextParagraphStartPoint = result.NextParagraphStartPoint;
             // 预布局过程中，没有获取其 Outline 的值。 于是 OutlineBounds={paragraphData.ParagraphLayoutData.OutlineBounds}; 将在无缓存时，为 {X=0 Y=0 Width=0 Height=0} 的值
-            updateLayoutContext.RecordDebugLayoutInfo($"完成预布局第 {index} 段TextBounds={paragraphData.ParagraphLayoutData.TextContentBounds};NextParagraphStartPoint={nextParagraphStartPoint}");
+            updateLayoutContext.RecordDebugLayoutInfo($"完成预布局第 {index} 段TextBounds={paragraphData.ParagraphLayoutData.TextContentBounds};NextParagraphStartPoint={nextParagraphStartPoint}", LayoutDebugCategory.PreParagraph);
             currentStartPoint = nextParagraphStartPoint;
 
             if (IsInDebugMode)
@@ -267,7 +267,7 @@ abstract class ArrangingLayoutProvider
             documentBounds = documentBounds.Union(bounds);
         }
 
-        updateLayoutContext.RecordDebugLayoutInfo($"PreUpdateDocumentLayout 完成预布局阶段。段落数量： {paragraphList.Count}，文档范围：{documentBounds}");
+        updateLayoutContext.RecordDebugLayoutInfo($"PreUpdateDocumentLayout 完成预布局阶段。段落数量： {paragraphList.Count}，文档范围：{documentBounds}", LayoutDebugCategory.PreDocument);
 
         return new PreUpdateDocumentLayoutResult(documentBounds);
     }
@@ -288,7 +288,7 @@ abstract class ArrangingLayoutProvider
         UpdateLayoutContext context = argument.UpdateLayoutContext;
         if (!argument.ParagraphData.IsDirty())
         {
-            context.RecordDebugLayoutInfo($"段落本身没有脏，进入快速分支，只需更新段落起始点坐标");
+            context.RecordDebugLayoutInfo($"段落本身没有脏，进入快速分支，只需更新段落起始点坐标", LayoutDebugCategory.PreParagraph);
             return UpdateParagraphStartPoint(argument);
         }
         else
@@ -296,7 +296,7 @@ abstract class ArrangingLayoutProvider
             // 继续执行段落内布局
         }
 
-        context.RecordDebugLayoutInfo($"段落是脏的，执行段落内布局");
+        context.RecordDebugLayoutInfo($"段落是脏的，执行段落内布局", LayoutDebugCategory.PreParagraph);
         argument.ParagraphData.SetLayoutDirty(exceptTextSize: false/*应该是连文本尺寸都是脏的*/);
 
         // 先找到首个需要更新的坐标点，这里的坐标是段坐标
@@ -318,7 +318,7 @@ abstract class ArrangingLayoutProvider
             }
         }
 
-        context.RecordDebugLayoutInfo($"段内第 {lastIndex} 行是脏的，从此行开始布局");
+        context.RecordDebugLayoutInfo($"段内第 {lastIndex} 行是脏的，从此行开始布局", LayoutDebugCategory.PreParagraph);
 
         // 将脏的行移除掉，然后重新添加新的行
         // 例如在一段里面，首行就是脏的，那么此时应该就是从 0 开始，将后续所有行都移除掉

@@ -66,11 +66,11 @@ internal class EmptyTextLogger : ITextLogger
         }
         else if (info is LayoutCompletedLogInfo layoutCompletedLogInfo)
         {
-            foreach (string message in layoutCompletedLogInfo.GetLayoutDebugMessageList())
+            foreach (LayoutDebugMessage message in layoutCompletedLogInfo.GetLayoutDebugMessageList())
             {
                 // 不要输出了，因为附加调试时候，每一步都输出，太多了
                 //LogDebug($"[Layout] {message}");
-                RecordMessage($"[Layout] {message}", outputToDebug: false /*调试下不要在此输出。附加调试下，每一步都输出*/);
+                RecordMessage($"[Layout]{message}", outputToDebug: false /*调试下不要在此输出。附加调试下，每一步都输出*/);
             }
 
             RecordMessage("===完成布局===");

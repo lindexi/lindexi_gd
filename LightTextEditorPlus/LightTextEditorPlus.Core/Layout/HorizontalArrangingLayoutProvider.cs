@@ -665,7 +665,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     {
         // LayoutRule 布局规则
         // 可选无规则-直接字符布局，预计没有人使用
-        // 调用分词规则-支持注入分词规则
+        // 调用分词规则-支持注入分词换行规则
         UpdateLayoutContext updateLayoutContext = argument.UpdateLayoutContext;
         TextReadOnlyListSpan<CharData> currentRunList = argument.SliceFromCurrentRunList();
 
@@ -673,7 +673,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         var currentCharData = argument.CurrentCharData;
         Debug.Assert(ReferenceEquals(currentCharData, currentRunList[0]));
 #endif
-
         IWordDivider wordDivider = updateLayoutContext.PlatformProvider.GetWordDivider();
         DivideWordResult divideWordResult = wordDivider.DivideWord(new DivideWordArgument(currentRunList, updateLayoutContext));
 
@@ -865,7 +864,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// <param name="updateLayoutContext"></param>
     protected override void FinalUpdateDocumentLayout(PreUpdateDocumentLayoutResult preUpdateDocumentLayoutResult, UpdateLayoutContext updateLayoutContext)
     {
-        updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 进入最终布局阶段");
+        updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 进入最终布局阶段",LayoutDebugCategory.FinalDocument);
 
         TextRect documentBounds = preUpdateDocumentLayoutResult.DocumentBounds;
         var documentWidth = CalculateHitBounds(documentBounds).Width;
@@ -902,7 +901,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             }
         }
 
-        updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 完成最终布局阶段。文档尺寸：{documentBounds.TextSize.ToCommaSplitWidthAndHeight()}");
+        updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 完成最终布局阶段。文档尺寸：{documentBounds.TextSize.ToCommaSplitWidthAndHeight()}",LayoutDebugCategory.FinalDocument);
     }
 
     readonly record struct FinalParagraphLayoutArgument(ParagraphData Paragraph, ParagraphIndex ParagraphIndex, double DocumentWidth, UpdateLayoutContext UpdateLayoutContext);
@@ -917,7 +916,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         int paragraphIndex = argument.ParagraphIndex.Index;
         double documentWidth = argument.DocumentWidth;
 
-        updateLayoutContext.RecordDebugLayoutInfo($"开始回溯第 {paragraphIndex} 段");
+        updateLayoutContext.RecordDebugLayoutInfo($"开始回溯第 {paragraphIndex} 段", LayoutDebugCategory.FinalParagraph);
 
         ParagraphData paragraph = argument.Paragraph;
         Debug.Assert(paragraphIndex == paragraph.Index.Index, "参数拿到的 ParagraphIndex 是不用计算的，而 paragraph.Index 是需要遍历计算的。这两个值应该是相同的");
@@ -926,7 +925,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         for (int lineIndex = 0; lineIndex < paragraph.LineLayoutDataList.Count; lineIndex++)
         {
-            updateLayoutContext.RecordDebugLayoutInfo($"开始回溯第 {paragraphIndex} 段的第 {lineIndex} 行");
+            updateLayoutContext.RecordDebugLayoutInfo($"开始回溯第 {paragraphIndex} 段的第 {lineIndex} 行", LayoutDebugCategory.FinalLine);
 
             LineLayoutData lineLayoutData = paragraph.LineLayoutDataList[lineIndex];
             var lineLayoutArgument = new FinalParagraphLineLayoutArgument(lineIndex, lineLayoutData, argument);
@@ -942,7 +941,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             Height = contentThickness.Top + layoutData.TextSize.Height + contentThickness.Bottom
         });
 
-        updateLayoutContext.RecordDebugLayoutInfo($"完成回溯第 {paragraphIndex} 段");
+        updateLayoutContext.RecordDebugLayoutInfo($"完成回溯第 {paragraphIndex} 段", LayoutDebugCategory.FinalParagraph);
 
         // 设置当前段落已经布局完成
         paragraph.SetFinishLayout();
