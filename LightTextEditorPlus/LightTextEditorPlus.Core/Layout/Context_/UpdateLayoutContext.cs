@@ -77,7 +77,25 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
         string formattedText = message.GetFormattedText();
         var layoutDebugMessage = new LayoutDebugMessage(category, formattedText);
 #if DEBUG
-        Debug.WriteLine(formattedText);
+        var padCount = category switch
+        {
+            LayoutDebugCategory.Document => 0,
+            LayoutDebugCategory.FindDirty => 1,
+
+            LayoutDebugCategory.PreDocument => 1,
+            LayoutDebugCategory.PreParagraph => 2,
+            LayoutDebugCategory.PreWholeLine => 3,
+            LayoutDebugCategory.PreSingleCharLine => 4,
+            LayoutDebugCategory.PreDivideWord => 5,
+
+            LayoutDebugCategory.FinalDocument => 1,
+            LayoutDebugCategory.FinalParagraph => 2,
+            LayoutDebugCategory.FinalLine => 3,
+
+            _ => throw new ArgumentOutOfRangeException(nameof(category), category, null)
+        };
+        var debugMessage = $"{"".PadLeft(padCount)}[{category}] {formattedText}";
+        Debug.WriteLine(debugMessage);
 #endif
 
         LayoutDebugMessageList ??= [];

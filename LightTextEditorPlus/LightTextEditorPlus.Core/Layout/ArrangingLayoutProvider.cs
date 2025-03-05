@@ -234,7 +234,7 @@ abstract class ArrangingLayoutProvider
             ParagraphLayoutResult result = UpdateParagraphLayout(argument);
             var nextParagraphStartPoint = result.NextParagraphStartPoint;
             // 预布局过程中，没有获取其 Outline 的值。 于是 OutlineBounds={paragraphData.ParagraphLayoutData.OutlineBounds}; 将在无缓存时，为 {X=0 Y=0 Width=0 Height=0} 的值
-            updateLayoutContext.RecordDebugLayoutInfo($"完成预布局第 {index} 段TextBounds={paragraphData.ParagraphLayoutData.TextContentBounds};NextParagraphStartPoint={nextParagraphStartPoint}", LayoutDebugCategory.PreParagraph);
+            updateLayoutContext.RecordDebugLayoutInfo($"完成预布局第 {index} 段，共 {paragraphData.LineLayoutDataList.Count} 行 TextBounds={paragraphData.ParagraphLayoutData.TextContentBounds};NextParagraphStartPoint={nextParagraphStartPoint}", LayoutDebugCategory.PreParagraph);
             currentStartPoint = nextParagraphStartPoint;
 
             if (IsInDebugMode)

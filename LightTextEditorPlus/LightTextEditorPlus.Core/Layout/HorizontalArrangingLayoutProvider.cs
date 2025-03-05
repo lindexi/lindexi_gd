@@ -328,6 +328,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             }
 
             int lineIndex = paragraph.LineLayoutDataList.Count;
+
+            argument.UpdateLayoutContext.RecordDebugLayoutInfo($"第 {lineIndex} 行开始布局",
+                LayoutDebugCategory.PreWholeLine);
+
             var isFirstLine = lineIndex == 0;
             ParagraphProperty paragraphProperty = paragraph.ParagraphProperty;
 
@@ -391,6 +395,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             }
 
             currentStartPoint = GetNextLineStartPoint(currentStartPoint, currentLineLayoutData);
+
+            argument.UpdateLayoutContext.RecordDebugLayoutInfo($"第 {lineIndex} 行完成布局，下一行起点 {currentStartPoint}",
+                LayoutDebugCategory.PreWholeLine);
         }
 
         // 下一段的起始坐标。从行进行转换
