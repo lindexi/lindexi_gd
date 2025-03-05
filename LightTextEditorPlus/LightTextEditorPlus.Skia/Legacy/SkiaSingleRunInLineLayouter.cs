@@ -1,4 +1,4 @@
-// Ô­±¾ÒÔÎª Skia ¿ÉÒÔÍ¨¹ı BreakText ½øĞĞÒ»ĞĞ²¼¾Ö£¬È»¶ø¹ı³Ì·¢ÏÖÆäÃ»ÓĞ´øÓïÑÔÎÄ»¯£¬ÇÒ¼´Ê¹´øÁË¹À¼ÆÒ²²»·ûºÏÔ¤ÆÚ¡£Òò´Ë·ÏÆú´ËÀàĞÍ£¬»»³É SkiaCharInfoMeasurer Ö»²âÁ¿×Ö·û³ß´ç¡£µ«ºóĞø¿ÉÄÜÒÀÈ»ĞèÒª HarfBuzz ¸¨Öú´¦ÀíºÏĞ´×ÖµÄÇé¿ö£¬µ½Ê±ºòÒ²ĞíÒÀÈ»ĞèÒª¿ª·Å´ËÀàĞÍ¡£Ö»²»¹ıÕâ¸ö¹ı³ÌÖĞ²»ĞèÒªÔÙ´Î²âÁ¿×Ö·û³ß´ç¶øÒÑ
+ï»¿// åŸæœ¬ä»¥ä¸º Skia å¯ä»¥é€šè¿‡ BreakText è¿›è¡Œä¸€è¡Œå¸ƒå±€ï¼Œç„¶è€Œè¿‡ç¨‹å‘ç°å…¶æ²¡æœ‰å¸¦è¯­è¨€æ–‡åŒ–ï¼Œä¸”å³ä½¿å¸¦äº†ä¼°è®¡ä¹Ÿä¸ç¬¦åˆé¢„æœŸã€‚å› æ­¤åºŸå¼ƒæ­¤ç±»å‹ï¼Œæ¢æˆ SkiaCharInfoMeasurer åªæµ‹é‡å­—ç¬¦å°ºå¯¸ã€‚ä½†åç»­å¯èƒ½ä¾ç„¶éœ€è¦ HarfBuzz è¾…åŠ©å¤„ç†åˆå†™å­—çš„æƒ…å†µï¼Œåˆ°æ—¶å€™ä¹Ÿè®¸ä¾ç„¶éœ€è¦å¼€æ”¾æ­¤ç±»å‹ã€‚åªä¸è¿‡è¿™ä¸ªè¿‡ç¨‹ä¸­ä¸éœ€è¦å†æ¬¡æµ‹é‡å­—ç¬¦å°ºå¯¸è€Œå·²
 
 //using System;
 //using System.Collections.Generic;
@@ -20,7 +20,7 @@
 
 //namespace LightTextEditorPlus.Platform;
 
-//// ÆäÊµÕâÀïÊÇ²»ĞèÒªµÄ£¬Ö»ÒªÓĞ×Ö·û²¼¾Ö¼´¿É
+//// å…¶å®è¿™é‡Œæ˜¯ä¸éœ€è¦çš„ï¼Œåªè¦æœ‰å­—ç¬¦å¸ƒå±€å³å¯
 //public class SkiaWholeLineCharsLayouter : IWholeLineCharsLayouter
 //{
 //    public WholeLineCharsLayoutResult UpdateWholeLineCharsLayout(in WholeLineLayoutArgument argument)
@@ -31,12 +31,12 @@
 
 //        IWordDivider wordDivider = context.PlatformProvider.GetWordDivider();
 
-//        // ĞĞ»¹Ê£ÓàµÄ¿ÕÏĞ¿í¶È
+//        // è¡Œè¿˜å‰©ä½™çš„ç©ºé—²å®½åº¦
 //        double lineRemainingWidth = lineMaxWidth;
 
-//        // µ±Ç°Ïà¶ÔÓÚ charDataList µÄµ±Ç°ĞòºÅ
+//        // å½“å‰ç›¸å¯¹äº charDataList çš„å½“å‰åºå·
 //        int currentIndex = 0;
-//        // µ±Ç°µÄ×Ö·û²¼¾Ö³ß´ç
+//        // å½“å‰çš„å­—ç¬¦å¸ƒå±€å°ºå¯¸
 //        var currentSize = TextSize.Zero;
 
 //        while (currentIndex < charDataList.Count)
@@ -47,25 +47,25 @@
 
 //            FillSizeOfCharData(runList, in arguments);
 
-//            // Ê¹ÓÃ¶ÏĞĞËã·¨¼ÆËãÊÇ·ñĞèÒª¶ÏĞĞ
+//            // ä½¿ç”¨æ–­è¡Œç®—æ³•è®¡ç®—æ˜¯å¦éœ€è¦æ–­è¡Œ
 //            var currentRunList = charDataList.Slice(currentIndex);
 
-//            // ´Óµ±Ç°µÄ×Ö·û¿ªÊ¼£¬³¢ÊÔ»ñÈ¡Ò»¸öµ¥´Ê
+//            // ä»å½“å‰çš„å­—ç¬¦å¼€å§‹ï¼Œå°è¯•è·å–ä¸€ä¸ªå•è¯
 //            DivideWordResult divideWordResult = wordDivider.DivideWord(new DivideWordArgument(currentRunList, context));
 //            int takeCount = divideWordResult.TakeCount;
 
-//            // ¼ÆËãµ±Ç°µÄ×Ü¿í¶È
+//            // è®¡ç®—å½“å‰çš„æ€»å®½åº¦
 //            var takeSize = TextSize.Zero;
 //            for (int i = 0; i < takeCount; i++)
 //            {
 //                CharData charData = currentRunList[i];
-//                TextSize size = charData.Size ?? throw new InvalidOperationException("CharData µÄ Size ²»ÄÜÎª¿Õ");
+//                TextSize size = charData.Size ?? throw new InvalidOperationException("CharData çš„ Size ä¸èƒ½ä¸ºç©º");
 //                takeSize = takeSize.HorizontalUnion(size);
 //            }
 
 //            if (lineRemainingWidth > takeSize.Width)
 //            {
-//                // ÕâÒ»ĞĞ»¹ÓĞ¿Õ¼ä£¬¿ÉÒÔ¼ÌĞø·ÅÈëµ¥´Ê
+//                // è¿™ä¸€è¡Œè¿˜æœ‰ç©ºé—´ï¼Œå¯ä»¥ç»§ç»­æ”¾å…¥å•è¯
 //                lineRemainingWidth -= takeSize.Width;
 
 //                currentIndex += takeCount;
@@ -74,14 +74,14 @@
 //            }
 //            else
 //            {
-//                // ÕâÒ»ĞĞÃ»ÓĞ¿Õ¼äÁË£¬ĞèÒª¶ÏĞĞ
+//                // è¿™ä¸€è¡Œæ²¡æœ‰ç©ºé—´äº†ï¼Œéœ€è¦æ–­è¡Œ
 //                if (currentIndex == 0)
 //                {
-//                    // ÕâÒ»ĞĞÒ»¸öµ¥´Ê¶¼·Å²»ÏÂ£¬ÄÇ¾ÍÇ¿ĞĞ·ÅÈëÒ»¸ö¸ö×Ö·û
+//                    // è¿™ä¸€è¡Œä¸€ä¸ªå•è¯éƒ½æ”¾ä¸ä¸‹ï¼Œé‚£å°±å¼ºè¡Œæ”¾å…¥ä¸€ä¸ªä¸ªå­—ç¬¦
 //                    for (; currentIndex < currentRunList.Count; currentIndex++)
 //                    {
 //                        var charData = currentRunList[currentIndex];
-//                        TextSize textSize = charData.Size ?? throw new InvalidOperationException("CharData µÄ Size ²»ÄÜÎª¿Õ");
+//                        TextSize textSize = charData.Size ?? throw new InvalidOperationException("CharData çš„ Size ä¸èƒ½ä¸ºç©º");
 
 //                        if (lineRemainingWidth > textSize.Width)
 //                        {
@@ -111,7 +111,7 @@
 
 //    private SingleCharInLineLayoutResult MeasureSingleRunLayout(in SingleCharInLineLayoutArgument argument)
 //    {
-//        // »ñÈ¡Á¬ĞøµÄ×Ö·û£¬²»Á¬ĞøµÄ×Ö·ûÒ²²»ÄÜ½øÈëµ½ÕâÀï²¼¾Ö¡£ÊôĞÔ²»ÏàÍ¬µÄ£¬µÈ´ıÏÂ´Î½øÈë´Ë·½·¨²¼¾Ö
+//        // è·å–è¿ç»­çš„å­—ç¬¦ï¼Œä¸è¿ç»­çš„å­—ç¬¦ä¹Ÿä¸èƒ½è¿›å…¥åˆ°è¿™é‡Œå¸ƒå±€ã€‚å±æ€§ä¸ç›¸åŒçš„ï¼Œç­‰å¾…ä¸‹æ¬¡è¿›å…¥æ­¤æ–¹æ³•å¸ƒå±€
 //        TextReadOnlyListSpan<CharData> runList = argument.RunList.Slice(argument.CurrentIndex).GetFirstCharSpanContinuous();
 
 //        FillSizeOfCharData(runList, in argument);
@@ -131,13 +131,13 @@
 //        SKFont skFont = renderingRunPropertyInfo.Font;
 //        SKPaint skPaint = renderingRunPropertyInfo.Paint;
 
-//        // È·±£ÉèÖÃÁË×Ö·ûµÄ³ß´ç
+//        // ç¡®ä¿è®¾ç½®äº†å­—ç¬¦çš„å°ºå¯¸
 //        var charCount = 0;
-//        // ÎªÊ²Ã´´Ó 0 ¿ªÊ¼£¬¶ø²»ÊÇ argument.CurrentIndex ¿ªÊ¼£¿Ô­ÒòÊÇÔÚ runList ÀïÃæÒÑ¾­Ê¹ÓÃ Slice ²Ã¼ôÁË
+//        // ä¸ºä»€ä¹ˆä» 0 å¼€å§‹ï¼Œè€Œä¸æ˜¯ argument.CurrentIndex å¼€å§‹ï¼ŸåŸå› æ˜¯åœ¨ runList é‡Œé¢å·²ç»ä½¿ç”¨ Slice è£å‰ªäº†
 //        StringBuilder stringBuilder = new StringBuilder(runList.Count);
 //        for (var i = 0; i < runList.Count; i++)
 //        {
-//            // ÕâÀï½â¾öµÄÊÇ¿ÉÄÜÓĞÒ»¸ö CharObject °üº¬¶à¸ö Char µÄÇé¿ö
+//            // è¿™é‡Œè§£å†³çš„æ˜¯å¯èƒ½æœ‰ä¸€ä¸ª CharObject åŒ…å«å¤šä¸ª Char çš„æƒ…å†µ
 //            CharData charData = runList[i];
 //            string text = charData.CharObject.ToText();
 //            charCount += text.Length;
@@ -213,7 +213,7 @@
 //        }
 
 //        var count = glyphInfoList.Count;
-//        var renderGlyphPositions = new SKPoint[count]; // Ã»ÓĞÕæµÄÓÃµ½
+//        var renderGlyphPositions = new SKPoint[count]; // æ²¡æœ‰çœŸçš„ç”¨åˆ°
 //        var currentX = 0.0;
 //        for (int i = 0; i < count; i++)
 //        {
@@ -227,7 +227,7 @@
 //            currentX += glyphInfoList[i].GlyphAdvance;
 //        }
 
-//        // ÒÔÏÂ´úÂë½ö½öÖ»ÊÇÎªÁËµ÷ÊÔ¶øÒÑ£¬µÈÎÈ¶¨ÁË¾Í¿ÉÒÔÉ¾³ı
+//        // ä»¥ä¸‹ä»£ç ä»…ä»…åªæ˜¯ä¸ºäº†è°ƒè¯•è€Œå·²ï¼Œç­‰ç¨³å®šäº†å°±å¯ä»¥åˆ é™¤
 //        _ = renderGlyphPositions;
 
 //        var runBounds = new SKRect();
@@ -241,28 +241,28 @@
 
 //        float charHeight = renderingRunPropertyInfo.GetLayoutCharHeight();
 
-//        // Êµ¼ÊÊ¹ÓÃÀïÃæ£¬¿ÉÒÔºöÂÔ GetGlyphWidths µÄÓ°Ïì£¬ÒòÎªÊµ¼ÊÉÏÃ»ÓĞÓÃµ½
+//        // å®é™…ä½¿ç”¨é‡Œé¢ï¼Œå¯ä»¥å¿½ç•¥ GetGlyphWidths çš„å½±å“ï¼Œå› ä¸ºå®é™…ä¸Šæ²¡æœ‰ç”¨åˆ°
 //        for (var i = 0; i < count; i++)
 //        {
 //            var renderBounds = glyphBounds[i];
 //            var glyphInfo = glyphInfoList[i];
 //            var advance = glyphInfo.GlyphAdvance;
 
-//            // Ë®Æ½²¼¾ÖÏÂ£¬²»Ó¦¸Ã·µ»Ø×Ö·ûµÄäÖÈ¾¸ß¶È£¬¶øÊÇÓ¦¸Ã·µ»Ø×Ö·û¸ß¶È¡£ÕâÑù¿ÉÒÔ±£Ö¤×Ö·ûµÄ»ùÏß¶ÔÆë¡£Èç a ºÍ f ºÍ g µÄ¸ß¶È²»ÏàÍ¬£¬ÔòÈç¹û½«ÆääÖÈ¾¸ß¶È·µ»Ø£¬»áµ¼ÖÂ»ùÏß²»¶ÔÆë£¬±ä³Éµ×²¿¶ÔÆë
-//            // ¿í¶ÈÓ¦¸ÃÊÇ advance ¶ø²»ÊÇäÖÈ¾¿í¶È£¬äÖÈ¾¿í¶ÈÌ«Õ­
+//            // æ°´å¹³å¸ƒå±€ä¸‹ï¼Œä¸åº”è¯¥è¿”å›å­—ç¬¦çš„æ¸²æŸ“é«˜åº¦ï¼Œè€Œæ˜¯åº”è¯¥è¿”å›å­—ç¬¦é«˜åº¦ã€‚è¿™æ ·å¯ä»¥ä¿è¯å­—ç¬¦çš„åŸºçº¿å¯¹é½ã€‚å¦‚ a å’Œ f å’Œ g çš„é«˜åº¦ä¸ç›¸åŒï¼Œåˆ™å¦‚æœå°†å…¶æ¸²æŸ“é«˜åº¦è¿”å›ï¼Œä¼šå¯¼è‡´åŸºçº¿ä¸å¯¹é½ï¼Œå˜æˆåº•éƒ¨å¯¹é½
+//            // å®½åº¦åº”è¯¥æ˜¯ advance è€Œä¸æ˜¯æ¸²æŸ“å®½åº¦ï¼Œæ¸²æŸ“å®½åº¦å¤ªçª„
 
 //            var width = (float) advance;// renderBounds.Width;
 //            float height = charHeight;// = renderBounds.Height; //skPaint.TextSize; //(float) skFont.Metrics.Ascent + (float) skFont.Metrics.Descent;
 //            //height = (float) LineSpacingCalculator.CalculateLineHeightWithPPTLineSpacingAlgorithm(1, skPaint.TextSize);
 //            //var enhance = 0f;
-//            //// ÓĞĞ©×ÖÌåµÄ Top ¾ÍÊÇ³¬¹ı¸ñ×Ó£¬²»Òª²¹³¥¡£Èç»ªÎÄ·ÂËÎ×ÖÌå
+//            //// æœ‰äº›å­—ä½“çš„ Top å°±æ˜¯è¶…è¿‡æ ¼å­ï¼Œä¸è¦è¡¥å¿ã€‚å¦‚åæ–‡ä»¿å®‹å­—ä½“
 //            ////if (baselineY < Math.Abs(skFont.Metrics.Top))
 //            ////{
 //            ////    enhance = Math.Abs(skFont.Metrics.Top) - baselineY;
 //            ////}
 
-//            //height = /*skFont.Metrics.Leading + ÓĞĞ©×ÖÌåµÄ Leading ÊÇ²»²ÎÓëÅÅ°æµÄ£¬Ô½¹ıµÄ£¬ÊôÓÚÉÏ¼Ó¡£²»ÄÜ½«Æä¼ÓÈë¼ÆËã */ baselineY + skFont.Metrics.Descent + enhance;
-//            //// Í¬Àí skFont.Metrics.Bottom Ò²ÊÇ²»Ó¦¸ÃÊ¹ÓÃµÄ£¬¿ÉÄÜÏÂ¼ÓÊÇ³¬¹ı¸ñ×ÓµÄ
+//            //height = /*skFont.Metrics.Leading + æœ‰äº›å­—ä½“çš„ Leading æ˜¯ä¸å‚ä¸æ’ç‰ˆçš„ï¼Œè¶Šè¿‡çš„ï¼Œå±äºä¸ŠåŠ ã€‚ä¸èƒ½å°†å…¶åŠ å…¥è®¡ç®— */ baselineY + skFont.Metrics.Descent + enhance;
+//            //// åŒç† skFont.Metrics.Bottom ä¹Ÿæ˜¯ä¸åº”è¯¥ä½¿ç”¨çš„ï¼Œå¯èƒ½ä¸‹åŠ æ˜¯è¶…è¿‡æ ¼å­çš„
 
 //            glyphRunBounds[i] = SKRect.Create((float) (currentX + renderBounds.Left), baselineOrigin.Y + renderBounds.Top, width,
 //                height);
@@ -279,9 +279,9 @@
 
 //        runBounds.Offset(baselineOrigin.X, 0);
 
-//        // ¸³Öµ¸øÃ¿¸ö×Ö·ûµÄ³ß´ç
+//        // èµ‹å€¼ç»™æ¯ä¸ªå­—ç¬¦çš„å°ºå¯¸
 //        var glyphRunBoundsIndex = 0;
-//        // ÎªÊ²Ã´´Ó 0 ¿ªÊ¼£¬¶ø²»ÊÇ argument.CurrentIndex ¿ªÊ¼£¿Ô­ÒòÊÇÔÚ runList ÀïÃæÒÑ¾­Ê¹ÓÃ Slice ²Ã¼ôÁË
+//        // ä¸ºä»€ä¹ˆä» 0 å¼€å§‹ï¼Œè€Œä¸æ˜¯ argument.CurrentIndex å¼€å§‹ï¼ŸåŸå› æ˜¯åœ¨ runList é‡Œé¢å·²ç»ä½¿ç”¨ Slice è£å‰ªäº†
 //        for (var i = 0; i < runList.Count; i++)
 //        {
 //            CharData charData = runList[i];
@@ -292,15 +292,15 @@
 //                argument.CharDataLayoutInfoSetter.SetCharDataInfo(charData, new TextSize(glyphRunBound.Width, glyphRunBound.Height), baselineY);
 //            }
 
-//            // ½â¾ö CharData ºÍ×Ö·û²»Ò»Ò»¶ÔÓ¦µÄÎÊÌâ£¬¿ÉÄÜÒ»¸ö CharData ¶ÔÓ¦¶à¸ö×Ö·û
+//            // è§£å†³ CharData å’Œå­—ç¬¦ä¸ä¸€ä¸€å¯¹åº”çš„é—®é¢˜ï¼Œå¯èƒ½ä¸€ä¸ª CharData å¯¹åº”å¤šä¸ªå­—ç¬¦
 //            glyphRunBoundsIndex += charData.CharObject.ToText().Length;
-//            // Ô¤ÆÚ²»»á³öÏÖ³¬³öµÄÇé¿ö
+//            // é¢„æœŸä¸ä¼šå‡ºç°è¶…å‡ºçš„æƒ…å†µ
 //            if (glyphRunBoundsIndex >= glyphRunBounds.Length)
 //            {
 //                if (i == runList.Count - 1 && glyphRunBoundsIndex == glyphRunBounds.Length)
 //                {
-//                    // ·Ç×îºóÒ»¸ö¡£×îºóÒ»¸öÔ¤ÆÚÊÇÏàµÈµÄ
-//                    // ½øÈëÕâ¸ö·ÖÖ§ÊÇ·ûºÏÔ¤ÆÚµÄ¡£¸Õ¸ÕºÃ×îºóÒ»¸ö CharData ¶ÔÓ¦µÄ×Ö·û¸ÕºÃÊÇ×îºóÒ»¸ö×Ö·û
+//                    // éæœ€åä¸€ä¸ªã€‚æœ€åä¸€ä¸ªé¢„æœŸæ˜¯ç›¸ç­‰çš„
+//                    // è¿›å…¥è¿™ä¸ªåˆ†æ”¯æ˜¯ç¬¦åˆé¢„æœŸçš„ã€‚åˆšåˆšå¥½æœ€åä¸€ä¸ª CharData å¯¹åº”çš„å­—ç¬¦åˆšå¥½æ˜¯æœ€åä¸€ä¸ªå­—ç¬¦
 //                    break;
 //                }
 
@@ -311,14 +311,14 @@
 //                else
 //                {
 //                    updateLayoutContext. Logger.LogWarning(Message);
-//                    // ²»ÄÜ¼ÌĞøÑ­»·£¬·ñÔò»á³öÏÖÔ½½ç
+//                    // ä¸èƒ½ç»§ç»­å¾ªç¯ï¼Œå¦åˆ™ä¼šå‡ºç°è¶Šç•Œ
 //                    break;
 //                }
 //            }
 //        }
 //    }
 
-//    private const string Message = "²¼¾Ö¹ı³ÌÖĞ·¢ÏÖ CharData ºÍ Text ÊıÁ¿²»Æ¥Åä£¬Ô¤¼ÆÊÇ¿ò¼ÜÄÚÊµÏÖµÄÎÊÌâ";
+//    private const string Message = "å¸ƒå±€è¿‡ç¨‹ä¸­å‘ç° CharData å’Œ Text æ•°é‡ä¸åŒ¹é…ï¼Œé¢„è®¡æ˜¯æ¡†æ¶å†…å®ç°çš„é—®é¢˜";
 //    readonly record struct TextGlyphInfo(ushort GlyphIndex, int GlyphCluster, double GlyphAdvance, (float OffsetX, float OffsetY) GlyphOffset = default);
 
 

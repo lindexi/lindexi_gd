@@ -1,4 +1,4 @@
-//using System;
+ï»¿//using System;
 //using LightTextEditorPlus.Core.Document;
 //using LightTextEditorPlus.Core.Layout;
 //using LightTextEditorPlus.Core.Platform;
@@ -11,7 +11,7 @@
 //    public WholeLineCharsLayoutResult UpdateWholeLineCharsLayout(in WholeLineLayoutArgument argument)
 //    {
 //        //TextSize CurrentLineCharTextSize, int WholeTakeCount
-//        // È¡Á¬ĞøµÄ×Ö·û£¬Á¬ĞøµÄ×Ö·ûÖ¸µÄÊÇÊôĞÔÏàÍ¬µÄ×Ö·û¡£ÊôĞÔ²»ÏàÍ¬µÄ£¬·Ö¸îÎª¶à´Îµ÷ÓÃ²¼¾Ö
+//        // å–è¿ç»­çš„å­—ç¬¦ï¼Œè¿ç»­çš„å­—ç¬¦æŒ‡çš„æ˜¯å±æ€§ç›¸åŒçš„å­—ç¬¦ã€‚å±æ€§ä¸ç›¸åŒçš„ï¼Œåˆ†å‰²ä¸ºå¤šæ¬¡è°ƒç”¨å¸ƒå±€
 //        var wholeTakeCount = 0;
 
 //        while (wholeTakeCount < argument.CharDataList.Count)

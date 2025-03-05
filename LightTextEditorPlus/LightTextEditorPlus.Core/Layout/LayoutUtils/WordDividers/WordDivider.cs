@@ -1,4 +1,4 @@
-using System.Globalization;
+ï»¿using System.Globalization;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
 
@@ -21,7 +21,7 @@ internal class WordDivider : IWordDivider
         var charCount = WordCharHelper.ReadWordCharCount(argument.CurrentRunList, currentIndex);
         totalCount += charCount;
 
-        // ²»ÄÜ·ÅÔÚĞĞÊ×µÄ·ûºÅ
+        // ä¸èƒ½æ”¾åœ¨è¡Œé¦–çš„ç¬¦å·
         var wordNextCharIndex = currentIndex + charCount;
         if (wordNextCharIndex < argument.CurrentRunList.Count)
         {
@@ -30,7 +30,7 @@ internal class WordDivider : IWordDivider
 
             if (IsPunctuationNotInLineStart(codePoint))
             {
-                // Èç¹ûÏÂÒ»¸ö×Ö·ûÊÇ±êµã·ûºÅ£¬ÇÒ²»ÄÜ·ÅÔÚĞĞÊ×£¬ÄÇ¾Í²»Òª·ÅÔÚÕâÒ»ĞĞÀïÃæ
+                // å¦‚æœä¸‹ä¸€ä¸ªå­—ç¬¦æ˜¯æ ‡ç‚¹ç¬¦å·ï¼Œä¸”ä¸èƒ½æ”¾åœ¨è¡Œé¦–ï¼Œé‚£å°±ä¸è¦æ”¾åœ¨è¿™ä¸€è¡Œé‡Œé¢
                 totalCount += 1;
             }
         }
@@ -47,26 +47,26 @@ internal class WordDivider : IWordDivider
     }
 
     /// <summary>
-    /// Í¨¹ıÓïÑÔÎÄ»¯ÅĞ¶Ïµ±Ç°´«ÈëµÄ±êµã·ûºÅÊÇ·ñ²»ÄÜ·ÅÔÚĞĞÊ×¡£ÓïÑÔÎÄ»¯ÀïÃæÖ»ÄÜÓÃÀ´ÅĞ¶Ï·ûºÅ£¬ÊÇ·ñÄÜ·ÅÔÚĞĞÊ×ÊÇÎÄ±¾¿âµÄÅĞ¶Ï
+    /// é€šè¿‡è¯­è¨€æ–‡åŒ–åˆ¤æ–­å½“å‰ä¼ å…¥çš„æ ‡ç‚¹ç¬¦å·æ˜¯å¦ä¸èƒ½æ”¾åœ¨è¡Œé¦–ã€‚è¯­è¨€æ–‡åŒ–é‡Œé¢åªèƒ½ç”¨æ¥åˆ¤æ–­ç¬¦å·ï¼Œæ˜¯å¦èƒ½æ”¾åœ¨è¡Œé¦–æ˜¯æ–‡æœ¬åº“çš„åˆ¤æ–­
     /// </summary>
-    /// <param name="codePoint">´«Èë²ÎÊıÖ®Ç°£¬È·±£Ö»ÓĞÒ»¸ö×Ö·û</param>
+    /// <param name="codePoint">ä¼ å…¥å‚æ•°ä¹‹å‰ï¼Œç¡®ä¿åªæœ‰ä¸€ä¸ªå­—ç¬¦</param>
     /// <returns></returns>
     private static bool IsPunctuationNotInLineStart(Utf32CodePoint codePoint)
     {
-        // Ö»ÊÇÅĞ¶Ï±êµã·ûºÅ¶øÒÑ
-        // ·´ÏòÅĞ¶Ï£¬Í¨¹ıÕıÔò¸¨ÖúÅĞ¶Ï¡£Ö»ÒªÊÇ±êµã·ûºÅ£¬ÇÒ²»ÊÇ¿ÉÒÔÔÚĞĞÊ×µÄ£¬ÄÇ¾Í·µ»Ø true Öµ
+        // åªæ˜¯åˆ¤æ–­æ ‡ç‚¹ç¬¦å·è€Œå·²
+        // åå‘åˆ¤æ–­ï¼Œé€šè¿‡æ­£åˆ™è¾…åŠ©åˆ¤æ–­ã€‚åªè¦æ˜¯æ ‡ç‚¹ç¬¦å·ï¼Œä¸”ä¸æ˜¯å¯ä»¥åœ¨è¡Œé¦–çš„ï¼Œé‚£å°±è¿”å› true å€¼
         UnicodeCategory unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(codePoint.Value);
         return unicodeCategory is UnicodeCategory.OtherPunctuation
-            //or UnicodeCategory.OpenPunctuation Èç £¨£©
+            //or UnicodeCategory.OpenPunctuation å¦‚ ï¼ˆï¼‰
             or UnicodeCategory.ClosePunctuation
             or UnicodeCategory.ConnectorPunctuation
             or UnicodeCategory.DashPunctuation
-            //or UnicodeCategory.InitialQuotePunctuation Èç ¡°
+            //or UnicodeCategory.InitialQuotePunctuation å¦‚ â€œ
             or UnicodeCategory.FinalQuotePunctuation;
 
         //if (RegexPatterns.LeftSurroundInterpunction.Contains(charInNextWord))
         //{
-        //    // ÏÈÅĞ¶ÏÊÇ·ñÔÚĞĞÊ×£¬Õâ¸öÅĞ¶ÏÊıÁ¿±È½ÏĞ¡£¬ËÙ¶È¿ì
+        //    // å…ˆåˆ¤æ–­æ˜¯å¦åœ¨è¡Œé¦–ï¼Œè¿™ä¸ªåˆ¤æ–­æ•°é‡æ¯”è¾ƒå°ï¼Œé€Ÿåº¦å¿«
         //    return false;
         //}
 
@@ -74,7 +74,7 @@ internal class WordDivider : IWordDivider
 
         //Span<char> punctuationNotInLineStartList = stackalloc char[]
         //{
-        //    // Ó¢ÎÄÏµÁĞ
+        //    // è‹±æ–‡ç³»åˆ—
         //    '.',
         //    ',',
         //    ':',
@@ -85,21 +85,21 @@ internal class WordDivider : IWordDivider
         //    '"',
         //    ')',
 
-        //    // ÖĞÎÄÏµÁĞ GB/T 15834 ¹æ·¶
-        //    '¡£',
-        //    '£¬',
-        //    '¡¢',
-        //    '£»',
-        //    '£º',
-        //    '£¿',
-        //    '£¡',
-        //    '¡±',
-        //    '£©',
-        //    '¡·',
-        //    '¡¤', // ¼ä¸ôºÅ 5.1.7 ¼ä¸ôºÅ±ê²»ÄÜ³öÏÖÔÚÒ»ĞĞÖ®Ê×
-        //    '/', // 5.1.9 ²»ÄÜÔÚĞĞÊ×Ò²²»ÄÜÔÚĞĞÄ©
+        //    // ä¸­æ–‡ç³»åˆ— GB/T 15834 è§„èŒƒ
+        //    'ã€‚',
+        //    'ï¼Œ',
+        //    'ã€',
+        //    'ï¼›',
+        //    'ï¼š',
+        //    'ï¼Ÿ',
+        //    'ï¼',
+        //    'â€',
+        //    'ï¼‰',
+        //    'ã€‹',
+        //    'Â·', // é—´éš”å· 5.1.7 é—´éš”å·æ ‡ä¸èƒ½å‡ºç°åœ¨ä¸€è¡Œä¹‹é¦–
+        //    '/', // 5.1.9 ä¸èƒ½åœ¨è¡Œé¦–ä¹Ÿä¸èƒ½åœ¨è¡Œæœ«
 
-        //    // ÆäËûÓïÑÔµÄ£¬¿´Ìì
+        //    // å…¶ä»–è¯­è¨€çš„ï¼Œçœ‹å¤©
         //};
 
         //return punctuationNotInLineStartList.Contains(charInNextWord);
