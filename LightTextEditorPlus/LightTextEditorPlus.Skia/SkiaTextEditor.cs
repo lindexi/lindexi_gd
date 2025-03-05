@@ -16,6 +16,7 @@ using LightTextEditorPlus.Diagnostics;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Platform;
 using LightTextEditorPlus.Rendering;
+
 using SkiaSharp;
 
 namespace LightTextEditorPlus;
@@ -219,6 +220,7 @@ public class SkiaTextEditorPlatformProvider : PlatformProvider
 
     //public override ISingleCharInLineLayouter GetSingleRunLineLayouter()
     //{
+    // // 原本以为 Skia 可以通过 BreakText 进行一行布局，然而过程发现其没有带语言文化，且即使带了估计也不符合预期。因此废弃此类型，换成 SkiaCharInfoMeasurer 只测量字符尺寸。但后续可能依然需要 HarfBuzz 辅助处理合写字的情况，到时候也许依然需要开放此类型。只不过这个过程中不需要再次测量字符尺寸而已
     //    return new SkiaSingleCharInLineLayouter(TextEditor);
     //}
 
@@ -231,8 +233,8 @@ public class SkiaTextEditorPlatformProvider : PlatformProvider
 
     public override ICharInfoMeasurer GetCharInfoMeasurer()
     {
-        // 空段落测量依然会进来的
-        //Debug.Fail($"已重写 GetSingleRunLineLayouter 方法，不应再进入 GetCharInfoMeasurer 方法");
-        return new SkiaCharInfoMeasurer(TextEditor);
+        return _charInfoMeasurer ??= new SkiaCharInfoMeasurer();
     }
+
+    private SkiaCharInfoMeasurer? _charInfoMeasurer;
 }

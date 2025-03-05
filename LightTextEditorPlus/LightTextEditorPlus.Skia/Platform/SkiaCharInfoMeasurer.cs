@@ -20,7 +20,7 @@ namespace LightTextEditorPlus.Platform;
 
 class SkiaCharInfoMeasurer : ICharInfoMeasurer
 {
-    public SkiaCharInfoMeasurer(SkiaTextEditor textEditor)
+    public SkiaCharInfoMeasurer()
     {
     }
 
