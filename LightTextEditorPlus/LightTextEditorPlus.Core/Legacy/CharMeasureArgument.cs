@@ -1,3 +1,4 @@
+// 原本设计为超量测量，后续替换为 MeasureAndFillSizeOfRun 方法
 //using LightTextEditorPlus.Core.Document;
 //using LightTextEditorPlus.Core.Primitive.Collections;
 
