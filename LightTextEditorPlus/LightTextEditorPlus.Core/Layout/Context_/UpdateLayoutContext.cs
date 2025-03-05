@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Layout.LayoutUtils;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 
@@ -76,7 +77,25 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
         string formattedText = message.GetFormattedText();
         var layoutDebugMessage = new LayoutDebugMessage(category, formattedText);
 #if DEBUG
-        Debug.WriteLine(formattedText);
+        var padCount = category switch
+        {
+            LayoutDebugCategory.Document => 0,
+            LayoutDebugCategory.FindDirty => 1,
+
+            LayoutDebugCategory.PreDocument => 1,
+            LayoutDebugCategory.PreParagraph => 2,
+            LayoutDebugCategory.PreWholeLine => 3,
+            LayoutDebugCategory.PreSingleCharLine => 4,
+            LayoutDebugCategory.PreDivideWord => 5,
+
+            LayoutDebugCategory.FinalDocument => 1,
+            LayoutDebugCategory.FinalParagraph => 2,
+            LayoutDebugCategory.FinalLine => 3,
+
+            _ => throw new ArgumentOutOfRangeException(nameof(category), category, null)
+        };
+        var debugMessage = $"{"".PadLeft(padCount)}[{category}] {formattedText}";
+        Debug.WriteLine(debugMessage);
 #endif
 
         LayoutDebugMessageList ??= [];
@@ -211,74 +230,3 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
         return base.ToString();
     }
 }
-
-/// <summary>
-/// 布局过程中的调试分类信息
-/// </summary>
-public enum LayoutDebugCategory
-{
-    /// <summary>
-    /// 整个文档
-    /// </summary>
-    Document,
-    /// <summary>
-    /// 寻找脏数据开始，准备过程
-    /// </summary>
-    FindDirty,
-    /// <summary>
-    /// 预布局的文档部分
-    /// </summary>
-    PreDocument,
-    /// <summary>
-    /// 预布局的段落部分
-    /// </summary>
-    PreParagraph,
-    /// <summary>
-    /// 预布局的整行部分
-    /// </summary>
-    PreWholeLine,
-    /// <summary>
-    /// 预布局的行内单字词部分
-    /// </summary>
-    PreSingleCharLine,
-    /// <summary>
-    /// 分词换行部分
-    /// </summary>
-    PreDivideWord,
-    /// <summary>
-    /// 回溯的文档部分
-    /// </summary>
-    FinalDocument,
-    /// <summary>
-    /// 回溯的段落部分
-    /// </summary>
-    FinalParagraph,
-    /// <summary>
-    /// 回溯的行部分
-    /// </summary>
-    FinalLine,
-}
-
-/// <summary>
-/// 布局调试信息
-/// </summary>
-/// <param name="Category"></param>
-/// <param name="Message"></param>
-public readonly record struct LayoutDebugMessage(LayoutDebugCategory Category, string Message)
-{
-    /// <inheritdoc />
-    public override string ToString() => $"[{Category}] {Message}";
-}
-
-/// <summary>
-/// 用于设置字符布局信息，这是一个辅助接口，核心只是为了让 <see cref="CharData"/> 不要开放一些方法而已。限定只有在布局的时候才能设置
-/// </summary>
-public interface ICharDataLayoutInfoSetter
-{
-    /// <inheritdoc cref="CharData.SetLayoutCharLineStartPoint"/>
-    void SetLayoutStartPoint(CharData charData, TextPointInLine point /*, TextPoint baselineStartPoint*/);
-
-    /// <inheritdoc cref="CharData.SetCharDataInfo"/>
-    void SetCharDataInfo(CharData charData, TextSize textSize, double baseline);
-}
-
