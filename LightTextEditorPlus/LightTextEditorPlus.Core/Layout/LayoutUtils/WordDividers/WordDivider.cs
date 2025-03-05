@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Primitive.Collections;
 
 namespace LightTextEditorPlus.Core.Layout.LayoutUtils.WordDividers;
 
@@ -10,7 +11,8 @@ internal class WordDivider : IWordDivider
     {
         int currentIndex = 0;
 
-        var currentCharData = argument.CurrentRunList[currentIndex];
+        TextReadOnlyListSpan<CharData> currentRunList = argument.CurrentRunList;
+        var currentCharData = currentRunList[currentIndex];
 
         if (IsPunctuationNotInLineEnd(currentCharData.CharObject.CodePoint))
         {
@@ -18,14 +20,14 @@ internal class WordDivider : IWordDivider
         }
 
         var totalCount = currentIndex;
-        var charCount = WordCharHelper.ReadWordCharCount(argument.CurrentRunList, currentIndex);
+        var charCount = WordCharHelper.ReadWordCharCount(currentRunList, currentIndex);
         totalCount += charCount;
 
         // 不能放在行首的符号
         var wordNextCharIndex = currentIndex + charCount;
-        if (wordNextCharIndex < argument.CurrentRunList.Count)
+        if (wordNextCharIndex < currentRunList.Count)
         {
-            CharData charDataInNextWord = argument.CurrentRunList[wordNextCharIndex];
+            CharData charDataInNextWord = currentRunList[wordNextCharIndex];
             Utf32CodePoint codePoint = charDataInNextWord.CharObject.CodePoint;
 
             if (IsPunctuationNotInLineStart(codePoint))

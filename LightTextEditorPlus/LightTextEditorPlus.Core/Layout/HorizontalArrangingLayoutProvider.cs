@@ -21,11 +21,13 @@ namespace LightTextEditorPlus.Core.Layout;
 /// <summary>
 /// 水平方向布局的提供器
 /// </summary>
-class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalCharDataSizeMeasurer
+class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
+// 这是为分词器提供的接口。现在分词器只做分词，不做布局，所以这个接口不需要
+//, IInternalCharDataSizeMeasurer
 {
     public HorizontalArrangingLayoutProvider(LayoutManager layoutManager) : base(layoutManager)
     {
-        _divider = new DefaultWordDivider(layoutManager.TextEditor, this);
+        //_divider = new DefaultWordDivider(layoutManager.TextEditor, this);
     }
 
     public override ArrangingType ArrangingType => ArrangingType.Horizontal;
@@ -665,48 +667,94 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider, IInternalChar
         // LayoutRule 布局规则
         // 可选无规则-直接字符布局，预计没有人使用
         // 调用分词规则-支持注入分词规则
+        UpdateLayoutContext updateLayoutContext = argument.UpdateLayoutContext;
+        TextReadOnlyListSpan<CharData> currentRunList = argument.SliceFromCurrentRunList();
 
-        var charData = argument.CurrentCharData;
-        if (charData.Size is null)
+#if DEBUG
+        var currentCharData = argument.CurrentCharData;
+        Debug.Assert(ReferenceEquals(currentCharData, currentRunList[0]));
+#endif
+
+        IWordDivider wordDivider = updateLayoutContext.PlatformProvider.GetWordDivider();
+        DivideWordResult divideWordResult = wordDivider.DivideWord(new DivideWordArgument(currentRunList, updateLayoutContext));
+
+        // todo 后续连字符的情况也要考虑
+
+        int takeCount = divideWordResult.TakeCount;
+        // 测量 takeCount 下的字符宽度
+        var totalSize = TextSize.Zero;
+        for (int i = 0; i < takeCount; i++)
         {
-            MeasureAndFillSizeOfRun(new FillSizeOfRunArgument(argument.SliceFromCurrentRunList(), argument.UpdateLayoutContext));
+            var charData = currentRunList[i];
 
-            Debug.Assert(charData.Size != null, $"经过 {nameof(MeasureAndFillSizeOfRun)} 方法可确保 CurrentCharData 的 Size 一定不空");
+            if (charData.Size is null)
+            {
+                MeasureAndFillSizeOfRun(new FillSizeOfRunArgument(currentRunList, updateLayoutContext));
+
+                // 不用扔调试异常了，在 MeasureAndFillSizeOfRun 方法里面已经扔过了。只加一个额外调试判断就好了。以下是一个多余的判断，只是为了不耦合 MeasureAndFillSizeOfRun 方法的判断而已
+                Debug.Assert(charData.Size != null, $"经过 {nameof(MeasureAndFillSizeOfRun)} 方法可确保 CurrentCharData 的 Size 一定不空");
+            }
+
+            // todo 考虑字间距的情况
+            // 这里直接加等合并，是不包含 Kern 字间距的情况
+            totalSize = totalSize.HorizontalUnion(charData.Size.Value);
         }
 
-        // 使用分词规则进行布局
-        bool useWordDividerLayout = true;
-
-        if (useWordDividerLayout)
+        if (argument.LineRemainingWidth >= totalSize.Width)
         {
-            return _divider.LayoutSingleCharInLine(argument);
+            // 完全能放下当前单词
+            return new SingleCharInLineLayoutResult(takeCount, totalSize);
         }
         else
         {
-            TextSize textSize = charData.Size.Value;
-
-            // 单个字符直接布局，无视语言文化。快，但是诡异
-            if (argument.LineRemainingWidth > textSize.Width)
+            // 这个单词不能获取到。此时需要额外判断逻辑
+            if (argument.ParagraphProperty.AllowHangingPunctuation)
             {
-                return new SingleCharInLineLayoutResult(takeCount: 1, textSize);
+                // todo 是否允许符号溢出边界的情况也需要考虑
+                // 需要 DivideWordResult 报告是否末尾是符号的情况
+            }
+
+            // 是否这一行一个单词都没有。如果不能在一行放下，需要判断 IsTakeEmpty 属性。防止一行行都放不下的情况
+            if (argument.IsTakeEmpty)
+            {
+                // 空行强行换行，否则下一行说不定也不够放
+                // LayoutCharWithoutCulture
+
+                int i = 0;
+                totalSize = TextSize.Zero;
+                for (; i < takeCount/*这个限制是多余的，必定最终小于 takeCount 宽度*/; i++)
+                {
+                    // 单个字符直接布局，无视语言文化。快，但是诡异
+
+                    var charData = currentRunList[i];
+                    Debug.Assert(charData.Size != null,"进入当前逻辑里，必然已经完成字符尺寸测量");
+
+                    totalSize = totalSize.HorizontalUnion(charData.Size.Value);
+
+                    if (totalSize.Width > argument.LineRemainingWidth)
+                    {
+                        break;
+                    }
+                }
+
+                // 至少强行取一个字符
+                var actualTakeCount = i + 1;
+                return new SingleCharInLineLayoutResult(actualTakeCount, totalSize);
             }
             else
             {
+                // 那就是拿不到一个字符啦
                 // 如果尺寸不足，也就是一个都拿不到
                 return new SingleCharInLineLayoutResult(takeCount: 0, default);
             }
         }
     }
 
-    /// <summary>
-    /// 分词器
-    /// </summary>
-    private readonly DefaultWordDivider _divider;
-
     #region 辅助方法
 
-    [DebuggerStepThrough] // 别跳太多层
-    TextSize IInternalCharDataSizeMeasurer.GetCharSize(CharData charData) => GetCharSize(charData);
+    // 这是为分词器提供的接口。现在分词器只做分词，不做布局，所以这个接口不需要
+    // [DebuggerStepThrough] // 别跳太多层
+    //TextSize IInternalCharDataSizeMeasurer.GetCharSize(CharData charData) => GetCharSize(charData);
 
     /// <summary>
     /// 获取给定字符的尺寸
