@@ -116,6 +116,7 @@ public abstract class PlatformProvider : ITextEditorPlatformProvider
     /// <inheritdoc />
     public virtual IWordDivider GetWordDivider()
     {
+        // 分词器可以考虑是注入的，而不是平台相关的
         return _wordDivider ??= new WordDivider();
     }
 
