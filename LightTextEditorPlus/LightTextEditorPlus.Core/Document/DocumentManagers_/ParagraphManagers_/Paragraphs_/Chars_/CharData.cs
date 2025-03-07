@@ -8,7 +8,7 @@ namespace LightTextEditorPlus.Core.Document;
 /// <summary>
 /// 表示一个 人类语言文化 的字符信息，包括字符和对应的字符属性
 /// </summary>
-public class CharData
+public sealed class CharData
 {
     /// <summary>
     /// 创建字符信息
