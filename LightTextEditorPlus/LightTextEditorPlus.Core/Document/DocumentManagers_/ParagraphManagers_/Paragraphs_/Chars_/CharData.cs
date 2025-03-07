@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
 
@@ -34,7 +35,16 @@ public sealed class CharData
     /// <summary>
     /// 文本字符属性
     /// </summary>
-    public IReadOnlyRunProperty RunProperty { get; }
+    public IReadOnlyRunProperty RunProperty { get; private set; }
+
+    /// <summary>
+    /// 不安全的方式修改字符属性
+    /// </summary>
+    /// <param name="runProperty"></param>
+    internal void DangerousChangeRunProperty(IReadOnlyRunProperty runProperty)
+    {
+        RunProperty = runProperty;
+    }
 
     internal CharLayoutData? CharLayoutData { set; get; }
 

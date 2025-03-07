@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -437,8 +438,8 @@ abstract class ArrangingLayoutProvider
     /// <returns></returns>
     private TextSize MeasureEmptyParagraphLineSize(IReadOnlyRunProperty runProperty, UpdateLayoutContext context)
     {
-        var singleCharObject = context.LayoutDefaultCharData;
-        var testCharData = new CharData(singleCharObject, runProperty);
+        var testCharData = context.GetTransientMeasureCharData(runProperty);
+        
         MeasureAndFillSizeOfRun(new FillSizeOfRunArgument(new TextReadOnlyListSpan<CharData>([testCharData], 0, 1),
             context));
         Debug.Assert(testCharData.Size != null);

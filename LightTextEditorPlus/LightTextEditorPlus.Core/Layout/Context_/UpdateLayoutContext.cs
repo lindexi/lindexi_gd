@@ -242,5 +242,31 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
 
     private ICharObject? _layoutDefaultCharData;
 
+    #region 框架内的不安全的缓存对象
+
+    /// <summary>
+    /// 瞬时使用，在出外面的时候必当确保不再被外部引用，随时都被更改对象本身。字符使用的是 <see cref="LayoutDefaultCharData"/> 字符
+    /// </summary>
+    /// 由于这个机制本身就不安全，所以不会对外暴露，只在内部使用
+    internal CharData GetTransientMeasureCharData(IReadOnlyRunProperty runProperty)
+    {
+        if (_transientCharData is null)
+        {
+            _transientCharData = new CharData(LayoutDefaultCharData, runProperty);
+        }
+        else
+        {
+            _transientCharData.DangerousChangeRunProperty(runProperty);
+        }
+
+        return _transientCharData;
+    }
+
+    private CharData? _transientCharData;
+
+
+
+    #endregion
+
     #endregion
 }
