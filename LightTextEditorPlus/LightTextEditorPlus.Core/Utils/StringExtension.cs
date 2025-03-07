@@ -1,8 +1,11 @@
+using System;
+using System.Linq;
+
 namespace LightTextEditorPlus.Core.Utils;
 
 static class StringExtension
 {
-    public static string LimitTrim(this string str, int totalLength, string? replaceText = null)
+    public static string LimitTrim(this string str, int totalLength, string? replaceText = null, bool saveStartAndEnd = true)
     {
         if (string.IsNullOrEmpty(str))
         {
@@ -17,6 +20,16 @@ static class StringExtension
         replaceText ??= "...";
 
         var subLength = totalLength - replaceText.Length;
-        return str.Substring(0, subLength) + replaceText;
+
+        if (saveStartAndEnd)
+        {
+            var halfSubLength = subLength / 2;
+            ReadOnlySpan<char> readOnlySpan = str.AsSpan();
+            return string.Concat(readOnlySpan[..halfSubLength], replaceText, readOnlySpan[^halfSubLength..]);
+        }
+        else
+        {
+            return str.Substring(0, subLength) + replaceText;
+        }
     }
 }
