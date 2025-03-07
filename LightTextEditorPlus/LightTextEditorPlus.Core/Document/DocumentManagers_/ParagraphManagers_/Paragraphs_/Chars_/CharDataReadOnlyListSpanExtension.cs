@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using System.Text;
+using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -23,6 +24,21 @@ public static class CharDataReadOnlyListSpanExtension
             stringBuilder.Append(charData.CharObject.ToText());
         }
         return stringBuilder.ToString();
+    }
+
+    /// <summary>
+    /// 转换为限制字符数量的文本
+    /// </summary>
+    /// <param name="list"></param>
+    /// <param name="limitCharCount"></param>
+    /// <param name="replaceText"></param>
+    /// <param name="saveStartAndEnd">保留前后，删除中间</param>
+    /// <returns></returns>
+    internal static string ToLimitText(this TextReadOnlyListSpan<CharData> list, int limitCharCount, string? replaceText = null, bool saveStartAndEnd = true)
+    {
+        // 这个方法现在只有调试下调用进来，先不管其性能
+        string text = list.ToText();
+        return text.LimitTrim(limitCharCount, replaceText, saveStartAndEnd);
     }
 
     /// <inheritdoc cref="GetFirstCharSpanContinuous"/>

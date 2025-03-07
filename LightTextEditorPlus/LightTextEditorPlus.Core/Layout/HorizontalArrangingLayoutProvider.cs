@@ -396,7 +396,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
             currentStartPoint = GetNextLineStartPoint(currentStartPoint, currentLineLayoutData);
 
-            argument.UpdateLayoutContext.RecordDebugLayoutInfo($"第 {lineIndex} 行完成布局，下一行起点 {currentStartPoint}",
+            argument.UpdateLayoutContext.RecordDebugLayoutInfo($"第 {lineIndex} 行完成布局，字符数：{currentLineLayoutData.CharCount}，下一行起点 {currentStartPoint}，包含文本：'{currentLineLayoutData.GetCharList().ToLimitText(replaceText: "…", limitCharCount: 7)}'",
                 LayoutDebugCategory.PreWholeLine);
         }
 
