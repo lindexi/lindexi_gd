@@ -267,7 +267,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 如果是空段的话，如一段只是一个 \n 而已，那就需要执行空段布局逻辑
         Debug.Assert(paragraph.LineLayoutDataList.Count == 0, "空段布局时一定是一行都不存在");
         var emptyParagraphLineHeightMeasureResult = MeasureEmptyParagraphLineHeight(
-            new EmptyParagraphLineHeightMeasureArgument(paragraph.ParagraphProperty, argument.ParagraphIndex, paragraph.ParagraphStartRunProperty, argument.UpdateLayoutContext));
+            new EmptyParagraphLineHeightMeasureArgument(paragraph, argument.ParagraphIndex, argument.UpdateLayoutContext));
         double lineHeight = emptyParagraphLineHeightMeasureResult.LineHeight;
 
         // 加上空行
