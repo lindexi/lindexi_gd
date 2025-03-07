@@ -9,6 +9,7 @@ using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Layout.LayoutUtils;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Core.Layout;
 
@@ -229,4 +230,17 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
 
         return base.ToString();
     }
+
+    #region 缓存
+    // 这里存放一些布局过程中的缓存，用于提升性能，在布局完成后自动 GC 释放。减少太多的静态对象
+
+    /// <summary>
+    /// 布局过程的默认 CharObject 对象
+    /// </summary>
+    public ICharObject LayoutDefaultCharData
+        => _layoutDefaultCharData ??= new SingleCharObject(TextContext.DefaultChar);
+
+    private ICharObject? _layoutDefaultCharData;
+
+    #endregion
 }

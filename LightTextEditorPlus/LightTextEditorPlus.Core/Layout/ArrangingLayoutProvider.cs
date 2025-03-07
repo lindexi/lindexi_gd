@@ -437,8 +437,7 @@ abstract class ArrangingLayoutProvider
     /// <returns></returns>
     private TextSize MeasureEmptyParagraphLineSize(IReadOnlyRunProperty runProperty, UpdateLayoutContext context)
     {
-        // todo 考虑这里减少对象创建和分配
-        var singleCharObject = new SingleCharObject(TextContext.DefaultChar);
+        var singleCharObject = context.LayoutDefaultCharData;
         var testCharData = new CharData(singleCharObject, runProperty);
         MeasureAndFillSizeOfRun(new FillSizeOfRunArgument(new TextReadOnlyListSpan<CharData>([testCharData], 0, 1),
             context));
