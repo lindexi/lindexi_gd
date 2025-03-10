@@ -16,11 +16,6 @@ public partial class MainView : UserControl
 
     private void Button_OnClick(object? sender, RoutedEventArgs e)
     {
-        var button = new Button()
-        {
-            Content = "µã»÷"
-        };
-        button.Click += Button_OnClick;
-        RootStackPanel.Children.Add(button);
+        FooBorder.Height += 200;
     }
 }
