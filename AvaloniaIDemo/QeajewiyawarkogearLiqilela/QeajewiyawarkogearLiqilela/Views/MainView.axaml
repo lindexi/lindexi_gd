@@ -16,8 +16,13 @@
 
       <ScrollViewer>
           <StackPanel x:Name="RootStackPanel">
-              <Button Content="点击" Click="Button_OnClick"></Button>
-          </StackPanel>
+            <Border Height="50"></Border>
+            <Border Height="50"></Border>
+              <Grid x:Name="TranslationPanel">
+                  <Border x:Name="FooBorder" Height="10"></Border>
+                  <Button Content="点击" Click="Button_OnClick"></Button>
+              </Grid>
+            </StackPanel>
         </ScrollViewer>
       </Grid>
 </UserControl>
