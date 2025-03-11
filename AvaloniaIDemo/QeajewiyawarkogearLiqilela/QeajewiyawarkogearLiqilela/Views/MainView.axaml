@@ -3,26 +3,26 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:QeajewiyawarkogearLiqilela.ViewModels"
+             xmlns:views="clr-namespace:QeajewiyawarkogearLiqilela.Views"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="QeajewiyawarkogearLiqilela.Views.MainView"
              x:DataType="vm:MainViewModel">
-  <Design.DataContext>
-    <!-- This only sets the DataContext for the previewer in an IDE,
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-    <vm:MainViewModel />
-  </Design.DataContext>
+        <vm:MainViewModel />
+    </Design.DataContext>
 
-  <Grid x:Name="RootGrid" Background="Transparent">
-
-      <ScrollViewer>
-          <StackPanel x:Name="RootStackPanel">
-            <Border Height="50"></Border>
-            <Border Height="50"></Border>
-              <Grid x:Name="TranslationPanel">
-                  <Border x:Name="FooBorder" Height="10"></Border>
-                  <Button Content="点击" Click="Button_OnClick"></Button>
-              </Grid>
+    <Grid x:Name="RootGrid" Background="Transparent">
+        <views:FooScrollViewer>
+            <StackPanel x:Name="RootStackPanel" Margin="0 50 0 0">
+                <Border Height="50"></Border>
+                <Border Height="50"></Border>
+                <Grid x:Name="TranslationPanel">
+                    <Border x:Name="FooBorder" Height="10" Background="#50565656"></Border>
+                    <Button VerticalAlignment="Top" Content="点击" Click="Button_OnClick"></Button>
+                </Grid>
             </StackPanel>
-        </ScrollViewer>
-      </Grid>
+        </views:FooScrollViewer>
+    </Grid>
 </UserControl>
