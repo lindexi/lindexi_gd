@@ -208,6 +208,11 @@ public partial class TextEditorCore
 
     private void DocumentManager_DocumentChanged(object? sender, DocumentChangeEventArgs e)
     {
+        if (IsUpdatingLayout)
+        {
+            // 更新布局的过程中，变更了文档
+        }
+
         // 按照 事件触发顺序 需要先触发 DocumentChanged 事件，再触发 LayoutCompleted 事件
         DocumentChanged?.Invoke(this, e);
         if (e.DocumentChangeKind == DocumentChangeKind.Text)
@@ -238,6 +243,11 @@ public partial class TextEditorCore
     /// 特别加一个方法，用来方便调试是哪个业务调用
     private void LayoutEmptyTextEditor()
     {
+        if (IsInDebugMode && !IsEmptyInitializingTextEditor())
+        {
+            throw new TextEditorInnerDebugException($"只有空文本才能调用空文本布局");
+        }
+
         AddLayoutReason(nameof(LayoutEmptyTextEditor) + "空文本布局");
         PlatformProvider.InvokeDispatchUpdateLayout(UpdateLayout);
     }
@@ -255,8 +265,7 @@ public partial class TextEditorCore
         {
             // 只有调试模式才能进入此分支
             //Debug.Assert(IsInDebugMode);
-            Logger.LogDebug(
-                $"[TextEditorCore][UpdateLayout][UpdateReason] 布局原因：{layoutUpdateReasonManager.ReasonText}");
+            Logger.LogDebug($"[TextEditorCore][UpdateLayout][UpdateReason] 布局原因：{layoutUpdateReasonManager.ReasonText}");
         }
 
         try
