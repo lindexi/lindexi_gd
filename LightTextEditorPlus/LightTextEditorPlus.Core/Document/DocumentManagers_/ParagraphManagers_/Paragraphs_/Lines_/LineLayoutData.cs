@@ -3,6 +3,7 @@ using System.Text;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
+using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 
@@ -83,7 +84,7 @@ class LineLayoutData : IParagraphCache, IDisposable
     private TextPointInParagraph _charStartPoint;
 
     /// <summary>
-    /// 这一行的尺寸。这是在 <see cref="LineCharTextSize"/> 基础上叠加行距尺寸信息
+    /// 这一行的尺寸。这是在 <see cref="LineCharTextSize"/> 基础上叠加行距尺寸信息。但有时候某些字体的 <see cref="LineCharTextSize"/> 会大于行尺寸，其根本原因是 <see cref="LineCharTextSize"/> 是字符的尺寸，直接就取字符尺寸。而 <see cref="LineContentSize"/> 是取行距计算 <see cref="ILineSpacingCalculator"/> 获取的，不一定会大于字符尺寸。所谓叠加行距尺寸信息，不是直接在字符尺寸加上行距尺寸，而是通过 <see cref="ILineSpacingCalculator"/> 计算得到的
     /// </summary>
     /// 可能这个属性也需要一个对应的 StartPoint 值。且和 <see cref="OutlineBounds"/> 有些关联。现在缺少一个表示缩进的属性
     /// - IndentationThickness - 表示缩进带来的空白

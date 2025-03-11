@@ -362,6 +362,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 CharStartPointInParagraph = currentStartPoint,
                 LineSpacingThickness = result.LineSpacingThickness,
             };
+
             // 更新字符信息
             Debug.Assert(result.CharCount <= charDataList.Count, "所获取的行的字符数量不能超过可提供布局的行的字符数量");
             for (var index = 0; index < result.CharCount; index++)
@@ -396,7 +397,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
             currentStartPoint = GetNextLineStartPoint(currentStartPoint, currentLineLayoutData);
 
-            argument.UpdateLayoutContext.RecordDebugLayoutInfo($"第 {lineIndex} 行完成布局，字符数：{currentLineLayoutData.CharCount}，下一行起点 {currentStartPoint}，包含文本：'{currentLineLayoutData.GetCharList().ToLimitText(replaceText: "…", limitCharCount: 7)}'",
+            argument.UpdateLayoutContext.RecordDebugLayoutInfo($"第 {lineIndex} 行完成布局，字符数：{currentLineLayoutData.CharCount}。LineContentSize：{currentLineLayoutData.LineContentSize.ToCommaSplitWidthAndHeight()}，LineCharTextSize:{currentLineLayoutData.LineCharTextSize.ToCommaSplitWidthAndHeight()}，下一行起点 {currentStartPoint}，包含文本：'{currentLineLayoutData.GetCharList().ToLimitText(replaceText: "…", limitCharCount: 7)}'",
                 LayoutDebugCategory.PreWholeLine);
         }
 
@@ -424,6 +425,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// | -------- 底部行距 ------- |
     private WholeLineLayoutResult UpdateWholeLineLayout(in WholeLineLayoutArgument argument)
     {
+        UpdateLayoutContext updateLayoutContext = argument.UpdateLayoutContext;
         var charDataList = argument.CharDataList;
         //var currentStartPoint = argument.CurrentStartPoint;
 
@@ -435,6 +437,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
         // 1. 布局一行的字符，分行算法
         var layoutResult = UpdateWholeLineCharsLayout(in argument);
+        updateLayoutContext.RecordDebugLayoutInfo($"第 {argument.LineIndex} 行，分行算法返回 {layoutResult.WholeTakeCount} 个字符。字符尺寸：{layoutResult.CurrentLineCharTextSize.ToCommaSplitWidthAndHeight()}",
+            LayoutDebugCategory.PreWholeLine);
 #if DEBUG
         if (layoutResult.CurrentLineCharTextSize.Width > 0 && layoutResult.CurrentLineCharTextSize.Height == 0)
         {
@@ -484,6 +488,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 计算出行距的顶部空白
         var topLineSpacingGap = lineSpacingGap * verticalCharInLineAlignment.LineSpaceRatio;
         var bottomLineSpacingGap = lineSpacingGap - topLineSpacingGap;
+
+        updateLayoutContext.RecordDebugLayoutInfo($"行高：{lineHeight:0.##}，字高：{currentTextSize.Height}，行距：{lineSpacing:0.##}，行距的空白：{lineSpacingGap:0.##}，上边距：{topLineSpacingGap:0.##}，下边距：{bottomLineSpacingGap:0.##}",
+            LayoutDebugCategory.PreLineSpacingInWholeLine);
 
         // 3. 设置每个字符在行内的坐标
         //TextPoint charLineStartPoint = currentStartPoint with

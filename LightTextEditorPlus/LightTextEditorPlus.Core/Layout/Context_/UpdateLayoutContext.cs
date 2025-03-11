@@ -87,6 +87,7 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
             LayoutDebugCategory.PreDocument => 1,
             LayoutDebugCategory.PreParagraph => 2,
             LayoutDebugCategory.PreWholeLine => 3,
+            LayoutDebugCategory.PreLineSpacingInWholeLine => 4,
             LayoutDebugCategory.PreSingleCharLine => 4,
             LayoutDebugCategory.PreDivideWord => 5,
 
@@ -96,6 +97,15 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
 
             _ => throw new ArgumentOutOfRangeException(nameof(category), category, null)
         };
+        // 两个两个的空格
+        padCount *= 2;
+
+        // 如果连续两个相同的分类，则非首个的，加一个空格。这样日志更好阅读
+        if (LayoutDebugMessageList is { Count: > 0 } list && list.Last().Category == category)
+        {
+            padCount++;
+        }
+
         var debugMessage = $"{"".PadLeft(padCount)}[{category}] {formattedText}";
         Debug.WriteLine(debugMessage);
 #endif
@@ -211,7 +221,17 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
         /// <param name="format"></param>
         public void AppendFormatted<T>(T value, string format)
         {
-            _stringBuilder?.AppendFormat(format, value);
+            if (_stringBuilder is not null)
+            {
+                if (value is double d)
+                {
+                    _stringBuilder.Append(d.ToString(format));
+                }
+                else
+                {
+                    _stringBuilder.AppendFormat(format, value);
+                }
+            }
         }
 
         private readonly StringBuilder? _stringBuilder;
