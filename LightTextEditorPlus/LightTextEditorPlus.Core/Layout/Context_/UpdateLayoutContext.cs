@@ -9,6 +9,7 @@ using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Layout.LayoutUtils;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Core.Layout;
@@ -264,7 +265,21 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
 
     private CharData? _transientCharData;
 
+    internal SingleObjectList<CharData> GetTransientCharDataList(CharData charData)
+    {
+        if (_transientCharDataList is null)
+        {
+            _transientCharDataList = new SingleObjectList<CharData>(charData);
+        }
+        else
+        {
+            _transientCharDataList.CurrentObject = charData;
+        }
 
+        return _transientCharDataList;
+    }
+
+    private SingleObjectList<CharData>? _transientCharDataList;
 
     #endregion
 

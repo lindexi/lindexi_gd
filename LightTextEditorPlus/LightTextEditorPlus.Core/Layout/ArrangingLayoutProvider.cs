@@ -439,9 +439,10 @@ abstract class ArrangingLayoutProvider
     private TextSize MeasureEmptyParagraphLineSize(IReadOnlyRunProperty runProperty, UpdateLayoutContext context)
     {
         var testCharData = context.GetTransientMeasureCharData(runProperty);
-        
-        MeasureAndFillSizeOfRun(new FillSizeOfRunArgument(new TextReadOnlyListSpan<CharData>([testCharData], 0, 1),
-            context));
+        SingleObjectList<CharData> list = context.GetTransientCharDataList(testCharData);
+        var listSpan = new TextReadOnlyListSpan<CharData>(list, 0, 1);
+
+        MeasureAndFillSizeOfRun(new FillSizeOfRunArgument(listSpan, context));
         Debug.Assert(testCharData.Size != null);
         return testCharData.Size.Value;
     }
