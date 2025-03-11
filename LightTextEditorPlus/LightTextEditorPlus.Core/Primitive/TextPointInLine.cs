@@ -31,8 +31,8 @@ public readonly record struct TextPointInLine
     /// <returns></returns>
     internal TextPoint ToDocumentPoint(LineLayoutData lineLayoutData)
     {
-        // 先获取行的相对文档的起始点
-        TextPoint charStartPoint = lineLayoutData.CharStartPoint;
+        // 先获取行内容的相对文档的起始点
+        TextPoint charStartPoint = lineLayoutData.LineContentStartPoint;
         return new TextPoint(_linePoint.X + charStartPoint.X,
             _linePoint.Y + charStartPoint.Y);
     }

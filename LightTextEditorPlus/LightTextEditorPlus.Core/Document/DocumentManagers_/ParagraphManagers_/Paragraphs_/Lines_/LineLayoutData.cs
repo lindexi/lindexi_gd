@@ -95,7 +95,7 @@ class LineLayoutData : IParagraphCache, IDisposable
     public TextSize LineCharTextSize { get; init; }
 
     /// <summary>
-    /// 行内有内容的起始点
+    /// 行内有内容的起始点。等于 <see cref="CharStartPoint"/> 加上 <see cref="IndentationThickness"/> 和 <see cref="HorizontalTextAlignmentGapThickness"/> 的值
     /// </summary>
     public TextPoint LineContentStartPoint
     {
