@@ -206,7 +206,7 @@ partial class TextEditor : Control
     /// <summary>
     /// 立刻布局
     /// </summary>
-    private void ForceLayout()
+    private RenderInfoProvider ForceLayout()
     {
         _isInForceLayout = true;
 
@@ -214,10 +214,13 @@ partial class TextEditor : Control
         {
             // 当前实现的 ForceLayout 是不亏的，因为只有文本存在变更的时候，才会执行实际逻辑
             // 而不是让文本必定需要重新布局
-            while (TextEditorCore.IsDirty)
+            RenderInfoProvider? renderInfoProvider;
+            while (!TextEditorCore.TryGetRenderInfo(out renderInfoProvider))
             {
                 PlatformProvider.EnsureLayoutUpdated();
             }
+
+            return renderInfoProvider;
         }
         finally
         {
@@ -319,7 +322,7 @@ partial class TextEditor : Control
     {
         if (IsDebugging)
         {
-
+            // 在这里打断点
         }
 
         _isMeasuring = true;
@@ -327,6 +330,12 @@ partial class TextEditor : Control
         {
             var result = base.MeasureOverride(availableSize);
             _ = result;
+
+            // 此时可以通知文本底层进行布局了，这是一个很好的时机
+            RenderInfoProvider renderInfoProvider = ForceLayout();
+            (double x, double y, double width, double height) = renderInfoProvider.GetDocumentLayoutBounds();
+            _ = x;
+            _ = y;
 
             var notExistsWidth = double.IsInfinity(availableSize.Width) && double.IsNaN(Width);
             var notExistsHeight = double.IsInfinity(availableSize.Height) && double.IsNaN(Height);
@@ -339,11 +348,6 @@ partial class TextEditor : Control
                     throw new InvalidOperationException($"宽度自适应时，要求高度固定。{GetWidthAndHeightFormatMessage()}");
                 }
 
-                if (TextEditorCore.IsDirty)
-                {
-                    ForceLayout();
-                }
-                (double x, double y, double width, double height) = TextEditorCore.GetDocumentLayoutBounds();
                 return new Size(width, availableSize.Height);
             }
             else if (TextEditorCore.SizeToContent is TextSizeToContent.Height)
@@ -354,21 +358,11 @@ partial class TextEditor : Control
                     throw new InvalidOperationException($"高度自适应，要求宽度固定。{GetWidthAndHeightFormatMessage()}");
                 }
 
-                if (TextEditorCore.IsDirty)
-                {
-                    ForceLayout();
-                }
-                (double x, double y, double width, double height) = TextEditorCore.GetDocumentLayoutBounds();
                 return new Size(availableSize.Width, height);
             }
             else if (TextEditorCore.SizeToContent is TextSizeToContent.WidthAndHeight)
             {
                 // 宽度和高度都自适应
-                if (TextEditorCore.IsDirty)
-                {
-                    ForceLayout();
-                }
-                (double x, double y, double width, double height) = TextEditorCore.GetDocumentLayoutBounds();
                 return new Size(width, height);
             }
             else if (TextEditorCore.SizeToContent == TextSizeToContent.Manual)

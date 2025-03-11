@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 using LightTextEditorPlus.Core.Exceptions;
@@ -23,21 +24,43 @@ public partial class TextEditorCore
     }
 
     /// <summary>
-    /// 获取文本的用于渲染信息，必须要在布局完成之后才能获取。可选使用 <see cref="WaitLayoutCompletedAsync"/> 等待布局完成
+    /// 尝试获取文本的用于渲染信息
+    /// </summary>
+    /// <param name="renderInfoProvider"></param>
+    /// <param name="autoLayoutEmptyTextEditor">是否自动布局空文本</param>
+    /// <returns>如果文本是脏的，则不获取</returns>
+    public bool TryGetRenderInfo([NotNullWhen(returnValue: true)]out RenderInfoProvider? renderInfoProvider, bool autoLayoutEmptyTextEditor = true)
+    {
+        if (CheckNotDirty(autoLayoutEmptyTextEditor))
+        {
+            Debug.Assert(_renderInfoProvider != null, nameof(_renderInfoProvider) + " != null");
+            renderInfoProvider = _renderInfoProvider;
+            return true;
+        }
+        else
+        {
+            renderInfoProvider = null;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 获取文本的用于渲染信息，必须要在布局完成之后才能获取。可选使用 <see cref="WaitLayoutCompletedAsync"/> 等待布局完成，或使用 <see cref="TryGetRenderInfo"/> 尝试获取
     /// </summary>
     /// <returns></returns>
     public RenderInfoProvider GetRenderInfo()
     {
-        VerifyNotDirty();
+        VerifyNotDirty(autoLayoutEmptyTextEditor: true);
 
-        if (_renderInfoProvider is null && DocumentManager.CharCount == 0)
-        {
-            // 如果是空文本，也就是还在所有布局之前的情况下
-            // 那就启动空文本布局，将会在布局完成之后，通过事件赋值 _renderInfoProvider 内容
-            LayoutEmptyTextEditor();
-            // 如果布局能完成，那就一定不是空
-            Debug.Assert(_renderInfoProvider != null, nameof(_renderInfoProvider) + " != null");
-        }
+        // 在 VerifyNotDirty 已经处理过了空文本了，这里不再处理
+        //if (_renderInfoProvider is null && DocumentManager.CharCount == 0)
+        //{
+        //    // 如果是空文本，也就是还在所有布局之前的情况下
+        //    // 那就启动空文本布局，将会在布局完成之后，通过事件赋值 _renderInfoProvider 内容
+        //    LayoutEmptyTextEditor();
+        //    // 如果布局能完成，那就一定不是空
+        //    Debug.Assert(_renderInfoProvider != null, nameof(_renderInfoProvider) + " != null");
+        //}
 
         Debug.Assert(_renderInfoProvider != null, nameof(_renderInfoProvider) + " != null");
         return _renderInfoProvider!;
@@ -87,16 +110,30 @@ public partial class TextEditorCore
 
     internal void VerifyNotDirty(bool autoLayoutEmptyTextEditor = true)
     {
+        if (!CheckNotDirty(autoLayoutEmptyTextEditor))
+        {
+            ThrowTextEditorDirtyException();
+        }
+    }
+
+    internal bool CheckNotDirty(bool autoLayoutEmptyTextEditor = true)
+    {
         if (IsDirty)
         {
             if (autoLayoutEmptyTextEditor && IsEmptyInitializingTextEditor())
             {
                 // 初始化状态，如果要获取文本状态。可能此时的获取状态属于通用逻辑，就不要让业务方区分文本状态，是否空文本初始化状态，直接就走布局，让布局完成，这样就可以正确获取状态
                 LayoutEmptyTextEditor();
-                return;
+                return true;
             }
-
-            ThrowTextEditorDirtyException();
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            return true;
         }
     }
 
