@@ -31,6 +31,11 @@ public enum LayoutDebugCategory
     PreWholeLine,
 
     /// <summary>
+    /// 预布局的在整行部分的行距计算
+    /// </summary>
+    PreLineSpacingInWholeLine,
+
+    /// <summary>
     /// 预布局的行内单字词部分
     /// </summary>
     PreSingleCharLine,

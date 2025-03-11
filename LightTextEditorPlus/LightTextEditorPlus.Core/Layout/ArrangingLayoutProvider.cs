@@ -464,7 +464,7 @@ abstract class ArrangingLayoutProvider
     /// <returns></returns>
     protected LineSpacingCalculateResult CalculateLineSpacing(in LineSpacingCalculateArgument argument)
     {
-        var lineSpacingCalculator = TextEditor.PlatformProvider.GetLineSpacingCalculator();
+        ILineSpacingCalculator? lineSpacingCalculator = TextEditor.PlatformProvider.GetLineSpacingCalculator();
 
         if (lineSpacingCalculator != null)
         {
