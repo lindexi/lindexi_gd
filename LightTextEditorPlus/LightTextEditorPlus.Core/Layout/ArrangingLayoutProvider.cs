@@ -601,5 +601,27 @@ abstract class ArrangingLayoutProvider
     /// <returns></returns>
     protected abstract TextRect CalculateHitBounds(in TextRect documentBounds);
 
+    /// <summary>
+    /// 获取给定行的最大字号的字符属性。这个属性就是这一行的代表属性
+    /// </summary>
+    /// <param name="charDataList"></param>
+    /// <returns></returns>
+    protected static CharData GetMaxFontSizeCharData(in TextReadOnlyListSpan<CharData> charDataList)
+    {
+        CharData firstCharData = charDataList[0];
+        var maxFontSizeCharData = firstCharData;
+        // 遍历这一行的所有字符，找到最大字符的字符属性
+        for (var i = 1; i < charDataList.Count; i++)
+        {
+            var charData = charDataList[i];
+            if (charData.RunProperty.FontSize > maxFontSizeCharData.RunProperty.FontSize)
+            {
+                maxFontSizeCharData = charData;
+            }
+        }
+
+        return maxFontSizeCharData;
+    }
+
     #endregion 通用辅助方法
 }
