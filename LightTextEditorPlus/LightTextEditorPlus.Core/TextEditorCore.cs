@@ -211,7 +211,9 @@ public partial class TextEditorCore
     {
         if (IsUpdatingLayout)
         {
-            // 更新布局的过程中，变更了文档
+            // 更新布局的过程中，变更了文档。这是允许的，但会导致重新布局，且本次布局结果不可用
+            // 且业务方必须确保次数，防止出现无限循环
+            Logger.Log(new DocumentChangedWhenUpdatingLayoutLogInfo());
         }
 
         // 按照 事件触发顺序 需要先触发 DocumentChanged 事件，再触发 LayoutCompleted 事件
