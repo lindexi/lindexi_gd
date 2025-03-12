@@ -86,10 +86,12 @@ class LineLayoutData : IParagraphCache, IDisposable
     /// <summary>
     /// 这一行的尺寸。这是在 <see cref="LineCharTextSize"/> 基础上叠加行距尺寸信息。但有时候某些字体的 <see cref="LineCharTextSize"/> 会大于行尺寸，其根本原因是 <see cref="LineCharTextSize"/> 是字符的尺寸，直接就取字符尺寸。而 <see cref="LineContentSize"/> 是取行距计算 <see cref="ILineSpacingCalculator"/> 获取的，不一定会大于字符尺寸。所谓叠加行距尺寸信息，不是直接在字符尺寸加上行距尺寸，而是通过 <see cref="ILineSpacingCalculator"/> 计算得到的
     /// </summary>
-    /// 可能这个属性也需要一个对应的 StartPoint 值。且和 <see cref="OutlineBounds"/> 有些关联。现在缺少一个表示缩进的属性
+    /// 包含以下缩进：
     /// - IndentationThickness - 表示缩进带来的空白
     /// - HorizontalTextAlignmentGapThickness - 表示对齐带来的空白，如居中对齐
     /// - LineSpacingThickness - 表示行距带来的空白
+    ///
+    /// 内容尺寸什么时候可以大于 <see cref="OutlineBounds"/> 宽度？当 <see cref="ParagraphProperty.AllowHangingPunctuation"/> 允许符号溢出边界时
     public TextSize LineContentSize { get; init; }
 
     /// <summary>
@@ -123,9 +125,11 @@ class LineLayoutData : IParagraphCache, IDisposable
     }
 
     /// <summary>
-    /// 这一行的包括对齐产生的空白 Gap 的范围，为最大的范围
+    /// 这一行的包括对齐产生的空白 Gap 的范围，为最大的范围。包括以下空白部分：
+    /// - 段落的左右边距 <see cref="ParagraphProperty.LeftIndentation"/> 和 <see cref="ParagraphProperty.RightIndentation"/>
+    /// - 段落左中右对齐带来的空白 <see cref="ParagraphProperty.HorizontalTextAlignment"/>
+    /// - 段落缩进带来的空白 <see cref="ParagraphProperty.Indent"/>
     /// </summary>
-    /// todo 加上校验，判断是否 _charStartPoint 加上 Thickness 能获取相等的值
     public TextRect OutlineBounds { get; internal set; }
 
     /// <summary>
@@ -143,6 +147,11 @@ class LineLayoutData : IParagraphCache, IDisposable
     /// </summary>
     public TextThickness LineSpacingThickness { get; init; }
 
+    /// <summary>
+    /// 设置行最终布局信息
+    /// </summary>
+    /// <param name="indentationThickness"></param>
+    /// <param name="horizontalTextAlignmentGapThickness"></param>
     public void SetLineFinalLayoutInfo(TextThickness indentationThickness, TextThickness horizontalTextAlignmentGapThickness)
     {
         IndentationThickness = indentationThickness;

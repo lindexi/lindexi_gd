@@ -980,6 +980,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     private static void FinalUpdateParagraphLineLayout(in FinalParagraphLineLayoutArgument lineLayoutArgument)
     {
         FinalParagraphLayoutArgument paragraphLayoutArgument = lineLayoutArgument.FinalParagraphLayoutArgument;
+        UpdateLayoutContext updateLayoutContext = paragraphLayoutArgument.UpdateLayoutContext;
         ParagraphProperty paragraphProperty = paragraphLayoutArgument.Paragraph.ParagraphProperty;
         double documentWidth = paragraphLayoutArgument.DocumentWidth;
 
@@ -1007,6 +1008,25 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             .SetLineFinalLayoutInfo(indentationThickness, horizontalTextAlignmentGapThickness);
 
         lineLayoutData.OutlineBounds = GetOutlineBounds();
+
+        if (updateLayoutContext.IsInDebugMode)
+        {
+            // 调试模式，校验一下宽度
+            var outlineWidth = lineLayoutData.OutlineBounds.Width;
+            var contentWidth = lineLayoutData.LineContentSize.Width;
+
+            Debug.Assert(Nearly.Equals(outlineWidth, documentWidth));
+
+            var contentWidthAddThickness = contentWidth + indentationThickness.Left + indentationThickness.Right;
+
+            // 以下的等于关系是不正确的。因为一行里面有文本的内容可能不满行，如以下例子
+            // 123123
+            // 123\n
+            // 可见末行的内容只有 `123` 无法占满行内容，则此时以下判断条件不相等
+            //Debug.Assert(Nearly.Equals(outlineWidth, contentWidthAddThickness),"外接的宽度等于内容框架加上各个边距");
+            Debug.Assert(!paragraphProperty.AllowHangingPunctuation && contentWidthAddThickness <= outlineWidth,
+                "什么时候小于？一行字符不满的时候。什么时候等于？刚好一行字符刚好满，这里还要求行宽度是字符宽度的倍数。什么时候可能大于？允许标点溢出边界");
+        }
 
         TextRect GetOutlineBounds()
         {
