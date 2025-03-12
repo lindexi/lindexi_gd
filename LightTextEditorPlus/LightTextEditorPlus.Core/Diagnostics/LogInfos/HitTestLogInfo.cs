@@ -1,6 +1,7 @@
-﻿using LightTextEditorPlus.Core.Primitive;
+﻿using LightTextEditorPlus.Core.Layout;
+using LightTextEditorPlus.Core.Primitive;
 
-namespace LightTextEditorPlus.Core.Layout.HitTests;
+namespace LightTextEditorPlus.Core.Diagnostics.LogInfos;
 
 /// <summary>
 /// 命中测试的日志记录信息

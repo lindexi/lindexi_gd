@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace LightTextEditorPlus.Core.LogInfos;
+﻿namespace LightTextEditorPlus.Core.Diagnostics.LogInfos;
 
 /// <summary>
 /// 在 LayoutCompleted 事件里面，再次变更了文本，导致文本重新布局的日志信息

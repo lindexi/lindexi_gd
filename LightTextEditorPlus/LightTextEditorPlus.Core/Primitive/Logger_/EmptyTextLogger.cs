@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using LightTextEditorPlus.Core.Diagnostics.LogInfos;
 using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Layout.HitTests;
-using LightTextEditorPlus.Diagnostics.LogInfos;
 
 namespace LightTextEditorPlus.Core.Primitive;
 
