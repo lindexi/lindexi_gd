@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Diagnostics.LogInfos;
+﻿namespace LightTextEditorPlus.Core.Diagnostics.LogInfos;
 
 /// <summary>
 /// 开始布局的日志信息

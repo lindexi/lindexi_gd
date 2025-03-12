@@ -4,11 +4,11 @@ using System.Diagnostics;
 using System.Text;
 
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Diagnostics.LogInfos;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Utils;
-using LightTextEditorPlus.Diagnostics.LogInfos;
 
 namespace LightTextEditorPlus.Core.Document;
 

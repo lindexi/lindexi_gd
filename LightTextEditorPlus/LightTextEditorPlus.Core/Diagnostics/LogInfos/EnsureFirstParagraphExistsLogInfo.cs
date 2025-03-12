@@ -1,4 +1,4 @@
-﻿namespace LightTextEditorPlus.Diagnostics.LogInfos;
+﻿namespace LightTextEditorPlus.Core.Diagnostics.LogInfos;
 
 /// <summary>
 /// 确保第一个段落存在的日志信息
