@@ -2,56 +2,36 @@
 
 using System.Collections;
 
-var foo = new Foo();
-foreach (var item in foo)
+var s = new S();
+foreach (var t in s)
 {
-    Console.WriteLine(item);
+    
 }
 
 Console.WriteLine("Hello, World!");
 
 
-class Foo : IReadOnlyList<int>
+struct S : IEnumerator<int>
 {
-    public IEnumerator<int> GetEnumerator()
+    private int _current;
+
+    public void Dispose()
     {
-        return new S();
+
     }
 
-    IEnumerator IEnumerable.GetEnumerator()
+    public bool MoveNext()
     {
-        return GetEnumerator();
+        _current++;
+        return true;
     }
 
-    public int Count => 1;
-
-    public int this[int index]
+    public void Reset()
     {
-        get => throw new NotImplementedException();
+        throw new NotImplementedException();
     }
 
-    struct S : IEnumerator<int>
-    {
-        private int _current;
+    int IEnumerator<int>.Current => _current;
 
-        public void Dispose()
-        {
-            
-        }
-
-        public bool MoveNext()
-        {
-            _current++;
-            return true;
-        }
-
-        public void Reset()
-        {
-            throw new NotImplementedException();
-        }
-
-        int IEnumerator<int>.Current => _current;
-
-        object? IEnumerator.Current => _current;
-    }
+    object? IEnumerator.Current => _current;
 }
