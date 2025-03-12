@@ -61,6 +61,9 @@ public class RenderInfoProvider
         LineLayoutData? currentLineLayoutData = null;
         TextRect currentBounds = default;
         CharData? lastCharData = null;
+
+        bool isFirst = true;
+
         foreach (var charData in TextEditor.DocumentManager.GetCharDataRange(selection))
         {
             if (charData.IsLineBreakCharData)
@@ -69,7 +72,8 @@ public class RenderInfoProvider
                 continue;
             }
 
-            var sameLine = currentLineLayoutData is not null && ReferenceEquals(charData.CharLayoutData?.CurrentLine, currentLineLayoutData);
+            Debug.Assert(charData.CharLayoutData is not null, "进入此方法必然完成布局");
+            var sameLine = !isFirst && ReferenceEquals(charData.CharLayoutData.CurrentLine, currentLineLayoutData);
 
             if (sameLine)
             {
@@ -77,10 +81,9 @@ public class RenderInfoProvider
             }
             else
             {
-                if (currentLineLayoutData is not null)
+                if (!isFirst)
                 {
-                    var lastBounds = lastCharData!.GetBounds();
-                    result.Add(currentBounds.Union(lastBounds));
+                    AppendBounds();
                 }
 
                 currentLineLayoutData = charData.CharLayoutData?.CurrentLine;
@@ -88,15 +91,32 @@ public class RenderInfoProvider
             }
 
             lastCharData = charData;
+
+            isFirst = false;
         }
 
-        if (lastCharData is not null)
-        {
-            var lastBounds = lastCharData!.GetBounds();
-            result.Add(currentBounds.Union(lastBounds));
-        }
+        AppendBounds();
 
         return result;
+
+        void AppendBounds()
+        {
+            if (lastCharData is null || currentLineLayoutData is null)
+            {
+                return;
+            }
+
+            var lastBounds = lastCharData.GetBounds();
+            TextRect textRect = currentBounds.Union(lastBounds);
+
+            // 限制高度
+            textRect = textRect with
+            {
+                Height = Math.Min(textRect.Height, currentLineLayoutData.LineContentSize.Height)
+            };
+
+            result.Add(textRect);
+        }
     }
 
     /// <summary>
