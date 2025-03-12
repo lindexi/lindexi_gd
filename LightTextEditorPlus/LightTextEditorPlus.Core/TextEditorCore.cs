@@ -12,6 +12,7 @@ using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Layout;
+using LightTextEditorPlus.Core.LogInfos;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
@@ -296,9 +297,9 @@ public partial class TextEditorCore
         if (IsDirty)
         {
             Debug.Assert(_renderInfoProvider is null, "在 LayoutCompleted 事件里面，再次变更了文本，此时文本是脏的，同时渲染提供应该是空");
-
             // 在 LayoutCompleted 事件里面重新变更了文本
             Logger.LogDebug($"[TextEditorCore][Layout] 在 LayoutCompleted 事件里面，再次变更了文本，此时不再调用平台渲染，等待下次布局之后再进入");
+            Logger.Log(new TextEditorBeDirtyAfterLayoutCompletedLogInfo(this));
             return;
         }
 

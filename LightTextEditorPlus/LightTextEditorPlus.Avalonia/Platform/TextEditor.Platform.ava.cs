@@ -204,7 +204,7 @@ partial class TextEditor : Control
     #region 布局
 
     /// <summary>
-    /// 立刻布局
+    /// 立刻布局，获取布局结果信息
     /// </summary>
     private RenderInfoProvider ForceLayout()
     {
@@ -217,6 +217,7 @@ partial class TextEditor : Control
             RenderInfoProvider? renderInfoProvider;
             while (!TextEditorCore.TryGetRenderInfo(out renderInfoProvider))
             {
+                // 什么时候这个循环会进入两次？当文本刚刚布局完成之后，就被其他业务弄脏了。如有业务监听 LayoutCompleted 事件，在此事件里面修改文本
                 PlatformProvider.EnsureLayoutUpdated();
             }
 
@@ -236,7 +237,7 @@ partial class TextEditor : Control
     private void ForceRedraw()
     {
         // 现在只需立刻布局即可，在布局完成之后会自动触发重绘
-        ForceLayout();
+        _ = ForceLayout();
     }
 
     private void TextEditorCore_LayoutCompleted(object? sender, LayoutCompletedEventArgs e)
