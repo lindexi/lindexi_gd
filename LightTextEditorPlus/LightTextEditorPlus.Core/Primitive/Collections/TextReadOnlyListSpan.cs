@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using LightTextEditorPlus.Core.Document;
 
@@ -27,7 +28,7 @@ public readonly struct TextReadOnlyListSpan<T> : IReadOnlyList<T>, IEquatable<Te
     private readonly int _length;
 
     /// <inheritdoc />
-    public IEnumerator<T> GetEnumerator()
+    IEnumerator<T> IEnumerable<T>.GetEnumerator()
     {
         return _source.Skip(_start).Take(_length).GetEnumerator();
     }
@@ -35,6 +36,15 @@ public readonly struct TextReadOnlyListSpan<T> : IReadOnlyList<T>, IEquatable<Te
     IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();
+    }
+
+    /// <summary>
+    /// Returns an enumerator that iterates through the collection.
+    /// </summary>
+    /// <returns></returns>
+    public Enumerator GetEnumerator()
+    {
+        return new Enumerator(this);
     }
 
     /// <inheritdoc />
@@ -107,6 +117,51 @@ public readonly struct TextReadOnlyListSpan<T> : IReadOnlyList<T>, IEquatable<Te
     {
         var list = new ReadOnlyListConverter<T, TOther>(_source, converter);
         return new TextReadOnlyListSpan<TOther>(list, _start, _length);
+    }
+
+    /// <summary>Enumerates the elements of a <see cref="TextReadOnlyListSpan{T}"/>.</summary>
+    public struct Enumerator : IEnumerator<T>
+    {
+        internal Enumerator(TextReadOnlyListSpan<T> list)
+        {
+            _list = list;
+            _index = -1;
+        }
+
+        private readonly TextReadOnlyListSpan<T> _list;
+
+        private int _index;
+
+        /// <summary>Advances the enumerator to the next element of the list.</summary>
+        public bool MoveNext()
+        {
+            int index = _index + 1;
+            if (index < _list._length)
+            {
+                _index = index;
+                return true;
+            }
+
+            return false;
+        }
+
+        void IEnumerator.Reset()
+        {
+            _index = -1;
+        }
+
+        object? IEnumerator.Current => Current;
+
+        /// <summary>Gets the element at the current position of the enumerator.</summary>
+        public T Current
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _list[_index];
+        }
+
+        void IDisposable.Dispose()
+        {
+        }
     }
 }
 
