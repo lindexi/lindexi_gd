@@ -38,12 +38,12 @@ namespace LightTextEditorPlus.Demo
             //TextEditor.SetFontName("华文中宋");
             TextEditor.SetFontName("微软雅黑");
             //TextEditor.SetFontName("Javanese Text");
-            TextEditor.AppendText("123123");
-            ParagraphIndex paragraphIndex = new ParagraphIndex(0);
-            TextEditor.SetParagraphProperty(paragraphIndex, TextEditor.GetParagraphProperty(paragraphIndex) with
-            {
-                LeftIndentation = 5
-            });
+            //TextEditor.AppendText("123123");
+            //ParagraphIndex paragraphIndex = new ParagraphIndex(0);
+            //TextEditor.SetParagraphProperty(paragraphIndex, TextEditor.GetParagraphProperty(paragraphIndex) with
+            //{
+            //    LeftIndentation = 5
+            //});
             TextEditor.IsAutoEditingModeByFocus = false;
             TextEditor.EnterEditMode();
 
