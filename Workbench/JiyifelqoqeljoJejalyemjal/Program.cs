@@ -2,14 +2,21 @@
 
 using System.Collections;
 
-var s = new S();
-foreach (var t in s)
+var foo = new Foo();
+foreach (var item in foo)
 {
-    
+    Console.WriteLine(item);
 }
 
 Console.WriteLine("Hello, World!");
 
+struct Foo
+{
+    public S GetEnumerator()
+    {
+        return new S();
+    }
+}
 
 struct S : IEnumerator<int>
 {
@@ -31,7 +38,7 @@ struct S : IEnumerator<int>
         throw new NotImplementedException();
     }
 
-    int IEnumerator<int>.Current => _current;
+    public int Current => _current;
 
     object? IEnumerator.Current => _current;
 }
