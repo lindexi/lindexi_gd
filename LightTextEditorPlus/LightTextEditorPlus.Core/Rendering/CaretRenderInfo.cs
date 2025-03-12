@@ -129,7 +129,8 @@ public readonly struct CaretRenderInfo
     public TextRect GetCaretBounds(double caretWidth)
     {
         var charData = CharData;
-        var startPoint = charData?.GetStartPoint() ?? LineBounds.LeftTop;
+        TextRect lineBounds = LineBounds;
+        var startPoint = charData?.GetStartPoint() ?? lineBounds.LeftTop;
         TextSize textSize;
         if (charData?.Size is not null)
         {
@@ -137,7 +138,7 @@ public readonly struct CaretRenderInfo
         }
         else
         {
-            textSize = LineBounds.TextSize;
+            textSize = lineBounds.TextSize;
         }
 
         switch (TextEditor.ArrangingType)
@@ -154,10 +155,12 @@ public readonly struct CaretRenderInfo
                     x += textSize.Width;
                 }
                 var width = caretWidth;
-                var height =
-                    LineSpacingCalculator.CalculateLineHeightWithLineSpacing(TextEditor,
-                        TextEditor.DocumentManager.CurrentCaretRunProperty, 1);
-                y += textSize.Height - height;
+                //var height =
+                //    LineSpacingCalculator.CalculateLineHeightWithLineSpacing(TextEditor,
+                //        TextEditor.DocumentManager.CurrentCaretRunProperty, 1);
+                //y += textSize.Height - height;
+                var height = textSize.Height;
+
                 var rectangle = new TextRect(x, y, width, height);
                 return rectangle;
             case ArrangingType.Vertical:

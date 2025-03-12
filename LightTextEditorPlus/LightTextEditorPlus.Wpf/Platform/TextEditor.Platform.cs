@@ -74,6 +74,9 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         TextEditorCore.TextChanged += TextEditorCore_TextChanged;
         TextEditorCore.LayoutCompleted += TextEditorCore_LayoutCompleted;
 
+        // 在 WPF 框架里面，默认就应该使用 WPF 的行间距样式
+        TextEditorCore.UseWpfLineSpacingStyle();
+
         #endregion
 
         Loaded += TextEditor_Loaded;
