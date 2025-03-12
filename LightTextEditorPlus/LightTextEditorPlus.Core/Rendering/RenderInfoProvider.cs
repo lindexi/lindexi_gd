@@ -109,7 +109,7 @@ public class RenderInfoProvider
             var lastBounds = lastCharData.GetBounds();
             TextRect textRect = currentBounds.Union(lastBounds);
 
-            // 限制高度
+            // 限制高度，防止选择的两行重叠了
             textRect = textRect with
             {
                 Height = Math.Min(textRect.Height, currentLineLayoutData.LineContentSize.Height)
