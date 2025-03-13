@@ -56,9 +56,15 @@ public struct TextRect
     public double Height { get; set; }
 
     /// <summary>
-    /// 创建一个 <see cref="X"/> <see cref="Y"/> <see cref="Width"/> <see cref="Height"/> 都是 0 的矩形
+    /// 创建一个 <see cref="X"/> <see cref="Y"/> <see cref="Width"/> <see cref="Height"/> 都是 0 的矩形。和 <see cref="Empty"/> 是不同的概念
     /// </summary>
     public static TextRect Zero => new TextRect();
+
+    /// <summary>
+    /// 创建一个空的矩形，表示一个无效的矩形，合并过程中会被忽略
+    /// </summary>
+    public static TextRect Empty => new TextRect(double.PositiveInfinity, double.PositiveInfinity,
+        double.NegativeInfinity, double.NegativeInfinity);
 
     /// <summary>
     /// 从左上和右下点创建矩形
@@ -276,16 +282,24 @@ public struct TextRect
     public TextPoint RightBottom => new TextPoint(Right, Bottom);
 
     /// <summary>
-    /// 是否一个空矩形，也就是 <see cref="Width"/> 和 <see cref="Height"/> 都是 0 的值
+    /// 是否一个空矩形，也就是 <see cref="Width"/> 和 <see cref="Height"/> 都是小于 0 的值
     /// </summary>
-    public bool IsEmpty => (Width <= 0) || (Height <= 0);
+    public bool IsEmpty => (Width < 0) || (Height < 0);
 
     /// <summary>
     /// 尺寸
     /// </summary>
     public TextSize TextSize
     {
-        get => new TextSize(Width, Height);
+        get
+        {
+            if (IsEmpty)
+            {
+                return TextSize.Zero;
+            }
+
+            return new TextSize(Width, Height);
+        }
         set
         {
             Width = value.Width;
