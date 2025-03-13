@@ -439,7 +439,7 @@ partial class TextEditor : Control
 
             if (textEditorSkiaRender is ITextEditorContentSkiaRender contentSkiaRender)
             {
-                currentBounds = currentBounds.Union(contentSkiaRender.RenderBounds.ToSKRect().ToAvaloniaRect());
+                currentBounds = currentBounds.Union(contentSkiaRender.RenderBounds.ToAvaloniaRect());
             }
 
             var renderBounds = currentBounds;
