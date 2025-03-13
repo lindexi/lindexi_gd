@@ -106,7 +106,8 @@ class RenderManager
             if (!_currentRender.IsUsed)
             {
                 // 如果被使用了，那就交给使用方释放。如果没有被使用，那就直接释放
-                _currentRender.Dispose("RenderManager.Render");
+                // 比如快速的两次布局，此时 UI 框架一次渲染都没有触发，那么第一次的渲染就会被释放
+                _currentRender.Dispose("RenderManager.Render IsUsed=false");
             }
             else
             {
@@ -122,7 +123,7 @@ class RenderManager
         var textWidth = (float) documentLayoutBounds.Width;
         var textHeight = (float) documentLayoutBounds.Height;
 
-        TextRect renderBounds = new TextRect(0, 0, textWidth, textHeight);
+        TextRect renderBounds = documentLayoutBounds;
 
         using SKPictureRecorder skPictureRecorder = new SKPictureRecorder();
 
