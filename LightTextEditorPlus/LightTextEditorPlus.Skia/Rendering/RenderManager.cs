@@ -37,8 +37,11 @@ class RenderManager
             CaretRenderInfo currentCaretRenderInfo = renderInfoProvider.GetCurrentCaretRenderInfo();
             TextRect caretBounds = currentCaretRenderInfo.GetCaretBounds(_textEditor.CaretConfiguration.CaretWidth);
 
+            SkiaTextRunProperty? skiaTextRunProperty = currentCaretRenderInfo.CharData?.RunProperty.AsSkiaRunProperty();
+
             SKColor caretColor = _textEditor.CaretConfiguration.CaretBrush
-                                 // todo 获取当前前景色作为光标颜色
+                                 // 获取当前前景色作为光标颜色
+                                 ?? skiaTextRunProperty?.Foreground
                                  ?? SKColors.Black;
             _currentCaretAndSelectionRender = new TextEditorCaretSkiaRender(caretBounds.ToSKRect(), caretColor);
         }
