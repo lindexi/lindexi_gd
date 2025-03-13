@@ -19,6 +19,8 @@ public interface ITextEditorSkiaRender : IDisposable
 public interface ITextEditorContentSkiaRender : ITextEditorSkiaRender
 {
     TextRect RenderBounds { get; }
+    bool IsObsoleted { get; }
+    bool IsDisposed { get; }
 }
 
 public interface ITextEditorCaretAndSelectionRenderSkiaRender : ITextEditorSkiaRender

@@ -1,3 +1,5 @@
+#if !USE_SKIA
+
 using System;
 
 using LightTextEditorPlus.Core.Attributes;
@@ -9,12 +11,7 @@ namespace LightTextEditorPlus;
 
 // 此文件存放状态获取相关的方法
 [APIConstraint("TextEditor.Status.txt")]
-partial class
-#if USE_SKIA && !USE_AllInOne
-    SkiaTextEditor
-#else
-    TextEditor
-#endif
+partial class TextEditor
 {
     #region 光标和选择
 
@@ -95,5 +92,6 @@ partial class
     #endregion
 
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.DebugName"/>
-    public string? DebugName => TextEditorCore?.DebugName;
+    public string? DebugName => TextEditorCore.DebugName;
 }
+#endif

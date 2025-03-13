@@ -135,7 +135,7 @@ public partial class SkiaTextEditor : IRenderManager
         _renderCompletionSource.TrySetResult();
     }
 
-    public ITextEditorSkiaRender GetCurrentTextRender()
+    public ITextEditorContentSkiaRender GetCurrentTextRender()
     {
         return RenderManager.GetCurrentTextRender();
     }
