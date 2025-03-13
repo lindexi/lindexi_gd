@@ -6,6 +6,7 @@ using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Events;
+using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Rendering;
 using SkiaSharp;
@@ -98,6 +99,7 @@ class RenderManager
 
         if (_currentRender is not null)
         {
+            // todo 这里的 IsUsed 是错误的，没有地方使用
             if (!_currentRender.IsUsed)
             {
                 // 如果被使用了，那就交给使用方释放。如果没有被使用，那就直接释放
@@ -111,6 +113,8 @@ class RenderManager
 
         var textWidth = (float) documentLayoutBounds.Width;
         var textHeight = (float) documentLayoutBounds.Height;
+
+        TextRect renderBounds = new TextRect(0, 0, textWidth, textHeight);
 
         using SKPictureRecorder skPictureRecorder = new SKPictureRecorder();
 
@@ -174,13 +178,14 @@ class RenderManager
 
                         SKRect charSpanBounds = SKRect.Create(x, y, width, height);
                         DrawDebugBounds(charSpanBounds, _debugDrawCharSpanBoundsColor);
+                        renderBounds = renderBounds.Union(charSpanBounds.ToTextRect());
 
                         string text = stringBuilder.ToString();
 
                         if (!skFont.ContainsGlyphs(text))
                         {
-                            // todo 处理无法渲染的字符，自动字符降级
                             // 预计不会出现这样的问题，在渲染之前已经处理过了
+                            throw new TextEditorInnerException($"文本框架内应该确保进入渲染层时，不会出现字体不能包含字符的情况");
                         }
 
                         // 绘制四线三格调试信息
@@ -198,7 +203,6 @@ class RenderManager
 
                         // 由于 Skia 的 DrawText 传入的 Point 是文本的最下方，因此需要调整 Y 值
                         y += baselineY;
-
                         canvas.DrawText(text, new SKPoint(x, y), textRenderSKPaint);
                     }
 
@@ -235,7 +239,7 @@ class RenderManager
         }
 
         SKPicture skPicture = skPictureRecorder.EndRecording();
-        _currentRender = new TextEditorSkiaRender(skPicture);
+        _currentRender = new TextEditorSkiaRender(skPicture, renderBounds);
     }
 
     /// <summary>

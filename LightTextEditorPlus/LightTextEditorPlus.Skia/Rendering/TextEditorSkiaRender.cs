@@ -7,10 +7,13 @@ namespace LightTextEditorPlus.Rendering;
 
 class TextEditorSkiaRender : ITextEditorContentSkiaRender
 {
-    public TextEditorSkiaRender(SKPicture picture)
+    public TextEditorSkiaRender(SKPicture picture, TextRect renderBounds)
     {
         _picture = picture;
+        RenderBounds = renderBounds;
     }
+
+    public TextRect RenderBounds { get; }
 
     internal bool IsUsed { get; set; }
 

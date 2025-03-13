@@ -1,4 +1,4 @@
-using System;
+锘縰sing System;
 using System.Collections.Generic;
 using System.Linq;
 using Avalonia.Controls;
@@ -11,11 +11,11 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        // 后台创建，防止一开始就创建文本
+        // 鍚庡彴鍒涘缓锛岄槻姝竴寮�濮嬪氨鍒涘缓鏂囨湰
         _contentCreatorList =
         [
-            ("调试", () => new TextEditorDebugView()),
-            ("测试", () => new TextEditorTestView()),
+            ("璋冭瘯", () => new TextEditorDebugView()),
+            ("娴嬭瘯", () => new TextEditorTestView()),
             ("Markdown", () => new DualEditorUserControl()),
         ];
 
