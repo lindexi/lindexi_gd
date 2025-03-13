@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -69,10 +70,10 @@ class RenderManager
     // 在 Skia 里面的 SKPicture 就和 DX 的 Command 地位差不多，都是预先记录的绘制命令，而不是立刻进行绘制
     private TextEditorSkiaRender? _currentRender;
 
-    public ITextEditorSkiaRender GetCurrentTextRender()
+    public ITextEditorContentSkiaRender GetCurrentTextRender()
     {
         //Debug.Assert(_currentRender != null, "不可能一开始就获取当前渲染，必然调用过 Render 方法");
-        if (_currentRender is null || _currentRender.IsDisposed)
+        if (_currentRender is null)
         {
             // 首次渲染，需要尝试获取一下
             Debug.Assert(!_textEditor.TextEditorCore.IsDirty);
@@ -80,6 +81,9 @@ class RenderManager
             Render(renderInfoProvider);
         }
 
+        Debug.Assert(!_currentRender.IsDisposed);
+
+        _currentRender.IsUsed = true;
         return _currentRender;
     }
 
@@ -99,11 +103,15 @@ class RenderManager
 
         if (_currentRender is not null)
         {
-            // todo 这里的 IsUsed 是错误的，没有地方使用
             if (!_currentRender.IsUsed)
             {
                 // 如果被使用了，那就交给使用方释放。如果没有被使用，那就直接释放
                 _currentRender.Dispose("RenderManager.Render");
+            }
+            else
+            {
+                // 标记为需要释放的，因为很快就进行更新了
+                _currentRender.IsObsoleted = true;
             }
 
             _currentRender = null;

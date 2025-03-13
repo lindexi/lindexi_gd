@@ -23,9 +23,14 @@ class TextEditorSkiaRender : ITextEditorContentSkiaRender
 
     public TextRect RenderBounds { get; }
 
+    private readonly SKPicture _picture;
+
+    /// <summary>
+    /// 是否已经被返回出去被使用了，被使用了的，就应该将释放权给到外部，而不是自己释放
+    /// </summary>
     internal bool IsUsed { get; set; }
 
-    private readonly SKPicture _picture;
+    public bool IsObsoleted { get; set; }
 
     public bool IsDisposed { get; private set; }
     public bool IsInDebugMode { get; }
@@ -75,7 +80,7 @@ class TextEditorSkiaRender : ITextEditorContentSkiaRender
     public void ReleaseReference()
     {
         _count--;
-        if (_count == 0)
+        if (_count == 0 && IsObsoleted)
         {
             Dispose("ReleaseReference to 0");
         }
