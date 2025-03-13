@@ -291,7 +291,15 @@ public struct TextRect
     /// </summary>
     public TextSize TextSize
     {
-        get => new TextSize(Width, Height);
+        get
+        {
+            if (IsEmpty)
+            {
+                return TextSize.Zero;
+            }
+
+            return new TextSize(Width, Height);
+        }
         set
         {
             Width = value.Width;
