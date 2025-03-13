@@ -262,7 +262,7 @@ abstract class ArrangingLayoutProvider
             }
         }
 
-        TextRect documentBounds = TextRect.Zero;
+        TextRect documentBounds = TextRect.Empty;
         foreach (var paragraphData in paragraphList)
         {
             var bounds = paragraphData.ParagraphLayoutData.TextContentBounds;

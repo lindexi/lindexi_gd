@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Utils;
@@ -7,11 +8,18 @@ namespace LightTextEditorPlus.Rendering;
 
 class TextEditorSkiaRender : ITextEditorContentSkiaRender
 {
-    public TextEditorSkiaRender(SKPicture picture, TextRect renderBounds)
+    public TextEditorSkiaRender(SkiaTextEditor textEditor, SKPicture picture, TextRect renderBounds)
     {
         _picture = picture;
         RenderBounds = renderBounds;
+        _textEditor = textEditor;
+        IsInDebugMode = _textEditor.IsInDebugMode;
     }
+
+    /// <summary>
+    /// 关联的文本编辑器。此字段仅用于调试，切不要在此字段上调用任何方法，因为可能是在渲染线程上调用，而不是 UI 线程上调用
+    /// </summary>
+    private readonly SkiaTextEditor _textEditor;
 
     public TextRect RenderBounds { get; }
 
@@ -19,13 +27,36 @@ class TextEditorSkiaRender : ITextEditorContentSkiaRender
 
     private readonly SKPicture _picture;
 
-    public void Dispose()
+    public bool IsDisposed { get; private set; }
+    public bool IsInDebugMode { get; }
+
+    public string? DisposeReason { get; private set; }
+
+    public void Dispose(string disposeReason)
+    {
+        DisposeReason = disposeReason;
+        IDisposable disposable = this;
+        disposable.Dispose();
+    }
+
+    void IDisposable.Dispose()
     {
         _picture.Dispose();
+        IsDisposed = true;
     }
 
     public void Render(SKCanvas canvas)
     {
+        if (IsDisposed)
+        {
+#if DEBUG
+            var name = _textEditor.DebugName;
+            string? disposeReason = DisposeReason;
+            GC.KeepAlive(name);
+            GC.KeepAlive(disposeReason);
+#endif
+        }
+
         canvas.DrawPicture(_picture);
     }
 
@@ -33,6 +64,11 @@ class TextEditorSkiaRender : ITextEditorContentSkiaRender
 
     public void AddReference()
     {
+        if (IsDisposed)
+        {
+
+        }
+
         _count++;
     }
 
@@ -41,7 +77,7 @@ class TextEditorSkiaRender : ITextEditorContentSkiaRender
         _count--;
         if (_count == 0)
         {
-            Dispose();
+            Dispose("ReleaseReference to 0");
         }
     }
 }
