@@ -50,7 +50,7 @@ class TextEditorSkiaRender : ITextEditorContentSkiaRender
         if (IsDisposed)
         {
 #if DEBUG
-            var name = _textEditor.DebugName;
+            var name = _textEditor.TextEditorCore.DebugName;
             string? disposeReason = DisposeReason;
             GC.KeepAlive(name);
             GC.KeepAlive(disposeReason);
