@@ -72,7 +72,7 @@ class RenderManager
     public ITextEditorSkiaRender GetCurrentTextRender()
     {
         //Debug.Assert(_currentRender != null, "不可能一开始就获取当前渲染，必然调用过 Render 方法");
-        if (_currentRender is null)
+        if (_currentRender is null || _currentRender.IsDisposed)
         {
             // 首次渲染，需要尝试获取一下
             Debug.Assert(!_textEditor.TextEditorCore.IsDirty);
@@ -103,7 +103,7 @@ class RenderManager
             if (!_currentRender.IsUsed)
             {
                 // 如果被使用了，那就交给使用方释放。如果没有被使用，那就直接释放
-                _currentRender.Dispose();
+                _currentRender.Dispose("RenderManager.Render");
             }
 
             _currentRender = null;
@@ -239,7 +239,7 @@ class RenderManager
         }
 
         SKPicture skPicture = skPictureRecorder.EndRecording();
-        _currentRender = new TextEditorSkiaRender(skPicture, renderBounds);
+        _currentRender = new TextEditorSkiaRender(_textEditor, skPicture, renderBounds);
     }
 
     /// <summary>

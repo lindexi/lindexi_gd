@@ -8,8 +8,9 @@ namespace LightTextEditorPlus.Core.Primitive;
 /// 文本库使用的坐标和尺寸
 /// </summary>
 /// Copy From https://github.com/dotnet/Microsoft.Maui.Graphics 但是修改了一些代码
+/// 从 WPF 里面拷贝正确的 Empty 的实现
 [DebuggerDisplay("X={X}, Y={Y}, Width={Width}, Height={Height}")]
-public struct TextRect
+public struct TextRect : IEquatable<TextRect>
 {
     /// <summary>
     /// 创建文本库使用的坐标和尺寸的矩形
@@ -119,7 +120,7 @@ public struct TextRect
     /// <returns></returns>
     public static bool operator ==(TextRect rect1, TextRect rect2)
     {
-        return (rect1.Location == rect2.Location) && (rect1.TextSize == rect2.TextSize);
+        return rect1.Equals(rect2);
     }
 
     /// <summary>
@@ -141,6 +142,11 @@ public struct TextRect
     // Hit Testing / Intersection / Union
     public bool Contains(TextRect rect)
     {
+        if (IsEmpty || rect.IsEmpty)
+        {
+            return false;
+        }
+
         return X <= rect.X && Right >= rect.Right && Y <= rect.Y && Bottom >= rect.Bottom;
     }
 
@@ -162,6 +168,11 @@ public struct TextRect
     /// <returns></returns>
     public bool Contains(double x, double y)
     {
+        if (IsEmpty)
+        {
+            return false;
+        }
+
         return (x >= Left) && (x < Right) && (y >= Top) && (y < Bottom);
     }
 
@@ -172,6 +183,11 @@ public struct TextRect
     /// <returns></returns>
     public bool IntersectsWith(TextRect rect)
     {
+        if (IsEmpty || rect.IsEmpty)
+        {
+            return false;
+        }
+
         return !((Left >= rect.Right) || (Right <= rect.Left) || (Top >= rect.Bottom) || (Bottom <= rect.Top));
     }
 
@@ -228,7 +244,7 @@ public struct TextRect
 
         if (width < 0 || height < 0)
         {
-            return Zero;
+            return Empty;
         }
 
         return new TextRect(x, y, width, height);
