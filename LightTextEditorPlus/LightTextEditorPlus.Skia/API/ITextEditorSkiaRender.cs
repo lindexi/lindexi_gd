@@ -1,4 +1,6 @@
 using System;
+using LightTextEditorPlus.Core.Primitive;
+
 using SkiaSharp;
 
 namespace LightTextEditorPlus;
@@ -16,6 +18,7 @@ public interface ITextEditorSkiaRender : IDisposable
 
 public interface ITextEditorContentSkiaRender : ITextEditorSkiaRender
 {
+    TextRect RenderBounds { get; }
 }
 
 public interface ITextEditorCaretAndSelectionRenderSkiaRender : ITextEditorSkiaRender

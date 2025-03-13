@@ -10,7 +10,13 @@ public static class SkiaExtensions
         return new SKRect((float) rect.Left, (float) rect.Top, (float) rect.Right, (float) rect.Bottom);
     }
 
-    public static TextRect ToRect(this SKRect rect)
+    /// <summary>
+    /// 转换为 TextRect 对象
+    /// </summary>
+    /// 这个方法不公开，不要污染其他模块。只有文本里面才可能使用到
+    /// <param name="rect"></param>
+    /// <returns></returns>
+    internal static TextRect ToTextRect(this SKRect rect)
     {
         return TextRect.FromLeftTopRightBottom(rect.Left, rect.Top, rect.Right, rect.Bottom);
     }

@@ -187,6 +187,12 @@ public struct TextRect
     /// <returns></returns>
     public static TextRect Union(TextRect rect1, TextRect rect2)
     {
+        if (rect1.IsEmpty)
+        {
+            // 空矩形返回另一个矩形，而不是直接合并。解决与空矩形合并之后，必然包含 0,0 点的问题
+            return rect2;
+        }
+
         return FromLeftTopRightBottom(Math.Min(rect1.Left, rect2.Left), Math.Min(rect1.Top, rect2.Top),
             Math.Max(rect1.Right, rect2.Right), Math.Max(rect1.Bottom, rect2.Bottom));
     }

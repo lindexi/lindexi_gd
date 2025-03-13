@@ -415,6 +415,7 @@ partial class TextEditor : Control
         InvalidateVisual();
     }
 
+    /// <inheritdoc />
     public override void Render(DrawingContext context)
     {
         if (IsDebugging)
@@ -433,14 +434,32 @@ partial class TextEditor : Control
             }
 
             ITextEditorSkiaRender textEditorSkiaRender = SkiaTextEditor.GetCurrentTextRender();
-            context.Custom(new TextEditorCustomDrawOperation(new Rect(DesiredSize), textEditorSkiaRender));
+
+            var currentBounds = new Rect(DesiredSize);
+
+            if (textEditorSkiaRender is ITextEditorContentSkiaRender contentSkiaRender)
+            {
+                currentBounds = currentBounds.Union(contentSkiaRender.RenderBounds.ToSKRect().ToAvaloniaRect());
+            }
+
+            var renderBounds = currentBounds;
+
+            if (_lastRenderBounds.Width > 0 || _lastRenderBounds.Height > 0)
+            {
+                // 之前有渲染过，那就要重绘之前的区域
+                renderBounds = renderBounds.Union(_lastRenderBounds);
+            }
+            _lastRenderBounds = currentBounds;
+
+
+            context.Custom(new TextEditorCustomDrawOperation(renderBounds, textEditorSkiaRender));
 
             if (IsInEditingInputMode
                 // 如果配置了选择区域在非编辑模式下也会绘制，那在非编辑模式下也会绘制选择区域
                 || CaretConfiguration.ShowSelectionWhenNotInEditingInputMode)
             {
                 // 只有编辑模式下才会绘制光标和选择区域
-                context.Custom(new TextEditorCustomDrawOperation(new Rect(DesiredSize),
+                context.Custom(new TextEditorCustomDrawOperation(renderBounds,
                     SkiaTextEditor.GetCurrentCaretAndSelectionRender()));
             }
         }
@@ -449,6 +468,8 @@ partial class TextEditor : Control
             _isRendering = false;
         }
     }
+
+    private Rect _lastRenderBounds = new Rect();
 
     #endregion
 }
