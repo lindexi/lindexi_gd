@@ -49,7 +49,7 @@ public class SkiaCaretConfiguration
     /// <summary>
     /// 光标的颜色
     /// </summary>
-    public SKColor? CaretBrush { get; set; } = SKColors.Black;
+    public SKColor? CaretBrush { get; set; }
 
     /// <summary>
     /// 不在编辑状态时，保留显示选择范围
