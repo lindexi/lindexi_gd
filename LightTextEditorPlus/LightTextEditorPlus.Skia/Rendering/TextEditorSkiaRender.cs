@@ -13,7 +13,7 @@ class TextEditorSkiaRender : ITextEditorContentSkiaRender
         _picture = picture;
         RenderBounds = renderBounds;
         _textEditor = textEditor;
-        IsInDebugMode = _textEditor.IsInDebugMode;
+        IsInDebugMode = _textEditor.TextEditorCore.IsInDebugMode;
     }
 
     /// <summary>
