@@ -10,19 +10,15 @@ public readonly record struct TextPointInLineCoordinate
     /// <summary>
     /// 相对于行的坐标点
     /// </summary>
-    public TextPointInLineCoordinate(double x, double y) : this(new TextPoint(x, y))
+    public TextPointInLineCoordinate(double x, double y)
     {
+        _x = x;
+        _y = y;
     }
 
-    /// <summary>
-    /// 相对于行的坐标点
-    /// </summary>
-    public TextPointInLineCoordinate(TextPoint textPointInLine)
-    {
-        _linePoint = textPointInLine;
-    }
+    private readonly double _x;
 
-    private readonly TextPoint _linePoint;
+    private readonly double _y;
 
     /// <summary>
     /// 转换为相对于文本框的坐标
@@ -33,13 +29,13 @@ public readonly record struct TextPointInLineCoordinate
     {
         // 先获取行内容的相对文档的起始点
         TextPoint charStartPoint = lineLayoutData.LineContentStartPoint;
-        return new TextPoint(_linePoint.X + charStartPoint.X,
-            _linePoint.Y + charStartPoint.Y);
+        return new TextPoint(_x + charStartPoint.X,
+            _y + charStartPoint.Y);
     }
 
     /// <inheritdoc />
     public override string ToString()
     {
-        return $"行内坐标： {_linePoint.X:0.00},{_linePoint.Y:0.00}";
+        return $"行内坐标： {_x:0.###},{_y:0.###}";
     }
 }

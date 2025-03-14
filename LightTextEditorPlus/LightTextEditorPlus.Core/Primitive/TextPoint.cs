@@ -7,7 +7,7 @@ using LightTextEditorPlus.Core.Utils;
 namespace LightTextEditorPlus.Core.Primitive;
 
 /// <summary>
-/// 给文本库使用的点
+/// 给文本库使用的点，默认情况下相对于 <see cref="TextEditorCore"/> 的左上角坐标
 /// </summary>
 /// Copy From https://github.com/dotnet/Microsoft.Maui.Graphics
 [DebuggerDisplay("X={X}, Y={Y}")]

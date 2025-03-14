@@ -109,6 +109,11 @@ public readonly record struct TextPointInParagraphCoordinate
         return new TextPointInParagraphCoordinate(x, _y, _paragraphData);
     }
 
+    /// <summary>
+    /// 重置 Y 坐标，保持 X 不变
+    /// </summary>
+    /// <param name="y"></param>
+    /// <returns></returns>
     public TextPointInParagraphCoordinate ResetY(double y)
     {
         return new TextPointInParagraphCoordinate(_x, y, _paragraphData);

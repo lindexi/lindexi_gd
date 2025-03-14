@@ -15,12 +15,3 @@ namespace LightTextEditorPlus.Core.Layout;
 //    /// </remarks>
 //    public TextRect DocumentBounds { set; get; }
 //}
-
-/// <summary>
-/// 文档布局范围
-/// </summary>
-/// <param name="DocumentContentBounds">内容范围，可能小于 DocumentWidth 和 DocumentHeight 的值</param>
-/// <param name="DocumentOutlineBounds">外接范围。外接范围的左上角是 0,0 点</param>
-public readonly record struct DocumentLayoutBounds(TextRect DocumentContentBounds, TextRect DocumentOutlineBounds)
-{
-}
