@@ -280,7 +280,7 @@ abstract class ArrangingLayoutProvider
         TextSize documentContentSize = CalculateDocumentContentSize(paragraphList, updateLayoutContext);
 
         //Debug.Assert(documentBounds.Location == TextPoint.Zero);
-        updateLayoutContext.RecordDebugLayoutInfo($"PreUpdateDocumentLayout 完成预布局阶段。段落数量： {paragraphList.Count}，文档尺寸：{documentContentSize}", LayoutDebugCategory.PreDocument);
+        updateLayoutContext.RecordDebugLayoutInfo($"PreUpdateDocumentLayout 完成预布局阶段。段落数量： {paragraphList.Count}，文档尺寸：{documentContentSize.ToCommaSplitWidthAndHeight()}", LayoutDebugCategory.PreDocument);
 
         return new PreUpdateDocumentLayoutResult(documentContentSize);
     }

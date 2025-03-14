@@ -1,9 +1,5 @@
-using System;
 using System.Diagnostics;
-using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Primitive;
-using LightTextEditorPlus.Core.Utils;
-using LightTextEditorPlus.Core.Utils.Maths;
 
 namespace LightTextEditorPlus.Core.Document;
 
@@ -48,86 +44,11 @@ public interface IParagraphLayoutData
 }
 
 /// <summary>
-/// 相对于文档内容坐标系的点
-/// </summary>
-public readonly struct TextPointInDocumentContentCoordinate
-    :IEquatable<TextPointInDocumentContentCoordinate>
-{
-    internal TextPointInDocumentContentCoordinate(double x, double y, LayoutManager manager)
-    {
-        _x = x;
-        _y = y;
-        _manager = manager;
-    }
-
-    private readonly double _x;
-
-    private readonly double _y;
-
-    private readonly LayoutManager _manager;
-
-    public bool IsZero => _x == 0 && _y == 0;
-
-    public bool IsInvalid
-    // 只需判断一个条件就好了，不用判断 X 和 Y 的值
-        => ReferenceEquals(_manager, null);
-
-    public static TextPointInDocumentContentCoordinate InvalidStartPoint
-    {
-        get
-        {
-            TextPoint invalidStartPoint = TextContext.InvalidStartPoint;
-
-            return new TextPointInDocumentContentCoordinate(invalidStartPoint.X, invalidStartPoint.Y, manager: null!);
-        }
-    }
-
-    public bool Equals(TextPointInDocumentContentCoordinate other)
-    {
-        return _x.Equals(other._x) && _y.Equals(other._y) && ReferenceEquals(_manager,other._manager);
-    }
-
-    public override bool Equals(object? obj)
-    {
-        return obj is TextPointInDocumentContentCoordinate other && Equals(other);
-    }
-
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(_x, _y);
-    }
-
-    /// <summary>
-    /// 转换为文档坐标系的点
-    /// </summary>
-    /// <returns></returns>
-    public TextPoint ToTextPoint()
-    {
-        _manager.TextEditor.VerifyNotDirty(autoLayoutEmptyTextEditor: false);
-        TextPoint documentContentStartPoint = _manager.DocumentLayoutBounds.DocumentContentBounds.Location;
-        return new TextPoint(_x + documentContentStartPoint.X, _y + documentContentStartPoint.Y);
-    }
-
-    internal bool NearlyEqualsX(double x) => Nearly.Equals(_x, x);
-    internal bool NearlyEqualsY(double y) => Nearly.Equals(_y, y);
-
-    public TextPointInDocumentContentCoordinate Offset(double offsetX, double offsetY)
-    {
-        return new TextPointInDocumentContentCoordinate(_x + offsetX, _y + offsetY, _manager);
-    }
-
-    /// <inheritdoc />
-    public override string ToString()
-    {
-        return $"DocumentContentCoordinate:[{_x:0.###},{_y:0.###}]";
-    }
-}
-
-/// <summary>
 /// 段落的布局数据
 /// </summary>
 class ParagraphLayoutData : IParagraphLayoutData
 {
+
     /// <summary>
     /// 段落的起始点
     /// </summary>
@@ -148,12 +69,33 @@ class ParagraphLayoutData : IParagraphLayoutData
     /// </summary>
     /// 为什么左右边距不叠加在段落上？现在是每一行都叠加，因为前面实现错误，以为左边距会受到悬挂缩进的影响。实际应该让左右边距放在这里，行只处理缩进
     /// 但行在处理的过程，本身就需要考虑左右边距影响了行的可用宽度，因此放在行里面处理也是可以的
-    public TextThickness TextContentThickness { get; set; } = TextThickness.Invalid;
+    public TextThickness TextContentThickness
+    {
+        get
+        {
+            // 在预布局过程中，就已经计算了边距，这个赋值十分快，理论上不会出现拿不到的情况，除非拿错段落
+            Debug.Assert(_textContentThickness != TextThickness.Invalid);
+            return _textContentThickness;
+        }
+        set => _textContentThickness = value;
+    }
+
+    private TextThickness _textContentThickness = TextThickness.Invalid;
 
     /// <summary>
     /// 外接的尺寸，包含段前和段后和左右边距
     /// </summary>
-    public TextSize OutlineSize { get; set; } = TextSize.Invalid;
+    public TextSize OutlineSize
+    {
+        get
+        {
+            Debug.Assert(_outlineSize!= TextSize.Invalid, "不能在回溯最终布局段落之前获取外接尺寸");
+            return _outlineSize;
+        }
+        set => _outlineSize = value;
+    }
+
+    private TextSize _outlineSize = TextSize.Invalid;
 
     /// <summary>
     /// 外接边界，包含对齐的空白

@@ -101,10 +101,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// </summary>
     /// <param name="argument"></param>
     /// <returns>下一行的坐标。不包括段后间距</returns>
-    private TextPointInParagraph UpdateParagraphLineLayoutDataStartPoint(in ParagraphLayoutArgument argument)
+    private TextPointInParagraphCoordinate UpdateParagraphLineLayoutDataStartPoint(in ParagraphLayoutArgument argument)
     {
         var paragraph = argument.ParagraphData;
-        var currentStartPoint = new TextPointInParagraph(0, 0, paragraph);
+        var currentStartPoint = new TextPointInParagraphCoordinate(0, 0, paragraph);
 
         foreach (LineLayoutData lineLayoutData in paragraph.LineLayoutDataList)
         {
@@ -205,7 +205,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
             // 先更新非脏的行的坐标
             // 布局左上角坐标，当前行的坐标点。行的坐标点是相对于段落的
-            TextPointInParagraph currentLinePoint;
+            TextPointInParagraphCoordinate currentLinePoint;
             // 根据是否存在缓存行决定是否需要计算段前间距
             if (paragraph.LineLayoutDataList.Count == 0)
             {
@@ -220,7 +220,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 var x = 0;
                 //var y = paragraphBefore;
                 var y = 0;
-                currentLinePoint = new TextPointInParagraph(x, y, paragraph);
+                currentLinePoint = new TextPointInParagraphCoordinate(x, y, paragraph);
             }
             else
             {
@@ -274,7 +274,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         {
             CharStartParagraphIndex = 0,
             CharEndParagraphIndex = 0,
-            CharStartPointInParagraph = new TextPointInParagraph(0, 0, paragraph),
+            CharStartPointInParagraphCoordinate = new TextPointInParagraphCoordinate(0, 0, paragraph),
             LineContentSize = new TextSize(0, lineHeight)
         };
         paragraph.LineLayoutDataList.Add(lineLayoutData);
@@ -300,7 +300,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// <exception cref="TextEditorInnerException"></exception>
     /// 每一行的布局都是相对于文本的每个对应的段落的坐标点。更具体来说是相对于段落的文本范围的坐标点。即不包括段前间距和段后间距的坐标点
     private TextPointInDocumentContentCoordinate UpdateParagraphLinesLayout(in ParagraphLayoutArgument argument, in ParagraphCharOffset startParagraphOffset,
-        TextPointInParagraph currentStartPoint)
+        TextPointInParagraphCoordinate currentStartPoint)
     {
         // 当前的坐标点，这是相对于段落的坐标点
         _ = currentStartPoint;
@@ -357,7 +357,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 CharEndParagraphIndex = i + result.CharCount,
                 LineContentSize = result.LineSize,
                 LineCharTextSize = result.TextSize,
-                CharStartPointInParagraph = currentStartPoint,
+                CharStartPointInParagraphCoordinate = currentStartPoint,
                 LineSpacingThickness = result.LineSpacingThickness,
             };
 
@@ -633,7 +633,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             // 如此可以实现字体的基线对齐
             double yOffset = maxFontYOffset - charData.Baseline;
 
-            charData.SetLayoutCharLineStartPoint(new TextPointInLine(xOffset, yOffset)/*, new TextPoint(xOffset, yOffset)*/);
+            charData.SetLayoutCharLineStartPoint(new TextPointInLineCoordinate(xOffset, yOffset)/*, new TextPoint(xOffset, yOffset)*/);
 
             if (needUpdateCharLayoutDataVersion)
             {
@@ -756,8 +756,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         {
             IParagraphLayoutData layoutData = paragraphData.ParagraphLayoutData;
 
-            documentContentWidth = Math.Max(documentContentWidth, layoutData.OutlineSize.Width);
-            documentContentHeight += layoutData.OutlineSize.Height;
+            documentContentWidth = Math.Max(documentContentWidth, layoutData.TextSize.Width);
+
+            TextThickness contentThickness = layoutData.TextContentThickness;
+            documentContentHeight += contentThickness.Top + layoutData.TextSize.Height + contentThickness.Bottom;
         }
 
         return new TextSize(documentContentWidth, documentContentHeight);
@@ -776,7 +778,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// <param name="currentStartPoint"></param>
     /// <param name="currentLineLayoutData"></param>
     /// <returns></returns>
-    private static TextPointInParagraph GetNextLineStartPoint(TextPointInParagraph currentStartPoint, LineLayoutData currentLineLayoutData)
+    private static TextPointInParagraphCoordinate GetNextLineStartPoint(TextPointInParagraphCoordinate currentStartPoint, LineLayoutData currentLineLayoutData)
     {
         //currentStartPoint = new TextPoint(currentStartPoint.X, currentStartPoint.Y + currentLineLayoutData.LineContentSize.Height);
 
@@ -1007,7 +1009,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             .SetLineFinalLayoutInfo(indentationThickness, horizontalTextAlignmentGapThickness);
 
         // 计算 Outline 的范围
-        var outlineStartPoint = lineLayoutData.CharStartPointInParagraph.ResetX(0);
+        var outlineStartPoint = lineLayoutData.CharStartPointInParagraphCoordinate.ResetX(0);
         var outlineWidth = documentWidth;
         var outlineHeight = lineLayoutData.LineContentSize.Height;
 

@@ -8,17 +8,16 @@ namespace LightTextEditorPlus.Core.Primitive;
 /// <summary>
 /// 相对于段落的坐标点
 /// </summary>
-/// todo 改名 TextPointInParagraphCoordinate
-public readonly record struct TextPointInParagraph
+public readonly record struct TextPointInParagraphCoordinate
 {
-    internal TextPointInParagraph(double x, double y, ParagraphData paragraphData)
+    internal TextPointInParagraphCoordinate(double x, double y, ParagraphData paragraphData)
     {
         _x = x;
         _y = y;
         _paragraphData = paragraphData;
     }
 
-    //internal TextPointInParagraph(TextPoint textPointInParagraph, ParagraphData paragraphData)
+    //internal TextPointInParagraphCoordinate(TextPoint textPointInParagraph, ParagraphData paragraphData)
     //{
     //    _paragraphPoint = textPointInParagraph;
     //    _paragraphData = paragraphData;
@@ -95,9 +94,9 @@ public readonly record struct TextPointInParagraph
     /// <param name="x"></param>
     /// <param name="y"></param>
     /// <returns></returns>
-    public TextPointInParagraph Offset(double x, double y)
+    public TextPointInParagraphCoordinate Offset(double x, double y)
     {
-        return new TextPointInParagraph(x + _x, y + _y, _paragraphData);
+        return new TextPointInParagraphCoordinate(x + _x, y + _y, _paragraphData);
     }
 
     /// <summary>
@@ -105,13 +104,13 @@ public readonly record struct TextPointInParagraph
     /// </summary>
     /// <param name="x"></param>
     /// <returns></returns>
-    public TextPointInParagraph ResetX(double x)
+    public TextPointInParagraphCoordinate ResetX(double x)
     {
-        return new TextPointInParagraph(x, _y, _paragraphData);
+        return new TextPointInParagraphCoordinate(x, _y, _paragraphData);
     }
 
-    public TextPointInParagraph ResetY(double y)
+    public TextPointInParagraphCoordinate ResetY(double y)
     {
-        return new TextPointInParagraph(_x, y, _paragraphData);
+        return new TextPointInParagraphCoordinate(_x, y, _paragraphData);
     }
 }

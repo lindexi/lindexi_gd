@@ -143,7 +143,7 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
     #region ICharDataLayoutInfoSetter
 
     /// <inheritdoc />
-    public void SetLayoutStartPoint(CharData charData, TextPointInLine point)
+    public void SetLayoutStartPoint(CharData charData, TextPointInLineCoordinate point)
     {
         if (IsCurrentLayoutCompleted)
         {
