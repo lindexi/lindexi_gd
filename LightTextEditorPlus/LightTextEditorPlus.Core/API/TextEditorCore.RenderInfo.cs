@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 using LightTextEditorPlus.Core.Exceptions;
+using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
 
@@ -16,11 +17,11 @@ public partial class TextEditorCore
     /// </summary>
     /// <returns></returns>
     /// <exception cref="TextEditorDirtyException"></exception>
-    public TextRect GetDocumentLayoutBounds()
+    public DocumentLayoutBounds GetDocumentLayoutBounds()
     {
         VerifyNotDirty();
 
-        return _layoutManager.DocumentRenderData.DocumentBounds;
+        return _layoutManager.DocumentLayoutBounds;
     }
 
     /// <summary>

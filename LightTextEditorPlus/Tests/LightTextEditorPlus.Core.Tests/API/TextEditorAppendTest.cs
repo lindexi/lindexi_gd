@@ -181,7 +181,7 @@ public class TextEditorAppendTest
             Assert.AreEqual(30, lastLine.LineLayoutData.CharStartPoint.Y);
             Assert.AreEqual(15, lastLine.LineLayoutData.LineContentSize.Height);
 
-            Assert.AreEqual(new TextRect(0, 0, 15 * 2, 15 * 3), textEditorCore.GetDocumentLayoutBounds());
+            Assert.AreEqual(new TextRect(0, 0, 15 * 2, 15 * 3), textEditorCore.GetDocumentLayoutBounds().DocumentOutlineBounds);
         });
 
         "对空段的文本追加字符串，如对 \\r\\n 追加 a 字符，不会抛出异常".Test(() =>
@@ -216,7 +216,7 @@ public class TextEditorAppendTest
             //  -
             // 高度 = 一行 15 高度 + 一行 15 高度 = 30 高度
             // 宽度 = 字符 a 宽度 = 15 宽度
-            Assert.AreEqual(new TextRect(0, 0, 15, 30), textEditorCore.GetDocumentLayoutBounds());
+            Assert.AreEqual(new TextRect(0, 0, 15, 30), textEditorCore.GetDocumentLayoutBounds().DocumentOutlineBounds);
         });
 
         "给文本追加一个 \\r\\n 字符串，文本可以分两段".Test(() =>
@@ -228,8 +228,8 @@ public class TextEditorAppendTest
             textEditorCore.AppendText("\r\n");
 
             // Assert
-            Assert.AreEqual(0, textEditorCore.GetDocumentLayoutBounds().Width);
-            Assert.AreEqual(30, textEditorCore.GetDocumentLayoutBounds().Height);
+            Assert.AreEqual(0, textEditorCore.GetDocumentLayoutBounds().DocumentContentBounds.Width);
+            Assert.AreEqual(30, textEditorCore.GetDocumentLayoutBounds().DocumentContentBounds.Height);
         });
     }
 }

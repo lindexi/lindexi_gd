@@ -161,7 +161,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
         Debug.Assert(!TextEditorCore.IsDirty, "布局完成时，文本一定可用");
 
-        TextRect documentLayoutBounds = TextEditorCore.GetDocumentLayoutBounds();
+        TextRect documentLayoutBounds = TextEditorCore.GetDocumentLayoutBounds().DocumentOutlineBounds;
         bool widthChanged = !NearlyEquals(documentLayoutBounds.Width, DesiredSize.Width);
         bool heightChanged = !NearlyEquals(documentLayoutBounds.Height, DesiredSize.Height);
 
@@ -226,21 +226,21 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         {
             // 宽度自适应，高度固定
             EnsureLayout();
-            (double x, double y, double width, double height) = TextEditorCore.GetDocumentLayoutBounds();
+            (double x, double y, double width, double height) = TextEditorCore.GetDocumentLayoutBounds().DocumentOutlineBounds;
             return new Size(width, availableSize.Height);
         }
         else if (sizeToContent == TextSizeToContent.Height)
         {
             // 高度自适应，宽度固定
             EnsureLayout();
-            (double x, double y, double width, double height) = TextEditorCore.GetDocumentLayoutBounds();
+            (double x, double y, double width, double height) = TextEditorCore.GetDocumentLayoutBounds().DocumentOutlineBounds;
             return new Size(availableSize.Width, height);
         }
         else if (sizeToContent == TextSizeToContent.WidthAndHeight)
         {
             // 宽度和高度都自适应
             EnsureLayout();
-            (double x, double y, double width, double height) = TextEditorCore.GetDocumentLayoutBounds();
+            (double x, double y, double width, double height) = TextEditorCore.GetDocumentLayoutBounds().DocumentOutlineBounds;
             return new Size(width, height);
         }
         else if (sizeToContent == TextSizeToContent.Manual)
@@ -254,6 +254,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
         void EnsureLayout()
         {
+            // todo 这里可能会遇到空文本问题。空文本默认没有推送布局 Action 过来，于是 ForceLayout 啥都没干。这里应该将 Avalonia 代码同步过来
             if (TextEditorCore.IsDirty)
             {
                 ForceLayout();

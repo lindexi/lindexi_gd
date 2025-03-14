@@ -84,7 +84,7 @@ public partial class TextEditorTestView : UserControl
                     await Task.Delay(100);
                 }
 
-                TextRect documentLayoutBounds = TextEditor.TextEditorCore.GetDocumentLayoutBounds();
+                TextRect documentLayoutBounds = TextEditor.TextEditorCore.GetDocumentLayoutBounds().DocumentOutlineBounds;
                 using RenderTargetBitmap renderTargetBitmap = new RenderTargetBitmap(new PixelSize((int) documentLayoutBounds.Width, (int) documentLayoutBounds.Height));
                 renderTargetBitmap.Render(TextEditor);
                 var renderImageFile = Path.Join(AppContext.BaseDirectory, $"{richTextCase.Name}_{Path.GetRandomFileName()}.png");

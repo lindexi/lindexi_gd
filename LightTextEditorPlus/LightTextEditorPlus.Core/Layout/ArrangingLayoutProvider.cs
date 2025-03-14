@@ -89,7 +89,7 @@ abstract class ArrangingLayoutProvider
             PreUpdateDocumentLayout(paragraphList, updateLayoutContext, firstDirtyParagraphInfo);
 
         // 03 回溯最终布局阶段
-        FinalUpdateDocumentLayout(preUpdateDocumentLayoutResult, updateLayoutContext);
+        FinalUpdateDocumentLayoutResult finalUpdateDocumentLayoutResult = FinalUpdateDocumentLayout(preUpdateDocumentLayoutResult, updateLayoutContext);
 
         if (IsInDebugMode)
         {
@@ -104,7 +104,7 @@ abstract class ArrangingLayoutProvider
         updateLayoutContext.RecordDebugLayoutInfo($"完成布局", LayoutDebugCategory.Document);
         updateLayoutContext.SetLayoutCompleted();
 
-        return new DocumentLayoutResult(preUpdateDocumentLayoutResult.DocumentBounds, updateLayoutContext);
+        return new DocumentLayoutResult(finalUpdateDocumentLayoutResult.LayoutBounds, updateLayoutContext);
     }
 
     /// <summary>
@@ -274,21 +274,25 @@ abstract class ArrangingLayoutProvider
             {
                 if (layoutData.StartPoint != TextPoint.Zero)
                 {
-                    throw new TextEditorInnerDebugException("首段的坐标必然是 0,0点");
+                    throw new TextEditorInnerDebugException("首段的坐标必然是 0,0 点");
+                }
+                else
+                {
+                    // 正好首段是 0,0 点，因此最终计算出来的文档范围应该是内容范围，只需取尺寸即可
                 }
             }
         }
 
-        updateLayoutContext.RecordDebugLayoutInfo($"PreUpdateDocumentLayout 完成预布局阶段。段落数量： {paragraphList.Count}，文档尺寸：{documentBounds}", LayoutDebugCategory.PreDocument);
+        Debug.Assert(documentBounds.Location == TextPoint.Zero);
+        updateLayoutContext.RecordDebugLayoutInfo($"PreUpdateDocumentLayout 完成预布局阶段。段落数量： {paragraphList.Count}，文档尺寸：{documentBounds.TextSize}", LayoutDebugCategory.PreDocument);
 
-        return new PreUpdateDocumentLayoutResult(documentBounds);
+        return new PreUpdateDocumentLayoutResult(documentBounds.TextSize);
     }
 
     /// <summary>
     /// 预布局文档的结果
     /// </summary>
-    /// <param name="DocumentBounds">文档的范围</param>
-    protected readonly record struct PreUpdateDocumentLayoutResult(TextRect DocumentBounds);
+    protected readonly record struct PreUpdateDocumentLayoutResult(TextSize DocumentContentSize);
 
     /// <summary>
     /// 段落内布局
@@ -536,8 +540,14 @@ abstract class ArrangingLayoutProvider
     /// 回溯文档布局排版。例如右对齐、居中对齐等
     /// </summary>
     /// Rewind Polished Document Layout 回溯也是抛光的过程，抛光是指对文档的最后一次布局调整
-    protected abstract void FinalUpdateDocumentLayout(PreUpdateDocumentLayoutResult preUpdateDocumentLayoutResult,
+    protected abstract FinalUpdateDocumentLayoutResult FinalUpdateDocumentLayout(PreUpdateDocumentLayoutResult preUpdateDocumentLayoutResult,
         UpdateLayoutContext updateLayoutContext);
+
+    /// <summary>
+    /// 回溯文档布局排版结果
+    /// </summary>
+    /// <param name="LayoutBounds"></param>
+    protected readonly record struct FinalUpdateDocumentLayoutResult(DocumentLayoutBounds LayoutBounds);
 
     #endregion 03 回溯最终布局阶段
 
@@ -594,22 +604,22 @@ abstract class ArrangingLayoutProvider
         setter.SetCharDataInfo(charData, size, baseline);
     }
 
-    /// <summary>
-    /// 获取文档的命中范围
-    /// </summary>
-    /// <returns></returns>
-    public TextRect GetDocumentHitBounds()
-    {
-        var documentBounds = LayoutManager.DocumentRenderData.DocumentBounds;
-        return CalculateHitBounds(in documentBounds);
-    }
+    ///// <summary>
+    ///// 获取文档的命中范围
+    ///// </summary>
+    ///// <returns></returns>
+    //public TextRect GetDocumentHitBounds()
+    //{
+    //    var documentBounds = LayoutManager.DocumentLayoutBounds.DocumentBounds;
+    //    return CalculateHitBounds(in documentBounds);
+    //}
 
-    /// <summary>
-    /// 根据传入的文档范围计算命中范围
-    /// </summary>
-    /// <param name="documentBounds"></param>
-    /// <returns></returns>
-    protected abstract TextRect CalculateHitBounds(in TextRect documentBounds);
+    ///// <summary>
+    ///// 根据传入的文档范围计算命中范围
+    ///// </summary>
+    ///// <param name="documentBounds"></param>
+    ///// <returns></returns>
+    //protected abstract TextRect CalculateHitBounds(in TextRect documentBounds);
 
     /// <summary>
     /// 获取给定行的最大字号的字符属性。这个属性就是这一行的代表属性

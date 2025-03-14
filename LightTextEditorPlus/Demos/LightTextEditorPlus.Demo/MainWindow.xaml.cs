@@ -86,8 +86,8 @@ namespace LightTextEditorPlus.Demo
         {
             if (!TextEditor.IsDirty)
             {
-                TextRect layoutBounds = TextEditor.TextEditorCore.GetDocumentLayoutBounds();
-                _layoutMessage = $"布局宽高：{layoutBounds.Width:0.00},{layoutBounds.Height:0.00}";
+                TextRect layoutBounds = TextEditor.TextEditorCore.GetDocumentLayoutBounds().DocumentContentBounds;
+                _layoutMessage = $"文档范围：{layoutBounds}";
             }
 
             DocumentManager documentManager = TextEditor.TextEditorCore.DocumentManager;
@@ -313,7 +313,8 @@ namespace LightTextEditorPlus.Demo
 
             void ShowDocumentBoundsDebugBorder()
             {
-                var documentLayoutBounds = TextEditor.TextEditorCore.GetDocumentLayoutBounds();
+                var documentLayoutBounds = TextEditor.TextEditorCore.GetDocumentLayoutBounds().DocumentContentBounds;
+
                 var documentBoundsDebugBorder = new DocumentBoundsDebugBorder()
                 {
                     Width = documentLayoutBounds.Width,
@@ -322,6 +323,8 @@ namespace LightTextEditorPlus.Demo
                     BorderThickness = new Thickness(2),
                     BorderBrush = Brushes.Cyan,
                 };
+                Canvas.SetLeft(documentBoundsDebugBorder, documentLayoutBounds.X);
+                Canvas.SetTop(documentBoundsDebugBorder, documentLayoutBounds.Y);
 
                 DebugCanvas.Children.Add(documentBoundsDebugBorder);
             }

@@ -118,7 +118,7 @@ class RenderManager
             _currentRender = null;
         }
 
-        TextRect documentLayoutBounds = renderInfoProvider.GetDocumentLayoutBounds();
+        TextRect documentLayoutBounds = renderInfoProvider.GetDocumentLayoutBounds().DocumentOutlineBounds;
 
         var textWidth = (float) documentLayoutBounds.Width;
         var textHeight = (float) documentLayoutBounds.Height;
