@@ -2,6 +2,7 @@
 
 using System.Collections;
 using System.Diagnostics;
+
 using LibGit2Sharp;
 
 AppendLog($"进程启动 {Environment.ProcessId} 工作路径 {Environment.CurrentDirectory}");
@@ -60,9 +61,8 @@ static void Update(string message)
                 UseShellExecute = true
             })!.WaitForExit();
 
-
             var worktreeRepository = worktree.WorktreeRepository;
-            
+
             //worktreeRepository.Index.Add(".");
 
             var processStartInfo = new ProcessStartInfo("git")
