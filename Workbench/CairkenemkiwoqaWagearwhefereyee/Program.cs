@@ -65,7 +65,7 @@ static void Update(string message)
             
             //worktreeRepository.Index.Add(".");
 
-            Process.Start(new ProcessStartInfo("git")
+            var processStartInfo = new ProcessStartInfo("git")
             {
                 ArgumentList =
                 {
@@ -73,8 +73,11 @@ static void Update(string message)
                     "."
                 },
                 WorkingDirectory = sourceFolder,
-                Environment = {  }
-            })!.WaitForExit();
+            };
+            // 这是在 git 里面调用的，会被注入 git 的环境变量，从而被投毒，如 GIT_INDEX_FILE GIT_DIR 等，导致加入的文件不是在要求的路径
+            processStartInfo.Environment.Clear();
+
+            Process.Start(processStartInfo)!.WaitForExit();
 
             var signature = new Signature("lindexi", "lindexi_gd@163.com", DateTimeOffset.Now.AddHours(2));
             worktreeRepository.Commit(message, signature, signature);
