@@ -60,13 +60,13 @@ class LineLayoutData : IParagraphCache, IDisposable
     /// 关系图请参阅 《文本库行布局信息定义.enbx》 文档
     public TextPoint CharStartPoint
     {
-        get => CharStartPointInParagraph.ToDocumentPoint(CurrentParagraph);
+        get => CharStartPointInParagraphCoordinate.ToDocumentPoint(CurrentParagraph);
     }
 
     /// <summary>
     /// 相对于段落的文本范围的起始点
     /// </summary>
-    internal TextPointInParagraph CharStartPointInParagraph
+    internal TextPointInParagraphCoordinate CharStartPointInParagraphCoordinate
     {
         set
         {
@@ -81,7 +81,7 @@ class LineLayoutData : IParagraphCache, IDisposable
         get => _charStartPoint;
     }
 
-    private TextPointInParagraph _charStartPoint;
+    private TextPointInParagraphCoordinate _charStartPoint;
 
     /// <summary>
     /// 这一行的尺寸。这是在 <see cref="LineCharTextSize"/> 基础上叠加行距尺寸信息。但有时候某些字体的 <see cref="LineCharTextSize"/> 会大于行尺寸，其根本原因是 <see cref="LineCharTextSize"/> 是字符的尺寸，直接就取字符尺寸。而 <see cref="LineContentSize"/> 是取行距计算 <see cref="ILineSpacingCalculator"/> 获取的，不一定会大于字符尺寸。所谓叠加行距尺寸信息，不是直接在字符尺寸加上行距尺寸，而是通过 <see cref="ILineSpacingCalculator"/> 计算得到的
@@ -131,14 +131,14 @@ class LineLayoutData : IParagraphCache, IDisposable
     /// - 段落缩进带来的空白 <see cref="ParagraphProperty.Indent"/>
     /// </summary>
     public TextRect OutlineBounds =>
-        new TextRect(OutlineStartPointInParagraph.ToDocumentPoint(CurrentParagraph), OutlineSize);
+        new TextRect(OutlineStartPointInParagraphCoordinate.ToDocumentPoint(CurrentParagraph), OutlineSize);
 
-    public void SetOutlineBounds(TextPointInParagraph outlineStartPointInParagraph, TextSize outlineSize)
+    public void SetOutlineBounds(TextPointInParagraphCoordinate outlineStartPointInParagraphCoordinate, TextSize outlineSize)
     {
-        OutlineStartPointInParagraph = outlineStartPointInParagraph;
+        OutlineStartPointInParagraphCoordinate = outlineStartPointInParagraphCoordinate;
         OutlineSize = outlineSize;
     }
-    public TextPointInParagraph OutlineStartPointInParagraph { get; private set; }
+    public TextPointInParagraphCoordinate OutlineStartPointInParagraphCoordinate { get; private set; }
     public TextSize OutlineSize { get; private set; }
 
     /// <summary>
