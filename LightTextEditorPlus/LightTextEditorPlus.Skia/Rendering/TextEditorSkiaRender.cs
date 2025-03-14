@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Utils;
@@ -17,7 +17,7 @@ class TextEditorSkiaRender : ITextEditorContentSkiaRender
     }
 
     /// <summary>
-    /// ¹ØÁªµÄÎÄ±¾±à¼­Æ÷¡£´Ë×Ö¶Î½öÓÃÓÚµ÷ÊÔ£¬ÇĞ²»ÒªÔÚ´Ë×Ö¶ÎÉÏµ÷ÓÃÈÎºÎ·½·¨£¬ÒòÎª¿ÉÄÜÊÇÔÚäÖÈ¾Ïß³ÌÉÏµ÷ÓÃ£¬¶ø²»ÊÇ UI Ïß³ÌÉÏµ÷ÓÃ
+    /// å…³è”çš„æ–‡æœ¬ç¼–è¾‘å™¨ã€‚æ­¤å­—æ®µä»…ç”¨äºè°ƒè¯•ï¼Œåˆ‡ä¸è¦åœ¨æ­¤å­—æ®µä¸Šè°ƒç”¨ä»»ä½•æ–¹æ³•ï¼Œå› ä¸ºå¯èƒ½æ˜¯åœ¨æ¸²æŸ“çº¿ç¨‹ä¸Šè°ƒç”¨ï¼Œè€Œä¸æ˜¯ UI çº¿ç¨‹ä¸Šè°ƒç”¨
     /// </summary>
     private readonly SkiaTextEditor _textEditor;
 
@@ -26,7 +26,7 @@ class TextEditorSkiaRender : ITextEditorContentSkiaRender
     private readonly SKPicture _picture;
 
     /// <summary>
-    /// ÊÇ·ñÒÑ¾­±»·µ»Ø³öÈ¥±»Ê¹ÓÃÁË£¬±»Ê¹ÓÃÁËµÄ£¬¾ÍÓ¦¸Ã½«ÊÍ·ÅÈ¨¸øµ½Íâ²¿£¬¶ø²»ÊÇ×Ô¼ºÊÍ·Å
+    /// æ˜¯å¦å·²ç»è¢«è¿”å›å‡ºå»è¢«ä½¿ç”¨äº†ï¼Œè¢«ä½¿ç”¨äº†çš„ï¼Œå°±åº”è¯¥å°†é‡Šæ”¾æƒç»™åˆ°å¤–éƒ¨ï¼Œè€Œä¸æ˜¯è‡ªå·±é‡Šæ”¾
     /// </summary>
     internal bool IsUsed { get; set; }
 
