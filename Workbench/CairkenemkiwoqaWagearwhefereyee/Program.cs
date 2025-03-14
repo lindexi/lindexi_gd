@@ -25,8 +25,8 @@ foreach (var worktree in repository.Worktrees)
 
         if (lastCommit != last.Sha)
         {
-            Update(message);
             File.WriteAllText(lastCommitFile, last.Sha);
+            Update(message);
         }
     }
 }
