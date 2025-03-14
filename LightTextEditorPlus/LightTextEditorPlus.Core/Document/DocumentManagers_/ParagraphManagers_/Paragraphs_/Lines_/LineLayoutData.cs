@@ -130,7 +130,16 @@ class LineLayoutData : IParagraphCache, IDisposable
     /// - 段落左中右对齐带来的空白 <see cref="ParagraphProperty.HorizontalTextAlignment"/>
     /// - 段落缩进带来的空白 <see cref="ParagraphProperty.Indent"/>
     /// </summary>
-    public TextRect OutlineBounds { get; internal set; }
+    public TextRect OutlineBounds =>
+        new TextRect(OutlineStartPointInParagraph.ToDocumentPoint(CurrentParagraph), OutlineSize);
+
+    public void SetOutlineBounds(TextPointInParagraph outlineStartPointInParagraph, TextSize outlineSize)
+    {
+        OutlineStartPointInParagraph = outlineStartPointInParagraph;
+        OutlineSize = outlineSize;
+    }
+    public TextPointInParagraph OutlineStartPointInParagraph { get; private set; }
+    public TextSize OutlineSize { get; private set; }
 
     /// <summary>
     /// 这一行的缩进信息带来的边距

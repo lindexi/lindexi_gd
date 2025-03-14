@@ -132,7 +132,7 @@ public class LayoutTest
             // a
             // \nb
             // 文档尺寸 = a 字符高度 15 + a 段后 22 + b 段前 21 + b 字符高度 15
-            TextRect documentLayoutBounds = textEditorCore.GetDocumentLayoutBounds();
+            TextRect documentLayoutBounds = textEditorCore.GetDocumentLayoutBounds().DocumentContentBounds;
             Assert.AreEqual(15 + 22 + 21 + 15, documentLayoutBounds.Height);
         });
     }
@@ -167,7 +167,7 @@ public class LayoutTest
             // \n
             // \nb
             // 文档尺寸 = a 字符高度 15 + a 段后 22 + 空段段前 21 + 空段高度 15 + 空段段后 22 + b 段前 22 + b 字符高度 15
-            TextRect documentLayoutBounds = textEditorCore.GetDocumentLayoutBounds();
+            TextRect documentLayoutBounds = textEditorCore.GetDocumentLayoutBounds().DocumentContentBounds;
             Assert.AreEqual(15 + 22 + 21 + 15 + 22 + 21 + 15, documentLayoutBounds.Height);
         });
 
@@ -192,7 +192,7 @@ public class LayoutTest
 
             // Assert
             // 文档尺寸 = 空段高度 15 + 空段段后 22 + a段前 5 + a段高度 15
-            TextRect documentLayoutBounds = textEditorCore.GetDocumentLayoutBounds();
+            TextRect documentLayoutBounds = textEditorCore.GetDocumentLayoutBounds().DocumentContentBounds;
             Assert.AreEqual(15 + 22 + 5 + 15, documentLayoutBounds.Height);
         });
 
@@ -217,7 +217,7 @@ public class LayoutTest
 
             // Assert
             // 文档尺寸 = a段高度 15 + a段段后 22 + 空段前 5 + 空段高度 15
-            TextRect documentLayoutBounds = textEditorCore.GetDocumentLayoutBounds();
+            TextRect documentLayoutBounds = textEditorCore.GetDocumentLayoutBounds().DocumentContentBounds;
             Assert.AreEqual(15 + 22 + 5 + 15, documentLayoutBounds.Height);
         });
     }

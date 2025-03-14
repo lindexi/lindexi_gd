@@ -272,7 +272,7 @@ partial class TextEditor : Control
             return;
         }
 
-        TextRect documentLayoutBounds = TextEditorCore.GetDocumentLayoutBounds();
+        TextRect documentLayoutBounds = TextEditorCore.GetDocumentLayoutBounds().DocumentOutlineBounds;
 
         bool widthChanged = Math.Abs(documentLayoutBounds.Width - DesiredSize.Width) > 0.001;
         bool heightChanged = Math.Abs(documentLayoutBounds.Height - DesiredSize.Height) > 0.001;
@@ -339,7 +339,9 @@ partial class TextEditor : Control
 
             // 此时可以通知文本底层进行布局了，这是一个很好的时机
             RenderInfoProvider renderInfoProvider = ForceLayout();
-            (double x, double y, double width, double height) = renderInfoProvider.GetDocumentLayoutBounds();
+            (double x, double y, double width, double height) = renderInfoProvider.GetDocumentLayoutBounds()
+                // 不应该取内容，应该取外接范围。解决垂直居中和底部对齐的问题
+                .DocumentOutlineBounds;
             _ = x;
             _ = y;
 

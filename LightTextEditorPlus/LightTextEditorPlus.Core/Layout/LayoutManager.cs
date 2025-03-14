@@ -48,7 +48,7 @@ class LayoutManager
     {
         TextEditor.Logger.Log(new StartLayoutLogInfo());
         var result = ArrangingLayoutProvider.UpdateLayout();
-        DocumentRenderData.DocumentBounds = result.DocumentBounds;
+        DocumentLayoutBounds = result.LayoutBounds;
         TextEditor.Logger.Log(new LayoutCompletedLogInfo(result));
 
         //InternalLayoutCompleted?.Invoke(this, EventArgs.Empty);
@@ -74,5 +74,5 @@ class LayoutManager
 
     private ArrangingLayoutProvider? _arrangingLayoutProvider;
 
-    public DocumentRenderData DocumentRenderData { get; } = new DocumentRenderData();
+    public DocumentLayoutBounds DocumentLayoutBounds { get; private set; }
 }

@@ -59,7 +59,7 @@ class LayoutHitTestProvider
 
         // 不需要通过 GetRenderInfo 方法获取，这是一个比较上层的方法了。框架内应该使用 LayoutProvider 获取
         //TextEditor.GetRenderInfo()
-        TextRect documentHitBounds = LayoutProvider.GetDocumentHitBounds();
+        TextRect documentHitBounds = LayoutManager.DocumentLayoutBounds.DocumentContentBounds;
 
         logContext.RecordDebugMessage($"开始测试文档范围是否命中");
 

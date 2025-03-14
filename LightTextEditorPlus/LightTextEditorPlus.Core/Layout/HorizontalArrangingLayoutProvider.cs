@@ -54,7 +54,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         paragraph.SetDirty();
 
         paragraph.SetLayoutDirty(exceptTextSize: true);
-        Debug.Assert(paragraph.ParagraphLayoutData.StartPoint == TextContext.InvalidStartPoint);
+        Debug.Assert(paragraph.ParagraphLayoutData.StartPointInDocumentContentCoordinate.IsInvalid);
         UpdateParagraphLayoutData(in argument);
 
         //var layoutArgument = argument with
@@ -67,7 +67,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         paragraph.SetFinishLayout();
 
         // 转换为下一段的坐标
-        TextPoint nextParagraphStartPoint = nextLineStartPoint.ToDocumentPoint(paragraph);
+        TextPointInDocumentContentCoordinate nextParagraphStartPoint = nextLineStartPoint.ToDocumentContentCoordinate(paragraph);
         // 加上段后间距
         nextParagraphStartPoint = nextParagraphStartPoint.Offset(0, argument.GetParagraphAfter());
         return new ParagraphLayoutResult(nextParagraphStartPoint);
@@ -192,7 +192,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         //};
 
         // 下一段的起始点
-        TextPoint nextParagraphStartPoint;
+        TextPointInDocumentContentCoordinate nextParagraphStartPoint;
         // 如果是空段的话，那就进行空段布局，否则布局段落里面每一行
         if (paragraph.IsEmptyParagraph)
         {
@@ -235,10 +235,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             // 下一段的距离需要加上段后间距
             double paragraphAfter =
                 argument.GetParagraphAfter();
-            nextParagraphStartPoint = nextParagraphStartPoint with
-            {
-                Y = nextParagraphStartPoint.Y + paragraphAfter,
-            };
+            var offsetX = 0;
+            var offsetY = paragraphAfter;
+            nextParagraphStartPoint = nextParagraphStartPoint.Offset(offsetX, offsetY);
         }
 
         //// 考虑行复用，例如刚好添加的内容是一行。或者在一行内做文本替换等
@@ -259,7 +258,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// <param name="argument"></param>
     /// <param name="currentStartPoint"></param>
     /// <returns></returns>
-    private TextPoint UpdateEmptyParagraphLayout(in ParagraphLayoutArgument argument, TextPoint currentStartPoint)
+    private TextPointInDocumentContentCoordinate UpdateEmptyParagraphLayout(in ParagraphLayoutArgument argument, TextPointInDocumentContentCoordinate currentStartPoint)
     {
         double paragraphBefore = argument.GetParagraphBefore();
 
@@ -283,10 +282,9 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 下一段的起始坐标
         //  = 当前的坐标 + 段前 + 行高 + 段后
         double paragraphAfter = argument.GetParagraphAfter();
-        var nextParagraphStartPoint = currentStartPoint with
-        {
-            Y = currentStartPoint.Y + paragraphBefore + lineHeight + paragraphAfter
-        };
+        const double offsetX = 0;
+        double offsetY = paragraphBefore + lineHeight + paragraphAfter;
+        var nextParagraphStartPoint = currentStartPoint.Offset(offsetX, offsetY);
         return nextParagraphStartPoint;
     }
 
@@ -301,7 +299,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// <exception cref="TextEditorDebugException"></exception>
     /// <exception cref="TextEditorInnerException"></exception>
     /// 每一行的布局都是相对于文本的每个对应的段落的坐标点。更具体来说是相对于段落的文本范围的坐标点。即不包括段前间距和段后间距的坐标点
-    private TextPoint UpdateParagraphLinesLayout(in ParagraphLayoutArgument argument, in ParagraphCharOffset startParagraphOffset,
+    private TextPointInDocumentContentCoordinate UpdateParagraphLinesLayout(in ParagraphLayoutArgument argument, in ParagraphCharOffset startParagraphOffset,
         TextPointInParagraph currentStartPoint)
     {
         // 当前的坐标点，这是相对于段落的坐标点
@@ -402,7 +400,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         }
 
         // 下一段的起始坐标。从行进行转换
-        var nextParagraphStartPoint = currentStartPoint.ToDocumentPoint(argument.ParagraphData);
+        var nextParagraphStartPoint = currentStartPoint.ToDocumentContentCoordinate(argument.ParagraphData);
         return nextParagraphStartPoint;
     }
 
@@ -749,6 +747,22 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         }
     }
 
+    /// <inheritdoc />
+    protected override TextSize CalculateDocumentContentSize(IReadOnlyList<ParagraphData> paragraphList, UpdateLayoutContext updateLayoutContext)
+    {
+        double documentContentWidth = 0;
+        double documentContentHeight = 0;
+        foreach (ParagraphData paragraphData in paragraphList)
+        {
+            IParagraphLayoutData layoutData = paragraphData.ParagraphLayoutData;
+
+            documentContentWidth = Math.Max(documentContentWidth, layoutData.OutlineSize.Width);
+            documentContentHeight += layoutData.OutlineSize.Height;
+        }
+
+        return new TextSize(documentContentWidth, documentContentHeight);
+    }
+
     #region 辅助方法
 
     // 这是为分词器提供的接口。现在分词器只做分词，不做布局，所以这个接口不需要
@@ -803,12 +817,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
     #endregion
 
-    /// <summary>
-    /// 获取下一段的行起始点
-    /// </summary>
-    /// <param name="paragraphData"></param>
-    /// <returns></returns>
-    protected override TextPoint GetNextParagraphLineStartPoint(ParagraphData paragraphData)
+    /// <inheritdoc />
+    protected override TextPointInDocumentContentCoordinate GetNextParagraphLineStartPoint(in TextPointInDocumentContentCoordinate currentPoint,ParagraphData paragraphData)
     {
         const double x = 0;
         var layoutData = paragraphData.ParagraphLayoutData;
@@ -821,8 +831,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             }
         }
 
-        var y = layoutData.OutlineBounds.Bottom;
-        return new TextPoint(x, y);
+        return currentPoint.Offset(0, layoutData.OutlineSize.Height);
 
         // 以下是通过最后一行的值进行计算的。不足的是需要判断空段，因此不如使用段落偏移加上段落高度进行计算
         //if (paragraphData.LineVisualDataList.Count == 0)
@@ -854,12 +863,14 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// 布局过程是： 文档-段落-行
     /// <param name="preUpdateDocumentLayoutResult"></param>
     /// <param name="updateLayoutContext"></param>
-    protected override void FinalUpdateDocumentLayout(PreUpdateDocumentLayoutResult preUpdateDocumentLayoutResult, UpdateLayoutContext updateLayoutContext)
+    protected override FinalUpdateDocumentLayoutResult FinalUpdateDocumentLayout(PreUpdateDocumentLayoutResult preUpdateDocumentLayoutResult, UpdateLayoutContext updateLayoutContext)
     {
         updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 进入最终布局阶段", LayoutDebugCategory.FinalDocument);
 
-        TextRect documentBounds = preUpdateDocumentLayoutResult.DocumentBounds;
-        var documentWidth = CalculateHitBounds(documentBounds).Width;
+        TextSize documentContentSize = preUpdateDocumentLayoutResult.DocumentContentSize;
+        TextSize documentOutlineSize = CalculateDocumentOutlineSize(in documentContentSize);
+
+        var documentWidth = documentOutlineSize.Width;
         IReadOnlyList<ParagraphData> paragraphList = updateLayoutContext.InternalParagraphList;
 
         for (var paragraphIndex = 0/*为什么从首段开始？如右对齐情况下，被撑大文档范围，则即使没有变脏也需要更新坐标*/; paragraphIndex < paragraphList.Count; paragraphIndex++)
@@ -871,29 +882,39 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             FinalUpdateParagraphLayout(in paragraphLayoutArgument);
         }
 
-        if (IsInDebugMode)
-        {
-            // 调试逻辑，理论上下一段的起始点就是等于本段最低点
-            var lastParagraphOutlineBounds = paragraphList[0].ParagraphLayoutData.OutlineBounds;
-            for (var paragraphIndex = 1;
-                 paragraphIndex < paragraphList.Count;
-                 paragraphIndex++)
-            {
-                // 当前段落的起始点就等于上一段的最低点
-                ParagraphData paragraphData = paragraphList[paragraphIndex];
-                TextPoint startPoint = paragraphData.ParagraphLayoutData.StartPoint;
+        //if (IsInDebugMode)
+        //{
+        //    // 调试逻辑，理论上下一段的起始点就是等于本段最低点
+        //    var lastParagraphOutlineBounds = paragraphList[0].ParagraphLayoutData.OutlineBounds;
+        //    for (var paragraphIndex = 1;
+        //         paragraphIndex < paragraphList.Count;
+        //         paragraphIndex++)
+        //    {
+        //        // 当前段落的起始点就等于上一段的最低点
+        //        ParagraphData paragraphData = paragraphList[paragraphIndex];
+        //        var startPoint = paragraphData.ParagraphLayoutData.StartPointInDocumentContentCoordinate;
 
-                if (!Nearly.Equals(lastParagraphOutlineBounds.Bottom, startPoint.Y))
-                {
-                    // 如果不相等，则证明计算不正确
-                    throw new TextEditorInnerDebugException($"文本段落计算之间存在空隙。当前第 {paragraphIndex} 段。上一段范围： {lastParagraphOutlineBounds} ，当前段的起始点 {startPoint}");
-                }
+        //        if(!startPoint.NearlyEqualsY(lastParagraphOutlineBounds.Bottom))
+        //        {
+        //            // 如果不相等，则证明计算不正确
+        //            throw new TextEditorInnerDebugException($"文本段落计算之间存在空隙。当前第 {paragraphIndex} 段。上一段范围： {lastParagraphOutlineBounds} ，当前段的起始点 {startPoint}");
+        //        }
 
-                lastParagraphOutlineBounds = paragraphData.ParagraphLayoutData.OutlineBounds;
-            }
-        }
+        //        lastParagraphOutlineBounds = paragraphData.ParagraphLayoutData.OutlineBounds;
+        //    }
+        //}
 
-        updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 完成最终布局阶段。文档尺寸：{documentBounds.TextSize.ToCommaSplitWidthAndHeight()}", LayoutDebugCategory.FinalDocument);
+        // 计算内容的左上角起点。处理垂直居中、底部对齐等情况
+        var documentStartPoint = CalculateDocumentContentLeftTopStartPoint(in documentContentSize, in documentOutlineSize);
+        // 内容范围
+        TextRect documentContentBounds = new TextRect(documentStartPoint, documentContentSize);
+        // 外接范围
+        TextRect documentOutlineBounds = new TextRect(TextPoint.Zero, documentOutlineSize);
+        DocumentLayoutBounds documentLayoutBounds = new DocumentLayoutBounds(documentContentBounds,documentOutlineBounds);
+
+        updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 完成最终布局阶段。文档内容范围：{documentContentBounds} 文档外接范围：{documentOutlineBounds}", LayoutDebugCategory.FinalDocument);
+
+        return new FinalUpdateDocumentLayoutResult(documentLayoutBounds);
     }
 
     readonly record struct FinalParagraphLayoutArgument(ParagraphData Paragraph, ParagraphIndex ParagraphIndex, double DocumentWidth, UpdateLayoutContext UpdateLayoutContext);
@@ -985,12 +1006,16 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         lineLayoutData
             .SetLineFinalLayoutInfo(indentationThickness, horizontalTextAlignmentGapThickness);
 
-        lineLayoutData.OutlineBounds = GetOutlineBounds();
+        // 计算 Outline 的范围
+        var outlineStartPoint = lineLayoutData.CharStartPointInParagraph.ResetX(0);
+        var outlineWidth = documentWidth;
+        var outlineHeight = lineLayoutData.LineContentSize.Height;
+
+        lineLayoutData.SetOutlineBounds(outlineStartPoint,new TextSize(outlineWidth,outlineHeight));
 
         if (updateLayoutContext.IsInDebugMode)
         {
             // 调试模式，校验一下宽度
-            var outlineWidth = lineLayoutData.OutlineBounds.Width;
             var contentWidth = lineLayoutData.LineContentSize.Width;
 
             Debug.Assert(Nearly.Equals(outlineWidth, documentWidth));
@@ -1005,24 +1030,43 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             Debug.Assert(!paragraphProperty.AllowHangingPunctuation && contentWidthAddThickness <= outlineWidth,
                 "什么时候小于？一行字符不满的时候。什么时候等于？刚好一行字符刚好满，这里还要求行宽度是字符宽度的倍数。什么时候可能大于？允许标点溢出边界");
         }
+    }
 
-        TextRect GetOutlineBounds()
+    /// <summary>
+    /// 计算文档内容的左上角点，处理垂直居中、底部对齐等情况
+    /// </summary>
+    /// <returns></returns>
+    private TextPoint CalculateDocumentContentLeftTopStartPoint(in TextSize documentContentSize, in TextSize documentOutlineSize)
+    {
+        VerticalTextAlignment verticalTextAlignment = TextEditor.VerticalTextAlignment;
+        // 如果是顶部对齐，那么直接返回 0,0 即可
+        if (verticalTextAlignment == VerticalTextAlignment.Top)
         {
-            // 计算 Outline 的范围
-            var x = 0;
-            var y = lineLayoutData.CharStartPoint.Y;
-            var width = documentWidth;
-            var height = lineLayoutData.LineContentSize.Height;
-            return new TextRect(x, y, width, height);
+            return TextPoint.Zero;
         }
+
+        double documentHeight = documentContentSize.Height;
+        double outlineHeight = documentOutlineSize.Height;
+        var gapHeight = outlineHeight - documentHeight;
+        Debug.Assert(gapHeight>=0,"外接的尺寸高度肯定大于等于内容尺寸");
+
+        const int left = 0; // 水平方向不需要处理
+        var top = verticalTextAlignment switch
+        {
+            //VerticalTextAlignment.Top => 0, // 这条已经提前处理了
+            VerticalTextAlignment.Center => gapHeight / 2,
+            VerticalTextAlignment.Bottom => gapHeight,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+
+        return new TextPoint(left, top);
     }
 
     #endregion 03 回溯最终布局阶段
 
     #region 通用辅助方法
 
-    /// <inheritdoc />
-    protected override TextRect CalculateHitBounds(in TextRect documentBounds)
+    private TextSize CalculateDocumentOutlineSize(in TextSize documentContentSize)
     {
         // 获取当前文档的大小，对水平布局来说，只取横排的最大值即可
         double lineMaxWidth = GetLineMaxWidth();
@@ -1030,12 +1074,33 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         if (!double.IsFinite(documentWidth))
         {
             // 非有限宽度，则采用文档的宽度
-            documentWidth = documentBounds.Width;
+            documentWidth = documentContentSize.Width;
         }
 
-        // 高度不改变。这样即可让命中的时候，命中到文档下方时，命中可计算超过命中范围
-        return documentBounds with { Width = documentWidth };
+        var documentHeight = TextEditor.DocumentManager.DocumentHeight;
+        if (!double.IsFinite(documentHeight))
+        {
+            documentHeight = documentContentSize.Height;
+        }
+
+        return new TextSize(documentWidth, documentHeight);
     }
+
+    ///// <inheritdoc />
+    //protected override TextRect CalculateHitBounds(in TextRect documentBounds)
+    //{
+    //    // 获取当前文档的大小，对水平布局来说，只取横排的最大值即可
+    //    double lineMaxWidth = GetLineMaxWidth();
+    //    var documentWidth = lineMaxWidth;
+    //    if (!double.IsFinite(documentWidth))
+    //    {
+    //        // 非有限宽度，则采用文档的宽度
+    //        documentWidth = documentBounds.Width;
+    //    }
+
+    //    // 高度不改变。这样即可让命中的时候，命中到文档下方时，命中可计算超过命中范围
+    //    return documentBounds with { Width = documentWidth };
+    //}
 
     #endregion 通用辅助方法
 }

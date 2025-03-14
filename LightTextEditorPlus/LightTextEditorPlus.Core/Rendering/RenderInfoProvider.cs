@@ -8,6 +8,7 @@ using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
+using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Rendering;
@@ -33,7 +34,7 @@ public class RenderInfoProvider
     public bool IsDirty { internal set; get; }
 
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.GetDocumentLayoutBounds"/>
-    public TextRect GetDocumentLayoutBounds() => TextEditor.GetDocumentLayoutBounds();
+    public DocumentLayoutBounds GetDocumentLayoutBounds() => TextEditor.GetDocumentLayoutBounds();
 
     /// <summary>
     /// 获取选择对应的范围。一般是一行一个 Rect 对象

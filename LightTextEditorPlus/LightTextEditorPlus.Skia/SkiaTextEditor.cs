@@ -124,7 +124,7 @@ public partial class SkiaTextEditor : IRenderManager
             return;
         }
 
-        CurrentLayoutBounds = TextEditorCore.GetDocumentLayoutBounds();
+        CurrentLayoutBounds = TextEditorCore.GetDocumentLayoutBounds().DocumentOutlineBounds;
 
         RenderManager.Render(renderInfoProvider);
 
