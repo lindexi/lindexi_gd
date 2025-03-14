@@ -3,9 +3,13 @@
 using System.Diagnostics;
 using LibGit2Sharp;
 
+AppendLog($"进程启动 {Environment.ProcessId} 工作路径 {Environment.CurrentDirectory}");
+
 var codeFolder = new DirectoryInfo(@"C:\lindexi\Code");
 
 var folder = @$"{codeFolder.EnumerateDirectories().First(t => t.Name.Contains("lindexi")).FullName}\lindexi\.git\";
+
+AppendLog($"仓库地址 {folder}");
 
 var repository = new Repository(folder);
 
@@ -74,3 +78,9 @@ static void Update(string message)
 }
 
 Console.WriteLine("Hello, World!");
+
+static void AppendLog(string message)
+{
+    var logFile = Path.Join(AppContext.BaseDirectory, "Log.txt");
+    File.AppendAllText(logFile, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss,fff}] {message}\r\n");
+}
