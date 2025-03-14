@@ -48,6 +48,7 @@ public interface IParagraphLayoutData
 /// </summary>
 class ParagraphLayoutData : IParagraphLayoutData
 {
+
     /// <summary>
     /// 段落的起始点
     /// </summary>
@@ -68,12 +69,33 @@ class ParagraphLayoutData : IParagraphLayoutData
     /// </summary>
     /// 为什么左右边距不叠加在段落上？现在是每一行都叠加，因为前面实现错误，以为左边距会受到悬挂缩进的影响。实际应该让左右边距放在这里，行只处理缩进
     /// 但行在处理的过程，本身就需要考虑左右边距影响了行的可用宽度，因此放在行里面处理也是可以的
-    public TextThickness TextContentThickness { get; set; } = TextThickness.Invalid;
+    public TextThickness TextContentThickness
+    {
+        get
+        {
+            // 在预布局过程中，就已经计算了边距，这个赋值十分快，理论上不会出现拿不到的情况，除非拿错段落
+            Debug.Assert(_textContentThickness != TextThickness.Invalid);
+            return _textContentThickness;
+        }
+        set => _textContentThickness = value;
+    }
+
+    private TextThickness _textContentThickness = TextThickness.Invalid;
 
     /// <summary>
     /// 外接的尺寸，包含段前和段后和左右边距
     /// </summary>
-    public TextSize OutlineSize { get; set; } = TextSize.Invalid;
+    public TextSize OutlineSize
+    {
+        get
+        {
+            Debug.Assert(_outlineSize!= TextSize.Invalid, "不能在回溯最终布局段落之前获取外接尺寸");
+            return _outlineSize;
+        }
+        set => _outlineSize = value;
+    }
+
+    private TextSize _outlineSize = TextSize.Invalid;
 
     /// <summary>
     /// 外接边界，包含对齐的空白

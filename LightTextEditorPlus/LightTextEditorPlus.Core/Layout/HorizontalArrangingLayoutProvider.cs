@@ -756,8 +756,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         {
             IParagraphLayoutData layoutData = paragraphData.ParagraphLayoutData;
 
-            documentContentWidth = Math.Max(documentContentWidth, layoutData.OutlineSize.Width);
-            documentContentHeight += layoutData.OutlineSize.Height;
+            documentContentWidth = Math.Max(documentContentWidth, layoutData.TextSize.Width);
+
+            TextThickness contentThickness = layoutData.TextContentThickness;
+            documentContentHeight += contentThickness.Top + layoutData.TextSize.Height + contentThickness.Bottom;
         }
 
         return new TextSize(documentContentWidth, documentContentHeight);
