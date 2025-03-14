@@ -1,4 +1,4 @@
-using LightTextEditorPlus.Core.Primitive;
+ï»¿using LightTextEditorPlus.Core.Primitive;
 using SkiaSharp;
 
 namespace LightTextEditorPlus.Utils;
@@ -11,9 +11,9 @@ public static class SkiaExtensions
     }
 
     /// <summary>
-    /// ×ª»»Îª TextRect ¶ÔÏó
+    /// è½¬æ¢ä¸º TextRect å¯¹è±¡
     /// </summary>
-    /// Õâ¸ö·½·¨²»¹«¿ª£¬²»ÒªÎÛÈ¾ÆäËûÄ£¿é¡£Ö»ÓĞÎÄ±¾ÀïÃæ²Å¿ÉÄÜÊ¹ÓÃµ½
+    /// è¿™ä¸ªæ–¹æ³•ä¸å…¬å¼€ï¼Œä¸è¦æ±¡æŸ“å…¶ä»–æ¨¡å—ã€‚åªæœ‰æ–‡æœ¬é‡Œé¢æ‰å¯èƒ½ä½¿ç”¨åˆ°
     /// <param name="rect"></param>
     /// <returns></returns>
     internal static TextRect ToTextRect(this SKRect rect)
