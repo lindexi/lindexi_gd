@@ -70,6 +70,8 @@ partial class TextEditor : Control
         //#endif
 
         IMESupporter.AddIMESupport(this);
+
+        Cursor = new Avalonia.Input.Cursor(StandardCursorType.Ibeam);
     }
 
     internal AvaloniaSkiaTextEditorPlatformProvider PlatformProvider { get; }
