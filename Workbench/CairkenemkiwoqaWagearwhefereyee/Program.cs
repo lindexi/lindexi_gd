@@ -1,9 +1,14 @@
 // See https://aka.ms/new-console-template for more information
 
+using System.Collections;
 using System.Diagnostics;
 using LibGit2Sharp;
 
-AppendLog($"进程启动 {Environment.ProcessId} 工作路径 {Environment.CurrentDirectory}");
+AppendLog($"进程启动 {Environment.ProcessId} 工作路径 {Environment.CurrentDirectory} 环境变量：");
+foreach (DictionaryEntry environmentVariable in Environment.GetEnvironmentVariables())
+{
+    AppendLog($"{environmentVariable.Key}={environmentVariable.Value}");
+}
 
 var codeFolder = new DirectoryInfo(@"C:\lindexi\Code");
 
@@ -54,6 +59,7 @@ static void Update(string message)
             {
                 UseShellExecute = true
             })!.WaitForExit();
+
 
             var worktreeRepository = worktree.WorktreeRepository;
             
