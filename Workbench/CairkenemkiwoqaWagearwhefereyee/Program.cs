@@ -79,7 +79,7 @@ static void Update(string message)
 
             Process.Start(processStartInfo)!.WaitForExit();
 
-            var signature = new Signature("lindexi", "lindexi_gd@163.com", DateTimeOffset.Now.AddHours(2));
+            var signature = new Signature("lindexi", "lindexi_gd@163.com", DateTimeOffset.Now.AddMinutes(20));
             worktreeRepository.Commit(message, signature, signature);
 
             return;
