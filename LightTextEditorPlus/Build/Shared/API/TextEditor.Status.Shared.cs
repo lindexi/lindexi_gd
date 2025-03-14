@@ -1,4 +1,4 @@
-#if !USE_SKIA
+#if !USE_SKIA || USE_AllInOne
 
 using System;
 
