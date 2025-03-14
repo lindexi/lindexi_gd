@@ -4,11 +4,11 @@ using System.Collections;
 using System.Diagnostics;
 using LibGit2Sharp;
 
-AppendLog($"进程启动 {Environment.ProcessId} 工作路径 {Environment.CurrentDirectory} 环境变量：");
-foreach (DictionaryEntry environmentVariable in Environment.GetEnvironmentVariables())
-{
-    AppendLog($"{environmentVariable.Key}={environmentVariable.Value}");
-}
+AppendLog($"进程启动 {Environment.ProcessId} 工作路径 {Environment.CurrentDirectory}");
+//foreach (DictionaryEntry environmentVariable in Environment.GetEnvironmentVariables())
+//{
+//    AppendLog($"{environmentVariable.Key}={environmentVariable.Value}");
+//}
 
 var codeFolder = new DirectoryInfo(@"C:\lindexi\Code");
 
@@ -72,7 +72,8 @@ static void Update(string message)
                     "add",
                     "."
                 },
-                WorkingDirectory = sourceFolder
+                WorkingDirectory = sourceFolder,
+                Environment = {  }
             })!.WaitForExit();
 
             var signature = new Signature("lindexi", "lindexi_gd@163.com", DateTimeOffset.Now.AddHours(2));
