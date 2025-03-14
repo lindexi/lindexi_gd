@@ -24,12 +24,21 @@ public readonly struct TextPointInDocumentContentCoordinate
 
     private readonly LayoutManager _manager;
 
+    /// <summary>
+    /// 是否为零点坐标
+    /// </summary>
     public bool IsZero => _x == 0 && _y == 0;
 
+    /// <summary>
+    /// 是否为无效坐标
+    /// </summary>
     public bool IsInvalid
         // 只需判断一个条件就好了，不用判断 X 和 Y 的值
         => ReferenceEquals(_manager, null);
 
+    /// <summary>
+    /// 无效的起点坐标
+    /// </summary>
     public static TextPointInDocumentContentCoordinate InvalidStartPoint
     {
         get
@@ -40,16 +49,19 @@ public readonly struct TextPointInDocumentContentCoordinate
         }
     }
 
+    /// <inheritdoc />
     public bool Equals(TextPointInDocumentContentCoordinate other)
     {
         return _x.Equals(other._x) && _y.Equals(other._y) && ReferenceEquals(_manager,other._manager);
     }
 
+    /// <inheritdoc />
     public override bool Equals(object? obj)
     {
         return obj is TextPointInDocumentContentCoordinate other && Equals(other);
     }
 
+    /// <inheritdoc />
     public override int GetHashCode()
     {
         return HashCode.Combine(_x, _y);
@@ -69,6 +81,12 @@ public readonly struct TextPointInDocumentContentCoordinate
     internal bool NearlyEqualsX(double x) => Nearly.Equals(_x, x);
     internal bool NearlyEqualsY(double y) => Nearly.Equals(_y, y);
 
+    /// <summary>
+    /// 偏移
+    /// </summary>
+    /// <param name="offsetX"></param>
+    /// <param name="offsetY"></param>
+    /// <returns></returns>
     public TextPointInDocumentContentCoordinate Offset(double offsetX, double offsetY)
     {
         return new TextPointInDocumentContentCoordinate(_x + offsetX, _y + offsetY, _manager);
@@ -77,6 +95,6 @@ public readonly struct TextPointInDocumentContentCoordinate
     /// <inheritdoc />
     public override string ToString()
     {
-        return $"DocumentContentCoordinate:[{_x:0.###},{_y:0.###}]";
+        return $"DocumentContentCoordinate:({_x:0.###},{_y:0.###})";
     }
 }

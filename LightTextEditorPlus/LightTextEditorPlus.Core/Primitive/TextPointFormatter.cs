@@ -11,5 +11,5 @@ public static class TextPointFormatter
     /// <param name="textPoint"></param>
     /// <returns></returns>
     public static string ToMathPointFormat(this TextPoint textPoint)
-        => $"({textPoint.X:#.##},{textPoint.Y:#.##})";
+        => $"({textPoint.X:0.##},{textPoint.Y:0.##})";
 }
