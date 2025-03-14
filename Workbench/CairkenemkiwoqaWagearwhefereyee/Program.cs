@@ -33,6 +33,8 @@ foreach (var worktree in repository.Worktrees)
             lastCommit = File.ReadAllText(lastCommitFile);
         }
 
+        AppendLog($"当前 {last.Sha}。文件 {lastCommit}");
+
         if (lastCommit != last.Sha)
         {
             File.WriteAllText(lastCommitFile, last.Sha);
