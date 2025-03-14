@@ -168,7 +168,7 @@ abstract class ArrangingLayoutProvider
                 if (index == 0)
                 {
                     // 从首段落开始
-                    firstStartPoint = new TextPoint(0, 0);
+                    firstStartPoint = TextPoint.Zero;
                 }
                 else
                 {
@@ -263,13 +263,23 @@ abstract class ArrangingLayoutProvider
         }
 
         TextRect documentBounds = TextRect.Empty;
-        foreach (var paragraphData in paragraphList)
+        for (int i = 0; i < paragraphList.Count; i++)
         {
-            var bounds = paragraphData.ParagraphLayoutData.TextContentBounds;
+            ParagraphData paragraphData = paragraphList[i];
+            IParagraphLayoutData layoutData = paragraphData.ParagraphLayoutData;
+            var bounds = layoutData.TextContentBounds;
             documentBounds = documentBounds.Union(bounds);
+
+            if (IsInDebugMode && i == 0)
+            {
+                if (layoutData.StartPoint != TextPoint.Zero)
+                {
+                    throw new TextEditorInnerDebugException("首段的坐标必然是 0,0点");
+                }
+            }
         }
 
-        updateLayoutContext.RecordDebugLayoutInfo($"PreUpdateDocumentLayout 完成预布局阶段。段落数量： {paragraphList.Count}，文档范围：{documentBounds}", LayoutDebugCategory.PreDocument);
+        updateLayoutContext.RecordDebugLayoutInfo($"PreUpdateDocumentLayout 完成预布局阶段。段落数量： {paragraphList.Count}，文档尺寸：{documentBounds}", LayoutDebugCategory.PreDocument);
 
         return new PreUpdateDocumentLayoutResult(documentBounds);
     }
