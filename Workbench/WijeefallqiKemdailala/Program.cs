@@ -7,28 +7,74 @@
 // 请在此处编写正则表达式
 using System.Text.RegularExpressions;
 
-var regex = new Regex(@"(?<ProjectName>[\w-_]+)(_(?<Custom>\w+))?(_(?<RuntimeIdentifier>\w+-\w+))?");
-
 Span<string> inputList =
 [
-    "Lindexi_Custom_win-x86",
-    "Lindexi_Custom",
-    "Lindexi"
+    "package/Lindexi_Custom_win-x64",
+    "package/Lindexi_Custom",
+    "package/Lindexi_linux-x64",
+    "package/Lindexi"
 ];
 
 foreach (var input in inputList)
 {
     Console.WriteLine($"输入 {input}");
 
-    var match = regex.Match(input);
-    if (match.Success)
+    string? projectName = null;
+    string? custom = null;
+    string? runtimeIdentifier = null;
+  
+    var packingConfigurationInput = input;
+
+    if (packingConfigurationInput.StartsWith("package/"))
     {
-        Console.WriteLine($"项目名：{match.Groups["ProjectName"].Value}");
-        Console.WriteLine($"定制版：{match.Groups["Custom"].Value}");
-        Console.WriteLine($"打包平台：{match.Groups["RuntimeIdentifier"].Value}");
+        packingConfigurationInput = packingConfigurationInput["package/".Length..];
     }
-    else
+
+    // 直接使用字符串分割
+    var split = packingConfigurationInput.Split('_');
+    projectName = split[0];
+    if (split.Length == 3)
     {
-        Console.WriteLine("输入的格式不正确");
+        custom = split[1];
+        runtimeIdentifier = split[2];
     }
+    else if (split.Length == 2)
+    {
+        // 第二项可能是定制版，也可能是打包平台
+        if (split[1].Contains("win-") || split[1].Contains("linux-"))
+        {
+            runtimeIdentifier = split[1];
+        }
+        else
+        {
+            custom = split[1];
+        }
+    }
+
+    Console.WriteLine($"项目名：{projectName}");
+    Console.WriteLine($"定制版：{custom}");
+    Console.WriteLine($"打包平台：{runtimeIdentifier}\r\n");
 }
+
+
+/*
+   输入 package/Lindexi_Custom_win-x64
+   项目名：Lindexi
+   定制版：Custom
+   打包平台：win-x64
+   
+   输入 package/Lindexi_Custom
+   项目名：Lindexi
+   定制版：Custom
+   打包平台：
+   
+   输入 package/Lindexi_linux-x64
+   项目名：Lindexi
+   定制版：
+   打包平台：linux-x64
+   
+   输入 package/Lindexi
+   项目名：Lindexi
+   定制版：
+   打包平台：
+ */
