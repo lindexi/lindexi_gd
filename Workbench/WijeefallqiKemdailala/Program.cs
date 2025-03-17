@@ -7,43 +7,28 @@
 // 请在此处编写正则表达式
 using System.Text.RegularExpressions;
 
-var regex = new Regex(@"(?<ProjectName>\w+)(_(?<Custom>\w+))?(_(?<RuntimeIdentifier>\w+-\w+))?");
+var regex = new Regex(@"(?<ProjectName>[\w-_]+)(_(?<Custom>\w+))?(_(?<RuntimeIdentifier>\w+-\w+))?");
 
-var input = "Lindexi_Custom_win-x86";
-var match = regex.Match(input);
-if (match.Success)
-{
-    Console.WriteLine($"项目名：{match.Groups["ProjectName"].Value}");
-    Console.WriteLine($"定制版：{match.Groups["Custom"].Value}");
-    Console.WriteLine($"打包平台：{match.Groups["RuntimeIdentifier"].Value}");
-}
-else
-{
-    Console.WriteLine("输入的格式不正确");
-}
+Span<string> inputList =
+[
+    "Lindexi_Custom_win-x86",
+    "Lindexi_Custom",
+    "Lindexi"
+];
 
-input = "Lindexi_Custom";
-match = regex.Match(input);
-if (match.Success)
+foreach (var input in inputList)
 {
-    Console.WriteLine($"项目名：{match.Groups["ProjectName"].Value}");
-    Console.WriteLine($"定制版：{match.Groups["Custom"].Value}");
-    Console.WriteLine($"打包平台：{match.Groups["RuntimeIdentifier"].Value}");
-}
-else
-{
-    Console.WriteLine("输入的格式不正确");
-}
+    Console.WriteLine($"输入 {input}");
 
-input = "Lindexi";
-match = regex.Match(input);
-if (match.Success)
-{
-    Console.WriteLine($"项目名：{match.Groups["ProjectName"].Value}");
-    Console.WriteLine($"定制版：{match.Groups["Custom"].Value}");
-    Console.WriteLine($"打包平台：{match.Groups["RuntimeIdentifier"].Value}");
-}
-else
-{
-    Console.WriteLine("输入的格式不正确");
+    var match = regex.Match(input);
+    if (match.Success)
+    {
+        Console.WriteLine($"项目名：{match.Groups["ProjectName"].Value}");
+        Console.WriteLine($"定制版：{match.Groups["Custom"].Value}");
+        Console.WriteLine($"打包平台：{match.Groups["RuntimeIdentifier"].Value}");
+    }
+    else
+    {
+        Console.WriteLine("输入的格式不正确");
+    }
 }
