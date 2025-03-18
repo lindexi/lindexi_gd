@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "JuqawhicaqarLairciwholeni.Analyzer": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\JuqawhicaqarLairciwholeni\\JuqawhicaqarLairciwholeni.csproj"
+    }
+  }
+}
