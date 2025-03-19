@@ -97,9 +97,18 @@ partial class TextEditor
 
             context.Custom(new TextEditorCustomDrawOperation(renderBounds, textEditorSkiaRender, toDisposedList));
 
-            if (textEditor.IsInEditingInputMode
-                // 如果配置了选择区域在非编辑模式下也会绘制，那在非编辑模式下也会绘制选择区域
-                || textEditor.CaretConfiguration.ShowSelectionWhenNotInEditingInputMode)
+            var showCaret = textEditor.IsInEditingInputMode;
+            // 如果配置了选择区域在非编辑模式下也会绘制，那在非编辑模式下也会绘制选择区域
+            showCaret = showCaret ||
+                        (
+                            textEditor
+                                .CaretConfiguration
+                                .ShowSelectionWhenNotInEditingInputMode
+                            // 有选择时才能绘制选择范围，否则不应该只显示光标
+                            && !textEditor.CurrentSelection.IsEmpty
+                        );
+
+            if (showCaret)
             {
                 // 只有编辑模式下才会绘制光标和选择区域
                 context.Custom(new TextEditorCustomDrawOperation(renderBounds,
