@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Avalonia.Media;
+
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
@@ -244,7 +246,16 @@ class RichTextCaseProvider
             editor.SetFontName("微软雅黑");
             editor.AppendText("123123123123123123123123123");
             editor.SelectAll();
-        }, "两行文本进行选择，选择范围重叠");
+        }, "两行文本进行选择，选择范围不重叠");
+
+        Add(editor =>
+        {
+            editor.SetFontSize(50);
+            editor.SetFontName("微软雅黑");
+            editor.CaretConfiguration.SelectionBrush = new Color(0x5C, 0xFF, 0x00, 0x00);
+            editor.AppendText("123123123123123123123123123");
+            editor.SelectAll();
+        }, "设置选择范围颜色");
     }
 
     private readonly ITextEditorProvider _textEditorProvider;
