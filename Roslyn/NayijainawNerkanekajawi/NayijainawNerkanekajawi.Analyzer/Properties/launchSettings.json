@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "NayijainawNerkanekajawi.Analyzer": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\NayijainawNerkanekajawi\\NayijainawNerkanekajawi.csproj"
+    }
+  }
+}
