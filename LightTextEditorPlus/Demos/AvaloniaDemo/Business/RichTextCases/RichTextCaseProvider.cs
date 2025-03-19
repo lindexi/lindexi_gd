@@ -256,6 +256,16 @@ class RichTextCaseProvider
             editor.AppendText("123123123123123123123123123");
             editor.SelectAll();
         }, "设置选择范围颜色");
+
+        Add(editor =>
+        {
+            editor.SetFontSize(50);
+            editor.SetFontName("微软雅黑");
+            editor.CaretConfiguration.SelectionBrush = new Color(0x5C, 0xFF, 0x00, 0x00);
+            editor.AppendText("123123123123123123123123123");
+            editor.SelectAll();
+            editor.CaretConfiguration.ShowSelectionWhenNotInEditingInputMode = false;
+        }, "设置失去焦点时，不要显示选择范围");
     }
 
     private readonly ITextEditorProvider _textEditorProvider;
