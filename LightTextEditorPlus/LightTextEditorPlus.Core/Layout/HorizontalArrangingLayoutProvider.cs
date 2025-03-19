@@ -822,7 +822,6 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// <inheritdoc />
     protected override TextPointInDocumentContentCoordinate GetNextParagraphLineStartPoint(in TextPointInDocumentContentCoordinate currentPoint,ParagraphData paragraphData)
     {
-        const double x = 0;
         var layoutData = paragraphData.ParagraphLayoutData;
         //TextRect textBounds = layoutData.TextContentBounds;
         if (IsInDebugMode)
@@ -833,7 +832,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             }
         }
 
-        return currentPoint.Offset(0, layoutData.OutlineSize.Height);
+        const double offsetX = 0;
+        double offsetY = layoutData.OutlineSize.Height;
+
+        return currentPoint.Offset(offsetX, offsetY);
 
         // 以下是通过最后一行的值进行计算的。不足的是需要判断空段，因此不如使用段落偏移加上段落高度进行计算
         //if (paragraphData.LineVisualDataList.Count == 0)
