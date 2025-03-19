@@ -20,10 +20,5 @@ public partial class TextEditor
     /// 使用 Skia 渲染承载的文本编辑器
     /// </summary>
     public SkiaTextEditor SkiaTextEditor { get; }
-
-    /// <summary>
-    /// 日志
-    /// </summary>
-    internal ITextLogger Logger => TextEditorCore.Logger;
 }
 

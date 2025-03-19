@@ -5,6 +5,7 @@ using System;
 using LightTextEditorPlus.Core.Attributes;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Events;
+using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Document;
 
 namespace LightTextEditorPlus;
@@ -93,5 +94,18 @@ partial class TextEditor
 
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.DebugName"/>
     public string? DebugName => TextEditorCore.DebugName;
+
+    #region 日志
+
+    /// <summary>
+    /// 日志
+    /// </summary>
+    public ITextLogger Logger
+    {
+        get => TextEditorCore.Logger;
+        set => TextEditorCore.Logger = value;
+    }
+
+    #endregion
 }
 #endif

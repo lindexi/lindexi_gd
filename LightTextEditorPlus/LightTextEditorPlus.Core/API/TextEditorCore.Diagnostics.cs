@@ -19,7 +19,7 @@ partial class TextEditorCore
     /// <summary>
     /// 日志
     /// </summary>
-    public ITextLogger Logger { get; }
+    public ITextLogger Logger { get; set; }
 
     /// <summary>
     /// 这个文本的调试名，用于在各个抛出的异常等，方便记录调试日志或埋点上报了解是哪个文本框抛出的。默认是空将取文本的前15个字符
