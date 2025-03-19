@@ -8,7 +8,17 @@ partial class TextEditor
 {
     public CaretConfiguration CaretConfiguration
     {
-        get => new CaretConfiguration(SkiaTextEditor.CaretConfiguration);
+        get
+        {
+            if (SkiaTextEditor.CaretConfiguration is CaretConfiguration caretConfiguration)
+            {
+                return caretConfiguration;
+            }
+
+            caretConfiguration = new CaretConfiguration(SkiaTextEditor.CaretConfiguration);
+            SkiaTextEditor.CaretConfiguration = caretConfiguration;
+            return caretConfiguration;
+        }
         set => SkiaTextEditor.CaretConfiguration = value;
     }
 }
