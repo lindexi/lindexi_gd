@@ -17,16 +17,39 @@ public class FooIncrementalGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        IncrementalValuesProvider<FooInfo1> foo1ValuesProvider = GetProvider();
+        IncrementalValueProvider<FooInfo1> foo1ValuesProvider = GetProvider();
 
-        IncrementalValueProvider<ImmutableArray<FooInfo1>> foo1ArrayValueProvider = foo1ValuesProvider.Collect();
+        IncrementalValuesProvider<FooInfo2> foo2ValuesProvider = foo1ValuesProvider.SelectMany
+        (
+            (FooInfo1 info1, CancellationToken token) =>
+            {
+                var n = info1.Number;
+                var list = new List<FooInfo2>();
+                for (int i = 0; i < n; i++)
+                {
+                    list.Add(new FooInfo2());
+                }
 
-        IncrementalValuesProvider<FooInfo1> backToValuesProvider = foo1ArrayValueProvider.SelectMany((ImmutableArray<FooInfo1> array, CancellationToken token) => array);
+                return list;
+            }
+        );
 
-        foo1ValuesProvider = backToValuesProvider;
+        IncrementalValuesProvider<FooInfo3> foo3ValuesProvider = foo2ValuesProvider.SelectMany
+        (
+            (FooInfo2 info2, CancellationToken token) =>
+            {
+                var list = new List<FooInfo3>();
+                for (int i = 0; i < info2.Count; i++)
+                {
+                    list.Add(new FooInfo3());
+                }
+
+                return list;
+            }
+        );
     }
 
-    private IncrementalValuesProvider<FooInfo1> GetProvider()
+    private IncrementalValueProvider<FooInfo1> GetProvider()
     {
         throw new NotImplementedException();
     }
