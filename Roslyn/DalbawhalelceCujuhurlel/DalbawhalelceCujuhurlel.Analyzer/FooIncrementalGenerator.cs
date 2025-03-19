@@ -22,7 +22,7 @@ public class FooIncrementalGenerator : IIncrementalGenerator
 
         IncrementalValuesProvider<FooInfo2> foo2ValuesProvider = foo1ValuesProvider.Select((FooInfo1 info1, CancellationToken token) => new FooInfo2());
 
-        IncrementalValuesProvider<FooInfo3> foo3ValuesProvider = foo1ValuesProvider.Select((FooInfo1 info1, CancellationToken token) => new FooInfo3());
+        IncrementalValuesProvider<FooInfo3> foo3ValuesProvider = foo2ValuesProvider.Select((FooInfo2 info2, CancellationToken token) => new FooInfo3());
 
     }
 
