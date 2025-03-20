@@ -4,6 +4,7 @@ using System.Linq;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Document;
@@ -39,9 +40,14 @@ public static class RenderManagerExtension
             else
             {
                 // 如果一行内存在多个不同的字符属性信息，则要求必定传入 CharData 指定使用哪个字符属性信息
-                if (lineDrawingArgument.CharList.GetCharSpanContinuous().Count() > 1)
+                var count = 0;
+                foreach (TextReadOnlyListSpan<CharData> _ in lineDrawingArgument.CharList.GetCharSpanContinuous())
                 {
-                    throw new ArgumentException($"一行内存在多个不同的字符属性，必须传入 CharData 指定使用哪个字符属性信息");
+                    count++;
+                    if (count > 1)
+                    {
+                        throw new ArgumentException($"一行内存在多个不同的字符属性，必须传入 CharData 指定使用哪个字符属性信息");
+                    }
                 }
             }
         }

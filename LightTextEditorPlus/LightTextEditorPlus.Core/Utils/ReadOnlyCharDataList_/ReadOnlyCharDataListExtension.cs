@@ -125,15 +125,9 @@ public static class ReadOnlyCharDataListExtension
     }
 
     /// <inheritdoc cref="GetFirstCharSpanContinuous"/>
-    public static IEnumerable<TextReadOnlyListSpan<CharData>> GetCharSpanContinuous(this TextReadOnlyListSpan<CharData> charList, CheckCharDataContinuous? checker = null)
+    public static CharSpanContinuousEnumerable GetCharSpanContinuous(this TextReadOnlyListSpan<CharData> charList, CheckCharDataContinuous? checker = null)
     {
-        var currentList = charList;
-        while (currentList.Count > 0)
-        {
-            var firstSpan = currentList.GetFirstCharSpanContinuous(checker);
-            yield return firstSpan;
-            currentList = currentList.Slice(start: firstSpan.Count);
-        }
+        return new CharSpanContinuousEnumerable(charList, checker);
     }
 
     /// <summary>
