@@ -5,7 +5,7 @@ using System.Windows.Media;
 using CSharpMarkup.Wpf;
 
 using dotnetCampus.UITest.WPF;
-
+using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Demo;
 
 using MSTest.Extensions.Contracts;
@@ -27,10 +27,11 @@ public class TextEditorTest
         {
             // Arrange
             // Action
+            const double width = 30;
             TextEditor textEditor = new TextEditor()
             {
                 // 设置文本控件 Width 宽度
-                Width = 30,
+                Width = width,
                 Margin = Thickness(10, 10, 10, 10),
                 Text = "1234567890",
                 SizeToContent = SizeToContent.Height
@@ -60,6 +61,12 @@ public class TextEditorTest
             // Assert
             mainWindow.Show();
             await textEditor.WaitForRenderCompletedAsync();
+
+            Assert.AreEqual(width + textEditor.Margin.Left + textEditor.Margin.Right, textEditor.DesiredSize.Width);
+            Assert.AreEqual(width, textEditor.ActualWidth);
+            RenderInfoProvider renderInfoProvider = textEditor.TextEditorCore.GetRenderInfo();
+            Assert.AreEqual(width, renderInfoProvider.GetDocumentLayoutBounds().DocumentOutlineBounds.Width);
+
             await TestFramework.FreezeTestToDebug();
         });
     }
