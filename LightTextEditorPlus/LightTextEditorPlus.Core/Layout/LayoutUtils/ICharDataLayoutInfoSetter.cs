@@ -9,7 +9,7 @@ namespace LightTextEditorPlus.Core.Layout.LayoutUtils;
 public interface ICharDataLayoutInfoSetter
 {
     /// <inheritdoc cref="CharData.SetLayoutCharLineStartPoint"/>
-    void SetLayoutStartPoint(CharData charData, TextPointInLineCoordinate point /*, TextPoint baselineStartPoint*/);
+    void SetLayoutStartPoint(CharData charData, TextPointInLineCoordinateSystem point /*, TextPoint baselineStartPoint*/);
 
     /// <inheritdoc cref="CharData.SetCharDataInfo"/>
     void SetCharDataInfo(CharData charData, TextSize textSize, double baseline);

@@ -5,12 +5,12 @@ namespace LightTextEditorPlus.Core.Primitive;
 /// <summary>
 /// 相对于行的坐标点
 /// </summary>
-public readonly record struct TextPointInLineCoordinate
+public readonly record struct TextPointInLineCoordinateSystem
 {
     /// <summary>
     /// 相对于行的坐标点
     /// </summary>
-    public TextPointInLineCoordinate(double x, double y)
+    public TextPointInLineCoordinateSystem(double x, double y)
     {
         _x = x;
         _y = y;

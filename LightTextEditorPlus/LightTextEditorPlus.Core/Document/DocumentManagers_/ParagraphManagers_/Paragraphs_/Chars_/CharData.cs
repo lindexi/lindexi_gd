@@ -71,7 +71,7 @@ public sealed class CharData
     /// <exception cref="InvalidOperationException"></exception>
     /// 这是文本排版布局的核心方法，通过此方法即可设置每个字符的位置
     [MemberNotNull(nameof(CharLayoutData))]
-    internal void SetLayoutCharLineStartPoint(TextPointInLineCoordinate point/*, TextPoint baselineStartPoint*/)
+    internal void SetLayoutCharLineStartPoint(TextPointInLineCoordinateSystem point/*, TextPoint baselineStartPoint*/)
     {
         if (CharLayoutData is null)
         {

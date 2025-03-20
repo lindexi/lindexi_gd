@@ -18,7 +18,7 @@ namespace LightTextEditorPlus.Core.Layout;
 /// <param name="UpdateLayoutContext"></param>
 public readonly record struct WholeLineLayoutArgument(ParagraphIndex ParagraphIndex, int LineIndex,
     ITextParagraph Paragraph, in TextReadOnlyListSpan<CharData> CharDataList, double LineMaxWidth,
-    TextPointInParagraphCoordinate CurrentStartPoint, UpdateLayoutContext UpdateLayoutContext)
+    TextPointInParagraphCoordinateSystem CurrentStartPoint, UpdateLayoutContext UpdateLayoutContext)
 {
     /// <summary>
     /// 段落属性

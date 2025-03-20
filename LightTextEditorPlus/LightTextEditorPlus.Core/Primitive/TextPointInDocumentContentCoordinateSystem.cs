@@ -8,10 +8,10 @@ namespace LightTextEditorPlus.Core.Primitive;
 /// <summary>
 /// 相对于文档内容坐标系的点
 /// </summary>
-public readonly struct TextPointInDocumentContentCoordinate
-    :IEquatable<TextPointInDocumentContentCoordinate>
+public readonly struct TextPointInDocumentContentCoordinateSystem
+    :IEquatable<TextPointInDocumentContentCoordinateSystem>
 {
-    internal TextPointInDocumentContentCoordinate(double x, double y, LayoutManager manager)
+    internal TextPointInDocumentContentCoordinateSystem(double x, double y, LayoutManager manager)
     {
         _x = x;
         _y = y;
@@ -39,18 +39,18 @@ public readonly struct TextPointInDocumentContentCoordinate
     /// <summary>
     /// 无效的起点坐标
     /// </summary>
-    public static TextPointInDocumentContentCoordinate InvalidStartPoint
+    public static TextPointInDocumentContentCoordinateSystem InvalidStartPoint
     {
         get
         {
             TextPoint invalidStartPoint = TextContext.InvalidStartPoint;
 
-            return new TextPointInDocumentContentCoordinate(invalidStartPoint.X, invalidStartPoint.Y, manager: null!);
+            return new TextPointInDocumentContentCoordinateSystem(invalidStartPoint.X, invalidStartPoint.Y, manager: null!);
         }
     }
 
     /// <inheritdoc />
-    public bool Equals(TextPointInDocumentContentCoordinate other)
+    public bool Equals(TextPointInDocumentContentCoordinateSystem other)
     {
         return _x.Equals(other._x) && _y.Equals(other._y) && ReferenceEquals(_manager,other._manager);
     }
@@ -58,7 +58,7 @@ public readonly struct TextPointInDocumentContentCoordinate
     /// <inheritdoc />
     public override bool Equals(object? obj)
     {
-        return obj is TextPointInDocumentContentCoordinate other && Equals(other);
+        return obj is TextPointInDocumentContentCoordinateSystem other && Equals(other);
     }
 
     /// <inheritdoc />
@@ -87,9 +87,9 @@ public readonly struct TextPointInDocumentContentCoordinate
     /// <param name="offsetX"></param>
     /// <param name="offsetY"></param>
     /// <returns></returns>
-    public TextPointInDocumentContentCoordinate Offset(double offsetX, double offsetY)
+    public TextPointInDocumentContentCoordinateSystem Offset(double offsetX, double offsetY)
     {
-        return new TextPointInDocumentContentCoordinate(_x + offsetX, _y + offsetY, _manager);
+        return new TextPointInDocumentContentCoordinateSystem(_x + offsetX, _y + offsetY, _manager);
     }
 
     /// <inheritdoc />
