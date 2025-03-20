@@ -41,9 +41,9 @@ partial class TextEditor : Control
         // 属性初始化
         Focusable = true;
 
-        PlatformProvider = new AvaloniaSkiaTextEditorPlatformProvider();
-        PlatformProvider.AvaloniaTextEditor = this;
-        SkiaTextEditor = new SkiaTextEditor(PlatformProvider);
+        TextEditorPlatformProvider = new AvaloniaSkiaTextEditorPlatformProvider();
+        TextEditorPlatformProvider.AvaloniaTextEditor = this;
+        SkiaTextEditor = new SkiaTextEditor(TextEditorPlatformProvider);
 
         _renderEngine = new AvaloniaTextEditorRenderEngine(this);
 
@@ -74,7 +74,7 @@ partial class TextEditor : Control
         Cursor = new Avalonia.Input.Cursor(StandardCursorType.Ibeam);
     }
 
-    internal AvaloniaSkiaTextEditorPlatformProvider PlatformProvider { get; }
+    internal AvaloniaSkiaTextEditorPlatformProvider TextEditorPlatformProvider { get; }
 
     /// <summary>
     /// 是否是当前正在调试的文本控件。一个界面里面包含多个控件的时候，就不太适合只用 IsInDebugMode 属性了，需要再有一个用来做业务上的区分
@@ -223,7 +223,7 @@ partial class TextEditor : Control
             while (!TextEditorCore.TryGetRenderInfo(out renderInfoProvider))
             {
                 // 什么时候这个循环会进入两次？当文本刚刚布局完成之后，就被其他业务弄脏了。如有业务监听 LayoutCompleted 事件，在此事件里面修改文本
-                PlatformProvider.EnsureLayoutUpdated();
+                TextEditorPlatformProvider.EnsureLayoutUpdated();
             }
 
             return renderInfoProvider;
@@ -272,10 +272,12 @@ partial class TextEditor : Control
             return;
         }
 
+        Debug.Assert(!TextEditorCore.IsDirty, "布局完成时，文本一定可用");
+
         TextRect documentLayoutBounds = TextEditorCore.GetDocumentLayoutBounds().DocumentOutlineBounds;
 
-        bool widthChanged = Math.Abs(documentLayoutBounds.Width - DesiredSize.Width) > 0.001;
-        bool heightChanged = Math.Abs(documentLayoutBounds.Height - DesiredSize.Height) > 0.001;
+        bool widthChanged = !NearlyEquals(documentLayoutBounds.Width, DesiredSize.Width);
+        bool heightChanged = !NearlyEquals(documentLayoutBounds.Height, DesiredSize.Height);
 
         bool shouldInvalidateMeasure = false;
         if (TextEditorCore.SizeToContent is TextSizeToContent.Width && widthChanged)
@@ -322,6 +324,9 @@ partial class TextEditor : Control
         }
     }
 
+    private static bool NearlyEquals(double a, double b)
+        => Math.Abs(a - b) < 0.001;
+
     private bool _isMeasuring;
 
     protected override Size MeasureOverride(Size availableSize)
@@ -336,6 +341,7 @@ partial class TextEditor : Control
         {
             var result = base.MeasureOverride(availableSize);
             _ = result;
+            // 以下对应 WPF 的 MeasureTextEditorCore 方法。由于 Avalonia 里面不好分 TextView 层，于是就决定代码都写到一个方法里面
 
             // 此时可以通知文本底层进行布局了，这是一个很好的时机
             RenderInfoProvider renderInfoProvider = ForceLayout();
@@ -348,7 +354,9 @@ partial class TextEditor : Control
             var notExistsWidth = double.IsInfinity(availableSize.Width) && double.IsNaN(Width);
             var notExistsHeight = double.IsInfinity(availableSize.Height) && double.IsNaN(Height);
 
-            if (TextEditorCore.SizeToContent is TextSizeToContent.Width)
+            TextSizeToContent sizeToContent = TextEditorCore.SizeToContent;
+
+            if (sizeToContent is TextSizeToContent.Width)
             {
                 // 宽度自适应，高度固定
                 if (notExistsHeight)
@@ -358,7 +366,7 @@ partial class TextEditor : Control
 
                 return new Size(width, availableSize.Height);
             }
-            else if (TextEditorCore.SizeToContent is TextSizeToContent.Height)
+            else if (sizeToContent is TextSizeToContent.Height)
             {
                 // 高度自适应，宽度固定
                 if (notExistsWidth)
@@ -368,12 +376,12 @@ partial class TextEditor : Control
 
                 return new Size(availableSize.Width, height);
             }
-            else if (TextEditorCore.SizeToContent is TextSizeToContent.WidthAndHeight)
+            else if (sizeToContent is TextSizeToContent.WidthAndHeight)
             {
                 // 宽度和高度都自适应
                 return new Size(width, height);
             }
-            else if (TextEditorCore.SizeToContent == TextSizeToContent.Manual)
+            else if (sizeToContent == TextSizeToContent.Manual)
             {
                 if (notExistsWidth || notExistsHeight)
                 {

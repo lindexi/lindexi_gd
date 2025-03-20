@@ -69,7 +69,7 @@ internal class MouseHandler
 
                 // HandleSingleClick
                 Point position = e.GetPosition(TextEditor);
-                TextEditor.PlatformProvider.EnsureLayoutUpdated();
+                TextEditor.TextEditorPlatformProvider.EnsureLayoutUpdated();
                 if (TextEditorCore.TryHitTest(position.ToTextPoint(), out var result))
                 {
                     _isHitSelection = !TextEditorCore.CurrentSelection.IsEmpty && TextEditorCore.CurrentSelection.Contains(result.HitCaretOffset);
