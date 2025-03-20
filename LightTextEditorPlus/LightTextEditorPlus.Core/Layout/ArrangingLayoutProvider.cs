@@ -121,7 +121,7 @@ abstract class ArrangingLayoutProvider
             }
 
             IParagraphLayoutData paragraphLayoutData = paragraphData.ParagraphLayoutData;
-            if (paragraphLayoutData.StartPointInDocumentContentCoordinate.IsInvalid)
+            if (paragraphLayoutData.StartPointInDocumentContentCoordinateSystem.IsInvalid)
             {
                 throw new TextEditorInnerDebugException($"完成布局之后，没有更新段落的文本起始点布局信息");
             }
@@ -155,7 +155,7 @@ abstract class ArrangingLayoutProvider
         // 首行出现变脏的序号
         var firstDirtyParagraphIndex = -1;
         // 首个脏段的起始 也就是横排左上角的点。等于非脏段的下一个行起点
-        var currentStartPoint = new TextPointInDocumentContentCoordinate(0, 0, LayoutManager);
+        var currentStartPoint = new TextPointInDocumentContentCoordinateSystem(0, 0, LayoutManager);
         for (var index = 0; index < paragraphList.Count; index++)
         {
             ParagraphData paragraphData = paragraphList[index];
@@ -173,7 +173,7 @@ abstract class ArrangingLayoutProvider
             }
         }
 
-        TextPointInDocumentContentCoordinate firstStartPoint = currentStartPoint;
+        TextPointInDocumentContentCoordinateSystem firstStartPoint = currentStartPoint;
         if (firstDirtyParagraphIndex == -1)
         {
             throw new TextEditorInnerException($"进入布局时，没有任何一段需要布局");
@@ -194,7 +194,7 @@ abstract class ArrangingLayoutProvider
     /// <param name="FirstStartPoint">首个脏段的起始 也就是横排左上角的点。等于非脏段的下一个行起点</param>
     private readonly record struct FirstDirtyParagraphInfo(
         ParagraphIndex FirstDirtyParagraphIndex,
-        TextPointInDocumentContentCoordinate FirstStartPoint);
+        TextPointInDocumentContentCoordinateSystem FirstStartPoint);
 
     #endregion 获取需要更新布局段落的逻辑
 
@@ -215,7 +215,7 @@ abstract class ArrangingLayoutProvider
 
         // firstDirtyParagraphIndex - 首行出现变脏的序号
         // firstStartPoint - 首个脏段的起始 也就是横排左上角的点。等于非脏段的下一个行起点
-        (ParagraphIndex firstDirtyParagraphIndex, TextPointInDocumentContentCoordinate firstStartPoint) = firstDirtyParagraphInfo;
+        (ParagraphIndex firstDirtyParagraphIndex, TextPointInDocumentContentCoordinateSystem firstStartPoint) = firstDirtyParagraphInfo;
 
         // 进入段落内布局
         var currentStartPoint = firstStartPoint;
@@ -230,7 +230,7 @@ abstract class ArrangingLayoutProvider
             ParagraphLayoutResult result = UpdateParagraphLayout(argument);
             var nextParagraphStartPoint = result.NextParagraphStartPoint;
             // 预布局过程中，没有获取其 Outline 的值。 于是 OutlineBounds={paragraphData.ParagraphLayoutData.OutlineBounds}; 将在无缓存时，为 {X=0 Y=0 Width=0 Height=0} 的值
-            updateLayoutContext.RecordDebugLayoutInfo($"完成预布局第 {index} 段，共 {paragraphData.LineLayoutDataList.Count} 行 StartPoint={paragraphData.ParagraphLayoutData.StartPointInDocumentContentCoordinate};Size={paragraphData.ParagraphLayoutData.TextSize}; NextParagraphStartPoint={nextParagraphStartPoint}", LayoutDebugCategory.PreParagraph);
+            updateLayoutContext.RecordDebugLayoutInfo($"完成预布局第 {index} 段，共 {paragraphData.LineLayoutDataList.Count} 行 StartPoint={paragraphData.ParagraphLayoutData.StartPointInDocumentContentCoordinateSystem};Size={paragraphData.ParagraphLayoutData.TextSize}; NextParagraphStartPoint={nextParagraphStartPoint}", LayoutDebugCategory.PreParagraph);
             currentStartPoint = nextParagraphStartPoint;
 
             if (IsInDebugMode)
@@ -241,7 +241,7 @@ abstract class ArrangingLayoutProvider
                     throw new TextEditorInnerDebugException($"完成预布局第 {index} 段之后，没有更新段落的文本尺寸布局信息");
                 }
 
-                if (paragraphData.ParagraphLayoutData.StartPointInDocumentContentCoordinate.IsInvalid)
+                if (paragraphData.ParagraphLayoutData.StartPointInDocumentContentCoordinateSystem.IsInvalid)
                 {
                     throw new TextEditorInnerDebugException($"完成预布局第 {index} 段之后，没有更新段落的文本起始点布局信息");
                 }
@@ -266,7 +266,7 @@ abstract class ArrangingLayoutProvider
 
         //    if (IsInDebugMode && i == 0)
         //    {
-        //        if (!layoutData.StartPointInDocumentContentCoordinate.IsZero)
+        //        if (!layoutData.StartPointInDocumentContentCoordinateSystem.IsZero)
         //        {
         //            throw new TextEditorInnerDebugException("首段的坐标必然是 0,0 点");
         //        }
@@ -473,7 +473,7 @@ abstract class ArrangingLayoutProvider
     /// <param name="paragraphData"></param>
     /// <returns></returns>
     /// 对于横排来说，是往下排。对于竖排来说，也许是往左也许是往右排
-    protected abstract TextPointInDocumentContentCoordinate GetNextParagraphLineStartPoint(in TextPointInDocumentContentCoordinate currentPoint,ParagraphData paragraphData);
+    protected abstract TextPointInDocumentContentCoordinateSystem GetNextParagraphLineStartPoint(in TextPointInDocumentContentCoordinateSystem currentPoint, ParagraphData paragraphData);
 
     #region 行距
 

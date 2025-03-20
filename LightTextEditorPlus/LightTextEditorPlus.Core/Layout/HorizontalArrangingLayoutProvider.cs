@@ -54,7 +54,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         paragraph.SetDirty();
 
         paragraph.SetLayoutDirty(exceptTextSize: true);
-        Debug.Assert(paragraph.ParagraphLayoutData.StartPointInDocumentContentCoordinate.IsInvalid);
+        Debug.Assert(paragraph.ParagraphLayoutData.StartPointInDocumentContentCoordinateSystem.IsInvalid);
         UpdateParagraphLayoutData(in argument);
 
         //var layoutArgument = argument with
@@ -67,7 +67,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         paragraph.SetFinishLayout();
 
         // 转换为下一段的坐标
-        TextPointInDocumentContentCoordinate nextParagraphStartPoint = nextLineStartPoint.ToDocumentContentCoordinate(paragraph);
+        TextPointInDocumentContentCoordinateSystem nextParagraphStartPoint = nextLineStartPoint.ToDocumentContentCoordinateSystem(paragraph);
         // 加上段后间距
         nextParagraphStartPoint = nextParagraphStartPoint.Offset(0, argument.GetParagraphAfter());
         return new ParagraphLayoutResult(nextParagraphStartPoint);
@@ -101,10 +101,10 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// </summary>
     /// <param name="argument"></param>
     /// <returns>下一行的坐标。不包括段后间距</returns>
-    private TextPointInParagraphCoordinate UpdateParagraphLineLayoutDataStartPoint(in ParagraphLayoutArgument argument)
+    private TextPointInParagraphCoordinateSystem UpdateParagraphLineLayoutDataStartPoint(in ParagraphLayoutArgument argument)
     {
         var paragraph = argument.ParagraphData;
-        var currentStartPoint = new TextPointInParagraphCoordinate(0, 0, paragraph);
+        var currentStartPoint = new TextPointInParagraphCoordinateSystem(0, 0, paragraph);
 
         foreach (LineLayoutData lineLayoutData in paragraph.LineLayoutDataList)
         {
@@ -192,7 +192,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         //};
 
         // 下一段的起始点
-        TextPointInDocumentContentCoordinate nextParagraphStartPoint;
+        TextPointInDocumentContentCoordinateSystem nextParagraphStartPoint;
         // 如果是空段的话，那就进行空段布局，否则布局段落里面每一行
         if (paragraph.IsEmptyParagraph)
         {
@@ -205,7 +205,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
             // 先更新非脏的行的坐标
             // 布局左上角坐标，当前行的坐标点。行的坐标点是相对于段落的
-            TextPointInParagraphCoordinate currentLinePoint;
+            TextPointInParagraphCoordinateSystem currentLinePoint;
             // 根据是否存在缓存行决定是否需要计算段前间距
             if (paragraph.LineLayoutDataList.Count == 0)
             {
@@ -220,7 +220,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 var x = 0;
                 //var y = paragraphBefore;
                 var y = 0;
-                currentLinePoint = new TextPointInParagraphCoordinate(x, y, paragraph);
+                currentLinePoint = new TextPointInParagraphCoordinateSystem(x, y, paragraph);
             }
             else
             {
@@ -258,7 +258,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// <param name="argument"></param>
     /// <param name="currentStartPoint"></param>
     /// <returns></returns>
-    private TextPointInDocumentContentCoordinate UpdateEmptyParagraphLayout(in ParagraphLayoutArgument argument, TextPointInDocumentContentCoordinate currentStartPoint)
+    private TextPointInDocumentContentCoordinateSystem UpdateEmptyParagraphLayout(in ParagraphLayoutArgument argument, TextPointInDocumentContentCoordinateSystem currentStartPoint)
     {
         double paragraphBefore = argument.GetParagraphBefore();
 
@@ -274,7 +274,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         {
             CharStartParagraphIndex = 0,
             CharEndParagraphIndex = 0,
-            CharStartPointInParagraphCoordinate = new TextPointInParagraphCoordinate(0, 0, paragraph),
+            CharStartPointInParagraphCoordinateSystem = new TextPointInParagraphCoordinateSystem(0, 0, paragraph),
             LineContentSize = new TextSize(0, lineHeight)
         };
         paragraph.LineLayoutDataList.Add(lineLayoutData);
@@ -299,8 +299,8 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// <exception cref="TextEditorDebugException"></exception>
     /// <exception cref="TextEditorInnerException"></exception>
     /// 每一行的布局都是相对于文本的每个对应的段落的坐标点。更具体来说是相对于段落的文本范围的坐标点。即不包括段前间距和段后间距的坐标点
-    private TextPointInDocumentContentCoordinate UpdateParagraphLinesLayout(in ParagraphLayoutArgument argument, in ParagraphCharOffset startParagraphOffset,
-        TextPointInParagraphCoordinate currentStartPoint)
+    private TextPointInDocumentContentCoordinateSystem UpdateParagraphLinesLayout(in ParagraphLayoutArgument argument, in ParagraphCharOffset startParagraphOffset,
+        TextPointInParagraphCoordinateSystem currentStartPoint)
     {
         // 当前的坐标点，这是相对于段落的坐标点
         _ = currentStartPoint;
@@ -357,7 +357,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
                 CharEndParagraphIndex = i + result.CharCount,
                 LineContentSize = result.LineSize,
                 LineCharTextSize = result.TextSize,
-                CharStartPointInParagraphCoordinate = currentStartPoint,
+                CharStartPointInParagraphCoordinateSystem = currentStartPoint,
                 LineSpacingThickness = result.LineSpacingThickness,
             };
 
@@ -400,7 +400,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         }
 
         // 下一段的起始坐标。从行进行转换
-        var nextParagraphStartPoint = currentStartPoint.ToDocumentContentCoordinate(argument.ParagraphData);
+        var nextParagraphStartPoint = currentStartPoint.ToDocumentContentCoordinateSystem(argument.ParagraphData);
         return nextParagraphStartPoint;
     }
 
@@ -633,7 +633,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             // 如此可以实现字体的基线对齐
             double yOffset = maxFontYOffset - charData.Baseline;
 
-            charData.SetLayoutCharLineStartPoint(new TextPointInLineCoordinate(xOffset, yOffset)/*, new TextPoint(xOffset, yOffset)*/);
+            charData.SetLayoutCharLineStartPoint(new TextPointInLineCoordinateSystem(xOffset, yOffset)/*, new TextPoint(xOffset, yOffset)*/);
 
             if (needUpdateCharLayoutDataVersion)
             {
@@ -778,7 +778,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// <param name="currentStartPoint"></param>
     /// <param name="currentLineLayoutData"></param>
     /// <returns></returns>
-    private static TextPointInParagraphCoordinate GetNextLineStartPoint(TextPointInParagraphCoordinate currentStartPoint, LineLayoutData currentLineLayoutData)
+    private static TextPointInParagraphCoordinateSystem GetNextLineStartPoint(TextPointInParagraphCoordinateSystem currentStartPoint, LineLayoutData currentLineLayoutData)
     {
         //currentStartPoint = new TextPoint(currentStartPoint.X, currentStartPoint.Y + currentLineLayoutData.LineContentSize.Height);
 
@@ -820,7 +820,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     #endregion
 
     /// <inheritdoc />
-    protected override TextPointInDocumentContentCoordinate GetNextParagraphLineStartPoint(in TextPointInDocumentContentCoordinate currentPoint,ParagraphData paragraphData)
+    protected override TextPointInDocumentContentCoordinateSystem GetNextParagraphLineStartPoint(in TextPointInDocumentContentCoordinateSystem currentPoint, ParagraphData paragraphData)
     {
         var layoutData = paragraphData.ParagraphLayoutData;
         //TextRect textBounds = layoutData.TextContentBounds;
@@ -896,7 +896,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         //    {
         //        // 当前段落的起始点就等于上一段的最低点
         //        ParagraphData paragraphData = paragraphList[paragraphIndex];
-        //        var startPoint = paragraphData.ParagraphLayoutData.StartPointInDocumentContentCoordinate;
+        //        var startPoint = paragraphData.ParagraphLayoutData.StartPointInDocumentContentCoordinateSystem;
 
         //        if(!startPoint.NearlyEqualsY(lastParagraphOutlineBounds.Bottom))
         //        {
@@ -914,7 +914,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         TextRect documentContentBounds = new TextRect(documentStartPoint, documentContentSize);
         // 外接范围
         TextRect documentOutlineBounds = new TextRect(TextPoint.Zero, documentOutlineSize);
-        DocumentLayoutBounds documentLayoutBounds = new DocumentLayoutBounds(documentContentBounds,documentOutlineBounds);
+        DocumentLayoutBounds documentLayoutBounds = new DocumentLayoutBounds(documentContentBounds, documentOutlineBounds);
 
         updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 完成最终布局阶段。文档内容范围：{documentContentBounds} 文档外接范围：{documentOutlineBounds}", LayoutDebugCategory.FinalDocument);
 
@@ -1011,11 +1011,11 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             .SetLineFinalLayoutInfo(indentationThickness, horizontalTextAlignmentGapThickness);
 
         // 计算 Outline 的范围
-        var outlineStartPoint = lineLayoutData.CharStartPointInParagraphCoordinate.ResetX(0);
+        var outlineStartPoint = lineLayoutData.CharStartPointInParagraphCoordinateSystem.ResetX(0);
         var outlineWidth = documentWidth;
         var outlineHeight = lineLayoutData.LineContentSize.Height;
 
-        lineLayoutData.SetOutlineBounds(outlineStartPoint,new TextSize(outlineWidth,outlineHeight));
+        lineLayoutData.SetOutlineBounds(outlineStartPoint, new TextSize(outlineWidth, outlineHeight));
 
         if (updateLayoutContext.IsInDebugMode)
         {
@@ -1052,7 +1052,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         double documentHeight = documentContentSize.Height;
         double outlineHeight = documentOutlineSize.Height;
         var gapHeight = outlineHeight - documentHeight;
-        Debug.Assert(gapHeight>=0,"外接的尺寸高度肯定大于等于内容尺寸");
+        Debug.Assert(gapHeight >= 0, "外接的尺寸高度肯定大于等于内容尺寸");
 
         const int left = 0; // 水平方向不需要处理
         var top = verticalTextAlignment switch

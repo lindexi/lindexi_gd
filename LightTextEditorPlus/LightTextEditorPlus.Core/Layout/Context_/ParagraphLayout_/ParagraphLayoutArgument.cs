@@ -13,7 +13,7 @@ namespace LightTextEditorPlus.Core.Layout;
 /// <param name="ParagraphData">段落数据</param>
 /// <param name="ParagraphList">文档的所有段落</param>
 /// <param name="UpdateLayoutContext"></param>
-readonly record struct ParagraphLayoutArgument(ParagraphIndex ParagraphIndex, TextPointInDocumentContentCoordinate CurrentStartPoint, ParagraphData ParagraphData, IReadOnlyList<ParagraphData> ParagraphList, UpdateLayoutContext UpdateLayoutContext)
+readonly record struct ParagraphLayoutArgument(ParagraphIndex ParagraphIndex, TextPointInDocumentContentCoordinateSystem CurrentStartPoint, ParagraphData ParagraphData, IReadOnlyList<ParagraphData> ParagraphList, UpdateLayoutContext UpdateLayoutContext)
 {
     /// <summary>
     /// 是否首段

@@ -49,9 +49,9 @@ class ParagraphData : ITextParagraph
     /// </summary>
     /// <param name="startPoint"></param>
     ///// <param name="outlineStartPoint"></param>
-    public void UpdateParagraphLayoutStartPoint(TextPointInDocumentContentCoordinate startPoint)
+    public void UpdateParagraphLayoutStartPoint(TextPointInDocumentContentCoordinateSystem startPoint)
     {
-        _paragraphLayoutData.StartPointInDocumentContentCoordinate = startPoint;
+        _paragraphLayoutData.StartPointInDocumentContentCoordinateSystem = startPoint;
         //_paragraphLayoutData.TextBounds = _paragraphLayoutData.TextBounds with
         //{
         //    X = textStartPoint.X,

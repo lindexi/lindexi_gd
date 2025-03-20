@@ -8,16 +8,16 @@ namespace LightTextEditorPlus.Core.Primitive;
 /// <summary>
 /// 相对于段落的坐标点
 /// </summary>
-public readonly record struct TextPointInParagraphCoordinate
+public readonly record struct TextPointInParagraphCoordinateSystem
 {
-    internal TextPointInParagraphCoordinate(double x, double y, ParagraphData paragraphData)
+    internal TextPointInParagraphCoordinateSystem(double x, double y, ParagraphData paragraphData)
     {
         _x = x;
         _y = y;
         _paragraphData = paragraphData;
     }
 
-    //internal TextPointInParagraphCoordinate(TextPoint textPointInParagraph, ParagraphData paragraphData)
+    //internal TextPointInParagraphCoordinateSystem(TextPoint textPointInParagraph, ParagraphData paragraphData)
     //{
     //    _paragraphPoint = textPointInParagraph;
     //    _paragraphData = paragraphData;
@@ -35,7 +35,7 @@ public readonly record struct TextPointInParagraphCoordinate
     /// <returns></returns>
     internal TextPoint ToDocumentPoint(ParagraphData paragraphData)
     {
-        return ToDocumentContentCoordinate(paragraphData).ToTextPoint();
+        return ToDocumentContentCoordinateSystem(paragraphData).ToTextPoint();
     }
 
     /// <summary>
@@ -45,7 +45,7 @@ public readonly record struct TextPointInParagraphCoordinate
     /// <returns></returns>
     public TextPoint ToDocumentPoint(IParagraphLayoutData layoutData)
     {
-        return ToDocumentContentCoordinate(layoutData).ToTextPoint();
+        return ToDocumentContentCoordinateSystem(layoutData).ToTextPoint();
     }
 
     /// <summary>
@@ -54,7 +54,7 @@ public readonly record struct TextPointInParagraphCoordinate
     /// <param name="paragraphData"></param>
     /// <returns></returns>
     /// <exception cref="TextEditorDebugException"></exception>
-    internal TextPointInDocumentContentCoordinate ToDocumentContentCoordinate(ParagraphData paragraphData)
+    internal TextPointInDocumentContentCoordinateSystem ToDocumentContentCoordinateSystem(ParagraphData paragraphData)
     {
         Debug.Assert(ReferenceEquals(_paragraphData, paragraphData), "禁止拿其他段落获取相对的坐标点");
         if (_paragraphData.IsInDebugMode && !ReferenceEquals(_paragraphData, paragraphData))
@@ -63,12 +63,12 @@ public readonly record struct TextPointInParagraphCoordinate
         }
 
         IParagraphLayoutData layoutData = paragraphData.ParagraphLayoutData;
-        return ToDocumentContentCoordinate(layoutData);
+        return ToDocumentContentCoordinateSystem(layoutData);
     }
 
-    internal TextPointInDocumentContentCoordinate ToDocumentContentCoordinate(IParagraphLayoutData layoutData)
+    internal TextPointInDocumentContentCoordinateSystem ToDocumentContentCoordinateSystem(IParagraphLayoutData layoutData)
     {
-        var startPoint = layoutData.StartPointInDocumentContentCoordinate;
+        var startPoint = layoutData.StartPointInDocumentContentCoordinateSystem;
         TextThickness contentThickness = layoutData.TextContentThickness;
 
         if (_paragraphData.IsInDebugMode)
@@ -94,9 +94,9 @@ public readonly record struct TextPointInParagraphCoordinate
     /// <param name="x"></param>
     /// <param name="y"></param>
     /// <returns></returns>
-    public TextPointInParagraphCoordinate Offset(double x, double y)
+    public TextPointInParagraphCoordinateSystem Offset(double x, double y)
     {
-        return new TextPointInParagraphCoordinate(x + _x, y + _y, _paragraphData);
+        return new TextPointInParagraphCoordinateSystem(x + _x, y + _y, _paragraphData);
     }
 
     /// <summary>
@@ -104,9 +104,9 @@ public readonly record struct TextPointInParagraphCoordinate
     /// </summary>
     /// <param name="x"></param>
     /// <returns></returns>
-    public TextPointInParagraphCoordinate ResetX(double x)
+    public TextPointInParagraphCoordinateSystem ResetX(double x)
     {
-        return new TextPointInParagraphCoordinate(x, _y, _paragraphData);
+        return new TextPointInParagraphCoordinateSystem(x, _y, _paragraphData);
     }
 
     /// <summary>
@@ -114,8 +114,8 @@ public readonly record struct TextPointInParagraphCoordinate
     /// </summary>
     /// <param name="y"></param>
     /// <returns></returns>
-    public TextPointInParagraphCoordinate ResetY(double y)
+    public TextPointInParagraphCoordinateSystem ResetY(double y)
     {
-        return new TextPointInParagraphCoordinate(_x, y, _paragraphData);
+        return new TextPointInParagraphCoordinateSystem(_x, y, _paragraphData);
     }
 }

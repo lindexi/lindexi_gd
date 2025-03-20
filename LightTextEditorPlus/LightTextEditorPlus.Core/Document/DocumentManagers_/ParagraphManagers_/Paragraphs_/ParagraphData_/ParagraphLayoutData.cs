@@ -13,7 +13,7 @@ public interface IParagraphLayoutData
     /// </summary>
     TextPoint StartPoint { get; }
 
-    internal TextPointInDocumentContentCoordinate StartPointInDocumentContentCoordinate { get; }
+    internal TextPointInDocumentContentCoordinateSystem StartPointInDocumentContentCoordinateSystem { get; }
 
     /// <summary>
     /// 段落尺寸
@@ -52,12 +52,12 @@ class ParagraphLayoutData : IParagraphLayoutData
     /// <summary>
     /// 段落的起始点
     /// </summary>
-    public TextPoint StartPoint => StartPointInDocumentContentCoordinate.ToTextPoint();
+    public TextPoint StartPoint => StartPointInDocumentContentCoordinateSystem.ToTextPoint();
 
     /// <summary>
     /// 段落的起始点，相对于文档内容坐标系
     /// </summary>
-    public TextPointInDocumentContentCoordinate StartPointInDocumentContentCoordinate { set; get; }
+    public TextPointInDocumentContentCoordinateSystem StartPointInDocumentContentCoordinateSystem { set; get; }
 
     /// <summary>
     /// 段落尺寸，包含文本的尺寸
@@ -89,7 +89,7 @@ class ParagraphLayoutData : IParagraphLayoutData
     {
         get
         {
-            Debug.Assert(_outlineSize!= TextSize.Invalid, "不能在回溯最终布局段落之前获取外接尺寸");
+            Debug.Assert(_outlineSize != TextSize.Invalid, "不能在回溯最终布局段落之前获取外接尺寸");
             return _outlineSize;
         }
         set => _outlineSize = value;
@@ -106,7 +106,7 @@ class ParagraphLayoutData : IParagraphLayoutData
     {
         get
         {
-            Debug.Assert(OutlineSize!=TextSize.Invalid, "只有在回溯最终布局段落之后才能获取外接尺寸");
+            Debug.Assert(OutlineSize != TextSize.Invalid, "只有在回溯最终布局段落之后才能获取外接尺寸");
             return new TextRect(StartPoint, OutlineSize);
         }
     }
@@ -126,7 +126,7 @@ class ParagraphLayoutData : IParagraphLayoutData
 
     public void SetLayoutDirty(bool exceptTextSize)
     {
-        StartPointInDocumentContentCoordinate = TextPointInDocumentContentCoordinate.InvalidStartPoint;
+        StartPointInDocumentContentCoordinateSystem = TextPointInDocumentContentCoordinateSystem.InvalidStartPoint;
         if (!exceptTextSize)
         {
             TextSize = TextSize.Invalid;
