@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Documents;
+using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Input.TextInput;
 using Avalonia.Interactivity;
@@ -205,6 +207,38 @@ partial class TextEditor : Control
     }
 
     #endregion
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property == TextElement.ForegroundProperty)
+        {
+            //if (e.NewValue is BindingValue<IBrush> bindingBrush)
+            //{
+            //    SetForegroundInternal(bindingBrush.Value);
+            //}
+            //else
+            if (e.NewValue is IBrush brush)
+            {
+                SetForegroundInternal(brush);
+            }
+        }
+        else if (e.Property == WidthProperty)
+        {
+            if(e.NewValue is double width)
+            {
+                TextEditorCore.DocumentManager.DocumentWidth = width;
+            }
+        }
+        else if(e.Property == HeightProperty)
+        {
+            if (e.NewValue is double height)
+            {
+                TextEditorCore.DocumentManager.DocumentHeight = height;
+            }
+        }
+
+        base.OnPropertyChanged(e);
+    }
 
     #region 布局
 
