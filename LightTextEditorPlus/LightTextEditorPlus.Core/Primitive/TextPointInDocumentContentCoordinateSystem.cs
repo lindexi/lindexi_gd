@@ -11,18 +11,18 @@ namespace LightTextEditorPlus.Core.Primitive;
 public readonly struct TextPointInDocumentContentCoordinateSystem
     : IEquatable<TextPointInDocumentContentCoordinateSystem>
 {
-    internal TextPointInDocumentContentCoordinateSystem(double x, double y, LayoutManager manager)
+    internal TextPointInDocumentContentCoordinateSystem(double x, double y, LayoutManager layoutManager)
     {
         _x = x;
         _y = y;
-        _manager = manager;
+        _layoutManager = layoutManager;
     }
 
     private readonly double _x;
 
     private readonly double _y;
 
-    private readonly LayoutManager _manager;
+    private readonly LayoutManager _layoutManager;
 
     /// <summary>
     /// 是否为零点坐标
@@ -34,7 +34,7 @@ public readonly struct TextPointInDocumentContentCoordinateSystem
     /// </summary>
     public bool IsInvalid
         // 只需判断一个条件就好了，不用判断 X 和 Y 的值
-        => ReferenceEquals(_manager, null);
+        => ReferenceEquals(_layoutManager, null);
 
     /// <summary>
     /// 无效的起点坐标
@@ -45,14 +45,23 @@ public readonly struct TextPointInDocumentContentCoordinateSystem
         {
             TextPoint invalidStartPoint = TextContext.InvalidStartPoint;
 
-            return new TextPointInDocumentContentCoordinateSystem(invalidStartPoint.X, invalidStartPoint.Y, manager: null!);
+            return new TextPointInDocumentContentCoordinateSystem(invalidStartPoint.X, invalidStartPoint.Y, layoutManager: null!);
         }
     }
 
     /// <inheritdoc />
     public bool Equals(TextPointInDocumentContentCoordinateSystem other)
     {
-        return _x.Equals(other._x) && _y.Equals(other._y) && ReferenceEquals(_manager, other._manager);
+        return _x.Equals(other._x) && _y.Equals(other._y) && ReferenceEquals(_layoutManager, other._layoutManager);
+    }
+
+
+    /// <inheritdoc cref="Equals(TextPointInDocumentContentCoordinateSystem)"/>
+    public bool NearlyEquals(in TextPointInDocumentContentCoordinateSystem other)
+    {
+        return ReferenceEquals(_layoutManager, other._layoutManager)
+               && Nearly.Equals(_x, other._x)
+               && Nearly.Equals(_y, other._y);
     }
 
     /// <inheritdoc />
@@ -73,13 +82,13 @@ public readonly struct TextPointInDocumentContentCoordinateSystem
     /// <returns></returns>
     public TextPoint ToTextPoint()
     {
-        _manager.TextEditor.VerifyNotDirty(autoLayoutEmptyTextEditor: false);
-        TextPoint documentContentStartPoint = _manager.DocumentLayoutBounds.DocumentContentBounds.Location;
+        _layoutManager.TextEditor.VerifyNotDirty(autoLayoutEmptyTextEditor: false);
+        TextPoint documentContentStartPoint = _layoutManager.DocumentLayoutBounds.DocumentContentBounds.Location;
         return new TextPoint(_x + documentContentStartPoint.X, _y + documentContentStartPoint.Y);
     }
 
-    internal bool NearlyEqualsX(double x) => Nearly.Equals(_x, x);
-    internal bool NearlyEqualsY(double y) => Nearly.Equals(_y, y);
+    //internal bool NearlyEqualsX(double x) => Nearly.Equals(_x, x);
+    //internal bool NearlyEqualsY(double y) => Nearly.Equals(_y, y);
 
     /// <summary>
     /// 偏移
@@ -89,7 +98,7 @@ public readonly struct TextPointInDocumentContentCoordinateSystem
     /// <returns></returns>
     public TextPointInDocumentContentCoordinateSystem Offset(double offsetX, double offsetY)
     {
-        return new TextPointInDocumentContentCoordinateSystem(_x + offsetX, _y + offsetY, _manager);
+        return new TextPointInDocumentContentCoordinateSystem(_x + offsetX, _y + offsetY, _layoutManager);
     }
 
     /// <inheritdoc />
