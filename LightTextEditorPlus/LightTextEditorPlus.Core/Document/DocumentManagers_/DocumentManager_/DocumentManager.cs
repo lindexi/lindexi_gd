@@ -75,6 +75,7 @@ namespace LightTextEditorPlus.Core.Document
 
                 _documentHeight = value;
 
+                // todo 对于横排文本来说，仅高度变更，是不用重新布局每个段落的。文档内容不变，最多只变更 Outline 和空白高度。调用 RequireDispatchReLayoutAllDocument 有点伤
                 TextEditor.RequireDispatchReLayoutAllDocument("DocumentHeightChanged");
             }
             get => _documentHeight;
