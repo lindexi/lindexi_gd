@@ -246,13 +246,14 @@ abstract class ArrangingLayoutProvider
                     throw new TextEditorInnerDebugException($"完成预布局第 {index} 段之后，没有更新段落的文本起始点布局信息");
                 }
 
-                //var nextY = nextParagraphStartPoint.Y;
-                //var exceptedY = argument.CurrentStartPoint.Y + argument.GetParagraphBefore() +
-                //                paragraphData.ParagraphLayoutData.TextSize.Height + argument.GetParagraphAfter();
-                //if (!Nearly.Equals(nextY, exceptedY))
-                //{
-                //    // 预期下一个段落的起始点是当前段落的起始点 + 当前段落的段前间距 + 当前段落的文本高度 + 当前段落的段后间距
-                //}
+                var exceptedOffsetY = argument.GetParagraphBefore() +
+                                      paragraphData.ParagraphLayoutData.TextSize.Height + argument.GetParagraphAfter();
+                var excepted = argument.CurrentStartPoint.Offset(0, exceptedOffsetY);
+                if (!nextParagraphStartPoint.NearlyEquals(excepted))
+                {
+                    // 预期下一个段落的起始点是当前段落的起始点 + 当前段落的段前间距 + 当前段落的文本高度 + 当前段落的段后间距
+                    throw new TextEditorInnerDebugException($"预期下一个段落的起始点是 {excepted}，实际是 {nextParagraphStartPoint}");
+                }
             }
         }
 

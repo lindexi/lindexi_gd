@@ -20,6 +20,7 @@ using System.Windows.Navigation;
 
 using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
@@ -215,6 +216,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
             Size result = base.MeasureOverride(availableSize);
             _ = result;
 
+            SyncControlSize();
             Size measureResult = MeasureTextEditorCore(availableSize);
 
             TextView.Measure(measureResult);
@@ -224,6 +226,22 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         finally
         {
             _isMeasuring = false;
+        }
+
+        void SyncControlSize()
+        {
+            // 同步控件的大小到文本里面
+            DocumentManager documentManager = TextEditorCore.DocumentManager;
+            if (double.IsFinite(Width))
+            {
+                Debug.Assert(Width.Equals(documentManager.DocumentWidth),$"在 {nameof(OnPropertyChanged)}(DependencyPropertyChangedEventArgs e) 中必然已经完成了同步，正常不会单独变更 DocumentWidth 使其与 Width 不等");
+                //documentManager.DocumentWidth = Width;
+            }
+
+            if (double.IsFinite(Height))
+            {
+                Debug.Assert(Height.Equals(documentManager.DocumentHeight));
+            }
         }
     }
 
