@@ -116,9 +116,9 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
     #region 布局
 
     /// <summary>
-    /// 立刻布局
+    /// 立刻布局，获取布局结果信息
     /// </summary>
-    private void ForceLayout()
+    private RenderInfoProvider ForceLayout()
     {
         _isInForceLayout = true;
 
@@ -126,7 +126,14 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         {
             // 当前实现的 ForceLayout 是不亏的，因为只有文本存在变更的时候，才会执行实际逻辑
             // 而不是让文本必定需要重新布局
-            TextEditorPlatformProvider.EnsureLayoutUpdated();
+            RenderInfoProvider? renderInfoProvider;
+            while (!TextEditorCore.TryGetRenderInfo(out renderInfoProvider))
+            {
+                // 什么时候这个循环会进入两次？当文本刚刚布局完成之后，就被其他业务弄脏了。如有业务监听 LayoutCompleted 事件，在此事件里面修改文本
+                TextEditorPlatformProvider.EnsureLayoutUpdated();
+            }
+
+            return renderInfoProvider;
         }
         finally
         {
@@ -156,6 +163,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
         if (_isMeasuring)
         {
+            // 正在布局测量中，不需要再次触发布局
             return;
         }
 
@@ -221,30 +229,50 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
 
     private Size MeasureTextEditorCore(Size availableSize)
     {
+        // 此时可以通知文本底层进行布局了，这是一个很好的时机
+        RenderInfoProvider renderInfoProvider = ForceLayout();
+        (double x, double y, double width, double height) = renderInfoProvider.GetDocumentLayoutBounds()
+            // 不应该取内容，应该取外接范围。解决垂直居中和底部对齐的问题
+            .DocumentOutlineBounds;
+        _ = x;
+        _ = y;
+
+        var notExistsWidth = double.IsInfinity(availableSize.Width) && double.IsNaN(Width);
+        var notExistsHeight = double.IsInfinity(availableSize.Height) && double.IsNaN(Height);
+
         TextSizeToContent sizeToContent = TextEditorCore.SizeToContent;
         if (sizeToContent == TextSizeToContent.Width)
         {
             // 宽度自适应，高度固定
-            EnsureLayout();
-            (double x, double y, double width, double height) = TextEditorCore.GetDocumentLayoutBounds().DocumentOutlineBounds;
+            if (notExistsHeight)
+            {
+                throw new InvalidOperationException($"宽度自适应时，要求高度固定。{GetWidthAndHeightFormatMessage()}");
+            }
+
             return new Size(width, availableSize.Height);
         }
         else if (sizeToContent == TextSizeToContent.Height)
         {
             // 高度自适应，宽度固定
-            EnsureLayout();
-            (double x, double y, double width, double height) = TextEditorCore.GetDocumentLayoutBounds().DocumentOutlineBounds;
+            if (notExistsWidth)
+            {
+                throw new InvalidOperationException($"高度自适应，要求宽度固定。{GetWidthAndHeightFormatMessage()}");
+            }
+
             return new Size(availableSize.Width, height);
         }
         else if (sizeToContent == TextSizeToContent.WidthAndHeight)
         {
             // 宽度和高度都自适应
-            EnsureLayout();
-            (double x, double y, double width, double height) = TextEditorCore.GetDocumentLayoutBounds().DocumentOutlineBounds;
             return new Size(width, height);
         }
         else if (sizeToContent == TextSizeToContent.Manual)
         {
+            if (notExistsWidth || notExistsHeight)
+            {
+                throw new InvalidOperationException($"设置为 SizeToContent 为 TextSizeToContent.Manual 手动时，不能无限定 {nameof(Width)} 和 {nameof(Height)} 放入无限尺寸的容器。{GetWidthAndHeightFormatMessage()}");
+            }
+
             // 手动的，有多少就要多少
             return availableSize;
         }
@@ -252,14 +280,8 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         // 文本库，有多少就要多少
         return availableSize;
 
-        void EnsureLayout()
-        {
-            // todo 这里可能会遇到空文本问题。空文本默认没有推送布局 Action 过来，于是 ForceLayout 啥都没干。这里应该将 Avalonia 代码同步过来
-            if (TextEditorCore.IsDirty)
-            {
-                ForceLayout();
-            }
-        }
+        string GetWidthAndHeightFormatMessage() =>
+            $"AvailableSize={availableSize.Width:0.00},{availableSize.Height:0.00};Width={Width:0.00},Height={Height:0.00}";
     }
 
     /// <inheritdoc />
