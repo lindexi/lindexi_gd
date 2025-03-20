@@ -1,14 +1,68 @@
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+
+using CSharpMarkup.Wpf;
 
 using dotnetCampus.UITest.WPF;
 
+using LightTextEditorPlus.Demo;
+
 using MSTest.Extensions.Contracts;
+
+using static CSharpMarkup.Wpf.Helpers;
+
+using Application = System.Windows.Application;
+using Window = System.Windows.Window;
 
 namespace LightTextEditorPlus.Tests;
 
 [TestClass]
 public class TextEditorTest
 {
+    [UIContractTestCase]
+    public void MeasureTest()
+    {
+        "将高度自适应的文本放入到水平布局的 StackPanel 容器里，创建文本时立刻设置文本控件 Width 宽度，文本布局之后能够应用设置的 Width 宽度进行高度自适应布局".Test(async () =>
+        {
+            // Arrange
+            var mainWindow = new Window()
+            {
+                Title = "文本库 UI 单元测试",
+                Width = 1000,
+                Height = 700,
+                Content = Border
+                (
+                    BorderThickness: Thickness(1),
+                    BorderBrush: Brushes.Blue,
+                    Child: StackPanel
+                    (
+                        new TextEditor()
+                        {
+                            // 设置文本控件 Width 宽度
+                            Width = 30,
+                            Margin = Thickness(10, 10, 10, 10),
+                            Text = "1234567890",
+                            SizeToContent = SizeToContent.Height
+                        }
+                            .Out(out var textEditor)
+                    ).Orientation(Orientation.Horizontal)
+                ).UI
+            };
+
+            using var context = new TextEditTestContext(mainWindow, textEditor);
+            mainWindow.Show();
+
+            // Action
+            textEditor.SetFontName("微软雅黑");
+            textEditor.SetFontSize(30);
+
+            // Assert
+            await textEditor.WaitForRenderCompletedAsync();
+            await TestFramework.FreezeTestToDebug();
+        });
+    }
+
     [UIContractTestCase]
     public void LayoutTest()
     {
