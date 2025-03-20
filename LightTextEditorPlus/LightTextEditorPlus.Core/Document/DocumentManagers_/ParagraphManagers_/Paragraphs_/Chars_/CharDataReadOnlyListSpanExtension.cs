@@ -7,52 +7,36 @@ using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Core.Document;
 
-public readonly struct CharDataListToCharSpanResult:IDisposable
-{
-    internal CharDataListToCharSpanResult(char[] buffer, int length, ArrayPool<char> arrayPool)
-    {
-        _buffer = buffer;
-        _length = length;
-        _arrayPool = arrayPool;
-    }
-
-    public ReadOnlySpan<char> CharSpan => _buffer.AsSpan(0, _length);
-
-    private readonly char[] _buffer;
-    private readonly int _length;
-    private readonly ArrayPool<char> _arrayPool;
-
-    /// <inheritdoc />
-    public void Dispose()
-    {
-        _arrayPool.Return(_buffer);
-    }
-}
-
 /// <summary>
 /// 字符数据只读列表的扩展方法
 /// </summary>
 public static class CharDataReadOnlyListSpanExtension
 {
-    public static CharDataListToCharSpanResult ToCharSpan(this TextReadOnlyListSpan<CharData> list, ArrayPool<char>? arrayPool=null)
+    /// <summary>
+    /// 转换为 char 列表，这个过程尽可能使用池化的方式
+    /// </summary>
+    /// <param name="list"></param>
+    /// <param name="arrayPool"></param>
+    /// <returns></returns>
+    public static CharDataListToCharSpanResult ToCharSpan(this TextReadOnlyListSpan<CharData> list, ArrayPool<char>? arrayPool = null)
     {
-         arrayPool ??= ArrayPool<char>.Shared;
+        arrayPool ??= ArrayPool<char>.Shared;
 
-         var buffer = arrayPool.Rent(list.Count * 2);
-         
-         var length = 0;
+        var buffer = arrayPool.Rent(list.Count * 2);
 
-         foreach (CharData charData in list)
-         {
-             var index = length;
-             Span<char> currentSpan = buffer.AsSpan(index);
+        var length = 0;
 
-             Rune rune = charData.CharObject.CodePoint.Rune;
-             int writtenLength = rune.EncodeToUtf16(currentSpan);
-             length += writtenLength;
-         }
+        foreach (CharData charData in list)
+        {
+            var index = length;
+            Span<char> currentSpan = buffer.AsSpan(index);
 
-         return new CharDataListToCharSpanResult(buffer, length, arrayPool);
+            Rune rune = charData.CharObject.CodePoint.Rune;
+            int writtenLength = rune.EncodeToUtf16(currentSpan);
+            length += writtenLength;
+        }
+
+        return new CharDataListToCharSpanResult(buffer, length, arrayPool);
     }
 
     /// <summary>
@@ -130,7 +114,7 @@ public static class CharDataReadOnlyListSpanExtension
                 }
             }
             count++;
-            current = next; // 这步有些多余，但是为了代码的可读性，还是加上了
+            current = next; // 这步有些多余，但是为了代码的可读性，还是加上了。为什么多余？因此此时 current 必定和 next 相等
         }
 
         return charList.Slice(0, count);
