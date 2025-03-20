@@ -277,7 +277,7 @@ class RichTextCaseProvider
         {
             for (int i = 0; i < 10; i++)
             {
-                for (int j = 0; j < 1000; j++)
+                for (int j = 0; j < 100; j++)
                 {
                     editor.AppendText("123123123123123123123123123");
                 }

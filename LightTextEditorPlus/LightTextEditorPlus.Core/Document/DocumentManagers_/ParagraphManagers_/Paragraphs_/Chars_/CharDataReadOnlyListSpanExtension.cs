@@ -16,7 +16,7 @@ public readonly struct CharDataListToCharSpanResult:IDisposable
         _arrayPool = arrayPool;
     }
 
-    public Span<char> CharSpan => _buffer.AsSpan(0, _length);
+    public ReadOnlySpan<char> CharSpan => _buffer.AsSpan(0, _length);
 
     private readonly char[] _buffer;
     private readonly int _length;
