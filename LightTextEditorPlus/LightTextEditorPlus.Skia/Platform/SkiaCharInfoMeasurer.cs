@@ -15,6 +15,7 @@ using System.Text;
 using LightTextEditorPlus.Core.Exceptions;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Platform;
 

@@ -5,6 +5,7 @@ using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Rendering;
+using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Platform;
 using SkiaSharp;

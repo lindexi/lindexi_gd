@@ -1,6 +1,7 @@
 using System.Text;
 
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Utils;
 
 namespace LightTextEditorPlus.Core.Rendering;
 

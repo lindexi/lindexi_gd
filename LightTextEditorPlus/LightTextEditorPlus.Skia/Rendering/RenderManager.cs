@@ -13,6 +13,7 @@ using LightTextEditorPlus.Core.Rendering;
 using SkiaSharp;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
+using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Diagnostics;
 using LightTextEditorPlus.Utils;
 using LightTextEditorPlus.Document;
