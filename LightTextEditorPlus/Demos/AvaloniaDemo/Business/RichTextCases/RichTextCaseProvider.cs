@@ -272,6 +272,18 @@ class RichTextCaseProvider
             TextElement.SetForeground(editor, Brushes.Coral);
             editor.AppendText("123123123123123123123123123");
         }, "设置前景色时，可设置到文本前景色");
+
+        Add(editor =>
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                for (int j = 0; j < 1000; j++)
+                {
+                    editor.AppendText("123123123123123123123123123");
+                }
+                editor.AppendText("\r\n");
+            }
+        },"测试超长的内容");
     }
 
     private readonly ITextEditorProvider _textEditorProvider;
