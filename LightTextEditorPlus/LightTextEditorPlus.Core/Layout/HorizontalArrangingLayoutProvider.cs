@@ -886,27 +886,40 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             FinalUpdateParagraphLayout(in paragraphLayoutArgument);
         }
 
-        //if (IsInDebugMode)
-        //{
-        //    // 调试逻辑，理论上下一段的起始点就是等于本段最低点
-        //    var lastParagraphOutlineBounds = paragraphList[0].ParagraphLayoutData.OutlineBounds;
-        //    for (var paragraphIndex = 1;
-        //         paragraphIndex < paragraphList.Count;
-        //         paragraphIndex++)
-        //    {
-        //        // 当前段落的起始点就等于上一段的最低点
-        //        ParagraphData paragraphData = paragraphList[paragraphIndex];
-        //        var startPoint = paragraphData.ParagraphLayoutData.StartPointInDocumentContentCoordinateSystem;
+        if (IsInDebugMode)
+        {
+            // 调试逻辑，理论上下一段的起始点就是等于本段最低点
+            var firstParagraph = paragraphList[0];
+            var currentExceptedStartPoint = GetExceptedNextStartPoint(firstParagraph);
+            var lastParagraphLayoutData = firstParagraph.ParagraphLayoutData;
 
-        //        if(!startPoint.NearlyEqualsY(lastParagraphOutlineBounds.Bottom))
-        //        {
-        //            // 如果不相等，则证明计算不正确
-        //            throw new TextEditorInnerDebugException($"文本段落计算之间存在空隙。当前第 {paragraphIndex} 段。上一段范围： {lastParagraphOutlineBounds} ，当前段的起始点 {startPoint}");
-        //        }
+            for (var paragraphIndex = 1;
+                 paragraphIndex < paragraphList.Count;
+                 paragraphIndex++)
+            {
+                // 当前段落的起始点就等于上一段的最低点
+                ParagraphData paragraphData = paragraphList[paragraphIndex];
+                TextPointInDocumentContentCoordinateSystem startPoint = paragraphData.ParagraphLayoutData.StartPointInDocumentContentCoordinateSystem;
 
-        //        lastParagraphOutlineBounds = paragraphData.ParagraphLayoutData.OutlineBounds;
-        //    }
-        //}
+                if (!startPoint.NearlyEquals(currentExceptedStartPoint))
+                {
+                    // 如果不相等，则证明计算不正确
+                    throw new TextEditorInnerDebugException($"文本段落计算之间存在空隙。当前第 {paragraphIndex} 段。上一段范围： {lastParagraphLayoutData.StartPointInDocumentContentCoordinateSystem}  {lastParagraphLayoutData.OutlineSize.ToDebugText()}，当前段的起始点 {startPoint}");
+                }
+
+                lastParagraphLayoutData = paragraphData.ParagraphLayoutData;
+                currentExceptedStartPoint = GetExceptedNextStartPoint(paragraphData);
+            }
+
+            TextPointInDocumentContentCoordinateSystem GetExceptedNextStartPoint(ParagraphData paragraph)
+            {
+                var layoutData = paragraph.ParagraphLayoutData;
+                TextPointInDocumentContentCoordinateSystem startPoint = layoutData.StartPointInDocumentContentCoordinateSystem;
+                TextSize outlineSize = layoutData.OutlineSize;
+                // 当前段落的起始点就等于上一段的最低点
+               return startPoint.Offset(0, outlineSize.Height);
+            }
+        }
 
         // 计算内容的左上角起点。处理垂直居中、底部对齐等情况
         var documentStartPoint = CalculateDocumentContentLeftTopStartPoint(in documentContentSize, in documentOutlineSize);

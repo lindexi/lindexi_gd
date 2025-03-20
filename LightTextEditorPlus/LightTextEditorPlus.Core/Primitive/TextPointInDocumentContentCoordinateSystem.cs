@@ -104,6 +104,6 @@ public readonly struct TextPointInDocumentContentCoordinateSystem
     /// <inheritdoc />
     public override string ToString()
     {
-        return $"DocumentContentCoordinate:({_x:0.###},{_y:0.###})";
+        return $"相对文档内容:({_x:0.###},{_y:0.###})";
     }
 }
