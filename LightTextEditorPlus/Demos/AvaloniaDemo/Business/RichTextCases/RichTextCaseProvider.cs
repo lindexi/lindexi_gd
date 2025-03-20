@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using Avalonia.Controls.Documents;
 using Avalonia.Media;
 
 using LightTextEditorPlus.Core;
@@ -266,6 +266,12 @@ class RichTextCaseProvider
             editor.SelectAll();
             editor.CaretConfiguration.ShowSelectionWhenNotInEditingInputMode = false;
         }, "设置失去焦点时，不要显示选择范围");
+
+        Add(editor =>
+        {
+            TextElement.SetForeground(editor, Brushes.Coral);
+            editor.AppendText("123123123123123123123123123");
+        }, "设置前景色时，可设置到文本前景色");
     }
 
     private readonly ITextEditorProvider _textEditorProvider;
