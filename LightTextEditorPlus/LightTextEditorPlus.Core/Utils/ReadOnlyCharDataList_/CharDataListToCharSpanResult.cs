@@ -1,7 +1,8 @@
 using System;
 using System.Buffers;
+using LightTextEditorPlus.Core.Document;
 
-namespace LightTextEditorPlus.Core.Document;
+namespace LightTextEditorPlus.Core.Utils;
 
 /// <summary>
 /// 从 <see cref="CharData"/> 列表转换为 <see cref="char"/> 列表的结果。需要调用释放，将数组归还到池中

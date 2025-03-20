@@ -1,6 +1,7 @@
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.TestsFramework;
+using LightTextEditorPlus.Core.Utils;
 using MSTest.Extensions.Contracts;
 
 namespace LightTextEditorPlus.Core.Tests.Layout;
