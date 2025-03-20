@@ -144,8 +144,6 @@ class RenderManager
 
         using (SKCanvas canvas = skPictureRecorder.BeginRecording(SKRect.Create(0, 0, renderWidth, renderHeight)))
         {
-            var stringBuilder = new StringBuilder();
-
             foreach (ParagraphRenderInfo paragraphRenderInfo in renderInfoProvider.GetParagraphRenderInfoList())
             {
                 foreach (ParagraphLineRenderInfo lineInfo in paragraphRenderInfo.GetLineRenderInfoList())
@@ -174,12 +172,11 @@ class RenderManager
                         float width = 0;
                         float height = (float) runBounds.Height;
 
-                        stringBuilder.Clear();
+                        using CharDataListToCharSpanResult charSpanResult = charList.ToCharSpan();
+                        ReadOnlySpan<char> charSpan = charSpanResult.CharSpan;
 
                         foreach (CharData charData in charList)
                         {
-                            stringBuilder.Append(charData.CharObject.ToText());
-
                             DrawDebugBounds(charData.GetBounds().ToSKRect(), _debugDrawCharBoundsColor);
 
                             width += (float) charData.Size!.Value.Width;
@@ -189,9 +186,7 @@ class RenderManager
                         DrawDebugBounds(charSpanBounds, _debugDrawCharSpanBoundsColor);
                         renderBounds = renderBounds.Union(charSpanBounds.ToTextRect());
 
-                        string text = stringBuilder.ToString();
-
-                        if (!skFont.ContainsGlyphs(text))
+                        if (!skFont.ContainsGlyphs(charSpan))
                         {
                             // 预计不会出现这样的问题，在渲染之前已经处理过了
                             throw new TextEditorInnerException($"文本框架内应该确保进入渲染层时，不会出现字体不能包含字符的情况");
@@ -212,7 +207,8 @@ class RenderManager
 
                         // 由于 Skia 的 DrawText 传入的 Point 是文本的最下方，因此需要调整 Y 值
                         y += baselineY;
-                        canvas.DrawText(text, new SKPoint(x, y), textRenderSKPaint);
+                        using SKTextBlob skTextBlob = SKTextBlob.Create(charSpan,skFont);
+                        canvas.DrawText(skTextBlob, x, y, textRenderSKPaint);
                     }
 
                     if (argument.CharList.Count == 0)
