@@ -473,7 +473,7 @@ abstract class ArrangingLayoutProvider
     /// <param name="paragraphData"></param>
     /// <returns></returns>
     /// 对于横排来说，是往下排。对于竖排来说，也许是往左也许是往右排
-    protected abstract TextPointInDocumentContentCoordinateSystem GetNextParagraphLineStartPoint(in TextPointInDocumentContentCoordinateSystem currentPoint,ParagraphData paragraphData);
+    protected abstract TextPointInDocumentContentCoordinateSystem GetNextParagraphLineStartPoint(in TextPointInDocumentContentCoordinateSystem currentPoint, ParagraphData paragraphData);
 
     #region 行距
 

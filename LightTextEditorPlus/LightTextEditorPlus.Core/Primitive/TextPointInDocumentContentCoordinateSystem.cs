@@ -9,7 +9,7 @@ namespace LightTextEditorPlus.Core.Primitive;
 /// 相对于文档内容坐标系的点
 /// </summary>
 public readonly struct TextPointInDocumentContentCoordinateSystem
-    :IEquatable<TextPointInDocumentContentCoordinateSystem>
+    : IEquatable<TextPointInDocumentContentCoordinateSystem>
 {
     internal TextPointInDocumentContentCoordinateSystem(double x, double y, LayoutManager manager)
     {
@@ -52,7 +52,7 @@ public readonly struct TextPointInDocumentContentCoordinateSystem
     /// <inheritdoc />
     public bool Equals(TextPointInDocumentContentCoordinateSystem other)
     {
-        return _x.Equals(other._x) && _y.Equals(other._y) && ReferenceEquals(_manager,other._manager);
+        return _x.Equals(other._x) && _y.Equals(other._y) && ReferenceEquals(_manager, other._manager);
     }
 
     /// <inheritdoc />

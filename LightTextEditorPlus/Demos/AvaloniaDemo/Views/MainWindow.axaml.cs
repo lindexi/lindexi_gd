@@ -41,7 +41,7 @@ public partial class MainWindow : Window
 
     private void UpdateContent()
     {
-        TabItem? tabItem = RootTabControl.Items.OfType<TabItem>().FirstOrDefault(t=>t.IsSelected);
+        TabItem? tabItem = RootTabControl.Items.OfType<TabItem>().FirstOrDefault(t => t.IsSelected);
         if (tabItem is null)
         {
             return;
@@ -52,7 +52,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        Func<Control> creator = _contentCreatorList.First(t=>t.Name == tabItem.Header?.ToString()).Creator;
+        Func<Control> creator = _contentCreatorList.First(t => t.Name == tabItem.Header?.ToString()).Creator;
         tabItem.Content = creator();
     }
 }

@@ -15,8 +15,8 @@ internal class SingleObjectList<T> : IReadOnlyList<T>
         CurrentObject = currentObject;
     }
 
-    public T CurrentObject 
-    { 
+    public T CurrentObject
+    {
         get;
         // 框架内没有考虑 GetEnumerator 过程中修改 CurrentObject 的情况
         set;

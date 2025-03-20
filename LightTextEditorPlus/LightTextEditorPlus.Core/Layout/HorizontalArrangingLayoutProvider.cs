@@ -820,7 +820,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     #endregion
 
     /// <inheritdoc />
-    protected override TextPointInDocumentContentCoordinateSystem GetNextParagraphLineStartPoint(in TextPointInDocumentContentCoordinateSystem currentPoint,ParagraphData paragraphData)
+    protected override TextPointInDocumentContentCoordinateSystem GetNextParagraphLineStartPoint(in TextPointInDocumentContentCoordinateSystem currentPoint, ParagraphData paragraphData)
     {
         var layoutData = paragraphData.ParagraphLayoutData;
         //TextRect textBounds = layoutData.TextContentBounds;
@@ -914,7 +914,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         TextRect documentContentBounds = new TextRect(documentStartPoint, documentContentSize);
         // 外接范围
         TextRect documentOutlineBounds = new TextRect(TextPoint.Zero, documentOutlineSize);
-        DocumentLayoutBounds documentLayoutBounds = new DocumentLayoutBounds(documentContentBounds,documentOutlineBounds);
+        DocumentLayoutBounds documentLayoutBounds = new DocumentLayoutBounds(documentContentBounds, documentOutlineBounds);
 
         updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 完成最终布局阶段。文档内容范围：{documentContentBounds} 文档外接范围：{documentOutlineBounds}", LayoutDebugCategory.FinalDocument);
 
@@ -1015,7 +1015,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         var outlineWidth = documentWidth;
         var outlineHeight = lineLayoutData.LineContentSize.Height;
 
-        lineLayoutData.SetOutlineBounds(outlineStartPoint,new TextSize(outlineWidth,outlineHeight));
+        lineLayoutData.SetOutlineBounds(outlineStartPoint, new TextSize(outlineWidth, outlineHeight));
 
         if (updateLayoutContext.IsInDebugMode)
         {
@@ -1052,7 +1052,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         double documentHeight = documentContentSize.Height;
         double outlineHeight = documentOutlineSize.Height;
         var gapHeight = outlineHeight - documentHeight;
-        Debug.Assert(gapHeight>=0,"外接的尺寸高度肯定大于等于内容尺寸");
+        Debug.Assert(gapHeight >= 0, "外接的尺寸高度肯定大于等于内容尺寸");
 
         const int left = 0; // 水平方向不需要处理
         var top = verticalTextAlignment switch

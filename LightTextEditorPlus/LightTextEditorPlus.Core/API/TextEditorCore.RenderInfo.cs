@@ -30,7 +30,7 @@ public partial class TextEditorCore
     /// <param name="renderInfoProvider"></param>
     /// <param name="autoLayoutEmptyTextEditor">是否自动布局空文本</param>
     /// <returns>如果文本是脏的，则不获取</returns>
-    public bool TryGetRenderInfo([NotNullWhen(returnValue: true)]out RenderInfoProvider? renderInfoProvider, bool autoLayoutEmptyTextEditor = true)
+    public bool TryGetRenderInfo([NotNullWhen(returnValue: true)] out RenderInfoProvider? renderInfoProvider, bool autoLayoutEmptyTextEditor = true)
     {
         if (CheckNotDirty(autoLayoutEmptyTextEditor))
         {

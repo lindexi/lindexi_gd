@@ -89,7 +89,7 @@ class ParagraphLayoutData : IParagraphLayoutData
     {
         get
         {
-            Debug.Assert(_outlineSize!= TextSize.Invalid, "不能在回溯最终布局段落之前获取外接尺寸");
+            Debug.Assert(_outlineSize != TextSize.Invalid, "不能在回溯最终布局段落之前获取外接尺寸");
             return _outlineSize;
         }
         set => _outlineSize = value;
@@ -106,7 +106,7 @@ class ParagraphLayoutData : IParagraphLayoutData
     {
         get
         {
-            Debug.Assert(OutlineSize!=TextSize.Invalid, "只有在回溯最终布局段落之后才能获取外接尺寸");
+            Debug.Assert(OutlineSize != TextSize.Invalid, "只有在回溯最终布局段落之后才能获取外接尺寸");
             return new TextRect(StartPoint, OutlineSize);
         }
     }

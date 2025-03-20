@@ -136,7 +136,7 @@ file class TextEditorCustomDrawOperation : ICustomDrawOperation
     {
         _render.ReleaseReference();
 
-        if (_toDisposedList is {} list)
+        if (_toDisposedList is { } list)
         {
             foreach (ITextEditorContentSkiaRender textEditorContentSkiaRender in list)
             {
