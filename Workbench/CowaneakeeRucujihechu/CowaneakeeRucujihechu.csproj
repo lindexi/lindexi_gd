@@ -11,4 +11,19 @@
     <PackageReference Include="CabawnearqaFallfawchake" Version="1.0.1" />
   </ItemGroup>
 
+  <Target Name="Tadfasdf">
+    <PropertyGroup>
+      <Asfdgsdfg>true</Asfdgsdfg>
+      <Dasdfasdf>adfasdfasdfasdf</Dasdfasdf>
+    </PropertyGroup>
+
+    <Message Text="Tadfasdf Asfdgsdfg=$(Asfdgsdfg) Dasdfasdf=$(Dasdfasdf)"/>
+
+    <!-- <CallTarget Targets="BTadfasdf" /> -->
+  </Target>
+
+  <Target Name="BTadfasdf" AfterTargets="Tadfasdf">
+    <Message Text="BTadfasdf Asfdgsdfg=$(Asfdgsdfg) Dasdfasdf=$(Dasdfasdf)"/>
+  </Target>
+
 </Project>
