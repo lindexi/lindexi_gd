@@ -19,10 +19,10 @@
 
     <Message Text="Tadfasdf Asfdgsdfg=$(Asfdgsdfg) Dasdfasdf=$(Dasdfasdf)"/>
 
-    <CallTarget Targets="BTadfasdf" />
+    <!-- <CallTarget Targets="BTadfasdf" /> -->
   </Target>
 
-  <Target Name="BTadfasdf" >
+  <Target Name="BTadfasdf" AfterTargets="Tadfasdf">
     <Message Text="BTadfasdf Asfdgsdfg=$(Asfdgsdfg) Dasdfasdf=$(Dasdfasdf)"/>
   </Target>
 
