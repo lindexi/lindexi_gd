@@ -46,7 +46,7 @@ public static class RenderManagerExtension
                     count++;
                     if (count > 1)
                     {
-                        throw new ArgumentException($"一行内存在多个不同的字符属性，必须传入 CharData 指定使用哪个字符属性信息");
+                        throw new ArgumentException($"一行内存在多个不同的字符属性，必须传入 CharData 指定使用哪个字符属性信息", nameof(charData));
                     }
                 }
             }
