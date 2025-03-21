@@ -1,5 +1,5 @@
 <Project>
-  <Target Name="Fasdfasdf" >
+  <Target Name="Fasdfasdf" BeforeTargets="Bsdfaf">
     <PropertyGroup>
       <Asfdgsdfg>true</Asfdgsdfg>
       <Dasdfasdf>adfasdfasdfasdf</Dasdfasdf>
@@ -7,7 +7,7 @@
 
     <Message Text="Fasdfasdf Asfdgsdfg=$(Asfdgsdfg) Dasdfasdf=$(Dasdfasdf)"/>
 
-    <CallTarget Targets="Bsdfaf"/>
+    <!-- <CallTarget Targets="Bsdfaf" UseResultsCache="true"/> -->
   </Target>
 
   <Target Name="Bsdfaf">
