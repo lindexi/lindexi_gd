@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- [dotnet 打包 NuGet 的配置属性大全整理](https://blog.lindexi.com/post/dotnet-%E6%89%93%E5%8C%85-NuGet-%E7%9A%84%E9%85%8D%E7%BD%AE%E5%B1%9E%E6%80%A7%E5%A4%A7%E5%85%A8%E6%95%B4%E7%90%86.html ) -->
+    <Copyright>Copyright (c) lindexi 2020-$([System.DateTime]::Now.ToString(`yyyy`))</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Description>这里填写描述信息</Description>
+
+    <!-- 
+      配置为无依赖。即避免带上 TargetFramework=netstandard2.0 的限制
+      配合 IncludeBuildOutput=false 即可让任意项目引用，无视目标框架
+    -->
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+
+    <!-- 不要将输出文件放入到 nuget 的 lib 文件夹下 -->
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <!-- 不要警告 lib 下没内容 -->
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\..\README.md" Link="README.md" Pack="True" PackagePath="\"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Assets\Package.targets" Pack="True" PackagePath="\build\$(PackageId).targets" />
+    <None Include="Assets\Package.props" Pack="True" PackagePath="\build\$(PackageId).props" />
+  </ItemGroup>
+
+  <Target Name="AddOutputDllToNuGetAnalyzerFolder" BeforeTargets="_GetPackageFiles">
+    <!-- 
+      以下这句 ItemGroup 不能放在 Target 外面。否则首次构建之前 $(OutputPath)\$(AssemblyName).dll 是不存在的
+      这里需要选用在 _GetPackageFiles 之前，确保在 NuGet 收集文件之前，标记将输出的 dll 放入到 NuGet 的 analyzers 文件夹下
+    -->
+    <ItemGroup>
+      <None Include="$(OutputPath)\$(AssemblyName).dll"
+            Pack="true"
+            PackagePath="analyzers/dotnet/cs"
+            Visible="false" />
+    </ItemGroup>
+  </Target>
+</Project>

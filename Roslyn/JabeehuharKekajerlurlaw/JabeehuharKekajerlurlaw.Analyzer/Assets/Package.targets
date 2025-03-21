@@ -1,0 +1,10 @@
+<Project>
+
+  <ItemGroup>
+    <CompilerVisibleProperty Include="BanAPIFileName" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="$(BanAPIFileName)" />
+  </ItemGroup>
+</Project>
