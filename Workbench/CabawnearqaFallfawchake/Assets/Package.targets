@@ -1,0 +1,16 @@
+<Project>
+  <Target Name="Fasdfasdf" >
+    <PropertyGroup>
+      <Asfdgsdfg>true</Asfdgsdfg>
+      <Dasdfasdf>adfasdfasdfasdf</Dasdfasdf>
+    </PropertyGroup>
+
+    <Message Text="Fasdfasdf Asfdgsdfg=$(Asfdgsdfg) Dasdfasdf=$(Dasdfasdf)"/>
+
+    <CallTarget Targets="Bsdfaf"/>
+  </Target>
+
+  <Target Name="Bsdfaf">
+    <Message Text="Bsdfaf Asfdgsdfg=$(Asfdgsdfg) Dasdfasdf=$(Dasdfasdf)"/>
+  </Target>
+</Project>
