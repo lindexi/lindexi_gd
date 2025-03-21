@@ -11,7 +11,7 @@
     <PackageReference Include="CabawnearqaFallfawchake" Version="1.0.1" />
   </ItemGroup>
 
-  <Target Name="Tadfasdf">
+  <Target Name="Tadfasdf" BeforeTargets="BTadfasdf">
     <PropertyGroup>
       <Asfdgsdfg>true</Asfdgsdfg>
       <Dasdfasdf>adfasdfasdfasdf</Dasdfasdf>
@@ -22,7 +22,7 @@
     <!-- <CallTarget Targets="BTadfasdf" /> -->
   </Target>
 
-  <Target Name="BTadfasdf" AfterTargets="Tadfasdf">
+  <Target Name="BTadfasdf" >
     <Message Text="BTadfasdf Asfdgsdfg=$(Asfdgsdfg) Dasdfasdf=$(Dasdfasdf)"/>
   </Target>
 
