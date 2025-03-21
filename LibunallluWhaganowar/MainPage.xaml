@@ -10,5 +10,7 @@
 
     <Grid>
         <InkCanvas x:Name="InkCanvas"></InkCanvas>
+
+        <Button x:Name="Button" Content="按钮"/>
     </Grid>
 </Page>
