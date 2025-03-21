@@ -5,11 +5,10 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="Assets\Package.targets" Pack="True" PackagePath="\build\$(PackageId).targets" />
-    <None Include="Assets\Package.props" Pack="True" PackagePath="\build\$(PackageId).props" />
+    <PackageReference Include="CabawnearqaFallfawchake" Version="1.0.1" />
   </ItemGroup>
+
 </Project>
