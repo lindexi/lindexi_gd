@@ -2,7 +2,7 @@
 using System.Text.RegularExpressions;
 
 
-var folder = @"g:\Copy\程序\uwp_introduction\";
+var folder = @"C:\lindexi\Blog\";
 
 var fileList = Directory.GetFiles(folder, "*.md");
 List<BlogFileInfo> list = new List<BlogFileInfo>();
@@ -10,8 +10,7 @@ foreach (var file in fileList)
 {
     using FileStream fileStream = new FileStream(file, FileMode.Open);
     StreamReader streamReader = new StreamReader(fileStream);
-    string line;
-    while ((line = streamReader.ReadLine()) != null)
+    while (streamReader.ReadLine() is { } line)
     {
         var match = Regex.Match(line, @"CreateTime:([\W\w]*) -->");
         if (match.Success)
@@ -32,7 +31,7 @@ foreach (var file in fileList)
 
 list = list.OrderByDescending(t => t.CreateTime).ToList();
 
-var count = list.Count(t => t.CreateTime > new DateTime(2022, 03, 01));
+var count = list.Count(t => t.CreateTime > new DateTime(2023, 03, 01));
 
 Console.WriteLine("Hello, World!");
 
