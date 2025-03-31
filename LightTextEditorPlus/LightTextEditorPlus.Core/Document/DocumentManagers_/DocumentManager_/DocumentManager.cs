@@ -503,6 +503,8 @@ namespace LightTextEditorPlus.Core.Document
             }
             else
             {
+                TextEditor.AddLayoutReason($"SetRunProperty Selection={selection.Value.FrontOffset.Offset}-{selection.Value.BehindOffset.Offset}");
+
                 // 修改属性，需要触发样式变更，也就是文档变更
                 InternalDocumentChanging?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.OnlyStyle));
                 // 表示最后一个更改之后的文本字符属性，为了提升性能，不让每个文本字符属性都需要执行 config 函数

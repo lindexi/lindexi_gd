@@ -320,6 +320,12 @@ namespace LightTextEditorPlus
                 }
             }
 
+            if (!selection.Value.IsEmpty)
+            {
+                // 选择范围不为空，那就是一定有变更内容，记录布局变更原因
+                TextEditorCore.AddLayoutReason($"SetRunPropertyAva PropertyType={property} Selection={selection.Value.FrontOffset.Offset}-{selection.Value.BehindOffset.Offset}");
+            }
+
             OnStyleChanging(new StyleChangeEventArgs(selection.Value, property, TextEditorCore.IsUndoRedoMode));
 
             TextEditorCore.DocumentManager.SetRunProperty<SkiaTextRunProperty>(runProperty => config(runProperty), selection);
