@@ -1,0 +1,34 @@
+﻿<Window x:Class="HinaybaryayneejearNeqayhellal.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:HinaybaryayneejearNeqayhellal"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Viewbox Stretch="Fill">
+            <Grid Width="480" Height="386">
+                <Ellipse x:Name="BackgroundBlueEllipse" Width="350" Height="350" Fill="#7BFFC3"
+                 HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0 -200 0 0" RenderTransformOrigin="0.6,0.4">
+                    <Ellipse.Triggers>
+                        <EventTrigger RoutedEvent="Loaded">
+                            <BeginStoryboard>
+                                <Storyboard RepeatBehavior="Forever">
+                                    <DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames.KeyFrames>
+                                            <LinearDoubleKeyFrame KeyTime="0" Storyboard.TargetName="BackgroundBlueEllipse" ></LinearDoubleKeyFrame>
+                                        </DoubleAnimationUsingKeyFrames.KeyFrames>
+                                    </DoubleAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Ellipse.Triggers>
+                    <Ellipse.Effect>
+                        <BlurEffect Radius="150" />
+                    </Ellipse.Effect>
+                </Ellipse>
+            </Grid>
+        </Viewbox>
+    </Grid>
+</Window>
