@@ -1,4 +1,5 @@
 using Avalonia.Media;
+using Avalonia.Skia;
 using LightTextEditorPlus.Utils;
 
 namespace LightTextEditorPlus;
@@ -22,7 +23,7 @@ public class CaretConfiguration : SkiaCaretConfiguration
     public new Color? CaretBrush
     {
         get => base.CaretBrush.ToAvaloniaColor();
-        set => base.CaretBrush = value.ToSKColor();
+        set => base.CaretBrush = value?.ToSKColor();
     }
 
     public new Color SelectionBrush
