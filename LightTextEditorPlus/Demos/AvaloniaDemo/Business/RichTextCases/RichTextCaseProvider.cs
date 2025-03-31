@@ -274,40 +274,40 @@ class RichTextCaseProvider
             editor.AppendText("123123123123123123123123123");
         }, "设置前景色时，可设置到文本前景色");
 
-        Add(editor =>
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                for (int j = 0; j < 1000; j++)
-                {
-                    editor.AppendText("123123123123123123123123123");
-                }
-                editor.AppendText("\r\n");
-            }
-        },"测试超长的内容");
+        //Add(editor =>
+        //{
+        //    for (int i = 0; i < 10; i++)
+        //    {
+        //        for (int j = 0; j < 1000; j++)
+        //        {
+        //            editor.AppendText("123123123123123123123123123");
+        //        }
+        //        editor.AppendText("\r\n");
+        //    }
+        //},"测试超长的内容");
 
-        Add(editor =>
-        {
-            if (editor.Parent is Panel panel)
-            {
-                panel.Children.RemoveAll(panel.Children.OfType<TextEditor>().ToList());
+        //Add(editor =>
+        //{
+        //    if (editor.Parent is Panel panel)
+        //    {
+        //        panel.Children.RemoveAll(panel.Children.OfType<TextEditor>().ToList());
 
-                TextEditor textEditor = new TextEditor();
+        //        TextEditor textEditor = new TextEditor();
               
-                textEditor.AppendRun(new SkiaTextRun("1", textEditor.StyleRunProperty with
-                {
-                    Foreground = SKColors.Red
-                }));
-                textEditor.AppendRun(new SkiaTextRun("2", textEditor.StyleRunProperty with
-                {
-                    Foreground = SKColors.Blue
-                }));
+        //        textEditor.AppendRun(new SkiaTextRun("1", textEditor.StyleRunProperty with
+        //        {
+        //            Foreground = SKColors.Red
+        //        }));
+        //        textEditor.AppendRun(new SkiaTextRun("2", textEditor.StyleRunProperty with
+        //        {
+        //            Foreground = SKColors.Blue
+        //        }));
 
-                textEditor.AppendRun(new SkiaTextRun("3"));
+        //        textEditor.AppendRun(new SkiaTextRun("3"));
 
-                panel.Children.Insert(0, textEditor);
-            }
-        },"文本加入界面之前被设置颜色，颜色不会在加入界面之后被覆盖");
+        //        panel.Children.Insert(0, textEditor);
+        //    }
+        //},"文本加入界面之前被设置颜色，颜色不会在加入界面之后被覆盖");
     }
 
     private readonly ITextEditorProvider _textEditorProvider;
