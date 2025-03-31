@@ -1,5 +1,6 @@
 using System;
 using Avalonia.Media;
+using Avalonia.Skia;
 using LightTextEditorPlus.Core.Primitive;
 using SkiaSharp;
 
@@ -15,16 +16,6 @@ static class AvaloniaSkiaExtensions
     public static Color ToAvaloniaColor(this SKColor color)
     {
         return Color.FromArgb(color.Alpha, color.Red, color.Green, color.Blue);
-    }
-
-    public static SKColor? ToSKColor(this Color? color)
-    {
-        return color == null ? null : ToSKColor(color.Value);
-    }
-
-    public static SKColor ToSKColor(this Color color)
-    {
-        return new SKColor(color.R, color.G, color.B, color.A);
     }
 
     public static SKFontStyleSlant ToSKFontStyleSlant(this FontStyle fontStyle)

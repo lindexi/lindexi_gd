@@ -17,6 +17,7 @@ using LightTextEditorPlus.Utils;
 using ReactiveUI;
 using SkiaSharp;
 using Avalonia.Layout;
+using Avalonia.Skia;
 
 namespace LightTextEditorPlus
 {

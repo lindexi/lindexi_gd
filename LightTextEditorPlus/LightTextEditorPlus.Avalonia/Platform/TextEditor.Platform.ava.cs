@@ -208,6 +208,7 @@ partial class TextEditor : Control
 
     #endregion
 
+    /// <inheritdoc />
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs e)
     {
         if (e.Property == TextElement.ForegroundProperty)
