@@ -9,6 +9,7 @@
     <IsPackable>false</IsPackable>
     <PublishAot>true</PublishAot>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

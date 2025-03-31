@@ -8,6 +8,7 @@
 
     <IsPackable>false</IsPackable>
     <RootNamespace>LightTextEditorPlus.Tests</RootNamespace>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
