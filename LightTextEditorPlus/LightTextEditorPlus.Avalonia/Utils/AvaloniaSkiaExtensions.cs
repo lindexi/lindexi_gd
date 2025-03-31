@@ -18,6 +18,20 @@ static class AvaloniaSkiaExtensions
         return Color.FromArgb(color.Alpha, color.Red, color.Green, color.Blue);
     }
 
+    public static SKColor? ToSKColor(this IBrush? brush)
+    {
+        if (brush is SolidColorBrush solidColorBrush)
+        {
+            return solidColorBrush.Color.ToSKColor();
+        }
+        else if (brush is IImmutableSolidColorBrush immutableSolidColorBrush)
+        {
+            return immutableSolidColorBrush.Color.ToSKColor();
+        }
+
+        return null;
+    }
+
     public static SKFontStyleSlant ToSKFontStyleSlant(this FontStyle fontStyle)
     {
         return fontStyle switch
