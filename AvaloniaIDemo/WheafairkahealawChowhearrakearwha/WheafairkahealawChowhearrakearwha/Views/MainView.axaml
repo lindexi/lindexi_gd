@@ -1,0 +1,43 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:WheafairkahealawChowhearrakearwha.Views"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WheafairkahealawChowhearrakearwha.Views.MainView">
+
+    <Grid x:Name="RootGrid" Background="Transparent">
+        <Grid Width="500" Height="500" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Grid.Styles>
+                <Style Selector="Ellipse.Animation">
+                    <Setter Property="Opacity" Value="0.6" />
+                    <Style.Animations>
+                        <Animation Duration="0:0:2"
+                                   FillMode="Forward" IterationCount="INFINITE">
+                            <KeyFrame Cue="0%">
+                                <Setter Property="RotateTransform.Angle" Value="0.0" />
+                            </KeyFrame>
+                            <KeyFrame Cue="50%">
+                                <Setter Property="TranslateTransform.X" Value="40" />
+                            </KeyFrame>
+                            <KeyFrame Cue="100%">
+                                <Setter Property="RotateTransform.Angle" Value="360.0" />
+                                <Setter Property="TranslateTransform.X" Value="0" />
+                            </KeyFrame>
+                        </Animation>
+                    </Style.Animations>
+                    <Setter Property="Effect">
+                        <BlurEffect Radius="150" />
+                    </Setter>
+                </Style>
+            </Grid.Styles>
+
+            <Ellipse Width="350" Height="350" Classes="Animation" Fill="#7BFFC3" RenderTransformOrigin="60% 40%"
+                     HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0 -200 0 0"/>
+            <Ellipse Width="177" Height="177" Classes="Animation" Fill="#406AFF" RenderTransformOrigin="60% 60%"
+                     HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-30"/>
+            <Ellipse Width="150" Height="150" Classes="Animation" Fill="#3EECFF" RenderTransformOrigin="40% 40%"
+                     HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="-20"/>
+        </Grid>
+    </Grid>
+</UserControl>
