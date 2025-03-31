@@ -218,9 +218,30 @@ partial class TextEditor : Control
             //    SetForegroundInternal(bindingBrush.Value);
             //}
             //else
-            if (e.NewValue is IBrush brush)
+            if (e.NewValue is IBrush brush && brush.ToSKColor() is {} color)
             {
-                SetForegroundInternal(brush);
+                if (!this.IsInitialized)
+                {
+                    // 还没初始化，则需要额外判断文本是否有内容
+                    // 存在这样的情况，文本先设置内容，然后再加入到界面中。但按照 Avalonia 离谱的设计，加入到界面里面将会被刷一次 TextElement.ForegroundProperty 属性。如果此时走默认的 SetForeground 方法，会导致文本库的颜色被覆盖
+                    // 为了避免这种情况，需要在初始化之前先判断一下文本库是否有内容
+                    if (TextEditorCore.DocumentManager.IsInitializingTextEditor())
+                    {
+                        SetStyleTextRunProperty(property => property with
+                        {
+                            Foreground = color
+                        });
+                    }
+                    else
+                    {
+                        // 文本已经初始化过了，那就不能再设置颜色了，否则将会覆盖文本现有的属性配置
+                        // 对应测试用例：“文本加入界面之前被设置颜色，颜色不会在加入界面之后被覆盖”
+                    }
+                }
+                else
+                {
+                    SetForeground(color);
+                }
             }
         }
         else if (e.Property == WidthProperty)
