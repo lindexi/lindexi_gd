@@ -455,8 +455,10 @@ namespace LightTextEditorPlus.Core.Document
         /// 是否正在初始化文本编辑器
         /// </summary>
         /// <returns></returns>
+        /// <remarks>
         /// 如果文本编辑器有过一次文本，则段落列表不为空，那就不是初始化状态。这和是否空文本是不同的
-        private bool IsInitializingTextEditor() => ParagraphManager.GetRawParagraphList().Count == 0;
+        /// </remarks>
+        public bool IsInitializingTextEditor() => ParagraphManager.GetRawParagraphList().Count == 0;
 
         /// <summary>
         /// 设置当前光标的字符属性。在光标切走之后，自动失效
