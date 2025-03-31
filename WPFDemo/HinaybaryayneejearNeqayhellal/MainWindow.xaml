@@ -21,13 +21,14 @@
                         <EventTrigger RoutedEvent="Loaded">
                             <BeginStoryboard>
                                 <Storyboard Duration="0:0:2" RepeatBehavior="Forever">
-                                    <DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimation Storyboard.TargetName="BackgroundBlueEllipseTranslateTransform" Storyboard.TargetProperty="X" From="0" To="100"></DoubleAnimation>
+                                    <!--<DoubleAnimationUsingKeyFrames>
                                         <DoubleAnimationUsingKeyFrames.KeyFrames>
                                             <LinearDoubleKeyFrame Storyboard.TargetName="BackgroundBlueEllipseTranslateTransform" Storyboard.TargetProperty="X" Value="0" KeyTime="0"></LinearDoubleKeyFrame>
                                             <LinearDoubleKeyFrame Storyboard.TargetName="BackgroundBlueEllipseTranslateTransform" Storyboard.TargetProperty="X" Value="50" KeyTime="0:0:1"></LinearDoubleKeyFrame>
                                             <LinearDoubleKeyFrame Storyboard.TargetName="BackgroundBlueEllipseTranslateTransform" Storyboard.TargetProperty="X" Value="0" KeyTime="0:0:2"></LinearDoubleKeyFrame>
                                         </DoubleAnimationUsingKeyFrames.KeyFrames>
-                                    </DoubleAnimationUsingKeyFrames>
+                                    </DoubleAnimationUsingKeyFrames>-->
                                 </Storyboard>
                             </BeginStoryboard>
                         </EventTrigger>
