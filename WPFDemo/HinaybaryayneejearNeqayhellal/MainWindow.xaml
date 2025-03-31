@@ -21,21 +21,15 @@
                         <EventTrigger RoutedEvent="Loaded">
                             <BeginStoryboard>
                                 <Storyboard Duration="0:0:2" RepeatBehavior="Forever">
-                                    <DoubleAnimation Storyboard.TargetName="BackgroundBlueEllipseTranslateTransform" Storyboard.TargetProperty="X" From="0" To="100"></DoubleAnimation>
-                                    <!--<DoubleAnimationUsingKeyFrames>
-                                        <DoubleAnimationUsingKeyFrames.KeyFrames>
-                                            <LinearDoubleKeyFrame Storyboard.TargetName="BackgroundBlueEllipseTranslateTransform" Storyboard.TargetProperty="X" Value="0" KeyTime="0"></LinearDoubleKeyFrame>
-                                            <LinearDoubleKeyFrame Storyboard.TargetName="BackgroundBlueEllipseTranslateTransform" Storyboard.TargetProperty="X" Value="50" KeyTime="0:0:1"></LinearDoubleKeyFrame>
-                                            <LinearDoubleKeyFrame Storyboard.TargetName="BackgroundBlueEllipseTranslateTransform" Storyboard.TargetProperty="X" Value="0" KeyTime="0:0:2"></LinearDoubleKeyFrame>
-                                        </DoubleAnimationUsingKeyFrames.KeyFrames>
-                                    </DoubleAnimationUsingKeyFrames>-->
+                                    <DoubleAnimation Storyboard.TargetName="BackgroundBlueEllipseTranslateTransform" Storyboard.TargetProperty="X" From="0" To="100" AutoReverse="True" Duration="0:0:1"></DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="BackgroundBlueEllipseRotateTransform" Storyboard.TargetProperty="Angle" From="0" To="360"></DoubleAnimation>
                                 </Storyboard>
                             </BeginStoryboard>
                         </EventTrigger>
                     </Ellipse.Triggers>
-                    <!--<Ellipse.Effect>
-                        <BlurEffect KernelType="Box" RenderingBias="Performance" Radius="150" />
-                    </Ellipse.Effect>-->
+                    <Ellipse.Effect>
+                        <BlurEffect Radius="150" />
+                    </Ellipse.Effect>
                 </Ellipse>
             </Grid>
         </Viewbox>
