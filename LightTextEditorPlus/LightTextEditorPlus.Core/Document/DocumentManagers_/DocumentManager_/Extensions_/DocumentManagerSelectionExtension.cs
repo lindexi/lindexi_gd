@@ -45,4 +45,21 @@ internal static class DocumentManagerSelectionExtension
     /// <returns></returns>
     public static Selection GetAllDocumentSelection(this DocumentManager documentManager) =>
         new Selection(documentManager.GetDocumentStartCaretOffset(), documentManager.GetDocumentEndCaretOffset());
+
+    /// <summary>
+    /// 传入的 <paramref name="selection"/> 是否是全文选择
+    /// </summary>
+    /// <param name="documentManager"></param>
+    /// <param name="selection"></param>
+    /// <returns></returns>
+    public static bool IsAllDocumentSelection(this DocumentManager documentManager, in Selection selection)
+    {
+        if (selection.FrontOffset.Offset != 0)
+        {
+            // 短路代码，如果不是从 0 开始的选择，那么肯定不是全文选择
+            return false;
+        }
+
+        return documentManager.GetAllDocumentSelection().Equals(selection);
+    }
 }

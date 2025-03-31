@@ -6,7 +6,7 @@ namespace LightTextEditorPlus.Core.Carets;
 /// <summary>
 /// 表示选择范围，采用的是光标坐标系
 /// </summary>
-public readonly struct Selection
+public readonly struct Selection : IEquatable<Selection>
 {
     /// <summary>
     /// 创建选择范围
@@ -101,4 +101,22 @@ public readonly struct Selection
 
     /// <inheritdoc />
     public override string ToString() => $"{FrontOffset.Offset}-{BehindOffset.Offset};Length={Length}";
+
+    /// <inheritdoc />
+    public bool Equals(Selection other)
+    {
+        return StartOffset.Equals(other.StartOffset) && FrontOffset.Equals(other.FrontOffset);
+    }
+
+    /// <inheritdoc />
+    public override bool Equals(object? obj)
+    {
+        return obj is Selection other && Equals(other);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(StartOffset, FrontOffset);
+    }
 }

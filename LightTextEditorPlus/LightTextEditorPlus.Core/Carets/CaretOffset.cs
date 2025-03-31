@@ -61,13 +61,23 @@ public readonly struct CaretOffset : IEquatable<CaretOffset>
     /// <inheritdoc />
     public bool Equals(CaretOffset other)
     {
+        return (Offset == other.Offset) && (IsAtLineStart == other.IsAtLineStart);
+    }
+
+    /// <summary>
+    /// 相等判断，只判断 <see cref="Offset"/> 相等，无视 <see cref="IsAtLineStart"/> 的值
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
+    public bool EqualsIgnoreIsAtLineStart(CaretOffset other)
+    {
         return Offset == other.Offset;
     }
 
     /// <inheritdoc />
     public override bool Equals(object? obj)
     {
-        return obj is CaretOffset other && Equals(other);
+        return (obj is CaretOffset other) && Equals(other);
     }
 
     /// <inheritdoc />
