@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace LightTextEditorPlus.Core.Editing;
 
 /// <summary>
-/// 功能特性
+/// 功能特性，针对 API 级的功能开关
 /// </summary>
 [Flags]
 public enum TextFeatures : long
@@ -18,7 +18,7 @@ public enum TextFeatures : long
     All = ~0,
 
     /// <summary>
-    /// 可编辑
+    /// 可编辑。如果禁用，则 API 级的编辑功能将无法使用，即无法进行输入和替换文本内容
     /// </summary>
     Editable = 1L << 1,
 
