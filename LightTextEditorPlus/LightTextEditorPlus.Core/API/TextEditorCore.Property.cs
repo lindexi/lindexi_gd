@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using LightTextEditorPlus.Core.Attributes;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics;
@@ -387,12 +388,12 @@ partial class TextEditorCore
     {
         if (IsFeaturesEnable(features))
         {
-            return true;
+            return false;
         }
         else
         {
             Logger.Log(new TextFeaturesBeDisabledLogInfo(features));
-            return false;
+            return true;
         }
     }
 
