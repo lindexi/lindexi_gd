@@ -38,7 +38,7 @@ class RenderManager
         {
             // 无选择，只有光标
             CaretRenderInfo currentCaretRenderInfo = renderInfoProvider.GetCurrentCaretRenderInfo();
-            TextRect caretBounds = currentCaretRenderInfo.GetCaretBounds(_textEditor.CaretConfiguration.CaretWidth, IsOvertypeModeCaret);
+            TextRect caretBounds = currentCaretRenderInfo.GetCaretBounds(_textEditor.CaretConfiguration.CaretThickness, IsOvertypeModeCaret);
 
             SkiaTextRunProperty? skiaTextRunProperty = currentCaretRenderInfo.CharData?.RunProperty.AsSkiaRunProperty();
 

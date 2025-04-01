@@ -13,7 +13,7 @@ public class CaretConfiguration : SkiaCaretConfiguration
 
     internal CaretConfiguration(SkiaCaretConfiguration configuration)
     {
-        CaretWidth = configuration.CaretWidth;
+        CaretThickness = configuration.CaretThickness;
         base.CaretBrush = configuration.CaretBrush;
         base.SelectionBrush = configuration.SelectionBrush;
         CaretBlinkTime = configuration.CaretBlinkTime;

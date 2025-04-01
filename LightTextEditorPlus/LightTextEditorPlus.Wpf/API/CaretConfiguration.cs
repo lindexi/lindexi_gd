@@ -14,12 +14,12 @@ public class CaretConfiguration
     /// <summary>
     /// 光标的宽度
     /// </summary>
-    public double CaretWidth { get; set; } = DefaultCaretWidth;
+    public double CaretThickness { get; set; } = DefaultCaretThickness;
 
     /// <summary>
     /// 默认的光标宽度
     /// </summary>
-    public const double DefaultCaretWidth = 2;
+    public const double DefaultCaretThickness = 2;
 
     /// <summary>
     /// 光标闪烁的时间

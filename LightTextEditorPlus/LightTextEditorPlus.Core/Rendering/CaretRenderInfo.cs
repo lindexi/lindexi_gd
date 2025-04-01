@@ -136,12 +136,12 @@ public readonly struct CaretRenderInfo
     /// <summary>
     /// 获取光标的范围，坐标相对于文档左上角。可用于获取光标渲染范围。这只是一个帮助方法而已
     /// </summary>
-    /// <param name="caretWidth"></param>
+    /// <param name="caretThickness"></param>
     /// <param name="isOvertypeMode">是否覆盖模式，覆盖模式选择返回的是后一个字符的下划线。如果处于段落末尾，则依然显示竖线的光标。如果业务开发者想要自己定制，那就不要调用此帮助方法好了</param>
     /// <returns></returns>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     /// <exception cref="NotImplementedException"></exception>
-    public TextRect GetCaretBounds(double caretWidth, bool isOvertypeMode = false)
+    public TextRect GetCaretBounds(double caretThickness, bool isOvertypeMode = false)
     {
         var charData = CharData;
         TextRect lineBounds = LineBounds;
@@ -174,8 +174,8 @@ public readonly struct CaretRenderInfo
                         var nextCharData = GetCharDataInLineAfterCaretOffset();
                         if (nextCharData?.Size is {} size)
                         {
-                            return new TextRect(nextCharData.GetStartPoint().X, lineBounds.Bottom - caretWidth, size.Width,
-                                height: caretWidth);
+                            return new TextRect(nextCharData.GetStartPoint().X, lineBounds.Bottom - caretThickness, size.Width,
+                                height: caretThickness);
                         }
                     }
                 }
@@ -192,7 +192,7 @@ public readonly struct CaretRenderInfo
                     // 如果命中不是行的开始，那应该让光标放在字符的后面，即 x 加上字符的宽度
                     x += textSize.Width;
                 }
-                var width = caretWidth;
+                var width = caretThickness;
                 //var height =
                 //    LineSpacingCalculator.CalculateLineHeightWithLineSpacing(TextEditor,
                 //        TextEditor.DocumentManager.CurrentCaretRunProperty, 1);
