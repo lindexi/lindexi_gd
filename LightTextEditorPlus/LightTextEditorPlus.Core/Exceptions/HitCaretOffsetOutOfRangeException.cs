@@ -40,5 +40,5 @@ public class HitCaretOffsetOutOfRangeException : TextEditorException
 
     /// <inheritdoc />
     public override string Message =>
-        $"ArgumentName={ArgumentName};DocumentManagerCharCount={CurrentDocumentCharCount};CaretOffset={InputCaretOffset.Offset};TextEditor={TextEditor}";
+        $"[HitCaretOffsetOutOfRangeException] ArgumentName={ArgumentName};DocumentManagerCharCount={CurrentDocumentCharCount};CaretOffset={InputCaretOffset.Offset};TextEditor={TextEditor}";
 }
