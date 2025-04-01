@@ -6,6 +6,9 @@ using LightTextEditorPlus.Core;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
+using LightTextEditorPlus.Core.Document.UndoRedo;
+using LightTextEditorPlus.Core.Editing;
+using LightTextEditorPlus.Core.Events;
 
 namespace LightTextEditorPlus
 {
@@ -23,7 +26,7 @@ namespace LightTextEditorPlus
         /// 可以认为 可编辑 <see cref="IsEditable"/> 为 false 时，就是 <see cref="IsReadOnly"/> 只读模式
         /// </summary>
         /// <remarks>
-        /// 设置不可编辑时，仅仅是不开放用户编辑，但是依然可以通过 API 进行编辑修改文本内容
+        /// 设置不可编辑时，仅仅是不开放用户编辑，但是依然可以通过 API 进行编辑修改文本内容。如果需要完全禁止编辑，请使用 <see cref="TextFeatures"/> 功能开关进行业务端禁用
         /// </remarks>
         public bool IsEditable
         {
@@ -70,6 +73,40 @@ namespace LightTextEditorPlus
             IsInEditingInputMode = false;
             TextEditorCore.ClearSelection();
         }
+
+        /// <summary>
+        /// 是否处于覆盖模式
+        /// </summary>
+        /// 是否处于替换模式
+        /// 
+        /// 覆盖模式： 按下 Insert 键，光标会变成下划横线，输入的字符会替换光标所在位置后面的字符
+        public bool IsOvertypeMode
+        {
+            get => _isOvertypeMode;
+            set
+            {
+                if (value && TextEditorCore.CheckFeaturesDisableWithLog(TextFeatures.OvertypeModeEnable))
+                {
+                    return;
+                }
+
+                if (value == _isOvertypeMode)
+                {
+                    return;
+                }
+
+                var oldValue = _isOvertypeMode;
+                _isOvertypeMode = value;
+                IsOvertypeModeChanged?.Invoke(this, new TextEditorValueChangeEventArgs<bool>(oldValue, value));
+            }
+        }
+
+        private bool _isOvertypeMode;
+
+        /// <summary>
+        /// 是否处于覆盖模式变更事件
+        /// </summary>
+        public event EventHandler<TextEditorValueChangeEventArgs<bool>>? IsOvertypeModeChanged;
 
         #endregion
 
