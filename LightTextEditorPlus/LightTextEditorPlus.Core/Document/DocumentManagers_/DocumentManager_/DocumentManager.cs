@@ -695,7 +695,7 @@ namespace LightTextEditorPlus.Core.Document
         /// 由于追加属于性能优化的高级用法，默认不开放给业务层调用
         internal void AppendText(IImmutableRun run)
         {
-            if (TextEditor.CheckFeaturesDisableAndLog(TextFeatures.Editable))
+            if (TextEditor.CheckFeaturesDisableWithLog(TextFeatures.Editable))
             {
                 return;
             }
@@ -785,7 +785,7 @@ namespace LightTextEditorPlus.Core.Document
         /// </summary>
         private void EditAndReplaceRunListInner(in Selection selection, IImmutableRunList? run)
         {
-            if (TextEditor.CheckFeaturesDisableAndLog(TextFeatures.Editable))
+            if (TextEditor.CheckFeaturesDisableWithLog(TextFeatures.Editable))
             {
                 return;
             }
@@ -854,7 +854,7 @@ namespace LightTextEditorPlus.Core.Document
 
         private void ReplaceCore(in Selection selection, IImmutableRunList? run)
         {
-            if (TextEditor.CheckFeaturesDisableAndLog(TextFeatures.Editable))
+            if (TextEditor.CheckFeaturesDisableWithLog(TextFeatures.Editable))
             {
                 return;
             }

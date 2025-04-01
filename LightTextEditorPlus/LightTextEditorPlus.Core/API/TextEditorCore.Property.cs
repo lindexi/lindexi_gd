@@ -29,22 +29,22 @@ partial class TextEditorCore
         get => _verticalTextAlignment;
         set
         {
-            if (CheckFeaturesDisableAndLog(TextFeatures.AlignVertical))
+            if (CheckFeaturesDisableWithLog(TextFeatures.AlignVertical))
             {
                 return;
             }
 
-            if (value == VerticalTextAlignment.Top && CheckFeaturesDisableAndLog(TextFeatures.AlignVerticalTop))
+            if (value == VerticalTextAlignment.Top && CheckFeaturesDisableWithLog(TextFeatures.AlignVerticalTop))
             {
                 return;
             }
 
-            if (value == VerticalTextAlignment.Center && CheckFeaturesDisableAndLog(TextFeatures.AlignVerticalCenter))
+            if (value == VerticalTextAlignment.Center && CheckFeaturesDisableWithLog(TextFeatures.AlignVerticalCenter))
             {
                 return;
             }
 
-            if (value == VerticalTextAlignment.Bottom && CheckFeaturesDisableAndLog(TextFeatures.AlignVerticalBottom))
+            if (value == VerticalTextAlignment.Bottom && CheckFeaturesDisableWithLog(TextFeatures.AlignVerticalBottom))
             {
                 return;
             }
@@ -83,7 +83,7 @@ partial class TextEditorCore
     {
         set
         {
-            if (CheckFeaturesDisableAndLog(TextFeatures.SetSizeToContent))
+            if (CheckFeaturesDisableWithLog(TextFeatures.SetSizeToContent))
             {
                 return;
             }
@@ -105,7 +105,7 @@ partial class TextEditorCore
         get => _lineSpacingConfiguration;
         set
         {
-            if (CheckFeaturesDisableAndLog(TextFeatures.SetLineSpacing))
+            if (CheckFeaturesDisableWithLog(TextFeatures.SetLineSpacing))
             {
                 return;
             }
@@ -160,7 +160,7 @@ partial class TextEditorCore
     {
         set
         {
-            if (CheckFeaturesDisableAndLog(TextFeatures.ChangeArrangingType))
+            if (CheckFeaturesDisableWithLog(TextFeatures.ChangeArrangingType))
             {
                 return;
             }
@@ -345,18 +345,34 @@ partial class TextEditorCore
 
     private TextFeatures _features = TextFeatures.All;
 
+    /// <summary>
+    /// 功能特性变更事件
+    /// </summary>
     public event EventHandler<TextEditorValueChangeEventArgs<TextFeatures>>? FeaturesChanged;
 
+    /// <summary>
+    /// 启用功能
+    /// </summary>
+    /// <param name="features"></param>
     public void EnableFeatures(TextFeatures features)
     {
         Features = Features.EnableFeatures(features);
     }
 
+    /// <summary>
+    /// 禁用功能
+    /// </summary>
+    /// <param name="features"></param>
     public void DisableFeatures(TextFeatures features)
     {
         Features = Features.DisableFeatures(features);
     }
 
+    /// <summary>
+    /// 判断功能是否被启用
+    /// </summary>
+    /// <param name="features"></param>
+    /// <returns></returns>
     public bool IsFeaturesEnable(TextFeatures features)
     {
         return Features.IsFeaturesEnable(features);
@@ -367,7 +383,7 @@ partial class TextEditorCore
     /// </summary>
     /// <param name="features"></param>
     /// <returns></returns>
-    public bool CheckFeaturesDisableAndLog(TextFeatures features)
+    public bool CheckFeaturesDisableWithLog(TextFeatures features)
     {
         if (IsFeaturesEnable(features))
         {
