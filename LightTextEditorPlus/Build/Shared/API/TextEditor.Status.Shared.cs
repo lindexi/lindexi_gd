@@ -11,7 +11,7 @@ using LightTextEditorPlus.Document;
 namespace LightTextEditorPlus;
 
 // 此文件存放状态获取相关的方法
-[APIConstraint("TextEditor.Status.txt")]
+[APIConstraint("TextEditor.Status.Shared.txt")]
 partial class TextEditor
 {
     #region 光标和选择
@@ -94,18 +94,5 @@ partial class TextEditor
 
     /// <inheritdoc cref="LightTextEditorPlus.Core.TextEditorCore.DebugName"/>
     public string? DebugName => TextEditorCore.DebugName;
-
-    #region 日志
-
-    /// <summary>
-    /// 日志
-    /// </summary>
-    public ITextLogger Logger
-    {
-        get => TextEditorCore.Logger;
-        set => TextEditorCore.Logger = value;
-    }
-
-    #endregion
 }
 #endif
