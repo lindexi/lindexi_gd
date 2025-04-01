@@ -114,6 +114,8 @@ namespace LightTextEditorPlus
                 }
                 
                 IsOvertypeModeChanged?.Invoke(this, new TextEditorValueChangeEventArgs<bool>(oldValue, value));
+
+                InvalidateVisual();
             }
         }
 
