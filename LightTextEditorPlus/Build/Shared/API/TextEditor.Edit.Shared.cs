@@ -103,6 +103,16 @@ namespace LightTextEditorPlus
 
                 var oldValue = _isOvertypeMode;
                 _isOvertypeMode = value;
+
+                if (value)
+                {
+                    Logger.LogDebug("EnterOvertypeMode");
+                }
+                else
+                {
+                    Logger.LogDebug("QuitOvertypeMode");
+                }
+
                 IsOvertypeModeChanged?.Invoke(this, new TextEditorValueChangeEventArgs<bool>(oldValue, value));
             }
         }

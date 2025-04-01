@@ -495,7 +495,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
             //emoji包围符
             e.Text == "\ufe0f")
             return;
-
+        
         //如果是由两个Unicode码组成的Emoji的其中一个Unicode码，则等待第二个Unicode码的输入后合并成一个字符串作为一个字符插入
         if (RegexPatterns.Utf16SurrogatesPattern.ContainInRange(e.Text))
         {
@@ -506,14 +506,27 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
             else
             {
                 _emojiCache += e.Text;
-                TextEditorCore.EditAndReplace(_emojiCache);
+
+                PerformInput(_emojiCache);
                 _emojiCache = string.Empty;
             }
         }
         else
         {
             _emojiCache = string.Empty;
-            TextEditorCore.EditAndReplace(e.Text);
+            PerformInput(e.Text);
+        }
+
+
+        void PerformInput(string text)
+        {
+            Selection? selection = null;
+            if (IsOvertypeMode)
+            {
+                selection = TextEditorCore.GetCurrentOvertypeModeSelection(text.Length);
+            }
+
+            TextEditorCore.EditAndReplace(text, selection);
         }
     }
 

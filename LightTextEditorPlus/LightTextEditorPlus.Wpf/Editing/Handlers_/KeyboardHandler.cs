@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 
 using LightTextEditorPlus.Core.Carets;
+using LightTextEditorPlus.Core.Editing;
 
 namespace LightTextEditorPlus.Editing;
 
@@ -41,6 +42,22 @@ internal class KeyboardHandler
 
         _textArea.CommandBindings.Add(new CommandBinding(EditingCommands.Delete, OnDelete));
         _textArea.InputBindings.Add(new KeyBinding(EditingCommands.Delete, Key.Delete, ModifierKeys.None));
+
+        textEditor.KeyDown += TextEditor_KeyDown;
+    }
+
+    private void TextEditor_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Insert)
+        {
+            if (TextEditor.CheckFeaturesDisableWithLog(TextFeatures.OvertypeModeEnable))
+            {
+                return;
+            }
+
+            TextEditor.IsOvertypeMode = !TextEditor.IsOvertypeMode;
+            e.Handled = true;
+        }
     }
 
     #region 删除

@@ -113,17 +113,29 @@ partial class TextEditor : Control
             else
             {
                 _emojiCache += e.Text;
-                TextEditorCore.EditAndReplace(_emojiCache);
+
+                PerformInput(_emojiCache);
                 _emojiCache = string.Empty;
             }
         }
         else
         {
             _emojiCache = string.Empty;
-            TextEditorCore.EditAndReplace(e.Text);
+            PerformInput(e.Text);
         }
 
         base.OnTextInput(e);
+
+        void PerformInput(string text)
+        {
+            Selection? selection = null;
+            if (IsOvertypeMode)
+            {
+                selection = TextEditorCore.GetCurrentOvertypeModeSelection(text.Length);
+            }
+
+            TextEditorCore.EditAndReplace(text, selection);
+        }
     }
 
     /// <summary>
