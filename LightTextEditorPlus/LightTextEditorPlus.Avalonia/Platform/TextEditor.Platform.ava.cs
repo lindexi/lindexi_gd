@@ -158,6 +158,10 @@ partial class TextEditor : Control
         {
             TextEditorCore.EditAndReplace("\n");
         }
+        else if (e.Key == Key.Insert)
+        {
+            IsOvertypeMode = !IsOvertypeMode;
+        }
     }
 
     protected override void OnKeyUp(KeyEventArgs e)

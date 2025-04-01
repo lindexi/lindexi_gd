@@ -112,7 +112,7 @@ namespace LightTextEditorPlus
                 {
                     Logger.LogDebug("QuitOvertypeMode");
                 }
-
+                
                 IsOvertypeModeChanged?.Invoke(this, new TextEditorValueChangeEventArgs<bool>(oldValue, value));
             }
         }

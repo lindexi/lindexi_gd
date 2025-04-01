@@ -38,7 +38,7 @@ class RenderManager
         {
             // 无选择，只有光标
             CaretRenderInfo currentCaretRenderInfo = renderInfoProvider.GetCurrentCaretRenderInfo();
-            TextRect caretBounds = currentCaretRenderInfo.GetCaretBounds(_textEditor.CaretConfiguration.CaretWidth);
+            TextRect caretBounds = currentCaretRenderInfo.GetCaretBounds(_textEditor.CaretConfiguration.CaretWidth, IsOvertypeModeCaret);
 
             SkiaTextRunProperty? skiaTextRunProperty = currentCaretRenderInfo.CharData?.RunProperty.AsSkiaRunProperty();
 
@@ -60,8 +60,19 @@ class RenderManager
 
     private ITextEditorCaretAndSelectionRenderSkiaRender? _currentCaretAndSelectionRender;
 
-    public ITextEditorCaretAndSelectionRenderSkiaRender GetCurrentCaretAndSelectionRender()
+    private bool IsOvertypeModeCaret { get; set; }
+
+    public ITextEditorCaretAndSelectionRenderSkiaRender GetCurrentCaretAndSelectionRender(in CaretAndSelectionRenderContext renderContext)
     {
+        if (IsOvertypeModeCaret != renderContext.IsOvertypeModeCaret)
+        {
+            IsOvertypeModeCaret = renderContext.IsOvertypeModeCaret;
+            if (_textEditor.TextEditorCore.TryGetRenderInfo(out var renderInfo))
+            {
+                UpdateCaretAndSelectionRender(renderInfo, _textEditor.TextEditorCore.CurrentSelection);
+            }
+        }
+
         Debug.Assert(_currentCaretAndSelectionRender != null, "不可能一开始就获取当前渲染，必然调用过 Render 方法");
         return _currentCaretAndSelectionRender;
     }
