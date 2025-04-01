@@ -193,4 +193,9 @@ public enum TextFeatures : long
     /// 设置大小自适应内容
     /// </summary>
     SetSizeToContent = 1L << 33,
+
+    /// <summary>
+    /// 方向键的移动光标。和直接设置光标坐标位置不同，直接设置光标是无法防的，否则也难以正常实现业务逻辑
+    /// </summary>
+    CaretMoveTypeEnable = 1L << 34,
 }

@@ -287,6 +287,11 @@ partial class TextEditorCore
     [TextEditorPublicAPI]
     public void MoveCaret(CaretMoveType type)
     {
+        if (CheckFeaturesDisableWithLog(TextFeatures.CaretMoveTypeEnable))
+        {
+            return;
+        }
+
         var caretOffset = GetNewCaretOffset(type);
         CaretManager.CurrentCaretOffset = caretOffset;
     }
