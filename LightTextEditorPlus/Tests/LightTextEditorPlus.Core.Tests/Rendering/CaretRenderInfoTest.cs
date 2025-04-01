@@ -16,12 +16,38 @@ public class CaretRenderInfoTest
     [ContractTestCase]
     public void GetCharDataInLineAfterCaretOffsetTest()
     {
+        "一段两行的文本，光标在末行首字符之前，可获取光标之后的字符信息".Test(() =>
+        {
+            // Arrange
+            var textEditorCore = TestHelper.GetLayoutTestTextEditor(lineCharCount:2);
+            // 一段两行的文本
+            var text = "abc";
+            // 预期布局如下
+            // ab
+            // c
+            textEditorCore.AppendText(text);
+
+            // Action
+            // 光标在末行首字符之前
+            // 预期此时的光标情况如下
+            // ab
+            // |c
+            var caretOffset = new CaretOffset("ab".Length, isAtLineStart: true);
+            var renderInfoProvider = textEditorCore.GetRenderInfo();
+            CaretRenderInfo caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(caretOffset);
+
+            var charData = caretRenderInfo.GetCharDataInLineAfterCaretOffset();
+
+            // Assert
+            Assert.IsNotNull(charData);
+            Assert.AreEqual("c", charData!.CharObject.ToText());
+        });
+
         "一段一行三个字符的文本，光标在首个字符之前，可获取光标之后的字符信息".Test(() =>
         {
             // Arrange
             // 采用 FixCharSizePlatformProvider 固定数值
-            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider())
-                .UseFixedLineSpacing();
+            var textEditorCore = TestHelper.GetLayoutTestTextEditor();
             // 一段一行三个字符
             var text = "abc";
             textEditorCore.AppendText(text);
@@ -46,8 +72,7 @@ public class CaretRenderInfoTest
         {
             // Arrange
             // 采用 FixCharSizePlatformProvider 固定数值
-            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider())
-                .UseFixedLineSpacing();
+            var textEditorCore = TestHelper.GetLayoutTestTextEditor();
             // 一段一行三个字符
             var text = "abc";
             textEditorCore.AppendText(text);

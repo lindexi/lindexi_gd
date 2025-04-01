@@ -95,7 +95,7 @@ public readonly struct CaretRenderInfo
     /// <returns></returns>
     public CharData? GetCharDataInLineAfterCaretOffset()
     {
-        if (LineLayoutData.CharCount == 0 || LineLayoutData.CharCount < HitOffset.Offset)
+        if (LineLayoutData.CharCount == 0 || IsLineEnd)
         {
             return null;
         }
