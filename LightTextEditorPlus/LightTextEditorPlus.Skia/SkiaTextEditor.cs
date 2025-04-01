@@ -80,6 +80,8 @@ public partial class SkiaTextEditor : IRenderManager
     /// </summary>
     public TextRect CurrentLayoutBounds { get; private set; } = TextRect.Zero;
 
+
+
     #region 渲染
     internal RenderManager RenderManager { get; }
 
@@ -140,9 +142,9 @@ public partial class SkiaTextEditor : IRenderManager
         return RenderManager.GetCurrentTextRender();
     }
 
-    public ITextEditorCaretAndSelectionRenderSkiaRender GetCurrentCaretAndSelectionRender()
+    public ITextEditorCaretAndSelectionRenderSkiaRender GetCurrentCaretAndSelectionRender(in CaretAndSelectionRenderContext renderContext)
     {
-        return RenderManager.GetCurrentCaretAndSelectionRender();
+        return RenderManager.GetCurrentCaretAndSelectionRender(renderContext);
     }
 
     public event EventHandler? InvalidateVisualRequested;

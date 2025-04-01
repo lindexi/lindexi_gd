@@ -9,6 +9,7 @@ using System.Collections.Generic;
 
 using System.Diagnostics;
 using System.Linq;
+using LightTextEditorPlus.Rendering;
 
 namespace LightTextEditorPlus;
 
@@ -112,7 +113,7 @@ partial class TextEditor
             {
                 // 只有编辑模式下才会绘制光标和选择区域
                 context.Custom(new TextEditorCustomDrawOperation(renderBounds,
-                    skiaTextEditor.GetCurrentCaretAndSelectionRender(), toDisposedList: null));
+                    skiaTextEditor.GetCurrentCaretAndSelectionRender(new CaretAndSelectionRenderContext(TextEditor.IsOvertypeMode)), toDisposedList: null));
             }
         }
     }

@@ -135,4 +135,3 @@ record TextEditorCaretSkiaRender(SKRect CaretBounds, SKColor CaretColor) : IText
     {
     }
 }
-
