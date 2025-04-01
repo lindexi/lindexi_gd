@@ -33,10 +33,16 @@ namespace LightTextEditorPlus
             get => _isEditable;
             set
             {
+                if (value == _isEditable)
+                {
+                    return;
+                }
+                var oldValue = _isEditable;
+
                 _isEditable = value;
                 IsInEditingInputMode = false;
 
-                IsEditableChanged?.Invoke(this, EventArgs.Empty);
+                IsEditableChanged?.Invoke(this, new TextEditorValueChangeEventArgs<bool>(oldValue, value));
             }
         }
 
@@ -45,7 +51,7 @@ namespace LightTextEditorPlus
         /// <summary>
         /// 是否可编辑变更事件
         /// </summary>
-        public event EventHandler? IsEditableChanged;
+        public event EventHandler<TextEditorValueChangeEventArgs<bool>>? IsEditableChanged;
 
         /// <summary>
         /// 是否只读的文本。这里的只读指的是不开放用户编辑，依然可以使用 API 调用进行文本编辑。如需进入或退出只读模式，请设置 <see cref="IsEditable"/> 属性
