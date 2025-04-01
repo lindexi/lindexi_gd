@@ -30,6 +30,7 @@ class ParagraphManager
     /// </summary>
     /// <param name="offset"></param>
     /// <returns></returns>
+    /// 按照文本库现在的设计，段落都是数据都是实时更新的，不再依赖红黑树的刷新。在实际测试过程中，难以有超过几千个段落的情况，且被大批量同时更改。实时更新的性能完全能够跟得上，于是就可以省去很大的复杂度，直接随时都能调用
     public HitParagraphDataResult GetHitParagraphData(CaretOffset offset)
     {
         EnsureFirstParagraphExists();

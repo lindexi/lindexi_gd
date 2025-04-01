@@ -295,6 +295,7 @@ namespace LightTextEditorPlus.Core.Document
         /// </summary>
         /// <param name="caretOffset"></param>
         /// <returns></returns>
+        /// 此方法无需在文本布局之后调用，随时都可以立刻调用，不涉及到布局信息
         public ITextParagraph GetParagraph(in CaretOffset caretOffset) =>
             ParagraphManager.GetHitParagraphData(caretOffset).ParagraphData;
 

@@ -4,6 +4,7 @@ using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Primitive;
+using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.TestsFramework;
 using LightTextEditorPlus.Core.Utils;
 
@@ -12,6 +13,62 @@ namespace LightTextEditorPlus.Core.Tests.Rendering;
 [TestClass]
 public class CaretRenderInfoTest
 {
+    [ContractTestCase]
+    public void GetCharDataInLineAfterCaretOffsetTest()
+    {
+        "一段一行三个字符的文本，光标在首个字符之前，可获取光标之后的字符信息".Test(() =>
+        {
+            // Arrange
+            // 采用 FixCharSizePlatformProvider 固定数值
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider())
+                .UseFixedLineSpacing();
+            // 一段一行三个字符
+            var text = "abc";
+            textEditorCore.AppendText(text);
+
+            // Action
+            // 光标在首个字符之前
+            // 预期此时的光标情况如下
+            // |abc
+            var caretOffset = new CaretOffset(0);
+
+            var renderInfoProvider = textEditorCore.GetRenderInfo();
+            CaretRenderInfo caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(caretOffset);
+
+            var charData = caretRenderInfo.GetCharDataInLineAfterCaretOffset();
+
+            // Assert
+            Assert.IsNotNull(charData);
+            Assert.AreEqual("a", charData!.CharObject.ToText());
+        });
+
+        "一段一行三个字符的文本，光标在首个字符之后，可获取光标之后的字符信息".Test(() =>
+        {
+            // Arrange
+            // 采用 FixCharSizePlatformProvider 固定数值
+            var textEditorCore = TestHelper.GetTextEditorCore(new FixCharSizePlatformProvider())
+                .UseFixedLineSpacing();
+            // 一段一行三个字符
+            var text = "abc";
+            textEditorCore.AppendText(text);
+
+            // Action
+            // 将光标设置在首个字符之后，不用去更改文本的当前光标，只是设置一个值
+            // 预期此时的光标情况如下
+            // a|bc
+            var caretOffset = new CaretOffset(1);
+
+            var renderInfoProvider = textEditorCore.GetRenderInfo();
+            CaretRenderInfo caretRenderInfo = renderInfoProvider.GetCaretRenderInfo(caretOffset);
+
+            var charData = caretRenderInfo.GetCharDataInLineAfterCaretOffset();
+
+            // Assert
+            Assert.IsNotNull(charData);
+            Assert.AreEqual("b", charData!.CharObject.ToText());
+        });
+    }
+
     [ContractTestCase]
     public void GetCaretRenderInfo()
     {
@@ -140,7 +197,10 @@ public class CaretRenderInfoTest
             // fg
 
             // Action
-            // 将光标设置在 f 字符之前
+            // 将光标设置在 f 字符之前，预期光标效果如下
+            // abc
+            // de[回车]
+            // |fg
             var caretOffset = new CaretOffset("abcde".Length + TextContext.NewLine.Length, isAtLineStart: true);
             var renderInfoProvider = textEditorCore.GetRenderInfo();
             Assert.IsNotNull(renderInfoProvider); // 单元测试里是立刻布局，可以立刻获取到渲染信息
@@ -152,7 +212,10 @@ public class CaretRenderInfoTest
             Assert.IsNotNull(caretRenderInfo.CharData);
             Assert.AreEqual("f", caretRenderInfo.CharData.CharObject.ToText());
             // 获取下一个字符
-            Assert.AreEqual("g", caretRenderInfo.GetCharDataInLineAfterCaretOffset()!.CharObject.ToText());
+            Assert.AreEqual("f", caretRenderInfo.GetCharDataInLineAfterCaretOffset()!.CharObject.ToText());
+            // 此时光标命中的字符和光标之后的字符是一样的
+            Assert.AreSame(caretRenderInfo.CharData, caretRenderInfo.GetCharDataInLineAfterCaretOffset());
+
             Assert.AreEqual(true, caretRenderInfo.IsLineStart);
 
             Assert.AreEqual(0, caretRenderInfo.LineIndex);

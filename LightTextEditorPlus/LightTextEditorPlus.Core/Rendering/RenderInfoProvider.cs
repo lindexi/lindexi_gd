@@ -172,7 +172,10 @@ public class RenderInfoProvider
             // 如“|abc”的情况，应该取字符 a 作为命中的字符
             var hitLineCharOffset = new LineCharOffset(0);
             var hitLineCaretOffset = new LineCaretOffset(0);
-            return new CaretRenderInfo(TextEditor, lineIndex, hitLineCharOffset, hitLineCaretOffset, hitParagraphCaretOffset, caretOffset, lineLayoutData);
+            // 按照约定，段首的光标，命中到段首，而不是命中到行首。即使是空段，也是命中到段首，且不能同时设置为行首和行首
+            bool isHitLineEnd = false;
+            return new CaretRenderInfo(TextEditor, lineIndex, hitLineCharOffset, hitLineCaretOffset,
+                hitParagraphCaretOffset, caretOffset, lineLayoutData, isHitLineEnd);
         }
         else if (hitParagraphCaretOffset.Offset == paragraphData.CharCount)
         {
@@ -190,7 +193,10 @@ public class RenderInfoProvider
             var hitLineCaretOffset =
                 new LineCaretOffset(hitParagraphCaretOffset.Offset - lineLayoutData.CharStartParagraphIndex);
 
-            return new CaretRenderInfo(TextEditor, lineIndex, hitLineCharOffset, hitLineCaretOffset, hitParagraphCaretOffset, caretOffset, lineLayoutData);
+            Debug.Assert(!paragraphData.IsEmptyParagraph, "能进入这个分支的，一定不是空段落");
+            // 命中到段末，那就是命中到行末
+            bool isHitLineEnd = true;
+            return new CaretRenderInfo(TextEditor, lineIndex, hitLineCharOffset, hitLineCaretOffset, hitParagraphCaretOffset, caretOffset, lineLayoutData, isHitLineEnd);
         }
 
         for (var lineIndex = 0; lineIndex < paragraphData.LineLayoutDataList.Count; lineIndex++)
@@ -210,12 +216,16 @@ public class RenderInfoProvider
                 // 命中到行末，但是此时光标设置非行首情况
                 var hitLineCaretOffset =
                     new LineCaretOffset(hitParagraphCaretOffset.Offset - lineLayoutData.CharStartParagraphIndex);
+                // 是否命中到行末
+                bool isHitLineEnd;
                 LineCharOffset hitLineCharOffset;
                 if (hitLineCaretOffset.Offset == 0)
                 {
                     // 命中到行首的情况
                     Debug.Assert(caretOffset.IsAtLineStart, "命中到行首时，应该传入光标才是真的行首");
                     hitLineCharOffset = new LineCharOffset(0);
+                    // 当前是命中到行首，那就是非行末
+                    isHitLineEnd = false;
                 }
                 else
                 {
@@ -229,9 +239,11 @@ public class RenderInfoProvider
                     // 取光标前一个字符
                     // 如“a|bc”的情况，应该取字符 a 作为命中的字符
                     hitLineCharOffset = new LineCharOffset(hitLineCaretOffset.Offset - 1);
+
+                    isHitLineEnd = hitParagraphCaretOffset.Offset == lineLayoutData.CharEndParagraphIndex;
                 }
 
-                return new CaretRenderInfo(TextEditor, lineIndex, hitLineCharOffset, hitLineCaretOffset, hitParagraphCaretOffset, caretOffset, lineLayoutData);
+                return new CaretRenderInfo(TextEditor, lineIndex, hitLineCharOffset, hitLineCaretOffset, hitParagraphCaretOffset, caretOffset, lineLayoutData, isHitLineEnd);
             }
         }
 
