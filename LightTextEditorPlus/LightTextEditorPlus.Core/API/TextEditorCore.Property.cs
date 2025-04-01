@@ -8,6 +8,7 @@ using LightTextEditorPlus.Core.Attributes;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Editing;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils;
@@ -282,6 +283,45 @@ partial class TextEditorCore
     private ReadOnlyParagraphList? _paragraphList;
 
     #endregion
+
+    #endregion
+
+    #region 功能特性
+
+    public TextFeatures Features
+    {
+        get => _features;
+        set
+        {
+            if (value == _features)
+            {
+                return;
+            }
+
+            var oldValue = _features;
+            _features = value;
+            FeaturesChanged?.Invoke(this, new TextEditorValueChangeEventArgs<TextFeatures>(oldValue, value));
+        }
+    }
+
+    private TextFeatures _features;
+
+    public event EventHandler<TextEditorValueChangeEventArgs<TextFeatures>>? FeaturesChanged;
+
+    public void EnableFeatures(TextFeatures features)
+    {
+        Features = Features.EnableFeatures(features);
+    }
+
+    public void DisableFeatures(TextFeatures features)
+    {
+        Features = Features.DisableFeatures(features);
+    }
+
+    public bool IsFeaturesEnable(TextFeatures features)
+    {
+        return Features.IsFeaturesEnable(features);
+    }
 
     #endregion
 }
