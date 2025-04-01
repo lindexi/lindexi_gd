@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 using LightTextEditorPlus.Core.Attributes;
 using LightTextEditorPlus.Core.Carets;
 using LightTextEditorPlus.Core.Diagnostics;
+using LightTextEditorPlus.Core.Diagnostics.LogInfos;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Editing;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Utils;
@@ -27,6 +29,26 @@ partial class TextEditorCore
         get => _verticalTextAlignment;
         set
         {
+            if (CheckFeaturesDisableAndLog(TextFeatures.AlignVertical))
+            {
+                return;
+            }
+
+            if (value == VerticalTextAlignment.Top && CheckFeaturesDisableAndLog(TextFeatures.AlignVerticalTop))
+            {
+                return;
+            }
+
+            if (value == VerticalTextAlignment.Center && CheckFeaturesDisableAndLog(TextFeatures.AlignVerticalCenter))
+            {
+                return;
+            }
+
+            if (value == VerticalTextAlignment.Bottom && CheckFeaturesDisableAndLog(TextFeatures.AlignVerticalBottom))
+            {
+                return;
+            }
+
             _verticalTextAlignment = value;
 
             // 实际上可以不布局的，只是修改文档左上角坐标即可
@@ -61,6 +83,11 @@ partial class TextEditorCore
     {
         set
         {
+            if (CheckFeaturesDisableAndLog(TextFeatures.SetSizeToContent))
+            {
+                return;
+            }
+
             if (_sizeToContent == value) return;
             _sizeToContent = value;
             RequireDispatchReLayoutAllDocument("SizeToContent Changed");
@@ -78,6 +105,11 @@ partial class TextEditorCore
         get => _lineSpacingConfiguration;
         set
         {
+            if (CheckFeaturesDisableAndLog(TextFeatures.SetLineSpacing))
+            {
+                return;
+            }
+
             _lineSpacingConfiguration = value;
             RequireDispatchReLayoutAllDocument("LineSpacingConfiguration Changed");
         }
@@ -128,6 +160,11 @@ partial class TextEditorCore
     {
         set
         {
+            if (CheckFeaturesDisableAndLog(TextFeatures.ChangeArrangingType))
+            {
+                return;
+            }
+
             if (_arrangingType == value) return;
             var oldArrangingType = _arrangingType;
             _arrangingType = value;
@@ -282,6 +319,66 @@ partial class TextEditorCore
     private ReadOnlyParagraphList? _paragraphList;
 
     #endregion
+
+    #endregion
+
+    #region 功能特性
+
+    /// <summary>
+    /// 功能特性
+    /// </summary>
+    public TextFeatures Features
+    {
+        get => _features;
+        set
+        {
+            if (value == _features)
+            {
+                return;
+            }
+
+            var oldValue = _features;
+            _features = value;
+            FeaturesChanged?.Invoke(this, new TextEditorValueChangeEventArgs<TextFeatures>(oldValue, value));
+        }
+    }
+
+    private TextFeatures _features = TextFeatures.All;
+
+    public event EventHandler<TextEditorValueChangeEventArgs<TextFeatures>>? FeaturesChanged;
+
+    public void EnableFeatures(TextFeatures features)
+    {
+        Features = Features.EnableFeatures(features);
+    }
+
+    public void DisableFeatures(TextFeatures features)
+    {
+        Features = Features.DisableFeatures(features);
+    }
+
+    public bool IsFeaturesEnable(TextFeatures features)
+    {
+        return Features.IsFeaturesEnable(features);
+    }
+
+    /// <summary>
+    /// 判断功能是否被禁用，如被禁用则记录日志
+    /// </summary>
+    /// <param name="features"></param>
+    /// <returns></returns>
+    public bool CheckFeaturesDisableAndLog(TextFeatures features)
+    {
+        if (IsFeaturesEnable(features))
+        {
+            return true;
+        }
+        else
+        {
+            Logger.Log(new TextFeaturesBeDisabledLogInfo(features));
+            return false;
+        }
+    }
 
     #endregion
 }

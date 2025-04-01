@@ -1,5 +1,6 @@
 using System;
 using LightTextEditorPlus.Core.Document;
+using LightTextEditorPlus.Core.Editing;
 using LightTextEditorPlus.Core.Events;
 
 namespace LightTextEditorPlus.Core.Carets;
@@ -92,6 +93,11 @@ class CaretManager
     /// <param name="selection"></param>
     public void SetSelection(in Selection selection)
     {
+        if (TextEditor.CheckFeaturesDisableAndLog(TextFeatures.SelectionEnable))
+        {
+            return;
+        }
+
         CurrentSelection = selection;
     }
 

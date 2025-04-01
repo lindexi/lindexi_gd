@@ -8,6 +8,7 @@ using LightTextEditorPlus.Core.Document.DocumentEventArgs;
 using LightTextEditorPlus.Core.Document.Segments;
 using LightTextEditorPlus.Core.Document.UndoRedo;
 using LightTextEditorPlus.Core.Document.Utils;
+using LightTextEditorPlus.Core.Editing;
 using LightTextEditorPlus.Core.Exceptions;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Utils;
@@ -694,6 +695,11 @@ namespace LightTextEditorPlus.Core.Document
         /// 由于追加属于性能优化的高级用法，默认不开放给业务层调用
         internal void AppendText(IImmutableRun run)
         {
+            if (TextEditor.CheckFeaturesDisableAndLog(TextFeatures.Editable))
+            {
+                return;
+            }
+
             TextEditor.AddLayoutReason(nameof(AppendText));
 
             InternalDocumentChanging?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.Text));
@@ -779,6 +785,11 @@ namespace LightTextEditorPlus.Core.Document
         /// </summary>
         private void EditAndReplaceRunListInner(in Selection selection, IImmutableRunList? run)
         {
+            if (TextEditor.CheckFeaturesDisableAndLog(TextFeatures.Editable))
+            {
+                return;
+            }
+
             InternalDocumentChanging?.Invoke(this, new DocumentChangeEventArgs(DocumentChangeKind.Text));
             // 这里只处理数据变更，后续渲染需要通过 InternalDocumentChanged 事件触发
 
@@ -843,6 +854,11 @@ namespace LightTextEditorPlus.Core.Document
 
         private void ReplaceCore(in Selection selection, IImmutableRunList? run)
         {
+            if (TextEditor.CheckFeaturesDisableAndLog(TextFeatures.Editable))
+            {
+                return;
+            }
+
             if (selection.BehindOffset.Offset > CharCount)
             {
                 throw new SelectionOutOfRangeException(TextEditor, selection, CharCount);
