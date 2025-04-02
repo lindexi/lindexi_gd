@@ -215,7 +215,7 @@ class SelectionAndCaretLayer : DrawingVisual, ICaretManager, ILayer
             var foreground = _textEditor.CaretConfiguration.CaretBrush ??
                              _textEditor.CurrentCaretRunProperty.Foreground.Value;
 
-            var rectangle = caretRenderInfo.GetCaretBounds(_textEditor.CaretConfiguration.CaretWidth, _textEditor.IsOvertypeMode).ToWpfRect();
+            var rectangle = caretRenderInfo.GetCaretBounds(_textEditor.CaretConfiguration.CaretThickness, _textEditor.IsOvertypeMode).ToWpfRect();
             var drawingContext = RenderOpen();
             using (drawingContext)
             {

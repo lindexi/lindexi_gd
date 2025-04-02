@@ -56,7 +56,7 @@ internal class IMESupporter : TextInputMethodClient
     private void UpdateCaret()
     {
         CaretRenderInfo currentCaretRenderInfo = _textEditor.TextEditorCore.GetRenderInfo().GetCurrentCaretRenderInfo();
-        _cursorRectangle = currentCaretRenderInfo.GetCaretBounds(caretWidth: 1).ToAvaloniaRect();
+        _cursorRectangle = currentCaretRenderInfo.GetCaretBounds(caretThickness: 1).ToAvaloniaRect();
         base.RaiseCursorRectangleChanged();
     }
 

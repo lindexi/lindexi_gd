@@ -465,7 +465,7 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
         TextEditorPlatformProvider.EnsureLayoutUpdated();
         var renderInfoProvider = TextEditorCore.GetRenderInfo();
         var caretRenderInfo = renderInfoProvider.GetCurrentCaretRenderInfo();
-        var caretBounds = caretRenderInfo.GetCaretBounds(CaretConfiguration.DefaultCaretWidth);
+        var caretBounds = caretRenderInfo.GetCaretBounds(CaretConfiguration.DefaultCaretThickness);
         return caretBounds.ToWpfRect().TopLeft;
     }
 

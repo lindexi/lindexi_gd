@@ -1,4 +1,4 @@
-CaretWidth
+CaretThickness
 CaretBlinkTime
 CaretBrush
 ShowSelectionWhenNotInEditingInputMode
