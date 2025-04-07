@@ -42,7 +42,7 @@
 
             </StackPanel>
 
-            <TextBlock Grid.Row="2" x:Name="StatusTextBlock" Margin="10,0,0,10" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
+            <TextBlock x:Name="StatusTextBlock" Grid.Row="2" Margin="10,0,0,10" HorizontalAlignment="Left" VerticalAlignment="Center"></TextBlock>
             <!-- <Grid Grid.Row="1" Margin="10,0,10,10"> -->
             <!--     <Grid.ColumnDefinitions> -->
             <!--         <ColumnDefinition Width="*"></ColumnDefinition> -->
