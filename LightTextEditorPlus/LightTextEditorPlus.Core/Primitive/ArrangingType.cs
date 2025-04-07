@@ -1,3 +1,5 @@
+using System;
+
 namespace LightTextEditorPlus.Core.Primitive;
 
 /// <summary>
@@ -23,44 +25,34 @@ public enum ArrangingType
     Mongolian
 }
 
-public class TextArrangingType
+public readonly struct TextArrangingType : IEquatable<TextArrangingType>
 {
-    private TextArrangingType()
-    {
-    }
-
     /// <summary>
     ///     横排布局
     /// </summary>
     /// 即 horizontal writing mode
     public static TextArrangingType Horizontal
-        => _horizontal ??= new TextArrangingType();
-
-    private static TextArrangingType? _horizontal;
+        => new TextArrangingType();
 
     /// <summary>
     ///     竖排布局。也称 直排
     /// </summary>
     /// 即 vertical writing mode
-    public static TextArrangingType Vertical => _vertical ??= new TextArrangingType
+    public static TextArrangingType Vertical => new TextArrangingType
     {
         IsVertical = true,
         IsLeftToRightVertical = true,
     };
 
-    private static TextArrangingType? _vertical;
-
     /// <summary>
     ///     蒙古文布局，从右到左
     /// </summary>
-    public static TextArrangingType Mongolian => _mongolian ??= new TextArrangingType
+    public static TextArrangingType Mongolian => new TextArrangingType
     {
         IsVertical = true,
         // 蒙古文布局，从右到左
         IsLeftToRightVertical = false,
     };
-
-    private static TextArrangingType? _mongolian;
 
     public bool IsHorizontal => !IsVertical;
 
@@ -82,4 +74,29 @@ public class TextArrangingType
     /// 默认旋转角度 
     /// </summary>
     public const int DefaultRotationDegree = 90;
+
+    public static bool operator ==(TextArrangingType a, TextArrangingType b)
+    {
+        return a.Equals(b);
+    }
+
+    public static bool operator !=(TextArrangingType a, TextArrangingType b)
+    {
+        return !(a == b);
+    }
+
+    public bool Equals(TextArrangingType other)
+    {
+        return IsVertical == other.IsVertical && IsLeftToRightVertical == other.IsLeftToRightVertical && LatinRotationDegree == other.LatinRotationDegree && NumberRotationDegree == other.NumberRotationDegree;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is TextArrangingType other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(IsVertical, IsLeftToRightVertical, LatinRotationDegree, NumberRotationDegree);
+    }
 }
