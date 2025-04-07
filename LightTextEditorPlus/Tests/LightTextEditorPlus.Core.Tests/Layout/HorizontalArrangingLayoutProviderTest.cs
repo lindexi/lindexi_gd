@@ -93,7 +93,7 @@ public class HorizontalArrangingLayoutProviderTest
             var lineRenderInfoList = paragraphRenderInfo.GetLineRenderInfoList().ToList();
             // 第一行起始就是首段的末尾，首段的高度是两行的高度，一行高度是 LineSpacing * CharHeight 的高度
             Assert.AreEqual(new TextPoint(0, LineSpacing.LineSpacing * CharHeight * 2),
-                lineRenderInfoList[0].LineLayoutData.CharStartPoint);
+                lineRenderInfoList[0].LineLayoutData.CharStartPoint.ToCurrentArrangingTypePoint());
             // 一行的宽度是 CharWidth * 字符数量
             Assert.AreEqual(new TextSize(CharWidth * "ABCDE".Length, LineSpacing.LineSpacing * CharHeight),
                 lineRenderInfoList[0].LineLayoutData.LineContentSize);
@@ -104,7 +104,7 @@ public class HorizontalArrangingLayoutProviderTest
 
             // 第二行的起始等于首段的末尾加第一行高度
             Assert.AreEqual(new TextPoint(0, LineSpacing.LineSpacing * CharHeight * 2 + LineSpacing.LineSpacing * CharHeight),
-                lineRenderInfoList[1].LineLayoutData.CharStartPoint);
+                lineRenderInfoList[1].LineLayoutData.CharStartPoint.ToCurrentArrangingTypePoint());
             Assert.AreEqual(new TextSize(CharWidth * "FG".Length, LineSpacing.LineSpacing * CharHeight),
                 lineRenderInfoList[1].LineLayoutData.LineContentSize);
             // 行字符高度等于字符高度
@@ -175,7 +175,7 @@ public class HorizontalArrangingLayoutProviderTest
 
             var lineRenderInfo = paragraphRenderInfo.GetLineRenderInfoList().First();
             var lineLayoutData = lineRenderInfo.LineLayoutData;
-            Assert.AreEqual(new TextPoint(0, 0), lineLayoutData.CharStartPoint);
+            Assert.AreEqual(new TextPoint(0, 0), lineLayoutData.CharStartPoint.ToCurrentArrangingTypePoint());
             // 行高是字符高度乘以行距
             Assert.AreEqual(new TextSize(CharWidth * text.Length, CharHeight * LineSpacing.LineSpacing), lineLayoutData.LineContentSize);
 
