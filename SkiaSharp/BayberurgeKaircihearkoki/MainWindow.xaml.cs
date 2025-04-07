@@ -64,10 +64,14 @@ public class SkiaCanvas : FrameworkElement
             paint.Style = SKPaintStyle.Fill;
             paint.IsAntialias = true;
 
-            var typeface = SKFontManager.Default.MatchFamily("微软雅黑");
+            using var typeface = SKFontManager.Default.MatchFamily("微软雅黑");
+            using var skFont = new SKFont(typeface, 30);
+
             paint.Typeface = typeface;
             paint.TextSize = 30;
-            skCanvas.DrawText("中文汉字", 10, 50, paint);
+
+            var skTextBlob = SKTextBlob.CreatePositioned("微软雅黑", skFont, []);
+            skCanvas.DrawText(skTextBlob, 10, 50, paint);
         }
 
         _writeableBitmap.Lock();
