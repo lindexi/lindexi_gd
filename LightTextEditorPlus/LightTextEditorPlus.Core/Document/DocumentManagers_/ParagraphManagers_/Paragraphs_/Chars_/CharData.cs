@@ -61,7 +61,8 @@ public sealed class CharData
             throw new InvalidOperationException($"禁止在开始布局之前获取");
         }
 
-        return CharLayoutData.CharLineStartPoint.ToDocumentPoint(CharLayoutData.CurrentLine);
+        var textPoint = CharLayoutData.CharLineStartPoint.ToDocumentPoint(CharLayoutData.CurrentLine);
+        return textPoint;
     }
 
     /// <summary>

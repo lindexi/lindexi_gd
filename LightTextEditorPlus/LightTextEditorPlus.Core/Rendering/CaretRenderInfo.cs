@@ -202,6 +202,10 @@ public readonly struct CaretRenderInfo
                 var rectangle = new TextRect(x, y, width, height);
                 return rectangle;
             case ArrangingType.Vertical:
+            {
+                // todo 实现竖排命中测试
+                return TextRect.Empty;
+            }
                 break;
             case ArrangingType.Mongolian:
                 break;
