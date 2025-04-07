@@ -88,7 +88,7 @@ public class SkiaCanvas : FrameworkElement
 
             var textHeight = 30;
 
-            var text = "ab";
+            var text = "微软";
 
             var baseline = skFont.Metrics.Ascent;
 
