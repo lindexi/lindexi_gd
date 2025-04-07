@@ -803,7 +803,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// </summary>
     /// <returns></returns>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    private double GetLineMaxWidth()
+    protected virtual double GetLineMaxWidth()
     {
         double lineMaxWidth = TextEditor.SizeToContent switch
         {
