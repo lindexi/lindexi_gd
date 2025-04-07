@@ -20,7 +20,7 @@ public readonly record struct LayoutCompletedLogInfo
     /// <summary>
     /// 获取文档的布局范围
     /// </summary>
-    public DocumentLayoutBounds DocumentBounds => _documentLayoutResult.LayoutBounds;
+    public DocumentLayoutBounds DocumentBounds => _documentLayoutResult.LayoutBounds.ToDocumentLayoutBounds();
 
     private readonly DocumentLayoutResult _documentLayoutResult;
 
