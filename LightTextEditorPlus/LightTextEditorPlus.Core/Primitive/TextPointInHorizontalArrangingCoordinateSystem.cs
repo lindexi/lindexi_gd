@@ -21,11 +21,21 @@ public readonly struct TextPointInHorizontalArrangingCoordinateSystem
         _textEditor = textEditor;
     }
 
+    public static TextPointInHorizontalArrangingCoordinateSystem Zero(TextEditorCore textEditor)
+        // 零点不一定是最终的零点，如从右到左布局下，零点是在右上角
+        =>
+        new TextPointInHorizontalArrangingCoordinateSystem(0, 0, textEditor);
+
     private readonly double _x;
 
     private readonly double _y;
 
     private readonly TextEditorCore _textEditor;
+
+    public TextPointInHorizontalArrangingCoordinateSystem Offset(double x, double y)
+    {
+        return new TextPointInHorizontalArrangingCoordinateSystem(_x + x, _y + y, _textEditor);
+    }
 
     /// <summary>
     /// 转换为按照当前排版类型的坐标，如果是竖排，则转换为竖排坐标
