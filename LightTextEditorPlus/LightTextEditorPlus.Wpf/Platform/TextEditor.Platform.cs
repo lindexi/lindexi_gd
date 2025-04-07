@@ -517,7 +517,6 @@ public partial class TextEditor : FrameworkElement, IRenderManager, IIMETextEdit
             PerformInput(e.Text);
         }
 
-
         void PerformInput(string text)
         {
             Selection? selection = null;
