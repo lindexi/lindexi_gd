@@ -451,4 +451,13 @@ public struct TextRect : IEquatable<TextRect>
             Y.ToString(CultureInfo.InvariantCulture), Width.ToString(CultureInfo.InvariantCulture),
             Height.ToString(CultureInfo.InvariantCulture));
     }
+
+    /// <summary>
+    /// 只保留最多两个小数位的字符串
+    /// </summary>
+    /// <returns></returns>
+    public string ToShortString()
+    {
+        return $"X={X:0.##} Y={Y:0.##} W={Width:0.##} H={Height:0.##}";
+    }
 }

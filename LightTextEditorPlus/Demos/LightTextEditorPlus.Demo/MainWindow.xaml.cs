@@ -87,7 +87,7 @@ namespace LightTextEditorPlus.Demo
             if (!TextEditor.IsDirty)
             {
                 TextRect layoutBounds = TextEditor.TextEditorCore.GetDocumentLayoutBounds().DocumentContentBounds;
-                _layoutMessage = $"文档范围：{layoutBounds}";
+                _layoutMessage = $"文档范围：{layoutBounds.ToShortString()}";
             }
 
             DocumentManager documentManager = TextEditor.TextEditorCore.DocumentManager;
