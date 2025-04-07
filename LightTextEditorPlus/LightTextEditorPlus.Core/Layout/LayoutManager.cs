@@ -75,5 +75,5 @@ class LayoutManager
 
     private ArrangingLayoutProvider? _arrangingLayoutProvider;
 
-    public DocumentLayoutBounds DocumentLayoutBounds { get; private set; }
+    public DocumentLayoutBoundsInHorizontalArrangingCoordinateSystem DocumentLayoutBounds { get; private set; }
 }

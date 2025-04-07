@@ -21,7 +21,7 @@ public partial class TextEditorCore
     {
         VerifyNotDirty();
 
-        return _layoutManager.DocumentLayoutBounds;
+        return _layoutManager.DocumentLayoutBounds.ToDocumentLayoutBounds();
     }
 
     /// <summary>
