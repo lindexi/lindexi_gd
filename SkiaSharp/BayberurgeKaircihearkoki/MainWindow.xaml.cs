@@ -61,7 +61,7 @@ public class SkiaCanvas : FrameworkElement
         {
             using var paint = new SKPaint();
             paint.Color = SKColors.Blue;
-            paint.Style = SKPaintStyle.Stroke;
+            paint.Style = SKPaintStyle.Fill;
             paint.IsAntialias = true;
 
             var typeface = SKFontManager.Default.MatchFamily("微软雅黑");
