@@ -172,4 +172,10 @@ public readonly struct TextSize : IEquatable<TextSize>
     }
 
     internal string DebugText => this.ToDebugText();
+
+    /// <summary>
+    /// 交换宽高
+    /// </summary>
+    /// <returns></returns>
+    public TextSize SwapWidthAndHeight() => new TextSize(Height, Width);
 }
