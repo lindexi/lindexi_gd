@@ -19,15 +19,15 @@ abstract class BaseSkiaTextRender : IDisposable
 
         if (debugConfiguration.IsInDebugMode)
         {
-            _debugDrawCharBoundsColor = debugConfiguration.DebugDrawCharBoundsColor;
-            _debugDrawCharSpanBoundsColor = debugConfiguration.DebugDrawCharSpanBoundsColor;
-            _debugDrawLineBoundsColor = debugConfiguration.DebugDrawLineBoundsColor;
+            DebugDrawCharBoundsColor = debugConfiguration.DebugDrawCharBoundsColor;
+            DebugDrawCharSpanBoundsColor = debugConfiguration.DebugDrawCharSpanBoundsColor;
+            DebugDrawLineBoundsColor = debugConfiguration.DebugDrawLineBoundsColor;
         }
     }
 
-    protected SKColor? _debugDrawCharBoundsColor;
-    protected SKColor? _debugDrawCharSpanBoundsColor;
-    protected SKColor? _debugDrawLineBoundsColor;
+    protected SKColor? DebugDrawCharBoundsColor { get; private set; }
+    protected SKColor? DebugDrawCharSpanBoundsColor { get; private set; }
+    protected SKColor? DebugDrawLineBoundsColor { get; private set; }
 
     protected SkiaTextEditor TextEditor { get; }
 
