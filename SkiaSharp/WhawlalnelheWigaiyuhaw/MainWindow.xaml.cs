@@ -1,4 +1,5 @@
 using SkiaSharp;
+
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -40,7 +41,7 @@ public class SkiaCanvas : FrameworkElement
     {
         if (_writeableBitmap is null)
         {
-            var writeableBitmap = new WriteableBitmap((int)ActualWidth, (int)ActualHeight, 96, 96, PixelFormats.Bgra32,
+            var writeableBitmap = new WriteableBitmap((int) ActualWidth, (int) ActualHeight, 96, 96, PixelFormats.Bgra32,
                 BitmapPalettes.Halftone256Transparent);
             _writeableBitmap = writeableBitmap;
         }
@@ -76,8 +77,8 @@ public class SkiaCanvas : FrameworkElement
             var skRotationScaleMatrixList = new SKRotationScaleMatrix[text.Length];
             for (int i = 0; i < text.Length; i++)
             {
-                var skRotationScaleMatrix = SKRotationScaleMatrix.CreateIdentity();
-                SKRotationScaleMatrix.Create(1, 90, 1, textHeight * i, 1f, 1f);
+                var skRotationScaleMatrix =
+                SKRotationScaleMatrix.Create(1, float.Pi / 2, 1, textHeight * i, 1f, 1f);
 
                 skRotationScaleMatrixList[i] = skRotationScaleMatrix;
             }
@@ -93,7 +94,7 @@ public class SkiaCanvas : FrameworkElement
         var pixels = skBitmap.GetPixels(out var length);
         var stride = 4 /*RGBA共4个*/ * _writeableBitmap.PixelWidth;
         _writeableBitmap.WritePixels(dirtyRect, pixels,
-            (int)_writeableBitmap.PixelWidth * _writeableBitmap.PixelHeight * 4 /*RGBA共4个*/, stride);
+            (int) _writeableBitmap.PixelWidth * _writeableBitmap.PixelHeight * 4 /*RGBA共4个*/, stride);
         _writeableBitmap.AddDirtyRect(dirtyRect);
         _writeableBitmap.Unlock();
 
