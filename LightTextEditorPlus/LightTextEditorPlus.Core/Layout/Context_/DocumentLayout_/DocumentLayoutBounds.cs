@@ -22,6 +22,19 @@ public readonly struct DocumentLayoutBoundsInHorizontalArrangingCoordinateSystem
 
     public DocumentLayoutBounds ToDocumentLayoutBounds()
     {
-        throw new NotImplementedException();
+        TextPoint documentContentStartPoint = DocumentContentStartPoint.ToCurrentArrangingTypePoint();
+        TextSize documentContentSize = DocumentContentSize;
+        TextSize documentOutlineSize = DocumentOutlineSize;
+
+        if (TextEditor.ArrangingType != ArrangingType.Horizontal)
+        {
+            documentContentSize = documentContentSize.SwapWidthAndHeight();
+            documentOutlineSize = documentOutlineSize.SwapWidthAndHeight();
+        }
+
+        TextRect documentContentBounds = new TextRect(documentContentStartPoint, documentContentSize);
+        TextRect documentOutlineBounds = new TextRect(TextPoint.Zero, documentOutlineSize);
+        return new DocumentLayoutBounds(documentContentBounds,
+            documentOutlineBounds);
     }
 }
