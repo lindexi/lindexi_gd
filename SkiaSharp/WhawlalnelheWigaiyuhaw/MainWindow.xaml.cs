@@ -71,17 +71,15 @@ public class SkiaCanvas : FrameworkElement
 
             var textHeight = 30;
 
-            var text = "微软雅黑afgh";
-            var positionList = new SKPoint[text.Length];
-            for (int i = 0; i < text.Length; i++)
-            {
-                positionList[i] = new SKPoint(0, textHeight*i);
-            }
+            var text = "微";
 
             var skRotationScaleMatrixList = new SKRotationScaleMatrix[text.Length];
             for (int i = 0; i < text.Length; i++)
             {
-                skRotationScaleMatrixList[i] = SKRotationScaleMatrix.CreateIdentity();
+                var skRotationScaleMatrix = SKRotationScaleMatrix.CreateIdentity();
+                SKRotationScaleMatrix.Create(1, 90, 1, textHeight * i, 1f, 1f);
+
+                skRotationScaleMatrixList[i] = skRotationScaleMatrix;
             }
 
             var skTextBlob = SKTextBlob.CreateRotationScale(text, skFont, skRotationScaleMatrixList.AsSpan());
