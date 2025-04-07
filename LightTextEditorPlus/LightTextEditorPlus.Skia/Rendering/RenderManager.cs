@@ -30,7 +30,11 @@ class RenderManager
     private readonly SkiaTextEditor _textEditor;
 
     #region 光标渲染
-
+    /// <summary>
+    /// 更新光标和选择的渲染
+    /// </summary>
+    /// <param name="renderInfoProvider"></param>
+    /// <param name="selection"></param>
     [MemberNotNull(nameof(_currentCaretAndSelectionRender))]
     public void UpdateCaretAndSelectionRender(RenderInfoProvider renderInfoProvider, Selection selection)
     {
@@ -60,6 +64,9 @@ class RenderManager
 
     private ITextEditorCaretAndSelectionRenderSkiaRender? _currentCaretAndSelectionRender;
 
+    /// <summary>
+    /// 光标是否是覆盖模式、替换模式
+    /// </summary>
     private bool IsOvertypeModeCaret { get; set; }
 
     public ITextEditorCaretAndSelectionRenderSkiaRender GetCurrentCaretAndSelectionRender(in CaretAndSelectionRenderContext renderContext)
@@ -219,7 +226,7 @@ class RenderManager
 
                         // 由于 Skia 的 DrawText 传入的 Point 是文本的最下方，因此需要调整 Y 值
                         y += baselineY;
-                        using SKTextBlob skTextBlob = SKTextBlob.Create(charSpan,skFont);
+                        using SKTextBlob skTextBlob = SKTextBlob.Create(charSpan, skFont);
                         canvas.DrawText(skTextBlob, x, y, textRenderSKPaint);
                     }
 
