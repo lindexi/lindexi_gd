@@ -91,11 +91,12 @@ public class SkiaCanvas : FrameworkElement
             var text = "微软";
 
             var baseline = skFont.Metrics.Ascent;
+            var glyphWidths = paint.GetGlyphWidths(text);
 
             var skRotationScaleMatrixList = new SKRotationScaleMatrix[text.Length];
             for (int i = 0; i < text.Length; i++)
             {
-                var skRotationScaleMatrix = SKRotationScaleMatrix.Create(1, float.Pi / 2, 0, textHeight * i, textHeight / 2f, 0f);
+                var skRotationScaleMatrix = SKRotationScaleMatrix.Create(1, float.Pi / 2, 0, textHeight * i, -baseline / 2f + _ax, 0f);
 
                 skRotationScaleMatrixList[i] = skRotationScaleMatrix;
             }
