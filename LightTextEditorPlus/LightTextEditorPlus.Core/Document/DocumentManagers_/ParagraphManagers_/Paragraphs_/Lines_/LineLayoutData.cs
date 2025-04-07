@@ -58,7 +58,7 @@ class LineLayoutData : IParagraphCache, IDisposable
     /// 左侧贴边，上侧为文档坐标。依靠各个 Thickness 属性来计算具体的位置
     /// 即表示整个行的起始点。而具体的字符渲染的起始点，需要加上 <see cref="IndentationThickness"/> 和 <see cref="HorizontalTextAlignmentGapThickness"/> 的值，即使用 <see cref="LineContentStartPoint"/> 属性
     /// 关系图请参阅 《文本库行布局信息定义.enbx》 文档
-    public TextPoint CharStartPoint
+    public TextPointInHorizontalArrangingCoordinateSystem CharStartPoint
     {
         get => CharStartPointInParagraphCoordinateSystem.ToDocumentPoint(CurrentParagraph);
     }
@@ -103,16 +103,15 @@ class LineLayoutData : IParagraphCache, IDisposable
     /// 行内有内容的起始点。等于 <see cref="CharStartPoint"/> 加上 <see cref="IndentationThickness"/> 和 <see cref="HorizontalTextAlignmentGapThickness"/> 的值
     /// </summary>
     /// 关系图请参阅 《文本库行布局信息定义.enbx》 文档
-    public TextPoint LineContentStartPoint
+    public TextPointInHorizontalArrangingCoordinateSystem LineContentStartPoint
     {
         get
         {
-            TextPoint charStartPoint = CharStartPoint;
+            var charStartPoint = CharStartPoint;
 
-            var x = charStartPoint.X + IndentationThickness.Left + HorizontalTextAlignmentGapThickness.Left;
-            var y = charStartPoint.Y + IndentationThickness.Top + HorizontalTextAlignmentGapThickness.Top;
-            var startPoint = new TextPoint(x, y);
-            return startPoint;
+            var offsetX = IndentationThickness.Left + HorizontalTextAlignmentGapThickness.Left;
+            var offsetY = IndentationThickness.Top + HorizontalTextAlignmentGapThickness.Top;
+            return charStartPoint.Offset(offsetX,offsetY);
         }
     }
 
@@ -121,7 +120,8 @@ class LineLayoutData : IParagraphCache, IDisposable
     /// </summary>
     public TextRect GetLineContentBounds()
     {
-        return new TextRect(LineContentStartPoint, LineContentSize);
+        TextPoint currentArrangingTypePoint = LineContentStartPoint.ToCurrentArrangingTypePoint();
+        return new TextRect(currentArrangingTypePoint, LineContentSize);
     }
 
     /// <summary>
@@ -131,7 +131,7 @@ class LineLayoutData : IParagraphCache, IDisposable
     /// - 段落缩进带来的空白 <see cref="ParagraphProperty.Indent"/>
     /// </summary>
     public TextRect OutlineBounds =>
-        new TextRect(OutlineStartPointInParagraphCoordinateSystem.ToDocumentPoint(CurrentParagraph), OutlineSize);
+        new TextRect(OutlineStartPointInParagraphCoordinateSystem.ToDocumentPoint(CurrentParagraph).ToCurrentArrangingTypePoint(), OutlineSize);
 
     public void SetOutlineBounds(TextPointInParagraphCoordinateSystem outlineStartPointInParagraphCoordinateSystem, TextSize outlineSize)
     {
@@ -245,7 +245,7 @@ class LineLayoutData : IParagraphCache, IDisposable
 
     public LineDrawingArgument GetLineDrawingArgument()
     {
-        return new LineDrawingArgument(IsDrawn, IsLineStartPointUpdated, LineAssociatedRenderData, CharStartPoint, LineContentSize,
+        return new LineDrawingArgument(IsDrawn, IsLineStartPointUpdated, LineAssociatedRenderData, CharStartPoint.ToCurrentArrangingTypePoint(), LineContentSize,
             GetCharList());
     }
 

@@ -178,7 +178,7 @@ public class TextEditorAppendTest
             // 最大宽度为第二行的内容，也就是 bc 两个字符，一共是 15 * 2 = 30 的宽度
             ParagraphRenderInfo paragraphRenderInfo = textEditorCore.GetRenderInfo().GetParagraphRenderInfoList().Last();
             var lastLine = paragraphRenderInfo.GetLineRenderInfoList().Last();
-            Assert.AreEqual(30, lastLine.LineLayoutData.CharStartPoint.Y);
+            Assert.AreEqual(30, lastLine.LineLayoutData.CharStartPoint.ToCurrentArrangingTypePoint().Y);
             Assert.AreEqual(15, lastLine.LineLayoutData.LineContentSize.Height);
 
             Assert.AreEqual(new TextRect(0, 0, 15 * 2, 15 * 3), textEditorCore.GetDocumentLayoutBounds().DocumentOutlineBounds);

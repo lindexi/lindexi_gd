@@ -25,12 +25,11 @@ public readonly record struct TextPointInLineCoordinateSystem
     /// </summary>
     /// <param name="lineLayoutData"></param>
     /// <returns></returns>
-    internal TextPoint ToDocumentPoint(LineLayoutData lineLayoutData)
+    internal TextPointInHorizontalArrangingCoordinateSystem ToDocumentPoint(LineLayoutData lineLayoutData)
     {
         // 先获取行内容的相对文档的起始点
-        TextPoint charStartPoint = lineLayoutData.LineContentStartPoint;
-        return new TextPoint(_x + charStartPoint.X,
-            _y + charStartPoint.Y);
+        var charStartPoint = lineLayoutData.LineContentStartPoint;
+        return charStartPoint.Offset(_x, _y);
     }
 
     /// <inheritdoc />

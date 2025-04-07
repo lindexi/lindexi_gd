@@ -57,4 +57,9 @@ public readonly struct TextPointInHorizontalArrangingCoordinateSystem
 
         throw new NotSupportedException();
     }
+
+    public override string ToString()
+    {
+        return base.ToString();
+    }
 }

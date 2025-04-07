@@ -80,11 +80,11 @@ public readonly struct TextPointInDocumentContentCoordinateSystem
     /// 转换为文档坐标系的点
     /// </summary>
     /// <returns></returns>
-    public TextPoint ToTextPoint()
+    public TextPointInHorizontalArrangingCoordinateSystem ToTextPoint()
     {
         _layoutManager.TextEditor.VerifyNotDirty(autoLayoutEmptyTextEditor: false);
-        TextPoint documentContentStartPoint = _layoutManager.DocumentLayoutBounds.DocumentContentBounds.Location;
-        return new TextPoint(_x + documentContentStartPoint.X, _y + documentContentStartPoint.Y);
+        var documentContentStartPoint = _layoutManager.DocumentLayoutBounds.DocumentContentStartPoint;
+        return documentContentStartPoint.Offset(_x, _y);
     }
 
     //internal bool NearlyEqualsX(double x) => Nearly.Equals(_x, x);

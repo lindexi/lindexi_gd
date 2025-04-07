@@ -891,14 +891,17 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         }
 
         // 计算内容的左上角起点。处理垂直居中、底部对齐等情况
-        var documentStartPoint = CalculateDocumentContentLeftTopStartPoint(in documentContentSize, in documentOutlineSize);
-        // 内容范围
-        TextRect documentContentBounds = new TextRect(documentStartPoint, documentContentSize);
-        // 外接范围
-        TextRect documentOutlineBounds = new TextRect(TextPoint.Zero, documentOutlineSize);
-        var documentLayoutBounds = new DocumentLayoutBoundsInHorizontalArrangingCoordinateSystem(documentContentBounds, documentOutlineBounds,TextEditor);
+        TextPointInHorizontalArrangingCoordinateSystem documentStartPoint = CalculateDocumentContentLeftTopStartPoint(in documentContentSize, in documentOutlineSize);
+        var documentLayoutBounds = new DocumentLayoutBoundsInHorizontalArrangingCoordinateSystem()
+        {
+            DocumentContentStartPoint = documentStartPoint,
+            DocumentContentSize = documentContentSize,
+            DocumentOutlineSize = documentOutlineSize,
+            TextEditor = TextEditor,
+        };
 
-        updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 完成最终布局阶段。文档内容范围：{documentContentBounds} 文档外接范围：{documentOutlineBounds}", LayoutDebugCategory.FinalDocument);
+        // todo 输出左上角坐标
+        updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 完成最终布局阶段。文档内容尺寸：{documentContentSize} 文档外接尺寸：{documentOutlineSize}", LayoutDebugCategory.FinalDocument);
 
         return new FinalUpdateDocumentLayoutResult(documentLayoutBounds);
     }
@@ -1063,13 +1066,13 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
     /// 计算文档内容的左上角点，处理垂直居中、底部对齐等情况
     /// </summary>
     /// <returns></returns>
-    private TextPoint CalculateDocumentContentLeftTopStartPoint(in TextSize documentContentSize, in TextSize documentOutlineSize)
+    private TextPointInHorizontalArrangingCoordinateSystem CalculateDocumentContentLeftTopStartPoint(in TextSize documentContentSize, in TextSize documentOutlineSize)
     {
         VerticalTextAlignment verticalTextAlignment = TextEditor.VerticalTextAlignment;
         // 如果是顶部对齐，那么直接返回 0,0 即可
         if (verticalTextAlignment == VerticalTextAlignment.Top)
         {
-            return TextPoint.Zero;
+            return TextPointInHorizontalArrangingCoordinateSystem.Zero(TextEditor);
         }
 
         double documentHeight = documentContentSize.Height;
@@ -1086,7 +1089,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             _ => throw new ArgumentOutOfRangeException()
         };
 
-        return new TextPoint(left, top);
+        return new TextPointInHorizontalArrangingCoordinateSystem(left, top, TextEditor);
     }
 
     #endregion 03 回溯最终布局阶段

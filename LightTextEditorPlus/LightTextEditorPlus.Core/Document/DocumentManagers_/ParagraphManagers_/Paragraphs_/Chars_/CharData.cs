@@ -62,7 +62,8 @@ public sealed class CharData
         }
 
         var textPoint = CharLayoutData.CharLineStartPoint.ToDocumentPoint(CharLayoutData.CurrentLine);
-        return textPoint;
+
+        return textPoint.ToCurrentArrangingTypePoint();
     }
 
     /// <summary>
