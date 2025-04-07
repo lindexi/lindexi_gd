@@ -71,13 +71,15 @@ public class SkiaCanvas : FrameworkElement
 
             var textHeight = 30;
 
-            var skTextBlob = SKTextBlob.CreatePositioned("微软雅黑", skFont,
-            [
-                new SKPoint(0, textHeight * 0),
-                new SKPoint(0, textHeight * 1),
-                new SKPoint(0, textHeight * 2),
-                new SKPoint(0, textHeight * 3),
-            ]);
+            var text = "微软雅黑afgh";
+            var positionList = new SKPoint[text.Length];
+            for (int i = 0; i < text.Length; i++)
+            {
+                positionList[i] = new SKPoint(0, textHeight*i);
+            }
+
+            var skTextBlob = SKTextBlob.CreatePositioned(text, skFont,
+                positionList.AsSpan());
             skCanvas.DrawText(skTextBlob, 10, 50, paint);
         }
 
