@@ -186,7 +186,6 @@ class RenderManager
                 }
 
                 return _textRender;
-                break;
             case ArrangingType.Vertical:
                 break;
             case ArrangingType.Mongolian:

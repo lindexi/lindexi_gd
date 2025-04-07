@@ -21,8 +21,6 @@ class HorizontalSkiaTextRender : BaseSkiaTextRender
         RenderManager = renderManager;
     }
 
-    private SkiaTextEditor _textEditor => base.TextEditor;
-
     public override SkiaTextRenderResult Render(in SkiaTextRenderArgument renderArgument)
     {
         SKCanvas canvas = renderArgument.Canvas;
@@ -65,13 +63,13 @@ class HorizontalSkiaTextRender : BaseSkiaTextRender
 
                     foreach (CharData charData in charList)
                     {
-                        DrawDebugBounds(charData.GetBounds().ToSKRect(), _debugDrawCharBoundsColor);
+                        DrawDebugBounds(charData.GetBounds().ToSKRect(), DebugDrawCharBoundsColor);
 
                         width += (float) charData.Size!.Value.Width;
                     }
 
                     SKRect charSpanBounds = SKRect.Create(x, y, width, height);
-                    DrawDebugBounds(charSpanBounds, _debugDrawCharSpanBoundsColor);
+                    DrawDebugBounds(charSpanBounds, DebugDrawCharSpanBoundsColor);
                     renderBounds = renderBounds.Union(charSpanBounds.ToTextRect());
 
                     if (!skFont.ContainsGlyphs(charSpan))
@@ -81,7 +79,7 @@ class HorizontalSkiaTextRender : BaseSkiaTextRender
                     }
 
                     // 绘制四线三格的调试信息
-                    if (_textEditor.DebugConfiguration.ShowHandwritingPaperDebugInfo)
+                    if (TextEditor.DebugConfiguration.ShowHandwritingPaperDebugInfo)
                     {
                         CharHandwritingPaperInfo charHandwritingPaperInfo =
                             renderInfoProvider.GetHandwritingPaperInfo(in lineInfo, firstCharData);
@@ -103,7 +101,7 @@ class HorizontalSkiaTextRender : BaseSkiaTextRender
                 {
                     // 空行
                     // 绘制四线三格的调试信息
-                    if (_textEditor.DebugConfiguration.ShowHandwritingPaperDebugInfo)
+                    if (TextEditor.DebugConfiguration.ShowHandwritingPaperDebugInfo)
                     {
                         CharHandwritingPaperInfo charHandwritingPaperInfo =
                             renderInfoProvider.GetHandwritingPaperInfo(in lineInfo);
@@ -115,7 +113,7 @@ class HorizontalSkiaTextRender : BaseSkiaTextRender
                     }
                 }
 
-                DrawDebugBounds(new TextRect(argument.StartPoint, argument.LineSize).ToSKRect(), _debugDrawLineBoundsColor);
+                DrawDebugBounds(new TextRect(argument.StartPoint, argument.LineSize).ToSKRect(), DebugDrawLineBoundsColor);
             }
         }
 
