@@ -546,7 +546,7 @@ abstract class ArrangingLayoutProvider
     /// <summary>
     /// 回溯文档布局排版。例如右对齐、居中对齐等
     /// </summary>
-    /// Rewind Polished Document Layout 回溯也是抛光的过程，抛光是指对文档的最后一次布局调整
+    /// Rewind Polished Backtrack Document Layout 回溯也是抛光的过程，抛光是指对文档的最后一次布局调整
     protected abstract FinalUpdateDocumentLayoutResult FinalUpdateDocumentLayout(PreUpdateDocumentLayoutResult preUpdateDocumentLayoutResult,
         UpdateLayoutContext updateLayoutContext);
 
