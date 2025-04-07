@@ -187,6 +187,12 @@ class RenderManager
 
                 return _textRender;
             case ArrangingType.Vertical:
+                if (_textRender is not VerticalSkiaTextRender)
+                {
+                    _textRender?.Dispose();
+                    _textRender = new VerticalSkiaTextRender(this);
+                }
+                return _textRender;
                 break;
             case ArrangingType.Mongolian:
                 break;

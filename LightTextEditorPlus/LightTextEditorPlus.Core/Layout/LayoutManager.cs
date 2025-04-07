@@ -63,6 +63,7 @@ class LayoutManager
                 _arrangingLayoutProvider = TextEditor.ArrangingType switch
                 {
                     ArrangingType.Horizontal => new HorizontalArrangingLayoutProvider(this),
+                    ArrangingType.Vertical => new VerticalArrangingLayoutProvider(this),
                     // todo 支持竖排文本
                     _ => throw new NotSupportedException()
                 };

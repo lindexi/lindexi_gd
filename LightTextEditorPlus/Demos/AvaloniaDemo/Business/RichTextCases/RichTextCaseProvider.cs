@@ -293,7 +293,7 @@ class RichTextCaseProvider
         //        panel.Children.RemoveAll(panel.Children.OfType<TextEditor>().ToList());
 
         //        TextEditor textEditor = new TextEditor();
-              
+
         //        textEditor.AppendRun(new SkiaTextRun("1", textEditor.StyleRunProperty with
         //        {
         //            Foreground = SKColors.Red
@@ -308,6 +308,13 @@ class RichTextCaseProvider
         //        panel.Children.Insert(0, textEditor);
         //    }
         //},"文本加入界面之前被设置颜色，颜色不会在加入界面之后被覆盖");
+
+        Add(editor =>
+        {
+            editor.SetFontSize(30);
+            editor.AppendText("123abc中文汉字");
+            editor.ArrangingType = ArrangingType.Vertical;
+        }, "竖排文本");
     }
 
     private readonly ITextEditorProvider _textEditorProvider;
