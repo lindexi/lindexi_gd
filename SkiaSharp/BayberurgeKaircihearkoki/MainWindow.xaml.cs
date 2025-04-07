@@ -67,6 +67,8 @@ public class SkiaCanvas : FrameworkElement
             var typeface = SKFontManager.Default.MatchFamily("微软雅黑");
             paint.Typeface = typeface;
             paint.TextSize = 30;
+            //var skTextBlobBuilder = new SKTextBlobBuilder();
+         
             skCanvas.DrawText("中文汉字", 10, 50, paint);
         }
 
