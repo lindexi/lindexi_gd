@@ -84,11 +84,9 @@ public class SkiaCanvas : FrameworkElement
                 skRotationScaleMatrixList[i] = SKRotationScaleMatrix.CreateIdentity();
             }
 
-            SKTextBlob.CreateRotationScale(text, skFont, skRotationScaleMatrixList.AsSpan());
+            var skTextBlob = SKTextBlob.CreateRotationScale(text, skFont, skRotationScaleMatrixList.AsSpan());
 
-            //var skTextBlob = SKTextBlob.CreatePositioned(text, skFont,
-            //    positionList.AsSpan());
-            //skCanvas.DrawText(skTextBlob, 10, 50, paint);
+            skCanvas.DrawText(skTextBlob, 10, 50, paint);
         }
 
         _writeableBitmap.Lock();
