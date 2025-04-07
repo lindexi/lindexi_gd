@@ -77,7 +77,7 @@ public class SkiaCanvas : FrameworkElement
             var skRotationScaleMatrixList = new SKRotationScaleMatrix[text.Length];
             for (int i = 0; i < text.Length; i++)
             {
-                var skRotationScaleMatrix = SKRotationScaleMatrix.Create(1, float.Pi / 2, 1, textHeight * i, 0.5f, 0.5f);
+                var skRotationScaleMatrix = SKRotationScaleMatrix.Create(1, float.Pi / 2, 0, textHeight * i, 16f, 15f);
 
                 skRotationScaleMatrixList[i] = skRotationScaleMatrix;
             }
