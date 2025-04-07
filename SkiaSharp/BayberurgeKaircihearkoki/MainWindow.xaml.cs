@@ -1,5 +1,4 @@
 using SkiaSharp;
-
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -41,7 +40,7 @@ public class SkiaCanvas : FrameworkElement
     {
         if (_writeableBitmap is null)
         {
-            var writeableBitmap = new WriteableBitmap((int) ActualWidth, (int) ActualHeight, 96, 96, PixelFormats.Bgra32,
+            var writeableBitmap = new WriteableBitmap((int)ActualWidth, (int)ActualHeight, 96, 96, PixelFormats.Bgra32,
                 BitmapPalettes.Halftone256Transparent);
             _writeableBitmap = writeableBitmap;
         }
@@ -70,7 +69,15 @@ public class SkiaCanvas : FrameworkElement
             paint.Typeface = typeface;
             paint.TextSize = 30;
 
-            var skTextBlob = SKTextBlob.CreatePositioned("微软雅黑", skFont, []);
+            var textHeight = 30;
+
+            var skTextBlob = SKTextBlob.CreatePositioned("微软雅黑", skFont,
+            [
+                new SKPoint(0, textHeight * 0),
+                new SKPoint(0, textHeight * 1),
+                new SKPoint(0, textHeight * 2),
+                new SKPoint(0, textHeight * 3),
+            ]);
             skCanvas.DrawText(skTextBlob, 10, 50, paint);
         }
 
@@ -80,7 +87,7 @@ public class SkiaCanvas : FrameworkElement
         var pixels = skBitmap.GetPixels(out var length);
         var stride = 4 /*RGBA共4个*/ * _writeableBitmap.PixelWidth;
         _writeableBitmap.WritePixels(dirtyRect, pixels,
-            (int) _writeableBitmap.PixelWidth * _writeableBitmap.PixelHeight * 4 /*RGBA共4个*/, stride);
+            (int)_writeableBitmap.PixelWidth * _writeableBitmap.PixelHeight * 4 /*RGBA共4个*/, stride);
         _writeableBitmap.AddDirtyRect(dirtyRect);
         _writeableBitmap.Unlock();
 
