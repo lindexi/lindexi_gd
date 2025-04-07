@@ -88,18 +88,17 @@ public class SkiaCanvas : FrameworkElement
 
             var textHeight = 30;
 
-            var text = "微软";
+            var text = "ab";
 
             var baseline = skFont.Metrics.Ascent;
 
             var skRotationScaleMatrixList = new SKRotationScaleMatrix[text.Length];
             for (int i = 0; i < text.Length; i++)
             {
-                var skRotationScaleMatrix = SKRotationScaleMatrix.Create(1, float.Pi / 2, 0, textHeight * i + baseline, _ax, _ay);
+                var skRotationScaleMatrix = SKRotationScaleMatrix.Create(1, float.Pi / 2, 0, textHeight * i, _ax, _ay);
 
                 skRotationScaleMatrixList[i] = skRotationScaleMatrix;
             }
-
             var skTextBlob = SKTextBlob.CreateRotationScale(text, skFont, skRotationScaleMatrixList.AsSpan());
 
             skCanvas.DrawText(skTextBlob, 10, 50, paint);
