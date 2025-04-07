@@ -8,5 +8,7 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <local:SkiaCanvas x:Name="SkiaCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+        <RepeatButton Margin="10,10,10,10" HorizontalAlignment="Center" VerticalAlignment="Bottom" Content="µã»÷" Click="RepeatButton_OnClick"></RepeatButton>
     </Grid>
 </Window>

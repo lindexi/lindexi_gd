@@ -23,6 +23,11 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
     }
+
+    private void RepeatButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        SkiaCanvas.Draw();
+    }
 }
 
 public class SkiaCanvas : FrameworkElement
@@ -32,13 +37,24 @@ public class SkiaCanvas : FrameworkElement
         Loaded += SkiaCanvas_Loaded;
     }
 
+    public void Draw()
+    {
+        DrawInner();
+    }
+
     private void SkiaCanvas_Loaded(object sender, RoutedEventArgs e)
     {
         DrawInner();
     }
 
+    private float _ax;
+    private float _ay;
+
     private void DrawInner()
     {
+        _ax++;
+        _ay++;
+
         if (_writeableBitmap is null)
         {
             var writeableBitmap = new WriteableBitmap((int) ActualWidth, (int) ActualHeight, 96, 96, PixelFormats.Bgra32,
@@ -77,7 +93,7 @@ public class SkiaCanvas : FrameworkElement
             var skRotationScaleMatrixList = new SKRotationScaleMatrix[text.Length];
             for (int i = 0; i < text.Length; i++)
             {
-                var skRotationScaleMatrix = SKRotationScaleMatrix.Create(1, float.Pi / 2, 1, textHeight * i, 0.5f, 0.5f);
+                var skRotationScaleMatrix = SKRotationScaleMatrix.Create(1, float.Pi / 2, 0, textHeight * i, _ax, _ay);
 
                 skRotationScaleMatrixList[i] = skRotationScaleMatrix;
             }
