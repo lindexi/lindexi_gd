@@ -43,16 +43,19 @@ public readonly struct TextPointInHorizontalArrangingCoordinateSystem
     /// <returns></returns>
     public TextPoint ToCurrentArrangingTypePoint()
     {
-        switch (_textEditor.ArrangingType)
+        if (_textEditor.ArrangingType == ArrangingType.Horizontal)
         {
-            case ArrangingType.Horizontal:
-                return new TextPoint(_x, _y);
-            case ArrangingType.Vertical:
-                break;
-            case ArrangingType.Mongolian:
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
+            return new TextPoint(_x, _y);
+        }
+        else if (_textEditor.ArrangingType == ArrangingType.Vertical)
+        {
+        }
+        else if (_textEditor.ArrangingType == ArrangingType.Mongolian)
+        {
+        }
+        else
+        {
+            throw new ArgumentOutOfRangeException();
         }
 
         throw new NotSupportedException();

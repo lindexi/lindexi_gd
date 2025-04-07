@@ -202,12 +202,20 @@ internal class MouseHandler
             return;
         }
 
-        var cursor = TextEditor.TextEditorCore.ArrangingType switch
+        Cursor? cursor;
+        if (TextEditor.TextEditorCore.ArrangingType == ArrangingType.Horizontal)
         {
-            ArrangingType.Horizontal => Cursors.IBeam,
-            ArrangingType.Mongolian or ArrangingType.Vertical => GetVerticalCursor(),
-            _ => Cursors.IBeam,
-        };
+            cursor = Cursors.IBeam;
+        }
+        else if (TextEditor.TextEditorCore.ArrangingType == ArrangingType.Mongolian || TextEditor.TextEditorCore.ArrangingType ==  ArrangingType.Vertical)
+        {
+            cursor = GetVerticalCursor();
+        }
+        else
+        {
+            cursor = Cursors.IBeam;
+        }
+
         TextEditor.Cursor = cursor;
     }
 

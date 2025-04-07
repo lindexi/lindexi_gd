@@ -156,61 +156,65 @@ public readonly struct CaretRenderInfo
             textSize = lineBounds.TextSize;
         }
 
-        switch (TextEditor.ArrangingType)
+        if (TextEditor.ArrangingType == ArrangingType.Horizontal)
         {
-            case ArrangingType.Horizontal:
-
-                if (isOvertypeMode && !IsParagraphEnd)
+            if (isOvertypeMode && !IsParagraphEnd)
+            {
+                // 如果是覆盖模式，应该显示后一个字符的下划线。特殊处理： 处于行末的情况，应该取下一行的字符
+                // 先继续简单处理，如果是行末，那就显示竖线
+                if (IsLineEnd)
                 {
-                    // 如果是覆盖模式，应该显示后一个字符的下划线。特殊处理： 处于行末的情况，应该取下一行的字符
-                    // 先继续简单处理，如果是行末，那就显示竖线
-                    if (IsLineEnd)
-                    {
-                        // 继续往下执行，显示竖线
-                    }
-                    else
-                    {
-                        // 显示下一个字符的下划线
-                        var nextCharData = GetCharDataInLineAfterCaretOffset();
-                        if (nextCharData?.Size is {} size)
-                        {
-                            return new TextRect(nextCharData.GetStartPoint().X, lineBounds.Bottom - caretThickness, size.Width,
-                                height: caretThickness);
-                        }
-                    }
-                }
-
-                var (x, y) = startPoint;
-
-                // 可以获取到起始点，那肯定存在尺寸
-                if (IsLineStart)
-                {
-                    // 如果命中到行的开始，那就是首个字符之前，不能加上字符的尺寸
+                    // 继续往下执行，显示竖线
                 }
                 else
                 {
-                    // 如果命中不是行的开始，那应该让光标放在字符的后面，即 x 加上字符的宽度
-                    x += textSize.Width;
+                    // 显示下一个字符的下划线
+                    var nextCharData = GetCharDataInLineAfterCaretOffset();
+                    if (nextCharData?.Size is { } size)
+                    {
+                        return new TextRect(nextCharData.GetStartPoint().X, lineBounds.Bottom - caretThickness,
+                            size.Width,
+                            height: caretThickness);
+                    }
                 }
-                var width = caretThickness;
-                //var height =
-                //    LineSpacingCalculator.CalculateLineHeightWithLineSpacing(TextEditor,
-                //        TextEditor.DocumentManager.CurrentCaretRunProperty, 1);
-                //y += textSize.Height - height;
-                var height = textSize.Height;
+            }
 
-                var rectangle = new TextRect(x, y, width, height);
-                return rectangle;
-            case ArrangingType.Vertical:
+            var (x, y) = startPoint;
+
+            // 可以获取到起始点，那肯定存在尺寸
+            if (IsLineStart)
+            {
+                // 如果命中到行的开始，那就是首个字符之前，不能加上字符的尺寸
+            }
+            else
+            {
+                // 如果命中不是行的开始，那应该让光标放在字符的后面，即 x 加上字符的宽度
+                x += textSize.Width;
+            }
+
+            var width = caretThickness;
+            //var height =
+            //    LineSpacingCalculator.CalculateLineHeightWithLineSpacing(TextEditor,
+            //        TextEditor.DocumentManager.CurrentCaretRunProperty, 1);
+            //y += textSize.Height - height;
+            var height = textSize.Height;
+
+            var rectangle = new TextRect(x, y, width, height);
+            return rectangle;
+        }
+        else if (TextEditor.ArrangingType == ArrangingType.Vertical)
+        {
             {
                 // todo 实现竖排命中测试
                 return TextRect.Empty;
             }
-                break;
-            case ArrangingType.Mongolian:
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
+        }
+        else if (TextEditor.ArrangingType == ArrangingType.Mongolian)
+        {
+        }
+        else
+        {
+            throw new ArgumentOutOfRangeException();
         }
 
         throw new NotImplementedException();
