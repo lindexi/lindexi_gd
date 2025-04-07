@@ -896,7 +896,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         TextRect documentContentBounds = new TextRect(documentStartPoint, documentContentSize);
         // 外接范围
         TextRect documentOutlineBounds = new TextRect(TextPoint.Zero, documentOutlineSize);
-        DocumentLayoutBounds documentLayoutBounds = new DocumentLayoutBounds(documentContentBounds, documentOutlineBounds);
+        var documentLayoutBounds = new DocumentLayoutBoundsInHorizontalArrangingCoordinateSystem(documentContentBounds, documentOutlineBounds,TextEditor);
 
         updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 完成最终布局阶段。文档内容范围：{documentContentBounds} 文档外接范围：{documentOutlineBounds}", LayoutDebugCategory.FinalDocument);
 

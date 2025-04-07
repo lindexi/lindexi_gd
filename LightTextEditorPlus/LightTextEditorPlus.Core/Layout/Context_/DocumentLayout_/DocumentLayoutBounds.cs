@@ -1,3 +1,4 @@
+using System;
 using LightTextEditorPlus.Core.Primitive;
 
 namespace LightTextEditorPlus.Core.Layout;
@@ -9,4 +10,15 @@ namespace LightTextEditorPlus.Core.Layout;
 /// <param name="DocumentOutlineBounds">外接范围。外接范围的左上角是 0,0 点</param>
 public readonly record struct DocumentLayoutBounds(TextRect DocumentContentBounds, TextRect DocumentOutlineBounds)
 {
+}
+
+public readonly record struct DocumentLayoutBoundsInHorizontalArrangingCoordinateSystem(
+    TextRect DocumentContentBounds,
+    TextRect DocumentOutlineBounds,
+    TextEditorCore TextEditor)
+{
+    public DocumentLayoutBounds ToDocumentLayoutBounds()
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -554,7 +554,7 @@ abstract class ArrangingLayoutProvider
     /// 回溯文档布局排版结果
     /// </summary>
     /// <param name="LayoutBounds"></param>
-    protected readonly record struct FinalUpdateDocumentLayoutResult(DocumentLayoutBounds LayoutBounds);
+    protected readonly record struct FinalUpdateDocumentLayoutResult(DocumentLayoutBoundsInHorizontalArrangingCoordinateSystem LayoutBounds);
 
     #endregion 03 回溯最终布局阶段
 
