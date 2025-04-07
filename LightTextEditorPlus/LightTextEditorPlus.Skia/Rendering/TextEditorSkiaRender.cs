@@ -28,8 +28,12 @@ class TextEditorSkiaRender : ITextEditorContentSkiaRender
     /// <summary>
     /// 是否已经被返回出去被使用了，被使用了的，就应该将释放权给到外部，而不是自己释放
     /// </summary>
+    /// 如果为 false 则表示尚未在渲染线程中使用，为 true 则表示可能在渲染线程中使用了。一旦在渲染线程中使用了，就不能在 UI 线程中释放，就需要通过 <see cref="IsObsoleted"/> 交给 UI 线程来释放
     internal bool IsUsed { get; set; }
 
+    /// <summary>
+    /// 是否已经被标记为过时了。在 UI 线程被文本编辑器标记为过时了，但是在渲染线程上可能还在使用中，于是渲染线程应该判断一下这个属性，决定是否在渲染线程释放
+    /// </summary>
     public bool IsObsoleted { get; set; }
 
     public bool IsDisposed { get; private set; }
@@ -71,7 +75,7 @@ class TextEditorSkiaRender : ITextEditorContentSkiaRender
     {
         if (IsDisposed)
         {
-
+            // 在这里打断点，这是不符合预期的分支
         }
 
         _count++;
@@ -87,6 +91,11 @@ class TextEditorSkiaRender : ITextEditorContentSkiaRender
     }
 }
 
+/// <summary>
+/// 选择和光标范围的渲染器
+/// </summary>
+/// <param name="SelectionBoundsList"></param>
+/// <param name="SelectionColor"></param>
 record TextEditorSelectionSkiaRender(IReadOnlyList<TextRect> SelectionBoundsList, SKColor SelectionColor) : ITextEditorCaretAndSelectionRenderSkiaRender
 {
     public void Render(SKCanvas canvas)
