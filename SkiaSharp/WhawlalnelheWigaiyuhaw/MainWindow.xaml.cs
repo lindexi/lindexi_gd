@@ -88,7 +88,7 @@ public class SkiaCanvas : FrameworkElement
 
             var textHeight = 30;
 
-            var text = "微软";
+            var text = "ab";
 
             var baseline = skFont.Metrics.Ascent;
 
@@ -99,7 +99,6 @@ public class SkiaCanvas : FrameworkElement
 
                 skRotationScaleMatrixList[i] = skRotationScaleMatrix;
             }
-
             var skTextBlob = SKTextBlob.CreateRotationScale(text, skFont, skRotationScaleMatrixList.AsSpan());
 
             skCanvas.DrawText(skTextBlob, 10, 50, paint);
