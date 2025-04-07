@@ -31,7 +31,7 @@ public class TextEditorInsertTest
             var paragraphRenderInfoList = textEditorCore.GetRenderInfo().GetParagraphRenderInfoList().ToList();
             Assert.AreEqual(3, paragraphRenderInfoList.Count);
             var lineLayoutData = paragraphRenderInfoList[2].GetLineRenderInfoList().FirstOrDefault().LineLayoutData;
-            Assert.AreEqual(30, lineLayoutData.CharStartPoint.Y);
+            Assert.AreEqual(30, lineLayoutData.CharStartPoint.ToCurrentArrangingTypePoint().Y);
         });
 
         "文本连续追加两个换行，可以排版三段".Test(() =>
@@ -49,7 +49,7 @@ public class TextEditorInsertTest
             var paragraphRenderInfoList = textEditorCore.GetRenderInfo().GetParagraphRenderInfoList().ToList();
             Assert.AreEqual(3, paragraphRenderInfoList.Count);
             var lineLayoutData = paragraphRenderInfoList[2].GetLineRenderInfoList().FirstOrDefault().LineLayoutData;
-            Assert.AreEqual(30, lineLayoutData.CharStartPoint.Y);
+            Assert.AreEqual(30, lineLayoutData.CharStartPoint.ToCurrentArrangingTypePoint().Y);
         });
 
         "在现有的 123 文本的 12 中间，插入换行符，可以创建两段文本，光标在字符 2 前面".Test(() =>

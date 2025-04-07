@@ -52,14 +52,15 @@ class LayoutHitTestProvider
 
     private TextHitTestResult HitTestInner(in TextPoint point, in TextEditorDebugLogContext logContext)
     {
+        var renderInfoProvider = TextEditor.GetRenderInfo();
+
         // 先判断是否命中到文档
         // 命中到文档，那就继续判断段落命中
         var documentManager = TextEditor.DocumentManager;
         var paragraphManager = documentManager.ParagraphManager;
 
-        // 不需要通过 GetRenderInfo 方法获取，这是一个比较上层的方法了。框架内应该使用 LayoutProvider 获取
-        //TextEditor.GetRenderInfo()
-        TextRect documentHitBounds = LayoutManager.DocumentLayoutBounds.DocumentContentBounds;
+        DocumentLayoutBounds documentLayoutBounds = renderInfoProvider.GetDocumentLayoutBounds();
+        TextRect documentHitBounds = documentLayoutBounds.DocumentContentBounds;
 
         logContext.RecordDebugMessage($"开始测试文档范围是否命中");
 

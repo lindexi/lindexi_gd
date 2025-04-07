@@ -33,7 +33,7 @@ public readonly record struct TextPointInParagraphCoordinateSystem
     /// </summary>
     /// <param name="paragraphData"></param>
     /// <returns></returns>
-    internal TextPoint ToDocumentPoint(ParagraphData paragraphData)
+    internal TextPointInHorizontalArrangingCoordinateSystem ToDocumentPoint(ParagraphData paragraphData)
     {
         return ToDocumentContentCoordinateSystem(paragraphData).ToTextPoint();
     }
@@ -43,7 +43,7 @@ public readonly record struct TextPointInParagraphCoordinateSystem
     /// </summary>
     /// <param name="layoutData"></param>
     /// <returns></returns>
-    public TextPoint ToDocumentPoint(IParagraphLayoutData layoutData)
+    public TextPointInHorizontalArrangingCoordinateSystem ToDocumentPoint(IParagraphLayoutData layoutData)
     {
         return ToDocumentContentCoordinateSystem(layoutData).ToTextPoint();
     }

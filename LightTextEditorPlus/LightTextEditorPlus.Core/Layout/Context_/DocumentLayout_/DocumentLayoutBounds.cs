@@ -12,11 +12,14 @@ public readonly record struct DocumentLayoutBounds(TextRect DocumentContentBound
 {
 }
 
-public readonly record struct DocumentLayoutBoundsInHorizontalArrangingCoordinateSystem(
-    TextRect DocumentContentBounds,
-    TextRect DocumentOutlineBounds,
-    TextEditorCore TextEditor)
+public readonly struct DocumentLayoutBoundsInHorizontalArrangingCoordinateSystem()
 {
+    public required TextPointInHorizontalArrangingCoordinateSystem DocumentContentStartPoint { get; init; }
+    public required TextSize DocumentContentSize { get; init; }
+    public required TextSize DocumentOutlineSize { get; init; }
+
+    public required TextEditorCore TextEditor { get; init; }
+
     public DocumentLayoutBounds ToDocumentLayoutBounds()
     {
         throw new NotImplementedException();

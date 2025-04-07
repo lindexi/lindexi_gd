@@ -64,7 +64,7 @@ public class DocumentManagerParagraphPropertyTests
             Assert.AreEqual(firstParagraphLayoutData.OutlineSize.Height, secondParagraphLayoutData.OutlineBounds.Y, "第二段紧接第一段。第一段的 Bottom 和 高度 是相等的。第一段的 Top 就是 0 值");
             Assert.AreEqual(paragraphBefore + fontSize + paragraphAfter, secondParagraphLayoutData.OutlineSize.Height);
 
-            Assert.AreEqual(secondParagraphLayoutData.OutlineBounds.Bottom, thirdParagraphLayoutData.StartPoint.Y);
+            Assert.AreEqual(secondParagraphLayoutData.OutlineBounds.Bottom, thirdParagraphLayoutData.StartPoint.ToCurrentArrangingTypePoint().Y);
             Assert.AreEqual(paragraphBefore + fontSize /*+ paragraphAfter*/, thirdParagraphLayoutData.OutlineSize.Height, "最后一段不加上段后间距");
         });
     }

@@ -11,7 +11,7 @@ public interface IParagraphLayoutData
     /// <summary>
     /// 段落的起始点
     /// </summary>
-    TextPoint StartPoint { get; }
+    TextPointInHorizontalArrangingCoordinateSystem StartPoint { get; }
 
     internal TextPointInDocumentContentCoordinateSystem StartPointInDocumentContentCoordinateSystem { get; }
 
@@ -52,7 +52,7 @@ class ParagraphLayoutData : IParagraphLayoutData
     /// <summary>
     /// 段落的起始点
     /// </summary>
-    public TextPoint StartPoint => StartPointInDocumentContentCoordinateSystem.ToTextPoint();
+    public TextPointInHorizontalArrangingCoordinateSystem StartPoint => StartPointInDocumentContentCoordinateSystem.ToTextPoint();
 
     /// <summary>
     /// 段落的起始点，相对于文档内容坐标系
@@ -107,7 +107,7 @@ class ParagraphLayoutData : IParagraphLayoutData
         get
         {
             Debug.Assert(OutlineSize != TextSize.Invalid, "只有在回溯最终布局段落之后才能获取外接尺寸");
-            return new TextRect(StartPoint, OutlineSize);
+            return new TextRect(StartPoint.ToCurrentArrangingTypePoint(), OutlineSize);
         }
     }
 
@@ -119,7 +119,7 @@ class ParagraphLayoutData : IParagraphLayoutData
         get
         {
             // 跳过空白部分
-            TextPoint textPoint = StartPoint.Offset(TextContentThickness.Left, TextContentThickness.Top);
+            TextPoint textPoint = StartPoint.Offset(TextContentThickness.Left, TextContentThickness.Top).ToCurrentArrangingTypePoint();
             return new TextRect(textPoint, TextSize);
         }
     }
