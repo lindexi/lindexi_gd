@@ -58,8 +58,11 @@ public readonly struct TextPointInHorizontalArrangingCoordinateSystem
         throw new NotSupportedException();
     }
 
+    /// <inheritdoc />
     public override string ToString()
     {
-        return base.ToString();
+        return $"相对横排 ({_x:0.##},{_y:0.##})";
     }
+
+    internal string ToStringValueOnly() => $"{_x:0.##},{_y:0.##}";
 }

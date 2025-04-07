@@ -900,8 +900,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             TextEditor = TextEditor,
         };
 
-        // todo 输出左上角坐标
-        updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 完成最终布局阶段。文档内容尺寸：{documentContentSize} 文档外接尺寸：{documentOutlineSize}", LayoutDebugCategory.FinalDocument);
+        updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 完成最终布局阶段。文档内容坐标：{documentLayoutBounds.DocumentContentStartPoint.ToStringValueOnly()} 文档内容尺寸：{documentContentSize} 文档外接尺寸：{documentOutlineSize}", LayoutDebugCategory.FinalDocument);
 
         return new FinalUpdateDocumentLayoutResult(documentLayoutBounds);
     }
