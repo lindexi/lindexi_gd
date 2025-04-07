@@ -77,25 +77,26 @@ class TextView : UIElement, IRenderManager
 
     private TextRenderBase GetTextRenderBase()
     {
-        switch (_textEditor.TextEditorCore.ArrangingType)
+        if (_textEditor.TextEditorCore.ArrangingType == ArrangingType.Horizontal)
         {
-            case ArrangingType.Horizontal:
-                if (_textRenderBase is HorizontalTextRender)
-                {
-                    return _textRenderBase;
-                }
-                else
-                {
-                    _textRenderBase = new HorizontalTextRender();
-                    return _textRenderBase;
-                }
-            case ArrangingType.Vertical:
-            case ArrangingType.Mongolian:
-                // 还没有支持竖排渲染
-                throw new NotSupportedException();
-            default:
-                throw new ArgumentOutOfRangeException();
+            if (_textRenderBase is HorizontalTextRender)
+            {
+                return _textRenderBase;
+            }
+            else
+            {
+                _textRenderBase = new HorizontalTextRender();
+                return _textRenderBase;
+            }
         }
+
+        if (_textEditor.TextEditorCore.ArrangingType == ArrangingType.Vertical || _textEditor.TextEditorCore.ArrangingType == ArrangingType.Mongolian)
+        {
+            // 还没有支持竖排渲染
+            throw new NotSupportedException();
+        }
+
+        throw new ArgumentOutOfRangeException();
     }
 
     private DrawingVisual? _textDrawingVisual;

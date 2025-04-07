@@ -176,28 +176,32 @@ class RenderManager
 
     private BaseSkiaTextRender GetSkiaTextRender()
     {
-        switch (_textEditor.TextEditorCore.ArrangingType)
+        if (_textEditor.TextEditorCore.ArrangingType == ArrangingType.Horizontal)
         {
-            case ArrangingType.Horizontal:
-                if (_textRender is not HorizontalSkiaTextRender)
-                {
-                    _textRender?.Dispose();
-                    _textRender = new HorizontalSkiaTextRender(this);
-                }
+            if (_textRender is not HorizontalSkiaTextRender)
+            {
+                _textRender?.Dispose();
+                _textRender = new HorizontalSkiaTextRender(this);
+            }
 
-                return _textRender;
-            case ArrangingType.Vertical:
-                if (_textRender is not VerticalSkiaTextRender)
-                {
-                    _textRender?.Dispose();
-                    _textRender = new VerticalSkiaTextRender(this);
-                }
-                return _textRender;
-                break;
-            case ArrangingType.Mongolian:
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
+            return _textRender;
+        }
+        else if (_textEditor.TextEditorCore.ArrangingType == ArrangingType.Vertical)
+        {
+            if (_textRender is not VerticalSkiaTextRender)
+            {
+                _textRender?.Dispose();
+                _textRender = new VerticalSkiaTextRender(this);
+            }
+
+            return _textRender;
+        }
+        else if (_textEditor.TextEditorCore.ArrangingType == ArrangingType.Mongolian)
+        {
+        }
+        else
+        {
+            throw new ArgumentOutOfRangeException();
         }
 
         throw new NotSupportedException();
