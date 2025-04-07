@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Diagnostics;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Exceptions;
@@ -34,7 +34,7 @@ class HorizontalSkiaTextRender : BaseSkiaTextRender
         {
             foreach (ParagraphLineRenderInfo lineInfo in paragraphRenderInfo.GetLineRenderInfoList())
             {
-                // ÏÈ²»¿¼ÂÇ»º´æ
+                // å…ˆä¸è€ƒè™‘ç¼“å­˜
                 LineDrawingArgument argument = lineInfo.Argument;
                 foreach (TextReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous())
                 {
@@ -42,8 +42,8 @@ class HorizontalSkiaTextRender : BaseSkiaTextRender
 
                     SkiaTextRunProperty skiaTextRunProperty = firstCharData.RunProperty.AsSkiaRunProperty();
 
-                    // ²»ĞèÒªÔÚÕâÀï´¦Àí×ÖÌå»Ø¹ö£¬ÔÚÊäÈëµÄ¹ı³ÌÖĞÒÑ¾­´¦Àí¹ıÁË
-                    ////  ¿¼ÂÇ×ÖÌå»Ø¹öÎÊÌâ
+                    // ä¸éœ€è¦åœ¨è¿™é‡Œå¤„ç†å­—ä½“å›æ»šï¼Œåœ¨è¾“å…¥çš„è¿‡ç¨‹ä¸­å·²ç»å¤„ç†è¿‡äº†
+                    ////  è€ƒè™‘å­—ä½“å›æ»šé—®é¢˜
                     RenderingRunPropertyInfo renderingRunPropertyInfo = skiaTextRunProperty.GetRenderingRunPropertyInfo(firstCharData.CharObject.CodePoint);
 
                     SKFont skFont = renderingRunPropertyInfo.Font;
@@ -74,11 +74,11 @@ class HorizontalSkiaTextRender : BaseSkiaTextRender
 
                     if (!skFont.ContainsGlyphs(charSpan))
                     {
-                        // Ô¤¼Æ²»»á³öÏÖÕâÑùµÄÎÊÌâ£¬ÔÚäÖÈ¾Ö®Ç°ÒÑ¾­´¦Àí¹ıÁË
-                        throw new TextEditorInnerException($"ÎÄ±¾¿ò¼ÜÄÚÓ¦¸ÃÈ·±£½øÈëäÖÈ¾²ãÊ±£¬²»»á³öÏÖ×ÖÌå²»ÄÜ°üº¬×Ö·ûµÄÇé¿ö");
+                        // é¢„è®¡ä¸ä¼šå‡ºç°è¿™æ ·çš„é—®é¢˜ï¼Œåœ¨æ¸²æŸ“ä¹‹å‰å·²ç»å¤„ç†è¿‡äº†
+                        throw new TextEditorInnerException($"æ–‡æœ¬æ¡†æ¶å†…åº”è¯¥ç¡®ä¿è¿›å…¥æ¸²æŸ“å±‚æ—¶ï¼Œä¸ä¼šå‡ºç°å­—ä½“ä¸èƒ½åŒ…å«å­—ç¬¦çš„æƒ…å†µ");
                     }
 
-                    // »æÖÆËÄÏßÈı¸ñµÄµ÷ÊÔĞÅÏ¢
+                    // ç»˜åˆ¶å››çº¿ä¸‰æ ¼çš„è°ƒè¯•ä¿¡æ¯
                     if (TextEditor.DebugConfiguration.ShowHandwritingPaperDebugInfo)
                     {
                         CharHandwritingPaperInfo charHandwritingPaperInfo =
@@ -91,7 +91,7 @@ class HorizontalSkiaTextRender : BaseSkiaTextRender
 
                     var baselineY = /*skFont.Metrics.Leading +*/ (-skFont.Metrics.Ascent);
 
-                    // ÓÉÓÚ Skia µÄ DrawText ´«ÈëµÄ Point ÊÇÎÄ±¾µÄ»ùÏß£¬Òò´ËĞèÒªµ÷Õû Y Öµ
+                    // ç”±äº Skia çš„ DrawText ä¼ å…¥çš„ Point æ˜¯æ–‡æœ¬çš„åŸºçº¿ï¼Œå› æ­¤éœ€è¦è°ƒæ•´ Y å€¼
                     y += baselineY;
                     using SKTextBlob skTextBlob = SKTextBlob.Create(charSpan, skFont);
                     canvas.DrawText(skTextBlob, x, y, textRenderSKPaint);
@@ -99,15 +99,15 @@ class HorizontalSkiaTextRender : BaseSkiaTextRender
 
                 if (argument.CharList.Count == 0)
                 {
-                    // ¿ÕĞĞ
-                    // »æÖÆËÄÏßÈı¸ñµÄµ÷ÊÔĞÅÏ¢
+                    // ç©ºè¡Œ
+                    // ç»˜åˆ¶å››çº¿ä¸‰æ ¼çš„è°ƒè¯•ä¿¡æ¯
                     if (TextEditor.DebugConfiguration.ShowHandwritingPaperDebugInfo)
                     {
                         CharHandwritingPaperInfo charHandwritingPaperInfo =
                             renderInfoProvider.GetHandwritingPaperInfo(in lineInfo);
                         DrawDebugHandwritingPaper(canvas, new TextRect(argument.StartPoint, argument.LineSize with
                         {
-                            // ¿ÕĞĞÊÇ 0 ¿í¶È£¬ĞèÒª½«ÆäÉèÖÃÎªÕû¸öÎÄ±¾µÄ¿í¶È²ÅºÃ¼ÆËã
+                            // ç©ºè¡Œæ˜¯ 0 å®½åº¦ï¼Œéœ€è¦å°†å…¶è®¾ç½®ä¸ºæ•´ä¸ªæ–‡æœ¬çš„å®½åº¦æ‰å¥½è®¡ç®—
                             Width = renderInfoProvider.TextEditor.DocumentManager.DocumentWidth,
                         }).ToSKRect(), charHandwritingPaperInfo);
                     }
