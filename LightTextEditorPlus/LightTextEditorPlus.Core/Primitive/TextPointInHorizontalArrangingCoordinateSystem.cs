@@ -13,19 +13,19 @@ public readonly struct TextPointInHorizontalArrangingCoordinateSystem
     /// </summary>
     /// <param name="x"></param>
     /// <param name="y"></param>
-    ///// <param name="textEditor"></param>
-    public TextPointInHorizontalArrangingCoordinateSystem(double x, double y)
+    /// <param name="textEditor"></param>
+    public TextPointInHorizontalArrangingCoordinateSystem(double x, double y, TextEditorCore textEditor)
     {
         _x = x;
         _y = y;
-        //_textEditor = textEditor; // 坐标系不再强求存在 textEditor 对象
+        _textEditor = textEditor;
     }
 
     private readonly double _x;
 
     private readonly double _y;
 
-    //private readonly TextEditorCore _textEditor;
+    private readonly TextEditorCore _textEditor;
 
     /// <summary>
     /// 转换为按照当前排版类型的坐标，如果是竖排，则转换为竖排坐标
