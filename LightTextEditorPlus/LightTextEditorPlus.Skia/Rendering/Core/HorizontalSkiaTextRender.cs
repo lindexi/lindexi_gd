@@ -12,14 +12,17 @@ using SkiaSharp;
 
 namespace LightTextEditorPlus.Rendering.Core;
 
+/// <summary>
+/// 水平横排的文本渲染器
+/// </summary>
 class HorizontalSkiaTextRender : BaseSkiaTextRender
 {
-    public RenderManager RenderManager { get; }
-
     public HorizontalSkiaTextRender(RenderManager renderManager): base(renderManager.TextEditor)
     {
         RenderManager = renderManager;
     }
+
+    public RenderManager RenderManager { get; }
 
     public override SkiaTextRenderResult Render(in SkiaTextRenderArgument renderArgument)
     {
