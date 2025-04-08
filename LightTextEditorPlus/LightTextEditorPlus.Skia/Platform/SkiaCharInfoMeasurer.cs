@@ -306,7 +306,20 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
                 SKRect glyphRunBound = glyphRunBounds[glyphRunBoundsIndex];
 
                 // 确保赋值给每个字符的尺寸
-                argument.CharDataLayoutInfoSetter.SetCharDataInfo(charData, new TextSize(glyphRunBound.Width, glyphRunBound.Height), baselineY);
+                TextSize textSize = new TextSize(glyphRunBound.Width, glyphRunBound.Height);
+
+                bool isHorizontal = argument.UpdateLayoutContext.TextEditor.ArrangingType.IsHorizontal;
+                if (isHorizontal)
+                {
+                    // 横排，水平布局，拿到的字符尺寸就是当前字符的尺寸
+                }
+                else
+                {
+                    // 竖排，垂直布局，需要交换宽高
+                    textSize = textSize.SwapWidthAndHeight();
+                }
+
+                argument.CharDataLayoutInfoSetter.SetCharDataInfo(charData, textSize, baselineY);
             }
 
             // 解决 CharData 和字符不一一对应的问题，可能一个 CharData 对应多个字符
