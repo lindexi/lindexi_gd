@@ -321,7 +321,7 @@ class RichTextCaseProvider
         {
             editor.UseWpfLineSpacingStyle();
             editor.SetFontSize(30);
-            editor.AppendText("中文汉字asdbgeihko12345609微软雅黑");
+            editor.AppendText("qpih12345609微软雅黑");
             editor.ArrangingType = ArrangingType.Vertical;
         }, "竖排文本多行");
     }
