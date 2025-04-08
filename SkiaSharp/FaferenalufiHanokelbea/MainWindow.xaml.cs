@@ -90,21 +90,21 @@ public class SkiaCanvas : FrameworkElement
 
             var text = "微";
 
-            var baseline = skFont.Metrics.Ascent;
+            var baseline = -skFont.Metrics.Ascent;
             var glyphWidths = paint.GetGlyphWidths(text);
             var descent = skFont.Metrics.Descent;
 
             var positionList = new SKPoint[text.Length];
             for (int i = 0; i < text.Length; i++)
             {
-                positionList[i] = new SKPoint(0, textHeight * i);
+                positionList[i] = new SKPoint(0, textHeight * i + baseline);
             }
 
             using SKTextBlob skTextBlob = SKTextBlob.CreatePositioned(text, skFont, positionList.AsSpan());
 
             skCanvas.DrawText(skTextBlob, 0, 0, paint);
             paint.Color = SKColors.Red;
-            skCanvas.DrawText(text, 0, 0, paint);
+            //skCanvas.DrawText(text, 0, 0 + baseline, paint);
         }
 
         _writeableBitmap.Lock();
