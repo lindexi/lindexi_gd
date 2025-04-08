@@ -88,7 +88,7 @@ public class SkiaCanvas : FrameworkElement
 
             var textHeight = 30;
 
-            var text = "pi";
+            var text = "pi中文雅黑对齐";
 
             var baseline = -skFont.Metrics.Ascent;
             var glyphWidths = paint.GetGlyphWidths(text);
@@ -104,21 +104,24 @@ public class SkiaCanvas : FrameworkElement
             var y = 0f;
             for (int i = 0; i < text.Length; i++)
             {
+                var height = boundsList[i].Height;
+                var charHeight = height;
+                var top = boundsList[i].Top;
+                if (top < 0)
+                {
+                    var d = baseline + top;
+                    charHeight = height + d;
+                }
+
                 if (i == 0)
                 {
                     paint.Color = SKColors.Blue.WithAlpha(0xC5);
                     paint.Style = SKPaintStyle.Stroke;
-                    var height = boundsList[i].Height;
-                    var top = boundsList[i].Top;
-                    if (top < 0)
-                    {
-                        var d = baseline+top;
-                        height = height + d;
-                    }
-                    skCanvas.DrawRect(boundsList[i].Left, 0, boundsList[i].Width, height, paint);
+                   
+                    skCanvas.DrawRect(boundsList[i].Left, 0, boundsList[i].Width, charHeight, paint);
                 }
                 positionList[i] = new SKPoint(boundsList[i].Left, y + baseline);
-                y += boundsList[i].Height;
+                y += charHeight;
             }
 
             using SKTextBlob skTextBlob = SKTextBlob.CreatePositioned(text, skFont, positionList.AsSpan());
