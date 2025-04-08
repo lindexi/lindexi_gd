@@ -311,8 +311,9 @@ class RichTextCaseProvider
 
         Add(editor =>
         {
+            editor.UseWpfLineSpacingStyle();
             editor.SetFontSize(30);
-            editor.AppendText("123abc中文汉字");
+            editor.AppendText("中文汉字");
             editor.ArrangingType = ArrangingType.Vertical;
         }, "竖排文本");
     }
