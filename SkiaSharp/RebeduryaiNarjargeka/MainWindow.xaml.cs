@@ -88,7 +88,7 @@ public class SkiaCanvas : FrameworkElement
 
             var textHeight = 30;
 
-            var text = "一二一中文雅黑对齐";
+            var text = "一二一个中文雅黑对齐";
 
             var baseline = -skFont.Metrics.Ascent;
             var glyphWidths = paint.GetGlyphWidths(text);
