@@ -84,7 +84,7 @@ public class SkiaCanvas : FrameworkElement
             using var skFont = new SKFont(typeface, 30);
 
             paint.Typeface = typeface;
-            paint.TextSize = 30;
+            paint.TextSize = skFont.Size;
 
             var textHeight = 30;
 
@@ -98,7 +98,7 @@ public class SkiaCanvas : FrameworkElement
             skFont.GetGlyphs(text, glyphList);
             var widthList = new float[glyphList.Length];
             var boundsList = new SKRect[glyphList.Length];
-            skFont.GetGlyphWidths(glyphList, widthList, boundsList);
+            skFont.GetGlyphWidths(glyphList, widthList, boundsList,paint);
 
             var positionList = new SKPoint[text.Length];
             var y = 0f;
@@ -108,7 +108,14 @@ public class SkiaCanvas : FrameworkElement
                 {
                     paint.Color = SKColors.Blue.WithAlpha(0xC5);
                     paint.Style = SKPaintStyle.Stroke;
-                    skCanvas.DrawRect(0, 0, boundsList[i].Width, boundsList[i].Height, paint);
+                    var height = boundsList[i].Height;
+                    var top = boundsList[i].Top;
+                    if (top < 0)
+                    {
+                        var d = baseline+top;
+                        height = height + d;
+                    }
+                    skCanvas.DrawRect(boundsList[i].Left, 0, boundsList[i].Width, height, paint);
                 }
                 positionList[i] = new SKPoint(boundsList[i].Left, y + baseline);
                 y += boundsList[i].Height;
