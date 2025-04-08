@@ -104,17 +104,25 @@ public class SkiaCanvas : FrameworkElement
             var y = 0f;
             for (int i = 0; i < text.Length; i++)
             {
-                positionList[i] = new SKPoint(0, y + baseline);
+                if (i == 0)
+                {
+                    paint.Color = SKColors.Blue.WithAlpha(0xC5);
+                    paint.Style = SKPaintStyle.Stroke;
+                    skCanvas.DrawRect(0, 0, boundsList[i].Width, boundsList[i].Height, paint);
+                }
+                positionList[i] = new SKPoint(boundsList[i].Left, y + baseline);
                 y += boundsList[i].Height;
             }
 
             using SKTextBlob skTextBlob = SKTextBlob.CreatePositioned(text, skFont, positionList.AsSpan());
 
+            paint.Style = SKPaintStyle.Fill;
+            paint.Color = SKColors.Blue;
             skCanvas.DrawText(skTextBlob, 0, 0, paint);
             paint.Color = SKColors.Red;
             //skCanvas.DrawText(text, 0, 0 + baseline, paint);
 
-         
+
         }
 
         _writeableBitmap.Lock();
