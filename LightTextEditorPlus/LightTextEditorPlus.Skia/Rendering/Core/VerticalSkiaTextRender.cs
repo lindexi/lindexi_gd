@@ -53,6 +53,7 @@ class VerticalSkiaTextRender : BaseSkiaTextRender
                     for (int i = 0; i < charList.Count; i++)
                     {
                         (double x, double y) = charList[i].GetStartPoint();
+                        y += charList[i].Baseline;
                         positionList[i] = new SKPoint((float) x, (float) y);
                     }
 

@@ -126,6 +126,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
     public void MeasureAndFillSizeOfRun(in FillSizeOfRunArgument argument)
     {
         CharData currentCharData = argument.CurrentCharData;
+        bool isHorizontal = argument.UpdateLayoutContext.TextEditor.ArrangingType.IsHorizontal;
 
         if (currentCharData.Size != null)
         {
@@ -269,6 +270,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
             var width = (float) advance;// renderBounds.Width;
             float height = charHeight;// = renderBounds.Height; //skPaint.TextSize; //(float) skFont.Metrics.Ascent + (float) skFont.Metrics.Descent;
+
             //height = (float) LineSpacingCalculator.CalculateLineHeightWithPPTLineSpacingAlgorithm(1, skPaint.TextSize);
             //var enhance = 0f;
             //// 有些字体的 Top 就是超过格子，不要补偿。如华文仿宋字体
@@ -308,7 +310,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
                 // 确保赋值给每个字符的尺寸
                 TextSize textSize = new TextSize(glyphRunBound.Width, glyphRunBound.Height);
 
-                bool isHorizontal = argument.UpdateLayoutContext.TextEditor.ArrangingType.IsHorizontal;
+               
                 if (isHorizontal)
                 {
                     // 横排，水平布局，拿到的字符尺寸就是当前字符的尺寸
