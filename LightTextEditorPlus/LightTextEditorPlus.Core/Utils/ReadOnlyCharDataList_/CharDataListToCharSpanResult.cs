@@ -1,11 +1,11 @@
-using System;
+ï»¿using System;
 using System.Buffers;
 using LightTextEditorPlus.Core.Document;
 
 namespace LightTextEditorPlus.Core.Utils;
 
 /// <summary>
-/// ´Ó <see cref="CharData"/> ÁĞ±í×ª»»Îª <see cref="char"/> ÁĞ±íµÄ½á¹û¡£ĞèÒªµ÷ÓÃÊÍ·Å£¬½«Êı×é¹é»¹µ½³ØÖĞ
+/// ä» <see cref="CharData"/> åˆ—è¡¨è½¬æ¢ä¸º <see cref="char"/> åˆ—è¡¨çš„ç»“æœã€‚éœ€è¦è°ƒç”¨é‡Šæ”¾ï¼Œå°†æ•°ç»„å½’è¿˜åˆ°æ± ä¸­
 /// </summary>
 public readonly struct CharDataListToCharSpanResult : IDisposable
 {
@@ -17,7 +17,7 @@ public readonly struct CharDataListToCharSpanResult : IDisposable
     }
 
     /// <summary>
-    /// ×ª»»ºóµÄ×Ö·ûÊı×é
+    /// è½¬æ¢åçš„å­—ç¬¦æ•°ç»„
     /// </summary>
     public ReadOnlySpan<char> CharSpan => _buffer.AsSpan(0, _length);
 
