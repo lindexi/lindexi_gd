@@ -88,7 +88,7 @@ public class SkiaCanvas : FrameworkElement
 
             var textHeight = 30;
 
-            var text = "一二一中文雅黑对齐";
+            var text = "一二一个中文雅黑对齐";
 
             var baseline = -skFont.Metrics.Ascent;
             var glyphWidths = paint.GetGlyphWidths(text);
@@ -98,7 +98,7 @@ public class SkiaCanvas : FrameworkElement
             skFont.GetGlyphs(text, glyphList);
             var widthList = new float[glyphList.Length];
             var boundsList = new SKRect[glyphList.Length];
-            skFont.GetGlyphWidths(glyphList, widthList, boundsList,paint);
+            skFont.GetGlyphWidths(glyphList, widthList, boundsList, paint);
 
             var positionList = new SKPoint[text.Length];
             var y = 0f;
@@ -107,18 +107,16 @@ public class SkiaCanvas : FrameworkElement
                 var height = boundsList[i].Height;
                 var charHeight = height;
                 var top = boundsList[i].Top;
-                if (top < 0)
-                {
-                    var d = baseline + top;
-                    charHeight = height + d;
-                }
+
+                var space = baseline + top;
+                charHeight = height + space; // 字高度加空隙等于渲染高度
 
                 paint.Color = SKColors.Blue.WithAlpha(0xC5);
                 paint.Style = SKPaintStyle.Stroke;
 
                 skCanvas.DrawRect(boundsList[i].Left, y, boundsList[i].Width, charHeight, paint);
 
-                positionList[i] = new SKPoint(boundsList[i].Left, y + baseline);
+                positionList[i] = new SKPoint(boundsList[i].Left, y + baseline - space / 2);
                 y += charHeight;
             }
 
