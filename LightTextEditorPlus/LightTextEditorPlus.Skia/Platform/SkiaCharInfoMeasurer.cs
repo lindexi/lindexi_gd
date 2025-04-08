@@ -248,7 +248,6 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         _ = renderGlyphPositions;
 
         var runBounds = new SKRect();
-        var glyphRunBounds = new SKRect[count];
         skFont.GetGlyphWidths(glyphIndices.AsSpan(0, charCount), null, glyphBounds.AsSpan(0, charCount));
 
         var baselineY = -skFont.Metrics.Ascent;
@@ -258,11 +257,12 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
         float charHeight = renderingRunPropertyInfo.GetLayoutCharHeight();
 
+        var glyphRunBounds = new SKRect[count];
         // 实际使用里面，可以忽略 GetGlyphWidths 的影响，因为实际上没有用到
         for (var i = 0; i < count; i++)
         {
             var renderBounds = glyphBounds[i];
-            var glyphInfo = glyphInfoList[i];
+            TextGlyphInfo glyphInfo = glyphInfoList[i];
             var advance = glyphInfo.GlyphAdvance;
 
             // 水平布局下，不应该返回字符的渲染高度，而是应该返回字符高度。这样可以保证字符的基线对齐。如 a 和 f 和 g 的高度不相同，则如果将其渲染高度返回，会导致基线不对齐，变成底部对齐
@@ -273,7 +273,8 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             if (!isHorizontal)
             {
                 // 竖排情况下，不要让字间距过大
-                height = renderBounds.Height;
+                const int margin = 6;
+                height = renderBounds.Height + margin;
             }
             //height = (float) LineSpacingCalculator.CalculateLineHeightWithPPTLineSpacingAlgorithm(1, skPaint.TextSize);
             //var enhance = 0f;
