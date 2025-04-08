@@ -113,15 +113,13 @@ public class SkiaCanvas : FrameworkElement
                     charHeight = height + d;
                 }
 
-                var charMargin = 5;
-
                 paint.Color = SKColors.Blue.WithAlpha(0xC5);
                 paint.Style = SKPaintStyle.Stroke;
 
-                //skCanvas.DrawRect(boundsList[i].Left, y, boundsList[i].Width, charHeight, paint);
+                skCanvas.DrawRect(boundsList[i].Left, y, boundsList[i].Width, charHeight, paint);
 
-                positionList[i] = new SKPoint(boundsList[i].Left, y + (-top));
-                y += height + charMargin;
+                positionList[i] = new SKPoint(boundsList[i].Left, y + baseline);
+                y += charHeight;
             }
 
             using SKTextBlob skTextBlob = SKTextBlob.CreatePositioned(text, skFont, positionList.AsSpan());
