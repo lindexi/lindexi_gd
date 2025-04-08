@@ -1,4 +1,5 @@
 using System;
+
 using LightTextEditorPlus.Core.Layout;
 
 namespace LightTextEditorPlus.Core.Primitive;
@@ -51,16 +52,16 @@ public readonly struct TextPointInHorizontalArrangingCoordinateSystem
         }
         else if (_textEditor.ArrangingType == ArrangingType.Vertical)
         {
+            return new TextPoint(_y, _x);
         }
         else if (_textEditor.ArrangingType == ArrangingType.Mongolian)
         {
+            throw new NotImplementedException();
         }
         else
         {
             throw new ArgumentOutOfRangeException();
         }
-
-        throw new NotSupportedException();
     }
 
     /// <inheritdoc />
