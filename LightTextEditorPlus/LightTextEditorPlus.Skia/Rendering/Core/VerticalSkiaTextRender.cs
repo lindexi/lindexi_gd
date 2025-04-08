@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Diagnostics;
 
 using LightTextEditorPlus.Core.Document;
@@ -12,7 +12,7 @@ using SkiaSharp;
 namespace LightTextEditorPlus.Rendering.Core;
 
 /// <summary>
-/// ÊúÅÅÎÄ±¾äÖÈ¾Æ÷
+/// ç«–æ’æ–‡æœ¬æ¸²æŸ“å™¨
 /// </summary>
 class VerticalSkiaTextRender : BaseSkiaTextRender
 {
@@ -35,13 +35,13 @@ class VerticalSkiaTextRender : BaseSkiaTextRender
         {
             foreach (ParagraphLineRenderInfo lineInfo in paragraphRenderInfo.GetLineRenderInfoList())
             {
-                // ÏÈ²»¿¼ÂÇ»º´æ
+                // å…ˆä¸è€ƒè™‘ç¼“å­˜
                 LineDrawingArgument argument = lineInfo.Argument;
                 foreach (TextReadOnlyListSpan<CharData> charList in argument.CharList.GetCharSpanContinuous())
                 {
                     CharData firstCharData = charList[0];
                     SkiaTextRunProperty skiaTextRunProperty = firstCharData.RunProperty.AsSkiaRunProperty();
-                    // ²»ĞèÒªÔÚÕâÀï´¦Àí×ÖÌå»Ø¹ö£¬ÔÚÊäÈëµÄ¹ı³ÌÖĞÒÑ¾­´¦Àí¹ıÁË
+                    // ä¸éœ€è¦åœ¨è¿™é‡Œå¤„ç†å­—ä½“å›æ»šï¼Œåœ¨è¾“å…¥çš„è¿‡ç¨‹ä¸­å·²ç»å¤„ç†è¿‡äº†
                     RenderingRunPropertyInfo renderingRunPropertyInfo = skiaTextRunProperty.GetRenderingRunPropertyInfo(firstCharData.CharObject.CodePoint);
                     SKFont skFont = renderingRunPropertyInfo.Font;
                     SKPaint textRenderSKPaint = renderingRunPropertyInfo.Paint;
@@ -65,7 +65,7 @@ class VerticalSkiaTextRender : BaseSkiaTextRender
 
         return new SkiaTextRenderResult()
         {
-            // todo ÕâÀïĞèÒªĞŞ¸ÄÎªÕıÈ·µÄ·¶Î§
+            // todo è¿™é‡Œéœ€è¦ä¿®æ”¹ä¸ºæ­£ç¡®çš„èŒƒå›´
             RenderBounds = renderBounds
         };
     }

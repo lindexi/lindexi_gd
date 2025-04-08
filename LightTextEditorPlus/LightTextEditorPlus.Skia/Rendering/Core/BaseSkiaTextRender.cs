@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 
 using LightTextEditorPlus.Diagnostics;
 
@@ -36,7 +36,7 @@ abstract class BaseSkiaTextRender : IDisposable
     private SKPaint? _debugSKPaint;
 
     /// <summary>
-    /// »æÖÆËÄÏßÈı¸ñµÄµ÷ÊÔĞÅÏ¢
+    /// ç»˜åˆ¶å››çº¿ä¸‰æ ¼çš„è°ƒè¯•ä¿¡æ¯
     /// </summary>
     /// <param name="canvas"></param>
     /// <param name="charSpanBounds"></param>
