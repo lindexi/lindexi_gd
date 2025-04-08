@@ -270,7 +270,11 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
             var width = (float) advance;// renderBounds.Width;
             float height = charHeight;// = renderBounds.Height; //skPaint.TextSize; //(float) skFont.Metrics.Ascent + (float) skFont.Metrics.Descent;
-
+            if (!isHorizontal)
+            {
+                // 竖排情况下，不要让字间距过大
+                height = renderBounds.Height;
+            }
             //height = (float) LineSpacingCalculator.CalculateLineHeightWithPPTLineSpacingAlgorithm(1, skPaint.TextSize);
             //var enhance = 0f;
             //// 有些字体的 Top 就是超过格子，不要补偿。如华文仿宋字体
