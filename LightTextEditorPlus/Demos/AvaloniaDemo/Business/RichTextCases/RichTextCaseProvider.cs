@@ -316,6 +316,14 @@ class RichTextCaseProvider
             editor.AppendText("中文汉字");
             editor.ArrangingType = ArrangingType.Vertical;
         }, "竖排文本");
+
+        Add(editor =>
+        {
+            editor.UseWpfLineSpacingStyle();
+            editor.SetFontSize(30);
+            editor.AppendText("中文汉字asdbgeihko12345609微软雅黑");
+            editor.ArrangingType = ArrangingType.Vertical;
+        }, "竖排文本多行");
     }
 
     private readonly ITextEditorProvider _textEditorProvider;
