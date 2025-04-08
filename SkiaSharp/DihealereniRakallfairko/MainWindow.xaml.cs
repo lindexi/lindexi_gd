@@ -107,18 +107,18 @@ public class SkiaCanvas : FrameworkElement
                 var height = boundsList[i].Height;
                 var charHeight = height;
                 var top = boundsList[i].Top;
-                if (top < 0)
-                {
-                    var d = baseline + top;
-                    charHeight = height + d;
-                }
+                //if (top < 0)
+                //{
+                //    var d = baseline + top;
+                //    charHeight = height + d;
+                //}
 
                 paint.Color = SKColors.Blue.WithAlpha(0xC5);
                 paint.Style = SKPaintStyle.Stroke;
 
-                skCanvas.DrawRect(boundsList[i].Left, y, boundsList[i].Width, charHeight, paint);
+                //skCanvas.DrawRect(boundsList[i].Left, y, boundsList[i].Width, charHeight, paint);
 
-                positionList[i] = new SKPoint(boundsList[i].Left, y + baseline);
+                positionList[i] = new SKPoint(boundsList[i].Left, y + -top);
                 y += charHeight;
             }
 
