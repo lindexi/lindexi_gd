@@ -108,7 +108,14 @@ public class SkiaCanvas : FrameworkElement
                 {
                     paint.Color = SKColors.Blue.WithAlpha(0xC5);
                     paint.Style = SKPaintStyle.Stroke;
-                    skCanvas.DrawRect(boundsList[i].Left, 0, boundsList[i].Width, boundsList[i].Height, paint);
+                    var height = boundsList[i].Height;
+                    var top = boundsList[i].Top;
+                    if (top < 0)
+                    {
+                        var d = baseline+top;
+                        height = height + d;
+                    }
+                    skCanvas.DrawRect(boundsList[i].Left, 0, boundsList[i].Width, height, paint);
                 }
                 positionList[i] = new SKPoint(boundsList[i].Left, y + baseline);
                 y += boundsList[i].Height;
