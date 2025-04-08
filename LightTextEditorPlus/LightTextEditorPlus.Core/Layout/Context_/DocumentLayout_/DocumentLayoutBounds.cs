@@ -11,30 +11,3 @@ namespace LightTextEditorPlus.Core.Layout;
 public readonly record struct DocumentLayoutBounds(TextRect DocumentContentBounds, TextRect DocumentOutlineBounds)
 {
 }
-
-public readonly struct DocumentLayoutBoundsInHorizontalArrangingCoordinateSystem()
-{
-    public required TextPointInHorizontalArrangingCoordinateSystem DocumentContentStartPoint { get; init; }
-    public required TextSize DocumentContentSize { get; init; }
-    public required TextSize DocumentOutlineSize { get; init; }
-
-    public required TextEditorCore TextEditor { get; init; }
-
-    public DocumentLayoutBounds ToDocumentLayoutBounds()
-    {
-        TextPoint documentContentStartPoint = DocumentContentStartPoint.ToCurrentArrangingTypePoint();
-        TextSize documentContentSize = DocumentContentSize;
-        TextSize documentOutlineSize = DocumentOutlineSize;
-
-        if (TextEditor.ArrangingType != ArrangingType.Horizontal)
-        {
-            documentContentSize = documentContentSize.SwapWidthAndHeight();
-            documentOutlineSize = documentOutlineSize.SwapWidthAndHeight();
-        }
-
-        TextRect documentContentBounds = new TextRect(documentContentStartPoint, documentContentSize);
-        TextRect documentOutlineBounds = new TextRect(TextPoint.Zero, documentOutlineSize);
-        return new DocumentLayoutBounds(documentContentBounds,
-            documentOutlineBounds);
-    }
-}

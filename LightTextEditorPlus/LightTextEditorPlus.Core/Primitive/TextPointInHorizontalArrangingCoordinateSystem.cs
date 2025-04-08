@@ -43,6 +43,8 @@ public readonly struct TextPointInHorizontalArrangingCoordinateSystem
     /// <returns></returns>
     public TextPoint ToCurrentArrangingTypePoint()
     {
+        _textEditor.VerifyNotDirty();
+
         if (_textEditor.ArrangingType == ArrangingType.Horizontal)
         {
             return new TextPoint(_x, _y);
