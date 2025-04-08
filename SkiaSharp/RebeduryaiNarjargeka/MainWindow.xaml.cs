@@ -88,7 +88,7 @@ public class SkiaCanvas : FrameworkElement
 
             var textHeight = 30;
 
-            var text = "pi中文雅黑对齐";
+            var text = "一二一中文雅黑对齐";
 
             var baseline = -skFont.Metrics.Ascent;
             var glyphWidths = paint.GetGlyphWidths(text);
@@ -113,13 +113,11 @@ public class SkiaCanvas : FrameworkElement
                     charHeight = height + d;
                 }
 
-                if (i == 0)
-                {
-                    paint.Color = SKColors.Blue.WithAlpha(0xC5);
-                    paint.Style = SKPaintStyle.Stroke;
-                   
-                    skCanvas.DrawRect(boundsList[i].Left, 0, boundsList[i].Width, charHeight, paint);
-                }
+                paint.Color = SKColors.Blue.WithAlpha(0xC5);
+                paint.Style = SKPaintStyle.Stroke;
+
+                skCanvas.DrawRect(boundsList[i].Left, y, boundsList[i].Width, charHeight, paint);
+
                 positionList[i] = new SKPoint(boundsList[i].Left, y + baseline);
                 y += charHeight;
             }
