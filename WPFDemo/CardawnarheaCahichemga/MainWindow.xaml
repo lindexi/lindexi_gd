@@ -1,0 +1,30 @@
+﻿<Window x:Class="CardawnarheaCahichemga.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CardawnarheaCahichemga"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition MinWidth="200"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock VerticalAlignment="Center" Text="压缩包路径："></TextBlock>
+            <TextBox x:Name="ZipFilePathTextBox" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Text="C:\lindexi\Work\Source.zip"></TextBox>
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,10,0,0" VerticalAlignment="Center" Text="解压缩文件夹："></TextBlock>
+            <TextBox x:Name="UnzipFolderPathTextBox" Grid.Row="1" Grid.Column="1" Margin="0,10,0,0" VerticalAlignment="Center" Text="C:\lindexi\Work\Unzip\"></TextBox>
+
+            <Button Grid.Row="2" Grid.Column="1" Margin="10,10,0,10" HorizontalAlignment="Right" Content="对比" Click="Button_OnClick"></Button>
+        </Grid>
+    </Grid>
+</Window>
