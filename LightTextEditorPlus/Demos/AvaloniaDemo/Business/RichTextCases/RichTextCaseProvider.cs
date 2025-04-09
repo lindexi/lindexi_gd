@@ -313,17 +313,17 @@ class RichTextCaseProvider
         {
             editor.UseWpfLineSpacingStyle();
             editor.SetFontSize(30);
-            editor.AppendText("中文汉字");
+            editor.AppendText("qpih12345609微软雅黑");
             editor.ArrangingType = ArrangingType.Vertical;
-        }, "竖排文本");
+        }, "竖排文本多行");
 
         Add(editor =>
         {
             editor.UseWpfLineSpacingStyle();
             editor.SetFontSize(30);
-            editor.AppendText("qpih12345609微软雅黑");
+            editor.AppendText("一二一个中文雅黑对齐");
             editor.ArrangingType = ArrangingType.Vertical;
-        }, "竖排文本多行");
+        }, "竖排文本");
     }
 
     private readonly ITextEditorProvider _textEditorProvider;

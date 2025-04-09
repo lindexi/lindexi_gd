@@ -272,9 +272,12 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             float height = charHeight;// = renderBounds.Height; //skPaint.TextSize; //(float) skFont.Metrics.Ascent + (float) skFont.Metrics.Descent;
             if (!isHorizontal)
             {
-                // 竖排情况下，不要让字间距过大
-                const int margin = 6;
-                height = renderBounds.Height + margin;
+                // 计算方法请参阅
+                // [WPF 探索 Skia 的竖排文本渲染的字符高度 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/18815810 )
+                float top = renderBounds.Top;
+                var space = baselineY + top;
+                var renderCharHeight = renderBounds.Height + space;
+                height = renderCharHeight;
             }
             //height = (float) LineSpacingCalculator.CalculateLineHeightWithPPTLineSpacingAlgorithm(1, skPaint.TextSize);
             //var enhance = 0f;
