@@ -34,10 +34,6 @@ public class SkiaCanvas : FrameworkElement
 {
     public SkiaCanvas()
     {
-        string s = GetOptionObject<string?>("") ?? "123";
-
-        int? optionObject = GetOptionObject<int?>(2) ?? 5;
-
         Loaded += SkiaCanvas_Loaded;
     }
 
@@ -53,17 +49,6 @@ public class SkiaCanvas : FrameworkElement
 
     private float _ax;
     private float _ay;
-
-    private T? GetOptionObject<T>(T defaultValue) //where T : struct
-    {
-        T? t = default(T?);
-        return t;
-    }
-
-    private IReadOnlyList<T> GetValues<T>(int startIndex, int length) where T : class
-    {
-        throw null;
-    }
 
     private void DrawInner()
     {
