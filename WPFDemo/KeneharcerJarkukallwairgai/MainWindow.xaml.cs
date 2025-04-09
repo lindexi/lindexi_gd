@@ -1,4 +1,6 @@
 ﻿using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -19,23 +21,19 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         var args = new List<string>();
-        Foo foo = new Foo();
-        var f1 = foo.F1;
-        if (args[0] == "")
-        {
-            f1 = args[0];
-        }
-
-        foo = new Foo()
-        {
-            F1 = f1
-        };
+        Foo foo = JsonSerializer.Deserialize<Foo>("{}", FooContext.Default.Foo);
 
         InitializeComponent();
     }
 }
 
+[JsonSerializable(typeof(Foo))]
+partial class FooContext : JsonSerializerContext
+{
+
+}
+
 class Foo
 {
-    public object F1 { get; init; } = "asd";
+    public string F1 { get; init; } = "asd";
 }
