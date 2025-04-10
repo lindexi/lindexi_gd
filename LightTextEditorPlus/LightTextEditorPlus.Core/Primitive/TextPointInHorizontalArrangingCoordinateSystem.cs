@@ -22,6 +22,11 @@ public readonly struct TextPointInHorizontalArrangingCoordinateSystem
         _textEditor = textEditor;
     }
 
+    /// <summary>
+    /// 零点
+    /// </summary>
+    /// <param name="textEditor"></param>
+    /// <returns></returns>
     public static TextPointInHorizontalArrangingCoordinateSystem Zero(TextEditorCore textEditor)
         // 零点不一定是最终的零点，如从右到左布局下，零点是在右上角
         =>
@@ -33,6 +38,12 @@ public readonly struct TextPointInHorizontalArrangingCoordinateSystem
 
     private readonly TextEditorCore _textEditor;
 
+    /// <summary>
+    /// 偏移
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <returns></returns>
     public TextPointInHorizontalArrangingCoordinateSystem Offset(double x, double y)
     {
         return new TextPointInHorizontalArrangingCoordinateSystem(_x + x, _y + y, _textEditor);
