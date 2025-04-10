@@ -57,6 +57,19 @@ partial class TextEditorCore
     /// <inheritdoc cref="TextEditorDebugConfiguration.SetAllInDebugMode"/>
     public static void SetAllInDebugMode() => TextEditorDebugConfiguration.SetAllInDebugMode();
 
+    /// <summary>
+    /// 调试下请求重新布局整个文档
+    /// </summary>
+    public void DebugRequireReUpdateAllDocumentLayout()
+    {
+        if (!IsInDebugMode)
+        {
+            throw new InvalidOperationException($"{nameof(DebugRequireReUpdateAllDocumentLayout)} can only be called in debug mode. 只能在调试模式下调用此方法");
+        }
+
+        RequireDispatchReUpdateAllDocumentLayout(nameof(DebugRequireReUpdateAllDocumentLayout));
+    }
+
     #endregion
 
     #region 更新布局原因
