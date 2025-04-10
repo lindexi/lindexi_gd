@@ -16,6 +16,7 @@ using LightTextEditorPlus.Core.Exceptions;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using LightTextEditorPlus.Core.Utils;
+using LightTextEditorPlus.Core.Utils.TextArrayPools;
 
 namespace LightTextEditorPlus.Platform;
 
@@ -125,8 +126,9 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
     public void MeasureAndFillSizeOfRun(in FillSizeOfRunArgument argument)
     {
+        UpdateLayoutContext updateLayoutContext = argument.UpdateLayoutContext;
         CharData currentCharData = argument.CurrentCharData;
-        bool isHorizontal = argument.UpdateLayoutContext.TextEditor.ArrangingType.IsHorizontal;
+        bool isHorizontal = updateLayoutContext.TextEditor.ArrangingType.IsHorizontal;
 
         if (currentCharData.Size != null)
         {
@@ -139,7 +141,6 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         // 获取当前相同的字符属性的段，作为当前一次性测量的段。如此可以提高性能
         runList = runList.GetFirstCharSpanContinuous();
 
-        UpdateLayoutContext updateLayoutContext = argument.UpdateLayoutContext;
         var runProperty = currentCharData.RunProperty.AsSkiaRunProperty();
 
         RenderingRunPropertyInfo renderingRunPropertyInfo = runProperty.GetRenderingRunPropertyInfo(currentCharData.CharObject.CodePoint);
@@ -164,9 +165,11 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         // Copy from https://github.com/AvaloniaUI/Avalonia
         // src\Skia\Avalonia.Skia\TextShaperImpl.cs
         // src\Skia\Avalonia.Skia\GlyphRunImpl.cs
+        using TextPoolArrayContext<ushort> glyphIndexContext = updateLayoutContext.Rent<ushort>(charCount);
+        using TextPoolArrayContext<SKRect> glyphBoundsContext = updateLayoutContext.Rent<SKRect>(charCount);
 
-        var glyphIndices = new ushort[charCount]; // 开数组池化
-        var glyphBounds = new SKRect[charCount];
+        Span<ushort> glyphIndices = glyphIndexContext.Span;
+        Span<SKRect> glyphBounds = glyphBoundsContext.Span;
 
         var glyphInfoList = new List<TextGlyphInfo>();
         using (var buffer = new Buffer())
@@ -230,7 +233,8 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         }
 
         var count = glyphInfoList.Count;
-        var renderGlyphPositions = new SKPoint[count]; // 没有真的用到
+        using TextPoolArrayContext<SKPoint> renderGlyphPositionsContext = updateLayoutContext.Rent<SKPoint>(count);
+        var renderGlyphPositions = renderGlyphPositionsContext.Span; // 没有真的用到
         var currentX = 0.0;
         for (int i = 0; i < count; i++)
         {
@@ -250,7 +254,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         // 当前的 run 的边界。这个变量现在没有用到，只有调试用途
         var runBounds = new TextRect();
 
-        skFont.GetGlyphWidths(glyphIndices.AsSpan(0, charCount), null, glyphBounds.AsSpan(0, charCount));
+        skFont.GetGlyphWidths(glyphIndices, null, glyphBounds);
 
         var baselineY = -skFont.Metrics.Ascent;
 
@@ -259,7 +263,8 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
         float charHeight = renderingRunPropertyInfo.GetLayoutCharHeight();
 
-        var charSizeInfoList = new CharSizeInfo[count];
+        using TextPoolArrayContext<CharSizeInfo> charSizeInfoListContext = updateLayoutContext.Rent<CharSizeInfo>(count);
+        var charSizeInfoList = charSizeInfoListContext.Span;
 
         // 实际使用里面，可以忽略 GetGlyphWidths 的影响，因为实际上没有用到
         for (var i = 0; i < count; i++)
@@ -309,7 +314,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             //height = /*skFont.Metrics.Leading + 有些字体的 Leading 是不参与排版的，越过的，属于上加。不能将其加入计算 */ baselineY + skFont.Metrics.Descent + enhance;
             //// 同理 skFont.Metrics.Bottom 也是不应该使用的，可能下加是超过格子的
 
-            TextRect glyphRunBounds = new TextRect((currentX + renderBounds.Left), baselineOrigin.Y + renderBounds.Top, frameSize.Width,
+            var glyphRunBounds = new TextRect((currentX + renderBounds.Left), baselineOrigin.Y + renderBounds.Top, frameSize.Width,
                 frameSize.Height);
 
             runBounds.Union(glyphRunBounds);
