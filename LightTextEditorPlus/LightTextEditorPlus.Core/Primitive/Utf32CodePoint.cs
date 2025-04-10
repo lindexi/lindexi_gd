@@ -71,6 +71,19 @@ public readonly record struct Utf32CodePoint(int Value) : IEquatable<char>
     }
 
     /// <summary>
+    /// 获取码点的字符长度，即需要转换为多少个 char 结构体
+    /// </summary>
+    public int CharLength
+    {
+        get
+        {
+            Span<char> buffer = stackalloc char[2];
+            int length = Rune.EncodeToUtf16(buffer);
+            return length;
+        }
+    }
+
+    /// <summary>
     /// 将码点追加到字符列表中
     /// </summary>
     public void AppendToCharList(List<char> charList) => AppendToCharCollection(charList);
