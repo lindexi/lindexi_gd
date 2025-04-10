@@ -60,17 +60,16 @@ class LayoutManager
         {
             if (_arrangingLayoutProvider?.ArrangingType != TextEditor.ArrangingType)
             {
-                if (TextEditor.ArrangingType == ArrangingType.Horizontal)
+                if (TextEditor.ArrangingType.IsHorizontal)
                 {
                     _arrangingLayoutProvider = new HorizontalArrangingLayoutProvider(this);
                 }
-                else if (TextEditor.ArrangingType == ArrangingType.Vertical)
+                else if (TextEditor.ArrangingType.IsVertical)
                 {
                     _arrangingLayoutProvider = new VerticalArrangingLayoutProvider(this);
                 }
                 else
                 {
-                    // todo 支持竖排文本
                     throw new NotSupportedException();
                 }
             }
