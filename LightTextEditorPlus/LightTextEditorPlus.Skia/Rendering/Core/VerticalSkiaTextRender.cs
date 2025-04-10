@@ -7,6 +7,7 @@ using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Rendering;
 using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Document;
+
 using SkiaSharp;
 
 namespace LightTextEditorPlus.Rendering.Core;
@@ -57,7 +58,7 @@ class VerticalSkiaTextRender : BaseSkiaTextRender
                         positionList[i] = new SKPoint((float) x, (float) y);
                     }
 
-                    using SKTextBlob skTextBlob = SKTextBlob.CreatePositioned(charSpan,skFont, positionList.AsSpan());
+                    using SKTextBlob skTextBlob = SKTextBlob.CreatePositioned(charSpan, skFont, positionList.AsSpan());
                     canvas.DrawText(skTextBlob, 0, 0, textRenderSKPaint);
                 }
             }
