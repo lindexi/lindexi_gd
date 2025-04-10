@@ -151,14 +151,9 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
         // 确保设置了字符的尺寸
         // 为什么从 0 开始，而不是 argument.CurrentIndex 开始？原因是在 runList 里面已经使用 Slice 裁剪了
-        StringBuilder stringBuilder = new StringBuilder(runList.Count);
-        for (var i = 0; i < runList.Count; i++)
-        {
-            // 这里解决的是可能有一个 CharObject 包含多个 Char 的情况
-            CharData charData = runList[i];
-            charData.CharObject.CodePoint.AppendToStringBuilder(stringBuilder);
-        }
-        var charCount = stringBuilder.Length;
+        using CharDataListToCharSpanResult charDataListToCharSpanResult = runList.ToCharSpan();
+        
+        var charCount = charDataListToCharSpanResult.CharSpan.Length;
 
         // Copy from https://github.com/AvaloniaUI/Avalonia
         // src\Skia\Avalonia.Skia\TextShaperImpl.cs
@@ -172,7 +167,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         var glyphInfoList = new List<TextGlyphInfo>();
         using (var buffer = new Buffer())
         {
-            var text = stringBuilder.ToString();
+            var text = charDataListToCharSpanResult.CharSpan;
             buffer.AddUtf16(text);
             buffer.GuessSegmentProperties();
 
