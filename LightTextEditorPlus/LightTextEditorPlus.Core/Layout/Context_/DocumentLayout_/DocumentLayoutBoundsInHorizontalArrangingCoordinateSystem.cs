@@ -35,7 +35,7 @@ public readonly struct DocumentLayoutBoundsInHorizontalArrangingCoordinateSystem
         TextSize documentContentSize = DocumentContentSize;
         TextSize documentOutlineSize = DocumentOutlineSize;
 
-        if (TextEditor.ArrangingType != ArrangingType.Horizontal)
+        if (TextEditor.ArrangingType.IsVertical)
         {
             documentContentSize = documentContentSize.SwapWidthAndHeight();
             documentOutlineSize = documentOutlineSize.SwapWidthAndHeight();

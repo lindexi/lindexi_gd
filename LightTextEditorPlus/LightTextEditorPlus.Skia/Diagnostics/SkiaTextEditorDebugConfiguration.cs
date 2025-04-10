@@ -47,6 +47,8 @@ namespace LightTextEditorPlus.Diagnostics
             DebugDrawCharBoundsColor = SKColors.CadetBlue.WithAlpha(0xA0);
             DebugDrawCharSpanBoundsColor = SKColors.Red.WithAlpha(0xA0);
             DebugDrawLineBoundsColor = SKColors.Blue.WithAlpha(0x50);
+
+            TextEditor.DebugReRender();
         }
 
         /// <summary>

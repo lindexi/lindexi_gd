@@ -1,5 +1,5 @@
 using System;
-
+using System.Diagnostics;
 using LightTextEditorPlus.Core.Layout;
 
 namespace LightTextEditorPlus.Core.Primitive;
@@ -14,29 +14,30 @@ public readonly struct TextPointInHorizontalArrangingCoordinateSystem
     /// </summary>
     /// <param name="x"></param>
     /// <param name="y"></param>
-    /// <param name="textEditor"></param>
-    public TextPointInHorizontalArrangingCoordinateSystem(double x, double y, TextEditorCore textEditor)
+    /// <param name="layoutManager"></param>
+    internal TextPointInHorizontalArrangingCoordinateSystem(double x, double y, LayoutManager layoutManager)
     {
         _x = x;
         _y = y;
-        _textEditor = textEditor;
+        _layoutManager = layoutManager;
     }
 
     /// <summary>
     /// 零点
     /// </summary>
-    /// <param name="textEditor"></param>
+    /// <param name="layoutManager"></param>
     /// <returns></returns>
-    public static TextPointInHorizontalArrangingCoordinateSystem Zero(TextEditorCore textEditor)
+    internal static TextPointInHorizontalArrangingCoordinateSystem Zero(LayoutManager layoutManager)
         // 零点不一定是最终的零点，如从右到左布局下，零点是在右上角
         =>
-        new TextPointInHorizontalArrangingCoordinateSystem(0, 0, textEditor);
+        new TextPointInHorizontalArrangingCoordinateSystem(0, 0, layoutManager);
 
     private readonly double _x;
 
     private readonly double _y;
 
-    private readonly TextEditorCore _textEditor;
+    private TextEditorCore TextEditor => _layoutManager.TextEditor;
+    private readonly LayoutManager _layoutManager;
 
     /// <summary>
     /// 偏移
@@ -46,7 +47,7 @@ public readonly struct TextPointInHorizontalArrangingCoordinateSystem
     /// <returns></returns>
     public TextPointInHorizontalArrangingCoordinateSystem Offset(double x, double y)
     {
-        return new TextPointInHorizontalArrangingCoordinateSystem(_x + x, _y + y, _textEditor);
+        return new TextPointInHorizontalArrangingCoordinateSystem(_x + x, _y + y, _layoutManager);
     }
 
     /// <summary>
@@ -55,19 +56,32 @@ public readonly struct TextPointInHorizontalArrangingCoordinateSystem
     /// <returns></returns>
     public TextPoint ToCurrentArrangingTypePoint()
     {
-        _textEditor.VerifyNotDirty();
+        TextEditor.VerifyNotDirty();
 
-        if (_textEditor.ArrangingType == ArrangingType.Horizontal)
+        ArrangingType arrangingType = TextEditor.ArrangingType;
+        if (arrangingType.IsHorizontal)
         {
             return new TextPoint(_x, _y);
         }
-        else if (_textEditor.ArrangingType == ArrangingType.Vertical)
+        else if (arrangingType.IsLeftToRightVertical)
         {
+            // 正常的从左到右的竖排，蒙文竖排格式
+            Debug.Assert(arrangingType.IsVertical);
             return new TextPoint(_y, _x);
         }
-        else if (_textEditor.ArrangingType == ArrangingType.Mongolian)
+        else if (!arrangingType.IsLeftToRightVertical)
         {
-            throw new NotImplementedException();
+            // 从右到左的竖排，文言的竖排格式
+            Debug.Assert(arrangingType.IsVertical);
+
+            DocumentLayoutBoundsInHorizontalArrangingCoordinateSystem bounds = _layoutManager.DocumentLayoutBounds;
+            TextSize outlineSize = bounds.DocumentOutlineSize;
+            // 竖排情况下，相对于横排坐标系需要交换宽高。这里的交换只是为了让逻辑更加顺而已，也刚好是个结构体，交换一下不要钱
+            outlineSize = outlineSize.SwapWidthAndHeight();
+           
+            var x = outlineSize.Width - _y;
+            var y = _x;
+            return new TextPoint(x, y);
         }
         else
         {

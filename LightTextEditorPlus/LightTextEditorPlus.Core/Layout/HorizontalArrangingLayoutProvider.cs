@@ -1071,7 +1071,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
         // 如果是顶部对齐，那么直接返回 0,0 即可
         if (verticalTextAlignment == VerticalTextAlignment.Top)
         {
-            return TextPointInHorizontalArrangingCoordinateSystem.Zero(TextEditor);
+            return TextPointInHorizontalArrangingCoordinateSystem.Zero(LayoutManager);
         }
 
         double documentHeight = documentContentSize.Height;
@@ -1088,7 +1088,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             _ => throw new ArgumentOutOfRangeException()
         };
 
-        return new TextPointInHorizontalArrangingCoordinateSystem(left, top, TextEditor);
+        return new TextPointInHorizontalArrangingCoordinateSystem(left, top, LayoutManager);
     }
 
     #endregion 03 回溯最终布局阶段
