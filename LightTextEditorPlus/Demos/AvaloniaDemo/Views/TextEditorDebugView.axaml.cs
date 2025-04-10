@@ -92,7 +92,10 @@ public partial class TextEditorDebugView : UserControl
 
     private void DebugButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        _richTextCaseProvider.Debug();
+        _ = _richTextCaseProvider;
+        TextEditor.TextEditorCore.DebugRequireReUpdateAllDocumentLayout();
+
+        //_richTextCaseProvider.Debug();
     }
 
     private void ShowDocumentBoundsButton_OnClick(object? sender, RoutedEventArgs e)

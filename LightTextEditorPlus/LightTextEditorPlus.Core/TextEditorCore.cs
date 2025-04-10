@@ -162,7 +162,7 @@ public partial class TextEditorCore
     /// 准备重新布局整个文档。如果是空文本、文本初始化时，不会重新布局整个文档
     /// </summary>
     /// <param name="reason"></param>
-    internal void RequireDispatchReLayoutAllDocument(string reason)
+    internal void RequireDispatchReUpdateAllDocumentLayout(string reason)
     {
         // 是否在文本初始化时进入，如果是文本初始化进入，那就不需要重新布局整个文档，可以等待有具体数据传入再执行，提升性能
         // 如果立刻获取光标信息，此时是可以通过调用布局获取到的
