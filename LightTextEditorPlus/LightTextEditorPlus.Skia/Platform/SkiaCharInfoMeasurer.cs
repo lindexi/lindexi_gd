@@ -150,17 +150,15 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         SKPaint skPaint = renderingRunPropertyInfo.Paint;
 
         // 确保设置了字符的尺寸
-        var charCount = 0;
         // 为什么从 0 开始，而不是 argument.CurrentIndex 开始？原因是在 runList 里面已经使用 Slice 裁剪了
         StringBuilder stringBuilder = new StringBuilder(runList.Count);
         for (var i = 0; i < runList.Count; i++)
         {
             // 这里解决的是可能有一个 CharObject 包含多个 Char 的情况
             CharData charData = runList[i];
-            string text = charData.CharObject.ToText();
-            charCount += text.Length;
-            stringBuilder.Append(text);
+            charData.CharObject.CodePoint.AppendToStringBuilder(stringBuilder);
         }
+        var charCount = stringBuilder.Length;
 
         // Copy from https://github.com/AvaloniaUI/Avalonia
         // src\Skia\Avalonia.Skia\TextShaperImpl.cs
@@ -276,7 +274,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             // 水平布局下，不应该返回字符的渲染高度，而是应该返回字符高度。这样可以保证字符的基线对齐。如 a 和 f 和 g 的高度不相同，则如果将其渲染高度返回，会导致基线不对齐，变成底部对齐
             // 宽度应该是 advance 而不是渲染宽度，渲染宽度太窄
 
-            var width =  advance;// renderBounds.Width;
+            var width = advance;// renderBounds.Width;
             float height = charHeight;// = renderBounds.Height; //skPaint.TextSize; //(float) skFont.Metrics.Ascent + (float) skFont.Metrics.Descent;
             TextSize frameSize = new TextSize(width,
                 height);
@@ -347,7 +345,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             }
 
             // 解决 CharData 和字符不一一对应的问题，可能一个 CharData 对应多个字符
-            charSizeInfoListIndex += charData.CharObject.ToText().Length;
+            charSizeInfoListIndex += charData.CharObject.CodePoint.CharLength;
             // 预期不会出现超出的情况
             if (charSizeInfoListIndex >= charSizeInfoList.Length)
             {
