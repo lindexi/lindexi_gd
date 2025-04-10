@@ -12,5 +12,5 @@ public interface ICharDataLayoutInfoSetter
     void SetLayoutStartPoint(CharData charData, TextPointInLineCoordinateSystem point /*, TextPoint baselineStartPoint*/);
 
     /// <inheritdoc cref="CharData.SetCharDataInfo"/>
-    void SetCharDataInfo(CharData charData, TextSize textSize, double baseline);
+    void SetCharDataInfo(CharData charData, TextSize frameSize, TextSize faceSize, double baseline);
 }

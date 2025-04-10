@@ -31,14 +31,17 @@ class CharInfoMeasurer : ICharInfoMeasurer
         GlyphTypeface glyphTypeface = runProperty.GetGlyphTypeface();
         var fontSize = currentCharData.RunProperty.FontSize;
 
-        TextSize textSize;
+        // 字外框。文字外框，字外框尺寸
+        TextSize textFrameSize;
+        // 字面尺寸，字墨尺寸，字墨大小。文字的字身框中，字图实际分布的空间的尺寸
+        TextSize textFaceSize;
 
         if (_textEditor.TextEditorCore.ArrangingType == ArrangingType.Horizontal)
         {
             Utf32CodePoint codePoint = currentCharData.CharObject.CodePoint;
-            textSize = MeasureChar(codePoint);
+            (textFrameSize, textFaceSize) = MeasureChar(codePoint);
 
-            TextSize MeasureChar(Utf32CodePoint c)
+            (TextSize textFrameSize, TextSize faceSize) MeasureChar(Utf32CodePoint c)
             {
                 var currentGlyphTypeface = glyphTypeface;
                 if (!currentGlyphTypeface.CharacterToGlyphMap.TryGetValue(c.Value, out var glyphIndex))
@@ -47,12 +50,13 @@ class CharInfoMeasurer : ICharInfoMeasurer
                     if (!runProperty.TryGetFallbackGlyphTypeface(c, out currentGlyphTypeface, out glyphIndex))
                     {
                         // 如果连回滚的都没有，那就返回默认方块空格
-                        return new TextSize(fontSize, fontSize);
+                        var size = new TextSize(fontSize, fontSize);
+                        // 此时只好是字外框和字墨量尺寸相同
+                        return (size, size);
                     }
                 }
 
                 //var glyphIndex = glyphTypeface.CharacterToGlyphMap[c];
-
                 var width = currentGlyphTypeface.AdvanceWidths[glyphIndex] * fontSize;
                 width = GlyphExtension.RefineValue(width);
                 var height = currentGlyphTypeface.AdvanceHeights[glyphIndex] * fontSize;
@@ -138,12 +142,14 @@ class CharInfoMeasurer : ICharInfoMeasurer
                 _ = height;
                 _ = topSideBearing;
                 _ = bottomSideBearing;
-                var fakeHeight = height + topSideBearing + bottomSideBearing;
-                _ = fakeHeight;
+                //var fakeHeight = height + topSideBearing + bottomSideBearing;
+                //_ = fakeHeight;
                 // 在以上这些数据上，似乎只有 glyphTypefaceHeight 最正确
                 // 但是在 Javanese Text 字体里面，glyphTypefaceHeight=136 显著大于 height=60 导致字符上浮，超过文本框
                 //return (bounds.Width, bounds.Height);
-                return new TextSize(width, glyphTypefaceHeight);
+                var frameSize = new TextSize(width, glyphTypefaceHeight);
+                var faceSize = new TextSize(width, height);
+                return (frameSize, faceSize);
             }
         }
         else
@@ -152,6 +158,6 @@ class CharInfoMeasurer : ICharInfoMeasurer
         }
 
         var baseline = glyphTypeface.Baseline * fontSize;
-        argument.CharDataLayoutInfoSetter.SetCharDataInfo(currentCharData, textSize, baseline);
+        argument.CharDataLayoutInfoSetter.SetCharDataInfo(currentCharData, textFrameSize, textFaceSize, baseline);
     }
 }

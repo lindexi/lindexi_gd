@@ -165,7 +165,7 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         // src\Skia\Avalonia.Skia\TextShaperImpl.cs
         // src\Skia\Avalonia.Skia\GlyphRunImpl.cs
 
-        var glyphIndices = new ushort[charCount];
+        var glyphIndices = new ushort[charCount]; // 开数组池化
         var glyphBounds = new SKRect[charCount];
 
         var glyphInfoList = new List<TextGlyphInfo>();
@@ -247,7 +247,9 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         // 以下代码仅仅只是为了调试而已，等稳定了就可以删除
         _ = renderGlyphPositions;
 
-        var runBounds = new SKRect();
+        // 当前的 run 的边界。这个变量现在没有用到，只有调试用途
+        var runBounds = new TextRect();
+
         skFont.GetGlyphWidths(glyphIndices.AsSpan(0, charCount), null, glyphBounds.AsSpan(0, charCount));
 
         var baselineY = -skFont.Metrics.Ascent;
@@ -257,7 +259,8 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
 
         float charHeight = renderingRunPropertyInfo.GetLayoutCharHeight();
 
-        var glyphRunBounds = new SKRect[count];
+        var charSizeInfoList = new CharSizeInfo[count];
+
         // 实际使用里面，可以忽略 GetGlyphWidths 的影响，因为实际上没有用到
         for (var i = 0; i < count; i++)
         {
@@ -268,16 +271,32 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             // 水平布局下，不应该返回字符的渲染高度，而是应该返回字符高度。这样可以保证字符的基线对齐。如 a 和 f 和 g 的高度不相同，则如果将其渲染高度返回，会导致基线不对齐，变成底部对齐
             // 宽度应该是 advance 而不是渲染宽度，渲染宽度太窄
 
-            var width = (float) advance;// renderBounds.Width;
+            var width =  advance;// renderBounds.Width;
             float height = charHeight;// = renderBounds.Height; //skPaint.TextSize; //(float) skFont.Metrics.Ascent + (float) skFont.Metrics.Descent;
+            TextSize frameSize = new TextSize(width,
+                height);
+            TextSize faceSize = new TextSize(renderBounds.Width, renderBounds.Height);
+            var nextX = currentX + advance;
+
             if (!isHorizontal)
             {
                 // 计算方法请参阅
                 // [WPF 探索 Skia 的竖排文本渲染的字符高度 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/18815810 )
+                // 何为 space 属性等，请参阅文档： 《Skia 垂直直排竖排文本字符尺寸间距.enbx》
                 float top = renderBounds.Top;
                 var space = baselineY + top;
                 var renderCharHeight = renderBounds.Height + space;
-                height = renderCharHeight;
+
+                frameSize = frameSize with
+                {
+                    Height = renderCharHeight
+                };
+
+                // 对于非横排来说，需要倒换宽度高度，确保竖排也按照横排坐标来计算
+                frameSize = frameSize.SwapWidthAndHeight();
+                faceSize = faceSize.SwapWidthAndHeight();
+
+                nextX = currentX + faceSize.Width;
             }
             //height = (float) LineSpacingCalculator.CalculateLineHeightWithPPTLineSpacingAlgorithm(1, skPaint.TextSize);
             //var enhance = 0f;
@@ -290,12 +309,13 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
             //height = /*skFont.Metrics.Leading + 有些字体的 Leading 是不参与排版的，越过的，属于上加。不能将其加入计算 */ baselineY + skFont.Metrics.Descent + enhance;
             //// 同理 skFont.Metrics.Bottom 也是不应该使用的，可能下加是超过格子的
 
-            glyphRunBounds[i] = SKRect.Create((float) (currentX + renderBounds.Left), baselineOrigin.Y + renderBounds.Top, width,
-                height);
+            TextRect glyphRunBounds = new TextRect((currentX + renderBounds.Left), baselineOrigin.Y + renderBounds.Top, frameSize.Width,
+                frameSize.Height);
 
-            runBounds.Union(glyphRunBounds[i]);
+            runBounds.Union(glyphRunBounds);
+            charSizeInfoList[i] = new CharSizeInfo(faceSize, glyphRunBounds);
 
-            currentX += advance;
+            currentX = nextX;
         }
 
         if (runBounds.Left < 0)
@@ -306,38 +326,27 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
         runBounds.Offset(baselineOrigin.X, 0);
 
         // 赋值给每个字符的尺寸
-        var glyphRunBoundsIndex = 0;
+        var charSizeInfoListIndex = 0;
         // 为什么从 0 开始，而不是 argument.CurrentIndex 开始？原因是在 runList 里面已经使用 Slice 裁剪了
         for (var i = 0; i < runList.Count; i++)
         {
             CharData charData = runList[i];
             if (charData.Size == null)
             {
-                SKRect glyphRunBound = glyphRunBounds[glyphRunBoundsIndex];
-
                 // 确保赋值给每个字符的尺寸
-                TextSize textSize = new TextSize(glyphRunBound.Width, glyphRunBound.Height);
+                CharSizeInfo charSizeInfo = charSizeInfoList[charSizeInfoListIndex];
+                TextSize textFrameSize = charSizeInfo.TextFrameSize;
+                TextSize textFaceSize = charSizeInfo.TextFaceSize;
 
-               
-                if (isHorizontal)
-                {
-                    // 横排，水平布局，拿到的字符尺寸就是当前字符的尺寸
-                }
-                else
-                {
-                    // 竖排，垂直布局，需要交换宽高
-                    textSize = textSize.SwapWidthAndHeight();
-                }
-
-                argument.CharDataLayoutInfoSetter.SetCharDataInfo(charData, textSize, baselineY);
+                argument.CharDataLayoutInfoSetter.SetCharDataInfo(charData, textFrameSize, textFaceSize, baselineY);
             }
 
             // 解决 CharData 和字符不一一对应的问题，可能一个 CharData 对应多个字符
-            glyphRunBoundsIndex += charData.CharObject.ToText().Length;
+            charSizeInfoListIndex += charData.CharObject.ToText().Length;
             // 预期不会出现超出的情况
-            if (glyphRunBoundsIndex >= glyphRunBounds.Length)
+            if (charSizeInfoListIndex >= charSizeInfoList.Length)
             {
-                if (i == runList.Count - 1 && glyphRunBoundsIndex == glyphRunBounds.Length)
+                if (i == runList.Count - 1 && charSizeInfoListIndex == charSizeInfoList.Length)
                 {
                     // 非最后一个。最后一个预期是相等的
                     // 进入这个分支是符合预期的。刚刚好最后一个 CharData 对应的字符刚好是最后一个字符
@@ -366,4 +375,17 @@ class SkiaCharInfoMeasurer : ICharInfoMeasurer
     private const string Message = "布局过程中发现 CharData 和 Text 数量不匹配，预计是框架内实现的问题";
 
     readonly record struct TextGlyphInfo(ushort GlyphIndex, int GlyphCluster, double GlyphAdvance, (float OffsetX, float OffsetY) GlyphOffset = default);
+
+    /// <summary>
+    /// 字符尺寸信息
+    /// </summary>
+    /// <param name="GlyphRunBounds">字符的外框，字外框</param>
+    /// <param name="TextFaceSize">字面尺寸，字墨尺寸，字墨大小。文字的字身框中，字图实际分布的空间的尺寸</param>
+    readonly record struct CharSizeInfo(TextSize TextFaceSize, TextRect GlyphRunBounds)
+    {
+        /// <summary>
+        /// 文字外框，字外框尺寸
+        /// </summary>
+        public TextSize TextFrameSize => GlyphRunBounds.TextSize;
+    }
 }

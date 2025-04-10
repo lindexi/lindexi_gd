@@ -27,6 +27,11 @@ public class FixedCharSizeCharInfoMeasurer : ICharInfoMeasurer
         // 设置基线为字号大小的向上一点点
         double baseline = fontSize * _baselineRatio;
 
-        argument.CharDataLayoutInfoSetter.SetCharDataInfo(currentCharData, size, baseline);
+        // 字外框。文字外框，字外框尺寸
+        TextSize textFrameSize = size;
+        // 字面尺寸，字墨尺寸，字墨大小。文字的字身框中，字图实际分布的空间的尺寸
+        TextSize textFaceSize = size;
+
+        argument.CharDataLayoutInfoSetter.SetCharDataInfo(currentCharData, textFrameSize, textFaceSize, baseline);
     }
 }

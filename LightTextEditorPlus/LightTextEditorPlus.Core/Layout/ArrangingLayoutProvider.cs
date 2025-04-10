@@ -602,13 +602,19 @@ abstract class ArrangingLayoutProvider
     private static void MeasureAndFillCharInfo(CharData charData, ICharDataLayoutInfoSetter setter)
     {
         double fontSize = charData.RunProperty.FontSize;
+        // 默认是方块字符
         var size = new TextSize(fontSize, fontSize);
         // 设置基线为字号大小的向上一点点
         const double
             testBaselineRatio = 4d / 5; // 这是一个测试值，确保无 UI 框架下，都采用相同的基线值，方便调试计算。这个值是如何获取的？通过在 PPT 里面进行测量微软雅黑字体的基线的
         double baseline = fontSize * testBaselineRatio;
 
-        setter.SetCharDataInfo(charData, size, baseline);
+        // 字外框。文字外框，字外框尺寸
+        TextSize textFrameSize = size;
+        // 字面尺寸，字墨尺寸，字墨大小。文字的字身框中，字图实际分布的空间的尺寸
+        TextSize textFaceSize = size;
+
+        setter.SetCharDataInfo(charData, textFrameSize, textFaceSize, baseline);
     }
 
     ///// <summary>

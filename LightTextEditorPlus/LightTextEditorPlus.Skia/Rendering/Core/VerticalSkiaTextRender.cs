@@ -53,8 +53,16 @@ class VerticalSkiaTextRender : BaseSkiaTextRender
                     SKPoint[] positionList = new SKPoint[charList.Count];
                     for (int i = 0; i < charList.Count; i++)
                     {
-                        (double x, double y) = charList[i].GetStartPoint();
-                        y += charList[i].Baseline;
+                        CharData charData = charList[i];
+                        TextSize frameSize = charData.Size!.Value
+                                // 由于采用的是横排的坐标，在竖排计算下，需要倒换一下
+                            .SwapWidthAndHeight();
+                        TextSize faceSize = charData.FaceSize.SwapWidthAndHeight();
+                        // 这里的 space 计算和 y 值的计算，请参阅 《Skia 垂直直排竖排文本字符尺寸间距.enbx》
+                        var space = frameSize.Height - faceSize.Height;
+
+                        (double x, double y) = charData.GetStartPoint();
+                        y += charData.Baseline - space / 2;
                         positionList[i] = new SKPoint((float) x, (float) y);
                     }
 
