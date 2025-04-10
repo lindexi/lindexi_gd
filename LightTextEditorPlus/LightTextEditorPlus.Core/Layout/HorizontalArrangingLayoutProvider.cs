@@ -900,7 +900,7 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
             TextEditor = TextEditor,
         };
 
-        updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 完成最终布局阶段。文档内容坐标：{documentLayoutBounds.DocumentContentStartPoint.ToStringValueOnly()} 文档内容尺寸：{documentContentSize} 文档外接尺寸：{documentOutlineSize}", LayoutDebugCategory.FinalDocument);
+        updateLayoutContext.RecordDebugLayoutInfo($"FinalLayoutDocument 完成最终布局阶段。文档内容坐标：{documentLayoutBounds.DocumentContentStartPoint.ToStringValueOnly()} 文档内容尺寸：{documentContentSize.ToCommaSplitWidthAndHeight()} 文档外接尺寸：{documentOutlineSize.ToCommaSplitWidthAndHeight()}", LayoutDebugCategory.FinalDocument);
 
         return new FinalUpdateDocumentLayoutResult(documentLayoutBounds);
     }
@@ -1095,7 +1095,12 @@ class HorizontalArrangingLayoutProvider : ArrangingLayoutProvider
 
     #region 通用辅助方法
 
-    private TextSize CalculateDocumentOutlineSize(in TextSize documentContentSize)
+    /// <summary>
+    /// 计算文档的外接范围
+    /// </summary>
+    /// <param name="documentContentSize"></param>
+    /// <returns></returns>
+    protected virtual TextSize CalculateDocumentOutlineSize(in TextSize documentContentSize)
     {
         // 获取当前文档的大小，对水平布局来说，只取横排的最大值即可
         double lineMaxWidth = GetLineMaxWidth();
