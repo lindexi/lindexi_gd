@@ -46,7 +46,7 @@ public sealed class CharData
         RunProperty = runProperty;
     }
 
-    internal CharLayoutData? CharLayoutData { set; get; }
+    internal CharLayoutData? CharLayoutData { set; get; } // todo 考虑将 CharLayoutData 作为结构体，直接存放在类里面，避免多余地创建
 
     /// <summary>
     /// 获取当前字符的左上角坐标，坐标相对于文本框。此属性必须是在布局完成之后才能获取
@@ -97,12 +97,20 @@ public sealed class CharData
     /// <summary>
     /// 设置尺寸
     /// </summary>
-    /// <param name="textSize"></param>
+    /// <param name="frameSize">文字外框，字外框尺寸</param>
+    /// <param name="faceSize">字面尺寸，字墨尺寸，字墨大小。文字的字身框中，字图实际分布的空间的尺寸</param>
     /// <param name="baseline">基线，相对于字符的左上角，字符坐标系。即无论这个字符放在哪一行哪一段，这个字符的基线都是一样的</param>
-    internal void SetCharDataInfo(TextSize textSize, double baseline)
+    internal void SetCharDataInfo(TextSize frameSize, TextSize faceSize, double baseline)
     {
-        Size = textSize;
+        Size = frameSize;
         Baseline = baseline;
+
+        if (!FaceSize.IsInvalid)
+        {
+            throw new InvalidOperationException($"禁止重复给 {nameof(FaceSize)} 字墨尺寸赋值");
+        }
+
+        FaceSize = faceSize;
     }
 
     /// <summary>
@@ -111,25 +119,33 @@ public sealed class CharData
     public double Baseline { private set; get; }
 
     /// <summary>
-    /// 尺寸
+    /// FrameSize 尺寸，即字外框尺寸。文字外框尺寸
     /// </summary>
     /// 尺寸是可以复用的
     public TextSize? Size
     {
         private set
         {
-            if (_size != null)
+            if (_frameSize != null)
             {
-                throw new InvalidOperationException($"禁止重复给尺寸赋值");
+                throw new InvalidOperationException($"禁止重复给文字外框尺寸赋值");
             }
 
-            _size = value;
+            _frameSize = value;
         }
-        get => _size;
+        get => _frameSize;
     }
 
-    private TextSize? _size;
+    /// <summary>
+    /// 文字外框尺寸，字外框尺寸
+    /// </summary>
+    private TextSize? _frameSize;
 
+    /// <summary>
+    /// Character Face Size 字面尺寸，字墨尺寸，字墨大小，字墨量。文字的字身框中，字图实际分布的空间的尺寸
+    /// </summary>
+    public TextSize FaceSize { get; private set; } = TextSize.Invalid;
+   
     /// <summary>
     /// 获取字符的布局范围
     /// </summary>

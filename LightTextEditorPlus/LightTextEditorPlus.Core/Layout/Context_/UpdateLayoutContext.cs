@@ -11,6 +11,7 @@ using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Primitive;
 using LightTextEditorPlus.Core.Primitive.Collections;
 using LightTextEditorPlus.Core.Utils;
+using LightTextEditorPlus.Core.Utils.TextArrayPools;
 
 namespace LightTextEditorPlus.Core.Layout;
 
@@ -154,14 +155,14 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
     }
 
     /// <inheritdoc />
-    public void SetCharDataInfo(CharData charData, TextSize textSize, double baseline)
+    public void SetCharDataInfo(CharData charData, TextSize frameSize, TextSize faceSize, double baseline)
     {
         if (IsCurrentLayoutCompleted)
         {
             throw new InvalidOperationException($"只有在布局过程才能设置 {nameof(charData)} 的布局属性");
         }
 
-        charData.SetCharDataInfo(textSize, baseline);
+        charData.SetCharDataInfo(frameSize, faceSize, baseline);
     }
 
     #endregion
@@ -253,6 +254,7 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
     }
 
     #region 缓存
+
     // 这里存放一些布局过程中的缓存，用于提升性能，在布局完成后自动 GC 释放。减少太多的静态对象
 
     /// <summary>
@@ -304,4 +306,12 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
     #endregion
 
     #endregion
+
+    /// <summary>
+    /// 租用一个数组空间。记得使用 using 释放哦。将从数组池进行租借数组空间
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="minimumLength"></param>
+    /// <returns></returns>
+    public TextPoolArrayContext<T> Rent<T>(int minimumLength) => TextArrayPool.Rent<T>(minimumLength);
 }

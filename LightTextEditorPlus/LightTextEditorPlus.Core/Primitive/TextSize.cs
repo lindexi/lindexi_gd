@@ -63,6 +63,11 @@ public readonly struct TextSize : IEquatable<TextSize>
     /// </summary>
     public static TextSize Invalid => new TextSize(-1, -1);
 
+    /// <summary>
+    /// 是否无效的尺寸
+    /// </summary>
+    public bool IsInvalid => Width < 0 || Height < 0;
+
     /// <inheritdoc />
     public bool Equals(TextSize other)
     {
@@ -106,23 +111,23 @@ public readonly struct TextSize : IEquatable<TextSize>
     /// <summary>
     /// 相乘
     /// </summary>
-    /// <param name="size1"></param>
+    /// <param name="size"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    public static TextSize operator *(TextSize size1, double value)
+    public static TextSize operator *(TextSize size, double value)
     {
-        return new TextSize(size1.Width * value, size1.Height * value);
+        return new TextSize(size.Width * value, size.Height * value);
     }
 
     /// <summary>
     /// 相除
     /// </summary>
-    /// <param name="size1"></param>
+    /// <param name="size"></param>
     /// <param name="value"></param>
     /// <returns></returns>
-    public static TextSize operator /(TextSize size1, double value)
+    public static TextSize operator /(TextSize size, double value)
     {
-        return new TextSize(size1.Width / value, size1.Height / value);
+        return new TextSize(size.Width / value, size.Height / value);
     }
 
     /// <summary>
