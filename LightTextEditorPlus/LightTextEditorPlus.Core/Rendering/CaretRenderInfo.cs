@@ -211,6 +211,10 @@ public readonly struct CaretRenderInfo
         }
         else if (TextEditor.ArrangingType == ArrangingType.Mongolian)
         {
+            {
+                // todo 实现蒙文竖排命中测试
+                return TextRect.Empty;
+            }
         }
         else
         {

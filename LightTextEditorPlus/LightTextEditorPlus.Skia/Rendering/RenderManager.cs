@@ -176,7 +176,7 @@ class RenderManager
 
     private BaseSkiaTextRender GetSkiaTextRender()
     {
-        if (_textEditor.TextEditorCore.ArrangingType == ArrangingType.Horizontal)
+        if (_textEditor.TextEditorCore.ArrangingType.IsHorizontal)
         {
             if (_textRender is not HorizontalSkiaTextRender)
             {
@@ -186,7 +186,7 @@ class RenderManager
 
             return _textRender;
         }
-        else if (_textEditor.TextEditorCore.ArrangingType == ArrangingType.Vertical)
+        else if (_textEditor.TextEditorCore.ArrangingType.IsVertical)
         {
             if (_textRender is not VerticalSkiaTextRender)
             {
@@ -195,9 +195,6 @@ class RenderManager
             }
 
             return _textRender;
-        }
-        else if (_textEditor.TextEditorCore.ArrangingType == ArrangingType.Mongolian)
-        {
         }
         else
         {
