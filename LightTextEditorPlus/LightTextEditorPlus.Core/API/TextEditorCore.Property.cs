@@ -53,7 +53,7 @@ partial class TextEditorCore
             _verticalTextAlignment = value;
 
             // 实际上可以不布局的，只是修改文档左上角坐标即可
-            RequireDispatchReLayoutAllDocument("VerticalTextAlignment Changed");
+            RequireDispatchReUpdateAllDocumentLayout("VerticalTextAlignment Changed");
         }
     }
 
@@ -91,7 +91,7 @@ partial class TextEditorCore
 
             if (_sizeToContent == value) return;
             _sizeToContent = value;
-            RequireDispatchReLayoutAllDocument("SizeToContent Changed");
+            RequireDispatchReUpdateAllDocumentLayout("SizeToContent Changed");
         }
         get => _sizeToContent;
     }
@@ -112,7 +112,7 @@ partial class TextEditorCore
             }
 
             _lineSpacingConfiguration = value;
-            RequireDispatchReLayoutAllDocument("LineSpacingConfiguration Changed");
+            RequireDispatchReUpdateAllDocumentLayout("LineSpacingConfiguration Changed");
         }
     }
 
@@ -173,7 +173,7 @@ partial class TextEditorCore
             ArrangingTypeChanged?.Invoke(this,
                 new TextEditorValueChangeEventArgs<ArrangingType>(oldArrangingType, value));
 
-            RequireDispatchReLayoutAllDocument("ArrangingType Changed");
+            RequireDispatchReUpdateAllDocumentLayout("ArrangingType Changed");
         }
         get => _arrangingType;
     }
@@ -195,7 +195,7 @@ partial class TextEditorCore
 
             _cultureInfo = value;
             // 变更语言文化，需要重新布局
-            RequireDispatchReLayoutAllDocument("CurrentCultureChanged");
+            RequireDispatchReUpdateAllDocumentLayout("CurrentCultureChanged");
         }
     }
 
