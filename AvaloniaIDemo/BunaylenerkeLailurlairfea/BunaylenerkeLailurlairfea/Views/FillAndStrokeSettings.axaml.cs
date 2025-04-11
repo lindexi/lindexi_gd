@@ -19,6 +19,22 @@ public partial class FillAndStrokeSettings : UserControl
         InitializeComponent();
     }
 
+    public bool IsSettingEnable
+    {
+        get => _isSettingEnable;
+        set => SetAndRaise(IsSettingEnableProperty, ref _isSettingEnable, value);
+    }
+
+    public static readonly DirectProperty<FillAndStrokeSettings, bool>
+        IsSettingEnableProperty = AvaloniaProperty.RegisterDirect<FillAndStrokeSettings, bool>
+        (
+            nameof(IsSettingEnable),
+            getter: settings => settings._isSettingEnable,
+            setter: (settings, enable) => settings._isSettingEnable = enable,
+            defaultBindingMode: BindingMode.TwoWay,
+            unsetValue: true
+        );
+
     public string HeaderText
     {
         get => _headerText;
@@ -92,6 +108,7 @@ public partial class FillAndStrokeSettings : UserControl
     private double _strokeThickness;
     private string _fillColor = "";
     private string _strokeColor = "";
+    private bool _isSettingEnable = true;
 }
 
 public class StringToColorBrushValueConverter : IValueConverter
