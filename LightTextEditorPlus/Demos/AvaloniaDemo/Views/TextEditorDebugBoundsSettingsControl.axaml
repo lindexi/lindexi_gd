@@ -20,6 +20,8 @@
                                         HeaderText="段落内容范围" />
         <controls:FillAndStrokeSettings x:Name="ParagraphOutlineBoundsSettings" Margin="10,10,10,10"
                                         HeaderText="段落外接范围" />
+        <controls:FillAndStrokeSettings x:Name="DocumentRenderBoundsSettings" Margin="10,10,10,10"
+                                        HeaderText="文档渲染范围" />
         <controls:FillAndStrokeSettings x:Name="DocumentContentBoundsSettings" Margin="10,10,10,10"
                                         HeaderText="文档内容范围" />
         <controls:FillAndStrokeSettings x:Name="DocumentOutlineBoundsSettings" Margin="10,10,10,10"

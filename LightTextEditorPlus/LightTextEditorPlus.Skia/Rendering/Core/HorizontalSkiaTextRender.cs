@@ -128,23 +128,7 @@ class HorizontalSkiaTextRender : BaseSkiaTextRender
 
         void DrawDebugBounds(SKRect bounds, TextEditorDebugBoundsDrawInfo? drawInfo)
         {
-            if (drawInfo is null)
-            {
-                return;
-            }
-            if (drawInfo.StrokeColor is {} strokeColor && drawInfo.StrokeThickness>0)
-            {
-                SKPaint debugPaint = GetDebugPaint(strokeColor);
-                debugPaint.StrokeWidth = drawInfo.StrokeThickness;
-                canvas.DrawRect(bounds, debugPaint);
-            }
-
-            if (drawInfo.FillColor is { } fillColor)
-            {
-                SKPaint debugPaint = GetDebugPaint(fillColor);
-                debugPaint.Style = SKPaintStyle.Fill;
-                canvas.DrawRect(bounds, debugPaint);
-            }
+            DrawDebugBoundsInfo(canvas, bounds, drawInfo);
         }
     }
 }

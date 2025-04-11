@@ -8,6 +8,7 @@ using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Exceptions;
+using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Rendering;
 using SkiaSharp;
@@ -25,11 +26,10 @@ class RenderManager
 {
     public RenderManager(SkiaTextEditor textEditor)
     {
-        _textEditor = textEditor;
+        TextEditor = textEditor;
     }
 
-    public SkiaTextEditor TextEditor => _textEditor;
-    private readonly SkiaTextEditor _textEditor;
+    public SkiaTextEditor TextEditor { get; }
 
     #region 光标渲染
     /// <summary>
@@ -44,11 +44,11 @@ class RenderManager
         {
             // 无选择，只有光标
             CaretRenderInfo currentCaretRenderInfo = renderInfoProvider.GetCurrentCaretRenderInfo();
-            TextRect caretBounds = currentCaretRenderInfo.GetCaretBounds(_textEditor.CaretConfiguration.CaretThickness, IsOvertypeModeCaret);
+            TextRect caretBounds = currentCaretRenderInfo.GetCaretBounds(TextEditor.CaretConfiguration.CaretThickness, IsOvertypeModeCaret);
 
             SkiaTextRunProperty? skiaTextRunProperty = currentCaretRenderInfo.CharData?.RunProperty.AsSkiaRunProperty();
 
-            SKColor caretColor = _textEditor.CaretConfiguration.CaretBrush
+            SKColor caretColor = TextEditor.CaretConfiguration.CaretBrush
                                  // 获取当前前景色作为光标颜色
                                  ?? skiaTextRunProperty?.Foreground
                                  ?? SKColors.Black;
@@ -56,7 +56,7 @@ class RenderManager
         }
         else
         {
-            SKColor selectionColor = _textEditor.CaretConfiguration.SelectionBrush;
+            SKColor selectionColor = TextEditor.CaretConfiguration.SelectionBrush;
 
             IReadOnlyList<TextRect> selectionBoundsList = renderInfoProvider.GetSelectionBoundsList(selection);
 
@@ -76,9 +76,9 @@ class RenderManager
         if (IsOvertypeModeCaret != renderContext.IsOvertypeModeCaret)
         {
             IsOvertypeModeCaret = renderContext.IsOvertypeModeCaret;
-            if (_textEditor.TextEditorCore.TryGetRenderInfo(out var renderInfo))
+            if (TextEditor.TextEditorCore.TryGetRenderInfo(out var renderInfo))
             {
-                UpdateCaretAndSelectionRender(renderInfo, _textEditor.TextEditorCore.CurrentSelection);
+                UpdateCaretAndSelectionRender(renderInfo, TextEditor.TextEditorCore.CurrentSelection);
             }
         }
 
@@ -97,8 +97,8 @@ class RenderManager
         if (_currentRender is null)
         {
             // 首次渲染，需要尝试获取一下
-            Debug.Assert(!_textEditor.TextEditorCore.IsDirty);
-            RenderInfoProvider renderInfoProvider = _textEditor.TextEditorCore.GetRenderInfo();
+            Debug.Assert(!TextEditor.TextEditorCore.IsDirty);
+            RenderInfoProvider renderInfoProvider = TextEditor.TextEditorCore.GetRenderInfo();
             Render(renderInfoProvider);
         }
 
@@ -116,7 +116,7 @@ class RenderManager
         BaseSkiaTextRender textRender = GetSkiaTextRender();
         textRender.UpdateDebugColor();
 
-        UpdateCaretAndSelectionRender(renderInfoProvider, _textEditor.TextEditorCore.CurrentSelection);
+        UpdateCaretAndSelectionRender(renderInfoProvider, TextEditor.TextEditorCore.CurrentSelection);
 
         if (_currentRender is not null)
         {
@@ -135,7 +135,8 @@ class RenderManager
             _currentRender = null;
         }
 
-        TextRect documentLayoutBounds = renderInfoProvider.GetDocumentLayoutBounds().DocumentOutlineBounds;
+        DocumentLayoutBounds layoutBounds = renderInfoProvider.GetDocumentLayoutBounds();
+        TextRect documentLayoutBounds = layoutBounds.DocumentOutlineBounds;
 
         var textWidth = (float) documentLayoutBounds.Width;
         var textHeight = (float) documentLayoutBounds.Height;
@@ -147,11 +148,11 @@ class RenderManager
         float renderWidth = textWidth;
         float renderHeight = textHeight;
 
-        if (_textEditor.DebugConfiguration.IsInDebugMode)
+        if (TextEditor.DebugConfiguration.IsInDebugMode)
         {
             if (renderWidth < 1)
             {
-                double documentWidth = _textEditor.TextEditorCore.DocumentManager.DocumentWidth;
+                double documentWidth = TextEditor.TextEditorCore.DocumentManager.DocumentWidth;
                 if (documentWidth > 0)
                 {
                     renderWidth = (float) documentWidth;
@@ -168,15 +169,23 @@ class RenderManager
                 RenderBounds = renderBounds
             });
             renderBounds = skiaTextRenderResult.RenderBounds;
+
+            SkiaTextEditorDebugConfiguration skiaTextEditorDebugConfiguration = TextEditor.DebugConfiguration;
+            if (skiaTextEditorDebugConfiguration.IsInDebugMode)
+            {
+                textRender.DrawDebugBoundsInfo(canvas, renderBounds.ToSKRect(), skiaTextEditorDebugConfiguration.DebugDrawDocumentRenderBoundsInfo);
+                textRender.DrawDebugBoundsInfo(canvas, layoutBounds.DocumentContentBounds.ToSKRect(), skiaTextEditorDebugConfiguration.DebugDrawDocumentContentBoundsInfo);
+                textRender.DrawDebugBoundsInfo(canvas, layoutBounds.DocumentOutlineBounds.ToSKRect(), skiaTextEditorDebugConfiguration.DebugDrawDocumentOutlineBoundsInfo);
+            }
         }
 
         SKPicture skPicture = skPictureRecorder.EndRecording();
-        _currentRender = new TextEditorSkiaRender(_textEditor, skPicture, renderBounds);
+        _currentRender = new TextEditorSkiaRender(TextEditor, skPicture, renderBounds);
     }
 
     private BaseSkiaTextRender GetSkiaTextRender()
     {
-        if (_textEditor.TextEditorCore.ArrangingType.IsHorizontal)
+        if (TextEditor.TextEditorCore.ArrangingType.IsHorizontal)
         {
             if (_textRender is not HorizontalSkiaTextRender)
             {
@@ -186,7 +195,7 @@ class RenderManager
 
             return _textRender;
         }
-        else if (_textEditor.TextEditorCore.ArrangingType.IsVertical)
+        else if (TextEditor.TextEditorCore.ArrangingType.IsVertical)
         {
             if (_textRender is not VerticalSkiaTextRender)
             {

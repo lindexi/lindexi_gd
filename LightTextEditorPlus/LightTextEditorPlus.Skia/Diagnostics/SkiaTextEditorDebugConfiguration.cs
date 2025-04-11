@@ -38,6 +38,7 @@ namespace LightTextEditorPlus.Diagnostics
 
         public TextEditorDebugBoundsDrawInfo? DebugDrawParagraphContentBoundsInfo { get; set; }
         public TextEditorDebugBoundsDrawInfo? DebugDrawParagraphOutlineBoundsInfo { get; set; }
+        public TextEditorDebugBoundsDrawInfo? DebugDrawDocumentRenderBoundsInfo { get; set; }
         public TextEditorDebugBoundsDrawInfo? DebugDrawDocumentContentBoundsInfo { get; set; }
         public TextEditorDebugBoundsDrawInfo? DebugDrawDocumentOutlineBoundsInfo { get; set; }
 
@@ -76,6 +77,7 @@ namespace LightTextEditorPlus.Diagnostics
             DebugDrawLineOutlineBoundsInfo = null;
             DebugDrawParagraphContentBoundsInfo = null;
             DebugDrawParagraphOutlineBoundsInfo = null;
+            DebugDrawDocumentRenderBoundsInfo = null;
             DebugDrawDocumentContentBoundsInfo = null;
             DebugDrawDocumentOutlineBoundsInfo = null;
 

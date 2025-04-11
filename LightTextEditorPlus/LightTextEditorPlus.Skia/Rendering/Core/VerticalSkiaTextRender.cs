@@ -9,6 +9,7 @@ using LightTextEditorPlus.Core.Utils;
 using LightTextEditorPlus.Diagnostics;
 using LightTextEditorPlus.Document;
 using LightTextEditorPlus.Utils;
+
 using SkiaSharp;
 
 namespace LightTextEditorPlus.Rendering.Core;
@@ -70,7 +71,7 @@ class VerticalSkiaTextRender : BaseSkiaTextRender
 
                         var charBounds = new TextRect(x, y, frameSize.Width, frameSize.Height);
                         DrawDebugBounds(charBounds, DebugDrawCharBoundsColor);
-                        
+
                         renderBounds = renderBounds.Union(charBounds);
 
                         y += charData.Baseline - space / 2;
@@ -90,19 +91,7 @@ class VerticalSkiaTextRender : BaseSkiaTextRender
                 {
                     return;
                 }
-                if (drawInfo.StrokeColor is { } strokeColor && drawInfo.StrokeThickness > 0)
-                {
-                    SKPaint debugPaint = GetDebugPaint(strokeColor);
-                    debugPaint.StrokeWidth = drawInfo.StrokeThickness;
-                    canvas.DrawRect(bounds.ToSKRect(), debugPaint);
-                }
-
-                if (drawInfo.FillColor is { } fillColor)
-                {
-                    SKPaint debugPaint = GetDebugPaint(fillColor);
-                    debugPaint.Style = SKPaintStyle.Fill;
-                    canvas.DrawRect(bounds.ToSKRect(), debugPaint);
-                }
+                DrawDebugBoundsInfo(canvas, bounds.ToSKRect(), drawInfo);
             }
         }
 
