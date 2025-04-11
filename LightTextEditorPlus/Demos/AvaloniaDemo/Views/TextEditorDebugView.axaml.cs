@@ -83,6 +83,7 @@ public partial class TextEditorDebugView : UserControl
         {
             _textEditor = value;
             TextEditorSettingsControl.TextEditor = TextEditor;
+            TextEditorDebugBoundsSettingsControl.TextEditor = TextEditor;
         }
     }
 
@@ -102,7 +103,7 @@ public partial class TextEditorDebugView : UserControl
     {
         if (ShowDocumentBoundsButton.IsChecked is true)
         {
-            TextEditor.SkiaTextEditor.DebugConfiguration.ShowAllDebugBoundsWhenInDebugMode();
+            TextEditorDebugBoundsSettingsControl.Update();
         }
         else
         {

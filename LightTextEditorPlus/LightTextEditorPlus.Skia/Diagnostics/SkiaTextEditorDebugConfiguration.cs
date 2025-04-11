@@ -20,34 +20,41 @@ namespace LightTextEditorPlus.Diagnostics
         /// 调试绘制每个字符边框的颜色
         /// </summary>
         /// <remarks>设置为 null 则代表不显示</remarks>
-        public SKColor? DebugDrawCharBoundsColor { get; set; }
+        public TextEditorDebugBoundsDrawInfo? DebugDrawCharBoundsInfo { get; set; }
 
         /// <summary>
         /// 调试绘制每个连续字符 Span 的边界的颜色
         /// </summary>
         /// <remarks>设置为 null 则代表不显示</remarks>
-        public SKColor? DebugDrawCharSpanBoundsColor { get; set; }
+        public TextEditorDebugBoundsDrawInfo? DebugDrawCharSpanBoundsInfo { get; set; }
 
         /// <summary>
         /// 调试绘制每行的边界的颜色
         /// </summary>
         /// <remarks>设置为 null 则代表不显示</remarks>
-        public SKColor? DebugDrawLineBoundsColor { get; set; }
+        public TextEditorDebugBoundsDrawInfo? DebugDrawLineContentBoundsInfo { get; set; }
 
-        /// <summary>
-        /// 在进入调试模式下，显示所有的调试边框。如 <see cref="IsInDebugMode"/> 不为 true 则不会生效
-        /// </summary>
-        public void ShowAllDebugBoundsWhenInDebugMode()
+        // 现在的赋值属性太多了，不如交给 Demo 来设置，让设置能够和调试界面相同
+        ///// <summary>
+        ///// 在进入调试模式下，显示所有的调试边框。如 <see cref="IsInDebugMode"/> 不为 true 则不会生效
+        ///// </summary>
+        //public void ShowAllDebugBoundsWhenInDebugMode()
+        //{
+        //    if (!IsInDebugMode)
+        //    {
+        //        return;
+        //    }
+
+        //    DebugDrawCharBoundsColor = SKColors.CadetBlue.WithAlpha(0xA0);
+        //    DebugDrawCharSpanBoundsColor = SKColors.Red.WithAlpha(0xA0);
+        //    DebugDrawLineBoundsColor = SKColors.Blue.WithAlpha(0x50);
+
+        //    TextEditor.DebugReRender();
+        //}
+
+        /// <inheritdoc cref="SkiaTextEditor.DebugReRender"/>
+        public void DebugReRender()
         {
-            if (!IsInDebugMode)
-            {
-                return;
-            }
-
-            DebugDrawCharBoundsColor = SKColors.CadetBlue.WithAlpha(0xA0);
-            DebugDrawCharSpanBoundsColor = SKColors.Red.WithAlpha(0xA0);
-            DebugDrawLineBoundsColor = SKColors.Blue.WithAlpha(0x50);
-
             TextEditor.DebugReRender();
         }
 
@@ -56,13 +63,13 @@ namespace LightTextEditorPlus.Diagnostics
         /// </summary>
         public void ClearAllDebugBounds()
         {
-            DebugDrawCharBoundsColor = null;
-            DebugDrawCharSpanBoundsColor = null;
-            DebugDrawLineBoundsColor = null;
+            DebugDrawCharBoundsInfo = null;
+            DebugDrawCharSpanBoundsInfo = null;
+            DebugDrawLineContentBoundsInfo = null;
 
             if (IsInDebugMode)
             {
-                TextEditor.DebugReRender();
+                DebugReRender();
             }
         }
 
