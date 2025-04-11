@@ -19,8 +19,8 @@
       <Border Margin="10,10,10,10" HorizontalAlignment="Left"
               VerticalAlignment="Top">
         <Grid x:Name="TextEditorGrid">
-            <Border x:Name="TextEditorBorder" BorderBrush="Blue" BorderThickness="1" HorizontalAlignment="Left" VerticalAlignment="Top"></Border>
-            <Canvas x:Name="DebugCanvas" IsHitTestVisible="False">
+          <Border x:Name="TextEditorBorder" BorderBrush="Blue" BorderThickness="1" HorizontalAlignment="Left" VerticalAlignment="Top"></Border>
+          <Canvas x:Name="DebugCanvas" IsHitTestVisible="False">
             <!-- 用来绘制调试内容 -->
           </Canvas>
         </Grid>
@@ -35,8 +35,14 @@
     </Grid>
 
     <Grid Grid.Column="1">
-      <views:TextEditorSettingsControl x:Name="TextEditorSettingsControl"/>
+      <TabControl>
+        <TabItem Header="属性设置">
+          <views:TextEditorSettingsControl x:Name="TextEditorSettingsControl"/>
+        </TabItem>
+          <TabItem Header="调试范围着色设置">
+            <views:TextEditorDebugBoundsSettingsControl x:Name="TextEditorDebugBoundsSettingsControl" />
+          </TabItem>
+      </TabControl>
     </Grid>
-
   </Grid>
 </UserControl>
