@@ -67,13 +67,13 @@ class HorizontalSkiaTextRender : BaseSkiaTextRender
 
                     foreach (CharData charData in charList)
                     {
-                        DrawDebugBounds(charData.GetBounds().ToSKRect(), DebugDrawCharBoundsColor);
+                        DrawDebugBounds(charData.GetBounds().ToSKRect(), Config.DebugDrawCharBoundsInfo);
 
                         width += (float) charData.Size!.Value.Width;
                     }
 
                     SKRect charSpanBounds = SKRect.Create(x, y, width, height);
-                    DrawDebugBounds(charSpanBounds, DebugDrawCharSpanBoundsColor);
+                    DrawDebugBounds(charSpanBounds, Config.DebugDrawCharSpanBoundsInfo);
                     renderBounds = renderBounds.Union(charSpanBounds.ToTextRect());
 
                     if (!skFont.ContainsGlyphs(charSpan))
@@ -117,7 +117,7 @@ class HorizontalSkiaTextRender : BaseSkiaTextRender
                     }
                 }
 
-                DrawDebugBounds(new TextRect(argument.StartPoint, argument.LineSize).ToSKRect(), DebugDrawLineContentBoundsColor);
+                DrawDebugBounds(new TextRect(argument.StartPoint, argument.LineSize).ToSKRect(), Config.DebugDrawLineContentBoundsInfo);
             }
         }
 

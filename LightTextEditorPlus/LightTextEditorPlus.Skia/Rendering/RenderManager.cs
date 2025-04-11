@@ -114,7 +114,6 @@ class RenderManager
         Debug.Assert(!renderInfoProvider.IsDirty);
 
         BaseSkiaTextRender textRender = GetSkiaTextRender();
-        textRender.UpdateDebugColor();
 
         UpdateCaretAndSelectionRender(renderInfoProvider, TextEditor.TextEditorCore.CurrentSelection);
 

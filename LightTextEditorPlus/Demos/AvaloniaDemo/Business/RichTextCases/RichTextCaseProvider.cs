@@ -322,7 +322,7 @@ class RichTextCaseProvider
             editor.UseWpfLineSpacingStyle();
             editor.SetFontSize(30);
             editor.AppendText("一二一个中文雅黑对齐");
-            editor.ArrangingType = ArrangingType.Vertical;
+            //editor.ArrangingType = ArrangingType.Vertical;
         }, "竖排文本");
     }
 
@@ -362,7 +362,7 @@ class RichTextCaseProvider
     public void Debug()
     {
         //RichTextCases[2].Exec(textEditor);
-        //Run("一行包含不同的字号的文本");
+        //Run("两段文本");
         Run(_richTextCases.Last());
     }
 }
