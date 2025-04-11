@@ -21,7 +21,10 @@
     <bunaylenerkeLailurlairfea:StringToColorBrushValueConverter x:Key="ColorToHexConverter"/>
   </UserControl.Resources>
   <StackPanel>
-    <TextBlock FontSize="20" FontWeight="Bold" Text="{Binding #Root.HeaderText}"></TextBlock>
+      <CheckBox IsChecked="{Binding #Root.IsEnabled,Mode=TwoWay}">
+          <TextBlock FontSize="20" FontWeight="Bold" Text="{Binding #Root.HeaderText}"></TextBlock>
+      </CheckBox>
+
     <Grid Margin="0,5,0,0" ColumnDefinitions="Auto,Auto,Auto,Auto,Auto">
       <TextBlock Text="边框颜色："></TextBlock>
       <Border Grid.Column="1" Width="10" Height="10" Background="{Binding #Root.StrokeColor,Converter={StaticResource ColorToHexConverter}}" VerticalAlignment="Center"></Border>
