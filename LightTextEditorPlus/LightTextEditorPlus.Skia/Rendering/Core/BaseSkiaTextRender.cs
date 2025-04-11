@@ -21,13 +21,23 @@ abstract class BaseSkiaTextRender : IDisposable
         {
             DebugDrawCharBoundsColor = debugConfiguration.DebugDrawCharBoundsInfo;
             DebugDrawCharSpanBoundsColor = debugConfiguration.DebugDrawCharSpanBoundsInfo;
-            DebugDrawLineBoundsColor = debugConfiguration.DebugDrawLineContentBoundsInfo;
+            DebugDrawLineContentBoundsColor = debugConfiguration.DebugDrawLineContentBoundsInfo;
+            DebugDrawLineOutlineBoundsInfo = debugConfiguration.DebugDrawLineOutlineBoundsInfo;
+            DebugDrawParagraphContentBoundsInfo = debugConfiguration.DebugDrawParagraphContentBoundsInfo;
+            DebugDrawParagraphOutlineBoundsInfo = debugConfiguration.DebugDrawParagraphOutlineBoundsInfo;
+            DebugDrawDocumentContentBoundsInfo = debugConfiguration.DebugDrawDocumentContentBoundsInfo;
+            DebugDrawDocumentOutlineBoundsInfo = debugConfiguration.DebugDrawDocumentOutlineBoundsInfo;
         }
     }
 
     protected TextEditorDebugBoundsDrawInfo? DebugDrawCharBoundsColor { get; private set; }
     protected TextEditorDebugBoundsDrawInfo? DebugDrawCharSpanBoundsColor { get; private set; }
-    protected TextEditorDebugBoundsDrawInfo? DebugDrawLineBoundsColor { get; private set; }
+    protected TextEditorDebugBoundsDrawInfo? DebugDrawLineContentBoundsColor { get; private set; }
+    protected TextEditorDebugBoundsDrawInfo? DebugDrawLineOutlineBoundsInfo { get; private set; }
+    protected TextEditorDebugBoundsDrawInfo? DebugDrawParagraphContentBoundsInfo { get; private set; }
+    protected TextEditorDebugBoundsDrawInfo? DebugDrawParagraphOutlineBoundsInfo { get; private set; }
+    protected TextEditorDebugBoundsDrawInfo? DebugDrawDocumentContentBoundsInfo { get; private set; }
+    protected TextEditorDebugBoundsDrawInfo? DebugDrawDocumentOutlineBoundsInfo { get; private set; }
 
     protected SkiaTextEditor TextEditor { get; }
 

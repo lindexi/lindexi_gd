@@ -117,7 +117,7 @@ class HorizontalSkiaTextRender : BaseSkiaTextRender
                     }
                 }
 
-                DrawDebugBounds(new TextRect(argument.StartPoint, argument.LineSize).ToSKRect(), DebugDrawLineBoundsColor);
+                DrawDebugBounds(new TextRect(argument.StartPoint, argument.LineSize).ToSKRect(), DebugDrawLineContentBoundsColor);
             }
         }
 

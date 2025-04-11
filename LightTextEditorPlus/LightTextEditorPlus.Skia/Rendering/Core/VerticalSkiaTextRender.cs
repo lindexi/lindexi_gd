@@ -81,7 +81,7 @@ class VerticalSkiaTextRender : BaseSkiaTextRender
                     canvas.DrawText(skTextBlob, 0, 0, textRenderSKPaint);
                 }
 
-                DrawDebugBounds(new TextRect(argument.StartPoint, argument.LineSize.SwapWidthAndHeight()), DebugDrawLineBoundsColor);
+                DrawDebugBounds(new TextRect(argument.StartPoint, argument.LineSize.SwapWidthAndHeight()), DebugDrawLineContentBoundsColor);
             }
 
             void DrawDebugBounds(TextRect bounds, TextEditorDebugBoundsDrawInfo? drawInfo)

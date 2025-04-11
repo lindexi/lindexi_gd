@@ -63,6 +63,11 @@ public partial class TextEditorDebugBoundsSettingsControl : UserControl
         skiaTextEditorDebugConfiguration.DebugDrawCharBoundsInfo = ToDrawInfo(CharBoundsSettings);
         skiaTextEditorDebugConfiguration.DebugDrawCharSpanBoundsInfo = ToDrawInfo(CharSpanBoundsSettings);
         skiaTextEditorDebugConfiguration.DebugDrawLineContentBoundsInfo = ToDrawInfo(LineContentBoundsSettings);
+        skiaTextEditorDebugConfiguration.DebugDrawLineOutlineBoundsInfo = ToDrawInfo(LineOutlineBoundsSettings);
+        skiaTextEditorDebugConfiguration.DebugDrawParagraphContentBoundsInfo = ToDrawInfo(ParagraphContentBoundsSettings);
+        skiaTextEditorDebugConfiguration.DebugDrawParagraphOutlineBoundsInfo = ToDrawInfo(ParagraphOutlineBoundsSettings);
+        skiaTextEditorDebugConfiguration.DebugDrawDocumentContentBoundsInfo = ToDrawInfo(DocumentContentBoundsSettings);
+        skiaTextEditorDebugConfiguration.DebugDrawDocumentOutlineBoundsInfo = ToDrawInfo(DocumentOutlineBoundsSettings);
 
         skiaTextEditorDebugConfiguration.DebugReRender();
     }

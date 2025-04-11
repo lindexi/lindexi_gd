@@ -34,6 +34,13 @@ namespace LightTextEditorPlus.Diagnostics
         /// <remarks>设置为 null 则代表不显示</remarks>
         public TextEditorDebugBoundsDrawInfo? DebugDrawLineContentBoundsInfo { get; set; }
 
+        public TextEditorDebugBoundsDrawInfo? DebugDrawLineOutlineBoundsInfo { get; set; }
+
+        public TextEditorDebugBoundsDrawInfo? DebugDrawParagraphContentBoundsInfo { get; set; }
+        public TextEditorDebugBoundsDrawInfo? DebugDrawParagraphOutlineBoundsInfo { get; set; }
+        public TextEditorDebugBoundsDrawInfo? DebugDrawDocumentContentBoundsInfo { get; set; }
+        public TextEditorDebugBoundsDrawInfo? DebugDrawDocumentOutlineBoundsInfo { get; set; }
+
         // 现在的赋值属性太多了，不如交给 Demo 来设置，让设置能够和调试界面相同
         ///// <summary>
         ///// 在进入调试模式下，显示所有的调试边框。如 <see cref="IsInDebugMode"/> 不为 true 则不会生效
@@ -66,6 +73,11 @@ namespace LightTextEditorPlus.Diagnostics
             DebugDrawCharBoundsInfo = null;
             DebugDrawCharSpanBoundsInfo = null;
             DebugDrawLineContentBoundsInfo = null;
+            DebugDrawLineOutlineBoundsInfo = null;
+            DebugDrawParagraphContentBoundsInfo = null;
+            DebugDrawParagraphOutlineBoundsInfo = null;
+            DebugDrawDocumentContentBoundsInfo = null;
+            DebugDrawDocumentOutlineBoundsInfo = null;
 
             if (IsInDebugMode)
             {

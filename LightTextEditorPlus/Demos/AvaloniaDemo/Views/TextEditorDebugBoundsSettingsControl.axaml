@@ -5,14 +5,31 @@
              xmlns:controls="clr-namespace:LightTextEditorPlus.AvaloniaDemo.Views.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="LightTextEditorPlus.AvaloniaDemo.Views.TextEditorDebugBoundsSettingsControl">
-  <StackPanel>
-    <controls:FillAndStrokeSettings x:Name="CharBoundsSettings" Margin="10,10,10,10" HeaderText="字符范围"/>
-    <controls:FillAndStrokeSettings x:Name="CharSpanBoundsSettings" Margin="10,10,10,10" HeaderText="连续字符范围"/>
-    <controls:FillAndStrokeSettings x:Name="LineContentBoundsSettings" Margin="10,10,10,10" HeaderText="行内容范围"/>
-    <StackPanel Orientation="Horizontal">
-        <Button x:Name="ResetButton" Margin="10,10,10,10" Content="重置默认值" Click="ResetButton_OnClick"></Button>
-        <Button x:Name="UpdateButton" Margin="10,10,10,10" Content="刷新" Click="UpdateButton_OnClick"></Button>
-    </StackPanel>
+  <Grid RowDefinitions="*,Auto">
+    <ScrollViewer>
 
-  </StackPanel>
+      <StackPanel>
+        <controls:FillAndStrokeSettings x:Name="CharBoundsSettings" Margin="10,10,10,10" HeaderText="字符范围" />
+        <controls:FillAndStrokeSettings x:Name="CharSpanBoundsSettings" Margin="10,10,10,10"
+                                        HeaderText="连续字符范围" />
+        <controls:FillAndStrokeSettings x:Name="LineContentBoundsSettings" Margin="10,10,10,10"
+                                        HeaderText="行内容范围" />
+        <controls:FillAndStrokeSettings x:Name="LineOutlineBoundsSettings" Margin="10,10,10,10"
+                                        HeaderText="行外接范围" />
+        <controls:FillAndStrokeSettings x:Name="ParagraphContentBoundsSettings" Margin="10,10,10,10"
+                                        HeaderText="段落内容范围" />
+        <controls:FillAndStrokeSettings x:Name="ParagraphOutlineBoundsSettings" Margin="10,10,10,10"
+                                        HeaderText="段落外接范围" />
+        <controls:FillAndStrokeSettings x:Name="DocumentContentBoundsSettings" Margin="10,10,10,10"
+                                        HeaderText="文档内容范围" />
+        <controls:FillAndStrokeSettings x:Name="DocumentOutlineBoundsSettings" Margin="10,10,10,10"
+                                        HeaderText="文档外接范围" />
+      </StackPanel>
+    </ScrollViewer>
+
+    <StackPanel Grid.Row="1" Orientation="Horizontal">
+      <Button x:Name="ResetButton" Margin="10,10,10,10" Content="重置默认值" Click="ResetButton_OnClick"></Button>
+      <Button x:Name="UpdateButton" Margin="10,10,10,10" Content="刷新" Click="UpdateButton_OnClick"></Button>
+    </StackPanel>
+  </Grid>
 </UserControl>
