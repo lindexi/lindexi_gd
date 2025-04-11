@@ -25,8 +25,8 @@ abstract class BaseSkiaTextRender : IDisposable
             DebugDrawLineOutlineBoundsInfo = debugConfiguration.DebugDrawLineOutlineBoundsInfo;
             DebugDrawParagraphContentBoundsInfo = debugConfiguration.DebugDrawParagraphContentBoundsInfo;
             DebugDrawParagraphOutlineBoundsInfo = debugConfiguration.DebugDrawParagraphOutlineBoundsInfo;
-            DebugDrawDocumentContentBoundsInfo = debugConfiguration.DebugDrawDocumentContentBoundsInfo;
-            DebugDrawDocumentOutlineBoundsInfo = debugConfiguration.DebugDrawDocumentOutlineBoundsInfo;
+            //DebugDrawDocumentContentBoundsInfo = debugConfiguration.DebugDrawDocumentContentBoundsInfo;
+            //DebugDrawDocumentOutlineBoundsInfo = debugConfiguration.DebugDrawDocumentOutlineBoundsInfo;
         }
     }
 
@@ -36,8 +36,8 @@ abstract class BaseSkiaTextRender : IDisposable
     protected TextEditorDebugBoundsDrawInfo? DebugDrawLineOutlineBoundsInfo { get; private set; }
     protected TextEditorDebugBoundsDrawInfo? DebugDrawParagraphContentBoundsInfo { get; private set; }
     protected TextEditorDebugBoundsDrawInfo? DebugDrawParagraphOutlineBoundsInfo { get; private set; }
-    protected TextEditorDebugBoundsDrawInfo? DebugDrawDocumentContentBoundsInfo { get; private set; }
-    protected TextEditorDebugBoundsDrawInfo? DebugDrawDocumentOutlineBoundsInfo { get; private set; }
+    //protected TextEditorDebugBoundsDrawInfo? DebugDrawDocumentContentBoundsInfo { get; private set; }
+    //protected TextEditorDebugBoundsDrawInfo? DebugDrawDocumentOutlineBoundsInfo { get; private set; }
 
     protected SkiaTextEditor TextEditor { get; }
 
@@ -68,6 +68,27 @@ abstract class BaseSkiaTextRender : IDisposable
             float x = charSpanBounds.Left;
             float width = charSpanBounds.Width;
             canvas.DrawLine(x, y, x + width, y, debugPaint);
+        }
+    }
+
+    public void DrawDebugBoundsInfo(SKCanvas canvas, SKRect bounds, TextEditorDebugBoundsDrawInfo? drawInfo)
+    {
+        if (drawInfo is null)
+        {
+            return;
+        }
+        if (drawInfo.StrokeColor is { } strokeColor && drawInfo.StrokeThickness > 0)
+        {
+            SKPaint debugPaint = GetDebugPaint(strokeColor);
+            debugPaint.StrokeWidth = drawInfo.StrokeThickness;
+            canvas.DrawRect(bounds, debugPaint);
+        }
+
+        if (drawInfo.FillColor is { } fillColor)
+        {
+            SKPaint debugPaint = GetDebugPaint(fillColor);
+            debugPaint.Style = SKPaintStyle.Fill;
+            canvas.DrawRect(bounds, debugPaint);
         }
     }
 

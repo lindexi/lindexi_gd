@@ -8,6 +8,7 @@ using LightTextEditorPlus.Core.Diagnostics;
 using LightTextEditorPlus.Core.Document;
 using LightTextEditorPlus.Core.Events;
 using LightTextEditorPlus.Core.Exceptions;
+using LightTextEditorPlus.Core.Layout;
 using LightTextEditorPlus.Core.Platform;
 using LightTextEditorPlus.Core.Rendering;
 using SkiaSharp;
@@ -135,7 +136,8 @@ class RenderManager
             _currentRender = null;
         }
 
-        TextRect documentLayoutBounds = renderInfoProvider.GetDocumentLayoutBounds().DocumentOutlineBounds;
+        DocumentLayoutBounds layoutBounds = renderInfoProvider.GetDocumentLayoutBounds();
+        TextRect documentLayoutBounds = layoutBounds.DocumentOutlineBounds;
 
         var textWidth = (float) documentLayoutBounds.Width;
         var textHeight = (float) documentLayoutBounds.Height;
@@ -168,6 +170,14 @@ class RenderManager
                 RenderBounds = renderBounds
             });
             renderBounds = skiaTextRenderResult.RenderBounds;
+
+            SkiaTextEditorDebugConfiguration skiaTextEditorDebugConfiguration = TextEditor.DebugConfiguration;
+            if (skiaTextEditorDebugConfiguration.IsInDebugMode)
+            {
+                textRender.DrawDebugBoundsInfo(canvas, renderBounds.ToSKRect(), skiaTextEditorDebugConfiguration.DebugDrawDocumentRenderBoundsInfo);
+                textRender.DrawDebugBoundsInfo(canvas, layoutBounds.DocumentContentBounds.ToSKRect(), skiaTextEditorDebugConfiguration.DebugDrawDocumentContentBoundsInfo);
+                textRender.DrawDebugBoundsInfo(canvas, layoutBounds.DocumentOutlineBounds.ToSKRect(), skiaTextEditorDebugConfiguration.DebugDrawDocumentOutlineBoundsInfo);
+            }
         }
 
         SKPicture skPicture = skPictureRecorder.EndRecording();

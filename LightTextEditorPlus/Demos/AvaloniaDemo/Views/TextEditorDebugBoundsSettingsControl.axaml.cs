@@ -34,6 +34,12 @@ public partial class TextEditorDebugBoundsSettingsControl : UserControl
 
         LineContentBoundsSettings.StrokeColor = "#5000FF00";
         LineContentBoundsSettings.StrokeThickness = 1;
+
+        DocumentRenderBoundsSettings.StrokeColor = "#FF565656";
+        DocumentRenderBoundsSettings.StrokeThickness = 0;// 默认不给显示
+
+        DocumentContentBoundsSettings.FillColor = "#56CA2AAA";
+        DocumentOutlineBoundsSettings.FillColor = "#506C0CCC";
     }
 
     private void ResetButton_OnClick(object? sender, RoutedEventArgs e)
@@ -66,6 +72,7 @@ public partial class TextEditorDebugBoundsSettingsControl : UserControl
         skiaTextEditorDebugConfiguration.DebugDrawLineOutlineBoundsInfo = ToDrawInfo(LineOutlineBoundsSettings);
         skiaTextEditorDebugConfiguration.DebugDrawParagraphContentBoundsInfo = ToDrawInfo(ParagraphContentBoundsSettings);
         skiaTextEditorDebugConfiguration.DebugDrawParagraphOutlineBoundsInfo = ToDrawInfo(ParagraphOutlineBoundsSettings);
+        skiaTextEditorDebugConfiguration.DebugDrawDocumentRenderBoundsInfo = ToDrawInfo(DocumentRenderBoundsSettings);
         skiaTextEditorDebugConfiguration.DebugDrawDocumentContentBoundsInfo = ToDrawInfo(DocumentContentBoundsSettings);
         skiaTextEditorDebugConfiguration.DebugDrawDocumentOutlineBoundsInfo = ToDrawInfo(DocumentOutlineBoundsSettings);
 
