@@ -21,7 +21,7 @@
     <bunaylenerkeLailurlairfea:StringToColorBrushValueConverter x:Key="ColorToHexConverter"/>
   </UserControl.Resources>
   <StackPanel>
-      <CheckBox IsChecked="{Binding #Root.IsEnabled,Mode=TwoWay}">
+      <CheckBox IsChecked="{Binding #Root.IsSettingEnable,Mode=TwoWay}">
           <TextBlock FontSize="20" FontWeight="Bold" Text="{Binding #Root.HeaderText}"></TextBlock>
       </CheckBox>
 
