@@ -32,6 +32,8 @@ class VerticalSkiaTextRender : BaseSkiaTextRender
 
         Debug.Assert(!renderInfoProvider.IsDirty);
 
+        ArrangingType arrangingType = RenderManager.TextEditor.TextEditorCore.ArrangingType;
+
         foreach (ParagraphRenderInfo paragraphRenderInfo in renderInfoProvider.GetParagraphRenderInfoList())
         {
             foreach (ParagraphLineRenderInfo lineInfo in paragraphRenderInfo.GetLineRenderInfoList())
@@ -63,6 +65,8 @@ class VerticalSkiaTextRender : BaseSkiaTextRender
 
                         (double x, double y) = charData.GetStartPoint();
 
+
+
                         var charBounds = new TextRect(x, y, frameSize.Width, frameSize.Height);
                         DrawDebugBounds(charBounds, DebugDrawCharBoundsColor);
                         
@@ -75,6 +79,8 @@ class VerticalSkiaTextRender : BaseSkiaTextRender
                     using SKTextBlob skTextBlob = SKTextBlob.CreatePositioned(charSpan, skFont, positionList.AsSpan());
                     canvas.DrawText(skTextBlob, 0, 0, textRenderSKPaint);
                 }
+
+                DrawDebugBounds(new TextRect(argument.StartPoint, argument.LineSize.SwapWidthAndHeight()), DebugDrawLineBoundsColor);
             }
 
             void DrawDebugBounds(TextRect bounds, SKColor? color)
