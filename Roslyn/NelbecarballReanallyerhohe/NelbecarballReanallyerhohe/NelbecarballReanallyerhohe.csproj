@@ -6,17 +6,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
-    <!-- 不要 BanAPIFileName 属性，直接在文件标记 -->
-    <!-- <BanAPIFileName>BanList.txt</BanAPIFileName> -->
+    <BanAPIFileName>BanList.txt</BanAPIFileName>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- 不要 BanAPIFileName 属性，自然也就不要 CompilerVisibleProperty 配置 -->
-    <!-- <CompilerVisibleProperty Include="BanAPIFileName" /> -->
+    <CompilerVisibleProperty Include="BanAPIFileName" />
   </ItemGroup>
 
   <ItemGroup>
-    <AdditionalFiles Include="BanList.txt" IsBanAPIFileName="True"/>
+    <AdditionalFiles Include="BanList.txt" />
   </ItemGroup>
 
   <ItemGroup>

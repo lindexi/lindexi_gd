@@ -270,7 +270,7 @@ public class FooIncrementalGenerator : IIncrementalGenerator
                                 title: Localize(nameof(Resources.Kaw001)),
                                 messageFormat: Localize(nameof(Resources.Kaw001_Message)),
                                 category: "FooCompiler",
-                                DiagnosticSeverity.Error,
+                                DiagnosticSeverity.Warning,
                                 isEnabledByDefault: true
                             );
                             // 无法从 {0} 类型中找到构造函数，期望构造函数的只有一个参数，且参数类型为 {1}
