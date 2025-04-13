@@ -6,7 +6,7 @@ using MCPSharp;
 
 using Microsoft.Extensions.AI;
 
-_ =  new ModelContextProtocolTest().RunAsync();
+await new ModelContextProtocolTest().RunAsync();
 
 //MCPClient client = new("AIClient", "1.0", "path/to/mcp/server");
 //IList<AIFunction> functions = await client.GetFunctionsAsync();
