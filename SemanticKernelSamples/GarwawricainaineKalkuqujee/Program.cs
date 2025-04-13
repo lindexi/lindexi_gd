@@ -28,4 +28,8 @@ foreach (AIFunction function in functions)
             }
         }
     }
+    else
+    {
+        var result = await function.InvokeAsync();
+    }
 }
