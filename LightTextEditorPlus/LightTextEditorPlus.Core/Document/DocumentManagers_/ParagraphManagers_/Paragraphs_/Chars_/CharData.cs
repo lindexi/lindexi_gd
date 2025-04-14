@@ -114,9 +114,19 @@ public sealed class CharData
     }
 
     /// <summary>
+    /// 清除字符数据
+    /// </summary>
+    internal void ClearCharDataInfo()
+    {
+        _frameSize = null;
+        Baseline = double.NaN;
+        FaceSize = TextSize.Invalid;
+    }
+
+    /// <summary>
     /// 基线，相对于字符的左上角，字符坐标系。即无论这个字符放在哪一行哪一段，这个字符的基线都是一样的
     /// </summary>
-    public double Baseline { private set; get; }
+    public double Baseline { private set; get; } = double.NaN;
 
     /// <summary>
     /// FrameSize 尺寸，即字外框尺寸。文字外框尺寸
