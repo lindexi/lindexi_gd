@@ -76,7 +76,13 @@ abstract class ArrangingLayoutProvider
         //     - 垂直对齐的下对齐、居中对齐等
 
         IReadOnlyList<ParagraphData> paragraphList = updateLayoutContext.InternalParagraphList;
-        Debug.Assert(paragraphList.Count > 0, "获取到的段落，即使空文本也会存在一段");
+        Debug.Assert(paragraphList.Count > 0, "获取到的段落只有 0 段，即使空文本也会存在一段");
+
+        bool shouldClearCharSize = updateLayoutContext.CurrentConfiguration.ShouldClearCharSizeForArrangingTypeChanged;
+        if (shouldClearCharSize)
+        {
+            ClearAllCharDataInfo(paragraphList);
+        }
 
         // 01 获取需要更新布局段落的逻辑
         FirstDirtyParagraphInfo firstDirtyParagraphInfo = GetFirstDirtyParagraph(paragraphList, updateLayoutContext);
@@ -91,6 +97,11 @@ abstract class ArrangingLayoutProvider
         if (IsInDebugMode)
         {
             // 进入一些校验逻辑
+            if (shouldClearCharSize && firstDirtyParagraphInfo.FirstDirtyParagraphIndex.Index != 0)
+            {
+                throw new TextEditorInnerDebugException($"要求清理全部字符信息时，必定是全量更新");
+            }
+
             EnsureFinishLayoutCompletedInDebugMode();
         }
 
@@ -651,4 +662,27 @@ abstract class ArrangingLayoutProvider
     }
 
     #endregion 通用辅助方法
+
+    /// <summary>
+    /// 清理所有的字符数据
+    /// </summary>
+    /// <param name="paragraphList"></param>
+    private void ClearAllCharDataInfo(IReadOnlyList<ParagraphData> paragraphList)
+    {
+        foreach (ParagraphData paragraphData in paragraphList)
+        {
+            if (IsInDebugMode)
+            {
+                if (!paragraphData.IsDirty())
+                {
+                    throw new TextEditorInnerDebugException("清空全部的字符数据时，必然是段落脏的");
+                }
+            }
+
+            foreach (CharData charData in paragraphData.GetParagraphCharDataList())
+            {
+                charData.ClearCharDataInfo();
+            }
+        }
+    }
 }

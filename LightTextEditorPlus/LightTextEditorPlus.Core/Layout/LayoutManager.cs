@@ -23,7 +23,13 @@ class LayoutManager
         TextEditor = textEditor;
     }
 
+    /// <summary>
+    /// 下一次更新布局时的配置
+    /// </summary>
+    public UpdateLayoutConfiguration NextUpdateLayoutConfiguration { get; set; } = default;
+
     public TextEditorCore TextEditor { get; }
+
     // 由于 InternalLayoutCompleted 触发太快了，导致无法正确处理状态，因此决定将此事件干掉，换成在 TextEditorCore 进行统一处理
     //public event EventHandler? InternalLayoutCompleted;
 
@@ -46,9 +52,12 @@ class LayoutManager
     /// </summary>
     public void UpdateLayout()
     {
+        var currentConfiguration = NextUpdateLayoutConfiguration;
+        NextUpdateLayoutConfiguration = default; // 清空配置
+
         TextEditor.Logger.Log(new StartLayoutLogInfo());
         var arrangingLayoutProvider = ArrangingLayoutProvider;
-        var updateLayoutContext = new UpdateLayoutContext(this, arrangingLayoutProvider);
+        var updateLayoutContext = new UpdateLayoutContext(this, arrangingLayoutProvider, currentConfiguration);
 
         updateLayoutContext.RecordDebugLayoutInfo($"开始布局", LayoutDebugCategory.Document);
 

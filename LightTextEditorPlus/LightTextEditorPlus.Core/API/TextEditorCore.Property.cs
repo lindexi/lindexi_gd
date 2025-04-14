@@ -173,6 +173,12 @@ partial class TextEditorCore
             ArrangingTypeChanged?.Invoke(this,
                 new TextEditorValueChangeEventArgs<ArrangingType>(oldArrangingType, value));
 
+            // 变更布局方式，需要重新计算字符尺寸。按照现在的设计，横竖排不仅仅只是倒换宽高属性，里面的属性值也会发生变化，如高度需要加上计算的渲染高度，如 [WPF 探索 Skia 的竖排文本渲染的字符高度 - lindexi - 博客园](https://www.cnblogs.com/lindexi/p/18815810 )
+            _layoutManager.NextUpdateLayoutConfiguration = _layoutManager.NextUpdateLayoutConfiguration with
+            {
+                ShouldClearCharSizeForArrangingTypeChanged = true
+            };
+
             RequireDispatchReUpdateAllDocumentLayout("ArrangingType Changed");
         }
         get => _arrangingType;
