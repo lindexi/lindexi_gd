@@ -116,7 +116,7 @@ public class StringToColorBrushValueConverter : IValueConverter
     {
         if (value is string colorString)
         {
-            var color = ColorToHexConverter.ParseHexString(colorString, AlphaComponentPosition.Leading);
+            var color = HexTextToColorConverter.ParseHexString(colorString);
             if (color != null)
             {
                 return new SolidColorBrush(color.Value);

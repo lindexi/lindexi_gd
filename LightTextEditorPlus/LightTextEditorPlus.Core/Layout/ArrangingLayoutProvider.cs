@@ -60,7 +60,7 @@ abstract class ArrangingLayoutProvider
     /// </summary>
     /// <returns></returns>
     /// 入口方法
-    public DocumentLayoutResult UpdateLayout()
+    public DocumentLayoutResult UpdateLayout(UpdateLayoutContext updateLayoutContext)
     {
         // 布局逻辑：
         // - 01 获取需要更新布局段落的逻辑
@@ -74,9 +74,6 @@ abstract class ArrangingLayoutProvider
         //     - 行回溯布局
         //     - 水平对齐的右对齐、居中对齐等
         //     - 垂直对齐的下对齐、居中对齐等
-        var updateLayoutContext = new UpdateLayoutContext(this);
-
-        updateLayoutContext.RecordDebugLayoutInfo($"开始布局", LayoutDebugCategory.Document);
 
         IReadOnlyList<ParagraphData> paragraphList = updateLayoutContext.InternalParagraphList;
         Debug.Assert(paragraphList.Count > 0, "获取到的段落，即使空文本也会存在一段");
@@ -101,10 +98,7 @@ abstract class ArrangingLayoutProvider
         Debug.Assert(TextEditor.DocumentManager.ParagraphManager.GetParagraphList()
             .All(t => t.IsDirty() == false));
 
-        updateLayoutContext.RecordDebugLayoutInfo($"完成布局", LayoutDebugCategory.Document);
-        updateLayoutContext.SetLayoutCompleted();
-
-        return new DocumentLayoutResult(finalUpdateDocumentLayoutResult.LayoutBounds, updateLayoutContext);
+        return new DocumentLayoutResult(finalUpdateDocumentLayoutResult.LayoutBounds);
     }
 
     /// <summary>
