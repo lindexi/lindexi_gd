@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+锘縰sing Avalonia.Controls;
 using Avalonia.Controls.Converters;
 using Avalonia.Interactivity;
 using Avalonia.Skia;
@@ -36,7 +36,7 @@ public partial class TextEditorDebugBoundsSettingsControl : UserControl
         LineContentBoundsSettings.StrokeThickness = 1;
 
         DocumentRenderBoundsSettings.StrokeColor = "#FF565656";
-        DocumentRenderBoundsSettings.StrokeThickness = 0;// 默认不给显示
+        DocumentRenderBoundsSettings.StrokeThickness = 0;// 榛樿涓嶇粰鏄剧ず
 
         DocumentContentBoundsSettings.FillColor = "#56CA2AAA";
         DocumentOutlineBoundsSettings.FillColor = "#506C0CCC";

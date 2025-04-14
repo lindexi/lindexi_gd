@@ -1,4 +1,4 @@
-using LightTextEditorPlus.Core.Primitive;
+锘縰sing LightTextEditorPlus.Core.Primitive;
 
 using System;
 using System.Collections.Generic;
@@ -33,7 +33,7 @@ class VerticalArrangingLayoutProvider : HorizontalArrangingLayoutProvider
         var documentWidth = lineMaxWidth;
         if (!double.IsFinite(documentWidth))
         {
-            // 非有限宽度，则采用文档的宽度
+            // 闈炴湁闄愬搴︼紝鍒欓噰鐢ㄦ枃妗ｇ殑瀹藉害
             documentWidth = documentContentSize.Width;
         }
 

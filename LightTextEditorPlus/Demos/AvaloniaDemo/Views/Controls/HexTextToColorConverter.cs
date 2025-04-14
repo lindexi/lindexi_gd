@@ -1,4 +1,4 @@
-using System.Diagnostics;
+ï»¿using System.Diagnostics;
 using Avalonia.Media;
 
 namespace LightTextEditorPlus.AvaloniaDemo.Views.Controls;
@@ -24,11 +24,11 @@ public static class HexTextToColorConverter
         var colorStringLength = input.Length;
         if (startWithPoundSign) colorStringLength -= 1;
         int currentOffset = startWithPoundSign ? 1 : 0;
-        // ¿ÉÒÔ²ÉÓÃµÄ¸ñÊ½ÈçÏÂ
-        // #FFDFD991   8 ¸ö×Ö·û ´æÔÚ Alpha Í¨µÀ
-        // #DFD991     6 ¸ö×Ö·û
-        // #FD92       4 ¸ö×Ö·û ´æÔÚ Alpha Í¨µÀ
-        // #DAC        3 ¸ö×Ö·û
+        // å¯ä»¥é‡‡ç”¨çš„æ ¼å¼å¦‚ä¸‹
+        // #FFDFD991   8 ä¸ªå­—ç¬¦ å­˜åœ¨ Alpha é€šé“
+        // #DFD991     6 ä¸ªå­—ç¬¦
+        // #FD92       4 ä¸ªå­—ç¬¦ å­˜åœ¨ Alpha é€šé“
+        // #DAC        3 ä¸ªå­—ç¬¦
         if (colorStringLength == 8
             || colorStringLength == 6
             || colorStringLength == 4
@@ -39,8 +39,8 @@ public static class HexTextToColorConverter
             byte a;
 
             int readCount;
-            // #DFD991     6 ¸ö×Ö·û
-            // #FFDFD991   8 ¸ö×Ö·û ´æÔÚ Alpha Í¨µÀ
+            // #DFD991     6 ä¸ªå­—ç¬¦
+            // #FFDFD991   8 ä¸ªå­—ç¬¦ å­˜åœ¨ Alpha é€šé“
             //if (colorStringLength == 8 || colorStringLength == 6)
             if (colorStringLength > 5)
             {
@@ -87,7 +87,7 @@ public static class HexTextToColorConverter
 
     static (bool success, byte result) HexCharToNumber(string input, int offset, int readCount)
     {
-        Debug.Assert(readCount == 1 || readCount == 2, "ÒªÇó readCount Ö»ÄÜÊÇ 1 »òÕß 2 µÄÖµ£¬ÕâÊÇ¿ò¼ÜÏŞÖÆ£¬Òò´Ë²»×öÅĞ¶Ï");
+        Debug.Assert(readCount == 1 || readCount == 2, "è¦æ±‚ readCount åªèƒ½æ˜¯ 1 æˆ–è€… 2 çš„å€¼ï¼Œè¿™æ˜¯æ¡†æ¶é™åˆ¶ï¼Œå› æ­¤ä¸åšåˆ¤æ–­");
 
         byte result = 0;
 

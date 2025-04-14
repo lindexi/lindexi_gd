@@ -1,4 +1,4 @@
-using Avalonia;
+锘縰sing Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Converters;
 using Avalonia.Data;
@@ -23,7 +23,7 @@ public partial class FillAndStrokeSettings : UserControl
         get => IsSettingEnableCheckBox.IsChecked ?? true;
     }
 
-    // 遇到 CheckBox 无法双向绑定问题
+    // 閬囧埌 CheckBox 鏃犳硶鍙屽悜缁戝畾闂
     //public static readonly DirectProperty<FillAndStrokeSettings, bool?>
     //    IsSettingEnableProperty = AvaloniaProperty.RegisterDirect<FillAndStrokeSettings, bool?>
     //    (
