@@ -60,11 +60,6 @@ class LayoutManager
         {
             if (_arrangingLayoutProvider?.ArrangingType != TextEditor.ArrangingType)
             {
-                if (_arrangingLayoutProvider != null)
-                {
-                    // 清理所有字符的尺寸，因为横竖排的尺寸不一样
-                }
-
                 if (TextEditor.ArrangingType.IsHorizontal)
                 {
                     _arrangingLayoutProvider = new HorizontalArrangingLayoutProvider(this);
