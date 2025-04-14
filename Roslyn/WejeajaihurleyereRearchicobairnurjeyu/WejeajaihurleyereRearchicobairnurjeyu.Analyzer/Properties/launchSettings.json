@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "WejeajaihurleyereRearchicobairnurjeyu.Analyzer": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\WejeajaihurleyereRearchicobairnurjeyu\\WejeajaihurleyereRearchicobairnurjeyu.csproj"
+    }
+  }
+}
