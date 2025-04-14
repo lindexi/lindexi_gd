@@ -44,6 +44,42 @@ public class TextEditorPropertyTest
             Assert.AreEqual(2, updateLayoutCount);
             Assert.IsTrue(textEditorCore.IsDirty);
         });
+
+        "设置文本从竖排到横排，文本状态是脏的".Test(() =>
+        {
+            // Arrange
+            var testPlatformProvider = new TestPlatformProvider();
+            var updateLayoutCount = 0;
+            testPlatformProvider.RequireDispatchUpdateLayoutHandler = action =>
+            {
+                if (updateLayoutCount == 0)
+                {
+                    // 只有首次才进行布局，执行完布局之后，文本就不是脏的了
+                    // 预期第二次进入布局的原因是 ArrangingType 发生了变化，此时特意不进行布局，方便单元测试测量出文本的脏状态
+                    action();
+                }
+                updateLayoutCount++;
+            };
+
+            var textEditorCore = new TextEditorCore(testPlatformProvider)
+            {
+                ArrangingType = ArrangingType.Vertical
+            };
+            // 随便加一些文本
+            textEditorCore.AppendText(TestHelper.PlainLongNumberText);
+            // 此时将会触发一次布局，且布局之后文本就不是脏的了
+            Assert.AreEqual(1, updateLayoutCount);
+            Assert.IsFalse(textEditorCore.IsDirty);
+
+            // Action
+            // 设置文本从竖排到横排
+            textEditorCore.ArrangingType = ArrangingType.Horizontal;
+
+            // Assert
+            // 预期再次请求布局，且由于 RequireDispatchUpdateLayoutHandler 委托不执行布局，文本是脏的
+            Assert.AreEqual(2, updateLayoutCount);
+            Assert.IsTrue(textEditorCore.IsDirty);
+        });
     }
 
     [ContractTestCase]
