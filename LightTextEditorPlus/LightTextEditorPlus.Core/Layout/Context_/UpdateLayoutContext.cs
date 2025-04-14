@@ -20,8 +20,9 @@ namespace LightTextEditorPlus.Core.Layout;
 /// </summary>
 public class UpdateLayoutContext : ICharDataLayoutInfoSetter
 {
-    internal UpdateLayoutContext(ArrangingLayoutProvider arrangingLayoutProvider)
+    internal UpdateLayoutContext(LayoutManager layoutManager, ArrangingLayoutProvider arrangingLayoutProvider)
     {
+        LayoutManager = layoutManager;
         ArrangingLayoutProvider = arrangingLayoutProvider;
 
         IReadOnlyList<ParagraphData> paragraphList = TextEditor.DocumentManager.ParagraphManager.GetParagraphList();
@@ -39,12 +40,14 @@ public class UpdateLayoutContext : ICharDataLayoutInfoSetter
     /// </summary>
     internal IReadOnlyList<ParagraphData> InternalParagraphList { get; }
 
+    internal LayoutManager LayoutManager { get; }
+
     internal ArrangingLayoutProvider ArrangingLayoutProvider { get; }
 
     /// <summary>
     /// 文本编辑器
     /// </summary>
-    public TextEditorCore TextEditor => ArrangingLayoutProvider.TextEditor;
+    public TextEditorCore TextEditor => LayoutManager.TextEditor;
 
     /// <summary>
     /// 平台提供者

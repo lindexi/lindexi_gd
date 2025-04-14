@@ -47,9 +47,17 @@ class LayoutManager
     public void UpdateLayout()
     {
         TextEditor.Logger.Log(new StartLayoutLogInfo());
-        var result = ArrangingLayoutProvider.UpdateLayout();
+        var arrangingLayoutProvider = ArrangingLayoutProvider;
+        var updateLayoutContext = new UpdateLayoutContext(this, arrangingLayoutProvider);
+
+        updateLayoutContext.RecordDebugLayoutInfo($"开始布局", LayoutDebugCategory.Document);
+
+        var result = arrangingLayoutProvider.UpdateLayout(updateLayoutContext);
         DocumentLayoutBounds = result.LayoutBounds;
-        TextEditor.Logger.Log(new LayoutCompletedLogInfo(result));
+
+        updateLayoutContext.RecordDebugLayoutInfo($"完成布局", LayoutDebugCategory.Document);
+        updateLayoutContext.SetLayoutCompleted();
+        TextEditor.Logger.Log(new LayoutCompletedLogInfo(result, updateLayoutContext));
 
         //InternalLayoutCompleted?.Invoke(this, EventArgs.Empty);
     }
