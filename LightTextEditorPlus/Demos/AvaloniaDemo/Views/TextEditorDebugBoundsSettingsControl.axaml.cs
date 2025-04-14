@@ -91,13 +91,13 @@ public partial class TextEditorDebugBoundsSettingsControl : UserControl
             StrokeThickness = (float) settings.StrokeThickness
         };
 
-        var strokeColor = ColorToHexConverter.ParseHexString(settings.StrokeColor, AlphaComponentPosition.Leading);
+        var strokeColor = HexTextToColorConverter.ParseHexString(settings.StrokeColor);
 
         if (strokeColor is not null)
         {
             info.StrokeColor = strokeColor.Value.ToSKColor();
         }
-        var fillColor = ColorToHexConverter.ParseHexString(settings.FillColor, AlphaComponentPosition.Leading);
+        var fillColor = HexTextToColorConverter.ParseHexString(settings.FillColor);
         if (fillColor is not null)
         {
             info.FillColor = fillColor.Value.ToSKColor();
